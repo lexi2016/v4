@@ -1,0 +1,162 @@
+{
+  "A_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "http_status": 200,
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "actual_model_score_count": 0,
+  "actual_old_HK_cache_reader": {
+    "producer_called": false,
+    "reason": "HK_HISTORY_RESOLUTION_CACHE_PROOF_MISSING",
+    "status": "REJECTED",
+    "store_write_performed": false
+  },
+  "buy_gate_updated": false,
+  "canaries": [
+    {
+      "audit": {
+        "data_sha256": "99ce8f1625a86911a21f86bdb7d765635d3ca04776b459fc68d0219bc4c618fb",
+        "elapsed_seconds": 2.041,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20180102",
+      "usable": {
+        "data_sha256": "be0c9d74e65aff1c884548aaea886a00816614f0199147ff6d571da8a4cf3425",
+        "elapsed_seconds": 2.351,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "fc2466ed9a7bffce44986548bd226ce97a9b906e91dc5f517fb29b34df67d36d",
+        "elapsed_seconds": 2.148,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20230630",
+      "usable": {
+        "data_sha256": "4a73b06db22996b4c6b9e14ecbcecee60b959783918b6593c1aa01005109e774",
+        "elapsed_seconds": 2.13,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "91ce79858e27ddf4b6756ddafb644b0b7f27f745b25820693fd8fe5c620921d6",
+        "elapsed_seconds": 2.074,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260706",
+      "usable": {
+        "data_sha256": "959af3db14ddc89b93d9b65e3d2a062e9684cf37b7003d943b9548244ed27006",
+        "elapsed_seconds": 2.121,
+        "http_status": 200,
+        "quarantine_count": 1,
+        "row_count": 0
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "2691e0db28a21f32d388a6d8d2fde72b293ca85c447f4b84048cb647d7970a9c",
+        "elapsed_seconds": 2.099,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260722",
+      "usable": {
+        "data_sha256": "30e0606e0cb66e2463b8531b714f65b2afd4a2d02154258eb30a12c67e3f7d5b",
+        "elapsed_seconds": 2.134,
+        "http_status": 200,
+        "quarantine_count": 1,
+        "row_count": 0
+      }
+    },
+    {
+      "audit": {
+        "data_sha256": "2f84ec8acf3c1584a83f1eff9f38bd67610ede5cd4769e228643e5d3e3837b09",
+        "elapsed_seconds": 2.128,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260909",
+      "usable": {
+        "data_sha256": "3e2a10a888153798393bf4f536450c757ca66332be1aa1d516134a317ca9a63a",
+        "elapsed_seconds": 2.858,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1
+      }
+    }
+  ],
+  "candidate_reused_model_proof": "Independent PASS: unchanged scorer/model; HOLD/0score, units/PIT not upgraded",
+  "import_cache_receipt_sha256": "fe8af172ebffe04f48e4946c1e02c2fb9b066638bccf3c4411283565d9a0e935",
+  "invalid_http_statuses": [
+    422,
+    422,
+    422,
+    422
+  ],
+  "lifecycle_checks": {
+    "API_graceful_shutdown_and_new_start": true,
+    "old_API_PID": 55027,
+    "old_scheduler_PID": 49678,
+    "scheduler_DAEMON_STOPPED_and_DAEMON_READY": true,
+    "scheduler_PID_changed": true
+  },
+  "model_reason": "HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT",
+  "model_status": "HOLD",
+  "observed_at": "2026-10-15T07:51:40.824188+00:00",
+  "orders_sent": false,
+  "owner_pointer_sha256": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+  "production_allowed": false,
+  "raw_market_values_exported": false,
+  "research_only": true,
+  "services": {
+    "api": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app",
+      "pid": 57545,
+      "plist_sha256": "58600f07692b1ba9278425a3255f7b2a0a04f7315ba22b599c96e0a0b72886bb",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app",
+        "V35_RELEASE_ID": "hk-history-adjudication-api-20261015-r4",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "56acf149198ff92fb9f112e18d9259e5bc77af9746c8a79062806118c773b17a",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+        "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research"
+      }
+    },
+    "scheduler": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/app",
+      "pid": 57547,
+      "plist_sha256": "0c20b4cfa5b8ceeed298217ebebb6791ab604f0398aedeec98dd884df685df36",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/app",
+        "V35_RELEASE_ID": "hk-history-adjudication-scheduler-20261015-r3",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "5908c86a846bd00789f0de91e46376a6f53136206f711f263e37be7eba49a741",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+        "V4_MANAGER_MATERIALIZER_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app",
+        "V4_MANAGER_MATERIALIZER_SHA256": "3451d6fbf5f82570772c81b027f6cd314a601292eda78cc350f840616b84d6a1",
+        "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research"
+      }
+    }
+  },
+  "status": "WRITER_ONLINE_PASS_PENDING_INDEPENDENT_REVIEW"
+}

@@ -1,0 +1,31 @@
+{
+  "candidate_manifest_sha256": {
+    "api": "56acf149198ff92fb9f112e18d9259e5bc77af9746c8a79062806118c773b17a",
+    "materializer": "4b5fd6117fcda6dfd82c27776cbe5c3d540637502a19ff2e73821a370ed6b682",
+    "reviewcore": "be0da2b0396f0b4869045548949943a766aa4782ba27db47b32639cb7f265dc9",
+    "scheduler": "5908c86a846bd00789f0de91e46376a6f53136206f711f263e37be7eba49a741",
+    "shared": "a930f63cebf5d0909b13b1f4d8d49891058123c9cf13dc37e3540b22e8d89de9"
+  },
+  "findings": [],
+  "independent_affected_tests_passed": 13,
+  "observed_at": "2026-10-15T07:45:34Z",
+  "online_verdict": "NOT_YET_RUN",
+  "reused_checks": [
+    "previous29tests+5subtests",
+    "30341zero-loss partition",
+    "real5keys+4invalid",
+    "original10files",
+    "A frozen control",
+    "model HOLD/0score"
+  ],
+  "reviewer": "/root/hk_live_review_61",
+  "reviewer_file_writes": 0,
+  "scope": "Inactive candidates; bounded R1 P2 fix and actual-base rebind",
+  "source": "Parent-provided independent review facts",
+  "statuses": [
+    "REVIEWED",
+    "TESTED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "verdict": "PASS"
+}

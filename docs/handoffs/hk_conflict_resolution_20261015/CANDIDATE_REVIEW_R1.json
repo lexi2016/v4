@@ -1,0 +1,126 @@
+{
+  "findings": [
+    {
+      "issue": "HK status READY and exact verified row code/rank projection were not enforced",
+      "priority": "P2",
+      "reproductions": [
+        "A READY + HK PARTIAL with100unique legitimate source hashes was incorrectly READY",
+        "A READY + cached HK codes101..200 with verified rows1..100 and same source hashes was incorrectly READY"
+      ],
+      "surface": "actual scheduler _verified_formal_pool_reuse"
+    }
+  ],
+  "other_passed_checks": [
+    "29tests+5subtests",
+    "5candidate inventories/non-deltas",
+    "30341ledger partition",
+    "5real keys+4invalid",
+    "A control unchanged",
+    "original10files unchanged",
+    "model HOLD/0score"
+  ],
+  "other_scope_verdict": "PASS_REUSABLE",
+  "prior_candidate_roots": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r3/app",
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r1/app",
+      "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r3",
+      "manifest_sha256": "f80bb393e0693fe7d5cb3dd2fa01121dabfe95f5b00d3eb5e47a8cf468d8fdc1",
+      "verification": {
+        "active_api_plist_sha256": "f3f80c20ade836daf2cd43819475e092e15eb2a76609b82bf3626a76d1561d43",
+        "active_pointer": "base",
+        "base": {
+          "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r1/app",
+          "application_inventory_entry_count": 1198,
+          "application_inventory_sha256": "f12c8d8d8e719497cb532206246109fc94fb1bc32cd7c0c7d3685d1ff0e54ebe",
+          "release_id": "hk-auto-execution-audit-api-20261015-r1",
+          "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r1/release-manifest.json",
+          "release_manifest_sha256": "85021b27d9bd930d2b4ade741206d4c92edefd65f2f05e7c7f5c78b5c05ce081",
+          "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r1"
+        },
+        "candidate": {
+          "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r3/app",
+          "application_inventory_entry_count": 1200,
+          "application_inventory_sha256": "28ba47d41293f50eccde4ca02d19784120b99770a32eb1530de94f2b72ee6d14",
+          "module_contract_sha256": null,
+          "module_role": "gateway",
+          "release_id": "hk-history-adjudication-api-20261015-r3",
+          "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r3/release-manifest.json",
+          "release_manifest_sha256": "f80bb393e0693fe7d5cb3dd2fa01121dabfe95f5b00d3eb5e47a8cf468d8fdc1",
+          "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r3"
+        },
+        "delta_paths": [
+          "domains/manager_close_rebound.py",
+          "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+          "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+          "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+          "v3_shared_data/shared_data/hk_0_2.py",
+          "v3_shared_data/shared_data/hk_d1_evidence.py",
+          "v3_shared_data/shared_data/hk_history_resolution.py",
+          "v4/hk_research_history.py",
+          "v4/manager_research/workspace_plan.py",
+          "v4/manager_workbench/api.py",
+          "v4/manager_workbench/inputs/native.py",
+          "v4/manager_workbench/inputs/source_bindings.py"
+        ],
+        "delta_receipt_sha256": "926215313242009493a803df1a4567444c30a8d33da166db308189f6e439a1e1",
+        "non_delta_active_release_bytes_preserved": true,
+        "non_delta_entry_count": 1188,
+        "non_delta_inventory_sha256": "f88e976431d4493771f3c73b1860331526ea7d8dde44e752c61631cbded03f5e",
+        "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+        "status": "PASS"
+      }
+    },
+    "materializer": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app",
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260929-manager-pytdx-close-r1/app",
+      "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1",
+      "delta_paths": [
+        "ops/materialize_manager_close_discovery.py"
+      ],
+      "inventory_sha256": "b45ac930873f0c2a84ee188c5ab740ca1036c627f4a7d69a4e8a5ed709c93aed",
+      "manifest_sha256": "4b5fd6117fcda6dfd82c27776cbe5c3d540637502a19ff2e73821a370ed6b682",
+      "non_delta_count": 890
+    },
+    "reviewcore": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app",
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.review-core.local/app",
+      "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1",
+      "delta_paths": [
+        "review_core/hk_sources.py"
+      ],
+      "inventory_sha256": "6f65a9299fe79d67032a88363db8b88d0246820065cc9e6925796e2b208f19e3",
+      "manifest_sha256": "be0da2b0396f0b4869045548949943a766aa4782ba27db47b32639cb7f265dc9",
+      "non_delta_count": 72
+    },
+    "scheduler": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r2/app",
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-pool-fupan-isolation-20261015-r1/app",
+      "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r2",
+      "delta_paths": [
+        "infrastructure/scheduling/executor_registry_preselection.py"
+      ],
+      "inventory_sha256": "524fa0f185785a9cfa1f4fddf800907fe903253705d62c4ad097f107eaa9a5c4",
+      "manifest_sha256": "ddc731032e96629dae98b54e82d309f888f8fcdbeab7da623a2904712883a237",
+      "non_delta_count": 851
+    },
+    "shared": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+      "base_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/morning-upstream-time-20261015-r2/app/upstreams/v3_shared_data",
+      "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3",
+      "delta_paths": [
+        "shared_data/hk_0_2.py",
+        "shared_data/hk_d1_evidence.py",
+        "shared_data/hk_history_resolution.py"
+      ],
+      "inventory_sha256": "aa6ded7e969f7c0927ce6ae5fd209fd26b6e2d6db4b0f06e311e5b7f23771cc7",
+      "manifest_sha256": "a930f63cebf5d0909b13b1f4d8d49891058123c9cf13dc37e3540b22e8d89de9",
+      "non_delta_count": 71
+    }
+  },
+  "prior_final_receipt_sha256": "c95aaf8db96ec160bb93a59559cce9c6f2a1773c449881dde403c3daed0aa88a",
+  "prior_test_receipt_sha256": "bec56e1250ad26336a97c454d2508e492c0731017b6c659eaf16f6ba9111a7bd",
+  "reviewer": "/root/hk_live_review_61",
+  "source": "Parent-provided independent Phase2 concentrated review verdict",
+  "verdict": "FAIL"
+}

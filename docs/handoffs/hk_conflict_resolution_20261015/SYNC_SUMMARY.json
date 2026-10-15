@@ -1,0 +1,322 @@
+{
+  "Git_status": "SEPARATE_TRANSPORT_RECEIPT_PENDING_REMOTE_READBACK",
+  "NATURAL_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "active_owner_pointer_installed": true,
+  "actual_API_PID": 57545,
+  "actual_model_scores": 0,
+  "actual_scheduler_PID": 57547,
+  "adjustment": "UNKNOWN",
+  "baseline_remote_commit": "74c24bb3238727a5e8322347b14ac94dd85de14f",
+  "baseline_remote_tree": "78e07ae93533de4f3b68a1d4e88abd96ab7d1174",
+  "buy_gate_updated": false,
+  "candidate_status": "INDEPENDENT_R2_PASS",
+  "canonical_delivery_policy": "Exact actual-base HK patches plus source-only B/presel guard deltas. Preserve preexisting canonical structure; no whole-file upload of mixed dirty files.",
+  "canonical_existing_or_mixed_dirty_files_not_whole_uploaded": [
+    "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+    "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+    "v4/manager_workbench/api.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_research/workspace_plan.py",
+    "domains/manager_close_rebound.py",
+    "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+    "ops/materialize_manager_close_discovery.py",
+    "upstreams/review_core/hk_sources.py"
+  ],
+  "cleanup": {
+    "current_rollback_raw_excluded": true,
+    "method": "SAME_VOLUME_RENAME",
+    "moved_never_activated_roots": 7,
+    "total_file_bytes": 160389320
+  },
+  "excluded": [
+    "candidate_decisions.jsonl.gz",
+    "conflict_ledger.jsonl.gz",
+    "source_pins.json",
+    "EVIDENCE_INVENTORY.json",
+    "PROFILE_RECEIPT.json",
+    "canary_profile.json",
+    "actual plists",
+    "full release inventories/manifests",
+    "source_projection full files",
+    "market data/labels",
+    "state",
+    "credentials",
+    "venvs"
+  ],
+  "final_candidate_roots": {
+    "api": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4",
+    "materializer": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1",
+    "reviewcore": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1",
+    "scheduler": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3",
+    "shared": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3"
+  },
+  "git_status": "SEPARATE_TRANSPORT_RECEIPT_PENDING_REMOTE_READBACK",
+  "historical_PIT": "UNKNOWN",
+  "live_status": "INDEPENDENT_ONLINE_PASS",
+  "manager_observation": {
+    "PARTIAL_count_change_root_cause": "NOT_INVESTIGATED_OUTSIDE_SCOPE",
+    "all_manager_state_unchanged_claimed": false,
+    "healthy_jobs": 0,
+    "legacy_RUNNING_metadata_records": 7,
+    "legacy_RUNNING_metadata_unchanged": true,
+    "workbench_PARTIAL_at_cutover": 24,
+    "workbench_PARTIAL_at_review": 25,
+    "workbench_SUCCEEDED_at_review": 1
+  },
+  "model_status": "HOLD",
+  "orders_sent": false,
+  "production_allowed": false,
+  "raw_market_values_exported": false,
+  "source_baseline_commit_locally_present": false,
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "status": "INDEPENDENT_ONLINE_PASS_GIT_READBACK_PENDING",
+  "sync_candidates": [
+    {
+      "kind": "source_or_test",
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "sha256": "29133d5ae8a6afa9c3244370389272c6f3aea3599f6e87bc8b3a47eb050f5bfa",
+      "size_bytes": 18646
+    },
+    {
+      "kind": "source_or_test",
+      "path": "v4/hk_research_history.py",
+      "sha256": "2e4b920a7dafab981d22f8fe2c5062269425fa15335237776ae472cf898eff0b",
+      "size_bytes": 48737
+    },
+    {
+      "kind": "source_or_test",
+      "path": "tests/test_hk_history_resolution.py",
+      "sha256": "4fced843cf4ec6b7cac9cb118f5cbaa5babed4ad3d48249fa0be0c5a154c7d2d",
+      "size_bytes": 10658
+    },
+    {
+      "kind": "source_or_test",
+      "path": "tests/test_hk_history_resolution_consumers.py",
+      "sha256": "2d8ba8a8510df425d8567d5ad59c6579e6ebf5b73e56785e82f6ff4b49e31ba8",
+      "size_bytes": 21466
+    },
+    {
+      "kind": "source_or_test",
+      "path": "tests/test_hk_research_history.py",
+      "sha256": "8673841324af97b9a10660aa60a0070867278446703b438074a05fb787952f78",
+      "size_bytes": 22316
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/IMPLEMENTATION_SCOPE.md",
+      "sha256": "c89deb92d550d134a912d68b48527afc086e0ad1785d353294e43ed44d234694",
+      "size_bytes": 5873
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/PROFILE_REVIEW.json",
+      "sha256": "28ee2cbbe993b8cac0bca84b7b99046ca961b71b82f86c62c3ff2dc7eba11e47",
+      "size_bytes": 783
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/RESOLUTION_MANIFEST.json",
+      "sha256": "333c3a5a5a48ecefb20be6fcc5061f9504af3e3ecc6ec817f46bece538e375de",
+      "size_bytes": 1705
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ENFORCEMENT_RECEIPT.json",
+      "sha256": "73e659c8d61ca4866d047a808401c88d1f2848dfc77d93a20eeb3eb1af0b11a2",
+      "size_bytes": 9671
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/MODEL_IMPACT_RECEIPT.json",
+      "sha256": "a789fa2a7841c470c9cbeffc8097a0ed5eddbaeb9c28ecebc1d1484e4b189859",
+      "size_bytes": 1482
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ORIGINALS_AND_PARTITION_RECEIPT.json",
+      "sha256": "6232c098a3a0775a115290ddd24908d24f59e88c3c860770cdc54297287d5238",
+      "size_bytes": 335
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/PREACTIVATION_BINDINGS.json",
+      "sha256": "87cf06340f329e9e1be382eaf71e65514929c039e177275ff8262794daeea8ae",
+      "size_bytes": 3616
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/TARGETED_TEST_RECEIPT.json",
+      "sha256": "fb6ab3f38d402c0757a22173ccb70bb8f3c06a4d38666245666e4dfbb2001220",
+      "size_bytes": 1665
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/PUBLICATION_RECEIPT.json",
+      "sha256": "8bac985d698a1733aadc56c34a1a339d917b81308b8e84e76a695cf041b06924",
+      "size_bytes": 21104
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/FINAL_RECEIPT.json",
+      "sha256": "a20514a3b017959621c6e19a0cda92ca2fee13df863a8541cd6553d6a046692c",
+      "size_bytes": 17644
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ROLLBACK.md",
+      "sha256": "adc065e6a4082c5255cd42d52831ece61703210dbca00ee42e87a85885ea88a7",
+      "size_bytes": 2101
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/BOUNDED_FAILURES.json",
+      "sha256": "0f8c09062646f1f7b3d0872b759c7244752fbb7e1dd947977e325150f2a8ad14",
+      "size_bytes": 1300
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/SUPERSEDED_CANDIDATES.json",
+      "sha256": "1a0eff603a1be796e8bc2e13c8e3974247b207181d8a8923c710443ae4d270d4",
+      "size_bytes": 4484
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/API_DELTA.patch",
+      "sha256": "090212c93eceb517f9aef08eea36906cd05a03fac46b2088bd78c9693bedfef6",
+      "size_bytes": 64749
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/SHARED_DELTA.patch",
+      "sha256": "1f0f2d73e99163867c78bcf631706552961bd422632de346abc06e42542542f8",
+      "size_bytes": 24950
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/SCHEDULER_DELTA.patch",
+      "sha256": "ac1bf40c3432d08487e40470bc6e54cda1c57d06d01175457842bd3aec5d2ecc",
+      "size_bytes": 5437
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/MATERIALIZER_DELTA.patch",
+      "sha256": "65a33017ea2d01e68002c879aa8d53e3fc1dd83d9d4991ea46c6ba9b31b1f888",
+      "size_bytes": 4103
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/REVIEWCORE_DELTA.patch",
+      "sha256": "ccbe041003fd2d61cb41f0b16f16f2b7a92927e9ad326e4bce0d32487982be87",
+      "size_bytes": 1559
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/CANONICAL_B_READER_DELTA.patch",
+      "sha256": "1617697d70c7b34bd3df5547ac89251280e3bce1bd5d5164275f5bfc8d6ef8a5",
+      "size_bytes": 888
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/CANONICAL_PRESELECTION_DELTA.patch",
+      "sha256": "ba7a8ac9a4e825fc9a6464767a23d7c5887171d94e6cf9be6e1dc066b8ef7858",
+      "size_bytes": 1880
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/build_candidates.py",
+      "sha256": "08b5a88ebe22ec7a63563f9bc0b9b732e6c05f390cd194d42b5c758dcede9ca6",
+      "size_bytes": 9429
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/evaluate_candidates.py",
+      "sha256": "0dd9ee7142a8f90906451540cc2931baf41dd62eae2e12747761c7e2c62b5fb6",
+      "size_bytes": 8351
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/evaluate_model.py",
+      "sha256": "a0c169926cd390d40475d764ab12bda45ad6720e799b8ee3ee53249f310f92c8",
+      "size_bytes": 2625
+    },
+    {
+      "kind": "HK_delta_or_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/prepare_review.py",
+      "sha256": "2cb3155b84393c692e7b21d8068be92ce2ae98fb4b6b532a4269992250ac9ca6",
+      "size_bytes": 6070
+    },
+    {
+      "kind": "self_metadata_no_self_SHA",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/SYNC_SUMMARY.json"
+    },
+    {
+      "kind": "retained_independent_failure_or_previous_PASS_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/CANDIDATE_REVIEW_R1.json",
+      "sha256": "372bf485bcc9c305c86c576725b9b572072ad5f2ac02fe55c36785338f536312",
+      "size_bytes": 7621
+    },
+    {
+      "kind": "retained_independent_failure_or_previous_PASS_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/TARGETED_TEST_RECEIPT_PHASE2_R1.json",
+      "sha256": "bec56e1250ad26336a97c454d2508e492c0731017b6c659eaf16f6ba9111a7bd",
+      "size_bytes": 1791
+    },
+    {
+      "kind": "necessary_activation_or_online_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/CANDIDATE_REVIEW_R2.json",
+      "sha256": "9de51577c61c3c36a970b70d3a9082c50c1d12c4fe905ffcfeeb4e626d0756fe",
+      "size_bytes": 1083
+    },
+    {
+      "kind": "necessary_activation_or_online_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ACTIVATION_RECEIPT.json",
+      "sha256": "d4f6b2f00e337865ab75706e75b0995b540291e304c8a0522750eaf6e8d78555",
+      "size_bytes": 23396
+    },
+    {
+      "kind": "necessary_activation_or_online_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ONLINE_RECEIPT.json",
+      "sha256": "d0ba03459c0be6700030f380a8993c5a861c73c5701ae716262a7f26edb16171",
+      "size_bytes": 6968
+    },
+    {
+      "kind": "necessary_activation_or_online_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ONLINE_IMPORT_CACHE_RECEIPT.json",
+      "sha256": "fe8af172ebffe04f48e4946c1e02c2fb9b066638bccf3c4411283565d9a0e935",
+      "size_bytes": 5363
+    },
+    {
+      "kind": "necessary_activation_or_online_small_receipt",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/activate.py",
+      "sha256": "5b5c081705e8a4a3d9c9674f4f159a8664c88ea85bf794258c0c86384918e8db",
+      "size_bytes": 17789
+    },
+    {
+      "kind": "necessary_online_review_or_cleanup_metadata",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/ONLINE_REVIEW.json",
+      "sha256": "6e12d27fb8e824b83eac74041383710c8ffa9f96f7c000f18d44c24d80b3c5f6",
+      "size_bytes": 2326
+    },
+    {
+      "kind": "necessary_online_review_or_cleanup_metadata",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/CLEANUP_RECEIPT.json",
+      "sha256": "ff994e09ec02cb06e55330f07c478d9f586a3cd34efcf83bc3a83cc486c26146",
+      "size_bytes": 8327
+    },
+    {
+      "kind": "necessary_online_review_or_cleanup_metadata",
+      "path": "docs/handoffs/hk_conflict_resolution_20261015/cleanup_superseded.py",
+      "sha256": "ea9f389eb4aa2a2877e047fab4bf56bbd59837374aa48998388f10ca9c79ab7f",
+      "size_bytes": 5187
+    }
+  ],
+  "tests": {
+    "candidate_review": "R2_PASS",
+    "changed_scheduler_independent_passed": 13,
+    "online_review": "PASS",
+    "previous_checks": "INDEPENDENT_PASS_REUSED"
+  },
+  "units": "UNKNOWN"
+}

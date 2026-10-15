@@ -1,0 +1,16 @@
+--- a/upstreams/v3_shared_data/shared_data/hk_0_2.py
++++ b/upstreams/v3_shared_data/shared_data/hk_0_2.py
+@@ -272,6 +272,13 @@
+     if frame["code"].eq("").any():
+         raise StoreError("historical HK 0.2 source contains empty codes")
+     frame = frame.sort_values(["code", "date"], kind="mergesort").reset_index(drop=True)
++    policy = ResolutionPolicy(root_for_source(source))
++    if source_sha256 != policy.manifest['bindings']['B_sha256']:
++        raise StoreError('HK_HISTORY_RESOLUTION_UNBOUND_B_SOURCE')
++    frame = policy.guard_frame(frame, code_column='code', date_column='date',
++        source='B', required_fields=FIELDS, consumer='HK_B_PREFIX_FULL_SERIES_V1')
++    if frame.empty:
++        raise StoreError('HK_HISTORY_RESOLUTION_NO_B_RESEARCH_CODES')
+     return HistoricalHK02ResearchAsset(
+         source_path=source,
+         source_manifest_path=manifest_path,

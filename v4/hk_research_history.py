@@ -520,6 +520,8 @@ class HKResearchHistory:
         *,
         limit: int = 100,
         offset: int = 0,
+        _policy: Any = None,
+        required_fields: Sequence[str] = NUMERIC_FIELDS,
     ) -> dict[str, Any]:
         """Return a bounded symbol/date slice; C owns overlap, B adds B-only."""
         code = normalize_symbol(symbol)
@@ -589,6 +591,27 @@ class HKResearchHistory:
             if key not in selected_c:
                 result_rows.append(self._tagged_row("B", key, b_row, "B-only"))
         result_rows.sort(key=lambda row: (row["date"], row["symbol"]))
+        quarantine = []
+        if _policy is not None:
+            usable = []
+            for row in result_rows:
+                held = _policy.held_fields(row["symbol"], row["date"], required_fields, source=row["source"])
+                if held:
+                    quarantine.append(dict(symbol=row["symbol"], date=row["date"], fields=held,
+                                           reason="HK_HISTORY_FIELD_QUARANTINED", row_sha256=row["row_sha256"]))
+                    continue
+                row["raw_fields"] = {field:row["raw_fields"].get(field) for field in required_fields}
+                row["counterpart"] = None  # original B variants require explicit audit mode
+                row["usable_fields"] = list(required_fields)
+                decision = _policy.decisions.get((row["symbol"], row["date"]))
+                row["field_admission"] = {
+                    field: (decision["field_decisions"][field]["disposition"] if decision
+                            else "UNDISPUTED_KEEP_C_EXISTING_POLICY" if row["source"] == "C"
+                            else "B_ONLY_RESEARCH_NO_SCORING_ADMISSION")
+                    for field in required_fields
+                }
+                usable.append(row)
+            result_rows = usable
         page = result_rows[offset:offset + limit]
         after = self.verify_inputs()
         if before != after:
@@ -601,6 +624,8 @@ class HKResearchHistory:
             "descriptor_sha256": self.descriptor_sha256,
             "research_only": True,
             "scoring_allowed": False,
+            "quarantine_count": len(quarantine),
+            "quarantine_reasons": quarantine[:MAX_QUERY_LIMIT],
         }
 
     def _tagged_row(
@@ -988,9 +1013,24 @@ class OwnedHKResearchHistory:
         *,
         limit: int = 100,
         offset: int = 0,
+        mode: str = "usable",
+        required_fields: Sequence[str] = NUMERIC_FIELDS,
     ) -> dict[str, Any]:
         adapter, capture = self._capture()
-        result = adapter.query_union(symbol, start_date, end_date, limit=limit, offset=offset)
+        if mode not in ("usable", "audit"):
+            raise QueryValidationError("mode must be usable or audit")
+        policy = None
+        if mode == "usable":
+            from upstreams.v3_shared_data.shared_data.hk_history_resolution import ResolutionPolicy, fields
+            required_fields = fields(required_fields)
+            policy = ResolutionPolicy(self.owner_root)
+            policy.check_panel(capture["panel_sha256"])
+        result = adapter.query_union(symbol, start_date, end_date, limit=limit, offset=offset,
+                                     _policy=policy, required_fields=required_fields)
+        result["mode"] = mode
+        if policy is not None:
+            result["history_resolution_proof"] = policy.proof(required_fields=required_fields,
+                start=start_date,end=end_date,consumer="HK_HISTORY_USABLE_SLICE_V1")
         self._verify_capture_unchanged(capture)
         result["owner_snapshot"] = {
             key: capture[key]

@@ -1,0 +1,284 @@
+{
+  "A_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "http_status": 200,
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "active_pointer_installed": false,
+  "actual_model_reason": "HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT",
+  "actual_model_scoreable_count": 0,
+  "actual_model_status": "HOLD",
+  "actual_module_identities": [
+    {
+      "module": "adapter",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app/v4/hk_research_history.py",
+      "sha256": "2e4b920a7dafab981d22f8fe2c5062269425fa15335237776ae472cf898eff0b"
+    },
+    {
+      "module": "api",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app/v4/manager_workbench/api.py",
+      "sha256": "a3c37dbdbc742e7e4a185ed693851a8a8624311d0cf4b26c16b72e328be26cc5"
+    },
+    {
+      "module": "resolver",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app/upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "sha256": "29133d5ae8a6afa9c3244370389272c6f3aea3599f6e87bc8b3a47eb050f5bfa"
+    },
+    {
+      "module": "scorer",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "sha256": "a9d6bcceef1a9b7ded8bb21f2069357b89cd3d8c7366900132faa6a3e0657d40"
+    }
+  ],
+  "api_canaries": [
+    {
+      "audit": {
+        "counterpart_preserved": null,
+        "data_sha256": "99ce8f1625a86911a21f86bdb7d765635d3ca04776b459fc68d0219bc4c618fb",
+        "elapsed_seconds": 2.136,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7"
+        ]
+      },
+      "close_only": {
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20180102",
+      "usable": {
+        "counterpart_preserved": null,
+        "data_sha256": "be0c9d74e65aff1c884548aaea886a00816614f0199147ff6d571da8a4cf3425",
+        "elapsed_seconds": 2.198,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7"
+        ]
+      }
+    },
+    {
+      "audit": {
+        "counterpart_preserved": true,
+        "data_sha256": "fc2466ed9a7bffce44986548bd226ce97a9b906e91dc5f517fb29b34df67d36d",
+        "elapsed_seconds": 2.157,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb"
+        ]
+      },
+      "close_only": {
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20230630",
+      "usable": {
+        "counterpart_preserved": null,
+        "data_sha256": "4a73b06db22996b4c6b9e14ecbcecee60b959783918b6593c1aa01005109e774",
+        "elapsed_seconds": 2.162,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb"
+        ]
+      }
+    },
+    {
+      "audit": {
+        "counterpart_preserved": true,
+        "data_sha256": "91ce79858e27ddf4b6756ddafb644b0b7f27f745b25820693fd8fe5c620921d6",
+        "elapsed_seconds": 2.16,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "94692a35357703f739f57b30a07a8e86af7824ac5fd68ad6a0b0ac2c128da77b"
+        ]
+      },
+      "close_only": {
+        "quarantine_count": 1,
+        "row_count": 0
+      },
+      "date": "20260706",
+      "usable": {
+        "counterpart_preserved": null,
+        "data_sha256": "959af3db14ddc89b93d9b65e3d2a062e9684cf37b7003d943b9548244ed27006",
+        "elapsed_seconds": 2.162,
+        "http_status": 200,
+        "quarantine_count": 1,
+        "row_count": 0,
+        "row_sha256": []
+      }
+    },
+    {
+      "audit": {
+        "counterpart_preserved": true,
+        "data_sha256": "2691e0db28a21f32d388a6d8d2fde72b293ca85c447f4b84048cb647d7970a9c",
+        "elapsed_seconds": 2.167,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "dd83e69d8a06a164a13a5f39763fda80b84181443cb2d166aa9ba2c8a6bed86f"
+        ]
+      },
+      "close_only": {
+        "quarantine_count": 1,
+        "row_count": 0
+      },
+      "date": "20260722",
+      "usable": {
+        "counterpart_preserved": null,
+        "data_sha256": "30e0606e0cb66e2463b8531b714f65b2afd4a2d02154258eb30a12c67e3f7d5b",
+        "elapsed_seconds": 2.174,
+        "http_status": 200,
+        "quarantine_count": 1,
+        "row_count": 0,
+        "row_sha256": []
+      }
+    },
+    {
+      "audit": {
+        "counterpart_preserved": true,
+        "data_sha256": "2f84ec8acf3c1584a83f1eff9f38bd67610ede5cd4769e228643e5d3e3837b09",
+        "elapsed_seconds": 2.164,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "2574a27e2110a88a1ae0f8e7192ea83d7219c3cc3d0ea937a1ddb2bc931fca14"
+        ]
+      },
+      "close_only": {
+        "quarantine_count": 0,
+        "row_count": 1
+      },
+      "date": "20260909",
+      "usable": {
+        "counterpart_preserved": null,
+        "data_sha256": "3e2a10a888153798393bf4f536450c757ca66332be1aa1d516134a317ca9a63a",
+        "elapsed_seconds": 2.186,
+        "http_status": 200,
+        "quarantine_count": 0,
+        "row_count": 1,
+        "row_sha256": [
+          "2574a27e2110a88a1ae0f8e7192ea83d7219c3cc3d0ea937a1ddb2bc931fca14"
+        ]
+      }
+    }
+  ],
+  "append_impact": {
+    "actual_future_publication_verified": false,
+    "all_original_columns_and_keys_exact": true,
+    "baseline_rows": 460097,
+    "current_rows": 460787,
+    "entrypoint_verification": {
+      "actual_synthetic_API": "PASS",
+      "actual_synthetic_D1_reader": "PASS",
+      "cache_old_binding": "REJECTED",
+      "oversold_field_window_guards": "PASS",
+      "real_future_provider_publication": "NOT_RUN",
+      "rebound_dependency_guard": "PASS",
+      "scorer_dependency_guard": "PASS"
+    },
+    "new_rows": 690,
+    "old_HK_cache_proof_rejected_until_recomputed": true,
+    "scorer_model_availability": "HOLD_IF_CLEAN_PROXY_UNIVERSE_STILL_EMPTY",
+    "scorer_retained_code_count": 81,
+    "scorer_signal_code_count": 62,
+    "simulation": "IN_MEMORY_ALL_COLUMNS_ONLY_NO_PROVIDER_CAPTURE",
+    "status": "APPEND_ONLY_COMPATIBLE",
+    "unchanged_contract_required": true
+  },
+  "canary_reuse": {
+    "executed_against": "hk-history-adjudication-api-r3",
+    "final_candidate": "hk-history-adjudication-api-r4",
+    "independent_prior_verdict": "PASS",
+    "reason": "All12 HK target bytes/absence states identical across external base; projection unchanged",
+    "source_or_ledger_or_rule_changed": false
+  },
+  "decision_count": 30341,
+  "invalid_http_statuses": [
+    422,
+    422,
+    422,
+    422
+  ],
+  "model_impact_receipt_sha256": "a789fa2a7841c470c9cbeffc8097a0ed5eddbaeb9c28ecebc1d1484e4b189859",
+  "model_receipt_reuse": {
+    "final_revision": "shared-r3",
+    "new_cache_binding_regression_passed": true,
+    "observed_revision": "shared-r2",
+    "resolver_delta_only": "source-bound parsed ledger cache key",
+    "scorer_bytes_identical": true
+  },
+  "raw_market_values_exported": false,
+  "runtime_python": "3.14.6",
+  "scheduler_R1_repair": {
+    "HK_status_must_equal_READY": true,
+    "cached_and_verified_code_rank_projection_must_match_exactly": true,
+    "changed_candidate_tests": 13,
+    "independent_recheck": "PENDING",
+    "review_R1_verdict": "FAIL_SINGLE_P2",
+    "typed_hold_preserves_A": true
+  },
+  "scorer_impact": {
+    "dependency_proof": {
+      "_add_daily_features": {
+        "first_line": 648,
+        "function_sha256": "026d444215b29ab60402dcd98de2a621962fa28762c21464eb8f7d73e8161b00"
+      },
+      "_add_proxy_labels": {
+        "first_line": 697,
+        "function_sha256": "acf10ad8ce64b9ba13e96a9322e60278803764813ab31cecedb445b9eecf30d4"
+      },
+      "_add_proxy_memory": {
+        "first_line": 723,
+        "function_sha256": "95b6d9a2231eb9b91ea0d90f8407b92b8f38c0e5bbbbaebad6b88ed2826ff5f3"
+      }
+    },
+    "elapsed_seconds": 1.142,
+    "entire_sequence_removed_only_for_dependency_hold": true,
+    "excluded_by_field": {
+      "amount": 629,
+      "close": 624,
+      "high": 622,
+      "low": 625,
+      "open": 498,
+      "trade": 0
+    },
+    "excluded_code_count": 636,
+    "model_fit_performed": false,
+    "original_rows_retained_for_clean_codes": true,
+    "original_signal_code_count": 690,
+    "preclose_predecessor_included": true,
+    "price_amount_observation_count": 121,
+    "proxy_label_depends_on_rolling_features": false,
+    "proxy_label_fields": [
+      "high",
+      "close",
+      "pre_close",
+      "amount"
+    ],
+    "proxy_memory_dates_including_signal": 120,
+    "retained_code_count": 81,
+    "retained_rows": 25099,
+    "retained_signal_code_count": 62,
+    "signal_date": "20261014",
+    "source_code_count": 717,
+    "source_rows": 460097,
+    "trade_dependency": "SIGNAL_DATE_ONLY"
+  },
+  "services_changed": false,
+  "source_code_sha256": "29133d5ae8a6afa9c3244370389272c6f3aea3599f6e87bc8b3a47eb050f5bfa",
+  "status": "WRITER_VERIFIED_PENDING_INDEPENDENT_REVIEW"
+}

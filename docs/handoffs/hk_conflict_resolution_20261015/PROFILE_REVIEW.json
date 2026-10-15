@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "reviewer": "/root/hk_live_review_61",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "verdict": "PASS",
+  "findings": [],
+  "source": "Parent-provided independent phase 1 review verdict",
+  "independent_checks": {
+    "conflict_keys_and_B_C_row_hashes_and_six_field_masks": 30341,
+    "native_files": 683,
+    "misdated_formal_repair_rows": 529,
+    "TDXPY_caches": 2,
+    "CONFIRMED_KEEP_C_keys": 14079,
+    "CORRECT_keys": 0,
+    "QUARANTINED_keys": 16262,
+    "source_pins_unchanged": 705,
+    "original_files_unchanged": 10,
+    "A_control_unchanged": true
+  },
+  "publication_map_correction": "scheduler actual app is hk-pool-fupan-isolation-20261015-r1; old v35 path is interpreter only",
+  "consumer_enforcement_review": "NOT_YET_RUN"
+}

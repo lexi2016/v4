@@ -1,0 +1,1151 @@
+--- a/domains/manager_close_rebound.py
++++ b/domains/manager_close_rebound.py
+@@ -152,6 +152,10 @@
+         raise ValueError('REBOUND_HISTORY_NATIVE_EVIDENCE_MISMATCH')
+     import pandas as pd
+     frame=pd.read_parquet(resolve(root,panel_ref['artifact_ref']),columns=['trade_date_compact','code_norm','high','trade'])
++    from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame
++    frame = guard_rebound_frame(frame, root, panel_sha256=manifest['panel_sha256'], sessions=sessions)
++    if body.get('history_resolution_proofs') != frame.attrs['history_resolution_proofs']:
++        raise ValueError('REBOUND_HISTORY_RESOLUTION_PROOF_MISMATCH')
+     if str(frame['trade_date_compact'].astype(str).max())!=sessions['panel_session']:
+         raise ValueError('REBOUND_HISTORY_PANEL_DATE_CONTENT_MISMATCH')
+     values=rebound_history_rows(frame,list(body['symbols']),sessions)
+--- a/upstreams/v3_shared_data/shared_data/hk_0_2.py
++++ b/upstreams/v3_shared_data/shared_data/hk_0_2.py
+@@ -26,6 +26,7 @@
+ from .hashing import canonical_bytes, sha256_file
+ from .paths import resolve_under, validate_date
+ from .store import SafeRootStore, StoreError
++from .hk_history_resolution import ResolutionPolicy, policy_for_shared, root_for_source, FIELDS, guard_score_frame
+ 
+ 
+ HK_0_2_ROLE = "HK_CONNECT_D1_TOP100_0_2"
+@@ -820,6 +821,7 @@
+     signal_date: str,
+     target_date: str,
+     eligible_codes: Iterable[str] | None = None,
++    diagnostics: dict[str, Any] | None = None,
+ ) -> list[dict[str, Any]]:
+     import pandas as pd
+ 
+@@ -832,7 +834,21 @@
+     panel = panel[panel["trade_date_compact"].le(signal_date)].copy()
+     if signal_date not in set(panel["trade_date_compact"]):
+         raise StoreError(f"HK 0.2 signal date is absent from panel: {signal_date}")
++    policy = ResolutionPolicy(assets.root)
++    policy.check_panel(assets.panel_manifest["panel_sha256"])
++    panel = guard_score_frame(panel, policy, signal_date)
++    if diagnostics is not None:
++        diagnostics["history_resolution_proof"] = policy.encode_proof(panel.attrs["history_resolution_proof"])
++        diagnostics["history_resolution_excluded_code_count"] = panel.attrs["history_resolution_proof"]["excluded_code_count"]
++    if panel.empty:
++        raise StoreError("HK_HISTORY_RESOLUTION_NO_SCOREABLE_CODES")
+     features, proxy_map = _add_proxy_labels(_add_daily_features(panel))
++    if not proxy_map:
++        if diagnostics is not None:
++            diagnostics.update(history_resolution_score_status="HOLD",
++                history_resolution_scoreable_count=0,
++                history_resolution_hold_reason="HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT")
++        raise StoreError("HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT")
+     features = _add_proxy_memory(features, proxy_map)
+     feature_columns = list(assets.model_manifest.get("feature_columns") or [])
+     missing = sorted(set(feature_columns) - set(features.columns))
+@@ -898,8 +914,12 @@
+     target_date: str,
+     rows: Iterable[Mapping[str, Any]],
+     panel_sha256: str,
++    history_resolution_proof: str | None = None,
+ ) -> dict[str, Any]:
+     signal_date, target_date = validate_date(signal_date), validate_date(target_date)
++    policy = policy_for_shared(store_root)
++    policy.check_panel(panel_sha256)
++    policy.verify_proof(history_resolution_proof, end=signal_date, consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1")
+     normalized = [{field: _cell(dict(row).get(field)) for field in _OUTPUT_FIELDS} for row in rows]
+     if len(normalized) != 100:
+         raise StoreError("HK 0.2 strict pool must contain exactly 100 rows")
+@@ -932,6 +952,7 @@
+             "signal_date": signal_date,
+             "source_contract": "tdx_vipdoc_71_day_prob_active",
+             "panel_sha256": panel_sha256.lower(),
++            "history_resolution_proof": history_resolution_proof,
+             "model_bundle_sha256": HK_0_2_MODEL_SHA256,
+             "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
+             "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
+@@ -977,6 +998,10 @@
+     for key, value in expected.items():
+         if provenance.get(key) != value:
+             raise StoreError(f"HK 0.2 provenance mismatch: {key}")
++    policy = policy_for_shared(store_root)
++    policy.check_panel(provenance.get("panel_sha256"))
++    policy.verify_proof(provenance.get("history_resolution_proof"), end=expected_signal_date,
++                        consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1")
+     rows: list[dict[str, str]] = []
+     with open(run.artifact_path, "r", encoding="utf-8-sig", newline="") as handle:
+         rows.extend(dict(row) for row in csv.DictReader(handle))
+@@ -987,6 +1012,8 @@
+     for row in rows:
+         if _is_name_code_placeholder(row.get("code_norm"), row.get("name")):
+             raise StoreError(f"HK 0.2 verified artifact name missing: {row.get('code_norm')}")
++    policy.verify_proof(provenance.get("history_resolution_proof"), end=expected_signal_date,
++                        consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1", codes=[row["code_norm"] for row in rows])
+     return VerifiedHK02Pool(run, tuple(rows))
+ 
+ 
+@@ -1108,14 +1135,16 @@
+ def materialize_frozen_hk_0_2(store_root: Path | str, asset_root: Path | str, *, signal_date: str, target_date: str) -> dict[str, Any]:
+     assets = load_frozen_hk_0_2_assets(asset_root)
+     security_master, _ = _load_verified_security_master(store_root, signal_date)
++    scoring_diagnostics: dict[str, Any] = {}
+     rows = score_frozen_hk_0_2(
+         asset_root,
+         signal_date=signal_date,
+         target_date=target_date,
+         eligible_codes=security_master.keys(),
++        diagnostics=scoring_diagnostics,
+     )
+     rows = _fill_name_placeholders(rows, security_master)
+-    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, panel_sha256=str(assets.panel_manifest["panel_sha256"]))
++    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, history_resolution_proof=scoring_diagnostics["history_resolution_proof"], panel_sha256=str(assets.panel_manifest["panel_sha256"]))
+ 
+ 
+ def quarantine_rejected_hk_0_2_run(
+--- a/upstreams/v3_shared_data/shared_data/hk_d1_evidence.py
++++ b/upstreams/v3_shared_data/shared_data/hk_d1_evidence.py
+@@ -37,12 +37,18 @@
+ 
+     required = ["trade_date_compact", "code_norm", "close", "pre_close", "pct_chg"]
+     frame = pd.read_parquet(panel_path, columns=required)
++    from .hk_history_resolution import policy_for_shared
++    policy = policy_for_shared(root)
++    policy.check_panel(expected_sha)
+     frame["trade_date_compact"] = frame["trade_date_compact"].astype(str)
+     eligible = frame[frame["trade_date_compact"] < str(target_trade_date)]
+     if eligible.empty:
+         raise HkD1EvidenceError("HK D-1 panel has no prior trading date")
+     signal_date = str(eligible["trade_date_compact"].max())
+-    day = eligible[eligible["trade_date_compact"].eq(signal_date)]
++    guarded = policy.guard_frame(frame, required_fields=('close',), end=signal_date,
++        lookback=1, predecessors=1, consumer='HK_D1_CLOSE_PREDECESSOR_V1')
++    quality = guarded.attrs['history_resolution_proof']
++    day = guarded[guarded['trade_date_compact'].eq(signal_date)]
+     rows: dict[str, dict[str, Any]] = {}
+     for raw in day.to_dict("records"):
+         symbol = _normalize_hk_symbol(raw.get("code_norm"))
+@@ -69,6 +75,7 @@
+         "signal_date": signal_date,
+         "row_count": len(rows),
+         "panel_sha256": expected_sha,
++        "history_resolution_proof": policy.encode_proof(quality),
+         "production_allowed": False,
+         "buy_gate_updated": False,
+         "orders_sent": False,
+--- a/upstreams/v3_shared_data/shared_data/hk_history_resolution.py
++++ b/upstreams/v3_shared_data/shared_data/hk_history_resolution.py
+@@ -0,0 +1,336 @@
++"""Single read-only HK field/window admission contract owned by hk_0_2.
++
++Original market files are never changed. A missing, stale or tampered contract
++fails closed. Current C native representation admission is separate from B units.
++"""
++from __future__ import annotations
++
++import base64
++import gzip
++import hashlib
++import json
++import os
++import re
++from pathlib import Path
++from typing import Any
++
++FIELDS = ('open', 'high', 'low', 'close', 'amount', 'trade')
++SCHEMA = 'hk_history_resolution.v1'
++RULE = 'HK_HISTORY_AUTHORITY_V1'
++_LEDGERS: dict[tuple[str, str, str], dict] = {}
++
++
++class ResolutionError(ValueError):
++    """Public-safe failure code; never includes a host path."""
++
++
++def canonical(value):
++    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
++                      allow_nan=False).encode('utf-8')
++
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def symbol(value):
++    value = str(value).strip().upper()
++    if value.startswith('HK.'):
++        value = value[3:]
++    elif value.endswith('.HK'):
++        value = value[:-3]
++    if not value.isdigit() or not 1 <= int(value) <= 99999:
++        raise ResolutionError('HK_HISTORY_RESOLUTION_SYMBOL_INVALID')
++    return 'HK.' + str(int(value)).zfill(5)
++
++
++def day(value):
++    value = str(value).replace('-', '')[:8]
++    if re.fullmatch(r'\d{8}', value) is None:
++        raise ResolutionError('HK_HISTORY_RESOLUTION_DATE_INVALID')
++    return value
++
++
++def fields(values):
++    values = tuple(dict.fromkeys(values))
++    if not values or any(value not in FIELDS for value in values):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_FIELDS_INVALID')
++    return values
++
++
++def regular(root, relative):
++    rel = Path(str(relative))
++    if rel.is_absolute() or not rel.parts or any(part in ('.', '..') for part in rel.parts):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_PATH_INVALID')
++    path = root
++    for part in rel.parts:
++        path = path / part
++        if path.is_symlink():
++            raise ResolutionError('HK_HISTORY_RESOLUTION_SYMLINK_DENIED')
++    if not path.is_file() or not path.resolve().is_relative_to(root):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_FILE_MISSING')
++    return path
++
++
++def root_for_source(source):
++    path = Path(source).resolve(strict=True)
++    for parent in path.parents:
++        if parent.name == 'hk_0_2':
++            return parent
++    raise ResolutionError('HK_HISTORY_RESOLUTION_OWNER_REQUIRED')
++
++
++def verify_append_frames(baseline, current, *, baseline_max, B_max):
++    """Exact all-column, all-key prefix proof; never compare only conflict keys."""
++    keys = ['code_norm','trade_date_compact']
++    if list(baseline.columns) != list(current.columns) or any(baseline[c].dtype != current[c].dtype for c in baseline.columns):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_SCHEMA_CHANGED')
++    if baseline.duplicated(keys).any() or current.duplicated(keys).any():
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_DUPLICATE_KEY')
++    dates = current['trade_date_compact'].map(day)
++    old = current.loc[dates <= baseline_max]
++    new = current.loc[dates > baseline_max]
++    left = baseline.sort_values(keys).reset_index(drop=True)
++    right = old.sort_values(keys).reset_index(drop=True)
++    if not left.equals(right):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_OLD_KEYS_OR_VALUES_CHANGED')
++    if new.empty or any(day(date) <= max(baseline_max,B_max) for date in new['trade_date_compact']):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_DATES_INVALID')
++    return dict(status='APPEND_ONLY_COMPATIBLE',baseline_rows=len(baseline),current_rows=len(current),
++                new_rows=len(new),all_original_columns_and_keys_exact=True)
++
++
++class ResolutionPolicy:
++    def __init__(self, owner_root, *, pointer_path=None):
++        self.root = Path(owner_root).resolve(strict=True)
++        if self.root.name != 'hk_0_2':
++            raise ResolutionError('HK_HISTORY_RESOLUTION_OWNER_INVALID')
++        # Operator-only candidate injection; HTTP parameters cannot select a pointer.
++        selected = pointer_path or os.environ.get('V4_HK_HISTORY_RESOLUTION_POINTER')
++        pointer_path = Path(selected) if selected else regular(self.root, 'history_resolution_latest.json')
++        if pointer_path.is_symlink() or not pointer_path.is_file():
++            raise ResolutionError('HK_HISTORY_RESOLUTION_POINTER_MISSING')
++        try:
++            pointer = json.loads(pointer_path.read_bytes())
++            manifest_path = regular(self.root, pointer['manifest_relative'])
++            manifest_raw = manifest_path.read_bytes()
++            if sha(manifest_raw) != pointer['manifest_sha256']:
++                raise ResolutionError('HK_HISTORY_RESOLUTION_MANIFEST_SHA_MISMATCH')
++            manifest = json.loads(manifest_raw)
++            if manifest['schema_version'] != SCHEMA or manifest['rule_version'] != RULE:
++                raise ResolutionError('HK_HISTORY_RESOLUTION_SCHEMA_INVALID')
++            if manifest['resolver_sha256'] != sha(Path(__file__).read_bytes()):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_READER_SHA_MISMATCH')
++            if (manifest.get('research_only') is not True or
++                    any(manifest.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_SAFETY_INVALID')
++            self.manifest, self.manifest_sha256 = manifest, sha(manifest_raw)
++            bindings = manifest['bindings']
++            for path_key, hash_key in [('descriptor_relative','descriptor_sha256'),
++                    ('B_relative','B_sha256'),('C_panel_relative','C_panel_sha256'),
++                    ('C_manifest_relative','C_manifest_sha256')]:
++                if sha(regular(self.root, bindings[path_key]).read_bytes()) != bindings[hash_key]:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_SOURCE_SHA_MISMATCH')
++            current_pointer = json.loads(regular(self.root, 'panel_latest.json').read_bytes())
++            current_manifest_path = regular(self.root, current_pointer['manifest_relative'])
++            current_raw = current_manifest_path.read_bytes()
++            self.current_manifest = json.loads(current_raw)
++            self.current_manifest_sha256 = sha(current_raw)
++            self.current_panel_sha256 = self.current_manifest['panel_sha256']
++            self.append_proof = dict(status='EXACT_BASELINE')
++            if (self.current_manifest_sha256 != bindings['C_manifest_sha256'] or
++                    self.current_panel_sha256 != bindings['C_panel_sha256']):
++                if manifest.get('append_policy') != 'ALL_KEYS_ALL_COLUMNS_EXACT':
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_STALE_C_BINDING')
++                baseline_manifest = json.loads(regular(self.root, bindings['C_manifest_relative']).read_bytes())
++                if (self.current_manifest.get('increment_contract') != baseline_manifest.get('increment_contract')
++                        or not baseline_manifest.get('increment_contract')
++                        or self.current_manifest.get('source_contract') != baseline_manifest.get('source_contract')
++                        or self.current_manifest.get('research_only') is not True
++                        or any(self.current_manifest.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))):
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_CONTRACT_INVALID')
++                current_panel = regular(self.root,self.current_manifest['panel_relative'])
++                if sha(current_panel.read_bytes()) != self.current_panel_sha256:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_SOURCE_SHA_MISMATCH')
++                import pandas as pd
++                baseline = pd.read_parquet(regular(self.root,bindings['C_panel_relative']))
++                current = pd.read_parquet(current_panel)
++                self.append_proof = verify_append_frames(baseline,current,
++                    baseline_max=manifest['baseline_C_max_date'],B_max=manifest['B_max_date'])
++                if len(current) != self.current_manifest['panel_rows']:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_ROW_COUNT_MISMATCH')
++            ledger_path = regular(self.root, manifest['decisions_relative'])
++            compressed = ledger_path.read_bytes()
++            ledger_sha = sha(compressed)
++            if ledger_sha != manifest['decisions_sha256']:
++                raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_SHA_MISMATCH')
++            ledger_cache_key = (ledger_sha, bindings['B_sha256'], bindings['C_panel_sha256'])
++            if ledger_cache_key not in _LEDGERS:
++                indexed = {}
++                for line in gzip.decompress(compressed).splitlines():
++                    record = json.loads(line)
++                    key = (symbol(record['symbol']), day(record['date']))
++                    if key in indexed or set(record['field_decisions']) != set(FIELDS):
++                        raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_KEY_INVALID')
++                    for decision in record['field_decisions'].values():
++                        if decision['disposition'] not in ('CONFIRMED_KEEP_C','QUARANTINED','UNDISPUTED_KEEP_C_EXISTING_POLICY'):
++                            raise ResolutionError('HK_HISTORY_RESOLUTION_DISPOSITION_INVALID')
++                    if record['B_source_sha256'] != bindings['B_sha256'] or record['C_source_sha256'] != bindings['C_panel_sha256']:
++                        raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_SOURCE_MISMATCH')
++                    indexed[key] = record
++                if len(indexed) != manifest['decision_key_count']:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_COUNT_MISMATCH')
++                _LEDGERS.clear()
++                _LEDGERS[ledger_cache_key] = indexed
++            self.decisions = _LEDGERS[ledger_cache_key]
++            self.ledger_sha256 = ledger_sha
++        except ResolutionError:
++            raise
++        except (OSError, ValueError, KeyError, TypeError) as error:
++            raise ResolutionError('HK_HISTORY_RESOLUTION_CONTRACT_INVALID') from error
++
++    def check_panel(self, expected_sha):
++        if expected_sha != self.current_panel_sha256:
++            raise ResolutionError('HK_HISTORY_RESOLUTION_UNBOUND_PANEL')
++
++    def held_fields(self, code, date, required_fields=FIELDS, *, source='C'):
++        required_fields = fields(required_fields)
++        record = self.decisions.get((symbol(code),day(date)))
++        if record is None:
++            return []
++        if source == 'B':
++            return list(required_fields)  # every disputed B variant is audit-only
++        return [field for field in required_fields
++                if record['field_decisions'][field]['disposition'] == 'QUARANTINED']
++
++    def proof(self, *, required_fields, start, end, consumer, allowed_codes=(), excluded_codes=()):
++        binding = self.manifest['bindings']
++        return dict(resolution_schema_version=SCHEMA,resolution_rule_version=RULE,
++            resolution_manifest_sha256=self.manifest_sha256,resolution_ledger_sha256=self.ledger_sha256,
++            source_descriptor_sha256=binding['descriptor_sha256'],B_source_sha256=binding['B_sha256'],
++            C_panel_sha256=self.current_panel_sha256,C_manifest_sha256=self.current_manifest_sha256,
++            resolver_sha256=self.manifest['resolver_sha256'],required_fields=list(fields(required_fields)),
++            dependency_start=day(start),dependency_end=day(end),dependency_rule_version=consumer,
++            allowed_codes=sorted(set(allowed_codes)),excluded_codes=sorted(set(excluded_codes)),
++            excluded_code_count=len(set(excluded_codes)),admission='FIELD_WINDOW_VERIFIED')
++
++    def encode_proof(self, proof):
++        return 'b64url.' + base64.urlsafe_b64encode(canonical(proof)).decode('ascii')
++
++    def verify_proof(self, token, *, required_fields=FIELDS, end=None, consumer=None, codes=()):
++        try:
++            if not isinstance(token,str) or not token.startswith('b64url.'):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_CACHE_PROOF_MISSING')
++            proof = json.loads(base64.b64decode(token[7:],altchars=b'-_',validate=True))
++            expected = self.proof(required_fields=required_fields,start=proof['dependency_start'],
++                end=end or proof['dependency_end'],consumer=consumer or proof['dependency_rule_version'],
++                allowed_codes=proof['allowed_codes'],excluded_codes=proof['excluded_codes'])
++            if proof != expected or not {symbol(code) for code in codes}.issubset(set(proof['allowed_codes'])):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_CACHE_PROOF_STALE')
++            return proof
++        except ResolutionError:
++            raise
++        except (ValueError, KeyError, TypeError) as error:
++            raise ResolutionError('HK_HISTORY_RESOLUTION_CACHE_PROOF_INVALID') from error
++
++    def guard_frame(self, frame, *, required_fields=FIELDS, code_column='code_norm',
++                    date_column='trade_date_compact', start=None, end=None,
++                    lookback=None, predecessors=0, source='C', consumer='HK_HISTORY_FULL_SERIES'):
++        """Exclude an affected code's complete sequence before any calculation.
++
++        The dependency selection is used only for the hold check. The returned
++        frame retains every original row of clean codes, so no gaps are bridged.
++        None lookback guards the entire supplied history, including proxy memory.
++        """
++        requested = fields(required_fields)
++        if frame.empty:
++            result = frame.copy()
++            result.attrs['history_resolution_proof'] = self.proof(required_fields=requested,
++                start=start or '19000101',end=end or '99991231',consumer=consumer)
++            result.attrs['history_resolution_holds'] = {}
++            return result
++        all_dates = frame[date_column].map(day)
++        start, end = day(start or all_dates.min()), day(end or all_dates.max())
++        excluded, allowed = set(), set()
++        reasons = {}
++        for raw_code, group in frame.groupby(code_column, sort=False):
++            code = symbol(raw_code)
++            dates = sorted({day(value) for value in group[date_column] if day(value) <= end})
++            if lookback is not None:
++                dependency = dates[-(lookback+predecessors):]
++            else:
++                eligible = [i for i,value in enumerate(dates) if start <= value <= end]
++                dependency = dates[max(0,eligible[0]-predecessors):eligible[-1]+1] if eligible else []
++            holds = [(date,self.held_fields(code,date,requested,source=source)) for date in dependency]
++            holds = [(date,held) for date,held in holds if held]
++            if holds:
++                excluded.add(code)
++                reasons[code] = [{'date':date,'fields':held,'reason':'HK_HISTORY_FIELD_QUARANTINED'} for date,held in holds]
++            else:
++                allowed.add(code)
++        result = frame.loc[~frame[code_column].map(symbol).isin(excluded)].copy()
++        result.attrs['history_resolution_proof'] = self.proof(required_fields=requested,start=start,end=end,
++            consumer=consumer,allowed_codes=allowed,excluded_codes=excluded)
++        result.attrs['history_resolution_holds'] = reasons
++        return result
++
++
++def policy_for_shared(shared_root):
++    return ResolutionPolicy(Path(shared_root)/'assets/hk_0_2')
++
++
++def verify_pool_quality(shared_root, provenance, signal_date, codes):
++    """Validate the exact already-verified run, never substitute a latest run."""
++    policy = policy_for_shared(shared_root)
++    policy.check_panel(provenance.get('panel_sha256'))
++    return policy.verify_proof(provenance.get('history_resolution_proof'), end=signal_date,
++        consumer='HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1', codes=codes)
++
++
++def guarded_frame(frame, shared_root, *, panel_sha256, **kwargs):
++    policy = policy_for_shared(shared_root)
++    policy.check_panel(panel_sha256)
++    return policy.guard_frame(frame, **kwargs)
++
++
++def guard_rebound_frame(frame, shared_root, *, panel_sha256, sessions, current_day=None):
++    policy = policy_for_shared(shared_root)
++    policy.check_panel(panel_sha256)
++    proofs = []
++    held = {}
++    specifications = [(('high',),min(sessions['prior60']),max(sessions['prior60']),'HK_REBOUND_HIGH60_V1'),
++                      (('trade',),min(sessions['previous5']),current_day or max(sessions['previous5']),'HK_REBOUND_VOLUME5_V1')]
++    if current_day:
++        specifications.append((('open','high','low','close','amount'),current_day,current_day,'HK_REBOUND_CURRENT_BAR_V1'))
++    for requested,start,end,consumer in specifications:
++        frame = policy.guard_frame(frame,required_fields=requested,start=start,end=end,consumer=consumer)
++        proofs.append(policy.encode_proof(frame.attrs['history_resolution_proof']))
++        held.update(frame.attrs['history_resolution_holds'])
++    frame.attrs['history_resolution_proofs'] = proofs
++    frame.attrs['history_resolution_holds'] = held
++    return frame
++
++
++def guard_score_frame(frame, policy, signal_date):
++    """Actual model dependency: price/amount 120 plus shift predecessor; trade today.
++
++    Proxy labels use high/close/pre_close/amount, and proxy memory uses at most
++    120 market dates. Trade is a raw model feature only on the predicted day.
++    Exclude a held code's full sequence before cross-sectional proxy labels;
++    retain all original observations of clean codes, including listing age.
++    """
++    original_codes = {symbol(code) for code in frame['code_norm']}
++    frame = policy.guard_frame(frame, required_fields=('open','high','low','close','amount'),
++        end=signal_date,lookback=121,consumer='HK_SCORE_PRICE_AMOUNT_121_V1')
++    price_holds = dict(frame.attrs['history_resolution_holds'])
++    frame = policy.guard_frame(frame, required_fields=('trade',),start=signal_date,end=signal_date,
++        consumer='HK_SCORE_CURRENT_TRADE_V1')
++    holds = {**price_holds,**frame.attrs['history_resolution_holds']}
++    allowed = {symbol(code) for code in frame['code_norm']}
++    dates = frame['trade_date_compact'].map(day)
++    proof = policy.proof(required_fields=FIELDS,start=dates.min() if not dates.empty else signal_date,
++        end=signal_date,consumer='HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1',
++        allowed_codes=allowed,excluded_codes=original_codes-allowed)
++    frame.attrs['history_resolution_proof'] = proof
++    frame.attrs['history_resolution_holds'] = holds
++    return frame
+--- a/v3_shared_data/shared_data/hk_0_2.py
++++ b/v3_shared_data/shared_data/hk_0_2.py
+@@ -26,6 +26,7 @@
+ from .hashing import canonical_bytes, sha256_file
+ from .paths import resolve_under, validate_date
+ from .store import SafeRootStore, StoreError
++from .hk_history_resolution import ResolutionPolicy, policy_for_shared, root_for_source, FIELDS, guard_score_frame
+ 
+ 
+ HK_0_2_ROLE = "HK_CONNECT_D1_TOP100_0_2"
+@@ -820,6 +821,7 @@
+     signal_date: str,
+     target_date: str,
+     eligible_codes: Iterable[str] | None = None,
++    diagnostics: dict[str, Any] | None = None,
+ ) -> list[dict[str, Any]]:
+     import pandas as pd
+ 
+@@ -832,7 +834,21 @@
+     panel = panel[panel["trade_date_compact"].le(signal_date)].copy()
+     if signal_date not in set(panel["trade_date_compact"]):
+         raise StoreError(f"HK 0.2 signal date is absent from panel: {signal_date}")
++    policy = ResolutionPolicy(assets.root)
++    policy.check_panel(assets.panel_manifest["panel_sha256"])
++    panel = guard_score_frame(panel, policy, signal_date)
++    if diagnostics is not None:
++        diagnostics["history_resolution_proof"] = policy.encode_proof(panel.attrs["history_resolution_proof"])
++        diagnostics["history_resolution_excluded_code_count"] = panel.attrs["history_resolution_proof"]["excluded_code_count"]
++    if panel.empty:
++        raise StoreError("HK_HISTORY_RESOLUTION_NO_SCOREABLE_CODES")
+     features, proxy_map = _add_proxy_labels(_add_daily_features(panel))
++    if not proxy_map:
++        if diagnostics is not None:
++            diagnostics.update(history_resolution_score_status="HOLD",
++                history_resolution_scoreable_count=0,
++                history_resolution_hold_reason="HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT")
++        raise StoreError("HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT")
+     features = _add_proxy_memory(features, proxy_map)
+     feature_columns = list(assets.model_manifest.get("feature_columns") or [])
+     missing = sorted(set(feature_columns) - set(features.columns))
+@@ -898,8 +914,12 @@
+     target_date: str,
+     rows: Iterable[Mapping[str, Any]],
+     panel_sha256: str,
++    history_resolution_proof: str | None = None,
+ ) -> dict[str, Any]:
+     signal_date, target_date = validate_date(signal_date), validate_date(target_date)
++    policy = policy_for_shared(store_root)
++    policy.check_panel(panel_sha256)
++    policy.verify_proof(history_resolution_proof, end=signal_date, consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1")
+     normalized = [{field: _cell(dict(row).get(field)) for field in _OUTPUT_FIELDS} for row in rows]
+     if len(normalized) != 100:
+         raise StoreError("HK 0.2 strict pool must contain exactly 100 rows")
+@@ -932,6 +952,7 @@
+             "signal_date": signal_date,
+             "source_contract": "tdx_vipdoc_71_day_prob_active",
+             "panel_sha256": panel_sha256.lower(),
++            "history_resolution_proof": history_resolution_proof,
+             "model_bundle_sha256": HK_0_2_MODEL_SHA256,
+             "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
+             "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
+@@ -977,6 +998,10 @@
+     for key, value in expected.items():
+         if provenance.get(key) != value:
+             raise StoreError(f"HK 0.2 provenance mismatch: {key}")
++    policy = policy_for_shared(store_root)
++    policy.check_panel(provenance.get("panel_sha256"))
++    policy.verify_proof(provenance.get("history_resolution_proof"), end=expected_signal_date,
++                        consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1")
+     rows: list[dict[str, str]] = []
+     with open(run.artifact_path, "r", encoding="utf-8-sig", newline="") as handle:
+         rows.extend(dict(row) for row in csv.DictReader(handle))
+@@ -987,6 +1012,8 @@
+     for row in rows:
+         if _is_name_code_placeholder(row.get("code_norm"), row.get("name")):
+             raise StoreError(f"HK 0.2 verified artifact name missing: {row.get('code_norm')}")
++    policy.verify_proof(provenance.get("history_resolution_proof"), end=expected_signal_date,
++                        consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1", codes=[row["code_norm"] for row in rows])
+     return VerifiedHK02Pool(run, tuple(rows))
+ 
+ 
+@@ -1108,14 +1135,16 @@
+ def materialize_frozen_hk_0_2(store_root: Path | str, asset_root: Path | str, *, signal_date: str, target_date: str) -> dict[str, Any]:
+     assets = load_frozen_hk_0_2_assets(asset_root)
+     security_master, _ = _load_verified_security_master(store_root, signal_date)
++    scoring_diagnostics: dict[str, Any] = {}
+     rows = score_frozen_hk_0_2(
+         asset_root,
+         signal_date=signal_date,
+         target_date=target_date,
+         eligible_codes=security_master.keys(),
++        diagnostics=scoring_diagnostics,
+     )
+     rows = _fill_name_placeholders(rows, security_master)
+-    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, panel_sha256=str(assets.panel_manifest["panel_sha256"]))
++    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, history_resolution_proof=scoring_diagnostics["history_resolution_proof"], panel_sha256=str(assets.panel_manifest["panel_sha256"]))
+ 
+ 
+ def quarantine_rejected_hk_0_2_run(
+--- a/v3_shared_data/shared_data/hk_d1_evidence.py
++++ b/v3_shared_data/shared_data/hk_d1_evidence.py
+@@ -37,12 +37,18 @@
+ 
+     required = ["trade_date_compact", "code_norm", "close", "pre_close", "pct_chg"]
+     frame = pd.read_parquet(panel_path, columns=required)
++    from .hk_history_resolution import policy_for_shared
++    policy = policy_for_shared(root)
++    policy.check_panel(expected_sha)
+     frame["trade_date_compact"] = frame["trade_date_compact"].astype(str)
+     eligible = frame[frame["trade_date_compact"] < str(target_trade_date)]
+     if eligible.empty:
+         raise HkD1EvidenceError("HK D-1 panel has no prior trading date")
+     signal_date = str(eligible["trade_date_compact"].max())
+-    day = eligible[eligible["trade_date_compact"].eq(signal_date)]
++    guarded = policy.guard_frame(frame, required_fields=('close',), end=signal_date,
++        lookback=1, predecessors=1, consumer='HK_D1_CLOSE_PREDECESSOR_V1')
++    quality = guarded.attrs['history_resolution_proof']
++    day = guarded[guarded['trade_date_compact'].eq(signal_date)]
+     rows: dict[str, dict[str, Any]] = {}
+     for raw in day.to_dict("records"):
+         symbol = _normalize_hk_symbol(raw.get("code_norm"))
+@@ -69,6 +75,7 @@
+         "signal_date": signal_date,
+         "row_count": len(rows),
+         "panel_sha256": expected_sha,
++        "history_resolution_proof": policy.encode_proof(quality),
+         "production_allowed": False,
+         "buy_gate_updated": False,
+         "orders_sent": False,
+--- a/v3_shared_data/shared_data/hk_history_resolution.py
++++ b/v3_shared_data/shared_data/hk_history_resolution.py
+@@ -0,0 +1,336 @@
++"""Single read-only HK field/window admission contract owned by hk_0_2.
++
++Original market files are never changed. A missing, stale or tampered contract
++fails closed. Current C native representation admission is separate from B units.
++"""
++from __future__ import annotations
++
++import base64
++import gzip
++import hashlib
++import json
++import os
++import re
++from pathlib import Path
++from typing import Any
++
++FIELDS = ('open', 'high', 'low', 'close', 'amount', 'trade')
++SCHEMA = 'hk_history_resolution.v1'
++RULE = 'HK_HISTORY_AUTHORITY_V1'
++_LEDGERS: dict[tuple[str, str, str], dict] = {}
++
++
++class ResolutionError(ValueError):
++    """Public-safe failure code; never includes a host path."""
++
++
++def canonical(value):
++    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
++                      allow_nan=False).encode('utf-8')
++
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def symbol(value):
++    value = str(value).strip().upper()
++    if value.startswith('HK.'):
++        value = value[3:]
++    elif value.endswith('.HK'):
++        value = value[:-3]
++    if not value.isdigit() or not 1 <= int(value) <= 99999:
++        raise ResolutionError('HK_HISTORY_RESOLUTION_SYMBOL_INVALID')
++    return 'HK.' + str(int(value)).zfill(5)
++
++
++def day(value):
++    value = str(value).replace('-', '')[:8]
++    if re.fullmatch(r'\d{8}', value) is None:
++        raise ResolutionError('HK_HISTORY_RESOLUTION_DATE_INVALID')
++    return value
++
++
++def fields(values):
++    values = tuple(dict.fromkeys(values))
++    if not values or any(value not in FIELDS for value in values):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_FIELDS_INVALID')
++    return values
++
++
++def regular(root, relative):
++    rel = Path(str(relative))
++    if rel.is_absolute() or not rel.parts or any(part in ('.', '..') for part in rel.parts):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_PATH_INVALID')
++    path = root
++    for part in rel.parts:
++        path = path / part
++        if path.is_symlink():
++            raise ResolutionError('HK_HISTORY_RESOLUTION_SYMLINK_DENIED')
++    if not path.is_file() or not path.resolve().is_relative_to(root):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_FILE_MISSING')
++    return path
++
++
++def root_for_source(source):
++    path = Path(source).resolve(strict=True)
++    for parent in path.parents:
++        if parent.name == 'hk_0_2':
++            return parent
++    raise ResolutionError('HK_HISTORY_RESOLUTION_OWNER_REQUIRED')
++
++
++def verify_append_frames(baseline, current, *, baseline_max, B_max):
++    """Exact all-column, all-key prefix proof; never compare only conflict keys."""
++    keys = ['code_norm','trade_date_compact']
++    if list(baseline.columns) != list(current.columns) or any(baseline[c].dtype != current[c].dtype for c in baseline.columns):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_SCHEMA_CHANGED')
++    if baseline.duplicated(keys).any() or current.duplicated(keys).any():
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_DUPLICATE_KEY')
++    dates = current['trade_date_compact'].map(day)
++    old = current.loc[dates <= baseline_max]
++    new = current.loc[dates > baseline_max]
++    left = baseline.sort_values(keys).reset_index(drop=True)
++    right = old.sort_values(keys).reset_index(drop=True)
++    if not left.equals(right):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_OLD_KEYS_OR_VALUES_CHANGED')
++    if new.empty or any(day(date) <= max(baseline_max,B_max) for date in new['trade_date_compact']):
++        raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_DATES_INVALID')
++    return dict(status='APPEND_ONLY_COMPATIBLE',baseline_rows=len(baseline),current_rows=len(current),
++                new_rows=len(new),all_original_columns_and_keys_exact=True)
++
++
++class ResolutionPolicy:
++    def __init__(self, owner_root, *, pointer_path=None):
++        self.root = Path(owner_root).resolve(strict=True)
++        if self.root.name != 'hk_0_2':
++            raise ResolutionError('HK_HISTORY_RESOLUTION_OWNER_INVALID')
++        # Operator-only candidate injection; HTTP parameters cannot select a pointer.
++        selected = pointer_path or os.environ.get('V4_HK_HISTORY_RESOLUTION_POINTER')
++        pointer_path = Path(selected) if selected else regular(self.root, 'history_resolution_latest.json')
++        if pointer_path.is_symlink() or not pointer_path.is_file():
++            raise ResolutionError('HK_HISTORY_RESOLUTION_POINTER_MISSING')
++        try:
++            pointer = json.loads(pointer_path.read_bytes())
++            manifest_path = regular(self.root, pointer['manifest_relative'])
++            manifest_raw = manifest_path.read_bytes()
++            if sha(manifest_raw) != pointer['manifest_sha256']:
++                raise ResolutionError('HK_HISTORY_RESOLUTION_MANIFEST_SHA_MISMATCH')
++            manifest = json.loads(manifest_raw)
++            if manifest['schema_version'] != SCHEMA or manifest['rule_version'] != RULE:
++                raise ResolutionError('HK_HISTORY_RESOLUTION_SCHEMA_INVALID')
++            if manifest['resolver_sha256'] != sha(Path(__file__).read_bytes()):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_READER_SHA_MISMATCH')
++            if (manifest.get('research_only') is not True or
++                    any(manifest.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_SAFETY_INVALID')
++            self.manifest, self.manifest_sha256 = manifest, sha(manifest_raw)
++            bindings = manifest['bindings']
++            for path_key, hash_key in [('descriptor_relative','descriptor_sha256'),
++                    ('B_relative','B_sha256'),('C_panel_relative','C_panel_sha256'),
++                    ('C_manifest_relative','C_manifest_sha256')]:
++                if sha(regular(self.root, bindings[path_key]).read_bytes()) != bindings[hash_key]:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_SOURCE_SHA_MISMATCH')
++            current_pointer = json.loads(regular(self.root, 'panel_latest.json').read_bytes())
++            current_manifest_path = regular(self.root, current_pointer['manifest_relative'])
++            current_raw = current_manifest_path.read_bytes()
++            self.current_manifest = json.loads(current_raw)
++            self.current_manifest_sha256 = sha(current_raw)
++            self.current_panel_sha256 = self.current_manifest['panel_sha256']
++            self.append_proof = dict(status='EXACT_BASELINE')
++            if (self.current_manifest_sha256 != bindings['C_manifest_sha256'] or
++                    self.current_panel_sha256 != bindings['C_panel_sha256']):
++                if manifest.get('append_policy') != 'ALL_KEYS_ALL_COLUMNS_EXACT':
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_STALE_C_BINDING')
++                baseline_manifest = json.loads(regular(self.root, bindings['C_manifest_relative']).read_bytes())
++                if (self.current_manifest.get('increment_contract') != baseline_manifest.get('increment_contract')
++                        or not baseline_manifest.get('increment_contract')
++                        or self.current_manifest.get('source_contract') != baseline_manifest.get('source_contract')
++                        or self.current_manifest.get('research_only') is not True
++                        or any(self.current_manifest.get(k) is not False for k in ('production_allowed','buy_gate_updated','orders_sent'))):
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_CONTRACT_INVALID')
++                current_panel = regular(self.root,self.current_manifest['panel_relative'])
++                if sha(current_panel.read_bytes()) != self.current_panel_sha256:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_SOURCE_SHA_MISMATCH')
++                import pandas as pd
++                baseline = pd.read_parquet(regular(self.root,bindings['C_panel_relative']))
++                current = pd.read_parquet(current_panel)
++                self.append_proof = verify_append_frames(baseline,current,
++                    baseline_max=manifest['baseline_C_max_date'],B_max=manifest['B_max_date'])
++                if len(current) != self.current_manifest['panel_rows']:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_APPEND_ROW_COUNT_MISMATCH')
++            ledger_path = regular(self.root, manifest['decisions_relative'])
++            compressed = ledger_path.read_bytes()
++            ledger_sha = sha(compressed)
++            if ledger_sha != manifest['decisions_sha256']:
++                raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_SHA_MISMATCH')
++            ledger_cache_key = (ledger_sha, bindings['B_sha256'], bindings['C_panel_sha256'])
++            if ledger_cache_key not in _LEDGERS:
++                indexed = {}
++                for line in gzip.decompress(compressed).splitlines():
++                    record = json.loads(line)
++                    key = (symbol(record['symbol']), day(record['date']))
++                    if key in indexed or set(record['field_decisions']) != set(FIELDS):
++                        raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_KEY_INVALID')
++                    for decision in record['field_decisions'].values():
++                        if decision['disposition'] not in ('CONFIRMED_KEEP_C','QUARANTINED','UNDISPUTED_KEEP_C_EXISTING_POLICY'):
++                            raise ResolutionError('HK_HISTORY_RESOLUTION_DISPOSITION_INVALID')
++                    if record['B_source_sha256'] != bindings['B_sha256'] or record['C_source_sha256'] != bindings['C_panel_sha256']:
++                        raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_SOURCE_MISMATCH')
++                    indexed[key] = record
++                if len(indexed) != manifest['decision_key_count']:
++                    raise ResolutionError('HK_HISTORY_RESOLUTION_LEDGER_COUNT_MISMATCH')
++                _LEDGERS.clear()
++                _LEDGERS[ledger_cache_key] = indexed
++            self.decisions = _LEDGERS[ledger_cache_key]
++            self.ledger_sha256 = ledger_sha
++        except ResolutionError:
++            raise
++        except (OSError, ValueError, KeyError, TypeError) as error:
++            raise ResolutionError('HK_HISTORY_RESOLUTION_CONTRACT_INVALID') from error
++
++    def check_panel(self, expected_sha):
++        if expected_sha != self.current_panel_sha256:
++            raise ResolutionError('HK_HISTORY_RESOLUTION_UNBOUND_PANEL')
++
++    def held_fields(self, code, date, required_fields=FIELDS, *, source='C'):
++        required_fields = fields(required_fields)
++        record = self.decisions.get((symbol(code),day(date)))
++        if record is None:
++            return []
++        if source == 'B':
++            return list(required_fields)  # every disputed B variant is audit-only
++        return [field for field in required_fields
++                if record['field_decisions'][field]['disposition'] == 'QUARANTINED']
++
++    def proof(self, *, required_fields, start, end, consumer, allowed_codes=(), excluded_codes=()):
++        binding = self.manifest['bindings']
++        return dict(resolution_schema_version=SCHEMA,resolution_rule_version=RULE,
++            resolution_manifest_sha256=self.manifest_sha256,resolution_ledger_sha256=self.ledger_sha256,
++            source_descriptor_sha256=binding['descriptor_sha256'],B_source_sha256=binding['B_sha256'],
++            C_panel_sha256=self.current_panel_sha256,C_manifest_sha256=self.current_manifest_sha256,
++            resolver_sha256=self.manifest['resolver_sha256'],required_fields=list(fields(required_fields)),
++            dependency_start=day(start),dependency_end=day(end),dependency_rule_version=consumer,
++            allowed_codes=sorted(set(allowed_codes)),excluded_codes=sorted(set(excluded_codes)),
++            excluded_code_count=len(set(excluded_codes)),admission='FIELD_WINDOW_VERIFIED')
++
++    def encode_proof(self, proof):
++        return 'b64url.' + base64.urlsafe_b64encode(canonical(proof)).decode('ascii')
++
++    def verify_proof(self, token, *, required_fields=FIELDS, end=None, consumer=None, codes=()):
++        try:
++            if not isinstance(token,str) or not token.startswith('b64url.'):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_CACHE_PROOF_MISSING')
++            proof = json.loads(base64.b64decode(token[7:],altchars=b'-_',validate=True))
++            expected = self.proof(required_fields=required_fields,start=proof['dependency_start'],
++                end=end or proof['dependency_end'],consumer=consumer or proof['dependency_rule_version'],
++                allowed_codes=proof['allowed_codes'],excluded_codes=proof['excluded_codes'])
++            if proof != expected or not {symbol(code) for code in codes}.issubset(set(proof['allowed_codes'])):
++                raise ResolutionError('HK_HISTORY_RESOLUTION_CACHE_PROOF_STALE')
++            return proof
++        except ResolutionError:
++            raise
++        except (ValueError, KeyError, TypeError) as error:
++            raise ResolutionError('HK_HISTORY_RESOLUTION_CACHE_PROOF_INVALID') from error
++
++    def guard_frame(self, frame, *, required_fields=FIELDS, code_column='code_norm',
++                    date_column='trade_date_compact', start=None, end=None,
++                    lookback=None, predecessors=0, source='C', consumer='HK_HISTORY_FULL_SERIES'):
++        """Exclude an affected code's complete sequence before any calculation.
++
++        The dependency selection is used only for the hold check. The returned
++        frame retains every original row of clean codes, so no gaps are bridged.
++        None lookback guards the entire supplied history, including proxy memory.
++        """
++        requested = fields(required_fields)
++        if frame.empty:
++            result = frame.copy()
++            result.attrs['history_resolution_proof'] = self.proof(required_fields=requested,
++                start=start or '19000101',end=end or '99991231',consumer=consumer)
++            result.attrs['history_resolution_holds'] = {}
++            return result
++        all_dates = frame[date_column].map(day)
++        start, end = day(start or all_dates.min()), day(end or all_dates.max())
++        excluded, allowed = set(), set()
++        reasons = {}
++        for raw_code, group in frame.groupby(code_column, sort=False):
++            code = symbol(raw_code)
++            dates = sorted({day(value) for value in group[date_column] if day(value) <= end})
++            if lookback is not None:
++                dependency = dates[-(lookback+predecessors):]
++            else:
++                eligible = [i for i,value in enumerate(dates) if start <= value <= end]
++                dependency = dates[max(0,eligible[0]-predecessors):eligible[-1]+1] if eligible else []
++            holds = [(date,self.held_fields(code,date,requested,source=source)) for date in dependency]
++            holds = [(date,held) for date,held in holds if held]
++            if holds:
++                excluded.add(code)
++                reasons[code] = [{'date':date,'fields':held,'reason':'HK_HISTORY_FIELD_QUARANTINED'} for date,held in holds]
++            else:
++                allowed.add(code)
++        result = frame.loc[~frame[code_column].map(symbol).isin(excluded)].copy()
++        result.attrs['history_resolution_proof'] = self.proof(required_fields=requested,start=start,end=end,
++            consumer=consumer,allowed_codes=allowed,excluded_codes=excluded)
++        result.attrs['history_resolution_holds'] = reasons
++        return result
++
++
++def policy_for_shared(shared_root):
++    return ResolutionPolicy(Path(shared_root)/'assets/hk_0_2')
++
++
++def verify_pool_quality(shared_root, provenance, signal_date, codes):
++    """Validate the exact already-verified run, never substitute a latest run."""
++    policy = policy_for_shared(shared_root)
++    policy.check_panel(provenance.get('panel_sha256'))
++    return policy.verify_proof(provenance.get('history_resolution_proof'), end=signal_date,
++        consumer='HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1', codes=codes)
++
++
++def guarded_frame(frame, shared_root, *, panel_sha256, **kwargs):
++    policy = policy_for_shared(shared_root)
++    policy.check_panel(panel_sha256)
++    return policy.guard_frame(frame, **kwargs)
++
++
++def guard_rebound_frame(frame, shared_root, *, panel_sha256, sessions, current_day=None):
++    policy = policy_for_shared(shared_root)
++    policy.check_panel(panel_sha256)
++    proofs = []
++    held = {}
++    specifications = [(('high',),min(sessions['prior60']),max(sessions['prior60']),'HK_REBOUND_HIGH60_V1'),
++                      (('trade',),min(sessions['previous5']),current_day or max(sessions['previous5']),'HK_REBOUND_VOLUME5_V1')]
++    if current_day:
++        specifications.append((('open','high','low','close','amount'),current_day,current_day,'HK_REBOUND_CURRENT_BAR_V1'))
++    for requested,start,end,consumer in specifications:
++        frame = policy.guard_frame(frame,required_fields=requested,start=start,end=end,consumer=consumer)
++        proofs.append(policy.encode_proof(frame.attrs['history_resolution_proof']))
++        held.update(frame.attrs['history_resolution_holds'])
++    frame.attrs['history_resolution_proofs'] = proofs
++    frame.attrs['history_resolution_holds'] = held
++    return frame
++
++
++def guard_score_frame(frame, policy, signal_date):
++    """Actual model dependency: price/amount 120 plus shift predecessor; trade today.
++
++    Proxy labels use high/close/pre_close/amount, and proxy memory uses at most
++    120 market dates. Trade is a raw model feature only on the predicted day.
++    Exclude a held code's full sequence before cross-sectional proxy labels;
++    retain all original observations of clean codes, including listing age.
++    """
++    original_codes = {symbol(code) for code in frame['code_norm']}
++    frame = policy.guard_frame(frame, required_fields=('open','high','low','close','amount'),
++        end=signal_date,lookback=121,consumer='HK_SCORE_PRICE_AMOUNT_121_V1')
++    price_holds = dict(frame.attrs['history_resolution_holds'])
++    frame = policy.guard_frame(frame, required_fields=('trade',),start=signal_date,end=signal_date,
++        consumer='HK_SCORE_CURRENT_TRADE_V1')
++    holds = {**price_holds,**frame.attrs['history_resolution_holds']}
++    allowed = {symbol(code) for code in frame['code_norm']}
++    dates = frame['trade_date_compact'].map(day)
++    proof = policy.proof(required_fields=FIELDS,start=dates.min() if not dates.empty else signal_date,
++        end=signal_date,consumer='HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1',
++        allowed_codes=allowed,excluded_codes=original_codes-allowed)
++    frame.attrs['history_resolution_proof'] = proof
++    frame.attrs['history_resolution_holds'] = holds
++    return frame
+--- a/v4/hk_research_history.py
++++ b/v4/hk_research_history.py
+@@ -520,6 +520,8 @@
+         *,
+         limit: int = 100,
+         offset: int = 0,
++        _policy: Any = None,
++        required_fields: Sequence[str] = NUMERIC_FIELDS,
+     ) -> dict[str, Any]:
+         """Return a bounded symbol/date slice; C owns overlap, B adds B-only."""
+         code = normalize_symbol(symbol)
+@@ -589,6 +591,27 @@
+             if key not in selected_c:
+                 result_rows.append(self._tagged_row("B", key, b_row, "B-only"))
+         result_rows.sort(key=lambda row: (row["date"], row["symbol"]))
++        quarantine = []
++        if _policy is not None:
++            usable = []
++            for row in result_rows:
++                held = _policy.held_fields(row["symbol"], row["date"], required_fields, source=row["source"])
++                if held:
++                    quarantine.append(dict(symbol=row["symbol"], date=row["date"], fields=held,
++                                           reason="HK_HISTORY_FIELD_QUARANTINED", row_sha256=row["row_sha256"]))
++                    continue
++                row["raw_fields"] = {field:row["raw_fields"].get(field) for field in required_fields}
++                row["counterpart"] = None  # original B variants require explicit audit mode
++                row["usable_fields"] = list(required_fields)
++                decision = _policy.decisions.get((row["symbol"], row["date"]))
++                row["field_admission"] = {
++                    field: (decision["field_decisions"][field]["disposition"] if decision
++                            else "UNDISPUTED_KEEP_C_EXISTING_POLICY" if row["source"] == "C"
++                            else "B_ONLY_RESEARCH_NO_SCORING_ADMISSION")
++                    for field in required_fields
++                }
++                usable.append(row)
++            result_rows = usable
+         page = result_rows[offset:offset + limit]
+         after = self.verify_inputs()
+         if before != after:
+@@ -601,6 +624,8 @@
+             "descriptor_sha256": self.descriptor_sha256,
+             "research_only": True,
+             "scoring_allowed": False,
++            "quarantine_count": len(quarantine),
++            "quarantine_reasons": quarantine[:MAX_QUERY_LIMIT],
+         }
+ 
+     def _tagged_row(
+@@ -988,9 +1013,24 @@
+         *,
+         limit: int = 100,
+         offset: int = 0,
++        mode: str = "usable",
++        required_fields: Sequence[str] = NUMERIC_FIELDS,
+     ) -> dict[str, Any]:
+         adapter, capture = self._capture()
+-        result = adapter.query_union(symbol, start_date, end_date, limit=limit, offset=offset)
++        if mode not in ("usable", "audit"):
++            raise QueryValidationError("mode must be usable or audit")
++        policy = None
++        if mode == "usable":
++            from upstreams.v3_shared_data.shared_data.hk_history_resolution import ResolutionPolicy, fields
++            required_fields = fields(required_fields)
++            policy = ResolutionPolicy(self.owner_root)
++            policy.check_panel(capture["panel_sha256"])
++        result = adapter.query_union(symbol, start_date, end_date, limit=limit, offset=offset,
++                                     _policy=policy, required_fields=required_fields)
++        result["mode"] = mode
++        if policy is not None:
++            result["history_resolution_proof"] = policy.proof(required_fields=required_fields,
++                start=start_date,end=end_date,consumer="HK_HISTORY_USABLE_SLICE_V1")
+         self._verify_capture_unchanged(capture)
+         result["owner_snapshot"] = {
+             key: capture[key]
+--- a/v4/manager_research/workspace_plan.py
++++ b/v4/manager_research/workspace_plan.py
+@@ -894,6 +894,9 @@
+                 refs.append(dict(owner=owner,artifact_ref=ref,sha256=source[shakey]))
+         import pandas as pd
+         frame=pd.read_parquet(panel['panel_path'],columns=['trade_date_compact','code_norm','high','trade'])
++        from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame
++        frame = guard_rebound_frame(frame, root, panel_sha256=panel['panel_sha256'], sessions=sessions)
++        result['history_resolution_proofs'] = frame.attrs['history_resolution_proofs']
+         if str(frame['trade_date_compact'].astype(str).max())!=sessions['panel_session']:
+             raise ValueError('REBOUND_PANEL_DATE_CONTENT_MISMATCH')
+         result['symbols']=rebound_history_rows(frame,symbols,sessions)
+@@ -1054,6 +1057,11 @@
+             ])
+         except (ImportError, OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+             return _screen_empty(context, ['SCREEN_PANEL_READ_FAILED:' + type(exc).__name__])
++        from upstreams.v3_shared_data.shared_data.hk_history_resolution import guard_rebound_frame
++        frame = guard_rebound_frame(frame, root, panel_sha256=panel['panel_sha256'],
++            sessions=history_sessions, current_day=day)
++        resolution_proofs = frame.attrs['history_resolution_proofs']
++        resolution_excluded = set(frame.attrs['history_resolution_holds'])
+         required = {'trade_date_compact', 'code_norm', 'high', 'low', 'close', 'amount', 'trade', 'pre_close'}
+         if not required.issubset(set(frame.columns)):
+             return _screen_empty(context, ['SCREEN_PANEL_SCHEMA_INVALID'])
+@@ -1065,7 +1073,7 @@
+             return _screen_empty(context, ['SCREEN_PANEL_TARGET_SESSION_EMPTY'])
+         if target['code_norm'].duplicated().any():
+             return _screen_empty(context, ['SCREEN_PANEL_TARGET_DUPLICATE_CODE'])
+-        codes = set(target['code_norm'].tolist())
++        codes = set(target['code_norm'].tolist()) - resolution_excluded
+         target_by_code = {
+             str(row['code_norm']): row.to_dict()
+             for _, row in target.iterrows()
+@@ -1541,7 +1549,8 @@
+                        row['oversold_cutoff_80pct_prior60_high'], row['volume_ratio_5d'])
+                       for row in excluded_rows],
+             unresolved=[(row['code'], row['exclusion_reason_code']) for row in unresolved_rows]))
+-        return dict(schema_version=REBOUND_SCREEN_SCHEMA, rule_version=REBOUND_SCREEN_RULE,
++        return dict(history_resolution_proofs=resolution_proofs,
++                    history_resolution_excluded_code_count=len(resolution_excluded),schema_version=REBOUND_SCREEN_SCHEMA, rule_version=REBOUND_SCREEN_RULE,
+             target_trade_date=str(context.get('plan_trade_date') or ''), verified_session=day,
+             status=status, cards=selected, strict=strict_rows, near=near_rows, pending=pending,
+             excluded=excluded_rows, screen_unresolved=unresolved_rows, decision_identity=decision_identity,
+--- a/v4/manager_workbench/api.py
++++ b/v4/manager_workbench/api.py
+@@ -61,6 +61,8 @@
+     except KeyError as exc:
+         raise _not_found() from exc
+     except ValueError as exc:
++        if str(exc).startswith("HK_HISTORY_RESOLUTION"):
++            raise HTTPException(503, "HK_HISTORY_RESOLUTION_UNAVAILABLE") from exc
+         raise HTTPException(422, "PARAMETER_INVALID") from exc
+     except HTTPException:
+         raise
+@@ -113,7 +115,11 @@
+         end: str = Query(...),
+         offset: int = Query(0, ge=0),
+         limit: int = Query(100, ge=1, le=200),
++        mode: Literal["usable", "audit"] = Query("usable"),
++        fields: str = Query("open,high,low,close,amount,trade", max_length=64),
+     ):
++        if not fields or any(field not in ("open","high","low","close","amount","trade") for field in fields.split(",")):
++            raise HTTPException(422, "FIELDS_INVALID")
+         if int(symbol[3:]) < 1:
+             raise HTTPException(422, "SYMBOL_INVALID")
+         if re.fullmatch(r"[0-9]{8}", start) is None or re.fullmatch(r"[0-9]{8}", end) is None:
+@@ -129,6 +135,7 @@
+                 end_day,
+                 offset=offset,
+                 limit=limit,
++                mode=mode, required_fields=tuple(fields.split(",")),
+             )
+             return envelope("READY", _public(data), [
+                 "RESEARCH_ONLY_RAW_HISTORY",
+--- a/v4/manager_workbench/inputs/native.py
++++ b/v4/manager_workbench/inputs/native.py
+@@ -566,6 +566,17 @@
+         code_col = "code_norm" if "code_norm" in frame else "symbol"
+         frame[date_col] = frame[date_col].astype(str).str.replace("-", "", regex=False).str[:8]
+         frame = frame[frame[date_col] <= date]
++        from upstreams.v3_shared_data.shared_data.hk_history_resolution import policy_for_shared
++        resolution = policy_for_shared(root)
++        resolution.check_panel(manifest["panel_sha256"])
++        frame = resolution.guard_frame(frame, required_fields=('close','high'), code_column=code_col,
++            date_column=date_col, end=date, lookback=61, consumer='HK_OVERSOLD_PRICE61_V1')
++        resolution_proofs = [resolution.encode_proof(frame.attrs['history_resolution_proof'])]
++        resolution_holds = dict(frame.attrs['history_resolution_holds'])
++        frame = resolution.guard_frame(frame, required_fields=('trade',), code_column=code_col,
++            date_column=date_col, end=date, lookback=6, consumer='HK_OVERSOLD_VOLUME6_V1')
++        resolution_proofs.append(resolution.encode_proof(frame.attrs['history_resolution_proof']))
++        resolution_holds.update(frame.attrs['history_resolution_holds'])
+         refs = [self._ref("v3_shared_data", "HK_DAILY_PANEL", actual_max, manifest["panel_sha256"],
+                           artifact_relative, available, manifest=pin["manifest_relative"])]
+         # Security master pins full scope, independently from Connect membership.
+@@ -618,6 +629,9 @@
+             record = dict(symbol=code, price_session=date, bars=sorted(bars,key=lambda r:r["date"]),
+                           expected_sessions=pin.get("expected_sessions"),
+                           evidence_ids=[r.evidence_id for r in refs], name=None)
++            record["history_resolution_proofs"] = resolution_proofs
++            if code in resolution_holds:
++                record["window_gap"] = "HK_HISTORY_FIELD_QUARANTINED"
+             record["panel_origin"] = dict(actual_panel_max_date=actual_max,projection_price_date=date,
+                 manifest_relative=pin["manifest_relative"],manifest_sha256=msha,panel_sha256=manifest["panel_sha256"],
+                 available_at=available)
+@@ -669,6 +683,7 @@
+                     gaps.append(str(exc) if isinstance(exc,ValueError) else "TDXPY_HISTORY_OWNER_UNAVAILABLE")
+             for record in records:
+                 code=record["symbol"]
++                if code in resolution_holds:continue  # audit-only disputes cannot become a supplement gap fallback
+                 if code not in missing or code not in tdx and code not in futu:continue
+                 bars,basis,ref=tdx[code] if code in tdx else futu[code]
+                 record.pop("window_gap",None)
+--- a/v4/manager_workbench/inputs/source_bindings.py
++++ b/v4/manager_workbench/inputs/source_bindings.py
+@@ -155,6 +155,13 @@
+         except FileNotFoundError:
+             pass
+     if pin is None:raise ValueError('EXACT_DATE_HK_PANEL_UNAVAILABLE')
++    from upstreams.v3_shared_data.shared_data.hk_history_resolution import policy_for_shared
++    resolution = policy_for_shared(config.shared_root)
++    selected, _ = read(config.shared_root, pin['manifest_relative'], pin['manifest_sha256'])
++    resolution.check_panel(selected['panel_sha256'])
++    pin['history_resolution_proof'] = resolution.encode_proof(resolution.proof(
++        required_fields=('close','high','trade'), start='19000101', end=day,
++        consumer='HK_SOURCE_BINDING_IDENTITY_V1'))
+     # Supplements are existing owner bytes only, and remain optional.
+     relative=f'assets/hk_0_2/daily_supplements/pointers/{day}.json'
+     try:

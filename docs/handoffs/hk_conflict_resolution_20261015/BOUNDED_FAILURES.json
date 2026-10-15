@@ -1,0 +1,32 @@
+{
+  "active_service_or_data_mutations": false,
+  "failures": [
+    {
+      "failure": "pytest cleanup entered old immutable /tmp garbage",
+      "resolution": "fresh explicit --basetemp; no unrelated cleanup"
+    },
+    {
+      "failure": "preloaded anyio pytest rewrite warning raised by project warning policy",
+      "resolution": "disable third-party pytest plugin autoload for this isolated synchronous suite"
+    },
+    {
+      "failure": "synthetic append changed integer date dtype",
+      "resolution": "fixture preserves original dtype; production schema guard unchanged"
+    },
+    {
+      "failure": "synthetic score fixture omitted trade_date_compact",
+      "resolution": "add required column only in synthetic fixture"
+    },
+    {
+      "failure": "clean proxy universe empty caused preexisting memory helper AttributeError",
+      "resolution": "typed HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT before memory/model; no algorithm change"
+    },
+    {
+      "failure": "same-process parsed ledger could skip source-row binding after manifest rebind",
+      "resolution": "cache key binds ledgerSHA+Bsha+Csha; regression reproduced then passed"
+    }
+  ],
+  "known_nonblocking_runtime_warnings": [
+    "Pandas DataFrame fragmentation in unchanged frozen feature algorithm"
+  ]
+}

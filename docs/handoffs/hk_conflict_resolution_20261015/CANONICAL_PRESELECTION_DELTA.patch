@@ -1,0 +1,31 @@
+--- a/infrastructure/scheduling/_executor_registry_parts/preselection.py
++++ b/infrastructure/scheduling/_executor_registry_parts/preselection.py
+@@ -104,6 +104,16 @@
+             for field in ("production_allowed", "buy_gate_updated", "orders_sent")
+         ):
+             return None, "exact source receipt is not READY/research-safe"
++        if module_leaf == "hk_0_2":
++            # This source-only path has no cached row projection to reuse.
++            # Require the exact verified pool's complete ordered code/rank projection.
++            hk_rows = list(pool.rows)
++            hk_projection = [(str(row["code_norm"]).strip(), str(row["rank"]).strip()) for row in hk_rows]
++            if (len(hk_projection) != 100
++                    or [rank for _, rank in hk_projection] != [str(i) for i in range(1, 101)]
++                    or len({code for code, _ in hk_projection}) != 100
++                    or any(not code for code, _ in hk_projection)):
++                return None, "HK_HISTORY_RESOLUTION_SOURCE_ROWS_MISMATCH"
+         return {
+             "status": "READY",
+             "run_id": receipt.get("run_id"),
+@@ -183,6 +193,11 @@
+         )
+     else:
+         hk_exact_source, hk_exact_error = None, ""
++    if (a_exact_source is not None and hk_lane_eligible and hk_exact_source is None):
++        return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
++            "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
++            "a_exact_source_reused":a_exact_source,"producer_called":False,"write_performed":False,
++            "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
+     def missing_entries(paths):
+         missing = [str(path) for path in paths if not path.is_file()]
+         return "fixed producer entry missing: " + ", ".join(missing) if missing else ""

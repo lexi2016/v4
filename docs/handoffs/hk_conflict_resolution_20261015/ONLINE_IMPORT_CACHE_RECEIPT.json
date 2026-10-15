@@ -1,0 +1,105 @@
+{
+  "active_owner_pointer_used": true,
+  "actual_HK_cache_reader": {
+    "producer_called": false,
+    "reason": "HK_HISTORY_RESOLUTION_CACHE_PROOF_MISSING",
+    "status": "REJECTED",
+    "store_write_performed": false
+  },
+  "actual_selected_root_imports": [
+    {
+      "exit_code": 0,
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app/v4/hk_research_history.py",
+      "module": "v4.hk_research_history",
+      "role": "api",
+      "service_instantiated": false,
+      "sha256": "2e4b920a7dafab981d22f8fe2c5062269425fa15335237776ae472cf898eff0b"
+    },
+    {
+      "exit_code": 0,
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "module": "infrastructure.scheduling.executor_registry_preselection",
+      "role": "scheduler",
+      "service_instantiated": false,
+      "sha256": "24ce6bc96ae3e17458e24f18fca0bac516a535290f478a17a4c3bee4f32f1f0e"
+    },
+    {
+      "exit_code": 0,
+      "file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app/review_core/hk_sources.py",
+      "module": "review_core.hk_sources",
+      "role": "reviewcore",
+      "service_instantiated": false,
+      "sha256": "0fff0bfc0d40d67bb36ac7c3085327dc5d82585e7a5833c9cfcf780c93ad9076"
+    }
+  ],
+  "decisions": 30341,
+  "graceful_lifecycle": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/logs/v4-api/stdout.log",
+      "role": "api",
+      "selected_lifecycle_lines": [
+        "{\"ts\": \"2026-10-15T07:33:24.261461Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Started server process [55027]\"}",
+        "{\"ts\": \"2026-10-15T07:33:24.261938Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Application startup complete.\"}",
+        "{\"ts\": \"2026-10-15T07:51:16.896570Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Shutting down\"}",
+        "{\"ts\": \"2026-10-15T07:51:16.999282Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Waiting for application shutdown.\"}",
+        "{\"ts\": \"2026-10-15T07:51:16.999841Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Application shutdown complete.\"}",
+        "{\"ts\": \"2026-10-15T07:51:16.999986Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Finished server process [55027]\"}",
+        "{\"ts\": \"2026-10-15T07:51:17.888172Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Started server process [57545]\"}",
+        "{\"ts\": \"2026-10-15T07:51:17.888666Z\", \"level\": \"INFO\", \"logger\": \"uvicorn.error\", \"message\": \"Application startup complete.\"}"
+      ]
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/logs/v4-api/stderr.log",
+      "role": "api",
+      "selected_lifecycle_lines": []
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stdout.log",
+      "role": "scheduler",
+      "selected_lifecycle_lines": [
+        {
+          "cycles": null,
+          "pid": 49678,
+          "release_id": "hk-pool-fupan-isolation-20261015-r1",
+          "started_at": "2026-10-15T14:59:18.716081+08:00",
+          "status": "DAEMON_READY"
+        },
+        {
+          "cycles": 52,
+          "pid": 49678,
+          "release_id": "hk-pool-fupan-isolation-20261015-r1",
+          "started_at": null,
+          "status": "DAEMON_STOPPED"
+        },
+        {
+          "cycles": null,
+          "pid": 57547,
+          "release_id": "hk-history-adjudication-scheduler-20261015-r3",
+          "started_at": "2026-10-15T15:51:17.922969+08:00",
+          "status": "DAEMON_READY"
+        }
+      ]
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stderr.log",
+      "role": "scheduler",
+      "selected_lifecycle_lines": []
+    }
+  ],
+  "materializer_hook": {
+    "probe_method": "EXTRACTED_ACTUAL_HOOK_NO_SERVICE_CONSTRUCTION",
+    "provider_called": false,
+    "reason": "HK_HISTORY_RESOLUTION_CACHE_PROOF_MISSING",
+    "source_file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app/ops/materialize_manager_close_discovery.py",
+    "source_sha256": "3451d6fbf5f82570772c81b027f6cd314a601292eda78cc350f840616b84d6a1",
+    "status": "REJECTED",
+    "store_write_performed": false
+  },
+  "provider_calls": false,
+  "real_coordinator_constructed_by_probe": false,
+  "resolver_file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+  "resolver_sha256": "29133d5ae8a6afa9c3244370389272c6f3aea3599f6e87bc8b3a47eb050f5bfa",
+  "runtime_python": "3.13.12",
+  "shared_module_file": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+  "shared_module_sha256": "665511d0a60e45e896886b23adeab4b6d29e85976e0d691f1e9844191263a7f6"
+}

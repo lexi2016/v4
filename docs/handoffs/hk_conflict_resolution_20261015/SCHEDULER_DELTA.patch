@@ -1,0 +1,93 @@
+--- a/infrastructure/scheduling/executor_registry_preselection.py
++++ b/infrastructure/scheduling/executor_registry_preselection.py
+@@ -32,6 +32,16 @@
+         ("hkconnect_d1_top100", "HK", "SHARED_VERIFIED_HK_0_2"),
+     )
+     pools: dict[str, dict[str, Any]] = {}
++    def reject_hk_or_fallback():
++        if 'a_d1_premarket_pool' not in pools:
++            return None
++        return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
++            "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
++            "hk_quality_rejected":True, "producer_called":False, "write_performed":False,
++            "formal_pool_reuse":{"a_pool_id":"a_d1_premarket_pool",
++                "a_source_sha256":pools['a_d1_premarket_pool'].get('source_sha256')},
++            "reason":"HK_HISTORY_RESOLUTION_CACHE_REJECTED", "production_allowed":False,
++            "buy_gate_updated":False, "orders_sent":False}
+     try:
+         store = PreselectionPoolStore(self.data_root)
+         for pool_id, market, source_role in expected:
+@@ -46,17 +56,17 @@
+                 or payload.get("source_merge_role") == "SOURCE_ONLY"
+                 or payload.get("status") in {"CANNOT_CONFIRM", "MISSING", "VALID_EMPTY"}
+             ):
+-                return None
++                return reject_hk_or_fallback()
+             rows = payload.get("rows")
+             if not isinstance(rows, list) or not rows:
+-                return None
++                return reject_hk_or_fallback()
+             if any(
+                 payload.get(field) is not False
+                 for field in ("production_allowed", "buy_gate_updated", "orders_sent")
+             ):
+-                return None
++                return reject_hk_or_fallback()
+             if any(not isinstance(row, dict) for row in rows):
+-                return None
++                return reject_hk_or_fallback()
+             codes = [
+                 str(
+                     row.get("code")
+@@ -67,12 +77,39 @@
+                 for row in rows
+             ]
+             if any(not code for code in codes) or len(set(codes)) != len(codes):
+-                return None
++                return reject_hk_or_fallback()
+             if market == "HK" and len(rows) != 100:
+-                return None
++                return reject_hk_or_fallback()
++            if market == "HK":
++                if payload.get("status") != "READY":
++                    return reject_hk_or_fallback()
++                try:
++                    from infrastructure.isolated_package_loader import load_isolated_package_module
++                    module = load_isolated_package_module(self.shared_package_root,
++                        package_directory="shared_data", module_leaf="hk_0_2",
++                        namespace_prefix="hk_history_cache_gate")
++                    verified = module.read_verified_hk_0_2_pool(self.shared_data_root,
++                        target_date=trade_date, expected_signal_date=str(payload["signal_date"]))
++                    if (verified.run.verification["artifact_sha256"] != payload.get("source_artifact_sha256",payload.get("source_sha256"))
++                            or verified.run.verification["manifest_sha256"] != payload.get("source_manifest_sha256")):
++                        raise ValueError("HK_HISTORY_RESOLUTION_CACHE_SOURCE_IDENTITY_MISMATCH")
++                    cached_projection = [(code, str(row["rank"]).strip()) for code, row in zip(codes, rows)]
++                    verified_projection = [(str(row["code_norm"]).strip(), str(row["rank"]).strip()) for row in verified.rows]
++                    if (cached_projection != verified_projection
++                            or [rank for _, rank in cached_projection] != [str(i) for i in range(1, 101)]):
++                        raise ValueError("HK_HISTORY_RESOLUTION_CACHE_ROWS_MISMATCH")
++                except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
++                    # A is already independently verified. Never enter its producer or rewrite its cache.
++                    return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
++                        "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
++                        "hk_quality_rejected":True, "producer_called":False, "write_performed":False,
++                        "formal_pool_reuse":{"a_pool_id":"a_d1_premarket_pool",
++                            "a_source_sha256":pools["a_d1_premarket_pool"].get("source_sha256")},
++                        "reason":"HK_HISTORY_RESOLUTION_CACHE_REJECTED", "production_allowed":False,
++                        "buy_gate_updated":False, "orders_sent":False}
+             pools[pool_id] = payload
+     except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
+-        return None
++        return reject_hk_or_fallback()
+     return {
+         "status": "SUCCEEDED",
+         "workload_id": "preselection_pools",
+@@ -99,6 +136,8 @@
+     self, request: DispatchRequest
+ ) -> dict[str, Any]:
+     reused = self._verified_formal_pool_reuse(request.target_date)
++    if reused is not None and reused.get("hk_quality_rejected"):
++        return reused  # keep exact A bytes; HK rejection must not fall through to paired producers
+     modules = [
+         "scripts.capture_public_fupan",
+         "ops.materialize_shared_v192_preselection",

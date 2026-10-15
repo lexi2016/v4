@@ -1,0 +1,578 @@
+{
+  "API_base_verification": {
+    "active_api_plist_sha256": "930eda41c57b43833de7da5e3e13da1658018cb9bf75248aad0a4ccace162057",
+    "active_pointer": "base",
+    "base": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2/app",
+      "application_inventory_entry_count": 1199,
+      "application_inventory_sha256": "15fe67f89bd286bfa3e2a1ac73ce9d91da46447a8c32bf29ce6a2222d062cb1f",
+      "release_id": "hk-auto-execution-audit-api-20261015-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2/release-manifest.json",
+      "release_manifest_sha256": "0250a32d606616b115b47d32cfac5860bdb279fd47ff437921d56b6ab26aeadd",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2"
+    },
+    "candidate": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app",
+      "application_inventory_entry_count": 1201,
+      "application_inventory_sha256": "4a39c87b23a96ab47c3cb39839ac1607311b3faa9cada43cbebafcb895f6a767",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "hk-history-adjudication-api-20261015-r4",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/release-manifest.json",
+      "release_manifest_sha256": "56acf149198ff92fb9f112e18d9259e5bc77af9746c8a79062806118c773b17a",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4"
+    },
+    "delta_paths": [
+      "domains/manager_close_rebound.py",
+      "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "v3_shared_data/shared_data/hk_0_2.py",
+      "v3_shared_data/shared_data/hk_d1_evidence.py",
+      "v3_shared_data/shared_data/hk_history_resolution.py",
+      "v4/hk_research_history.py",
+      "v4/manager_research/workspace_plan.py",
+      "v4/manager_workbench/api.py",
+      "v4/manager_workbench/inputs/native.py",
+      "v4/manager_workbench/inputs/source_bindings.py"
+    ],
+    "delta_receipt_sha256": "91ce71052a5dd4e6206ba54c65425b936dc02db02da24695f058fb2b5b000a92",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 1189,
+    "non_delta_inventory_sha256": "f6112d592236165ef11793d8c4a1d3620ec632f13395468273c851fc6590575a",
+    "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  },
+  "API_candidate_verification": {
+    "active_api_plist_sha256": "58600f07692b1ba9278425a3255f7b2a0a04f7315ba22b599c96e0a0b72886bb",
+    "active_pointer": "candidate",
+    "base": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2/app",
+      "application_inventory_entry_count": 1199,
+      "application_inventory_sha256": "15fe67f89bd286bfa3e2a1ac73ce9d91da46447a8c32bf29ce6a2222d062cb1f",
+      "release_id": "hk-auto-execution-audit-api-20261015-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2/release-manifest.json",
+      "release_manifest_sha256": "0250a32d606616b115b47d32cfac5860bdb279fd47ff437921d56b6ab26aeadd",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2"
+    },
+    "candidate": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app",
+      "application_inventory_entry_count": 1201,
+      "application_inventory_sha256": "4a39c87b23a96ab47c3cb39839ac1607311b3faa9cada43cbebafcb895f6a767",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "hk-history-adjudication-api-20261015-r4",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/release-manifest.json",
+      "release_manifest_sha256": "56acf149198ff92fb9f112e18d9259e5bc77af9746c8a79062806118c773b17a",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4"
+    },
+    "delta_paths": [
+      "domains/manager_close_rebound.py",
+      "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "v3_shared_data/shared_data/hk_0_2.py",
+      "v3_shared_data/shared_data/hk_d1_evidence.py",
+      "v3_shared_data/shared_data/hk_history_resolution.py",
+      "v4/hk_research_history.py",
+      "v4/manager_research/workspace_plan.py",
+      "v4/manager_workbench/api.py",
+      "v4/manager_workbench/inputs/native.py",
+      "v4/manager_workbench/inputs/source_bindings.py"
+    ],
+    "delta_receipt_sha256": "91ce71052a5dd4e6206ba54c65425b936dc02db02da24695f058fb2b5b000a92",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 1189,
+    "non_delta_inventory_sha256": "f6112d592236165ef11793d8c4a1d3620ec632f13395468273c851fc6590575a",
+    "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  },
+  "A_after_start": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "http_status": 200,
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "A_before": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "http_status": 200,
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "after_services": {
+    "api": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app",
+      "pid": 57545,
+      "plist_sha256": "58600f07692b1ba9278425a3255f7b2a0a04f7315ba22b599c96e0a0b72886bb",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app",
+        "V35_RELEASE_ID": "hk-history-adjudication-api-20261015-r4",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "56acf149198ff92fb9f112e18d9259e5bc77af9746c8a79062806118c773b17a",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+        "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research"
+      }
+    },
+    "scheduler": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/app",
+      "pid": 57547,
+      "plist_sha256": "0c20b4cfa5b8ceeed298217ebebb6791ab604f0398aedeec98dd884df685df36",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/app",
+        "V35_RELEASE_ID": "hk-history-adjudication-scheduler-20261015-r3",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "5908c86a846bd00789f0de91e46376a6f53136206f711f263e37be7eba49a741",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+        "V4_MANAGER_MATERIALIZER_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app",
+        "V4_MANAGER_MATERIALIZER_SHA256": "3451d6fbf5f82570772c81b027f6cd314a601292eda78cc350f840616b84d6a1",
+        "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research"
+      }
+    }
+  },
+  "atomic_installs": [
+    {
+      "atomic": true,
+      "finished_at": "2026-10-15T07:51:17.377725+00:00",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/history_resolution_latest.json",
+      "sha256": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+      "started_at": "2026-10-15T07:51:17.371172+00:00"
+    },
+    {
+      "atomic": true,
+      "finished_at": "2026-10-15T07:51:17.379730+00:00",
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "sha256": "58600f07692b1ba9278425a3255f7b2a0a04f7315ba22b599c96e0a0b72886bb",
+      "started_at": "2026-10-15T07:51:17.378691+00:00"
+    },
+    {
+      "atomic": true,
+      "finished_at": "2026-10-15T07:51:17.381285+00:00",
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "sha256": "0c20b4cfa5b8ceeed298217ebebb6791ab604f0398aedeec98dd884df685df36",
+      "started_at": "2026-10-15T07:51:17.380442+00:00"
+    }
+  ],
+  "before_PIDs": {
+    "api": 55027,
+    "scheduler": 49678
+  },
+  "buy_gate_updated": false,
+  "commands": [
+    {
+      "command": [
+        "launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:15.950863+00:00",
+      "started_at": "2026-10-15T07:51:15.943732+00:00",
+      "stderr": "",
+      "stdout": "path = /Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist\nstate = running\nprogram = /usr/bin/env\npid = 55027\nlast exit code = (never exited)\nstate = active\nstate = active"
+    },
+    {
+      "command": [
+        "launchctl",
+        "print",
+        "gui/501/com.lexi.v35.scheduler"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:15.954596+00:00",
+      "started_at": "2026-10-15T07:51:15.951197+00:00",
+      "stderr": "",
+      "stdout": "path = /Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist\nstate = running\nprogram = /bin/bash\npid = 49678\nlast exit code = (never exited)\nstate = active\nstate = active"
+    },
+    {
+      "command": [
+        "lsof",
+        "-a",
+        "-p",
+        "55027",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:16.004030+00:00",
+      "started_at": "2026-10-15T07:51:15.954848+00:00",
+      "stderr": "",
+      "stdout": "p55027\nfcwd\nn/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-api-20261015-r2/app\n"
+    },
+    {
+      "command": [
+        "lsof",
+        "-a",
+        "-p",
+        "49678",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:16.053731+00:00",
+      "started_at": "2026-10-15T07:51:16.004558+00:00",
+      "stderr": "",
+      "stdout": "p49678\nfcwd\nn/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-pool-fupan-isolation-20261015-r1/app\n"
+    },
+    {
+      "command": [
+        "launchctl",
+        "bootout",
+        "gui/501/com.lexi.v35.scheduler"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:16.342527+00:00",
+      "started_at": "2026-10-15T07:51:16.338070+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "launchctl",
+        "bootout",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:16.863106+00:00",
+      "started_at": "2026-10-15T07:51:16.852558+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:17.392366+00:00",
+      "started_at": "2026-10-15T07:51:17.381649+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:17.400825+00:00",
+      "started_at": "2026-10-15T07:51:17.393003+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:18.236796+00:00",
+      "started_at": "2026-10-15T07:51:18.232135+00:00",
+      "stderr": "",
+      "stdout": "path = /Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist\nstate = running\nprogram = /usr/bin/env\npid = 57545\nlast exit code = (never exited)\nstate = active\nstate = active"
+    },
+    {
+      "command": [
+        "lsof",
+        "-a",
+        "-p",
+        "57545",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:18.285897+00:00",
+      "started_at": "2026-10-15T07:51:18.237326+00:00",
+      "stderr": "",
+      "stdout": "p57545\nfcwd\nn/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-api-20261015-r4/app\n"
+    },
+    {
+      "command": [
+        "launchctl",
+        "print",
+        "gui/501/com.lexi.v35.scheduler"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:18.291127+00:00",
+      "started_at": "2026-10-15T07:51:18.287019+00:00",
+      "stderr": "",
+      "stdout": "path = /Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist\nstate = running\nprogram = /bin/bash\npid = 57547\nlast exit code = (never exited)\nstate = active\nstate = active"
+    },
+    {
+      "command": [
+        "lsof",
+        "-a",
+        "-p",
+        "57547",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "exit_code": 0,
+      "finished_at": "2026-10-15T07:51:18.339792+00:00",
+      "started_at": "2026-10-15T07:51:18.291481+00:00",
+      "stderr": "",
+      "stdout": "p57547\nfcwd\nn/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-scheduler-20261015-r3/app\n"
+    }
+  ],
+  "drain": {
+    "drained": true,
+    "healthy": [],
+    "legacy_active_metadata": [
+      {
+        "owner_pid": 11977,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260911-cde091954ab8170007cc738cb4fa0fc8.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-11T05:34:27+00:00"
+      },
+      {
+        "owner_pid": 84528,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260914-3f848e540e839b50da76ec11bd67c509.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-14T13:06:07+00:00"
+      },
+      {
+        "owner_pid": 88723,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260921-1528cad35b54504e5d45e91fc8fdb88d.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-21T07:10:40+00:00"
+      },
+      {
+        "owner_pid": 35011,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260923-dbeac17011e7dfc1e2bb36060783020a.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-23T15:35:47+00:00"
+      },
+      {
+        "owner_pid": 82355,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260924-0a6056245f4db996e8edeb75286b1b15.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-25T01:23:18+00:00"
+      },
+      {
+        "owner_pid": 1166,
+        "reason": "PID_REUSED_AFTER_LAST_UPDATE",
+        "relative": "mr-20261005-e61c8900ab53d0e894839d7b8fdafac0.json",
+        "state": "RUNNING",
+        "updated_at": "2026-10-05T06:04:47+00:00"
+      },
+      {
+        "owner_pid": 17149,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-events-20260909-a4acbb5354627f6e4befabbb6157029e.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-11T07:03:33+00:00"
+      }
+    ],
+    "records_modified": false,
+    "roots": [
+      {
+        "counts": {
+          "RUNNING": 7
+        },
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/jobs"
+      },
+      {
+        "counts": {
+          "PARTIAL": 24,
+          "SUCCEEDED": 1
+        },
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/attempts"
+      }
+    ],
+    "service_descendants": []
+  },
+  "drain_immediately_before_stop": {
+    "drained": true,
+    "healthy": [],
+    "legacy_active_metadata": [
+      {
+        "owner_pid": 11977,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260911-cde091954ab8170007cc738cb4fa0fc8.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-11T05:34:27+00:00"
+      },
+      {
+        "owner_pid": 84528,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260914-3f848e540e839b50da76ec11bd67c509.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-14T13:06:07+00:00"
+      },
+      {
+        "owner_pid": 88723,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260921-1528cad35b54504e5d45e91fc8fdb88d.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-21T07:10:40+00:00"
+      },
+      {
+        "owner_pid": 35011,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260923-dbeac17011e7dfc1e2bb36060783020a.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-23T15:35:47+00:00"
+      },
+      {
+        "owner_pid": 82355,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260924-0a6056245f4db996e8edeb75286b1b15.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-25T01:23:18+00:00"
+      },
+      {
+        "owner_pid": 1166,
+        "reason": "PID_REUSED_AFTER_LAST_UPDATE",
+        "relative": "mr-20261005-e61c8900ab53d0e894839d7b8fdafac0.json",
+        "state": "RUNNING",
+        "updated_at": "2026-10-05T06:04:47+00:00"
+      },
+      {
+        "owner_pid": 17149,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-events-20260909-a4acbb5354627f6e4befabbb6157029e.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-11T07:03:33+00:00"
+      }
+    ],
+    "records_modified": false,
+    "roots": [
+      {
+        "counts": {
+          "RUNNING": 7
+        },
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/jobs"
+      },
+      {
+        "counts": {
+          "PARTIAL": 24,
+          "SUCCEEDED": 1
+        },
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/attempts"
+      }
+    ],
+    "service_descendants": []
+  },
+  "effective_manager_roots": {
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+    "config_sha256": "65684e5eb7657390747c089db74047d6a2c67d7f5de1bd3fe757a62f120965ca",
+    "manager_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+    "shared_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+    "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench"
+  },
+  "finished_at": "2026-10-15T07:51:40.824180+00:00",
+  "locks": [
+    "API_SHARED",
+    ".com.lexi.v35.scheduler.release.lock",
+    "com.lexi.v35.scheduler.release.lock"
+  ],
+  "orders_sent": false,
+  "owner_pointer_sha256": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+  "production_allowed": false,
+  "protected_after": {
+    "file_count": 17,
+    "source_panel_model_SHA_unchanged": true,
+    "two_directory_inodes_preserved": true
+  },
+  "protected_before": {
+    "file_count": 17,
+    "source_panel_model_SHA_unchanged": true,
+    "two_directory_inodes_preserved": true
+  },
+  "queue_after": {
+    "drained": true,
+    "healthy": [],
+    "legacy_active_metadata": [
+      {
+        "owner_pid": 11977,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260911-cde091954ab8170007cc738cb4fa0fc8.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-11T05:34:27+00:00"
+      },
+      {
+        "owner_pid": 84528,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260914-3f848e540e839b50da76ec11bd67c509.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-14T13:06:07+00:00"
+      },
+      {
+        "owner_pid": 88723,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260921-1528cad35b54504e5d45e91fc8fdb88d.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-21T07:10:40+00:00"
+      },
+      {
+        "owner_pid": 35011,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260923-dbeac17011e7dfc1e2bb36060783020a.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-23T15:35:47+00:00"
+      },
+      {
+        "owner_pid": 82355,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-20260924-0a6056245f4db996e8edeb75286b1b15.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-25T01:23:18+00:00"
+      },
+      {
+        "owner_pid": 1166,
+        "reason": "PID_REUSED_AFTER_LAST_UPDATE",
+        "relative": "mr-20261005-e61c8900ab53d0e894839d7b8fdafac0.json",
+        "state": "RUNNING",
+        "updated_at": "2026-10-05T06:04:47+00:00"
+      },
+      {
+        "owner_pid": 17149,
+        "reason": "OWNER_ABSENT",
+        "relative": "mr-events-20260909-a4acbb5354627f6e4befabbb6157029e.json",
+        "state": "RUNNING",
+        "updated_at": "2026-09-11T07:03:33+00:00"
+      }
+    ],
+    "records_modified": false,
+    "roots": [
+      {
+        "counts": {
+          "RUNNING": 7
+        },
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research/jobs"
+      },
+      {
+        "counts": {
+          "PARTIAL": 24,
+          "SUCCEEDED": 1
+        },
+        "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/attempts"
+      }
+    ],
+    "service_descendants": []
+  },
+  "research_only": true,
+  "rollback_chain_preserved": true,
+  "rollback_performed": false,
+  "started_at": "2026-10-15T07:51:15.471929+00:00",
+  "status": "ACTIVATED_WRITER_ONLINE_PASS_PENDING_INDEPENDENT_REVIEW"
+}

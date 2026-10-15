@@ -1,0 +1,34 @@
+--- a/review_core/hk_sources.py
++++ b/review_core/hk_sources.py
+@@ -119,12 +119,30 @@
+         return loader(*args, **kwargs)
+     raise StoreError("loader signature unsupported")
+ 
++def _hk_resolution_helper():
++    import importlib.util
++    package = os.environ.get("V35_SHARED_PACKAGE_ROOT")
++    if not package:
++        raise StoreError("HK_HISTORY_RESOLUTION_PACKAGE_REQUIRED")
++    path = Path(package) / "shared_data/hk_history_resolution.py"
++    spec = importlib.util.spec_from_file_location("_review_core_hk_resolution_v1", path)
++    if spec is None or spec.loader is None:
++        raise StoreError("HK_HISTORY_RESOLUTION_HELPER_UNAVAILABLE")
++    helper = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(helper)
++    return helper
++
++
+ def default_model_loader(root: Path | None, target_date: str, signal_date: str) -> Any:
+     if root is None: raise StoreError("shared HK 0.2 root unavailable")
+     module = import_shared("shared_data.hk_0_2")
+-    return module.read_verified_hk_0_2_pool(
++    pool = module.read_verified_hk_0_2_pool(
+         root, target_date=target_date, expected_signal_date=signal_date
+     )
++    helper = _hk_resolution_helper()
++    helper.verify_pool_quality(root, pool.run.manifest.get("provenance", {}), signal_date,
++                               [row["code_norm"] for row in pool.rows])
++    return pool
+ 
+ def default_stage_loader(root: Path | None, trade_date: str, role: str) -> Any:
+     if root is None: raise StoreError("shared stage root unavailable")

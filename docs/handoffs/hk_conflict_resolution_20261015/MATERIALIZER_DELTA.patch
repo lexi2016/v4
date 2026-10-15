@@ -1,0 +1,62 @@
+--- a/ops/materialize_manager_close_discovery.py
++++ b/ops/materialize_manager_close_discovery.py
+@@ -88,10 +88,28 @@
+             'module_sha256':digest(Path(__file__).read_bytes()),**values,**CLOSE_RECAPTURE_FLAGS}
+ 
+ 
+-def _read_close_recapture_pool(store_root: Path, trade_date: str) -> tuple[dict,list[dict]]:
++def _resolution_pool_quality(store_root, manifest, rows):
++    import importlib.util
++    package = os.environ.get('V35_SHARED_PACKAGE_ROOT')
++    if not package: raise EvidenceError('HK_HISTORY_RESOLUTION_PACKAGE_REQUIRED')
++    path = Path(package)/'shared_data/hk_history_resolution.py'
++    spec = importlib.util.spec_from_file_location('_materializer_hk_resolution_v1',path)
++    if spec is None or spec.loader is None: raise EvidenceError('HK_HISTORY_RESOLUTION_HELPER_UNAVAILABLE')
++    helper = importlib.util.module_from_spec(spec); spec.loader.exec_module(helper)
++    helper.verify_pool_quality(store_root,manifest.get('provenance',{}),manifest.get('signal_date'),
++                               [row['symbol'] for row in rows])
++
++
++def _read_close_recapture_pool(store_root: Path, trade_date: str, *, expected_pool: dict | None = None) -> tuple[dict,list[dict]]:
+     """Read the one exact-date HK Connect D1 Top100 owner publication."""
+     run_root=resolve(store_root,f'runs/{trade_date}/HK_CONNECT_D1_TOP100_0_2')
+-    manifests=sorted(run_root.glob('*/manifest.json'))
++    if expected_pool is None:
++        manifests=sorted(run_root.glob('*/manifest.json'))
++    else:
++        pinned=resolve(store_root,str(expected_pool.get('manifest_ref') or ''))
++        if pinned.name!='manifest.json' or pinned.parent.parent!=run_root:
++            raise EvidenceError('CLOSE_RECAPTURE_POOL_PIN_INVALID')
++        manifests=[pinned]
+     if len(manifests)!=1:
+         raise EvidenceError('CLOSE_RECAPTURE_EXACT_POOL_NOT_UNIQUE',layer='POOL_OWNER',kind='MISSING' if not manifests else 'CONFLICT')
+     manifest_path=manifests[0]
+@@ -154,6 +172,9 @@
+         'manifest_ref':f'{run_dir.relative_to(store_root).as_posix()}/manifest.json',
+         'manifest_sha256':manifest_sha,'receipt_ref':f'{run_dir.relative_to(store_root).as_posix()}/receipt.json',
+         'receipt_sha256':receipt_sha,'captured_at':manifest['captured_at'],'row_count':len(rows)}
++    _resolution_pool_quality(store_root,manifest,rows)
++    if expected_pool is not None and identity!=expected_pool:
++        raise EvidenceError('CLOSE_RECAPTURE_POOL_PIN_MISMATCH')
+     return identity,rows
+ 
+ 
+@@ -258,6 +279,10 @@
+                 if (receipt.get('artifact_sha256')!=digest(raw) or value.get('schema_version')!=CLOSE_RECAPTURE_SCHEMA
+                         or value.get('source_trade_date')!=trade_date):
+                     raise EvidenceError('CLOSE_RECAPTURE_EXISTING_PRODUCT_CONFLICT',layer='PUBLICATION',kind='CONFLICT')
++                store_root=_root(universe/'.runtime/data','V35_SHARED_DATA_STORE_ROOT_REQUIRED')
++                if not isinstance(value.get('pool'),dict):
++                    raise EvidenceError('CLOSE_RECAPTURE_POOL_PIN_MISSING')
++                _read_close_recapture_pool(store_root,trade_date,expected_pool=value['pool'])
+                 return _close_recapture_result(trade_date,'ALREADY_EXISTS',plan_trade_date=value.get('plan_trade_date'),artifact_ref=artifact_ref,
+                     artifact_sha256=digest(raw),candidate_count=value.get('candidate_overlay',{}).get('count'),
+                     state_root=str(state))
+@@ -356,6 +381,7 @@
+                     'row_count':len(raw_capture['source_rows'])},
+                 'candidate_overlay':{'artifact_ref':candidates_ref,'sha256':digest(candidates_raw),
+                     'count':len(observations)},'cannot_confirm':sorted(set(cannot)),**CLOSE_RECAPTURE_FLAGS}
++            _read_close_recapture_pool(store_root,trade_date,expected_pool=pool)
+             payload_raw=encoded(payload)
+             if not atomic_create(artifact_path,payload_raw) and artifact_path.read_bytes()!=payload_raw:
+                 raise EvidenceError('CLOSE_RECAPTURE_IMMUTABLE_CONFLICT',layer='PUBLICATION',kind='CONFLICT')

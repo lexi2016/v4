@@ -326,7 +326,7 @@ class HKResearchHistoryTests(unittest.TestCase):
         c_rows = [_c_row("HK.00001", 20260102, 10.0)]
         owner_root, pointer, _ = self._owned_fixture(b_rows, c_rows)
         history = OwnedHKResearchHistory(owner_root)
-        initial = history.query_union("HK.00001", "20260102", "20260102")["rows"][0]
+        initial = history.query_union("HK.00001", "20260102", "20260102", mode="audit")["rows"][0]
         self.assertEqual(initial["source"], "C")
         self.assertEqual(initial["raw_fields"]["open"], 10.0)
 
@@ -344,7 +344,7 @@ class HKResearchHistoryTests(unittest.TestCase):
         next_manifest_relative = next_manifest.relative_to(owner_root).as_posix()
         pointer.write_text(json.dumps({"manifest_relative": next_manifest_relative}), encoding="utf-8")
 
-        updated = history.query_union("HK.00001", "20260102", "20260102")
+        updated = history.query_union("HK.00001", "20260102", "20260102", mode="audit")
         updated_row = updated["rows"][0]
         self.assertEqual(updated_row["source"], "C")
         self.assertEqual(updated_row["overlap_status"], "raw_conflicting_overlap")
@@ -352,7 +352,7 @@ class HKResearchHistoryTests(unittest.TestCase):
         self.assertEqual(updated_row["source_sha256"], hashlib.sha256(next_panel.read_bytes()).hexdigest())
         self.assertEqual(updated["owner_snapshot"]["manifest_relative"], next_manifest_relative)
 
-        b_only = history.query_union("HK.00002", "20260103", "20260103")["rows"][0]
+        b_only = history.query_union("HK.00002", "20260103", "20260103", mode="audit")["rows"][0]
         self.assertEqual(b_only["source"], "B")
         self.assertEqual(b_only["overlap_status"], "B-only")
         self.assertFalse(b_only["scoring_allowed"])
@@ -365,7 +365,7 @@ class HKResearchHistoryTests(unittest.TestCase):
         history = OwnedHKResearchHistory(owner_root)
         pointer.write_text(json.dumps({"manifest_relative": "../outside/manifest.json"}), encoding="utf-8")
         with self.assertRaises(SourceIdentityError):
-            history.query_union("HK.00001", "20260102", "20260102")
+            history.query_union("HK.00001", "20260102", "20260102", mode="audit")
 
         valid_relative = "panels/v1/manifest.json"
         pointer.write_text(json.dumps({"manifest_relative": valid_relative}), encoding="utf-8")
@@ -378,7 +378,7 @@ class HKResearchHistoryTests(unittest.TestCase):
 
         with patch.object(HKResearchHistory, "query_union", new=mutate_pointer):
             with self.assertRaises(SourceIdentityError):
-                history.query_union("HK.00001", "20260102", "20260102")
+                history.query_union("HK.00001", "20260102", "20260102", mode="audit")
 
     def test_owned_material_references_are_direct_and_confined_to_c_owner(self):
         owner_root, _, _ = self._owned_fixture(
@@ -397,7 +397,7 @@ class HKResearchHistoryTests(unittest.TestCase):
             self.assertTrue(resolved.is_relative_to(material_root))
             self.assertNotIn("待删除", str(resolved))
         history = OwnedHKResearchHistory(owner_root)
-        self.assertEqual(history.query_union("HK.00001", "20260102", "20260102")["rows"][0]["source"], "C")
+        self.assertEqual(history.query_union("HK.00001", "20260102", "20260102", mode="audit")["rows"][0]["source"], "C")
 
         bad_paths = ["B", "A_feature", "A_label", "B_operator_feature", "B_operator_label"]
         for ref in bad_paths:
@@ -409,7 +409,7 @@ class HKResearchHistoryTests(unittest.TestCase):
             changed["descriptor_sha256"] = source_descriptor_sha256(changed["source_descriptor"])
             descriptor_path.write_text(json.dumps(changed), encoding="utf-8")
             with self.subTest(reference=ref), self.assertRaises(SourceIdentityError):
-                history.query_union("HK.00001", "20260102", "20260102")
+                history.query_union("HK.00001", "20260102", "20260102", mode="audit")
         descriptor_path.write_text(json.dumps(document), encoding="utf-8")
 
     def test_owned_material_missing_or_tampered_sources_fail_closed(self):
@@ -423,12 +423,12 @@ class HKResearchHistoryTests(unittest.TestCase):
         original = b_path.read_bytes()
         b_path.unlink()
         with self.assertRaises(SourceIdentityError):
-            history.query_union("HK.00001", "20260102", "20260102")
+            history.query_union("HK.00001", "20260102", "20260102", mode="audit")
         b_path.write_bytes(original)
         altered = original[:-1] + bytes([original[-1] ^ 1])
         b_path.write_bytes(altered)
         with self.assertRaises(SourceIdentityError):
-            history.query_union("HK.00001", "20260102", "20260102")
+            history.query_union("HK.00001", "20260102", "20260102", mode="audit")
 
     def test_candidate_api_route_reads_dynamic_owner_with_bounded_hk_parameters(self):
         owner_root, _, _ = self._owned_fixture(
@@ -449,6 +449,7 @@ class HKResearchHistoryTests(unittest.TestCase):
                     "start": "20260102",
                     "end": "20260102",
                     "offset": 0,
+                    "mode": "audit",
                     "limit": 20,
                 },
             )
