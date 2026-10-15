@@ -1,0 +1,33 @@
+{
+  "goal": "Restore durable daily OVERSOLD operation through existing scheduler and authoritative data owners, with readiness, idempotency and bounded retry",
+  "phase": "IMPLEMENTATION",
+  "writer": "oversold_daily_writer (gpt-6-luna max)",
+  "reviewer": "different-identity Luna Max reviewer required",
+  "allowed_paths": [
+    "v4/manager_workbench/scheduler.py",
+    "v4/manager_workbench/binding.py",
+    "v4/manager_workbench/supervisor.py",
+    "v4/manager_workbench/oversold_daily.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/service.py (lane preservation only if necessary)",
+    "v4/manager_workbench/store.py (durable state/claim only if necessary)",
+    "tests/manager_workbench/test_oversold_daily_scheduler.py",
+    "upstreams/v3_shared_data/tests/test_hk_daily_supplement_tdxpy61.py",
+    "docs/handoffs/oversold_daily_automation_20261016/",
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py (TDX61 partial transport-failed catalogue cache recovery only)"
+  ],
+  "forbidden": [
+    "trading/BUY gates",
+    "Vibe 8910",
+    "HK preselection strategy",
+    "unrelated lanes",
+    "parallel producers"
+  ],
+  "pass_signal": "independent targeted scheduler/data-binding tests plus deployed owner/runtime verification; natural scheduled result reported separately",
+  "stop_rule": "new permission, target or data-contract change; otherwise continue authorized bounded repair",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "scope_amendment": "Direct owner evidence: catalogue PARTIAL cache persisted replace=False prevents bounded retry recovery. Preserve valid cache and partial provenance, refresh only retryable failure through same owner."
+}
