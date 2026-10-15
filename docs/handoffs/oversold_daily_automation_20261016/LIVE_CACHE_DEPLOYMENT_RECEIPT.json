@@ -1,0 +1,179 @@
+{
+  "schema_version": "v4.oversold_daily_live_cache_deployment_receipt.v1",
+  "authorization_ref": "root-oversold-cache-activate-20261016-after-pass",
+  "activation": {
+    "status": "ACTIVATED_RUNTIME_ONLY",
+    "release_id": "oversold-daily-cache-20261016-r1",
+    "active_pid": 39211,
+    "release_manifest_sha256": "03f1c61fe881039b286bd4d0d9acbcb29d32593747e7c0119b8e3c261237bfb2",
+    "active_staged_plist_sha256": "12fec20f665af3ce0a20ffd2c989684ff580c36ae2d932fdc285bb798e93d137",
+    "activation_receipt_path": "docs/handoffs/oversold_daily_automation_20261016/scheduler_cache_release_activation_receipt.json",
+    "activation_receipt_sha256": "9512602fde40e94ec57a6818c2ec5c3cbb9e042b5c08019f778ae080b7584c9f",
+    "runtime_review_status": "PASS",
+    "runtime_review_sha256": "e3ac3ab46f0797c0179e9a960beffc8b95ce772263d4d3048a1c3d8acf426446"
+  },
+  "first_recovery_cli_attempt": {
+    "status": "FAILED_BEFORE_TICK",
+    "interpreter": ".venv/bin/python",
+    "error": "ModuleNotFoundError: ops.api_release_integration",
+    "cursor_changed": false,
+    "repair": "Candidate wrapper pins and loads the reviewed workspace helper by absolute path and SHA; the exact configured Python 3.14 -S runtime passed the import preflight.",
+    "wrapper_sha256": "99402d1a0adbc50e63512369f91cbd159f287aadf31271b0ebf5c364a1fc3cad",
+    "pinned_helper_sha256": "86804204fae3484bf4277e6b2d4cdb7b1dea34ea7af530ebe2a036d845246f31",
+    "import_review_status": "PASS_RECOVERY_WRAPPER_IMPORT_PREFLIGHT",
+    "import_review_path": "docs/handoffs/oversold_daily_automation_20261016/RECOVERY_WRAPPER_IMPORT_REVIEW.json",
+    "import_review_sha256": "5dd6d5127deacf993b791221f3f56d2d0b1e620c0b8154c0782cc1f110c95c69"
+  },
+  "controlled_recovery": {
+    "status": "PARTIAL_TERMINAL",
+    "source_hk_session": "20261015",
+    "target_date": "20261016",
+    "run_id": "c1c5e85d691c46f98086b74053fe8ff8",
+    "job_id": "c1c5e85d691c46f98086b74053fe8ff8",
+    "attempt_state": "PARTIAL",
+    "job_started_at_hkt": "2026-10-16T03:34:28.935711+08:00",
+    "job_finished_at_hkt": "2026-10-16T03:34:45.458484+08:00",
+    "terminal_reason": "STABLE_OWNER_GAPS_RETAINED",
+    "capture_attempts": 3,
+    "job_attempts": 2,
+    "capture_evidence_disposition": "PARTIAL_TRANSPORT_RETRIES_EXHAUSTED",
+    "capture_retryable_error_count": 244,
+    "panel_manifest_sha256": "bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0",
+    "master_manifest_sha256": "57e15f3cd79535ea7d566a2b1f560692b148ef932b72d8fa14c662ef853b2898",
+    "tdx_capture": {
+      "run_id": "bd87816e25bc0bda5f1f95e9",
+      "capture_scope": "PANEL_GAPS",
+      "target_date": "20261015",
+      "available_at": "2026-10-15T19:34:09.286202+00:00",
+      "manifest_sha256": "56585e747e7b33f1b48d7edf36aaeb1a7d7ea9225ccf068ed0bbfd0be2bb051d",
+      "raw_sha256": "bd87816e25bc0bda5f1f95e9df873fcc95dac37e4bd209244d46c5817352ad43",
+      "selected_codes": 689,
+      "ready": 567,
+      "unassessed": 122,
+      "cache_hits": 567,
+      "recorded_network_bar_requests": 0,
+      "catalogue_refreshes": 0,
+      "failed_attempts": 244,
+      "failed_attempt_types": {
+        "ResponseHeaderRecvFails": 244
+      },
+      "failed_attempts_by_endpoint": {
+        "103.221.142.82:7727": 122,
+        "116.205.143.214:7727": 122
+      },
+      "network_bar_request_note": "The owner recorded zero successful network_bar_requests while separately recording 244 failed transport attempts; zero is not interpreted as zero attempts."
+    },
+    "lane_results": {
+      "OVERSOLD": {
+        "state": "PARTIAL",
+        "scope_rows": 689,
+        "assessed": 565,
+        "unassessed": 124,
+        "selected": 21,
+        "conditional_watch": 171,
+        "not_selected": 373,
+        "observation_only": 0
+      },
+      "US_MAPPING": {
+        "state": "INPUT_MISSING",
+        "gap": "US_MAPPING_EXACT_DATE_BINDING_MISSING"
+      }
+    },
+    "dynamic_source_binding": {
+      "oversold_tdx_history_manifest_sha256": "56585e747e7b33f1b48d7edf36aaeb1a7d7ea9225ccf068ed0bbfd0be2bb051d",
+      "oversold_tdx_history_raw_sha256": "bd87816e25bc0bda5f1f95e9df873fcc95dac37e4bd209244d46c5817352ad43",
+      "panel_manifest_sha256": "bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0",
+      "master_manifest_sha256": "57e15f3cd79535ea7d566a2b1f560692b148ef932b72d8fa14c662ef853b2898",
+      "source_session": "20261015",
+      "target_date": "20261016"
+    }
+  },
+  "idempotency": {
+    "status": "PASS_IDEMPOTENT_TERMINAL_TICK",
+    "checked_at_hkt": "2026-10-16T03:38:05.944526+08:00",
+    "runtime": "configured v3.5-mac Python 3.14 with -S",
+    "tick_result": "PARTIAL_TERMINAL",
+    "store_mutations_attempted": 0,
+    "new_futures_queued": 0,
+    "before_after_sha256_check": {
+      "status": "PASS",
+      "verified_artifact_keys": [
+        "daily_cursor",
+        "new_plan",
+        "new_attempt",
+        "tdx_capture_manifest",
+        "tdx_capture_raw",
+        "legacy_nextday_cursor",
+        "legacy_nextday_plan"
+      ],
+      "excluded_unverified_prior_run_id": "0c72d7ade78249d280b03418e71db681"
+    },
+    "post_tick_candidate_source_inventory": {
+      "status": "PASS_CANDIDATE_SOURCE_INVENTORY_UNCHANGED",
+      "entry_count": 855,
+      "aggregate_sha256": "ddbfa03368e45d74d63db0b3e98cb095919fe202c5804a0451956e7c17eff4e0",
+      "excluded_generated_cpython314_caches": 53
+    },
+    "artifacts": {
+      "daily_cursor": "e0294184743708b3668eff7b58633a2976572d1a6e348a705a7a9b22eed58f47",
+      "new_plan": "159eacebdce03fef028f92d98cd6e7641c9cf8315ca47d4991d667a56e802dd1",
+      "new_attempt": "69e1cd03f835cc2da13a40ce39f720cc4b69a32148b69fc7254cbdf185e3d50b",
+      "tdx_capture_manifest": "56585e747e7b33f1b48d7edf36aaeb1a7d7ea9225ccf068ed0bbfd0be2bb051d",
+      "tdx_capture_raw": "bd87816e25bc0bda5f1f95e9df873fcc95dac37e4bd209244d46c5817352ad43",
+      "legacy_nextday_cursor": "af18f077776ec332eb8187ec54f895df1a3f23a9e75d79baec08aaf102eadf49",
+      "legacy_nextday_plan": {
+        "run_id": "18425e50e6294f15a6bc02ac881c5af2",
+        "sha256": "b769e3bf4cea635cf50e546e639a9193493e783a3299065d0d76549fe1ea0f99",
+        "before_after_sha256_unchanged": true
+      },
+      "prior_failed_recovery_run": {
+        "run_id": "0c72d7ade78249d280b03418e71db681",
+        "retained": true,
+        "current_sha256": "cd9ec2eee28ec9089bb8eb2e06d8c687eba1fed3f14f14e503cf06b888e97c8c",
+        "tick_before_after_sha256": "CANNOT_CONFIRM"
+      }
+    }
+  },
+  "api_readback": {
+    "status": "PASS",
+    "http_status": 200,
+    "method": "GET",
+    "url": "http://127.0.0.1:8873/api/v4/manager-workbench/days/20261016/recommendations/OVERSOLD?phase=NEXT_DAY&run_id=c1c5e85d691c46f98086b74053fe8ff8&limit=1",
+    "envelope_state": "PARTIAL",
+    "run_id": "c1c5e85d691c46f98086b74053fe8ff8",
+    "target_date": "20261016",
+    "phase": "NEXT_DAY",
+    "full_lane_counts": {
+      "selected": 21,
+      "watch": 171,
+      "unassessed": 124,
+      "not_selected": 373,
+      "observation_only": 0
+    },
+    "other_lane": {
+      "US_MAPPING": "INPUT_MISSING"
+    }
+  },
+  "ui_readback": {
+    "status": "UI_VERIFIED",
+    "verdict": "PASS",
+    "receipt_path": "docs/handoffs/oversold_daily_automation_20261016/UI_REVIEW.md",
+    "receipt_sha256": "12ef319bd8918b8f3bf7b32798d1fb01a09fd4e1f8f2b55e3f71a02255b8d2db",
+    "screenshot_path": "docs/handoffs/oversold_daily_automation_20261016/oversold_daily_live.jpg",
+    "screenshot_sha256": "af6d44c144c044000352b47ad1cadcdd1b79de730f7cd9330a73392a1a608b6d"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "source_tests_rerun": false
+  },
+  "acceptance_limits": {
+    "overall_recovery": "PARTIAL_TERMINAL",
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+    "economic_or_investment_validation": "CANNOT_CONFIRM",
+    "unresolved_owner_transport_gaps": 122,
+    "no_full_coverage_claim": true
+  }
+}
