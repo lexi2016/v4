@@ -1,0 +1,69 @@
+{
+  "schema": "announcement-full-day-handoff.v1",
+  "date": "2026-10-15",
+  "base_commit": "019da9c0c02409665d9b7a536c7895197d366f8f",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary",
+  "runtime_python": "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python",
+  "helper_before_sha256": "2bd5c5514b8ef83f43fb4efb40b9832930350fb9974565cea511e6c909df18ce",
+  "helper_after_sha256": "43f70a0e57f81814a93f176079bfc5c20519dbda5b7a8f9e8062e3aa488c74b3",
+  "candidate": "candidate-20261015-full-04",
+  "candidate_id": "76e8763179830e975f11",
+  "candidate_manifest_sha256": "15de0845513f21cdadd98162a7720d8963bde3290b2839765d1794dce11bd121",
+  "source": {
+    "catalogue": 392,
+    "complete": 391,
+    "recovered": 198,
+    "reused_prior_result": 1,
+    "new_queue": 390,
+    "direct": 387,
+    "chunk_pending": 3,
+    "body_gap": 1,
+    "canonical_product_sha256": "57823120016e4eb1dc905c2a41803e0f170bb0062586c3dd41a82f826c2ce17f",
+    "source_review": "PASS",
+    "lease_revoked": true
+  },
+  "independent_review": {
+    "agent": "simple_review_resume",
+    "verdict": "PRE_RUN_REVIEW_PASS",
+    "full_day_tests": "4/4",
+    "adapter_tests": "8/8",
+    "p0_p1_p2_findings": 0
+  },
+  "submission": {
+    "ui": "http://127.0.0.1:55567/",
+    "state": "RUNNING",
+    "model_request_sent": true,
+    "observed_first_article": "EASTMONEY:AN202610151830520707",
+    "model_id": "qwen3_8_flash_next",
+    "temperature": 0,
+    "thinking": false,
+    "concurrency": 1,
+    "max_attempts": 1
+  },
+  "limitations": {
+    "chunk_pending": [
+      "AN202610151830523030",
+      "AN202610151830512065",
+      "AN202610151830536700"
+    ],
+    "gap_article": "AN202610151830532649",
+    "gap_reason": "158 body pages exceeds canonical hard-coded maximum150; cache-only rebuild reports CAPTURE_TRANSPORT_NOT_BOUND",
+    "pit": "CANNOT_CONFIRM",
+    "official_first_publication_time": "CANNOT_CONFIRM",
+    "all_model_results": "NOT_COMPLETE",
+    "semantic_review": "NOT_RUN",
+    "v4_deployment": "NOT_DEPLOYED",
+    "natural_run": "NOT_RUN"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "commands": [
+    "python evidence/recent-day-20261014/recent_day_freeze.py --prepare-full-day-20261015 --candidate-root evidence/announcement-full-day-20261015/candidate-20261015-full-04",
+    "python -m unittest discover -s evidence/announcement-full-day-20261015/tests -p test_*.py -v",
+    "python -m unittest discover -s evidence/recent-day-20261014 -p test_recent_day_flash_adapter.py -v"
+  ]
+}
