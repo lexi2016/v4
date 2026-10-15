@@ -1,0 +1,50 @@
+--- a/ops/us_market_digest.py
++++ b/ops/us_market_digest.py
+@@ -1133,7 +1133,10 @@
+     }
+     if provider_receipt is not None:
+         result["provider_receipt"] = dict(provider_receipt)
+-    return result
++    return normalize_close_snapshot(result)
++
++
++from ops._us_market_digest_parts.close_validation import normalize_close_snapshot
+ 
+ 
+ # Short aliases make the producer seam discoverable without creating another
+@@ -1736,7 +1739,7 @@
+         merged["cannot_confirm"] = sorted(
+             set(merged["cannot_confirm"]) | mixed_reasons
+         )
+-    return merged
++    return normalize_close_snapshot(merged)
+ 
+ 
+ def merge_us_phase_payloads(
+--- a/apps/api/v35_api/research_lane_router.py
++++ b/apps/api/v35_api/research_lane_router.py
+@@ -544,7 +544,7 @@
+                 or timestamp(projection.get("capture_window_end")) != end):
+             raise ValueError("CAPTURE_WINDOW_BINDING_MISMATCH")
+         if _is_late_capture_identity(projection):
+-            recovery_end = datetime.combine(session, time(20), tzinfo=ny_zone)
++            recovery_end = start + timedelta(hours=24)
+             if (projection.get("late") is not True
+                     or projection.get("capture_mode") != LATE_CAPTURE_MODE
+                     or timestamp(projection.get("allowed_recovery_window_start")) != start
+@@ -574,9 +574,12 @@
+             # Preserve PARTIAL and all provider/session conflicts.  Calendar
+             # verification never upgrades data quality by itself.
+             result["display_status"] = projection["status"]
+-            if len(projection.get("provider_session_times") or []) != 1:
+-                result["display_status"] = "PARTIAL"
+-                diagnostic["cannot_confirm"] = ["QUOTE_SESSION_TIME_MIXED_OR_MISSING"]
++            from ops._us_market_digest_parts.close_validation import validate_close_observations
++            quote_error = validate_close_observations(projection)
++            if quote_error:
++                result["display_status"] = "CANNOT_CONFIRM"
++                diagnostic["state"] = "CANNOT_CONFIRM"
++                diagnostic["cannot_confirm"] = [quote_error]
+     except (ValueError, TypeError, KeyError) as error:
+         diagnostic["state"] = "CANNOT_CONFIRM"
+         diagnostic["cannot_confirm"] = [str(error)]

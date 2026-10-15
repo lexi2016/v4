@@ -1,0 +1,40 @@
+{
+  "NATURAL_VERIFIED": false,
+  "UI_VERIFIED": true,
+  "artifact_date": "20261015",
+  "buy_gate_updated": false,
+  "capture_phase": "POST_CLOSE",
+  "captured_at": "2026-10-15T06:09:12Z",
+  "coverage": "48/48",
+  "falling_count": 21,
+  "leaders": [
+    {
+      "change_pct": 0.728,
+      "label": "消费"
+    },
+    {
+      "change_pct": 0.64,
+      "label": "石油"
+    },
+    {
+      "change_pct": 0.118,
+      "label": "军工"
+    }
+  ],
+  "method": "Original user IAB tab2 at8873; reload then settled DOM",
+  "new_capture_claimed": false,
+  "observed_at": "2026-10-15T22:45:00+08:00",
+  "observed_examples": {
+    "cloud_CLOU_pct": -2.924,
+    "semiconductor_SOXX_pct": -4.501
+  },
+  "observer": "controller",
+  "orders_sent": false,
+  "production_allowed": false,
+  "remaining_diagnostic": "GOOGLE_NEWS_RSS_DISCOVERY_ONLY",
+  "rising_count": 3,
+  "schema_version": "v4.us_close_controller_ui_receipt.v1",
+  "source_date": "20261014",
+  "status": "READY",
+  "target_date": "20261015"
+}

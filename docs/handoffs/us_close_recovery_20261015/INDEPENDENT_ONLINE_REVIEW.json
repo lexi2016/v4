@@ -1,0 +1,74 @@
+{
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "buy_gate_updated": false,
+  "findings": [],
+  "independent_readback": {
+    "API_pid": 95683,
+    "API_release": "us-close-recovery-api-20261015-r1",
+    "HTTP_GET": [
+      "/api/v3/research/dates",
+      "/api/v3/research/us-market?research_date=20261015"
+    ],
+    "US_RunAtLoad": false,
+    "US_argv_unchanged": true,
+    "US_loaded_calendar_triggers": [
+      "0415",
+      "0515",
+      "2100",
+      "2200"
+    ],
+    "US_loaded_release": "us-close-recovery-us-20261015-r1",
+    "US_state": "not running; scheduled owner loaded",
+    "artifact_receipt_manifest_bytes_verified": true,
+    "artifact_sha256": "4f50c61a68645cfa19c39fb8c92144ad69525183a81219ae833df80573fe6480",
+    "authorized_plist_changes_verified": 2,
+    "automatic_update_binding_verified": true,
+    "calendar_latest_session_verified": true,
+    "captured_at": "2026-10-15T06:09:12Z",
+    "display_status": "READY",
+    "executable_slot_dryrun": "Reused independent candidate PASS; no fresh producer invocation",
+    "history_and_supersession_verified": true,
+    "latest_artifact_date": "20261015",
+    "latest_complete_source_session": "20261014",
+    "loaded_cwd_env_manifest_consistent": true,
+    "main_scheduler_pid_unchanged": 90252,
+    "new_capture_performed": false,
+    "original_payload_history_sha256": "06e042b49b1160e8ace7c8daa67ea9501324792e5d7192912b1b49940d809622",
+    "original_quotes_timestamps_rawSHA_universe_news_preserved": true,
+    "protected_business_files_SHA_and_inode_unchanged": 26,
+    "quotes": 48,
+    "research_flags_verified": true,
+    "rows": 24,
+    "source_response_sha256": "0d89735cee75a2162c8ca55a6e0b03071689ad447bdd939fc7200ef57ad5cb15",
+    "status": "READY"
+  },
+  "limits": [
+    "Price basis remains provider regular-close proxy, not exchange official closing print.",
+    "Automatic job binding and earlier independent dry-run are verified; a future scheduled natural capture is not yet accepted.",
+    "Rendered UI acceptance is owned by controller and was not repeated here."
+  ],
+  "orders_sent": false,
+  "pins": {
+    "api_manifest_sha256": "1dae9b975c4ecfe4fbf20900507877ce02de564684a0251060c73a2d618428ca",
+    "execution_baseline_sha256": "95156a41bbe933bdaddb05297f07d493f59c37384c106461e837f86c3cef5b2a",
+    "independent_candidate_review_sha256": "5b012bf2274325148b4be60f8fcba1b73379a3a05ee321cdef4f68804dc23e72",
+    "online_writer_receipt_sha256": "a02a1e6cbf6ebf9a60697a34271e94ea19f63c12cc07e36610f8c22b689edd72",
+    "us_manifest_sha256": "a22b7e6079fd701e996f73f8c0e8ab37610f7127bd0d5516b293e7dd3b31b1f2"
+  },
+  "production_allowed": false,
+  "reviewed_at": "2026-10-15T14:42:38.578542+00:00",
+  "reviewer_identity": "us_close_recovery_review",
+  "schema_version": "v4.us_close_independent_online_review.v1",
+  "scope": "One final read-only online acceptance; prior source/model/component tests reused, no producers/Stage/service actions or external quote requests.",
+  "status": {
+    "API_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "DEPLOYED": true,
+    "NATURAL_VERIFIED": false,
+    "REVIEWED": true,
+    "UI_VERIFIED": false
+  },
+  "verdict": "PASS"
+}

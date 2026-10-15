@@ -1,0 +1,64 @@
+{
+  "Git_operation_performed": false,
+  "base_commit": "05ef544b5a7bd0ebdc9991625dadf6ede7f87f84",
+  "base_tree": "b688d187fa6e4ec25c4f15f3835708f5e9819cf6",
+  "excluded": "Real plists; raw prices/artifacts; captured provider responses; caches; builds/dist; full inventories; preimage; source_projection; runtime data; broad dirty existing source files",
+  "items": [
+    {
+      "git_blob_sha1": "df32cf450ad2bd72dee397e6c4906be5a53d0e6c",
+      "path": "ops/_us_market_digest_parts/close_validation.py",
+      "sha256": "b0aee7386837b639f2ba360158febaa593f98905ed14967b9b78b927b1cbcfb7",
+      "size_bytes": 3217
+    },
+    {
+      "git_blob_sha1": "2500bac82706d9642f210ddbbd2fee317a19d103",
+      "path": "tests/test_us_close_recovery.py",
+      "sha256": "4a4b7e7a40969ba24610d1a0acf1e940f33d150ee82e0f2c6f25a6025415c1de",
+      "size_bytes": 3195
+    },
+    {
+      "git_blob_sha1": "62ef490284003c429c1cc0a9a4ac5e1d50028f4a",
+      "path": "docs/handoffs/us_close_recovery_20261015/SOURCE_ONLY.patch",
+      "sha256": "f209c131ebcba71e12f54fdb6d146b8822081dd089c974f8882ab549456fdc96",
+      "size_bytes": 9649
+    },
+    {
+      "git_blob_sha1": "e0d3ea5ff32ff7d946b20d3584eb9fcaeb5c0532",
+      "path": "docs/handoffs/us_close_recovery_20261015/RUNTIME_SOURCE_ONLY.patch",
+      "sha256": "aac149d0ed11163a7851b59eda445123b41a70ead21374629e0a7025618636f0",
+      "size_bytes": 2292
+    },
+    {
+      "git_blob_sha1": "ece73fc4d36f01a07f9c07059e61a679e98bf67f",
+      "path": "docs/handoffs/us_close_recovery_20261015/SOURCE_PATCH_BASES.json",
+      "sha256": "9109ae2eb856d3a1c5a3a58c080d2f47e05a1038590db434f2df619b833bb941",
+      "size_bytes": 2863
+    },
+    {
+      "git_blob_sha1": "0545f00f5cc3314cda6805eec26d666230ee7eff",
+      "path": "docs/handoffs/us_close_recovery_20261015/INDEPENDENT_REVIEW.json",
+      "sha256": "5b012bf2274325148b4be60f8fcba1b73379a3a05ee321cdef4f68804dc23e72",
+      "size_bytes": 4615
+    },
+    {
+      "git_blob_sha1": "a4b8c24361a1b2db24b221345d3e87e4c89ae291",
+      "path": "docs/handoffs/us_close_recovery_20261015/INDEPENDENT_ONLINE_REVIEW.json",
+      "sha256": "22c6851c8df4506162554972d4e0142479427b6851cbd604f1f188be74c5b5f7",
+      "size_bytes": 3151
+    },
+    {
+      "git_blob_sha1": "95ac5e393f5b7e5580ed997d54bc26af6219adf1",
+      "path": "docs/handoffs/us_close_recovery_20261015/UI_RECEIPT.json",
+      "sha256": "d351c6710cccc527b1b3c86b0733cb5a1f2d095aea8ba175d06b6d7c08590773",
+      "size_bytes": 993
+    },
+    {
+      "git_blob_sha1": "85ebb688f5afca6dac278e349118a0fd30a5d01a",
+      "path": "docs/handoffs/us_close_recovery_20261015/RESULT.md",
+      "sha256": "65c5d3a7caad4702b2137af199923793255c7f3ca10a5236b411c2bf5c3150b6",
+      "size_bytes": 1397
+    }
+  ],
+  "schema_version": "v4.us_close_sync_allowlist.v1",
+  "total_bytes": 31372
+}

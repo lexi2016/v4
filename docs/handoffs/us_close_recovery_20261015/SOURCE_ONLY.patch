@@ -1,0 +1,167 @@
+--- a/ops/us_market_digest.py
++++ b/ops/us_market_digest.py
+@@ -493,51 +493,9 @@
+ 
+ 
+ def _clear_same_session_time_dispersion(snapshot: Mapping[str, Any]) -> dict[str, Any]:
+-    """Treat same-session quote seconds as diagnostics, not mixed sessions.
+-
+-    The source timestamp remains visible on every quote and theme row. Only
+-    the false-positive time-dispersion reason is removed, and only when the
+-    provider dates are a single exact session. Cross-date, missing-time,
+-    parser, arithmetic, coverage, and other quality failures remain intact.
+-    """
+-    result = copy.deepcopy(dict(snapshot))
+-    dates = result.get("provider_session_dates")
+-    dates = dates if isinstance(dates, list) else []
+-    if len(set(str(value) for value in dates if value)) != 1:
+-        return result
+-    session_date = str(dates[0])
+-    reasons = result.get("cannot_confirm")
+-    reasons = list(reasons) if isinstance(reasons, list) else []
+-    result["cannot_confirm"] = [value for value in reasons if value != "QUOTE_SESSION_TIME_MIXED"]
+-    rows = result.get("rows")
+-    rows = rows if isinstance(rows, list) else []
+-    for row in rows:
+-        if not isinstance(row, dict):
+-            continue
+-        row_reasons = row.get("cannot_confirm")
+-        row_reasons = list(row_reasons) if isinstance(row_reasons, list) else []
+-        row["cannot_confirm"] = [value for value in row_reasons if value != "QUOTE_SESSION_TIME_MIXED"]
+-        row_dates = row.get("quote_session_dates")
+-        row_times = row.get("quote_session_times")
+-        requested = row.get("requested_symbol_count")
+-        available = row.get("available_symbol_count")
+-        if (row_dates == [session_date] and isinstance(row_times, list) and row_times
+-                and type(requested) is int and type(available) is int and requested == available
+-                and not row.get("missing_symbols") and not row["cannot_confirm"]):
+-            row["status"] = "READY"
+-
+-    requested = result.get("requested_symbol_count")
+-    available = result.get("available_symbol_count")
+-    all_rows_ready = len(rows) == len(GLOBAL_INDUSTRY_PROXY_MAP) and all(
+-        isinstance(row, Mapping) and row.get("status") == "READY" for row in rows
+-    )
+-    complete = (type(requested) is int and type(available) is int and requested == available
+-                and all_rows_ready and result.get("provider_session_dates") == [session_date])
+-    remaining = list(result.get("cannot_confirm") or [])
+-    if complete and set(remaining).issubset({"MARKET_SNAPSHOT_INCOMPLETE"}):
+-        result["cannot_confirm"] = []
+-        result["status"] = "READY"
+-    return result
++    """Validate completed regular quotes while preserving per-symbol timestamps."""
++    from ops._us_market_digest_parts.close_validation import normalize_close_snapshot
++    return normalize_close_snapshot(snapshot)
+ 
+ 
+ # Short aliases make the producer seam discoverable without creating another
+--- a/apps/api/v35_api/_research_lane_router_parts/market_freshness.py
++++ b/apps/api/v35_api/_research_lane_router_parts/market_freshness.py
+@@ -72,7 +72,7 @@
+                 or timestamp(projection.get("capture_window_end")) != end):
+             raise _v4_global(_v4_scope, 'ValueError')("CAPTURE_WINDOW_BINDING_MISMATCH")
+         if _v4_global(_v4_scope, '_is_late_capture_identity')(projection):
+-            recovery_end = _v4_global(_v4_scope, 'datetime').combine(session, _v4_global(_v4_scope, 'time')(20), tzinfo=ny_zone)
++            recovery_end = start + _v4_global(_v4_scope, 'timedelta')(hours=24)
+             if (projection.get("late") is not True
+                     or projection.get("capture_mode") != _v4_global(_v4_scope, 'LATE_CAPTURE_MODE')
+                     or timestamp(projection.get("allowed_recovery_window_start")) != start
+@@ -102,9 +102,13 @@
+             # Preserve PARTIAL and all provider/session conflicts.  Calendar
+             # verification never upgrades data quality by itself.
+             result["display_status"] = projection["status"]
+-            if _v4_global(_v4_scope, 'len')(projection.get("provider_session_times") or []) != 1:
+-                result["display_status"] = "PARTIAL"
+-                diagnostic["cannot_confirm"] = ["QUOTE_SESSION_TIME_MIXED_OR_MISSING"]
++            from ops._us_market_digest_parts.close_validation import validate_close_observations
++            quote_error = validate_close_observations(projection)
++            if quote_error:
++                result["display_status"] = "CANNOT_CONFIRM"
++                diagnostic["state"] = "CANNOT_CONFIRM"
++                diagnostic["cannot_confirm"] = [quote_error]
++
+     except (_v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'KeyError')) as error:
+         diagnostic["state"] = "CANNOT_CONFIRM"
+         diagnostic["cannot_confirm"] = [_v4_global(_v4_scope, 'str')(error)]
+--- a/apps/web/src/components/research/GlobalIndustryMap.vue
++++ b/apps/web/src/components/research/GlobalIndustryMap.vue
+@@ -39,6 +39,7 @@
+ const freshnessMessage = computed(() => ({
+   RECENT_BOUND_CAPTURE: "来源场次与原采集时间通过近期时钟核验；不是本次更新或自然运行成功回执。",
+   STALE_CLOCK_WINDOW: "快照早于最近计划采集时钟：仅作历史展示，不是最新收盘更新。",
++  STALE_EXCHANGE_SESSION: "快照早于最新完整交易日，仅作历史展示。",
+   CANNOT_CONFIRM: "无法确认当前新鲜度；历史快照质量不等于当前数据已更新。",
+ } as Record<string, string>)[payload.value?.freshness?.state || "CANNOT_CONFIRM"] || "无法确认当前新鲜度。");
+ const error = ref("");
+@@ -67,7 +68,7 @@
+ })));
+ 
+ const rows = computed(() => payload.value?.rows?.length === 24 ? payload.value.rows : fallbackRows.value);
+-const numericRows = computed(() => rows.value.filter((row) => typeof row.change_pct === "number"));
++const numericRows = computed(() => state.value === "READY" ? rows.value.filter((row) => row.status === "READY" && typeof row.change_pct === "number") : []);
+ const leaders = computed(() => [...numericRows.value].sort(
+   (left, right) => (right.change_pct as number) - (left.change_pct as number) || left.label.localeCompare(right.label, "zh-CN"),
+ ).slice(0, 3));
+@@ -255,7 +256,7 @@
+     // An older backend's READY must not silently become freshness evidence.
+     const display = view.display_status;
+     const hasFreshness = view.freshness?.new_capture_performed === false
+-      && ["RECENT_BOUND_CAPTURE", "STALE_CLOCK_WINDOW", "CANNOT_CONFIRM"].includes(view.freshness?.state || "");
++      && ["RECENT_BOUND_CAPTURE", "STALE_CLOCK_WINDOW", "STALE_EXCHANGE_SESSION", "CANNOT_CONFIRM"].includes(view.freshness?.state || "");
+     state.value = hasFreshness && display && ["READY", "PARTIAL", "STALE", "CANNOT_CONFIRM"].includes(display)
+       ? display : "CANNOT_CONFIRM";
+   } catch (caught) {
+--- a/tests/test_us_map_freshness.py
++++ b/tests/test_us_map_freshness.py
+@@ -27,8 +27,10 @@
+         fetch_rss=lambda *a: b'<rss><channel></channel></rss>', fetch_quotes=lambda *a: quotes)
+     # The existing materialized PARTIAL contract is explicitly simulated here.
+     if mixed:
++        result['status'] = 'CANNOT_CONFIRM'
+         result['market_snapshot']['status'] = 'PARTIAL'
+         result['market_snapshot_status'] = 'PARTIAL'
++        result['market_snapshot']['cannot_confirm'] = ['QUOTE_SESSION_TIME_MIXED']
+     return result
+ 
+ def put(root, session='20260922', mixed=False):
+--- a/apps/web/src/components/research/GlobalIndustryMap.spec.ts
++++ b/apps/web/src/components/research/GlobalIndustryMap.spec.ts
+@@ -10,7 +10,7 @@
+ const response = (payload: unknown) => ({ ok: true, json: async () => payload });
+ 
+ type FreshnessFixture = {
+-  state: "RECENT_BOUND_CAPTURE" | "STALE_CLOCK_WINDOW" | "CANNOT_CONFIRM";
++  state: "RECENT_BOUND_CAPTURE" | "STALE_CLOCK_WINDOW" | "STALE_EXCHANGE_SESSION" | "CANNOT_CONFIRM";
+   observed_at: string;
+   captured_at: string;
+   exchange_calendar_status: string;
+@@ -97,6 +97,20 @@
+     vi.unstubAllGlobals();
+   });
+ 
++  it.each(["STALE", "PARTIAL", "CANNOT_CONFIRM"] as const)("does not rank %s snapshot prices in the top three", async (displayStatus) => {
++    const date = "20260908";
++    const freshness = recentFreshness(date, "2026-09-09T10:00:00+08:00");
++    if (displayStatus === "STALE") freshness.state = "STALE_EXCHANGE_SESSION";
++    vi.stubGlobal("fetch", vi.fn(async (url: string) => response(url === "/api/v3/research/dates"
++      ? { market_snapshot_dates: [date] }
++      : snapshot(date, { displayStatus, freshness }))));
++    render(GlobalIndustryMap, { props: { targetDate: "20260909" } });
++    await screen.findByText(/快照质量：READY/);
++    expect(screen.queryByText("Leader 1")).toBeNull();
++    expect(screen.queryByText("Leader 2")).toBeNull();
++    expect(screen.queryByText("Leader 3")).toBeNull();
++  });
++
+   it("shows PARTIAL quality when a previous-session snapshot has bound freshness metadata", async () => {
+     const targetDate = "20260909";
+     const sourceDate = "20260908";
+@@ -182,7 +196,7 @@
+ 
+     render(GlobalIndustryMap, { props: { targetDate: date } });
+ 
+-    expect(await screen.findByText("CANNOT_CONFIRM")).toBeTruthy();
++    expect((await screen.findAllByText("CANNOT_CONFIRM")).length).toBeGreaterThan(0);
+     expect(screen.getByText("读取快照日：2026-08-07")).toBeTruthy();
+     expect(screen.getByText(/快照质量：READY · 无法确认当前新鲜度；历史快照质量不等于当前数据已更新/)).toBeTruthy();
+     expect(screen.queryByText("近期时钟匹配")).toBeNull();

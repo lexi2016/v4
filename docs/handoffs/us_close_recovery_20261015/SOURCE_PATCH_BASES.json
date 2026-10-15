@@ -1,0 +1,53 @@
+{
+  "patch_targets": [
+    {
+      "after_sha256": "d9de8efb88218f61afef9951c76d63c9a419518e4e81d54b2ecefd78056dc9de",
+      "base": "exact local pre-task bytes",
+      "before_sha256": "5e814bc2ddffeec45a2ed7a593d3fa20128826c7c4951e0f10a95f3bdc0f552c",
+      "target": "ops/us_market_digest.py"
+    },
+    {
+      "after_sha256": "1b674c8a23714252b7cb35e3a81f8e14cde292b9de0043e6063f2b4795cd9816",
+      "base": "exact local pre-task bytes",
+      "before_sha256": "14bc615967a7e650ba5eb0d274a8d5805386e781e9a9db9ece32f2be98684bcd",
+      "target": "apps/api/v35_api/_research_lane_router_parts/market_freshness.py"
+    },
+    {
+      "after_sha256": "377cab93f23d659d474b5bb0bd590a006d820663ffdaa8353d0150fdbc7056ea",
+      "base": "exact local pre-task bytes",
+      "before_sha256": "65a3b21d99800a3a609ef8d2c48389a9b1c15bec99cc1fe1dd0fd8ced4eeb5be",
+      "target": "apps/web/src/components/research/GlobalIndustryMap.vue"
+    },
+    {
+      "after_sha256": "9889da2b71cf9d1b60919c2d9c9c523c3a592d094b6e0fc1d81a4d62a78cc5da",
+      "base": "pre-task bytes reconstructed by removing only two task fixture assignments",
+      "before_sha256": "1f497e59e7df79e746970b096dd6b574352a2fbef494c0beac8dc322384d63be",
+      "target": "tests/test_us_map_freshness.py"
+    },
+    {
+      "after_sha256": "b849c967089d4250582b81cd4732365a96f3fafa1284a997650a3d05ca267f85",
+      "base": "pre-task bytes reconstructed by reversing only this task additions",
+      "before_sha256": "447f26241620198b04049b3fcaadcfcb800314ccfa924dbe8fcacb72cc723a89",
+      "target": "apps/web/src/components/research/GlobalIndustryMap.spec.ts"
+    },
+    {
+      "after_sha256": "3f9d8b13f08af1dac5f6c403c2bcdf8d224141d8cd6e08c6c32b8b61b4fcda67",
+      "base": "accepted us runtime",
+      "before_sha256": "6a6816e60a48e38e259d76000e4b958e69de23da8173ca8bf4254caa147e1283",
+      "candidate_manifest_sha256": "a22b7e6079fd701e996f73f8c0e8ab37610f7127bd0d5516b293e7dd3b31b1f2",
+      "target": "ops/us_market_digest.py"
+    },
+    {
+      "after_sha256": "6704ae3730d2ecf4342337b7f0d2c9d76e5e38982fd0300a45e91e9481892717",
+      "base": "accepted api runtime",
+      "before_sha256": "9886081b7656f0501421a8f0a810635859f56c60557f4d4fd2e63820d58b1c2c",
+      "candidate_manifest_sha256": "1dae9b975c4ecfe4fbf20900507877ce02de564684a0251060c73a2d618428ca",
+      "target": "apps/api/v35_api/research_lane_router.py"
+    }
+  ],
+  "policy": "Upload task-only patches for mixed existing files. Canonical and runtime patches apply to different explicit bases; never apply both blindly. Source universes unchanged: canonical33/runtime48.",
+  "remote_base_commit": "05ef544b5a7bd0ebdc9991625dadf6ede7f87f84",
+  "remote_base_tree": "b688d187fa6e4ec25c4f15f3835708f5e9819cf6",
+  "remote_objects_available_in_writer_local_repository": false,
+  "schema_version": "v4.us_close_source_patch_bases.v1"
+}

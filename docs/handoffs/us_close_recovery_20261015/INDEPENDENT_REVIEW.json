@@ -1,0 +1,81 @@
+{
+  "P0": 0,
+  "P1": 0,
+  "P2": 0,
+  "acceptance_scope": "Frozen local candidate US-close recovery and executable cutover preparation; actual candidate producer/API route in process and component behavior. No online service or production state mutation.",
+  "execution_boundary": {
+    "allowed_after_controller_go": [
+      "existing-store locked CAS from original to frozen canary with original preserved",
+      "reload existing US job and API only",
+      "loaded binding/dry-run/HTTP plus protected-file after readback"
+    ],
+    "external_quote_requery_performed": false,
+    "fresh_session_guard": "20261014 must remain latest completed before replacement",
+    "main_stage_A_HK_services": "untouched",
+    "production_write_performed": false,
+    "service_operation_performed": false
+  },
+  "findings": [],
+  "independent_reruns": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$PWD/upstreams:$PWD <v3.5-mac-python> -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/us-close-review-20261015-tests tests/test_us_close_recovery.py tests/test_us_map_freshness.py tests/test_us_equity_calendar.py tests/test_run_us_market_slot.py",
+      "result": "57 passed"
+    },
+    {
+      "command": "npm test -- src/components/research/GlobalIndustryMap.spec.ts",
+      "cwd": "apps/web",
+      "result": "16 passed; stale/partial/unconfirmed have no leaders"
+    },
+    {
+      "command": "actual US candidate Python/PYTHONPATH: frozen original merge/normalize, no publication/network",
+      "result": "PASS; corrected snapshot equals frozen canary; 48 quotes; 3 unrelated failures remain blocked; intraday/cross-day/after-capture rejected; original times/raw SHA/universe/news preserved"
+    },
+    {
+      "command": "actual API candidate FastAPI TestClient with frozen existing private canary store",
+      "result": "READY source20261014/artifact20261015/48quotes/24rows; next completed session STALE; intraday rejected; PARTIAL preserved; reads unchanged"
+    },
+    {
+      "command": "actual US candidate ops.run_us_market_slot --date20261016 --slot0415 --dry-run, private data/ledger",
+      "result": "DRY_RUN_SELECTED; only us_market_digest; started empty; pinned release identity"
+    },
+    {
+      "command": "independent manifest inventory/delta verification and staged/live plist binding comparison",
+      "result": "API exact6delta/non-delta1203; US exact3delta/non-delta1172; live API/US still exact preimage; candidate cwd/PYTHONPATH/manifest/runtime data root and registered slots consistent"
+    },
+    {
+      "command": "EXECUTION_BASELINE protected SHA/inode and candidate plist SHA verification",
+      "result": "28/28 unchanged; candidate plist pins exact; executable CAS/history/supersession/API lock and exact preimage restoration inspected"
+    }
+  ],
+  "known_limits": [
+    "Provider regular-close proxy, not exchange official closing print; 48/48 next-session previous-close evidence reused from frozen reconciliation receipt.",
+    "No online HTTP/browser or natural capture acceptance is claimed; independent readback follows authorized cutover.",
+    "Two initial review-harness attempts stopped before publication: one incorrectly assumed same-session23:59 after next-day02:09 capture, corrected; one tempfile root traversed /var symlink and was rejected. Final verification used frozen private canary read-only."
+  ],
+  "model": "gpt-6.1-sol",
+  "pins": {
+    "api_manifest_sha256": "1dae9b975c4ecfe4fbf20900507877ce02de564684a0251060c73a2d618428ca",
+    "corrected_canary_payload_sha256": "4f50c61a68645cfa19c39fb8c92144ad69525183a81219ae833df80573fe6480",
+    "execution_baseline_sha256": "95156a41bbe933bdaddb05297f07d493f59c37384c106461e837f86c3cef5b2a",
+    "execution_steps_sha256": "f453059714e7dc13bcf35de825f383a0339238099a69f058eb2e6e6986969ee2",
+    "original_payload_sha256": "06e042b49b1160e8ace7c8daa67ea9501324792e5d7192912b1b49940d809622",
+    "source_change_after_sha256_verified": true,
+    "us_manifest_sha256": "a22b7e6079fd701e996f73f8c0e8ab37610f7127bd0d5516b293e7dd3b31b1f2",
+    "writer_receipt_sha256": "4123f509b7c4ef6e22e48f4b981cd9e306fe5b7a21a0cf8d4b087215fc8c1f70"
+  },
+  "reasoning": "high",
+  "reviewed_at": "2026-10-15T14:38:38.960619+00:00",
+  "reviewer_identity": "us_close_recovery_review",
+  "schema_version": "v4.us_close_independent_review.v1",
+  "status": {
+    "API_VERIFIED": false,
+    "BEHAVIOR_VERIFIED": true,
+    "DEPLOYED": false,
+    "NATURAL_VERIFIED": false,
+    "REVIEWED": true,
+    "TESTED": true,
+    "UI_VERIFIED": false
+  },
+  "verdict": "PASS",
+  "writer_identity": "us_close_recovery_writer"
+}
