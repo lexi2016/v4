@@ -1,0 +1,71 @@
+{
+  "files": [
+    {
+      "candidate_artifact": "runtime_candidate/v4/manager_workbench/scheduler.py",
+      "candidate_sha256": "0672296a340ae84d6bfb48b77b8d23566ea32b4fdb27edc505ea3abb4d785990",
+      "change": "replace exact file after verifying preimage SHA",
+      "path": "v4/manager_workbench/scheduler.py",
+      "runtime_preimage_artifact": "runtime_preimage/v4/manager_workbench/scheduler.py",
+      "runtime_preimage_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b"
+    },
+    {
+      "candidate_artifact": "runtime_candidate/v4/manager_workbench/inputs/source_bindings.py",
+      "candidate_sha256": "4e9339675d544a5f57e0fe6c5bc5522fba7b9aac6fdc21d6967082cfb7729edb",
+      "change": "replace exact file after verifying preimage SHA",
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "runtime_preimage_artifact": "runtime_preimage/v4/manager_workbench/inputs/source_bindings.py",
+      "runtime_preimage_sha256": "79b01020997d2652f106e7c73af2fdebc32232c08540c957c99113842e4863c8"
+    },
+    {
+      "candidate_artifact": "runtime_candidate/v4/manager_workbench/service.py",
+      "candidate_sha256": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "change": "replace exact file after verifying preimage SHA",
+      "path": "v4/manager_workbench/service.py",
+      "runtime_preimage_artifact": "runtime_preimage/v4/manager_workbench/service.py",
+      "runtime_preimage_sha256": "219d7228c2fd25e3903db5fac385010a6414cc6961e2716479871418472e96a3"
+    },
+    {
+      "candidate_artifact": "runtime_candidate/v4/manager_workbench/store.py",
+      "candidate_sha256": "493df1a72bf4c4a533ae533ce5fc0185c9d9536d01c4e88082270908c8b1aa18",
+      "change": "replace exact file after verifying preimage SHA",
+      "path": "v4/manager_workbench/store.py",
+      "runtime_preimage_artifact": "runtime_preimage/v4/manager_workbench/store.py",
+      "runtime_preimage_sha256": "be7252c676f86c48ec7fc64fc922ce4cb79b2f7a6493dc0a3a33c8df21099aae"
+    },
+    {
+      "candidate_artifact": "runtime_candidate/v4/manager_workbench/oversold_daily.py",
+      "candidate_sha256": "1a88ac9c1bb3e1a2d68fff350a69204a65b7ebb782f27512bb4fc1c45f9b0583",
+      "change": "new file; require destination absent",
+      "path": "v4/manager_workbench/oversold_daily.py",
+      "runtime_preimage_artifact": null,
+      "runtime_preimage_sha256": null
+    },
+    {
+      "candidate_artifact": "runtime_candidate/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "candidate_sha256": "62513b42bcd133d3c447b9b797b81c19f43a306c9544ce97a11447db93b54e9e",
+      "change": "replace exact file after verifying preimage SHA; refresh only partial transient catalogue cache and archive prior evidence",
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "runtime_preimage_artifact": "runtime_preimage/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "runtime_preimage_sha256": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65"
+    }
+  ],
+  "launch_agent": {
+    "label": "com.lexi.v35.scheduler",
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "program_arguments": [
+      "/bin/bash",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app/ops/launch_v35_macos_scheduler.sh"
+    ],
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app"
+  },
+  "patch": {
+    "path": "runtime_exact_delta.patch",
+    "sha256": "937a2ac7817600fdfa8130cac8b04f31ac56012e5cb7a2b0c6b8668885ee59d9"
+  },
+  "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+  "runtime_root_resolved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+  "scope": "Only the five existing V4 files, one new OVERSOLD orchestrator file, and the existing TDX61 owner catalogue-cache recovery hunk; no directory replacement.",
+  "source_bindings_note": "Candidate is derived from the actual runtime preimages. The source-bindings candidate excludes the workspace-only history_resolution_proof hunk. The TDX61 owner candidate adds bounded refresh for explicitly transport-failed partial catalogue caches and archives the replaced partial catalogue by SHA.",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "status": "PREPARED_NOT_DEPLOYED"
+}
