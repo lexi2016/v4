@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,7 @@ REPO_ROOT = DOC_ROOT.parents[2]
 BINDING_PATH = DOC_ROOT / "scheduler_cache_release_binding.json"
 EXPECTED_BINDING_SHA256 = "bee081cef3b5327b90d738d3fca3ca6610cff59fd702afb91c18e57b37422334"
 RECOVERY_CORE_SHA256 = "b757420def3382d363331d8a6bc46c28eced034bdf220f2d7fa60a639d00da5f"
+INVENTORY_HELPER_SHA256 = "86804204fae3484bf4277e6b2d4cdb7b1dea34ea7af530ebe2a036d845246f31"
 
 
 def _sha(path: Path) -> str:
@@ -22,6 +24,27 @@ def _sha(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _load_pinned_inventory_helper():
+    """Load the exact reviewed inventory utility by file path, never by app import name."""
+    source = REPO_ROOT / "ops/api_release_integration.py"
+    if source.is_symlink() or source.resolve(strict=True) != source:
+        raise RuntimeError("CACHE_INVENTORY_HELPER_PATH_NOT_EXACT")
+    if _sha(source) != INVENTORY_HELPER_SHA256:
+        raise RuntimeError("CACHE_INVENTORY_HELPER_SHA_MISMATCH")
+    spec = importlib.util.spec_from_file_location(
+        "_v4_oversold_cache_pinned_api_release_integration", source
+    )
+    if spec is None or spec.loader is None or spec.origin is None:
+        raise RuntimeError("CACHE_INVENTORY_HELPER_SPEC_UNAVAILABLE")
+    if Path(spec.origin).resolve(strict=True) != source:
+        raise RuntimeError("CACHE_INVENTORY_HELPER_ORIGIN_MISMATCH")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if Path(str(module.__file__)).resolve(strict=True) != source:
+        raise RuntimeError("CACHE_INVENTORY_HELPER_LOADED_ORIGIN_MISMATCH")
+    return module
 
 
 def _bind_recovery():
@@ -124,10 +147,9 @@ def _bind_recovery():
         entries = inventory.get("entries") if isinstance(inventory, dict) else None
         if not isinstance(entries, list):
             raise RuntimeError("CANDIDATE_RELEASE_INVENTORY_MISSING")
-        sys.path.insert(0, str(app_root))
-        from ops.api_release_integration import inventory_digest, inventory_tree
-        actual_entries = inventory_tree(app_root)
-        if (actual_entries != entries or inventory_digest(actual_entries) != inventory.get("aggregate_sha256")):
+        inventory_helper = _load_pinned_inventory_helper()
+        actual_entries = inventory_helper.inventory_tree(app_root)
+        if (actual_entries != entries or inventory_helper.inventory_digest(actual_entries) != inventory.get("aggregate_sha256")):
             raise RuntimeError("ACTIVE_CANDIDATE_APP_INVENTORY_MISMATCH")
         for relative, expected_sha in binding["candidate_source_sha256"].items():
             matches = [entry for entry in entries if isinstance(entry, dict) and entry.get("path") == relative]
