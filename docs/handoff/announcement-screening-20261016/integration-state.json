@@ -1,0 +1,105 @@
+{
+  "schema": "announcement_screening_integration_state.v1",
+  "updated_stage": "bounded_actual_runs_and_independent_review_complete",
+  "model": "qwen3_8_flash_next",
+  "temperature": 0,
+  "enable_thinking": false,
+  "github_branch": "codex/announcement-screening-20261016",
+  "github_base_commit": "0c1d9b3e097c9dd9cac57b61fb6f9051b693b318",
+  "root_fix_review": {
+    "status": "PRE_RUN_REVIEW_PASS",
+    "reviewer": "simple_review_resume",
+    "initial_focused_tests": "14/14",
+    "prompt_role_delta_tests": "6/6",
+    "broader_legacy_suites": "37/38 and 23/25; pre-existing external SHA pins, not changed"
+  },
+  "actual_two_notice_run": {
+    "candidate_id": "544cf1e2354b6fb5d49a",
+    "candidate_manifest_sha256": "e160f0cc79c8de5f577b853675433f55c949bdd66afc61c6af54fcc63afff351",
+    "queue_state_sha256": "11b702cf3c53acc4de241458328b2505dbf7679342b6c93dd91be562f0362104",
+    "request_count": 2,
+    "attempts_per_article": 1,
+    "reviewer": "simple_review_resume",
+    "BEHAVIOR_VERIFIED": "FAIL",
+    "articles": [
+      {
+        "article_id": "EASTMONEY:AN202610141830470256",
+        "result": "FAIL",
+        "direction": "NEUTRAL",
+        "disposition": "SELECTED_EVENT",
+        "error": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+        "finding": "Consolidation no longer implies positive economic benefit, but selected disposition conflicts with neutral direction. Named issuer is not supported by cited U8-U9 alone.",
+        "raw_sha256": "2f83eef018c2b82cf1dfae4bbf6a5b1c01ff62c26e6bff2b80f6fba94f292f8a",
+        "wall_seconds": 36.153
+      },
+      {
+        "article_id": "EASTMONEY:AN202610141830469348",
+        "result": "PASS",
+        "direction": "POSITIVE",
+        "disposition": "SELECTED_PERFORMANCE",
+        "finding": "Business judgment, exact ranges, growth, EPS, conditions and unaudited qualifiers independently verified.",
+        "raw_sha256": "7651e889d6715482928d04e66c2b4135d2c6a5cf954cb02a6041906abd0b5052",
+        "wall_seconds": 37.344
+      }
+    ],
+    "old_answers_unchanged": true,
+    "temporary_ui_closed": true
+  },
+  "provenance": {
+    "inner_schema_sha256": "32ed9c948a8826ce669e1242485c3c9fe2097713d174088d4145ded6f12592df",
+    "wrapper_sha256": "a248d2844d1ccbbb431f01ad3d4f02c5ad4d7e57175127006f3679aa2baafefe",
+    "request_time_disk_settings_sha256": "e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99",
+    "request_time_model_settings_sha256": "7a98bb5d2b6687b808d72b8c7bb385a23c714e9753a067fab81407c4e9245b99",
+    "runtime_ready_receipt_sha256": "6963eb250d76a381228529344a37eb8ac8580eb15892dba857d78f96e3e3cc89",
+    "load_before_requests_verified": true,
+    "full_active_memory_settings": "CANNOT_CONFIRM"
+  },
+  "incremental_capture": {
+    "status": "PARTIAL_STOP_AFTER_20261015_CANARY",
+    "owner": "v4.manager_workbench.capture_announcements",
+    "reviewer": "screening_sample_review",
+    "source_review": "PASS_WITH_EXPLICIT_PARTIAL",
+    "product_sha256": "0f473ec38e13744895973cdb04530f159420e0fc651056f24f803c33c11ce4ae",
+    "run_id": "5b8d2d3b77e3454c87a7306ec6f4c55d",
+    "directory_count": 392,
+    "directory_terminal_empty_seen": true,
+    "complete_bodies": 193,
+    "incomplete_bodies": 199,
+    "http_non_200_bodies": 198,
+    "invalid_page_total_bodies": 1,
+    "dates_not_run": [
+      "20261014",
+      "20261016"
+    ],
+    "diagnostic_get_count": 1,
+    "diagnostic_result": "ConnectionResetError(54); no HTTP response; status and Retry-After CANNOT_CONFIRM",
+    "lease_revoked": true,
+    "active_configuration_unchanged": true,
+    "execution_caveat": "Summary construction initially failed after standard revocation; source product recovered by readback, no clean execution PASS.",
+    "first_hkex_publication_time": "CANNOT_CONFIRM",
+    "original_PIT": "CANNOT_CONFIRM"
+  },
+  "capability_tests": {
+    "six_sample_source_review": "PASS",
+    "six_sample_history": {
+      "UNSEEN": 3,
+      "DEVELOPMENT": 2,
+      "RETEST": 1
+    },
+    "unseen_routine_only": true,
+    "six_model_run": "FINISHED_4_MECHANICAL_PASS_2_REJECTED",
+    "new_single_source_review": "PASS",
+    "new_single_id": "EASTMONEY:AN202610151830479227",
+    "new_single_model_run": "FINISHED_1_MECHANICAL_PASS",
+    "actual_run_receipt_sha256": "186080216f196470fb251e0d7a67022f57d86ec5e07e2cc6c6a5a82cebd7acd4",
+    "semantic_review": "COMPLETED_5_USABLE_2_MODEL_DISPOSITION_CONTRACT_FAILURES",
+    "independent_review_sha256": "a21bb31476b1d7f7d4c140cbd235d1b83b65e619b5cbb3f86c65d56e46112253",
+    "initial_triage_signal": "SUPPORTED_IN_THIS_SMALL_SAMPLE",
+    "autonomous_selection_acceptance": "NOT_ACCEPTED",
+    "negative_rejections": "EXPECTED_BY_UNCHANGED_POSITIVE_SELECTION_CONTRACT"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

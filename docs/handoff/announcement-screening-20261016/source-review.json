@@ -1,0 +1,48 @@
+{
+  "schema": "independent_source_review_record.v1",
+  "recorded_by": "root",
+  "reviewer_identity": "screening_sample_review",
+  "reviewer_model": "gpt-6-luna",
+  "reviewer_reasoning": "max",
+  "basis": "Independent read-only agent findings returned in this task; this file records those findings without modifying source inputs or candidate manifests.",
+  "six_samples": {
+    "verdict": "SOURCE_REVIEW_PASS",
+    "input_sha256": "38eabc6e76c31d9f95eefa3cde408a58558a9eb8b74168d11951d5f8746bd6ad",
+    "manifest_sha256": "8ca3b235c62357408c7f5dc63470008a79211a47c2c5c6c372f239ffa9534ae5",
+    "unique_count": 6,
+    "history": {
+      "UNSEEN": 3,
+      "DEVELOPMENT": 2,
+      "RETEST": 1
+    },
+    "unseen_are_routine": true,
+    "sealed_blind": false,
+    "prior_attempt_audit": {
+      "attempts_per_queue": 170,
+      "unique_ids_union": 170,
+      "total_attempts": 340
+    },
+    "input_leaks_prior_answers_routes_or_summaries": false
+  },
+  "new_single": {
+    "verdict": "SOURCE_REVIEW_PASS",
+    "article_id": "EASTMONEY:AN202610151830479227",
+    "input_sha256": "27ed105f64827bc87f95893292d1aecfe9d19499067e4660396b758e2763f01b",
+    "body_sha256": "85fcbef2e9f53d5d0e0348424dc0cbfda9df72780ac8129a765e0b19525e466f",
+    "source_sha256": "8cae39a545e4e012f69bc83386649e1f09c0089e6e07ccc40e1b68742b5942b2",
+    "complete_body": true,
+    "absent_from_prior_170_attempt_ids": true,
+    "answer_or_route_leak": false,
+    "capture_verdict": "PARTIAL; 392 directory entries, 193 complete bodies, 199 incomplete; only 20261015 captured",
+    "lease_final_enabled": false,
+    "diagnostic_requests": 1,
+    "first_hkex_publication_time": "CANNOT_CONFIRM",
+    "original_PIT": "CANNOT_CONFIRM"
+  },
+  "not_covered": [
+    "model semantic quality",
+    "small sample runner implementation",
+    "rendered UI",
+    "natural scheduled operation"
+  ]
+}

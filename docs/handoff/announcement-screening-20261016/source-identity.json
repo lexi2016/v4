@@ -1,0 +1,73 @@
+{
+  "schema": "announcement_source_identity.v1",
+  "source_root": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary",
+  "base_commit": "0c1d9b3e097c9dd9cac57b61fb6f9051b693b318",
+  "sync_kind": "handoff_snapshot_not_V4_deployment",
+  "files": [
+    {
+      "path": "batch_runner.py",
+      "before_sha256": "2ee696489990f7ba9d3813a79be5a8494fcea53b82b06d32a94927b79f3f1aa2",
+      "after_sha256": "0d0c09139223d738a4fb918212b0c7dce3bbd17cd8dbd8a2dc74c7a86ef865cb",
+      "bytes": 145057
+    },
+    {
+      "path": "automatic_canary_server.py",
+      "before_sha256": "35e49f52720ba98f08985d2e18e0715b100fd26b6812377ce5b157e3363f0519",
+      "after_sha256": "c9d776d4fba5bd36da70f2a254f44205043ea24cfbd128e1710cbbd15c90756d",
+      "bytes": 147282
+    },
+    {
+      "path": "evidence/recent-day-20261014/recent_day_freeze.py",
+      "before_sha256": "7309a45e16aaca3ba6f17ca6ab819626b7eb9deff75692f0c5be21f88b0fbb23",
+      "after_sha256": "2bd5c5514b8ef83f43fb4efb40b9832930350fb9974565cea511e6c909df18ce",
+      "bytes": 190832
+    },
+    {
+      "path": "test_batch_runner.py",
+      "before_sha256": "da847b713149147f440201b835b93f2d914e9e62c740020173fa780e1e6c9aea",
+      "after_sha256": "595e887efe88a75f005ab591acc10278b218a37f4e6b1491cb3f4d926c638f7f",
+      "bytes": 89544
+    },
+    {
+      "path": "test_announcement_rootcause_20261016.py",
+      "before_sha256": null,
+      "after_sha256": "189569879dc5e42b5235f74ee8aaeb155ea37b94e8a3de10a90fd0fe69b664f3",
+      "bytes": 19500
+    },
+    {
+      "path": "evidence/recent-day-20261014/test_guoen_targeted_rerun.py",
+      "before_sha256": "0d337738469b98d1b4a7549119d24b386eddd4cad6421da769f7e8ac5a68fda9",
+      "after_sha256": "0d337738469b98d1b4a7549119d24b386eddd4cad6421da769f7e8ac5a68fda9",
+      "bytes": 9350
+    },
+    {
+      "path": "evidence/announcement-screening-capability-20261016/test_capability_sample_preparation.py",
+      "before_sha256": null,
+      "after_sha256": "68e76020d847d88ae67a19c6d64c13f9e88f9307eed731bd4c7cd3864983dadb",
+      "bytes": 7713
+    },
+    {
+      "path": "evidence/new-announcements-20261016/prepare_incremental_capture.py",
+      "before_sha256": null,
+      "after_sha256": "21bce9d3ac91b1185fcfa4cf5d2bab35fd4665457778e1533d5249602c4c9211",
+      "bytes": 30998
+    },
+    {
+      "path": "evidence/new-announcements-20261016/execute_incremental_capture.py",
+      "before_sha256": null,
+      "after_sha256": "d2e9807d7603ef7ef16658f5cae9aa7872eba7296cab163124434629619a468e",
+      "bytes": 14898
+    },
+    {
+      "path": "evidence/new-announcements-20261016/derive_incremental_capture_manifest.py",
+      "before_sha256": null,
+      "after_sha256": "1b28ef1c5cdd89b2722dd809839f523519f705edab8428ccb0ccdff769198d50",
+      "bytes": 15425
+    }
+  ],
+  "two_notice_executed_runner_sha256": "4b9d14e97276b70d1652f60d4147f4d4c911e4965f1dce8ea70e1b5105da4835",
+  "seven_sample_executed_runner_sha256": "2bd5c5514b8ef83f43fb4efb40b9832930350fb9974565cea511e6c909df18ce",
+  "runtime_python": "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python",
+  "V4_runtime_deployment": "NOT_RUN",
+  "natural_slot": "NOT_RUN"
+}

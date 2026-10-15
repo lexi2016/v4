@@ -1,0 +1,100 @@
+{
+  "schema": "announcement_actual_small_sample_run.v1",
+  "runs": [
+    {
+      "candidate": "candidate-20261016-six-03",
+      "manifest_sha256": "c6ed612a35774c9d592b47098697745007fddfecd90cc054dd6d3492d125b459",
+      "queue_state_sha256": "118c94ef376ec50bd99ebba4786040bf77ecd326e049088559c68b098584c5ae",
+      "jobs": [
+        {
+          "article_id": "EASTMONEY:AN202610141830467647",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "SUCCEEDED",
+          "raw_sha256": "4c28131aec139ecb6f46008e0a0c9e18e12b79bf9a5925bbd1127911943975da",
+          "duration_seconds": 23.283247,
+          "error": null
+        },
+        {
+          "article_id": "EASTMONEY:AN202610141830467214",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "SUCCEEDED",
+          "raw_sha256": "f3f57209aece778c8d1b25eb2b8a8004d9a9c6928a4e15efd3dd9cbb926efb91",
+          "duration_seconds": 55.020353,
+          "error": null
+        },
+        {
+          "article_id": "EASTMONEY:AN202610141830460333",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "SUCCEEDED",
+          "raw_sha256": "e3ab766b7cc65edc20f20c71229796f2c06dc126e54af133d2b42ccb18a84bdf",
+          "duration_seconds": 25.221598,
+          "error": null
+        },
+        {
+          "article_id": "EASTMONEY:AN202610141830469351",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "FAILED",
+          "raw_sha256": "5d8c9ddee18758af720521be63b28948377f19fb2546521a121eade579c8ba56",
+          "duration_seconds": 27.50412,
+          "error": {
+            "code": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+            "message": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+            "stage": "validator",
+            "type": "ValidationRejected"
+          }
+        },
+        {
+          "article_id": "EASTMONEY:AN202610141830462984",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "SUCCEEDED",
+          "raw_sha256": "63f7b99743a0c81010e819728ae10975c11351e7eedc1c22b12e7fd85be39f6b",
+          "duration_seconds": 14.882067,
+          "error": null
+        },
+        {
+          "article_id": "EASTMONEY:AN202610141830470169",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "FAILED",
+          "raw_sha256": "9977ea25253d5c8d8e83293b04de95c86e2a23a3ef7eb841eaeb1794a0f00665",
+          "duration_seconds": 31.995266,
+          "error": {
+            "code": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+            "message": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+            "stage": "validator",
+            "type": "ValidationRejected"
+          }
+        }
+      ]
+    },
+    {
+      "candidate": "unseen-nonroutine-candidate-20261016-03",
+      "manifest_sha256": "3da874d0897f9c4344a7f9fe3684190da62a3de6a4c16d04e2edfca889639f51",
+      "queue_state_sha256": "a2d1ff939da97fb92526fd3467323ec55ca09331c1c1856f84c03dcf15ffb942",
+      "jobs": [
+        {
+          "article_id": "EASTMONEY:AN202610151830479227",
+          "model_id": "qwen3_8_flash_next",
+          "attempt_count": 1,
+          "mechanical_status": "SUCCEEDED",
+          "raw_sha256": "0e556c30251eb5094654072a47182a4ba01d998688a93959eee60e2b412fff1b",
+          "duration_seconds": 50.397095,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "ui_finished_verified": true,
+  "temporary_helpers_stopped": true,
+  "semantic_review": "COMPLETED_SEE_INDEPENDENT_REVIEW.json",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "independent_review_sha256": "a21bb31476b1d7f7d4c140cbd235d1b83b65e619b5cbb3f86c65d56e46112253"
+}

@@ -1,0 +1,189 @@
+{
+  "schema": "announcement_small_sample_independent_review.v1",
+  "reviewer": "screening_sample_review",
+  "model": "gpt-6-luna",
+  "reasoning_effort": "max",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "LIMITED_TO_SEVEN_RECORDED_RUNS",
+  "overall_readiness": "LIMITED_INITIAL_TRIAGE_CAPABILITY_NOT_AUTONOMOUS_SELECTION_ACCEPTANCE",
+  "articles": [
+    {
+      "article_id": "EASTMONEY:AN202610141830460333",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "SUCCEEDED",
+      "raw_sha256": "e3ab766b7cc65edc20f20c71229796f2c06dc126e54af133d2b42ccb18a84bdf",
+      "duration_seconds": 25.221598,
+      "error": null,
+      "title": "康希诺生物：董事会会议通告",
+      "history": "UNSEEN",
+      "independent_result": "PASS",
+      "finding": "Routine calendar relevance recognized; no invented operating results.",
+      "source_units": [
+        "U000005",
+        "U000007"
+      ],
+      "first_content_seconds": 16.203
+    },
+    {
+      "article_id": "EASTMONEY:AN202610141830467214",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "SUCCEEDED",
+      "raw_sha256": "f3f57209aece778c8d1b25eb2b8a8004d9a9c6928a4e15efd3dd9cbb926efb91",
+      "duration_seconds": 55.020353,
+      "error": null,
+      "title": "金辉集团：出售船舶",
+      "history": "DEVELOPMENT",
+      "independent_result": "PASS",
+      "finding": "Estimated HKD52m gain and proceeds use supported; completion/accounting conditions preserved.",
+      "source_units": [
+        "U000012",
+        "U000013"
+      ],
+      "first_content_seconds": 11.143
+    },
+    {
+      "article_id": "EASTMONEY:AN202610141830469351",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "FAILED",
+      "raw_sha256": "5d8c9ddee18758af720521be63b28948377f19fb2546521a121eade579c8ba56",
+      "duration_seconds": 27.50412,
+      "error": {
+        "code": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+        "message": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+        "stage": "validator",
+        "type": "ValidationRejected"
+      },
+      "title": "交个朋友控股：GMV",
+      "history": "RETEST",
+      "independent_result": "FAIL_PROJECTED_RESULT",
+      "finding": "Negative performance and declines cited correctly; selected disposition rejected. Canonical positive-selection contract intentionally rejects selected negative outputs; raw facts recognized, disposition violates contract.",
+      "source_units": [
+        "U000008"
+      ],
+      "first_content_seconds": 4.272
+    },
+    {
+      "article_id": "EASTMONEY:AN202610141830467647",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "SUCCEEDED",
+      "raw_sha256": "4c28131aec139ecb6f46008e0a0c9e18e12b79bf9a5925bbd1127911943975da",
+      "duration_seconds": 23.283247,
+      "error": null,
+      "title": "太美医疗科技：翌日披露报表",
+      "history": "UNSEEN",
+      "independent_result": "PASS",
+      "finding": "Repurchase recognized as small routine capital disclosure, not zero information value.",
+      "source_units": [
+        "U000015",
+        "U000016",
+        "U000037"
+      ],
+      "first_content_seconds": 11.455
+    },
+    {
+      "article_id": "EASTMONEY:AN202610141830462984",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "SUCCEEDED",
+      "raw_sha256": "63f7b99743a0c81010e819728ae10975c11351e7eedc1c22b12e7fd85be39f6b",
+      "duration_seconds": 14.882067,
+      "error": null,
+      "title": "数码通电讯：董事名单",
+      "history": "UNSEEN",
+      "independent_result": "PASS",
+      "finding": "Static governance roster recognized without invented operating change.",
+      "source_units": [
+        "U000004",
+        "U000027"
+      ],
+      "first_content_seconds": 4.715
+    },
+    {
+      "article_id": "EASTMONEY:AN202610141830470169",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "FAILED",
+      "raw_sha256": "9977ea25253d5c8d8e83293b04de95c86e2a23a3ef7eb841eaeb1794a0f00665",
+      "duration_seconds": 31.995266,
+      "error": {
+        "code": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+        "message": "ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT",
+        "stage": "validator",
+        "type": "ValidationRejected"
+      },
+      "title": "中国建材：盈利预警",
+      "history": "DEVELOPMENT",
+      "independent_result": "FAIL_PROJECTED_RESULT",
+      "finding": "Preliminary RMB760m loss versus RMB2.96bn profit and caveats cited correctly; selected disposition rejected. Canonical positive-selection contract intentionally rejects selected negative outputs; raw facts recognized, disposition violates contract.",
+      "source_units": [
+        "U000003"
+      ],
+      "first_content_seconds": 3.394
+    },
+    {
+      "article_id": "EASTMONEY:AN202610151830479227",
+      "model_id": "qwen3_8_flash_next",
+      "attempt_count": 1,
+      "mechanical_status": "SUCCEEDED",
+      "raw_sha256": "0e556c30251eb5094654072a47182a4ba01d998688a93959eee60e2b412fff1b",
+      "duration_seconds": 50.397095,
+      "error": null,
+      "title": "极兔速递：第三季度经营数据",
+      "history": "UNSEEN_NONROUTINE",
+      "independent_result": "PASS_WITH_LIMITATION",
+      "finding": "Parcel growth and network/capacity data supported; unaudited operating metrics are not financial results.",
+      "source_units": [
+        "U000011",
+        "U000013",
+        "U000017",
+        "U000021",
+        "U000024",
+        "U000025",
+        "U000026"
+      ],
+      "first_content_seconds": 8.705,
+      "limitation": "Operating data is not financial performance; not sealed, official first-publication/PIT unknown. Reviewer found no additional unsupported semantic error."
+    }
+  ],
+  "P1": "Model contract adherence: two negative-performance facts correctly identified but assigned SELECTED_PERFORMANCE, which requires POSITIVE; expected validator rejection, not a proven validator bug.",
+  "P0": [],
+  "request_settings_verified": {
+    "requested_model": "qwen3_8_flash_next",
+    "temperature": 0,
+    "enable_thinking": false,
+    "attempts_per_article": 1,
+    "active_memory_settings": "CANNOT_CONFIRM"
+  },
+  "prior_answers_and_history_not_in_model_messages": true,
+  "sealed_holdout": false,
+  "official_first_publication_and_PIT": "CANNOT_CONFIRM",
+  "model_loading_timing_in_attempt_measurement": false,
+  "compatibility_review_reused": "6/6 legacy compatibility separate from semantic denominator",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "contract_followup": {
+    "status": "REVIEWED_PASS",
+    "validator": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/engines/announcement.py",
+    "validator_sha256": "e1e1c9d5df3a2e87c636469c3023ce19b4e0cb615fdd6a3d4aa6091d35861cc3",
+    "validator_line": 174,
+    "condition": "SELECTED_EVENT or SELECTED_PERFORMANCE requires direction POSITIVE and evidence_sufficiency VERIFIED_EXISTING_FACTS",
+    "prompt_lines": [
+      129,
+      186
+    ],
+    "negative_raw_tuple": {
+      "disposition": "SELECTED_PERFORMANCE",
+      "direction": "NEGATIVE",
+      "selection_basis": "PERFORMANCE_RESEARCH",
+      "evidence_sufficiency": "VERIFIED_EXISTING_FACTS"
+    },
+    "rejection_is_expected": true,
+    "gate_change_required": false
+  }
+}
