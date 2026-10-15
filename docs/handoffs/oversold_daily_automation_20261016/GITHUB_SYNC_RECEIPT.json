@@ -1,0 +1,369 @@
+{
+  "schema_version": "v4.daily_oversold_mapping700_github_sync.v1",
+  "repository": "lexi2016/v4",
+  "branch": "codex/oversold-daily-mapping700-20261016",
+  "baseline_commit": "e7178543a682530f98109d839e7c992203284883",
+  "verified_content_head": "fa53ffe2057d7d14cb3f4cc777d3fb6c1b0eaaf4",
+  "branch_head_readback": "IDENTICAL",
+  "verification": "Each upload was fetched by its immutable commit and matched exact UTF-8 contents; later updates supersede the prior path receipt.",
+  "file_count": 69,
+  "files": [
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/INTAKE.md",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/SCOPE.json",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/build_overlay.py",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/source_test_ui.patch",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/postimage/implementation_manifest.json",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/IMPLEMENTATION_RECEIPT.md",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/INDEPENDENT_REVIEW_R1.json",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/INDEPENDENT_REVIEW_R2.json",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/TRIAGE.md",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/scope.json",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/IMPLEMENTATION_RECEIPT.md",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/INDEPENDENT_REVIEW_R1.md",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/INDEPENDENT_REVIEW_R2.md",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/runtime_exact_delta.patch",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/runtime_exact_delta.json",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/verify_runtime_delta.py",
+      "sha256": null,
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "tests/manager_workbench/test_oversold_daily_scheduler.py",
+      "sha256": "73ff736afd9d8ad959c3edc3e6811218cf9135fa7cde81215d3812c8af80eab4",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/tests/test_hk_daily_supplement_tdxpy61.py",
+      "sha256": "42a949a6cae748e376ea5534d5f645f72b693e6ec8632eb444aceeed9f78f548",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/prepare_runtime_candidate.py",
+      "sha256": "9b4fbdea71bc127a8c3042b27db97168b6c9e485789ca38964e259c4932e3858",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/prepare_runtime_candidate_r2.py",
+      "sha256": "f73bdf6af6d6fdd99c37ac91f0ae4518aefe724a2caf8aa2f8a5e592e21b9aae",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/check_runtime_candidate_api.py",
+      "sha256": "055f4f3976984331b921d0334be3dc6dcfa67bdc53742aea99fa91b4ec81f76d",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/activate_runtime_candidate.py",
+      "sha256": "25e72ccf9034663dcc9e1d8a14c54ccda9a4b74009dd3152a3f4537eef1d078a",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/activate_runtime_candidate_r2.py",
+      "sha256": "4f0665f1c0595bc671a45d2294cb85638cbd71cc901d53f0f59d4340841ccae3",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/test_activate_runtime_candidate.py",
+      "sha256": "97d074a88fc41f4c71ccb56464e71c3cc340900d3f282abe6481afe378ee8035",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/test_activate_runtime_candidate_r2.py",
+      "sha256": "fd69dd0b2eb76026fbcd333f54fd50890c4a8d1988ea7d54998e82d1d22eb6e2",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/RUNTIME_PREPARED_RECEIPT_R2.md",
+      "sha256": "646541c63d96ba68050601083166361c422be42cc361ab481235a47a615e6784",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/RUNTIME_INDEPENDENT_REVIEW_R2.md",
+      "sha256": "c9167b69e1dbcbea78ec2d9c845c95de375883bdcc6d936a7a9c0fea7ed375d3",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/LIVE_DEPLOYMENT_RECEIPT.md",
+      "sha256": "324bbdefaa9af259416dc24d6b6153de4cb5c889ee6480c93fdeb2bd98a42c40",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/UI_REVIEW.md",
+      "sha256": "bc88ae0bc742c077b6acd95d042ed15547646fa39b51581036d13c61cf933104",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/prepare_scheduler_release.py",
+      "sha256": "dfde6da26cb70553711af5dbce8ad58bd56bc03c066dc1c48943281acfcadb19",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/scheduler_release_cutover.py",
+      "sha256": "af4b537b6ec107b7624a8865d8f94d0abc6912192c81d8d6a736e7bb9fe82fc6",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/activate_scheduler_release.py",
+      "sha256": "969536a30f1443c29d81b1e7588398446b4db2aba87ae8257081fda1acddabbf",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/rollback_scheduler_release.py",
+      "sha256": "5b4fa2b6ec063ed78087e998165e4a1869edea145d29f00ff210ab6cd62068cd",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/recover_oversold_20261016.py",
+      "sha256": "b757420def3382d363331d8a6bc46c28eced034bdf220f2d7fa60a639d00da5f",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/test_scheduler_release_runtime_guards.py",
+      "sha256": "d18690747872fb3fc7db831fab64edce99aaa4bbbd33fd9a2026f85cdafd0e33",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RUNTIME_PREPARED_RECEIPT.md",
+      "sha256": "863775f9366f2d584f42371560b2d8abdeeb3ac900ee343476770579597eb57b",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RUNTIME_INDEPENDENT_REVIEW.md",
+      "sha256": "33fd4bc382cddb0ba5a9ca14c381b720ea151f605ebfdf6bd81ef8270bb452f7",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RUNTIME_INDEPENDENT_REVIEW_R2.md",
+      "sha256": "94fb43ef0445315d417912bde35bef0ca6d855e42689670a9174ee4642702711",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/LIVE_INDEPENDENT_REVIEW.md",
+      "sha256": "a43510cd21d2d75a3aadf31ddd0c92d2e604210586e8664923ac3b0fd337aebf",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/test_recover_oversold_20261016.py",
+      "sha256": "c8e0a8d78a8b3bc231b86965274a5c62abaf8f62544eb60cea1338e2c88975fb",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_IDENTITY_REVIEW.md",
+      "sha256": "3f75e38fe2633d55e746f4bea6892f56e44dece44289ae2d349882e60accae5c",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RECOVERY_BRIDGE_INDEPENDENT_REVIEW.md",
+      "sha256": "410fc1145b6ded28adb7e4181e8e4c6778a6f98323fae150ac580d86179bf1e8",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/runtime_exact_delta_r4.json",
+      "sha256": "37b1ebb7ee0e9d2df0382954179fd7dd6534ece25251b11e5a40e2b319dfb1a4",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/prepare_runtime_delta_r4.py",
+      "sha256": "488feca6343e726dee51a778a8301828bd2597b0c0dd2ff53bec017df2bbc5c3",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/P2_CACHE_FIRST_REPAIR_RECEIPT.md",
+      "sha256": "0cc1c67e4bc55b6c4e8f527ba23626aa5d752b89b63294f855445c7dfeba69d1",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/runtime_exact_delta_r4.patch",
+      "sha256": "45ade21a1373ca418cb5208162c321deade6d141bb6dcb1d16d14e61a3b11669",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/CACHE_FIRST_INDEPENDENT_REVIEW.md",
+      "sha256": "fcd4541507fd76baa3b49de27d150f01f902e3eb611a78c6a9504786d617cab8",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_FAILURE_ROOT_RECEIPT.md",
+      "sha256": "d5552f415c22d7c4c4d0717e081d129c4b34cb86ae6144bb630b0b037ab21f24",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/prepare_scheduler_cache_release.py",
+      "sha256": "accef245901150922686bb5555931261cec6a9e02b55f9deb9327f6960027118",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/scheduler_cache_release_cutover.py",
+      "sha256": "e9c9a88a676f4b6512fde186613ce7cd782d3998172f4fef49bee26766391fcd",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/activate_scheduler_cache_release.py",
+      "sha256": "62994905c6622110bff6c494c6ca206724ff980497c5a566f14c1949f08cc4b4",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/rollback_scheduler_cache_release.py",
+      "sha256": "2bc605ea2237d16e36733db94283f4e13d1c166c83a45bf34340973abee38610",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/recover_oversold_cache_20261016.py",
+      "sha256": "99402d1a0adbc50e63512369f91cbd159f287aadf31271b0ebf5c364a1fc3cad",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/scheduler_cache_release_binding.json",
+      "sha256": "bee081cef3b5327b90d738d3fca3ca6610cff59fd702afb91c18e57b37422334",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RUNTIME_CACHE_PREPARED_RECEIPT.md",
+      "sha256": "a518e173ae4f8f9a32cb71389bd799b28d2e1f3679abaa4862eff18f251196bf",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RUNTIME_CACHE_INDEPENDENT_REVIEW.md",
+      "sha256": "3a98e30d6bacedc26b02b22f8c7605c14413cd1c78eb77c05d0e86780bebfabd",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/test_recover_oversold_cache_wrapper.py",
+      "sha256": "f01c3f70b3a341f08f6eb4272ba63fbba422b05df0b2a0f87ae813c8c944b394",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RECOVERY_WRAPPER_IMPORT_REVIEW.md",
+      "sha256": "758bfc3caf9df33110febdcd85087b0e915fcf05524594f43f614f3e40e0cc09",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RECOVERY_WRAPPER_IMPORT_REVIEW.json",
+      "sha256": "5dd6d5127deacf993b791221f3f56d2d0b1e620c0b8154c0782cc1f110c95c69",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_CACHE_DEPLOYMENT_RECEIPT.md",
+      "sha256": "6f46e3096a8a934025e9a2982e81725fd3dbac8dcb6eafc5e0a435e64586b8ff",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_CACHE_DEPLOYMENT_RECEIPT.json",
+      "sha256": "17f206555909f653ed7cd799b425db00051492182d1e4375a68693869bfb87f4",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/UI_REVIEW.md",
+      "sha256": "12ef319bd8918b8f3bf7b32798d1fb01a09fd4e1f8f2b55e3f71a02255b8d2db",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_CACHE_INDEPENDENT_REVIEW.md",
+      "sha256": "3a75c13898a5f6b21de9babe782a04bf12e48f950b4dad917e457704c92ba17f",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_CACHE_INDEPENDENT_REVIEW.json",
+      "sha256": "6ed3e7bf525beedbc17e629f83ca9dfa6a723cb7db7bc197b07555e575ff4207",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/DELIVERY.md",
+      "sha256": "56683bcfaf93fe22510b103893297a471da06b95d09368255ad8cdb3ea9b4c31",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/ledger.json",
+      "sha256": "f517dd2955e77fdf2dc9d3740269eac8b4a30700a91d370af9ba069e9d681ad4",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/DELIVERY.md",
+      "sha256": "24ab8880d54b557e5e3dc5e591656ca0ba7350302cc542a4e4c22743ece3709f",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/oversold_daily_automation_20261016/RUNTIME_CACHE_INDEPENDENT_REVIEW.json",
+      "sha256": "e3ac3ab46f0797c0179e9a960beffc8b95ce772263d4d3048a1c3d8acf426446",
+      "exact_utf8_readback": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_700_supplement_20261016/SOURCE_RECEIPT.json",
+      "exact_utf8_readback": true,
+      "verified_at": "9100e74cd4617fc7f7833a53f4ff4bf0ca62321f"
+    }
+  ],
+  "scope": "Necessary patches, helper code, tests, compact review and runtime/UI receipts only; no merge or remote runtime deployment.",
+  "excluded": [
+    "credentials",
+    "raw archives",
+    "bulk overlay",
+    "raw market data",
+    "full runtime configurations",
+    "dist",
+    "screenshots"
+  ],
+  "runtime_acceptance": "Independent controlled live PASS_WITH_CANNOT_CONFIRM; NATURAL_SLOT_UNVERIFIED",
+  "natural_slot_verified": false
+}
