@@ -1,0 +1,37 @@
+{
+  "GOAL": "Repair existing HK market-panel binding and generate a new research-only OVERSOLD preselection version for 20261016 using existing authoritative data lineage. Preserve failed 16:30 run.",
+  "WRITER": "oversold_semantic_recovery, gpt-6.1-sol high (explicit user complex tier); sole stage B writer",
+  "REVIEWER": "oversold_recovery_review (independent Luna Max), candidate then live exact-delta follow-up",
+  "ALLOWED_PATHS": [
+    "docs/handoffs/oversold_nextday_recovery_20261015/* (controller scope/ledger/receipt only)",
+    "Existing V4 POST /api/v4/manager-workbench/runs normal owner persistence only: target_date=20261016 phase=MANUAL lanes=[OVERSOLD], actual current cutoff. No direct raw/panel/old-run edits.",
+    "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "tests/test_oversold_nextday_recovery_20261015.py",
+    "Existing owner shared_root tdxpy61/runs/20261015/<fresh-run-id> new artifacts only; exact root to be recorded by writer",
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/oversold-nextday-recovery-20261015*.json new candidate config only, target hk_panel tdxpy_history binding delta",
+    "Existing tdxpy owner native cache/, catalogues/, .capture.lock normal capture side effects only; add-only replace=False, no old-cache/catalogue overwrite; writer records resolved absolute paths.",
+    "Stage C after INDEPENDENT_REVIEW PASS: existing com.lexi.v35.api-only LaunchAgent config selector only, exact rollback backup, shared release lock and necessary 8873 reload; no app/manifest replacement. Existing POST fresh real-cutoff MANUAL target20261016 OVERSOLD-only."
+  ],
+  "FORBIDDEN_PATHS": [
+    "All business source/config except enumerated stage B paths; no scoring/engine gate changes or old snapshots/panels/config overwrite",
+    "A-share/US_MAPPING logic and source artifacts",
+    "BUY/scoring/threshold changes",
+    "Parallel producer or alternative frontend",
+    "Unrelated services, Vibe8910, global permissions/hooks, credentials"
+  ],
+  "PASS_SIGNAL": "Existing owner artifact/date/provenance binds correctly, real-current-cutoff new 20261016 OVERSOLD saved run, independent focused tests/target semantics PASS, live API and rendered page show actual selection/rejection/unknown counts with truthful gaps. No natural16:30 claim.",
+  "STOP_RULE": "New authority/credentials or changing strategy/PIT/date/source requirements requires explicit decision; recoverable scoped errors get bounded repair, not silent weaker qualification.",
+  "baseline_canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "failed_run_id": "18425e50e6294f15a6bc02ac881c5af2",
+  "failed_phase": "NEXT_DAY",
+  "target_date": "20261016",
+  "source_hk_session": "20261015",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "source_code_changes_authorized": "Only demonstrated bugs in enumerated producer/consumer paths; independent review before active switch.",
+  "remote_handoff_branch": "codex/oversold-nextday-recovery-20261015"
+}
