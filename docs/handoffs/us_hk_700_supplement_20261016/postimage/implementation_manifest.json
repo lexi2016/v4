@@ -1,0 +1,50 @@
+{
+  "phase": "postimage",
+  "candidate_status": "IMPLEMENTED_NOT_DEPLOYED",
+  "files": [
+    {
+      "path": "v4/manager_workbench/us_mapping_catalog.py",
+      "bytes": 23977,
+      "sha256": "b7ec08a65a9bb6e2ee419caf303c5ec60b809a44b7a2bef42883ea0fed4023ad",
+      "bytes_delta": 5007
+    },
+    {
+      "path": "tests/manager_workbench/test_us_mapping_catalog.py",
+      "bytes": 22075,
+      "sha256": "6937069680cb80edf2693be178c76e63ba285cc5ff9b35b64e6b0fbb4255f65e",
+      "bytes_delta": 4983
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "bytes": 51481,
+      "sha256": "131fac6acbe3f724cf689a44d859063c3d9ae6c884052b52da9f2f364246107a",
+      "bytes_delta": 1224
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts",
+      "bytes": 14987,
+      "sha256": "318b26c91c773313d962cea69ed2194f8a9d3a69f11308e1037ce8ec455f2264",
+      "bytes_delta": 2509
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "bytes": 12469,
+      "sha256": "316fbf4e0919ef96c3098dab2ac666f0925c0b674381037b3740e1a9d9d62062",
+      "bytes_delta": 154
+    }
+  ],
+  "source_test_ui_patch": {
+    "path": "source_test_ui.patch",
+    "bytes": 33663,
+    "sha256": "64f4011b2fc7f15f16646139ebf953154465f62f17f7bf54242bc3bc4d7971aa",
+    "lines": 473,
+    "included_paths": [
+      "v4/manager_workbench/us_mapping_catalog.py",
+      "tests/manager_workbench/test_us_mapping_catalog.py",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts",
+      "apps/web/src/manager-workbench/types.ts"
+    ],
+    "overlay_included": false
+  }
+}
