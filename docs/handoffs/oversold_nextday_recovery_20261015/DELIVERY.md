@@ -1,0 +1,31 @@
+# 20261016 超跌预选恢复交付
+
+已恢复本次源绑定，使用原有 TDX 日线 owner 和原超跌引擎完成并保存 target20261016 的手动补运行。候选独立复跑、live API/持久化快照独立核验、主控渲染页面均通过。没有修改筛选阈值或业务源码，没有另建 producer，没有使用 Futu 历史额度。自动调度时间没有调整；本交付不声称16:30自然运行恢复。
+
+根因是原16:30截止早于当日panel17:20及security master17:30的发布；真实当前cutoff恢复绑定后，原panel又缺10/05、10/06、10/07及合格同源窗口证明。沿已有capture_tdxpy_window_supplement完成单股canary和全量既有owner调用，并只新增20261015.tdxpy_history配置绑定。676条原单位/复权/币种阻断中的565条通过既有same-source ratio证明；绝对价格单位、币种、成交量单位未被伪称已核。
+
+结果：689个唯一证券，565完成评估；21SELECTED、171CONDITIONAL_WATCH、373NOT_SELECTED、124UNASSESSED（111来源/同源证据不足、13原历史字段隔离）。名单及API原样证券名称见phase_c_receipt.md；主控UI核对见UI_REVIEW.md与oversold_live.jpg。数据不足的124只没有放行，整体状态仍PARTIAL。
+
+## 已保存身份
+
+- 源码根 /Users/lexi/Desktop/学习/v4_app；canonical基线HEAD55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054。现役release仍为us-hk-mapping-finish-20261015-r2/app，manifest SHA5c6e18640443c65d647e5072ce82472de2f813ef35d245065006ba44a1fe8684；PID7415。
+- 新配置oversold-nextday-recovery-20261015-r1.json，SHAf4bc5c37fb08d57766bf3cd596f9fe4abdc6c32a327e09bc99c5f555822c7158；旧v9保留SHA48fd88d8bc8921181a67c059af7907a56c6a78ef20bec480338409e553e60a9d。plist只改配置selector，SHA45ec4e5fa94d3f4237983c1ccd841fc57e1cdbe6c62dbb05acb66078833dc653。
+- 正式run5cb9b603e183428cab8de8990abcb7e3；target20261016；HK source20261015；实际提交cutoff2026-10-16T00:16:30.206652+08:00；保存snapshot context为执行结束00:16:45.326043+08:00，source_cutoff保留提交时间。
+- product SHA caa7b28579f0a8e7b8f9229dcfac6c006318f656d80c7d29147751578f67b9ce；snapshot文件SHA800bd5a79375a009242f5097eb7110731b736076eff15d57ba35d60db38e0afe。
+- TDX run7484c9312ffe565ca8778264，manifest SHAf60edafd683bc5a11df399f491116eb750a535865f54532771ed139ac30fdbc1，actual available_at2026-10-15T23:59:22.803325+08:00。不能回填为原16:30可用。
+
+首次部署脚本错误要求readyz返回未提供的RESEARCH_ONLY字段，触发精确回滚；修正检查并freshCAS/现有锁后激活成功。错误与恢复均留证。原16:30失败run及23:42仅恢复绑定run保留；旧job API前后字节SHA相同，但未保存旧snapshot preimage SHA，因此不声称其文件字节不变已独立证明。
+
+RESEARCH_ONLY=true、production_allowed=false、buy_gate_updated=false、orders_sent=false。没有更改A股、US_MAPPING业务、其他服务或scheduler。页面默认进入美股分路，本次是OVERSOLD-only；选择超跌推荐/严格入选查看21只。
+
+## 验收和已知限制
+
+INDEPENDENT_REVIEW.md为候选TESTED/REVIEWED/BEHAVIOR_VERIFIED；LIVE_REVIEW.md为已保存run的API_VERIFIED/BEHAVIOR_VERIFIED；UI_REVIEW.md为实际渲染观察。无业务代码变更，未新增或运行无关单测；端到端实际数据路径独立复跑已完成。专用61-session proof自动化回归覆盖仍为非阻断缺口。相关源码未跟踪，Git baseline diff证明CANNOT_CONFIRM；当前release、配置和保存结果身份已核验。
+
+现有days顶层aggregate把373未入选并入未评估，不能将其497视作本次真实来源缺口；超跌lane与页面正确为124待评估，聚合行为不在本批修复范围。
+
+初期ROOT_CAUSE/phaseA把panel parquet SHAa562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c误称manifest SHA；phaseB已更正并留首次preflight拒绝。真实HK panel manifest SHA为bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0。
+
+## 同步
+
+私有lexi2016/v4独立分支codex/oversold-nextday-recovery-20261015，基于94ae411163d92d1a7f30696205e0bf77a86b38bf。只同步本轮必要可复现helper与精简结果/审查证据；不上传raw行情、整份运行配置/plist、运行快照或大响应。数据恢复是本机owner产物，不是远端业务源码部署。GitHub最终HEAD和文件字节回读另记GITHUB_SYNC_RECEIPT.json。
