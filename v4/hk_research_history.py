@@ -573,13 +573,18 @@ class HKResearchHistory:
             b_row = selected_b.get(key)
             if b_row is None:
                 overlap = "C_only"
+                different: list[str] = []
             else:
                 different = [
                     field for field in NUMERIC_FIELDS
                     if not _numeric_equal(b_row.get(field), c_row.get(field), rtol, atol)
                 ]
                 overlap = "raw_conflicting_overlap" if different else "raw_matching_overlap"
-            result_rows.append(self._tagged_row("C", key, c_row, overlap))
+            result_rows.append(self._tagged_row(
+                "C", key, c_row, overlap,
+                conflict_fields=different,
+                counterpart_row=b_row,
+            ))
         for key, b_row in selected_b.items():
             if key not in selected_c:
                 result_rows.append(self._tagged_row("B", key, b_row, "B-only"))
@@ -598,14 +603,94 @@ class HKResearchHistory:
             "scoring_allowed": False,
         }
 
-    def _tagged_row(self, source_name: str, key: int, row: Mapping[str, Any], overlap: str) -> dict[str, Any]:
+    def _tagged_row(
+        self,
+        source_name: str,
+        key: int,
+        row: Mapping[str, Any],
+        overlap: str,
+        *,
+        conflict_fields: Sequence[str] = (),
+        counterpart_row: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
         source = self._source(source_name)
         raw_fields = {name: _safe_output_value(value) for name, value in row.items()}
+        row_columns = B_COLUMNS if source_name == "B" else C_RECONCILE_COLUMNS
+        counterpart_source = "B" if source_name == "C" and counterpart_row is not None else None
+        counterpart_digest = (
+            _row_digest(counterpart_row, B_COLUMNS)
+            if counterpart_source == "B" and counterpart_row is not None
+            else None
+        )
+        counterpart_source_sha = (
+            self._source(counterpart_source)["sha256"]
+            if counterpart_source is not None
+            else None
+        )
+        field_difference_mask = (
+            {field: field in conflict_fields for field in NUMERIC_FIELDS}
+            if counterpart_row is not None
+            else {}
+        )
+        field_hold_reasons = {
+            field: (
+                "RAW_VALUES_DIFFER; source units, currency, adjustment basis, and PIT semantics are unresolved"
+            )
+            for field in conflict_fields
+        }
+        counterpart_projection = None
+        if counterpart_row is not None and counterpart_source is not None:
+            counterpart_columns = B_COLUMNS if counterpart_source == "B" else C_RECONCILE_COLUMNS
+            counterpart_projection = {
+                "source": counterpart_source,
+                "source_sha256": counterpart_source_sha,
+                "row_sha256": counterpart_digest,
+                "raw_fields": {
+                    name: _safe_output_value(value)
+                    for name, value in counterpart_row.items()
+                },
+            }
+            # The counterpart hash is over the full source contract even when
+            # a panel has extra display/provenance columns.
+            counterpart_projection["row_sha256"] = _row_digest(
+                counterpart_row, counterpart_columns
+            )
+        if source_name == "C" and counterpart_source == "B":
+            selection_reason = "C_OWNER_PRECEDENCE_ONLY; LEGACY_BASELINE_NOT_VERIFIED"
+        elif source_name == "B":
+            selection_reason = "B_ROW_ADDED_ONLY_WHEN_ABSENT_FROM_C_OWNER"
+        else:
+            selection_reason = "EXISTING_C_OWNER_ROW; NO_B_COUNTERPART"
+        disposition = (
+            "UNRESOLVED_SOURCE_SEMANTICS"
+            if overlap == "raw_conflicting_overlap"
+            else "NO_RAW_FIELD_CONFLICT_OR_C_ONLY"
+        )
         return {
             **_key_text(key),
             "source": source_name,
             "source_sha256": source["sha256"],
+            "row_sha256": _row_digest(row, row_columns),
             "overlap_status": overlap,
+            "counterpart": counterpart_projection,
+            "conflict_metadata": {
+                "status": overlap,
+                "disposition": disposition,
+                "selection_reason": selection_reason,
+                "comparison_basis": "raw_numeric_values_with_frozen_rtol_atol",
+                "compared_fields": list(NUMERIC_FIELDS) if counterpart_row is not None else [],
+                "differing_fields": list(conflict_fields),
+                "field_difference_mask": field_difference_mask,
+                "field_hold_reasons": field_hold_reasons,
+                "comparison_rtol": float(self.descriptor.get("rtol", DEFAULT_RTOL)),
+                "comparison_atol": float(self.descriptor.get("atol", DEFAULT_ATOL)),
+                "selected_raw_source": source_name,
+                "counterpart_source": counterpart_source,
+                "counterpart_source_sha256": counterpart_source_sha,
+                "counterpart_row_sha256": counterpart_digest,
+                "semantic_resolution": "UNRESOLVED",
+                "canonical_scoring_admission": "NO_CANONICAL_SCORING_ADMISSION",
+            },
             "raw_fields": raw_fields,
             "units_status": "UNKNOWN",
             "adjustment_basis_status": "UNKNOWN",
@@ -679,6 +764,60 @@ class OwnedHKResearchHistory:
         self._validate_owner_descriptor(descriptor)
         return descriptor, actual_sha, identity
 
+    def _material_identities(self, descriptor: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+        """Require every active raw/metadata reference to resolve inside the C owner's materials."""
+        material_root = self.owner_root / "research_materials"
+        try:
+            root_stat = material_root.lstat()
+        except OSError as exc:
+            raise SourceIdentityError("C-owned research materials are unavailable") from exc
+        if stat.S_ISLNK(root_stat.st_mode) or not stat.S_ISDIR(root_stat.st_mode):
+            raise SourceIdentityError("C-owned research materials must be a real directory")
+
+        references: list[tuple[str, Mapping[str, Any]]] = [
+            ("B", descriptor["sources"]["B"]),
+            *((str(item["id"]), item) for item in descriptor["metadata_only"]),
+        ]
+        identities: dict[str, dict[str, Any]] = {}
+        owner_device = self.owner_root.stat().st_dev
+        for ref_id, reference in references:
+            raw_path = reference.get("path")
+            if not isinstance(raw_path, str):
+                raise SourceIdentityError(f"{ref_id} material path is invalid")
+            candidate = Path(raw_path)
+            try:
+                relative = candidate.relative_to(material_root)
+            except ValueError as exc:
+                raise SourceIdentityError(f"{ref_id} material path is outside C-owned research materials") from exc
+            if not relative.parts or any(part in ("", ".", "..") for part in relative.parts):
+                raise SourceIdentityError(f"{ref_id} material path is invalid")
+
+            current = material_root
+            try:
+                for part in relative.parts:
+                    current = current / part
+                    item_stat = current.lstat()
+                    if stat.S_ISLNK(item_stat.st_mode):
+                        raise SourceIdentityError(f"{ref_id} material path contains a symlink")
+                resolved = current.resolve(strict=True)
+                item_stat = current.lstat()
+            except OSError as exc:
+                raise SourceIdentityError(f"{ref_id} material file is unavailable") from exc
+            if resolved != current or not resolved.is_relative_to(material_root):
+                raise SourceIdentityError(f"{ref_id} material path escapes C-owned research materials")
+            if not stat.S_ISREG(item_stat.st_mode) or item_stat.st_size != reference["size_bytes"]:
+                raise SourceIdentityError(f"{ref_id} material identity differs from descriptor")
+            if item_stat.st_dev != owner_device:
+                raise SourceIdentityError(f"{ref_id} material is outside the C owner's volume")
+            identities[ref_id] = {
+                "path": str(resolved),
+                "size_bytes": item_stat.st_size,
+                "device": item_stat.st_dev,
+                "inode": item_stat.st_ino,
+                "mtime_ns": item_stat.st_mtime_ns,
+            }
+        return identities
+
     @staticmethod
     def _validate_owner_descriptor(descriptor: Mapping[str, Any]) -> None:
         if descriptor.get("schema_version") != 1 or descriptor.get("market") != "HK":
@@ -742,6 +881,7 @@ class OwnedHKResearchHistory:
 
     def _capture(self) -> tuple[HKResearchHistory, dict[str, Any]]:
         owner_descriptor, owner_descriptor_sha, owner_descriptor_identity = self._read_descriptor()
+        material_identities = self._material_identities(owner_descriptor)
         owner = owner_descriptor["owner"]
         pointer_path = self._confined_file(owner["pointer_relative"])
         pointer_bytes, pointer_identity = _read_stable_json_bytes(pointer_path)
@@ -811,6 +951,7 @@ class OwnedHKResearchHistory:
             "owner_descriptor_sha256": owner_descriptor_sha,
             "owner_descriptor_file_sha256": owner_descriptor_identity["sha256"],
             "owner_descriptor_file_size_bytes": owner_descriptor_identity["size_bytes"],
+            "material_identities": material_identities,
             "pointer_relative": owner["pointer_relative"],
             "pointer_sha256": pointer_identity["sha256"],
             "manifest_relative": manifest_relative,
@@ -822,12 +963,14 @@ class OwnedHKResearchHistory:
         return adapter, capture
 
     def _verify_capture_unchanged(self, capture: Mapping[str, Any]) -> None:
-        _, descriptor_sha, descriptor_identity = self._read_descriptor()
+        owner_descriptor, descriptor_sha, descriptor_identity = self._read_descriptor()
         if (
             descriptor_sha != capture["owner_descriptor_sha256"]
             or descriptor_identity["sha256"] != capture["owner_descriptor_file_sha256"]
         ):
             raise SourceIdentityError("HK owner descriptor changed during query")
+        if self._material_identities(owner_descriptor) != capture["material_identities"]:
+            raise SourceIdentityError("HK owner material references changed during query")
         pointer_path = self._confined_file(capture["pointer_relative"])
         _, pointer_identity = _read_stable_json_bytes(pointer_path)
         if pointer_identity["sha256"] != capture["pointer_sha256"]:

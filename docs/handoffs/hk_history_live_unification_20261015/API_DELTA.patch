@@ -1,0 +1,51 @@
+--- a/v4/manager_workbench/api.py
++++ b/v4/manager_workbench/api.py
+@@ -17,6 +17,7 @@
+ from .store import StorageConflict, StorageUnavailable
+ from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
+ from .engines.common import US_FACTOR_RULES_VERSION
++from v4.hk_research_history import OwnedHKResearchHistory
+ 
+ PREFIX = "/api/v4/manager-workbench"
+ 
+@@ -104,6 +105,40 @@
+ 
+ def create_router(service: ManagerService) -> APIRouter:
+     router = APIRouter(prefix=PREFIX, tags=["manager-workbench"],route_class=WorkbenchRoute)
++
++    @router.get("/hk-history")
++    def read_hk_history(
++        symbol: str = Query(..., pattern=r"^HK\.[0-9]{5}$"),
++        start: str = Query(...),
++        end: str = Query(...),
++        offset: int = Query(0, ge=0),
++        limit: int = Query(100, ge=1, le=200),
++    ):
++        if int(symbol[3:]) < 1:
++            raise HTTPException(422, "SYMBOL_INVALID")
++        if re.fullmatch(r"[0-9]{8}", start) is None or re.fullmatch(r"[0-9]{8}", end) is None:
++            raise HTTPException(422, "DATE_INVALID")
++        start_day = _date(start)
++        end_day = _date(end)
++
++        def read():
++            history = OwnedHKResearchHistory.from_shared_root(service.config.shared_root)
++            data = history.query_union(
++                symbol,
++                start_day,
++                end_day,
++                offset=offset,
++                limit=limit,
++            )
++            return envelope("READY", _public(data), [
++                "RESEARCH_ONLY_RAW_HISTORY",
++                "RAW_UNITS_UNKNOWN",
++                "CURRENCY_BASIS_UNKNOWN",
++                "ADJUSTMENT_BASIS_UNKNOWN",
++                "PIT_SAFETY_UNKNOWN",
++                "SCORING_DISABLED",
++            ])
++        return _safe_errors(read)
+ 
+     @router.get("/days/{date}")
+     def read_day(date: str, phase: Phase | None = None, run_id: str | None = None,

@@ -107,7 +107,7 @@ class HKResearchHistoryTests(unittest.TestCase):
 
     def _owned_fixture(self, b_rows, c_rows):
         _, static_descriptor = self._adapter(b_rows, c_rows)
-        owner_root = self.root / "assets" / "hk_0_2"
+        owner_root = (self.root / "assets" / "hk_0_2").resolve()
         panel_dir = owner_root / "panels" / "v1"
         panel_dir.mkdir(parents=True)
         panel_path = panel_dir / "panel.parquet"
@@ -117,13 +117,21 @@ class HKResearchHistoryTests(unittest.TestCase):
         self._write_panel_manifest(manifest_path, panel_path, panel_relative, len(c_rows))
         pointer = owner_root / "panel_latest.json"
         pointer.write_text(json.dumps({"manifest_relative": manifest_path.relative_to(owner_root).as_posix()}), encoding="utf-8")
+        materials = owner_root / "research_materials"
+        materials.mkdir()
+        b_path = materials / "fixture_b_daily.parquet"
+        self._write_b(b_path, b_rows)
+        b_identity = self._identity(b_path)
         metadata_only = []
         for item_id in ("A_feature", "A_label", "B_operator_feature", "B_operator_label"):
+            payload = ("metadata-only:" + item_id).encode("utf-8")
+            metadata_path = materials / (item_id + ".parquet")
+            metadata_path.write_bytes(payload)
             metadata_only.append({
                 "id": item_id,
-                "path": "/metadata/" + item_id + ".parquet",
-                "sha256": "a" * 64,
-                "size_bytes": 0,
+                "path": str(metadata_path),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+                "size_bytes": len(payload),
                 "read_policy": "METADATA_ONLY",
                 "label_values_read": False if item_id.endswith("label") else None,
             })
@@ -139,7 +147,11 @@ class HKResearchHistoryTests(unittest.TestCase):
                 "asset_schema_version": OwnedHKResearchHistory.ASSET_SCHEMA_VERSION,
             },
             "sources": {
-                "B": static_descriptor["sources"]["B"],
+                "B": {
+                    **b_identity,
+                    "row_count": len(b_rows),
+                    "columns": list(B_COLUMNS),
+                },
                 "C": {"owner": "hk_0_2", "dynamic": True},
             },
             "metadata_only": metadata_only,
@@ -215,13 +227,44 @@ class HKResearchHistoryTests(unittest.TestCase):
         self.assertEqual(conflict["raw_fields"]["trade"], 0)
         self.assertEqual(conflict["raw_fields"]["amount"], 0.0)
         self.assertEqual(conflict["raw_fields"]["source_path"], "/fixture/original.parquet")
+        self.assertEqual(conflict["counterpart"]["source"], "B")
+        self.assertEqual(conflict["counterpart"]["raw_fields"]["trade"], 5)
+        self.assertEqual(conflict["counterpart"]["raw_fields"]["amount"], 12.0)
+        self.assertEqual(conflict["counterpart"]["row_sha256"], conflict["conflict_metadata"]["counterpart_row_sha256"])
+        self.assertEqual(len(conflict["counterpart"]["source_sha256"]), 64)
         self.assertEqual(conflict["units_status"], "UNKNOWN")
+        self.assertEqual(conflict["conflict_metadata"]["status"], "raw_conflicting_overlap")
+        self.assertEqual(conflict["conflict_metadata"]["disposition"], "UNRESOLVED_SOURCE_SEMANTICS")
+        self.assertEqual(
+            conflict["conflict_metadata"]["differing_fields"],
+            ["open", "high", "low", "close", "amount", "trade"],
+        )
+        self.assertEqual(
+            conflict["conflict_metadata"]["field_difference_mask"],
+            {field: True for field in ("open", "high", "low", "close", "amount", "trade")},
+        )
+        self.assertEqual(
+            set(conflict["conflict_metadata"]["field_hold_reasons"]),
+            {"open", "high", "low", "close", "amount", "trade"},
+        )
+        self.assertEqual(conflict["conflict_metadata"]["selected_raw_source"], "C")
+        self.assertEqual(
+            conflict["conflict_metadata"]["selection_reason"],
+            "C_OWNER_PRECEDENCE_ONLY; LEGACY_BASELINE_NOT_VERIFIED",
+        )
+        self.assertEqual(conflict["conflict_metadata"]["semantic_resolution"], "UNRESOLVED")
+        self.assertEqual(conflict["conflict_metadata"]["canonical_scoring_admission"], "NO_CANONICAL_SCORING_ADMISSION")
+        self.assertEqual(len(conflict["row_sha256"]), 64)
+        self.assertEqual(len(conflict["conflict_metadata"]["counterpart_row_sha256"]), 64)
         self.assertFalse(conflict["scoring_allowed"])
 
         b_only = adapter.query_union("HK.00003", "20260101", "20260131")["rows"][0]
         self.assertEqual(b_only["source"], "B")
         self.assertEqual(b_only["overlap_status"], "B-only")
         self.assertEqual(b_only["raw_fields"]["trade"], 7)
+        self.assertEqual(b_only["conflict_metadata"]["status"], "B-only")
+        self.assertIsNone(b_only["conflict_metadata"]["counterpart_source"])
+        self.assertFalse(b_only["scoring_allowed"])
         with self.assertRaises(QueryValidationError):
             adapter.query_union("HK.00003", "20260101", "20260131", limit=1_001)
 
@@ -337,6 +380,56 @@ class HKResearchHistoryTests(unittest.TestCase):
             with self.assertRaises(SourceIdentityError):
                 history.query_union("HK.00001", "20260102", "20260102")
 
+    def test_owned_material_references_are_direct_and_confined_to_c_owner(self):
+        owner_root, _, _ = self._owned_fixture(
+            [_b_row("HK.00001", "2026-01-02", 10.0)],
+            [_c_row("HK.00001", 20260102, 10.0)],
+        )
+        descriptor_path = owner_root / "research_history.json"
+        document = json.loads(descriptor_path.read_text(encoding="utf-8"))
+        descriptor = document["source_descriptor"]
+        material_root = (owner_root / "research_materials").resolve()
+        paths = [descriptor["sources"]["B"]["path"]]
+        paths.extend(item["path"] for item in descriptor["metadata_only"])
+        self.assertEqual(len(paths), 5)
+        for raw_path in paths:
+            resolved = Path(raw_path).resolve(strict=True)
+            self.assertTrue(resolved.is_relative_to(material_root))
+            self.assertNotIn("待删除", str(resolved))
+        history = OwnedHKResearchHistory(owner_root)
+        self.assertEqual(history.query_union("HK.00001", "20260102", "20260102")["rows"][0]["source"], "C")
+
+        bad_paths = ["B", "A_feature", "A_label", "B_operator_feature", "B_operator_label"]
+        for ref in bad_paths:
+            changed = json.loads(json.dumps(document))
+            target = changed["source_descriptor"]["sources"]["B"] if ref == "B" else next(
+                item for item in changed["source_descriptor"]["metadata_only"] if item["id"] == ref
+            )
+            target["path"] = str(owner_root.parent / "outside" / (ref + ".parquet"))
+            changed["descriptor_sha256"] = source_descriptor_sha256(changed["source_descriptor"])
+            descriptor_path.write_text(json.dumps(changed), encoding="utf-8")
+            with self.subTest(reference=ref), self.assertRaises(SourceIdentityError):
+                history.query_union("HK.00001", "20260102", "20260102")
+        descriptor_path.write_text(json.dumps(document), encoding="utf-8")
+
+    def test_owned_material_missing_or_tampered_sources_fail_closed(self):
+        owner_root, _, _ = self._owned_fixture(
+            [_b_row("HK.00001", "2026-01-02", 10.0)],
+            [_c_row("HK.00001", 20260102, 10.0)],
+        )
+        document = json.loads((owner_root / "research_history.json").read_text(encoding="utf-8"))
+        history = OwnedHKResearchHistory(owner_root)
+        b_path = Path(document["source_descriptor"]["sources"]["B"]["path"])
+        original = b_path.read_bytes()
+        b_path.unlink()
+        with self.assertRaises(SourceIdentityError):
+            history.query_union("HK.00001", "20260102", "20260102")
+        b_path.write_bytes(original)
+        altered = original[:-1] + bytes([original[-1] ^ 1])
+        b_path.write_bytes(altered)
+        with self.assertRaises(SourceIdentityError):
+            history.query_union("HK.00001", "20260102", "20260102")
+
     def test_candidate_api_route_reads_dynamic_owner_with_bounded_hk_parameters(self):
         owner_root, _, _ = self._owned_fixture(
             [
@@ -375,6 +468,13 @@ class HKResearchHistoryTests(unittest.TestCase):
         self.assertEqual(rows[0]["source"], "C")
         self.assertEqual(rows[0]["raw_fields"]["open"], 11.0)
         self.assertEqual(rows[0]["raw_fields"]["source_path"], "[REDACTED_LOCAL_REFERENCE]")
+        self.assertEqual(rows[0]["counterpart"]["source"], "B")
+        self.assertEqual(rows[0]["counterpart"]["raw_fields"]["open"], 10.0)
+        self.assertEqual(rows[0]["conflict_metadata"]["field_difference_mask"]["open"], True)
+        self.assertEqual(
+            rows[0]["conflict_metadata"]["disposition"],
+            "UNRESOLVED_SOURCE_SEMANTICS",
+        )
         self.assertEqual(invalid.status_code, 422)
 
 

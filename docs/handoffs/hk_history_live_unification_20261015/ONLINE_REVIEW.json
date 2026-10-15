@@ -1,0 +1,133 @@
+{
+  "A_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "elapsed_seconds": 0.01,
+    "http_status": 200,
+    "market_A_compact_json_sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "api_response_host_paths_exposed": false,
+  "buy_gate_updated": false,
+  "candidate_tests": {
+    "independent_PASS_reused": true,
+    "subtest_count": 5,
+    "test_count": 10
+  },
+  "canonical_scoring_admission": "NO_CANONICAL_SCORING_ADMISSION",
+  "existing_C_scorer_history_isolation_claimed": false,
+  "findings": [],
+  "full_partition_rerun": false,
+  "invalid_requests": {
+    "all_http_status": 422,
+    "count": 4
+  },
+  "job_metadata": {
+    "healthy_jobs": 0,
+    "legacy_owner_pid_absent_count": 6,
+    "legacy_pid_reused_by_later_WebKit_count": 1,
+    "legacy_running_metadata_unchanged_before_immediate_after": true,
+    "legacy_running_records": 7,
+    "legacy_status_records_modified": false,
+    "workbench_counts": {
+      "PARTIAL": 23,
+      "SUCCEEDED": 1
+    }
+  },
+  "model": "gpt-6.1-sol",
+  "natural_slot_verified": false,
+  "observed_at_utc": "2026-10-15T06:14:12.250258+00:00",
+  "online_canaries": [
+    {
+      "data_sha256": "467fbd3321f549a3991d6415c96c90b76aba5d3dbec2b949d0f4c7e09ceefbd1",
+      "date": "20180102",
+      "elapsed_seconds": 2.16,
+      "full_payload_equals_independently_reviewed_candidate": true,
+      "http_status": 200
+    },
+    {
+      "data_sha256": "7cd208b3facd34cdf40d9fa61a160ef5af6a2dd8ebf08dc74680a6d761e1a5a9",
+      "date": "20230630",
+      "elapsed_seconds": 2.075,
+      "full_payload_equals_independently_reviewed_candidate": true,
+      "http_status": 200
+    },
+    {
+      "data_sha256": "2126f3c258750ea27cad287e1c6268338c9154ca50c210baf670cc4a4db14dad",
+      "date": "20260706",
+      "elapsed_seconds": 2.17,
+      "full_payload_equals_independently_reviewed_candidate": true,
+      "http_status": 200
+    },
+    {
+      "data_sha256": "e0ef518e3ce5c6c1dcc4d8f6433bb1507b6264831ed41eb09a041433e4349e37",
+      "date": "20260722",
+      "elapsed_seconds": 2.372,
+      "full_payload_equals_independently_reviewed_candidate": true,
+      "http_status": 200
+    },
+    {
+      "data_sha256": "ea9133f31141e6bcd9a17eaf86ffc095a3f3fb083664cce71344543fed9b6e4a",
+      "date": "20260909",
+      "elapsed_seconds": 2.148,
+      "full_payload_equals_independently_reviewed_candidate": true,
+      "http_status": 200
+    }
+  ],
+  "orders_sent": false,
+  "production_allowed": false,
+  "protected_state": {
+    "descriptor_file_sha256": "71e168716374b306e7bebb71da5d00b2b5bfe9bf0f3c91010a12902a6954802e",
+    "desktop_material_references": 0,
+    "direct_C_owned_material_references": 5,
+    "directory_inode_unchanged_count": 2,
+    "old_aliases_unchanged": true,
+    "old_release_and_before_plist_exist": true,
+    "protected_file_sha_stat_unchanged_count": 18,
+    "scheduler_pid": 84949,
+    "scheduler_pid_unchanged": true,
+    "scheduler_plist_sha256": "317feeec98a924129f7926488b04a634f48fe6db54e53c32273fd5a4e6781e12"
+  },
+  "raw_market_values_exported": false,
+  "reasoning_effort": "high",
+  "research_only": true,
+  "reviewer": "/root/hk_live_review_61",
+  "reviewer_file_writes": 0,
+  "runtime": {
+    "active_plist_equals_staged": true,
+    "active_plist_sha256": "9f40363b73788f7e0f88bf12ba4e85f6d6d0807b8e54fee320526e5cd138ad8f",
+    "application_inventory_entry_count": 1181,
+    "application_inventory_sha256": "a3bf941b489ed3240d681d652d275103315da4a9db2350962ce357c3c60e4417",
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/app",
+    "listener": "127.0.0.1:8873",
+    "manifest_sha256": "12ec91acf64c6112533b8045c008d539a68293db7fc74503240d83f2461edb7a",
+    "non_delta_entries_unchanged": true,
+    "non_delta_entry_count": 1179,
+    "old_pid": 21500,
+    "old_pid_absent": true,
+    "pid": 37569
+  },
+  "schema_version": 1,
+  "scoring_allowed": false,
+  "semantic_resolution": "UNRESOLVED_SOURCE_SEMANTICS",
+  "service_execution": {
+    "graceful_lifecycle_log_lines_matched": 6,
+    "only_API_bootout_bootstrap": true,
+    "rollback_performed": false,
+    "service_mutation_exit_codes": [
+      0,
+      0
+    ]
+  },
+  "source": "Parent-provided independent online-review verdict and evidence summary",
+  "statuses": [
+    "REVIEWED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "ui_verified": false,
+  "units_currency_adjustment_PIT_status": "UNKNOWN",
+  "verdict": "PASS"
+}

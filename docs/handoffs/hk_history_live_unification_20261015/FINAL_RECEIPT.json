@@ -1,0 +1,81 @@
+{
+  "A_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "elapsed_seconds": 0.015,
+    "market_A_compact_json_sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "market_A_status": "PARTIAL_WITH_ROWS",
+    "route": "/api/v3/stage-center/selection?date=20261015&stage=STAGE_0940_0945&limit=1",
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "status": 200
+  },
+  "api_verified": true,
+  "api_writer_verified": true,
+  "behavior_verified": true,
+  "buy_gate_updated": false,
+  "candidate_review": "PASS",
+  "completed_at_utc": "2026-10-15T06:12:23.166864+00:00",
+  "deployed": true,
+  "existing_C_scorer_history_isolation_claimed": false,
+  "frozen_partition_reused_not_rerun": {
+    "B_only": 577811,
+    "C_only": 23073,
+    "common": 437024,
+    "raw_conflicting_overlap": 30341,
+    "raw_matching_overlap": 406683,
+    "union": 1037908
+  },
+  "github_sync": "SEPARATE_TRANSPORT_RECEIPT_PENDING_REMOTE_READBACK",
+  "github_transport_receipt": "GITHUB_SYNC_RECEIPT.json",
+  "history_source_rows": {
+    "B": 1014835,
+    "C": 460097
+  },
+  "independent_online_review": "PASS",
+  "independent_review_observed_at_utc": "2026-10-15T06:14:12.250258+00:00",
+  "independent_reviewer": "/root/hk_live_review_61",
+  "integrated": true,
+  "invalid_symbol_http_status": 422,
+  "local_evidence_sha256": {
+    "ACTIVATION_RECEIPT.json": "3015b0b3620dc711a43bd0b2090628cec388a449b3361d4128634b18b2dca811",
+    "ONLINE_CANARY_RECEIPT.json": "a686a6f8f840ad750557ebee3aa96a893c40c9e7b6bec0bf92284c6c815d6bac",
+    "ONLINE_REVIEW.json": "20f1909fc79ec329314abdc185e0fbc02ebd386eed3e7a828023d5fa538161f8",
+    "OWNER_PROJECTION.json": "e4d865307138e5ff52497970910b6d34d39ed99a4d7478fe0ea108fd264c3e99",
+    "PREACTIVATION_REVIEW.json": "6a3826a52c3d2faa8bc2fac29ebca45d4b2a05c9231bc38a222bcde8335d3fdc",
+    "SOURCE_MOVE_RECEIPT.json": "4ecd1a2aa54d96d0e89c7a13ad012ce4e0edd746e33408248b238c4deefc349c"
+  },
+  "market_data_copies_created": 0,
+  "natural_slot_verified": "NOT_RUN",
+  "online_canary_count": 5,
+  "orders_sent": false,
+  "original_preparation_worktree_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "production_allowed": false,
+  "research_only": true,
+  "rollback_performed": false,
+  "runtime": {
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/app",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/release-manifest.json",
+    "manifest_sha256": "12ec91acf64c6112533b8045c008d539a68293db7fc74503240d83f2461edb7a",
+    "pid": 37569,
+    "release_id": "hk-history-unified-api-20261015-r1",
+    "running": true
+  },
+  "scheduler": {
+    "pid": 84949,
+    "running": true
+  },
+  "schema_version": 1,
+  "scoring_allowed": false,
+  "semantic_resolution": "UNRESOLVED_SOURCE_SEMANTICS",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "status": "REVIEWED_DEPLOYED_API_VERIFIED_BEHAVIOR_VERIFIED",
+  "statuses": [
+    "REVIEWED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "sync_baseline_commit": "5dab54cf72fa4884d732903842c59297fb36d937",
+  "ui_verified": "NOT_RUN",
+  "units_currency_adjustment_PIT_status": "UNKNOWN"
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "reviewer": "/root/hk_live_review_61",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "source": "Parent-provided independent reviewer verdict and explicit activation instruction",
+  "status": "PASS",
+  "scope": "Inactive formal release, owner/source identity, semantics boundary, staged plist and A control",
+  "findings": [],
+  "reviewer_file_writes": 0,
+  "independent_validation": {
+    "tests_passed": 10,
+    "subtests_passed": 5,
+    "real_key_route_canaries_passed": 5,
+    "source_files_identity_passed": 10,
+    "source_directory_inodes_passed": 2,
+    "native_rows_checked": 40,
+    "non_delta_entries_preserved": 1179,
+    "staged_plist_preservation": "PASS",
+    "A_control": "PASS"
+  },
+  "pins": {
+    "adapter_sha256": "e69534bae281e374396521cc499054b0d62cfdd3ca77601b696c11393d0d1da3",
+    "candidate_api_sha256": "1961cfdc59cde2b8a27a274a07968b034e3ef8526dbfb736ccf25475b3a96721",
+    "manifest_sha256": "12ec91acf64c6112533b8045c008d539a68293db7fc74503240d83f2461edb7a",
+    "staged_plist_sha256": "9f40363b73788f7e0f88bf12ba4e85f6d6d0807b8e54fee320526e5cd138ad8f",
+    "tests_sha256": "487df5b14fb777e4d49ef138e5e4ea00069771f9277382b3edadb673165ca3c7",
+    "source_move_receipt_sha256": "4ecd1a2aa54d96d0e89c7a13ad012ce4e0edd746e33408248b238c4deefc349c"
+  },
+  "online_verdict": "NOT_RUN",
+  "units_and_PIT": "UNKNOWN",
+  "scoring_allowed": false
+}

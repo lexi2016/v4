@@ -1,0 +1,226 @@
+{
+  "A_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "elapsed_seconds": 0.015,
+    "market_A_compact_json_sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "market_A_status": "PARTIAL_WITH_ROWS",
+    "route": "/api/v3/stage-center/selection?date=20261015&stage=STAGE_0940_0945&limit=1",
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "status": 200
+  },
+  "application_inventory": {
+    "candidate_aggregate_sha256": "a3bf941b489ed3240d681d652d275103315da4a9db2350962ce357c3c60e4417",
+    "candidate_entry_count": 1181,
+    "non_delta_entries_preserved": true,
+    "non_delta_entry_count": 1179
+  },
+  "base_runtime": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-execution-evidence-api-20261015-r1/app",
+    "application_inventory_entry_count": 1180,
+    "application_inventory_sha256": "6947b9a4f54881ce23df8e4f548d2ebcc6a3d29a965903a557445c40fe8f3237",
+    "release_id": "hk-execution-evidence-api-20261015-r1",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-execution-evidence-api-20261015-r1/release-manifest.json",
+    "release_manifest_sha256": "db23ade9e00866aebd8e55657accca637dd690ed7cd8446c1843330a67a8e61d",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-execution-evidence-api-20261015-r1"
+  },
+  "baseline_commit": "5dab54cf72fa4884d732903842c59297fb36d937",
+  "buy_gate_updated": false,
+  "delta_entries": [
+    {
+      "after_sha256": "e69534bae281e374396521cc499054b0d62cfdd3ca77601b696c11393d0d1da3",
+      "before_sha256": null,
+      "path": "v4/hk_research_history.py",
+      "unified_diff_hunk_count": null,
+      "unified_diff_sha256": null
+    },
+    {
+      "after_sha256": "1961cfdc59cde2b8a27a274a07968b034e3ef8526dbfb736ccf25475b3a96721",
+      "before_sha256": "348e567f78c2b85eab7353ca752174a0d6a86e2d233b69cc54a82035a865fc30",
+      "path": "v4/manager_workbench/api.py",
+      "unified_diff_hunk_count": 2,
+      "unified_diff_sha256": "82aa61c46613eee93ff5a6436325f384d65d193bbce71ad7843f501a412c7f08"
+    }
+  ],
+  "excluded_local_artifacts": [
+    "CANARY_RECEIPT.json",
+    "ONLINE_CANARY_RECEIPT.json",
+    "SOURCE_MOVE_RECEIPT.json",
+    "OWNER_PROJECTION.json",
+    "RELEASE_MANIFEST.json",
+    "api.plist.before",
+    "api.plist.staged",
+    "ACTIVATION_RECEIPT.json",
+    "all market data, manager state, credentials, raw rows and release inventories",
+    "GITHUB_SYNC_RECEIPT.json (local transport readback receipt after this immutable sync)"
+  ],
+  "github_sync": "SEPARATE_TRANSPORT_RECEIPT_PENDING_REMOTE_READBACK",
+  "github_transport_receipt": "GITHUB_SYNC_RECEIPT.json",
+  "independent_online_invalid_requests": {
+    "all_http_status": 422,
+    "count": 4
+  },
+  "independent_online_review": "PASS",
+  "independent_online_review_sha256": "20f1909fc79ec329314abdc185e0fbc02ebd386eed3e7a828023d5fa538161f8",
+  "independent_review_observed_at_utc": "2026-10-15T06:14:12.250258+00:00",
+  "independent_reviewer": "/root/hk_live_review_61",
+  "legacy_C_scorer_isolation_claimed": false,
+  "natural_slot_verified": false,
+  "new_market_data_copies": 0,
+  "online_canaries": [
+    {
+      "category": "B-only",
+      "counterpart_row_sha256": null,
+      "differing_fields": [],
+      "scoring_allowed": false,
+      "selected_row_sha256": "f4ac19287d6c8b54c4fd18cb8087b2b8d3047fde6023af9c6753bf681b5c2db7",
+      "selected_source": "B",
+      "source_sha256": "17f5b62b6ec0264d48b6ee66ce0cd31aa8c1deb661e3e765b90b780add2eb230",
+      "status": 200
+    },
+    {
+      "category": "raw_matching_overlap",
+      "counterpart_row_sha256": "9c6220c3e6318432270c66e11d5159e02d2e91b94187374dad7687fa0c9b2f96",
+      "differing_fields": [],
+      "scoring_allowed": false,
+      "selected_row_sha256": "fe686a60d6893ca672e4a474396b15f4b130f5d8f98b7ecb0111d1d596ed4afb",
+      "selected_source": "C",
+      "source_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "status": 200
+    },
+    {
+      "category": "raw_conflicting_overlap",
+      "counterpart_row_sha256": "32cec55002fd4cf0b85579ee98df6a40b1445a3e41a1b1e8b9a57c4cbb14c4fd",
+      "differing_fields": [
+        "low",
+        "close",
+        "amount",
+        "trade"
+      ],
+      "scoring_allowed": false,
+      "selected_row_sha256": "94692a35357703f739f57b30a07a8e86af7824ac5fd68ad6a0b0ac2c128da77b",
+      "selected_source": "C",
+      "source_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "status": 200
+    },
+    {
+      "category": "known_zero_in_c",
+      "counterpart_row_sha256": "57b8c9032439ac2ac86b97ecc20dfcd0774fd044e1e8064c8d406e98abc3f93c",
+      "differing_fields": [
+        "open",
+        "high",
+        "low",
+        "close",
+        "amount",
+        "trade"
+      ],
+      "scoring_allowed": false,
+      "selected_row_sha256": "dd83e69d8a06a164a13a5f39763fda80b84181443cb2d166aa9ba2c8a6bed86f",
+      "selected_source": "C",
+      "source_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "status": 200
+    },
+    {
+      "category": "native_lineage_comparison",
+      "counterpart_row_sha256": "2d86b08c9a8b288b52a1e9b3e6712df5bb6f9c04ffa8156c7d83680341a064d5",
+      "differing_fields": [
+        "trade"
+      ],
+      "scoring_allowed": false,
+      "selected_row_sha256": "2574a27e2110a88a1ae0f8e7192ea83d7219c3cc3d0ea937a1ddb2bc931fca14",
+      "selected_source": "C",
+      "source_sha256": "3958528f34416925df7d5e5ba4bfdde4e92ad35494b1712eacc20013df59cb37",
+      "status": 200
+    }
+  ],
+  "orders_sent": false,
+  "original_preparation_worktree_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "production_allowed": false,
+  "protected_sources_unchanged": true,
+  "research_only": true,
+  "runtime": {
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/app",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/release-manifest.json",
+    "manifest_sha256": "12ec91acf64c6112533b8045c008d539a68293db7fc74503240d83f2461edb7a",
+    "pid": 37569,
+    "release_id": "hk-history-unified-api-20261015-r1",
+    "running": true
+  },
+  "scheduler_unchanged": true,
+  "schema_version": 1,
+  "scope": "HK history owner and exact API delta, sanitized metadata only",
+  "scoring_allowed": false,
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "statuses": [
+    "REVIEWED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "sync_allowlist": [
+    {
+      "path": "v4/hk_research_history.py",
+      "sha256": "e69534bae281e374396521cc499054b0d62cfdd3ca77601b696c11393d0d1da3",
+      "size_bytes": 46427
+    },
+    {
+      "path": "tests/test_hk_research_history.py",
+      "sha256": "487df5b14fb777e4d49ef138e5e4ea00069771f9277382b3edadb673165ca3c7",
+      "size_bytes": 22153
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/ACTIVATION_SCOPE.md",
+      "sha256": "69fbb73c4d520d3e8e01dab1c3c2a1eedc12d13fd61130535113abf1f6a7dd4c",
+      "size_bytes": 2046
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/PREACTIVATION_REVIEW.json",
+      "sha256": "6a3826a52c3d2faa8bc2fac29ebca45d4b2a05c9231bc38a222bcde8335d3fdc",
+      "size_bytes": 1406
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/ONLINE_REVIEW.json",
+      "sha256": "20f1909fc79ec329314abdc185e0fbc02ebd386eed3e7a828023d5fa538161f8",
+      "size_bytes": 4601
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/ROLLBACK.md",
+      "sha256": "b26dab104f48d07fd902ab41a0b6c130a71df757c156e94dea219dd57c348f80",
+      "size_bytes": 3730
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/API_DELTA.patch",
+      "sha256": "5d565d895f2bb6ca90a1d249809973b94063ad771af1a78a164df7338b957e6f",
+      "size_bytes": 1936
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/FINAL_RECEIPT.json",
+      "sha256": "7c4c488449abeca642db7f589a789818ac80cc8701d4d4ca003bd91d8ef93f75",
+      "size_bytes": 3278
+    },
+    {
+      "path": "docs/handoffs/hk_history_live_unification_20261015/SYNC_SUMMARY.json",
+      "self_sha256_intentionally_omitted": true
+    }
+  ],
+  "test": {
+    "candidate_independent_review": "PASS",
+    "command": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_research_history.py"
+    ],
+    "cwd": "/tmp",
+    "independent_online_review": "PASS",
+    "invalid_symbol_422": "PASS",
+    "pythonpath": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-unified-api-20261015-r1/app",
+    "result": "..........                                                          [100%]\n10 passed, 5 subtests passed in 0.29s\n",
+    "writer_online_5_canaries": "PASS"
+  },
+  "ui_verified": false,
+  "units_currency_adjustment_PIT_status": "UNKNOWN"
+}
