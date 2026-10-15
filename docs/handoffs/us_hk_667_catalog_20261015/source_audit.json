@@ -1,0 +1,384 @@
+{
+  "source_zip": {
+    "package_name": "逐股审核_001-667_实际研究结果.zip",
+    "package_sha256": "dac3c820fcd6919fabdccc9c37ee9055b729b200fcde5e48f0dcf527de81bc6d",
+    "zip_crc": "PASS",
+    "manifest": "PASS",
+    "member_count": 15,
+    "files": [
+      {
+        "name": "667只逐股审核报告.md",
+        "bytes": 3413332,
+        "sha256": "51d3fb26645ff09e8714a5200bbb9f8243f96df2b0b960619fefe4076b350fe7"
+      },
+      {
+        "name": "FILE_MANIFEST.json",
+        "bytes": 2287,
+        "sha256": "83a07e2e7f8eebb1cfa0fa9e607bf0413382fe91a70293f0eff6987ee781b532"
+      },
+      {
+        "name": "README.md",
+        "bytes": 221,
+        "sha256": "4e65010f271cbb21b55a33f2fe7211dc5050f658d2860b09824a89b691ddba27"
+      },
+      {
+        "name": "主表A_667只逐股结论.csv",
+        "bytes": 2412746,
+        "sha256": "9266b0c8bbbb25feaad6da149943e9cb8970db8095de43641611dd61ad4074e3"
+      },
+      {
+        "name": "主表A_667只逐股结论.xlsx",
+        "bytes": 822270,
+        "sha256": "198a3b343da3bdf6e248feb6db69f74a21cc50a4d0b4b8f70bf51a5eaca8f3c6"
+      },
+      {
+        "name": "主表B_逐关系明细.csv",
+        "bytes": 1792881,
+        "sha256": "2332fe3190544f3799448aceb8fd51d4fa871b368562209a8c405fd48807aa7c"
+      },
+      {
+        "name": "主表B_逐关系明细.xlsx",
+        "bytes": 852744,
+        "sha256": "963c7b5329e2079f2cfac6ee1e526d85addb3e1f47ce3ffd24a56b33caf1670d"
+      },
+      {
+        "name": "删除降级与缺口.csv",
+        "bytes": 174312,
+        "sha256": "ef36da70140cdd214ebe82b0d1ec73ac8d603bfa83a803de4e6e09b8389f3fd9"
+      },
+      {
+        "name": "剩余代码与断点.txt",
+        "bytes": 62,
+        "sha256": "7a171977d3b553f8cd7f349021fe9439751eebe9dd2e5cb12408ff1053974afa"
+      },
+      {
+        "name": "机器检查结果.json",
+        "bytes": 10929,
+        "sha256": "9d7cfb5ecaad80161d9e89b7bb61420202462f39c33625b751560448764e5eb6"
+      },
+      {
+        "name": "研究行业覆盖统计.csv",
+        "bytes": 92619,
+        "sha256": "d4fbc6a646de6b86a16c0d40fbfaa1a2e1a22490935868de45db6625e5126414"
+      },
+      {
+        "name": "行业与美国资产对应.csv",
+        "bytes": 675510,
+        "sha256": "92bd53bfaa9ba70d84a9ef51df03ee63efab3fa928553cef4a070705ad8fcf76"
+      },
+      {
+        "name": "行业与美国资产对应.xlsx",
+        "bytes": 316270,
+        "sha256": "dd0b39082ac262be5fc6f20442d6094df34f1a9368dca7835f51587f64222644"
+      },
+      {
+        "name": "覆盖与待办.csv",
+        "bytes": 62615,
+        "sha256": "34e268b9eb0c08ec2018f583023fb6b524c7bdcf459821d8c8efdc905e6e37c1"
+      },
+      {
+        "name": "阅读与更正说明.md",
+        "bytes": 2558,
+        "sha256": "c6e099e25c10f9e52b42e870d629765dd106039572942176372543e50b68cd4f"
+      }
+    ]
+  },
+  "membership": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_connect_list_20261014/港股通股票名单_667只_20261014.csv",
+    "sha256": "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c",
+    "count": 667,
+    "snapshot": "2026-10-14"
+  },
+  "structural_validation": {
+    "membership_count": 667,
+    "main_table_a_rows": 667,
+    "main_table_a_unique_codes": 667,
+    "main_table_a_order_matches_membership": true,
+    "main_table_a_names_match_membership": true,
+    "coverage_table_rows": 667,
+    "coverage_table_order_matches_membership": true,
+    "report_sections": 667,
+    "report_section_order_matches_membership": true,
+    "report_section_names_match_membership": true,
+    "relation_row_count": 1003,
+    "relation_rows_reference_membership": true,
+    "stocks_with_relations": 649,
+    "stocks_without_relations": [
+      "01528",
+      "01811",
+      "01963",
+      "01988",
+      "02202",
+      "02357",
+      "02526",
+      "02635",
+      "02922",
+      "03311",
+      "03774",
+      "06049",
+      "06066",
+      "06658",
+      "06666",
+      "06681",
+      "06963",
+      "06979"
+    ],
+    "csv_workbook_value_equality": {
+      "main_table_a": "PASS",
+      "main_table_b": "PASS"
+    },
+    "source_relation_status_values": {
+      "新增候选—保留为重点基本面观察": 1,
+      "新增候选—保留，权重待核": 1,
+      "新增研究记录—降级为历史事件": 1,
+      "新增候选—待核，仅事件线索": 1,
+      "新增候选—条件保留，现行合同待核": 1,
+      "新增候选—弱宏观观察": 2,
+      "新增候选—低权重分部观察": 1,
+      "新增研究记录—降级/待核，不作核心边": 1,
+      "新增候选—降为低权重比较，最新期待核": 1,
+      "新增候选—弱宏观观察，最新期待核": 1,
+      "新增候选—保留为核心直接映射": 1,
+      "新增候选—条件性利率观察": 1,
+      "新增候选：关系已核，经济权重待核": 1,
+      "降级候选：行业观察": 2,
+      "新增宏观观察候选": 1,
+      "新增候选：已核合作，落地待核": 1,
+      "降级候选：合作竞争双向": 1,
+      "新增弱证据/局部供应生态观察候选：当前合同待核，不设定权重": 1,
+      "新增局部经营观察候选：不设定预测权重": 1,
+      "新增经营候选：费率待核": 1,
+      "新增宏观候选": 2,
+      "新增直接租户候选：权重待核": 1,
+      "降级候选：局部行业观察": 1,
+      "新增同发行候选：身份已核": 1,
+      "新增具体药品合作候选": 2,
+      "新增合作候选；纠正证券身份": 1,
+      "新增股权及许可候选：权重待测": 1,
+      "CANDIDATE_ADD": 271,
+      "DOWNGRADE_CANDIDATE": 9,
+      "CANDIDATE_ADD（政策观察）；PENDING_VERIFY（直接供应链）": 1,
+      "DOWNGRADE_TO_CONTEXT": 3,
+      "DOWNGRADE_TO_SECTOR_CONTEXT": 2,
+      "DOWNGRADE_EXCLUDE_DIRECT_MAP": 1,
+      "CANDIDATE_PENDING": 4,
+      "候选新增：具体项目经营观察": 1,
+      "候选新增：局部酒店经营观察": 1,
+      "候选降级：从强代理降为条件同行": 1,
+      "候选新增：弱宏观观察，不设定权重": 2,
+      "候选新增：有边界的收费公路同行": 1,
+      "候选新增：弱宏观条件观察": 1,
+      "候选新增：局部酒店合同观察": 1,
+      "候选新增：局部合同观察": 1,
+      "候选新增：行业需求观察；合同待核": 1,
+      "候选新增：行业需求观察": 1,
+      "候选降级：从强美股地产代理降为弱同行": 1,
+      "候选新增：城燃经营同行": 1,
+      "候选降级：不采用已确认供应链，保留产业观察": 1,
+      "候选降级：弱商品情景，非全球气价等价物": 1,
+      "候选降级：由全集团油价正向缩为局部上游观察": 1,
+      "CANDIDATE_DOWNGRADE": 71,
+      "SUSPENDED_EXCLUDE_PRICE": 1,
+      "DOWNGRADE_CONTEXT": 184,
+      "PENDING_VERIFICATION": 11,
+      "DELISTED_EXCLUDE_PRICE": 7,
+      "INACTIVE_EXCLUDE_PRICE": 1,
+      "候选新增：条件性同行观察；不设定权重": 1,
+      "候选新增：饮品同行观察；预测待检": 1,
+      "候选新增：已证实股权/平台关联；非SAME_ISSUER": 1,
+      "候选新增：局部业务同行；不设定权重": 1,
+      "候选新增但限定弱证据：局部模式观察，不设定权重": 1,
+      "候选新增：固废业务同行观察": 1,
+      "候选新增：局部水务观察；不设定权重": 1,
+      "候选新增：已证实合营关联": 1,
+      "候选新增：金融经营观察；预测待检": 1,
+      "候选新增：局部产业代理；从整体油矿正向假设降级为分部条件观察": 1,
+      "候选新增：主要业务同行观察，不设定权重": 1,
+      "候选新增：局部应用同行；泛AI算力解释应降级": 1,
+      "PENDING_VERIFY": 3,
+      "新研究候选／优先": 3,
+      "新研究候选／条件保留": 2,
+      "新研究候选／次级": 1,
+      "新研究候选／限定产品层": 1,
+      "新研究候选／产品观察": 1,
+      "新研究候选／降权事件观察": 1,
+      "新研究候选／优先但待订单量化": 1,
+      "候选新增：局部产品同行，不设权重": 1,
+      "候选新增：弱证据/局部供应生态观察，不设定权重": 2,
+      "排除当前候选：历史代码失效；非旧矩阵删除记录": 1,
+      "候选新增：已证实合营/品牌体系关联": 1,
+      "候选新增：饮料同行观察，不设权重": 1,
+      "候选新增：已证实合同＋投资关联；非同发行": 1,
+      "候选新增：明确产品许可关系": 1,
+      "候选新增：主要设备同行观察": 1,
+      "候选新增：条件性资本开支观察，不设权重": 1,
+      "候选新增但限定弱证据：局部货运观察，不设权重": 1,
+      "候选新增但限定弱证据：行业维护周期，不设权重": 1,
+      "排除当前候选：历史存托已终止；旧边比较NOT_RUN": 1,
+      "HISTORICAL_RELATION_ENDED": 1,
+      "新增研究候选": 62,
+      "新增研究候选，间接弱观察": 1,
+      "新增待核候选，未达到现期硬边标准": 1,
+      "候选新增：局部行业观察": 1,
+      "候选新增：同发行人观察；交易与转换状态待核": 1,
+      "候选新增：真实合同型合作观察": 1,
+      "候选新增：条件性成本观察": 1,
+      "候选新增：经营同行观察": 2,
+      "候选排除：已终止历史资产，不是当前观察边": 1,
+      "候选新增：限定运营商网络同行": 1,
+      "候选新增：局部供应生态；规模与许可待核": 1,
+      "候选新增：股权及关联业务观察": 1,
+      "候选新增：内容/IP同行观察": 1,
+      "新增研究候选，弱观察": 1,
+      "候选待核：历史合作有据，现时美国最终股权链待补；暂不启用": 1,
+      "候选新增：限定医药商业同行": 1,
+      "候选新增：限定天然饮品同行": 1,
+      "候选新增：澳门分部同行": 2,
+      "候选新增：具体品牌供应/经销链": 1,
+      "候选新增：经销经营同行": 1,
+      "候选新增：真实共同资产观察": 3,
+      "候选新增：条件性商品因子": 1,
+      "候选新增：限定危废同行": 1,
+      "候选新增：局部商品价差观察": 1,
+      "DELISTED/SUSPENDED_EXCLUDE_PRICE": 2,
+      "EXCLUDE_CURRENT_PRICE": 1,
+      "新增研究候选—经营弱观察": 1,
+      "新增研究候选—周期弱观察": 1,
+      "新增研究候选—弱宏观观察": 1,
+      "候选新增：局部同行机制观察": 1,
+      "候选新增：可比消费品业务观察": 1,
+      "候选新增：局部同行观察": 1,
+      "候选新增：收费公路机制观察": 1,
+      "候选降级：弱宏观观察，不设定权重": 1,
+      "候选新增：板材同行观察": 1,
+      "候选新增：局部钢铁周期观察": 1,
+      "候选新增：真实少数股权与合作观察": 1,
+      "候选新增：条件性反向成本观察": 1,
+      "当前候选排除：旧ADR已终止；仅保留核查记录": 1,
+      "新增研究候选；权益比例及会计敏感度待核": 1,
+      "候选新增：局部工程业务观察": 1,
+      "候选新增：合同执行机制观察": 1,
+      "候选新增：呼吸支持局部同行": 1,
+      "候选新增：局部具名技术合作": 1,
+      "候选新增：产品同行观察": 1,
+      "候选新增：条件性AI网络投资观察": 1,
+      "候选新增：城市燃气机制观察": 1,
+      "候选降级：弱气价环境观察，不设定权重": 1,
+      "候选新增：局部铜价经营观察": 1,
+      "候选降级：局部金融服务观察，不设定权重": 1,
+      "候选新增：局部商业模式观察，不设定权重": 1,
+      "候选新增：局部同行核查项，不设定权重": 1,
+      "候选新增：竞争与需求观察；官方361原件链接待补": 1,
+      "候选降级：仅局部同行对照，不设定权重": 1,
+      "候选新增：业务/竞争观察，不设定权重": 1,
+      "候选降级：弱跨地区模式对照，不设定权重": 1,
+      "候选新增：已核具体合同关系；分部限定，不设定权重": 1,
+      "候选新增：竞争观察，不设定权重": 1,
+      "候选新增：局部同行经营观察，不设定权重": 1,
+      "候选降级：分部限定的弱对照，不设定权重": 1,
+      "PENDING_CURRENT_VALIDATION": 3,
+      "KEEP_CONDITIONAL": 27,
+      "WEAK_BACKGROUND": 46,
+      "候选新增：有条件业务观察": 19,
+      "NO_RELIABLE_MAPPING": 5,
+      "候选新增：已核具体许可及现金流关系": 1,
+      "候选新增：技术行业观察；直接供应链未证实": 1,
+      "DOWNGRADE_PRICE_PROXY": 1,
+      "不纳入直接传导候选；保留弱参照": 1,
+      "候选新增：具体股权关联；非同发行人": 1,
+      "候选新增：已核合作，收入敏感性待核": 1,
+      "EVIDENCE_INSUFFICIENT": 1,
+      "历史客户候选；现行关系待刷新": 1,
+      "CANDIDATE_REJECT": 7,
+      "新增具体研究候选": 49,
+      "仅保留弱背景观察": 8,
+      "历史SUPPLY_CHAIN已核；当前供货范围证据不足": 1,
+      "候选隔离：同发行人身份确认，OTC流动性待核": 1,
+      "KEEP_CANDIDATE": 19,
+      "REVIEWED_SPECIFIC_MAPPING": 31,
+      "HISTORICAL_ONLY": 1
+    },
+    "source_relation_type_values": {
+      "OWNERSHIP": 42,
+      "TRANSACTION_EVENT": 4,
+      "SUPPLY_CHAIN": 102,
+      "MACRO_FACTOR": 26,
+      "BUSINESS_PEER": 538,
+      "COMMODITY_EXPOSURE": 46,
+      "SAME_ISSUER": 64,
+      "JOINT_VENTURE": 10,
+      "CONTRACTUAL_RELATION": 65,
+      "INDUSTRY_PROXY": 90,
+      "SENTIMENT_TRANSMISSION": 2,
+      "CAPEX_CYCLE": 14
+    },
+    "source_raw_flag_values": {
+      "audit_only": {
+        "": 968,
+        "False": 29,
+        "True": 6
+      },
+      "current_observation_candidate": {
+        "": 823,
+        "True": 145,
+        "False": 35
+      },
+      "effective_candidate": {
+        "": 928,
+        "True": 64,
+        "False": 11
+      },
+      "prediction_eligible": {
+        "": 961,
+        "False": 42
+      }
+    }
+  },
+  "source_claims": {
+    "README_text": "累计实质研究667/667，未审0；本版为累计整理交付。关系条目1003含历史/弱观察/排除记录，不是预测有效数量。断点无，全部已审。全部预测UNTESTED，旧矩阵比较NOT_RUN。",
+    "main_table_a_progress": {
+      "REVIEWED": 667
+    },
+    "main_table_a_relationship_class": {
+      "已审有具体关系候选": 410,
+      "已审仅弱观察关系": 218,
+      "已审候选证据不足": 9,
+      "已审无可靠关系": 30
+    },
+    "main_table_a_prediction_state": {
+      "UNTESTED": 667
+    },
+    "main_table_b_prediction_state": {
+      "UNTESTED": 1003
+    },
+    "main_table_b_old_action": {
+      "NOT_RUN": 1003
+    },
+    "machine_check_claims": {
+      "count": 667,
+      "unique_codes": 667,
+      "reviewed": 667,
+      "unfinished": 0,
+      "in_progress": 0,
+      "not_reviewed": 0,
+      "csv_xlsx_equal_after_blank_normalization": true
+    },
+    "old_matrix_comparison": "NOT_RUN",
+    "independent_fact_verification": "PENDING"
+  },
+  "catalog_integrity_sha256": "fd362d817032f4f0a8f6f033c44df64435232382ea514dc31beee7b285deb0c5",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "prediction_validation": "UNTESTED",
+    "historical_PIT": "NOT_VALIDATED"
+  },
+  "limits": [
+    "Source report statuses and source classification counts are preserved claims, not independent fact verification.",
+    "All relation rows remain prediction UNTESTED and historical PIT NOT_VALIDATED.",
+    "The earlier 997-row matrix was unavailable; per-edge old/new comparison remains NOT_RUN.",
+    "This catalog is read-only research material and is not today's selection result or an authoritative market-data source."
+  ]
+}
