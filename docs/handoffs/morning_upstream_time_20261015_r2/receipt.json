@@ -1,0 +1,123 @@
+{
+  "schema": "v4.morning_upstream_time_delivery.v1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_base_commit": "e98cf847d30121939fbbfb59ba8b8f71506ec899",
+  "branch": "codex/research-morning-upstream-time-20261015-r2",
+  "statuses": {
+    "IMPLEMENTED": "PASS",
+    "REVIEWED": "PASS",
+    "TESTED": "18/18 independent candidate tests",
+    "BEHAVIOR_VERIFIED": "PASS live HTTP isolated capture/publish/read and gateway reader",
+    "DEPLOYED": "PASS shared package binding in live scheduler argv",
+    "API_VERIFIED": "PASS unchanged historical morning response",
+    "UI_VERIFIED": "Existing historical page inspected; no new live artifact or UI change claimed",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "canonical_changes": [
+    {
+      "path": "upstreams/v3_shared_data/shared_data/public_morning_news.py",
+      "before_sha256": "bc7fc391b76ea41b236036ce36251563ba6333eef8797cdb5f4ad07df17b6931",
+      "after_sha256": "72eb522f4bda03c5faf747adcfae6d0f01e6ec006c9a2f6f92130aa902588700"
+    },
+    {
+      "path": "upstreams/v3_shared_data/tests/test_public_morning_news_exact_search.py",
+      "before_sha256": "a12faa20119daea68d3bebd2ee0533e41c3296352ec26673e678be3f9740f823",
+      "after_sha256": "7c1e940984f3f5f11d7e743612dbd05709839783f74a4109e1477b2b2fca8ffb"
+    }
+  ],
+  "candidate": {
+    "activated": false,
+    "api_unchanged": true,
+    "base_manifest_sha256": "17901ed8046fd9bbc66ef79af72320ea6277aaab41cc35a669b6e5be2466df58",
+    "business_data_modified": false,
+    "delta": [
+      {
+        "after_sha256": "72eb522f4bda03c5faf747adcfae6d0f01e6ec006c9a2f6f92130aa902588700",
+        "before_sha256": "bc7fc391b76ea41b236036ce36251563ba6333eef8797cdb5f4ad07df17b6931",
+        "path": "upstreams/v3_shared_data/shared_data/public_morning_news.py"
+      }
+    ],
+    "manifest_sha256": "10d8a72fe0f1e9164b3bfd9d95b745419a645df7fcc3b85980867a0ef446d36e",
+    "non_delta_preserved": 79,
+    "release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/morning-upstream-time-20261015-r2",
+    "scheduler_app_unchanged": true,
+    "shared_package_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/morning-upstream-time-20261015-r2/app/upstreams/v3_shared_data",
+    "staged_plist_sha256": "2a55f25686b041c2cde833a1eda73d91c96c22d45862603948cb09d0d2ba8fa6",
+    "status": "CANDIDATE_BUILT"
+  },
+  "independent_review": {
+    "identity": "/root/morning_upstream_time_reviewer_r2",
+    "status": "PASS",
+    "verdict_sha256": "16109a8057679424c67062d11bdbd67a0f2770764db52e822240a2037d93a1f6"
+  },
+  "live_canary": {
+    "status": "PASS_LIVE_HTTP_ISOLATED_CANARY",
+    "source_module_sha256": "72eb522f4bda03c5faf747adcfae6d0f01e6ec006c9a2f6f92130aa902588700",
+    "request_started_at": "2026-10-15T06:53:48.405433+00:00",
+    "request_finished_at": "2026-10-15T06:53:54.070862+00:00",
+    "article_count": 3,
+    "articles": [
+      {
+        "url": "https://www.jiuyangongshe.com/a/2gufnus2euk",
+        "published_at": "2026-10-15 07:06:01",
+        "source_published_at_raw": "2026-10-15 07:06:01",
+        "source_published_at_timezone_status": "TIMEZONE_UNKNOWN",
+        "fetched_at": "2026-10-15T06:53:52.677832+00:00",
+        "capture_time_source": "SUCCESSFUL_ARTICLE_RESPONSE_BODY_READ",
+        "capture_time_evidence_sha256": "09e62fce1ed45cebab93751c9e014d73c12510ebcea0b8c7470722ca4cdcf40a"
+      },
+      {
+        "url": "https://www.jiuyangongshe.com/a/4eqcb881gud",
+        "published_at": "2026-10-15 07:53:32",
+        "source_published_at_raw": "2026-10-15 07:53:32",
+        "source_published_at_timezone_status": "TIMEZONE_UNKNOWN",
+        "fetched_at": "2026-10-15T06:53:50.796109+00:00",
+        "capture_time_source": "SUCCESSFUL_ARTICLE_RESPONSE_BODY_READ",
+        "capture_time_evidence_sha256": "ab568ed0fb2509eb5d826c3db951e8cc7d886023b51c08cf3f4b6460099efdff"
+      },
+      {
+        "url": "https://www.jiuyangongshe.com/a/4eqcblrpxe8",
+        "published_at": "2026-10-15 08:03:03",
+        "source_published_at_raw": "2026-10-15 08:03:03",
+        "source_published_at_timezone_status": "TIMEZONE_UNKNOWN",
+        "fetched_at": "2026-10-15T06:53:54.066492+00:00",
+        "capture_time_source": "SUCCESSFUL_ARTICLE_RESPONSE_BODY_READ",
+        "capture_time_evidence_sha256": "16ace7f47f470326ca207d474daa2d12ec3340dc5e1bb1e243815a593177ee9e"
+      }
+    ],
+    "producer_readback_identical": true,
+    "gateway_reader_articles_identical": true,
+    "production_root_written": false,
+    "historical_capture_claimed": false,
+    "natural_execution_verified": false
+  },
+  "activation": {
+    "status": "DEPLOYED_SHARED_OWNER_BOUND",
+    "rollback": false,
+    "active_command_shared_package_match": true,
+    "history_before": {
+      "status": "UNCHANGED",
+      "files": 3,
+      "pointer_sha256": "d3d8b01c60559125766d076478dc018cd01cbe18a8deae661dbc171e8a258fa3"
+    },
+    "history_after": {
+      "status": "UNCHANGED",
+      "files": 3,
+      "pointer_sha256": "d3d8b01c60559125766d076478dc018cd01cbe18a8deae661dbc171e8a258fa3"
+    },
+    "natural": "NOT_RUN"
+  },
+  "api_history": {
+    "http_status": 200,
+    "morning_sha256": "1ebeb99de5e87efdd4465318b7fb0a878d4e627b36c7e5d56874cd6b6495daab",
+    "articles": 3,
+    "historical_fetched_at_present": false,
+    "expected_historical_data_unchanged": true
+  },
+  "hash_semantics": "SHA256(decoded HTML re-encoded as UTF-8), inherited existing source_hashes contract; not wire byte hashing",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
