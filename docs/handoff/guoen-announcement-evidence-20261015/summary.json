@@ -1,0 +1,74 @@
+{
+  "schema": "guoen-evidence-repair-summary-v1",
+  "created_at_utc": "2026-10-15T10:57:44.368444+00:00",
+  "github_parent_commit": "349eed20e8e99d81aee84c4a075ae85356413ad3",
+  "canonical_local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "isolated_pipeline_root": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary",
+  "files": [
+    {
+      "path": "canonical/v4/manager_workbench/engines/announcement.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/v4/manager_workbench/engines/announcement.py",
+      "before_sha256": "c786c837d4e3b8e06da017f3b7615e7561b5cd782c82b313e570b2bb00d09ee9",
+      "after_sha256": "e1e1c9d5df3a2e87c636469c3023ce19b4e0cb615fdd6a3d4aa6091d35861cc3"
+    },
+    {
+      "path": "canonical/tests/test_guoen_announcement_evidence_contract.py",
+      "source_path": "/Users/lexi/Desktop/学习/v4_app/tests/test_guoen_announcement_evidence_contract.py",
+      "before_sha256": null,
+      "after_sha256": "3a06352178e2c433fa04b48c61988c66949a192bc43310cc13b22699195b29e6"
+    },
+    {
+      "path": "pipeline_canary/simple_fixed_facts.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary/simple_fixed_facts.py",
+      "before_sha256": "33424d9688878b805c9ada3e44f48b19b2e9c380821d4509e85300e252f0c903",
+      "after_sha256": "f5b561b0f9be34b727df81b5002531bd955ce6e2b0949756c0b140d5ef2596a9"
+    },
+    {
+      "path": "pipeline_canary/test_simple_fixed_facts.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/助手/qwen_flash_next_20261013/pipeline_canary/test_simple_fixed_facts.py",
+      "before_sha256": "aec2ad04ac638cefed3f00468b60763164312113f98ad4e3ba4aaa88dcf77d8f",
+      "after_sha256": "cf1ed82299c9328ea004250cfe073efa94cdf84c56a8355714eb0a25603afb95"
+    }
+  ],
+  "reviewer": "simple_review_resume (independent Luna Max)",
+  "writer": "ushk_repair_writer (Luna Max)",
+  "independent_tests": {
+    "canonical_contract": 17,
+    "existing_announcement_selection": 6,
+    "fixed_fact_parser": 10
+  },
+  "original_artifacts_unchanged": 14,
+  "original_raw_sha256": [
+    "bf576e83b9457d63e052e5c130a1629b2d404184dafcb67be954ba06f2b03032",
+    "5c5842f06afe99365d3d102741e5ce802b7e9cedd97ac96a39d954fc04c280f5"
+  ],
+  "mechanical_replay": "2/2 PASS; not semantic acceptance",
+  "findings": {
+    "acquisition": "Completed 80% acquisition is supported; positive operating catalyst/economic benefit is not supported by this source. SEMANTIC_FAIL retained.",
+    "earnings": "Stated profit ranges and growth are in the source; each compound claim cites only one of several source units. CITATION_INCOMPLETE retained.",
+    "validator": "Prompt permits absent conditions/counter-evidence; guard incorrectly required all five arrays nonempty. Fixed optional-array handling; facts/changes and conditional-watch conditions remain required.",
+    "parser": "Spaced PDF stock-code/period labels and source-header legal names were missed. Fixed with exact offsets and bounded issuer-header anchoring."
+  },
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "Only bounded validator and parser behavior",
+    "semantic_selected_acceptance": false,
+    "DEPLOYED": false,
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "runtime_identity": "Local offline replay loads current canonical validator via batch_runner.load_active_contract; no model calls, service reload, queue rewrite or selection publication. Existing 8873 process source activation not verified.",
+  "limitations": [
+    "Historical failure-time helper SHA was not persisted and cannot be confirmed.",
+    "Cross-span wire adoption was not implemented: current atomic single-unit citation contract can represent the facts; original model did not follow it.",
+    "Raw model answers and original queues remain unchanged."
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
