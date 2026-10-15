@@ -1,0 +1,59 @@
+{
+  "base_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v9.json",
+  "base_config_sha256": "48fd88d8bc8921181a67c059af7907a56c6a78ef20bec480338409e553e60a9d",
+  "candidate_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/oversold-nextday-recovery-20261015-r1.json",
+  "candidate_config_sha256": "f4bc5c37fb08d57766bf3cd596f9fe4abdc6c32a327e09bc99c5f555822c7158",
+  "changed_json_paths": [
+    "source_bindings.hk_panel.20261015.tdxpy_history"
+  ],
+  "capture_pin": {
+    "source_local_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/daily_supplements/tdxpy61",
+    "manifest_relative": "runs/20261015/7484c9312ffe565ca8778264/manifest.json",
+    "manifest_sha256": "f60edafd683bc5a11df399f491116eb750a535865f54532771ed139ac30fdbc1",
+    "raw_relative": "runs/20261015/7484c9312ffe565ca8778264/raw_capture.json",
+    "raw_sha256": "7484c9312ffe565ca8778264456d4af01d5541d35005d2927274c35349188fc8",
+    "run_id": "7484c9312ffe565ca8778264",
+    "scope_count": 689,
+    "master_scope_count": 689,
+    "ready_count": 567,
+    "unassessed_count": 122,
+    "cache_hits": 1,
+    "network_bar_requests": 810,
+    "available_at": "2026-10-15T15:59:22.803325+00:00",
+    "target_date": "20261015"
+  },
+  "failed_attempt_errors": {
+    "HK_DAILY_SUPPLEMENT_OHLC_INVALID": 209,
+    "TDXPY_EXACT_61_SESSION_INCOMPLETE": 35
+  },
+  "failed_security_final_errors": {
+    "HK_DAILY_SUPPLEMENT_OHLC_INVALID": 105,
+    "TDXPY_EXACT_61_SESSION_INCOMPLETE": 17
+  },
+  "raw_record_decisions": {
+    "READY": 567,
+    "UNASSESSED": 122
+  },
+  "panel_identity": {
+    "manifest_prepared_at": "2026-10-15T09:20:02.837251+00:00",
+    "panel_manifest_relative": "assets/hk_0_2/panels/20261015-a562369dbc49/manifest.json",
+    "panel_manifest_sha256": "bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0",
+    "panel_max_date": "20261015",
+    "panel_relative": "assets/hk_0_2/panels/20261015-a562369dbc49/hkconnect_vipdoc_daily_panel.parquet",
+    "panel_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c"
+  },
+  "master_identity": {
+    "artifact_relative": "assets/hk_security_master/runs/20261015/03ac978778f86be30be7bddf/artifact.csv",
+    "artifact_sha256": "b52771d5d77008d2e13ed6db0a6d3dbb441a445e50e04a400ecb21b67a5d34c6",
+    "captured_at": "2026-10-15T17:30:18+08:00",
+    "manifest_relative": "assets/hk_security_master/runs/20261015/03ac978778f86be30be7bddf/manifest.json",
+    "manifest_sha256": "57e15f3cd79535ea7d566a2b1f560692b148ef932b72d8fa14c662ef853b2898",
+    "row_count": 689,
+    "run_id": "03ac978778f86be30be7bddf",
+    "trade_date": "20261015",
+    "universe_codes_sha256": "39937da499d55dd4c440ded1294cf64438a26b708a26118a48751d7e90a45ba7"
+  },
+  "source_changes": [],
+  "tests": "NOT_RUN_NO_BUSINESS_SOURCE_CHANGE",
+  "next_action": "Independent Reviewer rerun read-only full validation with both canonical and actual runtime, then controller may activate candidate config and create a fresh MANUAL OVERSOLD-only run."
+}
