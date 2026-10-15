@@ -356,6 +356,43 @@
 .hourly-column-list .hourly-feed-card {
   padding: 10px;
 }
+.hourly-feed-card.pdf {
+  border-left: 4px solid #6b4ea1;
+}
+.pdf-detail-button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.pdf-detail-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.pdf-detail,
+.pdf-page,
+.pdf-last-page {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pdf-detail {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #d4dbe5;
+}
+.pdf-page pre,
+.pdf-last-page p {
+  margin: 5px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  color: #2e3943;
+  line-height: 1.55;
+}
+.pdf-error {
+  color: #a33b35;
+}
 .hourly-source-column > .hourly-column-list > .empty,
 .hourly-feed-pane > .hourly-feed-list > .empty {
   overflow-wrap: anywhere;

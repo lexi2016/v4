@@ -85,7 +85,10 @@ function ocrStatusText(ocr: Record<string, unknown>): string {
   const status = String(ocr.status ?? "").trim().toUpperCase();
   const labels: Record<string, string> = {
     READY: "已完成",
+    READY_EMPTY: "暂无 PDF",
     PARTIAL: "部分完成",
+    PENDING: "待处理",
+    FAILED: "失败",
     INCOMPLETE: "未完成",
     NOT_ASSESSED: "未评估",
     NOT_MATERIALIZED: "未生成",
@@ -96,10 +99,17 @@ function ocrStatusText(ocr: Record<string, unknown>): string {
   if (["NOT_ASSESSED", "NOT_MATERIALIZED", "CANNOT_CONFIRM", "UNKNOWN"].includes(status)) {
     return statusLabel;
   }
-  if (Number.isInteger(ocr.done_count) && Number.isInteger(ocr.failed_count)) {
-    const counts = `${num(ocr.done_count)}/${num(ocr.failed_count)}`;
-    return statusLabel ? `${statusLabel} · ${counts}` : counts;
-  }
+  const countPairs: Array<[string, unknown]> = [
+    ["完成", ocr.completed_count ?? ocr.done_count],
+    ["部分", ocr.partial_count],
+    ["失败", ocr.failed_count],
+    ["待处理", ocr.pending_count],
+  ];
+  const counts = countPairs
+    .filter(([, value]) => Number.isInteger(value) && Number(value) >= 0)
+    .map(([label, value]) => `${label}${num(value)}`)
+    .join(" · ");
+  if (counts) return statusLabel ? `${statusLabel} · ${counts}` : counts;
   return statusLabel || "未评估";
 }
 
@@ -263,6 +273,8 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
       ? (finance.value.overview as Array<Record<string, unknown>>)
       : [];
     const zsxqItems = Array.isArray(zsxq.value.items) ? (zsxq.value.items as Array<Record<string, unknown>>) : [];
+    const ocr = statusRecord(payload.value?.ocr_ingestion);
+    const pdfItems = Array.isArray(ocr.items) ? (ocr.items as Array<Record<string, unknown>>) : [];
     const keyMessages = Array.isArray(payload.value?.key_investment_messages)
       ? (payload.value.key_investment_messages as Array<Record<string, unknown>>)
       : [];
@@ -272,12 +284,27 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
     for (const row of aiItems) cards.push({ ...row, kind: "ai", source: "ai" });
     for (const row of financeOverview) cards.push({ ...row, kind: "finance", source: "finance" });
     for (const row of zsxqItems) cards.push({ ...row, kind: "zsxq", source: "zsxq" });
+    for (const row of pdfItems) {
+      const source = statusRecord(row.source);
+      cards.push({
+        ...row,
+        kind: "pdf",
+        source: "pdf",
+        pdf_source: source,
+        title: text(source.original_filename || source.topic_title),
+        topic_title: text(source.topic_title),
+        group_name: text(source.group_name),
+        source_topic_published_at: source.source_topic_published_at,
+        fetched_at: row.downloaded_at,
+        research_date: row.research_date || payload.value?.research_date,
+      });
+    }
     for (const row of keyMessages) cards.push({ ...row, kind: "key", source: "key" });
     const byFilter: Record<string, Array<Record<string, unknown>>> = {
       latest: cards,
       morning: cards.filter((c) => c.kind === "article"),
       stock: cards.filter((c) => text(c.stock_code || c.stock_name)),
-      zsxq: cards.filter((c) => c.source === "zsxq"),
+      zsxq: cards.filter((c) => c.source === "zsxq" || c.kind === "pdf"),
       finance: cards.filter((c) => c.source === "finance"),
       ai: cards.filter((c) => c.source === "ai"),
       key: cards.filter((c) => c.source === "key"),

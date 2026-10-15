@@ -206,12 +206,12 @@ describe("ResearchView (research lane)", () => {
   });
 
   it.each([
-    ["PARTIAL", 2, 1, "部分完成 · 2/1"],
-    ["INCOMPLETE", 0, 3, "未完成 · 0/3"],
+    ["PARTIAL", 2, 1, "部分完成 · 完成2 · 失败1"],
+    ["INCOMPLETE", 0, 3, "未完成 · 完成0 · 失败3"],
   ])("preserves provided OCR %s state and counts", async (status, done, failed, expected) => {
     const payload = {
       ...lane(),
-      ocr_ingestion: { status, done_count: done, failed_count: failed },
+      ocr_ingestion: { status, completed_count: done, failed_count: failed },
     };
     stubResearchFetch(payload);
 

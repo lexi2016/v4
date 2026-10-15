@@ -634,7 +634,8 @@ def test_lane_router_live_hourly_missing_key_messages_is_explicit(tmp_path: Path
         "cannot_confirm"
     ]
     assert "LANE_PERIPHERAL_NOT_MATERIALIZED:ocr_ingestion" in body["cannot_confirm"]
-    assert "ocr_ingestion" not in body
+    assert body["ocr_ingestion"]["status"] == "NOT_MATERIALIZED"
+    assert body["ocr_ingestion"]["items"] == []
     assert body["write_policy"] == "read_only"
     assert body["production_allowed"] is False
 

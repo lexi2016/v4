@@ -23,6 +23,14 @@ export interface ResearchLane {
   [key: string]: unknown;
 }
 
+export interface ResearchPdfDocumentDetail extends Record<string, unknown> {
+  schema_version: "v4.zsxq_pdf_document_detail.v1";
+  document_id: string;
+  research_date: string;
+  status: string;
+  pages: Array<Record<string, unknown>>;
+}
+
 /** Exact-date daily product projected beside the hourly lane. */
 export interface ResearchDayCoverage {
   complete?: boolean;
@@ -319,7 +327,7 @@ export function validateResearchDayResponse(
   return value as ResearchDayProduct;
 }
 
-type JsonRequestResource = "research lane" | "research day";
+type JsonRequestResource = "research lane" | "research day" | "research PDF document";
 
 /** Shared fetch/JSON transport; endpoint-specific contracts stay in their validators. */
 async function requestJson(
@@ -402,6 +410,26 @@ export function loadResearchLane(
 
 export function loadResearchLaneLatest(): Promise<ResearchLane> {
   return loadLegacy("/api/v3/research/lane");
+}
+
+export async function loadResearchPdfDocumentDetail(
+  documentId: string,
+  researchDate: string,
+): Promise<ResearchPdfDocumentDetail> {
+  const url = `/api/v3/research/pdf-documents/${encodeURIComponent(documentId)}?research_date=${encodeURIComponent(researchDate)}`;
+  const payload = await requestJson(url, "research PDF document", { });
+  if (!isRecord(payload)
+      || payload.schema_version !== "v4.zsxq_pdf_document_detail.v1"
+      || payload.document_id !== documentId
+      || payload.research_date !== researchDate
+      || !Array.isArray(payload.pages)
+      || payload.pages.some((page) => !isRecord(page))) {
+    throw new ResearchLaneRequestError(
+      "INVALID_RESPONSE",
+      "research PDF document response identity or page shape is invalid",
+    );
+  }
+  return payload as ResearchPdfDocumentDetail;
 }
 
 async function loadDay(

@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 from infrastructure.data_store import NativeDataStore
 from infrastructure.isolated_package_loader import load_isolated_package_module
 from infrastructure.owned_path import resolve_owned_path
-from infrastructure.zsxq_pdf_ingestion import process_pdf_batch
+from infrastructure.zsxq_pdf_ingestion import process_pdf_batch, process_pdf_continuation
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -399,6 +399,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-run-id", help="Exact latest_run_id from the existing hourly status.")
     parser.add_argument("--pdf-limit", type=int, default=1)
     parser.add_argument("--pdf-file-id", help="Process one attachment id from topics_brief.files.")
+    parser.add_argument("--pdf-time-budget-seconds", type=int, default=180)
     parser.add_argument("--cli", type=Path, default=DEFAULT_CLI)
     parser.add_argument("--selector-panel", type=Path, default=DEFAULT_SELECTOR_PANEL)
     parser.add_argument("--refetch-root", type=Path, default=DEFAULT_REFETCH_ROOT)
@@ -409,17 +410,32 @@ def main(argv: list[str] | None = None) -> int:
         if args.pdf_only:
             if not args.source_run_id:
                 raise ValueError("--pdf-only requires --source-run-id")
-            result = process_pdf_batch(
-                data_root=args.data_root,
-                trade_date=args.date,
-                slot=args.slot,
-                source_run_id=args.source_run_id,
-                cli=args.cli,
-                limit=args.pdf_limit,
-                file_id=args.pdf_file_id,
-            )
+            if args.pdf_file_id:
+                result = process_pdf_batch(
+                    data_root=args.data_root,
+                    trade_date=args.date,
+                    slot=args.slot,
+                    source_run_id=args.source_run_id,
+                    cli=args.cli,
+                    limit=1,
+                    file_id=args.pdf_file_id,
+                    max_pages_per_document=1,
+                    time_budget_seconds=args.pdf_time_budget_seconds,
+                )
+            else:
+                result = process_pdf_continuation(
+                    data_root=args.data_root,
+                    trade_date=args.date,
+                    slot=args.slot,
+                    source_run_id=args.source_run_id,
+                    cli=args.cli,
+                    max_documents=args.pdf_limit,
+                    time_budget_seconds=args.pdf_time_budget_seconds,
+                )
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-            return 0 if result.get("status") == "READY" else 1
+            # PDF work is supplemental. Valid pending/partial/failed states are
+            # progress receipts and must not fail the main hourly research run.
+            return 0
         result = materialize_zsxq_hourly_delta(
             data_root=args.data_root,
             trade_date=args.date,
