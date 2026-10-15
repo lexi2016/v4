@@ -1,0 +1,223 @@
+{
+  "observed_at": "2026-10-15T22:01:13.482140+08:00",
+  "target_date": "20261016",
+  "signal_date": "20261015",
+  "method": "READ_ONLY",
+  "services": {
+    "com.lexi.v35.api-only": {
+      "release_id": "hk-tdx-conflict-repair-api-20261015-r5",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+      "plist_sha256": "318fd9ea3c53f42ac09550cadea4e7c9d61bb10c93de29ef171e6180cd7faabf",
+      "manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+      "manifest_matches_declared": true,
+      "launchd_summary": [
+        "state = running",
+        "runs = 1",
+        "pid = 90244",
+        "last exit code = (never exited)",
+        "state = active",
+        "state = active"
+      ],
+      "calendar": null
+    },
+    "com.lexi.v35.scheduler": {
+      "release_id": "hk-tdx-conflict-repair-main-20261015-r2",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+      "plist_sha256": "cc2d35ed4c156b0e741276b49966ea6430d74f96359c9d4103c2800afc0c5344",
+      "manifest_sha256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447",
+      "manifest_matches_declared": true,
+      "launchd_summary": [
+        "state = running",
+        "runs = 1",
+        "pid = 90252",
+        "last exit code = (never exited)",
+        "state = active",
+        "state = active"
+      ],
+      "calendar": null
+    },
+    "com.lexi.stage-center.scheduler": {
+      "release_id": "hk-auto-execution-audit-20261015-r3",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app",
+      "plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c",
+      "manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+      "manifest_matches_declared": true,
+      "launchd_summary": [
+        "state = not running",
+        "runs = 0",
+        "last exit code = (never exited)"
+      ],
+      "calendar": [
+        {
+          "Hour": 9,
+          "Minute": 15
+        },
+        {
+          "Hour": 9,
+          "Minute": 25
+        },
+        {
+          "Hour": 9,
+          "Minute": 34
+        },
+        {
+          "Hour": 9,
+          "Minute": 35
+        },
+        {
+          "Hour": 9,
+          "Minute": 39
+        },
+        {
+          "Hour": 9,
+          "Minute": 40
+        },
+        {
+          "Hour": 9,
+          "Minute": 44
+        },
+        {
+          "Hour": 9,
+          "Minute": 45
+        },
+        {
+          "Hour": 10,
+          "Minute": 29
+        },
+        {
+          "Hour": 10,
+          "Minute": 30
+        },
+        {
+          "Hour": 13,
+          "Minute": 14
+        },
+        {
+          "Hour": 13,
+          "Minute": 15
+        },
+        {
+          "Hour": 14,
+          "Minute": 59
+        },
+        {
+          "Hour": 15,
+          "Minute": 0
+        },
+        {
+          "Hour": 15,
+          "Minute": 50
+        },
+        {
+          "Hour": 15,
+          "Minute": 55
+        }
+      ]
+    }
+  },
+  "api": {
+    "url": "http://127.0.0.1:8873/api/v3/preselection-pools?date=20261016&limit=300",
+    "response_sha256": "2a0be83a449cc53d0e0a01a2cf6c61d7de3869fe4bfe76cee0f4326a9d1fbf31",
+    "a_all_pool_row_count": 169,
+    "actual_a_all_rows": 169,
+    "a_all_pool_complete": true,
+    "daily_readiness_status": "PARTIAL_WITH_ROWS",
+    "pools": [
+      {
+        "pool_id": "a_d1_premarket_pool",
+        "status": "V192_CANDIDATE_READY",
+        "rows": 17,
+        "signal_date": "20261015",
+        "target_date": "20261016",
+        "source_run_id": "20261016-a-share-v192-premarket-pool-v3-c08f52ddc737",
+        "source_sha256": "d02a1e56e4fed7d56ded549642ae2fb6cd4f495b9b752757fee8bb4e77f2402f",
+        "optional": false,
+        "stage_selection_eligible": true
+      },
+      {
+        "pool_id": "a_d1_fupan_watchlist_pool",
+        "status": "FUPAN_WATCHLIST_POOL_READY_DATA_PARTIAL",
+        "rows": 36,
+        "signal_date": null,
+        "target_date": null,
+        "source_run_id": null,
+        "source_sha256": "5882f002a72947c4e42acebbc75d15f93559253cd5f4bb9d0be034b9d65740c2",
+        "optional": false,
+        "stage_selection_eligible": null
+      },
+      {
+        "pool_id": "a_d1_stage7_fenshi_review_pool",
+        "status": "STAGE7_TAIL_POOL_READY_DATA_PARTIAL",
+        "rows": 10,
+        "signal_date": null,
+        "target_date": null,
+        "source_run_id": null,
+        "source_sha256": "477d124ca87655023998c5940fd49dbb2ea86e38e821791410d424a108d593f8",
+        "optional": false,
+        "stage_selection_eligible": null
+      },
+      {
+        "pool_id": "a_share_research_recommendation_pool",
+        "status": "RESEARCH_RECOMMENDATION_POOL_READY",
+        "rows": 129,
+        "signal_date": null,
+        "target_date": null,
+        "source_run_id": null,
+        "source_sha256": "f8fd6b05fa04deda6e1a8d977578a5e4dce6f21c662dcbb3930cdb0c793d127c",
+        "optional": false,
+        "stage_selection_eligible": null
+      },
+      {
+        "pool_id": "a_share_baimao_research_map",
+        "status": "CANNOT_CONFIRM",
+        "rows": 0,
+        "signal_date": null,
+        "target_date": null,
+        "source_run_id": null,
+        "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "optional": true,
+        "stage_selection_eligible": null
+      },
+      {
+        "pool_id": "hkconnect_d1_top100",
+        "status": "STRICT_0_2_READY",
+        "rows": 100,
+        "signal_date": "20261015",
+        "target_date": "20261016",
+        "source_run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0",
+        "source_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+        "optional": false,
+        "stage_selection_eligible": true
+      },
+      {
+        "pool_id": "wechat_public_account_v3_preselect",
+        "status": "CANNOT_CONFIRM",
+        "rows": 0,
+        "signal_date": null,
+        "target_date": null,
+        "source_run_id": null,
+        "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "optional": true,
+        "stage_selection_eligible": null
+      }
+    ]
+  },
+  "ui": {
+    "method": "cua actual existing tab reload followed by stable rendered region",
+    "url": "http://127.0.0.1:8873/?date=20261016&stage=STAGE_0925",
+    "hk_rows": 100,
+    "signal_dates": [
+      "20261015"
+    ],
+    "status": "STRICT_0_2_READY · RESEARCH_ONLY_NOT_BUY_GATE"
+  },
+  "boundaries": {
+    "stage_natural": "NOT_DUE",
+    "simulation": "PENDING",
+    "business_writes": false,
+    "service_changes": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

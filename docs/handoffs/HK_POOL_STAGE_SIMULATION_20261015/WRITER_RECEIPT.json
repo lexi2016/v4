@@ -1,0 +1,216 @@
+{
+  "schema_version": "hk_pool_stage_simulation_writer_receipt.v1",
+  "simulation_only": true,
+  "writer_status": "IMPLEMENTED_TESTED_HANDOFF_PENDING_INDEPENDENT_REVIEW",
+  "goal": "Simulate the current main update entry and Stage handoff for HK next-day pool recovery without changing business source or running production services.",
+  "scope": {
+    "allowed_path": "docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/",
+    "fixtures_and_outputs": "A strict candidate fixture plus raw, selection, and runner receipt artifacts were confined to the script's system TemporaryDirectory and removed on exit.",
+    "business_source_changed": false,
+    "services_or_schedules_touched": false,
+    "network_or_market_data_called": false,
+    "producer_dispatcher_or_production_stage_called": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "temporary_stage_candidate_fixture_built": true,
+    "temporary_stage_candidate_fixture_only": true,
+    "isolated_stage_runner_used": true,
+    "production_stage_job_called": false,
+    "production_current_or_latest_pointers_written": false
+  },
+  "writer_artifacts": [
+    {
+      "path": "docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/simulate_hk_pool_stage.py",
+      "sha256": "d95d18fd3b751c6ff35086637351ad2c441b5f1a13be610dccaf3dca13654fbd"
+    },
+    {
+      "path": "docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/WRITER_RECEIPT.json",
+      "simulation_only": true
+    }
+  ],
+  "runtime_identity": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6",
+    "active_api_release": "hk-tdx-conflict-repair-api-20261015-r5",
+    "active_api_pid_read_only_observation": 90244,
+    "api_release_manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+    "api_preselection_service_sha256": "f0d2283e87663e7d98c933f0e2d95acb738d1e665a55958cb2771b3f02011f66",
+    "active_main_release": "hk-tdx-conflict-repair-main-20261015-r2",
+    "active_main_pid_read_only_observation": 90252,
+    "main_release_manifest_sha256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447",
+    "main_preselection_mapper_sha256": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+    "active_stage_release": "hk-auto-execution-audit-20261015-r3",
+    "stage_release_manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "stage_config_sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+    "stage_runner_sha256": "1bb6363dfa522cdc05f8d1d1e727bf120f4daadbb2579600fc465a6d12e11663",
+    "stage_raw_validator_sha256": "b33c496a6052b450959a9b886c79ad8d5686230e320dbc99bfd98a3e8265a8f0",
+    "hk_pool_target_date": "20261016",
+    "hk_pool_signal_date": "20261015",
+    "hk_pool_artifact_sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+    "stage_binding_source_run_id": "hk-d1-78646320d1140bb5",
+    "inherited_live_api_ui_evidence": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_POOL_STAGE_SIMULATION_20261015/integration/current-runtime-api-ui.json",
+      "sha256": "d1bbabaf1377c6dfa3c40a3e6c42708894e474384eacb632e682ad5df82bd521",
+      "note": "Parent-provided read-only current API/UI evidence; not re-fetched in this writer task."
+    },
+    "stage_candidate_builder_sha256": "18adabeebc75a28f49f48778ca513ed3d703b12dee40446b8067dff49966f1fe",
+    "stage_candidate_commit_sha256": "373d011f299d2a1d7afb173ac7b107ac54d92d036cea7127dadba4873bcf56a3",
+    "stage_candidate_reader_sha256": "d35f9db18aedc5ce5e1a62cac9b773b7c227ebf7ecbeacdf53bcb8af8cd315a5",
+    "stage_selection_builder_registry_sha256": "1b83d49f272cac9d5c27a956127a1a5df8e0e4409b47c58002c6edb6ac52ca6f",
+    "stage_a_live_selector_sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+    "stage_hk_four_lane_selector_sha256": "4977997332f3e6a42322e721f205ad86916c6994ca331c4e19799bae1eaa2287"
+  },
+  "simulation_results": {
+    "api_projection": {
+      "status": "PASS",
+      "pool_ids_read": [
+        "a_d1_premarket_pool",
+        "a_d1_fupan_watchlist_pool",
+        "a_d1_stage7_fenshi_review_pool",
+        "a_share_research_recommendation_pool",
+        "a_share_baimao_research_map",
+        "hkconnect_d1_top100",
+        "wechat_public_account_v3_preselect"
+      ],
+      "a_all_pool_rows": 169,
+      "a_all_pool_complete": true,
+      "daily_readiness_status": "PARTIAL_WITH_ROWS",
+      "optional_pool_status": "CANNOT_CONFIRM",
+      "optional_baimao_corruption_probe": "quarantined on a temp copy by active API store; A aggregate remained 169 and PARTIAL_WITH_ROWS",
+      "safety_flags": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "a_all_pool_code_set_sha256": "e9abecb96e9a3bfb333c42b79dffded467d6cbe2f8b7b95f777e398aacc35f86"
+    },
+    "main_update_entry_tests": {
+      "status": "PASS",
+      "passed": 10,
+      "deselected": 42,
+      "coverage": [
+        "exact valid pool reuse is idempotent and makes no producer call",
+        "missing HK follows the HK-only path without calling the A producer",
+        "bad artifact SHA, wrong date, partial receipt/manifest, pending journal, and race inputs fail closed"
+      ]
+    },
+    "stage_binding_and_runner": {
+      "status": "PASS_FAIL_CLOSED_AND_SELECTION_CANARIES",
+      "stage_id": "STAGE_0930_0935",
+      "binding_trade_date": "20261016",
+      "binding_signal_date": "20261015",
+      "binding_code_count": 100,
+      "synthetic_hk_rows_supplied": 100,
+      "a_collector_calls": 0,
+      "runner_receipt_status": "CANNOT_CONFIRM",
+      "runner_error": "raw projection validation failed for HK_CONNECT: row 0: temporal_cutoff_safe must be true; row 1: temporal_cutoff_safe must be true; row 2: temporal_cutoff_safe must be true",
+      "raw_artifact_count": 0,
+      "selection_root_has_entries": false,
+      "selection_full_path": "Negative unsafe-row probe remained fail-closed before raw publication. A separate positive synthetic-clock canary reached verified raw, selection, and receipt readback under temporary roots; it does not establish real-minute, PIT, or natural-time evidence.",
+      "positive_selection_receipt_canary": {
+        "status": "PASS_SELECTION_AND_RECEIPT_SIMULATION",
+        "simulation_only": true,
+        "stage_id": "STAGE_0930_0935",
+        "trade_date": "20261016",
+        "signal_date": "20261015",
+        "a_candidate": {
+          "construction": "Active strict Stage candidate builder from current exact-date A pool snapshot; strict commit written only under system TemporaryDirectory.",
+          "code_count": 169,
+          "code_set_sha256": "e9abecb96e9a3bfb333c42b79dffded467d6cbe2f8b7b95f777e398aacc35f86",
+          "current_sha256": "1714eb07fb5a8bb70ad2472cfbe0ec0a1c5204a52916bdcf5fd56a7fc60cf3c0",
+          "source_pool_set_sha256": "6b5f0b1d893eb725b638cbea7f9c1e176d4d045f51034ca7cac38f10ea742ac1"
+        },
+        "hk_binding": {
+          "code_count": 100,
+          "trade_date": "20261016",
+          "signal_date": "20261015",
+          "source_artifact_sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+        },
+        "frozen_evaluation_clock": "2026-10-16T09:35:05+08:00",
+        "synthetic_window": "2026-10-16 09:30:00..09:34:59",
+        "temporal_cutoff_safe_marker": "true on synthetic persisted rows solely because the frozen synthetic timestamps precede the 09:35 cutoff; this is not a PIT or real-market claim",
+        "collector_calls": [
+          "A_SHARE",
+          "HK_CONNECT"
+        ],
+        "synthetic_rows": {
+          "A_SHARE": 169,
+          "HK_CONNECT": 100
+        },
+        "verified_raw_rows": {
+          "A_SHARE": 169,
+          "HK_CONNECT": 100
+        },
+        "verified_raw_temporal_marker": "true for persisted synthetic rows; raw status remains PARTIAL_WITH_ROWS",
+        "selection_readback": {
+          "artifact_json_count": 5,
+          "A_SHARE": {
+            "status": "PARTIAL_WITH_ROWS",
+            "rows": 10
+          },
+          "HK_CONNECT": {
+            "status": "PARTIAL_WITH_ROWS",
+            "rows": 10
+          }
+        },
+        "runner_receipt": {
+          "status": "PARTIAL_WITH_ROWS",
+          "sha256_in_temp": "19f4f047e9674f8dd162c23902508ef845ffb18b9a70cf6fdb7dd6e300e044e0"
+        },
+        "a_exact_date_research_context": "CANNOT_CONFIRM: the active A production builder was supplied an intentionally empty temporary research root; the missing-root failure was retained and the existing pure selector emitted only a SIMULATION_ONLY envelope.",
+        "temporary_artifacts_removed_on_script_exit": true,
+        "safety_flags": {
+          "production_allowed": false,
+          "buy_gate_updated": false,
+          "orders_sent": false
+        }
+      }
+    },
+    "cross_phase_contract": {
+      "status": "PASS",
+      "a_code_count": 169,
+      "api_a_all_pool_code_set_sha256": "e9abecb96e9a3bfb333c42b79dffded467d6cbe2f8b7b95f777e398aacc35f86",
+      "stage_candidate_code_set_sha256": "e9abecb96e9a3bfb333c42b79dffded467d6cbe2f8b7b95f777e398aacc35f86"
+    }
+  },
+  "commands": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/simulate_hk_pool_stage.py",
+      "result": "exit 0; API projection and optional-pool quarantine passed, the negative Stage row was rejected, the positive synthetic-clock canary reached verified raw/selection/receipt readback, and the 169-code cross-phase set matched."
+    },
+    {
+      "command": "V4_HK_COMBINED_MAIN_APP='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app' V4_HK_COMBINED_MAIN_SOURCE='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app/infrastructure/scheduling/executor_registry_preselection.py' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --tb=short --basetemp=/private/tmp/hk-nextday-tests-20261015-final2 tests/test_hk_nextday_missing_pool_20261015.py -k 'combined_actual_mapper_store_exact_gate_preserves_A or combined_missing_retry_rejects_bad_or_racing_inputs_without_A'",
+      "result": "10 passed, 42 deselected"
+    },
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --tb=short --basetemp=/private/tmp/hk-api-tests-20261015 '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app/tests/test_preselection_optional_pools.py' '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app/tests/test_preselection_pagination.py'",
+      "result": "10 passed"
+    },
+    {
+      "command": "V4_HK_COMBINED_MAIN_APP='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app' V4_HK_COMBINED_MAIN_SOURCE='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app/infrastructure/scheduling/executor_registry_preselection.py' V4_HK_COMBINED_SHARED_ROOT='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --tb=short --basetemp=/private/tmp/hk-nextday-tests-20261015-c tests/test_hk_nextday_missing_pool_20261015.py -k 'combined_API_real_mapper_create_and_main_gate_infers_exact_D1' -x",
+      "result": "diagnostic failure: the existing test helper attempted to load names.py from an absent API r4 app path; the API r5 code path is covered by the successful simulation and focused API tests above"
+    },
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -c 'from pathlib import Path; p=Path(\"docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/simulate_hk_pool_stage.py\"); compile(p.read_text(encoding=\"utf-8\"),str(p),\"exec\"); print(\"syntax ok\")'",
+      "result": "syntax ok; no pycache or other fixture was written"
+    },
+    {
+      "command": "shasum -a 256 docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/simulate_hk_pool_stage.py",
+      "result": "d95d18fd3b751c6ff35086637351ad2c441b5f1a13be610dccaf3dca13654fbd"
+    }
+  ],
+  "diagnostics": [
+    "A broader existing main test filter that also selected the API helper cases exposed a stale fixture path: _combined_API_payload hardcodes the absent hk-tdx-conflict-repair-api-20261015-r4 app tree. A focused run confirmed FileNotFoundError at that path. The active API r5 projection and its 10 focused pagination/optional-pool tests passed separately."
+  ],
+  "cannot_confirm": [
+    "No real 20261016 09:30-09:35 minute evidence, PIT safety, or natural-time execution was tested; all positive canary rows were synthetic.",
+    "The active A production selection builder's exact-date V4 research context was not supplied to the isolated canary. Its missing-root result remained CANNOT_CONFIRM; the fallback envelope is simulation-only and is not product-valid A selection evidence.",
+    "The parent-provided current API/UI live evidence was referenced, not re-fetched by the writer."
+  ],
+  "review_handoff": {
+    "required_reviewer": "different-identity Luna Max, read-only",
+    "review_scope": "actual diff, simulation-only boundaries, tests, active API/main/Stage target behavior, and CANNOT_CONFIRM limits",
+    "writer_receipt_is_final_acceptance": false
+  }
+}

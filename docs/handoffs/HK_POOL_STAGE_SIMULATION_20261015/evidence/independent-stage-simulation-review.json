@@ -1,0 +1,121 @@
+{
+  "acceptance_boundary": {
+    "a_exact_date_research_context": "CANNOT_CONFIRM. The active production A builder raises because the temporary exact-date V4 research root is absent. The script catches only that ResearchContextError, sets formal_eligible=false, passes source_status=CANNOT_CONFIRM and simulation evidence to the existing pure selector fallback, then reads back 10 A rows with PARTIAL_WITH_ROWS. This is a synthetic fail-closed envelope, not an A strategy/selection pass.",
+    "hk_selection": "The active HK four-lane selector is used with synthetic quotes and the verified D-1 Top100 binding; its code sets action_level=NO_BUY. It is path evidence only.",
+    "natural_pit_and_real_quotes": "NOT_RUN / CANNOT_CONFIRM.",
+    "production_and_trade_state": "No production pointer or business data is written; all safety flags remain false. Runner receipt code enforces RESEARCH_ONLY=true.",
+    "raw_temporal_marker": "true is asserted only for synthetic timestamps before the synthetic 09:35 cutoff. It is not PIT, real-minute, or market-data evidence.",
+    "scheduler_and_natural_dispatch": "CANNOT_CONFIRM. The script constructs a due decision and invokes private _run_one directly; tick, lock/scheduler orchestration, production collector dispatch, live services, and natural-time execution are not tested."
+  },
+  "actual_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/simulate_hk_pool_stage.py",
+  "actual_exit_code": 0,
+  "canary_results": {
+    "api_projection_and_optional_quarantine": {
+      "a_rows_before_and_after_quarantine": 169,
+      "quarantined_optional_pool": "a_share_baimao_research_map",
+      "readiness": "PARTIAL_WITH_ROWS",
+      "status": "PASS"
+    },
+    "negative_unsafe_row": {
+      "a_collector_calls": 0,
+      "error": "raw projection validation failed for HK_CONNECT: temporal_cutoff_safe must be true",
+      "raw_artifact_count": 0,
+      "safety_flags": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "selection_root_has_entries": false,
+      "status": "CANNOT_CONFIRM as expected",
+      "temporal_cutoff_safe": false
+    },
+    "positive_synthetic_clock_canary": {
+      "collector_market_counts": {
+        "A_SHARE": 169,
+        "HK_CONNECT": 100
+      },
+      "runner_receipt_sha256_in_temp": "318aa80c0d5480560d7d0f6b5513b5b4311bd507e50938066a860a31f843fb43",
+      "runner_receipt_status": "PARTIAL_WITH_ROWS",
+      "safety_flags": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "selection_artifact_count": 5,
+      "simulation_only": true,
+      "status": "PASS_SELECTION_AND_RECEIPT_SIMULATION",
+      "verified_raw_rows": {
+        "A_SHARE": 169,
+        "HK_CONNECT": 100
+      },
+      "verified_selection_rows": {
+        "A_SHARE": 10,
+        "HK_CONNECT": 10
+      }
+    }
+  },
+  "date_clock_and_stage_input": {
+    "actual_hk_binding": {
+      "rows": 100,
+      "sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+      "status": "STRICT_0_2_READY"
+    },
+    "api_a_aggregate": {
+      "code_set_sha256": "e9abecb96e9a3bfb333c42b79dffded467d6cbe2f8b7b95f777e398aacc35f86",
+      "complete": true,
+      "rows": 169
+    },
+    "cross_phase_code_set": "PASS; API aggregate and strict Stage A candidate hashes match.",
+    "due_clock": "2026-10-16T09:35:05+08:00 (Asia/Shanghai)",
+    "signal_date": "20261015",
+    "stage_id": "STAGE_0930_0935",
+    "strict_a_candidate": {
+      "code_set_sha256": "e9abecb96e9a3bfb333c42b79dffded467d6cbe2f8b7b95f777e398aacc35f86",
+      "rows": 169
+    },
+    "synthetic_observation_window": "2026-10-16 09:30:00 through 09:34:59",
+    "trade_date": "20261016"
+  },
+  "diagnostic_note": {
+    "finding": "Negative receipt summary reports first_failed_layer=EXACT_SELECTION_INPUT_BINDING while runner_error describes HK raw-projection temporal validation. The A candidate is intentionally missing, so this label may describe the earlier A-lane failure; the summary is ambiguous about the terminal HK failure.",
+    "impact": "Non-blocking for the observed fail-closed result: CANNOT_CONFIRM, zero raw artifacts, no selection writes, safety flags false.",
+    "scope": "Report only; no source change made."
+  },
+  "inputs": {
+    "prior_reviewer_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_POOL_STAGE_SIMULATION_20261015/reviewer/HK_POOL_STAGE_SIM_REVIEW_R1.json",
+      "sha256": "ba30ae8dbd22e1e78f65793620dff8a77ef428eabfa975209d912dd7a0483472"
+    },
+    "simulation_script": {
+      "expected_sha256": "d95d18fd3b751c6ff35086637351ad2c441b5f1a13be610dccaf3dca13654fbd",
+      "observed_sha256_before_and_after": "d95d18fd3b751c6ff35086637351ad2c441b5f1a13be610dccaf3dca13654fbd",
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/simulate_hk_pool_stage.py"
+    },
+    "writer_receipt": {
+      "observed_sha256": "b0de5f3b0472baf7a7986dc0ef7f7a7488e4516c3ba1fc9508f7b583e037d8f3",
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/WRITER_RECEIPT.json"
+    }
+  },
+  "not_rerun": "The earlier main r2 and API r5 pytest suites (20 passes total) were not rerun in this stage.",
+  "review_status": "PASS_SIMULATION_PATH_ONLY; PRODUCT_AND_NATURAL_EVIDENCE_CANNOT_CONFIRM",
+  "reviewer": "/root/hk_nextday_pool_review",
+  "schema_version": "hk_pool_stage_sim_independent_review.v2",
+  "scope": "Only the pinned Stage simulation script and positive/negative Stage canaries. Earlier 20 focused tests were not rerun.",
+  "security_and_path_review": {
+    "actual_stage_runner": "StageCenterRunner._run_one from active Stage r3; explicit RunnerConfig roots put candidate/raw/selection/receipt outputs in the temporary root.",
+    "all_generated_candidate_raw_selection_receipt_files": "TemporaryDirectory under /private/tmp, passed explicitly to subprocesses; automatically removed on successful exit.",
+    "collector_boundary": "Both runs inject synthetic collectors; no production collector factory is used. The positive run retains the active HK selector and active A selector wrapper path except for the explicitly documented CANNOT_CONFIRM fallback below.",
+    "network_or_market_data_calls": false,
+    "production_collectors_or_dispatcher_called": false,
+    "production_stage_job_or_scheduler_tick_called": false,
+    "read_only_authoritative_inputs": [
+      "exact-date A preselection pool directory",
+      "exact-date HK Top100 D-1 pool directory",
+      "active r5 API package",
+      "active r3 Stage package"
+    ],
+    "runtime_hashes_match_writer_receipt": true,
+    "services_or_schedules_touched": false
+  },
+  "verdict": "PASS for the isolated synthetic Stage runner path, exact-date A169/HK100 binding, negative temporal rejection, positive raw/selection/receipt readback, and simulation safety flags. CANNOT_CONFIRM for production A research-context selection, real PIT/minute semantics, scheduler/dispatch integration, and natural-stage behavior."
+}

@@ -1,0 +1,111 @@
+{
+  "current_api_and_parent_ui": {
+    "a_all_pool_rows": {
+      "complete": true,
+      "count": 169
+    },
+    "api_http_status": 200,
+    "baimao_and_wechat_optional_status": "CANNOT_CONFIRM",
+    "daily_readiness": "PARTIAL_WITH_ROWS",
+    "hkconnect_d1_top100": {
+      "rows": 100,
+      "signal_date": "20261015",
+      "status": "STRICT_0_2_READY",
+      "target_date": "20261016"
+    },
+    "parent_ui": "HK 100 strict for target 20261016 / signal 20261015; parent observation only"
+  },
+  "inputs": {
+    "final_receipt_observation": "Read previously; records Stage not triggered and natural slot NOT_DUE. Parent-owned UI evidence only.",
+    "parent_api_ui_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_POOL_STAGE_SIMULATION_20261015/integration/current-runtime-api-ui.json",
+      "sha256": "d1bbabaf1377c6dfa3c40a3e6c42708894e474384eacb632e682ad5df82bd521",
+      "verified_matches_requested_sha": true
+    },
+    "writer_receipt": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/HK_POOL_STAGE_SIMULATION_20261015/WRITER_RECEIPT.json",
+      "sha256": "1fc4d62212cbe600122480b9971dfbff48bb449e28f71d7d9f9ce243942a6d60",
+      "verified_matches_requested_sha": true
+    }
+  },
+  "isolated_api_pool_failure_probe": {
+    "copied_source_date": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261016",
+    "fixture_note": "Review Core overlay loader functions were stubbed to CANNOT_CONFIRM in-process so this probe isolates copied pool artifacts; API package route, aggregation, and pool store remained the actual r5 code.",
+    "package": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+    "result": "PASS for optional missing/corrupt isolation from A aggregate and strict HK pool; preserve PARTIAL_WITH_ROWS and diagnostic reasons rather than claiming full daily readiness.",
+    "scenarios": [
+      {
+        "a_all_pool_rows": 169,
+        "buy_gate_updated": false,
+        "daily_readiness": "PARTIAL_WITH_ROWS",
+        "hk_rows": 100,
+        "hk_status": "STRICT_0_2_READY",
+        "http_status": 200,
+        "name": "baseline copied pools",
+        "ok": true,
+        "optional_baimao_status": "CANNOT_CONFIRM",
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      {
+        "a_all_pool_rows": 169,
+        "buy_gate_updated": false,
+        "daily_readiness": "PARTIAL_WITH_ROWS",
+        "hk_rows": 100,
+        "hk_status": "STRICT_0_2_READY",
+        "http_status": 200,
+        "name": "optional Baimao artifact missing in temp copy",
+        "ok": true,
+        "optional_baimao_status": "CANNOT_CONFIRM",
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      {
+        "a_all_pool_rows": 169,
+        "buy_gate_updated": false,
+        "daily_readiness": "PARTIAL_WITH_ROWS",
+        "diagnostic_blocking_reasons": "a_share_baimao_research_map:POOL_NOT_AVAILABLE appears twice; API still returns rows and overall readiness remains PARTIAL_WITH_ROWS.",
+        "hk_rows": 100,
+        "hk_status": "STRICT_0_2_READY",
+        "http_status": 200,
+        "integrity_quarantine_reason": "PRESELECTION_POOL_INTEGRITY:a_share_baimao_research_map:pool artifact bytes are not canonical",
+        "name": "optional Baimao artifact bytes corrupted in temp copy",
+        "ok": true,
+        "optional_baimao_status": "CANNOT_CONFIRM",
+        "orders_sent": false,
+        "production_allowed": false
+      }
+    ],
+    "source_tree_file_count": 15,
+    "source_tree_sha256_before_and_after": "6d1246d0368282a219930aaf41d7e093d599223f6e5e77f124513ee0fd9152f0",
+    "source_tree_unchanged": true,
+    "temp_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_POOL_STAGE_SIMULATION_20261015/reviewer/tmp-pool-isolation-probe-20261015-02"
+  },
+  "natural_stage": "NATURAL_SLOT_NOT_DUE; no natural-stage result established.",
+  "review_status": "INTERIM_PASS_API_DATA_AND_ISOLATION; STAGE_SCRIPT_REVIEW_PENDING_FINAL_SHA",
+  "reviewer": "/root/hk_nextday_pool_review",
+  "runtime_binding": {
+    "active_package_hashes": "Receipt-bound main r2 release manifest, main mapper, API r5 preselection_service, and Stage manifest/config/runner were checked against the active runtime and matched.",
+    "api_r5_pid": 90244,
+    "independent_ui": "NOT_PERFORMED; parent API/UI receipt is cited without claiming independent UI verification.",
+    "main_r2_pid": 90252
+  },
+  "schema_version": "hk_pool_stage_sim_independent_review.v1",
+  "scope": "Frozen current main r2 update branch and API r5 package; no business writes, service operations, or market/network data calls.",
+  "stage_simulation_script": "NOT_REVIEWED_PENDING_WRITER_FINAL_SCRIPT_SHA; do not treat unsafe-input rejection or these API probes as positive Stage acceptance.",
+  "tests": [
+    {
+      "bytecode_and_pytest_cache": "disabled",
+      "result": "10 passed, 42 deselected",
+      "surface": "main r2 focused tests",
+      "temp_basetemp": "/Users/lexi/Desktop/学习/agents调试/V4_HK_POOL_STAGE_SIMULATION_20261015/reviewer/tmp-tests-main-r2-20261015-01"
+    },
+    {
+      "bytecode_and_pytest_cache": "disabled",
+      "result": "10 passed",
+      "surface": "API r5 optional/pagination tests",
+      "temp_basetemp": "/Users/lexi/Desktop/学习/agents调试/V4_HK_POOL_STAGE_SIMULATION_20261015/reviewer/tmp-tests-api-r5-20261015-01"
+    }
+  ],
+  "verdict": "INTERIM_PASS for immutable update/API tests, active runtime binding, HK100/A169, and optional-pool isolation. Overall Stage simulation acceptance remains CANNOT_CONFIRM until the writer supplies the final script SHA and its positive canary is independently reviewed."
+}

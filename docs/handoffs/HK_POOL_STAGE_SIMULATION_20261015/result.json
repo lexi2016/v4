@@ -1,0 +1,56 @@
+{
+  "schema_version": "hk_pool_stage_simulation_result.v1",
+  "recorded_at": "2026-10-15T22:31:25.467661+08:00",
+  "target_date": "20261016",
+  "signal_date": "20261015",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "scope": "Current pools/updater/read contract plus isolated representative 09:35 Stage simulation",
+  "verdict": "PASS_WITH_EXPLICIT_UNVERIFIED_PRODUCT_AND_NATURAL_BOUNDARIES",
+  "confirmed": {
+    "hk_pool_rows": 100,
+    "hk_status": "STRICT_0_2_READY",
+    "a_full_aggregate_rows": 169,
+    "a_complete": true,
+    "a_daily_readiness": "PARTIAL_WITH_ROWS",
+    "update_tests_passed": 10,
+    "api_tests_passed": 10,
+    "independent_reviewed": true,
+    "stage_input_binding": "A169/HK100",
+    "synthetic_stage": "STAGE_0930_0935",
+    "positive_raw_rows": {
+      "A": 169,
+      "HK": 100
+    },
+    "positive_observation_rows": {
+      "A": 10,
+      "HK": 10
+    },
+    "negative_temporal_input": "REJECTED_BEFORE_RAW_OR_SELECTION_WRITE",
+    "ui_refreshed": true
+  },
+  "unverified": [
+    "A production selection with exact-date research context; test fallback only",
+    "Scheduler tick/lock/dispatch integration; direct _run_one simulation only",
+    "Real market minute/PIT and natural-stage execution"
+  ],
+  "nonblocking_diagnostic": "Negative receipt first_failed_layer and terminal HK temporal error describe different lanes ambiguously; failure remains closed",
+  "business_source_changed": false,
+  "services_changed": false,
+  "real_market_collection": false,
+  "simulation_only": true,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "github": {
+    "branch": "codex/hk-pool-stage-simulation-20261015",
+    "base_commit": "05ef544b5a7bd0ebdc9991625dadf6ede7f87f84",
+    "delivery": "Test harness and concise evidence only; no raw market data"
+  },
+  "evidence": {
+    "evidence/current-runtime-api-ui.json": "d1bbabaf1377c6dfa3c40a3e6c42708894e474384eacb632e682ad5df82bd521",
+    "evidence/independent-stage-simulation-review.json": "e964dc23014c40e17f7774fda76243e8a9bb1464d07eb22697283e875d71df21",
+    "evidence/independent-update-api-review.json": "ba30ae8dbd22e1e78f65793620dff8a77ef428eabfa975209d912dd7a0483472"
+  },
+  "script_sha256": "d95d18fd3b751c6ff35086637351ad2c441b5f1a13be610dccaf3dca13654fbd"
+}
