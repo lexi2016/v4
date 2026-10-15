@@ -223,6 +223,8 @@ export interface ResearchState {
   finance: ComputedRef<Record<string, unknown>>;
   gaps: ComputedRef<Array<unknown>>;
   stockMainline: ComputedRef<Array<LaneRow>>;
+  sourceEntities: ComputedRef<Array<LaneRow>>;
+  titleSubjects: ComputedRef<Array<Record<string, unknown>>>;
   feedCards: ComputedRef<Array<Record<string, unknown>>>;
   feedEmptyMessage: ComputedRef<string>;
   sourceColumns: ComputedRef<Array<{ name: string; rows: Array<Record<string, unknown>>; emptyMessage?: string }>>;
@@ -240,10 +242,14 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
   const ai = computed(() => payload.value?.ai_news ?? {});
   const finance = computed(() => payload.value?.external_finance ?? {});
   const gaps = computed(() => (payload.value?.cannot_confirm ?? []) as Array<unknown>);
+  const sourceEntities = computed<Array<LaneRow>>(() =>
+    stockDaily.value.filter((row) => row.report_subject_eligible !== true),
+  );
+  const titleSubjects = computed(() => (payload.value?.report_title_subjects ?? []) as Array<Record<string, unknown>>);
 
   const stockMainline = computed<Array<LaneRow>>(() => {
     const byStock = timelineByStock(stockTimeline.value);
-    return stockDaily.value.slice(0, 8).map((row) => ({
+    return stockDaily.value.filter((row) => row.report_subject_eligible === true).slice(0, 8).map((row) => ({
       ...row,
       _timeline: compactTimeline(byStock.get(text(row.stock_code || row.code)) ?? []).slice(0, 3),
     }));
@@ -319,6 +325,6 @@ export function useResearchState(payload: Ref<ResearchLane | null>, feedFilter: 
 
   return {
     payload, stockDaily, stockTimeline, quality, morning, workbench, zsxq, ai, finance, gaps,
-    stockMainline, feedCards, feedEmptyMessage, sourceColumns, timelineRows, cannotItems,
+    stockMainline, sourceEntities, titleSubjects, feedCards, feedEmptyMessage, sourceColumns, timelineRows, cannotItems,
   };
 }

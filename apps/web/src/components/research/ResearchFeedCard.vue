@@ -20,11 +20,12 @@ const originalUrl = computed(() => {
   <article class="hourly-feed-card" :class="presentation.categoryClass">
     <div class="hourly-feed-head">
       <div>
-        <div class="hourly-feed-title">{{ text(card.stock_name || card.stock_code || card.title) }}</div>
+        <div class="hourly-feed-title">{{ text(card.title || card.source_title || card.stock_name || card.stock_code) }}</div>
         <div class="hourly-meta">{{ presentation.sourceLabel }}</div>
       </div>
       <span v-if="presentation.showTypeLabel" class="hourly-source-tag source">{{ presentation.typeLabel }}</span>
     </div>
+    <p v-if="card.entity_role" class="hourly-meta">原实体：{{ text(card.stock_name) }} {{ text(card.stock_code) }} · {{ text(card.entity_role) }}；角色分类不删除原文。</p>
     <div class="hourly-evidence-times" aria-label="时间证据">
       <span class="hourly-time-label">{{ presentation.fetchedTimeLabel }}</span>
       <span class="hourly-time-label">{{ presentation.publishedTimeLabel }}</span>

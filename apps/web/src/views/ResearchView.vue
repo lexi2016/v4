@@ -23,6 +23,8 @@ const updateDiagnostic = computed(() => payload.value?.update_diagnostic as { st
 
 const {
   stockMainline,
+  sourceEntities,
+  titleSubjects,
   stockTimeline,
   feedCards,
   feedEmptyMessage,
@@ -159,7 +161,7 @@ onMounted(() => {
         />
 
         <section class="hourly-desk-grid">
-          <ResearchImpactList :rows="stockMainline" />
+          <ResearchImpactList :rows="stockMainline" :source-entities="sourceEntities" :title-subjects="titleSubjects" />
 
           <ResearchFeedPane
             :feed-cards="feedCards"

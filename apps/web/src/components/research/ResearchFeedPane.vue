@@ -10,7 +10,7 @@ defineProps<{
   archiveDate: string;
   onFilter: (filter: string) => void;
   emptyMessage?: string;
-  columns?: Array<{ name: string; rows: Array<Record<string, unknown>> }>;
+  columns?: Array<{ name: string; rows: Array<Record<string, unknown>>; emptyMessage?: string }>;
 }>();
 
 const TABS: Array<{ id: string; label: string }> = [

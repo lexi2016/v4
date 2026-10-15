@@ -132,9 +132,55 @@ describe("ResearchView (research lane)", () => {
     expect((await screen.findAllByText("中材国际")).length).toBeGreaterThan(0);
     expect(fetchMock).toHaveBeenCalledWith("/api/v3/research/lane?research_date=20260804");
     expect(screen.getByText(/股票研报/)).toBeTruthy();
+    expect(screen.getByText("研报对象 · 标题角色筛选")).toBeTruthy();
     expect(screen.getByText("LEGACY_NAIVE_TIMESTAMP_ASSUMED_ASIA_SHANGHAI")).toBeTruthy();
   });
 
+  it("keeps eligible report subjects, source entities, title evidence, and source title priority", async () => {
+    const roleLane = {
+      ...lane("20260804"),
+      stock_research_daily: [
+        { stock_code: "600970", stock_name: "中材国际", report_subject_eligible: true, evidence_level: "L2_MEDIUM" },
+        { stock_code: "600971", stock_name: "提及企业", report_subject_eligible: false, entity_roles: ["正文提及"], latest_evidence_sentence: "保留的原实体证据" },
+        { stock_code: "600975", stock_name: "资格未评估企业", entity_roles: ["角色未确认"], latest_evidence_sentence: "保留的未评估实体证据" },
+      ],
+      report_title_subjects: [{ name: "标题提及企业", code: "600972", source_title: "报告原标题证据" }],
+      morning_news: { status: "READY", articles: [
+        { article_id: "explicit-title", title: "明确卡片标题", source_title: "来源标题", stock_name: "原实体公司", stock_code: "600973", entity_role: "发行机构" },
+        { article_id: "source-title-fallback", title: "", source_title: "来源标题回退", stock_name: "回退公司", stock_code: "600974" },
+      ] },
+      news_workbench: { schema_version: "x", status: "ok", action_rows: [] },
+      zsxq_hourly: { schema_version: "x", status: "ok", topic_count: 0, items: [] },
+      ai_news: { status: "READY_EMPTY", item_count: 0, items: [] },
+      external_finance: { raw_item_count: 0, overview: [] },
+      key_investment_messages: [],
+    };
+    stubResearchFetch(roleLane);
+
+    const { container } = render(ResearchView, { props: { archiveDate: "20260804" } });
+    await screen.findByText("中材国际 600970");
+    const stockPane = container.querySelector<HTMLElement>(".hourly-priority-pane");
+    expect(stockPane).toBeTruthy();
+    if (!stockPane) throw new Error("missing report-subject pane");
+
+    const mainline = stockPane.querySelector(".hourly-impact-list");
+    expect(mainline?.textContent).toContain("中材国际 600970");
+    expect(mainline?.textContent).not.toContain("提及企业 600971");
+    expect(mainline?.textContent).not.toContain("资格未评估企业 600975");
+    const details = Array.from(stockPane.querySelectorAll<HTMLDetailsElement>("details"));
+    expect(details).toHaveLength(2);
+    expect(details[0].textContent).toContain("提及企业 600971");
+    expect(details[0].textContent).toContain("正文提及");
+    expect(details[0].textContent).toContain("资格未评估企业 600975");
+    expect(details[1].textContent).toContain("标题提及企业 600972");
+    expect(details[1].textContent).toContain("报告原标题证据");
+
+    const feedCards = Array.from(container.querySelectorAll<HTMLElement>(".hourly-feed-list .hourly-feed-card"));
+    const explicitTitle = feedCards.find((card) => card.querySelector(".hourly-feed-title")?.textContent?.trim() === "明确卡片标题");
+    const sourceTitleFallback = feedCards.find((card) => card.querySelector(".hourly-feed-title")?.textContent?.trim() === "来源标题回退");
+    expect(explicitTitle?.textContent).toContain("原实体：原实体公司 600973 · 发行机构；角色分类不删除原文。");
+    expect(sourceTitleFallback).toBeTruthy();
+  });
   it("renders the three-column desk and status strip", async () => {
     stubResearchFetch(lane());
     render(ResearchView, { props: { archiveDate: "20260804" } });
