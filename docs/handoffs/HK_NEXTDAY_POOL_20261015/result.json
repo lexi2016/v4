@@ -1,6 +1,6 @@
 {
   "task": "HK_NEXTDAY_POOL_20261015",
-  "updated_at": "2026-10-15T18:29:36.407949+08:00",
+  "updated_at": "2026-10-15T21:22:40.000123+08:00",
   "source_root": "/Users/lexi/Desktop/学习/v4_app",
   "delivery_mode": "PATCH_ONLY",
   "base_commit": "ddc78aa7d052d0ccce0cc27ed52a688f816e3b2a",
@@ -10,10 +10,10 @@
   "status": {
     "implemented": true,
     "independent_behavior": "PASS",
-    "integration": "WAITING_EXISTING_TDX_OWNER_FINAL_RUNTIME",
-    "deployed": "NOT_RUN",
-    "api": "NOT_RUN",
-    "ui": "NOT_RUN",
+    "integration": "R6_ROLLED_BACK_R7_PENDING_WITH_EXISTING_OWNER",
+    "deployed": "ROLLED_BACK",
+    "api": "R6_OBSERVATION_ONLY_NOT_CURRENT_FINAL",
+    "ui": "R6_OBSERVATION_ONLY_NOT_CURRENT_FINAL",
     "natural": "NOT_RUN"
   },
   "original_natural_failure": {
@@ -34,11 +34,91 @@
   "canonical": {
     "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
     "before_sha256": "ab173015c9b49cbe2720e4dd18c83a3e8379871e20c49c8ff5954db102588efb",
-    "after_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3"
+    "initial_after_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3",
+    "combined_after_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f"
   },
   "review_receipt_sha256": "1a533352b41d6e6f3185abf3c2564ecca6de22cc97c07951dd991ea1b99fa34b",
   "research_only": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "integration_coordination": {
+    "user_authorization": "允许协调合并切换（推荐）",
+    "owner_chat": "01a13d5a-93fc-72e3-96bc-9ee21a432aaf",
+    "owner_title": "梳理港股通面板统一方案",
+    "received_and_accepted": true,
+    "our_main_reload": false,
+    "postpublication_checks": "actual 20261016 pool, live Stage reader, API, stable UI",
+    "old_staged_plist_must_not_overwrite_final_shared_binding": true
+  },
+  "initial_candidate_status": "NOT_ACTIVATED_NOT_FINAL_COMBINED_VERDICT",
+  "additional_integration_finding": {
+    "boundary": "A already ready and HK missing must run HK-only producer path",
+    "owner": "existing combined-cutover sole writer",
+    "canonical_runtime_consistency_required": true,
+    "original_pass_preserved_as_frozen_scope_evidence": true
+  },
+  "combined_candidate": {
+    "freeze_sha256": "06d8294607a547f78b75a428d099f30132417412be518e93aa76f9685bb4a91e",
+    "independent_review_sha256": "239aa527d10f3adcb84335b13ea50c2a517eb27028c91dd9edbc5c2a1c6b92e1",
+    "canonical_source_pins": {
+      "infrastructure/scheduling/_executor_registry_parts/preselection.py": {
+        "sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+        "size_bytes": 44267
+      },
+      "tests/test_hk_nextday_missing_pool_20261015.py": {
+        "sha256": "70ae5f3417a9f5bdcdb414cd3ecce24aea2f94155243e123917686121e96f17e",
+        "size_bytes": 52930
+      },
+      "upstreams/v3_shared_data/shared_data/hk_history_resolution.py": {
+        "sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+        "size_bytes": 35466
+      }
+    },
+    "runtime_roles": {
+      "api": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+        "manifest_sha256": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0"
+      },
+      "main": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-main-20261015-r2/app",
+        "manifest_sha256": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447"
+      },
+      "shared": {
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+        "manifest_sha256": "1d78119783487800673421c55028bf36a94fdf147cf78872c4112cd3395956d8"
+      }
+    },
+    "original_initial_candidate_is_final": false
+  },
+  "first_activation": {
+    "status": "ROLLED_BACK",
+    "reason": "A full response audit manifest SHA dependency; failed live response not retained, no retrospective promotion",
+    "rollback_receipt_sha256": "37f172d9341c5864112b4dc455e7548869f03a087d68abf963e76a7bfc462b10",
+    "independent_diagnosis_sha256": "a28b9e5140340b43027451ec43a06cb0fa1b629c3fa221317868b62572be58b8",
+    "second_activation": "NOT_RUN_PENDING_REVIEWED_SINGLE_PATH_A_AUDIT_GATE_AND_HEALTHY_DRAIN"
+  },
+  "current_verified": {
+    "observed_at": "2026-10-15T21:18:05+08:00",
+    "target_pool": "MISSING",
+    "api_release": "research-source-unified-api-20261015-r6",
+    "api_pid": 87808,
+    "main_release": "hk-close-backfill-reader-main-20261015-r1",
+    "main_pid": 87811,
+    "next_owner": "01a13d5a-93fc-72e3-96bc-9ee21a432aaf",
+    "next_action": "R7 combined activation from current A baseline; existing owner continues",
+    "repeated_chat_polling_stopped_on_user_feedback": true
+  },
+  "r6_reader_receipt_sha256": "fe656cfe25a9a94f0b4dfbe882e363cc241f80ea9bb4d8d643001bdc69e60810",
+  "r6_ui_receipt_sha256": "ec859eee20f7d385ae31cb3195b1027442d5d4818b6db967eaace078fd3fc8da",
+  "r6_evidence_is_current_restoration": false,
+  "handoff_final": {
+    "user_decision": "预选池更新完整交给现有面板聊天，本聊天不再跟进",
+    "owner_thread": "01a13d5a-93fc-72e3-96bc-9ee21a432aaf",
+    "owner_title": "梳理港股通面板统一方案",
+    "status": "HANDED_OFF_USER_REQUESTED",
+    "this_chat_monitoring_stopped": true,
+    "this_chat_takeover_executed": false,
+    "restoration_complete": false
+  }
 }

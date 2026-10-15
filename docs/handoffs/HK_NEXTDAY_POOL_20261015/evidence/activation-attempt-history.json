@@ -1,0 +1,50 @@
+{
+  "updated_at": "2026-10-15T21:06:17.249648+08:00",
+  "final_restoration": "PENDING",
+  "r6_readback_is_current_final": false,
+  "attempts": [
+    {
+      "receipt": "docs/handoffs/hk_tdx_conflict_repair_20261015/ACTIVATION_RECEIPT.json",
+      "sha256": "ed77046c06403835f326cf59f5ac35a2ebd37dfe323360864c3cba8c03966980",
+      "status": "ROLLED_BACK_ACTIVATION_FAILURE",
+      "failure": {
+        "message": "",
+        "type": "AssertionError"
+      },
+      "started_at": "2026-10-15T11:54:59.312234+00:00",
+      "finished_at": "2026-10-15T11:56:47.693034+00:00",
+      "rollback_error_count": null
+    },
+    {
+      "receipt": "docs/handoffs/hk_tdx_conflict_repair_20261015/ACTIVATION_RECEIPT_R5.json",
+      "sha256": "01d4c7dbe3be30298190eb5f10f921093bc37f6e13b85e5185f13c6b3a10148c",
+      "status": "ROLLED_BACK_ACTIVATION_FAILURE",
+      "failure": {
+        "message": "PUBLICATION_COMMAND_FAILED:1",
+        "type": "RuntimeError"
+      },
+      "started_at": "2026-10-15T12:29:10.369614+00:00",
+      "finished_at": "2026-10-15T12:29:57.884681+00:00",
+      "rollback_error_count": 0
+    },
+    {
+      "receipt": "docs/handoffs/hk_tdx_conflict_repair_20261015/ACTIVATION_RECEIPT_R6.json",
+      "sha256": "e97ecdf22388e4a993909685ef0d78c5938c018f9f038665fd41e2c62722c34f",
+      "status": "ROLLBACK_INCOMPLETE_WITH_EXPLICIT_ERRORS",
+      "failure": {
+        "message": "",
+        "type": "AssertionError"
+      },
+      "started_at": "2026-10-15T12:44:07.573435+00:00",
+      "finished_at": "2026-10-15T12:53:47.890174+00:00",
+      "rollback_error_count": 1
+    }
+  ],
+  "r6_concurrent_A_update": {
+    "before_rows": 122,
+    "after_rows": 129,
+    "writer_identity": "CANNOT_CONFIRM",
+    "preserve_new_A": true,
+    "next_action": "existing combined owner removes exact own HK residue under lock after independent review"
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "api_read": {
+    "RESEARCH_ONLY": true,
+    "activation_receipt_candidate_status": "PASS",
+    "active_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "active_plist_sha256": "318fd9ea3c53f42ac09550cadea4e7c9d61bb10c93de29ef171e6180cd7faabf",
+    "active_pointer": "candidate",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r5/app",
+    "buy_gate_updated": false,
+    "gets": [
+      {
+        "cannot_confirm": [
+          "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+          "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+          "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        ],
+        "http_status": 200,
+        "method": "GET",
+        "response_bytes": 7863,
+        "response_sha256": "ad857950443938fddb73de3af647ea4768c7bda531ac335851bda083c989c057",
+        "selected_hk_rows": null,
+        "selected_total_rows": null,
+        "status": "CANNOT_CONFIRM",
+        "url": "http://127.0.0.1:8873/api/v3/workbench/stage?date=20261016&stage=STAGE_0935_0940&limit=50",
+        "write_performed": false
+      },
+      {
+        "cannot_confirm": [
+          "SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+          "A:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID",
+          "HK:SELECTION_ARTIFACT_UNAVAILABLE_OR_INVALID"
+        ],
+        "http_status": 200,
+        "method": "GET",
+        "response_bytes": 7863,
+        "response_sha256": "ad857950443938fddb73de3af647ea4768c7bda531ac335851bda083c989c057",
+        "selected_hk_rows": null,
+        "selected_total_rows": null,
+        "status": "CANNOT_CONFIRM",
+        "url": "http://127.0.0.1:8873/api/v3/stage-center/selection?date=20261016&stage=STAGE_0935_0940&limit=100",
+        "write_performed": false
+      }
+    ],
+    "launchd_pid": 87291,
+    "listener": "127.0.0.1:8873",
+    "listener_cwd_matches_candidate_app_root": true,
+    "orders_sent": false,
+    "production_allowed": false,
+    "recommendation_status": "WATCH_ONLY",
+    "release_id": "hk-tdx-conflict-repair-api-20261015-r5",
+    "response_source": "SHARED_STAGE_CENTER"
+  },
+  "conclusion": "Stage reader accepted and SHA-bound the exact 20261016 HK Top100 consumer snapshot. Existing API GET surfaces responded, but selection artifact status is CANNOT_CONFIRM and row counts are null; the 20261016 natural stage is not due. This receipt does not claim natural-stage or UI verification.",
+  "consumer_read": {
+    "actual_stage_helpers": {
+      "binding_code_count": 100,
+      "binding_sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+      "binding_source_run_id": "hk-d1-78646320d1140bb5",
+      "build_hk_d1_binding": "PASS",
+      "selection_codes": "PASS",
+      "validate_hk_d1": "PASS"
+    },
+    "code_format": "HK. followed by five digits",
+    "consumer_artifact_sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+    "consumer_trio": {
+      "artifact": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261016/hkconnect_d1_top100.json",
+        "sha256_after": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+        "sha256_before": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+      },
+      "manifest": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261016/manifest.json",
+        "sha256_after": "768c5ebf4c1521f4c307a5a0d27c4505fc27eb001c86db7441838532b09dfb63",
+        "sha256_before": "768c5ebf4c1521f4c307a5a0d27c4505fc27eb001c86db7441838532b09dfb63"
+      },
+      "receipt": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/preselection_pools/20261016/receipts/hkconnect_d1_top100.json",
+        "sha256_after": "5598929cef4405209d486b63fc15c31002fb4d5440fed8faaf5c5a6ad90ad4b0",
+        "sha256_before": "5598929cef4405209d486b63fc15c31002fb4d5440fed8faaf5c5a6ad90ad4b0"
+      },
+      "stable_across_final_read": true
+    },
+    "final_read_lease": {
+      "actual_d1_binding": "PASS",
+      "actual_selection_code_extractor": "PASS",
+      "actual_stage_validator": "PASS",
+      "legal_unique_hk_codes_100": true,
+      "rank_sequence_1_to_100": true,
+      "status": "PASS",
+      "timeout_seconds": 1,
+      "trio_stable_during_final_read": true
+    },
+    "manifest_change_between_observations": {
+      "artifact_unchanged": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+      "final_leased_observation_sha256": "768c5ebf4c1521f4c307a5a0d27c4505fc27eb001c86db7441838532b09dfb63",
+      "handling": "The date-level manifest changed between observation windows. Re-read under the resolver source read lease and reran the actual Stage validator, code extractor, and D1 binding against the current stable trio.",
+      "initial_unleased_observation_sha256": "766250e3c06bc2eb14f5c8f503937e69a8a3d723cfe0c55e7d78eeef911b9d52",
+      "pool_receipt_unchanged": "5598929cef4405209d486b63fc15c31002fb4d5440fed8faaf5c5a6ad90ad4b0"
+    },
+    "market": "HK",
+    "pool_id": "hkconnect_d1_top100",
+    "producer_id": "v3_shared_hk_0_2_consumer_v1",
+    "rank_check": {
+      "exact_sequence_1_to_100": true,
+      "maximum": 100,
+      "minimum": 1,
+      "numeric_rank_count": 100,
+      "unique_rank_count": 100
+    },
+    "resolver_owner": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "row_count": 100,
+    "signal_date": "20261015",
+    "source_artifact_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+    "source_manifest_sha256": "2701f48e52d3e2e1812f39006dcf338acee980969f4fd8c2137d743c7c6d04ec",
+    "source_receipt_sha256": "4bab8045bee19e7824627a71614cc210d5c96d30f9a8ae344c6c149fdb12fc74",
+    "source_role": "SHARED_VERIFIED_HK_0_2",
+    "source_run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0",
+    "source_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+    "stage_selection_eligible": true,
+    "status": "STRICT_0_2_READY",
+    "target_date": "20261016",
+    "unique_hk_code_count": 100
+  },
+  "mutations": {
+    "buy_gate": false,
+    "consumer_artifact": false,
+    "consumer_manifest": false,
+    "consumer_receipt": false,
+    "orders": false,
+    "producer_or_publish": false,
+    "service_or_pointer": false
+  },
+  "natural_stage_status": "NOT_DUE",
+  "observed_at_utc": "2026-10-15T12:54:21Z",
+  "overall_status": "POOL_READER_PASS_API_SELECTION_CANNOT_CONFIRM_STAGE_NOT_DUE",
+  "r6_receipts": [
+    {
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/ACTIVATION_RECEIPT_R6.json",
+      "sha256": "047698289ecb184a9aba2bd12a93481109de99a93cb46ceb288f1af974148d68",
+      "status": "STOPPED_PUBLISHING"
+    },
+    {
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/REPUBLISHED_20261016_CONSUMER_R6.json",
+      "sha256": "2ea8f161e0baf4c02df4f600ef76eb9de461b384328983e7526d9d10220ade41"
+    },
+    {
+      "path": "docs/handoffs/hk_tdx_conflict_repair_20261015/REUSED_PUBLISHED_RUNS_BOUND_R6.json",
+      "sha256": "e38f2523b3e32b16d08458a48689fe0a2c488c9961dfb943a8d581e29c9a3c17"
+    }
+  ],
+  "review_id": "R6_STAGE_READER_API_READONLY_20261015",
+  "schema_version": "v4.hk_nextday_stage_reader_review.v1",
+  "scope": "Independent read-only acceptance of R6 HK 20261016 preselection consumer through the configured Stage release and existing API GET routes.",
+  "stage_runtime": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app",
+    "config_sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+    "configured_safety_flags_false": true,
+    "hk_d1_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "preselection_source_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "release_id": "hk-auto-execution-audit-20261015-r3",
+    "release_manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "scheduler_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "activation_review": {
+    "live_CAS_must_recheck_immediately_before_mutation": true,
+    "plan": "COMBINED_ACTIVATION_PLAN_R3.md and PUBLICATION_STATE_PLAN_R3.json reviewed",
+    "rollback": "Reviewed exact-own HK CAS/revisions and original pointer/plists/roots; no foreign/A restore; no generic security change.",
+    "sequence": "Release locks/CAS/drain; graceful scheduler then API stop; pointer; shared15-consumer15-shared16-consumer16; exact staged plists; API then scheduler start; live exact same-run verification and conditional no-journal HTTP.",
+    "target15": "HK_READY100_RETROSPECTIVE_ONLY_A_ABSENT_NO_PAIR_CLAIM",
+    "target16": "EXISTING_A_READY_PLUS_NEW_HK100_PAIR; no Stage trigger"
+  },
+  "boundaries": {
+    "API_VERIFIED": "ISOLATED_CANDIDATE_ONLY",
+    "BEHAVIOR_VERIFIED": "FINAL_FROZEN_CANDIDATE_COMBINED_TARGET_BEHAVIOR",
+    "DEPLOYED": false,
+    "NATURAL_VERIFIED": false,
+    "REVIEWED": true,
+    "TESTED": true,
+    "UI_VERIFIED": false,
+    "market_requests": 0,
+    "only_reviewer_persistent_write": "this receipt",
+    "raw_market_or_A_rows_exported": false,
+    "source_owner_state_service_writes": 0,
+    "units_adjustment_PIT": "UNKNOWN_NOT_PROMOTED"
+  },
+  "closed_findings": {
+    "COMBINED-R2-P1-LOADER": "Actual immutable main-r2 source-only loader with unchanged security policy loads shared-r4, API-r5-upstreams, API-r5-legacy. Actual source-backed proof accepted, consistent HK.00165 forgery rejected by both validators. sys.path/global shared_data namespace unchanged.",
+    "COMBINED-R2-P2-MASTER-FIRST": "Actual master/latest readers, no master stub: physically absent shared slot reaches HK updater; injected updater failure is UPSTREAM_NOT_READY. Existing slot with broken master/run remains CACHE_REJECTED, zero producers. All fixtures preserve A.",
+    "COMBINED-R2-P2-PUBLISHED-CONTRACT": "Actual API-r5 mapper plus new reviewed thin publisher plus physical API store plus actual main-r2 gate passes all three formal status aliases. Missing or false stage eligibility still rejects; exact row D-1/target, current proof, four source pins, finite score/code/rank checks retained."
+  },
+  "findings": [],
+  "independent_tests": {
+    "actual_HK_runtime": {
+      "both_forged_validators_reject": true,
+      "command": "verify_real_admission_R3.py --hk-runtime executed with frozen receipt write suppressed; selected V35_SHARED_PACKAGE_ROOT=shared-r4",
+      "genuine": true,
+      "runtime": "Python3.13.12 existing v3.5-hk02/bin/python",
+      "standalone_namespace_preserved": true,
+      "tool_output": "e610b2"
+    },
+    "actual_loader_three_roles": {
+      "actual_main_loader": true,
+      "forgery": "HK.00165 internally consistent held-to-allowed mutation rejected by verify_proof and public validate_score_coverage",
+      "generic_policy_changed": false,
+      "genuine_signals": [
+        "20261014",
+        "20261015"
+      ],
+      "namespace_preserved": true,
+      "runtime": "Python3.14.6",
+      "tool_output": "858adc"
+    },
+    "actual_main_combined": {
+      "command": "v3.5-mac python -c: import actual infrastructure.isolated_package_loader, infrastructure.preselection_pool_store before pytest.main; -q -p no:cacheprovider --import-mode=importlib --basetemp=<temporary> tests/test_hk_nextday_missing_pool_20261015.py -k combined",
+      "deselected": 11,
+      "env": "PYTHONPATH=immutable main-r2; V4_HK_COMBINED_MAIN_APP/SOURCE=main-r2; V4_HK_COMBINED_SHARED_ROOT=shared-r4",
+      "passed": 41,
+      "seconds": 13.73,
+      "tool_output": "b861b9"
+    },
+    "admission_regressions": {
+      "command": "Actual API-r5 imports; tests/test_hk_history_resolution.py tests/test_hk_resolution_refresh.py -k actual_validators_reject/admission_cache_rechecks/shared_hk_refresh_binds/actual_shared_materialize/actual_shared_scorer; temp cwd/basetemp",
+      "deselected": 32,
+      "env": "PYTHONPATH=API-r5/upstreams:API-r5; shared-r4 actual test roots",
+      "passed": 14,
+      "seconds": 0.35
+    },
+    "exact_API_r5_extra": {
+      "A_unchanged": true,
+      "method": "In-memory test helper switches only immutable API-r4 path literal to actual API-r5; actual mapper/store/publisher/main gate, temporary physical store. API-r4/r5 mapper/store/names bytes independently identical, so preceding 41-case fixture remains equivalent.",
+      "passed_cases": [
+        "READY",
+        "STRICT_0_2_READY",
+        "HK_0_2_TOP100_READY",
+        "stage_false_REJECTED",
+        "stage_missing_REJECTED"
+      ],
+      "producer_calls": 0,
+      "tool_output": "4cee92"
+    },
+    "fixture_boundaries": "All tests temporary roots; no real producer invoked. A/public/review/aggregate calls forbidden in HK-only fixtures. Same-payload/foreign/partial races and pending journals reject without A mutation.",
+    "proof_rebind": {
+      "target15": "7640927e0e854bd56b3ab3e43a471d97422f80b30af2e910f3808cbba4850d26",
+      "target15_counts": {
+        "eligible": 690,
+        "missing": 0,
+        "quality": 26,
+        "scoreable": 664
+      },
+      "target16": "ce40ef08eccb7af6053ddf6a34c2ce032522bbd049792e72bc32409fad1c486c",
+      "target16_counts": {
+        "eligible": 689,
+        "missing": 0,
+        "quality": 25,
+        "scoreable": 664
+      }
+    }
+  },
+  "integrity": {
+    "API_lower_verifier_active_pointer_base": "PASS_1200_NON_DELTA",
+    "actual_before_CAS": {
+      "active_owner_pointer": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+      "api": "1c5ad617cca80d3f6b206eab39a452703dab4918fa18b4532bb52b868b143ec6",
+      "scheduler": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0"
+    },
+    "canonical_helper_AST": "IDENTICAL",
+    "canonical_source_pins_verified": 3,
+    "final_freeze_and_three_manifests": "UNCHANGED_AFTER_TESTS",
+    "main_non_delta_both_original_bases": "EXACT",
+    "main_non_delta_entries": 963,
+    "main_physical_inventory": 964,
+    "pinned_files_verified": 36,
+    "shared_inventory": "PASS_74_ENTRIES",
+    "stage_and_unrelated_roots": "PRESERVED_BY_STAGED_EXACT_ENV_DELTA"
+  },
+  "model": "gpt-6.1-sol/high",
+  "next": "Writer may perform already authorized controlled unified cutover using these exact pins and immediate live CAS/drain checks. Independent online acceptance remains required before completion.",
+  "observed_at": "2026-10-15T11:47:18.262441+00:00",
+  "phase": "COMBINED_R3_INCREMENTAL",
+  "priority_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "reuse": {
+    "correction_ledger_and_evidence": "UNCHANGED",
+    "guard_frame_guard_score_frame_project_frame_held_fields": "AST_IDENTICAL",
+    "independent_R1_receipt": "82e622eb5700de6aafe3279bf4247b730efed82e0627b320040420a503220ac7",
+    "model_recomputed": false,
+    "no_old_whole_payload_SHA_gate_after_proof_rebind": true,
+    "numeric_score_module_shared_r3_to_r4": "BYTE_IDENTICAL",
+    "original_numeric_model_and_1210_projection": "INDEPENDENT_R1_PASS_REUSED",
+    "prior_R2_proof_receipt": "bf9690476c6e2e1cb23f1797fadd645004123e7c2799e0a146034d216673eb54",
+    "prior_combined_FAIL_preserved": "129bb28bee35fef952cbd89769b6b2bdf6c386309ff927f05a559737c26dfb6d"
+  },
+  "reviewed_pins": {
+    "COMBINED_REVIEW_READY_R3": "06d8294607a547f78b75a428d099f30132417412be518e93aa76f9685bb4a91e",
+    "PUBLICATION_ORCHESTRATOR_R3": "82ff6ce44c898bc0f21efbebdd52e47032d89750bf76e60f3a7a58b231ccb586",
+    "api_manifest": "2669da76235904ed1a283241b92cfd76caf444bafaf5e916bfecfb3e0c6f0dc0",
+    "api_staged": "318fd9ea3c53f42ac09550cadea4e7c9d61bb10c93de29ef171e6180cd7faabf",
+    "main_manifest": "03cb15ea4b45a6e58e6aa48a7e05010db3ff1ff59b34aaf9d6a856b591ec8447",
+    "main_source": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+    "owner_manifest": "804d364fb36b7bc3e84b17f3afb7d5a474fdff4a39a4026d278ead8b555fc097",
+    "prepared_pointer": "95343ea26b4541d9a4dd0a3b9ad298cd0b832ae1fd214fe984d513d781626e2b",
+    "resolver": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+    "scheduler_staged": "cc2d35ed4c156b0e741276b49966ea6430d74f96359c9d4103c2800afc0c5344",
+    "shared_manifest": "1d78119783487800673421c55028bf36a94fdf147cf78872c4112cd3395956d8"
+  },
+  "reviewer": "/root/hk_live_review_61",
+  "schema_version": "hk_tdx_combination_independent_review.v3",
+  "verdict": "PASS"
+}

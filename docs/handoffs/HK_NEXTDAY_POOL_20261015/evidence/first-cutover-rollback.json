@@ -1,0 +1,62 @@
+{
+  "A_before_observed_window": {
+    "and_first_service_command": "2026-10-15T11:54:59.930747+00:00",
+    "between": "2026-10-15T11:54:59.312234+00:00",
+    "not_stale_chat_baseline": true
+  },
+  "A_control": {
+    "artifact_id": "selection-b37a1ee172cd45451d78e35b",
+    "http_status": 200,
+    "rows_exported": false,
+    "run_id": "run-b37a1ee172cd45451d78e35b",
+    "sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "status": "PARTIAL_WITH_ROWS"
+  },
+  "HK15_original_trio_and_sharedslot": "EXACT_MATCH",
+  "HK16_created_slot_artifact_receipt_entry": "ABSENT_AS_BEFORE",
+  "active_resolution_pointer_sha256": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+  "all_non_HK_pool_bytes_manifest_entries_other_shared_latest_and_owners": "MATCH_PREACTIVATION",
+  "current_C": "MATCH_PREACTIVATION",
+  "new_shared_model_runs_retained": true,
+  "original_files_and_two_dir_inodes": "MATCH_PREACTIVATION",
+  "pending_journals": 0,
+  "raw_A_values_exported": false,
+  "services": {
+    "api": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6/app",
+      "pid": 84631,
+      "plist_sha256": "1c5ad617cca80d3f6b206eab39a452703dab4918fa18b4532bb52b868b143ec6",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+        "V35_PRESELECTION_SOURCE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_RELEASE_ID": "research-source-unified-api-20261015-r6",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-source-unified-api-20261015-r6/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "a6eb7c96ef0bd5c449146176dbcfefc927f3df06ca64b9b02de9c0715e56c617",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-manager-window-2sessions-units-announcements-r1/app/upstreams",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/workspace/v3_shared_data/.runtime/data",
+        "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+        "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json"
+      }
+    },
+    "scheduler": {
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app",
+      "pid": 84633,
+      "plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+      "selected_environment": {
+        "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app",
+        "V35_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+        "V35_RELEASE_ID": "hk-close-backfill-reader-main-20261015-r1",
+        "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/release-manifest.json",
+        "V35_RELEASE_MANIFEST_SHA256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+        "V35_REVIEW_CORE_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-reviewcore-20261015-r1/app",
+        "V35_SHARED_DATA_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+        "V35_SHARED_PACKAGE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+        "V4_MANAGER_MATERIALIZER_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-materializer-20261015-r1/app",
+        "V4_MANAGER_RESEARCH_STATE_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_auto_research",
+        "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json"
+      }
+    }
+  },
+  "status": "ROLLBACK_FULL_PROTECTION_VERIFIED"
+}

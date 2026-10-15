@@ -244,7 +244,7 @@ def _real_shared_hk_reader(monkeypatch: pytest.MonkeyPatch):
         "_load_verified_security_master",
         lambda _root, trade_date: (
             set(),
-            {"trade_date": trade_date, "run_id": "isolated-security-master"},
+            {"trade_date": trade_date, "run_id": "isolated-security-master", "captured_at": "2026-10-15T17:30:00+08:00"},
         ),
     )
     return reader_module
@@ -313,39 +313,29 @@ def test_canonical_real_reader_existing_run_without_artifact_stays_rejected(
     assert error != MISSING_HK_POOL
 
 
-def test_canonical_missing_hk_source_follows_existing_producer_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize("existing_local", [False, True])
+def test_canonical_missing_hk_source_routes_only_to_HK_retry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_local: bool
 ) -> None:
     reader_module = _real_shared_hk_reader(monkeypatch)
     observed = _patch_canonical_exact_sources(monkeypatch, reader_module)
+    if existing_local:
+        stale = tmp_path / "data/preselection_pools" / TRADE_DATE / "hkconnect_d1_top100.json"
+        stale.parent.mkdir(parents=True); stale.write_text('{"stale":true}')
+    preselection = importlib.import_module("infrastructure.scheduling._executor_registry_parts.preselection")
+    routed = []
+    def only_HK(self, request, **kwargs):
+        routed.append(kwargs)
+        return {"status": "SUCCEEDED", "A_producer_called": False,
+            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+    monkeypatch.setattr(preselection, "_retry_missing_hk_only", only_HK)
     fixture = _load_existing_registry_test_helpers()
-    result, calls = _run_registry_result(
-        fixture,
-        tmp_path,
-        monkeypatch,
-        SIGNAL_DATE,
-        a_input_ready=True,
-        hk_input_ready=True,
-        selector_ready=True,
-    )
-
-    assert result["status"] == "SUCCEEDED"
-    assert "scripts.materialize_hk_0_2" in [module for module, _args in calls]
-    hk_call = next(
-        args for module, args in calls if module == "scripts.materialize_hk_0_2"
-    )
-    assert hk_call[hk_call.index("--target-date") + 1] == observed["target_date"]
-    assert hk_call[hk_call.index("--signal-date") + 1] == observed["expected_signal_date"]
-    assert observed == {
-        "a_target_date": TRADE_DATE,
-        "a_signal_date": SIGNAL_DATE,
-        "target_date": TRADE_DATE,
-        "expected_signal_date": SIGNAL_DATE,
-    }
-    assert all(
-        result.get(flag) is False
-        for flag in ("production_allowed", "buy_gate_updated", "orders_sent")
-    )
+    result, calls = _run_registry_result(fixture, tmp_path, monkeypatch, SIGNAL_DATE,
+        a_input_ready=True, hk_input_ready=True, selector_ready=True)
+    assert result["status"] == "SUCCEEDED" and result["A_producer_called"] is False
+    assert calls == [] and len(routed) == 1
+    assert routed[0]["signal_date"] == SIGNAL_DATE and routed[0]["target_date"] == TRADE_DATE
+    assert routed[0]["a_identity"]["status"] == "READY"
 
 
 def _seed_existing_run_without_artifact(reader_module, store_root: Path) -> None:
@@ -705,3 +695,409 @@ def test_runtime_valid_a_hk_cache_pair_keeps_exact_reuse_contract(
     assert reader_calls == [
         {"target_date": TRADE_DATE, "expected_signal_date": SIGNAL_DATE}
     ]
+
+# Coordinated repair: exercise the actual deployed mapper/store/gate, not a
+# replacement local-cache contract. No model or production source is written.
+COMBINED_H = APP_ROOT / 'docs/handoffs/hk_tdx_conflict_repair_20261015'
+COMBINED_BASE = Path(os.environ.get('V4_HK_COMBINED_MAIN_APP', Path.home() / 'Library/Application Support/com.lexi.v4.local/releases/hk-nextday-pool-main-20261015-r1/app'))
+
+
+def _combined_fixture(tmp_path, monkeypatch, mode='shared_ready'):
+    import hashlib
+    monkeypatch.syspath_prepend(str(COMBINED_BASE))
+    source = Path(os.environ.get('V4_HK_COMBINED_MAIN_SOURCE', COMBINED_H / 'source_projection/main/infrastructure/scheduling/executor_registry_preselection.py'))
+    spec = importlib.util.spec_from_file_location('_combined_main_projection', source)
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    store = module.PreselectionPoolStore(tmp_path / 'data')
+    # Real physical A artifact, receipt and manifest; no values leave this fixture.
+    a = _runtime_pool('a_d1_premarket_pool')
+    a.update(schema_version='v3_5.preselection_pool.v1', display_name='Fixture A',
+        producer_id='fixture', source_path='fixture', cannot_confirm=[])
+    store.materialize(a)
+    day = tmp_path / 'data/preselection_pools' / TRADE_DATE
+    protected = {str(p.relative_to(day)): p.read_bytes() for p in day.rglob('*') if p.is_file()}
+    rows = [{
+        'code_norm': f'{i:05d}', 'rank': str(i), 'score_prob_active': str(1 - i / 1000),
+        'signal_date': SIGNAL_DATE, 'target_date': TRADE_DATE, 'name': 'Fixture',
+        'd1_freshness_status': 'PASS', 'selected_strategy': 'prob_active',
+        'history_resolution_identity': 'e' * 64,
+        'production_allowed': 'false', 'buy_gate_updated': 'false', 'orders_sent': 'false'
+    } for i in range(1, 101)]
+    pool = SimpleNamespace(rows=rows, run=SimpleNamespace(
+        receipt={'status': 'READY', 'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False},
+        verification={'status': 'READY', 'row_count': 100, 'run_id': 'synthetic-hk-run',
+            'artifact_relative': f'runs/{TRADE_DATE}/HK_CONNECT_D1_TOP100_0_2/synthetic-hk-run/artifact.csv',
+            'artifact_sha256': 'b' * 64, 'manifest_sha256': 'c' * 64, 'receipt_sha256': 'd' * 64},
+        manifest={}))
+    state = {'ready': mode not in {'shared_missing', 'upstream_failure'}, 'calls': []}
+    def strict_reader(_root, *, target_date, expected_signal_date):
+        assert (target_date, expected_signal_date) == (TRADE_DATE, SIGNAL_DATE)
+        if mode == 'existing_bad': raise StoreError('artifact SHA mismatch')
+        if not state['ready']: raise StoreError(f'no latest run for {target_date} / {HK_0_2_ROLE}')
+        return pool
+    class SourceStore:
+        def __init__(self, root): pass
+        def _entry_key(self, target, role): return target + '/' + role
+        def _load_latest(self):
+            return {'entries': {TRADE_DATE+'/'+HK_0_2_ROLE: {'run_id':'synthetic-hk-run'}} if state['ready'] else {}}
+    shared_module = SimpleNamespace(StoreError=StoreError, HK_0_2_ROLE=HK_0_2_ROLE,
+        SafeRootStore=SourceStore,read_verified_hk_0_2_pool=strict_reader)
+    loader = importlib.import_module('infrastructure.isolated_package_loader')
+    monkeypatch.setattr(loader, 'load_isolated_package_module', lambda *a, **k: shared_module)
+    # Load exactly the candidate main mapper; default imports can otherwise
+    # resolve a different canonical version in a larger pytest process.
+    spec = importlib.util.spec_from_file_location('_combined_actual_mapper', COMBINED_BASE / 'domains/preselection_materializer.py')
+    mapper = importlib.util.module_from_spec(spec); spec.loader.exec_module(mapper)
+    materializer = importlib.import_module('domains.preselection_materializer')
+    monkeypatch.setattr(materializer, 'build_shared_hk_0_2_pool', mapper.build_shared_hk_0_2_pool)
+    # Assert actual mapper has its historical status/date contract.
+    mapped = mapper.build_shared_hk_0_2_pool(tmp_path / 'shared', trade_date=TRADE_DATE,
+        signal_date=SIGNAL_DATE, reader=lambda *a, **k: pool)
+    assert mapped['status'] == 'STRICT_0_2_READY' and mapped['signal_date'] == SIGNAL_DATE
+    class Registry:
+        data_root = tmp_path / 'data'
+        shared_data_root = tmp_path / 'shared'
+        shared_package_root = tmp_path / 'package'
+        hk_universe_root = tmp_path / 'universe'
+        repo_root = COMBINED_BASE
+        hk_0_2_python_executable = Path(sys.executable)
+        shared_futu_python_executable = Path(sys.executable)
+        hk_0_2_tdx_root = tmp_path / 'tdx'
+        _verified_formal_pool_reuse = module._verified_formal_pool_reuse
+        _preselection_pools = module._preselection_pools
+        def _hk_0_2_runtime_error(self): return None
+        def _run(self, name, arguments, **kwargs):
+            assert name in {'scripts.update_hk_0_2_panel', 'ops.ensure_hk_security_master', 'scripts.materialize_hk_0_2'}, ('FORBIDDEN_A_OR_AGGREGATE_CALL', name)
+            state['calls'].append(name)
+            if mode == 'upstream_failure': return {'status': 'FAILED'}
+            if name == 'scripts.materialize_hk_0_2': state['ready'] = True
+            return {'status': 'SUCCEEDED'}
+    registry = Registry()
+    def unchanged():
+        for relative, raw in protected.items():
+            current = (day / relative).read_bytes()
+            if relative == 'manifest.json':
+                original = json.loads(raw); after = json.loads(current)
+                assert {k:v for k,v in after.items() if k != 'hkconnect_d1_top100'} == original
+            else: assert current == raw
+    return module, registry, store, state, pool, unchanged
+
+
+@pytest.mark.parametrize('mode,expected_calls', [('shared_ready', []), ('shared_missing', [
+    'scripts.update_hk_0_2_panel', 'ops.ensure_hk_security_master', 'scripts.materialize_hk_0_2'])])
+def test_combined_actual_mapper_store_exact_gate_preserves_A(tmp_path, monkeypatch, mode, expected_calls):
+    module, registry, store, state, pool, unchanged = _combined_fixture(tmp_path, monkeypatch, mode)
+    result = registry._preselection_pools(SimpleNamespace(business_date=SIGNAL_DATE, target_date=TRADE_DATE))
+    assert result['status'] == 'SUCCEEDED' and result['hk_lane_status'] == 'READY'
+    assert state['calls'] == expected_calls and result['A_producer_called'] is False
+    local = store.read_pool(TRADE_DATE, 'hkconnect_d1_top100')
+    assert local['status'] == 'READY' and local['signal_date'] == SIGNAL_DATE
+    assert local['source_manifest_sha256'] == pool.run.verification['manifest_sha256']
+    assert [(r['code_norm'],str(r['rank'])) for r in local['rows']] == [(r['code_norm'],str(r['rank'])) for r in pool.rows]
+    assert registry._verified_formal_pool_reuse(TRADE_DATE)['status'] == 'SUCCEEDED'
+    unchanged()
+
+
+@pytest.mark.parametrize('mode', ['existing_bad', 'upstream_failure', 'partial_receipt', 'manifest_entry', 'pending_journal', 'race', 'wrong_rank', 'wrong_date'])
+def test_combined_missing_retry_rejects_bad_or_racing_inputs_without_A(tmp_path, monkeypatch, mode):
+    source_mode = 'shared_missing' if mode in {'upstream_failure', 'race'} else 'shared_ready'
+    if mode in {'existing_bad', 'upstream_failure'}: source_mode = mode
+    module, registry, store, state, pool, unchanged = _combined_fixture(tmp_path, monkeypatch, source_mode)
+    day = registry.data_root / 'preselection_pools' / TRADE_DATE
+    if mode == 'partial_receipt':
+        p = day / 'receipts/hkconnect_d1_top100.json'; p.write_text('{}')
+    elif mode == 'manifest_entry':
+        p = day / 'manifest.json'; v=json.loads(p.read_bytes());v['hkconnect_d1_top100']='e'*64;p.write_text(json.dumps(v))
+    elif mode == 'pending_journal':
+        p=registry.data_root/'preselection_pending_commits'/TRADE_DATE/'foreign.json';p.parent.mkdir(parents=True);p.write_text('{}')
+    elif mode == 'wrong_rank': pool.rows[-1]['rank']='99'
+    elif mode == 'wrong_date': pool.rows[-1]['signal_date']='20261014'
+    elif mode == 'race':
+        original=registry._run
+        def run(name, *args, **kwargs):
+            result=original(name,*args,**kwargs)
+            if name=='scripts.update_hk_0_2_panel':
+                p=day/'hkconnect_d1_top100.json';p.write_text('{"foreign":true}')
+            return result
+        registry._run=run
+    result=registry._preselection_pools(SimpleNamespace(business_date=SIGNAL_DATE,target_date=TRADE_DATE))
+    assert result['status']=='FAILED' and result['A_producer_called'] is False
+    if mode == 'upstream_failure': assert result['failure_class'] == 'UPSTREAM_NOT_READY'
+    assert all(name.startswith('scripts.update_hk') or name in {'ops.ensure_hk_security_master','scripts.materialize_hk_0_2'} for name in state['calls'])
+    if mode not in {'manifest_entry'}:unchanged()
+    if mode not in {'race'}:assert not (day/'hkconnect_d1_top100.json').exists()
+
+
+def test_combined_actual_strict_source_rejects_old_proof_without_any_producer(tmp_path, monkeypatch):
+    """Real owned old run + final actual strict reader, no scoring or writes."""
+    monkeypatch.syspath_prepend(str(COMBINED_BASE))
+    loader = importlib.import_module('infrastructure.isolated_package_loader')
+    actual_loader = _combined_actual_loader().load_isolated_package_module
+    module, registry, store, state, pool, unchanged = _combined_fixture(tmp_path, monkeypatch)
+    monkeypatch.setattr(loader, 'load_isolated_package_module', actual_loader)
+    registry.shared_package_root = Path(os.environ.get('V4_HK_COMBINED_SHARED_ROOT',COMBINED_H/'isolated_loader_projection_package'))
+    registry.shared_data_root = Path.home() / 'Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data'
+    monkeypatch.setenv('V4_HK_HISTORY_RESOLUTION_POINTER', str(COMBINED_H / 'history_resolution_latest.combined.prepared.json'))
+    # Existing target15 run predates the new resolution. A correct consumer must
+    # reject it, rather than treating its failure as a permission to re-produce.
+    result = module._retry_missing_hk_only(registry, SimpleNamespace(),
+        signal_date='20261014', target_date='20261015', a_identity={'artifact_sha256':'a'*64})
+    assert result['status']=='FAILED' and result['A_producer_called'] is False
+    assert not state['calls'] and ('provenance mismatch: history_value_view' in result['reason'] or 'PROOF_STALE' in result['reason'] or 'PROOF_BINDING_MISMATCH' in result['reason'])
+    assert 'dynamic import' not in result['reason']
+    unchanged()
+
+
+def test_combined_helper_identical_in_canonical_and_actual_projection():
+    import ast
+    canonical=APP_ROOT/'infrastructure/scheduling/_executor_registry_parts/preselection.py'
+    actual=COMBINED_H/'source_projection/main/infrastructure/scheduling/executor_registry_preselection.py'
+    functions=[]
+    for p in [canonical,actual]:
+        tree=ast.parse(p.read_text());functions.append(next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_retry_missing_hk_only'))
+    assert ast.dump(functions[0])==ast.dump(functions[1])
+
+
+@pytest.mark.parametrize('race_kind', ['same_payload', 'foreign_payload', 'partial_receipt'])
+def test_combined_import_lock_rechecks_create_absent_even_identical_race(tmp_path, monkeypatch, race_kind):
+    from contextlib import contextmanager
+    module, registry, store, state, pool, unchanged = _combined_fixture(tmp_path, monkeypatch)
+    locks=importlib.import_module('infrastructure.interprocess_lock');actual_lock=locks.owned_interprocess_lock
+    mapper=importlib.import_module('domains.preselection_materializer');actual_mapper=mapper.build_shared_hk_0_2_pool
+    captured={}
+    def capture(*args, **kwargs):
+        payload=actual_mapper(*args,**kwargs);captured['payload']=payload;return payload
+    monkeypatch.setattr(mapper,'build_shared_hk_0_2_pool',capture)
+    @contextmanager
+    def race(path, **kwargs):
+        if kwargs.get('timeout_message')=='HK-only retry import lock timeout':
+            payload=dict(captured['payload'])
+            if race_kind=='partial_receipt':
+                (registry.data_root/'preselection_pools'/TRADE_DATE/'receipts/hkconnect_d1_top100.json').write_text('{"foreign":true}')
+            else:
+                if race_kind=='foreign_payload':payload['source_run_id']='foreign-run'
+                store.materialize(payload)
+            captured['racing_bytes']=(registry.data_root/'preselection_pools'/TRADE_DATE/'hkconnect_d1_top100.json').read_bytes() if race_kind!='partial_receipt' else None
+        with actual_lock(path,**kwargs) as lease:yield lease
+    monkeypatch.setattr(locks,'owned_interprocess_lock',race)
+    result=registry._preselection_pools(SimpleNamespace(business_date=SIGNAL_DATE,target_date=TRADE_DATE))
+    assert result['status']=='FAILED' and result['reason']=='HK_RETRY_LOCAL_PARTIAL_OR_RACE'
+    assert not state['calls'] and result['A_producer_called'] is False
+    if captured['racing_bytes'] is not None:
+        assert (registry.data_root/'preselection_pools'/TRADE_DATE/'hkconnect_d1_top100.json').read_bytes()==captured['racing_bytes']
+    unchanged()
+
+
+def test_combined_pending_A_journal_is_not_recovered_or_rewritten(tmp_path, monkeypatch):
+    module, registry, store, state, pool, unchanged=_combined_fixture(tmp_path,monkeypatch)
+    pending=registry.data_root/'preselection_pending_commits'/TRADE_DATE/'a_d1_premarket_pool.json'
+    pending.parent.mkdir(parents=True);pending.write_bytes(b'{"preserve":"A pending"}')
+    before=pending.read_bytes()
+    def forbidden_read(_date):raise AssertionError('A pool reader must not recover pending journal')
+    registry._verified_formal_pool_reuse=forbidden_read
+    result=registry._preselection_pools(SimpleNamespace(business_date=SIGNAL_DATE,target_date=TRADE_DATE))
+    assert result['reason']=='HK_RETRY_PENDING_JOURNAL' and result['write_performed'] is False
+    assert pending.read_bytes()==before and not state['calls'];unchanged()
+
+
+def test_combined_real_resolution_admission_and_actual_local_gate(tmp_path, monkeypatch):
+    module, registry, store, state, pool, unchanged=_combined_fixture(tmp_path,monkeypatch)
+    loader=importlib.import_module('infrastructure.isolated_package_loader')
+    # Import the immutable final resolver under a unique standalone identity;
+    # no model is loaded or scored. The strict-reader adapter below adds its
+    # actual admission validation to the existing mapper/store/gate test.
+    shared=Path.home()/'Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r3/app/upstreams/v3_shared_data'
+    spec=importlib.util.spec_from_file_location('_combined_actual_resolution',Path(os.environ.get('V4_HK_COMBINED_SHARED_ROOT',COMBINED_H/'isolated_loader_projection_package'))/'shared_data/hk_history_resolution.py')
+    resolver=importlib.util.module_from_spec(spec);spec.loader.exec_module(resolver)
+    owner=Path.home()/'Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2'
+    policy=resolver.ResolutionPolicy(owner,pointer_path=COMBINED_H/'history_resolution_latest.combined.prepared.json')
+    proof=policy._trusted_score_proof(SIGNAL_DATE);token=policy.encode_proof(proof)
+    for row, code in zip(pool.rows,proof['score_coverage']['scoreable_signal_codes'][:100]):row['code_norm']=code
+    def reader(root, *,target_date,expected_signal_date):
+        assert (target_date,expected_signal_date)==(TRADE_DATE,SIGNAL_DATE)
+        policy.verify_proof(token,end=expected_signal_date,consumer='HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1',codes=[r['code_norm'] for r in pool.rows])
+        return pool
+    monkeypatch.setattr(loader,'load_isolated_package_module',lambda *a,**kw:SimpleNamespace(
+        StoreError=StoreError,HK_0_2_ROLE=HK_0_2_ROLE,SafeRootStore=type('SourceStore',(),{'__init__':lambda self,root:None,'_entry_key':lambda self,t,r:t+'/'+r,'_load_latest':lambda self:{'entries':{TRADE_DATE+'/'+HK_0_2_ROLE:{}}}}),read_verified_hk_0_2_pool=reader))
+    result=registry._preselection_pools(SimpleNamespace(business_date=SIGNAL_DATE,target_date=TRADE_DATE))
+    assert result['status']=='SUCCEEDED' and not state['calls'];unchanged()
+    assert registry._verified_formal_pool_reuse(TRADE_DATE)['status']=='SUCCEEDED'
+    # A formerly held real code cannot be substituted into this source projection.
+    pool.rows[0]['code_norm']='HK.00165'
+    rejected=registry._verified_formal_pool_reuse(TRADE_DATE)
+    assert rejected['hk_lane_status']=='QUARANTINED' and rejected['producer_called'] is False
+    unchanged()
+
+
+def test_combined_canonical_helper_without_legacy_formal_gate(tmp_path,monkeypatch):
+    module, registry, store, state, pool, unchanged=_combined_fixture(tmp_path,monkeypatch)
+    attributes={name:getattr(registry,name) for name in ['data_root','shared_data_root','shared_package_root',
+        'hk_universe_root','repo_root','hk_0_2_python_executable','shared_futu_python_executable','hk_0_2_tdx_root','_hk_0_2_runtime_error','_run']}
+    result=module._retry_missing_hk_only(SimpleNamespace(**attributes),SimpleNamespace(),
+        signal_date=SIGNAL_DATE,target_date=TRADE_DATE,a_identity={'status':'READY'})
+    assert result['status']=='SUCCEEDED' and not state['calls'];unchanged()
+
+
+def _combined_API_payload(pool):
+    api=Path.home()/'Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-api-20261015-r4/app'
+    names_key='upstreams.v3_shared_data.shared_data.names'
+    prior_names=sys.modules.get(names_key)
+    names_spec=importlib.util.spec_from_file_location(names_key,api/'upstreams/v3_shared_data/shared_data/names.py')
+    names=importlib.util.module_from_spec(names_spec);names_spec.loader.exec_module(names)
+    sys.modules[names_key]=names
+    try:
+        spec=importlib.util.spec_from_file_location('_combined_real_API_mapper',api/'domains/preselection_materializer.py')
+        mapper=importlib.util.module_from_spec(spec);spec.loader.exec_module(mapper)
+    finally:
+        if prior_names is None:sys.modules.pop(names_key,None)
+        else:sys.modules[names_key]=prior_names
+    spec=importlib.util.spec_from_file_location('_combined_real_API_store',api/'infrastructure/preselection_pool_store.py')
+    store_module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=store_module;spec.loader.exec_module(store_module)
+    spec=importlib.util.spec_from_file_location('_combined_existing_publish_orchestrator',COMBINED_H/'PUBLICATION_ORCHESTRATOR_R3.py')
+    publisher=importlib.util.module_from_spec(spec);spec.loader.exec_module(publisher)
+    payload=mapper.build_shared_hk_0_2_pool(Path('/synthetic/shared'),trade_date=TRADE_DATE,
+        signal_date=SIGNAL_DATE,reader=lambda *a,**k:pool)
+    assert payload['status']=='STRICT_0_2_READY'
+    assert 'signal_date' not in payload and 'target_date' not in payload and 'stage_selection_eligible' not in payload
+    policy,proof=_combined_trusted_policy()
+    token=policy.encode_proof(proof)
+    # Keep scores synthetic while the identity/admission set is actually owned.
+    codes=proof['score_coverage']['scoreable_signal_codes'][:100]
+    for row,code in zip(pool.rows,codes):
+        row['code_norm']=code;row['history_resolution_identity']=__import__('hashlib').sha256(token.encode()).hexdigest()
+    pool.run.manifest={'provenance':{'history_resolution_proof':token}}
+    # Re-map after binding the synthetic rows to the real allowed-code set.
+    payload=mapper.build_shared_hk_0_2_pool(Path('/synthetic/shared'),trade_date=TRADE_DATE,
+        signal_date=SIGNAL_DATE,reader=lambda *a,**k:pool)
+    payload=publisher.complete_consumer_identity(payload,pool,policy=policy,signal_date=SIGNAL_DATE,target_date=TRADE_DATE)
+    # Exercise the existing legacy omission path explicitly after the new thin
+    # publisher has established stage eligibility from real trusted admission.
+    payload.pop('signal_date');payload.pop('target_date')
+    return payload,store_module
+
+
+@pytest.mark.parametrize('status',['READY','STRICT_0_2_READY','HK_0_2_TOP100_READY'])
+def test_combined_API_real_mapper_create_and_main_gate_infers_exact_D1(tmp_path,monkeypatch,status):
+    module,registry,store,state,pool,unchanged=_combined_fixture(tmp_path,monkeypatch)
+    payload,api_store=_combined_API_payload(pool);payload['status']=status
+    api_store.PreselectionPoolStore(registry.data_root).materialize(payload)
+    result=registry._verified_formal_pool_reuse(TRADE_DATE)
+    assert result['status']=='SUCCEEDED' and result['hk_lane_status']=='READY', {k:v for k,v in payload.items() if k!='rows'}
+    assert result['producer_called'] is False and not state['calls'];unchanged()
+
+
+@pytest.mark.parametrize('case',['partial','top_signal','top_target','row_signal_missing','row_signal_mixed',
+    'row_target_mixed','old_signal','missing_row','wrong_run','wrong_receipt','wrong_manifest',
+    'wrong_artifact','wrong_code','wrong_rank','wrong_score','nonfinite_score','wrong_proof'])
+def test_combined_API_publication_invalid_fields_do_not_pass_main_gate(tmp_path,monkeypatch,case):
+    module,registry,store,state,pool,unchanged=_combined_fixture(tmp_path,monkeypatch)
+    payload,api_store=_combined_API_payload(pool)
+    if case=='partial':payload['status']='PARTIAL_WITH_ROWS'
+    elif case=='top_signal':payload['signal_date']='20261014'
+    elif case=='top_target':payload['target_date']='20261015'
+    elif case=='row_signal_missing':payload['rows'][0].pop('signal_date')
+    elif case=='row_signal_mixed':payload['rows'][0]['signal_date']='20261014'
+    elif case=='row_target_mixed':payload['rows'][0]['target_date']='20261015'
+    elif case=='old_signal':
+        for row in payload['rows']:row['signal_date']='20261014'
+    elif case=='missing_row':payload['rows'].pop()
+    elif case=='wrong_run':payload['source_run_id']='foreign'
+    elif case=='wrong_receipt':payload['source_receipt_sha256']='f'*64
+    elif case=='wrong_manifest':payload['source_manifest_sha256']='f'*64
+    elif case=='wrong_artifact':payload['source_sha256']='f'*64
+    elif case=='wrong_code':payload['rows'][0]['code_norm']='HK.09999'
+    elif case=='wrong_rank':payload['rows'][0]['rank']='2'
+    elif case=='wrong_score':payload['rows'][0]['pool_score']=0.11
+    elif case=='nonfinite_score':payload['rows'][0]['pool_score']='nan'
+    elif case=='wrong_proof':payload['rows'][0]['history_resolution_identity']='f'*64
+    # Store validates the source contract before the main's stronger gate. Both
+    # closed boundaries are acceptable; neither may enter any producer.
+    try:api_store.PreselectionPoolStore(registry.data_root).materialize(payload)
+    except ValueError:
+        assert not state['calls'];unchanged();return
+    result=registry._verified_formal_pool_reuse(TRADE_DATE)
+    assert result['status']=='FAILED' and result['hk_lane_status']=='QUARANTINED'
+    assert result['producer_called'] is False and not state['calls'];unchanged()
+
+
+from functools import lru_cache
+
+@lru_cache(maxsize=1)
+def _combined_trusted_policy():
+    path=Path(os.environ.get('V4_HK_COMBINED_SHARED_ROOT',COMBINED_H/'isolated_loader_projection_package'))/'shared_data/hk_history_resolution.py'
+    spec=importlib.util.spec_from_file_location('_combined_owned_admission_policy',path)
+    resolver=importlib.util.module_from_spec(spec);spec.loader.exec_module(resolver)
+    # The standalone loader needs the unchanged exact master dependency beside
+    # its source. The projection fixture below gives it a full code-only tree.
+    owner=Path.home()/'Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2'
+    policy=resolver.ResolutionPolicy(owner,pointer_path=COMBINED_H/'history_resolution_latest.combined.prepared.json')
+    return policy,policy._trusted_score_proof(SIGNAL_DATE)
+
+
+@lru_cache(maxsize=1)
+def _combined_actual_loader():
+    policy_name='infrastructure.isolated_import_policy'
+    previous=sys.modules.get(policy_name)
+    spec=importlib.util.spec_from_file_location(policy_name,COMBINED_BASE/'infrastructure/isolated_import_policy.py')
+    policy=importlib.util.module_from_spec(spec);sys.modules[policy_name]=policy;spec.loader.exec_module(policy)
+    try:
+        name='_combined_immutable_main_loader'
+        spec=importlib.util.spec_from_file_location(name,COMBINED_BASE/'infrastructure/isolated_package_loader.py')
+        loader=importlib.util.module_from_spec(spec);sys.modules[name]=loader;spec.loader.exec_module(loader)
+    finally:
+        if previous is None:sys.modules.pop(policy_name,None)
+        else:sys.modules[policy_name]=previous
+    return loader
+
+
+def _combined_projection_shared():
+    return Path(os.environ.get('V4_HK_COMBINED_SHARED_ROOT',COMBINED_H/'isolated_loader_projection_package'))
+
+
+def test_combined_actual_main_isolated_loader_accepts_real_proof_rejects_00165(monkeypatch):
+    import copy,hashlib
+    loader=_combined_actual_loader()
+    before=list(sys.path)
+    shared_before={k:v for k,v in sys.modules.items() if k=='shared_data' or k.startswith('shared_data.')}
+    module=loader.load_isolated_package_module(_combined_projection_shared(),package_directory='shared_data',
+        module_leaf='hk_0_2',namespace_prefix='hk_history_cache_gate')
+    root=Path.home()/'Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data'
+    monkeypatch.setenv('V4_HK_HISTORY_RESOLUTION_POINTER',str(COMBINED_H/'history_resolution_latest.combined.prepared.json'))
+    policy=module.policy_for_shared(root)
+    for signal in ['20261014','20261015']:
+        proof=policy._trusted_score_proof(signal);token=policy.encode_proof(proof)
+        chosen=proof['score_coverage']['scoreable_signal_codes'][0]
+        assert policy.verify_proof(token,end=signal,codes=[chosen])==proof
+        forged=copy.deepcopy(proof);held='HK.00165'
+        forged['excluded_codes'].remove(held);forged['allowed_codes'].append(held);forged['allowed_codes'].sort();forged['excluded_code_count']-=1
+        forged['score_coverage']['quality_quarantined_codes'].remove(held)
+        forged['score_coverage']['scoreable_signal_codes'].append(held);forged['score_coverage']['scoreable_signal_codes'].sort()
+        with pytest.raises(Exception,match='HK_HISTORY_RESOLUTION_SCORE_ADMISSION_MISMATCH'):
+            policy.verify_proof(policy.encode_proof(forged),end=signal,codes=[held])
+    assert sys.path==before
+    assert {k:v for k,v in sys.modules.items() if k=='shared_data' or k.startswith('shared_data.')}==shared_before
+
+
+@pytest.mark.parametrize('existing_slot',[False,True])
+def test_combined_real_master_first_reader_missing_slot_is_retried_only_when_absent(tmp_path,monkeypatch,existing_slot):
+    module,registry,store,state,pool,unchanged=_combined_fixture(tmp_path,monkeypatch,'upstream_failure')
+    loader=importlib.import_module('infrastructure.isolated_package_loader')
+    actual=_combined_actual_loader()
+    monkeypatch.setattr(loader,'load_isolated_package_module',actual.load_isolated_package_module)
+    registry.shared_package_root=_combined_projection_shared()
+    registry.shared_data_root.mkdir(parents=True)
+    if existing_slot:
+        shared_module=actual.load_isolated_package_module(registry.shared_package_root,package_directory='shared_data',module_leaf='hk_0_2',namespace_prefix='hk_history_cache_gate')
+        # No security master and no run files: an existing broken slot is not
+        # a license to re-enter the producer, regardless of read order.
+        (registry.shared_data_root/'latest.json').write_text(json.dumps({
+            'schema_version':shared_module.SafeRootStore(registry.shared_data_root)._load_latest()['schema_version'],
+            'entries':{TRADE_DATE+'/'+HK_0_2_ROLE:{'run_id':'broken-existing-run'}}}))
+    assert not (registry.shared_data_root/'assets/hk_security_master').exists()
+    result=registry._preselection_pools(SimpleNamespace(business_date=SIGNAL_DATE,target_date=TRADE_DATE))
+    assert result['status']=='FAILED' and result['A_producer_called'] is False
+    if existing_slot:
+        assert not state['calls'] and result['failure_class']=='HK_HISTORY_RESOLUTION_CACHE_REJECTED'
+    else:
+        assert state['calls']==['scripts.update_hk_0_2_panel'] and result['failure_class']=='UPSTREAM_NOT_READY'
+    assert 'dynamic import' not in result['reason'];unchanged()

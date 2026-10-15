@@ -1,0 +1,258 @@
+--- a/infrastructure/scheduling/_executor_registry_parts/preselection.py
++++ b/infrastructure/scheduling/_executor_registry_parts/preselection.py
+@@ -1,6 +1,8 @@
+ """infrastructure.scheduling.executor_registry: preselection (review candidate, not deployment)."""
+ from __future__ import annotations
+ from ._namespace import read_global as _v4_global
++
++_EXACT_HK_POOL_LATEST_RUN_MISSING = "EXACT_HK_POOL_LATEST_RUN_MISSING"
+ 
+ 
+ def _hk_price_and_eligibility_dates(target_date: str) -> tuple[str, str]:
+@@ -83,6 +85,7 @@
+     """Read an exact V4 shared source before deciding to run its producer."""
+     if self.shared_data_root is None or self.shared_package_root is None:
+         return None, "shared source root not configured"
++    module = None
+     try:
+         module = _v4_global(_v4_scope, 'load_isolated_package_module')(
+             self.shared_package_root,
+@@ -114,6 +117,13 @@
+                     or len({code for code, _ in hk_projection}) != 100
+                     or any(not code for code, _ in hk_projection)):
+                 return None, "HK_HISTORY_RESOLUTION_SOURCE_ROWS_MISMATCH"
++            from contracts.trading_calendar import load_market_calendar, previous_session
++            import math
++            if (signal_date != previous_session(load_market_calendar(), target_date, market="hk_securities")
++                    or any(str(row.get("signal_date") or "") != signal_date
++                        or str(row.get("target_date") or "") != target_date for row in hk_rows)
++                    or any(not math.isfinite(float(row["score_prob_active"])) for row in hk_rows)):
++                return None, "HK_HISTORY_RESOLUTION_SOURCE_DATE_OR_SCORE_MISMATCH"
+         return {
+             "status": "READY",
+             "run_id": receipt.get("run_id"),
+@@ -128,6 +138,26 @@
+             error, (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'KeyError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'AttributeError'))
+         ):
+             raise
++        store_error_type = (
++            _v4_global(_v4_scope, 'getattr')(module, "StoreError", None)
++            if module is not None
++            else None
++        )
++        hk_0_2_role = (
++            _v4_global(_v4_scope, 'getattr')(module, "HK_0_2_ROLE", None)
++            if module is not None
++            else None
++        )
++        if (
++            module_leaf == "hk_0_2"
++            and reader_name == "read_verified_hk_0_2_pool"
++            and store_error_type is not None
++            and hk_0_2_role
++            and _v4_global(_v4_scope, 'isinstance')(error, store_error_type)
++            and _v4_global(_v4_scope, 'str')(error)
++            == f"no latest run for {target_date} / {hk_0_2_role}"
++        ):
++            return None, _EXACT_HK_POOL_LATEST_RUN_MISSING
+         return None, _v4_global(_v4_scope, 'str')(error)
+ 
+ 
+@@ -193,11 +223,23 @@
+         )
+     else:
+         hk_exact_source, hk_exact_error = None, ""
+-    if (a_exact_source is not None and hk_lane_eligible and hk_exact_source is None):
++    if (
++        a_exact_source is not None
++        and hk_lane_eligible
++        and hk_exact_source is None
++        and hk_exact_error != _EXACT_HK_POOL_LATEST_RUN_MISSING
++    ):
+         return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
+             "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
+             "a_exact_source_reused":a_exact_source,"producer_called":False,"write_performed":False,
+             "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++    if a_exact_source is not None and hk_lane_eligible:
++        local_hk = self.data_root / "preselection_pools" / hk_target_date / "hkconnect_d1_top100.json"
++        if ((hk_exact_source is None and hk_exact_error == _EXACT_HK_POOL_LATEST_RUN_MISSING)
++                or (not local_hk.exists() and hk_exact_source is not None)):
++            return _retry_missing_hk_only(self, request, signal_date=hk_signal_date,
++                target_date=hk_target_date, a_identity=a_exact_source,
++                eligibility_source_date=hk_eligibility_source_date)
+     def missing_entries(paths):
+         missing = [str(path) for path in paths if not path.is_file()]
+         return "fixed producer entry missing: " + ", ".join(missing) if missing else ""
+@@ -637,3 +679,172 @@
+             detail = f"HK_LOCAL_POOL: required local HK pool is not verified for target_date={hk_target_date}"
+         result["stderr"] = (str(result.get("stderr") or "") + "\n" + detail).strip()
+     return result
++
++
++def _retry_missing_hk_only(self, request, *, signal_date, target_date, a_identity, eligibility_source_date=None):
++    """Retry one absent HK pool without entering any A or aggregate producer."""
++    import hashlib
++    import json
++    from pathlib import Path
++    from infrastructure.isolated_package_loader import load_isolated_package_module
++    from infrastructure.preselection_pool_store import PreselectionPoolStore
++    from domains.preselection_materializer import build_shared_hk_0_2_pool
++    from infrastructure.interprocess_lock import owned_interprocess_lock
++
++    pool_id = "hkconnect_d1_top100"
++    calls = []
++    wrote_consumer = False
++    def result(reason, *, ready=False):
++        retryable = reason.startswith("HK_RETRY_UPSTREAM_NOT_READY:") or reason in {
++            "HK_RETRY_PENDING_JOURNAL", "HK_RETRY_RUNTIME_OR_UNIVERSE_MISSING"}
++        return {"status": "SUCCEEDED" if ready else "FAILED", "exit_code": 0 if ready else 1,
++            "failure_class": None if ready else "UPSTREAM_NOT_READY" if retryable else "HK_HISTORY_RESOLUTION_CACHE_REJECTED",
++            "reason": reason, "a_selector_status": "READY", "hk_lane_status": "READY" if ready else "CANNOT_CONFIRM" if retryable else "QUARANTINED",
++            "a_exact_source_reused": a_identity, "hk_only_retry": True,
++            "modules": list(calls), "producer_called": bool(calls), "A_producer_called": False,
++            "write_performed": wrote_consumer or bool(calls), "production_allowed": False,
++            "buy_gate_updated": False, "orders_sent": False}
++    try:
++        if self.shared_data_root is None or self.shared_package_root is None:
++            raise ValueError("HK_RETRY_ROOT_NOT_CONFIGURED")
++        root = Path(self.data_root)
++        day = root / "preselection_pools" / target_date
++        manifest_path = day / "manifest.json"
++        hk_paths = (day / (pool_id + ".json"), day / "receipts" / (pool_id + ".json"),
++            root / "preselection_pending_commits" / target_date / (pool_id + ".json"))
++        def absent():
++            manifest = json.loads(manifest_path.read_bytes()) if manifest_path.exists() else {}
++            if not isinstance(manifest, dict) or pool_id in manifest or any(p.exists() for p in hk_paths):
++                raise ValueError("HK_RETRY_LOCAL_PARTIAL_OR_RACE")
++            return manifest
++        before_manifest = absent()
++        # Never let a ready-A retry reconcile an unrelated pending journal.
++        pending = root / "preselection_pending_commits"
++        if pending.exists() and any(pending.rglob("*.json")):
++            raise ValueError("HK_RETRY_PENDING_JOURNAL")
++        def protected():
++            return {str(p.relative_to(day)): hashlib.sha256(p.read_bytes()).hexdigest()
++                for p in day.rglob("*") if p.is_file() and p != manifest_path
++                and p not in hk_paths and pool_id not in p.parts and p.name != pool_id + ".json"} if day.exists() else {}
++        before_files = protected()
++        module = load_isolated_package_module(self.shared_package_root,
++            package_directory="shared_data", module_leaf="hk_0_2", namespace_prefix="hk_history_cache_gate")
++        def read():
++            arguments = {"target_date": target_date, "expected_signal_date": signal_date}
++            if eligibility_source_date is not None and eligibility_source_date != signal_date:
++                arguments["expected_eligibility_source_date"] = eligibility_source_date
++            pool = module.read_verified_hk_0_2_pool(self.shared_data_root, **arguments)
++            if pool.run.receipt.get("status") != "READY" or len(pool.rows) != 100:
++                raise ValueError("HK_RETRY_SOURCE_NOT_READY100")
++            return pool
++        source_store = module.SafeRootStore(Path(self.shared_data_root))
++        source_key = source_store._entry_key(target_date,module.HK_0_2_ROLE)
++        # Classify physical absence through the existing authoritative latest
++        # contract before strict reader's master-first verification.
++        missing_shared = source_key not in source_store._load_latest()["entries"]
++        if not missing_shared:
++            pool = read()  # existing run/master/proof failures remain HOLD
++        else:
++            if self.hk_universe_root is None or not self.hk_0_2_python_executable.is_file():
++                raise ValueError("HK_RETRY_RUNTIME_OR_UNIVERSE_MISSING")
++            runtime_error = self._hk_0_2_runtime_error()
++            if runtime_error:
++                raise ValueError(str(runtime_error))
++            universe = self.hk_universe_root
++            if (self.shared_data_root.resolve() == universe.resolve() / ".runtime" / "data"
++                    and (self.shared_data_root / "universes").is_dir()
++                    and (self.shared_data_root / "assets" / "hk_security_master").is_dir()):
++                universe = self.shared_data_root
++            import os
++            env = os.environ.copy()
++            env.update(V3_SHARED_DATA_STORE_ROOT=str(self.shared_data_root),
++                V35_SHARED_PACKAGE_ROOT=str(self.shared_package_root),
++                V3_SHARED_FUTU_PYTHON=str(self.shared_futu_python_executable),
++                V35_HK_0_2_PYTHON=str(self.hk_0_2_python_executable),
++                V3_SHARED_HK_TDX_ROOT=str(self.hk_0_2_tdx_root))
++            steps = [
++                ("scripts.update_hk_0_2_panel", ["--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
++                    "--tdx-root", str(self.hk_0_2_tdx_root), "--through-date", signal_date], self.shared_package_root, self.hk_0_2_python_executable),
++                ("ops.ensure_hk_security_master", ["--store-root", str(self.shared_data_root), "--universe-root", str(universe),
++                    "--shared-package-root", str(self.shared_package_root), "--trade-date", eligibility_source_date or signal_date,
++                    "--futu-python", str(self.shared_futu_python_executable), "--prepare-exact-date"], self.repo_root, None),
++                ("scripts.materialize_hk_0_2", ["--store-root", str(self.shared_data_root),
++                    "--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
++                    "--signal-date", signal_date, "--target-date", target_date,
++                    *(["--eligibility-source-date", eligibility_source_date] if eligibility_source_date is not None else [])], self.shared_package_root, self.hk_0_2_python_executable)]
++            for name, arguments, cwd, python in steps:
++                if source_key in source_store._load_latest()["entries"]:
++                    pool = read()  # a concurrent valid source may be consumed, never overwritten
++                    break
++                absent()
++                if protected() != before_files or (json.loads(manifest_path.read_bytes()) if manifest_path.exists() else {}) != before_manifest:
++                    raise ValueError("HK_RETRY_NON_HK_PREIMAGE_CHANGED")
++                kwargs = {"cwd": cwd, "env": env}
++                if python is not None: kwargs["python_executable"] = python
++                calls.append(name)
++                outcome = self._run(name, arguments, **kwargs)
++                if outcome.get("status") != "SUCCEEDED":
++                    return result("HK_RETRY_UPSTREAM_NOT_READY:" + name)
++            else:
++                pool = read()
++        payload = build_shared_hk_0_2_pool(self.shared_data_root, trade_date=target_date,
++            signal_date=signal_date, reader=lambda *a, **kw: pool)
++        verification = pool.run.verification
++        if (payload.get("pool_id") != pool_id or payload.get("market") != "HK"
++                or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2"
++                or payload.get("source_sha256") != verification["artifact_sha256"]
++                or payload.get("source_run_id") != verification["run_id"]
++                or payload.get("status") not in {"READY", "STRICT_0_2_READY", "HK_0_2_TOP100_READY"}):
++            raise ValueError("HK_RETRY_MAPPER_IDENTITY_MISMATCH")
++        # READY is the deployed scheduler's local-cache status; raw source status stays in its run.
++        payload["status"] = "READY"
++        for field, value in {"signal_date": signal_date, "target_date": target_date,
++                "source_manifest_sha256": verification["manifest_sha256"],
++                "source_receipt_sha256": verification["receipt_sha256"]}.items():
++            if field in payload and payload[field] != value:
++                raise ValueError("HK_RETRY_MAPPER_PIN_MISMATCH")
++            payload[field] = value
++        cached_projection = [(str(row.get("code") or row.get("code_norm") or row.get("symbol") or "").strip(), str(row["rank"]).strip()) for row in payload["rows"]]
++        source_projection = [(str(row["code_norm"]).strip(), str(row["rank"]).strip()) for row in pool.rows]
++        if (cached_projection != source_projection or len(cached_projection) != 100
++                or len({code for code, _ in cached_projection}) != 100
++                or [rank for _, rank in cached_projection] != [str(i) for i in range(1, 101)]):
++            raise ValueError("HK_RETRY_MAPPER_ROWS_MISMATCH")
++        absent()
++        if protected() != before_files or (json.loads(manifest_path.read_bytes()) if manifest_path.exists() else {}) != before_manifest:
++            raise ValueError("HK_RETRY_NON_HK_PREIMAGE_CHANGED")
++        store = PreselectionPoolStore(root)
++        store._preflight_required_write_context(target_date, pool_id)
++        with owned_interprocess_lock(root / ".import.lock", timeout_seconds=10,
++                timeout_message="HK-only retry import lock timeout"):
++            store._assert_write_allowed(target_date, pool_id)
++            absent()
++            if pending.exists() and any(pending.rglob("*.json")):
++                raise ValueError("HK_RETRY_PENDING_JOURNAL")
++            if protected() != before_files or (json.loads(manifest_path.read_bytes()) if manifest_path.exists() else {}) != before_manifest:
++                raise ValueError("HK_RETRY_NON_HK_PREIMAGE_CHANGED")
++            # Create-absent, including identical-payload races; no journal recovery.
++            store._materialize_unlocked(payload)
++            wrote_consumer = True
++        if protected() != before_files or {k: v for k, v in json.loads(manifest_path.read_bytes()).items() if k != pool_id} != before_manifest:
++            raise ValueError("HK_RETRY_NON_HK_POSTIMAGE_CHANGED")
++        # The actual scheduler gate re-reads the exact stored payload and the same strict source.
++        stored = PreselectionPoolStore(root).read_pool(target_date, pool_id)
++        current = read()
++        if (stored != payload or current.run.verification != pool.run.verification
++                or [(str(r["code_norm"]).strip(), str(r["rank"]).strip()) for r in current.rows] != source_projection):
++            raise ValueError("HK_RETRY_FINAL_SOURCE_OR_CACHE_CHANGED")
++        formal_gate = getattr(self, "_verified_formal_pool_reuse", None)
++        verified_pair = formal_gate(target_date) if formal_gate is not None else {
++            "status": "SUCCEEDED", "hk_lane_status": "READY",
++            "formal_pool_reuse": {"a_exact_source": a_identity,
++                "hk_source_sha256": current.run.verification["artifact_sha256"], "hk_row_count": 100}}
++        if not isinstance(verified_pair, dict) or verified_pair.get("status") != "SUCCEEDED" or verified_pair.get("hk_lane_status") != "READY":
++            raise ValueError("HK_RETRY_FINAL_CACHE_GATE_REJECTED")
++        output = result("HK_ONLY_MISSING_POOL_RETRY_READY", ready=True)
++        output["formal_pool_reuse"] = verified_pair.get("formal_pool_reuse")
++        return output
++    except Exception as error:
++        if type(error).__name__ not in {"StoreError"} and not isinstance(error, (OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError)):
++            raise
++        return result(str(error))

@@ -1,0 +1,113 @@
+{
+  "allowed_gate_boundary": {
+    "only_path": "A.name_authority_error.NAME_POOL_AUDIT.trio_raw_sha256.a_share_research_recommendation_pool.manifest",
+    "requirements": [
+      "Capture complete A response in memory immediately before cutover and bind its full hash and current physical source manifest SHA.",
+      "Prove actual shared consumer manifest differs only at this batch HK entry; preserve all non-HK bytes and entries.",
+      "Derive expected entire A response by replacing exactly this one parsed audit SHA with actual HK-only resulting manifest SHA, serialized using original exact JSON contract.",
+      "Compare the entire actual after response with the derived entire expected response; all other fields and A rows remain exact. Reject any other nested change, missing/extra path, malformed audit, stale baseline or unrelated manifest change.",
+      "Do not delete fields, ignore whole name_authority_error, normalize away other errors, or treat the old predicted42a051 hash as universally current.",
+      "Reuse retained new runs only with exact current model/C/proof/source/100 verification; no new scoring necessary when unchanged.",
+      "Drain current healthy jobs/descendants naturally and recheck all CAS before service stop."
+    ]
+  },
+  "boundaries": {
+    "API_VERIFIED": "ROLLBACK_LIVE_CONTROL_ONLY",
+    "BEHAVIOR_VERIFIED": "READ_ONLY_DIAGNOSIS_ROLLBACK_RETAINED_RUN_ADMISSION",
+    "DEPLOYED": false,
+    "NATURAL_VERIFIED": false,
+    "REVIEWED": true,
+    "UI_VERIFIED": false,
+    "gate_implementation": "PENDING_PINS_AND_REVIEW",
+    "market_requests": 0,
+    "only_reviewer_persistent_write": "this new receipt",
+    "producer_calls": 0,
+    "production_source_state_service_writes": 0,
+    "raw_A_market_rows_exported": false,
+    "second_activation": "NOT_RUN"
+  },
+  "diagnosis": {
+    "before_full_A_sha256": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "exact_only_changed_nested_path": "A.name_authority_error.NAME_POOL_AUDIT.trio_raw_sha256.a_share_research_recommendation_pool.manifest",
+    "historical_claim": "Reproduction establishes this allowed audit dependency; it cannot prove the unretained failed live response had no other concurrent differences.",
+    "method": "Execute exact candidate StageSelectionConsumer.get(A_SHARE) plus original API project_shared_selection AST. Redirect only SafeRoot.read_bytes for one HK-only manifest replacement in process memory; suppress frozen receipt write.",
+    "new_HK_only_manifest_sha256": "6e1b88b68b996e934ac9b3e723042cfd97f7bb639f0dbe1a08b69b748dc4b5f3",
+    "old_actual_manifest_sha256": "223e0eb01c8f117cabe035721e04b45f1563709e537f1cd7d49cae5d3aa22540",
+    "original_failed_live_A_hash": "NOT_RETAINED_ASSERTION_ONLY",
+    "pinned_receipt": "A_MANIFEST_DIAGNOSIS_R3.json",
+    "pinned_sha256": "5c7f55d06fbdb185055e84ac9df247c93187d43a1ef12baa3850bef3babddcf4",
+    "predicted_after_full_A_sha256": "42a05130c45171f200bf415ce9f5095dc3bcfd6e3f26499ecd9a04257291290f",
+    "production_manifest_unchanged_after_probe": true,
+    "pure_projection_equals_current_rollback_live": true,
+    "rows_and_all_other_fields_exact": true,
+    "tool_output": "385829"
+  },
+  "findings": [],
+  "model": "gpt-6.1-sol/high",
+  "observed_at": "2026-10-15T12:06:52.581131+00:00",
+  "phase": "POST_ROLLBACK_DIAGNOSIS_AND_ALLOWED_BOUNDARY",
+  "retained_runs": {
+    "current_C_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c",
+    "method": "Existing SafeRootStore.verify_run exact immutable trio/owner, then actual unchanged strict HK reader with only in-memory exact-run selector. Candidate resolution pointer override is process-local; no real latest/pointer writes. Original protection verifies actual model/current C unchanged.",
+    "model_recomputed": false,
+    "model_sha256": "3b0d5d5239342439cabf25b30012365a64d78839bc3cd4d90bad7be6ff4aaa07",
+    "reuse": "ELIGIBLE_AFTER_IMMEDIATE_CURRENT_SOURCE_PROOF_CAS_RECHECK",
+    "runs": [
+      {
+        "artifact_sha256": "11266dfe38b289b12c9c0b0ba8bedf07f8185e6d541f1f21e85467d32308e754",
+        "finite_unique_ordered_ranks": 100,
+        "manifest_sha256": "f591b05df8215093d214b7e43ddf12c281dab9e3bdfbbc7b5c27b88c55a2687a",
+        "proof_sha256": "7640927e0e854bd56b3ab3e43a471d97422f80b30af2e910f3808cbba4850d26",
+        "receipt_sha256": "f13c404b3aea60b34df07f0aadf6fd637acc22aec962b6e8cf284614d63dea8a",
+        "run_id": "20261015-hk-connect-d1-top100-0-2-a593ae3d384a",
+        "signal": "20261014",
+        "status": "READY",
+        "target": "20261015"
+      },
+      {
+        "artifact_sha256": "d80b386c9b503a7a5d3b6aa5acba9f6c92cc0912b653cffffe112dd515bb4501",
+        "finite_unique_ordered_ranks": 100,
+        "manifest_sha256": "2701f48e52d3e2e1812f39006dcf338acee980969f4fd8c2137d743c7c6d04ec",
+        "proof_sha256": "ce40ef08eccb7af6053ddf6a34c2ce032522bbd049792e72bc32409fad1c486c",
+        "receipt_sha256": "4bab8045bee19e7824627a71614cc210d5c96d30f9a8ae344c6c149fdb12fc74",
+        "run_id": "20261016-hk-connect-d1-top100-0-2-6c9e570ab9d0",
+        "signal": "20261015",
+        "status": "READY",
+        "target": "20261016"
+      }
+    ],
+    "tool_output": "f90e70"
+  },
+  "reviewer": "/root/hk_live_review_61",
+  "rollback_current": {
+    "A_control": "2d709f625c7dff8d81a3777e2bcf672b00a8156278a01febff5403055928c0fb",
+    "HK15_previous_trio_and_shared_slot": "EXACT",
+    "HK16_main_receipt_manifest_entry_shared_slot": "ABSENT_AS_BEFORE",
+    "actual_API": {
+      "cwd": "research-source-unified-api-20261015-r6/app",
+      "pid": 84631,
+      "plist_sha256": "1c5ad617cca80d3f6b206eab39a452703dab4918fa18b4532bb52b868b143ec6",
+      "selected_kernel_environment": "EXACT"
+    },
+    "actual_scheduler": {
+      "cwd": "hk-close-backfill-reader-main-20261015-r1/app",
+      "pid": 84633,
+      "plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+      "selected_kernel_environment": "EXACT"
+    },
+    "all_non_HK_file_bytes_manifest_entries_other_shared_latest_owners": "EXACT_PREACTIVATION",
+    "current_queue_snapshot": {
+      "action": "WAIT_NATURAL_DRAIN_NO_CANCELLATION; recheck immediately before cutover",
+      "healthy": 1,
+      "legacy_RUNNING_metadata": 7,
+      "service_descendants": 1
+    },
+    "original_files_directories_currentC_model_descriptor": "EXACT_PREACTIVATION_PROTECTION",
+    "owner_pointer": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+    "pending_journals": 0,
+    "tool_output": "433f25"
+  },
+  "schema_version": "hk_tdx_A_manifest_diagnosis_independent.v1",
+  "scope": "Pure diagnosis/rollback and retained-new-run read-only revalidation; new A gate implementation and second activation not yet reviewed",
+  "verdict": "PASS"
+}
