@@ -1,0 +1,144 @@
+{
+  "schema_version": "v4.oversold_daily_live_cache_independent_review.v1",
+  "reviewer_identity": "oversold_daily_review",
+  "review_verdict": "PASS_WITH_CANNOT_CONFIRM",
+  "controlled_behavior": "PASS_PARTIAL_TERMINAL",
+  "runtime_identity": {
+    "launchd_label": "com.lexi.v35.scheduler",
+    "state": "running",
+    "pid": 39211,
+    "release_id": "oversold-daily-cache-20261016-r1",
+    "release_manifest_sha256": "03f1c61fe881039b286bd4d0d9acbcb29d32593747e7c0119b8e3c261237bfb2",
+    "active_plist_sha256": "12fec20f665af3ce0a20ffd2c989684ff580c36ae2d932fdc285bb798e93d137",
+    "manager_config_sha256": "65684e5eb7657390747c089db74047d6a2c67d7f5de1bd3fe757a62f120965ca",
+    "source_sha256": {
+      "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py": "7b09a85431b2d4398de4f057a755b8b7398e82e26611297df9ba2efab8dbb250",
+      "v4/manager_workbench/oversold_daily.py": "9ebeed117ee883805ac8a5e3331cb53fa688892905dd8292912ee5ba4b20099e"
+    }
+  },
+  "controlled_recovery": {
+    "state": "PARTIAL_TERMINAL",
+    "source_hk_session": "20261015",
+    "target_date": "20261016",
+    "run_id": "c1c5e85d691c46f98086b74053fe8ff8",
+    "capture_run_id": "bd87816e25bc0bda5f1f95e9",
+    "capture_attempts": 3,
+    "job_attempts": 2,
+    "classifier_migration_id": "tdxpy-response-header-recv-fails-20261016-r1",
+    "classifier_migration_attempts": 1,
+    "classifier_migration_source_verified": true,
+    "source_cutoff_hkt": "2026-10-16T03:34:12.977779+08:00",
+    "capture_available_at_hkt": "2026-10-16T03:34:09.286202+08:00",
+    "plan_generated_at_hkt": "2026-10-16T03:34:44.994185+08:00",
+    "terminal_reason": "STABLE_OWNER_GAPS_RETAINED",
+    "panel_manifest_sha256": "bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0",
+    "master_manifest_sha256": "57e15f3cd79535ea7d566a2b1f560692b148ef932b72d8fa14c662ef853b2898",
+    "capture_manifest_sha256": "56585e747e7b33f1b48d7edf36aaeb1a7d7ea9225ccf068ed0bbfd0be2bb051d",
+    "capture_raw_sha256": "bd87816e25bc0bda5f1f95e9df873fcc95dac37e4bd209244d46c5817352ad43",
+    "cache": {
+      "scope_count": 689,
+      "ready": 567,
+      "unassessed": 122,
+      "cache_hits": 567,
+      "successful_network_bar_requests": 0,
+      "failed_transport_attempts": 244,
+      "failure_type": "ResponseHeaderRecvFails",
+      "per_endpoint": 122
+    }
+  },
+  "api_readback": {
+    "status": "PASS",
+    "method": "GET",
+    "http_status": 200,
+    "envelope_state": "PARTIAL",
+    "url": "http://127.0.0.1:8873/api/v4/manager-workbench/days/20261016/recommendations/OVERSOLD?phase=NEXT_DAY&run_id=c1c5e85d691c46f98086b74053fe8ff8&offset=0&limit=1",
+    "oversold_counts": {
+      "scope_rows": 689,
+      "selected": 21,
+      "watch": 171,
+      "not_selected": 373,
+      "unassessed": 124,
+      "observation_only": 0
+    },
+    "us_mapping_state": "INPUT_MISSING",
+    "us_mapping_gap": "US_MAPPING_EXACT_DATE_BINDING_MISSING",
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "idempotency": {
+    "status": "PASS_IDEMPOTENT_TERMINAL_TICK",
+    "checked_at_hkt": "2026-10-16T03:38:05.944526+08:00",
+    "driver_result": "PARTIAL_TERMINAL",
+    "store_mutations_attempted": 0,
+    "new_futures_queued": 0,
+    "verified_artifacts": {
+      "daily_cursor": "e0294184743708b3668eff7b58633a2976572d1a6e348a705a7a9b22eed58f47",
+      "new_plan": "159eacebdce03fef028f92d98cd6e7641c9cf8315ca47d4991d667a56e802dd1",
+      "new_attempt": "69e1cd03f835cc2da13a40ce39f720cc4b69a32148b69fc7254cbdf185e3d50b",
+      "tdx_capture_manifest": "56585e747e7b33f1b48d7edf36aaeb1a7d7ea9225ccf068ed0bbfd0be2bb051d",
+      "tdx_capture_raw": "bd87816e25bc0bda5f1f95e9df873fcc95dac37e4bd209244d46c5817352ad43",
+      "legacy_nextday_cursor": "af18f077776ec332eb8187ec54f895df1a3f23a9e75d79baec08aaf102eadf49",
+      "legacy_nextday_plan": "b769e3bf4cea635cf50e546e639a9193493e783a3299065d0d76549fe1ea0f99"
+    },
+    "prior_failed_run": {
+      "run_id": "0c72d7ade78249d280b03418e71db681",
+      "retained": true,
+      "current_sha256": "cd9ec2eee28ec9089bb8eb2e06d8c687eba1fed3f14f14e503cf06b888e97c8c",
+      "tick_before_after_sha256": "CANNOT_CONFIRM"
+    }
+  },
+  "plan_history": {
+    "api_versions": [
+      "c1c5e85d691c46f98086b74053fe8ff8",
+      "0c72d7ade78249d280b03418e71db681",
+      "5cb9b603e183428cab8de8990abcb7e3",
+      "04fd6d63b3bc4a9e8fabe7a481c12d4c",
+      "18425e50e6294f15a6bc02ac881c5af2"
+    ],
+    "legacy_nextday_source_id": "18425e50e6294f15a6bc02ac881c5af2",
+    "prior_failed_run_id": "0c72d7ade78249d280b03418e71db681"
+  },
+  "findings": [
+    {
+      "priority": "P2",
+      "status": "CANNOT_CONFIRM",
+      "claim": "The prior failed automatic-recovery plan 0c72 was unchanged across the 03:38 idempotency tick.",
+      "evidence": "Corrected deployment receipt explicitly excludes 0c72 from verified before/after hashes; current snapshot SHA is cd9ec2eee28ec9089bb8eb2e06d8c687eba1fed3f14f14e503cf06b888e97c8c and it remains in API plan history. Its file mtime predates the tick; no overwrite is observed."
+    }
+  ],
+  "prior_source_review": {
+    "status": "PASS_CACHE_FIRST_REPAIR",
+    "focused_tests": "18 passed",
+    "review_path": "docs/handoffs/oversold_daily_automation_20261016/CACHE_FIRST_INDEPENDENT_REVIEW.md",
+    "review_sha256": "fcd4541507fd76baa3b49de27d150f01f902e3eb611a78c6a9504786d617cab8",
+    "nonblocking_p2_limits": [
+      "corrupt-cache fallback behavior CANNOT_CONFIRM",
+      "automated negative legacy-capture verification coverage CANNOT_CONFIRM"
+    ]
+  },
+  "ui_evidence": {
+    "status": "UI_VERIFIED",
+    "source": "parent CUA receipt reused; not rerun by this reviewer",
+    "path": "docs/handoffs/oversold_daily_automation_20261016/UI_REVIEW.md",
+    "sha256": "12ef319bd8918b8f3bf7b32798d1fb01a09fd4e1f8f2b55e3f71a02255b8d2db"
+  },
+  "limits": {
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+    "economic_or_investment_validity": "CANNOT_CONFIRM",
+    "full_coverage_claim": false
+  },
+  "review_actions": {
+    "read_only_api_get": true,
+    "source_tests_rerun": false,
+    "scheduler_tick_run": false,
+    "post_requests": false,
+    "service_control": false,
+    "ui_recheck": false
+  },
+  "evidence_receipt": {
+    "path": "docs/handoffs/oversold_daily_automation_20261016/LIVE_CACHE_DEPLOYMENT_RECEIPT.json",
+    "sha256": "17f206555909f653ed7cd799b425db00051492182d1e4375a68693869bfb87f4"
+  }
+}
