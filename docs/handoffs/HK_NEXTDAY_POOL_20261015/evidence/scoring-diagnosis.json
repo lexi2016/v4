@@ -1,0 +1,195 @@
+{
+  "schema_version": "hk_scoring_independent_readonly_diagnosis_receipt.v1",
+  "created_at_utc": "2026-10-15T10:20:51.321288+00:00",
+  "status": "DIAGNOSED_ACTIVE_R3_REAL_POST_GUARD_COVERAGE_DEFICIT_EXISTING_CANDIDATE_PENDING",
+  "goal": "Explain 20261016 HK pool scoring failure without relaxing quarantine, proxy threshold, dates or PIT rules",
+  "owner": "/root/hk_scoring_diagnosis_sol",
+  "scope": {
+    "business_source_read_only": true,
+    "writes_only": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/scoring-sol",
+    "network_used": false,
+    "producer_or_dispatcher_called": false,
+    "model_loaded_or_scored_by_this_diagnosis": false,
+    "business_config_data_gate_modified": false
+  },
+  "runtime_identity": {
+    "scheduler_pid_observed_alive": 65309,
+    "scheduler_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+    "scheduler_plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+    "shared_module_identity": {
+      "hk_0_2": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "sha256": "665511d0a60e45e896886b23adeab4b6d29e85976e0d691f1e9844191263a7f6"
+      },
+      "hk_history_resolution": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+        "sha256": "29133d5ae8a6afa9c3244370389272c6f3aea3599f6e87bc8b3a47eb050f5bfa"
+      }
+    },
+    "runtime_and_packages_reused_from_writer_receipt": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/first_scoring_isolation/diagnostic-freeze-receipt.json",
+      "sha256": "cb0061c8aaac1128112c26190da3da7bf8a246f7ac6a9fd16eda6adabcac1f2c"
+    },
+    "input_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/first_scoring_isolation/bytecopy-input-manifest.json",
+    "input_manifest_sha256": "fbdac507c176da5be110aedd993fdd76db219ff42e653acb53609a8089aee7ca",
+    "exact_original_1730_input_identity": "CANNOT_CONFIRM: original dispatch omitted panel/model/security-master SHA bindings"
+  },
+  "finding": {
+    "first_failure": "HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT",
+    "first_failure_stage": "after guard_score_frame and _add_daily_features, before memory construction/model loading/security-master filtering",
+    "raw_signal_codes": 689,
+    "price_amount121_excluded_codes": 636,
+    "all_dates_retained_codes": 81,
+    "signal_retained_codes": 62,
+    "current_trade_additional_excluded_codes": 0,
+    "guarded_dates": 1026,
+    "maximum_simultaneous_codes_before_dropna": 70,
+    "maximum_proxy_eligible_codes_after_dropna": 70,
+    "dates_meeting_80_threshold": 0,
+    "signal_dropna_rows": 0,
+    "missing_proxy_input_columns": [],
+    "root_cause_class": "REAL_INPUT_COVERAGE_INSUFFICIENT_UNDER_ACTIVE_STRICT_HISTORY_CONTRACT",
+    "code_misuse_evidence": "No first-blocking missing-column, dropna, future-date or master eligibility misuse found. Entire sequence exclusion follows explicit guard contract. Raw master689 does not prove a clean121-observation history for689 codes.",
+    "hold_range": [
+      "20260421",
+      "20260911"
+    ],
+    "held_dependency_code_dates": 1271,
+    "performance_warning_is_root_cause": false,
+    "snapshot20_inputs_unchanged": true
+  },
+  "existing_recovery_route": {
+    "handoff": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015",
+    "writer": "/root/hk_live_writer_61",
+    "reviewer": "/root/hk_live_review_61",
+    "route": "existing single-owner sparse TDX event corrections/project_frame sidecar, originals/model/thresholds preserved",
+    "old_candidate_target16_model_pass": {
+      "signal_date": "20261015",
+      "target_date": "20261016",
+      "predicted_rows": 100,
+      "panel_sha256": "a562369dbc49f06761304c10ba7128d2289c7f0befd0d9264f7dbbc50404241c",
+      "master_artifact_sha256": "b52771d5d77008d2e13ed6db0a6d3dbb441a445e50e04a400ecb21b67a5d34c6",
+      "resolution_manifest_sha256": "07c5032020bd16c34ea4b6aa52ee8f0e31657e95dc0cfdb8ff9aff11cba3f1ce",
+      "resolver_sha256": "59169dee934e759c4a8241d4380aba9ef92e12407c7de9f48e0915d562c160af",
+      "model_bundle_sha256": "3b0d5d5239342439cabf25b30012365a64d78839bc3cd4d90bad7be6ff4aaa07",
+      "independently_reviewed": false,
+      "active_pointer_installed": false
+    },
+    "newer_revision": {
+      "active_pointer_changed": false,
+      "after_manifest_sha256": "c568c9f8abff082205bd19a051a1c25d3d3a0bf1a349883197139f7d3a1d0755",
+      "before_manifest_sha256": "07c5032020bd16c34ea4b6aa52ee8f0e31657e95dc0cfdb8ff9aff11cba3f1ce",
+      "corrections_sha256": "2dbc4d0c3b77ff8a04353faa40c8442ddd362dede647aca6ea00a3ce99e4c221",
+      "evidence_index_sha256": "432b18cffd621334768a773ad172833e189a5ea6c8da50f2d8afd2e6048f92e5",
+      "new_resolver_sha256": "ad5a31e468bc4bb1cf0cf6126c6fd7d631d6dfb0e5d1c5c79034e82f83410081",
+      "old_resolver_sha256": "59169dee934e759c4a8241d4380aba9ef92e12407c7de9f48e0915d562c160af",
+      "raw_market_source_modified": false,
+      "reason": "Bind same unactivated sparse correction ledger to reviewed score-coverage diagnostics implementation; raw ledger and evidence unchanged"
+    },
+    "latest_candidate_independent_verdict": "CANNOT_CONFIRM: no final implementation/model receipt found in named handoff; PHASE1 receipt marks candidate independent review PENDING",
+    "active_resolution_pointer": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2/history_resolution_latest.json",
+      "sha256": "807238fe9e8f3cfd505f1afdf5feb1c3932437e200b5764dd8bee04c5536b4e7",
+      "manifest_sha256": "d9a048b55d82f58289e192d64b0d2c40aedf5e2c1390e2a4f95e2c3b5aee5651"
+    },
+    "candidate_activated": false,
+    "target16_natural_published": "NOT_OBSERVED: artifact and receipt absent from both named v35/v4 state roots",
+    "current_api_base": "research-source-unified-api-20261015-r6",
+    "current_api_plist_sha256": "1c5ad617cca80d3f6b206eab39a452703dab4918fa18b4532bb52b868b143ec6",
+    "integration_requirement": "Reuse existing owner route. Old target16 PASS is stale for revised manifest/resolver. Require exact latest candidate independent receipt, current r6 API delta, scheduler shared binding and shared pointer as one compatible identity before any activation.",
+    "owner_lifecycle": {
+      "status": "ACTIVE",
+      "source": "Parent read-only verification supplied in current task message",
+      "chat_title": "梳理港股通面板统一方案",
+      "chat_id": "01a13d5a-93fc-72e3-96bc-9ee21a432aaf",
+      "latest_reported_state": "Live cutover pending; score evidence/publication identity consistency under independent correction",
+      "cross_chat_message_sent": false
+    }
+  },
+  "last_good_comparison": {
+    "previous_target15_cached100": "SOURCE_BINDING_REFRESH_R2 records100 rows, source artifact e25b4a1c3a35632ceeb4edaaea2b128ae47c98020fceae58fd8a395ad801f685; this is not permission to bypass current quarantine or reuse stale proof",
+    "same_day_candidate_target16": "Existing old candidate has100 and excludes34 after evidence-backed sidecar; not active and newer coverage implementation invalidates reuse as final proof"
+  },
+  "minimum_next_action": "Do not create scoring patch or alternative producer. Parent coordinates existing writer/reviewer to finish latest hash-bound candidate and exact20261016 independent validation. Keep active strict HOLD until acceptance; no new collection required by this diagnosis.",
+  "unchanged_rules": [
+    "proxy80",
+    "history quarantine",
+    "date/PIT",
+    "original panel/model/master",
+    "A/HK separation",
+    "Vibe8910"
+  ],
+  "artifacts": {
+    "coverage_report": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/scoring-sol/coverage-diagnosis.json",
+      "sha256": "64bae29e57e1c85648233e8532b0001335c45221cef0b9415f7f526369befae4"
+    },
+    "date_coverage": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/scoring-sol/coverage-by-stage-date.csv",
+      "sha256": "15e97423a419e30ae868ab81d212f301753486e7c9cff4d4410e9ed4017a2d09"
+    },
+    "instrumentation": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/scoring-sol/diagnose_coverage.py",
+      "sha256": "13a0f183b1facf46a22bd06e65819d6504adf31a50cfcdb83c1f4f3b9ebdf2a2"
+    },
+    "prior_full_trace": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/first_scoring_isolation/scoring-run.json",
+      "sha256": "a86aa86827c1f70f0d586bd2478e8ecec5f2aed9ac05f3c0c5980a6feb7c157f",
+      "traceback_sha256": "99903a25d4dde51a2434436ebe07f3581dabcfc7d4376c99a8bf58e1654956b4"
+    },
+    "existing_handoff_receipts": {
+      "TARGET16_MODEL_RECEIPT.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/TARGET16_MODEL_RECEIPT.json",
+        "sha256": "03d1a07bc0e4444ed2b72c131cbdde58b23ebfc5e57095b91a81350ae4810c4a"
+      },
+      "TARGET16_READINESS.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/TARGET16_READINESS.json",
+        "sha256": "2bcecbb6aba040fca9d79afd88be55160299236f8724aa8a450670c7f41b109e"
+      },
+      "PHASE1_EVIDENCE_REVIEW.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/PHASE1_EVIDENCE_REVIEW.json",
+        "sha256": "568fc61c40627e29b75d37ec5ac55b88893656fe82c76eceac6f112d6c5eae72"
+      },
+      "IMPLEMENTATION_SCOPE.md": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/IMPLEMENTATION_SCOPE.md",
+        "sha256": "2649fa65e134a315b0ec15836a5022e45c5859de18fc22988bc0def8ff7b7537"
+      },
+      "OWNER_MANIFEST_REVISION.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/OWNER_MANIFEST_REVISION.json",
+        "sha256": "25f12d3539219461b6e6b2df888c823e1a1c3c59aacdbd93764f116c9d649fa5"
+      },
+      "PUBLICATION_RECEIPT.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/PUBLICATION_RECEIPT.json",
+        "sha256": "758b05f087f6d24893139e198f8151b6325c7fb634e7a57a795e3b82a92b7500"
+      },
+      "PUBLICATION_R2_SUPERSEDED.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/PUBLICATION_R2_SUPERSEDED.json",
+        "sha256": "25baf993b1284f8923505af104b2c98c7fc21487f9fbf4c4afbb7e44f8481f8e"
+      },
+      "API_BASE_DRIFT_R3.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/API_BASE_DRIFT_R3.json",
+        "sha256": "c9b8b73352040ff4725302b72bb203dbf12d49a12a217d7d15133ceec53102ef"
+      },
+      "CANDIDATE_TEST_R2.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/CANDIDATE_TEST_R2.json",
+        "sha256": "50fa7cdfde40c210fce812e29176873b805306240649e6c32ea93634abec3165"
+      },
+      "ENFORCEMENT_RECEIPT.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/ENFORCEMENT_RECEIPT.json",
+        "sha256": "7fc81178561cb20c14efe040fa85b62b18c055ca4ff4d77ca5c62ec85323b705"
+      },
+      "SOURCE_BINDING_REFRESH_R2.json": {
+        "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_tdx_conflict_repair_20261015/SOURCE_BINDING_REFRESH_R2.json",
+        "sha256": "99cd00f49975f43ca8bc95bf88050653f5ae2db017155b0141adce1d582b8756"
+      }
+    }
+  },
+  "safety_flags": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "integration_constraint_for_retry_fix": "Wait for existing history-owner final released shared/resolver/pointer identities. CAS or rebase retry-executor delta on final actual main runtime; preserve parallel release/config/API changes. Do not install old candidate or bind new manifest to old reader. No duplicate writer, data collection, candidate implementation or repeated score run in this task.",
+  "lifecycle": "COMPLETE_READONLY_DIAGNOSIS_STOPPED_AFTER_SUFFICIENT_EVIDENCE"
+}

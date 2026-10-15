@@ -1,0 +1,125 @@
+{
+  "behavior_verification": {
+    "active_main_unchanged": {
+      "manifest_expected_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+      "manifest_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+      "runtime_expected_before_sha256": "24ce6bc96ae3e17458e24f18fca0bac516a535290f478a17a4c3bee4f32f1f0e",
+      "runtime_sha256": "24ce6bc96ae3e17458e24f18fca0bac516a535290f478a17a4c3bee4f32f1f0e",
+      "scheduler_plist_expected_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+      "scheduler_plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0"
+    },
+    "active_shared_package_module_hashes_match_receipt": {
+      "consumer.py": true,
+      "hk_0_2.py": true,
+      "store.py": true
+    },
+    "active_shared_package_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+    "empty_store_no_latest": {
+      "evidence_test": "test_canonical_real_reader_empty_store_reaches_existing_producer_sentinel",
+      "existing_HK_producer_path_called": true,
+      "result": "EXACT_HK_POOL_LATEST_RUN_MISSING"
+    },
+    "existing_run_missing_artifact": {
+      "evidence_tests": [
+        "test_canonical_real_reader_existing_run_without_artifact_stays_rejected",
+        "test_canonical_existing_hk_run_without_artifact_stays_quarantined"
+      ],
+      "producer_called": false,
+      "result": "HK_HISTORY_RESOLUTION_CACHE_REJECTED / QUARANTINED"
+    },
+    "nonmatching_errors_remain_rejected": [
+      "wrong target date StoreError",
+      "verified-read wrapper StoreError",
+      "direct FileNotFoundError(pool_id)",
+      "stale/history ValueError"
+    ],
+    "runtime_candidate_prior_pass_reused": {
+      "candidate_activation_status": "NOT_ACTIVATED",
+      "candidate_manifest_expected_sha256": "d0d39b2d6dbe959afa8f045a6f8b0a4e230ff3cc1d1df733ca7a375fdd9810fe",
+      "candidate_manifest_sha256": "d0d39b2d6dbe959afa8f045a6f8b0a4e230ff3cc1d1df733ca7a375fdd9810fe",
+      "candidate_plist_expected_sha256": "c54dd0c1d1388c508cd0e98fe7d4cd15cf065346d3acd341104d09deafe43913",
+      "candidate_plist_sha256": "c54dd0c1d1388c508cd0e98fe7d4cd15cf065346d3acd341104d09deafe43913",
+      "prior_independent_result": "PASS",
+      "runtime_expected_sha256": "17a814200dce826906e011a13e1ed653683b7331a090d81b0937c5513d71b55b",
+      "runtime_sha256": "17a814200dce826906e011a13e1ed653683b7331a090d81b0937c5513d71b55b",
+      "unchanged": true
+    }
+  },
+  "independent_verification": {
+    "actual_reader_tests_run": true,
+    "command": "PYTHONDONTWRITEBYTECODE=1 V4_HK_TEST_SHARED_PACKAGE_ROOT='<active shared package root>' '<v4 runtime python>' -B -m pytest -p no:cacheprovider -q --basetemp='<reviewer>/pytest-fix-independent-20261015-01' tests/test_hk_nextday_missing_pool_20261015.py",
+    "exit_code": 0,
+    "previous_adjacent_suite_result_reused": "46 passed in 0.70s",
+    "result": "10 passed in 0.12s"
+  },
+  "lifecycle": {
+    "API_VERIFIED": "NOT_RUN",
+    "BEHAVIOR_VERIFIED": "PASS",
+    "DEPLOYED": "NOT_DEPLOYED",
+    "INTEGRATED": "NOT_RUN",
+    "NATURAL": "NATURAL_NOT_RUN",
+    "PRODUCTION_EXECUTION": "NOT_RUN",
+    "REVIEWED": "PASS",
+    "UI_VERIFIED": "NOT_RUN"
+  },
+  "preserved_failures": {
+    "first_hk_scoring_failure": {
+      "note": "Separate scoring/TDX diagnostic was not inspected or adjudicated in this repair review.",
+      "review_status": "OUT_OF_SCOPE",
+      "writer_diagnostic_receipt_sha256": "cb0061c8aaac1128112c26190da3da7bf8a246f7ac6a9fd16eda6adabcac1f2c"
+    },
+    "initial_independent_verdict": {
+      "finding": "HK-NEXTDAY-CANONICAL-MISSING-SIGNAL",
+      "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/reviewer/independent-review-receipt.json",
+      "receipt_sha256": "1a364ac19eb2a46285b550d74f2931af7dd33ed18040f12623eca54bb1442ae6",
+      "verdict": "FAIL_P2"
+    },
+    "writer_initial_fix_test_attempt": {
+      "cause": "Fixture raised SyntheticStoreError; implementation intentionally matched only the actual StoreError class exported by the module.",
+      "correction": "Fixture changed to use a class named StoreError before the writer reran focused and full suites.",
+      "result": "1 failed, 9 passed in 0.15s",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/reviewer-fix/reviewer-fix-delta-receipt.json"
+    }
+  },
+  "prior_review": {
+    "prior_FAIL_preserved": true,
+    "prior_p2_id": "HK-NEXTDAY-CANONICAL-MISSING-SIGNAL",
+    "prior_verdict": "FAIL_P2",
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/reviewer/independent-review-receipt.json",
+    "receipt_sha256": "1a364ac19eb2a46285b550d74f2931af7dd33ed18040f12623eca54bb1442ae6",
+    "resolution": "The exact signal now matches the active shared reader StoreError and full no-latest message; a run with an incomplete artifact trio remains quarantined."
+  },
+  "reviewed_at_utc": "2026-10-15T10:27:10+00:00",
+  "schema_version": "hk_nextday_pool_independent_reviewer_fix.v1",
+  "scope": {
+    "business_data_read_only": true,
+    "network_used": false,
+    "production_or_service_call": false,
+    "reviewed_delta_paths": [
+      "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "tests/test_hk_nextday_missing_pool_20261015.py"
+    ],
+    "runtime_candidate_source_or_manifest_plist_modified": false,
+    "scoring_tdx_diagnostic_reviewed": false,
+    "writes": [
+      "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/reviewer"
+    ]
+  },
+  "task": "HK_NEXTDAY_POOL_20261015",
+  "test_failure_note": "The initial synthetic StoreError fixture failure is retained as evidence; the independent actual-package test run passed after the fixture contract was corrected.",
+  "verdict": "PASS",
+  "writer_fix_delta": {
+    "canonical_source_expected_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3",
+    "canonical_source_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3",
+    "delta_paths": [
+      "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "tests/test_hk_nextday_missing_pool_20261015.py"
+    ],
+    "expected_receipt_sha256": "41b8664bfee961a27c2d888b676cd0f7894155f791b2a57e9295bf151cf28ddc",
+    "patch_hashes_match_receipt": true,
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/reviewer-fix/reviewer-fix-delta-receipt.json",
+    "receipt_sha256": "41b8664bfee961a27c2d888b676cd0f7894155f791b2a57e9295bf151cf28ddc",
+    "regression_test_expected_sha256": "858b98799869607b69a9509e827f163ab36f9bd6f9d3d16c5a0670046f130e2e",
+    "regression_test_sha256": "858b98799869607b69a9509e827f163ab36f9bd6f9d3d16c5a0670046f130e2e"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "task": "HK_NEXTDAY_POOL_20261015",
+  "updated_at": "2026-10-15T18:29:36.407949+08:00",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "delivery_mode": "PATCH_ONLY",
+  "base_commit": "ddc78aa7d052d0ccce0cc27ed52a688f816e3b2a",
+  "branch": "codex/hk-nextday-pool-20261015",
+  "target_date": "20261016",
+  "scope": "Missing exact HK target pool must permit existing producer retry; present but invalid artifacts remain quarantined.",
+  "status": {
+    "implemented": true,
+    "independent_behavior": "PASS",
+    "integration": "WAITING_EXISTING_TDX_OWNER_FINAL_RUNTIME",
+    "deployed": "NOT_RUN",
+    "api": "NOT_RUN",
+    "ui": "NOT_RUN",
+    "natural": "NOT_RUN"
+  },
+  "original_natural_failure": {
+    "run_id": "f313de49f7ff41359e61e8130f50715b",
+    "receipt_sha256": "5bfeff71dfd044b1316beab3fda3c96d98bba146c566e4882da5a979efe39cf7",
+    "first_layer": "HK_SCORING",
+    "exact_original_scoring_trace": "CANNOT_CONFIRM"
+  },
+  "isolated_scoring_diagnosis": {
+    "receipt_sha256": "738bb2f19c8cd53d30ecbc94d6e09d7955d522ca4b656ed94fec17019770cd1b",
+    "result": "HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT",
+    "signal_codes_after_guard": 62,
+    "proxy_max_codes": 70,
+    "required": 80,
+    "repair_owner_chat": "01a13d5a-93fc-72e3-96bc-9ee21a432aaf",
+    "separate_owner_active": true
+  },
+  "canonical": {
+    "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+    "before_sha256": "ab173015c9b49cbe2720e4dd18c83a3e8379871e20c49c8ff5954db102588efb",
+    "after_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3"
+  },
+  "review_receipt_sha256": "1a533352b41d6e6f3185abf3c2564ecca6de22cc97c07951dd991ea1b99fa34b",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

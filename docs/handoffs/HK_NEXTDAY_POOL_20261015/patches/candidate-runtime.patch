@@ -1,0 +1,16 @@
+--- main/infrastructure/scheduling/executor_registry_preselection.py
++++ candidate/infrastructure/scheduling/executor_registry_preselection.py
+@@ -45,7 +45,12 @@
+     try:
+         store = PreselectionPoolStore(self.data_root)
+         for pool_id, market, source_role in expected:
+-            payload = store.read_pool(trade_date, pool_id)
++            try:
++                payload = store.read_pool(trade_date, pool_id)
++            except FileNotFoundError as error:
++                if pool_id == "hkconnect_d1_top100" and error.args == (pool_id,):
++                    return None
++                raise
+             if (
+                 payload.get("pool_id") != pool_id
+                 or payload.get("market") != market

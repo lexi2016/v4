@@ -1,0 +1,145 @@
+{
+  "behavior_verified": false,
+  "behavior_verified_components": {
+    "canonical_shared_reader_missing_source_path": "FAIL_P2",
+    "inactive_runtime_candidate_missing_pool_path": "PASS"
+  },
+  "boundary": {
+    "first_hk_scoring_failure": "CANNOT_CONFIRM; separate diagnostic remains open and does not affect this localized missing-pool review",
+    "this_receipt_does_not_claim": [
+      "HK scoring succeeded",
+      "pool generated",
+      "candidate activated",
+      "API/UI verified",
+      "natural retry succeeded"
+    ]
+  },
+  "canonical_reader_probe": {
+    "module_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+    "observed_cause_type": null,
+    "observed_exception_args": [
+      "no latest run for 20261016 / HK_CONNECT_D1_TOP100_0_2"
+    ],
+    "observed_exception_type": "StoreError",
+    "operation": "read_verified_hk_0_2_pool on an isolated empty store with only security-master loading stubbed to reach HK latest lookup",
+    "status": "FAIL_P2"
+  },
+  "findings": [
+    {
+      "description": "The canonical recovery sentinel accepts only FileNotFoundError with args exactly (hkconnect_d1_top100,). The actual shared reader read_verified_hk_0_2_pool calls read_verified_latest, whose current missing-latest path raises StoreError; an isolated probe returned StoreError(no latest run for 20261016 / HK_CONNECT_D1_TOP100_0_2). With A exact source present, this error is not the sentinel and the guard still returns HK_HISTORY_RESOLUTION_CACHE_REJECTED before producers. The new unit test injects the direct FileNotFoundError sentinel, which the current reader does not emit for this missing-latest condition.",
+      "evidence_hashes": {
+        "candidate_shared_consumer_sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+        "candidate_shared_reader_hk02_sha256": "c18049aea1fc78c11b8aa8e34712627ad823239a0c4c0644921918ba4c3a2c58",
+        "canonical_source_sha256": "1a4a3f7eb579e4ac562cb7935dbc3fea7695a208fca9a2a85505f5be9fa1de94",
+        "external_shared_consumer_sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+        "external_shared_reader_hk02_sha256": "665511d0a60e45e896886b23adeab4b6d29e85976e0d691f1e9844191263a7f6"
+      },
+      "evidence_paths": [
+        "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+        "upstreams/v3_shared_data/shared_data/consumer.py",
+        "tests/test_hk_nextday_missing_pool_20261015.py"
+      ],
+      "id": "HK-NEXTDAY-CANONICAL-MISSING-SIGNAL",
+      "lines": [
+        131,
+        140,
+        205,
+        214
+      ],
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "severity": "P2",
+      "status": "OPEN"
+    }
+  ],
+  "frozen_identity": {
+    "artifact_hashes_observed": {
+      "active_main_manifest": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+      "active_main_plist": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+      "candidate_manifest": "d0d39b2d6dbe959afa8f045a6f8b0a4e230ff3cc1d1df733ca7a375fdd9810fe",
+      "candidate_staged_plist": "c54dd0c1d1388c508cd0e98fe7d4cd15cf065346d3acd341104d09deafe43913",
+      "canonical_patch": "886fb95a48ea7548941f09a81dac4d875f063b848c17e344e7f74487d5510d4e",
+      "canonical_source": "1a4a3f7eb579e4ac562cb7935dbc3fea7695a208fca9a2a85505f5be9fa1de94",
+      "new_regression_test": "4186350db55fef6e58b421dbd4de3d62a625564ccecbe8d8bc716969255cd94b",
+      "runtime_active_main": "24ce6bc96ae3e17458e24f18fca0bac516a535290f478a17a4c3bee4f32f1f0e",
+      "runtime_candidate": "17a814200dce826906e011a13e1ed653683b7331a090d81b0937c5513d71b55b",
+      "runtime_patch": "1ce6fd7b313880a2cd8278e1eed9f7601c01a10fc89c0d6aa232239576489683",
+      "test_patch": "5f4d164c8a774b4577e20994b41749c7528af1eea912723a2a595c8780f019cf",
+      "writer_actualdiff": "7f43f2a2eb0628d7ace20f1249eea7a4082cec7b8931027dd5d8ed8ff5e21749",
+      "writer_freeze_receipt": "bd2f02dd9982a5d76fe307cc09ae3142d215a18f2ceb55918a79dc709e5b4157",
+      "writer_inventory": "3ea2e2d6d074c72f21ce9bd71077a95a20d32e70242b82b99951a1827f1676d0"
+    },
+    "canonical_after_sha256": "1a4a3f7eb579e4ac562cb7935dbc3fea7695a208fca9a2a85505f5be9fa1de94",
+    "canonical_before_sha256": "ab173015c9b49cbe2720e4dd18c83a3e8379871e20c49c8ff5954db102588efb",
+    "regression_test_sha256": "4186350db55fef6e58b421dbd4de3d62a625564ccecbe8d8bc716969255cd94b",
+    "runtime_after_sha256": "17a814200dce826906e011a13e1ed653683b7331a090d81b0937c5513d71b55b",
+    "runtime_before_sha256": "24ce6bc96ae3e17458e24f18fca0bac516a535290f478a17a4c3bee4f32f1f0e",
+    "writer_receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/candidate-freeze-receipt.json",
+    "writer_receipt_sha256": "bd2f02dd9982a5d76fe307cc09ae3142d215a18f2ceb55918a79dc709e5b4157"
+  },
+  "independent_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 '<v4 runtime python>' -B -m pytest -p no:cacheprovider -q --basetemp='<reviewer>/pytest-independent-20261015-01' tests/test_hk_nextday_missing_pool_20261015.py tests/test_hk_only_preselection_execution_20261002.py tests/test_hk_preselection_market_dates_20261002.py tests/test_hk_history_resolution_consumers.py",
+    "exit_code": 0,
+    "result": "46 passed in 0.70s",
+    "scope": [
+      "exact missing pool classification and existing producer path",
+      "invalid/history/source-hash conflict remains quarantined",
+      "valid A/HK pair reuse contract",
+      "HK-only and market-date paths",
+      "history-resolution consumers"
+    ]
+  },
+  "inventory_and_binding": {
+    "active_main_manifest_matches_freeze": true,
+    "active_main_plist_matches_freeze": true,
+    "active_main_runtime_matches_frozen_before": true,
+    "base_and_candidate_path_sets_equal": true,
+    "base_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app",
+    "base_entry_count": 964,
+    "candidate_app_root": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/candidates/hk-nextday-pool-main-20261015-r1/app",
+    "candidate_entry_count": 964,
+    "candidate_inventory_aggregate_sha256": "af4b8687574d75c7daada6689913aff689e17b8498729c85225f76d679cf167a",
+    "candidate_inventory_entries_match_actual_tree": true,
+    "candidate_inventory_entry_count": 964,
+    "candidate_manifest_parse_and_hash_binding": true,
+    "candidate_safety_flags_all_false": true,
+    "changed_paths": [
+      "infrastructure/scheduling/executor_registry_preselection.py"
+    ]
+  },
+  "lifecycle": {
+    "api_verified": "NOT_RUN",
+    "deployed": "NOT_DEPLOYED",
+    "integrated": "NOT_RUN",
+    "natural": "NATURAL_NOT_RUN",
+    "production_execution": "NOT_RUN",
+    "ui_verified": "NOT_RUN"
+  },
+  "repository": {
+    "branch": "codex/system-consolidation-20260912",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "reviewed_canonical_paths": [
+      "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "tests/test_hk_nextday_missing_pool_20261015.py"
+    ],
+    "root": "/Users/lexi/Desktop/学习/v4_app",
+    "runtime_candidate_delta_paths": [
+      "infrastructure/scheduling/executor_registry_preselection.py"
+    ],
+    "working_tree_was_already_dirty": true
+  },
+  "reviewed_at_utc": "2026-10-15T10:14:38+00:00",
+  "reviewer_status": "REVIEWED",
+  "schema_version": "v4.hk_nextday_pool_independent_review.v1",
+  "scope": {
+    "business_data_read_only": true,
+    "candidate_activation_status": "NOT_ACTIVATED",
+    "canonical_target_and_test_left_unmodified_by_reviewer": true,
+    "network_used": false,
+    "service_or_scheduler_changed": false,
+    "writes": [
+      "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/reviewer"
+    ]
+  },
+  "task": "HK_NEXTDAY_POOL_20261015",
+  "verdict": "FAIL_P2"
+}

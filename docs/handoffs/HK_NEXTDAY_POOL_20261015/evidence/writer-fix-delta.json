@@ -1,0 +1,135 @@
+{
+  "schema_version": "hk_nextday_pool_reviewer_fix_delta.v1",
+  "task": "HK_NEXTDAY_POOL_20261015",
+  "created_at_utc": "2026-10-15T10:22:41+00:00",
+  "state": "WRITER_DELTA_READY_FOR_INDEPENDENT_REVIEW",
+  "reviewer_input": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/reviewer/independent-review-receipt.json",
+    "sha256": "1a364ac19eb2a46285b550d74f2931af7dd33ed18040f12623eca54bb1442ae6",
+    "prior_verdict": "FAIL_P2",
+    "p2_id": "HK-NEXTDAY-CANONICAL-MISSING-SIGNAL"
+  },
+  "prior_writer_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/candidate-freeze-receipt.json",
+    "sha256": "bd2f02dd9982a5d76fe307cc09ae3142d215a18f2ceb55918a79dc709e5b4157",
+    "candidate_activation_status": "NOT_ACTIVATED"
+  },
+  "code_delta": [
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "reviewed_before_sha256": "1a4a3f7eb579e4ac562cb7935dbc3fea7695a208fca9a2a85505f5be9fa1de94",
+      "after_sha256": "1221da5f5ec5616a9510a8d4d6dbe852638faffdc4d3247eace2193b6cda73c3",
+      "patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/reviewer-fix/canonical-source-reviewer-fix.patch",
+      "patch_sha256": "0d08f54b01cde2daba3b6a854a4eaf5b2f114866e91432fadbb1cf4a603d79e9"
+    },
+    {
+      "path": "tests/test_hk_nextday_missing_pool_20261015.py",
+      "reviewed_before_sha256": "4186350db55fef6e58b421dbd4de3d62a625564ccecbe8d8bc716969255cd94b",
+      "after_sha256": "858b98799869607b69a9509e827f163ab36f9bd6f9d3d16c5a0670046f130e2e",
+      "patch_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/reviewer-fix/regression-test-reviewer-fix.patch",
+      "patch_sha256": "58744ed7b1ac5487c338b613de2598e42ffc012dea0be95522f5eca9266718be"
+    }
+  ],
+  "behavior_contract": {
+    "classification": "Only actual module StoreError with exact full message no latest run for {target_date} / {module.HK_0_2_ROLE} maps to EXACT_HK_POOL_LATEST_RUN_MISSING.",
+    "real_reader_package_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data",
+    "real_shared_module_sha256": {
+      "hk_0_2.py": "665511d0a60e45e896886b23adeab4b6d29e85976e0d691f1e9844191263a7f6",
+      "consumer.py": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+      "store.py": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16"
+    },
+    "verified_cases": [
+      {
+        "case": "valid empty store with no latest.json",
+        "result": "exact missing-latest sentinel; existing HK producer path called"
+      },
+      {
+        "case": "latest points to existing run directory with missing artifact.csv",
+        "result": "run trio incomplete StoreError; source rejected and HK quarantined; producer not called"
+      },
+      {
+        "case": "wrong date/role StoreError, verified-read wrapper error, direct FileNotFoundError(pool_id), stale/history ValueError",
+        "result": "not mapped to missing-latest sentinel"
+      }
+    ],
+    "security_master_stub": "Only _load_verified_security_master was stubbed in tests to reach latest/run lookup; SafeRootStore, read_verified_latest and read_verified_hk_0_2_pool are actual active shared-package implementations."
+  },
+  "verification": {
+    "commands": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 V4_HK_TEST_SHARED_PACKAGE_ROOT='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -p no:cacheprovider -q --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/pytest-reviewer-fix-20261015-01' tests/test_hk_nextday_missing_pool_20261015.py",
+        "exit_code": 1,
+        "result": "1 failed, 9 passed in 0.15s",
+        "note": "Initial fixture exception class was named SyntheticStoreError and was re-raised by the existing StoreError-only handler. Fixture corrected to the actual StoreError class name before rerun."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 V4_HK_TEST_SHARED_PACKAGE_ROOT='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -p no:cacheprovider -q --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/pytest-reviewer-fix-20261015-02' tests/test_hk_nextday_missing_pool_20261015.py",
+        "exit_code": 0,
+        "result": "10 passed in 0.12s"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 V4_HK_TEST_SHARED_PACKAGE_ROOT='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-history-adjudication-shared-20261015-r3/app/upstreams/v3_shared_data' '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -p no:cacheprovider -q --basetemp='/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/pytest-reviewer-fix-20261015-03' tests/test_hk_nextday_missing_pool_20261015.py tests/test_hk_only_preselection_execution_20261002.py tests/test_hk_preselection_market_dates_20261002.py tests/test_hk_history_resolution_consumers.py",
+        "exit_code": 0,
+        "result": "49 passed in 0.80s"
+      }
+    ],
+    "pass_command_index": 2,
+    "full_suite_result": "49 passed in 0.80s",
+    "pytest_cache_provider_disabled": true,
+    "test_basetemp_isolated": true
+  },
+  "inactive_runtime_candidate": {
+    "release_id": "hk-nextday-pool-main-20261015-r1",
+    "activation_status": "NOT_ACTIVATED",
+    "runtime_file_sha256": "17a814200dce826906e011a13e1ed653683b7331a090d81b0937c5513d71b55b",
+    "runtime_sha256_unchanged_from_prior_freeze": true,
+    "release_manifest_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/candidates/hk-nextday-pool-main-20261015-r1/release-manifest.json",
+    "release_manifest_sha256": "d0d39b2d6dbe959afa8f045a6f8b0a4e230ff3cc1d1df733ca7a375fdd9810fe",
+    "release_manifest_parsed": true,
+    "staged_plist_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/candidates/hk-nextday-pool-main-20261015-r1/staged.plist",
+    "staged_plist_sha256": "c54dd0c1d1388c508cd0e98fe7d4cd15cf065346d3acd341104d09deafe43913",
+    "staged_plist_parsed": true,
+    "candidate_inventory_path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/candidate-complete-inventory.json",
+    "candidate_inventory_sha256": "3ea2e2d6d074c72f21ce9bd71077a95a20d32e70242b82b99951a1827f1676d0",
+    "candidate_inventory_matches_prior_freeze": true,
+    "runtime_changed_by_reviewer_fix": false
+  },
+  "main_release_unchanged": {
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-backfill-reader-main-20261015-r1/app",
+    "manifest_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+    "expected_manifest_sha256": "50166a5fc50bf37c7de385c489f773dca94218d3291891f8240eab51aade7875",
+    "scheduler_plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0",
+    "expected_scheduler_plist_sha256": "308660c7ab1d3fe56c2b641d2910bed51a4351bcfaa170f1d6aee0055d6cc4b0"
+  },
+  "scoring_diagnostic_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_HK_NEXTDAY_POOL_20261015/writer/first_scoring_isolation/diagnostic-freeze-receipt.json",
+    "sha256": "cb0061c8aaac1128112c26190da3da7bf8a246f7ac6a9fd16eda6adabcac1f2c",
+    "status": "SCORING_EXCEPTION_REPRODUCED_IN_ISOLATION",
+    "independent_of_this_fix": true
+  },
+  "repository_context": {
+    "root": "/Users/lexi/Desktop/学习/v4_app",
+    "branch": "codex/system-consolidation-20260912",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "scoped_status": "?? infrastructure/scheduling/_executor_registry_parts/preselection.py\n?? tests/test_hk_nextday_missing_pool_20261015.py",
+    "tracked_diff_not_available_for_untracked_source_paths": true
+  },
+  "lifecycle": {
+    "writer_implemented": true,
+    "writer_tested": true,
+    "independent_review": "PENDING_REVIEW_OF_DELTA",
+    "integrated": "NOT_RUN",
+    "deployed": "NOT_RUN",
+    "production_execution": "NOT_RUN",
+    "api_verified": "NOT_RUN",
+    "ui_verified": "NOT_RUN",
+    "natural_verified": "NOT_RUN"
+  },
+  "safety_flags": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "stop_note": "No scoring code, history resolution/quarantine policy, shared source package, active release, plist, scheduler, service, or production/shared state changed."
+}

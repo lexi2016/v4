@@ -1,0 +1,60 @@
+--- a/infrastructure/scheduling/_executor_registry_parts/preselection.py
++++ b/infrastructure/scheduling/_executor_registry_parts/preselection.py
+@@ -1,6 +1,8 @@
+ """infrastructure.scheduling.executor_registry: preselection (review candidate, not deployment)."""
+ from __future__ import annotations
+ from ._namespace import read_global as _v4_global
++
++_EXACT_HK_POOL_LATEST_RUN_MISSING = "EXACT_HK_POOL_LATEST_RUN_MISSING"
+ 
+ 
+ def _hk_price_and_eligibility_dates(target_date: str) -> tuple[str, str]:
+@@ -83,6 +85,7 @@
+     """Read an exact V4 shared source before deciding to run its producer."""
+     if self.shared_data_root is None or self.shared_package_root is None:
+         return None, "shared source root not configured"
++    module = None
+     try:
+         module = _v4_global(_v4_scope, 'load_isolated_package_module')(
+             self.shared_package_root,
+@@ -128,6 +131,26 @@
+             error, (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'KeyError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'AttributeError'))
+         ):
+             raise
++        store_error_type = (
++            _v4_global(_v4_scope, 'getattr')(module, "StoreError", None)
++            if module is not None
++            else None
++        )
++        hk_0_2_role = (
++            _v4_global(_v4_scope, 'getattr')(module, "HK_0_2_ROLE", None)
++            if module is not None
++            else None
++        )
++        if (
++            module_leaf == "hk_0_2"
++            and reader_name == "read_verified_hk_0_2_pool"
++            and store_error_type is not None
++            and hk_0_2_role
++            and _v4_global(_v4_scope, 'isinstance')(error, store_error_type)
++            and _v4_global(_v4_scope, 'str')(error)
++            == f"no latest run for {target_date} / {hk_0_2_role}"
++        ):
++            return None, _EXACT_HK_POOL_LATEST_RUN_MISSING
+         return None, _v4_global(_v4_scope, 'str')(error)
+ 
+ 
+@@ -193,7 +216,12 @@
+         )
+     else:
+         hk_exact_source, hk_exact_error = None, ""
+-    if (a_exact_source is not None and hk_lane_eligible and hk_exact_source is None):
++    if (
++        a_exact_source is not None
++        and hk_lane_eligible
++        and hk_exact_source is None
++        and hk_exact_error != _EXACT_HK_POOL_LATEST_RUN_MISSING
++    ):
+         return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
+             "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
+             "a_exact_source_reused":a_exact_source,"producer_called":False,"write_performed":False,
