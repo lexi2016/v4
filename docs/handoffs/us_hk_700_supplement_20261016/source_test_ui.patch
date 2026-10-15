@@ -1,0 +1,473 @@
+--- a/v4/manager_workbench/us_mapping_catalog.py
++++ b/v4/manager_workbench/us_mapping_catalog.py
+@@ -20,8 +20,11 @@
+ SOURCE_PACKAGE_SHA256 = "dac3c820fcd6919fabdccc9c37ee9055b729b200fcde5e48f0dcf527de81bc6d"
+ MEMBERSHIP_SHA256 = "9b799c0b74ac5047f4e44a1b3dfd1dfa5ca9ce978fa3b8e7877913c423424c9c"
+ BASE_FILE_SHA256 = "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
+-OVERLAY_FILE_SHA256 = "72a0f074e6412036cd103c7f73ccf15230eb3d1633c09742c88653b863eba384"
+-REVIEW_PACKAGE_SHA256 = "8a214c3c10931e2ab807a3f1701449105702c68186a07a3c1da717413e69fab1"
++OVERLAY_FILE_SHA256 = "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69"
++REVIEW_PACKAGE_SHA256 = "2894b3bca475965aa3553977a654b10fa4c6750bbcb80f70f1bea17bdde649b0"
++REVIEW_MANIFEST_SHA256 = "8ba8ea7ef7c351bcd5a1b72ad8f449b7acf555a54a172ea66084248f28e26ab9"
++PRIOR_220_OVERLAY_SHA256 = "72a0f074e6412036cd103c7f73ccf15230eb3d1633c09742c88653b863eba384"
++EXPECTED_REVIEWED_RELATION_COUNT = 700
+ RESEARCH_USES = {"PENDING_REVIEW", "CONDITIONAL_OBSERVATION", "BACKGROUND_HISTORICAL", "EXCLUDED_CURRENT"}
+ EXPECTED_STOCK_COUNT = 667
+ EXPECTED_RELATION_COUNT = 1003
+@@ -176,19 +179,95 @@
+         if (value.get("schema_version") != "v4.us_hk_mapping_review_overlay.v1" or
+                 value.get("integrity_sha256") != integrity_sha256(value) or
+                 value.get("base_catalog_sha256") != BASE_FILE_SHA256 or
+-                value.get("source_package_sha256") != REVIEW_PACKAGE_SHA256):
++                value.get("source_package_sha256") != REVIEW_PACKAGE_SHA256 or
++                value.get("source_package_kind") != "combined_560_700_supplement" or
++                value.get("source_subtree") != "700/deliverable_batch35" or
++                value.get("manifest_sha256") != REVIEW_MANIFEST_SHA256 or
++                value.get("upstream_original_700_package") != {
++                    "claimed_sha256": "589dd772...",
++                    "received_locally": False,
++                    "local_sha256_verified": False,
++                }):
+             raise CatalogValidationError("review overlay identity is invalid")
++        if value.get("research_safety") != {
++            "RESEARCH_ONLY": True,
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++            "prediction_validation": "UNTESTED",
++            "historical_PIT": "NOT_VALIDATED",
++            "event_validation": "NOT_RUN",
++            "independent_local_review": "NOT_RUN",
++        }:
++            raise CatalogValidationError("review overlay research safety is invalid")
++        prior = value.get("prior_220_preservation")
++        if prior != {
++            "prior_overlay_sha256": PRIOR_220_OVERLAY_SHA256,
++            "prior_relation_count": 220,
++            "prior_evidence_occurrences": 1831,
++            "current_evidence_occurrences_for_prior_relations": 1931,
++            "prior_evidence_occurrence_delta": 100,
++            "prior_relations_with_added_evidence": 51,
++            "prior_states_and_field_assessments_preserved": True,
++            "prior_evidence_ids_preserved_by_relation": True,
++            "prior_overlay_preimage": "preimage/us_hk_667_review_overlay_20261015.json",
++        }:
++            raise CatalogValidationError("prior 220 preservation receipt is invalid")
+         records = value.get("records", [])
+-        if len(records) != 220 or len({r["relation_id"] for r in records}) != 220:
++        if (len(records) != EXPECTED_REVIEWED_RELATION_COUNT or
++                len({r["relation_id"] for r in records}) != EXPECTED_REVIEWED_RELATION_COUNT):
+             raise CatalogValidationError("review overlay coverage is invalid")
++        use_counts = Counter(record.get("research_use") for record in records)
++        if use_counts != Counter({
++            "PENDING_REVIEW": 682,
++            "BACKGROUND_HISTORICAL": 10,
++            "EXCLUDED_CURRENT": 5,
++            "CONDITIONAL_OBSERVATION": 3,
++        }):
++            raise CatalogValidationError("review overlay research-use projection is invalid")
++        parse_issue_count = 0
+         for record in records:
+             row = catalog["relations"][record["source_row"] - 1]
+             if (row["source_record"].get("关系编号") != record["relation_id"] or
+                     row["hk_code"] != record["hk_code"] or row["us_symbol"] != record["us_symbol"] or
+                     record["source_review_status"] != "SOURCE_REVIEWED" or
+                     record["independent_verification"] != "NOT_RUN" or
+-                    record["research_use"] not in RESEARCH_USES):
++                    record["research_use"] not in RESEARCH_USES or
++                    record["source_current_state"] != record["revision"].get("revision_current_applicability_state")):
+                 raise CatalogValidationError("review overlay relation identity or safety is invalid")
++            revision = record["revision"]
++            if (revision.get("revision_event_validation_state") != "NOT_RUN" or
++                    revision.get("revision_prediction_validation_state") != "UNTESTED" or
++                    revision.get("revision_historical_PIT_state") != "NOT_VALIDATED" or
++                    revision.get("revision_independent_local_review_state") != "NOT_RUN" or
++                    revision.get("revision_RESEARCH_ONLY") != "true" or
++                    revision.get("revision_production_allowed") != "false" or
++                    revision.get("revision_buy_gate_updated") != "false" or
++                    revision.get("revision_orders_sent") != "false"):
++                raise CatalogValidationError("review overlay revision safety is invalid")
++            issues = record.get("revision_json_parse_issues")
++            if not isinstance(issues, list):
++                raise CatalogValidationError("review overlay JSON parse issue ledger is invalid")
++            for issue in issues:
++                raw_value = revision.get(issue.get("field"))
++                if (issue.get("field") != "revision_failure_checks_json" or
++                        issue.get("issue") != "INVALID_JSON_PRESERVED_AS_SOURCE_TEXT" or
++                        issue.get("error_type") != "JSONDecodeError" or
++                        not isinstance(raw_value, str) or
++                        hashlib.sha256(raw_value.encode("utf-8")).hexdigest() != issue.get("raw_sha256") or
++                        len(raw_value) != issue.get("raw_characters")):
++                    raise CatalogValidationError("review overlay JSON parse issue does not bind raw source")
++            parse_issue_count += len(issues)
++            for evidence in record.get("evidence", []):
++                if not isinstance(evidence, dict) or any(
++                    not isinstance(evidence.get(key), str) for key in (
++                        "declared_unresolved_navigation_reference_json",
++                        "evidence_wording_clarifications_json",
++                    )
++                ):
++                    raise CatalogValidationError("review overlay full evidence fields are missing")
++        if parse_issue_count != 60:
++            raise CatalogValidationError("review overlay JSON parse issue count is invalid")
+         return value
+     except CatalogValidationError:
+         raise
+@@ -316,8 +395,8 @@
+                 "relation_id":row["source_record"].get("关系编号"),
+                 "source_review_status":"SOURCE_REVIEWED" if review else "NOT_PROCESSED",
+                 "independent_verification":"NOT_RUN", "research_use":review["research_use"] if review else "PENDING_REVIEW",
+-                "review_detail_level":"FULL" if exact_rid else "SUMMARY",
+-                "review_revision":review if exact_rid else _review_summary(review)})
++                "review_detail_level":"FULL" if exact_rid and review is not None else "SUMMARY",
++                "review_revision":review if exact_rid and review is not None else _review_summary(review)})
+         items.append(item)
+     use_counts=Counter(revisions[r["source_row"]]["research_use"] if r["source_row"] in revisions else "PENDING_REVIEW" for r in value["relations"])
+     reviewed_codes={r["hk_code"] for r in revisions.values()}
+@@ -337,7 +416,11 @@
+             "independently_verified_relations":0, "independent_verification":"NOT_RUN",
+             "research_use_counts":dict(use_counts),
+         },
+-        "review_source":({k:overlay[k] for k in ["source_package_sha256","source_generated_at_utc","integrity_sha256","projection_rule"]} if overlay else None),
++        "review_source":({k:overlay[k] for k in [
++            "source_package_sha256", "source_package_kind", "source_subtree", "manifest_sha256",
++            "upstream_original_700_package", "source_generated_at_utc", "integrity_sha256",
++            "projection_rule", "prior_220_preservation",
++        ]} if overlay else None),
+         "safety":value["safety"], "query":needle, "research_use":research_use or "",
+         "total":len(selected), "offset":offset, "limit":limit, "items":items,
+     })
+--- a/tests/manager_workbench/test_us_mapping_catalog.py
++++ b/tests/manager_workbench/test_us_mapping_catalog.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import importlib.util
++import hashlib
+ import json
+ from pathlib import Path
+ import sys
+@@ -160,11 +161,17 @@
+     assert result['total'] == 667
+     assert len(result['items']) == 25
+     progress = result['review_progress']
+-    assert progress['source_reviewed_relations'] == 220
+-    assert progress['unprocessed_relations'] == 783
+-    assert progress['source_reviewed_stocks'] == 92
+-    assert progress['all_original_relations_processed_stocks'] == 89
++    assert progress['source_reviewed_relations'] == 700
++    assert progress['unprocessed_relations'] == 303
++    assert progress['source_reviewed_stocks'] == 378
++    assert progress['all_original_relations_processed_stocks'] == 378
+     assert progress['independently_verified_relations'] == 0
++    assert progress['research_use_counts'] == {
++        'PENDING_REVIEW': 985,
++        'BACKGROUND_HISTORICAL': 10,
++        'EXCLUDED_CURRENT': 5,
++        'CONDITIONAL_OBSERVATION': 3,
++    }
+     assert sum(progress['research_use_counts'].values()) == 1003
+     all_items=[]
+     for offset in range(0, 667, 200):
+@@ -175,7 +182,7 @@
+     assert [s['source_record'] for s in all_items] == [s['source_record'] for s in original['stocks']]
+     assert [r['source_record'] for r in sorted([r for s in all_items for r in s['relations']], key=lambda r:r['source_row'])] == [r['source_record'] for r in original['relations']]
+     revisions=[r for s in all_items for r in s['relations'] if r['review_revision']]
+-    assert len(revisions) == 220
++    assert len(revisions) == 700
+     assert all(r['fact_review_status']=='PENDING' and r['independent_verification']=='NOT_RUN' and not r['prediction_eligible'] for r in revisions)
+     exact = store.search(CATALOG_PATH, OVERLAY_PATH, 'R001')
+     assert [r['relation_id'] for s in exact['items'] for r in s['relations']] == ['R001']
+@@ -223,7 +230,7 @@
+ def test_api_filters_and_overlay_corruption_fail_closed(tmp_path,monkeypatch):
+     app=FastAPI();app.include_router(workbench_api.create_router(None));client=TestClient(app)
+     body=client.get('/api/v4/manager-workbench/mapping-catalog').json()['data']
+-    assert body['total']==667 and body['review_progress']['source_reviewed_relations']==220
++    assert body['total']==667 and body['review_progress']['source_reviewed_relations']==700
+     result=client.get('/api/v4/manager-workbench/mapping-catalog',params={'q':'R003','research_use':'EXCLUDED_CURRENT'}).json()['data']
+     assert result['items'][0]['relations'][0]['relation_id']=='R003'
+     assert client.get('/api/v4/manager-workbench/mapping-catalog?research_use=VERIFIED').status_code==422
+@@ -233,23 +240,96 @@
+     assert response.status_code==503 and response.json()['data'] is None
+ 
+ 
+-def test_overlay_builder_is_reproducible_and_rejects_unbound_zip(tmp_path):
+-    path=ROOT/'docs/handoffs/us_hk_667_finish_20261015/post220/build_overlay.py'
++def test_700_overlay_builder_is_reproducible_and_rejects_unbound_supplement(tmp_path):
++    path=ROOT/'docs/handoffs/us_hk_700_supplement_20261016/build_overlay.py'
+     spec=importlib.util.spec_from_file_location('us_hk_finish_builder',path)
+     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+-    zip_path=Path('/Users/lexi/Downloads/US_HK_667_batch11_cumulative220_review_20261015.zip')
++    zip_path=Path('/Users/lexi/Downloads/US_HK_560_700_完整补件_20261015.zip')
+     if zip_path.exists():
+         assert module.build(zip_path)==json.loads(OVERLAY_PATH.read_bytes())
+     broken=tmp_path/'wrong.zip';broken.write_bytes(b'bad')
+-    with pytest.raises(ValueError,match='source ZIP SHA mismatch'):module.build(broken)
+-
+-
+-def test_220_preserves_prior40_history_and_r021_addendum_with_current_source_summary():
++    with pytest.raises(ValueError,match='source supplement SHA mismatch'):module.build(broken)
++
++
++def test_700_overlay_provenance_raw_parse_issues_and_full_evidence_contract():
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++
++    overlay=json.loads(OVERLAY_PATH.read_bytes())
++    assert overlay['source_package_sha256']=='2894b3bca475965aa3553977a654b10fa4c6750bbcb80f70f1bea17bdde649b0'
++    assert overlay['source_package_kind']=='combined_560_700_supplement'
++    assert overlay['source_subtree']=='700/deliverable_batch35'
++    assert overlay['manifest_sha256']=='8ba8ea7ef7c351bcd5a1b72ad8f449b7acf555a54a172ea66084248f28e26ab9'
++    assert overlay['upstream_original_700_package']=={
++        'claimed_sha256':'589dd772...',
++        'received_locally':False,
++        'local_sha256_verified':False,
++    }
++    assert len(overlay['records'])==700
++    assert overlay['research_safety']=={
++        'RESEARCH_ONLY':True,
++        'production_allowed':False,
++        'buy_gate_updated':False,
++        'orders_sent':False,
++        'prediction_validation':'UNTESTED',
++        'historical_PIT':'NOT_VALIDATED',
++        'event_validation':'NOT_RUN',
++        'independent_local_review':'NOT_RUN',
++    }
++    assert sum(len(r['revision_json_parse_issues']) for r in overlay['records'])==60
++    for record in overlay['records']:
++        revision=record['revision']
++        assert revision['revision_event_validation_state']=='NOT_RUN'
++        assert revision['revision_prediction_validation_state']=='UNTESTED'
++        assert revision['revision_historical_PIT_state']=='NOT_VALIDATED'
++        assert revision['revision_independent_local_review_state']=='NOT_RUN'
++        if record['revision_json_parse_issues']:
++            assert len(record['revision_json_parse_issues'])==1
++            issue=record['revision_json_parse_issues'][0]
++            assert issue['field']=='revision_failure_checks_json'
++            assert issue['issue']=='INVALID_JSON_PRESERVED_AS_SOURCE_TEXT'
++            assert isinstance(revision['revision_failure_checks_json'],str)
++            assert hashlib.sha256(revision['revision_failure_checks_json'].encode()).hexdigest()==issue['raw_sha256']
++            with pytest.raises(json.JSONDecodeError):
++                json.loads(revision['revision_failure_checks_json'])
++        for evidence in record['evidence']:
++            assert isinstance(evidence['declared_unresolved_navigation_reference_json'],str)
++            assert isinstance(evidence['evidence_wording_clarifications_json'],str)
++            assert evidence['declared_unresolved_navigation_reference_json']
++            assert evidence['evidence_wording_clarifications_json']
++
++    store=CatalogStore()
++    default=store.search(CATALOG_PATH,OVERLAY_PATH)
++    assert default['review_source']['source_package_sha256']==overlay['source_package_sha256']
++    assert default['review_source']['manifest_sha256']==overlay['manifest_sha256']
++    assert default['review_source']['source_subtree']=='700/deliverable_batch35'
++    assert len(json.dumps(default,ensure_ascii=False).encode())<1_000_000
++    assert all('evidence' not in row['review_revision'] for item in default['items'] for row in item['relations'])
++
++    summary=store.search(CATALOG_PATH,OVERLAY_PATH,'00001')
++    summary_rows=[row for item in summary['items'] for row in item['relations']]
++    assert summary_rows and all(row['review_detail_level']=='SUMMARY' for row in summary_rows)
++    assert all('evidence' not in row['review_revision'] for row in summary_rows)
++    summary_review=next(row['review_revision'] for row in summary_rows if row['relation_id']=='R001')
++    assert 'usage_limits_json' in summary_review['source_summary']
++    assert 'current_usage_limits_with_addenda_json' in summary_review['source_summary']
++    assert 'current_applicability_gaps_json' in summary_review['source_summary']
++
++    full=store.search(CATALOG_PATH,OVERLAY_PATH,'R001')
++    full_row=full['items'][0]['relations'][0]
++    expected={r['relation_id']:r for r in overlay['records']}['R001']
++    assert full_row['review_detail_level']=='FULL'
++    assert full_row['review_revision']==expected
++    assert full_row['review_revision']['evidence']
++    assert 'declared_unresolved_navigation_reference_json' in full_row['review_revision']['evidence'][0]
++    assert 'evidence_wording_clarifications_json' in full_row['review_revision']['evidence'][0]
++
++
++def test_700_preserves_prior40_history_and_r021_addendum_with_current_source_summary():
+     from v4.manager_workbench.us_mapping_catalog import CatalogStore
+     old_path=ROOT/'docs/handoffs/us_hk_667_finish_20261015/post220/preimage/v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json'
+     old={r['relation_id']:r for r in json.loads(old_path.read_bytes())['records']}
+     current={r['relation_id']:r for r in json.loads(OVERLAY_PATH.read_bytes())['records']}
+-    assert set(old)<=set(current) and len(set(current)-set(old))==180
++    assert set(old)<=set(current) and len(set(current)-set(old))==660
+     for rid,before in old.items():
+         after=current[rid]
+         assert before['revision']['revision_research_fact_state']==after['revision']['revision_research_fact_state']
+@@ -288,7 +368,7 @@
+                     assert 'revision_complete_research_record_json' not in review['revision']
+                     assert 'revision_field_assessments_json' not in review['revision']
+                     assert review['revision']['revision_subsequent_research_addenda_json']==expected[row['relation_id']]['revision']['revision_subsequent_research_addenda_json']
+-    # Exhaustively preserve all220 complete revisions through explicit RID requests.
++    # Exhaustively preserve all700 complete revisions through explicit RID requests.
+     for rid,review in expected.items():
+         detail=store.search(CATALOG_PATH,OVERLAY_PATH,rid)
+         rows=[row for item in detail['items'] for row in item['relations']]
+@@ -296,6 +376,17 @@
+         assert rows[0]['review_detail_level']=='FULL' and rows[0]['review_revision']==review
+         assert rows[0]['fact_review_status']=='PENDING' and rows[0]['prediction_eligible'] is False
+         assert detail['review_progress']==default['review_progress']
++
++
++def test_exact_unprocessed_rid_is_not_marked_as_full_review():
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++    result=CatalogStore().search(CATALOG_PATH,OVERLAY_PATH,'R700')
++    rows=[row for item in result['items'] for row in item['relations']]
++    assert len(rows)==1
++    assert rows[0]['relation_id']=='R700'
++    assert rows[0]['source_review_status']=='NOT_PROCESSED'
++    assert rows[0]['review_detail_level']=='SUMMARY'
++    assert rows[0]['review_revision'] is None
+ 
+ 
+ def test_api_summary_and_exact_rid_detail_have_same_identity_safety_and_progress():
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -548,9 +548,10 @@
+                 <p><strong>原始候选 / 排除字段：</strong>effective_candidate={{ sourceValue(relation.source_record["effective_candidate"]) }}；current_observation_candidate={{ sourceValue(relation.source_record["current_observation_candidate"]) }}；audit_only={{ sourceValue(relation.source_record["audit_only"]) }}</p>
+                 <p><strong>原始预测 / 旧边处置：</strong>prediction={{ sourceValue(relation.source_record["prediction"]) }}；old_action={{ sourceValue(relation.source_record["old_action"]) }}；prediction_eligible={{ sourceValue(relation.source_record["prediction_eligible"]) }}；historical_PIT={{ sourceValue(relation.source_record["historical_PIT"]) }}</p>
+                 <p><strong>目录状态：</strong>事实独立核验 {{ relation.fact_review_status }}；预测资格固定为否；预测 {{ relation.prediction_validation }}；历史 PIT {{ relation.historical_PIT }}。</p>
+-                <button v-if="relation.review_detail_level !== 'FULL'" type="button" class="mwb-quiet"
++                <button v-if="relation.source_review_status === 'SOURCE_REVIEWED' && relation.review_detail_level !== 'FULL'" type="button" class="mwb-quiet"
+                   :disabled="vm.catalogRelationDetails[relation.relation_id]?.loading"
+                   @click="vm.loadCatalogRelation(relation)">查看完整补证 {{ relation.relation_id }}</button>
++                <p v-if="relation.source_review_status === 'NOT_PROCESSED'">{{ relation.relation_id }} 尚无来源补证记录。</p>
+                 <p v-if="vm.catalogRelationDetails[relation.relation_id]?.loading" role="status">正在读取完整补证 {{ relation.relation_id }}…</p>
+                 <p v-if="vm.catalogRelationDetails[relation.relation_id]?.error" class="mwb-alert" role="alert">{{ relation.relation_id }}：{{ vm.catalogRelationDetails[relation.relation_id]?.error }}</p>
+                 <p v-if="relation.review_detail_level === 'FULL'">已读取完整补证 {{ relation.relation_id }}；来源身份已核对。</p>
+@@ -576,11 +577,20 @@
+                   <details v-if="relation.review_detail_level === 'FULL'"><summary>逐字段修订与研究层级</summary>
+                     <p v-for="[field, assessment] in revisionAssessments(relation.review_revision.revision.revision_field_assessments_json)" :key="field"><strong>{{ field }}：</strong>{{ sourceValue(assessment) }}</p>
+                   </details>
++                  <details v-if="relation.review_detail_level === 'FULL' && relation.review_revision.revision_json_parse_issues?.length">
++                    <summary>原始 JSON 解析问题（来源文本保留）</summary>
++                    <article v-for="(issue, index) in relation.review_revision.revision_json_parse_issues" :key="`${issue.field}-${index}`">
++                      <p><strong>{{ issue.field }}：</strong>{{ issue.issue }}；{{ issue.error_type }}；原文字符数 {{ issue.raw_characters }}；SHA256 {{ issue.raw_sha256 }}</p>
++                      <p><strong>保留的来源原文：</strong>{{ sourceValue(relation.review_revision.revision[issue.field]) }}</p>
++                    </article>
++                  </details>
+                   <details v-if="relation.review_detail_level === 'FULL'"><summary>证据日期、定位、访问结果及边界</summary>
+                     <article v-for="(evidence, index) in relation.review_revision.evidence" :key="index">
+                       <p>{{ evidence.evidence_id }} · {{ evidence.title }} · {{ evidence.open_status }}</p>
+                       <p>发布日期 {{ sourceValue(evidence.published_date) }}；适用期 {{ sourceValue(evidence.applicable_period) }}；访问日期 {{ sourceValue(evidence.accessed_at) }}</p>
+                       <p>{{ sourceValue(evidence.locator) }}；{{ sourceValue(evidence.excerpt_or_paraphrase) }}</p>
++                      <p><strong>声明的未解决导航引用：</strong>{{ sourceValue(evidence.declared_unresolved_navigation_reference_json) }}</p>
++                      <p><strong>证据措辞澄清：</strong>{{ sourceValue(evidence.evidence_wording_clarifications_json) }}</p>
+                       <p>不能支持：{{ sourceValue(evidence.does_not_support) }}；缺口：{{ sourceValue(evidence.gaps) }}</p>
+                       <a v-for="url in sourceUrls(evidence.url)" :key="url" :href="url" target="_blank" rel="noopener noreferrer">打开补证来源：{{ url }}</a>
+                     </article>
+--- a/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
+@@ -28,14 +28,19 @@
+       review_revision: { revision: { revision_research_fact_state: "VERIFIED_DATED_ASSOCIATE_FACT",
+         revision_current_applicability_state: "PENDING_CURRENT_OWNERSHIP_AND_WEIGHT",
+         revision_subsequent_research_addenda_json: [{ revision: "Delaware正文与IL索引冲突未获解释" }],
++        revision_failure_checks_json: "原始未闭合的 failure-check 文本，保留原样",
+         revision_remaining_gaps_json: ["当前权益比例待核"], revision_research_fact_dates: ["2026-10-15 UTC"] },
++        revision_json_parse_issues: [{ field: "revision_failure_checks_json", issue: "INVALID_JSON_PRESERVED_AS_SOURCE_TEXT",
++          error_type: "JSONDecodeError", raw_sha256: "257bc433eded097eddc4290c61a934ff63a94b9e1b1252f21eef774f09c7f625", raw_characters: 28 }],
+         source_summary: { primary_use: "来源研究用途示例", primary_use_reason: "保留边界", verified_facts_json: ["来源支持范围"],
+           usage_limits_json: "旧使用限制", next_key_evidence_json: "旧下一证据",
+           current_usage_limits_with_addenda_json: ["州注册冲突限制；SFD是WH ADR、87%为当前精确值"],
+           current_next_key_evidence_with_addenda_json: ["待官方更正索引或解释"],
+           current_applicability_gaps_json: ["旧缺口仍保留"] },
+         evidence: [{ evidence_id: "E1", title: "补证一", open_status: "OPENED_BODY", published_date: "2026-08-13",
+-          url: "https://example.com/revision", does_not_support: "价格预测" }] },
++          url: "https://example.com/revision", does_not_support: "价格预测",
++          declared_unresolved_navigation_reference_json: "[{\"reference\":\"R1\"}]",
++          evidence_wording_clarifications_json: "[{\"term\":\"适用期\",\"clarification\":\"仅按披露期解释\"}]" }] },
+       source_row: 1, hk_code: "00001", us_symbol: "CVE",
+       source_record: {
+         type: "OWNERSHIP", segment: "联营投资", fact: "公司材料列明应占利润",
+@@ -54,10 +59,10 @@
+     };
+     const catalogData = {
+       research_use: "",
+-      review_progress: { source_reviewed_relations: 220, unprocessed_relations: 783, source_reviewed_stocks: 92,
+-        all_original_relations_processed_stocks: 89, independently_verified_relations: 0,
+-        independent_verification: "NOT_RUN", research_use_counts: { PENDING_REVIEW: 981 } },
+-      review_source: { source_package_sha256: "8a214c3c10931e2ab807a3f1701449105702c68186a07a3c1da717413e69fab1", source_generated_at_utc: "2026-10-15T03:24:50Z", integrity_sha256: "b".repeat(64) },
++      review_progress: { source_reviewed_relations: 700, unprocessed_relations: 303, source_reviewed_stocks: 378,
++        all_original_relations_processed_stocks: 378, independently_verified_relations: 0,
++        independent_verification: "NOT_RUN", research_use_counts: { PENDING_REVIEW: 985 } },
++      review_source: { source_package_sha256: "2894b3bca475965aa3553977a654b10fa4c6750bbcb80f70f1bea17bdde649b0", source_generated_at_utc: "2026-10-15T14:36:36.647452+00:00", integrity_sha256: "dc2884635d43fea1f828366fddd22dc17f5de0b3625dc63cb93fb5415adb9a34" },
+       catalog_id: "us_hk_667_20261015_from_20261014_membership",
+       catalog_state: "STRUCTURE_VALID_ONLY",
+       catalog_integrity_sha256: "a".repeat(64),
+@@ -97,10 +102,16 @@
+         const params = new URL(url, "http://localhost").searchParams;
+         const offset = Number(params.get("offset") || 0);
+         const explicitDetail = query === "R001";
++        const exactUnprocessed = query === "R700";
+         const summaryRelation = { ...relation, review_detail_level: "SUMMARY",
+-          review_revision: { ...relation.review_revision, evidence: undefined } };
++          review_revision: { ...relation.review_revision, evidence: undefined, revision_json_parse_issues: undefined } };
++        const unprocessedRelation = { ...relation, relation_id: "R700", source_review_status: "NOT_PROCESSED",
++          review_detail_level: "SUMMARY", review_revision: null };
+         const data = { ...catalogData, query, offset, research_use: params.get("research_use") || "",
+-          total: query ? 1 : 667, items: catalogData.items.map(item => ({ ...item, ordinal: offset + 1, relations: [explicitDetail ? relation : summaryRelation] })) };
++          total: query ? 1 : 667, items: catalogData.items.map(item => ({ ...item, ordinal: offset + 1,
++            source_reviewed_relation_count: exactUnprocessed ? 0 : item.source_reviewed_relation_count,
++            unprocessed_relation_count: exactUnprocessed ? 1 : item.unprocessed_relation_count,
++            relations: [exactUnprocessed ? unprocessedRelation : explicitDetail ? relation : summaryRelation] })) };
+         if (explicitDetail) {
+           detailRequests++;
+           if (detailRequests === 1) return new Response(JSON.stringify({ detail: "补证读取失败示例" }), { status: 503 });
+@@ -122,8 +133,8 @@
+     await fireEvent.click(screen.getByRole("tab", { name: "美股映射资料库" }));
+     await screen.findByText(/ZIP CRC：PASS；清单校验：PASS；包内文件：15/);
+     expect(screen.getByText(/预测状态 UNTESTED/)).toBeTruthy();
+-    expect(screen.getByText(/SOURCE_REVIEWED：220 \/ 1003 条关系、92 \/ 667 只股票；未处理 783 条关系/)).toBeTruthy();
+-    expect(screen.getByText(/全部原始关系已有记录：89 只股票/)).toBeTruthy();
++    expect(screen.getByText(/SOURCE_REVIEWED：700 \/ 1003 条关系、378 \/ 667 只股票；未处理 303 条关系/)).toBeTruthy();
++    expect(screen.getByText(/全部原始关系已有记录：378 只股票/)).toBeTruthy();
+     expect(screen.getByText(/INDEPENDENTLY_VERIFIED：0 条/)).toBeTruthy();
+     expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+     expect(detailRequests).toBe(0);
+@@ -160,6 +171,8 @@
+     expect(screen.getByText(/使用限制 \/ 禁止据此推断：/)).toBeTruthy();
+     expect(screen.getByText(/待官方更正索引或解释/)).toBeTruthy();
+     expect(screen.getByText(/Delaware正文与IL索引冲突未获解释/)).toBeTruthy();
++    expect(screen.queryByText(/声明的未解决导航引用：/)).toBeNull();
++    expect(screen.queryByText(/原始未闭合的 failure-check 文本/)).toBeNull();
+     expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+     await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
+     await screen.findByText(/R001：.*关系身份、来源或安全状态不一致/);
+@@ -168,10 +181,23 @@
+     await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
+     await screen.findByText(/已读取完整补证 R001/);
+     expect(screen.getByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeTruthy();
++    expect(screen.getByText(/声明的未解决导航引用：/)).toBeTruthy();
++    expect(screen.getByText(/声明的未解决导航引用：/).parentElement?.textContent).toContain("R1");
++    expect(screen.getByText(/证据措辞澄清：/)).toBeTruthy();
++    expect(screen.getByText(/证据措辞澄清：/).parentElement?.textContent).toContain("仅按披露期解释");
++    const parseIssueDetails = screen.getByText(/原始 JSON 解析问题/).parentElement;
++    expect(parseIssueDetails?.textContent).toContain("INVALID_JSON_PRESERVED_AS_SOURCE_TEXT");
++    expect(parseIssueDetails?.textContent).toContain("原始未闭合的 failure-check 文本");
+     await fireEvent.update(screen.getByRole("textbox", { name: /按港股代码、港股名称、美股资产代码或关系编号查询/ }), "R001");
+     await fireEvent.click(screen.getByRole("button", { name: "查询资料" }));
+     await screen.findByText(/R001 · 研究用途/);
+     expect(spy.mock.calls.some(([input]) => String(input).includes("q=R001"))).toBe(true);
+     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
++    await fireEvent.update(screen.getByRole("textbox", { name: /按港股代码、港股名称、美股资产代码或关系编号查询/ }), "R700");
++    await fireEvent.click(screen.getByRole("button", { name: "查询资料" }));
++    await screen.findByText(/R700 · 研究用途/);
++    expect(screen.getByText(/R700 尚无来源补证记录/)).toBeTruthy();
++    expect(screen.queryByRole("button", { name: "查看完整补证 R700" })).toBeNull();
++    expect(screen.queryByText(/已读取完整补证 R700/)).toBeNull();
+   });
+ });
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -257,6 +257,13 @@
+   research_use: string;
+   revision: Record<string, unknown>;
+   evidence?: Record<string, string>[];
++  revision_json_parse_issues?: {
++    field: string;
++    issue: string;
++    error_type: string;
++    raw_sha256: string;
++    raw_characters: number;
++  }[];
+   source_summary?: Record<string, unknown>;
+ }
+ export interface USMappingCatalogRelation {
