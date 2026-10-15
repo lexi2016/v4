@@ -1,0 +1,226 @@
+--- a/v4/manager_workbench/oversold_daily.py
++++ b/v4/manager_workbench/oversold_daily.py
+@@ -16,6 +16,21 @@
+ RETRY_DELAYS=(60,300,900)
+ RETRY_PROBE_SECONDS=900
+ TERMINAL_STATES={"SUCCEEDED","PARTIAL_TERMINAL","OWNER_READINESS_EXPIRED"}
++_CLASSIFIER_MIGRATION_ID="tdxpy-response-header-recv-fails-20261016-r1"
++_CLASSIFIER_MIGRATION_SOURCE={
++    "source_hk_session":"20261015",
++    "target_date":"20261016",
++    "job_id":"0c72d7ade78249d280b03418e71db681",
++    "run_id":"0c72d7ade78249d280b03418e71db681",
++    "capture_run_id":"9780a44c5cb6d6f02137d35c",
++    "capture_manifest_sha256":"a4ee2b1fc23e85650a0937355881c6c54b3557c219d69bb27ec5919cc1b0d68f",
++    "tdxpy_manifest_sha256":"a4ee2b1fc23e85650a0937355881c6c54b3557c219d69bb27ec5919cc1b0d68f",
++    "panel_manifest_sha256":"bf80f6869862c9363f132d8ca0b134e613d919bc0441b52550efcc417726fba0",
++    "master_manifest_sha256":"57e15f3cd79535ea7d566a2b1f560692b148ef932b72d8fa14c662ef853b2898",
++    "parent_signature":"755903e3fdba1227a157e5329bb728f1853ade1603da1cb8f1bf9ba8dbe5f0f8",
++    "capture_attempts":1,
++    "job_attempts":1,
++}
+ 
+ 
+ def _now():
+@@ -143,7 +158,15 @@
+             if state and (state.get("source_hk_session")!=source_day or state.get("target_date")!=target_date):
+                 return {"state":"CURSOR_IDENTITY_MISMATCH","cursor_key":key}
+             if state.get("state") in TERMINAL_STATES:
+-                return {"state":state["state"],"cursor_key":key}
++                if self._classifier_migration_eligible(state,source_day,target_date):
++                    state.update(state="RETRY_WAIT",operation=None,retry_operation="CAPTURE",
++                        next_retry_at=_iso(instant),classifier_migration_id=_CLASSIFIER_MIGRATION_ID,
++                        classifier_migration_attempts=1,classifier_migration_source_verified=False,
++                        classifier_migration_started_at=_iso(instant),
++                        last_error="TDXPY_TRANSPORT_CLASSIFIER_MIGRATION")
++                    self.service.store.set_cursor(key,state)
++                else:
++                    return {"state":state["state"],"cursor_key":key}
+             if state.get("state")=="JOB_PENDING":
+                 state=self._reconcile_job(key,state)
+                 if state.get("state") in TERMINAL_STATES or state.get("state")=="JOB_PENDING":
+@@ -185,6 +208,18 @@
+                     "capture_attempts":0,"job_attempts":0,"preflight_failures":0,"check_count":0}
+             return self._schedule(key,source_day,target_date,instant,state)
+ 
++    @staticmethod
++    def _classifier_migration_eligible(state,source_day,target_date):
++        if (source_day!=_CLASSIFIER_MIGRATION_SOURCE["source_hk_session"]
++                or target_date!=_CLASSIFIER_MIGRATION_SOURCE["target_date"]
++                or state.get("state")!="PARTIAL_TERMINAL"
++                or state.get("terminal_reason")!="STABLE_OWNER_GAPS_RETAINED"
++                or state.get("capture_evidence_disposition")!="PARTIAL_SUBMITTED_NO_RETRYABLE_TRANSPORT"
++                or state.get("capture_retryable_error_count")!=0
++                or state.get("classifier_migration_attempts",0)!=0):
++            return False
++        return all(state.get(key)==value for key,value in _CLASSIFIER_MIGRATION_SOURCE.items())
++
+     def _reconcile_job(self,key,state):
+         job=self.service.store.get_job(state.get("job_id",""))
+         if job is None:
+@@ -250,6 +285,42 @@
+             failed_catalogues=raw.get("failed_catalogues",[]),
+             catalogue_cache_refreshes=raw.get("catalogue_cache_refreshes",[]))
+ 
++    def _verify_classifier_migration_source(self,source_day,target_date,context,panel_pin,master_pin,state):
++        from upstreams.v3_shared_data.shared_data.paths import resolve_under
++
++        expected=_CLASSIFIER_MIGRATION_SOURCE
++        if (source_day!=expected["source_hk_session"] or target_date!=expected["target_date"]
++                or state.get("parent_signature")!=expected["parent_signature"]
++                or panel_pin.get("manifest_sha256")!=expected["panel_manifest_sha256"]
++                or master_pin.get("manifest_sha256")!=expected["master_manifest_sha256"]
++                or state.get("classifier_migration_id")!=_CLASSIFIER_MIGRATION_ID):
++            raise ValueError("OVERSOLD_CLASSIFIER_MIGRATION_PARENT_MISMATCH")
++        output=Path(self.service.config.shared_root).resolve()/"assets/hk_0_2/daily_supplements/tdxpy61"
++        manifest_relative=f"runs/{source_day}/{expected['capture_run_id']}/manifest.json"
++        manifest_path=resolve_under(output,manifest_relative)
++        manifest_bytes=manifest_path.read_bytes()
++        if hashlib.sha256(manifest_bytes).hexdigest()!=expected["capture_manifest_sha256"]:
++            raise ValueError("OVERSOLD_CLASSIFIER_MIGRATION_MANIFEST_SHA_MISMATCH")
++        manifest=json.loads(manifest_bytes)
++        if (manifest.get("run_id")!=expected["capture_run_id"]
++                or manifest.get("target_date")!=source_day
++                or manifest.get("capture_scope")!="PANEL_GAPS"):
++            raise ValueError("OVERSOLD_CLASSIFIER_MIGRATION_MANIFEST_IDENTITY_INVALID")
++        raw_relative=manifest.get("raw_relative")
++        raw_bytes=resolve_under(output,raw_relative).read_bytes()
++        raw_sha=hashlib.sha256(raw_bytes).hexdigest()
++        if raw_sha!=manifest.get("raw_sha256"):
++            raise ValueError("OVERSOLD_CLASSIFIER_MIGRATION_RAW_SHA_MISMATCH")
++        pin=dict(source_local_path=str(output),manifest_relative=manifest_relative,
++            manifest_sha256=expected["capture_manifest_sha256"],raw_relative=raw_relative,
++            raw_sha256=raw_sha,run_id=manifest["run_id"],available_at=manifest["available_at"],
++            target_date=manifest["target_date"])
++        evidence=self.inspect_capture(source_day,context,panel_pin,master_pin,pin)
++        if (evidence.get("manifest",{}).get("unassessed_count",0)<=0
++                or not _retryable_partial_transport(evidence)):
++            raise ValueError("OVERSOLD_CLASSIFIER_MIGRATION_TRANSPORT_EVIDENCE_MISSING")
++        return True
++
+     def _attempt(self,key,source_day,target_date):
+         try:
+             first_cutoff=self.clock()
+@@ -267,13 +338,30 @@
+                 "master_manifest_sha256":(master_pin or {}).get("manifest_sha256"),
+                 "tdxpy_manifest_sha256":((panel_pin or {}).get("tdxpy_history") or {}).get("manifest_sha256")})
+             prior=self._read(key)
++            if prior.get("classifier_migration_attempts")==1 and (not panel_pin or not master_pin):
++                reason="EXACT_DATE_HK_PANEL_UNAVAILABLE" if not panel_pin else "EXACT_DATE_HK_MASTER_UNAVAILABLE"
++                self._write(key,dict(state="WAITING_FOR_PANEL_MASTER",operation="WAITING",pid=None,
++                    last_error=gaps.get("hk_panel" if not panel_pin else "security_master",reason),
++                    checked_at=_iso(first_cutoff),next_retry_at=None))
++                return
++            if prior.get("classifier_migration_attempts")==1 and not prior.get("classifier_migration_source_verified"):
++                try:
++                    self._verify_classifier_migration_source(source_day,target_date,context,panel_pin,master_pin,
++                        prior)
++                except Exception as error:
++                    self._write(key,dict(state="PARTIAL_TERMINAL",operation="DONE",pid=None,
++                        terminal_reason="CLASSIFIER_MIGRATION_SOURCE_NOT_VERIFIED",
++                        classifier_migration_source_verified=False,last_error=_failure_code(error)))
++                    return
++                self._write(key,dict(classifier_migration_source_verified=True,
++                    classifier_migration_source_verified_at=_iso(self.clock())))
+             if prior.get("exhausted_probe"):
+                 if parent_signature==prior.get("parent_signature"):
+                     self._write(key,dict(state="RETRY_EXHAUSTED",operation="WAITING_FOR_PARENT_CHANGE",pid=None,
+                         exhausted_probe=False,next_probe_at=_iso(self.clock()+timedelta(seconds=RETRY_PROBE_SECONDS))))
+                     return
+                 self._write(key,dict(state="RUNNING",operation="PREFLIGHT",exhausted_probe=False,
+-                    parent_signature=parent_signature,capture_attempts=0,job_attempts=0,preflight_failures=0))
++                    parent_signature=parent_signature))
+             else:
+                 self._write(key,dict(parent_signature=parent_signature,exhausted_probe=False))
+             if not panel_pin or not master_pin:
+--- a/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py
++++ b/upstreams/v3_shared_data/shared_data/hk_daily_supplement.py
+@@ -731,7 +731,8 @@
+ WINDOW_MANIFEST = "v3_shared_data.hk_0_2_daily_supplement_tdxpy_manifest.v1"
+ _TRANSPORT_ERROR_TYPES={"CONNECTIONERROR","CONNECTIONABORTEDERROR","CONNECTIONREFUSEDERROR",
+     "CONNECTIONRESETERROR","BROKENPIPEERROR","TIMEOUTERROR","SOCKETTIMEOUT","NETWORKERROR",
+-    "REMOTEDISCONNECTED","TDXCONNECTIONERROR","TDXSOCKETERROR","TDXTIMEOUTERROR"}
++    "REMOTEDISCONNECTED","TDXCONNECTIONERROR","TDXSOCKETERROR","TDXTIMEOUTERROR",
++    "RESPONSEHEADERRECVFAILS"}
+ _TRANSPORT_ERROR_CODES={"TDXPY_CONNECT_FAILED","HK_DAILY_SUPPLEMENT_TDX_CONNECT_FAILED"}
+ _OS_TRANSPORT_MESSAGES=("CONNECTION RESET","CONNECTION REFUSED","CONNECTION ABORTED",
+     "BROKEN PIPE","NETWORK IS UNREACHABLE","NO ROUTE TO HOST","TIMED OUT","TEMPORARY FAILURE")
+@@ -1044,16 +1045,49 @@
+             raise ValueError('TDXPY_PARENT_AFTER_CAPTURE')
+         for endpoint in TDXPY_NODES:
+             if len(records)==len(selected):break
+-            api=None
++            api=None;connection_error=None;refresh_needed=False;pending_cache_codes=[]
++            cpath=resolve_under(output,'catalogues/'+endpoint.replace(':','_')+'.json')
+             try:
+-                api=connector(endpoint)
+-                # Catalogue cache is immutable evidence; captures retain its true
+-                # observation time and digest, never claim it was refreshed.
+-                cpath=resolve_under(output,'catalogues/'+endpoint.replace(':','_')+'.json')
+                 if cpath.exists():
+-                    cached=_verify_catalogue(json.loads(cpath.read_bytes()),output)
+-                    catalogue=cached
+-                    if _catalogue_transient_failure(cached):
++                    catalogue=_verify_catalogue(json.loads(cpath.read_bytes()),output)
++                else:
++                    catalogue=_recover_catalogue(output,endpoint)
++                    if catalogue is not None:
++                        # A recovered catalogue is already immutable evidence. Save
++                        # it before any refresh so refresh provenance has a source.
++                        _write_atomic(cpath,_canonical(catalogue),replace=False)
++                if catalogue is None:
++                    # A missing catalogue is the only reason to connect before the
++                    # exact per-security request cache can be checked.
++                    api=connector(endpoint)
++                    catalogue=_catalogue(api,endpoint,clock)
++                    _write_atomic(cpath,_canonical(catalogue),replace=False)
++                else:
++                    refresh_needed=_catalogue_transient_failure(catalogue)
++                    # Compute exact request cache misses from the cached catalogue
++                    # first. A complete cached request set must survive an offline
++                    # connector without losing already verified READY records.
++                    for code in selected:
++                        if code in records:continue
++                        try:
++                            identity=_catalogue_security(catalogue,code)
++                            request=dict(**TDXPY_PROFILE,endpoint=endpoint,market=identity['security']['market'],code=code,
++                                         requested_sessions=sessions,calendar_sha256=calendar_sha)
++                            cache_path=resolve_under(output,'cache/'+_sha(_canonical(request))+'.json')
++                        except Exception:
++                            continue
++                        if not cache_path.exists():pending_cache_codes.append(code)
++                    if refresh_needed or pending_cache_codes:
++                        try:
++                            api=connector(endpoint)
++                        except Exception as error:
++                            connection_error=error
++                            if refresh_needed:
++                                catalogue_cache_refreshes.append(dict(endpoint=endpoint,
++                                    previous_sha256=_sha(_canonical(catalogue)),status='FAILED',
++                                    error_type=type(error).__name__,error=str(error)))
++                    if refresh_needed and api is not None:
++                        cached=catalogue
+                         try:
+                             refreshed=_catalogue(api,endpoint,clock)
+                         except Exception as error:
+@@ -1080,9 +1114,6 @@
+                                 refresh_event.update(refreshed_error_type=failures[0].get('error_type'),
+                                     refreshed_error=failures[0].get('error'))
+                             catalogue_cache_refreshes.append(refresh_event)
+-                else:
+-                    catalogue=_recover_catalogue(output,endpoint) or _catalogue(api,endpoint,clock)
+-                    _write_atomic(cpath,_canonical(catalogue),replace=False)
+                 if _timestamp(catalogue['available_at'])>_timestamp(_time_text(clock())):raise ValueError('TDXPY_CATALOGUE_FUTURE')
+                 catalogue_sha=_sha(_canonical(catalogue));catalogues.append(catalogue)
+                 for code in selected:
+@@ -1096,6 +1127,10 @@
+                         if cache_path.exists():
+                             record=_verify_window_record(json.loads(cache_path.read_bytes()),catalogue,sessions,calendar_sha)
+                             hits+=1;records[code]={**record,'cache_hit':True,'catalogue_sha256':catalogue_sha};continue
++                        if api is None:
++                            if connection_error is not None and (code in pending_cache_codes or refresh_needed):
++                                raise connection_error
++                            raise ValueError('TDXPY_REQUEST_CACHE_MISS_WITHOUT_NETWORK')
+                         begin=_time_text(clock());requests+=1
+                         rows=_json_native(api.get_instrument_bars(4,request['market'],code[3:],0,128))
+                         acquired=_time_text(clock())
