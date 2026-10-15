@@ -1,0 +1,134 @@
+{
+  "schema": "v4.research_morning_repair_delivery.v1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_base_commit": "6e0134ef0daaf6525f12176e12b3fe8ceca606e0",
+  "branch": "codex/research-morning-time-20261015-r1",
+  "statuses": {
+    "IMPLEMENTED": "PASS",
+    "REVIEWED": "PASS",
+    "TESTED": "PASS_TARGETED",
+    "DEPLOYED": "PASS",
+    "API_VERIFIED": "PASS",
+    "UI_VERIFIED": "PASS_TARGETED",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "canonical_files": [
+    {
+      "path": "apps/web/src/composables/useResearchLane.ts",
+      "exists": true,
+      "sha256": "406241c7be6c7e4df06f0846ceab39f866867890e1a4395731f79efaba5fb78d",
+      "bytes": 14387,
+      "changed_from_before": true,
+      "before_sha256": "6bfe8073fa04456b1ee0e415f7108b48265a2e856d50cca56a999d1ddc31f943"
+    },
+    {
+      "path": "apps/web/src/composables/researchFeedPresentation.ts",
+      "exists": true,
+      "sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+      "bytes": 6059,
+      "changed_from_before": true,
+      "before_sha256": null
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedCard.vue",
+      "exists": true,
+      "sha256": "9d508ffd2c12ed7d6846f74efd5539835af356a13f337fd23e119a1b5ee7bd2c",
+      "bytes": 1848,
+      "changed_from_before": true,
+      "before_sha256": "854dd9e51652571c8db1af50235d67526aa47b58d029d338e4f4af7183a090da"
+    },
+    {
+      "path": "apps/web/src/views/ResearchView.spec.ts",
+      "exists": true,
+      "sha256": "1b26030baf0e9af9fc26b63371181b61487554e442f36a41106070bc36c64833",
+      "bytes": 37364,
+      "changed_from_before": true,
+      "before_sha256": "ec51010bb82e25396f7483b5617c7f28ce8a01d6374dbd553d2c26d80d02823a"
+    }
+  ],
+  "runtime_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/research-morning-time-20261015-r1",
+  "runtime_manifest_sha256": "507f54afe1baba0fbcda9f36298147b74d5aea0ef5a2571555b6aa1efeabde64",
+  "runtime_source_sha256": {
+    "apps/web/src/composables/useResearchLane.ts": "eaf427d74aaf7b214479f18b20035f54373898f034d25fcce33b47b50716ce30",
+    "apps/web/src/composables/researchFeedPresentation.ts": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+    "apps/web/src/components/research/ResearchFeedCard.vue": "58ab9d4c73da474be343ca54b26fe8b252fcdf1002f774cf199d5995313bf311",
+    "apps/web/dist/index.html": "f060777edde9a4a9a6a6aa8bbbbcd41df63180395fae70431bd0e0608ff13546",
+    "apps/web/dist/assets/main-DFvt8F0D.js": "8739c7a07f08375d10cf4a5d526cdd7a9f3a8a6b6359b91a5e7c9345c519b39e"
+  },
+  "non_delta_entries_preserved": 1178,
+  "independent_tests": [
+    {
+      "command": "npm test -- src/views/ResearchView.spec.ts src/composables/useResearchLane.spec.ts",
+      "result": "PASS",
+      "tests_passed": 40
+    },
+    {
+      "command": "npm test -- src/views/ResearchView.spec.ts",
+      "result": "PASS",
+      "tests_passed": 14
+    },
+    {
+      "command": "npm test -- reviewer-projection.spec.ts",
+      "result": "PASS",
+      "tests_passed": 2
+    },
+    {
+      "command": "npm run build (candidate active-source projection)",
+      "result": "PASS",
+      "tests_passed": null
+    }
+  ],
+  "typecheck": {
+    "candidate_diagnostics": 34,
+    "active_baseline_diagnostics": 34,
+    "identical": true,
+    "new_target_diagnostics": 0
+  },
+  "api_morning_before": {
+    "http_status": 200,
+    "morning_sha256": "1ebeb99de5e87efdd4465318b7fb0a878d4e627b36c7e5d56874cd6b6495daab"
+  },
+  "api_morning_after": {
+    "http_status": 200,
+    "morning_sha256": "1ebeb99de5e87efdd4465318b7fb0a878d4e627b36c7e5d56874cd6b6495daab"
+  },
+  "ui": {
+    "url": "http://127.0.0.1:8873/?date=20261015&date_anchor=20260901&view=research",
+    "morning_cards": 3,
+    "source": "韭研公社",
+    "category": "早盘",
+    "filters_clicked": [
+      "全部",
+      "早盘",
+      "股票",
+      "星球",
+      "财经",
+      "AI",
+      "重点",
+      "公众号"
+    ],
+    "dates": [
+      "20261015",
+      "20261014",
+      "20261015"
+    ],
+    "latest_source_date": "20261015",
+    "overflow_at_1280": false,
+    "overflow_at_768": false,
+    "console_errors": 0,
+    "original_links": "href verified; first clicked; external landing NOT_VERIFIED"
+  },
+  "known_gaps": [
+    "No capture timestamp in existing morning artifacts; publication timezone absent; CANNOT_CONFIRM retained with reasons/raw field.",
+    "Top-level Refresh Snapshot returns to stage view; global navigation code unchanged.",
+    "WeChat selected-day archive query empty; issue recorded only per user scope.",
+    "Full repository typecheck remains blocked by baseline diagnostics; no full-suite pass claimed."
+  ],
+  "business_data_modified": false,
+  "scheduler_modified": false,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import {
-  chipList,
-  feedFetchTimeLabel,
-  feedPublishedTimeLabel,
-  financeOriginalUrl,
-  safeExternalUrl,
-  text,
-} from "../../composables/useResearchLane";
+import { feedCardPresentation, financeOriginalUrl, safeExternalUrl, text } from "../../composables/researchFeedPresentation";
+import { chipList } from "../../composables/useResearchLane";
 
 const props = defineProps<{ card: Record<string, unknown> }>();
+const presentation = computed(() => feedCardPresentation(props.card));
 
 const originalUrl = computed(() => {
   const card = props.card;
@@ -22,17 +17,17 @@ const originalUrl = computed(() => {
 </script>
 
 <template>
-  <article class="hourly-feed-card" :class="text(card.source)">
+  <article class="hourly-feed-card" :class="presentation.categoryClass">
     <div class="hourly-feed-head">
       <div>
         <div class="hourly-feed-title">{{ text(card.stock_name || card.stock_code || card.title) }}</div>
-        <div class="hourly-meta">{{ text(card.source_name || card.source_type || card.source) }}</div>
+        <div class="hourly-meta">{{ presentation.sourceLabel }}</div>
       </div>
-      <span class="hourly-source-tag source">{{ text(card.source) }}</span>
+      <span v-if="presentation.showTypeLabel" class="hourly-source-tag source">{{ presentation.typeLabel }}</span>
     </div>
     <div class="hourly-evidence-times" aria-label="时间证据">
-      <span class="hourly-time-label">{{ feedFetchTimeLabel(card) }}</span>
-      <span class="hourly-time-label">{{ feedPublishedTimeLabel(card) }}</span>
+      <span class="hourly-time-label">{{ presentation.fetchedTimeLabel }}</span>
+      <span class="hourly-time-label">{{ presentation.publishedTimeLabel }}</span>
     </div>
     <div class="hourly-chips">
       <span v-for="chip in chipList(card)" :key="chip" class="hourly-chip">{{ chip }}</span>

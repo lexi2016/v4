@@ -437,7 +437,7 @@ describe("ResearchView (research lane)", () => {
 
   it("shows exactly the three exact-date morning articles in the early tab", async () => {
     const morningArticles = [
-      { title: "8月27日盘前纪要", url: "https://news.example/morning-brief", source: "韭研公社" },
+      { title: "8月27日盘前纪要", url: "https://news.example/morning-brief", source: "韭研公社", fetched_at: "2026-08-27T07:02:00+08:00", published_at: "2026-08-27 07:06:01" },
       { title: "8月27日盘前解读", url: "https://news.example/morning-read", source: "韭研公社" },
       { title: "8月27日开盘必读资讯", url: "https://news.example/morning-open", source: "韭研公社" },
     ];
@@ -464,6 +464,13 @@ describe("ResearchView (research lane)", () => {
     for (const article of morningArticles) {
       expect(within(feedList).getByText(article.title)).toBeTruthy();
     }
+    for (const card of cards) {
+      expect(card.textContent).toContain("韭研公社");
+      expect(card.querySelector(".hourly-source-tag")?.textContent?.trim()).toBe("早盘");
+      expect(card.textContent).not.toContain("morning");
+    }
+    expect(cards[0].textContent).toContain("获取时间：2026-08-27 07:02:00+08:00");
+    expect(cards[0].textContent).toContain("published_at=2026-08-27 07:06:01");
     expect(within(feedList).queryByText("星球话题")).toBeNull();
     expect(within(feedList).queryByText("财经头条")).toBeNull();
     expect(within(feedList).queryByText("AI新闻条目")).toBeNull();
