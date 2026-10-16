@@ -1,0 +1,128 @@
+{
+  "schema_version": "futu-r1-independent-review-v1",
+  "reviewer": "/root/today_mapping_observation_review",
+  "reviewer_identity": "different from /root/today_mapping_observation_writer",
+  "review_mode": "READ_ONLY_WITHIN_FROZEN_PASS_SCOPE",
+  "overall_status": "PASS_WITH_NONBLOCKING_P2",
+  "TESTED": "PASS",
+  "REVIEWED": "PASS_WITH_NONBLOCKING_P2",
+  "BEHAVIOR_VERIFIED": "PASS_OFFLINE_REPLAY",
+  "live_api_reconfirmation": "CANNOT_CONFIRM_NOT_CALLED_BY_REVIEWER",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "P2-DAILY-CANARY-FAIL-OPEN",
+        "severity": "P2",
+        "blocking": false,
+        "title": "Missing or unrecognized saved canary falls through to live historical-K requests",
+        "evidence": [
+          "SCOPE_R1.md:16 prohibits any additional daily-K requests in this batch.",
+          "capture_futu_daily.py:335-341 replays only when an existing file has the expected schema_version; otherwise it proceeds to live capture.",
+          "capture_futu_daily.py:342-360 fetches live catalog pages, opens OpenQuoteContext, and issues request_history_kline for all three canary codes.",
+          "capture_futu_daily.py:413-426 reports success from the cached status without validating cached request codes, date, response rows, or checks."
+        ],
+        "reproduction": "Source-path inspection; the current valid artifact was not removed or altered. The authorized --canary run returned replayed_saved_canary=true and TESTED; the live fallback was intentionally not invoked.",
+        "impact": "After canary loss or schema drift, rerunning the documented command can issue the same three historical-K requests again; a schema-matching malformed artifact can be reported as TESTED. This can spend quota beyond the already captured canary set.",
+        "current_packet_disposition": "Nonblocking for this packet: current canary is exact, receipt-pinned, and independently replayed from disk. No live API call was made by the reviewer.",
+        "recommended_action": "Fail closed when the saved canary is absent after capture; validate exact symbols, date, request contract, row count, and checks before replay reports TESTED."
+      }
+    ]
+  },
+  "acceptance": {
+    "writer_artifact_hashes": "PASS_ALL_15",
+    "top_level_report_hash": "PASS",
+    "source_projection_vs_frozen_relations": "PASS_1003_RELATIONS_21_FIELDS_ZERO_DIFFERENCES",
+    "snapshot_raw_request_response_binding": "PASS_448_REQUESTED_448_RETURNED_ZERO_IDENTITY_VIOLATIONS",
+    "initial_otc_split_evidence": "PASS_128_BOUNDED_ATTEMPTS_TWO_ROOTS_MAX_DEPTH_9",
+    "final_snapshot_request_sizes": [
+      400,
+      48
+    ],
+    "snapshot_symbol_counts": {
+      "catalog_symbols": 518,
+      "active_us_eligible": 493,
+      "otc_isolated_unsupported": 45,
+      "requested": 448,
+      "returned": 448,
+      "valid": 446,
+      "missing_or_unparseable_update_time": 2
+    },
+    "daily_kline_canary": {
+      "status": "TESTED",
+      "symbols": [
+        "US.DASH",
+        "US.NTES",
+        "US.UBER"
+      ],
+      "exact_target_date": "2026-10-15",
+      "all_ret_ok": true,
+      "quota_before": {
+        "used": 96,
+        "remaining": 4
+      },
+      "quota_after": {
+        "used": 99,
+        "remaining": 1
+      },
+      "reviewer_replay": "PASS_SAVED_FILE_ONLY"
+    },
+    "offline_rebuild": {
+      "status": "PASS",
+      "relation_buckets": {
+        "positive": 515,
+        "flat-negative": 185,
+        "missing": 57,
+        "open": 221,
+        "excluded": 25
+      },
+      "bucket_total": 1003,
+      "unique_hk_candidates": 427,
+      "csv_and_report_outputs_byte_equal": true,
+      "results_json_equal_except_created_at_utc": true
+    },
+    "top15_raw_status_review": {
+      "unique_us_symbols": 10,
+      "all_suspension_false": true,
+      "all_sec_status_normal": true,
+      "all_volume_positive": true,
+      "observed_suspended_top_symbols": 0
+    },
+    "research_safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "source_bindings": {
+    "frozen_mapping_snapshot_sha256": "3228f28fdc34cfe36202fa7e5bce1720fe34115a334b77bc6a4468a6013eb1cc",
+    "frozen_mapping_snapshot_file_sha256": "f819ca2f036953d0989a2a28127072d41ac7e051f209087a38953299251a0df3",
+    "catalog_integrity_sha256": "fd362d817032f4f0a8f6f033c44df64435232382ea514dc31beee7b285deb0c5",
+    "recovery_overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "snapshot_capture_file_sha256": "873e136a1b68ea85d2e3d5ab3f3d1bbb17e85cd091551e7807ee39aa8636674a",
+    "initial_otc_attempt_file_sha256": "a4e720a44694f5bef6c1b59d216bc67daeef609d3d85995241b16efd10b00161",
+    "canary_file_sha256": "6e9c5f4871493c19a732a8420eaaaf1a782ba97bcc86ab9d33e57d5d8a749d38",
+    "final_daily_script_sha256": "b2e5e4b78fe6e77063c890301b6e5433ccfa171f58f56d85f5c121c3c4dd1d8f",
+    "top_level_report_sha256": "824dd2048efdd1ba61a7768cd881a456f1e0d281949470e2244a659ea199692f"
+  },
+  "CANNOT_CONFIRM": [
+    "Reviewer did not re-query live V4 catalog or Futu/OpenD; current live endpoint identity was not independently refreshed.",
+    "Current economic truth of mapped relations, causal HK response, predictive value, and historical point-in-time validity are untested and outside this observation batch.",
+    "Availability of this snapshot before the 2026-10-16 Hong Kong session is not established.",
+    "Independent exchange-level listing or delisting status was not checked; saved Futu rows for the top 15 show normal security status and no suspension."
+  ],
+  "commands": [
+    "python3 docs/handoffs/us_hk_mapping_today_20261016/futu_r1/capture_futu_snapshot.py --verify",
+    "python3 docs/handoffs/us_hk_mapping_today_20261016/futu_r1/capture_futu_daily.py --canary",
+    "python3 docs/handoffs/us_hk_mapping_today_20261016/futu_r1/reviewer_replay/capture_futu_snapshot.py --rebuild",
+    "python3 docs/handoffs/us_hk_mapping_today_20261016/futu_r1/reviewer_replay/capture_futu_snapshot.py --verify",
+    "python3 docs/handoffs/us_hk_mapping_today_20261016/futu_r1/reviewer_replay/capture_futu_daily.py --canary"
+  ],
+  "reviewer_write_paths": [
+    "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/INDEPENDENT_REVIEW.md",
+    "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/INDEPENDENT_REVIEW.json",
+    "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/reviewer_replay/"
+  ]
+}

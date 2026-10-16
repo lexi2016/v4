@@ -1,0 +1,109 @@
+{
+  "artifact_paths": {
+    "candidate_table": "candidate_stocks.csv",
+    "exact_daily_kline_subset": "exact_daily_kline_subset.csv",
+    "initial_mixed_batch_failure_evidence": "snapshot_capture_initial_otc_batch_attempt.json",
+    "positive_relation_observations": "positive_relation_observations.csv",
+    "relation_coverage": "futu_relation_coverage.csv",
+    "report": "REPORT.md",
+    "snapshot_capture": "snapshot_capture.json",
+    "symbol_coverage": "futu_symbol_coverage.csv",
+    "top15": "top15_candidates.csv"
+  },
+  "canary_file_sha256": "6e9c5f4871493c19a732a8420eaaaf1a782ba97bcc86ab9d33e57d5d8a749d38",
+  "candidate_rule": {
+    "candidate_count": 427,
+    "deduplication_key": "hk_code",
+    "display_order": "best linked US snapshot change descending, then HK code ascending",
+    "full_candidate_table": "candidate_stocks.csv",
+    "included_bucket": "positive",
+    "markdown_display_limit": 15,
+    "positive_threshold": "snapshot_change_pct_vs_prev_close > 0 and observation_status == READY"
+  },
+  "cannot_confirm": [
+    "Current Futu snapshot is a late 2026-10-16 observation and does not establish availability before the Hong Kong session.",
+    "The snapshot last-price versus API previous-close metric is not asserted to be an exact 2026-10-15 session return.",
+    "pre_price is preserved separately and is not used to rank observations.",
+    "Futu returned an explicit OTC-market-unsupported error in the first mixed batch; 45 OTC-only catalog symbols are isolated as unsupported, with the original response and split attempts retained.",
+    "2 returned snapshot rows lacked a parseable update_time and are excluded from positive/flat-negative classification.",
+    "The three exact 2026-10-15 daily-K canaries are a separate subset and do not provide full-universe daily-K coverage.",
+    "Mapping relationships remain research observations; no independent fact acceptance, prediction validation, causal conclusion, or BUY decision is asserted."
+  ],
+  "capture_complete": true,
+  "capture_completed_at_utc": "2026-10-16T10:27:32Z",
+  "capture_started_at_utc": "2026-10-16T10:27:31Z",
+  "catalog_projection_file_sha256": "d97cbad1539b44f3d49d628a73dd27958fbd2e1d52fbc20cb5967e3b6f69b3cb",
+  "created_at_utc": "2026-10-16T10:30:28Z",
+  "exact_daily_kline_subset": {
+    "codes": [
+      "US.DASH",
+      "US.NTES",
+      "US.UBER"
+    ],
+    "date": "2026-10-15",
+    "file": "exact_daily_kline_subset.csv",
+    "rows": 3,
+    "used_for_snapshot_ranking": false
+  },
+  "provider": "Futu OpenAPI Python SDK via local OpenD",
+  "relation_bucket_conservation": {
+    "expected_relations": 1003,
+    "pass": true,
+    "sum": 1003
+  },
+  "relation_buckets": {
+    "excluded": 25,
+    "flat-negative": 185,
+    "missing": 57,
+    "open": 221,
+    "positive": 515
+  },
+  "request_contract": {
+    "api": "get_market_snapshot",
+    "initial_batch_size": 400,
+    "maximum_batch_size": 400,
+    "metric_definition": "(last_price / prev_close_price - 1) * 100",
+    "metric_label": "snapshot last price versus API previous close",
+    "pre_price_role": "separate field; excluded from snapshot metric and ranking",
+    "update_time_required": true
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "futu-r1-snapshot-observation-results-v1",
+  "snapshot_capture_file_sha256": "873e136a1b68ea85d2e3d5ab3f3d1bbb17e85cd091551e7807ee39aa8636674a",
+  "snapshot_observation_date": "2026-10-16",
+  "source_identity": {
+    "baseline_snapshot_file_sha256": "f819ca2f036953d0989a2a28127072d41ac7e051f209087a38953299251a0df3",
+    "baseline_snapshot_sha256": "3228f28fdc34cfe36202fa7e5bce1720fe34115a334b77bc6a4468a6013eb1cc",
+    "catalog_id": "us_hk_667_20261015_from_20261014_membership",
+    "catalog_integrity_sha256": "fd362d817032f4f0a8f6f033c44df64435232382ea514dc31beee7b285deb0c5",
+    "catalog_relation_count": 1003,
+    "catalog_stock_count": 667,
+    "endpoint": "http://127.0.0.1:8873/api/v4/manager-workbench/mapping-catalog",
+    "hk_connect_membership_date": "20261012",
+    "hk_connect_membership_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+    "recovery_overlay_integrity_sha256": "9c33ef21d51516f12e7aeab74192ea0feaa6f1aebfcbba2c42ce97f499b0fedc",
+    "recovery_overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
+  },
+  "symbol_coverage": {
+    "active_us_eligible_symbols": 493,
+    "active_us_symbols_requested_from_futu": 448,
+    "catalog_symbols": 518,
+    "observation_status_counts": {
+      "FUTU_OTC_MARKET_UNSUPPORTED": 45,
+      "READY": 446,
+      "UPDATE_TIME_MISSING_OR_UNPARSEABLE": 2
+    },
+    "otc_only_symbols_isolated_as_unsupported": 45,
+    "snapshot_rows_returned": 448,
+    "terminal_status_counts": {
+      "FUTU_OTC_MARKET_UNSUPPORTED": 45,
+      "SNAPSHOT_ROW_RETURNED": 448
+    },
+    "valid_current_observations": 446
+  }
+}

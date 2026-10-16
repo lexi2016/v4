@@ -1,0 +1,60 @@
+{
+  "as_of": "2026-10-16T10:39:58.115088+00:00",
+  "workers": [
+    {
+      "worker": "/root/today_mapping_input_audit",
+      "milestone": "live input audit",
+      "dispatch_time": "2026-10-16; exact time retained in conversation dispatch",
+      "expected_terminal_type": "FINAL_ANSWER",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt": "conversation final with source paths"
+    },
+    {
+      "worker": "/root/today_mapping_observation_writer",
+      "milestone": "Tencent observation baseline",
+      "dispatch_time": "2026-10-16; exact time retained in conversation dispatch",
+      "expected_terminal_type": "FINAL_ANSWER",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt": "WRITER_RECEIPT.json"
+    },
+    {
+      "worker": "/root/today_mapping_observation_review",
+      "milestone": "independent baseline review",
+      "dispatch_time": "2026-10-16; exact time retained in conversation dispatch",
+      "expected_terminal_type": "FINAL_ANSWER",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt": "INDEPENDENT_REVIEW.json"
+    },
+    {
+      "worker": "/root/today_mapping_observation_writer",
+      "milestone": "Futu snapshot observation",
+      "dispatch_time": "2026-10-16; exact time retained in conversation dispatch",
+      "expected_terminal_type": "FINAL_ANSWER",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt": "futu_r1/WRITER_RECEIPT.json"
+    },
+    {
+      "worker": "/root/today_mapping_observation_review",
+      "milestone": "independent Futu review",
+      "dispatch_time": "2026-10-16; exact time retained in conversation dispatch",
+      "expected_terminal_type": "FINAL_ANSWER",
+      "lifecycle_status": "COMPLETED",
+      "final_received": true,
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt": "futu_r1/INDEPENDENT_REVIEW.json"
+    }
+  ]
+}
