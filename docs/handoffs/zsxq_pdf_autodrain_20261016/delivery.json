@@ -91,8 +91,8 @@
     "focused_pdf_and_autodrain_cases": "28 passes retained; remaining hook case rerun PASS against scheduler r2",
     "api_projection_detail": "PASS against full API r1"
   },
-  "overall_status": "DEPLOYED_AUTOMATIC_PROCESSING_IN_PROGRESS",
-  "full_scope_acceptance": "CANNOT_CONFIRM",
+  "overall_status": "ORIGINAL_BACKLOG_COMPLETE",
+  "full_scope_acceptance": "CANNOT_CONFIRM_NEW_ARRIVAL_OCR_NOT_YET_OBSERVED",
   "research_only": true,
   "production_allowed": false,
   "buy_gate_updated": false,
@@ -110,17 +110,16 @@
     }
   },
   "last_observed_progress": {
-    "at": "2026-10-16T11:07:54+08:00",
-    "ready": 59,
-    "partial": 20,
+    "ready": 79,
+    "partial": 0,
     "failed": 0,
-    "processed_pages": 795,
+    "processed_pages": 1042,
     "total_pages": 1042,
     "total_documents": 79
   },
   "runtime_progress_review": {
     "autonomous_progression": "PASS",
-    "verified_page_limit_recovery": "PASS_IN_PROGRESS",
+    "verified_page_limit_recovery": "READY_51_OF_51",
     "receipt_sha256": "8a93dc19b3f1bad149a5d193ff94c494743f5484e1e6e5b3e532a998925eddd2"
   },
   "natural_enqueue": {
@@ -128,12 +127,59 @@
     "new_references": 2,
     "date16_total": 530
   },
-  "final_api_ui_data_acceptance": "NOT_RUN_PENDING_COMPLETION",
   "conversation_polling": "STOPPED_AT_USER_REQUEST",
-  "one_delayed_acceptance": "scheduled; no continuous chat polling",
+  "one_delayed_acceptance": "performed; heartbeat pdf PAUSED",
   "later_api_identity": {
     "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-workbench-api-20261016-r2/app",
     "pdf_module_sha256": "9fc068b4d407ca56364db31869851b96aec8cfc5dc93972c9de95668656d8471",
     "accepted_pdf_module_preserved": true
-  }
+  },
+  "api_acceptance": {
+    "status": "API_VERIFIED",
+    "counts": {
+      "READY": 79
+    },
+    "ready_page_total": 1042,
+    "receipt_sha256": "2cd89e1edee0e6c93fbbf55ac804f080ba62eb9caefc50fb08cca7da571ec32c",
+    "historical_unchanged": {
+      "hour17": "22186513df8c44a25068f996479143d23a7e3f9ede28d7b4965acf9570403909",
+      "day12": "888e973d083d27457cde4b617748dc8a9b0ea6491d4d77b26edf22fae330ace6"
+    }
+  },
+  "ui_acceptance": {
+    "status": "UI_VERIFIED",
+    "date15": "completed79/partial0/failed0/pending0",
+    "date16": "completed39/failed1/pending490 at browser verification",
+    "page51_expanded_verified": true,
+    "receipt_sha256": "068663fe62d36e3d567894447c27d737e0b71047904f51d2ca8b67bfbcd6e55a"
+  },
+  "independent_final_data_acceptance": {
+    "stage_verdict": "DATA_BEHAVIOR_VERIFIED_WITH_OPEN_BOUNDARY",
+    "receipt_sha256": "5b84683345af393d6cb535f515fe929a651d7abf4af2bffec829aa307d522f39",
+    "frozen_documents_ready": 79,
+    "frozen_pages_verified": 1042,
+    "pdf_source_page_artifact_hashes_verified": 79,
+    "open_P0_P1_P2": 0
+  },
+  "date16_queue": {
+    "total": 530,
+    "ready": 57,
+    "processing": 1,
+    "pending": 471,
+    "failed": 1,
+    "observed_source_run": "20261016_083000_083000192658",
+    "new_reference_runs_enqueued": {
+      "20261016_100000_100000159321": 36,
+      "20261016_110000_110000096489": 2
+    },
+    "new_reference_ocr_completion": "CANNOT_CONFIRM_FIFO_NOT_YET_REACHED",
+    "permanent_failure": {
+      "observed_pages": 89,
+      "max_pages": 64,
+      "reason": "PDF_PAGE_LIMIT_EXCEEDED",
+      "attempts": 1,
+      "isolated": true
+    }
+  },
+  "read_consistency_note": "One index read showed a transient source-hash discrepancy; the subsequent snapshot and independent full 79-document PDF/source/page-artifact hash verification matched. Cause CANNOT_CONFIRM."
 }
