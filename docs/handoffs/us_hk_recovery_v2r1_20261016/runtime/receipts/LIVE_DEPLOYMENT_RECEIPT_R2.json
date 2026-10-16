@@ -1,0 +1,262 @@
+{
+  "activation": {
+    "activation_receipt_path": "runtime/receipts/RUNTIME_ACTIVATION_RECEIPT_R2.json",
+    "activation_receipt_sha256": "9fc88d5424078190351360debb11f4801efe63244c489a9715fc3edc5852217c",
+    "active_plist_sha256_after": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958",
+    "candidate_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=. .venv/bin/python -B docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate_r2.py --activate --review-receipt /Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2_20261016.md --root-authorization-ref 'docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROOT_ACTIVATION_AUTHORIZATION_R2.md#sha256=ca18e844a8e17ed2fe7333456510d1304f2eab0c984ae6b81cf72356ce377071'",
+    "exit_code": 0,
+    "finished_at_utc": "2026-10-16T08:40:42.210320+00:00",
+    "launchctl_actions": [
+      {
+        "bootout": {
+          "argv": [
+            "launchctl",
+            "bootout",
+            "gui/501/com.lexi.v35.api-only"
+          ],
+          "exit_code": 0,
+          "stderr": "",
+          "stdout": ""
+        },
+        "label_absent": true,
+        "old_pids": [
+          48825
+        ],
+        "old_pids_exited": true,
+        "settle_seconds": 2
+      },
+      {
+        "argv": [
+          "launchctl",
+          "bootstrap",
+          "gui/501",
+          "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    ],
+    "review_receipt_sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178",
+    "started_at_utc": "2026-10-16T08:40:32.217158+00:00",
+    "status": "ACTIVATED_API_READBACK_OK"
+  },
+  "active_runtime_readback": {
+    "application_inventory_sha256": "37cb822c87adad6b44420a199d637e45d2fa223a84004c000227b5644c22198f",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+    "config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+    "pid": 52858,
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "plist_sha256": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958",
+    "port_listener_pids": [
+      52858
+    ],
+    "postflight_candidate_verifier": "PASS",
+    "release_id": "us-hk-recovery-v2r1-20261016-r2",
+    "release_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "selectors": {
+      "V35_API_PORT": "8873",
+      "V35_RELEASE_ID": "us-hk-recovery-v2r1-20261016-r2",
+      "V35_RELEASE_MANIFEST_SHA256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+      "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json"
+    },
+    "service_state": "running",
+    "working_directory_from_lsof": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app"
+  },
+  "authorization": {
+    "basis": "Controller authorization under the existing user-approved local V4 mapping integration.",
+    "root_authorization_path": "runtime/receipts/ROOT_ACTIVATION_AUTHORIZATION_R2.md",
+    "root_authorization_ref_passed_to_helper": "runtime/receipts/ROOT_ACTIVATION_AUTHORIZATION_R2.md#sha256=ca18e844a8e17ed2fe7333456510d1304f2eab0c984ae6b81cf72356ce377071",
+    "root_authorization_sha256": "ca18e844a8e17ed2fe7333456510d1304f2eab0c984ae6b81cf72356ce377071"
+  },
+  "cannot_confirm": [
+    "Rendered UI via independent CUA page inspection is pending parent verification.",
+    "Natural-slot behavior is unverified.",
+    "Semantic mapping validity and independent fact acceptance remain unestablished (accepted facts: 0).",
+    "Historical PIT and prediction validity are not established."
+  ],
+  "changed_targets": {
+    "active_selector_file": {
+      "after_sha256": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958",
+      "before_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+    },
+    "application_delta_paths": [
+      "apps/web/dist/assets/managerSelection-DfkJEj5r.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+      "v4/manager_workbench/us_mapping_catalog.py"
+    ],
+    "candidate_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+    "candidate_release_id": "us-hk-recovery-v2r1-20261016-r2",
+    "new_receipts": [
+      "runtime/receipts/RUNTIME_ACTIVATION_RECEIPT_R2.json",
+      "runtime/receipts/LIVE_DEPLOYMENT_RECEIPT_R2.json",
+      "runtime/receipts/LIVE_DEPLOYMENT_RECEIPT_R2.md"
+    ],
+    "non_delta_base_entries_preserved": 1211
+  },
+  "commands_and_environment": {
+    "python_environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONPATH": ".",
+      "flag": "-B",
+      "interpreter": ".venv/bin/python"
+    },
+    "readback_http_gets": [
+      "GET /manager-selection/",
+      "GET /assets/managerSelection-DfkJEj5r.js",
+      "GET /api/v4/manager-workbench/mapping-catalog",
+      "GET /api/v4/manager-workbench/mapping-catalog?q=R006",
+      "GET /api/v4/manager-workbench/mapping-catalog?q=R003",
+      "GET /api/v4/manager-workbench/mapping-catalog?q=R001",
+      "GET /api/v4/manager-workbench/mapping-catalog?q=R700"
+    ],
+    "readback_result": "PASS",
+    "readback_subprocesses": [
+      [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      [
+        "/usr/sbin/lsof",
+        "-t",
+        "-nP",
+        "-iTCP:8873",
+        "-sTCP:LISTEN"
+      ],
+      [
+        "/usr/sbin/lsof",
+        "-Fn",
+        "-a",
+        "-p",
+        "52858",
+        "-d",
+        "cwd"
+      ]
+    ],
+    "verification_notes": [
+      "Two initial inline readback attempts failed in the temporary verifier before acceptance (one wrong on-disk static-asset path; one syntax typo). A third attempt also used an overly strict safety-object equality assertion and reported the two additional fields prediction_validation=UNTESTED and historical_PIT=NOT_VALIDATED. The corrected read-only readback above passed; these attempts made no service or file mutations."
+    ]
+  },
+  "independent_review": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "behavior_verified": "PASS",
+    "candidate_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "review_markdown_path": "runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2_20261016.md",
+    "review_markdown_sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178",
+    "reviewed": "PASS",
+    "reviewer": "mapping_recovery_review"
+  },
+  "live_api_readback": {
+    "closure_status_counts": {
+      "CLOSED_EXCLUDED_SCOPE": 25,
+      "CLOSED_RESEARCH_SCOPE": 757,
+      "OPEN": 221
+    },
+    "content_type": "application/json",
+    "default_response_bytes": 772473,
+    "default_response_sha256": "0a2f322ea5874601e7ba1485b584956a944db9226c138c0fe7add68ffe34b6ef",
+    "endpoint": "http://127.0.0.1:8873/api/v4/manager-workbench/mapping-catalog",
+    "exact_rid_queries": {
+      "R001": {
+        "prior_review_evidence_present": true,
+        "recovery_v2r1_closure_status": "OPEN",
+        "review_detail_level": "FULL",
+        "source_review_status": "SOURCE_REVIEWED"
+      },
+      "R003": {
+        "recovery_v2r1_closure_status": "CLOSED_EXCLUDED_SCOPE",
+        "review_detail_level": "FULL",
+        "source_review_status": "SOURCE_REVIEWED"
+      },
+      "R006": {
+        "recovery_v2r1_closure_status": "CLOSED_RESEARCH_SCOPE",
+        "review_detail_level": "FULL",
+        "source_review_status": "SOURCE_REVIEWED"
+      },
+      "R700": {
+        "prior_review_revision": null,
+        "recovery_detail_level": "FULL",
+        "recovery_v2r1_closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "NOT_PROCESSED"
+      }
+    },
+    "http_status": 200,
+    "independently_accepted_facts": 0,
+    "original_relations": 1003,
+    "prior_700_history": {
+      "record_count": 700,
+      "status_crosswalk": "NOT_ESTABLISHED"
+    },
+    "processed_relations": 1003,
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "buy_gate_updated": false,
+      "historical_PIT": "NOT_VALIDATED",
+      "orders_sent": false,
+      "prediction_validation": "UNTESTED",
+      "production_allowed": false
+    },
+    "semantic_mapping_validity": "CANNOT_CONFIRM",
+    "snapshot_stocks": 667
+  },
+  "live_static_readback": {
+    "asset_content_type": "text/javascript; charset=utf-8",
+    "asset_sha256": "50671d5dfd096de3f1eaebbdace53fec0facfaf3fb3f431f9696e20f61247d67",
+    "asset_status": 200,
+    "asset_url": "http://127.0.0.1:8873/assets/managerSelection-DfkJEj5r.js",
+    "html_bytes": 588,
+    "html_content_type": "text/html; charset=utf-8",
+    "html_status": 200,
+    "html_url": "http://127.0.0.1:8873/manager-selection/",
+    "served_asset_matches_release_file": true
+  },
+  "pre_activation_fresh_cas": {
+    "activation_receipt_absent_before_run": true,
+    "active_application_inventory_sha256": "8157fff62f99f704ccc448815fa3775dd59e24045f7883536104a73b10e8b823",
+    "active_config_sha256": "7a6d9689df73f832e15efd53923ab69d03ebc4f0357635bb8d9e67d6342e35b5",
+    "active_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+    "active_pid": 48825,
+    "active_plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+    "active_pointer": "base",
+    "active_release_id": "futu-industry-api-20261016-r2",
+    "active_service_state": "running",
+    "candidate_config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+    "candidate_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "candidate_verifier_status": "PASS",
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=. .venv/bin/python -B - (inline read-only preflight)",
+    "review_and_prepare_receipt_hash_bindings": "PASS",
+    "shared_lock": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  },
+  "recorded_at_utc": "2026-10-16T08:43:11Z",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.us_hk_recovery_runtime_live_deployment_r2.v1",
+  "scope": {
+    "network_scope": "127.0.0.1",
+    "port": 8873,
+    "service_label": "com.lexi.v35.api-only"
+  },
+  "status": "DEPLOYED_API_VERIFIED",
+  "status_vector": {
+    "API_VERIFIED": "PASS",
+    "DEPLOYED": "PASS",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM",
+    "STATIC_HTTP_VERIFIED": "PASS",
+    "UI_VERIFIED": "PENDING_INDEPENDENT_CUA",
+    "overall_workflow_acceptance": "NOT_ISSUED"
+  }
+}
