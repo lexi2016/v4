@@ -1,0 +1,224 @@
+{
+  "added_entries": [
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+        "sha256": "6df32d3fb041cff7a644eabca5a138bc2f4278987f79093f2eeba1d1b60c4ee4",
+        "size": 19783
+      },
+      "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/_namespace.py",
+        "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "size": 527
+      },
+      "path": "ops/_us_market_digest_parts/_namespace.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/capture_merge.py",
+        "sha256": "ee76f91ad9aecadaf1f7bda12a71798c8d4446b5c91880612195e2635201709e",
+        "size": 5382
+      },
+      "path": "ops/_us_market_digest_parts/capture_merge.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/capture_metadata.py",
+        "sha256": "b6f7fb81bc6aa90cb48e1196b868dc05033b99c9054e145f295014afc81528a3",
+        "size": 6199
+      },
+      "path": "ops/_us_market_digest_parts/capture_metadata.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/cli_primitives.py",
+        "sha256": "252bcc75e3f1ff26ffe58c16c49935d36f5f9ed4811d8bd820f7a454a9d21968",
+        "size": 12305
+      },
+      "path": "ops/_us_market_digest_parts/cli_primitives.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/historical_payload.py",
+        "sha256": "f13767b18dcc3745e8f727f76b07d171b9e89987287e6e6e0f1e7313794e07b1",
+        "size": 5697
+      },
+      "path": "ops/_us_market_digest_parts/historical_payload.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/market_snapshot.py",
+        "sha256": "e89e30988dfdb10527f453c289b0b2efe92c91dab24ee123f3389ef6fe8c5796",
+        "size": 15123
+      },
+      "path": "ops/_us_market_digest_parts/market_snapshot.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/phase_merge.py",
+        "sha256": "0503d21b0ed348c825da70a2fd650aacf2e52306c2c083a74ca5e4882c95d464",
+        "size": 7719
+      },
+      "path": "ops/_us_market_digest_parts/phase_merge.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/phase_payload.py",
+        "sha256": "23011471e0918b5ef97fb71749afde5d6d091238b756fe66fbf89d4c67686abe",
+        "size": 12153
+      },
+      "path": "ops/_us_market_digest_parts/phase_payload.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/phase_publication.py",
+        "sha256": "6a0abaef5e2f50297d3021d06e781c1832a690d09269317f84fa407505027379",
+        "size": 20051
+      },
+      "path": "ops/_us_market_digest_parts/phase_publication.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/quote_parsing.py",
+        "sha256": "b2acf3b603248b13b8aed1b1e1da78fb64d2d9fa19b6d7d6e243fab8f7e6eb3e",
+        "size": 10597
+      },
+      "path": "ops/_us_market_digest_parts/quote_parsing.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/session_windows.py",
+        "sha256": "608f4fead6c1ed236fd3180d724c6698a380f53c81e5df7852a71a078f969759",
+        "size": 6350
+      },
+      "path": "ops/_us_market_digest_parts/session_windows.py"
+    },
+    {
+      "before": null,
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+        "sha256": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+        "size": 2535
+      },
+      "path": "ops/_us_market_digest_parts/snapshot_merge.py"
+    }
+  ],
+  "baseline_active_manifest_sha256": "a22b7e6079fd701e996f73f8c0e8ab37610f7127bd0d5516b293e7dd3b31b1f2",
+  "baseline_inventory_count": 1175,
+  "candidate_inventory_count": 1188,
+  "candidate_manifest_sha256": "3793d0acb6937828fccc0c6f1a5331be699e7ad62ac448654050a62ab70225a9",
+  "changed_entries": [
+    {
+      "before": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "infrastructure/scheduling/executor_registry.py",
+        "sha256": "f462a3254c15cfe9043783b6e07c88781ea4a3151a652c02509da3f2d9b870c9",
+        "size": 101560
+      },
+      "candidate": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "infrastructure/scheduling/executor_registry.py",
+        "sha256": "c2df8006c886636d39eef64cc48a5cf25071b9abb9faf99d645b572eb371e405",
+        "size": 86628
+      },
+      "path": "infrastructure/scheduling/executor_registry.py"
+    },
+    {
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/__init__.py",
+        "sha256": "908af1c427637a46ad45eed3182ea05ff1b7949f9bc3cfebc823d141703ccfc6",
+        "size": 34
+      },
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/_us_market_digest_parts/__init__.py",
+        "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "size": 70
+      },
+      "path": "ops/_us_market_digest_parts/__init__.py"
+    },
+    {
+      "before": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "ops/run_us_market_slot.py",
+        "sha256": "16f7895072a66b8a7e6ed0c792f74069101426cfa1194df3bd89e63d95f4d948",
+        "size": 10195
+      },
+      "candidate": {
+        "kind": "file",
+        "mode": "0444",
+        "path": "ops/run_us_market_slot.py",
+        "sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e",
+        "size": 18369
+      },
+      "path": "ops/run_us_market_slot.py"
+    },
+    {
+      "before": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/us_market_digest.py",
+        "sha256": "3f9d8b13f08af1dac5f6c403c2bcdf8d224141d8cd6e08c6c32b8b61b4fcda67",
+        "size": 102022
+      },
+      "candidate": {
+        "kind": "file",
+        "mode": "0644",
+        "path": "ops/us_market_digest.py",
+        "sha256": "aad83dc03504a0b79eea6e51b188ab91ab724502963e4a5d0b49c718ad8c6c18",
+        "size": 32968
+      },
+      "path": "ops/us_market_digest.py"
+    }
+  ],
+  "removed_entries": [],
+  "schema_version": "us-close-retry.manifest_inventory_delta.v2",
+  "unchanged_protected_api_integration": true
+}

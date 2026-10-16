@@ -1,0 +1,230 @@
+--- a/frozen-source-preimage/ops/run_us_market_slot.py
++++ b/source-postimage/ops/run_us_market_slot.py
+@@ -30,6 +30,12 @@
+ US_MARKET_OWNER_ID = "v4_dispatcher.us_market_digest"
+ US_MARKET_SLOTS: tuple[str, ...] = ("0415", "0515", "2100", "2200")
+ US_MARKET_SLOT_SET = frozenset(US_MARKET_SLOTS)
++# The fixed slots are seasonal.  Only these inactive slots can safely host a
++# late POST_CLOSE retry without taking over the other season's PRE_OPEN event.
++US_MARKET_CLOSE_RETRY_SLOTS = {"0515": "0415", "2100": "0515"}
++US_MARKET_RETRYABLE_FAILURES = frozenset(
++    {"EXTERNAL_SOURCE", "NETWORK", "UPSTREAM_NOT_READY"}
++)
+ DEFAULT_SLOT_GRACE = timedelta(minutes=15)
+ RESULT_SCHEMA = "v4.us_market_slot_result.v1"
+ ZERO_EXIT_STATUSES = frozenset(
+@@ -155,6 +161,181 @@
+     return parsed
+ 
+ 
++def _failed_close_retry_context(
++    *, ledger: ExecutionLedger, business_date: str, retry_slot: str
++) -> dict[str, str] | None:
++    """Return a bounded retry identity only for an exact prior close failure.
++
++    The fallback slot must be inactive in the current season.  Its paired
++    primary slot must have a hash-valid, failed POST_CLOSE receipt for the
++    same business date and resolved US session.  Any previous use of the
++    fallback slot consumes this one scheduled retry opportunity.
++    """
++
++    primary_slot = US_MARKET_CLOSE_RETRY_SLOTS.get(retry_slot)
++    if primary_slot is None:
++        return None
++
++    from ops.us_market_digest import resolve_capture_for_shanghai_slot
++
++    try:
++        resolve_capture_for_shanghai_slot(business_date, retry_slot)
++    except ValueError as error:
++        if str(error) != "US_CAPTURE_SLOT_NOT_DUE":
++            return None
++    else:
++        # A live slot belongs to its normal phase; never replace PRE_OPEN with
++        # a close retry just because an earlier close failed.
++        return None
++
++    try:
++        primary_capture = resolve_capture_for_shanghai_slot(
++            business_date, primary_slot
++        )
++    except ValueError:
++        return None
++    if primary_capture.get("capture_phase") != "POST_CLOSE":
++        return None
++
++    receipts = ledger.list_receipts(business_date, mode="LIVE")
++    fallback_receipts = [
++        item for item in receipts if str(item.get("slot") or "") == retry_slot
++    ]
++    if fallback_receipts:
++        return None
++    primary_receipts = [
++        item for item in receipts if str(item.get("slot") or "") == primary_slot
++    ]
++    if not primary_receipts:
++        return None
++    chain_valid, _ = ledger.verify_receipt_chain(business_date, mode="LIVE")
++    if not chain_valid:
++        return None
++    failed = primary_receipts[-1]
++    if (
++        failed.get("status") != "FAILED"
++        or failed.get("business_date") != business_date
++        or failed.get("scheduled_date") != business_date
++        or failed.get("target_date") != business_date
++        or failed.get("mode") != "LIVE"
++        or failed.get("failure_class") not in US_MARKET_RETRYABLE_FAILURES
++        or failed.get("production_allowed") is not False
++        or failed.get("buy_gate_updated") is not False
++        or failed.get("orders_sent") is not False
++        or US_MARKET_WORKLOAD_ID not in (failed.get("selected_workload_ids") or [])
++    ):
++        return None
++    try:
++        expected_receipt_path = ledger.receipt_relative(
++            _request_for_slot(business_date=business_date, slot=primary_slot),
++            run_id=str(failed.get("run_id") or ""),
++        )
++    except (TypeError, ValueError):
++        return None
++    if not failed.get("run_id") or failed.get("receipt_path") != expected_receipt_path:
++        return None
++
++    workload_results = failed.get("workload_results")
++    if not isinstance(workload_results, list):
++        return None
++    matching_results = [
++        row
++        for row in workload_results
++        if isinstance(row, dict)
++        and "ops.us_market_digest" in (row.get("modules") or [])
++    ]
++    if len(matching_results) != 1:
++        return None
++    result = matching_results[0]
++    if (
++        result.get("status") != "FAILED"
++        or result.get("failure_class") not in US_MARKET_RETRYABLE_FAILURES
++        or result.get("capture_phase") != "POST_CLOSE"
++        or result.get("us_session_date") != primary_capture.get("us_session_date")
++        or result.get("production_allowed") is not False
++        or result.get("buy_gate_updated") is not False
++        or result.get("orders_sent") is not False
++        or result.get("reason")
++        not in {"US_MARKET_CAPTURE_FAILED", "US_MARKET_CAPTURE_NOT_READY"}
++    ):
++        return None
++
++    return {
++        "business_date": business_date,
++        "retry_slot": retry_slot,
++        "failed_slot": primary_slot,
++        "capture_phase": "POST_CLOSE",
++        "us_session_date": str(primary_capture["us_session_date"]),
++        "failed_run_id": str(failed["run_id"]),
++        "failed_receipt_path": expected_receipt_path,
++        "failed_ledger_sha256": str(failed.get("ledger_sha256") or ""),
++    }
++
++
++class _RetryAwareExecutor:
++    """Use the primary close slot for capture while keeping fallback ledger ID."""
++
++    def __init__(self, executor: Callable[..., Any], context: dict[str, str]) -> None:
++        self.executor = executor
++        self.context = dict(context)
++
++    def __call__(self, workload: Any, request: Any, decision: Any = None) -> Any:
++        if getattr(workload, "workload_id", None) != US_MARKET_WORKLOAD_ID:
++            return self.executor(workload, request, decision)
++        capture_request = replace(request, slot=self.context["failed_slot"])
++        had_context = hasattr(self.executor, "_us_market_retry_context")
++        previous_context = getattr(self.executor, "_us_market_retry_context", None)
++        try:
++            try:
++                setattr(self.executor, "_us_market_retry_context", self.context)
++            except (AttributeError, TypeError):
++                # A wrapper without retry-context support keeps the scheduled
++                # fallback identity and therefore follows its normal no-op.
++                return self.executor(workload, request, decision)
++            result = self.executor(workload, capture_request, decision)
++            if isinstance(result, dict):
++                result = dict(result)
++                result.setdefault("late_post_close_retry", True)
++                result.setdefault("retry_of_slot", self.context["failed_slot"])
++                result.setdefault("retry_slot", self.context["retry_slot"])
++                result.setdefault("retry_failed_run_id", self.context["failed_run_id"])
++                result.setdefault(
++                    "retry_failed_ledger_sha256",
++                    self.context["failed_ledger_sha256"],
++                )
++                result.setdefault("retry_mode", "AUTOMATIC_LATE_RETRY")
++                result.setdefault(
++                    "retry_executed_at", result.get("capture_captured_at")
++                )
++                result.setdefault(
++                    "retry_source_session_date", self.context["us_session_date"]
++                )
++                result.setdefault(
++                    "retry_target_trade_date", self.context["business_date"]
++                )
++                result.setdefault(
++                    "retry_capture_origin", result.get("capture_origin")
++                )
++                result.setdefault(
++                    "retry_capture_original_time",
++                    result.get("original_time_capture"),
++                )
++                result.setdefault("retry_capture_late", result.get("late"))
++                result.setdefault(
++                    "capture_origin_semantics",
++                    "Producer origin is independent of timing; late and capture_captured_at record timing.",
++                )
++            return result
++        finally:
++            if had_context:
++                setattr(self.executor, "_us_market_retry_context", previous_context)
++            else:
++                try:
++                    delattr(self.executor, "_us_market_retry_context")
++                except AttributeError:
++                    pass
++
++
+ def run_us_market_slot(
+     *,
+     data_root: Path | str,
+@@ -194,6 +375,17 @@
+             repo_root=Path(__file__).resolve().parents[1],
+         )
+     dispatch_ledger = ledger if ledger is not None else ExecutionLedger(ledger_path)
++    retry_context = (
++        None
++        if dry_run
++        else _failed_close_retry_context(
++            ledger=dispatch_ledger,
++            business_date=request.business_date,
++            retry_slot=selected_slot,
++        )
++    )
++    if retry_context is not None:
++        dispatch_executor = _RetryAwareExecutor(dispatch_executor, retry_context)
+     receipt = dispatch_due(
+         request,
+         selected_catalog,
+@@ -209,6 +401,14 @@
+             "owner_id": US_MARKET_OWNER_ID,
+             "workload_id": US_MARKET_WORKLOAD_ID,
+             "dry_run": bool(dry_run),
++            "close_retry": (
++                {
++                    "status": "ARMED",
++                    **retry_context,
++                }
++                if retry_context is not None
++                else {"status": "NOT_ARMED"}
++            ),
+         }
+     )
+     return payload

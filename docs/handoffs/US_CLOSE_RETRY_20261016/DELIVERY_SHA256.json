@@ -1,0 +1,160 @@
+{
+  "schema": "us_close_retry_final_git_delivery.v1",
+  "base_commit": "58487a65eff225f38361de4660385583bf531356",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_release": "us-close-retry-us-20261016-r3",
+  "runtime_manifest_sha256": "592bb39ce93fd9d564d34088403d96fd14213c2380991b239a458e80c72a9139",
+  "self_excluded": true,
+  "files": [
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate-runtime.delta.patch",
+      "sha256": "fc15d21e806de35bee69bbabd7a93c921ee313f04805348e7ed088244f282b8f",
+      "git_blob_sha": "37c30bd757c65d557170ddd3235ab51f4765c52c",
+      "bytes": 249147
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/SOURCE_ONLY.patch",
+      "sha256": "1578aedf4d7091cb55dbcdd272938fdfcdb35b39953918c0290c5eb60b370fec",
+      "git_blob_sha": "650c2e7341340668a562ba177829cf3219d83ddf",
+      "bytes": 9346
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/SOURCE_ONLY.patch.README.md",
+      "sha256": "93132c1beac8b46e290ea000395ab91429805808a984daf1837981786b59e3cb",
+      "git_blob_sha": "4c801eea4d8c10ac52a7d0862ec79b250b49057b",
+      "bytes": 964
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/manifest_inventory_delta.json",
+      "sha256": "f240a776759c61fc12b41457810177be4e8850322b4e64f3eb5ede1cb00d5644",
+      "git_blob_sha": "02eb9a66f55c80d097fcec4f2b3b711e493cb9f5",
+      "bytes": 7175
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/tests/test_us_close_retry_candidate_rooted.py",
+      "sha256": "b6202b28aa42e2bb8fe30a88867314ffe4f4f59e49f3c9cd54cb35e37f9c6206",
+      "git_blob_sha": "dfdf878fa3c3b0aa29714462ee62642cbdcb0520",
+      "bytes": 33413
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/tests/test_candidate_legacy_33.py",
+      "sha256": "26b3f4c9a07854e2df42fc897eaf14595d42daae9f6fcba7f695a80c2ef5fd51",
+      "git_blob_sha": "6ce1f1531e478c61cac80ba88addc13d21ec3386",
+      "bytes": 1816
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/source-postimage/tests/test_run_us_market_slot.py",
+      "sha256": "d6cea1187b267d1ca9f5c1847e24edb1531a7ffda99fa9b20f244d2b10f8e8dc",
+      "git_blob_sha": "ba013e502b575be5fa4fb7b6888c840fa61fd0c8",
+      "bytes": 5445
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/source-postimage/tests/test_us_close_recovery.py",
+      "sha256": "4a4b7e7a40969ba24610d1a0acf1e940f33d150ee82e0f2c6f25a6025415c1de",
+      "git_blob_sha": "2500bac82706d9642f210ddbbd2fee317a19d103",
+      "bytes": 3195
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/source-postimage/infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "sha256": "a839ede3f47995d1877afd8e8ad0f5b302a6369934bba084e0edca093038cf2c",
+      "git_blob_sha": "7280df474f20eb32741c0d1fb475a956e274126e",
+      "bytes": 23774
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/reviewer/R3_EXECUTION_REVIEW.md",
+      "sha256": "b5215cab74926985561c96108b29fe07a5e799be753cc9362db49d19dfff6795",
+      "git_blob_sha": "e998ef7d4b024cf1edeb67c530513531b729b760",
+      "bytes": 5081
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/us_only_cas_activation.py",
+      "sha256": "2a2618403be634f4e3f89ed06f8d1e1a8f9945ca1fb80b88cf04fbbe91776e01",
+      "git_blob_sha": "76bab497eb5782c9e2daf0b409230dff7af7581a",
+      "bytes": 21700
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/collect_us_recovery_receipt.py",
+      "sha256": "ead0212b939c3c17bc400d1492300e3986c4004bf5add8b19d66dd99f6f2e58e",
+      "git_blob_sha": "ef542fc6a8635839097b85dab722434a2f052dd8",
+      "bytes": 11350
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/test_cas_activation_race.py",
+      "sha256": "b163fce3a16f0bcd7f0d7f580b7d9e2a93301d96b242f6858a88a7a3cb887737",
+      "git_blob_sha": "e8ebee0f7c9a6bfdf0952ce0691d112a35754afa",
+      "bytes": 6298
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/test_recovery_collector.py",
+      "sha256": "e5560f34c0d1e946c820dd541331ef43641bdba32b7bcae51d49b899b6092524",
+      "git_blob_sha": "109fef288742c40c559d66ef3a76420caa7d6f5b",
+      "bytes": 6744
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/recover_20261016_post_close.sh",
+      "sha256": "1e1b8d33a627a27658bfdf3912d54b7225cf6feadef61c755043db5c1c2b6bb6",
+      "git_blob_sha": "3538993869873263a2643f43b513f1b55d9fb6e3",
+      "bytes": 7664
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/test_recovery_script_contract.py",
+      "sha256": "57d064c3a703c3f07c045422205280036ab752411717aa020e8a91ad8322ab3a",
+      "git_blob_sha": "547f1b900cb1df93d68d803e82c0ed94da8ec182",
+      "bytes": 2208
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/reviewer/R4_MANUAL_RECOVERY_REVIEW.md",
+      "sha256": "29ad569e30d137fa01c311cacbfabc85c8ecff39c7eec8d65fcf91e212ef71d6",
+      "git_blob_sha": "5697de952114b4568d52465c1108ea5e5811bd0d",
+      "bytes": 3782
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/R1_TO_R3_PHASE_MERGE.patch",
+      "sha256": "2c3c5fe029530d9be76b80114646f2cf87dd5daa9aa68298b26762b03138bd6c",
+      "git_blob_sha": "dbe7d4bad72cb9913f035a6ee34f90e3ff6ba9ea",
+      "bytes": 2561
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/source-postimage/tests/test_us_close_retry_20261016.py",
+      "sha256": "c5ef81bbe389c8448cc2abb7f8b60fe153c8406a7a9f9d9b0241ee8c7a39688d",
+      "git_blob_sha": "1f025b86d398557f45ee16a93827521376b6a2f9",
+      "bytes": 35249
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/us_only_cas_activation_r3.py",
+      "sha256": "64f8e55ab30717906dae14057af26e0b7f3b1a5fb8d76b50a9d85303287060c5",
+      "git_blob_sha": "5d980e42aebd5f197e196a3789eb40b74b0aaafb",
+      "bytes": 21866
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/test_cas_activation_r3.py",
+      "sha256": "42971a0fec975bf3fa6e3e7f649e63f765f60dc7128183e72903f190d21a92d8",
+      "git_blob_sha": "44165d1c900a23e5e1d7e9e27ea18281638db48b",
+      "bytes": 4339
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/candidate/evidence/us_close_r3_api_consumer_canary.py",
+      "sha256": "14a9b81866345278dc2f39f97fa12a4744b18de8f8d2475a94c35fca6a81968e",
+      "git_blob_sha": "233f20ea4c9011643772a77740996966dc427f00",
+      "bytes": 15140
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/reviewer/R3_PRODUCER_API_CAS_REVIEW.md",
+      "sha256": "6aa246117b9380da8173820580f41ff2b3399b92fb213f923f2b10841c722e2f",
+      "git_blob_sha": "7e80fa2a6b9a232e6b649df1a743ccc2156329d2",
+      "bytes": 5530
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/FINAL_RECEIPT.md",
+      "sha256": "4710283158a487718cf4a585bef5d663ec373d5f0bae2c0d781799ef551098fb",
+      "git_blob_sha": "978dcc3b4cbf38298ca20b3b257c4597d030a401",
+      "bytes": 6352
+    },
+    {
+      "path": "docs/handoffs/US_CLOSE_RETRY_20261016/reviewer/R3_POSTINTEGRATION_READBACK.md",
+      "sha256": "901ea79e01d6a62affb9d173dd5125f38781af561c054b54529d137081793f6c",
+      "git_blob_sha": "2ba87727358f6080c22ca38bd971541e60aacee6",
+      "bytes": 3748
+    }
+  ]
+}

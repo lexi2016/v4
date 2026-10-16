@@ -1,0 +1,55 @@
+--- a/ops/_us_market_digest_parts/phase_merge.py
++++ b/ops/_us_market_digest_parts/phase_merge.py
+@@ -97,6 +97,52 @@
+         )
+     )
+     if merged_snapshot is not None:
++        # The store binds the snapshot to the first same-session/phase/late
++        # capture. Prefer the row whose timestamp owns this snapshot.
++        snapshot_time = _v4_global(_v4_scope, '_parse_capture_timestamp')(
++            merged_snapshot.get("captured_at")
++        )
++        snapshot_session = merged_snapshot.get("capture_session_date")
++        snapshot_phase = merged_snapshot.get("capture_phase")
++        snapshot_late = _v4_global(_v4_scope, '_is_late_capture_identity')(merged_snapshot)
++        def matches_snapshot_capture(row):
++            return (
++                _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping'))
++                and row.get("us_session_date") == snapshot_session
++                and row.get("capture_phase") == snapshot_phase
++                and _v4_global(_v4_scope, '_is_late_capture_identity')(row) == snapshot_late
++            )
++        first_match = next(
++            (index for index, row in enumerate(captures) if matches_snapshot_capture(row)),
++            None,
++        )
++        snapshot_match = next(
++            (
++                index for index, row in enumerate(captures)
++                if matches_snapshot_capture(row)
++                and _v4_global(_v4_scope, '_parse_capture_timestamp')(row.get("captured_at")) == snapshot_time
++            ),
++            None,
++        )
++        if first_match is not None and snapshot_match is not None:
++            snapshot_capture = captures[snapshot_match]
++            capture_identity = {
++                field: snapshot_capture.get(field)
++                for field in ("capture_id", "run_id")
++            }
++            if (
++                all(
++                    isinstance(value, str) and value.strip()
++                    for value in capture_identity.values()
++                )
++                and all(
++                    merged_snapshot.get(field) in (None, value)
++                    for field, value in capture_identity.items()
++                )
++            ):
++                merged_snapshot.update(capture_identity)
++            captures.insert(first_match, captures.pop(snapshot_match))
++    if merged_snapshot is not None:
+         merged["market_snapshot"] = merged_snapshot
+         merged["market_snapshot_status"] = _v4_global(_v4_scope, 'str')(
+             merged_snapshot.get("status") or "CANNOT_CONFIRM"
