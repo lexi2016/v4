@@ -1,0 +1,59 @@
+{
+  "schema_version": "v4.us_hk_recovery_v2r1_runtime_baseline_reconciliation.v2",
+  "status": "FRESH_BASELINE_RECONCILED",
+  "reason": "The previously prepared r1 candidate was bound to futu-industry-api-20261016-r1. Read-only inspection found the active API-only pointer had advanced to futu-industry-api-20261016-r2, so r1 is retained as stale and this receipt pins a new r2 preparation.",
+  "stale_candidate": {
+    "release_id": "us-hk-recovery-v2r1-20261016-r1",
+    "manifest_sha256": "fa90e8649920ff2f4f46ba12ac0d447f91d57eddd565cd2ca8e21f7310d19f57",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r1.json",
+    "config_sha256": "66cacfb435e883e770ab5098ef6fc100d49e3d1869eb5f2eca5fc7bb0afab021",
+    "active_base_plist_sha256": "d601d017cbf1f893949c44a5e321458c7e5a3c81216601cfb4133c4781f44e1a",
+    "retained_unchanged": true
+  },
+  "fresh_active_base": {
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+    "plist_mode": "0o644",
+    "release_id": "futu-industry-api-20261016-r2",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2/app",
+    "release_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+    "application_inventory_sha256": "8157fff62f99f704ccc448815fa3775dd59e24045f7883536104a73b10e8b823",
+    "application_inventory_entry_count": 1215,
+    "launch_agent_state": "running",
+    "api_port": "8873"
+  },
+  "active_config": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-mapping700-20261016-r2.json",
+    "sha256": "7a6d9689df73f832e15efd53923ab69d03ebc4f0357635bb8d9e67d6342e35b5",
+    "mode": "0o644",
+    "relation_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-mapping700-20261016-r2/app"
+  },
+  "immutable_mapping_inputs": {
+    "base_catalog_sha256": "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671",
+    "legacy_700_overlay_sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69",
+    "mapping_catalog_module_sha256": "b7ec08a65a9bb6e2ee419caf303c5ec60b809a44b7a2bef42883ea0fed4023ad",
+    "workbench_sha256": "d3f128c55e719c34b12405a7bad80e55e1002efff5d2d177fbf24466af12da0e",
+    "types_sha256": "ba43ce38304ee4b9bcaf8148b4e53f836feea13376b576ce73ae513d49766849",
+    "recovery_overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "selected_mapping_hunks_sha256": "38a6552b49bdfbdff291492b3df3750322a5fbb5b5671e62d6ced2eb838618ff",
+    "source_review_receipt_sha256": "cf796bb7da55547c84cea24c9ab63096398fd56f01c39b5e8f3690988f31ce7a"
+  },
+  "frontend_build_inputs_match_workspace": {
+    "package_json_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+    "package_lock_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+    "vite_config_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+    "tsconfig_sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe"
+  },
+  "new_candidate_targets": {
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+    "targets_absent_at_precheck": true
+  },
+  "execution_boundary": {
+    "active_pointer_or_config_mutated": false,
+    "launchctl_mutation": false,
+    "candidate_r1_modified": false,
+    "candidate_r2_prepared": false
+  }
+}
