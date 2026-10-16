@@ -20,7 +20,11 @@ from zoneinfo import ZoneInfo
 from infrastructure.data_store import NativeDataStore
 from infrastructure.isolated_package_loader import load_isolated_package_module
 from infrastructure.owned_path import resolve_owned_path
-from infrastructure.zsxq_pdf_ingestion import process_pdf_batch, process_pdf_continuation
+from infrastructure.zsxq_pdf_ingestion import (
+    process_next_pdf_task,
+    process_pdf_batch,
+    process_pdf_continuation,
+)
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -389,12 +393,22 @@ def materialize_zsxq_hourly_delta(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", required=True, type=Path)
-    parser.add_argument("--date", required=True)
-    parser.add_argument("--slot", required=True)
+    parser.add_argument("--date")
+    parser.add_argument("--slot")
     parser.add_argument(
         "--pdf-only",
         action="store_true",
         help="Process PDFs from the exact existing hourly run without fetching topics.",
+    )
+    parser.add_argument(
+        "--pdf-enqueue-only",
+        action="store_true",
+        help="Verify and enqueue PDFs from one completed hourly run without OCR work.",
+    )
+    parser.add_argument(
+        "--pdf-queue-tick",
+        action="store_true",
+        help="Advance one already-enumerated PDF from the owned queue.",
     )
     parser.add_argument("--source-run-id", help="Exact latest_run_id from the existing hourly status.")
     parser.add_argument("--pdf-limit", type=int, default=1)
@@ -407,8 +421,33 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-pages", type=int, default=20)
     args = parser.parse_args(argv)
     try:
+        if args.pdf_queue_tick:
+            if args.pdf_only or args.pdf_enqueue_only or args.date or args.slot or args.source_run_id or args.pdf_file_id:
+                raise ValueError("--pdf-queue-tick cannot be combined with a source run or other PDF mode")
+            result = process_next_pdf_task(
+                data_root=args.data_root,
+                cli=args.cli,
+                time_budget_seconds=args.pdf_time_budget_seconds,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.pdf_enqueue_only:
+            if not args.date or not args.slot or not args.source_run_id or args.pdf_file_id:
+                raise ValueError("--pdf-enqueue-only requires exact date, slot, and source run")
+            result = process_pdf_batch(
+                data_root=args.data_root,
+                trade_date=args.date,
+                slot=args.slot,
+                source_run_id=args.source_run_id,
+                cli=args.cli,
+                limit=1,
+                enqueue_only=True,
+                time_budget_seconds=args.pdf_time_budget_seconds,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
         if args.pdf_only:
-            if not args.source_run_id:
+            if not args.date or not args.slot or not args.source_run_id:
                 raise ValueError("--pdf-only requires --source-run-id")
             if args.pdf_file_id:
                 result = process_pdf_batch(
@@ -436,6 +475,8 @@ def main(argv: list[str] | None = None) -> int:
             # PDF work is supplemental. Valid pending/partial/failed states are
             # progress receipts and must not fail the main hourly research run.
             return 0
+        if not args.date or not args.slot:
+            raise ValueError("--date and --slot are required for hourly materialization")
         result = materialize_zsxq_hourly_delta(
             data_root=args.data_root,
             trade_date=args.date,

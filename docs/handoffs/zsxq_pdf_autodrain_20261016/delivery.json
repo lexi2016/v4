@@ -1,0 +1,139 @@
+{
+  "schema_version": "v4.zsxq_pdf_autodrain_delivery.v1",
+  "baseline_commit": "cf7f070e0dbbbe96b7cd241c8216144175019424",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "candidate_source_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_files": [
+    {
+      "path": "infrastructure/zsxq_pdf_ingestion.py",
+      "candidate_sha256": "9fc068b4d407ca56364db31869851b96aec8cfc5dc93972c9de95668656d8471",
+      "source_sha256": "9fc068b4d407ca56364db31869851b96aec8cfc5dc93972c9de95668656d8471"
+    },
+    {
+      "path": "ops/run_zsxq_hourly_delta.py",
+      "candidate_sha256": "7260f1342ee2ee6d00373df330561fc093f1f176875759623143bff2e517531d",
+      "source_sha256": "7260f1342ee2ee6d00373df330561fc093f1f176875759623143bff2e517531d"
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/research_jobs.py",
+      "candidate_sha256": "3be50b628013007db3c1eca290b4bfb23463f2cabfdd789c24f927ec2572c030",
+      "source_sha256": "3be50b628013007db3c1eca290b4bfb23463f2cabfdd789c24f927ec2572c030"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "candidate_sha256": "069baf24404930743fd4894215bdc3a313815c911d57a82b0f21f5b906862a14",
+      "source_sha256": "069baf24404930743fd4894215bdc3a313815c911d57a82b0f21f5b906862a14"
+    },
+    {
+      "path": "tests/test_zsxq_pdf_ingestion.py",
+      "candidate_sha256": "ef634d1fb6a2fe69f9331af434c4066c293a202befaef551205358b60e53ed06",
+      "source_sha256": "ef634d1fb6a2fe69f9331af434c4066c293a202befaef551205358b60e53ed06"
+    },
+    {
+      "path": "tests/test_zsxq_pdf_scheduler_hook.py",
+      "candidate_sha256": "ec4a56338ddbd4ae3d0470bbcf79c41946d42b0ec7548230f6de2a6865e496bf",
+      "source_sha256": "ec4a56338ddbd4ae3d0470bbcf79c41946d42b0ec7548230f6de2a6865e496bf"
+    },
+    {
+      "path": "tests/test_zsxq_pdf_autodrain.py",
+      "candidate_sha256": "a174f9feb317996140ef06fd8a5940bdc3b28212ed263ad73ffd2e4f0d90f866",
+      "source_sha256": "a174f9feb317996140ef06fd8a5940bdc3b28212ed263ad73ffd2e4f0d90f866"
+    }
+  ],
+  "runtime_files": [
+    {
+      "path": "infrastructure/zsxq_pdf_ingestion.py",
+      "active_base_sha256": "a66bf4b0512085a8730877595a4aade8e33cdaff6d5d99321e8ed05e2e47a0e8",
+      "candidate_sha256": "9fc068b4d407ca56364db31869851b96aec8cfc5dc93972c9de95668656d8471",
+      "patch_path": "patches/infrastructure__zsxq_pdf_ingestion.py.patch",
+      "patch_sha256": "b540ca5e24e43125d4e71e1c82003b8ff95318e2c57c4f8c29ec52896de2ae3e"
+    },
+    {
+      "path": "ops/run_zsxq_hourly_delta.py",
+      "active_base_sha256": "9c8e619bd7f1907fd83f8596874ae09683a4e5859f7d9497d838073805c62785",
+      "candidate_sha256": "ccb3a0b95b89cba4a79f24930599105b1358dc05f4d04b5e981c9ee8e469878c",
+      "patch_path": "patches/ops__run_zsxq_hourly_delta.py.patch",
+      "patch_sha256": "212a5aeed4ee5c230307531a5d558b193c0293e8e5f40b7a1581449172ac38d9"
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry_research.py",
+      "active_base_sha256": "033325dd965ba9f3bd8dff5396fe9e3b0d59419a98478292fc8e0245c8c46676",
+      "candidate_sha256": "eb1b31fadcb484dd032f1e91b84fede0d81546fece6171ceb6df56355e00d1d2",
+      "patch_path": "patches/infrastructure__scheduling__executor_registry_research.py.patch",
+      "patch_sha256": "412160bdee610da1273e7e27c71738e80170f6619480249292666d2dbc2e0943"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "active_base_sha256": "b076c635254caded9610e817572d7b039064654d8a91984fc9691d82171dcc77",
+      "candidate_sha256": "1d03d0b21e352a772278e326086ef50a4e43dbfdeacb2dbf56111b496773476a",
+      "patch_path": "patches/ops__run_v35_macos_scheduler_daemon.py.patch",
+      "patch_sha256": "19e65522ca24d8b5ee5138fce36710b99782bc077d7e1551bc104615263734e4"
+    }
+  ],
+  "runtime_identity": {
+    "api": {
+      "release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-autodrain-api-20261016-r1",
+      "manifest_sha256": "596334196137801c153e7841755bc3f987a097cb30967e4a780d0b8609ef5d5a",
+      "activation": "DEPLOYED",
+      "pid": 66235
+    },
+    "scheduler": {
+      "release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-autodrain-scheduler-20261016-r2",
+      "manifest_sha256": "59ded23bb1e5aba798304e897ce76c57209af9983dd83de9e2e5d6676b25a3df",
+      "activation": "DEPLOYED",
+      "pid": 66282
+    }
+  },
+  "independent_candidate_verdict": "PASS",
+  "independent_candidate_receipt_sha256": "23e0dd2413b600053766a7a25b951ffbf86e1c90ff4448820540b6c403fadbb3",
+  "test_environment": "launchd Python 3.14.6, exact full API/scheduler runtime packages",
+  "tests": {
+    "focused_pdf_and_autodrain_cases": "28 passes retained; remaining hook case rerun PASS against scheduler r2",
+    "api_projection_detail": "PASS against full API r1"
+  },
+  "overall_status": "DEPLOYED_AUTOMATIC_PROCESSING_IN_PROGRESS",
+  "full_scope_acceptance": "CANNOT_CONFIRM",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "observed_pre_change_source": {
+    "captured_at": "2026-10-16T09:57:27.786339+08:00",
+    "note": "Controller read-only snapshot during initial diagnosis; Writer frozen snapshot determines actual edit baseline.",
+    "files": {
+      "infrastructure/zsxq_pdf_ingestion.py": "a66bf4b0512085a8730877595a4aade8e33cdaff6d5d99321e8ed05e2e47a0e8",
+      "ops/run_zsxq_hourly_delta.py": "e513168904d88d4de6e9f72ec97672eb80d34a40588cb052dc415c483b3bf5d7",
+      "infrastructure/scheduling/_executor_registry_parts/research_jobs.py": "22c7cdb7fd7c409a693dc4ef70fc77f00887e9b16a5edc93e9bd3f0507a03d2b",
+      "ops/run_v35_macos_scheduler_daemon.py": "4498afed94affda084603c9b07016eaa292840745d5a8a76be205dd2245c942f",
+      "tests/test_zsxq_pdf_ingestion.py": "789e10de49aaa9daf8a24c65a3e083088a2d291821fb63f15cbf130c76f5277c",
+      "tests/test_zsxq_pdf_scheduler_hook.py": "fa6629491753db3bf30f17f53f233ddd6f5581bd1be7097ea923907ea5b495cd"
+    }
+  },
+  "last_observed_progress": {
+    "at": "2026-10-16T11:07:54+08:00",
+    "ready": 59,
+    "partial": 20,
+    "failed": 0,
+    "processed_pages": 795,
+    "total_pages": 1042,
+    "total_documents": 79
+  },
+  "runtime_progress_review": {
+    "autonomous_progression": "PASS",
+    "verified_page_limit_recovery": "PASS_IN_PROGRESS",
+    "receipt_sha256": "8a93dc19b3f1bad149a5d193ff94c494743f5484e1e6e5b3e532a998925eddd2"
+  },
+  "natural_enqueue": {
+    "source_run_id": "20261016_110000_110000096489",
+    "new_references": 2,
+    "date16_total": 530
+  },
+  "final_api_ui_data_acceptance": "NOT_RUN_PENDING_COMPLETION",
+  "conversation_polling": "STOPPED_AT_USER_REQUEST",
+  "one_delayed_acceptance": "scheduled; no continuous chat polling",
+  "later_api_identity": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-workbench-api-20261016-r2/app",
+    "pdf_module_sha256": "9fc068b4d407ca56364db31869851b96aec8cfc5dc93972c9de95668656d8471",
+    "accepted_pdf_module_preserved": true
+  }
+}

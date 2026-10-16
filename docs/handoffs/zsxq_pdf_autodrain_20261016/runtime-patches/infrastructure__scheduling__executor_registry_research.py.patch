@@ -1,0 +1,33 @@
+--- active-base/infrastructure/scheduling/executor_registry_research.py
++++ candidate/infrastructure/scheduling/executor_registry_research.py
+@@ -52,6 +52,7 @@
+                 "--slot", slot,
+                 "--source-run-id", source_run_id,
+                 "--pdf-only",
++                "--pdf-enqueue-only",
+                 "--pdf-limit", "1",
+                 "--pdf-time-budget-seconds", "180",
+             ],
+@@ -69,12 +70,14 @@
+             "runner_status": pdf_result.get("status"),
+             "error_code": payload.get("error_code"),
+             "processed_document_count": payload.get("processed_document_count", 0),
++            "queued_document_count": payload.get("pdf_reference_count", 0),
+             "done_total": payload.get("done_total", 0),
+             "partial_total": payload.get("partial_total", 0),
+             "failed_total": payload.get("failed_total", 0),
+             "pending_total": payload.get("pending_total", 0),
+             "time_budget_seconds": 180,
+             "max_documents": 1,
++            "mode": "ENQUEUE_ONLY_BACKGROUND_DRAIN",
+             "late_processing": True,
+             "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT",
+             "production_allowed": False,
+@@ -93,6 +96,7 @@
+             "pending_total": 0,
+             "time_budget_seconds": 180,
+             "max_documents": 1,
++            "mode": "ENQUEUE_ONLY_BACKGROUND_DRAIN",
+             "late_processing": True,
+             "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT",
+             "production_allowed": False,

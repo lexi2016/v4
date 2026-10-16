@@ -38,9 +38,10 @@ def test_pdf_hook_runs_only_after_main_success_and_preserves_hourly_status(tmp_p
                 "status": "SUCCEEDED",
                 "stdout": json.dumps(
                     {
-                        "schema_version": "v4.zsxq_pdf_continuation.v1",
+                        "schema_version": "v4.zsxq_pdf_batch_receipt.v1",
                         "status": "PARTIAL",
-                        "processed_document_count": 1,
+                        "processed_document_count": 0,
+                        "pdf_reference_count": 3,
                         "done_total": 2,
                         "partial_total": 0,
                         "failed_total": 0,
@@ -61,8 +62,12 @@ def test_pdf_hook_runs_only_after_main_success_and_preserves_hourly_status(tmp_p
     assert result["exit_code"] == 0
     assert result["pdf_ingestion"]["status"] == "PARTIAL"
     assert result["pdf_ingestion"]["pending_total"] == 1
+    assert result["pdf_ingestion"]["queued_document_count"] == 3
+    assert result["pdf_ingestion"]["mode"] == "ENQUEUE_ONLY_BACKGROUND_DRAIN"
     assert result["pdf_ingestion"]["production_allowed"] is False
     assert calls[0][0] == "ops.run_zsxq_hourly_delta"
     assert "--pdf-only" in calls[0][1]
+    assert "--pdf-enqueue-only" in calls[0][1]
+    assert calls[0][1][calls[0][1].index("--pdf-limit") + 1] == "1"
     assert calls[0][1][calls[0][1].index("--pdf-time-budget-seconds") + 1] == "180"
     assert calls[0][2] == 290

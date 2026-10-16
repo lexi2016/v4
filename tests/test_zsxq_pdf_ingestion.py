@@ -20,6 +20,7 @@ from infrastructure.zsxq_pdf_ingestion import (
     enumerate_pdf_documents,
     process_pdf_batch,
     process_pdf_continuation,
+    process_next_pdf_task,
     pending_pdf_tasks,
     read_pdf_document_detail,
     read_pdf_ingestion_projection,
@@ -140,6 +141,7 @@ def _process(
     max_pages_per_document=2,
     downloader=None,
     now_value=None,
+    page_counter=None,
 ):
     calls = counters if counters is not None else {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
 
@@ -180,7 +182,7 @@ def _process(
         metadata_lookup=metadata,
         url_lookup=url,
         downloader=downloader or default_download,
-        page_counter=lambda _pdf: page_count,
+        page_counter=page_counter or (lambda _pdf: page_count),
         page_renderer=render,
         ocr_page=ocr_page,
         engine_info=ENGINE,
@@ -683,6 +685,87 @@ def test_permanent_size_limit_is_not_retried_by_continuation(tmp_path, monkeypat
     assert final_run["attempts"] == 1
 
 
+def test_verified_page_limit_failure_recovers_once_from_owned_cached_pdf(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    root, files = _fixture(tmp_path)
+    calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
+
+    def old_page_limit(_path):
+        raise ZsxqPdfError("PDF_PAGE_LIMIT_EXCEEDED")
+
+    first, _ = _process(root, files, counters=calls, page_counter=old_page_limit)
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    document_id, document = next(
+        (key, row) for key, row in index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    first_run = document["engine_runs"][first["engine_identity"]]
+    assert first_run["status"] == "FAILED"
+    assert first_run["last_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    assert first_run["attempts"] == 1
+    assert Path(first_run["real_pdf_path"]).is_file()
+
+    monkeypatch.setattr(pdf_module, "_pdfinfo_page_count", lambda _path: 51)
+    source = document["source"]
+    source_meta = index["sources"][source["source_run_id"]]
+    expected_processing_run_id = (
+        f"pdfproc_{source['source_run_id']}_{source_meta['source_signature'][:12]}_{first['engine_identity'][:12]}"
+    )
+    assert source_meta.get("processing_run_id") == expected_processing_run_id
+    verified_recovery = pdf_module._verified_page_limit_recovery(
+        NativeDataStore(root),
+        source,
+        first_run,
+        f"external_sources/zsxq_hourly/{expected_processing_run_id}",
+    )
+    assert verified_recovery is not None
+    assert any(task["document_id"] == document_id for task in pending_pdf_tasks(root))
+
+    source_file = files[FILE_ID]
+
+    def metadata(_cli, _file_id):
+        calls["metadata"] += 1
+        return source_file
+
+    def url(_cli, _file_id):
+        calls["url"] += 1
+        return "https://download.invalid/file?token=DO_NOT_PERSIST"
+
+    def download(_url, _size):
+        calls["download"] += 1
+        return PDF_BYTES
+
+    def render(_pdf, page_number, output_dir):
+        path = output_dir / f"page-{page_number}.png"
+        path.write_bytes(b"fake-png-data")
+        return path
+
+    recovered, _ = _process(
+        root,
+        files,
+        counters=calls,
+        page_count=51,
+        page_counter=lambda _path: 51,
+        downloader=download,
+        now_value=datetime(2026, 10, 16, 1, 36, tzinfo=SHANGHAI),
+    )
+    assert recovered["processed_this_batch"][0]["status"] == "PARTIAL"
+    assert calls["url"] == calls["download"] == 1
+
+    final_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    run = final_index["documents"][document_id]["engine_runs"][recovered["engine_identity"]]
+    assert run["status"] == "PARTIAL"
+    assert run["page_count"] == 51
+    assert run["downloaded_at"] == first_run["downloaded_at"]
+    recovery = run["page_limit_recovery"]
+    assert recovery["prior_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    assert recovery["observed_page_count"] == 51
+    assert recovery["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    assert recovery["source_run_id"] == RUN_ID
+    assert recovery["processing_run_id"] == first["processing_run_id"]
+    assert recovery["verified_at"]
+
+
 def test_download_size_mismatch_remains_retryable(tmp_path):
     root, files = _fixture(tmp_path)
     first, _ = _process(root, files, downloader=lambda _url, _size: PDF_BYTES[:-1])
@@ -699,6 +782,139 @@ def test_download_size_mismatch_remains_retryable(tmp_path):
     final = NativeDataStore(root)._read(STATE_RELATIVE)
     final_run = next(row for row in final["documents"].values() if row["source"]["file_id"] == FILE_ID)
     assert final_run["engine_runs"][first["engine_identity"]]["attempts"] == 2
+
+
+def test_queue_tick_advances_multiple_documents_across_bounded_calls(tmp_path, monkeypatch):
+    root, files = _fixture(tmp_path)
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    original = pdf_module.process_pdf_batch
+    original(
+        data_root=root,
+        trade_date=DATE,
+        slot=SLOT,
+        source_run_id=RUN_ID,
+        engine_info=ENGINE,
+        page_counter=lambda _pdf: 2,
+        page_renderer=lambda _pdf, page, output_dir: _write_fake_page(output_dir, page),
+        enqueue_only=True,
+    )
+    calls = {"batch": 0, "download": 0, "ocr": 0}
+    now_value = datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)
+
+    def batch_with_local_fakes(**kwargs):
+        calls["batch"] += 1
+
+        def render(_pdf, page_number, output_dir):
+            return _write_fake_page(output_dir, page_number)
+
+        def ocr(_image):
+            calls["ocr"] += 1
+            return {"status": "OCR_OK", "method": ENGINE["engine"], "text": "verified page text"}
+
+        def download(_url, _size):
+            calls["download"] += 1
+            return PDF_BYTES
+
+        return original(
+            **kwargs,
+            metadata_lookup=lambda _cli, file_id: files[file_id],
+            url_lookup=lambda _cli, _file_id: "https://download.invalid/file?token=DO_NOT_PERSIST",
+            downloader=download,
+            page_counter=lambda _pdf: 2,
+            page_renderer=render,
+            ocr_page=ocr,
+            engine_info=ENGINE,
+        )
+
+    monkeypatch.setattr(pdf_module, "process_pdf_batch", batch_with_local_fakes)
+    ticks = [
+        process_next_pdf_task(root, time_budget_seconds=90, now=lambda: now_value)
+        for _ in range(3)
+    ]
+
+    assert [tick["status"] for tick in ticks] == ["READY", "READY", "READY"]
+    assert [tick["processed_document_count"] for tick in ticks] == [1, 1, 1]
+    assert calls == {"batch": 3, "download": 3, "ocr": 6}
+    assert process_next_pdf_task(root, now=lambda: now_value)["status"] == "NO_RETRYABLE_TASKS"
+    projection = read_pdf_ingestion_projection(root, DATE)
+    assert projection["completed_count"] == 3
+    assert projection["pending_count"] == 0
+    assert all(tick["pdf_sha256"] and tick["pages_file_sha256"] for tick in ticks)
+    assert all(row["can_open_detail"] for row in projection["items"])
+    persisted = b"".join(path.read_bytes() for path in root.rglob("*") if path.is_file())
+    assert b"DO_NOT_PERSIST" not in persisted
+    assert b"download.invalid" not in persisted
+
+
+def test_queue_tick_backs_off_transient_failure_before_one_bounded_retry(tmp_path, monkeypatch):
+    root, _files = _fixture(tmp_path)
+    store = NativeDataStore(root)
+    run_dir = f"external_sources/zsxq_hourly/{RUN_ID}"
+    recent_path = f"{run_dir}/zsxq_recent_topics.json"
+    recent = store._read(recent_path)
+    recent["topics_brief"] = [dict(recent["topics_brief"][0], files=[recent["topics_brief"][0]["files"][0]])]
+    recent["count"] = 1
+    store._write(recent_path, recent)
+    fetch_path = f"{run_dir}/zsxq_recent_topics_fetch_result.json"
+    fetch = store._read(fetch_path)
+    fetch["count"] = 1
+    store._write(fetch_path, fetch)
+    source_file = recent["topics_brief"][0]["files"][0]
+    clock = [datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)]
+    attempts = {"download": 0}
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    original = pdf_module.process_pdf_batch
+    original(
+        data_root=root,
+        trade_date=DATE,
+        slot=SLOT,
+        source_run_id=RUN_ID,
+        engine_info=ENGINE,
+        page_counter=lambda _pdf: 2,
+        page_renderer=lambda _pdf, page, output_dir: _write_fake_page(output_dir, page),
+        enqueue_only=True,
+    )
+
+    def batch_with_bounded_download(**kwargs):
+        def download(_url, _size):
+            attempts["download"] += 1
+            return PDF_BYTES[:-1] if attempts["download"] == 1 else PDF_BYTES
+
+        return original(
+            **kwargs,
+            metadata_lookup=lambda _cli, _file_id: source_file,
+            url_lookup=lambda _cli, _file_id: "https://download.invalid/file?token=DO_NOT_PERSIST",
+            downloader=download,
+            page_counter=lambda _pdf: 2,
+            page_renderer=lambda _pdf, page, output_dir: _write_fake_page(output_dir, page),
+            ocr_page=lambda _image: {"status": "OCR_OK", "method": ENGINE["engine"], "text": "verified"},
+            engine_info=ENGINE,
+        )
+
+    monkeypatch.setattr(pdf_module, "process_pdf_batch", batch_with_bounded_download)
+    first = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+    assert first["status"] == "RETRY_BACKOFF"
+    assert first["document_status"] == "PENDING"
+    assert first["last_error_code"] == "PDF_SIZE_MISMATCH"
+    assert attempts["download"] == 1
+
+    immediate = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+    assert immediate["status"] == "RETRY_BACKOFF"
+    assert immediate["processed_document_count"] == 0
+    assert attempts["download"] == 1
+
+    clock[0] = clock[0].replace(minute=36)
+    resumed = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+    assert resumed["status"] == "READY"
+    assert resumed["document_status"] == "READY"
+    assert attempts["download"] == 2
+    index = store._read(STATE_RELATIVE)
+    document = next(row for row in index["documents"].values() if row["source"]["file_id"] == FILE_ID)
+    latest = pdf_module._latest_engine_run(document)
+    assert latest[1]["attempts"] == 2
+    assert pending_pdf_tasks(root) == []
 
 
 def test_kernel_lock_wait_uses_remaining_pdf_budget_and_queue_stays_retryable(tmp_path):

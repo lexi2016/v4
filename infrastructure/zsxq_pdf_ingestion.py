@@ -29,10 +29,11 @@ from infrastructure.owned_path import resolve_owned_path
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MAX_PDF_BYTES = 64 * 1024 * 1024
-MAX_PDF_PAGES = 40
+MAX_PDF_PAGES = 64
 MAX_PDF_PAGES_PER_BATCH = 2
 MAX_PDF_CONTINUATION_DOCUMENTS = 1
 MAX_PDF_CONTINUATION_SECONDS = 180
+PDF_QUEUE_RETRY_BACKOFF_SECONDS = 300
 MAX_PAGE_IMAGE_BYTES = 32 * 1024 * 1024
 MAX_ATTEMPTS = 2
 PERMANENT_FAILURE_CODES = frozenset(
@@ -961,6 +962,43 @@ def _verified_partial_pdf(
     return raw, pdf_sha, pdf_path
 
 
+def _verified_page_limit_recovery(
+    store: NativeDataStore,
+    source: Mapping[str, Any],
+    artifact: Mapping[str, Any],
+    processing_root: str,
+    *,
+    page_counter: PageCounter | None = None,
+) -> tuple[bytes, str, int, Path] | None:
+    """Verify the one bounded recovery case: an owned PDF rejected only by the old page cap."""
+    if (
+        str(artifact.get("status") or "").upper() != "FAILED"
+        or artifact.get("failure_class") != "PERMANENT"
+        or artifact.get("last_error_code") != "PDF_PAGE_LIMIT_EXCEEDED"
+        or type(artifact.get("attempts")) is not int
+        or artifact.get("attempts") != 1
+        or artifact.get("page_limit_recovery")
+        or not artifact.get("downloaded_at")
+    ):
+        return None
+    document_key = str(source.get("document_key") or "")
+    if not re.fullmatch(r"[0-9a-f]{64}", document_key):
+        return None
+    pdf_relative = f"{processing_root}/pdfs/{document_key}.pdf"
+    pdf_path = _safe_artifact_path(store.root, pdf_relative)
+    if artifact.get("real_pdf_path") != str(pdf_path) or pdf_path.is_symlink() or not pdf_path.is_file():
+        return None
+    try:
+        raw = _store_io(store).read_bytes(pdf_relative, max_bytes=MAX_PDF_BYTES)
+        pdf_sha = verify_pdf_bytes(raw, int(source.get("expected_size") or 0))
+        page_count = (page_counter or _pdfinfo_page_count)(pdf_path)
+    except Exception:
+        return None
+    if type(page_count) is not int or not 1 <= page_count <= MAX_PDF_PAGES:
+        return None
+    return raw, pdf_sha, page_count, pdf_path
+
+
 def _process_one(
     *,
     store: NativeDataStore,
@@ -1551,6 +1589,39 @@ def process_pdf_batch(
                         or engine_run.get("failure_class") != "PERMANENT"
                     ):
                         chosen = [selected]
+                    elif engine_run.get("last_error_code") == "PDF_PAGE_LIMIT_EXCEEDED":
+                        verified = _verified_page_limit_recovery(
+                            store,
+                            selected,
+                            engine_run,
+                            processing_root,
+                            page_counter=count_pages,
+                        )
+                        if verified is not None:
+                            raw, pdf_sha, observed_pages, pdf_path = verified
+                            engine_run.update(
+                                status="PENDING",
+                                failure_class=None,
+                                last_error_code=None,
+                                file_id=selected["file_id"],
+                                pdf_path=f"{processing_root}/pdfs/{selected['document_key']}.pdf",
+                                pdf_size=len(raw),
+                                pdf_sha256=pdf_sha,
+                                source_hash_raw=selected.get("source_hash_raw"),
+                                page_count=observed_pages,
+                                real_pdf_path=str(pdf_path),
+                                page_limit_recovery={
+                                    "prior_error_code": "PDF_PAGE_LIMIT_EXCEEDED",
+                                    "observed_page_count": observed_pages,
+                                    "pdf_sha256": pdf_sha,
+                                    "source_run_id": source_run_id,
+                                    "processing_run_id": processing_run_id,
+                                    "verified_at": _iso(now()),
+                                },
+                                updated_at=_iso(now()),
+                            )
+                            _write_json(store, STATE_RELATIVE, index)
+                            chosen = [selected]
             else:
                 chosen = []
                 if not enqueue_only:
@@ -1800,7 +1871,24 @@ def pending_pdf_tasks(
             continue
         _engine_identity, run = latest
         status = str(run.get("status") or "").upper()
-        if not _engine_run_is_retryable(latest[1]):
+        retryable = _engine_run_is_retryable(run)
+        if not retryable and run.get("last_error_code") == "PDF_PAGE_LIMIT_EXCEEDED":
+            engine_prefix = _engine_identity[:12]
+            expected_processing_run_id = (
+                f"pdfproc_{source_run_id}_{str(source_meta.get('source_signature') or '')[:12]}_{engine_prefix}"
+            )
+            processing_run_id = str(source_meta.get("processing_run_id") or "")
+            if processing_run_id == expected_processing_run_id and re.fullmatch(
+                r"[A-Za-z0-9_-]{1,100}", processing_run_id
+            ):
+                processing_root = f"external_sources/zsxq_hourly/{processing_run_id}"
+                retryable = _verified_page_limit_recovery(
+                    NativeDataStore(root),
+                    source,
+                    run,
+                    processing_root,
+                ) is not None
+        if not retryable:
             continue
         try:
             _date(str(source.get("trade_date") or ""))
@@ -1824,6 +1912,161 @@ def pending_pdf_tasks(
             }
         )
     return sorted(tasks, key=lambda row: (row["source_fetched_at"], row["trade_date"], row["slot"], row["document_id"]))
+
+
+def _retry_backoff_remaining(
+    artifact: Mapping[str, Any], *, now: datetime, backoff_seconds: int
+) -> int:
+    if not artifact.get("last_error_code"):
+        return 0
+    updated_at = artifact.get("updated_at")
+    if not isinstance(updated_at, str) or not updated_at:
+        return backoff_seconds
+    try:
+        updated = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+    except ValueError:
+        return backoff_seconds
+    if updated.tzinfo is None or now.tzinfo is None or now.utcoffset() is None:
+        return backoff_seconds
+    elapsed = (now.astimezone(updated.tzinfo) - updated).total_seconds()
+    return max(0, int(backoff_seconds - elapsed + 0.999))
+
+
+def process_next_pdf_task(
+    data_root: Path,
+    *,
+    cli: Path = DEFAULT_CLI,
+    time_budget_seconds: int = 90,
+    max_pages_per_document: int = MAX_PDF_PAGES_PER_BATCH,
+    retry_backoff_seconds: int = PDF_QUEUE_RETRY_BACKOFF_SECONDS,
+    now: Callable[[], datetime] = _now,
+) -> dict[str, Any]:
+    """Advance one already-enumerated PDF from the durable owned index."""
+    if type(time_budget_seconds) is not int or not 1 <= time_budget_seconds <= MAX_PDF_CONTINUATION_SECONDS:
+        raise ZsxqPdfError("PDF_TIME_BUDGET_INVALID")
+    if type(max_pages_per_document) is not int or not 1 <= max_pages_per_document <= MAX_PDF_PAGES_PER_BATCH:
+        raise ZsxqPdfError("PDF_PAGE_BATCH_LIMIT_INVALID")
+    if type(retry_backoff_seconds) is not int or not 1 <= retry_backoff_seconds <= 3600:
+        raise ZsxqPdfError("PDF_RETRY_BACKOFF_INVALID")
+
+    root = Path(data_root).expanduser()
+    if not root.is_dir() or root.is_symlink():
+        raise ZsxqPdfError("DATA_ROOT_INVALID")
+    tasks = pending_pdf_tasks(root)
+    if not tasks:
+        return {
+            "schema_version": "v4.zsxq_pdf_queue_tick.v1",
+            "status": "NO_RETRYABLE_TASKS",
+            "processed_document_count": 0,
+            "pending_task_count": 0,
+            "time_budget_seconds": time_budget_seconds,
+            "max_pages_per_document": max_pages_per_document,
+            "retry_backoff_seconds": retry_backoff_seconds,
+            **SAFETY,
+        }
+
+    store = NativeDataStore(root)
+    index = _read_index(store)
+    now_value = now()
+    eligible: list[dict[str, Any]] = []
+    retry_waits: list[int] = []
+    for task in tasks:
+        document = index["documents"].get(task["document_id"])
+        latest = _latest_engine_run(document) if isinstance(document, Mapping) else None
+        artifact = latest[1] if latest else {}
+        remaining = _retry_backoff_remaining(
+            artifact, now=now_value, backoff_seconds=retry_backoff_seconds
+        )
+        if remaining:
+            retry_waits.append(remaining)
+            continue
+        eligible.append(task)
+    if not eligible:
+        return {
+            "schema_version": "v4.zsxq_pdf_queue_tick.v1",
+            "status": "RETRY_BACKOFF",
+            "processed_document_count": 0,
+            "pending_task_count": len(tasks),
+            "retry_wait_count": len(retry_waits),
+            "next_retry_seconds": min(retry_waits) if retry_waits else retry_backoff_seconds,
+            "time_budget_seconds": time_budget_seconds,
+            "max_pages_per_document": max_pages_per_document,
+            "retry_backoff_seconds": retry_backoff_seconds,
+            **SAFETY,
+        }
+
+    task = eligible[0]
+    document_id = task["document_id"]
+    document = index["documents"].get(document_id)
+    latest = _latest_engine_run(document) if isinstance(document, Mapping) else None
+    before = dict(latest[1]) if latest else {}
+    try:
+        batch = process_pdf_batch(
+            data_root=root,
+            trade_date=task["trade_date"],
+            slot=task["slot"],
+            source_run_id=task["source_run_id"],
+            cli=cli,
+            limit=1,
+            file_id=task["file_id"],
+            max_pages_per_document=max_pages_per_document,
+            time_budget_seconds=time_budget_seconds,
+            now=now,
+        )
+    except Exception as error:
+        return {
+            "schema_version": "v4.zsxq_pdf_queue_tick.v1",
+            "status": "CANNOT_CONFIRM",
+            "document_id": document_id,
+            "trade_date": task["trade_date"],
+            "source_run_id": task["source_run_id"],
+            "reason_code": _error_code(error),
+            "processed_document_count": 0,
+            "pending_task_count": len(tasks),
+            "time_budget_seconds": time_budget_seconds,
+            "max_pages_per_document": max_pages_per_document,
+            **SAFETY,
+        }
+
+    latest_index = _read_index(store)
+    latest_document = latest_index["documents"].get(document_id)
+    latest_run = _latest_engine_run(latest_document) if isinstance(latest_document, Mapping) else None
+    artifact = latest_run[1] if latest_run else {}
+    document_status = str(artifact.get("status") or "CANNOT_CONFIRM").upper()
+    remaining = _retry_backoff_remaining(
+        artifact, now=now(), backoff_seconds=retry_backoff_seconds
+    )
+    status = "RETRY_BACKOFF" if remaining and document_status in {"PENDING", "FAILED"} else document_status
+    outcomes = batch.get("processed_this_batch") or []
+    return {
+        "schema_version": "v4.zsxq_pdf_queue_tick.v1",
+        "status": status,
+        "document_status": document_status,
+        "document_id": document_id,
+        "trade_date": task["trade_date"],
+        "slot": task["slot"],
+        "source_run_id": task["source_run_id"],
+        "processed_document_count": int(bool(outcomes)),
+        "processed_page_count": artifact.get("processed_page_count"),
+        "page_count": artifact.get("page_count"),
+        "last_error_code": artifact.get("last_error_code"),
+        "failure_class": artifact.get("failure_class"),
+        "pdf_sha256": artifact.get("pdf_sha256"),
+        "pages_file_sha256": artifact.get("pages_file_sha256"),
+        "receipt_path": artifact.get("receipt_path"),
+        "done_total": batch.get("done_total"),
+        "partial_total": batch.get("partial_total"),
+        "failed_total": batch.get("failed_total"),
+        "pending_total": batch.get("pending_total"),
+        "pending_task_count": len(pending_pdf_tasks(root)),
+        "retry_after_seconds": remaining,
+        "before_status": before.get("status"),
+        "before_attempts": before.get("attempts"),
+        "time_budget_seconds": time_budget_seconds,
+        "max_pages_per_document": max_pages_per_document,
+        "retry_backoff_seconds": retry_backoff_seconds,
+        **SAFETY,
+    }
 
 
 def process_pdf_continuation(

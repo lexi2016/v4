@@ -1,0 +1,320 @@
+--- active-base/ops/run_v35_macos_scheduler_daemon.py
++++ candidate/ops/run_v35_macos_scheduler_daemon.py
+@@ -17,10 +17,11 @@
+ import subprocess
+ import sys
+ import threading
++import tempfile
+ import time
+ from datetime import datetime, timedelta
+ from pathlib import Path
+-from typing import Any, Callable, Iterable
++from typing import Any, Callable, Iterable, Mapping
+ from zoneinfo import ZoneInfo
+ 
+ from ops import run_v35_macos_scheduler as scheduler
+@@ -41,6 +42,9 @@
+ ANNOUNCEMENT_CYCLE_RELATIVE = "ops/run_manager_announcement_cycle.py"
+ ANNOUNCEMENT_CHILD_WALL_SECONDS = 50.0
+ ANNOUNCEMENT_CHILD_KILL_GRACE_SECONDS = 1.0
++PDF_QUEUE_TICK_SECONDS = 90
++PDF_QUEUE_CHILD_WALL_SECONDS = 150.0
++PDF_QUEUE_CHILD_KILL_GRACE_SECONDS = 2.0
+ 
+ 
+ class DaemonConfigurationError(ValueError):
+@@ -64,6 +68,20 @@
+ 
+     print(json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str), file=sys.stderr, flush=True)
+ 
++
++def _pdf_queue_safe_summary(payload: Mapping[str, Any]) -> dict[str, Any]:
++    fields = (
++        "schema_version", "status", "document_status", "document_id", "trade_date", "slot",
++        "source_run_id", "processed_document_count", "pending_task_count", "retry_wait_count",
++        "next_retry_seconds", "retry_after_seconds", "processed_page_count", "page_count",
++        "last_error_code", "reason_code", "failure_class", "pdf_sha256", "pages_file_sha256",
++        "done_total", "partial_total", "failed_total", "pending_total", "return_code", "runner_status",
++    )
++    return {key: payload[key] for key in fields if key in payload}
++def _emit_pdf_queue(payload: dict[str, Any]) -> None:
++    """Keep PDF worker receipts separate from the scheduler's captured JSON."""
++
++    print(json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str), file=sys.stderr, flush=True)
+ 
+ def last_emitted_output() -> str:
+     """Return the bounded output history for deterministic focused tests."""
+@@ -548,6 +566,209 @@
+             if self.thread.is_alive():
+                 _emit_announcement({"schema_version": DAEMON_SCHEMA, "status": "ANNOUNCEMENT_HOOK_JOIN_TIMEOUT"})
+ 
++
++class PdfQueueDrainHook:
++    """Drain the owned PDF index in a child without occupying scheduler work."""
++
++    def __init__(
++        self,
++        *,
++        app_root: Path,
++        data_root: Path,
++        python_path: Path,
++        cycle_active: threading.Event | None = None,
++        popen_factory: Callable[..., subprocess.Popen] = subprocess.Popen,
++        poll_seconds: float = 0.25,
++        wall_seconds: float = PDF_QUEUE_CHILD_WALL_SECONDS,
++        idle_seconds: float = 60.0,
++    ) -> None:
++        self.app_root = app_root
++        self.data_root = data_root
++        self.python_path = python_path
++        self.cycle_active = cycle_active or threading.Event()
++        self.popen_factory = popen_factory
++        self.poll_seconds = max(0.01, float(poll_seconds))
++        self.wall_seconds = max(0.01, float(wall_seconds))
++        self.idle_seconds = max(1.0, float(idle_seconds))
++        self.cancel = threading.Event()
++        self.child: subprocess.Popen | None = None
++        self.thread = threading.Thread(target=self._run, name="v35-zsxq-pdf-queue-drain", daemon=True)
++
++    @classmethod
++    def from_environment(
++        cls,
++        *,
++        cycle_active: threading.Event | None = None,
++        popen_factory: Callable[..., subprocess.Popen] = subprocess.Popen,
++        poll_seconds: float = 0.25,
++        wall_seconds: float = PDF_QUEUE_CHILD_WALL_SECONDS,
++        idle_seconds: float = 60.0,
++        start: bool = True,
++    ) -> "PdfQueueDrainHook | None":
++        environment = dict(os.environ)
++        data_root_text = environment.get("V35_DATA_ROOT", "").strip()
++        if not data_root_text:
++            return None
++        data_root = Path(data_root_text)
++        app_root = Path(environment.get("V35_APP_ROOT") or Path(__file__).resolve().parents[1])
++        python_path = Path(sys.executable)
++        if (
++            not data_root.is_absolute()
++            or ".." in data_root.parts
++            or os.path.normpath(str(data_root)) != str(data_root)
++            or not data_root.is_dir()
++            or data_root.is_symlink()
++        ):
++            raise DaemonConfigurationError("PDF queue data root is invalid")
++        if (
++            not app_root.is_absolute()
++            or ".." in app_root.parts
++            or os.path.normpath(str(app_root)) != str(app_root)
++            or not app_root.is_dir()
++            or app_root.is_symlink()
++            or not (app_root / "ops/run_zsxq_hourly_delta.py").is_file()
++        ):
++            raise DaemonConfigurationError("PDF queue app root is invalid")
++        if not python_path.is_absolute() or not python_path.is_file() or not os.access(python_path, os.X_OK):
++            raise DaemonConfigurationError("PDF queue interpreter is invalid")
++        hook = cls(
++            app_root=app_root,
++            data_root=data_root,
++            python_path=python_path,
++            cycle_active=cycle_active,
++            popen_factory=popen_factory,
++            poll_seconds=poll_seconds,
++            wall_seconds=wall_seconds,
++            idle_seconds=idle_seconds,
++        )
++        if start:
++            hook.thread.start()
++        return hook
++
++    def _finish_child(self, child: subprocess.Popen, reason: str) -> None:
++        try:
++            if child.poll() is not None:
++                child.wait(timeout=0)
++                return
++        except (OSError, subprocess.TimeoutExpired):
++            pass
++        try:
++            os.killpg(child.pid, signal.SIGTERM)
++        except ProcessLookupError:
++            pass
++        except OSError:
++            pass
++        try:
++            child.wait(timeout=PDF_QUEUE_CHILD_KILL_GRACE_SECONDS)
++            return
++        except (OSError, subprocess.TimeoutExpired):
++            pass
++        try:
++            os.killpg(child.pid, signal.SIGKILL)
++        except ProcessLookupError:
++            pass
++        except OSError:
++            pass
++        try:
++            child.wait(timeout=PDF_QUEUE_CHILD_KILL_GRACE_SECONDS)
++        except (OSError, subprocess.TimeoutExpired):
++            _emit_pdf_queue({"status": "PDF_QUEUE_CHILD_REAP_UNCONFIRMED", "reason": reason})
++
++    def _run_child(self) -> dict[str, Any]:
++        command = [
++            str(self.python_path),
++            "-B",
++            "-m",
++            "ops.run_zsxq_hourly_delta",
++            "--data-root",
++            str(self.data_root),
++            "--pdf-queue-tick",
++            "--pdf-time-budget-seconds",
++            str(PDF_QUEUE_TICK_SECONDS),
++        ]
++        environment = dict(os.environ)
++        environment.update(
++            PRODUCTION_ALLOWED="false",
++            BUY_GATE_UPDATED="false",
++            ORDERS_SENT="false",
++            PYTHONNOUSERSITE="1",
++        )
++        try:
++            with tempfile.TemporaryFile(mode="w+b") as stdout_file:
++                child = self.popen_factory(
++                    command,
++                    cwd=str(self.app_root),
++                    env=environment,
++                    stdin=subprocess.DEVNULL,
++                    stdout=stdout_file,
++                    stderr=subprocess.DEVNULL,
++                    start_new_session=True,
++                    close_fds=True,
++                )
++                self.child = child
++                deadline = time.monotonic() + self.wall_seconds
++                while True:
++                    try:
++                        return_code = child.poll()
++                    except Exception:
++                        return_code = 1
++                    if return_code is not None:
++                        try:
++                            child.wait(timeout=0)
++                        except (OSError, subprocess.TimeoutExpired):
++                            pass
++                        stdout_file.seek(0)
++                        raw = stdout_file.read(65537)
++                        if len(raw) > 65536:
++                            return {"status": "PDF_QUEUE_OUTPUT_OVERSIZED"}
++                        payload = _parse_scheduler_output(raw.decode("utf-8", errors="replace"))
++                        if payload is None:
++                            return {"status": "PDF_QUEUE_OUTPUT_MISSING", "return_code": return_code}
++                        payload = _pdf_queue_safe_summary(payload)
++                        if return_code != 0 and payload.get("status") not in {"CANNOT_CONFIRM", "RETRY_BACKOFF"}:
++                            payload["runner_status"] = "FAILED"
++                        return payload
++                    if self.cancel.is_set():
++                        self._finish_child(child, "CANCELLED")
++                        return {"status": "PDF_QUEUE_CHILD_CANCELLED"}
++                    if time.monotonic() >= deadline:
++                        self._finish_child(child, "TIMEOUT")
++                        return {"status": "PDF_QUEUE_CHILD_TIMEOUT"}
++                    self.cancel.wait(self.poll_seconds)
++        except Exception as error:
++            return {"status": "PDF_QUEUE_CHILD_START_FAILED", "error_code": type(error).__name__}
++        finally:
++            self.child = None
++
++    def _run(self) -> None:
++        while not self.cancel.is_set():
++            if self.cycle_active.is_set():
++                self.cancel.wait(self.poll_seconds)
++                continue
++            result = self._run_child()
++            summary = _pdf_queue_safe_summary(result)
++            _emit_pdf_queue({"status": "PDF_QUEUE_TICK", **summary})
++            if self.cancel.is_set():
++                break
++            if summary.get("status") == "NO_RETRYABLE_TASKS":
++                self.cancel.wait(self.idle_seconds)
++            elif summary.get("status") == "RETRY_BACKOFF":
++                wait_seconds = summary.get("next_retry_seconds")
++                self.cancel.wait(min(self.idle_seconds, max(1.0, float(wait_seconds or self.idle_seconds))))
++            elif summary.get("status") in {"PDF_QUEUE_CHILD_TIMEOUT", "PDF_QUEUE_OUTPUT_MISSING", "PDF_QUEUE_OUTPUT_OVERSIZED", "PDF_QUEUE_CHILD_START_FAILED"}:
++                self.cancel.wait(min(self.idle_seconds, 30.0))
++            else:
++                self.cancel.wait(1.0)
++
++    def stop(self, *, join_seconds: float = 3.0) -> None:
++        self.cancel.set()
++        child = self.child
++        if child is not None:
++            self._finish_child(child, "CANCELLED")
++        if self.thread.is_alive() and threading.current_thread() is not self.thread:
++            self.thread.join(timeout=max(0.0, join_seconds))
++            if self.thread.is_alive():
++                _emit_pdf_queue({"status": "PDF_QUEUE_HOOK_JOIN_TIMEOUT"})
+ 
+ def _run_one_cycle(
+     scheduler_argv: list[str],
+@@ -742,6 +963,21 @@
+                 "release_id": release_id,
+             }
+         )
++    scheduler_cycle_active = threading.Event()
++    scheduler_cycle_active.set()
++    pdf_queue_hook: PdfQueueDrainHook | None = None
++    pdf_queue_drain_state: dict[str, Any] = {"status": "DISABLED", "reason": "V35_DATA_ROOT_NOT_CONFIGURED"}
++    try:
++        pdf_queue_hook = PdfQueueDrainHook.from_environment(cycle_active=scheduler_cycle_active)
++        if pdf_queue_hook is not None:
++            pdf_queue_drain_state = {"status": "ACTIVE", "execution_owner": "DAEMON_BACKGROUND_THREAD", "queue_source": "OWNED_PDF_INGESTION_INDEX", "latest_tick_status": "NOT_OBSERVED"}
++        elif os.environ.get("V35_DATA_ROOT", "").strip():
++            pdf_queue_drain_state = {"status": "DISABLED", "reason": "PDF_QUEUE_CONFIGURATION_UNAVAILABLE"}
++    except Exception as error:
++        reason = _bounded_error(error)
++        pdf_queue_hook = None
++        pdf_queue_drain_state = {"status": "DISABLED", "reason": reason}
++        _emit_pdf_queue({"schema_version": DAEMON_SCHEMA, "status": "PDF_QUEUE_HOOK_DISABLED", "release_id": release_id, "error": reason})
+     cycles = 0
+     last_minute: str | None = None
+     try:
+@@ -757,6 +993,7 @@
+                 "buy_gate_updated": False,
+                 "orders_sent": False,
+                 "started_at": _as_shanghai(now()).isoformat(),
++                "pdf_queue_drain": pdf_queue_drain_state,
+             }
+         )
+         while not event.is_set():
+@@ -765,6 +1002,7 @@
+             if minute != last_minute:
+                 last_minute = minute
+                 cycles += 1
++                scheduler_cycle_active.set()
+                 try:
+                     _run_one_cycle(
+                         scheduler_argv,
+@@ -789,6 +1027,8 @@
+                         }
+                     )
+                     return 2
++                finally:
++                    scheduler_cycle_active.clear()
+             wait_for = min(
+                 float(poll_interval_seconds), _seconds_to_next_minute(moment)
+             )
+@@ -807,6 +1047,8 @@
+         )
+         return 0
+     finally:
++        if pdf_queue_hook is not None:
++            pdf_queue_hook.stop()
+         if announcement_hook is not None:
+             announcement_hook.stop()
+         if previous_handlers:
+@@ -841,6 +1083,7 @@
+ __all__ = [
+     "DAEMON_SCHEMA",
+     "AnnouncementCycleHook",
++    "PdfQueueDrainHook",
+     "DaemonConfigurationError",
+     "last_emitted_output",
+     "main",
