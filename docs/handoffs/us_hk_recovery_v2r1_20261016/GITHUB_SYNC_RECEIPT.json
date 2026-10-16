@@ -1,0 +1,374 @@
+{
+  "repository": "lexi2016/v4",
+  "branch": "codex/us-hk-recovery-v2r1-20261016",
+  "base_commit": "6c53b402ebf3eafa7df3e3511d84e00cf7bc9cd8",
+  "delivery_commit": "7071f94329cdc1f9a7eef448e45c409b9b26c966",
+  "delivery_head_comparison": "identical",
+  "verified_content_files": 42,
+  "groups": [
+    {
+      "label": "source",
+      "ref": "7d824d7b5098d4ffd9c0ffe05654510623f94df8",
+      "files": [
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/INTAKE_AUDIT.json",
+          "exact": true,
+          "blob": "793089a490596c3772a8fb0346f81a698e8082f8",
+          "error": false,
+          "sha256": "89bea9a7701093404f53f8d94ac83058c9afb8c05c05fc3ccae6b4f041a0417d",
+          "bytes": 1954
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py",
+          "exact": true,
+          "blob": "7dbfd7eafc74f9f6849720fb80d1ae049bc5d4c8",
+          "error": false,
+          "sha256": "b4c76ce4d1d437c9a161a4862d0360ae3656b52c3e656a66e99d64135658beb1",
+          "bytes": 26349
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/diff/DIFF_NOTES.md",
+          "exact": true,
+          "blob": "c97312cdc66c80490e1a0d9cec91da89c6dff2b1",
+          "error": false,
+          "sha256": "2b1d57564c2f093fb35b1f9093baadb1f9cab4a5432e890aaca8cb3d270e2fb3",
+          "bytes": 868
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/diff/SOURCE_DIFF.patch",
+          "exact": true,
+          "blob": "013befc3117c9d4eabef081babaa874b77cf8c63",
+          "error": false,
+          "sha256": "31700c81e81e92b0e53d263a20ce6c65691de2ec29979710ee5d4ea6cbff15d5",
+          "bytes": 84834
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/PREIMAGE_SHA256.json",
+          "exact": true,
+          "blob": "d1885b33bc6a86b3153cc4e40fb8f0dfc0f0745c",
+          "error": false,
+          "sha256": "76f0105351daa726ddd1e860ed3549cabbf3cb1a65dee464df3c569344970efb",
+          "bytes": 1102
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/SHA256_INVENTORY.json",
+          "exact": true,
+          "blob": "ca17d7abf15ad81d42acf5b00ffa131c7878c084",
+          "error": false,
+          "sha256": "b1b48bdced0ddf94239b4d2986e17671856729854d216f77e0642dfc4a80dc19",
+          "bytes": 4029
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/SOURCE_CANDIDATE_RECEIPT.json",
+          "exact": true,
+          "blob": "daff7bc36fb55cea607d0d35ce9916ae82db95c8",
+          "error": false,
+          "sha256": "9a3b76ab9e8ca055482122967651141c48a74cd4616404e9376e9cba1634fa0d",
+          "bytes": 4531
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/INDEPENDENT_SOURCE_REVIEW_20261016.md",
+          "exact": true,
+          "blob": "045eba46535e518f0f590f342e42957a6f3ea5c3",
+          "error": false,
+          "sha256": "cf796bb7da55547c84cea24c9ab63096398fd56f01c39b5e8f3690988f31ce7a",
+          "bytes": 5279
+        }
+      ]
+    },
+    {
+      "label": "runtime_r1_and_repair",
+      "ref": "57bad0a1f722436768f9b1d5d94aac400358aee5",
+      "files": [
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/prepare_runtime_candidate.py",
+          "exact": true,
+          "blob": "5129aafecb501a5b1db0986979b2caa8518cbdfa",
+          "error": false,
+          "sha256": "4defdda4b2cf572b93e889afe436563f64b0887439e80e9ff1c8146f8e9e8438",
+          "bytes": 45442
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/check_candidate_api.py",
+          "exact": true,
+          "blob": "64d352b3721ced4f51e4355f84688274510a0959",
+          "error": false,
+          "sha256": "117da7de5e672446807f7aa39e3cbd88c93d795e95f36f9e215cdda8b8483b93",
+          "bytes": 8057
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate.py",
+          "exact": true,
+          "blob": "46c41196cd4701004782cf1819190c06a7320c14",
+          "error": false,
+          "sha256": "fd1a9dbbbe5a2f831c44fa990aa38bb2fab48da46e505a9290d36faef649c8f7",
+          "bytes": 22528
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/tests/test_activation_rollback.py",
+          "exact": true,
+          "blob": "da8e3b80a2a97ef34b753649ace21bf392c8086c",
+          "error": false,
+          "sha256": "77a0664651447dbb33f8efb05168d74380f0ecb3f9ad3febf9bf08a552c3432e",
+          "bytes": 4842
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_BASELINE_RECONCILIATION.json",
+          "exact": true,
+          "blob": "109ded15f5c116d5df2564a8c775b99513fd2fef",
+          "error": false,
+          "sha256": "5d8d51f37dae59dc63eff19d54b896b9814ab798dd45a0d40b2ab282b614171a",
+          "bytes": 1426
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_DELTA_RECEIPT.json",
+          "exact": true,
+          "blob": "cc1f6e0cf828e5fe1de861458cf58a84f3c7d292",
+          "error": false,
+          "sha256": "aa1fd699100a2c709dccf8fcd28bac59c149c0ffb55d8d5543938c639bfd2539",
+          "bytes": 3594
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_PREPARATION_RECEIPT.json",
+          "exact": true,
+          "blob": "1e626a1447b487739b2d948a52cba99513daf916",
+          "error": false,
+          "sha256": "aeec3e7870add3099468a80e5a9bc6c37be7ea09f10682f3e545f9cbe63656be",
+          "bytes": 19676
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_PREPARED.md",
+          "exact": true,
+          "blob": "b6bfcfd8fed2e19a8de9b8d17501b1e52662b4d7",
+          "error": false,
+          "sha256": "119c87824c1bbe9ece5f8811755be8a259c46e6d8dbbcfc25e413896093668f2",
+          "bytes": 3234
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_20261016.md",
+          "exact": true,
+          "blob": "7753478eb970f019fffc295a8939f5e3d186a9a1",
+          "error": false,
+          "sha256": "e2400da698cafd722b3045ebcb933d63eee4141ad9f8638babc39302b2a6ce32",
+          "bytes": 4732
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW.json",
+          "exact": true,
+          "blob": "1a5daabc50034d3fd6afb4f2bfc8df5b387f2562",
+          "error": false,
+          "sha256": "1997a3719cf4c486a9d4e48da622ddafc1c3b6cb3e13db52cb17374cc462c0b9",
+          "bytes": 7493
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROLLBACK_REPAIR_RECEIPT.json",
+          "exact": true,
+          "blob": "c50084634703d0225f2e234b4594c64deaed0db0",
+          "error": false,
+          "sha256": "0942b3ee0caf2e9ea02b0f065d6aee11cefd4241f6256a37896c0736edd6e88f",
+          "bytes": 5045
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROLLBACK_REPAIR_INDEPENDENT_REVIEW.md",
+          "exact": true,
+          "blob": "0849ee3f9a1a007431407676a3422bef9f62bfc2",
+          "error": false,
+          "sha256": "328dae07b61e71c42a3d3fa5c459b59076800a0671f2064fcec8afbc890a781a",
+          "bytes": 2211
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROLLBACK_REPAIR_INDEPENDENT_REVIEW.json",
+          "exact": true,
+          "blob": "9175da87a84bc711ae9013f2ca271cea859cbc59",
+          "error": false,
+          "sha256": "fc5e668241c4c4e7766e2310706c24c8e9349d6a4c31774f08440a562910b33b",
+          "bytes": 4164
+        }
+      ]
+    },
+    {
+      "label": "runtime_r2",
+      "ref": "be5de4f7a322e91260b3f540dcb5aaf55851c0f0",
+      "files": [
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/prepare_runtime_candidate_r2.py",
+          "exact": true,
+          "blob": "1b8b4be1bfbe34fd66a2e6a96412147ad3eddb00",
+          "error": false,
+          "sha256": "0c132f651cb70bb42ebbbedd212a822a13bdf1f6d0d8d85f54755820b6d9f1b7",
+          "bytes": 46655
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/check_candidate_api_r2.py",
+          "exact": true,
+          "blob": "e78508a40f5a78f6e663599c19974ce42a29a6ca",
+          "error": false,
+          "sha256": "49947c53da051070d1e7708ca9d60acc5c1a6fb7f9ac918f3e9b2b13bd218fc9",
+          "bytes": 11615
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate_r2.py",
+          "exact": true,
+          "blob": "ae624d518505b4fc146c13863e5e2b354f2c1253",
+          "error": false,
+          "sha256": "f96ebd23bc1131f592bf17f7626b3f129d1a1909ac99af64b3239a63f278715c",
+          "bytes": 22536
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/tests/test_activation_rollback_r2.py",
+          "exact": true,
+          "blob": "dc10e7a435df717bf7c80ef28b004d63cae767bb",
+          "error": false,
+          "sha256": "d87f0c997fee4720b2b878239eb458eac2c9df8386286c9a4f82caefa8ee3d20",
+          "bytes": 4845
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_DELTA_RECEIPT_R2.json",
+          "exact": true,
+          "blob": "474e3c37577da9ee44fdcdadbdff222e629552aa",
+          "error": false,
+          "sha256": "a0bd9e1f6b4a8751496f6361c0ce77533914d15c1e861232081250fe6bb46569",
+          "bytes": 3594
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_PREPARATION_RECEIPT_R2.json",
+          "exact": true,
+          "blob": "1b94fb0480692212f0741518685e0e9b17da12c3",
+          "error": false,
+          "sha256": "20e5352df193d29c204980de665aa8812cf045ca1d574e50638c5f703b35d8df",
+          "bytes": 27605
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_PREPARED_R2.md",
+          "exact": true,
+          "blob": "5e035d43b28dfe48e47ce474927d702d9bf07b66",
+          "error": false,
+          "sha256": "95130332c65d3621db46b515c85928bbe297a096f7004460ad603baeee07d490",
+          "bytes": 2984
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_BASELINE_RECONCILIATION_R2.json",
+          "exact": true,
+          "blob": "84f6d8ef94a97be41fc519e0d38601b0c2d32cef",
+          "error": false,
+          "sha256": "79248af5362a3d8b374b9f0df3657c552b4b8971a16c06de2ad38846b4fa849c",
+          "bytes": 3854
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2_20261016.md",
+          "exact": true,
+          "blob": "bacf7364e0480e4de7cd3b8ce8ef1a9aa6b86eac",
+          "error": false,
+          "sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178",
+          "bytes": 4847
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2.json",
+          "exact": true,
+          "blob": "73221117eb84905263d50e130c527b8924851fad",
+          "error": false,
+          "sha256": "0c6e31ed2522b222d29ca10a8706f487fe78c1caa049605901b5836ab722a874",
+          "bytes": 7343
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROOT_ACTIVATION_AUTHORIZATION_R2.md",
+          "exact": true,
+          "blob": "621bc7e8df261cae520a5e6f144f2b72d137b37a",
+          "error": false,
+          "sha256": "ca18e844a8e17ed2fe7333456510d1304f2eab0c984ae6b81cf72356ce377071",
+          "bytes": 1068
+        }
+      ]
+    },
+    {
+      "label": "live_delivery",
+      "ref": "7071f94329cdc1f9a7eef448e45c409b9b26c966",
+      "files": [
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/SCOPE.md",
+          "exact": true,
+          "blob": "ba2c53e63302be0c108b17b7068bde3685d71689",
+          "error": false,
+          "sha256": "d0ff035f6628f32532d4acd7b545b12f03cd4d389b5111cf869f1aa844adfbd8",
+          "bytes": 4183
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/LEDGER.json",
+          "exact": true,
+          "blob": "e539997e6d6a23ef726e9df481838e9e3bb09a32",
+          "error": false,
+          "sha256": "8e433875d4449f2b90cbcca1141e2f14b561ee09998be3a9b723a4cee9d89dd3",
+          "bytes": 4664
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/UI_BASELINE.md",
+          "exact": true,
+          "blob": "f60535884f6c8290c22ac09223682be9466e494b",
+          "error": false,
+          "sha256": "9cba25f388b3e3fd3b781a63e5824e7e43cfdfd2fdd1ca867ef0e25125d803cb",
+          "bytes": 758
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/UI_REVIEW.md",
+          "exact": true,
+          "blob": "10e033c310d38e0edc9d6f0f1562bbc1ee437b66",
+          "error": false,
+          "sha256": "ddbd3620920edcec2b878c4d9d8e98b0360dcfefe9e079e61d5e45d288a2636b",
+          "bytes": 1733
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/DELIVERY.md",
+          "exact": true,
+          "blob": "754184f8868a7492303e4e44c9b9eb3279138034",
+          "error": false,
+          "sha256": "70217cdea2e5c1c14b57278e39bb1ead1a36c99b009e097f6d5b84d84d929ff1",
+          "bytes": 3583
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_ACTIVATION_RECEIPT_R2.json",
+          "exact": true,
+          "blob": "5b92f45327bc5f67f56e4368f457ea1245f86607",
+          "error": false,
+          "sha256": "9fc88d5424078190351360debb11f4801efe63244c489a9715fc3edc5852217c",
+          "bytes": 7218
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/LIVE_DEPLOYMENT_RECEIPT_R2.json",
+          "exact": true,
+          "blob": "855fe95c394bc552c3e4893fc00025ab760076c0",
+          "error": false,
+          "sha256": "3cb512fd376a301180ce2b70acc68eef00ed3bc60effa824b5d662d562a66dd0",
+          "bytes": 11284
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/LIVE_DEPLOYMENT_RECEIPT_R2.md",
+          "exact": true,
+          "blob": "3000530f40d81aad1acb170f3a5b1797df138ab2",
+          "error": false,
+          "sha256": "5d785063ae32cf7f0ebc7ada40ea0f0e012f771d2c655e40d7ef927c87e16188",
+          "bytes": 2655
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/LIVE_INDEPENDENT_REVIEW_R2.md",
+          "exact": true,
+          "blob": "e6601e9f1f796abb7463c3c1683a0039000719c7",
+          "error": false,
+          "sha256": "5ca6e5841f4344e03f5e6e394452f76a0846a9d731ff07cc8a1f11f6d56b4112",
+          "bytes": 3515
+        },
+        {
+          "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/LIVE_INDEPENDENT_REVIEW_R2.json",
+          "exact": true,
+          "blob": "06677213673d9c4ec9e13405a9ca2d465a0740df",
+          "error": false,
+          "sha256": "cc5c614e0436acc55028de8f2043d7fb93204a4a4c8dcb68a184fca54d1b4d13",
+          "bytes": 5441
+        }
+      ]
+    }
+  ],
+  "sync_scope": "Necessary patches, builders, tests and compact receipts only. Excludes raw archives, bulk data, dist, credentials, full runtime configs, raw plans and screenshots.",
+  "remote_status": "PATCHES_RECORDED_NOT_MERGED_NOT_REMOTE_DEPLOYED",
+  "status": "EXACT_READBACK_PASS",
+  "receipt_commit_note": "This receipt is committed after delivery_commit; its own commit and exact readback are verified separately."
+}
