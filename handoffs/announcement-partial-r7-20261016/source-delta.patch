@@ -1,0 +1,1335 @@
+--- a/ops/run_manager_flash_announcements.py
++++ b/ops/run_manager_flash_announcements.py
+@@ -64,6 +64,16 @@
+ 
+ def _write_json(root: SafeRoot, ref: str, value: Any) -> None:
+     root.write_bytes(ref, canonical(value) + b"\n")
++
++
++def result_path_is_absent(root: SafeRoot, ref: str) -> bool:
++    try:
++        root.read_bytes(ref, max_bytes=64 * 1024 * 1024)
++    except FileNotFoundError:
++        return True
++    except (OSError, ValueError):
++        return False
++    return False
+ 
+ 
+ def _safe_pipeline_failure_details(exc: Exception) -> tuple[str, dict[str, Any]]:
+@@ -709,6 +719,7 @@
+ def _version_association_summary(binding: dict[str, Any], job: dict[str, Any],
+                                  disposition: str) -> dict[str, Any]:
+     return {"article_id": binding["article_id"], "disposition": disposition,
++            "queue_status": job.get("status"), "attempt_count": job.get("attempt_count"),
+             "old_idempotency_key": binding["old_idempotency_key"],
+             "old_payload_sha256": binding["old_payload_sha256"],
+             "new_idempotency_key": job.get("idempotency_key"),
+@@ -755,7 +766,8 @@
+                                 *, resume_same_batch_pending: bool = False,
+                                 resume_cutoff: str | None = None,
+                                 recovery_lock: dict[str, Any] | None = None,
+-                                membership_gate: dict[str, Any] | None = None) -> dict[str, Any]:
++                                membership_gate: dict[str, Any] | None = None,
++                                allow_enqueue: bool = True) -> dict[str, Any]:
+     """Admit new input; explicit recovery may also resume exact zero-attempt IN queue items."""
+     state = queue._load_state()
+     existing_jobs = state.get("jobs", {}) if isinstance(state, dict) else {}
+@@ -782,6 +794,7 @@
+     new_enqueued_keys: set[str] = set()
+     resumed_payloads_by_key: dict[str, dict[str, Any]] = {}
+     version_associations: list[dict[str, Any]] = []
++    read_only_missing: list[dict[str, Any]] = []
+     matched: list[dict[str, Any]] = []
+     duplicate_count = 0
+     conflicts: list[dict[str, Any]] = []
+@@ -887,6 +900,13 @@
+                                 conflicts.append({"article_id": article_id,
+                                                   "failure_code": "RECOVERY_VERSION_IDEMPOTENCY_CONFLICT"})
+                                 continue
++                            if not allow_enqueue:
++                                read_only_missing.append({"article_id": article_id,
++                                                          "symbol": payload.get("article_metadata", {}).get("symbol"),
++                                                          "title": payload.get("article_metadata", {}).get("title"),
++                                                          "queue_reason": "SAVED_CURRENT_VERSION_NOT_PERSISTED"})
++                                historical_counts["recovery_versioned_current_missing_read_only"] += 1
++                                continue
+                             item = queue.enqueue(versioned_payload)
+                             if (item.get("idempotency_key") != version_key
+                                     or item.get("identity") != queue._identity(versioned_payload)):
+@@ -926,7 +946,21 @@
+         # if enqueue would return that same attempt_count=0 PENDING item.
+         queue_key = _stable_queue_identity(queue, payload)
+         was_persisted = queue_key in existing_jobs
+-        item = queue.enqueue(payload)
++        if not allow_enqueue and not was_persisted:
++            read_only_missing.append({"article_id": article_id,
++                                      "symbol": payload.get("article_metadata", {}).get("symbol"),
++                                      "title": payload.get("article_metadata", {}).get("title"),
++                                      "queue_reason": "SAVED_QUEUE_ITEM_NOT_PERSISTED"})
++            historical_counts["saved_queue_item_missing_read_only"] += 1
++            continue
++        if not allow_enqueue:
++            item = existing_jobs.get(queue_key)
++            if not isinstance(item, dict) or item.get("identity") != identity:
++                conflicts.append({"article_id": article_id,
++                                  "failure_code": "SAVED_QUEUE_ITEM_IDENTITY_MISMATCH"})
++                continue
++        else:
++            item = queue.enqueue(payload)
+         key = item["idempotency_key"]
+         status = item.get("status")
+         if not was_persisted and status == "PENDING" and item.get("attempt_count") == 0:
+@@ -957,7 +991,8 @@
+             "conflicts": conflicts, "historical_counts": historical_counts,
+             "new_enqueued": len(new_enqueued_keys), "resumed_payloads_by_key": resumed_payloads_by_key,
+             "resumed_pending": len(resumed_payloads_by_key),
+-            "version_associations": version_associations}
++            "version_associations": version_associations,
++            "read_only_missing": read_only_missing}
+ 
+ 
+ def _history_payload_and_output(record: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any] | None]:
+@@ -1459,6 +1494,7 @@
+                              resume_cutoff: str | None, prompt_token_cap: int,
+                              hard_prompt_token_cap: int,
+                              allow_multiple_new_repairs: bool = False,
++                             allow_new_repairs: bool = True,
+                              count_prompt_tokens: Callable[[list[dict[str, Any]]], int]
+                              ) -> tuple[set[str], list[dict[str, Any]]]:
+     """Reuse unchanged part versions; multi-repair admission requires a verified canary."""
+@@ -1479,10 +1515,20 @@
+         spec["part_keys"] = []
+         spec["part_records"] = []
+         for payload in spec["part_payloads"]:
+-            base_key, base_job, base_created, base_runnable = _enqueue_internal_payload(
+-                payload, queue, queue_root,
+-                allow_same_batch_pending=allow_same_batch_pending,
+-            )
++            base_binding_failure = None
++            try:
++                base_key, base_job, base_created, base_runnable = _enqueue_internal_payload(
++                    payload, queue, queue_root,
++                    allow_same_batch_pending=allow_same_batch_pending and allow_new_repairs,
++                    allow_enqueue=allow_new_repairs,
++                )
++            except FlashRunError as exc:
++                if allow_new_repairs or exc.code != "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT":
++                    raise
++                base_key = _stable_queue_identity(queue, payload)
++                base_job = {"status": "CANNOT_CONFIRM", "idempotency_key": base_key}
++                base_created = base_runnable = False
++                base_binding_failure = exc.code
+             selected_key, selected_job = base_key, base_job
+             created, runnable = base_created, base_runnable
+             repair_status = "NOT_REQUIRED" if base_job.get("status") != "FAILED" else "NOT_ELIGIBLE"
+@@ -1506,15 +1552,25 @@
+                         current_jobs = queue._load_state().get("jobs", {})
+                         prior_repair = current_jobs.get(repair_key) if isinstance(current_jobs, dict) else None
+                         if isinstance(prior_repair, dict):
+-                            repair_key, prior_repair, repair_created, repair_runnable = _enqueue_internal_payload(
+-                                repair_payload, queue, queue_root,
+-                                allow_same_batch_pending=allow_same_batch_pending,
+-                            )
++                            try:
++                                repair_key, prior_repair, repair_created, repair_runnable = _enqueue_internal_payload(
++                                    repair_payload, queue, queue_root,
++                                    allow_same_batch_pending=allow_same_batch_pending,
++                                    allow_enqueue=allow_new_repairs,
++                                )
++                            except FlashRunError as exc:
++                                if allow_new_repairs or exc.code != "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT":
++                                    raise
++                                repair_status = "REPAIR_SAVED_VERSION_CONFLICT"
++                                repair_failure_code = exc.code
++                                prior_repair = None
++                        if isinstance(prior_repair, dict):
+                             selected_key, selected_job = repair_key, prior_repair
+                             created, runnable = repair_created, repair_runnable
+                             repair_failure_code = "PART_FIXED_FIELDS_MUST_BE_EMPTY"
+                             if selected_job.get("status") == "SUCCEEDED":
+-                                repair_status = "REPAIRED_SUCCESS_REUSED"
++                                repair_status = ("REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED"
++                                                 if not allow_new_repairs else "REPAIRED_SUCCESS_REUSED")
+                                 if not allow_multiple_new_repairs:
+                                     new_repair_admitted = True
+                                     repair_gate_blocked = True
+@@ -1529,6 +1585,9 @@
+                             else:
+                                 repair_status = "REPAIR_NOT_RUNNABLE"
+                                 repair_gate_blocked = True
++                        elif not allow_new_repairs:
++                            repair_status = (repair_status if repair_status == "REPAIR_SAVED_VERSION_CONFLICT"
++                                             else "REPAIR_NOT_ADMITTED_READ_ONLY")
+                         elif allow_multiple_new_repairs or not new_repair_admitted:
+                             repair_key, selected_job, created, runnable = _enqueue_internal_payload(
+                                 repair_payload, queue, queue_root,
+@@ -1570,6 +1629,7 @@
+             spec["part_keys"].append(selected_key)
+             part_record = {"base_key": base_key, "selected_key": selected_key,
+                            "base_status": base_job.get("status"),
++                           "base_failure_code": base_binding_failure,
+                            "base_payload_sha256": base_job.get("payload_sha256"),
+                            "repair_status": repair_status,
+                            "repair_key": selected_key if selected_key != base_key else None,
+@@ -1589,7 +1649,8 @@
+ 
+ 
+ def _enqueue_internal_payload(payload: dict[str, Any], queue: Any, queue_root: Path,
+-                              *, allow_same_batch_pending: bool) -> tuple[str, dict[str, Any], bool, bool]:
++                              *, allow_same_batch_pending: bool,
++                              allow_enqueue: bool = True) -> tuple[str, dict[str, Any], bool, bool]:
+     """Idempotently persist an internal part or synthesis; resume only explicit zero-attempt work."""
+     identity = queue._identity(payload)
+     key = sha(canonical(identity))
+@@ -1598,6 +1659,8 @@
+     prior = jobs.get(key) if isinstance(jobs, dict) else None
+     created = False
+     if prior is None:
++        if not allow_enqueue:
++            raise FlashRunError("SAVED_PARTIAL_QUEUE_ITEM_NOT_FOUND")
+         try:
+             queue.enqueue(payload)
+             created = True
+@@ -1624,7 +1687,8 @@
+ 
+ def _admit_synthesis_if_within_budget(payload: dict[str, Any], prompt_tokens: int, token_cap: int,
+                                       queue: Any, queue_root: Path, *,
+-                                      allow_same_batch_pending: bool) -> tuple[str | None, dict[str, Any] | None,
++                                      allow_same_batch_pending: bool,
++                                      allow_enqueue: bool = True) -> tuple[str | None, dict[str, Any] | None,
+                                                                                bool, bool]:
+     """Do not persist or expose a synthesis request that failed exact token preflight."""
+     from v4.manager_workbench import announcement_chunks as chunks
+@@ -1636,7 +1700,8 @@
+     if prompt_tokens > token_cap:
+         return None, None, False, False
+     return _enqueue_internal_payload(payload, queue, queue_root,
+-                                     allow_same_batch_pending=allow_same_batch_pending)
++                                     allow_same_batch_pending=allow_same_batch_pending,
++                                     allow_enqueue=allow_enqueue)
+ 
+ 
+ def _read_internal_validated_result(queue_root: Path, job: dict[str, Any]) -> tuple[dict[str, Any], str, str]:
+@@ -1957,7 +2022,9 @@
+ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
+          job_id: str, progress: Callable[[dict[str, Any]], None],
+          shared_root: Path | None = None,
+-         resume_same_batch_pending: bool = False) -> dict[str, Any]:
++         resume_same_batch_pending: bool = False,
++         materialize_only: bool = False,
++         materialization_failure: dict[str, Any] | None = None) -> dict[str, Any]:
+     # _load_helper initializes PIPELINE_ROOT on sys.path. Do that before these
+     # imports: the Flash queue and runtime modules live in that existing tree.
+     helper = _load_helper()
+@@ -2167,9 +2234,10 @@
+                     model_ledger=lambda value: runner._simple_model_fixed_fact_ledger_for_article(value, article_id))
+                 chunks.verify_part_coverage(article["article_body"], article["body_sha256"], unit_map, plan)
+                 plan_root = state_root / "announcement_flash" / "jobs" / job_id
+-                plan_root.mkdir(parents=True, exist_ok=True)
+                 plan_ref = f"long-body/{article_id.replace(':', '_')}-{plan['plan_sha256']}.json"
+-                _write_json(SafeRoot(plan_root), plan_ref, plan)
++                if not materialize_only:
++                    plan_root.mkdir(parents=True, exist_ok=True)
++                    _write_json(SafeRoot(plan_root), plan_ref, plan)
+                 units = unit_map["units"]
+                 part_payloads = []
+                 for part in plan["parts"]:
+@@ -2246,6 +2314,7 @@
+         resume_cutoff=input_value.get("cutoff") if resume_same_batch_pending else None,
+         recovery_lock=recovery_lock if resume_same_batch_pending else None,
+         membership_gate=membership_gate if resume_same_batch_pending else None,
++        allow_enqueue=not materialize_only,
+     )
+     allowed_keys: set[str] = set(admission["allowed_keys"])
+     articles_by_key: dict[str, dict[str, Any]] = admission["articles_by_key"]
+@@ -2260,6 +2329,7 @@
+         resume_cutoff=input_value.get("cutoff") if resume_same_batch_pending else None,
+         prompt_token_cap=prompt_token_cap,
+         hard_prompt_token_cap=hard_prompt_token_cap,
++        allow_new_repairs=not materialize_only,
+         count_prompt_tokens=lambda messages: helper._token_count(tokenizer, messages),
+     )
+     allowed_keys.update(part_allowed)
+@@ -2283,10 +2353,18 @@
+     evidence_root = state_root / "announcement_flash" / "evidence"
+     completed = 0
+     system_stop: dict[str, Any] | None = None
++    if materialize_only:
++        if (not isinstance(materialization_failure, dict)
++                or not SAFE_CODE_RE.fullmatch(str(materialization_failure.get("failure_code", "")))):
++            raise FlashRunError("SAVED_PARTIAL_FAILURE_BINDING_INVALID")
++        system_stop = {"failure_code": materialization_failure["failure_code"],
++                       "stage": materialization_failure.get("stage") or "FLASH_SELECTION",
++                       "queue_action": "SAVED_RESULTS_ONLY_NO_RETRY",
++                       "failed_at": materialization_failure.get("failed_at")}
+ 
+     def run_queue_keys(keys: set[str]) -> None:
+         nonlocal completed, system_stop
+-        if not keys or system_stop:
++        if materialize_only or not keys or system_stop:
+             return
+         api_key = runner.load_local_api_key()
+         transport = canary.GatedStreamingTransport(
+@@ -2341,7 +2419,10 @@
+     if any(record.get("repair_status") in {
+             "REPAIR_CANARY_ENQUEUED", "REPAIR_PENDING_ALLOWED", "REPAIRED_SUCCESS_REUSED"
+     } for record in part_records):
+-        phase_b_allowed, phase_b_records, repair_continuation = _continue_long_body_repairs_after_canary(
++        if materialize_only:
++            repair_continuation = {"status": "SAVED_RESULTS_ONLY_NO_REPAIR_DISPATCH"}
++        else:
++            phase_b_allowed, phase_b_records, repair_continuation = _continue_long_body_repairs_after_canary(
+             long_body_specs, part_records, queue, queue_root,
+             allow_same_batch_pending=resume_same_batch_pending,
+             recovery_lock=recovery_lock if resume_same_batch_pending else None,
+@@ -2382,15 +2463,34 @@
+     synthesis_allowed: set[str] = set()
+     for article_id, spec in long_body_specs.items():
+         current_jobs = queue._load_state().get("jobs", {})
+-        part_jobs = [current_jobs.get(key) for key in spec["part_keys"]]
+-        if len(part_jobs) != len(spec["plan"]["parts"]) or any(not isinstance(job, dict) for job in part_jobs):
++        part_jobs = [None if record.get("base_failure_code") else current_jobs.get(key)
++                     for key, record in zip(spec["part_keys"], spec["part_records"])]
++        if len(part_jobs) != len(spec["plan"]["parts"]):
+             raise FlashRunError("LONG_BODY_PART_QUEUE_COVERAGE_INVALID")
+-        failed_parts = [job for job in part_jobs if job.get("status") == "FAILED"]
+-        pending_parts = [job for job in part_jobs if job.get("status") != "SUCCEEDED" and job.get("status") != "FAILED"]
++        failed_parts = [job for job in part_jobs if isinstance(job, dict) and job.get("status") == "FAILED"]
++        missing_parts = [index for index, job in enumerate(part_jobs) if not isinstance(job, dict)]
++        pending_parts = [job for job in part_jobs if isinstance(job, dict)
++                         and job.get("status") != "SUCCEEDED" and job.get("status") != "FAILED"]
+         canary_integrity_blocked = any(record.get("repair_status") in {
+             "REPAIR_CANARY_INVALID_STOP", "REPAIR_CANARY_SYSTEM_STOP",
++            "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED",
+         } for record in spec["part_records"])
+-        if failed_parts:
++        if materialize_only:
++            current_jobs = queue._load_state().get("jobs", {})
++            for part, part_record in zip(spec["plan"]["parts"], spec["part_records"]):
++                base_job = current_jobs.get(part_record.get("base_key"))
++                if isinstance(base_job, dict) and base_job.get("status") == "FAILED":
++                    base_payload = _queue_payload(queue_root, base_job)
++                    attempt = (base_job.get("attempts") or [{}])[-1]
++                    error = attempt.get("error") if isinstance(attempt, dict) else None
++                    code = error.get("code") if isinstance(error, dict) else None
++                    long_body_failures.append({"article_id": article_id,
++                                               "part_index": part["part_index"],
++                                               "part_count": len(spec["plan"]["parts"]),
++                                               "failure_code": code if isinstance(code, str)
++                                               and SAFE_CODE_RE.fullmatch(code) else "LONG_BODY_PART_FAILED",
++                                               "status": "FAILED"})
++        elif failed_parts:
+             for job in failed_parts:
+                 part_payload = _queue_payload(queue_root, job)
+                 attempt = (job.get("attempts") or [{}])[-1]
+@@ -2402,16 +2502,28 @@
+                                            else "LONG_BODY_PART_FAILED",
+                                            "status": "FAILED"})
+         for index, (part, part_record) in enumerate(zip(spec["plan"]["parts"], spec["part_records"])):
++            if part_record.get("base_failure_code"):
++                long_body_pending.append({"article_id": article_id, "part_index": part["part_index"],
++                                          "part_count": len(spec["plan"]["parts"]),
++                                          "queue_status": "CANNOT_CONFIRM",
++                                          "queue_reason": "SAVED_PART_QUEUE_IDENTITY_CONFLICT",
++                                          "failure_code": part_record["base_failure_code"]})
+             if part_record.get("repair_status") in {
+                     "GATED_AFTER_ONE_NEW_REPAIR", "REPAIR_CONTEXT_PENDING",
+                     "REPAIR_CANARY_FAILED_STOP", "REPAIR_CANARY_PENDING_STOP",
+                     "REPAIR_CANARY_INVALID_STOP", "REPAIR_CANARY_SYSTEM_STOP",
++                    "REPAIR_SAVED_VERSION_CONFLICT", "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED",
+             }:
+                 long_body_pending.append({"article_id": article_id, "part_index": part["part_index"],
++                                          "part_count": len(spec["plan"]["parts"]),
+                                           "queue_status": part_record.get("base_status"),
+-                                          "queue_reason": "LONG_BODY_PART_REPAIR_GATED",
++                                          "queue_reason": ("REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM"
++                                                           if part_record.get("repair_status") ==
++                                                           "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED"
++                                                           else "LONG_BODY_PART_REPAIR_GATED"),
+                                           "repair_status": part_record["repair_status"],
+                                           "canary_failure_code": part_record.get("canary_failure_code"),
++                                          "failure_code": part_record.get("repair_failure_code"),
+                                           "failed_idempotency_key": part_record.get("base_key"),
+                                           "failed_payload_sha256": part_record.get("base_payload_sha256")})
+         if pending_parts:
+@@ -2419,10 +2531,19 @@
+                 part_payload = _queue_payload(queue_root, job)
+                 long_body_pending.append({"article_id": article_id,
+                                           "part_index": part_payload["part_descriptor"]["part_index"],
++                                          "part_count": len(spec["plan"]["parts"]),
+                                           "queue_status": job.get("status"),
+                                           "queue_reason": "LONG_BODY_PART_NOT_SUCCEEDED",
+                                           "attempt_count": job.get("attempt_count")})
+-        if failed_parts or pending_parts or canary_integrity_blocked:
++        if missing_parts:
++            for index in missing_parts:
++                part = spec["plan"]["parts"][index]
++                if not spec["part_records"][index].get("base_failure_code"):
++                    long_body_pending.append({"article_id": article_id, "part_index": part["part_index"],
++                                              "part_count": len(spec["plan"]["parts"]),
++                                              "queue_status": "MISSING",
++                                              "queue_reason": "SAVED_PART_QUEUE_ITEM_NOT_FOUND"})
++        if failed_parts or pending_parts or missing_parts or canary_integrity_blocked:
+             active_repair_pending = any(record.get("repair_status") in {
+                 "REPAIR_CANARY_ENQUEUED", "REPAIR_PENDING_ALLOWED", "REPAIR_NOT_RUNNABLE",
+                 "REPAIR_CANARY_PENDING_STOP",
+@@ -2433,7 +2554,8 @@
+                 "PART_FAILED" if failed_parts else "PARTS_PENDING")
+             long_body_summaries.append({"article_id": article_id, "plan_sha256": spec["plan"]["plan_sha256"],
+                                         "plan_ref": spec["plan_ref"], "part_count": len(part_jobs),
+-                                        "parts_succeeded": sum(job.get("status") == "SUCCEEDED" for job in part_jobs),
++                                        "parts_succeeded": sum(isinstance(job, dict) and job.get("status") == "SUCCEEDED"
++                                                               for job in part_jobs),
+                                         "status": spec["status"]})
+             continue
+ 
+@@ -2542,9 +2664,32 @@
+             "token_safety_margin": chunks.TOKEN_SAFETY_MARGIN,
+             "batch_binding_sha256": spec["plan"]["batch_binding_sha256"],
+         }
+-        key, job, created, runnable = _admit_synthesis_if_within_budget(
+-            synthesis_payload, synthesis_tokens, synthesis_prompt_token_cap, queue, queue_root,
+-            allow_same_batch_pending=resume_same_batch_pending)
++        try:
++            key, job, created, runnable = _admit_synthesis_if_within_budget(
++                synthesis_payload, synthesis_tokens, synthesis_prompt_token_cap, queue, queue_root,
++                allow_same_batch_pending=resume_same_batch_pending and not materialize_only,
++                allow_enqueue=not materialize_only)
++        except FlashRunError as exc:
++            if not materialize_only or exc.code not in {
++                    "SAVED_PARTIAL_QUEUE_ITEM_NOT_FOUND", "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT"}:
++                raise
++            spec["status"] = ("SYNTHESIS_SAVED_IDENTITY_CONFLICT" if exc.code ==
++                               "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT"
++                               else "SYNTHESIS_NOT_SAVED_NOT_MATERIALIZED")
++            long_body_pending.append({"article_id": article_id,
++                                     "queue_reason": ("SAVED_SYNTHESIS_IDENTITY_CONFLICT" if exc.code ==
++                                                      "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT"
++                                                      else "SAVED_SYNTHESIS_ITEM_NOT_FOUND"),
++                                     "failure_code": exc.code if exc.code ==
++                                     "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT" else None,
++                                     "part_count": len(reports),
++                                     "synthesis_input_sha256": synthesis_input_sha256})
++            long_body_summaries.append({"article_id": article_id,
++                                        "plan_sha256": spec["plan"]["plan_sha256"],
++                                        "plan_ref": spec["plan_ref"], "part_count": len(reports),
++                                        "parts_succeeded": len(reports), "status": spec["status"],
++                                        "synthesis_prompt_tokens": synthesis_tokens})
++            continue
+         if key is None:
+             spec["status"] = "CONTEXT_PENDING"
+             long_body_synthesis_context.append({"article_id": article_id,
+@@ -2618,6 +2763,7 @@
+     reused_selected_rows: list[dict[str, Any]] = []
+     failures: list[dict[str, Any]] = []
+     pending_queue: list[dict[str, Any]] = []
++    pending_queue.extend(admission.get("read_only_missing", []))
+     current_status_counts: Counter[str] = Counter()
+     historical_outcomes: list[dict[str, Any]] = []
+     current_capture_bindings: dict[str, dict[str, Any]] = {}
+@@ -2687,10 +2833,16 @@
+             continue
+ 
+     failures.extend(long_body_failures)
+-    pending_queue.extend(long_body_pending)
+     preflight_pending.extend(long_body_synthesis_context)
+ 
+     history_projection = _project_historical_matches(matched_history, capture_ref["sha256"])
++    current_version_article_ids = {record.get("article_id") for record in admission["version_associations"]
++                                   if isinstance(record.get("article_id"), str)}
++    current_batch_selected_rows = [row for row in history_projection["selected"]
++                                   if row.get("article_id") in current_version_article_ids]
++    current_batch_selected_stocks = _aggregate(current_batch_selected_rows)
++    current_version_status_counts: Counter[str] = Counter(
++        record.get("queue_status", "UNKNOWN") for record in admission["version_associations"])
+     selected_rows.extend(history_projection["selected"])
+     reused_selected_rows.extend(history_projection["selected"])
+     failures.extend(history_projection["failures"])
+@@ -2728,16 +2880,21 @@
+     internal_new_enqueued = sum(record.get("created") is True for record in internal_records)
+     internal_resumed = sum(record.get("created") is not True and record.get("runnable") is True
+                            for record in internal_records)
+-    queue_counts.update({"new_enqueued": admission["new_enqueued"] + internal_new_enqueued,
+-                         "new_model_calls_allowed": len(allowed_keys | synthesis_allowed),
+-                         "resumed_pending_allowed": admission["resumed_pending"] + internal_resumed,
++    queue_counts.update({"new_enqueued": 0 if materialize_only else admission["new_enqueued"] + internal_new_enqueued,
++                         "new_model_calls_allowed": 0 if materialize_only else len(allowed_keys | synthesis_allowed),
++                         "resumed_pending_allowed": 0 if materialize_only else admission["resumed_pending"] + internal_resumed,
++                         "saved_pending_not_dispatched": len(allowed_keys | synthesis_allowed) if materialize_only else 0,
+                          "same_capture_duplicates_skipped": admission["duplicate_count"]})
+     internal_state = queue._load_state().get("jobs", {})
+     part_status_counts: Counter[str] = Counter()
+     part_repair_counts: Counter[str] = Counter()
+     for record in internal_records:
+         if record.get("kind") == "part":
+-            status = internal_state.get(record["key"], {}).get("status", "MISSING")
++            base_saved = internal_state.get(record.get("base_key"), {})
++            status = ("FAILED" if materialize_only and base_saved.get("status") == "FAILED"
++                      else "CANNOT_CONFIRM" if materialize_only
++                      and record.get("repair_status") == "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED"
++                      else internal_state.get(record["key"], {}).get("status", "MISSING"))
+             part_status_counts[status] += 1
+             repair_status = record.get("repair_status")
+             if isinstance(repair_status, str):
+@@ -2746,6 +2903,21 @@
+                          for name, value in part_status_counts.items()})
+     queue_counts.update({f"long_body_part_repairs_{name.lower()}": value
+                          for name, value in part_repair_counts.items()})
++    queue_counts["long_body_parts_pending"] = sum(
++        1 for item in long_body_pending
++        if isinstance(item, dict) and item.get("part_index") is not None
++        and item.get("queue_reason") != "REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM"
++        and item.get("queue_status") != "CANNOT_CONFIRM")
++    queue_counts["long_body_parts_cannot_confirm"] = sum(
++        1 for item in long_body_pending
++        if isinstance(item, dict) and item.get("part_index") is not None
++        and (item.get("queue_reason") == "REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM"
++             or item.get("queue_status") == "CANNOT_CONFIRM"))
++    queue_counts["long_body_synthesis_pending"] = sum(
++        1 for item in long_body_pending if isinstance(item, dict)
++        and item.get("part_index") is None
++        and isinstance(item.get("queue_reason"), str)
++        and "SYNTHESIS" in item["queue_reason"])
+     queue_counts["recovery_version_associations"] = len(admission["version_associations"])
+     for key in ("pinned_succeeded", "pinned_failed", "pinned_pending", "reviewed_succeeded",
+                 "incremental_succeeded", "incremental_failed", "incremental_pending",
+@@ -2753,6 +2925,17 @@
+         queue_counts[f"{key}_matched"] = admission["historical_counts"].get(key, 0)
+     for key, value in admission["historical_counts"].items():
+         queue_counts[f"{key}_matched"] = value
++    if admission["version_associations"]:
++        queue_counts.update({
++            "current_version_articles": len(admission["version_associations"]),
++            "current_version_succeeded_matched": current_version_status_counts.get("SUCCEEDED", 0),
++            "current_version_failed_matched": current_version_status_counts.get("FAILED", 0),
++            "current_version_pending_matched": current_version_status_counts.get("PENDING", 0),
++            "other_incremental_succeeded_matched": admission["historical_counts"].get("incremental_succeeded", 0),
++            "incremental_succeeded_matched": current_version_status_counts.get("SUCCEEDED", 0),
++            "incremental_failed_matched": current_version_status_counts.get("FAILED", 0),
++            "incremental_pending_matched": current_version_status_counts.get("PENDING", 0),
++        })
+     fresh_stocks = _aggregate(fresh_selected_rows)
+     reused_stocks = _aggregate(reused_selected_rows)
+     pinned_receipt = next((item for item in pinned_history if item.get("candidate_manifest_sha256")), {})
+@@ -2763,11 +2946,13 @@
+         part_items = []
+         for part, key, part_record in zip(spec["plan"]["parts"], spec["part_keys"], spec["part_records"]):
+             saved = internal_state.get(key, {})
++            displayed_status = ("CANNOT_CONFIRM" if part_record.get("base_failure_code") or part_record.get(
++                "repair_status") == "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED" else saved.get("status", "MISSING"))
+             repair_key = part_record.get("repair_key")
+             repair_job = internal_state.get(repair_key, {}) if repair_key else {}
+             part_items.append({"part_index": part["part_index"], "part_count": part["part_count"],
+                                "part_sha256": part["part_sha256"], "prompt_tokens_exact": part["prompt_tokens_exact"],
+-                               "status": saved.get("status", "MISSING"),
++                               "status": displayed_status,
+                                "attempt_count": saved.get("attempt_count"),
+                                "validated_result_sha256": saved.get("validated_sha256"),
+                                "original_idempotency_key": part_record.get("base_key"),
+@@ -2809,12 +2994,20 @@
+         "counts": {
+             "capture_rows": len(capture_product.get("rows", [])), "excluded_outside_window": excluded,
+             "queue": queue_counts,
+-            "selected_model_articles": len(selected_rows),
+-            "new_selected_model_articles": len(fresh_selected_rows),
+-            "reused_selected_model_articles": len(reused_selected_rows),
+-            "new_candidate_stocks": len(fresh_stocks), "reused_candidate_stocks": len(reused_stocks),
++            "selected_model_articles": len(current_batch_selected_rows) if admission["version_associations"]
++            else len(selected_rows),
++            "new_selected_model_articles": len(current_batch_selected_rows) if admission["version_associations"]
++            else len(fresh_selected_rows),
++            "reused_selected_model_articles": len(current_batch_selected_rows) if admission["version_associations"]
++            else len(reused_selected_rows),
++            "new_candidate_stocks": len(current_batch_selected_stocks) if admission["version_associations"]
++            else len(fresh_stocks),
++            "reused_candidate_stocks": len(reused_stocks),
+             "body_gaps": len(body_gaps), "context_pending": len(preflight_pending),
+-            "queue_pending": len(pending_queue), "failed": len(failures),
++            "queue_pending": current_version_status_counts.get("PENDING", 0)
++            if admission["version_associations"] else len(pending_queue),
++            "failed": current_version_status_counts.get("FAILED", 0)
++            if admission["version_associations"] else len(failures),
+             "membership_articles": {key: membership_article_counts.get(key, 0) for key in ("in", "out", "unknown")},
+             "membership_stocks": {key: sum(status == key.upper() for status in membership_stock_symbols.values())
+                                   for key in ("in", "out", "unknown")},
+@@ -2865,6 +3058,29 @@
+                        "queue_version_associations": admission["version_associations"],
+                        "current_capture_bindings": current_capture_bindings},
+     }
++    if admission["version_associations"]:
++        result["current_batch"] = {
++            "article_count": len(admission["version_associations"]),
++            "article_status_counts": {status.lower(): current_version_status_counts.get(status, 0)
++                                       for status in ("SUCCEEDED", "FAILED", "PENDING", "RUNNING")},
++            "selected_articles": len(current_batch_selected_rows),
++            "candidate_stocks": len(current_batch_selected_stocks),
++            "selected_stock_symbols": [stock["symbol"] for stock in current_batch_selected_stocks],
++        }
++    if materialize_only:
++        result["materialization"] = {
++            "mode": "SAVED_VALIDATED_QUEUE_ONLY",
++            "failure_code": materialization_failure["failure_code"],
++            "failed_at": materialization_failure.get("failed_at"),
++            "queue_dispatches": 0,
++            "model_calls": 0,
++            "current_capture_bound_articles": len(current_capture_bindings),
++            "saved_selected_articles": len(current_batch_selected_rows) if admission["version_associations"]
++            else len(selected_rows),
++            "candidate_stocks": len(current_batch_selected_stocks) if admission["version_associations"]
++            else len(result["stocks"]),
++            "status": "PARTIAL_PUBLISHED_WITH_ORIGINAL_FAILURE",
++        }
+     return result
+ 
+ 
+@@ -2876,6 +3092,9 @@
+     parser.add_argument("--job-id", required=True)
+     parser.add_argument("--resume-pending", action="store_true",
+                         help="Run only this frozen input's verified eligible zero-attempt PENDING queue items.")
++    parser.add_argument("--materialize-saved-partial", action="store_true",
++                        help="Publish only hash-verified saved results after a recorded failed run; never dispatch queue work.")
++    parser.add_argument("--failure-code", help="Exact failure code recorded in progress.json for saved-result materialization.")
+     args = parser.parse_args(argv)
+     if not JOB_ID_RE.fullmatch(args.job_id):
+         return 2
+@@ -2890,8 +3109,33 @@
+                 or not isinstance(input_value.get("target_date"), str)
+                 or not re.fullmatch(r"[0-9]{8}", input_value["target_date"])):
+             raise FlashRunError("FLASH_INPUT_IDENTITY_INVALID")
++        if args.materialize_saved_partial:
++            if args.resume_pending or not isinstance(args.failure_code, str) or not SAFE_CODE_RE.fullmatch(args.failure_code):
++                raise FlashRunError("SAVED_PARTIAL_ARGUMENTS_INVALID")
++            progress_value = _json(state_io.read_bytes(base + "/progress.json", max_bytes=1024 * 1024),
++                                   "SAVED_PARTIAL_PROGRESS_INVALID")
++            if (progress_value.get("step") != "FAILED"
++                    or progress_value.get("failure_code") != args.failure_code
++                    or not isinstance(progress_value.get("updated_at"), str)
++                    or not result_path_is_absent(state_io, base + "/result.json")):
++                raise FlashRunError("SAVED_PARTIAL_FAILURE_STATE_MISMATCH")
++            materialization_failure = {"failure_code": args.failure_code,
++                                       "stage": progress_value.get("failed_step") or "FLASH_SELECTION",
++                                       "failed_at": progress_value.get("updated_at")}
++            recovery = isinstance(input_value.get("recovery_lock"), dict)
++            result = _run(input_value, state_root=state_root, capture_root=capture_root,
++                          job_id=args.job_id, progress=lambda _value: None,
++                          shared_root=Path(args.shared_root).expanduser().absolute() if args.shared_root else None,
++                          resume_same_batch_pending=recovery, materialize_only=True,
++                          materialization_failure=materialization_failure)
++            if result.get("state") != "PARTIAL" or result.get("system_stop", {}).get("failure_code") != args.failure_code:
++                raise FlashRunError("SAVED_PARTIAL_RESULT_FAILURE_BINDING_INVALID")
++            _write_json(state_io, base + "/result.json", result)
++            return 0
++        last_progress: dict[str, Any] = {"value": {}}
+         def write_progress(value: dict[str, Any]) -> None:
+             _write_json(state_io, base + "/progress.json", value)
++            last_progress["value"] = value
+         result = _run(input_value, state_root=state_root, capture_root=capture_root,
+                       job_id=args.job_id, progress=write_progress,
+                       shared_root=Path(args.shared_root).expanduser().absolute() if args.shared_root else None,
+@@ -2904,14 +3148,20 @@
+                         "updated_at": datetime.now(timezone.utc).isoformat()})
+         return 0
+     except FlashRunError as exc:
++        if args.materialize_saved_partial:
++            return 1
+         write = {"step": "FAILED", "failure_code": exc.code,
++                 "failed_step": last_progress.get("value", {}).get("step") if "last_progress" in locals() else None,
+                  "updated_at": datetime.now(timezone.utc).isoformat()}
+         _write_json(state_io, base + "/progress.json", write)
+         return 1
+     except Exception as exc:
+         failure_code, diagnostic = _safe_pipeline_failure_details(exc)
++        if args.materialize_saved_partial:
++            return 1
+         _write_json(state_io, base + "/progress.json", {
+             "step": "FAILED", "failure_code": failure_code,
++            "failed_step": last_progress.get("value", {}).get("step") if "last_progress" in locals() else None,
+             "diagnostic": diagnostic,
+             "updated_at": datetime.now(timezone.utc).isoformat()})
+         raise
+--- a/v4/manager_workbench/announcement_update.py
++++ b/v4/manager_workbench/announcement_update.py
+@@ -476,6 +476,39 @@
+         for result in projected_results:
+             view["stocks"] = _merge_stocks(view.get("stocks", []), result.get("stocks", []))
+ 
++        # A newly indexed run supersedes stale placeholder rows from the pinned
++        # candidate set for articles bound to this capture. Keep the pinned stock
++        # history, while taking completion/failure/pending status from this run.
++        current_version_article_ids: set[str] = set()
++        if projected_results:
++            latest_provenance = projected_results[-1].get("provenance")
++            associations = (latest_provenance.get("queue_version_associations")
++                            if isinstance(latest_provenance, dict) else None)
++            if isinstance(associations, list):
++                current_version_article_ids.update(
++                    item["article_id"] for item in associations
++                    if isinstance(item, dict) and isinstance(item.get("article_id"), str))
++        if not current_version_article_ids and projected_results:
++            latest_provenance = projected_results[-1].get("provenance")
++            bindings = latest_provenance.get("current_capture_bindings") if isinstance(latest_provenance, dict) else None
++            if isinstance(bindings, dict):
++                current_version_article_ids.update(key for key in bindings if isinstance(key, str))
++        if current_version_article_ids:
++            view["failures"] = [record for record in view.get("failures", [])
++                                if not isinstance(record, dict)
++                                or record.get("article_id") not in current_version_article_ids]
++            view["pending"] = [record for record in view.get("pending", [])
++                               if not isinstance(record, dict)
++                               or record.get("article_id") not in current_version_article_ids]
++        for index, result in enumerate(projected_results):
++            is_latest = index == len(projected_results) - 1
++            for field in ("failures", "pending"):
++                rows = result.get(field, [])
++                if current_version_article_ids and not is_latest:
++                    rows = [record for record in rows if not isinstance(record, dict)
++                            or record.get("article_id") not in current_version_article_ids]
++                view.setdefault(field, []).extend(deepcopy(rows))
++
+         base_stocks, base_excluded, base_unknown = project_stocks(view.get("stocks", []), gate)
+         view["stocks"] = base_stocks
+         base_failures, base_failed_out, base_failed_unknown = project_status_rows(view.get("failures", []), gate)
+@@ -499,8 +532,40 @@
+         view["counts"]["displayed_stocks"] = len(view["stocks"])
+         if matching_results:
+             latest_result = projected_results[-1]
+-            view["counts"]["incremental_candidate_stocks"] = latest_result.get("counts", {}).get("membership_eligible_stocks")
++            current_batch = latest_result.get("current_batch", {})
++            current_status_counts = current_batch.get("article_status_counts", {})
++            result_counts = latest_result.get("counts", {})
++            queue_counts = result_counts.get("queue", {}) if isinstance(result_counts, dict) else {}
++            current_candidate_stocks = current_batch.get(
++                "candidate_stocks", result_counts.get("membership_eligible_stocks"))
++            view["counts"]["incremental_candidate_stocks"] = current_candidate_stocks
+             view["incremental"] = latest_result
++            view["state"] = latest_result.get("state", view.get("state"))
++            view["target_trade_date"] = active_target
++            view["updated_at"] = latest_result.get("updated_at", view.get("updated_at"))
++            view["system_stop"] = deepcopy(latest_result.get("system_stop"))
++            # Keep the workbench's existing article/status counts, while naming
++            # long-body part failures separately from failed announcement rows.
++            view["counts"].update({
++                "source_catalogue_articles": result_counts.get("capture_rows", view["counts"].get("source_catalogue_articles")),
++                "model_succeeded": current_status_counts.get("succeeded", queue_counts.get("incremental_succeeded_matched",
++                                                  queue_counts.get("succeeded", view["counts"].get("model_succeeded")))),
++                "selected_model_articles": current_batch.get("selected_articles", result_counts.get(
++                    "selected_model_articles", view["counts"].get("selected_model_articles"))),
++                "body_gaps": result_counts.get("body_gaps", view["counts"].get("body_gaps")),
++                "model_failed_articles": current_status_counts.get("failed", queue_counts.get("incremental_failed_matched", 0)),
++                "model_pending_articles": current_status_counts.get("pending", queue_counts.get("incremental_pending_matched", 0)),
++                "long_body_part_failed": queue_counts.get("long_body_parts_failed", 0),
++                "long_body_part_pending": queue_counts.get("long_body_parts_pending", 0),
++                "long_body_part_cannot_confirm": queue_counts.get("long_body_parts_cannot_confirm", 0),
++                "long_body_synthesis_pending": queue_counts.get("long_body_synthesis_pending", 0),
++                "current_batch_candidate_stocks": current_candidate_stocks or 0,
++            })
++            view["counts"]["failure_rows"] = len(view["failures"])
++            view["counts"]["pending_rows"] = len(view["pending"])
++            if current_status_counts:
++                view["counts"]["failed"] = current_status_counts.get("failed", 0)
++                view["counts"]["pending"] = current_status_counts.get("pending", 0)
+             view["incremental_runs"] = [{"job_id": result.get("job_id"), "target_trade_date": result.get("target_trade_date"),
+                                           "state": result.get("state"), "updated_at": result.get("updated_at"),
+                                           "counts": result.get("counts")} for result in projected_results]
+@@ -522,12 +587,15 @@
+                     "total_count": job.total_count,
+                     "failure_code": _safe_code(job.failure_code, "") if job.failure_code else None,
+                     "last_progress_at": job.last_progress_at,
++                    "finished_at": getattr(job, "finished_at", None),
++                    "failed_steps": list(getattr(job, "failed_steps", [])),
+                     "progress": {key: progress[key] for key in (
+                         "queue_counts", "pending_body_gaps", "pending_context", "membership", "result_state") if progress and key in progress},
+                 }
+                 if result:
+                     update["result_state"] = result.get("state")
+                     update["counts"] = result.get("counts")
++                    update["system_stop"] = deepcopy(result.get("system_stop"))
+                 if active_target and active_target != job.context.target_date:
+                     update = None
+         view["job"] = update
+@@ -548,6 +616,95 @@
+             return value if isinstance(value, dict) else None
+         except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
+             return None
++
++    def _index_saved_partial(self, job_id: str, target_date: str, result: dict[str, Any],
++                             result_raw: bytes, *, failure_code: str) -> None:
++        if (result.get("job_id") != job_id or result.get("target_trade_date") != target_date
++                or result.get("state") != "PARTIAL"
++                or not isinstance(result.get("materialization"), dict)
++                or result["materialization"].get("mode") != "SAVED_VALIDATED_QUEUE_ONLY"
++                or result["materialization"].get("failure_code") != failure_code
++                or result.get("system_stop", {}).get("failure_code") != failure_code
++                or result["materialization"].get("queue_dispatches") != 0
++                or result["materialization"].get("model_calls") != 0
++                or _sha(result_raw) != _sha(_canonical(result) + b"\n")):
++            raise StepFailure("SAVED_PARTIAL_RESULT_INVALID", retryable=False)
++        result_sha = _sha(result_raw)
++        with self.service.store.lock("announcement_flash_result_index"):
++            index = self.service.store.cursor("announcement_flash_result_index") or {"items": []}
++            items = list(index.get("items", []))
++            existing = [item for item in items if isinstance(item, dict) and item.get("job_id") == job_id]
++            if existing and any(item.get("result_sha256") != result_sha for item in existing):
++                raise StepFailure("SAVED_PARTIAL_RESULT_INDEX_CONFLICT", retryable=False)
++            if not existing:
++                items.append({"job_id": job_id, "target_date": target_date, "result_sha256": result_sha})
++                self.service.store.set_cursor("announcement_flash_result_index", {"items": items})
++        latest = self.service.store.cursor("announcement_flash_latest") or {}
++        if latest.get("job_id") == job_id and latest.get("target_date") == target_date:
++            self.service.store.set_cursor("announcement_flash_latest", {
++                **latest, "state": JobState.FAILED.value, "result_state": "PARTIAL",
++                "result_sha256": result_sha,
++            })
++
++    def _materialize_saved_partial(self, job: Any, failure_code: str) -> dict[str, Any]:
++        if (not JOB_ID_RE.fullmatch(str(getattr(job, "job_id", "")))
++                or not re.fullmatch(r"[A-Za-z0-9_]{1,96}", str(failure_code))):
++            raise StepFailure("SAVED_PARTIAL_IDENTITY_INVALID", retryable=False)
++        config = self.service.config
++        if not config.capture_root:
++            raise StepFailure("SAVED_PARTIAL_CAPTURE_ROOT_UNAVAILABLE", retryable=False)
++        progress = self._read_job_artifact(job.job_id, PROGRESS_REF)
++        input_value = self._read_job_artifact(job.job_id, "input.json")
++        if (not isinstance(progress, dict) or progress.get("step") != "FAILED"
++                or progress.get("failure_code") != failure_code
++                or not isinstance(progress.get("updated_at"), str)
++                or not isinstance(input_value, dict)
++                or input_value.get("job_id") != job.job_id
++                or input_value.get("target_date") != job.context.target_date):
++            raise StepFailure("SAVED_PARTIAL_FAILURE_STATE_MISMATCH", retryable=False)
++        existing_result = self._read_job_artifact(job.job_id, RESULT_REF)
++        if existing_result is not None:
++            result_raw = self.service.store.io.read_bytes(self._job_ref(job.job_id, RESULT_REF),
++                                                          max_bytes=64 * 1024 * 1024)
++            self._index_saved_partial(job.job_id, job.context.target_date, existing_result,
++                                      result_raw, failure_code=failure_code)
++            return existing_result
++
++        command = [str(RUNNER_PYTHON), "-B", str(RUNNER_SCRIPT), "--state-root", str(self.service.store.root),
++                   "--capture-root", str(config.capture_root), "--job-id", job.job_id,
++                   "--materialize-saved-partial", "--failure-code", failure_code]
++        shared_root = getattr(config, "shared_root", None)
++        if shared_root:
++            command.extend(["--shared-root", str(shared_root)])
++        try:
++            process = self.popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
++                                 stderr=subprocess.DEVNULL, env={"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"})
++        except OSError as exc:
++            raise StepFailure("SAVED_PARTIAL_RUNTIME_UNAVAILABLE", retryable=False) from exc
++        while process.poll() is None:
++            self.sleep(0.5)
++        if process.returncode != 0:
++            raise StepFailure("SAVED_PARTIAL_MATERIALIZATION_FAILED", retryable=False)
++        result_raw = self.service.store.io.read_bytes(self._job_ref(job.job_id, RESULT_REF),
++                                                      max_bytes=64 * 1024 * 1024)
++        result = self._read_job_artifact(job.job_id, RESULT_REF, _sha(result_raw))
++        if not isinstance(result, dict):
++            raise StepFailure("SAVED_PARTIAL_RESULT_READBACK_FAILED", retryable=False)
++        self._index_saved_partial(job.job_id, job.context.target_date, result, result_raw,
++                                  failure_code=failure_code)
++        return result
++
++    def materialize_failed_partial(self, job_id: str) -> dict[str, Any]:
++        """Publish saved validated results for an already failed job without changing its job state."""
++        try:
++            job = self.service.jobs.get(job_id)
++        except KeyError:
++            raise StepFailure("JOB_NOT_FOUND", retryable=False) from None
++        if job.state != JobState.FAILED or not isinstance(job.failure_code, str):
++            raise StepFailure("SAVED_PARTIAL_JOB_NOT_FAILED", retryable=False)
++        if job.step not in {"FLASH_SELECTION", "FAILED"} and "FLASH_SELECTION" not in job.failed_steps:
++            raise StepFailure("SAVED_PARTIAL_JOB_STAGE_INVALID", retryable=False)
++        return self._materialize_saved_partial(job, job.failure_code)
+ 
+     def _prepare_recovery_lock(self, job: Any, parent: Any, capture_store: Any) -> dict[str, Any]:
+         if (not isinstance(parent, dict)
+@@ -806,11 +963,24 @@
+                 total = progress.get("total")
+                 job.total_count = int(total) if isinstance(total, int) and total >= 0 else None
+                 step = _safe_code(progress.get("step"), "FLASH_SELECTION")
++                if step == "FAILED":
++                    failed_step = progress.get("failed_step")
++                    step = _safe_code(failed_step, job.step if job.step != "FAILED" else "FLASH_SELECTION")
+                 self.service.jobs.update(job, step=step)
+             self.sleep(0.5)
+         if process.returncode != 0:
+             progress = self._read_job_artifact(job.job_id, PROGRESS_REF) or {}
+-            raise StepFailure(_safe_code(progress.get("failure_code"), "FLASH_PIPELINE_FAILED"), retryable=False)
++            failure_code = _safe_code(progress.get("failure_code"), "FLASH_PIPELINE_FAILED")
++            if (progress.get("step") == "FAILED" and job.step == "FLASH_SELECTION"
++                    and self._read_job_artifact(job.job_id, "input.json") is not None
++                    and self._read_job_artifact(job.job_id, RESULT_REF) is None):
++                try:
++                    self._materialize_saved_partial(job, failure_code)
++                except StepFailure:
++                    # Preserve the original runner failure as the job terminal
++                    # state; a failed publication attempt remains visible in logs.
++                    pass
++            raise StepFailure(failure_code, retryable=False)
+         result = self._read_job_artifact(job.job_id, RESULT_REF)
+         if (not result or result.get("schema") != "v4.manager_workbench.announcement_flash_result.v1"
+                 or result.get("job_id") != job.job_id):
+--- a/tests/test_manager_announcement_flash_readonly.py
++++ b/tests/test_manager_announcement_flash_readonly.py
+@@ -163,6 +163,232 @@
+     value = AnnouncementUpdate(svc).read("20261016")
+ 
+     assert value["job"]["failure_code"] == failure_code
++
++
++def _saved_partial_result_for(job_id, failure_code, target_date="20261016"):
++    gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1",
++            "status": "VERIFIED", "target_date": target_date,
++            "cutoff": "2026-10-16T14:57:00+08:00", "market": "HK_CONNECT",
++            "owner": "v35_dispatcher.research_panel_daily_hk", "authority_sha256": "e" * 64,
++            "authority_version": "v1", "effective_from": "20261001", "effective_to": "20261031",
++            "available_at": "2026-10-12T19:58:59+08:00", "member_count": 100,
++            "codes": [f"HK.{number:05d}" for number in range(10000, 10100)]}
++
++    def stock(number, prefix):
++        symbol = f"HK.{number:05d}"
++        article = {"article_id": f"EASTMONEY:{prefix}{number:05d}", "title": f"公告{number}",
++                   "publication_date": "2026-10-16", "symbol": symbol, "name": f"公司{number}",
++                   "disposition": "SELECTED_EVENT", "direction": "POSITIVE", "reason": "人工复核前候选。",
++                   "impact": [], "body_sha256": str(number % 10) * 64, "source_sha256": str((number + 1) % 10) * 64,
++                   "source_origins": [], "review_status": "MODEL_CANDIDATE_UNREVIEWED", "reuse_status": None}
++        return {"symbol": symbol, "name": article["name"], "reasons": [article["reason"]],
++                "articles": [article], "review_status": article["review_status"], "reuse_status": None}
++
++    result_stocks = [stock(number, "CURRENT") for number in range(10015, 10026)]
++    current_ids = [f"EASTMONEY:AN20261016{number:04d}" for number in range(137)]
++    failures = [{"article_id": current_ids[number], "symbol": "HK.10000", "title": f"失败{number}",
++                 "failure_code": "PART_FIXED_FIELDS_MUST_BE_EMPTY", "stage": "validator"}
++                for number in range(8)]
++    failures.extend({"article_id": f"EASTMONEY:PRIOR_FAIL_{number}", "symbol": "HK.10000",
++                     "title": f"保留历史失败{number}", "failure_code": "ANNOUNCEMENT_EVIDENCE_INCOMPLETE"}
++                    for number in range(9))
++    failures.extend({"article_id": "EASTMONEY:LONG", "symbol": "HK.10098", "title": "长文",
++                     "part_index": number + 1, "failure_code": "PART_FIXED_FIELDS_MUST_BE_EMPTY"}
++                    for number in range(17))
++    pending = [{"article_id": "EASTMONEY:LONG", "symbol": "HK.10098", "title": "长文",
++                "part_index": 1, "part_count": 22, "queue_status": "FAILED",
++                "queue_reason": "REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM",
++                "repair_status": "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED"}]
++    pending.extend({"article_id": "EASTMONEY:LONG", "symbol": "HK.10098", "title": "长文",
++                    "part_index": number + 2, "part_count": 22,
++                    "queue_reason": "LONG_BODY_PART_REPAIR_GATED"}
++                   for number in range(16))
++    pending.extend({"article_id": f"EASTMONEY:LONG_SYNTH_{number}", "symbol": "HK.10098",
++                    "title": "长文综合", "queue_reason": "SAVED_SYNTHESIS_IDENTITY_CONFLICT"}
++                   for number in range(2))
++    return gate, {
++        "schema": "v4.manager_workbench.announcement_flash_result.v1", "job_id": job_id,
++        "state": "PARTIAL", "target_trade_date": target_date,
++        "updated_at": "2026-10-16T21:20:00+08:00",
++        "counts": {"capture_rows": 354, "selected_model_articles": 11, "new_candidate_stocks": 11,
++                   "failed": 25, "queue_pending": 16, "body_gaps": 0,
++                   "queue": {"incremental_succeeded_matched": 129,
++                             "incremental_failed_matched": 8, "incremental_pending_matched": 0,
++                             "long_body_parts_failed": 17, "long_body_parts_succeeded": 17,
++                             "long_body_parts_pending": 16,
++                             "long_body_parts_cannot_confirm": 1,
++                             "long_body_synthesis_pending": 2}},
++        "stocks": result_stocks, "failures": failures, "pending": pending, "gaps": [],
++        "system_stop": {"failure_code": failure_code, "stage": "FLASH_SELECTION",
++                        "queue_action": "SAVED_RESULTS_ONLY_NO_RETRY",
++                        "failed_at": "2026-10-16T21:17:16+08:00"},
++        "membership_gate": gate,
++        "provenance": {"current_capture_bindings": {article_id: {"membership_status": "IN"}
++                                                     for article_id in current_ids},
++                       "queue_version_associations": [{"article_id": article_id} for article_id in current_ids]},
++        "current_batch": {"article_count": 137,
++                          "article_status_counts": {"succeeded": 129, "failed": 8, "pending": 0},
++                          "selected_articles": 11, "candidate_stocks": 11},
++        "materialization": {"mode": "SAVED_VALIDATED_QUEUE_ONLY", "failure_code": failure_code,
++                            "failed_at": "2026-10-16T21:17:16+08:00", "queue_dispatches": 0,
++                            "model_calls": 0, "status": "PARTIAL_PUBLISHED_WITH_ORIGINAL_FAILURE"},
++    }
++
++
++def test_failed_saved_materialization_is_indexed_and_overlays_prior_pending_in_api(monkeypatch):
++    svc = service()
++    job_id = "9" * 32
++    failure_code = "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT"
++    finished_at = "2026-10-16T21:17:16+08:00"
++    job = SimpleNamespace(job_id=job_id, state=JobState.FAILED, step="FLASH_SELECTION",
++                          context=SimpleNamespace(target_date="20261016"), failure_code=failure_code,
++                          failed_steps=["FLASH_SELECTION"], finished_at=finished_at,
++                          last_progress_at=finished_at, completed_count=138, total_count=171)
++    svc.jobs.jobs[job_id] = job
++    svc.config.shared_root = "/private/shared"
++    input_value = {"schema": "v4.manager_workbench.announcement_flash_input.v1",
++                   "job_id": job_id, "target_date": "20261016"}
++    progress_value = {"step": "FAILED", "failure_code": failure_code, "failed_step": "FLASH_SELECTION",
++                      "updated_at": finished_at}
++    svc.store.files[f"announcement_flash/jobs/{job_id}/input.json"] = update_module._canonical(input_value)
++    progress_raw = update_module._canonical(progress_value) + b"\n"
++    svc.store.files[f"announcement_flash/jobs/{job_id}/progress.json"] = progress_raw
++    svc.store.values["announcement_flash_latest"] = {"job_id": job_id, "target_date": "20261016",
++                                                       "state": "FAILED"}
++    gate, result = _saved_partial_result_for(job_id, failure_code)
++    command_calls = []
++
++    class FinishedProcess:
++        returncode = 0
++        def poll(self):
++            return self.returncode
++
++    def fake_popen(command, **_kwargs):
++        command_calls.append(command)
++        assert "--materialize-saved-partial" in command
++        assert command[command.index("--failure-code") + 1] == failure_code
++        raw = update_module._canonical(result) + b"\n"
++        svc.store.files[f"announcement_flash/jobs/{job_id}/result.json"] = raw
++        return FinishedProcess()
++
++    update = AnnouncementUpdate(svc, popen=fake_popen)
++    materialized = update.materialize_failed_partial(job_id)
++    assert materialized["materialization"]["model_calls"] == 0
++    assert len(command_calls) == 1
++    assert svc.store.files[f"announcement_flash/jobs/{job_id}/progress.json"] == progress_raw
++    assert svc.jobs.get(job_id).state == JobState.FAILED
++    assert svc.jobs.get(job_id).failure_code == failure_code
++    assert svc.jobs.get(job_id).finished_at == finished_at
++    assert svc.store.values["announcement_flash_result_index"]["items"] == [{
++        "job_id": job_id, "target_date": "20261016",
++        "result_sha256": update_module._sha(svc.store.files[f"announcement_flash/jobs/{job_id}/result.json"])}]
++    assert update.materialize_failed_partial(job_id)["job_id"] == job_id
++    assert len(command_calls) == 1
++
++    old_stocks = []
++    for number in range(10000, 10015):
++        symbol = f"HK.{number:05d}"
++        old_stocks.append({"symbol": symbol, "name": f"旧公司{number}", "reasons": ["旧候选"],
++                           "articles": [{"article_id": f"EASTMONEY:OLD{number:05d}", "symbol": symbol,
++                                         "reason": "旧候选。"}]})
++    old_pending = [{"article_id": article_id, "symbol": "HK.10000", "title": "旧占位",
++                    "queue_reason": "PRIOR_QUEUE_PENDING_NOT_RETRIED"}
++                   for article_id in result["provenance"]["current_capture_bindings"]]
++    pinned = {"state": "PARTIAL", "source_date": "20261015", "target_trade_date": "CANNOT_CONFIRM",
++              "updated_at": "2026-10-15T18:35:00+08:00", "stocks": old_stocks,
++              "failures": [], "pending": old_pending, "gaps": [], "system_stop": None,
++              "safety": {"RESEARCH_ONLY": True, "production_allowed": False,
++                         "buy_gate_updated": False, "orders_sent": False},
++              "counts": {"source_catalogue_articles": 392, "model_succeeded": 367,
++                         "selected_model_articles": 21, "model_candidate_stocks": 14,
++                         "reused_reviewed_stocks": 0, "failed": 18, "pending": 137,
++                         "body_gaps": 1, "displayed_stocks": 15}}
++    monkeypatch.setattr(update_module, "read_pinned_candidates", lambda: pinned)
++    monkeypatch.setattr("v4.manager_workbench.announcement_membership.resolve_membership_gate",
++                        lambda *_args: dict(gate))
++    app = FastAPI()
++    app.include_router(api.create_router(svc))
++    response = TestClient(app).get(api.PREFIX + "/announcement-flash?target_date=20261016")
++    assert response.status_code == 200, response.text
++    view = response.json()["data"]
++    assert view["state"] == "PARTIAL"
++    assert view["target_trade_date"] == "20261016"
++    assert view["updated_at"] == result["updated_at"]
++    assert view["counts"]["displayed_stocks"] == 26
++    assert view["counts"]["current_batch_candidate_stocks"] == 11
++    assert view["counts"]["model_succeeded"] == 129
++    assert view["counts"]["model_failed_articles"] == 8
++    assert view["counts"]["failure_rows"] == 34
++    assert view["counts"]["model_pending_articles"] == 0
++    assert view["counts"]["long_body_part_failed"] == 17
++    assert view["counts"]["long_body_part_pending"] == 16
++    assert view["counts"]["long_body_part_cannot_confirm"] == 1
++    assert view["counts"]["long_body_synthesis_pending"] == 2
++    assert view["counts"]["pending"] == 0
++    assert len(view["pending"]) == 19
++    assert view["pending"][0]["queue_reason"] == "REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM"
++    assert view["job"]["state"] == "FAILED"
++    assert view["job"]["failure_code"] == failure_code
++    assert view["job"]["finished_at"] == finished_at
++    assert view["incremental"]["state"] == "PARTIAL"
++    assert view["incremental"]["system_stop"]["failed_at"] == finished_at
++
++
++def test_later_runner_failure_automatically_materializes_saved_partial(monkeypatch):
++    svc = service()
++    svc.config.shared_root = "/private/shared"
++    job_id = "8" * 32
++    failure_code = "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT"
++    finished_at = "2026-10-16T21:17:16+08:00"
++    capture_raw = b"verified capture product"
++    capture_sha = update_module._sha(capture_raw)
++    saved_ref = {"artifact_ref": f"products/{capture_sha}.json", "sha256": capture_sha}
++    calls = []
++
++    class FakeCaptureStore:
++        def __init__(self, *_args, **_kwargs):
++            self.io = SimpleNamespace(read_bytes=lambda *_args, **_kwargs: capture_raw)
++        def grant(self, **_kwargs): pass
++        def revoke(self): pass
++
++    class FinishedProcess:
++        def __init__(self, returncode): self.returncode = returncode
++        def poll(self): return self.returncode
++
++    gate, result = _saved_partial_result_for(job_id, failure_code)
++    def fake_popen(command, **_kwargs):
++        calls.append(command)
++        if "--materialize-saved-partial" in command:
++            svc.store.files[f"announcement_flash/jobs/{job_id}/result.json"] = update_module._canonical(result) + b"\n"
++            return FinishedProcess(0)
++        svc.store.files[f"announcement_flash/jobs/{job_id}/progress.json"] = update_module._canonical({
++            "step": "FAILED", "failure_code": failure_code, "failed_step": "FLASH_SELECTION",
++            "updated_at": finished_at}) + b"\n"
++        return FinishedProcess(1)
++
++    monkeypatch.setattr("v4.manager_workbench.inputs.capture_store.CaptureStore", FakeCaptureStore)
++    monkeypatch.setattr("v4.manager_workbench.inputs.capture.capture_window",
++                        lambda *_args, **_kwargs: {"saved_ref": saved_ref})
++    monkeypatch.setattr("v4.manager_workbench.announcement_membership.resolve_membership_gate",
++                        lambda *_args: dict(gate))
++    svc.jobs = SimpleNamespace(update=lambda *_args, **_kwargs: None)
++    job = SimpleNamespace(job_id=job_id,
++                          context=SimpleNamespace(target_date="20261016",
++                                                  model_copy=lambda **_kwargs: SimpleNamespace(
++                                                      target_date="20261016", cutoff="2026-10-16T10:30:00+08:00",
++                                                      scope_refs={})),
++                          completed_count=0, total_count=None, execution_refs=[], step="FLASH_SELECTION")
++    try:
++        AnnouncementUpdate(svc, popen=fake_popen, sleep=lambda _seconds: None)._work(job)
++    except update_module.StepFailure as exc:
++        assert str(exc) == failure_code
++    else:
++        raise AssertionError("the original run failure must remain the terminal job outcome")
++    assert len(calls) == 2
++    assert "--materialize-saved-partial" not in calls[0]
++    assert "--materialize-saved-partial" in calls[1]
++    assert svc.store.values["announcement_flash_result_index"]["items"][0]["job_id"] == job_id
++    assert json.loads(svc.store.files[f"announcement_flash/jobs/{job_id}/progress.json"])["failure_code"] == failure_code
+ 
+ 
+ def test_flash_runner_launch_disables_bytecode_cache(monkeypatch):
+@@ -751,7 +977,7 @@
+ 
+     view = AnnouncementUpdate(svc).read("20261016")
+ 
+-    assert view["target_trade_date"] == "CANNOT_CONFIRM"
++    assert view["target_trade_date"] == "20261016"
+     assert view["membership"]["target_date"] == "20261016"
+     assert view["incremental"]["job_id"] == job_id
+     assert view["incremental"]["target_trade_date"] == "20261016"
+--- a/apps/web/src/manager-workbench/AnnouncementCandidates.vue
++++ b/apps/web/src/manager-workbench/AnnouncementCandidates.vue
+@@ -108,6 +108,36 @@
+ function pendingStatusReason(item: AnnouncementPending): string | null {
+   const reason = item.queue_reason || item.failure_code;
+   return reason && reason !== pendingStatusText(item) ? reason : null;
++}
++function statusRowKey(item: { article_id?: string | null; part_index?: number | null;
++  failure_code?: string | null; queue_reason?: string | null }, index: number): string {
++  return `${item.article_id || "row"}:${item.part_index ?? "article"}:${item.failure_code || item.queue_reason || "status"}:${index}`;
++}
++function bodyPartLabel(item: { part_index?: number | null; part_count?: number | null }): string | null {
++  return item.part_index == null ? null : `正文分块 ${item.part_index}/${item.part_count ?? "?"}`;
++}
++function longBodyFailureCount(): number {
++  const count = data.value?.counts.long_body_part_failed;
++  return typeof count === "number" ? count : data.value?.failures.filter(item => item.part_index != null).length || 0;
++}
++function longBodyPendingCount(): number {
++  const count = data.value?.counts.long_body_part_pending;
++  return typeof count === "number" ? count : data.value?.pending.filter(item => item.part_index != null).length || 0;
++}
++function longBodyCannotConfirmCount(): number {
++  const count = data.value?.counts.long_body_part_cannot_confirm;
++  return typeof count === "number" ? count : data.value?.pending.filter(item =>
++    item.queue_status === "CANNOT_CONFIRM" || item.queue_reason === "REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM").length || 0;
++}
++function otherFailureCount(): number {
++  const failedArticles = data.value?.counts.model_failed_articles ?? data.value?.counts.failed ?? 0;
++  const failureRows = data.value?.failures.length ?? 0;
++  return Math.max(0, failureRows - failedArticles - longBodyFailureCount());
++}
++function longBodySynthesisPendingCount(): number {
++  const count = data.value?.counts.long_body_synthesis_pending;
++  return typeof count === "number" ? count : data.value?.pending.filter(item =>
++    item.queue_reason?.includes("SYNTHESIS")).length || 0;
+ }
+ watch(() => props.targetDate, () => { void load(false); });
+ onMounted(() => { void load(false); });
+@@ -231,16 +261,16 @@
+       </div>
+ 
+       <details class="mwb-announcement-audit">
+-        <summary>冻结结果处理明细：失败 {{ data.failures.length }}、未运行 {{ data.pending.length }}、正文缺口 {{ data.gaps.length }}</summary>
+-        <h3>失败文章</h3>
++        <summary>冻结结果处理明细：失败文章 {{ countText(data.counts.model_failed_articles ?? data.counts.failed) }}、正文分块失败 {{ countText(longBodyFailureCount()) }}、其他保留失败记录 {{ countText(otherFailureCount()) }}、待处理文章 {{ countText(data.counts.model_pending_articles ?? data.counts.pending) }}、正文分块待处理 {{ countText(longBodyPendingCount()) }}、正文分块结果无法确认 {{ countText(longBodyCannotConfirmCount()) }}、长文综合待处理 {{ countText(longBodySynthesisPendingCount()) }}、正文缺口 {{ data.gaps.length }}</summary>
++        <h3>失败记录（公告文章与正文分块）</h3>
+         <p v-if="!data.failures.length" class="mwb-muted">没有记录失败文章。</p>
+-        <ul><li v-for="item in data.failures" :key="item.article_id || item.failure_code">
+-          {{ item.symbol || "代码未知" }} · {{ item.title || item.article_id || "文章未知" }} · {{ item.failure_code }}
++        <ul><li v-for="(item, index) in data.failures" :key="statusRowKey(item, index)">
++          {{ item.symbol || "代码未知" }} · {{ bodyPartLabel(item) || item.title || item.article_id || "文章未知" }} · {{ item.failure_code }}
+         </li></ul>
+         <h3>未运行 / 待处理</h3>
+         <p v-if="!data.pending.length" class="mwb-muted">没有记录未运行文章。</p>
+-        <ul><li v-for="item in data.pending" :key="item.article_id || item.queue_reason || 'pending-item'">
+-          {{ item.symbol || "代码待核" }} · {{ item.title || item.article_id || "文章未知" }} · <strong>{{ pendingStatusText(item) }}</strong>
++        <ul><li v-for="(item, index) in data.pending" :key="statusRowKey(item, index)">
++          {{ item.symbol || "代码待核" }} · {{ bodyPartLabel(item) || item.title || item.article_id || "文章未知" }} · <strong>{{ pendingStatusText(item) }}</strong>
+           <small v-if="pendingStatusReason(item)">队列原因：{{ pendingStatusReason(item) }}</small>
+         </li></ul>
+         <h3>正文与采集缺口</h3>
+@@ -252,16 +282,16 @@
+         <p v-if="data.incremental?.system_stop">增量系统停队：{{ data.incremental.system_stop.failure_code }}；{{ data.incremental.system_stop.queue_action }}</p>
+       </details>
+       <details v-if="data.incremental" class="mwb-announcement-audit">
+-        <summary>最近增量处理明细：失败 {{ data.incremental.failures?.length || 0 }}、待处理 {{ data.incremental.pending?.length || 0 }}、缺口 {{ data.incremental.gaps?.length || 0 }}</summary>
+-        <h3>增量失败文章</h3>
++        <summary>最近增量处理明细：失败文章 {{ countText(data.incremental.counts.failed) }}、正文分块失败 {{ countText(data.incremental.counts.queue?.long_body_parts_failed) }}、待处理文章 {{ countText(data.incremental.counts.queue_pending) }}、正文分块待处理 {{ countText(data.incremental.counts.queue?.long_body_parts_pending) }}、正文分块结果无法确认 {{ countText(data.incremental.counts.queue?.long_body_parts_cannot_confirm ?? longBodyCannotConfirmCount()) }}、长文综合待处理 {{ countText(data.incremental.counts.queue?.long_body_synthesis_pending ?? longBodySynthesisPendingCount()) }}、缺口 {{ data.incremental.gaps?.length || 0 }}</summary>
++        <h3>增量失败记录（公告文章与正文分块）</h3>
+         <p v-if="!data.incremental.failures?.length" class="mwb-muted">最近增量没有记录失败文章。</p>
+-        <ul><li v-for="item in data.incremental.failures" :key="item.article_id || item.failure_code">
+-          {{ item.symbol || "代码未知" }} · {{ item.title || item.article_id || "文章未知" }} · {{ item.failure_code }}
++        <ul><li v-for="(item, index) in data.incremental.failures" :key="statusRowKey(item, index)">
++          {{ item.symbol || "代码未知" }} · {{ bodyPartLabel(item) || item.title || item.article_id || "文章未知" }} · {{ item.failure_code }}
+         </li></ul>
+         <h3>增量未运行 / 待处理</h3>
+         <p v-if="!data.incremental.pending?.length" class="mwb-muted">最近增量没有记录待处理文章。</p>
+-        <ul><li v-for="(item, index) in data.incremental.pending" :key="item.article_id || item.queue_reason || `pending-${index}`">
+-          {{ item.symbol || "代码待核" }} · {{ item.title || item.article_id || "文章未知" }} · {{ item.queue_reason || item.failure_code || "未运行" }}
++        <ul><li v-for="(item, index) in data.incremental.pending" :key="statusRowKey(item, index)">
++          {{ item.symbol || "代码待核" }} · {{ bodyPartLabel(item) || item.title || item.article_id || "文章未知" }} · {{ item.queue_reason || item.failure_code || "未运行" }}
+         </li></ul>
+         <p v-if="data.incremental.system_stop">增量系统停队：{{ data.incremental.system_stop.failure_code }}；{{ data.incremental.system_stop.queue_action }}</p>
+       </details>
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -316,6 +316,8 @@
+   failure_code: string;
+   attempt_count?: number | null;
+   stage?: string | null;
++  part_index?: number | null;
++  part_count?: number | null;
+ }
+ export interface AnnouncementPending {
+   article_id?: string | null;
+@@ -328,6 +330,9 @@
+   failure_code?: string | null;
+   prompt_tokens?: number | null;
+   context_limit_tokens?: number | null;
++  part_index?: number | null;
++  part_count?: number | null;
++  repair_status?: string | null;
+ }
+ export interface AnnouncementCounts {
+   source_catalogue_articles?: number | null;
+@@ -349,6 +354,13 @@
+   membership_unknown_articles?: number | null;
+   membership_articles?: Record<string, number>;
+   membership_stocks?: Record<string, number>;
++  model_failed_articles?: number | null;
++  model_pending_articles?: number | null;
++  long_body_part_failed?: number | null;
++  long_body_part_pending?: number | null;
++  long_body_part_cannot_confirm?: number | null;
++  long_body_synthesis_pending?: number | null;
++  current_batch_candidate_stocks?: number | null;
+   context_pending?: number | null;
+   queue_pending?: number | null;
+   queue?: Record<string, number>;
+--- a/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
+@@ -117,7 +117,7 @@
+     expect(screen.getByText((_, element) => element?.tagName === "LI"
+       && element.textContent?.includes("HK.09963") === true)).toBeTruthy();
+ 
+-    await fireEvent.click(screen.getByText(/冻结结果处理明细：失败 18、未运行 5、正文缺口 1/));
++    await fireEvent.click(screen.getByText(/冻结结果处理明细：失败文章 18、正文分块失败 0、其他保留失败记录 0、待处理文章 5、正文分块待处理 0、正文分块结果无法确认 0、长文综合待处理 0、正文缺口 1/));
+     expect(screen.getAllByText("正文超长，待完整分块", { selector: "strong" })).toHaveLength(3);
+     expect(screen.getAllByText("系统停队后尚未运行", { selector: "strong" })).toHaveLength(2);
+     expect(screen.getAllByText("队列原因：STOPPED_AFTER_SYSTEM_FAILURE", { selector: "small" })).toHaveLength(5);
+@@ -144,4 +144,87 @@
+     expect(post?.body).toBe(JSON.stringify({ target_date: "20261016" }));
+     expect(calls.filter(call => call.method === "POST")).toHaveLength(1);
+   });
++
++  it("shows validated partial candidates with separate article, part, and binding statuses", async () => {
++    const day = { snapshot: null, stocks: [], counts: null,
++      pagination: { total: 0, offset: 0, limit: 50 }, versions: [] };
++    const stocks = Array.from({ length: 11 }, (_, index) => ({
++      symbol: `HK.${10015 + index}`, name: `本批候选${index + 1}`, reasons: ["已校验的公告候选。"],
++      review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN",
++      articles: [{ article_id: `EASTMONEY:CURRENT${index + 1}`, title: `本批公告${index + 1}`,
++        publication_date: "2026-10-16", symbol: `HK.${10015 + index}`, name: `本批候选${index + 1}`,
++        disposition: "SELECTED_EVENT", direction: "POSITIVE", reason: "已校验的公告候选。",
++        impact: [], body_sha256: "a".repeat(64), source_sha256: "b".repeat(64), source_origins: [],
++        review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN" }]
++    }));
++    const failures = [
++      ...Array.from({ length: 8 }, (_, index) => ({ article_id: `EASTMONEY:FAIL${index}`,
++        symbol: `HK.${10000 + index}`, title: `失败公告${index + 1}`, failure_code: "VALIDATOR_ERROR" })),
++      ...Array.from({ length: 9 }, (_, index) => ({ article_id: `EASTMONEY:PRIOR${index}`,
++        symbol: "HK.10000", title: `保留历史失败${index + 1}`, failure_code: "ANNOUNCEMENT_EVIDENCE_INCOMPLETE" })),
++      ...Array.from({ length: 17 }, (_, index) => ({ article_id: "EASTMONEY:LONG",
++        symbol: "HK.10098", title: "长文", part_index: index + 1, part_count: 22,
++        failure_code: "PART_FIXED_FIELDS_MUST_BE_EMPTY", stage: "validator" }))
++    ];
++    const pending = [
++      { article_id: "EASTMONEY:LONG", symbol: "HK.10098", title: "长文", part_index: 1,
++        part_count: 22, queue_status: "FAILED", queue_reason: "REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM",
++        repair_status: "REPAIR_SUCCESS_ORCHESTRATION_UNVERIFIED" },
++      ...Array.from({ length: 16 }, (_, index) => ({ article_id: "EASTMONEY:LONG",
++        symbol: "HK.10098", title: "长文", part_index: index + 2, part_count: 22,
++        queue_reason: "LONG_BODY_PART_REPAIR_GATED" })),
++      ...Array.from({ length: 2 }, (_, index) => ({ article_id: `EASTMONEY:LONG_SYNTH_${index}`,
++        symbol: "HK.10098", title: "长文综合", queue_reason: "SAVED_SYNTHESIS_IDENTITY_CONFLICT" }))
++    ];
++    const stop = { failure_code: "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT",
++      queue_action: "SAVED_RESULTS_ONLY_NO_RETRY" };
++    const result = {
++      state: "PARTIAL", source_date: "2026-10-16", target_trade_date: "20261016",
++      updated_at: "2026-10-16T21:20:00+08:00", review_status: "MODEL_CANDIDATE_UNREVIEWED",
++      counts: { source_catalogue_articles: 354, model_succeeded: 129, selected_model_articles: 11,
++        displayed_stocks: 26, failed: 8, pending: 0, body_gaps: 0,
++        model_failed_articles: 8, model_pending_articles: 0, long_body_part_failed: 17,
++        long_body_part_pending: 16, long_body_part_cannot_confirm: 1,
++        long_body_synthesis_pending: 2 },
++      membership: { status: "VERIFIED", target_date: "20261016", cutoff: "2026-10-16T14:57:00+08:00",
++        market: "HK_CONNECT", owner: "v35_dispatcher.research_panel_daily_hk", authority_sha256: "c".repeat(64),
++        authority_version: "v1", effective_from: "20261001", effective_to: "20261031", member_count: 698 },
++      membership_excluded_stocks: [], membership_unknown_stocks: [], membership_excluded_articles: [],
++      membership_unknown_articles: [], stocks, failures, pending, gaps: [], system_stop: stop,
++      incremental: { state: "PARTIAL", job_id: "9".repeat(32), target_trade_date: "20261016",
++        updated_at: "2026-10-16T21:20:00+08:00", counts: { failed: 8, queue_pending: 0, body_gaps: 0,
++          new_candidate_stocks: 11, queue: { new_enqueued: 0, incremental_succeeded_matched: 129,
++            long_body_parts_failed: 17, long_body_parts_pending: 16, long_body_parts_cannot_confirm: 1,
++            long_body_synthesis_pending: 2 } },
++        failures, pending, gaps: [], system_stop: stop },
++      incremental_runs: [], job: { job_id: "9".repeat(32), target_date: "20261016", state: "FAILED",
++        step: "FLASH_SELECTION", failure_code: "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT",
++        completed_count: 138, total_count: 171 },
++      safety: { RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false }
++    };
++    const calls: string[] = [];
++    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
++      const url = String(input); calls.push(url);
++      if (url.includes("/days/20261016/recommendations/")) return response(envelope(day));
++      if (url.includes("/announcement-flash")) return response(envelope(result, "PARTIAL"));
++      throw new Error("unexpected request " + url);
++    }));
++
++    render(Workbench);
++    await fireEvent.click(await screen.findByRole("tab", { name: "公告选股" }));
++    expect(await screen.findByText("本批候选1")).toBeTruthy();
++    expect(screen.getByText("129", { selector: "strong" })).toBeTruthy();
++    expect(screen.getByText(/最近增量结果：部分完成/)).toBeTruthy();
++    expect(screen.getAllByText(/INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT/).length).toBeGreaterThan(0);
++
++    const frozenDetailsSummary = screen.getByText(/冻结结果处理明细：失败文章 8、正文分块失败 17、其他保留失败记录 9、待处理文章 0、正文分块待处理 16、正文分块结果无法确认 1、长文综合待处理 2/);
++    await fireEvent.click(frozenDetailsSummary);
++    const frozenDetails = frozenDetailsSummary.closest("details");
++    expect(frozenDetails).not.toBeNull();
++    const partRows = within(frozenDetails as HTMLElement).getAllByRole("listitem")
++      .filter(item => /正文分块 \d+\/22/.test(item.textContent || ""));
++    expect(partRows).toHaveLength(34);
++    expect(screen.getAllByText(/REPAIR_RESULT_ORCHESTRATION_CANNOT_CONFIRM/).length).toBeGreaterThan(0);
++    expect(calls.every(url => !url.includes("/announcement-flash/update"))).toBe(true);
++  });
+ });

@@ -1,0 +1,50 @@
+{
+  "status": "DEPLOYED_API_UI_VERIFIED_PARTIAL_PUBLICATION",
+  "full_batch_status": "FAILED_INCOMPLETE",
+  "natural_run": "NOT_RUN",
+  "base_commit": "5ad3d50df8cc5fafba24baaab4fb375887076628",
+  "release": "announcement-partial-api-20261016-r7b",
+  "manifest_sha256": "92f67456a72966e88be3a3980e1c3988c1fedbcf14fb36acabd8729eb402f30d",
+  "pid": [
+    "84918"
+  ],
+  "job_id": "85add37723bf4c5ea1445dcb61202899",
+  "job_state": "FAILED",
+  "failure_code": "INTERNAL_QUEUE_PAYLOAD_IDEMPOTENCY_CONFLICT",
+  "result_sha256": "5d14c4f444fda0cffac5ea5c08390363ad6dbc8aee64498e022f70bffb8e7cf0",
+  "result_state": "PARTIAL",
+  "displayed_stocks": 26,
+  "new_stocks": 11,
+  "current_version": {
+    "success": 129,
+    "failed": 8,
+    "pending": 0
+  },
+  "long_body": {
+    "long_body_part_failed": 17,
+    "long_body_part_pending": 16,
+    "long_body_part_cannot_confirm": 1,
+    "long_body_synthesis_pending": 2
+  },
+  "model_calls": 0,
+  "queue_dispatches": 0,
+  "original_inputs_progress_queue_unchanged": true,
+  "tests": {
+    "focused_python": "47 PASS independent",
+    "announcement_component": "2 PASS independent",
+    "isolated_build": "PASS",
+    "typecheck": "FAIL_UNRELATED_DIAGNOSTICS_NO_MANAGER_WORKBENCH_ERRORS"
+  },
+  "review_receipts": {
+    "predeploy": "5c3ecfdcce53c79be4b811f99cf199c4b95c82229de12fd736ac35138d5648e5",
+    "wrapper": "d3323de8b853c1d1d5c5859b4830072b69fc8048b3f0959ac02f036ab1a434b1",
+    "live_publication": "bd834a6dc8720f77e945e4507aef32d71d4a8d7bab518d541a4357ae634b9a9e"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "independent_live_publication_review": "BEHAVIOR_API_UI_PASS"
+}

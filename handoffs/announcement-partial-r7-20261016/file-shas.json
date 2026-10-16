@@ -1,0 +1,39 @@
+{
+  "source_root": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+  "base_release": "announcement-recovery-api-20261016-r6",
+  "base_commit": "5ad3d50df8cc5fafba24baaab4fb375887076628",
+  "candidate_release": "announcement-partial-api-20261016-r7b",
+  "candidate_manifest_sha256": "92f67456a72966e88be3a3980e1c3988c1fedbcf14fb36acabd8729eb402f30d",
+  "files": [
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "before_sha256": "c7e5ae8ba0ad2e74aa1a5a2e48b325485b74abf31ff917309546554a2165e8a1",
+      "after_sha256": "9077526f8d11b69ed0cafc593ba8a5b10981233cf1f82931951d107ebb184cfd"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "before_sha256": "443c8e4345dd119d4336c7f68e316c1a611b66ba8eb6765873adf50c5b325eb1",
+      "after_sha256": "963a1b3f288b18ba6dda0cf86faebb4eb84b41a09f7f2b86a2981d6497114c14"
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_readonly.py",
+      "before_sha256": "06380e24ae5e5a7daeb7caf9ed919860051a2a7fd12ef42628a608ba2d9dfa81",
+      "after_sha256": "b78320fbb576412dc4f2537cd9eec4ef4f2b9ab31e9b57d666eaf408dd9a6969"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "before_sha256": "fa8219a083102f6516f85893f5dc8aeef084c3c48d4f78b71c8239415fc7da29",
+      "after_sha256": "1c0be2e31f0a140d1e2654c55bcbd7da5dc7ba5fad34b13e6ef4b3971cd588a4"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "b5aa22291d174bcbec8e7ca2a33fc3a515d18411ef6a7c22450a7b29995adeda",
+      "after_sha256": "a24a4288b5a9139a2d8294b0777188d6300715cf06dc63faf3ed2026cc8286bf"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "before_sha256": "38165f299872b293bbd3e6541ee6dc48f402de94758fa8cd304659ae845199e9",
+      "after_sha256": "733e316e4b4aa574283f9b718e9bb87d4bf8a611dceb0a77c642d47fb6efde8f"
+    }
+  ]
+}
