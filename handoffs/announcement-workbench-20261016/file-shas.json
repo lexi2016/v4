@@ -1,0 +1,108 @@
+{
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_git_baseline": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "release_base": {
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-autodrain-api-20261016-r1",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-autodrain-api-20261016-r1/app",
+    "release_id": "zsxq-pdf-autodrain-api-20261016-r1",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-autodrain-api-20261016-r1/release-manifest.json",
+    "release_manifest_sha256": "596334196137801c153e7841755bc3f987a097cb30967e4a780d0b8609ef5d5a",
+    "application_inventory_sha256": "fa44629ed05b08dbca6ade54680aaa252ab3d0e04b81323bef211941e0a900f8",
+    "application_inventory_entry_count": 1218
+  },
+  "candidate_release": "announcement-workbench-api-20261016-r5",
+  "files": [
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "529129b8b4cfc7b385c8b52f9cfd52e02d452df1e934b9a7f338d73227ad84bf",
+      "canonical_source_sha256": "529129b8b4cfc7b385c8b52f9cfd52e02d452df1e934b9a7f338d73227ad84bf"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "delivery": "modified-file-patch",
+      "active_before_sha256": "02c22f03ee9d240d22d008d15f16878b986674e7886ab68487cbebe14b826320",
+      "candidate_after_sha256": "d3f128c55e719c34b12405a7bad80e55e1002efff5d2d177fbf24466af12da0e",
+      "canonical_source_sha256": "6745deb53a5ec230d7fe48fb8fbe195a45812ea3fd067324a7b1cc68346b5ebd"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "82591e79810e50b0ec3d58b97eaaafe39fd66bfc9c270ba94d3159ec80c3a67c",
+      "canonical_source_sha256": "82591e79810e50b0ec3d58b97eaaafe39fd66bfc9c270ba94d3159ec80c3a67c"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "delivery": "modified-file-patch",
+      "active_before_sha256": "58053bbcdf093e0f6291e383a7426f232bab671782d61397271e3ad6918a2737",
+      "candidate_after_sha256": "f180de8df57c14d9d7f6c466c54d83000b2e992e6872832b2583213b776fa586",
+      "canonical_source_sha256": "f180de8df57c14d9d7f6c466c54d83000b2e992e6872832b2583213b776fa586"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "delivery": "modified-file-patch",
+      "active_before_sha256": "543eb656a86519a6bf45849e55fa9251fbd48064d07082cbbe2b31727db13542",
+      "candidate_after_sha256": "808926d4e442814956a42d088e181c33baebed9d6a357fca90bb826046622d17",
+      "canonical_source_sha256": "45e9530af17015b4d517644aa505e9f5ae9d488b1c7b4572b62c415a1045522e"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "delivery": "modified-file-patch",
+      "active_before_sha256": "cf5c17e663d7876d347794b5ebc617e0168266d3952eebe4c21a0f10f4f91944",
+      "candidate_after_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+      "canonical_source_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "delivery": "modified-file-patch",
+      "active_before_sha256": "9a9a7036327fac5843bc6cadcb4dd64b810a99cb54fbfdf71201de3eab52a147",
+      "candidate_after_sha256": "05b941c696d6a0917b55623c8902c744b0710581e78e34c777469b2ef854d516",
+      "canonical_source_sha256": "05b941c696d6a0917b55623c8902c744b0710581e78e34c777469b2ef854d516"
+    },
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "24f4a11c73deed832f3c33dd8b2b58a486e3e4ec5e82100989e18b18a64c7425",
+      "canonical_source_sha256": "24f4a11c73deed832f3c33dd8b2b58a486e3e4ec5e82100989e18b18a64c7425"
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_readonly.py",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "5612440ab06501599394288b07e56937a848f7be2d65a744a901217032b96d3a",
+      "canonical_source_sha256": "5612440ab06501599394288b07e56937a848f7be2d65a744a901217032b96d3a"
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_runner.py",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "930338fce1a8c4c65ae51979e18ada176adacb537ad68d0ebe84d2ef99511415",
+      "canonical_source_sha256": "930338fce1a8c4c65ae51979e18ada176adacb537ad68d0ebe84d2ef99511415"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_candidate.py",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "c30584c349a9de5243850683fbcee8d48071104a15a7123466ac92a520818c08",
+      "canonical_source_sha256": "c30584c349a9de5243850683fbcee8d48071104a15a7123466ac92a520818c08"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "delivery": "new-file",
+      "active_before_sha256": null,
+      "candidate_after_sha256": "d2bcecddab3adedc8abeaa5422828166dbce24995ff59cf5de740faec20dc9a6",
+      "canonical_source_sha256": "d2bcecddab3adedc8abeaa5422828166dbce24995ff59cf5de740faec20dc9a6"
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "delivery": "modified-file-patch",
+      "active_before_sha256": "14177f7de0ef6b430f2c37765fdc395e39e3d3169ea088a8f23defaa78248c95",
+      "candidate_after_sha256": "138e67441bf3eb8d15b378c645317f415fe5568ba7144bdad21bf8568bfb38c8",
+      "canonical_source_sha256": "586f462f785bf8b5e6795ac31f861bff797196c93b549a3db4bdccc768db866d"
+    }
+  ],
+  "candidate_manifest_sha256": "f0bcc6dd5a16381291ba9571134a4154c9c903f27eaa885f79a5ae54f223ff6e"
+}

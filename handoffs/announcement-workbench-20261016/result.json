@@ -1,0 +1,89 @@
+{
+  "schema": "v4.announcement_workbench.delivery.v1",
+  "scope": "Manager workbench saved announcement candidates and explicit incremental update",
+  "github_base_commit": "ca4699d1f6ff7289f4967534084d1ce10177bc0a",
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_release": "announcement-workbench-api-20261016-r5",
+  "runtime_manifest_sha256": "f0bcc6dd5a16381291ba9571134a4154c9c903f27eaa885f79a5ae54f223ff6e",
+  "runtime_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-workbench-api-20261016-r5/app",
+  "runtime_pid_at_activation": 25863,
+  "status": {
+    "implemented": true,
+    "tested": true,
+    "independent_predeploy": "PREDEPLOY_R5_PASS",
+    "integrated": true,
+    "deployed": true,
+    "api_verified": true,
+    "ui_verified": "MAIN_IAB_AND_PRIOR_INDEPENDENT_UI; latest independent review used API plus saved IAB AX",
+    "live_incremental": "PARTIAL",
+    "new_incremental_model_success": "NONE_IN_ORIGINAL_JOB",
+    "isolated_transport_recovery": "SUCCEEDED_ONE_REQUEST",
+    "independent_recovery_review": "REVIEWED_BEHAVIOR_VERIFIED_PASS_SINGLETON_TRANSPORT_RECOVERY",
+    "natural_slot": "NOT_RUN_NOT_REQUIRED_FOR_MANUAL_BUTTON"
+  },
+  "validation": {
+    "independent_backend_tests": 19,
+    "independent_frontend_tests": 1,
+    "frontend_build": "PASS",
+    "full_typecheck": "5 pre-existing unrelated errors; not repaired",
+    "clean_subprocess_regression": "PATH-only, -B, no PYTHONPATH; before failure and after DONE with zero model calls"
+  },
+  "frozen_display": {
+    "source_date": "2026-10-15",
+    "stocks": 20,
+    "selected_articles": 22,
+    "completed": 367,
+    "failed": 18,
+    "pending": 5,
+    "body_gaps": 1,
+    "pending_context_too_long": 3,
+    "pending_stopped_not_started": 2,
+    "semantic_review": "MODEL_CANDIDATE_UNREVIEWED except separately labeled prior reviewed reuse"
+  },
+  "manual_incremental": {
+    "job_id": "ae9e73f119e34fd9bd4ecd40cd77c974",
+    "target_date": "20261016",
+    "state": "PARTIAL",
+    "capture_rows": 732,
+    "excluded_outside_window": 31,
+    "new_enqueued": 177,
+    "first_model_transport_failed": 1,
+    "queue_pending": 176,
+    "context_pending": 1,
+    "body_gaps": 311,
+    "pinned_success_reused": 204,
+    "pinned_failed_skipped": 7,
+    "prior_reviewed_reused": 1,
+    "new_candidate_stocks": 0,
+    "original_results_preserved": true
+  },
+  "recovery_canary": {
+    "original_job_updated": false,
+    "model_http_request_attempts": 1,
+    "derived_queue_status": "SUCCEEDED",
+    "original_queue_unchanged": true,
+    "semantic_quality": "NOT_ASSESSED_BY_TRANSPORT_CANARY",
+    "execution_summary_sha256": "efa6b08a353c6b7128dd3d8a8454e99898c9cf7b992e6d5ad54993ec9e68a075",
+    "validated_selection": "NOT_ASSESSED / UNKNOWN / INSUFFICIENT_EXISTING_FACTS"
+  },
+  "known_limits": [
+    "Expanded pending detail includes 311 body-gap rows also listed under gaps; summary separates queue pending176 from gaps311 (independent non-blocking P2).",
+    "Upstream connection resets left 311 body gaps in the last capture.",
+    "Original batch remains partial; isolated recovery does not complete or rewrite it.",
+    "Original first generic failure and exact historical transport subclass were not retained.",
+    "Model server restored via existing foreground start_omlx.sh; no daemon or scheduler was added."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "evidence_receipts": {
+    "review/predeploy-r5-review.json": "46d2792096ac6355278d3694c0a532ea997ca3792d513a9fde1ecb6e3c2920bc",
+    "review/live-r5-behavior-review.json": "6c491b9787453459434cb52928806c9bc0bc6d9452ecc677ad68653b70581e64",
+    "transport-recovery-singleton/singleton-preflight-review.json": "dcfc255c0e75594d377355b8eafd4147ff5f661184555576475a5e5012cbfe8d",
+    "integration/activation-r5-receipt.json": "720bfc0750d76171077d7f0e9f0efd2fee344d4b17dfd80690d9cc02959bb8ca",
+    "review/singleton-runtime-review.json": "d64c670492b0cd4f0a0db9b2123127860a7ef8fe4e6e1ae1afa654d40c5c2856"
+  }
+}

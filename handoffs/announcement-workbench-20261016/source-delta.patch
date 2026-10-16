@@ -1,0 +1,309 @@
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -1,6 +1,7 @@
+ <script setup lang="ts">
+ import { reactive } from "vue";
+ import { useWorkbench } from "./useWorkbench";
++import AnnouncementCandidates from "./AnnouncementCandidates.vue";
+ import type { HKIndustrySummary, Lane, Phase, PlanVersion, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
+ import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
+   showCount, showText, gapText } from "./types";
+@@ -12,6 +13,7 @@
+ const vm = reactive(useWorkbench());
+ const panels = [
+   { key: "stocks", label: "今日名单" },
++  { key: "announcements", label: "公告选股" },
+   { key: "detail", label: "个股详情" },
+   { key: "progress", label: "研究进度" },
+   { key: "history", label: "计划历史" },
+@@ -156,6 +158,8 @@
+         :aria-selected="vm.panel === tab.key" :class="{ active: vm.panel === tab.key }"
+         @click="vm.showPanel(tab.key)">{{ tab.label }}</button>
+     </nav>
++
++    <AnnouncementCandidates v-if="vm.panel === 'announcements'" :target-date="vm.route.date" />
+ 
+     <section v-if="vm.panel === 'stocks'" class="mwb-panel" aria-label="今日研究名单">
+       <div class="mwb-heading">
+--- a/apps/web/src/manager-workbench/api.ts
++++ b/apps/web/src/manager-workbench/api.ts
+@@ -1,7 +1,7 @@
+ import { SCHEMA_VERSION } from "./types";
+ import type {
+-  DayData, Decision, Envelope, HistoryData, JobCreated, JobRecord, Lane,
+-  Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData
++  AnnouncementFlashData, AnnouncementFlashUpdateAccepted, DayData, Decision, Envelope, HistoryData,
++  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData
+ } from "./types";
+ import { isValidDate } from "./route";
+ 
+@@ -140,6 +140,19 @@
+       if (researchUse) params.set("research_use", researchUse);
+       return request<USMappingCatalogData>(transport, "/mapping-catalog?" + params.toString(), { signal });
+     },
++    async getAnnouncementFlash(targetDate?: string, signal?: AbortSignal) {
++      const params = new URLSearchParams();
++      if (targetDate) { exactDate(targetDate); params.set("target_date", targetDate); }
++      const suffix = params.toString();
++      return request<AnnouncementFlashData>(transport,
++        "/announcement-flash" + (suffix ? "?" + suffix : ""), { signal });
++    },
++    async startAnnouncementFlashUpdate(targetDate: string) {
++      exactDate(targetDate);
++      return request<AnnouncementFlashUpdateAccepted>(transport, "/announcement-flash/update", {
++        method: "POST", body: JSON.stringify({ target_date: targetDate })
++      });
++    },
+     async createRun(date: string, phase: "MANUAL" | "RETROSPECTIVE", lanes?: Lane[]) {
+       exactDate(date);
+       if (phase !== "MANUAL" && phase !== "RETROSPECTIVE") throw new ApiError("手动阶段无效", 422);
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -260,6 +260,142 @@
+   run_id: string;
+   status_url: string;
+ }
++export interface AnnouncementSourceOrigin {
++  role: string;
++  source_ref: string;
++  source_product_sha256: string;
++  row_fingerprint_sha256: string;
++}
++export interface AnnouncementArticle {
++  article_id: string;
++  title: string;
++  publication_date?: string | null;
++  symbol: string;
++  name: string;
++  disposition?: string | null;
++  direction?: string | null;
++  selection_basis?: string | null;
++  reason: string;
++  impact: string[];
++  body_sha256: string;
++  source_sha256: string;
++  source_origins: AnnouncementSourceOrigin[];
++  review_status: string;
++  reuse_status?: string | null;
++}
++export interface AnnouncementStock {
++  symbol: string;
++  name: string;
++  reasons: string[];
++  articles: AnnouncementArticle[];
++  review_status: string;
++  reuse_status?: string | null;
++}
++export interface AnnouncementFailure {
++  article_id?: string | null;
++  symbol?: string | null;
++  title?: string | null;
++  failure_code: string;
++  attempt_count?: number | null;
++  stage?: string | null;
++}
++export interface AnnouncementPending {
++  article_id?: string | null;
++  symbol?: string | null;
++  title?: string | null;
++  queue_status?: string | null;
++  queue_reason?: string | null;
++  context_admission?: unknown;
++  execution_admission?: unknown;
++  failure_code?: string | null;
++  prompt_tokens?: number | null;
++  context_limit_tokens?: number | null;
++}
++export interface AnnouncementCounts {
++  source_catalogue_articles?: number | null;
++  model_succeeded?: number | null;
++  selected_model_articles?: number | null;
++  model_candidate_stocks?: number | null;
++  reused_reviewed_stocks?: number | null;
++  failed?: number | null;
++  pending?: number | null;
++  body_gaps?: number | null;
++  displayed_stocks?: number | null;
++  capture_rows?: number | null;
++  excluded_outside_window?: number | null;
++  new_candidate_stocks?: number | null;
++  context_pending?: number | null;
++  queue_pending?: number | null;
++  queue?: Record<string, number>;
++}
++export interface AnnouncementFlashResult extends SafetyFlags {
++  schema?: string;
++  job_id?: string;
++  state: string;
++  source_date?: string | null;
++  target_trade_date?: string | null;
++  updated_at?: string | null;
++  candidate_id?: string | null;
++  model_id?: string;
++  profile?: string;
++  citation_protocol?: string;
++  review_status?: string;
++  counts: AnnouncementCounts;
++  stocks?: AnnouncementStock[];
++  failures?: AnnouncementFailure[];
++  pending?: AnnouncementPending[];
++  gaps?: { code?: string; count?: number; detail?: string }[];
++  system_stop?: { failure_code?: string; attempt?: number; queue_action?: string } | null;
++  provenance?: Record<string, unknown>;
++}
++export interface AnnouncementJobStatus {
++  job_id: string;
++  target_date: string;
++  state: JobState;
++  step?: string | null;
++  completed_count?: NullableCount;
++  total_count?: NullableCount;
++  failure_code?: string | null;
++  last_progress_at?: string | null;
++  progress?: {
++    queue_counts?: Record<string, number>;
++    pending_body_gaps?: number;
++    pending_context?: number;
++    result_state?: string;
++  } | null;
++  result_state?: string;
++  counts?: AnnouncementCounts;
++}
++export interface AnnouncementFlashData extends SafetyFlags {
++  state: string;
++  source_date: string;
++  target_trade_date: string;
++  updated_at?: string | null;
++  candidate_id?: string | null;
++  model_id?: string;
++  profile?: string;
++  citation_protocol?: string;
++  review_status?: string;
++  counts: AnnouncementCounts;
++  stocks: AnnouncementStock[];
++  failures: AnnouncementFailure[];
++  pending: AnnouncementPending[];
++  gaps: { code?: string; count?: number; detail?: string }[];
++  system_stop?: { failure_code?: string; attempt?: number; queue_action?: string } | null;
++  provenance?: Record<string, string>;
++  incremental?: AnnouncementFlashResult | null;
++  incremental_runs?: { job_id: string; target_trade_date?: string | null; state: string;
++    updated_at?: string | null; counts?: AnnouncementCounts }[];
++  job?: AnnouncementJobStatus | null;
++  requested_target_date?: string | null;
++}
++export interface AnnouncementFlashUpdateAccepted {
++  job_id: string;
++  target_date: string;
++  requested_target_date: string;
++  step?: string | null;
++  status_url: string;
++}
+ export interface ReviewRow {
+   rank: number;
+   symbol: string;
+--- a/apps/web/src/manager-workbench/useWorkbench.ts
++++ b/apps/web/src/manager-workbench/useWorkbench.ts
+@@ -8,7 +8,7 @@
+ import { parseWorkbenchRoute, routeSearch } from "./route";
+ import type { WorkbenchRoute } from "./route";
+ 
+-export type Panel = "stocks" | "detail" | "progress" | "history" | "reviews" | "catalog";
++export type Panel = "stocks" | "announcements" | "detail" | "progress" | "history" | "reviews" | "catalog";
+ type APIData<T> = Envelope<T> | null;
+ 
+ function errorMessage(error: unknown): string {
+--- a/apps/web/src/manager-workbench/workbench.css
++++ b/apps/web/src/manager-workbench/workbench.css
+@@ -127,3 +127,29 @@
+ .mwb-research-section cite { font-size: 11px; color: #64748b; font-style: normal; overflow-wrap: anywhere; }
+ .mwb-audit-json { max-height: 480px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
+ .mwb-evidence a { display: inline-block; margin: 6px 14px 0 0; }
++.mwb-announcements { border-top: 3px solid #1d6078; }
++.mwb-announcement-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 12px; border-radius: 7px; background: #f3f7fa; color: #53677c; font-size: 12px; }
++.mwb-announcement-meta strong { color: #173d59; overflow-wrap: anywhere; }
++.mwb-announcement-counts { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 14px 0; }
++.mwb-announcement-counts > div { display: flex; flex-direction: column; gap: 5px; border: 1px solid #d9e4ed; border-radius: 8px; padding: 12px; background: #f8fafc; }
++.mwb-announcement-counts strong { font-size: 21px; color: #143b58; font-variant-numeric: tabular-nums; }
++.mwb-announcement-counts span, .mwb-announcement-job span { font-size: 11px; color: #65788e; }
++.mwb-announcement-job { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 15px; margin: 14px 0; padding: 12px; border: 1px solid #d5e2eb; border-radius: 7px; background: #f7fbfd; }
++.mwb-announcement-job strong { color: #184e6e; }
++.mwb-announcement-safety { margin: 14px 0; padding: 9px 12px; color: #754b0d; background: #fff6e6; border-radius: 6px; font-size: 12px; }
++.mwb-announcement-table { min-width: 850px; table-layout: fixed; }
++.mwb-announcement-table th:nth-child(1) { width: 16%; }
++.mwb-announcement-table th:nth-child(2) { width: 27%; }
++.mwb-announcement-table th:nth-child(3) { width: 39%; }
++.mwb-announcement-table th:nth-child(4) { width: 18%; }
++.mwb-announcement-article + .mwb-announcement-article, .mwb-announcement-reason + .mwb-announcement-reason { border-top: 1px solid #e2e9ef; margin-top: 9px; padding-top: 8px; }
++.mwb-announcement-article strong { display: block; font-size: 12px; color: #294861; }
++.mwb-announcement-article small { display: block; margin-top: 4px; color: #6b7d92; overflow-wrap: anywhere; }
++.mwb-announcement-reason p { margin: 0 0 7px; white-space: pre-wrap; overflow-wrap: anywhere; }
++.mwb-announcement-reason ul { margin: 5px 0; padding-left: 18px; }
++.mwb-announcement-audit { margin-top: 16px; padding: 13px; border: 1px solid #dce5ee; border-radius: 7px; background: #fbfcfe; }
++.mwb-announcement-audit summary { cursor: pointer; font-weight: 700; color: #334d64; }
++.mwb-announcement-audit h3 { margin: 16px 0 7px; font-size: 13px; }
++.mwb-announcement-audit ul { padding-left: 20px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
++@media(max-width:1050px) { .mwb-announcement-counts { grid-template-columns: repeat(3,minmax(0,1fr)); } }
++@media(max-width:680px) { .mwb-announcement-counts { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+--- a/v4/manager_workbench/api.py
++++ b/v4/manager_workbench/api.py
+@@ -15,6 +15,7 @@
+ from .jobs import JobConflict
+ from .legacy import LegacyHistory
+ from .service import ManagerService
++from .announcement_update import AnnouncementUpdate
+ from .store import StorageConflict, StorageUnavailable
+ from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
+ from .engines.common import US_FACTOR_RULES_VERSION
+@@ -39,6 +40,16 @@
+     def unique_lanes(cls,value):
+         if value and len(value)!=len(set(value)):raise ValueError("DUPLICATE_LANES")
+         return value
++
++    @field_validator("target_date")
++    @classmethod
++    def check_date(cls, value: str) -> str:
++        return validate_date(value)
++
++
++class AnnouncementFlashUpdateRequest(BaseModel):
++    model_config = ConfigDict(extra="forbid")
++    target_date: str
+ 
+     @field_validator("target_date")
+     @classmethod
+@@ -113,6 +124,34 @@
+ 
+ def create_router(service: ManagerService) -> APIRouter:
+     router = APIRouter(prefix=PREFIX, tags=["manager-workbench"],route_class=WorkbenchRoute)
++    announcement_update = AnnouncementUpdate(service) if service is not None else None
++
++    @router.get("/announcement-flash")
++    def read_announcement_flash(target_date: str | None = Query(None, pattern=r"^[0-9]{8}$")):
++        if announcement_update is None:
++            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
++        day = _date(target_date) if target_date else None
++        def read():
++            value = announcement_update.read(day)
++            state = value.get("state", "UNAVAILABLE")
++            return envelope(state, _public(value), value.get("gaps", []))
++        return _safe_errors(read)
++
++    @router.post("/announcement-flash/update", status_code=202)
++    def update_announcement_flash(payload: AnnouncementFlashUpdateRequest):
++        if announcement_update is None:
++            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
++        def update():
++            job = announcement_update.start(payload.target_date)
++            state = job.state.value
++            return envelope("QUEUED" if state == "QUEUED" else state, {
++                "job_id": job.job_id,
++                "target_date": job.context.target_date,
++                "requested_target_date": payload.target_date,
++                "step": job.step,
++                "status_url": f"{PREFIX}/announcement-flash?target_date={job.context.target_date}",
++            })
++        return _safe_errors(update)
+ 
+     @router.get("/mapping-catalog")
+     def read_us_hk_mapping_catalog(
