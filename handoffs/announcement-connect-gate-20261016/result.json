@@ -1,0 +1,63 @@
+{
+  "schema": "announcement-connect-gate-result.v1",
+  "goal": "Only verified HK Connect announcements may enter model screening",
+  "status": [
+    "IMPLEMENTED",
+    "TESTED",
+    "REVIEWED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_release": "announcement-connect-api-20261016-r2",
+  "runtime_pid": 3760,
+  "manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+  "independent_review": {
+    "predeploy_sha256": "793553b3c7a48bfcbe35febe3f176cf8eb6d5cc159143cf9da43ac72526af334",
+    "live_sha256": "befadfb4d13dce8933645f2aa1b5f1b7ebdb430a3936c960f0afe2825232796d",
+    "findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    }
+  },
+  "tests": {
+    "r1_backend_independent": 23,
+    "r2_changed_backend_independent": 2,
+    "r2_frontend_independent": 1,
+    "writer_full_backend": 24,
+    "vite_build": "PASS",
+    "out_unknown_actual_runner": {
+      "enqueue": 0,
+      "run_next": 0,
+      "transport_constructions": 0
+    }
+  },
+  "live_projection": {
+    "target_date": "20261016",
+    "authority_status": "VERIFIED",
+    "authority_members": 698,
+    "authority_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+    "IN_stocks": 15,
+    "OUT_stocks": 5,
+    "UNKNOWN_stocks": 0,
+    "base_target_trade_date": "CANNOT_CONFIRM"
+  },
+  "limits": [
+    "Natural new batch NOT_RUN",
+    "Old interrupted job remains FAILED with 38 succeeded, 117 pending and one residual RUNNING; no retry",
+    "No raw queue rewrite or new capture/model request",
+    "Five existing TypeScript diagnostics in unchanged files",
+    "Research candidate semantics remain unreviewed; not BUY eligibility"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "source_patch_sha256": "bb828c7f9f8311f1aab9e3bc113ffa81253db1c1288a9bfd01c30d7cbf36e607"
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "announcement-connect-gate-handoff.v1",
+  "baseline_commit": "8512d766217988929a40350f539fe165a76a2170",
+  "canonical_source_root": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+  "runtime_base": {
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r6",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r6/app",
+    "release_id": "hk-morning-selection-recovery-20261016-r6",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r6/release-manifest.json",
+    "release_manifest_sha256": "79529d0140d93d3eb26c5c61a395a8fa327aeacd0b196b45acea88c559a77d04",
+    "application_inventory_sha256": "99365b190e9be55576500d31ffc7f24841e3f42106fd587675c9e4e5e58efcfe",
+    "application_inventory_entry_count": 1228
+  },
+  "candidate_source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/app",
+  "candidate_manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+  "files": [
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "before_sha256": "529129b8b4cfc7b385c8b52f9cfd52e02d452df1e934b9a7f338d73227ad84bf",
+      "after_sha256": "fa8219a083102f6516f85893f5dc8aeef084c3c48d4f78b71c8239415fc7da29",
+      "unified_diff_sha256": "026e3a31898dcb5daaaa91193ff5c7a5903384fea47b8631003438d53bd53a1f",
+      "unified_diff_hunk_count": 6
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "before_sha256": "82591e79810e50b0ec3d58b97eaaafe39fd66bfc9c270ba94d3159ec80c3a67c",
+      "after_sha256": "38165f299872b293bbd3e6541ee6dc48f402de94758fa8cd304659ae845199e9",
+      "unified_diff_sha256": "e8a4d80f9e40a3697b40295245b1c9b49935a4c7a12aab19dbdbb56790149fe9",
+      "unified_diff_hunk_count": 7
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "808926d4e442814956a42d088e181c33baebed9d6a357fca90bb826046622d17",
+      "after_sha256": "ba43ce38304ee4b9bcaf8148b4e53f836feea13376b576ce73ae513d49766849",
+      "unified_diff_sha256": "2add5fd4df8201e37e16f0d2fabd2f1b7b43dc36a25c6a9f87402c04a8525b78",
+      "unified_diff_hunk_count": 6
+    },
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "before_sha256": "24f4a11c73deed832f3c33dd8b2b58a486e3e4ec5e82100989e18b18a64c7425",
+      "after_sha256": "591995ac3afd9234ee73912d720dcc7595fd4c6211760467ecfbd6dcf202cab5",
+      "unified_diff_sha256": "a23667611fcb3ea16dcdd70bb05d6bf071bff255082f3046622b9967fd174cb5",
+      "unified_diff_hunk_count": 19
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_readonly.py",
+      "before_sha256": "5612440ab06501599394288b07e56937a848f7be2d65a744a901217032b96d3a",
+      "after_sha256": "7c028d8439da0d5f3269f8127bdcb8a8701ab56b52b05738b7737981f24edb6f",
+      "unified_diff_sha256": "a2e23aed4ee7331133f453286ef1e2b05c52f8fc5479d6d91658d4f072130701",
+      "unified_diff_hunk_count": 11
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_runner.py",
+      "before_sha256": "930338fce1a8c4c65ae51979e18ada176adacb537ad68d0ebe84d2ef99511415",
+      "after_sha256": "324d305d6f094d368b3ee008f16e54281e416fb2e10c5bb396bf0cab12ad8f79",
+      "unified_diff_sha256": "d910af575ea0837da707293d1862aa6eb35cd5c47bc3665cd3f52b830f83a28a",
+      "unified_diff_hunk_count": 5
+    },
+    {
+      "path": "v4/manager_workbench/announcement_membership.py",
+      "before_sha256": null,
+      "after_sha256": "0f0026ad3779b27e8441b20e403772f3aabbe9505bfe8009e9c416f036d78161",
+      "unified_diff_sha256": null,
+      "unified_diff_hunk_count": null
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "before_sha256": "d2bcecddab3adedc8abeaa5422828166dbce24995ff59cf5de740faec20dc9a6",
+      "after_sha256": "2662a05cd5edcb99da9fb4bf59966c6a780476ab9d534b30d07a6b97efab3ada",
+      "unified_diff_sha256": "fecf5accbd9443028d2ccd2f97470cf7213c9c71389772cb4c5adcda03654320",
+      "unified_diff_hunk_count": 8
+    }
+  ],
+  "excluded": [
+    "raw announcements",
+    "model outputs",
+    "queue snapshots",
+    "credentials",
+    "operator config",
+    "plist",
+    "dist"
+  ]
+}

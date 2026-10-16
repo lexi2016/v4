@@ -1,0 +1,1107 @@
+--- a/apps/web/src/manager-workbench/AnnouncementCandidates.vue
++++ b/apps/web/src/manager-workbench/AnnouncementCandidates.vue
+@@ -18,6 +18,7 @@
+ const data = computed(() => view.value?.data || null);
+ const stocks = computed(() => data.value?.stocks || []);
+ const activeJob = computed(() => data.value?.job || null);
++const membership = computed(() => data.value?.membership || null);
+ const isActive = computed(() => activeJob.value?.state === "QUEUED" || activeJob.value?.state === "RUNNING");
+ const queueCounts = computed(() => activeJob.value?.progress?.queue_counts || {});
+ const historicalOutcomes = computed(() => {
+@@ -92,6 +93,10 @@
+   return ({ QUEUED: "排队中", RUNNING: "运行中", SUCCEEDED: "完成", PARTIAL: "部分完成",
+     FAILED: "失败", CANCELLED: "已取消", INTERRUPTED: "中断" } as Record<string, string>)[value || ""] || "未运行";
+ }
++function membershipText(value?: string | null): string {
++  return ({ VERIFIED: "权威已核验", CANNOT_CONFIRM: "资格无法确认", IN: "港股通范围内",
++    OUT: "不在港股通范围", UNKNOWN: "资格未知" } as Record<string, string>)[value || ""] || "未核验";
++}
+ function pendingStatusText(item: AnnouncementPending): string {
+   if (item.queue_status === "PENDING" && item.context_admission === "INPUT_EXCEEDS_CONTEXT"
+     && item.execution_admission === "AWAITING_FULL_BODY_CHUNKING") return "正文超长，待完整分块";
+@@ -133,7 +138,7 @@
+     <template v-if="data">
+       <div class="mwb-announcement-meta">
+         <span>公告来源日：<strong>{{ data.source_date }}</strong></span>
+-        <span>目标港股日：<strong>{{ data.target_trade_date }}</strong></span>
++        <span>冻结基线目标港股日：<strong>{{ data.target_trade_date }}</strong></span>
+         <span>来源更新：<strong>{{ timeText(data.updated_at) }}</strong></span>
+         <span>模型候选语义复核：<strong>{{ data.review_status || "MODEL_CANDIDATE_UNREVIEWED" }}</strong></span>
+       </div>
+@@ -145,6 +150,16 @@
+         <div><strong>{{ countText(data.counts.pending) }}</strong><span>冻结结果未运行文章</span></div>
+         <div><strong>{{ countText(data.counts.body_gaps) }}</strong><span>正文缺口</span></div>
+       </div>
++
++      <section class="mwb-announcement-job" aria-label="目标日港股通资格校验">
++        <strong>目标日港股通资格：{{ membershipText(membership?.status) }}</strong>
++        <span>目标日 {{ membership?.target_date || data.requested_target_date || "未知" }}</span>
++        <span v-if="membership?.cutoff">截止 {{ timeText(membership.cutoff) }}</span>
++        <span>权威成员 {{ countText(membership?.member_count) }}</span>
++        <span>权威 SHA256 {{ membership?.authority_sha256 || membership?.failure_code || "未提供" }}</span>
++        <span v-if="membership?.effective_from && membership?.effective_to">有效期 {{ membership.effective_from }}–{{ membership.effective_to }}</span>
++        <span>展示 IN {{ countText(data.counts.membership_eligible_stocks) }} 只 · OUT {{ countText(data.counts.membership_excluded_stocks) }} 只 · UNKNOWN {{ countText(data.counts.membership_unknown_stocks) }} 只</span>
++      </section>
+ 
+       <section v-if="activeJob" class="mwb-announcement-job" aria-label="增量任务进度">
+         <strong>增量任务：{{ jobStateText(activeJob.state) }}</strong>
+@@ -207,6 +222,7 @@
+               </td>
+               <td>
+                 <span>{{ stock.review_status }}</span>
++                <small>{{ membershipText(stock.membership_status) }}</small>
+                 <small v-if="stock.reuse_status">{{ stock.reuse_status }}</small>
+               </td>
+             </tr>
+@@ -259,6 +275,24 @@
+           </template>
+         </li></ul>
+       </details>
++      <details v-if="data.membership_excluded_stocks?.length || data.membership_unknown_stocks?.length
++        || data.membership_excluded_articles?.length || data.membership_unknown_articles?.length"
++        class="mwb-announcement-audit">
++        <summary>港股通范围外与资格未知：股票 {{ data.membership_excluded_stocks?.length || 0 }} / {{ data.membership_unknown_stocks?.length || 0 }}，文章 {{ data.membership_excluded_articles?.length || 0 }} / {{ data.membership_unknown_articles?.length || 0 }}</summary>
++        <h3>范围外股票</h3>
++        <ul><li v-for="item in data.membership_excluded_stocks || []" :key="item.symbol">
++          {{ item.symbol }} · {{ item.name || "名称未知" }} · {{ item.membership_reason || "OUT" }}
++        </li></ul>
++        <h3>资格未知股票</h3>
++        <ul><li v-for="item in data.membership_unknown_stocks || []" :key="item.symbol">
++          {{ item.symbol }} · {{ item.name || "名称未知" }} · {{ item.membership_reason || "UNKNOWN" }}
++        </li></ul>
++        <h3>范围外或资格未知文章</h3>
++        <ul><li v-for="(item, index) in [...(data.membership_excluded_articles || []), ...(data.membership_unknown_articles || [])]"
++          :key="`${String(item.article_id || 'article')}-${index}`">
++          {{ String(item.symbol || "代码待核") }} · {{ String(item.title || item.article_id || "文章未知") }} · {{ String(item.membership_status || "UNKNOWN") }} · {{ String(item.membership_reason || "资格无法确认") }}
++        </li></ul>
++      </details>
+     </template>
+     <p v-else-if="!loading" class="mwb-empty">公告选股状态尚未读取成功。</p>
+   </section>
+--- a/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
+@@ -19,28 +19,39 @@
+       pagination: { total: 0, offset: 0, limit: 50 }, versions: [] };
+     const stocks = Array.from({ length: 20 }, (_, index) => {
+       const isFirst = index === 0;
+-      const symbol = isFirst ? "HK.09963" : `HK.${10000 + index}`;
++      const symbol = isFirst ? "HK.00001" : `HK.${10000 + index}`;
+       const name = isFirst ? "高途" : `候选${index + 1}`;
+       const reason = isFirst ? "公告披露订单金额同比增长，构成正向候选。" : `候选公告${index + 1}的复核理由。`;
+       return {
+         symbol, name, reasons: [isFirst ? "订单规模增长" : reason],
+-        review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null,
++        review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN",
+         articles: [{ article_id: isFirst ? "EASTMONEY:AN1" : `EASTMONEY:TEST${index + 1}`,
+           title: isFirst ? "高途公告" : `候选公告${index + 1}`, publication_date: "2026-10-15",
+           symbol, name, disposition: "SELECTED_EVENT", direction: "POSITIVE",
+           selection_basis: isFirst ? "公告明确新增订单" : "公告披露事项",
+           reason, impact: isFirst ? ["订单金额提升"] : [],
+           body_sha256: "a".repeat(64), source_sha256: "b".repeat(64), source_origins: [],
+-          review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null }]
++          review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN" }]
+       };
+     });
+     const announcement = {
+       state: "PARTIAL", source_date: "2026-10-15", target_trade_date: "CANNOT_CONFIRM",
+       updated_at: "2026-10-16T01:00:00Z", review_status: "MODEL_CANDIDATE_UNREVIEWED",
+       counts: { source_catalogue_articles: 392, model_succeeded: 367, selected_model_articles: 21,
+-        model_candidate_stocks: 19, reused_reviewed_stocks: 1, displayed_stocks: 20,
+-        failed: 18, pending: 5, body_gaps: 1 },
+-      stocks,
++        model_candidate_stocks: 19, reused_reviewed_stocks: 1, displayed_stocks: 15,
++        failed: 18, pending: 5, body_gaps: 1, membership_eligible_stocks: 15,
++        membership_excluded_stocks: 5, membership_unknown_stocks: 0 },
++      membership: { status: "VERIFIED", target_date: "20261016", cutoff: "2026-10-16T13:02:00+08:00",
++        market: "HK_CONNECT", owner: "v35_dispatcher.research_panel_daily_hk", authority_sha256: "e".repeat(64),
++        authority_version: "v1", effective_from: "20261001", effective_to: "20261031",
++        available_at: "2026-10-12T19:58:59.501065+08:00", member_count: 698 },
++      membership_excluded_stocks: ["09963", "08637", "01319", "01799", "02290"].map(code => ({
++        symbol: `HK.${code}`, name: `范围外${code}`, reasons: [], articles: [],
++        review_status: "NOT_MODEL_ADMITTED", reuse_status: null, membership_status: "OUT",
++        membership_reason: "NOT_IN_HK_CONNECT_UNIVERSE_AT_TARGET_DATE"
++      })),
++      membership_unknown_stocks: [], membership_excluded_articles: [], membership_unknown_articles: [],
++      stocks: stocks.slice(0, 15),
+       failures: Array.from({ length: 18 }, (_, index) => ({
+         article_id: index === 0 ? "EASTMONEY:AN2" : `EASTMONEY:FAILED${index + 1}`,
+         symbol: index === 0 ? "HK.00001" : `HK.${20000 + index}`,
+@@ -89,13 +100,22 @@
+ 
+     await fireEvent.click(screen.getByRole("tab", { name: "公告选股" }));
+     expect(await screen.findByText("公告披露订单金额同比增长，构成正向候选。")).toBeTruthy();
+-    expect(screen.getByText("HK.09963")).toBeTruthy();
++    expect(screen.getByText("HK.00001")).toBeTruthy();
+     expect(screen.getByText("2026-10-15")).toBeTruthy();
+-    expect(screen.getByText("20", { selector: "strong" })).toBeTruthy();
+-    expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(21);
++    expect(screen.getByText("15", { selector: "strong" })).toBeTruthy();
++    expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(16);
++    expect(screen.getByText("目标日港股通资格：权威已核验")).toBeTruthy();
++    expect(screen.getByText("展示 IN 15 只 · OUT 5 只 · UNKNOWN 0 只")).toBeTruthy();
++    expect(screen.getByText((_, element) => element?.tagName === "SPAN"
++      && element.textContent?.includes("冻结基线目标港股日：CANNOT_CONFIRM") === true)).toBeTruthy();
++    expect(screen.queryByText("HK.09963")).toBeNull();
+     expect(screen.getByText("CANNOT_CONFIRM")).toBeTruthy();
+     expect(screen.getAllByText("MODEL_CANDIDATE_UNREVIEWED").length).toBeGreaterThan(0);
+     expect(calls.filter(call => call.method === "POST")).toHaveLength(0);
++
++    await fireEvent.click(screen.getByText(/港股通范围外与资格未知：股票 5 \/ 0，文章 0 \/ 0/));
++    expect(screen.getByText((_, element) => element?.tagName === "LI"
++      && element.textContent?.includes("HK.09963") === true)).toBeTruthy();
+ 
+     await fireEvent.click(screen.getByText(/冻结结果处理明细：失败 18、未运行 5、正文缺口 1/));
+     expect(screen.getAllByText("正文超长，待完整分块", { selector: "strong" })).toHaveLength(3);
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -282,6 +282,8 @@
+   source_origins: AnnouncementSourceOrigin[];
+   review_status: string;
+   reuse_status?: string | null;
++  membership_status?: "IN" | "OUT" | "UNKNOWN";
++  membership_reason?: string;
+ }
+ export interface AnnouncementStock {
+   symbol: string;
+@@ -290,6 +292,22 @@
+   articles: AnnouncementArticle[];
+   review_status: string;
+   reuse_status?: string | null;
++  membership_status?: "IN" | "OUT" | "UNKNOWN";
++  membership_reason?: string;
++}
++export interface AnnouncementMembershipGate {
++  status: "VERIFIED" | "CANNOT_CONFIRM";
++  target_date?: string;
++  cutoff?: string;
++  market?: "HK_CONNECT";
++  owner?: string | null;
++  authority_sha256?: string | null;
++  authority_version?: string | null;
++  effective_from?: string | null;
++  effective_to?: string | null;
++  available_at?: string | null;
++  member_count?: number | null;
++  failure_code?: string | null;
+ }
+ export interface AnnouncementFailure {
+   article_id?: string | null;
+@@ -324,6 +342,13 @@
+   capture_rows?: number | null;
+   excluded_outside_window?: number | null;
+   new_candidate_stocks?: number | null;
++  membership_eligible_stocks?: number | null;
++  membership_excluded_stocks?: number | null;
++  membership_unknown_stocks?: number | null;
++  membership_excluded_articles?: number | null;
++  membership_unknown_articles?: number | null;
++  membership_articles?: Record<string, number>;
++  membership_stocks?: Record<string, number>;
+   context_pending?: number | null;
+   queue_pending?: number | null;
+   queue?: Record<string, number>;
+@@ -345,6 +370,13 @@
+   failures?: AnnouncementFailure[];
+   pending?: AnnouncementPending[];
+   gaps?: { code?: string; count?: number; detail?: string }[];
++  membership_gate?: AnnouncementMembershipGate;
++  membership?: AnnouncementMembershipGate;
++  membership_exclusions?: Record<string, unknown>[];
++  membership_excluded_stocks?: AnnouncementStock[];
++  membership_unknown_stocks?: AnnouncementStock[];
++  membership_excluded_articles?: Record<string, unknown>[];
++  membership_unknown_articles?: Record<string, unknown>[];
+   system_stop?: { failure_code?: string; attempt?: number; queue_action?: string } | null;
+   provenance?: Record<string, unknown>;
+ }
+@@ -361,6 +393,7 @@
+     queue_counts?: Record<string, number>;
+     pending_body_gaps?: number;
+     pending_context?: number;
++    membership?: { status?: string; articles?: Record<string, number> };
+     result_state?: string;
+   } | null;
+   result_state?: string;
+@@ -383,6 +416,11 @@
+   gaps: { code?: string; count?: number; detail?: string }[];
+   system_stop?: { failure_code?: string; attempt?: number; queue_action?: string } | null;
+   provenance?: Record<string, string>;
++  membership?: AnnouncementMembershipGate;
++  membership_excluded_stocks?: AnnouncementStock[];
++  membership_unknown_stocks?: AnnouncementStock[];
++  membership_excluded_articles?: Record<string, unknown>[];
++  membership_unknown_articles?: Record<string, unknown>[];
+   incremental?: AnnouncementFlashResult | null;
+   incremental_runs?: { job_id: string; target_trade_date?: string | null; state: string;
+     updated_at?: string | null; counts?: AnnouncementCounts }[];
+--- a/ops/run_manager_flash_announcements.py
++++ b/ops/run_manager_flash_announcements.py
+@@ -18,6 +18,7 @@
+ import re
+ import sys
+ import time
++from types import SimpleNamespace
+ from typing import Any, Callable
+ 
+ REPO_ROOT = Path(__file__).resolve().parents[1]
+@@ -174,7 +175,9 @@
+ 
+ 
+ def _article(row: dict[str, Any], row_index: int, capture_product: dict[str, Any], capture_ref: dict[str, str],
+-             capture_io: SafeRoot, runner: Any) -> dict[str, Any]:
++             capture_io: SafeRoot, runner: Any, membership_gate: dict[str, Any]) -> dict[str, Any]:
++    from v4.manager_workbench.announcement_membership import classify_capture_row
++
+     body = row.get("body_text")
+     body_sha = row.get("body_text_sha256")
+     if (row.get("body_complete") is not True or not isinstance(body, str) or not body
+@@ -187,6 +190,9 @@
+     hk_codes = [item.get("code") for item in code_rows if isinstance(item, dict)
+                 and isinstance(item.get("code"), str) and re.fullmatch(r"HK\.[0-9]{5}", item["code"])]
+     symbol = hk_codes[0] if len(set(hk_codes)) == 1 else "CANNOT_CONFIRM"
++    membership = classify_capture_row(row, membership_gate)
++    if membership.get("membership_status") != "IN" or len(set(hk_codes)) != 1:
++        raise FlashRunError("ARTICLE_NOT_HK_CONNECT_MEMBER")
+     name = next((item.get("name") for item in code_rows if isinstance(item, dict) and item.get("name")), symbol)
+     origins = _capture_origin(row, capture_product, {**capture_ref, "row_index": row_index}, capture_io, body_sha)
+     metadata = {
+@@ -199,8 +205,11 @@
+         "pit_status": "CANNOT_CONFIRM",
+         "pit_reason": "OFFICIAL_FIRST_PUBLICATION_TIME_NOT_BOUND",
+         "first_hkex_publication_time": "CANNOT_CONFIRM",
+-        "article_membership_status": "CANNOT_CONFIRM",
+-        "source_issuer_membership": [],
++        "article_membership_status": "IN",
++        "source_issuer_membership": [{"code": membership["issuer_codes"][0],
++                                       "membership_status": "IN", "market": "HK_CONNECT",
++                                       "authority_sha256": membership_gate["authority_sha256"]}],
++        "membership_authority_sha256": membership_gate["authority_sha256"],
+         "source_issuer_codes": code_rows,
+         "source_scope": "EASTMONEY_ONLY",
+         "source_display_time": row.get("display_time"),
+@@ -708,7 +717,8 @@
+ 
+ 
+ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
+-         job_id: str, progress: Callable[[dict[str, Any]], None]) -> dict[str, Any]:
++         job_id: str, progress: Callable[[dict[str, Any]], None],
++         shared_root: Path | None = None) -> dict[str, Any]:
+     # _load_helper initializes PIPELINE_ROOT on sys.path. Do that before these
+     # imports: the Flash queue and runtime modules live in that existing tree.
+     helper = _load_helper()
+@@ -738,6 +748,22 @@
+         # carried only in the separate internal input record.
+         raise FlashRunError("CAPTURE_PRODUCT_IDENTITY_INVALID")
+ 
++    from v4.manager_workbench.announcement_membership import (
++        classify_capture_row, filter_payloads, public_gate, revalidate_membership_gate,
++    )
++    membership_input = input_value.get("membership_gate")
++    if shared_root is not None:
++        gate_cutoff = input_value.get("cutoff")
++        membership_gate = revalidate_membership_gate(
++            SimpleNamespace(shared_root=shared_root, source_bindings={}), membership_input,
++            input_value["target_date"], gate_cutoff if isinstance(gate_cutoff, str) else "",
++        )
++    else:
++        membership_gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1",
++                           "status": "CANNOT_CONFIRM", "target_date": input_value["target_date"],
++                           "market": "HK_CONNECT", "failure_code": "MEMBERSHIP_SHARED_ROOT_UNAVAILABLE",
++                           "codes": []}
++
+     contract = runner.load_active_contract()
+     request_material = helper._full_day_request_material(contract)
+     configuration_material = request_material.get("configuration_material", {})
+@@ -758,6 +784,9 @@
+     excluded = 0
+     payloads: list[dict[str, Any]] = []
+     preflight_pending: list[dict[str, Any]] = []
++    membership_exclusions: list[dict[str, Any]] = []
++    membership_article_counts: Counter[str] = Counter()
++    membership_stock_symbols: dict[str, str] = {}
+     for index, row in enumerate(capture_product.get("rows", [])):
+         if not isinstance(row, dict):
+             body_gaps.append({"article_id": None, "failure_code": "CAPTURE_ROW_INVALID"})
+@@ -772,8 +801,19 @@
+             body_gaps.append({"article_id": article_id, "symbol": None,
+                               "title": row.get("title"), "failure_code": codes[0] if codes else "BODY_INCOMPLETE"})
+             continue
++        member_record = classify_capture_row(row, membership_gate)
++        status = member_record["membership_status"]
++        membership_article_counts[status.lower()] += 1
++        symbol_key = member_record.get("symbol") or member_record["article_id"]
++        if status == "UNKNOWN" and symbol_key == "CANNOT_CONFIRM":
++            symbol_key = member_record["article_id"]
++        prior_status = membership_stock_symbols.get(symbol_key)
++        membership_stock_symbols[symbol_key] = "UNKNOWN" if prior_status and prior_status != status else status
++        if status != "IN":
++            membership_exclusions.append(member_record)
++            continue
+         try:
+-            article = _article(row, index, capture_product, capture_ref, capture_io, runner)
++            article = _article(row, index, capture_product, capture_ref, capture_io, runner, membership_gate)
+             batch = length_canary.make_batch([article], "V4_FLASH_" + sha(article["article_id"].encode())[:16])
+             messages = helper._messages_for_article(article, contract, request_material["prompt"], PROFILE)
+             prompt_tokens = helper._token_count(tokenizer, messages)
+@@ -810,8 +850,13 @@
+                               if row.get("source_issuer_codes") else None,
+                               "title": row.get("title"), "failure_code": code})
+ 
++    admitted_payloads, admission_exclusions = filter_payloads(payloads, membership_gate)
++    if admission_exclusions:
++        membership_exclusions.extend(admission_exclusions)
++        for record in admission_exclusions:
++            membership_article_counts[str(record.get("membership_status", "UNKNOWN")).lower()] += 1
+     pinned_history = _pinned_candidate_history()
+-    admission = _admit_incremental_payloads(payloads, queue, pinned_history, queue_root)
++    admission = _admit_incremental_payloads(admitted_payloads, queue, pinned_history, queue_root)
+     allowed_keys: set[str] = admission["allowed_keys"]
+     articles_by_key: dict[str, dict[str, Any]] = admission["articles_by_key"]
+     matched_history: list[dict[str, Any]] = admission["matched"]
+@@ -824,7 +869,10 @@
+ 
+     progress({"step": "FLASH_SELECTION", "completed": 0, "total": len(allowed_keys),
+               "queue_counts": dict(current_counts()), "pending_body_gaps": len(body_gaps),
+-              "pending_context": len(preflight_pending), "updated_at": datetime.now(timezone.utc).isoformat()})
++              "pending_context": len(preflight_pending),
++              "membership": {"status": membership_gate.get("status"),
++                             "articles": dict(membership_article_counts)},
++              "updated_at": datetime.now(timezone.utc).isoformat()})
+ 
+     evidence_root = state_root / "announcement_flash" / "evidence"
+     completed = 0
+@@ -953,7 +1001,9 @@
+ 
+     counts = dict(current_status_counts)
+     complete = (all(status == "SUCCEEDED" for status in current_status_counts.values())
+-                and not body_gaps and not preflight_pending and not failures and not pending_queue)
++                and not body_gaps and not preflight_pending and not failures and not pending_queue
++                and membership_gate.get("status") == "VERIFIED"
++                and membership_article_counts.get("unknown", 0) == 0)
+     queue_counts = {key.lower(): value for key, value in counts.items()}
+     queue_counts.update({"new_enqueued": admission["new_enqueued"],
+                          "new_model_calls_allowed": len(allowed_keys),
+@@ -991,9 +1041,14 @@
+             "new_candidate_stocks": len(fresh_stocks), "reused_candidate_stocks": len(reused_stocks),
+             "body_gaps": len(body_gaps), "context_pending": len(preflight_pending),
+             "queue_pending": len(pending_queue), "failed": len(failures),
++            "membership_articles": {key: membership_article_counts.get(key, 0) for key in ("in", "out", "unknown")},
++            "membership_stocks": {key: sum(status == key.upper() for status in membership_stock_symbols.values())
++                                  for key in ("in", "out", "unknown")},
+         },
+         "stocks": _aggregate(selected_rows), "failures": failures,
+         "pending": [*pending_queue, *preflight_pending, *body_gaps],
++        "membership_gate": public_gate(membership_gate),
++        "membership_exclusions": membership_exclusions,
+         "gaps": [*body_gaps], "system_stop": system_stop,
+         "provenance": {"capture_product_sha256": capture_ref["sha256"],
+                        "queue_id": QUEUE_ID,
+@@ -1010,6 +1065,7 @@
+                        "pinned_candidate_validated_batch_sha256": pinned_receipt.get("candidate_validated_batch_sha256"),
+                        "pinned_candidate_queue_state_sha256": pinned_receipt.get("candidate_queue_state_sha256"),
+                        "prior_reuse_receipt_sha256": prior_receipt_sha,
++                       "membership_gate": public_gate(membership_gate),
+                        "historical_outcomes": historical_outcomes,
+                        "current_capture_bindings": current_capture_bindings},
+     }
+@@ -1020,6 +1076,7 @@
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument("--state-root", required=True)
+     parser.add_argument("--capture-root", required=True)
++    parser.add_argument("--shared-root")
+     parser.add_argument("--job-id", required=True)
+     args = parser.parse_args(argv)
+     if not JOB_ID_RE.fullmatch(args.job_id):
+@@ -1038,11 +1095,13 @@
+         def write_progress(value: dict[str, Any]) -> None:
+             _write_json(state_io, base + "/progress.json", value)
+         result = _run(input_value, state_root=state_root, capture_root=capture_root,
+-                      job_id=args.job_id, progress=write_progress)
++                      job_id=args.job_id, progress=write_progress,
++                      shared_root=Path(args.shared_root).expanduser().absolute() if args.shared_root else None)
+         _write_json(state_io, base + "/result.json", result)
+         write_progress({"step": "DONE", "completed": result["counts"]["queue"].get("succeeded", 0),
+                         "total": result["counts"]["queue"].get("succeeded", 0) + result["counts"]["queue"].get("failed", 0)
+                         + result["counts"]["queue"].get("pending", 0), "result_state": result["state"],
++                        "membership": result.get("membership_gate"),
+                         "updated_at": datetime.now(timezone.utc).isoformat()})
+         return 0
+     except FlashRunError as exc:
+--- a/tests/test_manager_announcement_flash_readonly.py
++++ b/tests/test_manager_announcement_flash_readonly.py
+@@ -2,6 +2,7 @@
+ 
+ from contextlib import nullcontext
+ from datetime import datetime
++import json
+ from types import SimpleNamespace
+ 
+ from fastapi import FastAPI
+@@ -95,12 +96,38 @@
+ 
+     assert response.status_code == 200
+     payload = response.json()
+-    assert payload["data"]["counts"]["displayed_stocks"] == 20
+-    assert payload["data"]["counts"]["failed"] == 18
+-    assert payload["data"]["counts"]["pending"] == 5
++    assert payload["data"]["counts"]["displayed_stocks"] == 0
++    assert payload["data"]["counts"]["failed"] == 0
++    assert payload["data"]["counts"]["pending"] == 0
++    assert payload["data"]["membership"]["status"] == "CANNOT_CONFIRM"
++    assert payload["data"]["counts"]["membership_unknown_stocks"] == 20
+     assert payload["data"]["job"] is None
+     assert svc.jobs.submissions == []
+     assert "/private/" not in str(payload["data"])
++
++
++def test_announcement_get_projects_pinned_candidates_through_target_date_membership(monkeypatch):
++    svc = service()
++    pinned = read_pinned_candidates()
++    excluded = {"HK.09963", "HK.08637", "HK.01319", "HK.01799", "HK.02290"}
++    members = sorted(stock["symbol"] for stock in pinned["stocks"] if stock["symbol"] not in excluded)
++    gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1", "status": "VERIFIED",
++            "target_date": "20261016", "cutoff": "2026-10-16T13:02:00+08:00", "market": "HK_CONNECT",
++            "owner": "v35_dispatcher.research_panel_daily_hk", "authority_sha256": "e" * 64,
++            "authority_version": "version", "effective_from": "20261001", "effective_to": "20261031",
++            "available_at": "2026-10-12T19:58:59.501065+08:00", "member_count": 698,
++            "codes": members}
++    monkeypatch.setattr("v4.manager_workbench.announcement_membership.resolve_membership_gate",
++                        lambda *_args: dict(gate))
++
++    value = AnnouncementUpdate(svc).read("20261016")
++
++    assert len(value["stocks"]) == 15
++    assert len(value["membership_excluded_stocks"]) == 5
++    assert value["membership_unknown_stocks"] == []
++    assert value["counts"]["displayed_stocks"] == 15
++    assert value["target_trade_date"] == "CANNOT_CONFIRM"
++    assert value["membership"]["target_date"] == "20261016"
+ 
+ 
+ def test_unavailable_pinned_candidate_keeps_counts_unknown(monkeypatch):
+@@ -140,6 +167,7 @@
+ 
+ def test_flash_runner_launch_disables_bytecode_cache(monkeypatch):
+     svc = service()
++    svc.config.shared_root = "/private/shared"
+     job_id = "d" * 32
+     capture_raw = b"verified capture product"
+     capture_sha = update_module._sha(capture_raw)
+@@ -172,7 +200,8 @@
+     svc.jobs = SimpleNamespace(update=lambda *_args, **_kwargs: None)
+     job = SimpleNamespace(
+         job_id=job_id,
+-        context=SimpleNamespace(model_copy=lambda **_kwargs: SimpleNamespace(target_date="20261016")),
++        context=SimpleNamespace(model_copy=lambda **_kwargs: SimpleNamespace(
++            target_date="20261016", cutoff="2026-10-16T10:30:00+08:00")),
+         completed_count=0,
+         total_count=None,
+         execution_refs=[],
+@@ -190,7 +219,11 @@
+     assert command[0] == str(update_module.RUNNER_PYTHON)
+     assert command[1] == "-B"
+     assert command[2] == str(update_module.RUNNER_SCRIPT)
++    assert command[-2:] == ["--shared-root", "/private/shared"]
+     assert kwargs["env"] == {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"}
++    stored_input = json.loads(svc.store.files[f"announcement_flash/jobs/{job_id}/input.json"])
++    assert stored_input["cutoff"] == "2026-10-16T10:30:00+08:00"
++    assert stored_input["membership_gate"]["status"] == "CANNOT_CONFIRM"
+ 
+ 
+ def test_manual_update_post_is_idempotent_for_the_same_minute(monkeypatch):
+@@ -271,8 +304,16 @@
+     assert len(svc.jobs.submissions) == 1
+ 
+ 
+-def test_incremental_result_round_trips_through_get_with_new_reason():
+-    svc = service()
++def test_incremental_result_round_trips_through_get_with_new_reason(monkeypatch):
++    svc = service()
++    gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1", "status": "VERIFIED",
++            "target_date": "20261016", "cutoff": "2026-10-16T10:00:00+08:00", "market": "HK_CONNECT",
++            "owner": "v35_dispatcher.research_panel_daily_hk", "authority_sha256": "e" * 64,
++            "authority_version": "version", "effective_from": "20261001", "effective_to": "20261031",
++            "available_at": "2026-10-12T19:58:59.501065+08:00", "member_count": 1,
++            "codes": ["HK.12345"]}
++    monkeypatch.setattr("v4.manager_workbench.announcement_membership.resolve_membership_gate",
++                        lambda *_args: dict(gate))
+     job_id = "a" * 32
+     article = {"article_id": "EASTMONEY:AN202610160099", "title": "新公告", "publication_date": "2026-10-16",
+                "symbol": "HK.12345", "name": "新公司", "disposition": "SELECTED_EVENT", "direction": "POSITIVE",
+@@ -294,8 +335,11 @@
+ 
+     view = AnnouncementUpdate(svc).read("20261016")
+ 
++    assert view["target_trade_date"] == "CANNOT_CONFIRM"
++    assert view["membership"]["target_date"] == "20261016"
+     assert view["incremental"]["job_id"] == job_id
++    assert view["incremental"]["target_trade_date"] == "20261016"
+     assert view["incremental"]["stocks"][0]["articles"][0]["reason"] == article["reason"]
+     assert any(stock["symbol"] == "HK.12345" and article["reason"] in stock["reasons"]
+                for stock in view["stocks"] for article in stock["articles"])
+-    assert view["counts"]["displayed_stocks"] == 21
++    assert view["counts"]["displayed_stocks"] == 1
+--- a/tests/test_manager_announcement_flash_runner.py
++++ b/tests/test_manager_announcement_flash_runner.py
+@@ -142,11 +142,21 @@
+     (capture_root / capture_ref).parent.mkdir(parents=True, exist_ok=True)
+     (capture_root / capture_ref).write_bytes(capture_raw)
+ 
++    gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1", "status": "VERIFIED",
++            "target_date": "20261016", "cutoff": "2026-10-16T13:02:00+08:00", "market": "HK_CONNECT",
++            "owner": "v35_dispatcher.research_panel_daily_hk", "authority_sha256": "a" * 64,
++            "authority_version": "v1", "effective_from": "20261001", "effective_to": "20261031",
++            "available_at": "2026-10-12T19:58:59.501065+08:00", "member_count": 1,
++            "members_sha256": "b" * 64, "codes": ["HK.09963"]}
++    from v4.manager_workbench import announcement_membership
++    monkeypatch.setattr(announcement_membership, "revalidate_membership_gate", lambda *_args: dict(gate))
++
+     progress = []
+     result = bridge._run(
+-        {"target_date": "20261016", "capture_product": {"artifact_ref": capture_ref, "sha256": capture_sha}},
++        {"target_date": "20261016", "cutoff": gate["cutoff"], "membership_gate": gate,
++         "capture_product": {"artifact_ref": capture_ref, "sha256": capture_sha}},
+         state_root=tmp_path / "state", capture_root=capture_root,
+-        job_id="a" * 32, progress=progress.append,
++        job_id="a" * 32, progress=progress.append, shared_root=tmp_path / "shared",
+     )
+ 
+     assert result["state"] == "PARTIAL"
+@@ -215,6 +225,7 @@
+     assert process.returncode == 0, process.stderr
+     assert progress["step"] == "DONE"
+     assert result["counts"]["excluded_outside_window"] == 1
++    assert result["membership_gate"]["status"] == "CANNOT_CONFIRM"
+     assert result["counts"]["queue"]["new_model_calls_allowed"] == 0
+     assert result["counts"]["queue"].get("new_enqueued", 0) == 0
+ 
+@@ -423,3 +434,183 @@
+     assert all("/" not in frame["file"] and isinstance(frame["line"], int) and frame["line"] > 0
+                for frame in frames)
+     assert secret_like_text not in raw_progress
++
++
++def test_hk_connect_gate_filters_before_queue_and_preserves_expected_article_and_stock_counts():
++    from v4.manager_workbench.announcement_membership import filter_payloads, project_stocks
++
++    members = [f"HK.{value:05d}" for value in range(1, 16)]
++    outsiders = [f"HK.{value:05d}" for value in range(90001, 90006)]
++    gate = {"status": "VERIFIED", "authority_sha256": "a" * 64, "codes": members}
++    payloads = []
++    for index in range(76):
++        code = members[index % len(members)]
++        payloads.append({"article_id": f"EASTMONEY:IN{index:03d}", "date": "20261015", "market": "HK",
++                         "source_sha256": _sha(f"src-in-{index}".encode()),
++                         "body_sha256": _sha(f"body-in-{index}".encode()), "prompt_sha256": "b" * 64,
++                         "model_id": "qwen3_8_flash_next", "configuration_sha256": "c" * 64,
++                         "rules": "r1", "role": "announcement_reader", "stage": "incremental",
++                         "article_body": "body", "article_metadata": {"symbol": code,
++                         "source_issuer_codes": [{"code": code}], "title": "in"},
++                         "fixed_fact_ledger": {}})
++    for index in range(78):
++        code = outsiders[index % len(outsiders)]
++        payloads.append({"article_id": f"EASTMONEY:OUT{index:03d}", "article_metadata": {
++            "symbol": code, "source_issuer_codes": [{"code": code}], "title": "out"}})
++    payloads.extend([
++        {"article_id": "EASTMONEY:UNKNOWN1", "article_metadata": {"symbol": "CANNOT_CONFIRM",
++         "source_issuer_codes": [], "title": "unknown"}},
++        {"article_id": "EASTMONEY:UNKNOWN2", "article_metadata": {"symbol": "CANNOT_CONFIRM",
++         "source_issuer_codes": [{"code": "HK.00001"}, {"code": "US.ABC"}], "title": "ambiguous"}},
++    ])
++
++    admitted, exclusions = filter_payloads(payloads, gate)
++    status_counts = {status: sum(item["membership_status"] == status for item in exclusions)
++                     for status in ("OUT", "UNKNOWN")}
++    assert len(admitted) == 76
++    assert status_counts == {"OUT": 78, "UNKNOWN": 2}
++    assert all(item["article_id"].endswith(tuple(f"IN{i:03d}" for i in range(76))) for item in admitted)
++
++    bridge = _bridge_module()
++    queue = _AdmissionQueue()
++    plan = bridge._admit_incremental_payloads(admitted, queue, [], Path("/tmp/unused-queue"))
++    assert len(queue.enqueued) == 76
++    assert len(plan["allowed_keys"]) == 76
++    stock_rows = [{"symbol": code, "articles": []} for code in members + outsiders]
++    eligible, excluded_stocks, unknown_stocks = project_stocks(stock_rows, gate)
++    assert (len(eligible), len(excluded_stocks), len(unknown_stocks)) == (15, 5, 0)
++
++
++def test_hk_connect_out_and_unknown_only_run_skips_enqueue_queue_run_and_transport(tmp_path, monkeypatch):
++    bridge = _bridge_module()
++    pipeline_root = bridge.PIPELINE_ROOT
++    assert pipeline_root.is_dir()
++    monkeypatch.syspath_prepend(str(pipeline_root))
++    batch_runner = importlib.import_module("batch_runner")
++    length_canary = importlib.import_module("build_length_canary")
++    canary_module = importlib.import_module("automatic_canary_server")
++    calls = {"enqueue": 0, "run_next": 0, "transport": 0}
++
++    class Queue:
++        def __init__(self, *_args, **_kwargs):
++            pass
++
++        def _load_state(self):
++            return {"jobs": {}}
++
++        def enqueue(self, _payload):
++            calls["enqueue"] += 1
++            raise AssertionError("OUT/UNKNOWN payloads must not be enqueued")
++
++        def run_next(self, *_args, **_kwargs):
++            calls["run_next"] += 1
++            raise AssertionError("OUT/UNKNOWN-only input must not call run_next")
++
++        def snapshot(self):
++            return {"items": []}
++
++    queue_module = ModuleType("announcement_queue")
++    queue_module.SerialAnnouncementQueue = Queue
++
++    def forbidden_transport(*_args, **_kwargs):
++        calls["transport"] += 1
++        raise AssertionError("OUT/UNKNOWN-only input must not construct model transport")
++
++    monkeypatch.setattr(canary_module, "GatedStreamingTransport", forbidden_transport)
++    monkeypatch.setitem(sys.modules, "announcement_queue", queue_module)
++    monkeypatch.setitem(sys.modules, "automatic_canary_server", canary_module)
++    monkeypatch.setitem(sys.modules, "batch_runner", batch_runner)
++    monkeypatch.setitem(sys.modules, "build_length_canary", length_canary)
++    tokenizer = SimpleNamespace(apply_chat_template=lambda *_args, **_kwargs: [1, 2, 3])
++    transformers = ModuleType("transformers")
++    transformers.AutoTokenizer = SimpleNamespace(from_pretrained=lambda *_args, **_kwargs: tokenizer)
++    monkeypatch.setitem(sys.modules, "transformers", transformers)
++
++    helper = bridge._load_helper()
++    monkeypatch.setattr(bridge, "_load_helper", lambda: helper)
++    monkeypatch.setattr(bridge, "_pinned_candidate_history", lambda: [])
++    gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1", "status": "VERIFIED",
++            "target_date": "20261016", "cutoff": "2026-10-16T13:02:00+08:00", "market": "HK_CONNECT",
++            "owner": "owner", "authority_sha256": "a" * 64, "authority_version": "v1",
++            "effective_from": "20261001", "effective_to": "20261031",
++            "available_at": "2026-10-12T19:58:59+08:00", "member_count": 1,
++            "members_sha256": "b" * 64, "codes": ["HK.00001"]}
++    from v4.manager_workbench import announcement_membership
++    monkeypatch.setattr(announcement_membership, "revalidate_membership_gate", lambda *_args: dict(gate))
++
++    capture_product = {"schema_version": "mwb.capture.window.v1",
++                       "owner": "v4.manager_workbench.capture_announcements", "source": "EASTMONEY_HK",
++                       "window": {"publication_dates": ["2026-10-16"]},
++                       "rows": [
++                           {"art_code": "ANOUT0001", "title": "范围外公告", "body_complete": True,
++                            "body_text": "已采集正文", "source_issuer_codes": [{"code": "HK.09963"}]},
++                           {"art_code": "ANUNKNOWN1", "title": "资格未知公告", "body_complete": True,
++                            "body_text": "已采集正文", "source_issuer_codes": []},
++                       ]}
++    capture_raw = _json_bytes(capture_product)
++    capture_sha = _sha(capture_raw)
++    capture_ref = f"products/{capture_sha}.json"
++    capture_root = tmp_path / "capture"
++    capture_path = capture_root / capture_ref
++    capture_path.parent.mkdir(parents=True)
++    capture_path.write_bytes(capture_raw)
++
++    result = bridge._run(
++        {"target_date": "20261016", "cutoff": gate["cutoff"], "membership_gate": gate,
++         "capture_product": {"artifact_ref": capture_ref, "sha256": capture_sha}},
++        state_root=tmp_path / "state", capture_root=capture_root,
++        job_id="f" * 32, progress=lambda _event: None, shared_root=tmp_path / "shared",
++    )
++
++    assert result["counts"]["membership_articles"] == {"in": 0, "out": 1, "unknown": 1}
++    assert result["counts"]["queue"]["new_enqueued"] == 0
++    assert result["counts"]["queue"]["new_model_calls_allowed"] == 0
++    assert {item["membership_status"] for item in result["membership_exclusions"]} == {"OUT", "UNKNOWN"}
++    assert calls == {"enqueue": 0, "run_next": 0, "transport": 0}
++
++
++def test_hk_connect_membership_gate_fails_closed_for_missing_stale_or_changed_authority(monkeypatch):
++    from v4.manager_workbench import announcement_membership as membership
++
++    good = {"schema": membership.SCHEMA, "status": "VERIFIED", "target_date": "20261016",
++            "cutoff": "2026-10-16T13:02:00+08:00", "market": "HK_CONNECT", "owner": "owner",
++            "authority_sha256": "a" * 64, "authority_version": "v1", "effective_from": "20261001",
++            "effective_to": "20261031", "available_at": "2026-10-12T19:58:59.501065+08:00",
++            "member_count": 1, "members_sha256": "b" * 64, "codes": ["HK.00001"]}
++    monkeypatch.setattr(membership, "resolve_membership_gate", lambda *_args: dict(good))
++
++    assert membership.revalidate_membership_gate(None, good, "20261016", good["cutoff"])["status"] == "VERIFIED"
++    assert membership.revalidate_membership_gate(None, None, "20261016", good["cutoff"])["status"] == "CANNOT_CONFIRM"
++    assert membership.revalidate_membership_gate(None, good, "20261017", good["cutoff"])["status"] == "CANNOT_CONFIRM"
++    assert membership.revalidate_membership_gate(None, good, "20261016", "2026-10-16T13:03:00+08:00")["status"] == "CANNOT_CONFIRM"
++    changed = {**good, "authority_sha256": "c" * 64}
++    monkeypatch.setattr(membership, "resolve_membership_gate", lambda *_args: changed)
++    result = membership.revalidate_membership_gate(None, good, "20261016", good["cutoff"])
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert result["failure_code"] == "MEMBERSHIP_GATE_BINDING_CHANGED"
++
++
++def test_article_payload_carries_verified_connect_membership_without_side_eligibility(monkeypatch):
++    bridge = _bridge_module()
++    monkeypatch.setattr(bridge, "_capture_origin", lambda *_args, **_kwargs: [])
++    gate = {"status": "VERIFIED", "authority_sha256": "a" * 64, "codes": ["HK.09963"]}
++    body = "公告正文"
++    body_sha = _sha(body.encode())
++    row = {"body_complete": True, "body_text": body, "body_text_sha256": body_sha,
++           "source_sha256": "c" * 64, "source_issuer_codes": [{"code": "HK.09963", "name": "测试公司"}],
++           "title": "测试公告", "publication_date": "2026-10-15"}
++    fake_runner = SimpleNamespace(
++        build_source_unit_map=lambda *_args: {"unit_map": []},
++        simple_fixed_facts=SimpleNamespace(extract_fixed_facts=lambda *_args: {}),
++    )
++
++    article = bridge._article(row, 0, {}, {"row_index": 0}, None, fake_runner, gate)
++
++    metadata = article["article_metadata"]
++    assert metadata["article_membership_status"] == "IN"
++    assert metadata["membership_authority_sha256"] == gate["authority_sha256"]
++    assert metadata["source_issuer_membership"] == [{
++        "code": "HK.09963", "membership_status": "IN", "market": "HK_CONNECT",
++        "authority_sha256": gate["authority_sha256"],
++    }]
++    assert not {"buy_eligible", "sell_eligible", "orders_sent", "buy_gate_updated"}.intersection(metadata)
+--- /dev/null
++++ b/v4/manager_workbench/announcement_membership.py
+@@ -0,0 +1,212 @@
++"""Target-date HK Connect membership gate for announcement candidates.
++
++This module only resolves and projects the existing monthly authority. It does
++not acquire, cache, or produce a second membership dataset.
++"""
++from __future__ import annotations
++
++from copy import deepcopy
++import hashlib
++import json
++import re
++from typing import Any
++
++from .contracts import Phase, RunContext
++
++
++SCHEMA = "v4.manager_workbench.announcement_connect_membership.v1"
++_HK_CODE = re.compile(r"^HK\.([0-9]{5})$")
++
++
++def _canonical(value: Any) -> bytes:
++    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
++
++
++def _sha(value: Any) -> str:
++    return hashlib.sha256(_canonical(value)).hexdigest()
++
++
++def _safe_error(exc: Exception) -> str:
++    value = str(exc)
++    return value if re.fullmatch(r"[A-Z0-9_:-]{1,96}", value) else "MONTHLY_CONNECT_MEMBERSHIP_UNVERIFIED"
++
++
++def _context(target_date: str, cutoff: str) -> RunContext:
++    return RunContext(target_date=target_date, phase=Phase.MANUAL, cutoff=cutoff, trigger="MANUAL",
++                      rules_version="V4_ANNOUNCEMENT_CONNECT_MEMBERSHIP_V1")
++
++
++def resolve_membership_gate(config: Any, target_date: str, cutoff: str) -> dict[str, Any]:
++    """Resolve through the existing owner binding and NativeAdapters verifier."""
++    base = {"schema": SCHEMA, "target_date": target_date, "cutoff": cutoff, "market": "HK_CONNECT"}
++    try:
++        from .inputs import NativeAdapters
++        from .inputs.source_bindings import membership as resolve_owner_membership
++
++        context = _context(target_date, cutoff)
++        pin = resolve_owner_membership(config, context)
++        context.scope_refs["owner_bindings"] = {"membership": deepcopy(pin)}
++        codes, evidence, gaps = NativeAdapters(config).membership(context)
++        if gaps or evidence is None or not codes:
++            raise ValueError("MONTHLY_CONNECT_MEMBERSHIP_UNVERIFIED")
++        projection = pin.get("projection")
++        if not isinstance(projection, dict):
++            raise ValueError("MONTHLY_CONNECT_MEMBERSHIP_PROJECTION_INVALID")
++        normalized = sorted(codes)
++        if (evidence.sha256 != pin.get("artifact_sha256")
++                or projection.get("market") != "HK_CONNECT"
++                or projection.get("owner") != evidence.owner
++                or projection.get("available_at") != evidence.available_at
++                or evidence.verification.value != "VERIFIED"):
++            raise ValueError("MONTHLY_CONNECT_MEMBERSHIP_BINDING_MISMATCH")
++        return {
++            **base,
++            "status": "VERIFIED",
++            "owner": evidence.owner,
++            "authority_sha256": evidence.sha256,
++            "authority_version": projection.get("version"),
++            "effective_from": projection.get("effective_from"),
++            "effective_to": projection.get("effective_to"),
++            "available_at": evidence.available_at,
++            "member_count": len(normalized),
++            "members_sha256": _sha(normalized),
++            "codes": normalized,
++            "authority_pin": deepcopy(pin),
++        }
++    except Exception as exc:
++        return {**base, "status": "CANNOT_CONFIRM", "failure_code": _safe_error(exc),
++                "owner": None, "authority_sha256": None, "authority_version": None,
++                "effective_from": None, "effective_to": None, "available_at": None,
++                "member_count": None, "members_sha256": None, "codes": [], "authority_pin": None}
++
++
++def revalidate_membership_gate(config: Any, gate: Any, target_date: str, cutoff: str) -> dict[str, Any]:
++    """Re-resolve the same authority at the same date/cutoff before admission."""
++    if (not isinstance(gate, dict) or gate.get("schema") != SCHEMA
++            or gate.get("status") != "VERIFIED" or gate.get("target_date") != target_date
++            or gate.get("cutoff") != cutoff or gate.get("market") != "HK_CONNECT"):
++        return {"schema": SCHEMA, "status": "CANNOT_CONFIRM", "target_date": target_date,
++                "cutoff": cutoff, "market": "HK_CONNECT", "failure_code": "MEMBERSHIP_GATE_INPUT_INVALID",
++                "codes": []}
++    fresh = resolve_membership_gate(config, target_date, cutoff)
++    fields = ("owner", "authority_sha256", "authority_version", "effective_from", "effective_to",
++              "available_at", "member_count", "members_sha256")
++    if fresh.get("status") != "VERIFIED" or any(fresh.get(key) != gate.get(key) for key in fields):
++        return {"schema": SCHEMA, "status": "CANNOT_CONFIRM", "target_date": target_date,
++                "cutoff": cutoff, "market": "HK_CONNECT", "failure_code": "MEMBERSHIP_GATE_BINDING_CHANGED",
++                "codes": []}
++    return fresh
++
++
++def issuer_codes(metadata: Any) -> list[str]:
++    if not isinstance(metadata, dict):
++        return []
++    values = metadata.get("source_issuer_codes")
++    if isinstance(values, list):
++        if len(values) != 1:
++            return []
++        value = values[0]
++    else:
++        value = metadata.get("symbol")
++    raw = value.get("code") if isinstance(value, dict) else value
++    match = _HK_CODE.fullmatch(raw) if isinstance(raw, str) else None
++    return [match.group(0)] if match else []
++
++
++def classify_codes(codes: list[str], gate: Any) -> tuple[str, str]:
++    if not isinstance(gate, dict) or gate.get("status") != "VERIFIED":
++        return "UNKNOWN", "MEMBERSHIP_AUTHORITY_UNVERIFIED"
++    if len(codes) != 1:
++        return "UNKNOWN", "ISSUER_CODE_MISSING_OR_AMBIGUOUS"
++    members = gate.get("codes")
++    if not isinstance(members, list) or not gate.get("authority_sha256"):
++        return "UNKNOWN", "MEMBERSHIP_AUTHORITY_UNVERIFIED"
++    if codes[0] in members:
++        return "IN", "HK_CONNECT_MEMBER_AT_TARGET_DATE"
++    return "OUT", "NOT_IN_HK_CONNECT_UNIVERSE_AT_TARGET_DATE"
++
++
++def classify_payload(payload: Any, gate: Any) -> dict[str, Any]:
++    payload = payload if isinstance(payload, dict) else {}
++    metadata = payload.get("article_metadata")
++    codes = issuer_codes(metadata)
++    status, reason = classify_codes(codes, gate)
++    return {"article_id": payload.get("article_id"),
++            "symbol": metadata.get("symbol") if isinstance(metadata, dict) else None,
++            "title": metadata.get("title") if isinstance(metadata, dict) else None,
++            "issuer_codes": codes, "membership_status": status, "membership_reason": reason}
++
++
++def classify_capture_row(row: Any, gate: Any) -> dict[str, Any]:
++    row = row if isinstance(row, dict) else {}
++    metadata = {"source_issuer_codes": row.get("source_issuer_codes")}
++    codes = issuer_codes(metadata)
++    status, reason = classify_codes(codes, gate)
++    return {"article_id": "EASTMONEY:" + str(row.get("art_code") or ""),
++            "symbol": codes[0] if len(codes) == 1 else "CANNOT_CONFIRM",
++            "title": row.get("title"), "issuer_codes": codes,
++            "membership_status": status, "membership_reason": reason}
++
++
++def filter_payloads(payloads: list[dict[str, Any]], gate: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
++    allowed, excluded = [], []
++    for payload in payloads:
++        item = classify_payload(payload, gate)
++        if item["membership_status"] == "IN":
++            allowed.append(payload)
++        else:
++            excluded.append(item)
++    return allowed, excluded
++
++
++def classify_symbol(symbol: Any, gate: Any) -> tuple[str, str]:
++    match = _HK_CODE.fullmatch(symbol) if isinstance(symbol, str) else None
++    codes = [match.group(0)] if match else []
++    return classify_codes(codes, gate)
++
++
++def project_stocks(stocks: Any, gate: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
++    eligible, excluded, unknown = [], [], []
++    for stock in stocks if isinstance(stocks, list) else []:
++        if not isinstance(stock, dict):
++            continue
++        status, reason = classify_symbol(stock.get("symbol"), gate)
++        projection = deepcopy(stock)
++        projection["membership_status"] = status
++        projection["membership_reason"] = reason
++        for article in projection.get("articles", []):
++            if isinstance(article, dict):
++                article["membership_status"] = status
++                article["membership_reason"] = reason
++        if status == "IN":
++            eligible.append(projection)
++        elif status == "OUT":
++            excluded.append(projection)
++        else:
++            unknown.append(projection)
++    return eligible, excluded, unknown
++
++
++def project_status_rows(rows: Any, gate: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
++    eligible, excluded, unknown = [], [], []
++    for row in rows if isinstance(rows, list) else []:
++        if not isinstance(row, dict):
++            continue
++        status, reason = classify_symbol(row.get("symbol"), gate)
++        projection = {**row, "membership_status": status, "membership_reason": reason}
++        if status == "IN":
++            eligible.append(projection)
++        elif status == "OUT":
++            excluded.append(projection)
++        else:
++            unknown.append(projection)
++    return eligible, excluded, unknown
++
++
++def public_gate(gate: Any) -> dict[str, Any]:
++    if not isinstance(gate, dict):
++        gate = {"status": "CANNOT_CONFIRM", "failure_code": "MEMBERSHIP_AUTHORITY_UNVERIFIED"}
++    keys = ("status", "target_date", "cutoff", "market", "owner", "authority_sha256",
++            "authority_version", "effective_from", "effective_to", "available_at", "member_count",
++            "failure_code")
++    return {key: gate.get(key) for key in keys}
+--- a/v4/manager_workbench/announcement_update.py
++++ b/v4/manager_workbench/announcement_update.py
+@@ -144,17 +144,91 @@
+             if (stored and stored.get("schema") == "v4.manager_workbench.announcement_flash_result.v1"
+                     and stored.get("job_id") == item["job_id"]):
+                 matching_results.append(stored)
+-        for result in matching_results:
++        membership_cutoff = None
++        for result in reversed(matching_results):
++            provenance = result.get("provenance")
++            candidate_gate = result.get("membership_gate")
++            if not isinstance(candidate_gate, dict) and isinstance(provenance, dict):
++                candidate_gate = provenance.get("membership_gate")
++            if (isinstance(candidate_gate, dict) and candidate_gate.get("target_date") == active_target
++                    and isinstance(candidate_gate.get("cutoff"), str)):
++                membership_cutoff = candidate_gate["cutoff"]
++                break
++        if membership_cutoff is None and latest and isinstance(latest.get("job_id"), str):
++            latest_input = self._read_job_artifact(latest["job_id"], "input.json")
++            candidate_gate = latest_input.get("membership_gate") if isinstance(latest_input, dict) else None
++            if (isinstance(candidate_gate, dict) and candidate_gate.get("target_date") == active_target
++                    and isinstance(candidate_gate.get("cutoff"), str)):
++                membership_cutoff = candidate_gate["cutoff"]
++        from .announcement_membership import (
++            project_status_rows, project_stocks, public_gate, resolve_membership_gate,
++        )
++        if active_target:
++            gate = resolve_membership_gate(self.service.config, active_target,
++                                           membership_cutoff or self._now().isoformat())
++        else:
++            gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1",
++                    "status": "CANNOT_CONFIRM", "failure_code": "TARGET_DATE_UNAVAILABLE"}
++
++        projected_results: list[dict[str, Any]] = []
++        membership_excluded_articles: list[dict[str, Any]] = []
++        membership_unknown_articles: list[dict[str, Any]] = []
++        for raw_result in matching_results:
++            result = deepcopy(raw_result)
++            eligible, excluded, unknown = project_stocks(result.get("stocks", []), gate)
++            result["stocks"] = eligible
++            failed, failed_out, failed_unknown = project_status_rows(result.get("failures", []), gate)
++            pending, pending_out, pending_unknown = project_status_rows(result.get("pending", []), gate)
++            result["failures"] = failed
++            result["pending"] = pending
++            result["membership_excluded_stocks"] = excluded
++            result["membership_unknown_stocks"] = unknown
++            result["membership"] = public_gate(gate)
++            membership_excluded_articles.extend(failed_out + pending_out)
++            membership_unknown_articles.extend(failed_unknown + pending_unknown)
++            for record in raw_result.get("membership_exclusions", []):
++                if not isinstance(record, dict):
++                    continue
++                if record.get("membership_status") == "OUT":
++                    membership_excluded_articles.append(deepcopy(record))
++                else:
++                    membership_unknown_articles.append(deepcopy(record))
++            counts = result.setdefault("counts", {})
++            counts["membership_eligible_stocks"] = len(eligible)
++            counts["membership_excluded_stocks"] = len(excluded)
++            counts["membership_unknown_stocks"] = len(unknown)
++            projected_results.append(result)
++        for result in projected_results:
+             view["stocks"] = _merge_stocks(view.get("stocks", []), result.get("stocks", []))
++
++        base_stocks, base_excluded, base_unknown = project_stocks(view.get("stocks", []), gate)
++        view["stocks"] = base_stocks
++        base_failures, base_failed_out, base_failed_unknown = project_status_rows(view.get("failures", []), gate)
++        base_pending, base_pending_out, base_pending_unknown = project_status_rows(view.get("pending", []), gate)
++        view["failures"] = base_failures
++        view["pending"] = base_pending
++        membership_excluded_articles.extend(base_failed_out + base_pending_out)
++        membership_unknown_articles.extend(base_failed_unknown + base_pending_unknown)
++        view["membership"] = public_gate(gate)
++        view["membership_excluded_stocks"] = base_excluded
++        view["membership_unknown_stocks"] = base_unknown
++        view["membership_excluded_articles"] = membership_excluded_articles
++        view["membership_unknown_articles"] = membership_unknown_articles
++        view["counts"]["failed"] = len(view["failures"])
++        view["counts"]["pending"] = len(view["pending"])
++        view["counts"]["membership_eligible_stocks"] = len(base_stocks)
++        view["counts"]["membership_excluded_stocks"] = len(base_excluded)
++        view["counts"]["membership_unknown_stocks"] = len(base_unknown)
++        view["counts"]["membership_excluded_articles"] = len(membership_excluded_articles)
++        view["counts"]["membership_unknown_articles"] = len(membership_unknown_articles)
++        view["counts"]["displayed_stocks"] = len(view["stocks"])
+         if matching_results:
+-            latest_result = matching_results[-1]
+-            view["counts"]["displayed_stocks"] = len(view["stocks"])
+-            view["counts"]["incremental_candidate_stocks"] = latest_result.get("counts", {}).get("new_candidate_stocks")
++            latest_result = projected_results[-1]
++            view["counts"]["incremental_candidate_stocks"] = latest_result.get("counts", {}).get("membership_eligible_stocks")
+             view["incremental"] = latest_result
+             view["incremental_runs"] = [{"job_id": result.get("job_id"), "target_trade_date": result.get("target_trade_date"),
+                                           "state": result.get("state"), "updated_at": result.get("updated_at"),
+-                                          "counts": result.get("counts")} for result in matching_results]
+-            view["target_trade_date"] = latest_result.get("target_trade_date")
++                                          "counts": result.get("counts")} for result in projected_results]
+         if latest and isinstance(latest.get("job_id"), str) and JOB_ID_RE.fullmatch(latest["job_id"]):
+             job_id = latest["job_id"]
+             try:
+@@ -174,7 +248,7 @@
+                     "failure_code": _safe_code(job.failure_code, "") if job.failure_code else None,
+                     "last_progress_at": job.last_progress_at,
+                     "progress": {key: progress[key] for key in (
+-                        "queue_counts", "pending_body_gaps", "pending_context", "result_state") if progress and key in progress},
++                        "queue_counts", "pending_body_gaps", "pending_context", "membership", "result_state") if progress and key in progress},
+                 }
+                 if result:
+                     update["result_state"] = result.get("state")
+@@ -240,8 +314,10 @@
+             # The source product remains in CaptureStore's immutable cache. Only
+             # its fixed artifact reference and hash cross into the model bridge.
+             input_value = {"schema": "v4.manager_workbench.announcement_flash_input.v1",
+-                           "job_id": job.job_id, "target_date": context.target_date,
++                           "job_id": job.job_id, "target_date": context.target_date, "cutoff": context.cutoff,
+                            "capture_product": saved_ref}
++            from .announcement_membership import resolve_membership_gate
++            input_value["membership_gate"] = resolve_membership_gate(config, context.target_date, context.cutoff)
+             self.service.store.io.write_bytes(self._job_ref(job.job_id, "input.json"), _canonical(input_value))
+         except StepFailure:
+             raise
+@@ -265,6 +341,9 @@
+         result_ref = self._job_ref(job.job_id, RESULT_REF)
+         command = [str(RUNNER_PYTHON), "-B", str(RUNNER_SCRIPT), "--state-root", str(self.service.store.root),
+                    "--capture-root", str(config.capture_root), "--job-id", job.job_id]
++        shared_root = getattr(config, "shared_root", None)
++        if shared_root:
++            command.extend(["--shared-root", str(shared_root)])
+         try:
+             process = self.popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL, env={"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"})
