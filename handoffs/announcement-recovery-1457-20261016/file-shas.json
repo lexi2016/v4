@@ -1,0 +1,73 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_release": "hk-morning-selection-recovery-20261016-r7",
+  "baseline_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+  "candidate_release": "announcement-recovery-api-20261016-r5",
+  "candidate_manifest_sha256": "1727fcb6d568fd0a64e075b580336fe4093078d2b21b03fb336c7e8cc2c6305c",
+  "patch_sha256": "e57c8a318d452eebc7c643a8fd9b9928ad3dd587eb276b5028c1e53b0b533496",
+  "files": [
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "before_sha256": "591995ac3afd9234ee73912d720dcc7595fd4c6211760467ecfbd6dcf202cab5",
+      "after_sha256": "1d8013b7c3f9f8e679ee1beac0da25d0f68417badd87ddacd8b4bd87659ac1a5",
+      "before_bytes": 63897,
+      "after_bytes": 122792
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_readonly.py",
+      "before_sha256": "7c028d8439da0d5f3269f8127bdcb8a8701ab56b52b05738b7737981f24edb6f",
+      "after_sha256": "06380e24ae5e5a7daeb7caf9ed919860051a2a7fd12ef42628a608ba2d9dfa81",
+      "before_bytes": 14607,
+      "after_bytes": 39354
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_runner.py",
+      "before_sha256": "324d305d6f094d368b3ee008f16e54281e416fb2e10c5bb396bf0cab12ad8f79",
+      "after_sha256": "cb17cc599f0daf9fce654953efd116742645e7c146ac2f19704b6b4e01495754",
+      "before_bytes": 32533,
+      "after_bytes": 52972
+    },
+    {
+      "path": "tests/test_manager_workbench_capture_reuse.py",
+      "before_sha256": null,
+      "after_sha256": "7c092eddc4e1e819391b827f7ccf1f40038f8f09d7dbd5edcdbe260e4414425e",
+      "before_bytes": 0,
+      "after_bytes": 6099
+    },
+    {
+      "path": "v4/manager_workbench/announcement_chunks.py",
+      "before_sha256": null,
+      "after_sha256": "17b0c624e1498e6ab2aad4e51c543e232dd3d67f6f594314e5fe748eb2a5f5d2",
+      "before_bytes": 0,
+      "after_bytes": 30388
+    },
+    {
+      "path": "v4/manager_workbench/announcement_membership.py",
+      "before_sha256": "0f0026ad3779b27e8441b20e403772f3aabbe9505bfe8009e9c416f036d78161",
+      "after_sha256": "564e3ae25d78feeaa953153d5b7604d1ecbb24198f9c4e3aeb2c69ee29a844b0",
+      "before_bytes": 9562,
+      "after_bytes": 13221
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "before_sha256": "2662a05cd5edcb99da9fb4bf59966c6a780476ab9d534b30d07a6b97efab3ada",
+      "after_sha256": "443c8e4345dd119d4336c7f68e316c1a611b66ba8eb6765873adf50c5b325eb1",
+      "before_bytes": 22768,
+      "after_bytes": 52494
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "before_sha256": "18ebbef7a0a56d7e61113b60b902d990ba09ed763c6084191f221dd135568578",
+      "after_sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "before_bytes": 26281,
+      "after_bytes": 26578
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_store.py",
+      "before_sha256": "58b9badf2fa0ec1cc0cdef95fbd6bba3fcccefd5c3334dd6fa885891aaf3e94d",
+      "after_sha256": "b18147fc411f92bceca9ee52890a0c27b11629dc2e327b0e5d25e1d87c3190c0",
+      "before_bytes": 9446,
+      "after_bytes": 13288
+    }
+  ]
+}

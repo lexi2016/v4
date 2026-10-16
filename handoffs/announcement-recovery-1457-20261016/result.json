@@ -1,0 +1,67 @@
+{
+  "schema": "v4.announcement_recovery_handoff.v1",
+  "recorded_at": "2026-10-16T10:02:34.008678+00:00",
+  "baseline_git_commit": "05a537d16fce4ca81f0c3449bd8baff129f4bd70",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_release": "hk-morning-selection-recovery-20261016-r7",
+  "baseline_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+  "active_release": "announcement-recovery-api-20261016-r5",
+  "active_manifest_sha256": "1727fcb6d568fd0a64e075b580336fe4093078d2b21b03fb336c7e8cc2c6305c",
+  "delivery": "SOURCE_PATCH_AND_COMPACT_EVIDENCE_ONLY",
+  "code_status": [
+    "IMPLEMENTED",
+    "TESTED",
+    "REVIEWED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED"
+  ],
+  "independent_review": {
+    "verdict": "REVIEWED_PASS",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "tests": "38 passed, 0 failed",
+    "runtime": "bundled v3.5-mac Python",
+    "command": "PYTHONDONTWRITEBYTECODE=1 <bundled-python> -B -m pytest -q -p no:cacheprovider tests/test_manager_announcement_flash_readonly.py tests/test_manager_announcement_flash_runner.py",
+    "receipt_sha256": "755288c9323356c4bb704b989f817c8be5ed6119dca6f6570e977c25736c33ce",
+    "actual_candidate_proof": "757 SHA-bound capture rows; 354 IN body bindings including 86 recovered; correct original cutoff; tampered body/hash rejected; no model or queue writes during dry proof"
+  },
+  "live_run": {
+    "job_id": "b1c877411e02407990f1774bc72dd1c6",
+    "trigger": "single existing manager-workbench in-app browser button click at 2026-10-16 17:55 Asia/Shanghai",
+    "frozen_parent_job_id": "87ff9d4b89d841ccb36c5c1b01046171",
+    "cutoff": "2026-10-16T14:57:00+08:00",
+    "last_observed_state": "RUNNING",
+    "completion": "CANNOT_CONFIRM_PENDING_FINAL_RESULT",
+    "manual_cli_or_queue_advancement": false,
+    "observation_stopped": "User requested no continued progress reads and will notify when the run ends; the application job was left running."
+  },
+  "remaining": [
+    "Final 354-IN terminal-disposition accounting, including original pending queue and long-body synthesis",
+    "Independent final semantic/result/source coverage review",
+    "Final persisted API/UI readback",
+    "NATURAL_VERIFIED not established by manual UI trigger"
+  ],
+  "resolved_failures": [
+    "RECOVERY_PARENT_IDENTITY_MISMATCH: preserve complete verified capture descriptor and narrowly support legacy two-key failed-child hints",
+    "RECOVERY_BODY_BINDING_INVALID: producer and consumer now use shared V4 canonical digest with trailing newline; exact pre-queue failure can retain frozen parent"
+  ],
+  "source_patch_check": "git apply --check passed against isolated baseline files",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "excluded_uploads": [
+    "credentials",
+    "model configuration",
+    "raw captures",
+    "raw model outputs",
+    "live queues",
+    "service plists",
+    "dist",
+    "large runtime artifacts"
+  ]
+}
