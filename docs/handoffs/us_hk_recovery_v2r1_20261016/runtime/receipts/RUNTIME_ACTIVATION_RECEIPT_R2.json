@@ -1,0 +1,158 @@
+{
+  "active_plist_sha256": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958",
+  "candidate_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+  "commands": [
+    {
+      "bootout": {
+        "argv": [
+          "launchctl",
+          "bootout",
+          "gui/501/com.lexi.v35.api-only"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "label_absent": true,
+      "old_pids": [
+        48825
+      ],
+      "old_pids_exited": true,
+      "settle_seconds": 2
+    },
+    {
+      "argv": [
+        "launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "finished_at": "2026-10-16T08:40:42.210320+00:00",
+  "launchctl_called": true,
+  "launchctl_read_only_probe_called": false,
+  "live_first_read": {
+    "closure_status_counts": {
+      "CLOSED_EXCLUDED_SCOPE": 25,
+      "CLOSED_RESEARCH_SCOPE": 757,
+      "OPEN": 221
+    },
+    "default_response_bytes": 772473,
+    "exact_rids": [
+      "R006",
+      "R003",
+      "R001",
+      "R700"
+    ],
+    "old_700_history_preserved": true,
+    "relations": 1003,
+    "snapshot_stocks": 667,
+    "trading_flags_safe": true
+  },
+  "postflight": {
+    "active_api_plist_sha256": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958",
+    "active_pointer": "candidate",
+    "base": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2/app",
+      "application_inventory_entry_count": 1215,
+      "application_inventory_sha256": "8157fff62f99f704ccc448815fa3775dd59e24045f7883536104a73b10e8b823",
+      "release_id": "futu-industry-api-20261016-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2/release-manifest.json",
+      "release_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2"
+    },
+    "candidate": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app",
+      "application_inventory_entry_count": 1217,
+      "application_inventory_sha256": "37cb822c87adad6b44420a199d637e45d2fa223a84004c000227b5644c22198f",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "us-hk-recovery-v2r1-20261016-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/release-manifest.json",
+      "release_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2"
+    },
+    "delta_paths": [
+      "apps/web/dist/assets/managerSelection-DfkJEj5r.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+      "v4/manager_workbench/us_mapping_catalog.py"
+    ],
+    "delta_receipt_sha256": "a0bd9e1f6b4a8751496f6361c0ce77533914d15c1e861232081250fe6bb46569",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 1211,
+    "non_delta_inventory_sha256": "64887c095d00f6be15c03385b3f6c6a0158eda9f6a7ee1a3f536e59da3f33723",
+    "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  },
+  "preflight": {
+    "active_api_plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+    "active_pointer": "base",
+    "base": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2/app",
+      "application_inventory_entry_count": 1215,
+      "application_inventory_sha256": "8157fff62f99f704ccc448815fa3775dd59e24045f7883536104a73b10e8b823",
+      "release_id": "futu-industry-api-20261016-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2/release-manifest.json",
+      "release_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-api-20261016-r2"
+    },
+    "candidate": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app",
+      "application_inventory_entry_count": 1217,
+      "application_inventory_sha256": "37cb822c87adad6b44420a199d637e45d2fa223a84004c000227b5644c22198f",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "us-hk-recovery-v2r1-20261016-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/release-manifest.json",
+      "release_manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2"
+    },
+    "delta_paths": [
+      "apps/web/dist/assets/managerSelection-DfkJEj5r.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+      "v4/manager_workbench/us_mapping_catalog.py"
+    ],
+    "delta_receipt_sha256": "a0bd9e1f6b4a8751496f6361c0ce77533914d15c1e861232081250fe6bb46569",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 1211,
+    "non_delta_inventory_sha256": "64887c095d00f6be15c03385b3f6c6a0158eda9f6a7ee1a3f536e59da3f33723",
+    "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  },
+  "preflight_detach": {
+    "result": {
+      "bootout": {
+        "argv": [
+          "launchctl",
+          "bootout",
+          "gui/501/com.lexi.v35.api-only"
+        ],
+        "exit_code": 0,
+        "stderr": "",
+        "stdout": ""
+      },
+      "label_absent": true,
+      "old_pids": [
+        48825
+      ],
+      "old_pids_exited": true,
+      "settle_seconds": 2
+    },
+    "status": "PASS"
+  },
+  "review_receipt": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2_20261016.md",
+  "review_receipt_sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178",
+  "root_authorization_ref": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROOT_ACTIVATION_AUTHORIZATION_R2.md#sha256=ca18e844a8e17ed2fe7333456510d1304f2eab0c984ae6b81cf72356ce377071",
+  "started_at": "2026-10-16T08:40:32.217158+00:00",
+  "status": "ACTIVATED_API_READBACK_OK"
+}
