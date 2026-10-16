@@ -1,0 +1,1057 @@
+--- a/apps/web/src/components/research/GlobalIndustryMap.vue
++++ b/apps/web/src/components/research/GlobalIndustryMap.vue
+@@ -31,7 +31,6 @@
+ const props = defineProps<{ targetDate: string }>();
+ 
+ const mappings = GLOBAL_INDUSTRY_MAPPINGS;
+-const configuredProxyCount = new Set(mappings.flatMap((item) => [...item.proxy_symbols])).size;
+ const clockDiagnostic = ref<{ shanghai_time?: string; new_york_time?: string; clock_phase?: string; state?: string } | null>(null);
+ const clockMessage = computed(() => ({ BEFORE_REGULAR_CLOSE: "纽约时钟尚未到常规16:00收盘点", AFTER_REGULAR_CLOSE: "纽约时钟已过常规16:00收盘点", WEEKEND_CLOCK: "纽约时钟为周末" } as Record<string, string>)[clockDiagnostic.value?.clock_phase || ""] || "市场时钟未确认");
+ 
+@@ -122,6 +121,11 @@
+ const unknownRows = computed(() => [...rows.value].filter((row) => row.direction === "CANNOT_CONFIRM").sort(
+   (left, right) => left.label.localeCompare(right.label, "zh-CN"),
+ ));
++const marketGroups = computed(() => [
++  { key: "up", label: "上涨", rows: risingRows.value },
++  ...(flatRows.value.length ? [{ key: "flat", label: "平盘", rows: flatRows.value }] : []),
++  { key: "down", label: "下跌", rows: fallingRows.value },
++]);
+ const confirmedBoardCount = computed(() => rows.value.filter(
+   (row) => row.status === "READY" && typeof row.change_pct === "number",
+ ).length);
+@@ -131,7 +135,7 @@
+ ));
+ 
+ function statusText(value: string) {
+-  return ({ READY: "近期时钟匹配", PARTIAL: "PARTIAL · 质量缺口", STALE: "STALE · 旧快照", CANNOT_CONFIRM: "CANNOT_CONFIRM", LOADING: "读取中", ERROR: "ERROR" } as Record<string, string>)[value] || value;
++  return ({ READY: "数据可读", PARTIAL: "部分确认", STALE: "快照偏旧", CANNOT_CONFIRM: "暂无法确认", LOADING: "读取中", ERROR: "读取失败" } as Record<string, string>)[value] || value;
+ }
+ 
+ function formatDate(value: string) {
+@@ -166,13 +170,14 @@
+     || targetTimestamp - sourceTimestamp === 24 * 60 * 60 * 1000;
+ }
+ 
++const hasUnexpectedSnapshotDate = computed(() => {
++  if (!payload.value || !isCalendarDate(props.targetDate) || !isCalendarDate(researchDate.value)) return false;
++  return !isSameOrPreviousCalendarDate(researchDate.value, props.targetDate);
++});
++
+ function formatChange(value: number | null | undefined) {
+   if (typeof value !== "number") return "CANNOT_CONFIRM";
+   return `${value >= 0 ? "+" : ""}${value.toFixed(3)}%`;
+-}
+-
+-function directionText(value: string) {
+-  return ({ UP: "上涨", FLAT: "平盘", DOWN: "下跌", CANNOT_CONFIRM: "CANNOT_CONFIRM" } as Record<string, string>)[value] || "CANNOT_CONFIRM";
+ }
+ 
+ function breadthText(row: GlobalIndustryRow) {
+@@ -372,150 +377,627 @@
+ </script>
+ 
+ <template>
+-  <section class="panel global-industry-panel" aria-label="美股收盘板块涨跌幅">
+-    <div class="section-heading global-industry-heading">
+-      <div>
+-        <span class="eyebrow">US CLOSE · FUTU OFFICIAL BOARDS</span>
+-        <h2>Futu 美股板块收盘事实（研究只读）</h2>
++  <section class="panel global-industry-panel us-industry-panel" aria-label="美股收盘板块涨跌幅">
++    <header class="us-industry-heading">
++      <div class="us-industry-title">
++        <p class="us-industry-eyebrow">美股收盘 · 研究只读</p>
++        <h2>美股板块</h2>
+       </div>
+-      <div class="global-industry-actions">
+-        <span class="global-status-badge" :class="`global-status-${state.toLowerCase()}`">{{ statusText(state) }}</span>
++      <div class="us-industry-actions">
++        <span class="us-industry-status" :class="'us-industry-status--' + state.toLowerCase()" role="status">
++          {{ statusText(state) }}
++        </span>
+         <button type="button" :disabled="state === 'LOADING'" @click="refresh">刷新</button>
+       </div>
++    </header>
++
++    <div v-if="payload" class="us-industry-source" aria-label="来源日期和板块覆盖">
++      <span>收盘日 <strong>{{ formatDate(payload.source_date) }}</strong></span>
++      <span>已确认 <strong>{{ confirmedBoardCount }}/{{ payload.requested_board_count }}</strong></span>
+     </div>
+-    <div class="global-industry-identity">
+-      <span>目标阶段日：{{ formatDate(targetDate) }}</span>
+-      <span>读取快照日：{{ formatDate(researchDate) }}</span>
+-      <span>Futu 板块来源日：{{ formatDate(payload?.source_date || "") }}</span>
+-      <span>板块更新时间（纽约）：{{ payload?.provider_session_times?.join("、") || "CANNOT_CONFIRM" }}</span>
+-      <span>场次：{{ payload?.capture_phase || "CANNOT_CONFIRM" }}</span>
+-      <span>Futu 已确认板块：{{ confirmedBoardCount }}/{{ payload?.requested_board_count ?? mappings.length }} · 待匹配 {{ unmatchedBoardCount }}</span>
+-    </div>
+-    <p v-if="payload" class="global-industry-message" role="status">
+-      Futu 板块质量：{{ payload.status }} · {{ freshnessMessage }}
+-      交易所节假日／提前收盘及最新完整交易日：{{ payload.freshness?.exchange_calendar_status || "CANNOT_CONFIRM" }}。
+-      本次刷新只读取，不触发采集。
++    <p v-if="hasUnexpectedSnapshotDate" class="us-industry-message us-industry-date-warning" role="status">
++      目标阶段日 {{ formatDate(targetDate) }} 与读取快照日 {{ formatDate(researchDate) }} 不一致，请核对日期身份。
+     </p>
+-    <p v-if="payload?.cannot_confirm?.length || payload?.freshness?.cannot_confirm?.length" class="global-industry-message" role="status">
+-      未确认依据：{{ [...(payload?.cannot_confirm || []), ...(payload?.freshness?.cannot_confirm || [])].join("；") }}
+-    </p>
+-    <p v-if="payload" class="global-industry-message" role="status">
+-      ETF/股票篮子只作参考：{{ payload.legacy_proxy_provider || "CANNOT_CONFIRM" }} · {{ payload.legacy_proxy_status || "CANNOT_CONFIRM" }}。
+-      A/HK关系：{{ payload.hk_relation_status }} / {{ payload.a_share_relation_status }}；关系证据的目标日期可用性为 CANNOT_CONFIRM。
+-    </p>
+-    <p v-if="clockDiagnostic" class="global-industry-message" role="status">
+-      上海时钟：{{ clockDiagnostic.shanghai_time }} · 纽约时钟：{{ clockDiagnostic.new_york_time }} · {{ clockMessage }}。
+-      这只是时钟，不是交易所节假日/提前收盘核验；不据此推算上一完整交易日。
+-    </p>
+-    <p v-if="!researchDate && state !== 'LOADING'" class="global-industry-message">缺少已验证的已完成场次来源。当前市场尚未收盘不能解释此前已完成场次为何缺失，须核对既有输入/物化链；页面不会抓取或补造。</p>
+-    <p v-if="state === 'LOADING'" class="global-industry-message" role="status">正在读取日期目录和美股收盘场次。</p>
++    <p v-if="!payload && state === 'LOADING'" class="us-industry-message" role="status">正在读取美股收盘数据…</p>
+     <p
+       v-if="error"
+-      class="global-industry-message global-industry-error"
++      class="us-industry-message us-industry-error"
+       :role="state === 'ERROR' ? 'alert' : 'status'"
+     >{{ error }}</p>
+-    <template v-if="state !== 'LOADING'">
+-      <div class="global-leader-grid" aria-label="板块涨跌前三">
+-        <article v-for="(row, index) in leaders" :key="`leader-${row.label}`" class="global-leader-card">
+-          <span>Leader {{ index + 1 }}</span>
++
++    <section v-if="state !== 'LOADING'" class="us-industry-overview" aria-label="板块涨跌概览">
++      <div class="us-industry-overview-item us-industry-overview-up">
++        <strong>{{ risingRows.length }}</strong><span>上涨</span>
++      </div>
++      <div class="us-industry-overview-item us-industry-overview-down">
++        <strong>{{ fallingRows.length }}</strong><span>下跌</span>
++      </div>
++      <div class="us-industry-overview-item us-industry-overview-pending">
++        <strong>{{ unmatchedBoardCount }}</strong><span>待匹配</span>
++      </div>
++    </section>
++
++    <section v-if="leaders.length" class="us-industry-leaders" aria-label="涨幅前三">
++      <h3>涨幅前三</h3>
++      <ol>
++        <li v-for="(row, index) in leaders" :key="row.label">
++          <span>{{ index + 1 }}</span>
+           <strong>{{ row.official_board.board_name || row.label }}</strong>
+           <b>{{ formatChange(row.change_pct) }}</b>
+-          <small>{{ row.label }} · {{ directionText(row.direction) }} · {{ breadthText(row) }}</small>
+-        </article>
+-        <article v-if="!leaders.length" class="global-leader-card global-leader-empty">
+-          <template v-if="confirmedBoardCount">
+-            <strong>未生成涨跌前三</strong>
+-            <small>已有 {{ confirmedBoardCount }} 个已确认官方板块；{{ unmatchedBoardCount }} 个待匹配。整体状态 {{ state }}，未按未确认或过期快照生成排名。</small>
+-          </template>
+-          <template v-else>
+-            <strong>CANNOT_CONFIRM</strong><small>当前没有可确认的收盘涨跌值。</small>
+-          </template>
+-        </article>
++        </li>
++      </ol>
++    </section>
++
++    <div v-if="state !== 'LOADING'" class="global-industry-groups us-industry-groups" data-theme-map>
++      <section
++        v-for="group in marketGroups"
++        :key="group.key"
++        class="global-industry-group us-industry-group"
++        :class="'us-industry-group--' + group.key"
++        :aria-label="group.label + '板块'"
++        :data-theme-group="group.key"
++      >
++        <h3>{{ group.label }} <span>{{ group.rows.length }}</span></h3>
++        <div class="global-industry-row-grid us-industry-row-grid" data-theme-grid>
++          <details
++            v-for="row in group.rows"
++            :key="row.label"
++            class="global-industry-row us-industry-row"
++            data-theme-row
++          >
++            <summary class="us-industry-row-summary">
++              <strong>{{ row.official_board.board_name || row.label }}</strong>
++              <b>{{ typeof row.change_pct === "number" ? formatChange(row.change_pct) : "待确认" }}</b>
++              <span class="us-industry-row-toggle" aria-hidden="true">＋</span>
++            </summary>
++            <div class="us-industry-row-detail">
++              <dl>
++                <div><dt>研究主题</dt><dd>{{ row.label }}</dd></div>
++                <div><dt>板块代码</dt><dd>{{ row.official_board.board_code || "CANNOT_CONFIRM" }}</dd></div>
++                <div><dt>板块类别</dt><dd>{{ row.official_board.plate_type || row.mapping_type }}</dd></div>
++                <div><dt>更新时间</dt><dd>{{ row.official_board.update_time || "CANNOT_CONFIRM" }} · {{ row.official_board.timezone }}</dd></div>
++                <div><dt>板块涨跌幅</dt><dd>{{ formatChange(row.change_pct) }}</dd></div>
++                <div><dt>涨跌平家数</dt><dd>{{ breadthText(row) }}</dd></div>
++              </dl>
++              <section class="us-industry-reference">
++                <h4>{{ row.proxy_reference.metric_kind === "ETF_REFERENCE" ? "ETF 独立参考" : "股票篮子独立参考" }}</h4>
++                <p>{{ proxyReferenceText(row) }}</p>
++                <small>来源：{{ row.proxy_reference.provider }}</small>
++              </section>
++              <section class="us-industry-relations">
++                <h4>跨市场关系证据 · {{ row.official_board.relation_status }}</h4>
++                <template v-if="row.official_board.relations.length">
++                  <article
++                    v-for="relation in row.official_board.relations"
++                    :key="[relation.us_symbol, relation.hk_symbol, relation.relationship_type].join('-')"
++                  >
++                    <strong>{{ relation.us_symbol }} → {{ relation.hk_symbol }}</strong>
++                    <p>{{ relation.relationship_type }} · {{ relation.direction }} · 可得时间 {{ relation.available_at || "CANNOT_CONFIRM" }}</p>
++                    <ul>
++                      <li v-for="source in relation.sources" :key="source.url">
++                        <a :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
++                      </li>
++                    </ul>
++                    <p v-if="relation.limitations.length">限制：{{ relation.limitations.join("；") }}</p>
++                  </article>
++                </template>
++                <p v-else>当前没有可列出的关系记录。</p>
++              </section>
++            </div>
++          </details>
++          <p v-if="!group.rows.length" class="us-industry-empty">暂无可确认{{ group.label }}板块。</p>
++        </div>
++      </section>
++
++      <details
++        v-if="unknownRows.length"
++        class="global-industry-group us-industry-group us-industry-group--pending global-group-wide"
++        aria-label="待匹配主题"
++        data-theme-group="pending"
++      >
++        <summary class="us-industry-group-summary">
++          <strong>待匹配主题 {{ unmatchedBoardCount }}</strong>
++          <span>点击展开</span>
++        </summary>
++        <div class="global-industry-row-grid us-industry-row-grid us-industry-pending-rows" data-theme-grid>
++          <details
++            v-for="row in unknownRows"
++            :key="row.label"
++            class="global-industry-row us-industry-row"
++            data-theme-row
++          >
++            <summary class="us-industry-row-summary">
++              <strong>{{ row.official_board.board_name || row.label }}</strong>
++              <b>待匹配</b>
++              <span class="us-industry-row-toggle" aria-hidden="true">＋</span>
++            </summary>
++            <div class="us-industry-row-detail">
++              <dl>
++                <div><dt>研究主题</dt><dd>{{ row.label }}</dd></div>
++                <div><dt>官方板块</dt><dd>{{ row.official_board.board_name || "待匹配" }}</dd></div>
++                <div><dt>板块代码</dt><dd>{{ row.official_board.board_code || "CANNOT_CONFIRM" }}</dd></div>
++                <div><dt>板块类别</dt><dd>{{ row.official_board.plate_type || row.mapping_type }}</dd></div>
++                <div><dt>更新时间</dt><dd>{{ row.official_board.update_time || "CANNOT_CONFIRM" }} · {{ row.official_board.timezone }}</dd></div>
++                <div><dt>板块涨跌幅</dt><dd>暂无已确认数值</dd></div>
++                <div><dt>涨跌平家数</dt><dd>{{ breadthText(row) }}</dd></div>
++              </dl>
++              <section class="us-industry-reference">
++                <h4>{{ row.proxy_reference.metric_kind === "ETF_REFERENCE" ? "ETF 独立参考" : "股票篮子独立参考" }}</h4>
++                <p>{{ proxyReferenceText(row) }}</p>
++                <small>来源：{{ row.proxy_reference.provider }}</small>
++              </section>
++              <section class="us-industry-relations">
++                <h4>跨市场关系证据 · {{ row.official_board.relation_status }}</h4>
++                <template v-if="row.official_board.relations.length">
++                  <article
++                    v-for="relation in row.official_board.relations"
++                    :key="[relation.us_symbol, relation.hk_symbol, relation.relationship_type].join('-')"
++                  >
++                    <strong>{{ relation.us_symbol }} → {{ relation.hk_symbol }}</strong>
++                    <p>{{ relation.relationship_type }} · {{ relation.direction }} · 可得时间 {{ relation.available_at || "CANNOT_CONFIRM" }}</p>
++                    <ul>
++                      <li v-for="source in relation.sources" :key="source.url">
++                        <a :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
++                      </li>
++                    </ul>
++                    <p v-if="relation.limitations.length">限制：{{ relation.limitations.join("；") }}</p>
++                  </article>
++                </template>
++                <p v-else>当前没有可列出的关系记录。</p>
++              </section>
++            </div>
++          </details>
++        </div>
++      </details>
++    </div>
++
++    <details class="us-industry-explanation">
++      <summary>数据与说明</summary>
++      <div class="us-industry-explanation-body">
++        <template v-if="payload">
++          <dl>
++            <div><dt>目标阶段日</dt><dd>{{ formatDate(targetDate) }}</dd></div>
++            <div><dt>读取快照日</dt><dd>{{ formatDate(researchDate) }}</dd></div>
++            <div><dt>板块来源日</dt><dd>{{ formatDate(payload.source_date) }}</dd></div>
++            <div><dt>官方来源</dt><dd>{{ payload.provider }} · {{ payload.futu_board_snapshot.provider || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>板块更新时间</dt><dd>{{ payload.provider_session_times.join("、") || "CANNOT_CONFIRM" }} · {{ payload.futu_board_snapshot.timezone || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>场次</dt><dd>{{ payload.capture_phase }} · {{ payload.futu_board_snapshot.capture_session_date || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>采集时间</dt><dd>{{ payload.captured_at }} · 生成时间 {{ payload.generated_at }}</dd></div>
++            <div><dt>新鲜度核验时间</dt><dd>观测 {{ payload.freshness?.observed_at || "CANNOT_CONFIRM" }} · 原采集 {{ payload.freshness?.captured_at || payload.captured_at }}</dd></div>
++            <div><dt>数据校验摘要</dt><dd>官方 SHA {{ payload.source_response_sha256 }} · 参考 SHA {{ payload.proxy_source_response_sha256 || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>官方板块质量</dt><dd>{{ payload.status }} · {{ payload.available_board_count }}/{{ payload.requested_board_count }}</dd></div>
++            <div><dt>板块快照质量</dt><dd>{{ payload.futu_board_snapshot.status }} · {{ payload.futu_board_snapshot.cannot_confirm.join("；") || "无额外限制" }}</dd></div>
++            <div><dt>参考行情覆盖</dt><dd>{{ payload.proxy_available_symbol_count }}/{{ payload.proxy_requested_symbol_count }} · {{ payload.legacy_proxy_provider || "CANNOT_CONFIRM" }} · {{ payload.legacy_proxy_status || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>参考更新时间</dt><dd>{{ payload.proxy_provider_session_dates.join("、") || "CANNOT_CONFIRM" }} · {{ payload.proxy_provider_session_times.join("、") || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>整体新鲜度</dt><dd>{{ state }} · {{ freshnessMessage }}</dd></div>
++            <div><dt>交易日核验</dt><dd>{{ payload.freshness?.exchange_calendar_status || "CANNOT_CONFIRM" }} · 最新完整交易日未据时钟推算。</dd></div>
++            <div><dt>关系证据审核</dt><dd>{{ payload.relation_evidence.status }} · {{ payload.relation_evidence.reviewed_at || "CANNOT_CONFIRM" }} · {{ payload.relation_evidence.reviewer_identity || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>关系证据文件</dt><dd>{{ payload.relation_evidence.evidence_path || "CANNOT_CONFIRM" }} · SHA {{ payload.relation_evidence.evidence_sha256 || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>审核文件</dt><dd>{{ payload.relation_evidence.review_path || "CANNOT_CONFIRM" }} · SHA {{ payload.relation_evidence.review_sha256 || "CANNOT_CONFIRM" }}</dd></div>
++            <div><dt>跨市场关系</dt><dd>港股 {{ payload.hk_relation_status }} · A股 {{ payload.a_share_relation_status }} · 目标日期资格 {{ payload.target_date_eligibility }}</dd></div>
++            <div><dt>刷新方式</dt><dd>本页面只读取既有快照，不触发采集。</dd></div>
++          </dl>
++          <p v-if="payload.cannot_confirm.length || payload.freshness?.cannot_confirm?.length">
++            未确认依据：{{ [...payload.cannot_confirm, ...(payload.freshness?.cannot_confirm || [])].join("；") }}
++          </p>
++          <p v-if="payload.relation_evidence.limitations.length">
++            关系证据限制：{{ payload.relation_evidence.limitations.join("；") }}
++          </p>
++          <p v-if="payload.relation_evidence.cannot_confirm.length">
++            关系证据待确认：{{ payload.relation_evidence.cannot_confirm.join("；") }}
++          </p>
++        </template>
++        <dl v-if="clockDiagnostic">
++          <div><dt>上海时钟</dt><dd>{{ clockDiagnostic.shanghai_time || "CANNOT_CONFIRM" }}</dd></div>
++          <div><dt>纽约时钟</dt><dd>{{ clockDiagnostic.new_york_time || "CANNOT_CONFIRM" }} · {{ clockMessage }}</dd></div>
++          <div><dt>时钟边界</dt><dd>这只是时钟，不是交易所节假日／提前收盘核验；不据此推算上一完整交易日。</dd></div>
++        </dl>
++        <p v-if="!payload && state !== 'LOADING'">
++          暂时没有已验证的美股收盘快照。当前市场尚未收盘不能解释此前已完成场次为何缺失，须核对既有输入与物化链；页面不会抓取或补造。
++        </p>
++        <p v-if="state !== 'READY'">涨幅前三只在状态为 READY 时生成。当前状态未满足该条件，页面不会按部分、过期或未确认数据生成排名。</p>
++        <p v-if="validated">
++          板块涨幅仅使用同一 Futu board 的 last / previous_close；涨跌家数仅在 plate_valid=true 且三项齐全时显示。
++          ETF / 股票篮子另列为参考，不参与板块涨跌判断。跨市场关系是已审业务关系证据，不表示收入、因果或目标日期资格。
++          RESEARCH_ONLY=true · production_allowed=false · buy_gate_updated=false · orders_sent=false。
++        </p>
+       </div>
+-      <div class="global-industry-groups" data-theme-map>
+-        <section class="global-industry-group global-group-up" aria-label="上涨板块">
+-          <h3>上涨 <span>{{ risingRows.length }}</span></h3>
+-          <div class="global-industry-row-grid" data-theme-grid>
+-            <article v-for="row in risingRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div>
+-                <strong>{{ row.official_board.board_name || row.label }}</strong>
+-                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
+-                <small>{{ proxyReferenceText(row) }}</small>
+-                <details v-for="relation in row.official_board.relations" :key="`${relation.us_symbol}-${relation.hk_symbol}-${relation.relationship_type}`">
+-                  <summary>{{ relation.us_symbol }} → {{ relation.hk_symbol }} · {{ relation.relationship_type }} · 可得 {{ relation.available_at || "CANNOT_CONFIRM" }}</summary>
+-                  <a v-for="source in relation.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
+-                  <small>{{ relation.limitations.join("；") }}</small>
+-                </details>
+-              </div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }}</span>
+-            </article>
+-          </div>
+-          <p v-if="!risingRows.length">暂无可确认上涨板块。</p>
+-        </section>
+-        <section v-if="flatRows.length" class="global-industry-group global-group-flat" aria-label="平盘板块">
+-          <h3>平盘 <span>{{ flatRows.length }}</span></h3>
+-          <div class="global-industry-row-grid" data-theme-grid>
+-            <article v-for="row in flatRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div>
+-                <strong>{{ row.official_board.board_name || row.label }}</strong>
+-                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
+-                <small>{{ proxyReferenceText(row) }}</small>
+-              </div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }}</span>
+-            </article>
+-          </div>
+-        </section>
+-        <section class="global-industry-group global-group-down" aria-label="下跌板块">
+-          <h3>下跌 <span>{{ fallingRows.length }}</span></h3>
+-          <div class="global-industry-row-grid" data-theme-grid>
+-            <article v-for="row in fallingRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div>
+-                <strong>{{ row.official_board.board_name || row.label }}</strong>
+-                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
+-                <small>{{ proxyReferenceText(row) }}</small>
+-                <details v-for="relation in row.official_board.relations" :key="`${relation.us_symbol}-${relation.hk_symbol}-${relation.relationship_type}`">
+-                  <summary>{{ relation.us_symbol }} → {{ relation.hk_symbol }} · {{ relation.relationship_type }} · 可得 {{ relation.available_at || "CANNOT_CONFIRM" }}</summary>
+-                  <a v-for="source in relation.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
+-                  <small>{{ relation.limitations.join("；") }}</small>
+-                </details>
+-              </div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }}</span>
+-            </article>
+-          </div>
+-          <p v-if="!fallingRows.length">暂无可确认下跌板块。</p>
+-        </section>
+-        <section
+-          v-if="unknownRows.length"
+-          class="global-industry-group global-group-unknown global-group-wide"
+-          aria-label="待确认板块"
+-        >
+-          <h3>待确认 <span>{{ unknownRows.length }}</span></h3>
+-          <div class="global-industry-row-grid" data-theme-grid>
+-            <article v-for="row in unknownRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div>
+-                <strong>{{ row.official_board.board_name || row.label }}</strong>
+-                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
+-                <small>{{ proxyReferenceText(row) }}</small>
+-                <details v-for="relation in row.official_board.relations" :key="`${relation.us_symbol}-${relation.hk_symbol}-${relation.relationship_type}`">
+-                  <summary>{{ relation.us_symbol }} → {{ relation.hk_symbol }} · {{ relation.relationship_type }} · 可得 {{ relation.available_at || "CANNOT_CONFIRM" }}</summary>
+-                  <a v-for="source in relation.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
+-                  <small>{{ relation.limitations.join("；") }}</small>
+-                </details>
+-              </div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }} · {{ directionText(row.direction) }}</span>
+-            </article>
+-          </div>
+-        </section>
+-      </div>
+-      <div class="global-industry-meta">
+-        <span>官方来源：{{ payload?.provider || "CANNOT_CONFIRM" }}</span>
+-        <span>Futu update_time：{{ payload?.provider_session_times?.join("、") || "CANNOT_CONFIRM" }}</span>
+-        <span>capture time：{{ payload?.captured_at || "CANNOT_CONFIRM" }}</span>
+-        <span>Futu板块覆盖：{{ payload ? `${payload.available_board_count}/${payload.requested_board_count}` : "0/24" }}</span>
+-        <span>参考代理覆盖：{{ payload ? `${payload.proxy_available_symbol_count}/${payload.proxy_requested_symbol_count}` : `0/${configuredProxyCount}` }}</span>
+-        <span>关系审核：{{ payload?.relation_evidence?.status || "CANNOT_CONFIRM" }} · {{ payload?.relation_evidence?.reviewed_at || "CANNOT_CONFIRM" }}</span>
+-      </div>
+-      <p v-if="validated" class="global-industry-note">板块涨幅仅使用同一 Futu board 的 last / previous_close；涨跌家数仅在 plate_valid=true 且三项齐全时显示。ETF / 股票篮子另列为参考，不参与板块涨跌判断。跨市场关系是已审业务关系证据，不表示收入、因果或目标日期资格。RESEARCH_ONLY=true · production_allowed=false。</p>
+-    </template>
++    </details>
+   </section>
+ </template>
++
++<style scoped>
++.us-industry-panel {
++  --us-blue: #244d6d;
++  --us-muted: #687d8f;
++  --us-line: #d5e0e8;
++  --us-soft: #f4f8fb;
++  --us-up: #28714b;
++  --us-down: #a34d4d;
++  --us-warn: #795b17;
++  overflow: hidden;
++  color: #294a65;
++}
++
++.us-industry-panel *,
++.us-industry-panel *::before,
++.us-industry-panel *::after { box-sizing: border-box; }
++
++.us-industry-panel :focus-visible {
++  outline: 3px solid #2e78a7;
++  outline-offset: 3px;
++}
++
++.us-industry-heading {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 12px;
++  padding: 14px 16px 8px;
++}
++.us-industry-title { min-width: 0; }
++.us-industry-title h2 {
++  margin: 0;
++  color: var(--us-blue);
++  font-size: 20px;
++  line-height: 1.25;
++  font-weight: 750;
++}
++.us-industry-eyebrow {
++  margin: 0 0 3px;
++  color: var(--us-muted);
++  font-size: 12px;
++  letter-spacing: .04em;
++}
++.us-industry-actions {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  flex-shrink: 0;
++}
++.us-industry-status {
++  padding: 5px 9px;
++  color: #35627e;
++  background: #edf5fa;
++  border: 1px solid #a9c6d9;
++  border-radius: 999px;
++  font-size: 12px;
++  line-height: 1.2;
++  font-weight: 700;
++  white-space: nowrap;
++}
++.us-industry-status--ready {
++  color: var(--us-up);
++  background: #edf8f1;
++  border-color: #9bceb0;
++}
++.us-industry-status--partial,
++.us-industry-status--stale,
++.us-industry-status--cannot_confirm {
++  color: var(--us-warn);
++  background: #fff8dd;
++  border-color: #e3cc80;
++}
++.us-industry-status--error {
++  color: #8b3232;
++  background: #fff0f0;
++  border-color: #dba2a2;
++}
++.us-industry-actions button {
++  min-width: 64px;
++  min-height: 44px;
++  padding: 7px 12px;
++  color: var(--us-blue);
++  background: #f8fbfd;
++  border: 1px solid #9eb5c8;
++  border-radius: 6px;
++  font: inherit;
++  font-size: 13px;
++  font-weight: 700;
++  cursor: pointer;
++}
++.us-industry-actions button:hover { background: #eaf4fb; }
++.us-industry-actions button:disabled { cursor: wait; opacity: .72; }
++
++.us-industry-source {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 4px 14px;
++  padding: 5px 16px 9px;
++  color: var(--us-muted);
++  font-size: 13px;
++  font-variant-numeric: tabular-nums;
++}
++.us-industry-source strong { color: var(--us-blue); font-weight: 700; }
++
++.us-industry-message {
++  margin: 8px 16px;
++  padding: 9px 11px;
++  color: #526a7f;
++  background: var(--us-soft);
++  border-left: 4px solid #5f9ac2;
++  font-size: 13px;
++  line-height: 1.45;
++  overflow-wrap: anywhere;
++}
++.us-industry-error {
++  color: #8b3232;
++  background: #fff3f3;
++  border-left-color: #b85555;
++}
++.us-industry-date-warning {
++  color: #76581a;
++  background: #fff9e8;
++  border-left-color: #c99b38;
++}
++
++.us-industry-overview {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 7px;
++  padding: 4px 16px 10px;
++}
++.us-industry-overview-item {
++  display: flex;
++  align-items: baseline;
++  justify-content: center;
++  gap: 6px;
++  min-width: 0;
++  padding: 6px 8px;
++  background: var(--us-soft);
++  border: 1px solid var(--us-line);
++  border-radius: 6px;
++}
++.us-industry-overview-item strong {
++  font-size: 16px;
++  line-height: 1;
++  font-variant-numeric: tabular-nums;
++}
++.us-industry-overview-item span { color: #526a7f; font-size: 12px; white-space: nowrap; }
++.us-industry-overview-up strong { color: var(--us-up); }
++.us-industry-overview-down strong { color: var(--us-down); }
++.us-industry-overview-pending strong { color: var(--us-warn); }
++
++.us-industry-leaders {
++  margin: 0 16px 8px;
++  padding: 8px 10px;
++  background: #f7fafc;
++  border: 1px solid var(--us-line);
++  border-radius: 6px;
++}
++.us-industry-leaders h3 { margin: 0 0 5px; color: var(--us-blue); font-size: 13px; }
++.us-industry-leaders ol {
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, 1fr));
++  gap: 6px;
++  margin: 0;
++  padding: 0;
++  list-style: none;
++}
++.us-industry-leaders li {
++  display: grid;
++  grid-template-columns: auto minmax(0, 1fr) auto;
++  align-items: center;
++  gap: 6px;
++  min-width: 0;
++  color: var(--us-blue);
++  font-size: 12px;
++}
++.us-industry-leaders li > span { color: var(--us-muted); font-variant-numeric: tabular-nums; }
++.us-industry-leaders li strong { min-width: 0; overflow-wrap: anywhere; }
++.us-industry-leaders li b {
++  color: var(--us-up);
++  font-size: 12px;
++  font-variant-numeric: tabular-nums;
++  white-space: nowrap;
++}
++
++.us-industry-panel .global-industry-groups {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr);
++  gap: 8px;
++  min-width: 0;
++  padding: 0 16px 10px;
++}
++.us-industry-panel .global-industry-group {
++  display: grid;
++  align-content: start;
++  gap: 6px;
++  min-width: 0;
++  padding: 8px;
++  background: #f5f8fa;
++  border: 1px solid var(--us-line);
++  border-top: 3px solid #6f9ab9;
++  border-radius: 7px;
++}
++.us-industry-panel .global-industry-group h3 {
++  display: flex;
++  align-items: baseline;
++  justify-content: space-between;
++  gap: 8px;
++  margin: 0;
++  color: #36546d;
++  font-size: 14px;
++}
++.us-industry-panel .global-industry-group h3 span {
++  color: var(--us-muted);
++  font-size: 12px;
++  font-variant-numeric: tabular-nums;
++}
++.us-industry-group--up { border-top-color: #4f9a70 !important; }
++.us-industry-group--up > h3 { color: var(--us-up) !important; }
++.us-industry-group--down { border-top-color: #bb6666 !important; }
++.us-industry-group--down > h3 { color: #984747 !important; }
++.us-industry-group--flat { border-top-color: #8ba8bd !important; }
++.us-industry-group--pending { border-top-color: #d0a83c !important; }
++
++.us-industry-panel .global-industry-row-grid {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr);
++  gap: 5px;
++  min-width: 0;
++}
++.us-industry-panel .global-industry-row {
++  display: block;
++  min-width: 0;
++  padding: 0;
++  background: #fff;
++  border: 1px solid #d9e3ea;
++  border-radius: 5px;
++}
++.us-industry-row-summary {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) auto 24px;
++  align-items: center;
++  gap: 8px;
++  min-height: 48px;
++  padding: 5px 9px;
++  cursor: pointer;
++  list-style: none;
++}
++.us-industry-row-summary::-webkit-details-marker,
++.us-industry-group-summary::-webkit-details-marker,
++.us-industry-explanation > summary::-webkit-details-marker { display: none; }
++.us-industry-row-summary::marker,
++.us-industry-group-summary::marker,
++.us-industry-explanation > summary::marker { content: ""; }
++.us-industry-panel .us-industry-row-summary strong {
++  min-width: 0;
++  color: #294a65;
++  font-size: 14px;
++  line-height: 1.3;
++  overflow-wrap: anywhere;
++}
++.us-industry-panel .us-industry-row-summary b {
++  color: var(--us-up);
++  font-size: 14px;
++  line-height: 1.2;
++  font-variant-numeric: tabular-nums;
++  white-space: nowrap;
++}
++.us-industry-group--down .us-industry-row-summary b { color: var(--us-down); }
++.us-industry-group--pending .us-industry-row-summary b { color: var(--us-warn); }
++.us-industry-row-toggle {
++  display: grid;
++  place-items: center;
++  width: 24px;
++  height: 28px;
++  color: var(--us-muted);
++  font-size: 18px;
++  line-height: 1;
++}
++.us-industry-row[open] > .us-industry-row-summary,
++.us-industry-group--pending[open] > .us-industry-group-summary {
++  border-bottom: 1px solid var(--us-line);
++}
++.us-industry-row[open] > .us-industry-row-summary .us-industry-row-toggle { font-size: 0; }
++.us-industry-row[open] > .us-industry-row-summary .us-industry-row-toggle::before {
++  content: "−";
++  font-size: 18px;
++}
++.us-industry-panel .global-industry-group > .global-industry-row-grid > p {
++  margin: 0;
++  color: var(--us-muted);
++  font-size: 12px;
++}
++
++.us-industry-group-summary,
++.us-industry-explanation > summary {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 12px;
++  min-height: 48px;
++  padding: 4px 10px;
++  color: #554413;
++  font-size: 14px;
++  font-weight: 700;
++  cursor: pointer;
++  list-style: none;
++}
++.us-industry-group-summary span { color: var(--us-muted); font-size: 12px; font-weight: 500; }
++
++.us-industry-row-detail { display: grid; gap: 11px; padding: 10px; }
++.us-industry-row-detail dl,
++.us-industry-explanation-body dl {
++  display: grid;
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++  gap: 7px 14px;
++  margin: 0;
++}
++.us-industry-row-detail dl div,
++.us-industry-explanation-body dl div { min-width: 0; }
++.us-industry-row-detail dt,
++.us-industry-explanation-body dt { margin-bottom: 2px; color: var(--us-muted); font-size: 12px; }
++.us-industry-row-detail dd,
++.us-industry-explanation-body dd {
++  margin: 0;
++  color: #294a65;
++  font-size: 13px;
++  line-height: 1.4;
++  overflow-wrap: anywhere;
++  font-variant-numeric: tabular-nums;
++}
++.us-industry-reference,
++.us-industry-relations {
++  min-width: 0;
++  padding: 9px 10px;
++  background: #f6f9fb;
++  border: 1px solid #e0e7ed;
++  border-radius: 5px;
++}
++.us-industry-reference h4,
++.us-industry-relations h4 { margin: 0 0 4px; color: var(--us-blue); font-size: 13px; }
++.us-industry-reference p,
++.us-industry-relations p,
++.us-industry-relations li,
++.us-industry-reference small {
++  margin: 0;
++  color: #526a7f;
++  font-size: 12px;
++  line-height: 1.45;
++  overflow-wrap: anywhere;
++}
++.us-industry-reference small { display: block; margin-top: 3px; }
++.us-industry-relations article + article { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--us-line); }
++.us-industry-relations article > strong { display: block; margin-bottom: 3px; color: #294a65; font-size: 13px; }
++.us-industry-relations ul { margin: 4px 0; padding-left: 18px; }
++.us-industry-relations a { color: #1b5f91; text-decoration: underline; text-underline-offset: 2px; }
++.us-industry-empty { margin: 0; color: var(--us-muted); font-size: 12px; }
++
++.us-industry-explanation {
++  margin: 0 16px 14px;
++  background: #f7fafc;
++  border: 1px solid var(--us-line);
++  border-radius: 6px;
++}
++.us-industry-explanation > summary { color: var(--us-blue); }
++.us-industry-explanation-body {
++  display: grid;
++  gap: 10px;
++  padding: 10px;
++  border-top: 1px solid var(--us-line);
++}
++.us-industry-explanation-body p {
++  margin: 0;
++  color: #526a7f;
++  font-size: 13px;
++  line-height: 1.5;
++  overflow-wrap: anywhere;
++}
++
++@media (min-width: 760px) {
++  .us-industry-panel .global-industry-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
++}
++@media (max-width: 480px) {
++  .us-industry-heading { align-items: flex-start; padding-right: 12px; padding-left: 12px; }
++  .us-industry-source,
++  .us-industry-overview { padding-right: 12px; padding-left: 12px; }
++  .us-industry-panel .global-industry-groups { padding-right: 12px; padding-left: 12px; }
++  .us-industry-explanation { margin-right: 12px; margin-left: 12px; }
++  .us-industry-row-detail dl,
++  .us-industry-explanation-body dl { grid-template-columns: minmax(0, 1fr); }
++  .us-industry-leaders { margin-right: 12px; margin-left: 12px; }
++  .us-industry-leaders ol { grid-template-columns: minmax(0, 1fr); }
++}
++</style>
+--- a/apps/web/src/components/research/GlobalIndustryMap.spec.ts
++++ b/apps/web/src/components/research/GlobalIndustryMap.spec.ts
+@@ -9,6 +9,15 @@
+ } from "../../contracts/globalIndustries";
+ 
+ const response = (payload: unknown) => ({ ok: true, json: async () => payload });
++
++function openDisclosure(label: string) {
++  const summary = screen.getByText(label).closest("summary");
++  if (!summary) throw new Error("Disclosure summary not found: " + label);
++  const disclosure = summary.closest("details") as HTMLDetailsElement | null;
++  if (!disclosure) throw new Error("Disclosure container not found: " + label);
++  if (!disclosure.open) summary.click();
++  return disclosure;
++}
+ 
+ type FreshnessFixture = {
+   state: "RECENT_BOUND_CAPTURE" | "STALE_CLOCK_WINDOW" | "STALE_EXCHANGE_SESSION" | "CANNOT_CONFIRM";
+@@ -207,10 +216,18 @@
+       ? { market_snapshot_dates: [date] }
+       : snapshot(date, { displayStatus, freshness }))));
+     render(GlobalIndustryMap, { props: { targetDate: "20260909" } });
+-    await screen.findByText(/Futu 板块质量：PARTIAL/);
++    const expectedStatus = displayStatus === "STALE"
++      ? "快照偏旧"
++      : displayStatus === "PARTIAL" ? "部分确认" : "暂无法确认";
++    await screen.findByText(expectedStatus);
++    expect(screen.getByText("数据与说明")).toBeTruthy();
++    expect(document.querySelector(".us-industry-leaders")).toBeNull();
++    const collapsedDetails = [...document.querySelectorAll(".us-industry-explanation, .us-industry-group--pending")] as HTMLDetailsElement[];
++    expect(collapsedDetails.every((details) => !details.open)).toBe(true);
++    const explanation = openDisclosure("数据与说明");
++    expect(explanation.textContent).toContain("官方板块质量");
++    expect(explanation.textContent).toContain("PARTIAL");
+     expect(screen.queryByText("Leader 1")).toBeNull();
+-    expect(screen.queryByText("Leader 2")).toBeNull();
+-    expect(screen.queryByText("Leader 3")).toBeNull();
+   });
+ 
+   it("shows PARTIAL quality when a previous-session snapshot has bound freshness metadata", async () => {
+@@ -234,23 +251,30 @@
+ 
+     render(GlobalIndustryMap, { props: { targetDate } });
+ 
+-    expect(await screen.findByText("AI算力")).toBeTruthy();
+-    expect(screen.getByText("目标阶段日：2026-09-09")).toBeTruthy();
+-    expect(screen.getByText("读取快照日：2026-09-09")).toBeTruthy();
+-    expect(screen.getByText("Futu 板块来源日：2026-09-08")).toBeTruthy();
+-    expect(screen.getByText("PARTIAL · 质量缺口")).toBeTruthy();
+-    expect(screen.getByText(/Futu 板块质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
+-    expect(screen.getByText("Futu 已确认板块：12/24 · 待匹配 12")).toBeTruthy();
+-    expect(screen.getByText(/已有 12 个已确认官方板块；12 个待匹配。整体状态 PARTIAL/)).toBeTruthy();
+-    expect(screen.queryByText("当前没有可确认的收盘涨跌值。")).toBeNull();
+-    expect(screen.getByText(/交易所节假日／提前收盘及最新完整交易日：CANNOT_CONFIRM/)).toBeTruthy();
++    await screen.findByText("部分确认");
++    expect(screen.getByText("部分确认")).toBeTruthy();
++    expect(screen.queryByText(/目标阶段日 .* 读取快照日 .* 不一致/)).toBeNull();
++    const sourceSummary = screen.getByLabelText("来源日期和板块覆盖");
++    expect(sourceSummary.textContent).toContain("2026-09-08");
++    expect(sourceSummary.textContent).toContain("12/24");
++    expect(screen.getByText(/待匹配主题 12/)).toBeTruthy();
+     expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(screen.queryByLabelText("平盘板块")).toBeNull();
+-    expect(screen.getByLabelText("待确认板块")).toBeTruthy();
+-    const visibleGroups = [...document.querySelectorAll("[data-theme-map] > .global-industry-group")];
++    const pending = screen.getByLabelText("待匹配主题") as HTMLDetailsElement;
++    expect(pending.open).toBe(false);
++    const visibleRows = [...document.querySelectorAll("[data-theme-row]")] as HTMLDetailsElement[];
++    expect(visibleRows.every((row) => !row.open)).toBe(true);
++    const firstRowSummary = document.querySelector(".us-industry-group--up [data-theme-row] summary") as HTMLElement;
++    expect(firstRowSummary.tagName).toBe("SUMMARY");
++    expect(firstRowSummary.tabIndex).toBe(0);
++    firstRowSummary.focus();
++    expect(document.activeElement).toBe(firstRowSummary);
++    firstRowSummary.click();
++    expect((firstRowSummary.parentElement as HTMLDetailsElement).open).toBe(true);
++    const visibleGroups = [...document.querySelectorAll("[data-theme-map] > [data-theme-group]")];
+     expect(visibleGroups.map((group) => group.getAttribute("aria-label")))
+-      .toEqual(["上涨板块", "下跌板块", "待确认板块"]);
+-    const changeValues = [...document.querySelectorAll(".global-group-up [data-theme-row] b, .global-group-down [data-theme-row] b")]
++      .toEqual(["上涨板块", "下跌板块", "待匹配主题"]);
++    const changeValues = [...document.querySelectorAll(".us-industry-group--up [data-theme-row] summary b, .us-industry-group--down [data-theme-row] summary b")]
+       .map((element) => element.textContent || "");
+     expect(changeValues).toHaveLength(12);
+     expect(changeValues.every((value) => /[+-]\d+\.\d{3}%$/.test(value))).toBe(true);
+@@ -258,6 +282,35 @@
+       `/api/v3/research/us-market?research_date=${targetDate}`,
+       expect.objectContaining({ cache: "no-store" }),
+     );
++    pending.querySelector("summary")?.click();
++    expect(pending.open).toBe(true);
++    expect(screen.getAllByText("待匹配").length).toBeGreaterThan(0);
++  });
++
++  it("does not warn when the latest US snapshot is the prior calendar day to the stage target", async () => {
++    const stageTargetDate = "20260910";
++    const previousSnapshotDate = "20260909";
++    const fetchMock = vi.fn(async (url: string) => {
++      if (url === "/api/v3/research/dates") {
++        return response({ market_snapshot_dates: [previousSnapshotDate] });
++      }
++      if (url === `/api/v3/research/us-market?research_date=${previousSnapshotDate}`) {
++        return response(snapshot(previousSnapshotDate, {
++          sourceDate: previousSnapshotDate,
++          status: "PARTIAL",
++          displayStatus: "PARTIAL",
++          freshness: recentFreshness(previousSnapshotDate, "2026-09-10T04:30:00+08:00"),
++        }));
++      }
++      throw new Error(`unexpected URL: ${url}`);
++    });
++    vi.stubGlobal("fetch", fetchMock);
++
++    render(GlobalIndustryMap, { props: { targetDate: stageTargetDate } });
++
++    await screen.findByText("部分确认");
++    expect(screen.queryByText(/目标阶段日 .* 读取快照日 .* 不一致/)).toBeNull();
++    expect(screen.getByLabelText("来源日期和板块覆盖").textContent).toContain("2026-09-09");
+   });
+ 
+   it("uses the Futu board value and keeps the ETF proxy in a separate reference field", async () => {
+@@ -269,12 +322,22 @@
+ 
+     render(GlobalIndustryMap, { props: { targetDate: date } });
+ 
+-    expect((await screen.findAllByText("云计算服务商")).length).toBeGreaterThan(0);
++    await screen.findByText("数据可读");
+     expect(screen.getAllByText("+0.700%").length).toBeGreaterThan(0);
+-    expect(screen.getByText(/ETF参考 \+2\.216% · CLOU/)).toBeTruthy();
+-    expect(screen.getAllByText(/上涨 15 · 下跌 5 · 平盘 0/).length).toBeGreaterThan(0);
+-    expect(screen.getByText(/NVDA → HK\.00992 · NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER/)).toBeTruthy();
+-    expect(screen.getByRole("link", { name: /Evidence（发布 2025-10-21）/ })).toBeTruthy();
++    const cloudSummary = [...document.querySelectorAll("[data-theme-row] summary")]
++      .find((summary) => summary.textContent?.includes("云计算服务商")) as HTMLElement;
++    expect(cloudSummary).toBeTruthy();
++    cloudSummary.click();
++    const cloudRow = cloudSummary.closest("details") as HTMLDetailsElement;
++    const cloudDetail = cloudRow.querySelector(".us-industry-row-detail") as HTMLElement;
++    expect(cloudRow.open).toBe(true);
++    expect(cloudDetail.textContent).toContain("ETF 独立参考");
++    expect(cloudDetail.textContent).toContain("ETF参考 +2.216% · CLOU");
++    expect(cloudDetail.textContent).toContain("上涨 15 · 下跌 5 · 平盘 0");
++    expect(cloudDetail.textContent).toContain("跨市场关系证据 · READY");
++    expect(cloudDetail.textContent).toContain("NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER");
++    expect(cloudDetail.querySelector('a[href="https://example.test/source"]')?.textContent)
++      .toContain("Evidence（发布 2025-10-21）");
+   });
+ 
+   it("shows a same-date Friday close with explicit recent-capture metadata", async () => {
+@@ -293,12 +356,11 @@
+ 
+     render(GlobalIndustryMap, { props: { targetDate: date } });
+ 
+-    expect(await screen.findByText("近期时钟匹配")).toBeTruthy();
+-    expect(screen.getByText("目标阶段日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText("读取快照日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText("Futu 板块来源日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText(/Futu 板块质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
+-    expect(screen.getByText(/交易所节假日／提前收盘及最新完整交易日：CANNOT_CONFIRM/)).toBeTruthy();
++    expect(await screen.findByText("数据可读")).toBeTruthy();
++    const explanation = openDisclosure("数据与说明");
++    expect(explanation.textContent).toContain("2026-08-07");
++    expect(explanation.textContent).toContain("来源场次与原采集时间通过近期时钟核验");
++    expect(explanation.textContent).toContain("交易日核验");
+     expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(fetchMock).toHaveBeenCalledWith(
+       `/api/v3/research/us-market?research_date=${date}`,
+@@ -317,9 +379,10 @@
+ 
+     render(GlobalIndustryMap, { props: { targetDate: date } });
+ 
+-    expect((await screen.findAllByText("CANNOT_CONFIRM")).length).toBeGreaterThan(0);
+-    expect(screen.getByText("读取快照日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText(/Futu 板块质量：PARTIAL · 无法确认当前新鲜度；历史快照质量不等于当前数据已更新/)).toBeTruthy();
++    expect((await screen.findAllByText("暂无法确认")).length).toBeGreaterThan(0);
++    const explanation = openDisclosure("数据与说明");
++    expect(explanation.textContent).toContain("2026-08-07");
++    expect(explanation.textContent).toContain("无法确认当前新鲜度；历史快照质量不等于当前数据已更新");
+     expect(screen.queryByText("近期时钟匹配")).toBeNull();
+     expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(fetchMock).toHaveBeenCalledWith(
+@@ -352,12 +415,17 @@
+ 
+     render(GlobalIndustryMap, { props: { targetDate: stageTargetDate } });
+ 
+-    expect(await screen.findByText("AI算力")).toBeTruthy();
+-    expect(screen.getByText("目标阶段日：2026-09-01")).toBeTruthy();
+-    expect(screen.getByText("读取快照日：2026-09-09")).toBeTruthy();
+-    expect(screen.getByText("Futu 板块来源日：2026-09-08")).toBeTruthy();
+-    expect(screen.getByText("板块更新时间（纽约）：2026-09-08 16:00:00")).toBeTruthy();
+-    expect(await screen.findByText("近期时钟匹配")).toBeTruthy();
++    await screen.findByText("数据可读");
++    expect(await screen.findByText("数据可读")).toBeTruthy();
++    expect(screen.getByText("目标阶段日 2026-09-01 与读取快照日 2026-09-09 不一致，请核对日期身份。"))
++      .toBeTruthy();
++    expect((document.querySelector(".us-industry-explanation") as HTMLDetailsElement).open)
++      .toBe(false);
++    const explanation = openDisclosure("数据与说明");
++    expect(explanation.textContent).toContain("2026-09-01");
++    expect(explanation.textContent).toContain("2026-09-09");
++    expect(explanation.textContent).toContain("2026-09-08 16:00:00");
++    expect(explanation.textContent).toContain("来源场次与原采集时间通过近期时钟核验");
+     expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(fetchMock).toHaveBeenCalledWith(
+       `/api/v3/research/us-market?research_date=${latestSnapshotDate}`,
+@@ -375,6 +443,13 @@
+     render(GlobalIndustryMap, { props: { targetDate: "20260809" } });
+ 
+     expect(await screen.findByText("没有可用的最新美股市场快照日期。")).toBeTruthy();
++    const pending = screen.getByLabelText("待匹配主题") as HTMLDetailsElement;
++    expect(pending.open).toBe(false);
++    openDisclosure("数据与说明");
++    pending.querySelector("summary")?.click();
++    const firstPendingRow = pending.querySelector("[data-theme-row]") as HTMLDetailsElement;
++    firstPendingRow.querySelector("summary")?.click();
++    expect(firstPendingRow.open).toBe(true);
+     expect(screen.getAllByText("CANNOT_CONFIRM").length).toBeGreaterThan(0);
+     expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+   });
+@@ -397,8 +472,13 @@
+       render(GlobalIndustryMap, { props: { targetDate: "20260808" } });
+ 
+       expect(await screen.findByText(/已停止展示。/)).toBeTruthy();
++      const pending = screen.getByLabelText("待匹配主题") as HTMLDetailsElement;
++      pending.querySelector("summary")?.click();
++      const firstPendingRow = pending.querySelector("[data-theme-row]") as HTMLDetailsElement;
++      firstPendingRow.querySelector("summary")?.click();
+       expect(screen.getAllByText("CANNOT_CONFIRM").length).toBeGreaterThan(0);
+       expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
++      openDisclosure("数据与说明");
+       expect(screen.queryByText(/ETF \/ 股票篮子另列为参考/)).toBeNull();
+     },
+   );
+@@ -418,7 +498,12 @@
+ 
+     expect(await screen.findByText("美股行情研究安全边界未通过，已停止展示。"))
+       .toBeTruthy();
++    const pending = screen.getByLabelText("待匹配主题") as HTMLDetailsElement;
++    pending.querySelector("summary")?.click();
++    const firstPendingRow = pending.querySelector("[data-theme-row]") as HTMLDetailsElement;
++    firstPendingRow.querySelector("summary")?.click();
+     expect(screen.getAllByText("CANNOT_CONFIRM").length).toBeGreaterThan(0);
++    openDisclosure("数据与说明");
+     expect(screen.queryByText(/ETF \/ 股票篮子另列为参考/)).toBeNull();
+   });
+ 

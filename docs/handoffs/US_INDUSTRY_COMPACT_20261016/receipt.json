@@ -1,0 +1,56 @@
+{
+  "scope": "US industry panel compact presentation and native disclosure interaction",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_base_commit": "a50afc24dcd90d15393025beaf8fa5b00d915dcd",
+  "github_target_branch": "codex/us-industry-compact-20261016-r1",
+  "source_sha256": {
+    "apps/web/src/components/research/GlobalIndustryMap.vue": "8aeef4bc8eb6e8cfe61630b325fa89ca758bf1e3901a2078f3d0bd953288f251",
+    "apps/web/src/components/research/GlobalIndustryMap.spec.ts": "881997ce1e443f07e4999c8d59a749be85e2a848b2529fba6451d258993062dc"
+  },
+  "runtime_release": "us-industry-compact-20261016-r2",
+  "runtime_manifest_sha256": "d96d7c4b19642b0e41c1fe8293a359c6acdd21488ba6ab5a27023d139435da1a",
+  "runtime_base_release": "announcement-recovery-api-20261016-r5",
+  "runtime_delta_paths": [
+    "apps/web/src/components/research/GlobalIndustryMap.vue",
+    "apps/web/dist/index.html",
+    "apps/web/dist/assets/main-CSTxMQZm.css",
+    "apps/web/dist/assets/main-CUj3l9Uk.js"
+  ],
+  "non_delta_entries_preserved": 1217,
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": "Independent focused spec 18/18",
+    "REVIEWED": "PASS after one P2 date-notice correction",
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": "PASS independent final-behavior-review.json",
+    "NATURAL_VERIFIED": "NOT_APPLICABLE presentation-only change"
+  },
+  "validation": {
+    "writer_build": "PASS 99 modules",
+    "independent_initial_build": "PASS 99 modules",
+    "runtime_base_build": "PASS 99 modules, after final correction",
+    "same_width_600_height_before": 4157.28125,
+    "same_width_600_height_after": 1053,
+    "click_and_enter_and_space": "PASS",
+    "component_overflow_widths": [
+      390,
+      600,
+      1280
+    ]
+  },
+  "limitations": [
+    "Existing 12 unmatched themes remain unmatched; data unchanged.",
+    "No full-suite rerun; focused component acceptance only.",
+    "Git handoff includes necessary target-file snapshots plus exact batch diff; canonical checkout was already dirty."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "reviewer": "independent Luna Max reviewer",
+  "reviewed_at": "2026-10-16",
+  "scope": "Final integration/UI evidence for the frozen US industry compact-display batch.",
+  "release": {
+    "activation_status": "PASS",
+    "active_pointer": "candidate",
+    "release_id": "us-industry-compact-20261016-r2",
+    "release_manifest_sha256": "d96d7c4b19642b0e41c1fe8293a359c6acdd21488ba6ab5a27023d139435da1a",
+    "manifest_hash_independently_verified": true,
+    "runtime_asset": "main-CUj3l9Uk.js",
+    "runtime_asset_matches_release": true
+  },
+  "api_data": {
+    "frozen_fields_equal_before_after": true,
+    "checked": [
+      "status", "target_date", "source_date", "available_board_count", "requested_board_count",
+      "rows", "futu_board_snapshot", "source_response_sha256", "RESEARCH_ONLY",
+      "production_allowed", "buy_gate_updated", "orders_sent"
+    ],
+    "current": {
+      "status": "PARTIAL",
+      "target_date": "20261016",
+      "research_date": "20261016",
+      "source_date": "20261015",
+      "boards": "12/24",
+      "source_response_sha256": "242fa60c75f0d41fc7cebcd7facfb31fdf341c30c8a25a8393d95df934385c46",
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "whole_response_byte_equal": false,
+    "observed_full_payload_differences": [
+      "freshness.capture_age_seconds and freshness.observed_at advanced between captures",
+      "relation_evidence.evidence_path and review_path now point to the activated release"
+    ]
+  },
+  "ui_behavior": {
+    "default_all_26_details_closed": true,
+    "mouse_click_opens_board": true,
+    "enter_toggles_and_space_closes": true,
+    "pending_group_opens_12": true,
+    "data_explanation_opens_and_preserves_dates": true,
+    "golden_board_detail": "US.LIST2110, +4.238%, breadth 52/3/0, independent GLD reference +1.787%",
+    "summary_min_height_px": 48,
+    "viewport_panel_width_equals_scroll_width": {
+      "390": true,
+      "600": true,
+      "1280": true
+    },
+    "default_height_600px_viewport": 1053,
+    "previous_height_600px_viewport": 4157.28125,
+    "screenshots_reviewed": ["ui-default.png", "ui-expanded.png", "ui-390.png", "ui-1280.png"]
+  },
+  "relationship_sources": {
+    "api_records": 25,
+    "api_source_links": 71,
+    "live_expanded_sample": "The Golden row has no relation records; the screenshot therefore shows no relation links.",
+    "acceptance_evidence": "Final candidate component tests verified relation source anchors; the activated runtime asset matches that reviewed build."
+  },
+  "findings": [],
+  "review_status": "REVIEWED",
+  "test_status": "TESTED in prior final-candidate review; not rerun for this integration-only review",
+  "behavior_verified": "PASS"
+}

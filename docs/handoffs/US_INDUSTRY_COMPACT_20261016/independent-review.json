@@ -1,0 +1,41 @@
+{
+  "reviewer": "independent Luna Max reviewer",
+  "reviewed_at": "2026-10-16",
+  "scope": "Re-review of the frozen US industry compact-display candidate, limited to the prior P2 date-identity finding and the final two source hashes.",
+  "artifacts": {
+    "incremental_diff": "/Users/lexi/Desktop/学习/agents调试/US_INDUSTRY_COMPACT_20261016/incremental-date-identity-notice.diff",
+    "incremental_diff_sha256": "29848dbd203ca0eefbb281825a262f531ec3c6bc6a0364974e43a1efec100d27",
+    "vue_sha256": "8aeef4bc8eb6e8cfe61630b325fa89ca758bf1e3901a2078f3d0bd953288f251",
+    "spec_sha256": "881997ce1e443f07e4999c8d59a749be85e2a848b2529fba6451d258993062dc"
+  },
+  "previous_review_finding": {
+    "severity": "P2",
+    "status": "RESOLVED",
+    "issue": "The stage target/read-snapshot date discrepancy was only visible inside the default-collapsed data disclosure.",
+    "resolution_evidence": "GlobalIndustryMap.vue lines 173-176 compare researchDate with targetDate; lines 398-400 display a visible notice for unexpected differences. The logic uses researchDate, not payload.source_date."
+  },
+  "date_contract_review": {
+    "same_target_date_with_prior_source_date": "No warning; spec lines 254-259 assert this case where target/read snapshot are 2026-09-09 and source_date is 2026-09-08.",
+    "read_snapshot_one_calendar_day_before_target": "No warning; spec lines 290-313 assert target 2026-09-10 and read snapshot 2026-09-09.",
+    "unexpected_read_snapshot_difference": "Visible warning while data-and-explanation disclosure remains closed; spec lines 394-423 assert target 2026-09-01 and read snapshot 2026-09-09."
+  },
+  "verification": [
+    {
+      "command": "npm test -- src/components/research/GlobalIndustryMap.spec.ts",
+      "result": "PASS",
+      "evidence": "1 file passed; 18 tests passed."
+    },
+    {
+      "command": "npm run build",
+      "result": "NOT_RERUN_FOR_THIS_INCREMENTAL_DELTA",
+      "evidence": "The prior candidate build passed; the parent reviewer authorized limiting this re-review to the incremental template/date-notice change and focused spec."
+    }
+  ],
+  "p0": [],
+  "p1": [],
+  "p2": [],
+  "review_status": "REVIEWED",
+  "test_status": "TESTED",
+  "candidate_verdict": "PASS",
+  "behavior_verified": "CANNOT_CONFIRM: actual 8873 UI, browser keyboard activation, and narrow-screen rendering remain with the parent integration check."
+}
