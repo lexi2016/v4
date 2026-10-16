@@ -1,0 +1,132 @@
+{
+  "schema": "hk_precapture_git_sync_allowlist.v1",
+  "repo_root": "/Users/lexi/Desktop/学习/v4_app",
+  "base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "base_branch": "codex/system-consolidation-20260912",
+  "remote_configured": false,
+  "baseline_runtime": {
+    "release_id": "hk-auto-execution-audit-20261015-r3",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app",
+    "manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "live_plist_before_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+  },
+  "candidate_runtime": {
+    "release_id": "hk-precapture-isolation-20261016-r1",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app",
+    "manifest_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+    "config_sha256": "926e66b6bd6a3f3dff9d6145045602fa2139980f992cf6d7bc88a0776339d8ff",
+    "activation_status": "SCHEDULER_BOUND_IDLE_NO_RUN",
+    "live_plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290"
+  },
+  "online_binding": {
+    "receipt": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_ACTIVATION_RECEIPT.json",
+    "receipt_sha256": "7e2e9f2217e8b7c8fa0c0e380e092576dff0c04a504c8e87013b3686e889326e",
+    "independent_review_receipt": "docs/handoffs/hk_precapture_recovery_20261016/INDEPENDENT_ONLINE_REVIEW_R1.json",
+    "independent_review_sha256": "02b23f8927d7b88d9b180cbec20cbd4b7d6baadf2d770bcdff9f4b77a27588cb",
+    "independent_review_verdict": "REVIEWED_PASS",
+    "independent_review_findings": "0/0/0",
+    "pre_switch_baseline": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_CACHE_BASELINE.json",
+    "pre_switch_baseline_sha256": "b6877b14c58db23ba60e73864cbd34b9db78105693117f4e44818790e3a07ac4",
+    "scheduler_state": "loaded, idle, runs=0, last exit never",
+    "calendar_unchanged": true,
+    "RunAtLoad": false,
+    "manual_invocation": false
+  },
+  "protected_api_runtime": {
+    "release_id": "announcement-workbench-api-20261016-r4",
+    "live_plist_sha256": "b38b7f53e4acdca826ea7364eb5f833f478e1048180463467df49841b6d2b589",
+    "release_manifest_sha256": "7a2694c93a29da5990dc4f619a6295f94083da964f374880cea36f1ede8f955d",
+    "status": "CURRENT_R4_UNCHANGED_DURING_BINDING; 8873_SINGLE_LISTENER"
+  },
+  "acceptance": {
+    "writer_canonical_tests": "PASS_28",
+    "reviewed_candidate_focus_tests": "PASS_6",
+    "reviewed_stage_daily_regression": "27_PASS_1_COMMON_BASELINE_FAILURE",
+    "independent_review": "REVIEWED_PASS",
+    "candidate_and_synthetic_api_projection": "PASS_BEHAVIOR_VERIFIED",
+    "scheduler_rebind": "PASS_IDLE_NO_RUN",
+    "online_binding_review": "PASS_REVIEWED_PASS_0_0_0",
+    "natural_slot": "PENDING_13:14_AND_13:15",
+    "natural_monitor": "AUTOMATION_4_MONITORS_AT_13:18_AND_13:25_ONLY",
+    "actual_api_ui_natural_projection": "PENDING_NATURAL_CHAIN",
+    "CANNOT_CONFIRM": [
+      "Historical 09:34/09:39/09:44 failure cause is unknown.",
+      "Live Futu capture and next natural snapshot/source/selection/API/UI chain have not run."
+    ]
+  },
+  "excluded": [
+    "stage_center_tick_config.json release-specific runtime delta (hash recorded above only)",
+    "full R3 and candidate physical inventories",
+    "real and staged launch plists",
+    "raw market data, provider responses, and response bodies",
+    "earlier diagnostics-only candidate package",
+    "all unrelated dirty or mixed canonical-file content"
+  ],
+  "payloads": [
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_sources.diff",
+      "bytes": 29051,
+      "sha256": "d51bcc517a990fadfa516fd560a5321af0f88fc2e92840f74a2dc3612cfd60d1",
+      "git_blob_sha1": "328d99d989c6de4382915a3260a1acc1e750e98a"
+    },
+    {
+      "path": "tests/test_hk_precapture_per_stock_isolation_20261016.py",
+      "bytes": 8124,
+      "sha256": "6a490a25b621bd71e726c2152a184bac55ddccf5e7fa00eeb48901fedea912e9",
+      "git_blob_sha1": "e1dfec0ddda81ca10440646189a504577c73b560"
+    },
+    {
+      "path": "tests/test_hk_precapture_diagnostic_receipt_20261016.py",
+      "bytes": 3591,
+      "sha256": "19ee4d1cf9e94ccae80b0060284ecb4bbf252190e5733d507413eb5e7fe74387",
+      "git_blob_sha1": "180d3978fdafcc55238f17e0bcd008d85d1fa960"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/SYNC_FIX_SUMMARY.md",
+      "bytes": 2823,
+      "sha256": "0b7e8a226d464f804e261fb1f8219d7289f0c2cd484bf0ae5f1ae0fc29c00f0f",
+      "git_blob_sha1": "fee20568099d786a9b3ff429e0f6e93990b4c6ae"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_receipt.json",
+      "bytes": 7516,
+      "sha256": "f6e4e3038da87ad29d510382a7c99f39cc47228a2f95aed2fc04949add054bfb",
+      "git_blob_sha1": "3e2c3457672cda2f9f8b8dc5eed7d2311c1f24db"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/ISOLATION_INDEPENDENT_REVIEW_R1.json",
+      "bytes": 4552,
+      "sha256": "ce7cc50f9d62f5c66e7d4a679e2a32997c253a75896cd37d38d4556793d6b96c",
+      "git_blob_sha1": "3a7e5cfc206ff1dc32c1eb37f00832a16a335bc1"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/INDEPENDENT_ONLINE_REVIEW_R1.json",
+      "bytes": 6106,
+      "sha256": "02b23f8927d7b88d9b180cbec20cbd4b7d6baadf2d770bcdff9f4b77a27588cb",
+      "git_blob_sha1": "d129ba0077e62a2bf91b83ebd1a85d55f58a2004"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_CACHE_BASELINE.json",
+      "bytes": 26687,
+      "sha256": "b6877b14c58db23ba60e73864cbd34b9db78105693117f4e44818790e3a07ac4",
+      "git_blob_sha1": "dc2d633d381a4cea6d3725dd5d05ae29bee4d961"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_ACTIVATION_RECEIPT.json",
+      "bytes": 4401,
+      "sha256": "7e2e9f2217e8b7c8fa0c0e380e092576dff0c04a504c8e87013b3686e889326e",
+      "git_blob_sha1": "af3df6a8b5f24da897b6031fb8dd8abe903cf17b"
+    }
+  ],
+  "independent_reviewer_receipt": {
+    "path": "docs/handoffs/hk_precapture_recovery_20261016/ISOLATION_INDEPENDENT_REVIEW_R1.json",
+    "sha256": "ce7cc50f9d62f5c66e7d4a679e2a32997c253a75896cd37d38d4556793d6b96c",
+    "verdict": "REVIEWED_PASS"
+  },
+  "independent_online_reviewer_receipt": {
+    "path": "docs/handoffs/hk_precapture_recovery_20261016/INDEPENDENT_ONLINE_REVIEW_R1.json",
+    "sha256": "02b23f8927d7b88d9b180cbec20cbd4b7d6baadf2d770bcdff9f4b77a27588cb",
+    "verdict": "REVIEWED_PASS",
+    "severity_counts": "0/0/0"
+  }
+}

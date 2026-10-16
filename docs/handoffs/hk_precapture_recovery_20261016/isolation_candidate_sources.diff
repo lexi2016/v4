@@ -1,0 +1,560 @@
+--- a/ops/_run_stage_center_nodes_parts/node_entry.py
++++ b/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -60,6 +60,76 @@
+             deadline_receipt_pending_marker_path=_v4_global(_v4_scope, 'str')(pending),
+         )
+     return value
++
++
++def __write_precapture_diagnostic_body(_v4_scope, /, config, result):
++    """Persist one independent pre-capture result without touching stage receipt."""
++    import hashlib
++    from uuid import uuid4
++
++    from infrastructure.owned_io import SafeRoot
++
++    trade_date = result.get("trade_date")
++    stage_id = result.get("stage_id")
++    if not trade_date or not stage_id:
++        return {"diagnostic_receipt_status": "NOT_WRITTEN", "diagnostic_receipt_error": "PRECAPTURE_IDENTITY_MISSING"}
++    root = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(config["receipt_root"])).expanduser().resolve()
++    attempt_id = uuid4().hex
++    relative = f"{trade_date}/{stage_id}/precapture_attempts/{attempt_id}.json"
++    payload = {
++        "schema": "stage_center.hk_precapture_diagnostic.v1",
++        "attempt_id": attempt_id,
++        "trade_date": trade_date,
++        "stage_id": stage_id,
++        "node_id": result.get("node_id"),
++        "status": result.get("status"),
++        "dispatch_mode": result.get("dispatch_mode"),
++        "evaluated_at": result.get("evaluated_at"),
++        "pre_captures": result.get("pre_captures") or [],
++        "authorizes_selection": False,
++        "grants_retry": False,
++        **_v4_global(_v4_scope, '_safe_flags')(),
++    }
++    try:
++        raw = (_v4_global(_v4_scope, 'json').dumps(
++            payload, ensure_ascii=False, sort_keys=True, allow_nan=False
++        ) + "\n").encode("utf-8")
++        SafeRoot(root).write_bytes(relative, raw, require_absent=True)
++    except (KeyError, OSError, RuntimeError, TypeError, ValueError) as error:
++        return {
++            "diagnostic_receipt_status": "CANNOT_CONFIRM",
++            "diagnostic_receipt_error": f"{type(error).__name__}:{str(error)[:160]}",
++        }
++    return {
++        "diagnostic_receipt_status": "RECORDED",
++        "diagnostic_receipt_path": str(root / relative),
++        "diagnostic_receipt_sha256": hashlib.sha256(raw).hexdigest(),
++        "diagnostic_attempt_id": attempt_id,
++    }
++
++
++def __precapture_stdout_summary_body(_v4_scope, /, node):
++    captures = node.get("pre_captures") or []
++    capture_rows = [item for item in captures if _v4_global(_v4_scope, 'isinstance')(item, _v4_global(_v4_scope, 'Mapping'))]
++    capture = next((item for item in capture_rows if item.get("status") == "CANNOT_CONFIRM" or item.get("cannot_confirm")), capture_rows[0] if capture_rows else {})
++    exclusions = capture.get("exclusions") or []
++    if not _v4_global(_v4_scope, 'isinstance')(exclusions, (_v4_global(_v4_scope, 'list'), _v4_global(_v4_scope, 'tuple'))):
++        exclusions = []
++    return {
++        "status": node.get("status"),
++        "capture_status": capture.get("status"),
++        "requested_rows": capture.get("requested_rows"),
++        "returned_rows": capture.get("returned_rows"),
++        "eligible_rows_count": capture.get("eligible_rows_count"),
++        "excluded_rows_count": capture.get("excluded_rows_count"),
++        "exclusions": _v4_global(_v4_scope, 'list')(exclusions[:8]),
++        "provider_started_at": capture.get("provider_started_at"),
++        "provider_finished_at": capture.get("provider_finished_at"),
++        "first_failure_reason": _v4_global(_v4_scope, 'next')(_v4_global(_v4_scope, 'iter')(capture.get("cannot_confirm") or []), None),
++        "diagnostic_receipt_status": node.get("diagnostic_receipt_status"),
++        "diagnostic_receipt_path": node.get("diagnostic_receipt_path"),
++        "diagnostic_receipt_sha256": node.get("diagnostic_receipt_sha256"),
++    }
+ 
+ 
+ def __retry_is_due_body(_v4_scope, /, receipt, evaluated_at, *, retry_backoff_seconds):
+@@ -376,6 +446,8 @@
+                     capture_statuses = {_v4_global(_v4_scope, 'str')(item.get("status") or "") for item in captures}
+                     if "CANNOT_CONFIRM" in capture_statuses:
+                         capture_status = "CANNOT_CONFIRM"
++                    elif "PARTIAL_WITH_ROWS" in capture_statuses:
++                        capture_status = "PRECAPTURE_PARTIAL_WITH_ROWS"
+                     elif captures and capture_statuses <= {"READY", "NOOP_ALREADY_VERIFIED"}:
+                         capture_status = "PRECAPTURE_COMPLETE"
+                     else:
+@@ -385,10 +457,13 @@
+                         "node_id": node.node_id,
+                         "stage_id": stage_id,
+                         "trade_date": trade_date,
++                        "evaluated_at": evaluated.isoformat(),
+                         "dispatch_mode": _v4_global(_v4_scope, '_node_mode')(node, trade_date, evaluated),
+                         "pre_captures": captures,
+                         **_v4_global(_v4_scope, '_safe_flags')(),
+                     }
++            if node.node_id in _v4_global(_v4_scope, 'PRECAPTURE_NODE_IDS'):
++                result.update(__write_precapture_diagnostic_body(_v4_scope, config, result))
+             results.append(result)
+             continue
+ 
+@@ -513,7 +588,7 @@
+                 )
+             return ()
+ 
+-        node_rows.sort(key=lambda node: not (node.get("error") or _v4_global(_v4_scope, 'any')(
++        node_rows.sort(key=lambda node: not (node.get("error") or node.get("status") in {"CANNOT_CONFIRM", "PARTIAL_COMMIT_RETRY_REQUIRED", "PRECAPTURE_PARTIAL_WITH_ROWS"} or _v4_global(_v4_scope, 'any')(
+             lane.get("first_error") or lane.get("cannot_confirm")
+             for _market, lane in market_items(node))))
+         compact = {
+@@ -526,6 +601,8 @@
+             "nodes": [{"stage_id": node.get("stage_id"), "status": node.get("status"),
+                        "error": _v4_global(_v4_scope, 'str')(node.get("error") or "")[:100],
+                        "first_failed_layer": node.get("first_failed_layer"),
++                       "precapture_diagnostic": __precapture_stdout_summary_body(_v4_scope, node)
++                           if node.get("node_id") in _v4_global(_v4_scope, 'PRECAPTURE_NODE_IDS') else None,
+                        "markets": {market: {"status": lane.get("status", lane.get("selection_status")),
+                                     "first_error": _v4_global(_v4_scope, 'str')(lane.get("first_error") or _v4_global(_v4_scope, 'next')(_v4_global(_v4_scope, 'iter')(lane.get("cannot_confirm") or []), ""))[:120]}
+                                    for market, lane in market_items(node)
+--- a/stage_center/_live_collectors_parts/hk_minute.py
++++ b/stage_center/_live_collectors_parts/hk_minute.py
+@@ -433,19 +433,49 @@
+             pool_artifact_sha256=pool_artifact_sha256,
+         )
+         evidence = tuple(loaded.get("source_evidence") or ())
+-        if loaded.get("status") != "READY":
++        if loaded.get("status") not in {"READY", "PARTIAL_WITH_ROWS"}:
+             probe_errors = tuple(loaded.get("cannot_confirm") or ("HK_ACTIVE_SNAPSHOT_UNAVAILABLE",))
+             evidence += (
+                 "active_snapshot_status=PERSISTED_EXACT_STAGE_UNAVAILABLE",
+                 "active_snapshot_temporal_cutoff_safe=false",
+             )
+-        else:
++            if "HK_ACTIVE_SNAPSHOT_NO_ELIGIBLE_ROWS" in probe_errors:
++                return _v4_global(_v4_scope, 'replace')(
++                    source,
++                    status="CANNOT_CONFIRM",
++                    rows=(),
++                    cannot_confirm=_v4_global(_v4_scope, 'tuple')(
++                        _v4_global(_v4_scope, 'dict').fromkeys((*source.cannot_confirm, *probe_errors))
++                    ),
++                    source_evidence=_v4_global(_v4_scope, 'tuple')(
++                        _v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence))
++                    ),
++                )
++        if loaded.get("status") in {"READY", "PARTIAL_WITH_ROWS"}:
++            probe_errors = ()
+             snapshot_rows = tuple(loaded.get("rows") or ())
+             active_snapshot_rows = {str(row.get("code") or ""): row for row in snapshot_rows}
+-            if set(active_snapshot_rows) != set(requested) or len(active_snapshot_rows) != len(requested):
++            eligible_snapshot_rows = {
++                code: row for code, row in active_snapshot_rows.items()
++                if row.get("active_snapshot_eligible") is True
++            }
++            excluded_snapshot_rows = {
++                code: row for code, row in active_snapshot_rows.items()
++                if row.get("active_snapshot_eligible") is False
++            }
++            if (
++                set(active_snapshot_rows) != set(requested)
++                or len(active_snapshot_rows) != len(requested)
++                or not eligible_snapshot_rows
++                or len(eligible_snapshot_rows) != loaded.get("eligible_rows_count")
++                or len(excluded_snapshot_rows) != loaded.get("excluded_rows_count")
++            ):
+                 probe_errors = ("HK_ACTIVE_SNAPSHOT_FULL_COVERAGE_MISSING",)
++                active_snapshot_rows = {}
++                eligible_snapshot_rows = {}
++                excluded_snapshot_rows = {}
+             else:
+-                for code, snapshot in active_snapshot_rows.items():
++                for code, snapshot in eligible_snapshot_rows.items():
+                     previous = snapshot.get("prev_close_price")
+                     last = snapshot.get("last_price")
+                     turnover = snapshot.get("turnover")
+@@ -473,12 +503,17 @@
+                     f"active_snapshot_codes_sha256={loaded.get('active_snapshot_codes_sha256')}",
+                     f"active_snapshot_pool_artifact_sha256={loaded.get('active_snapshot_pool_artifact_sha256')}",
+                     "active_snapshot_temporal_cutoff_safe=true",
++                    "active_snapshot_temporal_cutoff_scope=eligible_rows_only",
++                    f"active_snapshot_requested_rows={len(requested)}",
++                    f"active_snapshot_eligible_rows={len(eligible_snapshot_rows)}",
++                    f"active_snapshot_excluded_rows={len(excluded_snapshot_rows)}",
++                    f"active_snapshot_exclusions_json={_v4_global(_v4_scope, 'json').dumps(loaded.get('exclusions') or [], ensure_ascii=False, sort_keys=True, separators=(',', ':'))}",
+                     f"active_snapshot_active_rows={len(active)}",
+                 )
+                 if stage_id != "STAGE_1545_1555":
+                     from stage_center.hk_stage8.snapshot import _stage8_market_timestamp
+                     book_gaps = []
+-                    for code, snapshot in active_snapshot_rows.items():
++                    for code, snapshot in eligible_snapshot_rows.items():
+                         book = snapshot.get("order_book")
+                         requested_at = _stage8_market_timestamp(snapshot.get("order_book_requested_at"), trade_date)
+                         received_at = _stage8_market_timestamp(snapshot.get("order_book_received_at"), trade_date)
+@@ -489,7 +524,7 @@
+                                 or requested_at.strftime("%Y%m%d") != trade_date
+                                 or not requested_at <= received_at < cutoff):
+                             book_gaps.append(code)
+-                    evidence += (f"futu_order_book_rows={len(requested) - len(book_gaps)}",)
++                    evidence += (f"futu_order_book_eligible_rows={len(eligible_snapshot_rows) - len(book_gaps)}",)
+                     if book_gaps:
+                         probe_errors += ("HK_STAGE_ORDERBOOK_INCOMPLETE",)
+                         evidence += ("futu_order_book_missing_codes=" + ",".join(book_gaps),)
+@@ -535,12 +570,17 @@
+         if snapshot is not None and set(active_snapshot_rows) == set(requested):
+             # Full D-1 membership enters ranking. The strong predicate only
+             # supplies its truthful lane bonus; retain every captured ratio.
+-            merged["candidate_lanes"] = ["LIVE_HKCONNECT_GAINER"] if code in active else []
++            eligible = snapshot.get("active_snapshot_eligible") is True
++            merged["candidate_lanes"] = ["LIVE_HKCONNECT_GAINER"] if eligible and code in active else []
+             merged["source_universe"] = "HK_CONNECT_D1_TOP100"
+-            merged["data_confidence"] = "STAGE_RTDATA_CONFIRMED"
+-            merged["active_gainer_pass"] = code in active
++            merged["data_confidence"] = "STAGE_RTDATA_CONFIRMED" if eligible else "ACTIVE_QUOTE_UNAVAILABLE"
++            merged["active_gainer_pass"] = eligible and code in active
+             merged["volume_ratio"] = snapshot.get("volume_ratio")
+-            merged["active_snapshot_status"] = "FUTU_HKCONNECT_FULL_SCAN"
++            merged["active_snapshot_eligible"] = eligible
++            merged["active_snapshot_exclusion_reason"] = snapshot.get("active_snapshot_exclusion_reason")
++            merged["active_snapshot_status"] = (
++                "FUTU_HKCONNECT_FULL_SCAN" if eligible else "EXCLUDED_TEMPORAL_CUTOFF"
++            )
+         enriched.append(merged)
+     cannot = _v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.cannot_confirm, *probe_errors)))
+     if "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE" in probe_errors:
+@@ -551,4 +591,14 @@
+             cannot_confirm=cannot,
+             source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence))),
+         )
+-    return _v4_global(_v4_scope, 'replace')(source, rows=_v4_global(_v4_scope, 'tuple')(enriched), cannot_confirm=cannot, source_evidence=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence))))
++    excluded_rows = tuple(row for row in active_snapshot_rows.values() if row.get("active_snapshot_eligible") is False)
++    status = "PARTIAL_WITH_ROWS" if excluded_rows and source.status == "READY" else source.status
++    return _v4_global(_v4_scope, 'replace')(
++        source,
++        status=status,
++        rows=_v4_global(_v4_scope, 'tuple')(enriched),
++        cannot_confirm=cannot,
++        source_evidence=_v4_global(_v4_scope, 'tuple')(
++            _v4_global(_v4_scope, 'dict').fromkeys((*source.source_evidence, *evidence))
++        ),
++    )
+--- a/stage_center/_live_collectors_parts/selection_builder_registry.py
++++ b/stage_center/_live_collectors_parts/selection_builder_registry.py
+@@ -3,6 +3,9 @@
+ import hashlib
+ import json
+ from ._namespace import read_global as _v4_global
++
++
++_HK_ACTIVE_SNAPSHOT_ISOLATION_POLICY = "active_snapshot_policy=PER_STOCK_TEMPORAL_ELIGIBILITY_V1"
+ 
+ 
+ _HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256 = "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
+@@ -364,7 +367,12 @@
+     def hk_builder(source: SourceResult, plan: AcquisitionPlan, raw: Mapping[str, Any]) -> Mapping[str, Any]:
+         rows = []
+         d1_evidence: list[str] = _v4_global(_v4_scope, 'list')(source.source_evidence)
++        isolates_snapshot_exclusions = _HK_ACTIVE_SNAPSHOT_ISOLATION_POLICY in source.source_evidence
++        excluded_snapshot_rows = 0
+         for row in source.rows:
++            if isolates_snapshot_exclusions and row.get("active_snapshot_eligible") is False:
++                excluded_snapshot_rows += 1
++                continue
+             previous = _v4_global(_v4_scope, '_safe_number')(row.get("prev_close_price"))
+             last = _v4_global(_v4_scope, '_safe_number')(row.get("last_price"))
+             pct = ((last - previous) / previous * 100.0) if previous and last is not None else None
+@@ -425,6 +433,13 @@
+                 d1_evidence.append(f"hk_d1_status={d1_status}")
+             d1_evidence.extend(_v4_global(_v4_scope, 'str')(item) for item in rows[-1]["d1_source_evidence"] if _v4_global(_v4_scope, 'str')(item))
+         d1_evidence = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys(d1_evidence))
++        if isolates_snapshot_exclusions:
++            d1_evidence.extend((
++                "hk_selection_snapshot_eligibility=PER_STOCK_TEMPORAL_V1",
++                f"hk_selection_snapshot_requested_rows={source.requested_rows or len(source.rows)}",
++                f"hk_selection_snapshot_eligible_rows={len(rows)}",
++                f"hk_selection_snapshot_excluded_rows={excluded_snapshot_rows}",
++            ))
+         if stage_id == "STAGE_0925":
+             return select_hk_0925_second_filter(rows, plan.trade_date, str(raw["artifact_sha256"]), source_status=raw["status"], requested_rows=raw["requested_rows"], missing_symbols=raw["missing_symbols"], cannot_confirm=raw["cannot_confirm"], source_evidence=tuple(dict.fromkeys((*raw["source_evidence"], *d1_evidence, top10_contract_evidence))))
+         # User decision 2026-10-14: score every acquired fixed-D1 row.
+--- a/stage_center/hk_stage8/snapshot.py
++++ b/stage_center/hk_stage8/snapshot.py
+@@ -78,6 +78,73 @@
+         ):
+             return False
+     return True
++
++
++def _snapshot_temporal_exclusion_reason(
++    row: Mapping[str, Any], *, trade_date: str, cutoff_at: str
++) -> str | None:
++    cutoff = _stage8_market_timestamp(cutoff_at, trade_date)
++    captured = _stage8_market_timestamp(
++        row.get("update_time") or row.get("update_time_us") or row.get("time"),
++        trade_date,
++    )
++    if captured is None:
++        return "timestamp_missing_or_unparseable"
++    if captured.strftime("%Y%m%d") != trade_date:
++        return "wrong_trade_date"
++    if cutoff is None or cutoff.strftime("%Y%m%d") != trade_date or captured > cutoff:
++        return "after_cutoff"
++    return None
++
++
++def _snapshot_temporal_partition(
++    rows: Sequence[Mapping[str, Any]], *, trade_date: str, cutoff_at: str
++) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
++    eligible: list[dict[str, Any]] = []
++    excluded: list[dict[str, Any]] = []
++    for row in rows:
++        normalized = dict(row)
++        reason = _snapshot_temporal_exclusion_reason(
++            normalized, trade_date=trade_date, cutoff_at=cutoff_at
++        )
++        normalized["active_snapshot_eligible"] = reason is None
++        if reason is None:
++            normalized.pop("active_snapshot_exclusion_reason", None)
++            eligible.append(normalized)
++        else:
++            normalized["active_snapshot_exclusion_reason"] = reason
++            excluded.append(normalized)
++    return eligible, excluded
++
++
++def _snapshot_temporal_partition_evidence(
++    rows: Sequence[Mapping[str, Any]],
++    *,
++    requested_rows: int,
++    trade_date: str,
++    cutoff_at: str,
++) -> tuple[tuple[str, ...], list[dict[str, str]]]:
++    eligible, excluded = _snapshot_temporal_partition(
++        rows, trade_date=trade_date, cutoff_at=cutoff_at
++    )
++    exclusions = [
++        {
++            "code": str(row.get("code") or ""),
++            "reason": str(row.get("active_snapshot_exclusion_reason") or ""),
++        }
++        for row in excluded
++    ]
++    evidence = (
++        "active_snapshot_policy=PER_STOCK_TEMPORAL_ELIGIBILITY_V1",
++        "active_snapshot_temporal_cutoff_scope=eligible_rows_only",
++        f"active_snapshot_requested_rows={requested_rows}",
++        f"active_snapshot_eligible_rows={len(eligible)}",
++        f"active_snapshot_excluded_rows={len(excluded)}",
++        "active_snapshot_exclusions_json=" + json.dumps(
++            exclusions, ensure_ascii=False, sort_keys=True, separators=(",", ":")
++        ),
++    )
++    return evidence, exclusions
+ 
+ 
+ def _canonical_snapshot_codes(codes: Sequence[str]) -> tuple[str, ...]:
+@@ -400,12 +467,26 @@
+         by_code[code] = normalized
+         canonical_rows.append(normalized)
+     canonical_rows.sort(key=lambda item: item["code"])
++    eligible_rows, excluded_rows = _snapshot_temporal_partition(
++        canonical_rows, trade_date=trade_date, cutoff_at=cutoff_at
++    )
++    canonical_rows = sorted(
++        (*eligible_rows, *excluded_rows), key=lambda item: str(item.get("code") or "")
++    )
++    by_code = {str(row["code"]): row for row in canonical_rows}
+     snapshot_sha = _snapshot_rows_sha(canonical_rows)
+     codes_sha = _snapshot_codes_sha(requested)
++    temporal_partition_evidence, _exclusions = _snapshot_temporal_partition_evidence(
++        canonical_rows,
++        requested_rows=len(requested),
++        trade_date=trade_date,
++        cutoff_at=cutoff_at,
++    )
+     evidence = evidence_base + (
+         f"active_snapshot_codes_sha256={codes_sha}",
+         f"active_snapshot_sha256={snapshot_sha}",
+         f"active_snapshot_returned_rows={len(by_code)}",
++        *temporal_partition_evidence,
+         *(
+             (f"active_snapshot_provider_started_at={provider_times['started_at']}",)
+             if provider_times["started_at"] is not None else ()
+@@ -421,8 +502,13 @@
+     if set(by_code) != set(requested) or len(by_code) != len(requested):
+         errors_out.append("HK_ACTIVE_SNAPSHOT_FULL_COVERAGE_MISSING")
+     if trade_date is not None and cutoff_at is not None:
+-        if not _stage8_snapshot_temporal_cutoff_safe(
+-            canonical_rows,
++        if not eligible_rows:
++            errors_out.extend((
++                "HK_ACTIVE_SNAPSHOT_NO_ELIGIBLE_ROWS",
++                "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE",
++            ))
++        elif not _stage8_snapshot_temporal_cutoff_safe(
++            eligible_rows,
+             trade_date=trade_date,
+             cutoff_at=cutoff_at,
+         ):
+@@ -539,6 +625,38 @@
+     actual_snapshot_sha = _snapshot_rows_sha(normalized_rows)
+     if payload.get("snapshot_sha256") != actual_snapshot_sha:
+         errors.append("HK_ACTIVE_SNAPSHOT_SHA_MISMATCH")
++    eligible_rows, excluded_rows = _snapshot_temporal_partition(
++        normalized_rows, trade_date=trade_date, cutoff_at=cutoff_iso
++    )
++    has_partition_markers = any(
++        "active_snapshot_eligible" in row or "active_snapshot_exclusion_reason" in row
++        for row in normalized_rows
++    )
++    if has_partition_markers:
++        for row, expected in zip(normalized_rows, sorted((*eligible_rows, *excluded_rows), key=lambda item: str(item.get("code") or ""))):
++            if (
++                type(row.get("active_snapshot_eligible")) is not bool
++                or row.get("active_snapshot_eligible") is not expected.get("active_snapshot_eligible")
++                or row.get("active_snapshot_exclusion_reason") != expected.get("active_snapshot_exclusion_reason")
++            ):
++                errors.append("HK_ACTIVE_SNAPSHOT_ELIGIBILITY_PARTITION_MISMATCH")
++                break
++        if (
++            payload.get("eligibility_policy") != "PER_STOCK_TEMPORAL_ELIGIBILITY_V1"
++            or payload.get("temporal_cutoff_scope") != "eligible_rows_only"
++            or type(payload.get("eligible_rows_count")) is not int
++            or payload.get("eligible_rows_count") != len(eligible_rows)
++            or type(payload.get("excluded_rows_count")) is not int
++            or payload.get("excluded_rows_count") != len(excluded_rows)
++        ):
++            errors.append("HK_ACTIVE_SNAPSHOT_ELIGIBILITY_PARTITION_MISMATCH")
++    elif excluded_rows:
++        errors.extend((
++            "HK_ACTIVE_SNAPSHOT_ELIGIBILITY_PARTITION_MISSING",
++            "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE",
++        ))
++    if not eligible_rows:
++        errors.extend(("HK_ACTIVE_SNAPSHOT_NO_ELIGIBLE_ROWS", "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE"))
+     if payload.get("cutoff_at") != cutoff_iso:
+         errors.append("HK_ACTIVE_SNAPSHOT_CUTOFF_MISMATCH")
+     provider_started = _stage8_market_timestamp(payload.get("provider_started_at"), trade_date)
+@@ -563,8 +681,9 @@
+         or provider_finished >= cutoff
+         or captured != provider_finished
+         or captured > cutoff
++        or not eligible_rows
+         or not _stage8_snapshot_temporal_cutoff_safe(
+-            normalized_rows,
++            eligible_rows,
+             trade_date=trade_date,
+             cutoff_at=cutoff_iso,
+         )
+@@ -577,9 +696,17 @@
+         or captured > capture_end
+     ):
+         errors.append("HK_ACTIVE_SNAPSHOT_CAPTURE_WINDOW_UNSAFE")
++    partition_evidence, exclusions = _snapshot_temporal_partition_evidence(
++        normalized_rows,
++        requested_rows=len(requested),
++        trade_date=trade_date,
++        cutoff_at=cutoff_iso,
++    )
++    enriched_rows = sorted((*eligible_rows, *excluded_rows), key=lambda item: str(item.get("code") or ""))
+     source_evidence = evidence_base + (
+         f"active_snapshot_sha256={actual_snapshot_sha}",
+         f"active_snapshot_returned_rows={len(normalized_rows)}",
++        *partition_evidence,
+         f"active_snapshot_capture_window_start={capture_start.replace(tzinfo=_SHANGHAI).isoformat()}",
+         f"active_snapshot_capture_window_end={capture_end.replace(tzinfo=_SHANGHAI).isoformat()}",
+         "active_snapshot_source=PERSISTED_EXACT_STAGE",
+@@ -595,10 +722,17 @@
+             **_HK_ACTIVE_SNAPSHOT_SAFETY,
+         }
+     return {
+-        "status": "READY",
++        "status": "PARTIAL_WITH_ROWS" if excluded_rows else "READY",
+         "snapshot_path": str(path),
+-        "rows": tuple(normalized_rows),
+-        "by_code": {str(row["code"]): row for row in normalized_rows},
++        "rows": tuple(enriched_rows),
++        "eligible_rows": tuple(eligible_rows),
++        "excluded_rows": tuple(excluded_rows),
++        "exclusions": exclusions,
++        "requested_rows": len(requested),
++        "returned_rows": len(enriched_rows),
++        "eligible_rows_count": len(eligible_rows),
++        "excluded_rows_count": len(excluded_rows),
++        "by_code": {str(row["code"]): row for row in enriched_rows},
+         "active_snapshot_codes_sha256": expected_codes_sha,
+         "active_snapshot_pool_artifact_sha256": pool_artifact_sha256,
+         "active_snapshot_sha256": actual_snapshot_sha,
+@@ -649,6 +783,8 @@
+                 "status": "NOOP_ALREADY_VERIFIED",
+                 "write_performed": False,
+             }
++        if existing["status"] == "PARTIAL_WITH_ROWS":
++            return {**existing, "already_verified": True, "write_performed": False}
+         return {**existing, "write_performed": False}
+     try:
+         capture_start, capture_end, cutoff_iso = _snapshot_window(
+@@ -677,12 +813,28 @@
+         pool_artifact_sha256=pool_artifact_sha256,
+         clock=clock,
+     )
++    eligible_rows, excluded_rows = _snapshot_temporal_partition(
++        rows, trade_date=trade_date, cutoff_at=cutoff_iso
++    )
++    _partition_evidence, exclusions = _snapshot_temporal_partition_evidence(
++        rows,
++        requested_rows=len(requested),
++        trade_date=trade_date,
++        cutoff_at=cutoff_iso,
++    )
+     if probe_errors:
+         return {
+             "status": "CANNOT_CONFIRM",
+             "snapshot_path": str(path),
+             "cannot_confirm": probe_errors,
+             "source_evidence": evidence,
++            "requested_rows": len(requested),
++            "returned_rows": len(rows),
++            "eligible_rows_count": len(eligible_rows),
++            "excluded_rows_count": len(excluded_rows),
++            "exclusions": exclusions,
++            "provider_started_at": provider_started_at,
++            "provider_finished_at": provider_finished_at,
+             "write_performed": False,
+             **_HK_ACTIVE_SNAPSHOT_SAFETY,
+         }
+@@ -700,6 +852,10 @@
+         "full_coverage": True,
+         "rows": rows,
+         "snapshot_sha256": _snapshot_rows_sha(rows),
++        "eligibility_policy": "PER_STOCK_TEMPORAL_ELIGIBILITY_V1",
++        "temporal_cutoff_scope": "eligible_rows_only",
++        "eligible_rows_count": len(eligible_rows),
++        "excluded_rows_count": len(excluded_rows),
+         "provider_started_at": provider_started_at,
+         "provider_finished_at": provider_finished_at,
+         "captured_at": provider_finished_at,
+@@ -718,13 +874,20 @@
+         )
+         if existing["status"] == "READY":
+             return {**existing, "status": "NOOP_ALREADY_VERIFIED", "write_performed": False}
++        if existing["status"] == "PARTIAL_WITH_ROWS":
++            return {**existing, "already_verified": True, "write_performed": False}
+         return {**existing, "write_performed": False}
+     return {
+-        "status": "READY",
++        "status": "PARTIAL_WITH_ROWS" if excluded_rows else "READY",
+         "snapshot_path": str(path),
+         "active_snapshot_codes_sha256": payload["codes_sha256"],
+         "active_snapshot_pool_artifact_sha256": pool_artifact_sha256,
+         "active_snapshot_sha256": payload["snapshot_sha256"],
++        "requested_rows": len(requested),
++        "returned_rows": len(rows),
++        "eligible_rows_count": len(eligible_rows),
++        "excluded_rows_count": len(excluded_rows),
++        "exclusions": exclusions,
+         "provider_started_at": provider_started_at,
+         "provider_finished_at": provider_finished_at,
+         "captured_at": provider_finished_at,

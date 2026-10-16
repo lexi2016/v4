@@ -1,0 +1,123 @@
+{
+  "CANNOT_CONFIRM": [
+    "Historical 2026-10-16 09:34/09:39/09:44 pre-capture failure cause is not established by retained receipts.",
+    "Candidate has not been independently reviewed or activated; next natural snapshot/source/selection/API/UI chain remains pending."
+  ],
+  "actual_delta": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_actualdiff.json",
+    "sha256": "e11e748e31e652e0049b7a6b1128e619040495e4ec3b6a392874216fa259cc81"
+  },
+  "api_ui_acceptance": "NOT_RUN_CANDIDATE_NOT_ACTIVATED",
+  "baseline_binding": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app",
+    "fresh_actual_inventory": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_baseline_inventory.json",
+      "sha256": "1bde4d706d504dae93400302fa5b77aad00293cf74308444d0c6f95e941eb185"
+    },
+    "previous_baseline_inventory": {
+      "current_difference_paths": [
+        "stage_center/hk_stage8/__pycache__",
+        "stage_center/hk_stage8/__pycache__/__init__.cpython-314.pyc",
+        "stage_center/hk_stage8/__pycache__/builders.cpython-314.pyc",
+        "stage_center/hk_stage8/__pycache__/precapture.cpython-314.pyc",
+        "stage_center/hk_stage8/__pycache__/rtdata.cpython-314.pyc",
+        "stage_center/hk_stage8/__pycache__/snapshot.cpython-314.pyc"
+      ],
+      "difference_reason": "six pre-existing CPython 3.14 cache entries absent from earlier baseline; preserved unchanged",
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/diagnostics_candidate_baseline_inventory.json",
+      "sha256": "47e47d5706f3fdcf2acc3050764019ddda1f6b095417589213b89586396d6a1b"
+    },
+    "release_id": "hk-auto-execution-audit-20261015-r3",
+    "release_manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "stage_config_sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+    "stage_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+  },
+  "candidate": {
+    "activation_status": "NOT_ACTIVATED",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app",
+    "manifest": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/release-manifest.json",
+      "sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b"
+    },
+    "release_id": "hk-precapture-isolation-20261016-r1",
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1",
+    "staged_plist": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_staged.plist",
+      "sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290"
+    }
+  },
+  "candidate_diff": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate.diff",
+    "sha256": "b30b67f61a16908e72d6f14cdd87f8219fd8baaa4dd9264c6b8e35e163c89345"
+  },
+  "changed_files": [
+    "ops/_run_stage_center_nodes_parts/node_entry.py",
+    "stage_center/_live_collectors_parts/hk_minute.py",
+    "stage_center/_live_collectors_parts/selection_builder_registry.py",
+    "stage_center/hk_stage8/snapshot.py",
+    "stage_center_tick_config.json"
+  ],
+  "complete_physical_inventory": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_complete_inventory.json",
+    "sha256": "fe9c7ff0702468b71137d479fbdc13c5b08e15c86f90c3220051faf53becabdc"
+  },
+  "natural_acceptance": "NOT_RUN_CANDIDATE_NOT_ACTIVATED",
+  "non_delta_all_byte_mode_kind_equal": true,
+  "protected_state_sha256": [
+    {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+      "sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/release-manifest.json",
+      "sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-auto-execution-audit-20261015-r3/app/stage_center_tick_config.json",
+      "sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812"
+    },
+    {
+      "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "sha256": "59435011d64bd0ea7f8eaa194193a220872973578f50213b6d3c0a8961ec8105"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-workbench-api-20261016-r3/release-manifest.json",
+      "sha256": "2d0a629e08afffbb5158e873d50b52872bb15ef34d6d3dffa0508a59cf4232c4"
+    }
+  ],
+  "schema": "hk_precapture_isolation_candidate_receipt.v1",
+  "source_and_candidate_sha256": [
+    {
+      "candidate_equals_canonical": true,
+      "candidate_sha256": "65a7da2d63dd7cec12a2b3caeb494dcebf386c64411f4d0252ae14c9543444b9",
+      "canonical_source_sha256": "65a7da2d63dd7cec12a2b3caeb494dcebf386c64411f4d0252ae14c9543444b9",
+      "path": "stage_center/hk_stage8/snapshot.py"
+    },
+    {
+      "candidate_equals_canonical": false,
+      "candidate_sha256": "e18fef248a296651704a066a29a12a0333e6495ac64cb7ad8918b01aa49be64c",
+      "canonical_source_sha256": "c7012eb481b1a79b3d260e0bc5c8203fb93f3bbcb99612cfd25fd06bb2f9ecc1",
+      "path": "stage_center/_live_collectors_parts/hk_minute.py"
+    },
+    {
+      "candidate_equals_canonical": false,
+      "candidate_sha256": "9c6db6b6eb9d0fb1ff1a0d414595d8dd075b59b0e547b42b1cedfc484f83c9a2",
+      "canonical_source_sha256": "00594f490167a26b48db2b6642ba219072fd4d726afbe8c6dcac13339106e9a7",
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py"
+    },
+    {
+      "candidate_equals_canonical": false,
+      "candidate_sha256": "5826f5e562a3da80b9eb12547ef7157e6f83ce6f7ef263bfded24bdbac2cc011",
+      "canonical_source_sha256": "258922cc9aab5c353f3e9e1767e883c5bff01c9100cb032e7a3404e01ced62cc",
+      "path": "ops/_run_stage_center_nodes_parts/node_entry.py"
+    }
+  ],
+  "state": "CANDIDATE_PREPARED_AWAITING_INDEPENDENT_REVIEW",
+  "writer_validation": {
+    "candidate_runtime_import_and_test": "PENDING_INDEPENDENT_REVIEW",
+    "command": "python3 -m py_compile stage_center/hk_stage8/snapshot.py stage_center/_live_collectors_parts/hk_minute.py stage_center/_live_collectors_parts/selection_builder_registry.py ops/_run_stage_center_nodes_parts/node_entry.py tests/test_hk_precapture_per_stock_isolation_20261016.py tests/test_hk_precapture_diagnostic_receipt_20261016.py && PYTHONPATH=upstreams/v3_shared_data:. .venv/bin/python -m pytest -q tests/test_hk_precapture_per_stock_isolation_20261016.py tests/test_hk_stage8_v4_recovery.py tests/test_hk_daily_stage_pipeline.py tests/test_hk_precapture_diagnostic_receipt_20261016.py --basetemp=/private/tmp/hk-precapture-regression-tests-20261016c",
+    "result": "PASS: 28 passed (canonical source suite before candidate build)",
+    "test_file": "/Users/lexi/Desktop/学习/v4_app/tests/test_hk_precapture_per_stock_isolation_20261016.py",
+    "test_file_sha256": "6a490a25b621bd71e726c2152a184bac55ddccf5e7fa00eeb48901fedea912e9"
+  }
+}

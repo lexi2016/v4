@@ -1,0 +1,70 @@
+{
+  "schema": "hk_precapture_isolation_independent_review.v1",
+  "reviewer": "/root/hk_precapture_review",
+  "reviewed_on": "2026-10-16",
+  "candidate_receipt": {
+    "path": "docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_receipt.json",
+    "sha256": "f6e4e3038da87ad29d510382a7c99f39cc47228a2f95aed2fc04949add054bfb"
+  },
+  "candidate": {
+    "release_id": "hk-precapture-isolation-20261016-r1",
+    "manifest_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+    "activation_status": "NOT_ACTIVATED"
+  },
+  "verdict": "REVIEWED_PASS",
+  "behavior_verified": "CANDIDATE_RUNTIME_AND_SYNTHETIC_API_PROJECTION",
+  "findings": [],
+  "severity_counts": {"P0": 0, "P1": 0, "P2": 0},
+  "diff_review": {
+    "candidate_diff_sha256": "b30b67f61a16908e72d6f14cdd87f8219fd8baaa4dd9264c6b8e35e163c89345",
+    "actual_delta_sha256": "e11e748e31e652e0049b7a6b1128e619040495e4ec3b6a392874216fa259cc81",
+    "changed_files": [
+      "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "stage_center/_live_collectors_parts/hk_minute.py",
+      "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "stage_center/hk_stage8/snapshot.py",
+      "stage_center_tick_config.json"
+    ],
+    "baseline_inventory_sha256": "1bde4d706d504dae93400302fa5b77aad00293cf74308444d0c6f95e941eb185",
+    "candidate_inventory_sha256": "fe9c7ff0702468b71137d479fbdc13c5b08e15c86f90c3220051faf53becabdc",
+    "baseline_and_candidate_entries": 1218,
+    "on_disk_inventory_matches": true,
+    "non_delta_entry_count": 1213,
+    "actual_changed_paths_equal_allowlist": true,
+    "stage_config_delta": "Only release_id and shared_data_root point to the candidate release; raw_root, receipt_root, selection_root, and research-only safety fields are unchanged.",
+    "staged_plist_normalizes_to_active_r3": true,
+    "protected_active_and_api_hashes_match_candidate_receipt": true
+  },
+  "behavior_evidence": [
+    {
+      "target": "Candidate imports",
+      "result": "PASS",
+      "evidence": "snapshot.py, hk_minute.py, selection_builder_registry.py, and node_entry.py resolved from the copied candidate app root under the configured venv runtime."
+    },
+    {
+      "target": "Per-stock isolation and diagnostic receipt tests",
+      "result": "PASS: 6 passed",
+      "evidence": "Candidate-imported tests verify 99 eligible plus 1 excluded from a complete 100-row source; persisted boolean/string/row markers; wrong-day and after-cutoff exclusions; no-eligible, missing-coverage, bridge-error fail-closed behavior; and append-only attempt receipt plus compact diagnostic summary."
+    },
+    {
+      "target": "Stage 8 and daily-stage regression set",
+      "result": "27 passed, 1 failed on candidate; 23 passed, 5 failed on r3 baseline",
+      "evidence": "The sole common failure is test_runner_precapture_is_before_due_decision_and_exact_window at tests/test_hk_stage8_v4_recovery.py:459. Both app roots return HK D1 binding status unreadable for the tuple test stub; runner.py is byte-identical and outside the delta. The other four r3 failures are the new candidate behaviors absent from r3."
+    },
+    {
+      "target": "Duplicate provider row fail-closed behavior",
+      "result": "PASS: isolated candidate canary",
+      "evidence": "A duplicate code among otherwise complete requested rows returns CANNOT_CONFIRM with HK_ACTIVE_SNAPSHOT_DUPLICATE_CODE, write_performed=false, and no snapshot file. Guard is in candidate snapshot.py:447, 499-503."
+    },
+    {
+      "target": "Actual API projection helper contract",
+      "result": "PASS: isolated synthetic projection",
+      "evidence": "The project_shared_selection helper loaded from announcement-workbench-api-20261016-r3 projected requested_rows=100, source_rows=99, missing_symbols=[], and PARTIAL_WITH_ROWS; retained active_snapshot_exclusions_json naming HK.02723; returned rows under the 50-row display limit with OBSERVATION_UNVERIFIED; and preserved RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false."
+    }
+  ],
+  "CANNOT_CONFIRM": [
+    "A live Futu capture, activation, and natural snapshot-to-selection/API/UI behavior were not run; candidate remains inactive.",
+    "The bundled API endpoint tests do not match this API release tree: one fails collection on missing _APPROVED_STAGE_BACKFILLS and another imports runner/store modules absent from this tree. The actual projection helper was exercised directly instead.",
+    "Historical 2026-10-16 09:34 failure cause remains unestablished."
+  ]
+}

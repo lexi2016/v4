@@ -1,0 +1,594 @@
+{
+  "schema": "hk_precapture_online_baseline.v1",
+  "captured_at_local": "2026-10-16 11:54:44 CST",
+  "purpose": "Pre-switch baseline for one authorized scheduler rebind; no producer run was initiated.",
+  "scheduler_before": {
+    "target": "gui/501/com.lexi.stage-center.scheduler",
+    "binding": "R3",
+    "state": "not running; active count 0",
+    "live_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+  },
+  "release_pins": {
+    "r3_manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "r3_config_sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+    "r1_manifest_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+    "r1_config_sha256": "926e66b6bd6a3f3dff9d6145045602fa2139980f992cf6d7bc88a0776339d8ff",
+    "staged_plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+    "independent_review_sha256": "ce7cc50f9d62f5c66e7d4a679e2a32997c253a75896cd37d38d4556793d6b96c",
+    "rollback_original_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c",
+    "api_plist_sha256": "b38b7f53e4acdca826ea7364eb5f833f478e1048180463467df49841b6d2b589",
+    "api_manifest_sha256": "7a2694c93a29da5990dc4f619a6295f94083da964f374880cea36f1ede8f955d"
+  },
+  "api_binding": {
+    "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "candidate_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "port": 8873,
+    "single_listener_verified": true
+  },
+  "r3_physical_inventory": {
+    "baseline_inventory_sha256": "1bde4d706d504dae93400302fa5b77aad00293cf74308444d0c6f95e941eb185",
+    "baseline_entries": 1218,
+    "current_entries": 1225,
+    "all_original_entries_identical": true,
+    "missing_or_changed_original_entries": 0,
+    "cache_only_additions": [
+      {
+        "path": "ops/__pycache__/run_stage_center_nodes.cpython-314.pyc",
+        "kind": "file",
+        "size": 23830,
+        "sha256": "80eec5c569501a8f7cd04b7c3dbe44efbcad207a6f857a550c669a688d97ef0c",
+        "mtime_ns": 1792121726522294093
+      },
+      {
+        "path": "ops/_run_stage_center_nodes_parts/__pycache__",
+        "kind": "directory",
+        "size": null,
+        "sha256": null,
+        "mtime_ns": 1792121726412306312
+      },
+      {
+        "path": "ops/_run_stage_center_nodes_parts/__pycache__/__init__.cpython-314.pyc",
+        "kind": "file",
+        "size": 329,
+        "sha256": "9a437981b99f71dd9b940b388c1943e5b346e5544b1377a9d567859a56a53a60",
+        "mtime_ns": 1792121726408048325
+      },
+      {
+        "path": "ops/_run_stage_center_nodes_parts/__pycache__/_namespace.cpython-314.pyc",
+        "kind": "file",
+        "size": 1066,
+        "sha256": "1d837ef83827287c94121dfe6a237d57e3fa33dc95eab01f27222f9feaa79e4b",
+        "mtime_ns": 1792121726412253395
+      },
+      {
+        "path": "ops/_run_stage_center_nodes_parts/__pycache__/node_entry.cpython-314.pyc",
+        "kind": "file",
+        "size": 53597,
+        "sha256": "14974e34b67d750c74983ead2ae78271bafdd08b0533cb2fe093a2a801436988",
+        "mtime_ns": 1792121726411944229
+      },
+      {
+        "path": "stage_center/_live_collectors_parts/__pycache__/hk_minute.cpython-314.pyc",
+        "kind": "file",
+        "size": 32515,
+        "sha256": "788864acd686b880e59ab1b4be830fe14e23a1891dd68bab48b2457fba4fa64c",
+        "mtime_ns": 1792121726406694537
+      },
+      {
+        "path": "stage_center/_runner_parts/__pycache__/tick_planning.cpython-314.pyc",
+        "kind": "file",
+        "size": 4716,
+        "sha256": "00db08fb4be60318cd506c55e4b5bd8a1bb87a0607a89084774e4d9f5924fdd6",
+        "mtime_ns": 1792121726571446022
+      }
+    ],
+    "current_inventory_private_path": "/private/tmp/hk_precapture_r3_inventory_preswitch_retry2_20261016.json",
+    "current_inventory_sha256": "900564d654211a39a1b5bc183fc606d33394779ecddfb0b4daf008ed4cdb91ac",
+    "included_in_sync": false
+  },
+  "business_trees_pre_switch": {
+    "early_day_receipts": {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261016",
+      "file_count": 25,
+      "bytes": 4645407,
+      "aggregate_sha256": "ed00cd17d9647e9098389796d5a4afd1f5f59b7031d069096dc034a0dddb3bee",
+      "files": [
+        {
+          "path": "STAGE_0925/receipt.json",
+          "kind": "file",
+          "bytes": 287516,
+          "sha256": "13c43da4c92c44a2a71042b8511ba57b5967ead4da8a364d33574828d7691a87"
+        },
+        {
+          "path": "STAGE_0925/attempt_evidence/bb770aa8c39f458da50c3d9657908a6f/001_START.json",
+          "kind": "file",
+          "bytes": 559,
+          "sha256": "a1f25dc813679e522e69aef6c9840450866c0666b6af6ea965caec9189fd77a1"
+        },
+        {
+          "path": "STAGE_0925/attempt_evidence/bb770aa8c39f458da50c3d9657908a6f/002_RETURN.json",
+          "kind": "file",
+          "bytes": 671,
+          "sha256": "077f52ae196bff83c10610ef67d2b0d7b416575805fb66c642042ad9aeb29668"
+        },
+        {
+          "path": "STAGE_0925/attempt_evidence/recorded-2dcfac8e0168aab19f4aa2ebab68ab4dcb859d530f982aec1594333e2dd7b7bd/RECEIPT.json",
+          "kind": "file",
+          "bytes": 286662,
+          "sha256": "2dcfac8e0168aab19f4aa2ebab68ab4dcb859d530f982aec1594333e2dd7b7bd"
+        },
+        {
+          "path": "STAGE_0925/attempt_evidence/recorded-e298f3e3a8193191b1a2dfcc0ff3ef6effa4600c3a7ae144fff09c6bc5431cf5/RECEIPT.json",
+          "kind": "file",
+          "bytes": 287223,
+          "sha256": "e298f3e3a8193191b1a2dfcc0ff3ef6effa4600c3a7ae144fff09c6bc5431cf5"
+        },
+        {
+          "path": "STAGE_0930_0935/receipt.json",
+          "kind": "file",
+          "bytes": 314806,
+          "sha256": "bfd0c403d372969802714e63524423cd3f6cd36f817f012e30b136cfdb12b2fd"
+        },
+        {
+          "path": "STAGE_0930_0935/attempt_evidence/9a2029dbc26045098edefe311fb35de3/001_START.json",
+          "kind": "file",
+          "bytes": 563,
+          "sha256": "2b532c00ee96a176f70cb6f0f188962af12db44f63808a2b77cb943ac5be0a06"
+        },
+        {
+          "path": "STAGE_0930_0935/attempt_evidence/9a2029dbc26045098edefe311fb35de3/002_RETURN.json",
+          "kind": "file",
+          "bytes": 676,
+          "sha256": "a3bfa298e6aa8b2d6dd1f876dfa8e1d3c2e79e7b536debff1f8a9cf70270184a"
+        },
+        {
+          "path": "STAGE_0930_0935/attempt_evidence/recorded-477a81d247148f0d14d72853a1f896bb41d6aa83e05b1b2e3c16d01108317fe6/RECEIPT.json",
+          "kind": "file",
+          "bytes": 313942,
+          "sha256": "477a81d247148f0d14d72853a1f896bb41d6aa83e05b1b2e3c16d01108317fe6"
+        },
+        {
+          "path": "STAGE_0930_0935/attempt_evidence/recorded-48bc8b43d8e1281bb0450a570933da9476b9f5a37d42e676d5d1af1b83d68abf/RECEIPT.json",
+          "kind": "file",
+          "bytes": 314508,
+          "sha256": "48bc8b43d8e1281bb0450a570933da9476b9f5a37d42e676d5d1af1b83d68abf"
+        },
+        {
+          "path": "STAGE_0935_0940/receipt.json",
+          "kind": "file",
+          "bytes": 315939,
+          "sha256": "63f0c3086968e70a9f33f83879511828813b72a9188f267ab98cb824e5109061"
+        },
+        {
+          "path": "STAGE_0935_0940/attempt_evidence/9d98f2a7b0ca4995a1d55a49bf51be86/001_START.json",
+          "kind": "file",
+          "bytes": 556,
+          "sha256": "451b18f770ca857eb138fd89f0ace36441ae30e47f745ed2bf0b8d4f0b0088c9"
+        },
+        {
+          "path": "STAGE_0935_0940/attempt_evidence/9d98f2a7b0ca4995a1d55a49bf51be86/002_RETURN.json",
+          "kind": "file",
+          "bytes": 670,
+          "sha256": "9f5c88706afaa5554d2ee3518c3b713ccd0bcd324942f11045f2958deb3df8c1"
+        },
+        {
+          "path": "STAGE_0935_0940/attempt_evidence/recorded-5e3965c6b4c7848da98eb37753c767f6e9243bb5ef8c5b70f2935503d1722f90/RECEIPT.json",
+          "kind": "file",
+          "bytes": 313990,
+          "sha256": "5e3965c6b4c7848da98eb37753c767f6e9243bb5ef8c5b70f2935503d1722f90"
+        },
+        {
+          "path": "STAGE_0935_0940/attempt_evidence/recorded-b5240eb78dde7d49fd6a2fe92f6217899ad65d9f7eea016c4a61fe6595f22e4e/RECEIPT.json",
+          "kind": "file",
+          "bytes": 315641,
+          "sha256": "b5240eb78dde7d49fd6a2fe92f6217899ad65d9f7eea016c4a61fe6595f22e4e"
+        },
+        {
+          "path": "STAGE_0940_0945/receipt.json",
+          "kind": "file",
+          "bytes": 316223,
+          "sha256": "f1c2277f8c09017116e2a61974ef1dfa47b8cfa795835e350d60d496f440475c"
+        },
+        {
+          "path": "STAGE_0940_0945/attempt_evidence/fcc9400d2e704d829d4fb3f773dc0a4b/001_START.json",
+          "kind": "file",
+          "bytes": 556,
+          "sha256": "2315160101bfb4d3b9dab32a9ea8b03654fa2f5b4b193e6b68fe22c8c11e7266"
+        },
+        {
+          "path": "STAGE_0940_0945/attempt_evidence/fcc9400d2e704d829d4fb3f773dc0a4b/002_RETURN.json",
+          "kind": "file",
+          "bytes": 669,
+          "sha256": "c96ed240d76a51f4b0d73b1bbce9590b5bfb86b293c45f24b410458b9d45f817"
+        },
+        {
+          "path": "STAGE_0940_0945/attempt_evidence/recorded-1e8f60b5d9306c8202c48fb732bfd984675a6417acc1603c70c6b12f2537d9ea/RECEIPT.json",
+          "kind": "file",
+          "bytes": 314273,
+          "sha256": "1e8f60b5d9306c8202c48fb732bfd984675a6417acc1603c70c6b12f2537d9ea"
+        },
+        {
+          "path": "STAGE_0940_0945/attempt_evidence/recorded-829e2981dfb4d024a1754ae3ac334cf5f5c182d38af0280d5473be202231705a/RECEIPT.json",
+          "kind": "file",
+          "bytes": 315925,
+          "sha256": "829e2981dfb4d024a1754ae3ac334cf5f5c182d38af0280d5473be202231705a"
+        },
+        {
+          "path": "STAGE_0945_1030/receipt.json",
+          "kind": "file",
+          "bytes": 314587,
+          "sha256": "62b8c68bae744a7f75824efa9b06eb46c810934bd84e3a7fbf72b29969c39a62"
+        },
+        {
+          "path": "STAGE_0945_1030/attempt_evidence/c0e573ac2be2425d886df76be8eac12a/001_START.json",
+          "kind": "file",
+          "bytes": 563,
+          "sha256": "6c0f658bce5790e7280a0ad7a5df93c3cae67ea18ac53365f272a055f3570f56"
+        },
+        {
+          "path": "STAGE_0945_1030/attempt_evidence/c0e573ac2be2425d886df76be8eac12a/002_RETURN.json",
+          "kind": "file",
+          "bytes": 677,
+          "sha256": "6032c513c54f4e91e0dd9c614432e7078a4bf1aad2e3685ad50ebf49ef0092e9"
+        },
+        {
+          "path": "STAGE_0945_1030/attempt_evidence/recorded-d46c006c8e8534523ae1e0d2e967f39c16d69b055fe4ed2326f073eb46bde597/RECEIPT.json",
+          "kind": "file",
+          "bytes": 313723,
+          "sha256": "d46c006c8e8534523ae1e0d2e967f39c16d69b055fe4ed2326f073eb46bde597"
+        },
+        {
+          "path": "STAGE_0945_1030/attempt_evidence/recorded-e16554b6b9ab585d9a36b4aa94b4a0a9363466f8a3ee296a9128478fca354eb1/RECEIPT.json",
+          "kind": "file",
+          "bytes": 314289,
+          "sha256": "e16554b6b9ab585d9a36b4aa94b4a0a9363466f8a3ee296a9128478fca354eb1"
+        }
+      ]
+    },
+    "today_selection_runs": {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016",
+      "file_count": 30,
+      "bytes": 1564268,
+      "aggregate_sha256": "b52e9037f79f4e00d39cd2581c6108336f594d283b365530210ed7d1cf3d09a0",
+      "files": [
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0925/run-8dcc4352541ce4ba3ae46297/artifact.csv",
+          "kind": "file",
+          "bytes": 3676,
+          "sha256": "1b418f541053218870d0216bd8b21aaa0ecea49339e66f5372a1ad5c628f388b"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0925/run-8dcc4352541ce4ba3ae46297/manifest.json",
+          "kind": "file",
+          "bytes": 273579,
+          "sha256": "aef4792f7e42cdc961f3282d416601d1f21c4135709ad9a16ffbed4af3a005cd"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0925/run-8dcc4352541ce4ba3ae46297/receipt.json",
+          "kind": "file",
+          "bytes": 1106,
+          "sha256": "38fcbbd6aaa5e1e53df6dd66f397dc0a3034854b45e9f04b0c8714ea7c1688a7"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0930_0935/run-55fd805d33db0572acbe0d10/artifact.csv",
+          "kind": "file",
+          "bytes": 2134,
+          "sha256": "e5119c956161a5e743b0caa569b90ba50478f654dfe014e684b118c531b7d726"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0930_0935/run-55fd805d33db0572acbe0d10/manifest.json",
+          "kind": "file",
+          "bytes": 295720,
+          "sha256": "e85631f7e6f35d0b4710e026bb409adff067c12a07b2e8b41a6114e667aee07f"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0930_0935/run-55fd805d33db0572acbe0d10/receipt.json",
+          "kind": "file",
+          "bytes": 1121,
+          "sha256": "1703d88c566c4f78ed62b85e068485e4747fc8446ca42350ae44b67cd6abd6d5"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0935_0940/run-13fb85af6a7518d770d80a3a/artifact.csv",
+          "kind": "file",
+          "bytes": 2143,
+          "sha256": "395d3c6637274f0507296b6ec447634d2b1601c5bc17cb0dc6bac6dbeb6fc5cc"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0935_0940/run-13fb85af6a7518d770d80a3a/manifest.json",
+          "kind": "file",
+          "bytes": 295754,
+          "sha256": "5a8c7857f332b7f5194e1b209962c755d35f4db78ae45ff117bbbba1eda3d603"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0935_0940/run-13fb85af6a7518d770d80a3a/receipt.json",
+          "kind": "file",
+          "bytes": 1121,
+          "sha256": "36d1a0d68dd6b40579edd898081572a0f175f111166bd663532441942c02b53e"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0940_0945/run-ec086e0c4eaccd0028617de7/artifact.csv",
+          "kind": "file",
+          "bytes": 2146,
+          "sha256": "f16b336e72eacf174eb9760aacf1ae495f0622f5393ac4f912bc65e4ee689efe"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0940_0945/run-ec086e0c4eaccd0028617de7/manifest.json",
+          "kind": "file",
+          "bytes": 295765,
+          "sha256": "40f65d40ad2cf52bef3fff99d013ced5bc80badcce218378707fcf354df0c60d"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0940_0945/run-ec086e0c4eaccd0028617de7/receipt.json",
+          "kind": "file",
+          "bytes": 1121,
+          "sha256": "293e4ddc53e009439f2aa1bcd5dab621dde0c7f57cef2c2594e6793ffde742ad"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0945_1030/run-5d7dee64177e7237ad5042b1/artifact.csv",
+          "kind": "file",
+          "bytes": 2143,
+          "sha256": "c039de7ee391c765966cf0fa3140a5a03eeb53260247cef74734e04d09f29d58"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0945_1030/run-5d7dee64177e7237ad5042b1/manifest.json",
+          "kind": "file",
+          "bytes": 295033,
+          "sha256": "93ec484d4b7a14d33e6511b1242eb33b525c6bbb52ab64d76e801a35fb647e5d"
+        },
+        {
+          "path": "A_SHARE_SELECTION_STAGE_0945_1030/run-5d7dee64177e7237ad5042b1/receipt.json",
+          "kind": "file",
+          "bytes": 1121,
+          "sha256": "8afba6274e395d2dca6c31a58080a0d32f71701ee36595577d0a9f668909708d"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0925/run-1ccd882965e116c4b66cd2b5/artifact.csv",
+          "kind": "file",
+          "bytes": 1898,
+          "sha256": "3b9992e4e8d29a6b3fa0d1160525583f0c39b52738352406470b614806b7e89c"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0925/run-1ccd882965e116c4b66cd2b5/manifest.json",
+          "kind": "file",
+          "bytes": 10677,
+          "sha256": "8e499b4147217bf086693eeca15536c78b679510ffd2bf67793e0c13f74907bf"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0925/run-1ccd882965e116c4b66cd2b5/receipt.json",
+          "kind": "file",
+          "bytes": 1115,
+          "sha256": "09b9a2ab66f22ec719dd85706d73513045e685d4e89585a8597fcc8550de4fc3"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0930_0935/run-e8a2024a09a9c2f5f2e94312/artifact.csv",
+          "kind": "file",
+          "bytes": 1795,
+          "sha256": "64da4a35c08c0fd194b751d14ee681c4e192e64542054440d7b357166207d0e2"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0930_0935/run-e8a2024a09a9c2f5f2e94312/manifest.json",
+          "kind": "file",
+          "bytes": 16035,
+          "sha256": "54aac5fb2b2831237ed5c14d1f45f00b964ec4cc858f4bfe8e1aa42484b7fa24"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0930_0935/run-e8a2024a09a9c2f5f2e94312/receipt.json",
+          "kind": "file",
+          "bytes": 1130,
+          "sha256": "52fa36083252ad2d7aba2283955c4f25b85ab65af3aaebedbf06bbcfacfaf906"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0935_0940/run-ccc20f037cc139b83f8a3f7c/artifact.csv",
+          "kind": "file",
+          "bytes": 1796,
+          "sha256": "ed05e2eb54592992be63aa9bb842e10443fa4c9b2bacda1d989bd52898f1a09b"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0935_0940/run-ccc20f037cc139b83f8a3f7c/manifest.json",
+          "kind": "file",
+          "bytes": 16049,
+          "sha256": "6086dd03a7dbc75b24390203fb7f35c1c3e07c65f2d7acf34aae021854d9304c"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0935_0940/run-ccc20f037cc139b83f8a3f7c/receipt.json",
+          "kind": "file",
+          "bytes": 1130,
+          "sha256": "f45788594e44a74c131ce6941035356154e66af055ba9491e9631d6c65f23c0e"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0940_0945/run-9f5dbc39a836451324721acf/artifact.csv",
+          "kind": "file",
+          "bytes": 1899,
+          "sha256": "c4e4720a38ea2de6d2bb0b40ca6a0356289cab33825890f6329056567dedb950"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0940_0945/run-9f5dbc39a836451324721acf/manifest.json",
+          "kind": "file",
+          "bytes": 16321,
+          "sha256": "7efbafda8b9291e060a5b47773fba7fa253ff979385d379112977c92ff390050"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0940_0945/run-9f5dbc39a836451324721acf/receipt.json",
+          "kind": "file",
+          "bytes": 1130,
+          "sha256": "04c1db64ee75bc7c96b710c901577c8a78becc76bc54783bd677395bb19ac717"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0945_1030/run-181ddc8bd8047a502234b698/artifact.csv",
+          "kind": "file",
+          "bytes": 1977,
+          "sha256": "0e8ecec964d6b9827dd07eba568c3c9318e3ee622abbd7801a6b50daa67c903b"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0945_1030/run-181ddc8bd8047a502234b698/manifest.json",
+          "kind": "file",
+          "bytes": 16503,
+          "sha256": "b1c55eac9c1f4feaf8dc0aac0b0e69da2cfbbcb71e8076f36a65d6879d4b0381"
+        },
+        {
+          "path": "HK_CONNECT_SELECTION_STAGE_0945_1030/run-181ddc8bd8047a502234b698/receipt.json",
+          "kind": "file",
+          "bytes": 1130,
+          "sha256": "5d9a868faf5ac8133e49c10e79374a3add7caec135fe6e74200b4e7e18008c84"
+        }
+      ]
+    },
+    "a_stage_inputs": {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/stage_inputs",
+      "file_count": 5,
+      "bytes": 533495,
+      "aggregate_sha256": "d85b4342ec922d337debc12cb6fa94d662c9fce224b3855ab4c08f7376cb12c2",
+      "files": [
+        {
+          "path": "20260914/STAGE_1445_1500.json",
+          "kind": "file",
+          "bytes": 137450,
+          "sha256": "7bf944e6d04ede8fb38743a3af0d7a2392f103cbdc1ceebad908c32bb37756a7"
+        },
+        {
+          "path": "20260915/STAGE_1445_1500.json",
+          "kind": "file",
+          "bytes": 126191,
+          "sha256": "ceee8b729b455f10dde53e76d4bd2ea53d395daed3192f0579f5844e90cca516"
+        },
+        {
+          "path": "20260916/STAGE_1445_1500.json",
+          "kind": "file",
+          "bytes": 33361,
+          "sha256": "029c612f037c997a039e2bda48f13d9261127736d38fda5bb4f65f091c1d3380"
+        },
+        {
+          "path": "20260917/STAGE_1445_1500.json",
+          "kind": "file",
+          "bytes": 111989,
+          "sha256": "f39277c3bbd20e1ff6ab0d65d37c0926cbb09c2c991e711093d2b9393c95980b"
+        },
+        {
+          "path": "20260918/STAGE_1445_1500.json",
+          "kind": "file",
+          "bytes": 124504,
+          "sha256": "f11e9ab89459a0f756562eb026cf6afa7056606286b9e60d54d92a7d48296a5f"
+        }
+      ]
+    }
+  },
+  "selection_latest": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_latest.json",
+    "sha256": "764f57b6cef920b64ee240a57e826b7a6b0644fbb62f663cb604607b2911a20e"
+  },
+  "morning_a_selection_runs": [
+    {
+      "stage": "A_SHARE_SELECTION_STAGE_0925",
+      "run_id": "run-8dcc4352541ce4ba3ae46297",
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0925/run-8dcc4352541ce4ba3ae46297/receipt.json",
+          "bytes": 1106,
+          "sha256": "38fcbbd6aaa5e1e53df6dd66f397dc0a3034854b45e9f04b0c8714ea7c1688a7"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0925/run-8dcc4352541ce4ba3ae46297/manifest.json",
+          "bytes": 273579,
+          "sha256": "aef4792f7e42cdc961f3282d416601d1f21c4135709ad9a16ffbed4af3a005cd"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0925/run-8dcc4352541ce4ba3ae46297/artifact.csv",
+          "bytes": 3676,
+          "sha256": "1b418f541053218870d0216bd8b21aaa0ecea49339e66f5372a1ad5c628f388b"
+        }
+      ]
+    },
+    {
+      "stage": "A_SHARE_SELECTION_STAGE_0930_0935",
+      "run_id": "run-55fd805d33db0572acbe0d10",
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0930_0935/run-55fd805d33db0572acbe0d10/receipt.json",
+          "bytes": 1121,
+          "sha256": "1703d88c566c4f78ed62b85e068485e4747fc8446ca42350ae44b67cd6abd6d5"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0930_0935/run-55fd805d33db0572acbe0d10/manifest.json",
+          "bytes": 295720,
+          "sha256": "e85631f7e6f35d0b4710e026bb409adff067c12a07b2e8b41a6114e667aee07f"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0930_0935/run-55fd805d33db0572acbe0d10/artifact.csv",
+          "bytes": 2134,
+          "sha256": "e5119c956161a5e743b0caa569b90ba50478f654dfe014e684b118c531b7d726"
+        }
+      ]
+    },
+    {
+      "stage": "A_SHARE_SELECTION_STAGE_0935_0940",
+      "run_id": "run-13fb85af6a7518d770d80a3a",
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0935_0940/run-13fb85af6a7518d770d80a3a/receipt.json",
+          "bytes": 1121,
+          "sha256": "36d1a0d68dd6b40579edd898081572a0f175f111166bd663532441942c02b53e"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0935_0940/run-13fb85af6a7518d770d80a3a/manifest.json",
+          "bytes": 295754,
+          "sha256": "5a8c7857f332b7f5194e1b209962c755d35f4db78ae45ff117bbbba1eda3d603"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0935_0940/run-13fb85af6a7518d770d80a3a/artifact.csv",
+          "bytes": 2143,
+          "sha256": "395d3c6637274f0507296b6ec447634d2b1601c5bc17cb0dc6bac6dbeb6fc5cc"
+        }
+      ]
+    },
+    {
+      "stage": "A_SHARE_SELECTION_STAGE_0940_0945",
+      "run_id": "run-ec086e0c4eaccd0028617de7",
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0940_0945/run-ec086e0c4eaccd0028617de7/receipt.json",
+          "bytes": 1121,
+          "sha256": "293e4ddc53e009439f2aa1bcd5dab621dde0c7f57cef2c2594e6793ffde742ad"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0940_0945/run-ec086e0c4eaccd0028617de7/manifest.json",
+          "bytes": 295765,
+          "sha256": "40f65d40ad2cf52bef3fff99d013ced5bc80badcce218378707fcf354df0c60d"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0940_0945/run-ec086e0c4eaccd0028617de7/artifact.csv",
+          "bytes": 2146,
+          "sha256": "f16b336e72eacf174eb9760aacf1ae495f0622f5393ac4f912bc65e4ee689efe"
+        }
+      ]
+    },
+    {
+      "stage": "A_SHARE_SELECTION_STAGE_0945_1030",
+      "run_id": "run-5d7dee64177e7237ad5042b1",
+      "files": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0945_1030/run-5d7dee64177e7237ad5042b1/receipt.json",
+          "bytes": 1121,
+          "sha256": "8afba6274e395d2dca6c31a58080a0d32f71701ee36595577d0a9f668909708d"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0945_1030/run-5d7dee64177e7237ad5042b1/manifest.json",
+          "bytes": 295033,
+          "sha256": "93ec484d4b7a14d33e6511b1242eb33b525c6bbb52ab64d76e801a35fb647e5d"
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/A_SHARE_SELECTION_STAGE_0945_1030/run-5d7dee64177e7237ad5042b1/artifact.csv",
+          "bytes": 2143,
+          "sha256": "c039de7ee391c765966cf0fa3140a5a03eeb53260247cef74734e04d09f29d58"
+        }
+      ]
+    }
+  ],
+  "historical_tree_method_check": "Exact 11:43 tree algorithm; all roots and pinned files match prior baseline.",
+  "natural_candidate_run": "NOT_RUN",
+  "excluded_from_sync": [
+    "raw market data",
+    "full R3 inventory",
+    "rollback plist",
+    "runtime response bodies"
+  ]
+}

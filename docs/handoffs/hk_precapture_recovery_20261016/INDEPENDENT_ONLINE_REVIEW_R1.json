@@ -1,0 +1,112 @@
+{
+  "schema": "hk_precapture_online_independent_review.v1",
+  "reviewer": "/root/hk_precapture_review",
+  "captured_at_local": "2026-10-16 12:00:13 CST",
+  "authorization_scope": "Read-only review of the already authorized scheduler rebind and protected runtime/data identities; no producer invocation, test rerun, service change, or business-data write.",
+  "source_receipts": [
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_ACTIVATION_RECEIPT.json",
+      "sha256": "7e2e9f2217e8b7c8fa0c0e380e092576dff0c04a504c8e87013b3686e889326e"
+    },
+    {
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_CACHE_BASELINE.json",
+      "sha256": "b6877b14c58db23ba60e73864cbd34b9db78105693117f4e44818790e3a07ac4"
+    }
+  ],
+  "verdict": "REVIEWED_PASS",
+  "review_scope": "ONLINE_BINDING_AND_PROTECTED_STATE_ONLY",
+  "findings": [],
+  "severity_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "stage_scheduler": {
+    "target": "gui/501/com.lexi.stage-center.scheduler",
+    "launchd_state": "not running",
+    "active_count": 0,
+    "runs": 0,
+    "last_exit": "never exited",
+    "loaded_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "live_plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+    "staged_plist": "docs/handoffs/hk_precapture_recovery_20261016/isolation_candidate_staged.plist",
+    "staged_plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+    "staged_and_live_bytes_equal": true,
+    "runtime_program": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "arguments": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app/ops/run_stage_center_nodes.py",
+      "--config",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app/stage_center_tick_config.json"
+    ],
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app",
+    "release_id": "hk-precapture-isolation-20261016-r1",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/release-manifest.json",
+    "release_manifest_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app/stage_center_tick_config.json",
+    "config_sha256": "926e66b6bd6a3f3dff9d6145045602fa2139980f992cf6d7bc88a0776339d8ff",
+    "independent_source_review_path": "docs/handoffs/hk_precapture_recovery_20261016/ISOLATION_INDEPENDENT_REVIEW_R1.json",
+    "independent_source_review_sha256": "ce7cc50f9d62f5c66e7d4a679e2a32997c253a75896cd37d38d4556793d6b96c",
+    "independent_source_review_verdict": "REVIEWED_PASS",
+    "loaded_environment_pins_verified": true,
+    "safety_environment": {
+      "RESEARCH_ONLY": "1",
+      "PRODUCTION_ALLOWED": "false",
+      "BUY_GATE_UPDATED": "false",
+      "ORDERS_SENT": "false"
+    },
+    "schedule_preservation": {
+      "calendar_interval_count": 16,
+      "calendar_equal_to_rollback_plist": true,
+      "RunAtLoad": false,
+      "KeepAlive_present": false
+    }
+  },
+  "protected_api": {
+    "launchd_target": "gui/501/com.lexi.v35.api-only",
+    "launchd_state": "running",
+    "active_count": 1,
+    "loaded_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "plist_sha256": "b38b7f53e4acdca826ea7364eb5f833f478e1048180463467df49841b6d2b589",
+    "release_id": "announcement-workbench-api-20261016-r4",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-workbench-api-20261016-r4/app",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-workbench-api-20261016-r4/release-manifest.json",
+    "manifest_sha256": "7a2694c93a29da5990dc4f619a6295f94083da964f374880cea36f1ede8f955d",
+    "observed_process": "python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "observed_listeners_on_8873": 1,
+    "api_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "candidate_selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "selection_root_matches": true
+  },
+  "protected_r3": {
+    "release_id": "hk-auto-execution-audit-20261015-r3",
+    "baseline_inventory_sha256": "1bde4d706d504dae93400302fa5b77aad00293cf74308444d0c6f95e941eb185",
+    "baseline_entries": 1218,
+    "current_inventory_path": "/private/tmp/hk_precapture_r3_inventory_preswitch_retry2_20261016.json",
+    "current_inventory_sha256": "900564d654211a39a1b5bc183fc606d33394779ecddfb0b4daf008ed4cdb91ac",
+    "current_entries": 1225,
+    "original_entries_removed_or_changed": 0,
+    "cache_only_additions": 7,
+    "current_disk_entries_compared": 1225,
+    "current_disk_mismatches": 0
+  },
+  "protected_business_output": {
+    "baseline_path": "docs/handoffs/hk_precapture_recovery_20261016/ONLINE_CACHE_BASELINE.json",
+    "per_file_hash_and_size_checks": 76,
+    "unique_files": 61,
+    "missing_files": 0,
+    "mismatches": 0,
+    "a_stage_input_files": 5,
+    "a_stage_inputs_unchanged": true
+  },
+  "acceptance_boundary": {
+    "scheduler_natural_candidate_run": "NOT_RUN",
+    "CANNOT_CONFIRM": [
+      "Natural snapshot/source/selection/API/UI behavior has not run after the rebind.",
+      "Live Futu capture and natural data behavior remain unverified.",
+      "The historical 2026-10-16 09:34 failure cause remains unknown."
+    ]
+  }
+}

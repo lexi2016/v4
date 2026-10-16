@@ -1,0 +1,84 @@
+{
+  "schema": "hk_precapture_online_activation.v1",
+  "captured_at_local": "2026-10-16 11:55:58 CST",
+  "status": "ONLINE_BINDING_PASS_CANDIDATE_IDLE_NO_RUN",
+  "authorization_scope": "One scheduler plist rebind to reviewed inactive R1; no calendar/RunAtLoad change, kickstart, or manual stage invocation.",
+  "target": "gui/501/com.lexi.stage-center.scheduler",
+  "pre_switch": {
+    "release_id": "hk-auto-execution-audit-20261015-r3",
+    "live_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c",
+    "state": "not running; active count 0",
+    "runner_process_absent": true
+  },
+  "post_switch": {
+    "release_id": "hk-precapture-isolation-20261016-r1",
+    "live_plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+    "staged_plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+    "loaded_program": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app/ops/run_stage_center_nodes.py",
+    "state": "not running; active count 0",
+    "launchd_runs": "runs = 0",
+    "last_exit": "last exit code = (never exited)",
+    "runner_process_absent": true,
+    "natural_candidate_run": "NOT_RUN"
+  },
+  "schedule_preservation": {
+    "calendar_equal_to_rollback_plist": true,
+    "calendar_interval_count": 16,
+    "RunAtLoad": false,
+    "KeepAlive_present": false
+  },
+  "candidate_pins": {
+    "release_id": "hk-precapture-isolation-20261016-r1",
+    "manifest_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+    "config_sha256": "926e66b6bd6a3f3dff9d6145045602fa2139980f992cf6d7bc88a0776339d8ff",
+    "independent_review_sha256": "ce7cc50f9d62f5c66e7d4a679e2a32997c253a75896cd37d38d4556793d6b96c",
+    "review_verdict": "REVIEWED_PASS",
+    "reviewed_behavior": "CANDIDATE_RUNTIME_AND_SYNTHETIC_API_PROJECTION"
+  },
+  "rollback": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/ONLINE_ROLLBACK_ORIGINAL.plist",
+    "sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c",
+    "live_old_plist_sha256": "ca54499d9dc951f3e395de0cad86748027e43f0faa8fbeacea3f2d0b9b59963c"
+  },
+  "protected_r3": {
+    "release_manifest_sha256": "f8c0be35c421a68ecb9cf2598ef65a61a97ece2e713c43fffea5a031e837d7f6",
+    "config_sha256": "c7c15e2f22b30e045af654c485346cded16dafda5c734c89b5c65a663405b812",
+    "inventory_entries_before_after": 1225,
+    "inventory_sha256_preswitch_private": "900564d654211a39a1b5bc183fc606d33394779ecddfb0b4daf008ed4cdb91ac",
+    "inventory_unchanged_after_switch": true,
+    "sealed_original_entries_1218_unchanged": true,
+    "cache_only_additions": 7
+  },
+  "protected_api": {
+    "release_id": "announcement-workbench-api-20261016-r4",
+    "plist_sha256": "b38b7f53e4acdca826ea7364eb5f833f478e1048180463467df49841b6d2b589",
+    "manifest_sha256": "7a2694c93a29da5990dc4f619a6295f94083da964f374880cea36f1ede8f955d",
+    "selection_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+    "candidate_selection_root_matches": true,
+    "8873_single_listener_pre_switch": true
+  },
+  "business_output_postcheck": {
+    "preswitch_baseline_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/ONLINE_CACHE_BASELINE.json",
+    "preswitch_baseline_sha256": "b6877b14c58db23ba60e73864cbd34b9db78105693117f4e44818790e3a07ac4",
+    "tree_counts": {
+      "early_day_receipts": 25,
+      "today_selection_runs": 30,
+      "a_stage_inputs": 5
+    },
+    "per_file_hashes_verified_after_switch": 76,
+    "all_match": true,
+    "selection_latest_sha256": "764f57b6cef920b64ee240a57e826b7a6b0644fbb62f663cb604607b2911a20e",
+    "morning_a_selection_files_verified": 15,
+    "a_inputs_unchanged": true
+  },
+  "writes_in_this_action": [
+    "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist",
+    "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/ONLINE_CACHE_BASELINE.json",
+    "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/ONLINE_ACTIVATION_RECEIPT.json"
+  ],
+  "CANNOT_CONFIRM": [
+    "Next natural snapshot/source/selection/API/UI chain has not run.",
+    "Live Futu capture and natural data behavior remain unverified.",
+    "Historical 2026-10-16 09:34 failure cause remains unknown."
+  ]
+}
