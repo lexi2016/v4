@@ -1,0 +1,162 @@
+{
+  "schema_version": "v4.us_hk_recovery_runtime_independent_review.v1",
+  "reviewer": "mapping_recovery_review",
+  "writer": "mapping_recovery_writer",
+  "candidate": {
+    "release_id": "us-hk-recovery-v2r1-20261016-r1",
+    "manifest_sha256": "fa90e8649920ff2f4f46ba12ac0d447f91d57eddd565cd2ca8e21f7310d19f57",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r1.json",
+    "config_sha256": "66cacfb435e883e770ab5098ef6fc100d49e3d1869eb5f2eca5fc7bb0afab021",
+    "preparation_status": "PREPARED_NOT_ACTIVATED",
+    "activation_status": "NOT_ACTIVATED"
+  },
+  "verdict": {
+    "REVIEWED": "FAIL",
+    "BEHAVIOR_VERIFIED": "PASS",
+    "candidate_content_review": "PASS",
+    "activation_readiness": "FAIL",
+    "activation_gate_parser_result": "REVIEWED_PASS_REQUIRED"
+  },
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 1
+  },
+  "findings": [
+    {
+      "id": "ACT-ROLLBACK-01",
+      "severity": "P2",
+      "status": "OPEN",
+      "title": "Rollback may skip restoring the active plist when service detach is unconfirmed",
+      "evidence": [
+        {
+          "path": "docs/handoffs/us_hk_700_supplement_20261016/activate_runtime_candidate.py",
+          "lines": "248-260",
+          "detail": "The exception handler calls bootout_and_wait(target, label, check=False) before atomic_install(original, mode)."
+        },
+        {
+          "path": "docs/handoffs/us_hk_700_supplement_20261016/activate_runtime_candidate.py",
+          "lines": "72-87",
+          "detail": "bootout_and_wait can raise SERVICE_DETACH_NOT_CONFIRMED; that exception exits the handler before the original active plist is restored."
+        }
+      ],
+      "impact": "After an activation failure with the candidate plist installed, a detach-confirmation error can leave the candidate selected on disk and skip the rollback write.",
+      "recommended_resolution": "Make restoration of the original plist run even if service detach confirmation raises, while retaining the detach error in the activation receipt.",
+      "runtime_occurrence": "CANNOT_CONFIRM; activation was not run."
+    }
+  ],
+  "acceptance_evidence": {
+    "base_release_id": "futu-industry-api-20261016-r1",
+    "base_manifest_sha256": "052fa77f4afd8e9abf36bf6c74f02e90a1dbccf0c033d5a585a8ac998ab1ecc3",
+    "candidate_verifier": {
+      "result": "PASS",
+      "active_pointer": "base",
+      "role": "gateway",
+      "base_role": "gateway",
+      "independent_rerun_exit_code": 0
+    },
+    "delta_paths": [
+      "apps/web/dist/assets/managerSelection-DfkJEj5r.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+      "v4/manager_workbench/us_mapping_catalog.py"
+    ],
+    "preserved_entries": {
+      "non_delta_count": 1211,
+      "non_delta_inventory_sha256": "6f8f25a457b71529c9392d98802ecaa53c5c8d83f48dde395146c8aced79d477",
+      "selected_mapping_hunks_sha256": "38a6552b49bdfbdff291492b3df3750322a5fbb5b5671e62d6ced2eb838618ff",
+      "in_memory_reconstruction": "PASS",
+      "hunks": {
+        "Workbench.vue": 5,
+        "types.ts": 3,
+        "us_mapping_catalog.py": 7
+      }
+    },
+    "config_and_plist": {
+      "candidate_config_changed_keys": ["relation_root"],
+      "staged_plist_release_config_selectors_only": true,
+      "label_port_keepalive_runatload_unchanged": true,
+      "rollback_preimage_matches_active_plist": true,
+      "active_plist_and_rollback_preimage_sha256": "d601d017cbf1f893949c44a5e321458c7e5a3c81216601cfb4133c4781f44e1a"
+    },
+    "activation_guards": {
+      "shared_api_release_lock": "PRESENT",
+      "active_plist_config_candidate_config_staged_plist_and_rollback_preimage_cas": "PRESENT",
+      "preflight_postflight_verifier_require_shared_lock": true,
+      "rollback_detach_failure_handling": "FAIL; see ACT-ROLLBACK-01"
+    },
+    "in_process_candidate_api": {
+      "independent_rerun_exit_code": 0,
+      "default_response_bytes": 772473,
+      "snapshot_stocks": 667,
+      "original_relations": 1003,
+      "processed_relations": 1003,
+      "closure_status_counts": {
+        "CLOSED_RESEARCH_SCOPE": 757,
+        "CLOSED_EXCLUDED_SCOPE": 25,
+        "OPEN": 221
+      },
+      "stocks_with_relations": 649,
+      "stocks_without_relations": 18,
+      "exact_rids": ["R006", "R003", "R001", "R700"],
+      "prior_700_history_sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69",
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "semantic_mapping_validity": "CANNOT_CONFIRM",
+      "independently_accepted_facts": 0
+    },
+    "active_api_readback": {
+      "result": "Futu base and prior 700-relation catalog remain active",
+      "candidate_recovery_field_present": false,
+      "candidate_live_api_ui": "CANNOT_CONFIRM"
+    },
+    "preparation_tests_reused_from_sha_bound_receipt": {
+      "isolated_mapping_ui_test": "PASS",
+      "vite_build": "PASS",
+      "focused_vue_typecheck": "PASS",
+      "source_receipt_sha256": "cf796bb7da55547c84cea24c9ab63096398fd56f01c39b5e8f3690988f31ce7a"
+    }
+  },
+  "independent_tests": [
+    {
+      "name": "read-only candidate release verifier",
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B - (verify_api_release_candidate with active_pointer='base', role='gateway', base_role='gateway')",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "prepared-candidate in-process API assertions",
+      "command": "runtime v3.5-mac Python -B runtime/check_candidate_api.py with candidate PYTHONPATH and versioned config environment",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "activation review-receipt parser guard",
+      "command": "Import runtime/activate_runtime_candidate.py, configure the core from the preparation receipt, and call require_review on this receipt without calling core.main",
+      "result": "REJECTED_AS_EXPECTED",
+      "error": "REVIEWED_PASS_REQUIRED"
+    }
+  ],
+  "cannot_confirm": [
+    "Whether the detach-confirmation failure branch occurs in this environment; activation was not run.",
+    "Live API/UI behavior for the prepared candidate; the candidate remains inactive.",
+    "Semantic mapping validity and financial evidence beyond the structural accounting; independently accepted facts remain zero.",
+    "Natural-slot behavior."
+  ],
+  "receipt_bindings": {
+    "runtime_preparation_receipt_sha256": "aeec3e7870add3099468a80e5a9bc6c37be7ea09f10682f3e545f9cbe63656be",
+    "runtime_delta_receipt_sha256": "aa1fd699100a2c709dccf8fcd28bac59c149c0ffb55d8d5543938c639bfd2539",
+    "runtime_baseline_reconciliation_sha256": "5d8d51f37dae59dc63eff19d54b896b9814ab798dd45a0d40b2ab282b614171a",
+    "runtime_prepare_helper_sha256": "4defdda4b2cf572b93e889afe436563f64b0887439e80e9ff1c8146f8e9e8438",
+    "runtime_api_checker_sha256": "117da7de5e672446807f7aa39e3cbd88c93d795e95f36f9e215cdda8b8483b93",
+    "runtime_activation_wrapper_sha256": "6d5a53c1b4576cfbf09852705a5cd657b5014d0cdffd2865afd407c8b9b4bcce",
+    "shared_activation_core_sha256": "25e72ccf9034663dcc9e1d8a14c54ccda9a4b74009dd3152a3f4537eef1d078a",
+    "markdown_review_receipt_sha256": "e2400da698cafd722b3045ebcb933d63eee4141ad9f8638babc39302b2a6ce32"
+  }
+}
