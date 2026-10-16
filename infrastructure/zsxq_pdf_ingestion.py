@@ -29,11 +29,11 @@ from infrastructure.owned_path import resolve_owned_path
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 MAX_PDF_BYTES = 64 * 1024 * 1024
-MAX_PDF_PAGES = 64
 MAX_PDF_PAGES_PER_BATCH = 2
 MAX_PDF_CONTINUATION_DOCUMENTS = 1
 MAX_PDF_CONTINUATION_SECONDS = 180
 PDF_QUEUE_RETRY_BACKOFF_SECONDS = 300
+PAGE_LIMIT_RECOVERY_TRANSIENT_CODE = "PDF_RECOVERY_SOURCE_TEMPORARILY_UNAVAILABLE"
 MAX_PAGE_IMAGE_BYTES = 32 * 1024 * 1024
 MAX_ATTEMPTS = 2
 PERMANENT_FAILURE_CODES = frozenset(
@@ -404,8 +404,6 @@ def _pdfinfo_page_count(pdf_path: Path, *, pdfinfo: Path = DEFAULT_PDFINFO) -> i
     count = int(match.group(1))
     if count < 1:
         raise ZsxqPdfError("PDF_PAGE_COUNT_INVALID")
-    if count > MAX_PDF_PAGES:
-        raise ZsxqPdfError("PDF_PAGE_LIMIT_EXCEEDED")
     return count
 
 
@@ -582,11 +580,17 @@ def _artifact_engine_identity(
 
 
 def _all_pages_covered(pages: Iterable[Mapping[str, Any]], page_count: int) -> bool:
+    if type(page_count) is not int or page_count < 1:
+        return False
     rows = list(pages)
-    return len(rows) == page_count and [row.get("page_number") for row in rows] == list(range(1, page_count + 1)) and all(
-        row.get("status") in {"OCR_OK", "OCR_EMPTY"} and row.get("method")
-        for row in rows
-    )
+    if len(rows) != page_count:
+        return False
+    for expected_page_number, row in enumerate(rows, start=1):
+        if type(row.get("page_number")) is not int or row["page_number"] != expected_page_number:
+            return False
+        if row.get("status") not in {"OCR_OK", "OCR_EMPTY"} or not row.get("method"):
+            return False
+    return True
 
 
 def _latest_engine_run(document_row: Mapping[str, Any]) -> tuple[str, dict[str, Any]] | None:
@@ -787,8 +791,8 @@ def _verified_document_detail(
     if _sha256(pages_raw) != artifact.get("pages_file_sha256"):
         raise ZsxqPdfError("COMPLETED_PAGES_INTEGRITY_MISMATCH")
     pages = _read_pages(store, pages_path)
-    page_count = int(artifact.get("page_count") or 0)
-    if not 1 <= page_count <= MAX_PDF_PAGES:
+    page_count = artifact.get("page_count")
+    if type(page_count) is not int or page_count < 1:
         raise ZsxqPdfError("PAGE_COUNT_INVALID")
     if len(pages) > page_count or len({row.get("page_number") for row in pages}) != len(pages):
         raise ZsxqPdfError("PAGE_COVERAGE_INVALID")
@@ -909,7 +913,10 @@ def _verify_completed_artifact(
     if _sha256(pages_raw) != artifact.get("pages_file_sha256"):
         raise ZsxqPdfError("COMPLETED_PAGES_INTEGRITY_MISMATCH")
     pages = _read_pages(store, pages_relative)
-    if not _all_pages_covered(pages, int(artifact.get("page_count") or 0)):
+    page_count = artifact.get("page_count")
+    if type(page_count) is not int or page_count < 1:
+        raise ZsxqPdfError("PAGE_COUNT_INVALID")
+    if not _all_pages_covered(pages, page_count):
         raise ZsxqPdfError("COMPLETED_PAGE_COVERAGE_INVALID")
 
 
@@ -962,22 +969,27 @@ def _verified_partial_pdf(
     return raw, pdf_sha, pdf_path
 
 
-def _verified_page_limit_recovery(
+def _page_limit_recovery_candidate(
     store: NativeDataStore,
     source: Mapping[str, Any],
     artifact: Mapping[str, Any],
     processing_root: str,
-    *,
-    page_counter: PageCounter | None = None,
-) -> tuple[bytes, str, int, Path] | None:
-    """Verify the one bounded recovery case: an owned PDF rejected only by the old page cap."""
+) -> tuple[str, Path] | None:
+    """Identify the one legacy failure eligible for source revalidation by the producer."""
+    recovery = artifact.get("page_limit_recovery")
+    if recovery is not None and (
+        not isinstance(recovery, Mapping)
+        or recovery.get("status") != "RETRYABLE"
+        or type(recovery.get("revalidation_attempts")) is not int
+        or not 1 <= recovery["revalidation_attempts"] < MAX_ATTEMPTS
+    ):
+        return None
     if (
         str(artifact.get("status") or "").upper() != "FAILED"
         or artifact.get("failure_class") != "PERMANENT"
         or artifact.get("last_error_code") != "PDF_PAGE_LIMIT_EXCEEDED"
         or type(artifact.get("attempts")) is not int
         or artifact.get("attempts") != 1
-        or artifact.get("page_limit_recovery")
         or not artifact.get("downloaded_at")
     ):
         return None
@@ -989,14 +1001,82 @@ def _verified_page_limit_recovery(
     if artifact.get("real_pdf_path") != str(pdf_path) or pdf_path.is_symlink() or not pdf_path.is_file():
         return None
     try:
-        raw = _store_io(store).read_bytes(pdf_relative, max_bytes=MAX_PDF_BYTES)
-        pdf_sha = verify_pdf_bytes(raw, int(source.get("expected_size") or 0))
-        page_count = (page_counter or _pdfinfo_page_count)(pdf_path)
+        expected_size = int(source.get("expected_size") or 0)
+        if not 0 < expected_size <= MAX_PDF_BYTES or pdf_path.stat().st_size != expected_size:
+            return None
+    except (OSError, TypeError, ValueError):
+        return None
+    return pdf_relative, pdf_path
+
+
+def _page_limit_recovery_terminal_error(error: Exception) -> bool:
+    """Keep confirmed content-integrity and URL-safety failures closed."""
+    return isinstance(error, ZsxqPdfError) and error.code in {
+        "PDF_BYTES_EMPTY",
+        "PDF_CONTENT_LENGTH_INVALID",
+        "PDF_MAGIC_INVALID",
+        "PDF_PAGE_COUNT_INVALID",
+        "PDF_PAGE_COUNT_MISSING",
+        "PDF_SIZE_LIMIT_EXCEEDED",
+        "PDF_SIZE_MISMATCH",
+        "SOURCE_HASH_ALGORITHM_MUST_REMAIN_UNKNOWN",
+        "SOURCE_HASH_MISSING",
+        "ZSXQ_FILE_METADATA_MISMATCH",
+        "ZSXQ_DOWNLOAD_URL_UNSAFE",
+        "DOWNLOAD_REDIRECT_DOWNGRADE",
+    }
+
+
+def _page_limit_recovery_lookup(callback: Callable[..., Any], *args: Any) -> Any:
+    """Redact callback failures and let the durable queue retry them once."""
+    try:
+        return callback(*args)
+    except Exception as error:
+        if _page_limit_recovery_terminal_error(error):
+            raise
+        raise ZsxqPdfError(PAGE_LIMIT_RECOVERY_TRANSIENT_CODE) from error
+
+
+def _verified_page_limit_recovery(
+    store: NativeDataStore,
+    source: Mapping[str, Any],
+    artifact: Mapping[str, Any],
+    processing_root: str,
+    *,
+    cli: Path,
+    metadata_lookup: MetadataLookup,
+    url_lookup: URLLookup,
+    downloader: BytesDownloader,
+    page_counter: PageCounter | None = None,
+) -> tuple[bytes, str, int, Path] | None:
+    """Bind an unpinned legacy cache to one metadata-validated source download."""
+    candidate = _page_limit_recovery_candidate(store, source, artifact, processing_root)
+    if candidate is None:
+        return None
+    pdf_relative, pdf_path = candidate
+    file_id = str(source.get("file_id") or "")
+    try:
+        expected_size = int(source.get("expected_size") or 0)
+        live_metadata = _page_limit_recovery_lookup(metadata_lookup, cli, file_id)
+        if not _metadata_matches(source, live_metadata):
+            return None
+        source_url = _page_limit_recovery_lookup(url_lookup, cli, file_id)
+        downloaded_raw = _page_limit_recovery_lookup(downloader, source_url, expected_size)
+        downloaded_sha = verify_pdf_bytes(downloaded_raw, expected_size)
+        cached_raw = _store_io(store).read_bytes(pdf_relative, max_bytes=MAX_PDF_BYTES)
+        cached_sha = verify_pdf_bytes(cached_raw, expected_size)
+        if cached_sha != downloaded_sha:
+            return None
+        page_count = _page_limit_recovery_lookup(page_counter or _pdfinfo_page_count, pdf_path)
+    except ZsxqPdfError as error:
+        if error.code == PAGE_LIMIT_RECOVERY_TRANSIENT_CODE:
+            raise
+        return None
     except Exception:
         return None
-    if type(page_count) is not int or not 1 <= page_count <= MAX_PDF_PAGES:
+    if type(page_count) is not int or page_count < 1:
         return None
-    return raw, pdf_sha, page_count, pdf_path
+    return cached_raw, downloaded_sha, page_count, pdf_path
 
 
 def _process_one(
@@ -1100,7 +1180,7 @@ def _process_one(
         artifact_state["real_pdf_path"] = str(actual_pdf_path)
 
         page_count = page_counter(actual_pdf_path)
-        if page_count < 1 or page_count > MAX_PDF_PAGES:
+        if type(page_count) is not int or page_count < 1:
             raise ZsxqPdfError("PDF_PAGE_COUNT_INVALID")
         cache_key = _sha256(
             "\n".join((str(source["file_id"]), pdf_sha, engine_identity)).encode("utf-8")
@@ -1590,14 +1670,55 @@ def process_pdf_batch(
                     ):
                         chosen = [selected]
                     elif engine_run.get("last_error_code") == "PDF_PAGE_LIMIT_EXCEEDED":
-                        verified = _verified_page_limit_recovery(
-                            store,
-                            selected,
-                            engine_run,
-                            processing_root,
-                            page_counter=count_pages,
+                        previous_recovery = engine_run.get("page_limit_recovery")
+                        previous_attempts = (
+                            previous_recovery.get("revalidation_attempts")
+                            if isinstance(previous_recovery, Mapping)
+                            and previous_recovery.get("status") == "RETRYABLE"
+                            and type(previous_recovery.get("revalidation_attempts")) is int
+                            else 0
                         )
-                        if verified is not None:
+                        revalidation_attempts = previous_attempts + 1
+                        transient_recovery_failure = False
+                        try:
+                            verified = _verified_page_limit_recovery(
+                                store,
+                                selected,
+                                engine_run,
+                                processing_root,
+                                cli=Path(cli),
+                                metadata_lookup=metadata,
+                                url_lookup=get_url,
+                                downloader=get_bytes,
+                                page_counter=count_pages,
+                            )
+                        except ZsxqPdfError as error:
+                            if error.code != PAGE_LIMIT_RECOVERY_TRANSIENT_CODE:
+                                raise
+                            verified = None
+                            transient_recovery_failure = True
+                        if verified is None:
+                            if transient_recovery_failure and revalidation_attempts < MAX_ATTEMPTS:
+                                recovery_status = "RETRYABLE"
+                                recovery_reason = PAGE_LIMIT_RECOVERY_TRANSIENT_CODE
+                            elif transient_recovery_failure:
+                                recovery_status = "REJECTED"
+                                recovery_reason = "PDF_RECOVERY_RETRY_EXHAUSTED"
+                            else:
+                                recovery_status = "REJECTED"
+                                recovery_reason = "PDF_RECOVERY_SOURCE_REVALIDATION_FAILED"
+                            engine_run["page_limit_recovery"] = {
+                                "status": recovery_status,
+                                "prior_error_code": "PDF_PAGE_LIMIT_EXCEEDED",
+                                "reason_code": recovery_reason,
+                                "revalidation_attempts": revalidation_attempts,
+                                "source_run_id": source_run_id,
+                                "processing_run_id": processing_run_id,
+                                "checked_at": _iso(now()),
+                            }
+                            engine_run["updated_at"] = _iso(now())
+                            _write_json(store, STATE_RELATIVE, index)
+                        else:
                             raw, pdf_sha, observed_pages, pdf_path = verified
                             engine_run.update(
                                 status="PENDING",
@@ -1611,9 +1732,12 @@ def process_pdf_batch(
                                 page_count=observed_pages,
                                 real_pdf_path=str(pdf_path),
                                 page_limit_recovery={
+                                    "status": "VERIFIED",
                                     "prior_error_code": "PDF_PAGE_LIMIT_EXCEEDED",
+                                    "revalidation_attempts": revalidation_attempts,
                                     "observed_page_count": observed_pages,
                                     "pdf_sha256": pdf_sha,
+                                    "verification_method": "METADATA_VALIDATED_REFETCH_SHA256_MATCH",
                                     "source_run_id": source_run_id,
                                     "processing_run_id": processing_run_id,
                                     "verified_at": _iso(now()),
@@ -1882,7 +2006,7 @@ def pending_pdf_tasks(
                 r"[A-Za-z0-9_-]{1,100}", processing_run_id
             ):
                 processing_root = f"external_sources/zsxq_hourly/{processing_run_id}"
-                retryable = _verified_page_limit_recovery(
+                retryable = _page_limit_recovery_candidate(
                     NativeDataStore(root),
                     source,
                     run,

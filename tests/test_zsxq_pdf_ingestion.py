@@ -222,6 +222,39 @@ def test_rejects_tampered_invalid_or_oversized_pdf(raw, expected, code):
         verify_pdf_bytes(raw, expected, max_bytes=9)
 
 
+@pytest.mark.parametrize("page_count", [89, 129])
+def test_pdfinfo_page_count_accepts_long_positive_counts(monkeypatch, page_count):
+    from types import SimpleNamespace
+
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    monkeypatch.setattr(
+        pdf_module.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            returncode=0,
+            stdout=f"Pages:          {page_count}\n",
+        ),
+    )
+
+    assert pdf_module._pdfinfo_page_count(Path("owned.pdf")) == page_count
+
+
+def test_pdfinfo_page_count_rejects_zero(monkeypatch):
+    from types import SimpleNamespace
+
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    monkeypatch.setattr(
+        pdf_module.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=0, stdout="Pages:          0\n"),
+    )
+
+    with pytest.raises(ZsxqPdfError, match="PDF_PAGE_COUNT_INVALID"):
+        pdf_module._pdfinfo_page_count(Path("owned.pdf"))
+
+
 def test_single_real_input_binding_writes_full_pages_and_duplicate_reuses_ocr(tmp_path):
     root, files = _fixture(tmp_path)
     first, calls = _process(root, files)
@@ -705,20 +738,13 @@ def test_verified_page_limit_failure_recovers_once_from_owned_cached_pdf(tmp_pat
     assert first_run["attempts"] == 1
     assert Path(first_run["real_pdf_path"]).is_file()
 
-    monkeypatch.setattr(pdf_module, "_pdfinfo_page_count", lambda _path: 51)
+    monkeypatch.setattr(pdf_module, "_pdfinfo_page_count", lambda _path: 89)
     source = document["source"]
     source_meta = index["sources"][source["source_run_id"]]
     expected_processing_run_id = (
         f"pdfproc_{source['source_run_id']}_{source_meta['source_signature'][:12]}_{first['engine_identity'][:12]}"
     )
     assert source_meta.get("processing_run_id") == expected_processing_run_id
-    verified_recovery = pdf_module._verified_page_limit_recovery(
-        NativeDataStore(root),
-        source,
-        first_run,
-        f"external_sources/zsxq_hourly/{expected_processing_run_id}",
-    )
-    assert verified_recovery is not None
     assert any(task["document_id"] == document_id for task in pending_pdf_tasks(root))
 
     source_file = files[FILE_ID]
@@ -740,30 +766,269 @@ def test_verified_page_limit_failure_recovers_once_from_owned_cached_pdf(tmp_pat
         path.write_bytes(b"fake-png-data")
         return path
 
+    expected_pdf_sha = hashlib.sha256(PDF_BYTES).hexdigest()
+
+    def ocr_after_sha_persisted(_ocr_call):
+        current_index = NativeDataStore(root)._read(STATE_RELATIVE)
+        current_run = current_index["documents"][document_id]["engine_runs"][first["engine_identity"]]
+        assert current_run["pdf_sha256"] == expected_pdf_sha
+        assert current_run["page_limit_recovery"]["status"] == "VERIFIED"
+        return {"status": "OCR_OK", "method": ENGINE["engine"], "text": "revalidated page text"}
+
     recovered, _ = _process(
         root,
         files,
         counters=calls,
-        page_count=51,
-        page_counter=lambda _path: 51,
+        page_count=89,
+        page_counter=lambda _path: 89,
+        ocr=ocr_after_sha_persisted,
         downloader=download,
         now_value=datetime(2026, 10, 16, 1, 36, tzinfo=SHANGHAI),
     )
     assert recovered["processed_this_batch"][0]["status"] == "PARTIAL"
-    assert calls["url"] == calls["download"] == 1
+    assert calls["url"] == calls["download"] == 2
+
+    while recovered["processed_this_batch"][0]["status"] != "READY":
+        recovered, _ = _process(
+            root,
+            files,
+            counters=calls,
+            page_count=89,
+            page_counter=lambda _path: 89,
+            ocr=ocr_after_sha_persisted,
+            downloader=download,
+            now_value=datetime(2026, 10, 16, 1, 36, tzinfo=SHANGHAI),
+        )
+        assert recovered["processed_this_batch"][0]["status"] in {"PARTIAL", "READY"}
+    assert calls["url"] == calls["download"] == 2
 
     final_index = NativeDataStore(root)._read(STATE_RELATIVE)
     run = final_index["documents"][document_id]["engine_runs"][recovered["engine_identity"]]
-    assert run["status"] == "PARTIAL"
-    assert run["page_count"] == 51
+    assert run["status"] == "READY"
+    assert run["page_count"] == run["processed_page_count"] == 89
     assert run["downloaded_at"] == first_run["downloaded_at"]
     recovery = run["page_limit_recovery"]
     assert recovery["prior_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
-    assert recovery["observed_page_count"] == 51
-    assert recovery["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    assert recovery["observed_page_count"] == 89
+    assert recovery["pdf_sha256"] == expected_pdf_sha
+    assert recovery["verification_method"] == "METADATA_VALIDATED_REFETCH_SHA256_MATCH"
     assert recovery["source_run_id"] == RUN_ID
     assert recovery["processing_run_id"] == first["processing_run_id"]
     assert recovery["verified_at"]
+    detail = read_pdf_document_detail(root, document_id, DATE)
+    assert detail["processing"]["page_count"] == 89
+    assert detail["receipt"]["integrity"] == "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+
+
+def test_page_limit_recovery_rejects_same_size_tampered_cached_pdf(tmp_path):
+    root, files = _fixture(tmp_path)
+    calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
+
+    def old_page_limit(_path):
+        raise ZsxqPdfError("PDF_PAGE_LIMIT_EXCEEDED")
+
+    first, _ = _process(root, files, counters=calls, page_counter=old_page_limit)
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    document_id, document = next(
+        (key, row) for key, row in index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    first_run = document["engine_runs"][first["engine_identity"]]
+    cached_path = Path(first_run["real_pdf_path"])
+    tampered = b"%PDF-1.7\n" + b"X" * (len(PDF_BYTES) - len(b"%PDF-1.7\n"))
+    assert len(tampered) == len(PDF_BYTES)
+    assert tampered.startswith(b"%PDF-")
+    assert hashlib.sha256(tampered).hexdigest() != hashlib.sha256(PDF_BYTES).hexdigest()
+    cached_path.write_bytes(tampered)
+
+    retry, _ = _process(
+        root,
+        files,
+        counters=calls,
+        page_count=89,
+        page_counter=lambda _path: 89,
+    )
+
+    assert retry["processed_this_batch"] == []
+    assert retry["failed_total"] == 1
+    assert calls["url"] == calls["download"] == 2
+    assert calls["ocr"] == 0
+    final_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    final_run = final_index["documents"][document_id]["engine_runs"][first["engine_identity"]]
+    assert final_run["status"] == "FAILED"
+    assert final_run["failure_class"] == "PERMANENT"
+    assert final_run["last_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    recovery = final_run["page_limit_recovery"]
+    assert recovery["status"] == "REJECTED"
+    assert recovery["prior_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    assert recovery["reason_code"] == "PDF_RECOVERY_SOURCE_REVALIDATION_FAILED"
+    assert recovery["checked_at"]
+    assert not any(task["document_id"] == document_id for task in pending_pdf_tasks(root))
+    assert final_run.get("pdf_sha256") is None
+    assert cached_path.read_bytes() == tampered
+
+
+def test_page_limit_recovery_retries_transient_source_failure_then_drains_89_pages(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    root, files = _fixture(tmp_path)
+    store = NativeDataStore(root)
+    run_dir = f"external_sources/zsxq_hourly/{RUN_ID}"
+    recent_path = f"{run_dir}/zsxq_recent_topics.json"
+    recent = store._read(recent_path)
+    source_topic = next(
+        topic
+        for topic in recent["topics_brief"]
+        if any(row.get("file_id") == FILE_ID for row in topic.get("files", []))
+    )
+    source_file = next(row for row in source_topic["files"] if row["file_id"] == FILE_ID)
+    recent["topics_brief"] = [dict(source_topic, files=[source_file])]
+    recent["count"] = 1
+    store._write(recent_path, recent)
+    fetch_path = f"{run_dir}/zsxq_recent_topics_fetch_result.json"
+    fetch = store._read(fetch_path)
+    fetch["count"] = 1
+    store._write(fetch_path, fetch)
+
+    def old_page_limit(_path):
+        raise ZsxqPdfError("PDF_PAGE_LIMIT_EXCEEDED")
+
+    first, _ = _process(
+        root,
+        files,
+        page_counter=old_page_limit,
+        now_value=datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI),
+    )
+    index = store._read(STATE_RELATIVE)
+    document_id, document = next(
+        (key, row) for key, row in index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    original_run = document["engine_runs"][first["engine_identity"]]
+    assert original_run["status"] == "FAILED"
+    assert original_run["last_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    assert original_run["attempts"] == 1
+    assert original_run.get("pdf_sha256") is None
+
+    clock = [datetime(2026, 10, 16, 1, 36, tzinfo=SHANGHAI)]
+    calls = {"revalidation_download": 0, "ocr": 0}
+    original_batch = pdf_module.process_pdf_batch
+
+    def download_once_after_backoff(_url, _size):
+        calls["revalidation_download"] += 1
+        if calls["revalidation_download"] == 1:
+            raise ConnectionError("temporary network failure token=DO_NOT_PERSIST")
+        return PDF_BYTES
+
+    def render(_pdf, page_number, output_dir):
+        return _write_fake_page(output_dir, page_number)
+
+    def ocr(_image):
+        calls["ocr"] += 1
+        return {"status": "OCR_OK", "method": ENGINE["engine"], "text": "recovered page text"}
+
+    def batch_with_local_fakes(**kwargs):
+        return original_batch(
+            **kwargs,
+            metadata_lookup=lambda _cli, _file_id: source_file,
+            url_lookup=lambda _cli, _file_id: "https://download.invalid/file?token=DO_NOT_PERSIST",
+            downloader=download_once_after_backoff,
+            page_counter=lambda _path: 89,
+            page_renderer=render,
+            ocr_page=ocr,
+            engine_info=ENGINE,
+        )
+
+    monkeypatch.setattr(pdf_module, "process_pdf_batch", batch_with_local_fakes)
+    first_tick = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+    assert first_tick["status"] == "RETRY_BACKOFF"
+    assert first_tick["document_status"] == "FAILED"
+    assert first_tick["last_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    assert first_tick["before_attempts"] == 1
+    assert calls == {"revalidation_download": 1, "ocr": 0}
+
+    failed_index = store._read(STATE_RELATIVE)
+    failed_run = failed_index["documents"][document_id]["engine_runs"][first["engine_identity"]]
+    recovery = failed_run["page_limit_recovery"]
+    assert failed_run["status"] == "FAILED"
+    assert failed_run["failure_class"] == "PERMANENT"
+    assert failed_run["last_error_code"] == "PDF_PAGE_LIMIT_EXCEEDED"
+    assert failed_run["attempts"] == 1
+    assert failed_run.get("pdf_sha256") is None
+    assert recovery["status"] == "RETRYABLE"
+    assert recovery["revalidation_attempts"] == 1
+    assert recovery["reason_code"] == "PDF_RECOVERY_SOURCE_TEMPORARILY_UNAVAILABLE"
+    assert any(task["document_id"] == document_id for task in pending_pdf_tasks(root))
+
+    immediate = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+    assert immediate["status"] == "RETRY_BACKOFF"
+    assert immediate["processed_document_count"] == 0
+    assert calls == {"revalidation_download": 1, "ocr": 0}
+
+    clock[0] = clock[0].replace(minute=42)
+    tick = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+    while tick["document_status"] != "READY":
+        assert tick["status"] in {"PARTIAL", "READY"}
+        tick = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
+
+    assert tick["status"] == "READY"
+    assert calls["revalidation_download"] == 2
+    assert calls["ocr"] == 89
+    final_index = store._read(STATE_RELATIVE)
+    final_run = final_index["documents"][document_id]["engine_runs"][first["engine_identity"]]
+    assert final_run["status"] == "READY"
+    assert final_run["page_count"] == final_run["processed_page_count"] == 89
+    assert final_run["full_page_coverage"] is True
+    assert final_run["attempts"] == 2
+    assert final_run["page_limit_recovery"]["status"] == "VERIFIED"
+    assert final_run["page_limit_recovery"]["revalidation_attempts"] == 2
+    assert final_run["page_limit_recovery"]["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    detail = read_pdf_document_detail(root, document_id, DATE)
+    assert detail["receipt"]["integrity"] == "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+    persisted = b"".join(path.read_bytes() for path in root.rglob("*") if path.is_file())
+    assert b"DO_NOT_PERSIST" not in persisted
+
+
+def test_long_pdf_resumes_in_two_page_batches_beyond_128_pages(tmp_path):
+    page_count = 129
+    root, files = _fixture(tmp_path)
+    calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
+    batch, _ = _process(root, files, counters=calls, page_count=page_count)
+    outcome = batch["processed_this_batch"][0]
+    assert outcome["status"] == "PARTIAL"
+    assert outcome["page_count"] == page_count
+    assert calls["ocr"] == 2
+
+    completed_batches = 1
+    while outcome["status"] != "READY":
+        batch, _ = _process(
+            root,
+            files,
+            counters=calls,
+            page_count=page_count,
+        )
+        outcome = batch["processed_this_batch"][0]
+        completed_batches += 1
+        assert outcome["status"] in {"PARTIAL", "READY"}
+        assert calls["ocr"] <= page_count
+
+    assert completed_batches == (page_count + 1) // 2
+    assert calls["url"] == calls["download"] == 1
+    assert calls["ocr"] == page_count
+
+    store = NativeDataStore(root)
+    index = store._read(STATE_RELATIVE)
+    document_id, document = next(
+        (key, row) for key, row in index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    artifact = document["engine_runs"][batch["engine_identity"]]
+    assert artifact["status"] == "READY"
+    assert artifact["page_count"] == artifact["processed_page_count"] == page_count
+    assert artifact["attempts"] == 1
+    assert artifact["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    assert read_pdf_document_detail(root, document_id, DATE)["processing"]["page_count"] == page_count
+    projection = read_pdf_ingestion_projection(root, DATE)
+    item = next(row for row in projection["items"] if row["document_id"] == document_id)
+    assert item["status"] == "READY"
+    assert item["page_count"] == item["processed_page_count"] == page_count
 
 
 def test_download_size_mismatch_remains_retryable(tmp_path):

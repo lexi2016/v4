@@ -1,0 +1,80 @@
+{
+  "schema_version": "v4.zsxq_long_pdf.delivery.v1",
+  "goal": "Remove total-page rejection and finish the legacy 89-page document through the existing bounded queue.",
+  "baseline_commit": "28d8005109f91a4788fb7cf129d4eb2452fe4b44",
+  "branch": "codex/zsxq-long-pdf-20261016-r1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "source_sha256": {
+    "infrastructure/zsxq_pdf_ingestion.py": {
+      "before": "9fc068b4d407ca56364db31869851b96aec8cfc5dc93972c9de95668656d8471",
+      "after": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+      "git_blob_sha": "c45757723f121425f8447273ca7b3cd59293d46f"
+    },
+    "tests/test_zsxq_pdf_ingestion.py": {
+      "before": "ef634d1fb6a2fe69f9331af434c4066c293a202befaef551205358b60e53ed06",
+      "after": "8c3012d0e1d5cb2d6816a8afcf2bb922fa9bef97935f755477bbfe41f4a85a6d",
+      "git_blob_sha": "a194d0ec487c2403bfa9e4f912f091452c1de74d"
+    }
+  },
+  "behavior": {
+    "total_page_cap": "removed; positive integer required",
+    "pages_per_batch": 2,
+    "queue_tick_seconds": 90,
+    "max_pdf_bytes": 67108864,
+    "legacy_recovery": "metadata-validated refetch SHA match before OCR; one transient retry after existing 300s backoff; binding mismatch terminal"
+  },
+  "status": [
+    "IMPLEMENTED",
+    "REVIEWED",
+    "TESTED",
+    "INTEGRATED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED",
+    "BEHAVIOR_VERIFIED"
+  ],
+  "natural_existing_daemon_target_ready": true,
+  "target_pages": 89,
+  "target_processed_pages": 89,
+  "runtime": {
+    "api": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-api-20261016-r3/app",
+      "pid": 60016,
+      "manifest_sha256": "ac09432bd5eab4fa24a9ea380dc52b309ce75afe8948fbb53a04191d11b43d01",
+      "delta_paths": [
+        "infrastructure/zsxq_pdf_ingestion.py"
+      ],
+      "rollback": false
+    },
+    "scheduler": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app",
+      "pid": 60131,
+      "manifest_sha256": "66aa7f918655dd400d18f3db7548d7fbe6fdd5cf58c77b4029928f5a593ff1c3",
+      "delta_paths": [
+        "infrastructure/zsxq_pdf_ingestion.py"
+      ],
+      "rollback": false
+    }
+  },
+  "independent_tests": {
+    "focused": "5 passed in 1.28s",
+    "ingestion_suite": "31 passed in 2.61s",
+    "command": "PYTHONPATH=<API-R3 app>:<workspace> python -B -m pytest -q <candidate-r3>/app/tests/test_zsxq_pdf_ingestion.py",
+    "environment": "macOS; existing v3.5-mac runtime; API-R3 app module imported"
+  },
+  "candidate_receipt_sha256": "cbc21058891de95344726ade2fd91f387f2dc70679c2130d5fcc38e635cd24fe",
+  "live_receipt_sha256": "3f9c45c7e0428ad39a5c94fab625949caf7eed8525788c89c7213f1fbd0d59ce",
+  "ui_receipt_sha256": "4a9705fb0b96832058770e3e8d7f5daf54d660021ca70a5741d6d1886b5fb5a3",
+  "prior_failures": "R1 unpinned-cache tamper; R2 transient recovery permanently closed; both corrected and independently accepted in R3.",
+  "boundaries": [
+    "89/89 means page coverage and artifact integrity; not a word-level OCR accuracy audit.",
+    "129-page continuation independently verified with fixtures; future arbitrary documents are not pre-certified.",
+    "Late processing remains NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT.",
+    "IAB text/detail verified; screenshot unavailable due to zero-width screenshot surface."
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "uploaded_business_data": false
+}
