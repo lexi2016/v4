@@ -1,0 +1,72 @@
+{
+  "schema_version": "v4.us_hk_recovery_v2r1_runtime_rollback_repair.v1",
+  "status": "REPAIRED_PENDING_INDEPENDENT_REVIEW",
+  "finding": {
+    "id": "ACT-ROLLBACK-01",
+    "severity": "P2",
+    "initial_review_status": "REVIEWED=FAIL",
+    "initial_review_markdown": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_20261016.md",
+    "initial_review_markdown_sha256": "e2400da698cafd722b3045ebcb933d63eee4141ad9f8638babc39302b2a6ce32",
+    "initial_review_json": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW.json",
+    "initial_review_json_sha256": "1997a3719cf4c486a9d4e48da622ddafc1c3b6cb3e13db52cb17374cc462c0b9",
+    "repair": "The batch activation helper attempts byte-exact atomic restoration after detach confirmation raises. It records detach, restoration, service identity, bootstrap, and error outcomes separately. It skips bootstrap unless detachment is confirmed and a read-only probe shows the label and API listener are absent."
+  },
+  "changed_files": [
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate.py",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/tests/test_activation_rollback.py",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/ROLLBACK_REPAIR_RECEIPT.json"
+  ],
+  "activation_helper": {
+    "previous_sha256_from_independent_review": "6d5a53c1b4576cfbf09852705a5cd657b5014d0cdffd2865afd407c8b9b4bcce",
+    "current_sha256": "fd1a9dbbbe5a2f831c44fa990aa38bb2fab48da46e505a9290d36faef649c8f7",
+    "imports_old_700_helper_only_for_shared_low_level_functions": true,
+    "delegates_to_old_700_main": false,
+    "old_700_helper_unchanged_sha256": "25e72ccf9034663dcc9e1d8a14c54ccda9a4b74009dd3152a3f4537eef1d078a",
+    "review_receipt_path_after_repair": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_REPAIR_20261016.md",
+    "preparation_receipt_sha256_unchanged": "aeec3e7870add3099468a80e5a9bc6c37be7ea09f10682f3e545f9cbe63656be"
+  },
+  "candidate_identity_unchanged": {
+    "release_id": "us-hk-recovery-v2r1-20261016-r1",
+    "manifest_sha256": "fa90e8649920ff2f4f46ba12ac0d447f91d57eddd565cd2ca8e21f7310d19f57",
+    "candidate_config_sha256": "66cacfb435e883e770ab5098ef6fc100d49e3d1869eb5f2eca5fc7bb0afab021",
+    "staged_plist_sha256": "774b4e285e4027bcee8c97b68837fd479bc0fe88ef8ec5a3690eb77fb17db8b4",
+    "rollback_preimage_sha256": "d601d017cbf1f893949c44a5e321458c7e5a3c81216601cfb4133c4781f44e1a",
+    "new_overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "source_and_application_delta_unchanged": true
+  },
+  "verification": {
+    "targeted_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 .venv/bin/python -B -m pytest -q --basetemp=/private/tmp/us_hk_recovery_activation_tests_final2 docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/tests/test_activation_rollback.py",
+    "targeted_result": "PASS",
+    "targeted_exit_code": 0,
+    "targeted_tests_passed": 3,
+    "default_dry_run_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=. .venv/bin/python -B docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate.py",
+    "default_dry_run_result": "PREPARED_ONLY",
+    "default_dry_run_launchctl_called": false,
+    "rollback_detach_failure_test": "Atomic restoration attempted and byte-verified; process identity UNKNOWN retained; no bootstrap; overall status is not PASS.",
+    "ordinary_rollback_test": "Confirmed detach then byte-verified restoration then a single bootstrap.",
+    "restore_failure_test": "Restore error retained and prior service bootstrap skipped.",
+    "live_activation_or_rollback_test": "NOT_RUN"
+  },
+  "read_only_postcheck": {
+    "current_active_plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+    "current_active_release_id": "futu-industry-api-20261016-r2",
+    "current_active_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+    "prepared_candidate_base_plist_sha256": "d601d017cbf1f893949c44a5e321458c7e5a3c81216601cfb4133c4781f44e1a",
+    "candidate_is_stale_against_current_active_pointer": true,
+    "current_active_service_state": "running",
+    "source": "Read-only plist parse and launchctl print; no service mutation."
+  },
+  "non_actions": {
+    "activation_executed": false,
+    "launchctl_mutation_executed": false,
+    "active_plist_or_config_written": false,
+    "candidate_app_or_config_written": false,
+    "old_700_helper_written": false
+  },
+  "CANNOT_CONFIRM": [
+    "Independent reviewer rerun of the repaired helper and tests.",
+    "Real launchd detach-failure, restoration, and rollback behavior; only isolated mocks exercised the branch.",
+    "The prepared candidate's activation eligibility, because the active plist advanced from futu-industry-api-20261016-r1 to futu-industry-api-20261016-r2 after preparation.",
+    "Live API/UI behavior under the prepared candidate and natural-slot behavior."
+  ]
+}
