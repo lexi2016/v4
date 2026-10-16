@@ -1,0 +1,103 @@
+{
+  "schema_version": "futu_industry_freshness_repair_r2.v1",
+  "created_at": "2026-10-16",
+  "status": "CANDIDATE_READY_PENDING_INDEPENDENT_REVIEW",
+  "scope": "Correct official Futu board freshness in the exact GET /api/v3/research/us-market router path; retain PARTIAL and CANNOT_CONFIRM boundaries.",
+  "changed_files": [
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/market_freshness.py",
+      "sha256": "6dc295a3c448ed082588ebcf719b747e95af85f62605207246e2c399eff3ddc8"
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.vue",
+      "sha256": "7fe1c84ff08e65e7d947a87f2528372bed874197a76829887cb0983a9a5a7206"
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+      "sha256": "1944e592c8046e5d852bae340825bba738feb1c4b0cb7ee7b48b32a99bd1062a"
+    },
+    {
+      "path": "tests/test_futu_industry_semantics.py",
+      "sha256": "2523419afa0e62e7956cbb41f1a0887cfc80564c9a973c9e42321e79d6852863"
+    },
+    {
+      "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1/apps/api/v35_api/research_lane_router.py",
+      "sha256": "60b0000f433c4e28c1c30c377b5e43f542074b40802431bb92dbfed195f916c7"
+    },
+    {
+      "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1.patch",
+      "sha256": "a6e930d700df090a7a8a1f319f8e8881ecccb3889c4e67df3b58b26ccb708a4d"
+    },
+    {
+      "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/industry_freshness_r2.patch",
+      "sha256": "686b94daeaa22f18b1e3c4bfee618f6d50b185fba8d96a6d56491cbc4a5e214b"
+    }
+  ],
+  "runtime_r1_candidate": {
+    "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/api_r1_runtime/apps/api/v35_api/research_lane_router.py",
+    "preimage_sha256": "97dd372e252f0fa877c6c067549f8f45de0b947bc6215b58939efdd787949571",
+    "candidate_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1/apps/api/v35_api/research_lane_router.py",
+    "candidate_sha256": "60b0000f433c4e28c1c30c377b5e43f542074b40802431bb92dbfed195f916c7",
+    "patch_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1.patch",
+    "patch_sha256": "a6e930d700df090a7a8a1f319f8e8881ecccb3889c4e67df3b58b26ccb708a4d",
+    "patch_apply_dry_run": "PASS",
+    "runtime_release_modified": false
+  },
+  "validation": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --basetemp=/tmp/v4-futu-industry-r2-py tests/test_futu_industry_semantics.py",
+      "result": "PASS: 5 passed; includes full FastAPI GET /api/v3/research/us-market through create_research_lane_router, with persisted stub capture, mocked clock, wrong board-date fail-closed and pre-close update fail-closed checks."
+    },
+    {
+      "command": "npm test -- --run src/components/research/GlobalIndustryMap.spec.ts (cwd apps/web)",
+      "result": "PASS: 17 passed; PARTIAL UI distinguishes 12/24 confirmed/unmatched and avoids saying there are no confirmed board facts."
+    },
+    {
+      "command": "PYTHONPYCACHEPREFIX=/tmp/v4-futu-industry-r2-pycache '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m py_compile docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1/apps/api/v35_api/research_lane_router.py",
+      "result": "PASS"
+    },
+    {
+      "command": "patch --dry-run -s -p1 -d '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/api_r1_runtime' -i '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1.patch'",
+      "result": "PASS: patch applies to the captured API r1 preimage."
+    },
+    {
+      "command": "git diff --check -- apps/api/v35_api/_research_lane_router_parts/market_freshness.py apps/web/src/components/research/GlobalIndustryMap.vue apps/web/src/components/research/GlobalIndustryMap.spec.ts tests/test_futu_industry_semantics.py",
+      "result": "PASS"
+    }
+  ],
+  "red_reproduction": {
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q --basetemp=/tmp/v4-futu-industry-r2-red2 tests/test_futu_industry_semantics.py::test_us_market_get_keeps_confirmed_futu_boards_visible_when_proxy_quotes_are_separate",
+    "result_before_fix": "FAILED as expected: full GET returned display_status=CANNOT_CONFIRM for a valid 12/24 Futu PARTIAL snapshot because the old check evaluated quotes=[]."
+  },
+  "api_get_evidence_kind": "Local TestClient GET against a synthetic persisted test capture; Futu and proxy feed seams mocked and shanghai_now frozen. No live data fetch was made in this repair.",
+  "cannot_confirm": [
+    "Live API/UI after parent integration of the r1 candidate and a natural capture window remain unverified.",
+    "12 of 24 configured themes remain unmatched to exact Futu boards.",
+    "A-share relations, current HK relation eligibility, and production/trading eligibility remain CANNOT_CONFIRM."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "review": "Independent reviewer receipt pending; writer result is not acceptance.",
+  "canonical_delta_patch": {
+    "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/industry_freshness_r2.patch",
+    "sha256": "686b94daeaa22f18b1e3c4bfee618f6d50b185fba8d96a6d56491cbc4a5e214b",
+    "apply_dry_run": "PASS against captured r2 preimages"
+  },
+  "evidence_files": [
+    {
+      "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates_r2/api-r1.patch",
+      "sha256": "a6e930d700df090a7a8a1f319f8e8881ecccb3889c4e67df3b58b26ccb708a4d"
+    },
+    {
+      "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/industry_freshness_r2.patch",
+      "sha256": "686b94daeaa22f18b1e3c4bfee618f6d50b185fba8d96a6d56491cbc4a5e214b"
+    },
+    {
+      "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/industry_freshness_r2_receipt.json"
+    }
+  ]
+}

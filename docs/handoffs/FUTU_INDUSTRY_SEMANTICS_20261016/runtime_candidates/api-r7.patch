@@ -1,0 +1,1911 @@
+--- a/apps/api/v35_api/research_lane_router.py
++++ b/apps/api/v35_api/research_lane_router.py
+@@ -36,7 +36,7 @@
+ 
+ 
+ GLOBAL_INDUSTRY_PROXY_MAP = CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP
+-GLOBAL_INDUSTRY_SCHEMA_VERSION = "v3_5.global_industries.v1"
++GLOBAL_INDUSTRY_SCHEMA_VERSION = "v3_5.global_industries.v2"
+ GLOBAL_INDUSTRY_MAPPING_VERSION = "v3_5.global_industry_proxy_map.v1"
+ MARKET_SNAPSHOT_SCHEMA_VERSION = "v3_5.us_market_snapshot.v1"
+ LATE_CAPTURE_MODE = "CONTROLLED_LATE_POST_CLOSE"
+@@ -194,67 +194,15 @@
+ 
+ 
+ def _global_industry_rows(reason: str) -> list[dict[str, Any]]:
+-    return [
+-        {
+-            "label": str(mapping["label"]),
+-            "group": str(mapping["group"]),
+-            "mapping_type": str(mapping["mapping_type"]),
+-            "proxy_symbols": list(mapping["proxy_symbols"]),
+-            "available_symbols": [],
+-            "missing_symbols": list(mapping["proxy_symbols"]),
+-            "requested_symbol_count": len(mapping["proxy_symbols"]),
+-            "available_symbol_count": 0,
+-            "coverage": {"available": 0, "requested": len(mapping["proxy_symbols"])},
+-            "coverage_pct": 0.0,
+-            "change_pct": None,
+-            "pct_change": None,
+-            "direction": "CANNOT_CONFIRM",
+-            "status": "CANNOT_CONFIRM",
+-            "quote_session_dates": [],
+-            "quote_session_times": [],
+-            "cannot_confirm": [reason],
+-        }
+-        for mapping in GLOBAL_INDUSTRY_PROXY_MAP
+-    ]
++    from apps.api.v35_api._research_lane_router_parts.industry_projection import __global_industry_rows_body as _v4_impl
++    return _v4_impl(globals(), reason)
++
+ 
+ 
+ def _global_industry_missing(*, research_date: str, reason: str) -> dict[str, Any]:
+-    return {
+-        "schema_version": GLOBAL_INDUSTRY_SCHEMA_VERSION,
+-        "status": "CANNOT_CONFIRM",
+-        "target_date": research_date,
+-        "target_trade_date": research_date,
+-        "research_date": research_date,
+-        "source_date": "",
+-        "artifact_trade_date": "",
+-        "us_session_date": "",
+-        "capture_session_date": "",
+-        "provider": "Tencent qt.gtimg.cn",
+-        "provider_receipt": None,
+-        "provider_session_dates": [],
+-        "provider_session_times": [],
+-        "source_response_sha256": "",
+-        "capture_phase": "POST_CLOSE",
+-        "captured_at": "",
+-        "generated_at": "",
+-        "mapping_version": GLOBAL_INDUSTRY_MAPPING_VERSION,
+-        "requested_symbol_count": len({
+-            symbol for mapping in GLOBAL_INDUSTRY_PROXY_MAP for symbol in mapping["proxy_symbols"]
+-        }),
+-        "available_symbol_count": 0,
+-        "rows": _global_industry_rows(reason),
+-        "quotes": [],
+-        "cannot_confirm": [reason],
+-        "artifact": None,
+-        "manifest": None,
+-        "receipt": None,
+-        "write_policy": "read_only",
+-        "recommendation_status": "RESEARCH_ONLY",
+-        "RESEARCH_ONLY": True,
+-        "production_allowed": False,
+-        "buy_gate_updated": False,
+-        "orders_sent": False,
+-    }
++    from apps.api.v35_api._research_lane_router_parts.industry_projection import __global_industry_missing_body as _v4_impl
++    return _v4_impl(globals(), research_date=research_date, reason=reason)
++
+ 
+ 
+ def _global_industry_lineage(
+@@ -262,18 +210,9 @@
+     research_date: str,
+     payload: Mapping[str, Any],
+ ) -> dict[str, Any]:
+-    artifact_path = store.root / "research" / "peripherals" / research_date / "external_finance.json"
+-    receipt_path = store.root / "receipts" / "research" / "peripherals" / research_date / "external_finance.json"
+-    manifest_path = store.root / "research" / "peripherals" / "manifest.json"
+-    result: dict[str, Any] = {"path": str(artifact_path), "sha256": _sha256(payload)}
+-    try:
+-        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+-        result["receipt"] = {"path": str(receipt_path), "sha256": _sha256(receipt)}
+-        result["manifest"] = {"path": str(manifest_path), "sha256": _sha256(manifest)}
+-    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+-        result["lineage_status"] = "CANNOT_CONFIRM"
+-    return result
++    from apps.api.v35_api._research_lane_router_parts.industry_projection import __global_industry_lineage_body as _v4_impl
++    return _v4_impl(globals(), store, research_date, payload)
++
+ 
+ 
+ def _project_global_industries(
+@@ -281,166 +220,9 @@
+     store: ResearchPeripheralStore,
+     research_date: str,
+ ) -> dict[str, Any]:
+-    try:
+-        payload = store.read_exact(research_date, "external_finance")
+-    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+-        return _global_industry_missing(
+-            research_date=research_date,
+-            reason=f"EXACT_EXTERNAL_FINANCE_INVALID:{type(error).__name__}",
+-        )
+-    if payload is None:
+-        return _global_industry_missing(
+-            research_date=research_date,
+-            reason="EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED",
+-        )
+-    snapshot = payload.get("market_snapshot")
+-    if not isinstance(snapshot, Mapping):
+-        result = _global_industry_missing(
+-            research_date=research_date,
+-            reason="MARKET_SNAPSHOT_NOT_MATERIALIZED",
+-        )
+-        result["source_date"] = str(payload.get("trade_date") or "")
+-        result["artifact"] = _global_industry_lineage(store, research_date, payload)
+-        result["cannot_confirm"] = sorted(
+-            set(result["cannot_confirm"]) | set(payload.get("cannot_confirm") or [])
+-        )
+-        return result
+-    if (
+-        snapshot.get("schema_version") != MARKET_SNAPSHOT_SCHEMA_VERSION
+-        or snapshot.get("mapping_version") != GLOBAL_INDUSTRY_MAPPING_VERSION
+-    ):
+-        result = _global_industry_missing(
+-            research_date=research_date,
+-            reason="MARKET_SNAPSHOT_CANONICAL_VERSION_INVALID",
+-        )
+-        result["source_date"] = str(payload.get("trade_date") or "")
+-        result["artifact"] = _global_industry_lineage(store, research_date, payload)
+-        return result
+-    if any(
+-        snapshot.get(field) != expected
+-        for field, expected in {
+-            "recommendation_status": "RESEARCH_ONLY",
+-            "production_allowed": False,
+-            "buy_gate_updated": False,
+-            "orders_sent": False,
+-            "RESEARCH_ONLY": True,
+-        }.items()
+-    ):
+-        result = _global_industry_missing(
+-            research_date=research_date,
+-            reason="MARKET_SNAPSHOT_SAFETY_BOUNDARY_INVALID",
+-        )
+-        result["source_date"] = str(payload.get("trade_date") or "")
+-        result["artifact"] = _global_industry_lineage(store, research_date, payload)
+-        return result
+-    capture, identity_error = _bound_capture_for_snapshot(
+-        payload=payload,
+-        snapshot=snapshot,
+-        research_date=research_date,
+-    )
+-    if identity_error is not None or capture is None:
+-        return _capture_identity_failure(
+-            payload=payload,
+-            snapshot=snapshot,
+-            reason=identity_error or "MARKET_SNAPSHOT_CAPTURE_IDENTITY_UNBOUND",
+-            research_date=research_date,
+-            store=store,
+-        )
+-    session_date = str(snapshot.get("capture_session_date") or "")
+-    rows = list(snapshot.get("rows") or [])
+-    canonical_rows = list(CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP)
+-    if len(rows) != 24 or any(
+-        not isinstance(row, Mapping)
+-        or row.get("label") != mapping["label"]
+-        or row.get("group") != mapping["group"]
+-        or row.get("mapping_type") != mapping["mapping_type"]
+-        or row.get("proxy_symbols") != list(mapping["proxy_symbols"])
+-        for row, mapping in zip(rows, canonical_rows)
+-    ):
+-        result = _global_industry_missing(
+-            research_date=research_date,
+-            reason="MARKET_SNAPSHOT_ROW_COUNT_INVALID",
+-        )
+-        result["source_date"] = str(payload.get("trade_date") or "")
+-        result["artifact"] = _global_industry_lineage(store, research_date, payload)
+-        return result
+-    lineage = _global_industry_lineage(store, research_date, payload)
+-    provider_dates = sorted({
+-        str(item) for item in snapshot.get("provider_session_dates") or [] if str(item).strip()
+-    })
+-    cannot_confirm = sorted(
+-        set(payload.get("cannot_confirm") or []) | set(snapshot.get("cannot_confirm") or [])
+-    )
+-    result: dict[str, Any] = {
+-        "schema_version": GLOBAL_INDUSTRY_SCHEMA_VERSION,
+-        "status": str(snapshot.get("status") or "CANNOT_CONFIRM"),
+-        "target_date": research_date,
+-        "target_trade_date": research_date,
+-        "research_date": research_date,
+-        "source_date": session_date,
+-        "artifact_trade_date": str(payload.get("trade_date") or research_date),
+-        "us_session_date": session_date,
+-        "provider": str(snapshot.get("provider") or snapshot.get("source") or "Tencent qt.gtimg.cn"),
+-        "provider_url": str(snapshot.get("provider_url") or "https://qt.gtimg.cn/q="),
+-        "provider_session_dates": provider_dates,
+-        "provider_session_times": sorted({
+-            str(item) for item in snapshot.get("provider_session_times") or [] if str(item).strip()
+-        }),
+-        "source_response_sha256": str(snapshot.get("source_response_sha256") or ""),
+-        "quotes": list(snapshot.get("quotes") or []),
+-        "provider_receipt": (
+-            dict(snapshot["provider_receipt"])
+-            if isinstance(snapshot.get("provider_receipt"), Mapping)
+-            else None
+-        ),
+-        "capture_phase": str(snapshot.get("capture_phase") or "POST_CLOSE"),
+-        "capture_session_date": session_date,
+-        "captured_at": str(snapshot.get("captured_at") or ""),
+-        "bound_capture_captured_at": capture.get("captured_at"),
+-        "generated_at": str(snapshot.get("generated_at") or snapshot.get("captured_at") or ""),
+-        "mapping_version": str(snapshot.get("mapping_version") or ""),
+-        "requested_symbol_count": int(snapshot.get("requested_symbol_count") or 0),
+-        "available_symbol_count": int(snapshot.get("available_symbol_count") or 0),
+-        "rows": rows,
+-        "cannot_confirm": cannot_confirm,
+-        "artifact": lineage,
+-        "manifest": lineage.get("manifest"),
+-        "receipt": lineage.get("receipt"),
+-        "write_policy": "read_only",
+-        "recommendation_status": "RESEARCH_ONLY",
+-        "RESEARCH_ONLY": True,
+-        "production_allowed": False,
+-        "buy_gate_updated": False,
+-        "orders_sent": False,
+-    }
+-    for field in (
+-        "capture_id",
+-        "run_id",
+-        "capture_origin",
+-        "original_time_capture",
+-        "late",
+-        "capture_mode",
+-        "reason",
+-        "capture_reason",
+-        "session_timezone",
+-        "capture_window_start",
+-        "capture_window_end",
+-        "natural_capture_window_start",
+-        "natural_capture_window_end",
+-        "allowed_recovery_window_start",
+-        "allowed_recovery_window_end",
+-    ):
+-        if field in capture:
+-            result[field] = capture[field]
+-    if result["capture_phase"] != "POST_CLOSE":
+-        result["status"] = "CANNOT_CONFIRM"
+-        result["cannot_confirm"] = sorted(
+-            set(cannot_confirm) | {"MARKET_SNAPSHOT_NOT_POST_CLOSE"}
+-        )
+-    if result["status"] != "CANNOT_CONFIRM" and len(provider_dates) > 1:
+-        result["status"] = "PARTIAL"
+-        result["cannot_confirm"] = sorted(set(cannot_confirm) | {"QUOTE_SESSION_DATE_MIXED"})
+-    return result
++    from apps.api.v35_api._research_lane_router_parts.industry_projection import __project_global_industries_body as _v4_impl
++    return _v4_impl(globals(), store=store, research_date=research_date)
++
+ 
+ 
+ def _is_verifiable_close_snapshot(result: Mapping[str, Any]) -> bool:
+--- a/infrastructure/research_peripheral_store.py
++++ b/infrastructure/research_peripheral_store.py
+@@ -781,6 +781,12 @@
+             raise ValueError("market_snapshot CANNOT_CONFIRM reason is missing")
+     if "provider_receipt" in value and not isinstance(value["provider_receipt"], Mapping):
+         raise ValueError("invalid research peripheral market_snapshot provider receipt")
++    if "futu_board_snapshot" in value:
++        from ops._us_market_digest_parts.futu_boards import validate_futu_board_snapshot
++        try:
++            validate_futu_board_snapshot(value["futu_board_snapshot"], expected_session_date=capture_session_date)
++        except (TypeError, ValueError) as error:
++            raise ValueError("invalid research peripheral Futu board snapshot") from error
+     if value.get("recommendation_status") != "RESEARCH_ONLY":
+         raise ValueError("unsafe market_snapshot recommendation status")
+     if value.get("production_allowed") is not False or value.get("buy_gate_updated") is not False or value.get("orders_sent") is not False:
+--- a/apps/web/src/contracts/globalIndustries.ts
++++ b/apps/web/src/contracts/globalIndustries.ts
+@@ -3,6 +3,32 @@
+ 
+ export const GLOBAL_INDUSTRY_MAPPING_VERSION = "v3_5.global_industry_proxy_map.v1";
+ export const GLOBAL_INDUSTRY_GROUP = "GLOBAL_INDUSTRY";
++export const GLOBAL_INDUSTRY_OFFICIAL_BOARD_MAP = [
++  { label: "AI算力", plate_type: null, board_name: null },
++  { label: "CPO", plate_type: null, board_name: null },
++  { label: "半导体", plate_type: "INDUSTRY", board_name: "半导体" },
++  { label: "存储", plate_type: "CONCEPT", board_name: "存储概念" },
++  { label: "数据中心", plate_type: "CONCEPT", board_name: "IDC概念" },
++  { label: "云计算", plate_type: "CONCEPT", board_name: "云计算服务商" },
++  { label: "商业航天", plate_type: null, board_name: null },
++  { label: "卫星", plate_type: null, board_name: null },
++  { label: "机器人", plate_type: "CONCEPT", board_name: "机器人概念股" },
++  { label: "自动驾驶", plate_type: "CONCEPT", board_name: "智能驾驶概念股" },
++  { label: "核电", plate_type: "CONCEPT", board_name: "核电" },
++  { label: "电网", plate_type: null, board_name: null },
++  { label: "军工", plate_type: null, board_name: null },
++  { label: "新能源", plate_type: null, board_name: null },
++  { label: "光伏", plate_type: "CONCEPT", board_name: "光伏太阳能" },
++  { label: "锂电池", plate_type: "CONCEPT", board_name: "锂电池" },
++  { label: "石油", plate_type: null, board_name: null },
++  { label: "天然气", plate_type: "CONCEPT", board_name: "天然气" },
++  { label: "铜/有色", plate_type: null, board_name: null },
++  { label: "黄金", plate_type: "INDUSTRY", board_name: "黄金" },
++  { label: "银行金融", plate_type: null, board_name: null },
++  { label: "生物医药", plate_type: null, board_name: null },
++  { label: "消费", plate_type: null, board_name: null },
++  { label: "稀土", plate_type: "CONCEPT", board_name: "稀土概念" },
++] as const;
+ export const GLOBAL_INDUSTRY_MAPPINGS = [
+   { label: "AI算力", group: GLOBAL_INDUSTRY_GROUP, mapping_type: "stock_basket_proxy", proxy_symbols: ["NVDA", "AVGO", "AMD"] },
+   { label: "CPO", group: GLOBAL_INDUSTRY_GROUP, mapping_type: "stock_basket_proxy", proxy_symbols: ["COHR", "LITE", "CIEN"] },
+@@ -45,6 +71,61 @@
+   pct_change?: number | null;
+   direction: GlobalIndustryDirection;
+   status: GlobalIndustryStatus;
++  metric_kind: "OFFICIAL_BOARD";
++  official_board: {
++    metric_kind: "OFFICIAL_BOARD";
++    market?: "US";
++    plate_type?: string | null;
++    board_name: string | null;
++    expected_board_name?: string | null;
++    board_code: string | null;
++    update_time: string | null;
++    session_date: string | null;
++    timezone: string;
++    last: number | null;
++    previous_close: number | null;
++    change_pct: number | null;
++    plate_valid: boolean | null;
++    rise_count: number | null;
++    fall_count: number | null;
++    equal_count: number | null;
++    member_count?: number | null;
++    relation_constituents?: string[];
++    membership_status?: string;
++    relations: Array<{
++      us_symbol: string;
++      hk_symbol: string;
++      relationship_type: string;
++      direction: string;
++      reason?: string;
++      maturity?: string;
++      available_at?: string;
++      sources: Array<{ role?: string; title?: string; url: string; published_at?: string; retrieved_at?: string }>;
++      limitations: string[];
++    }>;
++    relation_status: string;
++    relation_cannot_confirm?: string[];
++    target_date_eligibility?: string;
++    cannot_confirm: string[];
++  };
++  proxy_reference: {
++    metric_kind: "ETF_REFERENCE" | "STOCK_BASKET_REFERENCE";
++    provider: string;
++    mapping_type: string;
++    proxy_symbols: string[];
++    available_symbols: string[];
++    missing_symbols: string[];
++    requested_symbol_count: number;
++    available_symbol_count: number;
++    coverage: { available: number; requested: number };
++    coverage_pct: number | null;
++    change_pct: number | null;
++    direction: GlobalIndustryDirection;
++    status: GlobalIndustryStatus;
++    quote_session_dates: string[];
++    quote_session_times: string[];
++    cannot_confirm: string[];
++  };
+   quote_session_dates: string[];
+   quote_session_times: string[];
+   cannot_confirm: string[];
+@@ -75,12 +156,49 @@
+   target_date: string;
+   research_date: string;
+   source_date: string;
++  capture_session_date: string;
+   provider: string;
+   provider_url?: string;
+   provider_session_dates: string[];
+   provider_session_times: string[];
+   source_response_sha256: string;
+   quotes: GlobalIndustryQuote[];
++  proxy_quotes?: GlobalIndustryQuote[];
++  proxy_source_response_sha256?: string;
++  legacy_proxy_status?: GlobalIndustryStatus;
++  legacy_proxy_provider?: string;
++  futu_board_snapshot: {
++    schema_version?: string;
++    status: GlobalIndustryStatus;
++    provider?: string;
++    market?: "US";
++    timezone?: string;
++    capture_session_date?: string;
++    source_response_sha256: string;
++    cannot_confirm: string[];
++  };
++  relation_evidence: {
++    status: string;
++    evidence_path?: string;
++    evidence_sha256?: string;
++    review_path?: string;
++    review_sha256?: string;
++    reviewed_at?: string;
++    reviewer_identity?: string;
++    limitations: string[];
++    cannot_confirm: string[];
++    target_date_eligibility: "CANNOT_CONFIRM";
++  };
++  hk_relation_status: string;
++  a_share_relation_status: string;
++  a_share_relations: unknown[];
++  target_date_eligibility: "CANNOT_CONFIRM";
++  requested_board_count: number;
++  available_board_count: number;
++  proxy_requested_symbol_count: number;
++  proxy_available_symbol_count: number;
++  proxy_provider_session_dates: string[];
++  proxy_provider_session_times: string[];
+   provider_receipt?: Record<string, unknown> | null;
+   capture_phase: string;
+   captured_at: string;
+--- a/apps/web/src/components/research/GlobalIndustryMap.vue
++++ b/apps/web/src/components/research/GlobalIndustryMap.vue
+@@ -10,6 +10,7 @@
+   GLOBAL_INDUSTRY_GROUP,
+   GLOBAL_INDUSTRY_MAPPINGS,
+   GLOBAL_INDUSTRY_MAPPING_VERSION,
++  GLOBAL_INDUSTRY_OFFICIAL_BOARD_MAP,
+ } from "../../contracts/globalIndustries";
+ 
+ // Additive view metadata; the stored market-quality contract remains unchanged.
+@@ -62,6 +63,43 @@
+   change_pct: null,
+   direction: "CANNOT_CONFIRM",
+   status: "CANNOT_CONFIRM",
++  metric_kind: "OFFICIAL_BOARD",
++  official_board: {
++    metric_kind: "OFFICIAL_BOARD",
++    board_name: null,
++    board_code: null,
++    update_time: null,
++    session_date: null,
++    timezone: "America/New_York",
++    last: null,
++    previous_close: null,
++    change_pct: null,
++    plate_valid: null,
++    rise_count: null,
++    fall_count: null,
++    equal_count: null,
++    relations: [],
++    relation_status: "CANNOT_CONFIRM",
++    cannot_confirm: ["FUTU_BOARD_SNAPSHOT_MISSING"],
++  },
++  proxy_reference: {
++    metric_kind: mapping.mapping_type.includes("basket") ? "STOCK_BASKET_REFERENCE" : "ETF_REFERENCE",
++    provider: "Tencent qt.gtimg.cn",
++    mapping_type: mapping.mapping_type,
++    proxy_symbols: [...mapping.proxy_symbols],
++    available_symbols: [],
++    missing_symbols: [...mapping.proxy_symbols],
++    requested_symbol_count: mapping.proxy_symbols.length,
++    available_symbol_count: 0,
++    coverage: { available: 0, requested: mapping.proxy_symbols.length },
++    coverage_pct: 0,
++    change_pct: null,
++    direction: "CANNOT_CONFIRM",
++    status: "CANNOT_CONFIRM",
++    quote_session_dates: [],
++    quote_session_times: [],
++    cannot_confirm: ["MARKET_SNAPSHOT_NOT_MATERIALIZED"],
++  },
+   quote_session_dates: [],
+   quote_session_times: [],
+   cannot_confirm: ["MARKET_SNAPSHOT_NOT_MATERIALIZED"],
+@@ -130,11 +168,20 @@
+   return ({ UP: "上涨", FLAT: "平盘", DOWN: "下跌", CANNOT_CONFIRM: "CANNOT_CONFIRM" } as Record<string, string>)[value] || "CANNOT_CONFIRM";
+ }
+ 
+-function coverageText(row: GlobalIndustryRow) {
+-  const coveragePct = typeof row.coverage_pct === "number" && Number.isFinite(row.coverage_pct)
+-    ? row.coverage_pct.toFixed(1)
++function breadthText(row: GlobalIndustryRow) {
++  const board = row.official_board;
++  if (board.plate_valid !== true || board.rise_count === null || board.fall_count === null || board.equal_count === null) {
++    return "涨跌平家数 CANNOT_CONFIRM";
++  }
++  return `上涨 ${board.rise_count} · 下跌 ${board.fall_count} · 平盘 ${board.equal_count}`;
++}
++
++function proxyReferenceText(row: GlobalIndustryRow) {
++  const proxy = row.proxy_reference;
++  const coveragePct = typeof proxy.coverage_pct === "number" && Number.isFinite(proxy.coverage_pct)
++    ? proxy.coverage_pct.toFixed(1)
+     : "CANNOT_CONFIRM";
+-  return `${row.available_symbol_count}/${row.requested_symbol_count} (${coveragePct}%)`;
++  return `${proxy.metric_kind === "ETF_REFERENCE" ? "ETF" : "股票篮子"}参考 ${formatChange(proxy.change_pct)} · ${proxy.proxy_symbols.join(" / ")} · ${proxy.available_symbol_count}/${proxy.requested_symbol_count} (${coveragePct}%)`;
+ }
+ 
+ function validateResponse(value: GlobalIndustryResponse, requestedDate: string) {
+@@ -145,20 +192,18 @@
+   ) {
+     throw new Error("美股行情日期身份不匹配，已停止展示。");
+   }
+-  if (
+-    !isCalendarDate(value.source_date)
+-    || !Array.isArray(value.provider_session_dates)
+-    || value.provider_session_dates.length !== 1
+-    || value.provider_session_dates[0] !== value.source_date
+-    || !isSameOrPreviousCalendarDate(value.source_date, requestedDate)
+-  ) {
++  const boardDatesValid = Array.isArray(value.provider_session_dates)
++    && value.provider_session_dates.length <= 1
++    && (value.provider_session_dates.length === 0 || value.provider_session_dates[0] === value.source_date)
++    && (value.status === "CANNOT_CONFIRM" || value.provider_session_dates.length === 1);
++  if (!isCalendarDate(value.source_date) || !boardDatesValid || !isSameOrPreviousCalendarDate(value.source_date, requestedDate)) {
+     throw new Error("美股行情来源日期必须唯一且为目标日或前一自然日，已停止展示。");
+   }
+   if (value.capture_phase !== "POST_CLOSE") {
+     throw new Error("美股行情不是 POST_CLOSE 收盘后场次，已停止展示。");
+   }
+   if (
+-    value.schema_version !== "v3_5.global_industries.v1"
++    value.schema_version !== "v3_5.global_industries.v2"
+     || value.mapping_version !== GLOBAL_INDUSTRY_MAPPING_VERSION
+     || value.recommendation_status !== "RESEARCH_ONLY"
+     || value.RESEARCH_ONLY !== true
+@@ -176,17 +221,19 @@
+   }
+   value.rows.forEach((row, index) => {
+     const mapping = mappings[index];
++    const officialMapping = GLOBAL_INDUSTRY_OFFICIAL_BOARD_MAP[index];
+     if (
+       row.label !== mapping.label
+       || row.group !== GLOBAL_INDUSTRY_GROUP
+       || row.mapping_type !== mapping.mapping_type
+       || JSON.stringify(row.proxy_symbols) !== JSON.stringify(mapping.proxy_symbols)
+-      || row.requested_symbol_count !== mapping.proxy_symbols.length
+-      || !Array.isArray(row.available_symbols)
+-      || !Array.isArray(row.missing_symbols)
+-      || row.available_symbol_count !== row.available_symbols.length
+-      || row.coverage?.requested !== mapping.proxy_symbols.length
+-      || row.coverage?.available !== row.available_symbol_count
++      || row.metric_kind !== "OFFICIAL_BOARD"
++      || row.official_board?.metric_kind !== "OFFICIAL_BOARD"
++      || row.official_board?.expected_board_name !== officialMapping.board_name
++      || row.official_board?.plate_type !== officialMapping.plate_type
++      || !row.proxy_reference
++      || JSON.stringify(row.proxy_reference.proxy_symbols) !== JSON.stringify(mapping.proxy_symbols)
++      || !["ETF_REFERENCE", "STOCK_BASKET_REFERENCE"].includes(row.proxy_reference.metric_kind)
+     ) {
+       throw new Error("美股行情固定映射未通过，已停止展示。");
+     }
+@@ -199,10 +246,45 @@
+     if (
+       typeof row.change_pct === "number" && !Number.isFinite(row.change_pct)
+       || row.change_pct !== (row.pct_change ?? row.change_pct)
++      || row.change_pct !== row.official_board.change_pct
+     ) {
+       throw new Error("美股行情涨跌值未通过算术校验，已停止展示。");
+     }
++    const board = row.official_board;
++    if (row.status === "READY") {
++      if (
++        !officialMapping.board_name
++        || board.board_name !== officialMapping.board_name
++        || !board.board_code?.startsWith("US.")
++        || board.plate_valid !== true
++        || board.session_date !== value.source_date
++        || !board.update_time
++        || typeof board.last !== "number"
++        || typeof board.previous_close !== "number"
++        || board.previous_close <= 0
++        || [board.rise_count, board.fall_count, board.equal_count].some((count) => !Number.isInteger(count) || (count as number) < 0)
++        || Math.round(((board.last - board.previous_close) / board.previous_close * 100) * 1e6) / 1e6 !== Math.round((board.change_pct as number) * 1e6) / 1e6
++      ) {
++        throw new Error("Futu 官方板块事实未通过日期、合法性或涨幅校验，已停止展示。");
++      }
++    } else if (board.change_pct !== null) {
++      throw new Error("未确认的官方板块不可携带涨跌幅，已停止展示。");
++    }
++    if (board.plate_valid !== true && [board.rise_count, board.fall_count, board.equal_count].some((count) => count !== null)) {
++      throw new Error("无效板块不能显示涨跌家数，已停止展示。");
++    }
+   });
++  if (
++    value.futu_board_snapshot?.capture_session_date !== value.capture_session_date
++    || value.futu_board_snapshot?.source_response_sha256 !== value.source_response_sha256
++    || value.target_date_eligibility !== "CANNOT_CONFIRM"
++    || value.relation_evidence?.target_date_eligibility !== "CANNOT_CONFIRM"
++    || value.a_share_relation_status !== "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE"
++    || !Array.isArray(value.a_share_relations)
++    || value.a_share_relations.length !== 0
++  ) {
++    throw new Error("Futu 来源或跨市场关系边界未通过校验，已停止展示。");
++  }
+ }
+ 
+ function selectResearchDate(value: Record<string, unknown>) {
+@@ -277,8 +359,8 @@
+   <section class="panel global-industry-panel" aria-label="美股收盘板块涨跌幅">
+     <div class="section-heading global-industry-heading">
+       <div>
+-        <span class="eyebrow">US CLOSE PROXY MAP</span>
+-        <h2>美股收盘板块涨跌幅（研究只读）</h2>
++        <span class="eyebrow">US CLOSE · FUTU OFFICIAL BOARDS</span>
++        <h2>Futu 美股板块收盘事实（研究只读）</h2>
+       </div>
+       <div class="global-industry-actions">
+         <span class="global-status-badge" :class="`global-status-${state.toLowerCase()}`">{{ statusText(state) }}</span>
+@@ -288,20 +370,21 @@
+     <div class="global-industry-identity">
+       <span>目标阶段日：{{ formatDate(targetDate) }}</span>
+       <span>读取快照日：{{ formatDate(researchDate) }}</span>
+-      <span>美股来源日：{{ formatDate(payload?.source_date || "") }}</span>
+-      <span>US session：{{ payload?.provider_session_dates?.join("、") || "CANNOT_CONFIRM" }}</span>
++      <span>Futu 板块来源日：{{ formatDate(payload?.source_date || "") }}</span>
++      <span>板块更新时间（纽约）：{{ payload?.provider_session_times?.join("、") || "CANNOT_CONFIRM" }}</span>
+       <span>场次：{{ payload?.capture_phase || "CANNOT_CONFIRM" }}</span>
+     </div>
+     <p v-if="payload" class="global-industry-message" role="status">
+-      快照质量：{{ payload.status }} · {{ freshnessMessage }}
++      Futu 板块质量：{{ payload.status }} · {{ freshnessMessage }}
+       交易所节假日／提前收盘及最新完整交易日：{{ payload.freshness?.exchange_calendar_status || "CANNOT_CONFIRM" }}。
+       本次刷新只读取，不触发采集。
+     </p>
+     <p v-if="payload?.cannot_confirm?.length || payload?.freshness?.cannot_confirm?.length" class="global-industry-message" role="status">
+       未确认依据：{{ [...(payload?.cannot_confirm || []), ...(payload?.freshness?.cannot_confirm || [])].join("；") }}
+     </p>
+-    <p v-if="payload?.market_source?.source_root" class="global-industry-message">
+-      美股读取根：{{ payload.market_source.source_root }}
++    <p v-if="payload" class="global-industry-message" role="status">
++      ETF/股票篮子只作参考：{{ payload.legacy_proxy_provider || "CANNOT_CONFIRM" }} · {{ payload.legacy_proxy_status || "CANNOT_CONFIRM" }}。
++      A/HK关系：{{ payload.hk_relation_status }} / {{ payload.a_share_relation_status }}；关系证据的目标日期可用性为 CANNOT_CONFIRM。
+     </p>
+     <p v-if="clockDiagnostic" class="global-industry-message" role="status">
+       上海时钟：{{ clockDiagnostic.shanghai_time }} · 纽约时钟：{{ clockDiagnostic.new_york_time }} · {{ clockMessage }}。
+@@ -318,9 +401,9 @@
+       <div class="global-leader-grid" aria-label="板块涨跌前三">
+         <article v-for="(row, index) in leaders" :key="`leader-${row.label}`" class="global-leader-card">
+           <span>Leader {{ index + 1 }}</span>
+-          <strong>{{ row.label }}</strong>
++          <strong>{{ row.official_board.board_name || row.label }}</strong>
+           <b>{{ formatChange(row.change_pct) }}</b>
+-          <small>{{ directionText(row.direction) }} · {{ coverageText(row) }}</small>
++          <small>{{ row.label }} · {{ directionText(row.direction) }} · {{ breadthText(row) }}</small>
+         </article>
+         <article v-if="!leaders.length" class="global-leader-card global-leader-empty">
+           <strong>CANNOT_CONFIRM</strong><small>当前没有可确认的收盘涨跌值。</small>
+@@ -331,18 +414,49 @@
+           <h3>上涨 <span>{{ risingRows.length }}</span></h3>
+           <div class="global-industry-row-grid" data-theme-grid>
+             <article v-for="row in risingRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div><strong>{{ row.label }}</strong><small>{{ row.proxy_symbols.join(" / ") }} · {{ row.mapping_type }}</small></div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ coverageText(row) }}</span>
++              <div>
++                <strong>{{ row.official_board.board_name || row.label }}</strong>
++                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
++                <small>{{ proxyReferenceText(row) }}</small>
++                <details v-for="relation in row.official_board.relations" :key="`${relation.us_symbol}-${relation.hk_symbol}-${relation.relationship_type}`">
++                  <summary>{{ relation.us_symbol }} → {{ relation.hk_symbol }} · {{ relation.relationship_type }} · 可得 {{ relation.available_at || "CANNOT_CONFIRM" }}</summary>
++                  <a v-for="source in relation.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
++                  <small>{{ relation.limitations.join("；") }}</small>
++                </details>
++              </div>
++              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }}</span>
+             </article>
+           </div>
+           <p v-if="!risingRows.length">暂无可确认上涨板块。</p>
++        </section>
++        <section v-if="flatRows.length" class="global-industry-group global-group-flat" aria-label="平盘板块">
++          <h3>平盘 <span>{{ flatRows.length }}</span></h3>
++          <div class="global-industry-row-grid" data-theme-grid>
++            <article v-for="row in flatRows" :key="row.label" class="global-industry-row" data-theme-row>
++              <div>
++                <strong>{{ row.official_board.board_name || row.label }}</strong>
++                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
++                <small>{{ proxyReferenceText(row) }}</small>
++              </div>
++              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }}</span>
++            </article>
++          </div>
+         </section>
+         <section class="global-industry-group global-group-down" aria-label="下跌板块">
+           <h3>下跌 <span>{{ fallingRows.length }}</span></h3>
+           <div class="global-industry-row-grid" data-theme-grid>
+             <article v-for="row in fallingRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div><strong>{{ row.label }}</strong><small>{{ row.proxy_symbols.join(" / ") }} · {{ row.mapping_type }}</small></div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ coverageText(row) }}</span>
++              <div>
++                <strong>{{ row.official_board.board_name || row.label }}</strong>
++                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
++                <small>{{ proxyReferenceText(row) }}</small>
++                <details v-for="relation in row.official_board.relations" :key="`${relation.us_symbol}-${relation.hk_symbol}-${relation.relationship_type}`">
++                  <summary>{{ relation.us_symbol }} → {{ relation.hk_symbol }} · {{ relation.relationship_type }} · 可得 {{ relation.available_at || "CANNOT_CONFIRM" }}</summary>
++                  <a v-for="source in relation.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
++                  <small>{{ relation.limitations.join("；") }}</small>
++                </details>
++              </div>
++              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }}</span>
+             </article>
+           </div>
+           <p v-if="!fallingRows.length">暂无可确认下跌板块。</p>
+@@ -355,19 +469,30 @@
+           <h3>待确认 <span>{{ unknownRows.length }}</span></h3>
+           <div class="global-industry-row-grid" data-theme-grid>
+             <article v-for="row in unknownRows" :key="row.label" class="global-industry-row" data-theme-row>
+-              <div><strong>{{ row.label }}</strong><small>{{ row.proxy_symbols.join(" / ") }} · {{ row.mapping_type }}</small></div>
+-              <b>{{ formatChange(row.change_pct) }}</b><span>{{ coverageText(row) }} · {{ directionText(row.direction) }}</span>
++              <div>
++                <strong>{{ row.official_board.board_name || row.label }}</strong>
++                <small>研究主题 {{ row.label }} · {{ row.official_board.plate_type || "无严格Futu匹配" }} · {{ row.official_board.update_time || "CANNOT_CONFIRM" }}</small>
++                <small>{{ proxyReferenceText(row) }}</small>
++                <details v-for="relation in row.official_board.relations" :key="`${relation.us_symbol}-${relation.hk_symbol}-${relation.relationship_type}`">
++                  <summary>{{ relation.us_symbol }} → {{ relation.hk_symbol }} · {{ relation.relationship_type }} · 可得 {{ relation.available_at || "CANNOT_CONFIRM" }}</summary>
++                  <a v-for="source in relation.sources" :key="source.url" :href="source.url" target="_blank" rel="noopener noreferrer">{{ source.title || source.url }}（发布 {{ source.published_at || "CANNOT_CONFIRM" }}）</a>
++                  <small>{{ relation.limitations.join("；") }}</small>
++                </details>
++              </div>
++              <b>{{ formatChange(row.change_pct) }}</b><span>{{ breadthText(row) }} · {{ directionText(row.direction) }}</span>
+             </article>
+           </div>
+         </section>
+       </div>
+       <div class="global-industry-meta">
+-        <span>provider：{{ payload?.provider || "CANNOT_CONFIRM" }}</span>
+-        <span>provider session time：{{ payload?.provider_session_times?.join("、") || "CANNOT_CONFIRM" }}</span>
++        <span>官方来源：{{ payload?.provider || "CANNOT_CONFIRM" }}</span>
++        <span>Futu update_time：{{ payload?.provider_session_times?.join("、") || "CANNOT_CONFIRM" }}</span>
+         <span>capture time：{{ payload?.captured_at || "CANNOT_CONFIRM" }}</span>
+-        <span>coverage：{{ payload ? `${payload.available_symbol_count}/${payload.requested_symbol_count}` : `0/${configuredProxyCount}（配置标的；缺已验证来源）` }}</span>
++        <span>Futu板块覆盖：{{ payload ? `${payload.available_board_count}/${payload.requested_board_count}` : "0/24" }}</span>
++        <span>参考代理覆盖：{{ payload ? `${payload.proxy_available_symbol_count}/${payload.proxy_requested_symbol_count}` : `0/${configuredProxyCount}` }}</span>
++        <span>关系审核：{{ payload?.relation_evidence?.status || "CANNOT_CONFIRM" }} · {{ payload?.relation_evidence?.reviewed_at || "CANNOT_CONFIRM" }}</span>
+       </div>
+-      <p v-if="validated" class="global-industry-note">代理 ETF / 股票篮子仅用于研究观察；change_pct 为当日 close 对 previous_close，篮子按可用成分等权平均。RESEARCH_ONLY=true · production_allowed=false · 不构成预测或交易指令。</p>
++      <p v-if="validated" class="global-industry-note">板块涨幅仅使用同一 Futu board 的 last / previous_close；涨跌家数仅在 plate_valid=true 且三项齐全时显示。ETF / 股票篮子另列为参考，不参与板块涨跌判断。跨市场关系是已审业务关系证据，不表示收入、因果或目标日期资格。RESEARCH_ONLY=true · production_allowed=false。</p>
+     </template>
+   </section>
+ </template>
+--- a/apps/api/v35_api/_research_lane_router_parts/__init__.py
++++ b/apps/api/v35_api/_research_lane_router_parts/__init__.py
+@@ -0,0 +1 @@
++"""Responsibility modules; imported lazily by the original facade."""
+--- a/apps/api/v35_api/_research_lane_router_parts/_namespace.py
++++ b/apps/api/v35_api/_research_lane_router_parts/_namespace.py
+@@ -0,0 +1,16 @@
++"""Read a facade's live globals without mutating either namespace."""
++from __future__ import annotations
++import builtins
++
++
++def read_global(scope, name):
++    try:
++        return scope[name]
++    except KeyError:
++        values = scope.get('__builtins__', builtins)
++        if isinstance(values, dict):
++            if name in values:
++                return values[name]
++        elif hasattr(values, name):
++            return getattr(values, name)
++        raise NameError("name '" + name + "' is not defined", name=name) from None
+--- a/apps/api/v35_api/_research_lane_router_parts/industry_projection.py
++++ b/apps/api/v35_api/_research_lane_router_parts/industry_projection.py
+@@ -0,0 +1,371 @@
++"""apps.api.v35_api.research_lane_router: industry_projection (review candidate, not deployment)."""
++from __future__ import annotations
++from ._namespace import read_global as _v4_global
++from contracts.futu_industry import load_reviewed_business_relations, project_industry_rows
++
++
++_INDUSTRY_RESPONSE_SCHEMA_VERSION = "v3_5.global_industries.v2"
++
++
++def __global_industry_rows_body(_v4_scope, /, reason):
++    return [
++        {
++            "label": _v4_global(_v4_scope, 'str')(mapping["label"]),
++            "group": _v4_global(_v4_scope, 'str')(mapping["group"]),
++            "mapping_type": _v4_global(_v4_scope, 'str')(mapping["mapping_type"]),
++            "proxy_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
++            "available_symbols": [],
++            "missing_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
++            "requested_symbol_count": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"]),
++            "available_symbol_count": 0,
++            "coverage": {"available": 0, "requested": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"])},
++            "coverage_pct": 0.0,
++            "change_pct": None,
++            "pct_change": None,
++            "direction": "CANNOT_CONFIRM",
++            "status": "CANNOT_CONFIRM",
++            "quote_session_dates": [],
++            "quote_session_times": [],
++            "cannot_confirm": [reason],
++            "metric_kind": "OFFICIAL_BOARD",
++            "official_board": {
++                "metric_kind": "OFFICIAL_BOARD",
++                "board_name": None,
++                "board_code": None,
++                "update_time": None,
++                "session_date": None,
++                "timezone": "America/New_York",
++                "last": None,
++                "previous_close": None,
++                "change_pct": None,
++                "plate_valid": None,
++                "rise_count": None,
++                "fall_count": None,
++                "equal_count": None,
++                "relations": [],
++                "relation_status": "CANNOT_CONFIRM",
++                "cannot_confirm": [reason],
++            },
++            "proxy_reference": {
++                "metric_kind": "ETF_REFERENCE" if "basket" not in str(mapping["mapping_type"]) else "STOCK_BASKET_REFERENCE",
++                "provider": "Tencent qt.gtimg.cn",
++                "mapping_type": _v4_global(_v4_scope, 'str')(mapping["mapping_type"]),
++                "proxy_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
++                "available_symbols": [],
++                "missing_symbols": _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"]),
++                "requested_symbol_count": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"]),
++                "available_symbol_count": 0,
++                "coverage": {"available": 0, "requested": _v4_global(_v4_scope, 'len')(mapping["proxy_symbols"])},
++                "coverage_pct": 0.0,
++                "change_pct": None,
++                "direction": "CANNOT_CONFIRM",
++                "status": "CANNOT_CONFIRM",
++                "quote_session_dates": [],
++                "quote_session_times": [],
++                "cannot_confirm": [reason],
++            },
++        }
++        for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP')
++    ]
++
++
++def __global_industry_missing_body(_v4_scope, /, *, research_date, reason):
++    return {
++        "schema_version": _INDUSTRY_RESPONSE_SCHEMA_VERSION,
++        "status": "CANNOT_CONFIRM",
++        "target_date": research_date,
++        "target_trade_date": research_date,
++        "research_date": research_date,
++        "source_date": "",
++        "artifact_trade_date": "",
++        "us_session_date": "",
++        "capture_session_date": "",
++        "provider": "Futu OpenD",
++        "legacy_proxy_provider": "Tencent qt.gtimg.cn",
++        "futu_board_snapshot": {"status": "CANNOT_CONFIRM", "source_response_sha256": "", "cannot_confirm": [reason]},
++        "relation_evidence": {"status": "CANNOT_CONFIRM", "cannot_confirm": ["RELATION_EVIDENCE_NOT_LOADED"]},
++        "hk_relation_status": "CANNOT_CONFIRM",
++        "a_share_relation_status": "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE",
++        "a_share_relations": [],
++        "target_date_eligibility": "CANNOT_CONFIRM",
++        "provider_receipt": None,
++        "provider_session_dates": [],
++        "provider_session_times": [],
++        "source_response_sha256": "",
++        "proxy_source_response_sha256": "",
++        "requested_board_count": 24,
++        "available_board_count": 0,
++        "proxy_requested_symbol_count": _v4_global(_v4_scope, 'len')({symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]}),
++        "proxy_available_symbol_count": 0,
++        "proxy_quotes": [],
++        "capture_phase": "POST_CLOSE",
++        "captured_at": "",
++        "generated_at": "",
++        "mapping_version": _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_MAPPING_VERSION'),
++        "requested_symbol_count": _v4_global(_v4_scope, 'len')({
++            symbol for mapping in _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_PROXY_MAP') for symbol in mapping["proxy_symbols"]
++        }),
++        "available_symbol_count": 0,
++        "rows": _v4_global(_v4_scope, '_global_industry_rows')(reason),
++        "quotes": [],
++        "cannot_confirm": [reason],
++        "artifact": None,
++        "manifest": None,
++        "receipt": None,
++        "write_policy": "read_only",
++        "recommendation_status": "RESEARCH_ONLY",
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def __global_industry_lineage_body(_v4_scope, /, store, research_date, payload):
++    artifact_path = store.root / "research" / "peripherals" / research_date / "external_finance.json"
++    receipt_path = store.root / "receipts" / "research" / "peripherals" / research_date / "external_finance.json"
++    manifest_path = store.root / "research" / "peripherals" / "manifest.json"
++    result: dict[str, Any] = {"path": _v4_global(_v4_scope, 'str')(artifact_path), "sha256": _v4_global(_v4_scope, '_sha256')(payload)}
++    try:
++        receipt = _v4_global(_v4_scope, 'json').loads(receipt_path.read_text(encoding="utf-8"))
++        manifest = _v4_global(_v4_scope, 'json').loads(manifest_path.read_text(encoding="utf-8"))
++        result["receipt"] = {"path": _v4_global(_v4_scope, 'str')(receipt_path), "sha256": _v4_global(_v4_scope, '_sha256')(receipt)}
++        result["manifest"] = {"path": _v4_global(_v4_scope, 'str')(manifest_path), "sha256": _v4_global(_v4_scope, '_sha256')(manifest)}
++    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'json').JSONDecodeError):
++        result["lineage_status"] = "CANNOT_CONFIRM"
++    return result
++
++
++def __project_global_industries_body(_v4_scope, /, *, store, research_date):
++    try:
++        payload = store.read_exact(research_date, "external_finance")
++    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'json').JSONDecodeError) as error:
++        return _v4_global(_v4_scope, '_global_industry_missing')(
++            research_date=research_date,
++            reason=f"EXACT_EXTERNAL_FINANCE_INVALID:{_v4_global(_v4_scope, 'type')(error).__name__}",
++        )
++    if payload is None:
++        return _v4_global(_v4_scope, '_global_industry_missing')(
++            research_date=research_date,
++            reason="EXACT_EXTERNAL_FINANCE_NOT_MATERIALIZED",
++        )
++    snapshot = payload.get("market_snapshot")
++    if not _v4_global(_v4_scope, 'isinstance')(snapshot, _v4_global(_v4_scope, 'Mapping')):
++        result = _v4_global(_v4_scope, '_global_industry_missing')(
++            research_date=research_date,
++            reason="MARKET_SNAPSHOT_NOT_MATERIALIZED",
++        )
++        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
++        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
++        result["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(
++            _v4_global(_v4_scope, 'set')(result["cannot_confirm"]) | _v4_global(_v4_scope, 'set')(payload.get("cannot_confirm") or [])
++        )
++        return result
++    if (
++        snapshot.get("schema_version") != _v4_global(_v4_scope, 'MARKET_SNAPSHOT_SCHEMA_VERSION')
++        or snapshot.get("mapping_version") != _v4_global(_v4_scope, 'GLOBAL_INDUSTRY_MAPPING_VERSION')
++    ):
++        result = _v4_global(_v4_scope, '_global_industry_missing')(
++            research_date=research_date,
++            reason="MARKET_SNAPSHOT_CANONICAL_VERSION_INVALID",
++        )
++        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
++        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
++        return result
++    if _v4_global(_v4_scope, 'any')(
++        snapshot.get(field) != expected
++        for field, expected in {
++            "recommendation_status": "RESEARCH_ONLY",
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++            "RESEARCH_ONLY": True,
++        }.items()
++    ):
++        result = _v4_global(_v4_scope, '_global_industry_missing')(
++            research_date=research_date,
++            reason="MARKET_SNAPSHOT_SAFETY_BOUNDARY_INVALID",
++        )
++        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
++        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
++        return result
++    capture, identity_error = _v4_global(_v4_scope, '_bound_capture_for_snapshot')(
++        payload=payload,
++        snapshot=snapshot,
++        research_date=research_date,
++    )
++    if identity_error is not None or capture is None:
++        return _v4_global(_v4_scope, '_capture_identity_failure')(
++            payload=payload,
++            snapshot=snapshot,
++            reason=identity_error or "MARKET_SNAPSHOT_CAPTURE_IDENTITY_UNBOUND",
++            research_date=research_date,
++            store=store,
++        )
++    session_date = _v4_global(_v4_scope, 'str')(snapshot.get("capture_session_date") or "")
++    rows = _v4_global(_v4_scope, 'list')(snapshot.get("rows") or [])
++    canonical_rows = _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP'))
++    if _v4_global(_v4_scope, 'len')(rows) != 24 or _v4_global(_v4_scope, 'any')(
++        not _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping'))
++        or row.get("label") != mapping["label"]
++        or row.get("group") != mapping["group"]
++        or row.get("mapping_type") != mapping["mapping_type"]
++        or row.get("proxy_symbols") != _v4_global(_v4_scope, 'list')(mapping["proxy_symbols"])
++        for row, mapping in _v4_global(_v4_scope, 'zip')(rows, canonical_rows)
++    ):
++        result = _v4_global(_v4_scope, '_global_industry_missing')(
++            research_date=research_date,
++            reason="MARKET_SNAPSHOT_ROW_COUNT_INVALID",
++        )
++        result["source_date"] = _v4_global(_v4_scope, 'str')(payload.get("trade_date") or "")
++        result["artifact"] = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
++        return result
++    lineage = _v4_global(_v4_scope, '_global_industry_lineage')(store, research_date, payload)
++    futu_snapshot = snapshot.get("futu_board_snapshot")
++    if not _v4_global(_v4_scope, 'isinstance')(futu_snapshot, _v4_global(_v4_scope, 'Mapping')):
++        futu_snapshot = None
++    reviewed_relations = load_reviewed_business_relations()
++    projected_rows = project_industry_rows(
++        rows,
++        futu_snapshot=futu_snapshot,
++        reviewed_evidence=reviewed_relations,
++        capture_session_date=session_date,
++    )
++    ready_boards = _v4_global(_v4_scope, 'sum')(row["status"] == "READY" for row in projected_rows)
++    industry_status = "READY" if ready_boards == 24 else "PARTIAL" if ready_boards else "CANNOT_CONFIRM"
++    futu_reasons = _v4_global(_v4_scope, 'set')(
++        futu_snapshot.get("cannot_confirm") or [] if futu_snapshot is not None else ["FUTU_BOARD_SNAPSHOT_MISSING"]
++    )
++    futu_reasons.update(
++        reason for row in projected_rows for reason in row.get("cannot_confirm") or []
++    )
++    provider_dates = _v4_global(_v4_scope, 'sorted')({
++        _v4_global(_v4_scope, 'str')(row["official_board"].get("session_date"))
++        for row in projected_rows
++        if row["status"] == "READY"
++    })
++    provider_times = _v4_global(_v4_scope, 'sorted')({
++        _v4_global(_v4_scope, 'str')(row["official_board"].get("update_time"))
++        for row in projected_rows
++        if row["status"] == "READY" and row["official_board"].get("update_time")
++    })
++    relation_rows = [row["official_board"] for row in projected_rows]
++    relation_statuses = {row.get("relation_status") for row in relation_rows}
++    hk_relation_status = (
++        "READY" if "READY" in relation_statuses
++        else "NO_REVIEWED_RELATION_INTERSECTION" if reviewed_relations.get("status") == "READY" and "CANNOT_CONFIRM" not in relation_statuses
++        else "CANNOT_CONFIRM"
++    )
++    relation_review = reviewed_relations.get("review") or {}
++    relation_meta = {
++        "status": reviewed_relations.get("status", "CANNOT_CONFIRM"),
++        "evidence_path": reviewed_relations.get("evidence_path"),
++        "evidence_sha256": reviewed_relations.get("evidence_sha256"),
++        "review_path": reviewed_relations.get("review_path"),
++        "review_sha256": reviewed_relations.get("review_sha256"),
++        "reviewed_at": relation_review.get("reviewed_at"),
++        "reviewer_identity": relation_review.get("reviewer_identity"),
++        "limitations": list(relation_review.get("CANNOT_CONFIRM") or []),
++        "cannot_confirm": list(reviewed_relations.get("cannot_confirm") or []),
++        "target_date_eligibility": "CANNOT_CONFIRM",
++    }
++    proxy_status = _v4_global(_v4_scope, 'str')(snapshot.get("status") or "CANNOT_CONFIRM")
++    proxy_dates = _v4_global(_v4_scope, 'sorted')({
++        _v4_global(_v4_scope, 'str')(item) for item in snapshot.get("provider_session_dates") or [] if _v4_global(_v4_scope, 'str')(item).strip()
++    })
++    proxy_times = _v4_global(_v4_scope, 'sorted')({
++        _v4_global(_v4_scope, 'str')(item) for item in snapshot.get("provider_session_times") or [] if _v4_global(_v4_scope, 'str')(item).strip()
++    })
++    futu_metadata = {
++        key: futu_snapshot.get(key)
++        for key in ("schema_version", "status", "provider", "market", "timezone", "capture_session_date", "source_response_sha256", "cannot_confirm")
++    } if futu_snapshot is not None else {
++        "schema_version": "v3_5.futu_us_industry_snapshot.v1",
++        "status": "CANNOT_CONFIRM",
++        "provider": "Futu OpenD",
++        "market": "US",
++        "timezone": "America/New_York",
++        "capture_session_date": session_date,
++        "source_response_sha256": "",
++        "cannot_confirm": ["FUTU_BOARD_SNAPSHOT_MISSING"],
++    }
++    result: dict[str, Any] = {
++        "schema_version": _INDUSTRY_RESPONSE_SCHEMA_VERSION,
++        "status": industry_status,
++        "legacy_proxy_status": proxy_status,
++        "target_date": research_date,
++        "target_trade_date": research_date,
++        "research_date": research_date,
++        "source_date": session_date,
++        "artifact_trade_date": _v4_global(_v4_scope, 'str')(payload.get("trade_date") or research_date),
++        "us_session_date": session_date,
++        "provider": "Futu OpenD",
++        "legacy_proxy_provider": _v4_global(_v4_scope, 'str')(snapshot.get("provider") or snapshot.get("source") or "Tencent qt.gtimg.cn"),
++        "provider_url": "",
++        "provider_session_dates": provider_dates,
++        "provider_session_times": provider_times,
++        "source_response_sha256": _v4_global(_v4_scope, 'str')((futu_snapshot or {}).get("source_response_sha256") or ""),
++        "proxy_source_response_sha256": _v4_global(_v4_scope, 'str')(snapshot.get("source_response_sha256") or ""),
++        "quotes": [],
++        "proxy_quotes": _v4_global(_v4_scope, 'list')(snapshot.get("quotes") or []),
++        "provider_receipt": None,
++        "futu_board_snapshot": futu_metadata,
++        "relation_evidence": relation_meta,
++        "hk_relation_status": hk_relation_status,
++        "a_share_relation_status": "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE",
++        "a_share_relations": [],
++        "target_date_eligibility": "CANNOT_CONFIRM",
++        "capture_phase": _v4_global(_v4_scope, 'str')(snapshot.get("capture_phase") or "POST_CLOSE"),
++        "capture_session_date": session_date,
++        "captured_at": _v4_global(_v4_scope, 'str')(snapshot.get("captured_at") or ""),
++        "bound_capture_captured_at": capture.get("captured_at"),
++        "generated_at": _v4_global(_v4_scope, 'str')(snapshot.get("generated_at") or snapshot.get("captured_at") or ""),
++        "mapping_version": _v4_global(_v4_scope, 'str')(snapshot.get("mapping_version") or ""),
++        "requested_symbol_count": 24,
++        "available_symbol_count": ready_boards,
++        "requested_board_count": 24,
++        "available_board_count": ready_boards,
++        "proxy_requested_symbol_count": _v4_global(_v4_scope, 'int')(snapshot.get("requested_symbol_count") or 0),
++        "proxy_available_symbol_count": _v4_global(_v4_scope, 'int')(snapshot.get("available_symbol_count") or 0),
++        "proxy_provider_session_dates": proxy_dates,
++        "proxy_provider_session_times": proxy_times,
++        "rows": projected_rows,
++        "cannot_confirm": _v4_global(_v4_scope, 'sorted')(futu_reasons),
++        "artifact": lineage,
++        "manifest": lineage.get("manifest"),
++        "receipt": lineage.get("receipt"),
++        "write_policy": "read_only",
++        "recommendation_status": "RESEARCH_ONLY",
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++    for field in (
++        "capture_id",
++        "run_id",
++        "capture_origin",
++        "original_time_capture",
++        "late",
++        "capture_mode",
++        "reason",
++        "capture_reason",
++        "session_timezone",
++        "capture_window_start",
++        "capture_window_end",
++        "natural_capture_window_start",
++        "natural_capture_window_end",
++        "allowed_recovery_window_start",
++        "allowed_recovery_window_end",
++    ):
++        if field in capture:
++            result[field] = capture[field]
++    if result["capture_phase"] != "POST_CLOSE":
++        result["status"] = "CANNOT_CONFIRM"
++        result["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(
++            _v4_global(_v4_scope, 'set')(result["cannot_confirm"]) | {"MARKET_SNAPSHOT_NOT_POST_CLOSE"}
++        )
++    if result["status"] != "CANNOT_CONFIRM" and _v4_global(_v4_scope, 'len')(provider_dates) > 1:
++        result["status"] = "PARTIAL"
++        result["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(result["cannot_confirm"]) | {"BOARD_SESSION_DATE_MIXED"})
++    return result
+--- a/contracts/futu_industry.py
++++ b/contracts/futu_industry.py
+@@ -0,0 +1,241 @@
++"""Contracts for official Futu board metrics and reviewed business relations."""
++from __future__ import annotations
++
++import hashlib
++import json
++from pathlib import Path
++from typing import Any
++
++from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP
++
++
++RELATION_EVIDENCE_FILE = "v4/manager_research/us_mapping_relation_evidence_20261011.json"
++RELATION_REVIEW_FILE = "v4/manager_research/us_mapping_relation_evidence_review_20261011.json"
++
++
++def load_reviewed_business_relations(repository_root: Path | None = None) -> dict[str, Any]:
++    """Load only the exact existing reviewed relation artifact; never infer a mapping."""
++    root = repository_root or Path(__file__).resolve().parents[1]
++    evidence_path = root / RELATION_EVIDENCE_FILE
++    review_path = root / RELATION_REVIEW_FILE
++    try:
++        evidence_bytes = evidence_path.read_bytes()
++        review_bytes = review_path.read_bytes()
++        evidence = json.loads(evidence_bytes.decode("utf-8"))
++        review = json.loads(review_bytes.decode("utf-8"))
++    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
++        return {
++            "status": "CANNOT_CONFIRM",
++            "cannot_confirm": [f"RELATION_EVIDENCE_UNAVAILABLE:{type(error).__name__}"],
++            "relations": [],
++            "review": None,
++        }
++
++    evidence_sha = hashlib.sha256(evidence_bytes).hexdigest()
++    review_sha = hashlib.sha256(review_bytes).hexdigest()
++    reason = None
++    if not isinstance(evidence, dict) or not isinstance(review, dict):
++        reason = "RELATION_EVIDENCE_INVALID_SHAPE"
++    elif review.get("status") != "PASS":
++        reason = "RELATION_REVIEW_NOT_PASS"
++    elif review.get("evidence_file_sha256") != evidence_sha:
++        reason = "RELATION_EVIDENCE_FILE_HASH_MISMATCH"
++    elif not evidence.get("artifact_sha256") or evidence.get("artifact_sha256") not in {
++        review.get("declared_artifact_sha256"), review.get("recomputed_artifact_sha256")
++    }:
++        reason = "RELATION_ARTIFACT_HASH_MISMATCH"
++    elif (
++        evidence.get("RESEARCH_ONLY") is not True
++        or evidence.get("production_allowed") is not False
++        or evidence.get("buy_gate_updated") is not False
++        or evidence.get("orders_sent") is not False
++    ):
++        reason = "RELATION_EVIDENCE_SAFETY_BOUNDARY_INVALID"
++
++    relations = evidence.get("relations") if isinstance(evidence, dict) else None
++    reviewed_pairs = review.get("reviewed_pairs") if isinstance(review, dict) else None
++    if reason is None:
++        relation_pairs = {
++            (row.get("us_symbol"), row.get("hk_symbol"), row.get("relationship_type"), row.get("direction"))
++            for row in relations
++            if isinstance(row, dict)
++        } if isinstance(relations, list) else set()
++        reviewed_pair_keys = {
++            (row.get("us_symbol"), row.get("hk_symbol"), row.get("relationship_type"), row.get("direction"))
++            for row in reviewed_pairs
++            if isinstance(row, dict)
++        } if isinstance(reviewed_pairs, list) else set()
++        if not relation_pairs or relation_pairs != reviewed_pair_keys or len(relation_pairs) != len(relations):
++            reason = "RELATION_REVIEWED_PAIR_SET_MISMATCH"
++
++    return {
++        "status": "READY" if reason is None else "CANNOT_CONFIRM",
++        "cannot_confirm": [] if reason is None else [reason],
++        "relations": relations if reason is None else [],
++        "review": review if reason is None else None,
++        "evidence_path": str(evidence_path),
++        "evidence_sha256": evidence_sha,
++        "review_path": str(review_path),
++        "review_sha256": review_sha,
++    }
++
++
++def relations_for_board(
++    board_row: dict[str, Any],
++    *,
++    reviewed_evidence: dict[str, Any],
++) -> dict[str, Any]:
++    """Intersect exact Futu board membership with the reviewed US-HK pairs."""
++    if reviewed_evidence.get("status") != "READY":
++        return {
++            "status": "CANNOT_CONFIRM",
++            "relations": [],
++            "cannot_confirm": list(reviewed_evidence.get("cannot_confirm") or ["RELATION_REVIEW_UNAVAILABLE"]),
++        }
++    if board_row.get("membership_status") != "READY":
++        return {"status": "CANNOT_CONFIRM", "relations": [], "cannot_confirm": ["BOARD_MEMBERSHIP_CANNOT_CONFIRM"]}
++    members = set(board_row.get("relation_constituents") or [])
++    relations = [
++        {
++            "us_symbol": relation.get("us_symbol"),
++            "hk_symbol": relation.get("hk_symbol"),
++            "relationship_type": relation.get("relationship_type"),
++            "direction": relation.get("direction"),
++            "reason": relation.get("reason"),
++            "maturity": relation.get("maturity"),
++            "available_at": relation.get("available_at"),
++            "sources": [
++                {
++                    "role": source.get("role"),
++                    "title": source.get("title"),
++                    "url": source.get("url"),
++                    "published_at": source.get("published_at"),
++                    "retrieved_at": source.get("retrieved_at"),
++                }
++                for source in relation.get("sources") or []
++                if isinstance(source, dict)
++            ],
++            "limitations": list(relation.get("limitations") or []),
++        }
++        for relation in reviewed_evidence.get("relations") or []
++        if isinstance(relation, dict) and relation.get("us_symbol") in members
++    ]
++    return {
++        "status": "READY" if relations else "NO_REVIEWED_RELATION_INTERSECTION",
++        "relations": relations,
++        "cannot_confirm": [] if relations else ["NO_REVIEWED_RELATION_INTERSECTION"],
++        "target_date_eligibility": "CANNOT_CONFIRM",
++    }
++
++
++def project_industry_rows(
++    proxy_rows: list[dict[str, Any]],
++    *,
++    futu_snapshot: dict[str, Any] | None,
++    reviewed_evidence: dict[str, Any],
++    capture_session_date: str,
++) -> list[dict[str, Any]]:
++    """Separate official board metrics from the legacy ETF/basket reference."""
++    boards = {
++        row.get("label"): row
++        for row in (futu_snapshot or {}).get("rows", [])
++        if isinstance(row, dict)
++    }
++    expected = {item["label"]: item for item in FUTU_BOARD_MAP}
++    projected: list[dict[str, Any]] = []
++    for proxy in proxy_rows:
++        label = proxy.get("label")
++        mapping = expected.get(label)
++        board = boards.get(label)
++        if board is None:
++            board = {
++                "label": label,
++                "metric_kind": "OFFICIAL_BOARD",
++                "market": "US",
++                "plate_type": mapping.get("plate_type") if mapping else None,
++                "expected_board_name": mapping.get("plate_name") if mapping else None,
++                "board_name": None,
++                "board_code": None,
++                "update_time": None,
++                "session_date": None,
++                "timezone": "America/New_York",
++                "last": None,
++                "previous_close": None,
++                "change_pct": None,
++                "plate_valid": None,
++                "rise_count": None,
++                "fall_count": None,
++                "equal_count": None,
++                "member_count": None,
++                "relation_constituents": [],
++                "membership_status": "CANNOT_CONFIRM",
++                "membership_sha256": "",
++                "source_response_sha256": "",
++                "status": "CANNOT_CONFIRM",
++                "cannot_confirm": ["FUTU_BOARD_SNAPSHOT_MISSING"],
++            }
++        official_ready = (
++            board.get("status") == "READY"
++            and board.get("plate_valid") is True
++            and board.get("session_date") == capture_session_date
++            and isinstance(board.get("change_pct"), (int, float))
++            and not isinstance(board.get("change_pct"), bool)
++        )
++        change = float(board["change_pct"]) if official_ready else None
++        direction = "UP" if change is not None and change > 0 else "DOWN" if change is not None and change < 0 else "FLAT" if change is not None else "CANNOT_CONFIRM"
++        row_reasons = [] if official_ready else list(board.get("cannot_confirm") or ["FUTU_BOARD_METRIC_CANNOT_CONFIRM"])
++        if not official_ready and board.get("session_date") and board.get("session_date") != capture_session_date:
++            row_reasons = sorted(set(row_reasons) | {"FUTU_BOARD_SESSION_DATE_MISMATCH"})
++        relation = relations_for_board(board, reviewed_evidence=reviewed_evidence)
++        proxy_status = proxy.get("status") or "CANNOT_CONFIRM"
++        proxy_kind = "STOCK_BASKET_REFERENCE" if "basket" in str(proxy.get("mapping_type") or "") else "ETF_REFERENCE"
++        proxy_reference = {
++            "metric_kind": proxy_kind,
++            "provider": "Tencent qt.gtimg.cn",
++            "mapping_type": proxy.get("mapping_type"),
++            "proxy_symbols": list(proxy.get("proxy_symbols") or []),
++            "available_symbols": list(proxy.get("available_symbols") or []),
++            "missing_symbols": list(proxy.get("missing_symbols") or []),
++            "requested_symbol_count": proxy.get("requested_symbol_count"),
++            "available_symbol_count": proxy.get("available_symbol_count"),
++            "coverage": proxy.get("coverage"),
++            "coverage_pct": proxy.get("coverage_pct"),
++            "change_pct": proxy.get("change_pct"),
++            "direction": proxy.get("direction") or "CANNOT_CONFIRM",
++            "status": proxy_status,
++            "quote_session_dates": list(proxy.get("quote_session_dates") or []),
++            "quote_session_times": list(proxy.get("quote_session_times") or []),
++            "cannot_confirm": list(proxy.get("cannot_confirm") or []),
++        }
++        projected.append({
++            "label": label,
++            "group": proxy.get("group"),
++            "mapping_type": proxy.get("mapping_type"),
++            "proxy_symbols": list(proxy.get("proxy_symbols") or []),
++            "metric_kind": "OFFICIAL_BOARD",
++            "available_symbols": [],
++            "missing_symbols": [],
++            "requested_symbol_count": 0,
++            "available_symbol_count": 0,
++            "coverage": {"available": 0, "requested": 0},
++            "coverage_pct": None,
++            "change_pct": change,
++            "pct_change": change,
++            "direction": direction,
++            "status": "READY" if official_ready else "CANNOT_CONFIRM",
++            "quote_session_dates": [board["session_date"]] if official_ready else [],
++            "quote_session_times": [board["update_time"]] if official_ready and board.get("update_time") else [],
++            "official_board": {
++                **board,
++                "status": "READY" if official_ready else "CANNOT_CONFIRM",
++                "cannot_confirm": row_reasons,
++                "relations": relation["relations"],
++                "relation_status": relation["status"],
++                "relation_cannot_confirm": relation["cannot_confirm"],
++                "target_date_eligibility": relation.get("target_date_eligibility", "CANNOT_CONFIRM"),
++            },
++            "proxy_reference": proxy_reference,
++            "cannot_confirm": row_reasons,
++        })
++    return projected
++
+--- a/ops/_us_market_digest_parts/futu_boards.py
++++ b/ops/_us_market_digest_parts/futu_boards.py
+@@ -0,0 +1,509 @@
++"""Futu US board facts used by the existing US close snapshot producer.
++
++This is a small adapter only: it does not own a schedule, store, or data lane.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import math
++import re
++from collections.abc import Mapping
++from datetime import date, datetime
++from typing import Any
++
++
++FUTU_INDUSTRY_SCHEMA_VERSION = "v3_5.futu_us_industry_snapshot.v1"
++FUTU_PROVIDER = "Futu OpenD"
++FUTU_SESSION_TIMEZONE = "America/New_York"
++_US_CODE = re.compile(r"^US\.([A-Z][A-Z0-9.]*)$")
++_RELATION_SYMBOLS = frozenset({"NVDA", "AMD", "DLR", "EQIX", "STX", "VRT"})
++
++# Only exact, observed Futu board names are wired. Labels without an exact
++# board remain explicit CANNOT_CONFIRM rows; ETF and stock-basket references
++# never fill this map.
++FUTU_BOARD_MAP: tuple[dict[str, str | None], ...] = (
++    {"label": "AI算力", "plate_type": None, "plate_name": None},
++    {"label": "CPO", "plate_type": None, "plate_name": None},
++    {"label": "半导体", "plate_type": "INDUSTRY", "plate_name": "半导体"},
++    {"label": "存储", "plate_type": "CONCEPT", "plate_name": "存储概念"},
++    {"label": "数据中心", "plate_type": "CONCEPT", "plate_name": "IDC概念"},
++    {"label": "云计算", "plate_type": "CONCEPT", "plate_name": "云计算服务商"},
++    {"label": "商业航天", "plate_type": None, "plate_name": None},
++    {"label": "卫星", "plate_type": None, "plate_name": None},
++    {"label": "机器人", "plate_type": "CONCEPT", "plate_name": "机器人概念股"},
++    {"label": "自动驾驶", "plate_type": "CONCEPT", "plate_name": "智能驾驶概念股"},
++    {"label": "核电", "plate_type": "CONCEPT", "plate_name": "核电"},
++    {"label": "电网", "plate_type": None, "plate_name": None},
++    {"label": "军工", "plate_type": None, "plate_name": None},
++    {"label": "新能源", "plate_type": None, "plate_name": None},
++    {"label": "光伏", "plate_type": "CONCEPT", "plate_name": "光伏太阳能"},
++    {"label": "锂电池", "plate_type": "CONCEPT", "plate_name": "锂电池"},
++    {"label": "石油", "plate_type": None, "plate_name": None},
++    {"label": "天然气", "plate_type": "CONCEPT", "plate_name": "天然气"},
++    {"label": "铜/有色", "plate_type": None, "plate_name": None},
++    {"label": "黄金", "plate_type": "INDUSTRY", "plate_name": "黄金"},
++    {"label": "银行金融", "plate_type": None, "plate_name": None},
++    {"label": "生物医药", "plate_type": None, "plate_name": None},
++    {"label": "消费", "plate_type": None, "plate_name": None},
++    {"label": "稀土", "plate_type": "CONCEPT", "plate_name": "稀土概念"},
++)
++
++
++def _scalar(value: Any) -> Any:
++    """Convert common pandas/numpy scalar values to strict JSON values."""
++    if value is None:
++        return None
++    if isinstance(value, (str, bool, int)):
++        return value
++    if isinstance(value, float):
++        return value if math.isfinite(value) else None
++    if isinstance(value, (datetime, date)):
++        return value.isoformat(sep=" ") if isinstance(value, datetime) else value.isoformat()
++    # numpy scalar types expose item(); pandas NA/NaN are handled as null.
++    item = getattr(value, "item", None)
++    if callable(item):
++        try:
++            return _scalar(item())
++        except (TypeError, ValueError, OverflowError):
++            return None
++    try:
++        if value != value:  # NaN and pandas NaT
++            return None
++    except (TypeError, ValueError):
++        pass
++    return value if isinstance(value, str) else None
++
++
++def _records(value: Any) -> list[dict[str, Any]]:
++    if value is None:
++        return []
++    if isinstance(value, list):
++        source = value
++    elif hasattr(value, "to_dict"):
++        try:
++            source = value.to_dict("records")
++        except TypeError:
++            source = value.to_dict(orient="records")
++    else:
++        source = value
++    if not isinstance(source, (list, tuple)):
++        return []
++    return [
++        {str(key): _scalar(item) for key, item in row.items()}
++        for row in source
++        if isinstance(row, Mapping)
++    ]
++
++
++def _canonical_sha256(value: Any) -> str:
++    body = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
++    return hashlib.sha256(body.encode("utf-8")).hexdigest()
++
++
++def _response(ret: Any, data: Any) -> list[dict[str, Any]]:
++    return _records(data) if ret == 0 else []
++
++
++def _positive_number(value: Any) -> float | None:
++    if isinstance(value, bool):
++        return None
++    try:
++        number = float(value)
++    except (TypeError, ValueError, OverflowError):
++        return None
++    return number if math.isfinite(number) and number > 0 else None
++
++
++def _count(value: Any) -> int | None:
++    if isinstance(value, bool) or not isinstance(value, (int, float)):
++        return None
++    if not math.isfinite(float(value)) or int(value) != value or value < 0:
++        return None
++    return int(value)
++
++
++def _session_date_token(value: Any) -> str:
++    raw = str(value).strip()
++    try:
++        parsed = datetime.strptime(raw, "%Y%m%d").date() if re.fullmatch(r"20\d{6}", raw) else date.fromisoformat(raw)
++    except ValueError as error:
++        raise ValueError("invalid US session date") from error
++    return parsed.strftime("%Y%m%d")
++
++
++def _date_from_update_time(value: Any) -> str | None:
++    if not isinstance(value, str) or not value.strip():
++        return None
++    try:
++        return datetime.fromisoformat(value.strip()).date().strftime("%Y%m%d")
++    except ValueError:
++        return None
++
++
++def _empty_row(mapping: Mapping[str, str | None], reason: str, *, code: str | None = None) -> dict[str, Any]:
++    return {
++        "label": mapping["label"],
++        "metric_kind": "OFFICIAL_BOARD",
++        "market": "US",
++        "plate_type": mapping["plate_type"],
++        "expected_board_name": mapping["plate_name"],
++        "board_name": mapping["plate_name"] if code else None,
++        "board_code": code,
++        "update_time": None,
++        "session_date": None,
++        "timezone": FUTU_SESSION_TIMEZONE,
++        "last": None,
++        "previous_close": None,
++        "change_pct": None,
++        "plate_valid": None,
++        "rise_count": None,
++        "fall_count": None,
++        "equal_count": None,
++        "member_count": None,
++        "relation_constituents": [],
++        "membership_status": "CANNOT_CONFIRM",
++        "membership_sha256": "",
++        "source_response_sha256": "",
++        "status": "CANNOT_CONFIRM",
++        "cannot_confirm": [reason],
++    }
++
++
++def empty_futu_board_snapshot(session_date: str, reason: str) -> dict[str, Any]:
++    requested_date = _session_date_token(session_date)
++    return {
++        "schema_version": FUTU_INDUSTRY_SCHEMA_VERSION,
++        "status": "CANNOT_CONFIRM",
++        "provider": FUTU_PROVIDER,
++        "market": "US",
++        "timezone": FUTU_SESSION_TIMEZONE,
++        "capture_session_date": requested_date,
++        "source_response_sha256": "",
++        "rows": [_empty_row(mapping, reason) for mapping in FUTU_BOARD_MAP],
++        "cannot_confirm": [reason],
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def validate_futu_board_snapshot(value: Any, *, expected_session_date: str | None = None) -> dict[str, Any]:
++    """Validate the persisted Futu board contract without promoting gaps."""
++    if not isinstance(value, Mapping):
++        raise ValueError("invalid Futu board snapshot")
++    required = {
++        "schema_version", "status", "provider", "market", "timezone",
++        "capture_session_date", "source_response_sha256", "rows", "cannot_confirm",
++        "RESEARCH_ONLY", "production_allowed", "buy_gate_updated", "orders_sent",
++    }
++    if not required.issubset(value):
++        raise ValueError("invalid Futu board snapshot fields")
++    if value.get("schema_version") != FUTU_INDUSTRY_SCHEMA_VERSION or value.get("provider") != FUTU_PROVIDER:
++        raise ValueError("invalid Futu board snapshot identity")
++    if value.get("market") != "US" or value.get("timezone") != FUTU_SESSION_TIMEZONE:
++        raise ValueError("invalid Futu board snapshot market or timezone")
++    session_date = _session_date_token(value.get("capture_session_date"))
++    if expected_session_date is not None and session_date != _session_date_token(expected_session_date):
++        raise ValueError("Futu board snapshot session date mismatch")
++    digest = value.get("source_response_sha256")
++    if not isinstance(digest, str) or (digest and not re.fullmatch(r"[0-9a-f]{64}", digest)):
++        raise ValueError("invalid Futu board snapshot source hash")
++    rows = value.get("rows")
++    if not isinstance(rows, list) or len(rows) != len(FUTU_BOARD_MAP):
++        raise ValueError("Futu board snapshot must contain the 24 configured themes")
++    if not isinstance(value.get("cannot_confirm"), list) or any(not isinstance(item, str) or not item for item in value["cannot_confirm"]):
++        raise ValueError("invalid Futu board snapshot cannot_confirm")
++    if value.get("RESEARCH_ONLY") is not True or value.get("production_allowed") is not False or value.get("buy_gate_updated") is not False or value.get("orders_sent") is not False:
++        raise ValueError("unsafe Futu board snapshot safety flags")
++
++    ready_count = 0
++    row_reasons: set[str] = set()
++    for row, mapping in zip(rows, FUTU_BOARD_MAP):
++        if not isinstance(row, Mapping):
++            raise ValueError("invalid Futu board snapshot row")
++        for key, expected in {
++            "label": mapping["label"],
++            "metric_kind": "OFFICIAL_BOARD",
++            "market": "US",
++            "plate_type": mapping["plate_type"],
++            "expected_board_name": mapping["plate_name"],
++            "timezone": FUTU_SESSION_TIMEZONE,
++        }.items():
++            if row.get(key) != expected:
++                raise ValueError("Futu board snapshot theme mapping mismatch")
++        status = row.get("status")
++        if status not in {"READY", "CANNOT_CONFIRM"}:
++            raise ValueError("invalid Futu board row status")
++        reasons = row.get("cannot_confirm")
++        if not isinstance(reasons, list) or any(not isinstance(item, str) or not item for item in reasons):
++            raise ValueError("invalid Futu board row cannot_confirm")
++        row_reasons.update(reasons)
++        code = row.get("board_code")
++        if code is not None and (not isinstance(code, str) or not _US_CODE.fullmatch(code)):
++            raise ValueError("invalid Futu board code")
++        if row.get("board_name") is not None and row.get("board_name") != mapping["plate_name"]:
++            raise ValueError("Futu board name does not match exact configured name")
++        row_date = row.get("session_date")
++        if row_date is not None:
++            row_date = _session_date_token(row_date)
++        if row.get("plate_valid") not in {True, False, None}:
++            raise ValueError("invalid Futu plate_valid")
++        counts = [row.get("rise_count"), row.get("fall_count"), row.get("equal_count")]
++        if row.get("plate_valid") is not True and any(count is not None for count in counts):
++            raise ValueError("invalid Futu board counts when plate_valid is not true")
++        if any(count is not None and _count(count) != count for count in counts):
++            raise ValueError("invalid Futu board breadth count")
++        if row.get("last") is not None and _positive_number(row.get("last")) is None:
++            raise ValueError("invalid Futu board last price")
++        if row.get("previous_close") is not None and _positive_number(row.get("previous_close")) is None:
++            raise ValueError("invalid Futu board previous close")
++        change = row.get("change_pct")
++        if change is not None and (isinstance(change, bool) or not isinstance(change, (int, float)) or not math.isfinite(float(change))):
++            raise ValueError("invalid Futu board change")
++        if status == "READY":
++            ready_count += 1
++            if (
++                not code or row.get("board_name") != mapping["plate_name"]
++                or row_date != session_date or row.get("plate_valid") is not True
++                or any(_count(count) is None for count in counts)
++                or _positive_number(row.get("last")) is None
++                or _positive_number(row.get("previous_close")) is None
++                or not isinstance(change, (int, float)) or isinstance(change, bool)
++                or round((float(row["last"]) - float(row["previous_close"])) / float(row["previous_close"]) * 100, 6) != round(float(change), 6)
++            ):
++                raise ValueError("incomplete Futu board row marked READY")
++        elif change is not None:
++            raise ValueError("CANNOT_CONFIRM Futu board row has a sector change value")
++        membership_status = row.get("membership_status")
++        if membership_status not in {"READY", "CANNOT_CONFIRM"}:
++            raise ValueError("invalid Futu membership status")
++        member_count = row.get("member_count")
++        if member_count is not None and _count(member_count) != member_count:
++            raise ValueError("invalid Futu membership count")
++        relation_symbols = row.get("relation_constituents")
++        if (
++            not isinstance(relation_symbols, list)
++            or any(not isinstance(symbol, str) or symbol not in _RELATION_SYMBOLS for symbol in relation_symbols)
++            or len(relation_symbols) != len(set(relation_symbols))
++        ):
++            raise ValueError("invalid Futu relation constituent symbols")
++        for hash_field in ("membership_sha256", "source_response_sha256"):
++            hash_value = row.get(hash_field)
++            if not isinstance(hash_value, str) or (hash_value and not re.fullmatch(r"[0-9a-f]{64}", hash_value)):
++                raise ValueError("invalid Futu board row hash")
++    expected_status = "READY" if ready_count == len(rows) else "PARTIAL" if ready_count else "CANNOT_CONFIRM"
++    if value.get("status") != expected_status:
++        raise ValueError("invalid aggregate Futu board snapshot status")
++    if expected_status != "READY" and not value.get("cannot_confirm"):
++        raise ValueError("incomplete Futu board snapshot requires cannot_confirm")
++    if not row_reasons.issubset(set(value.get("cannot_confirm") or [])):
++        raise ValueError("Futu board snapshot omitted row reasons")
++    return dict(value)
++
++
++def build_futu_board_snapshot(
++    session_date: str,
++    *,
++    quote_context: Any,
++    market: Any = "US",
++    industry_plate: Any = "INDUSTRY",
++    concept_plate: Any = "CONCEPT",
++) -> dict[str, Any]:
++    """Capture exact Futu board rows and only the reviewed-relation symbols.
++
++    Futu board ``update_time`` is interpreted in America/New_York as specified
++    by the provider. A latest value from another session is retained as
++    evidence but never projected as the requested session's metric.
++    """
++    requested_date = _session_date_token(session_date)
++    plate_args = {"INDUSTRY": industry_plate, "CONCEPT": concept_plate}
++    plate_rows: dict[str, list[dict[str, Any]]] = {}
++    discovery_errors: dict[str, str] = {}
++    for plate_type, plate_enum in plate_args.items():
++        try:
++            ret, frame = quote_context.get_plate_list(market, plate_enum)
++            rows = _response(ret, frame)
++            if ret != 0:
++                discovery_errors[plate_type] = f"FUTU_PLATE_LIST_FAILED:{plate_type}:{ret}"
++            plate_rows[plate_type] = rows
++        except Exception as error:  # preserve failure reason at this source boundary
++            discovery_errors[plate_type] = f"FUTU_PLATE_LIST_FAILED:{plate_type}:{type(error).__name__}"
++            plate_rows[plate_type] = []
++
++    resolved: list[tuple[Mapping[str, str | None], str | None, str | None]] = []
++    codes: list[str] = []
++    rows: list[dict[str, Any]] = []
++    for mapping in FUTU_BOARD_MAP:
++        if not mapping["plate_type"] or not mapping["plate_name"]:
++            rows.append(_empty_row(mapping, "FUTU_BOARD_MATCH_UNCONFIRMED"))
++            resolved.append((mapping, None, None))
++            continue
++        candidates = [
++            row for row in plate_rows.get(mapping["plate_type"], [])
++            if row.get("plate_name") == mapping["plate_name"]
++            and isinstance(row.get("code"), str)
++            and _US_CODE.fullmatch(row["code"])
++        ]
++        if len(candidates) != 1:
++            reason = discovery_errors.get(mapping["plate_type"], "FUTU_BOARD_MATCH_MISSING" if not candidates else "FUTU_BOARD_MATCH_AMBIGUOUS")
++            rows.append(_empty_row(mapping, reason))
++            resolved.append((mapping, None, None))
++            continue
++        code = candidates[0]["code"]
++        rows.append(_empty_row(mapping, "FUTU_BOARD_SNAPSHOT_NOT_RETURNED", code=code))
++        resolved.append((mapping, code, None))
++        codes.append(code)
++
++    board_records: dict[str, dict[str, Any]] = {}
++    snapshot_error = ""
++    if codes:
++        try:
++            ret, frame = quote_context.get_market_snapshot(codes)
++            if ret == 0:
++                for record in _records(frame):
++                    code = record.get("code")
++                    if isinstance(code, str) and code in codes and code not in board_records:
++                        board_records[code] = record
++            else:
++                snapshot_error = f"FUTU_BOARD_SNAPSHOT_FAILED:{ret}"
++        except Exception as error:
++            snapshot_error = f"FUTU_BOARD_SNAPSHOT_FAILED:{type(error).__name__}"
++
++    board_response_sha = _canonical_sha256([board_records[key] for key in sorted(board_records)])
++    membership_records: dict[str, dict[str, Any]] = {}
++    for code in codes:
++        try:
++            ret, frame = quote_context.get_plate_stock(code)
++            members = _response(ret, frame)
++            if ret == 0:
++                symbols = sorted({
++                    match.group(1)
++                    for row in members
++                    if isinstance(row.get("code"), str)
++                    if (match := _US_CODE.fullmatch(row["code"]))
++                    if match.group(1) in _RELATION_SYMBOLS
++                })
++                membership_records[code] = {
++                    "member_count": len(members),
++                    "relation_constituents": symbols,
++                    "membership_status": "READY",
++                    "membership_sha256": _canonical_sha256(members),
++                }
++            else:
++                membership_records[code] = {
++                    "member_count": None,
++                    "relation_constituents": [],
++                    "membership_status": "CANNOT_CONFIRM",
++                    "membership_sha256": "",
++                }
++        except Exception:
++            membership_records[code] = {
++                "member_count": None,
++                "relation_constituents": [],
++                "membership_status": "CANNOT_CONFIRM",
++                "membership_sha256": "",
++            }
++
++    projected_rows: list[dict[str, Any]] = []
++    for row, (mapping, code, _) in zip(rows, resolved):
++        if code is None:
++            projected_rows.append(row)
++            continue
++        source = board_records.get(code)
++        if source is None:
++            if snapshot_error:
++                row["cannot_confirm"] = [snapshot_error]
++            projected_rows.append(row)
++            continue
++        raw_time = source.get("update_time")
++        source_date = _date_from_update_time(raw_time)
++        last = _positive_number(source.get("last_price"))
++        previous_close = _positive_number(source.get("prev_close_price"))
++        plate_valid = source.get("plate_valid") if isinstance(source.get("plate_valid"), bool) else None
++        rise = _count(source.get("plate_raise_count"))
++        fall = _count(source.get("plate_fall_count"))
++        equal = _count(source.get("plate_equal_count"))
++        reasons: list[str] = []
++        if source_date is None:
++            reasons.append("FUTU_BOARD_UPDATE_TIME_INVALID")
++        elif source_date != requested_date:
++            reasons.append("FUTU_BOARD_SESSION_DATE_MISMATCH")
++        if plate_valid is not True:
++            reasons.append("FUTU_BOARD_INVALID_OR_MISSING_PLATE_VALID")
++        if last is None or previous_close is None:
++            reasons.append("FUTU_BOARD_PRICE_MISSING_OR_INVALID")
++        if plate_valid is True and None in (rise, fall, equal):
++            reasons.append("FUTU_BOARD_BREADTH_FIELDS_MISSING_OR_INVALID")
++        valid = not reasons
++        membership = membership_records.get(code, {})
++        row.update({
++            "update_time": raw_time if isinstance(raw_time, str) else None,
++            "session_date": source_date,
++            "last": last,
++            "previous_close": previous_close,
++            "change_pct": round((last - previous_close) / previous_close * 100, 6) if valid and previous_close else None,
++            "plate_valid": plate_valid,
++            "rise_count": rise if plate_valid is True else None,
++            "fall_count": fall if plate_valid is True else None,
++            "equal_count": equal if plate_valid is True else None,
++            **membership,
++            "source_response_sha256": _canonical_sha256({"plate": source, "snapshot_sha256": board_response_sha}),
++            "status": "READY" if valid else "CANNOT_CONFIRM",
++            "cannot_confirm": reasons,
++        })
++        projected_rows.append(row)
++
++    reasons = sorted({reason for row in projected_rows for reason in row["cannot_confirm"]})
++    ready_count = sum(row["status"] == "READY" for row in projected_rows)
++    status = "READY" if ready_count == len(projected_rows) else "PARTIAL" if ready_count else "CANNOT_CONFIRM"
++    source_material = {
++        "plate_lists": {key: plate_rows[key] for key in sorted(plate_rows)},
++        "board_snapshots": board_records,
++        "board_snapshot_sha256": board_response_sha,
++        "membership": membership_records,
++    }
++    return {
++        "schema_version": FUTU_INDUSTRY_SCHEMA_VERSION,
++        "status": status,
++        "provider": FUTU_PROVIDER,
++        "market": "US",
++        "timezone": FUTU_SESSION_TIMEZONE,
++        "capture_session_date": requested_date,
++        "source_response_sha256": _canonical_sha256(source_material),
++        "rows": projected_rows,
++        "cannot_confirm": reasons,
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
++def capture_futu_board_snapshot(session_date: str) -> dict[str, Any]:
++    """Open the configured local OpenD connection, capture, and always close."""
++    try:
++        from futu import Market, OpenQuoteContext, Plate
++    except ImportError as error:
++        return empty_futu_board_snapshot(session_date, f"FUTU_SDK_UNAVAILABLE:{type(error).__name__}")
++    context = None
++    try:
++        context = OpenQuoteContext(host="127.0.0.1", port=11111)
++        return build_futu_board_snapshot(
++            session_date,
++            quote_context=context,
++            market=Market.US,
++            industry_plate=Plate.INDUSTRY,
++            concept_plate=Plate.CONCEPT,
++        )
++    except Exception as error:
++        return empty_futu_board_snapshot(session_date, f"FUTU_OPEND_UNAVAILABLE:{type(error).__name__}")
++    finally:
++        if context is not None:
++            try:
++                context.close()
++            except Exception:
++                pass
++
++

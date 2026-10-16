@@ -1,0 +1,267 @@
+{
+  "schema_version": "futu_industry_implementation_receipt.v1",
+  "status": "CANDIDATE_IMPLEMENTED_TESTED_REVIEW_PENDING",
+  "scope": {
+    "candidate_only": true,
+    "r3_release_modified": false,
+    "r7_release_modified": false,
+    "commit_or_push_performed": false,
+    "scheduled_or_persisted_capture_invoked": false,
+    "read_only_futu_canary_performed": true
+  },
+  "artifacts": {
+    "candidate_manifest": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_candidates/candidate_manifest.json",
+    "candidate_manifest_sha256": "c0c3bf83e5201c4a1e66f398e6784c5cfcc0fd26efd97306a286bc579864da65",
+    "patches": {
+      "api-r7.patch": {
+        "expected_sha256": "d83e568ea881a34bbafbe2daba39c0e2ff0b3b95aa4a8a544d6f3c91fd1989c7",
+        "actual_sha256": "d83e568ea881a34bbafbe2daba39c0e2ff0b3b95aa4a8a544d6f3c91fd1989c7",
+        "matches": true
+      },
+      "us-r3.patch": {
+        "expected_sha256": "b4517ae85a8fa038819a635f9df485e23409d32227dd9ddd6445353349e754d4",
+        "actual_sha256": "b4517ae85a8fa038819a635f9df485e23409d32227dd9ddd6445353349e754d4",
+        "matches": true
+      },
+      "tests.patch": {
+        "expected_sha256": "38a30974d731345e8713aca865100ae9679581541bc661432401b908fa32ae74",
+        "actual_sha256": "38a30974d731345e8713aca865100ae9679581541bc661432401b908fa32ae74",
+        "matches": true
+      }
+    },
+    "candidate_file_count": 21,
+    "candidate_files_match_manifest": true,
+    "all_candidate_files": {
+      "api-r7/apps/api/v35_api/_research_lane_router_parts/__init__.py": {
+        "expected_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "actual_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+        "matches": true
+      },
+      "api-r7/apps/api/v35_api/_research_lane_router_parts/_namespace.py": {
+        "expected_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "actual_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+        "matches": true
+      },
+      "api-r7/apps/api/v35_api/_research_lane_router_parts/industry_projection.py": {
+        "expected_sha256": "b29577c2d1653b893170f4d46b351cf97d791df3e1db6276cd4984abe16bc2a7",
+        "actual_sha256": "b29577c2d1653b893170f4d46b351cf97d791df3e1db6276cd4984abe16bc2a7",
+        "matches": true
+      },
+      "api-r7/apps/api/v35_api/research_lane_router.py": {
+        "expected_sha256": "97dd372e252f0fa877c6c067549f8f45de0b947bc6215b58939efdd787949571",
+        "actual_sha256": "97dd372e252f0fa877c6c067549f8f45de0b947bc6215b58939efdd787949571",
+        "matches": true
+      },
+      "api-r7/apps/web/src/components/research/GlobalIndustryMap.vue": {
+        "expected_sha256": "66702bc4f2c747378626c78a0c1bcba92833e0585a10e9ddb5316f69484919e7",
+        "actual_sha256": "66702bc4f2c747378626c78a0c1bcba92833e0585a10e9ddb5316f69484919e7",
+        "matches": true
+      },
+      "api-r7/apps/web/src/contracts/globalIndustries.ts": {
+        "expected_sha256": "d1273baf7445976c17686e9e0aba83d67d8ddf63f33e5b28d55348a2024d5307",
+        "actual_sha256": "d1273baf7445976c17686e9e0aba83d67d8ddf63f33e5b28d55348a2024d5307",
+        "matches": true
+      },
+      "api-r7/contracts/futu_industry.py": {
+        "expected_sha256": "03e3815f48a7fdd1d9c65df5bfe7365aabd270abd4ce265ea702c380af80b2b2",
+        "actual_sha256": "03e3815f48a7fdd1d9c65df5bfe7365aabd270abd4ce265ea702c380af80b2b2",
+        "matches": true
+      },
+      "api-r7/infrastructure/research_peripheral_store.py": {
+        "expected_sha256": "36c1a00a4859c3bde54741998a2f0733448ab1c99fd36d0b6f2348d895924cf2",
+        "actual_sha256": "36c1a00a4859c3bde54741998a2f0733448ab1c99fd36d0b6f2348d895924cf2",
+        "matches": true
+      },
+      "api-r7/ops/_us_market_digest_parts/futu_boards.py": {
+        "expected_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+        "actual_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+        "matches": true
+      },
+      "api-r7.patch": {
+        "expected_sha256": "d83e568ea881a34bbafbe2daba39c0e2ff0b3b95aa4a8a544d6f3c91fd1989c7",
+        "actual_sha256": "d83e568ea881a34bbafbe2daba39c0e2ff0b3b95aa4a8a544d6f3c91fd1989c7",
+        "matches": true
+      },
+      "tests/apps/web/src/components/research/GlobalIndustryMap.spec.ts": {
+        "expected_sha256": "094a2b339581bfa002a16b3217d8faabbc89dc92ce990739b4d0edd4faca9c71",
+        "actual_sha256": "094a2b339581bfa002a16b3217d8faabbc89dc92ce990739b4d0edd4faca9c71",
+        "matches": true
+      },
+      "tests/tests/test_futu_industry_semantics.py": {
+        "expected_sha256": "a7bb7208c34bfcba85286bf8fb2402e168db2c2f970087a9471f8bf816835f98",
+        "actual_sha256": "a7bb7208c34bfcba85286bf8fb2402e168db2c2f970087a9471f8bf816835f98",
+        "matches": true
+      },
+      "tests/tests/test_global_industry_close_api_v2.py": {
+        "expected_sha256": "19555e123bbe4ac89a4a5d64d46d6a6ba2d40ad9824ef0b319c4b7260fae5150",
+        "actual_sha256": "19555e123bbe4ac89a4a5d64d46d6a6ba2d40ad9824ef0b319c4b7260fae5150",
+        "matches": true
+      },
+      "tests/tests/test_v4_us_digest_recovery.py": {
+        "expected_sha256": "7d3c3214b0f68f1d524a63812902af24f04f8df58908dd9beaa83ef19a7b3cd7",
+        "actual_sha256": "7d3c3214b0f68f1d524a63812902af24f04f8df58908dd9beaa83ef19a7b3cd7",
+        "matches": true
+      },
+      "tests.patch": {
+        "expected_sha256": "38a30974d731345e8713aca865100ae9679581541bc661432401b908fa32ae74",
+        "actual_sha256": "38a30974d731345e8713aca865100ae9679581541bc661432401b908fa32ae74",
+        "matches": true
+      },
+      "us-r3/infrastructure/research_peripheral_store.py": {
+        "expected_sha256": "36c1a00a4859c3bde54741998a2f0733448ab1c99fd36d0b6f2348d895924cf2",
+        "actual_sha256": "36c1a00a4859c3bde54741998a2f0733448ab1c99fd36d0b6f2348d895924cf2",
+        "matches": true
+      },
+      "us-r3/ops/_us_market_digest_parts/futu_boards.py": {
+        "expected_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+        "actual_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+        "matches": true
+      },
+      "us-r3/ops/_us_market_digest_parts/market_snapshot.py": {
+        "expected_sha256": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+        "actual_sha256": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+        "matches": true
+      },
+      "us-r3/ops/_us_market_digest_parts/phase_payload.py": {
+        "expected_sha256": "fdfeeaf376efb3f2def86abd633d94790e0e9163586d23068eb9bab2c343bd56",
+        "actual_sha256": "fdfeeaf376efb3f2def86abd633d94790e0e9163586d23068eb9bab2c343bd56",
+        "matches": true
+      },
+      "us-r3/ops/us_market_digest.py": {
+        "expected_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8",
+        "actual_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8",
+        "matches": true
+      },
+      "us-r3.patch": {
+        "expected_sha256": "b4517ae85a8fa038819a635f9df485e23409d32227dd9ddd6445353349e754d4",
+        "actual_sha256": "b4517ae85a8fa038819a635f9df485e23409d32227dd9ddd6445353349e754d4",
+        "matches": true
+      }
+    }
+  },
+  "runtime_preimage_checks": {
+    "manifest": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_manifest.json",
+    "targets_unchanged": true,
+    "owners": {
+      "us-r3": {
+        "ops/us_market_digest.py": {
+          "expected_preimage_sha256": "aad83dc03504a0b79eea6e51b188ab91ab724502963e4a5d0b49c718ad8c6c18",
+          "actual_sha256": "aad83dc03504a0b79eea6e51b188ab91ab724502963e4a5d0b49c718ad8c6c18",
+          "matches_preimage": true
+        },
+        "ops/_us_market_digest_parts/market_snapshot.py": {
+          "expected_preimage_sha256": "e89e30988dfdb10527f453c289b0b2efe92c91dab24ee123f3389ef6fe8c5796",
+          "actual_sha256": "e89e30988dfdb10527f453c289b0b2efe92c91dab24ee123f3389ef6fe8c5796",
+          "matches_preimage": true
+        },
+        "ops/_us_market_digest_parts/phase_payload.py": {
+          "expected_preimage_sha256": "23011471e0918b5ef97fb71749afde5d6d091238b756fe66fbf89d4c67686abe",
+          "actual_sha256": "23011471e0918b5ef97fb71749afde5d6d091238b756fe66fbf89d4c67686abe",
+          "matches_preimage": true
+        },
+        "infrastructure/research_peripheral_store.py": {
+          "expected_preimage_sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+          "actual_sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+          "matches_preimage": true
+        }
+      },
+      "api-r7": {
+        "apps/api/v35_api/research_lane_router.py": {
+          "expected_preimage_sha256": "e7f85cda8d26203b7e0d6c8824525d57ac65ab286106a14adfc55aecfd4ee39d",
+          "actual_sha256": "e7f85cda8d26203b7e0d6c8824525d57ac65ab286106a14adfc55aecfd4ee39d",
+          "matches_preimage": true
+        },
+        "infrastructure/research_peripheral_store.py": {
+          "expected_preimage_sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+          "actual_sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+          "matches_preimage": true
+        },
+        "apps/web/src/contracts/globalIndustries.ts": {
+          "expected_preimage_sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+          "actual_sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+          "matches_preimage": true
+        },
+        "apps/web/src/components/research/GlobalIndustryMap.vue": {
+          "expected_preimage_sha256": "377cab93f23d659d474b5bb0bd590a006d820663ffdaa8353d0150fdbc7056ea",
+          "actual_sha256": "377cab93f23d659d474b5bb0bd590a006d820663ffdaa8353d0150fdbc7056ea",
+          "matches_preimage": true
+        }
+      }
+    }
+  },
+  "owner_config_check": {
+    "path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_owner_config_check.json",
+    "sha256": "449030ff82001fed1b91d868af1fa08894bec698de320bf1a8ff4ad184c49937",
+    "contract_status": "LOADED",
+    "version": "US_MAPPING_UNIVERSE_CONTRACT_V3",
+    "symbol_count": 48,
+    "canonical_contract_sha256": "81d52312f69a7b9d48a9068f192a530658e01e09afe9880220820d537d493140"
+  },
+  "verification": [
+    {
+      "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q --basetemp=/private/tmp/v4-futu-focused-20261016 tests/test_futu_industry_semantics.py tests/test_global_industry_close_api_v2.py",
+      "result": "12 passed"
+    },
+    {
+      "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q --basetemp=/private/tmp/v4-us-recovery-pass-20261016 -k \"not test_actual_dispatcher_registry_cli_owned_artifact_and_ledger and not test_scheduled_slot_cli_reaches_us_workload_and_repeat_is_no_fetch\" tests/test_v4_us_digest_recovery.py",
+      "result": "10 passed, 2 deselected"
+    },
+    {
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--basetemp",
+        "/private/tmp/v4-us-current-failure-u3dm91wc/pytest",
+        "/Users/lexi/Desktop/学习/v4_app/tests/test_v4_us_digest_recovery.py::test_actual_dispatcher_registry_cli_owned_artifact_and_ledger",
+        "/Users/lexi/Desktop/学习/v4_app/tests/test_v4_us_digest_recovery.py::test_scheduled_slot_cli_reaches_us_workload_and_repeat_is_no_fetch"
+      ],
+      "result": "2 failed with US_UNIVERSE_CONFIG_UNAVAILABLE; same two failures reproduced on preimage. Test fixture binds V35_APP_ROOT to source checkout and misses derived config; live R3 config check passes.",
+      "preimage_command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--basetemp",
+        "/private/tmp/v4-us-preimage-repro-qqioozo3/pytest",
+        "--import-mode=prepend",
+        "/private/tmp/v4-us-preimage-repro-qqioozo3/overlay/tests/test_v4_us_digest_recovery.py::test_actual_dispatcher_registry_cli_owned_artifact_and_ledger",
+        "/private/tmp/v4-us-preimage-repro-qqioozo3/overlay/tests/test_v4_us_digest_recovery.py::test_scheduled_slot_cli_reaches_us_workload_and_repeat_is_no_fetch"
+      ],
+      "preimage_result": "same two tests fail with US_UNIVERSE_CONFIG_UNAVAILABLE",
+      "evidence": [
+        "current_failure_repro.json",
+        "preimage_failure_repro.json",
+        "runtime_owner_config_check.json"
+      ]
+    },
+    {
+      "command": "npm test -- src/components/research/GlobalIndustryMap.spec.ts",
+      "result": "17 passed"
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "failed with 5 existing unrelated TypeScript diagnostics; no industry-semantics diagnostic remains"
+    },
+    {
+      "command": "python patch-apply comparison in temporary directories for us-r3.patch, api-r7.patch, tests.patch",
+      "result": "patches applied and resulting files matched candidate bytes"
+    },
+    {
+      "command": "Python AST parse over candidate Python files",
+      "result": "passed"
+    }
+  ],
+  "cannot_confirm": [
+    "Actual API r7 endpoint does not consume this candidate; API_VERIFIED is not established.",
+    "Actual stable UI reloaded against candidate API was not run; UI_VERIFIED is not established.",
+    "Natural scheduled capture and persisted live Futu board snapshot were not run; NATURAL_VERIFIED is not established.",
+    "12 configured themes have exact observed Futu board matches; 12 remain explicitly unmatched and CANNOT_CONFIRM.",
+    "A-share business relations are not confirmed by the frozen relation evidence; HK relations are limited to the 10 reviewed US-HK pairs and do not establish current materiality or eligibility."
+  ],
+  "review": {
+    "independent_luna_max_reviewer": "PENDING",
+    "writer_receipt_is_final_acceptance": false
+  }
+}

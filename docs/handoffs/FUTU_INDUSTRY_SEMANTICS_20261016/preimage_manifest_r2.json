@@ -1,0 +1,61 @@
+{
+  "schema_version": "futu_industry_semantics_repair_preimage.v1",
+  "captured_at": "2026-10-16",
+  "scope": "freshness repair preimage; evidence only",
+  "entries": [
+    {
+      "owner": "canonical",
+      "path": "apps/api/v35_api/_research_lane_router_parts/market_freshness.py",
+      "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/canonical/apps/api/v35_api/_research_lane_router_parts/market_freshness.py",
+      "exists": true,
+      "bytes": 6889,
+      "sha256": "1b674c8a23714252b7cb35e3a81f8e14cde292b9de0043e6063f2b4795cd9816"
+    },
+    {
+      "owner": "canonical",
+      "path": "apps/api/v35_api/research_lane_router.py",
+      "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/canonical/apps/api/v35_api/research_lane_router.py",
+      "exists": true,
+      "bytes": 19577,
+      "sha256": "19c86d209ac546e7a342a1de8771311c7bb830648272c99099fd5cadf81843a4"
+    },
+    {
+      "owner": "canonical",
+      "path": "apps/web/src/components/research/GlobalIndustryMap.vue",
+      "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/canonical/apps/web/src/components/research/GlobalIndustryMap.vue",
+      "exists": true,
+      "bytes": 27143,
+      "sha256": "66702bc4f2c747378626c78a0c1bcba92833e0585a10e9ddb5316f69484919e7"
+    },
+    {
+      "owner": "canonical",
+      "path": "apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+      "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/canonical/apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+      "exists": true,
+      "bytes": 20698,
+      "sha256": "094a2b339581bfa002a16b3217d8faabbc89dc92ce990739b4d0edd4faca9c71"
+    },
+    {
+      "owner": "canonical",
+      "path": "tests/test_global_industry_close_api_v2.py",
+      "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/canonical/tests/test_global_industry_close_api_v2.py",
+      "exists": true,
+      "bytes": 13517,
+      "sha256": "19555e123bbe4ac89a4a5d64d46d6a6ba2d40ad9824ef0b319c4b7260fae5150"
+    },
+    {
+      "owner": "api_r1_runtime",
+      "path": "apps/api/v35_api/research_lane_router.py",
+      "preimage_path": "docs/handoffs/FUTU_INDUSTRY_SEMANTICS_20261016/runtime_preimage_r2/api_r1_runtime/apps/api/v35_api/research_lane_router.py",
+      "exists": true,
+      "bytes": 45682,
+      "sha256": "97dd372e252f0fa877c6c067549f8f45de0b947bc6215b58939efdd787949571"
+    }
+  ],
+  "live_api_evidence": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/FUTU_INDUSTRY_SEMANTICS_20261016/integration/live-api.json",
+    "exists": true,
+    "sha256": "846d593361abdcf0509c804b7adef41cd11689f648c5cf6e8e8211509665ecbf",
+    "bytes": 93458
+  }
+}

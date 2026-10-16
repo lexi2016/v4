@@ -1,0 +1,570 @@
+--- a/tests/test_futu_industry_semantics.py
++++ b/tests/test_futu_industry_semantics.py
+@@ -0,0 +1,167 @@
++from __future__ import annotations
++
++from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP, build_futu_board_snapshot
++
++
++class _FutuFrame:
++    def __init__(self, records):
++        self.records = records
++
++    def to_dict(self, _orient="records"):
++        return self.records
++
++
++class _FakeFutuContext:
++    def __init__(self, *, plate_valid=True, counts=(15, 5, 0), update_time="2026-10-15 16:00:00"):
++        self.plate_valid = plate_valid
++        self.counts = counts
++        self.update_time = update_time
++        self.codes = {
++            (item["plate_type"], item["plate_name"]): f"US.LIST{2000 + index}"
++            for index, item in enumerate(FUTU_BOARD_MAP)
++            if item["plate_type"] and item["plate_name"]
++        }
++
++    def get_plate_list(self, _market, plate_type):
++        plate_type = str(plate_type)
++        rows = [
++            {"code": code, "plate_name": name, "plate_id": code.split(".")[-1]}
++            for (kind, name), code in self.codes.items()
++            if kind == plate_type
++        ]
++        return 0, _FutuFrame(rows)
++
++    def get_market_snapshot(self, codes):
++        rise, fall, equal = self.counts
++        return 0, _FutuFrame([
++            {
++                "code": code,
++                "last_price": 1714.89389738,
++                "prev_close_price": 1702.967168873,
++                "update_time": self.update_time,
++                "plate_valid": self.plate_valid,
++                "plate_raise_count": rise,
++                "plate_fall_count": fall,
++                "plate_equal_count": equal,
++            }
++            for code in codes
++        ])
++
++    def get_plate_stock(self, code):
++        if code == self.codes[("CONCEPT", "云计算服务商")]:
++            return 0, _FutuFrame([{"code": "US.NVDA"}, {"code": "US.MSFT"}])
++        return 0, _FutuFrame([{"code": "US.AMD"}])
++
++
++def test_exact_futu_board_metrics_are_separate_from_proxy_lane_and_cover_24_labels():
++    snapshot = build_futu_board_snapshot("20261015", quote_context=_FakeFutuContext())
++
++    assert len(snapshot["rows"]) == 24
++    cloud = next(row for row in snapshot["rows"] if row["label"] == "云计算")
++    assert cloud["board_code"] == "US.LIST2005"
++    assert cloud["board_name"] == "云计算服务商"
++    assert cloud["metric_kind"] == "OFFICIAL_BOARD"
++    assert cloud["change_pct"] == 0.70035
++    assert (cloud["rise_count"], cloud["fall_count"], cloud["equal_count"]) == (15, 5, 0)
++    assert cloud["plate_valid"] is True
++    assert cloud["session_date"] == "20261015"
++    assert cloud["relation_constituents"] == ["NVDA"]
++
++    # A Futu miss remains a miss even when an ETF proxy happens to have a quote.
++    cpo = next(row for row in snapshot["rows"] if row["label"] == "CPO")
++    assert cpo["status"] == "CANNOT_CONFIRM"
++    assert cpo["change_pct"] is None
++    assert cpo["board_code"] is None
++    assert cpo["cannot_confirm"] == ["FUTU_BOARD_MATCH_UNCONFIRMED"]
++
++
++def test_invalid_plate_or_missing_breadth_fields_never_becomes_zero():
++    invalid = build_futu_board_snapshot(
++        "20261015",
++        quote_context=_FakeFutuContext(plate_valid=False, counts=(None, None, None)),
++    )
++    cloud = next(row for row in invalid["rows"] if row["label"] == "云计算")
++    assert cloud["status"] == "CANNOT_CONFIRM"
++    assert cloud["plate_valid"] is False
++    assert cloud["rise_count"] is cloud["fall_count"] is cloud["equal_count"] is None
++
++    missing = build_futu_board_snapshot(
++        "20261015",
++        quote_context=_FakeFutuContext(plate_valid=True, counts=(15, None, 0)),
++    )
++    cloud_missing = next(row for row in missing["rows"] if row["label"] == "云计算")
++    assert cloud_missing["status"] == "CANNOT_CONFIRM"
++    assert cloud_missing["rise_count"] == 15
++    assert cloud_missing["fall_count"] is None
++    assert "FUTU_BOARD_BREADTH_FIELDS_MISSING_OR_INVALID" in cloud_missing["cannot_confirm"]
++
++
++def test_wrong_board_session_is_not_backfilled_or_relabelled():
++    snapshot = build_futu_board_snapshot(
++        "20261016",
++        quote_context=_FakeFutuContext(update_time="2026-10-15 16:00:00"),
++    )
++    cloud = next(row for row in snapshot["rows"] if row["label"] == "云计算")
++    assert cloud["session_date"] == "20261015"
++    assert cloud["change_pct"] is None
++    assert cloud["status"] == "CANNOT_CONFIRM"
++    assert "FUTU_BOARD_SESSION_DATE_MISMATCH" in cloud["cannot_confirm"]
++
++
++def test_post_close_store_and_api_projection_keep_board_and_proxy_metrics_separate(tmp_path):
++    from infrastructure.research_peripheral_store import ResearchPeripheralStore
++    from ops.us_market_digest import GLOBAL_INDUSTRY_PROXY_MAP, materialize_us_market_phase
++    from apps.api.v35_api.research_lane_router import _project_global_industries
++
++    session_date = "20261015"
++    captured_at = "2026-10-15T16:15:00-04:00"
++
++    def fetch_proxy_quotes(_url, _timeout):
++        symbols = list(dict.fromkeys(
++            symbol
++            for mapping in GLOBAL_INDUSTRY_PROXY_MAP
++            for symbol in mapping["proxy_symbols"]
++        ))
++        records = []
++        for symbol in symbols:
++            fields = [""] * 31
++            fields[1:5] = [symbol, symbol, "110", "100"]
++            fields[30] = f"{session_date}160000"
++            records.append(f'v_us{symbol}="' + "~".join(fields) + '";')
++        return "".join(records)
++
++    result = materialize_us_market_phase(
++        data_root=tmp_path / "data",
++        trade_date=session_date,
++        capture_phase="POST_CLOSE",
++        fetched_at=captured_at,
++        fetch_rss=lambda _url, _timeout: b"<rss><channel></channel></rss>",
++        fetch_quotes=fetch_proxy_quotes,
++        fetch_futu_boards=lambda date: build_futu_board_snapshot(
++            date, quote_context=_FakeFutuContext()
++        ),
++    )
++    assert result["market_snapshot_status"] == "READY"
++    store = ResearchPeripheralStore(tmp_path / "data")
++    persisted = store.read_exact(session_date, "external_finance")
++    assert persisted is not None
++    futu = persisted["market_snapshot"]["futu_board_snapshot"]
++    assert futu["status"] == "PARTIAL"
++
++    projected = _project_global_industries(store=store, research_date=session_date)
++    cloud = next(row for row in projected["rows"] if row["label"] == "云计算")
++    assert projected["schema_version"] == "v3_5.global_industries.v2"
++    assert projected["status"] == "PARTIAL"
++    assert cloud["change_pct"] == 0.70035
++    assert cloud["official_board"]["rise_count"] == 15
++    assert cloud["official_board"]["fall_count"] == 5
++    assert cloud["official_board"]["equal_count"] == 0
++    assert cloud["proxy_reference"]["change_pct"] == 10.0
++    assert cloud["proxy_reference"]["metric_kind"] == "ETF_REFERENCE"
++    assert cloud["official_board"]["relations"][0]["hk_symbol"] == "HK.00992"
++    assert projected["a_share_relations"] == []
++    assert projected["RESEARCH_ONLY"] is True
++    assert projected["production_allowed"] is False
++    assert projected["buy_gate_updated"] is False
++    assert projected["orders_sent"] is False
++
+--- a/tests/test_global_industry_close_api_v2.py
++++ b/tests/test_global_industry_close_api_v2.py
+@@ -17,6 +17,7 @@
+ from infrastructure.research_peripheral_store import (
+     CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP,
+ )
++from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP
+ 
+ 
+ TARGET_DATE = "20260909"
+@@ -80,6 +81,57 @@
+     return rows
+ 
+ 
++def _futu_snapshot(session_date: str) -> dict:
++    rows = []
++    unmatched_reasons = []
++    for index, mapping in enumerate(FUTU_BOARD_MAP):
++        matched = mapping["plate_name"] is not None
++        change = 0.70035 if mapping["label"] == "云计算" else round((index + 1) / 10, 6)
++        rows.append({
++            "label": mapping["label"],
++            "metric_kind": "OFFICIAL_BOARD",
++            "market": "US",
++            "plate_type": mapping["plate_type"],
++            "expected_board_name": mapping["plate_name"],
++            "board_name": mapping["plate_name"] if matched else None,
++            "board_code": f"US.LIST{2000 + index}" if matched else None,
++            "update_time": "2026-09-08 16:00:00" if matched else None,
++            "session_date": session_date if matched else None,
++            "timezone": "America/New_York",
++            "last": 100.70035 if matched else None,
++            "previous_close": 100.0 if matched else None,
++            "change_pct": change if matched else None,
++            "plate_valid": True if matched else None,
++            "rise_count": 15 if matched else None,
++            "fall_count": 5 if matched else None,
++            "equal_count": 0 if matched else None,
++            "member_count": 1 if matched else None,
++            "relation_constituents": ["NVDA"] if mapping["label"] == "云计算" else [],
++            "membership_status": "READY" if matched else "CANNOT_CONFIRM",
++            "membership_sha256": "e" * 64 if matched else "",
++            "source_response_sha256": "f" * 64 if matched else "",
++            "status": "READY" if matched else "CANNOT_CONFIRM",
++            "cannot_confirm": [] if matched else ["FUTU_BOARD_MATCH_UNCONFIRMED"],
++        })
++        if not matched:
++            unmatched_reasons.append("FUTU_BOARD_MATCH_UNCONFIRMED")
++    return {
++        "schema_version": "v3_5.futu_us_industry_snapshot.v1",
++        "status": "PARTIAL",
++        "provider": "Futu OpenD",
++        "market": "US",
++        "timezone": "America/New_York",
++        "capture_session_date": session_date,
++        "source_response_sha256": "d" * 64,
++        "rows": rows,
++        "cannot_confirm": sorted(set(unmatched_reasons)),
++        "RESEARCH_ONLY": True,
++        "production_allowed": False,
++        "buy_gate_updated": False,
++        "orders_sent": False,
++    }
++
++
+ def _capture(*, session_date: str, late: bool = True) -> dict:
+     capture = {
+         "us_session_date": session_date,
+@@ -120,6 +172,7 @@
+         "provider_session_times": ["16:15:00"],
+         "quotes": [],
+         "rows": _rows(),
++        "futu_board_snapshot": _futu_snapshot(session_date),
+         "cannot_confirm": ["MARKET_SNAPSHOT_INCOMPLETE"],
+         "recommendation_status": "RESEARCH_ONLY",
+         "RESEARCH_ONLY": True,
+@@ -179,8 +232,15 @@
+     assert result["capture_mode"] == LATE_MODE
+     assert result["reason"] == LATE_REASON
+     assert len(result["rows"]) == 24
+-    assert result["rows"][0]["change_pct"] == 0.1
+-    assert result["rows"][-1]["change_pct"] == 2.4
++    assert result["schema_version"] == "v3_5.global_industries.v2"
++    assert result["rows"][0]["change_pct"] is None
++    assert result["rows"][2]["official_board"]["board_name"] == "半导体"
++    assert result["rows"][5]["change_pct"] == 0.70035
++    assert result["rows"][5]["proxy_reference"]["change_pct"] == 0.6
++    assert result["rows"][5]["official_board"]["rise_count"] == 15
++    assert result["rows"][5]["official_board"]["relations"][0]["us_symbol"] == "NVDA"
++    assert result["a_share_relation_status"] == "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE"
++    assert result["rows"][-1]["change_pct"] is not None
+     assert result["RESEARCH_ONLY"] is True
+     assert result["production_allowed"] is False
+     assert result["buy_gate_updated"] is False
+--- a/tests/test_v4_us_digest_recovery.py
++++ b/tests/test_v4_us_digest_recovery.py
+@@ -57,6 +57,12 @@
+         def now(cls, tz=None):
+             return cls.fromisoformat(stamp).astimezone(tz) if tz else cls.fromisoformat(stamp).replace(tzinfo=None)
+     monkeypatch.setattr(module, 'datetime', Clock)
++    from ops._us_market_digest_parts.futu_boards import empty_futu_board_snapshot
++    monkeypatch.setattr(
++        module,
++        'capture_futu_board_snapshot',
++        lambda session_date: empty_futu_board_snapshot(session_date, 'SYNTHETIC_FUTU_FIXTURE'),
++    )
+     def fetch(self, url, *, timeout=None, **kwargs):
+         calls.append(url)
+         if 'qt.gtimg.cn' in url:
+--- a/apps/web/src/components/research/GlobalIndustryMap.spec.ts
++++ b/apps/web/src/components/research/GlobalIndustryMap.spec.ts
+@@ -5,6 +5,7 @@
+ import {
+   GLOBAL_INDUSTRY_MAPPINGS,
+   GLOBAL_INDUSTRY_MAPPING_VERSION,
++  GLOBAL_INDUSTRY_OFFICIAL_BOARD_MAP,
+ } from "../../contracts/globalIndustries";
+ 
+ const response = (payload: unknown) => ({ ok: true, json: async () => payload });
+@@ -42,42 +43,143 @@
+ 
+ function snapshot(date: string, options: SnapshotOptions = {}) {
+   const sourceDate = options.sourceDate ?? date;
+-  const status = options.status ?? "READY";
++  const status = options.status ?? "PARTIAL";
+   const providerSessionDates = options.providerSessionDates ?? [sourceDate];
+   const capturedDate = sourceDate || date;
++  const updateTime = `${sourceDate.slice(0, 4)}-${sourceDate.slice(4, 6)}-${sourceDate.slice(6)} 16:00:00`;
+   return {
+-    schema_version: "v3_5.global_industries.v1",
++    schema_version: "v3_5.global_industries.v2",
+     status,
+     ...(options.displayStatus ? { display_status: options.displayStatus } : {}),
+     ...(options.freshness ? { freshness: options.freshness } : {}),
+     target_date: date,
+     research_date: date,
+     source_date: sourceDate,
+-    provider: "Tencent qt.gtimg.cn",
++    capture_session_date: sourceDate,
++    provider: "Futu OpenD",
++    legacy_proxy_provider: "Tencent qt.gtimg.cn",
++    legacy_proxy_status: "READY",
+     provider_session_dates: providerSessionDates,
+-    provider_session_times: ["16:18:00-04:00"],
++    provider_session_times: [updateTime],
+     capture_phase: "POST_CLOSE",
+     captured_at: `${capturedDate.slice(0, 4)}-${capturedDate.slice(4, 6)}-${capturedDate.slice(6)}T20:18:00Z`,
+     generated_at: `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6)}T20:18:01Z`,
+     mapping_version: GLOBAL_INDUSTRY_MAPPING_VERSION,
+-    requested_symbol_count: 33,
+-    available_symbol_count: 33,
+-    rows: GLOBAL_INDUSTRY_MAPPINGS.map((mapping, index) => ({
+-      ...mapping,
+-      proxy_symbols: [...mapping.proxy_symbols],
+-      available_symbols: [...mapping.proxy_symbols],
+-      missing_symbols: [],
+-      requested_symbol_count: mapping.proxy_symbols.length,
+-      available_symbol_count: mapping.proxy_symbols.length,
+-      coverage: { available: mapping.proxy_symbols.length, requested: mapping.proxy_symbols.length },
+-      coverage_pct: 100,
+-      change_pct: Number(((index - 8) / 10).toFixed(3)),
+-      direction: index < 8 ? "UP" : index < 16 ? "FLAT" : "DOWN",
++    requested_symbol_count: 24,
++    available_symbol_count: status === "CANNOT_CONFIRM" ? 0 : 12,
++    requested_board_count: 24,
++    available_board_count: status === "CANNOT_CONFIRM" ? 0 : 12,
++    proxy_requested_symbol_count: 33,
++    proxy_available_symbol_count: 33,
++    proxy_provider_session_dates: [sourceDate],
++    proxy_provider_session_times: ["16:00:01"],
++    source_response_sha256: "d".repeat(64),
++    proxy_source_response_sha256: "e".repeat(64),
++    quotes: [],
++    proxy_quotes: [],
++    futu_board_snapshot: {
++      schema_version: "v3_5.futu_us_industry_snapshot.v1",
+       status,
+-      quote_session_dates: [sourceDate],
+-      quote_session_times: ["16:18:00-04:00"],
++      provider: "Futu OpenD",
++      market: "US",
++      timezone: "America/New_York",
++      capture_session_date: sourceDate,
++      source_response_sha256: "d".repeat(64),
++      cannot_confirm: status === "CANNOT_CONFIRM" ? ["FUTU_BOARD_CAPTURE_FAILED"] : ["FUTU_BOARD_MATCH_UNCONFIRMED"],
++    },
++    relation_evidence: {
++      status: "READY",
++      evidence_path: "v4/manager_research/us_mapping_relation_evidence_20261011.json",
++      evidence_sha256: "a".repeat(64),
++      review_path: "v4/manager_research/us_mapping_relation_evidence_review_20261011.json",
++      review_sha256: "b".repeat(64),
++      reviewed_at: "2026-10-11T10:33:23+08:00",
++      reviewer_identity: "fixture",
++      limitations: ["Target-date eligibility CANNOT_CONFIRM"],
+       cannot_confirm: [],
+-    })),
++      target_date_eligibility: "CANNOT_CONFIRM",
++    },
++    hk_relation_status: "READY",
++    a_share_relation_status: "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE",
++    a_share_relations: [],
++    target_date_eligibility: "CANNOT_CONFIRM",
++    rows: GLOBAL_INDUSTRY_MAPPINGS.map((mapping, index) => {
++      const futu = GLOBAL_INDUSTRY_OFFICIAL_BOARD_MAP[index];
++      const matched = futu.board_name !== null && status !== "CANNOT_CONFIRM";
++      const change = mapping.label === "云计算" ? 0.70035 : index % 2 ? -0.25 : 0.25;
++      const rowStatus = matched ? "READY" : "CANNOT_CONFIRM";
++      const boardName = matched ? futu.board_name : null;
++      const relation = mapping.label === "云计算" && matched ? [{
++        us_symbol: "NVDA",
++        hk_symbol: "HK.00992",
++        relationship_type: "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
++        direction: "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
++        sources: [{ url: "https://example.test/source", title: "Evidence", published_at: "2025-10-21" }],
++        limitations: ["Target-date eligibility CANNOT_CONFIRM"],
++      }] : [];
++      return {
++        ...mapping,
++        proxy_symbols: [...mapping.proxy_symbols],
++        available_symbols: [],
++        missing_symbols: [],
++        requested_symbol_count: 0,
++        available_symbol_count: 0,
++        coverage: { available: 0, requested: 0 },
++        coverage_pct: null,
++        metric_kind: "OFFICIAL_BOARD",
++        change_pct: matched ? change : null,
++        pct_change: matched ? change : null,
++        direction: !matched ? "CANNOT_CONFIRM" : change > 0 ? "UP" : "DOWN",
++        status: rowStatus,
++        quote_session_dates: matched ? [sourceDate] : [],
++        quote_session_times: matched ? [updateTime] : [],
++        official_board: {
++          metric_kind: "OFFICIAL_BOARD",
++          market: "US",
++          plate_type: futu.plate_type,
++          expected_board_name: futu.board_name,
++          board_name: boardName,
++          board_code: matched ? `US.LIST${2000 + index}` : null,
++          update_time: matched ? updateTime : null,
++          session_date: matched ? sourceDate : null,
++          timezone: "America/New_York",
++          last: matched ? 100 + change : null,
++          previous_close: matched ? 100 : null,
++          change_pct: matched ? change : null,
++          plate_valid: matched ? true : null,
++          rise_count: matched ? 15 : null,
++          fall_count: matched ? 5 : null,
++          equal_count: matched ? 0 : null,
++          member_count: matched ? 1 : null,
++          relation_constituents: relation.length ? ["NVDA"] : [],
++          membership_status: matched ? "READY" : "CANNOT_CONFIRM",
++          relations: relation,
++          relation_status: relation.length ? "READY" : matched ? "NO_REVIEWED_RELATION_INTERSECTION" : "CANNOT_CONFIRM",
++          relation_cannot_confirm: [],
++          target_date_eligibility: "CANNOT_CONFIRM",
++          cannot_confirm: matched ? [] : ["FUTU_BOARD_MATCH_UNCONFIRMED"],
++        },
++        proxy_reference: {
++          metric_kind: mapping.mapping_type.includes("basket") ? "STOCK_BASKET_REFERENCE" : "ETF_REFERENCE",
++          provider: "Tencent qt.gtimg.cn",
++          mapping_type: mapping.mapping_type,
++          proxy_symbols: [...mapping.proxy_symbols],
++          available_symbols: [...mapping.proxy_symbols],
++          missing_symbols: [],
++          requested_symbol_count: mapping.proxy_symbols.length,
++          available_symbol_count: mapping.proxy_symbols.length,
++          coverage: { available: mapping.proxy_symbols.length, requested: mapping.proxy_symbols.length },
++          coverage_pct: 100,
++          change_pct: mapping.label === "云计算" ? 2.216066 : 0.35,
++          direction: "UP",
++          status: "READY",
++          quote_session_dates: [sourceDate],
++          quote_session_times: ["16:00:01"],
++          cannot_confirm: [],
++        },
++        cannot_confirm: matched ? [] : ["FUTU_BOARD_MATCH_UNCONFIRMED"],
++      };
++    }),
+     cannot_confirm: [],
+     artifact: null,
+     manifest: null,
+@@ -105,7 +207,7 @@
+       ? { market_snapshot_dates: [date] }
+       : snapshot(date, { displayStatus, freshness }))));
+     render(GlobalIndustryMap, { props: { targetDate: "20260909" } });
+-    await screen.findByText(/快照质量：READY/);
++    await screen.findByText(/Futu 板块质量：PARTIAL/);
+     expect(screen.queryByText("Leader 1")).toBeNull();
+     expect(screen.queryByText("Leader 2")).toBeNull();
+     expect(screen.queryByText("Leader 3")).toBeNull();
+@@ -135,25 +237,41 @@
+     expect(await screen.findByText("AI算力")).toBeTruthy();
+     expect(screen.getByText("目标阶段日：2026-09-09")).toBeTruthy();
+     expect(screen.getByText("读取快照日：2026-09-09")).toBeTruthy();
+-    expect(screen.getByText("美股来源日：2026-09-08")).toBeTruthy();
++    expect(screen.getByText("Futu 板块来源日：2026-09-08")).toBeTruthy();
+     expect(screen.getByText("PARTIAL · 质量缺口")).toBeTruthy();
+-    expect(screen.getByText(/快照质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
++    expect(screen.getByText(/Futu 板块质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
+     expect(screen.getByText(/交易所节假日／提前收盘及最新完整交易日：CANNOT_CONFIRM/)).toBeTruthy();
+-    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(16);
++    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(screen.queryByLabelText("平盘板块")).toBeNull();
+-    expect(screen.queryByLabelText("待确认板块")).toBeNull();
++    expect(screen.getByLabelText("待确认板块")).toBeTruthy();
+     const visibleGroups = [...document.querySelectorAll("[data-theme-map] > .global-industry-group")];
+     expect(visibleGroups.map((group) => group.getAttribute("aria-label")))
+-      .toEqual(["上涨板块", "下跌板块"]);
+-    expect(visibleGroups.every((group) => !group.classList.contains("global-group-wide"))).toBe(true);
+-    const changeValues = [...document.querySelectorAll("[data-theme-row] b")]
++      .toEqual(["上涨板块", "下跌板块", "待确认板块"]);
++    const changeValues = [...document.querySelectorAll(".global-group-up [data-theme-row] b, .global-group-down [data-theme-row] b")]
+       .map((element) => element.textContent || "");
+-    expect(changeValues).toHaveLength(16);
++    expect(changeValues).toHaveLength(12);
+     expect(changeValues.every((value) => /[+-]\d+\.\d{3}%$/.test(value))).toBe(true);
+     expect(fetchMock).toHaveBeenCalledWith(
+       `/api/v3/research/us-market?research_date=${targetDate}`,
+       expect.objectContaining({ cache: "no-store" }),
+     );
++  });
++
++  it("uses the Futu board value and keeps the ETF proxy in a separate reference field", async () => {
++    const date = "20260807";
++    const freshness = recentFreshness(date, "2026-08-08T04:30:00+08:00");
++    vi.stubGlobal("fetch", vi.fn(async (url: string) => response(url === "/api/v3/research/dates"
++      ? { market_snapshot_dates: [date] }
++      : snapshot(date, { displayStatus: "READY", freshness }))));
++
++    render(GlobalIndustryMap, { props: { targetDate: date } });
++
++    expect((await screen.findAllByText("云计算服务商")).length).toBeGreaterThan(0);
++    expect(screen.getAllByText("+0.700%").length).toBeGreaterThan(0);
++    expect(screen.getByText(/ETF参考 \+2\.216% · CLOU/)).toBeTruthy();
++    expect(screen.getAllByText(/上涨 15 · 下跌 5 · 平盘 0/).length).toBeGreaterThan(0);
++    expect(screen.getByText(/NVDA → HK\.00992 · NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER/)).toBeTruthy();
++    expect(screen.getByRole("link", { name: /Evidence（发布 2025-10-21）/ })).toBeTruthy();
+   });
+ 
+   it("shows a same-date Friday close with explicit recent-capture metadata", async () => {
+@@ -175,10 +293,10 @@
+     expect(await screen.findByText("近期时钟匹配")).toBeTruthy();
+     expect(screen.getByText("目标阶段日：2026-08-07")).toBeTruthy();
+     expect(screen.getByText("读取快照日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText("美股来源日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText(/快照质量：READY · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
++    expect(screen.getByText("Futu 板块来源日：2026-08-07")).toBeTruthy();
++    expect(screen.getByText(/Futu 板块质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
+     expect(screen.getByText(/交易所节假日／提前收盘及最新完整交易日：CANNOT_CONFIRM/)).toBeTruthy();
+-    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(16);
++    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(fetchMock).toHaveBeenCalledWith(
+       `/api/v3/research/us-market?research_date=${date}`,
+       expect.objectContaining({ cache: "no-store" }),
+@@ -198,9 +316,9 @@
+ 
+     expect((await screen.findAllByText("CANNOT_CONFIRM")).length).toBeGreaterThan(0);
+     expect(screen.getByText("读取快照日：2026-08-07")).toBeTruthy();
+-    expect(screen.getByText(/快照质量：READY · 无法确认当前新鲜度；历史快照质量不等于当前数据已更新/)).toBeTruthy();
++    expect(screen.getByText(/Futu 板块质量：PARTIAL · 无法确认当前新鲜度；历史快照质量不等于当前数据已更新/)).toBeTruthy();
+     expect(screen.queryByText("近期时钟匹配")).toBeNull();
+-    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(16);
++    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(fetchMock).toHaveBeenCalledWith(
+       `/api/v3/research/us-market?research_date=${date}`,
+       expect.objectContaining({ cache: "no-store" }),
+@@ -234,10 +352,10 @@
+     expect(await screen.findByText("AI算力")).toBeTruthy();
+     expect(screen.getByText("目标阶段日：2026-09-01")).toBeTruthy();
+     expect(screen.getByText("读取快照日：2026-09-09")).toBeTruthy();
+-    expect(screen.getByText("美股来源日：2026-09-08")).toBeTruthy();
+-    expect(screen.getByText("US session：20260908")).toBeTruthy();
++    expect(screen.getByText("Futu 板块来源日：2026-09-08")).toBeTruthy();
++    expect(screen.getByText("板块更新时间（纽约）：2026-09-08 16:00:00")).toBeTruthy();
+     expect(await screen.findByText("近期时钟匹配")).toBeTruthy();
+-    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(16);
++    expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(fetchMock).toHaveBeenCalledWith(
+       `/api/v3/research/us-market?research_date=${latestSnapshotDate}`,
+       expect.objectContaining({ cache: "no-store" }),
+@@ -278,7 +396,7 @@
+       expect(await screen.findByText(/已停止展示。/)).toBeTruthy();
+       expect(screen.getAllByText("CANNOT_CONFIRM").length).toBeGreaterThan(0);
+       expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+-      expect(screen.queryByText(/代理 ETF \/ 股票篮子仅用于研究观察/)).toBeNull();
++      expect(screen.queryByText(/ETF \/ 股票篮子另列为参考/)).toBeNull();
+     },
+   );
+ 
+@@ -298,7 +416,7 @@
+     expect(await screen.findByText("美股行情研究安全边界未通过，已停止展示。"))
+       .toBeTruthy();
+     expect(screen.getAllByText("CANNOT_CONFIRM").length).toBeGreaterThan(0);
+-    expect(screen.queryByText(/代理 ETF \/ 股票篮子仅用于研究观察/)).toBeNull();
++    expect(screen.queryByText(/ETF \/ 股票篮子另列为参考/)).toBeNull();
+   });
+ 
+   it.each([

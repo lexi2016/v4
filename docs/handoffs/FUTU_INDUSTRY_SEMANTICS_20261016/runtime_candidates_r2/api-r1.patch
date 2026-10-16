@@ -1,0 +1,127 @@
+--- a/apps/api/v35_api/research_lane_router.py
++++ b/apps/api/v35_api/research_lane_router.py
+@@ -271,6 +271,103 @@
+         if _is_verifiable_close_snapshot(projection):
+             eligible.append(trade_date)
+     return sorted(set(eligible), reverse=True)
++
++
++def _futu_board_freshness_error(
++    projection: Mapping[str, Any], *, source_date: str,
++    captured_at: datetime, ny_zone: ZoneInfo,
++) -> str | None:
++    """Validate official board identity and close-time freshness only."""
++    from contracts.us_equity_calendar import session as us_equity_session
++    from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP
++
++    metadata = projection.get("futu_board_snapshot")
++    if not isinstance(metadata, Mapping):
++        return "FUTU_BOARD_SNAPSHOT_MISSING"
++    if any(metadata.get(key) != value for key, value in {
++        "schema_version": "v3_5.futu_us_industry_snapshot.v1",
++        "status": projection.get("status"),
++        "provider": "Futu OpenD",
++        "market": "US",
++        "timezone": "America/New_York",
++        "capture_session_date": source_date,
++    }.items()):
++        return "FUTU_BOARD_SNAPSHOT_IDENTITY_INVALID"
++
++    digest = metadata.get("source_response_sha256")
++    if (
++        not isinstance(digest, str)
++        or len(digest) != 64
++        or any(character not in "0123456789abcdef" for character in digest)
++        or projection.get("source_response_sha256") != digest
++    ):
++        return "FUTU_BOARD_SNAPSHOT_SOURCE_HASH_INVALID"
++
++    rows = projection.get("rows")
++    if (
++        not isinstance(rows, list)
++        or len(rows) != len(FUTU_BOARD_MAP)
++        or [row.get("label") for row in rows if isinstance(row, Mapping)]
++        != [mapping["label"] for mapping in FUTU_BOARD_MAP]
++    ):
++        return "FUTU_BOARD_SNAPSHOT_ROWS_INVALID"
++
++    calendar_session = us_equity_session(source_date)
++    if calendar_session.close_at is None:
++        return "FUTU_BOARD_SOURCE_SESSION_NOT_OPEN"
++
++    ready_count = 0
++    update_times: set[str] = set()
++    for row in rows:
++        board = row.get("official_board")
++        if not isinstance(board, Mapping):
++            return "FUTU_BOARD_ROW_INVALID"
++        row_status = row.get("status")
++        if row_status != board.get("status"):
++            return "FUTU_BOARD_ROW_STATUS_MISMATCH"
++        if row_status != "READY":
++            if row.get("change_pct") is not None or board.get("change_pct") is not None:
++                return "FUTU_UNCONFIRMED_BOARD_HAS_CHANGE"
++            continue
++
++        if (
++            board.get("metric_kind") != "OFFICIAL_BOARD"
++            or board.get("market") != "US"
++            or board.get("timezone") != "America/New_York"
++            or board.get("plate_valid") is not True
++            or board.get("session_date") != source_date
++            or row.get("quote_session_dates") != [source_date]
++        ):
++            return "FUTU_BOARD_READY_ROW_IDENTITY_INVALID"
++        raw_update_time = board.get("update_time")
++        if not isinstance(raw_update_time, str):
++            return "FUTU_BOARD_UPDATE_TIME_MISSING"
++        try:
++            update_at = datetime.strptime(raw_update_time, "%Y-%m-%d %H:%M:%S").replace(tzinfo=ny_zone)
++        except ValueError:
++            return "FUTU_BOARD_UPDATE_TIME_INVALID"
++        if raw_update_time[:10] != f"{source_date[:4]}-{source_date[4:6]}-{source_date[6:]}":
++            return "FUTU_BOARD_UPDATE_DATE_MISMATCH"
++        if update_at < calendar_session.close_at:
++            return "FUTU_BOARD_UPDATE_BEFORE_SESSION_CLOSE"
++        if update_at > captured_at:
++            return "FUTU_BOARD_UPDATE_AFTER_CAPTURE"
++        ready_count += 1
++        update_times.add(raw_update_time)
++
++    expected_status = "READY" if ready_count == len(FUTU_BOARD_MAP) else "PARTIAL" if ready_count else "CANNOT_CONFIRM"
++    if (
++        metadata.get("status") != expected_status
++        or projection.get("status") != expected_status
++        or type(projection.get("requested_board_count")) is not int
++        or projection.get("requested_board_count") != len(FUTU_BOARD_MAP)
++        or type(projection.get("available_board_count")) is not int
++        or projection.get("available_board_count") != ready_count
++        or projection.get("provider_session_dates") != ([source_date] if ready_count else [])
++        or projection.get("provider_session_times") != sorted(update_times)
++    ):
++        return "FUTU_BOARD_SNAPSHOT_COUNT_OR_SESSION_MISMATCH"
++    return None
+ 
+ 
+ 
+@@ -361,12 +458,16 @@
+             # Preserve PARTIAL and all provider/session conflicts.  Calendar
+             # verification never upgrades data quality by itself.
+             result["display_status"] = projection["status"]
+-            from ops._us_market_digest_parts.close_validation import validate_close_observations
+-            quote_error = validate_close_observations(projection)
+-            if quote_error:
++            futu_error = _futu_board_freshness_error(
++                projection,
++                source_date=str(projection.get("source_date") or ""),
++                captured_at=captured,
++                ny_zone=ny_zone,
++            )
++            if futu_error:
+                 result["display_status"] = "CANNOT_CONFIRM"
+                 diagnostic["state"] = "CANNOT_CONFIRM"
+-                diagnostic["cannot_confirm"] = [quote_error]
++                diagnostic["cannot_confirm"] = [futu_error]
+     except (ValueError, TypeError, KeyError) as error:
+         diagnostic["state"] = "CANNOT_CONFIRM"
+         diagnostic["cannot_confirm"] = [str(error)]

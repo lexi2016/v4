@@ -1,0 +1,77 @@
+{
+  "schema_version": "futu_industry_canonical_delta.v1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "baseline_kind": "per-file saved dirty-worktree preimage; not Git HEAD",
+  "patch_sha256": "7f1ca6260c79c46e87322c9448eccafea5a7aa9446d9d983ee056565307897c9",
+  "entries": [
+    {
+      "path": "ops/us_market_digest.py",
+      "before_sha256": "aad83dc03504a0b79eea6e51b188ab91ab724502963e4a5d0b49c718ad8c6c18",
+      "after_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8"
+    },
+    {
+      "path": "ops/_us_market_digest_parts/market_snapshot.py",
+      "before_sha256": "e89e30988dfdb10527f453c289b0b2efe92c91dab24ee123f3389ef6fe8c5796",
+      "after_sha256": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df"
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "before_sha256": "a839ede3f47995d1877afd8e8ad0f5b302a6369934bba084e0edca093038cf2c",
+      "after_sha256": "48cf92c82e968023a9618b7d700385c50e8b3507c1e1fe226cc37f6721963ffd"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/industry_projection.py",
+      "before_sha256": "99ee1e50ebd6179cde9392ab99a0945bf414eb58f1c81e2d0e372af54314fa9e",
+      "after_sha256": "b29577c2d1653b893170f4d46b351cf97d791df3e1db6276cd4984abe16bc2a7"
+    },
+    {
+      "path": "apps/web/src/contracts/globalIndustries.ts",
+      "before_sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+      "after_sha256": "d1273baf7445976c17686e9e0aba83d67d8ddf63f33e5b28d55348a2024d5307"
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.vue",
+      "before_sha256": "377cab93f23d659d474b5bb0bd590a006d820663ffdaa8353d0150fdbc7056ea",
+      "after_sha256": "66702bc4f2c747378626c78a0c1bcba92833e0585a10e9ddb5316f69484919e7"
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+      "before_sha256": "b849c967089d4250582b81cd4732365a96f3fafa1284a997650a3d05ca267f85",
+      "after_sha256": "094a2b339581bfa002a16b3217d8faabbc89dc92ce990739b4d0edd4faca9c71"
+    },
+    {
+      "path": "tests/test_v4_us_digest_recovery.py",
+      "before_sha256": "929f714e2bea3cb8671301142f86c0459dde703b94536c8c28c0ff929070c287",
+      "after_sha256": "7d3c3214b0f68f1d524a63812902af24f04f8df58908dd9beaa83ef19a7b3cd7"
+    },
+    {
+      "path": "ops/_us_market_digest_parts/futu_boards.py",
+      "before_sha256": null,
+      "after_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3"
+    },
+    {
+      "path": "contracts/futu_industry.py",
+      "before_sha256": null,
+      "after_sha256": "03e3815f48a7fdd1d9c65df5bfe7365aabd270abd4ce265ea702c380af80b2b2"
+    },
+    {
+      "path": "tests/test_futu_industry_semantics.py",
+      "before_sha256": null,
+      "after_sha256": "a7bb7208c34bfcba85286bf8fb2402e168db2c2f970087a9471f8bf816835f98"
+    },
+    {
+      "path": "tests/test_global_industry_close_api_v2.py",
+      "before_sha256": "509721de6bfcacc322d3712a88c9bf80968d9b253f2826292a1fd0f07554361a",
+      "after_sha256": "19555e123bbe4ac89a4a5d64d46d6a6ba2d40ad9824ef0b319c4b7260fae5150"
+    }
+  ],
+  "excluded_canonical_before_unknown": {
+    "path": "ops/_us_market_digest_parts/phase_payload.py",
+    "before_sha256": null,
+    "status": "CANNOT_CONFIRM",
+    "after_sha256": "fdfeeaf376efb3f2def86abd633d94790e0e9163586d23068eb9bab2c343bd56",
+    "verified_runtime_delta": "runtime_candidates/us-r3.patch",
+    "runtime_before_sha256": "23011471e0918b5ef97fb71749afde5d6d091238b756fe66fbf89d4c67686abe"
+  }
+}

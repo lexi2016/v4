@@ -1,0 +1,75 @@
+{
+  "schema_version": "futu_industry_delivery_sha256.v1",
+  "base_commit": "83a29c7465b5236375ef9cd2ab0d640336b3b84f",
+  "files": {
+    "CANONICAL_SCOPED.patch": {
+      "sha256": "7f1ca6260c79c46e87322c9448eccafea5a7aa9446d9d983ee056565307897c9",
+      "bytes": 111728
+    },
+    "canonical_delta_manifest.json": {
+      "sha256": "2ce7400f58ec41c945544e734ce01a31fcef94fefb9dc15f976e36e4390dbd59",
+      "bytes": 3657
+    },
+    "preimage_manifest.json": {
+      "sha256": "980accc4e68b877f6e9d24ee72b885a7a4bf5fdd8b55cf8c304ae37937aee62b",
+      "bytes": 2453
+    },
+    "runtime_preimage_manifest.json": {
+      "sha256": "2be1e71628f3a94d05520d3ee6db2f69f2470bcee6fc0c6b9d9933dfce6d73f4",
+      "bytes": 1459
+    },
+    "runtime_candidates/candidate_manifest.json": {
+      "sha256": "c0c3bf83e5201c4a1e66f398e6784c5cfcc0fd26efd97306a286bc579864da65",
+      "bytes": 4990
+    },
+    "runtime_candidates/us-r3.patch": {
+      "sha256": "b4517ae85a8fa038819a635f9df485e23409d32227dd9ddd6445353349e754d4",
+      "bytes": 35072
+    },
+    "runtime_candidates/api-r7.patch": {
+      "sha256": "d83e568ea881a34bbafbe2daba39c0e2ff0b3b95aa4a8a544d6f3c91fd1989c7",
+      "bytes": 95178
+    },
+    "runtime_candidates/tests.patch": {
+      "sha256": "38a30974d731345e8713aca865100ae9679581541bc661432401b908fa32ae74",
+      "bytes": 27867
+    },
+    "implementation_receipt.json": {
+      "sha256": "841160295b6fcc6d246fac68feeccb2765aef67519fea34a15dd65bc5b5fa7e3",
+      "bytes": 14153
+    },
+    "preimage_manifest_r2.json": {
+      "sha256": "34c0085971ab93b700712f02f72a632f1f67eb8c1530551ebeca9efbee7ae049",
+      "bytes": 2784
+    },
+    "industry_freshness_r2.patch": {
+      "sha256": "686b94daeaa22f18b1e3c4bfee618f6d50b185fba8d96a6d56491cbc4a5e214b",
+      "bytes": 14928
+    },
+    "runtime_candidates_r2/api-r1.patch": {
+      "sha256": "a6e930d700df090a7a8a1f319f8e8881ecccb3889c4e67df3b58b26ccb708a4d",
+      "bytes": 5625
+    },
+    "industry_freshness_r2_receipt.json": {
+      "sha256": "a16e2452d38d4dd1bcc11ec85a103e9fb9dc47adbf2fc6fb0f160fef567315a3",
+      "bytes": 6138
+    },
+    "REVIEW_RECEIPT.md": {
+      "sha256": "de289a639b98deb153d73cfe3bdffb6b69cbc3365b67f9487b14a6421bdc03fe",
+      "bytes": 3775
+    },
+    "FINAL_RECEIPT.md": {
+      "sha256": "74e1165ac6f29cd3cf8c7dfb6a9a987346a2c21ffdb123a22a7e401494bfa836",
+      "bytes": 5410
+    }
+  },
+  "exclusions": [
+    "raw market data",
+    "full API responses",
+    "plists/configs",
+    "credentials",
+    "dist",
+    "node_modules",
+    "unrelated workspace changes"
+  ]
+}

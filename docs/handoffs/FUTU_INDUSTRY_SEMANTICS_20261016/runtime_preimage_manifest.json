@@ -1,0 +1,41 @@
+{
+  "owners": {
+    "us-r3": {
+      "ops/us_market_digest.py": {
+        "sha256": "aad83dc03504a0b79eea6e51b188ab91ab724502963e4a5d0b49c718ad8c6c18",
+        "size": 32968
+      },
+      "ops/_us_market_digest_parts/market_snapshot.py": {
+        "sha256": "e89e30988dfdb10527f453c289b0b2efe92c91dab24ee123f3389ef6fe8c5796",
+        "size": 15123
+      },
+      "ops/_us_market_digest_parts/phase_payload.py": {
+        "sha256": "23011471e0918b5ef97fb71749afde5d6d091238b756fe66fbf89d4c67686abe",
+        "size": 12153
+      },
+      "infrastructure/research_peripheral_store.py": {
+        "sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+        "size": 82703
+      }
+    },
+    "api-r7": {
+      "apps/api/v35_api/research_lane_router.py": {
+        "sha256": "e7f85cda8d26203b7e0d6c8824525d57ac65ab286106a14adfc55aecfd4ee39d",
+        "size": 54923
+      },
+      "infrastructure/research_peripheral_store.py": {
+        "sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+        "size": 82703
+      },
+      "apps/web/src/contracts/globalIndustries.ts": {
+        "sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+        "size": 5109
+      },
+      "apps/web/src/components/research/GlobalIndustryMap.vue": {
+        "sha256": "377cab93f23d659d474b5bb0bd590a006d820663ffdaa8353d0150fdbc7056ea",
+        "size": 18769
+      }
+    }
+  },
+  "capture_only_read": true
+}

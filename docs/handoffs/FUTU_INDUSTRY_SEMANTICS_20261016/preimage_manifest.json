@@ -1,0 +1,78 @@
+{
+  "schema_version": "futu-industry-preimage-manifest.v1",
+  "workspace": "/Users/lexi/Desktop/学习/v4_app",
+  "entries": [
+    {
+      "path": "ops/us_market_digest.py",
+      "exists": true,
+      "sha256": "aad83dc03504a0b79eea6e51b188ab91ab724502963e4a5d0b49c718ad8c6c18",
+      "bytes": 32968
+    },
+    {
+      "path": "ops/_us_market_digest_parts/market_snapshot.py",
+      "exists": true,
+      "sha256": "e89e30988dfdb10527f453c289b0b2efe92c91dab24ee123f3389ef6fe8c5796",
+      "bytes": 15123
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "exists": true,
+      "sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "bytes": 15114
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "exists": true,
+      "sha256": "a839ede3f47995d1877afd8e8ad0f5b302a6369934bba084e0edca093038cf2c",
+      "bytes": 23774
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/industry_projection.py",
+      "exists": true,
+      "sha256": "99ee1e50ebd6179cde9392ab99a0945bf414eb58f1c81e2d0e372af54314fa9e",
+      "bytes": 12847
+    },
+    {
+      "path": "apps/web/src/contracts/globalIndustries.ts",
+      "exists": true,
+      "sha256": "5eeefef359e082f4cd39c08cf66fc57ea28aa0d12a567d74d4d7f28b7ba04277",
+      "bytes": 5109
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.vue",
+      "exists": true,
+      "sha256": "377cab93f23d659d474b5bb0bd590a006d820663ffdaa8353d0150fdbc7056ea",
+      "bytes": 18769
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+      "exists": true,
+      "sha256": "b849c967089d4250582b81cd4732365a96f3fafa1284a997650a3d05ca267f85",
+      "bytes": 14857
+    },
+    {
+      "path": "tests/test_v4_us_digest_recovery.py",
+      "exists": true,
+      "sha256": "929f714e2bea3cb8671301142f86c0459dde703b94536c8c28c0ff929070c287",
+      "bytes": 14042
+    },
+    {
+      "path": "ops/_us_market_digest_parts/futu_boards.py",
+      "exists": false
+    },
+    {
+      "path": "contracts/futu_industry.py",
+      "exists": false
+    },
+    {
+      "path": "tests/test_futu_industry_semantics.py",
+      "exists": false
+    },
+    {
+      "path": "tests/test_global_industry_close_api_v2.py",
+      "exists": true,
+      "sha256": "509721de6bfcacc322d3712a88c9bf80968d9b253f2826292a1fd0f07554361a",
+      "bytes": 10547
+    }
+  ]
+}

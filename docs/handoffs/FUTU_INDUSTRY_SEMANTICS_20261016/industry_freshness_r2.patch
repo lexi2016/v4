@@ -1,0 +1,304 @@
+--- a/apps/api/v35_api/_research_lane_router_parts/market_freshness.py
++++ b/apps/api/v35_api/_research_lane_router_parts/market_freshness.py
+@@ -15,6 +15,110 @@
+         if _v4_global(_v4_scope, '_is_verifiable_close_snapshot')(projection):
+             eligible.append(trade_date)
+     return _v4_global(_v4_scope, 'sorted')(_v4_global(_v4_scope, 'set')(eligible), reverse=True)
++
++
++def __futu_board_freshness_error_body(
++    _v4_scope, /, projection, *, source_date, captured_at, ny_zone,
++):
++    """Validate the official Futu rows used by the industry projection.
++
++    The industry API intentionally leaves legacy ETF/basket observations in
++    ``proxy_quotes`` and exposes no raw values in ``quotes``.  Freshness must
++    therefore bind the official board snapshot and its per-board timestamps;
++    proxy quote validation belongs to a different contract.
++    """
++    from contracts.us_equity_calendar import session as us_equity_session
++    from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP
++
++    metadata = projection.get("futu_board_snapshot")
++    if not _v4_global(_v4_scope, 'isinstance')(metadata, _v4_global(_v4_scope, 'Mapping')):
++        return "FUTU_BOARD_SNAPSHOT_MISSING"
++    if any(metadata.get(key) != value for key, value in {
++        "schema_version": "v3_5.futu_us_industry_snapshot.v1",
++        "status": projection.get("status"),
++        "provider": "Futu OpenD",
++        "market": "US",
++        "timezone": "America/New_York",
++        "capture_session_date": source_date,
++    }.items()):
++        return "FUTU_BOARD_SNAPSHOT_IDENTITY_INVALID"
++
++    digest = metadata.get("source_response_sha256")
++    if (
++        not _v4_global(_v4_scope, 'isinstance')(digest, _v4_global(_v4_scope, 'str'))
++        or _v4_global(_v4_scope, 'len')(digest) != 64
++        or _v4_global(_v4_scope, 'any')(character not in "0123456789abcdef" for character in digest)
++        or projection.get("source_response_sha256") != digest
++    ):
++        return "FUTU_BOARD_SNAPSHOT_SOURCE_HASH_INVALID"
++
++    rows = projection.get("rows")
++    if (
++        not _v4_global(_v4_scope, 'isinstance')(rows, _v4_global(_v4_scope, 'list'))
++        or _v4_global(_v4_scope, 'len')(rows) != _v4_global(_v4_scope, 'len')(FUTU_BOARD_MAP)
++        or [row.get("label") for row in rows if _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping'))]
++        != [mapping["label"] for mapping in FUTU_BOARD_MAP]
++    ):
++        return "FUTU_BOARD_SNAPSHOT_ROWS_INVALID"
++
++    calendar_session = us_equity_session(source_date)
++    if calendar_session.close_at is None:
++        return "FUTU_BOARD_SOURCE_SESSION_NOT_OPEN"
++
++    ready_count = 0
++    update_times: set[str] = set()
++    for row in rows:
++        board = row.get("official_board")
++        if not _v4_global(_v4_scope, 'isinstance')(board, _v4_global(_v4_scope, 'Mapping')):
++            return "FUTU_BOARD_ROW_INVALID"
++        row_status = row.get("status")
++        if row_status != board.get("status"):
++            return "FUTU_BOARD_ROW_STATUS_MISMATCH"
++        if row_status != "READY":
++            if row.get("change_pct") is not None or board.get("change_pct") is not None:
++                return "FUTU_UNCONFIRMED_BOARD_HAS_CHANGE"
++            continue
++
++        if (
++            board.get("metric_kind") != "OFFICIAL_BOARD"
++            or board.get("market") != "US"
++            or board.get("timezone") != "America/New_York"
++            or board.get("plate_valid") is not True
++            or board.get("session_date") != source_date
++            or row.get("quote_session_dates") != [source_date]
++        ):
++            return "FUTU_BOARD_READY_ROW_IDENTITY_INVALID"
++        raw_update_time = board.get("update_time")
++        if not _v4_global(_v4_scope, 'isinstance')(raw_update_time, _v4_global(_v4_scope, 'str')):
++            return "FUTU_BOARD_UPDATE_TIME_MISSING"
++        try:
++            update_at = _v4_global(_v4_scope, 'datetime').strptime(
++                raw_update_time, "%Y-%m-%d %H:%M:%S"
++            ).replace(tzinfo=ny_zone)
++        except _v4_global(_v4_scope, 'ValueError'):
++            return "FUTU_BOARD_UPDATE_TIME_INVALID"
++        if raw_update_time[:10] != source_date[:4] + "-" + source_date[4:6] + "-" + source_date[6:]:
++            return "FUTU_BOARD_UPDATE_DATE_MISMATCH"
++        if update_at < calendar_session.close_at:
++            return "FUTU_BOARD_UPDATE_BEFORE_SESSION_CLOSE"
++        if update_at > captured_at:
++            return "FUTU_BOARD_UPDATE_AFTER_CAPTURE"
++        ready_count += 1
++        update_times.add(raw_update_time)
++
++    expected_status = "READY" if ready_count == len(FUTU_BOARD_MAP) else "PARTIAL" if ready_count else "CANNOT_CONFIRM"
++    if (
++        metadata.get("status") != expected_status
++        or projection.get("status") != expected_status
++        or type(projection.get("requested_board_count")) is not int
++        or projection.get("requested_board_count") != len(FUTU_BOARD_MAP)
++        or type(projection.get("available_board_count")) is not int
++        or projection.get("available_board_count") != ready_count
++        or projection.get("provider_session_dates") != ([source_date] if ready_count else [])
++        or projection.get("provider_session_times") != sorted(update_times)
++    ):
++        return "FUTU_BOARD_SNAPSHOT_COUNT_OR_SESSION_MISMATCH"
++    return None
+ 
+ 
+ def __with_us_market_freshness_body(_v4_scope, /, projection, *, observed):
+@@ -102,12 +206,17 @@
+             # Preserve PARTIAL and all provider/session conflicts.  Calendar
+             # verification never upgrades data quality by itself.
+             result["display_status"] = projection["status"]
+-            from ops._us_market_digest_parts.close_validation import validate_close_observations
+-            quote_error = validate_close_observations(projection)
+-            if quote_error:
++            futu_error = __futu_board_freshness_error_body(
++                _v4_scope,
++                projection,
++                source_date=projection.get("source_date"),
++                captured_at=captured,
++                ny_zone=ny_zone,
++            )
++            if futu_error:
+                 result["display_status"] = "CANNOT_CONFIRM"
+                 diagnostic["state"] = "CANNOT_CONFIRM"
+-                diagnostic["cannot_confirm"] = [quote_error]
++                diagnostic["cannot_confirm"] = [futu_error]
+ 
+     except (_v4_global(_v4_scope, 'ValueError'), _v4_global(_v4_scope, 'TypeError'), _v4_global(_v4_scope, 'KeyError')) as error:
+         diagnostic["state"] = "CANNOT_CONFIRM"
+--- a/apps/web/src/components/research/GlobalIndustryMap.vue
++++ b/apps/web/src/components/research/GlobalIndustryMap.vue
+@@ -122,6 +122,13 @@
+ const unknownRows = computed(() => [...rows.value].filter((row) => row.direction === "CANNOT_CONFIRM").sort(
+   (left, right) => left.label.localeCompare(right.label, "zh-CN"),
+ ));
++const confirmedBoardCount = computed(() => rows.value.filter(
++  (row) => row.status === "READY" && typeof row.change_pct === "number",
++).length);
++const unmatchedBoardCount = computed(() => Math.max(
++  0,
++  (payload.value?.requested_board_count ?? mappings.length) - confirmedBoardCount.value,
++));
+ 
+ function statusText(value: string) {
+   return ({ READY: "近期时钟匹配", PARTIAL: "PARTIAL · 质量缺口", STALE: "STALE · 旧快照", CANNOT_CONFIRM: "CANNOT_CONFIRM", LOADING: "读取中", ERROR: "ERROR" } as Record<string, string>)[value] || value;
+@@ -218,6 +225,15 @@
+   }
+   if (!Array.isArray(value.rows) || value.rows.length !== mappings.length) {
+     throw new Error("美股行情主题覆盖不是固定 24 行，已停止展示。");
++  }
++  const readyBoardCount = value.rows.filter(
++    (row) => row.status === "READY" && typeof row.change_pct === "number",
++  ).length;
++  if (
++    value.requested_board_count !== mappings.length
++    || value.available_board_count !== readyBoardCount
++  ) {
++    throw new Error("Futu 已确认板块数与行状态不一致，已停止展示。");
+   }
+   value.rows.forEach((row, index) => {
+     const mapping = mappings[index];
+@@ -373,6 +389,7 @@
+       <span>Futu 板块来源日：{{ formatDate(payload?.source_date || "") }}</span>
+       <span>板块更新时间（纽约）：{{ payload?.provider_session_times?.join("、") || "CANNOT_CONFIRM" }}</span>
+       <span>场次：{{ payload?.capture_phase || "CANNOT_CONFIRM" }}</span>
++      <span>Futu 已确认板块：{{ confirmedBoardCount }}/{{ payload?.requested_board_count ?? mappings.length }} · 待匹配 {{ unmatchedBoardCount }}</span>
+     </div>
+     <p v-if="payload" class="global-industry-message" role="status">
+       Futu 板块质量：{{ payload.status }} · {{ freshnessMessage }}
+@@ -406,7 +423,13 @@
+           <small>{{ row.label }} · {{ directionText(row.direction) }} · {{ breadthText(row) }}</small>
+         </article>
+         <article v-if="!leaders.length" class="global-leader-card global-leader-empty">
+-          <strong>CANNOT_CONFIRM</strong><small>当前没有可确认的收盘涨跌值。</small>
++          <template v-if="confirmedBoardCount">
++            <strong>未生成涨跌前三</strong>
++            <small>已有 {{ confirmedBoardCount }} 个已确认官方板块；{{ unmatchedBoardCount }} 个待匹配。整体状态 {{ state }}，未按未确认或过期快照生成排名。</small>
++          </template>
++          <template v-else>
++            <strong>CANNOT_CONFIRM</strong><small>当前没有可确认的收盘涨跌值。</small>
++          </template>
+         </article>
+       </div>
+       <div class="global-industry-groups" data-theme-map>
+--- a/apps/web/src/components/research/GlobalIndustryMap.spec.ts
++++ b/apps/web/src/components/research/GlobalIndustryMap.spec.ts
+@@ -240,6 +240,9 @@
+     expect(screen.getByText("Futu 板块来源日：2026-09-08")).toBeTruthy();
+     expect(screen.getByText("PARTIAL · 质量缺口")).toBeTruthy();
+     expect(screen.getByText(/Futu 板块质量：PARTIAL · 来源场次与原采集时间通过近期时钟核验/)).toBeTruthy();
++    expect(screen.getByText("Futu 已确认板块：12/24 · 待匹配 12")).toBeTruthy();
++    expect(screen.getByText(/已有 12 个已确认官方板块；12 个待匹配。整体状态 PARTIAL/)).toBeTruthy();
++    expect(screen.queryByText("当前没有可确认的收盘涨跌值。")).toBeNull();
+     expect(screen.getByText(/交易所节假日／提前收盘及最新完整交易日：CANNOT_CONFIRM/)).toBeTruthy();
+     expect(document.querySelectorAll("[data-theme-row]")).toHaveLength(24);
+     expect(screen.queryByLabelText("平盘板块")).toBeNull();
+--- a/tests/test_futu_industry_semantics.py
++++ b/tests/test_futu_industry_semantics.py
+@@ -1,4 +1,7 @@
+ from __future__ import annotations
++
++from copy import deepcopy
++from datetime import datetime
+ 
+ from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP, build_futu_board_snapshot
+ 
+@@ -165,3 +168,91 @@
+     assert projected["buy_gate_updated"] is False
+     assert projected["orders_sent"] is False
+ 
++
++def test_us_market_get_keeps_confirmed_futu_boards_visible_when_proxy_quotes_are_separate(
++    tmp_path, monkeypatch
++):
++    from fastapi import FastAPI
++    from fastapi.testclient import TestClient
++
++    from apps.api.v35_api.research_lane_router import create_research_lane_router
++    from ops.us_market_digest import GLOBAL_INDUSTRY_PROXY_MAP, materialize_us_market_phase
++
++    trade_date = "20261016"
++    session_date = "20261015"
++    captured_at = "2026-10-16T12:30:00+08:00"
++
++    def fetch_proxy_quotes(_url, _timeout):
++        symbols = list(dict.fromkeys(
++            symbol
++            for mapping in GLOBAL_INDUSTRY_PROXY_MAP
++            for symbol in mapping["proxy_symbols"]
++        ))
++        records = []
++        for symbol in symbols:
++            fields = [""] * 31
++            fields[1:5] = [symbol, symbol, "110", "100"]
++            fields[30] = f"{session_date}160000"
++            records.append(f'v_us{symbol}="' + "~".join(fields) + '";')
++        return "".join(records)
++
++    data_root = tmp_path / "market-data"
++    materialize_us_market_phase(
++        data_root=data_root,
++        trade_date=trade_date,
++        capture_phase="POST_CLOSE",
++        us_session_date=session_date,
++        fetched_at=captured_at,
++        now=captured_at,
++        allow_late_post_close=True,
++        fetch_rss=lambda *_args: b"<rss><channel></channel></rss>",
++        fetch_quotes=fetch_proxy_quotes,
++        fetch_futu_boards=lambda date: build_futu_board_snapshot(
++            date, quote_context=_FakeFutuContext()
++        ),
++    )
++
++    observed = datetime.fromisoformat("2026-10-16T13:00:00+08:00")
++    monkeypatch.setattr(
++        "infrastructure.research_lane_source.shanghai_now", lambda: observed
++    )
++    app = FastAPI()
++    app.include_router(create_research_lane_router(
++        tmp_path / "research-data", us_market_data_root=data_root
++    ))
++
++    response = TestClient(app).get(
++        "/api/v3/research/us-market", params={"research_date": trade_date}
++    )
++
++    assert response.status_code == 200
++    result = response.json()
++    cloud = next(row for row in result["rows"] if row["label"] == "云计算")
++    assert result["display_status"] == "PARTIAL"
++    assert result["freshness"]["state"] == "RECENT_BOUND_CAPTURE"
++    assert result["freshness"]["cannot_confirm"] == []
++    assert result["futu_board_snapshot"]["status"] == "PARTIAL"
++    assert result["available_board_count"] == 12
++    assert result["requested_board_count"] == 24
++    assert cloud["change_pct"] == 0.70035
++    assert cloud["official_board"]["rise_count"] == 15
++    assert cloud["proxy_reference"]["change_pct"] == 10.0
++    assert result["quotes"] == []
++    assert len(result["proxy_quotes"]) == result["proxy_available_symbol_count"]
++
++    from apps.api.v35_api.research_lane_router import _with_us_market_freshness
++
++    wrong_board_date = deepcopy(result)
++    wrong_cloud = next(row for row in wrong_board_date["rows"] if row["label"] == "云计算")
++    wrong_cloud["official_board"]["session_date"] = "20261014"
++    wrong_date_result = _with_us_market_freshness(wrong_board_date, observed=observed)
++    assert wrong_date_result["display_status"] == "CANNOT_CONFIRM"
++    assert wrong_date_result["freshness"]["cannot_confirm"] == ["FUTU_BOARD_READY_ROW_IDENTITY_INVALID"]
++
++    pre_close_board = deepcopy(result)
++    pre_close_cloud = next(row for row in pre_close_board["rows"] if row["label"] == "云计算")
++    pre_close_cloud["official_board"]["update_time"] = "2026-10-15 15:59:59"
++    pre_close_result = _with_us_market_freshness(pre_close_board, observed=observed)
++    assert pre_close_result["display_status"] == "CANNOT_CONFIRM"
++    assert pre_close_result["freshness"]["cannot_confirm"] == ["FUTU_BOARD_UPDATE_BEFORE_SESSION_CLOSE"]
++
