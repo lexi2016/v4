@@ -1,0 +1,106 @@
+{
+  "input_archive": {
+    "path": "/Users/lexi/Downloads/US_HK_667_1003_recovery_v2r1_20261016.zip",
+    "bytes": 508906833,
+    "sha256": "48f1124c10ed3440c22910a9125038748c08d673fc3ec543635cc9aae0b344d4",
+    "verified_by": "INTAKE_AUDIT.json and deterministic builder"
+  },
+  "immutable_inputs": [
+    {
+      "path": "v4/manager_workbench/research_data/us_hk_667_catalog_20261015.json",
+      "bytes": 6831359,
+      "sha256": "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
+    },
+    {
+      "path": "v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json",
+      "bytes": 66687594,
+      "sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69"
+    }
+  ],
+  "preimages": [
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/preimages/us_mapping_catalog.py",
+      "bytes": 23977,
+      "sha256": "b7ec08a65a9bb6e2ee419caf303c5ec60b809a44b7a2bef42883ea0fed4023ad"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/preimages/test_us_mapping_catalog.py",
+      "bytes": 22075,
+      "sha256": "6937069680cb80edf2693be178c76e63ba285cc5ff9b35b64e6b0fbb4255f65e"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/preimages/Workbench.vue",
+      "bytes": 51696,
+      "sha256": "6745deb53a5ec230d7fe48fb8fbe195a45812ea3fd067324a7b1cc68346b5ebd"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/preimages/types.ts",
+      "bytes": 18201,
+      "sha256": "4272e0818b041644aaec9e17a24d543bf1f15553bca3e8f11210af140858e489"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/preimages/us_mapping_catalog.spec.ts",
+      "bytes": 14987,
+      "sha256": "318b26c91c773313d962cea69ed2194f8a9d3a69f11308e1037ce8ec455f2264"
+    }
+  ],
+  "current_source_and_builder": [
+    {
+      "path": "v4/manager_workbench/us_mapping_catalog.py",
+      "bytes": 38618,
+      "sha256": "ec327cb99e72b9dd982f1238e459b79b657697501f02ac66a598752a94245031"
+    },
+    {
+      "path": "tests/manager_workbench/test_us_mapping_catalog.py",
+      "bytes": 28543,
+      "sha256": "1f316adee7ad4ef4539ba8fc9b1dcf6d22d57aa7f3a07a3b2845d5b53272eaf3"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "bytes": 57063,
+      "sha256": "7e77b6602400ecec58865dfc19b7a7bc7ae3c234c65bf28f93ec3a258ab96478"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "bytes": 20053,
+      "sha256": "93d29e1dde2686f85f4f17159e5edc023cf6d59a5d9bf8473eab45f5f4626939"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts",
+      "bytes": 19415,
+      "sha256": "7b90fa8ea13df10c0bbb398af59976e9249f11c90fe00297e88c0938e5e41b6d"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py",
+      "bytes": 26349,
+      "sha256": "b4c76ce4d1d437c9a161a4862d0360ae3656b52c3e656a66e99d64135658beb1"
+    }
+  ],
+  "derived_projection": {
+    "path": "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+    "bytes": 43652024,
+    "sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
+  },
+  "handoff_evidence": [
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/diff/SOURCE_DIFF.patch",
+      "bytes": 84834,
+      "sha256": "31700c81e81e92b0e53d263a20ce6c65691de2ec29979710ee5d4ea6cbff15d5"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/diff/DIFF_NOTES.md",
+      "bytes": 868,
+      "sha256": "2b1d57564c2f093fb35b1f9093baadb1f9cab4a5432e890aaca8cb3d270e2fb3"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/PREIMAGE_SHA256.json",
+      "bytes": 1102,
+      "sha256": "76f0105351daa726ddd1e860ed3549cabbf3cb1a65dee464df3c569344970efb"
+    },
+    {
+      "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/SOURCE_CANDIDATE_RECEIPT.json",
+      "bytes": 4531,
+      "sha256": "9a3b76ab9e8ca055482122967651141c48a74cd4616404e9376e9cba1634fa0d"
+    }
+  ]
+}
