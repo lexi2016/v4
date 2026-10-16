@@ -1,0 +1,149 @@
+{
+  "schema_version": "v4.us_hk_recovery_runtime_independent_review_r2.v1",
+  "reviewer": "mapping_recovery_review",
+  "writer": "mapping_recovery_writer",
+  "candidate": {
+    "release_id": "us-hk-recovery-v2r1-20261016-r2",
+    "manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+    "config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+    "preparation_status": "PREPARED_NOT_ACTIVATED",
+    "activation_status": "NOT_ACTIVATED"
+  },
+  "verdict": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS",
+    "candidate_content_review": "PASS",
+    "activation_readiness": "PASS",
+    "overall_workflow_acceptance": "NOT_ISSUED",
+    "activation_gate_parser_result": "PASS"
+  },
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "findings": [],
+  "acceptance_evidence": {
+    "base_release_id": "futu-industry-api-20261016-r2",
+    "base_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+    "active_plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+    "active_application_inventory_sha256": "8157fff62f99f704ccc448815fa3775dd59e24045f7883536104a73b10e8b823",
+    "active_application_inventory_entry_count": 1215,
+    "candidate_verifier": {
+      "result": "PASS",
+      "active_pointer": "base",
+      "role": "gateway",
+      "base_role": "gateway",
+      "shared_lock_required": true,
+      "independent_rerun_exit_code": 0
+    },
+    "delta_paths": [
+      "apps/web/dist/assets/managerSelection-DfkJEj5r.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/types.ts",
+      "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+      "v4/manager_workbench/us_mapping_catalog.py"
+    ],
+    "preserved_entries": {
+      "non_delta_count": 1211,
+      "non_delta_inventory_sha256": "64887c095d00f6be15c03385b3f6c6a0158eda9f6a7ee1a3f536e59da3f33723",
+      "non_delta_active_release_bytes_preserved": true
+    },
+    "config_and_plist": {
+      "active_config_sha256": "7a6d9689df73f832e15efd53923ab69d03ebc4f0357635bb8d9e67d6342e35b5",
+      "candidate_config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+      "candidate_config_changed_keys": ["relation_root"],
+      "staged_plist_sha256": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958",
+      "staged_plist_release_config_selectors_only": true,
+      "label_port_keepalive_runatload_unchanged": true,
+      "rollback_preimage_matches_active_plist": true,
+      "active_plist_and_rollback_preimage_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e"
+    },
+    "activation_guards": {
+      "shared_api_release_lock": "PRESENT",
+      "active_plist_active_config_candidate_config_staged_plist_rollback_preimage_cas": "PRESENT",
+      "preflight_postflight_verifier_require_shared_lock": true,
+      "r2_activation_helper_normalized_identity_diff_vs_repaired_r1": "IDENTICAL",
+      "rollback_detach_failure_handling": "RESTORE_PREIMAGE_AND_READ_BACK; BOOTSTRAP_ONLY_AFTER_DETACH_AND_PROCESS_IDENTITY_PROOF"
+    },
+    "in_process_candidate_api": {
+      "independent_rerun_exit_code": 0,
+      "default_response_bytes": 772473,
+      "snapshot_stocks": 667,
+      "original_relations": 1003,
+      "processed_relations": 1003,
+      "closure_status_counts": {
+        "CLOSED_RESEARCH_SCOPE": 757,
+        "CLOSED_EXCLUDED_SCOPE": 25,
+        "OPEN": 221
+      },
+      "stocks_with_relations": 649,
+      "stocks_without_relations": 18,
+      "exact_rids": ["R006", "R003", "R001", "R700"],
+      "prior_700_history_sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69",
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      "semantic_mapping_validity": "CANNOT_CONFIRM",
+      "historical_PIT": "NOT_VALIDATED",
+      "independently_accepted_facts": 0
+    },
+    "preparation_tests_reused_from_sha_bound_receipts": {
+      "isolated_mapping_ui_test": "PASS",
+      "vite_build": "PASS",
+      "focused_vue_typecheck": "PASS",
+      "source_review_receipt_sha256": "cf796bb7da55547c84cea24c9ab63096398fd56f01c39b5e8f3690988f31ce7a"
+    }
+  },
+  "independent_tests": [
+    {
+      "name": "R2 focused activation rollback tests",
+      "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m pytest -q -p no:cacheprovider --basetemp=/private/tmp/codex-review-us-hk-r2-rollback-20261016-0835 docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/tests/test_activation_rollback_r2.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "summary": "3 passed"
+    },
+    {
+      "name": "read-only candidate release verifier",
+      "command": "verify_api_release_candidate with active_pointer='base', role='gateway', base_role='gateway', shared lock required",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "prepared-candidate in-process API assertions",
+      "command": "runtime v3.5-mac Python -B runtime/check_candidate_api_r2.py with candidate PYTHONPATH, manifest SHA, and versioned config environment",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "name": "activation review-receipt parser guard",
+      "command": "Import activate_runtime_candidate_r2.py and call require_review on the expected dated receipt path; do not call main",
+      "result": "PASS",
+      "exit_code": 0,
+      "review_markdown_sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178"
+    }
+  ],
+  "cannot_confirm": [
+    "Activation and live candidate API/UI readback; the candidate remains inactive.",
+    "Real launchd rollback behavior; focused tests exercise injected branches only, and activation was not run.",
+    "Natural-slot behavior, semantic mapping validity, historical PIT validity, prediction validation, and independent fact acceptance."
+  ],
+  "receipt_bindings": {
+    "runtime_preparation_receipt_sha256": "20e5352df193d29c204980de665aa8812cf045ca1d574e50638c5f703b35d8df",
+    "runtime_delta_receipt_sha256": "a0bd9e1f6b4a8751496f6361c0ce77533914d15c1e861232081250fe6bb46569",
+    "runtime_baseline_reconciliation_r2_sha256": "79248af5362a3d8b374b9f0df3657c552b4b8971a16c06de2ad38846b4fa849c",
+    "source_review_receipt_sha256": "cf796bb7da55547c84cea24c9ab63096398fd56f01c39b5e8f3690988f31ce7a",
+    "runtime_prepare_helper_sha256": "0c132f651cb70bb42ebbbedd212a822a13bdf1f6d0d8d85f54755820b6d9f1b7",
+    "runtime_api_checker_sha256": "49947c53da051070d1e7708ca9d60acc5c1a6fb7f9ac918f3e9b2b13bd218fc9",
+    "runtime_activation_wrapper_sha256": "f96ebd23bc1131f592bf17f7626b3f129d1a1909ac99af64b3239a63f278715c",
+    "shared_activation_core_sha256": "25e72ccf9034663dcc9e1d8a14c54ccda9a4b74009dd3152a3f4537eef1d078a",
+    "rollback_test_sha256": "d87f0c997fee4720b2b878239eb458eac2c9df8386286c9a4f82caefa8ee3d20",
+    "markdown_review_path": "runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2_20261016.md",
+    "markdown_review_sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178"
+  }
+}
