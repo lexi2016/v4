@@ -1,0 +1,21 @@
+{
+  "schema_version": "v4.us_hk_recovery_v2r1_runtime_baseline_reconciliation.v1",
+  "status": "RECONCILED_TO_FRESH_ACTIVE_RELEASE",
+  "stale_prior_read_only_observation": {
+    "api_only_plist_sha256": "2b902b87f17575258c5b483fe38f8cb1c02ab036bc14013adf2a14206cb37924",
+    "release_id": "hk-morning-selection-recovery-20261016-r7",
+    "release_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+    "application_inventory_sha256": "572ccb3a44ce195bb54ef3ee67ae03c40ce93cc1c0a81931a54f64fb8aa95a58",
+    "candidate_created_from_this_observation": false
+  },
+  "fresh_active_base_used_for_candidate": {
+    "api_only_plist_sha256": "d601d017cbf1f893949c44a5e321458c7e5a3c81216601cfb4133c4781f44e1a",
+    "release_id": "futu-industry-api-20261016-r1",
+    "release_manifest_sha256": "052fa77f4afd8e9abf36bf6c74f02e90a1dbccf0c033d5a585a8ac998ab1ecc3",
+    "application_inventory_sha256": "e7c6a91b79be0414918688cbdf1df5c3090595292f58d9eeca9f099e63f89d04",
+    "application_inventory_entry_count": 1215,
+    "active_config_sha256": "7a6d9689df73f832e15efd53923ab69d03ebc4f0357635bb8d9e67d6342e35b5",
+    "candidate_manifest_sha256": "fa90e8649920ff2f4f46ba12ac0d447f91d57eddd565cd2ca8e21f7310d19f57"
+  },
+  "disposition": "The earlier r7 observation is retained only as stale diagnostic evidence. The candidate and rollback preimage are bound to the fresh Futu API release and plist above."
+}
