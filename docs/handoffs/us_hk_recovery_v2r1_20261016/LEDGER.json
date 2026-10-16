@@ -1,0 +1,126 @@
+[
+  {
+    "worker": "mapping_recovery_intake",
+    "milestone": "Read-only package integrity and semantic contract intake",
+    "dispatch_time": "2026-10-16T07:07:37.448634+00:00",
+    "expected_terminal_type": "Evidence audit with explicit blockers",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "dispatch_time_basis": "recorded immediately after dispatch",
+    "milestone_evidence": "Input SHA/size; all 3637 manifest-listed files SHA/size/CRC pass; 667/1003 original fields identical; 757 closed research + 25 closed excluded + 221 open.",
+    "receipt": "INTAKE_AUDIT.json"
+  },
+  {
+    "worker": "mapping_recovery_writer",
+    "milestone": "source candidate only",
+    "dispatch_time": "2026-10-16T07:15:25.025688+00:00",
+    "expected_terminal_type": "IMPLEMENTED plus focused tests and exact diff",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "receipts/SOURCE_CANDIDATE_RECEIPT.json"
+  },
+  {
+    "worker": "mapping_recovery_review",
+    "milestone": "source independent review",
+    "dispatch_time": "2026-10-16T07:35:43.322515+00:00",
+    "expected_terminal_type": "Independent PASS/FAIL",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "receipts/INDEPENDENT_SOURCE_REVIEW_20261016.md",
+    "verdict": "PASS"
+  },
+  {
+    "worker": "mapping_recovery_writer",
+    "milestone": "runtime PREPARE only",
+    "dispatch_time": "2026-10-16T07:36:31.865048+00:00",
+    "expected_terminal_type": "PREPARED no activation",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "runtime/receipts/RUNTIME_PREPARATION_RECEIPT.json"
+  },
+  {
+    "worker": "mapping_recovery_review",
+    "milestone": "runtime independent review",
+    "dispatch_time": "2026-10-16T07:55:17.771734+00:00",
+    "expected_terminal_type": "Independent runtime PASS/FAIL",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "verdict": "FAIL P2 rollback detach exception skips plist restore",
+    "receipt": "runtime/receipts/RUNTIME_INDEPENDENT_REVIEW.json"
+  },
+  {
+    "worker": "mapping_recovery_writer",
+    "milestone": "P2 rollback detach failure repair only",
+    "dispatch_time": "2026-10-16T08:05:43.117536+00:00",
+    "expected_terminal_type": "REPAIRED plus focused tests",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "runtime/receipts/ROLLBACK_REPAIR_RECEIPT.json"
+  },
+  {
+    "worker": "mapping_recovery_review",
+    "milestone": "P2 rollback repair independent review",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "runtime/receipts/ROLLBACK_REPAIR_INDEPENDENT_REVIEW.json",
+    "verdict": "PASS"
+  },
+  {
+    "worker": "mapping_recovery_writer",
+    "milestone": "fresh r2 runtime PREPARE",
+    "dispatch_time": "2026-10-16T08:26:47.808899+00:00",
+    "expected_terminal_type": "R2 PREPARED only",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "runtime/receipts/RUNTIME_PREPARATION_RECEIPT_R2.json"
+  },
+  {
+    "worker": "mapping_recovery_review",
+    "milestone": "R2 runtime independent review",
+    "dispatch_time": "2026-10-16T08:33:03.582331+00:00",
+    "expected_terminal_type": "R2 independent PASS/FAIL",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "verdict": "PASS",
+    "receipt": "runtime/receipts/RUNTIME_INDEPENDENT_REVIEW_R2.json"
+  },
+  {
+    "worker": "mapping_recovery_writer",
+    "milestone": "R2 activation and live readback",
+    "dispatch_time": "2026-10-16T08:38:30.735386+00:00",
+    "expected_terminal_type": "DEPLOYED or exact aborted/rollback result",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "runtime/receipts/LIVE_DEPLOYMENT_RECEIPT_R2.json"
+  },
+  {
+    "worker": "mapping_recovery_review",
+    "milestone": "live independent verification",
+    "lifecycle_status": "completed",
+    "final_received": true,
+    "final_consumed": true,
+    "receipt_verified": true,
+    "receipt": "runtime/receipts/LIVE_INDEPENDENT_REVIEW_R2.json",
+    "verdict": "PASS"
+  }
+]
