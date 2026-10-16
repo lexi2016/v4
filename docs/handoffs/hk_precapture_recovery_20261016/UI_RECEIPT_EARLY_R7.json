@@ -1,0 +1,139 @@
+{
+  "schema_version": "v4.hk_morning_recovery_ui_receipt.v1",
+  "observer": "parent",
+  "recorded_at": "2026-10-16T14:30:08.929376+08:00",
+  "status": "UI_VERIFIED_OBSERVATION_ROWS",
+  "method": "Existing browser tab; read-only refresh; select each exact stage; read rendered HK region; full reload of 0930 after all checks and wait for loading to settle.",
+  "candidate_identity_source": "Independent service/API receipt; UI header not used as release evidence.",
+  "stages": [
+    {
+      "date": "20261016",
+      "stage": "STAGE_0930_0935",
+      "row_count": 10,
+      "codes": [
+        "HK.00100",
+        "HK.06185",
+        "HK.06127",
+        "HK.02595",
+        "HK.03696",
+        "HK.06656",
+        "HK.09606",
+        "HK.01672",
+        "HK.02315",
+        "HK.03881"
+      ],
+      "label": "10 条观察行 · 未验证",
+      "backfill_run_id": "hk-morning-20261016-stage-0930-v1",
+      "selection_manifest_receipt_display": "已验证",
+      "runner_receipt_display": "已验证",
+      "stage_read_error": false
+    },
+    {
+      "date": "20261016",
+      "stage": "STAGE_0935_0940",
+      "row_count": 10,
+      "codes": [
+        "HK.06185",
+        "HK.00100",
+        "HK.09606",
+        "HK.02635",
+        "HK.02595",
+        "HK.02706",
+        "HK.01672",
+        "HK.06656",
+        "HK.06127",
+        "HK.02335"
+      ],
+      "label": "10 条观察行 · 未验证",
+      "backfill_run_id": "hk-morning-20261016-stage-0935-v1",
+      "selection_manifest_receipt_display": "已验证",
+      "runner_receipt_display": "已验证",
+      "stage_read_error": false
+    },
+    {
+      "date": "20261016",
+      "stage": "STAGE_0940_0945",
+      "row_count": 10,
+      "codes": [
+        "HK.09606",
+        "HK.06185",
+        "HK.06821",
+        "HK.02595",
+        "HK.01672",
+        "HK.06127",
+        "HK.03696",
+        "HK.02706",
+        "HK.02315",
+        "HK.02635"
+      ],
+      "label": "10 条观察行 · 未验证",
+      "backfill_run_id": "hk-morning-20261016-stage-0940-v1",
+      "selection_manifest_receipt_display": "已验证",
+      "runner_receipt_display": "已验证",
+      "stage_read_error": false
+    },
+    {
+      "date": "20261016",
+      "stage": "STAGE_0945_1030",
+      "row_count": 10,
+      "codes": [
+        "HK.09606",
+        "HK.06809",
+        "HK.06166",
+        "HK.01333",
+        "HK.00100",
+        "HK.02335",
+        "HK.01779",
+        "HK.01672",
+        "HK.00667",
+        "HK.03774"
+      ],
+      "label": "10 条观察行 · 未验证",
+      "backfill_run_id": "hk-morning-20261016-stage-0945-v1",
+      "selection_manifest_receipt_display": "已验证",
+      "runner_receipt_display": "已验证",
+      "stage_read_error": false
+    }
+  ],
+  "retained_reasons": [
+    "HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
+    "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
+    "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
+    "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+    "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM"
+  ],
+  "natural_1315_post_cutover": {
+    "rows": 10,
+    "codes": [
+      "HK.06809",
+      "HK.02335",
+      "HK.01779",
+      "HK.09606",
+      "HK.02697",
+      "HK.07630",
+      "HK.02595",
+      "HK.02659",
+      "HK.00667",
+      "HK.01377"
+    ],
+    "same_as_prior_ui_receipt": true,
+    "excluded_02723_absent": true,
+    "missing_minute_codes": [
+      "HK.09678",
+      "HK.09890",
+      "HK.09903"
+    ],
+    "stage_read_error": false
+  },
+  "full_reload_0930": {
+    "passed": true,
+    "async_initial_loading_observed": true,
+    "final_alerts": [],
+    "final_rows": 10
+  },
+  "historical_failure": "UI_FAILURE_R6.json retained; R7 adds only required date/stage identity fields.",
+  "limits": [
+    "Observation restoration only; no historical natural-time or PIT claim.",
+    "No producer, run/recovery, or force-materialization UI action."
+  ]
+}

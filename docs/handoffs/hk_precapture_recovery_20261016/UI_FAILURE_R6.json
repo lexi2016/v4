@@ -1,0 +1,20 @@
+{
+  "schema_version": "v4.hk_morning_ui_failure.v1",
+  "observer": "parent",
+  "candidate_release": "hk-morning-selection-recovery-20261016-r6",
+  "method": "Existing browser tab reloaded, read-only refresh snapshot button, visible DOM, and observed CDP response",
+  "request": "http://127.0.0.1:8873/api/v3/workbench/stage?date=20261016&stage=STAGE_0930_0935&limit=50",
+  "http_status": 200,
+  "json_parse": true,
+  "hk_response_rows": 10,
+  "hk_response_display_mode": "OBSERVATION_UNVERIFIED",
+  "visible_alert": "阶段工作台读取失败。",
+  "visible_A_HK_rows": "— 条",
+  "preselection_loaded_count": 268,
+  "independent_cause_receipt": "EARLY_ONLINE_INDEPENDENT_REVIEW.json",
+  "independent_cause_receipt_sha256": "497c0e6b0968ac8334b3fe9c683f4e7d3721a43f71bae363a3ac93ccf6c9f731",
+  "status": "UI_FAILED",
+  "cause": "HK selection_markets projection lacks trade_date and stage_id required by the active frontend validator.",
+  "repair_scope": "Only add request date/stage identity fields and targeted regression coverage.",
+  "raw_response_copied": false
+}

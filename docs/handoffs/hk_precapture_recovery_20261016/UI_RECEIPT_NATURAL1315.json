@@ -1,0 +1,44 @@
+{
+  "schema_version": "v4.hk_natural_ui_receipt.v1",
+  "observer": "parent",
+  "observed_at": "2026-10-16T13:18:00+08:00",
+  "url": "http://127.0.0.1:8873/?date=20261016&stage=STAGE_1300_1315",
+  "method": "existing browser stage combobox and rendered HK observation region",
+  "status": "UI_VERIFIED_OBSERVATION_ROWS",
+  "row_count": 10,
+  "codes": [
+    "06809",
+    "02335",
+    "01779",
+    "09606",
+    "02697",
+    "07630",
+    "02595",
+    "02659",
+    "00667",
+    "01377"
+  ],
+  "excluded_stale_code_absent": "02723",
+  "display_label": "观察行·未验证",
+  "minute_coverage": "97/100",
+  "missing_minute_codes": [
+    "09678",
+    "09890",
+    "09903"
+  ],
+  "retained_reasons": [
+    "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF",
+    "HK_FORMAL_ELIGIBILITY_FALSE",
+    "HK_SELECTION_STATUS_PARTIAL_WITH_ROWS"
+  ],
+  "run_mode": "NATURAL/DUE",
+  "scheduler_at": "2026-10-16T13:15:06.011721+08:00",
+  "actual_start": "2026-10-16T13:15:06.902070+08:00",
+  "runner_receipt_sha256": "3c730767cae02e6eea6ae493c7d098351ac666ab3d8c1e7fe00f1c6812397ce6",
+  "limitations": [
+    "No formal eligibility or PIT acceptance claimed.",
+    "Cached page release header not used to prove running API identity.",
+    "Independent natural execution verdict recorded separately."
+  ],
+  "mutations": "UI stage filter only; no run/recovery/materialization actions"
+}

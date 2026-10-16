@@ -1,0 +1,83 @@
+{
+  "activation_status": "NOT_ACTIVATED",
+  "active_plist_changed": false,
+  "application_inventory_entry_count": 1230,
+  "application_inventory_sha256": "572ccb3a44ce195bb54ef3ee67ae03c40ce93cc1c0a81931a54f64fb8aa95a58",
+  "base": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/app",
+    "application_inventory_entry_count": 1230,
+    "application_inventory_sha256": "eaafe64cd512e79b83dd48a6920efb267e868dff8f44e38ed8c270778523c1de",
+    "release_id": "announcement-connect-api-20261016-r2",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/release-manifest.json",
+    "release_manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2"
+  },
+  "base_live_plist_sha256": "04ecb0906ca5b46f296c9ece249a8c2c3a99134719176824fa33847ecdba24dd",
+  "candidate_app_file_sha256": "34a3fbccbe25bd901256f423fe77714c4701f4e838fe442731376793f9810149",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7",
+  "candidate_status": "READY_FOR_INDEPENDENT_REVIEW",
+  "delta_paths": [
+    "apps/api/v35_api/app.py"
+  ],
+  "delta_receipt_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/early_api_delta_receipt_r7.json",
+  "delta_receipt_sha256": "c682761af0dd5a2a8849b462bdab19e02364251b10f9a2364d7cefc6866537b6",
+  "deployment_status": "CANNOT_CONFIRM",
+  "launchctl_called": false,
+  "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/release-manifest.json",
+  "manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+  "receipt_created_at_utc": "2026-10-16T05:59:55+00:00",
+  "schema_version": "v4.api_module_candidate_receipt.v1",
+  "source_change": {
+    "diff_hunk_count": 2,
+    "fields_added_to_selection_markets.HK_CONNECT": [
+      "trade_date",
+      "stage_id"
+    ],
+    "from_app_sha256": "76ea0556478c301d7758451e7c5dda02e4480991fa433244ba59e0eac0d5d21c",
+    "to_app_sha256": "34a3fbccbe25bd901256f423fe77714c4701f4e838fe442731376793f9810149"
+  },
+  "source_patch_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/hk_precapture_recovery_20261016/early_api_r6_to_r7.patch",
+  "source_patch_sha256": "0c199aff554ad426c2762d2963e081be2cf82798ed6fe24d314e21283956e2c1",
+  "staged_plist": {
+    "install_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "label": "com.lexi.v35.api-only",
+    "not_installed": true,
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/config/com.lexi.v35.api-only.plist",
+    "port": 8873,
+    "sha256": "2b902b87f17575258c5b483fe38f8cb1c02ab036bc14013adf2a14206cb37924"
+  },
+  "target_role": "gateway",
+  "verification": {
+    "active_api_plist_sha256": "04ecb0906ca5b46f296c9ece249a8c2c3a99134719176824fa33847ecdba24dd",
+    "active_pointer": "base",
+    "base": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/app",
+      "application_inventory_entry_count": 1230,
+      "application_inventory_sha256": "eaafe64cd512e79b83dd48a6920efb267e868dff8f44e38ed8c270778523c1de",
+      "release_id": "announcement-connect-api-20261016-r2",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/release-manifest.json",
+      "release_manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2"
+    },
+    "candidate": {
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/app",
+      "application_inventory_entry_count": 1230,
+      "application_inventory_sha256": "572ccb3a44ce195bb54ef3ee67ae03c40ce93cc1c0a81931a54f64fb8aa95a58",
+      "module_contract_sha256": null,
+      "module_role": "gateway",
+      "release_id": "hk-morning-selection-recovery-20261016-r7",
+      "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/release-manifest.json",
+      "release_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7"
+    },
+    "delta_paths": [
+      "apps/api/v35_api/app.py"
+    ],
+    "delta_receipt_sha256": "c682761af0dd5a2a8849b462bdab19e02364251b10f9a2364d7cefc6866537b6",
+    "non_delta_active_release_bytes_preserved": true,
+    "non_delta_entry_count": 1229,
+    "non_delta_inventory_sha256": "060f358d61b694d0b40a1d2d9193df194e41344804ca2f6371358f27c9b8dcc5",
+    "shared_lock_path": "/Users/lexi/Library/LaunchAgents/.com.lexi.v35.api-only.release.lock",
+    "status": "PASS"
+  }
+}

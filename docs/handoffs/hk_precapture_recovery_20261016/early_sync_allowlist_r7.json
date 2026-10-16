@@ -1,0 +1,86 @@
+{
+  "allowlisted_files": [
+    {
+      "bytes": 31761,
+      "git_blob_sha1": "5c6e335949e714f51b33431f5efe65bae5ed53b1",
+      "path": "ops/run_hk_morning_selection_recovery_20261016.py",
+      "sha256": "b85bccd092553cac60d0d3b7372002ca6b4b42c4595fa636b65df343eba399a3"
+    },
+    {
+      "bytes": 25439,
+      "git_blob_sha1": "ace4bbd5872ee1875a8e72f935f54495878b61de",
+      "path": "tests/test_hk_morning_selection_recovery_20261016.py",
+      "sha256": "fb32c8f464c9ad344d785446f9bb90e308efa1276060adaebe90145c0325dcb2"
+    },
+    {
+      "bytes": 26152,
+      "git_blob_sha1": "656542a0dbc198f4643067c42ea2ca3cf355ba7e",
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_source_patch_r6.patch",
+      "sha256": "e7b31fbd1bee2ab494aaaef2ac1cc8b2c7a629245323cdd730a151cba6028660"
+    },
+    {
+      "bytes": 889,
+      "git_blob_sha1": "1046860a0007efa1ae052d0ccf86b53909a9b978",
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_r6_to_r7.patch",
+      "sha256": "0c199aff554ad426c2762d2963e081be2cf82798ed6fe24d314e21283956e2c1"
+    },
+    {
+      "bytes": 1365,
+      "git_blob_sha1": "18d13b9ebdaa5deade08f29c413bf356a8f8d1aa",
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_delta_receipt_r7.json",
+      "sha256": "c682761af0dd5a2a8849b462bdab19e02364251b10f9a2364d7cefc6866537b6"
+    },
+    {
+      "bytes": 5288,
+      "git_blob_sha1": "f72cda1a87efe0ab50a2f7f3d538dfcce82547cc",
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_build_receipt_r7.json",
+      "sha256": "b26d31be71cbbeb6f5167eb980c02b6a4b9522e72028faff17e2f6b94e896d12"
+    },
+    {
+      "bytes": 5035,
+      "git_blob_sha1": "f16d98e9927b4d2abac67764ec9fd7778c9fe90a",
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/early_recovery_writer_receipt_r7.json",
+      "sha256": "a6b097d227e207fad355fe885068f5944b5f7b1c4540f2c20e3a3a285a2eda08"
+    },
+    {
+      "bytes": 7769,
+      "git_blob_sha1": "c9601d954fd5c88502018108f81965d5ce87b209",
+      "path": "docs/handoffs/hk_precapture_recovery_20261016/EARLY_ONLINE_INDEPENDENT_REVIEW.json",
+      "sha256": "497c0e6b0968ac8334b3fe9c683f4e7d3721a43f71bae363a3ac93ccf6c9f731"
+    }
+  ],
+  "base_application_inventory_sha256": "eaafe64cd512e79b83dd48a6920efb267e868dff8f44e38ed8c270778523c1de",
+  "base_manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+  "base_release_id": "announcement-connect-api-20261016-r2",
+  "candidate_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+  "excluded_paths": [
+    "inactive API release packages",
+    "active API plist and rollback backups",
+    "temporary dry-run build and test outputs",
+    "live selection/receipt state and recovery output",
+    "raw market data and Futu capture JSON",
+    "full release inventories",
+    "R6 superseded candidate packages and unrelated handoff receipts",
+    "A-share and STAGE_0925/STAGE_1300_1315 state",
+    "docs/handoffs/hk_precapture_recovery_20261016/early_sync_allowlist_r7.json"
+  ],
+  "pending": [
+    "independent R7 review of actual candidate diff and the four-stage API/frontend regression",
+    "any future API publication requires a separate authorized deployment decision and R7-specific readback"
+  ],
+  "preparation_scope": "R7 exact two-field API patch, recovery helper, focused tests, R7 candidate/build evidence, and the independent finding that triggered the repair; no active API, service, selection state, or repository publication mutation.",
+  "schema_version": "v4.hk_morning_selection_recovery_git_sync_allowlist.v2",
+  "self_file_excluded_from_allowlisted_files": true,
+  "self_path": "docs/handoffs/hk_precapture_recovery_20261016/early_sync_allowlist_r7.json",
+  "source_delta": {
+    "base_sha256": "76ea0556478c301d7758451e7c5dda02e4480991fa433244ba59e0eac0d5d21c",
+    "candidate_sha256": "34a3fbccbe25bd901256f423fe77714c4701f4e838fe442731376793f9810149",
+    "canonical_full_blob_sync": "EXCLUDED_MIXED_WORKTREE_BLOB",
+    "canonical_path": "apps/api/v35_api/app.py",
+    "patch_path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_r6_to_r7.patch",
+    "patch_sha256": "0c199aff554ad426c2762d2963e081be2cf82798ed6fe24d314e21283956e2c1",
+    "sync_representation": "R6-to-R7 one-hunk source patch; R3-to-R6 base patch retained for reconstruction."
+  },
+  "status": "PREPARED",
+  "target_candidate_id": "hk-morning-selection-recovery-20261016-r7"
+}

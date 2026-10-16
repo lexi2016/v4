@@ -1,0 +1,517 @@
+{
+  "active_service": {
+    "active_count": 1,
+    "active_release_identity_matches_launchd_and_R1_R2_pins": true,
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/app",
+    "label": "gui/501/com.lexi.v35.api-only",
+    "listener": "127.0.0.1:8873",
+    "pid": 23957,
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "plist_sha256": "2b902b87f17575258c5b483fe38f8cb1c02ab036bc14013adf2a14206cb37924",
+    "process": "v3.5 Python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873",
+    "release_id": "hk-morning-selection-recovery-20261016-r7",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/release-manifest.json",
+    "release_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+    "state": "running"
+  },
+  "api_readback": {
+    "date": "20261016",
+    "endpoint": "/api/v3/workbench/stage",
+    "limit": 50,
+    "method": "GET",
+    "stages": {
+      "STAGE_0925": {
+        "a_share_summary_matches_r1_pin": true,
+        "action_levels": [
+          "NO_BUY"
+        ],
+        "cannot_confirm": [],
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_reasons": [
+          "HK_FORMAL_ELIGIBILITY_FALSE",
+          "HK_SELECTION_STATUS_PARTIAL_WITH_ROWS"
+        ],
+        "formal_eligible_values": [
+          false
+        ],
+        "hk_projection_identity_verified": true,
+        "hk_projection_stage_id": "STAGE_0925",
+        "hk_projection_trade_date": "20261016",
+        "hk_row_count": 10,
+        "hk_rows_sha256": "94be49a8280d5285f4f878c63b0f7e77394017eb34f1dc4412726ba939e66d12",
+        "http_status": 200,
+        "live_response_sha256": "b8d0c3378704fdbaef07594299089d7e902ba21824d6429bb4bf09b5d99f3ecb",
+        "matches_writer_supplement_pin": true,
+        "outer_stage_id": "STAGE_0925",
+        "outer_trade_date": "20261016",
+        "request_limit": 50,
+        "runner_receipt_sha256": null,
+        "runner_receipt_verified": "NOT_APPLICABLE_OR_NOT_PRESENT_IN_CONTROL_PROJECTION",
+        "selection_artifact_sha256": "3b9992e4e8d29a6b3fa0d1160525583f0c39b52738352406470b614806b7e89c",
+        "selection_manifest_receipt_verified": true,
+        "selection_manifest_sha256": "d97a59865fbb04c8e40efa48c369fceecf88535fbb4a6eebabc02dc9702fccbc",
+        "selection_receipt_sha256": "60b3b1da5d93fa3541f5ed8975214cc8dc527554b227e30dc5e08f91a08df061",
+        "status": "PARTIAL_WITH_ROWS",
+        "top_safety_flags": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "write_performed": false
+        },
+        "ui_observation": {
+          "observer": "independent API only; control stage, not in early-stage UI scope"
+        }
+      },
+      "STAGE_0930_0935": {
+        "a_share_summary_matches_r1_pin": true,
+        "action_levels": [
+          "NO_BUY"
+        ],
+        "cannot_confirm": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE"
+        ],
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_reasons": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
+          "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
+          "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
+          "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+          "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM"
+        ],
+        "formal_eligible_values": [
+          false
+        ],
+        "hk_projection_identity_verified": true,
+        "hk_projection_stage_id": "STAGE_0930_0935",
+        "hk_projection_trade_date": "20261016",
+        "hk_row_count": 10,
+        "hk_rows_sha256": "b31aba506e64fd25c6b65422fd232f8afc6f25592c65308d5365d430c846a1d0",
+        "http_status": 200,
+        "live_response_sha256": "d38da3c3c818c5550de09cbfd84bcf3d457e8adf0afc57bfbf79ac8f1c8a847d",
+        "matches_writer_supplement_pin": true,
+        "outer_stage_id": "STAGE_0930_0935",
+        "outer_trade_date": "20261016",
+        "request_limit": 50,
+        "runner_receipt_sha256": "7705fd6b8393e2cbe2dfebdd12bead7d370511ce24c01440ca161ab1edb659af",
+        "runner_receipt_verified": true,
+        "selection_artifact_sha256": "64da4a35c08c0fd194b751d14ee681c4e192e64542054440d7b357166207d0e2",
+        "selection_manifest_receipt_verified": true,
+        "selection_manifest_sha256": "f2c6a24eb3104b1cb4e95c8d69cc125678be920283d80523ab2e3b8b7b4a627a",
+        "selection_receipt_sha256": "7c97a711f9e07b0d85933138f4e47089644fe00de4e68a9420c24e3488505bd1",
+        "status": "PARTIAL_WITH_ROWS",
+        "top_safety_flags": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "write_performed": false
+        },
+        "ui_observation": {
+          "backfill_run_id": "hk-morning-20261016-stage-0930-v1",
+          "code_count": 10,
+          "codes": [
+            "HK.00100",
+            "HK.06185",
+            "HK.06127",
+            "HK.02595",
+            "HK.03696",
+            "HK.06656",
+            "HK.09606",
+            "HK.01672",
+            "HK.02315",
+            "HK.03881"
+          ],
+          "codes_match_api": true,
+          "codes_match_ui_stage": true,
+          "observer": "parent",
+          "rows": 10
+        }
+      },
+      "STAGE_0935_0940": {
+        "a_share_summary_matches_r1_pin": true,
+        "action_levels": [
+          "NO_BUY"
+        ],
+        "cannot_confirm": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE"
+        ],
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_reasons": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
+          "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
+          "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
+          "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+          "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM"
+        ],
+        "formal_eligible_values": [
+          false
+        ],
+        "hk_projection_identity_verified": true,
+        "hk_projection_stage_id": "STAGE_0935_0940",
+        "hk_projection_trade_date": "20261016",
+        "hk_row_count": 10,
+        "hk_rows_sha256": "29ea7bb8d07b6c8d3f67716c3cfbd579a45f906590c5afa1b621c3b404207c53",
+        "http_status": 200,
+        "live_response_sha256": "d7aa3af0f092860c5b1cc485ef462e1d0f199b0988c1d24f5a359332d2f7de5d",
+        "matches_writer_supplement_pin": true,
+        "outer_stage_id": "STAGE_0935_0940",
+        "outer_trade_date": "20261016",
+        "request_limit": 50,
+        "runner_receipt_sha256": "e6c3ea14d193a3cdc6f4a622b0c55d7176087316da1d4d3217dbe175f5eb0b60",
+        "runner_receipt_verified": true,
+        "selection_artifact_sha256": "ed05e2eb54592992be63aa9bb842e10443fa4c9b2bacda1d989bd52898f1a09b",
+        "selection_manifest_receipt_verified": true,
+        "selection_manifest_sha256": "c6a427472e3d22f464c8c4f71c147c76394d591cc034408bf69ebcb934b44d83",
+        "selection_receipt_sha256": "10b6f0d7deff4a0863e893893d51115983d78e7c4a603b544286265a773ce546",
+        "status": "PARTIAL_WITH_ROWS",
+        "top_safety_flags": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "write_performed": false
+        },
+        "ui_observation": {
+          "backfill_run_id": "hk-morning-20261016-stage-0935-v1",
+          "code_count": 10,
+          "codes": [
+            "HK.06185",
+            "HK.00100",
+            "HK.09606",
+            "HK.02635",
+            "HK.02595",
+            "HK.02706",
+            "HK.01672",
+            "HK.06656",
+            "HK.06127",
+            "HK.02335"
+          ],
+          "codes_match_api": true,
+          "codes_match_ui_stage": true,
+          "observer": "parent",
+          "rows": 10
+        }
+      },
+      "STAGE_0940_0945": {
+        "a_share_summary_matches_r1_pin": true,
+        "action_levels": [
+          "NO_BUY"
+        ],
+        "cannot_confirm": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE"
+        ],
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_reasons": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
+          "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
+          "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
+          "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+          "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM"
+        ],
+        "formal_eligible_values": [
+          false
+        ],
+        "hk_projection_identity_verified": true,
+        "hk_projection_stage_id": "STAGE_0940_0945",
+        "hk_projection_trade_date": "20261016",
+        "hk_row_count": 10,
+        "hk_rows_sha256": "f4e1c794e8af4ccbd6cd52ccc57c327432dcb031755b78ecd6a7702ef2d2262d",
+        "http_status": 200,
+        "live_response_sha256": "fbcbe94af91f5e843ecbeb4c0ad5b5c4939e1cda7c8f1f2375212dec3413a964",
+        "matches_writer_supplement_pin": true,
+        "outer_stage_id": "STAGE_0940_0945",
+        "outer_trade_date": "20261016",
+        "request_limit": 50,
+        "runner_receipt_sha256": "64573855d3ed3a4e7454dd27cbd207fa4d1bf95e238f4e7510404bcf662d749d",
+        "runner_receipt_verified": true,
+        "selection_artifact_sha256": "c4e4720a38ea2de6d2bb0b40ca6a0356289cab33825890f6329056567dedb950",
+        "selection_manifest_receipt_verified": true,
+        "selection_manifest_sha256": "ba2f1ea44b9e348e1d3de61b4bcb9ac8cc38fbd71d3537ce9c2a4feb4e75b937",
+        "selection_receipt_sha256": "126085edf5155e4861c1d3fb4a47fe88b9fd338746e713237889c134c0d839e9",
+        "status": "PARTIAL_WITH_ROWS",
+        "top_safety_flags": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "write_performed": false
+        },
+        "ui_observation": {
+          "backfill_run_id": "hk-morning-20261016-stage-0940-v1",
+          "code_count": 10,
+          "codes": [
+            "HK.09606",
+            "HK.06185",
+            "HK.06821",
+            "HK.02595",
+            "HK.01672",
+            "HK.06127",
+            "HK.03696",
+            "HK.02706",
+            "HK.02315",
+            "HK.02635"
+          ],
+          "codes_match_api": true,
+          "codes_match_ui_stage": true,
+          "observer": "parent",
+          "rows": 10
+        }
+      },
+      "STAGE_0945_1030": {
+        "a_share_summary_matches_r1_pin": true,
+        "action_levels": [
+          "NO_BUY"
+        ],
+        "cannot_confirm": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE"
+        ],
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_reasons": [
+          "HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
+          "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
+          "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
+          "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+          "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM"
+        ],
+        "formal_eligible_values": [
+          false
+        ],
+        "hk_projection_identity_verified": true,
+        "hk_projection_stage_id": "STAGE_0945_1030",
+        "hk_projection_trade_date": "20261016",
+        "hk_row_count": 10,
+        "hk_rows_sha256": "d9f983f529f643baab268c044397966290f6d7a9c10e253fe0d81ee8c48e7f5d",
+        "http_status": 200,
+        "live_response_sha256": "46d295bdfa5a375d40556e23331980c941df28da29f4c1409514280a737e5813",
+        "matches_writer_supplement_pin": true,
+        "outer_stage_id": "STAGE_0945_1030",
+        "outer_trade_date": "20261016",
+        "request_limit": 50,
+        "runner_receipt_sha256": "b286e07ed50e8b8c806661939cb4c2b441d28f0fd1bf627925a908f8145e7ec0",
+        "runner_receipt_verified": true,
+        "selection_artifact_sha256": "0e8ecec964d6b9827dd07eba568c3c9318e3ee622abbd7801a6b50daa67c903b",
+        "selection_manifest_receipt_verified": true,
+        "selection_manifest_sha256": "4479d731a796b0ef6e2065c92dab98da3b88462b334cdd31d32e7e2e11908e13",
+        "selection_receipt_sha256": "ac37537b8bab1e0fbd02dd836b17f23dedbf98a7e5a159b4e80a67204b6dacca",
+        "status": "PARTIAL_WITH_ROWS",
+        "top_safety_flags": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "write_performed": false
+        },
+        "ui_observation": {
+          "backfill_run_id": "hk-morning-20261016-stage-0945-v1",
+          "code_count": 10,
+          "codes": [
+            "HK.09606",
+            "HK.06809",
+            "HK.06166",
+            "HK.01333",
+            "HK.00100",
+            "HK.02335",
+            "HK.01779",
+            "HK.01672",
+            "HK.00667",
+            "HK.03774"
+          ],
+          "codes_match_api": true,
+          "codes_match_ui_stage": true,
+          "observer": "parent",
+          "rows": 10
+        }
+      },
+      "STAGE_1300_1315": {
+        "a_share_summary_matches_r1_pin": true,
+        "action_levels": [
+          "NO_BUY"
+        ],
+        "cannot_confirm": [
+          "futu 只返回 97/100 只标的分钟线，缺少：HK.09678,HK.09890,HK.09903"
+        ],
+        "display_mode": "OBSERVATION_UNVERIFIED",
+        "display_reasons": [
+          "futu 只返回 97/100 只标的分钟线，缺少：HK.09678,HK.09890,HK.09903",
+          "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF",
+          "HK_FORMAL_ELIGIBILITY_FALSE",
+          "HK_SELECTION_STATUS_PARTIAL_WITH_ROWS"
+        ],
+        "formal_eligible_values": [
+          false
+        ],
+        "hk_projection_identity_verified": true,
+        "hk_projection_stage_id": "STAGE_1300_1315",
+        "hk_projection_trade_date": "20261016",
+        "hk_row_count": 10,
+        "hk_rows_sha256": "eaea6539a2ebeea9fc51966bc9fc924f7d67988e8a5c66d3c8234885b8ffcc86",
+        "http_status": 200,
+        "live_response_sha256": "61ce5e374542abe2f23c6b62b26675d92d4ab018ba49e79a5db835b5741ff456",
+        "matches_writer_supplement_pin": true,
+        "outer_stage_id": "STAGE_1300_1315",
+        "outer_trade_date": "20261016",
+        "request_limit": 50,
+        "runner_receipt_sha256": null,
+        "runner_receipt_verified": "NOT_APPLICABLE_OR_NOT_PRESENT_IN_CONTROL_PROJECTION",
+        "selection_artifact_sha256": "3d9e23a1d8a5663adf2e3ed27a5b1408f2a4be5b73da26948583c554354db847",
+        "selection_manifest_receipt_verified": true,
+        "selection_manifest_sha256": "a48b4cd7e36f0a3d32821c998143a17fde5e6463fb44f6e0c5a9a7827f9b466b",
+        "selection_receipt_sha256": "60026be92b7c6e3a5511b8c15a4fecc63476ab5a8d2116fc4afc1f20dbb69687",
+        "status": "PARTIAL_WITH_ROWS",
+        "top_safety_flags": {
+          "RESEARCH_ONLY": true,
+          "buy_gate_updated": false,
+          "orders_sent": false,
+          "production_allowed": false,
+          "write_performed": false
+        },
+        "ui_observation": {
+          "code_count": 10,
+          "codes_match_api": true,
+          "observer": "parent",
+          "rows": 10
+        }
+      }
+    }
+  },
+  "behavior_scope": "Observation-row projection only; UI render is parent-observed and cross-checked against independent live API GETs.",
+  "behavior_status": "BEHAVIOR_VERIFIED",
+  "findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "items": []
+  },
+  "limitations": [
+    "HK remains PARTIAL_WITH_ROWS / OBSERVATION_UNVERIFIED / NO_BUY; formal eligibility and PIT safety remain CANNOT_CONFIRM.",
+    "Natural slot after R7 activation was NOT_RUN; NATURAL_VERIFIED is not claimed.",
+    "No trading, buy-gate, production, or order action was authorized or observed."
+  ],
+  "original_activation_attempt": {
+    "note": "The recorded post-start helper NameError is an automation-check anomaly. The current active identity and target API/UI behavior were independently verified; original receipt remains unchanged.",
+    "receipt": "docs/handoffs/hk_precapture_recovery_20261016/EARLY_R7_ONLINE_ACTIVATION_RECEIPT.json",
+    "retained_status": "R7_ACTIVATION_FAILED",
+    "sha256": "afb142f86bf7a198ea86017dcdd558cf64dfea5486dbc4a87643c0f7876fabe8"
+  },
+  "parent_ui_evidence": {
+    "0930_full_reload_passed": true,
+    "0930_reload_alerts": [],
+    "0930_reload_rows": 10,
+    "four_early_stages_each_10_observation_rows_no_read_error": true,
+    "natural_1315_excluded_02723_absent": true,
+    "natural_1315_rows_same_as_prior_ui_receipt": true,
+    "observer": "parent",
+    "receipt": "docs/handoffs/hk_precapture_recovery_20261016/UI_RECEIPT_EARLY_R7.json",
+    "sha256": "5483e1d7b3ec37ddd96339b176122150b03a46b8661db4be12fa92b69206e485",
+    "status": "UI_VERIFIED_OBSERVATION_ROWS",
+    "ui_claim_limit": "UI evidence is parent-observed; it verifies observation rendering only."
+  },
+  "prior_online_r6_review": {
+    "receipt": "docs/handoffs/hk_precapture_recovery_20261016/EARLY_ONLINE_INDEPENDENT_REVIEW.json",
+    "sha256": "497c0e6b0968ac8334b3fe9c683f4e7d3721a43f71bae363a3ac93ccf6c9f731",
+    "verdict": "REVIEWED_FAIL on R6 HK projection identity; closed by R7 candidate review"
+  },
+  "protection_checks": {
+    "all_four_backfill_maps_equal_before_and_after_and_match_current_files": true,
+    "all_protected_A_keys_match": true,
+    "api_controls_0925_and_1315_response_sha256": {
+      "A_summaries_match_R1_pins": true,
+      "STAGE_0925": "b8d0c3378704fdbaef07594299089d7e902ba21824d6429bb4bf09b5d99f3ecb",
+      "STAGE_1300_1315": "61ce5e374542abe2f23c6b62b26675d92d4ab018ba49e79a5db835b5741ff456",
+      "both_match_R1_pins": true
+    },
+    "d1_pool_sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+    "four_backfill_state_file_maps": [
+      {
+        "backfill_run_id": "hk-morning-20261016-stage-0930-v1",
+        "before_after_byte_maps_equal": true,
+        "current_files_match_after_pins": true,
+        "file_count": 6,
+        "legacy_aggregate_recomputed": false,
+        "rows_preserved": 10,
+        "stage_id": "STAGE_0930_0935"
+      },
+      {
+        "backfill_run_id": "hk-morning-20261016-stage-0935-v1",
+        "before_after_byte_maps_equal": true,
+        "current_files_match_after_pins": true,
+        "file_count": 6,
+        "legacy_aggregate_recomputed": false,
+        "rows_preserved": 10,
+        "stage_id": "STAGE_0935_0940"
+      },
+      {
+        "backfill_run_id": "hk-morning-20261016-stage-0940-v1",
+        "before_after_byte_maps_equal": true,
+        "current_files_match_after_pins": true,
+        "file_count": 6,
+        "legacy_aggregate_recomputed": false,
+        "rows_preserved": 10,
+        "stage_id": "STAGE_0940_0945"
+      },
+      {
+        "backfill_run_id": "hk-morning-20261016-stage-0945-v1",
+        "before_after_byte_maps_equal": true,
+        "current_files_match_after_pins": true,
+        "file_count": 6,
+        "legacy_aggregate_recomputed": false,
+        "rows_preserved": 10,
+        "stage_id": "STAGE_0945_1030"
+      }
+    ],
+    "protected_A_keys_checked": {
+      "20261016/STAGE_0925/A_SHARE": true,
+      "20261016/STAGE_0930_0935/A_SHARE": true,
+      "20261016/STAGE_0935_0940/A_SHARE": true,
+      "20261016/STAGE_0940_0945/A_SHARE": true,
+      "20261016/STAGE_0945_1030/A_SHARE": true,
+      "20261016/STAGE_1300_1315/A_SHARE": true
+    },
+    "protected_selection_latest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_latest.json",
+    "protected_stage_receipts": {
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261016/STAGE_0925/receipt.json": {
+        "actual_sha256": "13c43da4c92c44a2a71042b8511ba57b5967ead4da8a364d33574828d7691a87",
+        "expected_sha256": "13c43da4c92c44a2a71042b8511ba57b5967ead4da8a364d33574828d7691a87",
+        "match": true
+      },
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261016/STAGE_1300_1315/receipt.json": {
+        "actual_sha256": "3c730767cae02e6eea6ae493c7d098351ac666ab3d8c1e7fe00f1c6812397ce6",
+        "expected_sha256": "3c730767cae02e6eea6ae493c7d098351ac666ab3d8c1e7fe00f1c6812397ce6",
+        "match": true
+      }
+    },
+    "stage_r1_files": {
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app/stage_center_tick_config.json": {
+        "actual_sha256": "926e66b6bd6a3f3dff9d6145045602fa2139980f992cf6d7bc88a0776339d8ff",
+        "expected_sha256": "926e66b6bd6a3f3dff9d6145045602fa2139980f992cf6d7bc88a0776339d8ff",
+        "match": true
+      },
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/release-manifest.json": {
+        "actual_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+        "expected_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+        "match": true
+      },
+      "/Users/lexi/Library/LaunchAgents/com.lexi.stage-center.scheduler.plist": {
+        "actual_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+        "expected_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+        "match": true
+      }
+    },
+    "stage_r1_hashes_match": true,
+    "stage_r1_release_id": "hk-precapture-isolation-20261016-r1",
+    "writer_refresh_receipt": "docs/handoffs/hk_precapture_recovery_20261016/EARLY_R7_ONLINE_ACTIVATION_VERIFICATION_R2.json",
+    "writer_refresh_sha256": "21c9f6d0c447d0f7cb65077876c3f6aa814eed9738ab69931364531194272abb",
+    "writer_refresh_status": "R7_ACTIVE_API_AND_PROTECTION_REFRESH_PASS"
+  },
+  "recorded_at_local": "2026-10-16T14:36:00+08:00",
+  "reviewer_scope": "Read-only independent active-R7 identity, four early-stage UI/API restoration, HK safety and R6/Stage-R1/0925/1315/A-lane protection. Reused candidate source/test PASS; no tests, producer, service changes, or data writes.",
+  "schema_version": "v4.hk_r7_online_independent_review.v1",
+  "source_candidate_review": {
+    "candidate_tests": "4 passed; reused per scope; not rerun",
+    "receipt": "docs/handoffs/hk_precapture_recovery_20261016/early_INDEPENDENT_REVIEW_R3.json",
+    "sha256": "a5c80383d1d91393c7977fc02967d46731e404c54fb31e49975890ee21bae8bf",
+    "verdict": "REVIEWED_PASS_CANDIDATE_ONLY"
+  },
+  "status": "REVIEWED_PASS"
+}

@@ -1,0 +1,26 @@
+{
+  "base": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/app",
+    "application_inventory_entry_count": 1230,
+    "application_inventory_sha256": "eaafe64cd512e79b83dd48a6920efb267e868dff8f44e38ed8c270778523c1de",
+    "release_id": "announcement-connect-api-20261016-r2",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2/release-manifest.json",
+    "release_manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-connect-api-20261016-r2"
+  },
+  "base_role": "gateway",
+  "bootstrap_transition": false,
+  "entries": [
+    {
+      "after_sha256": "34a3fbccbe25bd901256f423fe77714c4701f4e838fe442731376793f9810149",
+      "before_sha256": "76ea0556478c301d7758451e7c5dda02e4480991fa433244ba59e0eac0d5d21c",
+      "path": "apps/api/v35_api/app.py",
+      "unified_diff_hunk_count": 2,
+      "unified_diff_sha256": "d9aac0e0db16eff93516bc95740a26b0e4711036be4423c6641e9ccbf089d5ba"
+    }
+  ],
+  "non_delta_active_release_bytes_preserved": true,
+  "schema_version": "v4.api_release_delta_receipt.v1",
+  "source_workspace_full_tree_copied": false,
+  "target_role": "gateway"
+}

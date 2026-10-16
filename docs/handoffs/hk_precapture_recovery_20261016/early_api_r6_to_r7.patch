@@ -1,0 +1,21 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -5097,7 +5097,7 @@
+                 "rows": list(original_rows),
+             }
+             payload["markets"] = markets
+-            return _read_exact_target_hk_override(
++            result = _read_exact_target_hk_override(
+                 payload,
+                 trade_date,
+                 stage_id,
+@@ -5111,6 +5111,9 @@
+                 source_label="HK_MORNING_PRECAPTURE_OBSERVATION_REPROJECTION_R1",
+                 target_pool_sha256="78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+             )
++            result["markets"]["HK_CONNECT"]["trade_date"] = trade_date
++            result["markets"]["HK_CONNECT"]["stage_id"] = stage_id
++            return result
+         except (OSError, ValueError, TypeError, KeyError):
+             return None
+         except HTTPException as error:

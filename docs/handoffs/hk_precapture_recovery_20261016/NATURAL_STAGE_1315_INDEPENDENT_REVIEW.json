@@ -1,0 +1,173 @@
+{
+  "schema": "hk_precapture_natural_stage_independent_review.v1",
+  "reviewer": "/root/hk_precapture_review",
+  "reviewed_at_local": "2026-10-16T13:22:15+08:00",
+  "review_scope": "Independent natural STAGE_1300_1315 acceptance over the pre-capture snapshot, raw artifact, selection artifact and receipt, runner receipt, and current workbench API limit=20. No producer invocation, test rerun, service change, or business-state write.",
+  "reused_candidate_review": {
+    "path": "docs/handoffs/hk_precapture_recovery_20261016/ISOLATION_INDEPENDENT_REVIEW_R1.json",
+    "sha256": "ce7cc50f9d62f5c66e7d4a679e2a32997c253a75896cd37d38d4556793d6b96c",
+    "candidate_release_id": "hk-precapture-isolation-20261016-r1",
+    "candidate_manifest_sha256": "170e4be100ab4fe107bf36c7cd4b30c20e20f7884445cac284bc618ad80aad7b",
+    "prior_verdict": "REVIEWED_PASS",
+    "prior_behavior_verified": "CANDIDATE_RUNTIME_AND_SYNTHETIC_API_PROJECTION",
+    "tests_rerun_for_this_natural_review": false
+  },
+  "verdict": "REVIEWED_PARTIAL",
+  "behavior_verified": "NATURAL_PRECAPTURE_EXCLUSION_AND_RAW_TO_SELECTION_TO_RUNNER_TO_API_BINDING_VERIFIED_WITH_PARTIAL_SOURCE",
+  "findings": [],
+  "severity_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "natural_attempt": {
+    "trade_date": "20261016",
+    "stage_id": "STAGE_1300_1315",
+    "dispatch_mode": "NATURAL",
+    "due_status": "DUE",
+    "attempt_id": "76ad6dec554f4652b8f185a526b7a630",
+    "attempt_number": 1,
+    "start_observed_at": "2026-10-16T13:15:06.902070+08:00",
+    "return_observed_at": "2026-10-16T13:17:00.979008+08:00",
+    "runner_status": "PARTIAL_WITH_ROWS",
+    "node_outcome": "SETTLED_PARTIAL",
+    "node_attempt_count": 1,
+    "runner_reported_first_failed_layer": null,
+    "runner_reported_error": null,
+    "explicit_partial_phase": "HK_CONNECT_1MIN_STAGE_1300_1315",
+    "explicit_partial_reason": "Futu raw manifest records 97/100 rows and missing HK.09678, HK.09890, HK.09903.",
+    "runner_receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261016/STAGE_1300_1315/receipt.json",
+    "runner_receipt_sha256": "3c730767cae02e6eea6ae493c7d098351ac666ab3d8c1e7fe00f1c6812397ce6",
+    "attempt_start_evidence_sha256": "7ef1b016f45f17e9f36be44c0707ff3584804df0a8e0adca4c95a624f1dc5fe6",
+    "attempt_return_evidence_sha256": "f9a04ad0e3f7af0be959579d532c6eca64fc93b51d06ad118ecd6d177080ddfc"
+  },
+  "precapture": {
+    "diagnostic_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/receipts/20261016/STAGE_1300_1315/precapture_attempts/651a25bc4915456b9dd9353e1b19c3ee.json",
+    "diagnostic_sha256": "b4b39c144a683eee566f1b354fc2fcb561a148dfc619b183e55b8f53b186288b",
+    "status": "PRECAPTURE_PARTIAL_WITH_ROWS",
+    "requested_rows": 100,
+    "returned_rows": 100,
+    "eligible_rows": 99,
+    "excluded_rows": 1,
+    "excluded_member": {
+      "code": "HK.02723",
+      "reason": "wrong_trade_date",
+      "update_time": "2026-10-15 16:07:44",
+      "active_snapshot_eligible": false
+    },
+    "eligibility_policy": "PER_STOCK_TEMPORAL_ELIGIBILITY_V1",
+    "temporal_cutoff_scope": "eligible_rows_only",
+    "provider_started_at": "2026-10-16T13:14:06.305504+08:00",
+    "provider_finished_at": "2026-10-16T13:14:09.296554+08:00",
+    "capture_window_end": "2026-10-16T13:15:00+08:00",
+    "temporal_cutoff_safe": true,
+    "snapshot_file_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/.hk_active_snapshots_v2/20261016/STAGE_1300_1315/snapshot.json",
+    "snapshot_file_bytes_sha256": "5ac596cefe7e8ad721b74c05bf9b78ee8cf314a745632305cfadfe1bab2490f5",
+    "snapshot_pool_artifact_sha256": "78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+  },
+  "raw_to_selection": {
+    "raw_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/runs/20261016/HK_CONNECT_1MIN_STAGE_1300_1315/20261016-hk_connect_1min_stage_1300_1315-878a90aa7611ed24/manifest.json",
+    "raw_manifest_bytes_sha256": "3688bd81b45fdfbf802af7c401806e4367135174b59899ce5203a675d1fb6b71",
+    "raw_artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/runs/20261016/HK_CONNECT_1MIN_STAGE_1300_1315/20261016-hk_connect_1min_stage_1300_1315-878a90aa7611ed24/artifact.csv",
+    "raw_artifact_sha256": "862973dd8fa559e35d8cc26939d937c714a9dc8e8754feb07cea3ca86d3a9f26",
+    "raw_requested_rows": 100,
+    "raw_rows": 97,
+    "raw_missing_symbols": [
+      "HK.09678",
+      "HK.09890",
+      "HK.09903"
+    ],
+    "raw_capture_at": "2026-10-16T13:16:10.259481+08:00",
+    "stage_cutoff": "2026-10-16T13:15:00+08:00",
+    "raw_temporal_cutoff_safe": false,
+    "raw_full_chain_pit_status": "CANNOT_CONFIRM",
+    "raw_pit_reason": "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF",
+    "selection_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/HK_CONNECT_SELECTION_STAGE_1300_1315/run-2f4b0c71f33c156b30f25167/manifest.json",
+    "selection_manifest_bytes_sha256": "60e1f89a3e27c0aa7485d1ae303ac8cd663a2bfaa3656f4dd42f36e6edc3b158",
+    "selection_artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection/selection_runs/20261016/HK_CONNECT_SELECTION_STAGE_1300_1315/run-2f4b0c71f33c156b30f25167/artifact.csv",
+    "selection_artifact_sha256": "3d9e23a1d8a5663adf2e3ed27a5b1408f2a4be5b73da26948583c554354db847",
+    "selection_receipt_bytes_sha256": "65985b72ae876badb27c9fe0ed1bc75af0d4ab1f1b9f0e0efe2ecc85ca31c9c1",
+    "selection_requested_rows": 100,
+    "selection_source_rows": 96,
+    "selection_selected_rows": 10,
+    "raw_artifact_sha_matches_raw_manifest_and_selection_binding": true,
+    "selection_artifact_sha_matches_manifest_and_runner_binding": true,
+    "selection_receipt_sha_matches_runner_binding": true,
+    "raw_contains_snapshot_excluded_member": "HK.02723",
+    "excluded_member_in_selection_or_api_rows": false,
+    "excluded_member_boundary_note": "The raw CSV contains HK.02723, while the pre-capture marks it ineligible and the 96-row selection source and selected/API rows exclude it. Whether the raw collector itself must omit this requested D-1 member is CANNOT_CONFIRM from this run contract; no selected-row leakage was observed."
+  },
+  "selection_api_binding": {
+    "selection_run_id": "run-2f4b0c71f33c156b30f25167",
+    "selection_artifact_id": "selection-2f4b0c71f33c156b30f25167",
+    "selected_codes": [
+      "HK.06809",
+      "HK.02335",
+      "HK.01779",
+      "HK.09606",
+      "HK.02697",
+      "HK.07630",
+      "HK.02595",
+      "HK.02659",
+      "HK.00667",
+      "HK.01377"
+    ],
+    "artifact_csv_codes_equal_selection_envelope_codes": true,
+    "api_codes_equal_selection_envelope_codes_in_order": true,
+    "api_url": "http://127.0.0.1:8873/api/v3/workbench/stage?date=20261016&stage=STAGE_1300_1315&limit=20",
+    "api_http_status": 200,
+    "api_observed_at_start": "2026-10-16T13:22:15.146907+08:00",
+    "api_observed_at_end": "2026-10-16T13:22:15.197987+08:00",
+    "api_response_bytes": 1471057,
+    "api_response_sha256": "61ce5e374542abe2f23c6b62b26675d92d4ab018ba49e79a5db835b5741ff456",
+    "api_response_source": "SHARED_STAGE_CENTER",
+    "api_trade_date": "20261016",
+    "api_stage_id": "STAGE_1300_1315",
+    "api_hk_status": "PARTIAL_WITH_ROWS",
+    "api_hk_source_status": "PARTIAL_WITH_ROWS",
+    "api_hk_requested_rows": 100,
+    "api_hk_source_rows": 96,
+    "api_hk_selected_rows": 10,
+    "api_hk_missing_symbols": [
+      "HK.09678",
+      "HK.09890",
+      "HK.09903"
+    ],
+    "api_hk_run_id": "run-2f4b0c71f33c156b30f25167",
+    "api_hk_raw_artifact_sha256": "862973dd8fa559e35d8cc26939d937c714a9dc8e8754feb07cea3ca86d3a9f26",
+    "api_research_safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "recommendation_status": "WATCH_ONLY",
+      "hk_formal_eligible_any": false,
+      "hk_action_levels": [
+        "NO_BUY"
+      ]
+    }
+  },
+  "other_market_summary": {
+    "A_SHARE_status": "PARTIAL_WITH_ROWS",
+    "A_SHARE_requested_rows": 268,
+    "A_SHARE_source_rows": 267,
+    "A_SHARE_selected_rows": 10,
+    "detail_scope": "Counts/status only; A-share cannot_confirm details were not audited in this HK review."
+  },
+  "acceptance_boundary": {
+    "natural_stage_result": "PARTIAL_WITH_ROWS; process returned and durable raw, selection, runner, and API bindings agree.",
+    "verified_behavior": "The natural pre-capture produced 99 eligible and one explicitly excluded member; the excluded code does not appear in selected rows or the current API projection. Ten selected HK rows match the selection artifact in order.",
+    "CANNOT_CONFIRM": [
+      "PIT safety for the HK minute data: Futu capture occurred at 13:16:10.259481, after the 13:15:00 stage cutoff; the raw manifest marks temporal_cutoff_safe=false.",
+      "Full 100-code HK source coverage: Futu returned 97 rows and omitted HK.09678, HK.09890, and HK.09903.",
+      "Formal eligibility or BUY readiness: all rows remain formal_eligible=false / NO_BUY / WATCH_ONLY and the run keeps production_allowed=false, buy_gate_updated=false, orders_sent=false.",
+      "Independent UI verification: this receipt covers the runner and API only."
+    ],
+    "not_claimed": [
+      "Formal-stage acceptance",
+      "PIT-safe data",
+      "BUY readiness or trading authorization",
+      "Independent UI verification"
+    ]
+  }
+}

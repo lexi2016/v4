@@ -1,0 +1,95 @@
+{
+  "schema_version": "v4.hk_morning_selection_recovery_online_independent_review.v1",
+  "review_id": "EARLY_ONLINE_INDEPENDENT_REVIEW",
+  "reviewed_at": "2026-10-16T13:47:03+08:00",
+  "reviewer": "independent reviewer agent; identity distinct from writer",
+  "verdict": "REVIEWED_FAIL",
+  "behavior_verified": false,
+  "scope": {
+    "goal": "Independently verify R2 online activation, four early-stage API projections, protection of existing stages, and the actual user-facing stage-workbench read path.",
+    "activation_receipt_path": "docs/handoffs/hk_precapture_recovery_20261016/EARLY_ONLINE_ACTIVATION_RETRY_R2_RECEIPT.json",
+    "activation_receipt_sha256": "97c7ddab1045f8b4a8e2db9a1499e45a3e72ed3722f68b5e9f1ba18054341805",
+    "active_release_id": "hk-morning-selection-recovery-20261016-r6",
+    "r6_manifest_sha256": "79529d0140d93d3eb26c5c61a395a8fa327aeacd0b196b45acea88c559a77d04",
+    "active_plist_sha256": "ab07ede08ae419d9ddc867042a26af9e6daa214329a01a930aa4f81f9501637d",
+    "prior_source_review_path": "docs/handoffs/hk_precapture_recovery_20261016/early_INDEPENDENT_REVIEW_R2.json",
+    "prior_source_review_sha256": "7f585612212ae055937dc24f7fa37be0c2b6a04e5cdea3703e28d044c42e736d",
+    "reviewer_scope_mutation": "Only this review receipt was written; no application, test, service, or business-state files were changed."
+  },
+  "activation_and_api_evidence": {
+    "activation_state": "PASS",
+    "launchctl_state": "running; active count 1",
+    "listener": "127.0.0.1:8873, PID 97706; matches API process PID 97706",
+    "live_plist_and_manifest": "Live plist and R6 manifest hashes match the R2 activation receipt.",
+    "independent_api_readback": {
+      "route": "/api/v3/workbench/stage?date=20261016&stage=<stage>&limit=10",
+      "stages": [
+        {
+          "stage": "STAGE_0930_0935",
+          "http_status": 200,
+          "response_sha256": "46e5add58f75271505307ad1aa5ef11e51f52b461947f5fa1a3a660b6789090b",
+          "rows": 10,
+          "status": "PARTIAL_WITH_ROWS",
+          "binding": "run-e8a2024a09a9c2f5f2e94312; raw 1c850296885d7516151ea658f81ef1afd3706047664005f3568de86a4acad777; manifest f2c6a24eb3104b1cb4e95c8d69cc125678be920283d80523ab2e3b8b7b4a627a; runner 7705fd6b8393e2cbe2dfebdd12bead7d370511ce24c01440ca161ab1edb659af; D1 pool 78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+        },
+        {
+          "stage": "STAGE_0935_0940",
+          "http_status": 200,
+          "response_sha256": "ca347c625bd3693e699909e4d2ac2235776ac544772235915307339c71ea8445",
+          "rows": 10,
+          "status": "PARTIAL_WITH_ROWS",
+          "binding": "run-ccc20f037cc139b83f8a3f7c; raw a71b46e70063bfa2c9665eec341680cd88d6c9bc6bb358cb9966a999702ee26c; manifest c6a427472e3d22f464c8c4f71c147c76394d591cc034408bf69ebcb934b44d83; runner e6c3ea14d193a3cdc6f4a622b0c55d7176087316da1d4d3217dbe175f5eb0b60; D1 pool 78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+        },
+        {
+          "stage": "STAGE_0940_0945",
+          "http_status": 200,
+          "response_sha256": "2f8f471e9ca566384a87b75b1e0ec58968c2d99ab8cbe62a447dbadd4adea643",
+          "rows": 10,
+          "status": "PARTIAL_WITH_ROWS",
+          "binding": "run-9f5dbc39a836451324721acf; raw 6c273dcd40a7de66a10c523b9345171565d866c64c6c33b6c39c713ea7914655; manifest ba2f1ea44b9e348e1d3de61b4bcb9ac8cc38fbd71d3537ce9c2a4feb4e75b937; runner 64573855d3ed3a4e7454dd27cbd207fa4d1bf95e238f4e7510404bcf662d749d; D1 pool 78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+        },
+        {
+          "stage": "STAGE_0945_1030",
+          "http_status": 200,
+          "response_sha256": "2de57936815e20e7e5e63c27029ec932b8afb5d5209eddbab2a70b4b0ba25555",
+          "rows": 10,
+          "status": "PARTIAL_WITH_ROWS",
+          "binding": "run-181ddc8bd8047a502234b698; raw c7e8bfcae1e969874e8291e58b7cbcebddd0ac1c9a38435257b45ccaed1ab794; manifest 4479d731a796b0ef6e2065c92dab98da3b88462b334cdd31d32e7e2e11908e13; runner b286e07ed50e8b8c806661939cb4c2b441d28f0fd1bf627925a908f8145e7ec0; D1 pool 78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8"
+        }
+      ],
+      "common_flags": "All rows remain NO_BUY and formal_eligible=false; source_status=CANNOT_CONFIRM; HK_ACTIVE_SNAPSHOT_UNAVAILABLE and after-cutoff/PIT/formal/natural-time CANNOT_CONFIRM reasons remain."
+    },
+    "protected_controls": "Current STAGE_0925 and STAGE_1300_1315 API identities and protected receipt hashes match the R2 activation receipt; D1 and Stage R1 protection checks remain PASS.",
+    "api_and_protection_result": "PASS"
+  },
+  "findings": [
+    {
+      "id": "P1-1",
+      "severity": "P1",
+      "status": "OPEN",
+      "finding": "The active stage-workbench frontend rejects the successful HK response because selection_markets.HK_CONNECT omits trade_date and stage_id, which its validator requires for ordinary market results. The stage page therefore reports a read failure instead of rendering the returned rows.",
+      "evidence": {
+        "active_bundle_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r6/app/apps/web/dist/assets/main-BtolhBIM.js",
+        "active_bundle_sha256": "cfaa03ffdacd77ad0a64d2ab3fea6d7b6b8cb70edf48c17e6b0651d70e5ee2e2",
+        "validator": "Bundle offset 146179, function tc(): after the strict CANNOT_CONFIRM exception, checks c.trade_date!==requestedDate and throws 'trade_date 与请求日期不一致'; it likewise checks c.stage_id!==requestedStage and throws 'stage_id 与请求不一致'.",
+        "request_path": "Bundle offsets 137085 and 150171: Xd=50; Rn() requests /api/v3/workbench/stage with date, stage, and limit=${Xd}, then passes the response to nc().",
+        "observed_response": "Current limit=10 API read for STAGE_0930_0935 returned HTTP 200 with response SHA 46e5add58f75271505307ad1aa5ef11e51f52b461947f5fa1a3a660b6789090b. selection_markets.A_SHARE has requested trade_date/stage_id; selection_markets.HK_CONNECT has neither. The response is PARTIAL_WITH_ROWS, so the strict CANNOT_CONFIRM exception is false. A limit=50 read used by the active UI path also returned HTTP 200 with 10 HK rows; the UI failure is response validation, not HTTP transport.",
+        "target_behavior": "The active UI catches the validator error and displays the stage-workbench read failure; the frontend does not render the HTTP-200 HK rows.",
+        "regression_test_gap": "The reused R6 focused API test in early_INDEPENDENT_REVIEW_R2 verifies exact D1 target_pool_sha256 bindings, but does not assert HK selection_markets trade_date/stage_id identity or frontend acceptance. R7 needs the authorized targeted identity assertion."
+      },
+      "required_repair_boundary": "Add only the requested date and stage identity fields to the HK selection-market projection and a targeted regression assertion; review the resulting R7 before any activation."
+    }
+  ],
+  "review_result": {
+    "p0_count": 0,
+    "p1_count": 1,
+    "p2_count": 0,
+    "review_status": "REVIEWED_FAIL",
+    "behavior_verified": false,
+    "backend_activation_and_api": "PASS",
+    "target_ui_behavior": "FAIL: active validator rejects selection_markets.HK_CONNECT due to missing trade_date and stage_id.",
+    "source_and_test_review": "PASS reused from the R6 independent source review; no new production source diff was presented in R2 activation. Existing R6 source/tests do not cover the newly identified frontend response-identity contract.",
+    "formal_or_pit_eligibility": "CANNOT_CONFIRM; projections remain observation-only, after-cutoff evidence remains PIT-unsafe, and formal/natural verification is false.",
+    "publication_or_service_action_performed_by_reviewer": false
+  }
+}

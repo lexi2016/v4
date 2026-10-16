@@ -1,0 +1,88 @@
+{
+  "schema_version": "v4.hk_morning_selection_recovery_independent_review.v3",
+  "review_id": "early_INDEPENDENT_REVIEW_R3",
+  "reviewed_at": "2026-10-16T14:03:30+08:00",
+  "reviewer": "independent reviewer agent; identity distinct from writer",
+  "verdict": "REVIEWED_PASS_CANDIDATE_ONLY",
+  "scope": {
+    "goal": "Independently verify the actual R6-to-R7 candidate diff, close P1-1 with a candidate-path API plus real frontend-validator regression, and leave online activation/UI/natural behavior pending.",
+    "prior_online_review_path": "docs/handoffs/hk_precapture_recovery_20261016/EARLY_ONLINE_INDEPENDENT_REVIEW.json",
+    "prior_online_review_sha256": "497c0e6b0968ac8334b3fe9c683f4e7d3721a43f71bae363a3ac93ccf6c9f731",
+    "prior_source_review_path": "docs/handoffs/hk_precapture_recovery_20261016/early_INDEPENDENT_REVIEW_R2.json",
+    "prior_source_review_sha256": "7f585612212ae055937dc24f7fa37be0c2b6a04e5cdea3703e28d044c42e736d",
+    "writer_receipt_path": "docs/handoffs/hk_precapture_recovery_20261016/early_recovery_writer_receipt_r7.json",
+    "writer_receipt_sha256": "a6b097d227e207fad355fe885068f5944b5f7b1c4540f2c20e3a3a285a2eda08",
+    "reviewer_scope_mutation": "Only this review receipt was written; no source, test, service, activation, or business-state files were changed by the reviewer."
+  },
+  "candidate_diff_review": {
+    "fresh_base_release_id": "announcement-connect-api-20261016-r2",
+    "fresh_base_manifest_sha256": "63d1244ec11aa81d74ade566c42da41947ed0a580b2f27ea74b2f286e77dd089",
+    "fresh_base_app_py_sha256": "76ea0556478c301d7758451e7c5dda02e4480991fa433244ba59e0eac0d5d21c",
+    "r6_app_py_sha256": "76ea0556478c301d7758451e7c5dda02e4480991fa433244ba59e0eac0d5d21c",
+    "r7_release_id": "hk-morning-selection-recovery-20261016-r7",
+    "r7_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/release-manifest.json",
+    "r7_manifest_sha256": "bfde3721184d186e2b92f1747eb9d16219face2dc353e4e0be7de8a31e67ad47",
+    "r7_app_py_sha256": "34a3fbccbe25bd901256f423fe77714c4701f4e838fe442731376793f9810149",
+    "delta_receipt_path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_delta_receipt_r7.json",
+    "delta_receipt_sha256": "c682761af0dd5a2a8849b462bdab19e02364251b10f9a2364d7cefc6866537b6",
+    "patch_path": "docs/handoffs/hk_precapture_recovery_20261016/early_api_r6_to_r7.patch",
+    "patch_sha256": "0c199aff554ad426c2762d2963e081be2cf82798ed6fe24d314e21283956e2c1",
+    "actual_diff": {
+      "changed_candidate_paths": ["apps/api/v35_api/app.py"],
+      "diff_behavior": "The helper return is assigned to result, then trade_date and stage_id are added to result.markets.HK_CONNECT before return. No other source behavior changed.",
+      "identity_fields": [
+        "selection_markets.HK_CONNECT.trade_date",
+        "selection_markets.HK_CONNECT.stage_id"
+      ],
+      "source_lines": "5099-5116",
+      "verified_from": "Byte-for-byte R6 and R7 candidate app.py comparison; the base app.py hash also equals the independently reviewed R6 hash."
+    },
+    "candidate_inventory": {
+      "entry_count": 1230,
+      "aggregate_sha256": "572ccb3a44ce195bb54ef3ee67ae03c40ce93cc1c0a81931a54f64fb8aa95a58",
+      "non_delta_entry_count": 1229,
+      "non_delta_aggregate_sha256": "060f358d61b694d0b40a1d2d9193df194e41344804ca2f6371358f27c9b8dcc5",
+      "reviewer_check": "All 1230 manifest entries match candidate bytes, sizes, and modes; all 1229 non-delta file bytes match the fresh base. The 159 unlisted .pyc files also have identical path sets and bytes in base and candidate; none is an R7-only addition.",
+      "result": "PASS"
+    },
+    "activation_status": "NOT_ACTIVATED per pinned R7 manifest and writer receipt; no activation or service operation was performed by reviewer."
+  },
+  "p1_closure": {
+    "finding_id": "P1-1",
+    "prior_finding": "R6 response omitted trade_date and stage_id from selection_markets.HK_CONNECT, so the actual frontend validator rejected the HTTP-200 projection.",
+    "status": "CLOSED_FOR_R7_CANDIDATE",
+    "evidence": "Candidate API read assertions inspect selection_markets.HK_CONNECT directly for all four stages and confirm exact requested date and stage. The same payloads pass the actual pool_stage.ts loadStageSnapshot validator; removing either field from each payload is rejected with the validator's matching error.",
+    "regression_test_path": "tests/test_hk_morning_selection_recovery_20261016.py",
+    "regression_test_sha256": "fb32c8f464c9ad344d785446f9bb90e308efa1276060adaebe90145c0325dcb2",
+    "test_name": "test_early_hk_selection_markets_identity_matches_real_frontend_validator",
+    "test_lines": "550-590",
+    "validator_helper_lines": "292-353",
+    "test_behavior": "Issues API reads with the UI's limit=50 for each of four stage IDs; asserts HK identity fields and ten observation rows; compiles the frontend pool_stage.ts source from the candidate release and verifies all four payloads; for each stage, verifies both missing trade_date and missing stage_id are rejected with the actual validator message."
+  },
+  "independent_test_run": {
+    "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python; Python 3.14.6; -B",
+    "command": "pytest -q -p no:cacheprovider --import-mode=importlib --basetemp=/private/tmp/hk_morning_recovery_reviewer_r7_20261016 tests/test_hk_morning_selection_recovery_20261016.py, invoked through pytest.main with a reviewer CandidatePathPlugin",
+    "candidate_import_assertion": "Plugin inserted R7 app first on sys.path, imported apps.api.v35_api.app before test collection, and asserted __file__ resolves under the R7 candidate.",
+    "imported_api": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-morning-selection-recovery-20261016-r7/app/apps/api/v35_api/app.py",
+    "result": "PASS: 4 passed in 0.41s",
+    "coverage": [
+      "Four-stage observation projection preserves original identities and source rows.",
+      "API test uses the machine D-1 SHA, checks all four exact stage projections, preserves the A-market baseline, NO_BUY/formal=false flags, and natural-source supersession.",
+      "New four-stage API plus actual frontend-validator identity regression, including both missing-field rejection cases.",
+      "Bad capture pin fails closed before output."
+    ],
+    "side_effect_boundary": "Tests used isolated /private/tmp output, Python bytecode writing disabled, and no production service or shared business state."
+  },
+  "review_result": {
+    "p0_count": 0,
+    "p1_open_count": 0,
+    "p1_closed_count": 1,
+    "p2_count": 0,
+    "candidate_behavior_verified": true,
+    "online_api_behavior": "CANNOT_CONFIRM for R7; candidate was not activated and no live API readback was performed in this review.",
+    "rendered_ui_behavior": "CANNOT_CONFIRM for R7; no UI readback was performed. Prior R6 UI failure is closed only at candidate level until separately accepted online evidence exists.",
+    "natural_slot": "CANNOT_CONFIRM; no natural run was produced or inspected for R7.",
+    "formal_or_pit_eligibility": "CANNOT_CONFIRM; this candidate repair adds response identity only and does not change observation-only, cutoff, PIT, formal eligibility, BUY, or natural verification semantics.",
+    "review_status": "REVIEWED_PASS_CANDIDATE_ONLY; retain activation and live UI acceptance as pending."
+  }
+}

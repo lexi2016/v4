@@ -1,0 +1,518 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -3609,6 +3609,119 @@
+     for item in _MONTH_HK_AFTERFACT_R9_BINDINGS
+ }
+ 
++_HK_MORNING_SELECTION_RECOVERY_REQUIRED_EVIDENCE = (
++    "recovery_mode=HISTORICAL_BACKFILL",
++    "due_status=HISTORICAL_BACKFILL",
++    "HISTORICAL_BACKFILL",
++    "selection_mode=BACKFILL",
++    "observation_status=OBSERVATION_UNVERIFIED",
++    "observation_contract=HK_MORNING_SELECTION_REPROJECTION_R1",
++    "historical_capture_after_target_cutoff=true",
++    "historical_temporal_cutoff_safe=false",
++    "historical_formal_stage_eligibility=CANNOT_CONFIRM",
++    "historical_natural_time_capture=CANNOT_CONFIRM",
++    "historical_pit_safe=false",
++    "historical_orderbook=CANNOT_CONFIRM",
++    "recovery_original_failure=HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
++    "production_allowed=false",
++    "buy_gate_updated=false",
++    "orders_sent=false",
++)
++_HK_MORNING_SELECTION_RECOVERY_ROWS = (
++    {
++        "stage_id": "STAGE_0930_0935",
++        "backfill_run_id": "hk-morning-20261016-stage-0930-v1",
++        "selection_run_id": "run-e8a2024a09a9c2f5f2e94312",
++        "artifact_id": "selection-e8a2024a09a9c2f5f2e94312",
++        "raw_artifact_sha256": "1c850296885d7516151ea658f81ef1afd3706047664005f3568de86a4acad777",
++        "original_manifest_sha256": "831b93b360bd61e1bf65f9704844e5a32ef98f7af2e5bd12dd0494eaaa0fb85d",
++        "original_receipt_sha256": "5be67f93b87e7c262f5b840e7a51d343c341720ed277bc86b366c53823fb0792",
++        "selection_manifest_sha256": "f2c6a24eb3104b1cb4e95c8d69cc125678be920283d80523ab2e3b8b7b4a627a",
++        "selection_receipt_sha256": "7c97a711f9e07b0d85933138f4e47089644fe00de4e68a9420c24e3488505bd1",
++        "selection_artifact_sha256": "64da4a35c08c0fd194b751d14ee681c4e192e64542054440d7b357166207d0e2",
++        "runner_receipt_sha256": "7705fd6b8393e2cbe2dfebdd12bead7d370511ce24c01440ca161ab1edb659af",
++        "source_evidence_sha256": "3467ddde3ed8c612e077d61d8bf9d288765f41c84f18ca14a1c168077d2d31f2",
++    },
++    {
++        "stage_id": "STAGE_0935_0940",
++        "backfill_run_id": "hk-morning-20261016-stage-0935-v1",
++        "selection_run_id": "run-ccc20f037cc139b83f8a3f7c",
++        "artifact_id": "selection-ccc20f037cc139b83f8a3f7c",
++        "raw_artifact_sha256": "a71b46e70063bfa2c9665eec341680cd88d6c9bc6bb358cb9966a999702ee26c",
++        "original_manifest_sha256": "b9a099fb646ee9654f1200906cb2558e37bc7ba87ec40e6ab7e5cd25e6211b7c",
++        "original_receipt_sha256": "9d8444d33e119193521aab0d43901e8a181603d13f2433c750dda87d20602783",
++        "selection_manifest_sha256": "c6a427472e3d22f464c8c4f71c147c76394d591cc034408bf69ebcb934b44d83",
++        "selection_receipt_sha256": "10b6f0d7deff4a0863e893893d51115983d78e7c4a603b544286265a773ce546",
++        "selection_artifact_sha256": "ed05e2eb54592992be63aa9bb842e10443fa4c9b2bacda1d989bd52898f1a09b",
++        "runner_receipt_sha256": "e6c3ea14d193a3cdc6f4a622b0c55d7176087316da1d4d3217dbe175f5eb0b60",
++        "source_evidence_sha256": "c99e8481604fcb9280c1c428e7eae4cc67c5a1efb3dea81bfc4444496906e072",
++    },
++    {
++        "stage_id": "STAGE_0940_0945",
++        "backfill_run_id": "hk-morning-20261016-stage-0940-v1",
++        "selection_run_id": "run-9f5dbc39a836451324721acf",
++        "artifact_id": "selection-9f5dbc39a836451324721acf",
++        "raw_artifact_sha256": "6c273dcd40a7de66a10c523b9345171565d866c64c6c33b6c39c713ea7914655",
++        "original_manifest_sha256": "d27bcf81f1622bb85a5033c01986688d98e38a3a6c82eda2a977a95fdaaf2d23",
++        "original_receipt_sha256": "e0564cc51f362e19f3de119c6c62376f37623e4773f6689321170df02e10c743",
++        "selection_manifest_sha256": "ba2f1ea44b9e348e1d3de61b4bcb9ac8cc38fbd71d3537ce9c2a4feb4e75b937",
++        "selection_receipt_sha256": "126085edf5155e4861c1d3fb4a47fe88b9fd338746e713237889c134c0d839e9",
++        "selection_artifact_sha256": "c4e4720a38ea2de6d2bb0b40ca6a0356289cab33825890f6329056567dedb950",
++        "runner_receipt_sha256": "64573855d3ed3a4e7454dd27cbd207fa4d1bf95e238f4e7510404bcf662d749d",
++        "source_evidence_sha256": "ba4e0c1d97d166789eed605cde6cdd0753a75558c196e34c6db06201426dad2b",
++    },
++    {
++        "stage_id": "STAGE_0945_1030",
++        "backfill_run_id": "hk-morning-20261016-stage-0945-v1",
++        "selection_run_id": "run-181ddc8bd8047a502234b698",
++        "artifact_id": "selection-181ddc8bd8047a502234b698",
++        "raw_artifact_sha256": "c7e8bfcae1e969874e8291e58b7cbcebddd0ac1c9a38435257b45ccaed1ab794",
++        "original_manifest_sha256": "e3214b8e79cc32c249f7970cf2b221f6150c33c8df225bfe421a61454975593a",
++        "original_receipt_sha256": "b5af283cebd60428599247c2e3f5d954fae530b477e1be10e2d7f8e12beb0612",
++        "selection_manifest_sha256": "4479d731a796b0ef6e2065c92dab98da3b88462b334cdd31d32e7e2e11908e13",
++        "selection_receipt_sha256": "ac37537b8bab1e0fbd02dd836b17f23dedbf98a7e5a159b4e80a67204b6dacca",
++        "selection_artifact_sha256": "0e8ecec964d6b9827dd07eba568c3c9318e3ee622abbd7801a6b50daa67c903b",
++        "runner_receipt_sha256": "b286e07ed50e8b8c806661939cb4c2b441d28f0fd1bf627925a908f8145e7ec0",
++        "source_evidence_sha256": "f2cbaa26f106c7b59cdc7574fdcb91507f4ddca2e780b8f331382442f3fa4832",
++    },
++)
++_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE = {
++    ("20261016", row["stage_id"]): {
++        **row,
++        "market": "HK_CONNECT",
++        "algorithm_id": "V3_STAGE_SELECTION_V1",
++        "algorithm_sha256": "f2991c472b17742acfd3adb81458ff13826f99dfb7b8a223ad8d6a5dfbbd1a1e",
++        "selection_status": "PARTIAL_WITH_ROWS",
++        "source_status": "CANNOT_CONFIRM",
++        "requested_rows": 100,
++        "source_rows": 100,
++        "selected_rows": 10,
++        "missing_rows": 0,
++        "missing_codes": (),
++        "cannot_confirm_count": 1,
++        "required_evidence": _HK_MORNING_SELECTION_RECOVERY_REQUIRED_EVIDENCE,
++    }
++    for row in _HK_MORNING_SELECTION_RECOVERY_ROWS
++}
++for _hk_morning_binding in _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.values():
++    _hk_morning_key = (
++        "20261016",
++        _hk_morning_binding["stage_id"],
++        "HK_CONNECT",
++        _hk_morning_binding["backfill_run_id"],
++    )
++    if _hk_morning_key in _APPROVED_EXACT_STAGE_BACKFILLS:
++        raise RuntimeError(f"duplicate exact stage backfill binding: {_hk_morning_key}")
++    _APPROVED_EXACT_STAGE_BACKFILLS[_hk_morning_key] = {
++        key: value
++        for key, value in _hk_morning_binding.items()
++        if key not in {
++            "stage_id",
++            "original_manifest_sha256",
++            "original_receipt_sha256",
++        }
++    }
++
+ # These nine legacy observations were captured from the live ordinary reader
+ # and its verified SelectionStore entries. Their HK D1 markers consistently
+ # identify a different pool from the exact target-date candidate below. Keep
+@@ -4056,11 +4169,88 @@
+         except Exception:
+             return False
+ 
++    def _hk_morning_selection_recovery_observation(
++        market_payload: Mapping[str, Any],
++        rows: list[dict],
++        *,
++        trade_date: str,
++        stage_id: str,
++    ) -> bool:
++        binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
++            (trade_date, stage_id)
++        )
++        if binding is None:
++            return False
++        evidence = market_payload.get("source_evidence")
++        if not isinstance(evidence, (list, tuple)) or any(
++            not isinstance(item, str) for item in evidence
++        ):
++            return False
++        if hashlib.sha256("\n".join(evidence).encode("utf-8")).hexdigest() != binding[
++            "source_evidence_sha256"
++        ]:
++            return False
++        if (
++            market_payload.get("market") != "HK_CONNECT"
++            or market_payload.get("status") != "PARTIAL_WITH_ROWS"
++            or market_payload.get("selection_status") != "PARTIAL_WITH_ROWS"
++            or market_payload.get("source_status") != "CANNOT_CONFIRM"
++            or market_payload.get("run_id") != binding["selection_run_id"]
++            or market_payload.get("artifact_id") != binding["artifact_id"]
++            or market_payload.get("raw_artifact_sha256") != binding["raw_artifact_sha256"]
++            or market_payload.get("algorithm_id") != binding["algorithm_id"]
++            or market_payload.get("algorithm_sha256") != binding["algorithm_sha256"]
++            or market_payload.get("requested_rows") != 100
++            or market_payload.get("source_rows") != 100
++            or market_payload.get("selected_rows") != 10
++            or market_payload.get("missing_symbols")
++            or market_payload.get("cannot_confirm") != ["HK_ACTIVE_SNAPSHOT_UNAVAILABLE"]
++            or market_payload.get("backfill_run_id") != binding["backfill_run_id"]
++            or market_payload.get("selection_manifest_sha256") != binding["selection_manifest_sha256"]
++            or market_payload.get("selection_receipt_sha256") != binding["selection_receipt_sha256"]
++            or market_payload.get("selection_artifact_sha256") != binding["selection_artifact_sha256"]
++            or market_payload.get("runner_receipt_sha256") != binding["runner_receipt_sha256"]
++            or market_payload.get("selection_manifest_receipt_verified") is not True
++            or market_payload.get("runner_receipt_verified") is not True
++            or len(rows) != 10
++            or any(
++                marker not in evidence
++                for marker in binding["required_evidence"]
++            )
++        ):
++            return False
++        seen_codes: set[str] = set()
++        seen_ranks: set[int] = set()
++        for row in rows:
++            if not isinstance(row, Mapping):
++                return False
++            code = str(row.get("code") or "")
++            rank = row.get("rank")
++            if (
++                not code
++                or code in seen_codes
++                or isinstance(rank, bool)
++                or not isinstance(rank, int)
++                or rank <= 0
++                or rank in seen_ranks
++                or row.get("formal_eligible") is not False
++                or row.get("action_level") != "NO_BUY"
++                or row.get("trade_status") not in {"NO_TRADE", "WATCH_ONLY"}
++                or row.get("status") != row.get("trade_status")
++                or row.get("source_mode") != "HK_CONNECT_FOUR_LANE"
++            ):
++                return False
++            seen_codes.add(code)
++            seen_ranks.add(rank)
++        return "HK_ACTIVE_SNAPSHOT_UNAVAILABLE" in evidence
++
+     def _hk_display_mode(
+         market_payload: Mapping[str, Any],
+         rows: list[dict],
+         execution_market: Mapping[str, Any] | None,
+-        *, legacy_pit_observation: bool = False,
++        *,
++        legacy_pit_observation: bool = False,
++        morning_selection_recovery: bool = False,
+     ) -> tuple[str, list[str]]:
+         """Only call HK rows formal after selection and execution binding agree."""
+         status = str(market_payload.get("status") or "CANNOT_CONFIRM")
+@@ -4128,7 +4318,8 @@
+             status not in {"READY", "PARTIAL_WITH_ROWS"}
+             or selection_status not in {"READY", "PARTIAL_WITH_ROWS"}
+             or (market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
+-                and not legacy_pit_observation)
++                and not legacy_pit_observation
++                and not morning_selection_recovery)
+         ):
+             reasons.append("HK_SELECTION_OR_SOURCE_STATUS_NOT_READY")
+             return "CANNOT_CONFIRM", list(dict.fromkeys(reasons))
+@@ -4137,6 +4328,14 @@
+             return "OBSERVATION_UNVERIFIED", list(dict.fromkeys(reasons + [
+                 "HK_LEGACY_PIT_ONLY_OBSERVATION_INPUTS_REVALIDATED",
+                 "HK_FULL_CHAIN_PIT_AND_FORMAL_ELIGIBILITY_CANNOT_CONFIRM",
++            ]))
++
++        if morning_selection_recovery:
++            return "OBSERVATION_UNVERIFIED", list(dict.fromkeys(reasons + [
++                "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
++                "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
++                "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
++                "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+             ]))
+ 
+         execution = execution_market if isinstance(execution_market, Mapping) else {}
+@@ -4262,6 +4461,12 @@
+                     legacy_pit_observation=_legacy_hk_pit_observation(
+                         market_payload, rows, trade_date=str(payload.get("trade_date") or ""),
+                         stage_id=str(payload.get("stage_id") or "")),
++                    morning_selection_recovery=_hk_morning_selection_recovery_observation(
++                        market_payload,
++                        rows,
++                        trade_date=str(payload.get("trade_date") or ""),
++                        stage_id=str(payload.get("stage_id") or ""),
++                    ),
+                 )
+                 frontend_markets[alias]["display_mode"] = display_mode
+                 frontend_markets[alias]["display_reasons"] = display_reasons
+@@ -4812,6 +5017,107 @@
+         validate_date=_strict_date,
+     ))
+ 
++    def _read_hk_morning_selection_recovery_override(
++        payload: dict,
++        trade_date: str,
++        stage_id: str,
++        limit: int,
++    ) -> dict | None:
++        binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
++            (trade_date, stage_id)
++        )
++        if binding is None:
++            return None
++        try:
++            from stage_center.selection import SelectionStore
++
++            if configured_selection_root is None:
++                return None
++            store = SelectionStore(configured_selection_root)
++            original = store.read_verified(trade_date, stage_id, "HK_CONNECT")
++            verified = store._verify_run(
++                trade_date, stage_id, "HK_CONNECT", binding["selection_run_id"]
++            )
++            if not isinstance(original, Mapping):
++                return None
++            original_rows = original.get("rows")
++            if (
++                original.get("run_id") != binding["selection_run_id"]
++                or original.get("artifact_id") != binding["artifact_id"]
++                or original.get("raw_artifact_sha256") != binding["raw_artifact_sha256"]
++                or original.get("algorithm_id") != binding["algorithm_id"]
++                or original.get("algorithm_sha256") != binding["algorithm_sha256"]
++                or original.get("source_status") != "CANNOT_CONFIRM"
++                or original.get("selection_status") != "PARTIAL_WITH_ROWS"
++                or original.get("requested_rows") != 100
++                or original.get("source_rows") != 100
++                or original.get("selected_rows") != 10
++                or original.get("missing_symbols")
++                or original.get("cannot_confirm") != ["HK_ACTIVE_SNAPSHOT_UNAVAILABLE"]
++                or not isinstance(original_rows, list)
++                or len(original_rows) != 10
++            ):
++                return None
++            if (
++                verified.get("manifest_sha256") != binding["original_manifest_sha256"]
++                or verified.get("receipt_sha256") != binding["original_receipt_sha256"]
++                or verified.get("artifact_sha256") != binding["selection_artifact_sha256"]
++            ):
++                return None
++            markets = payload.get("markets")
++            prior_hk = markets.get("HK_CONNECT") if isinstance(markets, Mapping) else None
++            if isinstance(prior_hk, Mapping) and any(
++                prior_hk.get(field) not in (None, expected)
++                for field, expected in (
++                    ("run_id", binding["selection_run_id"]),
++                    ("artifact_id", binding["artifact_id"]),
++                    ("raw_artifact_sha256", binding["raw_artifact_sha256"]),
++                )
++            ):
++                return None
++            # The ordinary consumer hides rows for CANNOT_CONFIRM. Reattach the
++            # verified exact identity only for supersession comparison; the
++            # exact backfill route supplies the displayed observation rows.
++            payload = dict(payload)
++            markets = dict(markets or {})
++            markets["HK_CONNECT"] = {
++                "market": "HK_CONNECT",
++                "status": original["selection_status"],
++                "selection_status": original["selection_status"],
++                "source_status": original["source_status"],
++                "artifact_id": original["artifact_id"],
++                "run_id": original["run_id"],
++                "raw_artifact_sha256": original["raw_artifact_sha256"],
++                "requested_rows": original["requested_rows"],
++                "source_rows": original["source_rows"],
++                "selected_rows": original["selected_rows"],
++                "source_evidence": list(original.get("source_evidence") or []),
++                "missing_symbols": list(original.get("missing_symbols") or []),
++                "cannot_confirm": list(original.get("cannot_confirm") or []),
++                "rows": list(original_rows),
++            }
++            payload["markets"] = markets
++            return _read_exact_target_hk_override(
++                payload,
++                trade_date,
++                stage_id,
++                limit,
++                {
++                    "backfill_run_id": binding["backfill_run_id"],
++                    # The candidate is an exact selection-row projection; it does
++                    # not claim a new full-pool acquisition or missing-code list.
++                    "requested_rows": None,
++                },
++                source_label="HK_MORNING_PRECAPTURE_OBSERVATION_REPROJECTION_R1",
++                target_pool_sha256="78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
++            )
++        except (OSError, ValueError, TypeError, KeyError):
++            return None
++        except HTTPException as error:
++            if error.status_code in {404, 409}:
++                return None
++            raise
++
+     @app.get("/api/v3/workbench/stage")
+     def stage_workbench(
+         date: str | None = None,
+@@ -4828,7 +5134,19 @@
+         # The optional release-owned binding handles only its exact approved
+         # date/stage/run. All ordinary history and legacy exact bindings below
+         # retain their original configured root and verification contract.
+-        if approved_research_reader is not None and ((market is None) == (backfill_run_id is None)):
++        morning_binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
++            (selected, stage)
++        )
++        is_exact_morning_backfill = (
++            market == "HK_CONNECT"
++            and isinstance(morning_binding, Mapping)
++            and morning_binding.get("backfill_run_id") == backfill_run_id
++        )
++        if (
++            approved_research_reader is not None
++            and ((market is None) == (backfill_run_id is None))
++            and not is_exact_morning_backfill
++        ):
+             try:
+                 research_payload = approved_research_reader.get(
+                     selected, stage, markets=None if market is None else (market,),
+@@ -4879,7 +5197,19 @@
+             market_payload = (payload.get("markets") or {}).get(market)
+             if not isinstance(entry, Mapping) or not isinstance(market_payload, Mapping):
+                 raise HTTPException(status_code=409, detail="backfill selection identity is invalid")
+-            rows = market_payload.get("rows") or []
++            morning_binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
++                (selected, stage)
++            )
++            is_morning_observation = (
++                market == "HK_CONNECT"
++                and isinstance(morning_binding, Mapping)
++                and morning_binding.get("backfill_run_id") == backfill_run_id
++            )
++            rows = (
++                envelope.get("rows") or []
++                if is_morning_observation
++                else market_payload.get("rows") or []
++            )
+             source_evidence = envelope.get("source_evidence") or []
+             cannot_confirm = envelope.get("cannot_confirm") or []
+             expected_identity = {
+@@ -4914,7 +5244,11 @@
+                     binding.get("requested_rows") is not None
+                     and (
+                         envelope.get("requested_rows") != binding["requested_rows"]
+-                        or market_payload.get("requested_rows") != binding["requested_rows"]
++                        or (
++                            not is_morning_observation
++                            and market_payload.get("requested_rows")
++                            != binding["requested_rows"]
++                        )
+                         or binding["requested_rows"] - binding["source_rows"]
+                         != binding.get("missing_rows")
+                         or binding.get("missing_rows")
+@@ -4956,7 +5290,68 @@
+             ):
+                 raise HTTPException(status_code=409, detail="backfill runner receipt identity is invalid")
+ 
+-            market_payload.update(
++            if is_morning_observation:
++                from stage_center.selection import SelectionStore
++
++                try:
++                    original = SelectionStore(configured_selection_root)._verify_run(
++                        selected,
++                        stage,
++                        "HK_CONNECT",
++                        morning_binding["selection_run_id"],
++                    )
++                except (OSError, ValueError, TypeError, KeyError) as error:
++                    raise HTTPException(
++                        status_code=409,
++                        detail="original morning selection identity is invalid",
++                    ) from error
++                original_envelope = original.get("envelope")
++                if (
++                    not isinstance(original_envelope, Mapping)
++                    or original.get("manifest_sha256")
++                    != morning_binding["original_manifest_sha256"]
++                    or original.get("receipt_sha256")
++                    != morning_binding["original_receipt_sha256"]
++                    or original.get("artifact_sha256")
++                    != morning_binding["selection_artifact_sha256"]
++                    or any(
++                        original_envelope.get(field) != envelope.get(field)
++                        for field in (
++                            "run_id",
++                            "artifact_id",
++                            "raw_artifact_sha256",
++                            "algorithm_id",
++                            "algorithm_sha256",
++                            "rows",
++                        )
++                    )
++                ):
++                    raise HTTPException(
++                        status_code=409,
++                        detail="morning observation differs from original selection",
++                    )
++                market_payload.update(
++                    {
++                        "market": "HK_CONNECT",
++                        "status": envelope["selection_status"],
++                        "selection_status": envelope["selection_status"],
++                        "source_status": envelope["source_status"],
++                        "artifact_id": envelope["artifact_id"],
++                        "run_id": envelope["run_id"],
++                        "algorithm_id": envelope["algorithm_id"],
++                        "algorithm_sha256": envelope["algorithm_sha256"],
++                        "raw_artifact_sha256": envelope["raw_artifact_sha256"],
++                        "requested_rows": envelope["requested_rows"],
++                        "source_rows": envelope["source_rows"],
++                        "selected_rows": envelope["selected_rows"],
++                        "coverage_ratio": envelope["coverage_ratio"],
++                        "source_evidence": list(source_evidence),
++                        "missing_symbols": list(envelope.get("missing_symbols") or []),
++                        "cannot_confirm": list(cannot_confirm),
++                        "rows": list(envelope["rows"]),
++                    }
++                )
++                market_payload.update(
+                 {
+                     "selection_mode": "BACKFILL",
+                     "backfill_run_id": backfill_run_id,
+@@ -4978,7 +5373,7 @@
+                     },
+                 }
+             )
+-            if binding.get("requested_rows") is not None:
++            if binding.get("requested_rows") is not None and not is_morning_observation:
+                 market_payload.update(
+                     {
+                         "target_pool_sha256": binding["pool_artifact_sha256"],
+@@ -5015,12 +5410,24 @@
+             )
+             return response
+         if shared_selection_consumer is not None:
++            hk_morning_recovery_slot = (
++                selected == "20261016"
++                and (selected, stage)
++                in _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE
++            )
+             payload = shared_selection_consumer.get(
+-                selected, stage, allow_backfill=True
++                selected, stage, allow_backfill=not hk_morning_recovery_slot
+             )
+             payload = _quarantine_known_hk_auction_pool_mismatch(
+                 payload, selected, stage
+             )
++            hk_morning_override = _read_hk_morning_selection_recovery_override(
++                payload, selected, stage, limit
++            )
++            if hk_morning_override is not None:
++                return project_shared_selection(
++                    hk_morning_override, limit, ordinary_hk_display=True
++                )
+             r8_override = _read_r8_exact_target_hk_override(
+                 payload, selected, stage, limit
+             )
