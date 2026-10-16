@@ -1,0 +1,1318 @@
+--- a/v4/manager_workbench/us_mapping_catalog.py
++++ b/v4/manager_workbench/us_mapping_catalog.py
+@@ -24,6 +24,30 @@
+ REVIEW_PACKAGE_SHA256 = "2894b3bca475965aa3553977a654b10fa4c6750bbcb80f70f1bea17bdde649b0"
+ REVIEW_MANIFEST_SHA256 = "8ba8ea7ef7c351bcd5a1b72ad8f449b7acf555a54a172ea66084248f28e26ab9"
+ PRIOR_220_OVERLAY_SHA256 = "72a0f074e6412036cd103c7f73ccf15230eb3d1633c09742c88653b863eba384"
++RECOVERY_OVERLAY_NAME = "us_hk_667_recovery_overlay_20261016.json"
++RECOVERY_OVERLAY_SHA256 = "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
++RECOVERY_MANIFEST_SHA256 = "6500e67d2d85e208b0f32c8c2ce5aeaf40298d8629f81ad414f050a29f913646"
++RECOVERY_MEMBER_HASHES = {
++    "CURRENT/01A_full_667_original_and_history_plus_v2.csv": "312423a9bc4036b24e393bb7ca14295c91997cb6dede3c2cb0fa334dffd6eb3c",
++    "CURRENT/01B_full_1003_original_and_history_plus_v2.csv": "f27d4977a653ab981c12e5b5d523ee53f9777ff06410e66ef83608ca763184c5",
++    "CURRENT/ACCEPTANCE_LEDGER.json": "98ae5272c2f5f81e6666d44464ce76f25d1ba73d3c4a1373097688a3c0d8577b",
++    "CURRENT/A_URL_OCCURRENCES_UNATTEMPTED_62.csv": "07db9f282156f29cbfc6295280dec6a7cdc8c6660e5eb63e5ec8db38f0505173",
++    "CURRENT/BASELINE_MANIFEST_REFERENCE.json": "966a329bfa143da1347475885d4b7d19f18feb76fda7cc763a7e562ed31af406",
++    "CURRENT/EFFECTIVE_RESEARCH_1003.json": "43813adcdb39b81c45a827906f8a872af82bec1c11a0e2282153085d96a7b944",
++    "CURRENT/FIELD_ASSESSMENTS_1003x7.csv": "f8d2985252d3a920f8cc52890a9e6bb720d68f242a07c7532ca5b43171525576",
++    "CURRENT/METRICS.json": "a60ce260b7820a5e33fc335b26a2733c875311379bedc026b57d2bdc30609b0f",
++    "CURRENT/NO_ORIGINAL_B_RELATIONS_18.csv": "b2500fe952951bbb45314b2ab270a8edf388cc4e67d87615c751e667f7dd3157",
++    "CURRENT/OPEN_RELATIONS_221.csv": "811140d315c7701ef96a6be5db294afd962956bc9d2fbbaa826fbdbd20223030",
++    "CURRENT/ORIGINAL_URL_ACCESS_ACCOUNTING.json": "c49b52a1899062b9ce70ef8a21d62beeb7656feb6441b751dcc32de0f9e69e2f",
++    "CURRENT/RELATION_SUMMARY_1003.csv": "6e9dd2613ee6a6391c38f81651b7ee3f379b167b8d9545f86d840a89983fe345",
++    "CURRENT/SIX_LAYERS_1003x6.csv": "596228bc4e37b5d69dab13c749930e131ce43f3ad26044d4c0dcfb8f988f38d0",
++    "CURRENT/VERSION_PRECEDENCE.json": "ed3b1dbbee64683a187be53fb2a965608373768bd9617231ce4473a789ad0f95",
++}
++RECOVERY_STATUS_COUNTS = {
++    "CLOSED_RESEARCH_SCOPE": 757,
++    "CLOSED_EXCLUDED_SCOPE": 25,
++    "OPEN": 221,
++}
+ EXPECTED_REVIEWED_RELATION_COUNT = 700
+ RESEARCH_USES = {"PENDING_REVIEW", "CONDITIONAL_OBSERVATION", "BACKGROUND_HISTORICAL", "EXCLUDED_CURRENT"}
+ EXPECTED_STOCK_COUNT = 667
+@@ -275,6 +299,156 @@
+         raise CatalogValidationError("review overlay cannot be read") from exc
+ 
+ 
++def load_recovery_overlay(path: Path | str, catalog: Mapping[str, Any],
++                          legacy_overlay: Mapping[str, Any]) -> dict[str, Any]:
++    """Load the complete v2r1 projection without merging it into legacy states."""
++    try:
++        raw = Path(path).read_bytes()
++        if hashlib.sha256(raw).hexdigest() != RECOVERY_OVERLAY_SHA256:
++            raise CatalogValidationError("recovery overlay pinned SHA mismatch")
++        value = json.loads(raw, parse_constant=lambda token: (_ for _ in ()).throw(ValueError(token)))
++        if (value.get("schema_version") != "v4.us_hk_mapping_recovery_overlay.v1" or
++                value.get("integrity_sha256") != integrity_sha256(value) or
++                value.get("base_catalog_sha256") != BASE_FILE_SHA256 or
++                value.get("source_package_sha256") != "48f1124c10ed3440c22910a9125038748c08d673fc3ec543635cc9aae0b344d4" or
++                value.get("source_manifest_sha256") != RECOVERY_MANIFEST_SHA256 or
++                value.get("source_manifest_member_count") != 3637 or
++                {key: item.get("sha256") for key, item in value.get("source_member_hashes", {}).items()} != RECOVERY_MEMBER_HASHES):
++            raise CatalogValidationError("recovery overlay source identity is invalid")
++
++        old_records = legacy_overlay.get("records", [])
++        old_ids = [record.get("relation_id") for record in old_records]
++        prior = value.get("prior_700_history")
++        if (not isinstance(prior, dict) or prior.get("sha256") != OVERLAY_FILE_SHA256 or
++                prior.get("record_count") != EXPECTED_REVIEWED_RELATION_COUNT or
++                prior.get("relation_ids") != old_ids or
++                prior.get("retained_as_separate_history") is not True or
++                prior.get("status_crosswalk") != "NOT_ESTABLISHED"):
++            raise CatalogValidationError("separate legacy 700 history binding is invalid")
++
++        if value.get("counts") != {
++            "snapshot_stocks": 667,
++            "original_relations": 1003,
++            "processed_relations": 1003,
++            "closure_status_counts": RECOVERY_STATUS_COUNTS,
++            "research_scope_closed": 757,
++            "excluded_scope_closed": 25,
++            "closed_total_including_exclusions": 782,
++            "open_relations": 221,
++            "stocks_with_relations": 649,
++            "stocks_without_relations": 18,
++            "company_independent_acceptance": 0,
++        }:
++            raise CatalogValidationError("recovery closure count contract is invalid")
++        if value.get("research_safety") != {
++            "RESEARCH_ONLY": True,
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++            "fact_validation": "INDEPENDENT_ACCEPTANCE_0",
++            "prediction_validation": "UNTESTED",
++            "historical_PIT": "NOT_VALIDATED",
++            "event_and_data_tests": "NOT_RUN",
++            "semantic_mapping_validity": "CANNOT_CONFIRM",
++        }:
++            raise CatalogValidationError("recovery research safety state is invalid")
++        if value.get("evidence_limits") != {
++            "historical_path_gap_occurrences": 227,
++            "historical_path_gap_unique_paths": 218,
++            "separate_restored740_missing_path_sha_pairs": 404,
++            "separate_restored740_missing_hashes": 388,
++            "gap_scopes_additive": False,
++            "A_url_occurrences_unattempted": 62,
++            "available_at": "ABSENT",
++            "access_dates_are_available_at": False,
++            "access_date_interpretation": "Research access dates do not establish fact effective dates or available_at.",
++            "all_statements_verified": False,
++        }:
++            raise CatalogValidationError("recovery evidence limit contract is invalid")
++        if not isinstance(value.get("version_precedence"), dict):
++            raise CatalogValidationError("recovery version precedence is missing")
++
++        records = value.get("records")
++        if not isinstance(records, list) or len(records) != EXPECTED_RELATION_COUNT:
++            raise CatalogValidationError("recovery relation coverage is invalid")
++        expected_relations = catalog["relations"]
++        observed_ids: list[str] = []
++        status_counts = Counter()
++        for index, record in enumerate(records, start=1):
++            if not isinstance(record, dict):
++                raise CatalogValidationError("recovery relation record is malformed")
++            base = expected_relations[index - 1]
++            relation_id = base["source_record"].get("关系编号")
++            current = record.get("effective_summary")
++            raw_summary = record.get("current_summary_csv_row")
++            provenance = record.get("research_provenance")
++            current_research = record.get("effective_research")
++            if (record.get("source_row") != index or record.get("relation_id") != relation_id or
++                    record.get("hk_code") != base["hk_code"] or record.get("us_symbol") != base["us_symbol"] or
++                    record.get("source_original_fields") != base["source_record"] or
++                    not isinstance(current, dict) or current.get("relation_id") != relation_id or
++                    not isinstance(raw_summary, dict) or raw_summary.get("relation_id") != relation_id or
++                    raw_summary.get("closure_status") != current.get("closure_status") or
++                    raw_summary.get("primary_research_use") != current.get("primary_research_use") or
++                    not isinstance(provenance, dict) or not isinstance(current_research, dict) or
++                    current_research.get("relation_id") != relation_id):
++                raise CatalogValidationError("recovery relation identity or original fields are invalid")
++            if (current.get("stock_code") != base["hk_code"] or
++                    current.get("asset_code_original") != base["us_symbol"] or
++                    current.get("prediction") != "UNTESTED" or
++                    current.get("historical_PIT") != "NOT_VALIDATED" or
++                    current.get("event_and_data_tests") != "NOT_RUN" or
++                    current.get("company_independent_acceptance") != 0 or
++                    current.get("production_allowed") is not False or
++                    current.get("orders_sent") is not False):
++                raise CatalogValidationError("recovery relation summary or safety fields are invalid")
++            if (provenance.get("path") != current.get("effective_research_file") or
++                    provenance.get("sha256") != current.get("effective_research_sha256") or
++                    not isinstance(provenance.get("bytes"), int) or provenance["bytes"] <= 0):
++                raise CatalogValidationError("recovery relation provenance is invalid")
++            if current.get("closure_status") not in RECOVERY_STATUS_COUNTS:
++                raise CatalogValidationError("recovery relation closure status is invalid")
++
++            layers = record.get("six_layers")
++            assessments = record.get("field_assessments")
++            if (not isinstance(layers, list) or len(layers) != 6 or
++                    not isinstance(assessments, list) or len(assessments) != 7):
++                raise CatalogValidationError("recovery relation layer or field assessment coverage is invalid")
++            layer_names = set()
++            for layer in layers:
++                try:
++                    layer_record = json.loads(layer.get("effective_layer_record", ""))
++                except (AttributeError, TypeError, json.JSONDecodeError) as exc:
++                    raise CatalogValidationError("recovery six-layer record is invalid") from exc
++                if (layer.get("relation_id") != relation_id or not isinstance(layer.get("layer"), str) or
++                        layer["layer"] in layer_names or not isinstance(layer_record, dict)):
++                    raise CatalogValidationError("recovery six-layer identity is invalid")
++                layer_names.add(layer["layer"])
++            assessment_fields = set()
++            for assessment in assessments:
++                try:
++                    assessment_record = json.loads(assessment.get("effective_field_assessment", ""))
++                except (AttributeError, TypeError, json.JSONDecodeError) as exc:
++                    raise CatalogValidationError("recovery field assessment record is invalid") from exc
++                source_field = assessment.get("source_field") if isinstance(assessment, dict) else None
++                if (assessment.get("relation_id") != relation_id or not isinstance(source_field, str) or
++                        source_field in assessment_fields or not isinstance(assessment_record, dict)):
++                    raise CatalogValidationError("recovery field assessment identity is invalid")
++                assessment_fields.add(source_field)
++            observed_ids.append(relation_id)
++            status_counts[current["closure_status"]] += 1
++
++        if observed_ids != [row["source_record"].get("关系编号") for row in expected_relations]:
++            raise CatalogValidationError("recovery relation order differs from the original catalog")
++        if status_counts != Counter(RECOVERY_STATUS_COUNTS):
++            raise CatalogValidationError("recovery closure totals do not reconcile")
++        return value
++    except CatalogValidationError:
++        raise
++    except (OSError, UnicodeError, json.JSONDecodeError, ValueError, KeyError, TypeError, AttributeError, IndexError) as exc:
++        raise CatalogValidationError("recovery overlay cannot be read") from exc
++
++
+ class CatalogStore:
+     """Validated, stat-bound in-process cache; responses never expose cached objects.
+ 
+@@ -287,28 +461,33 @@
+         self._signature = None
+         self._catalog = None
+         self._overlay = None
++        self._recovery_overlay = None
+ 
+     def search(self, catalog_path: Path | str, overlay_path: Path | str, query=None, **kwargs):
+         with self._lock:
+             try:
+                 paths = [Path(catalog_path), Path(overlay_path)]
++                recovery_path = paths[1].with_name(RECOVERY_OVERLAY_NAME)
++                paths.append(recovery_path)
+                 signature = tuple((str(p.resolve()), s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+                                   for p in paths for s in [p.stat()])
+                 if signature != self._signature:
+-                    self._signature = self._catalog = self._overlay = None
++                    self._signature = self._catalog = self._overlay = self._recovery_overlay = None
+                     if hashlib.sha256(paths[0].read_bytes()).hexdigest() != BASE_FILE_SHA256:
+                         raise CatalogValidationError("catalog pinned SHA mismatch")
+                     catalog = load_catalog(paths[0])
+                     overlay = load_review_overlay(paths[1], catalog)
++                    recovery_overlay = load_recovery_overlay(paths[2], catalog, overlay)
+                     # Reject a concurrent writer rather than cache mixed file versions.
+                     after = tuple((str(p.resolve()), s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+                                   for p in paths for s in [p.stat()])
+                     if signature != after:
+                         raise CatalogValidationError("catalog changed while loading")
+-                    self._catalog, self._overlay, self._signature = catalog, overlay, signature
+-                return _search_validated(self._catalog, query, overlay=self._overlay, **kwargs)
++                    self._catalog, self._overlay, self._recovery_overlay, self._signature = catalog, overlay, recovery_overlay, signature
++                return _search_validated(self._catalog, query, overlay=self._overlay,
++                                         recovery_overlay=self._recovery_overlay, **kwargs)
+             except (OSError, CatalogValidationError) as exc:
+-                self._signature = self._catalog = self._overlay = None
++                self._signature = self._catalog = self._overlay = self._recovery_overlay = None
+                 raise CatalogValidationError("catalog or review overlay unavailable") from exc
+ 
+ 
+@@ -344,7 +523,40 @@
+     }
+ 
+ 
+-def _search_validated(value, query=None, *, offset=0, limit=25, research_use=None, overlay=None):
++def _recovery_summary(record, *, full: bool):
++    if record is None:
++        return None
++    current = record["effective_summary"]
++    research = record["effective_research"]
++    summary = {
++        "detail_level": "FULL" if full else "SUMMARY",
++        "relation_id": record["relation_id"],
++        "closure_status": current["closure_status"],
++        "primary_research_use": current["primary_research_use"],
++        "primary_use_reason": current["primary_use_reason"],
++        "verified_fact_scope": current["verified_fact_scope"],
++        "applicable_period": current["applicable_period"],
++        "closure_scope": current["closure_scope"],
++        "closure_basis": current["closure_basis"],
++        "remaining_gaps": current["remaining_gaps"],
++        "next_key_evidence": current["next_key_evidence"],
++        "research_access_date_and_version": current["research_access_date_and_version"],
++        "effective_research_file": current["effective_research_file"],
++        "effective_research_sha256": current["effective_research_sha256"],
++        "evidence_ids": research.get("evidence_ids", []),
++        "delivery_acceptance": current["delivery_acceptance"],
++        "prediction": current["prediction"],
++        "historical_PIT": current["historical_PIT"],
++        "event_and_data_tests": current["event_and_data_tests"],
++        "company_independent_acceptance": current["company_independent_acceptance"],
++    }
++    if full:
++        summary["full_record"] = record
++    return summary
++
++
++def _search_validated(value, query=None, *, offset=0, limit=25, research_use=None,
++                      overlay=None, recovery_overlay=None):
+     if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
+         raise CatalogValidationError("offset must be a non-negative integer")
+     if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 200:
+@@ -355,6 +567,7 @@
+     if len(needle) > 128:
+         raise CatalogValidationError("query is too long")
+     revisions = {r["source_row"]: r for r in (overlay or {}).get("records", [])}
++    recovery_records = {r["relation_id"]: r for r in (recovery_overlay or {}).get("records", [])}
+     by_code = {s["hk_code"]: [] for s in value["stocks"]}
+     for row in value["relations"]:
+         by_code[row["hk_code"]].append(row)
+@@ -391,12 +604,15 @@
+         item["relations"]=[]
+         for row in rows:
+             review=revisions.get(row["source_row"])
++            relation_id = row["source_record"].get("关系编号")
++            recovery = recovery_records.get(relation_id)
+             item["relations"].append({**row,
+-                "relation_id":row["source_record"].get("关系编号"),
++                "relation_id":relation_id,
+                 "source_review_status":"SOURCE_REVIEWED" if review else "NOT_PROCESSED",
+                 "independent_verification":"NOT_RUN", "research_use":review["research_use"] if review else "PENDING_REVIEW",
+-                "review_detail_level":"FULL" if exact_rid and review is not None else "SUMMARY",
+-                "review_revision":review if exact_rid and review is not None else _review_summary(review)})
++                "review_detail_level":"FULL" if exact_rid and (review is not None or recovery is not None) else "SUMMARY",
++                "review_revision":review if exact_rid and review is not None else _review_summary(review),
++                "recovery_v2r1":_recovery_summary(recovery, full=bool(exact_rid and recovery is not None))})
+         items.append(item)
+     use_counts=Counter(revisions[r["source_row"]]["research_use"] if r["source_row"] in revisions else "PENDING_REVIEW" for r in value["relations"])
+     reviewed_codes={r["hk_code"] for r in revisions.values()}
+@@ -421,10 +637,21 @@
+             "upstream_original_700_package", "source_generated_at_utc", "integrity_sha256",
+             "projection_rule", "prior_220_preservation",
+         ]} if overlay else None),
++        "recovery_v2r1":({
++            "source_package_sha256":recovery_overlay["source_package_sha256"],
++            "source_manifest_sha256":recovery_overlay["source_manifest_sha256"],
++            "overlay_integrity_sha256":recovery_overlay["integrity_sha256"],
++            "counts":recovery_overlay["counts"],
++            "research_safety":recovery_overlay["research_safety"],
++            "evidence_limits":recovery_overlay["evidence_limits"],
++            "prior_700_history":{k:v for k,v in recovery_overlay["prior_700_history"].items() if k != "relation_ids"},
++            "version_precedence":recovery_overlay["version_precedence"],
++            "projection_rule":recovery_overlay["projection_rule"],
++        } if recovery_overlay else None),
+         "safety":value["safety"], "query":needle, "research_use":research_use or "",
+         "total":len(selected), "offset":offset, "limit":limit, "items":items,
+     })
+ 
+ 
+ __all__ = ["CatalogValidationError", "CatalogStore", "load_catalog", "load_review_overlay",
+-           "search_catalog", "validate_catalog", "integrity_sha256"]
++           "load_recovery_overlay", "search_catalog", "validate_catalog", "integrity_sha256"]
+--- a/tests/manager_workbench/test_us_mapping_catalog.py
++++ b/tests/manager_workbench/test_us_mapping_catalog.py
+@@ -152,6 +152,7 @@
+ 
+ 
+ OVERLAY_PATH = ROOT / 'v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json'
++RECOVERY_OVERLAY_PATH = ROOT / 'v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json'
+ 
+ 
+ def test_overlay_keeps_all_original_rows_and_accurate_processing_counts():
+@@ -205,6 +206,7 @@
+     import v4.manager_workbench.us_mapping_catalog as module
+     base=tmp_path/'base.json';overlay=tmp_path/'overlay.json'
+     shutil.copyfile(CATALOG_PATH,base);shutil.copyfile(OVERLAY_PATH,overlay)
++    shutil.copyfile(RECOVERY_OVERLAY_PATH,tmp_path/'us_hk_667_recovery_overlay_20261016.json')
+     load_count=[];original_load=module.load_catalog
+     def count(path):
+         load_count.append(path)
+@@ -231,6 +233,9 @@
+     app=FastAPI();app.include_router(workbench_api.create_router(None));client=TestClient(app)
+     body=client.get('/api/v4/manager-workbench/mapping-catalog').json()['data']
+     assert body['total']==667 and body['review_progress']['source_reviewed_relations']==700
++    assert body['recovery_v2r1']['counts']['processed_relations']==1003
++    assert body['recovery_v2r1']['counts']['research_scope_closed']==757
++    assert body['recovery_v2r1']['counts']['excluded_scope_closed']==25
+     result=client.get('/api/v4/manager-workbench/mapping-catalog',params={'q':'R003','research_use':'EXCLUDED_CURRENT'}).json()['data']
+     assert result['items'][0]['relations'][0]['relation_id']=='R003'
+     assert client.get('/api/v4/manager-workbench/mapping-catalog?research_use=VERIFIED').status_code==422
+@@ -378,15 +383,122 @@
+         assert detail['review_progress']==default['review_progress']
+ 
+ 
+-def test_exact_unprocessed_rid_is_not_marked_as_full_review():
++def test_exact_rid_not_in_legacy_overlay_still_exposes_v2r1_full_record():
+     from v4.manager_workbench.us_mapping_catalog import CatalogStore
+     result=CatalogStore().search(CATALOG_PATH,OVERLAY_PATH,'R700')
+     rows=[row for item in result['items'] for row in item['relations']]
+     assert len(rows)==1
+     assert rows[0]['relation_id']=='R700'
+     assert rows[0]['source_review_status']=='NOT_PROCESSED'
+-    assert rows[0]['review_detail_level']=='SUMMARY'
++    assert rows[0]['review_detail_level']=='FULL'
+     assert rows[0]['review_revision'] is None
++    assert rows[0]['recovery_v2r1']['detail_level']=='FULL'
++    assert rows[0]['recovery_v2r1']['full_record']['relation_id']=='R700'
++
++
++def test_v2r1_reconciles_current_closure_exclusion_open_and_no_edge_boundaries():
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++    store=CatalogStore()
++    default=store.search(CATALOG_PATH,OVERLAY_PATH)
++    current=default['recovery_v2r1']
++    counts=current['counts']
++    assert counts['snapshot_stocks']==667 and counts['original_relations']==1003
++    assert counts['processed_relations']==1003
++    assert counts['closure_status_counts']=={
++        'CLOSED_RESEARCH_SCOPE':757,'CLOSED_EXCLUDED_SCOPE':25,'OPEN':221,
++    }
++    assert counts['research_scope_closed']==757
++    assert counts['excluded_scope_closed']==25
++    assert counts['closed_total_including_exclusions']==782
++    assert counts['open_relations']==221
++    assert counts['stocks_with_relations']==649 and counts['stocks_without_relations']==18
++    assert counts['company_independent_acceptance']==0
++    assert current['research_safety']['semantic_mapping_validity']=='CANNOT_CONFIRM'
++    assert current['research_safety']['prediction_validation']=='UNTESTED'
++    assert current['research_safety']['historical_PIT']=='NOT_VALIDATED'
++    assert current['research_safety']['event_and_data_tests']=='NOT_RUN'
++    assert current['evidence_limits']['historical_path_gap_occurrences']==227
++    assert current['evidence_limits']['historical_path_gap_unique_paths']==218
++    assert current['evidence_limits']['separate_restored740_missing_path_sha_pairs']==404
++    assert current['evidence_limits']['separate_restored740_missing_hashes']==388
++    assert current['evidence_limits']['gap_scopes_additive'] is False
++    assert current['evidence_limits']['A_url_occurrences_unattempted']==62
++    assert current['evidence_limits']['available_at']=='ABSENT'
++    assert current['prior_700_history']['record_count']==700
++    assert current['prior_700_history']['status_crosswalk']=='NOT_ESTABLISHED'
++
++    for relation_id,status in [('R006','CLOSED_RESEARCH_SCOPE'),('R003','CLOSED_EXCLUDED_SCOPE'),('R001','OPEN')]:
++        exact=store.search(CATALOG_PATH,OVERLAY_PATH,relation_id)
++        row=exact['items'][0]['relations'][0]
++        assert exact['total']==1 and row['relation_id']==relation_id
++        assert row['recovery_v2r1']['closure_status']==status
++        assert row['recovery_v2r1']['detail_level']=='FULL'
++        assert row['recovery_v2r1']['full_record']['relation_id']==relation_id
++        assert row['recovery_v2r1']['full_record']['six_layers']
++        assert row['recovery_v2r1']['full_record']['field_assessments']
++
++    no_edge_code=load_catalog(CATALOG_PATH)['coverage']['stocks_without_relations'][0]
++    no_edge=store.search(CATALOG_PATH,OVERLAY_PATH,no_edge_code)
++    assert no_edge['total']==1 and no_edge['items'][0]['hk_code']==no_edge_code
++    assert no_edge['items'][0]['relation_count']==0 and no_edge['items'][0]['relations']==[]
++
++
++def test_v2r1_default_is_summary_and_exact_rid_keeps_old700_full_evidence():
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++    store=CatalogStore()
++    default=store.search(CATALOG_PATH,OVERLAY_PATH)
++    assert len(json.dumps(default,ensure_ascii=False).encode())<1_000_000
++    row=next(row for item in default['items'] for row in item['relations'] if row['relation_id']=='R001')
++    assert row['recovery_v2r1']['detail_level']=='SUMMARY'
++    assert 'full_record' not in row['recovery_v2r1']
++    assert 'effective_research' not in row['recovery_v2r1']
++    assert row['review_revision'] is not None and 'evidence' not in row['review_revision']
++    catalog=load_catalog(CATALOG_PATH)
++    with pytest.raises(CatalogValidationError,match='query is too long'):
++        search_catalog(catalog,'X'*129)
++    with pytest.raises(CatalogValidationError,match='limit must be between 1 and 200'):
++        search_catalog(catalog,limit=201)
++
++    exact=store.search(CATALOG_PATH,OVERLAY_PATH,'R001')
++    full=exact['items'][0]['relations'][0]
++    assert len(json.dumps(exact,ensure_ascii=False).encode())<1_000_000
++    assert full['recovery_v2r1']['detail_level']=='FULL'
++    current_record=full['recovery_v2r1']['full_record']
++    assert current_record['effective_research']['relation_id']=='R001'
++    assert len(current_record['six_layers'])==6 and len(current_record['field_assessments'])==7
++    assert full['review_revision']['evidence']
++    assert exact['recovery_v2r1']['prior_700_history']['sha256']==hashlib.sha256(OVERLAY_PATH.read_bytes()).hexdigest()
++
++
++def test_v2r1_overlay_rejects_tampering_and_builder_is_reproducible(tmp_path):
++    from v4.manager_workbench.us_mapping_catalog import CatalogStore
++    import shutil
++    import v4.manager_workbench.us_mapping_catalog as catalog_module
++
++    base=tmp_path/'us_hk_667_catalog_20261015.json'
++    old=tmp_path/'us_hk_667_review_overlay_20261015.json'
++    current=tmp_path/catalog_module.RECOVERY_OVERLAY_NAME
++    shutil.copyfile(CATALOG_PATH,base)
++    shutil.copyfile(OVERLAY_PATH,old)
++    shutil.copyfile(RECOVERY_OVERLAY_PATH,current)
++    original=current.read_bytes()
++    current.write_bytes(original[:-2]+b'{}')
++    with pytest.raises(CatalogValidationError):
++        CatalogStore().search(base,old)
++
++    builder_path=ROOT/'docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py'
++    spec=importlib.util.spec_from_file_location('us_hk_recovery_builder',builder_path)
++    assert spec and spec.loader
++    builder=importlib.util.module_from_spec(spec)
++    sys.modules[spec.name]=builder
++    spec.loader.exec_module(builder)
++    archive=Path('/Users/lexi/Downloads/US_HK_667_1003_recovery_v2r1_20261016.zip')
++    if archive.exists():
++        rebuilt=builder.build_recovery_overlay(archive)
++        assert builder.canonical_bytes(rebuilt)+b'\n'==RECOVERY_OVERLAY_PATH.read_bytes()
++    broken=tmp_path/'wrong.zip';broken.write_bytes(b'not the supplied archive')
++    with pytest.raises(ValueError,match='source ZIP SHA mismatch'):
++        builder.build_recovery_overlay(broken)
+ 
+ 
+ def test_api_summary_and_exact_rid_detail_have_same_identity_safety_and_progress():
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -482,7 +482,7 @@
+     <section v-if="vm.panel === 'catalog'" class="mwb-panel" aria-label="美股映射资料库">
+       <div class="mwb-heading">
+         <div><h2>美股 → 港股关系资料库</h2>
+-          <p>读取用户提供的 2026-10-14 名单快照与逐关系研究包；这是静态研究资料，不是当日选股结果。</p></div>
++          <p>读取 2026-10-14 名单快照、旧 700 条历史记录和 2026-10-16 v2r1 逐关系研究投影；这是静态研究资料，不是当日选股结果。</p></div>
+         <button type="button" class="mwb-quiet" :disabled="vm.catalogLoading" @click="vm.loadCatalog(0)">重新读取资料</button>
+       </div>
+       <p class="mwb-alert" role="status">
+@@ -492,7 +492,7 @@
+         <label class="mwb-search">按港股代码、港股名称、美股资产代码或关系编号查询
+           <input v-model="vm.catalogQueryDraft" maxlength="128" placeholder="例如 00001、CVE 或 R001" />
+         </label>
+-        <label>研究用途筛选
++        <label>旧 700 历史用途筛选
+           <select v-model="vm.catalogResearchUse" @change="vm.searchCatalog">
+             <option value="">全部关系</option>
+             <option value="PENDING_REVIEW">待核 / 待补证</option>
+@@ -521,10 +521,23 @@
+         </div>
+         <article class="mwb-evidence" aria-label="补证进度">
+           <h3>补证记录进度</h3>
+-          <p>SOURCE_REVIEWED：{{ vm.catalog.data.review_progress.source_reviewed_relations }} / 1003 条关系、{{ vm.catalog.data.review_progress.source_reviewed_stocks }} / 667 只股票；未处理 {{ vm.catalog.data.review_progress.unprocessed_relations }} 条关系。</p>
++          <p>旧 700 历史 overlay SOURCE_REVIEWED：{{ vm.catalog.data.review_progress.source_reviewed_relations }} / 1003 条关系、{{ vm.catalog.data.review_progress.source_reviewed_stocks }} / 667 只股票；旧 overlay 未覆盖 {{ vm.catalog.data.review_progress.unprocessed_relations }} 条关系。</p>
+           <p>全部原始关系已有记录：{{ vm.catalog.data.review_progress.all_original_relations_processed_stocks }} 只股票（不表示事实全部通过）。INDEPENDENTLY_VERIFIED：{{ vm.catalog.data.review_progress.independently_verified_relations }} 条；独立核验 {{ vm.catalog.data.review_progress.independent_verification }}。</p>
+-          <p>全目录研究用途计数：{{ showText(vm.catalog.data.review_progress.research_use_counts) }}。筛选与分页不改变这些总数。</p>
++          <p>旧 700 overlay 研究用途计数：{{ showText(vm.catalog.data.review_progress.research_use_counts) }}。它与 v2r1 的 primary_research_use 是不同字段，不做状态换算。</p>
+           <p v-if="vm.catalog.data.review_source">补证包 SHA256：{{ vm.catalog.data.review_source.source_package_sha256 }}；来源生成时间：{{ vm.catalog.data.review_source.source_generated_at_utc }}；revision SHA256：{{ vm.catalog.data.review_source.integrity_sha256 }}。</p>
++        </article>
++        <article v-if="vm.catalog.data.recovery_v2r1" class="mwb-evidence" aria-label="v2r1 当前恢复状态">
++          <h3>2026-10-16 v2r1 当前逐关系状态</h3>
++          <p>输入包 SHA256：{{ vm.catalog.data.recovery_v2r1.source_package_sha256 }}；manifest SHA256：{{ vm.catalog.data.recovery_v2r1.source_manifest_sha256 }}；投影 SHA256：{{ vm.catalog.data.recovery_v2r1.overlay_integrity_sha256 }}。</p>
++          <p>处理 {{ vm.catalog.data.recovery_v2r1.counts.processed_relations }} / {{ vm.catalog.data.recovery_v2r1.counts.original_relations }} 条原关系；研究范围闭环 {{ vm.catalog.data.recovery_v2r1.counts.research_scope_closed }} 条；排除范围闭环 {{ vm.catalog.data.recovery_v2r1.counts.excluded_scope_closed }} 条；开放 {{ vm.catalog.data.recovery_v2r1.counts.open_relations }} 条。782 条总闭环包含 25 条排除范围记录，不能读作 782 条有效映射或已验证关系。</p>
++          <p>名单 {{ vm.catalog.data.recovery_v2r1.counts.snapshot_stocks }} 只；有原始关系 {{ vm.catalog.data.recovery_v2r1.counts.stocks_with_relations }} 只；原始无关系并单独保留 {{ vm.catalog.data.recovery_v2r1.counts.stocks_without_relations }} 只。</p>
++          <p>公司事实独立验收 {{ vm.catalog.data.recovery_v2r1.counts.company_independent_acceptance }}；包内全部陈述均未标为已验证；预测 {{ vm.catalog.data.recovery_v2r1.research_safety.prediction_validation }}；历史 PIT {{ vm.catalog.data.recovery_v2r1.research_safety.historical_PIT }}；事件及数据测试 {{ vm.catalog.data.recovery_v2r1.research_safety.event_and_data_tests }}。</p>
++          <p>附件路径缺口 {{ vm.catalog.data.recovery_v2r1.evidence_limits.historical_path_gap_occurrences }} 次 / {{ vm.catalog.data.recovery_v2r1.evidence_limits.historical_path_gap_unique_paths }} 个路径；另有已恢复 740 范围内 {{ vm.catalog.data.recovery_v2r1.evidence_limits.separate_restored740_missing_path_sha_pairs }} 组路径 / SHA 和 {{ vm.catalog.data.recovery_v2r1.evidence_limits.separate_restored740_missing_hashes }} 个哈希缺口，范围不同，不相加；A 表仍有 {{ vm.catalog.data.recovery_v2r1.evidence_limits.A_url_occurrences_unattempted }} 个 URL 未尝试。</p>
++          <p>研究访问日期不代表 available_at 或事实生效日。旧 700 条历史 overlay（{{ vm.catalog.data.recovery_v2r1.prior_700_history.sha256 }}）仍单独保留，status crosswalk={{ vm.catalog.data.recovery_v2r1.prior_700_history.status_crosswalk }}。</p>
++          <details><summary>v2r1 版本优先级与解释边界</summary>
++            <p>{{ sourceValue(vm.catalog.data.recovery_v2r1.projection_rule) }}</p>
++            <pre>{{ showText(vm.catalog.data.recovery_v2r1.version_precedence) }}</pre>
++          </details>
+         </article>
+         <p class="mwb-muted">本次查询匹配 {{ vm.catalog.data.total }} 只港股。空查询可浏览全部 667 只；当前结果按港股分页，关系筛选只改变匹配展示。</p>
+         <article v-for="item in vm.catalog.data.items" :key="item.hk_code" class="mwb-evidence">
+@@ -540,7 +553,9 @@
+             <div v-if="item.relations.length">
+               <article v-for="relation in catalogRelations(item.relations)" :key="relation.source_row" class="mwb-research-record">
+                 <h4>{{ relation.us_symbol || "美股资产未提供" }} · {{ sourceValue(relation.source_record["type"]) }} · 原始表行 {{ relation.source_row }}</h4>
+-                <p><strong>{{ relation.relation_id }} · 研究用途：</strong>{{ researchUseLabel(relation.research_use) }}；来源处理 {{ relation.source_review_status }}；独立核验 {{ relation.independent_verification }}。</p>
++                <p v-if="relation.recovery_v2r1"><strong>{{ relation.relation_id }} · v2r1 当前闭环：</strong>{{ relation.recovery_v2r1.closure_status }}；当前主要研究用途：{{ sourceValue(relation.recovery_v2r1.primary_research_use) }}；包内交付验收：{{ relation.recovery_v2r1.delivery_acceptance }}。</p>
++                <p v-if="relation.recovery_v2r1"><strong>事实范围：</strong>{{ sourceValue(relation.recovery_v2r1.verified_fact_scope) }}；<strong>研究范围闭环依据：</strong>{{ sourceValue(relation.recovery_v2r1.closure_scope) }}</p>
++                <p><strong>{{ relation.relation_id }} · 旧 700 历史用途：</strong>{{ researchUseLabel(relation.research_use) }}；旧记录状态 {{ relation.source_review_status }}；独立核验 {{ relation.independent_verification }}。</p>
+                 <p><strong>分部 / 原始事实：</strong>{{ sourceValue(relation.source_record["segment"]) }}；{{ sourceValue(relation.source_record["fact"]) }}</p>
+                 <p><strong>传导机制：</strong>{{ sourceValue(relation.source_record["mechanism"]) }}</p>
+                 <p><strong>触发条件：</strong>{{ sourceValue(relation.source_record["condition"]) }}</p>
+@@ -552,13 +567,27 @@
+                 <p><strong>原始候选 / 排除字段：</strong>effective_candidate={{ sourceValue(relation.source_record["effective_candidate"]) }}；current_observation_candidate={{ sourceValue(relation.source_record["current_observation_candidate"]) }}；audit_only={{ sourceValue(relation.source_record["audit_only"]) }}</p>
+                 <p><strong>原始预测 / 旧边处置：</strong>prediction={{ sourceValue(relation.source_record["prediction"]) }}；old_action={{ sourceValue(relation.source_record["old_action"]) }}；prediction_eligible={{ sourceValue(relation.source_record["prediction_eligible"]) }}；historical_PIT={{ sourceValue(relation.source_record["historical_PIT"]) }}</p>
+                 <p><strong>目录状态：</strong>事实独立核验 {{ relation.fact_review_status }}；预测资格固定为否；预测 {{ relation.prediction_validation }}；历史 PIT {{ relation.historical_PIT }}。</p>
+-                <button v-if="relation.source_review_status === 'SOURCE_REVIEWED' && relation.review_detail_level !== 'FULL'" type="button" class="mwb-quiet"
++                <button v-if="(relation.recovery_v2r1 && relation.recovery_v2r1.detail_level !== 'FULL') || (relation.source_review_status === 'SOURCE_REVIEWED' && relation.review_detail_level !== 'FULL')" type="button" class="mwb-quiet"
+                   :disabled="vm.catalogRelationDetails[relation.relation_id]?.loading"
+-                  @click="vm.loadCatalogRelation(relation)">查看完整补证 {{ relation.relation_id }}</button>
+-                <p v-if="relation.source_review_status === 'NOT_PROCESSED'">{{ relation.relation_id }} 尚无来源补证记录。</p>
+-                <p v-if="vm.catalogRelationDetails[relation.relation_id]?.loading" role="status">正在读取完整补证 {{ relation.relation_id }}…</p>
++                  @click="vm.loadCatalogRelation(relation)">查看完整关系记录 {{ relation.relation_id }}</button>
++                <p v-if="relation.source_review_status === 'NOT_PROCESSED'">{{ relation.relation_id }} 不在旧 700 历史补证记录中；v2r1 状态仍单独展示。</p>
++                <p v-if="vm.catalogRelationDetails[relation.relation_id]?.loading" role="status">正在读取完整关系记录 {{ relation.relation_id }}…</p>
+                 <p v-if="vm.catalogRelationDetails[relation.relation_id]?.error" class="mwb-alert" role="alert">{{ relation.relation_id }}：{{ vm.catalogRelationDetails[relation.relation_id]?.error }}</p>
+-                <p v-if="relation.review_detail_level === 'FULL'">已读取完整补证 {{ relation.relation_id }}；来源身份已核对。</p>
++                <p v-if="relation.review_detail_level === 'FULL'">已读取完整关系记录 {{ relation.relation_id }}；来源身份已核对。</p>
++                <details v-if="relation.recovery_v2r1">
++                  <summary>v2r1 当前用途、范围与缺口</summary>
++                  <p><strong>用途理由：</strong>{{ sourceValue(relation.recovery_v2r1.primary_use_reason) }}</p>
++                  <p><strong>适用期间：</strong>{{ sourceValue(relation.recovery_v2r1.applicable_period) }}；<strong>研究访问日期与版本：</strong>{{ sourceValue(relation.recovery_v2r1.research_access_date_and_version) }}</p>
++                  <p><strong>当前闭环边界：</strong>{{ sourceValue(relation.recovery_v2r1.closure_basis) }}</p>
++                  <p><strong>尚存缺口：</strong>{{ sourceValue(relation.recovery_v2r1.remaining_gaps) }}</p>
++                  <p><strong>下一关键证据：</strong>{{ sourceValue(relation.recovery_v2r1.next_key_evidence) }}</p>
++                  <p><strong>证据 ID：</strong>{{ sourceValue(relation.recovery_v2r1.evidence_ids) }}；effective research SHA256：{{ relation.recovery_v2r1.effective_research_sha256 }}</p>
++                  <p>预测 {{ relation.recovery_v2r1.prediction }}；历史 PIT {{ relation.recovery_v2r1.historical_PIT }}；事件及数据测试 {{ relation.recovery_v2r1.event_and_data_tests }}；公司事实独立验收 {{ relation.recovery_v2r1.company_independent_acceptance }}。</p>
++                  <details v-if="relation.recovery_v2r1.detail_level === 'FULL' && relation.recovery_v2r1.full_record">
++                    <summary>完整 v2r1 有效研究、六层、七字段和来源身份</summary>
++                    <pre>{{ showText(relation.recovery_v2r1.full_record) }}</pre>
++                  </details>
++                </details>
+                 <details v-if="relation.review_revision">
+                   <summary>来源补证 revision、当前缺口与下一证据</summary>
+                   <p>以下为来源研究记录与用途投影，保留原始事实；SOURCE_REVIEWED 不等于 INDEPENDENTLY_VERIFIED。</p>
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -440,6 +440,62 @@
+   }[];
+   source_summary?: Record<string, unknown>;
+ }
++export interface USMappingRecoveryRelation {
++  detail_level: "SUMMARY" | "FULL";
++  relation_id: string;
++  closure_status: "CLOSED_RESEARCH_SCOPE" | "CLOSED_EXCLUDED_SCOPE" | "OPEN";
++  primary_research_use: string;
++  primary_use_reason: string;
++  verified_fact_scope: unknown;
++  applicable_period: string;
++  closure_scope: string;
++  closure_basis: string;
++  remaining_gaps: unknown;
++  next_key_evidence: unknown;
++  research_access_date_and_version: string;
++  effective_research_file: string;
++  effective_research_sha256: string;
++  evidence_ids: string[];
++  delivery_acceptance: string;
++  prediction: "UNTESTED";
++  historical_PIT: "NOT_VALIDATED";
++  event_and_data_tests: "NOT_RUN";
++  company_independent_acceptance: 0;
++  full_record?: Record<string, unknown>;
++}
++export interface USMappingRecoveryProgress {
++  source_package_sha256: string;
++  source_manifest_sha256: string;
++  overlay_integrity_sha256: string;
++  counts: {
++    snapshot_stocks: 667;
++    original_relations: 1003;
++    processed_relations: 1003;
++    closure_status_counts: {
++      CLOSED_RESEARCH_SCOPE: 757;
++      CLOSED_EXCLUDED_SCOPE: 25;
++      OPEN: 221;
++    };
++    research_scope_closed: 757;
++    excluded_scope_closed: 25;
++    closed_total_including_exclusions: 782;
++    open_relations: 221;
++    stocks_with_relations: 649;
++    stocks_without_relations: 18;
++    company_independent_acceptance: 0;
++  };
++  research_safety: Record<string, boolean | number | string>;
++  evidence_limits: Record<string, boolean | number | string>;
++  prior_700_history: {
++    sha256: string;
++    record_count: 700;
++    source_package_sha256: string;
++    retained_as_separate_history: true;
++    status_crosswalk: "NOT_ESTABLISHED";
++  };
++  version_precedence: Record<string, unknown>;
++  projection_rule: string;
++}
+ export interface USMappingCatalogRelation {
+   review_detail_level: "SUMMARY" | "FULL";
+   relation_id: string;
+@@ -447,6 +503,7 @@
+   independent_verification: "NOT_RUN";
+   research_use: string;
+   review_revision: USMappingReviewRevision | null;
++  recovery_v2r1: USMappingRecoveryRelation | null;
+   source_row: number;
+   hk_code: string;
+   us_symbol: string;
+@@ -478,6 +535,7 @@
+     independent_verification: "NOT_RUN"; research_use_counts: Record<string, number>;
+   };
+   review_source: { source_package_sha256: string; source_generated_at_utc: string; integrity_sha256: string } | null;
++  recovery_v2r1: USMappingRecoveryProgress;
+   source: Record<string, unknown> & {
+     package_name: string;
+     package_sha256: string;
+--- a/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts
+@@ -20,6 +20,25 @@
+     const day = {
+       snapshot: null, stocks: [], counts: null,
+       pagination: { total: 0, offset: 0, limit: 50 }, versions: []
++    };
++    const recoveryFullRecord = {
++      relation_id: "R001", source_original_fields: { 关系编号: "R001", code: "00001", asset_code: "CVE" },
++      effective_summary: { closure_status: "OPEN", primary_research_use: "股权与共同资产敞口研究" },
++      effective_research: { relation_id: "R001", evidence_ids: ["B2L1_R001_E01"], research_layers: { FACT_VERIFIED_SCOPE: {} } },
++      six_layers: [{ layer: "FACT_VERIFIED_SCOPE" }], field_assessments: [{ source_field: "fact" }]
++    };
++    const recoveryRelation = {
++      detail_level: "FULL", relation_id: "R001", closure_status: "OPEN",
++      primary_research_use: "股权与共同资产敞口研究", primary_use_reason: "存在报告期联营敞口",
++      verified_fact_scope: ["仅按报告期判断"], applicable_period: "2026H1",
++      closure_scope: "当前权益比例尚未闭环", closure_basis: "仍缺当前持股数量",
++      remaining_gaps: ["当前权益比例待核"], next_key_evidence: ["最新投资附注"],
++      research_access_date_and_version: "2026-10-15; access date only",
++      effective_research_file: "recovered_mapping_20261016/current/R001.json",
++      effective_research_sha256: "b".repeat(64), evidence_ids: ["B2L1_R001_E01"],
++      delivery_acceptance: "PASS_RESTORED_BASELINE", prediction: "UNTESTED",
++      historical_PIT: "NOT_VALIDATED", event_and_data_tests: "NOT_RUN",
++      company_independent_acceptance: 0, full_record: recoveryFullRecord
+     };
+     const relation = {
+       review_detail_level: "FULL",
+@@ -41,6 +60,7 @@
+           url: "https://example.com/revision", does_not_support: "价格预测",
+           declared_unresolved_navigation_reference_json: "[{\"reference\":\"R1\"}]",
+           evidence_wording_clarifications_json: "[{\"term\":\"适用期\",\"clarification\":\"仅按披露期解释\"}]" }] },
++      recovery_v2r1: recoveryRelation,
+       source_row: 1, hk_code: "00001", us_symbol: "CVE",
+       source_record: {
+         type: "OWNERSHIP", segment: "联营投资", fact: "公司材料列明应占利润",
+@@ -59,6 +79,26 @@
+     };
+     const catalogData = {
+       research_use: "",
++      recovery_v2r1: {
++        source_package_sha256: "48f1124c10ed3440c22910a9125038748c08d673fc3ec543635cc9aae0b344d4",
++        source_manifest_sha256: "c".repeat(64), overlay_integrity_sha256: "d".repeat(64),
++        counts: { snapshot_stocks: 667, original_relations: 1003, processed_relations: 1003,
++          closure_status_counts: { CLOSED_RESEARCH_SCOPE: 757, CLOSED_EXCLUDED_SCOPE: 25, OPEN: 221 },
++          research_scope_closed: 757, excluded_scope_closed: 25, closed_total_including_exclusions: 782,
++          open_relations: 221, stocks_with_relations: 649, stocks_without_relations: 18, company_independent_acceptance: 0 },
++        research_safety: { RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false,
++          orders_sent: false, fact_validation: "INDEPENDENT_ACCEPTANCE_0", prediction_validation: "UNTESTED",
++          historical_PIT: "NOT_VALIDATED", event_and_data_tests: "NOT_RUN", semantic_mapping_validity: "CANNOT_CONFIRM" },
++        evidence_limits: { historical_path_gap_occurrences: 227, historical_path_gap_unique_paths: 218,
++          separate_restored740_missing_path_sha_pairs: 404, separate_restored740_missing_hashes: 388,
++          gap_scopes_additive: false, A_url_occurrences_unattempted: 62, available_at: "ABSENT",
++          access_dates_are_available_at: false, access_date_interpretation: "Research access dates do not establish fact effective dates or available_at.",
++          all_statements_verified: false },
++        prior_700_history: { sha256: "e".repeat(64), record_count: 700,
++          source_package_sha256: "2894b3bca475965aa3553977a654b10fa4c6750bbcb80f70f1bea17bdde649b0",
++          retained_as_separate_history: true, status_crosswalk: "NOT_ESTABLISHED" },
++        version_precedence: { version: "current v2r1" }, projection_rule: "Keep v2r1 and legacy states separate."
++      },
+       review_progress: { source_reviewed_relations: 700, unprocessed_relations: 303, source_reviewed_stocks: 378,
+         all_original_relations_processed_stocks: 378, independently_verified_relations: 0,
+         independent_verification: "NOT_RUN", research_use_counts: { PENDING_REVIEW: 985 } },
+@@ -104,9 +144,11 @@
+         const explicitDetail = query === "R001";
+         const exactUnprocessed = query === "R700";
+         const summaryRelation = { ...relation, review_detail_level: "SUMMARY",
++          recovery_v2r1: { ...relation.recovery_v2r1, detail_level: "SUMMARY", full_record: undefined },
+           review_revision: { ...relation.review_revision, evidence: undefined, revision_json_parse_issues: undefined } };
+         const unprocessedRelation = { ...relation, relation_id: "R700", source_review_status: "NOT_PROCESSED",
+-          review_detail_level: "SUMMARY", review_revision: null };
++          review_detail_level: "FULL", recovery_v2r1: { ...recoveryRelation, relation_id: "R700",
++            full_record: { ...recoveryFullRecord, relation_id: "R700" } }, review_revision: null };
+         const data = { ...catalogData, query, offset, research_use: params.get("research_use") || "",
+           total: query ? 1 : 667, items: catalogData.items.map(item => ({ ...item, ordinal: offset + 1,
+             source_reviewed_relation_count: exactUnprocessed ? 0 : item.source_reviewed_relation_count,
+@@ -133,24 +175,28 @@
+     await fireEvent.click(screen.getByRole("tab", { name: "美股映射资料库" }));
+     await screen.findByText(/ZIP CRC：PASS；清单校验：PASS；包内文件：15/);
+     expect(screen.getByText(/预测状态 UNTESTED/)).toBeTruthy();
+-    expect(screen.getByText(/SOURCE_REVIEWED：700 \/ 1003 条关系、378 \/ 667 只股票；未处理 303 条关系/)).toBeTruthy();
++    expect(screen.getByText(/旧 700 历史 overlay SOURCE_REVIEWED：700 \/ 1003 条关系、378 \/ 667 只股票；旧 overlay 未覆盖 303 条关系/)).toBeTruthy();
++    expect(screen.getByText(/研究范围闭环 757 条；排除范围闭环 25 条；开放 221 条/)).toBeTruthy();
++    expect(screen.getByText(/782 条总闭环包含 25 条排除范围记录/)).toBeTruthy();
++    expect(screen.getByText((_, element) => element?.tagName === "P" &&
++      element.textContent?.includes("R001 · v2r1 当前闭环：OPEN") === true)).toBeTruthy();
+     expect(screen.getByText(/全部原始关系已有记录：378 只股票/)).toBeTruthy();
+     expect(screen.getByText(/INDEPENDENTLY_VERIFIED：0 条/)).toBeTruthy();
+     expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+     expect(detailRequests).toBe(0);
+-    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整关系记录 R001" }));
+     await screen.findByText(/R001：.*补证读取失败示例/);
+-    expect(screen.getByText(/当前权益比例待核/)).toBeTruthy();
+-    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
+-    await screen.findByText(/正在读取完整补证 R001/);
++    expect(screen.getAllByText(/当前权益比例待核/).length).toBeGreaterThanOrEqual(2);
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整关系记录 R001" }));
++    await screen.findByText(/正在读取完整关系记录 R001/);
+     await fireEvent.click(screen.getByRole("button", { name: "下一页" }));
+     await screen.findByText(/当前 26–26 \/ 667/);
+     expect(spy.mock.calls.some(([input]) => String(input).includes("offset=25"))).toBe(true);
+     expect(releaseStaleDetail).not.toBeNull();
+     releaseStaleDetail!(response(envelope({ ...catalogData, query: "R001", offset: 0, total: 1 }, "STRUCTURE_VALID")));
+-    await waitFor(() => { expect(screen.queryByText(/已读取完整补证 R001/)).toBeNull(); });
+-    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+-    await fireEvent.update(screen.getByRole("combobox", { name: "研究用途筛选" }), "PENDING_REVIEW");
++    await waitFor(() => { expect(screen.queryByText(/已读取完整关系记录 R001/)).toBeNull(); });
++    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
++    await fireEvent.update(screen.getByRole("combobox", { name: "旧 700 历史用途筛选" }), "PENDING_REVIEW");
+     await screen.findByText(/当前 1–1 \/ 667/);
+     expect(spy.mock.calls.some(([input]) => String(input).includes("research_use=PENDING_REVIEW"))).toBe(true);
+ 
+@@ -166,7 +212,7 @@
+     expect(screen.getByRole("link", { name: /打开来源：https:\/\/example.com\/primary-evidence/ })).toBeTruthy();
+     expect(screen.getByRole("link", { name: "打开来源：https://example.com/second" }).getAttribute("href")).toBe("https://example.com/second");
+     expect(screen.queryByRole("link", { name: /javascript:|password/ })).toBeNull();
+-    expect(screen.getByText(/当前权益比例待核/)).toBeTruthy();
++    expect(screen.getAllByText(/当前权益比例待核/).length).toBeGreaterThanOrEqual(2);
+     expect(screen.getByText(/州注册冲突限制/)).toBeTruthy();
+     expect(screen.getByText(/使用限制 \/ 禁止据此推断：/)).toBeTruthy();
+     expect(screen.getByText(/待官方更正索引或解释/)).toBeTruthy();
+@@ -174,12 +220,13 @@
+     expect(screen.queryByText(/声明的未解决导航引用：/)).toBeNull();
+     expect(screen.queryByText(/原始未闭合的 failure-check 文本/)).toBeNull();
+     expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+-    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整关系记录 R001" }));
+     await screen.findByText(/R001：.*关系身份、来源或安全状态不一致/);
+-    expect(screen.queryByText(/已读取完整补证 R001/)).toBeNull();
+-    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
+-    await fireEvent.click(screen.getByRole("button", { name: "查看完整补证 R001" }));
+-    await screen.findByText(/已读取完整补证 R001/);
++    expect(screen.queryByText(/已读取完整关系记录 R001/)).toBeNull();
++    expect(screen.queryByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeNull();
++    await fireEvent.click(screen.getByRole("button", { name: "查看完整关系记录 R001" }));
++    await screen.findByText(/已读取完整关系记录 R001/);
++    expect(screen.getByText(/完整 v2r1 有效研究、六层、七字段和来源身份/)).toBeTruthy();
+     expect(screen.getByRole("link", { name: "打开补证来源：https://example.com/revision" })).toBeTruthy();
+     expect(screen.getByText(/声明的未解决导航引用：/)).toBeTruthy();
+     expect(screen.getByText(/声明的未解决导航引用：/).parentElement?.textContent).toContain("R1");
+@@ -190,14 +237,16 @@
+     expect(parseIssueDetails?.textContent).toContain("原始未闭合的 failure-check 文本");
+     await fireEvent.update(screen.getByRole("textbox", { name: /按港股代码、港股名称、美股资产代码或关系编号查询/ }), "R001");
+     await fireEvent.click(screen.getByRole("button", { name: "查询资料" }));
+-    await screen.findByText(/R001 · 研究用途/);
++    await screen.findByText((_, element) => element?.tagName === "P" &&
++      element.textContent?.includes("R001 · 旧 700 历史用途") === true);
+     expect(spy.mock.calls.some(([input]) => String(input).includes("q=R001"))).toBe(true);
+     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
+     await fireEvent.update(screen.getByRole("textbox", { name: /按港股代码、港股名称、美股资产代码或关系编号查询/ }), "R700");
+     await fireEvent.click(screen.getByRole("button", { name: "查询资料" }));
+-    await screen.findByText(/R700 · 研究用途/);
+-    expect(screen.getByText(/R700 尚无来源补证记录/)).toBeTruthy();
+-    expect(screen.queryByRole("button", { name: "查看完整补证 R700" })).toBeNull();
+-    expect(screen.queryByText(/已读取完整补证 R700/)).toBeNull();
++    await screen.findByText((_, element) => element?.tagName === "P" &&
++      element.textContent?.includes("R700 · 旧 700 历史用途") === true);
++    expect(screen.getByText(/R700 不在旧 700 历史补证记录中/)).toBeTruthy();
++    expect(screen.queryByRole("button", { name: "查看完整关系记录 R700" })).toBeNull();
++    expect(screen.queryByText(/已读取完整关系记录 R700/)).toBeTruthy();
+   });
+ });
+--- /dev/null
++++ b/docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py
+@@ -0,0 +1,508 @@
++"""Build a deterministic V4 projection from the supplied v2r1 data archive.
++
++Archive members are treated as data only. No code or shell instructions from
++the archive are imported or executed.
++"""
++from __future__ import annotations
++
++import argparse
++import csv
++import hashlib
++import io
++import json
++from pathlib import Path, PurePosixPath
++import zipfile
++from typing import Any
++
++
++EXPECTED_ARCHIVE_SHA256 = "48f1124c10ed3440c22910a9125038748c08d673fc3ec543635cc9aae0b344d4"
++EXPECTED_BASE_CATALOG_SHA256 = "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
++EXPECTED_LEGACY_OVERLAY_SHA256 = "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69"
++EXPECTED_RELATIONS = 1003
++EXPECTED_STOCKS = 667
++EXPECTED_SIX_LAYERS = 6
++EXPECTED_FIELD_ASSESSMENTS = 7
++OVERLAY_SCHEMA = "v4.us_hk_mapping_recovery_overlay.v1"
++
++HANDOFF_DIR = Path(__file__).resolve().parent.parent
++REPO_ROOT = HANDOFF_DIR.parents[2]
++CATALOG_PATH = REPO_ROOT / "v4/manager_workbench/research_data/us_hk_667_catalog_20261015.json"
++LEGACY_OVERLAY_PATH = REPO_ROOT / "v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json"
++DEFAULT_ARCHIVE = Path("/Users/lexi/Downloads/US_HK_667_1003_recovery_v2r1_20261016.zip")
++DEFAULT_OUTPUT = REPO_ROOT / "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json"
++
++CURRENT_MEMBERS = (
++    "CURRENT/01A_full_667_original_and_history_plus_v2.csv",
++    "CURRENT/01B_full_1003_original_and_history_plus_v2.csv",
++    "CURRENT/RELATION_SUMMARY_1003.csv",
++    "CURRENT/SIX_LAYERS_1003x6.csv",
++    "CURRENT/FIELD_ASSESSMENTS_1003x7.csv",
++    "CURRENT/EFFECTIVE_RESEARCH_1003.json",
++    "CURRENT/VERSION_PRECEDENCE.json",
++    "CURRENT/ACCEPTANCE_LEDGER.json",
++    "CURRENT/METRICS.json",
++    "CURRENT/ORIGINAL_URL_ACCESS_ACCOUNTING.json",
++    "CURRENT/OPEN_RELATIONS_221.csv",
++    "CURRENT/NO_ORIGINAL_B_RELATIONS_18.csv",
++    "CURRENT/A_URL_OCCURRENCES_UNATTEMPTED_62.csv",
++    "CURRENT/BASELINE_MANIFEST_REFERENCE.json",
++)
++
++
++def canonical_bytes(value: Any) -> bytes:
++    return json.dumps(
++        value,
++        ensure_ascii=False,
++        sort_keys=True,
++        separators=(",", ":"),
++        allow_nan=False,
++    ).encode("utf-8")
++
++
++def _sha256_bytes(value: bytes) -> str:
++    return hashlib.sha256(value).hexdigest()
++
++
++def _sha256_file(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as stream:
++        for block in iter(lambda: stream.read(1024 * 1024), b""):
++            digest.update(block)
++    return digest.hexdigest()
++
++
++def _safe_member_path(name: str) -> bool:
++    path = PurePosixPath(name)
++    return bool(name) and not path.is_absolute() and ".." not in path.parts and "\\" not in name
++
++
++def _read_json(raw: bytes, label: str) -> Any:
++    try:
++        return json.loads(raw.decode("utf-8"), parse_constant=lambda token: (_ for _ in ()).throw(ValueError(token)))
++    except (UnicodeError, json.JSONDecodeError, ValueError) as exc:
++        raise ValueError(f"{label} is not valid JSON") from exc
++
++
++def _csv_rows(raw: bytes, label: str) -> tuple[list[str], list[dict[str, str]]]:
++    try:
++        text = raw.decode("utf-8-sig")
++        reader = csv.DictReader(io.StringIO(text, newline=""))
++        if not reader.fieldnames:
++            raise ValueError("missing CSV header")
++        rows = list(reader)
++    except (UnicodeError, csv.Error, ValueError) as exc:
++        raise ValueError(f"{label} is not a valid UTF-8 CSV") from exc
++    if any(None in row for row in rows):
++        raise ValueError(f"{label} has rows with extra columns")
++    return list(reader.fieldnames), rows
++
++
++def _verify_intake_receipt(archive_sha256: str) -> dict[str, Any]:
++    receipt = _read_json((HANDOFF_DIR / "INTAKE_AUDIT.json").read_bytes(), "intake receipt")
++    required = {
++        "read_only": True,
++        "archive_sha256": archive_sha256,
++        "manifest_members": 3637,
++        "manifest_size_sha_crc": "PASS",
++        "base_catalog_sha256": EXPECTED_BASE_CATALOG_SHA256,
++        "original_cell_mismatches": 0,
++        "stock_count": EXPECTED_STOCKS,
++        "relation_count": EXPECTED_RELATIONS,
++        "processed_count": 1003,
++        "closed_research_count": 757,
++        "closed_excluded_count": 25,
++        "open_count": 221,
++        "stocks_with_relations": 649,
++        "stocks_without_relations": 18,
++    }
++    if any(receipt.get(key) != value for key, value in required.items()):
++        raise ValueError("intake receipt does not match the frozen recovery contract")
++    return receipt
++
++
++def _load_catalog() -> dict[str, Any]:
++    raw = CATALOG_PATH.read_bytes()
++    if _sha256_bytes(raw) != EXPECTED_BASE_CATALOG_SHA256:
++        raise ValueError("base catalog SHA mismatch")
++    catalog = _read_json(raw, "base catalog")
++    if len(catalog.get("stocks", [])) != EXPECTED_STOCKS or len(catalog.get("relations", [])) != EXPECTED_RELATIONS:
++        raise ValueError("base catalog stock or relation count mismatch")
++    return catalog
++
++
++def _load_legacy_history() -> dict[str, Any]:
++    raw = LEGACY_OVERLAY_PATH.read_bytes()
++    if _sha256_bytes(raw) != EXPECTED_LEGACY_OVERLAY_SHA256:
++        raise ValueError("legacy 700 overlay SHA mismatch")
++    value = _read_json(raw, "legacy 700 overlay")
++    records = value.get("records")
++    ids = [record.get("relation_id") for record in records] if isinstance(records, list) else []
++    if len(ids) != 700 or len(set(ids)) != 700:
++        raise ValueError("legacy 700 overlay history is incomplete")
++    return {
++        "sha256": EXPECTED_LEGACY_OVERLAY_SHA256,
++        "record_count": len(ids),
++        "relation_ids": ids,
++        "source_package_sha256": value.get("source_package_sha256"),
++        "retained_as_separate_history": True,
++        "status_crosswalk": "NOT_ESTABLISHED",
++    }
++
++
++def _verify_source_rows(
++    catalog: dict[str, Any],
++    stock_fields: list[str],
++    stock_rows: list[dict[str, str]],
++    relation_fields: list[str],
++    relation_rows: list[dict[str, str]],
++) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
++    stock_original_count = 20
++    relation_original_count = 60
++    if len(stock_rows) != EXPECTED_STOCKS or len(relation_rows) != EXPECTED_RELATIONS:
++        raise ValueError("package original stock or relation row count mismatch")
++    if len(stock_fields) < stock_original_count or len(relation_fields) < relation_original_count:
++        raise ValueError("package original field range is incomplete")
++
++    stocks_by_code = {row["hk_code"]: row for row in catalog["stocks"]}
++    source_stock_by_code: dict[str, dict[str, str]] = {}
++    for index, source_row in enumerate(stock_rows, start=1):
++        source_fields = {key: source_row[key] for key in stock_fields[:stock_original_count]}
++        code = source_fields.get("代码")
++        if source_fields.get("序号") != str(index) or code not in stocks_by_code or code in source_stock_by_code:
++            raise ValueError("package original stock identity or order mismatch")
++        if source_fields != stocks_by_code[code].get("source_record"):
++            raise ValueError("package original stock fields differ from the immutable base catalog")
++        source_stock_by_code[code] = source_fields
++
++    relations_by_id = {row["source_record"].get("关系编号"): row for row in catalog["relations"]}
++    source_relation_by_id: dict[str, dict[str, str]] = {}
++    for index, source_row in enumerate(relation_rows, start=1):
++        source_fields = {key: source_row[key] for key in relation_fields[:relation_original_count]}
++        relation_id = source_fields.get("关系编号")
++        base_row = relations_by_id.get(relation_id)
++        if base_row is None or base_row["source_row"] != index or relation_id in source_relation_by_id:
++            raise ValueError("package original relation identity or order mismatch")
++        if source_fields != base_row.get("source_record"):
++            raise ValueError("package original relation fields differ from the immutable base catalog")
++        source_relation_by_id[relation_id] = source_fields
++    if set(source_stock_by_code) != set(stocks_by_code) or set(source_relation_by_id) != set(relations_by_id):
++        raise ValueError("package original identity coverage is incomplete")
++    return source_stock_by_code, source_relation_by_id
++
++
++def _manifest_entry(manifest_by_path: dict[str, dict[str, Any]], path: str, sha256: str | None = None) -> dict[str, Any]:
++    entry = manifest_by_path.get(path)
++    if not isinstance(entry, dict) or not isinstance(entry.get("sha256"), str):
++        raise ValueError(f"source member is absent from manifest: {path}")
++    if sha256 is not None and entry["sha256"] != sha256:
++        raise ValueError(f"source member SHA differs from manifest: {path}")
++    return {"path": path, "sha256": entry["sha256"], "bytes": entry["bytes"]}
++
++
++def build_recovery_overlay(archive_path: Path | str = DEFAULT_ARCHIVE) -> dict[str, Any]:
++    archive_path = Path(archive_path)
++    if _sha256_file(archive_path) != EXPECTED_ARCHIVE_SHA256:
++        raise ValueError("source ZIP SHA mismatch")
++    intake = _verify_intake_receipt(EXPECTED_ARCHIVE_SHA256)
++    catalog = _load_catalog()
++    legacy_history = _load_legacy_history()
++
++    with zipfile.ZipFile(archive_path, "r") as archive:
++        infos = archive.infolist()
++        names = [info.filename for info in infos]
++        if len(names) != 3638 or len(set(names)) != len(names) or "MANIFEST.json" not in names:
++            raise ValueError("archive member count or identity mismatch")
++        if any(not _safe_member_path(name) for name in names):
++            raise ValueError("archive contains an unsafe member path")
++
++        manifest_raw = archive.read("MANIFEST.json")
++        manifest = _read_json(manifest_raw, "source manifest")
++        manifest_rows = manifest.get("files")
++        if not isinstance(manifest_rows, list) or len(manifest_rows) != 3637 or manifest.get("file_count") != 3637:
++            raise ValueError("source manifest member count mismatch")
++        manifest_by_path = {entry.get("path"): entry for entry in manifest_rows if isinstance(entry, dict)}
++        if len(manifest_by_path) != 3637 or set(names) - {"MANIFEST.json"} != set(manifest_by_path):
++            raise ValueError("archive and source manifest members differ")
++        if manifest.get("uncompressed_bytes") != intake.get("manifest_content_bytes"):
++            raise ValueError("source manifest uncompressed byte count mismatch")
++
++        member_data: dict[str, bytes] = {}
++        source_member_hashes: dict[str, dict[str, Any]] = {}
++        for name in CURRENT_MEMBERS:
++            raw = archive.read(name)
++            entry = manifest_by_path.get(name)
++            if not isinstance(entry, dict) or entry.get("bytes") != len(raw) or entry.get("sha256") != _sha256_bytes(raw):
++                raise ValueError(f"current source member SHA/size mismatch: {name}")
++            member_data[name] = raw
++            source_member_hashes[name] = {"bytes": len(raw), "sha256": entry["sha256"]}
++
++    stock_fields, stock_rows = _csv_rows(member_data[CURRENT_MEMBERS[0]], CURRENT_MEMBERS[0])
++    relation_fields, relation_rows = _csv_rows(member_data[CURRENT_MEMBERS[1]], CURRENT_MEMBERS[1])
++    _, source_relation_by_id = _verify_source_rows(
++        catalog, stock_fields, stock_rows, relation_fields, relation_rows
++    )
++
++    _, summary_rows = _csv_rows(member_data["CURRENT/RELATION_SUMMARY_1003.csv"], "relation summary")
++    _, layer_rows = _csv_rows(member_data["CURRENT/SIX_LAYERS_1003x6.csv"], "six-layer projection")
++    _, field_rows = _csv_rows(member_data["CURRENT/FIELD_ASSESSMENTS_1003x7.csv"], "field assessment projection")
++    _, open_rows = _csv_rows(member_data["CURRENT/OPEN_RELATIONS_221.csv"], "open relation inventory")
++    _, no_edge_rows = _csv_rows(member_data["CURRENT/NO_ORIGINAL_B_RELATIONS_18.csv"], "no-edge stock inventory")
++    _, unattempted_a_rows = _csv_rows(member_data["CURRENT/A_URL_OCCURRENCES_UNATTEMPTED_62.csv"], "unattempted A URL inventory")
++
++    effective = _read_json(member_data["CURRENT/EFFECTIVE_RESEARCH_1003.json"], "effective research")
++    version_precedence = _read_json(member_data["CURRENT/VERSION_PRECEDENCE.json"], "version precedence")
++    acceptance_ledger = _read_json(member_data["CURRENT/ACCEPTANCE_LEDGER.json"], "acceptance ledger")
++    metrics = _read_json(member_data["CURRENT/METRICS.json"], "current metrics")
++    url_accounting = _read_json(member_data["CURRENT/ORIGINAL_URL_ACCESS_ACCOUNTING.json"], "URL access accounting")
++    baseline_reference = _read_json(member_data["CURRENT/BASELINE_MANIFEST_REFERENCE.json"], "baseline manifest reference")
++
++    effective_relations = effective.get("relations")
++    if effective.get("count") != EXPECTED_RELATIONS or effective.get("unique_relation_count") != EXPECTED_RELATIONS:
++        raise ValueError("effective research relation count mismatch")
++    if not isinstance(effective_relations, list) or len(effective_relations) != EXPECTED_RELATIONS:
++        raise ValueError("effective research relations are incomplete")
++    if len(summary_rows) != EXPECTED_RELATIONS or len(layer_rows) != EXPECTED_RELATIONS * EXPECTED_SIX_LAYERS:
++        raise ValueError("summary or six-layer row coverage mismatch")
++    if len(field_rows) != EXPECTED_RELATIONS * EXPECTED_FIELD_ASSESSMENTS:
++        raise ValueError("field assessment row coverage mismatch")
++
++    summary_by_id = {row.get("relation_id"): row for row in summary_rows}
++    if len(summary_by_id) != EXPECTED_RELATIONS:
++        raise ValueError("summary relation identities are duplicated")
++    layers_by_id: dict[str, list[dict[str, str]]] = {relation_id: [] for relation_id in summary_by_id}
++    assessments_by_id: dict[str, list[dict[str, str]]] = {relation_id: [] for relation_id in summary_by_id}
++    for row in layer_rows:
++        relation_id = row.get("relation_id")
++        if relation_id not in layers_by_id:
++            raise ValueError("six-layer row references an unknown relation")
++        try:
++            json.loads(row["effective_layer_record"])
++        except (KeyError, json.JSONDecodeError) as exc:
++            raise ValueError("six-layer record JSON is malformed") from exc
++        layers_by_id[relation_id].append(row)
++    for row in field_rows:
++        relation_id = row.get("relation_id")
++        if relation_id not in assessments_by_id:
++            raise ValueError("field assessment row references an unknown relation")
++        try:
++            json.loads(row["effective_field_assessment"])
++        except (KeyError, json.JSONDecodeError) as exc:
++            raise ValueError("field assessment JSON is malformed") from exc
++        assessments_by_id[relation_id].append(row)
++
++    counts = {"CLOSED_RESEARCH_SCOPE": 0, "CLOSED_EXCLUDED_SCOPE": 0, "OPEN": 0}
++    records: list[dict[str, Any]] = []
++    manifest_by_path = {entry["path"]: entry for entry in manifest["files"]}
++    for index, effective_row in enumerate(effective_relations, start=1):
++        relation_id = effective_row.get("relation_id")
++        original = source_relation_by_id.get(relation_id)
++        summary = summary_by_id.get(relation_id)
++        if original is None or summary is None or relation_id != original.get("关系编号"):
++            raise ValueError("effective research identity is not bound to the original relation")
++        source_catalog_row = next(row for row in catalog["relations"] if row["source_row"] == index)
++        if source_catalog_row["source_record"] != original or source_catalog_row["source_record"].get("asset_code") != summary.get("asset_code_original"):
++            raise ValueError("effective research relation order or symbol binding mismatch")
++        if (effective_row.get("original_B") != original or
++                effective_row.get("effective_summary", {}).get("relation_id") != relation_id or
++                summary.get("stock_code") != original.get("code") or
++                summary.get("asset_code_original") != original.get("asset_code")):
++            raise ValueError("effective research and original source fields disagree")
++        if (summary.get("closure_status") != effective_row["effective_summary"].get("closure_status") or
++                summary.get("primary_research_use") != effective_row["effective_summary"].get("primary_research_use")):
++            raise ValueError("effective relation status disagrees with current summary")
++
++        status = summary.get("closure_status")
++        if status not in counts:
++            raise ValueError("recovery closure status is unknown")
++        counts[status] += 1
++        if len(layers_by_id[relation_id]) != EXPECTED_SIX_LAYERS or len(assessments_by_id[relation_id]) != EXPECTED_FIELD_ASSESSMENTS:
++            raise ValueError("recovery layer or field assessment count is invalid")
++
++        provenance = effective_row.get("research_provenance")
++        provenance_ref = _manifest_entry(manifest_by_path, provenance.get("path"), provenance.get("sha256"))
++        if provenance.get("bytes") != provenance_ref["bytes"]:
++            raise ValueError("effective research provenance byte count differs from manifest")
++        summary_provenance_ref = _manifest_entry(
++            manifest_by_path,
++            summary.get("effective_research_file", ""),
++            summary.get("effective_research_sha256"),
++        )
++        if (summary_provenance_ref["sha256"] != provenance_ref["sha256"] or
++                summary_provenance_ref["bytes"] != provenance_ref["bytes"]):
++            raise ValueError("effective summary provenance differs from relation provenance")
++        effective_summary = effective_row.get("effective_summary", {})
++        independent_reports = effective_summary.get("independent_acceptance_reports", [])
++        if not isinstance(independent_reports, list):
++            raise ValueError("independent acceptance report references are malformed")
++        report_refs = []
++        for report in independent_reports:
++            report_ref = _manifest_entry(manifest_by_path, report.get("path", ""), report.get("sha256"))
++            report_refs.append(report_ref)
++
++        current_research = effective_row.get("effective_research")
++        if not isinstance(current_research, dict) or current_research.get("relation_id") != relation_id:
++            raise ValueError("full effective research record is absent or mismatched")
++        for key, expected in {
++            "RESEARCH_ONLY": True,
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++        }.items():
++            if key in current_research and current_research[key] is not expected:
++                raise ValueError("effective research safety state is invalid")
++        if (effective_summary.get("prediction") != "UNTESTED" or
++                effective_summary.get("historical_PIT") != "NOT_VALIDATED" or
++                effective_summary.get("event_and_data_tests") != "NOT_RUN"):
++            raise ValueError("effective research safety state is invalid")
++
++        records.append({
++            "relation_id": relation_id,
++            "source_row": index,
++            "hk_code": original["code"],
++            "us_symbol": original["asset_code"],
++            "source_original_fields": original,
++            "original_B_canonical_sha256": effective_row["original_B_canonical_sha256"],
++            "current_summary_csv_row": summary,
++            "effective_summary": effective_summary,
++            "acceptance": effective_row["acceptance"],
++            "research_provenance": provenance_ref,
++            "independent_report_provenance": report_refs,
++            "effective_research": current_research,
++            "six_layers": layers_by_id[relation_id],
++            "field_assessments": assessments_by_id[relation_id],
++        })
++
++    if counts != {"CLOSED_RESEARCH_SCOPE": 757, "CLOSED_EXCLUDED_SCOPE": 25, "OPEN": 221}:
++        raise ValueError(f"current closure status counts mismatch: {counts}")
++    if [row["relation_id"] for row in records] != [row["source_record"].get("关系编号") for row in catalog["relations"]]:
++        raise ValueError("effective relation order differs from the immutable base catalog")
++
++    metrics_expected = {
++        "processed_original_relations": EXPECTED_RELATIONS,
++        "involved_original_stocks": 649,
++        "all_original_edges_processed_stocks": 649,
++        "bounded_research_closed": 757,
++        "excluded_scope_closed": 25,
++        "explicit_closed_total": 782,
++        "accepted_open_relations": 221,
++        "remaining_original_relations": 0,
++        "original_A_stocks": EXPECTED_STOCKS,
++        "stocks_without_original_B_relations": 18,
++        "A_URL_occurrences_without_attempt": 62,
++        "prediction": "UNTESTED",
++        "historical_PIT": "NOT_VALIDATED",
++        "event_and_data_tests": "NOT_RUN",
++        "company_independent_acceptance": 0,
++        "production_allowed": False,
++        "orders_sent": False,
++    }
++    if any(metrics.get(key) != value for key, value in metrics_expected.items()):
++        raise ValueError("current package metrics disagree with frozen acceptance counts")
++    if (len(open_rows) != 221 or {row.get("relation_id") for row in open_rows} !=
++            {row["relation_id"] for row in records if row["effective_summary"]["closure_status"] == "OPEN"}):
++        raise ValueError("open relation inventory differs from current effective status")
++    no_edge_codes = {row.get("代码") for row in no_edge_rows}
++    if len(no_edge_codes) != 18 or no_edge_codes != set(catalog["coverage"]["stocks_without_relations"]):
++        raise ValueError("no-original-relation inventory differs from immutable base catalog")
++    if len(unattempted_a_rows) != 62 or metrics.get("A_URL_occurrences_without_attempt") != len(unattempted_a_rows):
++        raise ValueError("unattempted A URL inventory count mismatch")
++
++    ledger_metrics = acceptance_ledger.get("metrics", {})
++    ledger_metric_keys = (
++        "processed_original_relations", "involved_original_stocks",
++        "all_original_edges_processed_stocks", "bounded_research_closed",
++        "excluded_scope_closed", "explicit_closed_total", "accepted_open_relations",
++        "remaining_original_relations",
++    )
++    if any(ledger_metrics.get(key) != metrics_expected[key] for key in ledger_metric_keys):
++        raise ValueError("acceptance ledger metrics disagree with the current package")
++    if url_accounting.get("A_occurrences_without_recorded_exact_URL_attempt") != 62:
++        raise ValueError("URL access accounting no longer binds the 62 A URL gap")
++
++    overlay: dict[str, Any] = {
++        "schema_version": OVERLAY_SCHEMA,
++        "overlay_id": "us_hk_667_1003_recovery_v2r1_20261016",
++        "base_catalog_sha256": EXPECTED_BASE_CATALOG_SHA256,
++        "source_package_sha256": EXPECTED_ARCHIVE_SHA256,
++        "source_archive_name": archive_path.name,
++        "source_manifest_sha256": _sha256_bytes(manifest_raw),
++        "source_manifest_member_count": 3637,
++        "source_manifest_content_bytes": manifest["uncompressed_bytes"],
++        "source_member_hashes": source_member_hashes,
++        "prior_700_history": legacy_history,
++        "counts": {
++            "snapshot_stocks": EXPECTED_STOCKS,
++            "original_relations": EXPECTED_RELATIONS,
++            "processed_relations": len(records),
++            "closure_status_counts": counts,
++            "research_scope_closed": counts["CLOSED_RESEARCH_SCOPE"],
++            "excluded_scope_closed": counts["CLOSED_EXCLUDED_SCOPE"],
++            "closed_total_including_exclusions": counts["CLOSED_RESEARCH_SCOPE"] + counts["CLOSED_EXCLUDED_SCOPE"],
++            "open_relations": counts["OPEN"],
++            "stocks_with_relations": 649,
++            "stocks_without_relations": 18,
++            "company_independent_acceptance": 0,
++        },
++        "research_safety": {
++            "RESEARCH_ONLY": True,
++            "production_allowed": False,
++            "buy_gate_updated": False,
++            "orders_sent": False,
++            "fact_validation": "INDEPENDENT_ACCEPTANCE_0",
++            "prediction_validation": "UNTESTED",
++            "historical_PIT": "NOT_VALIDATED",
++            "event_and_data_tests": "NOT_RUN",
++            "semantic_mapping_validity": "CANNOT_CONFIRM",
++        },
++        "evidence_limits": {
++            "historical_path_gap_occurrences": 227,
++            "historical_path_gap_unique_paths": 218,
++            "separate_restored740_missing_path_sha_pairs": 404,
++            "separate_restored740_missing_hashes": 388,
++            "gap_scopes_additive": False,
++            "A_url_occurrences_unattempted": 62,
++            "available_at": "ABSENT",
++            "access_dates_are_available_at": False,
++            "access_date_interpretation": "Research access dates do not establish fact effective dates or available_at.",
++            "all_statements_verified": False,
++        },
++        "package_url_access_accounting": url_accounting,
++        "version_precedence": version_precedence,
++        "version_precedence_source_member": "CURRENT/VERSION_PRECEDENCE.json",
++        "baseline_manifest_reference": baseline_reference,
++        "projection_rule": (
++            "closure_status and primary_research_use are exposed exactly as the current v2r1 fields; "
++            "they are not crosswalked from the separate legacy 700 overlay research_use values."
++        ),
++        "records": records,
++    }
++    overlay["integrity_sha256"] = _sha256_bytes(canonical_bytes(overlay))
++    return overlay
++
++
++def write_overlay(overlay: dict[str, Any], output_path: Path | str = DEFAULT_OUTPUT) -> str:
++    output_path = Path(output_path)
++    raw = canonical_bytes(overlay) + b"\n"
++    output_path.write_bytes(raw)
++    return _sha256_bytes(raw)
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("archive", nargs="?", default=str(DEFAULT_ARCHIVE))
++    parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
++    args = parser.parse_args()
++    overlay = build_recovery_overlay(args.archive)
++    digest = write_overlay(overlay, args.output)
++    print(json.dumps({
++        "output": str(Path(args.output)),
++        "bytes": Path(args.output).stat().st_size,
++        "sha256": digest,
++        "integrity_sha256": overlay["integrity_sha256"],
++        "records": len(overlay["records"]),
++        "closure_status_counts": overlay["counts"]["closure_status_counts"],
++    }, ensure_ascii=False, sort_keys=True))
++
++
++if __name__ == "__main__":
++    main()
