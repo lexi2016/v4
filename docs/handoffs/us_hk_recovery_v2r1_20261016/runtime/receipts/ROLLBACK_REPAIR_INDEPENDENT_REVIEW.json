@@ -1,0 +1,80 @@
+{
+  "schema_version": "v4.us_hk_recovery_v2r1_rollback_repair_independent_review.v1",
+  "reviewer": "mapping_recovery_review",
+  "writer": "mapping_recovery_writer",
+  "scope": "rollback helper repair only",
+  "verdict": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS",
+    "overall_runtime_candidate_verdict": "NOT_ISSUED"
+  },
+  "finding_repair": {
+    "id": "ACT-ROLLBACK-01",
+    "initial_severity": "P2",
+    "status": "RESOLVED_IN_BOUNDED_REPAIR",
+    "previous_helper_sha256": "6d5a53c1b4576cfbf09852705a5cd657b5014d0cdffd2865afd407c8b9b4bcce",
+    "reviewed_helper_sha256": "fd1a9dbbbe5a2f831c44fa990aa38bb2fab48da46e505a9290d36faef649c8f7",
+    "previous_shared_core_sha256": "25e72ccf9034663dcc9e1d8a14c54ccda9a4b74009dd3152a3f4537eef1d078a",
+    "shared_core_unchanged": true,
+    "repair_receipt_sha256": "0942b3ee0caf2e9ea02b0f065d6aee11cefd4241f6256a37896c0736edd6e88f",
+    "mechanism": "Detach failures are captured without skipping original-plist restoration; restoration is read back byte-for-byte; service identity and errors are retained; bootstrap is skipped unless detach and service absence are confirmed."
+  },
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "independent_tests": [
+    {
+      "name": "focused rollback regression tests",
+      "command": ".venv/bin/python -B -m pytest -q --basetemp=/private/tmp/us_hk_recovery_activation_reviewer_jy2oyphv docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/tests/test_activation_rollback.py",
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      },
+      "result": "PASS",
+      "exit_code": 0,
+      "tests_passed": 3,
+      "cases": [
+        "Detach confirmation failure: original plist restored and byte-verified, error retained, unknown identity retained, bootstrap skipped, status not PASS.",
+        "Successful detach: restoration and identity probe precede exactly one bootstrap.",
+        "Restore failure: error retained, bootstrap skipped, status ROLLBACK_INCOMPLETE."
+      ]
+    },
+    {
+      "name": "default helper dry run",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=. .venv/bin/python -B docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate.py",
+      "result": "PREPARED_ONLY",
+      "exit_code": 0,
+      "launchctl_called": false
+    },
+    {
+      "name": "activation authorization read gate",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH=. .venv/bin/python -B docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate.py --activate",
+      "result": "BLOCKED_AS_EXPECTED",
+      "exit_code": 1,
+      "error": "EXPLICIT_ROOT_AUTHORIZATION_REFERENCE_REQUIRED",
+      "active_plist_unchanged": true,
+      "active_plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+      "activation_receipt_created": false
+    }
+  ],
+  "staleness_boundary": {
+    "current_active_release_id": "futu-industry-api-20261016-r2",
+    "current_active_manifest_sha256": "da83203770b86b1b092f003b287e4622505e5a95ba8a5abadf0aace25420a9c5",
+    "current_active_plist_sha256": "46ac14b7cc3f2486ec86860d628301ea3fa58b771a6c06e18dc06b02845f6e0e",
+    "prepared_plan_base_plist_sha256": "d601d017cbf1f893949c44a5e321458c7e5a3c81216601cfb4133c4781f44e1a",
+    "prepared_candidate_manifest_sha256": "fa90e8649920ff2f4f46ba12ac0d447f91d57eddd565cd2ca8e21f7310d19f57",
+    "candidate_stale_against_current_pointer": true,
+    "candidate_activation_eligibility": "CANNOT_CONFIRM"
+  },
+  "cannot_confirm": [
+    "Real launchd detach-failure, atomic restoration, service identity, and restart behavior; isolated mocks exercised the helper logic only.",
+    "Live API/UI behavior for the prepared candidate and natural-slot behavior.",
+    "Whether launchctl bootstrap returning success leads to a healthy prior API service; no activation or rollback was run."
+  ],
+  "receipt_bindings": {
+    "rollback_test_sha256": "77a0664651447dbb33f8efb05168d74380f0ecb3f9ad3febf9bf08a552c3432e",
+    "markdown_review_sha256": "328dae07b61e71c42a3d3fa5c459b59076800a0671f2064fcec8afbc890a781a"
+  }
+}
