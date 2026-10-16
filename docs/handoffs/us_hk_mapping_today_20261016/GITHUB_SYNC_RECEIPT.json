@@ -1,0 +1,92 @@
+{
+  "repository": "lexi2016/v4",
+  "branch": "codex/us-hk-today-observation-20261016",
+  "base_commit": "66a2a8defb9b64591f8c1e0376c667164bb6bfc4",
+  "delivery_commit": "f99daa868a6a64eefae956c1045c7b3b6588bf89",
+  "head_status": "identical",
+  "status": "EXACT_READBACK_PASS",
+  "files": [
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/LEDGER.json",
+      "sha256": "ff1a59c76bedd3fa9abe6ecbdaec490a62000ecb25246a4b75f7ff91c46a91eb",
+      "bytes": 2197,
+      "blob_sha": "052c90a0e23636d8a02ebb90ddba07e2a6686e53",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/SCOPE_R1.md",
+      "sha256": "468974e68ba3bf2dc6295598f65f60c7627699925d0d800e0464db2101b90028",
+      "bytes": 5101,
+      "blob_sha": "4dcb64bbd626be0f99b0d22191b24aef6a648364",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/capture_futu_daily.py",
+      "sha256": "b2e5e4b78fe6e77063c890301b6e5433ccfa171f58f56d85f5c121c3c4dd1d8f",
+      "bytes": 19199,
+      "blob_sha": "9418a4c7e2364cda69a3b8a0caa747b6ca014766",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/capture_futu_snapshot.py",
+      "sha256": "1bd9dc0619b0033e21efb4255391b106473382d7ef9d09a8d57c1e6ea50ca47c",
+      "bytes": 48042,
+      "blob_sha": "bea619dbfdb30270cfa33a98854ac8ae5d3b5fac",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/WRITER_RECEIPT.json",
+      "sha256": "46df4e7f28f51528a0178d5f95195251ab039e5d2aaaff9e00384ea4526862d0",
+      "bytes": 6130,
+      "blob_sha": "ecb6917d65dc66a2336b13ec7db322d526434692",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/INDEPENDENT_REVIEW.md",
+      "sha256": "e67e0bebcc2f1a262fb2e454410a1a8c3acb03e9dee4e4b4633deb9ee835ea22",
+      "bytes": 7243,
+      "blob_sha": "b782324bd2ca4819077cd261aa6843efbfd2b10f",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/INDEPENDENT_REVIEW.json",
+      "sha256": "01c0f96bb3b5f84aa1babfeab045459b06ed1f17fe83edd250fc3088de860e3c",
+      "bytes": 6454,
+      "blob_sha": "55dc68a5f93d8012fd0a9ca30c560e655701d2da",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/REPORT.md",
+      "sha256": "d6d8a290c9e4d28f278b640c7923ee984272b15546456254ddf80a27200891d0",
+      "bytes": 11157,
+      "blob_sha": "e3b498ca8e7f7a32419d0c03041f616c469aff46",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/futu_r1/results.json",
+      "sha256": "8feabc50d347f7ef76446059cf73887651b1471ecb03d46b94782882500cab4c",
+      "bytes": 4962,
+      "blob_sha": "26ff92370a44e347001869d72721ebe1fc64730d",
+      "exact": true,
+      "encoding": "utf-8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_mapping_today_20261016/DELIVERY.md",
+      "sha256": "db44953d6e4c2fad612247961c6b69091eead61926b18954cb8d6a444fd16c77",
+      "bytes": 2685,
+      "blob_sha": "e00e25b88585fa57c8e7e346abcba387be7e54b3",
+      "exact": true,
+      "encoding": "utf-8"
+    }
+  ],
+  "excluded": "Raw quote captures, full CSVs and input projections, archives, credentials, runtime configs, and unbound current R0 helper/receipt bytes. Current R1 scripts and compact research results only.",
+  "receipt_commit_note": "Receipt committed after delivery commit; receipt content and final branch head verified separately."
+}
