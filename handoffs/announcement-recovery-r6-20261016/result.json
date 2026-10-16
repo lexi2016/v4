@@ -1,0 +1,37 @@
+{
+  "status": "DEPLOYED_API_VERIFIED_UI_TRIGGERED_BATCH_RESULT_PENDING",
+  "base_commit": "4eb23b61e9d32d0b8eee9d4267ee67da01053d0b",
+  "runtime_base": "us-industry-compact-20261016-r2",
+  "candidate": "announcement-recovery-api-20261016-r6",
+  "candidate_manifest_sha256": "83a0b713753d229210945215e23f9c94a47c43958ac17f4a0cef356152fff237",
+  "writer_receipt_sha256": "a583bbabb36fd486e6a9211094614d8e7d7a835d53fa880dd231400413c0dea8",
+  "writer_tests_passed": 45,
+  "actual_input_proof_sha256": "cd84b3ce978428a77128c570b3a45820b15572721b33d587631d7500ea1ad1d7",
+  "actual_input_proof_scope": "137 immutable current versions; repeat0new; source/authority/cutoff negatives; synthetic canary→same-run phaseB16; original queue unchanged",
+  "independent_review": "PASS_WITH_NONBLOCKING_P2",
+  "deployment": "DEPLOYED_API_VERIFIED",
+  "actual_model_canary": "CANNOT_CONFIRM_PENDING_LIVE_RESULT",
+  "UI_VERIFIED": "EXISTING_BUTTON_SUBMISSION_ONLY",
+  "NATURAL_VERIFIED": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "review_receipt_sha256": "c6a3aa5d3078c5a80a42e90b7e7574376ed9169c9db9a8b61b36a15f6ac9e1a5",
+  "independent_tests_passed": 45,
+  "independent_actual_input_proof": "PASS_SYNTHETIC_CANARY_OFFLINE_ONLY",
+  "BEHAVIOR_VERIFIED": "OFFLINE_CANDIDATE_PATH_ONLY",
+  "natural_slot": "NOT_RUN_NO_NATURAL_SLOT_CLAIM",
+  "live_run": {
+    "job_id": "85add37723bf4c5ea1445dcb61202899",
+    "trigger": "one existing workbench UI button click",
+    "observed_state": "RUNNING",
+    "observed_step": "CAPTURE_ANNOUNCEMENTS",
+    "observed_at": "2026-10-16T20:15:22.451229+08:00",
+    "manual_queue_or_cli_advancement": false
+  },
+  "remaining": "Actual completed batch, model canary, phase-B model execution, and final API/UI results remain unverified; user prefers no continuous progress polling.",
+  "nonblocking_p2": "Dedicated pending/system-stop/artifact-mismatch canary negative tests are missing; fail-closed source branches were reviewed."
+}

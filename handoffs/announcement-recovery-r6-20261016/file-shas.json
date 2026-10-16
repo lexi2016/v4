@@ -1,0 +1,33 @@
+{
+  "schema": "v4.bounded_source_delta.v1",
+  "source_root": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+  "runtime_base": {
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-industry-compact-20261016-r2",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-industry-compact-20261016-r2/app",
+    "release_id": "us-industry-compact-20261016-r2",
+    "release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-industry-compact-20261016-r2/release-manifest.json",
+    "release_manifest_sha256": "d96d7c4b19642b0e41c1fe8293a359c6acdd21488ba6ab5a27023d139435da1a",
+    "application_inventory_sha256": "5cd4f97b717026228bcffafe3e9321a7eb673a4626efd3022ae72fe096e95e49",
+    "application_inventory_entry_count": 1221
+  },
+  "candidate_manifest_sha256": "83a0b713753d229210945215e23f9c94a47c43958ac17f4a0cef356152fff237",
+  "files": [
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "before_sha256": "1d8013b7c3f9f8e679ee1beac0da25d0f68417badd87ddacd8b4bd87659ac1a5",
+      "after_sha256": "c7e5ae8ba0ad2e74aa1a5a2e48b325485b74abf31ff917309546554a2165e8a1"
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_runner.py",
+      "before_sha256": "cb17cc599f0daf9fce654953efd116742645e7c146ac2f19704b6b4e01495754",
+      "after_sha256": "e2ae05ac2b67a6cbad05840a8608fab43b8c2cb3895dee720f9b4b875458408d"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_chunks.py",
+      "before_sha256": "17b0c624e1498e6ab2aad4e51c543e232dd3d67f6f594314e5fe748eb2a5f5d2",
+      "after_sha256": "8759c28802fd2f92eff7eabf89b684dce151554aa0292cf1cb16890127309f7a"
+    }
+  ],
+  "patch_sha256": "47a05b13b80b6ad409a447d37eae12b7647dfb6dda5b766454509bff0a0a3de5",
+  "patch_apply_check": "PASS"
+}

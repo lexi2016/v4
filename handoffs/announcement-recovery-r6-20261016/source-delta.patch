@@ -1,0 +1,1593 @@
+diff --git a/ops/run_manager_flash_announcements.py b/ops/run_manager_flash_announcements.py
+--- a/ops/run_manager_flash_announcements.py
++++ b/ops/run_manager_flash_announcements.py
+@@ -545,10 +545,217 @@
+     return key, stored_payload
+ 
+ 
++def _current_recovery_payload_valid(payload: dict[str, Any], recovery_lock: Any,
++                                    membership_gate: Any, resume_cutoff: str | None) -> bool:
++    """Fail closed unless this payload is bound to the frozen current HK Connect recovery."""
++    if not isinstance(recovery_lock, dict) or not isinstance(membership_gate, dict):
++        return False
++    metadata = payload.get("article_metadata")
++    article_id = payload.get("article_id")
++    if (recovery_lock.get("schema") != "v4.manager_workbench.announcement_flash_recovery_lock.v1"
++            or membership_gate.get("schema") != "v4.manager_workbench.announcement_connect_membership.v1"
++            or membership_gate.get("status") != "VERIFIED"
++            or membership_gate.get("market") != "HK_CONNECT"
++            or membership_gate.get("target_date") != recovery_lock.get("target_date")
++            or membership_gate.get("cutoff") != recovery_lock.get("cutoff")
++            or resume_cutoff != recovery_lock.get("cutoff")
++            or membership_gate.get("authority_sha256") != recovery_lock.get("membership_authority_sha256")
++            or not isinstance(article_id, str)
++            or article_id not in recovery_lock.get("eligible_article_ids", [])
++            or recovery_lock.get("eligible_count") != len(recovery_lock.get("eligible_article_ids", []))
++            or not isinstance(metadata, dict)):
++        return False
++    current_bodies = recovery_lock.get("current_body_sha256")
++    expected_bodies = recovery_lock.get("expected_body_sha256")
++    if not isinstance(current_bodies, dict) or not isinstance(expected_bodies, dict):
++        return False
++    body = payload.get("article_body")
++    body_sha256 = payload.get("body_sha256")
++    if (not isinstance(body, str) or not isinstance(body_sha256, str)
++            or not SHA_RE.fullmatch(body_sha256) or sha(body.encode("utf-8")) != body_sha256
++            or current_bodies.get(article_id) != body_sha256
++            or expected_bodies.get(article_id, body_sha256) != body_sha256
++            or not SHA_RE.fullmatch(str(recovery_lock.get("capture_product_sha256", "")))
++            or not SHA_RE.fullmatch(str(recovery_lock.get("row_manifest_sha256", "")))
++            or not SHA_RE.fullmatch(str(recovery_lock.get("eligible_article_ids_sha256", "")))):
++        return False
++    try:
++        cutoff = datetime.fromisoformat(str(resume_cutoff))
++        available_at = datetime.fromisoformat(str(metadata.get("available_at", "")))
++        publication_date = datetime.fromisoformat(str(metadata.get("publication_date", ""))).date()
++        target_date = datetime.strptime(str(recovery_lock.get("target_date", "")), "%Y%m%d").date()
++    except ValueError:
++        return False
++    if (cutoff.tzinfo is None or cutoff.utcoffset() is None
++            or available_at.tzinfo is None or available_at.utcoffset() is None
++            or available_at > cutoff or publication_date > target_date
++            or payload.get("date") != publication_date.isoformat() or payload.get("market") != "HK"):
++        return False
++    authority = metadata.get("membership_authority_sha256")
++    if (metadata.get("article_membership_status") != "IN"
++            or not isinstance(authority, str) or not SHA_RE.fullmatch(authority)
++            or authority != membership_gate.get("authority_sha256")):
++        return False
++    issuer_membership = metadata.get("source_issuer_membership")
++    issuer_codes = metadata.get("source_issuer_codes")
++    gate_codes = membership_gate.get("codes")
++    if (not isinstance(issuer_membership, list) or len(issuer_membership) != 1
++            or not isinstance(issuer_membership[0], dict)
++            or issuer_membership[0].get("membership_status") != "IN"
++            or issuer_membership[0].get("market") != "HK_CONNECT"
++            or issuer_membership[0].get("authority_sha256") != authority
++            or not isinstance(issuer_membership[0].get("code"), str)
++            or not isinstance(issuer_codes, list) or not isinstance(gate_codes, list)):
++        return False
++    issuer_code = issuer_membership[0]["code"]
++    if (issuer_code not in gate_codes
++            or not any(isinstance(item, dict) and item.get("code") == issuer_code for item in issuer_codes)):
++        return False
++    source_sha256 = payload.get("source_sha256")
++    if not isinstance(source_sha256, str) or not SHA_RE.fullmatch(source_sha256):
++        return False
++    origins = metadata.get("source_origins")
++    if (not isinstance(origins, list)
++            or not any(isinstance(item, dict) and item.get("role") == "CAPTURE_WINDOW_PRODUCT_ROW"
++                       and item.get("source_product_sha256") == recovery_lock.get("capture_product_sha256")
++                       for item in origins)
++            or not any(isinstance(item, dict) and item.get("role") == "VERIFIED_FULL_NOTICE_BODY_PRODUCT"
++                       and item.get("source_product_sha256") == source_sha256 for item in origins)):
++        return False
++    return True
++
++
++def _recovery_version_binding(record: dict[str, Any], current_payload: dict[str, Any],
++                              queue: Any, queue_root: Path, recovery_lock: Any,
++                              membership_gate: Any, resume_cutoff: str | None) -> dict[str, Any] | None:
++    """Bind one frozen current payload to a preserved, unattempted pre-authority queue version."""
++    job = record.get("job")
++    if (record.get("source") != "INCREMENTAL_QUEUE" or record.get("status") != "PENDING"
++            or not isinstance(job, dict) or job.get("status") != "PENDING"
++            or type(job.get("attempt_count")) is not int or job.get("attempt_count") != 0
++            or job.get("queue_id") != QUEUE_ID or job.get("max_attempts") != 1):
++        return None
++    old_key = record.get("idempotency_key") or job.get("idempotency_key")
++    if (not isinstance(old_key, str) or old_key != job.get("idempotency_key")
++            or not isinstance(job.get("payload_sha256"), str)
++            or not SHA_RE.fullmatch(job["payload_sha256"])
++            or not _current_recovery_payload_valid(current_payload, recovery_lock, membership_gate,
++                                                   resume_cutoff)):
++        return None
++    old_payload = _queue_payload(queue_root, job)
++    old_identity = queue._identity(old_payload)
++    current_identity = queue._identity(current_payload)
++    if old_identity != job.get("identity"):
++        raise FlashRunError("PENDING_RESUME_QUEUE_IDENTITY_MISMATCH")
++    identity_fields = ("date", "market", "article_id", "body_sha256", "prompt_sha256",
++                       "model_id", "configuration_sha256", "rules", "role", "stage")
++    if (any(old_identity.get(field) != current_identity.get(field) for field in identity_fields)
++            or old_identity.get("source_sha256") == current_identity.get("source_sha256")
++            or _semantic_identity(old_identity) != _semantic_identity(current_identity)):
++        return None
++    exact_source_fields = ("article_body", "body_sha256", "fixed_fact_ledger", "source_unit_map_sha256",
++                           "structured_output_schema", "workflow_profile", "citation_protocol")
++    if any(old_payload.get(field) != current_payload.get(field) for field in exact_source_fields):
++        return None
++    old_meta = old_payload.get("article_metadata")
++    new_meta = current_payload.get("article_metadata")
++    if (not isinstance(old_meta, dict) or not isinstance(new_meta, dict)
++            or old_meta.get("article_membership_status") != "CANNOT_CONFIRM"
++            or old_meta.get("membership_authority_sha256") not in (None, "")
++            or old_meta.get("source_issuer_membership") not in (None, [])
++            or any(old_meta.get(field) != new_meta.get(field) for field in ("publication_date", "title", "symbol"))):
++        return None
++    try:
++        cutoff = datetime.fromisoformat(str(resume_cutoff))
++        old_available = datetime.fromisoformat(str(old_meta.get("available_at", "")))
++    except ValueError:
++        return None
++    if (cutoff.tzinfo is None or cutoff.utcoffset() is None
++            or old_available.tzinfo is None or old_available.utcoffset() is None
++            or old_available > cutoff):
++        return None
++    binding = {
++        "schema": "v4.manager_workbench.announcement_flash_queue_version_binding.v1",
++        "article_id": current_payload["article_id"],
++        "target_date": recovery_lock["target_date"],
++        "cutoff": recovery_lock["cutoff"],
++        "root_batch_job_id": recovery_lock["root_batch_job_id"],
++        "parent_job_id": recovery_lock["parent_job_id"],
++        "parent_input_sha256": recovery_lock["parent_input_sha256"],
++        "parent_result_sha256": recovery_lock["parent_result_sha256"],
++        "row_manifest_sha256": recovery_lock["row_manifest_sha256"],
++        "eligible_article_ids_sha256": recovery_lock["eligible_article_ids_sha256"],
++        "capture_product_sha256": recovery_lock["capture_product_sha256"],
++        "body_sha256": current_payload["body_sha256"],
++        "source_unit_map_sha256": current_payload.get("source_unit_map_sha256"),
++        "old_idempotency_key": old_key,
++        "old_payload_sha256": job["payload_sha256"],
++        "old_identity_sha256": sha(canonical(old_identity)),
++        "old_source_sha256": old_identity["source_sha256"],
++        "old_metadata_sha256": sha(canonical(old_meta)),
++        "old_messages_sha256": sha(canonical(old_payload.get("messages"))),
++        "new_idempotency_key": _stable_queue_identity(queue, current_payload),
++        "new_current_payload_sha256": sha(canonical(current_payload)),
++        "new_identity_sha256": sha(canonical(current_identity)),
++        "new_source_sha256": current_identity["source_sha256"],
++        "new_metadata_sha256": sha(canonical(new_meta)),
++        "new_messages_sha256": sha(canonical(current_payload.get("messages"))),
++        "membership_authority_sha256": new_meta["membership_authority_sha256"],
++    }
++    binding["binding_sha256"] = sha(canonical(binding))
++    return binding
++
++
++def _version_association_summary(binding: dict[str, Any], job: dict[str, Any],
++                                 disposition: str) -> dict[str, Any]:
++    return {"article_id": binding["article_id"], "disposition": disposition,
++            "old_idempotency_key": binding["old_idempotency_key"],
++            "old_payload_sha256": binding["old_payload_sha256"],
++            "new_idempotency_key": job.get("idempotency_key"),
++            "new_payload_sha256": job.get("payload_sha256"),
++            "new_source_sha256": binding["new_source_sha256"],
++            "body_sha256": binding["body_sha256"],
++            "membership_authority_sha256": binding["membership_authority_sha256"],
++            "capture_product_sha256": binding["capture_product_sha256"],
++            "binding_sha256": binding["binding_sha256"]}
++
++
++def _persisted_recovery_version(current_key: str, current_job: dict[str, Any],
++                                current_payload: dict[str, Any], queue: Any, queue_root: Path,
++                                existing_jobs: dict[str, Any], recovery_lock: Any,
++                                membership_gate: Any, resume_cutoff: str | None
++                                ) -> tuple[dict[str, Any], dict[str, Any]] | None:
++    stored_payload = _queue_payload(queue_root, current_job)
++    binding = stored_payload.get("recovery_version_binding")
++    if not isinstance(binding, dict):
++        return None
++    old_key = binding.get("old_idempotency_key")
++    old_job = existing_jobs.get(old_key) if isinstance(old_key, str) else None
++    if not isinstance(old_job, dict):
++        return None
++    old_record = {"source": "INCREMENTAL_QUEUE", "status": old_job.get("status"),
++                  "identity": old_job.get("identity"), "job": old_job,
++                  "queue_root": queue_root, "idempotency_key": old_key}
++    expected = _recovery_version_binding(old_record, current_payload, queue, queue_root,
++                                         recovery_lock, membership_gate, resume_cutoff)
++    unbound_payload = {key: value for key, value in stored_payload.items()
++                       if key != "recovery_version_binding"}
++    check = dict(binding)
++    check_sha = check.pop("binding_sha256", None)
++    if (expected is None or binding != expected or check_sha != sha(canonical(check))
++            or current_job.get("idempotency_key") != current_key
++            or unbound_payload != current_payload
++            or current_job.get("identity") != queue._identity(stored_payload)):
++        return None
++    return binding, stored_payload
++
++
+ def _admit_incremental_payloads(payloads: list[dict[str, Any]], queue: Any,
+                                 pinned_history: list[dict[str, Any]], queue_root: Path,
+                                 *, resume_same_batch_pending: bool = False,
+-                                resume_cutoff: str | None = None) -> dict[str, Any]:
++                                resume_cutoff: str | None = None,
++                                recovery_lock: dict[str, Any] | None = None,
++                                membership_gate: dict[str, Any] | None = None) -> dict[str, Any]:
+     """Admit new input; explicit recovery may also resume exact zero-attempt IN queue items."""
+     state = queue._load_state()
+     existing_jobs = state.get("jobs", {}) if isinstance(state, dict) else {}
+@@ -574,6 +781,7 @@
+     articles_by_key: dict[str, dict[str, Any]] = {}
+     new_enqueued_keys: set[str] = set()
+     resumed_payloads_by_key: dict[str, dict[str, Any]] = {}
++    version_associations: list[dict[str, Any]] = []
+     matched: list[dict[str, Any]] = []
+     duplicate_count = 0
+     conflicts: list[dict[str, Any]] = []
+@@ -586,6 +794,11 @@
+         if not semantic or not isinstance(article_id, str):
+             conflicts.append({"article_id": article_id, "failure_code": "QUEUE_IDENTITY_INVALID"})
+             continue
++        if (resume_same_batch_pending and recovery_lock is not None
++                and not _current_recovery_payload_valid(payload, recovery_lock, membership_gate, resume_cutoff)):
++            conflicts.append({"article_id": article_id,
++                              "failure_code": "RECOVERY_CURRENT_VERSION_BINDING_INVALID"})
++            continue
+         previous_semantic = seen_articles.get(article_id)
+         if previous_semantic is not None:
+             if previous_semantic == semantic:
+@@ -597,6 +810,44 @@
+                                   "failure_code": "DUPLICATE_ARTICLE_IDENTITY_CONFLICT"})
+             continue
+         seen_articles[article_id] = semantic
++        current_key = _stable_queue_identity(queue, payload)
++        current_job = existing_jobs.get(current_key)
++        if isinstance(current_job, dict):
++            stored_current = _queue_payload(queue_root, current_job)
++            if "recovery_version_binding" in stored_current:
++                versioned = _persisted_recovery_version(
++                    current_key, current_job, payload, queue, queue_root, existing_jobs,
++                    recovery_lock, membership_gate, resume_cutoff,
++                )
++                if versioned is None:
++                    conflicts.append({"article_id": article_id,
++                                      "failure_code": "RECOVERY_VERSION_BINDING_INVALID"})
++                    continue
++                binding, _stored_payload = versioned
++                status = current_job.get("status")
++                can_resume = (resume_same_batch_pending and status == "PENDING"
++                              and type(current_job.get("attempt_count")) is int
++                              and current_job.get("attempt_count") == 0
++                              and current_job.get("max_attempts") == 1
++                              and current_job.get("queue_id") == QUEUE_ID)
++                version_associations.append(_version_association_summary(
++                    binding, current_job,
++                    "CURRENT_VERSION_RESUMED" if can_resume else f"CURRENT_VERSION_{status or 'UNKNOWN'}_REUSED",
++                ))
++                if can_resume:
++                    allowed_keys.add(current_key)
++                    articles_by_key[current_key] = {field: payload[field] for field in (
++                        "article_id", "source_sha256", "body_sha256", "article_body",
++                        "article_metadata", "fixed_fact_ledger")}
++                    resumed_payloads_by_key[current_key] = payload
++                    historical_counts["recovery_versioned_pending_resumed"] += 1
++                    continue
++                matched.append({"record": {"source": "INCREMENTAL_QUEUE", "status": status,
++                                            "identity": current_job.get("identity"), "job": current_job,
++                                            "queue_root": queue_root, "idempotency_key": current_key},
++                                "current_payload": payload, "rules_match": True})
++                historical_counts[f"recovery_versioned_{str(status or 'unknown').lower()}_matched"] += 1
++                continue
+         content = _content_key(identity)
+         candidates = reviewed_index.get(content, []) if content else []
+         if not candidates:
+@@ -622,6 +873,49 @@
+                         resumed_payloads_by_key[key] = payload
+                         historical_counts["incremental_pending_resumed"] += 1
+                         continue
++                    if recovery_lock is not None and membership_gate is not None:
++                        binding = _recovery_version_binding(
++                            eligible_pending[0], payload, queue, queue_root,
++                            recovery_lock, membership_gate, resume_cutoff,
++                        )
++                        if binding is not None:
++                            versioned_payload = {**payload, "recovery_version_binding": binding}
++                            version_key = _stable_queue_identity(queue, versioned_payload)
++                            if (version_key != binding["new_idempotency_key"]
++                                    or version_key == binding["old_idempotency_key"]
++                                    or version_key in existing_jobs):
++                                conflicts.append({"article_id": article_id,
++                                                  "failure_code": "RECOVERY_VERSION_IDEMPOTENCY_CONFLICT"})
++                                continue
++                            item = queue.enqueue(versioned_payload)
++                            if (item.get("idempotency_key") != version_key
++                                    or item.get("identity") != queue._identity(versioned_payload)):
++                                conflicts.append({"article_id": article_id,
++                                                  "failure_code": "RECOVERY_VERSION_QUEUE_IDENTITY_INVALID"})
++                                continue
++                            status = item.get("status")
++                            can_resume = (status == "PENDING" and item.get("attempt_count") == 0
++                                          and item.get("max_attempts") == 1
++                                          and item.get("queue_id") == QUEUE_ID)
++                            version_associations.append(_version_association_summary(
++                                binding, item,
++                                "CURRENT_VERSION_ENQUEUED" if can_resume else
++                                f"CURRENT_VERSION_{status or 'UNKNOWN'}_NOT_RUNNABLE",
++                            ))
++                            if can_resume:
++                                allowed_keys.add(version_key)
++                                new_enqueued_keys.add(version_key)
++                                articles_by_key[version_key] = {field: payload[field] for field in (
++                                    "article_id", "source_sha256", "body_sha256", "article_body",
++                                    "article_metadata", "fixed_fact_ledger")}
++                                historical_counts["recovery_versioned_current_admitted"] += 1
++                                continue
++                            matched.append({"record": {"source": "INCREMENTAL_QUEUE", "status": status,
++                                                        "identity": item.get("identity"), "job": item,
++                                                        "queue_root": queue_root, "idempotency_key": version_key},
++                                            "current_payload": payload, "rules_match": True})
++                            historical_counts[f"recovery_versioned_{str(status or 'unknown').lower()}_matched"] += 1
++                            continue
+             matched.append({"record": record, "current_payload": payload,
+                             "rules_match": _semantic_identity(record.get("identity", {})) == semantic})
+             prefix = "pinned" if record.get("source") == "PINNED_CANDIDATE" else (
+@@ -662,7 +956,8 @@
+             "matched": matched, "duplicate_count": duplicate_count,
+             "conflicts": conflicts, "historical_counts": historical_counts,
+             "new_enqueued": len(new_enqueued_keys), "resumed_payloads_by_key": resumed_payloads_by_key,
+-            "resumed_pending": len(resumed_payloads_by_key)}
++            "resumed_pending": len(resumed_payloads_by_key),
++            "version_associations": version_associations}
+ 
+ 
+ def _history_payload_and_output(record: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any] | None]:
+@@ -801,6 +1096,68 @@
+     return execute
+ 
+ 
++def _part_prompt_hard_cap(payload: dict[str, Any], chunks: Any) -> int | None:
++    context_limit = payload.get("context_limit_tokens")
++    completion_reserve = payload.get("completion_reserve_tokens")
++    safety_margin = payload.get("token_safety_margin")
++    if (type(context_limit) is not int or context_limit < 1
++            or type(completion_reserve) is not int or completion_reserve < 0
++            or type(safety_margin) is not int or safety_margin != chunks.TOKEN_SAFETY_MARGIN):
++        return None
++    hard_cap = min(chunks.SYNTHESIS_TOKEN_CAP,
++                   context_limit - completion_reserve - safety_margin)
++    return hard_cap if hard_cap > 0 else None
++
++
++def _part_prompt_token_preflight_valid(payload: dict[str, Any], chunks: Any) -> bool:
++    """Keep the 64k chunk target while allowing a bound repair up to the true hard cap."""
++    exact_tokens = payload.get("prompt_tokens_exact")
++    target_cap = payload.get("prompt_token_cap")
++    if (type(exact_tokens) is not int or exact_tokens < 0 or type(target_cap) is not int
++            or target_cap < 1 or target_cap > chunks.PART_TARGET_TOKEN_CAP):
++        return False
++    hard_cap = _part_prompt_hard_cap(payload, chunks)
++    if hard_cap is None or hard_cap < target_cap:
++        return False
++    binding = payload.get("part_repair_binding")
++    repair_cap = payload.get("repair_prompt_hard_cap_tokens")
++    if binding is None:
++        return repair_cap is None and target_cap == min(chunks.PART_TARGET_TOKEN_CAP, hard_cap) \
++            and exact_tokens <= target_cap
++    if not isinstance(binding, dict):
++        return False
++    if (target_cap != min(chunks.PART_TARGET_TOKEN_CAP, hard_cap)
++            or type(repair_cap) is not int or repair_cap != hard_cap or exact_tokens > hard_cap):
++        return False
++
++    descriptor = payload.get("part_descriptor")
++    metadata = payload.get("article_metadata")
++    if not isinstance(descriptor, dict) or not isinstance(metadata, dict):
++        return False
++    expected_binding = {
++        "schema": "v4.manager_workbench.announcement_chunk_part_repair.v1",
++        "failure_code": "PART_FIXED_FIELDS_MUST_BE_EMPTY",
++        "article_id": payload.get("article_id"),
++        "source_sha256": payload.get("source_sha256"),
++        "body_sha256": payload.get("body_sha256"),
++        "source_unit_map_sha256": payload.get("source_unit_map_sha256"),
++        "chunk_plan_sha256": payload.get("chunk_plan_sha256"),
++        "part_index": descriptor.get("part_index"),
++        "part_count": descriptor.get("part_count"),
++        "part_sha256": descriptor.get("part_sha256"),
++        "part_target_token_cap": target_cap,
++        "repair_prompt_hard_cap_tokens": hard_cap,
++        "membership_authority_sha256": metadata.get("membership_authority_sha256"),
++        "feedback_addendum_sha256": chunks.PART_REPAIR_ADDENDUM_SHA256,
++    }
++    if any(binding.get(name) != value for name, value in expected_binding.items()):
++        return False
++    binding_material = dict(binding)
++    binding_sha256 = binding_material.pop("binding_sha256", None)
++    return (isinstance(binding_sha256, str) and SHA_RE.fullmatch(binding_sha256) is not None
++            and sha(canonical(binding_material)) == binding_sha256)
++
++
+ def _validator(queue_module: Any, runner: Any, contract: Any, request_material: dict[str, Any], length_canary: Any):
+     def validate(job: Any, parsed: Any) -> dict[str, Any]:
+         payload = job.payload
+@@ -809,10 +1166,7 @@
+             from v4.manager_workbench import announcement_chunks as chunks
+ 
+             article_id = payload["article_id"]
+-            exact_tokens = payload.get("prompt_tokens_exact")
+-            token_cap = payload.get("prompt_token_cap")
+-            if (type(exact_tokens) is not int or type(token_cap) is not int
+-                    or exact_tokens > token_cap or token_cap > chunks.PART_TARGET_TOKEN_CAP):
++            if not _part_prompt_token_preflight_valid(payload, chunks):
+                 raise queue_module.ValidationRejected("PART_TOKEN_PREFLIGHT_INVALID",
+                                                       code="PART_TOKEN_PREFLIGHT_INVALID")
+             unit_map = runner.build_source_unit_map(payload["article_body"], payload["body_sha256"])
+@@ -984,6 +1338,8 @@
+         "structured_output_schema", "workflow_profile", "citation_protocol",
+         "input_schema", "prompt_tokens_exact", "prompt_token_cap", "context_limit_tokens",
+         "completion_reserve_tokens", "token_safety_margin", "batch_binding_sha256",
++        "repair_prompt_hard_cap_tokens",
++        "part_repair_binding",
+     )
+     if any(stored.get(name) != current.get(name) for name in exact_fields):
+         return False
+@@ -998,6 +1354,238 @@
+                    "pit_reason", "article_membership_status", "membership_authority_sha256",
+                    "source_issuer_codes", "source_issuer_membership")
+     return all(old_meta.get(name) == new_meta.get(name) for name in stable_meta)
++
++
++def _part_repair_payload(payload: dict[str, Any], failed_job: dict[str, Any], queue_root: Path,
++                         recovery_lock: Any, membership_gate: Any,
++                         resume_cutoff: str | None,
++                         hard_prompt_token_cap: int) -> tuple[dict[str, Any], dict[str, Any]] | None:
++    """Make one source-complete validator-feedback version without changing the failed queue item."""
++    from v4.manager_workbench import announcement_chunks as chunks
++
++    if (failed_job.get("status") != "FAILED" or failed_job.get("attempt_count") != 1
++            or failed_job.get("max_attempts") != 1 or failed_job.get("queue_id") != QUEUE_ID
++            or type(hard_prompt_token_cap) is not int or hard_prompt_token_cap < 1
++            or hard_prompt_token_cap > chunks.SYNTHESIS_TOKEN_CAP
++            or _part_prompt_hard_cap(payload, chunks) != hard_prompt_token_cap
++            or not _current_recovery_payload_valid(payload, recovery_lock, membership_gate, resume_cutoff)):
++        return None
++    part_target_token_cap = payload.get("prompt_token_cap")
++    if (type(part_target_token_cap) is not int or part_target_token_cap < 1
++            or part_target_token_cap > chunks.PART_TARGET_TOKEN_CAP
++            or part_target_token_cap != min(chunks.PART_TARGET_TOKEN_CAP, hard_prompt_token_cap)):
++        return None
++    descriptor = payload.get("part_descriptor")
++    if not isinstance(descriptor, dict):
++        return None
++    attempts = failed_job.get("attempts")
++    last = attempts[-1] if isinstance(attempts, list) and attempts else None
++    error = last.get("error") if isinstance(last, dict) else None
++    if (not isinstance(error, dict) or error.get("stage") != "validator"
++            or error.get("code") != "PART_FIXED_FIELDS_MUST_BE_EMPTY"):
++        return None
++    raw_ref = last.get("raw_path")
++    raw_sha256 = last.get("raw_sha256")
++    if (not isinstance(raw_ref, str) or not isinstance(raw_sha256, str)
++            or not SHA_RE.fullmatch(raw_sha256) or raw_ref != failed_job.get("raw_path")
++            or raw_sha256 != failed_job.get("raw_sha256")):
++        return None
++    try:
++        envelope = _read_json_file(queue_root / raw_ref, raw_sha256, "PART_REPAIR_RAW_RESPONSE_INVALID")
++    except FlashRunError:
++        return None
++    if (not isinstance(envelope, dict) or set(envelope) != {"action", "lookup_request", "reader_output"}
++            or envelope.get("action") != "complete" or envelope.get("lookup_request") is not None
++            or not isinstance(envelope.get("reader_output"), dict)):
++        return None
++    output = envelope["reader_output"]
++    violations = [name for name in ("facts", "changes") if output.get(name) != []]
++    if not violations:
++        return None
++    old_key = failed_job.get("idempotency_key")
++    binding = {
++        "schema": "v4.manager_workbench.announcement_chunk_part_repair.v1",
++        "failure_code": "PART_FIXED_FIELDS_MUST_BE_EMPTY",
++        "failed_idempotency_key": old_key,
++        "failed_payload_sha256": failed_job.get("payload_sha256"),
++        "failed_raw_response_sha256": raw_sha256,
++        "nonempty_fixed_fields": violations,
++        "article_id": payload.get("article_id"),
++        "source_sha256": payload.get("source_sha256"),
++        "body_sha256": payload.get("body_sha256"),
++        "source_unit_map_sha256": payload.get("source_unit_map_sha256"),
++        "chunk_plan_sha256": payload.get("chunk_plan_sha256"),
++        "part_index": descriptor.get("part_index"),
++        "part_count": descriptor.get("part_count"),
++        "part_sha256": descriptor.get("part_sha256"),
++        "part_target_token_cap": part_target_token_cap,
++        "repair_prompt_hard_cap_tokens": hard_prompt_token_cap,
++        "target_date": recovery_lock.get("target_date"),
++        "cutoff": recovery_lock.get("cutoff"),
++        "root_batch_job_id": recovery_lock.get("root_batch_job_id"),
++        "parent_job_id": recovery_lock.get("parent_job_id"),
++        "row_manifest_sha256": recovery_lock.get("row_manifest_sha256"),
++        "capture_product_sha256": recovery_lock.get("capture_product_sha256"),
++        "membership_authority_sha256": membership_gate.get("authority_sha256"),
++        "feedback_addendum_sha256": "",
++    }
++    binding["feedback_addendum_sha256"] = chunks.PART_REPAIR_ADDENDUM_SHA256
++    binding["binding_sha256"] = sha(canonical(binding))
++    try:
++        repair_messages = chunks.part_repair_messages(payload.get("messages"), binding["failure_code"])
++    except ValueError:
++        return None
++    prompt_sha256 = sha(repair_messages[0]["content"].encode("utf-8"))
++    feedback_sha256 = sha(canonical({"failure_code": binding["failure_code"],
++                                     "nonempty_fixed_fields": violations,
++                                     "failed_raw_response_sha256": raw_sha256}))
++    repair_payload = {
++        **payload,
++        "messages": repair_messages,
++        "repair_prompt_hard_cap_tokens": hard_prompt_token_cap,
++        "prompt_sha256": prompt_sha256,
++        "rules": (f"{payload.get('rules', '')}+validator-feedback-repair:v1"
++                  f"+prior:{old_key}+failure:{binding['failure_code']}"
++                  f"+feedback:{feedback_sha256}+repair-prompt:{prompt_sha256}"
++                  f"+repair-addendum:{chunks.PART_REPAIR_ADDENDUM_SHA256}"),
++        "part_repair_binding": binding,
++    }
++    return repair_payload, binding
++
++
++def _enqueue_long_body_parts(long_body_specs: dict[str, dict[str, Any]], queue: Any,
++                             queue_root: Path, *, allow_same_batch_pending: bool,
++                             recovery_lock: Any, membership_gate: Any,
++                             resume_cutoff: str | None, prompt_token_cap: int,
++                             hard_prompt_token_cap: int,
++                             allow_multiple_new_repairs: bool = False,
++                             count_prompt_tokens: Callable[[list[dict[str, Any]]], int]
++                             ) -> tuple[set[str], list[dict[str, Any]]]:
++    """Reuse unchanged part versions; multi-repair admission requires a verified canary."""
++    if not long_body_specs:
++        return set(), []
++    from v4.manager_workbench import announcement_chunks as chunks
++
++    if (type(prompt_token_cap) is not int or prompt_token_cap < 1
++            or prompt_token_cap > chunks.PART_TARGET_TOKEN_CAP
++            or type(hard_prompt_token_cap) is not int or hard_prompt_token_cap < prompt_token_cap
++            or hard_prompt_token_cap > chunks.SYNTHESIS_TOKEN_CAP):
++        raise FlashRunError("PART_PROMPT_BUDGET_INVALID")
++    allowed_keys: set[str] = set()
++    internal_records: list[dict[str, Any]] = []
++    new_repair_admitted = False
++    repair_gate_blocked = False
++    for article_id, spec in long_body_specs.items():
++        spec["part_keys"] = []
++        spec["part_records"] = []
++        for payload in spec["part_payloads"]:
++            base_key, base_job, base_created, base_runnable = _enqueue_internal_payload(
++                payload, queue, queue_root,
++                allow_same_batch_pending=allow_same_batch_pending,
++            )
++            selected_key, selected_job = base_key, base_job
++            created, runnable = base_created, base_runnable
++            repair_status = "NOT_REQUIRED" if base_job.get("status") != "FAILED" else "NOT_ELIGIBLE"
++            repair_binding = None
++            repair_failure_code = None
++
++            if base_job.get("status") == "FAILED":
++                repair = _part_repair_payload(
++                    payload, base_job, queue_root, recovery_lock, membership_gate, resume_cutoff,
++                    hard_prompt_token_cap,
++                )
++                if repair is not None:
++                    repair_payload, repair_binding = repair
++                    try:
++                        repair_tokens = int(count_prompt_tokens(repair_payload["messages"]))
++                    except (TypeError, ValueError):
++                        repair_tokens = hard_prompt_token_cap + 1
++                    if repair_tokens <= hard_prompt_token_cap and not repair_gate_blocked:
++                        repair_payload["prompt_tokens_exact"] = repair_tokens
++                        repair_key = _stable_queue_identity(queue, repair_payload)
++                        current_jobs = queue._load_state().get("jobs", {})
++                        prior_repair = current_jobs.get(repair_key) if isinstance(current_jobs, dict) else None
++                        if isinstance(prior_repair, dict):
++                            repair_key, prior_repair, repair_created, repair_runnable = _enqueue_internal_payload(
++                                repair_payload, queue, queue_root,
++                                allow_same_batch_pending=allow_same_batch_pending,
++                            )
++                            selected_key, selected_job = repair_key, prior_repair
++                            created, runnable = repair_created, repair_runnable
++                            repair_failure_code = "PART_FIXED_FIELDS_MUST_BE_EMPTY"
++                            if selected_job.get("status") == "SUCCEEDED":
++                                repair_status = "REPAIRED_SUCCESS_REUSED"
++                                if not allow_multiple_new_repairs:
++                                    new_repair_admitted = True
++                                    repair_gate_blocked = True
++                            elif selected_job.get("status") == "PENDING" and runnable:
++                                repair_status = "REPAIR_PENDING_ALLOWED"
++                                if not allow_multiple_new_repairs:
++                                    new_repair_admitted = True
++                                    repair_gate_blocked = True
++                            elif selected_job.get("status") == "FAILED":
++                                repair_status = "REPAIR_FAILED_TERMINAL"
++                                repair_gate_blocked = True
++                            else:
++                                repair_status = "REPAIR_NOT_RUNNABLE"
++                                repair_gate_blocked = True
++                        elif allow_multiple_new_repairs or not new_repair_admitted:
++                            repair_key, selected_job, created, runnable = _enqueue_internal_payload(
++                                repair_payload, queue, queue_root,
++                                allow_same_batch_pending=allow_same_batch_pending,
++                            )
++                            selected_key = repair_key
++                            repair_failure_code = "PART_FIXED_FIELDS_MUST_BE_EMPTY"
++                            if created:
++                                repair_status = ("REPAIR_AUTO_CONTINUATION_ENQUEUED"
++                                                 if allow_multiple_new_repairs else "REPAIR_CANARY_ENQUEUED")
++                                new_repair_admitted = True
++                                if not allow_multiple_new_repairs:
++                                    repair_gate_blocked = True
++                            elif selected_job.get("status") == "PENDING" and runnable:
++                                repair_status = ("REPAIR_AUTO_CONTINUATION_PENDING_ALLOWED"
++                                                 if allow_multiple_new_repairs else "REPAIR_PENDING_ALLOWED")
++                                new_repair_admitted = True
++                                if not allow_multiple_new_repairs:
++                                    repair_gate_blocked = True
++                            elif selected_job.get("status") == "SUCCEEDED":
++                                repair_status = "REPAIRED_SUCCESS_REUSED"
++                                if not allow_multiple_new_repairs:
++                                    new_repair_admitted = True
++                                    repair_gate_blocked = True
++                            elif selected_job.get("status") == "FAILED":
++                                repair_status = "REPAIR_FAILED_TERMINAL"
++                                repair_gate_blocked = True
++                            else:
++                                repair_status = "REPAIR_NOT_RUNNABLE"
++                        else:
++                            repair_status = "GATED_AFTER_ONE_NEW_REPAIR"
++                    elif repair_tokens > hard_prompt_token_cap:
++                        repair_status = "REPAIR_CONTEXT_PENDING"
++                        if not allow_multiple_new_repairs:
++                            repair_gate_blocked = True
++                    else:
++                        repair_status = "GATED_AFTER_ONE_NEW_REPAIR"
++
++            spec["part_keys"].append(selected_key)
++            part_record = {"base_key": base_key, "selected_key": selected_key,
++                           "base_status": base_job.get("status"),
++                           "base_payload_sha256": base_job.get("payload_sha256"),
++                           "repair_status": repair_status,
++                           "repair_key": selected_key if selected_key != base_key else None,
++                           "repair_binding_sha256": repair_binding.get("binding_sha256")
++                           if isinstance(repair_binding, dict) else None,
++                           "repair_failure_code": repair_failure_code}
++            spec["part_records"].append(part_record)
++            internal_records.append({"article_id": article_id, "kind": "part",
++                                     "part_index": payload["part_descriptor"]["part_index"],
++                                     "key": selected_key, "job": selected_job, "created": created,
++                                     "runnable": runnable, "base_key": base_key,
++                                     "repair_status": repair_status,
++                                     "repair_binding_sha256": part_record["repair_binding_sha256"]})
++            if runnable:
++                allowed_keys.add(selected_key)
++    return allowed_keys, internal_records
+ 
+ 
+ def _enqueue_internal_payload(payload: dict[str, Any], queue: Any, queue_root: Path,
+@@ -1075,6 +1663,232 @@
+     if not isinstance(value, dict):
+         raise FlashRunError("INTERNAL_QUEUE_RESULT_JSON_INVALID")
+     return value, validated_sha, raw_sha
++
++
++def _verify_completed_part_repair_canary(spec: dict[str, Any], part_record: dict[str, Any],
++                                         queue: Any, queue_root: Path, *,
++                                         recovery_lock: Any, membership_gate: Any,
++                                         resume_cutoff: str | None,
++                                         hard_prompt_token_cap: int,
++                                         count_prompt_tokens: Callable[[list[dict[str, Any]]], int],
++                                         runner: Any, contract: Any,
++                                         request_material: dict[str, Any]) -> tuple[bool, str | None]:
++    """Revalidate a successful repair against its failed input and full frozen source plan."""
++    from v4.manager_workbench import announcement_chunks as chunks
++
++    try:
++        article = spec.get("article")
++        unit_map = spec.get("unit_map")
++        plan = spec.get("plan")
++        parts = plan.get("parts") if isinstance(plan, dict) else None
++        part_index = part_record.get("part_index")
++        payloads = spec.get("part_payloads")
++        if (not isinstance(article, dict) or not isinstance(unit_map, dict)
++                or not isinstance(plan, dict) or not isinstance(parts, list)
++                or type(part_index) is not int or not 1 <= part_index <= len(parts)
++                or not isinstance(payloads, list) or len(payloads) != len(parts)):
++            raise FlashRunError("REPAIR_CANARY_SOURCE_PLAN_INVALID")
++        chunks.verify_part_coverage(article.get("article_body"), article.get("body_sha256"), unit_map, plan)
++        rebuilt_map = runner.build_source_unit_map(article["article_body"], article["body_sha256"])
++        if rebuilt_map != unit_map:
++            raise FlashRunError("REPAIR_CANARY_SOURCE_UNIT_MAP_CHANGED")
++
++        base_key = part_record.get("base_key")
++        repair_key = part_record.get("repair_key") or part_record.get("key")
++        if (not isinstance(base_key, str) or not isinstance(repair_key, str)
++                or part_record.get("selected_key", part_record.get("key")) != repair_key):
++            raise FlashRunError("REPAIR_CANARY_KEY_BINDING_INVALID")
++        state = queue._load_state()
++        jobs = state.get("jobs", {}) if isinstance(state, dict) else {}
++        base_job = jobs.get(base_key) if isinstance(jobs, dict) else None
++        repair_job = jobs.get(repair_key) if isinstance(jobs, dict) else None
++        if (not isinstance(base_job, dict) or base_job.get("status") != "FAILED"
++                or base_job.get("idempotency_key") != base_key or base_job.get("attempt_count") != 1
++                or base_job.get("max_attempts") != 1 or base_job.get("queue_id") != QUEUE_ID
++                or not isinstance(repair_job, dict) or repair_job.get("status") != "SUCCEEDED"
++                or repair_job.get("idempotency_key") != repair_key or repair_job.get("attempt_count") != 1
++                or repair_job.get("max_attempts") != 1 or repair_job.get("queue_id") != QUEUE_ID):
++            raise FlashRunError("REPAIR_CANARY_QUEUE_STATE_INVALID")
++
++        expected_part = parts[part_index - 1]
++        base_payload = _queue_payload(queue_root, base_job)
++        current_part_payload = payloads[part_index - 1]
++        if (base_payload.get("article_id") != article.get("article_id")
++                or base_payload.get("source_sha256") != article.get("source_sha256")
++                or base_payload.get("body_sha256") != article.get("body_sha256")
++                or base_payload.get("source_unit_map_sha256") != unit_map.get("source_unit_map_sha256")
++                or base_payload.get("chunk_plan_sha256") != plan.get("plan_sha256")
++                or base_payload.get("part_descriptor") != expected_part
++                or not _internal_payload_matches(base_payload, current_part_payload)):
++            raise FlashRunError("REPAIR_CANARY_FAILED_SOURCE_BINDING_MISMATCH")
++        repair = _part_repair_payload(base_payload, base_job, queue_root, recovery_lock,
++                                       membership_gate, resume_cutoff, hard_prompt_token_cap)
++        if repair is None:
++            raise FlashRunError("REPAIR_CANARY_REPAIR_VERSION_INVALID")
++        expected_repair_payload, binding = repair
++        exact_tokens = count_prompt_tokens(expected_repair_payload["messages"])
++        if type(exact_tokens) is not int or exact_tokens > hard_prompt_token_cap:
++            raise FlashRunError("REPAIR_CANARY_TOKEN_PREFLIGHT_INVALID")
++        expected_repair_payload["prompt_tokens_exact"] = exact_tokens
++        stored_repair_payload = _queue_payload(queue_root, repair_job)
++        if (_stable_queue_identity(queue, expected_repair_payload) != repair_key
++                or repair_job.get("identity") != queue._identity(expected_repair_payload)
++                or not _internal_payload_matches(stored_repair_payload, expected_repair_payload)
++                or part_record.get("repair_binding_sha256") != binding.get("binding_sha256")
++                or stored_repair_payload.get("part_repair_binding") != binding):
++            raise FlashRunError("REPAIR_CANARY_REPAIR_BINDING_MISMATCH")
++
++        result, _result_sha, raw_sha = _read_internal_validated_result(queue_root, repair_job)
++        raw_response = _read_json_file(queue_root / repair_job.get("raw_path"), raw_sha,
++                                       "REPAIR_CANARY_RAW_RESPONSE_INVALID")
++        validate_schema = lambda output: runner._validate_json_schema(
++            output, runner.build_simple_reader_wire_schema(
++                contract, request_material["citation_protocol"]))
++        revalidated = chunks.validate_part_envelope(
++            raw_response, article_id=article["article_id"], source_sha256=article["source_sha256"],
++            body_sha256=article["body_sha256"], plan_sha256=plan["plan_sha256"],
++            part=expected_part, unit_map=unit_map, body=article["article_body"],
++            validate_schema=validate_schema,
++        )
++        if (revalidated != result or result.get("schema") != chunks.PART_RESULT_SCHEMA
++                or result.get("article_id") != article["article_id"]
++                or result.get("source_sha256") != article["source_sha256"]
++                or result.get("body_sha256") != article["body_sha256"]
++                or result.get("plan_sha256") != plan["plan_sha256"]
++                or result.get("part_index") != part_index
++                or result.get("part_count") != len(parts)
++                or result.get("part_sha256") != expected_part.get("part_sha256")
++                or result.get("source_unit_map_sha256") != unit_map.get("source_unit_map_sha256")):
++            raise FlashRunError("REPAIR_CANARY_VALIDATED_RESULT_BINDING_MISMATCH")
++        return True, None
++    except (FlashRunError, OSError, KeyError, TypeError, ValueError) as exc:
++        code = getattr(exc, "code", None)
++        if not isinstance(code, str) and isinstance(exc, ValueError) and SAFE_CODE_RE.fullmatch(str(exc)):
++            code = str(exc)
++        return False, code if isinstance(code, str) and SAFE_CODE_RE.fullmatch(code) else "REPAIR_CANARY_VALIDATION_FAILED"
++
++
++def _set_part_repair_status(spec: dict[str, Any], internal_record: dict[str, Any],
++                            status: str, failure_code: str | None = None) -> None:
++    internal_record["repair_status"] = status
++    if failure_code is not None:
++        internal_record["canary_failure_code"] = failure_code
++    records = spec.get("part_records")
++    if isinstance(records, list):
++        for record in records:
++            if (isinstance(record, dict) and record.get("base_key") == internal_record.get("base_key")
++                    and record.get("selected_key") == internal_record.get("key", record.get("selected_key"))):
++                record["repair_status"] = status
++                if failure_code is not None:
++                    record["canary_failure_code"] = failure_code
++                break
++
++
++def _continue_long_body_repairs_after_canary(long_body_specs: dict[str, dict[str, Any]],
++                                              phase_a_records: list[dict[str, Any]], queue: Any,
++                                              queue_root: Path, *,
++                                              allow_same_batch_pending: bool,
++                                              recovery_lock: Any, membership_gate: Any,
++                                              resume_cutoff: str | None,
++                                              prompt_token_cap: int,
++                                              hard_prompt_token_cap: int,
++                                              count_prompt_tokens: Callable[[list[dict[str, Any]]], int],
++                                              runner: Any, contract: Any,
++                                              request_material: dict[str, Any],
++                                              run_queue_keys: Callable[[set[str]], None],
++                                              system_stopped: Callable[[], bool]
++                                              ) -> tuple[set[str], list[dict[str, Any]], dict[str, Any]]:
++    """Continue all remaining one-time repairs only after phase-A repair proof passes."""
++    candidate_statuses = {"REPAIR_CANARY_ENQUEUED", "REPAIR_PENDING_ALLOWED", "REPAIRED_SUCCESS_REUSED"}
++    candidates = [record for record in phase_a_records
++                  if record.get("kind") == "part" and record.get("repair_status") in candidate_statuses]
++    if not candidates:
++        return set(), [], {"status": "NO_REPAIR_CANARY"}
++
++    active = [record for record in candidates
++              if record.get("repair_status") in {"REPAIR_CANARY_ENQUEUED", "REPAIR_PENDING_ALLOWED"}]
++    if len(active) > 1:
++        for record in active:
++            spec = long_body_specs.get(record.get("article_id"), {})
++            _set_part_repair_status(spec, record, "REPAIR_CANARY_INVALID_STOP",
++                                    "REPAIR_CANARY_MULTIPLE_ACTIVE")
++        return set(), [], {"status": "STOPPED_INVALID_CANARY_COUNT", "candidate_count": len(active)}
++    if system_stopped():
++        for record in candidates:
++            spec = long_body_specs.get(record.get("article_id"), {})
++            _set_part_repair_status(spec, record, "REPAIR_CANARY_SYSTEM_STOP")
++        return set(), [], {"status": "STOPPED_SYSTEM_FAILURE", "candidate_count": len(candidates)}
++
++    verified_keys: set[str] = set()
++    for record in candidates:
++        spec = long_body_specs.get(record.get("article_id"))
++        if not isinstance(spec, dict):
++            ok, failure_code = False, "REPAIR_CANARY_SPEC_MISSING"
++        else:
++            ok, failure_code = _verify_completed_part_repair_canary(
++                spec, record, queue, queue_root,
++                recovery_lock=recovery_lock, membership_gate=membership_gate,
++                resume_cutoff=resume_cutoff, hard_prompt_token_cap=hard_prompt_token_cap,
++                count_prompt_tokens=count_prompt_tokens, runner=runner, contract=contract,
++                request_material=request_material,
++            )
++        if not ok:
++            job = queue._load_state().get("jobs", {}).get(record.get("key"), {})
++            state = job.get("status") if isinstance(job, dict) else None
++            status = ("REPAIR_CANARY_FAILED_STOP" if state == "FAILED" else
++                      "REPAIR_CANARY_PENDING_STOP" if state == "PENDING" else
++                      "REPAIR_CANARY_INVALID_STOP")
++            _set_part_repair_status(spec or {}, record, status, failure_code)
++            return set(), [], {"status": status, "failure_code": failure_code,
++                               "article_id": record.get("article_id"),
++                               "part_index": record.get("part_index")}
++        verified_keys.add(record.get("key"))
++        _set_part_repair_status(spec, record, "REPAIR_CANARY_VERIFIED")
++
++    if system_stopped():
++        for record in candidates:
++            spec = long_body_specs.get(record.get("article_id"), {})
++            _set_part_repair_status(spec, record, "REPAIR_CANARY_SYSTEM_STOP")
++        return set(), [], {"status": "STOPPED_SYSTEM_FAILURE", "verified_canary_count": len(verified_keys)}
++
++    phase_b_allowed, phase_b_records = _enqueue_long_body_parts(
++        long_body_specs, queue, queue_root,
++        allow_same_batch_pending=allow_same_batch_pending,
++        recovery_lock=recovery_lock, membership_gate=membership_gate,
++        resume_cutoff=resume_cutoff, prompt_token_cap=prompt_token_cap,
++        hard_prompt_token_cap=hard_prompt_token_cap,
++        allow_multiple_new_repairs=True, count_prompt_tokens=count_prompt_tokens,
++    )
++    if not phase_b_records:
++        return phase_b_allowed, phase_b_records, {
++            "status": "CANARY_VERIFIED_NO_REMAINING_PARTS", "verified_canary_count": len(verified_keys)}
++    run_queue_keys(phase_b_allowed)
++    jobs = queue._load_state().get("jobs", {})
++    for record in phase_b_records:
++        spec = long_body_specs.get(record.get("article_id"), {})
++        if record.get("key") in verified_keys:
++            status = "REPAIR_CANARY_VERIFIED"
++            failure_code = None
++        elif record.get("repair_status") in {
++                "REPAIR_AUTO_CONTINUATION_ENQUEUED", "REPAIR_AUTO_CONTINUATION_PENDING_ALLOWED",
++                "REPAIR_PENDING_ALLOWED",
++        }:
++            job = jobs.get(record.get("key"), {})
++            job_status = job.get("status") if isinstance(job, dict) else None
++            status = ("REPAIR_AUTO_CONTINUATION_SUCCEEDED" if job_status == "SUCCEEDED" else
++                      "REPAIR_AUTO_CONTINUATION_FAILED" if job_status == "FAILED" else
++                      "REPAIR_AUTO_CONTINUATION_PENDING")
++            failure_code = None
++        else:
++            status = record.get("repair_status")
++            failure_code = None
++        _set_part_repair_status(spec, record, status, failure_code)
++    return phase_b_allowed, phase_b_records, {
++        "status": "AUTO_CONTINUATION_DISPATCHED" if not system_stopped() else "AUTO_CONTINUATION_STOPPED",
++        "verified_canary_count": len(verified_keys),
++        "phase_b_repair_count": sum(record.get("created") is True for record in phase_b_records),
++        "phase_b_runnable_count": len(phase_b_allowed),
++    }
+ 
+ 
+ def _reader_data_from_messages(messages: list[dict[str, Any]]) -> tuple[dict[str, Any], str]:
+@@ -1430,24 +2244,26 @@
+         admitted_payloads, queue, pinned_history, queue_root,
+         resume_same_batch_pending=resume_same_batch_pending,
+         resume_cutoff=input_value.get("cutoff") if resume_same_batch_pending else None,
++        recovery_lock=recovery_lock if resume_same_batch_pending else None,
++        membership_gate=membership_gate if resume_same_batch_pending else None,
+     )
+     allowed_keys: set[str] = set(admission["allowed_keys"])
+     articles_by_key: dict[str, dict[str, Any]] = admission["articles_by_key"]
+     matched_history: list[dict[str, Any]] = admission["matched"]
+     body_gaps.extend(admission["conflicts"])
+     internal_records: list[dict[str, Any]] = []
+-    for article_id, spec in long_body_specs.items():
+-        for payload in spec["part_payloads"]:
+-            key, job, created, runnable = _enqueue_internal_payload(
+-                payload, queue, queue_root,
+-                allow_same_batch_pending=resume_same_batch_pending)
+-            spec["part_keys"].append(key)
+-            internal_records.append({"article_id": article_id, "kind": "part",
+-                                     "part_index": payload["part_descriptor"]["part_index"],
+-                                     "key": key, "job": job, "created": created,
+-                                     "runnable": runnable})
+-            if runnable:
+-                allowed_keys.add(key)
++    part_allowed, part_records = _enqueue_long_body_parts(
++        long_body_specs, queue, queue_root,
++        allow_same_batch_pending=resume_same_batch_pending,
++        recovery_lock=recovery_lock if resume_same_batch_pending else None,
++        membership_gate=membership_gate if resume_same_batch_pending else None,
++        resume_cutoff=input_value.get("cutoff") if resume_same_batch_pending else None,
++        prompt_token_cap=prompt_token_cap,
++        hard_prompt_token_cap=hard_prompt_token_cap,
++        count_prompt_tokens=lambda messages: helper._token_count(tokenizer, messages),
++    )
++    allowed_keys.update(part_allowed)
++    internal_records.extend(part_records)
+ 
+     tracked_keys: set[str] = set(allowed_keys) | set(articles_by_key)
+     tracked_keys.update(record["key"] for record in internal_records)
+@@ -1519,6 +2335,43 @@
+ 
+     run_queue_keys(set(allowed_keys))
+ 
++    repair_continuation: dict[str, Any] = {"status": "NO_REPAIR_CANARY"}
++    phase_b_allowed: set[str] = set()
++    phase_b_records: list[dict[str, Any]] = []
++    if any(record.get("repair_status") in {
++            "REPAIR_CANARY_ENQUEUED", "REPAIR_PENDING_ALLOWED", "REPAIRED_SUCCESS_REUSED"
++    } for record in part_records):
++        phase_b_allowed, phase_b_records, repair_continuation = _continue_long_body_repairs_after_canary(
++            long_body_specs, part_records, queue, queue_root,
++            allow_same_batch_pending=resume_same_batch_pending,
++            recovery_lock=recovery_lock if resume_same_batch_pending else None,
++            membership_gate=membership_gate if resume_same_batch_pending else None,
++            resume_cutoff=input_value.get("cutoff") if resume_same_batch_pending else None,
++            prompt_token_cap=prompt_token_cap,
++            hard_prompt_token_cap=hard_prompt_token_cap,
++            count_prompt_tokens=lambda messages: helper._token_count(tokenizer, messages),
++            runner=runner, contract=contract, request_material=request_material,
++            run_queue_keys=run_queue_keys, system_stopped=lambda: system_stop is not None,
++        )
++    if phase_b_records:
++        phase_a_by_part = {(record.get("article_id"), record.get("part_index"), record.get("base_key")): record
++                           for record in part_records if record.get("kind") == "part"}
++        for record in phase_b_records:
++            previous = phase_a_by_part.get((record.get("article_id"), record.get("part_index"),
++                                            record.get("base_key")), {})
++            record["created"] = record.get("created") is True or previous.get("created") is True
++            record["runnable"] = record.get("runnable") is True or previous.get("runnable") is True
++        internal_records = [record for record in internal_records if record.get("kind") != "part"]
++        internal_records.extend(phase_b_records)
++        tracked_keys.update(record["key"] for record in phase_b_records)
++        tracked_keys.update(phase_b_allowed)
++        allowed_keys.update(phase_b_allowed)
++        progress({"step": "FLASH_SELECTION", "completed": completed, "total": len(tracked_keys),
++                  "queue_counts": dict(current_counts()), "pending_body_gaps": len(body_gaps),
++                  "pending_context": len(preflight_pending),
++                  "long_body_repair_continuation": repair_continuation,
++                  "updated_at": datetime.now(timezone.utc).isoformat()})
++
+     # Synthesis is admitted only after every part has a SHA-verified persisted
+     # validator result. Part dispositions remain local evidence and never enter
+     # candidate projection.
+@@ -1534,6 +2387,9 @@
+             raise FlashRunError("LONG_BODY_PART_QUEUE_COVERAGE_INVALID")
+         failed_parts = [job for job in part_jobs if job.get("status") == "FAILED"]
+         pending_parts = [job for job in part_jobs if job.get("status") != "SUCCEEDED" and job.get("status") != "FAILED"]
++        canary_integrity_blocked = any(record.get("repair_status") in {
++            "REPAIR_CANARY_INVALID_STOP", "REPAIR_CANARY_SYSTEM_STOP",
++        } for record in spec["part_records"])
+         if failed_parts:
+             for job in failed_parts:
+                 part_payload = _queue_payload(queue_root, job)
+@@ -1545,12 +2401,19 @@
+                                            "failure_code": code if isinstance(code, str) and SAFE_CODE_RE.fullmatch(code)
+                                            else "LONG_BODY_PART_FAILED",
+                                            "status": "FAILED"})
+-            spec["status"] = "PART_FAILED"
+-            long_body_summaries.append({"article_id": article_id, "plan_sha256": spec["plan"]["plan_sha256"],
+-                                        "plan_ref": spec["plan_ref"], "part_count": len(part_jobs),
+-                                        "parts_succeeded": sum(job.get("status") == "SUCCEEDED" for job in part_jobs),
+-                                        "status": spec["status"]})
+-            continue
++        for index, (part, part_record) in enumerate(zip(spec["plan"]["parts"], spec["part_records"])):
++            if part_record.get("repair_status") in {
++                    "GATED_AFTER_ONE_NEW_REPAIR", "REPAIR_CONTEXT_PENDING",
++                    "REPAIR_CANARY_FAILED_STOP", "REPAIR_CANARY_PENDING_STOP",
++                    "REPAIR_CANARY_INVALID_STOP", "REPAIR_CANARY_SYSTEM_STOP",
++            }:
++                long_body_pending.append({"article_id": article_id, "part_index": part["part_index"],
++                                          "queue_status": part_record.get("base_status"),
++                                          "queue_reason": "LONG_BODY_PART_REPAIR_GATED",
++                                          "repair_status": part_record["repair_status"],
++                                          "canary_failure_code": part_record.get("canary_failure_code"),
++                                          "failed_idempotency_key": part_record.get("base_key"),
++                                          "failed_payload_sha256": part_record.get("base_payload_sha256")})
+         if pending_parts:
+             for job in pending_parts:
+                 part_payload = _queue_payload(queue_root, job)
+@@ -1559,7 +2422,15 @@
+                                           "queue_status": job.get("status"),
+                                           "queue_reason": "LONG_BODY_PART_NOT_SUCCEEDED",
+                                           "attempt_count": job.get("attempt_count")})
+-            spec["status"] = "PARTS_PENDING"
++        if failed_parts or pending_parts or canary_integrity_blocked:
++            active_repair_pending = any(record.get("repair_status") in {
++                "REPAIR_CANARY_ENQUEUED", "REPAIR_PENDING_ALLOWED", "REPAIR_NOT_RUNNABLE",
++                "REPAIR_CANARY_PENDING_STOP",
++                "REPAIR_CANARY_INVALID_STOP", "REPAIR_CANARY_SYSTEM_STOP",
++                "REPAIR_AUTO_CONTINUATION_PENDING",
++            } for record in spec["part_records"])
++            spec["status"] = "PART_REPAIR_PENDING" if active_repair_pending else (
++                "PART_FAILED" if failed_parts else "PARTS_PENDING")
+             long_body_summaries.append({"article_id": article_id, "plan_sha256": spec["plan"]["plan_sha256"],
+                                         "plan_ref": spec["plan_ref"], "part_count": len(part_jobs),
+                                         "parts_succeeded": sum(job.get("status") == "SUCCEEDED" for job in part_jobs),
+@@ -1863,12 +2734,19 @@
+                          "same_capture_duplicates_skipped": admission["duplicate_count"]})
+     internal_state = queue._load_state().get("jobs", {})
+     part_status_counts: Counter[str] = Counter()
++    part_repair_counts: Counter[str] = Counter()
+     for record in internal_records:
+         if record.get("kind") == "part":
+             status = internal_state.get(record["key"], {}).get("status", "MISSING")
+             part_status_counts[status] += 1
++            repair_status = record.get("repair_status")
++            if isinstance(repair_status, str):
++                part_repair_counts[repair_status] += 1
+     queue_counts.update({f"long_body_parts_{name.lower()}": value
+                          for name, value in part_status_counts.items()})
++    queue_counts.update({f"long_body_part_repairs_{name.lower()}": value
++                         for name, value in part_repair_counts.items()})
++    queue_counts["recovery_version_associations"] = len(admission["version_associations"])
+     for key in ("pinned_succeeded", "pinned_failed", "pinned_pending", "reviewed_succeeded",
+                 "incremental_succeeded", "incremental_failed", "incremental_pending",
+                 "incremental_running"):
+@@ -1883,13 +2761,24 @@
+     long_body_public = []
+     for article_id, spec in long_body_specs.items():
+         part_items = []
+-        for part, key in zip(spec["plan"]["parts"], spec["part_keys"]):
++        for part, key, part_record in zip(spec["plan"]["parts"], spec["part_keys"], spec["part_records"]):
+             saved = internal_state.get(key, {})
++            repair_key = part_record.get("repair_key")
++            repair_job = internal_state.get(repair_key, {}) if repair_key else {}
+             part_items.append({"part_index": part["part_index"], "part_count": part["part_count"],
+                                "part_sha256": part["part_sha256"], "prompt_tokens_exact": part["prompt_tokens_exact"],
+                                "status": saved.get("status", "MISSING"),
+                                "attempt_count": saved.get("attempt_count"),
+-                               "validated_result_sha256": saved.get("validated_sha256")})
++                               "validated_result_sha256": saved.get("validated_sha256"),
++                               "original_idempotency_key": part_record.get("base_key"),
++                               "original_payload_sha256": part_record.get("base_payload_sha256"),
++                               "original_status": part_record.get("base_status"),
++                               "repair": {"status": part_record.get("repair_status"),
++                                          "failure_code": part_record.get("repair_failure_code"),
++                                          "canary_failure_code": part_record.get("canary_failure_code"),
++                                          "idempotency_key": repair_key,
++                                          "payload_sha256": repair_job.get("payload_sha256"),
++                                          "binding_sha256": part_record.get("repair_binding_sha256")}})
+         synth_key = spec.get("synthesis_key")
+         synth_job = internal_state.get(synth_key, {}) if synth_key else {}
+         long_body_public.append({"article_id": article_id, "status": spec.get("status"),
+@@ -1940,11 +2829,19 @@
+             "completion_reserve_tokens": completion_reserve,
+             "token_safety_margin": chunks.TOKEN_SAFETY_MARGIN,
+             "part_addendum_sha256": chunks.PART_ADDENDUM_SHA256,
++            "part_repair_addendum_sha256": chunks.PART_REPAIR_ADDENDUM_SHA256,
+             "synthesis_addendum_sha256": chunks.SYNTHESIS_ADDENDUM_SHA256,
++            "part_repair_policy": {"max_new_repair_versions_per_part": 1,
++                                    "max_new_repair_parts_before_canary": 1,
++                                    "auto_continue_after_verified_canary": True,
++                                    "retryable_failure_code": "PART_FIXED_FIELDS_MUST_BE_EMPTY",
++                                    "failed_originals_preserved": True,
++                                    "repair_input_is_source_complete": True},
++            "repair_continuation": repair_continuation,
+             "items": long_body_public,
+         },
+         "stocks": _aggregate(selected_rows), "failures": failures,
+-        "pending": [*pending_queue, *preflight_pending, *body_gaps],
++        "pending": [*pending_queue, *preflight_pending, *long_body_pending, *body_gaps],
+         "membership_gate": public_gate(membership_gate),
+         "membership_exclusions": membership_exclusions,
+         "gaps": [*body_gaps], "system_stop": system_stop,
+@@ -1965,6 +2862,7 @@
+                        "prior_reuse_receipt_sha256": prior_receipt_sha,
+                        "membership_gate": public_gate(membership_gate),
+                        "historical_outcomes": historical_outcomes,
++                       "queue_version_associations": admission["version_associations"],
+                        "current_capture_bindings": current_capture_bindings},
+     }
+     return result
+diff --git a/tests/test_manager_announcement_flash_runner.py b/tests/test_manager_announcement_flash_runner.py
+--- a/tests/test_manager_announcement_flash_runner.py
++++ b/tests/test_manager_announcement_flash_runner.py
+@@ -42,6 +42,96 @@
+         self.jobs[key] = item
+         self.enqueued.append(payload)
+         return item
++
++
++class _PersistingAdmissionQueue(_AdmissionQueue):
++    """In-memory queue state with temp-only payload persistence for version-binding tests."""
++
++    def __init__(self, root, jobs=None):
++        super().__init__(jobs)
++        self.root = Path(root)
++
++    def enqueue(self, payload):
++        identity = self._identity(payload)
++        key = _sha(_json_bytes(identity))
++        raw = _json_bytes(payload)
++        payload_sha256 = _sha(raw)
++        if key in self.jobs:
++            prior = self.jobs[key]
++            if prior.get("payload_sha256") != payload_sha256:
++                raise ValueError("IDEMPOTENCY_CONFLICT")
++            return prior
++        input_path = self.root / "jobs" / key / "input.json"
++        input_path.parent.mkdir(parents=True, exist_ok=True)
++        input_path.write_bytes(raw)
++        item = {"idempotency_key": key, "queue_id": "v4-manager-flash-incremental",
++                "identity": identity, "payload_sha256": payload_sha256,
++                "input_path": f"jobs/{key}/input.json", "status": "PENDING",
++                "attempt_count": 0, "max_attempts": 1, "attempts": [], "queue_policy": {}}
++        self.jobs[key] = item
++        self.enqueued.append(payload)
++        return item
++
++
++def _recovery_version_fixture(tmp_path):
++    body = "冻结的完整公告正文"
++    body_sha = _sha(body.encode())
++    article_id = "EASTMONEY:AN202610150099"
++    cutoff = "2026-10-16T14:57:00+08:00"
++    authority = "a" * 64
++    capture_sha = "b" * 64
++    source_code = "HK.09963"
++    identity = {"date": "2026-10-15", "market": "HK", "article_id": article_id,
++                "source_sha256": "1" * 64, "body_sha256": body_sha, "prompt_sha256": "3" * 64,
++                "model_id": "qwen3_8_flash_next", "configuration_sha256": "4" * 64,
++                "rules": "recent_day_reader_v2+profile:p+citation:c+unit-map:u+fixed-ledger:l",
++                "role": "announcement_reader", "stage": "v4_manager_announcement_flash_incremental"}
++    source_codes = [{"code": source_code, "name": "测试公司"}]
++    old_meta = {"publication_date": "2026-10-15", "title": "同一公告", "symbol": source_code,
++                "available_at": "2026-10-15T18:31:00+08:00", "article_membership_status": "CANNOT_CONFIRM",
++                "membership_authority_sha256": None, "source_issuer_codes": source_codes,
++                "source_issuer_membership": []}
++    old_payload = {**identity, "article_body": body, "article_metadata": old_meta,
++                   "fixed_fact_ledger": {"ledger_sha256": "5" * 64}, "messages": [{"role": "user", "content": "old"}],
++                   "structured_output_schema": {"type": "object"}, "source_unit_map_sha256": "6" * 64,
++                   "workflow_profile": "decision_simple_facts_unit_ranges_v2", "citation_protocol": "protocol-v2"}
++    new_source = "7" * 64
++    current_meta = {**old_meta, "available_at": "2026-10-15T18:32:00+08:00",
++                    "article_membership_status": "IN", "membership_authority_sha256": authority,
++                    "source_issuer_membership": [{"code": source_code, "membership_status": "IN",
++                                                  "market": "HK_CONNECT", "authority_sha256": authority}],
++                    "source_origins": [
++                        {"role": "CAPTURE_WINDOW_PRODUCT_ROW", "source_product_sha256": capture_sha},
++                        {"role": "VERIFIED_FULL_NOTICE_BODY_PRODUCT", "source_product_sha256": new_source},
++                    ]}
++    current_payload = {**old_payload, "source_sha256": new_source,
++                       "article_metadata": current_meta,
++                       "messages": [{"role": "user", "content": "current verified metadata"}]}
++    lock = {"schema": "v4.manager_workbench.announcement_flash_recovery_lock.v1",
++            "target_date": "20261016", "cutoff": cutoff,
++            "root_batch_job_id": "c" * 32, "parent_job_id": "d" * 32,
++            "parent_input_sha256": "e" * 64, "parent_result_sha256": "f" * 64,
++            "row_manifest_sha256": "8" * 64, "eligible_article_ids_sha256": "9" * 64,
++            "capture_product_sha256": capture_sha, "membership_authority_sha256": authority,
++            "eligible_article_ids": [article_id], "eligible_count": 1,
++            "current_body_sha256": {article_id: body_sha}, "expected_body_sha256": {article_id: body_sha}}
++    gate = {"schema": "v4.manager_workbench.announcement_connect_membership.v1", "status": "VERIFIED",
++            "target_date": "20261016", "cutoff": cutoff, "market": "HK_CONNECT",
++            "authority_sha256": authority, "codes": [source_code]}
++    queue_root = tmp_path / "queue"
++    queue = _PersistingAdmissionQueue(queue_root)
++    old_key = _sha(_json_bytes(queue._identity(old_payload)))
++    old_raw = _json_bytes(old_payload)
++    old_input = queue_root / "jobs" / old_key / "input.json"
++    old_input.parent.mkdir(parents=True, exist_ok=True)
++    old_input.write_bytes(old_raw)
++    old_job = {"idempotency_key": old_key, "queue_id": "v4-manager-flash-incremental",
++               "identity": queue._identity(old_payload), "payload_sha256": _sha(old_raw),
++               "input_path": f"jobs/{old_key}/input.json", "status": "PENDING",
++               "attempt_count": 0, "max_attempts": 1, "attempts": [], "queue_policy": {}}
++    queue.jobs[old_key] = old_job
++    old_job_before = json.loads(json.dumps(old_job))
++    return queue, queue_root, old_key, old_job_before, current_payload, lock, gate, cutoff
+ 
+ 
+ def _identity_payload(identity):
+@@ -380,6 +470,93 @@
+     assert plan["matched"][0]["record"]["status"] == "PENDING"
+     assert job["attempt_count"] == 0
+     assert queue.enqueued == []
++
++
++def test_frozen_recovery_versions_verified_current_pending_without_mutating_old_queue_item(tmp_path):
++    bridge = _bridge_module()
++    queue, queue_root, old_key, old_job_before, current, lock, gate, cutoff = _recovery_version_fixture(tmp_path)
++    old_input_before = _sha((queue_root / queue.jobs[old_key]["input_path"]).read_bytes())
++
++    plan = bridge._admit_incremental_payloads(
++        [current], queue, [], queue_root, resume_same_batch_pending=True,
++        resume_cutoff=cutoff, recovery_lock=lock, membership_gate=gate,
++    )
++
++    new_key = next(iter(plan["allowed_keys"]))
++    assert new_key != old_key
++    assert plan["new_enqueued"] == 1
++    assert plan["resumed_pending"] == 0
++    assert plan["articles_by_key"][new_key]["source_sha256"] == current["source_sha256"]
++    assert queue.jobs[old_key] == old_job_before
++    assert _sha((queue_root / queue.jobs[old_key]["input_path"]).read_bytes()) == old_input_before
++    new_item = queue.jobs[new_key]
++    new_payload = json.loads((queue_root / new_item["input_path"]).read_text())
++    binding = new_payload["recovery_version_binding"]
++    assert binding["old_idempotency_key"] == old_key
++    assert binding["old_payload_sha256"] == old_job_before["payload_sha256"]
++    assert binding["new_idempotency_key"] == new_key
++    assert binding["new_source_sha256"] == current["source_sha256"]
++    assert binding["membership_authority_sha256"] == gate["authority_sha256"]
++    assert plan["version_associations"][0]["new_payload_sha256"] == new_item["payload_sha256"]
++
++    repeated = bridge._admit_incremental_payloads(
++        [current], queue, [], queue_root, resume_same_batch_pending=True,
++        resume_cutoff=cutoff, recovery_lock=lock, membership_gate=gate,
++    )
++    assert repeated["allowed_keys"] == {new_key}
++    assert repeated["new_enqueued"] == 0
++    assert repeated["resumed_pending"] == 1
++    assert len(queue.enqueued) == 1
++    assert queue.jobs[old_key] == old_job_before
++
++
++def test_frozen_recovery_version_rejects_changed_body_authority_membership_and_cutoff(tmp_path):
++    bridge = _bridge_module()
++    for mutation in ("body", "authority", "membership", "cutoff"):
++        case_root = tmp_path / mutation
++        queue, queue_root, old_key, old_job_before, current, lock, gate, cutoff = _recovery_version_fixture(case_root)
++        if mutation == "body":
++            current["article_body"] += "被篡改"
++        elif mutation == "authority":
++            current["article_metadata"]["membership_authority_sha256"] = "c" * 64
++        elif mutation == "membership":
++            current["article_metadata"]["article_membership_status"] = "OUT"
++        else:
++            current["article_metadata"]["available_at"] = "2026-10-16T14:58:00+08:00"
++
++        plan = bridge._admit_incremental_payloads(
++            [current], queue, [], queue_root, resume_same_batch_pending=True,
++            resume_cutoff=cutoff, recovery_lock=lock, membership_gate=gate,
++        )
++
++        assert plan["allowed_keys"] == set()
++        assert plan["new_enqueued"] == 0
++        assert plan["conflicts"][0]["failure_code"] == "RECOVERY_CURRENT_VERSION_BINDING_INVALID"
++        assert queue.jobs[old_key] == old_job_before
++        assert queue.enqueued == []
++
++
++def test_successful_current_version_is_reused_without_reenqueue(tmp_path):
++    bridge = _bridge_module()
++    queue, queue_root, old_key, _old_job_before, current, lock, gate, cutoff = _recovery_version_fixture(tmp_path)
++    first = bridge._admit_incremental_payloads(
++        [current], queue, [], queue_root, resume_same_batch_pending=True,
++        resume_cutoff=cutoff, recovery_lock=lock, membership_gate=gate,
++    )
++    new_key = next(iter(first["allowed_keys"]))
++    queue.jobs[new_key]["status"] = "SUCCEEDED"
++    queue.jobs[new_key]["attempt_count"] = 1
++
++    repeated = bridge._admit_incremental_payloads(
++        [current], queue, [], queue_root, resume_same_batch_pending=True,
++        resume_cutoff=cutoff, recovery_lock=lock, membership_gate=gate,
++    )
++
++    assert repeated["allowed_keys"] == set()
++    assert repeated["matched"][0]["record"]["idempotency_key"] == new_key
++    assert repeated["matched"][0]["record"]["status"] == "SUCCEEDED"
++    assert repeated["version_associations"][0]["disposition"] == "CURRENT_VERSION_SUCCEEDED_REUSED"
++    assert len(queue.enqueued) == 1
+ 
+ 
+ def test_explicit_resume_only_admits_exact_zero_attempt_pending_hk_connect_input(tmp_path):
+@@ -840,6 +1017,234 @@
+                       "source_unit_map_sha256": _sha(chunks.canonical(map_material))}
+ 
+ 
++def _failed_part_fixture(tmp_path, index, status="FAILED", *, shared=None):
++    if shared is None:
++        bridge = _bridge_module()
++        queue, queue_root, _old_key, _old_job, current, lock, gate, cutoff = _recovery_version_fixture(tmp_path)
++    else:
++        bridge, queue, queue_root, current, lock, gate, cutoff = shared
++    from v4.manager_workbench import announcement_chunks as chunks
++
++    payload = {**current,
++               "prompt_sha256": "a" * 64,
++               "rules": current["rules"] + f"+long-body-part:v1+part:{index}/3",
++               "role": "announcement_reader_part",
++               "stage": "v4_manager_announcement_flash_long_body_part_v1",
++               "queue_task_kind": "announcement_reader_part",
++               "chunk_plan_sha256": "b" * 64,
++               "part_descriptor": {"part_index": index, "part_count": 3,
++                                   "start_source_unit_id": f"U{index:06d}",
++                                   "end_source_unit_id": f"U{index:06d}",
++                                   "source_unit_ids": [f"U{index:06d}"],
++                                   "part_sha256": _sha(f"part-{index}".encode())},
++               "source_unit_map_sha256": "6" * 64,
++               "messages": [{"role": "system", "content": "完整原始Reader规则\n\n" + chunks.PART_ADDENDUM},
++                            {"role": "user", "content": f"原始分片{index}及其局部账本"}],
++               "structured_output_schema": {"type": "object", "properties": {"reader_output": {"type": "object"}}},
++               "input_schema": chunks.PART_INPUT_SCHEMA,
++               "prompt_tokens_exact": 50, "prompt_token_cap": 64_000,
++               "context_limit_tokens": 262_144, "completion_reserve_tokens": 32_768,
++               "token_safety_margin": 1_024, "batch_binding_sha256": "9" * 64}
++    item = queue.enqueue(payload)
++    if status == "FAILED":
++        raw_ref = f"jobs/{item['idempotency_key']}/attempt-0001.raw"
++        raw = _json_bytes({"action": "complete", "lookup_request": None,
++                           "reader_output": {"facts": [], "changes": [
++                               {"claim": "原始回答里的受拒绝变化", "start_source_unit_id": "EASTMONEY:AN202610150099::U000001",
++                                "end_source_unit_id": "EASTMONEY:AN202610150099::U000001"}]}})
++        (queue_root / raw_ref).write_bytes(raw)
++        item.update({"status": "FAILED", "attempt_count": 1, "raw_path": raw_ref,
++                     "raw_sha256": _sha(raw), "last_error": {"code": "PART_FIXED_FIELDS_MUST_BE_EMPTY",
++                     "stage": "validator"},
++                     "attempts": [{"status": "FAILED", "number": 1,
++                                   "error": {"code": "PART_FIXED_FIELDS_MUST_BE_EMPTY", "stage": "validator"},
++                                   "raw_path": raw_ref, "raw_sha256": _sha(raw)}]})
++    elif status == "SUCCEEDED":
++        item.update({"status": "SUCCEEDED", "attempt_count": 1, "validated_sha256": "e" * 64})
++    return bridge, queue, queue_root, payload, item, lock, gate, cutoff, current
++
++
++def test_part_repair_is_versioned_source_complete_and_leaves_validator_strict(tmp_path):
++    bridge, queue, queue_root, payload, failed, lock, gate, cutoff, _current = _failed_part_fixture(tmp_path, 1)
++    original_payload_sha = failed["payload_sha256"]
++    original_raw_sha = failed["raw_sha256"]
++    original_system = payload["messages"][0]["content"]
++    original_schema = json.loads(json.dumps(payload["structured_output_schema"]))
++
++    repair = bridge._part_repair_payload(payload, failed, queue_root, lock, gate, cutoff, 160_000)
++    assert repair is not None
++    repaired_payload, binding = repair
++
++    assert repaired_payload["article_body"] == payload["article_body"]
++    assert repaired_payload["fixed_fact_ledger"] == payload["fixed_fact_ledger"]
++    assert repaired_payload["part_descriptor"] == payload["part_descriptor"]
++    assert repaired_payload["structured_output_schema"] == original_schema
++    assert repaired_payload["messages"][0]["content"].startswith(original_system)
++    assert "覆盖前文 changes 指令" in repaired_payload["messages"][0]["content"]
++    assert repaired_payload["prompt_sha256"] != payload["prompt_sha256"]
++    assert repaired_payload["rules"].endswith("+repair-addendum:" + binding["feedback_addendum_sha256"])
++    assert binding["failed_idempotency_key"] == failed["idempotency_key"]
++    assert binding["failed_payload_sha256"] == original_payload_sha
++    assert binding["failed_raw_response_sha256"] == original_raw_sha
++    assert binding["nonempty_fixed_fields"] == ["changes"]
++    assert binding["source_sha256"] == payload["source_sha256"]
++    assert binding["membership_authority_sha256"] == gate["authority_sha256"]
++    assert binding["part_target_token_cap"] == 64_000
++    assert binding["repair_prompt_hard_cap_tokens"] == 160_000
++    assert failed["status"] == "FAILED" and failed["attempt_count"] == 1
++    assert _sha((queue_root / failed["input_path"]).read_bytes()) == original_payload_sha
++    assert _sha((queue_root / failed["raw_path"]).read_bytes()) == original_raw_sha
++
++    from v4.manager_workbench import announcement_chunks as chunks
++    body = "甲乙"
++    body_sha, unit_map = _chunk_unit_map(body, [1])
++    with __import__("pytest").raises(ValueError, match="PART_FIXED_FIELDS_MUST_BE_EMPTY"):
++        chunks.validate_part_envelope(
++            {"action": "complete", "lookup_request": None,
++             "reader_output": {"facts": [], "changes": [{"claim": "x"}]}},
++            article_id="EASTMONEY:TEST", source_sha256="1" * 64,
++            body_sha256=body_sha, plan_sha256="2" * 64,
++            part={"part_index": 1, "part_count": 1, "source_unit_ids": ["U000001"]},
++            unit_map=unit_map, body=body, validate_schema=lambda _output: None,
++        )
++
++
++def test_part_repair_canary_success_auto_continues_remaining_parts_in_same_run(tmp_path, monkeypatch):
++    bridge, queue, queue_root, part1, _job1, lock, gate, cutoff, current = _failed_part_fixture(tmp_path, 1)
++    shared = (bridge, queue, queue_root, current, lock, gate, cutoff)
++    _bridge, _queue, _root, part2, _job2, _lock, _gate, _cutoff, _current = _failed_part_fixture(
++        tmp_path, 2, shared=shared)
++    _bridge, _queue, _root, part3, _job3, _lock, _gate, _cutoff, _current = _failed_part_fixture(
++        tmp_path, 3, status="SUCCEEDED", shared=shared)
++
++    specs = {part1["article_id"]: {"part_payloads": [part1, part2, part3]}}
++    token_count = lambda _messages: 64_001
++    allowed, records = bridge._enqueue_long_body_parts(
++        specs, queue, queue_root, allow_same_batch_pending=True,
++        recovery_lock=lock, membership_gate=gate, resume_cutoff=cutoff,
++        prompt_token_cap=64_000, hard_prompt_token_cap=160_000,
++        count_prompt_tokens=token_count,
++    )
++    first_repair_key = specs[part1["article_id"]]["part_keys"][0]
++    assert allowed == {first_repair_key}
++    assert records[0]["repair_status"] == "REPAIR_CANARY_ENQUEUED"
++    assert records[1]["repair_status"] == "GATED_AFTER_ONE_NEW_REPAIR"
++    assert records[2]["repair_status"] == "NOT_REQUIRED"
++    assert queue.jobs[records[0]["base_key"]]["status"] == "FAILED"
++    assert queue.jobs[records[1]["base_key"]]["status"] == "FAILED"
++    assert queue.jobs[records[2]["base_key"]]["status"] == "SUCCEEDED"
++    assert len([item for item in queue.enqueued if item.get("part_repair_binding")]) == 1
++    repair_payload = next(item for item in queue.enqueued if item.get("part_repair_binding"))
++    assert repair_payload["prompt_tokens_exact"] == 64_001
++    assert repair_payload["prompt_token_cap"] == 64_000
++    assert repair_payload["repair_prompt_hard_cap_tokens"] == 160_000
++    from v4.manager_workbench import announcement_chunks as chunks
++    assert bridge._part_prompt_token_preflight_valid(repair_payload, chunks)
++    too_large = json.loads(json.dumps(repair_payload))
++    too_large["prompt_tokens_exact"] = 160_001
++    assert not bridge._part_prompt_token_preflight_valid(too_large, chunks)
++    unbound_cap = json.loads(json.dumps(repair_payload))
++    unbound_cap["repair_prompt_hard_cap_tokens"] = 228_352
++    assert not bridge._part_prompt_token_preflight_valid(unbound_cap, chunks)
++
++    queue.jobs[first_repair_key]["status"] = "SUCCEEDED"
++    queue.jobs[first_repair_key]["attempt_count"] = 1
++    monkeypatch.setattr(bridge, "_verify_completed_part_repair_canary", lambda *_args, **_kwargs: (True, None))
++    phase_b_calls = []
++
++    def run_queue_keys(keys):
++        phase_b_calls.append(set(keys))
++        for key in keys:
++            queue.jobs[key]["status"] = "SUCCEEDED"
++            queue.jobs[key]["attempt_count"] = 1
++
++    phase_b_allowed, phase_b_records, disposition = bridge._continue_long_body_repairs_after_canary(
++        specs, records, queue, queue_root,
++        allow_same_batch_pending=True, recovery_lock=lock, membership_gate=gate,
++        resume_cutoff=cutoff, prompt_token_cap=64_000, hard_prompt_token_cap=160_000,
++        count_prompt_tokens=token_count, runner=None, contract=None, request_material={},
++        run_queue_keys=run_queue_keys, system_stopped=lambda: False,
++    )
++    second_repair_key = specs[part1["article_id"]]["part_keys"][1]
++    assert phase_b_allowed == {second_repair_key}
++    assert phase_b_calls == [{second_repair_key}]
++    assert disposition["status"] == "AUTO_CONTINUATION_DISPATCHED"
++    assert disposition["phase_b_repair_count"] == 1
++    assert [record["repair_status"] for record in phase_b_records] == [
++        "REPAIR_CANARY_VERIFIED", "REPAIR_AUTO_CONTINUATION_SUCCEEDED", "NOT_REQUIRED",
++    ]
++    assert [record["repair_status"] for record in specs[part1["article_id"]]["part_records"]] == [
++        "REPAIR_CANARY_VERIFIED", "REPAIR_AUTO_CONTINUATION_SUCCEEDED", "NOT_REQUIRED",
++    ]
++    assert len([item for item in queue.enqueued if item.get("part_repair_binding")]) == 2
++
++
++def test_part_repair_canary_failure_stops_continuation_and_repeat_adds_no_version(tmp_path, monkeypatch):
++    bridge, queue, queue_root, part1, _job1, lock, gate, cutoff, current = _failed_part_fixture(tmp_path, 1)
++    shared = (bridge, queue, queue_root, current, lock, gate, cutoff)
++    _bridge, _queue, _root, part2, _job2, _lock, _gate, _cutoff, _current = _failed_part_fixture(
++        tmp_path, 2, shared=shared)
++    specs = {part1["article_id"]: {"part_payloads": [part1, part2]}}
++    token_count = lambda _messages: 64_001
++    phase_a_allowed, phase_a_records = bridge._enqueue_long_body_parts(
++        specs, queue, queue_root, allow_same_batch_pending=True,
++        recovery_lock=lock, membership_gate=gate, resume_cutoff=cutoff,
++        prompt_token_cap=64_000, hard_prompt_token_cap=160_000,
++        count_prompt_tokens=token_count,
++    )
++    canary_key = next(iter(phase_a_allowed))
++    queue.jobs[canary_key]["status"] = "FAILED"
++    queue.jobs[canary_key]["attempt_count"] = 1
++    monkeypatch.setattr(bridge, "_verify_completed_part_repair_canary",
++                        lambda *_args, **_kwargs: (False, "PART_FIXED_FIELDS_MUST_BE_EMPTY"))
++    phase_b_calls = []
++    args = dict(allow_same_batch_pending=True, recovery_lock=lock, membership_gate=gate,
++                resume_cutoff=cutoff, prompt_token_cap=64_000, hard_prompt_token_cap=160_000,
++                count_prompt_tokens=token_count, runner=None, contract=None, request_material={},
++                run_queue_keys=lambda keys: phase_b_calls.append(set(keys)),
++                system_stopped=lambda: False)
++
++    phase_b_allowed, phase_b_records, disposition = bridge._continue_long_body_repairs_after_canary(
++        specs, phase_a_records, queue, queue_root, **args,
++    )
++    assert phase_b_allowed == set() and phase_b_records == []
++    assert phase_b_calls == []
++    assert disposition["status"] == "REPAIR_CANARY_FAILED_STOP"
++    assert phase_a_records[0]["repair_status"] == "REPAIR_CANARY_FAILED_STOP"
++    assert len([item for item in queue.enqueued if item.get("part_repair_binding")]) == 1
++
++    # A subsequent invocation sees the failed repair version as terminal and does not create another.
++    next_allowed, next_records = bridge._enqueue_long_body_parts(
++        specs, queue, queue_root, allow_same_batch_pending=True,
++        recovery_lock=lock, membership_gate=gate, resume_cutoff=cutoff,
++        prompt_token_cap=64_000, hard_prompt_token_cap=160_000,
++        count_prompt_tokens=token_count,
++    )
++    assert next_allowed == set()
++    assert next_records[0]["repair_status"] == "REPAIR_FAILED_TERMINAL"
++    assert next_records[1]["repair_status"] == "GATED_AFTER_ONE_NEW_REPAIR"
++    assert len([item for item in queue.enqueued if item.get("part_repair_binding")]) == 1
++
++
++def test_part_repair_above_true_hard_cap_stays_context_pending(tmp_path):
++    bridge, queue, queue_root, part1, _job1, lock, gate, cutoff, current = _failed_part_fixture(tmp_path, 1)
++    shared = (bridge, queue, queue_root, current, lock, gate, cutoff)
++    _bridge, _queue, _root, part2, _job2, _lock, _gate, _cutoff, _current = _failed_part_fixture(
++        tmp_path, 2, shared=shared)
++    specs = {part1["article_id"]: {"part_payloads": [part1, part2]}}
++    allowed, records = bridge._enqueue_long_body_parts(
++        specs, queue, queue_root, allow_same_batch_pending=True,
++        recovery_lock=lock, membership_gate=gate, resume_cutoff=cutoff,
++        prompt_token_cap=64_000, hard_prompt_token_cap=160_000,
++        count_prompt_tokens=lambda _messages: 160_001,
++    )
++    assert allowed == set()
++    assert [record["repair_status"] for record in records] == [
++        "REPAIR_CONTEXT_PENDING", "REPAIR_CONTEXT_PENDING",
++    ]
++    assert not [item for item in queue.enqueued if item.get("part_repair_binding")]
++
++
+ def test_long_body_part_plan_is_exact_lossless_and_local_ledger_only():
+     from v4.manager_workbench import announcement_chunks as chunks
+ 
+diff --git a/v4/manager_workbench/announcement_chunks.py b/v4/manager_workbench/announcement_chunks.py
+--- a/v4/manager_workbench/announcement_chunks.py
++++ b/v4/manager_workbench/announcement_chunks.py
+@@ -18,6 +18,10 @@
+ - source_units 的 ID 是完整公告全局 source-unit map 中的 ID。证据必须使用本分片内的 start_source_unit_id/end_source_unit_id，按完整、连续、顺序的全局范围引用；不要自行输出 quote、locator、偏移或哈希。
+ - fixed_fact_ledger 仅含其全部来源单元均位于本分片的账本记录；它是辅助证据，不替代正文。跨分片的账本关系留待最终综合，不要由局部账本推断。
+ - 本分片 Reader 输出只是内部证据，不是候选或最终判断；不得把单一分片的正面结果当作选股结论。仍须严格使用原有 13 字段 wire schema，facts 和 changes 均为空数组，source_sha256 和 body_sha256 留空字符串。"""
++PART_REPAIR_ADDENDUM = (
++    "PART_FIXED_FIELDS_MUST_BE_EMPTY：本分片 reader_output.facts、reader_output.changes 必须为 []，"
++    "覆盖前文 changes 指令。仍输出完整 13 字段并遵守其余原字段语义、引证及全部验证。"
++)
+ SYNTHESIS_ADDENDUM = """长正文综合 addendum（保留既有 Reader 全部字段、枚举、选择标准和最终验证）：
+ - 输入是同一篇冻结公告的全部连续分片的已验证 Reader 报告、精确原文引证和跨分片固定账本记录。确认所有 part_index 从 1 到 part_count 各出现一次，按序综合；这些分片报告是证据，不是候选结果。
+ - 每个分片的 disposition、direction、selection_basis 和报告数量都只是局部证据，不是投票、计数、加权或多数规则；任何一个正面分片都不能自动使全文成为候选。不得把正面分片数、负面分片数或比例当作选择依据。
+@@ -37,6 +41,7 @@
+     "没有收到完整正文；不得声称重新阅读全文或推断未呈现的事实。"
+ )
+ PART_ADDENDUM_SHA256 = hashlib.sha256(PART_ADDENDUM.encode("utf-8")).hexdigest()
++PART_REPAIR_ADDENDUM_SHA256 = hashlib.sha256(PART_REPAIR_ADDENDUM.encode("utf-8")).hexdigest()
+ SYNTHESIS_ADDENDUM_SHA256 = hashlib.sha256(SYNTHESIS_ADDENDUM.encode("utf-8")).hexdigest()
+ SYNTHESIS_TOKEN_CAP = 160_000
+ PART_TARGET_TOKEN_CAP = 64_000
+@@ -61,6 +66,20 @@
+     if prompt.count(original_reading_step) != 1:
+         raise ValueError("CHUNK_ORIGINAL_READER_READING_STEP_BINDING_INVALID")
+     return prompt.replace(original_reading_step, task_reading_step, 1)
++
++
++def part_repair_messages(messages: list[dict[str, Any]], failure_code: str) -> list[dict[str, Any]]:
++    """Create a versioned, narrowly scoped validator-feedback prompt for one failed part."""
++    if failure_code != "PART_FIXED_FIELDS_MUST_BE_EMPTY":
++        raise ValueError("PART_REPAIR_FAILURE_CODE_UNSUPPORTED")
++    if (not isinstance(messages, list) or not messages or not isinstance(messages[0], dict)
++            or messages[0].get("role") != "system" or not isinstance(messages[0].get("content"), str)):
++        raise ValueError("PART_REPAIR_SYSTEM_PROMPT_INVALID")
++    if PART_REPAIR_ADDENDUM in messages[0]["content"]:
++        raise ValueError("PART_REPAIR_PROMPT_ALREADY_VERSIONED")
++    repaired = deepcopy(messages)
++    repaired[0]["content"] = repaired[0]["content"].rstrip() + "\n\n" + PART_REPAIR_ADDENDUM
++    return repaired
+ _SHA = re.compile(r"^[0-9a-f]{64}$")
+ _UNIT_ID = re.compile(r"^U[0-9]{6}$")
+ _CITATION_FIELDS = (
