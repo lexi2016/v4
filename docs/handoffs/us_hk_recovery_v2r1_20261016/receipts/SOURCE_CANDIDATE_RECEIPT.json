@@ -1,0 +1,96 @@
+{
+  "status": "IMPLEMENTED",
+  "phase": "source candidate only",
+  "scope": "US-HK v2r1 mapping catalog recovery; exact source allowlist in SCOPE.md",
+  "input": {
+    "path": "/Users/lexi/Downloads/US_HK_667_1003_recovery_v2r1_20261016.zip",
+    "bytes": 508906833,
+    "sha256": "48f1124c10ed3440c22910a9125038748c08d673fc3ec543635cc9aae0b344d4"
+  },
+  "source_reconciliation": {
+    "base_catalog_sha256": "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671",
+    "original_cell_mismatches": 0,
+    "stocks": 667,
+    "relations": 1003,
+    "stocks_with_relations": 649,
+    "stocks_without_relations": 18,
+    "processed": 1003,
+    "closed_research_scope": 757,
+    "closed_excluded_scope": 25,
+    "open": 221,
+    "closed_total_including_exclusions": 782,
+    "independent_fact_acceptance": 0
+  },
+  "projection": {
+    "path": "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+    "bytes": 43652024,
+    "sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "integrity_sha256": "9c33ef21d51516f12e7aeab74192ea0feaa6f1aebfcbba2c42ce97f499b0fedc",
+    "legacy_700_overlay_sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69",
+    "legacy_crosswalk": "NOT_ESTABLISHED"
+  },
+  "behavior": {
+    "default": "concise recovery summary",
+    "exact_rid": "complete current source evidence on demand",
+    "legacy_700": "retained separately",
+    "fact_acceptance": 0,
+    "prediction": "UNTESTED",
+    "historical_pit": "NOT_VALIDATED",
+    "event_data_tests": "NOT_RUN",
+    "available_at": "ABSENT",
+    "semantic_mapping_validity": "CANNOT_CONFIRM",
+    "pit_prediction_feature_use": "BLOCKED"
+  },
+  "changed_source_and_builder_paths": [
+    "v4/manager_workbench/us_mapping_catalog.py",
+    "tests/manager_workbench/test_us_mapping_catalog.py",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/types.ts",
+    "apps/web/src/manager-workbench/__tests__/us_mapping_catalog.spec.ts",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py"
+  ],
+  "changed_projection_path": "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+  "commands": [
+    {
+      "command": "python3 docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py",
+      "exit_code": 0,
+      "result": "Rebuilt deterministic overlay; 1003 records; 757 CLOSED_RESEARCH_SCOPE, 25 CLOSED_EXCLUDED_SCOPE, 221 OPEN; output SHA-256 and integrity digest match above."
+    },
+    {
+      "command": "PYTHONPATH=/Users/lexi/Desktop/学习/v4_app .venv/bin/pytest -q --basetemp=docs/handoffs/us_hk_recovery_v2r1_20261016/tests/pytest_tmp tests/manager_workbench/test_us_mapping_catalog.py",
+      "exit_code": 0,
+      "result": "17 passed; 1 Starlette/httpx deprecation warning."
+    },
+    {
+      "command": "npm test -- src/manager-workbench/__tests__/us_mapping_catalog.spec.ts",
+      "exit_code": 0,
+      "result": "1 test passed."
+    },
+    {
+      "command": "npm run typecheck",
+      "exit_code": 2,
+      "result": "Unrelated existing errors in managerWorkspace.attention.spec.ts (lines 242 and 245: possibly undefined mapping), api/us_factor.spec.ts (missing ./fixtures/sample), and ManagerSelectionView.spec.ts (two unused @ts-expect-error directives). No changed mapping source file was reported."
+    }
+  ],
+  "review_and_runtime": {
+    "independent_review": "NOT_RUN; parent to dispatch separate Luna Max Reviewer",
+    "api_verification": "NOT_RUN",
+    "ui_runtime_verification": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "github_sync": "NOT_RUN",
+    "natural_slot": "NOT_RUN"
+  },
+  "limitations": [
+    "Raw attachment material remains absent for 227 historical path occurrences across 218 unique paths; separate restored-740 path/hash gaps are 404 pairs and 388 unique hashes and are not additive.",
+    "62 A-URL occurrences remain unattempted.",
+    "Research access dates are not available_at timestamps.",
+    "No independent fact acceptance, prediction test, PIT validation, or event-data test was performed."
+  ],
+  "evidence_paths": [
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/INTAKE_AUDIT.json",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/builders/build_recovery_overlay.py",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/diff/SOURCE_DIFF.patch",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/PREIMAGE_SHA256.json",
+    "docs/handoffs/us_hk_recovery_v2r1_20261016/receipts/SHA256_INVENTORY.json"
+  ]
+}
