@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "review_status": "PASS",
+  "reviewer_identity": "futu_remaining12_review",
+  "review_scope": "Bounded confirmation of the two final documentation byte streams only; no repeat of the raw-query or semantic review.",
+  "final_files": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_REMAINING12_20261016/README.md",
+      "expected_sha256": "1d4be668d4f071cb12a1d650139bdc8ef66ec28b3b55d9ceb818b4a9ffdb5bb3",
+      "observed_sha256": "1d4be668d4f071cb12a1d650139bdc8ef66ec28b3b55d9ceb818b4a9ffdb5bb3",
+      "hash_match": true
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_REMAINING12_20261016/receipt.json",
+      "expected_sha256": "9a75db45a5921f260e7d2177095600970d74948a97a5a36fa241a17e34ad3ddd",
+      "observed_sha256": "9a75db45a5921f260e7d2177095600970d74948a97a5a36fa241a17e34ad3ddd",
+      "hash_match": true
+    }
+  ],
+  "checks": {
+    "add_zero_decision": "PASS: README retains ADD_ZERO and all 12 topics remain unmatched, matching the independent PASS decision.",
+    "semantic_table": "PASS: all 12 topic rows and their candidate-board dispositions remain as in the previously reviewed handoff; no mapping was added and no scope was expanded.",
+    "nonstandard_nan_wording": "PASS: README and receipt distinguish permissive Python json.loads parsing from strict JSON validity; the four raw candidate files are explicitly recorded as containing non-standard bare NaN. The integrity claim is narrowed to parsing plus directory code/name/count binding.",
+    "independent_review_reference": {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_REMAINING12_20261016/independent_review.json",
+      "sha256": "3b60128db4087f885cdd186b674b24c6010e6c531bf04e72e87ccd5bce129840",
+      "source_receipt_path": "/Users/lexi/Desktop/学习/agents调试/FUTU_REMAINING12_20261016/reviewer_receipt.json",
+      "source_receipt_sha256": "3b60128db4087f885cdd186b674b24c6010e6c531bf04e72e87ccd5bce129840",
+      "byte_identical": true
+    },
+    "scope_expansion": "NONE"
+  },
+  "status_note": "The README records that the earlier independent_review.json had not yet re-reviewed the final documentation hashes. This supplemental receipt is the later, bounded confirmation of those exact final hashes; no further edit or receipt refresh is requested.",
+  "new_findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  }
+}

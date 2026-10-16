@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "review_status": "REVIEWED_PASS_WITH_NONBLOCKING_P2",
+  "reviewed": true,
+  "behavior_verified": "NOT_APPLICABLE_NO_SOURCE_OR_RUNTIME_CHANGE",
+  "reviewer_identity": "futu_remaining12_review",
+  "scope": {
+    "goal": "Independently assess whether any of the frozen 12 unmatched labels can be accurately mapped to one captured Futu US INDUSTRY or CONCEPT board.",
+    "decision": "PASS_ADD_ZERO_RETAIN_ALL_12_UNMATCHED",
+    "scope_expanded": false,
+    "business_source_changed": false,
+    "tests_run": false,
+    "test_run_reason": "Documentation/evidence handoff only; source and focused test files remained byte-identical during the documentation phase."
+  },
+  "reviewed_files": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_REMAINING12_20261016/README.md",
+      "sha256": "cb8e6cc9af9041e6fe34e59b94a5bdfa2d1d32466336275f9090d919f6a218ca",
+      "reviewed_as": "Complete added handoff document; untracked in the current checkout."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/FUTU_REMAINING12_20261016/receipt.json",
+      "sha256": "0b3be0fa64fbeae0d25326fb4ac1520d5267b7e8faf30d747c150d5abaabf4c5",
+      "reviewed_as": "Complete added evidence receipt; untracked in the current checkout."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/ops/_us_market_digest_parts/futu_boards.py",
+      "sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+      "reviewed_as": "Read FUTU_BOARD_MAP and CANNOT_CONFIRM behavior; untracked, unchanged at writer-reported before/after hashes."
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/tests/test_futu_industry_semantics.py",
+      "sha256": "2523419afa0e62e7956cbb41f1a0887cfc80564c9a973c9e42321e79d6852863",
+      "reviewed_as": "Read focused board-mapping regression coverage, including the CPO CANNOT_CONFIRM assertion; untracked, unchanged at writer-reported before/after hashes; not executed."
+    }
+  ],
+  "raw_evidence": {
+    "directory": "/Users/lexi/Desktop/学习/agents调试/FUTU_REMAINING12_20261016/",
+    "files": [
+      {
+        "file": "official_board_lists.json",
+        "sha256": "b3268aea591485af0757c5dd5d2f0f926a5d305d913f81026133d86fa1016f79",
+        "strict_json": "PASS",
+        "verified": "145 INDUSTRY and 117 CONCEPT rows; ret=0; codes unique."
+      },
+      {
+        "file": "candidate_memberships_batch1.json",
+        "sha256": "fd0ddfe1cb3b6e1ce55fcf572b8c10297433831a3d88e7aa53880075e46dcdc9",
+        "strict_json": "FAIL_NONSTANDARD_NAN"
+      },
+      {
+        "file": "candidate_memberships_batch2.json",
+        "sha256": "ab453a5bf8a8412e182c1161607858a4cbb122d95de23176ddd3c52a995ce20a",
+        "strict_json": "FAIL_NONSTANDARD_NAN"
+      },
+      {
+        "file": "candidate_memberships_batch3.json",
+        "sha256": "6a4e268d4f18ae825d8cd5721908b09fc0b1c40fead632e5a25a611742563c76",
+        "strict_json": "FAIL_NONSTANDARD_NAN"
+      },
+      {
+        "file": "candidate_memberships_batch4.json",
+        "sha256": "3eb7a0b23a4506e48da2f957f32c9158c71450f44d1e2c93d7dea39cfbb34f88",
+        "strict_json": "FAIL_NONSTANDARD_NAN"
+      }
+    ],
+    "directory_binding": "PASS: all 33 membership calls returned ret=0; each declared row_count equals actual records; every candidate plate code/type/name equals the captured official directory entry; member codes are present and unique per query.",
+    "strict_json_method": "Python json.loads with parse_constant rejecting NaN; all four candidate files fail strict parsing because stock_owner/stock_child_type fields contain unquoted NaN. Python's default json loader accepts these extensions.",
+    "capture_identity": "Futu OpenD / OpenQuoteContext, US market, SDK 10.06.6608; directory captured 2026-10-16T09:39:29.308891Z; candidate calls 2026-10-16T09:40:17.079314Z through 2026-10-16T09:46:26.930888Z."
+  },
+  "topic_verdicts": [
+    {
+      "topic": "AI算力",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2548 AI芯片 (16)", "US.LIST2521 IDC概念 (9)", "US.LIST2136 人工智能 (50)"],
+      "reason": "These are separate chip, data-center, and broad AI slices; observed constituents include general platforms/other sectors. No one board accurately covers AI computing infrastructure."
+    },
+    {
+      "topic": "CPO",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST23979 光通信 (21)"],
+      "reason": "The optical-communications board contains CPO-adjacent optical companies but covers a broader communications and component set; it is not a CPO grouping."
+    },
+    {
+      "topic": "商业航天",
+      "verdict": "RETAIN_UNMATCHED_CANNOT_CONFIRM_SCOPE",
+      "evidence": ["US.LIST2556 太空概念 (31)", "US.LIST2089 航空航天与国防 (98)"],
+      "reason": "The space board includes commercial launch/satellite names such as FLY, RKLB, ASTS, GSAT, and SPCX, so the candidate is semantically relevant and is not rejected for a name mismatch. It also includes defense primes and broader aerospace. The source provides no formal definition or target constituent set for 商业航天; using the wider board would expand the proven scope."
+    },
+    {
+      "topic": "卫星",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2556 太空概念 (31)", "US.LIST24213 SpaceX概念 (13)"],
+      "reason": "太空概念 mixes satellite, launch, defense, and other space names; SpaceX概念 is an association list containing non-satellite companies such as AMZN, GOOG/GOOGL, TSLA, and QCOM. Neither is a satellite board."
+    },
+    {
+      "topic": "电网",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2472 受监管电力 (45)", "US.LIST2493 电气设备及零件 (54)"],
+      "reason": "The first is mainly utilities and the second mixes electrical equipment, batteries, charging, and other products. The grid theme spans functions neither board alone represents."
+    },
+    {
+      "topic": "军工",
+      "verdict": "RETAIN_UNMATCHED_CANNOT_CONFIRM_SCOPE",
+      "evidence": ["US.LIST2089 航空航天与国防 (98)", "US.LIST2654 美国国防航空 (9)"],
+      "reason": "航空航天与国防 is a plausible semantic crosswalk, not a rejected name mismatch, but its observed set mixes defense, civil aerospace, and space. 美国国防航空 is a small curated subset and includes civil aerospace names. Without a formal 军工 definition or target constituent set, neither is proven accurate at the requested scope."
+    },
+    {
+      "topic": "新能源",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2572 可再生能源 (6)", "US.LIST2461 可再生能源公用事业 (23)", "US.LIST2047 太阳能 (22)", "US.LIST23939 储能概念股 (8)", "US.LIST2552 锂电池 (12)", "US.LIST2568 新能源汽车 (12)"],
+      "reason": "The captured boards divide renewables, utility operators, solar, storage, batteries, and electric vehicles; none has the umbrella scope."
+    },
+    {
+      "topic": "石油",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2058 油气勘探与开发 (80)", "US.LIST2060 油气炼制与销售 (19)", "US.LIST2224 综合油气 (20)", "US.LIST2585 页岩油 (13)"],
+      "reason": "The boards either include gas, cover only a supply-chain segment, or are restricted to shale; no single candidate represents the full petroleum scope."
+    },
+    {
+      "topic": "铜/有色",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2510 铜 (8)", "US.LIST22865 铜概念 (10)", "US.LIST2501 其他工业金属与采矿 (61)", "US.LIST2211 铝 (4)"],
+      "reason": "Copper-specific boards omit other non-ferrous metals; the other-metals board spans lithium, rare earths, silver, and other miners. No single board has the combined copper/non-ferrous scope."
+    },
+    {
+      "topic": "银行金融",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2481 多元化银行 (20)", "US.LIST2495 金融集团 (8)", "US.LIST2260 资本市场 (99)"],
+      "reason": "These represent separate banking, financial-group, and capital-markets categories; none covers the combined banking/finance theme."
+    },
+    {
+      "topic": "生物医药",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2069 生物技术 (598)", "US.LIST2428 一般药品制造商 (21)", "US.LIST2513 专业与通用药品制造商 (84)"],
+      "reason": "Biotechnology and drug manufacturers are separate boards; each alone omits a material part of the combined biopharma theme."
+    },
+    {
+      "topic": "消费",
+      "verdict": "RETAIN_UNMATCHED",
+      "evidence": ["US.LIST2003 家庭和个人用品 (31)", "US.LIST2502 专业零售 (47)", "US.LIST2157 美国知名零售商 (16)"],
+      "reason": "These are household/personal products, specialty retail, and selected retailers; none is a full consumer-sector board."
+    }
+  ],
+  "risks": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "id": "P2-01",
+        "finding": "The four candidate-membership files use unquoted NaN values and therefore are not strict JSON, although receipt.json describes evidence JSON integrity as PASS.",
+        "evidence": "A strict parser rejects each candidate_memberships_batch1..4.json at NaN; for example the records contain stock_owner: NaN and stock_child_type: NaN. Python's default json loader is permissive and does load them.",
+        "impact": "Portable strict-JSON consumers cannot parse the raw membership evidence; this does not affect the verified codes, names, row counts, or mapping decision because the fields are unused here.",
+        "acceptance_effect": "Nonblocking for the frozen mapping decision; narrow the integrity claim to Python-default parsing plus directory binding, or provide standards-compliant normalized evidence while preserving source bytes and hashes."
+      }
+    ]
+  },
+  "acceptance_evidence": {
+    "mapping_decision": "PASS_ADD_ZERO; retain all 12 topics unmatched with explicit reasons.",
+    "exact_name_only_risk_checked": "PASS: existing FUTU_BOARD_MAP already contains semantic aliases (for example 数据中心->IDC概念 and 云计算->云计算服务商). The review did not require literal label equality; commercial aerospace and military candidates were evaluated against actual captured memberships and withheld only for broader/mixed scope and absent formal target definitions.",
+    "focused_regression_test_inspected": "test_exact_futu_board_metrics_are_separate_from_proxy_lane_and_cover_24_labels asserts the existing CPO row remains CANNOT_CONFIRM with no board code; other date/breadth and projection tests were read. No test was executed because source behavior did not change.",
+    "code_change_diff": "None in the frozen business source or focused test files. The only added project files in this handoff are README.md and receipt.json; both are untracked additions.",
+    "runtime_or_ui_behavior": "CANNOT_CONFIRM / NOT_APPLICABLE: this documentation-only batch did not exercise deployed runtime or UI."
+  },
+  "cannot_confirm": [
+    "Futu's captured API provides board names and membership, not formal definitions for the 12 target Chinese labels.",
+    "The original target theme constituent sets are not part of the reviewed evidence, so semantic one-to-one coverage for broad labels, especially 商业航天 and 军工, cannot be proven."
+  ]
+}
