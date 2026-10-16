@@ -1,0 +1,136 @@
+{
+  "schema_version": "v4.us_hk_recovery_live_independent_review_r2.v1",
+  "reviewer": "mapping_recovery_review",
+  "writer": "mapping_recovery_writer",
+  "candidate": {
+    "release_id": "us-hk-recovery-v2r1-20261016-r2",
+    "manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+    "config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+    "active_plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "active_plist_sha256": "001b0b9dc70f041818d84b9c7ed1065df5ff856abeeccf888d0323df9eca5958"
+  },
+  "verdict": {
+    "LIVE_ENGINEERING_INTEGRATION": "PASS",
+    "API_VERIFIED": "PASS",
+    "STATIC_HTTP_VERIFIED": "PASS",
+    "UI_VERIFIED": "CANNOT_CONFIRM_PENDING_INDEPENDENT_CUA",
+    "overall_workflow_acceptance": "NOT_ISSUED"
+  },
+  "finding_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "findings": [],
+  "runtime_identity": {
+    "launchd_state": "running",
+    "launchd_pid": 52858,
+    "port": 8873,
+    "port_listener_pids": [52858],
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app",
+    "release_id": "us-hk-recovery-v2r1-20261016-r2",
+    "manifest_sha256": "ae2ca8cee0380217b8c09a3dc3baed5cc88f27c82b02d4cd68668b15d79c5359",
+    "config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+    "candidate_verifier": {
+      "result": "PASS",
+      "active_pointer": "candidate",
+      "role": "gateway",
+      "base_role": "gateway",
+      "shared_lock_required": true,
+      "delta_path_count": 6,
+      "non_delta_entry_count": 1211,
+      "non_delta_inventory_sha256": "64887c095d00f6be15c03385b3f6c6a0158eda9f6a7ee1a3f536e59da3f33723"
+    },
+    "activation_receipt": {
+      "status": "ACTIVATED_API_READBACK_OK",
+      "preflight": "PASS",
+      "postflight": "PASS",
+      "sha256": "9fc88d5424078190351360debb11f4801efe63244c489a9715fc3edc5852217c"
+    }
+  },
+  "live_api_readback": {
+    "endpoint": "http://127.0.0.1:8873/api/v4/manager-workbench/mapping-catalog",
+    "http_status": 200,
+    "content_type": "application/json",
+    "response_bytes": 772473,
+    "response_sha256": "0a2f322ea5874601e7ba1485b584956a944db9226c138c0fe7add68ffe34b6ef",
+    "counts": {
+      "snapshot_stocks": 667,
+      "original_relations": 1003,
+      "processed_relations": 1003,
+      "closure_status_counts": {
+        "CLOSED_RESEARCH_SCOPE": 757,
+        "CLOSED_EXCLUDED_SCOPE": 25,
+        "OPEN": 221
+      }
+    },
+    "exact_rids": {
+      "R006": {
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "SOURCE_REVIEWED",
+        "review_detail_level": "FULL"
+      },
+      "R003": {
+        "closure_status": "CLOSED_EXCLUDED_SCOPE",
+        "source_review_status": "SOURCE_REVIEWED",
+        "review_detail_level": "FULL"
+      },
+      "R001": {
+        "closure_status": "OPEN",
+        "source_review_status": "SOURCE_REVIEWED",
+        "review_detail_level": "FULL",
+        "prior_review_evidence_present": true
+      },
+      "R700": {
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "NOT_PROCESSED",
+        "review_detail_level": "FULL",
+        "recovery_detail_level": "FULL",
+        "prior_review_revision": null
+      }
+    },
+    "prior_700_history": {
+      "record_count": 700,
+      "sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69",
+      "retained_as_separate_history": true,
+      "status_crosswalk": "NOT_ESTABLISHED"
+    },
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "semantic_mapping_validity": "CANNOT_CONFIRM",
+      "historical_PIT": "NOT_VALIDATED",
+      "prediction_validation": "UNTESTED",
+      "independently_accepted_facts": 0
+    }
+  },
+  "live_static_readback": {
+    "html_url": "http://127.0.0.1:8873/manager-selection/",
+    "html_status": 200,
+    "html_bytes": 588,
+    "asset_url": "http://127.0.0.1:8873/assets/managerSelection-DfkJEj5r.js",
+    "asset_status": 200,
+    "asset_sha256": "50671d5dfd096de3f1eaebbdace53fec0facfaf3fb3f431f9696e20f61247d67",
+    "candidate_asset_bytes_match": true
+  },
+  "limits": {
+    "semantic_mapping_validity": "CANNOT_CONFIRM",
+    "historical_PIT": "NOT_VALIDATED",
+    "prediction_validation": "UNTESTED",
+    "independently_accepted_facts": 0,
+    "rendered_ui": "CANNOT_CONFIRM_PENDING_INDEPENDENT_CUA",
+    "natural_slot": "NOT_REQUIRED_FOR_STATIC_CATALOG"
+  },
+  "receipt_bindings": {
+    "live_deployment_receipt_json_sha256": "3cb512fd376a301180ce2b70acc68eef00ed3bc60effa824b5d662d562a66dd0",
+    "live_deployment_receipt_markdown_sha256": "5d785063ae32cf7f0ebc7ada40ea0f0e012f771d2c655e40d7ef927c87e16188",
+    "runtime_activation_receipt_sha256": "9fc88d5424078190351360debb11f4801efe63244c489a9715fc3edc5852217c",
+    "runtime_review_markdown_sha256": "cca398df1c8173e8b73c214afd7edd62296e755e74772ce7aba0cfb1ff011178",
+    "runtime_review_json_sha256": "0c6e31ed2522b222d29ca10a8706f487fe78c1caa049605901b5836ab722a874",
+    "markdown_review_path": "runtime/receipts/LIVE_INDEPENDENT_REVIEW_R2.md",
+    "markdown_review_sha256": "5ca6e5841f4344e03f5e6e394452f76a0846a9d731ff07cc8a1f11f6d56b4112"
+  }
+}
