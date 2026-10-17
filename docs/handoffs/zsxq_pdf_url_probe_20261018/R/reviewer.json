@@ -1,0 +1,71 @@
+{
+  "schema_version": "v4.zsxq_pdf_url_probe_review.v1",
+  "review_status": "PASS",
+  "diagnosis": {
+    "local_parser_defect_established": false,
+    "historical_root_cause": "CANNOT_CONFIRM",
+    "patch_justified": false,
+    "present_response_shape_matches_extractor_path_conditionally": true,
+    "actual_url_passes_https_safety_checks": "CANNOT_CONFIRM",
+    "historical_failure_response_available": false
+  },
+  "source_binding": {
+    "canonical": "/Users/lexi/Desktop/学习/v4_app/infrastructure/zsxq_pdf_ingestion.py",
+    "scheduler_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app/infrastructure/zsxq_pdf_ingestion.py",
+    "api_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-receipt-compat-api-20261017-r1/app/infrastructure/zsxq_pdf_ingestion.py",
+    "sha256_each": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+    "copies_match": true,
+    "prior_accepted_module_sha256": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+    "canonical_git_state": "untracked; no tracked-file diff available"
+  },
+  "probe": {
+    "evidence_file": "/Users/lexi/Desktop/学习/agents调试/V4_ZSXQ_PDF_URL_PROBE_20261018_R1/probe.json",
+    "source_run_id": "20261017_130000_130000125862",
+    "document_key": "0273668ed1af2435f2a73167ac5282e1dfecd92b9b63e4dbfe873a07719ff684",
+    "cli_returncode": 0,
+    "status_code": 200,
+    "success": true,
+    "body_succeeded": true,
+    "download_url_nonempty_string": true,
+    "raw_response_persisted": false,
+    "download_or_ocr_triggered": false,
+    "index_sha256_before_and_after": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [
+      {
+        "finding": "Prior audit records 321 unresolved Oct 16-17 failed references at the attempt cap; one GET with no processing and unchanged index does not resolve the backlog.",
+        "evidence": "V4_ZSXQ_PDF_CHECK_20261018_R1/audit.json and this probe's unchanged index SHA",
+        "status": "confirmed from prior audit; current index not rewritten"
+      }
+    ],
+    "P2": [
+      {
+        "finding": "No direct regression test exercises _cli_download_url against the CLI JSON envelope and HTTPS safety checks.",
+        "evidence": "tests/test_zsxq_pdf_ingestion.py has no download_url/ZSXQ_DOWNLOAD_URL_MISSING references; reviewed queue tests inject url_lookup.",
+        "status": "confirmed test gap; non-blocking absent an evidenced code change"
+      }
+    ]
+  },
+  "acceptance": {
+    "focused_tests_inspected": [
+      "test_long_pdf_resumes_in_two_page_batches_beyond_128_pages",
+      "test_queue_tick_advances_multiple_documents_across_bounded_calls",
+      "test_queue_tick_backs_off_transient_failure_before_one_bounded_retry"
+    ],
+    "tests_run": false,
+    "reason_tests_not_run": "Read-only diagnosis review; no source change and no test execution requested.",
+    "behavior_status": "CANNOT_CONFIRM",
+    "reason": "Probe did not persist raw JSON or URL safety properties, so actual parser return for the live response was not independently exercised."
+  },
+  "recovery_path": {
+    "existing_single_document_retry_confirmed": false,
+    "evidence": "MAX_ATTEMPTS is 2; pending_pdf_tasks returns retryable entries only; process_pdf_batch stops at the cap.",
+    "conclusion": "No index write, mass replay, or behavior change is justified in this review."
+  },
+  "artifact_sha256s": {
+    "scope_md": "f504baa51bcfb7e6258ab844293db8046f00a3e0bcc229b75b1051877b3910dc",
+    "probe_json": "31b4bdb1077d5bc31cbe11717fcfa98c84c2f013041d1610f370d0a025ceb819"
+  }
+}

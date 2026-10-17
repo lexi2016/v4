@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-10-18T00:44:06.406447+08:00",
+  "source_run_id": "20261017_130000_130000125862",
+  "trade_date": "20261017",
+  "document_key": "0273668ed1af2435f2a73167ac5282e1dfecd92b9b63e4dbfe873a07719ff684",
+  "file_id_sha256": "c1a9b142861e8ed1dce1ae50d2482ed94652aec6a2cd4720d1a84c63010628d7",
+  "index_before_sha256": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239",
+  "prior_error": "ZSXQ_DOWNLOAD_URL_MISSING",
+  "attempts": 2,
+  "cli_path": "/Users/lexi/Documents/Codex/2026-08-13/v35-019ff682/shared-research-runtime/npm/node_modules/.bin/zsxq-cli",
+  "endpoint_template": "GET /v2/files/{file_id}/download_url",
+  "raw_response_persisted": false,
+  "download_or_ocr_triggered": false,
+  "cli_returncode": 0,
+  "stderr_nonempty": true,
+  "response_shape": {
+    "body": {
+      "resp_data": {
+        "download_url": "str"
+      },
+      "succeeded": "bool"
+    },
+    "status_code": "int",
+    "success": "bool"
+  },
+  "safe_status_fields": {
+    "body.succeeded": true,
+    "status_code": 200,
+    "success": true
+  },
+  "expected_download_url_present": true,
+  "expected_download_url_nonempty": true,
+  "message_fields_present": [],
+  "index_after_sha256": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239",
+  "index_unchanged": true
+}
