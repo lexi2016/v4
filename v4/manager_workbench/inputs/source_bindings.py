@@ -477,6 +477,9 @@ def us_mapping(config, context):
     projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
+        capture_phase=snapshot.get('capture_phase'),capture_status=payload.get('status'),
+        capture_session_date=snapshot.get('capture_session_date'),capture_run_id=payload.get('run_id'),
+        capture_cutoff=snapshot.get('captured_at'),owner_receipt_relative=receipt_rel,owner_receipt_sha256=rsha,
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
         factor_exposure=factor,factor_exposure_gap=factor_gap,
