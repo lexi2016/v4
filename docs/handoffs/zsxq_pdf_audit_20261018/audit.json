@@ -1,0 +1,694 @@
+{
+  "schema_version": "v4.zsxq_pdf_recent_audit.v1",
+  "audit_status": "PARTIAL_WITH_CONFIRMED_FAILURES_AND_DATE18_CANNOT_CONFIRM",
+  "capture": {
+    "timezone": "Asia/Shanghai",
+    "captured_at_start": "2026-10-18T00:23:15.246689+08:00",
+    "captured_at_end": "2026-10-18T00:23:15.309976+08:00",
+    "client_requested_dates": [
+      "2026-10-17",
+      "2026-10-18"
+    ],
+    "index_data_as_of": "2026-10-17T23:17:04.572878+08:00",
+    "index_snapshot_consistent_during_read": true
+  },
+  "runtime_identity": {
+    "scheduler_label": "com.lexi.v35.scheduler",
+    "scheduler_pid_observed": 60131,
+    "scheduler_started_at": "2026-10-16T12:39:09+08:00",
+    "scheduler_module": "ops.run_v35_macos_scheduler_daemon",
+    "scheduler_app_root_from_launchagent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app",
+    "api_pid_observed": 12082,
+    "api_cwd_observed": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-receipt-compat-api-20261017-r1/app",
+    "data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data",
+    "safety_flags_from_launchagent": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  },
+  "index": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/zsxq_pdf_ingestion_index.json",
+    "size_bytes": 3997552,
+    "mtime": "2026-10-17T23:17:04.572878+08:00",
+    "sha256": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239",
+    "sha256_unchanged_from_first_observation": true,
+    "schema_version": "v4.zsxq_pdf_ingestion_index.v1",
+    "document_count": 1317,
+    "ocr_cache_count": 656,
+    "source_entry_count": 17,
+    "daily_statuses": {
+      "20261015": {
+        "document_count": 79,
+        "status_counts": {
+          "READY": 79
+        },
+        "error_code_counts": {},
+        "failure_class_counts": {},
+        "attempt_count_histogram": {
+          "1": 78,
+          "2": 1
+        },
+        "unresolved_count": 0,
+        "oldest_unresolved_updated_at": null,
+        "latest_unresolved_updated_at": null,
+        "oldest_unresolved_age_hours_at_capture": null
+      },
+      "20261016": {
+        "document_count": 680,
+        "status_counts": {
+          "READY": 490,
+          "FAILED": 190
+        },
+        "error_code_counts": {
+          "ZSXQ_DOWNLOAD_URL_MISSING": 190
+        },
+        "failure_class_counts": {
+          "TRANSIENT": 190
+        },
+        "attempt_count_histogram": {
+          "1": 488,
+          "2": 192
+        },
+        "unresolved_count": 190,
+        "oldest_unresolved_updated_at": "2026-10-16T14:55:58+08:00",
+        "latest_unresolved_updated_at": "2026-10-16T23:58:05+08:00",
+        "oldest_unresolved_age_hours_at_capture": 33.45
+      },
+      "20261017": {
+        "document_count": 558,
+        "status_counts": {
+          "READY": 427,
+          "FAILED": 131
+        },
+        "error_code_counts": {
+          "ZSXQ_DOWNLOAD_URL_MISSING": 131
+        },
+        "failure_class_counts": {
+          "TRANSIENT": 131
+        },
+        "attempt_count_histogram": {
+          "1": 427,
+          "2": 131
+        },
+        "unresolved_count": 131,
+        "oldest_unresolved_updated_at": "2026-10-17T10:20:01+08:00",
+        "latest_unresolved_updated_at": "2026-10-17T23:17:04+08:00",
+        "oldest_unresolved_age_hours_at_capture": 14.05
+      }
+    }
+  },
+  "source_reconciliation_20261017": {
+    "source_run_directory_count": 16,
+    "source_runs": [
+      {
+        "source_run_id": "20261017_083000_083000240026",
+        "topic_count": 581,
+        "pdf_reference_count": 408,
+        "source_index_entry": true,
+        "enumeration_complete": true,
+        "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+        "indexed_pdf_reference_count": 408,
+        "indexed_documents_matched": 408,
+        "source_signature": "4862b1bea7351b3a33406d5d933bd592d28899a920296e26b9f0870a6c3e7bf6",
+        "input_sha256": {
+          "fetch_result": "2a6694aba6a79046332d2cb59d29d6d228cbd3914e7c061c294cf6634aed001c",
+          "recent_topics": "2904f1cfbcbbfb9376a93e3a9b43411f9fd5909d21393f93976262893af8fa88",
+          "status": "b290f72158e5d5330551463484d7e5ea4a85803b54869b05e37a712802af8922",
+          "summary": "a2f6c364acb44d0c374f570b32e1c1bf5872781ee3ebe71c21a402e6468530fb"
+        },
+        "processing_run_id": "pdfproc_20261017_083000_083000240026_4862b1bea735_d41b1247ee2b"
+      },
+      {
+        "source_run_id": "20261017_090000_090000194320",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_100000_100000123478",
+        "topic_count": 21,
+        "pdf_reference_count": 86,
+        "source_index_entry": true,
+        "enumeration_complete": true,
+        "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+        "indexed_pdf_reference_count": 86,
+        "indexed_documents_matched": 86,
+        "source_signature": "2d26fa5f10b38bb74b8bb3e901b62fd7cb1a4794fc6fead38dee2301c89adcc2",
+        "input_sha256": {
+          "fetch_result": "e979e144eceb95a5dd65fff3b435279d6cff91ed97ebc275adf38d647fbcb095",
+          "recent_topics": "bfec3399c8fed6c4d16611f6477d30f640d392648fef2ea65742a30a07069dcb",
+          "status": "f0428e29d3753a0147ea0416297b1dc70ff00593dc957b1571410a04417774ac",
+          "summary": "7d65e39d7a3379310a3a5422b8d6efe3d3e69cd9bbf4faa8de4ca841dc47cbb0"
+        },
+        "processing_run_id": "pdfproc_20261017_100000_100000123478_2d26fa5f10b3_d41b1247ee2b"
+      },
+      {
+        "source_run_id": "20261017_110000_110000142050",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_120000_120000235322",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_130000_130000125862",
+        "topic_count": 77,
+        "pdf_reference_count": 19,
+        "source_index_entry": true,
+        "enumeration_complete": true,
+        "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+        "indexed_pdf_reference_count": 19,
+        "indexed_documents_matched": 19,
+        "source_signature": "a0aefcf049d01adc4bbd0faf2997131441c00cf2a63c021bc3dcdc146518b444",
+        "input_sha256": {
+          "fetch_result": "b7feaf679331812c19f0da68975a68e8ffea2b9ec1b4fcbfb0ff772e16916a75",
+          "recent_topics": "6e04e0604f6e063a8171c437a855cca8cfb8cf2d5f2cda14ad96c69dc85d20e4",
+          "status": "cf502512ade95343a020210431eda9b9d5d9c9abd5584f2843aef79344530838",
+          "summary": "a2ad33e935135b753a444fada399c10e5764a6d1ea300707c93f8946820732a3"
+        },
+        "processing_run_id": "pdfproc_20261017_130000_130000125862_a0aefcf049d0_d41b1247ee2b"
+      },
+      {
+        "source_run_id": "20261017_140000_140000125612",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_150000_150000119252",
+        "topic_count": 8,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_160000_160000209233",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_170000_170000103510",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_180000_180000241032",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_190000_190000136263",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_200000_200000093313",
+        "topic_count": 0,
+        "pdf_reference_count": 0,
+        "source_index_entry": false,
+        "enumeration_complete": null,
+        "enumeration_scope": null,
+        "indexed_pdf_reference_count": null,
+        "indexed_documents_matched": 0
+      },
+      {
+        "source_run_id": "20261017_210000_210000249775",
+        "topic_count": 29,
+        "pdf_reference_count": 38,
+        "source_index_entry": true,
+        "enumeration_complete": true,
+        "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+        "indexed_pdf_reference_count": 38,
+        "indexed_documents_matched": 38,
+        "source_signature": "2fb9b9394aa31d99c29e9b2b8f0cd0996852d5e33614605eafbfa0c6058ba67e",
+        "input_sha256": {
+          "fetch_result": "67f6b2e72d7290b491727756b3b26501e87aa7b6afee666fda991b9533b9a052",
+          "recent_topics": "449c1b89bb4b650085ad18a31997dc9d0c376a2d81251aa600b0200431cbdea6",
+          "status": "4e42ac4217e407c136e09519af3286810be6535d2de4f2fd896e416fb78bb824",
+          "summary": "382a93655c4b78caaab34668f69fbba7b7166cb13eb019494e8deaefb7aa120c"
+        },
+        "processing_run_id": "pdfproc_20261017_210000_210000249775_2fb9b9394aa3_d41b1247ee2b"
+      },
+      {
+        "source_run_id": "20261017_220000_220000236652",
+        "topic_count": 8,
+        "pdf_reference_count": 0,
+        "source_index_entry": true,
+        "enumeration_complete": true,
+        "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+        "indexed_pdf_reference_count": 0,
+        "indexed_documents_matched": 0,
+        "source_signature": "3d76314960b0cfcd0f18df5eb98adbc1f1a7d715a509cbf47445542fed61e60a",
+        "input_sha256": {
+          "fetch_result": "0805d118a8ed8b1a8c366995ecac7b18b1db7b6209e94ad84f9a43f23672e73c",
+          "recent_topics": "4c5beb237fa48fd7a9af9fe958cc7942bc5d81bb606d5f428a540bf60422be2a",
+          "status": "2e132220c8afc806d8037fb09b40d143263599f954a5c2ae959946494b09ea8a",
+          "summary": "335cac05279becd3f1812df5ac6afcd4df8cb738d0891c5a3423b4a6e5f3515d"
+        },
+        "processing_run_id": "pdfproc_20261017_220000_220000236652_3d76314960b0_d41b1247ee2b"
+      },
+      {
+        "source_run_id": "20261017_230000_230000153693",
+        "topic_count": 8,
+        "pdf_reference_count": 7,
+        "source_index_entry": true,
+        "enumeration_complete": true,
+        "enumeration_scope": "topics_brief.files_all_topics_including_noise",
+        "indexed_pdf_reference_count": 7,
+        "indexed_documents_matched": 7,
+        "source_signature": "fbaf3f68bab172bd1b050c7544138b08064d842b247ea555f4974fc09e9305b4",
+        "input_sha256": {
+          "fetch_result": "0805d118a8ed8b1a8c366995ecac7b18b1db7b6209e94ad84f9a43f23672e73c",
+          "recent_topics": "3ba766c00b2d18d7ec32260334c785c1365959a205def0b802c2dca9daf76222",
+          "status": "638045026f4daec5658ccb17466ec2626aea70f3f3d91d99dc2cec0dfc8b1184",
+          "summary": "85b2d7ab4d97ba20735c913dfba082f4a3afd6b002f3fbf863dae2d3f2aa2165"
+        },
+        "processing_run_id": "pdfproc_20261017_230000_230000153693_fbaf3f68bab1_d41b1247ee2b"
+      }
+    ],
+    "pdf_reference_count": 558,
+    "unique_document_keys": 558,
+    "unique_attachment_file_ids": 558,
+    "duplicate_file_id_reference_count": 0,
+    "nonempty_source_hash_reference_count": 558,
+    "unique_source_hash_count": 558,
+    "indexed_reference_count": 558,
+    "index_status_counts_by_reference": {
+      "READY": 427,
+      "FAILED": 131
+    },
+    "failure_code_counts_by_reference": {
+      "ZSXQ_DOWNLOAD_URL_MISSING": 131
+    },
+    "all_pdf_references_match_index": true,
+    "source_run_dirs_20261018": [],
+    "source_run_dir_count_20261018": 0,
+    "index_source_entry_count_20261018": 0
+  },
+  "api": {
+    "endpoint": "/api/v3/research/lane?research_date=YYYYMMDD",
+    "valid_exact_date_reads": [
+      {
+        "research_date": "20261017",
+        "http": 200,
+        "lane_status": "LIVE_HOURLY",
+        "ingestion_status": "PARTIAL",
+        "total_count": 558,
+        "done_count": 427,
+        "completed_count": 427,
+        "partial_count": 0,
+        "failed_count": 131,
+        "pending_count": 0,
+        "cannot_confirm_count": 0,
+        "item_count": 558,
+        "status_histogram": {
+          "FAILED": 131,
+          "READY": 427
+        }
+      },
+      {
+        "research_date": "20261018",
+        "http": 200,
+        "lane_status": "NOT_MATERIALIZED",
+        "ingestion_status": "NOT_ASSESSED",
+        "item_count": 0,
+        "cannot_confirm": [
+          "PDF_SOURCE_ENUMERATION_MISSING"
+        ],
+        "interpretation": "No source enumeration at capture; do not report zero PDFs or automatic success."
+      }
+    ],
+    "request_note": "One valid exact-date read per date was made. An initial YYYY-MM-DD attempt returned 422 requiring YYYYMMDD; it did not materialize data."
+  },
+  "queue": {
+    "scheduler_log_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/logs/v35-a3-v4-scheduler.stderr.log",
+    "scheduler_log_size_bytes": 4691649,
+    "scheduler_log_sha256": "e74a0e8f657d4b6e1c01e08115e0f1dee36f28d2446662949d789a4f6cea041f",
+    "scheduler_log_mtime": "2026-10-18T00:22:32.469588+08:00",
+    "scheduler_log_changed_during_read": false,
+    "queue_tick_event_count": 6123,
+    "queue_tick_status_counts": {
+      "PARTIAL": 3442,
+      "READY": 993,
+      "RETRY_BACKOFF": 653,
+      "NO_RETRYABLE_TASKS": 1035
+    },
+    "queue_tick_trade_date_counts": {
+      "20261015": 413,
+      "20261016": 3143,
+      "NONE": 1044,
+      "20261017": 1523
+    },
+    "queue_error_code_counts": {
+      "PDF_PAGE_LIMIT_EXCEEDED": 1,
+      "ZSXQ_DOWNLOAD_URL_MISSING": 643
+    },
+    "last_eight_queue_statuses": [
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS",
+      "NO_RETRYABLE_TASKS"
+    ],
+    "latest_observed_queue_state": "NO_RETRYABLE_TASKS / pending_task_count=0; failed terminal records remain in index and API.",
+    "long_documents_20261017": [
+      {
+        "document_id_prefix": "5954f2433ffe1fab",
+        "source_run_id": "20261017_083000_083000240026",
+        "page_count": 89,
+        "ocr_page_count": 89,
+        "status": "READY",
+        "reused": true,
+        "reused_from_source_run_prefix": "20261016_083000_",
+        "attempts": 1,
+        "ocr_started_at": null,
+        "ocr_completed_at": "2026-10-16T12:42:36+08:00",
+        "updated_at": "2026-10-17T09:01:20+08:00",
+        "completed_at": "2026-10-17T09:01:21+08:00",
+        "page_status_counts": {
+          "OCR_OK": 89
+        },
+        "queue_event_count": 1,
+        "queue_status_counts": {
+          "READY": 1
+        },
+        "queue_progress_page_counts": [],
+        "queue_progress_monotone": true,
+        "queue_progress_step_counts": {},
+        "queue_progress_last_page_count": null
+      },
+      {
+        "document_id_prefix": "a48658db66cde5aa",
+        "source_run_id": "20261017_083000_083000240026",
+        "page_count": 106,
+        "ocr_page_count": 106,
+        "status": "READY",
+        "reused": false,
+        "reused_from_source_run_prefix": null,
+        "attempts": 1,
+        "ocr_started_at": "2026-10-17T09:18:39+08:00",
+        "ocr_completed_at": "2026-10-17T09:23:49+08:00",
+        "updated_at": "2026-10-17T09:23:45+08:00",
+        "completed_at": "2026-10-17T09:23:49+08:00",
+        "page_status_counts": {
+          "OCR_OK": 106
+        },
+        "queue_event_count": 53,
+        "queue_status_counts": {
+          "PARTIAL": 52,
+          "READY": 1
+        },
+        "queue_progress_page_counts": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20,
+          22,
+          24,
+          26,
+          28,
+          30,
+          32,
+          34,
+          36,
+          38,
+          40,
+          42,
+          44,
+          46,
+          48,
+          50,
+          52,
+          54,
+          56,
+          58,
+          60,
+          62,
+          64,
+          66,
+          68,
+          70,
+          72,
+          74,
+          76,
+          78,
+          80,
+          82,
+          84,
+          86,
+          88,
+          90,
+          92,
+          94,
+          96,
+          98,
+          100,
+          102,
+          104,
+          106
+        ],
+        "queue_progress_monotone": true,
+        "queue_progress_step_counts": {
+          "2": 52
+        },
+        "queue_progress_last_page_count": 106
+      }
+    ]
+  },
+  "receipts_20261017": [
+    {
+      "processing_run_id": "pdfproc_20261017_083000_083000240026_4862b1bea735_d41b1247ee2b",
+      "sha256": "3c901ef7f8001d687813d33882e028a1f390d2150d1040daaf6b73bccf7350bb",
+      "mtime": "2026-10-17T10:01:54.979138+08:00",
+      "source_run_id": "20261017_083000_083000240026",
+      "status": "PARTIAL",
+      "batch_started_at": "2026-10-17T10:01:50+08:00",
+      "batch_completed_at": "2026-10-17T10:01:54+08:00",
+      "pdf_reference_count": 408,
+      "done_total": 977,
+      "partial_total": 0,
+      "failed_total": 190,
+      "pending_total": 86,
+      "processed_this_batch_count": 1,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    {
+      "processing_run_id": "pdfproc_20261017_100000_100000123478_2d26fa5f10b3_d41b1247ee2b",
+      "sha256": "54adf178fae268777e37d4afdfc7092735840e1c02168f1ee9e9a5bf40846d38",
+      "mtime": "2026-10-17T12:33:11.858167+08:00",
+      "source_run_id": "20261017_100000_100000123478",
+      "status": "PARTIAL",
+      "batch_started_at": "2026-10-17T12:33:11+08:00",
+      "batch_completed_at": "2026-10-17T12:33:11+08:00",
+      "pdf_reference_count": 86,
+      "done_total": 996,
+      "partial_total": 0,
+      "failed_total": 257,
+      "pending_total": 0,
+      "processed_this_batch_count": 1,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    {
+      "processing_run_id": "pdfproc_20261017_130000_130000125862_a0aefcf049d0_d41b1247ee2b",
+      "sha256": "7a92dc1904f44a044f92861049da8d0aeb2f5d70d987482fa612c28b5df32bdd",
+      "mtime": "2026-10-17T13:38:59.504903+08:00",
+      "source_run_id": "20261017_130000_130000125862",
+      "status": "PARTIAL",
+      "batch_started_at": "2026-10-17T13:38:59+08:00",
+      "batch_completed_at": "2026-10-17T13:38:59+08:00",
+      "pdf_reference_count": 19,
+      "done_total": 996,
+      "partial_total": 0,
+      "failed_total": 276,
+      "pending_total": 0,
+      "processed_this_batch_count": 1,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    {
+      "processing_run_id": "pdfproc_20261017_210000_210000249775_2fb9b9394aa3_d41b1247ee2b",
+      "sha256": "dab52f775a54915bfea36c6721c85911d4cc48e2770f8e94f31f4d0b7fc575a0",
+      "mtime": "2026-10-17T22:18:33.837734+08:00",
+      "source_run_id": "20261017_210000_210000249775",
+      "status": "PARTIAL",
+      "batch_started_at": "2026-10-17T22:18:33+08:00",
+      "batch_completed_at": "2026-10-17T22:18:33+08:00",
+      "pdf_reference_count": 38,
+      "done_total": 996,
+      "partial_total": 0,
+      "failed_total": 314,
+      "pending_total": 0,
+      "processed_this_batch_count": 1,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    {
+      "processing_run_id": "pdfproc_20261017_220000_220000236652_3d76314960b0_d41b1247ee2b",
+      "sha256": "6bff9fcb70114bb45f30a8cdf769ae1f8b86adc42bd4191bc06f57a513ed4a90",
+      "mtime": "2026-10-17T22:00:01.710459+08:00",
+      "source_run_id": "20261017_220000_220000236652",
+      "status": "PENDING",
+      "batch_started_at": "2026-10-17T22:00:01+08:00",
+      "batch_completed_at": "2026-10-17T22:00:01+08:00",
+      "pdf_reference_count": 0,
+      "done_total": 996,
+      "partial_total": 0,
+      "failed_total": 305,
+      "pending_total": 9,
+      "processed_this_batch_count": 0,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    {
+      "processing_run_id": "pdfproc_20261017_230000_230000153693_fbaf3f68bab1_d41b1247ee2b",
+      "sha256": "bc90a4fa012c431fa0db4567d0329bf54481fb124953ce3ef83139cbc88c52ab",
+      "mtime": "2026-10-17T23:17:04.580019+08:00",
+      "source_run_id": "20261017_230000_230000153693",
+      "status": "PARTIAL",
+      "batch_started_at": "2026-10-17T23:17:04+08:00",
+      "batch_completed_at": "2026-10-17T23:17:04+08:00",
+      "pdf_reference_count": 7,
+      "done_total": 996,
+      "partial_total": 0,
+      "failed_total": 321,
+      "pending_total": 0,
+      "processed_this_batch_count": 1,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  ],
+  "prior_acceptance": {
+    "receipt_path": "/Users/lexi/Desktop/学习/agents调试/V4_ZSXQ_LONG_PDF_20261016_R1/R/reviewer/final-long-pdf-verdict.json",
+    "receipt_sha256": "3f9c45c7e0428ad39a5c94fab625949caf7eed8525788c89c7213f1fbd0d59ce",
+    "expected_receipt_sha256": "3f9c45c7e0428ad39a5c94fab625949caf7eed8525788c89c7213f1fbd0d59ce",
+    "receipt_hash_matches_expected": true,
+    "active_pdf_module_hashes": {
+      "repository": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+      "scheduler_release": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+      "api_release": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0"
+    },
+    "expected_accepted_module_sha256": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+    "active_module_hashes_match_accepted": true,
+    "prior_target_matches_20261017_long_document": [],
+    "target_identity_check": {
+      "prior_verdict_target_sha256_matched_live_index_entry_count": 0,
+      "current_89_page_document_reused_from_source_run": "20261016_083000_083000192658",
+      "interpretation": "The prior 89-page verdict is reusable as unchanged-module/code-path evidence, but CANNOT_CONFIRM that its target bytes are the same as the current 89-page attachment. The current attachment is separately proven READY/reused with 89/89 OCR_OK pages."
+    }
+  },
+  "focused_test_review": {
+    "file": "/Users/lexi/Desktop/学习/v4_app/tests/test_zsxq_pdf_ingestion.py",
+    "inspected_tests": [
+      {
+        "name": "test_long_pdf_resumes_in_two_page_batches_beyond_128_pages",
+        "line": 990,
+        "covers": "two-page queue continuation and completion beyond 128 pages"
+      },
+      {
+        "name": "test_queue_tick_advances_multiple_documents_across_bounded_calls",
+        "line": 1052,
+        "covers": "bounded queue advances across documents"
+      },
+      {
+        "name": "test_queue_tick_backs_off_transient_failure_before_one_bounded_retry",
+        "line": 1115,
+        "covers": "retry backoff and bounded transient retry"
+      }
+    ],
+    "missing_url_specific_regression_test_found": false,
+    "tests_run": false,
+    "reason": "Read-only operational audit; no test run requested, and active released module SHA is unchanged from the accepted module."
+  },
+  "worktree_observation": {
+    "scope": "read-only record of relevant source paths only",
+    "status": {
+      "ops/run_zsxq_hourly_delta.py": "modified",
+      "infrastructure/zsxq_pdf_ingestion.py": "untracked",
+      "tests/test_zsxq_pdf_ingestion.py": "untracked"
+    },
+    "note": "These states pre-existed this audit; no source or test files were edited."
+  },
+  "root_ui_evidence_reference": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_ZSXQ_PDF_CHECK_20261018_R1/ui-evidence.json",
+    "reported_by_coordinator": true,
+    "summary": "date input max=2026-10-17; direct URL for 20261018 did not bind an 18 source and UI showed older exact source16; no date-picker repair included in this audit."
+  },
+  "findings": {
+    "P0": [],
+    "P1": [
+      "20261017: 131/558 failed with ZSXQ_DOWNLOAD_URL_MISSING; 20261016 older backlog: 190/680 same code. All have failure_class=TRANSIENT and attempts=2, so the bounded queue has exhausted MAX_ATTEMPTS=2."
+    ],
+    "P2": [
+      "20261018: direct API reports NOT_ASSESSED/PDF_SOURCE_ENUMERATION_MISSING at the 00:21 Asia/Shanghai capture; no source runs exist yet. UI date control capped at 2026-10-17 per coordinator evidence."
+    ],
+    "observed_error_boundary": "Current code requests GET /v2/files/{file_id}/download_url and raises ZSXQ_DOWNLOAD_URL_MISSING when body.resp_data.download_url is not a string.",
+    "root_cause": "CANNOT_CONFIRM whether the upstream response omitted the field or the local response parser is mismatched; no raw/API response was persisted or fetched during this audit."
+  }
+}

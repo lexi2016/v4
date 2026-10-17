@@ -1,0 +1,30 @@
+{
+  "captured_at_host_Asia_Shanghai": "2026-10-18T00:14:52.183449+08:00",
+  "client_current_date": "2026-10-18",
+  "runtime_label": "us-receipt-compat-api-20261017-r1",
+  "observed": {
+    "20261016": {
+      "completed": 490,
+      "partial": 0,
+      "failed": 190,
+      "pending": 0,
+      "exact_source_date": "20261016"
+    },
+    "20261017": {
+      "completed": 427,
+      "partial": 0,
+      "failed": 131,
+      "pending": 0,
+      "exact_source_date": "20261017"
+    },
+    "20261018": {
+      "status": "CANNOT_CONFIRM_UI_DATE_NOT_REACHABLE",
+      "date_input_max": "2026-10-17",
+      "set_value_result": "2026-10-17",
+      "direct_url_requested": "http://127.0.0.1:8873/?date=20261018&view=research",
+      "loaded_selection": "20261016",
+      "loaded_exact_source_date": "20261016"
+    }
+  },
+  "method": "IAB AX and date-input DOM; one date pass, no producer trigger or OCR."
+}

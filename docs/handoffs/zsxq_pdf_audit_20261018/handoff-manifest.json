@@ -1,0 +1,53 @@
+{
+  "schema_version": "v4.pdf_audit_handoff.v1",
+  "repository": "lexi2016/v4",
+  "branch": "codex/zsxq-pdf-audit-20261018-r1",
+  "baseline_commit": "be6d08053cb033a30f17d764a27a72c916bc9233",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "scope": "sanitized evidence and repair prompt only; no business source changes",
+  "verification": "independent operational audit; tests NOT_RUN; OCR/download NOT_RUN",
+  "files": [
+    {
+      "path": "audit.json",
+      "sha256": "e1b58c114c02de8e9d1475d92b1f0a325be6b770df99f197b8401814c4803fae",
+      "git_blob_sha": "61ffb78f9697e795ac1af7df74246492fc2d8f12",
+      "size": 26509
+    },
+    {
+      "path": "findings.md",
+      "sha256": "2a52fa6d17664b3264442377bfa4602c34e2d98d8bd69218a88b76f8b3b902dc",
+      "git_blob_sha": "9f2c34e47450a81a3165a0c94411b40487a2f0dc",
+      "size": 4752
+    },
+    {
+      "path": "ui-evidence.json",
+      "sha256": "5190c76d997f01b1f60816b7c850805fe5ecb423ab61378aca2539c6f1149b4c",
+      "git_blob_sha": "9fac45f9e78ad74c44ec0eebaeb6459dcadda014",
+      "size": 897
+    },
+    {
+      "path": "repair-prompt.md",
+      "sha256": "3d1871373c411d066f61afdb2c3dbf847774bec715c96ecd214bc4a41731c158",
+      "git_blob_sha": "610deada26e63452df5b873d8940e28abfb4ebc1",
+      "size": 2462
+    },
+    {
+      "path": "chat-repair-prompt.md",
+      "sha256": "9efd05b5ed7f13ae4ba6cbd103def7459c33aa183be0f020236b41e1c7799770",
+      "git_blob_sha": "086f40fb15abc61c36eae01ccda944131c0bfe9a",
+      "size": 4245
+    },
+    {
+      "path": "scope.md",
+      "sha256": "4d2e790934017bba9dd48e8c1fd339632d867bbf43d0809c61d55938b1fa1ace",
+      "git_blob_sha": "5a270fe81063c3ac08fc480b675fb0c016371f30",
+      "size": 1286
+    },
+    {
+      "path": "ledger.md",
+      "sha256": "3a2337a10dd37d3f330affd9ba154aa4d40d141c281f8f6b6f7e5dfcd0aa5f3a",
+      "git_blob_sha": "f073350e42a14c6c360b5822c547c361a8787b09",
+      "size": 437
+    }
+  ]
+}
