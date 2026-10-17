@@ -51,7 +51,7 @@
   "writer": "issue44_writer Luna Max",
   "reviewer": "issue44_review Luna Max independent",
   "REVIEWED": "PASS",
-  "BEHAVIOR_VERIFIED": "PASS_FOR_CANDIDATE_ROUTE_CONTRACT_AND_FOCUSED_TESTED_BEHAVIOR_ONLY",
+  "BEHAVIOR_VERIFIED": "PASS_FOR_EXACT_CACHED_PRODUCT_JOB_COMPLETION_AND_API_UI_RESULT_READBACK",
   "review_status": "PASS_WITH_P2",
   "tests": {
     "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
@@ -78,7 +78,7 @@
   ],
   "finding_operation": "On submit error, inspect existing job before any retry; do not blindly resubmit.",
   "deployment": {
-    "status": "DEPLOYED_API_RESPONDED_NO_INFERENCE",
+    "status": "DEPLOYED",
     "pid": 22311,
     "port": 8873,
     "protected_files_unchanged": true,
@@ -94,19 +94,73 @@
     "new_job_id": "c3717353b23c4257af5a10be41a69db9"
   },
   "model_start": {
-    "status": "FIRST_CONTENT_OBSERVED",
+    "status": "ACTUAL_NEW_MODEL_RESULT_VERIFIED",
     "event": "first_content",
     "article_id": "EASTMONEY:AN202610161830619400",
     "timestamp": "2026-10-17T16:53:29.742441+00:00",
-    "model_results_acceptance": "CANNOT_CONFIRM_PENDING_TERMINAL_RESULT"
+    "model_results_acceptance": "RUNTIME_VERIFIED; SEMANTIC_CANNOT_CONFIRM"
   },
-  "new_api_result_binding": "NOT_YET_VERIFIED",
-  "new_ui_result_binding": "NOT_YET_VERIFIED",
-  "ui_progress": "Observed FLASH_SELECTION running after reload; old 11 candidates are not new acceptance.",
+  "new_api_result_binding": "VERIFIED_EXACT_JOB_ID",
+  "new_ui_result_binding": "VERIFIED_MATCHING_TARGET_TIMESTAMP_COUNTS; DIRECT_RENDERED_JOB_ID_CANNOT_CONFIRM",
+  "ui_progress": "Terminal DONE 192/195; seven new candidates, finished 02:35:19; status badges unknown are a retained UI limit.",
   "recapture": "NOT_RUN",
   "natural_slot": "NOT_RUN_MANUAL_RECOVERY",
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "terminal_job_state": "PARTIAL",
+  "finished_at": "2026-10-18T02:35:19.859106+08:00",
+  "terminal_result_sha256": "eb6a08f690fcd7e2f3ff9b4b6b17743ff51b50acbfe7545520df085c217c2f1e",
+  "terminal_review_sha256": "761533e578e9ba5865d7e43ce5b0e145727f714a524f927810e6edf892a1e8fb",
+  "terminal_review_status": "PASS_WITH_P2",
+  "terminal_counts": {
+    "new_enqueued": 240,
+    "new_model_calls_allowed": 240,
+    "main_queue_succeeded": 192,
+    "main_queue_failed": 3,
+    "main_queue_total": 195,
+    "main_queue_completed": 192,
+    "queue_pending": 0,
+    "long_body_parts": {
+      "total": 45,
+      "succeeded": 27,
+      "failed": 18,
+      "pending": 0
+    },
+    "old_result_reuse": {
+      "pinned_succeeded_matched": 185,
+      "incremental_succeeded_matched": 147,
+      "reviewed_succeeded_matched": 1,
+      "reused_selected_model_articles": 27,
+      "reused_candidate_stocks": 26,
+      "new_candidate_stocks": 7
+    },
+    "retained_old_failures": {
+      "pinned_failed_skipped": 9,
+      "prior_incremental_failed": 8
+    },
+    "failure_accounting": {
+      "aggregate_failure_items": 38,
+      "retained_old_failures": 17,
+      "new_main_queue_failures": 3,
+      "new_long_body_part_failures": 18
+    },
+    "body_gap_count": 1,
+    "pending_gap_observation": {
+      "queue_pending": 0,
+      "result_pending_array_count": 1,
+      "result_gap_array_count": 1,
+      "same_article_in_both_arrays": true
+    }
+  },
+  "terminal_limits": [
+    "Direct UI-to-job-ID linkage: the page shows matching target date, finished timestamp, candidate count and queue count, but does not render the job ID.",
+    "Semantic correctness of generated model conclusions; review_status is MODEL_CANDIDATE_UNREVIEWED.",
+    "Row-level membership eligibility for 21 membership-unknown rows; only the pinned membership gate itself reports VERIFIED for target date 20261016.",
+    "The single article BODY_ARTICLE_TITLE_OR_DATE_MISMATCH body gap beyond its recorded failure code.",
+    "Natural-time behavior and any future recurrence of the P2 cursor-write failure edge."
+  ],
+  "semantic_acceptance": "MODEL_CANDIDATE_UNREVIEWED; PARTIAL",
+  "no_repeated_tests": true
 }

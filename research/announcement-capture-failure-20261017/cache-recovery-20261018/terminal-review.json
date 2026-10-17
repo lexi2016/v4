@@ -1,0 +1,84 @@
+{
+  "schema": "issue44.terminal_review_public.v1",
+  "reviewer": "issue44_review (independent from issue44_writer)",
+  "review_status": "PASS_WITH_P2",
+  "BEHAVIOR_VERIFIED": "PASS_FOR_EXACT_CACHED_PRODUCT_JOB_COMPLETION_AND_API_UI_RESULT_READBACK",
+  "job_id": "c3717353b23c4257af5a10be41a69db9",
+  "product_sha256": "d3eae78873057330f85b1e75d0f0b5ca7e35ba9b5aca807e251ae5487657e53b",
+  "input_sha256": "4c204963d175805612c3078383dc3f64929dc00f1bc05cc2decc8ac53c48bad5",
+  "result_sha256": "eb6a08f690fcd7e2f3ff9b4b6b17743ff51b50acbfe7545520df085c217c2f1e",
+  "finished_at": "2026-10-18T02:35:19.859106+08:00",
+  "state": "PARTIAL",
+  "counts": {
+    "new_enqueued": 240,
+    "new_model_calls_allowed": 240,
+    "main_queue_succeeded": 192,
+    "main_queue_failed": 3,
+    "main_queue_total": 195,
+    "main_queue_completed": 192,
+    "queue_pending": 0,
+    "long_body_parts": {
+      "total": 45,
+      "succeeded": 27,
+      "failed": 18,
+      "pending": 0
+    },
+    "old_result_reuse": {
+      "pinned_succeeded_matched": 185,
+      "incremental_succeeded_matched": 147,
+      "reviewed_succeeded_matched": 1,
+      "reused_selected_model_articles": 27,
+      "reused_candidate_stocks": 26,
+      "new_candidate_stocks": 7
+    },
+    "retained_old_failures": {
+      "pinned_failed_skipped": 9,
+      "prior_incremental_failed": 8
+    },
+    "failure_accounting": {
+      "aggregate_failure_items": 38,
+      "retained_old_failures": 17,
+      "new_main_queue_failures": 3,
+      "new_long_body_part_failures": 18
+    },
+    "body_gap_count": 1,
+    "pending_gap_observation": {
+      "queue_pending": 0,
+      "result_pending_array_count": 1,
+      "result_gap_array_count": 1,
+      "same_article_in_both_arrays": true
+    }
+  },
+  "preservation": {
+    "baseline_files": 1002,
+    "unchanged": 1001,
+    "only_changed": "announcement_flash/queue/queue-state.json",
+    "old_attempt_and_product_unchanged": true
+  },
+  "ui": {
+    "target_date": "20261016",
+    "updated_at_local": "2026/10/18 02:35:19",
+    "new_candidates": 7,
+    "new_queue": 240,
+    "aggregate_failed": 38,
+    "pending": 0,
+    "body_gaps": 1,
+    "done_progress": "192 / 195",
+    "displayed_stocks": 32
+  },
+  "ui_evidence_sha256": "752f16fa4bf94ba96f3aa2654024d76a01dafa33ced85f6336d8751bc87f9e11",
+  "limits": [
+    "Direct UI-to-job-ID linkage: the page shows matching target date, finished timestamp, candidate count and queue count, but does not render the job ID.",
+    "Semantic correctness of generated model conclusions; review_status is MODEL_CANDIDATE_UNREVIEWED.",
+    "Row-level membership eligibility for 21 membership-unknown rows; only the pinned membership gate itself reports VERIFIED for target date 20261016.",
+    "The single article BODY_ARTICLE_TITLE_OR_DATE_MISMATCH body gap beyond its recorded failure code.",
+    "Natural-time behavior and any future recurrence of the P2 cursor-write failure edge."
+  ],
+  "nonblocking_p2": "Post-submit cursor-write failure may break retry idempotency or latest binding; no evidence this failure branch occurred in this run.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  }
+}
