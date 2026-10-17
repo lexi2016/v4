@@ -453,6 +453,14 @@ def _full_mapping_overlay():
         "recovery_overlay_integrity_sha256": recovery_meta.get("overlay_integrity_sha256"),
         "catalog_file_sha256": raw_sha(catalog_path.read_bytes()),
         "review_overlay_file_sha256": raw_sha(overlay_path.read_bytes()),
+        "checked_files": [
+            {"source_local_path": str(root), "relative": catalog_path.relative_to(root).as_posix(),
+             "sha256": raw_sha(catalog_path.read_bytes())},
+            {"source_local_path": str(root), "relative": overlay_path.relative_to(root).as_posix(),
+             "sha256": raw_sha(overlay_path.read_bytes())},
+            {"source_local_path": str(root), "relative": (root / "us_hk_667_recovery_overlay_20261016.json").relative_to(root).as_posix(),
+             "sha256": raw_sha((root / "us_hk_667_recovery_overlay_20261016.json").read_bytes())},
+        ],
         "relations": relations,
     }
 
@@ -552,7 +560,7 @@ def us_mapping(config, context):
         factor_exposure=factor,factor_exposure_gap=factor_gap,
         full_overlay_projection=full_overlay.get("relations",[]),
         full_overlay_summary={k:v for k,v in full_overlay.items() if k!="relations"},
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files],
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files,*full_overlay.get("checked_files",[])],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 
