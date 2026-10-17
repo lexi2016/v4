@@ -813,6 +813,45 @@ class NativeAdapters:
                         ("etf_proxy","etf_basket_proxy","stock_basket_proxy") if context.rules_version == US_FACTOR_RULES_VERSION
                         else ("etf_proxy","etf_basket_proxy"))
                     and us in proxy.get("proxy_symbols",[])]))
+        # Carry every relation from the canonical 667/1,003 catalog into
+        # the selector as an explicitly non-selectable observation. Raw source,
+        # review-use and recovery closure fields remain nested and unchanged.
+        overlay_summary = pin.get("full_overlay_summary") or {}
+        overlay_rows = pin.get("full_overlay_projection") or []
+        if overlay_summary.get("state") == "READY":
+            for relation in overlay_rows:
+                hk_code = relation.get("hk_code")
+                target_symbol = symbol(hk_code)
+                if not target_symbol:
+                    gaps.append("US_MAPPING_OVERLAY_HK_IDENTITY_INVALID")
+                    continue
+                relation_identity = owner_digest(relation)
+                catalog_relation = dict(
+                    target_symbol=target_symbol,
+                    target_name=relation.get("hk_name"),
+                    status="CANNOT_CONFIRM",
+                    sha256=relation_identity,
+                    relation_type="CATALOG_OBSERVATION_ONLY",
+                    research_priority="NONE",
+                    catalog_relation=relation,
+                    catalog_relation_id=relation.get("relation_id"),
+                    catalog_research_use=relation.get("research_use"),
+                    catalog_recovery_status=(relation.get("recovery_v2r1") or {}).get("closure_status"),
+                )
+                records.append(dict(
+                    us_symbol=None, source_session=expected,
+                    owner="v4.manager_workbench.us_mapping_catalog",
+                    source_sha256=overlay_summary.get("catalog_file_sha256"),
+                    source_status="CATALOG_OBSERVATION",
+                    positive_change_required=False, available_at=None, quote={},
+                    relations=[catalog_relation], evidence_ids=[],
+                ))
+            if len(overlay_rows) != 1003 or len([
+                row for row in records if row.get("source_status") == "CATALOG_OBSERVATION"
+            ]) != 1003:
+                gaps.append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
+        else:
+            gaps.append(overlay_summary.get("gap", "US_MAPPING_FULL_OVERLAY_NOT_BOUND"))
         if factor_payload is not None and records:
             records[0]["us_factor_payload"] = factor_payload
         return batch(context, Lane.US_MAPPING, records, refs, "Fixed 33 configured US symbols and audited relation scope",
