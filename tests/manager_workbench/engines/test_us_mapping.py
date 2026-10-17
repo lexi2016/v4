@@ -147,3 +147,61 @@ def test_unknown_universe_version_is_rejected_as_unassessed():
     assert {row["decision"] for row in result["rows"]} == {"UNASSESSED"}
     assert not any(row["decision"] == "CONDITIONAL_WATCH" for row in result["rows"])
 
+
+
+def test_full_overlay_relations_are_consumed_as_non_selectable_observations():
+    data = make_batch()
+    summary = {
+        "state": "READY",
+        "stock_count": 667,
+        "relation_count": 1003,
+        "status_counts": {
+            "CLOSED_RESEARCH_SCOPE": 757,
+            "OPEN": 221,
+            "CLOSED_EXCLUDED_SCOPE": 25,
+        },
+        "catalog_file_sha256": "e" * 64,
+        "review_overlay_file_sha256": "f" * 64,
+        "recovery_overlay_integrity_sha256": "a" * 64,
+    }
+    data["context"]["scope_refs"]["US_MAPPING"]["full_overlay_summary"] = summary
+    for index in range(1003):
+        relation = {
+            "target_symbol": "HK.00001",
+            "target_name": "catalog observation",
+            "status": "CANNOT_CONFIRM",
+            "sha256": format(index + 1, "064x"),
+            "relation_type": "CATALOG_OBSERVATION_ONLY",
+            "research_priority": "NONE",
+            "catalog_relation": {
+                "relation_id": f"R{index + 1:04d}",
+                "source_review_status": "NOT_PROCESSED",
+                "research_use": "PENDING_REVIEW",
+                "recovery_v2r1": {"closure_status": "CLOSED_RESEARCH_SCOPE"},
+            },
+            "catalog_relation_id": f"R{index + 1:04d}",
+            "catalog_research_use": "PENDING_REVIEW",
+            "catalog_recovery_status": "CLOSED_RESEARCH_SCOPE",
+        }
+        data["records"].append({
+            "us_symbol": None,
+            "source_session": "20261012",
+            "source_status": "CATALOG_OBSERVATION",
+            "owner": "v4.manager_workbench.us_mapping_catalog",
+            "source_sha256": "e" * 64,
+            "available_at": None,
+            "positive_change_required": False,
+            "quote": {},
+            "relations": [relation],
+            "evidence_ids": [],
+        })
+
+    result = run_us_mapping(ctx(), data)
+    summary_row = next(row for row in result["rows"] if "us_mapping_catalog_summary" in row)
+
+    assert summary_row["us_mapping_catalog_summary"]["stock_count"] == 667
+    assert summary_row["us_mapping_catalog_summary"]["relation_count"] == 1003
+    assert summary_row["us_mapping_catalog_summary"]["consumed_relation_count"] == 1003
+    assert sum(row.get("catalog_relation_id") is not None for row in result["rows"]) == 1003
+    assert all(row["decision"] != "SELECTED" for row in result["rows"])
+    assert result["coverage"]["scope_count"] == 33
