@@ -1249,8 +1249,8 @@
         "ops.build_close_review",
         "--data-root",
         "{data_root}",
-      "--date",
-      "{business_date}"
+        "--date",
+        "{business_date}"
       ],
       "enabled": true,
       "market_scope": "HK_CONNECT",
@@ -1762,7 +1762,7 @@
         "2100",
         "2200"
       ],
-      "target_date_role": "BUSINESS_DATE",
+      "target_date_role": "TARGET_DATE",
       "workload_id": "us_market_digest"
     }
   ]
