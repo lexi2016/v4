@@ -1,0 +1,4110 @@
+{
+  "status": "SYNCED_REMOTE_READBACK_VERIFIED",
+  "repository": "lexi2016/v4",
+  "branch": "codex/us-hk-source-baseline-20261018",
+  "baseline_commit": "72ca220688b194a623f7c306226f3deda82c62d4",
+  "source_commit": "871f656aa8ec7591b9eb6e75b54193607efa3b0e",
+  "tree": "54027acedf83a48b4bff59bee3fc22b6732ef428",
+  "source_manifest_sha256": "964bb055b6975fdd256c81afa6a2948d955f94aa1f1afabd1cd6aa8d8ebbd8ae",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_local_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_freeze": "2026-10-18T00:40:31.612+08:00",
+  "source_files": 436,
+  "source_bytes": 8361532,
+  "tree_verification": {
+    "tree": "54027acedf83a48b4bff59bee3fc22b6732ef428",
+    "verified_files": 448,
+    "mismatches": []
+  },
+  "key_file_byte_readbacks": [
+    {
+      "path": "ops/run_us_market_slot.py",
+      "git_blob_match": true,
+      "content_byte_match": true,
+      "sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "git_blob_match": true,
+      "content_byte_match": true,
+      "sha256": "8a97a126ffc3377ff9420ff123e7c164ea6b0ec383616612bfc3cb386ac228b9"
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "git_blob_match": true,
+      "content_byte_match": true,
+      "sha256": "d3dd953756ec4c9973f1b3ee7121f1b9530e17f231388655d7748c525a661636"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "git_blob_match": true,
+      "content_byte_match": true,
+      "sha256": "32bcc082586f32068a347676471f0e49adc7e2392b4123a1d9f5623155f3cbbd"
+    },
+    {
+      "path": "README.md",
+      "git_blob_match": true,
+      "content_byte_match": true,
+      "sha256": "7b7287a902f923f86e08d65119a87ec8afcd8c3e0cd307061203bd4d5ea149d7"
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/SOURCE_EXPORT_MANIFEST.json",
+      "git_blob_match": true,
+      "content_byte_match": true,
+      "sha256": "964bb055b6975fdd256c81afa6a2948d955f94aa1f1afabd1cd6aa8d8ebbd8ae"
+    }
+  ],
+  "independent_review": {
+    "source_baseline_ready": "PASS",
+    "focused_tests": {
+      "passed": 225,
+      "failed": 3,
+      "deselected": 1
+    },
+    "receipt": "INDEPENDENT_REVIEW.json"
+  },
+  "deployment": false,
+  "service_changes": false,
+  "issue45_business_repair": "NOT_IMPLEMENTED_IN_THIS_TASK",
+  "api_ui_notification_natural": "CANNOT_CONFIRM",
+  "notes": [
+    "Source paths and parent hashes verified through connected GitHub API; branch updated fast-forward with expected head.",
+    "Existing identical Git blobs reused; only allowlisted paths changed; staging cache was not uploaded.",
+    "Null before_sha256 denotes absent path at baseline commit.",
+    "Business acceptance is separate from source-baseline readiness. Frozen announcement_update.py matches manifest; independent freeze-time canonical equality is CANNOT_CONFIRM after subsequent worktree drift."
+  ],
+  "files": [
+    {
+      "path": "apps/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2338dd2e2514d1d8b8e383e9114a513823db992c",
+      "after_sha256": "b50addd05bedf14abc8ab829a9d0321172ab3580d9a7f4c62a381a15c4acbd7a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "apps/api/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "481352bbb1ecff3a6a08b12f73f6ed8ab3be3dcf",
+      "after_sha256": "ba6c324cbd4be60367b15bd3d6035c8165ee11c8ef9950d3282a0bb75849c991",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "apps/api/v35_api/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "19e1779e4a18403fa705d1c74bd7e6b05fd7e01a",
+      "after_sha256": "36be136cf63bbecb7d53d4a7aaf22b0516b4a06523c77f4feaf054cde2d45312",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "apps/api/v35_api/manager_workbench_router.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "793a8687601d34a042565f14b14b607bf0c46c10",
+      "after_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bdeb74d7a882d62b6f3eb78a06b8127f2121ff40",
+      "after_sha256": "6334176641872990a56b559f965a9dc6d65f29ab0a0efc0752ef1a73fe42bc7d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/day_product.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "377b12a3b4c0a6111ef78b2268bcee263a4d5f29",
+      "after_sha256": "48e44954056b6258b2c2d63dbeebce6a4afb4461c3aba9d4f7f476f75d224b26",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/formal_authority.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2f614e45e9ed2fc4d9301d5b41b5fd7a5ea6e2e5",
+      "after_sha256": "b860e032cdf0a680a0ab429d90fc423eb932507a3fd9eba702d38cdbc14bd9b0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/manager_decisions.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b88525221327bba7ac746fd8095eab2ff12a9a17",
+      "after_sha256": "8ead100e4f722670696f7ee22e36a45fb11b965c09d40f258290d711e710d584",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/market_scope.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "50f12f9182b424258028b71a2fa97d491c164a9d",
+      "after_sha256": "09505652901096edd49b6b7fed808b0551e556af836f1202760559f6654eb565",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/primitives.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8aeaac1ee5c4e525bf512f9170b31a1eec9a2d71",
+      "after_sha256": "a74d44641e22858625d2c1bb1bebab2a1d05fad4413d89fb098e38cc54abf8a4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/selection_candidates.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2391de51c91f29c2474a5de110ecc750ce3802a1",
+      "after_sha256": "c9ec61569d7f9e60b92f3af34f776f70cc360b16a20b9b8e9faf1f0be4d19540",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/selection_product.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "71f18bf7ed1b5ccc30fb90195d563ae62be410d7",
+      "after_sha256": "1005986c2af5e7cc6acb3a162d781ba1ff58ce7ed3d6b03b3c5939d8f977d9a2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/_research_day_product_parts/supply_envelopes.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c854d5d6c7434ab9036c01852b3a602e947c2685",
+      "after_sha256": "7b760970fe34161557cf3410aaee11e3be3977775c9559a4d32e8935fa59b40b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/market_calendar_2026.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c8177cfdeb55c038a88e915f206780eeba8b0d32",
+      "after_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/research.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "49bd9c98e43b99a7b7a4f9a1137e79ee9d55df92",
+      "after_sha256": "ea6316f4338b5776967b477c9b38cdcc749fd615c3a0e9f73f08e4df71b23d1c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/research_day_product.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "517c095aa7acbf982e856d3afa9801fb5e5bfdbe",
+      "after_sha256": "3efe626bc78c69fd607a43f4c8b109590aeef9ff48dbde0643e5f82c9c77ba7c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/runtime_tasks.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4b25839e4668f726b8b45887272f26d33302e6a2",
+      "after_sha256": "f9923462342eaaeafba6255e9f8adda54f9852ea4996cf6da0cf82e4faf32965",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/runtime_workloads.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cda500516786333d5d316899be273ec396f0f98f",
+      "after_sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/stages.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "41bf1ba5de290c23a22695d9454b4991976c3e39",
+      "after_sha256": "d0ac1771a1005888e53e9a322da65f959cfbcbcc665357b8783d5eb4eda9c6df",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/trading_calendar.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b0a6a32d8b2e14c7bb054a1ded35d93da1bc504c",
+      "after_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/us_equity_calendar.py",
+      "mode": "100644",
+      "before_git_blob_sha": "825a88fd532f12845b4ffb9a794bf11b07a0ca0c",
+      "before_sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "after_git_blob_sha": "825a88fd532f12845b4ffb9a794bf11b07a0ca0c",
+      "after_sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "contracts/us_equity_calendar_2026.json",
+      "mode": "100644",
+      "before_git_blob_sha": "58ac5e41c1d3ed8c0be5616ec316c955f35afb63",
+      "before_sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "after_git_blob_sha": "58ac5e41c1d3ed8c0be5616ec316c955f35afb63",
+      "after_sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/a_share_pool.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8e2f045b7d6e909d53b469d47da6d9b8ca02a9d1",
+      "after_sha256": "0769ede827fafe895ab75249f2a094bc6177fca4a0e5c49675d05e0c65a50aad",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/hk_pool.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7571a945402b5cd1f32ea0b6f5a8955fa3633115",
+      "after_sha256": "0bf9edfc54b1ab77b4bd869d61eaa6a447de5c86273561ff9abf4703c986fd9e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/hourly_pool.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "18994639f5c600c1c394307982dd7b6466f71523",
+      "after_sha256": "d4f808dab2639b02c08cf2619057cad4454f72b1e9b95703805360c7f8f56dad",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/row_assembly.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "deda27232edb0b4dd3eee0f06d446b6b06bb7148",
+      "after_sha256": "671ce5eca40d0e45680fcb5595f8de83571d9f884767433da3f0fe9ced7376f0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_preselection_materializer_parts/source_identity.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8760866ce64f98175869b4e9f66882655ceee72b",
+      "after_sha256": "7c9b5ff5f485ec98be109e10d54c7023e9d984055f8755c8ced56c5d3c937cfa",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/consumer.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "60c5111f375f5dbafdc79d3c57c717c3ebfa6582",
+      "after_sha256": "363659822e6570eac8b08f7115f31139cea454b23e98abe9d1fabc7bb42579dd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/day_assembly.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "968e176f28ddf77946271dee8b9d08c28a71caec",
+      "after_sha256": "82121e84dcdd3eb126806ff58dc8126146ff8136e8624b4bb76da02a90c98b74",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/formal_refs.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7d1aacaccc75324ba085237ec7dcd04b1f4f353d",
+      "after_sha256": "d27c88abb784579cacf9e8b09bf0729007d8f022a09423e8a0dfb9783df190dd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/phase_append.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0cc2e650260d2d0b218fdb74bc4a653c6533c789",
+      "after_sha256": "f615809780e37fb87d2537c9cc1fa6f95db1c0f633bf8fcd5888fb5beb01ffbe",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/primitives.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f6cfd48e3e610207b15a78ccddb880de393c3954",
+      "after_sha256": "eda01992bf6c72f24c01cecded2da3ae02becf67963dc12bba659298bb32bfbc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/selection_assembly.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8cc4bffdb8d4af6d557eab408f4ce6c55e30582c",
+      "after_sha256": "4f8d71188b5e16caca23d75c2b3ede4b0daa6cb9d4d6d4f1d00804a5457df042",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/selection_candidate.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "66965882cd0c053dce627d832b0544cd0b435b79",
+      "after_sha256": "a83717566ed485c60029382cd837c1fc20fb423f0d4e5139dc8a81e09c34fa88",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/_research_day_product_parts/source_lineage.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fe04aec636f420e1b781671b726ff7c42c0feb4a",
+      "after_sha256": "4a92c46f5ec67044a0dc874a8b3b8a5ed5ba724a25c36ce86a79df6d2f51bc99",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/daily_research_review.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1bcf1132e83e65f8e1b41aeb1b2767d864436761",
+      "after_sha256": "a2588e813bbefb8ab116ece63b7f02a7feb2eb1f21633f8ff6e631ee331b901d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/intraday_research.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "551dcbfb598ee4c2c07ff41740899be2e1ccc606",
+      "after_sha256": "da1fc98fc6303413e8df30e3aebe053b8706711e6093f18b06285dc807bc8b7e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/manager_catalyst_tracking.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cbc1688cc08c48bcfe7dc395d1f00a42442b95ab",
+      "after_sha256": "3432d0c75b82dd4b06c1204cf59e378a32bc4ccc5403a695417ba47789dc05a7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/manager_close_discovery.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4aae1db0cba7495a3b1997ecfda10146317e977c",
+      "after_sha256": "f983b5e2bea03d1d5309467e75c2e2da0157636813183221035fac5ef2704b6b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/manager_close_rebound.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d06e41b5b5c743aab68f0680ca5562e5ab9eefea",
+      "after_sha256": "b0bd01c6007ec27a865818c692bfd004f4fa96de8157f8bc493faa3f8695d4ea",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/manager_condition_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "008b32f0bb832db4d64d97b937e9686f74625df3",
+      "after_sha256": "9e1c7a9fb04c7a3f00d11ba1c4c3c4922c86b6536190df7caa9d2205804ee3f6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/manager_research_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9255d425083e3c3627d4940d7556eed79e3bc00f",
+      "after_sha256": "4bfd8ec335eade9a97340fe17fc0742f2dba546d0e254fdfed2833ed324bb73d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/preselection_materializer.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d0f2cda536ae243746c59ded5f4012ee01607e71",
+      "after_sha256": "50d48cdfc5beaf4f3eeb9cd2eaa93b37684a731bca2fa189f2ba246534b268f8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e2a019e1ec797da3ef80c03f8bac4551129a5f04",
+      "after_sha256": "965ca283bf04f0746142fb56a7c5992ab6904fbf46686c7934b241fafccb6fb1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_day_product.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3e1cb530deb3aefb64ae97ffff634b581e904ad0",
+      "after_sha256": "cff2745ee6f7740756d9f93559b08650bbd8d84b9c8dddab85ee397df9498800",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_hourly.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1136502058a483ae61149e30873709ffe5191a83",
+      "after_sha256": "574f106bc2156cc8abc3c9fa37f19b2d8f65cd7e5a5b05b1fd2b77dc5d83a515",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0a35ca1ee7a71e8dc9172f2b04c65a46888daec1",
+      "after_sha256": "f0c1d0aa21e9370ca6962dbf86a01e0325c55e718a73a7fa95e4d469f29c9855",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/_cache.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "600025633bf6ea76da4d0e212333d1a196bb5401",
+      "after_sha256": "5080b2b9daec511877f90877c0682aa6ebb506ba536ee2f44740428bca2ae0f7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4f0fcc32dff352ca9639b2decb6d644cef03d4bc",
+      "after_sha256": "02ae017474bdb91af0bddb89684d567f90574112f6a93527007c54c05ad0400d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/_owned_io.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6068ceb8805a9fe7f54e2fb338248d55cf906b40",
+      "after_sha256": "dacd18dff80b84a13d98b1eae0ccb3d024f327a7d941d95bb068dd9331a15ec1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/_snapshot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3f0f006056300fa22788bd9199d15015b8a12952",
+      "after_sha256": "248161565dd55f8dce3a46632ada3f0b1f88fde0e01904db4ad76ef4a91ccba6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/assembly.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "31e34483ba7a5b025225c33bb3090b6a5b38c8d4",
+      "after_sha256": "b0aac4ac8a6f20a32eb2be04faee11aea7895a0f405fde2d33d356d0d3274194",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1b93678137d05eb7f1e3f2667c5ca92f071a63f1",
+      "after_sha256": "0e7dce5ded9af6a90921df6c7670852894e6849275b25febae1cf5e73754ae59",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/breadth.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bd0b736c428104f4ded20343f20255f744c6c833",
+      "after_sha256": "e74d0592856c14c10ceff97546ba5cd9ac528e9fe77022a0322a05ff473167e5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/data.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3b97ccba63c82cc5601369e4a4ee09ee057a4ba1",
+      "after_sha256": "f243a1f186b37ca2fa6c76b428c4597a2ebc9ab685a2d00dbf3ceb1e7d9fd2d7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/emotion_metrics.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "16025cbea496649aa6edba71310e7c432f0c85fb",
+      "after_sha256": "132e89d992f2f0a17fe23c9c8acc562659c5966f6e5be2e2d87ae01779682bac",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/fetchers.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8b963ee722b7eedca1466f585f8a5b2290005cf4",
+      "after_sha256": "350cdba92df688bfa827d8f115992a29c9dc4ca09093060fe5c3b47374afc168",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/fuyao_sources.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6aa3adbaf7a7b35f5142bc065a9019fe1adb7f7c",
+      "after_sha256": "b08e40f5574189181221eae5a37ae4ca7a1d25b565986797a037b7c76cb54b85",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/market_facts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fa6acca657824348bcad9078cd7dfb89d80a5425",
+      "after_sha256": "f494b1788b5710b456e6fc2dca74c05a48e0910a2463b2adf33b2c174df3e7b4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/stats_context.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f5ee793327e43461e152ed4992209a2b9a672853",
+      "after_sha256": "9a9c1e80a617ed15009b58fcafd0dba7826992e78c3e7d10e0dcd607aa74d0d2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/theme_tree.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f4c7bbcfbe2916496f98af61802fe13bca9af764",
+      "after_sha256": "51e42f77067315a94b0940bf7ce8608ec990a6c378be1bb2bc24c183bf1ffd9e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/trade_calendar.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "00bd365dc6efb7e78c6bad680f881b2bfec3b7c5",
+      "after_sha256": "be67388f1fe1aa02701df783ee0e0aeb5dc81f0bb4a8423c138a738e8ae22c97",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/data_core/util.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "26e57889913ba912035058d64bab1d3f49cbb9b8",
+      "after_sha256": "bf773d20ec2edf398d083b1c6beedc5234ecff9440f4632ceeaf763e12fffc6b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/generation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "564d5d7570b6bb3d730c0fde4c7c6322adbf180b",
+      "after_sha256": "b36dcbc550f31697391ed08d00b305b9291d51e8707532589f0e7bce0b1a20c2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/iwencai_binding.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f86f9fcb6e5b29553a11877e536a75a6854ac91c",
+      "after_sha256": "632aed509ac6d7389920e5f3dd02f5139c2991bf13dc21aa053347606b64d037",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/model_provider.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c7e6cde095d27959b5d5f97ed7220b72fda91305",
+      "after_sha256": "8db1dcc867cbb758cc538c4419b75d199250d96a6f1bc163876ba7356d74a9a9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/owned_authority.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "36b262bcf4c7768ce0a55000fd69c9233356f226",
+      "after_sha256": "7bd218fba2444085723a4d9290931463a14c6e16878cebb73e655ae4f2e98072",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/owned_runtime.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "194d05812d92c78dced27ccbe622aa7498f87862",
+      "after_sha256": "401291b45ce8a169f7027df5b49336c9bde7bb9a6634c7bce66189e01b90ced9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9eb4dbe831372d4f678108cd69b1f773e300a774",
+      "after_sha256": "28c57552ab121d3a582bc59e716ed90996e97ecf2d334634011b3511be4a7853",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/analysts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c2e0480877e454c8969ff56ffd870d953f5fe3b4",
+      "after_sha256": "f1022ecaf5e4597683179c5e6eeed82d02b6da3a5d9c6a9e997a952e74cf520b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/deepdive/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9d6c245d4cf9cb5be93f9e3b801243325ec4b278",
+      "after_sha256": "e427831aaf0d571f7cb4e98723f0a00d145af60e3221afac6128dc6daa219d11",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/deepdive/schemas.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "246516125ed22bdebee716a51e5da3de15e41c12",
+      "after_sha256": "fd7706bb31276910ea7acc0c8ce393a7d5b7a3c86280fdc2a5ffdbe2a0a544ae",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/helpers.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5836893263f6d23154029c98bbbce8d395eca074",
+      "after_sha256": "dffcb252a8cb80eb415136f550d0368791f630f411525639bf3f073c745c9aaf",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/llm_errors.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "34a01b31e2533f15ca66ad624e25f721fcec645a",
+      "after_sha256": "f48f74f3d03d537a28c0b82c11620971f2b1c41be28c7bebb7ec14ba5af131e8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/preflight.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cf7dba0255423cdff6b9afa5746abbc3d57139cf",
+      "after_sha256": "5f10839944af3e12d14a46e6a5a434a9d75475ebe74a05763cfca2d3d807dfca",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/prompts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "657a19d6156d8cefcd8eb8ef10132b7ca8646309",
+      "after_sha256": "833962c06d4be62e9801474af6a5020d80e89f6c1460e360618361ad079a492a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/reflection_context.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "54943cde793b8528e03a3fd5219ef9d1e8e22b93",
+      "after_sha256": "cfa7140d52d7494631d8537f797567f9e5e7a0ef81581c170f5e726b3621635f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/review_graph.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "aadc926c15198da1f373680966d606c8cdabb32b",
+      "after_sha256": "6a21ac2ddc5b82bf10f75e4d8b104c6ef29ea29972beb92bcbb8de1e9fa60fe6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/roles.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "32839c1457682fbcfe4ebe4c9fdf6a52c42575a4",
+      "after_sha256": "cacc7b2a981e3c9a3f866e5a76d7cbd2257cd78bd01332311f4ab4f959fcd86a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/schemas.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "934609789b33296791ed491a329588eafeef167e",
+      "after_sha256": "71c640384e6c02566e94454baf3686da49ce9ba905aca1a6cdf05bb35084ae85",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/serializer.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "49a6d2857f1354e820e9c1b0836027a84abe1af6",
+      "after_sha256": "82b67b12fd2bfd21d3363e63ee487e5fc8d60e049cf362f0789bd7522c0d88bc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/state.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ac7cd4f0418304c4c9af9b5947c1b2024fba9d17",
+      "after_sha256": "0499048b06d1fe4376b8f82b64fb401412efed888527fc91d46a4907d5567624",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/structured.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0a737d7e515990e8427f8e7162ab238848b64470",
+      "after_sha256": "f885d094e8c3ffaede8861ebdaa4d23b47f9624cdeff11b0336333bfb297b712",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/synthesizer.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c325606d974bb9019712f378315d8cf7450cc7f4",
+      "after_sha256": "b7116799db7f73a6443fa82ee0aa8b4a98e01bf84a78e1482a0e97d70669af06",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/util.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "825aa1e187f4ee4b562c7750e60fc96e079318c0",
+      "after_sha256": "71b03ab4727a209cd9b1c26b0bf7e7ce35617240b1df04fc19d986c14506222f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_review_generation/vibe_core/verification.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "34e987565eb42819142b0ac78a7d2df21367c67f",
+      "after_sha256": "1e369984953eed3ff96bc1df6299f5fa24ef48c4019f8d69037b2673dc9755ce",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/research_source_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "601f06ce6d4d7717912caeb39bd512a4af3744b6",
+      "after_sha256": "7fa1f55ee6e97ec9fb53c6fc32783babc49f2a95c2c7cf2afe317c55d7794cef",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "domains/runtime_policy.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4e0d4186cdf4ca4d3f0d432f5033dea59621b1f1",
+      "after_sha256": "0575df80b82b7940505fd4509a09e6ac6588245cc1141143b11ac42b4b84a6d2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "647f68415f88ab9dfb514686554c9f9abf4c1cd6",
+      "after_sha256": "46068d69d6783fdcd33b3428ae3c7e8e690d5149f4f00837f6b1d1184dd6f47b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c63c65425c81bd19446bc58d6df5cb591a19679d",
+      "after_sha256": "9b068a58500d557d34ccda6c6e08e9520d2989ae15a189e337498e184b37347f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/historical_backfill.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fd041559b2e2236114493a8e536a0b021b7d7a24",
+      "after_sha256": "6852f000947b739c984b77ac7fedfe1baab07e3127c323e421ff13ab5445ea78",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc17d9e9a8f12ffe1d0f6de8bec9b718c53b54ed",
+      "after_sha256": "48cf92c82e968023a9618b7d700385c50e8b3507c1e1fe226cc37f6721963ffd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/primitives.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d8d8299ff2167fd3aefadd1425593aedf7b9ebad",
+      "after_sha256": "e113c739623317ce562b9c24703524f094f7f7b8b370041bbc0ee3efdc567a8a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "63a7be703ff1f4e19b8379ab84d3b46b5a194b84",
+      "after_sha256": "b51dea0a9c7b0e303f20e0fa76070e10008769592024ad062a032240fdfd3150",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/refresh_audit.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1182855dd5a8c7020731a7c1e1c6181c57b8c5ca",
+      "after_sha256": "438eb20519728758c84f825894a9804515aaa11cb3cbdf229caa93f147b8f16e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/replacement.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0c5b4f989b80e942456352a56b3b77d0926cb30a",
+      "after_sha256": "7494d0633d749dfe62998239a4a1496de6d9d9575eac8990da827852bf2d3828",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/session_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "48685dc90d51e3aa496348e11a08ac8a89d8af26",
+      "after_sha256": "48b6ec629083ff16ccaa9df4d0db50f1e43b2033edbcb10bed03d0b043a52145",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/archive_products.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c45b24a8c41ddf215a4a47534d8739c5c9b624a1",
+      "after_sha256": "4322f83317750fb24159e4d3d66ff92b899926dffdb7ace45472c0d094b9ee02",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/hourly_publish.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cede48879b1e79bca41b797ab4568fecd1a96dd6",
+      "after_sha256": "711b3a50c123927e4a1e0b9653d69a125d92dcc5280d3ab2af7862bcade40a77",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/hourly_sources.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "01a59f48c6643e4bd6fcfd051a9b7eb056ceb9e0",
+      "after_sha256": "721c7674f43c4480241be2cb72f77e20a36e707c41fbfa1e6d97cd4e03593b4c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/manager_baseline.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a0ea0cf93c17ce7ebd98c6dfee3806d579f36288",
+      "after_sha256": "c0bb4a0ec69e6a1e17a2444762857e7f040b3d905b87785e731ee7bd729b6206",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/overlay_product_diff.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5c5ed20f5fcae590793eac2e4f9c2a2915ab6118",
+      "after_sha256": "12593cb2e98ad2b06c21dce2c293ba3b10da7b4342b651e5bb24a00b4a514eb0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/overlay_references.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c99f3e9b55d8cd446df8c2b71500b3b6b4925e73",
+      "after_sha256": "767ce843ccc7d391e7eef70b2e991c8cc0f66b676d972dfa63f91e690e87b8b4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/overlay_successor.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4b893fa44c5fd467bc0e5a951695bad7f975e682",
+      "after_sha256": "dc69aa6321f96e10b1c634b0ad84bb504481a5514fb91850f6e8e40c45c46a60",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/schema_values.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4157c797afd4f2a5463b37d364e0b2b0b5706702",
+      "after_sha256": "9d5366706c8f602adc2709e3c8d310b45a78c649ef05cef5c4c4a92f3619dc7f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/selection_pointers.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ef378c703758a0a77e008fd0cded93f7681a4175",
+      "after_sha256": "1c0ef5fc6f2e06d5f1f1393457f8800c4817615a95851f3202adef1600c7ce93",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/selection_publish.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "37a5f64765aef8f762d665c7859e588df7a65314",
+      "after_sha256": "0768209ccd4f9e09f26eb971416902ee82bbfa10f4d4574a7a122883bda97ea7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/selection_readers.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4335b99882b08a465c3820e50bb341d60b56e300",
+      "after_sha256": "c55f3ea268937f5b735696de4dfaa5e1b70d34e458ef1aa0e0b0f691f7d1c879",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/source_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ec8e06705f7beeb598f743157f3d286ad3bbcb91",
+      "after_sha256": "c313cdec51c37b41832949db86b2226afe0ea79ac4dc46c9f4f608084cbb295d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/source_invalidation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f91cf45352b96da905abe1be2167429fb9ea5c36",
+      "after_sha256": "c44df045a636ee74c1db4bc53730671a83d79f3cea7c5dbf7decbe8212eeb6a4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/source_products.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b68f767883910193ba0e86fc804cb595c1ae02fb",
+      "after_sha256": "0de1f33b8d75dcc51ff3f0bfaedb644891b039985dc77778d8e92505c4c4949b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_research_store_parts/source_projection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "61edfb4e6b7f4d99f82ea6a7217fba02888143b3",
+      "after_sha256": "417a11b158d7dd31ae3a8151ecc1c42738a8030bc636a537b4a71856127a069d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/artifact_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "345f009dfb58880b2b3f4db218f2fda4801e5afb",
+      "after_sha256": "56a8bd7cb35658865ba92caf445ed3089d05c822f01bf6b86af021580a4e6982",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/commit_metadata.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9a7b6f6c7074054827d4cb589788b9b1f9e5b27c",
+      "after_sha256": "5e00058b431e77ccda2ab5f0a85ab69fc385f5ec6c45790fa5037b8dad6f7710",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/current_verification.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4222b5a2407464d1e955d1e56d8e7be034fdd574",
+      "after_sha256": "3c2971a8d2301c7842fd5af79518828aa8e5013edb0864bd1bb21a254e96e99c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/identity_primitives.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "62a09d00d459945edebaecb29aecf46797cbf14f",
+      "after_sha256": "c54541390c68db1f5e602a3d0f5229be4d40c36931f89f4cd9efb42ff0c74c0a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/initial_publication.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fa2f7768e8754e5c1f228996a18ff8667ef6ea83",
+      "after_sha256": "043e09b84c72b6189a01f035c55b20c0171f6c2beba8cccd265a276d600922ab",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/orphan_recovery.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0aeb173d10fc3b5bb9a6ac3795f829f044471e4f",
+      "after_sha256": "a79541afbcbda69264fb2cbd3bcda9b533613540bb8ee3287b31e9cf13e57e35",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/successor_publication.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e76abfa223901e847c08e058279c77cef40a0ce9",
+      "after_sha256": "8dbb2dc66ad14b19395a455f6080116c72262234d189134969cee35718bc2b71",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/supersession_receipts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c5c98e26e4f6eb0920db0989df083a4f13657353",
+      "after_sha256": "2e775c05d8b1a06077d8efa4b1e24b6201f4ac4155ebe96bcefd967979126dab",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_commit_parts/supersession_verification.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3e3dd2725073a34554256ada587467dc63459072",
+      "after_sha256": "194d422597e296c991118285552616618a8e4d09403748dc704dca4ac2b0f317",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/frozen_types.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "91524f65daa907c92f0c880759bf256d1b50a964",
+      "after_sha256": "b2d12a2395e7eee37b507491a69e7b41faec9a956060de549cbb86d7ce34898e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/primitives.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8dfba6ae86fdf2de753bf895345b60a8fe9bafbe",
+      "after_sha256": "74a3ec19a475aadce3f320104b04a9927982b4701dd90722efe6ec71e645e6f0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/rows_metadata.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0acd792c3df1ad56c27cba2423413dd2c23533eb",
+      "after_sha256": "bbd01c448a433c27c9eb6029144cb7aaf37ee20fe0fa5deda6fe83b34748641a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_aggregation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "758c50890621304660ecfa370e96f00301d2a4bb",
+      "after_sha256": "7026f222987d2929e40492e7a45aafe277a091a60fa346e7e3c10d34d76e6031",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_provenance.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2d5da31a44af81a15abbd6d5c07ceefa27b20cd7",
+      "after_sha256": "ceaf8c81517ca0ee1c43f350cd20acd2504f9e217eac67fb65ddce339598dc25",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_publication.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "52c32ffa2c019f63a2c7ca6f98d793e015570e32",
+      "after_sha256": "b863eed25f69e1c2e113968082a8e9e44eb018e398076da82373cb5dc71dba1d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/snapshot_verification.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d9ca86ffd46be80ceb0022ffb03184350c549a40",
+      "after_sha256": "c69b5b486c65c7b3da124ecb41557cad412cdd9cf1e68bf04c2abc3576a211dc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/_stage_acquisition_universe_contracts_parts/strict_artifact.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2f59c89a61972256f160a31e3b6d5817e2b53836",
+      "after_sha256": "c7f43ee2cf92bcfc5580c61d7395dd72bf54abc05a8a0e1dfba7fec274d8e439",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/baimao_preselection_pool_source.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "88e8330572e5b3f62f18ea618b5344448f8b9159",
+      "after_sha256": "8e20b7fb4b7cf066f447c957034199a83a3eec16214112408927caef161f83ac",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/data_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c1cc44f6d6e70a363cf5722b145a805ff73e1e4d",
+      "after_sha256": "7cef1dba8fa2c917411220e123184950d2abc3b10dff8d608e70f8d52a61f2bd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/formula_generation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b209a2a2ef63308772e3b922641c45e99907810e",
+      "after_sha256": "0904603912d6257cb02f41dfaf66c080e2f682e690b1c1901a86a7bafe1e74f0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/hkconnect_close_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2d96882e47474fa98345fa5189152fd24316667c",
+      "after_sha256": "2dd564b561381f97698aca535b44c8e51fea45d197e29200f1c1096adfb53667",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/hkconnect_stage_replay_provider.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1b7f6177d43208b09f2aebff1d236b74b1160764",
+      "after_sha256": "cbd6704b33963907262af10d1252de18c394fe1c4d6f3ae91746707a1c16b08f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/http_transport.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cbb430291831b8998d4eeebdf1760e5af2cd6bf8",
+      "after_sha256": "b34f906be69051da0f0f5e2f4980bf9b4c310d88ad9fc1b50b3246fceffccc69",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a97e733725834235fbcc9129639ae198fa8770cd",
+      "after_sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/isolated_package_loader.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c351e33930bb5e7b8321940ec88afc42c34038fc",
+      "after_sha256": "c714d4b95c03da061f592e076cd12188dbeefcd9f0fae7aeaae18c0450e915eb",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/manager_close_attempt.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "296418d926c73c18343ef6321809228ced4e3d0b",
+      "after_sha256": "ecbe2ab89bcb4837f00ff4a9c04219393cf37225a9bbafc145e0904de7ffb006",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/manager_input_attestation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f8aba20f8b9e5da244040de757a2b0863997b980",
+      "after_sha256": "13a856545f88fe1c3caec33777e3fd83822fc1616e275ab233db20455e733a98",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/market_time.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bcac1bd49b6861d60f8820e0bbc7dd7fa42c8fd0",
+      "after_sha256": "e72e8eb1bef136859c5379fae2eab6d94c5612959b3a8ab8e75f101954a001f1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/owned_io.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1b6666551980c44ebb0b05f133c189909d79c7df",
+      "after_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/owned_path.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2d9873a41c09a05c62975210a13a59bf350a1a5a",
+      "after_sha256": "c766e74a963818f32b0eadf964e262148ddb8d7f8b090a2ccbb5d83124164b30",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/preselection_pool_ports.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "99d674f791767acef3ae70eb080883758ca6a1a7",
+      "after_sha256": "52722e834001df0d7f891946034c7fee6f677976fd20f48f49995c8a7499ebd0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/preselection_pool_readers.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bb7d84fe975b73b2772a233e727541c9c6b85bdb",
+      "after_sha256": "7b153abba65eb2387a3f2d87c96466ab5cf38aa331f51b4661940f4c9149c9cc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/preselection_pool_sources.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7ae70c7672348b8f5db945c5e9e8122dcf21a4ac",
+      "after_sha256": "0de0adb98b35fe7210d4026fa9f3fc4af254ac6ea68726e76e6ea357e177f2d7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/preselection_pool_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5949b8c1aed0dab76641b00fdb2e03c462b06659",
+      "after_sha256": "98db050ac6bf4c97dde6ee0aae7015030e2c648455270fba8d1d1e55594cfa9f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/preselection_pool_transactions.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6b8ade94068811f6e46fe2d1233938eb9f4c0da5",
+      "after_sha256": "22cca047d8d2da3ec9b1c4d3d18fd09026887ee48a95868757bfc598d094d58d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/research_hourly_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8cb7b8ecdb2290c3ef96ff922b5ccf4f6f7c5633",
+      "after_sha256": "4dc1a83ddfa84e0555b1e4b619d2a05cc31145bad9fa089eda08c8cb9528c8dd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": "8d49954cf91b983bbc06d2c4472b85afaf0b26d2",
+      "before_sha256": "d0481d41bc0ffbdbf188670823ba970a4365546f8e092051fca99fc97da5ad88",
+      "after_git_blob_sha": "9bc740c094697370208b4e84a07e724648a80a8a",
+      "after_sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/research_source_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "659f7e3aa66cd80a2505996f1e661258620d827f",
+      "after_sha256": "fe04a81d1aec7951759eb1046580dad554cea5248b18899c214ce1044f3b4cbc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/research_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "eedb93ad3d78e31f122660d4b5dd3a85ad2cac20",
+      "after_sha256": "12545f47e4dfc270559aece69ead002785182e0c06140bf4634810de1a5f151b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ba7b3a9e2e1e9e3cb4ba162be907ac89e999029a",
+      "after_sha256": "66f43516bae3998546285e3c757925a2d8c04c157f17309f13d53eef0668a425",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/close_review.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d9c3445443689500f82d29b9a339bf4b7b9f3d69",
+      "after_sha256": "6b387283995e89668c9bf92d16a1a5a1229fe72fb4d49758275d2f5360293650",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/daily_reader.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bdd21e6c4e286f4f46377275911ce06f32162e14",
+      "after_sha256": "cb2259407fe86356e7e1528dea417559c355e0fcc9bc17a9ad2193a2650fbaa7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/degradation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "34d58b8a96842edd6186e672e7ba77339a8fbf4d",
+      "after_sha256": "eba36f530cea34319488959742fe68e86a5931017d4591b6c669ed102d1a0ce1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/intraday_jobs.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ef84af8248aa95405baf55e5c35fbaf152b29c0e",
+      "after_sha256": "da2833a31595baaa56f0c1dd899562497771f3afb1390dfb4f943aa1826fbc3c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/panel_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b5a28ac932ebc6684897656f231b92c12d5fab69",
+      "after_sha256": "fccadba448d98e5ae80da02e434c607582677a553778707739fd5fdf980eacdd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "67785677f2d35e865018ad7f8388e9887988f757",
+      "after_sha256": "0224f525a8f3e5b5ab3c32b871d486ca3568208881da7ba6e99e1573d4142a74",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "371f45451121138a9446592d0e5ed775aec51663",
+      "after_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/process_boundary.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8b661b75b08cf1c4ab73a082c60734998dc1b8c1",
+      "after_sha256": "9e711d087a2286f7e2c6cec717e39ac556e0ed477672a81bfd5c67a3cce9038c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/research_jobs.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "424d550fd729d7c220f972a120b66778b1e10cba",
+      "after_sha256": "3be50b628013007db3c1eca290b4bfb23463f2cabfdd789c24f927ec2572c030",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/research_materials.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "34ff277ba7f7f019a8f9609ad5dca31f2d171673",
+      "after_sha256": "2d835b8707f4330496170ebd9667401c11346c60165dede8d6f87213e492aa52",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/stage_jobs.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ed2f02711a5bf151e347783153f3b378e42d5c67",
+      "after_sha256": "03441fa3f36422b67b7b19847ea887df79bbee11075db67f3eee076417cc786f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a53f63b09d3b5237dded51658448fc032105c57f",
+      "after_sha256": "6df32d3fb041cff7a644eabca5a138bc2f4278987f79093f2eeba1d1b60c4ee4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/catalog.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bf5df12e05ed5d68c8e0a123b4be67d961a8d67c",
+      "after_sha256": "96c1b7ec2a3c9a94b7f6ac094a5d0ad12ab3c92287201cc7143b42386846a417",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/dispatcher.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "009ca91779ed0ae34cba03022c79f9d27b81cda9",
+      "after_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/execution_ledger.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f52d6e1553f9f9c84d12e0dec19e398d2f6fe57f",
+      "after_sha256": "bbd53c49455d6a72a814ac20347916f6e8beff53637f55eea6ccb37a96c234c3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/executor_registry.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "58f2094c687289667598a2d7fb1088ea050289c0",
+      "after_sha256": "5c7ec48515dee5927b3a5cf9c5457dea299b2b6280b6c90fa452b945466faef9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/manager_capture_retry.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "72de8ca2646bee62f202f0c5abe4ff84faf33a10",
+      "after_sha256": "6054e4e5560bcfac89e4dacda624926dcf59385c2ce3d40786aebab06f55b842",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scheduling/manager_close_executor.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "943f324e235da0fb146501ad49eae5eaed7b824f",
+      "after_sha256": "ddb39500c3a426b259b14c1a6bada16b4734c738c9715ac969469368305c26d3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/scope_gate.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "33539d4b64b5374f8b1b9839ae30c494e30fb5ae",
+      "after_sha256": "5620d1ee89fbae998d4c801c2a7c4cffac50f890ad0b6951f99230c591dcff68",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/secure_evidence_fs.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cc9c6c6864477cca035a2df09d8d08e2dc554e16",
+      "after_sha256": "f12477fa19c2d8c308d3eb5bd5f1ba17adef2ba8d3b1ac00685bbb4245421d56",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/shared_morning_news_reader.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "43985ce652f0a71e8d4df41eb0a08ae1f36a2738",
+      "after_sha256": "99e30e3d709269915290355828f336179a1e5195b1cffb27fc07ad3fde5fe016",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/stage_acquisition_universe_commit.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5a892e52731a366ac3ea67fb59b8e4f0e49bbf19",
+      "after_sha256": "373d011f299d2a1d7afb173ac7b107ac54d92d036cea7127dadba4873bcf56a3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/stage_acquisition_universe_contracts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "898988accd5e96f6a69497c736daff81600e1ae4",
+      "after_sha256": "ab23a06700d080044d0c372997544b2ab35365ca96332c53170af6788aabc8f9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/stage_acquisition_universe_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "93874347d61e3491738e4134e3f7b4939ff5054c",
+      "after_sha256": "d810efcbeefe2267c06149854675c5eab01fcc36f311f0f07f1abe1f814de18a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/stage_source_roots.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a40fc622969d51b7146bca73f829e2874c06bf11",
+      "after_sha256": "daf2d43ea482e364d5ad2a22c91be1676e39be9e8b2ad2c2125ddc75d617dc5d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/stage_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2cc6e6fab3c3ae83f3763349151e9c0b964dfbc6",
+      "after_sha256": "00d3dca6b90f86b7a6f6707f3150f2189e2eb15fcbb7eb5198db4ffd5e0392c4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/tdx_minute_replay_provider.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "30f47158f92668ad0f02d131670f076bdce1ae9d",
+      "after_sha256": "8afaea9b97edb790df33dc67b5ef4992b4a0f655a376ca458655509e2c6df9a9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "infrastructure/trading_safety.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5f10cfb51cb3dacd327447475964e0f6867ee89f",
+      "after_sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/ai_feeds.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "dfae01a6a2698d75c250f734861d21863bea1cdf",
+      "after_sha256": "c58fc7c92051c61d32b52285bf170a869fab94a183218e2c36b2a220a3a47f01",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/cli.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fb1b6daadbe31f2d2295fc0d0f17a8a8fbb4baf6",
+      "after_sha256": "4935a2a7e258c11837b54c4cc795724f63cd4759f388a7a9988625d30be7dc23",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/entity_topics.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ee0239a57ee7c6428a820b7636211e027a036ff4",
+      "after_sha256": "e3106c7600986f0f2265ad1b6d28d1360a642b5ae66908adeeaa6e0479760435",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/feed_admission.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "790cc42c3e248b225b5d332d6b206eb1f1cc21a3",
+      "after_sha256": "22cad4c7e3cc84396462377101020092a004f91484a8994ee900e0a0cc23d4e6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/feed_fetch.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "53804f39b867bc2ece85083952582305ad585c7b",
+      "after_sha256": "02bb9c6b116012968a8c6d55390ba1d6b7de64db1f37ef00c3d77843e46b0fdd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/finance_payload.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "36edaea2a2682edacd76e59e835577ec7c236fa2",
+      "after_sha256": "1c9a69bc38619635a93829e853093b9d1d4adfee92eb8dbcb55e20c6fe31cf61",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/google_redirects.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "37c918c29cb40815cde2a726ad88c5454b9f96ad",
+      "after_sha256": "9758936b73525823b8bec68eb6897ca0add7fc29c989834070e1de242a1f6b77",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/materialization.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6b8192064c87daad6bb6e9799576f9009fd884b9",
+      "after_sha256": "a89c08a46628b9e2e83a1749ebba4a40bcdbc890ef4da0cd983a5a6a66501a79",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/rss_parse.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "95a1d018652f25b0bc157eff8097c89d73afca83",
+      "after_sha256": "00b14a6564c01eb7e9f1f684faebb48a38e4257a29052b6253966af0456c96fe",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/schema_values.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "98ad3c7c1efcea09932c29e5a9be3d68a0b02bd4",
+      "after_sha256": "2647cfffb684d91f152358368244e49c07b33e73b36f9183ca130879f14e609c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/translation_rows.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "db4c1acb735496b8d611073959ef46a5ae04036c",
+      "after_sha256": "fd91c9b35ce45dd0eb0419d9a2818d3825170bb8b6d6f0cfa4df1c93a8f05e6d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/translation_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "89351b1e4d1b78fc7fe7e0f23429f28e74828aa8",
+      "after_sha256": "ac4fc66fbe842c3cba28291c4808018a0c898b29c5fcc264a4bdfcede3310291",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/cli_entry.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0c3e53bff62b98210d65ffd72761292fbd992265",
+      "after_sha256": "c60802044d0281199bfb5b2371000ac3cc84c173587c1276c856f0aeb3e98503",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/runtime_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6f759624b779784b8ec641a1187420289549c1e1",
+      "after_sha256": "4bb20c3015e9c9dd76b359fa5787ff7a73969897eee096e7493772a264e6d8f3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/schedule_selection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0491997f845e1a5ba08abb9f309deb9e342fbac1",
+      "after_sha256": "187311ceadb94b65a1972bee713423af416136d562c52af40c4a0a620388e7e1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/scheduler_io.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "da83cb68ef8a4228ed2793bb54179616403fc5b4",
+      "after_sha256": "89649d9d04eb5cf407efb38e35772db3403bb4e4fea9e1bee8f181ae68c18db6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/capture_merge.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8cac73475f463c3395e1b85c9223a054cf5602ca",
+      "after_sha256": "ee76f91ad9aecadaf1f7bda12a71798c8d4446b5c91880612195e2635201709e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/capture_metadata.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c5ac2d96e93a2f3a49b20f2475941dd019dcc908",
+      "after_sha256": "b6f7fb81bc6aa90cb48e1196b868dc05033b99c9054e145f295014afc81528a3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/cli_primitives.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d57b5f9d53a646e08eda0755b928898691cd41d8",
+      "after_sha256": "252bcc75e3f1ff26ffe58c16c49935d36f5f9ed4811d8bd820f7a454a9d21968",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/close_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "df32cf450ad2bd72dee397e6c4906be5a53d0e6c",
+      "after_sha256": "b0aee7386837b639f2ba360158febaa593f98905ed14967b9b78b927b1cbcfb7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/futu_boards.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "abbb63a31f65a9aba052dd826f48a646b590da17",
+      "after_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/historical_payload.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8647d98d2724bb4229fef892727097148406d6ab",
+      "after_sha256": "f13767b18dcc3745e8f727f76b07d171b9e89987287e6e6e0f1e7313794e07b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/market_snapshot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "189c2d5e182029d8e9eb2d34b5f6223a96040051",
+      "after_sha256": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/phase_merge.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e42abe7d2a5742be06c95d2a91575ad6ab2b4331",
+      "after_sha256": "daf48ff122eb46368fa909562cad86c25106c0cc2072fcfa462d9275544e181b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/phase_payload.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3d64399dadeb5dac91b9c80c7e22b11e78118cfe",
+      "after_sha256": "fdfeeaf376efb3f2def86abd633d94790e0e9163586d23068eb9bab2c343bd56",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/phase_publication.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "272221d58fbc5691549f3a7c60b3803ae65aada5",
+      "after_sha256": "6a0abaef5e2f50297d3021d06e781c1832a690d09269317f84fa407505027379",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/quote_parsing.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bb7f25ccc7ac4d3ed5965c2052a41b7a03b6b68c",
+      "after_sha256": "b2acf3b603248b13b8aed1b1e1da78fb64d2d9fa19b6d7d6e243fab8f7e6eb3e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/session_windows.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5d7c88a81c39dd0076f8375fcb58f663e7c3ffd1",
+      "after_sha256": "608f4fead6c1ed236fd3180d724c6698a380f53c81e5df7852a71a078f969759",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "907984b6b031c40a4b26fc053fa6b475b94d1b0c",
+      "after_sha256": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/daily_materialize.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c22e8451c5806bc09505c8d7754f18578e95d1c7",
+      "after_sha256": "d5b8f1f661e88f369f3df33f773fcdac4a79de033845a43639ef098231ad96e6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/install_v35_macos_launchagents.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9d2f60fc907e6a412d897190b3288f50407adfd9",
+      "after_sha256": "059cb8e8f636a6cc1039b5cd2569c9d4069cd291057352e39fa1ddc899d8947d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/launch_v35_dispatcher.ps1",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9c05316bf3e62a523747015fde1130ab48a1d657",
+      "after_sha256": "6592b3d69c04544553a2c75a754ce2ce6ba360c77377c7811effadc13d586799",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/manager_announcement_body_batch.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "436d8153be999a78d5884c57f279cca51cfbbd33",
+      "after_sha256": "a09be844674e1302a99857e1265a78c225953673237a28cebf688ac2bd4ff8cb",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/materialize_research_peripherals.py",
+      "mode": "100644",
+      "before_git_blob_sha": "a03141dc7dbaa1f3e3e07f2fc5c074386b1d8ea8",
+      "before_sha256": "4c48bef091e843892e94cda4763172b74f8136ee5187df9488a767bd34f4cfd4",
+      "after_git_blob_sha": "1bbf9095e59b1040945d7a9be054da96a48c7e0f",
+      "after_sha256": "712fb09f36f47f1e821793b2ba94a612396d474eb688036d40061458805ca512",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/materialize_scheduled_preselection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a71aa3d4a23b1551ed8f8a6959e8713aabc67b18",
+      "after_sha256": "046c4f08d08a250d44d9a6af9b9fe5ec615ad05aae268f8c1e451fbd9110a34c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/materialize_shared_v192_preselection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "90d554891105b09fc2b6505866f169b791fa795a",
+      "after_sha256": "afc49544d63eab79c82bc6a24e6be6cf2c60ad3c0b832cd0ce00c07decb8e419",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/materialize_stage_acquisition_universe.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f53cc7b545e1b561d17747d45db42e70f5b81d00",
+      "after_sha256": "18adabeebc75a28f49f48778ca513ed3d703b12dee40446b8067dff49966f1fe",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/run_dispatcher.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9c286f02df60dafcb7c3b0ead15b275fa4fe8713",
+      "after_sha256": "06fba66d528a70c07c17d2ff2e672ecb3a05d89bae1c63a30912f265153ed70a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/run_intraday_research.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cf83780ef2a67a3706aa16a66c54eca4677b96ab",
+      "after_sha256": "26d56dd55cdfd37126d03f2e3ed81394a328b63a2f0c6bc07ccfccdb603c65b3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/run_scheduled_slot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8740dae9779c0a0142428caddb721bbbb9a8d530",
+      "after_sha256": "654efa76eebe3246759729dd60603826bdca351af83375b0155257aba1610974",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/run_us_market_slot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "360e41086ea2e402d622009e79bfc5d6238a7854",
+      "after_sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "096d16ae1bf366601d81f1d377cd79243eafc301",
+      "after_sha256": "dd704a5ade7dd1f8a818dbeb94a9b3c7407cb403c8221373d899fdb4741f79b9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "mode": "100644",
+      "before_git_blob_sha": "df7a2a71b645d476a417b919bec2c03e594eab72",
+      "before_sha256": "4498afed94affda084603c9b07016eaa292840745d5a8a76be205dd2245c942f",
+      "after_git_blob_sha": "340937df9c873f663341c97f50de5a263caf4999",
+      "after_sha256": "069baf24404930743fd4894215bdc3a313815c911d57a82b0f21f5b906862a14",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "ops/us_market_digest.py",
+      "mode": "100644",
+      "before_git_blob_sha": "16f0ff79c341c589595a7e6c025928dc567fd07d",
+      "before_sha256": "6a6816e60a48e38e259d76000e4b958e69de23da8173ca8bf4254caa147e1283",
+      "after_git_blob_sha": "40da7205b75b9488a9ecead2c5f6f159f73fe113",
+      "after_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3a4c75212e2f586243eb326f90d66006fdbb1b27",
+      "after_sha256": "f5bc18e6c6143feaa23627ac8b66885810adbf77fb2135a295526fd188949955",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/a_auction.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f41cae542c1813172f0749ff2c768645657798da",
+      "after_sha256": "0146d4921d77c9df0f791a86e6b343a36d87b06dd248bb48d597d9da47b39cad",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/a_minute.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3d30471b125766cfc391bd538e9a092e3064d113",
+      "after_sha256": "5d56f92766b9b802c4b403d8f5af25cc82a9ef6b3f82675d1406fb4752c4362e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/collector_registry.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7c5694dcc5e5a743312fe0f24dcdaea2370bb71b",
+      "after_sha256": "bc575887e80f25b08549cce11d8aeaf8fafaf64f6516a367a5533a74f3399d21",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_active_snapshot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cf21456d292d05614e2a27090c6bc21cf1849e51",
+      "after_sha256": "5079d283c25d8bc778e749e29b5c590eae25d90b3a9d5ffc785e32ce02e5f5b9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_auction.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5201e6e5d0387306aa046286f60ad5bd73b8009d",
+      "after_sha256": "7658e15fbaffeb0846dad2eecc31c079f22968892c149385673eb6fa373e6dea",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_minute.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e07a90340bec6053a107ee6d6cd253fffa5fed23",
+      "after_sha256": "c7012eb481b1a79b3d260e0bc5c8203fb93f3bbcb99612cfd25fd06bb2f9ecc1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/hk_replay.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "04a70650dea2cf670ae341de0d8074f7376d6160",
+      "after_sha256": "89456aaf429390a41604dc3d9f564c23f9ec6d7a36e2a5ec32948f9d53b9a108",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "14516077852b07ec9be2d003db9516e98173abe7",
+      "after_sha256": "00594f490167a26b48db2b6642ba219072fd4d726afbe8c6dcac13339106e9a7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/shared_module_loading.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "745089e14d886b75932de274e7b5e99ce0554dce",
+      "after_sha256": "a24bb9cfbc4449796df6d0abacb60a1766b4554357a58ca95520e25f1c154fc2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_live_collectors_parts/temporal_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9737614210cdaeeeb9e79f36f57445bda160842f",
+      "after_sha256": "d13b8ee25d09fdf4458d4606ca10588e4d111263c35e200885bd79d317cb5efd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/codec.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4c678d04db2b29d06373c2584779954b2a57adb9",
+      "after_sha256": "504b97a64f483db17026dbeed6d5084fbc18ee972be60ad9e069ebd038708572",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/filesystem_io.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "67f59e1b049b88c8c9e0cd24a6f25989b4a83e89",
+      "after_sha256": "f904f4086d4debfc32f5ad33ec2717cda522a59f2e15a3518c7aa83b91eef2b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/receipt_identity.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a6ae006151571db08b0165ee5aff61a74ff1a1ea",
+      "after_sha256": "c0bb3d464b9ffc0e0fa4cb50b3fbb09b32b6eea77ea38c6bad2788f2a1ad99e5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/transaction_publish.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "83e9cc77a7c4e9b48a8d3d5ddb2fc9c78844a947",
+      "after_sha256": "756068d347246c7e2c9fac9f65b3af580180cface934a4d51ee3fe5ce8985b61",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_raw_store_parts/transaction_read.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5044ac9c43c53e4b96da752e42337d3f1da3eadc",
+      "after_sha256": "a7196066092ddc1bc2db9a7f4f559f54540766fedae9ee4dcd518409fc8b5fde",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fc3ee50ef882264f475f280eb35bee556b0e840d",
+      "after_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/a_candidate_authority.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "39182e852715a80dd019f88bbff82498eef24c0a",
+      "after_sha256": "ffe9a6a9f8fa06772e45468b9b00269427ff091be260cb78e633481663835560",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/a_name_authority.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "dd6b34743055fc3d998828652afff2e9a8577bdc",
+      "after_sha256": "a2f86dd7819bd76acba555b3a18a6f913f71689b284536ea3086225f5d8cf556",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/configuration.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c42606a7e331483f5055b7c622762bf3ee87685d",
+      "after_sha256": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_candidate_authority.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b4cfee08e5e230303b985c58f49bda1ae16b7b47",
+      "after_sha256": "1fd933e8436e4316832c29f89da16c1ccf3ed78b14ee853262ed758e476d2f95",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/hk_input_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ad07c9a495f363822f294403e0da9ec12d74b26f",
+      "after_sha256": "92e8fb2be06e6530c33f3cf2f5b44f29b0bcf7875e6a5902260f8be4c814f735",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/row_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "cdf8f7c57d577005db1d5cb2f6b88c8349512fa5",
+      "after_sha256": "8529d4961bcf783a9618989f7c48c28a182baedbd53486aed2e3c807341dae40",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/runner_receipts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7afd7e3e3a6dbc1c4e0d212db615b2ed5af95204",
+      "after_sha256": "39c917bd4a8b3279c550b45fbd3c3d24c2f727b3a07ffb0e04647d848ccca77d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/selection_input_validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4592c30c12dc9962e1c84c5c5eed1f9f53ec2888",
+      "after_sha256": "23e8afa65fa9fe0b24baefb8e778af3c475e1affaa34a2734ea80ea0aca9d44c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_execution.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6bdfba26fc129d309e12183bf3a8c5b1b45075cb",
+      "after_sha256": "6a0728117ff11478bab3a46eb2fb9ec3586863937392c64bfa504bc36c6bcefd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_idempotency.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1ebfdbbf754337c335384e61292473b55a1a11d2",
+      "after_sha256": "2f79cdfedd50e047f22beaafe254edff420a7fb28be6379ba9a92a475abfa39c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/slot_lock.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "744525a185253771b924058436ff5099a140278f",
+      "after_sha256": "f90d3c8e3fba34d157bf45e1f544e9169a575931a3f2f33340e97c25879f5c1d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_runner_parts/tick_planning.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "14a7d44a32127f4b20b0afd41a1e8927a7620e3d",
+      "after_sha256": "b4faf61c9b750538d714a23fae1b565c3d387a236f42cee379dcf8c966194711",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7319e68fca8b6ae31315a1bc94b7494dcf887ae9",
+      "after_sha256": "b56739ecc4a80eaa081f3ea124cf3199683fd470d71a770c9f91cc14de128140",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/_namespace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "55e1b3f744f80339298ac911073c67f3e549cf3c",
+      "after_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/a_auction.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0dd8b201d888d4eeadbe6a3b806f44b3c3457f77",
+      "after_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/a_live.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ca1f1b6d95d9d2b76591b77d372e7415fe2c5ce7",
+      "after_sha256": "b7faa3286df4f0312075c7a4563d3f4deed463d3f10ab2c4902967e8d5d7781d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/a_stage.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "dc87d8230a4ea41a92509c22fb8cdb164921b0a8",
+      "after_sha256": "05a681a0e0d6de765fee6c84242747aaf233a6abdad3e982ae1d5f0909195cf2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/artifact_codec.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "16c5484e950f4cfaade62882aaaa734acfa75984",
+      "after_sha256": "6c0ddaed1dfe7a066be9aeb1c726e2357f5c1814b0baca834c37bb1879aeeb9d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_auction_filter.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "12f49d16e43d3a346169734edcbc5899b748cbc9",
+      "after_sha256": "2b3b3bb94dde8f35afabd4bd4072a4482a82f4cd0a9b8ee0d878046f1a5c4d4c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_auction_reference.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "89d7748dd0ab85a4d14e79dd2ebc7001ed87860c",
+      "after_sha256": "d02e852313f6430a0102a029c22fe399400085ec4a317849b27987e8db64286d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_formula_score.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0e67cd5361f597c300770ed4d49623dfa514f22a",
+      "after_sha256": "4e42a0e6c233f649f8937dc5b5de231ce59fce8363d05025e9df77a78c4f00d7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/hk_four_lanes.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "398c2a38b7db9896ca3962d01ece1fe739118e4b",
+      "after_sha256": "4977997332f3e6a42322e721f205ad86916c6994ca331c4e19799bae1eaa2287",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/market_quality.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6f6ddebbf4469da2a39daea02113c65441835498",
+      "after_sha256": "726cd4987a070bf78ac7416756f3cbba86633b1176f6f43535ac747263474b3f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/primitives_io.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "66cbbb36e5c7cdb02a226c7666ec0acfd1067ec4",
+      "after_sha256": "6f492e2d32fab11970993adfe694cf159cccafe2205b288685917f93560e2501",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/schema_values.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7b2138593074d14c6c673791db268e54fbe3b185",
+      "after_sha256": "692c6af654e921fe2e1be28122169e9a76d50ca813e64c3bff3a7c8daa2268ed",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/selection_envelope.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "44e32a44c24f7e2b99aeda48a5f39a71c7e55910",
+      "after_sha256": "be7748ff72fd85375fc6575a6a40281fb1518c8faf0e55f352f167fbbc42bd89",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/shadow_capture.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "47391f5c14a3020d8c27c18ba00ed164bc6b49e9",
+      "after_sha256": "92875f5e1b969ec73790b31cd91378059d3f3eb07c3fcbd70c3ad16675ee66e5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/store_publication.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "91787ee1634cf3ed9cfd123189558dad20004fdf",
+      "after_sha256": "a158852bc2afae077f53722ca8239b2c59fe9649cc5ccca05cfbba41202c24f0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/_selection_parts/store_verification.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2515e4cacbc6328455725a365dae0d52721a61a8",
+      "after_sha256": "af061784202e35bd7c497208407ce1313876683544d89bcb05153ebca1e7af0f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/acquisition.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b1aa18a06403a35866d1907b9c0407ddf1c228a5",
+      "after_sha256": "51da5204448ed75197735281e578edeb7becb8281903bbac68070e42cc06523f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/attempt_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "196acddd5f25f3c3419d26d316b39e4f9b1c8dd1",
+      "after_sha256": "f98a9070ade0c26a3cfa0bf60acd4798ec011330ca83bc172c64856bd88dc1bf",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/calendar.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5d819f6467328cd94d94563143fc57f461a5b973",
+      "after_sha256": "31fed97066d9b804a71f15c48d4e0f8baa5d9af621e1d81dc0340fd6619e4099",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/candidate_input.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e09c7b1b6d04d02d493013b6ca5e22204af9091e",
+      "after_sha256": "d35f9db18aedc5ce5e1a62cac9b773b7c227ebf7ecbeacdf53bcb8af8cd315a5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/consumer.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4812b64fb47988213aeed104bc22a1b2a003a309",
+      "after_sha256": "9b8d3a6e5617bda878f50cf32b44663453296e5c81cba2d2e513e933e34bd686",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/contracts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "29c17b88adf4bf2d1820ae63f83f1d39bdd02152",
+      "after_sha256": "7741d0b977cc9994a0b526b35d6b3a3586bfb3b6c0b2f09f4cf8f05449c2bb18",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/end_to_end_deadline.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "774b2795f0c45cbb0cd3ffbb7cee5e8945c7ff0d",
+      "after_sha256": "f25d91cf1eaf4ea7d1a9a57fc1f8288d14d98536a63dee16467550974b2a812e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/hk_stage8/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8544c2d159cbfccf65508617263676c9df97fc6b",
+      "after_sha256": "d33f9f7ba2135f35073c92fdae1cd8b877f1fa9271f4c1c22217c1e969455f0b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/hk_stage8/builders.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2adb7bf59d55aa00267f55d8dafeac260cb3edf5",
+      "after_sha256": "231b8c0acc1092663b3236ad0415242280c4951b17a0aa094b632f7be0fe5a7c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/hk_stage8/precapture.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e8dbabc770c4b22ff590d242c3812ca6e67d9027",
+      "after_sha256": "3db89b6073d0c9d2f6067787fb857685b4115fc2cf4cf1f746d9f425c971ce77",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/hk_stage8/rtdata.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6fa1c0f336764010a298514fe4f023b1f43ed37c",
+      "after_sha256": "432f4c49d5270755c2c0abcd26db68b0b9f16d68fca72c6161083c467179e586",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/hk_stage8/snapshot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "4c0b1908166a1d82e5ba22993f7d17d30a3398f1",
+      "after_sha256": "65a7da2d63dd7cec12a2b3caeb494dcebf386c64411f4d0252ae14c9543444b9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/input_contracts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b51c99498dcd0f7b09ce0423c30b45dac3d7634c",
+      "after_sha256": "9521a336709286ab301368a70e2c99f6db6a8ffe288347977328619de7611fd2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/live_collectors.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9a71c5870e95a19e3b12f8a3021f9286fb374de5",
+      "after_sha256": "b5bb9332565c4fa861d2a825b113a254755172e4b8e629703d05a947ab66527e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/raw_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a75c322a4b525c66b980481fa69bfa5cf07f9438",
+      "after_sha256": "4cefe12c2f2ec8dc43a444c17e84b03f79fcd76607702fc5333ab5a956c7ec96",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/receipt_lineage.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "bf08d19dfb1d64646fef2deb41af3ebeefeaa205",
+      "after_sha256": "462abed0bd619ffdcf03736970394bcf9b4dfbda4af743a117d083d74243d3a4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/research_context.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b0a9385a8c76e427e2e365aab893d6f387d6bccf",
+      "after_sha256": "b02d7aec8574105f2b1bd4be73c739814153d5011fa18ecc63327bb86c51d3fc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/runner.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c19321b4eb7c5d2411489b59b3d8d1690d02b28e",
+      "after_sha256": "72ffbfa62daefe44158882c5f90e0c657741d3de0c85e18bad8d9f0b7aa5691e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/scheduler.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2da4595c37ecf1588317352ac272ee5c27da46a1",
+      "after_sha256": "ab1924a8c1286369ca83fe13669bf76dd45e149d0574667a19d960150df01322",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "stage_center/selection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "974ca3ec0025b3f35ea2be1522d760c3937ffb0a",
+      "after_sha256": "48c12de4fb10892d28bdbe58ef9e30e9dcf56aeee506a86a1428f4cdd0a74d26",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/fixtures/issue45/real_relation_projection.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c259ac14f51a000bb9d67940a9e4b3a0d58a7990",
+      "after_sha256": "400b7ea8c556205518c72f3653b4afb583ee456283d2a7ef12a08475fdf49230",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/fixtures/issue45/synthetic_contract_fixture.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "30eca3dbe22c87c14cebd0dd8c09b333ddded788",
+      "after_sha256": "f1ce3c8b210f036b09ae63a14f96398d2ef2f119b5bb52e9f512bb2d66edbb7a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "mode": "100644",
+      "before_git_blob_sha": "199aebba89c64ad98c8927b8166a1acbae679357",
+      "before_sha256": "0f43577011e141a1f3b804e08d0454396d4a73984a0fb2d344348314b79272d7",
+      "after_git_blob_sha": "199aebba89c64ad98c8927b8166a1acbae679357",
+      "after_sha256": "0f43577011e141a1f3b804e08d0454396d4a73984a0fb2d344348314b79272d7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/manager_workbench/test_oversold_daily_scheduler.py",
+      "mode": "100644",
+      "before_git_blob_sha": "796c25150ece24c8944b78bfb946276d1dabb0b7",
+      "before_sha256": "73ff736afd9d8ad959c3edc3e6811218cf9135fa7cde81215d3812c8af80eab4",
+      "after_git_blob_sha": "796c25150ece24c8944b78bfb946276d1dabb0b7",
+      "after_sha256": "73ff736afd9d8ad959c3edc3e6811218cf9135fa7cde81215d3812c8af80eab4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/test_manager_us_mapping_bindings_r3.py",
+      "mode": "100644",
+      "before_git_blob_sha": "00dcaa94a69fb3f79eb104aca0b3276c8bb6bade",
+      "before_sha256": "199c22c890b75ec9d65429965f2bea656492ac7ba98eeffd4362044c1d145b1d",
+      "after_git_blob_sha": "708a122935167550631b8eba843ba346aaacc34e",
+      "after_sha256": "a5d2e79a7d3ccf732499a3a1e5866ef6d05c7d71d842ce3c82c5743bec87c2cf",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/test_manager_us_market_bridge.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "72a6717a4f1b22a0fba4d2d3ed7c1ac07fec0a27",
+      "after_sha256": "e9a3773ca57f642c6c569f930ba44eb0074b195e957e3fec6fb10fc805af2f8f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/test_run_us_market_slot.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ba013e502b575be5fa4fb7b6888c840fa61fd0c8",
+      "after_sha256": "d6cea1187b267d1ca9f5c1847e24edb1531a7ffda99fa9b20f244d2b10f8e8dc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/test_runtime_dispatcher.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "14afa1b9058d52355f6f8f1716e3f836adae09f0",
+      "after_sha256": "ede359663d377b49c66726bb201b7b1b1f259f72ce873fe22d8961fe94aff2f6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/test_us_equity_calendar.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d5d708c8099ba461a2877fbc2356d5e57b909708",
+      "after_sha256": "eda8247301bcbbd5ab96c6ae3e865775d819cc834d3a6ecba1db6c178b963fc2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "tests/test_us_owner_handoff.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "64ca46884363523db0dc6afbe7ef27b12c0b06c6",
+      "after_sha256": "7112a09e9b61704d3c652cf00139c906365195cda9e55b95ccd2eab811321be3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "619b58d6c8dc04ecdb149352d6d16e773747de39",
+      "after_sha256": "f5925bc479203da8b7f7f81bae26334035b254ee6c2e2b598c81d804f519f9e4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/allowlist.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "afa173a579a48919b4653381fd528d901f3241d6",
+      "after_sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/collectors.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5c234353c4c92f19ec39d928ae37f3603f06494d",
+      "after_sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/constants.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2c9beeeaf2a748ac15df6c7b6c1ef2dade37ed77",
+      "after_sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hashing.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "045b93ffb4311c431f1f43ee8223fde1d7a30266",
+      "after_sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_daily_supplement.py",
+      "mode": "100644",
+      "before_git_blob_sha": "85cc703e7db80d5dfd7329ff78c9e57ad41bdc88",
+      "before_sha256": "d7b417374c4c674246beb0164b2246f26d82d8e9f79cd54a81ece785a7e27b65",
+      "after_git_blob_sha": "b36ba7f4e88eb7b3acde4b51bdb425fb6e437b72",
+      "after_sha256": "7b09a85431b2d4398de4f057a755b8b7398e82e26611297df9ba2efab8dbb250",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d693c75b8d29e3da589a990396c47c8588579e15",
+      "after_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "14033c432fedab05d56452bb0d9b403a70e7083f",
+      "after_sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/names.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "70039e541e2887c013ce8b9cd07104f0805b4304",
+      "after_sha256": "6d36c2658f6114ca51d35837bcbc80c3c64cb1810d707b918126ec66bd111074",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/paths.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9202f4dff68915569c9c25dd2bd34e1de476ff4e",
+      "after_sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "273dc301ff7e8fe9d91e9d3e3c7c427817dc3976",
+      "after_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/hk_research_history.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "373a903743813fb4b6f7a8a6b78e09535f322a61",
+      "after_sha256": "2cc5a2fe1f8440de4adf7449ee252ea462b333cde2a1ea9ac9216a7a43722ead",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "66f16815275fc940cf0e193a1bb592d8919d9a7d",
+      "after_sha256": "7902d6b467cacfa763ca6adef297b823c924c573cdb79df2c2e04ec758c38cc4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_analysis.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "81a2d84d3f0bbb3a8325a249d09f2d2b972728d0",
+      "after_sha256": "205939b003424b6446d4163b4079f32b07dd806d6fb65830c330b4ad69882dc8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_autorun.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f3e7eece78dd7154fc37c65c77ab756560c0ecfc",
+      "after_sha256": "9c77b9894274eb812f694ce015fde487bfc0ed2755f6d8c2d6a232f0db92c876",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_catalog.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "aa12f2f47edb63819d91519c6c4747882512dd6f",
+      "after_sha256": "25b07260dbe6591a6b26c3560d1873fe2e01fd76edd07a55d977bb80b0696a68",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_materials.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "fbd174f760613d5388cc2683235cf2e57048741b",
+      "after_sha256": "7163ca75e883d173ce7a831076402b06906951323dd54f82b2500c6b9ad60df1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_observation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1f585c53233cd49de8e4d104b05b3d5ed6f6a03d",
+      "after_sha256": "f86f2f0ac90b4e4490a74a27984c84f9c632075c47862d3627493282afef17ed",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_processing.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8853f2c5e31109c3a6032f8fe7187f44ae05630c",
+      "after_sha256": "8a66c5b53814567c9209070c8b62b490ce7f8c194cbfa551a0d32450e7654c3a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_selection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3cd310a7d8f67297d4831fc9b5f64905fcdb8f11",
+      "after_sha256": "6cc3e4ddfc4848e684770b5bfc360abb585d112a311bc2a98978a5b56952b697",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a3d7061f3f80c82d55a46564968bdb93287ee262",
+      "after_sha256": "adacf42be83a53c3472de65426d2269904e1ab33151887b921e8af11b0b1c4dc",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/archive_catalyst_inputs.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "91901e86fcd2bf9d09391c47c2c1963c1dbb27b3",
+      "after_sha256": "968b26e66cb041adcf503e251c2c710728ce33638627123ff618357398b37b71",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/attention_decision.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "deae8d18c88682eb8e06593603485dcab043b4be",
+      "after_sha256": "4b84e0469a5267771ccfe9f9f5040fc829e82f7a1b24afdeed11ebef0cb7d640",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/cache_contract.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5c4f431d28a1c9807945cbab8b87853a320ae357",
+      "after_sha256": "0dabc0d2787fae9af2e3c0fb3f5bf3e49c71d28649ffd30c07c31f5e8d071b7f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/catalyst_observations.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3fdd9eac88a95a53bf9b19da5f7877ce6581f243",
+      "after_sha256": "9b1b4ecabc635c24580ba85fc293911f635ad056b8bf49a5feaa3adc1db5057f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/catalyst_projection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "21f50142999e6dd690bb1546f200c979f9f3137f",
+      "after_sha256": "f0824db4b6ca7723c0e4ec47d6a34f9c1bb32a7c978974da0149ff525f5e7e13",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/connect_capture_adapter.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9a05b49406e9ff7f6cc35745a6177fdf338dde19",
+      "after_sha256": "6a87b77cc336dbf333ee0044bd4394a26f460f1f411d487bd6e449bacfc2604b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/connect_selection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "36a0c3c8b4d52556c65fa4d1ea8a5190d0c48b88",
+      "after_sha256": "ccc65ccb6eaf3be948652e6fc318305d9b87908826d15e98f208e122441ad5b0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/contracts.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "643abdd5bff9a196bb993275e5f57bea79881e90",
+      "after_sha256": "d90f0027a8383f20a299e3058d69716e62737e9e5300afc61a8ef2ed949d402f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/errors.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b21b534f4c361a3c16f755025cf92399f24f3619",
+      "after_sha256": "324e0f53301d4ba1007e1a69c86559472347bb7124f6c216f2b3c18e2c80bc1a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/event_source.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "95a23aecc73db041c92677d6238c35b77d6516e1",
+      "after_sha256": "a61bcc463b5c0cffdd4dbb4b5d6c8fe17315119dd07c221b95911ec1233d5585",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/evidence_identity.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f29fdc0361647d842de5b4b90ee2cae715361ebc",
+      "after_sha256": "6ff16b31c8e23f3bbceea7acc22cf866afc29db6f9f67158381cec2c23b3d053",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/existing_materials.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "a38381749c6286be9560dd969baa6af19135c82c",
+      "after_sha256": "51ea860dcedba60a51d297f0223c47db5bc7f7ff7fd787e0347452523a8c0195",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/financial_projection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2da27b9b690f537aae2f1e1f5d4ea982ff762b61",
+      "after_sha256": "c5aec263ae59791fe28e07ab38ac0062b39563a2a7006d6840dde43580e3372c",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/hkex_provider.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6350866c3d410f054f0f0a42c5dbfadbac3a703d",
+      "after_sha256": "060fdba44b28d29e621f943cedf6ae4be350070301ed192898af8b623ff17242",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/issuer_us_relations.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d5cf87f1eb80d020743c8a73cab0640152912ce4",
+      "after_sha256": "75fdca7a3c8bc1e8f385a023d47df640f002096921d6a0f3af8ea6cc466ee00f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/material_transport.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "891dc20d7d8a737c8aaecbb50c3615763195a616",
+      "after_sha256": "497c52c915e5485f34de27cb1fb2caca3971c77f531385a0d1f80d4587fc6ab5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/materials.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "555d285fa5b5cd7714c68a5c582797577c3ffaea",
+      "after_sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/pdf_parser.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0294e489d5f8fb58b36a086ba1787c0022e01fd0",
+      "after_sha256": "0ddf7fd5510333c70060af7de2a25dd4e6c9ac2880a0d8b97d95e84542a03383",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/ports.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b4fad4ff57694f5d4a7ea27071160ffaf7f85036",
+      "after_sha256": "d55f0bd6b5ade41ec78c429cbaea3986bb24a4723f473ef94ac0e5ad7d08afea",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/reader_source.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "016596f0945a99492f85d8085bed2eb23c1dddd9",
+      "after_sha256": "41d1abd481f043ad4309c39c04f179e3b9f2f0c511f89b32c3d4554bd7ac42f4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/recommendation.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "88d5184c1d61e0c662921821425c786d4e2b3b7c",
+      "after_sha256": "5a26bd6145a30d3314f8268a9fcffc57fc35f329e75492b97d9726b6c3eeffb4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/research_attention.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "017af247791cfb623d2aa27a8036ea6b540c5817",
+      "after_sha256": "e2d043524e48498c55d21a111a3ce969e63f97f17e150e44dc08ba5f9a9dea82",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/research_evidence.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ec5d612601508f91ede01e07d0fff9426930c275",
+      "after_sha256": "d2539b676d5779d9369fd8aba187c0565fcc38dbb0e89596d1248668fda4a7d5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/safety.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "117439469386ffb3d58c9d047766c6c5cccbd06a",
+      "after_sha256": "c82fcdee6845e765783584f5ac46a9d4ca6b6b9fda1c3c2e919c17ab17c7f3e8",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/service.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7cd37e92b66aa22a4be4f70134e4140adfb0a6fe",
+      "after_sha256": "388bd3169b54bf9bcc1970766b28c0a026fee62357d671473e4c9751689666a6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/stage_read_timing.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0a84b3bd9ca47610b287adf98338bc748b0a8c54",
+      "after_sha256": "bfbab170b4e8b32e1bdd0405282825989f0382aeb41e6044fe22d0fdeca6ae38",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/store.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "c9af9a6ae87858ebee111766d4db0fd0639943b5",
+      "after_sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/us_mapping_research.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "20afd7f665dda04c14d987eee5f23f6b4b4efd50",
+      "after_sha256": "886178f1e4b90b4e5e68f94cfeddc808f39e596740b295550edb6b8cd60b5e84",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/us_market_bridge.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "439c6cefc1c6e8dff406261011592e2708893b74",
+      "after_sha256": "b15ee5cf742eae0213002d4a5099931e3c3c393cedad52c416f45dc04476a066",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/vibe_binding_preflight.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b5064173eabfba4ca377ee0fc66c996c61a40a93",
+      "after_sha256": "b5b108f8e327b67ef43fd91ce33da936b2cfc7a67dae3b0f129071dff8c6554d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3f33df048d5f9ea347b42a773164c461a2a31205",
+      "after_sha256": "70a2bc81739778066f9183bb7acac8a6560f5a5b9e42329f8d47333f82289f3d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_actions.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "631714d9ae8c156e4eeefdba84740683b761570f",
+      "after_sha256": "9ae8f53fd261e5a28f97029e76ee0b296d7befb02a32a0f6689229b5000b2ecf",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ae3665f4ab3b2639b775082e8df111d6cd7b985a",
+      "after_sha256": "87e524a77d2a816d1ba9e5b17bfff7db79831a991c62934421cd46b728f137b5",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_briefing.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "7c61130742f98fffd19a7b3c5c80d0765368d216",
+      "after_sha256": "60a7942e6c2c6a8ed32099ec807c79c35fa393342ed59996798f21da12466ff6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_daily_channels.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "6b282a0b59cf9feea8bcf9815189e8c14a9877b5",
+      "after_sha256": "4fbbbd77cbbe78862edab887da0bef43b4007012c70d0bb2aedaf4fb9d27c33a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_discovery.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d27203bc60a41534f312907d8f6cd6d5e3628b1f",
+      "after_sha256": "ed9188a44a4adb6bf2fd08836d465ed3ea7e7d2b8dd7075da99b7aaabc5c5c1a",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_history.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0445a0fbcbc2590fe7839b0decdf4bedfed02d5b",
+      "after_sha256": "78f7e38bdf5a99e119b8ce5a05b0e3aaf0f2b2e75bc2c2d129a9f3bd7e60e1ab",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_identity.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "5f284e09edc659b8c5f30e594aa7a57b13bf58ea",
+      "after_sha256": "3107f29b94b79ee3e889fc4b39ee0377742df773ed5643890a4e2d0dc0fda0c0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "d2bd23374568ff4265309cd68d6f5097ed24376f",
+      "after_sha256": "8c3991fe1b536d9fc1b9fbbee908c9506e2aff2de4d3cbd6882dcb7d98398314",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_plan_autorun.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "32a3766785e9f0a93a284461039eaa6359178aaf",
+      "after_sha256": "f44f32e5e764844a14b798a5380ad752a93fd1f0429e29aac6e62df203050b27",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_projection.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "8cf4123d917ba5770e85c04f79a1e8bbd6393e60",
+      "after_sha256": "97561f248534ab55db9f550d7e891249fe75191fa2a1cf2285c14e226f8bfc86",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_read_control.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "2ef88175e1a232d669dc23a05f35c48e27309bcf",
+      "after_sha256": "491e3569e8f00586ca6f4e9982e182584d2f2a0437f83da66767b7ffdbf1fb25",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_research/workspace_semantics.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "438a5c0198f39000a645323a3177cf1964ca4cbb",
+      "after_sha256": "dc8d1d330e4fdacf2ef7169a7ac62874bfd3e2658f8b4bcff0773e06e32c4f7f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": "029ceaa595c1f2059fceddcce255478ba8406eb1",
+      "before_sha256": "879baeecaa5270f9053193c39ecfb7e92aa40a01b5b53bbc10ffa5d29c789490",
+      "after_git_blob_sha": "029ceaa595c1f2059fceddcce255478ba8406eb1",
+      "after_sha256": "879baeecaa5270f9053193c39ecfb7e92aa40a01b5b53bbc10ffa5d29c789490",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_candidate.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "11252742323e7896a86e24a7386d246b8ad5ca22",
+      "after_sha256": "c30584c349a9de5243850683fbcee8d48071104a15a7123466ac92a520818c08",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_chunks.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "3647d6d3f8842ccaf9533573c9ff92ff30d75cd7",
+      "after_sha256": "f272cc058a97ca42a5ce47fc3d1378414d16020da06bc49ec63d43696f70b372",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_membership.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "39cd81bbdf0b88efec9824e2eb2d35d72f0dfa1c",
+      "after_sha256": "564e3ae25d78feeaa953153d5b7604d1ecbb24198f9c4e3aeb2c69ee29a844b0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "698d9ae8b05ab0b1f8ef025d5eab575b21b31886",
+      "after_sha256": "32bcc082586f32068a347676471f0e49adc7e2392b4123a1d9f5623155f3cbbd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "mode": "100644",
+      "before_git_blob_sha": "cc5d17f8a3c582704f728eb013b45d09d73bd991",
+      "before_sha256": "348e567f78c2b85eab7353ca752174a0d6a86e2d233b69cc54a82035a865fc30",
+      "after_git_blob_sha": "96e8c5bfe01003803ce48e34458e16264e776254",
+      "after_sha256": "d3dd953756ec4c9973f1b3ee7121f1b9530e17f231388655d7748c525a661636",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/binding.py",
+      "mode": "100644",
+      "before_git_blob_sha": "0a000ec06fdf665970ace474e000f9f98887eb9d",
+      "before_sha256": "69094d79badb2000261fc4326c37160f99e504ee243c41b9a79a42c4ae5f7a54",
+      "after_git_blob_sha": "0a000ec06fdf665970ace474e000f9f98887eb9d",
+      "after_sha256": "69094d79badb2000261fc4326c37160f99e504ee243c41b9a79a42c4ae5f7a54",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "mode": "100644",
+      "before_git_blob_sha": "dfa71ad7e5c6dd19061eead4a82b9f713ec2d3d1",
+      "before_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "after_git_blob_sha": "dfa71ad7e5c6dd19061eead4a82b9f713ec2d3d1",
+      "after_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "mode": "100644",
+      "before_git_blob_sha": "2974275d64416c4a7f528944a4b3be36e1743c58",
+      "before_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "after_git_blob_sha": "2974275d64416c4a7f528944a4b3be36e1743c58",
+      "after_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/data/us_mapping_business_relations_20261014_v3.json",
+      "mode": "100644",
+      "before_git_blob_sha": "372fa5501c13331fe147477b362e6db57c5e197b",
+      "before_sha256": "0abcacbe028fd3c59fc7cec6091d7cf8111235e2118a02fca3e3c5fb1cdfa75d",
+      "after_git_blob_sha": "372fa5501c13331fe147477b362e6db57c5e197b",
+      "after_sha256": "0abcacbe028fd3c59fc7cec6091d7cf8111235e2118a02fca3e3c5fb1cdfa75d",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "mode": "100644",
+      "before_git_blob_sha": "710dbfbde502ef78fd73fde1fac6521553ac2de4",
+      "before_sha256": "d3b156ab029423f8974e9c74411d343703bd89a0882fb812a2682751e0c43de2",
+      "after_git_blob_sha": "5b12c928e712c3869723f7a1df236a782781f894",
+      "after_sha256": "7f7cf46ccbf8f38ee1518a31365592bad8950efa2ce747f495a63198da1fa74e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": "50846b4445f8f6bce48daf8193128732b19f27fa",
+      "before_sha256": "30616498027b6625c2735ee96cd3b91ff7dc202db2c3369f1920ac80274a18d9",
+      "after_git_blob_sha": "50846b4445f8f6bce48daf8193128732b19f27fa",
+      "after_sha256": "30616498027b6625c2735ee96cd3b91ff7dc202db2c3369f1920ac80274a18d9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "mode": "100644",
+      "before_git_blob_sha": "46512a86e2c48a7bec90cb26d329137c08cfb942",
+      "before_sha256": "c786c837d4e3b8e06da017f3b7615e7561b5cd782c82b313e570b2bb00d09ee9",
+      "after_git_blob_sha": "12a78213c4a7edc26208c5c17c22db3dbc913d01",
+      "after_sha256": "e1e1c9d5df3a2e87c636469c3023ce19b4e0cb615fdd6a3d4aa6091d35861cc3",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/common.py",
+      "mode": "100644",
+      "before_git_blob_sha": "dac0c36bf859ea8affcb96570bdaef810df16140",
+      "before_sha256": "1dbbd5c2dc78ade8d9630356c1397a0b28b0e79084136b7d62f596f68cb99578",
+      "after_git_blob_sha": "dac0c36bf859ea8affcb96570bdaef810df16140",
+      "after_sha256": "1dbbd5c2dc78ade8d9630356c1397a0b28b0e79084136b7d62f596f68cb99578",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/core.py",
+      "mode": "100644",
+      "before_git_blob_sha": "4e5298813263f387220ecdbaf8f888e56ca9a3d3",
+      "before_sha256": "121481c5065f81c8387c1997acda51e74a5cc1455112954edaf82752341aff6f",
+      "after_git_blob_sha": "4e5298813263f387220ecdbaf8f888e56ca9a3d3",
+      "after_sha256": "121481c5065f81c8387c1997acda51e74a5cc1455112954edaf82752341aff6f",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "mode": "100644",
+      "before_git_blob_sha": "737c7e104e23a69f630395f5cc78dd829d196c89",
+      "before_sha256": "44450f7462e5ee0a07ff2aee21400a7fb5fe4fd3441b4c1795190bef8bc60898",
+      "after_git_blob_sha": "737c7e104e23a69f630395f5cc78dd829d196c89",
+      "after_sha256": "44450f7462e5ee0a07ff2aee21400a7fb5fe4fd3441b4c1795190bef8bc60898",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/review.py",
+      "mode": "100644",
+      "before_git_blob_sha": "4c90c4c8064bb04ccc8cbe1f88e947cb3b367e3c",
+      "before_sha256": "7a101bff00adca3de5c97da04491b151e961c8dd8f3249d76b00539550b85bdd",
+      "after_git_blob_sha": "4c90c4c8064bb04ccc8cbe1f88e947cb3b367e3c",
+      "after_sha256": "7a101bff00adca3de5c97da04491b151e961c8dd8f3249d76b00539550b85bdd",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "mode": "100644",
+      "before_git_blob_sha": "6c67f9f1b556284eb1c93e33f7d5bbb97b553b43",
+      "before_sha256": "0856e770822854ea7272819c7e643070acded1f3ffb1a91a0012ab72f992aa2a",
+      "after_git_blob_sha": "8a3783e8fd4ab1347ab6f3cea0e713b66799e64d",
+      "after_sha256": "56c455ae47d8fbe25fec5333b85a9614ccfde79f35cabb379f93dac578055dcb",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "mode": "100644",
+      "before_git_blob_sha": "43b6f699f7213a4f6e2e4e98ebfc59943d7917c1",
+      "before_sha256": "e2242b8e18b7f67edcd7aad07aeca805c14214d99924ad1cb374c623e1ad345f",
+      "after_git_blob_sha": "59e42bac797bfbfdb692588170c709ebe238a231",
+      "after_sha256": "ca58bbf80d9384ec79944e4d5198a2738a12ae127ff22efadf692ba14d5a9369",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/executors/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": "c899e8de382dac9702d134227011abee88caef5d",
+      "before_sha256": "082752f7a256b7265cbcc1dc3de9c3f0a81ac00efff140077ad94ddd151ccd98",
+      "after_git_blob_sha": "c899e8de382dac9702d134227011abee88caef5d",
+      "after_sha256": "082752f7a256b7265cbcc1dc3de9c3f0a81ac00efff140077ad94ddd151ccd98",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/executors/codex.py",
+      "mode": "100644",
+      "before_git_blob_sha": "7678c527a6e1713cd318502d21d24f294cb9dfd6",
+      "before_sha256": "2a69cb83d97b174852de0a94c7fb18b53770b1bd581b2cd69cfc41f6a4218c99",
+      "after_git_blob_sha": "7678c527a6e1713cd318502d21d24f294cb9dfd6",
+      "after_sha256": "2a69cb83d97b174852de0a94c7fb18b53770b1bd581b2cd69cfc41f6a4218c99",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/executors/local_cli.py",
+      "mode": "100644",
+      "before_git_blob_sha": "27d2a25803c207afcc3f90bdb6636dc5fd678c36",
+      "before_sha256": "6f80691433a34143c48a4c98cf1d6af92198806d3f923749d66d07f740618fb4",
+      "after_git_blob_sha": "27d2a25803c207afcc3f90bdb6636dc5fd678c36",
+      "after_sha256": "6f80691433a34143c48a4c98cf1d6af92198806d3f923749d66d07f740618fb4",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/executors/schema_check.py",
+      "mode": "100644",
+      "before_git_blob_sha": "86e251876880c303226f12e230524b339a436553",
+      "before_sha256": "76583fdc6f588d887636f6c0bf1b238a599f7e21023ab2bf3d244922a8181913",
+      "after_git_blob_sha": "86e251876880c303226f12e230524b339a436553",
+      "after_sha256": "76583fdc6f588d887636f6c0bf1b238a599f7e21023ab2bf3d244922a8181913",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": "e7be35e8d3257750421264ecee264545ce6c82d4",
+      "before_sha256": "20211192f5afa5fffc63e4a9200397cce230945db2a43b09be790af5897550b6",
+      "after_git_blob_sha": "e7be35e8d3257750421264ecee264545ce6c82d4",
+      "after_sha256": "20211192f5afa5fffc63e4a9200397cce230945db2a43b09be790af5897550b6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/authority.py",
+      "mode": "100644",
+      "before_git_blob_sha": "d66f2b78a1778e07b160cfa34fd6b5747733566c",
+      "before_sha256": "117288d4753db6d9e449131129be92254eb5b753d488fbcceafae030c445f749",
+      "after_git_blob_sha": "d66f2b78a1778e07b160cfa34fd6b5747733566c",
+      "after_sha256": "117288d4753db6d9e449131129be92254eb5b753d488fbcceafae030c445f749",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "mode": "100644",
+      "before_git_blob_sha": "20fa8eb19886dcb6d7cf81affd44e0fe92b4484c",
+      "before_sha256": "18ebbef7a0a56d7e61113b60b902d990ba09ed763c6084191f221dd135568578",
+      "after_git_blob_sha": "e3626f31f0fc25791828dbb99e0db0a174a2d785",
+      "after_sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_binding.py",
+      "mode": "100644",
+      "before_git_blob_sha": "77c4a909079c3612a4cf1beb9f298a0cb83996e1",
+      "before_sha256": "587291d20e6bc6880025ff76e2e7345b04751df2ec1f1a7b9b6cdc5c76a8f502",
+      "after_git_blob_sha": "77c4a909079c3612a4cf1beb9f298a0cb83996e1",
+      "after_sha256": "587291d20e6bc6880025ff76e2e7345b04751df2ec1f1a7b9b6cdc5c76a8f502",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_jobs.py",
+      "mode": "100644",
+      "before_git_blob_sha": "a80812f8d2fd3de376bc2289e7368e6b5ab36617",
+      "before_sha256": "26932b284605a6c815f59a1400445f6250c820d463dd0ca65001ab113cc5e7e1",
+      "after_git_blob_sha": "a80812f8d2fd3de376bc2289e7368e6b5ab36617",
+      "after_sha256": "26932b284605a6c815f59a1400445f6250c820d463dd0ca65001ab113cc5e7e1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_store.py",
+      "mode": "100644",
+      "before_git_blob_sha": "3aa21fa78464ab51818b12ed77975ebbe0abe8f4",
+      "before_sha256": "58b9badf2fa0ec1cc0cdef95fbd6bba3fcccefd5c3334dd6fa885891aaf3e94d",
+      "after_git_blob_sha": "229458c1ef6b13d1f6c9caece8b093c6e283e95c",
+      "after_sha256": "a7d51f639787b12325f098e085bbf6ed136e83894373a7f9f615d59d5ada8001",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/loader.py",
+      "mode": "100644",
+      "before_git_blob_sha": "4d1a43d7eef7743de3fd6a5e9e6038175f2711d6",
+      "before_sha256": "e2290b46f9e76c24bc7eea72ccff0b86290258d536a058da121782fe1352ec04",
+      "after_git_blob_sha": "4d1a43d7eef7743de3fd6a5e9e6038175f2711d6",
+      "after_sha256": "e2290b46f9e76c24bc7eea72ccff0b86290258d536a058da121782fe1352ec04",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "mode": "100644",
+      "before_git_blob_sha": "15e95299686dbd90d895740bbc25f8eae674d9b2",
+      "before_sha256": "fff8c1bd12bb07947bb3f43efff5670c656bd813294b431742d68e7a78cf462b",
+      "after_git_blob_sha": "d44a765b57548a55939f61d775c10493975f9c91",
+      "after_sha256": "8a97a126ffc3377ff9420ff123e7c164ea6b0ec383616612bfc3cb386ac228b9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/pdf_pages.py",
+      "mode": "100644",
+      "before_git_blob_sha": "de82761a446dc26a9443d56ef1e3f7edd287d215",
+      "before_sha256": "ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770",
+      "after_git_blob_sha": "de82761a446dc26a9443d56ef1e3f7edd287d215",
+      "after_sha256": "ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "mode": "100644",
+      "before_git_blob_sha": "cd3d492b3ca4b11a04b4c3219d1e132fd63d3c6f",
+      "before_sha256": "01abdfddeb1500390691ef3d6979788ebe51c68e134ddf350ca2fe0b17c4eab6",
+      "after_git_blob_sha": "9f2b76d4e74a8bcfe0ce2ad66f913406647830dd",
+      "after_sha256": "d95e4aa1ea9c1e3414aea412d9cb2367ffcec543ca6ecc8176db072044129f26",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_universe.py",
+      "mode": "100644",
+      "before_git_blob_sha": "ab4198e490544993576008b8c545d27476e286ed",
+      "before_sha256": "2a471f5587ded2322d7a93e0af425be86b49bdadbf9efe4a93e531428abcf403",
+      "after_git_blob_sha": "ab4198e490544993576008b8c545d27476e286ed",
+      "after_sha256": "2a471f5587ded2322d7a93e0af425be86b49bdadbf9efe4a93e531428abcf403",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/validation.py",
+      "mode": "100644",
+      "before_git_blob_sha": "09ca49d21217cf24519978be7d39b5ac2ec1b597",
+      "before_sha256": "497b4e349a9ec6f0dba2e3adb1793a10567221cb41cabffad946a5e6a5f5d1f9",
+      "after_git_blob_sha": "09ca49d21217cf24519978be7d39b5ac2ec1b597",
+      "after_sha256": "497b4e349a9ec6f0dba2e3adb1793a10567221cb41cabffad946a5e6a5f5d1f9",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/jobs.py",
+      "mode": "100644",
+      "before_git_blob_sha": "de4396b85b728244f40963e52a1274b01cb338a1",
+      "before_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "after_git_blob_sha": "de4396b85b728244f40963e52a1274b01cb338a1",
+      "after_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/legacy.py",
+      "mode": "100644",
+      "before_git_blob_sha": "9edd101658c39d7227cd49a47a0a006a50ee2c9a",
+      "before_sha256": "aaa8d7d767183240dd422f993ada6d05776125b95ffa1308b3fd0a37cdca3f35",
+      "after_git_blob_sha": "9edd101658c39d7227cd49a47a0a006a50ee2c9a",
+      "after_sha256": "aaa8d7d767183240dd422f993ada6d05776125b95ffa1308b3fd0a37cdca3f35",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/oversold_daily.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "ca92b06a6239c93ec4883e5a182de756ed2ebbba",
+      "after_sha256": "9ebeed117ee883805ac8a5e3331cb53fa688892905dd8292912ee5ba4b20099e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "mode": "100644",
+      "before_git_blob_sha": "7cf0912995a7c2885ffa4cfe50c2587a3cc68143",
+      "before_sha256": "6d670e53da10894f1a8b63393d280cec159711d00b3c37b978fdcff3ee48682b",
+      "after_git_blob_sha": "07f2f28d311b8961786acd09f42313cb13b22363",
+      "after_sha256": "0672296a340ae84d6bfb48b77b8d23566ea32b4fdb27edc505ea3abb4d785990",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/service.py",
+      "mode": "100644",
+      "before_git_blob_sha": "810c8b9e347133e1af9309aac6b2136b08369279",
+      "before_sha256": "219d7228c2fd25e3903db5fac385010a6414cc6961e2716479871418472e96a3",
+      "after_git_blob_sha": "33c7d761e64afa0d4abc342379cdf435bb8ca368",
+      "after_sha256": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/store.py",
+      "mode": "100644",
+      "before_git_blob_sha": "787cc82c094470d59146597af5da832010d75d6a",
+      "before_sha256": "be7252c676f86c48ec7fc64fc922ce4cb79b2f7a6493dc0a3a33c8df21099aae",
+      "after_git_blob_sha": "f1c8c489a6542d7a574a4f6479bb48694fb0ac50",
+      "after_sha256": "493df1a72bf4c4a533ae533ce5fc0185c9d9536d01c4e88082270908c8b1aa18",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/supervisor.py",
+      "mode": "100644",
+      "before_git_blob_sha": "51b776e7fef4b5151b278881fdd33c5a230a86fc",
+      "before_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "after_git_blob_sha": "51b776e7fef4b5151b278881fdd33c5a230a86fc",
+      "after_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4/manager_workbench/us_mapping_catalog.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "46fdd1d34146390807a427592301424cda400ccc",
+      "after_sha256": "ec327cb99e72b9dd982f1238e459b79b657697501f02ac66a598752a94245031",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4_migration/__init__.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "b313b7537d73f258e2b74814dacb341993f98a81",
+      "after_sha256": "8f50a0fee194c4d427c6d7521e1282c1e9e10ac86b267b02a1b7f418b92334fa",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v4_migration/write_authority_reference.py",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "597f19a57c4aae97b265f0642b95925484715531",
+      "after_sha256": "283868d6fa8f76d94f2e62ad924145508d79145b5eef39cbe791556d65237904",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/SCOPE.md",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e78936cdef9e0fab9e51096dd7b949dd414844d1",
+      "after_sha256": "dc184c2cd9e527f9e520a2022b3c653a0098dcac03caf2bb72c83128ee75a761",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/SOURCE_EXPORT_MANIFEST.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "1fe69042f851c5a2abcbeab6fd5968b3f5fb1cbd",
+      "after_sha256": "964bb055b6975fdd256c81afa6a2948d955f94aa1f1afabd1cd6aa8d8ebbd8ae",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/DEPENDENCY_MANIFEST.txt",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e7bfd22831dd9e3a07d63645d4b9818f72f0c3aa",
+      "after_sha256": "bf2e4d9261ff3fe7d1b2c069e1a3c9e49362868b0c75b7d6d517f4aceb115c8b",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/README.md",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "f3deb22f66fe8392a3d0d25ed3872a6c309e2c55",
+      "after_sha256": "32a6b85467fc2556b888d280c67dfb9062db4a614451a82ec736f8cb60f702c6",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/REMOTE_ROOT_README.md",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "9d7395d35b5a5be48105bb6aecee74f591e1d2c6",
+      "after_sha256": "7b7287a902f923f86e08d65119a87ec8afcd8c3e0cd307061203bd4d5ea149d7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/UPDATED_CHAT_PROMPT.md",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "e9a99f2574d66771781310e9dbbb135c3c4177ee",
+      "after_sha256": "f4b752c94783fe9d2035b9ca943374f0a37b5e8565a728821a65b1b839a27aa1",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/WRITER_RECEIPT.md",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "62b1a6fd6b7362ad37d2ad58b7ef6c7296ee0b95",
+      "after_sha256": "b974ab2aaf8a98e85396b2ab7566479623af336627654c56215fd8b69e1befdb",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "before_git_blob_sha": "5efa4c1b997082b50c371daade26fa59c348b52a",
+      "before_sha256": "6e7b4683293ab25e446ddbfdd267af997c519dbe81a65ed30908a57d53726077",
+      "after_git_blob_sha": "9d7395d35b5a5be48105bb6aecee74f591e1d2c6",
+      "after_sha256": "7b7287a902f923f86e08d65119a87ec8afcd8c3e0cd307061203bd4d5ea149d7",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "v3_shared_data",
+      "mode": "120000",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "496b4553c8b0617b92c17d1ea290a36ceadebb0b",
+      "after_sha256": "c797e153a7d42aeb880725f2e05be72299f3f9dfb27bcb799ca1ec598ff7cef2",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/ROOT_LEDGER.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "86eaa7455bb638df1da1b701cc801d9c226888b7",
+      "after_sha256": "2dc1f413560ea34812e300cd3447cf0617e67c6b8791b40b4f8c9f240fb43e79",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/INDEPENDENT_REVIEW.md",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "490933cc882f6e3f0bb7e4c671922acc41dbfc17",
+      "after_sha256": "d465f180fa4711f3b3a2aa25edb21df224b6171813ecb08e894edfda130a6d54",
+      "remote_tree_verified": true
+    },
+    {
+      "path": "docs/handoffs/us_hk_source_baseline_20261018/INDEPENDENT_REVIEW.json",
+      "mode": "100644",
+      "before_git_blob_sha": null,
+      "before_sha256": null,
+      "after_git_blob_sha": "0ed73a8dd61327aed5d7f8199fbc71e25e5a7813",
+      "after_sha256": "4bb5937cb2ea9e44bf4106ed66dd0bf7998016a06ca602be30c4d15c081307a0",
+      "remote_tree_verified": true
+    }
+  ]
+}
