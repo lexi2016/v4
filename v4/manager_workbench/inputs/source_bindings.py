@@ -12,6 +12,7 @@ from ..engines.common import US_FACTOR_RULES_VERSION
 from .validation import raw_sha, before, owner_digest
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
+_US_MAPPING_CATALOG_STORE = None
 US_SYMBOLS = ('AMD','ARKX','AVGO','BOTZ','CIEN','CLOU','COHR','COPX','DLR','DRIV','EQIX','FCG','GLD','GRID','ICLN','ITA','KBE','LIT','LITE','MU','NLR','NVDA','REMX','SOXX','STX','TAN','UFO','VRT','WDC','XBI','XLE','XLP','XLY')
 
 
@@ -404,8 +405,11 @@ def _full_mapping_overlay():
     if not catalog_path.is_file() or not overlay_path.is_file() or not recovery_path.is_file():
         return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_OWNER_UNAVAILABLE",
                 "stock_count": None, "relation_count": None, "relations": []}
-    from ..us_mapping_catalog import CatalogStore
-    store = CatalogStore()
+    global _US_MAPPING_CATALOG_STORE
+    if _US_MAPPING_CATALOG_STORE is None:
+        from ..us_mapping_catalog import CatalogStore
+        _US_MAPPING_CATALOG_STORE = CatalogStore()
+    store = _US_MAPPING_CATALOG_STORE
     stocks = []
     offset = 0
     total = None
