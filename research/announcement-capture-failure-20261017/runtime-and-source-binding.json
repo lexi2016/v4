@@ -1,0 +1,51 @@
+{
+  "observed_at": "2026-10-17T15:07:29.622691+00:00",
+  "source_root": "${USER_HOME}/Desktop/学习/v4_app",
+  "active_runtime_root": "${USER_HOME}/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app",
+  "active_release": "announcement-continuation-api-20261017-r11c",
+  "active_manifest_sha256": "7c10d630ff2c48e927c83013b98cbbfaa3254648d3a312ee172446a3a7e352ba",
+  "listener_pid": 21235,
+  "job_id": "e20cf0d93ea843a885b090173b6eab55",
+  "trigger_count": 1,
+  "url": "http://127.0.0.1:8873/manager-selection/?date=20261016",
+  "canonical_git_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_bindings": [
+    {
+      "path": "infrastructure/owned_io.py",
+      "active_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "canonical_sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0",
+      "same_as_canonical": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_store.py",
+      "active_sha256": "b18147fc411f92bceca9ee52890a0c27b11629dc2e327b0e5d25e1d87c3190c0",
+      "canonical_sha256": "b18147fc411f92bceca9ee52890a0c27b11629dc2e327b0e5d25e1d87c3190c0",
+      "same_as_canonical": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "active_sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "canonical_sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "same_as_canonical": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "active_sha256": "39d94bba3c8c5a2eddf81654015596f0dc2e5acfb8a55b1f986ec87023b640bc",
+      "canonical_sha256": "39d94bba3c8c5a2eddf81654015596f0dc2e5acfb8a55b1f986ec87023b640bc",
+      "same_as_canonical": true
+    }
+  ],
+  "model_input_exists": false,
+  "model_result_exists": false,
+  "changes_this_check": "No application code/config/service changes; one authorized UI click and read-only diagnosis",
+  "independent_review": "NOT_RUN; diagnostic handoff only",
+  "excluded": [
+    "credentials",
+    "lease tokens",
+    "full configuration",
+    "raw announcement bodies",
+    "87MB capture artifact",
+    "model outputs",
+    "account/position data"
+  ]
+}

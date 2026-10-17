@@ -1,0 +1,107 @@
+{
+  "before": {
+    "response_state": "PARTIAL",
+    "gaps": [
+      {
+        "code": "CAPTURE_TRANSPORT_NOT_BOUND",
+        "count": 1,
+        "detail": "1条公告正文有缺口；记录为158页，超过现有单篇150页采集上限。"
+      }
+    ],
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "announcement_state": "PARTIAL",
+    "job": null,
+    "displayed_result_updated_at": "2026-10-16T21:44:49.615134+00:00",
+    "displayed_counts": {
+      "source_catalogue_articles": 757,
+      "model_succeeded": 129,
+      "selected_model_articles": 11,
+      "model_candidate_stocks": 19,
+      "reused_reviewed_stocks": 1,
+      "failed": 8,
+      "pending": 0,
+      "body_gaps": 0,
+      "displayed_stocks": 26,
+      "membership_eligible_stocks": 26,
+      "membership_excluded_stocks": 5,
+      "membership_unknown_stocks": 0,
+      "membership_excluded_articles": 3258,
+      "membership_unknown_articles": 956,
+      "incremental_candidate_stocks": 11,
+      "model_failed_articles": 8,
+      "model_pending_articles": 0,
+      "long_body_part_failed": 0,
+      "long_body_part_pending": 0,
+      "long_body_part_cannot_confirm": 0,
+      "long_body_synthesis_pending": 0,
+      "current_batch_candidate_stocks": 11,
+      "failure_rows": 98,
+      "pending_rows": 5
+    }
+  },
+  "after": {
+    "response_state": "PARTIAL",
+    "gaps": [
+      {
+        "code": "CAPTURE_TRANSPORT_NOT_BOUND",
+        "count": 1,
+        "detail": "1条公告正文有缺口；记录为158页，超过现有单篇150页采集上限。"
+      }
+    ],
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "announcement_state": "PARTIAL",
+    "job": {
+      "job_id": "e20cf0d93ea843a885b090173b6eab55",
+      "target_date": "20261016",
+      "state": "FAILED",
+      "step": "CAPTURE_ANNOUNCEMENTS",
+      "completed_count": 0,
+      "total_count": null,
+      "failure_code": "OWNED_FILE_TOO_LARGE",
+      "last_progress_at": "2026-10-17T23:03:53.986524+08:00",
+      "finished_at": "2026-10-17T23:03:53.986524+08:00",
+      "failed_steps": [
+        "CAPTURE_ANNOUNCEMENTS"
+      ],
+      "progress": {}
+    },
+    "displayed_result_updated_at": "2026-10-16T21:44:49.615134+00:00",
+    "displayed_counts": {
+      "source_catalogue_articles": 757,
+      "model_succeeded": 129,
+      "selected_model_articles": 11,
+      "model_candidate_stocks": 19,
+      "reused_reviewed_stocks": 1,
+      "failed": 8,
+      "pending": 0,
+      "body_gaps": 0,
+      "displayed_stocks": 26,
+      "membership_eligible_stocks": 26,
+      "membership_excluded_stocks": 5,
+      "membership_unknown_stocks": 0,
+      "membership_excluded_articles": 3258,
+      "membership_unknown_articles": 956,
+      "incremental_candidate_stocks": 11,
+      "model_failed_articles": 8,
+      "model_pending_articles": 0,
+      "long_body_part_failed": 0,
+      "long_body_part_pending": 0,
+      "long_body_part_cannot_confirm": 0,
+      "long_body_synthesis_pending": 0,
+      "current_batch_candidate_stocks": 11,
+      "failure_rows": 98,
+      "pending_rows": 5
+    }
+  },
+  "warning": "The 05:44 result and 11 candidate stocks shown below the failed job are the previous result, not this new run."
+}

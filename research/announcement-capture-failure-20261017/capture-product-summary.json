@@ -1,0 +1,51 @@
+{
+  "artifact_path": "${USER_HOME}/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture/products/d3eae78873057330f85b1e75d0f0b5ca7e35ba9b5aca807e251ae5487657e53b.json",
+  "bytes": 87576192,
+  "MiB": 83.519,
+  "sha256": "d3eae78873057330f85b1e75d0f0b5ca7e35ba9b5aca807e251ae5487657e53b",
+  "SafeRoot_default_limit_bytes": 67108864,
+  "read_only_default_read_result": "OWNED_FILE_TOO_LARGE",
+  "schema": "mwb.capture.window.v1",
+  "run_id": "140d98d447994b71b5676ed23af8dcda",
+  "target_trade_date": "20261016",
+  "window": {
+    "calendar_owner": "contracts.trading_calendar / hk_securities",
+    "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "left_inclusive": false,
+    "publication_dates": [
+      "2026-10-14",
+      "2026-10-15",
+      "2026-10-16",
+      "2026-10-17"
+    ],
+    "publication_window_end": "2026-10-17T23:00:00+08:00",
+    "publication_window_mode": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW",
+    "publication_window_start": "2026-10-14T16:10:00+08:00",
+    "research_cutoff": "2026-10-17T23:00:00+08:00",
+    "right_inclusive": true,
+    "target_trade_date": "20261016",
+    "timezone": "Asia/Hong_Kong"
+  },
+  "observed_count": 1184,
+  "scope_count": 1184,
+  "coverage_status": "PARTIAL",
+  "gaps": [
+    "ANNOUNCEMENT_OUTSIDE_PUBLICATION_WINDOW",
+    "BODY_ARTICLE_TITLE_OR_DATE_MISMATCH",
+    "BODY_PAGE_TOTAL_INVALID",
+    "CAPTURE_AVAILABLE_AFTER_RESEARCH_CUTOFF"
+  ],
+  "article_publication_dates": {
+    "2026-10-14": 340,
+    "2026-10-15": 392,
+    "2026-10-16": 452
+  },
+  "body_statuses": {
+    "COMPLETE_CONTENT_API_BODY": 1150,
+    "NOT_REQUESTED_OUTSIDE_RESEARCH_WINDOW": 31,
+    "BODY_CAPTURE_FAILED": 3
+  },
+  "max_article_publication_time": "",
+  "rows_duplicated_as_source_variants": true,
+  "source_variant_count": 1184
+}
