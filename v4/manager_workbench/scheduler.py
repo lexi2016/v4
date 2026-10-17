@@ -21,6 +21,76 @@ def _require_calendar(calendar: Any, day: str) -> bool:
     return value
 
 
+def _us_close_handoff(service: ManagerService, *, calendar: Any,
+                      local: datetime) -> list[dict[str, str]]:
+    """Consume a verified exact-session US close through the existing selector.
+
+    The scheduler is already resident on the existing manager owner. This
+    hook adds no producer or service: it submits the existing US_MAPPING lane
+    only after the native owner binding verifies a post-close artifact/receipt.
+    The cursor includes the exact payload SHA so repeated delivery is
+    idempotent while a corrected immutable artifact can be consumed separately.
+    """
+    adapters = getattr(service, "adapters", None)
+    config = getattr(adapters, "config", None)
+    resolver = getattr(adapters, "_us_session", None)
+    if config is None or not getattr(config, "us_root", None) or not callable(resolver):
+        return []
+    try:
+        session = resolver(local.isoformat())
+        target = calendar.next_hk_session(session)
+        validate_date(session)
+        validate_date(target)
+        if target <= session or not _require_calendar(calendar, target):
+            return []
+        context = service.context(
+            target, Phase.NEXT_DAY, trigger="SCHEDULED", cutoff=local,
+            lanes=[Lane.US_MAPPING],
+            scope_refs={"us_close_handoff": True, "us_session_date": session},
+        )
+        pin = (context.scope_refs.get("owner_bindings") or {}).get("us_mapping")
+        if (not isinstance(pin, dict)
+                or pin.get("capture_phase") != "POST_CLOSE"
+                or pin.get("capture_status") not in {"READY", "READY_EMPTY"}
+                or pin.get("capture_session_date") != session
+                or not isinstance(pin.get("quote_sha256"), str)
+                or len(pin["quote_sha256"]) != 64
+                or not isinstance(pin.get("owner_receipt_sha256"), str)
+                or len(pin["owner_receipt_sha256"]) != 64):
+            return []
+        artifact_sha = pin["quote_sha256"]
+        cursor_key = f"us_close_{session}_{target}_{artifact_sha}"
+        if service.store.cursor(cursor_key):
+            return []
+        job = service.submit(
+            target, Phase.NEXT_DAY, trigger="SCHEDULED",
+            lanes=[Lane.US_MAPPING], cutoff=local,
+            scope_refs={
+                "us_close_handoff": True,
+                "us_session_date": session,
+                "owner_artifact_sha256": artifact_sha,
+                "owner_receipt_sha256": pin["owner_receipt_sha256"],
+                "owner_manifest_sha256": pin.get("owner_manifest_sha256"),
+                "source_cutoff": pin.get("capture_cutoff"),
+            },
+        )
+        service.store.set_cursor(cursor_key, {
+            "job_id": job.job_id,
+            "run_id": job.run_id,
+            "target_date": target,
+            "us_session_date": session,
+            "artifact_sha256": artifact_sha,
+            "receipt_sha256": pin["owner_receipt_sha256"],
+        })
+        return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
+                 "state": "SUBMITTED", "job_id": job.job_id,
+                 "run_id": job.run_id, "target_date": target,
+                 "us_session_date": session}]
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        # Missing/partial owner input stays missing; no stale-session fallback.
+        return []
+
+
 def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
          at: datetime | None = None) -> dict[str, Any]:
     """Idempotently assess 09:25, changed Stage runs, and 16:30 next-day due.
@@ -33,9 +103,12 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
         raise ValueError("SCHEDULER_TIMEZONE_REQUIRED")
     local = instant.astimezone(HK)
     day = local.strftime("%Y%m%d")
+    # US close may complete while HK is closed (for example Saturday 04:15 HKT).
+    # Check the exact-session owner receipt before the HK-session-only jobs.
+    jobs: list[dict[str, str]] = _us_close_handoff(service, calendar=calendar, local=local)
     if not _require_calendar(calendar,day):
-        return {"state":"NOT_APPLICABLE", "date":day,"reason":"HK_NON_TRADING_SESSION","jobs":[]}
-    jobs: list[dict[str, str]] = []
+        return {"state":"NOT_APPLICABLE", "date":day,
+                "reason":"HK_NON_TRADING_SESSION","jobs":jobs}
     scheduled = getattr(getattr(service, "config", None), "scheduled_lanes", None)
     # A new configured scope cannot retry an older all-lane claim and thereby
     # restore paused research. Default keys/behavior remain compatible.
