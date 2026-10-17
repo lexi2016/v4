@@ -4,8 +4,6 @@ from infrastructure.owned_io import SafeRoot
 from .inputs.validation import before
 from .engines.common import US_FACTOR_RULES_VERSION
 
-FACTOR_ROW_SUBTYPES = {'US_DAILY_RETURN_FACTOR_CANDIDATE', 'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'}
-
 def checked_time(value,cutoff):
  if not before(value,cutoff):raise ValueError('DISPLAY_SOURCE_TIME_UNKNOWN_OR_LATE')
 
@@ -67,7 +65,7 @@ def us_summary(snapshot,names):
   out.append(dict(us_symbol=us,decisions=decisions,rows=rows))
  factor_summary=next((row.get('us_factor_summary') for row in lane.rows
   if isinstance(row.get('us_factor_summary'),dict)),None)
- source_row_count=sum(1 for row in lane.rows if row.get('subtype') not in FACTOR_ROW_SUBTYPES)
+ source_row_count=sum(1 for row in lane.rows if row.get('subtype')!='US_DAILY_RETURN_FACTOR_CANDIDATE')
  return dict(display_only=True,plan_run_id=snapshot.run_id,coverage=lane.coverage.model_dump(mode='json'),
   source_symbol_count=len(groups),source_row_count=source_row_count,relation_row_count=len(relations),
   mapped_hk_count=len({r['symbol'] for r in relations}),source_decision_counts=counts,mixed_source_count=mixed,
@@ -95,11 +93,9 @@ def lane_projection(snapshot,lane_name,names,decision=None,q=None):
  lane=next((l for l in snapshot.lanes if l.lane.value==lane_name),None)
  if lane is None:return None
  factor_rules=(lane_name=='US_MAPPING' and snapshot.context.rules_version==US_FACTOR_RULES_VERSION)
- industry_rows=[row for row in lane.rows if row.get('subtype')=='HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'] if factor_rules else []
- legacy_rows=[row for row in lane.rows if row.get('subtype')!='HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'] if factor_rules else lane.rows
  counts={k:0 for k in ['selected','watch','unassessed','not_selected','observation_only']}
  keys=dict(SELECTED='selected',CONDITIONAL_WATCH='watch',UNASSESSED='unassessed',NOT_SELECTED='not_selected',OBSERVATION_ONLY='observation_only')
- for row in legacy_rows:
+ for row in lane.rows:
   if row.get('decision') in keys:counts[keys[row['decision']]]+=1
  stocks=[value for i in range(len(lane.rows)) if (value:=lane_stock(snapshot,lane,i,names)) is not None]
  hk_count=len({s['symbol'] for s in stocks})
@@ -113,31 +109,25 @@ def lane_projection(snapshot,lane_name,names,decision=None,q=None):
   representatives={}
   for stock in stocks:
    previous=representatives.get(stock['symbol'])
-   priority={'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE':3,'US_DAILY_RETURN_FACTOR_CANDIDATE':2}.get(stock.get('subtype'),1)
-   previous_priority={'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE':3,'US_DAILY_RETURN_FACTOR_CANDIDATE':2}.get(previous.get('subtype'),1) if previous else 0
-   if previous is None or priority>previous_priority:representatives[stock['symbol']]=stock
+   is_factor=stock.get('subtype')=='US_DAILY_RETURN_FACTOR_CANDIDATE'
+   previous_factor=previous and previous.get('subtype')=='US_DAILY_RETURN_FACTOR_CANDIDATE'
+   if previous is None or (is_factor and not previous_factor):representatives[stock['symbol']]=stock
   stocks=list(representatives.values())
   factor_summary=next((row.get('us_factor_summary') for row in lane.rows
    if isinstance(row.get('us_factor_summary'),dict)),{})
-  relation_count=sum(1 for row in legacy_rows if row.get('subtype') not in FACTOR_ROW_SUBTYPES
+  relation_count=sum(1 for row in lane.rows if row.get('subtype')!='US_DAILY_RETURN_FACTOR_CANDIDATE'
    and re.fullmatch(r'HK\.[0-9]{5}',str(row.get('symbol',''))))
-  industry_candidate_row_count=len(industry_rows)
  else:
   factor_summary={}
-  industry_candidate_row_count=0
-  relation_count=sum(1 for row in lane.rows if row.get('subtype') not in FACTOR_ROW_SUBTYPES
+  relation_count=sum(1 for row in lane.rows if row.get('subtype')!='US_DAILY_RETURN_FACTOR_CANDIDATE'
    and re.fullmatch(r'HK\.[0-9]{5}',str(row.get('symbol',''))))
  if q:
-  term=q.casefold();stocks=[s for s in stocks if any(term in str(s.get(k) or '').casefold() for k in ['symbol','name','us_symbol','theme','source_industry'])]
- industry_summary=factor_summary.get('industry_summary') if factor_rules else None
+  term=q.casefold();stocks=[s for s in stocks if any(term in str(s.get(k) or '').casefold() for k in ['symbol','name','us_symbol'])]
  return dict(stocks=stocks,counts=counts,lane_state=lane.state.value,
   recommendation_projection=dict(display_only=True,snapshot_hash_basis='ORIGINAL_SAVED_SNAPSHOT',lane=lane_name,
-   count_unit='SAVED_LANE_RESEARCH_ROWS',row_count=len(legacy_rows),
+   count_unit='SAVED_LANE_RESEARCH_ROWS',row_count=len(lane.rows),
    hk_relation_row_count=relation_count,distinct_hk_count=hk_count,
    factor_stock_count=factor_summary.get('unique_factor_stock_count') if factor_rules else None,
    factor_path_count=factor_summary.get('factor_path_count') if factor_rules else None,
-   source_only_row_count=len(legacy_rows)-relation_count-sum(1 for row in legacy_rows if row.get('subtype')=='US_DAILY_RETURN_FACTOR_CANDIDATE'),
-   industry_candidate_row_count=industry_candidate_row_count,
-   industry_candidate_stock_count=(industry_summary or {}).get('triggered_unique_stock_count'),
-   industry_scope_count=(industry_summary or {}).get('scope_count'),
+   source_only_row_count=len(lane.rows)-relation_count-(factor_summary.get('unique_factor_stock_count') or 0),
    coverage=lane.coverage.model_dump(mode='json')))

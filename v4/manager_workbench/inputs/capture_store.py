@@ -16,6 +16,9 @@ from infrastructure.owned_io import SafeRoot
 
 OWNER = 'v4.manager_workbench.capture_announcements'
 SOURCES = {'EASTMONEY_HK', 'HKEX_OFFICIAL'}
+# Product JSON is consumed downstream with a 256 MiB bound. Keep this limit
+# local to the product contract; SafeRoot's shared 64 MiB default stays intact.
+PRODUCT_MAX_BYTES = 256 * 1024 * 1024
 
 
 def encoded(value):
@@ -38,6 +41,7 @@ class CaptureStore:
         if source not in SOURCES: raise ValueError('CAPTURE_SOURCE_INVALID')
         self.io=SafeRoot(root); self.leases=SafeRoot(lease_root or root)
         self.source=source; self.token=token; self.clock=clock or (lambda: datetime.now(timezone.utc))
+        self._request_index=None
 
     def now(self): return aware(self.clock())
     @property
@@ -95,8 +99,38 @@ class CaptureStore:
         except FileNotFoundError: self.io.write_bytes(path,raw,require_absent=True)
         return path,identity
 
-    def fetch(self, url, *, scope, transport, validate, max_bytes=32*1024*1024):
+    def _reusable_receipts(self, request, reusable_scope):
+        """Find immutable successful receipts for the same source URL and stable scope."""
+        if not isinstance(reusable_scope,dict) or not reusable_scope:
+            raise ValueError('CAPTURE_REUSE_SCOPE_INVALID')
+        if self._request_index is None:
+            index={}
+            for name in self.io.files('requests'):
+                path=f'requests/{name}'
+                try: receipt=json.loads(self.io.read_bytes(path))
+                except (ValueError,UnicodeDecodeError): continue
+                original=receipt.get('request') if isinstance(receipt,dict) else None
+                if (not isinstance(original,dict) or original.get('method')!='GET'
+                        or receipt.get('status')!='CAPTURED'):
+                    continue
+                identity=(original.get('source'),original.get('method'),original.get('url'))
+                index.setdefault(identity,[]).append((name,receipt))
+            self._request_index=index
+        identity=(request['source'],request['method'],request['url'])
+        candidates=[]
+        for name,receipt in self._request_index.get(identity,[]):
+            original_scope=receipt.get('request',{}).get('scope')
+            if not isinstance(original_scope,dict): continue
+            if all(original_scope.get(key)==value for key,value in reusable_scope.items()):
+                candidates.append((name,receipt))
+        return candidates
+
+    def fetch(self, url, *, scope, transport, validate, max_bytes=32*1024*1024,
+              reusable_scope=None, reuse_before=None):
         self.assert_exclusive_owner()
+        if (reusable_scope is None) != (reuse_before is None):
+            raise ValueError('CAPTURE_REUSE_BOUNDARY_REQUIRED')
+        if reuse_before is not None: reuse_before=aware(reuse_before)
         parts=urlsplit(url)
         allowed=({'np-anotice-stock.eastmoney.com':'/api/security/ann',
                   'np-cnotice-stock.eastmoney.com':'/api/content/ann'} if self.source=='EASTMONEY_HK' else
@@ -111,9 +145,9 @@ class CaptureStore:
         with self.io.kernel_lock(f'locks/{key}.lock'):
             self.assert_exclusive_owner()
             previous=self._json(self.io,pointer)
-            def checked(receipt):
+            def checked(receipt, *, expected_request=request, expected_key=key, verify_content=True):
                 capsule={k:v for k,v in receipt.items() if k!='receipt_sha256'}
-                if (receipt.get('request')!=request or receipt.get('request_sha256')!=key
+                if (receipt.get('request')!=expected_request or receipt.get('request_sha256')!=expected_key
                         or receipt.get('receipt_sha256')!=sha(encoded(capsule))
                         or receipt.get('status')!='CAPTURED' or receipt.get('http_status')!=200
                         or receipt.get('artifact_ref')!=f"objects/{receipt.get('sha256')}.bin"):
@@ -121,9 +155,35 @@ class CaptureStore:
                 aware(receipt['captured_at']);aware(receipt['available_at'])
                 raw=self.io.read_bytes(receipt['artifact_ref'],max_bytes=max_bytes)
                 if sha(raw)!=receipt['sha256']: raise ValueError('CAPTURE_CACHED_SHA_MISMATCH')
-                validate(raw)
-                return raw,dict(receipt,from_cache=True)
-            if previous: return checked(previous)
+                if verify_content: validate(raw)
+                return raw
+            def reused_success():
+                for name,original in self._reusable_receipts(request,reusable_scope):
+                    original_request=original.get('request')
+                    if not isinstance(original_request,dict): continue
+                    original_key=sha(encoded(original_request))
+                    if name!=f'{original_key}.json': continue
+                    raw=checked(original,expected_request=original_request,expected_key=original_key,
+                                verify_content=False)
+                    if aware(original['available_at'])>reuse_before: continue
+                    try: validate(raw)
+                    except ValueError: continue
+                    origin=original.get('reused_from')
+                    if not isinstance(origin,dict):
+                        origin=dict(request_sha256=original_key,
+                                    receipt_sha256=original['receipt_sha256'],
+                                    artifact_ref=original['artifact_ref'],
+                                    captured_at=original['captured_at'],
+                                    available_at=original['available_at'])
+                    derived=dict(request=request,request_sha256=key,status='CAPTURED',http_status=200,
+                        captured_at=original['captured_at'],available_at=original['available_at'],
+                        sha256=original['sha256'],response_bytes=original['response_bytes'],
+                        artifact_ref=original['artifact_ref'],from_cache=True,reused_from=origin)
+                    derived['receipt_sha256']=sha(encoded(derived))
+                    with self.guard(): self.io.write_bytes(pointer,encoded(derived),require_absent=True)
+                    return raw,derived
+                return None
+            if previous: return checked(previous),dict(previous,from_cache=True)
             # Crash after the immutable success receipt but before the pointer:
             # recover that same successful page, without another source request.
             completed=[]
@@ -132,9 +192,12 @@ class CaptureStore:
                 if receipt and receipt.get('status')=='CAPTURED': completed.append(receipt)
             if completed:
                 receipt=max(completed,key=lambda r:aware(r['available_at']))
-                result=checked(receipt)
+                result=(checked(receipt),dict(receipt,from_cache=True))
                 with self.guard(): self.io.write_bytes(pointer,encoded(receipt),require_absent=True)
                 return result
+            if reusable_scope is not None:
+                reused=reused_success()
+                if reused is not None: return reused
             if transport is None: raise ValueError('CAPTURE_TRANSPORT_NOT_BOUND')
             self.assert_exclusive_owner()
             receipt=dict(request=request,request_sha256=key,attempt_id=uuid4().hex,
@@ -171,7 +234,7 @@ class CaptureStore:
         raw=encoded(value); identity=sha(raw); path=f'products/{identity}.json'
         with self.guard():
             try:
-                if self.io.read_bytes(path)!=raw: raise ValueError('CAPTURE_PRODUCT_CONFLICT')
+                if self.io.read_bytes(path, max_bytes=PRODUCT_MAX_BYTES)!=raw: raise ValueError('CAPTURE_PRODUCT_CONFLICT')
             except FileNotFoundError: self.io.write_bytes(path,raw,require_absent=True)
-            if self.io.read_bytes(path)!=raw: raise ValueError('CAPTURE_PRODUCT_READBACK_FAILED')
+            if self.io.read_bytes(path, max_bytes=PRODUCT_MAX_BYTES)!=raw: raise ValueError('CAPTURE_PRODUCT_READBACK_FAILED')
         return dict(artifact_ref=path,sha256=identity,owner=OWNER,source=self.source)

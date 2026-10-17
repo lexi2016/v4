@@ -59,6 +59,10 @@ class ManagerService:
         self.executor = executor
         self.store = WorkbenchStore(config.state_root)
         self.jobs = JobCoordinator(self.store, workers=config.workers)
+        self.oversold_daily=None
+        if config.scheduled_lanes is not None and Lane.OVERSOLD in config.scheduled_lanes:
+            from .oversold_daily import OversoldDaily
+            self.oversold_daily=OversoldDaily(self)
         self.capture_jobs=None
         if config.capture_enabled:
             from .inputs.capture_jobs import CaptureJobs
@@ -105,7 +109,82 @@ class ManagerService:
 
     def stop(self):
         if self.capture_jobs:self.capture_jobs.stop()
+        if getattr(self,"oversold_daily",None):self.oversold_daily.stop()
         self.jobs.stop()
+
+    def _merge_phase_lane_snapshots(self, previous, incoming):
+        if incoming.context.phase != Phase.NEXT_DAY:
+            raise StorageConflict("PHASE_LANE_MERGE_PHASE_INVALID")
+        if previous is not None and (previous.context.target_date!=incoming.context.target_date
+                or previous.context.phase!=incoming.context.phase or previous.context.market!=incoming.context.market
+                or previous.context.rules_version!=incoming.context.rules_version
+                or previous.context.source_sessions.get("hk_price")!=incoming.context.source_sessions.get("hk_price")):
+            raise StorageConflict("PHASE_LANE_MERGE_CONTEXT_MISMATCH")
+        lanes={}
+        sources={}
+        inputs={}
+        cutoffs={}
+        sessions={}
+        fingerprints={}
+        requested=set(incoming.context.scope_refs.get("requested_lanes",[]))
+        if previous is not None:
+            requested.update(previous.context.scope_refs.get("requested_lanes",[]))
+            previous_sources=previous.changes.get("phase_lane_sources",{})
+            previous_inputs=previous.changes.get("phase_lane_inputs",{})
+            previous_cutoffs=previous.changes.get("phase_lane_cutoffs",{})
+            previous_sessions=previous.changes.get("phase_lane_source_sessions",{})
+            previous_fingerprints=previous.changes.get("phase_lane_fingerprints",{})
+            for lane in previous.lanes:
+                lanes[lane.lane.value]=lane
+                sources[lane.lane.value]=previous_sources.get(lane.lane.value,previous.run_id)
+                inputs[lane.lane.value]=previous_inputs.get(lane.lane.value,lane.input_sha256)
+                cutoffs[lane.lane.value]=previous_cutoffs.get(lane.lane.value,
+                    previous.context.scope_refs.get("source_cutoff",previous.context.cutoff))
+                sessions[lane.lane.value]=previous_sessions.get(lane.lane.value,previous.context.source_sessions)
+                fingerprints[lane.lane.value]=previous_fingerprints.get(lane.lane.value,
+                    previous.changes.get("fingerprint"))
+        requested.update(lane.lane.value for lane in incoming.lanes)
+        for lane in incoming.lanes:
+            lanes[lane.lane.value]=lane
+            sources[lane.lane.value]=incoming.changes.get("phase_lane_sources",{}).get(lane.lane.value,incoming.run_id)
+            inputs[lane.lane.value]=lane.input_sha256
+            cutoffs[lane.lane.value]=incoming.context.scope_refs.get("source_cutoff",incoming.context.cutoff)
+            sessions[lane.lane.value]=incoming.context.source_sessions
+            fingerprints[lane.lane.value]=incoming.changes.get("fingerprint")
+        if previous is not None and previous.run_id==incoming.run_id:
+            prior={lane.lane.value:lane for lane in previous.lanes}
+            if all(name in prior and prior[name].input_sha256==lane.input_sha256
+                   for name,lane in ((item.lane.value,item) for item in incoming.lanes)):
+                return previous
+            raise StorageConflict("PHASE_LANE_RUN_REUSE_CONFLICT")
+        ctx=incoming.context.model_copy(deep=True)
+        ctx.scope_refs["requested_lanes"]=sorted(requested)
+        merged_lanes=[lane.model_copy(update={"run_id":incoming.run_id},deep=True)
+            for _,lane in sorted(lanes.items())]
+        stocks=[StockDecision.model_validate(row) for row in self.engines.merge_decisions(ctx,merged_lanes)]
+        stocks=sort_stocks(stocks,merged_lanes)
+        incomplete=len(merged_lanes)<len(requested)
+        partial=incomplete or any(lane.state in (LaneState.NOT_RUN,LaneState.RUNNING,LaneState.PARTIAL,
+            LaneState.INPUT_MISSING,LaneState.FAILED) for lane in merged_lanes)
+        gaps=list(dict.fromkeys([gap for lane in merged_lanes for gap in lane.gaps]))
+        if incomplete:gaps.append("LANE_RESULTS_INCOMPLETE")
+        if partial and not gaps:gaps.append("LANE_PARTIAL")
+        changes=dict(incoming.changes)
+        changes.update(phase_lane_sources=sources,phase_lane_inputs=inputs,phase_lane_cutoffs=cutoffs,
+            phase_lane_source_sessions=sessions,phase_lane_fingerprints=fingerprints)
+        body=incoming.model_dump(mode="json")
+        body.update(context=ctx.model_dump(mode="json"),input_sha256=digest({"phase_lane_inputs":inputs}),
+            lanes=[lane.model_dump(mode="json") for lane in merged_lanes],
+            stocks=[stock.model_dump(mode="json") for stock in stocks],
+            counts=(Counts() if not stocks and partial else count_rows(stocks)).model_dump(mode="json"),
+            changes=changes,gaps=list(dict.fromkeys(gaps)))
+        merged=seal_snapshot(body)
+        validate_selected_evidence(merged)
+        return merged
+
+    def _commit_plan(self,snapshot):
+        merger=self._merge_phase_lane_snapshots if snapshot.context.scope_refs.get("merge_phase_lanes") else None
+        return self.store.commit_plan(snapshot,merger=merger)
 
     def retry(self, job_id: str) -> JobRecord:
         previous = self.jobs.get(job_id)
@@ -136,7 +215,7 @@ class ManagerService:
                 raise StepFailure("CHECKPOINT_RUN_MISMATCH")
             self.jobs.update(job, step="PUBLISH")
             try:
-                saved = self.store.commit_plan(snap)
+                saved = self._commit_plan(snap)
             except (StorageUnavailable, OSError) as exc:
                 raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
             return saved.run_id, JobState.PARTIAL if saved.gaps else JobState.SUCCEEDED
@@ -273,7 +352,7 @@ class ManagerService:
         self.store.save_checkpoint(job.job_id, "PUBLISH", snap.model_dump(mode="json"))
         self.jobs.update(job, step="PUBLISH")
         try:
-            saved = self.store.commit_plan(snap)
+            saved = self._commit_plan(snap)
         except (StorageUnavailable, OSError) as exc:
             raise StepFailure("PUBLISH_UNAVAILABLE", retryable=True) from exc
         return saved.run_id, JobState.PARTIAL if partial else JobState.SUCCEEDED

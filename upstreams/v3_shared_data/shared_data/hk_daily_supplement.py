@@ -729,6 +729,22 @@ TDXPY_NODES = ("116.205.143.214:7727", "103.221.142.82:7727")
 TDXPY_MARKETS = {31: "香港主板", 48: "香港创业板", 49: "香港基金"}
 WINDOW_SCHEMA = "v3_shared_data.hk_0_2_daily_supplement_tdxpy_window.v1"
 WINDOW_MANIFEST = "v3_shared_data.hk_0_2_daily_supplement_tdxpy_manifest.v1"
+_TRANSPORT_ERROR_TYPES={"CONNECTIONERROR","CONNECTIONABORTEDERROR","CONNECTIONREFUSEDERROR",
+    "CONNECTIONRESETERROR","BROKENPIPEERROR","TIMEOUTERROR","SOCKETTIMEOUT","NETWORKERROR",
+    "REMOTEDISCONNECTED","TDXCONNECTIONERROR","TDXSOCKETERROR","TDXTIMEOUTERROR",
+    "RESPONSEHEADERRECVFAILS"}
+_TRANSPORT_ERROR_CODES={"TDXPY_CONNECT_FAILED","HK_DAILY_SUPPLEMENT_TDX_CONNECT_FAILED"}
+_OS_TRANSPORT_MESSAGES=("CONNECTION RESET","CONNECTION REFUSED","CONNECTION ABORTED",
+    "BROKEN PIPE","NETWORK IS UNREACHABLE","NO ROUTE TO HOST","TIMED OUT","TEMPORARY FAILURE")
+
+
+def is_tdxpy_transport_error(error_type,error):
+    """Recognize explicit connection/timeout evidence without retrying data quarantine."""
+    kind=str(error_type or "").rsplit(".",1)[-1].upper()
+    message=str(error or "").upper()
+    if kind in _TRANSPORT_ERROR_TYPES or any(code in message for code in _TRANSPORT_ERROR_CODES):
+        return True
+    return kind in {"OSERROR","IOERROR"} and any(token in message for token in _OS_TRANSPORT_MESSAGES)
 
 
 def _json_native(value):
@@ -741,7 +757,7 @@ def _json_native(value):
     return value
 
 
-def _catalogue_document(endpoint,calls,available_at,*,failure=None,recovered_from=None):
+def _catalogue_document(endpoint,calls,available_at,*,failure=None,recovered_from=None,cache_refresh=None):
     if len(calls)<2 or calls[0]['method']!='get_markets' or calls[1]['method']!='get_instrument_count':
         raise ValueError('TDXPY_CATALOGUE_HEADER_MISSING')
     total=calls[1]['response'];rows=[];gaps=[];seen_positions=set();final_total=None
@@ -762,7 +778,47 @@ def _catalogue_document(endpoint,calls,available_at,*,failure=None,recovered_fro
     doc=dict(endpoint=endpoint,markets=calls[0]['response'],rows=rows,total=total,calls=calls,
         available_at=available_at,coverage_status='PARTIAL' if gaps else 'COMPLETE',coverage_gaps=gaps)
     if recovered_from:doc['recovered_from']=recovered_from
+    if cache_refresh:doc['cache_refresh']=cache_refresh
     return doc
+
+
+def _catalogue_transient_failure(doc):
+    return any(isinstance(failure,dict)
+        and is_tdxpy_transport_error(failure.get('error_type'),failure.get('error'))
+        for failure in _catalogue_capture_errors(doc))
+
+
+def _catalogue_capture_errors(doc):
+    return [gap['error'] for gap in doc.get('coverage_gaps',[])
+        if gap.get('code')=='TDXPY_CATALOGUE_CAPTURE_ERROR' and isinstance(gap.get('error'),dict)]
+
+
+def _catalogue_preserves_entries(previous,current):
+    if previous.get('endpoint')!=current.get('endpoint') or previous.get('total')!=current.get('total'):
+        return False
+    if previous.get('markets')!=current.get('markets'):
+        return False
+    old={(row.get('market'),row.get('code')):row for row in previous.get('rows',[])}
+    new={(row.get('market'),row.get('code')):row for row in current.get('rows',[])}
+    return len(old)==len(previous.get('rows',[])) and all(new.get(key)==row for key,row in old.items())
+
+
+def _archive_and_replace_partial_catalogue(output,cpath,previous,current):
+    previous_bytes=cpath.read_bytes();previous_sha=_sha(previous_bytes)
+    relative=f"catalogues/archive/{previous['endpoint'].replace(':','_')}/{previous_sha}.json"
+    archive_path=resolve_under(output,relative)
+    if archive_path.exists():
+        if archive_path.read_bytes()!=previous_bytes:
+            raise ValueError('TDXPY_CATALOGUE_CACHE_ARCHIVE_SHA_COLLISION')
+    else:
+        _write_atomic(archive_path,previous_bytes,replace=False)
+    current=dict(current,cache_refresh=dict(schema_version='v3_shared_data.tdxpy_catalogue_cache_refresh.v1',
+        previous_relative=relative,previous_sha256=previous_sha))
+    _verify_catalogue(current,output)
+    if cpath.read_bytes()!=previous_bytes:
+        raise ValueError('TDXPY_CATALOGUE_CACHE_CHANGED_DURING_REFRESH')
+    _write_atomic(cpath,_canonical(current),replace=True)
+    return current
 
 
 def _catalogue(api, endpoint, clock):
@@ -811,8 +867,22 @@ def _verify_catalogue(doc,root=None):
                 ended=True
             else:raise ValueError('TDXPY_CATALOGUE_REQUESTS_INVALID')
     failure=next((g['error'] for g in doc.get('coverage_gaps',[]) if g.get('code')=='TDXPY_CATALOGUE_CAPTURE_ERROR'),None)
-    rebuilt=_catalogue_document(doc['endpoint'],calls,doc['available_at'],failure=failure,recovered_from=doc.get('recovered_from'))
+    rebuilt=_catalogue_document(doc['endpoint'],calls,doc['available_at'],failure=failure,
+        recovered_from=doc.get('recovered_from'),cache_refresh=doc.get('cache_refresh'))
     if rebuilt!=doc or calls[1]['response']!=total or _timestamp(doc['available_at'])<last_time:raise ValueError('TDXPY_CATALOGUE_IDENTITY_INVALID')
+    cache_refresh=doc.get('cache_refresh')
+    if cache_refresh:
+        if (root is None or set(cache_refresh)!={'schema_version','previous_relative','previous_sha256'}
+                or cache_refresh.get('schema_version')!='v3_shared_data.tdxpy_catalogue_cache_refresh.v1'
+                or not cache_refresh.get('previous_relative','').startswith('catalogues/archive/')):
+            raise ValueError('TDXPY_CATALOGUE_CACHE_REFRESH_REFERENCE_INVALID')
+        previous_bytes=resolve_under(root,cache_refresh['previous_relative']).read_bytes()
+        if _sha(previous_bytes)!=cache_refresh['previous_sha256']:
+            raise ValueError('TDXPY_CATALOGUE_CACHE_REFRESH_SHA_MISMATCH')
+        previous=_verify_catalogue(json.loads(previous_bytes),root)
+        if (previous.get('endpoint')!=doc.get('endpoint') or previous.get('coverage_status')!='PARTIAL'
+                or not _catalogue_transient_failure(previous)):
+            raise ValueError('TDXPY_CATALOGUE_CACHE_REFRESH_SOURCE_INVALID')
     for market,name in TDXPY_MARKETS.items():
         matches=[r for r in doc['markets'] if r.get('market')==market]
         if len(matches)!=1 or matches[0].get('name')!=name or matches[0].get('category')!=2:raise ValueError('TDXPY_HK_MARKET_IDENTITY_INVALID')
@@ -969,21 +1039,81 @@ def capture_tdxpy_window_supplement(authority_root, *, target_date, connector,
     output.mkdir(parents=True,exist_ok=True)
     with (output/'.capture.lock').open('a+b') as lock:
         fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
-        started=_time_text(clock());catalogues=[];records={};errors={};attempts=[];failed_catalogues=[];requests=0;hits=0
+        started=_time_text(clock());catalogues=[];records={};errors={};attempts=[];failed_catalogues=[]
+        catalogue_cache_refreshes=[];requests=0;hits=0
         if any(_timestamp(v)>_timestamp(started) for v in (panel['manifest_prepared_at'],master['captured_at'])):
             raise ValueError('TDXPY_PARENT_AFTER_CAPTURE')
         for endpoint in TDXPY_NODES:
             if len(records)==len(selected):break
-            api=None
+            api=None;connection_error=None;refresh_needed=False;pending_cache_codes=[]
+            cpath=resolve_under(output,'catalogues/'+endpoint.replace(':','_')+'.json')
             try:
-                api=connector(endpoint)
-                # Catalogue cache is immutable evidence; captures retain its true
-                # observation time and digest, never claim it was refreshed.
-                cpath=resolve_under(output,'catalogues/'+endpoint.replace(':','_')+'.json')
-                if cpath.exists():catalogue=_verify_catalogue(json.loads(cpath.read_bytes()),output)
+                if cpath.exists():
+                    catalogue=_verify_catalogue(json.loads(cpath.read_bytes()),output)
                 else:
-                    catalogue=_recover_catalogue(output,endpoint) or _catalogue(api,endpoint,clock)
+                    catalogue=_recover_catalogue(output,endpoint)
+                    if catalogue is not None:
+                        # A recovered catalogue is already immutable evidence. Save
+                        # it before any refresh so refresh provenance has a source.
+                        _write_atomic(cpath,_canonical(catalogue),replace=False)
+                if catalogue is None:
+                    # A missing catalogue is the only reason to connect before the
+                    # exact per-security request cache can be checked.
+                    api=connector(endpoint)
+                    catalogue=_catalogue(api,endpoint,clock)
                     _write_atomic(cpath,_canonical(catalogue),replace=False)
+                else:
+                    refresh_needed=_catalogue_transient_failure(catalogue)
+                    # Compute exact request cache misses from the cached catalogue
+                    # first. A complete cached request set must survive an offline
+                    # connector without losing already verified READY records.
+                    for code in selected:
+                        if code in records:continue
+                        try:
+                            identity=_catalogue_security(catalogue,code)
+                            request=dict(**TDXPY_PROFILE,endpoint=endpoint,market=identity['security']['market'],code=code,
+                                         requested_sessions=sessions,calendar_sha256=calendar_sha)
+                            cache_path=resolve_under(output,'cache/'+_sha(_canonical(request))+'.json')
+                        except Exception:
+                            continue
+                        if not cache_path.exists():pending_cache_codes.append(code)
+                    if refresh_needed or pending_cache_codes:
+                        try:
+                            api=connector(endpoint)
+                        except Exception as error:
+                            connection_error=error
+                            if refresh_needed:
+                                catalogue_cache_refreshes.append(dict(endpoint=endpoint,
+                                    previous_sha256=_sha(_canonical(catalogue)),status='FAILED',
+                                    error_type=type(error).__name__,error=str(error)))
+                    if refresh_needed and api is not None:
+                        cached=catalogue
+                        try:
+                            refreshed=_catalogue(api,endpoint,clock)
+                        except Exception as error:
+                            catalogue_cache_refreshes.append(dict(endpoint=endpoint,
+                                previous_sha256=_sha(_canonical(cached)),status='FAILED',
+                                error_type=type(error).__name__,error=str(error)))
+                        else:
+                            previous_rows=len(cached.get('rows',[]));refreshed_rows=len(refreshed.get('rows',[]))
+                            should_replace=(refreshed.get('coverage_status')=='COMPLETE'
+                                or (_catalogue_preserves_entries(cached,refreshed)
+                                    and (refreshed_rows>previous_rows or not _catalogue_transient_failure(refreshed))))
+                            if should_replace:
+                                catalogue=_archive_and_replace_partial_catalogue(output,cpath,cached,refreshed)
+                                status=('RECOVERED' if catalogue.get('coverage_status')=='COMPLETE'
+                                    else 'PARTIAL_REFRESHED_STABLE' if not _catalogue_transient_failure(catalogue)
+                                    else 'PARTIAL_IMPROVED')
+                            else:
+                                status='PARTIAL_NOT_SUPERSET_RETAINED'
+                            refresh_event=dict(endpoint=endpoint,previous_sha256=_sha(_canonical(cached)),
+                                status=status,refreshed_coverage=refreshed.get('coverage_status'),
+                                refreshed_row_count=refreshed_rows)
+                            failures=_catalogue_capture_errors(refreshed)
+                            if failures:
+                                refresh_event.update(refreshed_error_type=failures[0].get('error_type'),
+                                    refreshed_error=failures[0].get('error'))
+                            catalogue_cache_refreshes.append(refresh_event)
                 if _timestamp(catalogue['available_at'])>_timestamp(_time_text(clock())):raise ValueError('TDXPY_CATALOGUE_FUTURE')
                 catalogue_sha=_sha(_canonical(catalogue));catalogues.append(catalogue)
                 for code in selected:
@@ -997,6 +1127,10 @@ def capture_tdxpy_window_supplement(authority_root, *, target_date, connector,
                         if cache_path.exists():
                             record=_verify_window_record(json.loads(cache_path.read_bytes()),catalogue,sessions,calendar_sha)
                             hits+=1;records[code]={**record,'cache_hit':True,'catalogue_sha256':catalogue_sha};continue
+                        if api is None:
+                            if connection_error is not None and (code in pending_cache_codes or refresh_needed):
+                                raise connection_error
+                            raise ValueError('TDXPY_REQUEST_CACHE_MISS_WITHOUT_NETWORK')
                         begin=_time_text(clock());requests+=1
                         rows=_json_native(api.get_instrument_bars(4,request['market'],code[3:],0,128))
                         acquired=_time_text(clock())
@@ -1030,7 +1164,8 @@ def capture_tdxpy_window_supplement(authority_root, *, target_date, connector,
         raw=dict(schema_version=WINDOW_SCHEMA,target_date=target_date,requested_sessions=sessions,calendar_sha256=calendar_sha,
             profile=TDXPY_PROFILE,capture_scope=scope,selected_codes=selected,
             panel_identity=panel,master_identity=master,capture_started_at=started,available_at=prepared,
-            catalogues=catalogues,records=[records[c] for c in selected],errors=errors,failed_attempts=attempts,failed_catalogues=failed_catalogues,
+            catalogues=catalogues,records=[records[c] for c in selected],errors=errors,failed_attempts=attempts,
+            failed_catalogues=failed_catalogues,catalogue_cache_refreshes=catalogue_cache_refreshes,
             network_bar_requests=requests,cache_hits=hits,**SAFETY)
         if panel_gap_plan is not None:
             raw.update(panel_gap_plan=panel_gap_plan,panel_gap_plan_sha256=_sha(_canonical(panel_gap_plan)))

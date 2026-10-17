@@ -179,9 +179,12 @@ def _body_page(raw, listing, page, total):
 
 
 def _ref(receipt, role, publication, owner='EASTMONEY_MIRROR'):
-    return dict(evidence_id=role+':'+receipt['request_sha256']+':'+receipt['sha256'],owner=owner,role=role,source_date=publication.replace('-',''),
+    result=dict(evidence_id=role+':'+receipt['request_sha256']+':'+receipt['sha256'],owner=owner,role=role,source_date=publication.replace('-',''),
         sha256=receipt['sha256'],available_at=receipt['available_at'],captured_at=receipt['captured_at'],
         source_url=receipt['request']['url'],artifact_ref=receipt['artifact_ref'],verification='VERIFIED')
+    if isinstance(receipt.get('reused_from'),dict):
+        result['reused_from']=dict(receipt['reused_from'])
+    return result
 
 
 def capture_window(context, request, store: CaptureStore):
@@ -232,7 +235,9 @@ def capture_window(context, request, store: CaptureStore):
                     url=content_url(listing['art_code'],index)
                     validate=lambda raw,p=index,t=expected: _body_page(raw,listing,p,t)
                     try:
-                        raw,receipt=store.fetch(url,scope=body_scope,transport=transport,validate=validate)
+                        raw,receipt=store.fetch(url,scope=body_scope,transport=transport,validate=validate,
+                            reusable_scope=dict(protocol='EASTMONEY_CONTENT_V1',publication_date=publication),
+                            reuse_before=context.cutoff)
                         data,matched=validate(raw);expected=data['page_size'];text=data['notice_content']
                         body_pages.append(dict(page_number=index,page_total=expected,text=text,text_sha256=sha(text.encode()),
                             source_ref=_ref(receipt,'CONTENT_API_PAGE',publication),matched_source_issuer_codes=matched))

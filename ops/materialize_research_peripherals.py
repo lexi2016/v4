@@ -8,7 +8,6 @@ legacy artifact, V3 path, or trading decision is involved.
 from __future__ import annotations
 
 import argparse
-import base64
 import copy
 import hashlib
 import html
@@ -33,11 +32,14 @@ from infrastructure.http_transport import (
     ProxyAwareHTTPTransport,
     TransportError,
 )
-from infrastructure.owned_io import SafeRoot
-from infrastructure.research_peripheral_store import (
-    HK_INDUSTRY_SOURCE,
-    ResearchPeripheralStore,
-)
+from infrastructure.research_peripheral_store import ResearchPeripheralStore
+
+# Preserve direct-file CLI discovery of the sibling review modules.
+if __name__ == "__main__" and not __package__:
+    import sys as _v4_import_sys
+    from pathlib import Path as _v4_import_Path
+    _v4_import_sys.path.insert(0, str(_v4_import_Path(__file__).resolve().parents[1]))
+
 
 
 GOOGLE_NEWS_RSS = "https://news.google.com/rss/search"
@@ -46,165 +48,16 @@ MYMEMORY_TRANSLATE = "https://api.mymemory.translated.net/get"
 AIHOT_URL = "https://aihot.virxact.com/?mark_id=999_reallog_mark_ad%3A999%7CWeiboADNatural"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) v3.5-research-peripherals/1.0"
 
-DEFAULT_SUBSCRIPTIONS: tuple[dict[str, str], ...] = (
-    {
-        "id": "authority_china_hk",
-        "display_name": "A/H authority feed",
-        "query": (
-            "(site:reuters.com OR site:bloomberg.com OR site:cnbc.com OR site:wsj.com "
-            "OR site:ft.com OR site:asia.nikkei.com OR site:scmp.com) "
-            "(China stocks OR Hong Kong stocks OR Hang Seng OR Alibaba OR Tencent OR BYD "
-            "OR TSMC OR SMIC OR CATL OR Xiaomi OR Zhongji Innolight OR Kingboard Laminates) "
-            "(market OR shares OR earnings OR policy OR IPO)"
-        ),
-        "theme_bucket": "china_hk_stocks",
-    },
-    {
-        "id": "china_hk_stocks",
-        "display_name": "China/HK stocks",
-        "query": (
-            "(Hong Kong stocks OR Hang Seng OR HSI OR China stocks OR Chinese stocks OR ADRs "
-            "OR China market OR southbound funds) "
-            "(rally OR slump OR earnings OR policy OR IPO OR valuation)"
-        ),
-        "theme_bucket": "china_hk_stocks",
-    },
-    {
-        "id": "china_tech_ai_semis",
-        "display_name": "China tech / AI / semis",
-        "query": (
-            "(China semiconductor OR China AI chip OR China EV OR China robotics OR China biotech "
-            "OR China brokerages OR optical module OR CPO) "
-            "(stocks OR shares OR market OR policy OR earnings)"
-        ),
-        "theme_bucket": "china_tech_ai_semis",
-    },
-    {
-        "id": "hk_ipo_new_economy",
-        "display_name": "HK IPO / new economy",
-        "query": (
-            "(Hong Kong IPO OR HK IPO OR Chinese autonomous driving IPO OR China biotech IPO "
-            "OR China robotaxi IPO OR Chinese AI company listing) "
-            "(stock OR market OR valuation OR listing)"
-        ),
-        "theme_bucket": "hk_ipo_new_economy",
-    },
-    {
-        "id": "ai_compute_chip",
-        "display_name": "AI compute / chips",
-        "query": (
-            "(AI data center OR AI buildout OR Nvidia OR memory chip OR semiconductor "
-            "OR AI server OR optical module OR custom AI chip OR HBM) "
-            "(stocks OR market OR earnings OR investment OR supply chain)"
-        ),
-        "theme_bucket": "ai_compute_chip",
-    },
-    {
-        "id": "robotics_autonomous",
-        "display_name": "Robotics / autonomous driving",
-        "query": (
-            "(humanoid robot OR robotics OR robotaxi OR Optimus OR autonomous driving "
-            "OR embodied AI OR Mobileye OR Boston Dynamics) "
-            "(stocks OR market OR company OR investment OR IPO)"
-        ),
-        "theme_bucket": "robotics_autonomous",
-    },
-    {
-        "id": "commercial_space",
-        "display_name": "Commercial space",
-        "query": (
-            "(SpaceX OR Starlink OR satellite launch OR commercial space OR Rocket Lab "
-            "OR space economy) "
-            "(stock OR market OR IPO OR valuation OR company OR supply chain)"
-        ),
-        "theme_bucket": "commercial_space",
-    },
-    {
-        "id": "biopharma_ma",
-        "display_name": "Biopharma catalysts",
-        "query": (
-            "(FDA approval OR biotech acquisition OR pharma deal OR clinical trial OR GLP-1) "
-            "(stock OR market OR shares OR valuation OR China biotech)"
-        ),
-        "theme_bucket": "biopharma_ma",
-    },
-)
+from ops._materialize_research_peripherals_parts import schema_values as _v4_definitions
+DEFAULT_SUBSCRIPTIONS: tuple[dict[str, str], ...] = _v4_definitions._value_DEFAULT_SUBSCRIPTIONS(globals())
 
-NEGATIVE_PATTERNS = (
-    "price prediction",
-    "stocks to buy",
-    "stock list",
-    "prediction markets",
-    "personal finance",
-    "simplywall",
-    "simply wall st",
-)
+NEGATIVE_PATTERNS = _v4_definitions._value_NEGATIVE_PATTERNS(globals())
 GENERIC_TITLES = frozenset({"stocks", "business politics economy and tech news analysis"})
 ALLOWED_NICHE_SOURCES = ("data center dynamics", "space news", "spacenews", "the pharma letter")
-SOURCE_TIER_PATTERNS: tuple[tuple[str, str], ...] = (
-    ("reuters", "T1: Reuters"),
-    ("bloomberg", "T1: Bloomberg"),
-    ("financial times", "T1: FT"),
-    ("ft.com", "T1: FT"),
-    ("wall street journal", "T1: WSJ"),
-    ("wsj", "T1: WSJ"),
-    ("cnbc", "T1: CNBC"),
-    ("nikkei", "T1: Nikkei Asia"),
-    ("south china morning post", "T2: SCMP"),
-    ("scmp", "T2: SCMP"),
-    ("marketwatch", "T2: MarketWatch"),
-    ("seeking alpha", "T3: Seeking Alpha"),
-    ("tradingview", "T3: TradingView"),
-)
-AH_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("zhongji innolight", ("300308.SZ 中际旭创", "光模块/CPO", "AI算力链")),
-    ("optical module", ("光模块/CPO", "中际旭创/新易盛/天孚通信复核")),
-    ("cpo", ("光模块/CPO", "AI算力链")),
-    ("kingboard laminates", ("1888.HK 建滔积层板", "覆铜板/PCB材料")),
-    ("pcb", ("PCB/覆铜板", "胜宏科技/沪电股份/建滔系复核")),
-    ("copper clad", ("覆铜板/PCB材料",)),
-    ("alibaba", ("9988.HK 阿里巴巴", "港股互联网")),
-    ("tencent", ("0700.HK 腾讯控股", "港股互联网/AI应用")),
-    ("byd", ("1211.HK/002594.SZ 比亚迪", "汽车出海")),
-    ("xiaomi", ("1810.HK 小米集团", "AI手机/汽车链")),
-    ("smic", ("0981.HK/688981.SH 中芯国际", "半导体国产替代")),
-    ("tsmc", ("台积电链", "半导体设备/材料")),
-    ("catl", ("300750.SZ 宁德时代", "新能源车/储能")),
-    ("robotaxi", ("自动驾驶/Robotaxi", "地平线机器人/小马智行/相关传感器链")),
-    ("autonomous driving", ("自动驾驶/Robotaxi", "智能驾驶链")),
-    ("humanoid", ("人形机器人", "减速器/执行器/传感器链")),
-    ("robotics", ("机器人", "执行器/控制器/传感器链")),
-    ("spacex", ("商业航天", "卫星互联网/商业航天链")),
-    ("starlink", ("卫星互联网", "商业航天链")),
-    ("rocket lab", ("商业航天", "港美股航天映射")),
-    ("hong kong ipo", ("港股IPO", "新经济上市预期")),
-    ("ipo", ("港股IPO", "估值/流动性复核")),
-    ("hang seng", ("恒生指数/港股流动性",)),
-    ("southbound", ("南向资金", "港股流动性")),
-    ("glp-1", ("创新药/GLP-1", "医药商业化")),
-    ("fda approval", ("创新药", "临床/FDA催化")),
-    ("china biotech", ("港股18A/创新药",)),
-)
-THEME_LABELS = {
-    "china_hk_stocks": "中国资产/A股港股",
-    "china_tech_ai_semis": "中国科技/AI/半导体",
-    "hk_ipo_new_economy": "港股IPO/新经济",
-    "ai_compute_chip": "AI算力/芯片",
-    "robotics_autonomous": "机器人/自动驾驶",
-    "commercial_space": "商业航天",
-    "biopharma_ma": "创新药/并购/临床",
-}
-SOURCE_CN_LABELS = {
-    "Bloomberg.com": "彭博",
-    "CNBC": "CNBC",
-    "Data Center Dynamics": "Data Center Dynamics",
-    "Reuters": "路透",
-    "South China Morning Post": "南华早报",
-    "SpaceNews": "SpaceNews",
-    "The Business Times": "商业时报",
-    "The Pharma Letter": "Pharma Letter",
-    "WSJ": "华尔街日报",
-}
+SOURCE_TIER_PATTERNS: tuple[tuple[str, str], ...] = _v4_definitions._value_SOURCE_TIER_PATTERNS(globals())
+AH_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = _v4_definitions._value_AH_KEYWORDS(globals())
+THEME_LABELS = _v4_definitions._value_THEME_LABELS(globals())
+SOURCE_CN_LABELS = _v4_definitions._value_SOURCE_CN_LABELS(globals())
 
 
 FetchFn = Callable[..., bytes | str]
@@ -223,90 +76,9 @@ _CJK = re.compile(r"[\u3400-\u9fff]")
 _CST = timezone(timedelta(hours=8))
 _AI_MAX_ITEMS = 8
 _AI_RISKS = ("AI 新闻默认作为技术/产业动态，需结合订单、业绩或A/H映射再升级。",)
-_AI_THEME_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
-    (
-        "PCB/电子布/电子材料",
-        ("PCB", "电子布", "覆铜板", "CCL", "铜箔", "MSAP", "SAP", "载板", "ABF", "玻璃基板", "电子材料", "电镀"),
-    ),
-    (
-        "存储/DRAM/NAND/HBM/AI存储",
-        ("存储", "DRAM", "NAND", "HBM", "SSD", "美光", "海力士", "三星", "江波龙", "兆易创新", "佰维存储"),
-    ),
-    (
-        "光通信/CPO/光模块/光纤海缆",
-        ("CPO", "光模块", "光通信", "光纤", "光连接", "光引擎", "光芯片", "1.6T", "800G", "400G", "康宁", "天孚", "中际旭创", "新易盛", "长飞"),
-    ),
-    (
-        "商业航天/卫星/太空光伏",
-        ("商业航天", "卫星", "火箭", "太空", "空天", "航天", "低空经济"),
-    ),
-    (
-        "半导体设备/材料/先进封装",
-        ("半导体", "硅片", "晶圆", "中芯", "华虹", "先进封装", "CoWoS", "封测", "碳化硅", "电子特气"),
-    ),
-    (
-        "AI算力/AIDC/数据中心/服务器",
-        ("AI", "算力", "服务器", "液冷", "数据中心", "AIDC", "GPU", "英伟达", "data center", "chip", "Alphabet", "Microsoft"),
-    ),
-    (
-        "新能源车/智能驾驶/汽车零部件",
-        ("智能底盘", "京西智行", "立讯", "汽车", "自动驾驶", "零部件", "固态电池"),
-    ),
-    (
-        "电力设备/储能/算电协同",
-        ("储能", "电池", "光伏", "隆基", "鹏辉", "绿电", "电网", "算电协同"),
-    ),
-    (
-        "机器人/具身智能",
-        ("机器人", "Humanoid", "Agent", "智能体", "丝杠", "减速器"),
-    ),
-    (
-        "油气/黄金/地缘",
-        ("油", "Iran", "Hormuz", "伊朗", "黄金", "LNG"),
-    ),
-    (
-        "医药/创新药",
-        ("医药", "创新药", "ASCO", "肿瘤", "MASH", "GLP-1", "ADC"),
-    ),
-    (
-        "中国资产/出海/关税",
-        ("China", "中国", "tariff", "关税", "出海"),
-    ),
-    (
-        "金融/利率/加密",
-        ("Fed", "rate", "利率", "crypto", "stablecoin", "银行"),
-    ),
-)
-_AI_IMPLICATIONS = {
-    "PCB/电子布/电子材料": "复核PCB、电子布、覆铜板、铜箔、电镀和先进封装材料链条。",
-    "存储/DRAM/NAND/HBM/AI存储": "复核存储芯片、模组、SSD、HBM及AI服务器存储链条。",
-    "AI算力/AIDC/数据中心/服务器": "复核AI算力硬件、服务器、光模块、PCB、半导体设备及港股科技映射。",
-    "半导体设备/材料/先进封装": "复核半导体设备、材料、先进封装和国产替代链条。",
-    "机器人/具身智能": "复核机器人本体、零部件、工业自动化和具身智能产业链。",
-    "光通信/CPO/光模块/光纤海缆": "复核CPO、光模块、光引擎、光纤光缆和AI网络互联产业链。",
-    "新能源车/智能驾驶/汽车零部件": "复核智能驾驶、智能底盘、汽车零部件和相关供应链。",
-    "电力设备/储能/算电协同": "复核储能、光伏、电池及电力设备链条的订单和盈利弹性。",
-    "商业航天/卫星/太空光伏": "复核商业航天、卫星制造、火箭链和空间算力相关催化。",
-    "油气/黄金/地缘": "复核油气开采、油服、油运、黄金及通胀预期相关资产。",
-    "医药/创新药": "复核创新药、CXO、医疗器械及临床催化剂。",
-    "中国资产/出海/关税": "复核中国资产、出口链、关税敏感行业和港股映射。",
-    "金融/利率/加密": "复核利率、美元、银行保险、红利资产和高估值科技的估值扰动。",
-}
-_AI_IMPACT_CHAINS = {
-    "PCB/电子布/电子材料": "AI硬件升级/供给紧张 -> PCB与电子材料涨价或放量 -> 产业链盈利弹性复核。",
-    "存储/DRAM/NAND/HBM/AI存储": "AI存储需求与价格周期 -> 存储原厂/模组/控制器景气 -> A股映射复核。",
-    "AI算力/AIDC/数据中心/服务器": "AI需求/资本开支 -> 算力基础设施 -> 硬件订单与估值映射。",
-    "半导体设备/材料/先进封装": "国产替代/封装升级 -> 设备材料需求 -> 订单和盈利弹性复核。",
-    "机器人/具身智能": "技术/订单/产业催化 -> 机器人产业链关注度 -> 本体与零部件复核。",
-    "光通信/CPO/光模块/光纤海缆": "AI网络带宽需求 -> CPO/光模块/光引擎放量 -> 光通信产业链复核。",
-    "新能源车/智能驾驶/汽车零部件": "收购/订单/客户导入 -> 智能驾驶与底盘供应链 -> 汽车零部件标的复核。",
-    "电力设备/储能/算电协同": "订单/成本/产能变化 -> 储能与电力设备盈利预期 -> A/H相关标的复核。",
-    "商业航天/卫星/太空光伏": "发射/卫星/政策催化 -> 商业航天产业链关注度 -> 制造、材料和算力环节复核。",
-    "油气/黄金/地缘": "地缘与航道变量 -> 油价/通胀/避险资产 -> 能源、油运和黄金链条复核。",
-    "医药/创新药": "临床/财报/BD事件 -> 管线价值与收入预期 -> 医药链条复核。",
-    "中国资产/出海/关税": "政策/关税/外部需求 -> 出口链盈利与风险偏好 -> 中国资产复核。",
-    "金融/利率/加密": "利率/监管/风险偏好 -> 美债美元与估值折现率 -> 金融和成长资产复核。",
-}
+_AI_THEME_RULES: tuple[tuple[str, tuple[str, ...]], ...] = _v4_definitions._value__AI_THEME_RULES(globals())
+_AI_IMPLICATIONS = _v4_definitions._value__AI_IMPLICATIONS(globals())
+_AI_IMPACT_CHAINS = _v4_definitions._value__AI_IMPACT_CHAINS(globals())
 _AI_CATALYST_KEYS = ("收购", "上调", "超预期", "首次覆盖", "订单", "扩产", "融资", "开源", "API", "发布", "关税", "Fed", "Iran")
 _AI_NOISY_ENTITY_MARKERS = ("高盛", "天风", "华泰", "长江证券", "国盛", "国投证券", "中信", "中金", "申万", "交易台", "市场综述", "市场终评", "周报", "行业", "团队", "联系", "主要受", "主要在", "其中", "支撑了", "详细情况", "先进封装材料")
 _REUSABLE_STATUSES = frozenset({"READY", "READY_EMPTY"})
@@ -350,26 +122,8 @@ def _row_url(row: Mapping[str, Any]) -> str:
 
 def _is_article_url(value: Any) -> bool:
     """Accept a publisher article or Google News article redirect only."""
-    url = clean_text(value)
-    parsed = urllib.parse.urlsplit(url)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-        return False
-    host = parsed.hostname.lower()
-    raw_path = urllib.parse.unquote(parsed.path or "")
-    if not raw_path or raw_path == "/" or raw_path.endswith("/"):
-        return False
-    path = raw_path.rstrip("/")
-    if host == "news.google.com":
-        parts = [part for part in path.split("/") if part]
-        return len(parts) >= 2 and parts[-2] in {"articles", "read"}
-    if not path:
-        return False
-    lower_path = path.lower()
-    if re.search(r"/(?:etfs?|symbols?|markets?|categories?|topics?|tags?|search)(?:/|$)", lower_path):
-        return False
-    if lower_path.rsplit("/", 1)[-1] in {"news", "business", "finance", "stocks", "home", "index"}:
-        return False
-    return True
+    from ops._materialize_research_peripherals_parts.feed_admission import __is_article_url_body as _v4_impl
+    return _v4_impl(globals(), value)
 
 
 def _row_admission_reasons(
@@ -379,38 +133,8 @@ def _row_admission_reasons(
     lookback_days: int = 2,
 ) -> list[str]:
     """Return deterministic source admission failures for one finance row."""
-    reasons: list[str] = []
-    published_raw = clean_text(row.get("published_at"))
-    if not published_raw:
-        reasons.append("EXTERNAL_FINANCE_PUBLICATION_DATE_MISSING")
-        published = None
-    else:
-        try:
-            published = _coerce_datetime(published_raw)
-        except (TypeError, ValueError, OverflowError):
-            published = None
-            reasons.append("EXTERNAL_FINANCE_PUBLICATION_DATE_INVALID")
-    try:
-        fetched = _coerce_datetime(fetched_at or row.get("fetched_at"))
-    except (TypeError, ValueError, OverflowError):
-        fetched = None
-    if published is not None and fetched is not None:
-        if published > fetched:
-            reasons.append("EXTERNAL_FINANCE_PUBLICATION_DATE_AFTER_FETCHED_AT")
-        elif fetched - published > timedelta(days=max(0, int(lookback_days))):
-            reasons.append("EXTERNAL_FINANCE_ITEM_STALE")
-
-    url = _row_url(row)
-    if not url:
-        reasons.append("EXTERNAL_FINANCE_ARTICLE_URL_MISSING")
-    elif not _is_article_url(url):
-        if clean_text(row.get("original_url_status")).upper() == "CANNOT_CONFIRM":
-            reasons.append("EXTERNAL_FINANCE_ORIGINAL_URL_UNRESOLVED")
-        else:
-            reasons.append("EXTERNAL_FINANCE_PAGE_NOT_ARTICLE")
-    elif clean_text(row.get("original_url_status")).upper() == "CANNOT_CONFIRM":
-        reasons.append("EXTERNAL_FINANCE_ORIGINAL_URL_UNRESOLVED")
-    return list(dict.fromkeys(reasons))
+    from ops._materialize_research_peripherals_parts.feed_admission import __row_admission_reasons_body as _v4_impl
+    return _v4_impl(globals(), row, fetched_at=fetched_at, lookback_days=lookback_days)
 
 
 def _admit_external_rows(
@@ -419,19 +143,8 @@ def _admit_external_rows(
     fetched_at: datetime | str | None = None,
     lookback_days: int = 2,
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    admitted: list[dict[str, Any]] = []
-    rejected: list[str] = []
-    for row in rows:
-        reasons = _row_admission_reasons(
-            row,
-            fetched_at=fetched_at,
-            lookback_days=lookback_days,
-        )
-        if reasons:
-            rejected.extend(reasons)
-            continue
-        admitted.append(dict(row))
-    return admitted, list(dict.fromkeys(rejected))
+    from ops._materialize_research_peripherals_parts.feed_admission import __admit_external_rows_body as _v4_impl
+    return _v4_impl(globals(), rows, fetched_at=fetched_at, lookback_days=lookback_days)
 
 
 def _short_text(value: Any, limit: int = 180) -> str:
@@ -440,23 +153,8 @@ def _short_text(value: Any, limit: int = 180) -> str:
 
 
 def _parse_item_datetime(value: Any) -> datetime | None:
-    if not value:
-        return None
-    text = str(value).strip()
-    try:
-        parsed = datetime.fromisoformat(text.replace("+0800", "+08:00"))
-        if parsed.tzinfo is not None and parsed.utcoffset() is not None:
-            return parsed.astimezone(_CST).replace(tzinfo=None)
-        return parsed
-    except ValueError:
-        pass
-    try:
-        parsed = parsedate_to_datetime(text)
-        if parsed.tzinfo is None or parsed.utcoffset() is None:
-            parsed = parsed.replace(tzinfo=UTC)
-        return parsed.astimezone(_CST).replace(tzinfo=None)
-    except (TypeError, ValueError, OverflowError):
-        return None
+    from ops._materialize_research_peripherals_parts.rss_parse import __parse_item_datetime_body as _v4_impl
+    return _v4_impl(globals(), value)
 
 
 def _format_cst_time(value: Any) -> str:
@@ -487,53 +185,18 @@ def _is_noise_entity(name: str) -> bool:
 
 
 def _detect_named_entities(text: str) -> list[str]:
-    normalized = _clean_markup(text)
-    seen: list[str] = []
-    suffix_pattern = r"([\u4e00-\u9fa5A-Za-z]{2,10}(?:科技|电子|通信|股份|精密|光电|新材|材料|药业|能源|集团|证券|电力))"
-    known_names = ("英伟达", "康宁", "海力士", "三星", "美光", "联芸科技", "江波龙", "兆易创新", "兴福电子", "华泰电子")
-    for name in known_names:
-        if name in normalized and name not in seen:
-            seen.append(name)
-    for match in re.finditer(suffix_pattern, normalized):
-        name = _normalize_entity_name(match.group(1))
-        if _is_noise_entity(name):
-            continue
-        if name not in seen and name not in {"核心要点", "文字观点"} and "等硬科技" not in name:
-            if name.startswith(("在", "及", "和")):
-                continue
-            seen.append(name)
-    return seen[:8]
+    from ops._materialize_research_peripherals_parts.cli import __detect_named_entities_body as _v4_impl
+    return _v4_impl(globals(), text)
 
 
 def _detect_stock_focus(text: str, symbols: Sequence[str], entities: Sequence[str]) -> list[str]:
-    focus: list[str] = []
-    for symbol in symbols:
-        if symbol and symbol not in focus:
-            focus.append(symbol)
-    for raw_name in entities:
-        name = _normalize_entity_name(raw_name)
-        if _is_noise_entity(name):
-            continue
-        if not any(name in item for item in focus):
-            focus.append(f"{name}(代码待核)")
-        if len(focus) >= 8:
-            break
-    return focus[:8]
+    from ops._materialize_research_peripherals_parts.entity_topics import __detect_stock_focus_body as _v4_impl
+    return _v4_impl(globals(), text, symbols, entities)
 
 
 def _theme_score_map(text: str) -> Counter[str]:
-    normalized = _clean_markup(text)
-    scores: Counter[str] = Counter()
-    for theme, keywords in _AI_THEME_RULES:
-        score = sum(_keyword_hits(normalized.lower(), keyword) for keyword in keywords)
-        if theme == "PCB/电子布/电子材料":
-            if _has_keyword(normalized, "PCB"):
-                score += 3
-            if "电子布" in normalized:
-                score += 2
-        if score:
-            scores[theme] = score
-    return scores
+    from ops._materialize_research_peripherals_parts.entity_topics import __theme_score_map_body as _v4_impl
+    return _v4_impl(globals(), text)
 
 
 def _top_theme_candidates(text: str, limit: int = 3) -> list[str]:
@@ -572,39 +235,8 @@ def _infer_risks(text: str) -> list[str]:
 
 
 def _priority_score(item: Mapping[str, Any]) -> int:
-    if item.get("status_item") or item.get("credibility_warning"):
-        return -20
-    score = {"L4": 6, "L3": 4, "L2": 2, "L1": 0}.get(str(item.get("evidence_level")), 0)
-    if item.get("theme") and item.get("theme") != "其他待复核":
-        score += 2
-    if item.get("source_type") == "ZSXQ":
-        score += 3
-    elif item.get("source_type") == "finance":
-        score += 1
-    if item.get("freshness_label") == "本小时新增":
-        score += 4
-    if item.get("freshness_label") == "本轮抓取":
-        score += 1
-    score += min(
-        4,
-        2
-        * sum(
-            1
-            for key in ("target_price", "rating", "earnings_forecast", "valuation_assumption")
-            if item.get(key)
-        ),
-    )
-    if item.get("stock_focus"):
-        score += 2
-    if item.get("source_url"):
-        score += 1
-    if len(str(item.get("event_fact") or "")) >= 80:
-        score += 1
-    if any(marker in clean_text(item.get("title")) for marker in ("周报", "复盘", "舆情热点", "全天涨停复盘", "市场+宏观", "市场综述", "市场终评", "交易台")):
-        score -= 4
-    if len(item.get("stock_focus") or []) >= 6:
-        score -= 2
-    return score
+    from ops._materialize_research_peripherals_parts.entity_topics import __priority_score_body as _v4_impl
+    return _v4_impl(globals(), item)
 
 
 def _absolute_http_url(value: Any, fallback: Any = "") -> str:
@@ -674,164 +306,20 @@ def decode_google_news_url(
     read-only ``Fbv4je`` endpoint converts those parameters to the publisher
     URL; the result is rejected unless it is a non-Google HTTP(S) URL.
     """
-    parsed = urllib.parse.urlsplit(str(source_url or ""))
-    parts = [part for part in parsed.path.split("/") if part]
-    if parsed.hostname != "news.google.com" or len(parts) < 2 or parts[-2] not in {
-        "articles",
-        "read",
-    }:
-        return str(source_url or "")
-    token = parts[-1]
-    params: dict[str, str] = {}
-    for prefix in (
-        "https://news.google.com/articles/",
-        "https://news.google.com/rss/articles/",
-    ):
-        request = urllib.request.Request(
-            prefix + token,
-            headers={"User-Agent": USER_AGENT},
-        )
-        try:
-            with opener(request, timeout=timeout) as response:
-                page = response.read().decode("utf-8", errors="replace")
-        except (TimeoutError, urllib.error.URLError, OSError):
-            continue
-        parser = _GoogleNewsParamsParser()
-        parser.feed(page)
-        if parser.params:
-            params = parser.params
-            break
-    signature = params.get("data-n-a-sg")
-    timestamp = params.get("data-n-a-ts")
-    if not signature or not timestamp or not timestamp.isdigit():
-        raise ValueError("Google News decoding parameters unavailable")
-    request_payload = [
-        "garturlreq",
-        [
-            [
-                "X",
-                "X",
-                ["X", "X"],
-                None,
-                None,
-                1,
-                1,
-                "US:en",
-                None,
-                1,
-                None,
-                None,
-                None,
-                None,
-                None,
-                0,
-                1,
-            ],
-            "X",
-            "X",
-            1,
-            [1, 1, 1],
-            1,
-            1,
-            None,
-            0,
-            0,
-            None,
-            0,
-        ],
-        token,
-        int(timestamp),
-        signature,
-    ]
-    rpc = [
-        "Fbv4je",
-        json.dumps(request_payload, ensure_ascii=False, separators=(",", ":")),
-        None,
-        "generic",
-    ]
-    body = urllib.parse.urlencode(
-        {"f.req": json.dumps([[rpc]], ensure_ascii=False, separators=(",", ":"))}
-    ).encode("utf-8")
-    request = urllib.request.Request(
-        "https://news.google.com/_/DotsSplashUi/data/batchexecute",
-        data=body,
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            "User-Agent": USER_AGENT,
-        },
-    )
-    with opener(request, timeout=timeout) as response:
-        response_text = response.read().decode("utf-8", errors="replace")
-    chunks = response_text.split("\n\n")
-    if len(chunks) < 2:
-        raise ValueError("Google News decoder response is incomplete")
-    records = json.loads(chunks[1])
-    decoded = ""
-    for record in records:
-        if not isinstance(record, list) or len(record) < 3 or not record[2]:
-            continue
-        inner = json.loads(record[2])
-        if isinstance(inner, list) and len(inner) > 1:
-            decoded = str(inner[1] or "").strip()
-            if decoded:
-                break
-    final = urllib.parse.urlsplit(decoded)
-    if (
-        final.scheme not in {"http", "https"}
-        or not final.hostname
-        or final.hostname == "news.google.com"
-    ):
-        raise ValueError("Google News decoder did not return a publisher URL")
-    return decoded
+    from ops._materialize_research_peripherals_parts.google_redirects import _decode_google_news_url_body as _v4_impl
+    return _v4_impl(globals(), source_url, timeout, opener=opener)
 
 
 def _map_ah_relevance(
     title: str, description: str, subscription_id: str
 ) -> list[str]:
-    haystack = f"{title} {description}".lower()
-    mapped: list[str] = []
-    for needle, labels in AH_KEYWORDS:
-        if needle in haystack:
-            for label in labels:
-                if label not in mapped:
-                    mapped.append(label)
-    if subscription_id in {
-        "authority_china_hk",
-        "china_hk_stocks",
-        "china_tech_ai_semis",
-        "hk_ipo_new_economy",
-    } and "A/H股票复核" not in mapped:
-        mapped.append("A/H股票复核")
-    return mapped[:8]
+    from ops._materialize_research_peripherals_parts.cli import __map_ah_relevance_body as _v4_impl
+    return _v4_impl(globals(), title, description, subscription_id)
 
 
 def _v3_local_chinese_title(row: Mapping[str, Any], mappings: list[str]) -> str:
-    title = clean_text(row.get("title"))
-    lowered = title.lower()
-    source = clean_text(row.get("source_name") or row.get("source"))
-    source_cn = SOURCE_CN_LABELS.get(source, source or "外媒")
-    theme_bucket = clean_text(row.get("theme_bucket"))
-    theme = THEME_LABELS.get(theme_bucket, theme_bucket or "外部财经")
-    event_class = clean_text(row.get("external_event_class"))
-    if "zhongji innolight" in lowered:
-        return "中际旭创据称考虑赴港上市，AI光模块/CPO链需要重点复核"
-    if "kingboard laminates" in lowered:
-        return "建滔积层板受AI服务器材料重估带动，复核PCB/覆铜板链"
-    if "deepseek" in lowered:
-        return "DeepSeek相关动态升温，复核中国AI应用和算力链外溢"
-    if "humanoid robots" in lowered:
-        return "人形机器人产业动态更新，复核执行器、传感器和控制器链"
-    if "hang seng index" in lowered:
-        return "恒生指数与利率预期变化，复核港股流动性和中国资产风险偏好"
-    if event_class == "IPO_LISTING" and mappings:
-        return f"海外媒体提示IPO线索，复核{'、'.join(mappings[:3])}"
-    if event_class == "EARNINGS" and mappings:
-        return f"海外媒体提示业绩线索，复核{'、'.join(mappings[:3])}"
-    if event_class == "POLICY_REGULATION" and mappings:
-        return f"海外媒体提示政策监管线索，复核{'、'.join(mappings[:3])}"
-    if mappings:
-        return f"{source_cn}提示{theme}线索，复核{'、'.join(mappings[:3])}"
-    return f"{source_cn}提示{theme}线索，保留研究观察"
+    from ops._materialize_research_peripherals_parts.translation_rows import __v3_local_chinese_title_body as _v4_impl
+    return _v4_impl(globals(), row, mappings)
 
 
 def _v3_local_summary(row: Mapping[str, Any], mappings: list[str]) -> str:
@@ -848,41 +336,13 @@ def _v3_local_summary(row: Mapping[str, Any], mappings: list[str]) -> str:
 
 
 def _localize_external_row(source_row: Mapping[str, Any]) -> dict[str, Any]:
-    row = dict(source_row)
-    mappings = _map_ah_relevance(
-        clean_text(row.get("title")),
-        clean_text(row.get("summary")),
-        clean_text(row.get("subscription_id")),
-    )
-    row["ah_mapping"] = mappings
-    row["theme_label"] = THEME_LABELS.get(
-        clean_text(row.get("theme_bucket")), clean_text(row.get("theme_bucket"))
-    )
-    row["title_zh"] = _v3_local_chinese_title(row, mappings)
-    row["summary_zh"] = _v3_local_summary(row, mappings)
-    row["translation_status"] = "READY"
-    row["translation_source"] = "V3_LOCAL_RULES"
-    row["cannot_confirm"] = sorted(
-        item
-        for item in set(row.get("cannot_confirm") or [])
-        if item != "ZH_TRANSLATION_FAILED"
-    )
-    return row
+    from ops._materialize_research_peripherals_parts.translation_rows import __localize_external_row_body as _v4_impl
+    return _v4_impl(globals(), source_row)
 
 
 def _normalize_chinese_finance_translation(value: str) -> str:
-    text = clean_text(value)
-    replacements = (
-        ("HK$", "港元"),
-        ("US$", "美元"),
-        ("亿$", "亿美元"),
-        ("$", "美元"),
-        ("灵喜游戏", "灵犀游戏"),
-        ("英维迪亚", "英伟达"),
-    )
-    for source, target in replacements:
-        text = text.replace(source, target)
-    return text
+    from ops._materialize_research_peripherals_parts.translation_validation import __normalize_chinese_finance_translation_body as _v4_impl
+    return _v4_impl(globals(), value)
 
 
 _WESTERN_AMOUNT_RE = re.compile(
@@ -899,110 +359,19 @@ _CHINESE_AMOUNT_RE = re.compile(
     r"(?P<unit>万亿|十亿|亿|千万|百万|十万|万|千)?\s*"
     r"(?P<currency>美元|美金|港元|港币|欧元|英镑|人民币|日元|日圆|元)"
 )
-_FINANCE_UNIT_MULTIPLIERS = {
-    "trillion": 1_000_000_000_000,
-    "tn": 1_000_000_000_000,
-    "billion": 1_000_000_000,
-    "bn": 1_000_000_000,
-    "million": 1_000_000,
-    "mn": 1_000_000,
-    "thousand": 1_000,
-    "k": 1_000,
-    "m": 1_000_000,
-    "b": 1_000_000_000,
-    "万亿": 1_000_000_000_000,
-    "十亿": 1_000_000_000,
-    "亿": 100_000_000,
-    "千万": 10_000_000,
-    "百万": 1_000_000,
-    "十万": 100_000,
-    "万": 10_000,
-    "千": 1_000,
-}
-_FINANCE_CURRENCY_ALIASES = {
-    "US$": "USD",
-    "$": "USD",
-    "USD": "USD",
-    "HK$": "HKD",
-    "HKD": "HKD",
-    "€": "EUR",
-    "EUR": "EUR",
-    "£": "GBP",
-    "GBP": "GBP",
-    "¥": "CNY",
-    "CNY": "CNY",
-    "RMB": "CNY",
-    "JPY": "JPY",
-    "JP¥": "JPY",
-    "美元": "USD",
-    "美金": "USD",
-    "港元": "HKD",
-    "港币": "HKD",
-    "欧元": "EUR",
-    "英镑": "GBP",
-    "人民币": "CNY",
-    "元": "CNY",
-    "日元": "JPY",
-    "日圆": "JPY",
-}
+_FINANCE_UNIT_MULTIPLIERS = _v4_definitions._value__FINANCE_UNIT_MULTIPLIERS(globals())
+_FINANCE_CURRENCY_ALIASES = _v4_definitions._value__FINANCE_CURRENCY_ALIASES(globals())
 
 
 def _finance_amounts(value: Any) -> list[tuple[str, float]]:
-    text = clean_text(value)
-    amounts: list[tuple[str, float]] = []
-    occupied: list[tuple[int, int]] = []
-
-    def add(start: int, end: int, currency: str, number: str, unit: str = "") -> None:
-        if any(start < old_end and end > old_start for old_start, old_end in occupied):
-            return
-        try:
-            numeric = float(number.replace(",", ""))
-        except (TypeError, ValueError):
-            return
-        multiplier = _FINANCE_UNIT_MULTIPLIERS.get(unit.lower(), _FINANCE_UNIT_MULTIPLIERS.get(unit, 1))
-        amounts.append((currency, numeric * multiplier))
-        occupied.append((start, end))
-
-    for match in _WESTERN_AMOUNT_RE.finditer(text):
-        if match.group("prefix_number"):
-            raw_currency = match.group("prefix") or ""
-            raw_number = match.group("prefix_number")
-            raw_unit = match.group("prefix_unit") or ""
-        else:
-            raw_currency = match.group("suffix") or ""
-            raw_number = match.group("suffix_number")
-            raw_unit = match.group("suffix_unit") or ""
-        currency = _FINANCE_CURRENCY_ALIASES.get(raw_currency.upper(), _FINANCE_CURRENCY_ALIASES.get(raw_currency, ""))
-        if currency:
-            add(match.start(), match.end(), currency, raw_number, raw_unit)
-    for match in _CHINESE_AMOUNT_RE.finditer(text):
-        currency = _FINANCE_CURRENCY_ALIASES.get(match.group("currency"), "")
-        if currency:
-            add(
-                match.start(),
-                match.end(),
-                currency,
-                match.group("number"),
-                match.group("unit") or "",
-            )
-    return amounts
+    from ops._materialize_research_peripherals_parts.translation_validation import __finance_amounts_body as _v4_impl
+    return _v4_impl(globals(), value)
 
 
 def _validate_finance_translation(source: Any, translated: Any) -> bool:
     """Check currency and order of magnitude before admitting translated text."""
-    expected = _finance_amounts(source)
-    if not expected:
-        return True
-    actual = _finance_amounts(translated)
-    if len(expected) != len(actual):
-        return False
-    for (expected_currency, expected_value), (actual_currency, actual_value) in zip(expected, actual, strict=True):
-        if expected_currency != actual_currency:
-            return False
-        tolerance = max(0.01, abs(expected_value) * 0.02)
-        if abs(expected_value - actual_value) > tolerance:
-            return False
-    return True
+    from ops._materialize_research_peripherals_parts.translation_validation import __validate_finance_translation_body as _v4_impl
+    return _v4_impl(globals(), source, translated)
 
 
 def _resolve_original_row(
@@ -1011,39 +380,8 @@ def _resolve_original_row(
     resolver: OriginalUrlResolver,
     timeout: int,
 ) -> dict[str, Any]:
-    row = dict(source_row)
-    discovery_url = clean_text(
-        row.get("discovery_url") or row.get("url") or row.get("source_url")
-    )
-    row["discovery_url"] = discovery_url
-    try:
-        resolved = str(resolver(discovery_url, timeout)).strip()
-        parsed = urllib.parse.urlsplit(resolved)
-        if (
-            parsed.scheme not in {"http", "https"}
-            or not parsed.hostname
-            or parsed.hostname == "news.google.com"
-            or not _is_article_url(resolved)
-        ):
-            raise ValueError("publisher URL is not verified")
-        row["original_url"] = resolved
-        row["original_url_status"] = "VERIFIED_PUBLISHER_URL"
-        row["url"] = resolved
-        row["source_url"] = resolved
-        row["cannot_confirm"] = sorted(
-            item
-            for item in set(row.get("cannot_confirm") or [])
-            if item != "ORIGINAL_URL_UNRESOLVED"
-        )
-    except (TimeoutError, TransportError, urllib.error.URLError, OSError, ValueError, json.JSONDecodeError):
-        row["original_url"] = ""
-        row["original_url_status"] = "CANNOT_CONFIRM"
-        row["url"] = ""
-        row["source_url"] = clean_text(row.get("source_page_url"))
-        row["cannot_confirm"] = sorted(
-            set(row.get("cannot_confirm") or []) | {"ORIGINAL_URL_UNRESOLVED"}
-        )
-    return row
+    from ops._materialize_research_peripherals_parts.translation_rows import __resolve_original_row_body as _v4_impl
+    return _v4_impl(globals(), source_row, resolver=resolver, timeout=timeout)
 
 
 def _resolve_original_rows(
@@ -1053,45 +391,14 @@ def _resolve_original_rows(
     timeout: int,
     max_workers: int = 4,
 ) -> list[dict[str, Any]]:
-    if not rows:
-        return []
-    workers = max(1, min(int(max_workers), len(rows)))
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        return list(
-            executor.map(
-                lambda row: _resolve_original_row(
-                    row, resolver=resolver, timeout=timeout
-                ),
-                rows,
-            )
-        )
+    from ops._materialize_research_peripherals_parts.translation_rows import __resolve_original_rows_body as _v4_impl
+    return _v4_impl(globals(), rows, resolver=resolver, timeout=timeout, max_workers=max_workers)
 
 
 def google_translate_zh(value: str, timeout: int = 20) -> str:
     """Translate public-source text to Simplified Chinese via a read-only endpoint."""
-    source_text = str(value or "").strip()
-    if not source_text:
-        return ""
-    query = urllib.parse.urlencode(
-        {
-            "client": "gtx",
-            "sl": "auto",
-            "tl": "zh-CN",
-            "dt": "t",
-            "q": source_text,
-        }
-    )
-    raw = fetch_url(f"{GOOGLE_TRANSLATE}?{query}", timeout=timeout)
-    payload = json.loads(raw.decode("utf-8"))
-    segments = payload[0] if isinstance(payload, list) and payload else []
-    translated = "".join(
-        str(segment[0])
-        for segment in segments
-        if isinstance(segment, list) and segment and segment[0]
-    ).strip()
-    if not translated:
-        raise ValueError("translation endpoint returned no text")
-    return translated
+    from ops._materialize_research_peripherals_parts.translation_rows import _google_translate_zh_body as _v4_impl
+    return _v4_impl(globals(), value, timeout)
 
 
 def mymemory_translate_zh(
@@ -1101,30 +408,8 @@ def mymemory_translate_zh(
     opener=urllib.request.urlopen,
 ) -> str:
     """Translate one public headline through MyMemory's read-only endpoint."""
-    source_text = str(value or "").strip()
-    if not source_text:
-        return ""
-    query = urllib.parse.urlencode(
-        {"q": source_text[:500], "langpair": "en|zh-CN"}
-    )
-    request = urllib.request.Request(
-        f"{MYMEMORY_TRANSLATE}?{query}", headers={"User-Agent": USER_AGENT}
-    )
-    with opener(request, timeout=timeout) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-    translated = clean_text(
-        (payload.get("responseData") or {}).get("translatedText")
-        if isinstance(payload, Mapping)
-        else ""
-    )
-    if (
-        not isinstance(payload, Mapping)
-        or int(payload.get("responseStatus") or 0) != 200
-        or not translated
-        or not _CJK.search(translated)
-    ):
-        raise ValueError("MyMemory returned no verified Chinese translation")
-    return translated
+    from ops._materialize_research_peripherals_parts.translation_rows import _mymemory_translate_zh_body as _v4_impl
+    return _v4_impl(globals(), value, timeout, opener=opener)
 
 
 def public_translate_zh(value: str, timeout: int = 20) -> str:
@@ -1160,113 +445,8 @@ def _translate_row(
     translate_text: TranslateFn,
     timeout: int,
 ) -> dict[str, Any]:
-    row = dict(source_row)
-    if clean_text(row.get("subscription_id")):
-        localized = _localize_external_row(row)
-        title = clean_text(localized.get("title"))
-        try:
-            translated_title = _normalize_chinese_finance_translation(
-                _call_translator(translate_text, title, timeout)
-            )
-            if not translated_title or not _CJK.search(translated_title):
-                raise ValueError("event title translation is not Chinese")
-            if not _validate_finance_translation(title, translated_title):
-                raise ValueError("event title translation amount or currency mismatch")
-            localized["title_zh"] = clean_text(translated_title)
-            localized["summary_zh"] = (
-                f"事件：{localized['title_zh']}。"
-                + _v3_local_summary(localized, list(localized.get("ah_mapping") or []))
-            )
-            localized["translation_status"] = "READY"
-            localized["translation_source"] = "PUBLIC_MACHINE_TRANSLATION"
-            localized["cannot_confirm"] = sorted(
-                item
-                for item in set(localized.get("cannot_confirm") or [])
-                if item != "ZH_TRANSLATION_FAILED"
-            )
-        except (TimeoutError, TransportError, urllib.error.URLError, OSError, ValueError, json.JSONDecodeError) as error:
-            localized.pop("title_zh", None)
-            localized.pop("summary_zh", None)
-            localized["translation_status"] = "CANNOT_CONFIRM"
-            localized["translation_source"] = "V3_LOCAL_RULES_FALLBACK"
-            localized["cannot_confirm"] = sorted(
-                set(localized.get("cannot_confirm") or [])
-                | {
-                    "ZH_TRANSLATION_AMOUNT_MISMATCH"
-                    if "amount or currency mismatch" in str(error)
-                    else "ZH_TRANSLATION_FAILED"
-                }
-            )
-        return localized
-    title = clean_text(row.get("title"))
-    summary = clean_text(row.get("summary"))
-    row["original_url"] = _original_url(row)
-    existing_title_zh = clean_text(row.get("title_zh"))
-    existing_summary_zh = clean_text(row.get("summary_zh"))
-    needs_title = bool(title and not existing_title_zh and not _CJK.search(title))
-    needs_summary = bool(summary and not existing_summary_zh and not _CJK.search(summary))
-    if not needs_title:
-        row["title_zh"] = existing_title_zh or title
-    if not needs_summary:
-        row["summary_zh"] = existing_summary_zh or summary
-    if not needs_title and not needs_summary:
-        if (
-            existing_title_zh
-            and not _validate_finance_translation(title, existing_title_zh)
-        ) or (
-            existing_summary_zh
-            and not _validate_finance_translation(summary, existing_summary_zh)
-        ):
-            row["translation_status"] = "CANNOT_CONFIRM"
-            row["translation_source"] = ""
-            row["cannot_confirm"] = sorted(
-                set(row.get("cannot_confirm") or []) | {"ZH_TRANSLATION_AMOUNT_MISMATCH"}
-            )
-            return row
-        row["translation_status"] = (
-            "READY" if existing_title_zh or existing_summary_zh else "NOT_REQUIRED"
-        )
-        if existing_title_zh or existing_summary_zh:
-            row.setdefault("translation_source", "EXISTING_VERIFIED_TRANSLATION")
-        return row
-
-    fields: list[str] = []
-    values: list[str] = []
-    if needs_title:
-        fields.append("title_zh")
-        values.append(title)
-    if needs_summary:
-        fields.append("summary_zh")
-        values.append(summary)
-    try:
-        translated = _call_translator(translate_text, "\n".join(values), timeout)
-        pieces = [part.strip() for part in translated.split("\n", len(values) - 1)]
-        if len(pieces) != len(values) or any(not part for part in pieces):
-            raise ValueError("translation field boundary was not preserved")
-        for field, value in zip(fields, pieces, strict=True):
-            source_value = title if field == "title_zh" else summary
-            if not _validate_finance_translation(source_value, value):
-                raise ValueError(f"{field} translation amount or currency mismatch")
-            row[field] = value
-        row["translation_status"] = "READY"
-        row["translation_source"] = "GOOGLE_TRANSLATE_PUBLIC_READ_ONLY"
-        row["cannot_confirm"] = sorted(
-            item
-            for item in set(row.get("cannot_confirm") or [])
-            if item != "ZH_TRANSLATION_FAILED"
-        )
-    except (TimeoutError, TransportError, urllib.error.URLError, OSError, ValueError, json.JSONDecodeError) as error:
-        row["translation_status"] = "CANNOT_CONFIRM"
-        row["translation_source"] = ""
-        row["cannot_confirm"] = sorted(
-            set(row.get("cannot_confirm") or [])
-            | {
-                "ZH_TRANSLATION_AMOUNT_MISMATCH"
-                if "amount or currency mismatch" in str(error)
-                else "ZH_TRANSLATION_FAILED"
-            }
-        )
-    return row
+    from ops._materialize_research_peripherals_parts.translation_rows import __translate_row_body as _v4_impl
+    return _v4_impl(globals(), source_row, translate_text=translate_text, timeout=timeout)
 
 
 def _translate_rows(
@@ -1276,20 +456,8 @@ def _translate_rows(
     timeout: int,
     max_workers: int = 6,
 ) -> list[dict[str, Any]]:
-    if not rows:
-        return []
-    workers = max(1, min(int(max_workers), len(rows)))
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        return list(
-            executor.map(
-                lambda row: _translate_row(
-                    row,
-                    translate_text=translate_text,
-                    timeout=timeout,
-                ),
-                rows,
-            )
-        )
+    from ops._materialize_research_peripherals_parts.translation_rows import __translate_rows_body as _v4_impl
+    return _v4_impl(globals(), rows, translate_text=translate_text, timeout=timeout, max_workers=max_workers)
 
 
 def _call_fetcher(fetcher: FetchFn, url: str, timeout: int) -> bytes | str | FetchResult:
@@ -1397,61 +565,8 @@ def parse_rss_items(
     source_url: str,
     limit: int = 50,
 ) -> list[dict[str, Any]]:
-    raw = raw_xml.encode("utf-8") if isinstance(raw_xml, str) else raw_xml
-    root = ET.fromstring(raw)
-    fetched_iso = isoformat_utc(fetched_at)
-    fetched_dt = _coerce_datetime(fetched_at)
-    rows: list[dict[str, Any]] = []
-    for item in root.iter():
-        if item.tag.rsplit("}", 1)[-1] != "item":
-            continue
-        raw_title = _element_text(item, "title")
-        source_name, source_page = _source_of(item)
-        title = strip_title_source(raw_title, source_name)
-        description = re.sub(r"<[^>]+>", " ", _element_text(item, "description"))
-        description = clean_text(description)
-        if not title or _is_negative(title, description, source_name):
-            continue
-        published_dt = parse_rss_date(_element_text(item, "pubDate"))
-        published_iso = isoformat_utc(published_dt) if published_dt else ""
-        tier = source_tier(source_name, title)
-        age_score = 0
-        if published_dt:
-            age_hours = max((fetched_dt - published_dt).total_seconds() / 3600, 0)
-            age_score = 12 if age_hours <= 6 else 8 if age_hours <= 24 else 3 if age_hours <= 72 else 0
-        link = clean_text(_element_text(item, "link"))
-        score = _tier_score(tier) + age_score
-        stable_id = hashlib.sha256(
-            f"{normalize_key(title)}|{source_name}|{published_iso}".encode("utf-8")
-        ).hexdigest()[:16]
-        rows.append(
-            {
-                "id": stable_id,
-                "title": title,
-                "evidence_title_en": title,
-                "summary": description or title,
-                "published_at": published_iso,
-                "fetched_at": fetched_iso,
-                "source": source_name or source_page or "Google News RSS",
-                "source_name": source_name or source_page or "Google News RSS",
-                "source_tier": tier,
-                "source_url": source_page or link or source_url,
-                "source_page_url": source_page,
-                "discovery_url": link or source_url,
-                "url": link,
-                "original_url": "",
-                "original_url_status": "PENDING_RESOLUTION",
-                "subscription_id": subscription_id,
-                "theme_bucket": theme_bucket,
-                "external_event_class": _event_class(title, description),
-                "score": score,
-                "cannot_confirm": ["GOOGLE_NEWS_RSS_DISCOVERY_ONLY"],
-                "recommendation_status": "RESEARCH_ONLY",
-            }
-        )
-        if len(rows) >= max(0, limit):
-            break
-    return rows
+    from ops._materialize_research_peripherals_parts.rss_parse import _parse_rss_items_body as _v4_impl
+    return _v4_impl(globals(), raw_xml, subscription_id=subscription_id, theme_bucket=theme_bucket, fetched_at=fetched_at, source_url=source_url, limit=limit)
 
 
 def dedupe_and_rank(
@@ -1462,70 +577,13 @@ def dedupe_and_rank(
     lookback_days: int = 2,
     rejected_reasons: list[str] | None = None,
 ) -> list[dict[str, Any]]:
-    best_by_key: dict[str, dict[str, Any]] = {}
-    for source_row in rows:
-        row = dict(source_row)
-        reasons = _row_admission_reasons(
-            row,
-            fetched_at=fetched_at,
-            lookback_days=lookback_days,
-        )
-        if reasons:
-            if rejected_reasons is not None:
-                rejected_reasons.extend(reasons)
-            continue
-        if not _is_high_signal(row):
-            continue
-        key = normalize_key(str(row.get("title") or ""))
-        if not key:
-            continue
-        previous = best_by_key.get(key)
-        if previous is None or int(row.get("score") or 0) > int(previous.get("score") or 0):
-            best_by_key[key] = row
-    return sorted(
-        best_by_key.values(),
-        key=lambda row: (
-            int(row.get("score") or 0),
-            str(row.get("published_at") or row.get("fetched_at") or ""),
-            str(row.get("id") or ""),
-        ),
-        reverse=True,
-    )[: max(0, max_items)]
+    from ops._materialize_research_peripherals_parts.cli import _dedupe_and_rank_body as _v4_impl
+    return _v4_impl(globals(), rows, max_items, fetched_at=fetched_at, lookback_days=lookback_days, rejected_reasons=rejected_reasons)
 
 
 def overview_from_details(details: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
-    overview: list[dict[str, Any]] = []
-    seen_theme: set[str] = set()
-    for row in details:
-        theme = str(row.get("theme_bucket") or "")
-        if theme and theme in seen_theme and len(overview) >= 8:
-            continue
-        if theme:
-            seen_theme.add(theme)
-        overview.append(
-            {
-                "id": row.get("id"),
-                "title": row.get("title"),
-                "title_zh": row.get("title_zh"),
-                "summary": row.get("summary"),
-                "summary_zh": row.get("summary_zh"),
-                "source_name": row.get("source_name"),
-                "source_url": row.get("source_url"),
-                "url": row.get("url"),
-                "original_url": row.get("original_url"),
-                "fetched_at": row.get("fetched_at"),
-                "published_at": row.get("published_at"),
-                "source_tier": row.get("source_tier"),
-                "theme_bucket": row.get("theme_bucket"),
-                "cannot_confirm": list(row.get("cannot_confirm") or []),
-                "translation_status": row.get("translation_status"),
-                "translation_source": row.get("translation_source"),
-                "recommendation_status": "RESEARCH_ONLY",
-            }
-        )
-        if len(overview) >= 12:
-            break
-    return overview
+    from ops._materialize_research_peripherals_parts.finance_payload import _overview_from_details_body as _v4_impl
+    return _v4_impl(globals(), details)
 
 
 def _base_payload(
@@ -1543,28 +601,8 @@ def _base_payload(
     cannot_confirm: Sequence[str],
     feed_receipts: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    payload = {
-        "schema_version": "v3_5.research_peripheral.v1",
-        "trade_date": _date(trade_date),
-        "source": source,
-        "status": status,
-        "source_url": source_url,
-        "fetched_at": fetched_at,
-        "raw_item_count": int(raw_item_count),
-        "item_count": int(item_count),
-        "overview": overview,
-        "details": details,
-        "items": items,
-        "cannot_confirm": sorted(set(str(item) for item in cannot_confirm if str(item))),
-        "write_policy": "read_only",
-        "recommendation_status": "RESEARCH_ONLY",
-        "production_allowed": False,
-        "buy_gate_updated": False,
-        "orders_sent": False,
-    }
-    if feed_receipts is not None:
-        payload["feed_receipts"] = [dict(receipt) for receipt in feed_receipts]
-    return payload
+    from ops._materialize_research_peripherals_parts.finance_payload import __base_payload_body as _v4_impl
+    return _v4_impl(globals(), trade_date=trade_date, source=source, status=status, source_url=source_url, fetched_at=fetched_at, raw_item_count=raw_item_count, item_count=item_count, overview=overview, details=details, items=items, cannot_confirm=cannot_confirm, feed_receipts=feed_receipts)
 
 
 def _feed_receipt(
@@ -1575,27 +613,8 @@ def _feed_receipt(
     error: str | None = None,
 ) -> dict[str, Any]:
     """Normalize transport evidence into a stable per-feed contract."""
-    source = dict(receipt or {})
-    elapsed = source.get("elapsed_ms", 0)
-    try:
-        elapsed_ms = max(0, int(elapsed))
-    except (TypeError, ValueError):
-        elapsed_ms = 0
-    status = source.get("http_status")
-    if status is not None:
-        try:
-            status = int(status)
-        except (TypeError, ValueError):
-            status = None
-    return {
-        "feed_id": str(feed_id),
-        "url": str(url),
-        "elapsed_ms": elapsed_ms,
-        "http_status": status,
-        "error": error if error is not None else source.get("error"),
-        "proxy_used": bool(source.get("proxy_used", False)),
-        "fallback_used": bool(source.get("fallback_used", False)),
-    }
+    from ops._materialize_research_peripherals_parts.feed_fetch import __feed_receipt_body as _v4_impl
+    return _v4_impl(globals(), feed_id, url, receipt, error=error)
 
 
 def _fetch_feed(
@@ -1606,19 +625,8 @@ def _fetch_feed(
     transport: ProxyAwareHTTPTransport | None = None,
 ) -> tuple[bytes | str, dict[str, Any]]:
     """Fetch one feed and retain transport metadata for its source receipt."""
-    if fetcher is fetch_url:
-        result = (transport or _default_http_transport()).fetch(url, timeout=timeout)
-    else:
-        result = _call_fetcher(fetcher, url, timeout)
-    if isinstance(result, FetchResult):
-        return result.body, dict(result.receipt)
-    return result, {
-        "elapsed_ms": 0,
-        "http_status": None,
-        "error": None,
-        "proxy_used": False,
-        "fallback_used": False,
-    }
+    from ops._materialize_research_peripherals_parts.feed_fetch import __fetch_feed_body as _v4_impl
+    return _v4_impl(globals(), fetcher, url, timeout, transport=transport)
 
 
 def build_external_finance_payload(
@@ -1635,120 +643,8 @@ def build_external_finance_payload(
     resolve_original_url: OriginalUrlResolver | None = None,
     transport: ProxyAwareHTTPTransport | None = None,
 ) -> dict[str, Any]:
-    selected_date = _date(trade_date)
-    fetched_dt = _coerce_datetime(fetched_at)
-    fetched_iso = isoformat_utc(fetched_dt)
-    fetcher = fetch_rss or fetch_url
-    rows: list[dict[str, Any]] = []
-    cannot_confirm: list[str] = ["GOOGLE_NEWS_RSS_DISCOVERY_ONLY"]
-    source_urls: list[str] = []
-    feed_receipts: list[dict[str, Any]] = []
-    fetch_failures = 0
-    for subscription in subscriptions:
-        normalized = {str(key): str(value) for key, value in subscription.items()}
-        feed_url = google_rss_url(normalized["query"], lookback_days)
-        source_urls.append(feed_url)
-        try:
-            raw_xml, receipt = _fetch_feed(
-                fetcher,
-                feed_url,
-                timeout,
-                transport=transport,
-            )
-            rows.extend(
-                parse_rss_items(
-                    raw_xml,
-                    subscription_id=normalized["id"],
-                    theme_bucket=normalized.get("theme_bucket", normalized["id"]),
-                    fetched_at=fetched_dt,
-                    source_url=feed_url,
-                    limit=limit_per_feed,
-                )
-            )
-            feed_receipts.append(_feed_receipt(normalized["id"], feed_url, receipt))
-        except TransportError as error:
-            fetch_failures += 1
-            feed_receipts.append(
-                _feed_receipt(
-                    normalized["id"],
-                    feed_url,
-                    getattr(error, "receipt", None),
-                    error=(getattr(error, "receipt", {}) or {}).get("error")
-                    or f"{type(error).__name__}:{error}",
-                )
-            )
-            cannot_confirm.append(f"EXTERNAL_FINANCE_FETCH_FAILED:{normalized['id']}")
-        except (ET.ParseError, TimeoutError, urllib.error.URLError, OSError, ValueError) as error:
-            fetch_failures += 1
-            feed_receipts.append(
-                _feed_receipt(
-                    normalized["id"],
-                    feed_url,
-                    error=f"{type(error).__name__}:{error}",
-                )
-            )
-            cannot_confirm.append(f"EXTERNAL_FINANCE_FETCH_FAILED:{normalized['id']}")
-    admission_rejections: list[str] = []
-    details = dedupe_and_rank(
-        rows,
-        max_items=max_items,
-        fetched_at=fetched_dt,
-        lookback_days=lookback_days,
-        rejected_reasons=admission_rejections,
-    )
-    if resolve_original_url is not None:
-        details = _resolve_original_rows(
-            details,
-            resolver=resolve_original_url,
-            timeout=timeout,
-        )
-        if any(
-            row.get("original_url_status") != "VERIFIED_PUBLISHER_URL"
-            for row in details
-        ):
-            cannot_confirm.append("ORIGINAL_URL_INCOMPLETE")
-        details, resolved_rejections = _admit_external_rows(
-            details,
-            fetched_at=fetched_dt,
-            lookback_days=lookback_days,
-        )
-        admission_rejections.extend(resolved_rejections)
-    cannot_confirm.extend(admission_rejections)
-    translation_incomplete = False
-    if translate_text is not None:
-        details = _translate_rows(
-            details,
-            translate_text=translate_text,
-            timeout=timeout,
-        )
-        translation_incomplete = any(
-            row.get("translation_status") == "CANNOT_CONFIRM" for row in details
-        )
-        if translation_incomplete:
-            cannot_confirm.append("ZH_TRANSLATION_INCOMPLETE")
-    status = (
-        "CANNOT_CONFIRM"
-        if details and translation_incomplete
-        else "READY"
-        if details
-        else "CANNOT_CONFIRM"
-        if fetch_failures or admission_rejections
-        else "READY_EMPTY"
-    )
-    return _base_payload(
-        trade_date=selected_date,
-        source="external_finance",
-        status=status,
-        source_url=GOOGLE_NEWS_RSS,
-        fetched_at=fetched_iso,
-        raw_item_count=len(rows),
-        item_count=len(details),
-        overview=overview_from_details(details),
-        details=details,
-        items=[],
-        cannot_confirm=cannot_confirm,
-        feed_receipts=feed_receipts,
-    )
+    from ops._materialize_research_peripherals_parts.finance_payload import _build_external_finance_payload_body as _v4_impl
+    return _v4_impl(globals(), trade_date, fetched_at=fetched_at, fetch_rss=fetch_rss, subscriptions=subscriptions, lookback_days=lookback_days, limit_per_feed=limit_per_feed, max_items=max_items, timeout=timeout, translate_text=translate_text, resolve_original_url=resolve_original_url, transport=transport)
 
 
 class AIHotParser(HTMLParser):
@@ -1762,72 +658,16 @@ class AIHotParser(HTMLParser):
         self.capture_stack: list[tuple[str, str]] = []
 
     def handle_starttag(self, tag: str, attrs_list: list[tuple[str, str | None]]) -> None:
-        attrs = {key: value or "" for key, value in attrs_list}
-        classes = set((attrs.get("class") or "").split())
-        if tag == "div" and "timeline-item" in classes:
-            self.pending = {
-                "time": "",
-                "selected": "timeline-item-selected" in classes,
-            }
-        if self.pending is not None and "timeline-time" in classes:
-            self.capture_stack.append((tag, "time"))
-        if tag == "article" and self.pending is not None:
-            self.current = self.pending
-            self.pending = None
-            self.current.setdefault("tags", [])
-        if self.current is None:
-            return
-        if tag == "div" and attrs.get("data-item-id"):
-            self.current["item_id"] = attrs["data-item-id"]
-        elif "timeline-source" in classes:
-            self.capture_stack.append((tag, "source"))
-        elif "uc-handle" in classes:
-            self.capture_stack.append((tag, "handle"))
-        elif "timeline-score" in classes:
-            self.capture_stack.append((tag, "score"))
-        elif tag == "a" and "timeline-title" in classes:
-            self.current["url"] = attrs.get("href", "")
-            self.capture_stack.append((tag, "title"))
-        elif tag == "p" and "timeline-summary" in classes:
-            self.capture_stack.append((tag, "summary"))
-        elif "tag-static" in classes:
-            self.capture_stack.append((tag, "tag"))
-        elif "timeline-reason" in classes:
-            self.capture_stack.append((tag, "reason"))
+        from ops._materialize_research_peripherals_parts.ai_feeds import _AIHotParser_handle_starttag_body as _v4_impl
+        return _v4_impl(globals(), self, tag, attrs_list)
 
     def handle_data(self, data: str) -> None:
-        if not self.capture_stack:
-            return
-        field = self.capture_stack[-1][1]
-        target = self.current if self.current is not None else self.pending
-        if target is None:
-            return
-        if field == "tag":
-            target.setdefault("_tag_buf", "")
-            target["_tag_buf"] += data
-            return
-        target.setdefault("_text", {})
-        target["_text"].setdefault(field, "")
-        target["_text"][field] += data
+        from ops._materialize_research_peripherals_parts.ai_feeds import _AIHotParser_handle_data_body as _v4_impl
+        return _v4_impl(globals(), self, data)
 
     def handle_endtag(self, tag: str) -> None:
-        if self.capture_stack and self.capture_stack[-1][0] == tag:
-            _, field = self.capture_stack.pop()
-            target = self.current if self.current is not None else self.pending
-            if target is not None and field == "tag":
-                value = clean_text(target.pop("_tag_buf", ""))
-                if value:
-                    target.setdefault("tags", []).append(value)
-        if tag != "article" or self.current is None:
-            return
-        text_map = self.current.pop("_text", {})
-        for key, value in text_map.items():
-            self.current[key] = clean_text(value)
-        score_text = str(self.current.get("score") or "").strip()
-        self.current["score"] = int(score_text) if score_text.isdigit() else None
-        if self.current.get("title") or self.current.get("summary"):
-            self.items.append(self.current)
-        self.current = None
+        from ops._materialize_research_peripherals_parts.ai_feeds import _AIHotParser_handle_endtag_body as _v4_impl
+        return _v4_impl(globals(), self, tag)
 
 
 def parse_aihot_items(
@@ -1837,26 +677,8 @@ def parse_aihot_items(
     source_url: str,
     limit: int = 30,
 ) -> list[dict[str, Any]]:
-    parser = AIHotParser()
-    parser.feed(page_html)
-    fetched_iso = isoformat_utc(fetched_at)
-    items: list[dict[str, Any]] = []
-    for raw in parser.items[: max(0, limit)]:
-        item = dict(raw)
-        item["source_url"] = source_url
-        item["original_url"] = _original_url(item)
-        item["fetched_at"] = fetched_iso
-        item["cannot_confirm"] = ["AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY"]
-        item["recommendation_status"] = "RESEARCH_ONLY"
-        item.setdefault("source_name", item.get("source") or item.get("handle") or "AIHot")
-        item.setdefault(
-            "item_id",
-            hashlib.sha256(
-                f"{item.get('title','')}|{item.get('url','')}|{item.get('time','')}".encode("utf-8")
-            ).hexdigest()[:16],
-        )
-        items.append(item)
-    return items
+    from ops._materialize_research_peripherals_parts.ai_feeds import _parse_aihot_items_body as _v4_impl
+    return _v4_impl(globals(), page_html, fetched_at=fetched_at, source_url=source_url, limit=limit)
 
 
 def build_ai_items(
@@ -1872,77 +694,8 @@ def build_ai_items(
     are deterministic local equivalents of the former ``build_ai_items``
     helpers.
     """
-    fallback_fetched = isoformat_utc(fetched_at)
-    records: list[dict[str, Any]] = []
-    for raw_row in raw_items:
-        if not isinstance(raw_row, Mapping):
-            continue
-        raw = dict(raw_row)
-        title = clean_text(raw.get("title")) or "未命名 AI 动态"
-        summary = clean_text(raw.get("summary"))
-        reason = clean_text(raw.get("reason"))
-        tags = [clean_text(tag) for tag in (raw.get("tags") or []) if clean_text(tag)]
-        text = f"{title}\n{summary}\n{' '.join(tags)}"
-        entities = _detect_named_entities(text)
-        symbols = []
-        for match in re.finditer(
-            r"([\u4e00-\u9fa5A-Za-z]{2,12})[（(](\d{6}\.(?:SH|SZ|BJ|HK))[）)]",
-            text,
-        ):
-            symbol = f"{match.group(1)}({match.group(2)})"
-            if symbol not in symbols:
-                symbols.append(symbol)
-        symbols = symbols[:8]
-        article_url = _absolute_http_url(
-            raw.get("original_url") or raw.get("url"),
-            raw.get("source_url") or source_url,
-        )
-        page_url = _absolute_http_url(raw.get("source_url"), source_url)
-        source_link = article_url or page_url
-        source_name = clean_text(raw.get("source") or raw.get("source_name")) or "AIHOT"
-        fetched_display = _format_cst_time(raw.get("fetched_at") or fallback_fetched)
-        item: dict[str, Any] = {
-            "id": f"ai-{raw.get('item_id') or len(records) + 1}",
-            "title": title,
-            "summary": summary,
-            "source_type": "AI",
-            "source_name": source_name,
-            "fetched_at": fetched_display,
-            "published_at": raw.get("time"),
-            "symbols": symbols,
-            "named_entities": entities,
-            "stock_focus": _detect_stock_focus(text, symbols, entities),
-            "hk_connect_mapping": [],
-            "theme": _infer_theme(text),
-            "theme_candidates": _top_theme_candidates(text),
-            "evidence_level": "L1",
-            "event_fact": _short_text(summary or reason or title, 220),
-            "investment_implication": _infer_implication(text),
-            "impact_chain": _infer_impact_chain(text),
-            "target_price": None,
-            "rating": None,
-            "earnings_forecast": None,
-            "valuation_assumption": None,
-            "catalysts": _infer_catalysts(text),
-            "risks": list(_AI_RISKS),
-            "cross_validation": [],
-            "source_url": source_link,
-            "original_url": source_link,
-            "score": raw.get("score"),
-            "tags": tags,
-            "freshness_label": "本轮抓取",
-            "recommendation_status": "RESEARCH_ONLY",
-            "production_allowed": False,
-            "buy_gate_updated": False,
-            "orders_sent": False,
-            "cannot_confirm": sorted(set(raw.get("cannot_confirm") or [])),
-        }
-        for field in ("title_zh", "summary_zh", "translation_status", "translation_source"):
-            if field in raw:
-                item[field] = raw[field]
-        item["priority_score"] = _priority_score(item)
-        records.append(item)
-    return sorted(records, key=lambda item: _score_value(item.get("score")), reverse=True)[:_AI_MAX_ITEMS]
+    from ops._materialize_research_peripherals_parts.ai_feeds import _build_ai_items_body as _v4_impl
+    return _v4_impl(globals(), raw_items, fetched_at=fetched_at, source_url=source_url)
 
 
 def build_ai_news_payload(
@@ -1956,43 +709,8 @@ def build_ai_news_payload(
     translation_timeout: int = 20,
     feed_receipts: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    selected_date = _date(trade_date)
-    fetched_iso = isoformat_utc(fetched_at)
-    raw_items = parse_aihot_items(
-        page_html,
-        fetched_at=fetched_iso,
-        source_url=source_url,
-        limit=limit,
-    )
-    cannot_confirm = ["AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY"]
-    if translate_text is not None:
-        raw_items = _translate_rows(
-            raw_items,
-            translate_text=translate_text,
-            timeout=translation_timeout,
-        )
-        if any(row.get("translation_status") == "CANNOT_CONFIRM" for row in raw_items):
-            cannot_confirm.append("ZH_TRANSLATION_INCOMPLETE")
-    items = build_ai_items(
-        raw_items,
-        fetched_at=fetched_iso,
-        source_url=source_url,
-    )
-    status = "READY" if items else "READY_EMPTY"
-    return _base_payload(
-        trade_date=selected_date,
-        source="ai_news",
-        status=status,
-        source_url=source_url,
-        fetched_at=fetched_iso,
-        raw_item_count=len(raw_items),
-        item_count=len(items),
-        overview=[],
-        details=[],
-        items=items,
-        cannot_confirm=cannot_confirm,
-        feed_receipts=feed_receipts,
-    )
+    from ops._materialize_research_peripherals_parts.ai_feeds import _build_ai_news_payload_body as _v4_impl
+    return _v4_impl(globals(), trade_date, page_html=page_html, fetched_at=fetched_at, source_url=source_url, limit=limit, translate_text=translate_text, translation_timeout=translation_timeout, feed_receipts=feed_receipts)
 
 
 def translate_existing_payload(
@@ -2003,35 +721,8 @@ def translate_existing_payload(
     max_workers: int = 6,
 ) -> dict[str, Any]:
     """Enrich an existing exact-date payload without refetching source rows."""
-    translated = copy.deepcopy(dict(payload))
-    source = str(translated.get("source") or "")
-    if source == "external_finance":
-        details = _translate_rows(
-            translated.get("details") or [],
-            translate_text=translate_text,
-            timeout=timeout,
-            max_workers=max_workers,
-        )
-        translated["details"] = details
-        translated["overview"] = overview_from_details(details)
-        rows = details
-    elif source == "ai_news":
-        items = _translate_rows(
-            translated.get("items") or [],
-            translate_text=translate_text,
-            timeout=timeout,
-            max_workers=max_workers,
-        )
-        translated["items"] = items
-        rows = items
-    else:
-        raise ValueError("unsupported research peripheral source")
-    gaps = set(translated.get("cannot_confirm") or [])
-    gaps.discard("ZH_TRANSLATION_INCOMPLETE")
-    if any(row.get("translation_status") == "CANNOT_CONFIRM" for row in rows):
-        gaps.add("ZH_TRANSLATION_INCOMPLETE")
-    translated["cannot_confirm"] = sorted(gaps)
-    return translated
+    from ops._materialize_research_peripherals_parts.translation_rows import _translate_existing_payload_body as _v4_impl
+    return _v4_impl(globals(), payload, translate_text=translate_text, timeout=timeout, max_workers=max_workers)
 
 
 def materialize_existing_translations(
@@ -2042,21 +733,8 @@ def materialize_existing_translations(
     translate_text: TranslateFn = google_translate_zh,
     timeout: int = 20,
 ) -> dict[str, Any]:
-    store = ResearchPeripheralStore(data_root)
-    payload = store.read_exact(trade_date, source)
-    if payload is None:
-        raise ValueError(f"research peripheral payload is missing: {source}")
-    translated = translate_existing_payload(
-        payload,
-        translate_text=translate_text,
-        timeout=timeout,
-    )
-    result = store.replace(
-        translated,
-        expected_sha256=_sha256(payload),
-        reason="ADD_ZH_TRANSLATION_AND_ORIGINAL_URL",
-    )
-    return {"payload": translated, **result}
+    from ops._materialize_research_peripherals_parts.translation_rows import _materialize_existing_translations_body as _v4_impl
+    return _v4_impl(globals(), data_root=data_root, trade_date=trade_date, source=source, translate_text=translate_text, timeout=timeout)
 
 
 def _publish_or_hourly_refresh(
@@ -2064,36 +742,8 @@ def _publish_or_hourly_refresh(
     payload: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Publish once, then CAS-refresh the same exact-date source hourly."""
-    existing = store.read_exact(str(payload["trade_date"]), str(payload["source"]))
-    if existing is None:
-        return store.publish(payload)
-    if (
-        existing.get("status") in _REUSABLE_STATUSES
-        and payload.get("status") == "CANNOT_CONFIRM"
-    ):
-        attempt = store.record_refresh_attempt(
-            payload,
-            retained_payload=existing,
-            reason="FAILED_REFRESH_RETAINED_LAST_READY",
-        )
-        trade_date = str(existing["trade_date"])
-        source = str(existing["source"])
-        return {
-            "payload": existing,
-            "trade_date": trade_date,
-            "source": source,
-            "payload_path": store._relative(trade_date, source),
-            "receipt_path": store._receipt_relative(trade_date, source),
-            "payload_sha256": _sha256(existing),
-            "item_count": int(existing["item_count"]),
-            "retained_previous": True,
-            **attempt,
-        }
-    return store.replace(
-        payload,
-        expected_sha256=_sha256(existing),
-        reason="HOURLY_REFRESH",
-    )
+    from ops._materialize_research_peripherals_parts.feed_fetch import __publish_or_hourly_refresh_body as _v4_impl
+    return _v4_impl(globals(), store, payload)
 
 
 def materialize_external_finance(
@@ -2106,16 +756,8 @@ def materialize_external_finance(
     resolve_original_url: OriginalUrlResolver = decode_google_news_url,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    payload = build_external_finance_payload(
-        trade_date,
-        fetch_rss=fetch_rss,
-        fetched_at=fetched_at,
-        translate_text=translate_text,
-        resolve_original_url=resolve_original_url,
-        **kwargs,
-    )
-    result = _publish_or_hourly_refresh(ResearchPeripheralStore(data_root), payload)
-    return {"payload": payload, **result}
+    from ops._materialize_research_peripherals_parts.materialization import _materialize_external_finance_body as _v4_impl
+    return _v4_impl(globals(), data_root=data_root, trade_date=trade_date, fetch_rss=fetch_rss, fetched_at=fetched_at, translate_text=translate_text, resolve_original_url=resolve_original_url, **kwargs)
 
 
 def materialize_ai_news(
@@ -2130,694 +772,22 @@ def materialize_ai_news(
     translate_text: TranslateFn = google_translate_zh,
     transport: ProxyAwareHTTPTransport | None = None,
 ) -> dict[str, Any]:
-    fetched_dt = _coerce_datetime(fetched_at)
-    fetcher = fetch_html or fetch_url
-    raw_html, receipt = _fetch_feed(
-        fetcher,
-        source_url,
-        timeout,
-        transport=transport,
-    )
-    page_html = raw_html.decode("utf-8", errors="replace") if isinstance(raw_html, bytes) else str(raw_html)
-    payload = build_ai_news_payload(
-        trade_date,
-        page_html=page_html,
-        fetched_at=fetched_dt,
-        source_url=source_url,
-        limit=limit,
-        translate_text=translate_text,
-        translation_timeout=timeout,
-        feed_receipts=(
-            [_feed_receipt("aihot", source_url, receipt)]
-            if transport is not None or fetch_html is None
-            else None
-        ),
-    )
-    result = _publish_or_hourly_refresh(ResearchPeripheralStore(data_root), payload)
-    return {"payload": payload, **result}
-
-
-HK_INDUSTRY_URL = "https://datacenter.eastmoney.com/securities/api/data/v1/get"
-HK_INDUSTRY_SOURCE_ID = "EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE"
-HK_INDUSTRY_CACHE_SCHEMA = "v3_5.hk_industry_response_cache.v1"
-
-
-def _hk_symbol_code(symbol: str) -> str:
-    value = str(symbol or "").strip().upper()
-    match = re.fullmatch(r"HK\.(\d{5})", value)
-    if not match:
-        raise ValueError("HK_INDUSTRY_SYMBOL_INVALID")
-    return match.group(1)
-
-
-def _hk_industry_url(symbol: str) -> str:
-    provider_code = _hk_symbol_code(symbol)
-    params = {
-        "reportName": "RPT_HKF10_INFO_ORGPROFILE",
-        "columns": "SECUCODE,SECURITY_CODE,ORG_NAME,BELONG_INDUSTRY",
-        "filter": f'(SECUCODE="{provider_code}.HK")',
-        "pageNumber": "1",
-        "pageSize": "200",
-        "source": "F10",
-        "client": "PC",
-    }
-    return f"{HK_INDUSTRY_URL}?{urllib.parse.urlencode(params)}"
-
-
-def _sha256_bytes(raw: bytes) -> str:
-    return hashlib.sha256(raw).hexdigest()
-
-
-def _hk_capture_timestamp() -> str:
-    """Record the real capture instant in Hong Kong's calendar timezone."""
-    return datetime.now(UTC).astimezone(_CST).isoformat(timespec="microseconds")
-
-
-def _read_hk_industry_cache(cache_root: Path, trade_date: str, symbol: str) -> dict[str, Any] | None:
-    relative = f"{trade_date}/{symbol}.json"
-    try:
-        raw_cache = SafeRoot(cache_root).read_bytes(relative)
-    except FileNotFoundError:
-        return None
-    value = json.loads(raw_cache.decode("utf-8"))
-    if (not isinstance(value, dict)
-            or value.get("schema_version") != HK_INDUSTRY_CACHE_SCHEMA
-            or value.get("trade_date") != trade_date
-            or value.get("symbol") != symbol):
-        raise ValueError("HK_INDUSTRY_CACHE_IDENTITY_INVALID")
-    if value.get("source_asof") is not None or value.get("source_asof_status") != "UNKNOWN":
-        raise ValueError("HK_INDUSTRY_CACHE_ASOF_INVALID")
-    captured_at = value.get("captured_at")
-    if not isinstance(captured_at, str):
-        raise ValueError("HK_INDUSTRY_CACHE_CAPTURE_TIME_MISSING")
-    datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
-    body_b64 = value.get("raw_body_base64")
-    body_sha = value.get("raw_response_sha256")
-    if body_b64 is not None:
-        try:
-            raw = base64.b64decode(body_b64, validate=True)
-        except (ValueError, base64.binascii.Error) as error:
-            raise ValueError("HK_INDUSTRY_CACHE_BODY_INVALID") from error
-        if _sha256_bytes(raw) != body_sha:
-            raise ValueError("HK_INDUSTRY_CACHE_SHA_MISMATCH")
-    elif body_sha is not None:
-        raise ValueError("HK_INDUSTRY_CACHE_BODY_MISSING")
-    if value.get("http_status") is None and not value.get("error_code"):
-        raise ValueError("HK_INDUSTRY_CACHE_OUTCOME_MISSING")
-    return {**value, "cache_status": "HIT"}
-
-
-def _write_hk_industry_cache(cache_root: Path, value: Mapping[str, Any]) -> None:
-    relative = f"{value['trade_date']}/{value['symbol']}.json"
-    normalized = dict(value)
-    safe = SafeRoot(cache_root)
-    encoded = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    try:
-        existing = json.loads(safe.read_bytes(relative).decode("utf-8"))
-    except FileNotFoundError:
-        safe.write_bytes(relative, encoded, require_absent=True)
-        return
-    else:
-        if existing != normalized:
-            raise ValueError("HK_INDUSTRY_CACHE_CONFLICT")
-
-
-def seed_hk_industry_response_cache(
-    *, cache_root: Path, trade_date: str, symbol: str, raw_response_path: Path,
-    captured_at: str, expected_sha256: str,
-) -> dict[str, Any]:
-    """Seed a verified local provider response without making a network request."""
-    selected_date = _date(trade_date)
-    code = _hk_symbol_code(symbol)
-    raw_path = Path(raw_response_path)
-    if raw_path.is_symlink() or not raw_path.is_file():
-        raise ValueError("HK_INDUSTRY_SEED_RESPONSE_UNAVAILABLE")
-    raw = raw_path.read_bytes()
-    digest = _sha256_bytes(raw)
-    if digest != expected_sha256:
-        raise ValueError("HK_INDUSTRY_SEED_RESPONSE_SHA_MISMATCH")
-    captured = datetime.fromisoformat(str(captured_at).replace("Z", "+00:00"))
-    if captured.tzinfo is None or captured.utcoffset() is None:
-        raise ValueError("HK_INDUSTRY_SEED_CAPTURE_TIME_INVALID")
-    entry = {
-        "schema_version": HK_INDUSTRY_CACHE_SCHEMA,
-        "trade_date": selected_date,
-        "symbol": symbol,
-        "provider_code": f"{code}.HK",
-        "request_url": _hk_industry_url(symbol),
-        "http_status": 200,
-        "transport_receipt": {},
-        "captured_at": captured.astimezone(_CST).isoformat(timespec="microseconds"),
-        "source_asof": None,
-        "source_asof_status": "UNKNOWN",
-        "raw_response_sha256": digest,
-        "raw_body_base64": base64.b64encode(raw).decode("ascii"),
-        "error_code": None,
-        "error_detail": None,
-        "seed_source": str(raw_path),
-    }
-    _write_hk_industry_cache(Path(cache_root), entry)
-    return {"symbol": symbol, "raw_response_sha256": digest, "cache_relative": f"{selected_date}/{symbol}.json"}
-
-
-def _resolve_hk_membership_scope(shared_root: Path, trade_date: str) -> dict[str, Any]:
-    """Resolve the exact-date full-market scope through the existing V4 owner."""
-    from types import SimpleNamespace
-    from v4.manager_workbench.inputs.source_bindings import membership
-
-    config = SimpleNamespace(shared_root=Path(shared_root))
-    context = SimpleNamespace(target_date=trade_date, cutoff=datetime.now(UTC).isoformat())
-    owner_pin = membership(config, context)
-    projection = owner_pin.get("projection")
-    if not isinstance(projection, dict):
-        raise ValueError("HK_INDUSTRY_MEMBERSHIP_OWNER_UNAVAILABLE")
-    codes = sorted(set(str(code).strip().upper() for code in projection.get("codes", [])))
-    if not codes or any(not re.fullmatch(r"HK\.\d{5}", code) for code in codes):
-        raise ValueError("HK_INDUSTRY_MEMBERSHIP_SCOPE_INVALID")
-    if len(codes) != len(projection.get("codes", [])):
-        raise ValueError("HK_INDUSTRY_MEMBERSHIP_DUPLICATE_SYMBOL")
-    artifact_sha = owner_pin.get("artifact_sha256")
-    source_refs = owner_pin.get("checked_files", [])
-    if (not isinstance(artifact_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", artifact_sha)
-            or not isinstance(source_refs, list) or not source_refs):
-        raise ValueError("HK_INDUSTRY_MEMBERSHIP_OWNER_PROVENANCE_MISSING")
-    return {
-        "codes": codes,
-        "scope_count": len(codes),
-        "codes_sha256": hashlib.sha256(json.dumps(
-            {"market": "HK_CONNECT", "codes": codes},
-            ensure_ascii=False, sort_keys=True, separators=(",", ":"),
-        ).encode("utf-8")).hexdigest(),
-        "scope_codes_sha256": _sha256(codes),
-        "membership_artifact_sha256": artifact_sha,
-        "membership_owner": owner_pin["owner"],
-        "membership_relative": owner_pin["artifact_relative"],
-        "membership_source_root": str(shared_root),
-        "membership_available_at": projection["available_at"],
-        "membership_effective_from": projection["effective_from"],
-        "membership_effective_through": projection["effective_to"],
-        "membership_source_refs": [dict(source_local_path=item.get("source_local_path"),
-            relative=item.get("relative"), sha256=item.get("sha256"))
-            for item in source_refs],
-    }
-
-
-def _capture_hk_industry_response(
-    *, trade_date: str, symbol: str, cache_root: Path,
-    transport: ProxyAwareHTTPTransport, timeout: int,
-) -> dict[str, Any]:
-    cached = _read_hk_industry_cache(cache_root, trade_date, symbol)
-    if cached is not None:
-        return cached
-    url = _hk_industry_url(symbol)
-    captured_at = _hk_capture_timestamp()
-    try:
-        result = transport.fetch(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
-        captured_at = _hk_capture_timestamp()
-        entry = {
-            "schema_version": HK_INDUSTRY_CACHE_SCHEMA,
-            "trade_date": trade_date,
-            "symbol": symbol,
-            "provider_code": f"{_hk_symbol_code(symbol)}.HK",
-            "request_url": url,
-            "http_status": int(result.receipt.get("http_status") or 200),
-            "transport_receipt": dict(result.receipt),
-            "captured_at": captured_at,
-            "source_asof": None,
-            "source_asof_status": "UNKNOWN",
-            "raw_response_sha256": _sha256_bytes(result.body),
-            "raw_body_base64": base64.b64encode(result.body).decode("ascii"),
-            "error_code": None,
-            "error_detail": None,
-        }
-    except TransportError as error:
-        captured_at = _hk_capture_timestamp()
-        receipt = dict(error.receipt)
-        entry = {
-            "schema_version": HK_INDUSTRY_CACHE_SCHEMA,
-            "trade_date": trade_date,
-            "symbol": symbol,
-            "provider_code": f"{_hk_symbol_code(symbol)}.HK",
-            "request_url": url,
-            "http_status": receipt.get("http_status"),
-            "transport_receipt": receipt,
-            "captured_at": captured_at,
-            "source_asof": None,
-            "source_asof_status": "UNKNOWN",
-            "raw_response_sha256": None,
-            "raw_body_base64": None,
-            "error_code": str(receipt.get("error") or "PUBLIC_HTTP_TRANSPORT_ERROR"),
-            "error_detail": str(error)[:240],
-        }
-    _write_hk_industry_cache(cache_root, entry)
-    return {**entry, "cache_status": "MISS"}
-
-
-def build_hk_industry_peripheral_payload(
-    *, trade_date: str, membership: Mapping[str, Any], requested_codes: Sequence[str],
-    outcomes: Sequence[Mapping[str, Any]], fetched_at: datetime | str | None = None,
-) -> dict[str, Any]:
-    """Build an immutable full-scope artifact from exact, per-issuer responses."""
-    selected_date = _date(trade_date)
-    scope_codes = sorted(set(str(code) for code in membership["codes"]))
-    requested = sorted(set(str(code) for code in requested_codes))
-    if (not scope_codes or not requested or not set(requested).issubset(scope_codes)
-            or any(not re.fullmatch(r"HK\.\d{5}", code) for code in (*scope_codes, *requested))):
-        raise ValueError("HK_INDUSTRY_REQUEST_SCOPE_INVALID")
-    outcome_by_symbol = {str(row.get("symbol")): dict(row) for row in outcomes}
-    if len(outcome_by_symbol) != len(outcomes) or set(outcome_by_symbol) != set(requested):
-        raise ValueError("HK_INDUSTRY_OUTCOME_COVERAGE_INVALID")
-    items: list[dict[str, Any]] = []
-    raw_responses: list[dict[str, Any]] = []
-    failures: list[dict[str, Any]] = []
-    raw_item_count = 0
-    status_inputs: list[dict[str, Any]] = []
-    for symbol in requested:
-        outcome = outcome_by_symbol[symbol]
-        url = str(outcome.get("request_url") or _hk_industry_url(symbol))
-        captured_at = str(outcome.get("captured_at") or "")
-        body_b64 = outcome.get("raw_body_base64")
-        raw: bytes | None = None
-        if body_b64 is not None:
-            try:
-                raw = base64.b64decode(body_b64, validate=True)
-            except (ValueError, base64.binascii.Error) as error:
-                raise ValueError("HK_INDUSTRY_RESPONSE_CACHE_BODY_INVALID") from error
-            body_sha = _sha256_bytes(raw)
-            if body_sha != outcome.get("raw_response_sha256"):
-                raise ValueError("HK_INDUSTRY_RESPONSE_CACHE_SHA_MISMATCH")
-            raw_responses.append({
-                "symbol": symbol,
-                "request_url": url,
-                "http_status": outcome.get("http_status"),
-                "captured_at": captured_at,
-                "raw_response_sha256": body_sha,
-                "raw_body_base64": body_b64,
-                "cache_status": outcome.get("cache_status", "HIT"),
-                "transport_receipt": dict(outcome.get("transport_receipt") or {}),
-            })
-            try:
-                response = json.loads(raw)
-            except (ValueError, UnicodeDecodeError):
-                response = None
-                failure_code = "INVALID_JSON_RESPONSE"
-            else:
-                failure_code = None
-            rows = (((response or {}).get("result") or {}).get("data")
-                if isinstance(response, dict) and response.get("success") is True
-                and response.get("code") == 0 and isinstance(response.get("result"), dict)
-                else None)
-            if failure_code is None and not isinstance(rows, list):
-                failure_code = "PROVIDER_RESPONSE_CONTRACT_INVALID"
-            if isinstance(rows, list):
-                raw_item_count += len(rows)
-            matching = []
-            if isinstance(rows, list):
-                provider_code = f"{_hk_symbol_code(symbol)}.HK"
-                for row in rows:
-                    if isinstance(row, dict) and str(row.get("SECUCODE") or "").strip().upper() == provider_code:
-                        matching.append(row)
-            if failure_code is None and len(matching) != 1:
-                failure_code = "ISSUER_ROW_MISSING" if not matching else "ISSUER_ROW_DUPLICATE"
-            if failure_code is None:
-                row = matching[0]
-                security_code = str(row.get("SECURITY_CODE") or "").strip().zfill(5)
-                if security_code != _hk_symbol_code(symbol):
-                    failure_code = "ISSUER_IDENTITY_MISMATCH"
-                else:
-                    normalized = dict(
-                        symbol=symbol,
-                        provider_code=str(row.get("SECUCODE") or "").strip().upper(),
-                        security_code=str(row.get("SECURITY_CODE") or "").strip(),
-                        issuer_name=row.get("ORG_NAME") if isinstance(row.get("ORG_NAME"), str) else None,
-                        source_industry=row.get("BELONG_INDUSTRY") if isinstance(row.get("BELONG_INDUSTRY"), str) else None,
-                        source_response_sha256=body_sha,
-                        source_response_ref=f"research/peripherals/{selected_date}/{HK_INDUSTRY_SOURCE}.json#raw_response_sha256={body_sha}",
-                        source_row_sha256=_sha256(row),
-                        captured_at=captured_at,
-                    )
-                    items.append(normalized)
-            if failure_code is not None:
-                failures.append({
-                    "symbol": symbol,
-                    "error_code": failure_code,
-                    "http_status": outcome.get("http_status"),
-                    "request_url": url,
-                    "captured_at": captured_at,
-                    "detail": str(outcome.get("error_detail") or failure_code)[:240],
-                })
-        else:
-            failures.append({
-                "symbol": symbol,
-                "error_code": str(outcome.get("error_code") or "PUBLIC_HTTP_TRANSPORT_ERROR"),
-                "http_status": outcome.get("http_status"),
-                "request_url": url,
-                "captured_at": captured_at,
-                "detail": str(outcome.get("error_detail") or outcome.get("error_code") or "PUBLIC_HTTP_TRANSPORT_ERROR")[:240],
-            })
-        status_inputs.append({
-            "symbol": symbol,
-            "raw_response_sha256": outcome.get("raw_response_sha256"),
-            "error_code": next((failure["error_code"] for failure in failures if failure["symbol"] == symbol), None),
-        })
-    if not items:
-        status = "CANNOT_CONFIRM"
-    elif failures:
-        status = "PARTIAL"
-    else:
-        status = "READY"
-    captured_times = [outcome_by_symbol[code].get("captured_at") for code in requested]
-    captured_dt = max(datetime.fromisoformat(str(value).replace("Z", "+00:00")) for value in captured_times)
-    captured_iso = captured_dt.astimezone(_CST).isoformat(timespec="microseconds")
-    finish_iso = isoformat_utc(fetched_at) if fetched_at is not None else datetime.now(UTC).isoformat().replace("+00:00", "Z")
-    target_day = datetime.strptime(selected_date, "%Y%m%d").date()
-    capture_day = captured_dt.astimezone(_CST).date()
-    date_semantics = (
-        "CAPTURED_AFTER_TARGET_DATE_SOURCE_ASOF_UNKNOWN"
-        if capture_day > target_day
-        else "CAPTURED_ON_OR_BEFORE_TARGET_DATE_SOURCE_ASOF_UNKNOWN"
-    )
-    return {
-        "schema_version": "v3_5.research_peripheral.v1",
-        "trade_date": selected_date,
-        "source": HK_INDUSTRY_SOURCE,
-        "status": status,
-        "source_url": HK_INDUSTRY_URL,
-        "fetched_at": finish_iso,
-        "captured_at": captured_iso,
-        "source_asof": None,
-        "source_asof_status": "UNKNOWN",
-        "source_date_semantics": date_semantics,
-        "source_id": HK_INDUSTRY_SOURCE_ID,
-        "provider": "EASTMONEY_F10",
-        "market": "HK_CONNECT",
-        "scope_type": "HK_CONNECT_FULL_MARKET",
-        "scope_codes": scope_codes,
-        "scope_count": len(scope_codes),
-        "scope_codes_sha256": membership["scope_codes_sha256"],
-        "membership_codes_sha256": membership["codes_sha256"],
-        "membership_artifact_sha256": membership["membership_artifact_sha256"],
-        "membership_owner": membership["membership_owner"],
-        "membership_relative": membership["membership_relative"],
-        "membership_source_root": membership["membership_source_root"],
-        "membership_source_refs": [dict(item) for item in membership.get("membership_source_refs", [])],
-        "membership_available_at": membership["membership_available_at"],
-        "membership_effective_from": membership["membership_effective_from"],
-        "membership_effective_through": membership["membership_effective_through"],
-        "requested_codes": requested,
-        "raw_responses": raw_responses,
-        "failures": failures,
-        "batch_response_sha256": _sha256(status_inputs),
-        "raw_item_count": raw_item_count,
-        "item_count": len(items),
-        "overview": [],
-        "details": [],
-        "items": items,
-        "cannot_confirm": sorted(f"{row['symbol']}:{row['error_code']}" for row in failures),
-        "write_policy": "read_only",
-        "recommendation_status": "RESEARCH_ONLY",
-        "production_allowed": False,
-        "buy_gate_updated": False,
-        "orders_sent": False,
-    }
-
-
-def materialize_hk_industry_classification(
-    *, data_root: Path, membership_root: Path, cache_root: Path,
-    trade_date: str, symbols: Sequence[str] | None = None,
-    allow_full_membership: bool = False, timeout: int = 30,
-    transport: ProxyAwareHTTPTransport | None = None,
-) -> dict[str, Any]:
-    """Capture Eastmoney HK F10 industry rows through the existing owner.
-
-    The default safety boundary is a maximum three-symbol explicit canary.
-    Full-scope capture requires the caller to set ``allow_full_membership``.
-    Each provider result is cached before parsing, so reruns verify and reuse
-    its bytes rather than repeating a request.
-    """
-    selected_date = _date(trade_date)
-    scope = _resolve_hk_membership_scope(Path(membership_root), selected_date)
-    if symbols is None:
-        if not allow_full_membership:
-            raise ValueError("HK_INDUSTRY_FULL_MEMBERSHIP_REQUIRES_EXPLICIT_ALLOW")
-        selected_symbols = list(scope["codes"])
-    else:
-        selected_symbols = sorted(set(str(symbol).strip().upper() for symbol in symbols))
-        if len(selected_symbols) > 3 and not allow_full_membership:
-            raise ValueError("HK_INDUSTRY_CANARY_LIMIT_EXCEEDED")
-    if (not selected_symbols or not set(selected_symbols).issubset(set(scope["codes"]))
-            or any(not re.fullmatch(r"HK\.\d{5}", symbol) for symbol in selected_symbols)):
-        raise ValueError("HK_INDUSTRY_REQUEST_SCOPE_INVALID")
-    store = ResearchPeripheralStore(Path(data_root))
-    existing = store.read_exact(selected_date, HK_INDUSTRY_SOURCE)
-    if existing is not None:
-        if existing.get("status") in {"READY", "PARTIAL"}:
-            return {"payload": existing, "reused": True,
-                "payload_path": store._relative(selected_date, HK_INDUSTRY_SOURCE),
-                "receipt_path": store._receipt_relative(selected_date, HK_INDUSTRY_SOURCE),
-                "payload_sha256": _sha256(existing)}
-        raise ValueError("HK_INDUSTRY_EXISTING_EXACT_DATE_CANNOT_CONFIRM_NO_AUTORETRY")
-    http = transport or _default_http_transport()
-    outcomes: list[dict[str, Any]] = []
-    provider_block: tuple[str, int | None, str] | None = None
-    for symbol in selected_symbols:
-        if provider_block is not None:
-            error_code, http_status, detail = provider_block
-            outcomes.append({
-                "symbol": symbol,
-                "request_url": _hk_industry_url(symbol),
-                "http_status": http_status,
-                "captured_at": _hk_capture_timestamp(),
-                "error_code": f"NOT_ATTEMPTED_AFTER_{error_code}",
-                "error_detail": detail,
-                "cache_status": "NOT_ATTEMPTED",
-            })
-            continue
-        outcome = _capture_hk_industry_response(
-            trade_date=selected_date, symbol=symbol, cache_root=Path(cache_root),
-            transport=http, timeout=timeout,
-        )
-        outcomes.append(outcome)
-        http_status = outcome.get("http_status")
-        error_code = outcome.get("error_code")
-        if (http_status in {403, 429} or isinstance(http_status, int) and http_status >= 500
-                or error_code and http_status is None):
-            provider_block = (
-                str(error_code or f"HTTP_STATUS_{http_status}"),
-                http_status if type(http_status) is int else None,
-                str(outcome.get("error_detail") or error_code or f"HTTP_STATUS_{http_status}")[:240],
-            )
-    payload = build_hk_industry_peripheral_payload(
-        trade_date=selected_date, membership=scope, requested_codes=selected_symbols,
-        outcomes=outcomes,
-    )
-    result = store.publish(payload)
-    return {"payload": payload, **result, "reused": False}
-
-
-def seed_hk_industry_response_cache_manifest(*, manifest_path: Path, cache_root: Path) -> list[dict[str, Any]]:
-    manifest_file = Path(manifest_path)
-    if manifest_file.is_symlink() or not manifest_file.is_file():
-        raise ValueError("HK_INDUSTRY_SEED_MANIFEST_UNAVAILABLE")
-    manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
-    if not isinstance(manifest, dict) or manifest.get("schema_version") != "v3_5.hk_industry_seed_manifest.v1":
-        raise ValueError("HK_INDUSTRY_SEED_MANIFEST_SCHEMA_INVALID")
-    if manifest.get("source_asof") is not None or manifest.get("source_asof_status") != "UNKNOWN":
-        raise ValueError("HK_INDUSTRY_SEED_MANIFEST_ASOF_INVALID")
-    entries = manifest.get("entries")
-    if not isinstance(entries, list) or not entries:
-        raise ValueError("HK_INDUSTRY_SEED_MANIFEST_EMPTY")
-    results = []
-    for entry in entries:
-        if not isinstance(entry, dict):
-            raise ValueError("HK_INDUSTRY_SEED_MANIFEST_ENTRY_INVALID")
-        results.append(seed_hk_industry_response_cache(
-            cache_root=cache_root,
-            trade_date=str(manifest.get("trade_date") or ""),
-            symbol=str(entry.get("symbol") or ""),
-            raw_response_path=Path(str(entry.get("raw_response_path") or "")),
-            captured_at=str(entry.get("captured_at") or ""),
-            expected_sha256=str(entry.get("raw_response_sha256") or ""),
-        ))
-    return results
+    from ops._materialize_research_peripherals_parts.materialization import _materialize_ai_news_body as _v4_impl
+    return _v4_impl(globals(), data_root=data_root, trade_date=trade_date, fetch_html=fetch_html, fetched_at=fetched_at, source_url=source_url, timeout=timeout, limit=limit, translate_text=translate_text, transport=transport)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-root", type=Path, required=True)
-    parser.add_argument("--trade-date", required=True)
-    parser.add_argument(
-        "--source",
-        choices=("external_finance", "ai_news", HK_INDUSTRY_SOURCE, "both"),
-        default="both",
-    )
-    parser.add_argument("--membership-root", type=Path)
-    parser.add_argument("--cache-root", type=Path)
-    parser.add_argument("--symbol", action="append", default=[])
-    parser.add_argument("--allow-full-membership", action="store_true")
-    parser.add_argument("--seed-cache-manifest", type=Path)
-    parser.add_argument("--ai-url", default=AIHOT_URL)
-    parser.add_argument("--lookback-days", type=int, default=2)
-    parser.add_argument("--limit-per-feed", type=int, default=10)
-    parser.add_argument("--max-items", type=int, default=36)
-    parser.add_argument("--limit", type=int, default=30)
-    parser.add_argument("--timeout", type=int, default=30)
-    parser.add_argument(
-        "--translate-existing",
-        action="store_true",
-        help="Translate current exact-date artifacts without refetching sources.",
-    )
-    parser.add_argument(
-        "--reuse-existing",
-        action="store_true",
-        help="Use validated exact-date artifacts and fetch only missing sources.",
-    )
-    return parser.parse_args(list(argv) if argv is not None else None)
+    from ops._materialize_research_peripherals_parts.cli import _parse_args_body as _v4_impl
+    return _v4_impl(globals(), argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = parse_args(argv)
-    if args.translate_existing and args.source == HK_INDUSTRY_SOURCE:
-        raise SystemExit("--translate-existing does not apply to the HK industry source")
-    outputs: list[dict[str, Any]] = []
-    selected_sources = (
-        ("external_finance", "ai_news")
-        if args.source == "both"
-        else (args.source,)
-    )
-    if args.reuse_existing:
-        store = ResearchPeripheralStore(args.data_root)
-        for source in selected_sources:
-            payload = store.read_exact(args.trade_date, source)
-            if reuse_existing_payload(payload):
-                outputs.append(
-                    {
-                        "payload": payload,
-                        "payload_path": f"research/peripherals/{args.trade_date}/{source}.json",
-                        "receipt_path": f"receipts/research/peripherals/{args.trade_date}/{source}.json",
-                        "reused": True,
-                    }
-                )
-        selected_sources = tuple(
-            source
-            for source in selected_sources
-            if not any(item["payload"]["source"] == source for item in outputs)
-        )
-    if args.translate_existing:
-        for source in selected_sources:
-            outputs.append(
-                materialize_existing_translations(
-                    data_root=args.data_root,
-                    trade_date=args.trade_date,
-                    source=source,
-                    timeout=args.timeout,
-                )
-            )
-    elif "external_finance" in selected_sources:
-        outputs.append(
-            materialize_external_finance(
-                data_root=args.data_root,
-                trade_date=args.trade_date,
-                lookback_days=args.lookback_days,
-                limit_per_feed=args.limit_per_feed,
-                max_items=args.max_items,
-                timeout=args.timeout,
-            )
-        )
-    if not args.translate_existing and "ai_news" in selected_sources:
-        outputs.append(
-            materialize_ai_news(
-                data_root=args.data_root,
-                trade_date=args.trade_date,
-                source_url=args.ai_url,
-                timeout=args.timeout,
-                limit=args.limit,
-            )
-        )
-    if not args.translate_existing and HK_INDUSTRY_SOURCE in selected_sources:
-        if args.membership_root is None or args.cache_root is None:
-            raise SystemExit("--membership-root and --cache-root are required for HK industry capture")
-        if args.seed_cache_manifest is not None:
-            seed_hk_industry_response_cache_manifest(
-                manifest_path=args.seed_cache_manifest,
-                cache_root=args.cache_root,
-            )
-        outputs.append(materialize_hk_industry_classification(
-            data_root=args.data_root,
-            membership_root=args.membership_root,
-            cache_root=args.cache_root,
-            trade_date=args.trade_date,
-            symbols=args.symbol or None,
-            allow_full_membership=args.allow_full_membership,
-            timeout=args.timeout,
-        ))
-    print(
-        json.dumps(
-            {
-                "trade_date": args.trade_date,
-                "source": args.source,
-                "outputs": [
-                    {
-                        "source": item["payload"]["source"],
-                        "status": item["payload"]["status"],
-                        "item_count": item["payload"]["item_count"],
-                        "payload_path": item["payload_path"],
-                        "receipt_path": item["receipt_path"],
-                        **({
-                            "scope_count": item["payload"]["scope_count"],
-                            "requested_count": len(item["payload"]["requested_codes"]),
-                            "failure_count": len(item["payload"]["failures"]),
-                            "captured_at": item["payload"]["captured_at"],
-                            "source_asof": item["payload"]["source_asof"],
-                            "batch_response_sha256": item["payload"]["batch_response_sha256"],
-                            "membership_artifact_sha256": item["payload"]["membership_artifact_sha256"],
-                            "reused": item.get("reused", False),
-                        } if item["payload"].get("source") == HK_INDUSTRY_SOURCE else {}),
-                    }
-                    for item in outputs
-                ],
-            },
-            ensure_ascii=False,
-        )
-    )
-    safe_status = all(
-        item["payload"]["status"] in (
-            {"READY"} if item["payload"].get("source") == HK_INDUSTRY_SOURCE
-            else {"READY", "READY_EMPTY"}
-        )
-        and "ZH_TRANSLATION_INCOMPLETE" not in item["payload"]["cannot_confirm"]
-        for item in outputs
-    )
-    return 0 if safe_status else 2
+    from ops._materialize_research_peripherals_parts.cli import _main_body as _v4_impl
+    return _v4_impl(globals(), argv)
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
 
 
-__all__ = [
-    "AIHOT_URL",
-    "DEFAULT_SUBSCRIPTIONS",
-    "GOOGLE_NEWS_RSS",
-    "GOOGLE_TRANSLATE",
-    "AIHotParser",
-    "build_ai_items",
-    "build_ai_news_payload",
-    "build_external_finance_payload",
-    "build_hk_industry_peripheral_payload",
-    "dedupe_and_rank",
-    "google_rss_url",
-    "google_translate_zh",
-    "materialize_ai_news",
-    "materialize_external_finance",
-    "materialize_existing_translations",
-    "materialize_hk_industry_classification",
-    "parse_aihot_items",
-    "parse_args",
-    "parse_rss_date",
-    "parse_rss_items",
-    "reuse_existing_payload",
-    "seed_hk_industry_response_cache",
-    "seed_hk_industry_response_cache_manifest",
-    "translate_existing_payload",
-]
+__all__ = _v4_definitions._value___all__(globals())

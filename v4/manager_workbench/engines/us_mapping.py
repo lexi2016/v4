@@ -1,16 +1,10 @@
-"""Configured US source mapping: research watch ONLY."""
+"""Reviewed, fixed-33 US source mapping: research watch ONLY."""
 from __future__ import annotations
 from datetime import date,datetime,timedelta,timezone
 from decimal import Decimal,InvalidOperation
 import hashlib,json
 from .common import US_FACTOR_RULES_VERSION, current, hk_symbol, membership, result, row, valid_sha,timestamp
 from .us_factor import run_us_factor
-from ..inputs.us_universe import (
-    LEGACY_UNIVERSE_VERSION,
-    UNIVERSE_VERSION,
-    build_legacy_us_universe_contract,
-    validate_us_universe_contract,
-)
 
 
 def publication_before_cutoff(context, relation):
@@ -57,46 +51,15 @@ def run_us_mapping(context, batch):
     session = u.get("source_session")
     source_session = context["source_sessions"].get("US") or context["source_sessions"].get("us")
     gaps = []
-    declared_version = u.get("universe_version")
-    universe_contract = u.get("universe_contract")
-    universe_version = declared_version
-    expected_symbols = None
-    if universe_contract is not None:
-        try:
-            universe_contract = validate_us_universe_contract(universe_contract)
-            universe_version = universe_contract["version"]
-            if (declared_version not in (None, universe_version)
-                    or u.get("universe_contract_sha256") not in (None, universe_contract["contract_sha256"])):
-                gaps.append("US_UNIVERSE_CONTRACT_IDENTITY_MISMATCH")
-            else:
-                expected_symbols = universe_contract["symbols"]
-        except (TypeError, ValueError):
-            gaps.append("US_UNIVERSE_CONTRACT_INVALID")
-    elif declared_version in (None, LEGACY_UNIVERSE_VERSION, "LEGACY_US_UNIVERSE_V1"):
-        legacy_contract = build_legacy_us_universe_contract()
-        if configured == legacy_contract["symbols"]:
-            universe_version = declared_version or "LEGACY_US_UNIVERSE_V1"
-            expected_symbols = legacy_contract["symbols"]
-        else:
-            gaps.append("US_LEGACY_FIXED_33_SCOPE_INVALID")
-    elif declared_version == UNIVERSE_VERSION:
-        gaps.append("US_UNIVERSE_CONTRACT_MISSING")
-    else:
-        gaps.append("US_UNIVERSE_CONTRACT_VERSION_UNSUPPORTED")
-    expected_count = len(expected_symbols) if expected_symbols is not None else 0
-    legacy_gap = universe_version in (LEGACY_UNIVERSE_VERSION, "LEGACY_US_UNIVERSE_V1")
-    good_universe = (expected_symbols is not None and isinstance(configured, list)
-        and configured == expected_symbols and len(configured) == len(set(configured))
-        and len(configured) == expected_count and all(isinstance(x, str) and x for x in configured)
-        and u.get("verification") == "VERIFIED"
-        and valid_sha(u.get("sha256"))
-        and u.get("universe_ref")==batch.get("universe_ref") and session == source_session
-        and isinstance(session, str) and u.get("calendar_verified") is True)
+    good_universe = (isinstance(configured, list) and len(configured) == len(set(configured)) == 33 and
+        all(isinstance(x, str) and x for x in configured) and u.get("verification") == "VERIFIED" and
+        valid_sha(u.get("sha256")) and u.get("universe_ref")==batch.get("universe_ref") and session == source_session and
+        isinstance(session, str) and u.get("calendar_verified") is True)
     if not good_universe:
-        gaps.append("US_UNIVERSE_CONTRACT_OR_SESSION_NOT_VERIFIED")
+        gaps.append("US_FIXED_33_OR_SESSION_NOT_VERIFIED")
     found = [item.get("us_symbol") for item in batch["records"] if isinstance(item, dict)]
-    if good_universe and (len(found) != expected_count or len(found) != len(configured) or set(found) != set(configured)):
-        gaps.append("US_SOURCE_33_COVERAGE_INCOMPLETE" if legacy_gap else "US_SOURCE_UNIVERSE_COVERAGE_INCOMPLETE")
+    if good_universe and (len(found) != 33 or set(found) != set(configured) or len(set(found)) != 33):
+        gaps.append("US_SOURCE_33_COVERAGE_INCOMPLETE")
     rows = []
     for index, item in enumerate(batch["records"]):
         if not isinstance(item, dict):
@@ -113,20 +76,10 @@ def run_us_mapping(context, batch):
             proxies=[p for p in item.get('proxy_metadata',[]) if isinstance(p,dict) and p.get('mapping_type') in ('etf_proxy','etf_basket_proxy')
                 and p.get('source_sha256')==item.get('source_sha256') and p.get('owner')==item.get('owner')
                 and current(context,p.get('available_at'))] if source_ok else []
-            quote_missing_reason=item.get("quote_missing_reason")
-            unmapped_disposition=item.get("unmapped_disposition")
-            reason=(quote_missing_reason or ("US_RELATION_UNMAPPED_CANNOT_CONFIRM" if unmapped_disposition
-                else 'US_REVIEWED_ASSESSMENT_WITH_GAPS' if assessments else 'US_ETF_THEME_PROXY_ONLY' if proxies else 'US_REVIEWED_RELATION_ABSENT'))
-            observation_conditions=(['OBSERVATION_ONLY','NOT_STRICT_SELECTION']
-                if quote_missing_reason or unmapped_disposition else [])
-            no_relation_gaps=list(item.get("source_gaps", [])) if isinstance(item.get("source_gaps"), list) else []
-            if unmapped_disposition:
-                no_relation_gaps.append(unmapped_disposition.get("reason", "US_RELATION_UNMAPPED_CANNOT_CONFIRM"))
+            reason='US_REVIEWED_ASSESSMENT_WITH_GAPS' if assessments else 'US_ETF_THEME_PROXY_ONLY' if proxies else 'US_REVIEWED_RELATION_ABSENT'
             rows.append(dict(row(item, "UNASSESSED", reason, source_index=index,
                                  us_symbol=item.get("us_symbol"), relation_type=None,quote=item.get('quote'),
-                                 quote_missing_reason=quote_missing_reason,source_gaps=no_relation_gaps,
-                                 unmapped_disposition=unmapped_disposition,conditions=observation_conditions,
-                                 diagnostic_gaps=no_relation_gaps,reviewed_assessments=assessments,proxy_metadata=proxies,
+                                 reviewed_assessments=assessments,proxy_metadata=proxies,
                                  absence_scope='CHECKED_FROZEN_REVIEWED_RELATIONS_AND_SEED_ONLY'), symbol=None))
             continue
         for relation in relations:
@@ -138,30 +91,10 @@ def run_us_mapping(context, batch):
                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
             extra = dict(source_index=index, us_symbol=item.get("us_symbol"),
                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
-                         source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None,
-                         relation_pit_status=relation.get("pit_status") if isinstance(relation,dict) else None,quote_missing_reason=item.get("quote_missing_reason"),
-                         source_gaps=item.get("source_gaps",[]),unmapped_disposition=item.get("unmapped_disposition"))
+                         source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None)
             if isinstance(relation,dict) and relation.get('priority_assessment'):
                 extra.update(research_priority_reason=relation.get('research_priority_reason'),
                              priority_assessment=relation['priority_assessment'])
-            quote_missing_reason=item.get("quote_missing_reason")
-            if isinstance(quote_missing_reason, str) and quote_missing_reason.startswith("QUOTE_SYMBOL_MISSING:"):
-                conditions=["OBSERVATION_ONLY", "NOT_STRICT_SELECTION"]
-                if isinstance(relation,dict) and relation.get("pit_status") == "PIT_UNCONFIRMED":
-                    conditions.append("PIT_UNCONFIRMED")
-                diagnostic_gaps=list(item.get("source_gaps", [])) if isinstance(item.get("source_gaps"), list) else []
-                if isinstance(relation,dict) and relation.get("pit_status") == "PIT_UNCONFIRMED":
-                    diagnostic_gaps.append("US_RELATION_PROPOSED_PIT_UNCONFIRMED")
-                rows.append(row(base, "UNASSESSED", quote_missing_reason, conditions=conditions,
-                    diagnostic_gaps=diagnostic_gaps, **extra))
-                continue
-            if isinstance(relation, dict) and (
-                relation.get("status") == "PROPOSED"
-                or relation.get("pit_status") == "PIT_UNCONFIRMED"
-            ):
-                rows.append(row(base, "UNASSESSED", "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
-                    conditions=["OBSERVATION_ONLY", "NOT_STRICT_SELECTION"], **extra))
-                continue
             relation_ok=(source_ok and isinstance(relation, dict) and hk_symbol(relation.get("target_symbol")) and
                     relation.get("status") == "REVIEWED" and valid_sha(relation.get("sha256")) and
                     relation.get("review_owner") and current(context, relation.get("available_at")) and
@@ -203,11 +136,6 @@ def run_us_mapping(context, batch):
         holder = next(iter(factor_rows), None) or next(iter(out["rows"]), None)
         if holder is not None:
             holder["us_factor_summary"] = factor_summary
-        industry_summary = factor_summary.get("industry_summary") or {}
-        if industry_summary.get("source_status") not in (None, "READY", "UNAVAILABLE"):
-            out["gaps"].append("HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL")
-            out["coverage"]["gaps"].append("HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL")
-            out["state"] = "PARTIAL"
         if factor_summary.get("paired_review_gap"):
             out["gaps"].append(factor_summary["paired_review_gap"])
             out["coverage"]["gaps"].append(factor_summary["paired_review_gap"])
@@ -220,6 +148,6 @@ def run_us_mapping(context, batch):
     # measured in unique configured US symbols, not mapped-stock row counts.
     if not out["gaps"] and not any(x.get("positive_change_required") for x in batch["records"]):
         out["coverage"]["assessed_count"] = sum(1 for x in batch["records"] if x.get("source_status") in ("PRIORITY", "WATCH", "NONE"))
-        out["coverage"]["unassessed_count"] = expected_count - out["coverage"]["assessed_count"]
+        out["coverage"]["unassessed_count"] = 33 - out["coverage"]["assessed_count"]
     return out
 

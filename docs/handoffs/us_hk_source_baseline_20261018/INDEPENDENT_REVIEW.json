@@ -1,0 +1,54 @@
+{
+  "reviewer": "/root/issue45_source_baseline_review",
+  "reviewed_read_only": true,
+  "reviewed_scope": "frozen Issue 45 complete source baseline export only",
+  "reviewed_manifest_sha256": "964bb055b6975fdd256c81afa6a2948d955f94aa1f1afabd1cd6aa8d8ebbd8ae",
+  "source_baseline_ready": "PASS",
+  "reviewed": "PASS",
+  "behavior_verified": {
+    "status": "PASS",
+    "scope": "fresh isolated imports, module origins, API request/method dependency, and focused test selection"
+  },
+  "staged_files": 436,
+  "staged_bytes": 8361532,
+  "manifest_sha_size_match": "PASS",
+  "symlink_resolves_inside_staging": "PASS",
+  "isolated_imports_and_api_dependency": "PASS",
+  "focused_tests": {
+    "passed": 225,
+    "failed": 3,
+    "deselected": 1,
+    "environment": "Python 3.14.6 in existing venv; fresh /tmp copy; PYTHONPATH/PYTHONHOME unset",
+    "command_selection": "README.md focused selection with --basetemp and -p no:cacheprovider",
+    "known_failures": [
+      {
+        "test": "tests/test_manager_us_mapping_bindings_r3.py::test_source_binding_carries_configured_quote_scope_and_proposal_sources",
+        "evidence": "market_snapshot READY universe quote coverage incomplete"
+      },
+      {
+        "test": "tests/manager_workbench/engines/test_us_mapping.py::test_v3_48_symbol_scope_and_proposed_relations_remain_observation_only",
+        "evidence": "actual US_SESSION_RELATION_OR_CONNECT_UNVERIFIED differs from expected US_RELATION_PROPOSED_PIT_UNCONFIRMED"
+      },
+      {
+        "test": "tests/manager_workbench/engines/test_us_mapping.py::test_unknown_universe_version_is_rejected_as_unassessed",
+        "evidence": "US_UNIVERSE_CONTRACT_VERSION_UNSUPPORTED gap absent"
+      }
+    ],
+    "deselected_test": "tests/test_runtime_dispatcher.py::test_real_catalog_dispatches_single_intraday_cli_and_binds_release",
+    "deselected_reason": "separate 11:30 intraday workload outside frozen Issue 45 source closure"
+  },
+  "dependency_dry_run": "PASS: 9 packages checked; no changes",
+  "high_confidence_secret_scan": "PASS: no matches",
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [
+    "Three documented pre-existing focused-test assertion failures remain in the baseline; the frozen contract permits preservation and they are not represented as passing."
+  ],
+  "cannot_confirm": [
+    "announcement_update.py source bytes at the recorded freeze cannot be independently compared after subsequent canonical drift; staged bytes match the frozen manifest SHA.",
+    "GitHub branch sync/readback is outside this review receipt."
+  ],
+  "issue45_business_breakpoints": "CANNOT_CONFIRM",
+  "api_ui_notification_natural_slot": "CANNOT_CONFIRM",
+  "production_or_service_changes": false
+}

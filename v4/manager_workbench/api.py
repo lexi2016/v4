@@ -1,6 +1,7 @@
 """Mounted-only FastAPI router. Every GET is read-only and version-scoped."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Literal
 import re
 
@@ -14,11 +15,17 @@ from .contracts import Decision, Lane, Phase, envelope, validate_date
 from .jobs import JobConflict
 from .legacy import LegacyHistory
 from .service import ManagerService
+from .announcement_update import AnnouncementUpdate
 from .store import StorageConflict, StorageUnavailable
 from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
 from .engines.common import US_FACTOR_RULES_VERSION
+from .us_mapping_catalog import CatalogValidationError, CatalogStore
+from v4.hk_research_history import OwnedHKResearchHistory
 
 PREFIX = "/api/v4/manager-workbench"
+_US_MAPPING_CATALOG_STORE = CatalogStore()
+US_MAPPING_REVIEW_OVERLAY_PATH = Path(__file__).resolve().parent / "research_data" / "us_hk_667_review_overlay_20261015.json"
+US_MAPPING_CATALOG_PATH = Path(__file__).resolve().parent / "research_data" / "us_hk_667_catalog_20261015.json"
 
 
 class RunRequest(BaseModel):
@@ -37,6 +44,22 @@ class RunRequest(BaseModel):
     @classmethod
     def check_date(cls, value: str) -> str:
         return validate_date(value)
+
+
+class AnnouncementFlashUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_date: str
+
+    @field_validator("target_date")
+    @classmethod
+    def check_date(cls, value: str) -> str:
+        return validate_date(value)
+
+
+class AnnouncementFlashCachedProductRecoveryRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    failed_job_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    product_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 def _date(value: str) -> str:
@@ -60,6 +83,8 @@ def _safe_errors(f):
     except KeyError as exc:
         raise _not_found() from exc
     except ValueError as exc:
+        if str(exc).startswith("HK_HISTORY_RESOLUTION"):
+            raise HTTPException(503, "HK_HISTORY_RESOLUTION_UNAVAILABLE") from exc
         raise HTTPException(422, "PARAMETER_INVALID") from exc
     except HTTPException:
         raise
@@ -104,6 +129,112 @@ class WorkbenchRoute(APIRoute):
 
 def create_router(service: ManagerService) -> APIRouter:
     router = APIRouter(prefix=PREFIX, tags=["manager-workbench"],route_class=WorkbenchRoute)
+    announcement_update = AnnouncementUpdate(service) if service is not None else None
+
+    @router.get("/announcement-flash")
+    def read_announcement_flash(target_date: str | None = Query(None, pattern=r"^[0-9]{8}$")):
+        if announcement_update is None:
+            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+        day = _date(target_date) if target_date else None
+        def read():
+            value = announcement_update.read(day)
+            state = value.get("state", "UNAVAILABLE")
+            return envelope(state, _public(value), value.get("gaps", []))
+        return _safe_errors(read)
+
+    @router.post("/announcement-flash/update", status_code=202)
+    def update_announcement_flash(payload: AnnouncementFlashUpdateRequest):
+        if announcement_update is None:
+            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+        def update():
+            job = announcement_update.start(payload.target_date)
+            state = job.state.value
+            return envelope("QUEUED" if state == "QUEUED" else state, {
+                "job_id": job.job_id,
+                "target_date": job.context.target_date,
+                "requested_target_date": payload.target_date,
+                "step": job.step,
+                "status_url": f"{PREFIX}/announcement-flash?target_date={job.context.target_date}",
+            })
+        return _safe_errors(update)
+
+    @router.post("/announcement-flash/recover-cached-product", status_code=202)
+    def recover_cached_announcement_product(payload: AnnouncementFlashCachedProductRecoveryRequest):
+        if announcement_update is None:
+            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+        def recover():
+            job = announcement_update.start_cached_product_recovery(
+                payload.failed_job_id, payload.product_sha256)
+            state = job.state.value
+            return envelope("QUEUED" if state == "QUEUED" else state, {
+                "job_id": job.job_id,
+                "source_job_id": payload.failed_job_id,
+                "capture_product_sha256": payload.product_sha256,
+                "target_date": job.context.target_date,
+                "step": job.step,
+                "status_url": f"{PREFIX}/announcement-flash?target_date={job.context.target_date}",
+            })
+        return _safe_errors(recover)
+
+    @router.get("/mapping-catalog")
+    def read_us_hk_mapping_catalog(
+        q: str | None = Query(None, max_length=128),
+        research_use: str | None = Query(None, pattern="^(PENDING_REVIEW|CONDITIONAL_OBSERVATION|BACKGROUND_HISTORICAL|EXCLUDED_CURRENT)$"),
+        offset: int = Query(0, ge=0),
+        limit: int = Query(25, ge=1, le=200),
+    ):
+        def read():
+            try:
+                data = _US_MAPPING_CATALOG_STORE.search(
+                    US_MAPPING_CATALOG_PATH, US_MAPPING_REVIEW_OVERLAY_PATH, q,
+                    offset=offset, limit=limit, research_use=research_use)
+            except CatalogValidationError as exc:
+                raise HTTPException(503, "US_HK_MAPPING_CATALOG_INVALID") from exc
+            return envelope("STRUCTURE_VALID", data, [
+                "SOURCE_FACTS_NOT_INDEPENDENTLY_VERIFIED",
+                "PREDICTION_UNTESTED",
+                "HISTORICAL_PIT_NOT_VALIDATED",
+            ])
+        return _safe_errors(read)
+
+    @router.get("/hk-history")
+    def read_hk_history(
+        symbol: str = Query(..., pattern=r"^HK\.[0-9]{5}$"),
+        start: str = Query(...),
+        end: str = Query(...),
+        offset: int = Query(0, ge=0),
+        limit: int = Query(100, ge=1, le=200),
+        mode: Literal["usable", "audit"] = Query("usable"),
+        fields: str = Query("open,high,low,close,amount,trade", max_length=64),
+    ):
+        if not fields or any(field not in ("open","high","low","close","amount","trade") for field in fields.split(",")):
+            raise HTTPException(422, "FIELDS_INVALID")
+        if int(symbol[3:]) < 1:
+            raise HTTPException(422, "SYMBOL_INVALID")
+        if re.fullmatch(r"[0-9]{8}", start) is None or re.fullmatch(r"[0-9]{8}", end) is None:
+            raise HTTPException(422, "DATE_INVALID")
+        start_day = _date(start)
+        end_day = _date(end)
+
+        def read():
+            history = OwnedHKResearchHistory.from_shared_root(service.config.shared_root)
+            data = history.query_union(
+                symbol,
+                start_day,
+                end_day,
+                offset=offset,
+                limit=limit,
+                mode=mode, required_fields=tuple(fields.split(",")),
+            )
+            return envelope("READY", _public(data), [
+                "RESEARCH_ONLY_RAW_HISTORY",
+                "RAW_UNITS_UNKNOWN",
+                "CURRENCY_BASIS_UNKNOWN",
+                "ADJUSTMENT_BASIS_UNKNOWN",
+                "PIT_SAFETY_UNKNOWN",
+                "SCORING_DISABLED",
+            ])
+        return _safe_errors(read)
 
     @router.get("/days/{date}")
     def read_day(date: str, phase: Phase | None = None, run_id: str | None = None,

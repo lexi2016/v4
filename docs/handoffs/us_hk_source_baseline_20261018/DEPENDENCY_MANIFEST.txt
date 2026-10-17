@@ -1,0 +1,12 @@
+# Focused Issue 45 source/tests; Python >=3.14 (verified with 3.14.6).
+# Direct runtime requirements follow pyproject.toml, pinned to the versions
+# present in the verified workspace venv. pytest/httpx are the focused test deps.
+fastapi==0.141.1
+numpy==2.5.3
+pandas==3.0.6
+pyarrow==24.0.0
+requests==2.34.2
+uvicorn==0.52.4
+httpx==0.28.1
+pytest==9.1.1
+pydantic==2.13.4

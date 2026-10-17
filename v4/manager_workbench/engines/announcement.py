@@ -174,9 +174,14 @@ def _validate_reader(body, article, output):
     selected = output["disposition"] in ("SELECTED_EVENT", "SELECTED_PERFORMANCE")
     if selected and (output["direction"]!="POSITIVE" or output["evidence_sufficiency"]!="VERIFIED_EXISTING_FACTS"):
         raise ValueError("ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT")
+    required_evidence_fields = set()
+    if selected:
+        required_evidence_fields.update(("facts", "changes"))
+    elif output["disposition"] == "CONDITIONAL_WATCH":
+        required_evidence_fields.add("confirmation_conditions")
     for key in _LIST_FIELDS:
         citations=output[key]
-        if not isinstance(citations,list) or (selected and not citations):
+        if not isinstance(citations,list) or (key in required_evidence_fields and not citations):
             raise ValueError("ANNOUNCEMENT_EVIDENCE_INCOMPLETE")
         for fact in citations:
             if not isinstance(fact,dict) or any(not isinstance(fact.get(k),str) or not fact[k].strip()

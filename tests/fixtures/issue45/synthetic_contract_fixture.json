@@ -1,0 +1,64 @@
+{
+  "schema_version": "friday_us_selection_contract_fixture.v1",
+  "synthetic_only": true,
+  "not_a_production_source": true,
+  "no_source_hashes_or_real_receipts": true,
+  "cases": [
+    {
+      "case_id": "dst_session_to_hk_holiday_target",
+      "slot_local": "2026-10-17T04:15:00+08:00",
+      "expected_scheduled_date": "20261017",
+      "expected_us_session_date": "20261016",
+      "hk_closed_dates": ["20261019"],
+      "expected_hk_target_date": "20261020",
+      "must_keep_date_fields_distinct": [
+        "scheduled_date",
+        "trade_date",
+        "us_session_date",
+        "target_date"
+      ]
+    },
+    {
+      "case_id": "missing_release_identity_fails_closed",
+      "required_identity_keys": [
+        "V35_APP_ROOT",
+        "V35_RELEASE_ID",
+        "V35_RELEASE_MANIFEST_PATH",
+        "V35_RELEASE_MANIFEST_SHA256"
+      ],
+      "identity_present": false,
+      "expected_typed_failure": "RELEASE_IDENTITY",
+      "expected_workloads_started": 0
+    },
+    {
+      "case_id": "exact_artifact_handoff_and_idempotency",
+      "us_session_date": "20261016",
+      "target_date": "20261020",
+      "owner_artifact_identity_fields": [
+        "artifact_path",
+        "artifact_sha256",
+        "manifest_sha256",
+        "capture_cutoff",
+        "run_id",
+        "us_session_date",
+        "target_date"
+      ],
+      "source_status_if_missing_or_partial": "preserve_exact_status_and_coverage",
+      "same_exact_artifact_repeated": "one_canonical_consumer_result",
+      "stale_20261015_fallback": false
+    },
+    {
+      "case_id": "selector_consumes_frozen_mapping_projection",
+      "stock_count": 667,
+      "relation_count": 1003,
+      "status_counts": {
+        "CLOSED_RESEARCH_SCOPE": 757,
+        "OPEN": 221,
+        "CLOSED_EXCLUDED_SCOPE": 25
+      },
+      "require_actual_consumer_readback": true,
+      "open_or_excluded_selectable": false,
+      "rewrite_research_scope_as_reviewed_or_pit_safe": false
+    }
+  ]
+}

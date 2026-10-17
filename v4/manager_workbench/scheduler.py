@@ -78,13 +78,35 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
         validate_date(next_day)
         if not _require_calendar(calendar,next_day) or next_day <= day:
             raise CalendarUnavailable("HK_NEXT_SESSION_INVALID")
-        key = "nextday_"+day+suffix
-        if not service.store.cursor(key):
-            job = service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=scheduled,
-                                 scope_refs={"source_hk_session":day,
-                                             "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
-            service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat()})
-            jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
+        split_oversold = scheduled is not None and Lane.OVERSOLD in scheduled
+        if split_oversold:
+            # Keep the existing 16:30 work moving while OVERSOLD waits for the
+            # exact-date HK panel/master and any existing-owner TDX61 repair.
+            other_lanes=[lane for lane in scheduled if lane!=Lane.OVERSOLD]
+            if other_lanes:
+                key="nextday_other_"+day+suffix
+                if not service.store.cursor(key):
+                    job=service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=other_lanes,
+                        scope_refs={"source_hk_session":day,"merge_phase_lanes":True,
+                            "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
+                    service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat(),
+                        "lanes":[lane.value for lane in other_lanes]})
+                    jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
+            driver=getattr(service,"oversold_daily",None)
+            if driver is not None:
+                try:
+                    progress=driver.tick(source_day=day,target_date=next_day,at=local)
+                    jobs.append({"phase":"NEXT_DAY","lane":"OVERSOLD","state":str(progress.get("state","SCHEDULED"))})
+                except Exception:
+                    jobs.append({"phase":"NEXT_DAY","lane":"OVERSOLD","state":"CANNOT_CONFIRM"})
+        else:
+            key = "nextday_"+day+suffix
+            if not service.store.cursor(key):
+                job = service.submit(next_day,Phase.NEXT_DAY,trigger="SCHEDULED",cutoff=local,lanes=scheduled,
+                                     scope_refs={"source_hk_session":day,
+                                                 "timing_status":"LATE_CATCHUP" if local>at1630 else "ON_SLOT"})
+                service.store.set_cursor(key,{"job_id":job.job_id,"target_date":next_day,"cutoff":local.isoformat()})
+                jobs.append({"phase":"NEXT_DAY","run_id":job.run_id,"job_id":job.job_id})
     # Preserve the preopen latch above before any background capture enqueue.
     if getattr(service,"capture_jobs",None) and (scheduled is None or Lane.ANNOUNCEMENT in scheduled):
         capture_day=next_day if local>=at1630 else day

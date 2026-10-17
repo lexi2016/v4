@@ -102,9 +102,8 @@ class WorkbenchStore:
     def _catalog(self, snap: PlanSnapshot) -> Path:
         return self._path("catalog", snap.context.target_date, snap.context.phase.value, _key(snap.run_id))
 
-    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False) -> PlanSnapshot:
+    def commit_plan(self, snap: PlanSnapshot, *, freeze: bool = False, merger=None) -> PlanSnapshot:
         """Publication is atomic only after immutable readback passes model+run+SHA checks."""
-        d = snap.model_dump(mode="json")
         date, phase = snap.context.target_date, snap.context.phase.value
         key = f"publish:{date}:{phase}"
         with self.lock(key):
@@ -114,6 +113,10 @@ class WorkbenchStore:
                 if before.get("run_id") == snap.run_id and before.get("product_sha256") == snap.product_sha256:
                     return self.read_plan(snap.run_id)
                 raise StorageConflict("PREOPEN_FROZEN")
+            if merger is not None:
+                previous=self.read_plan(before["run_id"]) if before else None
+                snap=merger(previous,snap)
+            d = snap.model_dump(mode="json")
             self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True)
             saved = self.read_plan(snap.run_id)
             if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
