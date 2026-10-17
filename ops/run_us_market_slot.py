@@ -22,6 +22,7 @@ from infrastructure.scheduling.catalog import load_workload_catalog
 from infrastructure.scheduling.dispatcher import dispatch_due
 from infrastructure.scheduling.execution_ledger import ExecutionLedger
 from infrastructure.scheduling.executor_registry import FixedExecutorRegistry
+from contracts.trading_calendar import load_market_calendar, next_session
 from ops.run_scheduled_slot import compute_dates
 
 
@@ -141,6 +142,14 @@ def _request_for_slot(
             business_date=business_date,
             slot=slot,
             calendar=calendar,
+        )
+    # The US capture slot's Shanghai date is not the next HK selection date.
+    # Keep scheduled/business dates for dispatch identity, but resolve the
+    # selection target through the existing authoritative HK securities calendar.
+    if slot in US_MARKET_SLOT_SET:
+        hk_calendar = calendar or load_market_calendar()
+        dates["target_date"] = next_session(
+            hk_calendar, business_date, market="hk_securities"
         )
     return DispatchRequest(
         scheduled_date=dates["scheduled_date"],
