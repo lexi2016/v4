@@ -1,0 +1,112 @@
+{
+  "schema": "issue44.cache_recovery_delivery.v1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "baseline_commit": "6ecec3f0363527e336e461b8076d5eb9ed8c9e35",
+  "branch": "codex/issue44-cache-recovery-20261018",
+  "base_release": "issue44-capture-size-api-20261018-r1",
+  "base_manifest_sha256": "67ab61e9e2d7834a5cc21ab1825fe4fe284d176d2989e7e730bb06591e9df41a",
+  "release_id": "issue44-cache-recovery-api-20261018-r1",
+  "release_manifest_sha256": "1862dc6476b9219982c4d6eea7e66036a459426b1b94c2b66fd6a7ef61037aa5",
+  "source_bindings": {
+    "v4/manager_workbench/api.py": {
+      "before": "586f462f785bf8b5e6795ac31f861bff797196c93b549a3db4bdccc768db866d",
+      "after": "d3dd953756ec4c9973f1b3ee7121f1b9530e17f231388655d7748c525a661636",
+      "active_release_unchanged_sha256": "138e67441bf3eb8d15b378c645317f415fe5568ba7144bdad21bf8568bfb38c8"
+    },
+    "v4/manager_workbench/announcement_update.py": {
+      "before": "39d94bba3c8c5a2eddf81654015596f0dc2e5acfb8a55b1f986ec87023b640bc",
+      "after": "0b510a14a192099173fb4737dd3b7e0d403437ad44fc12f097caebeaec11adb5",
+      "active_release_unchanged_sha256": "39d94bba3c8c5a2eddf81654015596f0dc2e5acfb8a55b1f986ec87023b640bc"
+    },
+    "tests/test_manager_announcement_cached_product_recovery.py": {
+      "before": null,
+      "after": "6927b15bc10b4cd8d25386f0541ee6d8ba870cc9da0403f949018adc8123703f"
+    },
+    "writer/actual.diff": "922d4b55099b8f005ddba4817b3c6bbbda1867811af901fc5181a95ba3ba76bc"
+  },
+  "integrated_delta": [
+    {
+      "path": "tests/test_manager_announcement_cached_product_recovery.py",
+      "before_sha256": null,
+      "after_sha256": "6927b15bc10b4cd8d25386f0541ee6d8ba870cc9da0403f949018adc8123703f",
+      "unified_diff_sha256": null,
+      "unified_diff_hunk_count": null
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "before_sha256": "39d94bba3c8c5a2eddf81654015596f0dc2e5acfb8a55b1f986ec87023b640bc",
+      "after_sha256": "0b510a14a192099173fb4737dd3b7e0d403437ad44fc12f097caebeaec11adb5",
+      "unified_diff_sha256": "03a8295b33649b468c3190d4f8fce1335564db1a1f0077106a44b29a0ab0528c",
+      "unified_diff_hunk_count": 10
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "before_sha256": "138e67441bf3eb8d15b378c645317f415fe5568ba7144bdad21bf8568bfb38c8",
+      "after_sha256": "8fa92dadaee33a75ad8704a0479cd311267a8e0d105545ed6fef9dfc689385a6",
+      "unified_diff_sha256": "85be14ed2903c2e78820e224439f3d7bea2734d59bd83c3efc4bc5b44b3ab3e5",
+      "unified_diff_hunk_count": 2
+    }
+  ],
+  "non_delta_preserved": 1221,
+  "writer": "issue44_writer Luna Max",
+  "reviewer": "issue44_review Luna Max independent",
+  "REVIEWED": "PASS",
+  "BEHAVIOR_VERIFIED": "PASS_FOR_CANDIDATE_ROUTE_CONTRACT_AND_FOCUSED_TESTED_BEHAVIOR_ONLY",
+  "review_status": "PASS_WITH_P2",
+  "tests": {
+    "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue44-cache-recovery-api-20261018-r1/app",
+    "command": "PYTHONDONTWRITEBYTECODE=1 <V4 runtime python> -B -m pytest -q -p no:cacheprovider --basetemp=/Users/lexi/Desktop/学习/agents调试/助手/issue44-cache-resume-20261018/review/pytest tests/test_manager_announcement_cached_product_recovery.py tests/test_manager_announcement_flash_readonly.py::test_manual_update_post_is_idempotent_for_the_same_minute tests/test_manager_announcement_flash_readonly.py::test_manual_update_recovery_click_uses_saved_raw_parent_and_active_job_stays_idempotent tests/test_manager_announcement_flash_readonly.py::test_workbench_recovery_worker_recaptures_and_launches_bound_pending_continuation tests/test_manager_announcement_flash_readonly.py::test_flash_runner_launch_disables_bytecode_cache tests/test_manager_announcement_flash_runner.py::test_same_article_body_new_capture_source_reuses_prior_result_without_model_call",
+    "result": "PASS",
+    "summary": "30 passed in 0.31s; executed against candidate app imports."
+  },
+  "findings": [
+    {
+      "id": "P2-1",
+      "severity": "P2",
+      "blocking": false,
+      "title": "Recovery idempotency/latest-pointer writes occur after asynchronous job submission.",
+      "evidence": [
+        "announcement_update.py:1074 submits the worker; lines 1081-1082 then write the deterministic recovery cursor and latest cursor as separate writes.",
+        "jobs.py:80-83 persists and queues the job before the API handler finishes cursor publication; jobs.py:103-109 clears the active claim when the job terminates.",
+        "announcement_update.py:1041-1059 returns an existing recovery job without repairing the latest pointer; lines 1788-1790 update latest only when it already points to that job."
+      ],
+      "impact": "If the first recovery-cursor write fails after submit and the worker terminates before a retry, a retry can lack the durable idempotency cursor and submit another recovery job. If only the latest-cursor write fails after the recovery cursor succeeds, a retry returns the prior job without repairing latest, so the target-date GET may remain bound to the old job when completion happened before cursor publication.",
+      "test_gap": "Focused tests cover repeated POST after successful cursor writes, but do not inject a post-submit cursor write failure.",
+      "certainty": "The conditional code path is supported by source order; whether the storage failure occurs in normal operation is CANNOT_CONFIRM."
+    }
+  ],
+  "finding_operation": "On submit error, inspect existing job before any retry; do not blindly resubmit.",
+  "deployment": {
+    "status": "DEPLOYED_API_RESPONDED_NO_INFERENCE",
+    "pid": 22311,
+    "port": 8873,
+    "protected_files_unchanged": true,
+    "protected_file_count": 1002
+  },
+  "recovery_post": {
+    "path": "/api/v4/manager-workbench/announcement-flash/recover-cached-product",
+    "body": {
+      "failed_job_id": "e20cf0d93ea843a885b090173b6eab55",
+      "product_sha256": "d3eae78873057330f85b1e75d0f0b5ca7e35ba9b5aca807e251ae5487657e53b"
+    },
+    "http_status": 202,
+    "new_job_id": "c3717353b23c4257af5a10be41a69db9"
+  },
+  "model_start": {
+    "status": "FIRST_CONTENT_OBSERVED",
+    "event": "first_content",
+    "article_id": "EASTMONEY:AN202610161830619400",
+    "timestamp": "2026-10-17T16:53:29.742441+00:00",
+    "model_results_acceptance": "CANNOT_CONFIRM_PENDING_TERMINAL_RESULT"
+  },
+  "new_api_result_binding": "NOT_YET_VERIFIED",
+  "new_ui_result_binding": "NOT_YET_VERIFIED",
+  "ui_progress": "Observed FLASH_SELECTION running after reload; old 11 candidates are not new acceptance.",
+  "recapture": "NOT_RUN",
+  "natural_slot": "NOT_RUN_MANUAL_RECOVERY",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
