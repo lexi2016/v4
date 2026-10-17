@@ -1,0 +1,77 @@
+{
+  "schema": "issue44.local_verified.v1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "handoff_commit": "95b7f9f70aa1c1e1dadb9459c37c42684267c0bc",
+  "base_release": "us-receipt-compat-api-20261017-r1",
+  "base_manifest_sha256": "3b1a3edef0919fcda17b401f443bf71433ac98aff1c2c374814c0128c2e6d05c",
+  "deployed_release": "issue44-capture-size-api-20261018-r1",
+  "deployed_manifest_sha256": "67ab61e9e2d7834a5cc21ab1825fe4fe284d176d2989e7e730bb06591e9df41a",
+  "scope": {
+    "goal": "Issue44 capture product read contract fix",
+    "source_baseline_sha256": "b18147fc411f92bceca9ee52890a0c27b11629dc2e327b0e5d25e1d87c3190c0",
+    "writer_source_sha256": "a7d51f639787b12325f098e085bbf6ed136e83894373a7f9f615d59d5ada8001",
+    "test_sha256": "f245509073d67008330f31afb22bc6f9286e01ee4398447f2e329104b055794f",
+    "actual_diff_sha256": "355a69db200b0adc034093c1655731fa4e963441010b00a55c3d20e2abec1d75",
+    "changed_paths": [
+      "v4/manager_workbench/inputs/capture_store.py",
+      "tests/test_capture_product_size_contract.py"
+    ]
+  },
+  "status": [
+    "IMPLEMENTED",
+    "TESTED",
+    "REVIEWED",
+    "BEHAVIOR_VERIFIED",
+    "INTEGRATED",
+    "DEPLOYED"
+  ],
+  "behavior_scope": "Product storage only; synthetic 65 MiB first save and same-SHA reuse, contract refusal, shared 64 MiB unchanged.",
+  "tests": {
+    "status": "PASS",
+    "level": "focused runtime regression tests",
+    "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp='/Users/lexi/Desktop/学习/agents调试/助手/issue44-local-20261018/review/pytest' tests/test_capture_product_size_contract.py tests/test_manager_workbench_capture_reuse.py",
+    "result": "7 passed in 0.37s",
+    "covered": [
+      "65 MiB synthetic first save and same-SHA reuse",
+      "over-local-contract read rejection",
+      "SafeRoot default remains 64 MiB",
+      "four existing capture reuse/failure cases"
+    ],
+    "temp_root_was_non_symlink": true,
+    "reviewer_test_temp_removed": true
+  },
+  "reviewer_identity": "issue44_review",
+  "review_receipt_sha256": "e79c8187a871d235bf87a671ff4aafd7e41e6bcadc8f5ae45e56d64c2d7a1266",
+  "postdeploy_review_sha256": "6554c7c328d8646ba2eead15779ecdb68daf57cff80e8c16f669cb93f2dd0ebe",
+  "postdeploy_verdict": "DEPLOYED_BINDING_PASS",
+  "runtime": {
+    "pid": 17438,
+    "port": 8873,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue44-capture-size-api-20261018-r1/app",
+    "healthz_http": 200
+  },
+  "protected_files_unchanged": {
+    "count": 1002,
+    "activation_receipt": true,
+    "independent_reviewer_checked": "failed attempt and cached product"
+  },
+  "live_acceptance": {
+    "new_model_acceptance": "NOT_RUN",
+    "new_research_api_result_acceptance": "NOT_RUN",
+    "ui_acceptance": "NOT_RUN",
+    "semantic_status": "CANNOT_CONFIRM",
+    "reason": "API health is available, but no recapture, job, model execution, or new research result/UI validation was performed."
+  },
+  "cached_product": {
+    "sha256": "d3eae78873057330f85b1e75d0f0b5ca7e35ba9b5aca807e251ae5487657e53b",
+    "bytes": 87576192,
+    "included_in_upload": false
+  },
+  "next_batch": "User authorized a bounded cache-only task recovery entry on 2026-10-18; design pending, not part of this storage change.",
+  "financial_boundary": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
