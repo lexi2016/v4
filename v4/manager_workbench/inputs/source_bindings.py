@@ -393,15 +393,39 @@ def priority_review(config, evidence, review):
 
 def us_mapping(config, context):
     session=context.source_sessions['us']; root=config.us_root
-    quote_rel=f'research/peripherals/{session}/external_finance.json'
     manifest,msha=read(root,'research/peripherals/manifest.json')
-    payload,qsha=read(root,quote_rel,manifest[quote_rel])
-    receipt_rel=f'receipts/research/peripherals/{session}/external_finance.json'
-    receipt,rsha=read(root,receipt_rel)
+    # The artifact directory is keyed by the Shanghai trade/scheduled date,
+    # while the capture identifies the US exchange session inside its payload.
+    # Resolve by the exact session identity, never by assuming those dates match.
+    if not isinstance(manifest,dict):
+        raise ValueError('US_OWNER_MANIFEST_SHAPE_INVALID')
+    candidates=[]
+    for relative, expected_sha in sorted(manifest.items()):
+        parts=Path(relative).parts
+        if (len(parts)!=4 or parts[0]!='research' or parts[1]!='peripherals'
+                or parts[3]!='external_finance.json' or len(parts[2])!=8 or not parts[2].isdigit()):
+            continue
+        try:
+            payload,qsha=read(root,relative,expected_sha)
+            snapshot=payload.get('market_snapshot',{})
+            if snapshot.get('capture_session_date')!=session:
+                continue
+            receipt_rel=f"receipts/research/peripherals/{parts[2]}/external_finance.json"
+            receipt,rsha=read(root,receipt_rel)
+            checked_time(snapshot.get('captured_at'),context.cutoff)
+            if (receipt.get('artifact_sha256',receipt.get('payload_sha256'))!=qsha
+                    or receipt.get('trade_date',parts[2])!=parts[2]
+                    or receipt.get('us_session_date',session)!=session):
+                raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
+            candidates.append((relative, payload, qsha, receipt_rel, receipt, rsha))
+        except (OSError,ValueError,KeyError,TypeError):
+            # Invalid candidates do not become a fallback. A separate exact
+            # candidate may still be valid; if none is valid, fail closed below.
+            continue
+    if len(candidates)!=1:
+        raise ValueError('US_OWNER_SESSION_ARTIFACT_NOT_UNIQUE' if candidates else 'US_OWNER_SESSION_ARTIFACT_NOT_FOUND')
+    quote_rel,payload,qsha,receipt_rel,receipt,rsha=candidates[0]
     snapshot=payload.get('market_snapshot',{})
-    checked_time(snapshot.get('captured_at'),context.cutoff)
-    if snapshot.get('capture_session_date')!=session or receipt.get('artifact_sha256',receipt.get('payload_sha256'))!=qsha:
-        raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
     evidence,esha=read(config.relation_root,config.relation_evidence_relative)
     review,vsha=read(config.relation_root,config.relation_review_relative)
     checked_time(review.get('reviewed_at'),context.cutoff)
