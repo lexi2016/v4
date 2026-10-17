@@ -391,6 +391,72 @@ def priority_review(config, evidence, review):
             for rel,sha in [(inherited['relative'],osha),(inherited['review_relative'],rsha)]]
 
 
+def _full_mapping_overlay():
+    """Read the same pinned full overlay used by the existing catalog API.
+
+    This is a consumer-side read only. Missing owner files are reported as
+    CANNOT_CONFIRM; the derived fixture is never substituted for the owner.
+    """
+    root = Path(__file__).resolve().parents[1] / "research_data"
+    catalog_path = root / "us_hk_667_catalog_20261015.json"
+    overlay_path = root / "us_hk_667_review_overlay_20261015.json"
+    if not catalog_path.is_file() or not overlay_path.is_file():
+        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_OWNER_UNAVAILABLE",
+                "stock_count": None, "relation_count": None, "relations": []}
+    from ..us_mapping_catalog import CatalogStore
+    store = CatalogStore()
+    stocks = []
+    offset = 0
+    total = None
+    while total is None or offset < total:
+        page = store.search(catalog_path, overlay_path, offset=offset, limit=200)
+        total = page.get("total")
+        items = page.get("items")
+        if not isinstance(total, int) or not isinstance(items, list):
+            raise ValueError("US_MAPPING_FULL_OVERLAY_PAGE_INVALID")
+        stocks.extend(items)
+        if not items or len(items) < 200:
+            break
+        offset += len(items)
+    relations = []
+    status_counts = {}
+    for stock in stocks:
+        for relation in stock.get("relations", []):
+            recovery = relation.get("recovery_v2r1") or {}
+            status = recovery.get("closure_status")
+            if status:
+                status_counts[status] = status_counts.get(status, 0) + 1
+            relations.append({
+                "hk_code": stock.get("hk_code"),
+                "hk_name": stock.get("name"),
+                "relation_id": relation.get("relation_id"),
+                "source_row": relation.get("source_row"),
+                "source_record": relation.get("source_record"),
+                "source_review_status": relation.get("source_review_status"),
+                "independent_verification": relation.get("independent_verification"),
+                "research_use": relation.get("research_use"),
+                "recovery_v2r1": recovery,
+            })
+    expected_statuses = {"CLOSED_RESEARCH_SCOPE": 757, "OPEN": 221, "CLOSED_EXCLUDED_SCOPE": 25}
+    valid = len(stocks) == 667 and len(relations) == 1003 and status_counts == expected_statuses
+    if not valid:
+        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_CONTRACT_MISMATCH",
+                "stock_count": len(stocks), "relation_count": len(relations),
+                "status_counts": status_counts, "relations": []}
+    recovery_meta = page.get("recovery_v2r1") or {}
+    return {
+        "state": "READY",
+        "stock_count": len(stocks),
+        "relation_count": len(relations),
+        "status_counts": status_counts,
+        "catalog_integrity_sha256": page.get("catalog_integrity_sha256"),
+        "recovery_overlay_integrity_sha256": recovery_meta.get("overlay_integrity_sha256"),
+        "catalog_file_sha256": raw_sha(catalog_path.read_bytes()),
+        "review_overlay_file_sha256": raw_sha(overlay_path.read_bytes()),
+        "relations": relations,
+    }
+
+
 def us_mapping(config, context):
     session=context.source_sessions['us']; root=config.us_root
     manifest,msha=read(root,'research/peripherals/manifest.json')
@@ -476,6 +542,7 @@ def us_mapping(config, context):
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
     projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
+    full_overlay = _full_mapping_overlay()
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
         capture_phase=snapshot.get('capture_phase'),capture_status=payload.get('status'),
         capture_session_date=snapshot.get('capture_session_date'),capture_run_id=payload.get('run_id'),
@@ -483,6 +550,8 @@ def us_mapping(config, context):
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
         factor_exposure=factor,factor_exposure_gap=factor_gap,
+        full_overlay_projection=full_overlay.get("relations",[]),
+        full_overlay_summary={k:v for k,v in full_overlay.items() if k!="relations"},
         checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
