@@ -1,0 +1,20 @@
+diff --git a/v4/manager_workbench/inputs/capture_store.py b/v4/manager_workbench/inputs/capture_store.py
+--- a/v4/manager_workbench/inputs/capture_store.py
++++ b/v4/manager_workbench/inputs/capture_store.py
+@@
+ OWNER = 'v4.manager_workbench.capture_announcements'
+ SOURCES = {'EASTMONEY_HK', 'HKEX_OFFICIAL'}
++# Product JSON is consumed downstream with a 256 MiB bound. Keep this limit
++# local to the product contract; SafeRoot's shared 64 MiB default stays intact.
++PRODUCT_MAX_BYTES = 256 * 1024 * 1024
+@@
+     def save_product(self, value):
+         raw=encoded(value); identity=sha(raw); path=f'products/{identity}.json'
+         with self.guard():
+             try:
+-                if self.io.read_bytes(path)!=raw: raise ValueError('CAPTURE_PRODUCT_CONFLICT')
++                if self.io.read_bytes(path, max_bytes=PRODUCT_MAX_BYTES)!=raw: raise ValueError('CAPTURE_PRODUCT_CONFLICT')
+             except FileNotFoundError: self.io.write_bytes(path,raw,require_absent=True)
+-            if self.io.read_bytes(path)!=raw: raise ValueError('CAPTURE_PRODUCT_READBACK_FAILED')
++            if self.io.read_bytes(path, max_bytes=PRODUCT_MAX_BYTES)!=raw: raise ValueError('CAPTURE_PRODUCT_READBACK_FAILED')
+         return dict(artifact_ref=path,sha256=identity,owner=OWNER,source=self.source)
