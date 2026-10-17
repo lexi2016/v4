@@ -1,0 +1,739 @@
+{
+  "schema_version": "friday_us_runtime_source_manifest.v1",
+  "created_for": "docs/handoffs/us_hk_friday_close_20261017/packet",
+  "scope": "Minimal deployed source/test excerpts, sanitized issue evidence, compact research result, and a quote-free derived relation projection for a Chat-led repair handoff. The relation projection is non-owner and not the full recovery overlay.",
+  "current_worktree_root": "/Users/lexi/Desktop/学习/v4_app",
+  "comparison_boundary": "Filesystem byte comparison only; no Git operation or fixed GitHub base verification was performed by this writer.",
+  "entries": [
+    {
+      "group": "us_digest",
+      "repository_relative_path": "infrastructure/scheduling/dispatcher.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/infrastructure/scheduling/dispatcher.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "7e61cbb234246bd88c9325fb0641c4bbead10debed09b924298e406b06854668",
+      "source_line_ranges": [
+        [
+          43,
+          78
+        ],
+        [
+          246,
+          260
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/infrastructure__scheduling__dispatcher_py.md",
+      "copy_sha256": "6db1083824a8df5b1cccbc033649eea19895b1b79f2d3d1a4a231bf6494002b8",
+      "worktree_counterpart_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Deployed US digest dispatcher release identity validation and fail-closed dispatch boundary."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "ops/run_us_market_slot.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/ops/run_us_market_slot.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e",
+      "source_line_ranges": [
+        [
+          131,
+          151
+        ],
+        [
+          339,
+          396
+        ],
+        [
+          418,
+          435
+        ],
+        [
+          443,
+          484
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__run_us_market_slot_py.md",
+      "copy_sha256": "166532d7906da51f3790b72fb4ef925e7d36a98661725d87bf0ea7f5952493c3",
+      "worktree_counterpart_sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "US slot request assembly, dispatch invocation, typed failure payload, and CLI business-date binding."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "ops/run_scheduled_slot.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/ops/run_scheduled_slot.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "fcfa36a1a12200af5f60b752674806a6c8ff3caf11139371a9cf746949d98cf9",
+      "source_line_ranges": [
+        [
+          81,
+          111
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__run_scheduled_slot_py.md",
+      "copy_sha256": "6867d87fb70385f3fe9f4b16ddb7395983e4cab67b975b67f3c1476b3ba99c2d",
+      "worktree_counterpart_sha256": "654efa76eebe3246759729dd60603826bdca351af83375b0155257aba1610974",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Existing generic next-trade-day and scheduled/business/target-date calculation."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "contracts/runtime_workloads.json",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/contracts/runtime_workloads.json",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "bd9ff31db78fa3eb491799fa389eac2d9871602a191cc4885fd75afb9489e29b",
+      "source_line_ranges": [
+        [
+          1732,
+          1765
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/contracts__runtime_workloads_json.md",
+      "copy_sha256": "3e0a6b282b04530b6c0121e4d4ba7c52d3ab95e3e56f8d9dc69bdae70d816162",
+      "worktree_counterpart_sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Enabled US digest workload command and date roles."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "ops/us_market_digest.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/ops/us_market_digest.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8",
+      "source_line_ranges": [
+        [
+          725,
+          727
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__us_market_digest_py.md",
+      "copy_sha256": "382051de7f7a69f6238e6f2f827aec8f0521deae4d3ccfd5ded1f67ba9d36f24",
+      "worktree_counterpart_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Deployed US digest module entrypoint."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "ops/_us_market_digest_parts/cli_primitives.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/ops/_us_market_digest_parts/cli_primitives.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "252bcc75e3f1ff26ffe58c16c49935d36f5f9ed4811d8bd820f7a454a9d21968",
+      "source_line_ranges": [
+        [
+          65,
+          112
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__cli_primitives_py.md",
+      "copy_sha256": "54c68e489d6b3966d34b07555347e69ef40ae828b69e0e75e017996541a4ad01",
+      "worktree_counterpart_sha256": "252bcc75e3f1ff26ffe58c16c49935d36f5f9ed4811d8bd820f7a454a9d21968",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "CLI date/session selection passed into the existing US phase materializer."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "ops/_us_market_digest_parts/phase_publication.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/ops/_us_market_digest_parts/phase_publication.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "6a0abaef5e2f50297d3021d06e781c1832a690d09269317f84fa407505027379",
+      "source_line_ranges": [
+        [
+          6,
+          24
+        ],
+        [
+          62,
+          94
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__phase_publication_py.md",
+      "copy_sha256": "f2224fdb6ef31c7ba63da4332857a8acc7e3033060a6ed305f9b174a9fdc16bc",
+      "worktree_counterpart_sha256": "6a0abaef5e2f50297d3021d06e781c1832a690d09269317f84fa407505027379",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Existing exact-date publisher and separate explicit US-session identity handling."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "ops/_us_market_digest_parts/phase_payload.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/ops/_us_market_digest_parts/phase_payload.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "fdfeeaf376efb3f2def86abd633d94790e0e9163586d23068eb9bab2c343bd56",
+      "source_line_ranges": [
+        [
+          120,
+          178
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__phase_payload_py.md",
+      "copy_sha256": "5be6aa5b0cce7235f298f82f7477216107f9727bd56b35de3d504782ce2756d3",
+      "worktree_counterpart_sha256": "fdfeeaf376efb3f2def86abd633d94790e0e9163586d23068eb9bab2c343bd56",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Payload builder keeps trade date and requested US session separate."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "tests/test_runtime_dispatcher.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/tests/test_runtime_dispatcher.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "2d4427e7a7c5f389480b0b0639b9eed7efb26dc1989820a8424786b369e0aa90",
+      "source_line_ranges": [
+        [
+          371,
+          388
+        ],
+        [
+          412,
+          420
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_runtime_dispatcher_py.md",
+      "copy_sha256": "725868be28bb04caac26812254969d1cd4834ffcbaef065a067462c5015bb820",
+      "worktree_counterpart_sha256": "ede359663d377b49c66726bb201b7b1b1f259f72ce873fe22d8961fe94aff2f6",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Existing missing/mismatched release identity and runtime inventory hash tests."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "tests/test_us_owner_handoff.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/tests/test_us_owner_handoff.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "7112a09e9b61704d3c652cf00139c906365195cda9e55b95ccd2eab811321be3",
+      "source_line_ranges": [
+        [
+          103,
+          143
+        ],
+        [
+          145,
+          180
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_us_owner_handoff_py.md",
+      "copy_sha256": "74cb163fd668da2f903401171dc5d13b6ea4f5b4a43cb7d44e732469ff92bf42",
+      "worktree_counterpart_sha256": "7112a09e9b61704d3c652cf00139c906365195cda9e55b95ccd2eab811321be3",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Existing single-workload dispatch idempotency and fail-closed retry tests."
+    },
+    {
+      "group": "us_digest",
+      "repository_relative_path": "tests/test_us_equity_calendar.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-industry-us-20261016-r1/app/tests/test_us_equity_calendar.py",
+      "source_release_identity": "futu-industry-us-20261016-r1",
+      "source_sha256": "eda8247301bcbbd5ab96c6ae3e865775d819cc834d3a6ecba1db6c178b963fc2",
+      "source_line_ranges": [
+        [
+          65,
+          86
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_us_equity_calendar_py.md",
+      "copy_sha256": "90b1110c1d1f7367d9adfee671c5e42bfaa247db40cce52d78a2b140705e233c",
+      "worktree_counterpart_sha256": "eda8247301bcbbd5ab96c6ae3e865775d819cc834d3a6ecba1db6c178b963fc2",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Existing DST-aware session offset and latest completed US session tests."
+    },
+    {
+      "group": "manager_scheduler",
+      "repository_relative_path": "ops/launch_v35_macos_scheduler.sh",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app/ops/launch_v35_macos_scheduler.sh",
+      "source_release_identity": "zsxq-long-pdf-scheduler-20261016-r3",
+      "source_sha256": "0c577ae83b1f182dabf3b62e642a5bd5f0f8708b48e1806d8c653b691d2ec952",
+      "source_line_ranges": [
+        [
+          5,
+          9
+        ],
+        [
+          63,
+          64
+        ],
+        [
+          92,
+          94
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/ops__launch_v35_macos_scheduler_sh.md",
+      "copy_sha256": "48ed8e8def96e72631b8294b0a7cdb075212480b898524c442fcf14b6a851c5f",
+      "worktree_counterpart_sha256": "2634b60f718e4c94fec0d731d12102e27d85847d8e0b9e8bb6f5ab499ae6d9d5",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Loaded manager scheduler launcher source root, Python environment forwarding, and daemon entrypoint."
+    },
+    {
+      "group": "manager_scheduler",
+      "repository_relative_path": "ops/run_v35_macos_scheduler_daemon.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app/ops/run_v35_macos_scheduler_daemon.py",
+      "source_release_identity": "zsxq-long-pdf-scheduler-20261016-r3",
+      "source_sha256": "1d03d0b21e352a772278e326086ef50a4e43dbfdeacb2dbf56111b496773476a",
+      "source_line_ranges": [
+        [
+          940,
+          947
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/ops__run_v35_macos_scheduler_daemon_py.md",
+      "copy_sha256": "1579da50b516ddf91e0ef2b0df25223a028688e8d10692dbb5a018a57b28d58b",
+      "worktree_counterpart_sha256": "069baf24404930743fd4894215bdc3a313815c911d57a82b0f21f5b906862a14",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Loaded daemon chooses WorkbenchHook when the manager workbench binding is present."
+    },
+    {
+      "group": "manager_scheduler",
+      "repository_relative_path": "v4/manager_workbench/supervisor.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app/v4/manager_workbench/supervisor.py",
+      "source_release_identity": "zsxq-long-pdf-scheduler-20261016-r3",
+      "source_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "source_line_ranges": [
+        [
+          16,
+          55
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/v4__manager_workbench__supervisor_py.md",
+      "copy_sha256": "7d9fedc4b2743ae29748245066daf65d34718499c7212dcca7d1954e7144ff62",
+      "worktree_counterpart_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Running WorkbenchHook binds the existing service and calls one scheduler tick per minute."
+    },
+    {
+      "group": "manager_scheduler",
+      "repository_relative_path": "v4/manager_workbench/scheduler.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-long-pdf-scheduler-20261016-r3/app/v4/manager_workbench/scheduler.py",
+      "source_release_identity": "zsxq-long-pdf-scheduler-20261016-r3",
+      "source_sha256": "0672296a340ae84d6bfb48b77b8d23566ea32b4fdb27edc505ea3abb4d785990",
+      "source_line_ranges": [
+        [
+          1,
+          124
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/v4__manager_workbench__scheduler_py.md",
+      "copy_sha256": "1f21dc1660c4022ebf4078406723c5775007d985a87288eafb7f62e318354594",
+      "worktree_counterpart_sha256": "0672296a340ae84d6bfb48b77b8d23566ea32b4fdb27edc505ea3abb4d785990",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Complete small one-shot tick implementation showing HK-session gate, stage cursor, and once-per-source-day next-day cursor."
+    },
+    {
+      "group": "manager_scheduler",
+      "repository_relative_path": "tests/manager_workbench/test_oversold_daily_scheduler.py",
+      "original_source_path": "/Users/lexi/Desktop/学习/v4_app/tests/manager_workbench/test_oversold_daily_scheduler.py",
+      "source_release_identity": "current V4 worktree test or external current config",
+      "source_sha256": "73ff736afd9d8ad959c3edc3e6811218cf9135fa7cde81215d3812c8af80eab4",
+      "source_line_ranges": [
+        [
+          115,
+          178
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/tests__manager_workbench__test_oversold_daily_scheduler_py.md",
+      "copy_sha256": "28c666138511d912ce81950c76381e2cd3d498ebf7f9f82823d9a73dc0266dcf",
+      "worktree_counterpart_sha256": "73ff736afd9d8ad959c3edc3e6811218cf9135fa7cde81215d3812c8af80eab4",
+      "worktree_correspondence": "WORKTREE_ONLY_TEST_NOT_PRESENT_IN_LOADED_R3_RELEASE",
+      "note": "Current repository test for 16:30 next-day scheduling and Saturday NOT_APPLICABLE. Not present in loaded r3 release tests."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "config/us-hk-recovery-v2r1-20261016-r2.json",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+      "source_release_identity": "current V4 worktree test or external current config",
+      "source_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+      "source_line_ranges": [],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/config__us-hk-recovery-v2r1-20261016-r2_json.md",
+      "copy_sha256": "9b148d65914e698b10268801be3d161086c53ace540887830e9a8494bd97ee03",
+      "worktree_counterpart_sha256": null,
+      "worktree_correspondence": "WORKTREE_PATH_MISSING_TARGET_BASE_CANNOT_CONFIRM",
+      "note": "Sanitized binding excerpt only; credential and absolute data-root values are omitted."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "v4/manager_workbench/api.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/v4/manager_workbench/api.py",
+      "source_release_identity": "announcement-continuation-api-20261017-r11c",
+      "source_sha256": "138e67441bf3eb8d15b378c645317f415fe5568ba7144bdad21bf8568bfb38c8",
+      "source_line_ranges": [
+        [
+          24,
+          30
+        ],
+        [
+          156,
+          171
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__api_py.md",
+      "copy_sha256": "a04c297a82688662e5b8497d078d9ecfed23d288fcc6b83267406304069cb8a1",
+      "worktree_counterpart_sha256": "586f462f785bf8b5e6795ac31f861bff797196c93b549a3db4bdccc768db866d",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "API mapping-catalog route and configured catalog/overlay paths."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "v4/manager_workbench/us_mapping_catalog.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/v4/manager_workbench/us_mapping_catalog.py",
+      "source_release_identity": "announcement-continuation-api-20261017-r11c",
+      "source_sha256": "ec327cb99e72b9dd982f1238e459b79b657697501f02ac66a598752a94245031",
+      "source_line_ranges": [
+        [
+          19,
+          55
+        ],
+        [
+          302,
+          350
+        ],
+        [
+          466,
+          488
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__us_mapping_catalog_py.md",
+      "copy_sha256": "df8d9b577fb5c0c247d31670f920dbd018a4800c89db017c4a2107470edd38a5",
+      "worktree_counterpart_sha256": "ec327cb99e72b9dd982f1238e459b79b657697501f02ac66a598752a94245031",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Catalog validator and loader pin the 667/1,003 recovery projection and status split."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "v4/manager_workbench/inputs/native.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/v4/manager_workbench/inputs/native.py",
+      "source_release_identity": "announcement-continuation-api-20261017-r11c",
+      "source_sha256": "f408a0fb6838259d7c5b12bfaa296795d267a4e4ac0078257c8eefff23480756",
+      "source_line_ranges": [
+        [
+          25,
+          37
+        ],
+        [
+          90,
+          100
+        ],
+        [
+          762,
+          808
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__inputs__native_py.md",
+      "copy_sha256": "9383d1dfb3a8abece294dbe37aca661d572e9fe8bf8c3107dcd6c7b38db9881c",
+      "worktree_counterpart_sha256": "8a97a126ffc3377ff9420ff123e7c164ea6b0ec383616612bfc3cb386ac228b9",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Dynamic owner-binding route and the active NativeAdapters.us_mapping consumer entry."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "v4/manager_workbench/inputs/source_bindings.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/v4/manager_workbench/inputs/source_bindings.py",
+      "source_release_identity": "announcement-continuation-api-20261017-r11c",
+      "source_sha256": "3dd4e2d19aa26672851d58e4810da0afd7b054c20c7d3d6a8019cf77e8da8b51",
+      "source_line_ranges": [
+        [
+          499,
+          535
+        ],
+        [
+          555,
+          719
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__inputs__source_bindings_py.md",
+      "copy_sha256": "ad15674eed8b62531d6ed14e43a68d0fb0568c12e9eb1d1e79187ab2c5851e07",
+      "worktree_counterpart_sha256": "d95e4aa1ea9c1e3414aea412d9cb2367ffcec543ca6ecc8176db072044129f26",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Exact target-date/session artifact binding and actual relation projection from evidence/review/seed/proposal sources."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "v4/manager_workbench/engines/us_mapping.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/v4/manager_workbench/engines/us_mapping.py",
+      "source_release_identity": "announcement-continuation-api-20261017-r11c",
+      "source_sha256": "e2242b8e18b7f67edcd7aad07aeca805c14214d99924ad1cb374c623e1ad345f",
+      "source_line_ranges": [
+        [
+          54,
+          100
+        ],
+        [
+          101,
+          182
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__engines__us_mapping_py.md",
+      "copy_sha256": "f45af88f3a8686d8f82b96f5392feea9b21492a40e11a926386eaa6859e1c2c2",
+      "worktree_counterpart_sha256": "ca58bbf80d9384ec79944e4d5198a2738a12ae127ff22efadf692ba14d5a9369",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Current selector requires its existing verified universe and REVIEWED relation semantics; PROPOSED/PIT_UNCONFIRMED remain observation-only."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "tests/test_manager_us_mapping_bindings_r3.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/tests/test_manager_us_mapping_bindings_r3.py",
+      "source_release_identity": "current V4 worktree test or external current config",
+      "source_sha256": "199c22c890b75ec9d65429965f2bea656492ac7ba98eeffd4362044c1d145b1d",
+      "source_line_ranges": [
+        [
+          28,
+          145
+        ],
+        [
+          265,
+          305
+        ],
+        [
+          386,
+          410
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/tests__test_manager_us_mapping_bindings_r3_py.md",
+      "copy_sha256": "95df795b3f1c5ced301c6333d90d3b7d14267c197767afda9121608a30eb545e",
+      "worktree_counterpart_sha256": "a5d2e79a7d3ccf732499a3a1e5866ef6d05c7d71d842ce3c82c5743bec87c2cf",
+      "worktree_correspondence": "CONTENT_DIFF_REQUIRES_TARGET_BASE_ADAPTATION",
+      "note": "Existing tests for configured quote scope, proposal visibility, target-date artifact precedence, receipt binding, and partial status."
+    },
+    {
+      "group": "api",
+      "repository_relative_path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "original_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-continuation-api-20261017-r11c/app/tests/manager_workbench/engines/test_us_mapping.py",
+      "source_release_identity": "current V4 worktree test or external current config",
+      "source_sha256": "0f43577011e141a1f3b804e08d0454396d4a73984a0fb2d344348314b79272d7",
+      "source_line_ranges": [
+        [
+          84,
+          135
+        ]
+      ],
+      "copy_path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/tests__manager_workbench__engines__test_us_mapping_py.md",
+      "copy_sha256": "3646b54a2cf0ca59339171e0126732cf69f76c85892bc5a4acac3778dacdb694",
+      "worktree_counterpart_sha256": "0f43577011e141a1f3b804e08d0454396d4a73984a0fb2d344348314b79272d7",
+      "worktree_correspondence": "EXACT_CONTENT_MATCH",
+      "note": "Existing 48-symbol scope and proposal observation-only regression tests; no 1,003 relation consumer test."
+    }
+  ],
+  "source_context_readme": {
+    "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/README.md",
+    "sha256": "7f8a0cbdf0508fe21e76901c719151b2be4e0d19ff6c438415283ba0cb525239"
+  },
+  "evidence_entries": [
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/runtime_identity_excerpt.md",
+      "sha256": "c0ee83f391d8cdac9646cbfadef1204097a7288056af9b2ad4520c80dc0a99c1",
+      "kind": "derived_evidence_excerpt",
+      "source_refs": [
+        {
+          "path": "audit/READ_ONLY_AUDIT.md",
+          "sha256": "9e94ed5f6c49c8b74782bfa0345d6511d447e1f8d590b972d28eee3019135b2d"
+        },
+        {
+          "path": "packet/source_context/us_digest/infrastructure__scheduling__dispatcher_py.md",
+          "copy_sha256": "6db1083824a8df5b1cccbc033649eea19895b1b79f2d3d1a4a231bf6494002b8"
+        },
+        {
+          "path": "packet/source_context/manager_scheduler/v4__manager_workbench__scheduler_py.md",
+          "copy_sha256": "1f21dc1660c4022ebf4078406723c5775007d985a87288eafb7f62e318354594"
+        }
+      ]
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/api_relation_consumer_count.md",
+      "sha256": "ac22176a39fc9a7494c642783dd27f962a8efca2f768b890e24da50fc446f2a1",
+      "kind": "derived_evidence_excerpt",
+      "source_refs": [
+        {
+          "path": "packet/source_context/api/v4__manager_workbench__inputs__native_py.md",
+          "copy_sha256": "9383d1dfb3a8abece294dbe37aca661d572e9fe8bf8c3107dcd6c7b38db9881c"
+        },
+        {
+          "path": "packet/source_context/api/v4__manager_workbench__inputs__source_bindings_py.md",
+          "copy_sha256": "ad15674eed8b62531d6ed14e43a68d0fb0568c12e9eb1d1e79187ab2c5851e07"
+        },
+        {
+          "path": "packet/source_context/api/v4__manager_workbench__us_mapping_catalog_py.md",
+          "copy_sha256": "df8d9b577fb5c0c247d31670f920dbd018a4800c89db017c4a2107470edd38a5"
+        }
+      ]
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/research_observation_summary.md",
+      "sha256": "8f97266dd90712f4b9b479a93ba9c7116de96644facf772b1e9a4450921827a1",
+      "kind": "derived_evidence_excerpt",
+      "source_refs": [
+        {
+          "path": "reports/REPORT.md",
+          "sha256": "0244830840c7d1f81df9db038d3273c053ae1998fbf1c5b640d5818d175e4ee6"
+        },
+        {
+          "path": "reports/results.json",
+          "sha256": "4ebc0e8828807c900c82f4af6c7ab2a16e4a46efe1564b9dae86145d1b8713bd"
+        }
+      ]
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/research_observation_summary.json",
+      "sha256": "fe5c82a18ca0ac729dd9e2266117005277c6057bbcb2a5e8900589a56b4ed3e6",
+      "kind": "derived_evidence_excerpt",
+      "source_refs": [
+        {
+          "path": "reports/REPORT.md",
+          "sha256": "0244830840c7d1f81df9db038d3273c053ae1998fbf1c5b640d5818d175e4ee6"
+        },
+        {
+          "path": "reports/results.json",
+          "sha256": "4ebc0e8828807c900c82f4af6c7ab2a16e4a46efe1564b9dae86145d1b8713bd"
+        }
+      ]
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/synthetic_contract_fixture.json",
+      "sha256": "f1ce3c8b210f036b09ae63a14f96398d2ef2f119b5bb52e9f512bb2d66edbb7a",
+      "kind": "synthetic_fixture",
+      "source_refs": [],
+      "note": "Synthetic only; no production identifiers, hashes, or receipts."
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/real_relation_projection.json",
+      "sha256": "400b7ea8c556205518c72f3653b4afb583ee456283d2a7ef12a08475fdf49230",
+      "kind": "derived_non_owner_relation_fixture",
+      "source_refs": [
+        {
+          "path": "docs/handoffs/us_hk_mapping_today_20261016/mapping_input_snapshot.json",
+          "sha256": "f819ca2f036953d0989a2a28127072d41ac7e051f209087a38953299251a0df3"
+        },
+        {
+          "path": "loaded recovery overlay (not bundled)",
+          "sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
+        }
+      ],
+      "note": "Field-preserving 667-stock/1,003-relation fixture; no quotes or raw membership arrays. Not a complete overlay or runtime/API/UI/natural acceptance receipt."
+    }
+  ],
+  "packet_artifacts": [
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_ISSUE.md",
+      "sha256": "b237999422c86bb5f1f9f3b98e54db8376e77fec05cca600ef5c557e3bf59cfe"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_PROMPT.md",
+      "sha256": "192d8e951f9c94dddca55312b667b168e7561d4d218bd6f7cfd0bc68175ea360"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/api_relation_consumer_count.md",
+      "sha256": "ac22176a39fc9a7494c642783dd27f962a8efca2f768b890e24da50fc446f2a1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/research_observation_summary.json",
+      "sha256": "fe5c82a18ca0ac729dd9e2266117005277c6057bbcb2a5e8900589a56b4ed3e6"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/research_observation_summary.md",
+      "sha256": "8f97266dd90712f4b9b479a93ba9c7116de96644facf772b1e9a4450921827a1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/runtime_identity_excerpt.md",
+      "sha256": "c0ee83f391d8cdac9646cbfadef1204097a7288056af9b2ad4520c80dc0a99c1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/synthetic_contract_fixture.json",
+      "sha256": "f1ce3c8b210f036b09ae63a14f96398d2ef2f119b5bb52e9f512bb2d66edbb7a"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/README.md",
+      "sha256": "7f8a0cbdf0508fe21e76901c719151b2be4e0d19ff6c438415283ba0cb525239"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/config__us-hk-recovery-v2r1-20261016-r2_json.md",
+      "sha256": "9b148d65914e698b10268801be3d161086c53ace540887830e9a8494bd97ee03"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/tests__manager_workbench__engines__test_us_mapping_py.md",
+      "sha256": "3646b54a2cf0ca59339171e0126732cf69f76c85892bc5a4acac3778dacdb694"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/tests__test_manager_us_mapping_bindings_r3_py.md",
+      "sha256": "95df795b3f1c5ced301c6333d90d3b7d14267c197767afda9121608a30eb545e"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__api_py.md",
+      "sha256": "a04c297a82688662e5b8497d078d9ecfed23d288fcc6b83267406304069cb8a1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__engines__us_mapping_py.md",
+      "sha256": "f45af88f3a8686d8f82b96f5392feea9b21492a40e11a926386eaa6859e1c2c2"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__inputs__native_py.md",
+      "sha256": "9383d1dfb3a8abece294dbe37aca661d572e9fe8bf8c3107dcd6c7b38db9881c"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__inputs__source_bindings_py.md",
+      "sha256": "ad15674eed8b62531d6ed14e43a68d0fb0568c12e9eb1d1e79187ab2c5851e07"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__us_mapping_catalog_py.md",
+      "sha256": "df8d9b577fb5c0c247d31670f920dbd018a4800c89db017c4a2107470edd38a5"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/ops__launch_v35_macos_scheduler_sh.md",
+      "sha256": "48ed8e8def96e72631b8294b0a7cdb075212480b898524c442fcf14b6a851c5f"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/ops__run_v35_macos_scheduler_daemon_py.md",
+      "sha256": "1579da50b516ddf91e0ef2b0df25223a028688e8d10692dbb5a018a57b28d58b"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/tests__manager_workbench__test_oversold_daily_scheduler_py.md",
+      "sha256": "28c666138511d912ce81950c76381e2cd3d498ebf7f9f82823d9a73dc0266dcf"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/v4__manager_workbench__scheduler_py.md",
+      "sha256": "1f21dc1660c4022ebf4078406723c5775007d985a87288eafb7f62e318354594"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/v4__manager_workbench__supervisor_py.md",
+      "sha256": "7d9fedc4b2743ae29748245066daf65d34718499c7212dcca7d1954e7144ff62"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/contracts__runtime_workloads_json.md",
+      "sha256": "3e0a6b282b04530b6c0121e4d4ba7c52d3ab95e3e56f8d9dc69bdae70d816162"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/infrastructure__scheduling__dispatcher_py.md",
+      "sha256": "6db1083824a8df5b1cccbc033649eea19895b1b79f2d3d1a4a231bf6494002b8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__cli_primitives_py.md",
+      "sha256": "54c68e489d6b3966d34b07555347e69ef40ae828b69e0e75e017996541a4ad01"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__phase_payload_py.md",
+      "sha256": "5be6aa5b0cce7235f298f82f7477216107f9727bd56b35de3d504782ce2756d3"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__phase_publication_py.md",
+      "sha256": "f2224fdb6ef31c7ba63da4332857a8acc7e3033060a6ed305f9b174a9fdc16bc"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__run_scheduled_slot_py.md",
+      "sha256": "6867d87fb70385f3fe9f4b16ddb7395983e4cab67b975b67f3c1476b3ba99c2d"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__run_us_market_slot_py.md",
+      "sha256": "166532d7906da51f3790b72fb4ef925e7d36a98661725d87bf0ea7f5952493c3"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__us_market_digest_py.md",
+      "sha256": "382051de7f7a69f6238e6f2f827aec8f0521deae4d3ccfd5ded1f67ba9d36f24"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_runtime_dispatcher_py.md",
+      "sha256": "725868be28bb04caac26812254969d1cd4834ffcbaef065a067462c5015bb820"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_us_equity_calendar_py.md",
+      "sha256": "90b1110c1d1f7367d9adfee671c5e42bfaa247db40cce52d78a2b140705e233c"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_us_owner_handoff_py.md",
+      "sha256": "74cb163fd668da2f903401171dc5d13b6ea4f5b4a43cb7d44e732469ff92bf42"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/real_relation_projection.json",
+      "sha256": "400b7ea8c556205518c72f3653b4afb583ee456283d2a7ef12a08475fdf49230"
+    }
+  ]
+}

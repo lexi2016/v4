@@ -1,0 +1,127 @@
+{
+  "schema_version": "us_hk_friday_packet_independent_review.v1",
+  "reviewer": "/root/friday_us_packet_review",
+  "reviewed_artifacts": {
+    "issue": "docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_ISSUE.md",
+    "prompt": "docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_PROMPT.md",
+    "source_manifest": "docs/handoffs/us_hk_friday_close_20261017/packet/SOURCE_MANIFEST.json",
+    "derived_relation_fixture": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/real_relation_projection.json",
+    "zip": {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/US_FRIDAY_CLOSE_CHAT_ISSUE_20261017.zip",
+      "sha256": "50ac78d8eba8448217a903d8330720a648b6f0472e390abd3d63f22e3e1173bd",
+      "entries": 37,
+      "crc": "PASS"
+    }
+  },
+  "verdict": {
+    "REVIEWED": "PASS",
+    "TESTED": "PASS for isolated offline replay and package integrity; focused runtime regression suites were inspected, not run",
+    "BEHAVIOR_VERIFIED": "LIMITED to deterministic descriptive snapshot builder",
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "finding": "Top-20 US linked HK codes aggregate all relation statuses and may include OPEN-only links",
+        "status": "DOCUMENTED_NON_BLOCKING",
+        "evidence": [
+          "packet/CHAT_ISSUE.md:19",
+          "packet/evidence/research_observation_summary.md:8"
+        ],
+        "candidate_leak": false
+      },
+      {
+        "finding": "Builder --verify rebuilds and overwrites outputs",
+        "status": "DOCUMENTED_AND_MITIGATED_IN_HANDOFF",
+        "evidence": [
+          "packet/CHAT_ISSUE.md:19,86",
+          "packet/source_context/README.md:15"
+        ],
+        "mitigation": "Replay only in an isolated temporary copy; do not run on frozen handoff inputs or invoke capture scripts"
+      },
+      {
+        "finding": "Positive oil-linked source movement can be a cost pressure, not an automatic beneficiary direction",
+        "status": "DOCUMENTED_INTERPRETATION_GUARD",
+        "evidence": [
+          "packet/CHAT_ISSUE.md:19",
+          "packet/evidence/research_observation_summary.md:10"
+        ]
+      }
+    ]
+  },
+  "offline_replay": {
+    "result": "PASS",
+    "execution": "Isolated temporary copy; frozen workspace outputs were not overwritten",
+    "outputs": {
+      "report_md_byte_identical": true,
+      "five_csvs_byte_identical": true,
+      "results_json_semantically_identical_after_temp_path_normalization": true
+    },
+    "counts": {
+      "requested_and_returned_quotes": 448,
+      "valid_exact_session_after_close": 446,
+      "cannot_confirm_quote_rows": 2,
+      "relations": 1003,
+      "positive": 270,
+      "flat_or_negative": 430,
+      "missing": 57,
+      "open": 221,
+      "excluded": 25,
+      "open_rows_in_candidate_stocks": 0
+    }
+  },
+  "fixture_verification": {
+    "result": "PASS",
+    "source_snapshot_sha256": "f819ca2f036953d0989a2a28127072d41ac7e051f209087a38953299251a0df3",
+    "recovery_overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "stock_count": 667,
+    "relation_count": 1003,
+    "relation_rows_equal_source_snapshot": true,
+    "stock_rows_equal_source_snapshot": true,
+    "status_counts": {
+      "CLOSED_RESEARCH_SCOPE": 757,
+      "OPEN": 221,
+      "CLOSED_EXCLUDED_SCOPE": 25
+    },
+    "safety_and_research_only_equal_source": true,
+    "quote_rows_or_price_fields_present": false,
+    "owner_artifact": false,
+    "complete_overlay": false
+  },
+  "manifest_verification": {
+    "result": "PASS",
+    "source_and_test_entries": 24,
+    "evidence_entries": 6,
+    "packet_artifacts": 33,
+    "writer_receipt_files": 34
+  },
+  "cannot_confirm": [
+    {
+      "claim": "Live selector consumes the canonical full 667-stock / 1,003-relation recovery overlay",
+      "reason": "ZIP contains a derived quote-free relation fixture, not the 43,652,024-byte canonical owner overlay; no live consumer readback receipt exists"
+    },
+    {
+      "claim": "Automatic post-close selector refresh completed",
+      "reason": "No canonical owner artifact receipt, refreshed API/page result, or natural-slot output was found"
+    },
+    {
+      "claim": "Official US daily close for 20261016",
+      "reason": "The available data is a Futu after-close snapshot, not a verified official close bar"
+    },
+    {
+      "claim": "Hidden dispatcher RELEASE_IDENTITY sub-check",
+      "reason": "The typed log record does not expose which identity sub-check failed"
+    },
+    {
+      "claim": "Target GitHub base source correspondence",
+      "reason": "Manifest correspondence is against the current worktree; the packet explicitly requires Chat to match the target checkout before edits"
+    }
+  ],
+  "runtime_status_not_claimed": [
+    "API_VERIFIED",
+    "UI_VERIFIED",
+    "NOTIFICATION_VERIFIED",
+    "NATURAL_VERIFIED",
+    "automatic_selection_BEHAVIOR_VERIFIED"
+  ],
+  "production_code_or_service_changed": false
+}

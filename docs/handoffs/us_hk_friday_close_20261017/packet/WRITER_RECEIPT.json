@@ -1,0 +1,216 @@
+{
+  "schema_version": "friday_us_selection_packet_writer_receipt.v1",
+  "writer": "/root/friday_us_selection_packet_writer",
+  "milestone": "self-contained Chat repair packet",
+  "scope": "Packet documentation, copied runtime source excerpts/tests, sanitized and derived evidence, manifest/receipt, and local issue ZIP only; no business/runtime source, frozen research result, capture, service, or Git changes.",
+  "modified_scope": [
+    "packet/CHAT_ISSUE.md: four evidenced dispatch/date/handoff/actual-consumer gaps, frozen repair boundary, explicit projection limits, acceptance matrix, and reviewed research presentation/tooling limitations.",
+    "packet/CHAT_PROMPT.md: standalone Chinese copy/paste implementation prompt with four gaps, source/evidence entry points, frozen boundaries, fixture and canonical-overlay distinction, acceptance, and diff/test/rollback deliverables.",
+    "packet/SOURCE_MANIFEST.json and packet/source_context/README.md: source/copy identities, refreshed evidence/artifact hashes, adaptation instructions, and non-owner fixture limitation.",
+    "packet/source_context/**: 24 minimal deployed runtime source/test excerpts from the existing packet work.",
+    "packet/evidence/**: sanitized runtime identity, API consumer count, synthetic date/identity/handoff fixture, compact research summary, and field-preserving quote-free 667-stock/1,003-relation derived fixture.",
+    "packet/WRITER_RECEIPT.json and generated local issue ZIP: verification record and self-contained allowlisted package."
+  ],
+  "forbidden_paths_touched": [],
+  "files_changed_sha256": [
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_ISSUE.md",
+      "sha256": "b237999422c86bb5f1f9f3b98e54db8376e77fec05cca600ef5c557e3bf59cfe"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_PROMPT.md",
+      "sha256": "192d8e951f9c94dddca55312b667b168e7561d4d218bd6f7cfd0bc68175ea360"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/SOURCE_MANIFEST.json",
+      "sha256": "3df63e882b5cac39869f26a18e661882594dace139a67cc5da5bfc39a63da13a"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/api_relation_consumer_count.md",
+      "sha256": "ac22176a39fc9a7494c642783dd27f962a8efca2f768b890e24da50fc446f2a1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/real_relation_projection.json",
+      "sha256": "400b7ea8c556205518c72f3653b4afb583ee456283d2a7ef12a08475fdf49230"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/research_observation_summary.json",
+      "sha256": "fe5c82a18ca0ac729dd9e2266117005277c6057bbcb2a5e8900589a56b4ed3e6"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/research_observation_summary.md",
+      "sha256": "8f97266dd90712f4b9b479a93ba9c7116de96644facf772b1e9a4450921827a1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/runtime_identity_excerpt.md",
+      "sha256": "c0ee83f391d8cdac9646cbfadef1204097a7288056af9b2ad4520c80dc0a99c1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/evidence/synthetic_contract_fixture.json",
+      "sha256": "f1ce3c8b210f036b09ae63a14f96398d2ef2f119b5bb52e9f512bb2d66edbb7a"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/README.md",
+      "sha256": "7f8a0cbdf0508fe21e76901c719151b2be4e0d19ff6c438415283ba0cb525239"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/config__us-hk-recovery-v2r1-20261016-r2_json.md",
+      "sha256": "9b148d65914e698b10268801be3d161086c53ace540887830e9a8494bd97ee03"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/tests__manager_workbench__engines__test_us_mapping_py.md",
+      "sha256": "3646b54a2cf0ca59339171e0126732cf69f76c85892bc5a4acac3778dacdb694"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/tests__test_manager_us_mapping_bindings_r3_py.md",
+      "sha256": "95df795b3f1c5ced301c6333d90d3b7d14267c197767afda9121608a30eb545e"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__api_py.md",
+      "sha256": "a04c297a82688662e5b8497d078d9ecfed23d288fcc6b83267406304069cb8a1"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__engines__us_mapping_py.md",
+      "sha256": "f45af88f3a8686d8f82b96f5392feea9b21492a40e11a926386eaa6859e1c2c2"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__inputs__native_py.md",
+      "sha256": "9383d1dfb3a8abece294dbe37aca661d572e9fe8bf8c3107dcd6c7b38db9881c"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__inputs__source_bindings_py.md",
+      "sha256": "ad15674eed8b62531d6ed14e43a68d0fb0568c12e9eb1d1e79187ab2c5851e07"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/api/v4__manager_workbench__us_mapping_catalog_py.md",
+      "sha256": "df8d9b577fb5c0c247d31670f920dbd018a4800c89db017c4a2107470edd38a5"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/ops__launch_v35_macos_scheduler_sh.md",
+      "sha256": "48ed8e8def96e72631b8294b0a7cdb075212480b898524c442fcf14b6a851c5f"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/ops__run_v35_macos_scheduler_daemon_py.md",
+      "sha256": "1579da50b516ddf91e0ef2b0df25223a028688e8d10692dbb5a018a57b28d58b"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/tests__manager_workbench__test_oversold_daily_scheduler_py.md",
+      "sha256": "28c666138511d912ce81950c76381e2cd3d498ebf7f9f82823d9a73dc0266dcf"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/v4__manager_workbench__scheduler_py.md",
+      "sha256": "1f21dc1660c4022ebf4078406723c5775007d985a87288eafb7f62e318354594"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/manager_scheduler/v4__manager_workbench__supervisor_py.md",
+      "sha256": "7d9fedc4b2743ae29748245066daf65d34718499c7212dcca7d1954e7144ff62"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/contracts__runtime_workloads_json.md",
+      "sha256": "3e0a6b282b04530b6c0121e4d4ba7c52d3ab95e3e56f8d9dc69bdae70d816162"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/infrastructure__scheduling__dispatcher_py.md",
+      "sha256": "6db1083824a8df5b1cccbc033649eea19895b1b79f2d3d1a4a231bf6494002b8"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__cli_primitives_py.md",
+      "sha256": "54c68e489d6b3966d34b07555347e69ef40ae828b69e0e75e017996541a4ad01"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__phase_payload_py.md",
+      "sha256": "5be6aa5b0cce7235f298f82f7477216107f9727bd56b35de3d504782ce2756d3"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops___us_market_digest_parts__phase_publication_py.md",
+      "sha256": "f2224fdb6ef31c7ba63da4332857a8acc7e3033060a6ed305f9b174a9fdc16bc"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__run_scheduled_slot_py.md",
+      "sha256": "6867d87fb70385f3fe9f4b16ddb7395983e4cab67b975b67f3c1476b3ba99c2d"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__run_us_market_slot_py.md",
+      "sha256": "166532d7906da51f3790b72fb4ef925e7d36a98661725d87bf0ea7f5952493c3"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/ops__us_market_digest_py.md",
+      "sha256": "382051de7f7a69f6238e6f2f827aec8f0521deae4d3ccfd5ded1f67ba9d36f24"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_runtime_dispatcher_py.md",
+      "sha256": "725868be28bb04caac26812254969d1cd4834ffcbaef065a067462c5015bb820"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_us_equity_calendar_py.md",
+      "sha256": "90b1110c1d1f7367d9adfee671c5e42bfaa247db40cce52d78a2b140705e233c"
+    },
+    {
+      "path": "docs/handoffs/us_hk_friday_close_20261017/packet/source_context/us_digest/tests__test_us_owner_handoff_py.md",
+      "sha256": "74cb163fd668da2f903401171dc5d13b6ea4f5b4a43cb7d44e732469ff92bf42"
+    }
+  ],
+  "commands_and_results": [
+    {
+      "command": "python3 -c 'import json,pathlib; p=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017/packet\"); files=[p/\"SOURCE_MANIFEST.json\",p/\"WRITER_RECEIPT.json\",*sorted((p/\"evidence\").glob(\"*.json\"))]; [json.loads(x.read_text()) for x in files]; print(\"JSON parse: PASS\",len(files),\"files\")'",
+      "result": "PASS; 5 JSON files parsed."
+    },
+    {
+      "command": "python3 -c 'import hashlib,json,pathlib; d=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017/packet\"); m=json.loads((d/\"SOURCE_MANIFEST.json\").read_text()); h=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest(); assert all(h(e[\"copy_path\"])==e[\"copy_sha256\"] for e in m[\"entries\"]); assert all(h(e[\"path\"])==e[\"sha256\"] for e in m[\"evidence_entries\"]); assert all(h(e[\"path\"])==e[\"sha256\"] for e in m[\"packet_artifacts\"]); assert h(d/\"source_context/README.md\")==m[\"source_context_readme\"][\"sha256\"]; print(\"Source/evidence/package manifest SHA verification: PASS\")'",
+      "result": "PASS."
+    },
+    {
+      "command": "python3 -c 'import collections,hashlib,json,pathlib; b=pathlib.Path(\"docs/handoffs/us_hk_mapping_today_20261016/mapping_input_snapshot.json\"); p=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017/packet/evidence/real_relation_projection.json\"); s=json.loads(b.read_text()); d=json.loads(p.read_text()); f=d[\"projection_policy\"][\"retained_relation_fields\"]; assert hashlib.sha256(b.read_bytes()).hexdigest()==d[\"source_input\"][\"sha256\"]; assert len(d[\"stocks\"])==667==len({x[\"hk_code\"] for x in d[\"stocks\"]}); assert len(d[\"relations\"])==1003==len({x[\"relation_id\"] for x in d[\"relations\"]}); assert collections.Counter(x[\"closure_status\"] for x in d[\"relations\"])=={\"CLOSED_RESEARCH_SCOPE\":757,\"OPEN\":221,\"CLOSED_EXCLUDED_SCOPE\":25}; assert all(r=={k:o[k] for k in f} for r,o in zip(d[\"relations\"],s[\"relations\"])); assert all(x=={\"hk_code\":y[\"hk_code\"],\"name\":y[\"name\"]} for x,y in zip(d[\"stocks\"],s[\"stocks\"])); assert all(k not in d for k in (\"quotes\",\"last_price\",\"prev_close_price\",\"hk_connect_member_codes\",\"hk_connect_members_without_catalog\")); assert d[\"derived_fixture\"] and not d[\"is_owner_artifact\"] and not d[\"is_complete_overlay\"] and d[\"no_quote_data\"]; print(\"Relation projection field/identity/status/provenance/exclusion validation: PASS\")'",
+      "result": "PASS; 667 unique stock IDs, 1,003 unique relation IDs; exact field-for-field identity match; status split 757/221/25; quote/member arrays omitted."
+    },
+    {
+      "command": "python3 -c 'import pathlib,re; p=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_PROMPT.md\").read_text(); i=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017/packet/CHAT_ISSUE.md\").read_text(); assert not re.search(r\"/Users/|/Volumes/|/Library/Application Support|file://\",p); assert \"temporary copy\" in i and \"CANNOT_CONFIRM\" in i and \"real_relation_projection.json\" in i; assert not re.search(r\"build_friday_us_observations\\.py.{0,80}--verify\",i); print(\"Copyable prompt, frozen replay warning, and projection/CANNOT_CONFIRM guard: PASS\")'",
+      "result": "PASS."
+    },
+    {
+      "command": "python3 -c 'import json,pathlib; p=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017/packet/evidence/synthetic_contract_fixture.json\"); d=json.loads(p.read_text()); assert d[\"synthetic_only\"] and d[\"no_source_hashes_or_real_receipts\"]; assert d[\"cases\"][0][\"expected_us_session_date\"]==\"20261016\" and d[\"cases\"][0][\"expected_hk_target_date\"]==\"20261020\"; print(\"Synthetic fixture contract: PASS\")'",
+      "result": "PASS."
+    },
+    {
+      "command": "python3 -c 'import pathlib,zipfile; b=pathlib.Path(\"docs/handoffs/us_hk_friday_close_20261017\"); p=b/\"US_FRIDAY_CLOSE_CHAT_ISSUE_20261017.zip\"; expected={str(pathlib.Path(\"US_FRIDAY_CLOSE_CHAT_ISSUE_20261017\")/x.relative_to(b)) for x in [b/\"SCOPE.md\",b/\"audit/READ_ONLY_AUDIT.md\",*sorted((b/\"packet\").rglob(\"*\"))] if x.is_file()}; z=zipfile.ZipFile(p); n=set(z.namelist()); assert z.testzip() is None and n==expected and len(n)==37; assert any(x.endswith(\"/packet/CHAT_PROMPT.md\") for x in n) and any(x.endswith(\"/packet/evidence/real_relation_projection.json\") for x in n) and any(x.endswith(\"/packet/WRITER_RECEIPT.json\") for x in n); assert not any(x.lower().endswith(\".csv\") for x in n); assert not any(k in x for x in n for k in (\"futu_snapshot_full_capture.json\",\"futu_snapshot_canary.json\",\"mapping_input_snapshot.json\",\"capture_futu_friday\",\"us_hk_667_20261016_mapping_overlay.json\")); print(\"ZIP CRC, exact allowlist, and raw-input exclusion checks: PASS (37 entries)\")'",
+      "result": "PASS; 37 entries matched the exact allowlist, with no CSV, quote capture, raw mapping input, full overlay, or capture script."
+    }
+  ],
+  "research_replay": {
+    "run_by_this_writer": false,
+    "decision": "NOT_RUN",
+    "reason": "Frozen results/scripts were not rerun or rewritten. An independent reviewer separately reported an offline replay in a temporary copy; its final package review remains pending."
+  },
+  "archive": {
+    "path": "docs/handoffs/us_hk_friday_close_20261017/US_FRIDAY_CLOSE_CHAT_ISSUE_20261017.zip",
+    "included_scope": "SCOPE.md, controller-owned audit/READ_ONLY_AUDIT.md, packet issue/prompt/manifest/receipt/source_context/evidence including the derived non-owner relation fixture.",
+    "excluded": "All CSVs, raw Futu captures, raw mapping input, full recovery overlay, quote rows, HK membership arrays, and capture scripts.",
+    "self_sha256": "NOT_EMBEDDED; final archive SHA-256 is reported separately to avoid self-reference.",
+    "entry_count": 37
+  },
+  "status": {
+    "packet_files": "IMPLEMENTED",
+    "writer_validation": "PASS for JSON parse, manifest/copy/evidence/package SHA, field-preserving fixture identity/count/status/exclusion checks, prompt path independence, synthetic fixture, frozen replay warning, and final ZIP CRC/exact allowlist/raw-input exclusions.",
+    "independent_review": "PENDING final different-identity receipt for the exact final package and target behavior.",
+    "not_claimed": [
+      "API_VERIFIED",
+      "UI_VERIFIED",
+      "NOTIFICATION_VERIFIED",
+      "NATURAL_VERIFIED",
+      "BEHAVIOR_VERIFIED"
+    ]
+  },
+  "cannot_confirm": [
+    "The fixed GitHub base commit was not verified against the current target checkout by this packet writer; source manifest correspondence is against the current worktree only.",
+    "An official daily close bar and canonical shared owner artifact/receipt for US session 20261016 were not found.",
+    "The hidden dispatcher RELEASE_IDENTITY sub-check is not present in the logged typed failure.",
+    "The packaged 667/1,003 relation projection is a derived non-owner, non-complete fixture. Full recovery overlay runtime/API selector consumption, API/page readback, notification receipt, and natural slot remain unverified; obtain canonical-overlay consumer receipts after repair."
+  ],
+  "rollback_boundary": "If this packet needs rollback, revert only the packet paths and generated issue ZIP listed here. Do not revert controller-owned audit, frozen quote/mapping inputs, frozen report/CSV outputs, or business/runtime source.",
+  "reviewer_nonblocking_limits": [
+    "Top20 US linked HK-code display aggregates all relation statuses and may include OPEN-linked codes; candidate rows remain closed-scope positive only.",
+    "The frozen builder accepts --verify but rebuilds outputs; any replay must use an isolated temporary copy and must not invoke capture scripts.",
+    "Positive oil-linked source-price movement can be cost pressure for airlines and similar users, not an automatic benefit."
+  ],
+  "receipt_self_sha256": "NOT_EMBEDDED; receipt is included in the ZIP, so embedding its own SHA would be circular."
+}

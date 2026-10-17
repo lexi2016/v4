@@ -1,0 +1,71 @@
+{
+  "counts": {
+    "bucket_total": 1003,
+    "futu_symbols_absent_from_mapping": 0,
+    "mapped_symbols_absent_from_futu_universe": 70,
+    "mapping_quote_relation_rows": 912,
+    "positive_hk_code_count": 222,
+    "positive_relation_count": 270,
+    "positive_us_symbols_with_closed_relations": 128,
+    "relation_buckets": {
+      "excluded": 25,
+      "flat-negative": 430,
+      "missing": 57,
+      "open": 221,
+      "positive": 270
+    },
+    "requested_quote_symbols": 448,
+    "valid_mapping_quote_symbols": 446,
+    "valid_quote_symbols": 446
+  },
+  "exact_daily_bar_requested": false,
+  "exact_official_daily_close_confirmed": false,
+  "mapping": {
+    "catalog_id": "us_hk_667_20261015_from_20261014_membership",
+    "catalog_integrity_sha256": "fd362d817032f4f0a8f6f033c44df64435232382ea514dc31beee7b285deb0c5",
+    "closure_counts": {
+      "CLOSED_EXCLUDED_SCOPE": 25,
+      "CLOSED_RESEARCH_SCOPE": 757,
+      "OPEN": 221
+    },
+    "recovery_overlay_integrity_sha256": "9c33ef21d51516f12e7aeab74192ea0feaa6f1aebfcbba2c42ce97f499b0fedc",
+    "recovery_overlay_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app/v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+    "recovery_overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "relation_count": 1003,
+    "snapshot_file_sha256": "f819ca2f036953d0989a2a28127072d41ac7e051f209087a38953299251a0df3",
+    "snapshot_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_hk_mapping_today_20261016/mapping_input_snapshot.json",
+    "snapshot_sha256": "3228f28fdc34cfe36202fa7e5bce1720fe34115a334b77bc6a4468a6013eb1cc",
+    "stock_count": 667
+  },
+  "observation_semantics": "Futu after-close snapshot; metric uses last_price versus prev_close_price; pre_price and after_price are preserved separately",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "company_independent_acceptance": 0,
+    "event_and_data_tests": "NOT_RUN",
+    "historical_PIT": "NOT_VALIDATED",
+    "orders_sent": false,
+    "prediction_validation": "UNTESTED",
+    "production_allowed": false
+  },
+  "schema_version": "v4.us_hk_friday_snapshot_observation.v1",
+  "source": {
+    "api": "OpenQuoteContext.get_market_snapshot",
+    "canary_file_sha256": "f997df280b3719e25aad09721c92962e09fe586ad9bf0bc4deb3450ae30092f0",
+    "canary_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_hk_friday_close_20261017/evidence/futu_snapshot_canary.json",
+    "cannot_confirm_symbols": 2,
+    "capture_completed_at_local": "2026-10-17T23:10:35.544+08:00",
+    "capture_file_sha256": "8e1548621c5c37e74a084c64e42ff4029b97f7dd852782dea74f493ca693301e",
+    "capture_path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_hk_friday_close_20261017/evidence/futu_snapshot_full_capture.json",
+    "capture_payload_sha256": "5fc36d2408e94f49d3f5732cdd513fe90760f5435d0e7886e8b07a01a5e0262d",
+    "capture_started_at_local": "2026-10-17T23:10:34.936+08:00",
+    "provider": "Futu OpenAPI Python SDK via local OpenD",
+    "requested_codes_sha256": "8475e1c28b6a6a719b247e72dada337577c7061a94f9332d057efa845df83a6d",
+    "requested_symbols": 448,
+    "returned_symbols": 448,
+    "sdk_version": "10.06.6608",
+    "valid_after_close_symbols": 446
+  },
+  "target_hk_trade_date": "20261020",
+  "target_us_session": "2026-10-16"
+}

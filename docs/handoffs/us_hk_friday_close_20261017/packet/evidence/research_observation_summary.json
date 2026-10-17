@@ -1,0 +1,53 @@
+{
+  "schema_version": "friday_us_observation_summary.v1",
+  "source_session_date": "20261016",
+  "capture_kind": "Futu after-close quote snapshot",
+  "capture_time_hkt": {
+    "start": "2026-10-17T23:10:34.936+08:00",
+    "end": "2026-10-17T23:10:35.544+08:00"
+  },
+  "official_daily_close_confirmed": false,
+  "shared_owner_receipt_confirmed": false,
+  "quote_coverage": {
+    "requested": 448,
+    "returned": 448,
+    "valid_exact_session_after_close": 446,
+    "cannot_confirm": 2,
+    "cannot_confirm_symbols": ["EEX", "MIMI"]
+  },
+  "mapping_identity": {
+    "catalog_id": "us_hk_667_20261015_from_20261014_membership",
+    "stock_count": 667,
+    "relation_count": 1003,
+    "overlay_sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c",
+    "status_counts": {
+      "CLOSED_RESEARCH_SCOPE": 757,
+      "OPEN": 221,
+      "CLOSED_EXCLUDED_SCOPE": 25
+    },
+    "observation_buckets": {
+      "positive": 270,
+      "flat-negative": 430,
+      "missing": 57,
+      "open": 221,
+      "excluded": 25
+    }
+  },
+  "limitations": [
+    "A positive source-price move is not a verified HK price effect, causal result, recommendation, executable return, or trade signal.",
+    "Oil-linked positive source-price movement can be cost pressure for airlines and similar users, not an automatic benefit.",
+    "Top 20 linked HK code display includes all relation statuses and may contain OPEN links; closed-scope candidate evidence is in candidate_stocks and positive_relation_observations.",
+    "The frozen builder accepts --verify but still rebuilds outputs; any replay uses an isolated temporary copy and does not call capture scripts."
+  ],
+  "source_hashes": {
+    "full_capture_sha256": "8e1548621c5c37e74a084c64e42ff4029b97f7dd852782dea74f493ca693301e",
+    "canary_capture_sha256": "f997df280b3719e25aad09721c92962e09fe586ad9bf0bc4deb3450ae30092f0",
+    "mapping_input_sha256": "f819ca2f036953d0989a2a28127072d41ac7e051f209087a38953299251a0df3"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
