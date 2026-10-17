@@ -1,0 +1,59 @@
+{
+  "schema_version": "v4.zsxq_pdf_recovery_review.v1",
+  "reviewed_at": "2026-10-18",
+  "review_iteration": 2,
+  "scope": "frozen recover-one candidate; offline only",
+  "verdict": "PASS",
+  "states": {
+    "REVIEWED": true,
+    "TESTED": "FOCUSED_OFFLINE",
+    "BEHAVIOR_VERIFIED": "PASS_OFFLINE",
+    "RECOVERED": "NOT_RUN",
+    "full_module_suite_independent_rerun": "NOT_RUN_R2_WRITER_REPORTS_42_PASSED",
+    "live_api_download_ocr": "NOT_RUN",
+    "live_source_index_readback": "NOT_RUN",
+    "github_sync": "CANNOT_CONFIRM_PARENT_OWNS"
+  },
+  "baseline": {
+    "remote_commit": "d56d0ea45374764b2f28ab14ead8426752a0f8d1",
+    "frozen_data_index_sha256": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239",
+    "files": [
+      {
+        "path": "infrastructure/zsxq_pdf_ingestion.py",
+        "baseline_sha256": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+        "candidate_sha256": "5dedf912a9cc8b41646a5cfb0133ded4dbaa0168aae74157e75e4498cd1fd915"
+      },
+      {
+        "path": "tests/test_zsxq_pdf_ingestion.py",
+        "baseline_sha256": "8c3012d0e1d5cb2d6816a8afcf2bb922fa9bef97935f755477bbfe41f4a85a6d",
+        "candidate_sha256": "27fb218b81427ef5904213d7c1951dd9004bf00693537b4f8d7d6154778eead9"
+      },
+      {
+        "path": "ops/run_zsxq_hourly_delta.py",
+        "baseline_sha256": "7260f1342ee2ee6d00373df330561fc093f1f176875759623143bff2e517531d",
+        "candidate_sha256": "67892d233248c2e5cc7387b93fe228ab3f04c030c29719f41fb25ebc596aeff6"
+      }
+    ]
+  },
+  "previous_finding": {
+    "severity": "P1",
+    "title": "process_pdf_batch bypasses the durable recovery claim",
+    "status": "CLOSED_IN_REVISED_CANDIDATE",
+    "evidence": "Complete-enumeration path verifies the durable claim under the existing kernel lock before index writes/callbacks; continuation requires matching consumed checkpoint digest across marker, audit, and index."
+  },
+  "tests": [
+    {
+      "command": "PYTHONPATH=. uv run --offline pytest -q tests/test_zsxq_pdf_ingestion.py -k 'process_pdf_batch_rejects_unclaimed_recovery_id or recovery_continuation_requires_consumed_checkpoint or recover_one_long_pdf_uses_safe_two_page_checkpoints' --basetemp=/tmp/v4-zsxq-pdf-recovery-review-r2/basetemp",
+      "result": "PASS",
+      "summary": "3 passed, 39 deselected, 1 existing Starlette/httpx deprecation warning"
+    },
+    {
+      "command": "PYTHONPATH=. uv run --offline python - <<'PY' [runpy wrapper invokes reviewer/repro_claim_bypass.py and asserts PDF_RECOVERY_CLAIM_INCOMPLETE] PY",
+      "result": "PASS",
+      "summary": "REPRO_REJECTED: PDF_RECOVERY_CLAIM_INCOMPLETE"
+    }
+  ],
+  "findings": [],
+  "reviewer_source_edits": false,
+  "real_recovery": "NOT_RUN"
+}

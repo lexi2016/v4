@@ -2,6 +2,7 @@ import hashlib
 import json
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -15,12 +16,14 @@ from apps.api.v35_api.research_lane_router import create_research_lane_router
 from infrastructure.zsxq_pdf_ingestion import (
     LOCK_RELATIVE,
     MAX_PDF_BYTES,
+    RECOVERY_AUDIT_RELATIVE,
     STATE_RELATIVE,
     ZsxqPdfError,
     enumerate_pdf_documents,
     process_pdf_batch,
     process_pdf_continuation,
     process_next_pdf_task,
+    recover_one_pdf,
     pending_pdf_tasks,
     read_pdf_document_detail,
     read_pdf_ingestion_projection,
@@ -1228,6 +1231,511 @@ def test_kernel_lock_wait_uses_remaining_pdf_budget_and_queue_stays_retryable(tm
         holder.join(timeout=2)
     assert time.monotonic() - started < 1.5
     assert len(pending_pdf_tasks(root)) == 3
+
+
+def _seed_recovery_failed(root: Path, files: dict[str, dict], *, target: str = FILE_ID):
+    calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
+
+    def no_download(_url, _size):
+        calls["download"] += 1
+        raise ZsxqPdfError("ZSXQ_DOWNLOAD_URL_MISSING")
+
+    first, _ = _process(root, files, target=target, downloader=no_download, counters=calls)
+    second, _ = _process(root, files, target=target, downloader=no_download, counters=calls)
+    assert first["processed_this_batch"][0]["status"] == "PENDING"
+    assert second["processed_this_batch"][0]["status"] == "FAILED"
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    document_key, document = next(
+        (key, row) for key, row in index["documents"].items() if row["source"]["file_id"] == target
+    )
+    artifact = document["engine_runs"][second["engine_identity"]]
+    assert artifact["status"] == "FAILED"
+    assert artifact["attempts"] == 2
+    assert not artifact.get("pdf_sha256")
+    return document_key, second["engine_identity"], calls
+
+
+def _recovery_args(root, files, document_key, authorization_id, calls, **overrides):
+    def metadata(_cli, file_id):
+        calls["metadata"] += 1
+        return files[file_id]
+
+    def url(_cli, _file_id):
+        calls["url"] += 1
+        return "https://download.invalid/file?token=DO_NOT_PERSIST"
+
+    def download(_url, _size):
+        calls["download"] += 1
+        return PDF_BYTES
+
+    def render(_pdf, page_number, output_dir):
+        return _write_fake_page(output_dir, page_number)
+
+    def ocr(_image):
+        calls["ocr"] += 1
+        return {"status": "OCR_OK", "method": ENGINE["engine"], "text": f"page {calls['ocr']} evidence"}
+
+    values = {
+        "data_root": root,
+        "trade_date": DATE,
+        "source_run_id": RUN_ID,
+        "document_key": document_key,
+        "authorization_id": authorization_id,
+        "metadata_lookup": metadata,
+        "url_lookup": url,
+        "downloader": download,
+        "page_counter": lambda _pdf: 2,
+        "page_renderer": render,
+        "ocr_page": ocr,
+        "engine_info": ENGINE,
+        "now": lambda: datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI),
+    }
+    values.update(overrides)
+    return values
+
+
+def test_process_pdf_batch_rejects_unclaimed_recovery_id_before_processing_io(tmp_path):
+    root, files = _fixture(tmp_path)
+    document_key, _engine_identity, calls = _seed_recovery_failed(root, files)
+    callbacks_before = dict(calls)
+    args = _recovery_args(root, files, document_key, "unclaimed-id", calls)
+
+    with pytest.raises(ZsxqPdfError, match="PDF_RECOVERY_CLAIM_INCOMPLETE"):
+        process_pdf_batch(
+            data_root=root,
+            trade_date=DATE,
+            slot=SLOT,
+            source_run_id=RUN_ID,
+            document_key=document_key,
+            metadata_lookup=args["metadata_lookup"],
+            url_lookup=args["url_lookup"],
+            downloader=args["downloader"],
+            page_counter=args["page_counter"],
+            page_renderer=args["page_renderer"],
+            ocr_page=args["ocr_page"],
+            engine_info=ENGINE,
+            _recovery_authorization_id="unclaimed-id",
+        )
+
+    assert calls == callbacks_before
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    assert document_key not in index["recovery_consumed"]
+    assert not (root / RECOVERY_AUDIT_RELATIVE).exists()
+
+
+def test_recovery_continuation_requires_consumed_checkpoint_and_matching_claim_copies(tmp_path):
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    root, files = _fixture(tmp_path)
+    document_key, _engine_identity, calls = _seed_recovery_failed(root, files)
+    authorization_id = "auth-claim-checkpoint-20261016"
+    args = _recovery_args(root, files, document_key, authorization_id, calls)
+    args["page_counter"] = lambda _pdf: 5
+    partial = recover_one_pdf(**args)
+    assert partial["recovery_status"] == "CLAIMED"
+    assert partial["continuation_ready"] is True
+    callbacks_before = dict(calls)
+
+    with pytest.raises(ZsxqPdfError, match="PDF_RECOVERY_CONTINUATION_UNSAFE"):
+        process_pdf_batch(
+            data_root=root,
+            trade_date=DATE,
+            slot=SLOT,
+            source_run_id=RUN_ID,
+            document_key=document_key,
+            metadata_lookup=args["metadata_lookup"],
+            url_lookup=args["url_lookup"],
+            downloader=args["downloader"],
+            page_counter=args["page_counter"],
+            page_renderer=args["page_renderer"],
+            ocr_page=args["ocr_page"],
+            engine_info=ENGINE,
+            _recovery_authorization_id=authorization_id,
+            _recovery_continuation=True,
+        )
+    assert calls == callbacks_before
+
+    store = NativeDataStore(root)
+    audit = store._read(RECOVERY_AUDIT_RELATIVE)
+    record = audit["authorizations"][authorization_id]
+    pdf_module._consume_recovery_checkpoint(
+        store,
+        document_key=document_key,
+        authorization_id=authorization_id,
+        binding={
+            "source_signature": record["source_signature"],
+            "engine_identity": record["engine_identity"],
+            "input_sha256": record["input_sha256"],
+            "source_metadata_sha256": record["source_metadata_sha256"],
+            "source_file_hash_raw": record["source_file_hash_raw"],
+        },
+    )
+    index = store._read(STATE_RELATIVE)
+    index["recovery_consumed"][document_key]["consumed_checkpoint_sha256"] = "0" * 64
+    store._write(STATE_RELATIVE, index)
+
+    with pytest.raises(ZsxqPdfError, match="PDF_RECOVERY_CLAIM_INCOMPLETE"):
+        process_pdf_batch(
+            data_root=root,
+            trade_date=DATE,
+            slot=SLOT,
+            source_run_id=RUN_ID,
+            document_key=document_key,
+            metadata_lookup=args["metadata_lookup"],
+            url_lookup=args["url_lookup"],
+            downloader=args["downloader"],
+            page_counter=args["page_counter"],
+            page_renderer=args["page_renderer"],
+            ocr_page=args["ocr_page"],
+            engine_info=ENGINE,
+            _recovery_authorization_id=authorization_id,
+            _recovery_continuation=True,
+        )
+    assert calls == callbacks_before
+
+
+def test_recover_one_binds_full_identity_and_source_hashes_before_processing_io(tmp_path):
+    for case in ("document", "run", "date", "source_hash"):
+        case_root, files = _fixture(tmp_path / case)
+        document_key, _engine_identity, calls = _seed_recovery_failed(case_root, files)
+        if case == "source_hash":
+            store = NativeDataStore(case_root)
+            index = store._read(STATE_RELATIVE)
+            index["documents"][document_key]["source"]["source_hash_raw"] = "changed-original-hash"
+            store._write(STATE_RELATIVE, index)
+
+        kwargs = _recovery_args(case_root, files, document_key, f"auth-{case}-01", calls)
+        if case == "document":
+            kwargs["document_key"] = "f" * 64
+            expected = "DOCUMENT_NOT_FOUND"
+        elif case == "run":
+            kwargs["source_run_id"] = "20261014_230000_wrong"
+            expected = "PDF_RECOVERY_SOURCE_IDENTITY_MISMATCH"
+        elif case == "date":
+            kwargs["trade_date"] = "20261014"
+            expected = "PDF_RECOVERY_SOURCE_IDENTITY_MISMATCH"
+        else:
+            expected = "SOURCE_DOCUMENT_METADATA_MISMATCH"
+        before_callbacks = dict(calls)
+        with pytest.raises(ZsxqPdfError, match=expected):
+            recover_one_pdf(**kwargs)
+        assert calls == before_callbacks
+        # The two prior fake failed downloads are the only callbacks; recovery made none.
+        audit_path = case_root / RECOVERY_AUDIT_RELATIVE
+        assert not audit_path.exists()
+
+
+def test_recover_one_long_pdf_uses_safe_two_page_checkpoints_without_redownload_or_retry_reset(tmp_path):
+    root, files = _fixture(tmp_path)
+    document_key, engine_identity, calls = _seed_recovery_failed(root, files)
+    arguments = _recovery_args(root, files, document_key, "auth-long-20261016", calls)
+    arguments["page_counter"] = lambda _pdf: 5
+
+    first = recover_one_pdf(**arguments)
+    assert first["status"] == "PARTIAL"
+    assert first["recovery_status"] == "CLAIMED"
+    assert first["continuation_ready"] is True
+    assert first["processed_page_count"] == 2
+    assert calls["ocr"] == 2
+    assert calls["download"] == 3  # two exhausted prior fake failures plus one recovery download
+
+    replay = recover_one_pdf(**arguments)
+    assert replay["recovery_status"] == "CANNOT_CONFIRM"
+    assert replay["error_code"] == "PDF_RECOVERY_ALREADY_CLAIMED"
+    assert calls["ocr"] == 2
+
+    second = recover_one_pdf(**{**arguments, "continue_existing": True})
+    assert second["status"] == "PARTIAL"
+    assert second["processed_page_count"] == 4
+    assert second["continuation_ready"] is True
+    third = recover_one_pdf(**{**arguments, "continue_existing": True})
+    assert third["status"] == "READY"
+    assert third["recovery_status"] == "SUCCEEDED"
+    assert third["continuation_ready"] is False
+    assert calls["ocr"] == 5
+    assert calls["download"] == 3
+
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    artifact = index["documents"][document_key]["engine_runs"][engine_identity]
+    assert artifact["attempts"] == 2
+    assert artifact["page_count"] == artifact["processed_page_count"] == 5
+    assert artifact["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    audit = NativeDataStore(root)._read(RECOVERY_AUDIT_RELATIVE)
+    auth = audit["authorizations"]["auth-long-20261016"]
+    assert auth["status"] == "SUCCEEDED"
+    assert auth["continuation_count"] == 2
+    assert auth["source_signature"] == index["sources"][RUN_ID]["source_signature"]
+    assert set(auth["input_sha256"]) == {"status", "fetch_result", "recent_topics", "summary"}
+    assert auth["source_metadata_sha256"]
+    assert auth["source_file_hash_raw"] == SOURCE_HASH
+    assert auth["result_artifacts"]["document_key"] == document_key
+    assert auth["result_artifacts"]["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    assert auth["result_artifacts"]["page_count"] == 5
+    assert auth["result_artifacts"]["receipt_sha256"]
+    assert all(task["document_id"] != document_key for task in pending_pdf_tasks(root))
+
+
+def test_recovery_ocr_failure_keeps_verified_download_and_cannot_be_reauthorized(tmp_path):
+    root, files = _fixture(tmp_path)
+    document_key, engine_identity, calls = _seed_recovery_failed(root, files)
+    arguments = _recovery_args(root, files, document_key, "auth-fail-20261016", calls)
+
+    def fail_ocr(_image):
+        calls["ocr"] += 1
+        return {"status": "OCR_TIMEOUT", "method": ENGINE["engine"], "text": ""}
+
+    arguments["ocr_page"] = fail_ocr
+    result = recover_one_pdf(**arguments)
+    assert result["status"] == "FAILED"
+    assert result["recovery_status"] == "FAILED_FINAL"
+    assert result["pdf_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    assert result["pages_file_sha256"]
+    assert result["receipt_sha256"]
+    assert calls["download"] == 3
+    assert calls["ocr"] == 1
+
+    detail = read_pdf_document_detail(root, document_key, DATE)
+    final_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    assert final_index["documents"][document_key]["engine_runs"][engine_identity]["attempts"] == 2
+    assert final_index["documents"][document_key]["engine_runs"][engine_identity]["last_error_code"] == "OCR_TIMEOUT"
+    assert detail["receipt"]["integrity"] == "SOURCE_PDF_AND_PAGE_HASHES_VERIFIED"
+    receipt = NativeDataStore(root)._read(final_index["documents"][document_key]["engine_runs"][engine_identity]["receipt_path"])
+    assert receipt["document_key"] == document_key
+    audit = NativeDataStore(root)._read(RECOVERY_AUDIT_RELATIVE)
+    artifact_evidence = audit["authorizations"]["auth-fail-20261016"]["result_artifacts"]
+    assert artifact_evidence["pdf_sha256"] == result["pdf_sha256"]
+    assert artifact_evidence["receipt_sha256"] == result["receipt_sha256"]
+    replay = recover_one_pdf(**{**arguments, "authorization_id": "auth-fail-new-20261016"})
+    assert replay["recovery_status"] == "CANNOT_CONFIRM"
+    assert replay["error_code"] == "PDF_RECOVERY_ALREADY_CLAIMED"
+    assert calls["ocr"] == 1
+
+
+def test_recovery_cache_reuses_verified_complete_pages_without_ocr_or_download(tmp_path):
+    root, files = _fixture(tmp_path)
+    completed, _ = _process(root, files, page_count=2)
+    store = NativeDataStore(root)
+    index = store._read(STATE_RELATIVE)
+    document_key, document = next(
+        (key, row) for key, row in index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    engine_identity = completed["engine_identity"]
+    artifact = document["engine_runs"][engine_identity]
+    artifact.update(status="FAILED", attempts=2, last_error_code="PRIOR_FAILURE", failure_class="TRANSIENT")
+    store._write(STATE_RELATIVE, index)
+    calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
+    result = recover_one_pdf(**_recovery_args(root, files, document_key, "auth-cache-20261016", calls))
+    assert result["status"] == "READY"
+    assert result["recovery_status"] == "SUCCEEDED"
+    assert result["reused"] is True
+    assert calls["metadata"] == 1
+    assert calls["url"] == calls["download"] == calls["ocr"] == 0
+    assert NativeDataStore(root)._read(STATE_RELATIVE)["documents"][document_key]["engine_runs"][engine_identity]["attempts"] == 2
+
+
+def test_recovery_concurrent_same_authorization_has_one_processing_winner(tmp_path):
+    root, files = _fixture(tmp_path)
+    document_key, _identity, calls = _seed_recovery_failed(root, files)
+    before = dict(calls)
+    arguments = _recovery_args(root, files, document_key, "auth-concurrent-20261016", calls)
+    ready = threading.Barrier(2)
+
+    def invoke():
+        ready.wait(timeout=3)
+        try:
+            return recover_one_pdf(**arguments)
+        except ZsxqPdfError as error:
+            return {"status": "CANNOT_CONFIRM", "error_code": error.code}
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _slot: invoke(), range(2)))
+    assert sum(row.get("recovery_status") == "SUCCEEDED" for row in results) == 1
+    assert calls["metadata"] == before["metadata"] + 1
+    assert calls["url"] == before["url"] + 1
+    assert calls["download"] == before["download"] + 1
+    assert calls["ocr"] == before["ocr"] + 2
+    final_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    artifact = final_index["documents"][document_key]["engine_runs"][_identity]
+    assert artifact["status"] == "READY"
+    assert artifact["attempts"] == 2
+
+
+def test_recovery_url_missing_http_error_unsafe_url_and_redirect_fail_closed(tmp_path, monkeypatch):
+    from io import BytesIO
+    from urllib.error import HTTPError
+    from urllib.request import Request
+
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    with pytest.raises(ZsxqPdfError, match="ZSXQ_DOWNLOAD_URL_UNSAFE"):
+        pdf_module._validate_download_url("https://user:pass@example.invalid/file")
+    with pytest.raises(ZsxqPdfError, match="DOWNLOAD_REDIRECT_DOWNGRADE"):
+        pdf_module._HttpsRedirectHandler().redirect_request(
+            Request("https://example.invalid/file"), None, 302, "Found", {}, "http://example.invalid/file"
+        )
+    with pytest.raises(ZsxqPdfError, match="DOWNLOAD_REDIRECT_UNSAFE"):
+        pdf_module._HttpsRedirectHandler().redirect_request(
+            Request("https://example.invalid/file"), None, 302, "Found", {}, "https://user:pass@example.invalid/file"
+        )
+    def raise_http_error(*_args, **_kwargs):
+        raise HTTPError("https://example.invalid/file", 503, "unavailable", {}, BytesIO(b""))
+
+    monkeypatch.setattr(pdf_module, "build_opener", lambda *_args: type("Opener", (), {"open": raise_http_error})())
+    with pytest.raises(ZsxqPdfError, match="PDF_HTTP_ERROR_503"):
+        pdf_module._download_pdf_bytes("https://example.invalid/file", len(PDF_BYTES))
+
+    for bad_url, expected in ((None, "ZSXQ_DOWNLOAD_URL_MISSING"), ("http://example.invalid/file", "ZSXQ_DOWNLOAD_URL_UNSAFE")):
+        root, files = _fixture(tmp_path / expected.replace(":", "_"))
+        document_key, _identity, calls = _seed_recovery_failed(root, files)
+        args = _recovery_args(root, files, document_key, f"auth-{expected.replace(':', '-')}", calls)
+
+        def selected_url(_cli, _file_id):
+            calls["url"] += 1
+            if bad_url is None:
+                raise ZsxqPdfError(expected)
+            return bad_url
+
+        args["url_lookup"] = selected_url
+        outcome = recover_one_pdf(**args)
+        assert outcome["recovery_status"] == "FAILED_FINAL"
+        assert outcome["error_code"] == expected
+        assert calls["download"] == 2
+        assert calls["ocr"] == 0
+
+
+def test_recovery_index_or_audit_commit_error_and_interrupt_never_reopen_claim(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+
+    root, files = _fixture(tmp_path / "index-write")
+    document_key, _identity, calls = _seed_recovery_failed(root, files)
+    callbacks_before = dict(calls)
+    original_write = pdf_module._write_json
+    failed_once = {"value": False}
+
+    def fail_index_once(store, relative, value):
+        if relative == STATE_RELATIVE and not failed_once["value"]:
+            failed_once["value"] = True
+            raise OSError("simulated index write failure")
+        return original_write(store, relative, value)
+
+    monkeypatch.setattr(pdf_module, "_write_json", fail_index_once)
+    result = recover_one_pdf(**_recovery_args(root, files, document_key, "auth-index-write-20261016", calls))
+    assert result["recovery_status"] == "CANNOT_CONFIRM"
+    assert calls == callbacks_before
+    monkeypatch.setattr(pdf_module, "_write_json", original_write)
+    replay = recover_one_pdf(**_recovery_args(root, files, document_key, "auth-index-new-20261016", calls))
+    assert replay["recovery_status"] == "CANNOT_CONFIRM"
+    assert replay["error_code"] == "PDF_RECOVERY_ALREADY_CLAIMED"
+    assert calls == callbacks_before
+
+    root2, files2 = _fixture(tmp_path / "audit-write")
+    document_key2, _identity2, calls2 = _seed_recovery_failed(root2, files2)
+    original_write2 = pdf_module._write_json
+    audit_writes = {"count": 0}
+
+    def fail_final_audit_once(store, relative, value):
+        if relative == RECOVERY_AUDIT_RELATIVE:
+            audit_writes["count"] += 1
+            if audit_writes["count"] == 3:
+                raise OSError("simulated final audit write failure")
+        return original_write2(store, relative, value)
+
+    monkeypatch.setattr(pdf_module, "_write_json", fail_final_audit_once)
+    failed = recover_one_pdf(**_recovery_args(root2, files2, document_key2, "auth-audit-write-20261016", calls2))
+    assert failed["recovery_status"] == "CANNOT_CONFIRM"
+    assert calls2["ocr"] == 2
+    monkeypatch.setattr(pdf_module, "_write_json", original_write2)
+    callbacks_after_audit_failure = dict(calls2)
+    replay = recover_one_pdf(**_recovery_args(root2, files2, document_key2, "auth-audit-new-20261016", calls2))
+    assert replay["recovery_status"] == "CANNOT_CONFIRM"
+    assert replay["error_code"] == "PDF_RECOVERY_ALREADY_CLAIMED"
+    assert calls2 == callbacks_after_audit_failure
+    assert calls2["ocr"] == 2
+
+    root3, files3 = _fixture(tmp_path / "interrupt")
+    document_key3, _identity3, calls3 = _seed_recovery_failed(root3, files3)
+    callbacks_before3 = dict(calls3)
+    monkeypatch.setattr(pdf_module, "process_pdf_batch", lambda **_kwargs: (_ for _ in ()).throw(KeyboardInterrupt()))
+    with pytest.raises(KeyboardInterrupt):
+        recover_one_pdf(**_recovery_args(root3, files3, document_key3, "auth-interrupt-20261016", calls3))
+    monkeypatch.setattr(pdf_module, "process_pdf_batch", process_pdf_batch)
+    interrupted = recover_one_pdf(
+        **_recovery_args(root3, files3, document_key3, "auth-interrupt-20261016", calls3, continue_existing=True)
+    )
+    assert interrupted["recovery_status"] == "CANNOT_CONFIRM"
+    assert calls3 == callbacks_before3
+
+
+def test_missing_audit_row_or_changed_authorization_cannot_grant_another_claim(tmp_path):
+    root, files = _fixture(tmp_path)
+    document_key, _identity, calls = _seed_recovery_failed(root, files)
+    arguments = _recovery_args(root, files, document_key, "auth-missing-audit-20261016", calls)
+
+    def fail_ocr(_image):
+        calls["ocr"] += 1
+        return {"status": "OCR_TIMEOUT", "method": ENGINE["engine"], "text": ""}
+
+    arguments["ocr_page"] = fail_ocr
+    result = recover_one_pdf(**arguments)
+    assert result["recovery_status"] == "FAILED_FINAL"
+    audit_store = NativeDataStore(root)
+    audit = audit_store._read(RECOVERY_AUDIT_RELATIVE)
+    audit["authorizations"].pop("auth-missing-audit-20261016")
+    audit_store._write(RECOVERY_AUDIT_RELATIVE, audit)
+
+    changed = recover_one_pdf(**{**arguments, "authorization_id": "auth-changed-20261016"})
+    assert changed["recovery_status"] == "CANNOT_CONFIRM"
+    assert changed["error_code"] == "PDF_RECOVERY_ALREADY_CLAIMED"
+    assert calls["ocr"] == 1
+
+
+def test_recovery_cli_selects_the_full_document_key_not_the_queue_first_file(tmp_path, monkeypatch, capsys):
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+    from ops import run_zsxq_hourly_delta as hourly
+
+    root, files = _fixture(tmp_path)
+    target = "181515482484554"
+    document_key, _identity, calls = _seed_recovery_failed(root, files, target=target)
+    real_recover = pdf_module.recover_one_pdf
+    selected_ids = []
+
+    def offline_recover(**kwargs):
+        original_metadata = kwargs.pop("metadata_lookup", None)
+        if original_metadata is not None:
+            raise AssertionError("CLI must not inject callbacks")
+
+        def metadata(_cli, file_id):
+            selected_ids.append(file_id)
+            return files[file_id]
+
+        return real_recover(
+            **kwargs,
+            metadata_lookup=metadata,
+            url_lookup=lambda _cli, _file_id: "https://download.invalid/file?token=DO_NOT_PERSIST",
+            downloader=lambda _url, _size: PDF_BYTES,
+            page_counter=lambda _pdf: 1,
+            page_renderer=lambda _pdf, page, output_dir: _write_fake_page(output_dir, page),
+            ocr_page=lambda _image: {"status": "OCR_OK", "method": ENGINE["engine"], "text": "cli-selected"},
+            engine_info=ENGINE,
+        )
+
+    monkeypatch.setattr(hourly, "recover_one_pdf", offline_recover)
+    rc = hourly.main(
+        [
+            "--data-root", str(root),
+            "--date", DATE,
+            "--source-run-id", RUN_ID,
+            "--pdf-recover-one",
+            "--pdf-document-key", document_key,
+            "--pdf-authorization-id", "auth-cli-20261016",
+        ]
+    )
+    output = json.loads(capsys.readouterr().out.strip())
+    assert rc == 0
+    assert output["status"] == "READY"
+    assert output["document_key"] == document_key
+    assert output["authorization_id"] == "auth-cli-20261016"
+    assert selected_ids == [target]
 
     resumed, _calls = _process(root, files)
     assert resumed["processed_this_batch"][0]["status"] == "READY"

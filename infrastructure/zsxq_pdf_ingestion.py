@@ -47,6 +47,7 @@ PERMANENT_FAILURE_CODES = frozenset(
         "SOURCE_HASH_ALGORITHM_MUST_REMAIN_UNKNOWN",
         "ZSXQ_DOWNLOAD_URL_UNSAFE",
         "DOWNLOAD_REDIRECT_DOWNGRADE",
+        "DOWNLOAD_REDIRECT_UNSAFE",
     }
 )
 RENDER_SCALE_TO = 2600
@@ -68,6 +69,8 @@ VISION_OCR_SOURCE = Path(
 )
 STATE_RELATIVE = "external_sources/zsxq_hourly/zsxq_pdf_ingestion_index.json"
 LOCK_RELATIVE = "external_sources/zsxq_hourly/.zsxq_pdf_ingestion.lock"
+RECOVERY_AUDIT_RELATIVE = "external_sources/zsxq_hourly/zsxq_pdf_recovery_audit.json"
+RECOVERY_GUARD_ROOT = "external_sources/zsxq_hourly/pdf_recovery_claims"
 SAFETY = {
     "research_only": True,
     "production_allowed": False,
@@ -328,29 +331,45 @@ def _cli_download_url(cli: Path, file_id: str, *, process_runner: Runner = subpr
     url = (((payload.get("body") or {}).get("resp_data") or {}).get("download_url"))
     if not isinstance(url, str):
         raise ZsxqPdfError("ZSXQ_DOWNLOAD_URL_MISSING")
-    parsed = urlsplit(url)
+    _validate_download_url(url)
+    return url
+
+
+def _validate_download_url(url: str) -> None:
+    try:
+        parsed = urlsplit(url)
+    except (TypeError, ValueError) as error:
+        raise ZsxqPdfError("ZSXQ_DOWNLOAD_URL_UNSAFE") from error
     if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
         raise ZsxqPdfError("ZSXQ_DOWNLOAD_URL_UNSAFE")
-    return url
 
 
 class _HttpsRedirectHandler(HTTPRedirectHandler):
     def redirect_request(self, request: Request, fp: Any, code: int, message: str, headers: Any, new_url: str) -> Request | None:
-        if urlsplit(new_url).scheme != "https":
+        try:
+            parsed = urlsplit(new_url)
+        except (TypeError, ValueError) as error:
+            raise ZsxqPdfError("DOWNLOAD_REDIRECT_UNSAFE") from error
+        if parsed.scheme != "https":
             raise ZsxqPdfError("DOWNLOAD_REDIRECT_DOWNGRADE")
+        try:
+            _validate_download_url(new_url)
+        except ZsxqPdfError as error:
+            if error.code == "ZSXQ_DOWNLOAD_URL_UNSAFE":
+                raise ZsxqPdfError("DOWNLOAD_REDIRECT_UNSAFE") from error
+            raise
         return super().redirect_request(request, fp, code, message, headers, new_url)
 
 
 def _download_pdf_bytes(url: str, expected_size: int) -> bytes:
-    parsed = urlsplit(url)
-    if parsed.scheme != "https" or not parsed.hostname:
-        raise ZsxqPdfError("ZSXQ_DOWNLOAD_URL_UNSAFE")
+    _validate_download_url(url)
     request = Request(url, headers={"User-Agent": "v4-zsxq-pdf-ingestion/1"}, method="GET")
     opener = build_opener(_HttpsRedirectHandler())
     try:
         with opener.open(request, timeout=60) as response:
-            if response.status != 200 or urlsplit(response.geturl()).scheme != "https":
+            if response.status != 200:
                 raise ZsxqPdfError("PDF_HTTP_STATUS_INVALID")
+            _validate_download_url(response.geturl())
             declared = response.headers.get("Content-Length")
             if declared is not None:
                 try:
@@ -375,6 +394,10 @@ def _download_pdf_bytes(url: str, expected_size: int) -> bytes:
     except ZsxqPdfError:
         raise
     except HTTPError as error:
+        try:
+            error.close()
+        except Exception:
+            pass
         raise ZsxqPdfError(f"PDF_HTTP_ERROR_{int(error.code)}") from error
     except (URLError, TimeoutError, OSError) as error:
         # Never include exception text: urllib errors may contain the signed URL.
@@ -518,6 +541,10 @@ def _read_index(store: NativeDataStore) -> dict[str, Any]:
     for key in ("sources", "documents", "ocr_cache"):
         if not isinstance(index.get(key), dict):
             raise ZsxqPdfError("PROCESSING_INDEX_INVALID")
+    if "recovery_consumed" not in index:
+        index["recovery_consumed"] = {}
+    if not isinstance(index.get("recovery_consumed"), dict):
+        raise ZsxqPdfError("PROCESSING_INDEX_INVALID")
     return index
 
 
@@ -526,6 +553,121 @@ def _write_json(store: NativeDataStore, relative: str, value: Mapping[str, Any])
         store._write(relative, dict(value))
     except (OSError, ValueError) as error:
         raise ZsxqPdfError("OWNED_ARTIFACT_WRITE_FAILED") from error
+
+
+def _canonical_json_bytes(value: Mapping[str, Any]) -> bytes:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _claim_marker_relative(document_key: str) -> str:
+    if not re.fullmatch(r"[0-9a-f]{64}", str(document_key)):
+        raise ZsxqPdfError("PDF_DOCUMENT_KEY_INVALID")
+    return f"{RECOVERY_GUARD_ROOT}/{document_key}.json"
+
+
+def _read_claim_marker(store: NativeDataStore, document_key: str) -> dict[str, Any] | None:
+    relative = _claim_marker_relative(document_key)
+    try:
+        raw = _store_io(store).read_bytes(relative, max_bytes=1024 * 1024)
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError) as error:
+        raise ZsxqPdfError("PDF_RECOVERY_GUARD_UNREADABLE") from error
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise ZsxqPdfError("PDF_RECOVERY_GUARD_UNREADABLE") from error
+    if not isinstance(value, dict) or value.get("schema_version") != "v4.zsxq_pdf_recovery_claim.v1":
+        raise ZsxqPdfError("PDF_RECOVERY_GUARD_INVALID")
+    return value
+
+
+def _read_recovery_audit(store: NativeDataStore) -> dict[str, Any]:
+    try:
+        value = store._read(RECOVERY_AUDIT_RELATIVE)
+    except FileNotFoundError:
+        return {
+            "schema_version": "v4.zsxq_pdf_recovery_audit.v1",
+            "authorizations": {},
+            "consumed": {},
+        }
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
+        raise ZsxqPdfError("PDF_RECOVERY_AUDIT_UNREADABLE") from error
+    if (
+        not isinstance(value, dict)
+        or value.get("schema_version") != "v4.zsxq_pdf_recovery_audit.v1"
+        or not isinstance(value.get("authorizations"), dict)
+        or not isinstance(value.get("consumed"), dict)
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_AUDIT_INVALID")
+    return value
+
+
+def _read_recovery_consumed(index: Mapping[str, Any], document_key: str) -> Mapping[str, Any] | None:
+    consumed = index.get("recovery_consumed")
+    if not isinstance(consumed, Mapping):
+        raise ZsxqPdfError("PROCESSING_INDEX_INVALID")
+    value = consumed.get(document_key)
+    if value is not None and not isinstance(value, Mapping):
+        raise ZsxqPdfError("PROCESSING_INDEX_INVALID")
+    return value
+
+
+def _require_active_recovery_claim(
+    store: NativeDataStore,
+    index: Mapping[str, Any],
+    *,
+    document_key: str,
+    authorization_id: str,
+    source_signature: str,
+    continuation: bool = False,
+) -> dict[str, Any]:
+    marker = _read_claim_marker(store, document_key)
+    audit = _read_recovery_audit(store)
+    record = audit["authorizations"].get(authorization_id)
+    consumed = audit["consumed"].get(document_key)
+    indexed = _read_recovery_consumed(index, document_key)
+    if (
+        marker is None
+        or not isinstance(record, Mapping)
+        or not isinstance(consumed, Mapping)
+        or not isinstance(indexed, Mapping)
+        or marker.get("authorization_id") != authorization_id
+        or marker.get("status") != "CLAIMED"
+        or marker.get("document_key") != document_key
+        or marker.get("source_signature") != source_signature
+        or record.get("status") != "CLAIMED"
+        or record.get("authorization_id") != authorization_id
+        or record.get("document_key") != document_key
+        or record.get("source_signature") != source_signature
+        or record.get("trade_date") != marker.get("trade_date")
+        or record.get("source_run_id") != marker.get("source_run_id")
+        or record.get("source_metadata_sha256") != marker.get("source_metadata_sha256")
+        or record.get("engine_identity") != marker.get("engine_identity")
+        or marker.get("status") != consumed.get("status")
+        or marker.get("status") != indexed.get("status")
+        or marker.get("checkpoint") != record.get("checkpoint")
+        or marker.get("checkpoint") != consumed.get("checkpoint")
+        or marker.get("checkpoint") != indexed.get("checkpoint")
+        or marker.get("consumed_checkpoint_sha256") != record.get("consumed_checkpoint_sha256")
+        or marker.get("consumed_checkpoint_sha256") != consumed.get("consumed_checkpoint_sha256")
+        or marker.get("consumed_checkpoint_sha256") != indexed.get("consumed_checkpoint_sha256")
+        or consumed.get("authorization_id") != authorization_id
+        or consumed.get("source_signature") != source_signature
+        or indexed.get("authorization_id") != authorization_id
+        or indexed.get("source_signature") != source_signature
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_CLAIM_INCOMPLETE")
+    if continuation and (
+        record.get("checkpoint") is not None
+        or not re.fullmatch(r"[0-9a-f]{64}", str(record.get("consumed_checkpoint_sha256") or ""))
+        or type(record.get("continuation_count")) is not int
+        or record.get("continuation_count") < 1
+        or not isinstance(record.get("continuation_started_at"), str)
+        or not record.get("continuation_started_at")
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_CONTINUATION_UNSAFE")
+    return dict(record)
 
 
 def _error_code(error: BaseException) -> str:
@@ -816,12 +958,14 @@ def _verified_document_detail(
     source_fields = (
         "trade_date", "source_run_id", "group_id", "group_name", "topic_id", "topic_title",
         "source_topic_published_at", "source_fetched_at", "file_id", "original_filename",
-        "expected_size", "pdf_published_at", "pit_status", "data_role", "late_processing",
+        "expected_size", "source_hash_raw", "source_hash_algorithm", "pdf_published_at",
+        "pit_status", "data_role", "late_processing",
     )
     if any(receipt.get(key) != source.get(key) for key in source_fields):
         raise ZsxqPdfError("DOCUMENT_RECEIPT_SOURCE_MISMATCH")
     if (
-        receipt.get("status") != artifact.get("status")
+        receipt.get("document_key") not in (None, document_id)
+        or receipt.get("status") != artifact.get("status")
         or receipt.get("engine_identity") != engine_identity
         or receipt.get("pdf_path") != pdf_path
         or receipt.get("pages_path") != pages_path
@@ -1096,6 +1240,7 @@ def _process_one(
     page_renderer: PageRenderer,
     ocr_page: OCRPage,
     max_pages_per_batch: int,
+    recovery_claimed: bool = False,
     now: Callable[[], datetime],
     persist: Callable[[], None],
 ) -> dict[str, Any]:
@@ -1138,13 +1283,13 @@ def _process_one(
         }
 
     attempts = int(artifact_state.get("attempts") or 0)
-    if attempts >= MAX_ATTEMPTS:
+    if attempts >= MAX_ATTEMPTS and not recovery_claimed:
         artifact_state.update(status="FAILED", last_error_code=artifact_state.get("last_error_code") or "RETRY_LIMIT_REACHED")
         persist()
         return {"file_id": source["file_id"], "status": "FAILED", "reused": False}
     artifact_state.update(
         status="PROCESSING",
-        attempts=attempts + 1,
+        attempts=attempts if recovery_claimed else attempts + 1,
         last_error_code=None,
         failure_class=None,
         updated_at=_iso(now()),
@@ -1172,6 +1317,7 @@ def _process_one(
             raw, pdf_sha, actual_pdf_path = cached_pdf
         else:
             url = url_lookup(cli, str(source["file_id"]))
+            _validate_download_url(url)
             raw = downloader(url, int(source["expected_size"]))
             downloaded_at = _iso(now())
             pdf_sha = verify_pdf_bytes(raw, int(source["expected_size"]))
@@ -1420,6 +1566,7 @@ def _document_receipt(
     return {
         "schema_version": "v4.zsxq_pdf_document_receipt.v1",
         "status": artifact.get("status"),
+        "document_key": source["document_key"],
         "trade_date": source["trade_date"],
         "source_run_id": source["source_run_id"],
         "group_id": source["group_id"],
@@ -1483,6 +1630,7 @@ def process_pdf_batch(
     cli: Path = DEFAULT_CLI,
     limit: int = 1,
     file_id: str | None = None,
+    document_key: str | None = None,
     metadata_lookup: MetadataLookup | None = None,
     url_lookup: URLLookup | None = None,
     downloader: BytesDownloader | None = None,
@@ -1495,6 +1643,8 @@ def process_pdf_batch(
     now: Callable[[], datetime] = _now,
     max_pages_per_document: int = MAX_PDF_PAGES_PER_BATCH,
     enqueue_only: bool = False,
+    _recovery_authorization_id: str | None = None,
+    _recovery_continuation: bool = False,
 ) -> dict[str, Any]:
     """Process a bounded number of PDFs from an already completed hourly run."""
     _date(trade_date)
@@ -1507,6 +1657,16 @@ def process_pdf_batch(
         raise ZsxqPdfError("PDF_PAGE_BATCH_LIMIT_INVALID")
     if file_id is not None and not re.fullmatch(r"[0-9]{1,32}", str(file_id)):
         raise ZsxqPdfError("PDF_FILE_ID_INVALID")
+    if document_key is not None and not re.fullmatch(r"[0-9a-f]{64}", str(document_key)):
+        raise ZsxqPdfError("PDF_DOCUMENT_KEY_INVALID")
+    if file_id is not None and document_key is not None:
+        raise ZsxqPdfError("PDF_DOCUMENT_SELECTOR_CONFLICT")
+    if (
+        (_recovery_authorization_id is None) != (document_key is None)
+        or (_recovery_continuation and _recovery_authorization_id is None)
+        or (_recovery_authorization_id is not None and file_id is not None)
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_IDENTITY_REQUIRED")
     root = Path(data_root).expanduser()
     if not root.is_dir() or root.is_symlink():
         raise ZsxqPdfError("DATA_ROOT_INVALID")
@@ -1536,6 +1696,15 @@ def process_pdf_batch(
             poll=min(0.05, lock_budget_seconds),
         ):
             index = _read_index(store)
+            if _recovery_authorization_id is not None:
+                _require_active_recovery_claim(
+                    store,
+                    index,
+                    document_key=str(document_key),
+                    authorization_id=_recovery_authorization_id,
+                    source_signature=source_signature,
+                    continuation=_recovery_continuation,
+                )
             prior_source = index["sources"].get(source_run_id)
             if prior_source and prior_source.get("source_signature") != source_signature:
                 raise ZsxqPdfError("SOURCE_RUN_MUTATED_SINCE_ENQUEUE")
@@ -1622,6 +1791,15 @@ def process_pdf_batch(
             poll=min(0.05, lock_budget_seconds),
         ):
             index = _read_index(store)
+            if _recovery_authorization_id is not None:
+                _require_active_recovery_claim(
+                    store,
+                    index,
+                    document_key=str(document_key),
+                    authorization_id=_recovery_authorization_id,
+                    source_signature=source_signature,
+                    continuation=_recovery_continuation,
+                )
             prior_source = index["sources"].get(source_run_id)
             if prior_source and prior_source.get("source_signature") != source_signature:
                 raise ZsxqPdfError("SOURCE_RUN_MUTATED_SINCE_ENQUEUE")
@@ -1660,7 +1838,20 @@ def process_pdf_batch(
             _write_json(store, STATE_RELATIVE, index)
 
             chosen = []
-            if file_id is not None:
+            if _recovery_authorization_id is not None:
+                selected = next((row for row in documents if row["document_key"] == document_key), None)
+                if selected is None:
+                    raise ZsxqPdfError("SOURCE_DOCUMENT_NOT_ENUMERATED")
+                engine_run = index["documents"][selected["document_key"]]["engine_runs"][engine_identity]
+                required_status = "PARTIAL" if _recovery_continuation else "FAILED"
+                if (
+                    str(engine_run.get("status") or "").upper() != required_status
+                    or type(engine_run.get("attempts")) is not int
+                    or engine_run.get("attempts") != MAX_ATTEMPTS
+                ):
+                    raise ZsxqPdfError("PDF_RECOVERY_TARGET_STATE_MISMATCH")
+                chosen = [selected]
+            elif file_id is not None:
                 selected = next((row for row in documents if row["file_id"] == str(file_id)), None)
                 if selected is not None:
                     engine_run = index["documents"][selected["document_key"]]["engine_runs"][engine_identity]
@@ -1756,6 +1947,11 @@ def process_pdf_batch(
                         if len(chosen) >= limit:
                             break
             for source in chosen:
+                if (
+                    _recovery_authorization_id is None
+                    and source["document_key"] in index.get("recovery_consumed", {})
+                ):
+                    raise ZsxqPdfError("PDF_RECOVERY_CLAIM_REQUIRED")
                 if time.monotonic() - batch_start_monotonic >= time_budget_seconds:
                     break
                 document_row = index["documents"][source["document_key"]]
@@ -1781,6 +1977,7 @@ def process_pdf_batch(
                     page_renderer=render_page,
                     ocr_page=run_ocr,
                     max_pages_per_batch=max_pages_per_document,
+                    recovery_claimed=_recovery_authorization_id is not None,
                     now=now,
                     persist=persist_current,
                 )
@@ -1942,6 +2139,827 @@ def process_pdf_batch(
             runtime["temp"].cleanup()
 
 
+def _recovery_engine(
+    *,
+    engine_info: Mapping[str, Any] | None,
+    page_counter: PageCounter | None,
+    page_renderer: PageRenderer | None,
+    renderer_path: Path,
+) -> tuple[dict[str, Any], str]:
+    if engine_info is None:
+        vision_module, vision_source_sha, vision_config_sha = _load_vision_module()
+        engine_info = {
+            "engine": str(getattr(vision_module, "ENGINE", "macOS Vision Swift executable")),
+            "vision_source_sha256": vision_source_sha,
+            "vision_config_sha256": vision_config_sha,
+        }
+    version = _renderer_version(renderer_path) if page_counter is None or page_renderer is None else "TEST_INJECTED"
+    identity, _descriptor = _artifact_engine_identity(
+        engine_info, renderer_version=version, renderer_path=renderer_path
+    )
+    return dict(engine_info), identity
+
+
+def _recovery_preflight(
+    store: NativeDataStore,
+    *,
+    document_key: str,
+    trade_date: str,
+    source_run_id: str,
+    engine_identity: str,
+    continuation: bool,
+) -> dict[str, Any]:
+    """Verify the stored source and exhausted engine run before API or download I/O."""
+    index = _read_index(store)
+    source, document_row = _source_row_for_document(store, index, document_key)
+    if source.get("trade_date") != trade_date or source.get("source_run_id") != source_run_id:
+        raise ZsxqPdfError("PDF_RECOVERY_SOURCE_IDENTITY_MISMATCH")
+    source_entry = index["sources"].get(source_run_id)
+    if (
+        not isinstance(source_entry, Mapping)
+        or source_entry.get("enumeration_complete") is not True
+        or source_entry.get("trade_date") != trade_date
+        or source_entry.get("source_run_id") != source_run_id
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_SOURCE_BINDING_MISSING")
+    input_hashes = source_entry.get("input_sha256")
+    if (
+        not isinstance(input_hashes, Mapping)
+        or set(input_hashes) != {"status", "fetch_result", "recent_topics", "summary"}
+        or any(not re.fullmatch(r"[0-9a-f]{64}", str(value)) for value in input_hashes.values())
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_SOURCE_HASHES_INVALID")
+    source_signature = str(source_entry.get("source_signature") or "")
+    expected_processing_id = f"pdfproc_{source_run_id}_{source_signature[:12]}_{engine_identity[:12]}"
+    if source_entry.get("processing_run_id") != expected_processing_id:
+        raise ZsxqPdfError("PDF_RECOVERY_PROCESSING_BINDING_MISMATCH")
+    if source.get("source_hash_raw") is None:
+        raise ZsxqPdfError("SOURCE_HASH_MISSING")
+    if source.get("source_hash_algorithm") is not None:
+        raise ZsxqPdfError("SOURCE_HASH_ALGORITHM_MUST_REMAIN_UNKNOWN")
+    latest_engine_run = _latest_engine_run(document_row)
+    if latest_engine_run is None or latest_engine_run[0] != engine_identity:
+        raise ZsxqPdfError("PDF_RECOVERY_ENGINE_NOT_LATEST")
+    runs = document_row.get("engine_runs")
+    artifact = runs.get(engine_identity) if isinstance(runs, Mapping) else None
+    if not isinstance(artifact, Mapping):
+        raise ZsxqPdfError("PDF_RECOVERY_ENGINE_NOT_FOUND")
+    expected_status = "PARTIAL" if continuation else "FAILED"
+    if (
+        str(artifact.get("status") or "").upper() != expected_status
+        or type(artifact.get("attempts")) is not int
+        or artifact.get("attempts") != MAX_ATTEMPTS
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_TARGET_STATE_MISMATCH")
+    if continuation and artifact.get("last_error_code") is not None:
+        raise ZsxqPdfError("PDF_RECOVERY_CONTINUATION_NOT_CLEAN")
+    return {
+        "index": index,
+        "source": source,
+        "document_row": dict(document_row),
+        "artifact": dict(artifact),
+        "slot": str(source_entry.get("slot") or ""),
+        "source_signature": source_signature,
+        "input_sha256": dict(input_hashes),
+        "source_metadata_sha256": _sha256(_canonical_json_bytes(source)),
+        "source_file_hash_raw": source.get("source_hash_raw"),
+        "processing_run_id": expected_processing_id,
+    }
+
+
+def _recovery_event_result(
+    store: NativeDataStore,
+    index: Mapping[str, Any],
+    *,
+    document_key: str,
+    engine_identity: str,
+    authorization_id: str,
+    recovery_status: str,
+    error_code: str | None = None,
+) -> dict[str, Any]:
+    document = index.get("documents", {}).get(document_key)
+    artifact = (
+        document.get("engine_runs", {}).get(engine_identity, {})
+        if isinstance(document, Mapping)
+        else {}
+    )
+    source = document.get("source", {}) if isinstance(document, Mapping) else {}
+    receipt_path = str(artifact.get("receipt_path") or "") if isinstance(artifact, Mapping) else ""
+    receipt_sha256 = None
+    if receipt_path:
+        try:
+            receipt_sha256 = _sha256(_store_io(store).read_bytes(receipt_path, max_bytes=2 * 1024 * 1024))
+        except (OSError, ValueError):
+            pass
+    source_run_id = source.get("source_run_id") if isinstance(source, Mapping) else None
+    source_entry = index.get("sources", {}).get(source_run_id) if source_run_id else None
+    return {
+        "schema_version": "v4.zsxq_pdf_recovery_one.v1",
+        "status": str(artifact.get("status") or "CANNOT_CONFIRM").upper() if isinstance(artifact, Mapping) else "CANNOT_CONFIRM",
+        "recovery_status": recovery_status,
+        "error_code": error_code,
+        "document_key": document_key,
+        "trade_date": source.get("trade_date") if isinstance(source, Mapping) else None,
+        "source_run_id": source_run_id,
+        "source_signature": source_entry.get("source_signature") if isinstance(source_entry, Mapping) else None,
+        "input_sha256": dict(source_entry.get("input_sha256") or {}) if isinstance(source_entry, Mapping) else None,
+        "source_metadata_sha256": _sha256(_canonical_json_bytes(source)) if isinstance(source, Mapping) else None,
+        "source_file_hash_raw": source.get("source_hash_raw") if isinstance(source, Mapping) else None,
+        "source_hash_algorithm": source.get("source_hash_algorithm") if isinstance(source, Mapping) else None,
+        "file_id": source.get("file_id") if isinstance(source, Mapping) else None,
+        "authorization_id": authorization_id,
+        "engine_identity": engine_identity,
+        "attempts": artifact.get("attempts") if isinstance(artifact, Mapping) else None,
+        "page_count": artifact.get("page_count") if isinstance(artifact, Mapping) else None,
+        "processed_page_count": artifact.get("processed_page_count") if isinstance(artifact, Mapping) else None,
+        "ocr_page_count": artifact.get("ocr_page_count") if isinstance(artifact, Mapping) else None,
+        "full_page_coverage": artifact.get("full_page_coverage") if isinstance(artifact, Mapping) else None,
+        "page_statuses": artifact.get("page_statuses") if isinstance(artifact, Mapping) else None,
+        "pdf_path": artifact.get("pdf_path") if isinstance(artifact, Mapping) else None,
+        "pages_path": artifact.get("pages_path") if isinstance(artifact, Mapping) else None,
+        "real_pdf_path": artifact.get("real_pdf_path") if isinstance(artifact, Mapping) else None,
+        "downloaded_at": artifact.get("downloaded_at") if isinstance(artifact, Mapping) else None,
+        "ocr_started_at": artifact.get("ocr_started_at") if isinstance(artifact, Mapping) else None,
+        "ocr_completed_at": artifact.get("ocr_completed_at") if isinstance(artifact, Mapping) else None,
+        "available_at": artifact.get("available_at") if isinstance(artifact, Mapping) else None,
+        "pit_status": artifact.get("pit_status") if isinstance(artifact, Mapping) else None,
+        "data_role": artifact.get("data_role") if isinstance(artifact, Mapping) else None,
+        "pdf_sha256": artifact.get("pdf_sha256") if isinstance(artifact, Mapping) else None,
+        "pages_file_sha256": artifact.get("pages_file_sha256") if isinstance(artifact, Mapping) else None,
+        "receipt_path": receipt_path or None,
+        "receipt_sha256": receipt_sha256,
+        "reused": artifact.get("reused") if isinstance(artifact, Mapping) else None,
+        "reused_from": artifact.get("reused_from") if isinstance(artifact, Mapping) else None,
+        **SAFETY,
+    }
+
+
+def _recovery_artifact_evidence(result: Mapping[str, Any]) -> dict[str, Any]:
+    fields = (
+        "document_key", "trade_date", "source_run_id", "source_signature", "input_sha256",
+        "source_metadata_sha256", "source_file_hash_raw", "source_hash_algorithm", "file_id",
+        "engine_identity", "status", "attempts", "page_count", "processed_page_count",
+        "ocr_page_count", "full_page_coverage", "page_statuses", "pdf_path", "pages_path",
+        "real_pdf_path", "downloaded_at", "ocr_started_at", "ocr_completed_at", "available_at",
+        "pit_status", "data_role", "pdf_sha256", "pages_file_sha256", "receipt_path",
+        "receipt_sha256", "reused", "reused_from",
+    )
+    return {key: result.get(key) for key in fields}
+
+
+def _write_recovery_state(
+    store: NativeDataStore,
+    *,
+    document_key: str,
+    authorization_id: str,
+    index: dict[str, Any],
+    audit: dict[str, Any],
+    record: dict[str, Any],
+    guard: dict[str, Any],
+    status: str,
+    checkpoint: Mapping[str, Any] | None,
+) -> None:
+    record["status"] = status
+    record["checkpoint"] = dict(checkpoint) if checkpoint is not None else None
+    record["updated_at"] = _iso()
+    consumed = {
+        "authorization_id": authorization_id,
+        "document_key": document_key,
+        "source_signature": record.get("source_signature"),
+        "status": status,
+        "checkpoint": dict(checkpoint) if checkpoint is not None else None,
+        "consumed_checkpoint_sha256": record.get("consumed_checkpoint_sha256"),
+        "updated_at": record["updated_at"],
+    }
+    guard.update(consumed)
+    index.setdefault("recovery_consumed", {})[document_key] = dict(consumed)
+    audit.setdefault("consumed", {})[document_key] = dict(consumed)
+    audit.setdefault("authorizations", {})[authorization_id] = record
+    # These three durable copies make any one missing or incomplete write fail closed.
+    _write_json(store, _claim_marker_relative(document_key), guard)
+    _write_json(store, STATE_RELATIVE, index)
+    _write_json(store, RECOVERY_AUDIT_RELATIVE, audit)
+
+
+def _verify_recovery_checkpoint(
+    store: NativeDataStore,
+    index: Mapping[str, Any],
+    *,
+    document_key: str,
+    engine_identity: str,
+    binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    document = index.get("documents", {}).get(document_key)
+    if not isinstance(document, Mapping):
+        raise ZsxqPdfError("DOCUMENT_NOT_FOUND")
+    source, verified_document = _source_row_for_document(store, index, document_key)
+    if verified_document.get("source") != source:
+        raise ZsxqPdfError("SOURCE_DOCUMENT_METADATA_MISMATCH")
+    artifact = verified_document.get("engine_runs", {}).get(engine_identity)
+    if (
+        not isinstance(artifact, Mapping)
+        or artifact.get("status") != "PARTIAL"
+        or artifact.get("attempts") != MAX_ATTEMPTS
+        or artifact.get("last_error_code") is not None
+    ):
+        raise ZsxqPdfError("PDF_RECOVERY_CONTINUATION_NOT_CLEAN")
+    detail = _verified_document_detail(store, index, document_key, verify_pdf=True)
+    receipt_sha256 = str(detail["receipt"]["sha256"])
+    checkpoint = {
+        "document_key": document_key,
+        "trade_date": source["trade_date"],
+        "source_run_id": source["source_run_id"],
+        "source_signature": binding["source_signature"],
+        "input_sha256": dict(binding["input_sha256"]),
+        "source_metadata_sha256": binding["source_metadata_sha256"],
+        "source_file_hash_raw": binding["source_file_hash_raw"],
+        "engine_identity": engine_identity,
+        "status": "PARTIAL",
+        "attempts": artifact.get("attempts"),
+        "pdf_sha256": artifact.get("pdf_sha256"),
+        "pages_file_sha256": artifact.get("pages_file_sha256"),
+        "receipt_sha256": receipt_sha256,
+        "page_count": artifact.get("page_count"),
+        "processed_page_count": artifact.get("processed_page_count"),
+    }
+    checkpoint["checkpoint_sha256"] = _sha256(_canonical_json_bytes(checkpoint))
+    return checkpoint
+
+
+def _recovery_claim(
+    store: NativeDataStore,
+    *,
+    document_key: str,
+    authorization_id: str,
+    binding: Mapping[str, Any],
+    now: Callable[[], datetime],
+) -> None:
+    with _store_io(store).kernel_lock(LOCK_RELATIVE, timeout=MAX_PDF_CONTINUATION_SECONDS, poll=0.05):
+        index = _read_index(store)
+        current = _recovery_preflight(
+            store,
+            document_key=document_key,
+            trade_date=str(binding["trade_date"]),
+            source_run_id=str(binding["source_run_id"]),
+            engine_identity=str(binding["engine_identity"]),
+            continuation=False,
+        )
+        if current["source_signature"] != binding["source_signature"] or current["source_metadata_sha256"] != binding["source_metadata_sha256"]:
+            raise ZsxqPdfError("PDF_RECOVERY_SOURCE_CHANGED_BEFORE_CLAIM")
+        audit = _read_recovery_audit(store)
+        guard = _read_claim_marker(store, document_key)
+        if (
+            guard is not None
+            or _read_recovery_consumed(index, document_key) is not None
+            or document_key in audit["consumed"]
+        ):
+            raise ZsxqPdfError("PDF_RECOVERY_ALREADY_CLAIMED")
+        authorizations = audit["authorizations"]
+        if authorization_id in authorizations or any(
+            isinstance(value, Mapping) and value.get("authorization_id") == authorization_id
+            for value in audit["consumed"].values()
+        ):
+            raise ZsxqPdfError("PDF_RECOVERY_AUTHORIZATION_REPLAY")
+
+        record = {
+            "schema_version": "v4.zsxq_pdf_recovery_authorization.v1",
+            "authorization_id": authorization_id,
+            "status": "AUTHORIZED",
+            "document_key": document_key,
+            "trade_date": binding["trade_date"],
+            "source_run_id": binding["source_run_id"],
+            "slot": binding["slot"],
+            "source_signature": binding["source_signature"],
+            "input_sha256": dict(binding["input_sha256"]),
+            "source_metadata_sha256": binding["source_metadata_sha256"],
+            "source_file_hash_raw": binding["source_file_hash_raw"],
+            "engine_identity": binding["engine_identity"],
+            "attempts_before": MAX_ATTEMPTS,
+            "created_at": _iso(now()),
+            "checkpoint": None,
+            "consumed_checkpoint_sha256": None,
+            "continuation_count": 0,
+        }
+        authorizations[authorization_id] = record
+        # An AUTHORIZED entry alone has no processing capability. The immutable
+        # per-document guard consumes the one chance before the processing call.
+        _write_json(store, RECOVERY_AUDIT_RELATIVE, audit)
+        guard = {
+            "schema_version": "v4.zsxq_pdf_recovery_claim.v1",
+            "status": "CLAIMED",
+            "authorization_id": authorization_id,
+            "document_key": document_key,
+            "trade_date": binding["trade_date"],
+            "source_run_id": binding["source_run_id"],
+            "source_signature": binding["source_signature"],
+            "source_metadata_sha256": binding["source_metadata_sha256"],
+            "engine_identity": binding["engine_identity"],
+            "checkpoint": None,
+            "consumed_checkpoint_sha256": None,
+            "claimed_at": _iso(now()),
+        }
+        try:
+            _store_io(store).write_bytes(
+                _claim_marker_relative(document_key),
+                _canonical_json_bytes(guard),
+                require_absent=True,
+            )
+        except (OSError, ValueError) as error:
+            # Check the atomic publication result. A marker that landed consumes
+            # the authorization even if its final directory fsync reported error.
+            marker = _read_claim_marker(store, document_key)
+            if marker is not None:
+                raise ZsxqPdfError("PDF_RECOVERY_CLAIM_COMMIT_UNCERTAIN") from error
+            raise ZsxqPdfError("PDF_RECOVERY_CLAIM_WRITE_FAILED") from error
+        consumed = {
+            "authorization_id": authorization_id,
+            "document_key": document_key,
+            "source_signature": binding["source_signature"],
+            "status": "CLAIMED",
+            "checkpoint": None,
+            "consumed_checkpoint_sha256": None,
+            "updated_at": _iso(now()),
+        }
+        index.setdefault("recovery_consumed", {})[document_key] = dict(consumed)
+        audit["consumed"][document_key] = dict(consumed)
+        record.update(status="CLAIMED", claimed_at=guard["claimed_at"], updated_at=consumed["updated_at"])
+        try:
+            _write_json(store, STATE_RELATIVE, index)
+            _write_json(store, RECOVERY_AUDIT_RELATIVE, audit)
+        except Exception as error:
+            # The immutable marker already prevents any second authorization.
+            raise ZsxqPdfError("PDF_RECOVERY_CLAIM_COMMIT_UNCERTAIN") from error
+
+
+def _consume_recovery_checkpoint(
+    store: NativeDataStore,
+    *,
+    document_key: str,
+    authorization_id: str,
+    binding: Mapping[str, Any],
+) -> None:
+    with _store_io(store).kernel_lock(LOCK_RELATIVE, timeout=MAX_PDF_CONTINUATION_SECONDS, poll=0.05):
+        index = _read_index(store)
+        record = _require_active_recovery_claim(
+            store,
+            index,
+            document_key=document_key,
+            authorization_id=authorization_id,
+            source_signature=str(binding["source_signature"]),
+        )
+        checkpoint = record.get("checkpoint")
+        if not isinstance(checkpoint, Mapping):
+            raise ZsxqPdfError("PDF_RECOVERY_CONTINUATION_UNSAFE")
+        current = _recovery_checkpoint_for_binding(
+            store,
+            index,
+            document_key=document_key,
+            engine_identity=str(binding["engine_identity"]),
+            binding=binding,
+        )
+        if dict(checkpoint) != current:
+            raise ZsxqPdfError("PDF_RECOVERY_CHECKPOINT_MISMATCH")
+        audit = _read_recovery_audit(store)
+        guard = _read_claim_marker(store, document_key)
+        record["continuation_count"] = int(record.get("continuation_count") or 0) + 1
+        record["continuation_started_at"] = _iso()
+        record["consumed_checkpoint_sha256"] = str(checkpoint["checkpoint_sha256"])
+        _write_recovery_state(
+            store,
+            document_key=document_key,
+            authorization_id=authorization_id,
+            index=index,
+            audit=audit,
+            record=record,
+            guard=dict(guard or {}),
+            status="CLAIMED",
+            checkpoint=None,
+        )
+
+
+def _recovery_checkpoint_for_binding(
+    store: NativeDataStore,
+    index: Mapping[str, Any],
+    *,
+    document_key: str,
+    engine_identity: str,
+    binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    checkpoint = _verify_recovery_checkpoint(
+        store,
+        index,
+        document_key=document_key,
+        engine_identity=engine_identity,
+        binding=binding,
+    )
+    return checkpoint
+
+
+def _complete_recovery_call(
+    store: NativeDataStore,
+    *,
+    document_key: str,
+    authorization_id: str,
+    engine_identity: str,
+    binding: Mapping[str, Any],
+    result: Mapping[str, Any] | None,
+    error_code: str | None,
+) -> dict[str, Any]:
+    with _store_io(store).kernel_lock(LOCK_RELATIVE, timeout=MAX_PDF_CONTINUATION_SECONDS, poll=0.05):
+        index = _read_index(store)
+        record = _require_active_recovery_claim(
+            store,
+            index,
+            document_key=document_key,
+            authorization_id=authorization_id,
+            source_signature=str(binding["source_signature"]),
+        )
+        artifact_status = "CANNOT_CONFIRM"
+        document = index.get("documents", {}).get(document_key)
+        artifact = (
+            document.get("engine_runs", {}).get(engine_identity)
+            if isinstance(document, Mapping)
+            else None
+        )
+        outcomes = result.get("processed_this_batch") if isinstance(result, Mapping) else None
+        outcome = outcomes[0] if isinstance(outcomes, list) and len(outcomes) == 1 and isinstance(outcomes[0], Mapping) else None
+        if error_code is None and outcome is not None and isinstance(artifact, Mapping):
+            artifact_status = str(artifact.get("status") or "CANNOT_CONFIRM").upper()
+            if artifact_status == "FAILED":
+                error_code = str(outcome.get("error_code") or artifact.get("last_error_code") or "") or None
+        audit = _read_recovery_audit(store)
+        guard = _read_claim_marker(store, document_key)
+
+        if artifact_status == "PARTIAL" and error_code is None:
+            try:
+                checkpoint = _verify_recovery_checkpoint(
+                    store,
+                    index,
+                    document_key=document_key,
+                    engine_identity=engine_identity,
+                    binding=binding,
+                )
+            except Exception as error:
+                error_code = _error_code(error)
+                artifact_status = "CANNOT_CONFIRM"
+            else:
+                response = _recovery_event_result(
+                    store,
+                    index,
+                    document_key=document_key,
+                    engine_identity=engine_identity,
+                    authorization_id=authorization_id,
+                    recovery_status="CLAIMED",
+                )
+                record["result_artifacts"] = _recovery_artifact_evidence(response)
+                _write_recovery_state(
+                    store,
+                    document_key=document_key,
+                    authorization_id=authorization_id,
+                    index=index,
+                    audit=audit,
+                    record=record,
+                    guard=dict(guard or {}),
+                    status="CLAIMED",
+                    checkpoint=checkpoint,
+                )
+                response["continuation_ready"] = True
+                response["continuation_count"] = record.get("continuation_count", 0)
+                return response
+
+        if artifact_status == "READY" and error_code is None:
+            try:
+                _verified_document_detail(store, index, document_key, verify_pdf=True)
+            except Exception as error:
+                error_code = _error_code(error)
+                artifact_status = "CANNOT_CONFIRM"
+            else:
+                status = "SUCCEEDED"
+        elif artifact_status == "FAILED" and outcome is not None:
+            status = "FAILED_FINAL"
+        else:
+            status = "CANNOT_CONFIRM"
+            error_code = error_code or "PDF_RECOVERY_COMMIT_UNCERTAIN"
+
+        response = _recovery_event_result(
+            store,
+            index,
+            document_key=document_key,
+            engine_identity=engine_identity,
+            authorization_id=authorization_id,
+            recovery_status=status,
+            error_code=error_code,
+        )
+        record["result_artifacts"] = _recovery_artifact_evidence(response)
+        _write_recovery_state(
+            store,
+            document_key=document_key,
+            authorization_id=authorization_id,
+            index=index,
+            audit=audit,
+            record=record,
+            guard=dict(guard or {}),
+            status=status,
+            checkpoint=None,
+        )
+        response["continuation_ready"] = False
+        response["continuation_count"] = record.get("continuation_count", 0)
+        return response
+
+
+def _mark_recovery_uncertain(
+    store: NativeDataStore,
+    *,
+    document_key: str,
+    authorization_id: str,
+    trade_date: str,
+    source_run_id: str,
+    engine_identity: str,
+    error_code: str,
+) -> dict[str, Any]:
+    fallback = {
+        "schema_version": "v4.zsxq_pdf_recovery_one.v1",
+        "status": "CANNOT_CONFIRM",
+        "recovery_status": "CANNOT_CONFIRM",
+        "error_code": error_code,
+        "document_key": document_key,
+        "trade_date": trade_date,
+        "source_run_id": source_run_id,
+        "authorization_id": authorization_id,
+        "engine_identity": engine_identity,
+        "continuation_ready": False,
+        **SAFETY,
+    }
+    try:
+        with _store_io(store).kernel_lock(LOCK_RELATIVE, timeout=MAX_PDF_CONTINUATION_SECONDS, poll=0.05):
+            index = _read_index(store)
+            audit = _read_recovery_audit(store)
+            guard = _read_claim_marker(store, document_key)
+            record = audit.get("authorizations", {}).get(authorization_id)
+            if (
+                guard is None
+                or guard.get("authorization_id") != authorization_id
+                or guard.get("document_key") != document_key
+                or guard.get("trade_date") != trade_date
+                or guard.get("source_run_id") != source_run_id
+            ):
+                return fallback
+            if not isinstance(record, Mapping):
+                record = {
+                    "authorization_id": authorization_id,
+                    "document_key": document_key,
+                    "trade_date": trade_date,
+                    "source_run_id": source_run_id,
+                    "source_signature": guard.get("source_signature"),
+                    "engine_identity": engine_identity,
+                    "continuation_count": 0,
+                }
+            else:
+                record = dict(record)
+            if record.get("status") not in {"AUTHORIZED", "CLAIMED"}:
+                return fallback
+            if record.get("trade_date") != trade_date or record.get("source_run_id") != source_run_id:
+                return fallback
+            record["error_code"] = error_code
+            record["recovery_error_at"] = _iso()
+            consumed = {
+                "authorization_id": authorization_id,
+                "document_key": document_key,
+                "source_signature": record.get("source_signature"),
+                "status": "CANNOT_CONFIRM",
+                "checkpoint": None,
+                "error_code": error_code,
+                "updated_at": record["recovery_error_at"],
+            }
+            guard.update(consumed)
+            record.update(status="CANNOT_CONFIRM", checkpoint=None, updated_at=consumed["updated_at"])
+            index.setdefault("recovery_consumed", {})[document_key] = dict(consumed)
+            audit.setdefault("consumed", {})[document_key] = dict(consumed)
+            audit.setdefault("authorizations", {})[authorization_id] = record
+            # Best effort is fail closed because the immutable claim marker remains.
+            _write_json(store, _claim_marker_relative(document_key), guard)
+            _write_json(store, STATE_RELATIVE, index)
+            _write_json(store, RECOVERY_AUDIT_RELATIVE, audit)
+            return _recovery_event_result(
+                store,
+                index,
+                document_key=document_key,
+                engine_identity=engine_identity,
+                authorization_id=authorization_id,
+                recovery_status="CANNOT_CONFIRM",
+                error_code=error_code,
+            )
+    except Exception:
+        return fallback
+
+
+def recover_one_pdf(
+    *,
+    data_root: Path,
+    trade_date: str,
+    source_run_id: str,
+    document_key: str,
+    authorization_id: str,
+    cli: Path = DEFAULT_CLI,
+    metadata_lookup: MetadataLookup | None = None,
+    url_lookup: URLLookup | None = None,
+    downloader: BytesDownloader | None = None,
+    page_counter: PageCounter | None = None,
+    page_renderer: PageRenderer | None = None,
+    ocr_page: OCRPage | None = None,
+    engine_info: Mapping[str, Any] | None = None,
+    renderer_path: Path = DEFAULT_PDFTOPPM,
+    time_budget_seconds: int = MAX_PDF_CONTINUATION_SECONDS,
+    now: Callable[[], datetime] = _now,
+    continue_existing: bool = False,
+) -> dict[str, Any]:
+    """Run one explicitly authorized, exact-document recovery lifecycle offline-testable by callbacks."""
+    _date(trade_date)
+    _safe_run_id(source_run_id)
+    _claim_marker_relative(document_key)
+    if not isinstance(authorization_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", authorization_id):
+        raise ZsxqPdfError("PDF_RECOVERY_AUTHORIZATION_ID_INVALID")
+    if type(time_budget_seconds) is not int or not 1 <= time_budget_seconds <= MAX_PDF_CONTINUATION_SECONDS:
+        raise ZsxqPdfError("PDF_TIME_BUDGET_INVALID")
+    root = Path(data_root).expanduser()
+    if not root.is_dir() or root.is_symlink():
+        raise ZsxqPdfError("DATA_ROOT_INVALID")
+    store = NativeDataStore(root)
+    engine_descriptor, engine_identity = _recovery_engine(
+        engine_info=engine_info,
+        page_counter=page_counter,
+        page_renderer=page_renderer,
+        renderer_path=renderer_path,
+    )
+    try:
+        binding = _recovery_preflight(
+            store,
+            document_key=document_key,
+            trade_date=trade_date,
+            source_run_id=source_run_id,
+            engine_identity=engine_identity,
+            continuation=continue_existing,
+        )
+    except Exception as error:
+        if continue_existing:
+            return _mark_recovery_uncertain(
+                store,
+                document_key=document_key,
+                authorization_id=authorization_id,
+                trade_date=trade_date,
+                source_run_id=source_run_id,
+                engine_identity=engine_identity,
+                error_code=_error_code(error),
+            )
+        if _error_code(error) == "PDF_RECOVERY_TARGET_STATE_MISMATCH":
+            try:
+                marker = _read_claim_marker(store, document_key)
+            except ZsxqPdfError:
+                marker = None
+            if marker is not None:
+                return {
+                    "schema_version": "v4.zsxq_pdf_recovery_one.v1",
+                    "status": "CANNOT_CONFIRM",
+                    "recovery_status": "CANNOT_CONFIRM",
+                    "error_code": "PDF_RECOVERY_ALREADY_CLAIMED",
+                    "document_key": document_key,
+                    "trade_date": trade_date,
+                    "source_run_id": source_run_id,
+                    "authorization_id": authorization_id,
+                    "engine_identity": engine_identity,
+                    "continuation_ready": False,
+                    **SAFETY,
+                }
+        raise
+    binding.update(
+        document_key=document_key,
+        trade_date=trade_date,
+        source_run_id=source_run_id,
+        engine_identity=engine_identity,
+    )
+
+    if continue_existing:
+        try:
+            _consume_recovery_checkpoint(
+                store,
+                document_key=document_key,
+                authorization_id=authorization_id,
+                binding=binding,
+            )
+        except Exception as error:
+            return _mark_recovery_uncertain(
+                store,
+                document_key=document_key,
+                authorization_id=authorization_id,
+                trade_date=trade_date,
+                source_run_id=source_run_id,
+                engine_identity=engine_identity,
+                error_code=_error_code(error),
+            )
+    else:
+        try:
+            _recovery_claim(
+                store,
+                document_key=document_key,
+                authorization_id=authorization_id,
+                binding=binding,
+                now=now,
+            )
+        except Exception as error:
+            if _error_code(error) in {"PDF_RECOVERY_ALREADY_CLAIMED", "PDF_RECOVERY_AUTHORIZATION_REPLAY"}:
+                return {
+                    "schema_version": "v4.zsxq_pdf_recovery_one.v1",
+                    "status": "CANNOT_CONFIRM",
+                    "recovery_status": "CANNOT_CONFIRM",
+                    "error_code": _error_code(error),
+                    "document_key": document_key,
+                    "trade_date": trade_date,
+                    "source_run_id": source_run_id,
+                    "authorization_id": authorization_id,
+                    "engine_identity": engine_identity,
+                    "continuation_ready": False,
+                    **SAFETY,
+                }
+            return _mark_recovery_uncertain(
+                store,
+                document_key=document_key,
+                authorization_id=authorization_id,
+                trade_date=trade_date,
+                source_run_id=source_run_id,
+                engine_identity=engine_identity,
+                error_code=_error_code(error),
+            )
+
+    try:
+        result = process_pdf_batch(
+            data_root=root,
+            trade_date=trade_date,
+            slot=str(binding["slot"]),
+            source_run_id=source_run_id,
+            cli=cli,
+            limit=1,
+            document_key=document_key,
+            metadata_lookup=metadata_lookup,
+            url_lookup=url_lookup,
+            downloader=downloader,
+            page_counter=page_counter,
+            page_renderer=page_renderer,
+            ocr_page=ocr_page,
+            engine_info=engine_descriptor,
+            renderer_path=renderer_path,
+            time_budget_seconds=time_budget_seconds,
+            now=now,
+            max_pages_per_document=MAX_PDF_PAGES_PER_BATCH,
+            _recovery_authorization_id=authorization_id,
+            _recovery_continuation=continue_existing,
+        )
+    except Exception as error:
+        try:
+            return _complete_recovery_call(
+                store,
+                document_key=document_key,
+                authorization_id=authorization_id,
+                engine_identity=engine_identity,
+                binding=binding,
+                result=None,
+                error_code=_error_code(error),
+            )
+        except Exception:
+            return {
+                "schema_version": "v4.zsxq_pdf_recovery_one.v1",
+                "status": "CANNOT_CONFIRM",
+                "recovery_status": "CANNOT_CONFIRM",
+                "error_code": "PDF_RECOVERY_COMMIT_UNCERTAIN",
+                "document_key": document_key,
+                "trade_date": trade_date,
+                "source_run_id": source_run_id,
+                "authorization_id": authorization_id,
+                "engine_identity": engine_identity,
+                "continuation_ready": False,
+                **SAFETY,
+            }
+    try:
+        return _complete_recovery_call(
+            store,
+            document_key=document_key,
+            authorization_id=authorization_id,
+            engine_identity=engine_identity,
+            binding=binding,
+            result=result,
+            error_code=None,
+        )
+    except Exception as error:
+        return _mark_recovery_uncertain(
+            store,
+            document_key=document_key,
+            authorization_id=authorization_id,
+            trade_date=trade_date,
+            source_run_id=source_run_id,
+            engine_identity=engine_identity,
+            error_code=_error_code(error),
+        )
+
+
 def pending_pdf_tasks(
     data_root: Path,
     *,
@@ -1956,6 +2974,10 @@ def pending_pdf_tasks(
     tasks: list[dict[str, Any]] = []
     verified_sources: dict[str, tuple[str, bool]] = {}
     for document_id, row in index["documents"].items():
+        # Once a document enters its one-time recovery lifecycle, only that
+        # authorization's explicit continuation path may advance its pages.
+        if document_id in index.get("recovery_consumed", {}):
+            continue
         if not isinstance(row, Mapping) or not isinstance(row.get("source"), Mapping):
             continue
         source = row["source"]

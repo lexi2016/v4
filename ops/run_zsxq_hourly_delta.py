@@ -24,6 +24,7 @@ from infrastructure.zsxq_pdf_ingestion import (
     process_next_pdf_task,
     process_pdf_batch,
     process_pdf_continuation,
+    recover_one_pdf,
 )
 
 
@@ -410,9 +411,21 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Advance one already-enumerated PDF from the owned queue.",
     )
+    parser.add_argument(
+        "--pdf-recover-one",
+        action="store_true",
+        help="Start one offline-authorized recovery for the exact exhausted document key.",
+    )
+    parser.add_argument(
+        "--pdf-recovery-continue",
+        action="store_true",
+        help="Continue one safe checkpoint under its already-claimed authorization.",
+    )
     parser.add_argument("--source-run-id", help="Exact latest_run_id from the existing hourly status.")
     parser.add_argument("--pdf-limit", type=int, default=1)
     parser.add_argument("--pdf-file-id", help="Process one attachment id from topics_brief.files.")
+    parser.add_argument("--pdf-document-key", help="Full 64-character source-bound PDF document key.")
+    parser.add_argument("--pdf-authorization-id", help="One-time recovery authorization ID.")
     parser.add_argument("--pdf-time-budget-seconds", type=int, default=180)
     parser.add_argument("--cli", type=Path, default=DEFAULT_CLI)
     parser.add_argument("--selector-panel", type=Path, default=DEFAULT_SELECTOR_PANEL)
@@ -421,8 +434,36 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-pages", type=int, default=20)
     args = parser.parse_args(argv)
     try:
+        if (args.pdf_document_key or args.pdf_authorization_id) and not (args.pdf_recover_one or args.pdf_recovery_continue):
+            raise ValueError("PDF document key and authorization ID require an explicit recovery mode")
+        if args.pdf_recover_one or args.pdf_recovery_continue:
+            if args.pdf_recover_one and args.pdf_recovery_continue:
+                raise ValueError("choose only one PDF recovery mode")
+            if (
+                args.pdf_only
+                or args.pdf_enqueue_only
+                or args.pdf_queue_tick
+                or args.slot
+                or args.pdf_file_id
+                or args.pdf_limit != 1
+            ):
+                raise ValueError("PDF recovery cannot be combined with queue or batch selection")
+            if not args.date or not args.source_run_id or not args.pdf_document_key or not args.pdf_authorization_id:
+                raise ValueError("PDF recovery requires date, source run ID, full document key, and authorization ID")
+            result = recover_one_pdf(
+                data_root=args.data_root,
+                trade_date=args.date,
+                source_run_id=args.source_run_id,
+                document_key=args.pdf_document_key,
+                authorization_id=args.pdf_authorization_id,
+                cli=args.cli,
+                time_budget_seconds=args.pdf_time_budget_seconds,
+                continue_existing=args.pdf_recovery_continue,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
         if args.pdf_queue_tick:
-            if args.pdf_only or args.pdf_enqueue_only or args.date or args.slot or args.source_run_id or args.pdf_file_id:
+            if args.pdf_only or args.pdf_enqueue_only or args.date or args.slot or args.source_run_id or args.pdf_file_id or args.pdf_document_key or args.pdf_authorization_id:
                 raise ValueError("--pdf-queue-tick cannot be combined with a source run or other PDF mode")
             result = process_next_pdf_task(
                 data_root=args.data_root,

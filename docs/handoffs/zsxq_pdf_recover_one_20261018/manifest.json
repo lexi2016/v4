@@ -1,0 +1,48 @@
+{
+  "schema_version": "v4.zsxq_recover_one_candidate.v1",
+  "baseline_commit": "d56d0ea45374764b2f28ab14ead8426752a0f8d1",
+  "branch": "codex/zsxq-pdf-recover-one-20261018-r1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_head_unchanged": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "files": [
+    {
+      "path": "infrastructure/zsxq_pdf_ingestion.py",
+      "baseline_sha256": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+      "candidate_sha256": "5dedf912a9cc8b41646a5cfb0133ded4dbaa0168aae74157e75e4498cd1fd915"
+    },
+    {
+      "path": "tests/test_zsxq_pdf_ingestion.py",
+      "baseline_sha256": "8c3012d0e1d5cb2d6816a8afcf2bb922fa9bef97935f755477bbfe41f4a85a6d",
+      "candidate_sha256": "27fb218b81427ef5904213d7c1951dd9004bf00693537b4f8d7d6154778eead9"
+    },
+    {
+      "path": "ops/run_zsxq_hourly_delta.py",
+      "baseline_sha256": "7260f1342ee2ee6d00373df330561fc093f1f176875759623143bff2e517531d",
+      "candidate_sha256": "67892d233248c2e5cc7387b93fe228ab3f04c030c29719f41fb25ebc596aeff6"
+    }
+  ],
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": "FOCUSED_OFFLINE",
+    "REVIEWED": "PASS_R2",
+    "BEHAVIOR_VERIFIED": "PASS_OFFLINE",
+    "RECOVERED": "NOT_RUN",
+    "DEPLOYED": "NOT_RUN"
+  },
+  "runtime_modules": {
+    "zsxq-long-pdf-scheduler-20261016-r3": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+    "us-receipt-compat-api-20261017-r1": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0"
+  },
+  "live_index_before_sha256": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239",
+  "live_index_after_sha256": "3f279b93b48c13ed32651292b7a72339f8a19712bae731de3277f924e1141239",
+  "live_index_unchanged": true,
+  "captured_at": "2026-10-18T01:20:23.894505+08:00",
+  "evidence_sha256": {
+    "writer/implementation-receipt.md": "6208df1b75380ad36e47945d50434f33c6305de811db777d71ca6f956467e5c8",
+    "reviewer/verdict.md": "1e3cf029008db411e243b5839ab2c9f5b43cd88c4dfb55303d33db6c6f7746f0",
+    "reviewer/verdict-r2.json": "b2f3a4a277084906f960b7274783392c2f9be6540c8ba8f45f36b6561d200213",
+    "reviewer/verdict-r2.md": "ffdc945abafb6f57b07c6b97014cb4d928d8ec430b5137c811c5213d0aeea8a7",
+    "reviewer/repro_claim_bypass.py": "033620154f23115825eaa2e0816ab3aad8cd8548003aa59cb9fa4817b1827ff5",
+    "handoff.md": "347a5ca26d4b861bf89850e49cad9eabff85cdf2789c44202f3b3dabc17ef522"
+  }
+}
