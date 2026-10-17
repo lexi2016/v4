@@ -52,7 +52,9 @@ class NativeAdapters:
             else:
                 context.scope_refs[lane] = dict(configured_symbols=pin.get("configured_symbols"),
                     source_session=context.source_sessions["us"], verification="VERIFIED" if pin else "CANNOT_CONFIRM",
-                    calendar_verified=True, sha256=owner_digest(pin), universe_ref="us-fixed33:"+context.target_date)
+                    calendar_verified=True, sha256=owner_digest(pin), universe_ref="us-fixed33:"+context.target_date,
+                full_overlay_projection=pin.get("full_overlay_projection",[]),
+                full_overlay_summary=pin.get("full_overlay_summary",{"state":"CANNOT_CONFIRM","gap":"US_MAPPING_FULL_OVERLAY_NOT_BOUND"}))
         close_pin = context.scope_refs.get("owner_bindings",{}).get("close") or self.config.source_bindings.get("close", {}).get(context.target_date,{})
         context.scope_refs["review_universe"] = close_pin.get("evaluation_scope_ref")
         return context
