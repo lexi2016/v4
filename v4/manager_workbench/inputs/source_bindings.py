@@ -400,7 +400,8 @@ def _full_mapping_overlay():
     root = Path(__file__).resolve().parents[1] / "research_data"
     catalog_path = root / "us_hk_667_catalog_20261015.json"
     overlay_path = root / "us_hk_667_review_overlay_20261015.json"
-    if not catalog_path.is_file() or not overlay_path.is_file():
+    recovery_path = root / "us_hk_667_recovery_overlay_20261016.json"
+    if not catalog_path.is_file() or not overlay_path.is_file() or not recovery_path.is_file():
         return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_OWNER_UNAVAILABLE",
                 "stock_count": None, "relation_count": None, "relations": []}
     from ..us_mapping_catalog import CatalogStore
@@ -409,7 +410,11 @@ def _full_mapping_overlay():
     offset = 0
     total = None
     while total is None or offset < total:
-        page = store.search(catalog_path, overlay_path, offset=offset, limit=200)
+        try:
+            page = store.search(catalog_path, overlay_path, offset=offset, limit=200)
+        except (OSError, ValueError):
+            return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                    "stock_count": None, "relation_count": None, "relations": []}
         total = page.get("total")
         items = page.get("items")
         if not isinstance(total, int) or not isinstance(items, list):
@@ -458,8 +463,8 @@ def _full_mapping_overlay():
              "sha256": raw_sha(catalog_path.read_bytes())},
             {"source_local_path": str(root), "relative": overlay_path.relative_to(root).as_posix(),
              "sha256": raw_sha(overlay_path.read_bytes())},
-            {"source_local_path": str(root), "relative": (root / "us_hk_667_recovery_overlay_20261016.json").relative_to(root).as_posix(),
-             "sha256": raw_sha((root / "us_hk_667_recovery_overlay_20261016.json").read_bytes())},
+            {"source_local_path": str(root), "relative": recovery_path.relative_to(root).as_posix(),
+             "sha256": raw_sha(recovery_path.read_bytes())},
         ],
         "relations": relations,
     }
