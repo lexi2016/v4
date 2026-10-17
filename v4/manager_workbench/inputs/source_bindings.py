@@ -12,6 +12,7 @@ from ..engines.common import US_FACTOR_RULES_VERSION
 from .validation import raw_sha, before, owner_digest
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
+_US_MAPPING_CATALOG_STORE = None
 US_SYMBOLS = ('AMD','ARKX','AVGO','BOTZ','CIEN','CLOU','COHR','COPX','DLR','DRIV','EQIX','FCG','GLD','GRID','ICLN','ITA','KBE','LIT','LITE','MU','NLR','NVDA','REMX','SOXX','STX','TAN','UFO','VRT','WDC','XBI','XLE','XLP','XLY')
 
 
@@ -391,17 +392,123 @@ def priority_review(config, evidence, review):
             for rel,sha in [(inherited['relative'],osha),(inherited['review_relative'],rsha)]]
 
 
+def _full_mapping_overlay():
+    """Read the same pinned full overlay used by the existing catalog API.
+
+    This is a consumer-side read only. Missing owner files are reported as
+    CANNOT_CONFIRM; the derived fixture is never substituted for the owner.
+    """
+    root = Path(__file__).resolve().parents[1] / "research_data"
+    catalog_path = root / "us_hk_667_catalog_20261015.json"
+    overlay_path = root / "us_hk_667_review_overlay_20261015.json"
+    recovery_path = root / "us_hk_667_recovery_overlay_20261016.json"
+    if not catalog_path.is_file() or not overlay_path.is_file() or not recovery_path.is_file():
+        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_OWNER_UNAVAILABLE",
+                "stock_count": None, "relation_count": None, "relations": []}
+    global _US_MAPPING_CATALOG_STORE
+    if _US_MAPPING_CATALOG_STORE is None:
+        from ..us_mapping_catalog import CatalogStore
+        _US_MAPPING_CATALOG_STORE = CatalogStore()
+    store = _US_MAPPING_CATALOG_STORE
+    stocks = []
+    offset = 0
+    total = None
+    while total is None or offset < total:
+        try:
+            page = store.search(catalog_path, overlay_path, offset=offset, limit=200)
+        except (OSError, ValueError):
+            return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                    "stock_count": None, "relation_count": None, "relations": []}
+        total = page.get("total")
+        items = page.get("items")
+        if not isinstance(total, int) or not isinstance(items, list):
+            raise ValueError("US_MAPPING_FULL_OVERLAY_PAGE_INVALID")
+        stocks.extend(items)
+        if not items or len(items) < 200:
+            break
+        offset += len(items)
+    relations = []
+    status_counts = {}
+    for stock in stocks:
+        for relation in stock.get("relations", []):
+            recovery = relation.get("recovery_v2r1") or {}
+            status = recovery.get("closure_status")
+            if status:
+                status_counts[status] = status_counts.get(status, 0) + 1
+            relations.append({
+                "hk_code": stock.get("hk_code"),
+                "hk_name": stock.get("name"),
+                "relation_id": relation.get("relation_id"),
+                "source_row": relation.get("source_row"),
+                "source_record": relation.get("source_record"),
+                "source_review_status": relation.get("source_review_status"),
+                "independent_verification": relation.get("independent_verification"),
+                "research_use": relation.get("research_use"),
+                "recovery_v2r1": recovery,
+            })
+    expected_statuses = {"CLOSED_RESEARCH_SCOPE": 757, "OPEN": 221, "CLOSED_EXCLUDED_SCOPE": 25}
+    valid = len(stocks) == 667 and len(relations) == 1003 and status_counts == expected_statuses
+    if not valid:
+        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_CONTRACT_MISMATCH",
+                "stock_count": len(stocks), "relation_count": len(relations),
+                "status_counts": status_counts, "relations": []}
+    recovery_meta = page.get("recovery_v2r1") or {}
+    return {
+        "state": "READY",
+        "stock_count": len(stocks),
+        "relation_count": len(relations),
+        "status_counts": status_counts,
+        "catalog_integrity_sha256": page.get("catalog_integrity_sha256"),
+        "recovery_overlay_integrity_sha256": recovery_meta.get("overlay_integrity_sha256"),
+        "catalog_file_sha256": raw_sha(catalog_path.read_bytes()),
+        "review_overlay_file_sha256": raw_sha(overlay_path.read_bytes()),
+        "checked_files": [
+            {"source_local_path": str(root), "relative": catalog_path.relative_to(root).as_posix(),
+             "sha256": raw_sha(catalog_path.read_bytes())},
+            {"source_local_path": str(root), "relative": overlay_path.relative_to(root).as_posix(),
+             "sha256": raw_sha(overlay_path.read_bytes())},
+            {"source_local_path": str(root), "relative": recovery_path.relative_to(root).as_posix(),
+             "sha256": raw_sha(recovery_path.read_bytes())},
+        ],
+        "relations": relations,
+    }
+
+
 def us_mapping(config, context):
     session=context.source_sessions['us']; root=config.us_root
-    quote_rel=f'research/peripherals/{session}/external_finance.json'
     manifest,msha=read(root,'research/peripherals/manifest.json')
-    payload,qsha=read(root,quote_rel,manifest[quote_rel])
-    receipt_rel=f'receipts/research/peripherals/{session}/external_finance.json'
-    receipt,rsha=read(root,receipt_rel)
+    # The artifact directory is keyed by the Shanghai trade/scheduled date,
+    # while the capture identifies the US exchange session inside its payload.
+    # Resolve by the exact session identity, never by assuming those dates match.
+    if not isinstance(manifest,dict):
+        raise ValueError('US_OWNER_MANIFEST_SHAPE_INVALID')
+    candidates=[]
+    for relative, expected_sha in sorted(manifest.items()):
+        parts=Path(relative).parts
+        if (len(parts)!=4 or parts[0]!='research' or parts[1]!='peripherals'
+                or parts[3]!='external_finance.json' or len(parts[2])!=8 or not parts[2].isdigit()):
+            continue
+        try:
+            payload,qsha=read(root,relative,expected_sha)
+            snapshot=payload.get('market_snapshot',{})
+            if snapshot.get('capture_session_date')!=session:
+                continue
+            receipt_rel=f"receipts/research/peripherals/{parts[2]}/external_finance.json"
+            receipt,rsha=read(root,receipt_rel)
+            checked_time(snapshot.get('captured_at'),context.cutoff)
+            if (receipt.get('artifact_sha256',receipt.get('payload_sha256'))!=qsha
+                    or receipt.get('trade_date',parts[2])!=parts[2]
+                    or receipt.get('us_session_date',session)!=session):
+                raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
+            candidates.append((relative, payload, qsha, receipt_rel, receipt, rsha))
+        except (OSError,ValueError,KeyError,TypeError):
+            # Invalid candidates do not become a fallback. A separate exact
+            # candidate may still be valid; if none is valid, fail closed below.
+            continue
+    if len(candidates)!=1:
+        raise ValueError('US_OWNER_SESSION_ARTIFACT_NOT_UNIQUE' if candidates else 'US_OWNER_SESSION_ARTIFACT_NOT_FOUND')
+    quote_rel,payload,qsha,receipt_rel,receipt,rsha=candidates[0]
     snapshot=payload.get('market_snapshot',{})
-    checked_time(snapshot.get('captured_at'),context.cutoff)
-    if snapshot.get('capture_session_date')!=session or receipt.get('artifact_sha256',receipt.get('payload_sha256'))!=qsha:
-        raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
     evidence,esha=read(config.relation_root,config.relation_evidence_relative)
     review,vsha=read(config.relation_root,config.relation_review_relative)
     checked_time(review.get('reviewed_at'),context.cutoff)
@@ -452,11 +559,17 @@ def us_mapping(config, context):
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
     projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
+    full_overlay = _full_mapping_overlay()
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
+        capture_phase=snapshot.get('capture_phase'),capture_status=payload.get('status'),
+        capture_session_date=snapshot.get('capture_session_date'),capture_run_id=payload.get('run_id'),
+        capture_cutoff=snapshot.get('captured_at'),owner_receipt_relative=receipt_rel,owner_receipt_sha256=rsha,
         relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
         relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
         factor_exposure=factor,factor_exposure_gap=factor_gap,
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files],
+        full_overlay_projection=full_overlay.get("relations",[]),
+        full_overlay_summary={k:v for k,v in full_overlay.items() if k!="relations"},
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files,*full_overlay.get("checked_files",[])],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 

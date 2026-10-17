@@ -151,6 +151,17 @@ def test_explicit_slot_remains_strict_and_is_never_remapped(
     assert calls[0]["slot"] == "0415"
 
 
+def test_us_close_slot_keeps_hk_target_distinct_and_skips_holiday() -> None:
+    request = runner._request_for_slot(
+        business_date="20261017",
+        slot="0415",
+    )
+
+    assert request.scheduled_date == "20261017"
+    assert request.business_date == "20261017"
+    assert request.target_date == "20261020"
+
+
 def test_explicit_non_contract_slot_still_fails_before_dispatch(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],

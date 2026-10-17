@@ -57,7 +57,8 @@ def run_us_mapping(context, batch):
         isinstance(session, str) and u.get("calendar_verified") is True)
     if not good_universe:
         gaps.append("US_FIXED_33_OR_SESSION_NOT_VERIFIED")
-    found = [item.get("us_symbol") for item in batch["records"] if isinstance(item, dict)]
+    found = [item.get("us_symbol") for item in batch["records"] if isinstance(item, dict)
+             and item.get("source_status") != "CATALOG_OBSERVATION"]
     if good_universe and (len(found) != 33 or set(found) != set(configured) or len(set(found)) != 33):
         gaps.append("US_SOURCE_33_COVERAGE_INCOMPLETE")
     rows = []
@@ -91,7 +92,9 @@ def run_us_mapping(context, batch):
                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
             extra = dict(source_index=index, us_symbol=item.get("us_symbol"),
                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
-                         source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None)
+                         source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None,
+                         catalog_relation=relation.get("catalog_relation"), catalog_relation_id=relation.get("catalog_relation_id"),
+                         catalog_research_use=relation.get("catalog_research_use"), catalog_recovery_status=relation.get("catalog_recovery_status"))
             if isinstance(relation,dict) and relation.get('priority_assessment'):
                 extra.update(research_priority_reason=relation.get('research_priority_reason'),
                              priority_assessment=relation['priority_assessment'])
@@ -114,6 +117,25 @@ def run_us_mapping(context, batch):
                 rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
                     conditions=["RELATION_NOT_A_STRICT_SELECTION_RULE"], **extra))
     out=result("US_MAPPING", batch, context, rows, gaps=gaps)
+    overlay_summary = u.get("full_overlay_summary") or {}
+    consumed_relations = sum(1 for item in batch["records"] if isinstance(item, dict)
+                             and item.get("source_status") == "CATALOG_OBSERVATION")
+    if out["rows"]:
+        out["rows"][0]["us_mapping_catalog_summary"] = {
+            "state": overlay_summary.get("state", "CANNOT_CONFIRM"),
+            "stock_count": overlay_summary.get("stock_count"),
+            "relation_count": overlay_summary.get("relation_count"),
+            "consumed_relation_count": consumed_relations,
+            "status_counts": overlay_summary.get("status_counts"),
+            "catalog_file_sha256": overlay_summary.get("catalog_file_sha256"),
+            "review_overlay_file_sha256": overlay_summary.get("review_overlay_file_sha256"),
+            "recovery_overlay_integrity_sha256": overlay_summary.get("recovery_overlay_integrity_sha256"),
+            "gap": overlay_summary.get("gap"),
+        }
+    if overlay_summary.get("state") == "READY" and consumed_relations != overlay_summary.get("relation_count"):
+        out["gaps"].append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
+        out["coverage"]["gaps"].append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
+        out["state"] = "PARTIAL"
     if context.get("rules_version") == US_FACTOR_RULES_VERSION:
         payload = next((record.get("us_factor_payload") for record in batch.get("records", [])
                        if isinstance(record, dict) and isinstance(record.get("us_factor_payload"), dict)), None)

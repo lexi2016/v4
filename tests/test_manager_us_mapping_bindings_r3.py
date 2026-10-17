@@ -38,11 +38,11 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     contract = build_us_universe_contract(["TSLA"])
     requested_urls = []
     quote_snapshot = build_us_market_snapshot(
-        "20261012",
+        "20261016",
         capture_phase="POST_CLOSE",
-        captured_at="2026-10-12T16:18:00-04:00",
+        captured_at="2026-10-16T16:18:00-04:00",
         fetch_quotes=lambda url, _timeout: (requested_urls.append(url) or {
-            symbol: dict(last=101.0, previous_close=100.0, session_date="20261012", session_time="16:00:00")
+            symbol: dict(last=101.0, previous_close=100.0, session_date="20261016", session_time="16:00:00")
             for symbol in contract["symbols"] if symbol not in {"META", "PDD"}
         }),
     )
@@ -53,8 +53,8 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     assert len(quote_snapshot["rows"]) == 24
     quote_root = tmp_path / "quotes"
     payload = build_external_finance_payload(
-        "20261012",
-        fetched_at="2026-10-13T07:00:00Z",
+        "20261017",
+        fetched_at="2026-10-17T07:00:00Z",
         subscriptions=(),
     )
     payload["market_snapshot"] = quote_snapshot
@@ -62,20 +62,20 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     if quote_snapshot["status"] != "READY":
         payload["status"] = "CANNOT_CONFIRM"
     payload["us_session_captures"] = [dict(
-        us_session_date="20261012",
+        us_session_date="20261016",
         capture_phase="POST_CLOSE",
         session_timezone="America/New_York",
-        capture_window_start="2026-10-12T16:15:00-04:00",
-        capture_window_end="2026-10-12T16:20:00-04:00",
-        capture_id="isolated-test-capture-20261012-post-close",
+        capture_window_start="2026-10-16T16:15:00-04:00",
+        capture_window_end="2026-10-16T16:20:00-04:00",
+        capture_id="isolated-test-capture-20261016-post-close",
         run_id="isolated-test-run",
-        captured_at="2026-10-12T16:18:00-04:00",
+        captured_at="2026-10-16T16:18:00-04:00",
         capture_origin="ORIGINAL_TIME_CAPTURE",
         original_time_capture=True,
     )]
     store = ResearchPeripheralStore(quote_root)
     published = store.publish(payload)
-    assert store.read_exact("20261012", "external_finance")["market_snapshot"] == quote_snapshot
+    assert store.read_exact("20261017", "external_finance")["market_snapshot"] == quote_snapshot
     quote_relative = published["payload_path"]
 
     relation_root = tmp_path / "relations"
@@ -104,9 +104,9 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
         source_bindings={},
     )
     context = SimpleNamespace(
-        source_sessions={"us": "20261012"},
-        cutoff="2026-10-14T09:00:00+08:00",
-        target_date="20261014",
+        source_sessions={"us": "20261016"},
+        cutoff="2026-10-20T09:00:00+08:00",
+        target_date="20261020",
     )
     monkeypatch.setattr(source_bindings, "priority_review", lambda *_: [])
     monkeypatch.setattr(source_bindings, "reviewed_seed", lambda *_: ([], []))
