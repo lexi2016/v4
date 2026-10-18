@@ -40,7 +40,7 @@ R1_STATE_ROOT = Path(
 )
 DEFAULT_STATE_ROOT = Path(
     "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/"
-    "external_sources/zsxq_hourly/pdf_local/research/batches/simple-20261018-r2"
+    "external_sources/zsxq_hourly/pdf_local/research/batches/simple-20261018-r3"
 )
 EXPECTED_RUNTIME_SHA256 = "e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99"
 EXPECTED_MODEL_SETTINGS_SHA256 = "7a98bb5d2b6687b808d72b8c7bb385a23c714e9753a067fab81407c4e9245b99"
@@ -68,6 +68,21 @@ SOURCE_CANARY_PRIOR_SUMMARY_PATH = R_ROOT / "writer/ocr-canary/summary.json"
 SOURCE_CANARY_PRIOR_SUMMARY_SHA256 = "695a40ca6a43da38b4d1e20e6f9774d9529c0e31c03264030fff855eec66108a"
 SOURCE_CANARY_REVIEW_DEFAULT = R_ROOT / "reviewer/ocr-scale-content-verdict.json"
 REPORT_CANARY_REVIEW_DEFAULT = R_ROOT / "reviewer/corrected-report-canary-review.json"
+SLICE_CANARY_ATTEMPT_PATH = R_ROOT / "writer/slice-canary/attempt.json"
+SLICE_CANARY_ATTEMPT_SHA256 = "5ba455f74357c0f17a3b0084ebe18109a2532c34d88a7ee718b6cc8d55e79774"
+SLICE_CANARY_MANIFEST_PATH = R_ROOT / "writer/slice-canary/slice-manifest.json"
+SLICE_CANARY_MANIFEST_SHA256 = "7080fc6b5e74db9e9361b776da3b402b0b8bb94e01f68f6da200da7fe01a3692"
+SLICE_CANARY_TEXT_PATH = R_ROOT / "writer/slice-canary/ordered-text.txt"
+SLICE_CANARY_TEXT_SHA256 = "31d5b7e5e8c55638307bbd4f0e514afdb437b6986860eea501b66aa289a34b3d"
+SLICE_CANARY_SCOPE_SHA256 = "f12cacd0f00c67db6b1dea24347ca7b0fd4e5e7ce1d1c32d8141db2402b23534"
+SLICE_CANARY_REVIEW_DEFAULT = R_ROOT / "reviewer/slice-source-content-verdict.json"
+SLICE_CANARY_REVIEW_SHA256 = "6982589eb94cc268a62043e3136f1f96abc2c9b2f7c4c7ef3f379353ebc3b31b"
+SLICE_SOURCE_REVIEW_SCOPE_SHA256 = "68849328bca22feffc9118cbd6f9494d49629e8fcb74d3bf7064f3666a053e8c"
+V3_OCR_SCRIPTS_ROOT = Path("/Users/lexi/Desktop/学习/v3_system/选股池/微信公众号/scripts")
+V3_PREPARE_OCR_PATH = V3_OCR_SCRIPTS_ROOT / "wechat_prepare_ocr.py"
+V3_COMMON_PATH = V3_OCR_SCRIPTS_ROOT / "wechat_common.py"
+EXPECTED_V3_PREPARE_OCR_SHA256 = "980c9004a1fa38862708ee325970ab8adfebbd66661cb42f0f8318436eebe606"
+EXPECTED_V3_COMMON_SHA256 = "25934b26357060e3322dcf393816383558a166a5a969244a7e4f1e8de4582446"
 EXPECTED_PDF_INGESTION_SHA256 = "8a16a457edbd6a7a95c3b3c7af5335d8243946b0e5f2b2f2eb48f5fc3e7c9f9b"
 EXPECTED_VISION_SOURCE_SHA256 = "be7e039d778babd32918da2b7d9620a7b3b9e98e6e62625840eaad1b6d4d834d"
 EXPECTED_VISION_CONFIG_SHA256 = "631e624bf348d42d2cb2d333e599e412cddd230593e0372663076e8865ba7814"
@@ -80,6 +95,7 @@ LOW_RENDER_DENSITY_PIXELS_PER_POINT = 1.0
 MAX_REPAIR_IMAGE_BYTES = 32 * 1024 * 1024
 MAX_REPAIR_RENDER_SECONDS = 45
 MAX_REPAIR_VISION_SECONDS = 30
+MAX_REPAIR_VISION_AGGREGATE_SECONDS = 60
 MAX_REPAIR_PAGES_PER_TICK = 2
 RETRYABLE_DEFER_BACKOFF_BASE_SECONDS = 5.0
 RETRYABLE_DEFER_BACKOFF_MAX_SECONDS = 60.0
@@ -117,12 +133,16 @@ REPORT_SYSTEM_PROMPT = (
     "说明关键变化、重要数值、期间、单位、币种、比较条件、风险、限制及反向证据。清楚区分已发生事实、报告时现状、"
     "作者观点/评级、公司指引、分析师预测和未来安排。过去期间本身不证明已经实现。若提出自己的判断，必须明确标为"
     "条件式推论并写出条件与依据。保留A股和港股身份边界。识别/缓存文字可能有误时说明无法确认。不要输出买卖指令。"
+    "若输入包含已复核的逐页来源边界，该边界是最高优先级，优先于覆盖全部内容、覆盖所有页面或保留全部数字的要求；"
+    "对应页面只能陈述边界允许的内容，排除项不得作为精确事实，未知或不确定必须如实保留。"
     "只输出符合给定JSON Schema的对象。"
 )
 SYNTHESIS_SYSTEM_PROMPT = (
     "你是研究报告编辑。只整合本次给出的分段分析，不添加外部事实，不猜公司代码，不消除来源冲突。"
     "写成覆盖完整文档的中文报告，保留各段的原文页码引用、重要数字、事实性质、风险、限制和反向证据；"
     "区分已发生事实、现状、作者观点、公司指引、预测、日程与条件式推论。遗漏信息写明未知。不要把推论说成事实，"
+    "若输入包含已复核的逐页来源边界，该边界是最高优先级，优先于完整文档、覆盖所有页面或保留全部数字要求；"
+    "不得恢复边界排除的信息。"
     "也不要给出买卖指令。只输出符合给定JSON Schema的对象。"
 )
 
@@ -437,6 +457,121 @@ def _read_scale_canary_page(
     }
 
 
+def _read_slice_canary_page(
+    document_id: str,
+    page_number: int,
+    expected_page_count: int | None = None,
+) -> tuple[pdf_research.PageText, dict[str, Any]] | None:
+    if document_id != SECOND_CONTENT_FAIL_PDF_SHA256 or page_number != 1:
+        return None
+    paths = (SLICE_CANARY_ATTEMPT_PATH, SLICE_CANARY_MANIFEST_PATH, SLICE_CANARY_TEXT_PATH, SLICE_CANARY_REVIEW_DEFAULT)
+    expected_hashes = (
+        SLICE_CANARY_ATTEMPT_SHA256,
+        SLICE_CANARY_MANIFEST_SHA256,
+        SLICE_CANARY_TEXT_SHA256,
+        SLICE_CANARY_REVIEW_SHA256,
+    )
+    values: list[Any] = []
+    for path, expected in zip(paths, expected_hashes):
+        if path.is_symlink() or not path.is_file() or _sha256_file(path) != expected:
+            raise BatchError("SLICE_SOURCE_CANARY_SHA_MISMATCH")
+        try:
+            values.append(path.read_bytes())
+        except OSError:
+            raise BatchError("SLICE_SOURCE_CANARY_READ_FAILED") from None
+    try:
+        attempt, manifest, text_bytes, review = (
+            json.loads(values[0].decode("utf-8")),
+            json.loads(values[1].decode("utf-8")),
+            values[2],
+            json.loads(values[3].decode("utf-8")),
+        )
+        text = text_bytes.decode("utf-8")
+    except (UnicodeError, json.JSONDecodeError):
+        raise BatchError("SLICE_SOURCE_CANARY_INVALID") from None
+    document = attempt.get("document") if isinstance(attempt, dict) else None
+    helper = attempt.get("helper_identity") if isinstance(attempt, dict) else None
+    result = attempt.get("result") if isinstance(attempt, dict) else None
+    render = attempt.get("render") if isinstance(attempt, dict) else None
+    segmentation = attempt.get("segmentation") if isinstance(attempt, dict) else None
+    parts = manifest.get("parts") if isinstance(manifest, dict) else None
+    boundary = review.get("accepted_markdown_boundary") if isinstance(review, dict) else None
+    if (
+        not isinstance(attempt, dict)
+        or attempt.get("schema") != "v4.pdf_research_simple_batch.longscan_slice_ocr_canary.v1"
+        or attempt.get("status") != "OCR_COMPLETE_SOURCE_REVIEW_PENDING"
+        or not isinstance(document, dict)
+        or document.get("pdf_sha256") != document_id
+        or document.get("page_number") != 1
+        or document.get("page_count") != 1
+        or (expected_page_count is not None and expected_page_count != 1)
+        or attempt.get("scope_sha256") != SLICE_CANARY_SCOPE_SHA256
+        or not isinstance(helper, dict)
+        or helper.get("prepare_crop_sha256") != EXPECTED_V3_PREPARE_OCR_SHA256
+        or helper.get("common_sha256") != EXPECTED_V3_COMMON_SHA256
+        or helper.get("renderer_sha256") != EXPECTED_RENDERER_SHA256
+        or helper.get("renderer_version") != EXPECTED_RENDERER_VERSION
+        or helper.get("vision_source_sha256") != EXPECTED_VISION_SOURCE_SHA256
+        or helper.get("vision_config_sha256") != EXPECTED_VISION_CONFIG_SHA256
+        or helper.get("slice_height") != 9_000
+        or not isinstance(render, dict)
+        or render.get("width_pixels") != 1_541
+        or render.get("height_pixels") != 13_000
+        or not isinstance(segmentation, dict)
+        or segmentation.get("gap_free") is not True
+        or segmentation.get("overlap") != 0
+        or not isinstance(result, dict)
+        or result.get("status") != "OCR_OK_SLICED"
+        or result.get("part_text_order") != [1, 2]
+        or result.get("sha256") != SLICE_CANARY_TEXT_SHA256
+        or result.get("characters") != 5_202
+        or not isinstance(manifest, dict)
+        or manifest.get("source_pdf_sha256") != document_id
+        or manifest.get("source_image_sha256") != render.get("sha256")
+        or manifest.get("width") != 1_541
+        or manifest.get("height") != 13_000
+        or manifest.get("geometry_validation") != "PASS_GAP_FREE_CONTIGUOUS_NONOVERLAPPING"
+        or not isinstance(parts, list)
+        or [(row.get("part"), row.get("top"), row.get("bottom")) for row in parts if isinstance(row, dict)] != [(1, 0, 9_000), (2, 9_000, 13_000)]
+        or not isinstance(review, dict)
+        or review.get("schema") != SOURCE_CANARY_REVIEW_SCHEMA
+        or review.get("status") != "SOURCE_CONTENT_PASS"
+        or review.get("pdf_sha256") != document_id
+        or review.get("scope_sha256") != SLICE_SOURCE_REVIEW_SCOPE_SHA256
+        or not isinstance(review.get("reviewer"), str)
+        or not review["reviewer"].strip()
+        or not isinstance(boundary, dict)
+        or not isinstance(boundary.get("adequate_for"), str)
+        or not isinstance(boundary.get("can_report_from_text"), list)
+        or not isinstance(boundary.get("uncertainties_to_preserve"), list)
+        or not isinstance(boundary.get("exclude_or_bound"), list)
+        or _sha256(text_bytes) != SLICE_CANARY_TEXT_SHA256
+        or len(text) != 5_202
+    ):
+        raise BatchError("SLICE_SOURCE_CANARY_BINDING_MISMATCH")
+    page_text = pdf_research.PageText(
+        page_number=1,
+        page_total=1,
+        text=text,
+        status="OCR_OK",
+        text_sha256=SLICE_CANARY_TEXT_SHA256,
+        extraction_method="reviewed V3 sliced Vision OCR canary",
+    )
+    return page_text, {
+        "status": "REUSED_SOURCE_TEXT_CANARY",
+        "attempt_path": str(paths[0]),
+        "attempt_sha256": SLICE_CANARY_ATTEMPT_SHA256,
+        "slice_manifest_sha256": SLICE_CANARY_MANIFEST_SHA256,
+        "text_sha256": SLICE_CANARY_TEXT_SHA256,
+        "reviewer_receipt_path": str(paths[3]),
+        "reviewer_receipt_sha256": SLICE_CANARY_REVIEW_SHA256,
+        "reviewer": review["reviewer"],
+        "accepted_markdown_boundary": boundary,
+        "rendered_image_sha256": render["sha256"],
+        "slice_geometry": [{"part": row["part"], "top": row["top"], "bottom": row["bottom"]} for row in parts],
+    }
+
+
 def _page_geometry(pdf_path: Path, expected_page_count: int, pdf_sha256: str) -> list[dict[str, float]]:
     helper = pdf_research._pinned_pdf_pages_helper()
     previous = sys.dont_write_bytecode
@@ -500,8 +635,22 @@ def _perform_page_ocr(pdf_path: Path, page_number: int, render_scale_to: int) ->
         ):
             raise BatchError("PINNED_PDF_RENDERER_MISMATCH")
         vision, vision_sha, config_sha = ingestion._load_vision_module()
-        if vision_sha != EXPECTED_VISION_SOURCE_SHA256 or config_sha != EXPECTED_VISION_CONFIG_SHA256:
+        if (
+            vision_sha != EXPECTED_VISION_SOURCE_SHA256
+            or config_sha != EXPECTED_VISION_CONFIG_SHA256
+            or getattr(vision, "OCR_TIMEOUT_SECONDS", None) != MAX_REPAIR_VISION_SECONDS
+        ):
             raise BatchError("PINNED_VISION_HELPER_MISMATCH")
+        scripts_root = V3_OCR_SCRIPTS_ROOT
+        prepare_path = V3_PREPARE_OCR_PATH
+        common_path = V3_COMMON_PATH
+        if (
+            prepare_path.is_symlink()
+            or common_path.is_symlink()
+            or _sha256_file(prepare_path) != EXPECTED_V3_PREPARE_OCR_SHA256
+            or _sha256_file(common_path) != EXPECTED_V3_COMMON_SHA256
+        ):
+            raise BatchError("PINNED_V3_SLICE_HELPER_MISMATCH")
         with tempfile.TemporaryDirectory(prefix="pdf_batch_repair_") as temporary:
             temp_root = Path(temporary)
             previous_scale = ingestion.RENDER_SCALE_TO
@@ -514,13 +663,87 @@ def _perform_page_ocr(pdf_path: Path, page_number: int, render_scale_to: int) ->
             if image_bytes <= 0 or image_bytes > MAX_REPAIR_IMAGE_BYTES:
                 raise BatchError("REPAIR_RENDER_IMAGE_SIZE_INVALID")
             width_pixels, height_pixels = _png_dimensions(image_path)
+            if width_pixels > 10_000:
+                raise BatchError("REPAIR_HORIZONTAL_SLICING_UNSUPPORTED")
+            if height_pixels > 18_000:
+                raise BatchError("REPAIR_SLICE_COUNT_EXCEEDED")
+            previous_path = list(sys.path)
+            sys.path.insert(0, str(scripts_root))
+            try:
+                common = importlib.import_module("wechat_common")
+                prepare = importlib.import_module("wechat_prepare_ocr")
+            finally:
+                sys.path[:] = previous_path
+            if (
+                Path(common.__file__).resolve() != common_path.resolve()
+                or Path(prepare.__file__).resolve() != prepare_path.resolve()
+                or _sha256_file(Path(common.__file__)) != EXPECTED_V3_COMMON_SHA256
+                or _sha256_file(Path(prepare.__file__)) != EXPECTED_V3_PREPARE_OCR_SHA256
+            ):
+                raise BatchError("PINNED_V3_SLICE_HELPER_MISMATCH")
+            geometry = {"width": width_pixels, "height": height_pixels, "sliced": height_pixels > 10_000, "parts": []}
+            if geometry["sliced"]:
+                geometry["parts"] = [
+                    {
+                        "part": part_number,
+                        "top": top,
+                        "bottom": min(top + 9_000, height_pixels),
+                        "width": width_pixels,
+                        "height": min(top + 9_000, height_pixels) - top,
+                    }
+                    for part_number, top in enumerate(range(0, height_pixels, 9_000), start=1)
+                ]
+            try:
+                common.validate_slice_geometry(geometry)
+            except (ValueError, TypeError, KeyError):
+                raise BatchError("REPAIR_SLICE_GEOMETRY_INVALID") from None
+            if len(geometry["parts"]) > 2:
+                raise BatchError("REPAIR_SLICE_COUNT_EXCEEDED")
             executable = vision._compile_vision_helper(temp_root)
-            ocr_result = vision._vision_ocr(executable, image_path)
-            if not isinstance(ocr_result, Mapping) or ocr_result.get("status") != "OCR_OK":
-                raise BatchError("REPAIR_VISION_FAILED")
-            text = ocr_result.get("text")
-            if not isinstance(text, str) or not text.strip():
-                raise BatchError("REPAIR_VISION_TEXT_EMPTY")
+            intervals = geometry["parts"] or [{"part": 1, "top": 0, "bottom": height_pixels, "width": width_pixels, "height": height_pixels}]
+            page_texts: list[str] = []
+            slice_provenance: list[dict[str, Any]] = []
+            aggregate_started = time.monotonic()
+            for part in intervals:
+                part_path = image_path
+                if geometry["sliced"]:
+                    part_path = temp_root / f"page-{page_number:04d}-part-{part['part']:02d}.png"
+                    prepare._crop_image(
+                        image_path,
+                        part_path,
+                        width=width_pixels,
+                        top=part["top"],
+                        height=part["height"],
+                    )
+                crop_width, crop_height = prepare._image_size(part_path)
+                if (crop_width, crop_height) != (part["width"], part["height"]):
+                    raise BatchError("REPAIR_SLICE_DIMENSIONS_MISMATCH")
+                call_started = time.monotonic()
+                ocr_result = vision._vision_ocr(executable, part_path)
+                call_elapsed = time.monotonic() - call_started
+                if time.monotonic() - aggregate_started > MAX_REPAIR_VISION_AGGREGATE_SECONDS:
+                    raise BatchError("REPAIR_VISION_AGGREGATE_TIMEOUT")
+                if not isinstance(ocr_result, Mapping) or ocr_result.get("status") != "OCR_OK":
+                    raise BatchError("REPAIR_VISION_FAILED")
+                part_text = ocr_result.get("text")
+                if not isinstance(part_text, str) or not part_text.strip():
+                    raise BatchError("REPAIR_VISION_TEXT_EMPTY")
+                page_texts.append(part_text)
+                slice_provenance.append(
+                    {
+                        "part": part["part"],
+                        "top": part["top"],
+                        "bottom": part["bottom"],
+                        "width_pixels": crop_width,
+                        "height_pixels": crop_height,
+                        "crop_sha256": _sha256_file(part_path),
+                        "text_sha256": _sha256(part_text.encode("utf-8")),
+                        "text_characters": len(part_text),
+                        "elapsed_seconds": call_elapsed,
+                    }
+                )
+            text = "\n".join(page_texts)
+            aggregate_elapsed = time.monotonic() - aggregate_started
             provenance = {
                 "method": "existing_pdf_ingestion_renderer_and_macos_vision_leaf",
                 "pdf_sha256": pdf_research._sha256_path(pdf_path),
@@ -536,6 +759,13 @@ def _perform_page_ocr(pdf_path: Path, page_number: int, render_scale_to: int) ->
                 "rendered_dimensions_pixels": {"width_pixels": width_pixels, "height_pixels": height_pixels},
                 "rendered_image_sha256": _sha256_file(image_path),
                 "rendered_image_bytes": image_bytes,
+                "slice_helper_sha256": EXPECTED_V3_PREPARE_OCR_SHA256,
+                "slice_geometry_helper_sha256": EXPECTED_V3_COMMON_SHA256,
+                "slice_geometry_status": "GAP_FREE_CONTIGUOUS_NONOVERLAPPING",
+                "slice_count": len(slice_provenance),
+                "slice_provenance": slice_provenance,
+                "vision_aggregate_elapsed_seconds": aggregate_elapsed,
+                "vision_aggregate_timeout_seconds": MAX_REPAIR_VISION_AGGREGATE_SECONDS,
                 "render_timeout_seconds": MAX_REPAIR_RENDER_SECONDS,
                 "vision_timeout_seconds": MAX_REPAIR_VISION_SECONDS,
                 "attempts_used_for_page": 1,
@@ -834,6 +1064,12 @@ def _load_pages(
                         repair_provenance = dict(recovered[1])
                         row["selected"] = "REUSED_SOURCE_TEXT_CANARY"
                         row["source_text_canary"] = repair_provenance
+                if recovered is None:
+                    recovered = _read_slice_canary_page(str(document["document_id"]), page_number, page_count)
+                    if recovered is not None:
+                        repair_provenance = dict(recovered[1])
+                        row["selected"] = "REUSED_SOURCE_TEXT_CANARY"
+                        row["source_text_canary"] = repair_provenance
                     if recovered is None and canary_review is None:
                         repair_states[-1] = "PENDING_SOURCE_TEXT_CANARY_REVIEW"
                         row["selected"] = "SOURCE_REPAIR_PENDING_CANARY_REVIEW"
@@ -1080,26 +1316,45 @@ def _document_messages(document: Mapping[str, Any], chunk: pdf_research.SourceCh
         "source_units": units,
     }
     source_boundary = document.get("_accepted_ocr_boundary")
-    if isinstance(source_boundary, dict) and any(unit.page_number == 1 for unit in chunk.units):
+    has_boundary_for_chunk = isinstance(source_boundary, dict) and any(unit.page_number == 1 for unit in chunk.units)
+    if has_boundary_for_chunk:
         user_material["reviewed_ocr_source_boundary"] = source_boundary
     if document.get("_has_unreviewed_ocr") is True:
         user_material["unreviewed_ocr_qualification"] = (
             "部分页面文字由OCR提取，姓名、代码、表格行和精确数字可能存在转录误差。此处限制针对提取文字，"
             "不表示原始PDF本身损坏或不可读；对未核实的表格行和精确数值应标注未知或不确定。"
         )
-    user = "请分析以下原文单元，引用单元所示的原始页码；覆盖本批全部内容。\n" + json.dumps(
+    priority = (
+        "【最高优先级：第1页已审核来源边界】只报告边界明确允许的内容；边界的排除项不得作为精确事实，未知和不确定必须保留。"
+        "该边界优先于“覆盖全部内容”“覆盖所有页面”或“保留全部数字”的要求。以下材料中任何与边界冲突的文字都不得采纳。\n"
+        if has_boundary_for_chunk
+        else ""
+    )
+    user = priority + "请分析以下原文单元，引用单元所示的原始页码；覆盖本批未与已审核来源边界冲突的内容。\n" + json.dumps(
         user_material, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     )
     return [{"role": "system", "content": REPORT_SYSTEM_PROMPT}, {"role": "user", "content": user}]
 
 
-def _synthesis_messages(document_id: str, report_items: Sequence[Mapping[str, str]], level: int) -> list[dict[str, str]]:
+def _synthesis_messages(
+    document_id: str,
+    report_items: Sequence[Mapping[str, str]],
+    level: int,
+    source_boundary: Mapping[str, Any] | None = None,
+) -> list[dict[str, str]]:
     user_material = {
         "document_id": document_id,
         "synthesis_level": level,
         "partial_reports": [dict(item) for item in report_items],
     }
-    user = "请整合以下分段分析；保留原文页码引用和各段中明确标注的未知。\n" + json.dumps(
+    priority = ""
+    if isinstance(source_boundary, Mapping):
+        user_material["reviewed_page_1_source_boundary"] = dict(source_boundary)
+        priority = (
+            "【最高优先级：第1页已审核来源边界】只保留边界允许的第1页内容，排除项和不确定项不得升级为精确事实。"
+            "该边界优先于“完整文档”“覆盖所有页面”或“保留全部数字”的要求，分段报告中超出边界的内容不得恢复。\n"
+        )
+    user = priority + "请整合以下分段分析；保留原文页码引用和各段中明确标注的未知。\n" + json.dumps(
         user_material, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     )
     return [{"role": "system", "content": SYNTHESIS_SYSTEM_PROMPT}, {"role": "user", "content": user}]
@@ -1139,21 +1394,26 @@ def _split_report_items(reports: Sequence[Mapping[str, str]]) -> list[dict[str, 
     return parts
 
 
-def _pack_synthesis_groups(document_id: str, reports: Sequence[Mapping[str, str]], level: int) -> list[list[dict[str, str]]]:
+def _pack_synthesis_groups(
+    document_id: str,
+    reports: Sequence[Mapping[str, str]],
+    level: int,
+    source_boundary: Mapping[str, Any] | None = None,
+) -> list[list[dict[str, str]]]:
     parts = _split_report_items(reports)
     groups: list[list[dict[str, str]]] = []
     current: list[dict[str, str]] = []
     for part in parts:
         candidate = current + [part]
         source_chars = sum(len(item["text"]) for item in candidate)
-        messages = _synthesis_messages(document_id, candidate, level)
+        messages = _synthesis_messages(document_id, candidate, level, source_boundary)
         if source_chars <= MAX_SOURCE_CHARACTERS and len(_request_envelope(messages)) <= MAX_REQUEST_ENVELOPE_BYTES:
             current = candidate
             continue
         if current:
             groups.append(current)
             current = [part]
-            single_messages = _synthesis_messages(document_id, current, level)
+            single_messages = _synthesis_messages(document_id, current, level, source_boundary)
             if len(_request_envelope(single_messages)) > MAX_REQUEST_ENVELOPE_BYTES:
                 raise BatchError("SYNTHESIS_ITEM_ENVELOPE_BUDGET_EXCEEDED")
             continue
@@ -1868,7 +2128,7 @@ def _run_document(
         synth_level += 1
         if synth_level > MAX_SYNTHESIS_LEVELS:
             raise BatchError("SYNTHESIS_DEPTH_EXCEEDED")
-        groups = _pack_synthesis_groups(pdf_sha, current_reports, synth_level)
+        groups = _pack_synthesis_groups(pdf_sha, current_reports, synth_level, accepted_boundary)
         if len(groups) == len(current_reports) and all(len(group) == 1 for group in groups):
             raise BatchError("SYNTHESIS_DID_NOT_REDUCE_INPUT")
         next_reports: list[dict[str, str]] = []
@@ -1876,7 +2136,7 @@ def _run_document(
             if len(group) == 1:
                 next_reports.append(dict(group[0]))
                 continue
-            messages = _synthesis_messages(pdf_sha, group, synth_level)
+            messages = _synthesis_messages(pdf_sha, group, synth_level, accepted_boundary)
             envelope = _request_envelope(messages)
             payload = _request_payload(
                 source_doc,

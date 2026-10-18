@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import sys
 import threading
 from types import SimpleNamespace
 
@@ -1264,6 +1265,178 @@ def test_reviewed_scale_canary_bounds_prompt_and_input_metadata(
     assert "14.G亿美元 is not an exact confirmed amount" in user_message
     assert "do not infer an Insitro code" in user_message
     assert "Do not extract row-level announcement tables" in user_message
+
+
+def test_reviewed_slice_canary_reuse_and_high_priority_boundaries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    text = "腾讯上线绿泡泡短剧；航展计划在珠海举行。" + "文" * (5_202 - len("腾讯上线绿泡泡短剧；航展计划在珠海举行。"))
+    text_path = tmp_path / "ordered-text.txt"
+    text_path.write_text(text, encoding="utf-8")
+    text_sha = _sha(text)
+    attempt = {
+        "schema": "v4.pdf_research_simple_batch.longscan_slice_ocr_canary.v1",
+        "status": "OCR_COMPLETE_SOURCE_REVIEW_PENDING",
+        "scope_sha256": "a" * 64,
+        "document": {"pdf_sha256": batch.SECOND_CONTENT_FAIL_PDF_SHA256, "page_count": 1, "page_number": 1},
+        "helper_identity": {
+            "prepare_crop_sha256": batch.EXPECTED_V3_PREPARE_OCR_SHA256,
+            "common_sha256": batch.EXPECTED_V3_COMMON_SHA256,
+            "renderer_sha256": batch.EXPECTED_RENDERER_SHA256,
+            "renderer_version": batch.EXPECTED_RENDERER_VERSION,
+            "vision_source_sha256": batch.EXPECTED_VISION_SOURCE_SHA256,
+            "vision_config_sha256": batch.EXPECTED_VISION_CONFIG_SHA256,
+            "slice_height": 9000,
+        },
+        "render": {"width_pixels": 1541, "height_pixels": 13000, "sha256": "b" * 64},
+        "segmentation": {"gap_free": True, "overlap": 0},
+        "result": {"status": "OCR_OK_SLICED", "part_text_order": [1, 2], "sha256": text_sha, "characters": len(text)},
+    }
+    manifest = {
+        "source_pdf_sha256": batch.SECOND_CONTENT_FAIL_PDF_SHA256,
+        "source_image_sha256": "b" * 64,
+        "width": 1541,
+        "height": 13000,
+        "geometry_validation": "PASS_GAP_FREE_CONTIGUOUS_NONOVERLAPPING",
+        "parts": [
+            {"part": 1, "top": 0, "bottom": 9000},
+            {"part": 2, "top": 9000, "bottom": 13000},
+        ],
+    }
+    boundary = {
+        "adequate_for": "仅限绿泡泡叙述与航展日程地点。",
+        "can_report_from_text": ["腾讯上线绿泡泡短剧", "航展计划在珠海举行"],
+        "uncertainties_to_preserve": ["未核验外部事实"],
+        "exclude_or_bound": ["不报告市场数字和表格映射"],
+    }
+    review = {
+        "schema": batch.SOURCE_CANARY_REVIEW_SCHEMA,
+        "status": "SOURCE_CONTENT_PASS",
+        "reviewer": "independent-reviewer",
+        "pdf_sha256": batch.SECOND_CONTENT_FAIL_PDF_SHA256,
+        "scope_sha256": "c" * 64,
+        "accepted_markdown_boundary": boundary,
+    }
+    paths = [tmp_path / "attempt.json", tmp_path / "manifest.json", text_path, tmp_path / "review.json"]
+    paths[0].write_text(json.dumps(attempt), encoding="utf-8")
+    paths[1].write_text(json.dumps(manifest), encoding="utf-8")
+    paths[3].write_text(json.dumps(review), encoding="utf-8")
+    hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in paths]
+    for name, value in zip(
+        ("SLICE_CANARY_ATTEMPT_PATH", "SLICE_CANARY_MANIFEST_PATH", "SLICE_CANARY_TEXT_PATH", "SLICE_CANARY_REVIEW_DEFAULT"),
+        paths,
+    ):
+        monkeypatch.setattr(batch, name, value)
+    for name, value in zip(
+        ("SLICE_CANARY_ATTEMPT_SHA256", "SLICE_CANARY_MANIFEST_SHA256", "SLICE_CANARY_TEXT_SHA256", "SLICE_CANARY_REVIEW_SHA256"),
+        hashes,
+    ):
+        monkeypatch.setattr(batch, name, value)
+    monkeypatch.setattr(batch, "SLICE_CANARY_SCOPE_SHA256", "a" * 64)
+    monkeypatch.setattr(batch, "SLICE_SOURCE_REVIEW_SCOPE_SHA256", "c" * 64)
+
+    recovered = batch._read_slice_canary_page(batch.SECOND_CONTENT_FAIL_PDF_SHA256, 1, expected_page_count=1)
+
+    assert recovered is not None
+    page, provenance = recovered
+    assert page.text == text
+    assert provenance["accepted_markdown_boundary"] == boundary
+    chunk = batch._build_document_chunks(
+        batch.SECOND_CONTENT_FAIL_PDF_SHA256,
+        [page],
+        prompt_source={"document_id": batch.SECOND_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
+    )[0]
+    user_message = batch._document_messages(
+        {"document_id": batch.SECOND_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
+        chunk,
+        partial_source=False,
+    )[-1]["content"]
+    assert user_message.startswith("【最高优先级：第1页已审核来源边界】")
+    assert "优先于“覆盖全部内容”“覆盖所有页面”或“保留全部数字”的要求" in user_message
+    synthesis = batch._synthesis_messages("d" * 64, [{"text": "测试分段报告"}], 1, boundary)[-1]["content"]
+    assert synthesis.startswith("【最高优先级：第1页已审核来源边界】")
+    assert "不得恢复" in batch.SYNTHESIS_SYSTEM_PROMPT
+
+
+def test_long_render_uses_existing_two_slice_geometry_and_vision(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def png(width: int, height: int) -> bytes:
+        return b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + width.to_bytes(4, "big") + height.to_bytes(4, "big") + b"\x08\x02\x00\x00\x00"
+
+    renderer = tmp_path / "pdftoppm"
+    renderer.write_bytes(b"test-renderer")
+    prepare_path = tmp_path / "wechat_prepare_ocr.py"
+    common_path = tmp_path / "wechat_common.py"
+    prepare_path.write_text("# pinned test helper\n", encoding="utf-8")
+    common_path.write_text("# pinned test geometry helper\n", encoding="utf-8")
+    prepare = SimpleNamespace(
+        __file__=str(prepare_path),
+        _image_size=lambda path: (
+            int.from_bytes(path.read_bytes()[16:20], "big"),
+            int.from_bytes(path.read_bytes()[20:24], "big"),
+        ),
+    )
+
+    def crop(source: Path, output: Path, *, width: int, top: int, height: int) -> None:
+        output.write_bytes(png(width, height) + f"crop:{top}".encode())
+
+    prepare._crop_image = crop
+
+    def validate_geometry(item: dict) -> None:
+        assert item["sliced"] is True
+        assert [(p["top"], p["bottom"]) for p in item["parts"]] == [(0, 9000), (9000, 13000)]
+
+    common = SimpleNamespace(__file__=str(common_path), validate_slice_geometry=validate_geometry)
+    calls: list[Path] = []
+
+    class Vision:
+        OCR_TIMEOUT_SECONDS = 30
+
+        @staticmethod
+        def _compile_vision_helper(_root: Path) -> Path:
+            return tmp_path / "compiled-helper"
+
+        @staticmethod
+        def _vision_ocr(_exe: Path, image_path: Path) -> dict[str, str]:
+            calls.append(image_path)
+            return {"status": "OCR_OK", "text": f"切片{len(calls)}"}
+
+    def _write_render(root: Path) -> Path:
+        path = root / "full.png"
+        path.write_bytes(png(1541, 13000))
+        return path
+
+    vision = Vision()
+    ingestion_path = Path(__file__).resolve().parents[1] / "infrastructure/zsxq_pdf_ingestion.py"
+    monkeypatch.setattr(batch, "EXPECTED_RENDERER_SHA256", _sha("test-renderer"))
+    monkeypatch.setattr(batch, "EXPECTED_RENDERER_VERSION", "test-renderer-version")
+    monkeypatch.setattr(batch, "EXPECTED_VISION_SOURCE_SHA256", "v" * 64)
+    monkeypatch.setattr(batch, "EXPECTED_VISION_CONFIG_SHA256", "c" * 64)
+    monkeypatch.setattr(batch, "V3_OCR_SCRIPTS_ROOT", tmp_path)
+    monkeypatch.setattr(batch, "V3_PREPARE_OCR_PATH", prepare_path)
+    monkeypatch.setattr(batch, "V3_COMMON_PATH", common_path)
+    monkeypatch.setattr(batch, "EXPECTED_V3_PREPARE_OCR_SHA256", hashlib.sha256(prepare_path.read_bytes()).hexdigest())
+    monkeypatch.setattr(batch, "EXPECTED_V3_COMMON_SHA256", hashlib.sha256(common_path.read_bytes()).hexdigest())
+    fake_ingestion = SimpleNamespace(
+        DEFAULT_PDFTOPPM=str(renderer),
+        RENDER_SCALE_TO=2600,
+        _renderer_version=lambda _path: "test-renderer-version",
+        _load_vision_module=lambda: (vision, "v" * 64, "c" * 64),
+        _render_pdf_page=lambda _pdf, _page, root, pdftoppm: _write_render(root),
+    )
+    monkeypatch.setitem(sys.modules, "infrastructure.zsxq_pdf_ingestion", fake_ingestion)
+    monkeypatch.setitem(sys.modules, "wechat_prepare_ocr", prepare)
+    monkeypatch.setitem(sys.modules, "wechat_common", common)
+    pdf = tmp_path / "source.pdf"
+    pdf.write_bytes(b"test-pdf")
+
+    text, provenance = batch._perform_page_ocr(pdf, 1, 13000)
+
+    assert text == "切片1\n切片2"
+    assert len(calls) == 2
+    assert [(row["top"], row["bottom"], row["height_pixels"]) for row in provenance["slice_provenance"]] == [
+        (0, 9000, 9000), (9000, 13000, 4000)
+    ]
+    assert all(len(row["crop_sha256"]) == len(row["text_sha256"]) == 64 for row in provenance["slice_provenance"])
+    assert provenance["slice_geometry_status"] == "GAP_FREE_CONTIGUOUS_NONOVERLAPPING"
+    assert provenance["vision_aggregate_elapsed_seconds"] <= batch.MAX_REPAIR_VISION_AGGREGATE_SECONDS
 
 
 def test_r1_success_reuse_requires_exact_payload_and_excludes_content_failed_pdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
