@@ -52,6 +52,118 @@ def checked_time(value, cutoff):
     if not before(value, cutoff): raise ValueError('OWNER_AFTER_CUTOFF_OR_UNKNOWN')
 
 
+def _load_observed_hk_industry_pin(config, context, pin):
+    """Load one explicitly pinned owner capture under the observed-use policy.
+
+    The owner capture date and capture timestamp stay separate from the run's
+    target date. This path is opt-in per target date and never scans for a newer
+    file or infers an effective date from capture time.
+    """
+    day = context.target_date
+    observed_day = _date_token(pin.get('observed_trade_date'))
+    if (pin.get('policy') != 'LATEST_OBSERVED'
+            or pin.get('target_date') != day
+            or observed_day != pin.get('observed_trade_date')
+            or observed_day is None
+            or observed_day > day
+            or pin.get('source_asof') is not None
+            or pin.get('source_asof_status') != 'UNKNOWN'):
+        raise ValueError('HK_INDUSTRY_OBSERVED_POLICY_BINDING_INVALID')
+    root = Path(pin.get('source_local_path') or config.shared_root)
+    artifact_relative = pin.get('artifact_relative')
+    receipt_relative = pin.get('receipt_relative')
+    manifest_relative = pin.get('manifest_relative')
+    artifact_sha = pin.get('artifact_sha256')
+    receipt_sha = pin.get('receipt_sha256')
+    manifest_sha = pin.get('manifest_sha256')
+    if (not artifact_relative or not receipt_relative or not manifest_relative
+            or not valid_sha(artifact_sha) or not valid_sha(receipt_sha)
+            or not valid_sha(manifest_sha)):
+        raise ValueError('HK_INDUSTRY_OBSERVED_POLICY_PIN_INVALID')
+    payload, actual_artifact_sha = read(root, artifact_relative, artifact_sha)
+    receipt, actual_receipt_sha = read(root, receipt_relative, receipt_sha)
+    manifest, actual_manifest_sha = read(root, manifest_relative, manifest_sha)
+    captured_at = payload.get('captured_at')
+    cutoff = context.cutoff
+    if (manifest.get(artifact_relative) != actual_artifact_sha
+            or payload.get('schema_version') != 'v3_5.research_peripheral.v1'
+            or payload.get('source_id') != 'EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE'
+            or payload.get('trade_date') != observed_day
+            or payload.get('source_asof') is not None
+            or payload.get('source_asof_status') != 'UNKNOWN'
+            or payload.get('source_date_semantics') != pin.get('source_date_semantics')
+            or payload.get('captured_at') != pin.get('captured_at')
+            or not before(captured_at, cutoff)
+            or payload.get('status') != pin.get('expected_status')
+            or payload.get('scope_count') != pin.get('expected_scope_count')
+            or not isinstance(payload.get('items'), list)
+            or len(payload['items']) != pin.get('expected_item_count')
+            or not isinstance(payload.get('failures'), list)
+            or len(payload['failures']) != pin.get('expected_failure_count')
+            or receipt.get('schema_version') != 'v3_5.research_peripheral_receipt.v1'
+            or receipt.get('trade_date') != observed_day
+            or payload.get('source') != 'hk_industry_classification'
+            or receipt.get('source') != payload.get('source')
+            or receipt.get('payload_path') != artifact_relative
+            or receipt.get('payload_sha256') != actual_artifact_sha
+            or receipt.get('captured_at') != captured_at
+            or receipt.get('item_count') != len(payload['items'])
+            or receipt.get('failure_count') != pin.get('expected_failure_count')
+            or receipt.get('batch_response_sha256') != payload.get('batch_response_sha256')):
+        raise ValueError('HK_INDUSTRY_OBSERVED_POLICY_OWNER_EVIDENCE_INVALID')
+    try:
+        from ..engines.us_factor import HK_INDUSTRY_TO_PROXY
+    except ImportError:
+        HK_INDUSTRY_TO_PROXY = {}
+    rows = []
+    for item in payload['items']:
+        if not isinstance(item, dict):
+            continue
+        row = dict(
+            symbol=item.get('symbol'),
+            issuer_name=item.get('issuer_name'),
+            source_industry=item.get('source_industry'),
+            source_row_sha256=item.get('source_row_sha256'),
+            source_response_sha256=item.get('source_response_sha256'),
+            source_response_ref=item.get('source_response_ref'),
+        )
+        mapped = HK_INDUSTRY_TO_PROXY.get(row.get('source_industry'))
+        if isinstance(mapped, dict):
+            row['mapping_type'] = mapped.get('mapping_type')
+        rows.append(row)
+    artifact = dict(
+        schema_version='v4.manager_workbench.hk_industry_classification.v1',
+        source_id=payload.get('source_id'),
+        source_owner='research_peripheral.hk_industry_classification',
+        market='HK_CONNECT', scope_type='HK_CONNECT_FULL_MARKET',
+        target_date=day, observed_trade_date=observed_day,
+        classification_policy='LATEST_OBSERVED',
+        status=payload.get('status'), scope_count=payload.get('scope_count'),
+        observed_scope_count=payload.get('scope_count'),
+        source_membership_codes_sha256=payload.get('membership_codes_sha256'),
+        source_membership_artifact_sha256=payload.get('membership_artifact_sha256'),
+        batch_response_sha256=payload.get('batch_response_sha256'),
+        source_url=payload.get('source_url'), source_asof=None,
+        source_asof_status='UNKNOWN', captured_at=captured_at,
+        source_date_semantics=payload.get('source_date_semantics'),
+        requested_codes=payload.get('requested_codes'), failures=payload.get('failures'), rows=rows,
+    )
+    owner = pin.get('owner')
+    if not isinstance(owner, str) or not owner:
+        raise ValueError('HK_INDUSTRY_CLASSIFICATION_OWNER_UNKNOWN')
+    root_text = str(root)
+    return dict(status='READY', owner=owner, artifact=artifact,
+        artifact_relative=artifact_relative, artifact_sha256=actual_artifact_sha,
+        source_local_path=root_text, source_url=payload.get('source_url'),
+        receipt_relative=receipt_relative, receipt_sha256=actual_receipt_sha,
+        manifest_relative=manifest_relative, manifest_sha256=actual_manifest_sha,
+        policy='LATEST_OBSERVED', observed_trade_date=observed_day,
+        source_asof=None, source_asof_status='UNKNOWN',
+        checked_files=[dict(source_local_path=root_text, relative=artifact_relative, sha256=actual_artifact_sha),
+            dict(source_local_path=root_text, relative=receipt_relative, sha256=actual_receipt_sha),
+            dict(source_local_path=root_text, relative=manifest_relative, sha256=actual_manifest_sha)])
+
+
 def _date_token(value):
     """Parse an explicit calendar date without deriving one from capture time."""
     if not isinstance(value, str):
@@ -260,6 +372,12 @@ def hk_industry_classification(config, context):
         date_pins = config.source_bindings.get('us_mapping', {})
         us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
         pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
+    if isinstance(pin, dict) and pin.get('policy') == 'LATEST_OBSERVED':
+        try:
+            return _load_observed_hk_industry_pin(config, context, pin)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_OWNER_UNAVAILABLE'
+            return dict(status='UNAVAILABLE', gap=gap)
     if not isinstance(pin, dict):
         root = Path(config.shared_root) if getattr(config, 'shared_root', None) else None
         if root is None:

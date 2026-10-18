@@ -1,0 +1,98 @@
+{
+  "status": "ENGINEERING_COMPLETE_ACTUAL_SOURCE_QUALIFICATION_GAPS_RETAINED",
+  "objective": "Trace four evidence families for19HKtargets through existing authoritative chain, rerunFridayquotes and verify managerworkbench without relaxing qualification.",
+  "requested_all_evidence_complete": false,
+  "unresolved_business_admission": "CANNOT_CONFIRM",
+  "implemented": true,
+  "tested": "PASS",
+  "reviewed": "REVIEWED_PASS_BOUNDED_REPAIR_SCOPE",
+  "actual_run_leaf": "PASS_BOUNDED_ACTUAL_RUN_ACCEPTANCE",
+  "INTEGRATED": true,
+  "DEPLOYED": true,
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "NATURAL_VERIFIED": false,
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "code_baseline_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0",
+  "github_branch": "codex/us-19-evidence-completion-20261018",
+  "github_readback_receipt": "ROOT_GITHUB_SYNC.json (written only after remote commit and every allowlisted file SHA readback)",
+  "loaded_runtime": {
+    "API": {
+      "release_id": "us-19-evidence-api-20261018-r2",
+      "pid": 54092,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app",
+      "plist_sha256": "4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202",
+      "manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db"
+    },
+    "scheduler": {
+      "pid": 57302,
+      "release_id": "us-19-evidence-scheduler-20261018-r2",
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app",
+      "plist_sha256": "b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37",
+      "manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+    }
+  },
+  "run": {
+    "run_id": "52231a267c5e4eb4859bcff275949786",
+    "trigger": "MANUAL",
+    "target_date": "20261020",
+    "source_us_session": "20261016",
+    "source_cutoff": "2026-10-18T22:29:03.213941+08:00",
+    "generated_at": "2026-10-18T22:29:30.515800+08:00",
+    "snapshot_sha256": "f6d85f09b7f25035a426b20b64ae98eea877ce195b226b1d4a376cd8ef5628e0",
+    "counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 19,
+      "observation_only": 0,
+      "not_selected": 0
+    },
+    "lane_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 27,
+      "not_selected": 33,
+      "observation_only": 0
+    },
+    "source_symbols": 48,
+    "relation_rows": 36,
+    "mapped_hk_stocks": 19,
+    "research_record_rows": 60,
+    "catalog_relation_rows": 1003,
+    "catalog_hk_stocks": 667,
+    "catalog_admission": "OBSERVATION_ONLY_NOT_CANDIDATE_INPUT"
+  },
+  "changes": [
+    "Valid nonpositive Friday US quotes can reject their declared direct relation path while retaining unknown qualification diagnostics; no stock aggregation rule change.",
+    "Explicit existing-owner LATEST_OBSERVED industry binding allows UNKNOWN provider source_asof; provenance and historical_pit_verified=false retained.",
+    "Native observed-industry projection carries independently verified current membership only; absent current target membership remains fail-closed.",
+    "Two initial candidate P1 findings repaired and independently retested before deployment; failedR1neveractivated."
+  ],
+  "evidence_families": {
+    "Connect": "ExistingOct12owner observation and Oct16officialsource observation do not authenticate targetOct20effective interval; no fabricatedmonthlyperiod.",
+    "relations": "All19stocks/36relationrows researched with42sourcecatalogentries and bounded6sourcebody/date recovery; historical business facts and target qualification kept separate. Registry admission not rewritten.",
+    "daily_factor": "Existing13dayretrospectivepair has zero19-stockoverlap; no inventedcandidate/reviewpool and no target20paired review bound.",
+    "industry": "15label-bearing targets,4missing; provider UNKNOWNasof alone nonblocking. Actual global rejection is absent targetMembership alias/interval, not8mastergapsoutside19."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "owner_artifacts_modified": false,
+  "new_quote_capture": false,
+  "new_producer_or_panel": false,
+  "model_training_or_backtest": false,
+  "old_candidate_R1_activated": false,
+  "prior_review_failed_receipt_sha256": "12dc9719499adbc1b1f886e3054756c201ab602bca2a20886faaab23a650684d",
+  "repair_review_receipt_sha256": "070215b9c111813e1b2efbbe805e308528c18429e5ff0415992624f450c37584",
+  "actual_industry_lineage_sha256": "04a297b00f9b42fe081cbb2c132787c341deb22ba5841f237ce62751d72df69c",
+  "19_stock_results_sha256": "512dc961654f04be46bd3c68a22efe038e9fce8d6db37b8aff413f6b89447d30",
+  "source_hash_receipt_sha256": "243168266b134af3349d927542a641cef2737961653d021f64fd56cb4b2f1b0d",
+  "updated_at_utc": "2026-10-18T14:50:20.292354+00:00",
+  "actual_run_acceptance_sha256": "8699f55a8938ac2c545772068c0499ba8edceae138851e891479cbc7901bf459",
+  "actual_run_independent_checks": "30/30"
+}

@@ -1,7 +1,9 @@
 from copy import deepcopy
 from collections import Counter
 import hashlib
+import pytest
 from v4.manager_workbench.engines.common import RULE
+from v4.manager_workbench.engines.core import merge_decisions
 from v4.manager_workbench.engines.us_mapping import run_us_mapping as _run_us_mapping
 from v4.manager_workbench.inputs.us_universe import (
     LEGACY_US_SYMBOLS,
@@ -54,6 +56,120 @@ def test_unreviewed_relation_and_late_publication_unknown():
     assert run_us_mapping(ctx(),a)["rows"][0]["decision"]=="UNASSESSED"
     b=make_batch();b["records"][0]["relations"][0]["available_at"]="2026-10-13T09:26:00+08:00"
     assert run_us_mapping(ctx(),b)["rows"][0]["decision"]=="UNASSESSED"
+
+
+@pytest.mark.parametrize("change_pct", [0, -1.25])
+@pytest.mark.parametrize("relation_status", ["PROPOSED", "REVIEWED"])
+def test_valid_nonpositive_trigger_is_path_local_and_retains_unknown_qualification(change_pct, relation_status):
+    data = make_batch()
+    source = data["records"][0]
+    source.update(positive_change_required=True, quote={"change_pct": change_pct})
+    relation = source["relations"][0]
+    relation.update(
+        status=relation_status,
+        membership=None,
+        relation_source_refs=[{"artifact_ref": "relation-body.json", "sha256": "f" * 64}],
+        publication_time_gaps=["RELATION_SOURCE_PUBLICATION_TIME_UNKNOWN"],
+    )
+    if relation_status == "PROPOSED":
+        relation["pit_status"] = "PIT_UNCONFIRMED"
+
+    row = run_us_mapping(ctx(), data)["rows"][0]
+
+    assert row["decision"] == "NOT_SELECTED"
+    assert row["reason"] == "US_SOURCE_CHANGE_NOT_POSITIVE"
+    assert row["symbol"] == "HK.00001"
+    assert row["conditions"] == ["DIRECT_RELATION_PATH_ONLY", "NOT_STOCK_LEVEL_DECISION"]
+    assert row["path_disposition_scope"] == "DIRECT_US_HK_RELATION_ONLY"
+    assert row["membership"] is None
+    assert row["relation_status"] == relation_status
+    assert row["relation_pit_status"] == relation.get("pit_status")
+    assert row["relation_source_refs"] == relation["relation_source_refs"]
+    assert row["publication_time_gaps"] == relation["publication_time_gaps"]
+    assert "CONNECT_MEMBERSHIP_UNKNOWN" in row["diagnostic_gaps"]
+    if relation_status == "PROPOSED":
+        assert "US_RELATION_PROPOSED_PIT_UNCONFIRMED" in row["diagnostic_gaps"]
+
+
+@pytest.mark.parametrize("change_pct", [None, True, float("nan"), float("inf"), "NaN", "invalid"])
+def test_invalid_or_missing_quote_cannot_dispose_direct_relation_path(change_pct):
+    data = make_batch()
+    source = data["records"][0]
+    source.update(positive_change_required=True, quote={"change_pct": change_pct})
+    source["relations"][0].update(status="PROPOSED", pit_status="PIT_UNCONFIRMED", membership=None)
+
+    row = run_us_mapping(ctx(), data)["rows"][0]
+
+    assert row["decision"] == "UNASSESSED"
+    assert row["reason"] == "US_RELATION_PROPOSED_PIT_UNCONFIRMED"
+
+
+def test_quote_gap_and_unverified_source_cannot_dispose_direct_relation_path():
+    quote_gap = make_batch()
+    source = quote_gap["records"][0]
+    source.update(positive_change_required=True, quote={"change_pct": -1.0},
+        quote_missing_reason="US_QUOTE_SOURCE_GAP", source_gaps=["US_QUOTE_SOURCE_GAP"])
+    assert run_us_mapping(ctx(), quote_gap)["rows"][0]["decision"] == "UNASSESSED"
+    assert run_us_mapping(ctx(), quote_gap)["rows"][0]["reason"] == "US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED"
+
+    unverified = make_batch()
+    source = unverified["records"][0]
+    source.update(positive_change_required=True, quote={"change_pct": -1.0}, source_sha256="invalid")
+    assert run_us_mapping(ctx(), unverified)["rows"][0]["decision"] == "UNASSESSED"
+
+
+def test_negative_quote_requires_exact_true_trigger_flag_and_valid_hk_target():
+    wrong_flag = make_batch()
+    wrong_flag["records"][0].update(positive_change_required=1, quote={"change_pct": -1.0})
+    wrong_flag_row = run_us_mapping(ctx(), wrong_flag)["rows"][0]
+    assert wrong_flag_row["decision"] == "UNASSESSED"
+    assert wrong_flag_row["reason"] == "US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED"
+
+    invalid_target = make_batch()
+    source = invalid_target["records"][0]
+    source.update(positive_change_required=True, quote={"change_pct": -1.0})
+    source["relations"][0].update(status="PROPOSED", pit_status="PIT_UNCONFIRMED", target_symbol="not-hk")
+    invalid_target_row = run_us_mapping(ctx(), invalid_target)["rows"][0]
+    assert invalid_target_row["decision"] == "UNASSESSED"
+    assert invalid_target_row["symbol"] is None
+
+    no_relation = make_batch()
+    no_relation["records"][0].update(positive_change_required=True, quote={"change_pct": -1.0}, relations=[])
+    no_relation_row = run_us_mapping(ctx(), no_relation)["rows"][0]
+    assert no_relation_row["decision"] == "UNASSESSED"
+    assert no_relation_row["symbol"] is None
+
+
+def test_mixed_positive_unknown_path_keeps_aggregate_stock_unassessed():
+    data = make_batch()
+    negative, positive = data["records"][:2]
+    negative.update(positive_change_required=True, quote={"change_pct": -1.0})
+    negative["relations"][0].update(target_symbol="HK.00002", membership=None)
+    positive.update(positive_change_required=True, quote={"change_pct": 1.0})
+    positive["relations"][0].update(target_symbol="HK.00002", status="PROPOSED",
+        pit_status="PIT_UNCONFIRMED", membership=None)
+    for source in data["records"][2:]:
+        source["relations"] = []
+
+    lane = run_us_mapping(ctx(), data)
+    target_paths = [row for row in lane["rows"] if row.get("symbol") == "HK.00002"]
+    stocks = merge_decisions(data["context"], [lane])
+
+    assert {row["decision"] for row in target_paths} == {"NOT_SELECTED", "UNASSESSED"}
+    assert len(target_paths) == 2
+    assert next(stock for stock in stocks if stock["symbol"] == "HK.00002")["decision"] == "UNASSESSED"
+
+
+def test_verified_positive_reviewed_path_keeps_existing_conditional_watch_result():
+    data = make_batch()
+    source = data["records"][0]
+    source.update(positive_change_required=True, quote={"change_pct": 0.5})
+
+    row = run_us_mapping(ctx(), data)["rows"][0]
+
+    assert row["decision"] == "CONDITIONAL_WATCH"
+    assert row["reason"] == "US_REVIEWED_RELATION_CONDITIONAL_ONLY"
+    assert "path_disposition_scope" not in row
 
 
 def test_34th_or_lost_origin_causes_coverage_gap():

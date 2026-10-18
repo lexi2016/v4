@@ -1,0 +1,323 @@
+--- a/v4/manager_workbench/engines/us_factor.py
++++ b/v4/manager_workbench/engines/us_factor.py
+@@ -258,6 +258,15 @@
+     if captured_at > cutoff:
+         return False, "CLASSIFICATION_CAPTURE_AFTER_CUTOFF", captured_at.isoformat()
+     source_asof = artifact.get("source_asof")
++    if artifact.get("classification_policy") == "LATEST_OBSERVED":
++        observed_date, observed_valid = _industry_asof_date(artifact.get("observed_trade_date"))
++        if source_asof is not None or artifact.get("source_asof_status") != "UNKNOWN":
++            return False, "CLASSIFICATION_OBSERVED_POLICY_SOURCE_ASOF_CONFLICT", captured_at.isoformat()
++        if not observed_valid:
++            return False, "CLASSIFICATION_OBSERVED_TRADE_DATE_INVALID", captured_at.isoformat()
++        if observed_date > target:
++            return False, "CLASSIFICATION_OBSERVATION_AFTER_TARGET", captured_at.isoformat()
++        return True, "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN", captured_at.isoformat()
+     asof_date, asof_valid = _industry_asof_date(source_asof)
+     if source_asof is None:
+         return False, "CLASSIFICATION_SOURCE_ASOF_UNKNOWN", captured_at.isoformat()
+@@ -344,6 +353,19 @@
+         ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+     rows = artifact.get("rows")
+     artifact_sha = binding.get("artifact_sha256")
++    observed_policy = artifact.get("classification_policy") == "LATEST_OBSERVED"
++    source_scope_valid = (
++        type(artifact.get("scope_count")) is int and artifact.get("scope_count") >= 0
++        and artifact.get("observed_scope_count") == artifact.get("scope_count")
++        and valid_sha(artifact.get("source_membership_codes_sha256"))
++        and valid_sha(artifact.get("source_membership_artifact_sha256"))
++        if observed_policy else artifact.get("scope_count") == expected_scope_count
++    )
++    source_membership_valid = (
++        artifact.get("membership_codes_sha256") == expected_codes_sha
++        and artifact.get("membership_artifact_sha256") == expected_member_sha
++        if not observed_policy else True
++    )
+     identity_ok = (
+         artifact.get("schema_version") == "v4.manager_workbench.hk_industry_classification.v1"
+         and artifact.get("source_id") == "EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE"
+@@ -353,8 +375,8 @@
+         and type(expected_scope_count) is int and expected_scope_count >= 0
+         and isinstance(codes, list) and len(codes) == expected_scope_count
+         and len(set(codes)) == len(codes) and all(hk_symbol(code) for code in codes)
+-        and artifact.get("scope_count") == expected_scope_count
+-        and artifact.get("membership_codes_sha256") == expected_codes_sha
++        and source_scope_valid
++        and source_membership_valid
+         and expected_codes_sha == actual_codes_sha
+         and artifact.get("membership_artifact_sha256") == expected_member_sha
+         and valid_sha(expected_member_sha) and valid_sha(artifact_sha)
+@@ -522,6 +544,9 @@
+             security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None,
+             source_asof_status=artifact.get("source_asof_status"), captured_at=artifact.get("captured_at"),
+             temporal_status=(temporal_status if time_ok else "RETROSPECTIVE_PIT_UNKNOWN"),
++            classification_policy=artifact.get("classification_policy"),
++            observed_trade_date=artifact.get("observed_trade_date"),
++            source_date_semantics=artifact.get("source_date_semantics"),
+             historical_pit_verified=False,
+             diagnostic_candidate=diagnostic_projection["diagnostic_candidate"],
+             diagnostic_status=diagnostic_projection["diagnostic_status"],
+@@ -529,7 +554,7 @@
+             available_at=captured_at,
+             research_effectiveness="UNVALIDATED"))
+     summary = dict(display_only=True, mapping_version=HK_INDUSTRY_MAPPING_VERSION,
+-        source_status="READY" if time_ok and not (missing or out_of_scope or bad_row_count
++        source_status="READY" if time_ok and artifact.get("status") != "PARTIAL" and not (missing or out_of_scope or bad_row_count
+             or duplicate_symbols or identity_gap_symbols)
+             else "PARTIAL" if time_ok else "RETROSPECTIVE_PIT_UNKNOWN",
+         source_gap=(temporal_status if not time_ok else identity_gap), target_date=context.get("target_date"),
+@@ -540,6 +565,9 @@
+         candidate_row_count=triggered, decision_counts=counts,
+         source_asof=source_asof, source_asof_status=artifact.get("source_asof_status"),
+         captured_at=artifact.get("captured_at"), temporal_status=temporal_status,
++        classification_policy=artifact.get("classification_policy"),
++        observed_trade_date=artifact.get("observed_trade_date"),
++        source_date_semantics=artifact.get("source_date_semantics"),
+         historical_pit_verified=False, membership_codes_sha256=expected_codes_sha,
+         membership_artifact_sha256=expected_member_sha, source_artifact_sha256=artifact_sha,
+         source_response_count=len({item.get("source_response_sha256") for item in rows if isinstance(item, dict)}),
+--- a/v4/manager_workbench/engines/us_mapping.py
++++ b/v4/manager_workbench/engines/us_mapping.py
+@@ -199,6 +199,7 @@
+         for relation in relations:
+             priority=relation.get("research_priority",item.get("source_status")) if isinstance(relation,dict) else None
+             change=positive_change(item) if item.get("positive_change_required") else True
++            positive_change_required = item.get("positive_change_required") is True
+             base = dict(item, symbol=relation.get("target_symbol") if isinstance(relation, dict) else None,
+                         name=relation.get("target_name") if isinstance(relation, dict) else None,
+                         membership=relation.get("membership") if isinstance(relation, dict) else None,
+@@ -227,6 +228,41 @@
+                 output_rows.append(row(base, "UNASSESSED", quote_missing_reason, conditions=conditions,
+                     diagnostic_gaps=diagnostic_gaps, **extra))
+                 continue
++
++            change_evidence_verified = (
++                positive_change_required
++                and source_ok
++                and change is not None
++                and not quote_missing_reason
++                and not item.get("source_gaps")
++            )
++            if (change_evidence_verified and change is False and isinstance(relation, dict)
++                    and hk_symbol(relation.get("target_symbol"))):
++                # A valid false necessary trigger disposes of this declared
++                # direct relation path, while its other admission gates remain
++                # visible and unresolved. This is not a stock-level verdict.
++                relation_ok=(source_ok and hk_symbol(relation.get("target_symbol")) and
++                        relation.get("status") == "REVIEWED" and valid_sha(relation.get("sha256")) and
++                        relation.get("review_owner") and current(context, relation.get("available_at")) and
++                        publication_before_cutoff(context, relation) and relation.get("relation_type"))
++                eligible=membership(base,context)
++                qualification_gaps=[]
++                if (relation.get("status") == "PROPOSED"
++                        or relation.get("pit_status") == "PIT_UNCONFIRMED"):
++                    qualification_gaps.append("US_RELATION_PROPOSED_PIT_UNCONFIRMED")
++                elif not relation_ok:
++                    qualification_gaps.append("US_RELATION_REVIEW_OR_CUTOFF_GUARD_NOT_PASSED")
++                if priority not in ("PRIORITY", "WATCH", "NONE"):
++                    qualification_gaps.append("AUDITED_RESEARCH_PRIORITY_UNAVAILABLE")
++                if eligible is None:
++                    qualification_gaps.append("CONNECT_MEMBERSHIP_UNKNOWN")
++                elif eligible is False:
++                    qualification_gaps.append("TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP")
++                output_rows.append(row(base, "NOT_SELECTED", "US_SOURCE_CHANGE_NOT_POSITIVE",
++                    conditions=["DIRECT_RELATION_PATH_ONLY", "NOT_STOCK_LEVEL_DECISION"],
++                    diagnostic_gaps=qualification_gaps,
++                    path_disposition_scope="DIRECT_US_HK_RELATION_ONLY", **extra))
++                continue
+             if isinstance(relation, dict) and (
+                 relation.get("status") == "PROPOSED"
+                 or relation.get("pit_status") == "PIT_UNCONFIRMED"
+@@ -239,11 +275,16 @@
+                     relation.get("review_owner") and current(context, relation.get("available_at")) and
+                     publication_before_cutoff(context, relation) and relation.get("relation_type"))
+             eligible=membership(base,context)
+-            if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True):
++            if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True
++                    and (change is not False or change_evidence_verified)):
+                 blockers=[]
+                 if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
+                 if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
+-                reason='US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE') else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED'
++                if change is False and not change_evidence_verified:
++                    blockers.append('US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED')
++                reason=('US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED' if change is False and not change_evidence_verified
++                    else 'US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE')
++                    else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED')
+                 output_rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
+             elif change is False:
+                 output_rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))
+--- a/v4/manager_workbench/inputs/native.py
++++ b/v4/manager_workbench/inputs/native.py
+@@ -29,6 +29,25 @@
+         return parsed.strftime("%Y%m%d") if parsed.isoformat() == value else None
+     except ValueError:
+         return None
++
++
++def _project_current_membership_for_industry(artifact, member_ref):
++    """Bind current membership only on the normalized observed-use projection.
++
++    The owner's membership hashes remain separately preserved as
++    ``source_membership_*`` provenance. A target-membership alias is emitted
++    only from an independently verified current membership EvidenceRef.
++    """
++    if not isinstance(artifact, dict) or artifact.get("classification_policy") != "LATEST_OBSERVED":
++        return artifact
++    projected = dict(artifact)
++    member_sha = None
++    if (member_ref is not None
++            and member_ref.verification == Verification.VERIFIED
++            and valid_sha(member_ref.sha256)):
++        member_sha = member_ref.sha256
++    projected["membership_artifact_sha256"] = member_sha
++    return projected
+ 
+ 
+ 
+@@ -944,8 +963,10 @@
+                 hk_industry_identity=identity)
+             if isinstance(industry_pin, dict) and industry_pin.get("status") == "READY":
+                 artifact = industry_pin.get("artifact")
++                artifact = _project_current_membership_for_industry(artifact, member_ref)
+                 industry_ref = self._ref(industry_pin["owner"], "HK_ISSUER_INDUSTRY_CLASSIFICATION",
+-                    context.target_date, industry_pin["artifact_sha256"], industry_pin["artifact_relative"],
++                    industry_pin.get("observed_trade_date") or context.target_date,
++                    industry_pin["artifact_sha256"], industry_pin["artifact_relative"],
+                     artifact.get("captured_at") if isinstance(artifact, dict) else None,
+                     url=industry_pin.get("source_url"))
+                 refs.append(industry_ref)
+--- a/v4/manager_workbench/inputs/source_bindings.py
++++ b/v4/manager_workbench/inputs/source_bindings.py
+@@ -65,6 +65,118 @@
+     except ValueError:
+         return None
+ 
++
++
++def _load_observed_hk_industry_pin(config, context, pin):
++    """Load one explicitly pinned owner capture under the observed-use policy.
++
++    The owner capture date and capture timestamp stay separate from the run's
++    target date. This path is opt-in per target date and never scans for a newer
++    file or infers an effective date from capture time.
++    """
++    day = context.target_date
++    observed_day = _date_token(pin.get('observed_trade_date'))
++    if (pin.get('policy') != 'LATEST_OBSERVED'
++            or pin.get('target_date') != day
++            or observed_day != pin.get('observed_trade_date')
++            or observed_day is None
++            or observed_day > day
++            or pin.get('source_asof') is not None
++            or pin.get('source_asof_status') != 'UNKNOWN'):
++        raise ValueError('HK_INDUSTRY_OBSERVED_POLICY_BINDING_INVALID')
++    root = Path(pin.get('source_local_path') or config.shared_root)
++    artifact_relative = pin.get('artifact_relative')
++    receipt_relative = pin.get('receipt_relative')
++    manifest_relative = pin.get('manifest_relative')
++    artifact_sha = pin.get('artifact_sha256')
++    receipt_sha = pin.get('receipt_sha256')
++    manifest_sha = pin.get('manifest_sha256')
++    if (not artifact_relative or not receipt_relative or not manifest_relative
++            or not valid_sha(artifact_sha) or not valid_sha(receipt_sha)
++            or not valid_sha(manifest_sha)):
++        raise ValueError('HK_INDUSTRY_OBSERVED_POLICY_PIN_INVALID')
++    payload, actual_artifact_sha = read(root, artifact_relative, artifact_sha)
++    receipt, actual_receipt_sha = read(root, receipt_relative, receipt_sha)
++    manifest, actual_manifest_sha = read(root, manifest_relative, manifest_sha)
++    captured_at = payload.get('captured_at')
++    cutoff = context.cutoff
++    if (manifest.get(artifact_relative) != actual_artifact_sha
++            or payload.get('schema_version') != 'v3_5.research_peripheral.v1'
++            or payload.get('source_id') != 'EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE'
++            or payload.get('trade_date') != observed_day
++            or payload.get('source_asof') is not None
++            or payload.get('source_asof_status') != 'UNKNOWN'
++            or payload.get('source_date_semantics') != pin.get('source_date_semantics')
++            or payload.get('captured_at') != pin.get('captured_at')
++            or not before(captured_at, cutoff)
++            or payload.get('status') != pin.get('expected_status')
++            or payload.get('scope_count') != pin.get('expected_scope_count')
++            or not isinstance(payload.get('items'), list)
++            or len(payload['items']) != pin.get('expected_item_count')
++            or not isinstance(payload.get('failures'), list)
++            or len(payload['failures']) != pin.get('expected_failure_count')
++            or receipt.get('schema_version') != 'v3_5.research_peripheral_receipt.v1'
++            or receipt.get('trade_date') != observed_day
++            or payload.get('source') != 'hk_industry_classification'
++            or receipt.get('source') != payload.get('source')
++            or receipt.get('payload_path') != artifact_relative
++            or receipt.get('payload_sha256') != actual_artifact_sha
++            or receipt.get('captured_at') != captured_at
++            or receipt.get('item_count') != len(payload['items'])
++            or receipt.get('failure_count') != pin.get('expected_failure_count')
++            or receipt.get('batch_response_sha256') != payload.get('batch_response_sha256')):
++        raise ValueError('HK_INDUSTRY_OBSERVED_POLICY_OWNER_EVIDENCE_INVALID')
++    try:
++        from ..engines.us_factor import HK_INDUSTRY_TO_PROXY
++    except ImportError:
++        HK_INDUSTRY_TO_PROXY = {}
++    rows = []
++    for item in payload['items']:
++        if not isinstance(item, dict):
++            continue
++        row = dict(
++            symbol=item.get('symbol'),
++            issuer_name=item.get('issuer_name'),
++            source_industry=item.get('source_industry'),
++            source_row_sha256=item.get('source_row_sha256'),
++            source_response_sha256=item.get('source_response_sha256'),
++            source_response_ref=item.get('source_response_ref'),
++        )
++        mapped = HK_INDUSTRY_TO_PROXY.get(row.get('source_industry'))
++        if isinstance(mapped, dict):
++            row['mapping_type'] = mapped.get('mapping_type')
++        rows.append(row)
++    artifact = dict(
++        schema_version='v4.manager_workbench.hk_industry_classification.v1',
++        source_id=payload.get('source_id'),
++        source_owner='research_peripheral.hk_industry_classification',
++        market='HK_CONNECT', scope_type='HK_CONNECT_FULL_MARKET',
++        target_date=day, observed_trade_date=observed_day,
++        classification_policy='LATEST_OBSERVED',
++        status=payload.get('status'), scope_count=payload.get('scope_count'),
++        observed_scope_count=payload.get('scope_count'),
++        source_membership_codes_sha256=payload.get('membership_codes_sha256'),
++        source_membership_artifact_sha256=payload.get('membership_artifact_sha256'),
++        batch_response_sha256=payload.get('batch_response_sha256'),
++        source_url=payload.get('source_url'), source_asof=None,
++        source_asof_status='UNKNOWN', captured_at=captured_at,
++        source_date_semantics=payload.get('source_date_semantics'),
++        requested_codes=payload.get('requested_codes'), failures=payload.get('failures'), rows=rows,
++    )
++    owner = pin.get('owner')
++    if not isinstance(owner, str) or not owner:
++        raise ValueError('HK_INDUSTRY_CLASSIFICATION_OWNER_UNKNOWN')
++    root_text = str(root)
++    return dict(status='READY', owner=owner, artifact=artifact,
++        artifact_relative=artifact_relative, artifact_sha256=actual_artifact_sha,
++        source_local_path=root_text, source_url=payload.get('source_url'),
++        receipt_relative=receipt_relative, receipt_sha256=actual_receipt_sha,
++        manifest_relative=manifest_relative, manifest_sha256=actual_manifest_sha,
++        policy='LATEST_OBSERVED', observed_trade_date=observed_day,
++        source_asof=None, source_asof_status='UNKNOWN',
++        checked_files=[dict(source_local_path=root_text, relative=artifact_relative, sha256=actual_artifact_sha),
++            dict(source_local_path=root_text, relative=receipt_relative, sha256=actual_receipt_sha),
++            dict(source_local_path=root_text, relative=manifest_relative, sha256=actual_manifest_sha)])
+ 
+ def membership(config, context):
+     root, day = config.shared_root, context.target_date
+@@ -314,6 +426,12 @@
+         date_pins = config.source_bindings.get('us_mapping', {})
+         us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+         pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
++    if isinstance(pin, dict) and pin.get('policy') == 'LATEST_OBSERVED':
++        try:
++            return _load_observed_hk_industry_pin(config, context, pin)
++        except (OSError, ValueError, KeyError, TypeError) as error:
++            gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_OWNER_UNAVAILABLE'
++            return dict(status='UNAVAILABLE', gap=gap)
+     if not isinstance(pin, dict):
+         root = Path(config.shared_root) if getattr(config, 'shared_root', None) else None
+         if root is None:

@@ -258,6 +258,15 @@ def _industry_time_state(artifact, context):
     if captured_at > cutoff:
         return False, "CLASSIFICATION_CAPTURE_AFTER_CUTOFF", captured_at.isoformat()
     source_asof = artifact.get("source_asof")
+    if artifact.get("classification_policy") == "LATEST_OBSERVED":
+        observed_date, observed_valid = _industry_asof_date(artifact.get("observed_trade_date"))
+        if source_asof is not None or artifact.get("source_asof_status") != "UNKNOWN":
+            return False, "CLASSIFICATION_OBSERVED_POLICY_SOURCE_ASOF_CONFLICT", captured_at.isoformat()
+        if not observed_valid:
+            return False, "CLASSIFICATION_OBSERVED_TRADE_DATE_INVALID", captured_at.isoformat()
+        if observed_date > target:
+            return False, "CLASSIFICATION_OBSERVATION_AFTER_TARGET", captured_at.isoformat()
+        return True, "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN", captured_at.isoformat()
     asof_date, asof_valid = _industry_asof_date(source_asof)
     if source_asof is None:
         return False, "CLASSIFICATION_SOURCE_ASOF_UNKNOWN", captured_at.isoformat()
@@ -344,6 +353,19 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     rows = artifact.get("rows")
     artifact_sha = binding.get("artifact_sha256")
+    observed_policy = artifact.get("classification_policy") == "LATEST_OBSERVED"
+    source_scope_valid = (
+        type(artifact.get("scope_count")) is int and artifact.get("scope_count") >= 0
+        and artifact.get("observed_scope_count") == artifact.get("scope_count")
+        and valid_sha(artifact.get("source_membership_codes_sha256"))
+        and valid_sha(artifact.get("source_membership_artifact_sha256"))
+        if observed_policy else artifact.get("scope_count") == expected_scope_count
+    )
+    source_membership_valid = (
+        artifact.get("membership_codes_sha256") == expected_codes_sha
+        and artifact.get("membership_artifact_sha256") == expected_member_sha
+        if not observed_policy else True
+    )
     identity_ok = (
         artifact.get("schema_version") == "v4.manager_workbench.hk_industry_classification.v1"
         and artifact.get("source_id") == "EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE"
@@ -353,8 +375,8 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         and type(expected_scope_count) is int and expected_scope_count >= 0
         and isinstance(codes, list) and len(codes) == expected_scope_count
         and len(set(codes)) == len(codes) and all(hk_symbol(code) for code in codes)
-        and artifact.get("scope_count") == expected_scope_count
-        and artifact.get("membership_codes_sha256") == expected_codes_sha
+        and source_scope_valid
+        and source_membership_valid
         and expected_codes_sha == actual_codes_sha
         and artifact.get("membership_artifact_sha256") == expected_member_sha
         and valid_sha(expected_member_sha) and valid_sha(artifact_sha)
@@ -522,6 +544,9 @@ def _hk_industry_candidates(context, payload, proxy_returns):
             security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None,
             source_asof_status=artifact.get("source_asof_status"), captured_at=artifact.get("captured_at"),
             temporal_status=(temporal_status if time_ok else "RETROSPECTIVE_PIT_UNKNOWN"),
+            classification_policy=artifact.get("classification_policy"),
+            observed_trade_date=artifact.get("observed_trade_date"),
+            source_date_semantics=artifact.get("source_date_semantics"),
             historical_pit_verified=False,
             diagnostic_candidate=diagnostic_projection["diagnostic_candidate"],
             diagnostic_status=diagnostic_projection["diagnostic_status"],
@@ -529,7 +554,7 @@ def _hk_industry_candidates(context, payload, proxy_returns):
             available_at=captured_at,
             research_effectiveness="UNVALIDATED"))
     summary = dict(display_only=True, mapping_version=HK_INDUSTRY_MAPPING_VERSION,
-        source_status="READY" if time_ok and not (missing or out_of_scope or bad_row_count
+        source_status="READY" if time_ok and artifact.get("status") != "PARTIAL" and not (missing or out_of_scope or bad_row_count
             or duplicate_symbols or identity_gap_symbols)
             else "PARTIAL" if time_ok else "RETROSPECTIVE_PIT_UNKNOWN",
         source_gap=(temporal_status if not time_ok else identity_gap), target_date=context.get("target_date"),
@@ -540,6 +565,9 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         candidate_row_count=triggered, decision_counts=counts,
         source_asof=source_asof, source_asof_status=artifact.get("source_asof_status"),
         captured_at=artifact.get("captured_at"), temporal_status=temporal_status,
+        classification_policy=artifact.get("classification_policy"),
+        observed_trade_date=artifact.get("observed_trade_date"),
+        source_date_semantics=artifact.get("source_date_semantics"),
         historical_pit_verified=False, membership_codes_sha256=expected_codes_sha,
         membership_artifact_sha256=expected_member_sha, source_artifact_sha256=artifact_sha,
         source_response_count=len({item.get("source_response_sha256") for item in rows if isinstance(item, dict)}),

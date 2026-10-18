@@ -199,6 +199,7 @@ def run_us_mapping(context, batch):
         for relation in relations:
             priority=relation.get("research_priority",item.get("source_status")) if isinstance(relation,dict) else None
             change=positive_change(item) if item.get("positive_change_required") else True
+            positive_change_required = item.get("positive_change_required") is True
             base = dict(item, symbol=relation.get("target_symbol") if isinstance(relation, dict) else None,
                         name=relation.get("target_name") if isinstance(relation, dict) else None,
                         membership=relation.get("membership") if isinstance(relation, dict) else None,
@@ -227,6 +228,41 @@ def run_us_mapping(context, batch):
                 output_rows.append(row(base, "UNASSESSED", quote_missing_reason, conditions=conditions,
                     diagnostic_gaps=diagnostic_gaps, **extra))
                 continue
+
+            change_evidence_verified = (
+                positive_change_required
+                and source_ok
+                and change is not None
+                and not quote_missing_reason
+                and not item.get("source_gaps")
+            )
+            if (change_evidence_verified and change is False and isinstance(relation, dict)
+                    and hk_symbol(relation.get("target_symbol"))):
+                # A valid false necessary trigger disposes of this declared
+                # direct relation path, while its other admission gates remain
+                # visible and unresolved. This is not a stock-level verdict.
+                relation_ok=(source_ok and hk_symbol(relation.get("target_symbol")) and
+                        relation.get("status") == "REVIEWED" and valid_sha(relation.get("sha256")) and
+                        relation.get("review_owner") and current(context, relation.get("available_at")) and
+                        publication_before_cutoff(context, relation) and relation.get("relation_type"))
+                eligible=membership(base,context)
+                qualification_gaps=[]
+                if (relation.get("status") == "PROPOSED"
+                        or relation.get("pit_status") == "PIT_UNCONFIRMED"):
+                    qualification_gaps.append("US_RELATION_PROPOSED_PIT_UNCONFIRMED")
+                elif not relation_ok:
+                    qualification_gaps.append("US_RELATION_REVIEW_OR_CUTOFF_GUARD_NOT_PASSED")
+                if priority not in ("PRIORITY", "WATCH", "NONE"):
+                    qualification_gaps.append("AUDITED_RESEARCH_PRIORITY_UNAVAILABLE")
+                if eligible is None:
+                    qualification_gaps.append("CONNECT_MEMBERSHIP_UNKNOWN")
+                elif eligible is False:
+                    qualification_gaps.append("TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP")
+                output_rows.append(row(base, "NOT_SELECTED", "US_SOURCE_CHANGE_NOT_POSITIVE",
+                    conditions=["DIRECT_RELATION_PATH_ONLY", "NOT_STOCK_LEVEL_DECISION"],
+                    diagnostic_gaps=qualification_gaps,
+                    path_disposition_scope="DIRECT_US_HK_RELATION_ONLY", **extra))
+                continue
             if isinstance(relation, dict) and (
                 relation.get("status") == "PROPOSED"
                 or relation.get("pit_status") == "PIT_UNCONFIRMED"
@@ -239,11 +275,16 @@ def run_us_mapping(context, batch):
                     relation.get("review_owner") and current(context, relation.get("available_at")) and
                     publication_before_cutoff(context, relation) and relation.get("relation_type"))
             eligible=membership(base,context)
-            if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True):
+            if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True
+                    and (change is not False or change_evidence_verified)):
                 blockers=[]
                 if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
                 if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
-                reason='US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE') else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED'
+                if change is False and not change_evidence_verified:
+                    blockers.append('US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED')
+                reason=('US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED' if change is False and not change_evidence_verified
+                    else 'US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE')
+                    else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED')
                 output_rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
             elif change is False:
                 output_rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))

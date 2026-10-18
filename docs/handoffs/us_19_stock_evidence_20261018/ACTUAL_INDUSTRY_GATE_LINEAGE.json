@@ -1,0 +1,185 @@
+{
+  "schema_version": "v4.handoff.actual_industry_gate_lineage.v1",
+  "classification": "READ_ONLY_ACTUAL_RUN_INDUSTRY_GATE_DIAGNOSIS",
+  "audited_at_utc": "2026-10-18T14:41:01Z",
+  "run": {
+    "run_id": "52231a267c5e4eb4859bcff275949786",
+    "target_date": "20261020",
+    "trigger": "MANUAL",
+    "phase": "MANUAL",
+    "cutoff": "2026-10-18T22:29:30.408480+08:00",
+    "source_sessions": {
+      "hk_price": "20261016",
+      "us": "20261016"
+    },
+    "snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/52231a267c5e4eb4859bcff275949786.json",
+    "snapshot_sha256": "f6d85f09b7f25035a426b20b64ae98eea877ce195b226b1d4a376cd8ef5628e0",
+    "snapshot_input_sha256": "2b09f02a9c9179ab0cc38aa595a7a0dbea340f070ee49c7333932439c6657952",
+    "actual_result": {
+      "day_state": "PARTIAL",
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 19,
+      "industry_source_status": "INVALID",
+      "industry_source_gap": "HK_INDUSTRY_CLASSIFICATION_SCOPE_OR_IDENTITY_INVALID",
+      "industry_scope_count": 698,
+      "industry_classified_count": 0,
+      "industry_summary_missing_count": 698,
+      "industry_candidate_count": 0,
+      "industry_historical_pit_verified": false,
+      "industry_temporal_status": "CANNOT_CONFIRM"
+    }
+  },
+  "saved_input_batch": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/checkpoints/52231a267c5e4eb4859bcff275949786/LOAD_INPUTS.json",
+    "bytes": 35499819,
+    "file_sha256": "5c16c59774d279cb8357d60cb470c8a257fa73fabe6a9eb5dc4778c212dc67ff",
+    "batch_input_sha256": "b992ddbf90fa1a6a94806d57b7a06dae9e360029799a9c975ce33f648621c45c",
+    "record_count": 1051,
+    "inspected_record": "batches[0].records[0].us_factor_payload.hk_industry_classification"
+  },
+  "active_runtime": {
+    "release_id": "us-19-evidence-api-20261018-r2",
+    "release_manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+    "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+    "industry_config_pin": {
+      "policy": "LATEST_OBSERVED",
+      "target_date": "20261020",
+      "observed_trade_date": "20261014",
+      "source_asof_status": "UNKNOWN",
+      "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b"
+    },
+    "source_file_sha256": {
+      "v4/manager_workbench/engines/us_factor.py": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+      "v4/manager_workbench/engines/us_mapping.py": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830",
+      "v4/manager_workbench/inputs/native.py": "d95ee18bad508a7786f97ed8fea4d90674ccbc24d15e181020b3f73e7a240b71",
+      "v4/manager_workbench/inputs/source_bindings.py": "97a617c51e0e1b9c27d01fca0d77a691c6793ed37d0b9085ec07d1367fe22f2f"
+    },
+    "runtime_identity_source": "ROOT_API_ACTIVATION_RECEIPT.json post_identity and ROOT_DAY_READBACK.json; each source-file SHA matched the active release manifest entry"
+  },
+  "industry_source_binding": {
+    "owner": "research_peripheral.hk_industry_classification",
+    "artifact_relative": "research/peripherals/20261014/hk_industry_classification.json",
+    "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+    "artifact_status": "PARTIAL",
+    "classification_policy": "LATEST_OBSERVED",
+    "target_date": "20261020",
+    "observed_trade_date": "20261014",
+    "captured_at": "2026-10-14T11:03:29.919614+08:00",
+    "scope_count": 698,
+    "observed_scope_count": 698,
+    "rows": 695,
+    "source_asof": null,
+    "source_asof_status": "UNKNOWN",
+    "source_membership_artifact_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+    "source_membership_codes_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1",
+    "projected_artifact_membership_artifact_sha256": null,
+    "projected_artifact_membership_codes_sha256": null
+  },
+  "target_scope_rows": {
+    "baseline_stock_count": 19,
+    "label_bearing_rows_with_64_hex_row_and_response_hashes_and_nonempty_refs": 15,
+    "label_bearing_symbols": [
+      "HK.00700", "HK.00763", "HK.00780", "HK.00992", "HK.01024",
+      "HK.01211", "HK.01810", "HK.02015", "HK.03690", "HK.06088",
+      "HK.06166", "HK.09626", "HK.09868", "HK.09888", "HK.09999"
+    ],
+    "no_label_row_symbols": ["HK.06823", "HK.09618", "HK.09961", "HK.09988"],
+    "identity_gap_symbols_in_target": [],
+    "qualification": "The 15 rows are structurally label-bearing in the saved owner artifact; this audit does not claim independent revalidation of the referenced raw response bodies or target-date/PIT validity."
+  },
+  "security_master_identity": {
+    "owner": "v3_shared_data",
+    "source_date": "20261016",
+    "artifact_sha256": "58f917cf3621c45f195b034e472cada257f0ac873649a6a5ba4d661d340497a1",
+    "manifest_sha256": "79ddfee6e6ad700be453c4fc505e0f381460516a5e5d9bf84cd9c130511a549c",
+    "master_scope_count": 691,
+    "identity_resolved_count": 690,
+    "identity_gap_count": 8,
+    "identity_gap_symbols": [
+      "HK.00853", "HK.02172", "HK.02252", "HK.02555",
+      "HK.02723", "HK.03039", "HK.03167", "HK.03443"
+    ],
+    "target_intersection": [],
+    "interpretation": "The active engine computes these as a code-set difference and applies symbol_identity_ok per symbol after the global source gate. They do not cause this run's global industry-source rejection and do not overlap the 19 target symbols."
+  },
+  "global_rejection_cause": {
+    "guard": "us_factor._hk_industry_candidates identity_ok",
+    "active_source_lines": "369-400",
+    "observed_policy_source_membership_pair_matches_binding": true,
+    "failed_global_predicates": [
+      {
+        "line": 381,
+        "predicate": "artifact.membership_artifact_sha256 == expected_member_sha",
+        "actual_left": null,
+        "actual_right": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+        "effect": "false; LATEST_OBSERVED source hashes are in source_membership_* fields, while the separately projected target-membership alias is null"
+      },
+      {
+        "lines": "385-387",
+        "predicate": "membership_effective_from and membership_effective_through are strings enclosing target_date",
+        "actual_from": null,
+        "actual_through": null,
+        "target_date": "20261020",
+        "effect": "false; current Connect target membership interval is not authenticated"
+      }
+    ],
+    "return_path": "When identity_ok is false the engine sets source_status=INVALID and returns no classification rows at lines 396-400, before the time-state check and per-symbol row loop at lines 402 onward.",
+    "not_the_cause": "The eight security-master symbol gaps are not the global blocker. source_asof UNKNOWN is not a LATEST_OBSERVED failure condition in the later time-state branch at lines 261-269; actual execution exits before that branch, so this does not authenticate PIT or target-date validity.",
+    "summary_count_caution": "classification_missing_count=698 is set by the global early-return default at lines 317-325; it is not a count of 698 absent raw provider rows. The saved owner artifact has 15 label-bearing target rows and 4 target symbols without rows."
+  },
+  "membership_boundary": {
+    "membership_owner": "FUTU_HKCONNECT_PLATE_MEMBERSHIP",
+    "membership_artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json",
+    "membership_artifact_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+    "source_date": "20261012",
+    "projection_effective_from": null,
+    "projection_effective_to": null,
+    "target_period_verified": false,
+    "industry_binding_effective_from": null,
+    "industry_binding_effective_through": null,
+    "connect_membership_gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+    "monthly_interval_promoted": false,
+    "evidence": "The actual bound membership artifact has effective_date/source_date/target_date/trade_date 20261012; the membership parser treats effective_date as an observation date and only reads explicit interval endpoint pairs (active source_bindings.py lines 219-247). The actual saved projection and industry binding both carry null interval endpoints. No 20261001-20261031 interval was present in this bound artifact or promoted into LOAD_INPUTS."
+  },
+  "other_open_gates": [
+    "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND",
+    "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+    "Industry owner source_asof remains UNKNOWN and historical_pit_verified=false.",
+    "Four of the 19 target symbols have no row in the observed classification artifact."
+  ],
+  "evidence_paths": [
+    {"path": "docs/handoffs/us_19_stock_evidence_20261018/ROOT_DAY_READBACK.json", "role": "run identity, API readback, cutoff, summary counts"},
+    {"path": "docs/handoffs/us_19_stock_evidence_20261018/local_only/run_readback/day.json", "role": "actual persisted day response and industry summary"},
+    {"path": "docs/handoffs/us_19_stock_evidence_20261018/ROOT_API_ACTIVATION_RECEIPT.json", "role": "active API process release, manifest, and config identity at run time"},
+    {"path": "docs/handoffs/us_19_stock_evidence_20261018/ROOT_API_R2_RELEASE_BUILD.json", "role": "active release source-file hashes and config hash"},
+    {"path": "docs/handoffs/us_19_stock_evidence_20261018/ROOT_19_STOCK_BASELINE.json", "role": "19-symbol target scope"},
+    {"path": "docs/handoffs/us_19_stock_evidence_20261018/local_only/decision_probe/latest_observed_industry_impact.json", "role": "prior read-only owner and date-semantics inventory; not used as actual-run input"},
+    {"path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/checkpoints/52231a267c5e4eb4859bcff275949786/LOAD_INPUTS.json", "sha256": "5c16c59774d279cb8357d60cb470c8a257fa73fabe6a9eb5dc4778c212dc67ff", "role": "saved InputBatch proving actual source and membership bindings"},
+    {"path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app/v4/manager_workbench/engines/us_factor.py", "sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50", "lines": "261-269, 303-316, 369-400, 402-435, 498-502", "role": "active global identity guard, observed-time policy, and per-symbol identity behavior"},
+    {"path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app/v4/manager_workbench/inputs/native.py", "sha256": "d95ee18bad508a7786f97ed8fea4d90674ccbc24d15e181020b3f73e7a240b71", "lines": "34-50, 978-999", "role": "source-membership versus target-membership projection"},
+    {"path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app/v4/manager_workbench/inputs/source_bindings.py", "sha256": "97a617c51e0e1b9c27d01fca0d77a691c6793ed37d0b9085ec07d1367fe22f2f", "lines": "181-253, 357-380", "role": "explicit membership-period parser and observed-classification source binding"},
+    {"path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/universes/20261012/HK_CONNECT_FULL_MARKET.json", "sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d", "role": "actual run's bound membership artifact; exact observed date, no explicit effective interval"}
+  ],
+  "cannot_confirm": [
+    "No target-date industry classifications were admitted in this run; all 19 remain unassessed for this gate.",
+    "The 15 label-bearing rows have structurally present 64-hex row/response hashes and nonempty references, but referenced raw response bodies were not independently rehashed in this audit.",
+    "The 20261014 observation does not establish source_asof, target-date validity, or historical PIT; historical_pit_verified remains false.",
+    "Connect membership effective for target 20261020 is unconfirmed; no interval may be inferred from the 20261012 snapshot date or from a monthly key.",
+    "The four target symbols without classification rows remain missing, and the daily paired factor review is not bound."
+  ],
+  "boundary_status": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "industry_source_gate": "INVALID_GLOBAL_IDENTITY_GUARD",
+    "security_master_target_overlap": 0,
+    "target_connect_membership": "CANNOT_CONFIRM",
+    "historical_pit_verified": false,
+    "source_code_review_verdict": "NOT_CLAIMED",
+    "overall": "CANNOT_CONFIRM_TARGET_DATE_INDUSTRY_ADMISSION"
+  },
+  "recommended_next_step": "Keep the 20261012 membership snapshot as observed-only and retain null target-effective endpoints. Within the existing industry-only decision scope, clarify whether label-only research may consume the 20261014 classification scope without target Connect eligibility. If yes, make a bounded contract change that keeps source_membership_* provenance distinct from target membership and keeps row membership CANNOT_CONFIRM; otherwise leave the global gate closed until the owner supplies a defensible target-effective interval. In either case, do not manufacture a monthly interval; then require the designated independent review and a separately identified run before claiming behavior acceptance."
+}

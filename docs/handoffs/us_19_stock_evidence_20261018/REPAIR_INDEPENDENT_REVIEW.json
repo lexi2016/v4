@@ -1,0 +1,160 @@
+{
+  "schema_version": "v4.us_19_p1_repair_independent_review.v1",
+  "review_scope": "Only the two frozen P1 repairs and necessary closed R2 release/config/plist checks. Reuse prior direct-trigger PASS; no new source/date audit.",
+  "frozen_scope": {
+    "path": "ROOT_P1_REPAIR_SCOPE.json",
+    "sha256": "096c6b002000060914c99faedf3bc392cc2a5f1077d67a090007b0f1f71ca7cb"
+  },
+  "writer_receipt": {
+    "path": "P1_REPAIR_WRITER_RECEIPT.json",
+    "sha256": "128f0003ffa65ebf681b7cbaa14e26905bbefaf6664c57cba05563a41d741f3d"
+  },
+  "previous_review_reused": {
+    "path": "IMPLEMENTATION_INDEPENDENT_REVIEW.json",
+    "sha256": "12dc9719499adbc1b1f886e3054756c201ab602bca2a20886faaab23a650684d",
+    "direct_api_and_scheduler_canaries_rehashed": true,
+    "direct_source_and_test_hashes_unchanged": true,
+    "direct_23_test_suite_not_rerun_per_frozen_scope": true
+  },
+  "review_status": "REVIEWED_PASS_BOUNDED_REPAIR_SCOPE",
+  "reviewed": "PASS",
+  "tested": "PASS",
+  "behavior_verified": "PASS_BOUNDED_CLOSED_R2_LOADER_NATIVE_ENGINE",
+  "P0_count": 0,
+  "P1_count": 0,
+  "P2_count": 0,
+  "resolved_findings": [
+    {
+      "id": "P1_OBSERVED_INDUSTRY_PROJECTION_REJECTED_BY_ENGINE",
+      "status": "RESOLVED",
+      "evidence": [
+        {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "lines": [34, 50],
+          "sha256": "d95ee18bad508a7786f97ed8fea4d90674ccbc24d15e181020b3f73e7a240b71",
+          "detail": "The helper creates an in-memory projection only for explicit LATEST_OBSERVED artifacts; it sets membership_artifact_sha256 only from a VERIFIED EvidenceRef with a valid SHA. Missing/unverified membership yields null. Original source_membership_* values are retained on the copied artifact."
+        },
+        {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "lines": [978, 985],
+          "detail": "The helper is called at the production NativeAdapters boundary before the industry EvidenceRef/payload are built."
+        },
+        {
+          "path": "tests/manager_workbench/engines/test_us_factor.py",
+          "lines": [627, 675],
+          "sha256": "60998c08bde25f9553f900d184bebeb9050441dcb8e194c2b6b0af6b8182d1db",
+          "detail": "Tests cover positive verified projection, source-provenance preservation, copy/no-mutation behavior, and fail-closed missing or CANNOT_CONFIRM membership."
+        },
+        {
+          "path": "local_only/reviewer/repair/closed_r2_full_engine_canary.json",
+          "sha256": "cfcbaabe8f91026bfd723fbea138ed5b43b99223dc4c022b0a25b93c6c711f43",
+          "detail": "API and scheduler closed candidate modules each passed owner loader -> NativeAdapters -> industry engine. No test-prefilled membership alias was present; current membership was supplied only through explicit controlled fixtures for the positive, nonpositive, and unknown-proxy control cases."
+        }
+      ],
+      "scope_boundary": "Real frozen context has no current membership SHA; both candidates still return INVALID with zero industry rows and no injected membership. This remains CANNOT_CONFIRM, not a repair failure or a waived gate."
+    },
+    {
+      "id": "P1_STAGED_API_PLIST_OVERRIDES_CANDIDATE_IDENTITY",
+      "status": "RESOLVED",
+      "evidence": [
+        {
+          "path": "local_only/reviewer/repair/r2_inventory_config_plist_review.json",
+          "sha256": "52c14c020d3b5b7bf8a418e9341c2e9533affe466e834d916267baa48e854be8",
+          "detail": "Reviewer applied /usr/bin/env ProgramArguments assignments over inherited EnvironmentVariables before validating all six effective API and scheduler child identity keys. Effective app root, release id, manifest path/SHA, PYTHONPATH, and config path match each declared R2 candidate. API gateway role and port 8873 match rollback; scheduler settings and normalized nonidentity plist/schedule fields match rollback."
+        },
+        {
+          "path": "ROOT_API_R2_RELEASE_BUILD.json",
+          "detail": "Staged API plist SHA-256 4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202; live plist remains baseline SHA c3ba9c116007c1dc303637e0310d02eec60e82a954293a965c1c71a980ae2906."
+        },
+        {
+          "path": "ROOT_SCHEDULER_R2_RELEASE_BUILD.json",
+          "detail": "Staged scheduler plist SHA-256 b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37; live plist remains baseline SHA b42d5b1eeabbb20d82fb678f4bd89076bca4a35ebb68cac5e36415cbec7a9ae7."
+        }
+      ],
+      "activation": "Not performed; effective identity was evaluated from staged plist arguments and environment only."
+    }
+  ],
+  "focused_test": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/us_19_stock_evidence_20261018/local_only/reviewer/repair/pytest_p1_repair tests/manager_workbench/engines/test_us_factor.py -k 'observed_owner_projection_ or latest_observed_unknown_source_asof_is_usable_without_claiming_pit or latest_observed_verified_nonpositive_proxy_is_not_selected or latest_observed_missing_proxy_remains_unassessed'",
+    "result": "PASS: 5 passed, 18 deselected"
+  },
+  "closed_r2_full_chain_canary": {
+    "path": "local_only/reviewer/repair/closed_r2_full_engine_canary.json",
+    "sha256": "cfcbaabe8f91026bfd723fbea138ed5b43b99223dc4c022b0a25b93c6c711f43",
+    "api_manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+    "scheduler_manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+    "runtime_modules_loaded_from_closed_candidate_apps": true,
+    "capture_enabled": false,
+    "controlled_results_each_runtime": {
+      "verified_positive_proxy": "15 CONDITIONAL_WATCH; 683 other scope rows UNASSESSED; source PARTIAL",
+      "verified_nonpositive_proxy": "15 NOT_SELECTED; 683 other scope rows UNASSESSED; source PARTIAL",
+      "unknown_proxy": "698 UNASSESSED; source PARTIAL"
+    },
+    "observed_provenance": {
+      "observed_trade_date": "20261014",
+      "source_asof": null,
+      "source_asof_status": "UNKNOWN",
+      "historical_pit_verified": false,
+      "owner_artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "source_membership_sha_preserved_separately": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d"
+    },
+    "actual_frozen_snapshot_each_runtime": {
+      "current_membership_sha256": null,
+      "engine_source_status": "INVALID",
+      "industry_candidate_rows": 0,
+      "current_membership_injected": false,
+      "interpretation": "CANNOT_CONFIRM target-date eligibility; fail-closed behavior preserved"
+    }
+  },
+  "closed_r2_release_config_plist_audit": {
+    "path": "local_only/reviewer/repair/r2_inventory_config_plist_review.json",
+    "sha256": "52c14c020d3b5b7bf8a418e9341c2e9533affe466e834d916267baa48e854be8",
+    "api": {
+      "candidate_release_id": "us-19-evidence-api-20261018-r2",
+      "manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+      "inventory_entries": 1246,
+      "exact_source_deltas": 4,
+      "identical_non_delta_entries": 1242,
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+      "config_diff": "only source_bindings.hk_industry_classification.20261020"
+    },
+    "scheduler": {
+      "candidate_release_id": "us-19-evidence-scheduler-20261018-r2",
+      "manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+      "inventory_entries": 863,
+      "exact_source_deltas": 4,
+      "identical_non_delta_entries": 859,
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+      "config_diff": "only source_bindings.hk_industry_classification.20261020"
+    },
+    "live_api_plist_sha256": "c3ba9c116007c1dc303637e0310d02eec60e82a954293a965c1c71a980ae2906",
+    "live_scheduler_plist_sha256": "b42d5b1eeabbb20d82fb678f4bd89076bca4a35ebb68cac5e36415cbec7a9ae7",
+    "failed_r1_apps_and_staged_plists_preserved": true,
+    "nonidentity_fields_role_port_schedule_preserved": true,
+    "activation_performed": false
+  },
+  "cutover_recommendation": {
+    "status": "MAY_PROCEED_WITH_FROZEN_GUARDS",
+    "conditions": [
+      "Root must freshly pass the original activation plan's live idle/ownership/process/lock/Flash guard checks before changing services or loaded state.",
+      "Keep actual target-20261020 membership/security-master and source date/PIT gaps as CANNOT_CONFIRM; the controlled fixture is not run evidence.",
+      "Accept only actual PARTIAL/UNASSESSED outcomes; do not force selected counts or infer target eligibility from the 20261014 observation.",
+      "API/UI, saved manual-run, and natural-slot receipts remain separate postactivation acceptance gates."
+    ],
+    "reviewer_performed_activation": false
+  },
+  "remaining_cannot_confirm": [
+    "Current target-20261020 membership and security-master eligibility for the frozen data.",
+    "Provider source_asof/effective date and historical PIT safety.",
+    "Actual Friday manual saved run, API readback, reloaded UI readback, and natural-slot behavior."
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "api_post_or_run_submission": false,
+    "service_or_plist_action": false,
+    "source_or_config_written_by_reviewer": false
+  }
+}

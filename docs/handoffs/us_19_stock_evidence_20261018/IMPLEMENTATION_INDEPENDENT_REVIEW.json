@@ -1,0 +1,159 @@
+{
+  "schema_version": "v4.us_19_implementation_independent_review.v1",
+  "review_scope": "Frozen direct-trigger and latest-observed industry implementation copied to inactive API R1 and scheduler R1 candidates; source/config canaries and staged identity review only.",
+  "frozen_writer_receipts": {
+    "decision_path": {
+      "path": "DECISION_PATH_WRITER_IMPLEMENTATION.json",
+      "sha256": "575b299ca30e212158b29d8a485b06fbfdb76c55dd6aeb83dabe77835883d17c"
+    },
+    "observed_industry": {
+      "path": "INDUSTRY_OBSERVED_POLICY_WRITER_IMPLEMENTATION.json",
+      "sha256": "8a25ffdcc97f29272993b287c7bf577ad3f497f010e2ee5fe78911067ddeb09a"
+    }
+  },
+  "review_status": "FAIL_BLOCKED_P1",
+  "reviewed": true,
+  "P0_count": 0,
+  "P1_count": 2,
+  "P2_count": 0,
+  "findings": [
+    {
+      "id": "P1_OBSERVED_INDUSTRY_PROJECTION_REJECTED_BY_ENGINE",
+      "severity": "P1",
+      "status": "CONFIRMED",
+      "evidence": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r1/app/v4/manager_workbench/engines/us_factor.py",
+          "lines": [364, 381],
+          "detail": "LATEST_OBSERVED bypasses the legacy source-membership check at lines 364-367, but identity_ok still unconditionally requires artifact.membership_artifact_sha256 == expected_member_sha at line 381."
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r1/app/v4/manager_workbench/inputs/source_bindings.py",
+          "lines": [134, 149],
+          "detail": "The projection emits source_membership_artifact_sha256 and source_membership_codes_sha256, but not the membership_artifact_sha256 field still required by the engine."
+        },
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r1/app/v4/manager_workbench/inputs/native.py",
+          "lines": [967, 980],
+          "detail": "NativeAdapters passes that projection as the inner artifact; current membership SHA is an outer payload field and is not copied into the inner artifact."
+        },
+        {
+          "path": "local_only/reviewer/implementation/observed_projection_engine_oracle.json",
+          "sha256": "dcd554ec86856573d975cd1939a70ef9c3c270678e5eb68f7d43d94a5f83cff0",
+          "detail": "Both closed candidate apps return INVALID with the frozen snapshot (which independently lacks current membership evidence). A controlled fixture using the actual owner projection plus explicit synthetic current membership and security-master inputs returns INVALID without the missing alias and PARTIAL with an in-memory alias. This isolates the projection defect while preserving the separate real membership/security-master gates."
+        },
+        {
+          "path": "tests/manager_workbench/engines/test_us_factor.py",
+          "lines": [527, 542],
+          "detail": "The observed-policy fixture supplies membership_artifact_sha256, masking the production adapter projection omission."
+        }
+      ],
+      "impact": "The observed-policy industry source cannot pass the candidate engine even when the remaining current-membership and security-master inputs are valid; therefore the authorized observed-label research path is not implemented end-to-end.",
+      "unproven_or_separate_gates": "The frozen actual run has no current membership SHA; target-date membership and security-master eligibility remain CANNOT_CONFIRM. This review does not waive or fabricate those gates."
+    },
+    {
+      "id": "P1_STAGED_API_PLIST_OVERRIDES_CANDIDATE_IDENTITY",
+      "severity": "P1",
+      "status": "CONFIRMED",
+      "evidence": [
+        {
+          "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r1/config/com.lexi.v35.api-only.plist",
+          "sha256": "062c275c2a6597133dc3f72b700ddd114454225fcc8ece580ba8ba6d79898d54",
+          "detail": "ProgramArguments starts with /usr/bin/env and includes baseline R2 assignments for V35_APP_ROOT, V35_RELEASE_ID, PYTHONPATH, V35_RELEASE_MANIFEST_PATH, and V35_RELEASE_MANIFEST_SHA256. EnvironmentVariables points those same keys to candidate R1. The config path is candidate-only in EnvironmentVariables; no stale config override is present in ProgramArguments."
+        },
+        {
+          "path": "ROOT_API_RELEASE_BUILD.json",
+          "detail": "The staged plist is identified as the activation candidate; live plist remains recorded unchanged and candidate is marked activated=false."
+        }
+      ],
+      "impact": "On launch, /usr/bin/env command-line assignments override inherited launchd EnvironmentVariables for the five stale keys, so the child imports and identifies baseline R2 instead of the candidate API R1 while using the candidate config. This defeats the intended API cutover identity.",
+      "activation": "Not performed. Actual post-launch identity remains CANNOT_CONFIRM until a repaired staged plist is independently checked and an authorized guarded activation/readback is completed."
+    }
+  ],
+  "release_integrity": {
+    "api": {
+      "candidate_release_id": "us-19-evidence-api-20261018-r1",
+      "manifest_sha256": "a88ab2394e7a01f52f02e88e3350cbadf79d270ddc9ad3df5dc568c6ce2fcc8a",
+      "inventory_entries": 1246,
+      "expected_source_deltas": 4,
+      "verified_non_delta_entries": 1242,
+      "all_delta_hashes_match_frozen_receipts": true,
+      "config_only_addition": "source_bindings.hk_industry_classification.20261020",
+      "capture_enabled": false,
+      "activated": false
+    },
+    "scheduler": {
+      "candidate_release_id": "us-19-evidence-scheduler-20261018-r1",
+      "manifest_sha256": "3277c7c5429b649a81ee3e95b55bb8daaf475a2ec3fe29c62972c094f75b25ff",
+      "inventory_entries": 863,
+      "expected_source_deltas": 4,
+      "verified_non_delta_entries": 859,
+      "all_delta_hashes_match_frozen_receipts": true,
+      "config_only_addition": "source_bindings.hk_industry_classification.20261020",
+      "capture_enabled": false,
+      "activated": false
+    },
+    "shared_delta_hashes": {
+      "v4/manager_workbench/engines/us_factor.py": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+      "v4/manager_workbench/engines/us_mapping.py": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830"
+    },
+    "live_activation": "NOT_PERFORMED"
+  },
+  "tests": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/us_19_stock_evidence_20261018/local_only/reviewer/implementation/pytest_direct tests/manager_workbench/engines/test_us_mapping.py",
+      "result": "PASS: 23 passed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/us_19_stock_evidence_20261018/local_only/reviewer/implementation/pytest_industry tests/manager_workbench/engines/test_us_factor.py -k 'latest_observed or industry_capture_time_does_not_substitute_for_unknown_source_asof'",
+      "result": "PASS: 6 passed, 15 deselected"
+    }
+  ],
+  "closed_candidate_canaries": {
+    "direct_trigger_api": {
+      "path": "local_only/reviewer/implementation/closed_candidate_api_direct_replay.json",
+      "sha256": "19804334b6aaeb86c6617a7208a965addf5bca33c96dc9fe33ffedadf672e61c",
+      "result": "PASS_READ_ONLY_CLOSED_CANDIDATE_REPLAY",
+      "relation_results": "33 negative links -> NOT_SELECTED; 3 positive links -> UNASSESSED",
+      "aggregate_stocks": "19 UNASSESSED; lane PARTIAL"
+    },
+    "direct_trigger_scheduler": {
+      "path": "local_only/reviewer/implementation/closed_candidate_scheduler_direct_replay.json",
+      "sha256": "be37f3c082538aac74291f35bbdb8d555c6000bae25059c0ff86e3e3825f7d83",
+      "result": "PASS_READ_ONLY_CLOSED_CANDIDATE_REPLAY",
+      "relation_results": "33 negative links -> NOT_SELECTED; 3 positive links -> UNASSESSED",
+      "aggregate_stocks": "19 UNASSESSED; lane PARTIAL"
+    },
+    "observed_industry_api_and_scheduler": {
+      "path": "local_only/reviewer/implementation/observed_projection_engine_oracle.json",
+      "sha256": "dcd554ec86856573d975cd1939a70ef9c3c270678e5eb68f7d43d94a5f83cff0",
+      "result": "CANARY_BINDS_OWNER_BUT_ENGINE_PROJECTION_REGRESSION_FOUND_IN_BOTH_CANDIDATES",
+      "source_policy": "LATEST_OBSERVED; source_asof null; historical_pit_verified false",
+      "actual_frozen_snapshot": "membership gate absent; engine INVALID; preserve CANNOT_CONFIRM",
+      "controlled_fixture": "requires missing current membership alias to reach PARTIAL diagnostic output; 698 rows remain UNASSESSED with no proxy input"
+    }
+  },
+  "acceptance": {
+    "actual_frozen_diff_and_inventory": "PASS",
+    "focused_tests": "PASS",
+    "direct_closed_candidate_canaries": "PASS",
+    "industry_closed_candidate_canary": "FAIL_P1_ENGINE_SCHEMA_MISMATCH",
+    "staged_api_plist_identity": "FAIL_P1",
+    "guarded_activation": "NOT_ALLOWED_UNDER_THIS_REVIEW_RESULT",
+    "actual_friday_manual_run": "NOT_RUN",
+    "api_readback": "CANNOT_CONFIRM",
+    "ui_readback": "CANNOT_CONFIRM",
+    "natural_slot": "CANNOT_CONFIRM",
+    "historical_pit_or_source_effective_date": "CANNOT_CONFIRM",
+    "target_date_current_membership_and_security_master": "CANNOT_CONFIRM",
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "reviewer_wrote_business_source_or_live_configuration": false,
+  "reviewer_actions": [
+    "Created read-only replay script and receipts only under local_only/reviewer/implementation.",
+    "No API POST, capture, service/plist action, run submission, activation, commit, or push."
+  ]
+}

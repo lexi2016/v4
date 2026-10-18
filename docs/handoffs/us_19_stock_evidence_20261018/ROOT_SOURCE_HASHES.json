@@ -1,0 +1,108 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_working_branch_preserved": "codex/system-consolidation-20260912",
+  "github_repository": "lexi2016/v4",
+  "github_work_branch": "codex/us-19-evidence-completion-20261018",
+  "baseline_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0",
+  "canonical_source_files": [
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "a2a41d1c1e8064a58399d34c88eb76174e952e5eeeaa358b292dee049484d777",
+      "after_sha256": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830",
+      "bytes": 24084,
+      "base_remote_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "before_sha256": "b7b90f3bf8841440c9f7e84222c144b9b1be943531f40923cfa34b640e5b48b3",
+      "after_sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+      "bytes": 46813,
+      "base_remote_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "c5131be41fd6d3cdbf832aa479ed4b285901d7e4f00944aa880e32225c9601d6",
+      "after_sha256": "d95ee18bad508a7786f97ed8fea4d90674ccbc24d15e181020b3f73e7a240b71",
+      "bytes": 88632,
+      "base_remote_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "09f7ec8bb5fd9cf593e4ee656ecad3481dbf455508385696f2e4f2e75755d232",
+      "after_sha256": "97a617c51e0e1b9c27d01fca0d77a691c6793ed37d0b9085ec07d1367fe22f2f",
+      "bytes": 65503,
+      "base_remote_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "before_sha256": "d4be808c9bf81e9ef2c012b920597403303aad69fb925753e73c16e2a0aea588",
+      "after_sha256": "0f866beb62766c569d16836795daf102d122580303a1ffa2651d9c7aed65f8d1",
+      "bytes": 17454,
+      "base_remote_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "before_sha256": "c1e4df3cb335365e9b87a368227aa9ec136138bdf854cff1c3ef823f1a25ab4c",
+      "after_sha256": "60998c08bde25f9553f900d184bebeb9050441dcb8e194c2b6b0af6b8182d1db",
+      "bytes": 37191,
+      "base_remote_commit": "fc20dccbb2b54ca63d27ea480266654ee5df13d0"
+    }
+  ],
+  "runtime_rebase": {
+    "API": "canonical four module bytes",
+    "scheduler_base_release": "us-daily-selection-scheduler-20261018-r1",
+    "scheduler_release": "us-19-evidence-scheduler-20261018-r2",
+    "scheduler_delta_paths": [
+      {
+        "path": "v4/manager_workbench/engines/us_factor.py",
+        "before_sha256": "b7b90f3bf8841440c9f7e84222c144b9b1be943531f40923cfa34b640e5b48b3",
+        "after_sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+        "unified_diff_sha256": "36f4bfa945c8eefcad7a17aecf9e3986a73881ffd574ad9f66f77a97b4b86fbe",
+        "unified_diff_hunk_count": 6
+      },
+      {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "before_sha256": "a2a41d1c1e8064a58399d34c88eb76174e952e5eeeaa358b292dee049484d777",
+        "after_sha256": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830",
+        "unified_diff_sha256": "80e2aa074f717f17a80bd37691c4f0ff40ebdb8ada046829007058aef1212c18",
+        "unified_diff_hunk_count": 4
+      },
+      {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "before_sha256": "88fbf71289502406e1f03573ab48b9d52bd47f387c7898afa12538f14ba5650d",
+        "after_sha256": "f78a68212f21147eab15c15b0bbc792a3537d02a6c5df35e3bd5afd049eb3f9d",
+        "unified_diff_sha256": "e4597f682d42e3f5177efd8b9b30bf818923cc95f888dd6a7a5d1950d2e0be77",
+        "unified_diff_hunk_count": 3
+      },
+      {
+        "path": "v4/manager_workbench/inputs/source_bindings.py",
+        "before_sha256": "82aa38037cdb4588c521cf2c0ac770a0165c27f931795849b535ecbf44e437a3",
+        "after_sha256": "94697aea65ea3d65f7f6964373192e65ceda4927a289e164dfa2516123803268",
+        "unified_diff_sha256": "05a55ef96f1e98c131f0ae003d0aa346318536de9a81e2a3b9ace9736655a758",
+        "unified_diff_hunk_count": 2
+      }
+    ],
+    "scheduler_non_delta_preserved_count": 859,
+    "patch_sha256": "f75809c99de18bc58833354e7c1bd1e4815404fdface9f9e2c6a2ef596a3ef4a"
+  },
+  "runtime_identity": {
+    "API": {
+      "release_id": "us-19-evidence-api-20261018-r2",
+      "pid": 54092,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app",
+      "plist_sha256": "4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202",
+      "manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db"
+    },
+    "scheduler": {
+      "pid": 57302,
+      "release_id": "us-19-evidence-scheduler-20261018-r2",
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app",
+      "plist_sha256": "b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37",
+      "manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+    }
+  },
+  "owner_data_written": false,
+  "other_uncommitted_files_preserved": true
+}

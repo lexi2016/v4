@@ -4,6 +4,8 @@ import json
 from types import SimpleNamespace
 
 from v4.manager_workbench.engines.us_factor import _industry_time_state, run_us_factor
+from v4.manager_workbench.contracts import EvidenceRef, Verification
+from v4.manager_workbench.inputs.native import _project_current_membership_for_industry
 from v4.manager_workbench.inputs.validation import owner_digest
 from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
 
@@ -522,4 +524,207 @@ def test_industry_capture_time_does_not_substitute_for_unknown_source_asof():
 
     assert eligible is False
     assert status == "CLASSIFICATION_SOURCE_ASOF_UNKNOWN"
+
+
+def test_latest_observed_unknown_source_asof_is_usable_without_claiming_pit():
+    codes = ["HK.00300", "HK.00001", "HK.00002"]
+    binding, _ = _industry_input(
+        "20261020", "2026-10-14T11:03:29+08:00", codes,
+        include_full_scope=True, source_asof=None,
+    )
+    artifact = binding["artifact"]
+    artifact.update(classification_policy="LATEST_OBSERVED", observed_trade_date="20261014",
+        observed_scope_count=len(codes), source_membership_codes_sha256="a" * 64,
+        source_membership_artifact_sha256="b" * 64, status="PARTIAL",
+        source_date_semantics="CAPTURED_ON_OR_BEFORE_TARGET_DATE_SOURCE_ASOF_UNKNOWN")
+    context = dict(target_date="20261020", phase="MANUAL", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+
+    rows, result = run_us_factor(context, _industry_proxy_batch("20261016"),
+        _industry_payload(binding, codes, "20261016"))
+
+    by_symbol = {row["symbol"]: row for row in rows if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"}
+    candidate = by_symbol["HK.00300"]
+    funnel = result["industry_summary"]
+    assert candidate["decision"] == "CONDITIONAL_WATCH"
+    assert candidate["classification_policy"] == "LATEST_OBSERVED"
+    assert candidate["observed_trade_date"] == "20261014"
+    assert candidate["source_asof"] is None and candidate["source_asof_status"] == "UNKNOWN"
+    assert candidate["temporal_status"] == "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN"
+    assert candidate["historical_pit_verified"] is False
+    assert "NOT_PIT_VERIFIED" in candidate["risks"]
+    assert funnel["source_status"] == "PARTIAL"
+    assert funnel["classification_policy"] == "LATEST_OBSERVED"
+    assert funnel["source_asof"] is None and funnel["historical_pit_verified"] is False
+    assert by_symbol["HK.00001"]["decision"] == "UNASSESSED"
+    assert by_symbol["HK.00001"]["reason"] == "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE"
+    assert by_symbol["HK.00002"]["decision"] == "UNASSESSED"
+    assert by_symbol["HK.00002"]["reason"] == "HK_INDUSTRY_CLASSIFICATION_MISSING"
+    assert funnel["classification_missing_count"] == 1
+    assert funnel["industry_unmapped_count"] == 1
+
+
+def test_latest_observed_policy_rejects_future_observation_and_late_capture():
+    cutoff = "2026-10-20T10:00:00+08:00"
+    context = {"target_date": "20261020", "cutoff": cutoff}
+    base = {"captured_at": "2026-10-14T11:03:29+08:00", "source_asof": None,
+        "source_asof_status": "UNKNOWN", "classification_policy": "LATEST_OBSERVED",
+        "observed_trade_date": "20261014"}
+
+    eligible, status, _ = _industry_time_state(base, context)
+    future, future_status, _ = _industry_time_state({**base, "observed_trade_date": "20261021"}, context)
+    late, late_status, _ = _industry_time_state({**base, "captured_at": "2026-10-20T10:00:01+08:00"}, context)
+
+    assert eligible is True and status == "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN"
+    assert future is False and future_status == "CLASSIFICATION_OBSERVATION_AFTER_TARGET"
+    assert late is False and late_status == "CLASSIFICATION_CAPTURE_AFTER_CUTOFF"
+
+
+def test_latest_observed_verified_nonpositive_proxy_is_not_selected():
+    codes = ["HK.00300"]
+    binding, _ = _industry_input(
+        "20261020", "2026-10-14T11:03:29+08:00", codes,
+        include_full_scope=False, source_asof=None,
+    )
+    binding["artifact"].update(classification_policy="LATEST_OBSERVED", observed_trade_date="20261014",
+        observed_scope_count=1, source_membership_codes_sha256="a" * 64,
+        source_membership_artifact_sha256="b" * 64, status="PARTIAL")
+    batch = _industry_proxy_batch("20261016")
+    for record in batch["records"]:
+        record["quote"].update(last=99, change_pct=-1)
+        record["proxy_metadata"][0]["owner_row"]["change_pct"] = -1
+    context = dict(target_date="20261020", phase="MANUAL", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+
+    rows, _ = run_us_factor(context, batch, _industry_payload(binding, codes, "20261016"))
+
+    candidate = next(row for row in rows if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE")
+    assert candidate["decision"] == "NOT_SELECTED"
+    assert candidate["reason"] == "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE"
+    assert candidate["temporal_status"] == "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN"
+    assert candidate["historical_pit_verified"] is False
+
+
+def test_latest_observed_missing_proxy_remains_unassessed():
+    codes = ["HK.00300"]
+    binding, _ = _industry_input(
+        "20261020", "2026-10-14T11:03:29+08:00", codes,
+        include_full_scope=False, source_asof=None,
+    )
+    binding["artifact"].update(classification_policy="LATEST_OBSERVED", observed_trade_date="20261014",
+        observed_scope_count=1, source_membership_codes_sha256="a" * 64,
+        source_membership_artifact_sha256="b" * 64, status="PARTIAL")
+    context = dict(target_date="20261020", phase="MANUAL", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+
+    rows, _ = run_us_factor(context, {"records": []}, _industry_payload(binding, codes, "20261016"))
+
+    candidate = next(row for row in rows if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE")
+    assert candidate["decision"] == "UNASSESSED"
+    assert candidate["proxy_status"] == "UNASSESSED"
+    assert candidate["temporal_status"] == "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN"
+    assert candidate["historical_pit_verified"] is False
+
+
+def test_observed_owner_projection_binds_only_verified_current_membership_and_preserves_source_hashes():
+    owner_artifact = {
+        "classification_policy": "LATEST_OBSERVED",
+        "source_membership_codes_sha256": "a" * 64,
+        "source_membership_artifact_sha256": "b" * 64,
+    }
+    current_member = EvidenceRef(
+        evidence_id="current-membership-fixture",
+        owner="synthetic-current-membership-test-only",
+        role="MONTHLY_CONNECT_MEMBERSHIP",
+        source_date="20261016",
+        available_at="2026-10-16T16:00:00+08:00",
+        sha256="f" * 64,
+        verification=Verification.VERIFIED,
+    )
+
+    projected = _project_current_membership_for_industry(owner_artifact, current_member)
+
+    assert projected is not owner_artifact
+    assert projected["membership_artifact_sha256"] == current_member.sha256
+    assert projected["source_membership_codes_sha256"] == "a" * 64
+    assert projected["source_membership_artifact_sha256"] == "b" * 64
+    assert "membership_artifact_sha256" not in owner_artifact
+
+
+def test_observed_owner_projection_keeps_missing_or_unverified_current_membership_unknown():
+    owner_artifact = {
+        "classification_policy": "LATEST_OBSERVED",
+        "source_membership_artifact_sha256": "b" * 64,
+    }
+    unverified_member = EvidenceRef(
+        evidence_id="unverified-current-membership-fixture",
+        owner="synthetic-current-membership-test-only",
+        role="MONTHLY_CONNECT_MEMBERSHIP",
+        source_date="20261016",
+        available_at="2026-10-16T16:00:00+08:00",
+        sha256="f" * 64,
+        verification=Verification.CANNOT_CONFIRM,
+    )
+
+    assert _project_current_membership_for_industry(owner_artifact, None)[
+        "membership_artifact_sha256"
+    ] is None
+    assert _project_current_membership_for_industry(owner_artifact, unverified_member)[
+        "membership_artifact_sha256"
+    ] is None
+    assert owner_artifact["source_membership_artifact_sha256"] == "b" * 64
+
+
+def test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture(tmp_path):
+    from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
+
+    artifact_relative = "research/peripherals/20261014/hk_industry_classification.json"
+    receipt_relative = "receipts/research/peripherals/20261014/hk_industry_classification.json"
+    manifest_relative = "research/peripherals/manifest.json"
+    payload = dict(schema_version="v3_5.research_peripheral.v1", source="hk_industry_classification",
+        source_id="EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE", trade_date="20261014",
+        captured_at="2026-10-14T11:03:29+08:00", source_asof=None, source_asof_status="UNKNOWN",
+        source_date_semantics="CAPTURED_ON_OR_BEFORE_TARGET_DATE_SOURCE_ASOF_UNKNOWN",
+        status="PARTIAL", scope_count=1, items=[{"symbol": "HK.00300"}], failures=["MISSING_ROW"],
+        batch_response_sha256="c" * 64)
+    receipt = dict(schema_version="v3_5.research_peripheral_receipt.v1", trade_date="20261014",
+        source="hk_industry_classification", payload_path=artifact_relative, captured_at=payload["captured_at"],
+        payload_sha256=None, item_count=1, failure_count=1,
+        batch_response_sha256=payload["batch_response_sha256"])
+    artifact_bytes = (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    artifact_sha = sha256(artifact_bytes).hexdigest()
+    receipt["payload_sha256"] = artifact_sha
+    receipt_bytes = (json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    receipt_sha = sha256(receipt_bytes).hexdigest()
+    manifest = {artifact_relative: artifact_sha}
+    manifest_bytes = (json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    manifest_sha = sha256(manifest_bytes).hexdigest()
+    for relative, raw in ((artifact_relative, artifact_bytes), (receipt_relative, receipt_bytes),
+        (manifest_relative, manifest_bytes)):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(raw)
+    pin = dict(policy="LATEST_OBSERVED", target_date="20261020", observed_trade_date="20261014",
+        source_asof=None, source_asof_status="UNKNOWN", captured_at=payload["captured_at"],
+        source_date_semantics=payload["source_date_semantics"],
+        expected_status="PARTIAL", expected_scope_count=1, expected_item_count=1, expected_failure_count=1,
+        source_local_path=str(tmp_path), artifact_relative=artifact_relative, artifact_sha256=artifact_sha,
+        receipt_relative=receipt_relative, receipt_sha256=receipt_sha,
+        manifest_relative=manifest_relative, manifest_sha256=manifest_sha,
+        owner="research_peripheral.hk_industry_classification")
+    cfg = SimpleNamespace(shared_root=tmp_path, source_bindings={"hk_industry_classification": {"20261020": pin}})
+    ctx = SimpleNamespace(target_date="20261020", cutoff="2026-10-20T10:00:00+08:00", scope_refs={})
+
+    loaded = hk_industry_classification(cfg, ctx)
+
+    assert loaded["status"] == "READY"
+    assert loaded["policy"] == "LATEST_OBSERVED"
+    assert loaded["observed_trade_date"] == "20261014"
+    assert loaded["artifact"]["target_date"] == "20261020"
+    assert loaded["artifact"]["source_asof"] is None
+    assert loaded["artifact"]["source_asof_status"] == "UNKNOWN"
+    assert {row["relative"] for row in loaded["checked_files"]} == {
+        artifact_relative, receipt_relative, manifest_relative}
+    pin["captured_at"] = "2026-10-20T10:00:01+08:00"
+    assert hk_industry_classification(cfg, ctx)["status"] == "UNAVAILABLE"
 

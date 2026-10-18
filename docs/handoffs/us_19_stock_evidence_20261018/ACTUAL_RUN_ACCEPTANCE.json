@@ -1,0 +1,156 @@
+{
+  "schema_version": "v4.actual_run_acceptance.v1",
+  "review_status": "PASS_BOUNDED_ACTUAL_RUN_ACCEPTANCE",
+  "reviewed_at_utc": "2026-10-18T14:48:30Z",
+  "scope": "Read-only leaf acceptance of deployed API/scheduler identity, the saved 52231a run and its API/UI readbacks, 19-stock and path-row accounting, safety flags, and resumed owned PDF queue.",
+  "read_only": true,
+  "api_calls_performed": false,
+  "tests_run": false,
+  "service_or_queue_mutation_performed": false,
+  "production_inference": false,
+  "p0_findings": [],
+  "p1_findings": [],
+  "p2_findings": [],
+  "deployment": {
+    "api": {
+      "launchd_label": "com.lexi.v35.api-only",
+      "status": "DEPLOYED_API_HEALTH_IDENTITY_VERIFIED",
+      "pid": 54092,
+      "release_id": "us-19-evidence-api-20261018-r2",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app",
+      "live_plist_sha256": "4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202",
+      "manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+      "current_launchd_pid_and_cwd_verified": true,
+      "activation_health": {
+        "/healthz": 200,
+        "/readyz": 200
+      }
+    },
+    "scheduler": {
+      "launchd_label": "com.lexi.v35.scheduler",
+      "status": "DEPLOYED_AND_PERSISTED_PDF_QUEUE_RESUMED",
+      "pid": 57302,
+      "release_id": "us-19-evidence-scheduler-20261018-r2",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app",
+      "live_plist_sha256": "b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37",
+      "manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+      "current_launchd_pid_and_cwd_verified": true,
+      "shared_runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime",
+      "effective_interpreter": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python"
+    },
+    "both_activation_receipts_bind_independent_repair_review_sha256": "070215b9c111813e1b2efbbe805e308528c18429e5ff0415992624f450c37584"
+  },
+  "actual_run": {
+    "run_id": "52231a267c5e4eb4859bcff275949786",
+    "target_date": "20261020",
+    "market": "HK_CONNECT",
+    "trigger": "MANUAL",
+    "phase": "MANUAL",
+    "us_quote_session": "20261016",
+    "source_cutoff": "2026-10-18T22:29:03.213941+08:00",
+    "context_completion_cutoff": "2026-10-18T22:29:30.408480+08:00",
+    "generated_at": "2026-10-18T22:29:30.515800+08:00",
+    "state": "PARTIAL",
+    "saved_snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/52231a267c5e4eb4859bcff275949786.json",
+    "saved_snapshot_sha256": "f6d85f09b7f25035a426b20b64ae98eea877ce195b226b1d4a376cd8ef5628e0",
+    "input_sha256": "2b09f02a9c9179ab0cc38aa595a7a0dbea340f070ee49c7333932439c6657952",
+    "product_sha256": "4ae4ecfa4ec66137bcedb74f43f18677a7aa27161980ee410be1972b33d72ac8",
+    "snapshot_sha_matches_day_results_and_lineage_receipts": true,
+    "day_latest_and_lane_api_responses_match_saved_readback_sha256": true,
+    "aggregate_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 19,
+      "observation_only": 0,
+      "not_selected": 0
+    },
+    "NATURAL_VERIFIED": false
+  },
+  "stock_and_lane_accounting": {
+    "baseline_stocks": 19,
+    "result_stocks": 19,
+    "unique_result_symbols": 19,
+    "result_symbols_match_frozen_baseline": true,
+    "stock_level_decisions": {
+      "UNASSESSED": 19
+    },
+    "direct_hk_relation_rows": 36,
+    "direct_relation_decisions": {
+      "NOT_SELECTED": 33,
+      "UNASSESSED": 3
+    },
+    "path_local_not_selected_count": 33,
+    "path_local_not_selected_reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+    "path_local_disposition_scope": "DIRECT_US_HK_RELATION_ONLY",
+    "positive_declared_source_rows_remaining_unassessed": 3,
+    "saved_lane_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 27,
+      "not_selected": 33,
+      "observation_only": 0
+    },
+    "saved_lane_total_rows": 60,
+    "source_only_rows": 24,
+    "default_recommendation_view_rows": 0,
+    "default_view_explanation": "The default recommendation filter shows only selected/watch rows; both counts are zero. Full saved lane counts remain separately available and account for all 60 rows."
+  },
+  "ui_readback": {
+    "UI_VERIFIED": true,
+    "run_id": "52231a267c5e4eb4859bcff275949786",
+    "target_date": "20261020",
+    "display_state": "PARTIAL",
+    "global_unassessed_stocks": 19,
+    "lane_not_selected_records": 33,
+    "lane_unassessed_records": 27,
+    "screenshot_sha256": "a968e88eb2de57676fdaf69894ba921dc403dfcf7e943e25b67b4a1ec2691733",
+    "accessibility_text_sha256": "ccca18f20256061ff7530986f205e3c4195c74103d38846f499888f24447153d",
+    "same_run_and_cutoff_as_saved_api_readback": true
+  },
+  "scheduler_queue_continuity": {
+    "graceful_old_pid_stop_and_exit": true,
+    "queue_index_unchanged_at_drain": true,
+    "document_ids_preserved": true,
+    "same_queue_root_after_restart": true,
+    "document_count_after_restart": 1951,
+    "post_restart_pdf_documents_processed": 1,
+    "post_restart_tick": {
+      "status": "RETRY_BACKOFF",
+      "pending_task_count": 65,
+      "done_total": 1495,
+      "failed_total": 391,
+      "last_error_code": "ZSXQ_DOWNLOAD_URL_MISSING"
+    },
+    "new_manager_run_submitted": false,
+    "scope_note": "Confirms queue preservation and one post-restart worker tick; does not claim full queue recovery or resolution of the recorded URL failure."
+  },
+  "open_business_gates": {
+    "target_connect_membership": "CANNOT_CONFIRM",
+    "target_date_industry_admission": "CANNOT_CONFIRM_TARGET_DATE_INDUSTRY_ADMISSION",
+    "industry_source_status": "INVALID",
+    "industry_source_gap": "HK_INDUSTRY_CLASSIFICATION_SCOPE_OR_IDENTITY_INVALID",
+    "industry_source_asof": "UNKNOWN",
+    "historical_pit_verified": false,
+    "industry_candidate_count": 0,
+    "paired_factor_review": "NOT_BOUND",
+    "natural_slot": "CANNOT_CONFIRM",
+    "lineage_receipt_path": "docs/handoffs/us_19_stock_evidence_20261018/ACTUAL_INDUSTRY_GATE_LINEAGE.json",
+    "lineage_receipt_sha256": "04a297b00f9b42fe081cbb2c132787c341deb22ba5841f237ce62751d72df69c",
+    "interpretation": "The deployed run and UI truthfully persist/display an unresolved source gate. The 19 stocks are not target-date admitted or qualified; the separate lineage receipt is the authority for the actual membership-projection failure. The eight security-master identity gaps do not overlap the target 19."
+  },
+  "acceptance_evidence": {
+    "machine_verifier": "docs/handoffs/us_19_stock_evidence_20261018/local_only/reviewer/actual_run/actual_run_verification.json",
+    "machine_verifier_sha256": "63f32fde3b257fa877c0724842f6bfe40e3e7876889e4c1c2c8d234c852adcd3",
+    "verifier_script": "docs/handoffs/us_19_stock_evidence_20261018/local_only/reviewer/actual_run/verify_actual_run_acceptance.py",
+    "verifier_script_sha256": "7d532e71c541433dcc30172db104e5f9590cc0e70c780e640557186d8a3b6191",
+    "automated_read_only_checks_passed": 30,
+    "automated_read_only_checks_failed": 0,
+    "activation_receipts": {
+      "api_sha256": "ab7b1bd6c2e6e5f177025d7c806747aabf44c3ae35883cf7f9dff7e7827869d2",
+      "scheduler_sha256": "85ca56aba781551fe5d3e3eb0c2cb6d6968a6ac5328d590420aa4743349ec3c4",
+      "scheduler_resume_sha256": "e4db7bc86fd56cfebce97323a6953cfe2cfc34f415d6429b5bd18b1eace73fb1"
+    }
+  }
+}

@@ -31,6 +31,25 @@ def _date_token(value):
         return None
 
 
+def _project_current_membership_for_industry(artifact, member_ref):
+    """Bind current membership only on the normalized observed-use projection.
+
+    The owner's membership hashes remain separately preserved as
+    ``source_membership_*`` provenance. A target-membership alias is emitted
+    only from an independently verified current membership EvidenceRef.
+    """
+    if not isinstance(artifact, dict) or artifact.get("classification_policy") != "LATEST_OBSERVED":
+        return artifact
+    projected = dict(artifact)
+    member_sha = None
+    if (member_ref is not None
+            and member_ref.verification == Verification.VERIFIED
+            and valid_sha(member_ref.sha256)):
+        member_sha = member_ref.sha256
+    projected["membership_artifact_sha256"] = member_sha
+    return projected
+
+
 class NativeAdapters:
     def __init__(self, config):
         self.config = config
@@ -958,8 +977,10 @@ class NativeAdapters:
                 hk_industry_identity=identity)
             if isinstance(industry_pin, dict) and industry_pin.get("status") == "READY":
                 artifact = industry_pin.get("artifact")
+                artifact = _project_current_membership_for_industry(artifact, member_ref)
                 industry_ref = self._ref(industry_pin["owner"], "HK_ISSUER_INDUSTRY_CLASSIFICATION",
-                    context.target_date, industry_pin["artifact_sha256"], industry_pin["artifact_relative"],
+                    industry_pin.get("observed_trade_date") or context.target_date,
+                    industry_pin["artifact_sha256"], industry_pin["artifact_relative"],
                     artifact.get("captured_at") if isinstance(artifact, dict) else None,
                     url=industry_pin.get("source_url"))
                 refs.append(industry_ref)

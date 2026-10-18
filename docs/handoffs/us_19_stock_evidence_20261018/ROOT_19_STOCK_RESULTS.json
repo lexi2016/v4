@@ -1,0 +1,1055 @@
+{
+  "classification": "ACTUAL_SAVED_RUN_19_STOCK_ACCOUNTING_NOT_ADMISSION",
+  "generated_at_utc": "2026-10-18T14:41:55.181200+00:00",
+  "run_id": "52231a267c5e4eb4859bcff275949786",
+  "target_date": "20261020",
+  "us_quote_session": "20261016",
+  "run_kind": "CONTROLLED_MANUAL_CURRENT_CUTOFF",
+  "source_cutoff": "2026-10-18T22:29:03.213941+08:00",
+  "snapshot_sha256": "f6d85f09b7f25035a426b20b64ae98eea877ce195b226b1d4a376cd8ef5628e0",
+  "quote_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f",
+  "industry_owner_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+  "primary_source_audit_sha256": "3bd94f1e048b3068aa29271b1c07c28cdfd04d5797868805013774c2ee061683",
+  "source_recovery_audit_sha256": "b9e81cf035d54def535a7925e7534bc2cc197ffbc3e42c0f25863b9602632a95",
+  "counts": {
+    "not_selected": 0,
+    "observation_only": 0,
+    "selected": 0,
+    "unassessed": 19,
+    "watch": 0
+  },
+  "stocks": [
+    {
+      "symbol": "HK.00700",
+      "name": "Tencent Holdings",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "软件服务",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 3
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "META",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "GOOG",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "GOOGL",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "Both filings describe social platforms monetized through advertising or marketing services.",
+        "Both filings describe internet platforms with material advertising or marketing services."
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.00763",
+      "name": "中兴通讯（ZTE Corporation）",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "资讯科技器材",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "CIEN",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "OTN与高容量光传输设备属于同市场比较；材料未证明中兴为Ciena供应商。"
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.00780",
+      "name": "Tongcheng Travel",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "旅游及消闲设施",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [
+        "TCOM"
+      ],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 2,
+        "UNASSESSED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "BKNG",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "EXPE",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "TCOM",
+          "decision": "UNASSESSED",
+          "reason": "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+          "diagnostic_gaps": null,
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": null
+        }
+      ],
+      "primary_business_facts_supported": [
+        "The filings describe online travel services and reservation businesses including accommodation and transportation. This is a business-line observation only, with no issuer identity, materiality, or PIT claim.",
+        "Trip.com Group and Tongcheng Travel annual reports describe online travel services, including accommodation and transportation reservations. This is a business-line observation only, with no issuer identity, materiality, or PIT claim."
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.00992",
+      "name": "Lenovo Group Limited",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "资讯科技器材",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 4
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "AMD",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "NVDA",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "STX",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "VRT",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "Lenovo describes ThinkCentre AI PCs powered by AMD Ryzen AI processors.",
+        "Lenovo describes a partnership with NVIDIA and Lenovo systems containing NVIDIA GPUs.",
+        "Lenovo’s DSS-G guide lists Seagate hard-drive options in its D4390 system configuration table; this documents a configurable component option only.",
+        "Lenovo’s PDU product guide explicitly states the rack PDUs were co-designed by Vertiv and Lenovo."
+      ],
+      "primary_inference_limits": [
+        "Named historical product integration, adoption or announced next-generation plan does not establish current deployment, procurement volume, revenue contribution, exclusivity or price causality.",
+        "Product guide lists Seagate as a configuration option; this is not proof of a Lenovo purchase, shipments or current model mix.",
+        "Co-design of a named product does not establish current orders, shipments, revenue share, exclusivity or price causality."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.01024",
+      "name": "Kuaishou Technology",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "媒体及娱乐",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 2
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "META",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "GOOG",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "The filings describe social-platform monetization and digital advertising. This is an observation of business-line overlap only; Kuaishou local services are not treated as food delivery."
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.01211",
+      "name": "BYD Company Limited",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "汽车",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "NVDA",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "NVIDIA described BYD's announced next-generation fleets using DRIVE Thor and planned use of NVIDIA AI infrastructure and development platforms."
+      ],
+      "primary_inference_limits": [
+        "Named historical product integration, adoption or announced next-generation plan does not establish current deployment, procurement volume, revenue contribution, exclusivity or price causality."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.01810",
+      "name": "Xiaomi Corporation",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "资讯科技器材",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "NVDA",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "NVIDIA states Xiaomi adopted DRIVE Orin for automated-driving systems."
+      ],
+      "primary_inference_limits": [
+        "Named historical product integration, adoption or announced next-generation plan does not establish current deployment, procurement volume, revenue contribution, exclusivity or price causality."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.02015",
+      "name": "Li Auto Inc.",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "汽车",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "NVDA",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "NVIDIA reported Li Auto's selection of DRIVE Thor for next-generation fleets and separately described two DRIVE Orin processors in L-series AD Max systems at publication."
+      ],
+      "primary_inference_limits": [
+        "Named historical product integration, adoption or announced next-generation plan does not establish current deployment, procurement volume, revenue contribution, exclusivity or price causality."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.03690",
+      "name": "Meituan",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "专业零售",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 2
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "DASH",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "UBER",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "Company reports describe food delivery and local-commerce services.",
+        "Company reports describe food delivery, merchant services, and local commerce."
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.06088",
+      "name": "鸿腾精密（FIT Hon Teng Limited）",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "工业工程",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "AVGO",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "公司披露为Broadcom Tomahawk 5 Bailly平台交付LGA插座、远置可插拔激光源接口笼和连接器组件。"
+      ],
+      "primary_inference_limits": [
+        "Narrow component supply only: do not infer supply of lasers/optical transceivers, volume, current orders, revenue contribution or price causality."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.06166",
+      "name": "剑桥科技（CIG Shanghai）",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "资讯科技器材",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 2
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "COHR",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "LITE",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "高速数通光收发器产品形态相近；官方材料没有披露CIG向LITE或COHR供货。"
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.06823",
+      "name": "HKT Trust and HKT Limited",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": false,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": null,
+      "industry_label_missing_reason": "OUTSIDE_PRIOR_REQUEST_SCOPE",
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [
+        "DLR"
+      ],
+      "direct_relation_record_counts": {
+        "UNASSESSED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "DLR",
+          "decision": "UNASSESSED",
+          "reason": "US_SESSION_RELATION_OR_CONNECT_UNVERIFIED",
+          "diagnostic_gaps": [],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": null
+        }
+      ],
+      "primary_business_facts_supported": [
+        "Digital Realty announced an expanded strategic collaboration with Console Connect; HKT describes Console Connect as its automated on-demand platform. This is an indirect listed-group platform relationship, not a claim that Digital Realty contracted directly with HKT Limited."
+      ],
+      "primary_inference_limits": [
+        "Do not upgrade to a direct contract with the listed HKT entity: evidence is only an indirect Console Connect collaboration title/date; full scope and current terms are CANNOT_CONFIRM."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09618",
+      "name": "JD.com",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": false,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": null,
+      "industry_label_missing_reason": "OUTSIDE_PRIOR_REQUEST_SCOPE",
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 4
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "AMZN",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "JD",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "DASH",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "UBER",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "The filings describe online retail, marketplace, marketing, and logistics services.",
+        "The official quarterly report describes JD.com Retail, marketplace, marketing, logistics, and new businesses.",
+        "DoorDash and Uber describe delivery platforms, while JD.com reports a new food-delivery business. This is a tentative business-line observation, not an issuer identity or profit-transmission claim."
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred.",
+        "Same-issuer identity/listing fact does not make ADR and ordinary-share returns interchangeable; conversion, currency, market hours, liquidity, corporate actions and target-date listing status still require date-bound handling."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09626",
+      "name": "Bilibili",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "媒体及娱乐",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "BILI",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "The official annual results filing describes Bilibili Inc. and its digital-content platform."
+      ],
+      "primary_inference_limits": [
+        "Same-issuer identity/listing fact does not make ADR and ordinary-share returns interchangeable; conversion, currency, market hours, liquidity, corporate actions and target-date listing status still require date-bound handling."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09868",
+      "name": "XPeng Inc.",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "汽车",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "NVDA",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "XPENG announced NVIDIA DRIVE Thor use for next-generation EV fleets."
+      ],
+      "primary_inference_limits": [
+        "Named historical product integration, adoption or announced next-generation plan does not establish current deployment, procurement volume, revenue contribution, exclusivity or price causality."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09888",
+      "name": "Baidu",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "媒体及娱乐",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "BIDU",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "The official Form 20-F describes Baidu Inc. and its internet platform businesses."
+      ],
+      "primary_inference_limits": [
+        "Same-issuer identity/listing fact does not make ADR and ordinary-share returns interchangeable; conversion, currency, market hours, liquidity, corporate actions and target-date listing status still require date-bound handling."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09961",
+      "name": "Trip.com Group",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": false,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": null,
+      "industry_label_missing_reason": "OUTSIDE_PRIOR_REQUEST_SCOPE",
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [
+        "TCOM"
+      ],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 2,
+        "UNASSESSED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "BKNG",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "EXPE",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "TCOM",
+          "decision": "UNASSESSED",
+          "reason": "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+          "diagnostic_gaps": null,
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": null
+        }
+      ],
+      "primary_business_facts_supported": [
+        "Official reports describe travel marketplace services and identify Booking as a material Trip.com travel partner.",
+        "Official reports describe travel marketplace services and identify Expedia as a material Trip.com travel partner.",
+        "Official annual and Form 20-F reports describe Trip.com Group's travel business and issuer."
+      ],
+      "primary_inference_limits": [
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred.",
+        "Same-issuer identity/listing fact does not make ADR and ordinary-share returns interchangeable; conversion, currency, market hours, liquidity, corporate actions and target-date listing status still require date-bound handling."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09988",
+      "name": "Alibaba Group Holding Limited",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": null,
+      "industry_label_missing_reason": "HTTP_502",
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 3
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "EQIX",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "REVIEWED",
+          "relation_pit_status": null,
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "AMZN",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        },
+        {
+          "us_symbol": "BABA",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "Equinix announced collaboration with Alibaba Cloud, named as Alibaba Group’s cloud arm, and describes direct/scalable access through its Hong Kong facilities; current Equinix documentation also lists Alibaba Cloud Express Connect in Hong Kong.",
+        "Both filings describe online retail marketplaces and services for third-party sellers.",
+        "The official annual report describes Alibaba Group's ecommerce businesses and issuer."
+      ],
+      "primary_inference_limits": [
+        "Historical 2017 Alibaba Cloud–Equinix Hong Kong connectivity announcement does not establish current contract terms, traffic, revenue or price causality.",
+        "Peer/product overlap only. A direct customer, supplier, ownership or causal price relation is unsupported and is not inferred.",
+        "Same-issuer identity/listing fact does not make ADR and ordinary-share returns interchangeable; conversion, currency, market hours, liquidity, corporate actions and target-date listing status still require date-bound handling."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    },
+    {
+      "symbol": "HK.09999",
+      "name": "NetEase",
+      "actual_aggregate_decision": "UNASSESSED",
+      "membership_status_actual": "UNKNOWN",
+      "official_20261016_roster_reported_observation_only": true,
+      "target_20261020_membership": "CANNOT_CONFIRM",
+      "industry_observed_label": "软件服务",
+      "industry_label_missing_reason": null,
+      "industry_source_date": "20261014",
+      "industry_source_asof": null,
+      "industry_source_asof_status": "UNKNOWN",
+      "industry_policy": "LATEST_OBSERVED_PROVIDER_DATE_UNKNOWN_NONBLOCKING",
+      "historical_pit_verified": false,
+      "positive_declared_us_sources": [],
+      "direct_relation_record_counts": {
+        "NOT_SELECTED": 1
+      },
+      "actual_direct_relation_records": [
+        {
+          "us_symbol": "NTES",
+          "decision": "NOT_SELECTED",
+          "reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+          "diagnostic_gaps": [
+            "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+            "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE",
+            "CONNECT_MEMBERSHIP_UNKNOWN"
+          ],
+          "relation_status": "PROPOSED",
+          "relation_pit_status": "PIT_UNCONFIRMED",
+          "path_disposition_scope": "DIRECT_US_HK_RELATION_ONLY"
+        }
+      ],
+      "primary_business_facts_supported": [
+        "The official investor-results page identifies NetEase Inc. and its reporting materials."
+      ],
+      "primary_inference_limits": [
+        "Same-issuer identity/listing fact does not make ADR and ordinary-share returns interchangeable; conversion, currency, market hours, liquidity, corporate actions and target-date listing status still require date-bound handling."
+      ],
+      "daily_factor_pair_actual": "NOT_BOUND",
+      "source_audit_target_applicability": "CANNOT_CONFIRM"
+    }
+  ],
+  "interpretation": [
+    "33 valid nonpositive-source records are NOT_SELECTED for their direct-relation path only; global aggregation remains19 UNASSESSED.",
+    "Industry observed labels are permitted despite UNKNOWN provider source_asof; raw owner bytes and false PIT status preserved. Actual source scope/identity gap is separately traced.",
+    "Factor pool and relation qualification are independent paths; missing factor review does not itself invalidate a qualified direct relation.",
+    "No source qualification or stock selection was fabricated from historical issuer documents or observation dates."
+  ],
+  "NATURAL_VERIFIED": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "actual_industry_gate": {
+    "diagnosis_sha256": "04a297b00f9b42fe081cbb2c132787c341deb22ba5841f237ce62751d72df69c",
+    "failed_predicates": [
+      "Projected target-membership alias is null",
+      "Explicit target-membership effective interval endpoints are null"
+    ],
+    "security_master_8_gaps_causal": false,
+    "security_master_8_gaps_overlap_with_19": false,
+    "provider_source_asof_unknown_alone_blocking": false,
+    "no_monthly_interval_promoted": true,
+    "status": "CANNOT_CONFIRM_TARGET_DATE_INDUSTRY_ADMISSION"
+  }
+}
