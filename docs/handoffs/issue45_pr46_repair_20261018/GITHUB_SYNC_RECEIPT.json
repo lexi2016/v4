@@ -1,0 +1,159 @@
+{
+  "schema_version": "v4.issue45_pr46_github_sync.v1",
+  "status": "SYNCED_REMOTE_READBACK_VERIFIED",
+  "repository": "lexi2016/v4",
+  "branch": "codex/issue45-us-close-repair-20261018",
+  "pr_url": "https://github.com/lexi2016/v4/pull/46",
+  "source_baseline": "a56dbdaff45f887e7f8dbb38047a66d09fe5b1db",
+  "initial_pr_head": "579c71d997424d058ff6ebffee911eeb7cf92bbb",
+  "repair_commit": "2bc6f66b64e3d0b13b8b907339684fd6711a9411",
+  "repair_tree": "c75777210e1620063e9a1aef2f67a3ee42158dc0",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "candidate_root": "/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/v4-issue45-pr46-j681d3m0/candidate",
+  "candidate_deployed": false,
+  "independent_review": {
+    "verdict": "PASS",
+    "behavior_scope": "candidate_source_and_offline_consumer",
+    "focused": {
+      "passed": 7,
+      "failed": 0
+    },
+    "baseline": {
+      "passed": 228,
+      "known_failed": 3,
+      "deselected": 1
+    },
+    "open_findings": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    }
+  },
+  "files": [
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "before_sha256": "62cc6bf8a316b49538dbcf7d799a7901d04b0723017f4acc7b9220db27c5212e",
+      "after_sha256": "d4be808c9bf81e9ef2c012b920597403303aad69fb925753e73c16e2a0aea588",
+      "git_blob_sha": "6c843b43a9d32e3b4a81aa24ecedea20040888ae",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "tests/manager_workbench/test_us_close_handoff_scheduler.py",
+      "before_sha256": "fdf8226d1847f8c58a133d67c1b9416d070201097c2c4202771ebb6436efdb7d",
+      "after_sha256": "01f321e0d693840cc56924269b696a06c226c6b89426e11f690aac1bcb5f77fd",
+      "git_blob_sha": "85ae2dbfabc09347d5aae3f86ea3199676618002",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "tests/test_manager_us_mapping_bindings_r3.py",
+      "before_sha256": "bcfbb2ebb2b1ea3c84b78b70ad28b526e7751bd302f277cee74897f838e98bd1",
+      "after_sha256": "767d45e52ac018109e73fc1060621684424dbb4e185aee31d5aa6f7ee65f4dae",
+      "git_blob_sha": "5baa1a8bd2c4e40ff1aebf9d5972297cd217bf9e",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "tests/test_run_us_market_slot.py",
+      "before_sha256": "08a3a48f05c48802998507c0248154812e7ee572abc803389eb248a831cd88c2",
+      "after_sha256": "f2f93805a3a1eba51fde6827d13288f77f455514debdf29ff47d9b2417f2b728",
+      "git_blob_sha": "b3d09e6d4c53fd6ed5561958405f1eb77195f1af",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "352656cc43173560cdf66141cf90af0537822aeb9d9277e852b89070eaee0253",
+      "after_sha256": "f478e6dbdb06625e16208d5f6ed6d3c594d93cd97727631ccac44c5e5ded80c8",
+      "git_blob_sha": "4b3ae2a6d31a50522b74f0cb74263bd25fbe219e",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "bafc1620532302a5beef3e66b40c9aa07b6a3204799ef0989b7a419772d919cf",
+      "after_sha256": "8157fe45536cb83ed03ccd7300f603fa26dd263098338487c15190d8ac5a1528",
+      "git_blob_sha": "3144ce4d1a4fb25ced955020757787490d6cde7c",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "before_sha256": "d1b214a174af0271e878c7f99d2cd010430e6625127d2651ab9e8398dbaf8975",
+      "after_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485",
+      "git_blob_sha": "5ffa26967809099676ddb12f2fd07243d4fed56b",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/SCOPE.json",
+      "before_sha256": null,
+      "after_sha256": "629bfd0e5153fb57843583a08f8ae0f1e7c1fe6a71c52c96b536279637b4a538",
+      "git_blob_sha": "d53b658c55d17d9690da161a68f4eacd49746109",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/ROOT_LEDGER.json",
+      "before_sha256": null,
+      "after_sha256": "e6e1c83f6e879a577685ea145c6f716d1f7069aa8ba19638d7cd2359b15d6601",
+      "git_blob_sha": "2338842d59cca12c6f917ba94134a3fa1f3e2e49",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/WRITER_RECEIPT.md",
+      "before_sha256": null,
+      "after_sha256": "8dd4390751ef1ed484f3c875f2cdd93ad63e3c1b8bdaadc3b83fbc25499fbc73",
+      "git_blob_sha": "33bb215097d112480293c509c828e86b93485c4f",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/WRITER_RECEIPT.json",
+      "before_sha256": null,
+      "after_sha256": "4f66964233fe8daa84c95bc8ec39cbe650e05afd458490961e252f0448bd46b1",
+      "git_blob_sha": "6a436e5d1b76409f3964aa6387722ea18295e574",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/INDEPENDENT_REVIEW.md",
+      "before_sha256": null,
+      "after_sha256": "1b7a385ab68bbf3e30b35bbfe7e5d77b64f7e312fbe39aa0202f5dd1b7c25696",
+      "git_blob_sha": "18c3784c489a89bdc32fb08b0ac6458955b8a236",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/INDEPENDENT_REVIEW.json",
+      "before_sha256": null,
+      "after_sha256": "54170264c32c8e3b2eeacf3412ae33883dccf23a84e3c97c9b716d4e7c5d1a8a",
+      "git_blob_sha": "9b88d6dd2c4e8511c86b8406d38baae227377cca",
+      "remote_bytes_match": true
+    },
+    {
+      "path": "docs/handoffs/issue45_pr46_repair_20261018/verify_real_overlay.py",
+      "before_sha256": null,
+      "after_sha256": "96aae24c25dcb7bfe7dfdc43695dcd869e86c992dd36cb81d957098fadcd0a5e",
+      "git_blob_sha": "43872e943b06c6f661c1387c2437a736c93b8bda",
+      "remote_bytes_match": true
+    }
+  ],
+  "readback_files": 14,
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": true,
+    "BEHAVIOR_VERIFIED": "source and offline consumer only",
+    "GITHUB_SYNCED": true,
+    "MERGED": false,
+    "DEPLOYED": false,
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM"
+  },
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "excluded_uploads": [
+    "43MB recovery overlay",
+    "raw market data",
+    "runtime config/release/receipt bodies",
+    "credentials",
+    "logs",
+    "temporary candidate tree"
+  ]
+}

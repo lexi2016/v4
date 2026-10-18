@@ -1,0 +1,188 @@
+{
+  "schema_version": "v4.issue45_pr46_writer_receipt.v1",
+  "receipt_state": "READY_FOR_INDEPENDENT_REVIEW",
+  "review_status": "PENDING",
+  "goal": "Repair the frozen Issue 45 PR46 source defects and verify the exact real-owner overlay consumer offline.",
+  "repository": "lexi2016/v4",
+  "branch": "codex/issue45-us-close-repair-20261018",
+  "scope_base": "a56dbdaff45f887e7f8dbb38047a66d09fe5b1db",
+  "initial_pr_head": "579c71d997424d058ff6ebffee911eeb7cf92bbb",
+  "candidate_workspace": "/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/v4-issue45-pr46-j681d3m0",
+  "candidate_comparison_baseline": "original_pr/",
+  "changed_candidate_files": [
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "before_sha256": "62cc6bf8a316b49538dbcf7d799a7901d04b0723017f4acc7b9220db27c5212e",
+      "after_sha256": "d4be808c9bf81e9ef2c012b920597403303aad69fb925753e73c16e2a0aea588"
+    },
+    {
+      "path": "tests/manager_workbench/test_us_close_handoff_scheduler.py",
+      "before_sha256": "fdf8226d1847f8c58a133d67c1b9416d070201097c2c4202771ebb6436efdb7d",
+      "after_sha256": "01f321e0d693840cc56924269b696a06c226c6b89426e11f690aac1bcb5f77fd"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_bindings_r3.py",
+      "before_sha256": "bcfbb2ebb2b1ea3c84b78b70ad28b526e7751bd302f277cee74897f838e98bd1",
+      "after_sha256": "767d45e52ac018109e73fc1060621684424dbb4e185aee31d5aa6f7ee65f4dae"
+    },
+    {
+      "path": "tests/test_run_us_market_slot.py",
+      "before_sha256": "08a3a48f05c48802998507c0248154812e7ee572abc803389eb248a831cd88c2",
+      "after_sha256": "f2f93805a3a1eba51fde6827d13288f77f455514debdf29ff47d9b2417f2b728"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "352656cc43173560cdf66141cf90af0537822aeb9d9277e852b89070eaee0253",
+      "after_sha256": "f478e6dbdb06625e16208d5f6ed6d3c594d93cd97727631ccac44c5e5ded80c8"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "bafc1620532302a5beef3e66b40c9aa07b6a3204799ef0989b7a419772d919cf",
+      "after_sha256": "8157fe45536cb83ed03ccd7300f603fa26dd263098338487c15190d8ac5a1528"
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "before_sha256": "d1b214a174af0271e878c7f99d2cd010430e6625127d2651ab9e8398dbaf8975",
+      "after_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485"
+    }
+  ],
+  "unchanged_allowlisted_candidate_files": [
+    "contracts/runtime_workloads.json",
+    "ops/run_us_market_slot.py",
+    "tests/test_us_owner_handoff.py",
+    "v4/manager_workbench/inputs/native.py"
+  ],
+  "focused_regression": {
+    "command": "env -u PYTHONPATH -u PYTHONHOME /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q -p no:cacheprovider --basetemp=/tmp/issue45-writer-focused-final --disable-warnings tests/manager_workbench/test_us_close_handoff_scheduler.py tests/manager_workbench/engines/test_us_mapping.py::test_full_overlay_relations_are_consumed_as_non_selectable_observations tests/test_manager_us_mapping_bindings_r3.py::test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standard_receipt tests/test_run_us_market_slot.py::test_us_close_slot_keeps_hk_target_distinct_and_skips_holiday",
+    "result": "PASS",
+    "passed": 6,
+    "failed": 0,
+    "deselected": 0
+  },
+  "frozen_baseline_selection": {
+    "command": "env -u PYTHONPATH -u PYTHONHOME /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q --tb=short --basetemp=/tmp/issue45-writer-baseline-final -p no:cacheprovider tests/test_run_us_market_slot.py tests/test_runtime_dispatcher.py tests/test_us_owner_handoff.py tests/test_us_equity_calendar.py tests/test_manager_us_market_bridge.py tests/test_manager_us_mapping_bindings_r3.py tests/manager_workbench/test_oversold_daily_scheduler.py tests/manager_workbench/engines/test_us_mapping.py -k 'not real_catalog_dispatches_single_intraday_cli_and_binds_release'",
+    "result": "EXPECTED_KNOWN_BASELINE_FAILURES_PRESERVED",
+    "passed": 228,
+    "failed": 3,
+    "deselected": 1,
+    "known_failures": [
+      {
+        "test": "tests/test_manager_us_mapping_bindings_r3.py::test_source_binding_carries_configured_quote_scope_and_proposal_sources",
+        "assertion": "market_snapshot READY universe quote coverage incomplete"
+      },
+      {
+        "test": "tests/manager_workbench/engines/test_us_mapping.py::test_v3_48_symbol_scope_and_proposed_relations_remain_observation_only",
+        "assertion": "expected US_RELATION_PROPOSED_PIT_UNCONFIRMED; received US_SESSION_RELATION_OR_CONNECT_UNVERIFIED"
+      },
+      {
+        "test": "tests/manager_workbench/engines/test_us_mapping.py::test_unknown_universe_version_is_rejected_as_unassessed",
+        "assertion": "expected US_UNIVERSE_CONTRACT_VERSION_UNSUPPORTED gap; result gaps were empty"
+      }
+    ]
+  },
+  "offline_real_owner_consumer": {
+    "script": "docs/handoffs/issue45_pr46_repair_20261018/verify_real_overlay.py",
+    "script_sha256": "96aae24c25dcb7bfe7dfdc43695dcd869e86c992dd36cb81d957098fadcd0a5e",
+    "command": "env -u PYTHONPATH -u PYTHONHOME /Users/lexi/Desktop/学习/v4_app/.venv/bin/python docs/handoffs/issue45_pr46_repair_20261018/verify_real_overlay.py --source-root /var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/v4-issue45-pr46-j681d3m0/candidate --config-path '/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json' --us-owner-root '/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data' --relation-owner-root '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app' --overlay-source-root '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app'",
+    "result": "PASS",
+    "target_date": "20261020",
+    "us_session": "20261016",
+    "active_launchagent_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-hk-recovery-v2r1-20261016-r2.json",
+    "active_config_source": "parent/reviewer confirmed current API LaunchAgent is running with this config; loaded relation_root matched configured existing release app",
+    "relation_root_used": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app",
+    "quote_owner": {
+      "payload_relative": "research/peripherals/20261017/external_finance.json",
+      "payload_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f",
+      "receipt_relative": "receipts/research/peripherals/20261017/external_finance.json",
+      "receipt_sha256": "2efaa324645d0d9de3226ca13e9709b0239d2f10947ba2b879fa0d17be4e999d",
+      "manifest_sha256": "97b478fb8afe0f6ba87e69261c150f7d1f2ff3ff92601185e91b85998677111e"
+    },
+    "overlay": {
+      "stock_count": 667,
+      "relation_count": 1003,
+      "relation_bearing_stock_count": 649,
+      "owner_files": [
+        {
+          "relative": "us_hk_667_catalog_20261015.json",
+          "sha256": "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
+        },
+        {
+          "relative": "us_hk_667_review_overlay_20261015.json",
+          "sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69"
+        },
+        {
+          "relative": "us_hk_667_recovery_overlay_20261016.json",
+          "sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
+        }
+      ],
+      "closure_status_counts": {
+        "CLOSED_RESEARCH_SCOPE": 757,
+        "OPEN": 221,
+        "CLOSED_EXCLUDED_SCOPE": 25
+      },
+      "research_use_counts": {
+        "PENDING_REVIEW": 985,
+        "BACKGROUND_HISTORICAL": 10,
+        "EXCLUDED_CURRENT": 5,
+        "CONDITIONAL_OBSERVATION": 3
+      },
+      "unique_relation_ids_conserved": 1003,
+      "field_sha_entry_count": 7,
+      "use_scope_preserved": true,
+      "overlay_decisions": {
+        "UNASSESSED": 1003
+      }
+    },
+    "fixed_33_coverage": {
+      "scope_count": 33,
+      "observed_count": 33,
+      "assessed_count": 0,
+      "unassessed_count": 33
+    },
+    "expected_unassessed_gaps": [
+      "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+      "US_FIXED_33_OR_SESSION_NOT_VERIFIED",
+      "RECORDS_UNASSESSED"
+    ],
+    "count_mismatch_gaps": [],
+    "membership_source_injected": false,
+    "owner_data_written": false,
+    "runtime_state_written": false,
+    "network": "NONE",
+    "limitations_cannot_confirm": [
+      "Candidate source is not deployed; live candidate dispatch/API/UI/notification/natural-slot behavior remains CANNOT_CONFIRM.",
+      "Independent reviewer final verdict is pending."
+    ]
+  },
+  "limitations_cannot_confirm": [
+    "Independent reviewer verdict and reviewer rerun are pending.",
+    "Candidate source is not deployed; live candidate dispatch/API/UI/notification/natural-slot behavior remains CANNOT_CONFIRM.",
+    "The three documented baseline test failures remain unchanged.",
+    "The offline canary validates all 667 catalog stocks in the summary and all 1003 relation identities through the consumer. The engine emits relation rows for 649 distinct stock codes; 18 catalog stock rows have no relation row to emit."
+  ],
+  "git_sync": {
+    "commit": "NOT_RUN",
+    "push": "NOT_RUN",
+    "reason": "This writer works in the isolated candidate copy; parent integrates and controls the authorized branch sync."
+  },
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "portable_verification_file": {
+    "path": "docs/handoffs/issue45_pr46_repair_20261018/verify_real_overlay.py",
+    "sha256": "96aae24c25dcb7bfe7dfdc43695dcd869e86c992dd36cb81d957098fadcd0a5e",
+    "contract": "source/config/US owner/relation owner/overlay source roots are CLI or environment parameters; read-only, offline, no owner/runtime writes"
+  },
+  "post_p1_scheduler_regression": {
+    "command": "env -u PYTHONPATH -u PYTHONHOME /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest -q -p no:cacheprovider --basetemp=/tmp/issue45-p1-scheduler --disable-warnings tests/manager_workbench/test_us_close_handoff_scheduler.py",
+    "result": "PASS",
+    "passed": 4,
+    "failed": 0,
+    "covers": "real JobCoordinator + WorkbenchStore; first submit saves retryable PARTIAL PlanSnapshot then cursor set raises OSError; next tick retries saved attempt and succeeds",
+    "scheduler_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485",
+    "test_sha256": "01f321e0d693840cc56924269b696a06c226c6b89426e11f690aac1bcb5f77fd"
+  }
+}

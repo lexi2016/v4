@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from infrastructure.research_peripheral_store import ResearchPeripheralStore
 from ops.materialize_research_peripherals import build_external_finance_payload
 from ops.us_market_digest import build_us_market_snapshot
@@ -38,11 +39,11 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     contract = build_us_universe_contract(["TSLA"])
     requested_urls = []
     quote_snapshot = build_us_market_snapshot(
-        "20261012",
+        "20261016",
         capture_phase="POST_CLOSE",
-        captured_at="2026-10-12T16:18:00-04:00",
+        captured_at="2026-10-16T16:18:00-04:00",
         fetch_quotes=lambda url, _timeout: (requested_urls.append(url) or {
-            symbol: dict(last=101.0, previous_close=100.0, session_date="20261012", session_time="16:00:00")
+            symbol: dict(last=101.0, previous_close=100.0, session_date="20261016", session_time="16:00:00")
             for symbol in contract["symbols"] if symbol not in {"META", "PDD"}
         }),
     )
@@ -53,8 +54,8 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     assert len(quote_snapshot["rows"]) == 24
     quote_root = tmp_path / "quotes"
     payload = build_external_finance_payload(
-        "20261012",
-        fetched_at="2026-10-13T07:00:00Z",
+        "20261017",
+        fetched_at="2026-10-17T07:00:00Z",
         subscriptions=(),
     )
     payload["market_snapshot"] = quote_snapshot
@@ -62,20 +63,20 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     if quote_snapshot["status"] != "READY":
         payload["status"] = "CANNOT_CONFIRM"
     payload["us_session_captures"] = [dict(
-        us_session_date="20261012",
+        us_session_date="20261016",
         capture_phase="POST_CLOSE",
         session_timezone="America/New_York",
-        capture_window_start="2026-10-12T16:15:00-04:00",
-        capture_window_end="2026-10-12T16:20:00-04:00",
-        capture_id="isolated-test-capture-20261012-post-close",
+        capture_window_start="2026-10-16T16:15:00-04:00",
+        capture_window_end="2026-10-16T16:20:00-04:00",
+        capture_id="isolated-test-capture-20261016-post-close",
         run_id="isolated-test-run",
-        captured_at="2026-10-12T16:18:00-04:00",
+        captured_at="2026-10-16T16:18:00-04:00",
         capture_origin="ORIGINAL_TIME_CAPTURE",
         original_time_capture=True,
     )]
     store = ResearchPeripheralStore(quote_root)
     published = store.publish(payload)
-    assert store.read_exact("20261012", "external_finance")["market_snapshot"] == quote_snapshot
+    assert store.read_exact("20261017", "external_finance")["market_snapshot"] == quote_snapshot
     quote_relative = published["payload_path"]
 
     relation_root = tmp_path / "relations"
@@ -104,14 +105,14 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
         source_bindings={},
     )
     context = SimpleNamespace(
-        source_sessions={"us": "20261012"},
-        cutoff="2026-10-14T09:00:00+08:00",
-        target_date="20261014",
+        source_sessions={"us": "20261016"},
+        cutoff="2026-10-20T09:00:00+08:00",
+        target_date="20261020",
     )
     monkeypatch.setattr(source_bindings, "priority_review", lambda *_: [])
     monkeypatch.setattr(source_bindings, "reviewed_seed", lambda *_: ([], []))
     monkeypatch.setattr(source_bindings, "us_factor_exposure", lambda *_: (None, [], None))
-    monkeypatch.setattr(source_bindings, "hk_industry_classification", lambda *_: {"checked_files": []})
+    monkeypatch.setattr(source_bindings, "hk_industry_classification", lambda *_: {"checked_files": []}, raising=False)
 
     pin = source_bindings.us_mapping(config, context)
 
@@ -260,3 +261,90 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     legacy_result = run_us_mapping(legacy_native.context.model_dump(mode="python"), legacy_native.model_dump(mode="python"))
     assert legacy_result["coverage"]["scope_count"] == 33
     assert not any(row["decision"] == "SELECTED" for row in legacy_result["rows"])
+
+
+def test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standard_receipt(tmp_path, monkeypatch):
+    quote_root = tmp_path / "quotes"
+    snapshot = build_us_market_snapshot(
+        "20261016",
+        capture_phase="POST_CLOSE",
+        captured_at="2026-10-16T16:18:00-04:00",
+        fetch_quotes=lambda _url, _timeout: {
+            symbol: dict(last=101.0, previous_close=100.0, session_date="20261016", session_time="16:00:00")
+            for symbol in LEGACY_US_SYMBOLS
+        },
+    )
+    payload = build_external_finance_payload(
+        "20261017", fetched_at="2026-10-17T07:00:00Z", subscriptions=(),
+    )
+    payload["market_snapshot"] = snapshot
+    payload["market_snapshot_status"] = snapshot["status"]
+    payload["us_session_captures"] = [dict(
+        us_session_date="20261016",
+        capture_phase="POST_CLOSE",
+        session_timezone="America/New_York",
+        capture_window_start="2026-10-16T16:15:00-04:00",
+        capture_window_end="2026-10-16T16:20:00-04:00",
+        capture_id="receipt-contract-test-20261016-post-close",
+        run_id="receipt-contract-test-run",
+        captured_at="2026-10-16T16:18:00-04:00",
+        capture_origin="ORIGINAL_TIME_CAPTURE",
+        original_time_capture=True,
+    )]
+    published = ResearchPeripheralStore(quote_root).publish(payload)
+    quote_relative = published["payload_path"]
+    receipt_relative = "receipts/research/peripherals/20261017/external_finance.json"
+    receipt_path = quote_root / receipt_relative
+    original_receipt_bytes = receipt_path.read_bytes()
+    original_receipt = json.loads(original_receipt_bytes)
+    # Normal producer receipts bind the payload and trade date; this optional
+    # field is emitted only by the producer's late-capture contract.
+    assert "us_session_date" not in original_receipt
+
+    relation_root = tmp_path / "relations"
+    evidence_relative, review_relative = "relations.json", "review.json"
+    evidence = {"schema_version": "frozen", "relations": [], "symbol_assessments": []}
+    evidence["artifact_sha256"] = source_bindings.owner_digest(evidence)
+    evidence_sha = _write(relation_root, evidence_relative, evidence)
+    review = {
+        "status": "PASS", "evidence_file_sha256": evidence_sha,
+        "declared_artifact_sha256": evidence["artifact_sha256"],
+        "recomputed_artifact_sha256": evidence["artifact_sha256"],
+        "reviewer_identity": "receipt-contract-reviewer", "reviewed_at": "2026-10-13T07:00:00Z",
+        "reviewed_pairs": [], "reviewed_symbol_assessments": [],
+        "safety": {"production_allowed": False},
+    }
+    _write(relation_root, review_relative, review)
+    config = SimpleNamespace(
+        us_root=quote_root, relation_root=relation_root,
+        relation_evidence_relative=evidence_relative, relation_review_relative=review_relative,
+        source_bindings={},
+    )
+    context = SimpleNamespace(
+        source_sessions={"us": "20261016"}, cutoff="2026-10-20T09:00:00+08:00",
+        target_date="20261020",
+    )
+    monkeypatch.setattr(source_bindings, "priority_review", lambda *_: [])
+    monkeypatch.setattr(source_bindings, "reviewed_seed", lambda *_: ([], []))
+    monkeypatch.setattr(source_bindings, "us_factor_exposure", lambda *_: (None, [], None))
+
+    pin = source_bindings.us_mapping(config, context)
+    assert pin["quote_relative"] == quote_relative
+    assert pin["quote_sha256"] == hashlib.sha256((quote_root / quote_relative).read_bytes()).hexdigest()
+    assert pin["owner_receipt_relative"] == receipt_relative
+    assert pin["owner_receipt_sha256"] == hashlib.sha256(original_receipt_bytes).hexdigest()
+
+    mutations = (
+        lambda value: value.pop("trade_date"),
+        lambda value: value.update(source="ai_news"),
+        lambda value: value.update(payload_path="research/peripherals/20261016/external_finance.json"),
+        lambda value: value.update(schema_version="v3_5.unknown_receipt.v1"),
+        lambda value: value.update(payload_sha256="0" * 64),
+        lambda value: value.update(market_snapshot_schema_version="v3_5.unknown_snapshot.v1"),
+    )
+    for mutation in mutations:
+        tampered = dict(original_receipt)
+        mutation(tampered)
+        receipt_path.write_text(json.dumps(tampered, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        with pytest.raises(ValueError, match="US_OWNER_SESSION_ARTIFACT_NOT_FOUND"):
+            source_bindings.us_mapping(config, context)

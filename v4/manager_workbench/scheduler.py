@@ -5,6 +5,7 @@ from datetime import datetime, time
 from typing import Any
 
 from .contracts import HK, Lane, Phase, validate_date, digest
+from .jobs import JobConflict
 from .service import ManagerService
 
 
@@ -21,6 +22,200 @@ def _require_calendar(calendar: Any, day: str) -> bool:
     return value
 
 
+def _valid_sha256(value: Any) -> bool:
+    return (isinstance(value, str) and len(value) == 64
+            and all(char in "0123456789abcdef" for char in value))
+
+
+def _handoff_identity(pin: Any, target: str) -> dict[str, str] | None:
+    if not isinstance(pin, dict):
+        return None
+    identity = {
+        "target_date": target,
+        "us_session_date": pin.get("capture_session_date"),
+        "artifact_sha256": pin.get("quote_sha256"),
+        "receipt_sha256": pin.get("owner_receipt_sha256"),
+        "manifest_sha256": pin.get("owner_manifest_sha256"),
+        "capture_cutoff": pin.get("capture_cutoff"),
+        "artifact_relative": pin.get("quote_relative"),
+        "receipt_relative": pin.get("owner_receipt_relative"),
+        "manifest_relative": pin.get("owner_manifest_ref"),
+    }
+    if (not all(isinstance(identity[key], str) and identity[key] for key in (
+            "us_session_date", "capture_cutoff", "artifact_relative",
+            "receipt_relative", "manifest_relative"))
+            or not all(_valid_sha256(identity[key]) for key in (
+                "artifact_sha256", "receipt_sha256", "manifest_sha256"))):
+        return None
+    return identity
+
+
+def _job_scope(job: Any) -> dict[str, Any]:
+    context = getattr(job, "context", None)
+    scope_refs = getattr(context, "scope_refs", None)
+    return scope_refs if isinstance(scope_refs, dict) else {}
+
+
+def _matches_handoff_job(job: Any, key: str, identity: dict[str, str]) -> bool:
+    scope = _job_scope(job)
+    owner_bindings = scope.get("owner_bindings")
+    pin = owner_bindings.get("us_mapping") if isinstance(owner_bindings, dict) else None
+    return (scope.get("us_close_handoff_key") == key
+            and _handoff_identity(pin, identity["target_date"]) == identity
+            and scope.get("owner_artifact_sha256") == identity["artifact_sha256"]
+            and scope.get("owner_receipt_sha256") == identity["receipt_sha256"]
+            and scope.get("owner_manifest_sha256") == identity["manifest_sha256"]
+            and scope.get("source_cutoff") == identity["capture_cutoff"])
+
+
+def _state_value(job: Any) -> str:
+    state = getattr(job, "state", None)
+    return str(getattr(state, "value", state or ""))
+
+
+def _handoff_cursor(identity: dict[str, str], key: str, job: Any | None = None,
+                    *, state: str = "JOB_TRACKED") -> dict[str, str]:
+    value = {"input_key": key, "state": state, **identity}
+    if job is not None:
+        value.update(job_id=job.job_id, run_id=job.run_id)
+    return value
+
+
+def _us_close_handoff(service: ManagerService, *, calendar: Any,
+                      local: datetime) -> list[dict[str, str]]:
+    """Consume a verified exact-session US close through the existing selector.
+
+    The scheduler is already resident on the existing manager owner. This
+    hook adds no producer or service: it submits the existing US_MAPPING lane
+    only after the native owner binding verifies a post-close artifact/receipt.
+    The cursor binds the payload, receipt, manifest, and cutoff.  The job
+    scope is checked after submit because JobCoordinator may return an older
+    active job for the same target/phase/lane.
+    """
+    adapters = getattr(service, "adapters", None)
+    config = getattr(adapters, "config", None)
+    resolver = getattr(adapters, "_us_session", None)
+    if config is None or not getattr(config, "us_root", None) or not callable(resolver):
+        return []
+    try:
+        session = resolver(local.isoformat())
+        target = calendar.next_hk_session(session)
+        validate_date(session)
+        validate_date(target)
+        if target <= session or not _require_calendar(calendar, target):
+            return []
+        context = service.context(
+            target, Phase.NEXT_DAY, trigger="SCHEDULED", cutoff=local,
+            lanes=[Lane.US_MAPPING],
+            scope_refs={"us_close_handoff": True, "us_session_date": session},
+        )
+        pin = (context.scope_refs.get("owner_bindings") or {}).get("us_mapping")
+        if (not isinstance(pin, dict)
+                or pin.get("capture_phase") != "POST_CLOSE"
+                or pin.get("capture_status") not in {"READY", "READY_EMPTY"}
+                or pin.get("capture_session_date") != session):
+            return []
+        captured_at = datetime.fromisoformat(str(pin.get("capture_cutoff", "")).replace("Z", "+00:00"))
+        if (captured_at.tzinfo is None or captured_at.utcoffset() is None
+                or captured_at.astimezone(HK) > local.astimezone(HK)):
+            return []
+        identity = _handoff_identity(pin, target)
+        if identity is None:
+            return []
+        input_key = digest(identity)
+        cursor_key = f"us_close_{input_key}"
+        existing = service.store.cursor(cursor_key)
+        if existing:
+            if existing.get("input_key") != input_key or existing.get("state") == "CONSUMED":
+                return []
+            job_id = existing.get("job_id")
+            if not isinstance(job_id, str) or not job_id:
+                return []
+            previous = service.jobs.get(job_id)
+            if not _matches_handoff_job(previous, input_key, identity):
+                return []
+            state = _state_value(previous)
+            if state in {"QUEUED", "RUNNING"}:
+                return []
+            if state in {"FAILED", "INTERRUPTED", "PARTIAL"} and getattr(previous, "retryable", False):
+                try:
+                    job = service.retry(job_id)
+                except JobConflict:
+                    return []
+                if not _matches_handoff_job(job, input_key, identity):
+                    return []
+                service.store.set_cursor(cursor_key, _handoff_cursor(identity, input_key, job))
+                return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
+                         "state": "RETRY_SUBMITTED", "job_id": job.job_id,
+                         "run_id": job.run_id, "target_date": target,
+                         "us_session_date": session, "input_key": input_key}]
+            return []
+
+        # A job can save its plan before a failed cursor write. Resolve that
+        # plan back to its exact attempt: only success is consumed, while a
+        # retryable partial/failed attempt remains recoverable.
+        for plan in service.store.list_plans(target, Phase.NEXT_DAY.value):
+            if _job_scope(plan).get("us_close_handoff_key") != input_key:
+                continue
+            if not _matches_handoff_job(plan, input_key, identity):
+                continue
+            try:
+                previous = service.jobs.get(plan.run_id)
+            except (KeyError, AttributeError):
+                return []
+            if not _matches_handoff_job(previous, input_key, identity):
+                return []
+            state = _state_value(previous)
+            if state == "SUCCEEDED":
+                service.store.set_cursor(cursor_key, _handoff_cursor(
+                    identity, input_key, state="CONSUMED"))
+                return []
+            if (state in {"FAILED", "INTERRUPTED", "PARTIAL"}
+                    and getattr(previous, "retryable", False)):
+                try:
+                    job = service.retry(previous.job_id)
+                except JobConflict:
+                    return []
+                if not _matches_handoff_job(job, input_key, identity):
+                    return []
+                service.store.set_cursor(cursor_key, _handoff_cursor(identity, input_key, job))
+                return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
+                         "state": "RETRY_SUBMITTED", "job_id": job.job_id,
+                         "run_id": job.run_id, "target_date": target,
+                         "us_session_date": session, "input_key": input_key}]
+            # QUEUED/RUNNING and non-retryable outcomes stay pending. In
+            # particular, a partial plan is not proof that the lane completed.
+            return []
+        job = service.submit(
+            target, Phase.NEXT_DAY, trigger="SCHEDULED",
+            lanes=[Lane.US_MAPPING], cutoff=local,
+            scope_refs={
+                "us_close_handoff": True,
+                "us_session_date": session,
+                "us_close_handoff_key": input_key,
+                "owner_artifact_sha256": identity["artifact_sha256"],
+                "owner_receipt_sha256": identity["receipt_sha256"],
+                "owner_manifest_sha256": identity["manifest_sha256"],
+                "source_cutoff": identity["capture_cutoff"],
+                # Keep the exact pin used above; don't re-resolve a newer
+                # artifact between validation and job creation.
+                "owner_bindings": {"us_mapping": pin},
+            },
+        )
+        if not _matches_handoff_job(job, input_key, identity):
+            # A same-lane active job may belong to a different source SHA.
+            # Leave this owner input pending so the next scheduler tick retries.
+            return []
+        service.store.set_cursor(cursor_key, _handoff_cursor(identity, input_key, job))
+        return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
+                 "state": "SUBMITTED", "job_id": job.job_id,
+                 "run_id": job.run_id, "target_date": target,
+                 "us_session_date": session, "input_key": input_key}]
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        # Missing/partial owner input stays missing; no stale-session fallback.
+        return []
+
+
 def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
          at: datetime | None = None) -> dict[str, Any]:
     """Idempotently assess 09:25, changed Stage runs, and 16:30 next-day due.
@@ -33,9 +228,12 @@ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
         raise ValueError("SCHEDULER_TIMEZONE_REQUIRED")
     local = instant.astimezone(HK)
     day = local.strftime("%Y%m%d")
+    # US close may complete while HK is closed (for example Saturday 04:15 HKT).
+    # Check the exact-session owner receipt before the HK-session-only jobs.
+    jobs: list[dict[str, str]] = _us_close_handoff(service, calendar=calendar, local=local)
     if not _require_calendar(calendar,day):
-        return {"state":"NOT_APPLICABLE", "date":day,"reason":"HK_NON_TRADING_SESSION","jobs":[]}
-    jobs: list[dict[str, str]] = []
+        return {"state":"NOT_APPLICABLE", "date":day,
+                "reason":"HK_NON_TRADING_SESSION","jobs":jobs}
     scheduled = getattr(getattr(service, "config", None), "scheduled_lanes", None)
     # A new configured scope cannot retry an older all-lane claim and thereby
     # restore paused research. Default keys/behavior remain compatible.

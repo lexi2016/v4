@@ -98,6 +98,7 @@ def test_catalog_view_is_single_registered_us_workload_and_keeps_source_intact()
     assert workload.slots == us_slot.US_MARKET_SLOTS
     assert tuple(item.workload_id for item in source.workloads) == source_ids
     assert selected.source_payload == source.source_payload
+    assert us_slot.select_us_workload(selected).target_date_role == "TARGET_DATE"
 
 
 def test_only_us_is_selected_and_repeat_is_idempotent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
