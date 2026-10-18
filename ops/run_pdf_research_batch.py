@@ -68,6 +68,7 @@ SOURCE_CANARY_PRIOR_SUMMARY_PATH = R_ROOT / "writer/ocr-canary/summary.json"
 SOURCE_CANARY_PRIOR_SUMMARY_SHA256 = "695a40ca6a43da38b4d1e20e6f9774d9529c0e31c03264030fff855eec66108a"
 SOURCE_CANARY_REVIEW_DEFAULT = R_ROOT / "reviewer/ocr-scale-content-verdict.json"
 REPORT_CANARY_REVIEW_DEFAULT = R_ROOT / "reviewer/r3-report-content-verdict.json"
+EXPECTED_REPORT_CONTENT_FAIL_REVIEW_SHA256 = "a5bc45007985d4e868ab7febd29262c14b2deb570ad28861bdafe9edc5c02e49"
 SLICE_CANARY_ATTEMPT_PATH = R_ROOT / "writer/slice-canary/attempt.json"
 SLICE_CANARY_ATTEMPT_SHA256 = "5ba455f74357c0f17a3b0084ebe18109a2532c34d88a7ee718b6cc8d55e79774"
 SLICE_CANARY_MANIFEST_PATH = R_ROOT / "writer/slice-canary/slice-manifest.json"
@@ -2322,6 +2323,186 @@ def _require_report_canary_review(
     return {"path": str(path), "sha256": _sha256(raw), "reviewer": review["reviewer"], "documents": outputs}
 
 
+def _isolate_known_report_content_failure(
+    document: Mapping[str, Any],
+    *,
+    state_root: Path,
+    manifest_sha: str,
+) -> dict[str, Any] | None:
+    pdf_sha = str(document.get("pdf_sha256", ""))
+    if pdf_sha not in SOURCE_REJECTED_PDF_SHA256S:
+        return None
+    document_id = str(document.get("document_id", ""))
+    review_path = REPORT_CANARY_REVIEW_DEFAULT
+    review_reference: dict[str, Any] = {
+        "path": str(review_path),
+        "sha256": EXPECTED_REPORT_CONTENT_FAIL_REVIEW_SHA256,
+        "binding_status": "CANNOT_CONFIRM",
+        "document_id": document_id,
+        "pdf_sha256": pdf_sha,
+    }
+
+    def isolated(failure_code: str, reason: str, *, finding: Mapping[str, Any] | None = None) -> dict[str, Any]:
+        reference = dict(review_reference)
+        reference["reason"] = reason
+        review_reason: dict[str, Any] = {"code": reason}
+        if finding is not None:
+            review_reason.update(
+                {
+                    "finding_id": finding.get("id"),
+                    "severity": finding.get("severity"),
+                    "required_correction": finding.get("required_correction"),
+                }
+            )
+        if failure_code == "REPORT_CONTENT_REVIEW_FAIL":
+            reference["binding_status"] = "VERIFIED"
+            reference["verdict"] = "FAIL"
+        return {
+            "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
+            "status": "FAILED_DOCUMENT_ISOLATED",
+            "manifest_sha256": manifest_sha,
+            "document_id": document_id,
+            "pdf_sha256": pdf_sha,
+            "failure_code": failure_code,
+            "review_reason": review_reason,
+            "review_reference": reference,
+            "research_only": True,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+
+    if document_id != pdf_sha:
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "MANIFEST_DOCUMENT_ID_MISMATCH")
+    if review_path.is_symlink() or not review_path.is_file():
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_RECEIPT_UNAVAILABLE")
+    try:
+        review_raw = review_path.read_bytes()
+        review = json.loads(review_raw.decode("utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_RECEIPT_INVALID")
+    actual_review_sha = _sha256(review_raw)
+    review_reference["observed_sha256"] = actual_review_sha
+    if actual_review_sha != EXPECTED_REPORT_CONTENT_FAIL_REVIEW_SHA256:
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_RECEIPT_SHA_MISMATCH")
+    if (
+        not isinstance(review, dict)
+        or review.get("schema") != REPORT_CANARY_REVIEW_SCHEMA
+        or review.get("status") != "FAIL"
+        or review.get("binding_check") != "PASS"
+        or not isinstance(review.get("reviewer"), str)
+        or not review["reviewer"].strip()
+        or manifest_sha != EXPECTED_BATCH_MANIFEST_SHA256
+        or review.get("manifest_sha256") != manifest_sha
+        or review.get("source_text_review_sha256") != SOURCE_CANARY_REVIEW_SHA256
+        or review.get("second_source_text_review_sha256") != SLICE_CANARY_REVIEW_SHA256
+    ):
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_TOP_LEVEL_BINDING_MISMATCH")
+    review_reference["observed_sha256"] = actual_review_sha
+    review_reference["reviewer"] = review["reviewer"]
+    review_reference["manifest_sha256"] = review["manifest_sha256"]
+
+    reviewed_rows = review.get("documents")
+    if not isinstance(reviewed_rows, list):
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_DOCUMENT_ROWS_INVALID")
+    rows_by_id = {
+        row.get("document_id"): row
+        for row in reviewed_rows
+        if isinstance(row, dict) and isinstance(row.get("document_id"), str)
+    }
+    if len(rows_by_id) != len(reviewed_rows) or set(rows_by_id) != set(EXPECTED_CANARY_DOCUMENT_IDS):
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_DOCUMENT_SET_MISMATCH")
+    for known_id in EXPECTED_CANARY_DOCUMENT_IDS:
+        expected_verdict = "PASS" if known_id == S18_PDF_SHA256 else "FAIL"
+        row = rows_by_id[known_id]
+        if row.get("pdf_sha256") != known_id or row.get("verdict") != expected_verdict:
+            return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_DOCUMENT_BINDING_MISMATCH")
+
+    reviewed = rows_by_id.get(document_id)
+    if not isinstance(reviewed, dict) or reviewed.get("verdict") != "FAIL":
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_FAIL_ROW_UNAVAILABLE")
+    findings = review.get("findings")
+    finding = next(
+        (
+            row
+            for row in findings
+            if isinstance(findings, list)
+            and isinstance(row, dict)
+            and row.get("document_id") == document_id
+            and row.get("severity") == "P1"
+            and isinstance(row.get("required_correction"), str)
+            and row["required_correction"].strip()
+        ),
+        None,
+    ) if isinstance(findings, list) else None
+    if finding is None:
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "REPORT_REVIEW_FINDING_UNAVAILABLE")
+
+    receipt_path = state_root / "documents" / document_id / "receipt.json"
+    if receipt_path.is_symlink() or not receipt_path.is_file():
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_RECEIPT_UNAVAILABLE")
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_RECEIPT_INVALID")
+    page_input = receipt.get("page_input") if isinstance(receipt, dict) else None
+    report = receipt.get("report") if isinstance(receipt, dict) else None
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("schema") != "v4.pdf_research_simple_batch.document_receipt.v1"
+        or receipt.get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        or receipt.get("manifest_sha256") != manifest_sha
+        or receipt.get("document_id") != document_id
+        or receipt.get("pdf_sha256") != pdf_sha
+        or not isinstance(page_input, dict)
+        or not isinstance(report, dict)
+        or page_input.get("sha256") != reviewed.get("page_input_sha256")
+        or report.get("sha256") != reviewed.get("report_sha256")
+    ):
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_REVIEW_BINDING_MISMATCH")
+    review_reference["reviewed_page_input_sha256"] = reviewed.get("page_input_sha256")
+    review_reference["reviewed_report_sha256"] = reviewed.get("report_sha256")
+    try:
+        state_root_resolved = state_root.resolve(strict=True)
+    except OSError:
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "BATCH_STATE_ROOT_UNAVAILABLE")
+    artifact_shas: dict[str, str] = {}
+    for name, artifact in (("page_input", page_input), ("report", report)):
+        artifact_path = Path(str(artifact.get("path", "")))
+        try:
+            artifact_path.resolve(strict=True).relative_to(state_root_resolved)
+        except (OSError, ValueError):
+            return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_ARTIFACT_OUTSIDE_STATE_ROOT")
+        if artifact_path.is_symlink() or not artifact_path.is_file():
+            return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_ARTIFACT_UNAVAILABLE")
+        try:
+            artifact_sha = _sha256_file(artifact_path)
+        except OSError:
+            return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_ARTIFACT_UNAVAILABLE")
+        if artifact_sha != artifact.get("sha256"):
+            return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_ARTIFACT_SHA_MISMATCH")
+        artifact_shas[name] = artifact_sha
+    try:
+        document_receipt_sha = _sha256_file(receipt_path)
+    except OSError:
+        return isolated("CANNOT_CONFIRM_REPORT_REVIEW_BINDING", "FAILED_DOCUMENT_RECEIPT_UNAVAILABLE")
+
+    review_reference.update(
+        {
+            "binding_status": "VERIFIED",
+            "verdict": "FAIL",
+            "reviewer": review["reviewer"],
+            "manifest_sha256": manifest_sha,
+            "page_input_sha256": artifact_shas["page_input"],
+            "report_sha256": artifact_shas["report"],
+            "finding_id": finding.get("id"),
+            "document_receipt_path": str(receipt_path),
+            "document_receipt_sha256": document_receipt_sha,
+        }
+    )
+    return isolated("REPORT_CONTENT_REVIEW_FAIL", "BOUND_REPORT_CONTENT_FAIL", finding=finding)
+
+
 def _benign_defer_reason(outcome: Mapping[str, Any]) -> str | None:
     status = outcome.get("status")
     if status == "DEFERRED_ANNOUNCEMENT_PRIORITY":
@@ -2372,8 +2553,6 @@ def _run_batch_impl(
     resolved_state_root = state_root.resolve(strict=False)
     if resolved_state_root == r1_root or r1_root in resolved_state_root.parents:
         raise BatchError("READ_ONLY_R1_STATE_ROOT_CANNOT_BE_USED_FOR_BATCH_WRITES")
-    if max_documents > CANARY_DOCUMENT_LIMIT:
-        _require_report_canary_review(state_root, manifest_sha, documents)
     documents = documents[:max_documents]
     state_root.mkdir(mode=0o700, parents=True, exist_ok=True)
     with _batch_singleton_lock(state_root):
@@ -2447,21 +2626,27 @@ def _run_batch_impl(
                 retry_count = 0
                 while True:
                     try:
-                        outcome = _run_document(
+                        outcome = _isolate_known_report_content_failure(
                             document,
-                            manifest_sha=manifest_sha,
                             state_root=state_root,
-                            queue=queue,
-                            binding=binding,
-                            identity=identity_state,
-                            priority_reader=priority_reader,
-                            identity_reader=identity_reader,
-                            identity_state=identity_state,
-                            request_fn=request_fn,
-                            sleep_fn=sleep_fn,
-                            stop_event=stop_event,
-                            repair_budget=repair_budget,
+                            manifest_sha=manifest_sha,
                         )
+                        if outcome is None:
+                            outcome = _run_document(
+                                document,
+                                manifest_sha=manifest_sha,
+                                state_root=state_root,
+                                queue=queue,
+                                binding=binding,
+                                identity=identity_state,
+                                priority_reader=priority_reader,
+                                identity_reader=identity_reader,
+                                identity_state=identity_state,
+                                request_fn=request_fn,
+                                sleep_fn=sleep_fn,
+                                stop_event=stop_event,
+                                repair_budget=repair_budget,
+                            )
                     except Exception as exc:
                         code = getattr(exc, "code", None) or type(exc).__name__
                         outcome = {
@@ -2551,11 +2736,21 @@ def _run_batch_impl(
                     _write_state_json(progress_path, batch_receipt, state_root)
                 if identity_state.get("status") != "NOT_CHECKED":
                     batch_receipt["model_identity"] = dict(identity_state)
-                prior_documents[doc_sha] = {
+                progress_row = {
                     "document_id": doc_sha,
                     "status": outcome.get("status"),
-                    "receipt_path": str(state_root / "documents" / doc_sha / "receipt.json"),
                 }
+                if outcome.get("review_reference"):
+                    progress_row.update(
+                        {
+                            "failure_code": outcome.get("failure_code"),
+                            "review_reason": outcome.get("review_reason"),
+                            "review_reference": outcome.get("review_reference"),
+                        }
+                    )
+                else:
+                    progress_row["receipt_path"] = str(state_root / "documents" / doc_sha / "receipt.json")
+                prior_documents[doc_sha] = progress_row
                 batch_receipt["documents"] = [prior_documents[key] for key in prior_documents]
                 _write_state_json(state_root / "run-progress.json", batch_receipt, state_root)
                 if outcome.get("status") == "STOPPED_GRACEFULLY" or stop_event.is_set():
@@ -2621,7 +2816,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "manifest_sha256": manifest_sha,
                 "manifest_document_count": len(documents),
                 "selected_document_count": min(args.max_documents, len(documents)),
-                "report_content_review_required_before_execute": args.max_documents > CANARY_DOCUMENT_LIMIT,
             }, ensure_ascii=False))
             return 0
         result = run_batch(args.manifest, max_documents=args.max_documents)

@@ -6,7 +6,7 @@ For rendered vertical pages taller than 10,000 pixels, the repair reuses the exi
 
 Page text coverage and semantic acceptance are separate. Generated statuses use `MODEL_GENERATED_TEXT_*_SOURCE_REVIEW_PENDING`; they do not claim that OCR text has been semantically accepted. Reviewed source boundaries are carried into page input and the top of report and synthesis prompts as the highest-priority user instruction. The first page is suitable only for a conservative AstraZeneca–Insitro narrative with explicit unknowns. The OCR-only contingent-payment number and condition wording stay uncertain; no Insitro code is inferred; large announcement/mapping tables, market metrics, and footer chips are excluded or qualified. The second reviewed page permits only the Green Bubble narrative and air-show schedule/location; it excludes market figures and table mappings. Other OCR pages carry a generic transcription limitation that refers to extracted text, not original-PDF damage. A page with unresolved low-resolution text is deferred or isolated before model analysis.
 
-Execution defaults to the first three manifest entries: accepted S18 reuse and the two content-fail PDFs after corrected source input. `--max-documents` controls the per-run cap. Values above three require a separate independent `REPORT_CONTENT_PASS` receipt bound to the three actual first-run page-input and report SHA-256 values. The full 2209-entry inventory is not selected by default.
+Execution still defaults to the first three manifest entries, and `--max-documents` remains an explicit per-run cap. The two known report-content failures, PDF SHAs `075d0083f99e6a4912086798fd0bf737c3807d6e14a365ab2f2d2dd14f4d883c` and `93930e8298dc18a9e2438d5c31420675d1b86e1d87f793139ca76db45f389ee9`, are isolated as `FAILED_DOCUMENT_ISOLATED` only when the frozen R3 FAIL review and each report's existing receipt, page input, and report hash bind. A missing or mismatched binding becomes `CANNOT_CONFIRM` for that document alone; it does not block later documents. Their historical R3 receipts, Markdown, and raw queue artifacts are preserved. Other documents continue through the existing serial flow, and generated reports remain `SOURCE_REVIEW_PENDING`; this does not claim that every report has passed content review. The full 2209-entry inventory is not selected by default.
 
 Short documents are analyzed in one request. Longer documents are split into page-numbered source units with exact offsets, capped at 8,000 source characters and 32,768 serialized request-envelope bytes. Each part is retained, then combined through bounded synthesis requests. The original page input remains alongside the report. Every generated report is labeled `MODEL_GENERATED` and `SOURCE_REVIEW_PENDING`; queue `SUCCEEDED` means only that the request and output schema passed. S18 is reused only for its exact PDF SHA and frozen user-acceptance receipt. Its copied report remains byte-identical to the accepted model report; the separate presentation note carries the accepted qualification, and the original raw output is not read or changed.
 
@@ -28,7 +28,7 @@ Run the focused tests from the repository root with the regular V4 development i
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider tests/test_pdf_research_batch.py
 ```
 
-The following is the reproducible command for a later root-activated run after independent source review. It is not part of this offline implementation milestone:
+The following is the reproducible command for a later root-activated first-three run. It is not part of this offline implementation milestone:
 
 ```sh
 cd /Users/lexi/Desktop/学习/v4_app
@@ -37,6 +37,18 @@ R=/Users/lexi/Desktop/学习/agents调试/V4_PDF_SIMPLE_BATCH_20261018_R1
 STATE='/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/pdf_local/research/batches/simple-20261018-r3'
 mkdir -p "$STATE/logs"
 nohup env PYTHONDONTWRITEBYTECODE=1 "$PY" -m ops.run_pdf_research_batch --manifest "$R/inventory/batch-manifest.json" --max-documents 3 --execute >"$STATE/logs/batch.stdout.log" 2>"$STATE/logs/batch.stderr.log" </dev/null &
+printf '%s\n' "$!" >"$STATE/runner.pid"
+```
+
+After independent source-code PASS, root may explicitly select the whole frozen inventory with the same serial runner and R3 state root. This command is an activation instruction, not an execution performed by this implementation handoff:
+
+```sh
+cd /Users/lexi/Desktop/学习/v4_app
+PY=/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python
+R=/Users/lexi/Desktop/学习/agents调试/V4_PDF_SIMPLE_BATCH_20261018_R1
+STATE='/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/pdf_local/research/batches/simple-20261018-r3'
+mkdir -p "$STATE/logs"
+nohup env PYTHONDONTWRITEBYTECODE=1 "$PY" -m ops.run_pdf_research_batch --manifest "$R/inventory/batch-manifest.json" --max-documents 2209 --execute >"$STATE/logs/batch.stdout.log" 2>"$STATE/logs/batch.stderr.log" </dev/null &
 printf '%s\n' "$!" >"$STATE/runner.pid"
 ```
 

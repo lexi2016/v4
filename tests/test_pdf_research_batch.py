@@ -1501,54 +1501,160 @@ def test_r1_success_reuse_requires_exact_payload_and_excludes_content_failed_pdf
     assert batch._read_r1_success(queue, rejected_payload) is None
 
 
-def test_full_batch_requires_bound_report_content_receipt(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     state_root = tmp_path / "state"
     manifest_sha = "f" * 64
-    documents = [{"document_id": sha, "pdf_sha256": sha} for sha in batch.EXPECTED_CANARY_DOCUMENT_IDS]
-    expected_rows: list[dict[str, str]] = []
-    for doc in documents:
-        doc_id = doc["document_id"]
+    later_document = "4" * 64
+    documents = [
+        {"document_id": sha, "pdf_sha256": sha}
+        for sha in (*batch.EXPECTED_CANARY_DOCUMENT_IDS, later_document)
+    ]
+    old_bytes: dict[str, dict[str, bytes]] = {}
+    review_rows: list[dict[str, str]] = []
+    findings: list[dict[str, str]] = []
+    for doc_id in batch.EXPECTED_CANARY_DOCUMENT_IDS:
         doc_root = state_root / "documents" / doc_id
         doc_root.mkdir(parents=True)
         page_path = doc_root / "page-input.json"
         report_path = doc_root / "report.md"
         page_path.write_text(json.dumps({"document_id": doc_id}), encoding="utf-8")
         report_path.write_text(f"report {doc_id}", encoding="utf-8")
-        status = "USER_ACCEPTED_REUSED_REPORT" if doc_id == batch.S18_PDF_SHA256 else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        page_sha = hashlib.sha256(page_path.read_bytes()).hexdigest()
+        report_sha = hashlib.sha256(report_path.read_bytes()).hexdigest()
         receipt = {
+            "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
             "manifest_sha256": manifest_sha,
             "document_id": doc_id,
             "pdf_sha256": doc_id,
-            "status": status,
-            "page_input": {"path": str(page_path), "sha256": hashlib.sha256(page_path.read_bytes()).hexdigest()},
-            "report": {"path": str(report_path), "sha256": hashlib.sha256(report_path.read_bytes()).hexdigest()},
+            "status": (
+                "USER_ACCEPTED_REUSED_REPORT"
+                if doc_id == batch.S18_PDF_SHA256
+                else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+            ),
+            "page_input": {"path": str(page_path), "sha256": page_sha},
+            "report": {"path": str(report_path), "sha256": report_sha},
         }
-        (doc_root / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
-        expected_rows.append(
-            {
+        receipt_path = doc_root / "receipt.json"
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        old_bytes[doc_id] = {
+            "receipt": receipt_path.read_bytes(),
+            "page_input": page_path.read_bytes(),
+            "report": report_path.read_bytes(),
+        }
+        review_rows.append({
+            "document_id": doc_id,
+            "pdf_sha256": doc_id,
+            "page_input_sha256": page_sha,
+            "report_sha256": report_sha,
+            "verdict": "PASS" if doc_id == batch.S18_PDF_SHA256 else "FAIL",
+        })
+        if doc_id != batch.S18_PDF_SHA256:
+            findings.append({
                 "document_id": doc_id,
-                "pdf_sha256": doc_id,
-                "page_input_sha256": receipt["page_input"]["sha256"],
-                "report_sha256": receipt["report"]["sha256"],
-                "verdict": "PASS",
-            }
-        )
+                "id": f"{doc_id[:4]}_OUT_OF_BOUND_CONTENT",
+                "severity": "P1",
+                "required_correction": "Preserve only claims allowed by the reviewed source boundary.",
+            })
     review = {
         "schema": batch.REPORT_CANARY_REVIEW_SCHEMA,
-        "status": "REPORT_CONTENT_PASS",
+        "status": "FAIL",
         "reviewer": "independent-report-reviewer",
+        "binding_check": "PASS",
         "manifest_sha256": manifest_sha,
         "source_text_review_sha256": batch.SOURCE_CANARY_REVIEW_SHA256,
-        "documents": expected_rows,
+        "second_source_text_review_sha256": batch.SLICE_CANARY_REVIEW_SHA256,
+        "documents": review_rows,
+        "findings": findings,
     }
     review_path = tmp_path / "report-review.json"
     review_path.write_text(json.dumps(review), encoding="utf-8")
     monkeypatch.setattr(batch, "REPORT_CANARY_REVIEW_DEFAULT", review_path)
+    monkeypatch.setattr(batch, "EXPECTED_REPORT_CONTENT_FAIL_REVIEW_SHA256", hashlib.sha256(review_path.read_bytes()).hexdigest(), raising=False)
+    monkeypatch.setattr(batch, "EXPECTED_BATCH_MANIFEST_SHA256", manifest_sha)
 
-    accepted = batch._require_report_canary_review(state_root, manifest_sha, documents)
-    assert accepted["reviewer"] == "independent-report-reviewer"
-    assert len(accepted["documents"]) == 3
+    manifest = {"schema": "v4.pdf_research_simple_batch.manifest.v1", "status": "FROZEN", "documents": documents}
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    monkeypatch.setattr(batch, "load_manifest", lambda _path: (manifest, manifest_sha, documents))
+    monkeypatch.setattr(batch.local_model, "require_runtime_python", lambda: None)
+    monkeypatch.setattr(
+        batch.local_model,
+        "build_request_material",
+        lambda _schema: {
+            "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+            "model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+            "runtime_python": str(batch.local_model.RUNTIME_PYTHON),
+            "evidence_root": str(state_root / "evidence"),
+            "configuration_sha256": "c" * 64,
+        },
+    )
+    calls: list[str] = []
 
-    (state_root / "documents" / documents[1]["document_id"] / "report.md").write_text("tampered", encoding="utf-8")
-    with pytest.raises(batch.BatchError, match="REPORT_CANARY_ARTIFACT_SHA_MISMATCH"):
-        batch._require_report_canary_review(state_root, manifest_sha, documents)
+    def run_unrelated(document, **_kwargs):
+        calls.append(document["document_id"])
+        return {
+            "document_id": document["document_id"],
+            "status": "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
+        }
+
+    monkeypatch.setattr(batch, "_run_document", run_unrelated)
+    fake_queue = SimpleNamespace(state_root=state_root / "queue")
+
+    result = batch.run_batch(
+        manifest_path,
+        state_root=state_root,
+        queue_factory=lambda root: (fake_queue, Path("/shared/model.lock")),
+        request_fn=lambda **_kwargs: pytest.fail("known failed documents must not enqueue a model request"),
+        identity_fn=lambda: pytest.fail("known failed documents must not request model identity"),
+        priority_reader=lambda: pytest.fail("known failed documents must not enter request handling"),
+        sleep_fn=lambda _seconds: None,
+        max_documents=4,
+    )
+
+    observed = {item["document_id"]: item for item in result["documents"]}
+    first = observed[batch.FIRST_CONTENT_FAIL_PDF_SHA256]
+    second = observed[batch.SECOND_CONTENT_FAIL_PDF_SHA256]
+    assert first["status"] == second["status"] == "FAILED_DOCUMENT_ISOLATED"
+    assert first["failure_code"] == second["failure_code"] == "REPORT_CONTENT_REVIEW_FAIL"
+    assert second["review_reason"]["severity"] == "P1"
+    assert first["review_reference"]["sha256"] == second["review_reference"]["sha256"]
+    assert calls == [batch.S18_PDF_SHA256, later_document]
+    assert result["status"] == "COMPLETED_WITH_PER_DOCUMENT_STATES"
+    assert result["research_only"] is True
+    persisted = json.loads((state_root / "run-progress.json").read_text(encoding="utf-8"))
+    persisted_documents = {item["document_id"]: item for item in persisted["documents"]}
+    assert persisted_documents[batch.FIRST_CONTENT_FAIL_PDF_SHA256]["failure_code"] == "REPORT_CONTENT_REVIEW_FAIL"
+    assert persisted_documents[batch.SECOND_CONTENT_FAIL_PDF_SHA256]["review_reference"]["verdict"] == "FAIL"
+    assert persisted_documents[batch.SECOND_CONTENT_FAIL_PDF_SHA256]["review_reason"]["severity"] == "P1"
+
+    for doc_id, snapshots in old_bytes.items():
+        doc_root = state_root / "documents" / doc_id
+        assert (doc_root / "receipt.json").read_bytes() == snapshots["receipt"]
+        assert (doc_root / "page-input.json").read_bytes() == snapshots["page_input"]
+        assert (doc_root / "report.md").read_bytes() == snapshots["report"]
+        assert not (doc_root / "progress.json").exists()
+
+    # A post-review artifact mismatch changes only that document's classification.
+    first_report = state_root / "documents" / batch.FIRST_CONTENT_FAIL_PDF_SHA256 / "report.md"
+    first_report.write_text("changed after review", encoding="utf-8")
+    cannot_confirm = batch._isolate_known_report_content_failure(
+        documents[1], state_root=state_root, manifest_sha=manifest_sha
+    )
+    still_failed = batch._isolate_known_report_content_failure(
+        documents[2], state_root=state_root, manifest_sha=manifest_sha
+    )
+    assert cannot_confirm is not None
+    assert cannot_confirm["status"] == "FAILED_DOCUMENT_ISOLATED"
+    assert cannot_confirm["failure_code"] == "CANNOT_CONFIRM_REPORT_REVIEW_BINDING"
+    assert cannot_confirm["review_reference"]["binding_status"] == "CANNOT_CONFIRM"
+    assert still_failed is not None and still_failed["failure_code"] == "REPORT_CONTENT_REVIEW_FAIL"
+    monkeypatch.setattr(batch, "REPORT_CANARY_REVIEW_DEFAULT", tmp_path / "missing-review.json")
+    missing_review = batch._isolate_known_report_content_failure(
+        documents[2], state_root=state_root, manifest_sha=manifest_sha
+    )
+    assert missing_review is not None
+    assert missing_review["status"] == "FAILED_DOCUMENT_ISOLATED"
+    assert missing_review["failure_code"] == "CANNOT_CONFIRM_REPORT_REVIEW_BINDING"
+    assert missing_review["review_reference"]["binding_status"] == "CANNOT_CONFIRM"
+    assert missing_review["review_reason"]["code"] == "REPORT_REVIEW_RECEIPT_UNAVAILABLE"
+
