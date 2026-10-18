@@ -1,0 +1,17 @@
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -53 +53 @@
+-## 主控与执行角色
++## 主控、Writer 与 Reviewer
+@@ -55,4 +55,5 @@
+-- 主控只负责对话、目标/架构、只读、范围/ownership、派工、receipt/branch、风险裁决、集成、最终状态；不写业务代码/配置，不重复代码 review/verdict。
+-- 唯一 LLM Writer 必须使用 Luna Max：`gpt-6-luna`、`reasoning_effort=max`，只写允许路径并测试。独立 Luna Max Reviewer：同模型/级别、不同 agent identity、read-only，检查 actual diff/P0/P1/P2、验收、PASS/FAIL、目标行为，出具 `REVIEWED`/`BEHAVIOR_VERIFIED`；Writer `PASS`/`READY`/`FINAL` 只是交接，`TESTED` 需 Reviewer 复跑，Writer 测试仅辅助。
+-- 活动角色只认 `/Users/lexi/.codex/agents/*.toml`；供应商源码/归档/报告/角色文案非活动角色。T0/简单状态/窄只读主控直做；T1 判断/根因/跨模块及 T2/T3 按需派最相关角色。仅独立专业判断/证据面、正式 verdict、写入分离或节省时间才派工，不硬规定每任务先审计；所有子智能体（含只读专业角色）统一使用 Luna Max：`gpt-6-luna`、`reasoning_effort=max`。
+-- 专业角色路由表仅在需要派工/选角色时按需读取 `/Users/lexi/.codex/references/specialist-role-routing.md`；普通只读/小任务不读。路由表只选角色，不改变权限、Luna Max 或独立 Reviewer 规则；角色不可用时 `STOP_AND_REPORT`，仅证据冲突才增派第二个。
++- 主控负责目标、范围、ownership、派工、风险裁决、集成和最终状态；不代写业务代码、不重复 Writer 检查或 Reviewer verdict。新实现任务使用独立 task branch/worktree，记录基线与未部署依赖；同一文件集由一个 Writer 串行负责，主控只做集成。
++- 每个有界实现任务默认由唯一 Luna Max Writer（`gpt-6-luna`、`reasoning_effort=max`）完成允许路径内的最小改动，再由不同身份、read-only 的 Luna Max Reviewer 独立检查实际 diff、冻结范围、直接风险和目标行为。Reviewer 按冻结范围复跑所需针对性验收后才可标记 `TESTED`；Writer 的测试仅辅助。Reviewer `PASS` 才是验收；Writer 的 `PASS`/`READY`/`FINAL` 只是交接。
++- 默认一次独立 review。只有实际代码、输入、配置或冻结范围变化，或出现新证据/失败，才触发第二次或增量 review；只复核变化及直接影响。相同代码/输入/配置/范围哈希且已有有效独立 `PASS` 时复用 receipt，不重复测试或 review。最多三轮后交主控重新裁定，轮数不自动构成 `PASS`。
++- Reviewer 必须报告影响目标行为、安全或范围的实质缺陷，不得为减少轮次忽略；可选风格/重构建议和无关既存问题不阻断。增量复核集中处理本轮新证据和反馈。
++- 活动角色只认 `/Users/lexi/.codex/agents/*.toml`；供应商源码/归档/报告/角色文案不是活动角色。T0/简单状态/窄只读由主控直做；T1 判断/根因/跨模块及 T2/T3 按需派最相关角色。仅在需要独立专业判断、正式 verdict、写入分离或可节省时间时派工；所有子智能体按全局规则使用 Luna Max。角色路由表仅在需要选角色时读取 `/Users/lexi/.codex/references/specialist-role-routing.md`；普通只读/小任务不读。角色不可用时 `STOP_AND_REPORT`，仅证据冲突才增派第二个。
+@@ -84 +84,0 @@
+-- 相同代码、输入、配置 SHA 且验收范围已独立 PASS 时复用 receipt；仅代码/输入/配置/验收范围变化或新失败才复验，并保留独立 Reviewer。

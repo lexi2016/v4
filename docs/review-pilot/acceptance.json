@@ -1,0 +1,131 @@
+{
+  "schema": "v4.governance.acceptance.v1",
+  "recorded_at": "2026-10-18T18:33:27.103424+00:00",
+  "status": "RULES_REVIEWED_INSTALLED_NATIVE_VERIFIED; STOCK_DISPOSITION_PENDING_USER_DECISION",
+  "reviewer_identity": "/root/governance_reviewer",
+  "writer_identity": "/root/governance_writer",
+  "review_verdict": "REVIEWED_PASS",
+  "review_receipt_sha256": "b60833c23604183725563c67dfcb72e0d2b0614b6a5c6fe8ec783514da5a3c08",
+  "frozen_bundle_sha256": "a4549e6d08810c57cd8a67bbf56adfc6e9813d02c24b4d233f06d6029eb3683b",
+  "source_baselines": {
+    "local_candidate": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "publication_parent": "615d1ce5417ed65ca2c8b736435c5d4596b79b19",
+    "publication_branch": "codex/v4-review-pilot-20261019"
+  },
+  "approved_source_files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "7af4d17f18740d617d86dae40f2031341896be8ec1e2df8e74ebd3839bfbe726"
+    },
+    {
+      "path": "docs/review-pilot/README.md",
+      "sha256": "a526fd55dcc315a1e64d3655a8177a670c515878c1e34749b2b6aea1ae904378"
+    },
+    {
+      "path": "docs/review-pilot/offline_behavior_probe.py",
+      "sha256": "79cc8dbd64f0307cbf9c210d9766e62fcb0415ec4819f20e1ac46de497458053"
+    },
+    {
+      "path": "docs/review-pilot/patches/AGENTS.md.diff",
+      "sha256": "09899db29c6b0b9d343f558ffe68c7722258155d4dec6b8c35a9ebfe01afae3b"
+    },
+    {
+      "path": "docs/review-pilot/patches/luna-writer.toml.diff",
+      "sha256": "dfb51909c4288e20596ecefc5a6da7595a4da3ef6fe0e474e5db2367205a302b"
+    },
+    {
+      "path": "docs/review-pilot/patches/reviewer.toml.diff",
+      "sha256": "eb41415e9672f15c569165d314c06805747c823bd673f3e445e190fdc07300ae"
+    },
+    {
+      "path": "docs/review-pilot/prepare_fixtures.py",
+      "sha256": "89f39b0bb3f70d00544e48aa4477503f12117925454f0cbdbe01987141b87a6c"
+    },
+    {
+      "path": "docs/review-pilot/results.json",
+      "sha256": "b75c241c7d0cd5a321f9a37c94be8e8f4bc9122ab2ba193fc98c8fa5548c102c"
+    },
+    {
+      "path": "docs/review-pilot/source_hash_manifest.json",
+      "sha256": "7ab579f6d40adee4ec2d9b4ecb33b70943e441d0519a394c4ce738484815f3c2"
+    }
+  ],
+  "installed_global_sha256": {
+    "AGENTS.md": "02a81d059921def338f58c03f031cf7cde128c932f46eb8765e0861ed4b8454f",
+    "luna-writer.toml": "724b766be07e33bef5350bf251843ca3250da8c6d119edd658f034495ca36111",
+    "reviewer.toml": "9cc56d293e631b1e5fd95e02a4239aab927aa51adca5670d1489485735363c3f"
+  },
+  "install_receipt_sha256": "6d26ab0fcd02eeb5e14a4cae36531276ee7fd1647b2c7b364bf4327dd3d7b974",
+  "installed_destination_count": 12,
+  "existing_file_permissions_and_metadata": "PRESERVED_AND_VERIFIED",
+  "post_install_native": {
+    "receipt_sha256": "7bbe18bc24739c0116e04b5743c28119a1d35cb0ed375c24e6d5788c0eff2b17",
+    "full_global_policy_loaded": true,
+    "exact_installed_reviewer_and_writer_loaded": true,
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max",
+    "role_override_used": false,
+    "policy_text_pasted_into_test_prompt": false,
+    "synthetic_child_tool_calls": 0,
+    "behavior": {
+      "reuse_unchanged_pass": "PASS_NO_EXTRA_REVIEW_OR_TEST",
+      "optional_nits": "PASS_NONBLOCKING",
+      "overlap_baseline_drift": "PASS_PAUSE_AND_SERIAL_HANDOFF"
+    },
+    "broad_sandbox_enforcement": "NOT_CLAIMED"
+  },
+  "independent_tests": {
+    "frozen_offline_probe_fixed": "PASS_REJECT_INVALID_BEFORE_CALLBACKS_AND_VALID_BOUNDED_CONTINUATION",
+    "frozen_offline_probe_reconstructed": "PASS_EXPECTED_DEFECT_REPRODUCED",
+    "portable_probe_both_variants": "PASS",
+    "portable_script_syntax_and_help": "PASS",
+    "portable_fixture_preparation_end_to_end": "NOT_RUN_REQUIRED_COMMIT_NOT_IN_REVIEWER_CHECKED_CLONES",
+    "blind_pytest": "ZERO_COLLECTED_ASSERTIONS_READ_ONLY_TEMP_FAILURE"
+  },
+  "range_out_backlog": [
+    {
+      "severity": "P2",
+      "fact": "Direct low-level process_pdf_batch can process current E0 with E1 claim for same document/source.",
+      "status": "REAL_OUTSIDE_FROZEN_APPROVED_ENTRY_SCOPE",
+      "approved_entry": "recover_one_pdf preflights and passes matching engine",
+      "external_reachability_and_blocking": "CANNOT_CONFIRM"
+    }
+  ],
+  "stock_disposition": {
+    "snapshot_entries": 32377,
+    "peer_task_scope_rows": 583,
+    "peer_dependency_protection_only": 2,
+    "snapshot_rows_without_peer_scope": 31794,
+    "this_governance_batch_source_paths": [
+      "AGENTS.md",
+      "docs/review-pilot/README.md",
+      "docs/review-pilot/offline_behavior_probe.py",
+      "docs/review-pilot/patches/AGENTS.md.diff",
+      "docs/review-pilot/patches/luna-writer.toml.diff",
+      "docs/review-pilot/patches/reviewer.toml.diff",
+      "docs/review-pilot/prepare_fixtures.py",
+      "docs/review-pilot/results.json",
+      "docs/review-pilot/source_hash_manifest.json"
+    ],
+    "this_batch_paths_already_in_snapshot": [
+      {
+        "path": "AGENTS.md",
+        "old_sha256": "b0ad675f27cc24099db78d2b48186d0944ce6d323cc51a0be97af50784bf8b43"
+      }
+    ],
+    "remaining_snapshot_rows_without_current_task_scope": 31793,
+    "original_authorship_not_inferred": true,
+    "raw_inventory_retained_locally": true,
+    "custody_decision": "PENDING_USER_REPLY; no blanket acceptance, deletion, upload or relocation"
+  },
+  "accuracy_uplift_claimed": false,
+  "business_source_or_service_changes_by_this_batch": false,
+  "merge_or_deploy_by_this_batch": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "prior_results_file": "results.json is the immutable pre-final observation snapshot; this receipt records later review/install/native stages."
+}

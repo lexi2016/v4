@@ -1,0 +1,123 @@
+{
+  "blinded_static_pair": {
+    "accuracy_or_uplift_claimed": false,
+    "baseline": {
+      "arm_duration_seconds": 318.65,
+      "payload_cedar": {
+        "exec_tool_calls": 11,
+        "finding": "P1 reconstructed claim-check bypass",
+        "verdict": "REVIEWED/FAIL"
+      },
+      "payload_maple": {
+        "adjudication": "PENDING",
+        "exec_tool_calls": 10,
+        "finding": "P2 engine-identity hypothesis",
+        "verdict": "REVIEWED/FAIL"
+      }
+    },
+    "blind_runtime_behavior": "CANNOT_CONFIRM",
+    "candidate": {
+      "arm_duration_seconds": 316.4,
+      "payload_cedar": {
+        "exec_tool_calls": 15,
+        "finding": "P1 reconstructed claim-check bypass",
+        "verdict": "REVIEWED/FAIL"
+      },
+      "payload_maple": {
+        "exec_tool_calls": 16,
+        "finding": "none reported",
+        "verdict": "REVIEWED/PASS"
+      }
+    },
+    "focused_test_collection": "NOT_COMPLETED; pytest could not create a temporary directory before collection",
+    "test_assertions_executed": 0
+  },
+  "format": "v4-review-pilot-compact-results-v1",
+  "limitations": [
+    "Only one blinded pair was evaluated; it is too small to establish accuracy uplift.",
+    "The defect fixture is a minimal reconstruction, not the unavailable historical failed source.",
+    "Blind focused tests stopped before collection, so BEHAVIOR_VERIFIED remains CANNOT_CONFIRM.",
+    "The baseline engine-identity behavior was independently observed only under a direct low-level invocation and is outside the frozen review scope; retain it as range-out backlog without false-positive or suppressed-defect claims.",
+    "External reachability or blocking status for the range-out behavior remains CANNOT_CONFIRM.",
+    "Formal Reviewer status is INTERIM_REVIEW_NOT_FINAL pending root consumption of the updated public bundle.",
+    "No global candidate installation, repository commit, push, merge, or deployment occurred."
+  ],
+  "native_role_canary": {
+    "baseline_explicit_reuse": "PASS",
+    "candidate_auto_selection": "CANDIDATE_LOAD_FAILED; the original global Reviewer was selected",
+    "candidate_explicit_reuse": "PASS with process-only reviewer config override",
+    "extra_child_tool_calls": 0,
+    "global_configuration_modified": false,
+    "interpretation": "This verifies the parent-reported process-only role load. Global loader precedence and sandbox enforcement remain CANNOT_CONFIRM."
+  },
+  "parent_observation_sha256": "220f09fec6e09803c478fe9face85d27eebf16bd287c5ada607276ccd55175f6",
+  "process_controls": {
+    "baseline": {
+      "duration_seconds": 49.71,
+      "result": "COMPLETED_EXPECTED_CONTROL_BEHAVIOR",
+      "tool_calls": 0
+    },
+    "candidate": {
+      "duration_seconds": 59.19,
+      "result": "COMPLETED_EXPECTED_CONTROL_BEHAVIOR",
+      "tool_calls": 0
+    },
+    "covered": [
+      "reuse identical valid PASS",
+      "optional nits and unrelated findings do not block",
+      "serialize overlapping work and pause for stale base"
+    ],
+    "interpretation": "Synthetic process controls only; they do not prove real implementation acceptance or behavior."
+  },
+  "recorded_date": "2026-10-19",
+  "reviewer_interim": {
+    "baseline_engine_identity_finding": {
+      "approved_recover_one_pdf_entry": "matching engine passes after preflight",
+      "disposition": "RANGE_OUT_BACKLOG; do not label a technical false positive or claim a suppressed true defect",
+      "external_reachability_or_blocking": "CANNOT_CONFIRM",
+      "low_level_process_pdf_batch_behavior": "REAL under direct invocation",
+      "scope": "OUTSIDE_FROZEN_DOCUMENTED_SOURCE_AND_APPROVED_RECOVER_ONE_PDF_ENTRY_SCOPE"
+    },
+    "blind_pytest": {
+      "assertions_executed": 0,
+      "attempts_per_blind_child": 1,
+      "behavior_verification": "CANNOT_CONFIRM",
+      "collection": "FAILED_BEFORE_COLLECTION because temporary-directory creation failed",
+      "sibling_reads": 0,
+      "unjustified_retries": 0
+    },
+    "candidate_fixed_source_scoped_review": "REVIEWED/PASS supported within the frozen recovery behavior scope",
+    "final_root_consumption": "PENDING",
+    "independent_offline_probe_reruns": [
+      "fixed source: expected fake-claim rejection before callbacks and bounded continuation both PASS",
+      "reconstructed defect: expected fake-claim callback reach reproduced PASS"
+    ],
+    "ownership_overlay_validation": {
+      "original_author_and_accepted_owner": "UNKNOWN",
+      "protection_only_dependency_holds": 2,
+      "remaining_rows_without_task_owner": 31794,
+      "status": "PASS",
+      "stock_wide_review": false,
+      "task_scoped_rows": 583
+    },
+    "status": "INTERIM_REVIEW_NOT_FINAL"
+  },
+  "scope": {
+    "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "buy_gate_updated": false,
+    "objective": "Compare the bounded review-governance candidate with native baseline behavior on reuse/control scenarios and one blinded pair of reconstructed historical cases.",
+    "orders_sent": false,
+    "production_allowed": false,
+    "research_only": true,
+    "reviewer_model_and_effort": "gpt-6-luna / max",
+    "stock_wide_review": false,
+    "writer_model": "gpt-6-luna"
+  },
+  "separate_writer_offline_probe": {
+    "fixed_source": "PASS; fake claim rejected before callbacks and bounded continuation completed",
+    "interpretation": "Supporting synthetic probe, separate from the blind LLM run; it does not replace independent Reviewer rerun.",
+    "real_pdf_or_network_used": false,
+    "reconstructed_defect": "EXPECTED_FAULT_REPRODUCED; fake claim reached callbacks"
+  },
+  "status": "INTERIM_REVIEW_NOT_FINAL"
+}

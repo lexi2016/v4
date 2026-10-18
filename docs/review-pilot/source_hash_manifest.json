@@ -1,0 +1,44 @@
+{
+  "format": "v4-review-pilot-source-hashes-v1",
+  "historical_source": {
+    "fixed_public_commit": "6c32c0e18f7d7ae83fef8257dc35087695b35018",
+    "fixed_source_sha256": "5dedf912a9cc8b41646a5cfb0133ded4dbaa0168aae74157e75e4498cd1fd915",
+    "fixed_tests_sha256": "27fb218b81427ef5904213d7c1951dd9004bf00693537b4f8d7d6154778eead9",
+    "baseline_source_sha256": "727a3f6cfcef626d6cf482eebf9e8d66418fcbe9817ae2e1dd1943c88e8384e0",
+    "baseline_tests_sha256": "8c3012d0e1d5cb2d6816a8afcf2bb922fa9bef97935f755477bbfe41f4a85a6d",
+    "reconstructed_defect_source_sha256": "3269d1f0a620b4f98ca2e8f40b39fa6f2bb699bee2dde836612e0a9a09802095",
+    "reconstruction_notice": "The defect variant removes only the complete-enumeration active-claim guard from the fixed source. It is not the unavailable historical failed source."
+  },
+  "policy_configuration": {
+    "models_and_efforts_unchanged": "gpt-6-luna / max",
+    "reviewer_candidate_sandbox": "read-only",
+    "active_configuration_modified": false,
+    "files": [
+      {
+        "name": "AGENTS.md",
+        "original_sha256": "74eac13627859b5325aebd46cd83ebb459b978e1f649d4214a9dd3b1b7ba228a",
+        "candidate_sha256": "02a81d059921def338f58c03f031cf7cde128c932f46eb8765e0861ed4b8454f",
+        "patch": "patches/AGENTS.md.diff",
+        "patch_sha256": "09899db29c6b0b9d343f558ffe68c7722258155d4dec6b8c35a9ebfe01afae3b"
+      },
+      {
+        "name": "luna-writer.toml",
+        "original_sha256": "4129f8f32ce5b8844496bc693145a6891781027f485f1ca93f2904c2ef445cdc",
+        "candidate_sha256": "724b766be07e33bef5350bf251843ca3250da8c6d119edd658f034495ca36111",
+        "patch": "patches/luna-writer.toml.diff",
+        "patch_sha256": "dfb51909c4288e20596ecefc5a6da7595a4da3ef6fe0e474e5db2367205a302b"
+      },
+      {
+        "name": "reviewer.toml",
+        "original_sha256": "dcd8729b7c47d831d440b2e3c11ffaff69ac94fcb2b08da9961f2c72bfadd09b",
+        "candidate_sha256": "9cc56d293e631b1e5fd95e02a4239aab927aa51adca5670d1489485735363c3f",
+        "patch": "patches/reviewer.toml.diff",
+        "patch_sha256": "eb41415e9672f15c569165d314c06805747c823bd673f3e445e190fdc07300ae"
+      }
+    ]
+  },
+  "limits": [
+    "Hash identity is not proof of authorship, ownership, acceptance, active configuration, or integration.",
+    "The public bundle contains no fixture payload, private oracle, private inventory, raw prompt, or raw model output."
+  ]
+}

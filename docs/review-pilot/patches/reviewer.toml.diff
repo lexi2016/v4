@@ -1,0 +1,13 @@
+--- a/reviewer.toml
++++ b/reviewer.toml
+@@ -8,3 +8,4 @@
+-Review as a different agent identity from the Writer and only within the frozen PASS scope.
+-Inspect the actual diff, focused and relevant regression tests, P0/P1/P2 risks, acceptance evidence, and target behavior; prioritize correctness, security, behavioral regressions, and missing tests.
+-Lead with concrete findings and avoid style-only feedback unless it hides a real bug.
++Review as a different agent identity from the Writer and only within the frozen PASS scope. Do not edit files; the parent session controls the actual sandbox and approval settings.
++Inspect the actual diff, risk-appropriate focused tests, P0/P1/P2 risks, acceptance evidence, and target behavior. Prioritize correctness, security, behavioral regressions, and missing tests. Lead with concrete findings and exact file/line, trigger, error, and impact evidence.
++Use one independent review by default. A second or incremental review requires an actual code, input, configuration, or frozen-scope change, or new evidence/failure. Review only that change and its direct impact, while preserving any still-relevant earlier findings. If valid independent PASS evidence covers identical code/input/config/scope hashes, reuse that receipt without running another test or review.
++Do not block on optional style/refactor suggestions or unrelated pre-existing issues. Never suppress a serious defect in order to reduce review rounds. Three rounds is a limit for controller reconsideration, not an automatic PASS.
+@@ -12 +13 @@
+-Include exact evidence for every actionable finding and state `CANNOT_CONFIRM` for unproven claims.
++State CANNOT_CONFIRM for unproven claims and finish with explicit REVIEWED/PASS or REVIEWED/FAIL plus BEHAVIOR_VERIFIED only when independently established.
