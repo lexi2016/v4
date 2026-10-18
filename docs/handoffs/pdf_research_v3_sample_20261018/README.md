@@ -4,7 +4,7 @@ This handoff covers only the frozen V3 PDF research canary path. The implementat
 
 ## Current phase
 
-`C1_RESPONSE_CONTRACT_REPAIR_CANDIDATE`: the first S01 real canary remains `FAILED` under its original response contract, and its raw response is not reusable as accepted analysis. This repair is offline only. No new model completion, API GET, OCR, download, input PDF mutation, page-cache mutation, announcement-state write, or business-data write has been performed. Accepted runtime binding evidence is immutable; server launch identity and active in-memory memory settings remain `CANNOT_CONFIRM` unless that evidence says otherwise.
+`C1_SEMANTIC_REPAIR_CANDIDATE`: the first S01 real canary remains `FAILED` under its original response contract, and its raw response is not reusable as accepted analysis. This repair is offline only. No new model completion, API GET, OCR, download, input PDF mutation, page-cache mutation, announcement-state write, or business-data write has been performed during this semantic repair. Accepted runtime binding evidence is immutable; server launch identity and active in-memory memory settings remain `CANNOT_CONFIRM` unless that evidence says otherwise.
 
 The first canary is S01 from the frozen 20-document manifest. Plan-only selection is pinned to that one document and has no inventory fallthrough. `--execute` remains blocked in the offline phase until an independent source-review PASS and a separate parent-frozen `execution-scope-receipt.json` exist. This repair accepts only `CANARY` execution for S01; `SAMPLE` execution is unsupported. The accepted `runtime-binding-evidence.json` remains immutable. The CLI no longer captures or replaces it; runtime, model, or helper drift fails closed.
 
@@ -29,7 +29,7 @@ The parent-issued receipt path is `/Users/lexi/Desktop/学习/agents调试/V4_PD
 - `request_budget={"maximum_model_calls":16,"max_attempts_per_chunk":1,"max_source_characters_per_chunk":8000,"max_serialized_request_envelope_bytes":32768,"automatic_resume":false}`;
 - exact isolated research `write_allowlist`, independent queue root, and shared model-lock path; OCR, download, PDF lookup, production, BUY-gate updates, and orders are all false.
 
-The source review receipt must remain `PASS` and contain the exact hashes for all seven canonical source/test/README files. A changed reviewed file requires a new independent source PASS before an execution-scope receipt can match.
+The prior source review receipt remains immutable but does not cover this candidate's changed hashes. A new independent source review must return `PASS` for the exact current hashes of all seven canonical source/test/README files before a refreshed execution-scope receipt can match.
 
 ## Request bounds
 
@@ -49,19 +49,19 @@ The response-contract candidate remains offline until a new independent source r
 
 - Every extracted code mention retains its literal code, stated market, nearby literal currency tokens (without attributing them to the security), page number, page offsets, and quote. Master validation remains `NOT_CHECKED_NO_MASTER_INPUT`.
 - A same-market source contradiction is recorded as `UNRESOLVED` / `CANNOT_CONFIRM_CONFLICTING_CODES_WITHIN_MARKET`, with all code locations. Different market codes are kept separate; without an authoritative cross-market relationship map they remain `UNRESOLVED` / `CANNOT_CONFIRM_NO_AUTHORITATIVE_CROSS_MARKET_MAP`, not an asserted code error or dual listing.
-- Numeric strings retain their original text and source range; conversions are not performed. The model returns only a supplied `source_unit_id`; it cannot submit page numbers, quotes, or character offsets. The program derives the full verbatim source-unit slice, page offsets, and `quote_sha256` from the original page text, then requires exact slice equality. Unknown, foreign, out-of-chunk, whitespace-modified, or extra legacy quote/offset fields fail closed. All chunks must reconstruct every page's complete text before a document can be marked complete.
-- `REPORT_SUBJECT` is distinct from `SUPPLIER`, `CUSTOMER`, and `AUTHOR_OR_INSTITUTION`. The prompt classifies each fact independently of the report type: realized history, current observation, company guidance, analyst forecast, and third-party opinions/target prices use their corresponding nature; scheduled events stay in `verification_events`.
+- Numeric strings retain their original text and source range; conversions are not performed. For the raw-value presence check only, runs of Unicode whitespace collapse to one ASCII space. The stored model `raw_value_text` is not rewritten, and the source quote remains byte-for-byte derived from the original page slice; digits, signs, punctuation, units, currencies, and periods are not normalized. The model returns only a supplied `source_unit_id`; it cannot submit page numbers, quotes, or character offsets. The program derives the full verbatim source-unit slice, page offsets, and `quote_sha256` from the original page text, then requires exact slice equality. Unknown, foreign, out-of-chunk, or extra legacy quote/offset fields fail closed. All chunks must reconstruct every page's complete text before a document can be marked complete.
+- `REPORT_SUBJECT` is distinct from `SUPPLIER`, `CUSTOMER`, and `AUTHOR_OR_INSTITUTION`. The prompt asks the model to classify mixed-table columns and cells independently using report date, headers, explicit actual/estimate/forecast markers, and wording; report genre does not set fact nature, and a past period alone does not prove a published actual. It requests adjacent comparison values and qualifiers, and has the model assign short descriptive fact labels internally before mapping links to the schema's existing array indices. Unresolved source meaning stays `UNKNOWN`; schema and output fields remain unchanged. Scheduled events stay in `verification_events`.
 - Existing OCR text may be used only as an already-materialized cache fallback after native PDF text extraction. No OCR is invoked, and cache OCR visual quality remains `CANNOT_CONFIRM_NOT_VISUALLY_REVIEWED`.
 - Results remain `RESEARCH_ONLY=true`, `production_allowed=false`, `buy_gate_updated=false`, and `orders_sent=false`.
 
 ## Focused verification
 
-Writer-side checks:
+Prior engineering baseline, before this semantic repair:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/tmp/pdf-v3-c1-final-pyc .venv/bin/python -m pytest -q -p no:cacheprovider --basetemp=/tmp/pdf-v3-c1-final tests/test_local_document_model.py tests/test_pdf_research.py tests/test_pdf_research_sample_cli.py
 ```
 
-Result for this writer run: `44 passed`. The approved Python 3.12.13 runtime also imported the implementation and verified a synthetic 10-page chunk shape: 9 chunks, maximum 8,000 source characters, maximum serialized request envelope 17,483 bytes, exact reconstruction, and request-schema SHA-256 `a81e422b61eeab1ab08faadd9f84bd074c98bf40aa7bf921aada24c63b77688b`. These checks do not use the real S01 source or substitute for independent review of this candidate.
+That baseline run returned `44 passed`. This semantic-repair writer run separately targets `tests/test_pdf_research.py`; its result and the revised prompt-envelope measurement are recorded in `semantic-repair-candidate.json`. These checks do not substitute for independent review of this candidate.
 
 Independent reviewer rerun and `BEHAVIOR_VERIFIED` are still pending. This handoff does not claim that the repaired response contract has been model-executed, that S01 has been analyzed, or that a model result is accepted.

@@ -743,6 +743,111 @@ def test_document_role_and_fact_nature_are_independent_taxonomies() -> None:
     assert "目标价" in system and "scheduled review meeting" not in system
 
 
+@pytest.mark.parametrize("separator", ["\t", "\n", "\u00a0"])
+def test_raw_value_presence_allows_only_collapsed_unicode_whitespace_and_keeps_quote_exact(separator: str) -> None:
+    source_value = f"RMB 12tr{separator}/{separator}USD 3bn"
+    model_value = "RMB 12tr / USD 3bn"
+    page = pdf.PageText(
+        1,
+        1,
+        f"Example Energy Co. revenue was {source_value}.",
+        "NATIVE_TEXT",
+        None,
+        "pypdf",
+    )
+    chunk = pdf.build_source_chunks("SYNTH-VALUE", [page])[0]
+    output = _minimal_model_output(chunk.units[0])
+    fact = output["facts"][0]
+    fact.update(
+        raw_value_text=model_value,
+        numeric_value=None,
+        unit=None,
+        currency=None,
+        period=None,
+        comparison_basis=None,
+    )
+
+    validated = pdf._validate_chunk_output(
+        output,
+        chunk,
+        schema_sha256="d" * 64,
+        source_pages=[page],
+    )
+
+    evidence = validated["facts"][0]["evidence"][0]
+    assert validated["facts"][0]["raw_value_text"] == model_value
+    assert evidence["quote"] == page.text
+    assert evidence["page_offset_start"] == 0
+    assert evidence["page_offset_end"] == len(page.text)
+    assert evidence["quote_sha256"] == hashlib.sha256(page.text.encode("utf-8")).hexdigest()
+
+
+@pytest.mark.parametrize(
+    ("source_value", "model_value"),
+    [
+        ("RMB 12 34", "RMB 1234"),
+        ("+12%", "-12%"),
+        ("RMB 12", "USD 12"),
+        ("12 tonnes", "12 tons"),
+        ("12,5", "12.5"),
+        ("12", "13"),
+    ],
+)
+def test_raw_value_presence_does_not_normalize_numbers_signs_units_currency_or_punctuation(
+    source_value: str,
+    model_value: str,
+) -> None:
+    page = pdf.PageText(
+        1,
+        1,
+        f"Example Energy Co. revenue was {source_value}.",
+        "NATIVE_TEXT",
+        None,
+        "pypdf",
+    )
+    chunk = pdf.build_source_chunks("SYNTH-VALUE", [page])[0]
+    output = _minimal_model_output(chunk.units[0])
+    output["facts"][0].update(
+        raw_value_text=model_value,
+        numeric_value=None,
+        unit=None,
+        currency=None,
+        period=None,
+        comparison_basis=None,
+    )
+
+    with pytest.raises(pdf.PdfResearchError, match="MODEL_VALUE_NOT_IN_EVIDENCE"):
+        pdf._validate_chunk_output(
+            output,
+            chunk,
+            schema_sha256="d" * 64,
+            source_pages=[page],
+        )
+
+
+def test_generic_prompt_covers_mixed_periods_comparators_and_semantic_fact_links() -> None:
+    page = pdf.PageText(
+        1,
+        1,
+        "Example Energy Co. synthetic table: FY2025 Actual 12 units; FY2026E 14 units; revenue 8% yoy and 3% qoq; margin rose from 10% to 12%.",
+        "NATIVE_TEXT",
+        None,
+        "pypdf",
+    )
+    chunk = pdf.build_source_chunks("SYNTH-PROMPT", [page])[0]
+
+    system = pdf.build_messages("SYNTH-PROMPT", chunk)[0]["content"]
+
+    assert "每个单元格" in system or "逐列" in system
+    assert "报告日期" in system and "表头" in system and "A/E" in system
+    assert "报告类型本身不决定事实性质" in system and "UNKNOWN" in system
+    assert "过去期间" in system and "不能证明" in system
+    assert "同比" in system and "环比" in system and "前后值" in system and "区间" in system
+    assert "描述式" in system and "指标" in system and "期间" in system
+    assert "supporting_fact_indices" in system and "counter_fact_indices" in system
+    assert "存在某个索引或位置相邻都不是支持依据" in system
+
+
 def test_selected_chunk_scope_runs_only_authorized_chunk_and_records_other_chunks_not_run(monkeypatch) -> None:
     pages, source = _three_chunk_native_pages()
     monkeypatch.setattr(pdf, "load_document_pages", lambda _document: (pages, source))

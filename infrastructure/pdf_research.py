@@ -613,10 +613,13 @@ def build_messages(document_id: str, chunk: SourceChunk) -> list[dict[str, str]]
         "只能依据本次给出的原文，不得联网、查资料、猜公司代码、补写来源或把预测说成已实现。"
         "识别报告主体、其他主体和各自角色；报告主体是文档主要讨论对象，不等于供应商或客户；只有原文明确说明关系时才使用供应商/客户/合作方；作者或发布机构使用 AUTHOR_OR_INSTITUTION。"
         "文档类型与实体角色、每条事实的 claim_nature 分开判断：历史已实现结果用 REALIZED_ACTUAL；截至某日的现状或观察用 CURRENT_STATUS_OR_OBSERVATION；公司未来指引用 COMPANY_GUIDANCE；分析师未来预测用 ANALYST_OR_REPORT_FORECAST；观点、评级或目标价用 THIRD_PARTY_VIEW；未来日程放 verification_events，不作为预测事实。"
+        "混合历史与预测的表格要逐列、逐单元格判断，依据原文报告日期、表头、A/E/actual/estimate/forecast 标记和明示措辞；报告类型本身不决定事实性质。过去期间本身不能证明数据已发布为实际，若当时尚未披露或原文明示估算仍是预测；依据仍不充分时标 UNKNOWN，不按日期规则硬编码。"
         "分类示例（虚构）：Example Energy Co. 已报告 FY2025 的 12 units 属 REALIZED_ACTUAL；截至 2026-01 的 6 units 现状属 CURRENT_STATUS_OR_OBSERVATION；目标价 42 属 THIRD_PARTY_VIEW；FY2026 预测 14 units 属 ANALYST_OR_REPORT_FORECAST；2027-03 计划复核会议放 verification_events。不能仅因文档是分析师报告就把全部内容标成预测。"
         "保留原文名称与代码；没有代码或身份冲突就明确未知。"
         "同一主体在原文不同位置出现不同代码或市场归属时，逐项保留 raw_code、页码和引用，并标记 UNRESOLVED/CANNOT_CONFIRM；不得依标题、首个代码、上下文猜测或常识择一，也不得合并 A 股和港股身份。"
         "逐条提取事实、数字、期间、单位、币种、比较基准和事实性质。"
+        "记录核心数值旁边明确给出的同比、环比、前后值、区间、比较对象及限定语；不得漏掉原文明示的比较项，也不得猜测缺失的期间、单位或比较范围。"
+        "在内部先给每条事实一个简短唯一的描述式标识，含指标和期间；最终 JSON 按 schema 输出数组后，supporting_fact_indices 和 counter_fact_indices 必须映射回这些标识对应的确切事实。引用前核对主体、指标、期间、性质和数值确实支持结论；存在某个索引或位置相邻都不是支持依据。"
         "重要变化、风险和反证、研究假设与下一验证事件都要能由证据支撑。"
         "每个 evidence 对象只能返回本次输入中逐字提供的 source_unit_id；不得返回 page_number、quote、字符偏移或自写证据文本，程序会从不可变原文单元派生页码、范围、原文和 SHA-256。未知、跨批次或不在本批 source_units 中的 ID 不得猜测。"
         "不要把行业、产品、作者、机构或上传者冒充公司；不要因同页出现而推断客户、供应商或母子公司关系。"
@@ -738,6 +741,11 @@ def parse_numeric_mentions(pages: Sequence[PageText]) -> list[dict[str, Any]]:
     return mentions
 
 
+def _collapse_unicode_whitespace(value: str) -> str:
+    """Collapse Unicode whitespace runs for raw-value presence checks only."""
+    return re.sub(r"\s+", " ", value)
+
+
 def _validate_evidence(
     evidence_rows: Any,
     unit_map: Mapping[str, SourceUnit],
@@ -849,7 +857,11 @@ def _validate_chunk_output(
             value_text = fact["raw_value_text"]
             if not isinstance(value_text, str) or not any(token["raw_value_text"] in value_text for token in parse_numeric_mentions([PageText(1, 1, value_text, "COMPLETE", None)])):
                 raise PdfResearchError("MODEL_RAW_VALUE_INVALID")
-            if not any(value_text in row["quote"] for row in evidence):
+            normalized_value = _collapse_unicode_whitespace(value_text)
+            if not any(
+                normalized_value in _collapse_unicode_whitespace(row["quote"])
+                for row in evidence
+            ):
                 raise PdfResearchError("MODEL_VALUE_NOT_IN_EVIDENCE")
             numeric_value = fact.get("numeric_value")
             if numeric_value is not None:
