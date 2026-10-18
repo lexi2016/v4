@@ -1,0 +1,73 @@
+# Futu US board candidate activation and rollback runbook
+
+**State: PREPARED ONLY. No activation, service restart, producer invocation, or data write was performed while preparing this runbook.** This document is not itself authorization to cut over. Execute only after an independent reviewer has returned PASS for the exact frozen source, test, and candidate identities below and the controller explicitly authorizes activation.
+
+## Frozen identities and scope
+
+The sole behavior change is the exact `军工` mapping to Futu US `INDUSTRY / 航空航天与国防` (`US.LIST2089`), with a maximum of 10 `get_plate_stock` requests in any 30-second sliding window and strict compatibility for the existing unmapped legacy placeholder. The other 11 unresolved labels remain `CANNOT_CONFIRM`. This cutover does not manually run a collection, relabel existing data, alter the schedule, touch A/HK data, or change BUY/production gates.
+
+| Binding | Current baseline observed 2026-10-18 | Prepared candidate |
+|---|---|---|
+| US collector | `us-entry-count-repair-20261017-r1`; release manifest SHA-256 `985ee2565bb70fe8953c99de467a1733a4af281345e1c30e747664d15b8e2bfb`; live plist SHA-256 `401e3f06b1efe3340d0fe47282b4bf604c0d4c97a5c6c11e836fd0908111bc48` | `futu-board-map-us-20261018-r1`; release manifest SHA-256 `c1f7a9d250e2de8a4bd6841e2dfed05fdf0e8997b39ef01a78a3c7a6fdbddbb2`; staged plist SHA-256 `edab8b9ab90fbe6f147d84d338a2af8bcee11592135f4f8df0af4aac86ed4005` |
+| API | `announcement-feed-display-20261018-r3`; release manifest SHA-256 `829f95eb1755908a53a24529637116a655f8179552b66a43146998998257f1ef`; live plist SHA-256 `ce2669d5becb6c1cf368efcceb23ce91a6085c021794c14fc7a8b5edec45a2ff`; PID observed `65614` | `futu-board-map-api-20261018-r1`; release manifest SHA-256 `332e2e2081be357ba57fcb1d800a002f827b7e5447ce165129595dae3f9301d9`; staged plist SHA-256 `79473fd5db5eac865445f4d0738d4f6ebecafc429bdd701082c57dc3edb0d4a8` |
+
+The expected app roots are `/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/<release-id>/app`. The pinned Python is `/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python`. The shared data root is `/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data`. The staged bindings are under this handoff's `candidate_bindings/` directory. The API must remain bound only to `127.0.0.1:8873`; the US LaunchAgent must retain its four existing Shanghai slots (04:15, 05:15, 21:00, 22:00), `RunAtLoad=false`, and `KeepAlive=false`.
+
+All hashes above are frozen planning values, not permission to overwrite a newer identity. Immediately before any future cutover, re-read the active release IDs, manifests, plist bytes, and loaded process state. If either active identity or original plist SHA differs from the baseline in this table, stop and return for a fresh compare-and-swap plan. Never rebind the old API r11c release or any identity other than the exact r3 baseline above.
+
+## Announcement Flash cutover guard
+
+Before any API activation or rollback step, open a separate Terminal A and hold the announcement submission lock for the entire cutover and API readback. From the V4 source checkout run:
+
+```sh
+/Users/lexi/Library/Application\ Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python \
+  /Users/lexi/Desktop/学习/v4_app/ops/api_release_integration.py hold-announcement-cutover \
+  --workbench-root "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench" \
+  --allow-orphan-source-job-id 07bfabf09f144360ab8869214aeecea8 \
+  --allow-orphan-idempotency-key 53bb028986b0ed9016fb3e7e56909edddc97e4d189eca40b53ece08dee952254 \
+  --allow-orphan-payload-sha256 a80cdf0063c99046565e8ca37ce432c69a3c2e04b48087e3aeab4963ea74c3bd
+```
+
+The three orphan flags are a fixed exception for this handoff only. The guard accepts them only when exactly one RUNNING queue row has the source-bound key and payload SHA above, the source input SHA still matches the frozen job, the attempt remains `INTERRUPTED`, no source or validated result exists, owner fields are clear, and the existing model lock can be acquired without creating a lock file. It holds both the announcement submission lock and that model lock through API readback and any rollback. Any additional RUNNING item, active attempt, changed source/payload, owner, result, or busy/missing lock blocks cutover. Omitting the flags keeps the default rule: every RUNNING queue row blocks. Do not edit the live queue to make the guard pass.
+
+Proceed only after Terminal A prints `status: PASS` together with `allowed_running_orphan` matching the source job, key, and payload SHA above. Keep that process and terminal open while Terminal B performs the exact API cutover, GET readback, and any required rollback. The guard takes the same `announcement_flash_submit` lock used by the API's announcement capture, cached-product recovery, and frozen-resume submissions. It creates no model request and does not modify queue, capture, or job state.
+
+After all readback succeeds, or rollback is complete, press Enter in Terminal A to release the lock. If the guard prints `BLOCKED`, times out, or exits unexpectedly, stop the cutover. Do not proceed on a prior PASS receipt; reacquire the guard and repeat the complete all-date scan immediately before continuing. Never close Terminal A during the API service gap or rollback.
+
+## Preconditions and pre-cutover receipt
+
+1. Confirm the reviewer receipt says PASS for the exact source SHA `7fb64edce69fe5811afdc8df30e446c436dde66170cfa46e1e6a68fa25c70864`, tests SHA and candidate manifest SHAs in the validation receipt. Confirm explicit controller authorization covers both exact LaunchAgent labels. If either is absent, stop.
+2. Verify both candidate release manifests and the two staged plist hashes above, then verify their embedded app root, release ID, manifest path, and manifest SHA. Do not edit a candidate or its staged plist to make it fit a changed baseline.
+3. Capture a fresh pre-cutover receipt: active release IDs and manifest SHAs; original plist SHA-256s; `launchctl print` state and PIDs; one `lsof -nP -iTCP:8873 -sTCP:LISTEN` result; API `GET /healthz`; read-only API responses described below; and exact on-disk hashes for the existing artifact, receipt, and shared peripheral manifest. Do not assume that the 2026-10-18 observations remain current.
+4. The API service must have exactly one expected listener on `127.0.0.1:8873`. If the listener belongs to a different or additional PID, or the service identity does not match the r3 baseline, stop. Do not kill a process to free the port.
+5. The US collector must be idle (`active_count=0`, no producer PID or held `.locks/us-market-20261017.lock`), and the next scheduled slot must not be imminent enough to overlap the short cutover/readback window. If a producer is active, wait for its natural completion and redo the entire preflight; do not interrupt it. Do not use `kickstart`, a manual CLI, or a scheduler wrapper to trigger collection.
+6. Save exact byte-for-byte backups of the two original LaunchAgent plists outside the candidate directories, with their expected baseline SHA-256s, so the rollback below can restore the same bindings. If the backup bytes do not hash to the baseline values, stop.
+
+Immediately before API rebind, perform only GET checks against the live API and record the response status, schema, stable row/ID counts, and body SHA. Relevant routes are:
+
+- `GET http://127.0.0.1:8873/healthz`
+- `GET http://127.0.0.1:8873/api/v3/research/us-market?research_date=20261017` for the existing `20261017/external_finance` artifact
+- `GET http://127.0.0.1:8873/api/v4/manager-workbench/announcement-flash?target_date=<current Shanghai YYYYMMDD>` for the current announcement-flash view. This path is composed from the active r3 `v4/manager_workbench/api.py` router's `PREFIX = "/api/v4/manager-workbench"` and `@router.get("/announcement-flash")`, which is mounted by `v4/manager_workbench/binding.py` via `app.include_router(create_router(service))`.
+
+Record the exact baseline behavior even if a route is already `CANNOT_CONFIRM`; do not represent a baseline error as candidate success. If health is unhealthy, the existing-artifact route cannot be compared to the pre-read `ResearchPeripheralStore.read_exact` value, or the announcements response has no stable baseline to compare, stop before rebind and report the gap for separate scope review.
+
+## Cutover order
+
+Rebind API first so the new validator is in place before the collector can produce a future row using the added mapping. No collection is triggered by these steps.
+
+1. Boot out only `gui/$(id -u)/com.lexi.v35.api-only`. Wait up to 15 seconds for the old PID to exit and `127.0.0.1:8873` to become free. If it does not, stop; do not kill or signal the PID.
+2. Immediately after bootout and immediately before replacement, re-read the existing API LaunchAgent plist and require its SHA-256 to still equal the original baseline `ce2669d5becb6c1cf368efcceb23ce91a6085c021794c14fc7a8b5edec45a2ff`. If it is missing or differs, stop and report the concurrent plist change; leave those bytes untouched and do not install the candidate over recent work. Only on an exact match, atomically replace it with the prepared API candidate binding, verify the installed plist SHA-256 equals `79473fd5db5eac865445f4d0738d4f6ebecafc429bdd701082c57dc3edb0d4a8`, then bootstrap that same label. Do not add a second label or listener.
+3. Wait up to 30 seconds for the API health route. Verify the loaded `V35_APP_ROOT`, release ID, manifest path and SHA identify `futu-board-map-api-20261018-r1`; confirm exactly one `127.0.0.1:8873` listener. Re-run the three GET checks above. The existing announcement response should preserve its pre-cutover status/schema and stable IDs/counts; explain any response difference before proceeding. For the old artifact, verify 24 official Futu rows and 12 `READY` remain represented consistently with the pre-cutover baseline and that its bytes, receipt, and shared manifest are unchanged. Do not count Tencent proxy quotes as Futu board coverage.
+4. Only after API checks are acceptable, recheck the US collector is idle and its live original plist still has the exact baseline SHA. Boot out only `gui/$(id -u)/com.lexi.v4.us-market-digest`; wait up to 15 seconds for its label/PID to exit. If not idle, stop without killing it.
+5. Atomically replace the existing US LaunchAgent plist with the exact prepared US candidate binding. Verify SHA-256 equals `edab8b9ab90fbe6f147d84d338a2af8bcee11592135f4f8df0af4aac86ed4005`, then bootstrap the same label. Confirm its release identity is `futu-board-map-us-20261018-r1`, the four schedule slots are unchanged, `RunAtLoad=false`, `KeepAlive=false`, and no producer has started. Do not call `kickstart` or invoke the producer manually.
+6. Verify the original artifact, receipt, and manifest hashes still match the pre-cutover receipt. Leave them unchanged. The existing 20261017 artifact is legacy data and must remain 12/24 Futu-board `READY`; this candidate activation alone does not retroactively confirm the military row.
+
+After a successful rebind, the map's live data behavior remains `NATURAL_SLOT_UNVERIFIED` until a normal scheduled producer run produces a new dated artifact. At that point inspect the exact `军工` row and membership result, keep the other 11 unresolved, preserve the 10-per-30-second request limit, and record actual capture time/date. A provider membership failure may remain `CANNOT_CONFIRM`; it must not be relabeled from quote or catalog evidence alone. No manual capture is part of this runbook.
+
+## Rollback
+
+Rollback only the two labels named above. Do not delete candidate releases, remove data, change schedules, or kill a process. If any post-rebind check fails, rollback in reverse order for every candidate label already rebound. If a service is still serving requests or the US producer is active, do not terminate it; stop and wait for a safe idle point before continuing rollback.
+
+For each affected label: inspect `launchctl print` and `lsof` first; boot out only that exact label; wait up to 15 seconds for its owned PID to exit (and, for API, the 8873 listener to clear); if it remains, stop without signaling the PID. For API rollback specifically, before restoring the old plist require the currently installed plist to still hash to candidate binding `79473fd5db5eac865445f4d0738d4f6ebecafc429bdd701082c57dc3edb0d4a8`; on mismatch, preserve the newer bytes, stop and report rather than overwrite concurrent legal work. When that guard passes, atomically restore its byte-for-byte pre-cutover backup. For each restored plist, verify its SHA equals the recorded baseline (`401e3f06b1efe3340d0fe47282b4bf604c0d4c97a5c6c11e836fd0908111bc48` for US, `ce2669d5becb6c1cf368efcceb23ce91a6085c021794c14fc7a8b5edec45a2ff` for API); bootstrap the same label; and verify the original release identity, API loopback listener/health if applicable, and US idle/schedule/RunAtLoad state. Do not run the producer during rollback.
+
+Record exact pre/post plist and manifest hashes, PID/listener state, API GET response status/body hashes, rollback outcome, and any unresolved condition. If rollback cannot restore the exact baseline safely, stop and report `CANNOT_CONFIRM`; do not attempt an alternate release or broader service repair.

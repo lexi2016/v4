@@ -1,0 +1,83 @@
+{
+  "schema": "v4.announcement_resume.delivery.v1",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "github_parent_commit": "1f78a06a83083c764282d128882730d69a8d4bb2",
+  "source_diff_sha256": "acf8114c295c7d8d3ee9cc37a655307814c9c9135037377bee63ba78d1a76a1c",
+  "predeploy_review_sha256": "6ebc16e8a0428618ca28d7046f86d5dc6cf864325449e5e4b3ffc77af84cb159",
+  "terminal_review_sha256": "522e2be7e0e0ed919a08e0c24cef8e38759afdaf326fa6030202c77e699e724d",
+  "status": {
+    "feature_behavior": "BEHAVIOR_VERIFIED",
+    "deployed_api": "API_VERIFIED",
+    "visible_ui": "UI_VERIFIED",
+    "model_canary": "FAIL",
+    "task_result": "PARTIAL",
+    "full_selection_success": false,
+    "natural_task_terminal_observed": true,
+    "natural_market_verification": "NOT_REQUIRED"
+  },
+  "tests": [
+    {
+      "command": "v3.5-mac Python -B -m pytest -q --tb=short --no-showlocals --basetemp <review>/pytest-independent-r1 tests/test_manager_announcement_resume.py tests/test_manager_announcement_flash_readonly.py tests/test_manager_announcement_flash_runner.py tests/test_api_release_integration.py",
+      "status": "PARTIAL",
+      "result": "109 passed, 7 failed.",
+      "limitation": "All seven failures are stale R8/R8C static fixture preconditions in tests/test_manager_announcement_flash_readonly.py (assertions around lines 1394 and 1502 expect previous latest job ids 85add.../804217...); they fail before the update path under test. The current latest cursor points to source job 07bf... target 20261016. The batch change in this file only adds the store io.files interface needed by the resume reader."
+    },
+    {
+      "command": "Same four files, excluding only the seven named stale R8/R8C fixture tests",
+      "status": "PASS",
+      "result": "109 passed, 7 deselected."
+    },
+    {
+      "command": "npm run test -- src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "status": "PASS",
+      "result": "5 passed."
+    }
+  ],
+  "runtime": {
+    "release_id": "announcement-resume-20261018-r1",
+    "manifest_sha256": "338213cb6dec6824ab527874e9d3e737d960b4728051b666e9b01a83dca49ead",
+    "health": "ok",
+    "all_target_cutover_guard": "PASS",
+    "served_assets_matched": 4,
+    "preserved_non_delta_release_entries": 1217
+  },
+  "manual_resume": {
+    "source_job_id": "07bfabf09f144360ab8869214aeecea8",
+    "job_id": "29983573dff34359bfd34f054641a1d6",
+    "state": "PARTIAL",
+    "result_sha256": "6d625e297e5a62ed23de2367bc7c80f1c5c1dc5741d269a2b699195b3c655eda",
+    "max_model_calls": 1,
+    "actual_model_calls": 1,
+    "duration_seconds": 114.404042,
+    "validation_failure": "PART_FIXED_FIELDS_MUST_BE_EMPTY",
+    "succeeded_preserved": 24,
+    "failed_preserved": 15,
+    "history_conflicts_not_dispatched": 5,
+    "ordinary_synthesis_pending_zero_attempts": 6,
+    "continue_eligible": false,
+    "new_candidate_stocks": 0
+  },
+  "preservation": {
+    "original_files": 3960,
+    "unchanged_original_files": 3959,
+    "only_changed_original_file": "announcement_flash/queue/queue-state.json"
+  },
+  "diagnosis": {
+    "preexisting_failed_parts": 15,
+    "reason": "Prompt contract conflict: range profile requests changes while the appended part instruction requires facts and changes empty; structured schema permits nonempty arrays but part validator rejects them.",
+    "model_prompt_validator_changed": false
+  },
+  "remaining_limits": [
+    "The single recovery canary failed; full selection is not accepted.",
+    "Five historical successes have unconfirmed current provenance and were not reused or recalculated.",
+    "Six synthesis queue items remain PENDING with zero attempts; future automatic consumption is CANNOT_CONFIRM.",
+    "Seven legacy test fixture preconditions reference obsolete job ids; four preexisting frontend test-fixture type errors remain."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  }
+}
