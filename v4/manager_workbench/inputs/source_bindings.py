@@ -37,6 +37,11 @@ def checked_time(value, cutoff):
     if not before(value, cutoff): raise ValueError('OWNER_AFTER_CUTOFF_OR_UNKNOWN')
 
 
+def _valid_sha256(value):
+    return (isinstance(value, str) and len(value) == 64
+            and all(char in '0123456789abcdef' for char in value))
+
+
 def membership(config, context):
     root, day = config.shared_root, context.target_date
     candidates = []
@@ -429,12 +434,51 @@ def _full_mapping_overlay():
         offset += len(items)
     relations = []
     status_counts = {}
+    from .. import us_mapping_catalog as catalog_module
+    recovery_raw = recovery_path.read_bytes()
+    if raw_sha(recovery_raw) != catalog_module.RECOVERY_OVERLAY_SHA256:
+        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                "stock_count": len(stocks), "relation_count": None, "relations": []}
+    try:
+        recovery_payload = json.loads(recovery_raw)
+        recovery_rows = recovery_payload.get("records")
+        if not isinstance(recovery_rows, list):
+            raise ValueError("RECOVERY_RECORDS_INVALID")
+        recovery_by_id = {row.get("relation_id"): row for row in recovery_rows
+                          if isinstance(row, dict) and isinstance(row.get("relation_id"), str)}
+        if len(recovery_by_id) != len(recovery_rows):
+            raise ValueError("RECOVERY_RELATION_ID_INVALID")
+    except (ValueError, TypeError, AttributeError):
+        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                "stock_count": len(stocks), "relation_count": None, "relations": []}
     for stock in stocks:
         for relation in stock.get("relations", []):
             recovery = relation.get("recovery_v2r1") or {}
+            recovery_record = recovery_by_id.get(relation.get("relation_id"))
+            effective_research = recovery_record.get("effective_research") if isinstance(recovery_record, dict) else None
+            field_assessments = recovery_record.get("field_assessments") if isinstance(recovery_record, dict) else None
+            expected_research_sha = ((recovery_record.get("effective_summary") or {}).get("effective_research_sha256")
+                                     if isinstance(recovery_record, dict) else None)
+            if not isinstance(field_assessments, list) or not isinstance(effective_research, dict):
+                return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                        "stock_count": len(stocks), "relation_count": None, "relations": []}
+            field_sha256 = {}
+            for assessment in field_assessments:
+                field = assessment.get("source_field") if isinstance(assessment, dict) else None
+                field_sha = assessment.get("effective_research_sha256") if isinstance(assessment, dict) else None
+                if (not isinstance(field, str) or field in field_sha256
+                        or not _valid_sha256(field_sha) or field_sha != expected_research_sha):
+                    return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                            "stock_count": len(stocks), "relation_count": None, "relations": []}
+                field_sha256[field] = field_sha
+            if len(field_sha256) != 7:
+                return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
+                        "stock_count": len(stocks), "relation_count": None, "relations": []}
             status = recovery.get("closure_status")
             if status:
                 status_counts[status] = status_counts.get(status, 0) + 1
+            recovery = dict(recovery, field_sha256=field_sha256,
+                            use_scope=effective_research.get("whitelist_scope"))
             relations.append({
                 "hk_code": stock.get("hk_code"),
                 "hk_name": stock.get("name"),
@@ -447,7 +491,11 @@ def _full_mapping_overlay():
                 "recovery_v2r1": recovery,
             })
     expected_statuses = {"CLOSED_RESEARCH_SCOPE": 757, "OPEN": 221, "CLOSED_EXCLUDED_SCOPE": 25}
-    valid = len(stocks) == 667 and len(relations) == 1003 and status_counts == expected_statuses
+    relation_ids = [relation.get("relation_id") for relation in relations]
+    valid = (len(stocks) == 667 and len(relations) == 1003
+             and len(set(relation_ids)) == 1003
+             and all(isinstance(relation_id, str) and relation_id for relation_id in relation_ids)
+             and status_counts == expected_statuses)
     if not valid:
         return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_CONTRACT_MISMATCH",
                 "stock_count": len(stocks), "relation_count": len(relations),
@@ -489,17 +537,32 @@ def us_mapping(config, context):
                 or parts[3]!='external_finance.json' or len(parts[2])!=8 or not parts[2].isdigit()):
             continue
         try:
+            if not _valid_sha256(expected_sha):
+                raise ValueError('US_OWNER_MANIFEST_ENTRY_SHA_INVALID')
             payload,qsha=read(root,relative,expected_sha)
+            from infrastructure.research_peripheral_store import validate_research_peripheral
+            validate_research_peripheral(payload, expected_trade_date=parts[2],
+                                         expected_source='external_finance')
             snapshot=payload.get('market_snapshot',{})
+            if not isinstance(snapshot, dict):
+                raise ValueError('US_OWNER_MARKET_SNAPSHOT_INVALID')
             if snapshot.get('capture_session_date')!=session:
                 continue
             receipt_rel=f"receipts/research/peripherals/{parts[2]}/external_finance.json"
             receipt,rsha=read(root,receipt_rel)
             checked_time(snapshot.get('captured_at'),context.cutoff)
-            if (receipt.get('artifact_sha256',receipt.get('payload_sha256'))!=qsha
-                    or receipt.get('trade_date',parts[2])!=parts[2]
-                    or receipt.get('us_session_date',session)!=session):
-                raise ValueError('US_OWNER_RECEIPT_SESSION_INVALID')
+            if (receipt.get('schema_version')!='v3_5.research_peripheral_receipt.v1'
+                    or receipt.get('trade_date')!=parts[2]
+                    or receipt.get('source')!='external_finance'
+                    or receipt.get('payload_path')!=relative
+                    or receipt.get('payload_sha256')!=qsha
+                    or receipt.get('market_snapshot_sha256')!=owner_digest(snapshot)
+                    or receipt.get('market_snapshot_schema_version')!=snapshot.get('schema_version')
+                    or receipt.get('market_snapshot_captured_at')!=snapshot.get('captured_at')
+                    or receipt.get('market_snapshot_source_response_sha256')!=snapshot.get('source_response_sha256')
+                    or receipt.get('market_snapshot_status')!=payload.get('market_snapshot_status', snapshot.get('status'))
+                    or ('us_session_date' in receipt and receipt.get('us_session_date')!=session)):
+                raise ValueError('US_OWNER_RECEIPT_IDENTITY_INVALID')
             candidates.append((relative, payload, qsha, receipt_rel, receipt, rsha))
         except (OSError,ValueError,KeyError,TypeError):
             # Invalid candidates do not become a fallback. A separate exact

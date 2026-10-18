@@ -50,6 +50,10 @@ def run_us_mapping(context, batch):
     configured = u.get("configured_symbols")
     session = u.get("source_session")
     source_session = context["source_sessions"].get("US") or context["source_sessions"].get("us")
+    source_records = [item for item in batch["records"] if not (isinstance(item, dict)
+                      and item.get("source_status") == "CATALOG_OBSERVATION")]
+    catalog_records = [item for item in batch["records"] if isinstance(item, dict)
+                       and item.get("source_status") == "CATALOG_OBSERVATION"]
     gaps = []
     good_universe = (isinstance(configured, list) and len(configured) == len(set(configured)) == 33 and
         all(isinstance(x, str) and x for x in configured) and u.get("verification") == "VERIFIED" and
@@ -57,14 +61,21 @@ def run_us_mapping(context, batch):
         isinstance(session, str) and u.get("calendar_verified") is True)
     if not good_universe:
         gaps.append("US_FIXED_33_OR_SESSION_NOT_VERIFIED")
-    found = [item.get("us_symbol") for item in batch["records"] if isinstance(item, dict)
-             and item.get("source_status") != "CATALOG_OBSERVATION"]
+    found = [item.get("us_symbol") for item in source_records if isinstance(item, dict)]
     if good_universe and (len(found) != 33 or set(found) != set(configured) or len(set(found)) != 33):
         gaps.append("US_SOURCE_33_COVERAGE_INCOMPLETE")
     rows = []
-    for index, item in enumerate(batch["records"]):
+    catalog_rows = []
+    source_index = 0
+    for item in batch["records"]:
+        catalog_observation = (isinstance(item, dict)
+                               and item.get("source_status") == "CATALOG_OBSERVATION")
+        row_source_index = None if catalog_observation else source_index
+        output_rows = catalog_rows if catalog_observation else rows
+        if not catalog_observation:
+            source_index += 1
         if not isinstance(item, dict):
-            rows.append(row({}, "UNASSESSED", "US_RECORD_INVALID", source_index=index));continue
+            output_rows.append(row({}, "UNASSESSED", "US_RECORD_INVALID", source_index=row_source_index));continue
         source_ok = (good_universe and item.get("us_symbol") in configured and
             item.get("source_session") == session and item.get("owner") and
             valid_sha(item.get("source_sha256")) and
@@ -78,7 +89,7 @@ def run_us_mapping(context, batch):
                 and p.get('source_sha256')==item.get('source_sha256') and p.get('owner')==item.get('owner')
                 and current(context,p.get('available_at'))] if source_ok else []
             reason='US_REVIEWED_ASSESSMENT_WITH_GAPS' if assessments else 'US_ETF_THEME_PROXY_ONLY' if proxies else 'US_REVIEWED_RELATION_ABSENT'
-            rows.append(dict(row(item, "UNASSESSED", reason, source_index=index,
+            output_rows.append(dict(row(item, "UNASSESSED", reason, source_index=row_source_index,
                                  us_symbol=item.get("us_symbol"), relation_type=None,quote=item.get('quote'),
                                  reviewed_assessments=assessments,proxy_metadata=proxies,
                                  absence_scope='CHECKED_FROZEN_REVIEWED_RELATIONS_AND_SEED_ONLY'), symbol=None))
@@ -90,7 +101,7 @@ def run_us_mapping(context, batch):
                         name=relation.get("target_name") if isinstance(relation, dict) else None,
                         membership=relation.get("membership") if isinstance(relation, dict) else None,
                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
-            extra = dict(source_index=index, us_symbol=item.get("us_symbol"),
+            extra = dict(source_index=row_source_index, us_symbol=item.get("us_symbol"),
                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
                          source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None,
                          catalog_relation=relation.get("catalog_relation"), catalog_relation_id=relation.get("catalog_relation_id"),
@@ -108,18 +119,22 @@ def run_us_mapping(context, batch):
                 if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
                 if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
                 reason='US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE') else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED'
-                rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
+                output_rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
             elif change is False:
-                rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))
+                output_rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))
             elif priority == "NONE":
-                rows.append(row(base, "NOT_SELECTED", "US_ORIGINAL_SOURCE_NOT_PRIORITY_OR_WATCH", **extra))
+                output_rows.append(row(base, "NOT_SELECTED", "US_ORIGINAL_SOURCE_NOT_PRIORITY_OR_WATCH", **extra))
             else:
-                rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
+                output_rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
                     conditions=["RELATION_NOT_A_STRICT_SELECTION_RULE"], **extra))
-    out=result("US_MAPPING", batch, context, rows, gaps=gaps)
+    # Catalog observations are included in the returned rows but excluded from
+    # the fixed-33 quote denominator.  Keep those two counts in separate fields.
+    source_batch = dict(batch, records=source_records)
+    out=result("US_MAPPING", source_batch, context, rows, gaps=gaps)
+    out["rows"].extend(catalog_rows)
     overlay_summary = u.get("full_overlay_summary") or {}
-    consumed_relations = sum(1 for item in batch["records"] if isinstance(item, dict)
-                             and item.get("source_status") == "CATALOG_OBSERVATION")
+    consumed_relations = sum(len(item.get("relations", [])) for item in catalog_records
+                             if isinstance(item.get("relations"), list))
     if out["rows"]:
         out["rows"][0]["us_mapping_catalog_summary"] = {
             "state": overlay_summary.get("state", "CANNOT_CONFIRM"),
@@ -168,8 +183,9 @@ def run_us_mapping(context, batch):
             out["state"] = "PARTIAL"
     # One US source can have multiple reviewed HK relations: source coverage is
     # measured in unique configured US symbols, not mapped-stock row counts.
-    if not out["gaps"] and not any(x.get("positive_change_required") for x in batch["records"]):
-        out["coverage"]["assessed_count"] = sum(1 for x in batch["records"] if x.get("source_status") in ("PRIORITY", "WATCH", "NONE"))
+    if not out["gaps"] and not any(x.get("positive_change_required") for x in source_records if isinstance(x, dict)):
+        out["coverage"]["assessed_count"] = sum(1 for x in source_records if isinstance(x, dict)
+                                                     and x.get("source_status") in ("PRIORITY", "WATCH", "NONE"))
         out["coverage"]["unassessed_count"] = 33 - out["coverage"]["assessed_count"]
     return out
 

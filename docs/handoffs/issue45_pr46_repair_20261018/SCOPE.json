@@ -1,0 +1,46 @@
+{
+  "GOAL": "Repair Issue 45 PR46 source-level defects and verify exact real-owner overlay consumer offline; no merge/deploy/services",
+  "WRITER": "issue45_pr46_writer Luna Max",
+  "REVIEWER": "issue45_pr46_review Luna Max independent identity",
+  "base": "a56dbdaff45f887e7f8dbb38047a66d09fe5b1db",
+  "initial_pr_head": "579c71d997424d058ff6ebffee911eeb7cf92bbb",
+  "repository": "lexi2016/v4",
+  "branch": "codex/issue45-us-close-repair-20261018",
+  "workspace": "/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/v4-issue45-pr46-j681d3m0",
+  "ALLOWED_PATHS": [
+    "candidate/contracts/runtime_workloads.json",
+    "candidate/ops/run_us_market_slot.py",
+    "candidate/tests/manager_workbench/engines/test_us_mapping.py",
+    "candidate/tests/manager_workbench/test_us_close_handoff_scheduler.py",
+    "candidate/tests/test_manager_us_mapping_bindings_r3.py",
+    "candidate/tests/test_run_us_market_slot.py",
+    "candidate/tests/test_us_owner_handoff.py",
+    "candidate/v4/manager_workbench/engines/us_mapping.py",
+    "candidate/v4/manager_workbench/inputs/native.py",
+    "candidate/v4/manager_workbench/inputs/source_bindings.py",
+    "candidate/v4/manager_workbench/scheduler.py",
+    "docs/handoffs/issue45_pr46_repair_20261018/WRITER_RECEIPT.md",
+    "docs/handoffs/issue45_pr46_repair_20261018/WRITER_RECEIPT.json",
+    "docs/handoffs/issue45_pr46_repair_20261018/INDEPENDENT_REVIEW.md",
+    "docs/handoffs/issue45_pr46_repair_20261018/INDEPENDENT_REVIEW.json",
+    "temporary verification files under workspace",
+    "docs/handoffs/issue45_pr46_repair_20261018/verify_real_overlay.py (portable verification only, parameterized source and owner read roots)"
+  ],
+  "FORBIDDEN_PATHS": [
+    "canonical business source",
+    "releases",
+    "LaunchAgents/services/schedules",
+    "raw owner/data mutation",
+    "global config/hooks",
+    "unrelated projects",
+    "full overlay upload"
+  ],
+  "PASS_SIGNAL": "Exact date/session tests, identity invalid->zero workload, exact artifact/receipt binding and retryable idempotency, real 667/1003 overlay identity/status conservation in actual consumer under isolated offline invocation; independent reviewer PASS; preserve known unrelated baseline failures",
+  "STOP_RULE": "No new producer/rank/BUY/PIT promotion; report scope blockers; finish source/offline repair without claiming live deployment/API/UI/natural verification",
+  "financial_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

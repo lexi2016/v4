@@ -1,4 +1,6 @@
 from copy import deepcopy
+from collections import Counter
+import hashlib
 from v4.manager_workbench.engines.common import RULE
 from v4.manager_workbench.engines.us_mapping import run_us_mapping as _run_us_mapping
 from v4.manager_workbench.inputs.us_universe import (
@@ -151,37 +153,54 @@ def test_unknown_universe_version_is_rejected_as_unassessed():
 
 def test_full_overlay_relations_are_consumed_as_non_selectable_observations():
     data = make_batch()
+    closure_statuses = (["CLOSED_RESEARCH_SCOPE"] * 757 + ["OPEN"] * 221
+                        + ["CLOSED_EXCLUDED_SCOPE"] * 25)
+    research_uses = (["PENDING_REVIEW"] * 985 + ["BACKGROUND_HISTORICAL"] * 10
+                     + ["EXCLUDED_CURRENT"] * 5 + ["CONDITIONAL_OBSERVATION"] * 3)
     summary = {
         "state": "READY",
         "stock_count": 667,
         "relation_count": 1003,
-        "status_counts": {
-            "CLOSED_RESEARCH_SCOPE": 757,
-            "OPEN": 221,
-            "CLOSED_EXCLUDED_SCOPE": 25,
-        },
+        "status_counts": dict(Counter(closure_statuses)),
         "catalog_file_sha256": "e" * 64,
         "review_overlay_file_sha256": "f" * 64,
         "recovery_overlay_integrity_sha256": "a" * 64,
     }
     data["context"]["scope_refs"]["US_MAPPING"]["full_overlay_summary"] = summary
     for index in range(1003):
+        relation_id = f"R{index + 1:04d}"
+        field_sha256 = {
+            field: hashlib.sha256(f"{relation_id}:{field}".encode()).hexdigest()
+            for field in ("fact", "mechanism", "condition", "direction", "timescale", "failure", "reporting_period")
+        }
+        use_scope = {
+            "FACT_VERIFIED_SCOPE": {"state": "VERIFIED_DATED_FACT", "relation_id": relation_id},
+            "CURRENT_APPLICABILITY": {"state": "PENDING_CURRENT_CHECK", "relation_id": relation_id},
+        }
         relation = {
-            "target_symbol": "HK.00001",
+            "target_symbol": f"HK.{index % 667 + 1:05d}",
             "target_name": "catalog observation",
             "status": "CANNOT_CONFIRM",
-            "sha256": format(index + 1, "064x"),
+            "sha256": hashlib.sha256(relation_id.encode()).hexdigest(),
             "relation_type": "CATALOG_OBSERVATION_ONLY",
             "research_priority": "NONE",
             "catalog_relation": {
-                "relation_id": f"R{index + 1:04d}",
-                "source_review_status": "NOT_PROCESSED",
-                "research_use": "PENDING_REVIEW",
-                "recovery_v2r1": {"closure_status": "CLOSED_RESEARCH_SCOPE"},
+                "relation_id": relation_id,
+                "source_row": index + 1,
+                "source_review_status": "SOURCE_REVIEWED" if index < 700 else "NOT_PROCESSED",
+                "independent_verification": "NOT_RUN",
+                "research_use": research_uses[index],
+                "recovery_v2r1": {
+                    "relation_id": relation_id,
+                    "closure_status": closure_statuses[index],
+                    "primary_research_use": research_uses[index],
+                    "field_sha256": field_sha256,
+                    "use_scope": use_scope,
+                },
             },
-            "catalog_relation_id": f"R{index + 1:04d}",
-            "catalog_research_use": "PENDING_REVIEW",
-            "catalog_recovery_status": "CLOSED_RESEARCH_SCOPE",
+            "catalog_relation_id": relation_id,
+            "catalog_research_use": research_uses[index],
+            "catalog_recovery_status": closure_statuses[index],
         }
         data["records"].append({
             "us_symbol": None,
@@ -202,6 +221,36 @@ def test_full_overlay_relations_are_consumed_as_non_selectable_observations():
     assert summary_row["us_mapping_catalog_summary"]["stock_count"] == 667
     assert summary_row["us_mapping_catalog_summary"]["relation_count"] == 1003
     assert summary_row["us_mapping_catalog_summary"]["consumed_relation_count"] == 1003
-    assert sum(row.get("catalog_relation_id") is not None for row in result["rows"]) == 1003
+    catalog_rows = [row for row in result["rows"] if row.get("catalog_relation_id") is not None]
+    assert len(catalog_rows) == len({row["catalog_relation_id"] for row in catalog_rows}) == 1003
+    assert len({row["symbol"] for row in catalog_rows}) == 667
+    assert Counter(row["catalog_recovery_status"] for row in catalog_rows) == Counter(summary["status_counts"])
+    assert Counter(row["catalog_research_use"] for row in catalog_rows) == Counter(research_uses)
+    assert Counter(row["catalog_relation"]["source_review_status"] for row in catalog_rows) == {
+        "SOURCE_REVIEWED": 700, "NOT_PROCESSED": 303,
+    }
+    for index, row in enumerate(catalog_rows):
+        relation_id = f"R{index + 1:04d}"
+        recovery = row["catalog_relation"]["recovery_v2r1"]
+        expected_field_sha = {
+            field: hashlib.sha256(f"{relation_id}:{field}".encode()).hexdigest()
+            for field in ("fact", "mechanism", "condition", "direction", "timescale", "failure", "reporting_period")
+        }
+        assert row["catalog_relation"]["relation_id"] == relation_id
+        assert row["decision"] == "UNASSESSED"
+        assert row["relation_status"] == "CANNOT_CONFIRM"
+        assert row["catalog_research_use"] == research_uses[index]
+        assert row["catalog_recovery_status"] == closure_statuses[index]
+        assert recovery["field_sha256"] == expected_field_sha
+        assert recovery["use_scope"] == {
+            "FACT_VERIFIED_SCOPE": {"state": "VERIFIED_DATED_FACT", "relation_id": relation_id},
+            "CURRENT_APPLICABILITY": {"state": "PENDING_CURRENT_CHECK", "relation_id": relation_id},
+        }
     assert all(row["decision"] != "SELECTED" for row in result["rows"])
     assert result["coverage"]["scope_count"] == 33
+    assert result["coverage"]["observed_count"] == 33
+    assert result["coverage"]["assessed_count"] == 33
+    assert result["coverage"]["unassessed_count"] == 0
+    assert "OBSERVED_COUNT_MISMATCH" not in result["gaps"]
+    assert "SCOPE_COUNT_MISMATCH" not in result["gaps"]
+    assert "US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH" not in result["gaps"]

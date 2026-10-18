@@ -152,14 +152,19 @@ def test_explicit_slot_remains_strict_and_is_never_remapped(
 
 
 def test_us_close_slot_keeps_hk_target_distinct_and_skips_holiday() -> None:
+    from infrastructure.scheduling.dispatcher import _resolved_dates
+
     request = runner._request_for_slot(
         business_date="20261017",
         slot="0415",
     )
+    workload = runner.select_us_workload()
 
     assert request.scheduled_date == "20261017"
     assert request.business_date == "20261017"
     assert request.target_date == "20261020"
+    assert workload.target_date_role == "TARGET_DATE"
+    assert _resolved_dates(workload, request)["target_date"] == "20261020"
 
 
 def test_explicit_non_contract_slot_still_fails_before_dispatch(
