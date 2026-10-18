@@ -1,0 +1,144 @@
+{
+  "schema_version": "issue45_live_independent_review.v1",
+  "reviewer": "issue45_deploy_review",
+  "reviewed_at": "2026-10-18T11:17:34+08:00",
+  "scope": "Frozen Issue45 PR46 Phase 3 live acceptance; read-only owner/handoff verification; no source data writes, recapture, or replay",
+  "reviewed_release_identities": {
+    "digest": {
+      "release_id": "issue45-pr46-us-digest-20261018-r2",
+      "manifest_sha256": "73db17d4a3d8af900f00ca056716a20f289b4df90b5f862d1207790f1a18e201",
+      "live_plist_sha256": "cd5cf69b83f4b576eaed552dfe004dd4d01e3cf69393f057c42ba6c92ff34930",
+      "runtime_state": "loaded idle; activation did not kick off a capture"
+    },
+    "manager_scheduler": {
+      "release_id": "issue45-pr46-manager-scheduler-20261018-r2",
+      "manifest_sha256": "58e3f267ce1fec7af8104df379378a6f0b234faa2b6453174a12681ea0226969",
+      "live_plist_sha256": "15c6065528e8376fe9f094f2a9c67e99df6c2bc4acb20c11574e521edf37e8a1",
+      "observed_pid": 21161,
+      "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-manager-scheduler-20261018-r2/app"
+    },
+    "api": {
+      "release_id": "issue45-pr46-api-20261018-r3",
+      "manifest_sha256": "40872d5013f2239b40821f8547e65bcfed0af58102efb16113a38f2f5bc401e9",
+      "live_plist_sha256": "27b613a9a4ca52fc30e60d4ce5510974d3647fdf574966ab2f24cb930146c653",
+      "observed_pid": 20615,
+      "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-api-20261018-r3/app"
+    }
+  },
+  "gate_verdicts": {
+    "DEPLOYED": "PASS",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+    "issue45": "OPEN"
+  },
+  "offline_candidate_evidence": {
+    "manager_focused_handoff_tests": "4/4 passed",
+    "api_focused_tests": "13/13 passed",
+    "catalog_conservation": "667 stocks and 1003 relations; catalog relations remain CANNOT_CONFIRM / CATALOG_OBSERVATION_ONLY and outside the fixed-33 denominator"
+  },
+  "owner_binding": {
+    "api_owner_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "api_owner_root_binding": "V35_DATA_ROOT passed as store.root",
+    "manager_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/manager-workbench-v7.json",
+    "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+    "manager_store_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench",
+    "manager_us_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+    "target_date": "20261020",
+    "required_us_session": "20261016",
+    "target_date_artifact_exists": false,
+    "target_date_receipt_exists": false,
+    "target_date_manifest_binding_exists": false,
+    "fallback_artifact_relative": "research/peripherals/20261016/external_finance.json",
+    "fallback_artifact_sha256": "fedb7f6f3b993d460ae029158bf73748f6205a23802395ccd8b2a642601be7ae",
+    "fallback_receipt_relative": "receipts/research/peripherals/20261016/external_finance.json",
+    "fallback_receipt_sha256": "2070193eb102cd82f09a83deb5cf486a0adf086ec388f749f6c726dce2be5f23",
+    "manifest_relative": "research/peripherals/manifest.json",
+    "manifest_sha256": "97b478fb8afe0f6ba87e69261c150f7d1f2ff3ff92601185e91b85998677111e",
+    "manifest_binds_fallback_artifact": true,
+    "fallback_payload": {
+      "capture_phase": "POST_CLOSE",
+      "capture_session_date": "20261015",
+      "captured_at": "2026-10-16T07:41:53Z",
+      "quote_count": 48,
+      "available_symbol_count": 48,
+      "requested_symbol_count": 48
+    },
+    "fallback_receipt": {
+      "trade_date": "20261016",
+      "us_session_date": "20261015",
+      "source": "external_finance",
+      "payload_path": "research/peripherals/20261016/external_finance.json",
+      "payload_sha256_matches_artifact": true
+    },
+    "typed_gap_for_required_identity": "US_OWNER_RECEIPT_ARTIFACT_SESSION_INVALID",
+    "owner_identity_status": "INVALID_FOR_US20261016"
+  },
+  "manager_handoff": {
+    "identity": "US20261016 -> HK20261020",
+    "matching_cursor_count": 0,
+    "target_next_day_catalog_runs": [
+      {
+        "run_id": "5feb2dbf6d3c4b6b8598e9dae67af542",
+        "generated_at": "2026-10-16T17:39:41.030446+08:00",
+        "source_us_session": "20261015",
+        "us_mapping_state": "INPUT_MISSING",
+        "handoff_key": null
+      },
+      {
+        "run_id": "85bec0f938224cc4ac92be7dbefcb2df",
+        "generated_at": "2026-10-16T16:30:04.972569+08:00",
+        "source_us_session": "20261015",
+        "us_mapping_state": "INPUT_MISSING",
+        "handoff_key": null
+      }
+    ],
+    "exact_identity_handoff_state": "ABSENT",
+    "classification": "No valid US20261016 owner input exists at the configured root; no evidence of a valid existing input left unconsumed"
+  },
+  "coverage_and_catalog_distinctions": {
+    "stale_owner_quote_count": "48/48 for US20261015 only; not current-session coverage",
+    "fixed_33_coverage_result": "CANNOT_CONFIRM in this narrow check; kept separate",
+    "catalog_observation_relations": 1003,
+    "catalog_relation_status": "CANNOT_CONFIRM / CATALOG_OBSERVATION_ONLY; excluded from fixed-33 denominator"
+  },
+  "current_ui_readback": {
+    "target_date": "20261020",
+    "run_id": "5feb2dbf6d3c4b6b8598e9dae67af542",
+    "generated_at": "2026-10-16T17:39 HKT",
+    "source_us_session": "20261015",
+    "api_ui_agree_on_old_plan": true,
+    "current_target_result_verified": false,
+    "evidence_json": "docs/handoffs/issue45_pr46_deploy_20261018/UI_AFTER.json",
+    "screenshot": "docs/handoffs/issue45_pr46_deploy_20261018/UI_AFTER.png"
+  },
+  "unrelated_1100_failure": {
+    "receipt": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/dispatcher/receipts/live/20261018/1100/f10afb17a7f343f1a7ca057c689d08dd.dispatch-receipt.json",
+    "sha256": "ba7f340192e1e9239531b9c7abe9883b472133f7f59744100d9add2b46a15448",
+    "workload": "hourly_research",
+    "failure_class": "UPSTREAM_NOT_READY",
+    "reason": "HOURLY_RESEARCH_INPUT_NOT_MATERIALIZED",
+    "us_post_close_dispatch": false,
+    "rollback_indicated": false
+  },
+  "next_natural_input": {
+    "phase": "POST_CLOSE",
+    "us_session_date": "20261019",
+    "hk_target_date": "20261020",
+    "scheduled_at": "2026-10-20T04:15:00+08:00",
+    "historical_us20261016_catchup_satisfied": false
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "severity_summary": {
+    "P0": [],
+    "P1_code_regressions": [],
+    "acceptance_blocker": "Configured upstream fallback is from US20261015; exact US20261016 identity is invalid and absent in manager handoff state",
+    "separate_fail_closed_gap": "Sunday 20261018 11:00 hourly_research missing input; unrelated to Issue45 and not rollback evidence"
+  }
+}

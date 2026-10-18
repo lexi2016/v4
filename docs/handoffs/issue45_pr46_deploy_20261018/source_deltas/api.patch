@@ -1,0 +1,602 @@
+diff --git a/v4/manager_workbench/engines/us_mapping.py b/v4/manager_workbench/engines/us_mapping.py
+--- a/v4/manager_workbench/engines/us_mapping.py
++++ b/v4/manager_workbench/engines/us_mapping.py
+@@ -53,6 +53,10 @@
+ 
+ def run_us_mapping(context, batch):
+     u = context["scope_refs"].get("US_MAPPING") or {}
++    catalog_records = [item for item in batch["records"] if isinstance(item, dict)
++                       and item.get("source_status") == "CATALOG_OBSERVATION"]
++    source_records = [item for item in batch["records"] if not (isinstance(item, dict)
++                      and item.get("source_status") == "CATALOG_OBSERVATION")]
+     configured = u.get("configured_symbols")
+     session = u.get("source_session")
+     source_session = context["source_sessions"].get("US") or context["source_sessions"].get("us")
+@@ -94,13 +98,20 @@
+         and isinstance(session, str) and u.get("calendar_verified") is True)
+     if not good_universe:
+         gaps.append("US_UNIVERSE_CONTRACT_OR_SESSION_NOT_VERIFIED")
+-    found = [item.get("us_symbol") for item in batch["records"] if isinstance(item, dict)]
++    found = [item.get("us_symbol") for item in source_records if isinstance(item, dict)]
+     if good_universe and (len(found) != expected_count or len(found) != len(configured) or set(found) != set(configured)):
+         gaps.append("US_SOURCE_33_COVERAGE_INCOMPLETE" if legacy_gap else "US_SOURCE_UNIVERSE_COVERAGE_INCOMPLETE")
+     rows = []
+-    for index, item in enumerate(batch["records"]):
++    catalog_rows = []
++    source_index = 0
++    for item in batch["records"]:
++        is_catalog = isinstance(item, dict) and item.get("source_status") == "CATALOG_OBSERVATION"
++        row_source_index = None if is_catalog else source_index
++        if not is_catalog:
++            source_index += 1
++        output_rows = catalog_rows if is_catalog else rows
+         if not isinstance(item, dict):
+-            rows.append(row({}, "UNASSESSED", "US_RECORD_INVALID", source_index=index));continue
++            output_rows.append(row({}, "UNASSESSED", "US_RECORD_INVALID", source_index=row_source_index));continue
+         source_ok = (good_universe and item.get("us_symbol") in configured and
+             item.get("source_session") == session and item.get("owner") and
+             valid_sha(item.get("source_sha256")) and
+@@ -122,7 +133,7 @@
+             no_relation_gaps=list(item.get("source_gaps", [])) if isinstance(item.get("source_gaps"), list) else []
+             if unmapped_disposition:
+                 no_relation_gaps.append(unmapped_disposition.get("reason", "US_RELATION_UNMAPPED_CANNOT_CONFIRM"))
+-            rows.append(dict(row(item, "UNASSESSED", reason, source_index=index,
++            output_rows.append(dict(row(item, "UNASSESSED", reason, source_index=row_source_index,
+                                  us_symbol=item.get("us_symbol"), relation_type=None,quote=item.get('quote'),
+                                  quote_missing_reason=quote_missing_reason,source_gaps=no_relation_gaps,
+                                  unmapped_disposition=unmapped_disposition,conditions=observation_conditions,
+@@ -136,9 +147,13 @@
+                         name=relation.get("target_name") if isinstance(relation, dict) else None,
+                         membership=relation.get("membership") if isinstance(relation, dict) else None,
+                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
+-            extra = dict(source_index=index, us_symbol=item.get("us_symbol"),
++            extra = dict(source_index=row_source_index, us_symbol=item.get("us_symbol"),
+                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
+                          source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None,
++                         catalog_relation=relation.get("catalog_relation") if isinstance(relation,dict) else None,
++                         catalog_relation_id=relation.get("catalog_relation_id") if isinstance(relation,dict) else None,
++                         catalog_research_use=relation.get("catalog_research_use") if isinstance(relation,dict) else None,
++                         catalog_recovery_status=relation.get("catalog_recovery_status") if isinstance(relation,dict) else None,
+                          relation_pit_status=relation.get("pit_status") if isinstance(relation,dict) else None,quote_missing_reason=item.get("quote_missing_reason"),
+                          source_gaps=item.get("source_gaps",[]),unmapped_disposition=item.get("unmapped_disposition"))
+             if isinstance(relation,dict) and relation.get('priority_assessment'):
+@@ -152,14 +167,14 @@
+                 diagnostic_gaps=list(item.get("source_gaps", [])) if isinstance(item.get("source_gaps"), list) else []
+                 if isinstance(relation,dict) and relation.get("pit_status") == "PIT_UNCONFIRMED":
+                     diagnostic_gaps.append("US_RELATION_PROPOSED_PIT_UNCONFIRMED")
+-                rows.append(row(base, "UNASSESSED", quote_missing_reason, conditions=conditions,
++                output_rows.append(row(base, "UNASSESSED", quote_missing_reason, conditions=conditions,
+                     diagnostic_gaps=diagnostic_gaps, **extra))
+                 continue
+             if isinstance(relation, dict) and (
+                 relation.get("status") == "PROPOSED"
+                 or relation.get("pit_status") == "PIT_UNCONFIRMED"
+             ):
+-                rows.append(row(base, "UNASSESSED", "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
++                output_rows.append(row(base, "UNASSESSED", "US_RELATION_PROPOSED_PIT_UNCONFIRMED",
+                     conditions=["OBSERVATION_ONLY", "NOT_STRICT_SELECTION"], **extra))
+                 continue
+             relation_ok=(source_ok and isinstance(relation, dict) and hk_symbol(relation.get("target_symbol")) and
+@@ -172,20 +187,41 @@
+                 if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
+                 if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
+                 reason='US_RELATION_PRIORITY_NOT_REVIEWED' if relation_ok and priority not in ('PRIORITY','WATCH','NONE') else 'US_SESSION_RELATION_OR_CONNECT_UNVERIFIED'
+-                rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
++                output_rows.append(row(base, "UNASSESSED", reason,diagnostic_gaps=blockers, **extra))
+             elif change is False:
+-                rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))
++                output_rows.append(row(base,"NOT_SELECTED","US_SOURCE_CHANGE_NOT_POSITIVE",**extra))
+             elif priority == "NONE":
+-                rows.append(row(base, "NOT_SELECTED", "US_ORIGINAL_SOURCE_NOT_PRIORITY_OR_WATCH", **extra))
++                output_rows.append(row(base, "NOT_SELECTED", "US_ORIGINAL_SOURCE_NOT_PRIORITY_OR_WATCH", **extra))
+             else:
+-                rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
++                output_rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
+                     conditions=["RELATION_NOT_A_STRICT_SELECTION_RULE"], **extra))
+-    out=result("US_MAPPING", batch, context, rows, gaps=gaps)
++    source_batch = dict(batch, records=source_records)
++    out=result("US_MAPPING", source_batch, context, rows, gaps=gaps)
++    out["rows"].extend(catalog_rows)
++    overlay_summary = u.get("full_overlay_summary") or {}
++    consumed_relations = sum(len(item.get("relations", [])) for item in catalog_records
++                             if isinstance(item.get("relations"), list))
++    if out["rows"]:
++        out["rows"][0]["us_mapping_catalog_summary"] = {
++            "state": overlay_summary.get("state", "CANNOT_CONFIRM"),
++            "stock_count": overlay_summary.get("stock_count"),
++            "relation_count": overlay_summary.get("relation_count"),
++            "consumed_relation_count": consumed_relations,
++            "status_counts": overlay_summary.get("status_counts"),
++            "catalog_file_sha256": overlay_summary.get("catalog_file_sha256"),
++            "review_overlay_file_sha256": overlay_summary.get("review_overlay_file_sha256"),
++            "recovery_overlay_integrity_sha256": overlay_summary.get("recovery_overlay_integrity_sha256"),
++            "gap": overlay_summary.get("gap"),
++        }
++    if overlay_summary.get("state") == "READY" and consumed_relations != overlay_summary.get("relation_count"):
++        out["gaps"].append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
++        out["coverage"]["gaps"].append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
++        out["state"] = "PARTIAL"
+     if context.get("rules_version") == US_FACTOR_RULES_VERSION:
+-        payload = next((record.get("us_factor_payload") for record in batch.get("records", [])
++        payload = next((record.get("us_factor_payload") for record in source_batch.get("records", [])
+                        if isinstance(record, dict) and isinstance(record.get("us_factor_payload"), dict)), None)
+         try:
+-            factor_rows, factor_summary = run_us_factor(context, batch, payload)
++            factor_rows, factor_summary = run_us_factor(context, source_batch, payload)
+         except Exception:
+             # A factor-specific parser/owner failure must not discard the original
+             # independently reviewed US relationship rows.
+@@ -218,8 +254,8 @@
+             out["state"] = "PARTIAL"
+     # One US source can have multiple reviewed HK relations: source coverage is
+     # measured in unique configured US symbols, not mapped-stock row counts.
+-    if not out["gaps"] and not any(x.get("positive_change_required") for x in batch["records"]):
+-        out["coverage"]["assessed_count"] = sum(1 for x in batch["records"] if x.get("source_status") in ("PRIORITY", "WATCH", "NONE"))
++    if not out["gaps"] and not any(x.get("positive_change_required") for x in source_records if isinstance(x, dict)):
++        out["coverage"]["assessed_count"] = sum(1 for x in source_records if isinstance(x, dict) and x.get("source_status") in ("PRIORITY", "WATCH", "NONE"))
+         out["coverage"]["unassessed_count"] = expected_count - out["coverage"]["assessed_count"]
+     return out
+ 
+diff --git a/v4/manager_workbench/inputs/native.py b/v4/manager_workbench/inputs/native.py
+--- a/v4/manager_workbench/inputs/native.py
++++ b/v4/manager_workbench/inputs/native.py
+@@ -82,7 +82,9 @@
+                     universe_version=universe_version, universe_contract=contract,
+                     universe_contract_sha256=(contract or {}).get("contract_sha256"),
+                     calendar_verified=True, sha256=owner_digest(pin),
+-                    universe_ref="us:"+str(universe_version or "UNKNOWN")+":"+context.target_date)
++                    universe_ref="us:"+str(universe_version or "UNKNOWN")+":"+context.target_date,
++                    full_overlay_projection=pin.get("full_overlay_projection", []),
++                    full_overlay_summary=pin.get("full_overlay_summary", {"state":"CANNOT_CONFIRM","gap":"US_MAPPING_FULL_OVERLAY_NOT_BOUND"}))
+         close_pin = context.scope_refs.get("owner_bindings",{}).get("close") or self.config.source_bindings.get("close", {}).get(context.target_date,{})
+         context.scope_refs["review_universe"] = close_pin.get("evaluation_scope_ref")
+         return context
+@@ -963,6 +965,45 @@
+                         ("etf_proxy","etf_basket_proxy","stock_basket_proxy") if context.rules_version == US_FACTOR_RULES_VERSION
+                         else ("etf_proxy","etf_basket_proxy"))
+                     and us in proxy.get("proxy_symbols",[])]))
++        # Carry every relation from the canonical 667/1,003 catalog into
++        # the selector as an explicitly non-selectable observation. Raw source,
++        # review-use and recovery closure fields remain nested and unchanged.
++        overlay_summary = pin.get("full_overlay_summary") or {}
++        overlay_rows = pin.get("full_overlay_projection") or []
++        if overlay_summary.get("state") == "READY":
++            for relation in overlay_rows:
++                hk_code = relation.get("hk_code")
++                target_symbol = symbol(hk_code)
++                if not target_symbol:
++                    gaps.append("US_MAPPING_OVERLAY_HK_IDENTITY_INVALID")
++                    continue
++                relation_identity = owner_digest(relation)
++                catalog_relation = dict(
++                    target_symbol=target_symbol,
++                    target_name=relation.get("hk_name"),
++                    status="CANNOT_CONFIRM",
++                    sha256=relation_identity,
++                    relation_type="CATALOG_OBSERVATION_ONLY",
++                    research_priority="NONE",
++                    catalog_relation=relation,
++                    catalog_relation_id=relation.get("relation_id"),
++                    catalog_research_use=relation.get("research_use"),
++                    catalog_recovery_status=(relation.get("recovery_v2r1") or {}).get("closure_status"),
++                )
++                records.append(dict(
++                    us_symbol=None, source_session=expected,
++                    owner="v4.manager_workbench.us_mapping_catalog",
++                    source_sha256=overlay_summary.get("catalog_file_sha256"),
++                    source_status="CATALOG_OBSERVATION",
++                    positive_change_required=False, available_at=None, quote={},
++                    relations=[catalog_relation], evidence_ids=[],
++                ))
++            if len(overlay_rows) != 1003 or len([
++                row for row in records if row.get("source_status") == "CATALOG_OBSERVATION"
++            ]) != 1003:
++                gaps.append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
++        else:
++            gaps.append(overlay_summary.get("gap", "US_MAPPING_FULL_OVERLAY_NOT_BOUND"))
+         if factor_payload is not None and records:
+             records[0]["us_factor_payload"] = factor_payload
+         return batch(context, Lane.US_MAPPING, records, refs, f"Fixed {expected_count} configured US symbols and relation scope",
+diff --git a/v4/manager_workbench/inputs/source_bindings.py b/v4/manager_workbench/inputs/source_bindings.py
+--- a/v4/manager_workbench/inputs/source_bindings.py
++++ b/v4/manager_workbench/inputs/source_bindings.py
+@@ -11,6 +11,7 @@
+ from .validation import raw_sha, before, owner_digest
+ 
+ OWNER = 'v35_dispatcher.research_panel_daily_hk'
++_US_MAPPING_CATALOG_STORE = None
+ from .us_universe import (
+     LEGACY_US_SYMBOLS,
+     UNIVERSE_VERSION,
+@@ -496,6 +497,135 @@
+             for rel,sha in [(inherited['relative'],osha),(inherited['review_relative'],rsha)]]
+ 
+ 
++def _valid_sha256(value):
++    return (isinstance(value, str) and len(value) == 64
++            and all(char in '0123456789abcdef' for char in value))
++
++
++def _full_mapping_overlay():
++    """Read the same pinned full overlay used by the existing catalog API.
++
++    This is a consumer-side read only. Missing owner files are reported as
++    CANNOT_CONFIRM; the derived fixture is never substituted for the owner.
++    """
++    root = Path(__file__).resolve().parents[1] / "research_data"
++    catalog_path = root / "us_hk_667_catalog_20261015.json"
++    overlay_path = root / "us_hk_667_review_overlay_20261015.json"
++    recovery_path = root / "us_hk_667_recovery_overlay_20261016.json"
++    if not catalog_path.is_file() or not overlay_path.is_file() or not recovery_path.is_file():
++        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_OWNER_UNAVAILABLE",
++                "stock_count": None, "relation_count": None, "relations": []}
++    global _US_MAPPING_CATALOG_STORE
++    if _US_MAPPING_CATALOG_STORE is None:
++        from ..us_mapping_catalog import CatalogStore
++        _US_MAPPING_CATALOG_STORE = CatalogStore()
++    store = _US_MAPPING_CATALOG_STORE
++    stocks = []
++    offset = 0
++    total = None
++    while total is None or offset < total:
++        try:
++            page = store.search(catalog_path, overlay_path, offset=offset, limit=200)
++        except (OSError, ValueError):
++            return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
++                    "stock_count": None, "relation_count": None, "relations": []}
++        total = page.get("total")
++        items = page.get("items")
++        if not isinstance(total, int) or not isinstance(items, list):
++            raise ValueError("US_MAPPING_FULL_OVERLAY_PAGE_INVALID")
++        stocks.extend(items)
++        if not items or len(items) < 200:
++            break
++        offset += len(items)
++    relations = []
++    status_counts = {}
++    from .. import us_mapping_catalog as catalog_module
++    recovery_raw = recovery_path.read_bytes()
++    if raw_sha(recovery_raw) != catalog_module.RECOVERY_OVERLAY_SHA256:
++        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
++                "stock_count": len(stocks), "relation_count": None, "relations": []}
++    try:
++        recovery_payload = json.loads(recovery_raw)
++        recovery_rows = recovery_payload.get("records")
++        if not isinstance(recovery_rows, list):
++            raise ValueError("RECOVERY_RECORDS_INVALID")
++        recovery_by_id = {row.get("relation_id"): row for row in recovery_rows
++                          if isinstance(row, dict) and isinstance(row.get("relation_id"), str)}
++        if len(recovery_by_id) != len(recovery_rows):
++            raise ValueError("RECOVERY_RELATION_ID_INVALID")
++    except (ValueError, TypeError, AttributeError):
++        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
++                "stock_count": len(stocks), "relation_count": None, "relations": []}
++    for stock in stocks:
++        for relation in stock.get("relations", []):
++            recovery = relation.get("recovery_v2r1") or {}
++            recovery_record = recovery_by_id.get(relation.get("relation_id"))
++            effective_research = recovery_record.get("effective_research") if isinstance(recovery_record, dict) else None
++            field_assessments = recovery_record.get("field_assessments") if isinstance(recovery_record, dict) else None
++            expected_research_sha = ((recovery_record.get("effective_summary") or {}).get("effective_research_sha256")
++                                     if isinstance(recovery_record, dict) else None)
++            if not isinstance(field_assessments, list) or not isinstance(effective_research, dict):
++                return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
++                        "stock_count": len(stocks), "relation_count": None, "relations": []}
++            field_sha256 = {}
++            for assessment in field_assessments:
++                field = assessment.get("source_field") if isinstance(assessment, dict) else None
++                field_sha = assessment.get("effective_research_sha256") if isinstance(assessment, dict) else None
++                if (not isinstance(field, str) or field in field_sha256
++                        or not _valid_sha256(field_sha) or field_sha != expected_research_sha):
++                    return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
++                            "stock_count": len(stocks), "relation_count": None, "relations": []}
++                field_sha256[field] = field_sha
++            if len(field_sha256) != 7:
++                return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_VALIDATION_FAILED",
++                        "stock_count": len(stocks), "relation_count": None, "relations": []}
++            status = recovery.get("closure_status")
++            if status:
++                status_counts[status] = status_counts.get(status, 0) + 1
++            recovery = dict(recovery, field_sha256=field_sha256,
++                            use_scope=effective_research.get("whitelist_scope"))
++            relations.append({
++                "hk_code": stock.get("hk_code"),
++                "hk_name": stock.get("name"),
++                "relation_id": relation.get("relation_id"),
++                "source_row": relation.get("source_row"),
++                "source_record": relation.get("source_record"),
++                "source_review_status": relation.get("source_review_status"),
++                "independent_verification": relation.get("independent_verification"),
++                "research_use": relation.get("research_use"),
++                "recovery_v2r1": recovery,
++            })
++    expected_statuses = {"CLOSED_RESEARCH_SCOPE": 757, "OPEN": 221, "CLOSED_EXCLUDED_SCOPE": 25}
++    relation_ids = [relation.get("relation_id") for relation in relations]
++    valid = (len(stocks) == 667 and len(relations) == 1003
++             and len(set(relation_ids)) == 1003
++             and all(isinstance(relation_id, str) and relation_id for relation_id in relation_ids)
++             and status_counts == expected_statuses)
++    if not valid:
++        return {"state": "CANNOT_CONFIRM", "gap": "US_MAPPING_FULL_OVERLAY_CONTRACT_MISMATCH",
++                "stock_count": len(stocks), "relation_count": len(relations),
++                "status_counts": status_counts, "relations": []}
++    recovery_meta = page.get("recovery_v2r1") or {}
++    return {
++        "state": "READY",
++        "stock_count": len(stocks),
++        "relation_count": len(relations),
++        "status_counts": status_counts,
++        "catalog_integrity_sha256": page.get("catalog_integrity_sha256"),
++        "recovery_overlay_integrity_sha256": recovery_meta.get("overlay_integrity_sha256"),
++        "catalog_file_sha256": raw_sha(catalog_path.read_bytes()),
++        "review_overlay_file_sha256": raw_sha(overlay_path.read_bytes()),
++        "checked_files": [
++            {"source_local_path": str(root), "relative": catalog_path.relative_to(root).as_posix(),
++             "sha256": raw_sha(catalog_path.read_bytes())},
++            {"source_local_path": str(root), "relative": overlay_path.relative_to(root).as_posix(),
++             "sha256": raw_sha(overlay_path.read_bytes())},
++            {"source_local_path": str(root), "relative": recovery_path.relative_to(root).as_posix(),
++             "sha256": raw_sha(recovery_path.read_bytes())},
++        ],
++        "relations": relations,
++    }
++
+ def us_mapping(config, context):
+     session = context.source_sessions['us']
+     root = config.us_root
+@@ -702,20 +832,27 @@
+         additional_relation_sources=[*seed_sources,*inherited_sources])
+     factor, factor_files, factor_gap = us_factor_exposure(config, context)
+     industry = hk_industry_classification(config, context)
++    full_overlay = _full_mapping_overlay()
+     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,
+         quote_artifact_date=artifact_date,quote_source_session=session,
+         quote_owner='research_peripheral.external_finance',
++        capture_phase=snapshot.get('capture_phase'),capture_status=payload.get('status'),
++        capture_session_date=snapshot.get('capture_session_date'),capture_run_id=payload.get('run_id'),
++        capture_cutoff=snapshot.get('captured_at'),owner_receipt_relative=receipt_rel,owner_receipt_sha256=rsha,
+         relation_local_path=str(registry_root),relation_relative=registry_relative,relation_sha256=registry_sha,
+         relation_owner='US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY',relation_projection=projection,
+         configured_symbols=list(universe_contract["symbols"]),universe_contract=universe_contract,
+         universe_version=universe_contract["version"],source_gaps_by_symbol=source_gaps_by_symbol,
+         relation_registry_version=US_RELATION_REGISTRY_VERSION,
+         factor_exposure=factor,factor_exposure_gap=factor_gap,hk_industry_classification=industry,
++        full_overlay_projection=full_overlay.get('relations',[]),
++        full_overlay_summary={k:v for k,v in full_overlay.items() if k!='relations'},
+         checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),
+             dict(source_local_path=str(config.relation_root),relative=config.relation_evidence_relative,sha256=esha),
+             dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),
+             dict(source_local_path=str(registry_root),relative=registry_relative,sha256=registry_sha),
+-            *seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[])],
++            *seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[]),
++            *full_overlay.get('checked_files',[])],
+         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
+ 
+ 
+diff --git a/v4/manager_workbench/scheduler.py b/v4/manager_workbench/scheduler.py
+--- a/v4/manager_workbench/scheduler.py
++++ b/v4/manager_workbench/scheduler.py
+@@ -5,6 +5,7 @@
+ from typing import Any
+ 
+ from .contracts import HK, Lane, Phase, validate_date, digest
++from .jobs import JobConflict
+ from .service import ManagerService
+ 
+ 
+@@ -19,6 +20,200 @@
+     if type(value) is not bool:
+         raise CalendarUnavailable("HK_CALENDAR_UNKNOWN")
+     return value
++
++
++def _valid_sha256(value: Any) -> bool:
++    return (isinstance(value, str) and len(value) == 64
++            and all(char in "0123456789abcdef" for char in value))
++
++
++def _handoff_identity(pin: Any, target: str) -> dict[str, str] | None:
++    if not isinstance(pin, dict):
++        return None
++    identity = {
++        "target_date": target,
++        "us_session_date": pin.get("capture_session_date"),
++        "artifact_sha256": pin.get("quote_sha256"),
++        "receipt_sha256": pin.get("owner_receipt_sha256"),
++        "manifest_sha256": pin.get("owner_manifest_sha256"),
++        "capture_cutoff": pin.get("capture_cutoff"),
++        "artifact_relative": pin.get("quote_relative"),
++        "receipt_relative": pin.get("owner_receipt_relative"),
++        "manifest_relative": pin.get("owner_manifest_ref"),
++    }
++    if (not all(isinstance(identity[key], str) and identity[key] for key in (
++            "us_session_date", "capture_cutoff", "artifact_relative",
++            "receipt_relative", "manifest_relative"))
++            or not all(_valid_sha256(identity[key]) for key in (
++                "artifact_sha256", "receipt_sha256", "manifest_sha256"))):
++        return None
++    return identity
++
++
++def _job_scope(job: Any) -> dict[str, Any]:
++    context = getattr(job, "context", None)
++    scope_refs = getattr(context, "scope_refs", None)
++    return scope_refs if isinstance(scope_refs, dict) else {}
++
++
++def _matches_handoff_job(job: Any, key: str, identity: dict[str, str]) -> bool:
++    scope = _job_scope(job)
++    owner_bindings = scope.get("owner_bindings")
++    pin = owner_bindings.get("us_mapping") if isinstance(owner_bindings, dict) else None
++    return (scope.get("us_close_handoff_key") == key
++            and _handoff_identity(pin, identity["target_date"]) == identity
++            and scope.get("owner_artifact_sha256") == identity["artifact_sha256"]
++            and scope.get("owner_receipt_sha256") == identity["receipt_sha256"]
++            and scope.get("owner_manifest_sha256") == identity["manifest_sha256"]
++            and scope.get("source_cutoff") == identity["capture_cutoff"])
++
++
++def _state_value(job: Any) -> str:
++    state = getattr(job, "state", None)
++    return str(getattr(state, "value", state or ""))
++
++
++def _handoff_cursor(identity: dict[str, str], key: str, job: Any | None = None,
++                    *, state: str = "JOB_TRACKED") -> dict[str, str]:
++    value = {"input_key": key, "state": state, **identity}
++    if job is not None:
++        value.update(job_id=job.job_id, run_id=job.run_id)
++    return value
++
++
++def _us_close_handoff(service: ManagerService, *, calendar: Any,
++                      local: datetime) -> list[dict[str, str]]:
++    """Consume a verified exact-session US close through the existing selector.
++
++    The scheduler is already resident on the existing manager owner. This
++    hook adds no producer or service: it submits the existing US_MAPPING lane
++    only after the native owner binding verifies a post-close artifact/receipt.
++    The cursor binds the payload, receipt, manifest, and cutoff.  The job
++    scope is checked after submit because JobCoordinator may return an older
++    active job for the same target/phase/lane.
++    """
++    adapters = getattr(service, "adapters", None)
++    config = getattr(adapters, "config", None)
++    resolver = getattr(adapters, "_us_session", None)
++    if config is None or not getattr(config, "us_root", None) or not callable(resolver):
++        return []
++    try:
++        session = resolver(local.isoformat())
++        target = calendar.next_hk_session(session)
++        validate_date(session)
++        validate_date(target)
++        if target <= session or not _require_calendar(calendar, target):
++            return []
++        context = service.context(
++            target, Phase.NEXT_DAY, trigger="SCHEDULED", cutoff=local,
++            lanes=[Lane.US_MAPPING],
++            scope_refs={"us_close_handoff": True, "us_session_date": session},
++        )
++        pin = (context.scope_refs.get("owner_bindings") or {}).get("us_mapping")
++        if (not isinstance(pin, dict)
++                or pin.get("capture_phase") != "POST_CLOSE"
++                or pin.get("capture_status") not in {"READY", "READY_EMPTY"}
++                or pin.get("capture_session_date") != session):
++            return []
++        captured_at = datetime.fromisoformat(str(pin.get("capture_cutoff", "")).replace("Z", "+00:00"))
++        if (captured_at.tzinfo is None or captured_at.utcoffset() is None
++                or captured_at.astimezone(HK) > local.astimezone(HK)):
++            return []
++        identity = _handoff_identity(pin, target)
++        if identity is None:
++            return []
++        input_key = digest(identity)
++        cursor_key = f"us_close_{input_key}"
++        existing = service.store.cursor(cursor_key)
++        if existing:
++            if existing.get("input_key") != input_key or existing.get("state") == "CONSUMED":
++                return []
++            job_id = existing.get("job_id")
++            if not isinstance(job_id, str) or not job_id:
++                return []
++            previous = service.jobs.get(job_id)
++            if not _matches_handoff_job(previous, input_key, identity):
++                return []
++            state = _state_value(previous)
++            if state in {"QUEUED", "RUNNING"}:
++                return []
++            if state in {"FAILED", "INTERRUPTED", "PARTIAL"} and getattr(previous, "retryable", False):
++                try:
++                    job = service.retry(job_id)
++                except JobConflict:
++                    return []
++                if not _matches_handoff_job(job, input_key, identity):
++                    return []
++                service.store.set_cursor(cursor_key, _handoff_cursor(identity, input_key, job))
++                return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
++                         "state": "RETRY_SUBMITTED", "job_id": job.job_id,
++                         "run_id": job.run_id, "target_date": target,
++                         "us_session_date": session, "input_key": input_key}]
++            return []
++
++        # A job can save its plan before a failed cursor write. Resolve that
++        # plan back to its exact attempt: only success is consumed, while a
++        # retryable partial/failed attempt remains recoverable.
++        for plan in service.store.list_plans(target, Phase.NEXT_DAY.value):
++            if _job_scope(plan).get("us_close_handoff_key") != input_key:
++                continue
++            if not _matches_handoff_job(plan, input_key, identity):
++                continue
++            try:
++                previous = service.jobs.get(plan.run_id)
++            except (KeyError, AttributeError):
++                return []
++            if not _matches_handoff_job(previous, input_key, identity):
++                return []
++            state = _state_value(previous)
++            if state == "SUCCEEDED":
++                service.store.set_cursor(cursor_key, _handoff_cursor(
++                    identity, input_key, state="CONSUMED"))
++                return []
++            if (state in {"FAILED", "INTERRUPTED", "PARTIAL"}
++                    and getattr(previous, "retryable", False)):
++                try:
++                    job = service.retry(previous.job_id)
++                except JobConflict:
++                    return []
++                if not _matches_handoff_job(job, input_key, identity):
++                    return []
++                service.store.set_cursor(cursor_key, _handoff_cursor(identity, input_key, job))
++                return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
++                         "state": "RETRY_SUBMITTED", "job_id": job.job_id,
++                         "run_id": job.run_id, "target_date": target,
++                         "us_session_date": session, "input_key": input_key}]
++            # QUEUED/RUNNING and non-retryable outcomes stay pending. In
++            # particular, a partial plan is not proof that the lane completed.
++            return []
++        job = service.submit(
++            target, Phase.NEXT_DAY, trigger="SCHEDULED",
++            lanes=[Lane.US_MAPPING], cutoff=local,
++            scope_refs={
++                "us_close_handoff": True,
++                "us_session_date": session,
++                "us_close_handoff_key": input_key,
++                "owner_artifact_sha256": identity["artifact_sha256"],
++                "owner_receipt_sha256": identity["receipt_sha256"],
++                "owner_manifest_sha256": identity["manifest_sha256"],
++                "source_cutoff": identity["capture_cutoff"],
++                # Keep the exact pin used above; don't re-resolve a newer
++                # artifact between validation and job creation.
++                "owner_bindings": {"us_mapping": pin},
++            },
++        )
++        if not _matches_handoff_job(job, input_key, identity):
++            # A same-lane active job may belong to a different source SHA.
++            # Leave this owner input pending so the next scheduler tick retries.
++            return []
++        service.store.set_cursor(cursor_key, _handoff_cursor(identity, input_key, job))
++        return [{"phase": "NEXT_DAY", "lane": "US_MAPPING",
++                 "state": "SUBMITTED", "job_id": job.job_id,
++                 "run_id": job.run_id, "target_date": target,
++                 "us_session_date": session, "input_key": input_key}]
++    except (OSError, ValueError, KeyError, TypeError, AttributeError):
++        # Missing/partial owner input stays missing; no stale-session fallback.
++        return []
+ 
+ 
+ def tick(service: ManagerService, *, calendar: Any, stage_feed: Any,
+@@ -33,9 +228,12 @@
+         raise ValueError("SCHEDULER_TIMEZONE_REQUIRED")
+     local = instant.astimezone(HK)
+     day = local.strftime("%Y%m%d")
++    # US close may complete while HK is closed (for example Saturday 04:15 HKT).
++    # Check the exact-session owner receipt before the HK-session-only jobs.
++    jobs: list[dict[str, str]] = _us_close_handoff(service, calendar=calendar, local=local)
+     if not _require_calendar(calendar,day):
+-        return {"state":"NOT_APPLICABLE", "date":day,"reason":"HK_NON_TRADING_SESSION","jobs":[]}
+-    jobs: list[dict[str, str]] = []
++        return {"state":"NOT_APPLICABLE", "date":day,
++                "reason":"HK_NON_TRADING_SESSION","jobs":jobs}
+     scheduled = getattr(getattr(service, "config", None), "scheduled_lanes", None)
+     # A new configured scope cannot retry an older all-lane claim and thereby
+     # restore paused research. Default keys/behavior remain compatible.

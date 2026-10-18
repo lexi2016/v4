@@ -148,8 +148,23 @@ def _request_for_slot(
     # selection target through the existing authoritative HK securities calendar.
     if slot in US_MARKET_SLOT_SET:
         hk_calendar = calendar or load_market_calendar()
+        from ops.us_market_digest import resolve_capture_for_shanghai_slot
+
+        try:
+            capture = resolve_capture_for_shanghai_slot(business_date, slot)
+        except ValueError as error:
+            # Non-capture slots historically retain their strict Shanghai-date
+            # target semantics. Other failures stay visible instead of being
+            # hidden by a Shanghai-date fallback.
+            if str(error) != "US_CAPTURE_SLOT_NOT_DUE":
+                raise
+            capture = None
+        if capture is not None and capture["capture_phase"] == "POST_CLOSE":
+            hk_anchor = capture["us_session_date"]
+        else:
+            hk_anchor = business_date
         dates["target_date"] = next_session(
-            hk_calendar, business_date, market="hk_securities"
+            hk_calendar, hk_anchor, market="hk_securities"
         )
     return DispatchRequest(
         scheduled_date=dates["scheduled_date"],

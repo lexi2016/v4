@@ -1,0 +1,217 @@
+{
+  "schema_version": "issue45-source-integration-receipt-v1",
+  "status": "WRITER_READY_FOR_INDEPENDENT_REVIEW",
+  "created_at_utc": "2026-10-18 03:25:23 UTC",
+  "phase": "PHASE_4_PREP",
+  "writer": "issue45_deploy_writer",
+  "goal": "Preserve current canonical preimages while preparing the exact 11-file PR46/date-fix source and test stage, and record the immutable release source deltas.",
+  "repository": "/Users/lexi/Desktop/学习/v4_app",
+  "merge_source": {
+    "repository": "lexi2016/v4",
+    "pull_request": 46,
+    "pr_base_commit": "a56dbdaff45f887e7f8dbb38047a66d09fe5b1db",
+    "reviewed_head": "ba685ea604af12e517f1ede773feaf3e38ef4600",
+    "merge_commit": "475f9d6bb44d17b8bc948f755c3e7ba2b7b8a088",
+    "merged_source_receipt": "docs/handoffs/issue45_pr46_deploy_20261018/MERGED_SOURCE_RECEIPT.json",
+    "merged_source_receipt_sha256": "06f780d041f77d1d14dcd383426e316dfc2b009aeb0e60d58eadeb5b99652122",
+    "source_file_count": 437
+  },
+  "canonical_stage": {
+    "path": "/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/v4-issue45-deploy-s3hcy0df/integration/canonical_candidate",
+    "file_count": 11,
+    "canonical_writes_performed": false,
+    "live_release_changes_performed": false,
+    "merge_conflicts": 0,
+    "method": "Three-way merge from exact PR-base snapshots. Each of the 10 existing canonical files was byte-identical to PR base and merged without conflicts; the eleventh test is new and absent from both the local preimage and PR base. The final staged bytes preserve the PR46 changes plus the POST_CLOSE date fix.",
+    "files": [
+      {
+        "path": "contracts/runtime_workloads.json",
+        "canonical_before_sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b",
+        "pr_base_sha256": "0c6e8a7f823bfd2d01104de399593d047e870d18b28ea60269230a1ba88a028b",
+        "candidate_sha256": "dce8c36d9c9e3e9e8a6a965fa74ffb2547e7ad353a8a7434040fb48bf49c9701",
+        "merge": "clean"
+      },
+      {
+        "path": "ops/run_us_market_slot.py",
+        "canonical_before_sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e",
+        "pr_base_sha256": "0244fd5e717b3977e5d227b6084fd12eb77f2ebef6802be629b2761596e2f79e",
+        "candidate_sha256": "2d4e6f60a219ce813cf75cb02c3751dcc5d74546d64861f21424bb2c5a77f06c",
+        "merge": "clean; POST_CLOSE anchors HK target to resolved US session date"
+      },
+      {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "canonical_before_sha256": "8a97a126ffc3377ff9420ff123e7c164ea6b0ec383616612bfc3cb386ac228b9",
+        "pr_base_sha256": "8a97a126ffc3377ff9420ff123e7c164ea6b0ec383616612bfc3cb386ac228b9",
+        "candidate_sha256": "42a98b7e2048760a5783fdfc630815eb71e8ae018289ff77758d978c9b92e540",
+        "merge": "clean"
+      },
+      {
+        "path": "v4/manager_workbench/inputs/source_bindings.py",
+        "canonical_before_sha256": "d95e4aa1ea9c1e3414aea412d9cb2367ffcec543ca6ecc8176db072044129f26",
+        "pr_base_sha256": "d95e4aa1ea9c1e3414aea412d9cb2367ffcec543ca6ecc8176db072044129f26",
+        "candidate_sha256": "8157fe45536cb83ed03ccd7300f603fa26dd263098338487c15190d8ac5a1528",
+        "merge": "clean"
+      },
+      {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "canonical_before_sha256": "ca58bbf80d9384ec79944e4d5198a2738a12ae127ff22efadf692ba14d5a9369",
+        "pr_base_sha256": "ca58bbf80d9384ec79944e4d5198a2738a12ae127ff22efadf692ba14d5a9369",
+        "candidate_sha256": "f478e6dbdb06625e16208d5f6ed6d3c594d93cd97727631ccac44c5e5ded80c8",
+        "merge": "clean"
+      },
+      {
+        "path": "v4/manager_workbench/scheduler.py",
+        "canonical_before_sha256": "0672296a340ae84d6bfb48b77b8d23566ea32b4fdb27edc505ea3abb4d785990",
+        "pr_base_sha256": "0672296a340ae84d6bfb48b77b8d23566ea32b4fdb27edc505ea3abb4d785990",
+        "candidate_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485",
+        "merge": "clean"
+      },
+      {
+        "path": "tests/test_run_us_market_slot.py",
+        "canonical_before_sha256": "d6cea1187b267d1ca9f5c1847e24edb1531a7ffda99fa9b20f244d2b10f8e8dc",
+        "pr_base_sha256": "d6cea1187b267d1ca9f5c1847e24edb1531a7ffda99fa9b20f244d2b10f8e8dc",
+        "candidate_sha256": "5fb957ecd3e650390525939fd0b4ce5cfe6c381fa6d1ad117f9cb520aaafc7ff",
+        "merge": "clean"
+      },
+      {
+        "path": "tests/test_us_owner_handoff.py",
+        "canonical_before_sha256": "7112a09e9b61704d3c652cf00139c906365195cda9e55b95ccd2eab811321be3",
+        "pr_base_sha256": "7112a09e9b61704d3c652cf00139c906365195cda9e55b95ccd2eab811321be3",
+        "candidate_sha256": "9f93cafca94cfcfab69fba6bc06b8de8c7b3a6b7c8073308ba8c86233af6d4f7",
+        "merge": "clean"
+      },
+      {
+        "path": "tests/test_manager_us_mapping_bindings_r3.py",
+        "canonical_before_sha256": "a5d2e79a7d3ccf732499a3a1e5866ef6d05c7d71d842ce3c82c5743bec87c2cf",
+        "pr_base_sha256": "a5d2e79a7d3ccf732499a3a1e5866ef6d05c7d71d842ce3c82c5743bec87c2cf",
+        "candidate_sha256": "767d45e52ac018109e73fc1060621684424dbb4e185aee31d5aa6f7ee65f4dae",
+        "merge": "clean"
+      },
+      {
+        "path": "tests/manager_workbench/engines/test_us_mapping.py",
+        "canonical_before_sha256": "0f43577011e141a1f3b804e08d0454396d4a73984a0fb2d344348314b79272d7",
+        "pr_base_sha256": "0f43577011e141a1f3b804e08d0454396d4a73984a0fb2d344348314b79272d7",
+        "candidate_sha256": "d4be808c9bf81e9ef2c012b920597403303aad69fb925753e73c16e2a0aea588",
+        "merge": "clean"
+      },
+      {
+        "path": "tests/manager_workbench/test_us_close_handoff_scheduler.py",
+        "canonical_before_sha256": null,
+        "pr_base_sha256": null,
+        "candidate_sha256": "01f321e0d693840cc56924269b696a06c226c6b89426e11f690aac1bcb5f77fd",
+        "merge": "new file"
+      }
+    ],
+    "post_close_oracle": [
+      {
+        "business_date": "20261020",
+        "us_session_date": "20261019",
+        "capture_phase": "POST_CLOSE",
+        "hk_target_date": "20261020"
+      },
+      {
+        "business_date": "20261017",
+        "us_session_date": "20261016",
+        "capture_phase": "POST_CLOSE",
+        "hk_target_date": "20261020"
+      }
+    ],
+    "calendar_dependency": {
+      "canonical_file_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "digest_r2_file_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "next_session_ast_sha256": "ec8ea563b67c7415f499b15d55e28e2b5b9c6fe0398fc67c6945bb2ececb9987",
+      "reason_not_in_canonical_11_file_stage": "The helper is already identical in canonical source; the digest release patch adds it only to the older active release baseline."
+    }
+  },
+  "deployed_source_deltas": [
+    {
+      "owner": "digest",
+      "path": "docs/handoffs/issue45_pr46_deploy_20261018/source_deltas/digest.patch",
+      "sha256": "edab3f0869d41739815af145b216abe844ce3de4390b8537d3c944bc26abc0f1",
+      "bytes": 3638,
+      "validation": "git apply --numstat parsed; patch was not applied",
+      "source_only": true,
+      "base_release": "futu-board-map-us-20261018-r1",
+      "base_manifest_sha256": "c1f7a9d250e2de8a4bd6841e2dfed05fdf0e8997b39ef01a78a3c7a6fdbddbb2",
+      "target_release": "issue45-pr46-us-digest-20261018-r2",
+      "target_manifest_sha256": "73db17d4a3d8af900f00ca056716a20f289b4df90b5f862d1207790f1a18e201",
+      "files": [
+        "contracts/runtime_workloads.json",
+        "ops/run_us_market_slot.py",
+        "contracts/trading_calendar.py"
+      ]
+    },
+    {
+      "owner": "manager",
+      "path": "docs/handoffs/issue45_pr46_deploy_20261018/source_deltas/manager.patch",
+      "sha256": "155cb425eb36d2bb7401270e2df1b996160c197c90761503eab8cd5fdc76dd9d",
+      "bytes": 39659,
+      "validation": "git apply --numstat parsed; patch was not applied",
+      "source_only": true,
+      "base_release": "zsxq-pdf-metadata-scheduler-20261018-r1",
+      "base_manifest_sha256": "bd30c7db4a10a76785d4eb36720a79760d3c98e3350a0c5013d1faebceca8053",
+      "target_release": "issue45-pr46-manager-scheduler-20261018-r2",
+      "target_manifest_sha256": "58e3f267ce1fec7af8104df379378a6f0b234faa2b6453174a12681ea0226969",
+      "files": [
+        "v4/manager_workbench/inputs/native.py",
+        "v4/manager_workbench/inputs/source_bindings.py",
+        "v4/manager_workbench/engines/us_mapping.py",
+        "v4/manager_workbench/scheduler.py"
+      ]
+    },
+    {
+      "owner": "api",
+      "path": "docs/handoffs/issue45_pr46_deploy_20261018/source_deltas/api.patch",
+      "sha256": "5d216fe26ebb1c122ecb0b79fac15acd12fc12058f45e55ed80a8d8b146ecbb4",
+      "bytes": 36755,
+      "validation": "git apply --numstat parsed; patch was not applied",
+      "source_only": true,
+      "base_release": "futu-board-map-api-20261018-r1",
+      "base_manifest_sha256": "332e2e2081be357ba57fcb1d800a002f827b7e5447ce165129595dae3f9301d9",
+      "target_release": "issue45-pr46-api-20261018-r3",
+      "target_manifest_sha256": "40872d5013f2239b40821f8547e65bcfed0af58102efb16113a38f2f5bc401e9",
+      "files": [
+        "v4/manager_workbench/inputs/native.py",
+        "v4/manager_workbench/inputs/source_bindings.py",
+        "v4/manager_workbench/engines/us_mapping.py",
+        "v4/manager_workbench/scheduler.py"
+      ]
+    }
+  ],
+  "behavior_verification": {
+    "writer_focused_run": {
+      "executed_before_final_restage": true,
+      "inputs_byte_identical_after_restage": true,
+      "command_prefix": "env -u PYTHONPATH -u PYTHONHOME PYTHONDONTWRITEBYTECODE=1 /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -",
+      "runner_setup": "CWD merged_source; sys.path prepended canonical_candidate, merged_source, repository; candidate ops directory was prepended to ops.__path__; pytest.main invoked with -q -p no:cacheprovider --rootdir=<merged_source> --basetemp=/tmp/issue45-canonical-candidate-focused-r3.",
+      "selected_tests": [
+        "canonical_candidate/tests/test_run_us_market_slot.py",
+        "merged_source/tests/test_us_owner_handoff.py",
+        "merged_source/tests/test_manager_us_mapping_bindings_r3.py",
+        "merged_source/tests/manager_workbench/engines/test_us_mapping.py::test_full_overlay_relations_are_consumed_as_non_selectable_observations",
+        "merged_source/tests/manager_workbench/test_us_close_handoff_scheduler.py",
+        "merged_source/tests/test_manager_us_mapping_bindings_r3.py::test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standard_receipt"
+      ],
+      "result": "30 passed, 1 failed; date oracle checks passed; single failure is the known quote-scope/proposal-source baseline fixture caveat.",
+      "known_failure_node": "tests/test_manager_us_mapping_bindings_r3.py::test_source_binding_carries_configured_quote_scope_and_proposal_sources",
+      "rerun": "No rerun was needed because all 11 staged SHA-256 values match the inputs used for the run."
+    },
+    "independent_release_review": {
+      "path": "docs/handoffs/issue45_pr46_deploy_20261018/INDEPENDENT_REVIEW.json",
+      "sha256": "d0aeb6a624a56e510e0fad7844ead219ebd3890fb3fb5c41816b58d65c39e3e4",
+      "verdict": "PASS",
+      "scope": "Independent review covers immutable release candidates; the exact phase4 canonical staging remains subject to its own independent inspection."
+    }
+  },
+  "not_done_or_cannot_confirm": [
+    "Canonical source/test files were not applied. Phase4 requires independent review before canonical apply.",
+    "No GitHub commit or push was attempted; root owns authorized sync.",
+    "This source receipt does not establish natural autonomous target-date acceptance."
+  ],
+  "financial_safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

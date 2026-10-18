@@ -1,0 +1,301 @@
+{
+  "schema_version": "v4.issue45_pr46_independent_review.v1",
+  "reviewer_identity": "issue45_deploy_review",
+  "reviewed_at_utc": "2026-10-18T02:58:38Z",
+  "verdict": "PASS",
+  "verdict_scope": "frozen preactivation candidate and bounded behavior review",
+  "activation_status": "NOT_ACTIVATED",
+  "frozen_scope": {
+    "scope_file": "docs/handoffs/issue45_pr46_deploy_20261018/SCOPE.json",
+    "goal": "Issue45 actual deployed US-close consumer recovery",
+    "merge_commit": "475f9d6bb44d17b8bc948f755c3e7ba2b7b8a088",
+    "reviewed_head": "ba685ea604af12e517f1ede773feaf3e38ef4600",
+    "date_finding_status": "RETRACTED_FALSE_FINDING_NO_R3_NEEDED",
+    "date_finding_evidence": {
+      "digest_r2_wrapper_sha256": "2d4e6f60a219ce813cf75cb02c3751dcc5d74546d64861f21424bb2c5a77f06c",
+      "oracles": [
+        "business_date=20261020, slot=0415 -> US session=20261019 -> HK target=20261020",
+        "business_date=20261017, slot=0415 -> US session=20261016 -> HK target=20261020"
+      ],
+      "r3_created": false
+    }
+  },
+  "candidate_reviews": [
+    {
+      "owner": "digest",
+      "release_id": "issue45-pr46-us-digest-20261018-r2",
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-us-digest-20261018-r2",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-us-digest-20261018-r2/release-manifest.json",
+      "manifest_sha256": "73db17d4a3d8af900f00ca056716a20f289b4df90b5f862d1207790f1a18e201",
+      "inventory": {
+        "declared_sha256": "b3ceb9d82edeb67b5c4a6dac2d957a2de533b0671108b62c3ecef6034cf8b60a",
+        "recomputed_sha256": "b3ceb9d82edeb67b5c4a6dac2d957a2de533b0671108b62c3ecef6034cf8b60a",
+        "manifest_entries": 1189,
+        "actual_entries": 1189,
+        "missing": 0,
+        "extra": 0,
+        "manifest_entry_mismatches": 0
+      },
+      "base": {
+        "release_id": "futu-board-map-us-20261018-r1",
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-board-map-us-20261018-r1/app",
+        "manifest_sha256": "c1f7a9d250e2de8a4bd6841e2dfed05fdf0e8997b39ef01a78a3c7a6fdbddbb2",
+        "non_delta_entries": 1186,
+        "non_delta_inventory_sha256": "9b51366794599b7c31aed04932bf96bfef0760c170ed1141edaa50c76bbc2b66",
+        "non_delta_mismatches": 0
+      },
+      "delta_files": [
+        {
+          "path": "contracts/runtime_workloads.json",
+          "after_sha256": "a59fad388828bd5fcf3a4bb14e2cf9e8d19b206276e149a3b14c9966ae0fbae6"
+        },
+        {
+          "path": "contracts/trading_calendar.py",
+          "after_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1"
+        },
+        {
+          "path": "ops/run_us_market_slot.py",
+          "after_sha256": "2d4e6f60a219ce813cf75cb02c3751dcc5d74546d64861f21424bb2c5a77f06c"
+        }
+      ],
+      "preserved_preexisting_integration": {
+        "path": "ops/_us_market_digest_parts/futu_boards.py",
+        "sha256": "7fb64edce69fe5811afdc8df30e446c436dde66170cfa46e1e6a68fa25c70864",
+        "matches_base": true,
+        "compatibility_canary": "PASS: legacy unmapped military row stays CANNOT_CONFIRM and safety flags remain false"
+      },
+      "staged_plist": {
+        "path": "docs/handoffs/issue45_pr46_deploy_20261018/com.lexi.v4.us-market-digest.issue45-r2.candidate.plist",
+        "sha256": "cd5cf69b83f4b576eaed552dfe004dd4d01e3cf69393f057c42ba6c92ff34930",
+        "parses": true,
+        "schedule_preserved": true,
+        "program_arguments_preserved": true,
+        "identity_and_working_directory_bind_candidate": true,
+        "active_plist_sha256_unchanged": "edab8b9ab90fbe6f147d84d338a2af8bcee11592135f4f8df0af4aac86ed4005"
+      },
+      "behavior_evidence": {
+        "candidate_date_oracles": "PASS",
+        "candidate_owner_handoff_tests": "7 passed",
+        "candidate_us_equity_calendar_tests": "14 passed",
+        "same_candidate_prior_focused_tests": "30 passed; reused because candidate source and manifest are byte-identical after exact cache cleanup",
+        "same_candidate_prior_merged_source_tests": "36 passed",
+        "mocked_dispatch_canary": "PASS: selected only us_market_digest, target 20261020, safety fields false",
+        "cache_cleanup_receipt_sha256": "5e016b3686ea9d98dddbe02707284086f9faaf416559ba9a81493d43daef32e7"
+      }
+    },
+    {
+      "owner": "manager",
+      "release_id": "issue45-pr46-manager-scheduler-20261018-r2",
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-manager-scheduler-20261018-r2",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-manager-scheduler-20261018-r2/release-manifest.json",
+      "manifest_sha256": "58e3f267ce1fec7af8104df379378a6f0b234faa2b6453174a12681ea0226969",
+      "inventory": {
+        "declared_sha256": "7fb52714aae8659556d8356babd36248f310d53ceae055d1017d78bf6af747b7",
+        "recomputed_sha256": "7fb52714aae8659556d8356babd36248f310d53ceae055d1017d78bf6af747b7",
+        "manifest_entries": 855,
+        "actual_entries": 855,
+        "missing": 0,
+        "extra": 0,
+        "manifest_entry_mismatches": 0
+      },
+      "base": {
+        "release_id": "zsxq-pdf-metadata-scheduler-20261018-r1",
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/zsxq-pdf-metadata-scheduler-20261018-r1/app",
+        "manifest_sha256": "bd30c7db4a10a76785d4eb36720a79760d3c98e3350a0c5013d1faebceca8053",
+        "active_plist_sha256": "7005bf2294c4db041bfc896f6ccf5a3141e4d204e360eea230f8111ccc0044ff",
+        "non_delta_entries": 851,
+        "non_delta_inventory_sha256": "1062748e5b3e294fe4b9e4ff7bdd50b2492d162dac1a37fc3bb4efd42d5abc23",
+        "non_delta_mismatches": 0
+      },
+      "delta_files": [
+        {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "after_sha256": "7e946d10b8320fda290e5aaff6474b814dc1efa7a4802e1a7dcc0ce0c5e02392"
+        },
+        {
+          "path": "v4/manager_workbench/inputs/source_bindings.py",
+          "after_sha256": "86917de5e8eee48f5cb3dca1314a966fc821990f8fb0761ccebb936331385c86"
+        },
+        {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "after_sha256": "f478e6dbdb06625e16208d5f6ed6d3c594d93cd97727631ccac44c5e5ded80c8"
+        },
+        {
+          "path": "v4/manager_workbench/scheduler.py",
+          "after_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485"
+        }
+      ],
+      "prior_review_code_identity": "PASS: all four delta after-SHAs equal the previously reviewed manager r1 candidate",
+      "staged_plist": {
+        "path": "docs/handoffs/issue45_pr46_deploy_20261018/com.lexi.v35.scheduler.issue45-r2.candidate.plist",
+        "sha256": "15c6065528e8376fe9f094f2a9c67e99df6c2bc4acb20c11574e521edf37e8a1",
+        "parses": true,
+        "identity_paths_and_working_directory_bind_candidate": true,
+        "schedule_and_nonidentity_program_arguments_preserved": true,
+        "active_plist_sha256_unchanged": "7005bf2294c4db041bfc896f6ccf5a3141e4d204e360eea230f8111ccc0044ff"
+      },
+      "behavior_evidence": {
+        "candidate_module_imports": "PASS; all four reviewed modules resolve under candidate app root",
+        "candidate_close_handoff_tests": "4 passed",
+        "prior_reviewed_manager_source_tests": "7 passed; exact delta code and relevant dependency closure unchanged",
+        "overlay_conservation": "PASS: 667 catalog stocks and 1003 relations conserved; catalog rows remain CANNOT_CONFIRM / CATALOG_OBSERVATION_ONLY and outside fixed-33 denominator"
+      },
+      "build_receipt_reconciliation": {
+        "receipt_path": "docs/handoffs/issue45_pr46_deploy_20261018/manager_r2_candidate_build_receipt.json",
+        "receipt_sha256": "98dc017d47882b476979beb1798832c5ff12119040c18c63ee8de00206fdb067",
+        "builder_exit_code": 1,
+        "failure": "NameError during receipt serialization after candidate app, manifest, and staged plist were written",
+        "candidate_bytes_rewritten_after_failure": false,
+        "independent_manifest_and_inventory_recheck": "PASS"
+      }
+    },
+    {
+      "owner": "api",
+      "release_id": "issue45-pr46-api-20261018-r3",
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-api-20261018-r3",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-api-20261018-r3/release-manifest.json",
+      "manifest_sha256": "40872d5013f2239b40821f8547e65bcfed0af58102efb16113a38f2f5bc401e9",
+      "inventory": {
+        "declared_sha256": "a6d4b0e664c04a5157d7c875db64680efd76553805b119166b97490b95fb4a69",
+        "recomputed_sha256": "a6d4b0e664c04a5157d7c875db64680efd76553805b119166b97490b95fb4a69",
+        "manifest_entries": 1226,
+        "actual_entries": 1226,
+        "missing": 0,
+        "extra": 0,
+        "manifest_entry_mismatches": 0
+      },
+      "base": {
+        "release_id": "futu-board-map-api-20261018-r1",
+        "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-board-map-api-20261018-r1/app",
+        "manifest_sha256": "332e2e2081be357ba57fcb1d800a002f827b7e5447ce165129595dae3f9301d9",
+        "non_delta_entries": 1222,
+        "non_delta_inventory_sha256": "88c43a26e4caa77e6dbb98ff85bbb303b34a40ecd4ff900a0e0384c98547ae7b",
+        "non_delta_mismatches": 0,
+        "changed_dependency_review": {
+          "path": "ops/_us_market_digest_parts/futu_boards.py",
+          "sha256": "7fb64edce69fe5811afdc8df30e446c436dde66170cfa46e1e6a68fa25c70864",
+          "same_as_refreshed_active": true,
+          "candidate_compatibility_canary": "PASS: exact legacy unmapped military row remains CANNOT_CONFIRM; safety flags false"
+        }
+      },
+      "delta_files": [
+        {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "after_sha256": "af72fa8337fe89d185142d6f1dd993e2560fcca056f0819192fcb72f6ef0682c"
+        },
+        {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "after_sha256": "2b6a6651658af6cc2422c2022c4b339eb39fa88f5403cf70cb037cee2cf78539"
+        },
+        {
+          "path": "v4/manager_workbench/inputs/source_bindings.py",
+          "after_sha256": "e1e5a52ec1cf5b214d09b1d8d9c5063ce45b0f35c052f1fad2dce47478f8a145"
+        },
+        {
+          "path": "v4/manager_workbench/scheduler.py",
+          "after_sha256": "c230f4dac7751f14455d3db4afe1e82ce1ec0805b382e79993d5005ef202e1d3"
+        }
+      ],
+      "static_baseline_copy_conservation": {
+        "bytes": 117170977,
+        "files": 3,
+        "exact_sha_matches": true,
+        "relation_root_preserved": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app"
+      },
+      "staged_plist": {
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/issue45-pr46-api-20261018-r3/config/com.lexi.v35.api-only.plist",
+        "sha256": "27b613a9a4ca52fc30e60d4ce5510974d3647fdf574966ab2f24cb930146c653",
+        "parses": true,
+        "schedule_and_safety_arguments_preserved": true,
+        "candidate_identity_and_pythonpath_bound": true,
+        "active_plist_sha256_unchanged": "79473fd5db5eac865445f4d0738d4f6ebecafc429bdd701082c57dc3edb0d4a8"
+      },
+      "behavior_evidence": {
+        "candidate_module_imports": "PASS; all four reviewed modules resolve under candidate app root",
+        "candidate_focused_tests": "13 passed: eight engine mapping tests, one exact-session/post-target overlay test, and four close-handoff scheduler tests",
+        "futu_dependency_compatibility": "PASS"
+      }
+    }
+  ],
+  "known_baseline_test_caveat": {
+    "severity": "P2",
+    "status": "REPRODUCED_IDENTICALLY_ON_CANDIDATE_AND_REFRESHED_ACTIVE_BASELINE",
+    "actionable_in_frozen_scope": false,
+    "test_nodes": [
+      "tests/test_manager_us_mapping_bindings_r3.py::test_source_binding_carries_configured_quote_scope_and_proposal_sources",
+      "tests/test_manager_us_mapping_bindings_r3.py::test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standard_receipt"
+    ],
+    "candidate_and_active_failure_signatures": [
+      "US_OWNER_ARTIFACT_MANIFEST_BINDING_INVALID",
+      "research peripheral POST_CLOSE market_snapshot failure must be CANNOT_CONFIRM"
+    ],
+    "evidence": "Both nodes were run against API r3 and refreshed active futu-board-map-api r1 with the same merged-source test file and isolated tmp roots; both runs failed with the same exceptions.",
+    "fixture_contract_explanation": [
+      "First fixture writes its quote owner artifact at 20261017 while the consumer requests target_date=20261020 and us_session_date=20261016; no exact target/session artifact exists.",
+      "Second fixture presents READY_EMPTY while its POST_CLOSE market snapshot is CANNOT_CONFIRM; the existing store requires the enclosing owner payload to be CANNOT_CONFIRM in that case."
+    ],
+    "disposition": "Keep exact-date, market-snapshot coverage, and fail-closed validation unchanged; these are baseline-parity fixture failures, not a delta regression."
+  },
+  "physical_artifact_audit": [
+    {
+      "release_id": "issue45-pr46-us-digest-20261018-r2",
+      "manifest_entries": 1189,
+      "physical_regular_files": 1189,
+      "manifest_excluded_generated_bytecode": 0,
+      "other_extras": 0,
+      "status": "PASS"
+    },
+    {
+      "release_id": "issue45-pr46-manager-scheduler-20261018-r2",
+      "manifest_entries": 855,
+      "physical_regular_files": 855,
+      "manifest_excluded_generated_bytecode": 0,
+      "other_extras": 0,
+      "missing": 0,
+      "manifest_entry_mismatches": 0,
+      "cleanup_receipt_sha256": "2b2e4d467d4fc3c22a1a9bca942e2ab04d0596e115e202877b55afd104d170dd",
+      "status": "PASS"
+    },
+    {
+      "release_id": "issue45-pr46-api-20261018-r3",
+      "manifest_entries": 1226,
+      "physical_regular_files": 1226,
+      "manifest_excluded_generated_bytecode": 0,
+      "other_extras": 0,
+      "missing": 0,
+      "manifest_entry_mismatches": 0,
+      "cleanup_receipt_sha256": "2b2e4d467d4fc3c22a1a9bca942e2ab04d0596e115e202877b55afd104d170dd",
+      "status": "PASS"
+    }
+  ],
+  "final_current_candidate_cleanup_receipt": {
+    "path": "docs/handoffs/issue45_pr46_deploy_20261018/final_current_candidate_bytecode_cleanup_receipt.json",
+    "sha256": "2b2e4d467d4fc3c22a1a9bca942e2ab04d0596e115e202877b55afd104d170dd",
+    "status": "COMPLETE",
+    "independent_post_cleanup_inventory": "PASS: digest 1189/1189, manager 855/855, API 1226/1226; zero missing, extra, or manifest hash/size mismatches; candidate manifests unchanged"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      "The two API baseline test-fixture failures above remain visible in candidate validation; they reproduce unchanged on the refreshed active baseline."
+    ]
+  },
+  "acceptance_state": {
+    "source_delta_and_manifest_integrity_review": "PASS",
+    "physical_candidate_closure": "PASS: exact cleanup receipt verified; independent physical inventories match each manifest with zero missing, extra, or hash/size mismatches",
+    "candidate_identity_and_integrity_review": "PASS",
+    "bounded_candidate_behavior_tests": "PASS",
+    "DEPLOYED": "CANNOT_CONFIRM; inactive candidates only",
+    "API_VERIFIED": "CANNOT_CONFIRM; no post-activation current-target readback",
+    "UI_VERIFIED": "CANNOT_CONFIRM; no post-activation reload/screenshot",
+    "BEHAVIOR_VERIFIED": "CANDIDATE_TEST_EVIDENCE_PASS; live deployed handoff remains CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "CANNOT_CONFIRM; next natural slot is 2026-10-20 04:15 Asia/Shanghai",
+    "safety": {
+      "RESEARCH_ONLY": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    }
+  }
+}

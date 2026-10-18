@@ -1,0 +1,95 @@
+diff --git a/contracts/runtime_workloads.json b/contracts/runtime_workloads.json
+--- a/contracts/runtime_workloads.json
++++ b/contracts/runtime_workloads.json
+@@ -1248,8 +1248,8 @@
+         "ops.build_close_review",
+         "--data-root",
+         "{data_root}",
+-      "--date",
+-      "{business_date}"
++        "--date",
++        "{business_date}"
+       ],
+       "enabled": true,
+       "market_scope": "HK_CONNECT",
+@@ -1761,7 +1761,7 @@
+         "2100",
+         "2200"
+       ],
+-      "target_date_role": "BUSINESS_DATE",
++      "target_date_role": "TARGET_DATE",
+       "workload_id": "us_market_digest"
+     }
+   ]
+diff --git a/ops/run_us_market_slot.py b/ops/run_us_market_slot.py
+--- a/ops/run_us_market_slot.py
++++ b/ops/run_us_market_slot.py
+@@ -22,6 +22,7 @@
+ from infrastructure.scheduling.dispatcher import dispatch_due
+ from infrastructure.scheduling.execution_ledger import ExecutionLedger
+ from infrastructure.scheduling.executor_registry import FixedExecutorRegistry
++from contracts.trading_calendar import load_market_calendar, next_session
+ from ops.run_scheduled_slot import compute_dates
+ 
+ 
+@@ -142,6 +143,29 @@
+             slot=slot,
+             calendar=calendar,
+         )
++    # The US capture slot's Shanghai date is not the next HK selection date.
++    # Keep scheduled/business dates for dispatch identity, but resolve the
++    # selection target through the existing authoritative HK securities calendar.
++    if slot in US_MARKET_SLOT_SET:
++        hk_calendar = calendar or load_market_calendar()
++        from ops.us_market_digest import resolve_capture_for_shanghai_slot
++
++        try:
++            capture = resolve_capture_for_shanghai_slot(business_date, slot)
++        except ValueError as error:
++            # Non-capture slots historically retain their strict Shanghai-date
++            # target semantics. Other failures stay visible instead of being
++            # hidden by a Shanghai-date fallback.
++            if str(error) != "US_CAPTURE_SLOT_NOT_DUE":
++                raise
++            capture = None
++        if capture is not None and capture["capture_phase"] == "POST_CLOSE":
++            hk_anchor = capture["us_session_date"]
++        else:
++            hk_anchor = business_date
++        dates["target_date"] = next_session(
++            hk_calendar, hk_anchor, market="hk_securities"
++        )
+     return DispatchRequest(
+         scheduled_date=dates["scheduled_date"],
+         business_date=dates["business_date"],
+diff --git a/contracts/trading_calendar.py b/contracts/trading_calendar.py
+--- a/contracts/trading_calendar.py
++++ b/contracts/trading_calendar.py
+@@ -255,3 +255,27 @@
+             return date8
+         cursor -= timedelta(days=1)
+     raise ValueError("previous session is outside frozen calendar")
++
++
++def next_session(
++    calendar: MarketCalendar,
++    trade_date: str,
++    *,
++    market: str,
++) -> str:
++    if market not in {"a_share", "hk_securities", "hk_connect"}:
++        raise ValueError("unsupported next-session market")
++    parsed = parse_trade_date(trade_date, year=calendar.year)
++    if parsed is None:
++        raise ValueError("next-session date is outside frozen calendar")
++    cursor = parsed + timedelta(days=1)
++    while cursor.year == calendar.year:
++        date8 = cursor.strftime("%Y%m%d")
++        state = resolve_market_states(calendar, date8)[market]
++        if state in {
++            TradingDayState.FULL_TRADING_DAY,
++            TradingDayState.HALF_TRADING_DAY_AM,
++        }:
++            return date8
++        cursor += timedelta(days=1)
++    raise ValueError("next session is outside frozen calendar")
