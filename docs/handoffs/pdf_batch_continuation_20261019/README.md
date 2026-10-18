@@ -60,21 +60,25 @@ All plan files must be SHA-pinned and plan-only validated after creation. The pl
 
 ## Commands and state
 
-Before use, bind `PYTHON314` to the tested Python 3.14 executable and bind `V4_ROOT`, `MANIFEST`, and `PLAN` to the local application root and frozen input files. These placeholders intentionally contain no account or runtime-state paths.
+Before use, bind `PDF_PYTHON` to the configured native/local-model runtime Python executable, and bind `V4_ROOT`, `MANIFEST`, and `PLAN` to the canonical application root and frozen input files. Keep the executable path local; this README uses placeholders. The currently observed native runtime reports Python 3.12.13. The Python 3.14 `uv` environment below is for writer-phase tests only and must not be used as the execution-client interpreter.
 
-Plan-only preflight after a local immutable plan is frozen:
-
-```sh
-"$PYTHON314" "$V4_ROOT/ops/run_pdf_research_batch.py" --manifest "$MANIFEST" --continuation-plan "$PLAN"
-```
-
-Execution pattern for a later controller-authorized run, after independent Reviewer PASS and canonical integration:
+Plan-only preflight after a local immutable plan is frozen. Run it from the canonical V4 root so imports resolve from that checkout:
 
 ```sh
-"$PYTHON314" "$V4_ROOT/ops/run_pdf_research_batch.py" --manifest "$MANIFEST" --continuation-plan "$PLAN" --execute
+cd "$V4_ROOT"
+"$PDF_PYTHON" -m ops.run_pdf_research_batch --manifest "$MANIFEST" --continuation-plan "$PLAN"
 ```
 
-The execution client uses the tested Python 3.14 runtime when available. The model server's Python 3.12 runtime is a separate process and is not the execution-client interpreter. The writer-phase tests ran under Python 3.14.6 via `uv`.
+Execution pattern for a later controller-authorized run, after independent Reviewer PASS and canonical integration. Run it from the canonical V4 root as well:
+
+```sh
+cd "$V4_ROOT"
+"$PDF_PYTHON" -m ops.run_pdf_research_batch --manifest "$MANIFEST" --continuation-plan "$PLAN" --execute
+```
+
+The execution client must use the configured native/local-model runtime interpreter. Verify the selected local executable with `"$PDF_PYTHON" --version`; do not substitute the temporary Python 3.14 test interpreter.
+
+The writer-phase tests ran under Python 3.14.6 via `uv`.
 
 Writer-phase final verification was `49 passed, 1 deselected`; the focused continuation and affected default-path regressions passed `12/12`. The deselected `test_long_render_uses_existing_two_slice_geometry_and_vision` requires the missing `infrastructure/zsxq_pdf_ingestion.py`. The test wrapper used `uv run --python python3.14 --no-project --with pytest --with starlette python -`, compiled the runner and test source, imported the canonical `infrastructure` package before the edited worktree runner, asserted the runner came from the worktree, then invoked pytest on `tests/test_pdf_research_batch.py -q --tb=short --basetemp=/tmp/pdf-batch-continuation-pytest -k 'not test_long_render_uses_existing_two_slice_geometry_and_vision'`.
 
