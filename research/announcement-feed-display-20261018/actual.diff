@@ -1,0 +1,467 @@
+--- a/apps/web/src/manager-workbench/AnnouncementCandidates.vue
++++ b/apps/web/src/manager-workbench/AnnouncementCandidates.vue
+@@ -1,11 +1,14 @@
+ <script setup lang="ts">
+ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+ import { ApiError, createWorkbenchApi } from "./api";
+-import type { AnnouncementFlashData, AnnouncementPending, Envelope } from "./types";
++import type { AnnouncementArticle, AnnouncementFlashData, AnnouncementPending, AnnouncementStock, Envelope } from "./types";
+ 
+ const props = defineProps<{ targetDate: string }>();
+ const api = createWorkbenchApi();
+ const view = ref<Envelope<AnnouncementFlashData> | null>(null);
++const mode = ref<"latest" | "history">("latest");
++const historyDate = ref(toDateInput(props.targetDate));
++const historyTargetDate = ref<string | null>(null);
+ const loading = ref(false);
+ const starting = ref(false);
+ const error = ref("");
+@@ -16,7 +19,30 @@
+ let disposed = false;
+ 
+ const data = computed(() => view.value?.data || null);
+-const stocks = computed(() => data.value?.stocks || []);
++const latestCaptureProductSha = computed(() => {
++  const value = data.value?.incremental?.provenance?.capture_product_sha256;
++  return typeof value === "string" && value ? value : null;
++});
++const resultModeText = computed(() => mode.value === "latest"
++  ? "最新已保存结果" : `历史日期 ${historyTargetDate.value || "未选择"}`);
++const stocks = computed(() => {
++  const captureSha = latestCaptureProductSha.value;
++  const ordered = (data.value?.stocks || []).map(stock => ({
++    ...stock,
++    articles: [...stock.articles].sort((left, right) => {
++      const captureOrder = Number(isCurrentCapture(right, captureSha)) - Number(isCurrentCapture(left, captureSha));
++      return captureOrder || (right.publication_date || "").localeCompare(left.publication_date || "")
++        || left.article_id.localeCompare(right.article_id);
++    }),
++  }));
++  return ordered.sort((left, right) => {
++    const captureOrder = Number(right.articles.some(article => isCurrentCapture(article, captureSha)))
++      - Number(left.articles.some(article => isCurrentCapture(article, captureSha)));
++    const latestDate = (stock: AnnouncementStock) => stock.articles.reduce((latest, article) =>
++      article.publication_date && article.publication_date > latest ? article.publication_date : latest, "");
++    return captureOrder || latestDate(right).localeCompare(latestDate(left)) || left.symbol.localeCompare(right.symbol);
++  });
++});
+ const activeJob = computed(() => data.value?.job || null);
+ const membership = computed(() => data.value?.membership || null);
+ const isActive = computed(() => activeJob.value?.state === "QUEUED" || activeJob.value?.state === "RUNNING");
+@@ -32,6 +58,17 @@
+   if (value instanceof ApiError) return `接口 ${value.status || "网络"}：${value.message}`;
+   return value instanceof Error ? value.message : "公告选股读取失败";
+ }
++function toDateInput(value: string): string {
++  return /^\d{8}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}` : "";
++}
++function isCurrentCapture(article: AnnouncementArticle, captureSha: string | null): boolean {
++  return Boolean(captureSha && Array.isArray(article.source_origins)
++    && article.source_origins.some(origin => origin.role === "CAPTURE_WINDOW_PRODUCT_ROW"
++      && origin.source_product_sha256 === captureSha));
++}
++function requestDate(): string | undefined {
++  return mode.value === "history" ? historyTargetDate.value || undefined : undefined;
++}
+ function stopTimer(): void {
+   if (timer !== null) clearTimeout(timer);
+   timer = null;
+@@ -41,7 +78,7 @@
+   if (disposed || !isActive.value) return;
+   timer = setTimeout(() => { void load(true); }, 1800);
+ }
+-async function load(preserve = true): Promise<void> {
++async function load(preserve = true, targetDate = requestDate()): Promise<void> {
+   const ticket = ++sequence;
+   controller?.abort();
+   const requestController = new AbortController();
+@@ -49,7 +86,7 @@
+   loading.value = true;
+   error.value = "";
+   try {
+-    const result = await api.getAnnouncementFlash(props.targetDate, requestController.signal);
++    const result = await api.getAnnouncementFlash(targetDate, requestController.signal);
+     if (disposed || ticket !== sequence || requestController.signal.aborted) return;
+     if (!result.data) throw new ApiError("公告选股响应缺少数据", 502, result.gaps);
+     view.value = result;
+@@ -63,6 +100,23 @@
+     if (!disposed && ticket === sequence) loading.value = false;
+   }
+ }
++function showLatest(): void {
++  mode.value = "latest";
++  historyTargetDate.value = null;
++  void load(false);
++}
++function showHistory(): void {
++  if (!/^\d{4}-\d{2}-\d{2}$/.test(historyDate.value)) {
++    error.value = "请选择有效的历史目标港股日";
++    return;
++  }
++  mode.value = "history";
++  historyTargetDate.value = historyDate.value.replace(/-/g, "");
++  void load(false, historyTargetDate.value);
++}
++function onWindowFocus(): void {
++  if (mode.value === "latest") void load(true);
++}
+ async function startUpdate(): Promise<void> {
+   if (starting.value || isActive.value) return;
+   starting.value = true;
+@@ -74,6 +128,8 @@
+       throw new ApiError("增量任务返回的目标日期或任务编号不一致", 502);
+     }
+     acceptedMessage.value = `已提交公告增量任务 ${result.data.job_id}，目标日 ${result.data.target_date}。`;
++    mode.value = "latest";
++    historyTargetDate.value = null;
+     await load(true);
+   } catch (caught) {
+     error.value = readableError(caught);
+@@ -139,11 +195,20 @@
+   return typeof count === "number" ? count : data.value?.pending.filter(item =>
+     item.queue_reason?.includes("SYNTHESIS")).length || 0;
+ }
+-watch(() => props.targetDate, () => { void load(false); });
+-onMounted(() => { void load(false); });
++watch(() => props.targetDate, () => {
++  if (mode.value === "latest") {
++    historyDate.value = toDateInput(props.targetDate);
++    void load(false);
++  }
++});
++onMounted(() => {
++  window.addEventListener("focus", onWindowFocus);
++  void load(false);
++});
+ onBeforeUnmount(() => {
+   disposed = true;
+   sequence++;
++  window.removeEventListener("focus", onWindowFocus);
+   stopTimer();
+   controller?.abort();
+ });
+@@ -161,6 +226,13 @@
+       </button>
+     </div>
+ 
++    <section class="mwb-announcement-job" aria-label="公告结果选择">
++      <strong>当前列表：{{ resultModeText }}</strong>
++      <button type="button" @click="showLatest">查看最新结果</button>
++      <label>历史目标港股日 <input v-model="historyDate" type="date" /></label>
++      <button type="button" @click="showHistory">按日期查看历史</button>
++    </section>
++
+     <p v-if="error" class="mwb-alert" role="alert">{{ error }}。此前已读取结果继续保留。</p>
+     <p v-if="acceptedMessage" class="mwb-muted" role="status">{{ acceptedMessage }}</p>
+     <p v-if="loading" class="mwb-muted" role="status">正在读取公告选股状态…</p>
+@@ -169,7 +241,7 @@
+       <div class="mwb-announcement-meta">
+         <span>公告来源日：<strong>{{ data.source_date }}</strong></span>
+         <span>冻结基线目标港股日：<strong>{{ data.target_trade_date }}</strong></span>
+-        <span>来源更新：<strong>{{ timeText(data.updated_at) }}</strong></span>
++        <span>保存结果更新时间：<strong>{{ timeText(data.updated_at) }}</strong></span>
+         <span>模型候选语义复核：<strong>{{ data.review_status || "MODEL_CANDIDATE_UNREVIEWED" }}</strong></span>
+       </div>
+ 
+@@ -205,7 +277,6 @@
+       <section v-if="data.incremental" class="mwb-announcement-job" aria-label="最近增量选股结果">
+         <strong>最近增量结果：{{ jobStateText(data.incremental.state) }}</strong>
+         <span>目标港股日 {{ data.incremental.target_trade_date || "未知" }}</span>
+-        <span>本次新增候选 {{ countText(data.incremental.counts.new_candidate_stocks) }} 只</span>
+         <span>新建队列 {{ countText(data.incremental.counts.queue?.new_enqueued) }} 篇</span>
+         <span>复用冻结成功 {{ countText(data.incremental.counts.queue?.pinned_succeeded_matched) }} 篇</span>
+         <span>冻结失败跳过 {{ countText(data.incremental.counts.queue?.pinned_failed_matched) }} 篇</span>
+@@ -218,6 +289,7 @@
+         <span>待处理 {{ countText(data.incremental.counts.queue_pending) }} 篇</span>
+         <span>正文缺口 {{ countText(data.incremental.counts.body_gaps) }} 篇</span>
+         <span>完成时间 {{ timeText(data.incremental.updated_at) }}</span>
++        <small class="mwb-muted">本次新增候选 {{ countText(data.incremental.counts.new_candidate_stocks) }} 只</small>
+       </section>
+ 
+       <p class="mwb-announcement-safety">研究候选，只供人工复核；不进入正式计划或 BUY 门禁，也不发送订单。</p>
+@@ -231,6 +303,8 @@
+               <td>
+                 <article v-for="article in stock.articles" :key="article.article_id" class="mwb-announcement-article">
+                   <strong>{{ article.title }}</strong>
++                  <small v-if="isCurrentCapture(article, latestCaptureProductSha)"
++                    class="mwb-muted mwb-announcement-current-capture">本次采集</small>
+                   <small>{{ article.article_id }} · 公告日 {{ article.publication_date || "未知" }}</small>
+                   <small>{{ article.disposition || "入选类型未知" }} · {{ article.direction || "方向未知" }}</small>
+                   <details>
+--- a/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
+@@ -1,5 +1,6 @@
+ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/vue";
++import AnnouncementCandidates from "../AnnouncementCandidates.vue";
+ import Workbench from "../Workbench.vue";
+ 
+ function envelope<T>(data: T, state = "READY"): Record<string, unknown> {
+@@ -8,6 +9,29 @@
+ }
+ function response(data: unknown, status = 200): Response {
+   return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
++}
++function captureOrigin(ref: string, productSha: string) {
++  return { role: "CAPTURE_WINDOW_PRODUCT_ROW", source_ref: ref, source_product_sha256: productSha,
++    row_fingerprint_sha256: "f".repeat(64) };
++}
++function announcementArticle(articleId: string, title: string, publicationDate: string, origin: ReturnType<typeof captureOrigin>) {
++  return { article_id: articleId, title, publication_date: publicationDate, symbol: "HK.00001", name: "Company",
++    disposition: "SELECTED_EVENT", direction: "POSITIVE", reason: `${title}复核理由`, impact: [],
++    body_sha256: "a".repeat(64), source_sha256: "b".repeat(64), source_origins: [origin],
++    review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN" };
++}
++function announcementResult(stocks: unknown[], captureSha: string) {
++  return {
++    state: "PARTIAL", source_date: "2026-10-15", target_trade_date: "20261016",
++    updated_at: "2026-10-17T18:35:19+08:00", review_status: "MODEL_CANDIDATE_UNREVIEWED",
++    counts: { displayed_stocks: stocks.length, model_succeeded: 1, failed: 0, pending: 0, body_gaps: 0 },
++    stocks, failures: [], pending: [], gaps: [],
++    incremental: { state: "PARTIAL", target_trade_date: "20261016", updated_at: "2026-10-17T18:35:19+08:00",
++      counts: { new_candidate_stocks: 1 }, failures: [], pending: [], gaps: [],
++      provenance: { capture_product_sha256: captureSha,
++        current_capture_bindings: { "NEWS:CURRENT": {}, "NEWS:OLD_SAME_STOCK": {}, "NEWS:OLD_GROUP": {} } } },
++    safety: { RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false }
++  };
+ }
+ 
+ describe("announcement candidate workbench", () => {
+@@ -111,6 +135,8 @@
+     expect(screen.queryByText("HK.09963")).toBeNull();
+     expect(screen.getByText("CANNOT_CONFIRM")).toBeTruthy();
+     expect(screen.getAllByText("MODEL_CANDIDATE_UNREVIEWED").length).toBeGreaterThan(0);
++    expect(calls.find(call => call.method === "GET" && call.url.includes("/announcement-flash"))?.url)
++      .toBe("/api/v4/manager-workbench/announcement-flash");
+     expect(calls.filter(call => call.method === "POST")).toHaveLength(0);
+ 
+     await fireEvent.click(screen.getByText(/港股通范围外与资格未知：股票 5 \/ 0，文章 0 \/ 0/));
+@@ -143,6 +169,75 @@
+     const post = calls.find(call => call.url.includes("/announcement-flash/update"));
+     expect(post?.body).toBe(JSON.stringify({ target_date: "20261016" }));
+     expect(calls.filter(call => call.method === "POST")).toHaveLength(1);
++  });
++
++  it("sorts the exact latest capture ahead of older notices and keeps publication dates visible", async () => {
++    const captureSha = "c".repeat(64);
++    const oldSha = "d".repeat(64);
++    const current = announcementArticle("NEWS:CURRENT", "Captured in latest batch", "2026-10-14",
++      captureOrigin("capture-current.json#1", captureSha));
++    const olderSameStock = announcementArticle("NEWS:OLD_SAME_STOCK", "Older capture, newer publication date", "2026-10-16",
++      captureOrigin("capture-old.json#1", oldSha));
++    const olderGroup = { symbol: "HK.00002", name: "Older Company", reasons: ["Older evidence"],
++      review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN",
++      articles: [{ ...announcementArticle("NEWS:OLD_GROUP", "Older stock notice", "2026-10-16",
++        captureOrigin("capture-old.json#2", oldSha)), symbol: "HK.00002", name: "Older Company" }] };
++    const currentGroup = { symbol: "HK.00001", name: "Company", reasons: [current.reason, olderSameStock.reason],
++      review_status: "MODEL_CANDIDATE_UNREVIEWED", reuse_status: null, membership_status: "IN",
++      articles: [olderSameStock, current] };
++    const result = announcementResult([olderGroup, currentGroup], captureSha);
++    const calls: { url: string; method: string }[] = [];
++    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
++      calls.push({ url: String(input), method: init.method || "GET" });
++      return response(envelope(result, "PARTIAL"));
++    }));
++
++    render(AnnouncementCandidates, { props: { targetDate: "20261016" } });
++    const table = await screen.findByRole("table");
++    const rows = Array.from(table.querySelectorAll("tbody tr"));
++    expect(rows.map(row => row.querySelector(".mwb-symbol")?.textContent)).toEqual(["HK.00001", "HK.00002"]);
++    expect(Array.from(rows[0].querySelectorAll(".mwb-announcement-article > strong")).map(node => node.textContent))
++      .toEqual(["Captured in latest batch", "Older capture, newer publication date"]);
++    expect(rows[0].textContent).toContain("公告日 2026-10-14");
++    expect(table.querySelectorAll(".mwb-announcement-article .mwb-announcement-current-capture")).toHaveLength(1);
++    expect(calls.map(call => call.url)).toEqual(["/api/v4/manager-workbench/announcement-flash"]);
++    expect(calls.every(call => call.method === "GET")).toBe(true);
++    expect(screen.getByText("研究候选，只供人工复核；不进入正式计划或 BUY 门禁，也不发送订单。")).toBeTruthy();
++  });
++
++  it("keeps history selection tab-local and refreshes only the latest view on focus or day change", async () => {
++    const captureSha = "e".repeat(64);
++    const latest = announcementResult([], captureSha);
++    const history = { ...announcementResult([], "f".repeat(64)), source_date: "2026-10-14", target_trade_date: "20261015" };
++    const calls: { url: string; method: string }[] = [];
++    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
++      const url = String(input);
++      calls.push({ url, method: init.method || "GET" });
++      return response(envelope(url.includes("target_date=20261015") ? history : latest, "PARTIAL"));
++    }));
++
++    const { rerender } = render(AnnouncementCandidates, { props: { targetDate: "20261016" } });
++    await waitFor(() => expect(calls).toHaveLength(1));
++    expect(calls[0].url).toBe("/api/v4/manager-workbench/announcement-flash");
++    window.dispatchEvent(new Event("focus"));
++    expect(calls).toHaveLength(2);
++    expect(calls[1].url).toBe("/api/v4/manager-workbench/announcement-flash");
++
++    await fireEvent.update(screen.getByLabelText("历史目标港股日"), "2026-10-15");
++    await fireEvent.click(screen.getByRole("button", { name: "按日期查看历史" }));
++    await waitFor(() => expect(calls).toHaveLength(3));
++    expect(calls[2].url).toBe("/api/v4/manager-workbench/announcement-flash?target_date=20261015");
++    expect(window.location.search).toBe("?date=20261016");
++    window.dispatchEvent(new Event("focus"));
++    expect(calls).toHaveLength(3);
++
++    await fireEvent.click(screen.getByRole("button", { name: "查看最新结果" }));
++    await waitFor(() => expect(calls).toHaveLength(4));
++    expect(calls[3].url).toBe("/api/v4/manager-workbench/announcement-flash");
++    await rerender({ targetDate: "20261017" });
++    await waitFor(() => expect(calls).toHaveLength(5));
++    expect(calls[4].url).toBe("/api/v4/manager-workbench/announcement-flash");
++    expect(calls.every(call => call.method === "GET")).toBe(true);
+   });
+ 
+   it("shows validated partial candidates with separate article, part, and binding statuses", async () => {
+--- a/v4/manager_workbench/announcement_update.py
++++ b/v4/manager_workbench/announcement_update.py
+@@ -45,6 +45,20 @@
+     return value if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_]{1,96}", value) else fallback
+ 
+ 
++def _merge_source_origins(*origin_lists: Any) -> list[Any]:
++    merged: list[Any] = []
++    seen: set[bytes] = set()
++    for origins in origin_lists:
++        if not isinstance(origins, list):
++            continue
++        for origin in origins:
++            identity = _canonical(origin)
++            if identity not in seen:
++                seen.add(identity)
++                merged.append(deepcopy(origin))
++    return merged
++
++
+ def _merge_stocks(base: list[dict[str, Any]], extra: list[dict[str, Any]]) -> list[dict[str, Any]]:
+     result = deepcopy(base)
+     by_symbol = {item.get("symbol"): item for item in result if isinstance(item, dict)}
+@@ -53,18 +67,30 @@
+         if not isinstance(symbol, str):
+             continue
+         existing = by_symbol.get(symbol)
++        new_stock = existing is None
+         if existing is None:
+             cloned = deepcopy(new)
++            cloned["articles"] = []
+             result.append(cloned)
+             by_symbol[symbol] = cloned
+-            continue
+-        prior_articles = {article.get("article_id") for article in existing.get("articles", []) if isinstance(article, dict)}
++            existing = cloned
++        prior_articles = {article.get("article_id"): article for article in existing.get("articles", [])
++                          if isinstance(article, dict)}
+         for article in new.get("articles", []):
+-            if isinstance(article, dict) and article.get("article_id") not in prior_articles:
+-                existing.setdefault("articles", []).append(deepcopy(article))
++            if not isinstance(article, dict):
++                continue
++            article_id = article.get("article_id")
++            prior = prior_articles.get(article_id)
++            if prior is None:
++                cloned = deepcopy(article)
++                existing.setdefault("articles", []).append(cloned)
++                prior_articles[article_id] = cloned
+                 reason = article.get("reason")
+-                if isinstance(reason, str):
++                if isinstance(reason, str) and not new_stock:
+                     existing.setdefault("reasons", []).append(reason)
++            elif isinstance(prior.get("source_origins"), list) or isinstance(article.get("source_origins"), list):
++                prior["source_origins"] = _merge_source_origins(
++                    prior.get("source_origins"), article.get("source_origins"))
+         if new.get("reuse_status"):
+             existing["reuse_status"] = new["reuse_status"]
+         if existing.get("review_status") != new.get("review_status"):
+--- a/tests/test_manager_announcement_flash_readonly.py
++++ b/tests/test_manager_announcement_flash_readonly.py
+@@ -63,6 +63,91 @@
+         config=SimpleNamespace(capture_root="/private/capture", capture_lease_root="/private/leases"),
+         store=FakeStore(), jobs=FakeJobs(),
+     )
++
++
++def test_announcement_get_defaults_to_latest_and_accepts_explicit_history_date(monkeypatch):
++    targets = []
++
++    class ReadOnlyUpdate:
++        def __init__(self, _service):
++            pass
++
++        def read(self, target_date=None):
++            targets.append(target_date)
++            return {"state": "READY", "requested_target_date": target_date, "gaps": []}
++
++    monkeypatch.setattr(api, "AnnouncementUpdate", ReadOnlyUpdate)
++    app = FastAPI()
++    svc = service()
++    app.include_router(api.create_router(svc))
++    client = TestClient(app)
++
++    latest = client.get(api.PREFIX + "/announcement-flash")
++    history = client.get(api.PREFIX + "/announcement-flash?target_date=20261015")
++
++    assert latest.status_code == history.status_code == 200
++    assert latest.json()["data"]["requested_target_date"] is None
++    assert history.json()["data"]["requested_target_date"] == "20261015"
++    assert targets == [None, "20261015"]
++    assert svc.jobs.submissions == []
++
++
++def test_merge_stocks_unions_duplicate_article_origins_and_keeps_distinct_articles():
++    def origin(ref, product_sha, row_sha):
++        return {"role": "CAPTURE_WINDOW_PRODUCT_ROW", "source_ref": ref,
++                "source_product_sha256": product_sha, "row_fingerprint_sha256": row_sha}
++
++    first_origin = origin("capture-a.json#1", "a" * 64, "1" * 64)
++    second_origin = origin("capture-b.json#1", "b" * 64, "2" * 64)
++    third_origin = origin("capture-c.json#1", "c" * 64, "3" * 64)
++    distinct_origin = origin("capture-d.json#1", "d" * 64, "4" * 64)
++    base = [{"symbol": "HK.00001", "name": "Company", "reasons": ["original"],
++             "review_status": "MODEL_CANDIDATE_UNREVIEWED", "reuse_status": None,
++             "articles": [
++                 {"article_id": "NOTICE:1", "title": "Original title", "reason": "original",
++                  "source_origins": [first_origin]},
++                 {"article_id": "NOTICE:2", "title": "Distinct notice", "reason": "distinct",
++                  "source_origins": []},
++             ]}]
++    extra = [{"symbol": "HK.00001", "name": "Company", "reasons": [],
++              "review_status": "MODEL_CANDIDATE_UNREVIEWED", "reuse_status": None,
++              "articles": [
++                  {"article_id": "NOTICE:1", "title": "Duplicate copy", "source_origins": [first_origin, second_origin]},
++                  {"article_id": "NOTICE:1", "title": "Another duplicate", "source_origins": [third_origin]},
++                  {"article_id": "NOTICE:3", "title": "New distinct notice", "reason": "new",
++                   "source_origins": [distinct_origin]},
++              ]}]
++
++    merged = update_module._merge_stocks(base, extra)
++
++    assert [article["article_id"] for article in merged[0]["articles"]] == [
++        "NOTICE:1", "NOTICE:2", "NOTICE:3"]
++    assert merged[0]["articles"][0]["title"] == "Original title"
++    assert merged[0]["articles"][0]["source_origins"] == [first_origin, second_origin, third_origin]
++    assert merged[0]["articles"][2]["source_origins"] == [distinct_origin]
++    assert base[0]["articles"][0]["source_origins"] == [first_origin]
++
++
++def test_merge_stocks_deduplicates_new_stock_articles_and_unions_origins_without_mutating_input():
++    first_origin = {"role": "CAPTURE_WINDOW_PRODUCT_ROW", "source_ref": "capture-a.json#1",
++                    "source_product_sha256": "a" * 64, "row_fingerprint_sha256": "1" * 64}
++    second_origin = {"role": "CAPTURE_WINDOW_PRODUCT_ROW", "source_ref": "capture-b.json#1",
++                     "source_product_sha256": "b" * 64, "row_fingerprint_sha256": "2" * 64}
++    same_article = {"article_id": "NOTICE:1", "title": "Notice", "reason": "Reason",
++                    "source_origins": [first_origin]}
++    second_copy = {**same_article, "source_origins": [second_origin]}
++    distinct_article = {"article_id": "NOTICE:2", "title": "Distinct", "reason": "Distinct reason",
++                        "source_origins": []}
++    incoming = [{"symbol": "HK.00001", "name": "Company", "reasons": ["Reason", "Distinct reason"],
++                 "review_status": "MODEL_CANDIDATE_UNREVIEWED",
++                 "articles": [same_article, second_copy, distinct_article]}]
++
++    merged = update_module._merge_stocks([], incoming)
++
++    assert [article["article_id"] for article in merged[0]["articles"]] == ["NOTICE:1", "NOTICE:2"]
++    assert merged[0]["articles"][0]["source_origins"] == [first_origin, second_origin]
++    assert merged[0]["reasons"] == ["Reason", "Distinct reason"]
++    assert incoming[0]["articles"] == [same_article, second_copy, distinct_article]
+ 
+ 
+ def test_pinned_projection_has_verified_candidate_and_failure_population():

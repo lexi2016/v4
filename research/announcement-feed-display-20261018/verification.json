@@ -1,0 +1,141 @@
+{
+  "schema": "announcement-feed-display-verification.v1",
+  "goal": "Latest saved announcement selection by default; newest captured rows first, older rows dated, repeated articles deduplicated; display-only.",
+  "canonical_baseline": {
+    "commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "branch": "codex/system-consolidation-20260912",
+    "source_root": "/Users/lexi/Desktop/学习/v4_app"
+  },
+  "remote_base_commit": "c482ede563632de8745f502c2f032c8c9fb28c4a",
+  "source_files": [
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "sha256_before": "1c0be2e31f0a140d1e2654c55bcbd7da5dc7ba5fad34b13e6ef4b3971cd588a4",
+      "sha256_after": "4270b062e0efd36723be1bd836e8b695d4c4822e24972d4a21bc29d09709f40d",
+      "bytes_before": 21767,
+      "bytes_after": 25305
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "sha256_before": "733e316e4b4aa574283f9b718e9bb87d4bf8a611dceb0a77c642d47fb6efde8f",
+      "sha256_after": "b9699d5b05e1c6d01459bc8f0f77674f4a576a2ce37a2a9d62df7e1d6a33444c",
+      "bytes_before": 16610,
+      "bytes_after": 23027
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "sha256_before": "0b510a14a192099173fb4737dd3b7e0d403437ad44fc12f097caebeaec11adb5",
+      "sha256_after": "efc0fc2ec4aa6f6acc23953fe5f7231c2093e2c4ecc1e9bf4d37e8be54eae6d4",
+      "bytes_before": 117022,
+      "bytes_after": 118035
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_readonly.py",
+      "sha256_before": "de0cea6049de29554e7cc69aa18ad899ecd7a86665f3a1ab8a15eb6cb3453ae8",
+      "sha256_after": "aadb4ad352c89ecff13bef0090e69167f95094cf047775410d7dc040fec9fa57",
+      "bytes_before": 96853,
+      "bytes_after": 101400
+    }
+  ],
+  "actual_diff_sha256": "a9d293d8a110b152aa24b647836b913b914f1b6a8dae42a83b837d4dd6be2f4e",
+  "runtime": {
+    "base_release": "issue44-cache-recovery-api-20261018-r1",
+    "final_release": "announcement-feed-display-20261018-r3",
+    "manifest_sha256": "829f95eb1755908a53a24529637116a655f8179552b66a43146998998257f1ef",
+    "active_pid": 65614,
+    "port": 8873,
+    "build_base": "immutable active release plus exact allowlisted deltas; other workspace edits excluded"
+  },
+  "status": {
+    "REVIEWED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS",
+    "UI_VERIFIED": "PASS",
+    "DEPLOYED": "PASS",
+    "API_RESPONDED": "PASS",
+    "TESTED": "PASS_CARRIED_FORWARD_FROM_INDEPENDENT_PREDEPLOY_TESTS"
+  },
+  "writer": "announcement_feed_writer Luna Max",
+  "independent_reviewer": "announcement_feed_review Luna Max",
+  "terminal_review_sha256": "3b1d6033320c1b3521be986a89f72bd6ce4525fe75850cdb64005780c7d43cc8",
+  "tests": {
+    "frontend": "4 focused Vitest tests independently passed on final source",
+    "backend": "latest GET/history and existing/new-stock duplicate merging independently passed; unchanged backend receipts carried forward",
+    "scoped_typecheck": "PASS; carried forward through label-only correction",
+    "integrated_build": "PASS from isolated active-release frontend source",
+    "full_project_typecheck": "FAIL: preexisting errors in untouched managerWorkspace.attention.spec.ts, us_factor.spec.ts, ManagerSelectionView.spec.ts; not repaired in this scope",
+    "commands": [
+      {
+        "command": "./node_modules/.bin/vitest run src/manager-workbench/__tests__/announcement_flash.spec.ts --no-cache",
+        "result": "PASS: 1 file, 4 tests"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q -p no:cacheprovider tests/test_manager_announcement_flash_readonly.py::test_announcement_get_defaults_to_latest_and_accepts_explicit_history_date tests/test_manager_announcement_flash_readonly.py::test_merge_stocks_unions_duplicate_article_origins_and_keeps_distinct_articles",
+        "result": "PASS: 2 tests; Starlette TestClient deprecation warning"
+      },
+      {
+        "command": "npm run typecheck",
+        "result": "FAIL: existing errors in untouched src/api/managerWorkspace.attention.spec.ts, src/manager-workbench/__tests__/us_factor.spec.ts, and src/views/ManagerSelectionView.spec.ts"
+      },
+      {
+        "command": "./node_modules/.bin/vue-tsc --project '/Users/lexi/Desktop/学习/agents调试/助手/announcement-feed-display-20261018/writer/typecheck/tsconfig.json' --noEmit",
+        "result": "PASS: scoped typecheck of AnnouncementCandidates.vue and imported source modules"
+      },
+      {
+        "command": "npm run build -- --outDir '/Users/lexi/Desktop/学习/agents调试/助手/announcement-feed-display-20261018/writer/build-dist-20261018'",
+        "result": "PASS before label-only source change; final UI bundle rebuild remains required."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q -p no:cacheprovider tests/test_manager_announcement_flash_readonly.py::test_merge_stocks_unions_duplicate_article_origins_and_keeps_distinct_articles tests/test_manager_announcement_flash_readonly.py::test_merge_stocks_deduplicates_new_stock_articles_and_unions_origins_without_mutating_input",
+        "result": "PASS: 2 tests; Starlette TestClient deprecation warning"
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -c 'from v4.manager_workbench.announcement_update import _merge_stocks; article={\"article_id\":\"N:1\",\"source_origins\":[{\"x\":1}]}; result=_merge_stocks([], [{\"symbol\":\"HK.00001\",\"articles\":[article, dict(article)]}]); print({\"article_ids\":[a[\"article_id\"] for a in result[0][\"articles\"]],\"count\":len(result[0][\"articles\"]),\"source_origins\":result[0][\"articles\"][0][\"source_origins\"]})'",
+        "result": "PASS: {'article_ids': ['N:1'], 'count': 1, 'source_origins': [{'x': 1}]}"
+      },
+      {
+        "command": "./node_modules/.bin/vitest run src/manager-workbench/__tests__/announcement_flash.spec.ts --no-cache",
+        "cwd": "/Users/lexi/Desktop/学习/v4_app/apps/web",
+        "result": "PASS: 1 file, 4 tests (final label-repair source)"
+      }
+    ]
+  },
+  "ui": {
+    "default": "latest saved result independent of outer date",
+    "history_control": "历史目标港股日; tab-local GET target_date",
+    "newest_capture_first": true,
+    "older_announcements_keep_dates": true,
+    "same_stock_distinct_article_ids_preserved": true,
+    "repeated_article_origins_unioned_in_memory": true,
+    "served_html_sha256": "c8e611498a811d76ede5e7e89f9532a1673072b803c59cf38f81e9e37a98dead",
+    "served_js_sha256": "f72caba5b18d2b46eb52607c71b2d59c0b98fabc3de908ab1c5d6d3641e3e22f",
+    "screenshot_sha256": "b315fbd3ed5fe1510d3d67df28af37399797fb57e33551fe5174219c53e3d06b"
+  },
+  "side_effects": {
+    "protected_files": 1761,
+    "changed_protected_files": [],
+    "new_attempt_queue_result_files": [],
+    "live_post_invoked": false,
+    "capture_invoked": false,
+    "model_invoked": false
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limits": [
+    "Existing saved research result remains PARTIAL and model conclusions remain unreviewed.",
+    "Natural future-day refresh was not waited for; focus/date-change behavior was tested.",
+    "This branch contains the bounded source/test/patch handoff, not a full live runtime tree."
+  ],
+  "resolved_findings": [
+    "new-stock duplicate merge branch",
+    "history control label target-day semantics"
+  ],
+  "findings": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  }
+}
