@@ -966,7 +966,10 @@ def test_page_limit_recovery_retries_transient_source_failure_then_drains_89_pag
     assert immediate["processed_document_count"] == 0
     assert calls == {"revalidation_download": 1, "ocr": 0}
 
-    clock[0] = clock[0].replace(minute=42)
+    # The failed first URL reservation uses one slot in the 01:00 hour. The
+    # successful page-limit revalidation plus the subsequent download need two
+    # request slots, so resume in the next local hour.
+    clock[0] = clock[0].replace(hour=2, minute=0)
     tick = process_next_pdf_task(root, time_budget_seconds=90, now=lambda: clock[0])
     while tick["document_status"] != "READY":
         assert tick["status"] in {"PARTIAL", "READY"}
@@ -1096,10 +1099,9 @@ def test_queue_tick_advances_multiple_documents_across_bounded_calls(tmp_path, m
         )
 
     monkeypatch.setattr(pdf_module, "process_pdf_batch", batch_with_local_fakes)
-    ticks = [
-        process_next_pdf_task(root, time_budget_seconds=90, now=lambda: now_value)
-        for _ in range(3)
-    ]
+    ticks = [process_next_pdf_task(root, time_budget_seconds=90, now=lambda: now_value) for _ in range(2)]
+    now_value = now_value.replace(hour=2)
+    ticks.append(process_next_pdf_task(root, time_budget_seconds=90, now=lambda: now_value))
 
     assert [tick["status"] for tick in ticks] == ["READY", "READY", "READY"]
     assert [tick["processed_document_count"] for tick in ticks] == [1, 1, 1]
@@ -1288,7 +1290,9 @@ def _recovery_args(root, files, document_key, authorization_id, calls, **overrid
         "page_renderer": render,
         "ocr_page": ocr,
         "engine_info": ENGINE,
-        "now": lambda: datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI),
+        # Recovery starts in a later local hour than the two bounded setup
+        # failures in _seed_recovery_failed.
+        "now": lambda: datetime(2026, 10, 16, 2, 30, tzinfo=SHANGHAI),
     }
     values.update(overrides)
     return values
@@ -1321,6 +1325,95 @@ def test_process_pdf_batch_rejects_unclaimed_recovery_id_before_processing_io(tm
     index = NativeDataStore(root)._read(STATE_RELATIVE)
     assert document_key not in index["recovery_consumed"]
     assert not (root / RECOVERY_AUDIT_RELATIVE).exists()
+
+
+def test_recovery_url_hourly_limit_defers_without_consuming_claim_or_attempt(tmp_path):
+    from infrastructure.zsxq_pdf_local import HOUR_LEDGER_RELATIVE
+
+    root, files = _fixture(tmp_path)
+    document_key, engine_identity, calls = _seed_recovery_failed(root, files)
+    before_callbacks = dict(calls)
+    before_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    authorization_id = "auth-deferred-cap-20261016"
+
+    # The two setup failures already reserved this hour's URL request slots.
+    args = _recovery_args(root, files, document_key, authorization_id, calls)
+    args["now"] = lambda: datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)
+    result = recover_one_pdf(**args)
+
+    assert result["status"] == "DEFERRED"
+    assert result["recovery_status"] == "DEFERRED"
+    assert result["error_code"] == "UPSTREAM_URL_HOURLY_LIMIT"
+    assert calls == before_callbacks
+    after_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    assert after_index["documents"][document_key]["engine_runs"][engine_identity]["attempts"] == 2
+    assert after_index["recovery_consumed"] == before_index["recovery_consumed"]
+    audit_path = root / RECOVERY_AUDIT_RELATIVE
+    assert not audit_path.exists()
+    ledger = NativeDataStore(root)._read(HOUR_LEDGER_RELATIVE)
+    assert len(ledger["hours"]["2026101601"]["upstream_url_requests"]) == 2
+
+
+def test_recovery_known_13607_pause_defers_without_claim_or_callback(tmp_path):
+    from infrastructure.zsxq_pdf_local import record_13607_pause
+
+    root, files = _fixture(tmp_path)
+    document_key, engine_identity, calls = _seed_recovery_failed(root, files)
+    before_callbacks = dict(calls)
+    before_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    record_13607_pause(root, now=datetime(2026, 10, 16, 1, 45, tzinfo=SHANGHAI))
+    authorization_id = "auth-deferred-13607-20261016"
+    args = _recovery_args(root, files, document_key, authorization_id, calls)
+    args["now"] = lambda: datetime(2026, 10, 16, 1, 46, tzinfo=SHANGHAI)
+
+    result = recover_one_pdf(**args)
+
+    assert result["status"] == "DEFERRED"
+    assert result["recovery_status"] == "DEFERRED"
+    assert result["error_code"] == "ZSXQ_UPSTREAM_PAUSED_13607"
+    assert calls == before_callbacks
+    after_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    assert after_index["documents"][document_key]["engine_runs"][engine_identity]["attempts"] == 2
+    assert after_index["recovery_consumed"] == before_index["recovery_consumed"]
+    assert not (root / RECOVERY_AUDIT_RELATIVE).exists()
+
+
+def test_recovery_continuation_url_limit_defers_without_consuming_checkpoint(tmp_path):
+    from infrastructure.zsxq_pdf_local import reserve_upstream_url_request
+
+    root, files = _fixture(tmp_path)
+    document_key, engine_identity, calls = _seed_recovery_failed(root, files)
+    authorization_id = "auth-deferred-continuation-20261016"
+    args = _recovery_args(root, files, document_key, authorization_id, calls)
+    args["page_counter"] = lambda _pdf: 5
+    first = recover_one_pdf(**args)
+    assert first["status"] == "PARTIAL"
+    assert first["continuation_ready"] is True
+
+    stamp = datetime(2026, 10, 16, 2, 30, tzinfo=SHANGHAI)
+    reserve_upstream_url_request(root, "fill-second-slot", now=stamp)
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    artifact = index["documents"][document_key]["engine_runs"][engine_identity]
+    (root / artifact["pdf_path"]).unlink()
+    audit_before = NativeDataStore(root)._read(RECOVERY_AUDIT_RELATIVE)
+    record_before = audit_before["authorizations"][authorization_id]
+    callbacks_before = dict(calls)
+
+    args["now"] = lambda: stamp
+    args["continue_existing"] = True
+    result = recover_one_pdf(**args)
+
+    assert result["status"] == "DEFERRED"
+    assert result["recovery_status"] == "DEFERRED"
+    assert result["error_code"] == "UPSTREAM_URL_HOURLY_LIMIT"
+    assert result["continuation_ready"] is True
+    assert calls == callbacks_before
+    after_index = NativeDataStore(root)._read(STATE_RELATIVE)
+    assert after_index["documents"][document_key]["engine_runs"][engine_identity]["attempts"] == 2
+    assert after_index["documents"][document_key]["engine_runs"][engine_identity]["status"] == "PARTIAL"
+    record_after = NativeDataStore(root)._read(RECOVERY_AUDIT_RELATIVE)["authorizations"][authorization_id]
+    assert record_after["continuation_count"] == record_before["continuation_count"]
+    assert record_after["checkpoint"] == record_before["checkpoint"]
 
 
 def test_recovery_continuation_requires_consumed_checkpoint_and_matching_claim_copies(tmp_path):
@@ -1750,6 +1843,90 @@ def test_recovery_cli_selects_the_full_document_key_not_the_queue_first_file(tmp
     assert output["authorization_id"] == "auth-cli-20261016"
     assert selected_ids == [target]
 
-    resumed, _calls = _process(root, files)
+    resumed, _calls = _process(
+        root,
+        files,
+        now_value=datetime(2026, 10, 16, 2, 30, tzinfo=SHANGHAI),
+    )
     assert resumed["processed_this_batch"][0]["status"] == "READY"
+
+
+def test_local_pdf_reuses_matching_verified_cache_without_url_or_ocr(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as pdf_module
+    from infrastructure.zsxq_pdf_local import process_local_pdf_tick, submit_local_pdf_batch
+
+    root, files = _fixture(tmp_path)
+    _process(root, files)
+    index = NativeDataStore(root)._read(STATE_RELATIVE)
+    canonical_id = next(
+        key for key, row in index["documents"].items() if row["source"]["file_id"] == FILE_ID
+    )
+    local_root = tmp_path / "netdisk"
+    local_root.mkdir()
+    (local_root / files[FILE_ID]["name"]).write_bytes(PDF_BYTES)
+    submit_local_pdf_batch(root, local_root, now=datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI))
+    monkeypatch.setattr(pdf_module, "_load_vision_module", lambda: pytest.fail("verified-cache reuse invoked OCR"))
+
+    result = process_local_pdf_tick(
+        root,
+        local_root,
+        now=datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI),
+        page_extractor=lambda _raw: pytest.fail("verified-cache reuse reparsed pages"),
+        classifier=lambda *_args, **_kwargs: {
+            "status": "CLASSIFIED",
+            "classification": {
+                "document_type": "行业", "industry_tags": ["散热"], "companies": [],
+                "document_date": None, "evidence_page_refs": [1], "classification_status": "CLASSIFIED",
+            },
+        },
+    )
+
+    assert result["status"] == "CLASSIFICATION_CLASSIFIED"
+    assert result["linked_document_id"] == canonical_id
+    assert result["admitted_count"] == 1
+    local_index = NativeDataStore(root)._read(STATE_RELATIVE)["local_pdf"]
+    stored = local_index["documents"][result["document_id"]]
+    assert stored["source"]["source_file_sha256"] == hashlib.sha256(PDF_BYTES).hexdigest()
+    assert stored["source"]["linked_document_id"] == canonical_id
+
+
+def test_upstream_13607_metadata_failure_persists_pause_and_blocks_next_metadata_call(tmp_path):
+    from infrastructure.zsxq_pdf_local import upstream_pause_until
+
+    root, _files = _fixture(tmp_path)
+    stamp = datetime(2026, 10, 16, 1, 30, tzinfo=SHANGHAI)
+    first_calls = []
+
+    def quota_failure(_cli, _file_id):
+        first_calls.append("called")
+        raise ZsxqPdfError("ZSXQ_DOWNLOAD_PAUSED_13607")
+
+    process_pdf_batch(
+        data_root=root,
+        trade_date=DATE,
+        slot=SLOT,
+        source_run_id=RUN_ID,
+        metadata_lookup=quota_failure,
+        engine_info=ENGINE,
+        page_counter=lambda _pdf: 1,
+        page_renderer=lambda *_args: None,
+        now=lambda: stamp,
+    )
+    assert first_calls == ["called"]
+    assert upstream_pause_until(root) == datetime(2026, 10, 17, 0, 0, tzinfo=SHANGHAI)
+
+    second_calls = []
+    second = process_pdf_batch(
+        data_root=root,
+        trade_date=DATE,
+        slot=SLOT,
+        source_run_id=RUN_ID,
+        metadata_lookup=lambda *_args: second_calls.append("called") or {},
+        engine_info=ENGINE,
+        page_counter=lambda _pdf: 1,
+        page_renderer=lambda *_args: None,
+        now=lambda: stamp,
+    )
+    assert second_calls == []
+    assert second["status"] in {"CANNOT_CONFIRM", "PARTIAL", "FAILED"}
 

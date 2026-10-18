@@ -743,6 +743,8 @@ class PdfQueueDrainHook:
         app_root: Path,
         data_root: Path,
         python_path: Path,
+        local_pdf_root: Path | None = None,
+        announcement_queue_root: Path | None = None,
         cycle_active: threading.Event | None = None,
         popen_factory: Callable[..., subprocess.Popen] = subprocess.Popen,
         poll_seconds: float = 0.25,
@@ -751,6 +753,8 @@ class PdfQueueDrainHook:
     ) -> None:
         self.app_root = app_root
         self.data_root = data_root
+        self.local_pdf_root = local_pdf_root
+        self.announcement_queue_root = announcement_queue_root
         self.python_path = python_path
         self.cycle_active = cycle_active or threading.Event()
         self.popen_factory = popen_factory
@@ -774,6 +778,8 @@ class PdfQueueDrainHook:
     ) -> "PdfQueueDrainHook | None":
         environment = dict(os.environ)
         data_root_text = environment.get("V35_DATA_ROOT", "").strip()
+        local_pdf_root_text = environment.get("V35_ZSXQ_PDF_LOCAL_ROOT", "").strip()
+        announcement_queue_root_text = environment.get("V35_ZSXQ_PDF_ANNOUNCEMENT_QUEUE_ROOT", "").strip()
         if not data_root_text:
             return None
         data_root = Path(data_root_text)
@@ -787,6 +793,32 @@ class PdfQueueDrainHook:
             or data_root.is_symlink()
         ):
             raise DaemonConfigurationError("PDF queue data root is invalid")
+        local_pdf_root: Path | None = None
+        if local_pdf_root_text:
+            local_pdf_root = Path(local_pdf_root_text)
+            if (
+                not local_pdf_root.is_absolute()
+                or ".." in local_pdf_root.parts
+                or os.path.normpath(str(local_pdf_root)) != str(local_pdf_root)
+                or not local_pdf_root.is_dir()
+                or local_pdf_root.is_symlink()
+            ):
+                raise DaemonConfigurationError("PDF local input root is invalid")
+        announcement_queue_root: Path | None = None
+        if announcement_queue_root_text:
+            if local_pdf_root is None:
+                raise DaemonConfigurationError("PDF announcement queue root requires the local PDF queue")
+            announcement_queue_root = Path(announcement_queue_root_text)
+            if (
+                not announcement_queue_root.is_absolute()
+                or ".." in announcement_queue_root.parts
+                or os.path.normpath(str(announcement_queue_root)) != str(announcement_queue_root)
+                or not announcement_queue_root.is_dir()
+                or announcement_queue_root.is_symlink()
+                or announcement_queue_root.name != "queue"
+                or announcement_queue_root.parent.name != "announcement_flash"
+            ):
+                raise DaemonConfigurationError("PDF announcement queue root is invalid")
         if (
             not app_root.is_absolute()
             or ".." in app_root.parts
@@ -801,6 +833,8 @@ class PdfQueueDrainHook:
         hook = cls(
             app_root=app_root,
             data_root=data_root,
+            local_pdf_root=local_pdf_root,
+            announcement_queue_root=announcement_queue_root,
             python_path=python_path,
             cycle_active=cycle_active,
             popen_factory=popen_factory,
@@ -853,6 +887,10 @@ class PdfQueueDrainHook:
             "--pdf-time-budget-seconds",
             str(PDF_QUEUE_TICK_SECONDS),
         ]
+        if self.local_pdf_root is not None:
+            command.extend(["--pdf-local-root", str(self.local_pdf_root)])
+        if self.announcement_queue_root is not None:
+            command.extend(["--pdf-classification-queue-root", str(self.announcement_queue_root)])
         environment = dict(os.environ)
         environment.update(
             PRODUCTION_ALLOWED="false",

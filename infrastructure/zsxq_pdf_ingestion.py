@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping
@@ -307,6 +308,13 @@ def _cli_json(cli: Path, args: list[str], *, process_runner: Runner) -> dict[str
         raise ZsxqPdfError("ZSXQ_API_JSON_INVALID") from error
     if not isinstance(value, dict) or value.get("success") is not True:
         raise ZsxqPdfError("ZSXQ_API_RESPONSE_INVALID")
+    body = value.get("body")
+    if isinstance(body, Mapping) and body.get("succeeded") is False:
+        # Some CLI envelopes report transport success while the upstream body
+        # contains the actual quota/business failure.
+        if str(body.get("code") or "") == "13607":
+            raise ZsxqPdfError("ZSXQ_DOWNLOAD_PAUSED_13607")
+        raise ZsxqPdfError("ZSXQ_API_BUSINESS_FAILURE")
     return value
 
 
@@ -1647,6 +1655,7 @@ def process_pdf_batch(
     enqueue_only: bool = False,
     _recovery_authorization_id: str | None = None,
     _recovery_continuation: bool = False,
+    _reserved_upstream_request_id: str | None = None,
 ) -> dict[str, Any]:
     """Process a bounded number of PDFs from an already completed hourly run."""
     _date(trade_date)
@@ -1667,8 +1676,13 @@ def process_pdf_batch(
         (_recovery_authorization_id is None) != (document_key is None)
         or (_recovery_continuation and _recovery_authorization_id is None)
         or (_recovery_authorization_id is not None and file_id is not None)
+        or (_reserved_upstream_request_id is not None and _recovery_authorization_id is None)
     ):
         raise ZsxqPdfError("PDF_RECOVERY_IDENTITY_REQUIRED")
+    if _reserved_upstream_request_id is not None and not re.fullmatch(
+        r"[A-Za-z0-9_.:-]{1,128}", _reserved_upstream_request_id
+    ):
+        raise ZsxqPdfError("UPSTREAM_REQUEST_ID_INVALID")
     root = Path(data_root).expanduser()
     if not root.is_dir() or root.is_symlink():
         raise ZsxqPdfError("DATA_ROOT_INVALID")
@@ -1745,9 +1759,50 @@ def process_pdf_batch(
     engine_identity, engine_descriptor = _artifact_engine_identity(
         engine_info, renderer_version=version, renderer_path=renderer_path
     )
-    metadata = metadata_lookup or (lambda selected_cli, selected_file_id: _cli_file_metadata(selected_cli, selected_file_id))
-    get_url = url_lookup or (lambda selected_cli, selected_file_id: _cli_download_url(selected_cli, selected_file_id))
+    metadata_call = metadata_lookup or (lambda selected_cli, selected_file_id: _cli_file_metadata(selected_cli, selected_file_id))
+    url_call = url_lookup or (lambda selected_cli, selected_file_id: _cli_download_url(selected_cli, selected_file_id))
     get_bytes = downloader or _download_pdf_bytes
+
+    # The durable pacing ledger is shared by the hourly downloader and the
+    # local PDF importer.  A 13607 body failure blocks all later ZSXQ metadata
+    # and download-URL calls until midnight Asia/Shanghai; local file work is
+    # unaffected.
+    from infrastructure.zsxq_pdf_local import (
+        LocalPdfError,
+        record_13607_pause,
+        require_upstream_available,
+        reserve_upstream_url_request,
+    )
+
+    def guarded_metadata(selected_cli: Path, selected_file_id: str) -> Mapping[str, Any]:
+        require_upstream_available(root, now=now())
+        try:
+            return metadata_call(selected_cli, selected_file_id)
+        except ZsxqPdfError as error:
+            if error.code == "ZSXQ_DOWNLOAD_PAUSED_13607":
+                record_13607_pause(root, now=now())
+            raise
+
+    def guarded_url(selected_cli: Path, selected_file_id: str) -> str:
+        require_upstream_available(root, now=now())
+        try:
+            reserve_upstream_url_request(
+                root,
+                _reserved_upstream_request_id
+                or f"{_date(trade_date)}-{source_run_id}-{selected_file_id}-{uuid.uuid4().hex}",
+                now=now(),
+            )
+        except LocalPdfError as error:
+            raise ZsxqPdfError(error.code) from error
+        try:
+            return url_call(selected_cli, selected_file_id)
+        except ZsxqPdfError as error:
+            if error.code == "ZSXQ_DOWNLOAD_PAUSED_13607":
+                record_13607_pause(root, now=now())
+            raise
+
+    metadata = guarded_metadata
+    get_url = guarded_url
     count_pages = page_counter or _pdfinfo_page_count
     render_page = page_renderer or (lambda pdf, page, out: _render_pdf_page(pdf, page, out))
 
@@ -2395,7 +2450,7 @@ def _recovery_claim(
     authorization_id: str,
     binding: Mapping[str, Any],
     now: Callable[[], datetime],
-) -> None:
+) -> bool:
     with _store_io(store).kernel_lock(LOCK_RELATIVE, timeout=MAX_PDF_CONTINUATION_SECONDS, poll=0.05):
         index = _read_index(store)
         current = _recovery_preflight(
@@ -2422,6 +2477,29 @@ def _recovery_claim(
             for value in audit["consumed"].values()
         ):
             raise ZsxqPdfError("PDF_RECOVERY_AUTHORIZATION_REPLAY")
+
+        reserved_upstream_url = False
+        request_id = binding.get("upstream_url_request_id")
+        if request_id is not None:
+            current_processing_root = f"external_sources/zsxq_hourly/{current['processing_run_id']}"
+            current_pdf_relative = f"{current_processing_root}/pdfs/{document_key}.pdf"
+            if _verified_partial_pdf(
+                store,
+                current["source"],
+                current["artifact"],
+                current_pdf_relative,
+            ) is None:
+                from infrastructure.zsxq_pdf_local import LocalPdfError, reserve_upstream_url_request
+
+                try:
+                    reserve_upstream_url_request(
+                        store.root,
+                        str(request_id),
+                        now=now(),
+                    )
+                except LocalPdfError as error:
+                    raise ZsxqPdfError(error.code) from error
+                reserved_upstream_url = True
 
         record = {
             "schema_version": "v4.zsxq_pdf_recovery_authorization.v1",
@@ -2491,6 +2569,7 @@ def _recovery_claim(
         except Exception as error:
             # The immutable marker already prevents any second authorization.
             raise ZsxqPdfError("PDF_RECOVERY_CLAIM_COMMIT_UNCERTAIN") from error
+        return reserved_upstream_url
 
 
 def _consume_recovery_checkpoint(
@@ -2755,6 +2834,32 @@ def _mark_recovery_uncertain(
         return fallback
 
 
+def _recovery_deferred_result(
+    *,
+    document_key: str,
+    trade_date: str,
+    source_run_id: str,
+    authorization_id: str,
+    engine_identity: str,
+    error_code: str,
+    continuation_ready: bool,
+) -> dict[str, Any]:
+    """Return a scheduling deferral without consuming a recovery claim/checkpoint."""
+    return {
+        "schema_version": "v4.zsxq_pdf_recovery_one.v1",
+        "status": "DEFERRED",
+        "recovery_status": "DEFERRED",
+        "error_code": error_code,
+        "document_key": document_key,
+        "trade_date": trade_date,
+        "source_run_id": source_run_id,
+        "authorization_id": authorization_id,
+        "engine_identity": engine_identity,
+        "continuation_ready": continuation_ready,
+        **SAFETY,
+    }
+
+
 def recover_one_pdf(
     *,
     data_root: Path,
@@ -2840,6 +2945,60 @@ def recover_one_pdf(
         engine_identity=engine_identity,
     )
 
+    # Recovery claims are one-shot. Check known upstream pacing blocks before
+    # writing a claim or consuming a continuation checkpoint, and reserve the
+    # URL slot before claim consumption whenever this artifact needs a fetch.
+    # A verified partial PDF follows the same reuse predicate used by the
+    # processor, so only a document that would call download_url spends a slot.
+    from infrastructure.zsxq_pdf_local import (
+        LocalPdfError,
+        require_upstream_available,
+        reserve_upstream_url_request,
+        upstream_url_requests_remaining,
+    )
+
+    def deferred(error_code: str) -> dict[str, Any]:
+        return _recovery_deferred_result(
+            document_key=document_key,
+            trade_date=trade_date,
+            source_run_id=source_run_id,
+            authorization_id=authorization_id,
+            engine_identity=engine_identity,
+            error_code=error_code,
+            continuation_ready=continue_existing,
+        )
+
+    try:
+        require_upstream_available(root, now=now())
+    except LocalPdfError as error:
+        if error.code == "ZSXQ_UPSTREAM_PAUSED_13607":
+            return deferred(error.code)
+        raise ZsxqPdfError(error.code) from error
+
+    processing_root = f"external_sources/zsxq_hourly/{binding['processing_run_id']}"
+    pdf_relative = f"{processing_root}/pdfs/{document_key}.pdf"
+    needs_upstream_url = _verified_partial_pdf(
+        store,
+        binding["source"],
+        binding["artifact"],
+        pdf_relative,
+    ) is None
+    reserved_upstream_request_id: str | None = None
+    if needs_upstream_url and continue_existing:
+        if upstream_url_requests_remaining(root, now=now()) <= 0:
+            return deferred("UPSTREAM_URL_HOURLY_LIMIT")
+        reserved_upstream_request_id = f"recovery-{_sha256(authorization_id.encode('utf-8'))[:32]}"
+        try:
+            reserve_upstream_url_request(
+                root,
+                reserved_upstream_request_id,
+                now=now(),
+            )
+        except LocalPdfError as error:
+            if error.code in {"UPSTREAM_URL_HOURLY_LIMIT", "ZSXQ_UPSTREAM_PAUSED_13607"}:
+                return deferred(error.code)
+            raise ZsxqPdfError(error.code) from error
+
     if continue_existing:
         try:
             _consume_recovery_checkpoint(
@@ -2859,21 +3018,27 @@ def recover_one_pdf(
                 error_code=_error_code(error),
             )
     else:
+        # The fresh claim path reserves under the recovery lock only after it
+        # has confirmed that the document has not already been claimed.
+        reserved_upstream_request_id = f"recovery-{_sha256(authorization_id.encode('utf-8'))[:32]}"
         try:
-            _recovery_claim(
+            reserved_url = _recovery_claim(
                 store,
                 document_key=document_key,
                 authorization_id=authorization_id,
-                binding=binding,
+                binding={**binding, "upstream_url_request_id": reserved_upstream_request_id},
                 now=now,
             )
         except Exception as error:
-            if _error_code(error) in {"PDF_RECOVERY_ALREADY_CLAIMED", "PDF_RECOVERY_AUTHORIZATION_REPLAY"}:
+            error_code = _error_code(error)
+            if error_code in {"UPSTREAM_URL_HOURLY_LIMIT", "ZSXQ_UPSTREAM_PAUSED_13607"}:
+                return deferred(error_code)
+            if error_code in {"PDF_RECOVERY_ALREADY_CLAIMED", "PDF_RECOVERY_AUTHORIZATION_REPLAY"}:
                 return {
                     "schema_version": "v4.zsxq_pdf_recovery_one.v1",
                     "status": "CANNOT_CONFIRM",
                     "recovery_status": "CANNOT_CONFIRM",
-                    "error_code": _error_code(error),
+                    "error_code": error_code,
                     "document_key": document_key,
                     "trade_date": trade_date,
                     "source_run_id": source_run_id,
@@ -2891,6 +3056,10 @@ def recover_one_pdf(
                 engine_identity=engine_identity,
                 error_code=_error_code(error),
             )
+        if not reserved_url:
+            # The state observed under the claim lock had a verified local PDF;
+            # process_pdf_batch must not add a speculative URL reservation.
+            reserved_upstream_request_id = None
 
     try:
         result = process_pdf_batch(
@@ -2914,6 +3083,7 @@ def recover_one_pdf(
             max_pages_per_document=MAX_PDF_PAGES_PER_BATCH,
             _recovery_authorization_id=authorization_id,
             _recovery_continuation=continue_existing,
+            _reserved_upstream_request_id=reserved_upstream_request_id,
         )
     except Exception as error:
         try:
@@ -3083,6 +3253,8 @@ def _retry_backoff_remaining(
 def process_next_pdf_task(
     data_root: Path,
     *,
+    local_pdf_root: Path | None = None,
+    announcement_queue_root: Path | None = None,
     cli: Path = DEFAULT_CLI,
     time_budget_seconds: int = 90,
     max_pages_per_document: int = MAX_PDF_PAGES_PER_BATCH,
@@ -3100,6 +3272,43 @@ def process_next_pdf_task(
     root = Path(data_root).expanduser()
     if not root.is_dir() or root.is_symlink():
         raise ZsxqPdfError("DATA_ROOT_INVALID")
+    local_idle_status: str | None = None
+    if local_pdf_root is not None:
+        from infrastructure.zsxq_pdf_local import LocalPdfError, process_local_pdf_tick
+
+        try:
+            local_result = process_local_pdf_tick(root, Path(local_pdf_root), announcement_queue_root=announcement_queue_root, now=now())
+        except LocalPdfError as error:
+            return {
+                "schema_version": "v4.zsxq_pdf_queue_tick.v1",
+                "status": "CANNOT_CONFIRM",
+                "reason_code": error.code,
+                "processed_document_count": 0,
+                "pending_task_count": len(pending_pdf_tasks(root)),
+                "local_pdf_status": "CANNOT_CONFIRM",
+                **SAFETY,
+            }
+        local_terminal = local_result.get("status") in {
+            "LOCAL_BATCH_CANARY_BLOCKED", "LOCAL_BATCH_COMPLETE", "CLASSIFICATION_DEFERRED"
+        }
+        if local_result.get("status") != "NO_LOCAL_PDF_WORK" and not local_terminal:
+            local_status = str(local_result.get("status") or "CANNOT_CONFIRM")
+            return {
+                "schema_version": "v4.zsxq_pdf_queue_tick.v1",
+                "status": local_status,
+                "document_id": local_result.get("document_id"),
+                "linked_document_id": local_result.get("linked_document_id"),
+                "pdf_sha256": local_result.get("pdf_sha256"),
+                "processed_document_count": int(local_status.startswith("CLASSIFICATION_")),
+                "processed_page_count": local_result.get("processed_page_count"),
+                "pending_task_count": len(pending_pdf_tasks(root)),
+                "local_pdf_status": local_status,
+                "reason_code": local_result.get("reason_code"),
+                "research_only": True,
+                **SAFETY,
+            }
+        if local_terminal:
+            local_idle_status = str(local_result.get("status"))
     tasks = pending_pdf_tasks(root)
     if not tasks:
         return {
@@ -3110,6 +3319,7 @@ def process_next_pdf_task(
             "time_budget_seconds": time_budget_seconds,
             "max_pages_per_document": max_pages_per_document,
             "retry_backoff_seconds": retry_backoff_seconds,
+            "local_pdf_status": local_idle_status,
             **SAFETY,
         }
 
@@ -3210,6 +3420,7 @@ def process_next_pdf_task(
         "retry_after_seconds": remaining,
         "before_status": before.get("status"),
         "before_attempts": before.get("attempts"),
+        "local_pdf_status": local_idle_status,
         "time_budget_seconds": time_budget_seconds,
         "max_pages_per_document": max_pages_per_document,
         "retry_backoff_seconds": retry_backoff_seconds,
@@ -3426,6 +3637,64 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
                     "source": {},
                     "can_open_detail": False,
                 })
+        # User-provided local PDFs are additive current-knowledge supplements.
+        # They remain separate from ZSXQ source runs and never acquire a topic,
+        # source run, or historical PIT date through this projection.
+        from infrastructure import zsxq_pdf_local as local_pdf
+
+        local_state = local_pdf._validate_local_state(index.get("local_pdf"))
+        for document_id, row in local_state["documents"].items():
+            if not isinstance(row, Mapping) or row.get("research_date") != selected_date:
+                continue
+            status = str(row.get("status") or "PENDING").upper()
+            detail: dict[str, Any] | None = None
+            reason_code = row.get("reason_code") or row.get("reason_code_classification")
+            try:
+                detail = local_pdf.read_local_pdf_document_detail(root, str(document_id), selected_date)
+            except (local_pdf.LocalPdfError, ZsxqPdfError) as error:
+                if status == "READY":
+                    status = "CANNOT_CONFIRM"
+                reason_code = getattr(error, "code", "LOCAL_DOCUMENT_DETAIL_INVALID")
+                cannot_confirm.append(str(reason_code))
+            if status == "PROCESSING":
+                status = "PENDING"
+            if status not in {"READY", "PARTIAL", "FAILED", "PENDING", "CANNOT_CONFIRM"}:
+                status = "CANNOT_CONFIRM"
+                reason_code = "LOCAL_DOCUMENT_STATUS_INVALID"
+                cannot_confirm.append(reason_code)
+            source = row.get("source") if isinstance(row.get("source"), Mapping) else {}
+            processing = (detail or {}).get("processing", {})
+            items.append({
+                "document_id": str(document_id),
+                "research_date": selected_date,
+                "status": status,
+                "source": {
+                    "source_kind": source.get("source_kind"),
+                    "source_reference": source.get("source_reference"),
+                    "source_file_sha256": source.get("source_file_sha256"),
+                    "source_hash_algorithm": source.get("source_hash_algorithm"),
+                    "original_filename": source.get("original_filename"),
+                    "expected_size": source.get("expected_size"),
+                    "source_imported_at": source.get("source_imported_at"),
+                    "document_date": source.get("document_date"),
+                    "linked_document_id": source.get("linked_document_id"),
+                    "research_only": True,
+                    "production_allowed": False,
+                    "buy_gate_updated": False,
+                    "orders_sent": False,
+                },
+                "page_count": row.get("page_count"),
+                "processed_page_count": row.get("processed_page_count"),
+                "available_at": processing.get("available_at"),
+                "engine": processing.get("engine"),
+                "excerpt": (detail or {}).get("excerpt", ""),
+                "last_page_excerpt": (detail or {}).get("last_page_excerpt", ""),
+                "classification": row.get("classification") or {},
+                "classification_status": row.get("classification_status"),
+                "reason_code": reason_code,
+                "can_open_detail": bool(detail),
+                "local_source": True,
+            })
         if not items:
             sources = index.get("sources")
             date_sources = {
@@ -3524,6 +3793,16 @@ def read_pdf_document_detail(data_root: Path, document_id: str, research_date: s
         raise ZsxqPdfError("DATA_ROOT_INVALID")
     store = NativeDataStore(root)
     index = _read_index(store)
+    local_state = index.get("local_pdf")
+    if isinstance(local_state, Mapping) and isinstance(local_state.get("documents"), Mapping) and document_id in local_state["documents"]:
+        from infrastructure import zsxq_pdf_local as local_module
+
+        try:
+            detail = local_module.read_local_pdf_document_detail(root, document_id, selected_date)
+        except local_module.LocalPdfError as error:
+            raise ZsxqPdfError(error.code) from error
+        detail["schema_version"] = "v4.zsxq_pdf_document_detail.v1"
+        return detail
     source, _row = _source_row_for_document(store, index, document_id)
     if source.get("trade_date") != selected_date:
         raise ZsxqPdfError("DOCUMENT_DATE_MISMATCH")

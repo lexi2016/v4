@@ -26,6 +26,7 @@ from infrastructure.zsxq_pdf_ingestion import (
     process_pdf_continuation,
     recover_one_pdf,
 )
+from infrastructure.zsxq_pdf_local import submit_local_pdf_batch
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -412,6 +413,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Advance one already-enumerated PDF from the owned queue.",
     )
     parser.add_argument(
+        "--pdf-local-batch",
+        action="store_true",
+        help="Hash and submit one explicit read-only local PDF batch; performs no extraction or model call.",
+    )
+    parser.add_argument(
         "--pdf-recover-one",
         action="store_true",
         help="Start one offline-authorized recovery for the exact exhausted document key.",
@@ -426,6 +432,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pdf-file-id", help="Process one attachment id from topics_brief.files.")
     parser.add_argument("--pdf-document-key", help="Full 64-character source-bound PDF document key.")
     parser.add_argument("--pdf-authorization-id", help="One-time recovery authorization ID.")
+    parser.add_argument(
+        "--pdf-local-root",
+        type=Path,
+        help="Explicit read-only local PDF directory for the existing queue tick.",
+    )
+    parser.add_argument("--pdf-local-canary-sha256", help="Optional exact SHA-256 to gate the first local batch item.")
+    parser.add_argument("--pdf-classification-queue-root", type=Path, help="Explicit existing announcement/queue root for shared model serialization.")
     parser.add_argument("--pdf-time-budget-seconds", type=int, default=180)
     parser.add_argument("--cli", type=Path, default=DEFAULT_CLI)
     parser.add_argument("--selector-panel", type=Path, default=DEFAULT_SELECTOR_PANEL)
@@ -436,6 +449,20 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if (args.pdf_document_key or args.pdf_authorization_id) and not (args.pdf_recover_one or args.pdf_recovery_continue):
             raise ValueError("PDF document key and authorization ID require an explicit recovery mode")
+        if args.pdf_local_batch:
+            if (
+                args.pdf_only or args.pdf_enqueue_only or args.pdf_queue_tick or args.pdf_recover_one or args.pdf_recovery_continue
+                or args.date or args.slot or args.source_run_id or args.pdf_file_id or args.pdf_document_key or args.pdf_authorization_id
+                or not args.pdf_local_root or args.pdf_classification_queue_root
+            ):
+                raise ValueError("--pdf-local-batch requires only --data-root and --pdf-local-root, with optional canary SHA")
+            result = submit_local_pdf_batch(args.data_root, args.pdf_local_root, canary_sha256=args.pdf_local_canary_sha256)
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.pdf_local_canary_sha256:
+            raise ValueError("--pdf-local-canary-sha256 requires --pdf-local-batch")
+        if args.pdf_classification_queue_root and (not args.pdf_queue_tick or not args.pdf_local_root):
+            raise ValueError("--pdf-classification-queue-root requires --pdf-queue-tick and --pdf-local-root")
         if args.pdf_recover_one or args.pdf_recovery_continue:
             if args.pdf_recover_one and args.pdf_recovery_continue:
                 raise ValueError("choose only one PDF recovery mode")
@@ -467,11 +494,15 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("--pdf-queue-tick cannot be combined with a source run or other PDF mode")
             result = process_next_pdf_task(
                 data_root=args.data_root,
+                local_pdf_root=args.pdf_local_root,
+                announcement_queue_root=args.pdf_classification_queue_root,
                 cli=args.cli,
                 time_budget_seconds=args.pdf_time_budget_seconds,
             )
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
             return 0
+        if args.pdf_local_root is not None or args.pdf_classification_queue_root is not None:
+            raise ValueError("--pdf-local-root requires --pdf-queue-tick")
         if args.pdf_enqueue_only:
             if not args.date or not args.slot or not args.source_run_id or args.pdf_file_id:
                 raise ValueError("--pdf-enqueue-only requires exact date, slot, and source run")

@@ -141,3 +141,58 @@ def test_pdf_queue_hook_requires_explicit_existing_data_root(tmp_path, monkeypat
     assert hook is not None
     assert hook.data_root == data_root
     assert hook.app_root == app_root
+
+
+def test_pdf_queue_hook_passes_only_explicit_local_root_to_existing_tick(tmp_path, monkeypatch):
+    app = tmp_path / "app"
+    (app / "ops").mkdir(parents=True)
+    (app / "ops/run_zsxq_hourly_delta.py").write_text("# isolated fixture\n", encoding="utf-8")
+    data_root = tmp_path / "data"
+    local_root = tmp_path / "local"
+    announcement_queue = tmp_path / "announcement_flash" / "queue"
+    data_root.mkdir()
+    local_root.mkdir()
+    announcement_queue.mkdir(parents=True)
+    monkeypatch.setenv("V35_DATA_ROOT", str(data_root))
+    monkeypatch.setenv("V35_APP_ROOT", str(app))
+    monkeypatch.setenv("V35_ZSXQ_PDF_LOCAL_ROOT", str(local_root))
+    monkeypatch.setenv("V35_ZSXQ_PDF_ANNOUNCEMENT_QUEUE_ROOT", str(announcement_queue))
+    calls = []
+
+    def popen(command, **kwargs):
+        calls.append((command, kwargs))
+        kwargs["stdout"].write(b'{"status":"NO_RETRYABLE_TASKS"}')
+        kwargs["stdout"].flush()
+        return FinishedChild()
+
+    hook = daemon.PdfQueueDrainHook.from_environment(start=False, popen_factory=popen)
+    assert hook is not None
+    hook._run_child()
+    command = calls[0][0]
+    assert "--pdf-queue-tick" in command
+    assert command[command.index("--pdf-local-root") + 1] == str(local_root)
+    assert command[command.index("--pdf-classification-queue-root") + 1] == str(announcement_queue)
+
+
+def test_pdf_queue_hook_does_not_add_local_root_when_unconfigured(tmp_path, monkeypatch):
+    app = tmp_path / "app"
+    (app / "ops").mkdir(parents=True)
+    (app / "ops/run_zsxq_hourly_delta.py").write_text("# isolated fixture\n", encoding="utf-8")
+    data_root = tmp_path / "data"
+    data_root.mkdir()
+    monkeypatch.setenv("V35_DATA_ROOT", str(data_root))
+    monkeypatch.setenv("V35_APP_ROOT", str(app))
+    monkeypatch.delenv("V35_ZSXQ_PDF_LOCAL_ROOT", raising=False)
+    monkeypatch.delenv("V35_ZSXQ_PDF_ANNOUNCEMENT_QUEUE_ROOT", raising=False)
+    calls = []
+
+    def popen(command, **kwargs):
+        calls.append((command, kwargs))
+        kwargs["stdout"].write(b'{"status":"NO_RETRYABLE_TASKS"}')
+        kwargs["stdout"].flush()
+        return FinishedChild()
+
+    hook = daemon.PdfQueueDrainHook.from_environment(start=False, popen_factory=popen)
+    assert hook is not None
+    hook._run_child()
+    assert "--pdf-local-root" not in calls[0][0]
