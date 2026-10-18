@@ -1,0 +1,96 @@
+{
+  "goal": "Issue45 actual deployed US-close consumer recovery",
+  "merge_commit": "475f9d6bb44d17b8bc948f755c3e7ba2b7b8a088",
+  "acceptance": [
+    {
+      "gate": "DEPLOYED",
+      "requirement": "Digest, scheduler and API immutable release identities and file SHA match independently accepted candidates; preserve unrelated active features."
+    },
+    {
+      "gate": "API_VERIFIED",
+      "requirement": "Exact owner artifact/receipt/session/target/cutoff/run identity reaches actual current target plan; relation input identities/count/fields conserved. HTTP 200 alone insufficient."
+    },
+    {
+      "gate": "UI_VERIFIED",
+      "requirement": "Reload manager-selection for target 20261020; compare current run_id, source date and mapping/candidate status with API and record screenshot. Historic plan remains available."
+    },
+    {
+      "gate": "BEHAVIOR_VERIFIED",
+      "requirement": "Independent reviewer validates exact identity handoff, repeat-input idempotence, relation eligibility boundaries and existing safety flags."
+    },
+    {
+      "gate": "NATURAL_VERIFIED",
+      "requirement": "A fresh natural POST_CLOSE slot completes through owner dispatch, consumer, API and reloaded UI; historical catch-up is separate evidence."
+    }
+  ],
+  "historical_catchup": {
+    "us_session_date": "20261016",
+    "hk_target_date": "20261020",
+    "label": "POST_DEPLOY_HISTORICAL_CATCHUP",
+    "does_not_prove_fresh_natural_slot": true,
+    "status": "CANNOT_CONFIRM",
+    "reason": "US_OWNER_RECEIPT_ARTIFACT_SESSION_INVALID",
+    "target_artifact_and_receipt": "ABSENT",
+    "existing_fallback_path_date": "20261016",
+    "existing_fallback_actual_us_session": "20261015",
+    "valid_required_input": "ABSENT",
+    "matching_consumed_cursor": "ABSENT",
+    "next_fresh_natural_does_not_retroactively_validate_friday": true
+  },
+  "next_natural_slot": {
+    "scheduled_at": "2026-10-20T04:15:00+08:00",
+    "us_session_date": "20261019",
+    "hk_target_date": "20261020",
+    "basis": "Reviewer verified repository DST-aware US close resolution and HK session calendar"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "issue_closure": "Keep open until required natural-chain evidence independently passes; report any data gap distinctly.",
+  "natural_monitor": {
+    "automation_id": "issue45",
+    "kind": "heartbeat",
+    "destination": "current_thread",
+    "status": "ACTIVE",
+    "local_check_time": "04:35 Asia/Shanghai Tuesday through Saturday",
+    "first_expected_slot": "2026-10-20T04:15:00+08:00",
+    "notifications": "meaningful failure/recovery/completion/action only"
+  },
+  "current_status": {
+    "DEPLOYED": "PASS",
+    "API_VERIFIED": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": "NATURAL_SLOT_UNVERIFIED",
+    "issue45": "OPEN",
+    "source_sync": "SYNCED_AND_REMOTE_READBACK_VERIFIED",
+    "canonical_integration": "PASS",
+    "source_independent_review": "PASS",
+    "BEHAVIOR_VERIFIED": "CANNOT_CONFIRM_LIVE_TARGET"
+  },
+  "deployed_release_ids": {
+    "us_digest": "issue45-pr46-us-digest-20261018-r2",
+    "manager_scheduler": "issue45-pr46-manager-scheduler-20261018-r2",
+    "api": "issue45-pr46-api-20261018-r3"
+  },
+  "ui_observed": {
+    "target_date": "20261020",
+    "run_id": "5feb2dbf6d3c4b6b8598e9dae67af542",
+    "phase": "NEXT_DAY_DRAFT",
+    "status": "INPUT_MISSING",
+    "source_count": 0,
+    "relation_count": 0,
+    "gap": "US_MAPPING_EXACT_DATE_BINDING_MISSING",
+    "screenshot": "UI_AFTER.png",
+    "meaning": "Rendering checked; semantic result refresh not confirmed"
+  },
+  "github": {
+    "repository": "lexi2016/v4",
+    "branch": "codex/issue45-pr46-deploy-20261018",
+    "source_commit": "2cbb566da95f1956786a71b585d655f9635d21b9",
+    "remote_byte_verified_files": 22,
+    "receipt": "GITHUB_SYNC_RECEIPT.json"
+  }
+}
