@@ -1,0 +1,180 @@
+{
+  "schema_version": "v4.friday_run_independent_review.v1",
+  "reviewer_identity": "/root/friday_backfill_review",
+  "model": "gpt-6-luna",
+  "reasoning_effort": "max",
+  "reviewed_at_utc": "2026-10-18T07:00:46Z",
+  "verdict": "FAIL",
+  "acceptance_status": "NOT_PASS",
+  "behavior_status": "BEHAVIOR_VERIFIED",
+  "scope": {
+    "target_date": "20261020",
+    "phase": "MANUAL",
+    "lane": "US_MAPPING",
+    "run_id": "81f492f043a346828a5b72cc6bc4206b",
+    "review_only": true
+  },
+  "risk_assessment": {
+    "p0": [],
+    "p1": [
+      {
+        "id": "RUN-PARTIAL-01",
+        "finding": "The only authorized run persisted as PARTIAL, with 649 of 652 unique HK stocks unassessed and 39 of 48 US symbols unassessed. Zero selected and zero watch therefore do not constitute a completed evidence-backed zero-selection result.",
+        "blocking": true,
+        "evidence": [
+          "ROOT_RUN_JOB.json: state PARTIAL, step DONE, run_id 81f492f043a346828a5b72cc6bc4206b",
+          "ROOT_RESULT_SUMMARY.json: 48 observed, 9 assessed, 39 unassessed; gaps include RECORDS_UNASSESSED and US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+          "manager_workbench snapshots/81f492f043a346828a5b72cc6bc4206b.json: 652 stocks; selected 0, watch 0, unassessed 649, not_selected 3",
+          "UI_FACTOR_GAP.png: explicit paired-factor identity gap and HK industry exact-date binding gap"
+        ]
+      }
+    ],
+    "p2": []
+  },
+  "activation_identity": {
+    "launchd_label": "com.lexi.v35.api-only",
+    "state": "running",
+    "pid": 91776,
+    "release_id": "friday-close-input-api-20261018-r1",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/friday-close-input-api-20261018-r1",
+    "live_plist_sha256": "5b31a24029e0d1cf8f6a83e20febf1c0af8675e357d13c8ed68289a7026459b0",
+    "release_manifest_sha256": "0865254e40584da570cfd93aabfdd77c6f9bf8b38a8ca6ba30eb8fcc84d54bba",
+    "manager_config_sha256": "589eaa058b9abd9cef59ab71ef2c3f4c3c998bae18dd26777134bf0fa22ef86e",
+    "process_working_directory_matches_release": true
+  },
+  "run": {
+    "run_id": "81f492f043a346828a5b72cc6bc4206b",
+    "request": {
+      "target_date": "20261020",
+      "phase": "MANUAL",
+      "lanes": [
+        "US_MAPPING"
+      ],
+      "submitted_at_utc": "2026-10-18T06:54:19.487121+00:00",
+      "http_status": 202
+    },
+    "terminal_state": "PARTIAL",
+    "started_at": "2026-10-18T14:54:21.963785+08:00",
+    "finished_at": "2026-10-18T14:54:50.514372+08:00",
+    "source_sessions": {
+      "us": "20261016",
+      "hk_price": "20261016"
+    },
+    "load_inputs_checkpoint_sha256": "0ffba05d13a1044806578a54c6ed17f077b40f51383f838ecc5054def09a5dc4",
+    "persisted_snapshot_sha256": "8f2c4ff43738b247a6042618706881be3fdde79c4d9fe4f09be767fc2bd5f934",
+    "snapshot_input_sha256": "d1afa15d1df2e664a453020ec3fc1c1003772122f806f2063eb5257125d03f49",
+    "snapshot_product_sha256": "349e7d372b448e3f6cd448b69baa7db61165600cd6e486879dcdf88f11919031",
+    "input_projection_rows": 1003,
+    "input_batch_records": 1051,
+    "persisted_unique_hk_stocks": 652,
+    "api_page": {
+      "limit": 200,
+      "offset": 0,
+      "total": 652
+    },
+    "coverage": {
+      "scope_count": 48,
+      "observed_count": 48,
+      "assessed_count": 9,
+      "unassessed_count": 39
+    },
+    "decisions": {
+      "source_symbols": {
+        "selected": 0,
+        "conditional_watch": 0,
+        "not_selected": 9,
+        "unassessed": 39
+      },
+      "unique_hk_stocks": {
+        "selected": 0,
+        "watch": 0,
+        "not_selected": 3,
+        "unassessed": 649
+      }
+    },
+    "gaps": [
+      "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,PDD,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+      "RECORDS_UNASSESSED",
+      "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+      "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+      "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"
+    ]
+  },
+  "us_owner_lineage": {
+    "owner": "research_peripheral.external_finance",
+    "artifact_relative": "research/peripherals/20261017/external_finance.json",
+    "artifact_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f",
+    "receipt_relative": "receipts/research/peripherals/20261017/external_finance.json",
+    "receipt_sha256": "2efaa324645d0d9de3226ca13e9709b0239d2f10947ba2b879fa0d17be4e999d",
+    "manifest_relative": "research/peripherals/manifest.json",
+    "manifest_sha256": "97b478fb8afe0f6ba87e69261c150f7d1f2ff3ff92601185e91b85998677111e",
+    "capture_session_date": "20261016",
+    "artifact_trade_date": "20261017",
+    "capture_phase": "POST_CLOSE",
+    "capture_mode": "CONTROLLED_LATE_POST_CLOSE",
+    "captured_at": "2026-10-17T15:35:31Z",
+    "late": true,
+    "quote_count": 48,
+    "quote_snapshot_sha256": "a8a7d7310157d3db5f9e05a897cb513b1ecc34f40c9a8ad6a83c02ebd389118b",
+    "provider_response_sha256": "1654a4f5a6257f756d9cfeec102316160291c51f35e82d99a884c5ee78d5a71d",
+    "owner_hashes_match": true
+  },
+  "relation_input": {
+    "full_overlay_state": "READY",
+    "relation_count": 1003,
+    "stock_count": 667,
+    "catalog_file_sha256": "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671",
+    "review_overlay_file_sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69",
+    "recovery_overlay_integrity_sha256": "9c33ef21d51516f12e7aeab74192ea0feaa6f1aebfcbba2c42ce97f499b0fedc",
+    "no_200_row_input_truncation_observed": true
+  },
+  "writer_reported_factor_status": {
+    "reviewer_repeated_builder_search": false,
+    "all_nine_assessed_source_symbols": "US_SOURCE_CHANGE_NOT_POSITIVE",
+    "scoped_bundle_target_20261020_pair_builder": "NOT_FOUND",
+    "factor_engine_supported_mode": "RETROSPECTIVE_ONLY",
+    "actual_run_phase": "MANUAL",
+    "note": "Writer final read-only diagnostic; reviewer independently confirmed only the runtime/UI paired-factor identity gap."
+  },
+  "ui": {
+    "run_header_screenshot": {
+      "path": "UI_PARTIAL.png",
+      "sha256": "7c3f502c7f72fe804784e91b7627a9abf4a2aa721a5d0c1efed4c3b2b7c9d8dc",
+      "confirms": [
+        "target date 20261020",
+        "MANUAL phase",
+        "run id 81f492f043a346828a5b72cc6bc4206b",
+        "PARTIAL state",
+        "zero strict-selection and conditional-watch counts"
+      ]
+    },
+    "gap_screenshot": {
+      "path": "UI_FACTOR_GAP.png",
+      "sha256": "fb10a010d249dcb416270274820b2985b05068e35e9407c69c3c788e1629956a",
+      "confirms": [
+        "US source scope 48, assessed 9, unassessed 39",
+        "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+        "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING",
+        "late manual source sessions and separate count units"
+      ]
+    }
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "not_run_by_reviewer": [
+    "tests",
+    "API GET or POST",
+    "retry or new selection run",
+    "raw-source refetch",
+    "writer paired-artifact root-cause exploration"
+  ],
+  "CANNOT_CONFIRM": [
+    "Whether a legitimate target-20261020 paired-factor exposure artifact exists outside the workspace/config bundle searched by the Writer.",
+    "Whether the historical US close can support original-time or PIT-safe use, or an official-exchange-close claim; the prior price review retains CANNOT_CONFIRM."
+  ],
+  "p1_acceptance_effect": "The PARTIAL run is not a completed zero-selection result and does not satisfy the frozen task PASS_SIGNAL."
+}

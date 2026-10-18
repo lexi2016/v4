@@ -1,0 +1,74 @@
+{
+  "state": "PARTIAL",
+  "gaps": [
+    "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,PDD,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+    "RECORDS_UNASSESSED",
+    "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+    "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID"
+  ],
+  "data_keys": [
+    "snapshot",
+    "stocks",
+    "display_projection",
+    "us_mapping_summary",
+    "counts",
+    "versions",
+    "pagination"
+  ],
+  "counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 649,
+    "observation_only": 0,
+    "not_selected": 3
+  },
+  "snapshot_keys": [
+    "RESEARCH_ONLY",
+    "production_allowed",
+    "buy_gate_updated",
+    "orders_sent",
+    "schema_version",
+    "context",
+    "run_id",
+    "input_sha256",
+    "product_sha256",
+    "generated_at",
+    "available_at",
+    "lanes",
+    "counts",
+    "changes",
+    "review_refs",
+    "gaps"
+  ],
+  "run_id": "81f492f043a346828a5b72cc6bc4206b",
+  "snapshot_state": null,
+  "lanes": [
+    {
+      "lane": "US_MAPPING",
+      "state": "PARTIAL",
+      "coverage": {
+        "scope_count": 48,
+        "observed_count": 48,
+        "assessed_count": 9,
+        "unassessed_count": 39,
+        "gaps": [
+          "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,PDD,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+          "RECORDS_UNASSESSED",
+          "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+          "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID"
+        ]
+      },
+      "rows_count": 1063,
+      "input_sha256": "a246c52a1b26f1e2e9cf6f01521cff43401ad59fd947e3a077023bd59141a1dd",
+      "gaps": [
+        "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,PDD,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+        "RECORDS_UNASSESSED",
+        "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+        "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID"
+      ]
+    }
+  ],
+  "stocks_count_returned": 200,
+  "us_summary_keys": [],
+  "response_sha256": "df27db919654f27e8c54084e5213bbec0b99fdb93fc6d9aa458d9522dd257f34"
+}

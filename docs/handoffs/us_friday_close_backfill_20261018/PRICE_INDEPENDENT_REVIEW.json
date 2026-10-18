@@ -1,0 +1,98 @@
+{
+  "reviewed_date": "2026-10-18",
+  "phase": "PRICE_CORROBORATION",
+  "reviewer": "friday_backfill_review",
+  "verdict": "PASS_WITH_LIMITATIONS",
+  "prior_price_p1": "CLEARED_FOR_ALL_48_AT_CROSS_PROVIDER_VENDOR_CORROBORATION_LEVEL",
+  "acceptance": {
+    "canonical_48_symbol_price_match": "PASS",
+    "prior_close_20261015_vs_owner_previous_close": "PASS_48_OF_48",
+    "close_20261016_vs_owner_last": "PASS_48_OF_48",
+    "earlier_six_160453_observations": "PASS_6_OF_6",
+    "owner_receipt_manifest_unchanged": "PASS",
+    "official_exchange_close_claim": false,
+    "per_symbol_http_retrieval_times": "CANNOT_CONFIRM",
+    "pit_or_original_time_availability": "CANNOT_CONFIRM"
+  },
+  "corroboration_report": {
+    "path": "docs/handoffs/us_friday_close_backfill_20261018/PRICE_CORROBORATION.json",
+    "sha256": "0a671f43962d14cf669d63ac53a22bfaac8e5085343bb984d7e48ee6756a4a8a",
+    "provider": "Sina US daily K",
+    "sessions": ["20261015", "20261016"],
+    "raw_root": "docs/handoffs/us_friday_close_backfill_20261018/local_only/sina_daily",
+    "raw_response_count": 48,
+    "raw_total_bytes": 17071721,
+    "expected_symbol_count": 48,
+    "unique_symbol_count": 48,
+    "raw_file_set_matches_canonical_contract": true,
+    "raw_hashes_and_sizes_match_report": true,
+    "one_daily_row_per_symbol_per_session": true,
+    "decimal_comparison_without_rounding": true,
+    "daily_20261015_close_matches_owner_20261016_previous_close": 48,
+    "daily_20261016_close_matches_owner_20261016_last": 48,
+    "mismatch_count": 0,
+    "missing_count": 0,
+    "duplicate_count": 0,
+    "parse_invalid_count": 0,
+    "earlier_160453_symbols": ["BABA", "CIEN", "COHR", "DLR", "UBER", "VRT"],
+    "earlier_160453_match_count": 6
+  },
+  "unchanged_owner_chain": {
+    "artifact_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/20261017/external_finance.json",
+    "artifact_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f",
+    "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/20261017/external_finance.json",
+    "receipt_sha256": "2efaa324645d0d9de3226ca13e9709b0239d2f10947ba2b879fa0d17be4e999d",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/manifest.json",
+    "manifest_sha256": "97b478fb8afe0f6ba87e69261c150f7d1f2ff3ff92601185e91b85998677111e",
+    "manifest_entry_matches_artifact": true,
+    "receipt_payload_digest_matches_artifact": true
+  },
+  "timestamp_and_pit_limitations": {
+    "per_symbol_http_requested_received_times": "CANNOT_CONFIRM",
+    "raw_persistence_window_utc": {
+      "first": "2026-10-18T06:26:30.606094Z",
+      "last": "2026-10-18T06:26:34.587431Z",
+      "meaning": "local filesystem persistence interval only; not HTTP receive time or PIT evidence"
+    },
+    "exact_time_canary": {
+      "symbol": "BABA",
+      "path": "docs/handoffs/us_friday_close_backfill_20261018/ROOT_DAILY_CANARY_SINA.json",
+      "scope": "BABA only"
+    },
+    "original_owner_capture": {
+      "trade_date": "20261017",
+      "us_session_date": "20261016",
+      "captured_at": "2026-10-17T15:35:31Z",
+      "late": true,
+      "capture_mode": "CONTROLLED_LATE_POST_CLOSE",
+      "capture_reason": "NATURAL_SLOT_MISSED_CONTROLLED_RECOVERY"
+    }
+  },
+  "historical_manual_use": {
+    "materially_blocked_by_price_semantics": false,
+    "permitted_with_conditions": true,
+    "conditions": [
+      "Run is explicitly retrospective manual research, not an original-time or PIT claim.",
+      "Preserve the canonical owner artifact and its late-capture labels unchanged.",
+      "Retain the Sina corroboration report and its no-official-exchange-claim limitation.",
+      "Do not infer that the Sina values were available at the 2026-10-16 capture time."
+    ],
+    "api_ui_parity_reviewed": false
+  },
+  "risk": {
+    "P0": [],
+    "P1": [],
+    "remaining_limitations": [
+      "Per-symbol HTTP times are unavailable; do not claim PIT or original-time availability.",
+      "Sina daily K is vendor corroboration and is not claimed as an official exchange close source."
+    ]
+  },
+  "actions_performed": {
+    "network_fetch": false,
+    "selector_run": false,
+    "owner_artifact_publish_or_rewrite": false,
+    "service_action": false,
+    "business_data_change": false,
+    "tests_executed": false
+  }
+}

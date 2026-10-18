@@ -1,0 +1,90 @@
+{
+  "artifacts": {
+    "api_candidate_receipt_sha256": "e65fcef25407da76b1868d1306fccc36d4e28a161aeada5512d7a0a566007c78",
+    "candidate_helper_sha256": "f348fb326a01665f83f82d4ca93a464fe7e186798858994a198976562c726f0b",
+    "delta_receipt_sha256": "a1e1b67e9897ab29a6ba53a92e323651c946d7d81c39cba3d188c91a64881d01",
+    "plan_json_sha256": "2e47fd6812a222addab359168f7d30565f9f125260231f1de215c34b3676b547",
+    "plan_markdown_sha256": "e17b38430e88aafe31c14afe957c39080da629b670e816aa08fb3bc283ffb3e7",
+    "source_patch_sha256": "ac3003f1f9f1bee145ac591a4c76cc4edd55e18e580993a12fe7bb528dd6b38f"
+  },
+  "baseline": {
+    "active_api_plist_sha256": "38a71ac87ee83c1c04f4078e1c99cd07aa464ed08ff9b209beaffb84785377fb",
+    "active_inventory_sha256": "b212852fd7e0425de7ad554e7ce4e72932d36f4f5e40254b1472b7aebdabac92",
+    "active_manifest_sha256": "1d2adb1894bcb91baacf2396516409db1b2fd71755795675e81cfbed292f190b",
+    "active_release_id": "announcement-contract-repair-20261018-r4",
+    "branch": "codex/system-consolidation-20260912",
+    "git_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054"
+  },
+  "candidate": {
+    "active_baseline_failure_reproduced": "US_OWNER_RECEIPT_ARTIFACT_SESSION_INVALID",
+    "api_candidate_receipt_sha256": "e65fcef25407da76b1868d1306fccc36d4e28a161aeada5512d7a0a566007c78",
+    "application_inventory_sha256": "f772057275438a66cf4944ef78941062b93fca404a70683b03302d3d9301c627",
+    "delta_after_sha256": "ae9e3b712d6f899f944816eea25837a7fdc26bddc13b7a347a7e87816f86a0f2",
+    "delta_before_sha256": "e1e5a52ec1cf5b214d09b1d8d9c5063ce45b0f35c052f1fad2dce47478f8a145",
+    "delta_path": "v4/manager_workbench/inputs/source_bindings.py",
+    "delta_receipt_sha256": "a1e1b67e9897ab29a6ba53a92e323651c946d7d81c39cba3d188c91a64881d01",
+    "integration_verifier": "PASS",
+    "manifest_changed_fields": [
+      "candidate",
+      "application_inventory",
+      "api_integration",
+      "candidate_status",
+      "activation_status",
+      "deployment_status"
+    ],
+    "manifest_non_candidate_shape_preserved": true,
+    "non_delta_entries_preserved": 1238,
+    "patch_sha256": "ac3003f1f9f1bee145ac591a4c76cc4edd55e18e580993a12fe7bb528dd6b38f",
+    "post_manifest_reverification": "PASS; one source delta, 1238 non-delta files preserved, current API base and plist unchanged",
+    "real_owner_canary": "PASS",
+    "release_manifest_sha256": "0865254e40584da570cfd93aabfdd77c6f9bf8b38a8ca6ba30eb8fcc84d54bba",
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/friday-close-input-api-20261018-r1"
+  },
+  "cannot_confirm": [
+    "Exact Sina per-request HTTP timestamps.",
+    "Official exchange-close attestation; cross-provider daily price equality is not that attestation.",
+    "Exact supported activation/rollback invocation for the new inactive r1 candidate.",
+    "Source branch sync and remote readback."
+  ],
+  "generated_at_utc": "2026-10-18T06:39:13Z",
+  "remaining_gates": [
+    "Independent reviewer must inspect and rerun candidate checks against the actual delta and frozen PASS scope.",
+    "Controller must freeze the next activation/rollback allowlist and the exact supported activation invocation.",
+    "After review and activation only: one manager-workbench selection, matching API readback, reloaded UI verification, and any required natural-time result."
+  ],
+  "schema_version": "v4.us_friday_backfill_writer_receipt.v1",
+  "state": {
+    "api_activated": false,
+    "api_readback": "NOT_RUN",
+    "buy_gate_updated": false,
+    "canonical_data_modified": false,
+    "canonical_source_modified": false,
+    "natural_result": "NOT_RUN",
+    "orders_sent": false,
+    "plist_modified": false,
+    "production_allowed": false,
+    "selector_run": false,
+    "source_sync": "NOT_SYNCED",
+    "ui_readback": "NOT_RUN"
+  },
+  "status": "CANDIDATE_READY_FOR_INDEPENDENT_REVIEW",
+  "verification": {
+    "commands": [
+      {
+        "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python docs/handoffs/us_friday_close_backfill_20261018/prepare_api_candidate.py",
+        "result": "PASS; baseline failure reproduced, candidate real-owner canary passed, API integration verifier passed"
+      },
+      {
+        "command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -m pytest -q --basetemp=/tmp/v4-friday-close-api-candidate-20261018 tests/test_api_release_integration.py tests/test_manager_us_mapping_bindings_r3.py::test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standard_receipt",
+        "result": "PASS; 19 passed in 1.04s"
+      },
+      {
+        "command": "Initial pytest run without a dedicated --basetemp",
+        "result": "Test cases completed, but pytest exited 1 during cleanup of a stale protected temporary directory; isolated rerun above completed cleanly"
+      }
+    ],
+    "independent_candidate_review": "PENDING",
+    "runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python (CPython 3.14.6)",
+    "writer_tested": true
+  }
+}

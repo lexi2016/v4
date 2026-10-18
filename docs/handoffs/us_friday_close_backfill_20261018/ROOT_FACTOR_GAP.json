@@ -1,0 +1,49 @@
+{
+  "status": "CANNOT_CONFIRM_COMPLETE_SELECTION",
+  "known_failure": "US_FACTOR_PAIRED_ARTIFACT_IDENTITY_INVALID",
+  "sole_false_identity_predicate": "candidate.target_date20261013 != run.target_date20261020",
+  "paired_files_hash_valid": true,
+  "target20261020_pair_found": false,
+  "supported_existing_pair_builder_found": false,
+  "existing_pair": {
+    "candidate_status": "CANDIDATE_FOR_INDEPENDENT_REVIEW",
+    "target_date": "20261013",
+    "fact_rows": 11,
+    "review_accept": 7,
+    "review_reject": 4,
+    "subject_verification_date": "20261013"
+  },
+  "additional_engine_constraint": "US_FACTOR_RETROSPECTIVE_ONLY; current run phase MANUAL",
+  "missing_inputs": [
+    "Target20261020 exposure facts with source and availability provenance",
+    "Target-specific identity and Connect verification",
+    "Independent review pair bound to fresh candidate SHA"
+  ],
+  "no_relabel_or_guard_relaxation": true,
+  "run_repeated": false,
+  "nine_assessed_sources_reason": "US_SOURCE_CHANGE_NOT_POSITIVE",
+  "assessed_symbols": [
+    "AMD",
+    "AVGO",
+    "CIEN",
+    "COHR",
+    "EQIX",
+    "LITE",
+    "NVDA",
+    "STX",
+    "VRT"
+  ],
+  "source_coverage": {
+    "observed": 48,
+    "assessed": 9,
+    "unassessed": 39
+  },
+  "complete_zero_selection_claim": false,
+  "writer_identity": "/root/friday_backfill_writer",
+  "evidence": [
+    "ROOT_RUN_JOB.json",
+    "ROOT_RESULT_SUMMARY.json",
+    "local_only/run_readback/day_result.json",
+    "UI_FACTOR_GAP.png"
+  ]
+}
