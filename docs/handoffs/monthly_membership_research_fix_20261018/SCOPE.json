@@ -1,0 +1,47 @@
+{
+  "GOAL": "Display Friday 20261016 US-close mapped HK Connect monthly-observed stocks as upward-potential and downward-risk lists with per-stock reasons; reuse existing automatic US-close handoff; isolate individual missing mappings; independently review, deploy, run once, show UI and sync GitHub.",
+  "WRITER": "daily_chain_writer (Luna Max)",
+  "REVIEWER": "fresh independent Luna Max reviewer, not nineteen_decision_review (wrong-batch receipt rejected)",
+  "ALLOWED_PATHS": [
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/engines/us_factor.py",
+    "tests/manager_workbench/engines/test_us_factor.py",
+    "tests/test_manager_us_mapping_bindings_r3.py",
+    "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/**",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/display.ts",
+    "apps/web/src/manager-workbench/types.ts",
+    "apps/web/src/manager-workbench/workbench.css",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "tests/manager_workbench/runtime/test_us_factor_display.py",
+    "v4/manager_workbench/display_read.py",
+    "v4/manager_workbench/api.py"
+  ],
+  "FORBIDDEN_PATHS": [
+    "all producer/source owner artifacts",
+    "direct relationship historical evidence, other modules, Vibe8910",
+    "formal eligibility/PIT promotion, BUY/orders",
+    "new producer/frontend/service/schedule; existing automatic handoff already present"
+  ],
+  "PASS_SIGNAL": [
+    "Real frozen source loader->NativeAdapters->engine admits dated monthly research provenance with no explicit future interval; no global industry rejection for this reason",
+    "Missing labels isolated per stock; positives/nonpositives evaluated by existing proxy rule; all source hashes, market, cutoff and safety preserved",
+    "Formal target eligibility remains separate CANNOT_CONFIRM; no invented interval",
+    "Independent focused regression + actual frozen input behavior PASS; reviewed minimal API/scheduler releases activated with rollback",
+    "One saved actual manual run API/UI agree and remote commit/file SHAs verified",
+    "Clear provider industries map to existing fixed proxy themes; 06823/09618/09961 omitted per user; optional 09988 ecommerce/cloud only with explicit manual business-source provenance",
+    "Visible lists use verified actual positive/negative proxy returns, never NOT_SELECTED as downside; zero/unknown separate; one stock may expose mixed paths without arbitrary net score",
+    "Lists operate on full saved lane universe, not first page; per-stock reasons show mapped industry/theme, US session and verified move",
+    "Existing US-close scheduler route remains connected and tested; report natural-slot status separately"
+  ],
+  "STOP_RULE": "Isolate stock-level gaps and proceed. Any unresolved issue reaching ten minutes: ask user promptly with concrete options while continuing independent work. No repeated same-byte checks after PASS.",
+  "ROOT_INTEGRATION_ALLOWLIST": [
+    "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/**",
+    "new immutable monthly-membership-api-20261018-r2 and monthly-membership-scheduler-20261018-r2 including reviewed web build",
+    "existing API and scheduler LaunchAgents exact reviewed identity changes only",
+    "existing research owner POST one US_MAPPING run target 20261020",
+    "GitHub lexi2016/v4 new branch codex/monthly-membership-research-20261018 from c4d32744136a1f918c8dd991a6ffb3cb44efaf18"
+  ],
+  "USER_DECISION_R2": "2026-10-19 user explicitly chose: 先跳过泛行业，逐股显示待核原因. Clear industry paths proceed; software/industrial engineering/media broad labels do not block."
+}

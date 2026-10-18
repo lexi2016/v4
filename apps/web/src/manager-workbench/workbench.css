@@ -127,3 +127,45 @@ input, select { border: 1px solid #b9c6d6; border-radius: 7px; background: #fff;
 .mwb-research-section cite { font-size: 11px; color: #64748b; font-style: normal; overflow-wrap: anywhere; }
 .mwb-audit-json { max-height: 480px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; }
 .mwb-evidence a { display: inline-block; margin: 6px 14px 0 0; }
+.mwb-announcements { border-top: 3px solid #1d6078; }
+.mwb-announcement-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 12px; border-radius: 7px; background: #f3f7fa; color: #53677c; font-size: 12px; }
+.mwb-announcement-meta strong { color: #173d59; overflow-wrap: anywhere; }
+.mwb-announcement-counts { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 14px 0; }
+.mwb-announcement-counts > div { display: flex; flex-direction: column; gap: 5px; border: 1px solid #d9e4ed; border-radius: 8px; padding: 12px; background: #f8fafc; }
+.mwb-announcement-counts strong { font-size: 21px; color: #143b58; font-variant-numeric: tabular-nums; }
+.mwb-announcement-counts span, .mwb-announcement-job span { font-size: 11px; color: #65788e; }
+.mwb-announcement-job { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 15px; margin: 14px 0; padding: 12px; border: 1px solid #d5e2eb; border-radius: 7px; background: #f7fbfd; }
+.mwb-announcement-job strong { color: #184e6e; }
+.mwb-announcement-safety { margin: 14px 0; padding: 9px 12px; color: #754b0d; background: #fff6e6; border-radius: 6px; font-size: 12px; }
+.mwb-announcement-table { min-width: 850px; table-layout: fixed; }
+.mwb-announcement-table th:nth-child(1) { width: 16%; }
+.mwb-announcement-table th:nth-child(2) { width: 27%; }
+.mwb-announcement-table th:nth-child(3) { width: 39%; }
+.mwb-announcement-table th:nth-child(4) { width: 18%; }
+.mwb-announcement-article + .mwb-announcement-article, .mwb-announcement-reason + .mwb-announcement-reason { border-top: 1px solid #e2e9ef; margin-top: 9px; padding-top: 8px; }
+.mwb-announcement-article strong { display: block; font-size: 12px; color: #294861; }
+.mwb-announcement-article small { display: block; margin-top: 4px; color: #6b7d92; overflow-wrap: anywhere; }
+.mwb-announcement-reason p { margin: 0 0 7px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mwb-announcement-reason ul { margin: 5px 0; padding-left: 18px; }
+.mwb-announcement-audit { margin-top: 16px; padding: 13px; border: 1px solid #dce5ee; border-radius: 7px; background: #fbfcfe; }
+.mwb-announcement-audit summary { cursor: pointer; font-weight: 700; color: #334d64; }
+.mwb-announcement-audit h3 { margin: 16px 0 7px; font-size: 13px; }
+.mwb-announcement-audit ul { padding-left: 20px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+@media(max-width:1050px) { .mwb-announcement-counts { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media(max-width:680px) { .mwb-announcement-counts { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+.mwb-directional-lists { margin: 16px 0; padding: 16px; border: 1px solid #d5e2ea; border-radius: 10px; background: #f7fafc; }
+.mwb-directional-lists h3 { margin: 0 0 8px; color: #173e59; }
+.mwb-directional-lists > p { color: #53677d; font-size: 12px; line-height: 1.65; }
+.mwb-direction-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.mwb-direction-card { min-width: 0; border: 1px solid #d6e0e9; border-radius: 8px; padding: 12px; background: #fff; }
+.mwb-direction-card h4 { margin: 0 0 8px; font-size: 14px; }
+.mwb-direction-card.is-upside h4 { color: #17664e; }
+.mwb-direction-card.is-downside h4 { color: #9b3e34; }
+.mwb-direction-card ul, .mwb-direction-secondary ul { max-height: 360px; overflow: auto; margin: 0; padding-left: 20px; }
+.mwb-direction-card li, .mwb-direction-secondary li { padding: 7px 0; border-top: 1px solid #e7edf2; line-height: 1.55; overflow-wrap: anywhere; }
+.mwb-direction-card li p, .mwb-direction-secondary li p { margin: 3px 0; font-size: 12px; }
+.mwb-direction-card li small { color: #76551b; }
+.mwb-direction-secondary { margin-top: 8px; border: 1px solid #dce5ed; border-radius: 7px; padding: 9px 12px; background: #fff; }
+.mwb-direction-secondary summary { cursor: pointer; color: #354f66; font-size: 12px; font-weight: 700; }
+.mwb-direction-secondary ul { margin-top: 8px; }
+@media(max-width:680px) { .mwb-direction-grid { grid-template-columns: 1fr; } }

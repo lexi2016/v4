@@ -21,13 +21,43 @@ AS_REPORTED_EXPOSURE_REASONS = frozenset((
     "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE_ONLY",
 ))
 LIMITATION_REASONS = frozenset(("LIMITS", "LIMITS_REQUIRED"))
-HK_INDUSTRY_MAPPING_VERSION = "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V1"
-# Only exact provider labels backed by a reviewed canary belong here. New labels
-# stay visible as unmapped until their source spelling and proxy fit are frozen.
+HK_INDUSTRY_MAPPING_VERSION = "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V2"
+
+
+def _provider_proxy(themes, evidence="USER_DIRECTED_FIXED_THEME_MAP_R2"):
+    return dict(themes=[dict(theme=theme, proxy_symbols=list(symbols)) for theme, symbols in themes],
+        mapping_type="EXACT_PROVIDER_INDUSTRY", mapping_evidence=evidence)
+
+
+# These are exact labels emitted by the saved Eastmoney provider artifact. The
+# XLY/XLP basket is a broad consumption proxy, not an exact subsector match.
+# Oil and gas intentionally remain two independent paths so opposite moves are
+# visible without a net score. Unlisted provider strings stay unmapped.
 HK_INDUSTRY_TO_PROXY = {
-    "家庭电器及用品": dict(theme="消费", proxy_symbols=["XLY", "XLP"],
-        mapping_type="EXACT_PROVIDER_INDUSTRY", mapping_evidence="EASTMONEY_F10_HK00300_CANARY"),
+    "家庭电器及用品": _provider_proxy([("消费", ["XLY", "XLP"])], "EASTMONEY_F10_HK00300_CANARY"),
+    "专业零售": _provider_proxy([("消费", ["XLY", "XLP"])]),
+    "消费者主要零售商": _provider_proxy([("消费", ["XLY", "XLP"])]),
+    "食物饮品": _provider_proxy([("消费", ["XLY", "XLP"])]),
+    "纺织及服饰": _provider_proxy([("消费", ["XLY", "XLP"])]),
+    "汽车": _provider_proxy([("消费", ["XLY", "XLP"])]),
+    "旅游及消闲设施": _provider_proxy([("消费", ["XLY", "XLP"])]),
+    "药品及生物科技": _provider_proxy([("生物医药", ["XBI"])]),
+    "半导体": _provider_proxy([("半导体", ["SOXX"])]),
+    "银行": _provider_proxy([("银行金融", ["KBE"])]),
+    "黄金及贵金属": _provider_proxy([("黄金", ["GLD"])]),
+    "石油及天然气": _provider_proxy([("石油", ["XLE"]), ("天然气", ["FCG"])]),
 }
+
+
+def _industry_proxy_specs(theme_info):
+    specs = theme_info.get("themes") if isinstance(theme_info, dict) else None
+    if not isinstance(specs, list):
+        theme = theme_info.get("theme") if isinstance(theme_info, dict) else None
+        symbols = theme_info.get("proxy_symbols") if isinstance(theme_info, dict) else None
+        specs = [dict(theme=theme, proxy_symbols=symbols)] if theme else []
+    return [spec for spec in specs if isinstance(spec, dict)
+        and isinstance(spec.get("theme"), str) and spec.get("theme")
+        and isinstance(spec.get("proxy_symbols"), list) and spec.get("proxy_symbols")]
 
 
 def _reason_tokens(reasons):
@@ -277,6 +307,62 @@ def _industry_time_state(artifact, context):
     return False, "RETROSPECTIVE_PIT_UNKNOWN", captured_at.isoformat()
 
 
+def _monthly_research_membership_valid(research, artifact, context):
+    """Validate an observed monthly research universe without proving target eligibility."""
+    if not isinstance(research, dict) or not isinstance(artifact, dict):
+        return False, "MONTHLY_RESEARCH_UNIVERSE_NOT_BOUND"
+    codes = research.get("codes")
+    source_date, source_date_valid = _industry_asof_date(research.get("source_date"))
+    target_date = context.get("target_date", "")
+    refs = research.get("checked_files")
+    try:
+        expected_codes_sha = sha256(json.dumps(
+            {"market": "HK_CONNECT", "codes": codes}, ensure_ascii=False,
+            sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    except (TypeError, ValueError):
+        return False, "MONTHLY_RESEARCH_UNIVERSE_CODES_INVALID"
+    if not isinstance(refs, list) or len(refs) < 6:
+        return False, "MONTHLY_RESEARCH_UNIVERSE_SOURCE_REFS_INCOMPLETE"
+    if any(not isinstance(ref, dict) or not isinstance(ref.get("source_local_path"), str)
+            or not ref.get("source_local_path") or not isinstance(ref.get("relative"), str)
+            or not ref.get("relative") or not valid_sha(ref.get("sha256")) for ref in refs):
+        return False, "MONTHLY_RESEARCH_UNIVERSE_SOURCE_REFS_INVALID"
+    refs_by_path = {ref["relative"]: ref["sha256"] for ref in refs}
+    source_identity_valid = (
+        research.get("schema_version") == "v4.manager_workbench.hk_connect_monthly_research_universe.v1"
+        and research.get("status") == "VERIFIED"
+        and research.get("market") == "HK_CONNECT"
+        and research.get("owner") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+        and isinstance(research.get("producer_owner"), str) and bool(research.get("producer_owner"))
+        and research.get("source_role") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+        and research.get("target_month") == target_date[:6]
+        and source_date_valid and source_date.strftime("%Y%m%d") == research.get("source_date")
+        and source_date.strftime("%Y%m%d")[:6] == target_date[:6]
+        and source_date.strftime("%Y%m%d") <= target_date
+        and research.get("cutoff") == context.get("cutoff")
+        and current(context, research.get("available_at"))
+        and valid_sha(research.get("artifact_sha256"))
+        and research.get("codes_sha256") == expected_codes_sha
+        and isinstance(codes, list) and bool(codes)
+        and type(research.get("code_count")) is int and research.get("code_count") == len(codes)
+        and len(codes) == len(set(codes)) and codes == sorted(codes)
+        and all(hk_symbol(code) for code in codes)
+        and research.get("target_period_verified") is False
+        and research.get("formal_target_eligibility") == "CANNOT_CONFIRM"
+        and research.get("formal_target_gap") == "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"
+        and research.get("artifact_relative") in refs_by_path
+        and refs_by_path.get(research.get("artifact_relative")) == research.get("artifact_sha256")
+        and research.get("manifest_relative") in refs_by_path
+        and refs_by_path.get(research.get("manifest_relative")) == research.get("manifest_sha256")
+        and research.get("receipt_relative") in refs_by_path
+        and refs_by_path.get(research.get("receipt_relative")) == research.get("receipt_sha256")
+        and artifact.get("source_membership_artifact_sha256") == research.get("artifact_sha256")
+        and artifact.get("source_membership_codes_sha256") == research.get("codes_sha256")
+        and artifact.get("membership_artifact_sha256") is None
+    )
+    return (source_identity_valid, None if source_identity_valid else "MONTHLY_RESEARCH_UNIVERSE_IDENTITY_INVALID")
+
+
 def _hk_industry_candidates(context, payload, proxy_returns):
     """Project exact-date issuer classifications into a separate research funnel."""
     binding = payload.get("hk_industry_classification") if isinstance(payload, dict) else None
@@ -284,6 +370,10 @@ def _hk_industry_candidates(context, payload, proxy_returns):
     scope_codes = payload.get("hk_scope_codes") if isinstance(payload, dict) else None
     if not isinstance(scope_codes, list) and isinstance(binding, dict):
         scope_codes = binding.get("hk_scope_codes")
+    if not scope_codes and isinstance(binding, dict):
+        research_pin = binding.get("research_membership")
+        if isinstance(research_pin, dict) and isinstance(research_pin.get("codes"), list):
+            scope_codes = research_pin["codes"]
     scope_codes = sorted(scope_codes) if isinstance(scope_codes, list) and all(hk_symbol(code) for code in scope_codes) else []
     if type(scope_count) is not int and scope_codes:
         scope_count = len(scope_codes)
@@ -344,16 +434,44 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         empty_summary.update(source_status="INVALID", source_gap="HK_INDUSTRY_CLASSIFICATION_ARTIFACT_INVALID")
         return [], empty_summary
 
-    codes = binding.get("hk_scope_codes")
-    expected_scope_count = binding.get("hk_scope_count")
-    expected_codes_sha = binding.get("membership_codes_sha256")
-    expected_member_sha = binding.get("membership_artifact_sha256")
+    observed_policy = artifact.get("classification_policy") == "LATEST_OBSERVED"
+    research_membership = binding.get("research_membership")
+    research_valid, research_gap = _monthly_research_membership_valid(
+        research_membership, artifact, context)
+    formal_codes = binding.get("hk_scope_codes")
+    formal_scope_count = binding.get("hk_scope_count")
+    formal_codes_sha = binding.get("membership_codes_sha256")
+    formal_member_sha = binding.get("membership_artifact_sha256")
+    formal_membership_bound = bool(
+        isinstance(formal_codes, list) and formal_codes
+        and type(formal_scope_count) is int
+        and valid_sha(formal_member_sha)
+    )
+    use_monthly_research = bool(
+        observed_policy and research_valid and not formal_membership_bound
+        and formal_member_sha is None
+        and artifact.get("membership_artifact_sha256") is None
+        and artifact.get("membership_codes_sha256") is None
+        and binding.get("membership_owner") is None
+        and binding.get("membership_available_at") is None
+        and binding.get("membership_effective_from") is None
+        and binding.get("membership_effective_through") is None
+    )
+    if use_monthly_research:
+        codes = research_membership["codes"]
+        expected_scope_count = research_membership["code_count"]
+        expected_codes_sha = research_membership["codes_sha256"]
+        expected_member_sha = None
+    else:
+        codes = formal_codes
+        expected_scope_count = formal_scope_count
+        expected_codes_sha = formal_codes_sha
+        expected_member_sha = formal_member_sha
     actual_codes_sha = sha256(json.dumps(
         {"market": "HK_CONNECT", "codes": sorted(codes) if isinstance(codes, list) else []},
         ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     rows = artifact.get("rows")
     artifact_sha = binding.get("artifact_sha256")
-    observed_policy = artifact.get("classification_policy") == "LATEST_OBSERVED"
     source_scope_valid = (
         type(artifact.get("scope_count")) is int and artifact.get("scope_count") >= 0
         and artifact.get("observed_scope_count") == artifact.get("scope_count")
@@ -362,10 +480,50 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         if observed_policy else artifact.get("scope_count") == expected_scope_count
     )
     source_membership_valid = (
-        artifact.get("membership_codes_sha256") == expected_codes_sha
-        and artifact.get("membership_artifact_sha256") == expected_member_sha
+        artifact.get("source_membership_codes_sha256") == expected_codes_sha
+        and artifact.get("source_membership_artifact_sha256") == research_membership.get("artifact_sha256")
+        if use_monthly_research else
+        (artifact.get("membership_codes_sha256") == expected_codes_sha
+            and artifact.get("membership_artifact_sha256") == expected_member_sha)
         if not observed_policy else True
     )
+    formal_membership_identity_valid = (
+        artifact.get("membership_artifact_sha256") == expected_member_sha
+        and valid_sha(expected_member_sha)
+        and isinstance(binding.get("membership_owner"), str) and bool(binding.get("membership_owner"))
+        and current(context, binding.get("membership_available_at"))
+        and isinstance(binding.get("membership_effective_from"), str)
+        and isinstance(binding.get("membership_effective_through"), str)
+        and binding["membership_effective_from"] <= context.get("target_date", "") <= binding["membership_effective_through"]
+    )
+    monthly_membership_identity_valid = (
+        expected_member_sha is None and artifact.get("membership_artifact_sha256") is None
+        and artifact.get("membership_codes_sha256") is None
+        and binding.get("membership_owner") is None
+        and binding.get("membership_available_at") is None
+        and binding.get("membership_effective_from") is None
+        and binding.get("membership_effective_through") is None
+        and use_monthly_research
+    )
+    membership_identity_valid = (monthly_membership_identity_valid if use_monthly_research
+        else formal_membership_identity_valid)
+    if use_monthly_research:
+        empty_summary.update(
+            scope_count=expected_scope_count,
+            classification_missing_count=expected_scope_count,
+            unknown_unique_stock_count=expected_scope_count,
+            decision_counts={"CONDITIONAL_WATCH": 0, "NOT_SELECTED": 0, "UNASSESSED": expected_scope_count},
+            monthly_research_universe_status="VERIFIED",
+            monthly_research_source_date=research_membership.get("source_date"),
+            monthly_research_source_sha256=research_membership.get("artifact_sha256"),
+            monthly_research_codes_sha256=research_membership.get("codes_sha256"),
+            monthly_research_code_count=research_membership.get("code_count"),
+            formal_target_eligibility="CANNOT_CONFIRM",
+            formal_target_gap=research_membership.get("formal_target_gap"),
+        )
+    elif observed_policy and not research_valid:
+        empty_summary.update(monthly_research_universe_status="CANNOT_CONFIRM",
+            monthly_research_gap=research_gap, formal_target_eligibility="CANNOT_CONFIRM")
     identity_ok = (
         artifact.get("schema_version") == "v4.manager_workbench.hk_industry_classification.v1"
         and artifact.get("source_id") == "EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE"
@@ -378,13 +536,8 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         and source_scope_valid
         and source_membership_valid
         and expected_codes_sha == actual_codes_sha
-        and artifact.get("membership_artifact_sha256") == expected_member_sha
-        and valid_sha(expected_member_sha) and valid_sha(artifact_sha)
-        and isinstance(binding.get("membership_owner"), str) and bool(binding.get("membership_owner"))
-        and current(context, binding.get("membership_available_at"))
-        and isinstance(binding.get("membership_effective_from"), str)
-        and isinstance(binding.get("membership_effective_through"), str)
-        and binding["membership_effective_from"] <= context.get("target_date", "") <= binding["membership_effective_through"]
+        and membership_identity_valid
+        and valid_sha(artifact_sha)
         and isinstance(rows, list)
         and isinstance(binding.get("owner"), str) and bool(binding.get("owner"))
         and valid_sha(artifact.get("batch_response_sha256"))
@@ -426,10 +579,28 @@ def _hk_industry_candidates(context, payload, proxy_returns):
     counts = {d: 0 for d in ("CONDITIONAL_WATCH", "NOT_SELECTED", "UNASSESSED")}
     classified = mapped = missing = unmapped = triggered = 0
     expected_session = (context.get("source_sessions") or {}).get("us") or (context.get("source_sessions") or {}).get("US")
-    member = dict(verification="VERIFIED", eligible=True, owner=binding.get("membership_owner"),
-        sha256=expected_member_sha, available_at=binding.get("membership_available_at"),
-        effective_from=binding.get("membership_effective_from"),
-        effective_through=binding.get("membership_effective_through"), version=binding.get("membership_version"))
+    if use_monthly_research:
+        member = dict(verification="CANNOT_CONFIRM", eligible=None,
+            owner=research_membership.get("owner"), sha256=None,
+            available_at=research_membership.get("available_at"), effective_from=None,
+            effective_through=None, version=research_membership.get("version"),
+            gap=research_membership.get("formal_target_gap"))
+        research_member_row = dict(status="VERIFIED_MONTHLY_OBSERVATION", in_monthly_universe=True,
+            market=research_membership.get("market"), source_role=research_membership.get("source_role"),
+            target_month=research_membership.get("target_month"), source_date=research_membership.get("source_date"),
+            source_owner=research_membership.get("owner"), source_sha256=research_membership.get("artifact_sha256"),
+            codes_sha256=research_membership.get("codes_sha256"), available_at=research_membership.get("available_at"))
+        formal_target_eligibility = dict(status="CANNOT_CONFIRM", eligible=None,
+            gap=research_membership.get("formal_target_gap"), effective_from=None, effective_through=None)
+    else:
+        member = dict(verification="VERIFIED", eligible=True, owner=binding.get("membership_owner"),
+            sha256=expected_member_sha, available_at=binding.get("membership_available_at"),
+            effective_from=binding.get("membership_effective_from"),
+            effective_through=binding.get("membership_effective_through"), version=binding.get("membership_version"))
+        research_member_row = None
+        formal_target_eligibility = dict(status="VERIFIED", eligible=True, gap=None,
+            effective_from=binding.get("membership_effective_from"),
+            effective_through=binding.get("membership_effective_through"))
     master_code_set = set(master_codes)
     for symbol in sorted(codes):
         symbol_identity_ok = master_identity_ok and symbol in master_code_set
@@ -446,8 +617,8 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         conditions = []
         reason = ""
         decision = "UNASSESSED"
-        proxy = None
-        exposure = None
+        primary_proxy = None
+        proxy_paths = []
         if not time_ok:
             conditions.append(temporal_status)
         if symbol in duplicate_symbols:
@@ -467,33 +638,66 @@ def _hk_industry_candidates(context, payload, proxy_returns):
             reason = "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE"
         else:
             mapped += 1
-            theme = theme_info["theme"]
-            proxy = proxy_returns.get(theme)
-            if not isinstance(proxy, dict) or proxy.get("status") != "VERIFIED":
-                conditions.append(proxy.get("reason", "THEME_PROXY_RETURN_UNASSESSED") if isinstance(proxy, dict)
-                    else "THEME_PROXY_OWNER_ROW_MISSING")
-            elif item.get("mapping_type") != theme_info["mapping_type"]:
-                conditions.append("INDUSTRY_MAPPING_TYPE_MISMATCH")
-            else:
-                try:
-                    exposure = _number(proxy.get("return_pct"))
-                except ValueError:
-                    conditions.append("THEME_PROXY_RETURN_INVALID")
-            if not time_ok:
-                conditions.append(temporal_status)
-            if symbol in duplicate_symbols:
-                conditions.append("CLASSIFICATION_ROW_DUPLICATE")
-            if not conditions:
-                if exposure is not None and exposure > 0:
-                    decision, reason = "CONDITIONAL_WATCH", "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY"
-                    triggered += 1
-                elif exposure is not None:
-                    decision, reason = "NOT_SELECTED", "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE"
+            proxy_specs = _industry_proxy_specs(theme_info)
+            if not proxy_specs:
+                conditions.append("INDUSTRY_PROXY_THEME_BINDING_INVALID")
+            for spec in proxy_specs:
+                theme = spec["theme"]
+                proxy = proxy_returns.get(theme)
+                path_conditions = []
+                exposure = None
+                direction = "UNASSESSED"
+                if not time_ok:
+                    path_conditions.append(temporal_status)
+                if symbol in duplicate_symbols:
+                    path_conditions.append("CLASSIFICATION_ROW_DUPLICATE")
+                if not isinstance(proxy, dict) or proxy.get("status") != "VERIFIED":
+                    path_conditions.append(proxy.get("reason", "THEME_PROXY_RETURN_UNASSESSED")
+                        if isinstance(proxy, dict) else "THEME_PROXY_OWNER_ROW_MISSING")
+                elif proxy.get("proxy_symbols") != spec["proxy_symbols"]:
+                    path_conditions.append("INDUSTRY_THEME_PROXY_MEMBERSHIP_MISMATCH")
+                # Older exact-provider rows may predate this derived field.
+                # The exact frozen source-industry label remains the mapping
+                # key; only a conflicting explicit derived value is rejected.
+                elif item.get("mapping_type") not in (None, theme_info["mapping_type"]):
+                    path_conditions.append("INDUSTRY_MAPPING_TYPE_MISMATCH")
                 else:
-                    decision, reason = "UNASSESSED", "HK_INDUSTRY_PROXY_RETURN_UNASSESSED"
-            elif temporal_status in conditions:
-                reason = "HK_INDUSTRY_RETROSPECTIVE_PIT_UNKNOWN"
-            elif not time_ok:
+                    try:
+                        exposure = _number(proxy.get("return_pct"))
+                    except ValueError:
+                        path_conditions.append("THEME_PROXY_RETURN_INVALID")
+                if exposure is not None and not path_conditions:
+                    direction = "UPSIDE" if exposure > 0 else "DOWNSIDE" if exposure < 0 else "FLAT"
+                proxy_paths.append(dict(theme=theme, proxy_symbols=list(spec["proxy_symbols"]),
+                    status="VERIFIED" if exposure is not None and not path_conditions else "UNASSESSED",
+                    direction=direction, return_pct=str(exposure) if exposure is not None else None,
+                    return_unit="PERCENT", source_session=expected_session,
+                    reason=("VERIFIED_PROXY_RETURN_" + direction if direction != "UNASSESSED"
+                        else "THEME_PROXY_RETURN_UNASSESSED"), conditions=list(dict.fromkeys(path_conditions)),
+                    owner=proxy.get("owner") if isinstance(proxy, dict) else None,
+                    source_sha256=proxy.get("source_sha256") if isinstance(proxy, dict) else None,
+                    available_at=proxy.get("available_at") if isinstance(proxy, dict) else None))
+                if isinstance(proxy, dict) and primary_proxy is None:
+                    primary_proxy = proxy
+                conditions.extend(path_conditions)
+            directions = {path["direction"] for path in proxy_paths}
+            positive_path = "UPSIDE" in directions
+            negative_path = "DOWNSIDE" in directions
+            all_paths_verified = len(proxy_paths) == len(proxy_specs) and bool(proxy_paths) and all(
+                path["status"] == "VERIFIED" for path in proxy_paths)
+            if not conditions and all_paths_verified:
+                if positive_path:
+                    decision = "CONDITIONAL_WATCH"
+                    reason = ("HK_INDUSTRY_US_PROXY_PATHS_MIXED_RESEARCH_ONLY" if negative_path
+                        else "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY")
+                    triggered += 1
+                else:
+                    decision, reason = "NOT_SELECTED", (
+                        "HK_INDUSTRY_US_PROXY_RETURN_ZERO" if directions == {"FLAT"}
+                        else "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE")
+            else:
+                decision, reason = "UNASSESSED", "HK_INDUSTRY_PROXY_RETURN_UNASSESSED"
+            if temporal_status in conditions or not time_ok:
                 reason = "HK_INDUSTRY_RETROSPECTIVE_PIT_UNKNOWN"
         if not symbol_identity_ok:
             if decision == "CONDITIONAL_WATCH":
@@ -505,34 +709,71 @@ def _hk_industry_candidates(context, payload, proxy_returns):
             for condition in conditions
             if condition != temporal_status
         ]
+        diagnostic_exposures = []
+        diagnostic_paths_valid = bool(proxy_paths)
+        for path in proxy_paths:
+            path_non_time_conditions = [
+                condition for condition in path.get("conditions", [])
+                if condition != temporal_status
+            ]
+            if path_non_time_conditions or path.get("return_pct") is None:
+                diagnostic_paths_valid = False
+                continue
+            try:
+                diagnostic_exposures.append(Decimal(path["return_pct"]))
+            except (InvalidOperation, TypeError, ValueError):
+                diagnostic_paths_valid = False
+        diagnostic_exposure = next(
+            (value for value in diagnostic_exposures if value > 0), None)
 
         diagnostic_projection = _industry_diagnostic_projection(
             context,
             time_ok=time_ok,
             symbol_identity_ok=symbol_identity_ok,
             mapped=bool(theme_info),
-            proxy=proxy,
-            exposure=exposure,
+            # Historical diagnostic output may relax only the classification
+            # availability gate. It remains separate from the formal path
+            # status, which stays UNASSESSED when its capture is late.
+            proxy=(dict(status="VERIFIED") if diagnostic_paths_valid else None),
+            exposure=diagnostic_exposure,
             non_time_conditions=non_time_conditions,
         )
 
         counts[decision] += 1
-        theme = theme_info.get("theme") if theme_info else None
+        proxy_specs = _industry_proxy_specs(theme_info) if theme_info else []
+        primary_path = proxy_paths[0] if len(proxy_paths) == 1 else None
+        path_directions = {path["direction"] for path in proxy_paths}
+        directional_state = (
+            "MIXED_UPSIDE_DOWNSIDE" if "UPSIDE" in path_directions and "DOWNSIDE" in path_directions
+            else "UPSIDE_WITH_UNASSESSED" if "UPSIDE" in path_directions and "UNASSESSED" in path_directions
+            else "DOWNSIDE_WITH_UNASSESSED" if "DOWNSIDE" in path_directions and "UNASSESSED" in path_directions
+            else "UPSIDE" if "UPSIDE" in path_directions
+            else "DOWNSIDE" if "DOWNSIDE" in path_directions
+            else "FLAT_WITH_UNASSESSED" if "FLAT" in path_directions and "UNASSESSED" in path_directions
+            else "FLAT" if "FLAT" in path_directions
+            else "UNASSESSED")
+        theme = proxy_specs[0]["theme"] if len(proxy_specs) == 1 else None
+        proxy_status = ("VERIFIED" if proxy_paths and all(path["status"] == "VERIFIED" for path in proxy_paths)
+            else "UNASSESSED")
         results.append(dict(market="HK_CONNECT", symbol=symbol, name=source_name,
             decision=decision, reason=reason or "HK_INDUSTRY_RESEARCH_PATH_UNASSESSED",
             conditions=list(dict.fromkeys(conditions)), invalidation_conditions=[],
             risks=["RESEARCH_ONLY", "NOT_A_SELECTION_SCORE", "NOT_PIT_VERIFIED"], metrics={},
             evidence_ids=list(binding.get("evidence_ids") or []), membership=member if member.get("owner") else None,
+            research_membership=research_member_row, target_eligibility=dict(formal_target_eligibility),
             subtype="HK_INDUSTRY_PROXY_FACTOR_CANDIDATE", factor_rules_version=RULES_VERSION,
             source_industry=source_industry, theme=theme,
+            themes=[spec["theme"] for spec in proxy_specs],
             mapping_type=theme_info.get("mapping_type") if theme_info else None,
             mapping_version=HK_INDUSTRY_MAPPING_VERSION,
             mapping_evidence=theme_info.get("mapping_evidence") if theme_info else None,
-            return_pct=str(exposure) if exposure is not None else None, return_unit="PERCENT",
-            source_session=expected_session, proxy_symbols=theme_info.get("proxy_symbols") if theme_info else None,
-            proxy_status=proxy.get("status") if isinstance(proxy, dict) else "UNASSESSED",
-            proxy_owner=proxy.get("owner") if isinstance(proxy, dict) else None,
-            proxy_source_sha256=proxy.get("source_sha256") if isinstance(proxy, dict) else None,
+            return_pct=primary_path.get("return_pct") if primary_path else None, return_unit="PERCENT",
+            source_session=expected_session,
+            proxy_symbols=sorted({member for spec in proxy_specs for member in spec["proxy_symbols"]}) if proxy_specs else None,
+            proxy_status=proxy_status,
+            proxy_owner=primary_proxy.get("owner") if isinstance(primary_proxy, dict) else None,
+            proxy_source_sha256=primary_proxy.get("source_sha256") if isinstance(primary_proxy, dict) else None,
+            proxy_paths=proxy_paths, proxy_directional_state=directional_state,
             source_owner=binding.get("owner"), source_id=artifact.get("source_id"),
             source_artifact_sha256=artifact_sha, source_batch_response_sha256=artifact.get("batch_response_sha256"),
             source_response_sha256=response_sha, source_response_ref=response_ref,
@@ -579,7 +820,16 @@ def _hk_industry_candidates(context, payload, proxy_returns):
         security_master_source_date=identity.get("source_date") if master_identity_ok else None,
         security_master_available_at=identity.get("available_at") if master_identity_ok else None,
         security_master_artifact_sha256=identity.get("artifact_sha256") if master_identity_ok else None,
-        security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None)
+        security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None,
+        monthly_research_universe_status="VERIFIED" if use_monthly_research else None,
+        monthly_research_target_month=research_membership.get("target_month") if use_monthly_research else None,
+        monthly_research_source_date=research_membership.get("source_date") if use_monthly_research else None,
+        monthly_research_owner=research_membership.get("owner") if use_monthly_research else None,
+        monthly_research_source_sha256=research_membership.get("artifact_sha256") if use_monthly_research else None,
+        monthly_research_codes_sha256=research_membership.get("codes_sha256") if use_monthly_research else None,
+        monthly_research_cutoff=research_membership.get("cutoff") if use_monthly_research else None,
+        monthly_research_source_refs=research_membership.get("checked_files") if use_monthly_research else [],
+        formal_target_eligibility="CANNOT_CONFIRM" if use_monthly_research else "VERIFIED")
     return results, summary
 
 

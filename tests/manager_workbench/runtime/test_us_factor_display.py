@@ -134,6 +134,53 @@ def test_catalog_observations_stay_out_of_candidate_display_counts():
     assert summary["catalog_summary"]["relation_count"] == 2
 
 
+def test_directional_proxy_lists_use_all_industry_rows_and_never_treat_nonselection_as_downside():
+    member = dict(status="VERIFIED_MONTHLY_OBSERVATION", in_monthly_universe=True,
+        market="HK_CONNECT", source_date="20261012", source_sha256="a" * 64,
+        codes_sha256="b" * 64, target_month="202610")
+    def candidate(symbol, decision, paths, *, identity="VERIFIED", industry="药品及生物科技"):
+        return dict(symbol=symbol, name=f"样本 {symbol}", subtype="HK_INDUSTRY_PROXY_FACTOR_CANDIDATE",
+            decision=decision, reason="SAVED_DECISION_REASON", source_industry=industry,
+            identity_status=identity, research_membership=dict(member), target_eligibility={
+                "status": "CANNOT_CONFIRM", "eligible": None,
+            }, historical_pit_verified=False, proxy_paths=paths)
+    def path(theme, direction, change, *, session="20261016", status="VERIFIED"):
+        return dict(theme=theme, proxy_symbols=["XBI"], direction=direction,
+            return_pct=change, source_session=session, status=status, reason=f"VERIFIED_PROXY_RETURN_{direction}")
+    mixed = candidate("HK.00001", "CONDITIONAL_WATCH", [
+        path("生物医药", "UPSIDE", "1.2"), path("半导体", "DOWNSIDE", "-0.8")])
+    negative = candidate("HK.00002", "NOT_SELECTED", [path("生物医药", "DOWNSIDE", "-2.0")])
+    flat = candidate("HK.00003", "NOT_SELECTED", [path("生物医药", "FLAT", "0")])
+    unknown = candidate("HK.00004", "UNASSESSED", [path("银行金融", "UNASSESSED", None, status="UNASSESSED")])
+    identity_gap = candidate("HK.00005", "UNASSESSED", [path("生物医药", "UPSIDE", "3.0")], identity="UNASSESSED_IDENTITY")
+    rows = [mixed, negative, flat, unknown, identity_gap]
+    industry_summary = dict(target_date="20261020", mapping_version="HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V2",
+        scope_count=5, monthly_research_code_count=5, monthly_research_source_date="20261012",
+        monthly_research_source_sha256="c" * 64, monthly_research_codes_sha256="d" * 64,
+        formal_target_eligibility="CANNOT_CONFIRM")
+    rows[0]["us_factor_summary"] = dict(industry_summary=industry_summary)
+    lane = NS(lane=NS(value="US_MAPPING"), rows=rows, gaps=[], state=NS(value="PARTIAL"),
+        coverage=NS(model_dump=lambda **kwargs: {"scope_count": 48}))
+    snapshot = NS(context=NS(rules_version=US_FACTOR_RULES_VERSION, scope_refs={},
+        source_sessions={"US": "20261016"}), lanes=[lane], stocks=[], run_id="directional-run")
+
+    data = us_summary(snapshot, {})["directional_proxy_lists"]
+
+    assert data["source_session"] == "20261016"
+    assert data["monthly_observed_scope_count"] == 5
+    assert data["upside_stock_count"] == 1
+    assert data["downside_stock_count"] == 2
+    assert data["mixed_stock_count"] == 1
+    assert data["flat_stock_count"] == 1
+    assert data["unassessed_stock_count"] == 2
+    assert [row["symbol"] for row in data["lists"]["upside"]] == ["HK.00001"]
+    assert [row["symbol"] for row in data["lists"]["downside"]] == ["HK.00001", "HK.00002"]
+    assert [row["symbol"] for row in data["lists"]["flat"]] == ["HK.00003"]
+    assert {row["symbol"] for row in data["lists"]["unassessed"]} == {"HK.00004", "HK.00005"}
+    assert all(row["target_eligibility"]["status"] == "CANNOT_CONFIRM"
+        for key in ("upside", "downside", "flat", "unassessed") for row in data["lists"][key])
+
+
 
 def test_deployed_snapshot_counts_all_lane_research_rows():
     if not DEPLOYED.exists():

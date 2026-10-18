@@ -1,5 +1,6 @@
 """Read-only presentation projection. Saved snapshot hashes describe original bytes."""
 import csv,hashlib,io,json,re
+from decimal import Decimal,InvalidOperation
 from infrastructure.owned_io import SafeRoot
 from .inputs.validation import before
 from .engines.common import US_FACTOR_RULES_VERSION
@@ -53,6 +54,91 @@ def display_stock(stock,names):
  return value
 
 
+def _industry_directional_lists(lane_rows,industry_summary,source_session):
+ """Build full-lane proxy direction views; never infer downside from NOT_SELECTED."""
+ if not isinstance(industry_summary,dict):return None
+ rows=[row for row in lane_rows if isinstance(row,dict)
+  and row.get('subtype')=='HK_INDUSTRY_PROXY_FACTOR_CANDIDATE']
+ if not rows:return None
+ lists={key:[] for key in ('upside','downside','flat','unassessed')}
+ path_counts={key:0 for key in ('upside','downside','flat','unassessed')}
+ mixed_count=0
+ for row in rows:
+  research=row.get('research_membership') or {}
+  formal=row.get('membership') or {}
+  membership_ok=(research.get('status')=='VERIFIED_MONTHLY_OBSERVATION'
+   and research.get('in_monthly_universe') is True and research.get('market')=='HK_CONNECT') or (
+   formal.get('verification')=='VERIFIED' and formal.get('eligible') is True)
+  identity_ok=row.get('identity_status')=='VERIFIED'
+  source_paths=row.get('proxy_paths')
+  source_paths=source_paths if isinstance(source_paths,list) else []
+  normalized=[]
+  for original in source_paths:
+   if not isinstance(original,dict):continue
+   path=dict(original)
+   path_direction='UNASSESSED'
+   try:
+    value=Decimal(str(path.get('return_pct')))
+    if not value.is_finite():raise InvalidOperation
+    if (path.get('status')=='VERIFIED' and identity_ok and membership_ok
+      and path.get('source_session')==source_session):
+     actual='UPSIDE' if value>0 else 'DOWNSIDE' if value<0 else 'FLAT'
+     if path.get('direction')==actual:path_direction=actual
+   except (InvalidOperation,TypeError,ValueError):
+    pass
+   path['direction']=path_direction
+   if path_direction=='UNASSESSED':path['status']='UNASSESSED'
+   normalized.append(path)
+  directions={path['direction'] for path in normalized}
+  has_up='UPSIDE' in directions;has_down='DOWNSIDE' in directions
+  has_flat='FLAT' in directions;has_unknown=('UNASSESSED' in directions or not normalized)
+  if has_up and has_down:mixed_count+=1
+  state=('MIXED_UPSIDE_DOWNSIDE' if has_up and has_down else
+   'UPSIDE_WITH_UNASSESSED' if has_up and has_unknown else
+   'DOWNSIDE_WITH_UNASSESSED' if has_down and has_unknown else
+   'UPSIDE' if has_up else 'DOWNSIDE' if has_down else
+   'FLAT_WITH_UNASSESSED' if has_flat and has_unknown else
+   'FLAT' if has_flat else 'UNASSESSED')
+  item=dict(symbol=row.get('symbol'),name=row.get('name'),source_industry=row.get('source_industry'),
+   source_session=source_session,direction_state=state,reason=row.get('reason'),
+   conditions=list(row.get('conditions') or []),mapping_version=row.get('mapping_version'),
+   mapping_evidence=row.get('mapping_evidence'),source_owner=row.get('source_owner'),
+   source_artifact_sha256=row.get('source_artifact_sha256'),source_response_sha256=row.get('source_response_sha256'),
+   source_response_ref=row.get('source_response_ref'),source_row_sha256=row.get('source_row_sha256'),
+   research_membership=dict(status=research.get('status'),source_date=research.get('source_date'),
+    source_sha256=research.get('source_sha256'),codes_sha256=research.get('codes_sha256'),
+    target_month=research.get('target_month')) if research else None,
+   target_eligibility=dict(row.get('target_eligibility') or {}),proxy_paths=normalized)
+  selected={
+   'upside': [path for path in normalized if path['direction']=='UPSIDE'],
+   'downside': [path for path in normalized if path['direction']=='DOWNSIDE'],
+   'flat': [path for path in normalized if path['direction']=='FLAT'],
+   'unassessed': [path for path in normalized if path['direction']=='UNASSESSED'],
+  }
+  for key,paths in selected.items():
+   if paths or key=='unassessed' and not normalized:
+    path_counts[key]+=len(paths) if paths else 1
+    lists[key].append({**item,'proxy_paths':paths if key!='unassessed' else (paths or normalized)})
+  # A stock with mixed signs appears in both directional lists. Per-stock path
+  # state on each list retains the opposing path to make that explicit.
+  for key in ('upside','downside'):
+   if lists[key] and lists[key][-1]['symbol']==item['symbol']:
+    lists[key][-1]['proxy_paths']=normalized
+ return dict(display_only=True,source_session=source_session,
+  target_date=industry_summary.get('target_date'),mapping_version=industry_summary.get('mapping_version'),
+  monthly_observed_scope_count=industry_summary.get('monthly_research_code_count') or industry_summary.get('scope_count'),
+  monthly_research_source_date=industry_summary.get('monthly_research_source_date'),
+  monthly_research_source_sha256=industry_summary.get('monthly_research_source_sha256'),
+  monthly_research_codes_sha256=industry_summary.get('monthly_research_codes_sha256'),
+  formal_target_eligibility=industry_summary.get('formal_target_eligibility','CANNOT_CONFIRM'),
+  historical_pit_verified=False,mixed_stock_count=mixed_count,
+  upside_stock_count=len(lists['upside']),downside_stock_count=len(lists['downside']),
+  flat_stock_count=len(lists['flat']),unassessed_stock_count=len(lists['unassessed']),
+  upside_path_count=path_counts['upside'],downside_path_count=path_counts['downside'],
+  flat_path_count=path_counts['flat'],unassessed_path_count=path_counts['unassessed'],
+  lists=lists)
+
+
 def us_summary(snapshot,names):
  lane=next((l for l in snapshot.lanes if l.lane.value=='US_MAPPING'),None)
  if lane is None:return None
@@ -79,6 +165,11 @@ def us_summary(snapshot,names):
  catalog_summary=next((row.get('us_mapping_catalog_summary') for row in lane.rows
   if isinstance(row.get('us_mapping_catalog_summary'),dict)),{})
  run_contract=getattr(snapshot.context,'scope_refs',{}).get('US_MAPPING_RUN_CONTRACT_V1')
+ context=snapshot.context.model_dump(mode='json') if hasattr(snapshot.context,'model_dump') else snapshot.context
+ sessions=context.get('source_sessions') if isinstance(context,dict) else getattr(context,'source_sessions',{})
+ source_session=(sessions or {}).get('us') or (sessions or {}).get('US')
+ industry_summary=(factor_summary or {}).get('industry_summary') if isinstance(factor_summary,dict) else None
+ directional_proxy_lists=_industry_directional_lists(lane.rows,industry_summary,source_session)
  return dict(display_only=True,plan_run_id=snapshot.run_id,coverage=lane.coverage.model_dump(mode='json'),
   source_symbol_count=len(groups),source_row_count=source_row_count,relation_row_count=len(relations),
   mapped_hk_count=len({r['symbol'] for r in relations}),source_decision_counts=counts,mixed_source_count=mixed,
@@ -88,7 +179,7 @@ def us_summary(snapshot,names):
    relation_count=catalog_summary.get('relation_count'),
    consumed_relation_count=catalog_summary.get('consumed_relation_count'),
    displayed_relation_count=len(catalog_rows)),
-  run_contract=run_contract)
+  run_contract=run_contract,directional_proxy_lists=directional_proxy_lists)
 
 
 def lane_stock(snapshot,lane,index,names):

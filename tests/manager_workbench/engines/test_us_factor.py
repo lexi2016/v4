@@ -3,7 +3,7 @@ from hashlib import sha256
 import json
 from types import SimpleNamespace
 
-from v4.manager_workbench.engines.us_factor import _industry_time_state, run_us_factor
+from v4.manager_workbench.engines.us_factor import HK_INDUSTRY_TO_PROXY, _industry_time_state, run_us_factor
 from v4.manager_workbench.contracts import EvidenceRef, Verification
 from v4.manager_workbench.inputs.native import _project_current_membership_for_industry
 from v4.manager_workbench.inputs.validation import owner_digest
@@ -247,6 +247,60 @@ def _industry_payload(binding, codes, source_date, *, master_codes=None):
         hk_industry_classification=binding)
 
 
+def _monthly_research_industry_binding(codes):
+    source_codes = list(codes)
+    codes = sorted(source_codes)
+    owner = "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+    artifact_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.json"
+    manifest_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/manifest.json"
+    receipt_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/receipt.json"
+    ref_specs = [
+        (artifact_relative, "a" * 64),
+        ("universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/capture.json", "b" * 64),
+        ("universes/20261012/HK_CONNECT_FULL_MARKET.current.json", "c" * 64),
+        (manifest_relative, "d" * 64),
+        ("universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/publication.json", "e" * 64),
+        (receipt_relative, "f" * 64),
+    ]
+    refs = [dict(source_local_path="/fixture/monthly-membership", relative=relative, sha256=digest)
+        for relative, digest in ref_specs]
+    research = dict(
+        schema_version="v4.manager_workbench.hk_connect_monthly_research_universe.v1",
+        status="VERIFIED", market="HK_CONNECT", owner=owner,
+        producer_owner="v35_dispatcher.research_panel_daily_hk",
+        source_role="FUTU_HKCONNECT_PLATE_MEMBERSHIP", target_month="202610",
+        source_date="20261012", available_at="2026-10-12T19:58:59.501065+08:00",
+        cutoff="2026-10-20T10:00:00+08:00", artifact_relative=artifact_relative,
+        artifact_sha256="a" * 64, manifest_relative=manifest_relative, manifest_sha256="d" * 64,
+        receipt_relative=receipt_relative, receipt_sha256="f" * 64,
+        publication_relative=ref_specs[4][0], publication_sha256=ref_specs[4][1],
+        capture_relative=ref_specs[1][0], capture_sha256=ref_specs[1][1],
+        codes=codes, code_count=len(codes),
+        codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=codes)),
+        version="9" * 64, target_period_verified=False,
+        formal_target_eligibility="CANNOT_CONFIRM",
+        formal_target_gap="CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+        checked_files=refs,
+    )
+    binding, _ = _industry_input("20261020", "2026-10-14T11:03:29+08:00", source_codes,
+        include_full_scope=len(source_codes) > 1, source_asof=None)
+    binding["artifact"].update(
+        classification_policy="LATEST_OBSERVED", observed_trade_date="20261014",
+        observed_scope_count=len(codes), source_membership_codes_sha256=research["codes_sha256"],
+        source_membership_artifact_sha256=research["artifact_sha256"],
+        source_asof_status="UNKNOWN", status="PARTIAL",
+        source_date_semantics="CAPTURED_ON_OR_BEFORE_TARGET_DATE_SOURCE_ASOF_UNKNOWN",
+        membership_codes_sha256=None, membership_artifact_sha256=None,
+    )
+    binding.update(
+        hk_scope_codes=[], hk_scope_count=None, membership_codes_sha256=None,
+        membership_artifact_sha256=None, membership_owner=None, membership_available_at=None,
+        membership_effective_from=None, membership_effective_through=None,
+        research_membership=research,
+    )
+    return binding
+
+
 def _industry_proxy_batch(session):
     symbols = ["XLY", "XLP"]
     owner_row = dict(label="消费", mapping_type="etf_basket_proxy", proxy_symbols=symbols,
@@ -260,6 +314,79 @@ def _industry_proxy_batch(session):
             proxy_metadata=[dict(owner="quote-owner", source_sha256="1" * 64,
                 available_at="2026-10-14T08:00:00+08:00", owner_row=owner_row)]))
     return dict(records=records)
+
+
+def _directional_proxy_batch(session, theme_changes):
+    records = []
+    source_sha = "1" * 64
+    theme_members = {
+        "消费": ["XLY", "XLP"], "生物医药": ["XBI"], "半导体": ["SOXX"],
+        "银行金融": ["KBE"], "黄金": ["GLD"], "石油": ["XLE"], "天然气": ["FCG"],
+    }
+    for theme, change in theme_changes.items():
+        if change is None:
+            continue
+        symbols = theme_members[theme]
+        mapping_type = "etf_proxy" if len(symbols) == 1 else "etf_basket_proxy"
+        owner_row = dict(label=theme, mapping_type=mapping_type, proxy_symbols=symbols,
+            available_symbols=symbols, requested_symbols=symbols,
+            coverage=dict(available=len(symbols), requested=len(symbols)), status="READY",
+            quote_session_dates=[session], change_pct=change)
+        for symbol in symbols:
+            records.append(dict(us_symbol=symbol, owner="quote-owner", source_sha256=source_sha,
+                available_at="2026-10-16T20:00:00+08:00",
+                quote=dict(session_date=session, last=100 + change, previous_close=100, change_pct=change),
+                proxy_metadata=[dict(owner="quote-owner", source_sha256=source_sha,
+                    available_at="2026-10-16T20:00:00+08:00", owner_row=owner_row)]))
+    return dict(records=records)
+
+
+def test_exact_provider_industries_expose_independent_up_down_flat_and_unmapped_paths():
+    codes = ["HK.00001", "HK.00002", "HK.00003", "HK.00004", "HK.00005", "HK.00006"]
+    binding = _monthly_research_industry_binding(codes)
+    old_provider_row = _industry_record("HK.00001", "石油及天然气")
+    old_provider_row.pop("mapping_type")
+    conflicting_provider_row = _industry_record("HK.00006", "药品及生物科技")
+    conflicting_provider_row["mapping_type"] = "CONFLICTING_EXPLICIT_MAPPING"
+    binding["artifact"]["rows"] = [
+        old_provider_row,
+        _industry_record("HK.00002", "药品及生物科技"),
+        _industry_record("HK.00003", "银行"),
+        _industry_record("HK.00004", "软件服务"),
+        _industry_record("HK.00005", "媒体及娱乐"),
+        conflicting_provider_row,
+    ]
+    context = dict(target_date="20261020", phase="MANUAL", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+    batch = _directional_proxy_batch("20261016", {
+        "石油": 2.0, "天然气": -1.5, "生物医药": 0.0, "银行金融": None,
+    })
+
+    rows, result = run_us_factor(context, batch, _industry_payload(binding, codes, "20261016"))
+    by_symbol = {row["symbol"]: row for row in rows
+        if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"}
+
+    oil_gas = by_symbol["HK.00001"]
+    assert oil_gas["proxy_directional_state"] == "MIXED_UPSIDE_DOWNSIDE"
+    assert [(path["theme"], path["direction"]) for path in oil_gas["proxy_paths"]] == [
+        ("石油", "UPSIDE"), ("天然气", "DOWNSIDE"),
+    ]
+    assert [float(path["return_pct"]) for path in oil_gas["proxy_paths"]] == [2.0, -1.5]
+    assert oil_gas["decision"] == "CONDITIONAL_WATCH"
+    assert oil_gas["return_pct"] is None  # No aggregate return or net score for mixed paths.
+    assert by_symbol["HK.00002"]["proxy_directional_state"] == "FLAT"
+    assert by_symbol["HK.00002"]["proxy_paths"][0]["direction"] == "FLAT"
+    assert by_symbol["HK.00003"]["proxy_paths"][0]["direction"] == "UNASSESSED"
+    assert by_symbol["HK.00003"]["decision"] == "UNASSESSED"
+    assert by_symbol["HK.00006"]["decision"] == "UNASSESSED"
+    assert "INDUSTRY_MAPPING_TYPE_MISMATCH" in by_symbol["HK.00006"]["conditions"]
+    assert by_symbol["HK.00004"]["proxy_paths"] == []
+    assert by_symbol["HK.00005"]["proxy_paths"] == []
+    assert "软件服务" not in HK_INDUSTRY_TO_PROXY
+    assert "工业工程" not in HK_INDUSTRY_TO_PROXY
+    assert "媒体及娱乐" not in HK_INDUSTRY_TO_PROXY
+    assert result["industry_summary"]["mapping_covered_count"] == 4
+    assert result["industry_summary"]["industry_unmapped_count"] == 2
 
 
 def test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch():
@@ -624,6 +751,77 @@ def test_latest_observed_missing_proxy_remains_unassessed():
     assert candidate["proxy_status"] == "UNASSESSED"
     assert candidate["temporal_status"] == "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN"
     assert candidate["historical_pit_verified"] is False
+
+
+def test_latest_observed_monthly_universe_research_does_not_upgrade_formal_target_eligibility():
+    codes = ["HK.00300", "HK.00001", "HK.00002"]
+    binding = _monthly_research_industry_binding(codes)
+    binding["artifact"]["rows"].append(_industry_record("HK.09999", "家庭电器及用品"))
+    context = dict(target_date="20261020", phase="NEXT_DAY", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+
+    rows, result = run_us_factor(context, _industry_proxy_batch("20261016"),
+        _industry_payload(binding, codes, "20261016"))
+
+    by_symbol = {row["symbol"]: row for row in rows
+        if row["subtype"] == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE"}
+    summary = result["industry_summary"]
+    assert set(by_symbol) == set(codes)
+    assert by_symbol["HK.00300"]["decision"] == "CONDITIONAL_WATCH"
+    assert by_symbol["HK.00300"]["membership"]["verification"] == "CANNOT_CONFIRM"
+    assert by_symbol["HK.00300"]["membership"]["eligible"] is None
+    assert by_symbol["HK.00300"]["target_eligibility"]["status"] == "CANNOT_CONFIRM"
+    assert by_symbol["HK.00300"]["research_membership"]["in_monthly_universe"] is True
+    assert by_symbol["HK.00001"]["decision"] == "UNASSESSED"
+    assert by_symbol["HK.00002"]["decision"] == "UNASSESSED"
+    assert summary["source_status"] == "PARTIAL"
+    assert summary["formal_target_eligibility"] == "CANNOT_CONFIRM"
+    assert summary["membership_artifact_sha256"] is None
+    assert summary["historical_pit_verified"] is False
+    assert summary["scope_count"] == 3
+    assert summary["out_of_scope_row_count"] == 1
+
+
+def test_latest_observed_monthly_universe_nonpositive_and_unknown_proxy_are_per_stock():
+    codes = ["HK.00300"]
+    binding = _monthly_research_industry_binding(codes)
+    context = dict(target_date="20261020", phase="NEXT_DAY", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+    negative = _industry_proxy_batch("20261016")
+    for record in negative["records"]:
+        record["quote"].update(last=99, change_pct=-1)
+        record["proxy_metadata"][0]["owner_row"]["change_pct"] = -1
+
+    negative_rows, _ = run_us_factor(context, negative,
+        _industry_payload(binding, codes, "20261016"))
+    unknown_rows, _ = run_us_factor(context, {"records": []},
+        _industry_payload(binding, codes, "20261016"))
+
+    assert negative_rows[0]["decision"] == "NOT_SELECTED"
+    assert negative_rows[0]["target_eligibility"]["status"] == "CANNOT_CONFIRM"
+    assert unknown_rows[0]["decision"] == "UNASSESSED"
+    assert unknown_rows[0]["target_eligibility"]["status"] == "CANNOT_CONFIRM"
+
+
+def test_latest_observed_monthly_universe_rejects_bad_sha_stale_market_or_late_source():
+    codes = ["HK.00300"]
+    base_binding = _monthly_research_industry_binding(codes)
+    context = dict(target_date="20261020", phase="NEXT_DAY", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"us": "20261016", "hk_price": "20261016"})
+    mutations = (
+        lambda value: value["research_membership"].update(artifact_sha256="0" * 64),
+        lambda value: value["research_membership"].update(source_date="20260930"),
+        lambda value: value["research_membership"].update(market="US"),
+        lambda value: value["research_membership"].update(available_at="2026-10-20T10:00:01+08:00"),
+    )
+    for mutate in mutations:
+        binding = deepcopy(base_binding)
+        mutate(binding)
+        rows, result = run_us_factor(context, _industry_proxy_batch("20261016"),
+            _industry_payload(binding, codes, "20261016"))
+        assert rows == []
+        assert result["industry_summary"]["source_status"] == "INVALID"
+        assert result["industry_summary"]["formal_target_eligibility"] == "CANNOT_CONFIRM"
 
 
 def test_observed_owner_projection_binds_only_verified_current_membership_and_preserves_source_hashes():

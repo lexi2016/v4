@@ -460,7 +460,15 @@ def test_connect_membership_requires_explicit_target_covering_interval(
     assert projection["source_url"] is None
     assert projection["effective_from"] == (interval[0] if interval else None)
     assert projection["effective_to"] == (interval[1] if interval else None)
-
+    monthly_research = pin["monthly_research"]
+    assert monthly_research["schema_version"] == "v4.manager_workbench.hk_connect_monthly_research_universe.v1"
+    assert monthly_research["status"] == "VERIFIED"
+    assert monthly_research["market"] == "HK_CONNECT"
+    assert monthly_research["target_month"] == "202610"
+    assert monthly_research["source_date"] == "20261012"
+    assert monthly_research["code_count"] == 2
+    assert monthly_research["formal_target_eligibility"] == expected_verification
+    assert len(monthly_research["checked_files"]) == 6
     adapter = object.__new__(NativeAdapters)
     adapter.config = SimpleNamespace(source_bindings={})
     adapter._membership_versions = {}
@@ -477,6 +485,119 @@ def test_connect_membership_requires_explicit_target_covering_interval(
         assert "membership" not in row
         assert row["membership_status"] == "CANNOT_CONFIRM"
         assert gaps == ["CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"]
+        assert adapter._membership_research[ref.evidence_id]["formal_target_eligibility"] == "CANNOT_CONFIRM"
+
+
+def test_native_membership_resolves_monthly_observation_when_frozen_context_has_partial_owner_bindings(
+    tmp_path, monkeypatch,
+):
+    root, artifact, artifact_relative, values, hashes = _connect_membership_owner(tmp_path)
+    receipt_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/receipt.json"
+
+    def fake_read(_root, relative, expected=None):
+        value = values[relative]
+        sha = hashes[relative]
+        if expected is not None and expected != sha:
+            raise ValueError("OWNER_SHA_MISMATCH")
+        return value, sha
+
+    monkeypatch.setattr(source_bindings, "files", lambda *_: [receipt_relative])
+    monkeypatch.setattr(source_bindings, "read", fake_read)
+    pin = source_bindings.membership(SimpleNamespace(shared_root=root),
+        SimpleNamespace(target_date="20261020", cutoff="2026-10-20T09:00:00+00:00"))
+    for relative, value in values.items():
+        _write(root, relative, value)
+
+    config = SimpleNamespace(dynamic_source_bindings=True, source_bindings={}, shared_root=root)
+    context = SimpleNamespace(target_date="20261020", cutoff="2026-10-20T09:00:00+00:00",
+        scope_refs={"owner_bindings": {"us_mapping": {"capture_run_id": "frozen-run"}}})
+    adapter = object.__new__(NativeAdapters)
+    adapter.config = config
+    adapter._membership_versions = {}
+    adapter._membership_research = {}
+
+    codes, ref, gaps = adapter.membership(context)
+
+    assert codes == {"HK.09961", "HK.00780"}
+    assert ref is not None and ref.verification.value == "CANNOT_CONFIRM"
+    assert gaps == ["CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"]
+    bound_pin = context.scope_refs["owner_bindings"]["membership"]
+    assert bound_pin["artifact_relative"] == artifact_relative
+    assert adapter._membership_research[ref.evidence_id]["code_count"] == 2
+
+
+def test_native_membership_enriches_matching_frozen_owner_pin_for_monthly_research(
+    tmp_path, monkeypatch,
+):
+    root, _artifact, artifact_relative, values, hashes = _connect_membership_owner(tmp_path)
+    receipt_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/receipt.json"
+
+    def fake_read(_root, relative, expected=None):
+        value = values[relative]
+        sha = hashes[relative]
+        if expected is not None and expected != sha:
+            raise ValueError("OWNER_SHA_MISMATCH")
+        return value, sha
+
+    monkeypatch.setattr(source_bindings, "files", lambda *_: [receipt_relative])
+    monkeypatch.setattr(source_bindings, "read", fake_read)
+    original_pin = source_bindings.membership(
+        SimpleNamespace(shared_root=root),
+        SimpleNamespace(target_date="20261020", cutoff="2026-10-20T09:00:00+00:00"),
+    )
+    for relative, value in values.items():
+        _write(root, relative, value)
+    legacy_pin = {key: value for key, value in original_pin.items() if key != "monthly_research"}
+    context = SimpleNamespace(
+        target_date="20261020",
+        cutoff="2026-10-20T09:00:00+00:00",
+        scope_refs={"owner_bindings": {"membership": legacy_pin}},
+    )
+    adapter = object.__new__(NativeAdapters)
+    adapter.config = SimpleNamespace(
+        dynamic_source_bindings=True,
+        source_bindings={},
+        shared_root=root,
+    )
+    adapter._membership_versions = {}
+    adapter._membership_research = {}
+
+    codes, ref, gaps = adapter.membership(context)
+
+    assert codes == {"HK.09961", "HK.00780"}
+    assert ref is not None and ref.verification.value == "CANNOT_CONFIRM"
+    assert gaps == ["CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"]
+    enriched = context.scope_refs["owner_bindings"]["membership"]
+    assert enriched["artifact_relative"] == artifact_relative == original_pin["artifact_relative"]
+    assert enriched["artifact_sha256"] == original_pin["artifact_sha256"]
+    assert enriched["checked_files"] == original_pin["checked_files"]
+    assert enriched["monthly_research"]["source_date"] == "20261012"
+    assert enriched["monthly_research"]["codes"] == ["HK.00780", "HK.09961"]
+    assert enriched["monthly_research"]["target_period_verified"] is False
+    assert enriched["monthly_research"]["formal_target_eligibility"] == "CANNOT_CONFIRM"
+    assert adapter._membership_research[ref.evidence_id]["artifact_sha256"] == original_pin["artifact_sha256"]
+
+    def fail_monthly_resolution(*_args):
+        raise ValueError("MONTHLY_OBSERVATION_NOT_AVAILABLE")
+
+    monkeypatch.setattr(source_bindings, "membership", fail_monthly_resolution)
+    unchanged_context = SimpleNamespace(
+        target_date="20261020",
+        cutoff="2026-10-20T09:00:00+00:00",
+        scope_refs={"owner_bindings": {"membership": legacy_pin}},
+    )
+    unchanged_adapter = object.__new__(NativeAdapters)
+    unchanged_adapter.config = adapter.config
+    unchanged_adapter._membership_versions = {}
+    unchanged_adapter._membership_research = {}
+
+    unchanged_codes, unchanged_ref, unchanged_gaps = unchanged_adapter.membership(unchanged_context)
+
+    assert unchanged_codes == {"HK.09961", "HK.00780"}
+    assert unchanged_ref is not None and unchanged_ref.verification.value == "CANNOT_CONFIRM"
+    assert unchanged_gaps == ["CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"]
+    assert "monthly_research" not in unchanged_context.scope_refs["owner_bindings"]["membership"]
+    assert unchanged_adapter._membership_research == {}
 
 
 def test_daily_factor_binding_never_reuses_retrospective_20261013_pair(tmp_path):

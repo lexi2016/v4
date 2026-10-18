@@ -55,6 +55,7 @@ class NativeAdapters:
         self.config = config
         self.calendar = load_market_calendar()
         self._membership_versions = {}
+        self._membership_research = {}
 
     def prepare_context(self, context):
         context = context.model_copy(deep=True)
@@ -293,6 +294,47 @@ class NativeAdapters:
     def membership(self, context):
         """Keep the captured Connect source visible; qualify only explicit periods."""
         try:
+            scope_refs = getattr(context, "scope_refs", {})
+            if not isinstance(scope_refs, dict):
+                scope_refs = {}
+            owner_bindings = scope_refs.get("owner_bindings", {})
+            if not isinstance(owner_bindings, dict):
+                owner_bindings = {}
+            bound = owner_bindings.get("membership")
+            configured = self.config.source_bindings.get("membership", {}).get(context.target_date)
+            if not isinstance(bound, dict) and not isinstance(configured, dict) and getattr(self.config, "dynamic_source_bindings", False):
+                from .source_bindings import membership as resolve_monthly_membership
+                pin = resolve_monthly_membership(self.config, context)
+                if not isinstance(getattr(context, "scope_refs", None), dict):
+                    context.scope_refs = {}
+                context.scope_refs.setdefault("owner_bindings", {})["membership"] = pin
+            elif (isinstance(bound, dict) and not isinstance(bound.get("monthly_research"), dict)
+                    and getattr(self.config, "dynamic_source_bindings", False)):
+                # A frozen run context can carry the exact owner bytes but
+                # predate this research-only projection. Re-resolve through
+                # the existing loader and enrich only when every owner byte
+                # reference is identical; the source capture is never replaced.
+                from .source_bindings import membership as resolve_monthly_membership
+                try:
+                    resolved = resolve_monthly_membership(self.config, context)
+                except (OSError, ValueError, KeyError, TypeError):
+                    # Failure to derive this optional projection must not
+                    # discard an otherwise valid frozen owner binding.
+                    resolved = None
+                ref_identity = lambda value: sorted(
+                    (row.get("source_local_path"), row.get("relative"), row.get("sha256"))
+                    for row in value.get("checked_files", []) if isinstance(row, dict)
+                ) if isinstance(value, dict) and isinstance(value.get("checked_files"), list) else []
+                if (isinstance(resolved, dict)
+                        and resolved.get("artifact_relative") == bound.get("artifact_relative")
+                        and resolved.get("artifact_sha256") == bound.get("artifact_sha256")
+                        and resolved.get("source_local_path") == bound.get("source_local_path")
+                        and resolved.get("owner") == bound.get("owner")
+                        and resolved.get("producer_owner") == bound.get("producer_owner")
+                        and ref_identity(resolved) == ref_identity(bound)
+                        and isinstance(resolved.get("monthly_research"), dict)):
+                    bound = {**bound, "monthly_research": resolved["monthly_research"]}
+                    context.scope_refs.setdefault("owner_bindings", {})["membership"] = bound
             pin = self._binding("membership", context.target_date, context)
             value, sha = self._json(Path(pin.get("source_local_path") or pin.get("root") or self.config.shared_root), pin["artifact_relative"], pin["artifact_sha256"])
             value = pin.get("projection",value)
@@ -337,9 +379,64 @@ class NativeAdapters:
                             manifest=pin.get("manifest_relative"),
                             receipt=pin.get("receipt_relative"), url=value.get("source_url"))
             self._membership_versions[ref.evidence_id] = value
+            monthly = pin.get("monthly_research")
+            if self._verified_monthly_research_pin(pin, monthly, codes, context):
+                if not isinstance(getattr(self, "_membership_research", None), dict):
+                    self._membership_research = {}
+                self._membership_research[ref.evidence_id] = dict(monthly)
             return set(codes), ref, [period_gap] if period_gap else []
         except (OSError, ValueError, KeyError, TypeError):
             return set(), None, ["MONTHLY_CONNECT_MEMBERSHIP_UNVERIFIED"]
+
+    @staticmethod
+    def _verified_monthly_research_pin(pin, monthly, codes, context):
+        """Validate dated observed-universe provenance without qualifying target membership."""
+        if not isinstance(pin, dict) or not isinstance(monthly, dict):
+            return False
+        source_date = _date_token(monthly.get("source_date"))
+        target_date = context.target_date
+        monthly_codes = monthly.get("codes")
+        try:
+            expected_codes_sha = owner_digest(dict(market="HK_CONNECT", codes=sorted(monthly_codes)))
+        except (TypeError, ValueError):
+            return False
+        source_refs = monthly.get("checked_files")
+        pin_refs = pin.get("checked_files")
+        triples = lambda values: sorted(
+            (row.get("source_local_path"), row.get("relative"), row.get("sha256"))
+            for row in values if isinstance(row, dict)
+        ) if isinstance(values, list) else []
+        reference_map = {relative: digest for _, relative, digest in triples(source_refs)}
+        return bool(
+            monthly.get("schema_version") == "v4.manager_workbench.hk_connect_monthly_research_universe.v1"
+            and monthly.get("status") == "VERIFIED"
+            and monthly.get("market") == "HK_CONNECT"
+            and monthly.get("owner") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+            and monthly.get("producer_owner")
+            and monthly.get("source_role") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+            and monthly.get("target_month") == target_date[:6]
+            and source_date is not None and source_date[:6] == target_date[:6] and source_date <= target_date
+            and monthly.get("source_date") == source_date
+            and monthly.get("cutoff") == context.cutoff
+            and before(monthly.get("available_at"), context.cutoff)
+            and monthly.get("artifact_relative") == pin.get("artifact_relative")
+            and monthly.get("artifact_sha256") == pin.get("artifact_sha256")
+            and valid_sha(monthly.get("artifact_sha256"))
+            and monthly.get("codes_sha256") == expected_codes_sha
+            and isinstance(monthly_codes, list) and bool(monthly_codes)
+            and len(monthly_codes) == monthly.get("code_count")
+            and len(monthly_codes) == len(set(monthly_codes))
+            and all(symbol(code) == code for code in monthly_codes)
+            and set(monthly_codes) == set(codes)
+            and monthly.get("target_period_verified") is False
+            and monthly.get("formal_target_eligibility") == "CANNOT_CONFIRM"
+            and isinstance(source_refs, list) and len(source_refs) >= 6
+            and triples(source_refs) == triples(pin_refs)
+            and all(valid_sha(row["sha256"]) for row in source_refs if isinstance(row, dict))
+            and reference_map.get(monthly.get("manifest_relative")) == monthly.get("manifest_sha256")
+            and reference_map.get(monthly.get("receipt_relative")) == monthly.get("receipt_sha256")
+            and reference_map.get(monthly.get("artifact_relative")) == monthly.get("artifact_sha256")
+        )
 
     def _member(self, row, codes, ref):
         verified = ref is not None and ref.verification == "VERIFIED"
@@ -948,6 +1045,10 @@ class NativeAdapters:
         if universe_version == LEGACY_UNIVERSE_VERSION and expected_count != 33:
             raise ValueError("US_LEGACY_FIXED_33_SCOPE_INVALID")
         codes, member_ref, gaps = self.membership(context)
+        formal_member_ref = (member_ref if member_ref is not None
+            and member_ref.verification == Verification.VERIFIED else None)
+        research_membership = (getattr(self, "_membership_research", {}).get(member_ref.evidence_id)
+            if member_ref is not None else None)
         relation_role = ("US_HK_RELATION_PROPOSAL_REGISTRY"
             if registry.get("status") == "PROPOSED" or registry.get("pit_status") == "PIT_UNCONFIRMED"
             else "REVIEWED_US_HK_RELATIONS")
@@ -963,17 +1064,27 @@ class NativeAdapters:
             industry_pin = pin.get("hk_industry_classification")
             identity, identity_refs = self._security_master_identity(context)
             refs.extend(identity_refs)
-            if not isinstance(industry_pin, dict):
+            configured_industry_pin = self.config.source_bindings.get(
+                "hk_industry_classification", {}).get(context.target_date)
+            refresh_missing_owner_result = bool(
+                isinstance(industry_pin, dict)
+                and industry_pin.get("status") == "UNAVAILABLE"
+                and industry_pin.get("gap") == "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"
+                and isinstance(configured_industry_pin, dict)
+                and configured_industry_pin.get("policy") == "LATEST_OBSERVED"
+            )
+            if not isinstance(industry_pin, dict) or refresh_missing_owner_result:
                 from .source_bindings import hk_industry_classification
                 industry_pin = hk_industry_classification(self.config, context)
             industry_payload = dict(status="UNAVAILABLE",
                 gap=(industry_pin or {}).get("gap", "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"),
-                hk_scope_codes=sorted(codes) if member_ref else [],
-                hk_scope_count=len(codes) if member_ref else None,
-                membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
-                membership_artifact_sha256=member_ref.sha256 if member_ref else None,
-                membership_owner=member_ref.owner if member_ref else None,
-                membership_available_at=member_ref.available_at if member_ref else None,
+                hk_scope_codes=sorted(codes) if formal_member_ref else [],
+                hk_scope_count=len(codes) if formal_member_ref else None,
+                membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
+                membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
+                membership_owner=formal_member_ref.owner if formal_member_ref else None,
+                membership_available_at=formal_member_ref.available_at if formal_member_ref else None,
+                research_membership=research_membership,
                 hk_industry_identity=identity)
             if isinstance(industry_pin, dict) and industry_pin.get("status") == "READY":
                 artifact = industry_pin.get("artifact")
@@ -989,15 +1100,18 @@ class NativeAdapters:
                 industry_payload = dict(status="READY", artifact=artifact,
                     artifact_sha256=industry_pin["artifact_sha256"], owner=industry_pin["owner"],
                     artifact_relative=industry_pin["artifact_relative"], source_url=industry_pin.get("source_url"),
-                    hk_scope_codes=sorted(codes), hk_scope_count=len(codes) if member_ref else None,
-                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
-                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
-                    membership_version=member_projection.get("version"), membership_owner=member_ref.owner if member_ref else None,
-                    membership_available_at=member_ref.available_at if member_ref else None,
-                    membership_effective_from=member_projection.get("effective_from"),
-                    membership_effective_through=member_projection.get("effective_to"),
+                    hk_scope_codes=sorted(codes) if formal_member_ref else [],
+                    hk_scope_count=len(codes) if formal_member_ref else None,
+                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
+                    membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
+                    membership_version=member_projection.get("version") if formal_member_ref else None,
+                    membership_owner=formal_member_ref.owner if formal_member_ref else None,
+                    membership_available_at=formal_member_ref.available_at if formal_member_ref else None,
+                    membership_effective_from=member_projection.get("effective_from") if formal_member_ref else None,
+                    membership_effective_through=member_projection.get("effective_to") if formal_member_ref else None,
+                    research_membership=research_membership,
                     hk_industry_identity=identity,
-                    evidence_ids=[industry_ref.evidence_id])
+                    evidence_ids=[industry_ref.evidence_id] + ([member_ref.evidence_id] if member_ref else []))
             if isinstance(factor_pin, dict) and factor_pin.get("status") == "READY":
                 candidate, review = factor_pin.get("candidate"), factor_pin.get("review")
                 target_memberships = {}
@@ -1008,10 +1122,11 @@ class NativeAdapters:
                 factor_payload = dict(candidate=candidate, review=review,
                     candidate_sha256=factor_pin.get("candidate_sha256"),
                     review_sha256=factor_pin.get("review_sha256"), target_memberships=target_memberships,
-                    hk_scope_count=len(codes) if member_ref else None,
-                    hk_scope_codes=sorted(codes) if member_ref else [],
-                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
-                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+                    hk_scope_count=len(codes) if formal_member_ref else None,
+                    hk_scope_codes=sorted(codes) if formal_member_ref else [],
+                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
+                    membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
+                    research_membership=research_membership,
                     hk_industry_classification=industry_payload,
                     candidate_relative=factor_pin.get("candidate_relative"),
                     review_relative=factor_pin.get("review_relative"),
@@ -1026,10 +1141,11 @@ class NativeAdapters:
                     review.get("reviewed_at")))
             else:
                 factor_payload = dict(gap=(factor_pin or {}).get("gap", pin.get("factor_exposure_gap")
-                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if member_ref else None,
-                    hk_scope_codes=sorted(codes) if member_ref else [],
-                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
-                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if formal_member_ref else None,
+                    hk_scope_codes=sorted(codes) if formal_member_ref else [],
+                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
+                    membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
+                    research_membership=research_membership,
                     hk_industry_classification=industry_payload)
         for source in registry.get("additional_relation_sources",[]):
             refs.append(self._ref(source["owner"],"REVIEWED_US_HK_RELATIONS",expected,source["sha256"],source["relative"],source["available_at"]))

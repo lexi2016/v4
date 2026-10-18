@@ -1,0 +1,1196 @@
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -62,6 +62,46 @@
+ }
+ function industrySummaryText(summary: HKIndustrySummary): string {
+   return `港股通范围 ${showCount(summary.scope_count)} 只；身份核验 ${showCount(summary.identity_resolved_count)} 只，身份缺口 ${showCount(summary.identity_gap_count)} 只；有行业分类 ${showCount(summary.classified_count)} 只，已映射到冻结美股主题 ${showCount(summary.mapping_covered_count)} 只，行业已知但未映射 ${showCount(summary.industry_unmapped_count)} 只，分类缺失 ${showCount(summary.classification_missing_count)} 只；待核（UNASSESSED）${showCount(summary.unknown_unique_stock_count)} 只；坏来源行 ${showCount(summary.bad_row_count)} 条；代理收益为正且通过时间门槛的去重候选 ${showCount(summary.triggered_unique_stock_count)} 只。`;
++}
++function proxyDirectionLabel(value: unknown): string {
++  return ({ UPSIDE: "上行代理观察", DOWNSIDE: "下行代理观察", FLAT: "零变动", UNASSESSED: "待核" } as Record<string, string>)[String(value)] || "待核";
++}
++function proxyReasonLabel(value: unknown): string {
++  const code = String(value || "");
++  const labels: Record<string, string> = {
++    CLASSIFICATION_MISSING: "月度观察范围内没有行业分类",
++    CLASSIFICATION_RAW_PROVENANCE_INVALID: "行业分类原始行或响应来源校验缺失",
++    INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP: "该提供方行业标签尚无已核验的主题映射",
++    INDUSTRY_PROXY_THEME_BINDING_INVALID: "行业主题代理绑定无效",
++    THEME_PROXY_RETURN_UNASSESSED: "代理收益输入待核",
++    THEME_PROXY_OWNER_ROW_MISSING: "缺少代理收益来源行",
++    INDUSTRY_THEME_PROXY_MEMBERSHIP_MISMATCH: "代理来源标的与冻结映射不一致",
++    INDUSTRY_MAPPING_TYPE_MISMATCH: "行业映射类型不一致",
++    THEME_PROXY_RETURN_INVALID: "代理收益格式无效",
++    UNASSESSED_IDENTITY: "证券主表身份未核验",
++    CLASSIFICATION_ROW_DUPLICATE: "行业来源存在重复记录",
++    RETROSPECTIVE_PIT_UNKNOWN: "来源时间不能证明当时可用",
++  };
++  return labels[code] ? `${labels[code]}（${code}）` : code;
++}
++function proxyPathReason(path: Record<string, unknown>): string {
++  const symbols = Array.isArray(path.proxy_symbols) ? path.proxy_symbols.join("、") : "代理标的未知";
++  const raw = typeof path.return_pct === "string" || typeof path.return_pct === "number" ? Number(path.return_pct) : NaN;
++  const change = Number.isFinite(raw) ? `${raw > 0 ? "+" : ""}${raw}%` : "收益未知";
++  const session = typeof path.source_session === "string" ? path.source_session : "会话未知";
++  const conditions = Array.isArray(path.conditions) ? path.conditions.map(proxyReasonLabel).filter(Boolean) : [];
++  const reason = conditions.length ? `；待核原因：${conditions.join("、")}` : "";
++  return `${showText(path.theme)}（${symbols}）· ${session} 收盘 ${change} · ${proxyDirectionLabel(path.direction)}${reason}`;
++}
++function directionalStockReason(stock: Record<string, unknown>): string {
++  const paths = Array.isArray(stock.proxy_paths)
++    ? stock.proxy_paths.filter((path): path is Record<string, unknown> => path !== null && typeof path === "object") : [];
++  if (paths.length) return `${showText(stock.source_industry)} → ${paths.map(proxyPathReason).join("；")}`;
++  const conditions = Array.isArray(stock.conditions) ? stock.conditions.map(proxyReasonLabel).filter(Boolean) : [];
++  return conditions.length ? conditions.join("；") : showText(stock.reason || "行业或代理映射待核");
++}
++function directionalStocks(key: "upside" | "downside" | "flat" | "unassessed") {
++  return vm.day?.data?.us_mapping_summary?.directional_proxy_lists?.lists?.[key] || [];
+ }
+ function catalogRelations(rows: USMappingCatalogRelation[]): USMappingCatalogRelation[] {
+   return rows.map(row => vm.catalogRelationDetails[row.relation_id]?.data || row);
+@@ -183,6 +223,26 @@
+         <p>这是按股票去重的候选覆盖；待核数按 UNASSESSED 行级结论统计。完整研究记录计数仍按行记录统计。</p>
+       </section>
+ 
++      <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_summary?.directional_proxy_lists"
++        class="mwb-directional-lists" aria-label="港股行业代理方向观察名单">
++        <h3>月度观察港股 × 美股收盘代理方向</h3>
++        <p>港股范围 {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.monthly_observed_scope_count) }} 只；美股会话 {{ vm.day.data.us_mapping_summary.directional_proxy_lists.source_session || '未知' }}；月度成员来源日 {{ vm.day.data.us_mapping_summary.directional_proxy_lists.monthly_research_source_date || '未知' }}。目标日资格 {{ vm.day.data.us_mapping_summary.directional_proxy_lists.formal_target_eligibility || 'CANNOT_CONFIRM' }}，历史 PIT 未验证。这是代理当日共振观察，不是价格预测、因果结论或 BUY。</p>
++        <p>全量名单取自保存版本的完整 US_MAPPING 行，不受当前推荐分页、筛选或首页 50 行限制。上/下行列表只按已核验的代理收益 &gt; 0 / &lt; 0 生成；零变动与待核单独列示。{{ vm.day.data.us_mapping_summary.directional_proxy_lists.mixed_stock_count || 0 }} 只同时出现相反方向路径并分别列入两边。</p>
++        <div class="mwb-direction-grid">
++          <article class="mwb-direction-card is-upside" aria-label="上行代理观察名单">
++            <h4>上行代理观察 · 已核验收益 &gt; 0 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.upside_stock_count) }} 只</h4>
++            <ul v-if="directionalStocks('upside').length"><li v-for="stock in directionalStocks('upside')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong><p>{{ directionalStockReason(stock) }}</p><small v-if="String(stock.direction_state || '').includes('MIXED')">同一港股存在相反的已核验代理路径；分别展示，不合并打分。</small></li></ul>
++            <p v-else class="mwb-muted">本版本没有可确认的正向代理路径。</p>
++          </article>
++          <article class="mwb-direction-card is-downside" aria-label="下行风险观察名单">
++            <h4>下行风险观察 · 已核验收益 &lt; 0 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.downside_stock_count) }} 只</h4>
++            <ul v-if="directionalStocks('downside').length"><li v-for="stock in directionalStocks('downside')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong><p>{{ directionalStockReason(stock) }}</p><small v-if="String(stock.direction_state || '').includes('MIXED')">同一港股存在相反的已核验代理路径；分别展示，不合并打分。</small></li></ul>
++            <p v-else class="mwb-muted">本版本没有可确认的负向代理路径；未入选不代表下行。</p>
++          </article>
++        </div>
++        <details class="mwb-direction-secondary"><summary>零变动代理路径 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.flat_stock_count) }} 只</summary><ul><li v-for="stock in directionalStocks('flat')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong><p>{{ directionalStockReason(stock) }}</p></li></ul></details>
++        <details class="mwb-direction-secondary"><summary>行业/代理/身份待核 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.unassessed_stock_count) }} 只</summary><ul><li v-for="stock in directionalStocks('unassessed')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong><p>{{ directionalStockReason(stock) }}</p></li></ul></details>
++      </section>
+       <div v-if="vm.counts" class="mwb-counts" aria-label="本路径完整研究记录分类计数">
+         <div><strong>{{ showCount(vm.counts.selected) }}</strong><span>严格入选</span></div>
+         <div><strong>{{ showCount(vm.counts.watch) }}</strong><span>条件观察</span></div>
+@@ -370,7 +430,7 @@
+               <section v-if="row.subtype === 'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'" class="mwb-research-section">
+                 <h5>发行人行业与美股代理主题 · 独立候选</h5>
+                 <p>身份状态 {{ showText(row.identity_status || 'UNASSESSED_IDENTITY') }}；安全主表 {{ showText(row.security_master_owner) }} · 会话 {{ showText(row.security_master_source_date) }} · artifact SHA {{ showText(row.security_master_artifact_sha256) }}。</p>
+-                <p>来源行业 {{ showText(row.source_industry) }}；映射主题 {{ showText(row.theme) }}；代理日收益 {{ row.return_pct === null || row.return_pct === undefined ? '未知' : `${showText(row.return_pct)}%` }}。</p>
++                <p>来源行业 {{ showText(row.source_industry) }}；方向路径 {{ directionalStockReason(row) }}；路径状态 {{ showText(row.proxy_directional_state || 'UNASSESSED') }}。</p>
+                 <p>映射类型 {{ showText(row.mapping_type) }}；分类来源 {{ showText(row.source_id) }} · {{ showText(row.source_owner) }}；来源原始响应 SHA {{ showText(row.source_response_sha256) }}，行 SHA {{ showText(row.source_row_sha256) }}。</p>
+                 <p>source_asof {{ showText(row.source_asof || 'UNKNOWN') }}；采集时间 {{ humanTime(typeof row.captured_at === 'string' ? row.captured_at : null) }}；时间状态 {{ showText(row.temporal_status) }}；历史 PIT 未验证，研究效果未验证。</p>
+                 <p v-for="condition in (Array.isArray(row.conditions) ? row.conditions : [])" :key="String(condition)">待核条件：{{ showText(condition) }}</p>
+--- a/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts
+@@ -117,11 +117,146 @@
+ 
+     await fireEvent.click(screen.getByRole("button", { name: /查看 HK\.09660/ }));
+     await screen.findByText("美股代理日收益路径 · 各路径独立判定");
+-    expect(screen.getByText(/公司关系观察/)).toBeTruthy();
++    expect(screen.getByText("已有审核关系，列为条件观察，不能据此严格入选。 本轮研究分类依据：独立审核的公司关系观察")).toBeTruthy();
+     expect(screen.getByText("自动驾驶 · 条件观察" )).toBeTruthy();
+     expect(screen.getByText(/历史有效期间未知/)).toBeTruthy();
+     await fireEvent.click(screen.getByText("补充原始出处定位（不代表已接受）"));
+     expect(screen.getByText("原文片段：原文位置可追溯")).toBeTruthy();
+     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
+   });
++
++  it("puts the unique-stock industry funnel before legacy row counts and exposes row mapping", async () => {
++    const candidate: StockDecision = {
++      ...sampleStock("HK.00300", "合成美的样本"), row_id: "US_MAPPING:1",
++      subtype: "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE", source_industry: "家庭电器及用品",
++      theme: "消费", return_pct: "1.50", mapping_type: "EXACT_PROVIDER_INDUSTRY",
++      identity_status: "VERIFIED", decision: "CONDITIONAL_WATCH"
++    };
++    const factorSummary = {
++      display_only: true as const, rules_version: "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1",
++      target_date: "20261013", phase: "RETROSPECTIVE" as const,
++      us_source_symbol_count: 33, proxy_source_count: 24, expected_proxy_source_count: 24,
++      verified_proxy_source_count: 24, unknown_proxy_source_count: 0, eligible_hk_scope_count: 698,
++      unique_factor_stock_count: 0, factor_path_count: 0, unknown_factor_stock_count: null,
++      registry_fact_count: 0, paired_review_available: true, source_session: "20261012",
++      historical_pit_verified: false as const, combined_source_and_stock_count: null as null,
++      RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
++      industry_summary: {
++        display_only: true as const, mapping_version: "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V1",
++        source_status: "RETROSPECTIVE_PIT_UNKNOWN", target_date: "20261013",
++        scope_count: 698, identity_resolved_count: 697, identity_gap_count: 1,
++        identity_gap_symbols: ["HK.90697"], identity_gap: "HK_SECURITY_MASTER_IDENTITY_SCOPE_GAP",
++        security_master_scope_count: 697, security_master_owner: "v3_shared_data",
++        security_master_source_date: "20261012", security_master_available_at: "2026-10-12T17:30:15+08:00",
++        security_master_artifact_sha256: "c".repeat(64), security_master_manifest_sha256: "d".repeat(64),
++        bad_row_count: 0, classified_count: 2, mapping_covered_count: 1,
++        industry_unmapped_count: 1, classification_missing_count: 696,
++        triggered_unique_stock_count: 1, unknown_unique_stock_count: 697,
++        candidate_row_count: 1,
++        decision_counts: { CONDITIONAL_WATCH: 1, NOT_SELECTED: 0, UNASSESSED: 697 },
++        source_asof: null, source_asof_status: "UNKNOWN", captured_at: "2026-10-14T09:30:00+08:00",
++        temporal_status: "RETROSPECTIVE_PIT_UNKNOWN", historical_pit_verified: false as const
++      }
++    };
++    const day = sampleDay({
++      stocks: [candidate],
++      counts: { selected: 0, watch: 3, unassessed: 28, observation_only: 0, not_selected: 17 },
++      recommendation_projection: {
++        display_only: true, lane: "US_MAPPING", row_count: 48, hk_relation_row_count: 1,
++        distinct_hk_count: 1, source_only_row_count: 0, count_unit: "SAVED_LANE_RESEARCH_ROWS",
++        industry_candidate_row_count: 698, industry_candidate_stock_count: 1, industry_scope_count: 698,
++        coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 }
++      },
++      us_mapping_summary: {
++        display_only: true, plan_run_id: "synthetic-run-1", source_symbol_count: 33,
++        source_row_count: 48, relation_row_count: 1, mapped_hk_count: 1, mixed_source_count: 0,
++        source_decision_counts: { CONDITIONAL_WATCH: 1 },
++        coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 },
++        groups: [], factor_summary: factorSummary
++      }
++    });
++    const spy = vi.fn(async (input: RequestInfo | URL, _init: RequestInit = {}) => {
++      if (String(input).includes("/stocks/")) {
++        return response(wrapped({ recommendation_lane: "US_MAPPING", plan_run_id: "synthetic-run-1",
++          stock: candidate, lane_details: [{ lane: "US_MAPPING", rows: [candidate], evidence_refs: [] }] }));
++      }
++      return response(wrapped(day));
++    });
++    vi.stubGlobal("fetch", spy);
++
++    render(Workbench);
++    await screen.findByRole("region", { name: "港股行业宽召回股票漏斗" });
++    expect(screen.getByText(/范围 698 只；身份核验 697 只，身份缺口 1 只；有行业分类 2 只，已映射到冻结美股主题 1 只/)).toBeTruthy();
++    expect(screen.getByText(/待核（UNASSESSED）697 只；.*去重候选 1 只/)).toBeTruthy();
++    const funnel = screen.getByRole("region", { name: "港股行业宽召回股票漏斗" });
++    const recordCounts = screen.getByLabelText("本路径完整研究记录分类计数");
++    expect(Boolean(funnel.compareDocumentPosition(recordCounts) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
++    expect(screen.getByText(/保存 48 条研究记录（计数单位：研究记录）/)).toBeTruthy();
++    expect(screen.getByText(/行业 家庭电器及用品 → 主题 消费；代理日收益 1\.50% · EXACT_PROVIDER_INDUSTRY/)).toBeTruthy();
++    await fireEvent.click(screen.getByRole("button", { name: /查看 HK\.00300/ }));
++    await screen.findByText("来源行业 家庭电器及用品；映射主题 消费；代理日收益 1.50%。");
++    expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
++  });
++
++  it("shows full saved-lane proxy directions with negative, flat, unknown, and mixed paths separated", async () => {
++    const path = (theme: string, symbols: string[], direction: string, change: string | null) => ({
++      theme, proxy_symbols: symbols, direction, return_pct: change, source_session: "20261016",
++      status: direction === "UNASSESSED" ? "UNASSESSED" : "VERIFIED",
++      conditions: direction === "UNASSESSED" ? ["THEME_PROXY_OWNER_ROW_MISSING"] : []
++    });
++    const stock = sampleStock("HK.00005", "分页内样本");
++    const summary = {
++      display_only: true as const, plan_run_id: "directional-run", source_symbol_count: 48,
++      source_row_count: 48, relation_row_count: 0, mapped_hk_count: 0, source_decision_counts: {},
++      mixed_source_count: 0, coverage: { scope_count: 48, observed_count: 48, assessed_count: 48, unassessed_count: 0 },
++      groups: [], factor_summary: null,
++      directional_proxy_lists: {
++        display_only: true as const, source_session: "20261016", monthly_observed_scope_count: 698,
++        monthly_research_source_date: "20261012", formal_target_eligibility: "CANNOT_CONFIRM",
++        historical_pit_verified: false as const, mixed_stock_count: 1, upside_stock_count: 1,
++        downside_stock_count: 2, flat_stock_count: 1, unassessed_stock_count: 1,
++        lists: {
++          upside: [{ symbol: "HK.00001", name: "油服样本", source_industry: "石油及天然气",
++            direction_state: "MIXED_UPSIDE_DOWNSIDE", proxy_paths: [
++              path("石油", ["XLE"], "UPSIDE", "2.0"), path("天然气", ["FCG"], "DOWNSIDE", "-1.5")
++            ] }],
++          downside: [
++            { symbol: "HK.00001", name: "油服样本", source_industry: "石油及天然气",
++              direction_state: "MIXED_UPSIDE_DOWNSIDE", proxy_paths: [
++                path("石油", ["XLE"], "UPSIDE", "2.0"), path("天然气", ["FCG"], "DOWNSIDE", "-1.5")
++              ] },
++            { symbol: "HK.00002", name: "半导体样本", source_industry: "半导体",
++              direction_state: "DOWNSIDE", proxy_paths: [path("半导体", ["SOXX"], "DOWNSIDE", "-0.6")] }
++          ],
++          flat: [{ symbol: "HK.00003", name: "医药样本", source_industry: "药品及生物科技",
++            direction_state: "FLAT", proxy_paths: [path("生物医药", ["XBI"], "FLAT", "0")] }],
++          unassessed: [{ symbol: "HK.00004", name: "待核样本", source_industry: "银行",
++            direction_state: "UNASSESSED", proxy_paths: [path("银行金融", ["KBE"], "UNASSESSED", null)] }]
++        }
++      }
++    };
++    const day = sampleDay({
++      stocks: [stock], counts: { selected: 0, watch: 0, unassessed: 1, observation_only: 0, not_selected: 0 },
++      us_mapping_summary: summary
++    });
++    const spy = vi.fn(async (_input: RequestInfo | URL, _init: RequestInit = {}) => response(wrapped(day)));
++    vi.stubGlobal("fetch", spy);
++
++    render(Workbench);
++    const lists = await screen.findByRole("region", { name: "港股行业代理方向观察名单" });
++    expect(lists.textContent).toContain("月度观察港股 × 美股收盘代理方向");
++    expect(lists.textContent).toContain("月度成员来源日 20261012");
++    expect(lists.textContent).toContain("目标日资格 CANNOT_CONFIRM");
++    expect(lists.textContent).toContain("上行代理观察 · 已核验收益 > 0 · 1 只");
++    expect(lists.textContent).toContain("HK.00001 油服样本");
++    expect(lists.textContent).toContain("石油（XLE）· 20261016 收盘 +2%");
++    expect(lists.textContent).toContain("天然气（FCG）· 20261016 收盘 -1.5%");
++    expect(lists.textContent).toContain("HK.00002 半导体样本");
++    expect(lists.textContent).toContain("下行风险观察 · 已核验收益 < 0 · 2 只");
++    expect(lists.textContent).toContain("零变动代理路径 · 1 只");
++    expect(lists.textContent).toContain("行业/代理/身份待核 · 1 只");
++    expect(lists.textContent).toContain("缺少代理收益来源行（THEME_PROXY_OWNER_ROW_MISSING）");
++    expect(lists.textContent).not.toContain("未入选代表下行");
++    expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
++  });
+ });
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -203,6 +203,47 @@
+       target_gap?: string | null };
+   };
+ }
++export interface HKDirectionalProxyPath {
++  theme?: string | null;
++  proxy_symbols?: string[];
++  status?: string;
++  direction?: "UPSIDE" | "DOWNSIDE" | "FLAT" | "UNASSESSED" | string;
++  return_pct?: string | null;
++  source_session?: string | null;
++  reason?: string | null;
++  conditions?: string[];
++  [key: string]: unknown;
++}
++export interface HKDirectionalProxyStock {
++  symbol: string;
++  name?: string | null;
++  source_industry?: string | null;
++  source_session?: string | null;
++  direction_state?: string;
++  reason?: string | null;
++  conditions?: string[];
++  proxy_paths?: HKDirectionalProxyPath[];
++  [key: string]: unknown;
++}
++export interface HKDirectionalProxyLists {
++  display_only: true;
++  source_session?: string | null;
++  monthly_observed_scope_count?: number | null;
++  monthly_research_source_date?: string | null;
++  formal_target_eligibility?: string;
++  historical_pit_verified: false;
++  mixed_stock_count?: number | null;
++  upside_stock_count?: number | null;
++  downside_stock_count?: number | null;
++  flat_stock_count?: number | null;
++  unassessed_stock_count?: number | null;
++  lists: {
++    upside: HKDirectionalProxyStock[];
++    downside: HKDirectionalProxyStock[];
++    flat: HKDirectionalProxyStock[];
++    unassessed: HKDirectionalProxyStock[];
++  };
++}
+ export interface DayData {
+   recommendation_counts?: Partial<Record<RecommendationLane, DecisionCounts | null>>;
+   recommendation_projection?: {
+@@ -227,6 +268,7 @@
+     catalog_summary?: { state?: string | null; stock_count?: number | null; relation_count?: number | null;
+       consumed_relation_count?: number | null; displayed_relation_count?: number | null };
+     run_contract?: USMappingRunContract | null;
++    directional_proxy_lists?: HKDirectionalProxyLists | null;
+   } | null;
+ }
+ export interface StockLaneDetail {
+--- a/apps/web/src/manager-workbench/workbench.css
++++ b/apps/web/src/manager-workbench/workbench.css
+@@ -153,3 +153,19 @@
+ .mwb-announcement-audit ul { padding-left: 20px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+ @media(max-width:1050px) { .mwb-announcement-counts { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+ @media(max-width:680px) { .mwb-announcement-counts { grid-template-columns: repeat(2,minmax(0,1fr)); } }
++.mwb-directional-lists { margin: 16px 0; padding: 16px; border: 1px solid #d5e2ea; border-radius: 10px; background: #f7fafc; }
++.mwb-directional-lists h3 { margin: 0 0 8px; color: #173e59; }
++.mwb-directional-lists > p { color: #53677d; font-size: 12px; line-height: 1.65; }
++.mwb-direction-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
++.mwb-direction-card { min-width: 0; border: 1px solid #d6e0e9; border-radius: 8px; padding: 12px; background: #fff; }
++.mwb-direction-card h4 { margin: 0 0 8px; font-size: 14px; }
++.mwb-direction-card.is-upside h4 { color: #17664e; }
++.mwb-direction-card.is-downside h4 { color: #9b3e34; }
++.mwb-direction-card ul, .mwb-direction-secondary ul { max-height: 360px; overflow: auto; margin: 0; padding-left: 20px; }
++.mwb-direction-card li, .mwb-direction-secondary li { padding: 7px 0; border-top: 1px solid #e7edf2; line-height: 1.55; overflow-wrap: anywhere; }
++.mwb-direction-card li p, .mwb-direction-secondary li p { margin: 3px 0; font-size: 12px; }
++.mwb-direction-card li small { color: #76551b; }
++.mwb-direction-secondary { margin-top: 8px; border: 1px solid #dce5ed; border-radius: 7px; padding: 9px 12px; background: #fff; }
++.mwb-direction-secondary summary { cursor: pointer; color: #354f66; font-size: 12px; font-weight: 700; }
++.mwb-direction-secondary ul { margin-top: 8px; }
++@media(max-width:680px) { .mwb-direction-grid { grid-template-columns: 1fr; } }
+--- a/v4/manager_workbench/display_read.py
++++ b/v4/manager_workbench/display_read.py
+@@ -1,5 +1,6 @@
+ """Read-only presentation projection. Saved snapshot hashes describe original bytes."""
+ import csv,hashlib,io,json,re
++from decimal import Decimal,InvalidOperation
+ from infrastructure.owned_io import SafeRoot
+ from .inputs.validation import before
+ from .engines.common import US_FACTOR_RULES_VERSION
+@@ -53,6 +54,91 @@
+  return value
+ 
+ 
++def _industry_directional_lists(lane_rows,industry_summary,source_session):
++ """Build full-lane proxy direction views; never infer downside from NOT_SELECTED."""
++ if not isinstance(industry_summary,dict):return None
++ rows=[row for row in lane_rows if isinstance(row,dict)
++  and row.get('subtype')=='HK_INDUSTRY_PROXY_FACTOR_CANDIDATE']
++ if not rows:return None
++ lists={key:[] for key in ('upside','downside','flat','unassessed')}
++ path_counts={key:0 for key in ('upside','downside','flat','unassessed')}
++ mixed_count=0
++ for row in rows:
++  research=row.get('research_membership') or {}
++  formal=row.get('membership') or {}
++  membership_ok=(research.get('status')=='VERIFIED_MONTHLY_OBSERVATION'
++   and research.get('in_monthly_universe') is True and research.get('market')=='HK_CONNECT') or (
++   formal.get('verification')=='VERIFIED' and formal.get('eligible') is True)
++  identity_ok=row.get('identity_status')=='VERIFIED'
++  source_paths=row.get('proxy_paths')
++  source_paths=source_paths if isinstance(source_paths,list) else []
++  normalized=[]
++  for original in source_paths:
++   if not isinstance(original,dict):continue
++   path=dict(original)
++   path_direction='UNASSESSED'
++   try:
++    value=Decimal(str(path.get('return_pct')))
++    if not value.is_finite():raise InvalidOperation
++    if (path.get('status')=='VERIFIED' and identity_ok and membership_ok
++      and path.get('source_session')==source_session):
++     actual='UPSIDE' if value>0 else 'DOWNSIDE' if value<0 else 'FLAT'
++     if path.get('direction')==actual:path_direction=actual
++   except (InvalidOperation,TypeError,ValueError):
++    pass
++   path['direction']=path_direction
++   if path_direction=='UNASSESSED':path['status']='UNASSESSED'
++   normalized.append(path)
++  directions={path['direction'] for path in normalized}
++  has_up='UPSIDE' in directions;has_down='DOWNSIDE' in directions
++  has_flat='FLAT' in directions;has_unknown=('UNASSESSED' in directions or not normalized)
++  if has_up and has_down:mixed_count+=1
++  state=('MIXED_UPSIDE_DOWNSIDE' if has_up and has_down else
++   'UPSIDE_WITH_UNASSESSED' if has_up and has_unknown else
++   'DOWNSIDE_WITH_UNASSESSED' if has_down and has_unknown else
++   'UPSIDE' if has_up else 'DOWNSIDE' if has_down else
++   'FLAT_WITH_UNASSESSED' if has_flat and has_unknown else
++   'FLAT' if has_flat else 'UNASSESSED')
++  item=dict(symbol=row.get('symbol'),name=row.get('name'),source_industry=row.get('source_industry'),
++   source_session=source_session,direction_state=state,reason=row.get('reason'),
++   conditions=list(row.get('conditions') or []),mapping_version=row.get('mapping_version'),
++   mapping_evidence=row.get('mapping_evidence'),source_owner=row.get('source_owner'),
++   source_artifact_sha256=row.get('source_artifact_sha256'),source_response_sha256=row.get('source_response_sha256'),
++   source_response_ref=row.get('source_response_ref'),source_row_sha256=row.get('source_row_sha256'),
++   research_membership=dict(status=research.get('status'),source_date=research.get('source_date'),
++    source_sha256=research.get('source_sha256'),codes_sha256=research.get('codes_sha256'),
++    target_month=research.get('target_month')) if research else None,
++   target_eligibility=dict(row.get('target_eligibility') or {}),proxy_paths=normalized)
++  selected={
++   'upside': [path for path in normalized if path['direction']=='UPSIDE'],
++   'downside': [path for path in normalized if path['direction']=='DOWNSIDE'],
++   'flat': [path for path in normalized if path['direction']=='FLAT'],
++   'unassessed': [path for path in normalized if path['direction']=='UNASSESSED'],
++  }
++  for key,paths in selected.items():
++   if paths or key=='unassessed' and not normalized:
++    path_counts[key]+=len(paths) if paths else 1
++    lists[key].append({**item,'proxy_paths':paths if key!='unassessed' else (paths or normalized)})
++  # A stock with mixed signs appears in both directional lists. Per-stock path
++  # state on each list retains the opposing path to make that explicit.
++  for key in ('upside','downside'):
++   if lists[key] and lists[key][-1]['symbol']==item['symbol']:
++    lists[key][-1]['proxy_paths']=normalized
++ return dict(display_only=True,source_session=source_session,
++  target_date=industry_summary.get('target_date'),mapping_version=industry_summary.get('mapping_version'),
++  monthly_observed_scope_count=industry_summary.get('monthly_research_code_count') or industry_summary.get('scope_count'),
++  monthly_research_source_date=industry_summary.get('monthly_research_source_date'),
++  monthly_research_source_sha256=industry_summary.get('monthly_research_source_sha256'),
++  monthly_research_codes_sha256=industry_summary.get('monthly_research_codes_sha256'),
++  formal_target_eligibility=industry_summary.get('formal_target_eligibility','CANNOT_CONFIRM'),
++  historical_pit_verified=False,mixed_stock_count=mixed_count,
++  upside_stock_count=len(lists['upside']),downside_stock_count=len(lists['downside']),
++  flat_stock_count=len(lists['flat']),unassessed_stock_count=len(lists['unassessed']),
++  upside_path_count=path_counts['upside'],downside_path_count=path_counts['downside'],
++  flat_path_count=path_counts['flat'],unassessed_path_count=path_counts['unassessed'],
++  lists=lists)
++
++
+ def us_summary(snapshot,names):
+  lane=next((l for l in snapshot.lanes if l.lane.value=='US_MAPPING'),None)
+  if lane is None:return None
+@@ -79,6 +165,11 @@
+  catalog_summary=next((row.get('us_mapping_catalog_summary') for row in lane.rows
+   if isinstance(row.get('us_mapping_catalog_summary'),dict)),{})
+  run_contract=getattr(snapshot.context,'scope_refs',{}).get('US_MAPPING_RUN_CONTRACT_V1')
++ context=snapshot.context.model_dump(mode='json') if hasattr(snapshot.context,'model_dump') else snapshot.context
++ sessions=context.get('source_sessions') if isinstance(context,dict) else getattr(context,'source_sessions',{})
++ source_session=(sessions or {}).get('us') or (sessions or {}).get('US')
++ industry_summary=(factor_summary or {}).get('industry_summary') if isinstance(factor_summary,dict) else None
++ directional_proxy_lists=_industry_directional_lists(lane.rows,industry_summary,source_session)
+  return dict(display_only=True,plan_run_id=snapshot.run_id,coverage=lane.coverage.model_dump(mode='json'),
+   source_symbol_count=len(groups),source_row_count=source_row_count,relation_row_count=len(relations),
+   mapped_hk_count=len({r['symbol'] for r in relations}),source_decision_counts=counts,mixed_source_count=mixed,
+@@ -88,7 +179,7 @@
+    relation_count=catalog_summary.get('relation_count'),
+    consumed_relation_count=catalog_summary.get('consumed_relation_count'),
+    displayed_relation_count=len(catalog_rows)),
+-  run_contract=run_contract)
++  run_contract=run_contract,directional_proxy_lists=directional_proxy_lists)
+ 
+ 
+ def lane_stock(snapshot,lane,index,names):
+--- a/v4/manager_workbench/engines/us_factor.py
++++ b/v4/manager_workbench/engines/us_factor.py
+@@ -21,13 +21,43 @@
+     "ACCEPT_AS_OF_REPORTED_QUALITATIVE_EXPOSURE_ONLY",
+ ))
+ LIMITATION_REASONS = frozenset(("LIMITS", "LIMITS_REQUIRED"))
+-HK_INDUSTRY_MAPPING_VERSION = "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V1"
+-# Only exact provider labels backed by a reviewed canary belong here. New labels
+-# stay visible as unmapped until their source spelling and proxy fit are frozen.
++HK_INDUSTRY_MAPPING_VERSION = "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V2"
++
++
++def _provider_proxy(themes, evidence="USER_DIRECTED_FIXED_THEME_MAP_R2"):
++    return dict(themes=[dict(theme=theme, proxy_symbols=list(symbols)) for theme, symbols in themes],
++        mapping_type="EXACT_PROVIDER_INDUSTRY", mapping_evidence=evidence)
++
++
++# These are exact labels emitted by the saved Eastmoney provider artifact. The
++# XLY/XLP basket is a broad consumption proxy, not an exact subsector match.
++# Oil and gas intentionally remain two independent paths so opposite moves are
++# visible without a net score. Unlisted provider strings stay unmapped.
+ HK_INDUSTRY_TO_PROXY = {
+-    "家庭电器及用品": dict(theme="消费", proxy_symbols=["XLY", "XLP"],
+-        mapping_type="EXACT_PROVIDER_INDUSTRY", mapping_evidence="EASTMONEY_F10_HK00300_CANARY"),
++    "家庭电器及用品": _provider_proxy([("消费", ["XLY", "XLP"])], "EASTMONEY_F10_HK00300_CANARY"),
++    "专业零售": _provider_proxy([("消费", ["XLY", "XLP"])]),
++    "消费者主要零售商": _provider_proxy([("消费", ["XLY", "XLP"])]),
++    "食物饮品": _provider_proxy([("消费", ["XLY", "XLP"])]),
++    "纺织及服饰": _provider_proxy([("消费", ["XLY", "XLP"])]),
++    "汽车": _provider_proxy([("消费", ["XLY", "XLP"])]),
++    "旅游及消闲设施": _provider_proxy([("消费", ["XLY", "XLP"])]),
++    "药品及生物科技": _provider_proxy([("生物医药", ["XBI"])]),
++    "半导体": _provider_proxy([("半导体", ["SOXX"])]),
++    "银行": _provider_proxy([("银行金融", ["KBE"])]),
++    "黄金及贵金属": _provider_proxy([("黄金", ["GLD"])]),
++    "石油及天然气": _provider_proxy([("石油", ["XLE"]), ("天然气", ["FCG"])]),
+ }
++
++
++def _industry_proxy_specs(theme_info):
++    specs = theme_info.get("themes") if isinstance(theme_info, dict) else None
++    if not isinstance(specs, list):
++        theme = theme_info.get("theme") if isinstance(theme_info, dict) else None
++        symbols = theme_info.get("proxy_symbols") if isinstance(theme_info, dict) else None
++        specs = [dict(theme=theme, proxy_symbols=symbols)] if theme else []
++    return [spec for spec in specs if isinstance(spec, dict)
++        and isinstance(spec.get("theme"), str) and spec.get("theme")
++        and isinstance(spec.get("proxy_symbols"), list) and spec.get("proxy_symbols")]
+ 
+ 
+ def _reason_tokens(reasons):
+@@ -277,6 +307,62 @@
+     return False, "RETROSPECTIVE_PIT_UNKNOWN", captured_at.isoformat()
+ 
+ 
++def _monthly_research_membership_valid(research, artifact, context):
++    """Validate an observed monthly research universe without proving target eligibility."""
++    if not isinstance(research, dict) or not isinstance(artifact, dict):
++        return False, "MONTHLY_RESEARCH_UNIVERSE_NOT_BOUND"
++    codes = research.get("codes")
++    source_date, source_date_valid = _industry_asof_date(research.get("source_date"))
++    target_date = context.get("target_date", "")
++    refs = research.get("checked_files")
++    try:
++        expected_codes_sha = sha256(json.dumps(
++            {"market": "HK_CONNECT", "codes": codes}, ensure_ascii=False,
++            sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
++    except (TypeError, ValueError):
++        return False, "MONTHLY_RESEARCH_UNIVERSE_CODES_INVALID"
++    if not isinstance(refs, list) or len(refs) < 6:
++        return False, "MONTHLY_RESEARCH_UNIVERSE_SOURCE_REFS_INCOMPLETE"
++    if any(not isinstance(ref, dict) or not isinstance(ref.get("source_local_path"), str)
++            or not ref.get("source_local_path") or not isinstance(ref.get("relative"), str)
++            or not ref.get("relative") or not valid_sha(ref.get("sha256")) for ref in refs):
++        return False, "MONTHLY_RESEARCH_UNIVERSE_SOURCE_REFS_INVALID"
++    refs_by_path = {ref["relative"]: ref["sha256"] for ref in refs}
++    source_identity_valid = (
++        research.get("schema_version") == "v4.manager_workbench.hk_connect_monthly_research_universe.v1"
++        and research.get("status") == "VERIFIED"
++        and research.get("market") == "HK_CONNECT"
++        and research.get("owner") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
++        and isinstance(research.get("producer_owner"), str) and bool(research.get("producer_owner"))
++        and research.get("source_role") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
++        and research.get("target_month") == target_date[:6]
++        and source_date_valid and source_date.strftime("%Y%m%d") == research.get("source_date")
++        and source_date.strftime("%Y%m%d")[:6] == target_date[:6]
++        and source_date.strftime("%Y%m%d") <= target_date
++        and research.get("cutoff") == context.get("cutoff")
++        and current(context, research.get("available_at"))
++        and valid_sha(research.get("artifact_sha256"))
++        and research.get("codes_sha256") == expected_codes_sha
++        and isinstance(codes, list) and bool(codes)
++        and type(research.get("code_count")) is int and research.get("code_count") == len(codes)
++        and len(codes) == len(set(codes)) and codes == sorted(codes)
++        and all(hk_symbol(code) for code in codes)
++        and research.get("target_period_verified") is False
++        and research.get("formal_target_eligibility") == "CANNOT_CONFIRM"
++        and research.get("formal_target_gap") == "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"
++        and research.get("artifact_relative") in refs_by_path
++        and refs_by_path.get(research.get("artifact_relative")) == research.get("artifact_sha256")
++        and research.get("manifest_relative") in refs_by_path
++        and refs_by_path.get(research.get("manifest_relative")) == research.get("manifest_sha256")
++        and research.get("receipt_relative") in refs_by_path
++        and refs_by_path.get(research.get("receipt_relative")) == research.get("receipt_sha256")
++        and artifact.get("source_membership_artifact_sha256") == research.get("artifact_sha256")
++        and artifact.get("source_membership_codes_sha256") == research.get("codes_sha256")
++        and artifact.get("membership_artifact_sha256") is None
++    )
++    return (source_identity_valid, None if source_identity_valid else "MONTHLY_RESEARCH_UNIVERSE_IDENTITY_INVALID")
++
++
+ def _hk_industry_candidates(context, payload, proxy_returns):
+     """Project exact-date issuer classifications into a separate research funnel."""
+     binding = payload.get("hk_industry_classification") if isinstance(payload, dict) else None
+@@ -284,6 +370,10 @@
+     scope_codes = payload.get("hk_scope_codes") if isinstance(payload, dict) else None
+     if not isinstance(scope_codes, list) and isinstance(binding, dict):
+         scope_codes = binding.get("hk_scope_codes")
++    if not scope_codes and isinstance(binding, dict):
++        research_pin = binding.get("research_membership")
++        if isinstance(research_pin, dict) and isinstance(research_pin.get("codes"), list):
++            scope_codes = research_pin["codes"]
+     scope_codes = sorted(scope_codes) if isinstance(scope_codes, list) and all(hk_symbol(code) for code in scope_codes) else []
+     if type(scope_count) is not int and scope_codes:
+         scope_count = len(scope_codes)
+@@ -344,16 +434,44 @@
+         empty_summary.update(source_status="INVALID", source_gap="HK_INDUSTRY_CLASSIFICATION_ARTIFACT_INVALID")
+         return [], empty_summary
+ 
+-    codes = binding.get("hk_scope_codes")
+-    expected_scope_count = binding.get("hk_scope_count")
+-    expected_codes_sha = binding.get("membership_codes_sha256")
+-    expected_member_sha = binding.get("membership_artifact_sha256")
++    observed_policy = artifact.get("classification_policy") == "LATEST_OBSERVED"
++    research_membership = binding.get("research_membership")
++    research_valid, research_gap = _monthly_research_membership_valid(
++        research_membership, artifact, context)
++    formal_codes = binding.get("hk_scope_codes")
++    formal_scope_count = binding.get("hk_scope_count")
++    formal_codes_sha = binding.get("membership_codes_sha256")
++    formal_member_sha = binding.get("membership_artifact_sha256")
++    formal_membership_bound = bool(
++        isinstance(formal_codes, list) and formal_codes
++        and type(formal_scope_count) is int
++        and valid_sha(formal_member_sha)
++    )
++    use_monthly_research = bool(
++        observed_policy and research_valid and not formal_membership_bound
++        and formal_member_sha is None
++        and artifact.get("membership_artifact_sha256") is None
++        and artifact.get("membership_codes_sha256") is None
++        and binding.get("membership_owner") is None
++        and binding.get("membership_available_at") is None
++        and binding.get("membership_effective_from") is None
++        and binding.get("membership_effective_through") is None
++    )
++    if use_monthly_research:
++        codes = research_membership["codes"]
++        expected_scope_count = research_membership["code_count"]
++        expected_codes_sha = research_membership["codes_sha256"]
++        expected_member_sha = None
++    else:
++        codes = formal_codes
++        expected_scope_count = formal_scope_count
++        expected_codes_sha = formal_codes_sha
++        expected_member_sha = formal_member_sha
+     actual_codes_sha = sha256(json.dumps(
+         {"market": "HK_CONNECT", "codes": sorted(codes) if isinstance(codes, list) else []},
+         ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+     rows = artifact.get("rows")
+     artifact_sha = binding.get("artifact_sha256")
+-    observed_policy = artifact.get("classification_policy") == "LATEST_OBSERVED"
+     source_scope_valid = (
+         type(artifact.get("scope_count")) is int and artifact.get("scope_count") >= 0
+         and artifact.get("observed_scope_count") == artifact.get("scope_count")
+@@ -362,10 +480,50 @@
+         if observed_policy else artifact.get("scope_count") == expected_scope_count
+     )
+     source_membership_valid = (
+-        artifact.get("membership_codes_sha256") == expected_codes_sha
+-        and artifact.get("membership_artifact_sha256") == expected_member_sha
++        artifact.get("source_membership_codes_sha256") == expected_codes_sha
++        and artifact.get("source_membership_artifact_sha256") == research_membership.get("artifact_sha256")
++        if use_monthly_research else
++        (artifact.get("membership_codes_sha256") == expected_codes_sha
++            and artifact.get("membership_artifact_sha256") == expected_member_sha)
+         if not observed_policy else True
+     )
++    formal_membership_identity_valid = (
++        artifact.get("membership_artifact_sha256") == expected_member_sha
++        and valid_sha(expected_member_sha)
++        and isinstance(binding.get("membership_owner"), str) and bool(binding.get("membership_owner"))
++        and current(context, binding.get("membership_available_at"))
++        and isinstance(binding.get("membership_effective_from"), str)
++        and isinstance(binding.get("membership_effective_through"), str)
++        and binding["membership_effective_from"] <= context.get("target_date", "") <= binding["membership_effective_through"]
++    )
++    monthly_membership_identity_valid = (
++        expected_member_sha is None and artifact.get("membership_artifact_sha256") is None
++        and artifact.get("membership_codes_sha256") is None
++        and binding.get("membership_owner") is None
++        and binding.get("membership_available_at") is None
++        and binding.get("membership_effective_from") is None
++        and binding.get("membership_effective_through") is None
++        and use_monthly_research
++    )
++    membership_identity_valid = (monthly_membership_identity_valid if use_monthly_research
++        else formal_membership_identity_valid)
++    if use_monthly_research:
++        empty_summary.update(
++            scope_count=expected_scope_count,
++            classification_missing_count=expected_scope_count,
++            unknown_unique_stock_count=expected_scope_count,
++            decision_counts={"CONDITIONAL_WATCH": 0, "NOT_SELECTED": 0, "UNASSESSED": expected_scope_count},
++            monthly_research_universe_status="VERIFIED",
++            monthly_research_source_date=research_membership.get("source_date"),
++            monthly_research_source_sha256=research_membership.get("artifact_sha256"),
++            monthly_research_codes_sha256=research_membership.get("codes_sha256"),
++            monthly_research_code_count=research_membership.get("code_count"),
++            formal_target_eligibility="CANNOT_CONFIRM",
++            formal_target_gap=research_membership.get("formal_target_gap"),
++        )
++    elif observed_policy and not research_valid:
++        empty_summary.update(monthly_research_universe_status="CANNOT_CONFIRM",
++            monthly_research_gap=research_gap, formal_target_eligibility="CANNOT_CONFIRM")
+     identity_ok = (
+         artifact.get("schema_version") == "v4.manager_workbench.hk_industry_classification.v1"
+         and artifact.get("source_id") == "EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE"
+@@ -378,13 +536,8 @@
+         and source_scope_valid
+         and source_membership_valid
+         and expected_codes_sha == actual_codes_sha
+-        and artifact.get("membership_artifact_sha256") == expected_member_sha
+-        and valid_sha(expected_member_sha) and valid_sha(artifact_sha)
+-        and isinstance(binding.get("membership_owner"), str) and bool(binding.get("membership_owner"))
+-        and current(context, binding.get("membership_available_at"))
+-        and isinstance(binding.get("membership_effective_from"), str)
+-        and isinstance(binding.get("membership_effective_through"), str)
+-        and binding["membership_effective_from"] <= context.get("target_date", "") <= binding["membership_effective_through"]
++        and membership_identity_valid
++        and valid_sha(artifact_sha)
+         and isinstance(rows, list)
+         and isinstance(binding.get("owner"), str) and bool(binding.get("owner"))
+         and valid_sha(artifact.get("batch_response_sha256"))
+@@ -426,10 +579,28 @@
+     counts = {d: 0 for d in ("CONDITIONAL_WATCH", "NOT_SELECTED", "UNASSESSED")}
+     classified = mapped = missing = unmapped = triggered = 0
+     expected_session = (context.get("source_sessions") or {}).get("us") or (context.get("source_sessions") or {}).get("US")
+-    member = dict(verification="VERIFIED", eligible=True, owner=binding.get("membership_owner"),
+-        sha256=expected_member_sha, available_at=binding.get("membership_available_at"),
+-        effective_from=binding.get("membership_effective_from"),
+-        effective_through=binding.get("membership_effective_through"), version=binding.get("membership_version"))
++    if use_monthly_research:
++        member = dict(verification="CANNOT_CONFIRM", eligible=None,
++            owner=research_membership.get("owner"), sha256=None,
++            available_at=research_membership.get("available_at"), effective_from=None,
++            effective_through=None, version=research_membership.get("version"),
++            gap=research_membership.get("formal_target_gap"))
++        research_member_row = dict(status="VERIFIED_MONTHLY_OBSERVATION", in_monthly_universe=True,
++            market=research_membership.get("market"), source_role=research_membership.get("source_role"),
++            target_month=research_membership.get("target_month"), source_date=research_membership.get("source_date"),
++            source_owner=research_membership.get("owner"), source_sha256=research_membership.get("artifact_sha256"),
++            codes_sha256=research_membership.get("codes_sha256"), available_at=research_membership.get("available_at"))
++        formal_target_eligibility = dict(status="CANNOT_CONFIRM", eligible=None,
++            gap=research_membership.get("formal_target_gap"), effective_from=None, effective_through=None)
++    else:
++        member = dict(verification="VERIFIED", eligible=True, owner=binding.get("membership_owner"),
++            sha256=expected_member_sha, available_at=binding.get("membership_available_at"),
++            effective_from=binding.get("membership_effective_from"),
++            effective_through=binding.get("membership_effective_through"), version=binding.get("membership_version"))
++        research_member_row = None
++        formal_target_eligibility = dict(status="VERIFIED", eligible=True, gap=None,
++            effective_from=binding.get("membership_effective_from"),
++            effective_through=binding.get("membership_effective_through"))
+     master_code_set = set(master_codes)
+     for symbol in sorted(codes):
+         symbol_identity_ok = master_identity_ok and symbol in master_code_set
+@@ -446,8 +617,8 @@
+         conditions = []
+         reason = ""
+         decision = "UNASSESSED"
+-        proxy = None
+-        exposure = None
++        primary_proxy = None
++        proxy_paths = []
+         if not time_ok:
+             conditions.append(temporal_status)
+         if symbol in duplicate_symbols:
+@@ -467,33 +638,66 @@
+             reason = "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE"
+         else:
+             mapped += 1
+-            theme = theme_info["theme"]
+-            proxy = proxy_returns.get(theme)
+-            if not isinstance(proxy, dict) or proxy.get("status") != "VERIFIED":
+-                conditions.append(proxy.get("reason", "THEME_PROXY_RETURN_UNASSESSED") if isinstance(proxy, dict)
+-                    else "THEME_PROXY_OWNER_ROW_MISSING")
+-            elif item.get("mapping_type") != theme_info["mapping_type"]:
+-                conditions.append("INDUSTRY_MAPPING_TYPE_MISMATCH")
++            proxy_specs = _industry_proxy_specs(theme_info)
++            if not proxy_specs:
++                conditions.append("INDUSTRY_PROXY_THEME_BINDING_INVALID")
++            for spec in proxy_specs:
++                theme = spec["theme"]
++                proxy = proxy_returns.get(theme)
++                path_conditions = []
++                exposure = None
++                direction = "UNASSESSED"
++                if not time_ok:
++                    path_conditions.append(temporal_status)
++                if symbol in duplicate_symbols:
++                    path_conditions.append("CLASSIFICATION_ROW_DUPLICATE")
++                if not isinstance(proxy, dict) or proxy.get("status") != "VERIFIED":
++                    path_conditions.append(proxy.get("reason", "THEME_PROXY_RETURN_UNASSESSED")
++                        if isinstance(proxy, dict) else "THEME_PROXY_OWNER_ROW_MISSING")
++                elif proxy.get("proxy_symbols") != spec["proxy_symbols"]:
++                    path_conditions.append("INDUSTRY_THEME_PROXY_MEMBERSHIP_MISMATCH")
++                # Older exact-provider rows may predate this derived field.
++                # The exact frozen source-industry label remains the mapping
++                # key; only a conflicting explicit derived value is rejected.
++                elif item.get("mapping_type") not in (None, theme_info["mapping_type"]):
++                    path_conditions.append("INDUSTRY_MAPPING_TYPE_MISMATCH")
++                else:
++                    try:
++                        exposure = _number(proxy.get("return_pct"))
++                    except ValueError:
++                        path_conditions.append("THEME_PROXY_RETURN_INVALID")
++                if exposure is not None and not path_conditions:
++                    direction = "UPSIDE" if exposure > 0 else "DOWNSIDE" if exposure < 0 else "FLAT"
++                proxy_paths.append(dict(theme=theme, proxy_symbols=list(spec["proxy_symbols"]),
++                    status="VERIFIED" if exposure is not None and not path_conditions else "UNASSESSED",
++                    direction=direction, return_pct=str(exposure) if exposure is not None else None,
++                    return_unit="PERCENT", source_session=expected_session,
++                    reason=("VERIFIED_PROXY_RETURN_" + direction if direction != "UNASSESSED"
++                        else "THEME_PROXY_RETURN_UNASSESSED"), conditions=list(dict.fromkeys(path_conditions)),
++                    owner=proxy.get("owner") if isinstance(proxy, dict) else None,
++                    source_sha256=proxy.get("source_sha256") if isinstance(proxy, dict) else None,
++                    available_at=proxy.get("available_at") if isinstance(proxy, dict) else None))
++                if isinstance(proxy, dict) and primary_proxy is None:
++                    primary_proxy = proxy
++                conditions.extend(path_conditions)
++            directions = {path["direction"] for path in proxy_paths}
++            positive_path = "UPSIDE" in directions
++            negative_path = "DOWNSIDE" in directions
++            all_paths_verified = len(proxy_paths) == len(proxy_specs) and bool(proxy_paths) and all(
++                path["status"] == "VERIFIED" for path in proxy_paths)
++            if not conditions and all_paths_verified:
++                if positive_path:
++                    decision = "CONDITIONAL_WATCH"
++                    reason = ("HK_INDUSTRY_US_PROXY_PATHS_MIXED_RESEARCH_ONLY" if negative_path
++                        else "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY")
++                    triggered += 1
++                else:
++                    decision, reason = "NOT_SELECTED", (
++                        "HK_INDUSTRY_US_PROXY_RETURN_ZERO" if directions == {"FLAT"}
++                        else "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE")
+             else:
+-                try:
+-                    exposure = _number(proxy.get("return_pct"))
+-                except ValueError:
+-                    conditions.append("THEME_PROXY_RETURN_INVALID")
+-            if not time_ok:
+-                conditions.append(temporal_status)
+-            if symbol in duplicate_symbols:
+-                conditions.append("CLASSIFICATION_ROW_DUPLICATE")
+-            if not conditions:
+-                if exposure is not None and exposure > 0:
+-                    decision, reason = "CONDITIONAL_WATCH", "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY"
+-                    triggered += 1
+-                elif exposure is not None:
+-                    decision, reason = "NOT_SELECTED", "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE"
+-                else:
+-                    decision, reason = "UNASSESSED", "HK_INDUSTRY_PROXY_RETURN_UNASSESSED"
+-            elif temporal_status in conditions:
+-                reason = "HK_INDUSTRY_RETROSPECTIVE_PIT_UNKNOWN"
+-            elif not time_ok:
++                decision, reason = "UNASSESSED", "HK_INDUSTRY_PROXY_RETURN_UNASSESSED"
++            if temporal_status in conditions or not time_ok:
+                 reason = "HK_INDUSTRY_RETROSPECTIVE_PIT_UNKNOWN"
+         if not symbol_identity_ok:
+             if decision == "CONDITIONAL_WATCH":
+@@ -505,34 +709,71 @@
+             for condition in conditions
+             if condition != temporal_status
+         ]
++        diagnostic_exposures = []
++        diagnostic_paths_valid = bool(proxy_paths)
++        for path in proxy_paths:
++            path_non_time_conditions = [
++                condition for condition in path.get("conditions", [])
++                if condition != temporal_status
++            ]
++            if path_non_time_conditions or path.get("return_pct") is None:
++                diagnostic_paths_valid = False
++                continue
++            try:
++                diagnostic_exposures.append(Decimal(path["return_pct"]))
++            except (InvalidOperation, TypeError, ValueError):
++                diagnostic_paths_valid = False
++        diagnostic_exposure = next(
++            (value for value in diagnostic_exposures if value > 0), None)
+ 
+         diagnostic_projection = _industry_diagnostic_projection(
+             context,
+             time_ok=time_ok,
+             symbol_identity_ok=symbol_identity_ok,
+             mapped=bool(theme_info),
+-            proxy=proxy,
+-            exposure=exposure,
++            # Historical diagnostic output may relax only the classification
++            # availability gate. It remains separate from the formal path
++            # status, which stays UNASSESSED when its capture is late.
++            proxy=(dict(status="VERIFIED") if diagnostic_paths_valid else None),
++            exposure=diagnostic_exposure,
+             non_time_conditions=non_time_conditions,
+         )
+ 
+         counts[decision] += 1
+-        theme = theme_info.get("theme") if theme_info else None
++        proxy_specs = _industry_proxy_specs(theme_info) if theme_info else []
++        primary_path = proxy_paths[0] if len(proxy_paths) == 1 else None
++        path_directions = {path["direction"] for path in proxy_paths}
++        directional_state = (
++            "MIXED_UPSIDE_DOWNSIDE" if "UPSIDE" in path_directions and "DOWNSIDE" in path_directions
++            else "UPSIDE_WITH_UNASSESSED" if "UPSIDE" in path_directions and "UNASSESSED" in path_directions
++            else "DOWNSIDE_WITH_UNASSESSED" if "DOWNSIDE" in path_directions and "UNASSESSED" in path_directions
++            else "UPSIDE" if "UPSIDE" in path_directions
++            else "DOWNSIDE" if "DOWNSIDE" in path_directions
++            else "FLAT_WITH_UNASSESSED" if "FLAT" in path_directions and "UNASSESSED" in path_directions
++            else "FLAT" if "FLAT" in path_directions
++            else "UNASSESSED")
++        theme = proxy_specs[0]["theme"] if len(proxy_specs) == 1 else None
++        proxy_status = ("VERIFIED" if proxy_paths and all(path["status"] == "VERIFIED" for path in proxy_paths)
++            else "UNASSESSED")
+         results.append(dict(market="HK_CONNECT", symbol=symbol, name=source_name,
+             decision=decision, reason=reason or "HK_INDUSTRY_RESEARCH_PATH_UNASSESSED",
+             conditions=list(dict.fromkeys(conditions)), invalidation_conditions=[],
+             risks=["RESEARCH_ONLY", "NOT_A_SELECTION_SCORE", "NOT_PIT_VERIFIED"], metrics={},
+             evidence_ids=list(binding.get("evidence_ids") or []), membership=member if member.get("owner") else None,
++            research_membership=research_member_row, target_eligibility=dict(formal_target_eligibility),
+             subtype="HK_INDUSTRY_PROXY_FACTOR_CANDIDATE", factor_rules_version=RULES_VERSION,
+             source_industry=source_industry, theme=theme,
++            themes=[spec["theme"] for spec in proxy_specs],
+             mapping_type=theme_info.get("mapping_type") if theme_info else None,
+             mapping_version=HK_INDUSTRY_MAPPING_VERSION,
+             mapping_evidence=theme_info.get("mapping_evidence") if theme_info else None,
+-            return_pct=str(exposure) if exposure is not None else None, return_unit="PERCENT",
+-            source_session=expected_session, proxy_symbols=theme_info.get("proxy_symbols") if theme_info else None,
+-            proxy_status=proxy.get("status") if isinstance(proxy, dict) else "UNASSESSED",
+-            proxy_owner=proxy.get("owner") if isinstance(proxy, dict) else None,
+-            proxy_source_sha256=proxy.get("source_sha256") if isinstance(proxy, dict) else None,
++            return_pct=primary_path.get("return_pct") if primary_path else None, return_unit="PERCENT",
++            source_session=expected_session,
++            proxy_symbols=sorted({member for spec in proxy_specs for member in spec["proxy_symbols"]}) if proxy_specs else None,
++            proxy_status=proxy_status,
++            proxy_owner=primary_proxy.get("owner") if isinstance(primary_proxy, dict) else None,
++            proxy_source_sha256=primary_proxy.get("source_sha256") if isinstance(primary_proxy, dict) else None,
++            proxy_paths=proxy_paths, proxy_directional_state=directional_state,
+             source_owner=binding.get("owner"), source_id=artifact.get("source_id"),
+             source_artifact_sha256=artifact_sha, source_batch_response_sha256=artifact.get("batch_response_sha256"),
+             source_response_sha256=response_sha, source_response_ref=response_ref,
+@@ -579,7 +820,16 @@
+         security_master_source_date=identity.get("source_date") if master_identity_ok else None,
+         security_master_available_at=identity.get("available_at") if master_identity_ok else None,
+         security_master_artifact_sha256=identity.get("artifact_sha256") if master_identity_ok else None,
+-        security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None)
++        security_master_manifest_sha256=identity.get("manifest_sha256") if master_identity_ok else None,
++        monthly_research_universe_status="VERIFIED" if use_monthly_research else None,
++        monthly_research_target_month=research_membership.get("target_month") if use_monthly_research else None,
++        monthly_research_source_date=research_membership.get("source_date") if use_monthly_research else None,
++        monthly_research_owner=research_membership.get("owner") if use_monthly_research else None,
++        monthly_research_source_sha256=research_membership.get("artifact_sha256") if use_monthly_research else None,
++        monthly_research_codes_sha256=research_membership.get("codes_sha256") if use_monthly_research else None,
++        monthly_research_cutoff=research_membership.get("cutoff") if use_monthly_research else None,
++        monthly_research_source_refs=research_membership.get("checked_files") if use_monthly_research else [],
++        formal_target_eligibility="CANNOT_CONFIRM" if use_monthly_research else "VERIFIED")
+     return results, summary
+ 
+ 
+--- a/v4/manager_workbench/inputs/native.py
++++ b/v4/manager_workbench/inputs/native.py
+@@ -55,6 +55,7 @@
+         self.config = config
+         self.calendar = load_market_calendar()
+         self._membership_versions = {}
++        self._membership_research = {}
+ 
+     def prepare_context(self, context):
+         context = context.model_copy(deep=True)
+@@ -293,6 +294,47 @@
+     def membership(self, context):
+         """Keep the captured Connect source visible; qualify only explicit periods."""
+         try:
++            scope_refs = getattr(context, "scope_refs", {})
++            if not isinstance(scope_refs, dict):
++                scope_refs = {}
++            owner_bindings = scope_refs.get("owner_bindings", {})
++            if not isinstance(owner_bindings, dict):
++                owner_bindings = {}
++            bound = owner_bindings.get("membership")
++            configured = self.config.source_bindings.get("membership", {}).get(context.target_date)
++            if not isinstance(bound, dict) and not isinstance(configured, dict) and getattr(self.config, "dynamic_source_bindings", False):
++                from .source_bindings import membership as resolve_monthly_membership
++                pin = resolve_monthly_membership(self.config, context)
++                if not isinstance(getattr(context, "scope_refs", None), dict):
++                    context.scope_refs = {}
++                context.scope_refs.setdefault("owner_bindings", {})["membership"] = pin
++            elif (isinstance(bound, dict) and not isinstance(bound.get("monthly_research"), dict)
++                    and getattr(self.config, "dynamic_source_bindings", False)):
++                # A frozen run context can carry the exact owner bytes but
++                # predate this research-only projection. Re-resolve through
++                # the existing loader and enrich only when every owner byte
++                # reference is identical; the source capture is never replaced.
++                from .source_bindings import membership as resolve_monthly_membership
++                try:
++                    resolved = resolve_monthly_membership(self.config, context)
++                except (OSError, ValueError, KeyError, TypeError):
++                    # Failure to derive this optional projection must not
++                    # discard an otherwise valid frozen owner binding.
++                    resolved = None
++                ref_identity = lambda value: sorted(
++                    (row.get("source_local_path"), row.get("relative"), row.get("sha256"))
++                    for row in value.get("checked_files", []) if isinstance(row, dict)
++                ) if isinstance(value, dict) and isinstance(value.get("checked_files"), list) else []
++                if (isinstance(resolved, dict)
++                        and resolved.get("artifact_relative") == bound.get("artifact_relative")
++                        and resolved.get("artifact_sha256") == bound.get("artifact_sha256")
++                        and resolved.get("source_local_path") == bound.get("source_local_path")
++                        and resolved.get("owner") == bound.get("owner")
++                        and resolved.get("producer_owner") == bound.get("producer_owner")
++                        and ref_identity(resolved) == ref_identity(bound)
++                        and isinstance(resolved.get("monthly_research"), dict)):
++                    bound = {**bound, "monthly_research": resolved["monthly_research"]}
++                    context.scope_refs.setdefault("owner_bindings", {})["membership"] = bound
+             pin = self._binding("membership", context.target_date, context)
+             value, sha = self._json(Path(pin.get("source_local_path") or pin.get("root") or self.config.shared_root), pin["artifact_relative"], pin["artifact_sha256"])
+             value = pin.get("projection",value)
+@@ -337,9 +379,64 @@
+                             manifest=pin.get("manifest_relative"),
+                             receipt=pin.get("receipt_relative"), url=value.get("source_url"))
+             self._membership_versions[ref.evidence_id] = value
++            monthly = pin.get("monthly_research")
++            if self._verified_monthly_research_pin(pin, monthly, codes, context):
++                if not isinstance(getattr(self, "_membership_research", None), dict):
++                    self._membership_research = {}
++                self._membership_research[ref.evidence_id] = dict(monthly)
+             return set(codes), ref, [period_gap] if period_gap else []
+         except (OSError, ValueError, KeyError, TypeError):
+             return set(), None, ["MONTHLY_CONNECT_MEMBERSHIP_UNVERIFIED"]
++
++    @staticmethod
++    def _verified_monthly_research_pin(pin, monthly, codes, context):
++        """Validate dated observed-universe provenance without qualifying target membership."""
++        if not isinstance(pin, dict) or not isinstance(monthly, dict):
++            return False
++        source_date = _date_token(monthly.get("source_date"))
++        target_date = context.target_date
++        monthly_codes = monthly.get("codes")
++        try:
++            expected_codes_sha = owner_digest(dict(market="HK_CONNECT", codes=sorted(monthly_codes)))
++        except (TypeError, ValueError):
++            return False
++        source_refs = monthly.get("checked_files")
++        pin_refs = pin.get("checked_files")
++        triples = lambda values: sorted(
++            (row.get("source_local_path"), row.get("relative"), row.get("sha256"))
++            for row in values if isinstance(row, dict)
++        ) if isinstance(values, list) else []
++        reference_map = {relative: digest for _, relative, digest in triples(source_refs)}
++        return bool(
++            monthly.get("schema_version") == "v4.manager_workbench.hk_connect_monthly_research_universe.v1"
++            and monthly.get("status") == "VERIFIED"
++            and monthly.get("market") == "HK_CONNECT"
++            and monthly.get("owner") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
++            and monthly.get("producer_owner")
++            and monthly.get("source_role") == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
++            and monthly.get("target_month") == target_date[:6]
++            and source_date is not None and source_date[:6] == target_date[:6] and source_date <= target_date
++            and monthly.get("source_date") == source_date
++            and monthly.get("cutoff") == context.cutoff
++            and before(monthly.get("available_at"), context.cutoff)
++            and monthly.get("artifact_relative") == pin.get("artifact_relative")
++            and monthly.get("artifact_sha256") == pin.get("artifact_sha256")
++            and valid_sha(monthly.get("artifact_sha256"))
++            and monthly.get("codes_sha256") == expected_codes_sha
++            and isinstance(monthly_codes, list) and bool(monthly_codes)
++            and len(monthly_codes) == monthly.get("code_count")
++            and len(monthly_codes) == len(set(monthly_codes))
++            and all(symbol(code) == code for code in monthly_codes)
++            and set(monthly_codes) == set(codes)
++            and monthly.get("target_period_verified") is False
++            and monthly.get("formal_target_eligibility") == "CANNOT_CONFIRM"
++            and isinstance(source_refs, list) and len(source_refs) >= 6
++            and triples(source_refs) == triples(pin_refs)
++            and all(valid_sha(row["sha256"]) for row in source_refs if isinstance(row, dict))
++            and reference_map.get(monthly.get("manifest_relative")) == monthly.get("manifest_sha256")
++            and reference_map.get(monthly.get("receipt_relative")) == monthly.get("receipt_sha256")
++            and reference_map.get(monthly.get("artifact_relative")) == monthly.get("artifact_sha256")
++        )
+ 
+     def _member(self, row, codes, ref):
+         verified = ref is not None and ref.verification == "VERIFIED"
+@@ -948,6 +1045,10 @@
+         if universe_version == LEGACY_UNIVERSE_VERSION and expected_count != 33:
+             raise ValueError("US_LEGACY_FIXED_33_SCOPE_INVALID")
+         codes, member_ref, gaps = self.membership(context)
++        formal_member_ref = (member_ref if member_ref is not None
++            and member_ref.verification == Verification.VERIFIED else None)
++        research_membership = (getattr(self, "_membership_research", {}).get(member_ref.evidence_id)
++            if member_ref is not None else None)
+         relation_role = ("US_HK_RELATION_PROPOSAL_REGISTRY"
+             if registry.get("status") == "PROPOSED" or registry.get("pit_status") == "PIT_UNCONFIRMED"
+             else "REVIEWED_US_HK_RELATIONS")
+@@ -963,17 +1064,27 @@
+             industry_pin = pin.get("hk_industry_classification")
+             identity, identity_refs = self._security_master_identity(context)
+             refs.extend(identity_refs)
+-            if not isinstance(industry_pin, dict):
++            configured_industry_pin = self.config.source_bindings.get(
++                "hk_industry_classification", {}).get(context.target_date)
++            refresh_missing_owner_result = bool(
++                isinstance(industry_pin, dict)
++                and industry_pin.get("status") == "UNAVAILABLE"
++                and industry_pin.get("gap") == "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"
++                and isinstance(configured_industry_pin, dict)
++                and configured_industry_pin.get("policy") == "LATEST_OBSERVED"
++            )
++            if not isinstance(industry_pin, dict) or refresh_missing_owner_result:
+                 from .source_bindings import hk_industry_classification
+                 industry_pin = hk_industry_classification(self.config, context)
+             industry_payload = dict(status="UNAVAILABLE",
+                 gap=(industry_pin or {}).get("gap", "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"),
+-                hk_scope_codes=sorted(codes) if member_ref else [],
+-                hk_scope_count=len(codes) if member_ref else None,
+-                membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+-                membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+-                membership_owner=member_ref.owner if member_ref else None,
+-                membership_available_at=member_ref.available_at if member_ref else None,
++                hk_scope_codes=sorted(codes) if formal_member_ref else [],
++                hk_scope_count=len(codes) if formal_member_ref else None,
++                membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
++                membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
++                membership_owner=formal_member_ref.owner if formal_member_ref else None,
++                membership_available_at=formal_member_ref.available_at if formal_member_ref else None,
++                research_membership=research_membership,
+                 hk_industry_identity=identity)
+             if isinstance(industry_pin, dict) and industry_pin.get("status") == "READY":
+                 artifact = industry_pin.get("artifact")
+@@ -989,15 +1100,18 @@
+                 industry_payload = dict(status="READY", artifact=artifact,
+                     artifact_sha256=industry_pin["artifact_sha256"], owner=industry_pin["owner"],
+                     artifact_relative=industry_pin["artifact_relative"], source_url=industry_pin.get("source_url"),
+-                    hk_scope_codes=sorted(codes), hk_scope_count=len(codes) if member_ref else None,
+-                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+-                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
+-                    membership_version=member_projection.get("version"), membership_owner=member_ref.owner if member_ref else None,
+-                    membership_available_at=member_ref.available_at if member_ref else None,
+-                    membership_effective_from=member_projection.get("effective_from"),
+-                    membership_effective_through=member_projection.get("effective_to"),
++                    hk_scope_codes=sorted(codes) if formal_member_ref else [],
++                    hk_scope_count=len(codes) if formal_member_ref else None,
++                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
++                    membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
++                    membership_version=member_projection.get("version") if formal_member_ref else None,
++                    membership_owner=formal_member_ref.owner if formal_member_ref else None,
++                    membership_available_at=formal_member_ref.available_at if formal_member_ref else None,
++                    membership_effective_from=member_projection.get("effective_from") if formal_member_ref else None,
++                    membership_effective_through=member_projection.get("effective_to") if formal_member_ref else None,
++                    research_membership=research_membership,
+                     hk_industry_identity=identity,
+-                    evidence_ids=[industry_ref.evidence_id])
++                    evidence_ids=[industry_ref.evidence_id] + ([member_ref.evidence_id] if member_ref else []))
+             if isinstance(factor_pin, dict) and factor_pin.get("status") == "READY":
+                 candidate, review = factor_pin.get("candidate"), factor_pin.get("review")
+                 target_memberships = {}
+@@ -1008,10 +1122,11 @@
+                 factor_payload = dict(candidate=candidate, review=review,
+                     candidate_sha256=factor_pin.get("candidate_sha256"),
+                     review_sha256=factor_pin.get("review_sha256"), target_memberships=target_memberships,
+-                    hk_scope_count=len(codes) if member_ref else None,
+-                    hk_scope_codes=sorted(codes) if member_ref else [],
+-                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+-                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
++                    hk_scope_count=len(codes) if formal_member_ref else None,
++                    hk_scope_codes=sorted(codes) if formal_member_ref else [],
++                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
++                    membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
++                    research_membership=research_membership,
+                     hk_industry_classification=industry_payload,
+                     candidate_relative=factor_pin.get("candidate_relative"),
+                     review_relative=factor_pin.get("review_relative"),
+@@ -1026,10 +1141,11 @@
+                     review.get("reviewed_at")))
+             else:
+                 factor_payload = dict(gap=(factor_pin or {}).get("gap", pin.get("factor_exposure_gap")
+-                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if member_ref else None,
+-                    hk_scope_codes=sorted(codes) if member_ref else [],
+-                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if member_ref else None,
+-                    membership_artifact_sha256=member_ref.sha256 if member_ref else None,
++                    or "US_FACTOR_PAIRED_REVIEW_UNAVAILABLE"), hk_scope_count=len(codes) if formal_member_ref else None,
++                    hk_scope_codes=sorted(codes) if formal_member_ref else [],
++                    membership_codes_sha256=owner_digest(dict(market="HK_CONNECT", codes=sorted(codes))) if formal_member_ref else None,
++                    membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
++                    research_membership=research_membership,
+                     hk_industry_classification=industry_payload)
+         for source in registry.get("additional_relation_sources",[]):
+             refs.append(self._ref(source["owner"],"REVIEWED_US_HK_RELATIONS",expected,source["sha256"],source["relative"],source["available_at"]))
+--- a/v4/manager_workbench/inputs/source_bindings.py
++++ b/v4/manager_workbench/inputs/source_bindings.py
+@@ -9,7 +9,7 @@
+ from pathlib import Path
+ from infrastructure.owned_io import SafeRoot
+ from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
+-from .validation import raw_sha, before, owner_digest
++from .validation import raw_sha, before, owner_digest, symbol
+ 
+ OWNER = 'v35_dispatcher.research_panel_daily_hk'
+ CONNECT_MEMBERSHIP_SOURCE = 'FUTU_HKCONNECT_PLATE_MEMBERSHIP'
+@@ -248,9 +248,39 @@
+                 available_at=available,
+                 # No HKEX URL is attached to a Futu plate capture.
+                 source_url=artifact.get('source_url') or capture.get('source_url'))
++            source_codes = artifact.get('codes')
++            normalized_codes = [symbol(value) for value in source_codes] if isinstance(source_codes, list) else []
++            same_month_observation = bool(source_date and source_date[:6] == day[:6] and source_date <= day)
++            source_codes_valid = bool(isinstance(source_codes, list) and source_codes
++                and len(normalized_codes) == len(source_codes) and None not in normalized_codes
++                and len(set(normalized_codes)) == len(normalized_codes))
++            research_membership = dict(
++                schema_version='v4.manager_workbench.hk_connect_monthly_research_universe.v1',
++                status='VERIFIED' if (same_month_observation and source_codes_valid)
++                    else 'CANNOT_CONFIRM',
++                market='HK_CONNECT', owner=CONNECT_MEMBERSHIP_SOURCE, producer_owner=OWNER,
++                source_role=CONNECT_MEMBERSHIP_SOURCE, target_month=day[:6], source_date=source_date,
++                available_at=available, cutoff=context.cutoff,
++                artifact_relative=artifact_rel, artifact_sha256=asha,
++                manifest_relative=manifest_rel, manifest_sha256=msha,
++                receipt_relative=rel, receipt_sha256=rsha,
++                publication_relative=publication_rel, publication_sha256=psha,
++                capture_relative=capture_rel, capture_sha256=csha,
++                codes=sorted(normalized_codes) if source_codes_valid else [],
++                code_count=len(normalized_codes) if source_codes_valid else 0,
++                codes_sha256=owner_digest(dict(market='HK_CONNECT', codes=sorted(normalized_codes)))
++                    if source_codes_valid else None,
++                version=owner_digest(sources),
++                target_period_verified=target_period_verified,
++                formal_target_eligibility='VERIFIED' if target_period_verified else 'CANNOT_CONFIRM',
++                formal_target_gap=None if target_period_verified else 'CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED',
++                checked_files=[dict(source_local_path=str(root), relative=relative, sha256=source_sha)
++                    for relative, source_sha in sources],
++            )
+             candidates.append((available, dict(source_local_path=str(root), owner=CONNECT_MEMBERSHIP_SOURCE,
+                 producer_owner=OWNER, artifact_relative=artifact_rel,
+-                artifact_sha256=asha,projection=projection,checked_files=[dict(source_local_path=str(root),relative=r,sha256=s) for r,s in sources])))
++                artifact_sha256=asha,projection=projection,monthly_research=research_membership,
++                checked_files=[dict(source_local_path=str(root),relative=r,sha256=s) for r,s in sources])))
+         except (OSError, ValueError, KeyError, TypeError) as error:
+             failures.append(str(error) if isinstance(error,ValueError) else 'MEMBERSHIP_CANDIDATE_INVALID')
+     if not candidates:

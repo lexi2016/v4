@@ -1,0 +1,548 @@
+{
+  "acceptance": {
+    "activation_or_deployment": "NOT_RUN",
+    "full_business_acceptance": "CANNOT_CONFIRM",
+    "github_sync": "NOT_RUN_PARENT_OWNED",
+    "implemented": true,
+    "independent_review": "PENDING",
+    "manager_web_build": "NOT_RUN_ROOT_OWNED",
+    "manual_job_or_api_submission": "NOT_RUN",
+    "natural_slot": "NOT_RUN",
+    "root_release_build": "NOT_RUN",
+    "tested_by_writer": true,
+    "ui_live_readback": "NOT_RUN"
+  },
+  "actual_engine_canary": {
+    "canonical_or_live_write": false,
+    "capture_enabled": false,
+    "network_disabled": true,
+    "owner_write": false,
+    "path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/monthly_research_engine_canary.json",
+    "read_only": true,
+    "runtime_results": [
+      {
+        "classification_missing_count": 34,
+        "classified_count": 664,
+        "decision_counts": {
+          "CONDITIONAL_WATCH": 153,
+          "NOT_SELECTED": 109,
+          "UNASSESSED": 436
+        },
+        "directional_summary": {
+          "display_only": true,
+          "downside_path_count": 109,
+          "downside_stock_count": 109,
+          "flat_path_count": 0,
+          "flat_stock_count": 0,
+          "formal_target_eligibility": "CANNOT_CONFIRM",
+          "historical_pit_verified": false,
+          "mapping_version": "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V2",
+          "mixed_stock_count": 0,
+          "monthly_observed_scope_count": 698,
+          "monthly_research_codes_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1",
+          "monthly_research_source_date": "20261012",
+          "monthly_research_source_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+          "source_session": "20261016",
+          "target_date": "20261020",
+          "unassessed_path_count": 436,
+          "unassessed_stock_count": 436,
+          "upside_path_count": 164,
+          "upside_stock_count": 153
+        },
+        "downside_entries": 109,
+        "downside_example": {
+          "conditions": [],
+          "direction_state": "DOWNSIDE",
+          "name": "和黄医药(中国)有限公司",
+          "proxy_paths": [
+            {
+              "direction": "DOWNSIDE",
+              "proxy_symbols": [
+                "XBI"
+              ],
+              "return_pct": "-3.645346508212044331686473490",
+              "source_session": "20261016",
+              "status": "VERIFIED",
+              "theme": "生物医药"
+            }
+          ],
+          "reason": "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE",
+          "source_industry": "药品及生物科技",
+          "symbol": "HK.00013"
+        },
+        "flat_entries": 0,
+        "mapping_covered_count": 263,
+        "module_origins": {
+          "display_read": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/api_source/v4/manager_workbench/display_read.py",
+          "native": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/api_source/v4/manager_workbench/inputs/native.py",
+          "source_bindings": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/api_source/v4/manager_workbench/inputs/source_bindings.py",
+          "us_factor": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/api_source/v4/manager_workbench/engines/us_factor.py"
+        },
+        "projected_symbols_sha256": "88f803d4dd2baae561379dc05c259028cfd1391d7ed7eb6ea488a7a477dc9ceb",
+        "runtime": "api",
+        "scope_count": 698,
+        "source_status": "PARTIAL",
+        "target_missing_label_decisions": {
+          "HK.06823": "NO_ROW",
+          "HK.09618": "NO_ROW",
+          "HK.09961": "NO_ROW",
+          "HK.09988": "UNASSESSED"
+        },
+        "target_monthly_universe_membership": {
+          "HK.06823": "OUTSIDE_MONTHLY_OBSERVED_UNIVERSE",
+          "HK.09618": "OUTSIDE_MONTHLY_OBSERVED_UNIVERSE",
+          "HK.09961": "OUTSIDE_MONTHLY_OBSERVED_UNIVERSE",
+          "HK.09988": "IN_MONTHLY_OBSERVED_UNIVERSE"
+        },
+        "unassessed_reason_counts": {
+          "HK_INDUSTRY_CLASSIFICATION_MISSING": 31,
+          "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE": 397,
+          "UNASSESSED_IDENTITY": 8
+        },
+        "upside_entries": 153,
+        "upside_example": {
+          "conditions": [],
+          "direction_state": "UPSIDE",
+          "name": "汇丰控股有限公司",
+          "proxy_paths": [
+            {
+              "direction": "UPSIDE",
+              "proxy_symbols": [
+                "KBE"
+              ],
+              "return_pct": "0.110149488591660110149488600",
+              "source_session": "20261016",
+              "status": "VERIFIED",
+              "theme": "银行金融"
+            }
+          ],
+          "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+          "source_industry": "银行",
+          "symbol": "HK.00005"
+        }
+      },
+      {
+        "classification_missing_count": 34,
+        "classified_count": 664,
+        "decision_counts": {
+          "CONDITIONAL_WATCH": 153,
+          "NOT_SELECTED": 109,
+          "UNASSESSED": 436
+        },
+        "directional_summary": {
+          "display_only": true,
+          "downside_path_count": 109,
+          "downside_stock_count": 109,
+          "flat_path_count": 0,
+          "flat_stock_count": 0,
+          "formal_target_eligibility": "CANNOT_CONFIRM",
+          "historical_pit_verified": false,
+          "mapping_version": "HK_ISSUER_INDUSTRY_TO_US_PROXY_THEME_V2",
+          "mixed_stock_count": 0,
+          "monthly_observed_scope_count": 698,
+          "monthly_research_codes_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1",
+          "monthly_research_source_date": "20261012",
+          "monthly_research_source_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+          "source_session": "20261016",
+          "target_date": "20261020",
+          "unassessed_path_count": 436,
+          "unassessed_stock_count": 436,
+          "upside_path_count": 164,
+          "upside_stock_count": 153
+        },
+        "downside_entries": 109,
+        "downside_example": {
+          "conditions": [],
+          "direction_state": "DOWNSIDE",
+          "name": "和黄医药(中国)有限公司",
+          "proxy_paths": [
+            {
+              "direction": "DOWNSIDE",
+              "proxy_symbols": [
+                "XBI"
+              ],
+              "return_pct": "-3.645346508212044331686473490",
+              "source_session": "20261016",
+              "status": "VERIFIED",
+              "theme": "生物医药"
+            }
+          ],
+          "reason": "HK_INDUSTRY_US_PROXY_RETURN_NOT_POSITIVE",
+          "source_industry": "药品及生物科技",
+          "symbol": "HK.00013"
+        },
+        "flat_entries": 0,
+        "mapping_covered_count": 263,
+        "module_origins": {
+          "display_read": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/scheduler_source/v4/manager_workbench/display_read.py",
+          "native": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/scheduler_source/v4/manager_workbench/inputs/native.py",
+          "source_bindings": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/scheduler_source/v4/manager_workbench/inputs/source_bindings.py",
+          "us_factor": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/scheduler_source/v4/manager_workbench/engines/us_factor.py"
+        },
+        "projected_symbols_sha256": "88f803d4dd2baae561379dc05c259028cfd1391d7ed7eb6ea488a7a477dc9ceb",
+        "runtime": "scheduler",
+        "scope_count": 698,
+        "source_status": "PARTIAL",
+        "target_missing_label_decisions": {
+          "HK.06823": "NO_ROW",
+          "HK.09618": "NO_ROW",
+          "HK.09961": "NO_ROW",
+          "HK.09988": "UNASSESSED"
+        },
+        "target_monthly_universe_membership": {
+          "HK.06823": "OUTSIDE_MONTHLY_OBSERVED_UNIVERSE",
+          "HK.09618": "OUTSIDE_MONTHLY_OBSERVED_UNIVERSE",
+          "HK.09961": "OUTSIDE_MONTHLY_OBSERVED_UNIVERSE",
+          "HK.09988": "IN_MONTHLY_OBSERVED_UNIVERSE"
+        },
+        "unassessed_reason_counts": {
+          "HK_INDUSTRY_CLASSIFICATION_MISSING": 31,
+          "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE": 397,
+          "UNASSESSED_IDENTITY": 8
+        },
+        "upside_entries": 153,
+        "upside_example": {
+          "conditions": [],
+          "direction_state": "UPSIDE",
+          "name": "汇丰控股有限公司",
+          "proxy_paths": [
+            {
+              "direction": "UPSIDE",
+              "proxy_symbols": [
+                "KBE"
+              ],
+              "return_pct": "0.110149488591660110149488600",
+              "source_session": "20261016",
+              "status": "VERIFIED",
+              "theme": "银行金融"
+            }
+          ],
+          "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+          "source_industry": "银行",
+          "symbol": "HK.00005"
+        }
+      }
+    ],
+    "service_or_job_invoked": false,
+    "sha256": "4fac047e0940ab22fc11dafa7a0454e49e072cbc35b48f7d781b00e5efe6d10d",
+    "summary_matches_api_scheduler": true
+  },
+  "canonical_workspace_files": [
+    {
+      "changed": false,
+      "current_sha256": "44b6552e734c02e29850f1df6d422afc5f704c858c751fd443041e9500813981",
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "r2_preimage_sha256": "44b6552e734c02e29850f1df6d422afc5f704c858c751fd443041e9500813981"
+    },
+    {
+      "changed": false,
+      "current_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49",
+      "path": "v4/manager_workbench/inputs/native.py",
+      "r2_preimage_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49"
+    },
+    {
+      "changed": true,
+      "current_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "r2_preimage_sha256": "c0930dad6812aa363f3be0852df45bebf394d48f533ac3663460db6ea034396f"
+    },
+    {
+      "changed": true,
+      "current_sha256": "c3115d9d610268d5503181b00db5d6dd1b10ec359cd28b082004adc97f97ec96",
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "r2_preimage_sha256": "ac6eeb6b76b5070cc77a7d2685309553d208b8eef2b3fe3797370b919796d310"
+    },
+    {
+      "changed": false,
+      "current_sha256": "6f91f1de277242ec37436e83924bf979308db10ecc53e448829a154fc7f40363",
+      "path": "tests/test_manager_us_mapping_bindings_r3.py",
+      "r2_preimage_sha256": "6f91f1de277242ec37436e83924bf979308db10ecc53e448829a154fc7f40363"
+    },
+    {
+      "changed": true,
+      "current_sha256": "1e827aaab8890ca3a9d71f28b40fff53543d62485a98fd9a75b181db50374c77",
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "r2_preimage_sha256": "f0a8078ec018f9fb1031b7939a8b6d42222f8104094dfc3e2beef0000d9775e0"
+    },
+    {
+      "changed": false,
+      "current_sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb",
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "r2_preimage_sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb"
+    },
+    {
+      "changed": true,
+      "current_sha256": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "r2_preimage_sha256": "1725412404ba4ad4d5bfbafa251ef9ac67fda312e1599860dd54e3855aeeefbc"
+    },
+    {
+      "changed": true,
+      "current_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "r2_preimage_sha256": "05b941c696d6a0917b55623c8902c744b0710581e78e34c777469b2ef854d516"
+    },
+    {
+      "changed": true,
+      "current_sha256": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f",
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "r2_preimage_sha256": "54224b6d20a98faceb7da927f97a0adc78ad49f162595f63125e0ef71a608d33"
+    },
+    {
+      "changed": true,
+      "current_sha256": "b354fcb79aad92372a31a0c2cbf5045a825eb6d889da1d94e17271fcc4e933b2",
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "r2_preimage_sha256": "a278f05fd0d3f054162cd715b5029b2534df5e70825ebc5d198b88d994710af1"
+    },
+    {
+      "changed": true,
+      "current_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+      "path": "v4/manager_workbench/display_read.py",
+      "r2_preimage_sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc"
+    },
+    {
+      "changed": false,
+      "current_sha256": "75924bdc48403c6ead023051d19aa760c827c3fb226ff99843eed8e5ced62df0",
+      "path": "v4/manager_workbench/api.py",
+      "r2_preimage_sha256": "75924bdc48403c6ead023051d19aa760c827c3fb226ff99843eed8e5ced62df0"
+    }
+  ],
+  "changed_candidate_artifacts": {
+    "local_only/monthly_research_engine_canary.json": {
+      "bytes": 453507,
+      "sha256": "4fac047e0940ab22fc11dafa7a0454e49e072cbc35b48f7d781b00e5efe6d10d"
+    },
+    "local_only/verification/api-ui-vitest.log": {
+      "bytes": 332,
+      "sha256": "bc8de2c7bd06a0fc4498800bc827ade689d9222c8ccc41dcc1d001bd8bdb7b5d"
+    },
+    "local_only/verify_monthly_research_engine.py": {
+      "bytes": 21507,
+      "sha256": "db6f6366bcead16dff738fbfb53f6e79e1c00f81ac69c1c6ce82fedadb2b61ef"
+    }
+  },
+  "frozen_input": {
+    "cutoff": "2026-10-18T22:29:03.213941+08:00",
+    "load_inputs_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/checkpoints/52231a267c5e4eb4859bcff275949786/LOAD_INPUTS.json",
+    "load_inputs_sha256": "5c16c59774d279cb8357d60cb470c8a257fa73fabe6a9eb5dc4778c212dc67ff",
+    "market": "HK_CONNECT",
+    "phase": "MANUAL",
+    "run_id": "52231a267c5e4eb4859bcff275949786",
+    "saved_batch_count": 1,
+    "source_us_session": "20261016",
+    "synthetic_membership_used": false,
+    "target_date": "20261020",
+    "us_mapping_batch_record_count": 1051
+  },
+  "frozen_runtime_baselines": {
+    "api": {
+      "baseline_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app",
+      "baseline_manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+      "baseline_plist_sha256": "4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202",
+      "baseline_release_id": "us-19-evidence-api-20261018-r2",
+      "changed_entries": [
+        {
+          "baseline_sha256": "bf5638802b9607cd8c75e1e1f8ebaac5d7ca45500bf90ba2329fa046ab317b3c",
+          "bytes": 70715,
+          "candidate_sha256": "7a762eacc161ce6558f0b8fafca26c5d2997ba09012f6e5fea3f8f99f3225999",
+          "path": "apps/web/src/manager-workbench/Workbench.vue"
+        },
+        {
+          "baseline_sha256": "27b39943640f7ab4d75f54d2eb05c838f1b7f659f39da42cce22179c8a3087dd",
+          "bytes": 17018,
+          "candidate_sha256": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f",
+          "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts"
+        },
+        {
+          "baseline_sha256": "1725412404ba4ad4d5bfbafa251ef9ac67fda312e1599860dd54e3855aeeefbc",
+          "bytes": 25605,
+          "candidate_sha256": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+          "path": "apps/web/src/manager-workbench/types.ts"
+        },
+        {
+          "baseline_sha256": "05b941c696d6a0917b55623c8902c744b0710581e78e34c777469b2ef854d516",
+          "bytes": 14120,
+          "candidate_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+          "path": "apps/web/src/manager-workbench/workbench.css"
+        },
+        {
+          "baseline_sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc",
+          "bytes": 16010,
+          "candidate_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+          "path": "v4/manager_workbench/display_read.py"
+        },
+        {
+          "baseline_sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+          "bytes": 63020,
+          "candidate_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+          "path": "v4/manager_workbench/engines/us_factor.py"
+        },
+        {
+          "baseline_sha256": "d95ee18bad508a7786f97ed8fea4d90674ccbc24d15e181020b3f73e7a240b71",
+          "bytes": 96672,
+          "candidate_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49",
+          "path": "v4/manager_workbench/inputs/native.py"
+        },
+        {
+          "baseline_sha256": "97a617c51e0e1b9c27d01fca0d77a691c6793ed37d0b9085ec07d1367fe22f2f",
+          "bytes": 67784,
+          "candidate_sha256": "44b6552e734c02e29850f1df6d422afc5f704c858c751fd443041e9500813981",
+          "path": "v4/manager_workbench/inputs/source_bindings.py"
+        }
+      ],
+      "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db"
+    },
+    "scheduler": {
+      "baseline_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app",
+      "baseline_manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+      "baseline_plist_sha256": "b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37",
+      "baseline_release_id": "us-19-evidence-scheduler-20261018-r2",
+      "changed_entries": [
+        {
+          "baseline_sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc",
+          "bytes": 16010,
+          "candidate_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+          "path": "v4/manager_workbench/display_read.py"
+        },
+        {
+          "baseline_sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+          "bytes": 63020,
+          "candidate_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+          "path": "v4/manager_workbench/engines/us_factor.py"
+        },
+        {
+          "baseline_sha256": "f78a68212f21147eab15c15b0bbc792a3537d02a6c5df35e3bd5afd049eb3f9d",
+          "bytes": 95458,
+          "candidate_sha256": "912c74387fd2bd03832bd663b5f92e83702a3cfaeefa1b76bf6e9208e97ec83f",
+          "path": "v4/manager_workbench/inputs/native.py"
+        },
+        {
+          "baseline_sha256": "94697aea65ea3d65f7f6964373192e65ceda4927a289e164dfa2516123803268",
+          "bytes": 71521,
+          "candidate_sha256": "777d260aa80aaaf604d95f3bc07b0885b96c7867df1d6431fb8c03f9a1662867",
+          "path": "v4/manager_workbench/inputs/source_bindings.py"
+        }
+      ],
+      "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-scheduler-20261018-r1.json",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+    }
+  },
+  "generated_at_utc": "2026-10-18T16:29:56.845698+00:00",
+  "goal": "Show actual Friday 20261016 US-close proxy upside/downside lists across the full saved HK monthly-observed universe while retaining per-stock unmapped/unknown reasons and preserving CANNOT_CONFIRM for formal target eligibility.",
+  "not_changed_from_r2_preimage": [
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/inputs/native.py",
+    "tests/test_manager_us_mapping_bindings_r3.py",
+    "apps/web/src/manager-workbench/display.ts",
+    "v4/manager_workbench/api.py"
+  ],
+  "remaining_gaps": [
+    "Formal 20261020 membership eligibility remains CANNOT_CONFIRM because the 20261012 monthly observation has no explicit target-covering effective interval; historical PIT remains false.",
+    "Classification owner is PARTIAL: 664/698 labels, 34 missing; 31 in-scope gaps in this R2 view, including HK.09988; other missing rows remain separate gaps.",
+    "Eight security-master identity gaps remain UNASSESSED. HK.06823, HK.09618, HK.09961 are outside the 698-row monthly observation and correctly show NO_ROW.",
+    "397 rows have exact provider industry labels with no mapping in the frozen 24-theme map; they remain per-stock UNASSESSED with INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP. Broad software/industrial/media mapping was intentionally not added.",
+    "Actual saved-input reconstruction canary verifies the frozen row coverage and directional projection, but the downstream fresh run, API/UI readback, independent review, release build/activation, GitHub synchronization, and natural-slot verification remain root-owned and unverified."
+  ],
+  "reviewer_required": "fresh independent Luna Max Reviewer; not nineteen_decision_review",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "production_or_external_action": false,
+    "schedule_changed": false,
+    "services_started_stopped_or_reloaded": false,
+    "source_owner_artifacts_modified": false
+  },
+  "schema_version": "v4.monthly_membership_r2_writer_receipt.v1",
+  "scope": {
+    "path": "docs/handoffs/monthly_membership_research_fix_20261018/SCOPE.json",
+    "r2_preimage_sha256": "b32ac654a793673a9b88c615ba46dbef6953f010441f5a35bec1f32ad048522a",
+    "root_baseline_sha256": "8207001433c204a5417c0f4d1e48c95acd818de975ca1c3e4174204beee94e43",
+    "sha256": "db18939a6266b6e1bd1c4b230c458300cce522e5d462a73fa3a892cb77914eb7"
+  },
+  "source_lineage": {
+    "current_security_master": {
+      "manifest_sha256": "79ddfee6e6ad700be453c4fc505e0f381460516a5e5d9bf84cd9c130511a549c",
+      "owner": "research_peripheral.hk_security_master",
+      "scope_count": 691,
+      "source_date": "20261016",
+      "source_sha256": "58f917cf3621c45f195b034e472cada257f0ac873649a6a5ba4d661d340497a1"
+    },
+    "friday_us_proxy_quotes": {
+      "captured_at": "2026-10-17T15:35:31Z",
+      "configured_us_symbols": 48,
+      "owner": "research_peripheral.external_finance",
+      "quote_rows": 48,
+      "source_session": "20261016",
+      "source_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f"
+    },
+    "industry_classification_observation": {
+      "classified_symbols": 664,
+      "missing_labels": 34,
+      "owner": "research_peripheral.hk_industry_classification",
+      "source_asof": null,
+      "source_asof_status": "UNKNOWN",
+      "source_date": "20261014",
+      "source_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "status": "PARTIAL"
+    },
+    "monthly_connect_observation": {
+      "codes_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1",
+      "explicit_target_effective_interval": false,
+      "owner": "research_peripheral.hk_connect_monthly_research",
+      "source_date": "20261012",
+      "source_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+      "symbols": 698
+    }
+  },
+  "status": "READY_FOR_INDEPENDENT_REVIEW",
+  "test_results": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/monthly_membership_research_fix_20261018/local_only/pytest-r2-closure tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/runtime/test_us_factor_display.py",
+      "name": "Python focused engine and display suite",
+      "output_log": "not persisted; independent reviewer should rerun against exact diff",
+      "result": "PASS: 32 passed"
+    },
+    {
+      "command": "node /Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs run --config /Users/lexi/Desktop/学习/v4_app/apps/web/vite.config.ts --root <handoff>/local_only/verification/api-ui-vitest-overlay src/manager-workbench/__tests__/us_factor.spec.ts -t 'shows full saved-lane proxy directions'",
+      "log_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/verification/api-ui-vitest.log",
+      "log_sha256": "bc8de2c7bd06a0fc4498800bc827ade689d9222c8ccc41dcc1d001bd8bdb7b5d",
+      "name": "Vitest full saved-lane directional-list UI regression",
+      "result": "PASS: 1 passed, 2 skipped"
+    },
+    {
+      "artifact_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/monthly_research_engine_canary.json",
+      "artifact_sha256": "4fac047e0940ab22fc11dafa7a0454e49e072cbc35b48f7d781b00e5efe6d10d",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/monthly_membership_research_fix_20261018/local_only/verify_monthly_research_engine.py",
+      "name": "Frozen 52231 API/scheduler actual loader to engine canary",
+      "result": "PASS: both overlays produce identical full-lane projection; formal eligibility remains CANNOT_CONFIRM"
+    }
+  ],
+  "us_close_handoff_guard": {
+    "files": {
+      "api": {
+        "candidate_overlay_present": false,
+        "function_lines": [
+          84,
+          216
+        ],
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app/v4/manager_workbench/scheduler.py",
+        "sha256": "c230f4dac7751f14455d3db4afe1e82ce1ec0805b382e79993d5005ef202e1d3"
+      },
+      "scheduler": {
+        "candidate_overlay_present": false,
+        "function_lines": [
+          84,
+          216
+        ],
+        "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app/v4/manager_workbench/scheduler.py",
+        "sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485"
+      }
+    },
+    "result": "UNCHANGED_IN_WRITER_OVERLAYS",
+    "scheduler_or_service_file_in_candidate_overlays": false
+  },
+  "writer": "/root/daily_chain_writer"
+}

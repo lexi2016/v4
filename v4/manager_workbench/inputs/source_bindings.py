@@ -9,7 +9,7 @@ from datetime import date
 from pathlib import Path
 from infrastructure.owned_io import SafeRoot
 from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
-from .validation import raw_sha, before, owner_digest
+from .validation import raw_sha, before, owner_digest, symbol
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
 CONNECT_MEMBERSHIP_SOURCE = 'FUTU_HKCONNECT_PLATE_MEMBERSHIP'
@@ -248,9 +248,39 @@ def membership(config, context):
                 available_at=available,
                 # No HKEX URL is attached to a Futu plate capture.
                 source_url=artifact.get('source_url') or capture.get('source_url'))
+            source_codes = artifact.get('codes')
+            normalized_codes = [symbol(value) for value in source_codes] if isinstance(source_codes, list) else []
+            same_month_observation = bool(source_date and source_date[:6] == day[:6] and source_date <= day)
+            source_codes_valid = bool(isinstance(source_codes, list) and source_codes
+                and len(normalized_codes) == len(source_codes) and None not in normalized_codes
+                and len(set(normalized_codes)) == len(normalized_codes))
+            research_membership = dict(
+                schema_version='v4.manager_workbench.hk_connect_monthly_research_universe.v1',
+                status='VERIFIED' if (same_month_observation and source_codes_valid)
+                    else 'CANNOT_CONFIRM',
+                market='HK_CONNECT', owner=CONNECT_MEMBERSHIP_SOURCE, producer_owner=OWNER,
+                source_role=CONNECT_MEMBERSHIP_SOURCE, target_month=day[:6], source_date=source_date,
+                available_at=available, cutoff=context.cutoff,
+                artifact_relative=artifact_rel, artifact_sha256=asha,
+                manifest_relative=manifest_rel, manifest_sha256=msha,
+                receipt_relative=rel, receipt_sha256=rsha,
+                publication_relative=publication_rel, publication_sha256=psha,
+                capture_relative=capture_rel, capture_sha256=csha,
+                codes=sorted(normalized_codes) if source_codes_valid else [],
+                code_count=len(normalized_codes) if source_codes_valid else 0,
+                codes_sha256=owner_digest(dict(market='HK_CONNECT', codes=sorted(normalized_codes)))
+                    if source_codes_valid else None,
+                version=owner_digest(sources),
+                target_period_verified=target_period_verified,
+                formal_target_eligibility='VERIFIED' if target_period_verified else 'CANNOT_CONFIRM',
+                formal_target_gap=None if target_period_verified else 'CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED',
+                checked_files=[dict(source_local_path=str(root), relative=relative, sha256=source_sha)
+                    for relative, source_sha in sources],
+            )
             candidates.append((available, dict(source_local_path=str(root), owner=CONNECT_MEMBERSHIP_SOURCE,
                 producer_owner=OWNER, artifact_relative=artifact_rel,
-                artifact_sha256=asha,projection=projection,checked_files=[dict(source_local_path=str(root),relative=r,sha256=s) for r,s in sources])))
+                artifact_sha256=asha,projection=projection,monthly_research=research_membership,
+                checked_files=[dict(source_local_path=str(root),relative=r,sha256=s) for r,s in sources])))
         except (OSError, ValueError, KeyError, TypeError) as error:
             failures.append(str(error) if isinstance(error,ValueError) else 'MEMBERSHIP_CANDIDATE_INVALID')
     if not candidates:

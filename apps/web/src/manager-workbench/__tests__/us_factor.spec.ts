@@ -197,4 +197,66 @@ describe("US daily-return factor fixture", () => {
     await screen.findByText("来源行业 家庭电器及用品；映射主题 消费；代理日收益 1.50%。");
     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
   });
+
+  it("shows full saved-lane proxy directions with negative, flat, unknown, and mixed paths separated", async () => {
+    const path = (theme: string, symbols: string[], direction: string, change: string | null) => ({
+      theme, proxy_symbols: symbols, direction, return_pct: change, source_session: "20261016",
+      status: direction === "UNASSESSED" ? "UNASSESSED" : "VERIFIED",
+      conditions: direction === "UNASSESSED" ? ["THEME_PROXY_OWNER_ROW_MISSING"] : []
+    });
+    const stock = sampleStock("HK.00005", "分页内样本");
+    const summary = {
+      display_only: true as const, plan_run_id: "directional-run", source_symbol_count: 48,
+      source_row_count: 48, relation_row_count: 0, mapped_hk_count: 0, source_decision_counts: {},
+      mixed_source_count: 0, coverage: { scope_count: 48, observed_count: 48, assessed_count: 48, unassessed_count: 0 },
+      groups: [], factor_summary: null,
+      directional_proxy_lists: {
+        display_only: true as const, source_session: "20261016", monthly_observed_scope_count: 698,
+        monthly_research_source_date: "20261012", formal_target_eligibility: "CANNOT_CONFIRM",
+        historical_pit_verified: false as const, mixed_stock_count: 1, upside_stock_count: 1,
+        downside_stock_count: 2, flat_stock_count: 1, unassessed_stock_count: 1,
+        lists: {
+          upside: [{ symbol: "HK.00001", name: "油服样本", source_industry: "石油及天然气",
+            direction_state: "MIXED_UPSIDE_DOWNSIDE", proxy_paths: [
+              path("石油", ["XLE"], "UPSIDE", "2.0"), path("天然气", ["FCG"], "DOWNSIDE", "-1.5")
+            ] }],
+          downside: [
+            { symbol: "HK.00001", name: "油服样本", source_industry: "石油及天然气",
+              direction_state: "MIXED_UPSIDE_DOWNSIDE", proxy_paths: [
+                path("石油", ["XLE"], "UPSIDE", "2.0"), path("天然气", ["FCG"], "DOWNSIDE", "-1.5")
+              ] },
+            { symbol: "HK.00002", name: "半导体样本", source_industry: "半导体",
+              direction_state: "DOWNSIDE", proxy_paths: [path("半导体", ["SOXX"], "DOWNSIDE", "-0.6")] }
+          ],
+          flat: [{ symbol: "HK.00003", name: "医药样本", source_industry: "药品及生物科技",
+            direction_state: "FLAT", proxy_paths: [path("生物医药", ["XBI"], "FLAT", "0")] }],
+          unassessed: [{ symbol: "HK.00004", name: "待核样本", source_industry: "银行",
+            direction_state: "UNASSESSED", proxy_paths: [path("银行金融", ["KBE"], "UNASSESSED", null)] }]
+        }
+      }
+    };
+    const day = sampleDay({
+      stocks: [stock], counts: { selected: 0, watch: 0, unassessed: 1, observation_only: 0, not_selected: 0 },
+      us_mapping_summary: summary
+    });
+    const spy = vi.fn(async (_input: RequestInfo | URL, _init: RequestInit = {}) => response(wrapped(day)));
+    vi.stubGlobal("fetch", spy);
+
+    render(Workbench);
+    const lists = await screen.findByRole("region", { name: "港股行业代理方向观察名单" });
+    expect(lists.textContent).toContain("月度观察港股 × 美股收盘代理方向");
+    expect(lists.textContent).toContain("月度成员来源日 20261012");
+    expect(lists.textContent).toContain("目标日资格 CANNOT_CONFIRM");
+    expect(lists.textContent).toContain("上行代理观察 · 已核验收益 > 0 · 1 只");
+    expect(lists.textContent).toContain("HK.00001 油服样本");
+    expect(lists.textContent).toContain("石油（XLE）· 20261016 收盘 +2%");
+    expect(lists.textContent).toContain("天然气（FCG）· 20261016 收盘 -1.5%");
+    expect(lists.textContent).toContain("HK.00002 半导体样本");
+    expect(lists.textContent).toContain("下行风险观察 · 已核验收益 < 0 · 2 只");
+    expect(lists.textContent).toContain("零变动代理路径 · 1 只");
+    expect(lists.textContent).toContain("行业/代理/身份待核 · 1 只");
+    expect(lists.textContent).toContain("缺少代理收益来源行（THEME_PROXY_OWNER_ROW_MISSING）");
+    expect(lists.textContent).not.toContain("未入选代表下行");
+    expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
+  });
 });

@@ -59,6 +59,46 @@ function factorPeriod(path: Record<string, unknown>): string {
 function industrySummaryText(summary: HKIndustrySummary): string {
   return `港股通范围 ${showCount(summary.scope_count)} 只；身份核验 ${showCount(summary.identity_resolved_count)} 只，身份缺口 ${showCount(summary.identity_gap_count)} 只；有行业分类 ${showCount(summary.classified_count)} 只，已映射到冻结美股主题 ${showCount(summary.mapping_covered_count)} 只，行业已知但未映射 ${showCount(summary.industry_unmapped_count)} 只，分类缺失 ${showCount(summary.classification_missing_count)} 只；待核（UNASSESSED）${showCount(summary.unknown_unique_stock_count)} 只；坏来源行 ${showCount(summary.bad_row_count)} 条；代理收益为正且通过时间门槛的去重候选 ${showCount(summary.triggered_unique_stock_count)} 只。`;
 }
+function proxyDirectionLabel(value: unknown): string {
+  return ({ UPSIDE: "上行代理观察", DOWNSIDE: "下行代理观察", FLAT: "零变动", UNASSESSED: "待核" } as Record<string, string>)[String(value)] || "待核";
+}
+function proxyReasonLabel(value: unknown): string {
+  const code = String(value || "");
+  const labels: Record<string, string> = {
+    CLASSIFICATION_MISSING: "月度观察范围内没有行业分类",
+    CLASSIFICATION_RAW_PROVENANCE_INVALID: "行业分类原始行或响应来源校验缺失",
+    INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP: "该提供方行业标签尚无已核验的主题映射",
+    INDUSTRY_PROXY_THEME_BINDING_INVALID: "行业主题代理绑定无效",
+    THEME_PROXY_RETURN_UNASSESSED: "代理收益输入待核",
+    THEME_PROXY_OWNER_ROW_MISSING: "缺少代理收益来源行",
+    INDUSTRY_THEME_PROXY_MEMBERSHIP_MISMATCH: "代理来源标的与冻结映射不一致",
+    INDUSTRY_MAPPING_TYPE_MISMATCH: "行业映射类型不一致",
+    THEME_PROXY_RETURN_INVALID: "代理收益格式无效",
+    UNASSESSED_IDENTITY: "证券主表身份未核验",
+    CLASSIFICATION_ROW_DUPLICATE: "行业来源存在重复记录",
+    RETROSPECTIVE_PIT_UNKNOWN: "来源时间不能证明当时可用",
+  };
+  return labels[code] ? `${labels[code]}（${code}）` : code;
+}
+function proxyPathReason(path: Record<string, unknown>): string {
+  const symbols = Array.isArray(path.proxy_symbols) ? path.proxy_symbols.join("、") : "代理标的未知";
+  const raw = typeof path.return_pct === "string" || typeof path.return_pct === "number" ? Number(path.return_pct) : NaN;
+  const change = Number.isFinite(raw) ? `${raw > 0 ? "+" : ""}${raw}%` : "收益未知";
+  const session = typeof path.source_session === "string" ? path.source_session : "会话未知";
+  const conditions = Array.isArray(path.conditions) ? path.conditions.map(proxyReasonLabel).filter(Boolean) : [];
+  const reason = conditions.length ? `；待核原因：${conditions.join("、")}` : "";
+  return `${showText(path.theme)}（${symbols}）· ${session} 收盘 ${change} · ${proxyDirectionLabel(path.direction)}${reason}`;
+}
+function directionalStockReason(stock: Record<string, unknown>): string {
+  const paths = Array.isArray(stock.proxy_paths)
+    ? stock.proxy_paths.filter((path): path is Record<string, unknown> => path !== null && typeof path === "object") : [];
+  if (paths.length) return `${showText(stock.source_industry)} → ${paths.map(proxyPathReason).join("；")}`;
+  const conditions = Array.isArray(stock.conditions) ? stock.conditions.map(proxyReasonLabel).filter(Boolean) : [];
+  return conditions.length ? conditions.join("；") : showText(stock.reason || "行业或代理映射待核");
+}
+function directionalStocks(key: "upside" | "downside" | "flat" | "unassessed") {
+  return vm.day?.data?.us_mapping_summary?.directional_proxy_lists?.lists?.[key] || [];
+}
 function factorSummaryText(summary: USFactorSummary): string {
   const decisions = summary.factor_decision_counts || {};
   return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
@@ -181,6 +221,45 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <p>安全主表 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_owner || '未知' }} · 会话 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_source_date || '未知' }} · 可得 {{ humanTime(vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_available_at) }} · SHA {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_artifact_sha256 || '未知' }}；身份缺口 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.identity_gap || '无' }}。</p>
         <p v-if="vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_gap">分类输入缺口：{{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_gap }}</p>
         <p>这是按股票去重的候选覆盖；待核数按 UNASSESSED 行级结论统计。完整研究记录计数仍按行记录统计。</p>
+      </section>
+
+      <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_summary?.directional_proxy_lists"
+        class="mwb-directional-lists" aria-label="港股行业代理方向观察名单">
+        <h3>月度观察港股 × 美股收盘代理方向</h3>
+        <p>港股范围 {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.monthly_observed_scope_count) }} 只；美股会话 {{ vm.day.data.us_mapping_summary.directional_proxy_lists.source_session || '未知' }}；月度成员来源日 {{ vm.day.data.us_mapping_summary.directional_proxy_lists.monthly_research_source_date || '未知' }}。目标日资格 {{ vm.day.data.us_mapping_summary.directional_proxy_lists.formal_target_eligibility || 'CANNOT_CONFIRM' }}，历史 PIT 未验证。这是代理当日共振观察，不是价格预测、因果结论或 BUY。</p>
+        <p>全量名单取自保存版本的完整 US_MAPPING 行，不受当前推荐分页、筛选或首页 50 行限制。上/下行列表只按已核验的代理收益 &gt; 0 / &lt; 0 生成；零变动与待核单独列示。{{ vm.day.data.us_mapping_summary.directional_proxy_lists.mixed_stock_count || 0 }} 只同时出现相反方向路径并分别列入两边。</p>
+        <div class="mwb-direction-grid">
+          <article class="mwb-direction-card is-upside" aria-label="上行代理观察名单">
+            <h4>上行代理观察 · 已核验收益 &gt; 0 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.upside_stock_count) }} 只</h4>
+            <ul v-if="directionalStocks('upside').length">
+              <li v-for="stock in directionalStocks('upside')" :key="stock.symbol">
+                <strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong>
+                <p>{{ directionalStockReason(stock) }}</p>
+                <small v-if="String(stock.direction_state || '').includes('MIXED')">同一港股存在相反的已核验代理路径；分别展示，不合并打分。</small>
+              </li>
+            </ul>
+            <p v-else class="mwb-muted">本版本没有可确认的正向代理路径。</p>
+          </article>
+          <article class="mwb-direction-card is-downside" aria-label="下行代理观察名单">
+            <h4>下行风险观察 · 已核验收益 &lt; 0 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.downside_stock_count) }} 只</h4>
+            <ul v-if="directionalStocks('downside').length">
+              <li v-for="stock in directionalStocks('downside')" :key="stock.symbol">
+                <strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong>
+                <p>{{ directionalStockReason(stock) }}</p>
+                <small v-if="String(stock.direction_state || '').includes('MIXED')">同一港股存在相反的已核验代理路径；分别展示，不合并打分。</small>
+              </li>
+            </ul>
+            <p v-else class="mwb-muted">本版本没有可确认的负向代理路径；未入选不代表下行。</p>
+          </article>
+        </div>
+        <details class="mwb-direction-secondary">
+          <summary>零变动代理路径 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.flat_stock_count) }} 只</summary>
+          <ul><li v-for="stock in directionalStocks('flat')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong><p>{{ directionalStockReason(stock) }}</p></li></ul>
+        </details>
+        <details class="mwb-direction-secondary">
+          <summary>行业/代理/身份待核 · {{ showCount(vm.day.data.us_mapping_summary.directional_proxy_lists.unassessed_stock_count) }} 只</summary>
+          <ul><li v-for="stock in directionalStocks('unassessed')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }}</strong><p>{{ directionalStockReason(stock) }}</p></li></ul>
+        </details>
       </section>
 
       <div v-if="vm.counts" class="mwb-counts" aria-label="本路径完整研究记录分类计数">
@@ -370,7 +449,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
               <section v-if="row.subtype === 'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'" class="mwb-research-section">
                 <h5>发行人行业与美股代理主题 · 独立候选</h5>
                 <p>身份状态 {{ showText(row.identity_status || 'UNASSESSED_IDENTITY') }}；安全主表 {{ showText(row.security_master_owner) }} · 会话 {{ showText(row.security_master_source_date) }} · artifact SHA {{ showText(row.security_master_artifact_sha256) }}。</p>
-                <p>来源行业 {{ showText(row.source_industry) }}；映射主题 {{ showText(row.theme) }}；代理日收益 {{ row.return_pct === null || row.return_pct === undefined ? '未知' : `${showText(row.return_pct)}%` }}。</p>
+                <p>来源行业 {{ showText(row.source_industry) }}；方向路径 {{ directionalStockReason(row) }}；路径状态 {{ showText(row.proxy_directional_state || 'UNASSESSED') }}。</p>
                 <p>映射类型 {{ showText(row.mapping_type) }}；分类来源 {{ showText(row.source_id) }} · {{ showText(row.source_owner) }}；来源原始响应 SHA {{ showText(row.source_response_sha256) }}，行 SHA {{ showText(row.source_row_sha256) }}。</p>
                 <p>source_asof {{ showText(row.source_asof || 'UNKNOWN') }}；采集时间 {{ humanTime(typeof row.captured_at === 'string' ? row.captured_at : null) }}；时间状态 {{ showText(row.temporal_status) }}；历史 PIT 未验证，研究效果未验证。</p>
                 <p v-for="condition in (Array.isArray(row.conditions) ? row.conditions : [])" :key="String(condition)">待核条件：{{ showText(condition) }}</p>

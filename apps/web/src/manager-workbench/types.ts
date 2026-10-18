@@ -203,6 +203,47 @@ export interface USMappingRunContract {
       target_gap?: string | null };
   };
 }
+export interface HKDirectionalProxyPath {
+  theme?: string | null;
+  proxy_symbols?: string[];
+  status?: string;
+  direction?: "UPSIDE" | "DOWNSIDE" | "FLAT" | "UNASSESSED" | string;
+  return_pct?: string | null;
+  source_session?: string | null;
+  reason?: string | null;
+  conditions?: string[];
+  [key: string]: unknown;
+}
+export interface HKDirectionalProxyStock {
+  symbol: string;
+  name?: string | null;
+  source_industry?: string | null;
+  source_session?: string | null;
+  direction_state?: string;
+  reason?: string | null;
+  conditions?: string[];
+  proxy_paths?: HKDirectionalProxyPath[];
+  [key: string]: unknown;
+}
+export interface HKDirectionalProxyLists {
+  display_only: true;
+  source_session?: string | null;
+  monthly_observed_scope_count?: number | null;
+  monthly_research_source_date?: string | null;
+  formal_target_eligibility?: string;
+  historical_pit_verified: false;
+  mixed_stock_count?: number | null;
+  upside_stock_count?: number | null;
+  downside_stock_count?: number | null;
+  flat_stock_count?: number | null;
+  unassessed_stock_count?: number | null;
+  lists: {
+    upside: HKDirectionalProxyStock[];
+    downside: HKDirectionalProxyStock[];
+    flat: HKDirectionalProxyStock[];
+    unassessed: HKDirectionalProxyStock[];
+  };
+}
 export interface DayData {
   recommendation_counts?: Partial<Record<RecommendationLane, DecisionCounts | null>>;
   recommendation_projection?: {
@@ -227,6 +268,7 @@ export interface DayData {
     catalog_summary?: { state?: string | null; stock_count?: number | null; relation_count?: number | null;
       consumed_relation_count?: number | null; displayed_relation_count?: number | null };
     run_contract?: USMappingRunContract | null;
+    directional_proxy_lists?: HKDirectionalProxyLists | null;
   } | null;
 }
 export interface StockLaneDetail {
