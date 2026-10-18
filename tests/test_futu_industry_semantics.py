@@ -12,6 +12,7 @@ from ops._us_market_digest_parts.futu_boards import (
     build_futu_board_snapshot,
     validate_futu_board_snapshot,
 )
+from contracts.futu_us_boards import FUTU_US_BOARD_REGISTRY
 
 
 @pytest.fixture(autouse=True)
@@ -40,9 +41,8 @@ class _FakeFutuContext:
         self.counts = counts
         self.update_time = update_time
         self.codes = {
-            (item["plate_type"], item["plate_name"]): f"US.LIST{2000 + index}"
-            for index, item in enumerate(FUTU_BOARD_MAP)
-            if item["plate_type"] and item["plate_name"]
+            (item["plate_type"], item["board_name"]): item["board_code"]
+            for item in FUTU_US_BOARD_REGISTRY
         }
         self.market_snapshot_codes = []
         self.membership_request_times = []
@@ -141,7 +141,7 @@ def test_military_board_requires_exact_unique_provider_name():
     assert military["expected_board_name"] == military["board_name"] == "航空航天与国防"
     assert military["board_code"] == "US.LIST2089"
     assert "US.LIST2089" in exact_and_near.market_snapshot_codes
-    assert len(exact_and_near.membership_request_times) == 13
+    assert len(exact_and_near.membership_request_times) == len(FUTU_US_BOARD_REGISTRY)
     assert sum(row["status"] == "READY" for row in snapshot["rows"]) == 13
 
     near_only = _MilitaryCatalogContext([
@@ -204,14 +204,15 @@ def test_membership_requests_are_limited_to_ten_per_thirty_seconds(monkeypatch):
     snapshot = build_futu_board_snapshot("20261015", quote_context=context)
 
     request_times = context.membership_request_times
-    assert len(request_times) == 13
+    assert len(request_times) == len(FUTU_US_BOARD_REGISTRY)
     assert request_times[:10] == [0.0] * 10
-    assert request_times[10:] == [30.0] * 3
-    assert sleeps == [30.0]
+    assert request_times[10:20] == [30.0] * 10
+    assert request_times[20:] == [60.0] * 4
+    assert sleeps == [30.0, 30.0]
     for start in set(request_times):
         assert sum(start <= requested_at < start + 30.0 for requested_at in request_times) <= 10
     assert sum(row["status"] == "READY" for row in snapshot["rows"]) == 13
-    assert sum(sleeps) == 30.0
+    assert sum(sleeps) == 60.0
 
 
 def test_exact_futu_board_metrics_are_separate_from_proxy_lane_and_cover_24_labels():
@@ -219,7 +220,7 @@ def test_exact_futu_board_metrics_are_separate_from_proxy_lane_and_cover_24_labe
 
     assert len(snapshot["rows"]) == 24
     cloud = next(row for row in snapshot["rows"] if row["label"] == "云计算")
-    assert cloud["board_code"] == "US.LIST2005"
+    assert cloud["board_code"] == "US.LIST2540"
     assert cloud["board_name"] == "云计算服务商"
     assert cloud["metric_kind"] == "OFFICIAL_BOARD"
     assert cloud["change_pct"] == 0.70035
@@ -325,6 +326,13 @@ def test_post_close_store_and_api_projection_keep_board_and_proxy_metrics_separa
     assert projected["production_allowed"] is False
     assert projected["buy_gate_updated"] is False
     assert projected["orders_sent"] is False
+    native = projected["native_board_snapshot"]
+    assert native["schema_version"] == "v3_5.futu_us_native_board_snapshot.v2"
+    assert native["requested_board_count"] == len(FUTU_US_BOARD_REGISTRY)
+    assert native["available_board_count"] == len(FUTU_US_BOARD_REGISTRY)
+    assert len({row["board_code"] for row in native["rows"]}) == len(FUTU_US_BOARD_REGISTRY)
+    assert all("proxy_reference" not in row and "relations" not in row for row in native["rows"])
+    assert next(row for row in native["rows"] if row["board_name"] == "云计算服务商")["board_code"] == "US.LIST2540"
 
 
 def test_us_market_get_keeps_confirmed_futu_boards_visible_when_proxy_quotes_are_separate(
@@ -392,6 +400,8 @@ def test_us_market_get_keeps_confirmed_futu_boards_visible_when_proxy_quotes_are
     assert result["futu_board_snapshot"]["status"] == "PARTIAL"
     assert result["available_board_count"] == 13
     assert result["requested_board_count"] == 24
+    assert result["native_board_snapshot"]["available_board_count"] == len(FUTU_US_BOARD_REGISTRY)
+    assert result["native_display_status"] == "READY"
     assert cloud["change_pct"] == 0.70035
     assert cloud["official_board"]["rise_count"] == 15
     assert cloud["proxy_reference"]["change_pct"] == 10.0
@@ -413,4 +423,10 @@ def test_us_market_get_keeps_confirmed_futu_boards_visible_when_proxy_quotes_are
     pre_close_result = _with_us_market_freshness(pre_close_board, observed=observed)
     assert pre_close_result["display_status"] == "CANNOT_CONFIRM"
     assert pre_close_result["freshness"]["cannot_confirm"] == ["FUTU_BOARD_UPDATE_BEFORE_SESSION_CLOSE"]
+
+    wrong_native_date = deepcopy(result)
+    wrong_native_date["native_board_snapshot"]["rows"][0]["session_date"] = "20261014"
+    wrong_native_result = _with_us_market_freshness(wrong_native_date, observed=observed)
+    assert wrong_native_result["native_display_status"] == "CANNOT_CONFIRM"
+    assert wrong_native_result["native_freshness"]["cannot_confirm"] == ["FUTU_NATIVE_BOARD_SNAPSHOT_INVALID"]
 

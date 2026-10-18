@@ -13,6 +13,16 @@ from collections.abc import Mapping
 from datetime import date, datetime
 from typing import Any
 
+from contracts.futu_us_boards import (
+    FUTU_US_BOARD_REGISTRY,
+    FUTU_US_BOARD_REGISTRY_SHA256,
+    FUTU_US_BOARD_REGISTRY_VERSION,
+    FUTU_US_BOARD_SNAPSHOT_SCHEMA_VERSION,
+    FUTU_US_BOARD_TIMEZONE,
+    empty_futu_us_board_snapshot,
+    validate_futu_us_board_snapshot,
+)
+
 
 FUTU_INDUSTRY_SCHEMA_VERSION = "v3_5.futu_us_industry_snapshot.v1"
 FUTU_PROVIDER = "Futu OpenD"
@@ -203,6 +213,7 @@ def empty_futu_board_snapshot(session_date: str, reason: str) -> dict[str, Any]:
         "capture_session_date": requested_date,
         "source_response_sha256": "",
         "rows": [_empty_row(mapping, reason) for mapping in FUTU_BOARD_MAP],
+        "native_board_snapshot": empty_futu_us_board_snapshot(session_date, reason),
         "cannot_confirm": [reason],
         "RESEARCH_ONLY": True,
         "production_allowed": False,
@@ -239,6 +250,9 @@ def validate_futu_board_snapshot(value: Any, *, expected_session_date: str | Non
         raise ValueError("invalid Futu board snapshot cannot_confirm")
     if value.get("RESEARCH_ONLY") is not True or value.get("production_allowed") is not False or value.get("buy_gate_updated") is not False or value.get("orders_sent") is not False:
         raise ValueError("unsafe Futu board snapshot safety flags")
+    native_snapshot = value.get("native_board_snapshot")
+    if native_snapshot is not None:
+        validate_futu_us_board_snapshot(native_snapshot, expected_session_date=session_date)
 
     ready_count = 0
     row_reasons: set[str] = set()
@@ -390,7 +404,41 @@ def build_futu_board_snapshot(
         resolved.append((mapping, code, None))
         codes.append(code)
 
+    native_resolved: list[tuple[Mapping[str, str], str | None, str | None]] = []
+    native_codes: list[str] = []
+    for identity in FUTU_US_BOARD_REGISTRY:
+        candidates_by_code = [
+            row for row in plate_rows.get(identity["plate_type"], [])
+            if row.get("code") == identity["board_code"]
+        ]
+        exact_candidates = [
+            row for row in candidates_by_code
+            if row.get("plate_name") == identity["board_name"]
+        ]
+        candidates_by_name = [
+            row for row in plate_rows.get(identity["plate_type"], [])
+            if row.get("plate_name") == identity["board_name"]
+            and isinstance(row.get("code"), str)
+            and _US_CODE.fullmatch(row["code"])
+        ]
+        if len(exact_candidates) == 1 and len(candidates_by_code) == 1 and len(candidates_by_name) == 1:
+            native_resolved.append((identity, identity["board_code"], None))
+            native_codes.append(identity["board_code"])
+        elif discovery_errors.get(identity["plate_type"]):
+            native_resolved.append((identity, None, discovery_errors[identity["plate_type"]]))
+        elif len(exact_candidates) > 1 or len(candidates_by_code) > 1 or len(candidates_by_name) > 1:
+            native_resolved.append((identity, None, "FUTU_BOARD_MATCH_AMBIGUOUS"))
+        elif candidates_by_code or candidates_by_name:
+            native_resolved.append((identity, None, "FUTU_BOARD_REGISTRY_IDENTITY_MISMATCH"))
+        else:
+            native_resolved.append((identity, None, "FUTU_BOARD_MATCH_MISSING"))
+
+    # Native and legacy identities share the one existing quote/membership
+    # capture.  Registry identities are queried once, in their frozen order.
+    codes = list(dict.fromkeys([*native_codes, *codes]))
+
     board_records: dict[str, dict[str, Any]] = {}
+    board_records_by_code: dict[str, list[dict[str, Any]]] = {}
     snapshot_error = ""
     if codes:
         try:
@@ -398,22 +446,31 @@ def build_futu_board_snapshot(
             if ret == 0:
                 for record in _records(frame):
                     code = record.get("code")
-                    if isinstance(code, str) and code in codes and code not in board_records:
-                        board_records[code] = record
+                    if isinstance(code, str) and code in codes:
+                        board_records_by_code.setdefault(code, []).append(record)
+                        if code not in board_records:
+                            board_records[code] = record
             else:
                 snapshot_error = f"FUTU_BOARD_SNAPSHOT_FAILED:{ret}"
         except Exception as error:
             snapshot_error = f"FUTU_BOARD_SNAPSHOT_FAILED:{type(error).__name__}"
 
-    board_response_sha = _canonical_sha256([board_records[key] for key in sorted(board_records)])
+    # Hash every quote row returned for each requested code. Keep repeated
+    # rows together under their code so duplicate provider responses remain
+    # visible in the digest without making cross-code ordering significant.
+    board_response_sha = _canonical_sha256({
+        code: board_records_by_code[code]
+        for code in sorted(board_records_by_code)
+    })
     membership_records: dict[str, dict[str, Any]] = {}
+    membership_errors: dict[str, list[str]] = {}
     membership_request_times: list[float] = []
     for code in codes:
         _wait_for_plate_stock_request(membership_request_times)
         try:
             ret, frame = quote_context.get_plate_stock(code)
             members = _response(ret, frame)
-            if ret == 0:
+            if ret == 0 and frame is not None:
                 symbols = sorted({
                     match.group(1)
                     for row in members
@@ -428,13 +485,16 @@ def build_futu_board_snapshot(
                     "membership_sha256": _canonical_sha256(members),
                 }
             else:
+                failure = "MALFORMED_PAYLOAD" if ret == 0 else str(ret)
+                membership_errors[code] = [f"FUTU_BOARD_MEMBERSHIP_FAILED:{failure}"]
                 membership_records[code] = {
                     "member_count": None,
                     "relation_constituents": [],
                     "membership_status": "CANNOT_CONFIRM",
                     "membership_sha256": "",
                 }
-        except Exception:
+        except Exception as error:
+            membership_errors[code] = [f"FUTU_BOARD_MEMBERSHIP_FAILED:{type(error).__name__}"]
             membership_records[code] = {
                 "member_count": None,
                 "relation_constituents": [],
@@ -500,6 +560,17 @@ def build_futu_board_snapshot(
         "board_snapshot_sha256": board_response_sha,
         "membership": membership_records,
     }
+    native_snapshot = _build_native_futu_board_snapshot(
+        requested_date=requested_date,
+        registry_rows=native_resolved,
+        plate_rows=plate_rows,
+        board_records=board_records,
+        board_records_by_code=board_records_by_code,
+        snapshot_error=snapshot_error,
+        membership_records=membership_records,
+        membership_errors=membership_errors,
+        source_material=source_material,
+    )
     return {
         "schema_version": FUTU_INDUSTRY_SCHEMA_VERSION,
         "status": status,
@@ -509,7 +580,132 @@ def build_futu_board_snapshot(
         "capture_session_date": requested_date,
         "source_response_sha256": _canonical_sha256(source_material),
         "rows": projected_rows,
+        "native_board_snapshot": native_snapshot,
         "cannot_confirm": reasons,
+        "RESEARCH_ONLY": True,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
+def _build_native_futu_board_snapshot(
+    *,
+    requested_date: str,
+    registry_rows: list[tuple[Mapping[str, str], str | None, str | None]],
+    plate_rows: Mapping[str, list[dict[str, Any]]],
+    board_records: Mapping[str, dict[str, Any]],
+    board_records_by_code: Mapping[str, list[dict[str, Any]]],
+    snapshot_error: str,
+    membership_records: Mapping[str, dict[str, Any]],
+    membership_errors: Mapping[str, list[str]],
+    source_material: Mapping[str, Any],
+) -> dict[str, Any]:
+    from contracts.futu_us_boards import _empty_row as _empty_native_row
+
+    projected_rows: list[dict[str, Any]] = []
+    for identity, code, resolution_error in registry_rows:
+        if code is None:
+            row = _empty_native_row(identity, resolution_error or "FUTU_BOARD_MATCH_UNCONFIRMED")
+            projected_rows.append(row)
+            continue
+        if len(board_records_by_code.get(code, [])) > 1:
+            row = _empty_native_row(identity, "FUTU_BOARD_SNAPSHOT_AMBIGUOUS")
+            row["board_code"] = code
+            row["source_response_sha256"] = _canonical_sha256({
+                "plates": board_records_by_code[code],
+                "snapshot_sha256": source_material.get("board_snapshot_sha256", ""),
+            })
+            member = membership_records.get(code, {})
+            row.update({
+                "membership_status": member.get("membership_status", "CANNOT_CONFIRM"),
+                "member_count": member.get("member_count"),
+                "membership_sha256": member.get("membership_sha256") or "",
+                "membership_cannot_confirm": list(membership_errors.get(code) or []),
+            })
+            if row["membership_status"] == "CANNOT_CONFIRM" and not row["membership_cannot_confirm"]:
+                row["membership_cannot_confirm"] = ["FUTU_BOARD_MEMBERSHIP_NOT_CAPTURED"]
+            projected_rows.append(row)
+            continue
+        source = board_records.get(code)
+        if source is None:
+            reason = snapshot_error or "FUTU_BOARD_SNAPSHOT_NOT_RETURNED"
+            row = _empty_native_row(identity, reason)
+        else:
+            raw_time = source.get("update_time")
+            source_date = _date_from_update_time(raw_time)
+            last = _positive_number(source.get("last_price"))
+            previous_close = _positive_number(source.get("prev_close_price"))
+            plate_valid = source.get("plate_valid") if isinstance(source.get("plate_valid"), bool) else None
+            rise = _count(source.get("plate_raise_count"))
+            fall = _count(source.get("plate_fall_count"))
+            equal = _count(source.get("plate_equal_count"))
+            reasons: list[str] = []
+            if source_date is None:
+                reasons.append("FUTU_BOARD_UPDATE_TIME_INVALID")
+            elif source_date != requested_date:
+                reasons.append("FUTU_BOARD_SESSION_DATE_MISMATCH")
+            if plate_valid is not True:
+                reasons.append("FUTU_BOARD_INVALID_OR_MISSING_PLATE_VALID")
+            if last is None or previous_close is None:
+                reasons.append("FUTU_BOARD_PRICE_MISSING_OR_INVALID")
+            if plate_valid is True and None in (rise, fall, equal):
+                reasons.append("FUTU_BOARD_BREADTH_FIELDS_MISSING_OR_INVALID")
+            valid = not reasons
+            row = _empty_native_row(identity, "FUTU_BOARD_METRIC_CANNOT_CONFIRM")
+            row.update({
+                "update_time": raw_time if isinstance(raw_time, str) else None,
+                "session_date": source_date,
+                "last": last,
+                "previous_close": previous_close,
+                "change_pct": round((last - previous_close) / previous_close * 100, 6) if valid and previous_close else None,
+                "plate_valid": plate_valid,
+                "rise_count": rise if plate_valid is True else None,
+                "fall_count": fall if plate_valid is True else None,
+                "equal_count": equal if plate_valid is True else None,
+                "source_response_sha256": _canonical_sha256({
+                    "plate": source,
+                    "snapshot_sha256": source_material.get("board_snapshot_sha256", ""),
+                }),
+                "status": "READY" if valid else "CANNOT_CONFIRM",
+                "cannot_confirm": reasons,
+            })
+        member = membership_records.get(code, {})
+        row.update({
+            "membership_status": member.get("membership_status", "CANNOT_CONFIRM"),
+            "member_count": member.get("member_count"),
+            "membership_sha256": member.get("membership_sha256") or "",
+            "membership_cannot_confirm": list(membership_errors.get(code) or []),
+        })
+        if row["membership_status"] == "CANNOT_CONFIRM" and not row["membership_cannot_confirm"]:
+            row["membership_cannot_confirm"] = ["FUTU_BOARD_MEMBERSHIP_NOT_CAPTURED"]
+        projected_rows.append(row)
+
+    quote_reasons = sorted({reason for row in projected_rows for reason in row["cannot_confirm"]})
+    membership_reasons = sorted({
+        reason for row in projected_rows for reason in row["membership_cannot_confirm"]
+    })
+    ready_count = sum(row["status"] == "READY" for row in projected_rows)
+    status = "READY" if ready_count == len(projected_rows) else "PARTIAL" if ready_count else "CANNOT_CONFIRM"
+    return {
+        "schema_version": FUTU_US_BOARD_SNAPSHOT_SCHEMA_VERSION,
+        "registry_version": FUTU_US_BOARD_REGISTRY_VERSION,
+        "registry_sha256": FUTU_US_BOARD_REGISTRY_SHA256,
+        "provider": FUTU_PROVIDER,
+        "market": "US",
+        "timezone": FUTU_US_BOARD_TIMEZONE,
+        "capture_session_date": requested_date,
+        "source_response_sha256": _canonical_sha256({
+            "registry_sha256": FUTU_US_BOARD_REGISTRY_SHA256,
+            "source_material": source_material,
+            "plate_rows": {key: plate_rows[key] for key in sorted(plate_rows)},
+        }),
+        "requested_board_count": len(registry_rows),
+        "available_board_count": ready_count,
+        "status": status,
+        "rows": projected_rows,
+        "cannot_confirm": quote_reasons,
+        "membership_cannot_confirm": membership_reasons,
         "RESEARCH_ONLY": True,
         "production_allowed": False,
         "buy_gate_updated": False,

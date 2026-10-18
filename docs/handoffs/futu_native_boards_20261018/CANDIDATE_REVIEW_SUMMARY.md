@@ -1,0 +1,15 @@
+# Futu native US boards
+
+State: `NOT_DEPLOYED`. The independent Reviewer returned `PASS` for the frozen source and candidate packages (`INDEPENDENT_REVIEW.json`, SHA-256 `78e28818b2815ec3b702c12edf8351a77528901fb4825c58387dcca3fe44a08b`). The existing API cutover guard returned `API_RELEASE_ANNOUNCEMENT_ACTIVITY_BUSY` due to one `RUNNING` queue record. A separate frozen-resume dry-run completed as `READ_ONLY_PLAN` with one recoverable orphan, zero model calls, and an unchanged queue. The exact queue record, dry-run receipt SHA, and latest verified active binding snapshot are in `local_only/ONLINE_ACTIVATION_RECEIPT.json`. This batch made no binding, service, or official artifact changes; candidates remain inactive.
+
+One further action requires separate scope authorization: use the existing `ops/run_manager_flash_announcements.py --resume-frozen-batch` recovery path for the verified orphan only after the exact frozen input/hash and no-active-owner gates pass. Its documented orphan recovery changes the queue item from `RUNNING` to `FAILED` and the attempt from `RUNNING` to `INTERRUPTED` with error `PROCESS_INTERRUPTED`; the frozen-resume workflow may then make one model call. It was not run.
+
+The batch adds a fixed 24-entry Futu native US board snapshot while preserving the v1 24-theme snapshot, projects native freshness through the API candidate, and labels v1-only snapshots as historical theme data in the frontend. Registry SHA-256: `5507b325b090329cbbdedb9dcf3ee0a7c8115fe9d7f2704f8ae81527b1276c9d`.
+
+Focused source tests passed: producer/semantics 15, API route 8, candidate API 14, candidate US producer 13, and candidate frontend Vitest 21. The candidate Vite build and direct API fixtures for 24/24 `READY`, stale freshness, and invalid registry identity passed; old v1 artifact readback remains 12/24 `PARTIAL` with no native snapshot. Candidate UI CUA fixtures verified full 24/24 and partial 23/24 display with separate quote and membership uncertainty. The independent `test_us_map_freshness` baseline result was 16 failed and 5 passed with candidate equal to active baseline, so those failures cannot be attributed to this candidate. `vue-tsc` has five diagnostics outside changed target files.
+
+Provider querying exceeded the intended two-board canary: after the initial two new identities, 22 identities were queried, including 13 existing boards; one membership call returned `ret=-1`. No cause is inferred and no raw frames or official artifacts were saved. All 11 new identities had quote-name matches and ready membership, but bounded-canary acceptance remains `CANNOT_CONFIRM`; do not repeat provider calls for this batch.
+
+The candidate UI fixture was synthetic and local-only; it made no provider calls or official data writes. The live API/UI readback and next natural capture were not run because the cutover guard blocked. Git synchronization is tracked separately by the parent.
+
+Safety flags remain `RESEARCH_ONLY=true`, `production_allowed=false`, `buy_gate_updated=false`, and `orders_sent=false`.
