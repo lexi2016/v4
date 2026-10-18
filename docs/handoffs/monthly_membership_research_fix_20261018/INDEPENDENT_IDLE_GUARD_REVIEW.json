@@ -1,0 +1,53 @@
+{
+  "schema_version": "reviewer.r2.independent_idle_guard_review.v1",
+  "reviewed_at": "2026-10-18T17:13:46.988164+00:00",
+  "status": "PASS",
+  "scope": "Root scheduler integration guard only; no service/job execution or activation.",
+  "baseline": {
+    "repository_commit": "c35ba8302321821456ce4ffad2eccb06e703b143",
+    "path": "reproducibility/activate_scheduler.py",
+    "sha256": "f6a4eba660600d1a7f8fc3aecae5971804b8d47c00edeafa04b48d52d4ee517b",
+    "git_blob": "a015444b0482823a8a1b74291bc2b14d2468b956"
+  },
+  "candidate": {
+    "after_sha256": "1f7372e1daae44d5ac43d1cbe4cba8df32a66dc7922f51bf8d73b1b0291f56b8",
+    "copies": {
+      "local_only/activate_scheduler.py": "1f7372e1daae44d5ac43d1cbe4cba8df32a66dc7922f51bf8d73b1b0291f56b8",
+      "reproducibility/activate_scheduler.py": "1f7372e1daae44d5ac43d1cbe4cba8df32a66dc7922f51bf8d73b1b0291f56b8"
+    },
+    "semantic_delta": "Fresh tick status predicate adds NO_RETRYABLE_TASKS alongside RETRY_BACKOFF; no other guard delta was observed in the fetched c35 baseline comparison."
+  },
+  "base_daemon": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app/ops/run_v35_macos_scheduler_daemon.py",
+    "observed_behavior": "_run_child returns/reaps, _run emits PDF_QUEUE_TICK, then NO_RETRYABLE_TASKS waits idle_seconds; base default is 60 seconds.",
+    "source_lines": "748-757"
+  },
+  "checks": {
+    "both_script_copies_match_declared_after_sha": true,
+    "declared_before_sha_is_remote_c35_baseline": true,
+    "guard_accepts_only_fresh_normal_idle_or_retry_backoff": true,
+    "same_fresh_tick_and_8s_index_check_present": true,
+    "no_child_and_pdf_lock_checks_present": true,
+    "minute_cycle_and_release_manager_guards_remain": true,
+    "base_daemon_emits_tick_then_idles_on_no_retryable": true,
+    "candidate_not_activated": true,
+    "not_executed_in_this_review": true
+  },
+  "candidate_state": {
+    "activation_plan": "INACTIVE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+    "activation_receipt": "DEFERRED_OR_FAILED",
+    "activated": false,
+    "execution": "NOT_RUN"
+  },
+  "findings": [],
+  "unverified": {
+    "normal_idle_guard_runtime_execution": "CANNOT_CONFIRM",
+    "candidate_scheduler_activation": "CANNOT_CONFIRM"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

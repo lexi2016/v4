@@ -1,0 +1,95 @@
+{
+  "schema_version": "reviewer.r3.independent_review.v1",
+  "reviewed_at": "2026-10-18T17:32:57.411709+00:00",
+  "scope_file": "docs/handoffs/monthly_membership_research_fix_20261018/R3_COUNT_SCOPE.json",
+  "scope_sha256": "f87f41ccce7cd7dac600a74037e9b17bea1169e06f1456d0bb49804139db662e",
+  "writer_receipt_sha256": "206c141195028948d26d55be1653b29a1ba8bc393eb20c09f55ae965d2a914e3",
+  "status": "PASS_CANDIDATE_REVIEW",
+  "reviewed": "yes",
+  "tested": "yes",
+  "behavior_verified": "yes_for_saved_snapshot_in_memory_candidate_projection",
+  "candidate_state": {
+    "release_id": "monthly-membership-api-20261018-r3",
+    "candidate_manifest_sha256": "7ad0c2fe45fc4edb620b15de72c5012ba8f6b7dcd2f22f4c3e462827ec54f608",
+    "status": "INACTIVE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+    "activated": false,
+    "current_live_R3_api_ui": "CANNOT_CONFIRM"
+  },
+  "findings": [],
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "closed_prior_R2_finding": "The prior P2 count-contract mismatch is corrected by this candidate: watch is 153 while strict selected remains 0 with explicit unavailable-rule text. R2 historical receipt retains FAIL with corrected root-cause explanation."
+  },
+  "acceptance": {
+    "full_candidate_count": 701,
+    "counts": {
+      "selected": 0,
+      "watch": 153,
+      "unassessed": 437,
+      "not_selected": 111,
+      "observation_only": 0
+    },
+    "default_recommendation_count": 153,
+    "pagination": {
+      "total": 153,
+      "offset": 0,
+      "limit": 50
+    },
+    "source_row_count": 60,
+    "source_row_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 27,
+      "not_selected": 33,
+      "observation_only": 0
+    },
+    "catalog_relation_rows_excluded": 1003,
+    "snapshot_sha256": "388b4db4f4d46d7f926258ea872226243b9f121cd071e7ad6fb56aafb51cccbf",
+    "snapshot_changed": false,
+    "strict_selection_rule": "EXPLICITLY_NOT_ENABLED; no engine decision, qualification/PIT, or BUY change",
+    "oversold": "Existing targeted regression suite passed; R3 path retains source-row counting for non-US_MAPPING lanes."
+  },
+  "validation": {
+    "focused_python": "12 passed",
+    "overlay_vitest": "4 passed",
+    "saved_snapshot_in_memory_api_canary": "PASS_READ_ONLY_SAVED_SNAPSHOT_IN_MEMORY_API_PROJECTION",
+    "candidate_manifest_and_inventory": "PASS; 6 changed runtime paths, 1243 unchanged entries preserved",
+    "targeted_typecheck": "PASS per writer receipt; not independently rerun",
+    "full_web_typecheck": "Writer reported out-of-scope existing diagnostics; not used as a blocker"
+  },
+  "unverified": {
+    "deployed_R3_API_UI": "CANNOT_CONFIRM: candidate remains inactive and no activation or live R3 readback was requested/performed.",
+    "natural_slot": "CANNOT_CONFIRM: only saved manual snapshot replayed.",
+    "pixel_screenshot": "CANNOT_CONFIRM: not part of R3 candidate replay."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "evidence_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r3/review_evidence.json",
+  "checks": {
+    "scope_sha_matches_writer": true,
+    "writer_receipt_sha_matches_requested": true,
+    "all_canonical_writer_hashes_match": true,
+    "all_runtime_overlay_writer_hashes_match": true,
+    "candidate_release_manifest_sha": true,
+    "candidate_actual_files_match_manifest": true,
+    "release_exactly_six_runtime_deltas": true,
+    "non_delta_1243_preserved": true,
+    "candidate_inventory_digest_matches_manifest_and_build": true,
+    "staged_and_rollback_plists_match": true,
+    "candidate_not_activated": true,
+    "web_generated_assets_match_web_build": true,
+    "saved_snapshot_identity_and_hash": true,
+    "candidate_full_counts_and_recommendations": true,
+    "source_row_counts_retained_and_distinct": true,
+    "catalog_excluded_and_saved_snapshot_unchanged": true,
+    "read_only_canary_no_service_or_job_post_or_owner_write": true,
+    "focused_python_12_and_ui_4_passed": true,
+    "strict_selection_unavailable_message_and_independent_oversold_test_scope": true
+  }
+}

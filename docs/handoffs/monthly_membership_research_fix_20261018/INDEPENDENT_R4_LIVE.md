@@ -1,0 +1,13 @@
+# Independent R4 live leaf acceptance
+
+**PASS_LIVE_LEAF_ACCEPTANCE · API_VERIFIED · UI_AX_VERIFIED · BEHAVIOR_VERIFIED.** The deployed API identity is `monthly-membership-api-20261018-r4` (PID `13471`), with manifest `20714a2e697dda2bca7158a27d19e0938ae4d61c17024cdcbace838590051ef4`. Health and ready checks both returned 200.
+
+The API readback returned HTTP 200 for the existing run `2e2a1dbb1312422c8b1e21a58d2d44d0`. Raw response SHA `e223e23c838b4c0f0c13303fcee916f02098efdcafbbaeecb8cead26057dfe66` and size `15464611` match the receipt and are byte-identical to the R3 existing-run response. The run ID, input SHA `1de9655dde06cbd4f15deca41df57eb73d00c00e657e880e0ffe3607d22a6c33`, product SHA `78bfe4db1f37e5e356b7d71878faeb9a7d4edf551a7083570ab9fbca532bd922`, and saved snapshot SHA `388b4db4f4d46d7f926258ea872226243b9f121cd071e7ad6fb56aafb51cccbf` are unchanged. No new run was submitted.
+
+The API reports 701 deduplicated candidate stocks: strict selected 0, conditional watch 153, unassessed 437, not selected 111, observation-only 0. The 60 source records remain separately counted as 0 selected / 0 watch / 27 unassessed / 33 not selected / 0 observation-only. The source mapping summary has 36 relation rows and 19 mapped HK stocks. Pagination remains 153 total, 50 per page.
+
+The live AX tree confirms the corrected sentence: 36 relation rows involve 19 HK stocks, and the full deduplicated candidate pool is 701. It also confirms strict selected 0 / conditional watch 153, the strict-selection-rule-unavailable notice, 153 upside and 109 downside observations. Pixel review is CANNOT_CONFIRM because the screenshot surface had zero width; AX was used for UI text verification. Natural-run evidence and formal target eligibility remain CANNOT_CONFIRM.
+
+No P0/P1/P2 findings remain for this leaf. The count-wording defect is closed; this does not enable strict selection or change qualification, PIT, or BUY behavior.
+
+Evidence: [API activation](/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/ROOT_API_ACTIVATION_RECEIPT_R4.json), [API readback](/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/ROOT_API_READBACK_R4.json), [UI readback](/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/ROOT_UI_READBACK_R4.json), [live lane response](/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/actual_r4/lane-response.json), [AX tree](/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/actual_r4/ui-ax.txt), [detailed evidence](/Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r4/live_leaf_evidence.json).

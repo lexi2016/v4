@@ -1,0 +1,127 @@
+{
+  "schema_version": "reviewer.r3.live_acceptance.v1",
+  "reviewed_at": "2026-10-18T17:38:00.029305+00:00",
+  "scope_file": "docs/handoffs/monthly_membership_research_fix_20261018/R3_COUNT_SCOPE.json",
+  "scope_sha256": "f87f41ccce7cd7dac600a74037e9b17bea1169e06f1456d0bb49804139db662e",
+  "status": "FAIL_P2_COUNT_UNIT_WORDING_MISMATCH",
+  "reviewed": "yes",
+  "live_acceptance": {
+    "api": "API_VERIFIED",
+    "ui_accessibility_tree": "UI_AX_VERIFIED",
+    "pixel_screenshot": "CANNOT_CONFIRM_ZERO_WIDTH_SCREENSHOT_UNAVAILABLE",
+    "natural_run": "CANNOT_CONFIRM_NOT_OBSERVED",
+    "api_release_identity": {
+      "activation_receipt_sha256": "4ecf83a2ea1b17d9e1624b6f71f949483e936bc3bf2c4875a43479f22c57e6e0",
+      "release_id": "monthly-membership-api-20261018-r3",
+      "pid": 10304,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/app",
+      "manifest_sha256": "7ad0c2fe45fc4edb620b15de72c5012ba8f6b7dcd2f22f4c3e462827ec54f608",
+      "healthz": 200,
+      "readyz": 200,
+      "config_preserved": true,
+      "selection_submitted": false
+    },
+    "readback": {
+      "receipt_sha256": "13a95156d899400e8510ec3191faac47ffe0b276326b8adae5dacc6bc5f2f235",
+      "http_status": 200,
+      "raw_response_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/actual_r3/lane-response.json",
+      "raw_response_sha256": "e223e23c838b4c0f0c13303fcee916f02098efdcafbbaeecb8cead26057dfe66",
+      "raw_response_bytes": 15464611,
+      "raw_matches_readback_receipt": true,
+      "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+      "state": "PARTIAL",
+      "saved_directions_and_decisions_unchanged": true,
+      "new_run_submitted": false
+    },
+    "unchanged_saved_inputs": {
+      "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+      "same_as_R2_run_id": true,
+      "input_sha256": "1de9655dde06cbd4f15deca41df57eb73d00c00e657e880e0ffe3607d22a6c33",
+      "same_as_R2_input_sha256": true,
+      "product_sha256": "78bfe4db1f37e5e356b7d71878faeb9a7d4edf551a7083570ab9fbca532bd922",
+      "same_as_R2_product_sha256": true,
+      "saved_snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/2e2a1dbb1312422c8b1e21a58d2d44d0.json",
+      "saved_snapshot_sha256": "388b4db4f4d46d7f926258ea872226243b9f121cd071e7ad6fb56aafb51cccbf",
+      "same_as_prior_saved_snapshot_receipt": true
+    },
+    "counts": {
+      "full_candidate_stock_count": 701,
+      "candidate_stock_count_unit": "DEDUPLICATED_HK_CANDIDATE_STOCKS",
+      "recommendation_counts": {
+        "selected": 0,
+        "watch": 153,
+        "unassessed": 437,
+        "not_selected": 111,
+        "observation_only": 0
+      },
+      "pagination": {
+        "total": 153,
+        "offset": 0,
+        "limit": 50
+      },
+      "saved_source_rows": 60,
+      "saved_source_decision_counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 27,
+        "not_selected": 33,
+        "observation_only": 0
+      },
+      "source_HK_relation_rows": 36,
+      "source_mapped_HK_stocks": 19,
+      "catalog_rows_excluded": 1003
+    },
+    "ui": {
+      "receipt_sha256": "155d1be88dd0072bdc8692dca6606cb2452493714456991a5edbebf71e6a7028",
+      "ax_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/actual_r3/ui-ax.txt",
+      "ax_sha256": "1075534819e80c46d51d67dc55fe32332ad0ef4e6710dbb8aeb341f817f1c21f",
+      "ax_matches_readback_receipt": true,
+      "top_counts_visible": true,
+      "strict_rule_unavailable_visible": true,
+      "source_relation_wording_conflict_visible": true
+    }
+  },
+  "findings": [
+    {
+      "id": "R3-LIVE-P2-COUNT-UNIT-WORDING",
+      "severity": "P2",
+      "title": "Source relation count is visually attached to the full candidate count",
+      "evidence": [
+        "local_only/actual_r3/ui-ax.txt:887: 60 saved research rows; 36 rows with HK; phrase says these involve 701 stocks.",
+        "local_only/actual_r3/ui-ax.txt:892: separate source summary correctly says 36 HK relations involve 19 HK stocks.",
+        "ROOT_API_READBACK_R3.json: us_mapping_summary.source_row_count=60, relation_row_count=36, mapped_hk_count=19; candidate_stock_count=701 with unit DEDUPLICATED_HK_CANDIDATE_STOCKS.",
+        "R3_COUNT_SCOPE.json: target requires full deduplicated candidate-stock counts while retaining source-row counts separately."
+      ],
+      "acceptance_blocking_for_frozen_count_contract": true,
+      "reason": "The displayed sentence can be read as attributing 701 HK stocks to the 36 source relation rows, contradicting the same screen and API source summary (19 mapped HK stocks). This is a directly visible count-unit contradiction in the frozen display-count scope.",
+      "minimal_fix": "Change only that sentence to: “本路径保存 60 条来源研究记录（计数单位：研究记录）；36 条含港股关系记录，涉及 19 只港股；全路径去重港股候选池共 701 只。” Keep existing count fields and logic unchanged.",
+      "CANNOT_CONFIRM": []
+    }
+  ],
+  "checks": {
+    "deployed_R3_api_identity_and_health": true,
+    "readback_raw_hash_and_size_match": true,
+    "live_run_and_R2_saved_input_product_identity_match": true,
+    "current_saved_snapshot_sha256_matches_prior_canary": true,
+    "strict_zero_conditional_watch_153_visible": true,
+    "full_stock_candidate_count_701_and_source_row_counts_distinct": true,
+    "source_relation_text_matches_API_19_mapped_stocks": false,
+    "no_source_or_test_review_rerun": true,
+    "no_scheduler_action": true
+  },
+  "actions_not_performed": [
+    "source edits",
+    "tests",
+    "POST/new run",
+    "scheduler recheck",
+    "pixel review"
+  ],
+  "evidence_paths": [
+    "docs/handoffs/monthly_membership_research_fix_20261018/ROOT_API_ACTIVATION_RECEIPT_R3.json",
+    "docs/handoffs/monthly_membership_research_fix_20261018/ROOT_API_READBACK_R3.json",
+    "docs/handoffs/monthly_membership_research_fix_20261018/ROOT_UI_READBACK_R3.json",
+    "docs/handoffs/monthly_membership_research_fix_20261018/local_only/actual_r3/lane-response.json",
+    "docs/handoffs/monthly_membership_research_fix_20261018/local_only/actual_r3/ui-ax.txt",
+    "docs/handoffs/monthly_membership_research_fix_20261018/R3_COUNT_SCOPE.json"
+  ]
+}

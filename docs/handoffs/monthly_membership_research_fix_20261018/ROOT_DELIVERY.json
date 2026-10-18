@@ -1,0 +1,113 @@
+{
+  "schema": "monthly_mapping_delivery.v1",
+  "at": "2026-10-18T17:49:20.569288+00:00",
+  "status": "DEPLOYED_MANUAL_BEHAVIOR_VERIFIED_NATURAL_SLOT_PENDING",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "repository": "lexi2016/v4",
+  "branch": "codex/monthly-membership-research-20261018",
+  "verified_source_commit": "eb4567f8696cc76c8f8d995b3ffbe44874f51467",
+  "final_evidence_commit_receipt": "ROOT_FINAL_GITHUB_RECEIPT.json",
+  "api": {
+    "release_id": "monthly-membership-api-20261018-r4",
+    "pid": 13471,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r4/app",
+    "plist_sha256": "54d3963d9d38996ed032c2a376449ba375763d7be506258d980b9b3b205b32a5",
+    "manifest_sha256": "20714a2e697dda2bca7158a27d19e0938ae4d61c17024cdcbace838590051ef4"
+  },
+  "scheduler": {
+    "pid": 5348,
+    "release_id": "monthly-membership-scheduler-20261018-r2",
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-scheduler-20261018-r2/app",
+    "plist_sha256": "afa5cd7d8c34f7eddc60560be6e431734386d2063040ee6d7e28d164af010bf7",
+    "manifest_sha256": "8335f566cb329fcf534606f4ae638368cc894faa35b72f8666c2e7daa1540269",
+    "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+  },
+  "stages": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": true,
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_AX_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "NATURAL_VERIFIED": false
+  },
+  "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+  "source_session": "20261016",
+  "target_date": "20261020",
+  "manual": true,
+  "root_causes": [
+    "Strict SELECTED branch is absent from existing US mapping/factor engine; stricter selection policy was not implemented by this display repair.",
+    "Old lane header counted only original source rows, excluding industry candidate stock decisions.",
+    "Source paragraph incorrectly attached the full candidate stock count to direct relation rows; corrected to separate19 and701."
+  ],
+  "counts": {
+    "selected": 0,
+    "watch": 153,
+    "unassessed": 437,
+    "not_selected": 111,
+    "observation_only": 0
+  },
+  "source_counts": {
+    "records": 60,
+    "relations": 36,
+    "mapped_stocks": 19
+  },
+  "full_candidate_pool": 701,
+  "direction_pool": {
+    "total": 698,
+    "upside": 153,
+    "downside": 109,
+    "flat": 0,
+    "unassessed": 436
+  },
+  "direction_proxy_is_display_research": true,
+  "saved_input_product_snapshot_unchanged_by_display_fix": true,
+  "strict_rule_status": "NOT_ENABLED",
+  "pdf_handoff": {
+    "status": "DEPLOYED_LOADED_IDENTITY_VERIFIED",
+    "document_count_preserved": 2009,
+    "independent_owner_batch_preserved": true,
+    "historical_url_failures_recovered": false
+  },
+  "pending": {
+    "natural_slot": "2026-10-20T04:15:00+08:00",
+    "natural_check": "04:35 Asia/Shanghai",
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "historical_pit_verified": false,
+    "pixel_review": "CANNOT_CONFIRM_ZERO_WIDTH_SCREENSHOT_UNAVAILABLE",
+    "unassessed_monthly_stocks": 436
+  },
+  "supplement": {
+    "first_batch_stocks": 130,
+    "existing_relationships": 183,
+    "commit": "fbc1d573cda52cae3eda6e8f9c700765a0e7edf9",
+    "path": "chat_supplement",
+    "full_gap_closure": false
+  },
+  "evidence": {
+    "INDEPENDENT_REVIEW.json": "a00368fc17257e951b08b85673ba08e1b77a7f44f3aaeaa1106aab1cad9b25ff",
+    "INDEPENDENT_IDLE_GUARD_REVIEW.json": "ad22bca890f66e16746537697daf93122044161e65d36e8100b48e8e5367a5cd",
+    "INDEPENDENT_LIVE_ACCEPTANCE.json": "7eff4fe833f1ed40af685e7b5a201b6f163848f7e49765c5415956ebb0a770b9",
+    "INDEPENDENT_R3_REVIEW.json": "6482f687a03a6b54c741beddcee13e226506958ae924b3085568226f072e1b2a",
+    "INDEPENDENT_R3_LIVE.json": "bf5cde15091a0be8095f1262fc95f5d7c4b927cb46067041be6c8f91f0862d70",
+    "INDEPENDENT_R4_REVIEW.json": "e54f0eeedcf7770500572b8b892ee0f21cd61b4b43f3325d097c9b6155dc3a4b",
+    "INDEPENDENT_R4_LIVE.json": "c4a6099bdd8612b7b11dc18219c063b4f337655a3d7d29971ed985ef564936f5",
+    "ROOT_API_ACTIVATION_RECEIPT_R4.json": "fd9d7e458a431fc3e56073da9205001f897331e4c807c08388475a7cdb59be36",
+    "ROOT_API_READBACK_R4.json": "b4e08ad559abe4395c27ceb231daff61b4d467a6794dad755732d84c95162827",
+    "ROOT_UI_READBACK_R4.json": "b50c22405427c07a2b9a1a92b64f3939c8f72c04247b778c41293278702f54b9",
+    "ROOT_SCHEDULER_BETWEEN_TICK_ACTIVATION_RECEIPT.json": "fda19410eafdf109fdedd3b3e82a62dd4b8f6e48765d055d56563b0267382c40",
+    "ROOT_SCHEDULER_PDF_RESUME_R2.json": "2ca58108df33ffcc90775e93ea3e4eccc0715c5d54b03f8c97086db27600e344",
+    "ROOT_ACTUAL_RESULT_SUMMARY_R2.json": "a9646b666bcc0b07cf1c49f80e418d2ea9a3b030d579165757d838e149ea8798",
+    "ROOT_AUTOMATION_UPDATE.json": "8aaa2b081c5cdeda59c895d97d8e8f04b2d9976a225eb029d1d47121c7e8b09b",
+    "ROOT_R3_SOURCE_GITHUB_RECEIPT.json": "b115109f6acf5c919fee18e5fde31e04c8f16b7d53c0b2410d2c0fd1e8c7d984",
+    "ROOT_R4_SOURCE_GITHUB_RECEIPT.json": "b2c1c9031e4d579f8ed9a1b7cd32ae9f581c730639e14ab8e9e387d565222b05"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "status": "API_VERIFIED_EXISTING_RUN_DISPLAY_FIX",
+  "http_status": 200,
+  "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+  "response_sha256": "e223e23c838b4c0f0c13303fcee916f02098efdcafbbaeecb8cead26057dfe66",
+  "response_bytes": 15464611,
+  "recommendation_counts": {
+    "US_MAPPING": {
+      "selected": 0,
+      "watch": 153,
+      "unassessed": 437,
+      "not_selected": 111,
+      "observation_only": 0
+    },
+    "OVERSOLD": null
+  },
+  "candidate_stock_counts": {
+    "selected": 0,
+    "watch": 153,
+    "unassessed": 437,
+    "not_selected": 111,
+    "observation_only": 0
+  },
+  "original_record_counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 27,
+    "not_selected": 33,
+    "observation_only": 0
+  },
+  "recommendation_projection": {
+    "display_only": true,
+    "snapshot_hash_basis": "ORIGINAL_SAVED_SNAPSHOT",
+    "lane": "US_MAPPING",
+    "count_unit": "SAVED_LANE_RESEARCH_ROWS",
+    "row_count": 60,
+    "hk_relation_row_count": 36,
+    "distinct_hk_count": 701,
+    "factor_stock_count": 0,
+    "factor_path_count": 0,
+    "source_only_row_count": 24,
+    "catalog_relation_row_count": 1003,
+    "catalog_stock_count": 649,
+    "run_contract": {
+      "contract_sha256": "c0afe3c6cdee02c2a55b94a5d67425448f570c6b8a0a31926ce223accc8556ce",
+      "cutoff": "2026-10-19T00:54:03.260868+08:00",
+      "gaps": [],
+      "mode": "MANUAL",
+      "owners": {
+        "connect": {
+          "effective_from": null,
+          "effective_through": null,
+          "observed_symbol_count": 698,
+          "observed_symbols_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1",
+          "source_available_at": "2026-10-12T19:58:59.501065+08:00",
+          "source_date": "20261012",
+          "source_owner": "FUTU_HKCONNECT_PLATE_MEMBERSHIP",
+          "source_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+          "target_eligibility": "CANNOT_CONFIRM",
+          "target_gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"
+        },
+        "factor": {
+          "candidate_sha256": null,
+          "gap": "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND",
+          "review_sha256": null,
+          "status": "UNAVAILABLE"
+        },
+        "industry": {
+          "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+          "available_at": null,
+          "gap": null,
+          "status": "READY"
+        },
+        "quote": {
+          "artifact_relative": "research/peripherals/20261017/external_finance.json",
+          "artifact_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f",
+          "available_at": "2026-10-17T15:35:31Z",
+          "manifest_relative": "research/peripherals/manifest.json",
+          "manifest_sha256": "97b478fb8afe0f6ba87e69261c150f7d1f2ff3ff92601185e91b85998677111e",
+          "owner": "research_peripheral.external_finance",
+          "receipt_relative": "receipts/research/peripherals/20261017/external_finance.json",
+          "receipt_sha256": "2efaa324645d0d9de3226ca13e9709b0239d2f10947ba2b879fa0d17be4e999d"
+        },
+        "relations": {
+          "artifact_relative": "us_mapping_business_relations_20261014_v3.json",
+          "artifact_sha256": "0abcacbe028fd3c59fc7cec6091d7cf8111235e2118a02fca3e3c5fb1cdfa75d",
+          "available_at": null,
+          "owner": "US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY"
+        }
+      },
+      "schema_version": "v4.manager_workbench.us_mapping_daily_run_contract.v1",
+      "source_availability": {
+        "connect": "2026-10-12T19:58:59.501065+08:00",
+        "factor_review": null,
+        "industry_capture": "2026-10-14T11:03:29.919614+08:00",
+        "quote": "2026-10-17T15:35:31Z",
+        "relation": null
+      },
+      "state": "VERIFIED",
+      "target_hk_date": "20261020",
+      "universe": {
+        "contract_sha256": "da620de4b1223df678623dcc84958b9dc751c7a4c951e17186df45652d5d50cb",
+        "symbol_count": 48,
+        "symbols_sha256": "6414e19e8049e6e6423cce56408af4f1f74bbdd1b515790e4b6eb697e786c6f3",
+        "version": "US_MAPPING_UNIVERSE_CONTRACT_V3"
+      },
+      "us_source_session": "20261016"
+    },
+    "industry_candidate_row_count": 698,
+    "industry_candidate_stock_count": 153,
+    "industry_scope_count": 698,
+    "coverage": {
+      "scope_count": 48,
+      "observed_count": 48,
+      "assessed_count": 22,
+      "unassessed_count": 26,
+      "gaps": [
+        "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+        "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,PDD,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+        "RECORDS_UNASSESSED",
+        "HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL",
+        "HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL",
+        "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND",
+        "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND"
+      ]
+    },
+    "recommendation_count_unit": "DEDUPLICATED_HK_CANDIDATE_STOCKS",
+    "candidate_stock_count": 701,
+    "source_decision_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 27,
+      "not_selected": 33,
+      "observation_only": 0
+    },
+    "source_decision_count_unit": "SAVED_LANE_RESEARCH_ROWS"
+  },
+  "pagination": {
+    "total": 153,
+    "offset": 0,
+    "limit": 50
+  },
+  "saved_directions_and_decisions_unchanged": true,
+  "new_run_submitted": false,
+  "observed_at": "2026-10-18T17:46:23.493993+00:00"
+}

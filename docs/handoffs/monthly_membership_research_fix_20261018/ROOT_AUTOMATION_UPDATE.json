@@ -1,0 +1,15 @@
+{
+  "id": "issue45",
+  "kind": "heartbeat",
+  "name": "Issue45 美股收盘自然验收",
+  "status": "ACTIVE",
+  "rrule": "FREQ=WEEKLY;BYDAY=TU,WE,TH,FR,SA;BYHOUR=4;BYMINUTE=35;BYSECOND=0",
+  "target_thread_id": "01a13d41-7385-7df1-a417-2f8fe485e271",
+  "updated_at": 1792345520901,
+  "status_verification": "UPDATED_TOOL_AND_LOCAL_READBACK_MATCH",
+  "prompt_sha256": "0e125c516707219022fb3cec27697e04de9afae389917b4a0907d73ee37a3cc3",
+  "first_pending_natural_slot": "2026-10-20T04:15:00+08:00",
+  "check_time": "04:35 Asia/Shanghai",
+  "notification_behavior": "quiet unless meaningful anomaly/recovery/completion/action",
+  "verified_at": "2026-10-18T17:45:39.170834+00:00"
+}

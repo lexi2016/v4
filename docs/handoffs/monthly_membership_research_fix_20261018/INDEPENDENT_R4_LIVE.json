@@ -1,0 +1,44 @@
+{
+  "schema_version": "reviewer.r4.live_acceptance.v1",
+  "reviewed_at": "2026-10-18T17:48:11.481605+00:00",
+  "scope_file": "docs/handoffs/monthly_membership_research_fix_20261018/R4_COPY_SCOPE.json",
+  "candidate_review_file": "docs/handoffs/monthly_membership_research_fix_20261018/INDEPENDENT_R4_REVIEW.json",
+  "candidate_review_sha256": "e54f0eeedcf7770500572b8b892ee0f21cd61b4b43f3325d097c9b6155dc3a4b",
+  "status": "PASS_LIVE_LEAF_ACCEPTANCE",
+  "reviewed": "yes",
+  "tested": "not_rerun_by_scope",
+  "api_verified": "yes",
+  "ui_ax_verified": "yes",
+  "behavior_verified": "yes",
+  "acceptance": {
+    "R4_release_identity": "monthly-membership-api-20261018-r4 / PID 13471",
+    "existing_run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+    "raw_API_response_matches_R3_and_saved_inputs": true,
+    "source_relation_wording": "36 relation rows / 19 mapped HK stocks",
+    "full_candidate_pool": 701,
+    "strict_selected": 0,
+    "conditional_watch": 153,
+    "upside": 153,
+    "downside": 109,
+    "original_source_counts": "60 rows; selected 0, watch 0, unassessed 27, not selected 33, observation-only 0",
+    "new_run_submitted": false
+  },
+  "findings": [],
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "unverified": {
+    "pixel_review": "CANNOT_CONFIRM_ZERO_WIDTH_SCREENSHOT_UNAVAILABLE",
+    "natural_run": "CANNOT_CONFIRM_NOT_OBSERVED",
+    "formal_target_eligibility": "CANNOT_CONFIRM_EFFECTIVE_PERIOD_UNCONFIRMED"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "evidence_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r4/live_leaf_evidence.json"
+}

@@ -1,0 +1,188 @@
+{
+  "schema_version": "reviewer.r2.independent_live_acceptance.v1",
+  "reviewed_at": "2026-10-18T17:15:20.077823+00:00",
+  "status": "FAIL_P2_COUNT_CONTRACT_MISMATCH",
+  "scope": "Saved manual API/UI run and monthly proxy direction acceptance; no new HTTP requests, service action, tests or source writes.",
+  "run": {
+    "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+    "state": "PARTIAL",
+    "step": "DONE",
+    "failure_code": null,
+    "target_date": "20261020",
+    "phase": "MANUAL",
+    "us_session": "20261016",
+    "monthly_source_date": "20261012",
+    "monthly_source_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+    "monthly_codes_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1"
+  },
+  "readback": {
+    "receipt": {
+      "day": {
+        "state": "PARTIAL",
+        "data_keys": [
+          "snapshot",
+          "stocks",
+          "display_projection",
+          "us_mapping_summary",
+          "counts",
+          "versions",
+          "pagination"
+        ],
+        "counts": {
+          "selected": 0,
+          "watch": 153,
+          "unassessed": 548,
+          "observation_only": 0,
+          "not_selected": 0
+        },
+        "snapshot_run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+        "http_status": 200,
+        "response_sha256": "8dd6bc42485c587072ceb5aa3bc0007a9e8aacde5274cd287abd0550555f3458",
+        "response_bytes": 15310469,
+        "observed_at": "2026-10-18T16:56:38.193108+00:00"
+      },
+      "lane": {
+        "state": "PARTIAL",
+        "data_keys": [
+          "stocks",
+          "counts",
+          "lane_state",
+          "recommendation_projection",
+          "recommendation_counts",
+          "snapshot",
+          "versions",
+          "pagination",
+          "us_mapping_summary"
+        ],
+        "counts": {
+          "selected": 0,
+          "watch": 0,
+          "unassessed": 27,
+          "not_selected": 33,
+          "observation_only": 0
+        },
+        "snapshot_run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+        "http_status": 200,
+        "response_sha256": "466bee06806340c4ad7fc7dd066201c5b9774a753379ff20c070c3642400bc59",
+        "response_bytes": 15464351,
+        "observed_at": "2026-10-18T16:56:40.701259+00:00"
+      },
+      "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0"
+    },
+    "raw_sha256": {
+      "day": "8dd6bc42485c587072ceb5aa3bc0007a9e8aacde5274cd287abd0550555f3458",
+      "lane": "466bee06806340c4ad7fc7dd066201c5b9774a753379ff20c070c3642400bc59",
+      "job": "959d00408340a7b6065bb4e1ac5be59cb3ef3fdd6f331e6e2840e412b6d102b5"
+    }
+  },
+  "directional_behavior": {
+    "scope": 698,
+    "counts": {
+      "upside": 153,
+      "downside": 109,
+      "flat": 0,
+      "unassessed": 436
+    },
+    "proxy_path_counts": {
+      "upside": 164,
+      "downside": 109,
+      "flat": 0,
+      "unassessed": 1
+    },
+    "ui_ax_counts": {
+      "upside": 153,
+      "downside": 109
+    },
+    "dom_full_list_count": 698,
+    "generic_lane_pagination": {
+      "total": 153,
+      "offset": 0,
+      "limit": 50
+    },
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "historical_pit_verified": false,
+    "conservative_unassessed_path": {
+      "symbol": "HK.02555",
+      "return_pct": "0.1233899552273611267146694300",
+      "row_reason": "UNASSESSED_IDENTITY",
+      "path_direction": "UNASSESSED",
+      "path_status": "UNASSESSED"
+    },
+    "verified_proxy_path_counts": {
+      "upside": 164,
+      "downside": 109,
+      "flat": 0,
+      "unassessed": 1
+    }
+  },
+  "checks": {
+    "raw_hashes_match_readback": true,
+    "prior_gets_http_200": true,
+    "run_date_and_session": true,
+    "698_unique_membership_rows": true,
+    "full_direction_counts": true,
+    "eligibility_and_pit_boundary": true,
+    "proxy_signs_and_lineage": true,
+    "ax_symbols_match_api": true,
+    "full_list_unaffected_by_generic_50_page": true,
+    "out_of_market_absent": true,
+    "research_only_safety": true
+  },
+  "findings": [
+    {
+      "severity": "P2",
+      "recommendation_counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 27,
+        "not_selected": 33,
+        "observation_only": 0
+      },
+      "industry_candidate_stock_count": 153,
+      "direction_rows": 153,
+      "code_evidence": [
+        "apps/web/src/manager-workbench/Workbench.vue:212",
+        "v4/manager_workbench/display_read.py:209-222"
+      ],
+      "description": "US_MAPPING header count is 0 selected / 0 conditional watch while saved lane projection has 153 industry candidate stocks and UI displays 153 positive-direction rows. Day response lacks recommendation_counts. Strict SELECTED=0 alone is not proven defective: the mapping engine emits CONDITIONAL_WATCH only and monthly proxy output is display-only; target eligibility remains CANNOT_CONFIRM.",
+      "page_data_binding": {
+        "useWorkbench_loadDay_setter": "apps/web/src/manager-workbench/useWorkbench.ts:160,177",
+        "api_method_endpoint": "apps/web/src/manager-workbench/api.ts:100",
+        "actual_view_payload": "GET /days/20261020/recommendations/US_MAPPING",
+        "recommendation_counts_present_in_lane_payload": true,
+        "lane_counts": {
+          "selected": 0,
+          "watch": 0,
+          "unassessed": 27,
+          "not_selected": 33,
+          "observation_only": 0
+        }
+      },
+      "legacy_source_row_count": 60,
+      "legacy_source_row_decision_counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 27,
+        "not_selected": 33,
+        "observation_only": 0
+      },
+      "distinct_hk_count_in_saved_lane": 701,
+      "root_cause": "display_read.py:209-215 counts only legacy_rows after excluding HK_INDUSTRY_PROXY_FACTOR_CANDIDATE; display_read.py:216-222 builds the displayed stocks from the complete non-catalog lane rows. The lane response correctly reports its old 60 source-row breakdown (watch=0), while the full view shows 153 industry candidates.",
+      "correction_basis": "useWorkbench.loadDay calls api.getRecommendations and stores that lane response in vm.day. The standalone /days response field absence is irrelevant to this page and is not the cause."
+    }
+  ],
+  "limitations": {
+    "screenshot": "CANNOT_CONFIRM: thread screenshot unavailable at zero width; AX/DOM only.",
+    "natural_run": "CANNOT_CONFIRM: manual run is not natural-slot evidence.",
+    "membership_target_pit": "CANNOT_CONFIRM: target effective interval unknown; PIT false.",
+    "strict_selected_zero": "Not itself a proven defect; engine emits CONDITIONAL_WATCH only. Count mismatch is zero watch alongside 153 visible saved rows."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "corrected_at": "2026-10-18T17:31:56.618707+00:00",
+  "correction_basis": "Root-cause explanation corrected after tracing the actual vm.day binding; status remains the historical R2 P2 count-contract FAIL, now precisely attributed to legacy-row-only counting."
+}

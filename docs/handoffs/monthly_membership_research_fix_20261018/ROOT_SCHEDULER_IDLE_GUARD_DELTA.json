@@ -1,0 +1,15 @@
+{
+  "goal": "Accept daemon confirmed normal idle NO_RETRYABLE_TASKS with same fresh completion, 8s unchanged index, no children or lock, minute and release guards.",
+  "writer": "root integration owner",
+  "reviewer": "/root/monthly_direction_review",
+  "allowed_paths": [
+    "docs/handoffs/monthly_membership_research_fix_20261018/local_only/activate_scheduler.py",
+    "docs/handoffs/monthly_membership_research_fix_20261018/reproducibility/activate_scheduler.py"
+  ],
+  "before_sha256": "f6a4eba660600d1a7f8fc3aecae5971804b8d47c00edeafa04b48d52d4ee517b",
+  "after_sha256": "1f7372e1daae44d5ac43d1cbe4cba8df32a66dc7922f51bf8d73b1b0291f56b8",
+  "actual_base_daemon_evidence": "PdfQueueDrainHook._run lines 748-757: after _run_child reaps child, emitted NO_RETRYABLE_TASKS waits idle_seconds default 60.0.",
+  "business_code_changed": false,
+  "pass_signal": "Independent integration guard PASS before execution",
+  "created_at": "2026-10-18T16:58:42.342680+00:00"
+}

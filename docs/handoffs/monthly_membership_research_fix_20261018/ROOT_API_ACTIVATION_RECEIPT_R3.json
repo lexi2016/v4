@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-10-18T17:34:22.966688+00:00",
+  "status": "DEPLOYED_API_HEALTH_IDENTITY_VERIFIED",
+  "independent_review_sha256": "6482f687a03a6b54c741beddcee13e226506958ae924b3085568226f072e1b2a",
+  "selection_submitted": false,
+  "pre_identity": {
+    "release_id": "monthly-membership-api-20261018-r2",
+    "pid": 96838,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2/app"
+  },
+  "guard": {
+    "schema": "v4.api_release_announcement_cutover_guard.v1",
+    "status": "PASS",
+    "active_attempts": [],
+    "running_queue_items": [],
+    "all_target_dates_checked": true
+  },
+  "old_process_drain": {
+    "seconds": 0.32,
+    "old_pid_exited": true,
+    "port8873_empty": true
+  },
+  "health": {
+    "/healthz": 200,
+    "/readyz": 200
+  },
+  "post_identity": {
+    "release_id": "monthly-membership-api-20261018-r3",
+    "pid": 10304,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/app",
+    "plist_sha256": "424e274e0d8675e6990c3ecd8bc30f75cadc03979fb4317dff914949b5f21451",
+    "manifest_sha256": "7ad0c2fe45fc4edb620b15de72c5012ba8f6b7dcd2f22f4c3e462827ec54f608"
+  },
+  "integrity_postcheck": "PASS",
+  "config_preserved": true,
+  "rollback_performed": false,
+  "finished_at": "2026-10-18T17:34:26.236204+00:00",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

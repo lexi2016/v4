@@ -1,0 +1,48 @@
+{
+  "schema_version": "reviewer.r4.independent_review.v1",
+  "reviewed_at": "2026-10-18T17:45:47.279074+00:00",
+  "scope_file": "docs/handoffs/monthly_membership_research_fix_20261018/R4_COPY_SCOPE.json",
+  "scope_sha256": "4faf8a2a660dd731a92ded28d1494d5f9cbdfc042c78a3cb36b788d479afc136",
+  "writer_receipt_sha256": "655663da4a0627a2665ae8493f498627a3f02a93a55b350452d18f55823c7b25",
+  "status": "PASS_CANDIDATE_REVIEW",
+  "reviewed": "yes",
+  "tested": "yes",
+  "behavior_verified": "yes_for_candidate_overlay_copy_and_0_153_counts",
+  "candidate_state": {
+    "release_id": "monthly-membership-api-20261018-r4",
+    "manifest_sha256": "20714a2e697dda2bca7158a27d19e0938ae4d61c17024cdcbace838590051ef4",
+    "status": "INACTIVE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+    "activated": false,
+    "live_r4_api_ui": "CANNOT_CONFIRM"
+  },
+  "findings": [],
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": [],
+    "candidate_scope": "PASS; live R4 leaf awaits root deployment/readback."
+  },
+  "acceptance": {
+    "displayed_meaning": "36 HK relation rows involve 19 HK stocks; full deduplicated candidate pool is 701 stocks.",
+    "saved_counts": {
+      "strict_selected": 0,
+      "conditional_watch": 153,
+      "unassessed": 437,
+      "not_selected": 111,
+      "source_rows": 60,
+      "hk_relation_rows": 36,
+      "mapped_hk_stocks": 19,
+      "full_candidate_pool": 701,
+      "directional_upside": 153,
+      "directional_downside": 109
+    },
+    "focused_ui_test": "4 passed",
+    "candidate_manifest": "PASS; exact four runtime file deltas, 1246 non-delta entries preserved",
+    "engine_count_data_direction_logic_changed": false
+  },
+  "unverified": {
+    "live_r4_api_ui": "CANNOT_CONFIRM: not activated; root will provide leaf readback.",
+    "natural_run": "CANNOT_CONFIRM: not part of this R4 copy repair."
+  },
+  "evidence_path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r4/review_evidence.json"
+}

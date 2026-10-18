@@ -1,0 +1,79 @@
+{
+  "started_at": "2026-10-18T17:14:08.617833+00:00",
+  "status": "DEPLOYED_LOADED_IDENTITY_VERIFIED",
+  "controlled_label": "com.lexi.v35.scheduler",
+  "selection_submitted_by_root": false,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "INDEPENDENT_REVIEW.json_sha256": "a00368fc17257e951b08b85673ba08e1b77a7f44f3aaeaa1106aab1cad9b25ff",
+  "flash_guard": {
+    "schema": "v4.api_release_announcement_cutover_guard.v1",
+    "status": "PASS",
+    "active_attempts": [],
+    "running_queue_items": [],
+    "all_target_dates_checked": true
+  },
+  "fresh_idle_checks": {
+    "active_manager_attempts": 0,
+    "active_oversold_cursors": 0,
+    "checked_dispatch_claims": 263,
+    "closed_cycle_minute": "2026-10-19T01:15"
+  },
+  "pdf_quiet_gate": {
+    "observed_at": "2026-10-18T17:15:07.709836+00:00",
+    "fresh_completed_tick": {
+      "status": "NO_RETRYABLE_TASKS",
+      "processed_document_count": 0,
+      "pending_task_count": 0,
+      "retry_after_seconds": null
+    },
+    "quiet_seconds": 8,
+    "index_sha256": "55d850e92f75608ab8670bd653240f77d12b9bce57bd1f07699b830621e84e0a",
+    "index_document_count": 2009,
+    "owned_children": 0,
+    "open_pdf_lock_handles": 0,
+    "elapsed_since_fresh_tick": 9.542
+  },
+  "pre_identity": {
+    "pid": 57302,
+    "release_id": "us-19-evidence-scheduler-20261018-r2",
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app"
+  },
+  "old_pid_drain": {
+    "old_pid_exited": true,
+    "seconds": 0.611
+  },
+  "graceful_stop_observed": true,
+  "queue_unchanged_before_restart": true,
+  "post_identity": {
+    "pid": 5348,
+    "release_id": "monthly-membership-scheduler-20261018-r2",
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-scheduler-20261018-r2/app",
+    "plist_sha256": "afa5cd7d8c34f7eddc60560be6e431734386d2063040ee6d7e28d164af010bf7",
+    "manifest_sha256": "8335f566cb329fcf534606f4ae638368cc894faa35b72f8666c2e7daa1540269",
+    "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+  },
+  "daemon_ready": {
+    "status": "DAEMON_READY",
+    "release_id": "monthly-membership-scheduler-20261018-r2",
+    "pid": 5348,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "pdf_queue_drain": {
+      "execution_owner": "DAEMON_BACKGROUND_THREAD",
+      "latest_tick_status": "NOT_OBSERVED",
+      "queue_source": "OWNED_PDF_INGESTION_INDEX",
+      "status": "ACTIVE"
+    }
+  },
+  "pdf_resume_log_offset": 6387856,
+  "queue_document_ids_preserved": true,
+  "rollback_performed": false,
+  "API_or_digest_service_actions": false,
+  "finished_at": "2026-10-18T17:15:10.155084+00:00"
+}
