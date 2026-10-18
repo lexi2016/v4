@@ -38,14 +38,15 @@ ADMIN_MODELS_PATH = "/admin/api/models"
 ADMIN_ACTIVITY_PATH = "/admin/api/activity"
 ADMIN_SETTINGS_PATH = f"/admin/api/models/{MODEL_ID}/settings"
 ADMIN_LOAD_PATH = f"/admin/api/models/{MODEL_ID}/load"
-PHASE_A_SCOPE_SHA256 = "284355b83e48c82b33f54d87fa845ba8bc18a9ff2b4b17b36d3b24154de0af55"
-PHASE_A_SCOPE_NAME = "A_ACTIVITY_SHAPE_REPAIR_ONLY"
+PHASE_A_SCOPE_SHA256 = "595751b4a4e36d9665336f443d855559014c68d5736b78ce82b44d7bb999e5a7"
+PHASE_A_SCOPE_NAME = "A_UNFINISHED_AND_ACTIVITY_CORRECTION_ONLY"
 MANIFEST_SHA256 = "828e26a84d5464b59d48dc91fbf12f92fc4f79b3c6f6b88a48c4cbe666ce0e88"
 BASELINE_MODEL_SETTINGS_SHA256 = "7a98bb5d2b6687b808d72b8c7bb385a23c714e9753a067fab81407c4e9245b99"
 BASELINE_RUNTIME_SETTINGS_SHA256 = "e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99"
 BASELINE_NON_TARGET_SETTINGS_SHA256 = "150a8588ee3dec5b65c6f1e3a9b2b173bf2856de6f165327de8b91694c995116"
 PHASE_B_AUTH_SCHEMA = "v4.qwen_mac_memory_tuning.phase_b_authorization.v1"
 SAMPLE_ORDER = ("baseline_short_success", "baseline_table_success", "memory_rejection")
+MEMORY_REJECTION_ORDER = ("memory_rejection",)
 ALLOWED_FRACTIONS = (1.0, 0.9375, 0.875)
 MIN_AVAILABLE_BYTES = 8_589_934_592
 MAX_SEQUENCE_SWAP_GROWTH_BYTES = 536_870_912
@@ -569,7 +570,14 @@ class AdminAccess:
             self.client.close()
 
 
-def _phase_b_auth(scope: Mapping[str, Any], *, action: str, fraction: float, from_fraction: float | None = None) -> dict[str, Any]:
+def _phase_b_auth(
+    scope: Mapping[str, Any],
+    *,
+    action: str,
+    fraction: float,
+    from_fraction: float | None = None,
+    sample_order: tuple[str, ...] | None = None,
+) -> dict[str, Any]:
     if scope.get("phase") != "B_EXECUTE_AUTHORIZED":
         raise TrialError("ROOT_PHASE_B_SIGNAL_REQUIRED")
     auth = scope.get("phase_b_authorization")
@@ -586,8 +594,12 @@ def _phase_b_auth(scope: Mapping[str, Any], *, action: str, fraction: float, fro
         raise TrialError("PHASE_B_ACTION_NOT_AUTHORIZED")
     if fraction not in auth.get("authorized_fraction_values", []):
         raise TrialError("PHASE_B_FRACTION_NOT_AUTHORIZED")
-    if action == "run_serial_sequence" and auth.get("authorized_sample_order") != list(SAMPLE_ORDER):
-        raise TrialError("PHASE_B_SAMPLE_ORDER_NOT_AUTHORIZED")
+    if action == "run_serial_sequence":
+        expected_order = SAMPLE_ORDER if sample_order is None else sample_order
+        if expected_order not in (SAMPLE_ORDER, MEMORY_REJECTION_ORDER):
+            raise TrialError("PHASE_B_SAMPLE_ORDER_INVALID")
+        if auth.get("authorized_sample_order") != list(expected_order):
+            raise TrialError("PHASE_B_SAMPLE_ORDER_NOT_AUTHORIZED")
     if from_fraction is not None:
         transitions = auth.get("authorized_fraction_transitions", [])
         if not any(
@@ -821,12 +833,14 @@ def _loopback_transport(expected_input: Mapping[str, Any], *, delegate: Any, obs
     return GuardedLoopbackTransport()
 
 
-def _fake_sequence() -> dict[str, Any]:
+def _fake_sequence(sample_order: tuple[str, ...] = SAMPLE_ORDER) -> dict[str, Any]:
+    if sample_order not in (SAMPLE_ORDER, MEMORY_REJECTION_ORDER):
+        raise TrialError("FAKE_SAMPLE_ORDER_INVALID")
     scope, scope_sha = _current_scope(require_phase_a_hash=True)
     del scope
     manifest, indexed = _candidate_index()
     local_model = _load_local_model()
-    schema = indexed[SAMPLE_ORDER[0]]["request_input"]["structured_outputs"]["json"]
+    schema = indexed[sample_order[0]]["request_input"]["structured_outputs"]["json"]
     baseline_binding, fingerprint = _binding_for(local_model, schema)
     if fingerprint[1] != 1.0:
         raise TrialError("FAKE_SEQUENCE_REQUIRES_BASELINE_PROFILE")
@@ -838,7 +852,7 @@ def _fake_sequence() -> dict[str, Any]:
     run_dir.mkdir(mode=0o700, parents=True, exist_ok=False)
     sample_results = []
     fake_objects = 0
-    for sample_id in SAMPLE_ORDER:
+    for sample_id in sample_order:
         entry = indexed[sample_id]
         request_input = entry["request_input"]
         schema = request_input["structured_outputs"]["json"]
@@ -916,7 +930,7 @@ def _fake_sequence() -> dict[str, Any]:
         "profile_fraction": fingerprint[1],
         "model_settings_sha256": fingerprint[0],
         "runtime_settings_sha256": baseline_binding["runtime_settings_sha256"],
-        "sample_order": list(SAMPLE_ORDER),
+        "sample_order": list(sample_order),
         "sample_count": fake_objects,
         "sample_results": sample_results,
         "real_model_calls": 0,
@@ -968,10 +982,10 @@ class LiveTelemetrySampler:
             if active != 0 or waiting != 0:
                 self.activity_failure_reason = self.activity_failure_reason or "NONZERO_ACTIVITY_OUTSIDE_REQUEST_WINDOW"
         elif phase == "request_in_flight":
-            if waiting > 0:
-                self.activity_failure_reason = self.activity_failure_reason or "WAITING_REQUEST_DURING_SERIAL_CANARY"
-            elif active > 1:
-                self.activity_failure_reason = self.activity_failure_reason or "MULTIPLE_ACTIVE_REQUESTS_DURING_SERIAL_CANARY"
+            if type(active) is not int or active < 0 or type(waiting) is not int or waiting < 0:
+                self.activity_cannot_reason = self.activity_cannot_reason or "ACTIVITY_COUNTS_INVALID"
+            elif active + waiting > 1:
+                self.activity_failure_reason = self.activity_failure_reason or "MULTIPLE_REQUESTS_DURING_SERIAL_CANARY"
 
     def sample_once(
         self,
@@ -1067,6 +1081,7 @@ def _activity_integrity_summary(
         elif row.get("active_requests") != 0 or row.get("waiting_requests") != 0:
             fail_reasons.append("NONZERO_ACTIVITY_OUTSIDE_REQUEST_WINDOW")
     observed_unassigned_active_samples: list[str] = []
+    observed_unassigned_single_request_samples: list[str] = []
     for sample_id in sample_ids:
         inflight_rows = in_flight_by_sample.get(sample_id, [])
         if not inflight_rows:
@@ -1078,11 +1093,14 @@ def _activity_integrity_summary(
                 continue
             active = row.get("active_requests")
             waiting = row.get("waiting_requests")
-            if waiting > 0:
-                fail_reasons.append(f"WAITING_REQUEST_DURING_SERIAL_CANARY:{sample_id}")
-            if active > 1:
-                fail_reasons.append(f"MULTIPLE_ACTIVE_REQUESTS_DURING_SERIAL_CANARY:{sample_id}")
-            elif active == 1:
+            if type(active) is not int or active < 0 or type(waiting) is not int or waiting < 0:
+                cannot_reasons.append(f"IN_FLIGHT_ACTIVITY_COUNTS_INVALID:{sample_id}")
+                continue
+            if active + waiting > 1:
+                fail_reasons.append(f"MULTIPLE_REQUESTS_DURING_SERIAL_CANARY:{sample_id}")
+            elif active + waiting == 1:
+                observed_unassigned_single_request_samples.append(sample_id)
+            if active == 1:
                 observed_unassigned_active_samples.append(sample_id)
     status = "FAIL" if fail_reasons else "CANNOT_CONFIRM" if cannot_reasons else "PASS_OBSERVED_SERIAL_COUNTS"
     return {
@@ -1091,6 +1109,7 @@ def _activity_integrity_summary(
         "serial_activity_cannot_confirm_reasons": sorted(set(cannot_reasons)),
         "in_flight_activity_samples_by_request": {key: len(value) for key, value in sorted(in_flight_by_sample.items())},
         "in_flight_active_one_observed_samples_unassigned": sorted(set(observed_unassigned_active_samples)),
+        "in_flight_single_request_observed_samples_unassigned": sorted(set(observed_unassigned_single_request_samples)),
         "request_ownership": "CANNOT_CONFIRM_AGGREGATE_COUNTS_DO_NOT_IDENTIFY_REQUEST",
         "activity_counts_semantics": "aggregate process-wide active/waiting counts; no request ownership or exclusive resource attribution claim",
         "activity_sampling_interval_seconds": 1.0,
@@ -1212,12 +1231,14 @@ def _idle_activity_status(row: Mapping[str, Any]) -> str:
     return "PASS" if row.get("active_requests") == 0 and row.get("waiting_requests") == 0 else "FAIL"
 
 
-def _run_sequence(profile: float) -> dict[str, Any]:
+def _run_sequence(profile: float, sample_order: tuple[str, ...] = SAMPLE_ORDER) -> dict[str, Any]:
+    if sample_order not in (SAMPLE_ORDER, MEMORY_REJECTION_ORDER):
+        raise TrialError("PHASE_B_SAMPLE_ORDER_INVALID")
     scope, scope_sha = _current_scope()
-    auth = _phase_b_auth(scope, action="run_serial_sequence", fraction=profile)
+    auth = _phase_b_auth(scope, action="run_serial_sequence", fraction=profile, sample_order=sample_order)
     manifest, indexed = _candidate_index()
     local_model = _load_local_model()
-    schema = indexed[SAMPLE_ORDER[0]]["request_input"]["structured_outputs"]["json"]
+    schema = indexed[sample_order[0]]["request_input"]["structured_outputs"]["json"]
     binding, fingerprint = _binding_for(local_model, schema)
     if fingerprint[1] != profile:
         raise TrialError("SAVED_PROFILE_DOES_NOT_MATCH_AUTHORIZED_RUN_PROFILE")
@@ -1260,7 +1281,7 @@ def _run_sequence(profile: float) -> dict[str, Any]:
                 stopped_reason = "MODEL_NOT_IDLE_AT_SEQUENCE_START"
             elif start_idle_status == "CANNOT_CONFIRM":
                 stopped_reason = "SEQUENCE_START_ACTIVITY_UNAVAILABLE"
-            for sample_id in SAMPLE_ORDER:
+            for sample_id in sample_order:
                 if stopped_reason is not None:
                     break
                 before_activity = sampler.sample_once(context=(sample_id, "between_samples"))
@@ -1376,11 +1397,11 @@ def _run_sequence(profile: float) -> dict[str, Any]:
                     stopped_reason = "ACTIVITY_COUNTS_UNAVAILABLE_AFTER_SAMPLE"
                 summary_now = _resource_summary(sample_results, run_dir)
                 if summary_now["serial_activity_integrity_status"] == "FAIL":
-                    stopped_reason = "SERIAL_ACTIVITY_CONTAMINATION_OBSERVED"
+                    stopped_reason = "SERIAL_ACTIVITY_INTEGRITY_FAIL"
                 elif summary_now["serial_activity_integrity_status"] == "CANNOT_CONFIRM":
                     stopped_reason = "SERIAL_ACTIVITY_COVERAGE_UNCONFIRMED"
                 if sampler.activity_failure_reason is not None:
-                    stopped_reason = "SERIAL_ACTIVITY_CONTAMINATION_OBSERVED"
+                    stopped_reason = "SERIAL_ACTIVITY_INTEGRITY_FAIL"
                 if stopped_reason is not None:
                     break
                 if sample_status == "MEMORY_REJECTED":
@@ -1401,7 +1422,7 @@ def _run_sequence(profile: float) -> dict[str, Any]:
             if sampler is not None:
                 sampler.stop()
             summary = _resource_summary(sample_results, run_dir, require_sequence_end=True)
-            all_finish = len(sample_results) == len(SAMPLE_ORDER) and all(r["status"] == "SUCCEEDED" for r in sample_results)
+            all_finish = len(sample_results) == len(sample_order) and all(r["status"] == "SUCCEEDED" for r in sample_results)
             requests_status = "PASS" if all_finish else "FAIL" if any(r["status"] in {"FAILED", "MEMORY_REJECTED"} for r in sample_results) else "CANNOT_CONFIRM"
             latency = _latency_comparison(profile, sample_results, baseline_receipt)
             acceptance = {
@@ -1444,14 +1465,14 @@ def _run_sequence(profile: float) -> dict[str, Any]:
                 "model_settings_sha256": fingerprint[0],
                 "non_target_settings_sha256": fingerprint[2],
                 "runtime_settings_sha256": binding["runtime_settings_sha256"],
-                "sample_order": list(SAMPLE_ORDER),
+                "sample_order": list(sample_order),
                 "admin_models_route": ADMIN_MODELS_PATH,
                 "admin_activity_route": ADMIN_ACTIVITY_PATH,
                 "admin_auth_source": admin.auth_source,
                 "model_state_before_sequence": model_state,
                 "cold_load_wall_seconds_separate": cold_load_wall,
                 "samples_attempted": len(sample_results),
-                "samples_required": len(SAMPLE_ORDER),
+                "samples_required": len(sample_order),
                 "stopped_reason": stopped_reason,
                 "sample_results": sample_results,
                 "telemetry": summary,
@@ -1482,6 +1503,7 @@ def main() -> int:
     mode.add_argument("--fake-sequence", action="store_true", help="run all frozen requests through MockTransport only")
     mode.add_argument("--set-fraction", type=float, choices=ALLOWED_FRACTIONS, help="Phase-B-only one-field settings transition")
     mode.add_argument("--run-sequence", type=float, choices=ALLOWED_FRACTIONS, help="Phase-B-only serial real inference sequence")
+    mode.add_argument("--run-memory-rejection", action="store_true", help="Phase-B-only single remaining frozen memory-rejection request")
     parser.add_argument("--expect-current", type=float, choices=ALLOWED_FRACTIONS, help="required current fraction for --set-fraction")
     args = parser.parse_args()
     if args.set_fraction is not None and args.expect_current is None:
@@ -1495,6 +1517,8 @@ def main() -> int:
             result = _fake_sequence()
         elif args.set_fraction is not None:
             result = _set_fraction(args.set_fraction, args.expect_current)
+        elif args.run_memory_rejection:
+            result = _run_sequence(1.0, sample_order=MEMORY_REJECTION_ORDER)
         else:
             scope, _ = _current_scope()
             _phase_b_auth(scope, action="run_serial_sequence", fraction=args.run_sequence)

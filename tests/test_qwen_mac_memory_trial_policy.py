@@ -115,12 +115,34 @@ class ActivityIntegrityTests(unittest.TestCase):
         self.assertEqual(result["serial_activity_integrity_status"], "PASS_OBSERVED_SERIAL_COUNTS")
         self.assertEqual(result["request_ownership"], "CANNOT_CONFIRM_AGGREGATE_COUNTS_DO_NOT_IDENTIFY_REQUEST")
         self.assertEqual(result["in_flight_active_one_observed_samples_unassigned"], ["short"])
+        self.assertEqual(result["in_flight_single_request_observed_samples_unassigned"], ["short"])
 
-    def test_waiting_or_multiple_active_requests_fail(self) -> None:
+    def test_single_waiting_or_active_count_is_unassigned_but_overlap_fails(self) -> None:
         waiting = self.rows + [activity("request_in_flight", "table", waiting=1)]
-        multiple = self.rows + [activity("request_in_flight", "table", active=2)]
-        self.assertEqual(DRIVER._activity_integrity_summary(waiting, ["short", "table"])["serial_activity_integrity_status"], "FAIL")
+        waiting_result = DRIVER._activity_integrity_summary(waiting, ["short", "table"])
+        self.assertEqual(waiting_result["serial_activity_integrity_status"], "PASS_OBSERVED_SERIAL_COUNTS")
+        self.assertEqual(waiting_result["in_flight_single_request_observed_samples_unassigned"], ["short", "table"])
+        self.assertEqual(waiting_result["request_ownership"], "CANNOT_CONFIRM_AGGREGATE_COUNTS_DO_NOT_IDENTIFY_REQUEST")
+        multiple = self.rows + [activity("request_in_flight", "table", active=1, waiting=1)]
         self.assertEqual(DRIVER._activity_integrity_summary(multiple, ["short", "table"])["serial_activity_integrity_status"], "FAIL")
+
+    def test_unknown_or_invalid_in_flight_counts_cannot_confirm(self) -> None:
+        unknown = [dict(row) for row in self.rows]
+        unknown[2]["activity_counts_status"] = "CANNOT_CONFIRM"
+        invalid = [dict(row) for row in self.rows]
+        invalid[2]["active_requests"] = True
+        self.assertEqual(DRIVER._activity_integrity_summary(unknown, ["short", "table"])["serial_activity_integrity_status"], "CANNOT_CONFIRM")
+        self.assertEqual(DRIVER._activity_integrity_summary(invalid, ["short", "table"])["serial_activity_integrity_status"], "CANNOT_CONFIRM")
+
+    def test_sampler_accepts_one_aggregate_in_flight_request_without_ownership_claim(self) -> None:
+        sampler = DRIVER.LiveTelemetrySampler(client=None, output_path=Path("unused"), process_identity=None)
+        waiting_row = activity("request_in_flight", "memory", active=0, waiting=1)
+        sampler._record_activity_integrity(waiting_row)
+        self.assertIsNone(sampler.activity_failure_reason)
+        self.assertIsNone(sampler.activity_cannot_reason)
+        overlap_row = activity("request_in_flight", "memory", active=1, waiting=1)
+        sampler._record_activity_integrity(overlap_row)
+        self.assertEqual(sampler.activity_failure_reason, "MULTIPLE_REQUESTS_DURING_SERIAL_CANARY")
 
     def test_nonzero_boundary_activity_fails(self) -> None:
         polluted = self.rows + [activity("between_samples", "table", active=1)]
@@ -131,6 +153,46 @@ class ActivityIntegrityTests(unittest.TestCase):
         missing_end = DRIVER._activity_integrity_summary(self.rows[:-1], ["short", "table"])
         self.assertEqual(missing_request["serial_activity_integrity_status"], "CANNOT_CONFIRM")
         self.assertEqual(missing_end["serial_activity_integrity_status"], "CANNOT_CONFIRM")
+
+
+class SampleOrderAuthorizationTests(unittest.TestCase):
+    def _scope(self, authorized_order: tuple[str, ...]) -> dict[str, object]:
+        return {
+            "phase": "B_EXECUTE_AUTHORIZED",
+            "phase_b_authorization": {
+                "schema": DRIVER.PHASE_B_AUTH_SCHEMA,
+                "status": "AUTHORIZED",
+                "phase_a_scope_sha256": DRIVER.PHASE_A_SCOPE_SHA256,
+                "reviewer_receipt_sha256": "0" * 64,
+                "authorization_id": "unit-test-authorization",
+                "authorized_actions": ["run_serial_sequence"],
+                "authorized_fraction_values": [1.0],
+                "authorized_sample_order": list(authorized_order),
+                "stage": "B1_BASELINE",
+            },
+        }
+
+    def test_default_order_stays_all_three_and_memory_only_requires_exact_order(self) -> None:
+        self.assertEqual(DRIVER.SAMPLE_ORDER, ("baseline_short_success", "baseline_table_success", "memory_rejection"))
+        self.assertEqual(DRIVER.MEMORY_REJECTION_ORDER, ("memory_rejection",))
+        DRIVER._phase_b_auth(self._scope(DRIVER.SAMPLE_ORDER), action="run_serial_sequence", fraction=1.0)
+        DRIVER._phase_b_auth(
+            self._scope(DRIVER.MEMORY_REJECTION_ORDER),
+            action="run_serial_sequence",
+            fraction=1.0,
+            sample_order=DRIVER.MEMORY_REJECTION_ORDER,
+        )
+        with self.assertRaises(DRIVER.TrialError) as caught:
+            DRIVER._phase_b_auth(
+                self._scope(DRIVER.SAMPLE_ORDER),
+                action="run_serial_sequence",
+                fraction=1.0,
+                sample_order=DRIVER.MEMORY_REJECTION_ORDER,
+            )
+        self.assertEqual(str(caught.exception), "PHASE_B_SAMPLE_ORDER_NOT_AUTHORIZED")
+        with self.assertRaises(DRIVER.TrialError) as caught:
+            DRIVER._run_sequence(1.0, sample_order=("baseline_short_success", "memory_rejection"))
+        self.assertEqual(str(caught.exception), "PHASE_B_SAMPLE_ORDER_INVALID")
 
 
 class ReloadPolicyTests(unittest.TestCase):
