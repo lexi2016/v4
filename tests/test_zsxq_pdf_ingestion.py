@@ -1521,7 +1521,14 @@ def test_recovery_cache_reuses_verified_complete_pages_without_ocr_or_download(t
     )
     engine_identity = completed["engine_identity"]
     artifact = document["engine_runs"][engine_identity]
-    artifact.update(status="FAILED", attempts=2, last_error_code="PRIOR_FAILURE", failure_class="TRANSIENT")
+    artifact.update(
+        status="FAILED",
+        attempts=2,
+        last_error_code="PRIOR_FAILURE",
+        failure_class="TRANSIENT",
+        processed_page_count=None,
+        full_page_coverage=False,
+    )
     store._write(STATE_RELATIVE, index)
     calls = {"metadata": 0, "url": 0, "download": 0, "ocr": 0}
     result = recover_one_pdf(**_recovery_args(root, files, document_key, "auth-cache-20261016", calls))
@@ -1530,7 +1537,13 @@ def test_recovery_cache_reuses_verified_complete_pages_without_ocr_or_download(t
     assert result["reused"] is True
     assert calls["metadata"] == 1
     assert calls["url"] == calls["download"] == calls["ocr"] == 0
-    assert NativeDataStore(root)._read(STATE_RELATIVE)["documents"][document_key]["engine_runs"][engine_identity]["attempts"] == 2
+    recovered_artifact = NativeDataStore(root)._read(STATE_RELATIVE)["documents"][document_key]["engine_runs"][engine_identity]
+    assert recovered_artifact["attempts"] == 2
+    assert recovered_artifact["page_count"] == recovered_artifact["processed_page_count"] == 2
+    assert recovered_artifact["full_page_coverage"] is True
+    assert recovered_artifact["page_statuses"] == ["OCR_OK", "OCR_OK"]
+    receipt = NativeDataStore(root)._read(recovered_artifact["receipt_path"])
+    assert receipt["full_page_coverage"] is True
 
 
 def test_recovery_concurrent_same_authorization_has_one_processing_winner(tmp_path):

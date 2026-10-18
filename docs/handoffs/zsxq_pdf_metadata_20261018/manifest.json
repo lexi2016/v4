@@ -1,0 +1,87 @@
+{
+  "schema_version": "v4.pdf_cache_metadata_acceptance.v1",
+  "scope": "Verified cache-reuse metadata, exact-five correction, scheduler-only deployment; historical backlog operations are separately recorded locally.",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "local_repository_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "sync_baseline_commit": "6c32c0e18f7d7ae83fef8257dc35087695b35018",
+  "sync_branch": "codex/zsxq-pdf-metadata-20261018-r1",
+  "source_sha256": {
+    "infrastructure/zsxq_pdf_ingestion.py": {
+      "before": "5dedf912a9cc8b41646a5cfb0133ded4dbaa0168aae74157e75e4498cd1fd915",
+      "after": "3ba355aa3640a9f387218a4bad47c5e8526d4e79478fc0d143b1dffebc730c2a"
+    },
+    "tests/test_zsxq_pdf_ingestion.py": {
+      "before": "27fb218b81427ef5904213d7c1951dd9004bf00693537b4f8d7d6154778eead9",
+      "after": "e1517f99faa3fc74265503872850e895d81f421ff77202cc5e8babc8f495e27e"
+    }
+  },
+  "independent_reviews": {
+    "candidate": {
+      "verdict": "PASS",
+      "sha256": "ac8e7d4be1c2d195b2b12a9ebbb8b674386dbcfc2b118a0993988b5ddde0ce1b"
+    },
+    "phase-c1": {
+      "verdict": "PASS",
+      "sha256": "4a743df995e455f1727e1a6104cba04d95c914d2737f48c0ad6abc0891221110"
+    },
+    "phase-c2": {
+      "verdict": "PASS",
+      "sha256": "3c071b47533fdc3592bf4a7c2590c7e5087490371a03c87911a3c20995e70886"
+    }
+  },
+  "tests": {
+    "writer": "Expected red before fix; focused green; ingestion module 42 passed",
+    "reviewer": "3 focused tests passed; corrupt and incomplete cache exercises fail closed without URL/download/OCR",
+    "command": ".venv/bin/python3 -m pytest -q -p no:cacheprovider tests/test_zsxq_pdf_ingestion.py",
+    "environment": "Canonical .venv Python 3.14.6, macOS 26.6.2 arm64 (runtime identity read back in this task)"
+  },
+  "correction": {
+    "documents": 5,
+    "pages": 26,
+    "index_fields": [
+      "processed_page_count",
+      "full_page_coverage"
+    ],
+    "current_receipt_fields": [
+      "full_page_coverage"
+    ],
+    "pdf_page_bytes_and_timestamps_preserved": true,
+    "audit_and_claim_sha_preserved": true,
+    "old_receipt_sha_archive_and_additive_amendment": true,
+    "ocr_or_download": false,
+    "api_detail_results": "5 HTTP 200 READY; ordered pages and text hashes verified",
+    "ui_results": "5 cards and 26 expanded OCR_OK pages after exact-date reload",
+    "global_index_byte_equality": "CANNOT_CONFIRM: concurrent normal queue advancement; no immediate whole-index snapshot was retained"
+  },
+  "runtime": {
+    "scheduler_release": "zsxq-pdf-metadata-scheduler-20261018-r1",
+    "module_sha256": "9240eae647cbc5415b397bae70d706cb1d585cc6a6dd9d815ced59e433cab00b",
+    "manifest_sha256": "bd30c7db4a10a76785d4eb36720a79760d3c98e3350a0c5013d1faebceca8053",
+    "inventory_sha256": "ea8605d221b982e5e80a5c80eeb6838cc64aa0d5d5eb9f3c6804d08884eea21a",
+    "changed_app_files": [
+      "infrastructure/zsxq_pdf_ingestion.py"
+    ],
+    "api_release_unchanged": "announcement-feed-display-20261018-r3",
+    "api_role": "read-only consumer; no source/config change or restart",
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+    "cutover_attempts": "First stopped before pointer write on unavailable os.listxattr and resumed old daemon; second xattr CLI attempt passed; no child killed",
+    "plist_mode_note": "Reviewer observed before/staged/live 0644; historical inode mode not separately recorded, meaning of mode_preserved=false proof field CANNOT_CONFIRM"
+  },
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": "Independent focused coverage",
+    "REVIEWED": "PASS",
+    "DEPLOYED": "scheduler-only",
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "NATURAL_VERIFIED": false
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "pit_status": "NON_PIT_CURRENT_KNOWLEDGE_SUPPLEMENT"
+  }
+}
