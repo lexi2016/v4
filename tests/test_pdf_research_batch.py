@@ -1658,3 +1658,280 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
     assert missing_review["review_reference"]["binding_status"] == "CANNOT_CONFIRM"
     assert missing_review["review_reason"]["code"] == "REPORT_REVIEW_RECEIPT_UNAVAILABLE"
 
+
+def _continuation_fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, count: int = 10):
+    parent = tmp_path / "batches"
+    parent.mkdir()
+    prior_root = parent / "simple-20261018-r3"
+    prior_root.mkdir()
+    monkeypatch.setattr(batch, "DEFAULT_STATE_ROOT", prior_root)
+    documents = []
+    for index in range(count):
+        digest = hashlib.sha256(f"continuation-document-{index}".encode()).hexdigest()
+        documents.append({
+            "document_id": digest,
+            "pdf_sha256": digest,
+            "pdf_bytes": index + 100,
+            "local_pdf_path": f"/frozen/{digest}.pdf",
+            "source_paths": [],
+            "cache_candidates": [],
+        })
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(json.dumps({
+        "schema": "v4.pdf_research_simple_batch.manifest.v1",
+        "status": "FROZEN",
+        "documents": documents,
+    }), encoding="utf-8")
+    manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    monkeypatch.setattr(batch, "EXPECTED_BATCH_MANIFEST_SHA256", manifest_sha)
+    queue_root = prior_root / "queue"
+    queue_root.mkdir()
+    (queue_root / "queue-state.json").write_text(json.dumps({
+        "schema": "v4.announcement-engine-queue/v1", "jobs": {}, "events": [],
+    }), encoding="utf-8")
+    progress_path = prior_root / "run-progress.json"
+    progress_path.write_text(json.dumps({
+        "schema": "v4.pdf_research_simple_batch.run_receipt.v1",
+        "status": "STOPPED_GRACEFULLY",
+        "manifest_sha256": manifest_sha,
+        "documents": [],
+    }), encoding="utf-8")
+    plan = {
+        "schema": batch.CONTINUATION_PLAN_SCHEMA,
+        "continuation_id": "pilot10",
+        "source_run_id": batch.CONTINUATION_SOURCE_RUN_ID,
+        "manifest_sha256": manifest_sha,
+        "prior_progress_path": str(progress_path),
+        "prior_progress_sha256": hashlib.sha256(progress_path.read_bytes()).hexdigest(),
+        "prior_progress_status": "STOPPED_GRACEFULLY",
+        "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+        "expected_model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+        "observed_model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+        "state_root": str(parent / "continuation-pilot10"),
+        "selected_documents": [
+            {"document_id": row["document_id"], "prior_status": "UNPROCESSED", "source_sha256": row["pdf_sha256"]}
+            for row in documents
+        ],
+        "one_time_recovery_limit": 1,
+        "excluded_prior_statuses": sorted(batch.CONTINUATION_EXCLUDED_PRIOR_STATUSES),
+        "research_only": {
+            "research_only": True,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        },
+    }
+    plan_path = tmp_path / "continuation-plan.json"
+    plan_path.write_text(json.dumps(plan, sort_keys=True), encoding="utf-8")
+    return manifest_path, plan_path, plan, documents, parent / "continuation-pilot10"
+
+
+def test_continuation_plan_only_validates_ten_unprocessed_without_writes_or_model_calls(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    manifest_path, plan_path, _plan, _documents, state_root = _continuation_fixture(tmp_path, monkeypatch)
+    monkeypatch.setattr(batch.local_model, "build_request_material", lambda *_a, **_kw: pytest.fail("settings read"))
+    monkeypatch.setattr(batch.local_model, "inspect_local_api_identity", lambda: pytest.fail("API identity call"))
+    monkeypatch.setattr(batch.local_model, "request_document_analysis", lambda **_kw: pytest.fail("inference call"))
+    monkeypatch.setattr(batch, "_create_queue", lambda *_a, **_kw: pytest.fail("queue construction"))
+
+    assert batch.main(["--manifest", str(manifest_path), "--continuation-plan", str(plan_path)]) == 0
+
+    result = json.loads(capsys.readouterr().out)
+    assert result["status"] == "PLAN_ONLY"
+    assert result["selected_document_count"] == 10
+    assert set(result["selected_prior_statuses"].values()) == {"UNPROCESSED"}
+    assert result["execution"] == "NOT_RUN"
+    assert not state_root.exists()
+
+
+@pytest.mark.parametrize("mutation, expected", [
+    ("duplicate", "CONTINUATION_SELECTION_DUPLICATE_OR_INVALID"),
+    ("outside", "CONTINUATION_SELECTION_OUTSIDE_MANIFEST"),
+    ("source", "CONTINUATION_SOURCE_SHA_MISMATCH"),
+    ("settings", "CONTINUATION_MODEL_SETTINGS_SHA_UNSUPPORTED"),
+    ("success", "CONTINUATION_PRIOR_STATUS_EXCLUDED"),
+])
+def test_continuation_plan_fails_closed_on_scope_and_binding_changes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+    expected: str,
+) -> None:
+    manifest_path, plan_path, plan, documents, _state_root = _continuation_fixture(tmp_path, monkeypatch)
+    rows = plan["selected_documents"]
+    if mutation == "duplicate":
+        rows[1]["document_id"] = rows[0]["document_id"]
+        rows[1]["source_sha256"] = rows[0]["source_sha256"]
+    elif mutation == "outside":
+        rows[0]["document_id"] = "f" * 64
+    elif mutation == "source":
+        rows[0]["source_sha256"] = "e" * 64
+    elif mutation == "settings":
+        plan["expected_model_settings_sha256"] = "c" * 64
+        plan["observed_model_settings_sha256"] = "c" * 64
+    elif mutation == "success":
+        rows[0]["prior_status"] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    plan_path.write_text(json.dumps(plan, sort_keys=True), encoding="utf-8")
+    _manifest, manifest_sha, loaded_documents = batch.load_manifest(manifest_path)
+    assert len(loaded_documents) == len(documents)
+
+    with pytest.raises(batch.BatchError, match=expected):
+        batch.validate_continuation_plan(plan_path, manifest_sha256=manifest_sha, documents=loaded_documents)
+
+
+def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest_path, plan_path, plan, documents, _state_root = _continuation_fixture(tmp_path, monkeypatch, count=1)
+    document = documents[0]
+    document_id = str(document["document_id"])
+    article_id = f"{document_id}:chunk:000001:{'a' * 64}"
+    old_payload = {
+        "date": "2026-10-18",
+        "market": "PDF_RESEARCH",
+        "article_id": article_id,
+        "model_id": batch.local_model.MODEL_ID,
+        "source_sha256": document_id,
+        "source_document_id": document_id,
+        "model_binding": {
+            "model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+            "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+            "evidence_root": str(batch.DEFAULT_STATE_ROOT / "evidence"),
+        },
+        "evidence_root": str(batch.DEFAULT_STATE_ROOT / "evidence"),
+    }
+    identity = {name: old_payload.get(name) for name in ("date", "market", "article_id", "model_id")}
+    key = hashlib.sha256(local_model.canonical_json(identity)).hexdigest()
+    input_raw = local_model.canonical_json(old_payload)
+    payload_sha = hashlib.sha256(input_raw).hexdigest()
+    raw = b'{"error":{"code":"prefill_memory_exceeded"}}'
+    raw_sha = hashlib.sha256(raw).hexdigest()
+    queue_root = batch.DEFAULT_STATE_ROOT / "queue"
+    job_root = queue_root / "jobs" / key
+    job_root.mkdir(parents=True)
+    (job_root / "input.json").write_bytes(input_raw)
+    (job_root / "attempt-0001.raw").write_bytes(raw)
+    queue_item = {
+        "idempotency_key": key,
+        "queue_id": "v4-pdf-simple-batch",
+        "model_id": batch.local_model.MODEL_ID,
+        "identity": identity,
+        "status": "FAILED",
+        "attempt_count": 1,
+        "max_attempts": 1,
+        "queue_policy": {"max_attempts": 1, "max_body_bytes": None},
+        "payload_sha256": payload_sha,
+        "input_path": f"jobs/{key}/input.json",
+        "raw_path": f"jobs/{key}/attempt-0001.raw",
+        "raw_sha256": raw_sha,
+        "attempts": [{
+            "number": 1,
+            "status": "FAILED",
+            "error": {"code": "prefill_memory_exceeded"},
+            "raw_path": f"jobs/{key}/attempt-0001.raw",
+            "raw_sha256": raw_sha,
+        }],
+    }
+    (queue_root / "queue-state.json").write_text(json.dumps({
+        "schema": "v4.announcement-engine-queue/v1", "jobs": {key: queue_item}, "events": [],
+    }), encoding="utf-8")
+    receipt = {
+        "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
+        "status": "FAILED_NO_RETRY",
+        "manifest_sha256": plan["manifest_sha256"],
+        "document_id": document_id,
+        "pdf_sha256": document_id,
+        "chunks": [{"status": "FAILED_NO_RETRY", "queue_item": {"idempotency_key": key}}],
+        "synthesis": [],
+    }
+    receipt_path = batch.DEFAULT_STATE_ROOT / "documents" / document_id / "receipt.json"
+    receipt_path.parent.mkdir(parents=True)
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    recovery = {
+        "generation": 1,
+        "prior_document_receipt_sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        "prior_queue_idempotency_key": key,
+        "prior_payload_sha256": payload_sha,
+        "prior_article_id": article_id,
+        "prior_source_sha256": document_id,
+        "prior_raw_sha256": raw_sha,
+    }
+    progress = {
+        "schema": "v4.pdf_research_simple_batch.run_receipt.v1",
+        "status": "STOPPED_GRACEFULLY",
+        "manifest_sha256": plan["manifest_sha256"],
+        "documents": [{"document_id": document_id, "status": "FAILED_NO_RETRY", "receipt_path": str(receipt_path)}],
+    }
+    progress_path = batch.DEFAULT_STATE_ROOT / "run-progress.json"
+    progress_path.write_text(json.dumps(progress), encoding="utf-8")
+    plan["prior_progress_sha256"] = hashlib.sha256(progress_path.read_bytes()).hexdigest()
+    plan["selected_documents"] = [{
+        "document_id": document_id,
+        "prior_status": "FAILED_NO_RETRY",
+        "source_sha256": document_id,
+        "recovery": recovery,
+    }]
+    plan["state_root"] = str(batch.DEFAULT_STATE_ROOT.parent / f"recovery-{key}")
+    plan_path.write_text(json.dumps(plan, sort_keys=True), encoding="utf-8")
+    _manifest, manifest_sha, loaded_documents = batch.load_manifest(manifest_path)
+
+    validated = batch.validate_continuation_plan(plan_path, manifest_sha256=manifest_sha, documents=loaded_documents)
+    context = {
+        "plan": plan,
+        "plan_sha256": validated["plan_sha256"],
+        "entry": plan["selected_documents"][0],
+        "recovery_binding": validated["recovery_bindings"][document_id],
+        "recovery_target_reached": threading.Event(),
+    }
+    current_payload = dict(old_payload)
+    current_payload["evidence_root"] = "/continuation/evidence"
+    current_binding = dict(current_payload["model_binding"])
+    current_binding["evidence_root"] = "/continuation/evidence"
+    current_payload["model_binding"] = current_binding
+    bound, is_target = batch._bind_continuation_payload(current_payload, context)
+
+    assert is_target
+    assert bound["article_id"] == f"{article_id}:recovery:1"
+    assert bound["continuation"]["recovery_of"]["generation"] == 1
+    assert context["recovery_target_reached"].is_set()
+    assert batch._continuation_recovery_raw_has_exact_error(raw)
+    assert not batch._continuation_recovery_raw_has_exact_error(b'{"error":{"message":"prefill_memory_exceeded"}}')
+    assert not batch._continuation_recovery_raw_has_exact_error(b"message says prefill_memory_exceeded")
+
+    class FakeQueue:
+        queue_id = "v4-pdf-simple-batch"
+        model_id = batch.local_model.MODEL_ID
+        max_attempts = 1
+        state_root = tmp_path / "continuation"
+
+        def enqueue(self, payload):
+            self.payload = dict(payload)
+            return {"status": "PENDING", "idempotency_key": "9" * 64}
+
+        def run_next(self, executor, _validator, **_kwargs):
+            self.raw = executor(SimpleNamespace(model_id=self.model_id, payload=self.payload))
+            return {"status": "SUCCEEDED", "attempt_count": 1, "idempotency_key": "9" * 64}
+
+    fake_queue = FakeQueue()
+    monkeypatch.setattr(batch, "_read_r1_success", lambda *_a, **_kw: None)
+    monkeypatch.setattr(batch, "_queue_read_result", lambda *_a, **_kw: {"analysis_markdown": "fixture"})
+    result = batch._perform_request(
+        fake_queue,
+        bound,
+        [{"role": "user", "content": "fixture"}],
+        binding=bound["model_binding"],
+        identity={"status": "MATCH", "expected_model_id": batch.local_model.MODEL_ID},
+        identity_reader=lambda: {"status": "MATCH", "expected_model_id": batch.local_model.MODEL_ID},
+        priority_reader=lambda: {"status": "ALLOW"},
+        request_fn=lambda **_kwargs: "fixture response",
+        sleep_fn=lambda _seconds: None,
+    )
+    assert fake_queue.max_attempts == 1
+    assert fake_queue.payload["article_id"] == f"{article_id}:recovery:1"
+    assert fake_queue.payload["continuation"]["recovery_of"]["prior_idempotency_key"] == key
+    assert result["status"] == "SUCCEEDED"
+

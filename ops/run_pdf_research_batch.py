@@ -44,6 +44,23 @@ DEFAULT_STATE_ROOT = Path(
 )
 EXPECTED_RUNTIME_SHA256 = "e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99"
 EXPECTED_MODEL_SETTINGS_SHA256 = "7a98bb5d2b6687b808d72b8c7bb385a23c714e9753a067fab81407c4e9245b99"
+CONTINUATION_PLAN_SCHEMA = "v4.pdf_research_simple_batch.continuation_plan.v1"
+CONTINUATION_SOURCE_RUN_ID = "simple-20261018-r3"
+CONTINUATION_CANDIDATE_SETTINGS_SHA256 = "0da2c9d1044a1d86ac0037f06859248568ba82a03f1a26a17699c64b12e9c7c7"
+CONTINUATION_ALLOWED_SETTINGS_SHA256S = frozenset(
+    {EXPECTED_MODEL_SETTINGS_SHA256, CONTINUATION_CANDIDATE_SETTINGS_SHA256}
+)
+CONTINUATION_EXCLUDED_PRIOR_STATUSES = frozenset(
+    {
+        "USER_ACCEPTED_REUSED_REPORT",
+        "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
+        "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING",
+        "SOURCE_REPAIR_FAILED_NO_MODEL",
+        "FAILED_DOCUMENT_ISOLATED",
+    }
+)
+CONTINUATION_MAX_DOCUMENTS = 10
+CONTINUATION_RECOVERY_ERROR_CODE = "prefill_memory_exceeded"
 S18_PDF_SHA256 = "3776a6641d50a8431d5be54bb4259e78e00b037fdc2c46e1264a19ea566f86c9"
 S18_REPORT_SHA256 = "334051502c722688e6bdda26c3aec6a695e4a4f04e0eee1602d43da94ebb0299"
 S18_REPORT_PATH = Path(
@@ -322,6 +339,452 @@ def load_manifest(path: Path) -> tuple[dict[str, Any], str, list[dict[str, Any]]
             raise BatchError("BATCH_MANIFEST_DOCUMENT_INVALID")
         seen.add(pdf_sha)
     return manifest, _sha256(raw), documents
+
+
+def _continuation_path_is_safe(path: Path, root: Path, *, allow_missing: bool) -> bool:
+    """Require a path below root with no symlink component, including the leaf."""
+    path = path.expanduser().absolute()
+    root = root.expanduser().absolute()
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        return False
+    cursor = root
+    if cursor.is_symlink():
+        return False
+    for part in relative.parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            return False
+        if not allow_missing and not cursor.exists():
+            return False
+    return True
+
+
+def _continuation_prior_progress_path() -> Path:
+    return DEFAULT_STATE_ROOT / "run-progress.json"
+
+
+def _continuation_prior_queue_root() -> Path:
+    return DEFAULT_STATE_ROOT / "queue"
+
+
+def _load_prior_queue_jobs() -> dict[str, Any]:
+    queue_root = _continuation_prior_queue_root().expanduser().absolute()
+    state_path = queue_root / "queue-state.json"
+    if not _continuation_path_is_safe(state_path, queue_root, allow_missing=False):
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_STATE_UNAVAILABLE")
+    try:
+        before = state_path.stat()
+        raw = state_path.read_bytes()
+        after = state_path.stat()
+        if (before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
+            raise BatchError("CONTINUATION_PRIOR_QUEUE_STATE_CHANGED_DURING_READ")
+        state = json.loads(raw.decode("utf-8"))
+    except BatchError:
+        raise
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_STATE_INVALID") from None
+    jobs = state.get("jobs") if isinstance(state, dict) else None
+    if not isinstance(state, dict) or state.get("schema") != "v4.announcement-engine-queue/v1" or not isinstance(jobs, dict):
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_STATE_INVALID")
+    return jobs
+
+
+def _continuation_normalize_request_payload(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Remove only run-root/provenance fields when comparing a prior request."""
+    normalized = json.loads(_json_bytes(dict(value)).decode("utf-8"))
+    normalized.pop("evidence_root", None)
+    normalized.pop("continuation", None)
+    binding = normalized.get("model_binding")
+    if isinstance(binding, dict):
+        binding.pop("evidence_root", None)
+    return normalized
+
+
+def _same_request_payload_ignoring_run_root(
+    prior: Mapping[str, Any], current: Mapping[str, Any]
+) -> bool:
+    return _continuation_normalize_request_payload(prior) == _continuation_normalize_request_payload(current)
+
+
+def _load_continuation_progress(path: Path, expected_sha256: str) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_UNAVAILABLE")
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_UNAVAILABLE") from None
+    if _sha256(raw) != expected_sha256:
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_SHA_MISMATCH")
+    try:
+        progress = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_INVALID") from None
+    if (
+        not isinstance(progress, dict)
+        or progress.get("status") != "STOPPED_GRACEFULLY"
+        or progress.get("manifest_sha256") != EXPECTED_BATCH_MANIFEST_SHA256
+        or not isinstance(progress.get("documents"), list)
+    ):
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_BINDING_MISMATCH")
+    return progress
+
+
+def _prior_progress_rows(progress: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    rows: dict[str, dict[str, Any]] = {}
+    for row in progress.get("documents", []):
+        if not isinstance(row, dict) or not isinstance(row.get("document_id"), str):
+            continue
+        document_id = row["document_id"]
+        if document_id in rows:
+            raise BatchError("CONTINUATION_PRIOR_PROGRESS_DUPLICATE_DOCUMENT")
+        rows[document_id] = row
+    return rows
+
+
+def _continuation_recovery_raw_has_exact_error(raw: bytes) -> bool:
+    try:
+        envelope = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        return False
+    error = envelope.get("error") if isinstance(envelope, dict) else None
+    return isinstance(error, dict) and error.get("code") == CONTINUATION_RECOVERY_ERROR_CODE
+
+
+def _validate_recovery_selection(
+    entry: Mapping[str, Any],
+    document: Mapping[str, Any],
+    prior_row: Mapping[str, Any],
+    queue_jobs: Mapping[str, Any],
+) -> dict[str, Any]:
+    recovery = entry.get("recovery")
+    if (
+        not isinstance(recovery, dict)
+        or set(recovery)
+        != {
+            "generation",
+            "prior_document_receipt_sha256",
+            "prior_queue_idempotency_key",
+            "prior_payload_sha256",
+            "prior_article_id",
+            "prior_source_sha256",
+            "prior_raw_sha256",
+        }
+        or type(recovery.get("generation")) is not int
+        or recovery.get("generation") != 1
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_GENERATION_INVALID")
+    if entry.get("prior_status") != "FAILED_NO_RETRY":
+        raise BatchError("CONTINUATION_RECOVERY_PRIOR_STATUS_INVALID")
+    if (
+        recovery.get("prior_source_sha256") != document.get("pdf_sha256")
+        or prior_row.get("status") != "FAILED_NO_RETRY"
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_SOURCE_OR_STATUS_MISMATCH")
+    for key in (
+        "prior_document_receipt_sha256",
+        "prior_queue_idempotency_key",
+        "prior_payload_sha256",
+        "prior_raw_sha256",
+    ):
+        if not isinstance(recovery.get(key), str) or not re.fullmatch(r"[0-9a-f]{64}", recovery[key]):
+            raise BatchError("CONTINUATION_RECOVERY_HASH_INVALID")
+    article_id = recovery.get("prior_article_id")
+    if not isinstance(article_id, str) or not article_id.strip() or len(article_id) > 512:
+        raise BatchError("CONTINUATION_RECOVERY_IDENTITY_INVALID")
+
+    document_id = str(document["document_id"])
+    prior_state_root = DEFAULT_STATE_ROOT.expanduser().absolute()
+    receipt_path = prior_state_root / "documents" / document_id / "receipt.json"
+    if not _continuation_path_is_safe(receipt_path, prior_state_root, allow_missing=False):
+        raise BatchError("CONTINUATION_RECOVERY_RECEIPT_UNAVAILABLE")
+    receipt_raw = receipt_path.read_bytes()
+    if _sha256(receipt_raw) != recovery["prior_document_receipt_sha256"]:
+        raise BatchError("CONTINUATION_RECOVERY_RECEIPT_SHA_MISMATCH")
+    try:
+        receipt = json.loads(receipt_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise BatchError("CONTINUATION_RECOVERY_RECEIPT_INVALID") from None
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("schema") != "v4.pdf_research_simple_batch.document_receipt.v1"
+        or receipt.get("status") != "FAILED_NO_RETRY"
+        or receipt.get("manifest_sha256") != EXPECTED_BATCH_MANIFEST_SHA256
+        or receipt.get("document_id") != document_id
+        or receipt.get("pdf_sha256") != document_id
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_RECEIPT_BINDING_MISMATCH")
+
+    prior_item_ref: dict[str, Any] | None = None
+    for collection in ("chunks", "synthesis"):
+        rows = receipt.get(collection, [])
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            queue_item = row.get("queue_item") if isinstance(row, dict) else None
+            if (
+                isinstance(row, dict)
+                and row.get("status") == "FAILED_NO_RETRY"
+                and isinstance(queue_item, dict)
+                and queue_item.get("idempotency_key") == recovery["prior_queue_idempotency_key"]
+            ):
+                prior_item_ref = queue_item
+                break
+        if prior_item_ref is not None:
+            break
+    if prior_item_ref is None:
+        raise BatchError("CONTINUATION_RECOVERY_QUEUE_RECEIPT_MISMATCH")
+
+    queue_root = _continuation_prior_queue_root().expanduser().absolute()
+    key = recovery["prior_queue_idempotency_key"]
+    item = queue_jobs.get(key)
+    if (
+        not isinstance(item, dict)
+        or item.get("idempotency_key") != key
+        or item.get("status") != "FAILED"
+        or item.get("queue_id") != "v4-pdf-simple-batch"
+        or item.get("model_id") != local_model.MODEL_ID
+        or item.get("attempt_count") != 1
+        or item.get("max_attempts") != 1
+        or item.get("queue_policy") != {"max_attempts": 1, "max_body_bytes": None}
+        or item.get("payload_sha256") != recovery["prior_payload_sha256"]
+        or not isinstance(item.get("attempts"), list)
+        or len(item["attempts"]) != 1
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_QUEUE_IDENTITY_MISMATCH")
+    attempt = item["attempts"][0]
+    if (
+        not isinstance(attempt, dict)
+        or attempt.get("number") != 1
+        or attempt.get("status") != "FAILED"
+        or not isinstance(attempt.get("error"), dict)
+        or attempt["error"].get("code") != CONTINUATION_RECOVERY_ERROR_CODE
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_ERROR_CODE_MISMATCH")
+    input_relative = item.get("input_path")
+    raw_relative = attempt.get("raw_path")
+    expected_input = f"jobs/{key}/input.json"
+    expected_raw = f"jobs/{key}/attempt-0001.raw"
+    if input_relative != expected_input or raw_relative != expected_raw or item.get("raw_path") != expected_raw:
+        raise BatchError("CONTINUATION_RECOVERY_ARTIFACT_PATH_MISMATCH")
+    input_path = queue_root / expected_input
+    raw_path = queue_root / expected_raw
+    if not all(_continuation_path_is_safe(path, queue_root, allow_missing=False) for path in (input_path, raw_path)):
+        raise BatchError("CONTINUATION_RECOVERY_ARTIFACT_UNAVAILABLE")
+    input_raw = input_path.read_bytes()
+    raw = raw_path.read_bytes()
+    if (
+        _sha256(input_raw) != recovery["prior_payload_sha256"]
+        or _sha256(raw) != recovery["prior_raw_sha256"]
+        or attempt.get("raw_sha256") != recovery["prior_raw_sha256"]
+        or item.get("raw_sha256") != recovery["prior_raw_sha256"]
+        or not _continuation_recovery_raw_has_exact_error(raw)
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_RAW_EVIDENCE_MISMATCH")
+    try:
+        old_payload = json.loads(input_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise BatchError("CONTINUATION_RECOVERY_INPUT_INVALID") from None
+    if (
+        not isinstance(old_payload, dict)
+        or old_payload.get("article_id") != article_id
+        or old_payload.get("source_sha256") != document_id
+        or old_payload.get("source_document_id") != document_id
+        or not isinstance(old_payload.get("model_binding"), dict)
+        or old_payload["model_binding"].get("model_settings_sha256") != EXPECTED_MODEL_SETTINGS_SHA256
+        or old_payload["model_binding"].get("runtime_settings_sha256") != EXPECTED_RUNTIME_SHA256
+        or not isinstance(item.get("identity"), dict)
+        or item["identity"].get("date") != old_payload.get("date")
+        or item["identity"].get("market") != old_payload.get("market")
+        or item["identity"].get("article_id") != article_id
+        or item["identity"].get("model_id") != old_payload.get("model_id")
+        or _sha256(
+            local_model.canonical_json(
+                {
+                    name: old_payload.get(name)
+                    for name in ("date", "market", "article_id", "model_id")
+                }
+            )
+        ) != key
+    ):
+        raise BatchError("CONTINUATION_RECOVERY_INPUT_BINDING_MISMATCH")
+    return {"prior_payload": old_payload, "prior_queue_root": queue_root}
+
+
+def validate_continuation_plan(
+    plan_path: Path,
+    *,
+    manifest_sha256: str,
+    documents: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    plan_path = plan_path.expanduser().absolute()
+    if plan_path.is_symlink() or not plan_path.is_file():
+        raise BatchError("CONTINUATION_PLAN_UNAVAILABLE")
+    try:
+        raw = plan_path.read_bytes()
+    except OSError:
+        raise BatchError("CONTINUATION_PLAN_UNAVAILABLE") from None
+    plan_sha = _sha256(raw)
+    try:
+        plan = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise BatchError("CONTINUATION_PLAN_INVALID") from None
+    if not isinstance(plan, dict) or plan.get("schema") != CONTINUATION_PLAN_SCHEMA:
+        raise BatchError("CONTINUATION_PLAN_SCHEMA_INVALID")
+    if set(plan) != {
+        "schema",
+        "continuation_id",
+        "source_run_id",
+        "manifest_sha256",
+        "prior_progress_path",
+        "prior_progress_sha256",
+        "prior_progress_status",
+        "runtime_settings_sha256",
+        "expected_model_settings_sha256",
+        "observed_model_settings_sha256",
+        "state_root",
+        "selected_documents",
+        "one_time_recovery_limit",
+        "excluded_prior_statuses",
+        "research_only",
+    }:
+        raise BatchError("CONTINUATION_PLAN_FIELDS_INVALID")
+    continuation_id = plan.get("continuation_id")
+    if not isinstance(continuation_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", continuation_id):
+        raise BatchError("CONTINUATION_ID_INVALID")
+    if plan.get("source_run_id") != CONTINUATION_SOURCE_RUN_ID:
+        raise BatchError("CONTINUATION_SOURCE_RUN_INVALID")
+    if plan.get("manifest_sha256") != manifest_sha256 or manifest_sha256 != EXPECTED_BATCH_MANIFEST_SHA256:
+        raise BatchError("CONTINUATION_MANIFEST_SHA_MISMATCH")
+    expected_progress_path = _continuation_prior_progress_path().expanduser().absolute()
+    if plan.get("prior_progress_path") != str(expected_progress_path):
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_PATH_MISMATCH")
+    progress_sha = plan.get("prior_progress_sha256")
+    if not isinstance(progress_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", progress_sha):
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_SHA_INVALID")
+    if plan.get("prior_progress_status") != "STOPPED_GRACEFULLY":
+        raise BatchError("CONTINUATION_PRIOR_PROGRESS_STATUS_MISMATCH")
+    prior_progress = _load_continuation_progress(expected_progress_path, progress_sha)
+    prior_rows = _prior_progress_rows(prior_progress)
+
+    if plan.get("runtime_settings_sha256") != EXPECTED_RUNTIME_SHA256:
+        raise BatchError("CONTINUATION_RUNTIME_SHA_UNSUPPORTED")
+    expected_settings = plan.get("expected_model_settings_sha256")
+    observed_settings = plan.get("observed_model_settings_sha256")
+    if (
+        not isinstance(expected_settings, str)
+        or expected_settings not in CONTINUATION_ALLOWED_SETTINGS_SHA256S
+        or observed_settings != expected_settings
+    ):
+        raise BatchError("CONTINUATION_MODEL_SETTINGS_SHA_UNSUPPORTED")
+    if type(plan.get("one_time_recovery_limit")) is not int or plan.get("one_time_recovery_limit") != 1:
+        raise BatchError("CONTINUATION_RECOVERY_LIMIT_INVALID")
+    excluded = plan.get("excluded_prior_statuses")
+    if (
+        not isinstance(excluded, list)
+        or len(excluded) != len(CONTINUATION_EXCLUDED_PRIOR_STATUSES)
+        or set(excluded) != CONTINUATION_EXCLUDED_PRIOR_STATUSES
+    ):
+        raise BatchError("CONTINUATION_EXCLUDED_STATUSES_INVALID")
+    if plan.get("research_only") != {
+        "research_only": True,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }:
+        raise BatchError("CONTINUATION_RESEARCH_SAFETY_INVALID")
+
+    selected = plan.get("selected_documents")
+    if not isinstance(selected, list) or not 1 <= len(selected) <= CONTINUATION_MAX_DOCUMENTS:
+        raise BatchError("CONTINUATION_SELECTION_COUNT_INVALID")
+    manifest_by_id = {str(row.get("document_id")): row for row in documents}
+    seen: set[str] = set()
+    recovery_count = 0
+    recovery_bindings: dict[str, dict[str, Any]] = {}
+    prior_queue_jobs = _load_prior_queue_jobs()
+    for entry in selected:
+        if not isinstance(entry, dict):
+            raise BatchError("CONTINUATION_SELECTION_INVALID")
+        document_id = entry.get("document_id")
+        if not isinstance(document_id, str) or document_id in seen:
+            raise BatchError("CONTINUATION_SELECTION_DUPLICATE_OR_INVALID")
+        seen.add(document_id)
+        document = manifest_by_id.get(document_id)
+        if document is None:
+            raise BatchError("CONTINUATION_SELECTION_OUTSIDE_MANIFEST")
+        if entry.get("source_sha256") != document.get("pdf_sha256"):
+            raise BatchError("CONTINUATION_SOURCE_SHA_MISMATCH")
+        prior_row = prior_rows.get(document_id)
+        prior_status = entry.get("prior_status")
+        if prior_status in CONTINUATION_EXCLUDED_PRIOR_STATUSES:
+            raise BatchError("CONTINUATION_PRIOR_STATUS_EXCLUDED")
+        if prior_status == "UNPROCESSED":
+            if prior_row is not None or "recovery" in entry:
+                raise BatchError("CONTINUATION_UNPROCESSED_STATUS_MISMATCH")
+            if set(entry) != {"document_id", "prior_status", "source_sha256"}:
+                raise BatchError("CONTINUATION_SELECTION_FIELDS_INVALID")
+            prior_receipt_path = DEFAULT_STATE_ROOT / "documents" / document_id / "receipt.json"
+            if prior_receipt_path.exists() or prior_receipt_path.is_symlink():
+                raise BatchError("CONTINUATION_UNPROCESSED_HAS_PRIOR_RECEIPT")
+            if any(
+                isinstance(item, dict)
+                and isinstance(item.get("identity"), dict)
+                and str(item["identity"].get("article_id", "")).startswith(f"{document_id}:")
+                for item in prior_queue_jobs.values()
+            ):
+                raise BatchError("CONTINUATION_UNPROCESSED_HAS_QUEUE_HISTORY")
+        elif prior_status == "FAILED_NO_RETRY":
+            if set(entry) != {"document_id", "prior_status", "source_sha256", "recovery"}:
+                raise BatchError("CONTINUATION_SELECTION_FIELDS_INVALID")
+            if prior_row is None:
+                raise BatchError("CONTINUATION_RECOVERY_PRIOR_ROW_MISSING")
+            recovery_bindings[document_id] = _validate_recovery_selection(
+                entry,
+                document,
+                prior_row,
+                prior_queue_jobs,
+            )
+            recovery_count += 1
+        else:
+            raise BatchError("CONTINUATION_PRIOR_STATUS_NOT_ELIGIBLE")
+    if recovery_count > 1:
+        raise BatchError("CONTINUATION_RECOVERY_LIMIT_EXCEEDED")
+    state_parent = DEFAULT_STATE_ROOT.parent.expanduser().absolute()
+    if not state_parent.is_dir() or state_parent.is_symlink():
+        raise BatchError("CONTINUATION_STATE_PARENT_UNAVAILABLE")
+    if recovery_count:
+        recovery_entry = next(row for row in selected if row.get("prior_status") == "FAILED_NO_RETRY")
+        recovery = recovery_entry["recovery"]
+        if expected_settings != EXPECTED_MODEL_SETTINGS_SHA256:
+            raise BatchError("CONTINUATION_RECOVERY_REQUIRES_ORIGINAL_SETTINGS")
+        expected_state_root = state_parent / f"recovery-{recovery['prior_queue_idempotency_key']}"
+    else:
+        expected_state_root = state_parent / f"continuation-{continuation_id}"
+    state_root_raw = plan.get("state_root")
+    if not isinstance(state_root_raw, str) or Path(state_root_raw).expanduser().absolute() != expected_state_root:
+        raise BatchError("CONTINUATION_STATE_ROOT_MISMATCH")
+    if not _continuation_path_is_safe(expected_state_root, state_parent, allow_missing=True):
+        raise BatchError("CONTINUATION_STATE_ROOT_UNSAFE")
+    if expected_state_root.resolve(strict=False) == DEFAULT_STATE_ROOT.resolve(strict=False):
+        raise BatchError("CONTINUATION_STATE_ROOT_MUST_BE_SEPARATE")
+    existing_plan = expected_state_root / "continuation-plan.json"
+    if existing_plan.is_symlink():
+        raise BatchError("CONTINUATION_PLAN_IMMUTABLE_CONFLICT")
+    if existing_plan.exists():
+        if _sha256_file(existing_plan) != plan_sha:
+            raise BatchError("CONTINUATION_PLAN_IMMUTABLE_CONFLICT")
+    return {
+        "plan": plan,
+        "plan_raw": raw,
+        "plan_sha256": plan_sha,
+        "state_root": expected_state_root,
+        "selected_documents": [manifest_by_id[row["document_id"]] for row in selected],
+        "selected_entries": {row["document_id"]: row for row in selected},
+        "recovery_bindings": recovery_bindings,
+        "prior_queue_root": _continuation_prior_queue_root(),
+        "expected_model_settings_sha256": expected_settings,
+    }
 
 
 def _candidate_page_count(document: Mapping[str, Any]) -> int | None:
@@ -1531,11 +1994,18 @@ def _queue_read_result(queue: Any, item: Mapping[str, Any]) -> dict[str, Any] | 
     return pdf_research._read_validated_result(queue, key)
 
 
-def _read_r1_success(queue: Any, payload: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Read a byte-identical successful prior request without writing the frozen R1 queue."""
+def _read_r1_success(
+    queue: Any,
+    payload: Mapping[str, Any],
+    *,
+    queue_root: Path | None = None,
+    reuse_status: str = "SUCCEEDED_REUSED_R1",
+    allow_continuation_rebind: bool = False,
+) -> dict[str, Any] | None:
+    """Read and revalidate a successful prior request without modifying its queue."""
     if payload.get("source_sha256") in SOURCE_REJECTED_PDF_SHA256S:
         return None
-    queue_root = R1_STATE_ROOT / "queue"
+    queue_root = queue_root or R1_STATE_ROOT / "queue"
     state_path = queue_root / "queue-state.json"
     if state_path.is_symlink() or not state_path.is_file():
         return None
@@ -1565,7 +2035,6 @@ def _read_r1_success(queue: Any, payload: Mapping[str, Any]) -> dict[str, Any] |
     if (
         item.get("status") != "SUCCEEDED"
         or item.get("idempotency_key") != key
-        or item.get("payload_sha256") != payload_sha
         or item.get("queue_id") != expected_queue_id
         or item.get("model_id") != expected_model_id
         or item.get("attempt_count") != 1
@@ -1603,9 +2072,20 @@ def _read_r1_success(queue: Any, payload: Mapping[str, Any]) -> dict[str, Any] |
         validated_raw = paths["validated_path"].read_bytes()
     except OSError:
         return None
+    input_matches = input_raw == local_model.canonical_json(dict(payload)) and _sha256(input_raw) == payload_sha
+    if allow_continuation_rebind and not input_matches:
+        try:
+            prior_payload = json.loads(input_raw.decode("utf-8"))
+            input_matches = (
+                isinstance(prior_payload, dict)
+                and _same_request_payload_ignoring_run_root(prior_payload, payload)
+                and _sha256(input_raw) == item.get("payload_sha256")
+            )
+        except (UnicodeError, json.JSONDecodeError):
+            input_matches = False
     if (
-        input_raw != local_model.canonical_json(dict(payload))
-        or _sha256(input_raw) != payload_sha
+        not input_matches
+        or item.get("payload_sha256") != _sha256(input_raw)
         or _sha256(raw_response) != item.get("raw_sha256")
         or _sha256(validated_raw) != item.get("validated_sha256")
     ):
@@ -1624,7 +2104,61 @@ def _read_r1_success(queue: Any, payload: Mapping[str, Any]) -> dict[str, Any] |
         "raw_path": str(paths["raw_path"]),
         "validated_path": str(paths["validated_path"]),
     }
-    return {"status": "SUCCEEDED_REUSED_R1", "queue_item": queue_item, "result": validated, "attempted": False}
+    return {"status": reuse_status, "queue_item": queue_item, "result": validated, "attempted": False}
+
+
+def _read_continuation_prior_outcome(
+    queue: Any,
+    payload: Mapping[str, Any],
+    queue_root: Path,
+) -> dict[str, Any] | None:
+    """Reuse an exact prior success or block replay of a prior terminal failure."""
+    reused = _read_r1_success(
+        queue,
+        payload,
+        queue_root=queue_root,
+        reuse_status="SUCCEEDED_REUSED_CONTINUATION_SOURCE",
+        allow_continuation_rebind=True,
+    )
+    if reused is not None:
+        return reused
+    state_path = queue_root / "queue-state.json"
+    if state_path.is_symlink() or not state_path.is_file():
+        return None
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        key, payload_sha = pdf_research._queue_identity_and_payload_sha256(queue, payload)
+    except (OSError, UnicodeError, json.JSONDecodeError, Exception):
+        return None
+    jobs = state.get("jobs") if isinstance(state, dict) else None
+    item = jobs.get(key) if isinstance(jobs, dict) else None
+    if not isinstance(item, dict):
+        return None
+    expected_input = f"jobs/{key}/input.json"
+    if item.get("input_path") != expected_input:
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_INPUT_PATH_MISMATCH")
+    input_path = queue_root / expected_input
+    if not _continuation_path_is_safe(input_path, queue_root, allow_missing=False):
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_INPUT_UNAVAILABLE")
+    try:
+        input_raw = input_path.read_bytes()
+        prior_payload = json.loads(input_raw.decode("utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_INPUT_INVALID") from None
+    if (
+        not isinstance(prior_payload, dict)
+        or item.get("payload_sha256") != _sha256(input_raw)
+        or not _same_request_payload_ignoring_run_root(prior_payload, payload)
+    ):
+        return None
+    if item.get("status") == "SUCCEEDED":
+        raise BatchError("CONTINUATION_PRIOR_QUEUE_SUCCESS_UNAVAILABLE")
+    return {
+        "status": "FAILED_NO_RETRY",
+        "queue_item": {**item, "queue_root": str(queue_root)},
+        "attempted": False,
+        "prior_failure_reused": True,
+    }
 
 
 def _request_payload(
@@ -1666,6 +2200,47 @@ def _request_payload(
     }
 
 
+def _bind_continuation_payload(
+    payload: Mapping[str, Any],
+    continuation: Mapping[str, Any] | None,
+) -> tuple[dict[str, Any], bool]:
+    bound = dict(payload)
+    if continuation is None:
+        return bound, False
+    entry = continuation["entry"]
+    plan = continuation["plan"]
+    recovery = entry.get("recovery") if isinstance(entry, dict) else None
+    recovery_of = None
+    is_recovery_target = False
+    if isinstance(recovery, dict):
+        recovery_binding = continuation.get("recovery_binding")
+        prior_payload = recovery_binding.get("prior_payload") if isinstance(recovery_binding, dict) else None
+        if not isinstance(prior_payload, dict):
+            raise BatchError("CONTINUATION_RECOVERY_PRIOR_PAYLOAD_UNAVAILABLE")
+        if bound.get("article_id") == recovery.get("prior_article_id"):
+            if not _same_request_payload_ignoring_run_root(prior_payload, bound):
+                raise BatchError("CONTINUATION_RECOVERY_REQUEST_BINDING_MISMATCH")
+            bound["article_id"] = f"{recovery['prior_article_id']}:recovery:1"
+            is_recovery_target = True
+            continuation["recovery_target_reached"].set()
+            recovery_of = {
+                "generation": 1,
+                "prior_idempotency_key": recovery["prior_queue_idempotency_key"],
+                "prior_payload_sha256": recovery["prior_payload_sha256"],
+                "prior_raw_sha256": recovery["prior_raw_sha256"],
+            }
+    bound["continuation"] = {
+        "continuation_id": plan["continuation_id"],
+        "plan_sha256": continuation["plan_sha256"],
+        "manifest_sha256": plan["manifest_sha256"],
+        "runtime_settings_sha256": plan["runtime_settings_sha256"],
+        "model_settings_sha256": plan["expected_model_settings_sha256"],
+        "selected_prior_status": entry["prior_status"],
+        "recovery_of": recovery_of,
+    }
+    return bound, is_recovery_target
+
+
 def _perform_request(
     queue: Any,
     payload: Mapping[str, Any],
@@ -1678,12 +2253,23 @@ def _perform_request(
     request_fn: Callable[..., str],
     sleep_fn: Callable[[float], Any],
     stop_event: threading.Event | None = None,
+    prior_queue_root: Path | None = None,
+    recovery_target_pending: bool = False,
 ) -> dict[str, Any]:
     if stop_event is not None and stop_event.is_set():
         return {"status": "STOPPED_GRACEFULLY", "attempted": False}
     if len(_request_envelope(messages)) > MAX_REQUEST_ENVELOPE_BYTES:
         raise BatchError("REQUEST_ENVELOPE_BUDGET_EXCEEDED")
-    reused_prior = _read_r1_success(queue, payload)
+    if prior_queue_root is not None:
+        prior_outcome = _read_continuation_prior_outcome(queue, payload, prior_queue_root)
+        if prior_outcome is not None:
+            return prior_outcome
+        if recovery_target_pending:
+            raise BatchError("CONTINUATION_RECOVERY_TARGET_NOT_REACHED")
+    if isinstance(payload.get("continuation"), dict):
+        reused_prior = _read_r1_success(queue, payload, allow_continuation_rebind=True)
+    else:
+        reused_prior = _read_r1_success(queue, payload)
     if reused_prior is not None:
         return reused_prior
     queued = queue.enqueue(payload)
@@ -1872,6 +2458,7 @@ def _run_document(
     sleep_fn: Callable[[float], Any],
     stop_event: threading.Event | None = None,
     repair_budget: dict[str, int] | None = None,
+    continuation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     pdf_sha = str(document["pdf_sha256"])
     doc_root = state_root / "documents" / pdf_sha
@@ -2068,6 +2655,17 @@ def _run_document(
             source_characters=source_chars,
             source_text_sha256=chunk.chunk_sha256,
         )
+        payload, is_recovery_target = _bind_continuation_payload(payload, continuation)
+        recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
+        prior_queue_root = (
+            recovery_binding.get("prior_queue_root")
+            if isinstance(recovery_binding, dict)
+            else None
+        )
+        recovery_target_pending = bool(
+            isinstance(recovery_binding, dict)
+            and not continuation["recovery_target_reached"].is_set()
+        )
         outcome = _perform_request(
             queue,
             payload,
@@ -2079,6 +2677,8 @@ def _run_document(
             request_fn=request_fn,
             sleep_fn=sleep_fn,
             stop_event=stop_event,
+            prior_queue_root=prior_queue_root,
+            recovery_target_pending=recovery_target_pending,
         )
         progress["chunk_states"][str(chunk.chunk_index)] = outcome["status"]
         progress["model_requests"] += int(bool(outcome.get("attempted")))
@@ -2087,7 +2687,12 @@ def _run_document(
             stop_status = str(outcome["status"])
             chunk_receipts.append({"chunk_index": chunk.chunk_index, "chunk_sha256": chunk.chunk_sha256, **dict(outcome)})
             break
-        if outcome.get("status") not in {"SUCCEEDED", "SUCCEEDED_REUSED", "SUCCEEDED_REUSED_R1"}:
+        if outcome.get("status") not in {
+            "SUCCEEDED",
+            "SUCCEEDED_REUSED",
+            "SUCCEEDED_REUSED_R1",
+            "SUCCEEDED_REUSED_CONTINUATION_SOURCE",
+        }:
             stop_status = str(outcome.get("status") or "FAILED_NO_RETRY")
             chunk_receipts.append({"chunk_index": chunk.chunk_index, "chunk_sha256": chunk.chunk_sha256, **dict(outcome)})
             break
@@ -2149,6 +2754,17 @@ def _run_document(
                 source_characters=sum(len(item["text"]) for item in group),
                 source_text_sha256=_sha256(_json_bytes(group)),
             )
+            payload, is_recovery_target = _bind_continuation_payload(payload, continuation)
+            recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
+            prior_queue_root = (
+                recovery_binding.get("prior_queue_root")
+                if isinstance(recovery_binding, dict)
+                else None
+            )
+            recovery_target_pending = bool(
+                isinstance(recovery_binding, dict)
+                and not continuation["recovery_target_reached"].is_set()
+            )
             outcome = _perform_request(
                 queue,
                 payload,
@@ -2160,11 +2776,18 @@ def _run_document(
                 request_fn=request_fn,
                 sleep_fn=sleep_fn,
                 stop_event=stop_event,
+                prior_queue_root=prior_queue_root,
+                recovery_target_pending=recovery_target_pending,
             )
             progress["model_requests"] += int(bool(outcome.get("attempted")))
             progress.setdefault("synthesis_states", {})[f"{synth_level}:{group_index}"] = outcome["status"]
             _save_progress(state_root, doc_root, progress)
-            if outcome.get("status", "").startswith("DEFERRED") or outcome.get("status") not in {"SUCCEEDED", "SUCCEEDED_REUSED", "SUCCEEDED_REUSED_R1"}:
+            if outcome.get("status", "").startswith("DEFERRED") or outcome.get("status") not in {
+                "SUCCEEDED",
+                "SUCCEEDED_REUSED",
+                "SUCCEEDED_REUSED_R1",
+                "SUCCEEDED_REUSED_CONTINUATION_SOURCE",
+            }:
                 stop_status = str(outcome.get("status") or "FAILED_NO_RETRY")
                 break
             name = f"synthesis-{synth_level:02d}-{group_index:06d}-{_sha256(envelope)[:12]}"
@@ -2200,6 +2823,9 @@ def _run_document(
         _write_state_json(doc_root / "receipt.json", receipt, state_root)
         _save_progress(state_root, doc_root, {**progress, "status": stop_status, "resume_scope": "UNFINISHED_ONLY"})
         return receipt
+    if isinstance(continuation, dict) and isinstance(continuation.get("recovery_binding"), dict):
+        if not continuation["recovery_target_reached"].is_set():
+            raise BatchError("CONTINUATION_RECOVERY_TARGET_NOT_REACHED")
     final_report = current_reports[0]["text"]
     report_path = doc_root / "report.md"
     report_sha = _write_immutable(report_path, final_report.encode("utf-8"), state_root)
@@ -2541,14 +3167,24 @@ def _run_batch_impl(
     max_documents: int = 3,
     wait_fn: Callable[[threading.Event, float], bool] | None = None,
     stop_event: threading.Event,
+    continuation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     local_model.require_runtime_python()
     manifest, manifest_sha, documents = load_manifest(manifest_path)
-    if type(max_documents) is not int or max_documents < 1:
+    if continuation is None and (type(max_documents) is not int or max_documents < 1):
         raise BatchError("MAX_DOCUMENTS_INVALID")
-    if tuple(str(row.get("document_id")) for row in documents[: len(EXPECTED_CANARY_DOCUMENT_IDS)]) != EXPECTED_CANARY_DOCUMENT_IDS:
-        raise BatchError("FROZEN_REPORT_CANARY_PREFIX_MISMATCH")
-    state_root = state_root.expanduser().absolute()
+    if continuation is None:
+        if tuple(str(row.get("document_id")) for row in documents[: len(EXPECTED_CANARY_DOCUMENT_IDS)]) != EXPECTED_CANARY_DOCUMENT_IDS:
+            raise BatchError("FROZEN_REPORT_CANARY_PREFIX_MISMATCH")
+        documents = documents[:max_documents]
+        state_root = state_root.expanduser().absolute()
+    else:
+        if manifest_sha != continuation["plan"]["manifest_sha256"]:
+            raise BatchError("CONTINUATION_MANIFEST_SHA_MISMATCH")
+        state_root = Path(continuation["state_root"]).expanduser().absolute()
+        documents = list(continuation["selected_documents"])
+        if not documents:
+            raise BatchError("CONTINUATION_SELECTION_EMPTY")
     r1_root = R1_STATE_ROOT.expanduser().absolute().resolve(strict=False)
     resolved_state_root = state_root.resolve(strict=False)
     if resolved_state_root == r1_root or r1_root in resolved_state_root.parents:
@@ -2563,12 +3199,23 @@ def _run_batch_impl(
             binding = local_model.build_request_material(RESPONSE_SCHEMA)
             if binding.get("runtime_settings_sha256") != EXPECTED_RUNTIME_SHA256:
                 raise BatchError("FROZEN_RUNTIME_SETTINGS_SHA_MISMATCH")
-            if binding.get("model_settings_sha256") != EXPECTED_MODEL_SETTINGS_SHA256:
-                raise BatchError("FROZEN_MODEL_SETTINGS_SHA_MISMATCH")
+            expected_model_settings_sha256 = (
+                continuation["expected_model_settings_sha256"]
+                if continuation is not None
+                else EXPECTED_MODEL_SETTINGS_SHA256
+            )
+            if binding.get("model_settings_sha256") != expected_model_settings_sha256:
+                raise BatchError(
+                    "CONTINUATION_MODEL_SETTINGS_SHA_MISMATCH"
+                    if continuation is not None
+                    else "FROZEN_MODEL_SETTINGS_SHA_MISMATCH"
+                )
             if Path(str(binding.get("runtime_python", ""))).resolve() != local_model.RUNTIME_PYTHON.resolve():
                 raise BatchError("FROZEN_RUNTIME_INTERPRETER_MISMATCH")
             if Path(str(binding.get("evidence_root", ""))).resolve(strict=False) != evidence_root.resolve(strict=False):
                 raise BatchError("TEMP_EVIDENCE_ROOT_BINDING_MISMATCH")
+            if continuation is not None:
+                _write_immutable(state_root / "continuation-plan.json", continuation["plan_raw"], state_root)
             queue, shared_lock = queue_factory(state_root)
             identity_state: dict[str, Any] = {"status": "NOT_CHECKED"}
 
@@ -2587,6 +3234,12 @@ def _run_batch_impl(
                     raise BatchError("BATCH_PROGRESS_INVALID") from None
                 if not isinstance(previous_progress, dict) or previous_progress.get("manifest_sha256") != manifest_sha:
                     raise BatchError("BATCH_PROGRESS_MANIFEST_MISMATCH")
+                if continuation is not None and (
+                    previous_progress.get("continuation_id") != continuation["plan"]["continuation_id"]
+                    or previous_progress.get("continuation_plan_sha256") != continuation["plan_sha256"]
+                    or previous_progress.get("model_settings_sha256") != expected_model_settings_sha256
+                ):
+                    raise BatchError("CONTINUATION_PROGRESS_BINDING_MISMATCH")
                 started_at = str(previous_progress.get("started_at_utc") or started_at)
                 for row in previous_progress.get("documents", []):
                     if isinstance(row, dict) and isinstance(row.get("document_id"), str):
@@ -2600,7 +3253,7 @@ def _run_batch_impl(
                 "manifest_sha256": manifest_sha,
                 "document_count": len(documents),
                 "manifest_document_count": manifest.get("document_count", len(manifest.get("documents", []))),
-                "max_documents_this_tick": max_documents,
+                "max_documents_this_tick": len(documents) if continuation is not None else max_documents,
                 "queue_root": str(queue.state_root),
                 "shared_model_lock_path": str(shared_lock),
                 "model_id": local_model.MODEL_ID,
@@ -2614,6 +3267,17 @@ def _run_batch_impl(
                 "documents": list(prior_documents.values()),
                 "retryable_defer_waits": [],
             }
+            if continuation is not None:
+                batch_receipt.update(
+                    {
+                        "continuation_id": continuation["plan"]["continuation_id"],
+                        "continuation_plan_sha256": continuation["plan_sha256"],
+                        "selected_prior_statuses": {
+                            document_id: entry["prior_status"]
+                            for document_id, entry in continuation["selected_entries"].items()
+                        },
+                    }
+                )
             _write_state_json(progress_path, batch_receipt, state_root)
             stop_batch = False
             repair_budget = {"remaining": MAX_REPAIR_PAGES_PER_TICK}
@@ -2623,6 +3287,24 @@ def _run_batch_impl(
                     batch_receipt["stop_reason"] = "SIGTERM_REQUESTED"
                     break
                 doc_sha = str(document["pdf_sha256"])
+                doc_continuation: dict[str, Any] | None = None
+                selected_entry: Mapping[str, Any] | None = None
+                preserve_existing_success = False
+                if continuation is not None:
+                    selected_entry = continuation["selected_entries"][doc_sha]
+                    doc_continuation = {
+                        "plan": continuation["plan"],
+                        "plan_sha256": continuation["plan_sha256"],
+                        "entry": selected_entry,
+                    }
+                    recovery_binding = continuation["recovery_bindings"].get(doc_sha)
+                    if recovery_binding is not None:
+                        doc_continuation.update(
+                            {
+                                "recovery_binding": recovery_binding,
+                                "recovery_target_reached": threading.Event(),
+                            }
+                        )
                 retry_count = 0
                 while True:
                     try:
@@ -2646,6 +3328,7 @@ def _run_batch_impl(
                                 sleep_fn=sleep_fn,
                                 stop_event=stop_event,
                                 repair_budget=repair_budget,
+                                continuation=doc_continuation,
                             )
                     except Exception as exc:
                         code = getattr(exc, "code", None) or type(exc).__name__
@@ -2665,7 +3348,6 @@ def _run_batch_impl(
                         doc_root = state_root / "documents" / doc_sha
                         doc_root.mkdir(mode=0o700, parents=True, exist_ok=True)
                         existing_receipt_path = doc_root / "receipt.json"
-                        preserve_existing_success = False
                         if existing_receipt_path.is_file() and not existing_receipt_path.is_symlink():
                             try:
                                 existing_receipt = json.loads(existing_receipt_path.read_text(encoding="utf-8"))
@@ -2736,10 +3418,48 @@ def _run_batch_impl(
                     _write_state_json(progress_path, batch_receipt, state_root)
                 if identity_state.get("status") != "NOT_CHECKED":
                     batch_receipt["model_identity"] = dict(identity_state)
+                recovery_of = None
+                if continuation is not None and selected_entry is not None:
+                    recovery = selected_entry.get("recovery")
+                    if isinstance(recovery, dict):
+                        recovery_of = {
+                            "generation": 1,
+                            "prior_idempotency_key": recovery["prior_queue_idempotency_key"],
+                            "prior_payload_sha256": recovery["prior_payload_sha256"],
+                            "prior_raw_sha256": recovery["prior_raw_sha256"],
+                        }
+                    outcome = dict(outcome)
+                    outcome["continuation"] = {
+                        "continuation_id": continuation["plan"]["continuation_id"],
+                        "plan_sha256": continuation["plan_sha256"],
+                        "manifest_sha256": manifest_sha,
+                        "runtime_settings_sha256": binding["runtime_settings_sha256"],
+                        "model_settings_sha256": binding["model_settings_sha256"],
+                        "selected_prior_status": selected_entry["prior_status"],
+                        "recovery_of": recovery_of,
+                    }
+                    if not preserve_existing_success:
+                        _write_state_json(
+                            state_root / "documents" / doc_sha / "receipt.json",
+                            outcome,
+                            state_root,
+                        )
                 progress_row = {
                     "document_id": doc_sha,
                     "status": outcome.get("status"),
                 }
+                if continuation is not None and selected_entry is not None:
+                    progress_row.update(
+                        {
+                            "continuation_id": continuation["plan"]["continuation_id"],
+                            "continuation_plan_sha256": continuation["plan_sha256"],
+                            "manifest_sha256": manifest_sha,
+                            "runtime_settings_sha256": binding["runtime_settings_sha256"],
+                            "model_settings_sha256": binding["model_settings_sha256"],
+                            "selected_prior_status": selected_entry["prior_status"],
+                            "recovery_of": recovery_of,
+                        }
+                    )
                 if outcome.get("review_reference"):
                     progress_row.update(
                         {
@@ -2784,7 +3504,18 @@ def run_batch(
     sleep_fn: Callable[[float], Any] = time.sleep,
     max_documents: int = 3,
     wait_fn: Callable[[threading.Event, float], bool] | None = None,
+    continuation_plan_path: Path | None = None,
 ) -> dict[str, Any]:
+    continuation = None
+    if continuation_plan_path is not None:
+        _manifest, manifest_sha, documents = load_manifest(manifest_path)
+        continuation = validate_continuation_plan(
+            continuation_plan_path,
+            manifest_sha256=manifest_sha,
+            documents=documents,
+        )
+        state_root = continuation["state_root"]
+        max_documents = len(continuation["selected_documents"])
     with _cooperative_sigterm_handler() as stop_event:
         return _run_batch_impl(
             manifest_path,
@@ -2797,28 +3528,63 @@ def run_batch(
             max_documents=max_documents,
             wait_fn=wait_fn,
             stop_event=stop_event,
+            continuation=continuation,
         )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
-    parser.add_argument("--max-documents", type=int, default=3, help="default to the frozen three-document canary prefix")
+    parser.add_argument("--max-documents", type=int, help="limit the frozen three-document canary prefix")
+    parser.add_argument("--continuation-plan", type=Path, help="validate or execute a frozen explicit continuation subset")
     parser.add_argument("--execute", action="store_true", help="run the frozen batch; without this flag only validate the manifest")
     args = parser.parse_args(argv)
     try:
         manifest, manifest_sha, documents = load_manifest(args.manifest)
-        if args.max_documents < 1:
+        max_documents = args.max_documents if args.max_documents is not None else 3
+        if max_documents < 1:
             raise BatchError("MAX_DOCUMENTS_INVALID")
+        if args.continuation_plan is not None and args.max_documents is not None:
+            raise BatchError("CONTINUATION_MAX_DOCUMENTS_NOT_ALLOWED")
+        if args.continuation_plan is not None:
+            continuation = validate_continuation_plan(
+                args.continuation_plan,
+                manifest_sha256=manifest_sha,
+                documents=documents,
+            )
+            if not args.execute:
+                print(json.dumps({
+                    "status": "PLAN_ONLY",
+                    "continuation_id": continuation["plan"]["continuation_id"],
+                    "continuation_plan_sha256": continuation["plan_sha256"],
+                    "manifest_sha256": manifest_sha,
+                    "runtime_settings_sha256": continuation["plan"]["runtime_settings_sha256"],
+                    "model_settings_sha256": continuation["expected_model_settings_sha256"],
+                    "selected_document_count": len(continuation["selected_documents"]),
+                    "selected_prior_statuses": {
+                        document_id: entry["prior_status"]
+                        for document_id, entry in continuation["selected_entries"].items()
+                    },
+                    "state_root": str(continuation["state_root"]),
+                    "execution": "NOT_RUN",
+                }, ensure_ascii=False, sort_keys=True))
+                return 0
+            result = run_batch(
+                args.manifest,
+                max_documents=len(continuation["selected_documents"]),
+                continuation_plan_path=args.continuation_plan,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
         if not args.execute:
             print(json.dumps({
                 "status": "PLAN_ONLY",
                 "manifest_sha256": manifest_sha,
                 "manifest_document_count": len(documents),
-                "selected_document_count": min(args.max_documents, len(documents)),
+                "selected_document_count": min(max_documents, len(documents)),
             }, ensure_ascii=False))
             return 0
-        result = run_batch(args.manifest, max_documents=args.max_documents)
+        result = run_batch(args.manifest, max_documents=max_documents)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
     except Exception as exc:
