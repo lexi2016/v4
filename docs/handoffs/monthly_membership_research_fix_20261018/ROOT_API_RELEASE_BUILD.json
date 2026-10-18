@@ -1,0 +1,127 @@
+{
+  "status": "INACTIVE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "runtime": "api",
+  "base_release_id": "us-19-evidence-api-20261018-r2",
+  "base_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app",
+  "base_plist_sha256": "4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202",
+  "base_manifest_sha256": "d43de68a53eda8dba1c3f01a4dd59d36ec06068bfda7a9e3d65416848877a07b",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2",
+  "candidate_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2/app",
+  "candidate_manifest_sha256": "b5023596734381d0773f258bfa458a7daa1dce8eef89803a06c849cadd474eae",
+  "candidate_inventory_sha256": "bcc0b9fdafeb1a8b65b82b422dc9a21fa39d97d6d04212a49630786f7d33b431",
+  "delta_paths": [
+    "apps/web/dist/assets/managerSelection-C_D9h9ai.css",
+    "apps/web/dist/assets/managerSelection-VTH3vzY6.js",
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "apps/web/src/manager-workbench/types.ts",
+    "apps/web/src/manager-workbench/workbench.css",
+    "v4/manager_workbench/display_read.py",
+    "v4/manager_workbench/engines/us_factor.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py"
+  ],
+  "delta_entries": [
+    {
+      "path": "apps/web/dist/assets/managerSelection-C_D9h9ai.css",
+      "before_sha256": null,
+      "after_sha256": "9b0215b987ac560b7dbc759c224f1a04fc98af1c627d4a3d052200997125e040",
+      "unified_diff_sha256": null,
+      "unified_diff_hunk_count": null
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-VTH3vzY6.js",
+      "before_sha256": null,
+      "after_sha256": "b0ad974c58be08f21eeebed596a67cdf4594104b921691bbc70b0d22fea7de24",
+      "unified_diff_sha256": null,
+      "unified_diff_hunk_count": null
+    },
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "before_sha256": "73604a1e8b7bb5eac97ddedd967c3cb6d1a3e3e5accd5cbd4514fdc2fe9e0330",
+      "after_sha256": "ec0d79ec00add56b9d4cc56eafe5a46b38585e28cdf69a114e13fd4fc9258333",
+      "unified_diff_sha256": "10e8564ae01ceb845cac8ec8c31aa63c941b03e45504253edd5ee45326711a15",
+      "unified_diff_hunk_count": 1
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "bf5638802b9607cd8c75e1e1f8ebaac5d7ca45500bf90ba2329fa046ab317b3c",
+      "after_sha256": "7a762eacc161ce6558f0b8fafca26c5d2997ba09012f6e5fea3f8f99f3225999",
+      "unified_diff_sha256": "b045f64e89adca5ce400280c838f9a70398141d833f8472b2e1eb8053f081f40",
+      "unified_diff_hunk_count": 3
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "before_sha256": "27b39943640f7ab4d75f54d2eb05c838f1b7f659f39da42cce22179c8a3087dd",
+      "after_sha256": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f",
+      "unified_diff_sha256": "f4d734efa08e1496e508588c682651ad84539a9c8119144a45a9cb13c6253e8a",
+      "unified_diff_hunk_count": 2
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "1725412404ba4ad4d5bfbafa251ef9ac67fda312e1599860dd54e3855aeeefbc",
+      "after_sha256": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+      "unified_diff_sha256": "08cf1012276bdcdf57ac9da2ddd9437e8cf1836319c93b8a2774238ea90dd56f",
+      "unified_diff_hunk_count": 2
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "before_sha256": "05b941c696d6a0917b55623c8902c744b0710581e78e34c777469b2ef854d516",
+      "after_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+      "unified_diff_sha256": "6b7e5f410a296b58dfddaf90408983837da3d9fee431bacce3c09b6f7a052efa",
+      "unified_diff_hunk_count": 1
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "before_sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc",
+      "after_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+      "unified_diff_sha256": "5b351e901407ad884f6f50a6a694e260b6120e88df2e80341d30aff71672abf8",
+      "unified_diff_hunk_count": 4
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "before_sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+      "after_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "unified_diff_sha256": "fa7ba7261099f2b4c08b1f8e95ec4b74f564b8ea80c0500076108ebfbc70ee20",
+      "unified_diff_hunk_count": 21
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "d95ee18bad508a7786f97ed8fea4d90674ccbc24d15e181020b3f73e7a240b71",
+      "after_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49",
+      "unified_diff_sha256": "35953ab87383edd5b5ecb1d4d351ffad60698e11536e014b26ec5cafcb3ddf29",
+      "unified_diff_hunk_count": 11
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "97a617c51e0e1b9c27d01fca0d77a691c6793ed37d0b9085ec07d1367fe22f2f",
+      "after_sha256": "44b6552e734c02e29850f1df6d422afc5f704c858c751fd443041e9500813981",
+      "unified_diff_sha256": "1a537babc9822ea18e3f768b7e24ba29f8e62f645002bacc2bdd429fdb436bb1",
+      "unified_diff_hunk_count": 3
+    }
+  ],
+  "non_delta_preserved_count": 1237,
+  "non_delta_inventory_sha256": "61179fe8c087f8657142b02f7f8ba83b2530ab52e5e8b1f9d3256df105023525",
+  "staged_plist_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2/config/com.lexi.v35.api-only.plist",
+  "staged_plist_sha256": "842d255dd4404c6ae43693830b67b8f7bc27fe2d8a8d830efab08445bd154477",
+  "rollback_plist_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2/config/rollback-com.lexi.v35.api-only.plist",
+  "rollback_plist_sha256": "4eee165c86e8462817eae446a4f60c56c59066e910570e8b323f5769d0360202",
+  "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+  "new_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+  "new_config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+  "config_changed": false,
+  "schedule_preserved": true,
+  "effective_identity_checked_keys": [
+    "PYTHONPATH",
+    "V35_APP_ROOT",
+    "V35_RELEASE_ID",
+    "V35_RELEASE_MANIFEST_PATH",
+    "V35_RELEASE_MANIFEST_SHA256",
+    "V4_MANAGER_WORKBENCH_CONFIG_PATH"
+  ],
+  "effective_child_identity_matches_declared": true,
+  "writer_receipt_sha256": "9f907a42952e93dae07e8207d79ad7c963a446022c9741c96399c165fd5fa71a",
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench",
+  "activated": false
+}

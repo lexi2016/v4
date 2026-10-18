@@ -1,0 +1,26 @@
+{
+  "status": "BUILT_FROM_ACTIVE_API_SOURCE_PLUS_REVIEW_SCOPE",
+  "base": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-api-20261018-r2/app/apps/web",
+  "source_overlays": [
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/types.ts",
+    "apps/web/src/manager-workbench/workbench.css",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts"
+  ],
+  "entry": "manager-selection/index.html",
+  "generated_files": [
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "sha256": "ec0d79ec00add56b9d4cc56eafe5a46b38585e28cdf69a114e13fd4fc9258333"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-VTH3vzY6.js",
+      "sha256": "b0ad974c58be08f21eeebed596a67cdf4594104b921691bbc70b0d22fea7de24"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-C_D9h9ai.css",
+      "sha256": "9b0215b987ac560b7dbc759c224f1a04fc98af1c627d4a3d052200997125e040"
+    }
+  ],
+  "other_entrypoints_rebuilt": false
+}

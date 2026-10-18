@@ -1,0 +1,71 @@
+{
+  "status": "INACTIVE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "runtime": "scheduler",
+  "base_release_id": "us-19-evidence-scheduler-20261018-r2",
+  "base_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-19-evidence-scheduler-20261018-r2/app",
+  "base_plist_sha256": "b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37",
+  "base_manifest_sha256": "47f96e48a15eb2735c9bd4bdcb3efc672455291424f995aaa6d3fda11c03840a",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-scheduler-20261018-r2",
+  "candidate_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-scheduler-20261018-r2/app",
+  "candidate_manifest_sha256": "8335f566cb329fcf534606f4ae638368cc894faa35b72f8666c2e7daa1540269",
+  "candidate_inventory_sha256": "696c991619376b3142876c18f7a18d8251e7711cdb336e43127a62f99b73e4f6",
+  "delta_paths": [
+    "v4/manager_workbench/display_read.py",
+    "v4/manager_workbench/engines/us_factor.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py"
+  ],
+  "delta_entries": [
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "before_sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc",
+      "after_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+      "unified_diff_sha256": "5b351e901407ad884f6f50a6a694e260b6120e88df2e80341d30aff71672abf8",
+      "unified_diff_hunk_count": 4
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "before_sha256": "cbe698a3c43889c5db716f43837dbdd5bab1714fd6e7252b4ed8fa6783262d50",
+      "after_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "unified_diff_sha256": "fa7ba7261099f2b4c08b1f8e95ec4b74f564b8ea80c0500076108ebfbc70ee20",
+      "unified_diff_hunk_count": 21
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "f78a68212f21147eab15c15b0bbc792a3537d02a6c5df35e3bd5afd049eb3f9d",
+      "after_sha256": "912c74387fd2bd03832bd663b5f92e83702a3cfaeefa1b76bf6e9208e97ec83f",
+      "unified_diff_sha256": "f319ef465177b0cb75c6d72bf8497a55cf85819da1c36761a66903b479a0229e",
+      "unified_diff_hunk_count": 11
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "94697aea65ea3d65f7f6964373192e65ceda4927a289e164dfa2516123803268",
+      "after_sha256": "777d260aa80aaaf604d95f3bc07b0885b96c7867df1d6431fb8c03f9a1662867",
+      "unified_diff_sha256": "1a537babc9822ea18e3f768b7e24ba29f8e62f645002bacc2bdd429fdb436bb1",
+      "unified_diff_hunk_count": 3
+    }
+  ],
+  "non_delta_preserved_count": 859,
+  "non_delta_inventory_sha256": "54071380fafb927f538fc50b7ae3bb73fa5b9c3915ea4f1248101bca68de4cec",
+  "staged_plist_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-scheduler-20261018-r2/config/com.lexi.v35.scheduler.plist",
+  "staged_plist_sha256": "afa5cd7d8c34f7eddc60560be6e431734386d2063040ee6d7e28d164af010bf7",
+  "rollback_plist_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-scheduler-20261018-r2/config/rollback-com.lexi.v35.scheduler.plist",
+  "rollback_plist_sha256": "b48876fc394b014ef824bd7a18674ee8782e170167556d63d268e46e64176d37",
+  "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+  "new_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-scheduler-20261018-r1.json",
+  "new_config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+  "config_changed": false,
+  "schedule_preserved": true,
+  "effective_identity_checked_keys": [
+    "PYTHONPATH",
+    "V35_APP_ROOT",
+    "V35_RELEASE_ID",
+    "V35_RELEASE_MANIFEST_PATH",
+    "V35_RELEASE_MANIFEST_SHA256",
+    "V4_MANAGER_WORKBENCH_CONFIG_PATH"
+  ],
+  "effective_child_identity_matches_declared": true,
+  "writer_receipt_sha256": "9f907a42952e93dae07e8207d79ad7c963a446022c9741c96399c165fd5fa71a",
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench",
+  "activated": false
+}

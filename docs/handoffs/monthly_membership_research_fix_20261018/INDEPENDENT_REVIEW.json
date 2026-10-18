@@ -1,0 +1,97 @@
+{
+  "schema_version": "v4.monthly_membership_independent_review.r2.v1",
+  "reviewer_identity": "/root/monthly_direction_review",
+  "writer_identity": "daily_chain_writer",
+  "status": "REVIEWED",
+  "verdict": "PASS",
+  "scope_sha256": "db18939a6266b6e1bd1c4b230c458300cce522e5d462a73fa3a892cb77914eb7",
+  "writer_r2_receipt_sha256": "9f907a42952e93dae07e8207d79ad7c963a446022c9741c96399c165fd5fa71a",
+  "actual_diff_review": {
+    "r2_scope_baseline": "ROOT_R2_BASELINE.json",
+    "api_candidate_delta_paths": [
+      "apps/web/dist/assets/managerSelection-C_D9h9ai.css",
+      "apps/web/dist/assets/managerSelection-VTH3vzY6.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "apps/web/src/manager-workbench/types.ts",
+      "apps/web/src/manager-workbench/workbench.css",
+      "v4/manager_workbench/display_read.py",
+      "v4/manager_workbench/engines/us_factor.py",
+      "v4/manager_workbench/inputs/native.py",
+      "v4/manager_workbench/inputs/source_bindings.py"
+    ],
+    "scheduler_candidate_delta_paths": [
+      "v4/manager_workbench/display_read.py",
+      "v4/manager_workbench/engines/us_factor.py",
+      "v4/manager_workbench/inputs/native.py",
+      "v4/manager_workbench/inputs/source_bindings.py"
+    ],
+    "frozen_runtime_workbench_source": {
+      "sha256": "7a762eacc161ce6558f0b8fafca26c5d2997ba09012f6e5fea3f8f99f3225999",
+      "note": "The API build manifest binds this frozen runtime source; current canonical Workbench.vue is a later source copy with copy/ARIA/format details. Candidate target list behavior is present in its build JS and passed the saved-lane UI test."
+    },
+    "findings": []
+  },
+  "evidence": {
+    "release_verification": {
+      "path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r2/release_verification.json",
+      "sha256": "fdd65cf766fccbfdc9e80bc74eaf9192faf5e1d30c4cabae073f66290ef0bfae",
+      "status": "PASS"
+    },
+    "saved_input_behavior": {
+      "path": "docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r2/target_behavior_verification.json",
+      "sha256": "76e55044315125089d9bb8e39af1ac178f9c99692628bc71163ec0e90f74595a",
+      "status": "PASS_OFFLINE_SAVED_INPUT"
+    },
+    "engine_display_pytest": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r2/pytest-engine-display tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/runtime/test_us_factor_display.py",
+      "result": "32 passed"
+    },
+    "monthly_membership_pytest": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/monthly_membership_research_fix_20261018/local_only/reviewer_r2/pytest-focused tests/test_manager_us_mapping_bindings_r3.py tests/manager_workbench/engines/test_us_factor.py -k \"connect_membership_requires_explicit_target_covering_interval or native_membership_resolves_monthly_observation or native_membership_enriches_matching_frozen_owner_pin or latest_observed_monthly_universe\"",
+      "result": "8 passed, 28 deselected"
+    },
+    "saved_lane_ui_vitest": {
+      "command": "./node_modules/.bin/vitest run src/manager-workbench/__tests__/us_factor.spec.ts -t \"shows full saved-lane proxy directions\" (cwd=docs/handoffs/monthly_membership_research_fix_20261018/local_only/web_build_r2)",
+      "result": "1 passed, 2 skipped"
+    },
+    "github_sync_readback": {
+      "status": "REMOTE_COMMIT_AND_ALL_FILE_BYTES_VERIFIED",
+      "repository": "lexi2016/v4",
+      "branch": "codex/monthly-membership-research-20261018",
+      "commit": "7487dc84445b0241fd7a37addcab0c9b0fb94be7",
+      "verified_file_count": 16
+    }
+  },
+  "non_blocking_validation_caveat": {
+    "status": "CANNOT_CONFIRM_OUT_OF_SCOPE_WORKTREE_CHANGE",
+    "current_workspace_broad_suite": "40 passed, 1 failed; current log: local_only/reviewer_r2/pytest-broad-current.log",
+    "failure": "test_source_binding_carries_configured_quote_scope_and_proposal_sources fails at ResearchPeripheralStore.publish because a fixture marks 47/49 quote coverage READY; failure occurs before membership/source-binding assertions at infrastructure/_research_peripheral_store_parts/market_validation.py:146.",
+    "frozen_pre_r1_baseline": "the exact preimage test run with baseline API source modules passed 1/1; log: local_only/reviewer_r2/pytest-pre-r1-baseline.log.",
+    "working_tree_out_of_scope_files": "infrastructure/research_peripheral_store.py and ops/materialize_research_peripherals.py are modified; infrastructure/_research_peripheral_store_parts/market_validation.py and ops/us_market_digest.py are untracked. They are not in this R2 candidate delta.",
+    "classification": "not a finding against the frozen R2 delta; whether unrelated worktree changes should affect another acceptance scope is CANNOT_CONFIRM."
+  },
+  "acceptance_states": {
+    "candidate_code_review": "REVIEWED_PASS",
+    "focused_tests": "TESTED_PASS",
+    "offline_saved_input_behavior": "BEHAVIOR_VERIFIED_PASS",
+    "api_scheduler_candidate_integrity": "PASS_INACTIVE_CANDIDATES",
+    "schedule_config_safety": "PASS_UNCHANGED_CAPTURE_DISABLED_RESEARCH_ONLY",
+    "github_remote_commit_and_file_sha": "PASS_RECEIPT_VERIFIED",
+    "activation_or_deployment": "NOT_RUN_ROOT_OWNED",
+    "manual_run_after_activation": "CANNOT_CONFIRM_ROOT_OWNED",
+    "live_api_readback": "CANNOT_CONFIRM",
+    "live_ui_readback": "CANNOT_CONFIRM",
+    "natural_slot": "CANNOT_CONFIRM",
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "historical_pit_verified": false
+  },
+  "reviewer_side_effects": {
+    "production_code_changed": false,
+    "services_or_jobs_touched": false,
+    "capture_enabled": false,
+    "owner_write": false,
+    "network_used_for_business_data": false
+  }
+}
