@@ -1,0 +1,157 @@
+{
+  "schema_version": "writer.r4_copy_receipt.v1",
+  "status": "TESTED_CANDIDATE_READY_FOR_INDEPENDENT_REVIEW",
+  "goal": "Correct the single US_MAPPING paragraph count-unit mismatch without changing count or direction logic.",
+  "writer": "daily_chain_writer Luna Max",
+  "reviewer": "independent reviewer assigned by root",
+  "scope_path": "docs/handoffs/monthly_membership_research_fix_20261018/R4_COPY_SCOPE.json",
+  "scope_sha256": "4faf8a2a660dd731a92ded28d1494d5f9cbdfc042c78a3cb36b788d479afc136",
+  "trigger_review": {
+    "path": "docs/handoffs/monthly_membership_research_fix_20261018/INDEPENDENT_R3_LIVE.json",
+    "sha256": "bf5cde15091a0be8095f1262fc95f5d7c4b927cb46067041be6c8f91f0862d70",
+    "finding": "FAIL_P2_COUNT_UNIT_WORDING_MISMATCH"
+  },
+  "immutable_base": {
+    "release_id": "monthly-membership-api-20261018-r3",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/app",
+    "release_manifest_sha256": "7ad0c2fe45fc4edb620b15de72c5012ba8f6b7dcd2f22f4c3e462827ec54f608",
+    "files": {
+      "Workbench.vue": "44643f793b080c0358e6d8c92b5ca9a8282d461a653fcbe438a07cd43733d088",
+      "us_factor.spec.ts": "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77"
+    }
+  },
+  "declared_delta_paths": [
+    [
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "86bbb2f5c763dd5a46e11768abd5ba13f085aaf8dec301deced3732e4790107c",
+      "7f7895f0b6289ff8382074b620bdae3823a5ac47050340be48ee878c5445dc9a",
+      "Replace only the ambiguous source paragraph: relation rows display mapped HK stocks; candidate-pool stock count labeled separately."
+    ],
+    [
+      "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77",
+      "cab75abef9e6ef34135f8613a52b3391a48f1d253a7ff09fca6e122acd00da1c",
+      "Update focused saved-run fixture to 60/36/19/701 and 0/153/437/111; assert the distinct count units render."
+    ],
+    [
+      "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/Workbench.vue",
+      "44643f793b080c0358e6d8c92b5ca9a8282d461a653fcbe438a07cd43733d088",
+      "fe8ea5def4834ee548b95d82313e52193404bf8a5e78182a5b86fb4afacf10e3",
+      "Apply the same one-paragraph delta atop deployed immutable R3 source."
+    ],
+    [
+      "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77",
+      "cab75abef9e6ef34135f8613a52b3391a48f1d253a7ff09fca6e122acd00da1c",
+      "Apply the focused test delta atop byte-identical deployed R3 test."
+    ]
+  ],
+  "overlay_support_files_byte_identical_to_r3": [
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "base_and_overlay_sha256": "e517c05557700bdf4fa5c61be9194d14239f33737ab8f58e81e87bdd10e60305"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "base_and_overlay_sha256": "2a414702409758df73fd78b4a7ac6731fa69a62353c0c985cd51f59057aa10fb"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/__tests__/display_reason.spec.ts",
+      "base_and_overlay_sha256": "9b6cbf18710d3edcb4ce26ff3cc4216d91994de83350bcf95259b682bcf10ed0"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/api.ts",
+      "base_and_overlay_sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/display.ts",
+      "base_and_overlay_sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/route.ts",
+      "base_and_overlay_sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/types.ts",
+      "base_and_overlay_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/useWorkbench.ts",
+      "base_and_overlay_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7"
+    },
+    {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/src/manager-workbench/workbench.css",
+      "base_and_overlay_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd"
+    }
+  ],
+  "overlay_test_support": {
+    "path": "local_only/runtime_overlay_r4/app/apps/web/vite.config.ts",
+    "base_and_overlay_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+    "node_modules_symlink": {
+      "path": "local_only/runtime_overlay_r4/app/apps/web/node_modules",
+      "target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+      "purpose": "Direct Vitest dependency resolution only; no install or package-manager execution."
+    }
+  },
+  "rendered_text_contract": {
+    "source_rows": 60,
+    "hk_relation_rows": 36,
+    "mapped_hk_stocks": 19,
+    "full_deduplicated_candidate_pool": 701,
+    "exact_meaning": "36 条含港股关系记录，涉及 19 只港股；全路径去重港股候选池共 701 只。"
+  },
+  "preserved_saved_counts": {
+    "strict_selected": 0,
+    "conditional_watch": 153,
+    "unassessed": 437,
+    "not_selected": 111,
+    "directional_upside": 153,
+    "directional_downside": 109,
+    "catalog_rows_excluded": 1003
+  },
+  "verification": [
+    {
+      "command": "node apps/web/node_modules/vitest/vitest.mjs run src/manager-workbench/__tests__/us_factor.spec.ts --config /Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/runtime_overlay_r4/app/apps/web/vite.config.ts --root /Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/runtime_overlay_r4/app/apps/web",
+      "result": "PASS",
+      "detail": "4 tests passed using the deployed R3-based source overlay and the focused count-unit assertion."
+    }
+  ],
+  "corrected_test_attempts": [
+    {
+      "attempt": "Initial relative --config path",
+      "result": "STARTUP_ERROR",
+      "detail": "Vitest resolved the relative config path under the overlay root; rerun with the absolute config path."
+    },
+    {
+      "attempt": "Absolute config path, first assertion version",
+      "result": "ASSERTION_MISMATCH",
+      "detail": "DOM text included a line-break space; changed the test matcher to normalize whitespace. Application text values were correct."
+    },
+    {
+      "attempt": "Absolute config path after overlay rebase and matcher correction",
+      "result": "PASS_4_TESTS"
+    }
+  ],
+  "validation_of_scope": {
+    "overlay_changed_files_only": [
+      "Workbench.vue",
+      "__tests__/us_factor.spec.ts"
+    ],
+    "all_other_manager_workbench_overlay_files_match_r3": true,
+    "canonical_workbench_preimage_reconstructed_by_reversing_single_delta": true,
+    "no_count_engine_api_or_saved_input_changes": true
+  },
+  "not_performed": [
+    "No engine/data/count/direction logic changes.",
+    "No API call, POST, new run, owner data, service, scheduler, release build, activation, deploy, commit or push."
+  ],
+  "acceptance_state": {
+    "implemented": true,
+    "focused_ui_test_passed": true,
+    "independent_r4_review": "PENDING",
+    "live_r4_api_ui_readback": "CANNOT_CONFIRM_PENDING_ROOT_INTEGRATION"
+  },
+  "remaining_cannot_confirm": [
+    "Fresh live R4 UI readback is pending root integration. Prior pixel screenshot and natural-run checks remain CANNOT_CONFIRM as recorded in the R3 reviewer receipt."
+  ]
+}

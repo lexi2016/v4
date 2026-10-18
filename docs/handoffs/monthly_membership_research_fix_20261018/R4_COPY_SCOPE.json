@@ -1,0 +1,57 @@
+{
+  "schema_version": "writer.r4_count_unit_copy_scope.v1",
+  "goal": "Fix only the misleading US_MAPPING source paragraph that attributes 701 candidate stocks to 36 relation rows. Display the existing mapped_hk_count (19) for those relationships, and label 701 as the full deduplicated candidate pool.",
+  "writer": "daily_chain_writer Luna Max",
+  "reviewer": "independent reviewer assigned by root",
+  "allowed_paths": [
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "docs/handoffs/monthly_membership_research_fix_20261018/R4_COPY_SCOPE.json",
+    "docs/handoffs/monthly_membership_research_fix_20261018/WRITER_R4_RECEIPT.json",
+    "docs/handoffs/monthly_membership_research_fix_20261018/WRITER_R4_RECEIPT.md",
+    "docs/handoffs/monthly_membership_research_fix_20261018/local_only/runtime_overlay_r4/app/**"
+  ],
+  "forbidden_paths_and_actions": [
+    "immutable monthly-membership-api-20261018-r3 release files",
+    "any backend, count, engine, data, direction, source, qualification, PIT, or BUY logic",
+    "API, service, plist, scheduler, configuration, owner data, saved inputs or snapshots",
+    "POST, new run submission, release build, activation, deploy, Git commit or push",
+    "dependency installation or package-manager execution"
+  ],
+  "frozen_review_evidence": {
+    "review_path": "docs/handoffs/monthly_membership_research_fix_20261018/INDEPENDENT_R3_LIVE.json",
+    "review_sha256": "bf5cde15091a0be8095f1262fc95f5d7c4b927cb46067041be6c8f91f0862d70",
+    "review_status": "FAIL_P2_COUNT_UNIT_WORDING_MISMATCH",
+    "saved_run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+    "saved_input_sha256": "1de9655dde06cbd4f15deca41df57eb73d00c00e657e880e0ffe3607d22a6c33",
+    "actual_values": {
+      "source_rows": 60,
+      "hk_relation_rows": 36,
+      "mapped_hk_stocks": 19,
+      "deduplicated_candidate_pool": 701,
+      "strict_selected": 0,
+      "conditional_watch": 153,
+      "upside": 153,
+      "downside": 109
+    },
+    "immutable_api_release": "monthly-membership-api-20261018-r3",
+    "immutable_release_manifest_sha256": "7ad0c2fe45fc4edb620b15de72c5012ba8f6b7dcd2f22f4c3e462827ec54f608"
+  },
+  "baselines": {
+    "canonical": {
+      "apps/web/src/manager-workbench/Workbench.vue": "86bbb2f5c763dd5a46e11768abd5ba13f085aaf8dec301deced3732e4790107c",
+      "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts": "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77"
+    },
+    "immutable_r3_release": {
+      "apps/web/src/manager-workbench/Workbench.vue": "44643f793b080c0358e6d8c92b5ca9a8282d461a653fcbe438a07cd43733d088",
+      "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts": "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77",
+      "apps/web/vite.config.ts": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "base_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/app"
+    }
+  },
+  "allowed_delta": "One sentence in Workbench.vue and focused fixture/assertions in us_factor.spec.ts; all R3 overlay dependencies are byte-identical to the immutable R3 base except the two declared modified paths.",
+  "pass_signal": "Focused Vitest passes with the existing saved values: the source paragraph clearly states 36 HK relation rows involve 19 HK stocks and separately states a full deduplicated candidate pool of 701; strict 0/watch 153 and the saved 153 upside/109 downside remain unchanged. Exact before/after hashes and only declared deltas are recorded.",
+  "stop_rule": "Stop after focused UI test and SHA/diff verification. Any missing field, unexpected source drift, or need to change count/API/business behavior is CANNOT_CONFIRM and must be returned to root for scope decision.",
+  "created_by": "daily_chain_writer",
+  "created_at": "2026-10-18T17:40:00+00:00"
+}

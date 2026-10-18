@@ -275,7 +275,8 @@ function revisionAssessments(value: unknown): [string, unknown][] {
       </div>
       <p v-else class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
       <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条来源研究记录（计数单位：研究记录）；
-        {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条含港股，涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只。
+        {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条含港股关系记录，涉及 {{ vm.day.data.us_mapping_summary?.mapped_hk_count ?? '未知' }} 只港股；
+        全路径去重港股候选池共 {{ vm.day.data.recommendation_projection.candidate_stock_count ?? vm.day.data.recommendation_projection.distinct_hk_count }} 只。
         US_MAPPING 分类计数按去重港股候选股票计算，不受分页影响；默认推荐仅含严格入选和条件观察。无港股关系的来源缺口在下方单独查看。</p>
       <p v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.recommendation_projection?.source_decision_counts" class="mwb-muted">
         美股映射来源记录分类（按行计，不含港股行业候选和目录）：严格入选 {{ showCount(vm.day.data.recommendation_projection.source_decision_counts.selected) }}、

@@ -1,0 +1,24 @@
+{
+  "status": "BUILT_FROM_ACTIVE_API_SOURCE_PLUS_REVIEW_SCOPE",
+  "base": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/app/apps/web",
+  "source_overlays": [
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts"
+  ],
+  "entry": "manager-selection/index.html",
+  "generated_files": [
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "sha256": "1abd6a74f399d797ebf6172935d105f41b667c26e8b6a7073137534322b75ea7"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-xxDl7KiW.js",
+      "sha256": "d9e19967152a07b39ed29926ac8c7d68656ce582eb72bd2cca6b757b1114d630"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-C_D9h9ai.css",
+      "sha256": "9b0215b987ac560b7dbc759c224f1a04fc98af1c627d4a3d052200997125e040"
+    }
+  ],
+  "other_entrypoints_rebuilt": false
+}

@@ -213,10 +213,17 @@ describe("US daily-return factor fixture", () => {
   });
 
   it("shows full de-duplicated US_MAPPING candidate counts separately from the saved 60 source rows", async () => {
-    const stockCounts = { selected: 0, watch: 153, unassessed: 548, observation_only: 0, not_selected: 0 };
+    const stockCounts = { selected: 0, watch: 153, unassessed: 437, observation_only: 0, not_selected: 111 };
     const day = sampleDay({
       counts: stockCounts,
       recommendation_counts: { US_MAPPING: stockCounts },
+      us_mapping_summary: {
+        display_only: true, plan_run_id: "saved-r3-run", source_symbol_count: 48,
+        source_row_count: 60, relation_row_count: 36, mapped_hk_count: 19,
+        source_decision_counts: {}, mixed_source_count: 0,
+        coverage: { scope_count: 48, observed_count: 48, assessed_count: 22, unassessed_count: 26 },
+        groups: []
+      },
       recommendation_projection: {
         display_only: true, lane: "US_MAPPING", row_count: 60, hk_relation_row_count: 36,
         distinct_hk_count: 701, source_only_row_count: 24, count_unit: "SAVED_LANE_RESEARCH_ROWS",
@@ -235,6 +242,12 @@ describe("US daily-return factor fixture", () => {
     expect(screen.getByText(/当前版本严格精选规则尚未启用；本次严格入选 0/)).toBeTruthy();
     expect(screen.getByLabelText("去重港股候选股票分类计数").textContent).toContain("153");
     expect(screen.getByText(/保存 60 条来源研究记录/)).toBeTruthy();
+    const sourceSummary = screen.getByText((_, element) =>
+      element?.tagName === "P" && (element.textContent || "").includes("全路径去重港股候选池共")
+    );
+    const sourceSummaryText = (sourceSummary.textContent || "").replace(/\s+/g, " ");
+    expect(sourceSummaryText).toContain("36 条含港股关系记录，涉及 19 只港股；");
+    expect(sourceSummaryText).toContain("全路径去重港股候选池共 701 只。");
     expect(screen.getByText(/来源记录分类.*待评估 27.*未入选 33/)).toBeTruthy();
   });
 

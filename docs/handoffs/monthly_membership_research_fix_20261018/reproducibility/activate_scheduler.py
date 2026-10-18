@@ -112,7 +112,7 @@ try:
         oldpid=pid_of();assert oldpid is not None and cwd(oldpid)==P['base_app_root'],'ACTIVE_IDENTITY_CHANGED'
         offset=ERR.stat().st_size; deadline=time.monotonic()+55; fresh_tick=None
         while time.monotonic()<deadline:
-            ticks=[x for x in records(ERR,offset) if x.get('schema_version')=='v4.zsxq_pdf_queue_tick.v1' and x.get('status')=='RETRY_BACKOFF']
+            ticks=[x for x in records(ERR,offset) if x.get('schema_version')=='v4.zsxq_pdf_queue_tick.v1' and x.get('status') in ('RETRY_BACKOFF','NO_RETRYABLE_TASKS')]
             if ticks: fresh_tick=ticks[-1];fresh_at=time.monotonic();break
             time.sleep(.2)
         assert fresh_tick is not None,'DEFERRED_NO_FRESH_COMPLETED_TICK'
