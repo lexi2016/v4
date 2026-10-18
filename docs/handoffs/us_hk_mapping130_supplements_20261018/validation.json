@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "scope_unique_hk_codes": 130,
+    "source_relation_rows": 183,
+    "source_directly_covered_hk_codes": 127,
+    "existing_relation_ids_preserved": 183,
+    "reused_evidence_unique_hk_codes_including_alias": 128,
+    "ready_for_research_unique_hk_codes": 126,
+    "no_ready_path_unique_hk_codes": 4,
+    "no_ready_path_codes": [
+      "00317",
+      "00586",
+      "02357",
+      "02922"
+    ],
+    "connected_ready_unique_hk_codes": 26,
+    "output_path_rows": 188,
+    "path_status_counts": {
+      "READY_FOR_RESEARCH": 173,
+      "NO_CLEAR_PROXY": 8,
+      "PENDING_FACT": 7
+    },
+    "unresolved_unique_hk_codes": 16,
+    "unresolved_scope": "4 codes without READY path plus 12 codes with only partial-path/ID/fact issues; quote-only gaps remain in mapping rows, not counted as no mapping",
+    "alias_note": "01196 and 02922 are retained as two input observation codes; R483/R484 alias reuse is not a new issuer or new original relationship. 02922 validity for 2026-10-16 is pending.",
+    "new_without_original_id": [
+      "02635"
+    ],
+    "no_original_path": [
+      "02357"
+    ],
+    "source_handling": "Existing verified facts reused with explicit source-review boundaries; only missing/outdated/conflicting facts checked anew. No claim that all reused URLs were reopened.",
+    "market_data_scope": "No actual 2026-10-16 return values are included; CONNECTED is user-supplied connection list, not proof of successful quote read."
+  },
+  "sha256": {
+    "mapping_supplements.csv": "8a53057c5fd418411c0c6b46073163d8ed460ec66af0ae71a87c85f578d885e3",
+    "mapping_supplements.json": "24c788222420761f657737e56cb30d7b10dc35296708bb95598bd64bcb72ade5",
+    "unresolved.csv": "8c07eb1d5f566e7aecdd6d13cd74ce7094b520b4e412f442b5f9c94cac727e8d"
+  }
+}
