@@ -1,0 +1,19 @@
+# Qwen Mac canary activity-shape repair
+
+The frozen temporary driver had stopped before any model load or sample request because it looked for `total_active_requests` and `total_waiting_requests` at the response top level. The authorized `/admin/api/activity` read returned HTTP 200 with those integer fields nested under `active_models`, matching the existing `AdminSession.activity()` wrapper. Two sanitized reads about 63 seconds apart measured 0 active and 0 waiting requests; the target model was `loaded=false`, `is_loading=false`, and still saved at fraction 1.0. Receipts are `evidence/b1-activity-shape/268cc7a8e45548f6ba25d4948446ab60.json` and `evidence/b1-activity-shape/09747bb2e5604bdf80b7fca3f61defcc.json` under the frozen trial root. They contain only key/type/count metadata and model state, not response bodies or credentials.
+
+The new entrypoint is `ops/run_qwen_mac_memory_trial.py`; it retains the frozen trial root, sample manifest, request inputs, sampling parameters, and fail-closed policies. Its counter parser now accepts the existing wrapper's top-level `active`/`waiting` fields and nested `active_models.total_active_requests`/`total_waiting_requests` fields, while preserving the old top-level `total_*` shape. It requires both values to be nonnegative integers (`bool` is rejected); missing or invalid counts remain `CANNOT_CONFIRM` and do not satisfy the zero-activity gate. The phase-A scope anchor is the current repair scope SHA `284355b83e48c82b33f54d87fa845ba8bc18a9ff2b4b17b36d3b24154de0af55`. The entrypoint imports `infrastructure.local_document_model` from the canonical V4 source at `/Users/lexi/Desktop/学习/v4_app/infrastructure/local_document_model.py` (SHA-256 `9cf40be4310fed978c74058619b982207efcf82b8d4b891405fd3e27a9a1f930`); this module is absent from the W baseline and was neither copied into Git nor deployed. The entrypoint reads the frozen preparation helper and sample inputs from the trial root; generated trial files remain under that root's evidence directory.
+
+The test at `tests/test_qwen_mac_memory_trial_policy.py` preserves the seven reviewed policy tests and adds coverage for the sanitized observed response shape, supported legacy/helper shapes, and missing, invalid, or contradictory counts. The nested fixture uses only the two relevant integer fields; the saved live response body is not included in the repository.
+
+Validation used the installed Qwen runtime Python from the clean worktree:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/lexi/.codex/worktrees/qwen-mac-memory-canary/v4_app /Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python tests/test_qwen_mac_memory_trial_policy.py
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/lexi/.codex/worktrees/qwen-mac-memory-canary/v4_app /Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python ops/run_qwen_mac_memory_trial.py --check
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/lexi/.codex/worktrees/qwen-mac-memory-canary/v4_app /Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python ops/run_qwen_mac_memory_trial.py --fake-sequence
+```
+
+The focused policy tests and offline preflight pass. The fake sequence reports three samples and zero network requests. Both `--run-sequence 1.0` and `--set-fraction 0.9375 --expect-current 1.0` remain fail-closed with `ROOT_PHASE_B_SIGNAL_REQUIRED` while the repair scope is active. No model load, real inference, settings write, service action, deployment, or candidate transition was run in this repair. Independent review and a new root-issued B1 authorization are still required before any real sequence.
+
+`INTEGRATED=NOT_RUN`; `DEPLOYED=NOT_RUN`; `LIVE_B1=NOT_RUN`; `INDEPENDENT_REVIEW=PENDING`. The worktree source depends on the frozen R trial manifest/helper/evidence root and the installed Qwen runtime; neither dependency was copied into Git.
