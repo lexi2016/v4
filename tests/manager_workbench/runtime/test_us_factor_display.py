@@ -40,16 +40,23 @@ def test_factor_projection_keeps_one_stock_and_preserves_relation_path():
     default = lane_projection(snapshot, "US_MAPPING", {})
     assert [(stock["symbol"], stock.get("subtype")) for stock in default["stocks"]] == [
         ("HK.09660", None), ("HK.09926", "US_DAILY_RETURN_FACTOR_CANDIDATE")]
-    assert default["counts"]["watch"] == 2  # Counts include the factor candidate row.
-    assert default["counts"]["not_selected"] == 1
+    assert default["counts"]["watch"] == 2  # One candidate stock decision per HK code.
+    assert default["counts"]["not_selected"] == 0
+    assert default["recommendation_projection"]["source_decision_counts"] == {
+        "selected": 0, "watch": 2, "unassessed": 0, "not_selected": 1, "observation_only": 0,
+    }
     assert default["recommendation_projection"]["distinct_hk_count"] == 2
     assert default["recommendation_projection"]["row_count"] == 3
     assert default["recommendation_projection"]["count_unit"] == "SAVED_LANE_RESEARCH_ROWS"
+    assert default["recommendation_projection"]["recommendation_count_unit"] == "DEDUPLICATED_HK_CANDIDATE_STOCKS"
+    assert default["recommendation_projection"]["candidate_stock_count"] == 2
     assert default["recommendation_projection"]["factor_stock_count"] == 2
 
     negatives = lane_projection(snapshot, "US_MAPPING", {}, "NOT_SELECTED")
     assert len(negatives["stocks"]) == 1
     assert negatives["stocks"][0]["subtype"] == "US_DAILY_RETURN_FACTOR_CANDIDATE"
+    assert negatives["counts"] == default["counts"]
+    assert negatives["recommendation_projection"]["source_decision_counts"] == default["recommendation_projection"]["source_decision_counts"]
 
     summarized = us_summary(snapshot, {})
     assert summarized["source_symbol_count"] == 1
@@ -91,17 +98,50 @@ def test_industry_candidate_projection_keeps_48_legacy_counts_and_all_698_candid
     projection = result["recommendation_projection"]
     assert projection["row_count"] == 48
     assert projection["count_unit"] == "SAVED_LANE_RESEARCH_ROWS"
+    assert projection["recommendation_count_unit"] == "DEDUPLICATED_HK_CANDIDATE_STOCKS"
+    assert projection["candidate_stock_count"] == 746
     assert projection["industry_candidate_row_count"] == 698
     assert projection["industry_candidate_stock_count"] == 1
     assert projection["industry_scope_count"] == 698
-    assert result["counts"]["watch"] == 3 and result["counts"]["unassessed"] == 28
-    assert result["counts"]["not_selected"] == 17 and sum(result["counts"].values()) == 48
-    assert sum(result["counts"].values()) == projection["row_count"]
+    assert result["counts"]["selected"] == 0 and result["counts"]["watch"] == 4
+    assert result["counts"]["unassessed"] == 725 and result["counts"]["not_selected"] == 17
+    assert sum(result["counts"].values()) == projection["candidate_stock_count"] == 746
+    assert projection["source_decision_counts"] == {
+        "selected": 0, "watch": 3, "unassessed": 28, "not_selected": 17, "observation_only": 0,
+    }
+    assert projection["source_decision_count_unit"] == "SAVED_LANE_RESEARCH_ROWS"
     assert len(result["stocks"]) == 4
     assert sum(row.get("subtype") == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE" for row in result["stocks"]) == 1
     inspection = lane_projection(snapshot, "US_MAPPING", {}, "UNASSESSED")
     assert len(inspection["stocks"]) == 725
     assert sum(row.get("subtype") == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE" for row in inspection["stocks"]) == 697
+    assert inspection["counts"] == result["counts"]
+
+
+def test_candidate_counts_preserve_positive_representative_and_prefer_specific_unknown_fallback():
+    rows = [
+        dict(symbol="HK.00001", decision="CONDITIONAL_WATCH", reason="SAVED_RELATION_WATCH"),
+        dict(symbol="HK.00001", subtype="HK_INDUSTRY_PROXY_FACTOR_CANDIDATE",
+            decision="UNASSESSED", reason="HIGHER_PRIORITY_UNKNOWN_ROW"),
+        dict(symbol="HK.00002", decision="NOT_SELECTED", reason="SAVED_RELATION_NEGATIVE"),
+        dict(symbol="HK.00002", subtype="HK_INDUSTRY_PROXY_FACTOR_CANDIDATE",
+            decision="UNASSESSED", reason="HIGHER_PRIORITY_UNKNOWN_ROW"),
+    ]
+    lane = NS(lane=NS(value="US_MAPPING"), rows=rows, gaps=[], state=NS(value="PARTIAL"),
+        coverage=NS(model_dump=lambda **kwargs: {"scope_count": 48}))
+    snapshot = NS(context=NS(rules_version=US_FACTOR_RULES_VERSION, scope_refs={}),
+        lanes=[lane], stocks=[], run_id="candidate-count-priority-run")
+
+    result = lane_projection(snapshot, "US_MAPPING", {})
+
+    assert [(row["symbol"], row["reason"]) for row in result["stocks"]] == [
+        ("HK.00001", "SAVED_RELATION_WATCH")
+    ]
+    assert result["counts"] == {"selected": 0, "watch": 1, "unassessed": 1,
+        "not_selected": 0, "observation_only": 0}
+    assert result["recommendation_projection"]["source_decision_counts"] == {
+        "selected": 0, "watch": 1, "unassessed": 0, "not_selected": 1, "observation_only": 0,
+    }
 
 
 def test_catalog_observations_stay_out_of_candidate_display_counts():
@@ -118,7 +158,7 @@ def test_catalog_observations_stay_out_of_candidate_display_counts():
         relation_count=2, consumed_relation_count=2)
     lane = NS(lane=NS(value="US_MAPPING"), rows=lane_rows, gaps=[], state=NS(value="PARTIAL"),
         coverage=NS(model_dump=lambda **kwargs: {"scope_count": 48}))
-    snapshot = NS(context=NS(rules_version="TEST_RULES", scope_refs={}), lanes=[lane], stocks=[], run_id="catalog-run")
+    snapshot = NS(context=NS(rules_version=US_FACTOR_RULES_VERSION, scope_refs={}), lanes=[lane], stocks=[], run_id="catalog-run")
 
     projection = lane_projection(snapshot, "US_MAPPING", {})
     summary = us_summary(snapshot, {})
@@ -126,6 +166,9 @@ def test_catalog_observations_stay_out_of_candidate_display_counts():
     assert projection["recommendation_projection"]["row_count"] == 1
     assert projection["recommendation_projection"]["catalog_relation_row_count"] == 2
     assert projection["recommendation_projection"]["catalog_stock_count"] == 2
+    assert projection["recommendation_projection"]["candidate_stock_count"] == 1
+    assert projection["counts"] == {"selected": 0, "watch": 0, "unassessed": 1,
+        "not_selected": 0, "observation_only": 0}
     assert projection["stocks"] == []
     assert summary["source_row_count"] == 1
     assert summary["relation_row_count"] == 1
@@ -200,9 +243,8 @@ def test_deployed_snapshot_counts_all_lane_research_rows():
     )
     assert response.status_code == 200
     data = response.json()['data']
-    assert data['counts'] == {
-        'selected': 0, 'watch': 3, 'unassessed': 28, 'not_selected': 17, 'observation_only': 0,
-    }
+    assert data['counts']['selected'] == 0
+    assert data['counts']['watch'] == 3
     assert data['pagination']['total'] == 3
     assert [(row['symbol'], row['decision'], row.get('subtype')) for row in data['stocks']] == [
         ('HK.09988', 'CONDITIONAL_WATCH', None),
@@ -212,7 +254,12 @@ def test_deployed_snapshot_counts_all_lane_research_rows():
     projection = data['recommendation_projection']
     assert projection['count_unit'] == 'SAVED_LANE_RESEARCH_ROWS'
     assert projection['row_count'] == 48
-    assert sum(data['counts'].values()) == projection['row_count']
+    assert projection['recommendation_count_unit'] == 'DEDUPLICATED_HK_CANDIDATE_STOCKS'
+    assert sum(data['counts'].values()) == projection['candidate_stock_count']
+    assert data['recommendation_counts']['US_MAPPING'] == data['counts']
+    assert projection['source_decision_counts'] == {
+        'selected': 0, 'watch': 3, 'unassessed': 28, 'not_selected': 17, 'observation_only': 0,
+    }
     assert projection['hk_relation_row_count'] == 14
     assert projection['factor_stock_count'] == 11
     assert projection['source_only_row_count'] == 23

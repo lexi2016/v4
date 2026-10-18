@@ -1,0 +1,87 @@
+{
+  "status": "INACTIVE_CANDIDATE_PENDING_INDEPENDENT_REVIEW",
+  "runtime": "api",
+  "base_release_id": "monthly-membership-api-20261018-r2",
+  "base_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2/app",
+  "base_plist_sha256": "842d255dd4404c6ae43693830b67b8f7bc27fe2d8a8d830efab08445bd154477",
+  "base_manifest_sha256": "b5023596734381d0773f258bfa458a7daa1dce8eef89803a06c849cadd474eae",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3",
+  "candidate_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/app",
+  "candidate_manifest_sha256": "7ad0c2fe45fc4edb620b15de72c5012ba8f6b7dcd2f22f4c3e462827ec54f608",
+  "candidate_inventory_sha256": "c27d2ededfb7086d4049eee8aecc5aa595c8ef6c7b389b2cf2609abfa590f1ef",
+  "delta_paths": [
+    "apps/web/dist/assets/managerSelection-D2mmZc1_.js",
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "apps/web/src/manager-workbench/types.ts",
+    "v4/manager_workbench/display_read.py"
+  ],
+  "delta_entries": [
+    {
+      "path": "apps/web/dist/assets/managerSelection-D2mmZc1_.js",
+      "before_sha256": null,
+      "after_sha256": "f445d8dda41f4985b0b32d18c25ebf54a1aea7c35726187228764262f0a37559",
+      "unified_diff_sha256": null,
+      "unified_diff_hunk_count": null
+    },
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "before_sha256": "ec0d79ec00add56b9d4cc56eafe5a46b38585e28cdf69a114e13fd4fc9258333",
+      "after_sha256": "3e369cd163377370a29bfef814a06e767dd4d26af5c67d5f1c6788b0bda749e7",
+      "unified_diff_sha256": "d57840ff4109dd81673feec7c91094cffdfaa9f53dbaba06adaff124c89f60c2",
+      "unified_diff_hunk_count": 1
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "7a762eacc161ce6558f0b8fafca26c5d2997ba09012f6e5fea3f8f99f3225999",
+      "after_sha256": "44643f793b080c0358e6d8c92b5ca9a8282d461a653fcbe438a07cd43733d088",
+      "unified_diff_sha256": "f5bdfd0f61a5dffc3d6bfeab6c3a01db4d5a7fe5f191307adde9a5413d93c199",
+      "unified_diff_hunk_count": 4
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "before_sha256": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f",
+      "after_sha256": "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77",
+      "unified_diff_sha256": "f8a76c1ce6bb8cd5f1dd9e57a3fd943cc8619d1f92386db91b7975816de36785",
+      "unified_diff_hunk_count": 10
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+      "after_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d",
+      "unified_diff_sha256": "8d928f13e394d2a047808abadaad121fc64c0fc1a09c211768fecbf3bf99445b",
+      "unified_diff_hunk_count": 1
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "before_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+      "after_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "unified_diff_sha256": "ce65de37ec13e475ca47e65fec457a3e5308ad26cf89f35068cd05be85d9b62f",
+      "unified_diff_hunk_count": 8
+    }
+  ],
+  "non_delta_preserved_count": 1243,
+  "non_delta_inventory_sha256": "7e966fd3beb1c5a874643c9808850662e260659f7533b69869db7faf65d573f5",
+  "staged_plist_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/config/com.lexi.v35.api-only.plist",
+  "staged_plist_sha256": "424e274e0d8675e6990c3ecd8bc30f75cadc03979fb4317dff914949b5f21451",
+  "rollback_plist_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r3/config/rollback-com.lexi.v35.api-only.plist",
+  "rollback_plist_sha256": "842d255dd4404c6ae43693830b67b8f7bc27fe2d8a8d830efab08445bd154477",
+  "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+  "new_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+  "new_config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+  "config_changed": false,
+  "schedule_preserved": true,
+  "effective_identity_checked_keys": [
+    "PYTHONPATH",
+    "V35_APP_ROOT",
+    "V35_RELEASE_ID",
+    "V35_RELEASE_MANIFEST_PATH",
+    "V35_RELEASE_MANIFEST_SHA256",
+    "V4_MANAGER_WORKBENCH_CONFIG_PATH"
+  ],
+  "effective_child_identity_matches_declared": true,
+  "writer_receipt_sha256": "206c141195028948d26d55be1653b29a1ba8bc393eb20c09f55ae965d2a914e3",
+  "manager_state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench",
+  "activated": false
+}

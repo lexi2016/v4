@@ -70,9 +70,15 @@ describe("US daily-return factor fixture", () => {
     };
     const day = sampleDay({
       stocks: [stock],
+      counts: { selected: 0, watch: 1, unassessed: 0, observation_only: 0, not_selected: 0 },
+      recommendation_counts: { US_MAPPING: { selected: 0, watch: 1, unassessed: 0,
+        observation_only: 0, not_selected: 0 } },
       recommendation_projection: {
         display_only: true, lane: "US_MAPPING", row_count: 3, hk_relation_row_count: 1,
         distinct_hk_count: 2, source_only_row_count: 0, count_unit: "SAVED_LANE_RESEARCH_ROWS",
+        recommendation_count_unit: "DEDUPLICATED_HK_CANDIDATE_STOCKS", candidate_stock_count: 2,
+        source_decision_counts: { selected: 0, watch: 1, unassessed: 1, observation_only: 0, not_selected: 1 },
+        source_decision_count_unit: "SAVED_LANE_RESEARCH_ROWS",
         factor_stock_count: 2, factor_path_count: 1,
         coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 }
       },
@@ -109,7 +115,9 @@ describe("US daily-return factor fixture", () => {
     render(Workbench);
     await screen.findByText(/固定美股来源 33 个/);
     expect(screen.getByText(/因子唯一港股 1 只，路径 1 条，未知港股 0 只/)).toBeTruthy();
-    expect(screen.getByText(/保存 3 条研究记录（计数单位：研究记录）/)).toBeTruthy();
+    expect(screen.getByText(/保存 3 条来源研究记录（计数单位：研究记录）/)).toBeTruthy();
+    expect(screen.getByText(/当前版本严格精选规则尚未启用；本次严格入选 0/)).toBeTruthy();
+    expect(screen.getByText(/美股映射来源记录分类（按行计.*待评估 1.*未入选 1/)).toBeTruthy();
     expect(screen.getByText(/这些数量属于不同范围，不能相加/)).toBeTruthy();
     expect(screen.getByText(/全量关系目录 1003 条 \/ 667 只/)).toBeTruthy();
     expect(screen.getByText(/日常输入合同 VERIFIED · 模式 MANUAL · 港股目标日 20261020 · 美股来源会话 20261016/)).toBeTruthy();
@@ -125,7 +133,7 @@ describe("US daily-return factor fixture", () => {
     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
   });
 
-  it("puts the unique-stock industry funnel before legacy row counts and exposes row mapping", async () => {
+  it("puts the unique-stock industry funnel before candidate counts and exposes source-row counts", async () => {
     const candidate: StockDecision = {
       ...sampleStock("HK.00300", "合成美的样本"), row_id: "US_MAPPING:1",
       subtype: "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE", source_industry: "家庭电器及用品",
@@ -160,10 +168,15 @@ describe("US daily-return factor fixture", () => {
     };
     const day = sampleDay({
       stocks: [candidate],
-      counts: { selected: 0, watch: 3, unassessed: 28, observation_only: 0, not_selected: 17 },
+      counts: { selected: 0, watch: 1, unassessed: 0, observation_only: 0, not_selected: 0 },
+      recommendation_counts: { US_MAPPING: { selected: 0, watch: 1, unassessed: 0,
+        observation_only: 0, not_selected: 0 } },
       recommendation_projection: {
         display_only: true, lane: "US_MAPPING", row_count: 48, hk_relation_row_count: 1,
         distinct_hk_count: 1, source_only_row_count: 0, count_unit: "SAVED_LANE_RESEARCH_ROWS",
+        recommendation_count_unit: "DEDUPLICATED_HK_CANDIDATE_STOCKS", candidate_stock_count: 1,
+        source_decision_counts: { selected: 0, watch: 3, unassessed: 28, observation_only: 0, not_selected: 17 },
+        source_decision_count_unit: "SAVED_LANE_RESEARCH_ROWS",
         industry_candidate_row_count: 698, industry_candidate_stock_count: 1, industry_scope_count: 698,
         coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 }
       },
@@ -189,13 +202,40 @@ describe("US daily-return factor fixture", () => {
     expect(screen.getByText(/范围 698 只；身份核验 697 只，身份缺口 1 只；有行业分类 2 只，已映射到冻结美股主题 1 只/)).toBeTruthy();
     expect(screen.getByText(/待核（UNASSESSED）697 只；.*去重候选 1 只/)).toBeTruthy();
     const funnel = screen.getByRole("region", { name: "港股行业宽召回股票漏斗" });
-    const recordCounts = screen.getByLabelText("本路径完整研究记录分类计数");
+    const recordCounts = screen.getByLabelText("去重港股候选股票分类计数");
     expect(Boolean(funnel.compareDocumentPosition(recordCounts) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    expect(screen.getByText(/保存 48 条研究记录（计数单位：研究记录）/)).toBeTruthy();
+    expect(screen.getByText(/保存 48 条来源研究记录（计数单位：研究记录）/)).toBeTruthy();
+    expect(screen.getByText(/美股映射来源记录分类（按行计.*待评估 28.*未入选 17/)).toBeTruthy();
     expect(screen.getByText(/行业 家庭电器及用品 → 主题 消费；代理日收益 1\.50% · EXACT_PROVIDER_INDUSTRY/)).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: /查看 HK\.00300/ }));
-    await screen.findByText("来源行业 家庭电器及用品；映射主题 消费；代理日收益 1.50%。");
+    await screen.findByText(/来源行业 家庭电器及用品；方向路径 行业或代理映射待核；路径状态 UNASSESSED。/);
     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
+  });
+
+  it("shows full de-duplicated US_MAPPING candidate counts separately from the saved 60 source rows", async () => {
+    const stockCounts = { selected: 0, watch: 153, unassessed: 548, observation_only: 0, not_selected: 0 };
+    const day = sampleDay({
+      counts: stockCounts,
+      recommendation_counts: { US_MAPPING: stockCounts },
+      recommendation_projection: {
+        display_only: true, lane: "US_MAPPING", row_count: 60, hk_relation_row_count: 36,
+        distinct_hk_count: 701, source_only_row_count: 24, count_unit: "SAVED_LANE_RESEARCH_ROWS",
+        recommendation_count_unit: "DEDUPLICATED_HK_CANDIDATE_STOCKS", candidate_stock_count: 701,
+        source_decision_counts: { selected: 0, watch: 0, unassessed: 27, observation_only: 0, not_selected: 33 },
+        source_decision_count_unit: "SAVED_LANE_RESEARCH_ROWS",
+        coverage: { scope_count: 48, observed_count: 48, assessed_count: 22, unassessed_count: 26 }
+      }
+    });
+    vi.stubGlobal("fetch", vi.fn(async () => response(wrapped(day))));
+
+    render(Workbench);
+
+    const button = await screen.findByRole("button", { name: /严格入选 0 \/ 条件观察 153/ });
+    expect(button.textContent).toContain("条件观察 153");
+    expect(screen.getByText(/当前版本严格精选规则尚未启用；本次严格入选 0/)).toBeTruthy();
+    expect(screen.getByLabelText("去重港股候选股票分类计数").textContent).toContain("153");
+    expect(screen.getByText(/保存 60 条来源研究记录/)).toBeTruthy();
+    expect(screen.getByText(/来源记录分类.*待评估 27.*未入选 33/)).toBeTruthy();
   });
 
   it("shows full saved-lane proxy directions with negative, flat, unknown, and mixed paths separated", async () => {

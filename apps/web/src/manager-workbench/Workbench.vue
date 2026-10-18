@@ -212,6 +212,9 @@ function revisionAssessments(value: unknown): [string, unknown][] {
           {{ LANE_LABELS[lane] }}推荐 · 严格入选 {{ showCount(vm.day?.data?.recommendation_counts?.[lane]?.selected) }} / 条件观察 {{ showCount(vm.day?.data?.recommendation_counts?.[lane]?.watch) }}
         </button>
       </nav>
+      <p v-if="vm.laneFilter === 'US_MAPPING'" class="mwb-muted">
+        当前版本严格精选规则尚未启用；本次严格入选 {{ showCount(vm.day?.data?.recommendation_counts?.US_MAPPING?.selected) }}。条件观察是宽召回候选，不代表目标日资格、历史 PIT 或 BUY。
+      </p>
 
       <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_summary?.factor_summary?.industry_summary"
         class="mwb-research-section" aria-label="港股行业宽召回股票漏斗">
@@ -220,7 +223,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <p>分类来源状态 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_status }}；source_asof {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_asof || 'UNKNOWN' }}（{{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_asof_status || 'UNKNOWN' }}）；实际采集 {{ humanTime(vm.day.data.us_mapping_summary.factor_summary.industry_summary.captured_at) }}；时间状态 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.temporal_status || 'CANNOT_CONFIRM' }}。历史 PIT 未验证。</p>
         <p>安全主表 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_owner || '未知' }} · 会话 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_source_date || '未知' }} · 可得 {{ humanTime(vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_available_at) }} · SHA {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.security_master_artifact_sha256 || '未知' }}；身份缺口 {{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.identity_gap || '无' }}。</p>
         <p v-if="vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_gap">分类输入缺口：{{ vm.day.data.us_mapping_summary.factor_summary.industry_summary.source_gap }}</p>
-        <p>这是按股票去重的候选覆盖；待核数按 UNASSESSED 行级结论统计。完整研究记录计数仍按行记录统计。</p>
+        <p>这是按股票去重的行业候选覆盖；待核统计按候选股票代表结论计算，来源记录计数仍按保存的来源研究行计算。</p>
       </section>
 
       <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_summary?.directional_proxy_lists"
@@ -262,7 +265,8 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         </details>
       </section>
 
-      <div v-if="vm.counts" class="mwb-counts" aria-label="本路径完整研究记录分类计数">
+      <div v-if="vm.counts" class="mwb-counts"
+        :aria-label="vm.laneFilter === 'US_MAPPING' ? '去重港股候选股票分类计数' : '本路径完整研究记录分类计数'">
         <div><strong>{{ showCount(vm.counts.selected) }}</strong><span>严格入选</span></div>
         <div><strong>{{ showCount(vm.counts.watch) }}</strong><span>条件观察</span></div>
         <div><strong>{{ showCount(vm.counts.unassessed) }}</strong><span>待评估</span></div>
@@ -270,9 +274,15 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <div><strong>{{ showCount(vm.counts.not_selected) }}</strong><span>未入选</span></div>
       </div>
       <p v-else class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
-      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录（计数单位：研究记录）；
+      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条来源研究记录（计数单位：研究记录）；
         {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条含港股，涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只。
-        分类数量按完整研究记录计，不受分页影响；默认推荐仅含严格入选和条件观察。无港股关系的来源缺口在下方单独查看。</p>
+        US_MAPPING 分类计数按去重港股候选股票计算，不受分页影响；默认推荐仅含严格入选和条件观察。无港股关系的来源缺口在下方单独查看。</p>
+      <p v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.recommendation_projection?.source_decision_counts" class="mwb-muted">
+        美股映射来源记录分类（按行计，不含港股行业候选和目录）：严格入选 {{ showCount(vm.day.data.recommendation_projection.source_decision_counts.selected) }}、
+        条件观察 {{ showCount(vm.day.data.recommendation_projection.source_decision_counts.watch) }}、
+        待评估 {{ showCount(vm.day.data.recommendation_projection.source_decision_counts.unassessed) }}、
+        仅观察 {{ showCount(vm.day.data.recommendation_projection.source_decision_counts.observation_only) }}、
+        未入选 {{ showCount(vm.day.data.recommendation_projection.source_decision_counts.not_selected) }}。</p>
 
       <section v-if="vm.day?.data?.us_mapping_summary" class="mwb-panel" aria-label="本版本美股映射">
         <h3>本版本美股映射 · 独立保存结论</h3>

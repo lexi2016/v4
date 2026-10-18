@@ -250,6 +250,10 @@ export interface DayData {
     display_only: true; lane: RecommendationLane;
     row_count: number; hk_relation_row_count: number; distinct_hk_count: number;
     source_only_row_count: number; coverage: Coverage; count_unit?: 'SAVED_LANE_RESEARCH_ROWS';
+    recommendation_count_unit?: 'DEDUPLICATED_HK_CANDIDATE_STOCKS' | 'SAVED_LANE_RESEARCH_ROWS';
+    candidate_stock_count?: number;
+    source_decision_counts?: DecisionCounts;
+    source_decision_count_unit?: 'SAVED_LANE_RESEARCH_ROWS';
     factor_stock_count?: number | null; factor_path_count?: number | null;
     industry_candidate_row_count?: number | null; industry_candidate_stock_count?: number | null;
     industry_scope_count?: number | null;

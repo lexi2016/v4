@@ -1,0 +1,28 @@
+{
+  "goal": "Correct recommendation headline counts to full deduplicated saved-lane HK stock decisions; retain separately named original source-record counts; show strict selection rule not enabled without changing decisions.",
+  "writer": "daily_chain_writer Luna Max",
+  "reviewer": "monthly_direction_review Luna Max",
+  "allowed_paths": [
+    "v4/manager_workbench/display_read.py",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/types.ts",
+    "tests/manager_workbench/runtime/test_us_factor_display.py",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "docs/handoffs/monthly_membership_research_fix_20261018"
+  ],
+  "forbidden": [
+    "engine decision changes",
+    "formal qualification/PIT or BUY changes",
+    "source data/model/producer changes"
+  ],
+  "pass_signal": "current saved run has stock recommendation watch 153 and strict zero explicitly rule unavailable; original60source counts retained separately; tests and independent actual UI/API count PASS",
+  "baseline": {
+    "v4/manager_workbench/display_read.py": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+    "apps/web/src/manager-workbench/Workbench.vue": "1e827aaab8890ca3a9d71f28b40fff53543d62485a98fd9a75b181db50374c77",
+    "apps/web/src/manager-workbench/types.ts": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+    "tests/manager_workbench/runtime/test_us_factor_display.py": "b354fcb79aad92372a31a0c2cbf5045a825eb6d889da1d94e17271fcc4e933b2",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f"
+  },
+  "new_user_evidence": "User questioned SELECTED=0; actual root cause found no SELECTED branch even when all inputs valid and legacy count excludes industry candidate rows.",
+  "created_at": "2026-10-18T17:13:04.758295+00:00"
+}

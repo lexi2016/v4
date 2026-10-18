@@ -1,0 +1,208 @@
+{
+  "status": "TESTED_CANDIDATE_READY_FOR_INDEPENDENT_REVIEW",
+  "goal": "Report saved US_MAPPING recommendation counts as full deduplicated HK candidate-stock decisions, preserve the legacy source-row breakdown separately, and state that strict selection is not enabled without changing saved decisions.",
+  "writer": "daily_chain_writer",
+  "reviewer": "monthly_direction_review",
+  "scope_path": "docs/handoffs/monthly_membership_research_fix_20261018/R3_COUNT_SCOPE.json",
+  "scope_sha256": "f87f41ccce7cd7dac600a74037e9b17bea1169e06f1456d0bb49804139db662e",
+  "canonical_files": [
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "preimage_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+      "writer_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "change": "Count US_MAPPING candidate stocks once per HK symbol; positive representatives follow the existing default recommendation priority; nonpositive fallback prefers the most specific subtype; preserve previous source-row counts separately and exclude catalog rows. OVERSOLD count semantics remain source-row based."
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "preimage_sha256": "1e827aaab8890ca3a9d71f28b40fff53543d62485a98fd9a75b181db50374c77",
+      "writer_sha256": "86bbb2f5c763dd5a46e11768abd5ba13f085aaf8dec301deced3732e4790107c",
+      "change": "Label US_MAPPING counts as deduplicated HK candidate decisions, show the strict-selection-unavailable note with the saved strict count, and show the original source-row breakdown separately."
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "preimage_sha256": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+      "writer_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d",
+      "change": "Type the count units, candidate-stock total, and preserved source-row decision counts."
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "preimage_sha256": "b354fcb79aad92372a31a0c2cbf5045a825eb6d889da1d94e17271fcc4e933b2",
+      "writer_sha256": "75e789559edd874388559228fde7bfcc3fece57cbed342c8018a6c99b944ad74",
+      "change": "Verify full stock counts, independent source-row counts, catalog exclusion, stable counts under inspection filters, and representative priority."
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "preimage_sha256": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f",
+      "writer_sha256": "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77",
+      "change": "Verify the 153-watch/zero-strict display, explicit unavailable-rule wording, and distinct saved source-row counts."
+    }
+  ],
+  "runtime_overlay": {
+    "status": "STAGED_LOCAL_ONLY_FROM_IMMUTABLE_API_R2_CANDIDATE",
+    "base_app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r2/app",
+    "base_manifest_sha256": "b5023596734381d0773f258bfa458a7daa1dce8eef89803a06c849cadd474eae",
+    "files": [
+      {
+        "path": "local_only/runtime_overlay_r3/app/v4/manager_workbench/display_read.py",
+        "base_sha256": "585a1fde856c17650e2fd0b4e3cf05c46ca1389f569b1cfa62464e912d244089",
+        "writer_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/Workbench.vue",
+        "base_sha256": "7a762eacc161ce6558f0b8fafca26c5d2997ba09012f6e5fea3f8f99f3225999",
+        "writer_sha256": "44643f793b080c0358e6d8c92b5ca9a8282d461a653fcbe438a07cd43733d088"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/types.ts",
+        "base_sha256": "1c590fcd6ead1bd98f7919a620d8d42b4d34f837d9c2ca110d31a2acfccc9842",
+        "writer_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+        "base_sha256": "be969b52110d90a3c18e2ef5e460c8b51fdc3b1dde31de982d5aace2f0ecc84f",
+        "writer_sha256": "efddf00312aa6b8372d4e2388416b1a151b3966b17b5035b1a76443028e2ad77"
+      }
+    ],
+    "byte_identical_test_support_copies": [
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+        "base_and_writer_sha256": "e517c05557700bdf4fa5c61be9194d14239f33737ab8f58e81e87bdd10e60305"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+        "base_and_writer_sha256": "2a414702409758df73fd78b4a7ac6731fa69a62353c0c985cd51f59057aa10fb"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/__tests__/display_reason.spec.ts",
+        "base_and_writer_sha256": "9b6cbf18710d3edcb4ce26ff3cc4216d91994de83350bcf95259b682bcf10ed0"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/api.ts",
+        "base_and_writer_sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/display.ts",
+        "base_and_writer_sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/route.ts",
+        "base_and_writer_sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/useWorkbench.ts",
+        "base_and_writer_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7"
+      },
+      {
+        "path": "local_only/runtime_overlay_r3/app/apps/web/src/manager-workbench/workbench.css",
+        "base_and_writer_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd"
+      }
+    ],
+    "test_dependency_symlink": {
+      "path": "local_only/runtime_overlay_r3/app/apps/web/node_modules",
+      "target": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules",
+      "purpose": "Direct Vitest dependency resolution only; no install or package-manager mutation."
+    },
+    "note": "The API R2 Workbench.vue was overlaid by exact R3 hunks only; other R2 runtime formatting and behavior remain based on the API candidate source. The immutable API candidate app, manifest, active service, and configuration were not edited."
+  },
+  "actual_saved_run": {
+    "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0",
+    "target_date": "20261020",
+    "snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/2e2a1dbb1312422c8b1e21a58d2d44d0.json",
+    "snapshot_sha256": "388b4db4f4d46d7f926258ea872226243b9f121cd071e7ad6fb56aafb51cccbf",
+    "in_memory_lane_api_projection": {
+      "state": "PARTIAL",
+      "http_status": 200,
+      "candidate_stock_count": 701,
+      "candidate_count_unit": "DEDUPLICATED_HK_CANDIDATE_STOCKS",
+      "counts": {
+        "selected": 0,
+        "watch": 153,
+        "unassessed": 437,
+        "not_selected": 111,
+        "observation_only": 0
+      },
+      "default_recommendation_count": 153,
+      "default_pagination": {
+        "total": 153,
+        "offset": 0,
+        "limit": 50
+      },
+      "legacy_source_row_count": 60,
+      "legacy_source_row_counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 27,
+        "not_selected": 33,
+        "observation_only": 0
+      },
+      "catalog_relation_row_count": 1003
+    },
+    "pre_r3_api_readbacks": {
+      "day_response_sha256": "8dd6bc42485c587072ceb5aa3bc0007a9e8aacde5274cd287abd0550555f3458",
+      "day_counts_are_merged_snapshot_counts": {
+        "selected": 0,
+        "watch": 153,
+        "unassessed": 548,
+        "not_selected": 0,
+        "observation_only": 0
+      },
+      "day_payload_has_recommendation_counts": false,
+      "lane_response_sha256": "466bee06806340c4ad7fc7dd066201c5b9774a753379ff20c070c3642400bc59",
+      "legacy_lane_recommendation_counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 27,
+        "not_selected": 33,
+        "observation_only": 0
+      }
+    },
+    "catalog_rows_used_as_candidates": false,
+    "saved_snapshot_changed": false
+  },
+  "verification": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/monthly_membership_research_fix_20261018/local_only/r3_pytest tests/manager_workbench/runtime/test_us_factor_display.py tests/manager_workbench/runtime/test_independent_recommendations.py",
+      "result": "PASS",
+      "detail": "12 passed; includes the unchanged OVERSOLD count behavior and saved-plan endpoint tests."
+    },
+    {
+      "command": "node /Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs run src/manager-workbench/__tests__/us_factor.spec.ts --config /Users/lexi/Desktop/学习/v4_app/apps/web/vite.config.ts --root /Users/lexi/Desktop/学习/v4_app/docs/handoffs/monthly_membership_research_fix_20261018/local_only/runtime_overlay_r3/app/apps/web",
+      "result": "PASS",
+      "detail": "4 passed against the API R2-based local-only overlay; no package install or PNPM command."
+    },
+    {
+      "command": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --types vitest/globals src/manager-workbench/Workbench.vue src/manager-workbench/__tests__/us_factor.spec.ts src/manager-workbench/types.ts",
+      "result": "PASS",
+      "detail": "Targeted UI source and test typecheck completed without diagnostics."
+    },
+    {
+      "command": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit -p tsconfig.json",
+      "result": "FAIL_OUT_OF_SCOPE_DIAGNOSTICS",
+      "detail": "The full web typecheck reports out-of-scope errors in src/api/managerWorkspace.attention.spec.ts (TS18048 mapping possibly undefined) and src/views/ManagerSelectionView.spec.ts (two unused @ts-expect-error directives); none are in the R3 changed files."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B docs/handoffs/monthly_membership_research_fix_20261018/local_only/verify_r3_actual_counts.py",
+      "result": "PASS_READ_ONLY_SAVED_SNAPSHOT_IN_MEMORY_API_PROJECTION",
+      "detail": "Read exact snapshot SHA into the API R2 candidate package, substituted only the local R3 display_read overlay, and exercised the router with an in-memory store; no live service, job, or POST."
+    }
+  ],
+  "evidence_files": {
+    "canary_script": "local_only/verify_r3_actual_counts.py",
+    "canary_script_sha256": "c62e0c8d1c8792f5c5e95362d07a34cf284ed2f3f34b6a6caef7bcae68f70993",
+    "canary_output": "local_only/r3_actual_count_canary.json",
+    "canary_output_sha256": "d1fb540203614d9ad72abfd3c7d6ebdfef83c6724e31fe0b53cdf8ee3fcc4182",
+    "candidate_manifest_sha256": "b5023596734381d0773f258bfa458a7daa1dce8eef89803a06c849cadd474eae"
+  },
+  "not_performed": [
+    "No engine decisions or qualification/PIT/BUY logic changed.",
+    "No source data, model, catalog, or producer changed.",
+    "No active API, scheduler, service, plist, or configuration changed.",
+    "No service start/reload, job submission, external API request, owner write, release build, activation, commit, or push was performed."
+  ],
+  "acceptance_state": {
+    "implemented": true,
+    "writer_tests_passed": true,
+    "live_api_ui_readback": "CANNOT_CONFIRM_PENDING_ROOT_INTEGRATION_AND_ACTIVATION",
+    "independent_review": "PENDING"
+  }
+}

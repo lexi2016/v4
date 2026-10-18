@@ -200,6 +200,37 @@ def lane_stock(snapshot,lane,index,names):
  return value
 
 
+_CANDIDATE_SUBTYPE_PRIORITY={'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE':3,'US_DAILY_RETURN_FACTOR_CANDIDATE':2}
+
+
+def _representatives_by_symbol(stocks):
+ """Prefer the most specific candidate subtype, preserving first row on ties."""
+ representatives={}
+ for stock in stocks:
+  previous=representatives.get(stock['symbol'])
+  priority=_CANDIDATE_SUBTYPE_PRIORITY.get(stock.get('subtype'),1)
+  previous_priority=_CANDIDATE_SUBTYPE_PRIORITY.get(previous.get('subtype'),1) if previous else 0
+  if previous is None or priority>previous_priority:representatives[stock['symbol']]=stock
+ return representatives
+
+
+def _candidate_stock_counts(stocks):
+ """Count one full-lane HK candidate decision per stock, with positive rows matching the recommendation view."""
+ positive=[stock for stock in stocks if stock.get('decision') in {'SELECTED','CONDITIONAL_WATCH'}]
+ representatives=_representatives_by_symbol(positive)
+ # A positive recommendation row is the same representative the default list
+ # exposes. For stocks without a positive row, use the strongest available
+ # candidate subtype so unknown evidence is not hidden by a lower-priority row.
+ fallback=[stock for stock in stocks if stock['symbol'] not in representatives]
+ representatives.update(_representatives_by_symbol(fallback))
+ counts={k:0 for k in ['selected','watch','unassessed','not_selected','observation_only']}
+ keys=dict(SELECTED='selected',CONDITIONAL_WATCH='watch',UNASSESSED='unassessed',NOT_SELECTED='not_selected',OBSERVATION_ONLY='observation_only')
+ for stock in representatives.values():
+  key=keys.get(stock.get('decision'))
+  if key:counts[key]+=1
+ return counts,representatives
+
+
 def lane_projection(snapshot,lane_name,names,decision=None,q=None):
  lane=next((l for l in snapshot.lanes if l.lane.value==lane_name),None)
  if lane is None:return None
@@ -209,27 +240,23 @@ def lane_projection(snapshot,lane_name,names,decision=None,q=None):
  legacy_rows=[row for row in lane.rows if not _catalog_observation(row)
   and row.get('subtype')!='HK_INDUSTRY_PROXY_FACTOR_CANDIDATE'] if factor_rules else [
    row for row in lane.rows if not _catalog_observation(row)]
- counts={k:0 for k in ['selected','watch','unassessed','not_selected','observation_only']}
+ source_counts={k:0 for k in ['selected','watch','unassessed','not_selected','observation_only']}
  keys=dict(SELECTED='selected',CONDITIONAL_WATCH='watch',UNASSESSED='unassessed',NOT_SELECTED='not_selected',OBSERVATION_ONLY='observation_only')
  for row in legacy_rows:
-  if row.get('decision') in keys:counts[keys[row['decision']]]+=1
- stocks=[value for i in range(len(lane.rows)) if not _catalog_observation(lane.rows[i])
+  if row.get('decision') in keys:source_counts[keys[row['decision']]]+=1
+ candidate_stocks=[value for i in range(len(lane.rows)) if not _catalog_observation(lane.rows[i])
   and (value:=lane_stock(snapshot,lane,i,names)) is not None]
- hk_count=len({s['symbol'] for s in stocks})
+ hk_count=len({s['symbol'] for s in candidate_stocks})
+ candidate_counts,candidate_representatives=_candidate_stock_counts(candidate_stocks) if factor_rules else (None,{})
+ counts=candidate_counts if factor_rules else source_counts
  # Default recommendations contain only positive saved lane decisions. Negative
  # and unknown classifications are explicit inspection views, never recommendations.
  wanted={decision} if decision else {'SELECTED','CONDITIONAL_WATCH'}
- stocks=[s for s in stocks if s['decision'] in wanted]
+ stocks=[s for s in candidate_stocks if s['decision'] in wanted]
  if factor_rules:
   # The positive factor candidate can represent one HK row while all original
   # relationship/factor evidence remains available from the stock detail read.
-  representatives={}
-  for stock in stocks:
-   previous=representatives.get(stock['symbol'])
-   priority={'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE':3,'US_DAILY_RETURN_FACTOR_CANDIDATE':2}.get(stock.get('subtype'),1)
-   previous_priority={'HK_INDUSTRY_PROXY_FACTOR_CANDIDATE':3,'US_DAILY_RETURN_FACTOR_CANDIDATE':2}.get(previous.get('subtype'),1) if previous else 0
-   if previous is None or priority>previous_priority:representatives[stock['symbol']]=stock
-  stocks=list(representatives.values())
+  stocks=list(_representatives_by_symbol(stocks).values())
   factor_summary=next((row.get('us_factor_summary') for row in lane.rows
    if isinstance(row.get('us_factor_summary'),dict)),{})
   relation_count=sum(1 for row in legacy_rows if row.get('subtype') not in FACTOR_ROW_SUBTYPES
@@ -243,8 +270,7 @@ def lane_projection(snapshot,lane_name,names,decision=None,q=None):
  if q:
   term=q.casefold();stocks=[s for s in stocks if any(term in str(s.get(k) or '').casefold() for k in ['symbol','name','us_symbol','theme','source_industry'])]
  industry_summary=factor_summary.get('industry_summary') if factor_rules else None
- return dict(stocks=stocks,counts=counts,lane_state=lane.state.value,
-  recommendation_projection=dict(display_only=True,snapshot_hash_basis='ORIGINAL_SAVED_SNAPSHOT',lane=lane_name,
+ recommendation_projection=dict(display_only=True,snapshot_hash_basis='ORIGINAL_SAVED_SNAPSHOT',lane=lane_name,
    count_unit='SAVED_LANE_RESEARCH_ROWS',row_count=len(legacy_rows),
    hk_relation_row_count=relation_count,distinct_hk_count=hk_count,
    factor_stock_count=factor_summary.get('unique_factor_stock_count') if factor_rules else None,
@@ -256,4 +282,10 @@ def lane_projection(snapshot,lane_name,names,decision=None,q=None):
    industry_candidate_row_count=industry_candidate_row_count,
    industry_candidate_stock_count=(industry_summary or {}).get('triggered_unique_stock_count'),
    industry_scope_count=(industry_summary or {}).get('scope_count'),
-   coverage=lane.coverage.model_dump(mode='json')))
+   coverage=lane.coverage.model_dump(mode='json'))
+ if factor_rules:
+  recommendation_projection.update(recommendation_count_unit='DEDUPLICATED_HK_CANDIDATE_STOCKS',
+   candidate_stock_count=len(candidate_representatives),source_decision_counts=source_counts,
+   source_decision_count_unit='SAVED_LANE_RESEARCH_ROWS')
+ return dict(stocks=stocks,counts=counts,lane_state=lane.state.value,
+  recommendation_projection=recommendation_projection)
