@@ -3,7 +3,7 @@ from hashlib import sha256
 import json
 from types import SimpleNamespace
 
-from v4.manager_workbench.engines.us_factor import run_us_factor
+from v4.manager_workbench.engines.us_factor import _industry_time_state, run_us_factor
 from v4.manager_workbench.inputs.validation import owner_digest
 from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
 
@@ -202,7 +202,7 @@ def _industry_record(symbol, industry, *, response_sha="5" * 64, response_ref="f
         "mapping_type": "EXACT_PROVIDER_INDUSTRY"}
 
 
-def _industry_input(target_date, captured_at, codes, *, include_full_scope=True):
+def _industry_input(target_date, captured_at, codes, *, include_full_scope=True, source_asof=None):
     codes_sha = owner_digest(dict(market="HK_CONNECT", codes=sorted(codes)))
     member_sha = "a" * 64
     rows = [_industry_record("HK.00300", "家庭电器及用品")]
@@ -214,7 +214,8 @@ def _industry_input(target_date, captured_at, codes, *, include_full_scope=True)
         source_url="https://datacenter.eastmoney.com/securities/api/data/v1/get",
         target_date=target_date, market="HK_CONNECT", scope_type="HK_CONNECT_FULL_MARKET",
         scope_count=len(codes), membership_codes_sha256=codes_sha,
-        membership_artifact_sha256=member_sha, source_asof=None, source_asof_status="UNKNOWN",
+        membership_artifact_sha256=member_sha, source_asof=source_asof,
+        source_asof_status="UNKNOWN" if source_asof is None else "KNOWN",
         captured_at=captured_at, batch_response_sha256="6" * 64, rows=rows)
     binding = dict(status="READY", owner="eastmoney-f10-canary", artifact=artifact,
         artifact_relative="fixture://hk-industry.json", artifact_sha256="7" * 64,
@@ -261,7 +262,7 @@ def _industry_proxy_batch(session):
 
 def test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch():
     codes = ["HK.00300"]
-    binding, _ = _industry_input("20261014", "2026-10-14T09:30:00+08:00", codes, include_full_scope=False)
+    binding, _ = _industry_input("20261014", "2026-10-14T09:30:00+08:00", codes, include_full_scope=False, source_asof="20261014")
     context_today = dict(target_date="20261014", phase="INTRADAY", cutoff="2026-10-14T13:00:00+08:00",
         source_sessions={"us": "20261013", "hk_price": "20261013"})
     payload_today = _industry_payload(binding, codes, "20261013")
@@ -270,7 +271,7 @@ def test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch():
     assert candidate["symbol"] == "HK.00300"
     assert candidate["theme"] == "消费" and candidate["return_pct"] == "1.50"
     assert candidate["decision"] == "CONDITIONAL_WATCH"
-    assert candidate["temporal_status"] == "OBSERVED_BY_TARGET_CUTOFF"
+    assert candidate["temporal_status"] == "SOURCE_ASOF_TARGET_DATE"
     assert candidate["historical_pit_verified"] is False
     assert candidate["identity_status"] == "VERIFIED"
     assert summary["industry_summary"]["triggered_unique_stock_count"] == 1
@@ -444,15 +445,15 @@ def test_hk_industry_full_698_fixture_keeps_missing_unmapped_and_retrospective_u
     assert by_symbol["HK.00300"]["theme"] == "消费"
     assert by_symbol["HK.00300"]["return_pct"] == "1.50"
     assert by_symbol["HK.00300"]["decision"] == "UNASSESSED"
-    assert "RETROSPECTIVE_PIT_UNKNOWN" in by_symbol["HK.00300"]["conditions"]
+    assert "CLASSIFICATION_SOURCE_ASOF_UNKNOWN" in by_symbol["HK.00300"]["conditions"]
     assert by_symbol[codes[1]]["reason"] == "HK_INDUSTRY_PROXY_MAPPING_UNAVAILABLE"
     assert by_symbol[codes[2]]["reason"] == "HK_INDUSTRY_CLASSIFICATION_MISSING"
-    assert funnel["temporal_status"] == "RETROSPECTIVE_PIT_UNKNOWN"
+    assert funnel["temporal_status"] == "CLASSIFICATION_SOURCE_ASOF_UNKNOWN"
 
 
 def test_hk_industry_out_of_scope_and_nonobject_rows_are_isolated_from_valid_member_canary():
     codes = ["HK.00300"]
-    binding, _ = _industry_input("20261014", "2026-10-14T09:30:00+08:00", codes, include_full_scope=False)
+    binding, _ = _industry_input("20261014", "2026-10-14T09:30:00+08:00", codes, include_full_scope=False, source_asof="20261014")
     binding["artifact"]["rows"].append(_industry_record("HK.09999", "SYNTHETIC_EXTRA_CATEGORY"))
     binding["artifact"]["rows"].append(None)
     context_today = dict(target_date="20261014", phase="INTRADAY", cutoff="2026-10-14T13:00:00+08:00",
@@ -483,3 +484,42 @@ def test_hk_industry_reader_requires_exact_date_pinned_local_bytes(tmp_path):
     unavailable = hk_industry_classification(cfg, ctx)
     assert unavailable["status"] == "UNAVAILABLE"
     assert unavailable["gap"] == "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING"
+
+
+def test_manual_daily_fact_without_effective_period_stays_unassessed():
+    data, batch = payload(10)
+    target = "20261020"
+    fact_row = data["candidate"]["rows"][0]
+    fact_row["subject_verification"]["target_date"] = target
+    data["candidate"]["target_date"] = target
+    data["review"]["reviewed_at"] = "2026-10-19T17:00:00+08:00"
+    for record in batch["records"]:
+        record["quote"]["session_date"] = "20261016"
+        record["available_at"] = "2026-10-16T17:00:00+08:00"
+        record["proxy_metadata"][0]["available_at"] = record["available_at"]
+        record["proxy_metadata"][0]["owner_row"]["quote_session_dates"] = ["20261016"]
+    member = data["target_memberships"][fact_row["id"]]
+    member["effective_from"] = "20261001"
+    member["effective_through"] = "20261031"
+    member["available_at"] = "2026-10-16T17:00:00+08:00"
+    context_value = dict(target_date=target, phase="MANUAL", cutoff="2026-10-20T10:00:00+08:00",
+        source_sessions={"US": "20261016"})
+
+    rows, _ = run_us_factor(context_value, batch, data)
+
+    assert len(rows) == 1
+    assert rows[0]["decision"] == "UNASSESSED"
+    conditions = rows[0]["factor_paths"][0]["conditions"]
+    assert "EXPOSURE_EFFECTIVE_PERIOD_UNVERIFIED" in conditions
+    assert "US_FACTOR_RETROSPECTIVE_ONLY" not in conditions
+
+
+def test_industry_capture_time_does_not_substitute_for_unknown_source_asof():
+    eligible, status, _ = _industry_time_state(
+        {"captured_at": "2026-10-20T09:00:00+08:00", "source_asof": None},
+        {"target_date": "20261020", "cutoff": "2026-10-20T10:00:00+08:00"},
+    )
+
+    assert eligible is False
+    assert status == "CLASSIFICATION_SOURCE_ASOF_UNKNOWN"
+

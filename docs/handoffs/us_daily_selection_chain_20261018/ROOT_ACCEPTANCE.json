@@ -1,0 +1,56 @@
+{
+  "updated_at": "2026-10-18T10:23:11.124136+00:00",
+  "goal_complete": false,
+  "status": "ENGINEERING_CHAIN_VERIFIED_BUSINESS_EVIDENCE_BLOCKED",
+  "run_id": "466dae7ee920499b9b92dc86fd791692",
+  "us_source_session": "20261016",
+  "hk_target_date": "20261020",
+  "actual_run": "SCHEDULED_AUTOMATIC_CATCHUP_SAVED_PARTIAL",
+  "api_release_id": "us-daily-selection-chain-20261018-r2",
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "BEHAVIOR_VERIFIED": "PASS_BOUNDED_SCHEDULER_INPUT_SAVED_API_UI_CHAIN; fullbusinessNOT_PASS",
+  "independent_ui_receipt_sha256": "429d78b5f7401bb63d4ad211e8584d3f5fc13cadbbf17d0cfbc26ebef485fb3e",
+  "canonical_integration_review": "PASS_BOUNDED",
+  "scheduler_successor_review_and_activation": "DEPLOYED_AND_BOUNDED_CHAIN_VERIFIED",
+  "github_sync": "Post-push commit and file-SHA proof is recorded separately in local ROOT_GITHUB_SYNC.json; this frozen payload does not self-attest its upload.",
+  "NATURAL_VERIFIED": false,
+  "counts": {
+    "source_symbols": 48,
+    "assessed_source_symbols": 0,
+    "unassessed_source_symbols": 48,
+    "candidate_records": 60,
+    "candidate_relation_records": 36,
+    "candidate_distinct_hk_stocks": 19,
+    "selected": 0,
+    "watch": 0,
+    "unassessed_distinct_hk_stocks": 19,
+    "catalog_relations": 1003,
+    "catalog_distinct_hk_stocks": 667
+  },
+  "full_business_acceptance": "NOT_PASS",
+  "unresolved_facts": [
+    "Connect source is FUTU membership observation dated20261012 without an explicit effective interval covering20261020; it cannot be labeled official HKEX membership or current eligibility.",
+    "The existing20261013 factor candidate/review pair does not supply a daily-mode paired review for target20261020.",
+    "No exact-date HK industry classification with independently confirmed source-asof/effective semantics covers the target.",
+    "Proposed or unconfirmed relation-period/PIT facts are isolated rather than promoted."
+  ],
+  "source_fact_action_limit": "No fabricated interval, copied review date, invented relationship, or weakened source validator; an unchanged PARTIAL result is not a valid complete zero selection.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "manual_run_id": "fbf5e99c50324c549a5c83792d875b3b",
+  "independent_actual_scheduler_receipt_sha256": "0065e3ec441d60c5e0b744775007580f82881f6d43dac7b4c625f995a70362a5",
+  "independent_canonical_preservation_receipt_sha256": "8492bcaa2f2d33684adc1f10851e4e77c8eef961c8c3ec3fde8dce37c6d4c6e6",
+  "source_collection_status": "NO_NEW_COLLECTION; original Friday controlled-late archive retained",
+  "monitor": {
+    "id": "issue45",
+    "status": "ACTIVE",
+    "same_existing_schedule": true,
+    "next_expected_natural_us_session": "20261019",
+    "next_hk_target": "20261020"
+  }
+}

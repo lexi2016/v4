@@ -1,0 +1,232 @@
+{
+  "schema_version": "v4.independent_scheduler_actual_run_acceptance.v1",
+  "checked_at_utc": "2026-10-18T10:21:27Z",
+  "review_scope": {
+    "run_id": "466dae7ee920499b9b92dc86fd791692",
+    "goal": "Read-only independent acceptance of the saved scheduled run, its runtime/input chain, API readbacks, and reloaded UI.",
+    "excluded_actions": [
+      "No tests rerun",
+      "No job submitted or rerun",
+      "No external source collection; only read-only loopback API GETs were used",
+      "No service, deployment, configuration, or production changes"
+    ]
+  },
+  "verdict": {
+    "runtime_and_run_chain": "PASS",
+    "source_artifact_binding": "PASS",
+    "api_readback": "PASS",
+    "ui_readback": "PASS_AT_DISPLAYED_PRECISION",
+    "business_acceptance": "NOT_PASS",
+    "complete_business_run": "CANNOT_CONFIRM",
+    "NATURAL_VERIFIED": false,
+    "classification": "AUTOMATIC_CATCHUP_NOT_NATURAL_SLOT",
+    "p0_findings": [],
+    "p1_findings": [],
+    "p2_findings": [],
+    "BEHAVIOR_VERIFIED": "PASS_BOUNDED_CHAIN_AND_RENDERING"
+  },
+  "runtime": {
+    "api": {
+      "pid": 19645,
+      "release_id": "us-daily-selection-chain-20261018-r2",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-daily-selection-chain-20261018-r2/app",
+      "manifest_sha256": "70091fe72884aa3a2a32aee50c312426b178ab2ef04fc8d01b9d1ff8e6edd41b",
+      "launch_agent_plist_sha256": "c3ba9c116007c1dc303637e0310d02eec60e82a954293a965c1c71a980ae2906"
+    },
+    "scheduler": {
+      "pid": 26305,
+      "release_id": "us-daily-selection-scheduler-20261018-r1",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-daily-selection-scheduler-20261018-r1/app",
+      "manifest_sha256": "13ca45adf852639b3d488dca237c1d0eb8aca2c8d75c4f82fedfd780aff7e241",
+      "launch_agent_plist_sha256": "b42d5b1eeabbb20d82fb678f4bd89076bca4a35ebb68cac5e36415cbec7a9ae7",
+      "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-daily-selection-scheduler-20261018-r1.json",
+      "config_sha256": "1c35c44e7894fca7e2e850926325d9826ee83dab868398b3f16b29b6ec3901f7"
+    },
+    "identity_evidence": "ROOT_FINAL_RUNTIME_IDS.json is consistent with current process PIDs, release working directories, installed LaunchAgent plist hashes, and release manifests. The scheduler attempt execution_refs names PID 26305."
+  },
+  "run": {
+    "trigger": "SCHEDULED",
+    "manual_selection_submitted": false,
+    "phase": "NEXT_DAY",
+    "target_hk_date": "20261020",
+    "us_source_session": "20261016",
+    "source_cutoff": "2026-10-18T18:00:23.411375+08:00",
+    "context_completion_cutoff": "2026-10-18T18:00:30.289978+08:00",
+    "generated_at": "2026-10-18T18:00:30.510954+08:00",
+    "attempt": {
+      "state": "PARTIAL",
+      "step": "DONE",
+      "completed_count": 0,
+      "total_count": 1,
+      "failed_steps": [],
+      "failure_code": null,
+      "retryable": false
+    },
+    "input_sha256": "f9544b788014bed5c2e2de90bb9095acaa5fe120b2f8e0b892cf7a1fb6e61b05",
+    "product_sha256": "b1a5d9f6cf313f566996bd4bde9efeb178f2cd4574d8748a9ab42afcfd0ce23c",
+    "run_contract": {
+      "state": "VERIFIED",
+      "sha256": "561ad30fb00c269b97bcf1cabc073d1a732fb7af69488a7e68ea1db90bee5bbb",
+      "universe_version": "US_MAPPING_UNIVERSE_CONTRACT_V3",
+      "universe_sha256": "da620de4b1223df678623dcc84958b9dc751c7a4c951e17186df45652d5d50cb",
+      "source_symbol_count": 48
+    }
+  },
+  "input": {
+    "artifact_relative": "research/peripherals/20261017/external_finance.json",
+    "artifact_sha256": "bb79cb28341c83e7e4c1b96eb2b1cc411332efd9d96301f226b7845d23d1bd0f",
+    "manifest_sha256": "97b478fb8afe0f6ba87e69261c150f7d1f2ff3ff92601185e91b85998677111e",
+    "receipt_sha256": "2efaa324645d0d9de3226ca13e9709b0239d2f10947ba2b879fa0d17be4e999d",
+    "market_snapshot_status": "READY",
+    "capture_mode": "CONTROLLED_LATE_POST_CLOSE",
+    "late": true,
+    "captured_at": "2026-10-17T15:35:31Z",
+    "quote_session_date": "20261016",
+    "requested_symbols": 48,
+    "available_symbols": 48,
+    "unique_nonempty_quotes": 48,
+    "quote_symbols_equal_universe_contract": true,
+    "note": "This is late recovery input for the 20261016 session; its late flag and run classification are preserved. It does not establish a natural-slot run."
+  },
+  "outputs": {
+    "source_scope": 48,
+    "observed_sources": 48,
+    "assessed_sources": 0,
+    "unassessed_sources": 48,
+    "source_rows": 60,
+    "relation_rows": 36,
+    "distinct_hk_stocks": 19,
+    "day_endpoint_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed_hk_stocks": 19
+    },
+    "lane_endpoint_counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed_rows": 60
+    },
+    "catalog": {
+      "state": "READY",
+      "stocks": 667,
+      "relations": 1003,
+      "consumed_relations": 1003,
+      "displayed_relations": 1003,
+      "separated_from_candidate_counts": true
+    },
+    "forced_nonzero_selection": false
+  },
+  "unresolved_business_evidence": {
+    "connect": {
+      "target_eligibility": "CANNOT_CONFIRM",
+      "source_owner": null,
+      "source_date": null,
+      "observed_symbol_count": 0,
+      "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"
+    },
+    "relations": {
+      "unassessed_symbol_count": 24,
+      "gap_symbols": [
+        "ARKX",
+        "BOTZ",
+        "CLOU",
+        "COPX",
+        "DRIV",
+        "FCG",
+        "GLD",
+        "GRID",
+        "ICLN",
+        "ITA",
+        "KBE",
+        "LIT",
+        "MU",
+        "NLR",
+        "PDD",
+        "REMX",
+        "SOXX",
+        "TAN",
+        "UFO",
+        "WDC",
+        "XBI",
+        "XLE",
+        "XLP",
+        "XLY"
+      ]
+    },
+    "factor": {
+      "status": "UNAVAILABLE",
+      "paired_review_available": false,
+      "gap": "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND"
+    },
+    "industry": {
+      "status": "UNAVAILABLE",
+      "source_asof_status": "UNKNOWN",
+      "temporal_status": "CANNOT_CONFIRM",
+      "gap": "HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING",
+      "identity_gap": "HK_SECURITY_MASTER_IDENTITY_UNAVAILABLE"
+    }
+  },
+  "ui_and_safety": {
+    "selected_run_id": "466dae7ee920499b9b92dc86fd791692",
+    "displayed_status": "PARTIAL",
+    "displayed_phase_source": "16:30 次日草案",
+    "displayed_source_cutoff": "2026/10/18 18:00 香港时间",
+    "displayed_generated_at": "2026/10/18 18:00 香港时间",
+    "displayed_precision": "minute",
+    "pending_hk_rows": 19,
+    "pending_row_example": "HK.00992 displays CANNOT_CONFIRM and an explicit source/relationship/Connect unverified reason; no recorded conditions are shown.",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "note": "The released UI helper uses context.scope_refs.source_cutoff before context.cutoff; the API snapshot holds source_cutoff=18:00:23.411375 and completion cutoff=18:00:30.289978. The UI intentionally formats timestamps to minute precision, so pixels alone cannot distinguish their seconds."
+  },
+  "evidence_files": [
+    {
+      "path": "ROOT_FINAL_RUNTIME_IDS.json",
+      "sha256": "b84e222f2882e6a5d2938735c85c0c245f7284d952868c9520cd696147f800d6"
+    },
+    {
+      "path": "ROOT_SCHEDULED_ATTEMPT_RECEIPT.json",
+      "sha256": "b8151082d382b4910fb5d8dfe3ad52c42f22bbb58e3467f2afb8f65cfc245efe"
+    },
+    {
+      "path": "ROOT_SCHEDULED_RUN_READBACK.json",
+      "sha256": "6a4dec63d5a1bc9d663219d205e5f2a2ae1a0a59b7e77ba5c52786beabf8a8fb"
+    },
+    {
+      "path": "ROOT_SCHEDULED_SOURCE_SUMMARY.json",
+      "sha256": "c8793a0f5f23c8cf0b8ef286390e73dbdfd07b588fded43ca18dc0560d4479f7"
+    },
+    {
+      "path": "ROOT_SCHEDULED_UI_READBACK.json",
+      "sha256": "e425f994a76c7a1b778044a673dfc704470aff40595779ad1f2778b6433d923b"
+    },
+    {
+      "path": "local_only/run_readback/scheduled_day.json",
+      "sha256": "ba0bb5c8ce3631bfa3a0ed8755a659fe5654819f12deeeab624dcca3fc91e009",
+      "current_api_get_byte_identical": true
+    },
+    {
+      "path": "local_only/run_readback/scheduled_lane.json",
+      "sha256": "a6263e04544e1b5ccb81d8047d36dd6b43176676b070aea16df6bc37cc4ecb08",
+      "current_api_get_byte_identical": true
+    },
+    {
+      "path": "UI_SCHEDULED_RESULT.png",
+      "sha256": "5f0fd49290cc4161658dca476617ce9ed43253f4dd1943a6e030bcdb22c8bdf1"
+    },
+    {
+      "path": "UI_SCHEDULED_PENDING_STOCKS.png",
+      "sha256": "10245feebc2f42659e691ae3c172c967c9707b63c245bee0f6cbe6c613abd0e3"
+    },
+    {
+      "path": "local_only/run_readback/UI_SCHEDULED_RESULT_AX.txt",
+      "sha256": "bb43e1c7309512614833afe238d3693b2edf27f2520d41a88eeeca189c2b5d45"
+    },
+    {
+      "path": "local_only/run_readback/UI_SCHEDULED_PENDING_AX.txt",
+      "sha256": "9c6bf3bfa58bea52e35b741185f98638691a5ea4d43f1fc7f5083bb66cfad9d8"
+    }
+  ]
+}

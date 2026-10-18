@@ -1,0 +1,124 @@
+{
+  "schema_version": "v4.canonical_baseline_preservation_writer_receipt.v1",
+  "recorded_at_utc": "2026-10-18T10:07:55Z",
+  "state": "IMPLEMENTED_TESTED_PENDING_INDEPENDENT_REVIEW",
+  "milestone": "Restore existing canonical HK industry owner interfaces and UI funnel while applying the preserved four-test remote/local union",
+  "writer": "/root/daily_chain_writer",
+  "review_required": "Independent read-only Luna Max Reviewer must inspect this exact canonical diff, the frozen scope, the retained tests, and target behavior.",
+  "scope_source": "SCOPE.json",
+  "allowlist_respected": true,
+  "canonical_changes": [
+    {
+      "path": "ops/materialize_research_peripherals.py",
+      "preimage_sha256": "4c48bef091e843892e94cda4763172b74f8136ee5187df9488a767bd34f4cfd4",
+      "preimage_basis": "Last-known-good commit 0ab7f4f9a781e1236a89a2c728c5d6c3ea21f44",
+      "remote_test_base_sha256": "712fb09f36f47f1e821793b2ba94a612396d474eb688036d40061458805ca512",
+      "postimage_sha256": "81c77297a6de1e8767dea31876d7d01752f634d6e985dca2d09610c07d9dafa8",
+      "change": "Added lazy facade wrappers/exports for existing HK industry URL, cache-seed, response-capture, and payload-building interfaces required by the preserved owner tests. No materialization orchestration or producer run was added."
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/materialization.py",
+      "preimage_sha256": "a89c08a46628b9e2e83a1749ebba4a40bcdbc890ef4da0cd983a5a6a66501a79",
+      "postimage_sha256": "a89c08a46628b9e2e83a1749ebba4a40bcdbc890ef4da0cd983a5a6a66501a79",
+      "state": "UNCHANGED_BYTE_IDENTICAL_TO_REMOTE_TEST_BASE"
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/hk_industry_classification.py",
+      "preimage": "ABSENT",
+      "postimage_sha256": "242b47212502a0945a286b3bf6cb504ba02daa97f2e106afede87368f29afc7b",
+      "change": "Added the existing pure/cache helper surface in the current owner module layout. Unknown provider source_asof remains null/UNKNOWN; capture time is recorded separately."
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "preimage_sha256": "d4ea9f3c2e609bc2c12a8d7c0872bacbe4709d37af4f4ea89b3a3726b8184fb9",
+      "preimage_basis": "Separately reviewed canonical runtime UI follow-up bytes",
+      "source_reference_sha256": "bf5638802b9607cd8c75e1e1f8ebaac5d7ca45500bf90ba2329fa046ab317b3c",
+      "source_reference": "Deployed API r2 Workbench.vue",
+      "postimage_sha256": "f0a8078ec018f9fb1031b7939a8b6d42222f8104094dfc3e2beef0000d9775e0",
+      "change": "Merged the existing industry funnel summary, candidate stock-row detail, and industry detail sections. Existing daily contract, catalog, source-cutoff, and reason presentation bytes were preserved; no whole-file replacement was used."
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "preimage_sha256": "36c203f7d91e55ad5158336f44fe6194036ee22010691cbb37e4fbedf414870f",
+      "postimage_sha256": "54224b6d20a98faceb7da927f97a0adc78ad49f162595f63125e0ef71a608d33",
+      "change": "Applied the merged test preserving the remote industry-funnel case and the local daily/catalog/evidence assertions."
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "preimage_sha256": "9263d57e8f9db570d57147f2f9a9ac1ace0e59719bc6bbf8ef0c2ab8d117e8bb",
+      "postimage_sha256": "c1e4df3cb335365e9b87a368227aa9ec136138bdf854cff1c3ef823f1a25ab4c",
+      "change": "Applied the reviewed remote/local test union. Two positive-branch source_asof examples are explicitly synthetic; no factual source date was introduced."
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "preimage_sha256": "0e4fca949f1dc78012e8a5dc5dc3a51d23c7e31656e53b8c1f3224d6ee777e37",
+      "postimage_sha256": "a278f05fd0d3f054162cd715b5029b2534df5e70825ebc5d198b88d994710af1",
+      "change": "Applied the remote industry-funnel projection case while retaining the local catalog/candidate display isolation assertion."
+    },
+    {
+      "path": "tests/test_hk_industry_peripheral.py",
+      "preimage_sha256": "cf565c87e9b82e6f4a9cbf8c6fdbcae2afd027cf1a0d67636e392269d6ef9069",
+      "postimage_sha256": "6525e531016fca7d8aa6f63300c0713f64ad34e008f74b9b2cb755bc22db614c",
+      "change": "Applied the remote owner/cache test cases and retained synthetic UNKNOWN source_asof, explicit membership-period, and 24-hour recovery-boundary checks."
+    }
+  ],
+  "test_union_receipt": {
+    "path": "GITHUB_TEST_MERGE_WRITER_RECEIPT.json",
+    "sha256": "4e47495924904cc5ce38505afce743b79b101211a8c2ce871c4431f7e51d5527",
+    "remote_base_commit": "3b942a957b39c6e60690ba4c77e863038d304743",
+    "canonical_bytes_match_merged_sha": true
+  },
+  "validation": [
+    {
+      "name": "canonical_preservation_focused_python",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp='docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/test_runs/canonical_preservation_python' tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/runtime/test_us_factor_display.py tests/test_hk_industry_peripheral.py",
+      "result": "PASS: 27 passed in 0.28s",
+      "log_path": "local_only/github_sync_preparation/test_runs/canonical_preservation_python.log",
+      "log_sha256": "d3402c1e87e091028e7e69cf59fe90bee46900a349b7629d7e38e8e7557995da"
+    },
+    {
+      "name": "canonical_preservation_ui_vitest",
+      "command": "set -o pipefail; node apps/web/node_modules/vitest/vitest.mjs run --config '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/canonical_preservation_ui_overlay/vitest.config.ts' --root '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/canonical_preservation_ui_overlay' '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/canonical_preservation_ui_overlay/src/manager-workbench/__tests__/us_factor.spec.ts'",
+      "result": "PASS: 2 passed",
+      "tool": "Direct installed Vitest module; no package manager invoked",
+      "overlay_manifest_sha256": "ba5eb4dacef5768a0ee2670dcc8c3359ba3905ca51c726c085a4c6de25346025",
+      "log_path": "local_only/github_sync_preparation/test_runs/canonical_preservation_ui.log",
+      "log_sha256": "2a1638c2a2595143330cfd64cbee5a99b685f4bd3381c6ceb427ffccd34dc7d1"
+    },
+    {
+      "name": "focused_vue_typecheck",
+      "command": "apps/web/node_modules/.bin/vue-tsc --noEmit --project docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/canonical_preservation.tsconfig.json --pretty false",
+      "result": "PASS: exit 0",
+      "config_sha256": "d292e42d339acd715449332d81fb94696748603b280ea577c5b597ccb19c6cfc",
+      "config_note": "Overrides inherited vitest/globals ambient types with types=[]; the tested spec imports its Vitest types directly.",
+      "log_path": "local_only/github_sync_preparation/test_runs/canonical_preservation_vue_tsc_r2.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "known_open_issue": {
+    "state": "CANNOT_CONFIRM",
+    "issue": "The prior observed quote-source fixture reported READY with 47 of 49 configured quote rows and was rejected by the existing owner validator.",
+    "ownership": "ops/us_market_digest.py remains outside this phase ownership and was not changed.",
+    "this_phase": "Not rerun, not modified, and not claimed resolved."
+  },
+  "business_status": "CANNOT_CONFIRM",
+  "CANNOT_CONFIRM": [
+    "Independent review of this exact canonical owner/UI/test diff is pending.",
+    "No primary-source evidence was added for current HK classification source_asof, membership effective period, or the other unresolved business fact gaps.",
+    "This writer phase did not submit or claim a Friday archive run, perform API/UI readback, or establish natural-time verification.",
+    "The separate 47/49 quote-source issue remains unresolved and was not rerun in this bounded phase."
+  ],
+  "actions": {
+    "real_source_collection": false,
+    "owner_publication": false,
+    "external_network_call": false,
+    "service_or_scheduler_action": false,
+    "deployment_or_activation": false,
+    "canonical_data_or_immutable_snapshot_write": false,
+    "commit_or_push": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

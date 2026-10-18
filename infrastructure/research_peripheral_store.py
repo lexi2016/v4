@@ -8,6 +8,8 @@ the other source.
 from __future__ import annotations
 
 import math
+import base64
+import hashlib
 import re
 from datetime import datetime, time, timedelta
 from pathlib import Path
@@ -18,7 +20,8 @@ from infrastructure.data_store import NativeDataStore, _date, _sha256
 from infrastructure.owned_path import resolve_owned_path
 
 
-PERIPHERAL_SOURCES = frozenset({"external_finance", "ai_news"})
+HK_INDUSTRY_SOURCE = "hk_industry_classification"
+PERIPHERAL_SOURCES = frozenset({"external_finance", "ai_news", HK_INDUSTRY_SOURCE})
 _STATUSES = frozenset({"READY", "READY_EMPTY", "CANNOT_CONFIRM"})
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _MANIFEST_RELATIVE = "research/peripherals/manifest.json"
@@ -91,8 +94,159 @@ def _is_late_capture_identity(value: Any) -> bool:
 def _source(value: str) -> str:
     normalized = str(value or "").strip().lower()
     if normalized not in PERIPHERAL_SOURCES:
-        raise ValueError("research peripheral source must be external_finance or ai_news")
+        raise ValueError("unsupported research peripheral source")
     return normalized
+
+def _validate_hk_industry_peripheral(payload: Mapping[str, Any]) -> None:
+    """Validate the independent, exact-date Eastmoney issuer classification source."""
+    if payload.get("status") not in {"READY", "PARTIAL", "CANNOT_CONFIRM"}:
+        raise ValueError("invalid HK industry peripheral status")
+    required = (
+        "source_id", "provider", "captured_at", "source_asof",
+        "source_asof_status", "source_date_semantics", "market", "scope_type",
+        "scope_codes", "scope_count", "scope_codes_sha256",
+        "membership_codes_sha256", "membership_artifact_sha256",
+        "membership_owner", "membership_relative", "membership_available_at",
+        "membership_effective_from", "membership_effective_through",
+        "membership_source_root", "membership_source_refs",
+        "requested_codes", "raw_responses", "failures", "batch_response_sha256",
+    )
+    if any(key not in payload for key in required):
+        raise ValueError("HK industry peripheral fields missing")
+    if payload.get("source_id") != "EASTMONEY_F10_RPT_HKF10_INFO_ORGPROFILE":
+        raise ValueError("HK industry peripheral source id mismatch")
+    if payload.get("provider") != "EASTMONEY_F10":
+        raise ValueError("HK industry peripheral provider mismatch")
+    if payload.get("market") != "HK_CONNECT" or payload.get("scope_type") != "HK_CONNECT_FULL_MARKET":
+        raise ValueError("HK industry peripheral scope identity mismatch")
+    if payload.get("source_asof") is not None or payload.get("source_asof_status") != "UNKNOWN":
+        raise ValueError("HK industry provider as-of must remain UNKNOWN")
+    if payload.get("source_date_semantics") not in {
+        "CAPTURED_AFTER_TARGET_DATE_SOURCE_ASOF_UNKNOWN",
+        "CAPTURED_ON_OR_BEFORE_TARGET_DATE_SOURCE_ASOF_UNKNOWN",
+    }:
+        raise ValueError("HK industry date semantics mismatch")
+    _aware_timestamp(payload.get("captured_at"), "hk_industry.captured_at")
+    _aware_timestamp(payload.get("membership_available_at"), "hk_industry.membership_available_at")
+    if not isinstance(payload.get("membership_owner"), str) or not payload["membership_owner"].strip():
+        raise ValueError("HK industry membership owner missing")
+    if not isinstance(payload.get("membership_relative"), str) or not payload["membership_relative"].strip():
+        raise ValueError("HK industry membership artifact path missing")
+    for field in ("membership_effective_from", "membership_effective_through"):
+        if not isinstance(payload.get(field), str) or not re.fullmatch(r"\d{8}", payload[field]):
+            raise ValueError(f"HK industry {field} invalid")
+    if payload["membership_effective_from"] > payload["membership_effective_through"]:
+        raise ValueError("HK industry membership effective range invalid")
+    if not isinstance(payload.get("membership_source_root"), str) or not payload["membership_source_root"].strip():
+        raise ValueError("HK industry membership source root missing")
+    refs = payload.get("membership_source_refs")
+    if not isinstance(refs, list) or not refs:
+        raise ValueError("HK industry membership source refs missing")
+    for ref in refs:
+        if (not isinstance(ref, Mapping) or not isinstance(ref.get("source_local_path"), str)
+                or not isinstance(ref.get("relative"), str) or not ref["relative"]
+                or not isinstance(ref.get("sha256"), str) or not _SHA256.fullmatch(ref["sha256"])):
+            raise ValueError("HK industry membership source ref invalid")
+    for field in ("membership_artifact_sha256", "membership_codes_sha256", "scope_codes_sha256", "batch_response_sha256"):
+        if not isinstance(payload.get(field), str) or not _SHA256.fullmatch(payload[field]):
+            raise ValueError(f"HK industry {field} invalid")
+    scope_codes = _string_list(payload.get("scope_codes"), "hk_industry.scope_codes")
+    requested_codes = _string_list(payload.get("requested_codes"), "hk_industry.requested_codes")
+    if type(payload.get("scope_count")) is not int or payload["scope_count"] != len(scope_codes) or not scope_codes:
+        raise ValueError("HK industry membership scope count mismatch")
+    if not set(requested_codes) or not set(requested_codes).issubset(scope_codes):
+        raise ValueError("HK industry requested codes are not a membership subset")
+    if any(not re.fullmatch(r"HK\.\d{5}", code) for code in (*scope_codes, *requested_codes)):
+        raise ValueError("HK industry membership contains invalid symbol")
+    if _sha256(scope_codes) != payload["scope_codes_sha256"]:
+        raise ValueError("HK industry scope codes SHA mismatch")
+    if _sha256({"market": "HK_CONNECT", "codes": scope_codes}) != payload["membership_codes_sha256"]:
+        raise ValueError("HK industry membership codes SHA mismatch")
+    if payload.get("raw_item_count", 0) < payload.get("item_count", 0):
+        raise ValueError("HK industry raw item count mismatch")
+
+    raw_responses = payload.get("raw_responses")
+    failures = payload.get("failures")
+    items = payload.get("items")
+    if not isinstance(raw_responses, list) or not isinstance(failures, list) or not isinstance(items, list):
+        raise ValueError("HK industry response collections invalid")
+    response_hashes: set[str] = set()
+    response_symbols: set[str] = set()
+    for response in raw_responses:
+        if not isinstance(response, Mapping):
+            raise ValueError("HK industry raw response row invalid")
+        symbol = response.get("symbol")
+        digest = response.get("raw_response_sha256")
+        request_url = response.get("request_url")
+        body = response.get("raw_body_base64")
+        if (not isinstance(symbol, str) or symbol not in requested_codes
+                or symbol in response_symbols or not isinstance(digest, str)
+                or not _SHA256.fullmatch(digest) or not isinstance(request_url, str)
+                or not request_url.startswith("https://datacenter.eastmoney.com/securities/api/data/v1/get?")
+                or not isinstance(body, str)):
+            raise ValueError("HK industry raw response identity invalid")
+        try:
+            decoded = base64.b64decode(body, validate=True)
+        except (ValueError, base64.binascii.Error) as error:
+            raise ValueError("HK industry raw response base64 invalid") from error
+        if hashlib.sha256(decoded).hexdigest() != digest:
+            raise ValueError("HK industry raw response SHA mismatch")
+        _aware_timestamp(response.get("captured_at"), "hk_industry.response.captured_at")
+        if type(response.get("http_status")) is not int or not 100 <= response["http_status"] <= 599:
+            raise ValueError("HK industry raw response status invalid")
+        if response.get("cache_status") not in {"HIT", "MISS"}:
+            raise ValueError("HK industry cache status invalid")
+        response_hashes.add(digest)
+        response_symbols.add(symbol)
+
+    seen_symbols: set[str] = set()
+    for item in items:
+        if not isinstance(item, Mapping):
+            raise ValueError("HK industry item invalid")
+        symbol = item.get("symbol")
+        if not isinstance(symbol, str) or symbol not in requested_codes or symbol in seen_symbols:
+            raise ValueError("HK industry item symbol invalid")
+        seen_symbols.add(symbol)
+        for field in ("source_row_sha256", "source_response_sha256"):
+            if not isinstance(item.get(field), str) or not _SHA256.fullmatch(item[field]):
+                raise ValueError(f"HK industry item {field} invalid")
+        if item["source_response_sha256"] not in response_hashes:
+            raise ValueError("HK industry item has no raw response")
+        if not isinstance(item.get("source_response_ref"), str) or not item["source_response_ref"]:
+            raise ValueError("HK industry item response reference missing")
+        if not isinstance(item.get("provider_code"), str) or not re.fullmatch(r"\d{5}\.HK", item["provider_code"]):
+            raise ValueError("HK industry provider code invalid")
+        if item.get("issuer_name") is not None and not isinstance(item.get("issuer_name"), str):
+            raise ValueError("HK industry issuer name invalid")
+        if item.get("source_industry") is not None and not isinstance(item.get("source_industry"), str):
+            raise ValueError("HK industry source industry invalid")
+        _aware_timestamp(item.get("captured_at"), "hk_industry.item.captured_at")
+
+    failed_symbols: set[str] = set()
+    for failure in failures:
+        if not isinstance(failure, Mapping):
+            raise ValueError("HK industry failure row invalid")
+        symbol = failure.get("symbol")
+        if (not isinstance(symbol, str) or symbol not in requested_codes
+                or symbol in failed_symbols or symbol in seen_symbols
+                or not isinstance(failure.get("error_code"), str)
+                or not failure["error_code"].strip()
+                or not isinstance(failure.get("request_url"), str)
+                or not failure["request_url"].startswith("https://datacenter.eastmoney.com/securities/api/data/v1/get?")):
+            raise ValueError("HK industry failure identity invalid")
+        if failure.get("http_status") is not None and (type(failure["http_status"]) is not int or not 100 <= failure["http_status"] <= 599):
+            raise ValueError("HK industry failure HTTP status invalid")
+        _aware_timestamp(failure.get("captured_at"), "hk_industry.failure.captured_at")
+        failed_symbols.add(symbol)
+    if seen_symbols | failed_symbols != set(requested_codes):
+        raise ValueError("HK industry requested-symbol coverage mismatch")
+    if payload.get("status") == "READY" and (failed_symbols or not seen_symbols):
+        raise ValueError("HK industry READY status inconsistent")
+    if payload.get("status") == "PARTIAL" and (not failed_symbols or not seen_symbols):
+        raise ValueError("HK industry PARTIAL status inconsistent")
+    if payload.get("status") == "CANNOT_CONFIRM" and seen_symbols:
+        raise ValueError("HK industry CANNOT_CONFIRM status inconsistent")
+
 
 
 def _aware_timestamp(value: Any, field: str) -> None:

@@ -1,0 +1,89 @@
+{
+  "schema_version": "v4.canonical_baseline_preservation_independent_review.v1",
+  "review_identity": "/root/daily_chain_review; independent read-only reviewer",
+  "scope": "Canonical baseline-preservation leaf only: existing HK-industry owner helper interface, existing industry UI funnel/details, and preserved remote/local test union.",
+  "frozen_writer_receipt_sha256": "14738efaa7f5807ae7ffb9e3dc1a80d8ec862bce3dac4e7ebe0960bf35a4830f",
+  "test_union_receipt_sha256": "4e47495924904cc5ce38505afce743b79b101211a8c2ce871c4431f7e51d5527",
+  "source_identity_audit": "local_only/reviewer/canonical_baseline_preservation_audit.json",
+  "scope_integrity": {
+    "all_writer_postimages_match_current_bytes": true,
+    "all_four_merged_test_files_match_receipt_and_staged_union": true,
+    "remote_unique_tests_preserved": 12
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "reviewed_behavior": [
+    {
+      "claim": "Restored owner cache/payload helpers are thin lazy wrappers to the existing owner module; new helper validates HK symbol format, SHA-pinned raw cache bytes, date/scope/outcome coverage, provider issuer identity, and preserves per-symbol failures.",
+      "status": "PASS_BOUNDED",
+      "evidence": [
+        "ops/materialize_research_peripherals.py",
+        "ops/_materialize_research_peripherals_parts/hk_industry_classification.py",
+        "tests/test_hk_industry_peripheral.py"
+      ]
+    },
+    {
+      "claim": "Industry provider source_asof remains null/UNKNOWN; capture time is kept separate and cannot qualify historical PIT. Output remains RESEARCH_ONLY with production_allowed=false, buy_gate_updated=false, orders_sent=false.",
+      "status": "PASS_BOUNDED",
+      "evidence": [
+        "ops/_materialize_research_peripherals_parts/hk_industry_classification.py",
+        "tests/test_hk_industry_peripheral.py"
+      ]
+    },
+    {
+      "claim": "Workbench restores the established unique-stock industry funnel and row-level mapping/provenance detail while preserving source-cutoff/reason presentation.",
+      "status": "PASS_SOURCE_TESTED",
+      "evidence": [
+        "apps/web/src/manager-workbench/Workbench.vue",
+        "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts"
+      ]
+    },
+    {
+      "claim": "No actual provider collection, owner publication, service/scheduler action, deployment, or business rerun was performed by this reviewer.",
+      "status": "PASS_SCOPE_BOUNDARY"
+    }
+  ],
+  "independent_validation": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac python> -m pytest -q -p no:cacheprovider --basetemp=docs/handoffs/us_daily_selection_chain_20261018/local_only/reviewer/tmp/current_merged_tests <merged test_hk_industry_peripheral.py> tests/manager_workbench/engines/test_us_factor.py tests/manager_workbench/runtime/test_us_factor_display.py",
+      "result": "PASS: 27 passed in 0.23s",
+      "note": "Current canonical test bytes independently match the four-file union receipt; this run exercised the staged HK owner test byte-identical to the canonical file."
+    },
+    {
+      "command": "Direct Vitest 4.1.10 run of current apps/web/src/manager-workbench/__tests__/us_factor.spec.ts with reviewer-local config/cache",
+      "result": "PASS: 2 tests passed, 1 file passed"
+    },
+    {
+      "command": "apps/web/node_modules/.bin/vue-tsc --noEmit --project docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/canonical_preservation.tsconfig.json --pretty false",
+      "result": "PASS: exit 0"
+    }
+  ],
+  "acceptance": {
+    "canonical_source_leaf": "REVIEWED_PASS_BOUNDED",
+    "remote_test_union": "REVIEWED_PASS_BOUNDED",
+    "runtime_UI_VERIFIED": "CANNOT_CONFIRM",
+    "full_business_run_and_saved_API_UI_agreement": "CANNOT_CONFIRM",
+    "known_open_issue": "Writer receipt records the prior 47-of-49 quote-source fixture rejected by the existing owner validator; this leaf did not rerun or change ops/us_market_digest.py. Keep business-level acceptance CANNOT_CONFIRM until its separately authorized evidence closes; it is not attributed to this leaf."
+  },
+  "actions": {
+    "source_or_test_changes_by_reviewer": false,
+    "external_network": false,
+    "owner_publication": false,
+    "service_or_scheduler_action": false,
+    "deployment_or_activation": false,
+    "commit_or_push": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "supersedes_prior_review_boundary": {
+    "prior_review": "CANONICAL_SCHEDULER_INDEPENDENT_REVIEW.json",
+    "resolved_item": "P2-REMOTE-TESTS-NEED-MERGE",
+    "current_state": "The 12 remote-only tests are now present in the verified four-file union; 27 Python tests and 2 UI tests pass on current bytes.",
+    "does_not_change": "The immutable R1 release/canary review or the separate 47-of-49 quote fixture CANNOT_CONFIRM."
+  }
+}

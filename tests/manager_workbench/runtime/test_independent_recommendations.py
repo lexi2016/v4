@@ -8,7 +8,8 @@ from fastapi.testclient import TestClient
 from v4.manager_workbench.api import create_router
 from v4.manager_workbench.contracts import PlanSnapshot
 from v4.manager_workbench.display_read import lane_projection
-from v4.manager_workbench.engines.common import US_FACTOR_RULES_VERSION
+from v4.manager_workbench.engines.common import RULE, US_FACTOR_RULES_VERSION
+from v4.manager_workbench.engines.core import merge_decisions
 OLD=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/528ef6fd4f0b49e7a3ec2b6719fc9afe.json')
 
 @pytest.fixture
@@ -102,3 +103,26 @@ def test_factor_rules_expand_mapping_details_but_keep_oversold_row_exact():
  assert over['stock']['decision']=='NOT_SELECTED'
  assert len(over['lane_details'][0]['rows'])==1
  assert over['lane_details'][0]['rows'][0]['reason']=='OVERSOLD_PRICE_AND_VOLUME_NOT_BOTH_PASS'
+
+
+def test_catalog_observation_does_not_change_merged_candidate_decision():
+ context=dict(market='HK_CONNECT',target_date='20261020',phase='MANUAL',trigger='MANUAL',
+  cutoff='2026-10-18T14:50:00+08:00',source_sessions={'us':'20261016'},rules_version=RULE,scope_refs={})
+ candidate=dict(market='HK_CONNECT',symbol='HK.09961',decision='CONDITIONAL_WATCH',
+  reason='US_REVIEWED_RELATION_CONDITIONAL_ONLY',record_role='SOURCE_CANDIDATE',
+  membership=dict(verification='VERIFIED',owner='futu-connect',sha256='a'*64,eligible=True,
+   effective_from='20261001',effective_through='20261031',available_at='2026-10-16T17:00:00+08:00'))
+ catalog_for_candidate=dict(market='HK_CONNECT',symbol='HK.09961',decision='UNASSESSED',
+  reason='CATALOG_ONLY',record_role='CATALOG_OBSERVATION',catalog_relation_id='catalog-link-1')
+ catalog_only=dict(market='HK_CONNECT',symbol='HK.01234',decision='UNASSESSED',
+  reason='CATALOG_ONLY',record_role='CATALOG_OBSERVATION',catalog_relation_id='catalog-link-2')
+ lane=dict(lane='US_MAPPING',state='PARTIAL',rows=[candidate,catalog_for_candidate,catalog_only],
+  coverage=dict(scope_count=48,observed_count=48),evidence_refs=[],gaps=[])
+
+ stocks=merge_decisions(context,[lane])
+
+ assert len(stocks)==1
+ assert stocks[0]['symbol']=='HK.09961'
+ assert stocks[0]['decision']=='CONDITIONAL_WATCH'
+ assert len(stocks[0]['lane_decisions']['US_MAPPING'])==1
+ assert stocks[0]['lane_decisions']['US_MAPPING'][0]['record_role']=='SOURCE_CANDIDATE'

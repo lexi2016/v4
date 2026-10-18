@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import { useWorkbench } from "./useWorkbench";
-import type { HKIndustrySummary, Lane, Phase, PlanVersion, StockDecision, USFactorSummary } from "./types";
+import AnnouncementCandidates from "./AnnouncementCandidates.vue";
+import type { HKIndustrySummary, Lane, Phase, PlanVersion, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
 import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
   showCount, showText, gapText } from "./types";
 import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
   laneEntries, laneResultLabel, metricLabel, stockTitle, researchRows, readableReason,
-  researchSections, researchRisks, detailReasons, detailRisks } from "./display";
+  researchSections, researchRisks, detailReasons, detailRisks, researchCutoff } from "./display";
 import "./workbench.css";
 
 const vm = reactive(useWorkbench());
 const panels = [
   { key: "stocks", label: "今日名单" },
+  { key: "announcements", label: "公告选股" },
   { key: "detail", label: "个股详情" },
   { key: "progress", label: "研究进度" },
   { key: "history", label: "计划历史" },
-  { key: "reviews", label: "收盘复盘" }
+  { key: "reviews", label: "收盘复盘" },
+  { key: "catalog", label: "美股映射资料库" }
 ] as const;
 
 function changeVersionBySelect(event: Event): void {
@@ -53,12 +56,37 @@ function factorPeriod(path: Record<string, unknown>): string {
   return typeof path.fact_effective_from === "string" && typeof path.fact_effective_through === "string"
     ? `${path.fact_effective_from} 至 ${path.fact_effective_through}` : "历史有效期间未知";
 }
+function industrySummaryText(summary: HKIndustrySummary): string {
+  return `港股通范围 ${showCount(summary.scope_count)} 只；身份核验 ${showCount(summary.identity_resolved_count)} 只，身份缺口 ${showCount(summary.identity_gap_count)} 只；有行业分类 ${showCount(summary.classified_count)} 只，已映射到冻结美股主题 ${showCount(summary.mapping_covered_count)} 只，行业已知但未映射 ${showCount(summary.industry_unmapped_count)} 只，分类缺失 ${showCount(summary.classification_missing_count)} 只；待核（UNASSESSED）${showCount(summary.unknown_unique_stock_count)} 只；坏来源行 ${showCount(summary.bad_row_count)} 条；代理收益为正且通过时间门槛的去重候选 ${showCount(summary.triggered_unique_stock_count)} 只。`;
+}
 function factorSummaryText(summary: USFactorSummary): string {
   const decisions = summary.factor_decision_counts || {};
   return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
 }
-function industrySummaryText(summary: HKIndustrySummary): string {
-  return `港股通范围 ${showCount(summary.scope_count)} 只；身份核验 ${showCount(summary.identity_resolved_count)} 只，身份缺口 ${showCount(summary.identity_gap_count)} 只；有行业分类 ${showCount(summary.classified_count)} 只，已映射到冻结美股主题 ${showCount(summary.mapping_covered_count)} 只，行业已知但未映射 ${showCount(summary.industry_unmapped_count)} 只，分类缺失 ${showCount(summary.classification_missing_count)} 只；待核（UNASSESSED）${showCount(summary.unknown_unique_stock_count)} 只；坏来源行 ${showCount(summary.bad_row_count)} 条；代理收益为正且通过时间门槛的去重候选 ${showCount(summary.triggered_unique_stock_count)} 只。`;
+function catalogRelations(rows: USMappingCatalogRelation[]): USMappingCatalogRelation[] {
+  return rows.map(row => vm.catalogRelationDetails[row.relation_id]?.data || row);
+}
+function sourceValue(value: unknown): string {
+  return value === "" || value === null || value === undefined ? "来源未提供" : showText(value);
+}
+function sourceUrls(value: unknown): string[] {
+  let values: unknown = value;
+  if (typeof value === "string") {
+    try { values = JSON.parse(value); } catch { values = value.split(/\s+/); }
+  }
+  if (!Array.isArray(values)) values = [values];
+  return [...new Set((values as unknown[]).filter((item): item is string => {
+    if (typeof item !== "string" || /[\s<>"']/.test(item)) return false;
+    try { const url = new URL(item); return ["http:", "https:"].includes(url.protocol) && !!url.hostname && !url.username && !url.password; }
+    catch { return false; }
+  }))];
+}
+function researchUseLabel(value: string): string {
+  return ({ PENDING_REVIEW: "待核 / 待补证", CONDITIONAL_OBSERVATION: "条件观察（研究设计）",
+    BACKGROUND_HISTORICAL: "背景 / 历史", EXCLUDED_CURRENT: "排除现行用途" } as Record<string, string>)[value] || value;
+}
+function revisionAssessments(value: unknown): [string, unknown][] {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? Object.entries(value) : [];
 }
 </script>
 
@@ -116,7 +144,7 @@ function industrySummaryText(summary: HKIndustrySummary): string {
     <section class="mwb-metadata mwb-panel" aria-label="当前计划身份">
       <div><span>当前目标日</span><strong>{{ vm.selectedDate }}</strong></div>
       <div><span>阶段 / 来源</span><strong>{{ vm.snapshot ? PHASE_LABELS[vm.snapshot.context.phase] : "未加载" }}</strong></div>
-      <div><span>研究截止</span><strong>{{ humanTime(vm.snapshot?.context.cutoff) }}</strong></div>
+      <div><span>研究截止</span><strong>{{ humanTime(researchCutoff(vm.snapshot?.context)) }}</strong></div>
       <div><span>实际生成</span><strong>{{ humanTime(vm.snapshot?.generated_at) }}</strong></div>
       <div><span>读取版本</span><strong class="mwb-id">{{ vm.selectedRunId || "无已保存版本" }}</strong></div>
       <div><span>响应状态</span><strong>{{ vm.dayLoading ? "读取中" : (vm.day?.state || "未读取") }}</strong></div>
@@ -130,6 +158,8 @@ function industrySummaryText(summary: HKIndustrySummary): string {
         :aria-selected="vm.panel === tab.key" :class="{ active: vm.panel === tab.key }"
         @click="vm.showPanel(tab.key)">{{ tab.label }}</button>
     </nav>
+
+    <AnnouncementCandidates v-if="vm.panel === 'announcements'" :target-date="vm.route.date" />
 
     <section v-if="vm.panel === 'stocks'" class="mwb-panel" aria-label="今日研究名单">
       <div class="mwb-heading">
@@ -161,19 +191,29 @@ function industrySummaryText(summary: HKIndustrySummary): string {
         <div><strong>{{ showCount(vm.counts.not_selected) }}</strong><span>未入选</span></div>
       </div>
       <p v-else class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
-      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录（计数单位：研究记录）。
-        这些记录包含 {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条港股关系记录，去重涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只港股。
+      <p v-if="vm.day?.data?.recommendation_projection" class="mwb-muted">本路径保存 {{ vm.day.data.recommendation_projection.row_count }} 条研究记录（计数单位：研究记录）；
+        {{ vm.day.data.recommendation_projection.hk_relation_row_count }} 条含港股，涉及 {{ vm.day.data.recommendation_projection.distinct_hk_count }} 只。
         分类数量按完整研究记录计，不受分页影响；默认推荐仅含严格入选和条件观察。无港股关系的来源缺口在下方单独查看。</p>
 
       <section v-if="vm.day?.data?.us_mapping_summary" class="mwb-panel" aria-label="本版本美股映射">
         <h3>本版本美股映射 · 独立保存结论</h3>
-        <p>美股来源标的 {{ vm.day.data.us_mapping_summary.source_symbol_count }} 个，保存来源记录 {{ vm.day.data.us_mapping_summary.source_row_count }} 条；
-          港股关系 {{ vm.day.data.us_mapping_summary.relation_row_count }} 条，涉及 {{ vm.day.data.us_mapping_summary.mapped_hk_count }} 只港股。</p>
+        <p>美股来源标的 {{ vm.day.data.us_mapping_summary.source_symbol_count }} 个，候选来源记录 {{ vm.day.data.us_mapping_summary.source_row_count }} 条；
+          候选港股关系 {{ vm.day.data.us_mapping_summary.relation_row_count }} 条，涉及 {{ vm.day.data.us_mapping_summary.mapped_hk_count }} 只港股。</p>
+        <p v-if="vm.day.data.us_mapping_summary.catalog_summary">
+          全量关系目录 {{ vm.day.data.us_mapping_summary.catalog_summary.displayed_relation_count ?? vm.day.data.us_mapping_summary.catalog_summary.relation_count ?? '未知' }} 条 / {{ vm.day.data.us_mapping_summary.catalog_summary.stock_count ?? '未知' }} 只，目录状态 {{ vm.day.data.us_mapping_summary.catalog_summary.state || 'CANNOT_CONFIRM' }}；目录只用于检索，不计入候选、评估计数或合并结论。</p>
         <p>按美股来源标的计：严格入选 {{ vm.day.data.us_mapping_summary.source_decision_counts.SELECTED ?? '未知' }}，
           条件观察 {{ vm.day.data.us_mapping_summary.source_decision_counts.CONDITIONAL_WATCH ?? '未知' }}，
           未入选 {{ vm.day.data.us_mapping_summary.source_decision_counts.NOT_SELECTED ?? '未知' }}，
           待核 {{ vm.day.data.us_mapping_summary.source_decision_counts.UNASSESSED ?? '未知' }}。
           美股标的数、研究记录数和港股数是不同计量单位；以上只属于美股映射。</p>
+        <template v-if="vm.day.data.us_mapping_summary.run_contract">
+          <p>日常输入合同 {{ vm.day.data.us_mapping_summary.run_contract.state || 'CANNOT_CONFIRM' }} · 模式 {{ vm.day.data.us_mapping_summary.run_contract.mode || '未知' }} · 港股目标日 {{ vm.day.data.us_mapping_summary.run_contract.target_hk_date || '未知' }} · 美股来源会话 {{ vm.day.data.us_mapping_summary.run_contract.us_source_session || '未知' }} · 截止 {{ humanTime(vm.day.data.us_mapping_summary.run_contract.cutoff || null) }}。</p>
+          <p>美股输入 {{ vm.day.data.us_mapping_summary.run_contract.owners?.quote?.owner || '未知' }} · 可得 {{ humanTime(vm.day.data.us_mapping_summary.run_contract.owners?.quote?.available_at || null) }} · SHA {{ vm.day.data.us_mapping_summary.run_contract.owners?.quote?.artifact_sha256?.slice(0, 12) || '未知' }}；
+            Universe {{ vm.day.data.us_mapping_summary.run_contract.universe?.version || '未知' }}（{{ vm.day.data.us_mapping_summary.run_contract.universe?.symbol_count ?? '未知' }} 个） · SHA {{ vm.day.data.us_mapping_summary.run_contract.universe?.contract_sha256?.slice(0, 12) || '未知' }}；
+            Connect 来源 {{ vm.day.data.us_mapping_summary.run_contract.owners?.connect?.source_owner || '未知' }}（来源日 {{ vm.day.data.us_mapping_summary.run_contract.owners?.connect?.source_date || '未知' }}，观测 {{ vm.day.data.us_mapping_summary.run_contract.owners?.connect?.observed_symbol_count ?? '未知' }} 只），目标日资格 {{ vm.day.data.us_mapping_summary.run_contract.owners?.connect?.target_eligibility || 'CANNOT_CONFIRM' }}。
+            {{ vm.day.data.us_mapping_summary.run_contract.owners?.connect?.target_gap || '' }}</p>
+          <p v-if="vm.day.data.us_mapping_summary.run_contract.gaps?.length">输入合同缺口：{{ vm.day.data.us_mapping_summary.run_contract.gaps.join('、') }}</p>
+        </template>
         <p v-if="vm.day.data.us_mapping_summary.mixed_source_count">另有 {{ vm.day.data.us_mapping_summary.mixed_source_count }} 个标的包含不同关系结论，逐条保留如下。</p>
         <article v-if="vm.day.data.us_mapping_summary.factor_summary" class="mwb-factor-summary">
           <h4>美股代理日收益因子 · 事后研究候选</h4>
@@ -470,6 +510,183 @@ function industrySummaryText(summary: HKIndustrySummary): string {
       <p v-else-if="!vm.reviewLoading && !vm.reviewError" class="mwb-empty">
         尚无同目标日、同计划 run_id 的有效收盘复盘。
       </p>
+    </section>
+
+    <section v-if="vm.panel === 'catalog'" class="mwb-panel" aria-label="美股映射资料库">
+      <div class="mwb-heading">
+        <div><h2>美股 → 港股关系资料库</h2>
+          <p>读取 2026-10-14 名单快照、旧 700 条历史记录和 2026-10-16 v2r1 逐关系研究投影；这是静态研究资料，不是当日选股结果。</p></div>
+        <button type="button" class="mwb-quiet" :disabled="vm.catalogLoading" @click="vm.loadCatalog(0)">重新读取资料</button>
+      </div>
+      <p class="mwb-alert" role="status">
+        目录只通过结构和来源校验。公司事实独立核验仍为待办，预测状态 UNTESTED，历史 PIT NOT_VALIDATED；任何关系都没有预测或选股资格。
+      </p>
+      <form class="mwb-filters" @submit.prevent="vm.searchCatalog">
+        <label class="mwb-search">按港股代码、港股名称、美股资产代码或关系编号查询
+          <input v-model="vm.catalogQueryDraft" maxlength="128" placeholder="例如 00001、CVE 或 R001" />
+        </label>
+        <label>旧 700 历史用途筛选
+          <select v-model="vm.catalogResearchUse" @change="vm.searchCatalog">
+            <option value="">全部关系</option>
+            <option value="PENDING_REVIEW">待核 / 待补证</option>
+            <option value="CONDITIONAL_OBSERVATION">条件观察（研究设计）</option>
+            <option value="BACKGROUND_HISTORICAL">背景 / 历史</option>
+            <option value="EXCLUDED_CURRENT">排除现行用途</option>
+          </select>
+        </label>
+        <button type="submit" :disabled="vm.catalogLoading">查询资料</button>
+      </form>
+      <p v-if="vm.catalogLoading" role="status">正在读取映射资料…</p>
+      <p v-if="vm.catalogError" class="mwb-alert" role="alert">{{ vm.catalogError }}</p>
+      <template v-if="vm.catalog?.data">
+        <div class="mwb-detail-grid">
+          <article><h3>来源身份</h3>
+            <p>名单快照：{{ vm.catalog.data.source.membership_snapshot }}；名单 SHA256：{{ vm.catalog.data.source.membership_sha256 }}</p>
+            <p>研究包：{{ vm.catalog.data.source.package_name }}；SHA256：{{ vm.catalog.data.source.package_sha256 }}</p>
+            <p>ZIP CRC：{{ vm.catalog.data.source.zip_crc }}；清单校验：{{ vm.catalog.data.source.manifest }}；包内文件：{{ vm.catalog.data.source.package_member_count }}</p>
+            <p>目录完整性 SHA256：{{ vm.catalog.data.catalog_integrity_sha256 }}</p>
+          </article>
+          <article><h3>结构覆盖</h3>
+            <p>名单 {{ vm.catalog.data.coverage.membership_count }} 只；原始关系 {{ vm.catalog.data.coverage.relation_row_count }} 条；有关系记录 {{ vm.catalog.data.coverage.stocks_with_relations }} 只。</p>
+            <p>源文件自报进度：{{ showText(vm.catalog.data.source_claims.main_table_a_progress) }}；源文件自报预测：{{ showText(vm.catalog.data.source_claims.main_table_a_prediction_state) }}。</p>
+            <p>旧 997 条关系逐边比较：{{ vm.catalog.data.source_claims.old_matrix_comparison }}；独立事实核验：{{ vm.catalog.data.source_claims.independent_fact_verification }}。</p>
+          </article>
+        </div>
+        <article class="mwb-evidence" aria-label="补证进度">
+          <h3>补证记录进度</h3>
+          <p>旧 700 历史 overlay SOURCE_REVIEWED：{{ vm.catalog.data.review_progress.source_reviewed_relations }} / 1003 条关系、{{ vm.catalog.data.review_progress.source_reviewed_stocks }} / 667 只股票；旧 overlay 未覆盖 {{ vm.catalog.data.review_progress.unprocessed_relations }} 条关系。</p>
+          <p>全部原始关系已有记录：{{ vm.catalog.data.review_progress.all_original_relations_processed_stocks }} 只股票（不表示事实全部通过）。INDEPENDENTLY_VERIFIED：{{ vm.catalog.data.review_progress.independently_verified_relations }} 条；独立核验 {{ vm.catalog.data.review_progress.independent_verification }}。</p>
+          <p>旧 700 overlay 研究用途计数：{{ showText(vm.catalog.data.review_progress.research_use_counts) }}。它与 v2r1 的 primary_research_use 是不同字段，不做状态换算。</p>
+          <p v-if="vm.catalog.data.review_source">补证包 SHA256：{{ vm.catalog.data.review_source.source_package_sha256 }}；来源生成时间：{{ vm.catalog.data.review_source.source_generated_at_utc }}；revision SHA256：{{ vm.catalog.data.review_source.integrity_sha256 }}。</p>
+        </article>
+        <article v-if="vm.catalog.data.recovery_v2r1" class="mwb-evidence" aria-label="v2r1 当前恢复状态">
+          <h3>2026-10-16 v2r1 当前逐关系状态</h3>
+          <p>输入包 SHA256：{{ vm.catalog.data.recovery_v2r1.source_package_sha256 }}；manifest SHA256：{{ vm.catalog.data.recovery_v2r1.source_manifest_sha256 }}；投影 SHA256：{{ vm.catalog.data.recovery_v2r1.overlay_integrity_sha256 }}。</p>
+          <p>处理 {{ vm.catalog.data.recovery_v2r1.counts.processed_relations }} / {{ vm.catalog.data.recovery_v2r1.counts.original_relations }} 条原关系；研究范围闭环 {{ vm.catalog.data.recovery_v2r1.counts.research_scope_closed }} 条；排除范围闭环 {{ vm.catalog.data.recovery_v2r1.counts.excluded_scope_closed }} 条；开放 {{ vm.catalog.data.recovery_v2r1.counts.open_relations }} 条。782 条总闭环包含 25 条排除范围记录，不能读作 782 条有效映射或已验证关系。</p>
+          <p>名单 {{ vm.catalog.data.recovery_v2r1.counts.snapshot_stocks }} 只；有原始关系 {{ vm.catalog.data.recovery_v2r1.counts.stocks_with_relations }} 只；原始无关系并单独保留 {{ vm.catalog.data.recovery_v2r1.counts.stocks_without_relations }} 只。</p>
+          <p>公司事实独立验收 {{ vm.catalog.data.recovery_v2r1.counts.company_independent_acceptance }}；包内全部陈述均未标为已验证；预测 {{ vm.catalog.data.recovery_v2r1.research_safety.prediction_validation }}；历史 PIT {{ vm.catalog.data.recovery_v2r1.research_safety.historical_PIT }}；事件及数据测试 {{ vm.catalog.data.recovery_v2r1.research_safety.event_and_data_tests }}。</p>
+          <p>附件路径缺口 {{ vm.catalog.data.recovery_v2r1.evidence_limits.historical_path_gap_occurrences }} 次 / {{ vm.catalog.data.recovery_v2r1.evidence_limits.historical_path_gap_unique_paths }} 个路径；另有已恢复 740 范围内 {{ vm.catalog.data.recovery_v2r1.evidence_limits.separate_restored740_missing_path_sha_pairs }} 组路径 / SHA 和 {{ vm.catalog.data.recovery_v2r1.evidence_limits.separate_restored740_missing_hashes }} 个哈希缺口，范围不同，不相加；A 表仍有 {{ vm.catalog.data.recovery_v2r1.evidence_limits.A_url_occurrences_unattempted }} 个 URL 未尝试。</p>
+          <p>研究访问日期不代表 available_at 或事实生效日。旧 700 条历史 overlay（{{ vm.catalog.data.recovery_v2r1.prior_700_history.sha256 }}）仍单独保留，status crosswalk={{ vm.catalog.data.recovery_v2r1.prior_700_history.status_crosswalk }}。</p>
+          <details><summary>v2r1 版本优先级与解释边界</summary>
+            <p>{{ sourceValue(vm.catalog.data.recovery_v2r1.projection_rule) }}</p>
+            <pre>{{ showText(vm.catalog.data.recovery_v2r1.version_precedence) }}</pre>
+          </details>
+        </article>
+        <p class="mwb-muted">本次查询匹配 {{ vm.catalog.data.total }} 只港股。空查询可浏览全部 667 只；当前结果按港股分页，关系筛选只改变匹配展示。</p>
+        <article v-for="item in vm.catalog.data.items" :key="item.hk_code" class="mwb-evidence">
+          <details open>
+            <summary>{{ item.ordinal }} / 667 · {{ item.hk_code }} {{ item.name || "名称未提供" }} · 来源关系 {{ item.relation_count }} 条</summary>
+            <p>英文简称：{{ item.english_name || "来源未提供" }} · 研究行业：{{ sourceValue(item.source_record["研究行业"]) }}</p>
+            <p><strong>主营：</strong>{{ sourceValue(item.source_record["主营"]) }}</p>
+            <p><strong>盈利驱动：</strong>{{ sourceValue(item.source_record["盈利驱动"]) }}</p>
+            <p><strong>主要及辅助资产：</strong>{{ sourceValue(item.source_record["主要及辅助资产"]) }}</p>
+            <p><strong>关系意义：</strong>{{ sourceValue(item.source_record["关系意义"]) }}</p>
+            <p>补证已有记录 {{ item.source_reviewed_relation_count }} 条；未处理 {{ item.unprocessed_relation_count }} 条。</p>
+            <p><strong>原表研究进度：</strong>{{ sourceValue(item.source_record["研究进度"]) }}（来源自报；本目录没有把它认作独立验收）</p>
+            <div v-if="item.relations.length">
+              <article v-for="relation in catalogRelations(item.relations)" :key="relation.source_row" class="mwb-research-record">
+                <h4>{{ relation.us_symbol || "美股资产未提供" }} · {{ sourceValue(relation.source_record["type"]) }} · 原始表行 {{ relation.source_row }}</h4>
+                <p v-if="relation.recovery_v2r1"><strong>{{ relation.relation_id }} · v2r1 当前闭环：</strong>{{ relation.recovery_v2r1.closure_status }}；当前主要研究用途：{{ sourceValue(relation.recovery_v2r1.primary_research_use) }}；包内交付验收：{{ relation.recovery_v2r1.delivery_acceptance }}。</p>
+                <p v-if="relation.recovery_v2r1"><strong>事实范围：</strong>{{ sourceValue(relation.recovery_v2r1.verified_fact_scope) }}；<strong>研究范围闭环依据：</strong>{{ sourceValue(relation.recovery_v2r1.closure_scope) }}</p>
+                <p><strong>{{ relation.relation_id }} · 旧 700 历史用途：</strong>{{ researchUseLabel(relation.research_use) }}；旧记录状态 {{ relation.source_review_status }}；独立核验 {{ relation.independent_verification }}。</p>
+                <p><strong>分部 / 原始事实：</strong>{{ sourceValue(relation.source_record["segment"]) }}；{{ sourceValue(relation.source_record["fact"]) }}</p>
+                <p><strong>传导机制：</strong>{{ sourceValue(relation.source_record["mechanism"]) }}</p>
+                <p><strong>触发条件：</strong>{{ sourceValue(relation.source_record["condition"]) }}</p>
+                <p><strong>方向与时段：</strong>{{ sourceValue(relation.source_record["direction"]) }}；{{ sourceValue(relation.source_record["timescale"]) }}</p>
+                <p><strong>失效条件 / 反例：</strong>{{ sourceValue(relation.source_record["failure"]) }}</p>
+                <p><strong>证据强度及原文理由：</strong>{{ sourceValue(relation.source_record["evidence_strength"]) }}；{{ sourceValue(relation.source_record["evidence_reason"]) }}</p>
+                <p><strong>信息日期：</strong>{{ sourceValue(relation.source_record["information_date"]) }}</p>
+                <p><strong>原始状态：</strong>status={{ sourceValue(relation.source_record["status"]) }}；mapping_status={{ sourceValue(relation.source_record["mapping_status"]) }}；relation_verification={{ sourceValue(relation.source_record["relation_verification"]) }}</p>
+                <p><strong>原始候选 / 排除字段：</strong>effective_candidate={{ sourceValue(relation.source_record["effective_candidate"]) }}；current_observation_candidate={{ sourceValue(relation.source_record["current_observation_candidate"]) }}；audit_only={{ sourceValue(relation.source_record["audit_only"]) }}</p>
+                <p><strong>原始预测 / 旧边处置：</strong>prediction={{ sourceValue(relation.source_record["prediction"]) }}；old_action={{ sourceValue(relation.source_record["old_action"]) }}；prediction_eligible={{ sourceValue(relation.source_record["prediction_eligible"]) }}；historical_PIT={{ sourceValue(relation.source_record["historical_PIT"]) }}</p>
+                <p><strong>目录状态：</strong>事实独立核验 {{ relation.fact_review_status }}；预测资格固定为否；预测 {{ relation.prediction_validation }}；历史 PIT {{ relation.historical_PIT }}。</p>
+                <button v-if="(relation.recovery_v2r1 && relation.recovery_v2r1.detail_level !== 'FULL') || (relation.source_review_status === 'SOURCE_REVIEWED' && relation.review_detail_level !== 'FULL')" type="button" class="mwb-quiet"
+                  :disabled="vm.catalogRelationDetails[relation.relation_id]?.loading"
+                  @click="vm.loadCatalogRelation(relation)">查看完整关系记录 {{ relation.relation_id }}</button>
+                <p v-if="relation.source_review_status === 'NOT_PROCESSED'">{{ relation.relation_id }} 不在旧 700 历史补证记录中；v2r1 状态仍单独展示。</p>
+                <p v-if="vm.catalogRelationDetails[relation.relation_id]?.loading" role="status">正在读取完整关系记录 {{ relation.relation_id }}…</p>
+                <p v-if="vm.catalogRelationDetails[relation.relation_id]?.error" class="mwb-alert" role="alert">{{ relation.relation_id }}：{{ vm.catalogRelationDetails[relation.relation_id]?.error }}</p>
+                <p v-if="relation.review_detail_level === 'FULL'">已读取完整关系记录 {{ relation.relation_id }}；来源身份已核对。</p>
+                <details v-if="relation.recovery_v2r1">
+                  <summary>v2r1 当前用途、范围与缺口</summary>
+                  <p><strong>用途理由：</strong>{{ sourceValue(relation.recovery_v2r1.primary_use_reason) }}</p>
+                  <p><strong>适用期间：</strong>{{ sourceValue(relation.recovery_v2r1.applicable_period) }}；<strong>研究访问日期与版本：</strong>{{ sourceValue(relation.recovery_v2r1.research_access_date_and_version) }}</p>
+                  <p><strong>当前闭环边界：</strong>{{ sourceValue(relation.recovery_v2r1.closure_basis) }}</p>
+                  <p><strong>尚存缺口：</strong>{{ sourceValue(relation.recovery_v2r1.remaining_gaps) }}</p>
+                  <p><strong>下一关键证据：</strong>{{ sourceValue(relation.recovery_v2r1.next_key_evidence) }}</p>
+                  <p><strong>证据 ID：</strong>{{ sourceValue(relation.recovery_v2r1.evidence_ids) }}；effective research SHA256：{{ relation.recovery_v2r1.effective_research_sha256 }}</p>
+                  <p>预测 {{ relation.recovery_v2r1.prediction }}；历史 PIT {{ relation.recovery_v2r1.historical_PIT }}；事件及数据测试 {{ relation.recovery_v2r1.event_and_data_tests }}；公司事实独立验收 {{ relation.recovery_v2r1.company_independent_acceptance }}。</p>
+                  <details v-if="relation.recovery_v2r1.detail_level === 'FULL' && relation.recovery_v2r1.full_record">
+                    <summary>完整 v2r1 有效研究、六层、七字段和来源身份</summary>
+                    <pre>{{ showText(relation.recovery_v2r1.full_record) }}</pre>
+                  </details>
+                </details>
+                <details v-if="relation.review_revision">
+                  <summary>来源补证 revision、当前缺口与下一证据</summary>
+                  <p>以下为来源研究记录与用途投影，保留原始事实；SOURCE_REVIEWED 不等于 INDEPENDENTLY_VERIFIED。</p>
+                  <p><strong>来源事实状态：</strong>{{ sourceValue(relation.review_revision.revision.revision_research_fact_state) }}</p>
+                  <p><strong>当前适用状态：</strong>{{ sourceValue(relation.review_revision.revision.revision_current_applicability_state) }}</p>
+                  <p><strong>研究 / 当前适用核查日期：</strong>{{ sourceValue(relation.review_revision.revision.revision_research_fact_dates) }}；{{ sourceValue(relation.review_revision.revision.revision_current_applicability_checked_dates) }}</p>
+                  <p><strong>理由：</strong>{{ sourceValue(relation.review_revision.revision.revision_reason) }}</p>
+                  <article v-if="relation.review_revision.source_summary">
+                    <h5>来源研究者摘要（未独立验收）</h5>
+                    <p><strong>来源建议用途：</strong>{{ sourceValue(relation.review_revision.source_summary.primary_use) }}；{{ sourceValue(relation.review_revision.source_summary.primary_use_reason) }}</p>
+                    <p><strong>来源支持的事实范围：</strong>{{ sourceValue(relation.review_revision.source_summary.verified_facts_json) }}</p>
+                    <p><strong>使用限制 / 禁止据此推断：</strong>{{ sourceValue(relation.review_revision.source_summary.current_usage_limits_with_addenda_json || relation.review_revision.source_summary.usage_limits_json) }}</p>
+                    <p><strong>当前适用缺口：</strong>{{ sourceValue(relation.review_revision.source_summary.current_applicability_gaps_with_addenda_json || relation.review_revision.source_summary.current_applicability_gaps_json) }}</p>
+                    <p><strong>下一关键证据：</strong>{{ sourceValue(relation.review_revision.source_summary.current_next_key_evidence_with_addenda_json || relation.review_revision.source_summary.next_key_evidence_json) }}</p>
+                  </article>
+                  <p v-if="relation.review_revision.revision.revision_additional_research_findings_json"><strong>来源新增研究发现：</strong>{{ sourceValue(relation.review_revision.revision.revision_additional_research_findings_json) }}</p>
+                  <p v-if="relation.review_revision.revision.revision_subsequent_research_addenda_json"><strong>来源后续修订 / 冲突说明：</strong>{{ sourceValue(relation.review_revision.revision.revision_subsequent_research_addenda_json) }}</p>
+                  <p><strong>当前缺口 / 下一证据：</strong>{{ sourceValue(relation.review_revision.revision.revision_remaining_gaps_json) }}</p>
+                  <p v-if="relation.review_detail_level === 'FULL'"><strong>触发设计（未运行）：</strong>{{ sourceValue(relation.review_revision.revision.revision_trigger_design_json) }}</p>
+                  <details v-if="relation.review_detail_level === 'FULL'"><summary>逐字段修订与研究层级</summary>
+                    <p v-for="[field, assessment] in revisionAssessments(relation.review_revision.revision.revision_field_assessments_json)" :key="field"><strong>{{ field }}：</strong>{{ sourceValue(assessment) }}</p>
+                  </details>
+                  <details v-if="relation.review_detail_level === 'FULL' && relation.review_revision.revision_json_parse_issues?.length">
+                    <summary>原始 JSON 解析问题（来源文本保留）</summary>
+                    <article v-for="(issue, index) in relation.review_revision.revision_json_parse_issues" :key="`${issue.field}-${index}`">
+                      <p><strong>{{ issue.field }}：</strong>{{ issue.issue }}；{{ issue.error_type }}；原文字符数 {{ issue.raw_characters }}；SHA256 {{ issue.raw_sha256 }}</p>
+                      <p><strong>保留的来源原文：</strong>{{ sourceValue(relation.review_revision.revision[issue.field]) }}</p>
+                    </article>
+                  </details>
+                  <details v-if="relation.review_detail_level === 'FULL'"><summary>证据日期、定位、访问结果及边界</summary>
+                    <article v-for="(evidence, index) in relation.review_revision.evidence" :key="index">
+                      <p>{{ evidence.evidence_id }} · {{ evidence.title }} · {{ evidence.open_status }}</p>
+                      <p>发布日期 {{ sourceValue(evidence.published_date) }}；适用期 {{ sourceValue(evidence.applicable_period) }}；访问日期 {{ sourceValue(evidence.accessed_at) }}</p>
+                      <p>{{ sourceValue(evidence.locator) }}；{{ sourceValue(evidence.excerpt_or_paraphrase) }}</p>
+                      <p><strong>声明的未解决导航引用：</strong>{{ sourceValue(evidence.declared_unresolved_navigation_reference_json) }}</p>
+                      <p><strong>证据措辞澄清：</strong>{{ sourceValue(evidence.evidence_wording_clarifications_json) }}</p>
+                      <p>不能支持：{{ sourceValue(evidence.does_not_support) }}；缺口：{{ sourceValue(evidence.gaps) }}</p>
+                      <a v-for="url in sourceUrls(evidence.url)" :key="url" :href="url" target="_blank" rel="noopener noreferrer">打开补证来源：{{ url }}</a>
+                    </article>
+                  </details>
+                </details>
+                <details v-if="relation.review_detail_level === 'FULL'">
+                  <summary>完整原始字段与来源研究记录</summary>
+                  <p>{{ sourceValue(relation.source_record) }}</p>
+                  <p>{{ sourceValue(relation.review_revision) }}</p>
+                </details>
+                <p><strong>原始 URL：</strong>{{ sourceValue(relation.source_record["url"]) }}</p>
+                <p v-for="url in sourceUrls(relation.source_record['url'])" :key="url">
+                  <a :href="url" target="_blank" rel="noopener noreferrer">打开来源：{{ url }}</a>
+                </p>
+              </article>
+            </div>
+            <p v-else class="mwb-muted">本股在来源主表 B 中没有关系行，仍保留在完整港股名单里。</p>
+          </details>
+        </article>
+        <div v-if="vm.catalog.data.total > vm.catalogLimit" class="mwb-pagination">
+          <span>当前 {{ vm.catalog.data.offset + 1 }}–{{ Math.min(vm.catalog.data.offset + vm.catalog.data.items.length, vm.catalog.data.total) }} / {{ vm.catalog.data.total }}</span>
+          <div>
+            <button type="button" class="mwb-quiet" :disabled="vm.catalogOffset === 0 || vm.catalogLoading" @click="vm.changeCatalogPage(-1)">上一页</button>
+            <button type="button" class="mwb-quiet" :disabled="vm.catalogOffset + vm.catalogLimit >= vm.catalog.data.total || vm.catalogLoading" @click="vm.changeCatalogPage(1)">下一页</button>
+          </div>
+        </div>
+        <p v-if="vm.catalogQuery && !vm.catalog.data.items.length" class="mwb-empty">没有找到匹配的港股代码、名称或美股资产。</p>
+
+      </template>
+      <p v-else-if="!vm.catalogLoading && !vm.catalogError" class="mwb-empty">点击“美股映射资料库”后浏览完整名单，支持关系编号、资产查询和研究用途筛选。</p>
     </section>
 
     <footer class="mwb-footer">

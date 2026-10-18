@@ -10,6 +10,10 @@ export function humanTime(value: string | null | undefined): string {
     day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
   }).format(date) + " 香港时间";
 }
+export function researchCutoff(context: { cutoff: string | null; scope_refs?: unknown } | null | undefined): string | null {
+  if (!context) return null;
+  return text(record(context.scope_refs).source_cutoff) || context.cutoff;
+}
 export function decisionLabel(value: Decision | string | null | undefined): string {
   if (value === "NOT_IN_PLAN") return "计划未覆盖";
   return value && value in DECISION_LABELS ? DECISION_LABELS[value as Decision] : (value || "未知");
@@ -117,9 +121,10 @@ export function readableReason(row: Record<string, unknown>): string {
     US_REVIEWED_RELATION_CONDITIONAL_ONLY: '已有审核关系，列为条件观察，不能据此严格入选。',
     US_RELATION_PROPOSED_PIT_UNCONFIRMED: '业务关系仍为提案，历史时点可得性未核实，保留待核；不能据此严格入选。',
     US_RELATION_UNMAPPED_CANNOT_CONFIRM: '尚无可核实的港股映射关系，保留待核。',
+    US_SESSION_RELATION_OR_CONNECT_UNVERIFIED: '美股来源、港股关系或互联互通资格尚未核验，保留待核。',
   };
   if (reason in labels) {
-    const basis = text(row.research_priority_reason);
+    const basis = text(row.research_priority_reason) || text(row.research_basis);
     const quote = record(row.quote).change_pct;
     const change = typeof quote === 'number' && Number.isFinite(quote) ? ` 来源 ${text(row.us_symbol)} 当日涨幅 ${quote}%。` : '';
     return labels[reason] + (basis ? ` 本轮研究分类依据：${basis}` + change : '');

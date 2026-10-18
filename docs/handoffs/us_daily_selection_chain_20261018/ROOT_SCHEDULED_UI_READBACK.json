@@ -1,0 +1,35 @@
+{
+  "captured_at": "2026-10-18T10:06:35.888155+00:00",
+  "run_id": "466dae7ee920499b9b92dc86fd791692",
+  "UI_state": "PARTIAL",
+  "phase": "NEXT_DAY",
+  "trigger": "SCHEDULED",
+  "us_source_session": "20261016",
+  "target_date": "20261020",
+  "ui_hk_stock_rows": 19,
+  "selected": 0,
+  "watch": 0,
+  "unassessed": 19,
+  "saved_uncertainty_reason_visible": true,
+  "empty_condition_label": "无已记录条件",
+  "source_catalog_counts_separated": true,
+  "NATURAL_VERIFIED": false,
+  "evidence": [
+    {
+      "path": "docs/handoffs/us_daily_selection_chain_20261018/UI_SCHEDULED_RESULT.png",
+      "sha256": "5f0fd49290cc4161658dca476617ce9ed43253f4dd1943a6e030bcdb22c8bdf1"
+    },
+    {
+      "path": "docs/handoffs/us_daily_selection_chain_20261018/UI_SCHEDULED_PENDING_STOCKS.png",
+      "sha256": "10245feebc2f42659e691ae3c172c967c9707b63c245bee0f6cbe6c613abd0e3"
+    },
+    {
+      "path": "docs/handoffs/us_daily_selection_chain_20261018/local_only/run_readback/UI_SCHEDULED_RESULT_AX.txt",
+      "sha256": "bb43e1c7309512614833afe238d3693b2edf27f2520d41a88eeeca189c2b5d45"
+    },
+    {
+      "path": "docs/handoffs/us_daily_selection_chain_20261018/local_only/run_readback/UI_SCHEDULED_PENDING_AX.txt",
+      "sha256": "9c6bf3bfa58bea52e35b741185f98638691a5ea4d43f1fc7f5083bb66cfad9d8"
+    }
+  ]
+}

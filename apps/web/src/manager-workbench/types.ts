@@ -185,6 +185,24 @@ export interface PlanVersion {
   origin?: "NEW" | "LEGACY";
   [key: string]: unknown;
 }
+export interface USMappingRunContract {
+  schema_version?: string;
+  state?: string;
+  mode?: Phase;
+  target_hk_date?: string;
+  us_source_session?: string | null;
+  cutoff?: string;
+  contract_sha256?: string;
+  gaps?: string[];
+  universe?: { version?: string; symbol_count?: number | null; contract_sha256?: string | null; symbols_sha256?: string | null };
+  owners?: {
+    quote?: { owner?: string | null; artifact_sha256?: string | null; receipt_sha256?: string | null;
+      manifest_sha256?: string | null; available_at?: string | null };
+    connect?: { source_owner?: string | null; source_date?: string | null; source_sha256?: string | null;
+      source_available_at?: string | null; observed_symbol_count?: number | null; target_eligibility?: string | null;
+      target_gap?: string | null };
+  };
+}
 export interface DayData {
   recommendation_counts?: Partial<Record<RecommendationLane, DecisionCounts | null>>;
   recommendation_projection?: {
@@ -206,6 +224,9 @@ export interface DayData {
     relation_row_count: number; mapped_hk_count: number; source_decision_counts: Record<string, number>;
     mixed_source_count: number; coverage: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
     factor_summary?: USFactorSummary | null;
+    catalog_summary?: { state?: string | null; stock_count?: number | null; relation_count?: number | null;
+      consumed_relation_count?: number | null; displayed_relation_count?: number | null };
+    run_contract?: USMappingRunContract | null;
   } | null;
 }
 export interface StockLaneDetail {
@@ -260,6 +281,226 @@ export interface JobCreated {
   run_id: string;
   status_url: string;
 }
+export interface AnnouncementSourceOrigin {
+  role: string;
+  source_ref: string;
+  source_product_sha256: string;
+  row_fingerprint_sha256: string;
+}
+export interface AnnouncementArticle {
+  article_id: string;
+  title: string;
+  publication_date?: string | null;
+  symbol: string;
+  name: string;
+  disposition?: string | null;
+  direction?: string | null;
+  selection_basis?: string | null;
+  reason: string;
+  impact: string[];
+  body_sha256: string;
+  source_sha256: string;
+  source_origins: AnnouncementSourceOrigin[];
+  review_status: string;
+  reuse_status?: string | null;
+  membership_status?: "IN" | "OUT" | "UNKNOWN";
+  membership_reason?: string;
+}
+export interface AnnouncementStock {
+  symbol: string;
+  name: string;
+  reasons: string[];
+  articles: AnnouncementArticle[];
+  review_status: string;
+  reuse_status?: string | null;
+  membership_status?: "IN" | "OUT" | "UNKNOWN";
+  membership_reason?: string;
+}
+export interface AnnouncementMembershipGate {
+  status: "VERIFIED" | "CANNOT_CONFIRM";
+  target_date?: string;
+  cutoff?: string;
+  market?: "HK_CONNECT";
+  owner?: string | null;
+  authority_sha256?: string | null;
+  authority_version?: string | null;
+  effective_from?: string | null;
+  effective_to?: string | null;
+  available_at?: string | null;
+  member_count?: number | null;
+  failure_code?: string | null;
+}
+export interface AnnouncementFailure {
+  article_id?: string | null;
+  symbol?: string | null;
+  title?: string | null;
+  failure_code: string;
+  attempt_count?: number | null;
+  stage?: string | null;
+  part_index?: number | null;
+  part_count?: number | null;
+}
+export interface AnnouncementPending {
+  article_id?: string | null;
+  symbol?: string | null;
+  title?: string | null;
+  queue_status?: string | null;
+  queue_reason?: string | null;
+  context_admission?: unknown;
+  execution_admission?: unknown;
+  failure_code?: string | null;
+  prompt_tokens?: number | null;
+  context_limit_tokens?: number | null;
+  part_index?: number | null;
+  part_count?: number | null;
+  repair_status?: string | null;
+}
+export interface AnnouncementCounts {
+  source_catalogue_articles?: number | null;
+  model_succeeded?: number | null;
+  selected_model_articles?: number | null;
+  model_candidate_stocks?: number | null;
+  reused_reviewed_stocks?: number | null;
+  failed?: number | null;
+  pending?: number | null;
+  body_gaps?: number | null;
+  displayed_stocks?: number | null;
+  capture_rows?: number | null;
+  excluded_outside_window?: number | null;
+  new_candidate_stocks?: number | null;
+  membership_eligible_stocks?: number | null;
+  membership_excluded_stocks?: number | null;
+  membership_unknown_stocks?: number | null;
+  membership_excluded_articles?: number | null;
+  membership_unknown_articles?: number | null;
+  membership_articles?: Record<string, number>;
+  membership_stocks?: Record<string, number>;
+  model_failed_articles?: number | null;
+  model_pending_articles?: number | null;
+  long_body_part_failed?: number | null;
+  long_body_part_pending?: number | null;
+  long_body_part_cannot_confirm?: number | null;
+  long_body_synthesis_pending?: number | null;
+  current_batch_candidate_stocks?: number | null;
+  context_pending?: number | null;
+  queue_pending?: number | null;
+  queue?: Record<string, number>;
+}
+export interface AnnouncementFlashResult extends SafetyFlags {
+  schema?: string;
+  job_id?: string;
+  state: string;
+  source_date?: string | null;
+  target_trade_date?: string | null;
+  updated_at?: string | null;
+  candidate_id?: string | null;
+  model_id?: string;
+  profile?: string;
+  citation_protocol?: string;
+  review_status?: string;
+  counts: AnnouncementCounts;
+  stocks?: AnnouncementStock[];
+  failures?: AnnouncementFailure[];
+  pending?: AnnouncementPending[];
+  gaps?: { code?: string; count?: number; detail?: string }[];
+  membership_gate?: AnnouncementMembershipGate;
+  membership?: AnnouncementMembershipGate;
+  membership_exclusions?: Record<string, unknown>[];
+  membership_excluded_stocks?: AnnouncementStock[];
+  membership_unknown_stocks?: AnnouncementStock[];
+  membership_excluded_articles?: Record<string, unknown>[];
+  membership_unknown_articles?: Record<string, unknown>[];
+  system_stop?: { failure_code?: string; attempt?: number; queue_action?: string } | null;
+  provenance?: Record<string, unknown>;
+}
+export interface AnnouncementJobStatus {
+  job_id: string;
+  target_date: string;
+  state: JobState;
+  step?: string | null;
+  completed_count?: NullableCount;
+  total_count?: NullableCount;
+  failure_code?: string | null;
+  last_progress_at?: string | null;
+  progress?: {
+    queue_counts?: Record<string, number>;
+    pending_body_gaps?: number;
+    pending_context?: number;
+    membership?: { status?: string; articles?: Record<string, number> };
+    result_state?: string;
+  } | null;
+  result_state?: string;
+  counts?: AnnouncementCounts;
+}
+export interface AnnouncementFlashData extends SafetyFlags {
+  state: string;
+  source_date: string;
+  target_trade_date: string;
+  updated_at?: string | null;
+  candidate_id?: string | null;
+  model_id?: string;
+  profile?: string;
+  citation_protocol?: string;
+  review_status?: string;
+  counts: AnnouncementCounts;
+  stocks: AnnouncementStock[];
+  failures: AnnouncementFailure[];
+  pending: AnnouncementPending[];
+  gaps: { code?: string; count?: number; detail?: string }[];
+  system_stop?: { failure_code?: string; attempt?: number; queue_action?: string } | null;
+  provenance?: Record<string, string>;
+  membership?: AnnouncementMembershipGate;
+  membership_excluded_stocks?: AnnouncementStock[];
+  membership_unknown_stocks?: AnnouncementStock[];
+  membership_excluded_articles?: Record<string, unknown>[];
+  membership_unknown_articles?: Record<string, unknown>[];
+  incremental?: AnnouncementFlashResult | null;
+  incremental_runs?: { job_id: string; target_trade_date?: string | null; state: string;
+    updated_at?: string | null; counts?: AnnouncementCounts }[];
+  job?: AnnouncementJobStatus | null;
+  resume?: AnnouncementFlashResumeEligibility;
+  requested_target_date?: string | null;
+}
+export interface AnnouncementFlashResumeEligibility {
+  schema: string;
+  status: string;
+  eligible: boolean;
+  reason?: string | null;
+  mode?: string | null;
+  source_job_id?: string | null;
+  target_date?: string | null;
+  source_input_sha256?: string | null;
+  source_progress_sha256?: string | null;
+  source_queue_state_sha256?: string | null;
+  capture_product_sha256?: string | null;
+  source_result_sha256?: string | null;
+  queue_status_counts?: Record<string, number>;
+  target_date_queue_observed_counts?: Record<string, number>;
+  orphan_count?: number;
+  recoverable_orphan_count?: number;
+  canary_passed?: boolean;
+  resume_action?: "CANARY" | "CONTINUE" | null;
+  canary_key?: string | null;
+  canary_status?: string | null;
+  canary_model_calls?: number | null;
+  canary_validation?: Record<string, unknown> | null;
+  max_model_calls?: number | null;
+}
+export interface AnnouncementFlashUpdateAccepted {
+  job_id: string;
+  target_date: string;
+  requested_target_date: string;
+  step?: string | null;
+  status_url: string;
+}
+export interface AnnouncementFlashResumeAccepted {
+  job_id: string;
+  source_job_id: string;
+  resume_action: "CANARY" | "CONTINUE";
+  target_date: string;
+  step?: string | null;
+  status_url: string;
+}
 export interface ReviewRow {
   rank: number;
   symbol: string;
@@ -290,6 +531,139 @@ export interface ReviewSummary {
   lane_incremental_coverage?: Record<string, unknown> | null;
   uncovered_reasons?: string[] | null;
   gaps?: Gap[] | null;
+}
+export interface USMappingReviewRevision {
+  source_review_status: "SOURCE_REVIEWED";
+  independent_verification: "NOT_RUN";
+  research_use: string;
+  revision: Record<string, unknown>;
+  evidence?: Record<string, string>[];
+  revision_json_parse_issues?: {
+    field: string;
+    issue: string;
+    error_type: string;
+    raw_sha256: string;
+    raw_characters: number;
+  }[];
+  source_summary?: Record<string, unknown>;
+}
+export interface USMappingRecoveryRelation {
+  detail_level: "SUMMARY" | "FULL";
+  relation_id: string;
+  closure_status: "CLOSED_RESEARCH_SCOPE" | "CLOSED_EXCLUDED_SCOPE" | "OPEN";
+  primary_research_use: string;
+  primary_use_reason: string;
+  verified_fact_scope: unknown;
+  applicable_period: string;
+  closure_scope: string;
+  closure_basis: string;
+  remaining_gaps: unknown;
+  next_key_evidence: unknown;
+  research_access_date_and_version: string;
+  effective_research_file: string;
+  effective_research_sha256: string;
+  evidence_ids: string[];
+  delivery_acceptance: string;
+  prediction: "UNTESTED";
+  historical_PIT: "NOT_VALIDATED";
+  event_and_data_tests: "NOT_RUN";
+  company_independent_acceptance: 0;
+  full_record?: Record<string, unknown>;
+}
+export interface USMappingRecoveryProgress {
+  source_package_sha256: string;
+  source_manifest_sha256: string;
+  overlay_integrity_sha256: string;
+  counts: {
+    snapshot_stocks: 667;
+    original_relations: 1003;
+    processed_relations: 1003;
+    closure_status_counts: {
+      CLOSED_RESEARCH_SCOPE: 757;
+      CLOSED_EXCLUDED_SCOPE: 25;
+      OPEN: 221;
+    };
+    research_scope_closed: 757;
+    excluded_scope_closed: 25;
+    closed_total_including_exclusions: 782;
+    open_relations: 221;
+    stocks_with_relations: 649;
+    stocks_without_relations: 18;
+    company_independent_acceptance: 0;
+  };
+  research_safety: Record<string, boolean | number | string>;
+  evidence_limits: Record<string, boolean | number | string>;
+  prior_700_history: {
+    sha256: string;
+    record_count: 700;
+    source_package_sha256: string;
+    retained_as_separate_history: true;
+    status_crosswalk: "NOT_ESTABLISHED";
+  };
+  version_precedence: Record<string, unknown>;
+  projection_rule: string;
+}
+export interface USMappingCatalogRelation {
+  review_detail_level: "SUMMARY" | "FULL";
+  relation_id: string;
+  source_review_status: "SOURCE_REVIEWED" | "NOT_PROCESSED";
+  independent_verification: "NOT_RUN";
+  research_use: string;
+  review_revision: USMappingReviewRevision | null;
+  recovery_v2r1: USMappingRecoveryRelation | null;
+  source_row: number;
+  hk_code: string;
+  us_symbol: string;
+  source_record: Record<string, string>;
+  fact_review_status: "PENDING";
+  prediction_eligible: false;
+  prediction_validation: "UNTESTED";
+  historical_PIT: "NOT_VALIDATED";
+}
+export interface USMappingCatalogStock {
+  ordinal: number;
+  hk_code: string;
+  name: string | null;
+  english_name: string | null;
+  source_record: Record<string, string>;
+  relation_count: number;
+  source_reviewed_relation_count: number;
+  unprocessed_relation_count: number;
+  relations: USMappingCatalogRelation[];
+}
+export interface USMappingCatalogData {
+  catalog_id: string;
+  catalog_state: "STRUCTURE_VALID_ONLY";
+  catalog_integrity_sha256: string;
+  research_use: string;
+  review_progress: {
+    source_reviewed_relations: number; unprocessed_relations: number; source_reviewed_stocks: number;
+    all_original_relations_processed_stocks: number; independently_verified_relations: number;
+    independent_verification: "NOT_RUN"; research_use_counts: Record<string, number>;
+  };
+  review_source: { source_package_sha256: string; source_generated_at_utc: string; integrity_sha256: string } | null;
+  recovery_v2r1: USMappingRecoveryProgress;
+  source: Record<string, unknown> & {
+    package_name: string;
+    package_sha256: string;
+    membership_snapshot: string;
+    membership_sha256: string;
+  };
+  coverage: Record<string, unknown> & {
+    membership_count: number;
+    relation_row_count: number;
+    stocks_with_relations: number;
+  };
+  source_claims: Record<string, unknown>;
+  safety: Required<SafetyFlags> & {
+    prediction_validation: "UNTESTED";
+    historical_PIT: "NOT_VALIDATED";
+  };
+  query: string;
+  total: number;
+  offset: number;
+  limit: number;
+  items: USMappingCatalogStock[];
 }
 export const DECISION_LABELS: Record<Decision, string> = {
   SELECTED: "严格入选", CONDITIONAL_WATCH: "条件观察", UNASSESSED: "待评估",

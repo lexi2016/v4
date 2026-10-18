@@ -39,6 +39,21 @@ def _ResearchPeripheralStore__receipt_body(_v4_scope, /, cls, payload, digest):
             payload.get("market_snapshot_status")
             or receipt["market_snapshot_status"]
         )
+    if source == _v4_global(_v4_scope, 'HK_INDUSTRY_SOURCE'):
+        for field in (
+            "source_id", "provider", "captured_at", "source_asof",
+            "source_asof_status", "source_date_semantics", "market",
+            "scope_type", "scope_count", "scope_codes_sha256",
+            "membership_codes_sha256", "membership_artifact_sha256",
+            "membership_owner", "membership_relative", "membership_available_at",
+            "membership_source_root", "membership_source_refs", "requested_codes",
+            "batch_response_sha256",
+        ):
+            if field in payload:
+                receipt[field] = payload[field]
+        receipt["requested_count"] = len(payload.get("requested_codes") or [])
+        receipt["response_count"] = len(payload.get("raw_responses") or [])
+        receipt["failure_count"] = len(payload.get("failures") or [])
     captures = payload.get("us_session_captures")
     if _v4_global(_v4_scope, 'isinstance')(captures, _v4_global(_v4_scope, 'list')):
         late_capture = _v4_global(_v4_scope, 'next')(

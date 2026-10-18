@@ -39,6 +39,13 @@ def _validate_research_peripheral_body(_v4_scope, /, payload, *, expected_trade_
         "natural_capture_window_end",
         "allowed_recovery_window_start",
         "allowed_recovery_window_end",
+        "source_id", "provider", "captured_at", "source_asof", "source_asof_status",
+        "source_date_semantics", "market", "scope_type", "scope_codes", "scope_count",
+        "scope_codes_sha256", "membership_codes_sha256", "membership_artifact_sha256",
+        "membership_owner", "membership_relative", "membership_available_at",
+        "membership_effective_from", "membership_effective_through", "membership_source_root",
+        "membership_source_refs", "requested_codes", "raw_responses", "failures",
+        "batch_response_sha256",
     }
 
     if not _v4_global(_v4_scope, 'isinstance')(payload, _v4_global(_v4_scope, 'Mapping')) or not required.issubset(payload) or _v4_global(_v4_scope, 'set')(payload) - required - optional:
@@ -57,7 +64,11 @@ def _validate_research_peripheral_body(_v4_scope, /, payload, *, expected_trade_
     if expected_source is not None and source != _v4_global(_v4_scope, '_source')(expected_source):
         raise _v4_global(_v4_scope, 'ValueError')("research peripheral source mismatch")
 
-    if payload.get("status") not in _v4_global(_v4_scope, '_STATUSES'):
+    if payload.get("status") not in (
+        _v4_global(_v4_scope, '_STATUSES')
+        if source != _v4_global(_v4_scope, 'HK_INDUSTRY_SOURCE')
+        else {"READY", "PARTIAL", "CANNOT_CONFIRM"}
+    ):
         raise _v4_global(_v4_scope, 'ValueError')("invalid research peripheral status")
 
     if not _v4_global(_v4_scope, 'isinstance')(payload.get("source_url"), _v4_global(_v4_scope, 'str')) or not payload["source_url"].strip():
@@ -79,9 +90,13 @@ def _validate_research_peripheral_body(_v4_scope, /, payload, *, expected_trade_
     if source == "external_finance":
         if items or payload["item_count"] != _v4_global(_v4_scope, 'len')(details) or _v4_global(_v4_scope, 'len')(overview) > _v4_global(_v4_scope, 'len')(details):
             raise _v4_global(_v4_scope, 'ValueError')("invalid external finance projection")
-    else:
+    elif source == "ai_news":
         if overview or details or payload["item_count"] != _v4_global(_v4_scope, 'len')(items):
             raise _v4_global(_v4_scope, 'ValueError')("invalid AI news projection")
+    else:
+        if overview or details or payload["item_count"] != _v4_global(_v4_scope, 'len')(items):
+            raise _v4_global(_v4_scope, 'ValueError')("invalid HK industry projection")
+        _v4_global(_v4_scope, '_validate_hk_industry_peripheral')(payload)
 
     if payload["raw_item_count"] < payload["item_count"]:
         raise _v4_global(_v4_scope, 'ValueError')("research peripheral item count mismatch")

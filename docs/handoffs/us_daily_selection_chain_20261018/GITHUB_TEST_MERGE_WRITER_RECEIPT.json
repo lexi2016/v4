@@ -1,0 +1,177 @@
+{
+  "schema_version": "v4.github_test_merge_writer_receipt.v1",
+  "recorded_at_utc": "2026-10-18T09:54:28Z",
+  "milestone": "Prepare isolated four-test remote/local baseline union; no canonical mutation during reviewer",
+  "remote_base_commit": "3b942a957b39c6e60690ba4c77e863038d304743",
+  "baseline_compare": "ROOT_GITHUB_BASELINE_COMPARE.json",
+  "github_uploaded": false,
+  "canonical_modified_this_milestone": false,
+  "canonical_sha_at_start_verified_unchanged": true,
+  "canonical_or_frozen_source_applied": false,
+  "review_required_before_integration": true,
+  "merged_candidate_root": "local_only/github_sync_preparation/merged_tests",
+  "files": [
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "remote_before_sha256": "083a445dc20f427ca1d742ab70fe8791ae8c900f15f91abbba9ccf9df9d1787d",
+      "local_preimage_sha256": "e18be56d4cec73e6f21e35b72efefdf20970761cde93bba5cf4093b7fab2d247",
+      "local_input_sha256": "36c203f7d91e55ad5158336f44fe6194036ee22010691cbb37e4fbedf414870f",
+      "merged_path": "local_only/github_sync_preparation/merged_tests/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "merged_sha256": "54224b6d20a98faceb7da927f97a0adc78ad49f162595f63125e0ef71a608d33",
+      "remote_unique_tests_preserved": [
+        "puts the unique-stock industry funnel before legacy row counts and exposes row mapping"
+      ],
+      "local_tests_preserved": [
+        "shows distinct scope counts and keeps the saved relation and factor evidence in details"
+      ],
+      "notes": "Kept the current local detailed reason assertion and daily contract/catalog fixture. Added the remote industry-funnel case unchanged. The local case passed; the remote case failed because the frozen Workbench does not render the requested region."
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "remote_before_sha256": "e8676f034fc3e37e3f0f16f97af62d3e33d009a683e780137871c2da69cd5720",
+      "local_preimage_sha256": "fbf968e350e4bd2a5fe299428a1896a04d993854ad26f535aa705f49b1bebba7",
+      "local_input_sha256": "9263d57e8f9db570d57147f2f9a9ac1ace0e59719bc6bbf8ef0c2ab8d117e8bb",
+      "merged_path": "local_only/github_sync_preparation/merged_tests/tests/manager_workbench/engines/test_us_factor.py",
+      "merged_sha256": "c1e4df3cb335365e9b87a368227aa9ec136138bdf854cff1c3ef823f1a25ab4c",
+      "remote_unique_tests_preserved": [
+        "test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch",
+        "test_late_capture_valid_proxy_retrospective_creates_diagnostic_candidate_without_changing_decision",
+        "test_late_capture_same_input_preopen_has_no_retrospective_diagnostic",
+        "test_late_capture_unmapped_has_no_diagnostic_candidate",
+        "test_hk_industry_full_698_fixture_keeps_missing_unmapped_and_retrospective_unknown_separate",
+        "test_hk_industry_out_of_scope_and_nonobject_rows_are_isolated_from_valid_member_canary",
+        "test_hk_industry_reader_requires_exact_date_pinned_local_bytes"
+      ],
+      "local_tests_preserved": [
+        "test_manual_daily_fact_without_effective_period_stays_unassessed",
+        "test_industry_capture_time_does_not_substitute_for_unknown_source_asof"
+      ],
+      "strict_contract_adjustments": [
+        {
+          "tests": [
+            "test_hk_industry_single_same_day_canary_uses_positive_proxy_only_as_watch",
+            "test_hk_industry_out_of_scope_and_nonobject_rows_are_isolated_from_valid_member_canary"
+          ],
+          "old_fixture_and_expectation": "A captured-on-target fixture with source_asof UNKNOWN could be treated as observed by the target cutoff.",
+          "new_rule": "Capture time cannot substitute for an unknown provider source_asof.",
+          "minimal_change": "Use explicit synthetic source_asof=target date for these positive-branch fixtures; expect SOURCE_ASOF_TARGET_DATE in the time-status assertion."
+        },
+        {
+          "tests": [
+            "test_hk_industry_full_698_fixture_keeps_missing_unmapped_and_retrospective_unknown_separate"
+          ],
+          "old_expectation": "Unknown source_asof was reported as generic RETROSPECTIVE_PIT_UNKNOWN in the condition and summary.",
+          "new_rule": "Keep the specific CLASSIFICATION_SOURCE_ASOF_UNKNOWN reason visible when source_asof is absent.",
+          "minimal_change": "Update the condition and summary assertions to CLASSIFICATION_SOURCE_ASOF_UNKNOWN; the row remains UNASSESSED and retrospective PIT remains unverified."
+        }
+      ],
+      "test_result": "PASS",
+      "test_count": 16
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "remote_before_sha256": "ce36620d0ae4ad9d7dedbc0ef9dce5434c3e15a2a19a8a1acf63cc8f41a20443",
+      "local_preimage_sha256": "24c94dbda9e29addd445c9d477a3da0c2121b9c276d81ad8bf4fd62559cd9810",
+      "local_input_sha256": "0e4fca949f1dc78012e8a5dc5dc3a51d23c7e31656e53b8c1f3224d6ee777e37",
+      "merged_path": "local_only/github_sync_preparation/merged_tests/tests/manager_workbench/runtime/test_us_factor_display.py",
+      "merged_sha256": "a278f05fd0d3f054162cd715b5029b2534df5e70825ebc5d198b88d994710af1",
+      "remote_unique_tests_preserved": [
+        "test_industry_candidate_projection_keeps_48_legacy_counts_and_all_698_candidates_separate"
+      ],
+      "local_tests_preserved": [
+        "test_catalog_observations_stay_out_of_candidate_display_counts"
+      ],
+      "test_result": "PASS",
+      "test_count": 4
+    },
+    {
+      "path": "tests/test_hk_industry_peripheral.py",
+      "remote_before_sha256": "5653e3511005a371947bc2fe398852eecd767ebd134c983f5c81ee43847c71e1",
+      "local_preimage_sha256": null,
+      "local_input_sha256": "cf565c87e9b82e6f4a9cbf8c6fdbcae2afd027cf1a0d67636e392269d6ef9069",
+      "merged_path": "local_only/github_sync_preparation/merged_tests/tests/test_hk_industry_peripheral.py",
+      "merged_sha256": "6525e531016fca7d8aa6f63300c0713f64ad34e008f74b9b2cb755bc22db614c",
+      "remote_unique_tests_preserved": [
+        "test_hk_industry_store_and_v4_consumer_verify_owner_manifest_and_receipt",
+        "test_hk_industry_partial_failure_is_preserved_per_symbol",
+        "test_hk_industry_seed_cache_hit_verifies_sha_without_network"
+      ],
+      "local_tests_preserved": [
+        "test_unknown_provider_asof_is_preserved_in_validated_owner_receipt",
+        "test_unknown_provider_asof_cannot_be_replaced_by_a_capture_date",
+        "test_membership_effective_period_remains_an_explicit_required_field",
+        "test_owner_schema_union_preserves_the_existing_24_hour_recovery_limit"
+      ],
+      "merge_detail": "Remote-only producer imports were moved into the corresponding test functions so unrelated structural tests can collect and run. Test behavior and assertions were retained.",
+      "blocked_remote_tests": [
+        {
+          "test": "test_hk_industry_store_and_v4_consumer_verify_owner_manifest_and_receipt",
+          "failure": "ImportError: cannot import name build_hk_industry_peripheral_payload from canonical ops.materialize_research_peripherals"
+        },
+        {
+          "test": "test_hk_industry_partial_failure_is_preserved_per_symbol",
+          "failure": "ImportError: cannot import name build_hk_industry_peripheral_payload from canonical ops.materialize_research_peripherals"
+        },
+        {
+          "test": "test_hk_industry_seed_cache_hit_verifies_sha_without_network",
+          "failure": "ImportError: cannot import name _capture_hk_industry_response from canonical ops.materialize_research_peripherals"
+        }
+      ],
+      "test_result": "PARTIAL",
+      "tests_passed": 4,
+      "tests_failed": 3
+    }
+  ],
+  "verification": {
+    "python_command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q -p no:cacheprovider --basetemp='docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/test_runs/merged_python_r2' 'docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/merged_tests/tests/manager_workbench/engines/test_us_factor.py' 'docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/merged_tests/tests/manager_workbench/runtime/test_us_factor_display.py' 'docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/merged_tests/tests/test_hk_industry_peripheral.py' 2>&1 | tee 'docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/test_runs/merged_python_r2.log'",
+    "python_result": {
+      "state": "FAIL",
+      "tests_passed": 24,
+      "tests_failed": 3,
+      "test_count": 27,
+      "log_path": "local_only/github_sync_preparation/test_runs/merged_python_r2.log",
+      "log_sha256": "45113bdea94c17d0fe0dddc76b1c79005a2d7770a1114cca5d404614881745af",
+      "shell_note": "The recorded command pipes through tee without pipefail; use the pytest summary (24 passed, 3 failed) as the test result, not the shell pipeline status."
+    },
+    "ui_command": "set -o pipefail\nnode apps/web/node_modules/vitest/vitest.mjs run --config '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/ui_overlay/vitest.config.ts' --root '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/ui_overlay' '/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/ui_overlay/src/manager-workbench/__tests__/us_factor.spec.ts' 2>&1 | tee 'docs/handoffs/us_daily_selection_chain_20261018/local_only/github_sync_preparation/test_runs/merged_ui_r2.log'",
+    "ui_result": {
+      "state": "FAIL",
+      "exit_code": 1,
+      "tests_passed": 1,
+      "tests_failed": 1,
+      "test_count": 2,
+      "failing_test": "puts the unique-stock industry funnel before legacy row counts and exposes row mapping",
+      "failure": "Unable to find role=\"region\" and name \"港股行业宽召回股票漏斗\" after rendering the frozen local Workbench.",
+      "log_path": "local_only/github_sync_preparation/test_runs/merged_ui_r2.log",
+      "log_sha256": "92b6a7c2bbee20e57097422ab8b91478e47a87a0b018ced819781a7c8d107edb"
+    },
+    "ui_overlay_source_manifest": "local_only/github_sync_preparation/ui_overlay/source_manifest.json",
+    "ui_overlay_source_manifest_sha256": "9e4394e94e3ecee0e80ad393aa72cb974a7541750f618d0cc2630e7820f4bceb",
+    "ui_overlay_workbench_sha256": "d4ea9f3c2e609bc2c12a8d7c0872bacbe4709d37af4f4ea89b3a3726b8184fb9",
+    "python_runtime": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "node_runtime": "node; direct Vitest module; no pnpm/npm install invoked",
+    "total_across_merged_tests": {
+      "passed": 25,
+      "failed": 4,
+      "count": 29
+    }
+  },
+  "known_open_issue_carried_forward": {
+    "state": "CANNOT_CONFIRM",
+    "issue": "Canonical pre-existing ops.us_market_digest fixture reports READY with 47 of 49 configured quotes; canonical peripheral validator rejects incomplete quote coverage.",
+    "scope": "Out-of-scope producer; unchanged and not retested in this isolated four-test merge milestone."
+  },
+  "CANNOT_CONFIRM": [
+    "Three remote-only owner producer/cache tests cannot execute successfully against the frozen canonical ops source because the referenced producer exports are absent; producer source was not changed in this test-only milestone.",
+    "The remote-only industry-funnel UI behavior is absent from the frozen local Workbench and remains unverified; its test is retained in the staged union.",
+    "The previously observed 47/49 producer fixture issue remains open and was not re-run in this milestone.",
+    "Merged tests have not been applied to canonical paths and have not been uploaded or pushed; independent Reviewer verdict and later integration decision remain pending."
+  ],
+  "side_effects": {
+    "canonical_file_sha_changed": false,
+    "service_or_job_actions": false,
+    "network_calls": false,
+    "package_manager_invoked": false,
+    "github_upload_or_push": false
+  }
+}

@@ -5,15 +5,30 @@ not permission to substitute another date. Projections retain their raw sources.
 """
 from __future__ import annotations
 import json
-from datetime import datetime
+from datetime import date
 from pathlib import Path
 from infrastructure.owned_io import SafeRoot
-from ..engines.common import US_FACTOR_RULES_VERSION
+from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
 from .validation import raw_sha, before, owner_digest
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
+CONNECT_MEMBERSHIP_SOURCE = 'FUTU_HKCONNECT_PLATE_MEMBERSHIP'
 _US_MAPPING_CATALOG_STORE = None
-US_SYMBOLS = ('AMD','ARKX','AVGO','BOTZ','CIEN','CLOU','COHR','COPX','DLR','DRIV','EQIX','FCG','GLD','GRID','ICLN','ITA','KBE','LIT','LITE','MU','NLR','NVDA','REMX','SOXX','STX','TAN','UFO','VRT','WDC','XBI','XLE','XLP','XLY')
+from .us_universe import (
+    LEGACY_US_SYMBOLS,
+    UNIVERSE_VERSION,
+    build_legacy_us_universe_contract,
+    build_us_universe_contract,
+    load_us_universe_contract as _load_us_universe_contract,
+    normalize_relation_registry,
+    validate_us_universe_contract,
+)
+
+
+US_SYMBOLS = LEGACY_US_SYMBOLS
+US_UNIVERSE_VERSION = UNIVERSE_VERSION
+US_RELATION_REGISTRY_VERSION = "US_HK_RELATION_REGISTRY_V3"
+
 
 
 def read(root, relative, expected=None):
@@ -37,9 +52,18 @@ def checked_time(value, cutoff):
     if not before(value, cutoff): raise ValueError('OWNER_AFTER_CUTOFF_OR_UNKNOWN')
 
 
-def _valid_sha256(value):
-    return (isinstance(value, str) and len(value) == 64
-            and all(char in '0123456789abcdef' for char in value))
+def _date_token(value):
+    """Parse an explicit calendar date without deriving one from capture time."""
+    if not isinstance(value, str):
+        return None
+    try:
+        if len(value) == 8 and value.isascii() and value.isdigit():
+            parsed = date.fromisoformat(f'{value[:4]}-{value[4:6]}-{value[6:]}')
+            return parsed.strftime('%Y%m%d')
+        parsed = date.fromisoformat(value)
+        return parsed.strftime('%Y%m%d') if parsed.isoformat() == value else None
+    except ValueError:
+        return None
 
 
 def membership(config, context):
@@ -79,10 +103,41 @@ def membership(config, context):
             if receipt.get('artifact_sha256') != asha or receipt.get('capture_sha256') != capture_identity:
                 raise ValueError('MEMBERSHIP_RECEIPT_INVALID')
             sources = [(artifact_rel,asha),(capture_rel,csha),(current_rel,current_sha),(manifest_rel,msha),(publication_rel,psha),(rel,rsha)]
-            projection = dict(market='HK_CONNECT',codes=artifact['codes'],owner=OWNER,version=owner_digest(sources),
-                effective_from=day[:6]+'01',effective_to=day[:6]+'31',available_at=available,
-                source_url='https://www.hkex.com.hk/Mutual-Market/Stock-Connect')
-            candidates.append((available, dict(source_local_path=str(root),owner=OWNER,artifact_relative=artifact_rel,
+            # Preserve the captured Futu plate source and its exact source date.
+            # An artifact effective_date is an observation date, not an interval.
+            # Only explicit source interval fields can establish target eligibility.
+            interval_fields = (
+                ('membership_effective_from', 'membership_effective_through'),
+                ('effective_from', 'effective_through'),
+                ('effective_from', 'effective_to'),
+            )
+            effective_from = effective_through = None
+            for source in (artifact, manifest, capture):
+                if not isinstance(source, dict):
+                    continue
+                for start_field, end_field in interval_fields:
+                    start = _date_token(source.get(start_field))
+                    end = _date_token(source.get(end_field))
+                    if start and end:
+                        effective_from, effective_through = start, end
+                        break
+                if effective_from is not None:
+                    break
+            target_period_verified = bool(
+                effective_from and effective_through
+                and effective_from <= day <= effective_through
+            )
+            source_date = _date_token(artifact.get('source_date') or artifact.get('effective_date'))
+            projection = dict(market='HK_CONNECT', codes=artifact['codes'],
+                owner=CONNECT_MEMBERSHIP_SOURCE, producer_owner=OWNER,
+                source_role=CONNECT_MEMBERSHIP_SOURCE, source_date=source_date,
+                version=owner_digest(sources), effective_from=effective_from,
+                effective_to=effective_through, target_period_verified=target_period_verified,
+                available_at=available,
+                # No HKEX URL is attached to a Futu plate capture.
+                source_url=artifact.get('source_url') or capture.get('source_url'))
+            candidates.append((available, dict(source_local_path=str(root), owner=CONNECT_MEMBERSHIP_SOURCE,
+                producer_owner=OWNER, artifact_relative=artifact_rel,
                 artifact_sha256=asha,projection=projection,checked_files=[dict(source_local_path=str(root),relative=r,sha256=s) for r,s in sources])))
         except (OSError, ValueError, KeyError, TypeError) as error:
             failures.append(str(error) if isinstance(error,ValueError) else 'MEMBERSHIP_CANDIDATE_INVALID')
@@ -175,67 +230,6 @@ def hk_panel(config, context):
     return pin
 
 
-def _tdxpy_history_for_exact_parents(config, context, panel_pin, master_pin, configured_pin=None):
-    """Discover only a complete TDX61 run bound to this exact panel/master pair."""
-    if config.shared_root is None or not panel_pin or not master_pin:
-        return None
-    day=context.source_sessions['hk_price']
-    from upstreams.v3_shared_data.shared_data.hk_daily_supplement import (
-        _read_master_identity, _read_panel_identity, read_tdxpy_window_supplement,
-    )
-    panel, _=read(config.shared_root,panel_pin['manifest_relative'],panel_pin['manifest_sha256'])
-    panel_identity=_read_panel_identity(config.shared_root,day,
-        manifest_relative=panel_pin['manifest_relative'],manifest_sha256=panel_pin['manifest_sha256'])
-    master_identity,codes=_read_master_identity(config.shared_root,day)
-    master_doc,_=read(config.shared_root,master_pin['manifest_relative'],master_pin['manifest_sha256'])
-    if (master_identity['manifest_relative']!=master_pin['manifest_relative']
-            or master_identity['manifest_sha256']!=master_pin['manifest_sha256']
-            or master_doc.get('trade_date')!=day
-            or master_doc.get('artifact_sha256')!=master_identity['artifact_sha256']):
-        raise ValueError('TDXPY_MASTER_PARENT_BINDING_MISMATCH')
-    output=Path(config.shared_root)/'assets/hk_0_2/daily_supplements/tdxpy61'
-    candidates=[]
-    seen=set()
-    if isinstance(configured_pin,dict):
-        candidates.append(configured_pin)
-    for relative in files(output,f'runs/{day}/*/manifest.json'):
-        try:
-            _,manifest_sha=read(output,relative)
-            candidates.append(dict(source_local_path=str(output),manifest_relative=relative,
-                manifest_sha256=manifest_sha))
-        except (OSError,ValueError,KeyError,TypeError):
-            continue
-    verified=[]
-    for candidate in candidates:
-        try:
-            source=Path(candidate['source_local_path']).resolve()
-            relative=candidate['manifest_relative']
-            marker=(str(source),relative,candidate.get('manifest_sha256'))
-            if marker in seen:continue
-            seen.add(marker)
-            if source!=output.resolve():continue
-            manifest,msha=read(source,relative,candidate.get('manifest_sha256'))
-            raw_rel=manifest['raw_relative'];raw_sha=manifest['raw_sha256']
-            pin=dict(source_local_path=str(source),manifest_relative=relative,manifest_sha256=msha,
-                raw_relative=raw_rel,raw_sha256=raw_sha,target_date=day,
-                run_id=manifest.get('run_id'),available_at=manifest.get('available_at'),
-                capture_scope=manifest.get('capture_scope'))
-            if pin['capture_scope']!='PANEL_GAPS':continue
-            checked,_=read_tdxpy_window_supplement(pin,target_date=day,cutoff=context.cutoff,
-                expected_panel_sha=panel['panel_sha256'],expected_master_sha=master_identity['artifact_sha256'],
-                expected_codes=codes,expected_panel_manifest_sha=panel_identity['panel_manifest_sha256'],
-                expected_master_manifest_sha=master_identity['manifest_sha256'])
-            if (checked.get('panel_identity')!=panel_identity
-                    or checked.get('master_identity')!=master_identity
-                    or not before(checked.get('available_at'),context.cutoff)):
-                continue
-            available=datetime.fromisoformat(checked['available_at'].replace('Z','+00:00'))
-            verified.append((available,pin))
-        except (OSError,ValueError,KeyError,TypeError):
-            continue
-    return max(verified,key=lambda item:item[0])[1] if verified else None
-
-
 def security_master(config, context):
     day=context.source_sessions['hk_price']; base='assets/hk_security_master/'
     pointer,_=read(config.shared_root,base+'latest.json')
@@ -246,6 +240,159 @@ def security_master(config, context):
         raise ValueError('MASTER_RUN_RECEIPT_INVALID')
     checked_time(manifest.get('captured_at'),context.cutoff)
     return dict(manifest_relative=rel,manifest_sha256=sha,checked_files=[dict(source_local_path=str(config.shared_root),relative=receipt_rel,sha256=rsha)])
+
+
+def hk_industry_classification(config, context):
+    """Read one exact-date issuer classification through its existing owner.
+
+    ResearchPeripheralStore validates its payload, receipt, and manifest before
+    projection. The existing explicit V4 pin remains a compatibility path for
+    already materialized candidate artifacts; no latest or network fallback is
+    introduced.
+    """
+    day = context.target_date
+    owner_pins = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
+    pin = owner_pins.get('hk_industry_classification') if isinstance(owner_pins, dict) else None
+    if pin is None:
+        date_pins = config.source_bindings.get('hk_industry_classification', {})
+        pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+    if pin is None:
+        date_pins = config.source_bindings.get('us_mapping', {})
+        us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+        pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
+    if not isinstance(pin, dict):
+        root = Path(config.shared_root) if getattr(config, 'shared_root', None) else None
+        if root is None:
+            return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_SHARED_ROOT_MISSING')
+        try:
+            from infrastructure.research_peripheral_store import (
+                HK_INDUSTRY_SOURCE,
+                ResearchPeripheralStore,
+            )
+
+            source_store = ResearchPeripheralStore(root)
+            payload = source_store.read_exact(day, HK_INDUSTRY_SOURCE)
+            if payload is None:
+                return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXACT_DATE_BINDING_MISSING')
+            relative = source_store._relative(day, HK_INDUSTRY_SOURCE)
+            receipt_relative = source_store._receipt_relative(day, HK_INDUSTRY_SOURCE)
+            manifest_relative = 'research/peripherals/manifest.json'
+            manifest, manifest_sha = read(root, manifest_relative)
+            expected_payload_sha = manifest.get(relative)
+            owner_payload, artifact_sha = read(root, relative, expected_payload_sha)
+            receipt, receipt_sha = read(root, receipt_relative)
+            if (owner_payload != payload
+                    or receipt.get('schema_version') != 'v3_5.research_peripheral_receipt.v1'
+                    or receipt.get('trade_date') != day
+                    or receipt.get('source') != HK_INDUSTRY_SOURCE
+                    or receipt.get('payload_path') != relative
+                    or receipt.get('payload_sha256') != artifact_sha
+                    or manifest.get(relative) != artifact_sha):
+                raise ValueError('HK_INDUSTRY_PERIPHERAL_OWNER_RECEIPT_MANIFEST_INVALID')
+            owner_bindings = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
+            member_pin = owner_bindings.get('membership') if isinstance(owner_bindings, dict) else None
+            if not isinstance(member_pin, dict):
+                member_pin = membership(config, context)
+            projection = member_pin.get('projection')
+            codes = sorted(projection.get('codes') or []) if isinstance(projection, dict) else []
+            stored_refs = sorted(
+                (ref.get('source_local_path'), ref.get('relative'), ref.get('sha256'))
+                for ref in payload.get('membership_source_refs', [])
+                if isinstance(ref, dict)
+            )
+            current_refs = sorted(
+                (ref.get('source_local_path'), ref.get('relative'), ref.get('sha256'))
+                for ref in member_pin.get('checked_files', [])
+                if isinstance(ref, dict)
+            )
+            if (not codes or codes != payload.get('scope_codes')
+                    or member_pin.get('artifact_sha256') != payload.get('membership_artifact_sha256')
+                    or member_pin.get('artifact_relative') != payload.get('membership_relative')
+                    or member_pin.get('owner') != payload.get('membership_owner')
+                    or projection.get('available_at') != payload.get('membership_available_at')
+                    or projection.get('effective_from') != payload.get('membership_effective_from')
+                    or projection.get('effective_to') != payload.get('membership_effective_through')
+                    or owner_digest(dict(market='HK_CONNECT', codes=codes)) != payload.get('membership_codes_sha256')
+                    or not current_refs or stored_refs != current_refs):
+                raise ValueError('HK_INDUSTRY_PERIPHERAL_MEMBERSHIP_BINDING_MISMATCH')
+            checked_files = [
+                dict(source_local_path=str(root), relative=relative, sha256=artifact_sha),
+                dict(source_local_path=str(root), relative=receipt_relative, sha256=receipt_sha),
+                dict(source_local_path=str(root), relative=manifest_relative, sha256=manifest_sha),
+                *member_pin.get('checked_files', []),
+            ]
+            try:
+                from ..engines.us_factor import HK_INDUSTRY_TO_PROXY
+            except ImportError:
+                HK_INDUSTRY_TO_PROXY = {}
+            rows = []
+            for item in payload.get('items', []):
+                if not isinstance(item, dict):
+                    continue
+                row = dict(
+                    symbol=item.get('symbol'),
+                    issuer_name=item.get('issuer_name'),
+                    source_industry=item.get('source_industry'),
+                    source_row_sha256=item.get('source_row_sha256'),
+                    source_response_sha256=item.get('source_response_sha256'),
+                    source_response_ref=item.get('source_response_ref'),
+                )
+                mapped = HK_INDUSTRY_TO_PROXY.get(row.get('source_industry'))
+                if isinstance(mapped, dict):
+                    row['mapping_type'] = mapped.get('mapping_type')
+                rows.append(row)
+            artifact = dict(
+                schema_version='v4.manager_workbench.hk_industry_classification.v1',
+                source_id=payload.get('source_id'),
+                source_owner='research_peripheral.hk_industry_classification',
+                market='HK_CONNECT',
+                scope_type='HK_CONNECT_FULL_MARKET',
+                target_date=day,
+                status=payload.get('status'),
+                scope_count=payload.get('scope_count'),
+                membership_codes_sha256=payload.get('membership_codes_sha256'),
+                membership_artifact_sha256=payload.get('membership_artifact_sha256'),
+                batch_response_sha256=payload.get('batch_response_sha256'),
+                source_url=payload.get('source_url'),
+                source_asof=payload.get('source_asof'),
+                source_asof_status=payload.get('source_asof_status'),
+                captured_at=payload.get('captured_at'),
+                source_date_semantics=payload.get('source_date_semantics'),
+                requested_codes=payload.get('requested_codes'),
+                failures=payload.get('failures'),
+                rows=rows,
+            )
+            return dict(status='READY', owner='research_peripheral.hk_industry_classification',
+                artifact=artifact, artifact_relative=relative, artifact_sha256=artifact_sha,
+                source_local_path=str(root), source_url=payload.get('source_url'),
+                manifest_relative=manifest_relative, manifest_sha256=manifest_sha,
+                receipt_relative=receipt_relative, receipt_sha256=receipt_sha,
+                checked_files=checked_files)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_OWNER_UNAVAILABLE'
+            return dict(status='UNAVAILABLE', gap=gap)
+    try:
+        root = Path(pin.get('source_local_path') or pin.get('root') or config.shared_root)
+        relative = pin.get('artifact_relative') or pin.get('relative')
+        expected = pin.get('artifact_sha256') or pin.get('sha256')
+        if not relative or not valid_sha(expected):
+            raise ValueError('HK_INDUSTRY_CLASSIFICATION_PIN_INVALID')
+        artifact, sha = read(root, relative, expected)
+        if (artifact.get('schema_version') != 'v4.manager_workbench.hk_industry_classification.v1'
+                or artifact.get('market') != 'HK_CONNECT'
+                or artifact.get('target_date') != day
+                or not isinstance(artifact.get('rows'), list)):
+            raise ValueError('HK_INDUSTRY_CLASSIFICATION_ARTIFACT_IDENTITY_INVALID')
+        owner = pin.get('owner') or artifact.get('source_owner')
+        if not isinstance(owner, str) or not owner:
+            raise ValueError('HK_INDUSTRY_CLASSIFICATION_OWNER_UNKNOWN')
+        return dict(status='READY', owner=owner, artifact=artifact,
+            artifact_relative=relative, artifact_sha256=sha,
+            source_local_path=str(root), source_url=artifact.get('source_url'),
+            checked_files=[dict(source_local_path=str(root), relative=relative, sha256=sha)])
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_ARTIFACT_UNAVAILABLE'
+        return dict(status='UNAVAILABLE', gap=gap)
 
 
 
@@ -260,15 +407,35 @@ US_FACTOR_REVIEW_SHA = '390dcca7f7941f3999b6ef3f890f3a8fa2d08de7057342e7f9cba0be
 
 
 def us_factor_exposure(config, context):
-    """Bind only the independently paired retrospective exposure registry."""
+    """Bind a date-paired review for daily modes; keep the 10/13 pair retrospective."""
     if context.rules_version != US_FACTOR_RULES_VERSION:
         return None, [], None
     root = config.relation_root
     if root is None:
         return dict(status='UNAVAILABLE', gap='US_FACTOR_RESEARCH_ROOT_MISSING'), [], 'US_FACTOR_RESEARCH_ROOT_MISSING'
+    phase = getattr(context.phase, 'value', context.phase)
+    if phase == 'RETROSPECTIVE':
+        candidate_relative, candidate_expected = US_FACTOR_CANDIDATE_RELATIVE, US_FACTOR_CANDIDATE_SHA
+        review_relative, review_expected = US_FACTOR_REVIEW_RELATIVE, US_FACTOR_REVIEW_SHA
+    elif phase in ('MANUAL', 'NEXT_DAY'):
+        day_pin = (config.source_bindings.get('us_mapping', {}) or {}).get(context.target_date, {})
+        pair = day_pin.get('factor_exposure_pair') if isinstance(day_pin, dict) else None
+        if not isinstance(pair, dict):
+            gap = 'US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND'
+            return dict(status='UNAVAILABLE', gap=gap), [], gap
+        candidate_relative, candidate_expected = pair.get('candidate_relative'), pair.get('candidate_sha256')
+        review_relative, review_expected = pair.get('review_relative'), pair.get('review_sha256')
+        if (not isinstance(candidate_relative, str) or not candidate_relative
+                or not isinstance(review_relative, str) or not review_relative
+                or not valid_sha(candidate_expected) or not valid_sha(review_expected)):
+            gap = 'US_FACTOR_DAILY_PAIRED_REVIEW_BINDING_INVALID'
+            return dict(status='UNAVAILABLE', gap=gap), [], gap
+    else:
+        gap = 'US_FACTOR_PHASE_NOT_SUPPORTED'
+        return dict(status='UNAVAILABLE', gap=gap), [], gap
     try:
-        candidate, csha = read(root, US_FACTOR_CANDIDATE_RELATIVE, US_FACTOR_CANDIDATE_SHA)
-        review, rsha = read(root, US_FACTOR_REVIEW_RELATIVE, US_FACTOR_REVIEW_SHA)
+        candidate, csha = read(root, candidate_relative, candidate_expected)
+        review, rsha = read(root, review_relative, review_expected)
         if (candidate.get('schema_version') != 'v4.manager_workbench.us_factor_exposure_candidate.v1'
                 or candidate.get('target_date') != context.target_date
                 or candidate.get('RESEARCH_ONLY') is not True or candidate.get('production_allowed') is not False
@@ -290,13 +457,13 @@ def us_factor_exposure(config, context):
                 or any(row.get('decision') not in ('ACCEPT', 'REJECT') or not isinstance(row.get('reasons'), list)
                        for row in rows)):
             raise ValueError('US_FACTOR_PAIRED_ROW_COVERAGE_INVALID')
-        files_checked = [dict(source_local_path=str(root), relative=US_FACTOR_CANDIDATE_RELATIVE,
+        files_checked = [dict(source_local_path=str(root), relative=candidate_relative,
                               sha256=csha),
-                         dict(source_local_path=str(root), relative=US_FACTOR_REVIEW_RELATIVE,
+                         dict(source_local_path=str(root), relative=review_relative,
                               sha256=rsha)]
         value = dict(status='READY', candidate=candidate, review=review,
-            candidate_relative=US_FACTOR_CANDIDATE_RELATIVE, candidate_sha256=csha,
-            review_relative=US_FACTOR_REVIEW_RELATIVE, review_sha256=rsha,
+            candidate_relative=candidate_relative, candidate_sha256=csha,
+            review_relative=review_relative, review_sha256=rsha,
             local_path=str(root), checked_files=files_checked)
         return value, files_checked, None
     except (OSError, ValueError, KeyError, TypeError) as error:
@@ -395,6 +562,11 @@ def priority_review(config, evidence, review):
     return [dict(source_local_path=str(config.relation_root),relative=rel,sha256=sha,
                  owner=old_review.get('reviewer_identity'),available_at=old_review['reviewed_at'])
             for rel,sha in [(inherited['relative'],osha),(inherited['review_relative'],rsha)]]
+
+
+def _valid_sha256(value):
+    return (isinstance(value, str) and len(value) == 64
+            and all(char in '0123456789abcdef' for char in value))
 
 
 def _full_mapping_overlay():
@@ -521,7 +693,6 @@ def _full_mapping_overlay():
         "relations": relations,
     }
 
-
 def us_mapping(config, context):
     session=context.source_sessions['us']; root=config.us_root
     manifest,msha=read(root,'research/peripherals/manifest.json')
@@ -558,8 +729,6 @@ def us_mapping(config, context):
                     or receipt.get('payload_sha256')!=qsha
                     or receipt.get('market_snapshot_sha256')!=owner_digest(snapshot)
                     or receipt.get('market_snapshot_schema_version')!=snapshot.get('schema_version')
-                    or receipt.get('market_snapshot_captured_at')!=snapshot.get('captured_at')
-                    or receipt.get('market_snapshot_source_response_sha256')!=snapshot.get('source_response_sha256')
                     or receipt.get('market_snapshot_status')!=payload.get('market_snapshot_status', snapshot.get('status'))
                     or ('us_session_date' in receipt and receipt.get('us_session_date')!=session)):
                 raise ValueError('US_OWNER_RECEIPT_IDENTITY_INVALID')
@@ -572,16 +741,84 @@ def us_mapping(config, context):
         raise ValueError('US_OWNER_SESSION_ARTIFACT_NOT_UNIQUE' if candidates else 'US_OWNER_SESSION_ARTIFACT_NOT_FOUND')
     quote_rel,payload,qsha,receipt_rel,receipt,rsha=candidates[0]
     snapshot=payload.get('market_snapshot',{})
-    evidence,esha=read(config.relation_root,config.relation_evidence_relative)
-    review,vsha=read(config.relation_root,config.relation_review_relative)
-    checked_time(review.get('reviewed_at'),context.cutoff)
+    artifact_date = Path(quote_rel).parts[2]
+
+    snapshot_contract = snapshot.get("universe_contract")
+    if isinstance(snapshot_contract, dict):
+        universe_contract = validate_us_universe_contract(snapshot_contract)
+    elif len(snapshot.get("quotes", [])) == len(LEGACY_US_SYMBOLS):
+        universe_contract = build_legacy_us_universe_contract()
+    else:
+        raise ValueError("US_UNIVERSE_CONTRACT_MISSING")
+
+    source_gaps_by_symbol = {symbol: [] for symbol in universe_contract["symbols"]}
+    raw_quote_gaps = snapshot.get("cannot_confirm", [])
+    if isinstance(raw_quote_gaps, list):
+        for gap in raw_quote_gaps:
+            if not isinstance(gap, str) or not gap.startswith("QUOTE_SYMBOL_MISSING:"):
+                continue
+            symbol = gap.split(":", 1)[1]
+            if symbol in source_gaps_by_symbol:
+                source_gaps_by_symbol[symbol].append(gap)
+
+    # Keep the frozen reviewed evidence and its independent receipt intact.
+    evidence, esha = read(config.relation_root, config.relation_evidence_relative)
+    review, vsha = read(config.relation_root, config.relation_review_relative)
+    # Candidate business links are a separate, versioned proposal registry.
+    # Their source dates and PIT availability remain explicitly unknown.
+    registry_root = Path(__file__).resolve().parents[1] / "data"
+    registry_relative = "us_mapping_business_relations_20261014_v3.json"
+    registry_source, registry_sha = read(registry_root, registry_relative)
+    if (registry_source.get("status") != "PROPOSED"
+            or registry_source.get("pit_status") != "PIT_UNCONFIRMED"
+            or registry_source.get("strict_selection_eligible") is not False
+            or registry_source.get("decision_use") != "OBSERVATION_ONLY"):
+        raise ValueError("US_RELATION_PROPOSAL_SAFETY_INVALID")
+    registry = normalize_relation_registry(registry_source)
+
+    registry_contract_version = registry.get("contract_version")
+    if (registry_contract_version not in {universe_contract["version"], UNIVERSE_VERSION}
+            or (universe_contract["version"] == UNIVERSE_VERSION
+                and registry_contract_version != UNIVERSE_VERSION)):
+        raise ValueError("US_RELATION_UNIVERSE_CONTRACT_MISMATCH")
+
+    if not isinstance(
+        registry.get("relations"),
+        list,
+    ):
+        raise ValueError(
+            "US_RELATION_REGISTRY_INVALID"
+        )
+
+    registry_relations = registry["relations"]
+
+    review_sha = vsha
+    checked_time(review.get("reviewed_at"), context.cutoff)
     if (review.get('status')!='PASS' or review.get('evidence_file_sha256')!=esha
         or review.get('declared_artifact_sha256')!=evidence.get('artifact_sha256')
         or owner_digest({k:v for k,v in evidence.items() if k!='artifact_sha256'})!=evidence.get('artifact_sha256')
         or review.get('recomputed_artifact_sha256')!=evidence.get('artifact_sha256') or not review.get('reviewer_identity')
         or review.get('safety',{}).get('production_allowed') is not False):
         raise ValueError('US_RELATION_INDEPENDENT_REVIEW_INVALID')
-    pairs={tuple(r.get(k) for k in ('us_symbol','hk_symbol','relationship_type','direction')) for r in review['reviewed_pairs']}
+    reviewed_pairs = (
+        review.get("reviewed_pairs", [])
+        if isinstance(review, dict)
+        else []
+    )
+
+    pairs = {
+        tuple(
+            r.get(k)
+            for k in (
+                "us_symbol",
+                "hk_symbol",
+                "relationship_type",
+                "direction",
+            )
+        )
+        for r in reviewed_pairs
+        if isinstance(r, dict)
+    }
     inherited_sources=priority_review(config,evidence,review)
     assessments=[]
     reviewed_assessments={a['us_symbol']:a for a in review.get('reviewed_symbol_assessments',[])}
@@ -620,19 +857,81 @@ def us_mapping(config, context):
             original=joined[key]
             original['relation_source_refs']=[*original.get('relation_source_refs',[]),*card.get('relation_source_refs',[])]
             original['reviewed_variants']=[*original.get('reviewed_variants',[]),card]
-    projection=dict(cards=list(joined.values()),symbol_assessments=assessments,available_at=review['reviewed_at'],limitations=review.get('limitations',[]),additional_relation_sources=[*seed_sources,*inherited_sources])
+    proposal_cards = []
+    registry_universe_symbols = set(build_us_universe_contract()["symbols"])
+    for relation in registry_relations:
+        us = relation.get("us_symbol")
+        hk = relation.get("hk_symbol")
+        if (us not in registry_universe_symbols or not isinstance(hk, str) or not hk.startswith("HK.")
+                or relation.get("status") != "PROPOSED"
+                or relation.get("pit_status") != "PIT_UNCONFIRMED"):
+            raise ValueError("US_RELATION_PROPOSAL_IDENTITY_INVALID")
+        sources = relation.get("sources") or []
+        if not sources or any(
+            not str(source.get("url", "")).startswith("https://")
+            or not str(source.get("supports", "")).strip()
+            for source in sources
+        ):
+            raise ValueError("US_RELATION_PROPOSAL_SOURCE_INVALID")
+        if us not in universe_contract["symbols"]:
+            continue
+        proposal_cards.append({
+            **relation,
+            "relation_source_refs": [dict(
+                title=source.get("title"), url=source.get("url"),
+                reporting_period=source.get("reporting_period"), supports=source.get("supports"),
+            ) for source in sources],
+            "evidence_review_status": "PROPOSED",
+            "strict_selection_supported": False,
+        })
+    unmapped_symbols = list(registry_source.get("unmapped_symbols", []))
+    unmapped_by_symbol = {
+        item.get("us_symbol"): item
+        for item in unmapped_symbols
+        if isinstance(item, dict) and item.get("us_symbol")
+    }
+    relation_symbols = {
+        card.get("us_symbol")
+        for card in [*joined.values(), *proposal_cards]
+        if isinstance(card, dict)
+    }
+    for symbol in universe_contract.get("additional_symbols", []):
+        if symbol not in relation_symbols and symbol not in unmapped_by_symbol:
+            unmapped_symbols.append({
+                "us_symbol": symbol,
+                "status": "CANNOT_CONFIRM",
+                "reason": "No HK target relationship is established for this configured US symbol.",
+            })
+    projection=dict(cards=[*joined.values(),*proposal_cards],symbol_assessments=assessments,
+        available_at=registry.get('available_at'),limitations=review.get('limitations',[]),
+        status=registry.get("status"),pit_status=registry.get("pit_status"),
+        decision_use=registry_source.get("decision_use"),
+        strict_selection_eligible=registry_source.get("strict_selection_eligible") is True,
+        unmapped_symbols=unmapped_symbols,
+        additional_relation_sources=[*seed_sources,*inherited_sources])
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
+    industry = hk_industry_classification(config, context)
     full_overlay = _full_mapping_overlay()
-    return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,quote_owner='research_peripheral.external_finance',
+    return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,
+        quote_artifact_date=artifact_date,quote_source_session=session,
+        quote_owner='research_peripheral.external_finance',
         capture_phase=snapshot.get('capture_phase'),capture_status=payload.get('status'),
         capture_session_date=snapshot.get('capture_session_date'),capture_run_id=payload.get('run_id'),
         capture_cutoff=snapshot.get('captured_at'),owner_receipt_relative=receipt_rel,owner_receipt_sha256=rsha,
-        relation_local_path=str(config.relation_root),relation_relative=config.relation_evidence_relative,relation_sha256=esha,
-        relation_owner=review['reviewer_identity'],relation_projection=projection,configured_symbols=list(US_SYMBOLS),
-        factor_exposure=factor,factor_exposure_gap=factor_gap,
-        full_overlay_projection=full_overlay.get("relations",[]),
-        full_overlay_summary={k:v for k,v in full_overlay.items() if k!="relations"},
-        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),*seed_sources,*inherited_sources,*factor_files,*full_overlay.get("checked_files",[])],
+        relation_local_path=str(registry_root),relation_relative=registry_relative,relation_sha256=registry_sha,
+        relation_owner='US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY',relation_projection=projection,
+        configured_symbols=list(universe_contract["symbols"]),universe_contract=universe_contract,
+        universe_version=universe_contract["version"],source_gaps_by_symbol=source_gaps_by_symbol,
+        relation_registry_version=US_RELATION_REGISTRY_VERSION,
+        factor_exposure=factor,factor_exposure_gap=factor_gap,hk_industry_classification=industry,
+        full_overlay_projection=full_overlay.get('relations',[]),
+        full_overlay_summary={k:v for k,v in full_overlay.items() if k!='relations'},
+        checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),
+            dict(source_local_path=str(config.relation_root),relative=config.relation_evidence_relative,sha256=esha),
+            dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),
+            dict(source_local_path=str(registry_root),relative=registry_relative,sha256=registry_sha),
+            *seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[]),
+            *full_overlay.get('checked_files',[])],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 
@@ -647,15 +946,13 @@ def resolve_bindings(config,context):
     for name, resolver in [('membership',membership),('announcements',announcements),('hk_panel',hk_panel),('security_master',security_master),('us_mapping',us_mapping),('stage',stage)]:
         try: result[name]=resolver(config,context)
         except (OSError,ValueError,KeyError,TypeError) as error:gaps[name]=str(error) if isinstance(error,ValueError) else name.upper()+'_OWNER_UNAVAILABLE'
-    if result.get('hk_panel') and result.get('security_master'):
-        panel_pin=result['hk_panel']
-        configured_pin=panel_pin.pop('tdxpy_history',None)
-        try:
-            tdx_pin=_tdxpy_history_for_exact_parents(config,context,panel_pin,result['security_master'],configured_pin)
-            if tdx_pin:panel_pin['tdxpy_history']=tdx_pin
-            gaps.pop('tdxpy_history',None)
-        except (OSError,ValueError,KeyError,TypeError) as error:
-            gaps['tdxpy_history']=str(error) if isinstance(error,ValueError) else 'TDXPY_HISTORY_PARENT_UNAVAILABLE'
     # No alternative close producer is configured. Exact-date explicit pins are
     # allowed for an original complete ranking owner, otherwise the lane is unknown.
     return result,gaps
+
+def read_us_universe_contract(config):
+    return _load_us_universe_contract(config)
+
+
+def load_us_universe_contract(config, extra_symbols=None):
+    return _load_us_universe_contract(config, extra_symbols)

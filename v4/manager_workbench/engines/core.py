@@ -95,6 +95,10 @@ def merge_decisions(context, lane_results):
                 value=timestamp(evidence["available_at"]).timestamp()
                 evidence_times[eid]=max(evidence_times.get(eid,value),value)
         for item in lr["rows"]:
+            if (isinstance(item, dict) and
+                    (item.get("record_role") == "CATALOG_OBSERVATION"
+                     or item.get("catalog_relation_id") is not None)):
+                continue  # full catalog observations remain queryable, never merge as candidate evidence
             if not isinstance(item,dict) or item.get("market")!="HK_CONNECT" or not hk_symbol(item.get("symbol")):
                 continue  # no fabricated HK security for unmapped US originals
             if item.get("decision") not in DECISIONS:raise ValueError("MWB_ROW_DECISION")

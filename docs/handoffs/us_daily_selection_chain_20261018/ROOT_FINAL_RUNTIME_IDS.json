@@ -1,0 +1,90 @@
+{
+  "checked_at": "2026-10-18T10:01:14.719862+00:00",
+  "runtime_owners": [
+    {
+      "label": "com.lexi.v35.api-only",
+      "plist_sha256": "c3ba9c116007c1dc303637e0310d02eec60e82a954293a965c1c71a980ae2906",
+      "release_id": "us-daily-selection-chain-20261018-r2",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-daily-selection-chain-20261018-r2/app",
+      "manifest_sha256": "70091fe72884aa3a2a32aee50c312426b178ab2ef04fc8d01b9d1ff8e6edd41b",
+      "loaded_state": "running",
+      "pid": 19645,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-daily-selection-chain-20261018-r2/app",
+      "loaded_identity_matches_plist": true
+    },
+    {
+      "label": "com.lexi.v35.scheduler",
+      "plist_sha256": "b42d5b1eeabbb20d82fb678f4bd89076bca4a35ebb68cac5e36415cbec7a9ae7",
+      "release_id": "us-daily-selection-scheduler-20261018-r1",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-daily-selection-scheduler-20261018-r1/app",
+      "manifest_sha256": "13ca45adf852639b3d488dca237c1d0eb8aca2c8d75c4f82fedfd780aff7e241",
+      "loaded_state": "running",
+      "pid": 26305,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-daily-selection-scheduler-20261018-r1/app",
+      "loaded_identity_matches_plist": true
+    },
+    {
+      "label": "com.lexi.v4.us-market-digest",
+      "plist_sha256": "dfe1fbffa8fc82602163012fb47c2074cc71b8f06b9b496b9f6c24225c92ea45",
+      "release_id": "futu-native-us-20261018-r1",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-native-us-20261018-r1/app",
+      "manifest_sha256": "d187670c193c659fb5ff15bdf7446e7edcc751a35b0e6947d84214631f64fd18",
+      "loaded_state": "not running",
+      "pid": null,
+      "cwd": null,
+      "loaded_identity_matches_plist": true
+    }
+  ],
+  "api_critical_bytes": [
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "09f7ec8bb5fd9cf593e4ee656ecad3481dbf455508385696f2e4f2e75755d232",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "c5131be41fd6d3cdbf832aa479ed4b285901d7e4f00944aa880e32225c9601d6",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "sha256": "a2a41d1c1e8064a58399d34c88eb76174e952e5eeeaa358b292dee049484d777",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "sha256": "b7b90f3bf8841440c9f7e84222c144b9b1be943531f40923cfa34b640e5b48b3",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/core.py",
+      "sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "sha256": "bf5638802b9607cd8c75e1e1f8ebaac5d7ca45500bf90ba2329fa046ab317b3c",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "sha256": "1725412404ba4ad4d5bfbafa251ef9ac67fda312e1599860dd54e3855aeeefbc",
+      "same_as_reviewed_r2": true
+    },
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "sha256": "73604a1e8b7bb5eac97ddedd967c3cb6d1a3e3e5accd5cbd4514fdc2fe9e0330",
+      "same_as_reviewed_r2": true
+    }
+  ]
+}

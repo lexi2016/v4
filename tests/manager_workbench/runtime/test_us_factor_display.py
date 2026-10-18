@@ -104,6 +104,37 @@ def test_industry_candidate_projection_keeps_48_legacy_counts_and_all_698_candid
     assert sum(row.get("subtype") == "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE" for row in inspection["stocks"]) == 697
 
 
+def test_catalog_observations_stay_out_of_candidate_display_counts():
+    candidate = dict(symbol="HK.09961", us_symbol="TCOM", decision="UNASSESSED",
+        record_role="SOURCE_CANDIDATE", reason="CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED")
+    catalog_rows = [
+        dict(symbol="HK.09961", us_symbol=None, decision="UNASSESSED", record_role="CATALOG_OBSERVATION",
+            catalog_relation_id="catalog-1"),
+        dict(symbol="HK.00780", us_symbol=None, decision="UNASSESSED", record_role="CATALOG_OBSERVATION",
+            catalog_relation_id="catalog-2"),
+    ]
+    lane_rows = [candidate, *catalog_rows]
+    lane_rows[0]["us_mapping_catalog_summary"] = dict(state="READY", stock_count=2,
+        relation_count=2, consumed_relation_count=2)
+    lane = NS(lane=NS(value="US_MAPPING"), rows=lane_rows, gaps=[], state=NS(value="PARTIAL"),
+        coverage=NS(model_dump=lambda **kwargs: {"scope_count": 48}))
+    snapshot = NS(context=NS(rules_version="TEST_RULES", scope_refs={}), lanes=[lane], stocks=[], run_id="catalog-run")
+
+    projection = lane_projection(snapshot, "US_MAPPING", {})
+    summary = us_summary(snapshot, {})
+
+    assert projection["recommendation_projection"]["row_count"] == 1
+    assert projection["recommendation_projection"]["catalog_relation_row_count"] == 2
+    assert projection["recommendation_projection"]["catalog_stock_count"] == 2
+    assert projection["stocks"] == []
+    assert summary["source_row_count"] == 1
+    assert summary["relation_row_count"] == 1
+    assert summary["mapped_hk_count"] == 1
+    assert summary["catalog_summary"]["displayed_relation_count"] == 2
+    assert summary["catalog_summary"]["relation_count"] == 2
+
+
+
 def test_deployed_snapshot_counts_all_lane_research_rows():
     if not DEPLOYED.exists():
         pytest.skip("The deployed formal snapshot is local-only; raw data is not uploaded")

@@ -8,7 +8,7 @@ from infrastructure.research_peripheral_store import ResearchPeripheralStore
 from ops.materialize_research_peripherals import build_external_finance_payload
 from ops.us_market_digest import build_us_market_snapshot
 from v4.manager_workbench.contracts import Phase, RunContext
-from v4.manager_workbench.engines.us_mapping import run_us_mapping
+from v4.manager_workbench.engines.us_mapping import _daily_run_contract_gaps, run_us_mapping
 from v4.manager_workbench.inputs.native import NativeAdapters
 from v4.manager_workbench.inputs import source_bindings
 from v4.manager_workbench.inputs.us_universe import (
@@ -24,6 +24,58 @@ def _write(root: Path, relative: str, value: dict) -> str:
     raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
     path.write_bytes(raw)
     return hashlib.sha256(raw).hexdigest()
+
+
+def _raw_sha(value: dict) -> str:
+    raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _connect_membership_owner(tmp_path, interval=None):
+    root = tmp_path / "connect-owner"
+    codes = ["HK.09961", "HK.00780"]
+    artifact = dict(
+        market="HK_CONNECT", codes=codes, code_count=len(codes), source_date="20261012",
+        effective_date="20261012", production_allowed=False, orders_sent=False,
+    )
+    if interval:
+        artifact["membership_effective_from"], artifact["membership_effective_through"] = interval
+    artifact_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.json"
+    capture_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/capture.json"
+    manifest_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/manifest.json"
+    receipt_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/receipt.json"
+    publication_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/publication.json"
+    current_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/current.json"
+    payload = dict(acquired_at="2026-10-12T12:00:00+00:00", target_date="20261012",
+        capture_run_id="futu-connect-20261012", plate_codes={"HK.GangGuTong": codes})
+    capture = dict(schema_version="test.capture.v1", codes=codes,
+        membership_source_payload=payload,
+        membership_source_sha256=source_bindings.owner_digest(payload),
+        target_date="20261012", production_allowed=False, orders_sent=False)
+    capture["capture_sha256"] = source_bindings.owner_digest(capture)
+    current = {"target_date": "20261012", "relative": artifact_relative}
+    publication = {"current_relative": current_relative, "current_sha256": _raw_sha(current),
+        "available_at": "2026-10-12T12:05:00+00:00"}
+    manifest = dict(schema_version="test.connect.manifest.v1",
+        authority_role="HK_CONNECT_FULL_MARKET_AUTHORITY", status="READY",
+        effective_date="20261012", effective_from=None, effective_through=None,
+        producer_owner={"workload_id": source_bindings.OWNER},
+        artifact_relative=artifact_relative, artifact_sha256=_raw_sha(artifact),
+        capture_relative=capture_relative, capture_sha256=capture["capture_sha256"],
+        publication_relative=publication_relative,
+        production_allowed=False, orders_sent=False)
+    receipt = dict(manifest_sha256=_raw_sha(manifest), artifact_sha256=_raw_sha(artifact),
+        capture_sha256=capture["capture_sha256"], production_allowed=False, orders_sent=False)
+    values = {
+        artifact_relative: artifact,
+        capture_relative: capture,
+        manifest_relative: manifest,
+        receipt_relative: receipt,
+        publication_relative: publication,
+        current_relative: current,
+    }
+    hashes = {relative: _raw_sha(value) for relative, value in values.items()}
+    return root, artifact, artifact_relative, values, hashes
 
 
 def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_path, monkeypatch):
@@ -154,25 +206,28 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     assert {"HK.09961", "HK.00780"}.issubset(by_symbol["TCOM"])
 
     runtime_config = SimpleNamespace(
-        source_bindings={"us_mapping": {"20261014": pin}},
+        source_bindings={"us_mapping": {"20261020": pin}},
         dynamic_source_bindings=False,
         capture_root=None,
     )
     adapter = NativeAdapters(runtime_config)
     monkeypatch.setattr(adapter, "membership", lambda *_: (set(), None, []))
     runtime_context = RunContext(
-        target_date="20261014",
-        phase=Phase.MANUAL,
+        target_date="20261020",
+        phase=Phase.RETROSPECTIVE,
         trigger="MANUAL",
-        cutoff="2026-10-14T09:00:00+08:00",
-        source_sessions={"us": "20261012"},
+        cutoff="2026-10-20T09:00:00+08:00",
+        source_sessions={"us": "20261016"},
         rules_version="TEST_NO_FACTOR",
     )
     prepared = adapter.prepare_context(runtime_context)
     native_batch = adapter.us_mapping(prepared)
-    assert len(native_batch.records) == 49
+    candidate_records = [record for record in native_batch.records if record.get("record_role") == "SOURCE_CANDIDATE"]
+    catalog_records = [record for record in native_batch.records if record.get("record_role") == "CATALOG_OBSERVATION"]
+    assert len(candidate_records) == 49
+    assert len(catalog_records) == 1003
     assert native_batch.coverage.scope_count == 49
-    assert sum(len(record["relations"]) for record in native_batch.records) == 22
+    assert sum(len(record["relations"]) for record in candidate_records) == 22
     native_by_symbol = {record["us_symbol"]: record for record in native_batch.records}
     assert native_by_symbol["META"]["quote_missing_reason"] == "QUOTE_SYMBOL_MISSING:META"
     assert native_by_symbol["META"]["relations"][0]["status"] == "PROPOSED"
@@ -183,9 +238,12 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     engine_context = native_batch.context.model_dump(mode="python")
     engine_batch = native_batch.model_dump(mode="python")
     result = run_us_mapping(engine_context, engine_batch)
-    assert len(result["rows"]) == 57
+    candidate_rows = [row for row in result["rows"] if row.get("record_role") == "SOURCE_CANDIDATE"]
+    catalog_rows = [row for row in result["rows"] if row.get("record_role") == "CATALOG_OBSERVATION"]
+    assert len(candidate_rows) == 57
+    assert len(catalog_rows) == 1003
     assert all(row["decision"] != "SELECTED" for row in result["rows"])
-    assert sum(row["reason"] == "US_RELATION_PROPOSED_PIT_UNCONFIRMED" for row in result["rows"]) == 20
+    assert sum(row["reason"] == "US_RELATION_PROPOSED_PIT_UNCONFIRMED" for row in candidate_rows) == 20
     meta = next(row for row in result["rows"] if row.get("us_symbol") == "META")
     assert meta["reason"] == "QUOTE_SYMBOL_MISSING:META"
     assert meta["quote_missing_reason"] == "QUOTE_SYMBOL_MISSING:META"
@@ -227,7 +285,18 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
     )
     legacy_payload["market_snapshot"] = legacy_snapshot
     legacy_payload["market_snapshot_status"] = legacy_snapshot["status"]
-    legacy_payload["us_session_captures"] = payload["us_session_captures"]
+    legacy_payload["us_session_captures"] = [dict(
+        us_session_date="20261012",
+        capture_phase="POST_CLOSE",
+        session_timezone="America/New_York",
+        capture_window_start="2026-10-12T16:15:00-04:00",
+        capture_window_end="2026-10-12T16:20:00-04:00",
+        capture_id="isolated-test-capture-20261012-post-close",
+        run_id="isolated-test-run-20261012",
+        captured_at="2026-10-12T16:18:00-04:00",
+        capture_origin="ORIGINAL_TIME_CAPTURE",
+        original_time_capture=True,
+    )]
     legacy_store = ResearchPeripheralStore(tmp_path / "legacy-quotes")
     legacy_store.publish(legacy_payload)
     legacy_config = SimpleNamespace(
@@ -235,7 +304,11 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
         relation_evidence_relative=evidence_relative, relation_review_relative=review_relative,
         source_bindings={},
     )
-    legacy_pin = source_bindings.us_mapping(legacy_config, context)
+    legacy_context = SimpleNamespace(
+        source_sessions={"us": "20261012"}, cutoff="2026-10-14T09:00:00+08:00",
+        target_date="20261014",
+    )
+    legacy_pin = source_bindings.us_mapping(legacy_config, legacy_context)
     legacy_contract = build_legacy_us_universe_contract()
     assert legacy_pin["universe_version"] == "US_MAPPING_UNIVERSE_CONTRACT_V2"
     assert legacy_pin["configured_symbols"] == legacy_contract["symbols"]
@@ -254,7 +327,10 @@ def test_source_binding_carries_configured_quote_scope_and_proposal_sources(tmp_
         rules_version="TEST_NO_FACTOR",
     )
     legacy_native = legacy_adapter.us_mapping(legacy_adapter.prepare_context(legacy_context))
-    assert len(legacy_native.records) == 33
+    legacy_candidate_records = [record for record in legacy_native.records if record.get("record_role") == "SOURCE_CANDIDATE"]
+    legacy_catalog_records = [record for record in legacy_native.records if record.get("record_role") == "CATALOG_OBSERVATION"]
+    assert len(legacy_candidate_records) == 33
+    assert len(legacy_catalog_records) == 1003
     assert legacy_native.coverage.scope_count == 33
     assert legacy_native.universe_ref == "us:US_MAPPING_UNIVERSE_CONTRACT_V2:20261014"
     assert "US_FIXED_33_QUOTES" in {ref.role for ref in legacy_native.evidence_refs}
@@ -279,6 +355,8 @@ def test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standar
     )
     payload["market_snapshot"] = snapshot
     payload["market_snapshot_status"] = snapshot["status"]
+    if snapshot["status"] != "READY":
+        payload["status"] = "CANNOT_CONFIRM"
     payload["us_session_captures"] = [dict(
         us_session_date="20261016",
         capture_phase="POST_CLOSE",
@@ -348,3 +426,117 @@ def test_us_mapping_receipt_fails_closed_on_producer_identity_and_allows_standar
         receipt_path.write_text(json.dumps(tampered, ensure_ascii=False, sort_keys=True), encoding="utf-8")
         with pytest.raises(ValueError, match="US_OWNER_SESSION_ARTIFACT_NOT_FOUND"):
             source_bindings.us_mapping(config, context)
+
+
+@pytest.mark.parametrize(
+    ("interval", "expected_verification"),
+    [
+        (None, "CANNOT_CONFIRM"),
+        (("20261001", "20261031"), "VERIFIED"),
+        (("20261021", "20261101"), "CANNOT_CONFIRM"),
+    ],
+)
+def test_connect_membership_requires_explicit_target_covering_interval(
+    tmp_path, monkeypatch, interval, expected_verification,
+):
+    root, artifact, _artifact_relative, values, hashes = _connect_membership_owner(tmp_path, interval)
+    receipt_relative = "universes/20261012/HK_CONNECT_FULL_MARKET.authority/run/receipt.json"
+    monkeypatch.setattr(source_bindings, "files", lambda *_: [receipt_relative])
+
+    def fake_read(_root, relative, expected=None):
+        value = values[relative]
+        sha = hashes[relative]
+        if expected is not None and expected != sha:
+            raise ValueError("OWNER_SHA_MISMATCH")
+        return value, sha
+
+    monkeypatch.setattr(source_bindings, "read", fake_read)
+    config = SimpleNamespace(shared_root=root)
+    context = SimpleNamespace(target_date="20261020", cutoff="2026-10-20T09:00:00+08:00")
+    pin = source_bindings.membership(config, context)
+    projection = pin["projection"]
+    assert projection["owner"] == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+    assert projection["source_date"] == "20261012"
+    assert projection["source_url"] is None
+    assert projection["effective_from"] == (interval[0] if interval else None)
+    assert projection["effective_to"] == (interval[1] if interval else None)
+
+    adapter = object.__new__(NativeAdapters)
+    adapter.config = SimpleNamespace(source_bindings={})
+    adapter._membership_versions = {}
+    monkeypatch.setattr(adapter, "_binding", lambda *_: pin)
+    monkeypatch.setattr(adapter, "_json", lambda *_: (artifact, pin["artifact_sha256"]))
+    codes, ref, gaps = adapter.membership(context)
+    assert codes == {"HK.09961", "HK.00780"}
+    assert ref is not None and ref.owner == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+    assert ref.verification.value == expected_verification
+    row = adapter._member({"symbol": "HK.09961"}, codes, ref)
+    if expected_verification == "VERIFIED":
+        assert row["membership"]["effective_from"] == interval[0]
+    else:
+        assert "membership" not in row
+        assert row["membership_status"] == "CANNOT_CONFIRM"
+        assert gaps == ["CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"]
+
+
+def test_daily_factor_binding_never_reuses_retrospective_20261013_pair(tmp_path):
+    config = SimpleNamespace(relation_root=tmp_path, source_bindings={})
+    context = SimpleNamespace(
+        rules_version=source_bindings.US_FACTOR_RULES_VERSION,
+        phase=Phase.MANUAL,
+        target_date="20261020",
+    )
+
+    value, checked_files, gap = source_bindings.us_factor_exposure(config, context)
+
+    assert value["status"] == "UNAVAILABLE"
+    assert value["gap"] == "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND"
+    assert checked_files == []
+    assert gap == "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND"
+
+
+def test_daily_run_contract_binds_48_symbol_inputs_and_separates_connect_eligibility():
+    universe = build_us_universe_contract()
+    membership_pin = dict(
+        owner="FUTU_HKCONNECT_PLATE_MEMBERSHIP", artifact_sha256="e" * 64,
+        projection=dict(owner="FUTU_HKCONNECT_PLATE_MEMBERSHIP", source_date="20261012",
+            codes=["HK.09961", "HK.00780"], available_at="2026-10-12T12:05:00+00:00",
+            effective_from=None, effective_to=None),
+    )
+    context = SimpleNamespace(phase=Phase.MANUAL, target_date="20261020",
+        cutoff="2026-10-18T14:50:00+08:00", source_sessions={"us": "20261016"},
+        scope_refs={"owner_bindings": {"membership": membership_pin}})
+    pin = dict(
+        universe_contract=universe, universe_version=universe["version"],
+        configured_symbols=universe["symbols"], quote_source_session="20261016",
+        capture_cutoff="2026-10-16T20:18:00+00:00", quote_owner="research_peripheral.external_finance",
+        quote_sha256="a" * 64, owner_receipt_sha256="b" * 64, owner_manifest_sha256="c" * 64,
+        quote_relative="research/peripherals/20261017/external_finance.json",
+        owner_receipt_relative="receipts/research/peripherals/20261017/external_finance.json",
+        owner_manifest_ref="research/peripherals/manifest.json",
+        relation_owner="US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY", relation_sha256="d" * 64,
+        relation_relative="us_mapping_business_relations_20261014_v3.json",
+        relation_projection={"available_at": "2026-10-14T12:00:00+00:00"},
+        factor_exposure={"status": "UNAVAILABLE", "gap": "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND"},
+        hk_industry_classification={"status": "UNAVAILABLE", "gap": "CANNOT_CONFIRM"},
+    )
+    adapter = object.__new__(NativeAdapters)
+
+    contract = adapter._us_mapping_run_contract(context, pin)
+    engine_context = dict(phase="MANUAL", target_date="20261020", cutoff=context.cutoff,
+        source_sessions={"us": "20261016"}, scope_refs={"US_MAPPING_RUN_CONTRACT_V1": contract})
+
+    assert universe["version"] == "US_MAPPING_UNIVERSE_CONTRACT_V3"
+    assert contract["state"] == "VERIFIED"
+    assert contract["universe"]["symbol_count"] == 48
+    assert contract["owners"]["quote"]["artifact_sha256"] == "a" * 64
+    assert contract["owners"]["connect"]["source_owner"] == "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
+    assert contract["owners"]["connect"]["source_date"] == "20261012"
+    assert contract["owners"]["connect"]["observed_symbol_count"] == 2
+    assert contract["owners"]["connect"]["target_eligibility"] == "CANNOT_CONFIRM"
+    assert _daily_run_contract_gaps(engine_context) == []
+
+    altered = dict(contract)
+    altered["target_hk_date"] = "20261021"
+    engine_context["scope_refs"]["US_MAPPING_RUN_CONTRACT_V1"] = altered
+    assert "US_MAPPING_DAILY_RUN_CONTRACT_IDENTITY_INVALID" in _daily_run_contract_gaps(engine_context)

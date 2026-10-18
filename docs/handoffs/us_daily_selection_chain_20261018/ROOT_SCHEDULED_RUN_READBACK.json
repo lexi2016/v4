@@ -1,0 +1,100 @@
+{
+  "checked_at": "2026-10-18T10:04:08.810677+00:00",
+  "run_id": "466dae7ee920499b9b92dc86fd791692",
+  "actual_trigger": "SCHEDULED",
+  "classification": "AUTOMATIC_CATCHUP_NOT_NATURAL_SLOT",
+  "manual_selection_submitted": false,
+  "NATURAL_VERIFIED": false,
+  "snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/466dae7ee920499b9b92dc86fd791692.json",
+  "snapshot_sha256": "125a112a51b21851a45c0fb0be45f5fe00e686cd0a52ef58f0df1f3e21354c85",
+  "responses": [
+    {
+      "name": "scheduled_day",
+      "http_status": 200,
+      "run_id": "466dae7ee920499b9b92dc86fd791692",
+      "context": {
+        "market": "HK_CONNECT",
+        "target_date": "20261020",
+        "phase": "NEXT_DAY",
+        "cutoff": "2026-10-18T18:00:30.289978+08:00",
+        "trigger": "SCHEDULED",
+        "source_sessions": {
+          "hk_price": "20261016",
+          "us": "20261016"
+        },
+        "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1"
+      },
+      "source_cutoff": "2026-10-18T18:00:23.411375+08:00",
+      "generated_at": "2026-10-18T18:00:30.510954+08:00",
+      "state": "PARTIAL",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 19,
+        "observation_only": 0,
+        "not_selected": 0
+      },
+      "input_sha256": "f9544b788014bed5c2e2de90bb9095acaa5fe120b2f8e0b892cf7a1fb6e61b05",
+      "product_sha256": "b1a5d9f6cf313f566996bd4bde9efeb178f2cd4574d8748a9ab42afcfd0ce23c",
+      "response_sha256": "ba0bb5c8ce3631bfa3a0ed8755a659fe5654819f12deeeab624dcca3fc91e009",
+      "response_bytes": 13720720,
+      "saved_path": "docs/handoffs/us_daily_selection_chain_20261018/local_only/run_readback/scheduled_day.json",
+      "summary_counts": {
+        "source_symbol_count": 48,
+        "source_row_count": 60,
+        "relation_row_count": 36,
+        "mapped_hk_count": 19
+      },
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "name": "scheduled_lane",
+      "http_status": 200,
+      "run_id": "466dae7ee920499b9b92dc86fd791692",
+      "context": {
+        "market": "HK_CONNECT",
+        "target_date": "20261020",
+        "phase": "NEXT_DAY",
+        "cutoff": "2026-10-18T18:00:30.289978+08:00",
+        "trigger": "SCHEDULED",
+        "source_sessions": {
+          "hk_price": "20261016",
+          "us": "20261016"
+        },
+        "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1"
+      },
+      "source_cutoff": "2026-10-18T18:00:23.411375+08:00",
+      "generated_at": "2026-10-18T18:00:30.510954+08:00",
+      "state": "PARTIAL",
+      "counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 60,
+        "not_selected": 0,
+        "observation_only": 0
+      },
+      "input_sha256": "f9544b788014bed5c2e2de90bb9095acaa5fe120b2f8e0b892cf7a1fb6e61b05",
+      "product_sha256": "b1a5d9f6cf313f566996bd4bde9efeb178f2cd4574d8748a9ab42afcfd0ce23c",
+      "response_sha256": "a6263e04544e1b5ccb81d8047d36dd6b43176676b070aea16df6bc37cc4ecb08",
+      "response_bytes": 13581929,
+      "saved_path": "docs/handoffs/us_daily_selection_chain_20261018/local_only/run_readback/scheduled_lane.json",
+      "summary_counts": {
+        "source_symbol_count": 48,
+        "source_row_count": 60,
+        "relation_row_count": 36,
+        "mapped_hk_count": 19
+      },
+      "safety": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    }
+  ]
+}

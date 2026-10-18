@@ -1,0 +1,163 @@
+{
+  "status": "FROZEN_REVIEWED_SOURCE_AND_COMPACT_EVIDENCE_PAYLOAD",
+  "repository": "lexi2016/v4",
+  "branch": "codex/us-daily-selection-chain-20261018",
+  "base_commit": "3b942a957b39c6e60690ba4c77e863038d304743",
+  "base_tree": "619c80432a96d056050a57d682d67aeaf32d5918",
+  "sources": [
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "bytes": 58663,
+      "before_sha256": "8157fe45536cb83ed03ccd7300f603fa26dd263098338487c15190d8ac5a1528",
+      "after_sha256": "09f7ec8bb5fd9cf593e4ee656ecad3481dbf455508385696f2e4f2e75755d232"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "bytes": 87669,
+      "before_sha256": "42a98b7e2048760a5783fdfc630815eb71e8ae018289ff77758d978c9b92e540",
+      "after_sha256": "c5131be41fd6d3cdbf832aa479ed4b285901d7e4f00944aa880e32225c9601d6"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "bytes": 21405,
+      "before_sha256": "f478e6dbdb06625e16208d5f6ed6d3c594d93cd97727631ccac44c5e5ded80c8",
+      "after_sha256": "a2a41d1c1e8064a58399d34c88eb76174e952e5eeeaa358b292dee049484d777"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "bytes": 44997,
+      "before_sha256": "56c455ae47d8fbe25fec5333b85a9614ccfde79f35cabb379f93dac578055dcb",
+      "after_sha256": "b7b90f3bf8841440c9f7e84222c144b9b1be943531f40923cfa34b640e5b48b3"
+    },
+    {
+      "path": "v4/manager_workbench/engines/core.py",
+      "bytes": 8900,
+      "before_sha256": "121481c5065f81c8387c1997acda51e74a5cc1455112954edaf82752341aff6f",
+      "after_sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7"
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "bytes": 10227,
+      "before_sha256": "7f7cf46ccbf8f38ee1518a31365592bad8950efa2ce747f495a63198da1fa74e",
+      "after_sha256": "ebcc13036a37473b5b01e429d4556649fcf5afb14c42d2273a8697ab0abbffbc"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "bytes": 24275,
+      "before_sha256": "4db3a5eeffbfd3058e5d5dd3157ab50952aa1579bd8ff6b07fff5091f3669c96",
+      "after_sha256": "1725412404ba4ad4d5bfbafa251ef9ac67fda312e1599860dd54e3855aeeefbc"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "bytes": 64117,
+      "before_sha256": "95b9b144659dc0058268297c9109be7a546c5d1f62b35de8916d1ebe3041a02f",
+      "after_sha256": "f0a8078ec018f9fb1031b7939a8b6d42222f8104094dfc3e2beef0000d9775e0"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "bytes": 9979,
+      "before_sha256": "17943d1d2e665c523752a4473e954e9be431ff483223bbf224b8a96889917b83",
+      "after_sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "bytes": 12831,
+      "before_sha256": "083a445dc20f427ca1d742ab70fe8791ae8c900f15f91abbba9ccf9df9d1787d",
+      "after_sha256": "54224b6d20a98faceb7da927f97a0adc78ad49f162595f63125e0ef71a608d33"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/display_reason.spec.ts",
+      "bytes": 4789,
+      "before_sha256": null,
+      "after_sha256": "9b6cbf18710d3edcb4ce26ff3cc4216d91994de83350bcf95259b682bcf10ed0"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "bytes": 25931,
+      "before_sha256": "e8676f034fc3e37e3f0f16f97af62d3e33d009a683e780137871c2da69cd5720",
+      "after_sha256": "c1e4df3cb335365e9b87a368227aa9ec136138bdf854cff1c3ef823f1a25ab4c"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "bytes": 10700,
+      "before_sha256": "ce36620d0ae4ad9d7dedbc0ef9dce5434c3e15a2a19a8a1acf63cc8f41a20443",
+      "after_sha256": "a278f05fd0d3f054162cd715b5029b2534df5e70825ebc5d198b88d994710af1"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_independent_recommendations.py",
+      "bytes": 8902,
+      "before_sha256": "6d786401e40f26cd44049b625c0c923c6d1be34292e35de065dac4ac22e72fd9",
+      "after_sha256": "d95bcb7abea230fec4ed4a12650afda2f83b2d29d35fc5519d580ec50305529b"
+    },
+    {
+      "path": "tests/test_manager_us_mapping_bindings_r3.py",
+      "bytes": 28959,
+      "before_sha256": "767d45e52ac018109e73fc1060621684424dbb4e185aee31d5aa6f7ee65f4dae",
+      "after_sha256": "3807bf659fdadb9d5f9f2d7fa25bf7ab427934e4dfe62903d6f4527131af940b"
+    },
+    {
+      "path": "tests/test_hk_industry_peripheral.py",
+      "bytes": 13076,
+      "before_sha256": "5653e3511005a371947bc2fe398852eecd767ebd134c983f5c81ee43847c71e1",
+      "after_sha256": "6525e531016fca7d8aa6f63300c0713f64ad34e008f74b9b2cb755bc22db614c"
+    },
+    {
+      "path": "tests/test_manager_daily_scheduler_chain.py",
+      "bytes": 2452,
+      "before_sha256": null,
+      "after_sha256": "46a5d895d6145123ac25d751e29cb9720ec4f0c3499e6c8060814cdabe1d746c"
+    },
+    {
+      "path": "infrastructure/research_peripheral_store.py",
+      "bytes": 25311,
+      "before_sha256": "ec5ca1e32232946bacf04834d0ec0e0ed6e772ce1d3470fdb65b35522dc2faab",
+      "after_sha256": "ae4628aef5ef1833e012e0e1b6f8e2e3c4cd4ec5ad906a8fe022d091ca85cef5"
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/envelope_validation.py",
+      "bytes": 16236,
+      "before_sha256": "9b068a58500d557d34ccda6c6e08e9520d2989ae15a189e337498e184b37347f",
+      "after_sha256": "34cf122338abfa9fa685e627a2ea17e12437e86e993d6ecddde6ae0ce2b132ef"
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/publish_read.py",
+      "bytes": 8761,
+      "before_sha256": "b51dea0a9c7b0e303f20e0fa76070e10008769592024ad062a032240fdfd3150",
+      "after_sha256": "4a8e56ed72f070f34c237ce784ae7846deacde65fbc1a3934527020f5afad51e"
+    },
+    {
+      "path": "contracts/futu_us_boards.py",
+      "bytes": 15088,
+      "before_sha256": null,
+      "after_sha256": "7e953b793de8375ef2fec5e46c0f67f0d7035bde62624eeca4d81fe3c653d67c"
+    },
+    {
+      "path": "ops/_us_market_digest_parts/futu_boards.py",
+      "bytes": 34850,
+      "before_sha256": "bccd51a379960b52c1a229bc56a005a6312770d15517adeb6b9292ec7b1462f3",
+      "after_sha256": "f37d8f9df02d11a08c7e64ee3575805bdb2a67726a553f923140caea5a5475a2"
+    },
+    {
+      "path": "ops/materialize_research_peripherals.py",
+      "bytes": 33268,
+      "before_sha256": "712fb09f36f47f1e821793b2ba94a612396d474eb688036d40061458805ca512",
+      "after_sha256": "81c77297a6de1e8767dea31876d7d01752f634d6e985dca2d09610c07d9dafa8"
+    },
+    {
+      "path": "ops/_materialize_research_peripherals_parts/hk_industry_classification.py",
+      "bytes": 17122,
+      "before_sha256": null,
+      "after_sha256": "242b47212502a0945a286b3bf6cb504ba02daa97f2e106afede87368f29afc7b"
+    }
+  ],
+  "exclusions": [
+    "raw price/source/classification/relationship resources",
+    "runtime configs/plists/env/auth",
+    "release directories/dist/node_modules",
+    "logs/screenshots/large API response JSON",
+    "old frozen branches"
+  ],
+  "test_baseline_reconciliation": "12remote-only tests retained; independent final union27Python+2UI+focused Vue typecheckPASS; leafreceipt8492bcaa2f2d33684adc1f10851e4e77c8eef961c8c3ec3fde8dce37c6d4c6e6. Separate extended47/49quote fixture remains recorded outside this leaf.",
+  "pre_ref_update_record": true,
+  "post_push_proof": "Local ROOT_GITHUB_SYNC.json, generated only after remote branch/commit/file readback"
+}

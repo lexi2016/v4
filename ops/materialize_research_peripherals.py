@@ -776,6 +776,45 @@ def materialize_ai_news(
     return _v4_impl(globals(), data_root=data_root, trade_date=trade_date, fetch_html=fetch_html, fetched_at=fetched_at, source_url=source_url, timeout=timeout, limit=limit, translate_text=translate_text, transport=transport)
 
 
+def _hk_industry_url(symbol: str) -> str:
+    from ops._materialize_research_peripherals_parts.hk_industry_classification import _hk_industry_url as _v4_impl
+    return _v4_impl(symbol)
+
+
+def seed_hk_industry_response_cache(
+    *, cache_root: Path, trade_date: str, symbol: str, raw_response_path: Path,
+    captured_at: str, expected_sha256: str,
+) -> dict[str, Any]:
+    from ops._materialize_research_peripherals_parts.hk_industry_classification import seed_hk_industry_response_cache as _v4_impl
+    return _v4_impl(
+        cache_root=cache_root, trade_date=trade_date, symbol=symbol,
+        raw_response_path=raw_response_path, captured_at=captured_at,
+        expected_sha256=expected_sha256,
+    )
+
+
+def _capture_hk_industry_response(
+    *, trade_date: str, symbol: str, cache_root: Path,
+    transport: ProxyAwareHTTPTransport, timeout: int,
+) -> dict[str, Any]:
+    from ops._materialize_research_peripherals_parts.hk_industry_classification import _capture_hk_industry_response as _v4_impl
+    return _v4_impl(
+        trade_date=trade_date, symbol=symbol, cache_root=cache_root,
+        transport=transport, timeout=timeout,
+    )
+
+
+def build_hk_industry_peripheral_payload(
+    *, trade_date: str, membership: Mapping[str, Any], requested_codes: Sequence[str],
+    outcomes: Sequence[Mapping[str, Any]], fetched_at: datetime | str | None = None,
+) -> dict[str, Any]:
+    from ops._materialize_research_peripherals_parts.hk_industry_classification import build_hk_industry_peripheral_payload as _v4_impl
+    return _v4_impl(
+        trade_date=trade_date, membership=membership, requested_codes=requested_codes,
+        outcomes=outcomes, fetched_at=fetched_at,
+    )
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     from ops._materialize_research_peripherals_parts.cli import _parse_args_body as _v4_impl
     return _v4_impl(globals(), argv)
@@ -790,4 +829,8 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 
-__all__ = _v4_definitions._value___all__(globals())
+__all__ = [
+    *_v4_definitions._value___all__(globals()),
+    "build_hk_industry_peripheral_payload",
+    "seed_hk_industry_response_cache",
+]

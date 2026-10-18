@@ -1,8 +1,33 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/vue";
 import Workbench from "../Workbench.vue";
-import { sampleDay, sampleStock, wrapped } from "./fixtures/sample";
-import type { StockDecision } from "../types";
+import { SCHEMA_VERSION } from "../types";
+import type { DayData, Envelope, StockDecision } from "../types";
+
+function sampleStock(symbol: string, name: string): StockDecision {
+  return {
+    market: "HK_CONNECT", symbol, name, decision: "CONDITIONAL_WATCH",
+    lane_decisions: {}, reasons: [], conditions: [], invalidation_conditions: [], risks: [], evidence_ids: []
+  };
+}
+
+function sampleDay(overrides: Partial<DayData>): DayData {
+  return {
+    snapshot: {
+      context: { market: "HK_CONNECT", target_date: "20261013", phase: "RETROSPECTIVE", cutoff: null },
+      run_id: "synthetic-run-1"
+    },
+    stocks: [], counts: null, pagination: { total: 1, offset: 0, limit: 50 },
+    ...overrides
+  };
+}
+
+function wrapped<T>(data: T): Envelope<T> {
+  return {
+    schema_version: SCHEMA_VERSION, state: "READY", data, gaps: null,
+    RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false
+  };
+}
 
 function response(data: unknown): Response {
   return new Response(JSON.stringify(data), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -57,7 +82,19 @@ describe("US daily-return factor fixture", () => {
         source_decision_counts: { CONDITIONAL_WATCH: 1 }, mixed_source_count: 0,
         coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 },
         groups: [{ us_symbol: "DRIV", decisions: ["CONDITIONAL_WATCH"], rows: [relation] }],
-        factor_summary: summary
+        factor_summary: summary,
+        catalog_summary: { state: "READY", stock_count: 667, relation_count: 1003,
+          consumed_relation_count: 1003, displayed_relation_count: 1003 },
+        run_contract: { state: "VERIFIED", mode: "MANUAL", target_hk_date: "20261020",
+          us_source_session: "20261016", cutoff: "2026-10-18T14:50:00+08:00",
+          contract_sha256: "a".repeat(64),
+          universe: { version: "US_MAPPING_UNIVERSE_CONTRACT_V3", symbol_count: 48,
+            contract_sha256: "b".repeat(64), symbols_sha256: "c".repeat(64) },
+          owners: { quote: { owner: "research_peripheral.external_finance", artifact_sha256: "d".repeat(64),
+              receipt_sha256: "e".repeat(64), manifest_sha256: "f".repeat(64), available_at: "2026-10-16T20:18:00+00:00" },
+            connect: { source_owner: "FUTU_HKCONNECT_PLATE_MEMBERSHIP", source_date: "20261012",
+              observed_symbol_count: 698, source_sha256: "1".repeat(64), source_available_at: "2026-10-12T12:05:00+00:00",
+              target_eligibility: "CANNOT_CONFIRM", target_gap: "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED" } } }
       }
     });
     const spy = vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
@@ -74,10 +111,13 @@ describe("US daily-return factor fixture", () => {
     expect(screen.getByText(/因子唯一港股 1 只，路径 1 条，未知港股 0 只/)).toBeTruthy();
     expect(screen.getByText(/保存 3 条研究记录（计数单位：研究记录）/)).toBeTruthy();
     expect(screen.getByText(/这些数量属于不同范围，不能相加/)).toBeTruthy();
+    expect(screen.getByText(/全量关系目录 1003 条 \/ 667 只/)).toBeTruthy();
+    expect(screen.getByText(/日常输入合同 VERIFIED · 模式 MANUAL · 港股目标日 20261020 · 美股来源会话 20261016/)).toBeTruthy();
+    expect(screen.getByText(/目标日资格 CANNOT_CONFIRM/)).toBeTruthy();
 
     await fireEvent.click(screen.getByRole("button", { name: /查看 HK\.09660/ }));
     await screen.findByText("美股代理日收益路径 · 各路径独立判定");
-    expect(screen.getByText(/公司关系观察/)).toBeTruthy();
+    expect(screen.getByText("已有审核关系，列为条件观察，不能据此严格入选。 本轮研究分类依据：独立审核的公司关系观察")).toBeTruthy();
     expect(screen.getByText("自动驾驶 · 条件观察" )).toBeTruthy();
     expect(screen.getByText(/历史有效期间未知/)).toBeTruthy();
     await fireEvent.click(screen.getByText("补充原始出处定位（不代表已接受）"));
