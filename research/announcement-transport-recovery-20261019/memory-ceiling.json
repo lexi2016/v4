@@ -1,0 +1,31 @@
+{
+  "authorized_memory_gib": 96,
+  "prefill_guard": true,
+  "settings_before_sha256": "e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99",
+  "settings_after_sha256": "2713eb73ceb66ee77fbfb58c52b17211305d72774b5e9412073171854ba3e631",
+  "launcher_before_sha256": "6e71089853c71f8a7e1e6ff6f529059e2c23e35c0be1ec47b7627925c122e924",
+  "launcher_after_sha256": "538d1d9c7a975acbd2a043232780a0e740b5ec9dcf956839eddcbfdc1da9b4e1",
+  "memory_before": {
+    "prefill_memory_guard": true,
+    "memory_guard_tier": "balanced",
+    "memory_guard_custom_ceiling_gb": 0.0,
+    "soft_threshold": 0.85,
+    "hard_threshold": 0.95,
+    "prefill_safe_zone_ratio": 0.8,
+    "prefill_min_chunk_tokens": 32
+  },
+  "memory_after": {
+    "prefill_memory_guard": true,
+    "memory_guard_tier": "custom",
+    "memory_guard_custom_ceiling_gb": 96.0,
+    "soft_threshold": 0.85,
+    "hard_threshold": 0.95,
+    "prefill_safe_zone_ratio": 0.8,
+    "prefill_min_chunk_tokens": 32
+  },
+  "non_memory_settings_canonical_sha256": "e577d5f3b802eb29a6cee6955e16b81c4cc603d297298208512724a28fd6b287",
+  "non_memory_unchanged": true,
+  "effective_ceiling_gib": 96.0,
+  "status": "APPLIED_HEALTH_CEILING_VERIFIED",
+  "verification": "Runtime health final_ceiling=103079215104 bytes; independent runtime review pending. Model canary and pending continuation after memory adjustment not yet run."
+}
