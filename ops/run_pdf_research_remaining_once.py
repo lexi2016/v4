@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "731592fc38a8db826ae0dbc0cb54553e9a85f711fd713fa2a2e0bc752f9d4b70"
+EXPECTED_RUNNER_SHA256 = "9bacc8a23c9885de18278427e3099cdc72cbd2f871a6d7908b36ea51301e9ade"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -498,9 +498,12 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
         "reviewer_receipt",
         "adoption_receipt",
         "research_only",
+        "prepared_text_manifest_sha256",
     }
     if set(auth) != expected_fields or auth.get("status") != "AUTHORIZED":
         raise DispatcherError("ROOT_EXECUTION_AUTHORIZATION_INVALID")
+    if not SHA256_RE.fullmatch(str(auth.get("prepared_text_manifest_sha256", ""))):
+        raise DispatcherError("ROOT_PREPARED_MANIFEST_AUTHORIZATION_REQUIRED")
     try:
         auth_path = path.expanduser().absolute()
         auth_root = CONTINUATION_ROOT.resolve(strict=True)
@@ -626,7 +629,8 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
             ):
                 raise DispatcherError("REVIEWER_RECEIPT_BINDING_MISMATCH")
         elif key == "adoption_receipt":
-            if evidence.get("model_settings_sha256") != auth.get("model_settings_sha256"):
+            if (evidence.get("model_settings_sha256") != auth.get("model_settings_sha256")
+                    or evidence.get("prepared_text_manifest_sha256") != auth.get("prepared_text_manifest_sha256")):
                 raise DispatcherError("ROOT_ADOPTION_RECEIPT_BINDING_MISMATCH")
         expected_pilot_progress_sha = progress_ref["sha256"]
         if (
@@ -1678,6 +1682,7 @@ def select_next_document(
     status_by_id: Mapping[str, str],
     pilot_ids: set[str],
     dispatched_ids: set[str],
+    prepared_rows: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | None, int]:
     if (
         len(documents) != FROZEN_COHORT_DOCUMENT_COUNT
@@ -1701,6 +1706,10 @@ def select_next_document(
             raise DispatcherError("COHORT_STATUS_UNKNOWN")
         if document_id in excluded or status in COMPLETED_INVENTORY_STATUSES:
             continue
+        if prepared_rows is not None:
+            prepared = prepared_rows.get(document_id)
+            if not isinstance(prepared, Mapping) or prepared.get("manifest_row", {}).get("status") != "READY":
+                continue
         # Failure statuses remain visible in the frozen inventory, but the
         # runner accepts only UNPROCESSED or a separately proven recovery plan.
         if status == "UNPROCESSED":
@@ -2174,6 +2183,7 @@ def _source_adoption_event(context: Mapping[str, Any], descriptor: Mapping[str, 
         "old_runner_sha256": descriptor["old_runner_sha256"],
         "new_dispatcher_sha256": descriptor["new_dispatcher_sha256"],
         "new_runner_sha256": descriptor["new_runner_sha256"],
+        "prepared_text_manifest_sha256": context["prepared_text_manifest_sha256"],
     }
 
 
@@ -2903,6 +2913,12 @@ def execute_once(
     static = _verify_static_bindings()
     auth_context = load_and_validate_authorization(authorization_path)
     auth = auth_context["authorization"]
+    if auth.get("prepared_text_manifest_sha256") != prepared_manifest["manifest_sha256"]:
+        raise DispatcherError("ROOT_PREPARED_MANIFEST_AUTHORIZATION_MISMATCH")
+    # Keep old dispatches, HALT and duplicate prevention in their original root.
+    # A manifest-specific empty root is never a substitute for state adoption.
+    if evidence_root != EVIDENCE_ROOT and (EVIDENCE_ROOT / "dispatch.jsonl").is_file():
+        raise DispatcherError("PREPARED_DISPATCH_MUST_RETAIN_HISTORY")
     if max_documents is not None and (type(max_documents) is not int or max_documents < 1):
         raise DispatcherError("DISPATCH_LIMIT_INVALID")
     limit = min(max_documents or auth["max_documents"], auth["max_documents"])
@@ -2926,8 +2942,6 @@ def execute_once(
         "prepared_text_manifest_path": str(prepared_manifest["path"]),
         "prepared_text_manifest_sha256": prepared_manifest["manifest_sha256"],
     }
-    if evidence_root == EVIDENCE_ROOT:
-        evidence_root = EVIDENCE_ROOT.parent / f"remaining-execution-prepared-{prepared_manifest['manifest_sha256'][:16]}"
     journal = DurableJournal(evidence_root)
     completed_this_call = 0
     authorization_limit_reached = False
@@ -2998,6 +3012,7 @@ def execute_once(
                     status_by_id,
                     auth_context["pilot_document_ids"],
                     dispatched_ids,
+                    prepared_manifest["documents"],
                 )
                 if document is None:
                     cohort_exhausted = True
@@ -3039,6 +3054,8 @@ def execute_once(
                     "state_root": plan["state_root"],
                 })
             plan_sha = sha256_bytes(plan_raw)
+            if prepared_manifest["documents"].get(document_id, {}).get("manifest_row", {}).get("status") != "READY":
+                raise DispatcherError("PENDING_PLAN_PREPARED_DOCUMENT_NOT_READY")
             journal.append({
                 "event": "dispatch_intent",
                 "document_id": document_id,
@@ -3227,7 +3244,7 @@ def execute_once(
     return {
         "status": (
             "HALTED"
-            if any(event.get("event") == "halt" for event in journal.events)
+            if any(event.get("event") == "halt" and (resolved_halt_resume_descriptor is None or index != resolved_halt_resume_descriptor["halt_event_index"]) for index, event in enumerate(journal.events))
             else "RESUME_REQUIRED" if resume_required
             else "AUTHORIZATION_LIMIT_REACHED" if authorization_limit_reached
             else "COHORT_EXHAUSTED" if cohort_exhausted

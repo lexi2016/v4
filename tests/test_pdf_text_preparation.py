@@ -394,3 +394,143 @@ def test_prepared_gate_rejects_partial_terminal_counts_before_runtime(
             prepared_text_manifest_path=path,
             prepared_text_manifest_sha256=_sha(raw),
         )
+
+
+def test_native_discovery_without_cache_or_page_count(tmp_path, monkeypatch):
+    path = tmp_path / 'native.pdf'
+    path.write_bytes(b'%PDF-native')
+    text = 'Company revenue increased; operating margin improved during the year.'
+    helper = type('Helper', (), {'extract_pdf_pages': staticmethod(lambda *a, **k: {'pdf_sha256': _sha(path.read_bytes()), 'page_count': 1, 'complete': True, 'pages': [{'text': text, 'status': 'COMPLETE'}]})})
+    monkeypatch.setattr(pdf_research, '_pinned_pdf_pages_helper', lambda: helper)
+    pages, status = batch._discover_native_pages(path, _sha(path.read_bytes()))
+    assert status == 'COMPLETE'
+    assert pages[0].text_sha256 == _sha(text.encode())
+
+
+def test_good_native_with_images_still_ocr_body(tmp_path, monkeypatch):
+    path = tmp_path / 'mixed.pdf'
+    path.write_bytes(b'%PDF-mixed')
+    native = _page(1, 1, '三星电机目标价变化历史与投资评级图表，韩国电子元件行业研究')
+    assert preparation.assess_document_pages([native])[1]['needs_context'] is False
+    monkeypatch.setattr(pdf_research, '_validate_pdf_path', lambda _: path)
+    monkeypatch.setattr(pdf_research, 'extract_native_pdf_pages', lambda *a: ([native], 'COMPLETE'))
+    monkeypatch.setattr(preparation, 'inspect_page_images', lambda *a, **k: {n: True for n in k['page_numbers']})
+    monkeypatch.setattr(batch, '_page_geometry', lambda *a: [{'width_points': 600., 'height_points': 800., 'rotation_degrees': 0.}])
+    calls = []
+    body = native.text + '\nTarget price 270000 KRW, current price 172500; 2024 2025 2026 performance.'
+    def ocr(*args):
+        calls.append(args)
+        return body, {'pdf_sha256': _sha(path.read_bytes()), 'page_number': 1, 'rendered_dimensions_pixels': {'width_pixels': 1200, 'height_pixels': 1600}}
+    monkeypatch.setattr(batch, '_perform_page_ocr', ocr)
+    monkeypatch.setattr(batch, '_read_scale_canary_page', lambda *a: None)
+    monkeypatch.setattr(batch, '_read_slice_canary_page', lambda *a: None)
+    doc = {'document_id': _sha(path.read_bytes()), 'pdf_sha256': _sha(path.read_bytes()), 'pdf_bytes': path.stat().st_size, 'local_pdf_path': str(path), 'page_count': 1}
+    pages, source = batch._load_pages(doc, state_root=tmp_path/'state', preparation_mode=True)
+    assert len(calls) == 1
+    assert '270000' in pages[0].text
+    assert source['page_extraction_sources'][0]['selected'] == 'RENDERED_DERIVED_OCR'
+
+
+def test_cross_run_reuses_exact_bound_pages_without_new_ocr(tmp_path, monkeypatch):
+    documents = _documents()
+    _install_parent(monkeypatch, documents)
+    page = _page(1, 1, 'Company revenues and operating profits improve across core products and services.')
+    calls = []
+    def load(doc, *, resume_pages, page_callback, **kwargs):
+        if 1 in resume_pages:
+            reused, row = resume_pages[1]
+            return [reused], {**_good_source([reused]), 'page_extraction_sources': [row]}
+        calls.append(doc['document_id'])
+        page_callback(page, _good_source_row(page))
+        return [page], _good_source([page])
+    monkeypatch.setattr(batch, '_load_pages', load)
+    for run_id in ('canary-a', 'full-b'):
+        preparation.prepare_only(batch, manifest_path=tmp_path/'inventory', run_id=run_id, document_ids=[documents[0]['document_id']], prepared_root=tmp_path/'prepared')
+    assert len(calls) == 1
+    checkpoint = json.loads((tmp_path/'prepared'/'full-b'/'documents'/documents[0]['document_id']/'pages'/'page-0001.json').read_text())
+    assert checkpoint['source_evidence']['reused_checkpoint']['run_id'] == 'canary-a'
+
+
+def test_resource_pause_retains_checkpoint_and_no_failure_receipt(tmp_path, monkeypatch):
+    documents = _documents()
+    _install_parent(monkeypatch, documents)
+    def load(doc, *, before_page, **kwargs):
+        before_page()
+        pytest.fail('resource pause must stop before extraction')
+    monkeypatch.setattr(batch, '_load_pages', load)
+    result = preparation.prepare_only(batch, manifest_path=tmp_path/'inventory', run_id='paused', document_ids=[documents[0]['document_id']], prepared_root=tmp_path/'prepared', resource_sampler=lambda: {'available_bytes': 1, 'swap_used_bytes': 0})
+    assert result['status'] == 'PAUSED_RESOURCE'
+    assert not (tmp_path/'prepared'/'paused'/'documents'/documents[0]['document_id']/'document.json').exists()
+
+
+def _bridge_fixture(tmp_path):
+    document_id = 'a' * 64
+    parent_sha = 'e' * 64
+    page = {'page_number': 1, 'text': 'Exact historical body 123 原文逐字一致', 'text_sha256': _sha('Exact historical body 123 原文逐字一致'.encode())}
+    old = {'schema': preparation.PAGE_INPUT_SCHEMA, 'document_id': document_id, 'pdf_sha256': document_id, 'manifest_sha256': parent_sha, 'source': {'page_count': 1, 'old_metadata': True}, 'pages': [page]}
+    old_path = tmp_path/'old'/'documents'/document_id/'page-input.json'
+    old_path.parent.mkdir(parents=True)
+    old_raw = preparation.canonical_json(old)+b'\n'
+    old_path.write_bytes(old_raw)
+    current = json.loads(json.dumps(old)); current['source'] = {'page_count': 1, 'new_preparation_metadata': True}
+    prepared = {'parent_manifest_sha256': parent_sha, 'manifest_sha256': 'f'*64, 'manifest': {'extractor_identity_sha256': 'b'*64}, 'documents': {document_id: {'manifest_row': {'status': 'READY'}, 'page_input': current, 'page_input_sha256': _sha(preparation.canonical_json(current))}}}
+    continuation = {'recovery_binding': {'prior_payload': {'bound': True}, 'prior_queue_root': old_path.parents[2]/'queue', 'prior_page_input_sha256': _sha(old_raw)}}
+    return document_id, prepared, continuation, old_path, old_raw
+
+
+def test_prepared_recovery_bridge_keeps_exact_original_bytes(tmp_path):
+    document_id, prepared, continuation, old_path, old_raw = _bridge_fixture(tmp_path)
+    old, raw, sha, bridge = batch._prepared_recovery_input_bridge(prepared, document_id, continuation)
+    assert raw == old_raw == old_path.read_bytes()
+    assert sha == _sha(old_raw)
+    assert bridge['prepared_text_manifest_sha256'] == prepared['manifest_sha256']
+    assert bridge['pages'][0]['text_sha256'] == old['pages'][0]['text_sha256']
+    assert bridge['status'] == 'EXACT_PAGE_TEXT_EQUIVALENCE'
+
+
+@pytest.mark.parametrize('change', ['text', 'page_number', 'page_count', 'document_id', 'nonready'])
+def test_prepared_recovery_bridge_rejects_incomplete_or_changed_body(tmp_path, change):
+    document_id, prepared, continuation, old_path, old_raw = _bridge_fixture(tmp_path)
+    row = prepared['documents'][document_id]
+    if change == 'text': row['page_input']['pages'][0]['text'] += 'x'
+    elif change == 'page_number': row['page_input']['pages'][0]['page_number'] = 2
+    elif change == 'page_count': row['page_input']['source']['page_count'] = 2
+    elif change == 'document_id': row['page_input']['document_id'] = 'c'*64
+    else: row['manifest_row']['status'] = 'QUARANTINED'
+    with pytest.raises(batch.BatchError, match='PREPARED_RECOVERY_'):
+        batch._prepared_recovery_input_bridge(prepared, document_id, continuation)
+    assert old_path.read_bytes() == old_raw
+
+
+def test_complete_preparation_manifest_roundtrip_counts_and_ready_only(tmp_path, monkeypatch):
+    documents = _documents()
+    parent_sha = _install_parent(monkeypatch, documents)
+    page = _page(1, 1, '完整研究正文收入增长经营利润现金流行业竞争产品价格变化。'*10)
+    def load(doc, *, page_callback, **kwargs):
+        if doc['document_id'] == documents[0]['document_id']:
+            raise RuntimeError('isolated input failure')
+        row = _good_source_row(page)
+        if doc['document_id'] == documents[1]['document_id']:
+            row['preparation_gate'] = 'QUARANTINED'
+        page_callback(page, row)
+        return [page], {**_good_source([page]), 'page_extraction_sources': [row]}
+    monkeypatch.setattr(batch, '_load_pages', load)
+    result = preparation.prepare_only(batch, manifest_path=tmp_path/'parent', run_id='complete', prepared_root=tmp_path/'prepared')
+    assert result['counts'] == {'total': 2209, 'ready': 2207, 'quarantined': 1, 'failed': 1, 'pending': 0}
+    verified = preparation.verify_frozen_manifest(batch, Path(result['prepared_text_manifest_path']), expected_sha256=result['prepared_text_manifest_sha256'], expected_parent_sha256=parent_sha)
+    assert len(verified['documents']) == 2209
+    with pytest.raises(preparation.PreparationError, match='PREPARED_DOCUMENT_NOT_READY'):
+        preparation.pages_from_frozen_manifest(verified, documents[0]['document_id'])
+
+
+def test_legacy_canary_reuse_rejects_changed_extraction_pipeline(tmp_path, monkeypatch):
+    parent_sha = 'e'*64
+    leaf = {'path': '/bound/helper', 'sha256': 'a'*64}
+    identity = {'method': 'old-live-canary', 'vision': {'renderer': 'same'}, 'sources': {name: leaf for name in ('pdf_research', 'pinned_pdf_helper', 'pinned_pdf_dependency_manifest')}}
+    identity['sha256'] = preparation.sha256_bytes(preparation.canonical_json(identity))
+    prior = tmp_path/'prior';prior.mkdir()
+    (prior/'run.json').write_text(json.dumps({'schema': preparation.RUN_SCHEMA, 'run_id': 'prior', 'parent_manifest_sha256': parent_sha, 'extractor_identity_sha256': identity['sha256'], 'extractor_identity': identity}))
+    monkeypatch.setattr(preparation, 'COMPATIBLE_CANARY_EXTRACTOR_SHA256', identity['sha256'])
+    monkeypatch.setattr(preparation, '_extractor_identity', lambda _batch: {'sha256': 'd'*64, 'vision': identity['vision'], 'sources': identity['sources']})
+    monkeypatch.setattr(preparation, '_canary_pipeline_fingerprint', lambda: 'changed-extractor')
+    assert preparation._reusable_run_roots(tmp_path, tmp_path/'new', parent_sha256=parent_sha, extractor_sha256='d'*64) == []

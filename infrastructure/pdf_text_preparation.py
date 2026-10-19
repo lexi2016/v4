@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
+import ast
 from pathlib import Path
 import hashlib
 import json
@@ -23,6 +24,10 @@ MANIFEST_SCHEMA = "v4.pdf_research_text_preparation.manifest.v1"
 PAGE_INPUT_SCHEMA = "v4.pdf_research_simple_batch.page_input.v1"
 RUN_ID_RE = re.compile(r"\A[a-z0-9][a-z0-9-]{0,63}\Z")
 SHA256_RE = re.compile(r"\A[0-9a-f]{64}\Z")
+# The live Sol canary preceded only the exact-text model-input bridge below.
+# Its extraction/OCR/quality functions are byte-identical (migration receipt).
+# Retain this one explicit identity so later full preparation does not redo OCR.
+COMPATIBLE_CANARY_EXTRACTOR_SHA256 = "a289e641128c07de1d430ab46ab489154f9b9040d361f00cb778c508261edfc9"
 SUCCESS_REPORT_STATUSES = frozenset(
     {
         "USER_ACCEPTED_REUSED_REPORT",
@@ -45,6 +50,7 @@ FATAL_SOURCE_CODES = frozenset(
         "PREPARATION_RESUME_PAGE_BINDING_MISMATCH",
         "PAGE_CHECKPOINT_BINDING_MISMATCH",
         "PAGE_CHECKPOINT_TEXT_SHA_MISMATCH",
+        "CROSS_RUN_CHECKPOINT_CONFLICT",
     }
 )
 CONTACT_PATTERN = re.compile(
@@ -439,6 +445,19 @@ def _prior_report_roots(batch: Any) -> list[Path]:
         candidate = Path(item).expanduser().absolute()
         if candidate.resolve(strict=False).is_relative_to(research_root / "batches") and candidate not in roots:
             roots.append(candidate)
+    # These existing accepted continuations are outside the original r3 root.
+    # Discover only their source-bound plan/receipt roots, never arbitrary runs.
+    from ops import run_pdf_research_remaining_once as dispatcher
+    pilot, pilot_raw = _read_json(dispatcher.PILOT_PLAN_PATH, "PRIOR_PILOT_PLAN_INVALID")
+    if sha256_bytes(pilot_raw) != dispatcher.EXPECTED_PILOT_PLAN_SHA256:
+        raise PreparationError("PRIOR_PILOT_PLAN_DRIFT")
+    bound_roots = [dispatcher.TOOL_CANARY_STATE_ROOT, dispatcher.THREE_DOCUMENT_CANARY_STATE_ROOT,
+                   dispatcher.PPI_RECOVERY_STATE_ROOT, dispatcher.AI_VIDEO_RECOVERY_STATE_ROOT,
+                   Path(str(pilot.get("state_root", "")))]
+    bound_roots.extend(path.parent.parent.parent for path, _sha in dispatcher.TERMINAL_RECEIPT_BINDINGS.values())
+    for candidate in bound_roots:
+        if candidate.resolve(strict=False).is_relative_to(research_root / "batches") and candidate not in roots:
+            roots.append(candidate)
     journal = Path(
         "/Users/lexi/Desktop/学习/agents调试/V4_PDF_TOOL_ENABLED_COMPLETION_20261019_R1/remaining-execution-r1/dispatch.jsonl"
     )
@@ -460,6 +479,64 @@ def _prior_report_roots(batch: Any) -> list[Path]:
             if candidate.resolve(strict=False).is_relative_to(batches_root) and candidate not in roots:
                 roots.append(candidate)
     return roots
+
+
+def _canary_pipeline_fingerprint() -> str:
+    """Use the frozen Python 3.12 AST; another parser version fails closed."""
+    from ops import run_pdf_research_batch as batch
+    parts = {}
+    for name, path, excluded in (
+        ("run_pdf_research_batch", Path(batch.__file__), {"_run_document", "_prepared_recovery_input_bridge"}),
+        ("pdf_text_preparation", Path(__file__), {"_reusable_run_roots", "_cross_run_checkpoints", "_canary_pipeline_fingerprint", "verify_frozen_manifest", "audit_historical_inputs"}),
+    ):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        parts[name] = {node.name: ast.dump(node, include_attributes=False) for node in tree.body
+                       if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and node.name not in excluded}
+    return sha256_bytes(json.dumps(parts, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+
+
+def _reusable_run_roots(prepared_root: Path, current_root: Path, *, parent_sha256: str, extractor_sha256: str) -> list[tuple[Path, str, str]]:
+    """Find existing checkpoints once, using exact input and extractor identity."""
+    roots: list[tuple[Path, str, str]] = []
+    for candidate in sorted(prepared_root.glob("*/run.json")):
+        if candidate.parent == current_root or candidate.parent.is_symlink() or candidate.is_symlink():
+            continue
+        run, _ = _read_json(candidate, "REUSABLE_RUN_INVALID")
+        if (run.get("schema") == RUN_SCHEMA
+                and run.get("parent_manifest_sha256") == parent_sha256
+                and run.get("extractor_identity_sha256") in {extractor_sha256, COMPATIBLE_CANARY_EXTRACTOR_SHA256}
+                and run.get("run_id") == candidate.parent.name):
+            identity = run.get("extractor_identity")
+            if not isinstance(identity, dict) or identity.get("sha256") != run["extractor_identity_sha256"]:
+                raise PreparationError("REUSABLE_RUN_IDENTITY_INVALID")
+            identity_core = {key: value for key, value in identity.items() if key != "sha256"}
+            if sha256_bytes(canonical_json(identity_core)) != identity["sha256"]:
+                raise PreparationError("REUSABLE_RUN_IDENTITY_INVALID")
+            if identity["sha256"] != extractor_sha256:
+                from ops import run_pdf_research_batch as batch
+                current_identity = _extractor_identity(batch)
+                if (_canary_pipeline_fingerprint() != "293c96361cc2b98f1fa43e8f3bc8b2f03dd7251082f4284083e1dc1b682b7851"
+                        or identity.get("vision") != current_identity["vision"]
+                        or any(identity.get("sources", {}).get(name) != current_identity["sources"][name]
+                               for name in ("pdf_research", "pinned_pdf_helper", "pinned_pdf_dependency_manifest"))):
+                    continue
+            roots.append((candidate.parent, run["run_id"], run["extractor_identity_sha256"]))
+    return roots
+
+
+def _cross_run_checkpoints(roots: Sequence[tuple[Path, str, str]], *, parent_sha256: str, document: Mapping[str, Any], extractor_sha256: str) -> dict[int, tuple[pdf_research.PageText, dict[str, Any], dict[str, Any]]]:
+    result: dict[int, tuple[pdf_research.PageText, dict[str, Any], dict[str, Any]]] = {}
+    for root, run_id, prior_extractor_sha in roots:
+        for number, item in _load_page_checkpoints(root, run_id=run_id, parent_sha256=parent_sha256, document=document, extractor_sha256=prior_extractor_sha).items():
+            page, source, reference = item
+            if number in result:
+                old_page, old_source, _ = result[number]
+                # Provenance gains an import reference; page content and gate must agree.
+                if old_page != page or old_source.get("preparation_gate") != source.get("preparation_gate"):
+                    raise PreparationError("CROSS_RUN_CHECKPOINT_CONFLICT")
+                continue
+            result[number] = (page, {**source, "reused_checkpoint": {"path": str(reference["path"]), "sha256": reference["sha256"], "run_id": run_id, "extractor_identity_sha256": prior_extractor_sha}}, reference)
+    return result
 
 
 def _page_text_hashes(page_input: Mapping[str, Any]) -> list[str]:
@@ -553,6 +630,56 @@ def _document_receipt_path(root: Path, document_id: str) -> Path:
     return root / "documents" / document_id / "document.json"
 
 
+def audit_historical_inputs(batch: Any, *, manifest_path: Path, output_path: Path) -> dict[str, Any]:
+    """Read-only input audit; preserves reports and does not infer report correctness."""
+    _manifest, parent_sha, documents = batch.load_manifest(manifest_path)
+    if parent_sha != batch.EXPECTED_BATCH_MANIFEST_SHA256:
+        raise PreparationError("PREPARATION_PARENT_MANIFEST_DRIFT")
+    rows: list[dict[str, Any]] = []
+    for document in documents:
+        document_id = str(document["document_id"])
+        references = _find_prior_successes(batch, document_id, parent_sha256=parent_sha)
+        if not references:
+            continue
+        path = pdf_research._validate_pdf_path(Path(str(document["local_pdf_path"])))
+        if _file_sha256(path) != document["pdf_sha256"]:
+            raise PreparationError("SOURCE_PDF_BINDING_MISMATCH")
+        native, native_status = batch._discover_native_pages(path, document["pdf_sha256"])
+        if native is None:
+            rows.append({"document_id": document_id, "status": "CANNOT_CONFIRM", "reason": native_status, "reports": references})
+            continue
+        assessments = assess_document_pages(native)
+        images = inspect_page_images(path, pdf_sha256=document["pdf_sha256"], page_count=len(native), page_numbers=list(range(1, len(native) + 1)))
+        reports = []
+        for reference in references:
+            page_input, _ = _read_json(Path(reference["page_input_path"]), "PRIOR_PAGE_INPUT_INVALID")
+            old_pages = page_input["pages"]
+            findings = []
+            if len(old_pages) != len(native):
+                findings.append({"code": "PAGE_COVERAGE_MISMATCH", "proven_invalid": True})
+            for number, old_page in enumerate(old_pages, 1):
+                text = old_page["text"]
+                if not text.strip():
+                    findings.append({"page_number": number, "code": "EMPTY_INPUT_PAGE", "proven_invalid": True})
+                if number > len(native):
+                    continue
+                assessment = assessments[number]
+                same_native = sha256_bytes(text.encode("utf-8")) == native[number - 1].text_sha256
+                repeated_furniture = assessment.get("repeated_short_page") or assessment.get("repeated_contact_page")
+                if same_native and images.get(number) is True:
+                    findings.append({"page_number": number, "code": "REPEATED_FURNITURE_WITH_IMAGE_BODY" if repeated_furniture else "NATIVE_IMAGE_BODY_REVIEW_REQUIRED", "proven_invalid": bool(repeated_furniture) and document_id in {"7052556b692edfebc775264197739f05bd31689673d09d34137aa06ab9abbc45", "ec5bf849aa8396938f760aeae69faf0c9b437624ad6cd0495352c0d10e6ad209", "fd8339f54835829ef83e649b54465c178a6d2dc0cd826ac3369fdcaed6a91b4e", "be787224b08e3655c16331260adbafdd08cca3a3bfd830a2d3a485f476084aaa"}, "proof_scope": "Known four visually evidenced watermark PDFs only; image presence alone does not prove a missing material body", "input_text_sha256": sha256_bytes(text.encode("utf-8")), "native_quality": assessment})
+                elif images.get(number) is None:
+                    findings.append({"page_number": number, "code": "IMAGE_INSPECTION_UNAVAILABLE", "proven_invalid": False})
+            disposition = "PROVEN_INVALID_INPUT" if any(item["proven_invalid"] for item in findings) else "SOURCE_REVIEW_REQUIRED" if findings else "NO_DETERMINISTIC_INPUT_DEFECT_FOUND"
+            reports.append({**reference, "input_audit_status": disposition, "findings": findings, "report_semantic_status": "CANNOT_CONFIRM_NOT_REVIEWED", "regenerated": False})
+        status = "PROVEN_INVALID_INPUT" if any(item["input_audit_status"] == "PROVEN_INVALID_INPUT" for item in reports) else "SOURCE_REVIEW_REQUIRED" if any(item["input_audit_status"] == "SOURCE_REVIEW_REQUIRED" for item in reports) else "NO_DETERMINISTIC_INPUT_DEFECT_FOUND"
+        rows.append({"document_id": document_id, "pdf_sha256": document["pdf_sha256"], "page_count": len(native), "status": status, "reports": reports})
+    audit = {"schema": "v4.pdf_research.historical_input_audit.v1", "parent_manifest_sha256": parent_sha, "document_count": len(rows), "expected_historical_document_count": 97, "cohort_complete": len(rows) == 97, "counts": dict(Counter(row["status"] for row in rows)), "documents": rows, "model_requests": 0, "reports_regenerated": 0, "report_semantic_acceptance": "CANNOT_CONFIRM_NOT_REVIEWED"}
+    output_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    _immutable_json(batch, output_path, audit, output_path.parent)
+    return {"path": str(output_path), "sha256": _file_sha256(output_path), "document_count": len(rows), "counts": audit["counts"], "cohort_complete": audit["cohort_complete"], "model_requests": 0}
+
+
 def prepare_only(
     batch: Any,
     *,
@@ -560,6 +687,7 @@ def prepare_only(
     run_id: str,
     document_ids: Sequence[str] | None = None,
     prepared_root: Path = PREPARED_ROOT,
+    resource_sampler: Callable[[], Mapping[str, int]] | None = None,
 ) -> dict[str, Any]:
     manifest, parent_sha, documents = batch.load_manifest(manifest_path)
     if parent_sha != batch.EXPECTED_BATCH_MANIFEST_SHA256 or len(documents) != 2209:
@@ -569,6 +697,16 @@ def prepare_only(
     if run_root.is_symlink():
         raise PreparationError("PREPARATION_OUTPUT_PATH_UNSAFE")
     extractor = _extractor_identity(batch)
+    from ops import run_pdf_research_remaining_once as dispatcher
+    sampler = resource_sampler or dispatcher.sample_resource_metrics
+    baseline = dict(sampler())
+
+    def check_resources() -> None:
+        sample = dict(sampler())
+        reason = dispatcher._resource_stop_reason(sample, baseline.get("swap_used_bytes"))
+        if reason:
+            _atomic_json(run_root / "resource-pause.json", {"status": "PAUSED_RESOURCE", "reason": reason, "baseline": baseline, "sample": sample, "model_requests": 0}, run_root)
+            raise PreparationError("PREPARATION_PAUSED_RESOURCE")
     run_value = {
         "schema": RUN_SCHEMA,
         "run_id": run_id,
@@ -614,6 +752,7 @@ def prepare_only(
         raise PreparationError("PREPARATION_SELECTION_INVALID")
     full_scope = document_ids is None
     selected_documents = [manifest_by_id[document_id] for document_id in selected_ids]
+    reusable_roots = _reusable_run_roots(run_root.parent, run_root, parent_sha256=parent_sha, extractor_sha256=extractor["sha256"])
     existing_rows: dict[str, dict[str, Any]] = {}
     progress_path = run_root / "progress.json"
     if progress_path.exists():
@@ -686,6 +825,10 @@ def prepare_only(
             )
 
         try:
+            for number, (page, source_row, _reference) in _cross_run_checkpoints(reusable_roots, parent_sha256=parent_sha, document=document, extractor_sha256=extractor["sha256"]).items():
+                if number not in checkpoints:
+                    persist_page(page, source_row)
+                    resume_map[number] = (page, source_row)
             repair_budget = {"remaining": max(1, int(batch._candidate_page_count(document) or 500))}
             pages, source = batch._load_pages(
                 document,
@@ -694,6 +837,7 @@ def prepare_only(
                 preparation_mode=True,
                 resume_pages=resume_map,
                 page_callback=persist_page,
+                before_page=check_resources,
             )
             page_count = len(pages)
             if page_count < 1 or any(page.page_number != offset for offset, page in enumerate(pages, 1)):
@@ -791,6 +935,9 @@ def prepare_only(
         except Exception as exc:
             code = getattr(exc, "code", None) or type(exc).__name__
             code = str(code)[:96]
+            if code == "PREPARATION_PAUSED_RESOURCE":
+                _atomic_json(progress_path, {"schema": "v4.pdf_research_text_preparation.progress.v1", "run_id": run_id, "parent_manifest_sha256": parent_sha, "extractor_identity_sha256": extractor["sha256"], "full_scope": full_scope, "status": "PAUSED_RESOURCE", "documents": [existing_rows[key] for key in sorted(existing_rows)], "model_requests": 0}, run_root)
+                return {"status": "PAUSED_RESOURCE", "run_id": run_id, "progress_path": str(progress_path), "full_manifest_created": False, "model_requests": 0, "model_stage": "NOT_RUN"}
             if code in FATAL_SOURCE_CODES:
                 _atomic_json(
                     progress_path,
@@ -1016,7 +1163,7 @@ def verify_frozen_manifest(
         status: sum(1 for row in rows if isinstance(row, dict) and row.get("status") == status)
         for status in TERMINAL_STATUSES
     }
-    if any(counts.get(status) != observed_counts[status] for status in TERMINAL_STATUSES):
+    if any(counts.get(status.lower()) != observed_counts[status] for status in TERMINAL_STATUSES):
         raise PreparationError("PREPARED_MANIFEST_COUNTS_MISMATCH")
     root = path.parent
     verified_rows: dict[str, dict[str, Any]] = {}

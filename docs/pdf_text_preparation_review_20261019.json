@@ -1,71 +1,28 @@
 {
-  "schema": "v4.pdf_text_preparation.candidate_review.v1",
-  "status": "REVIEWED_FAIL_NOT_DEPLOYED",
-  "goal": "Prepare all 2209 PDFs before model analysis while preserving valid prior results.",
-  "local_baseline": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
-  "remote_baseline": "71e4d85444f0a2a8cb5d47ac4495063a5dcf13b7",
-  "runtime": "Python 3.12.13; existing qwen3_8_flash_next virtualenv; PYTHONPATH=/tmp/v4_pdf_tools_testdeps:.",
-  "test_command": "python -m pytest -q tests/test_pdf_text_preparation.py tests/test_pdf_research_batch.py tests/test_pdf_research_remaining_once.py tests/test_local_document_model.py tests/test_pdf_research_tools.py",
-  "test_result": "Independent focused suite: 118 passed; target acceptance FAIL.",
-  "canary": {
-    "cached_watermark_documents_ready": 4,
-    "pages_verified": 25,
-    "new_ocr_requests": 0,
-    "model_requests": 0,
-    "native_scan_mixed_failed": 3
+  "status": "PREPROCESS_RELEASE_PASS",
+  "baseline_commit": "b35f432a5639d6aa9ceed2468d76f36ea35d2388",
+  "source_sha256": {
+    "ops/run_pdf_research_batch.py": "9bacc8a23c9885de18278427e3099cdc72cbd2f871a6d7908b36ea51301e9ade",
+    "ops/run_pdf_research_remaining_once.py": "4c9decde77c14f11a34c749e2d54cf61eb1e287efd8a1f13d914b4caea448851",
+    "infrastructure/pdf_text_preparation.py": "b77adac81485cc0ab8b237485c89b24a37c17ddeae870245c4e1cceb95e67a97",
+    "tests/test_pdf_research_batch.py": "72d6e342d59420dd35e1430d521f173986c18bf1fb72963a94730ca1d98d26e8",
+    "tests/test_pdf_research_remaining_once.py": "7fc200234aa3472ada6cf002b8b69d1292e3571e9767f31daab39da6931a0ea5",
+    "tests/test_pdf_text_preparation.py": "763b405398f4473cd423c99efc81ccd0af87533b163c72914ca3d678ef57fb82",
+    "docs/pdf_text_preparation.md": "f3bd14d455a16126ea543c01218df813dd7e0e694825477501b41c9ab5b66d63"
   },
-  "unresolved": [
-    "Undefined _sha blocks no-cache page discovery",
-    "Mixed image body can be omitted despite READY quality status",
-    "Non-READY prepared rows can halt model dispatch",
-    "Prepared journal does not safely inherit historical HALT and dedup state",
-    "97 historical input audit missing",
-    "OCR checkpoints not reusable across run IDs"
-  ],
-  "not_run": [
-    "full 2209-document preparation",
-    "historical 97-document input audit",
-    "model analysis",
-    "canonical integration",
-    "deployment"
-  ],
-  "files": [
-    {
-      "path": "ops/run_pdf_research_batch.py",
-      "sha256": "731592fc38a8db826ae0dbc0cb54553e9a85f711fd713fa2a2e0bc752f9d4b70",
-      "before_sha256": "d66f733d0e9e62d9c28eac9259fe73003850de866d65a08888d4aa4478a8c187"
-    },
-    {
-      "path": "ops/run_pdf_research_remaining_once.py",
-      "sha256": "10d7497d58eb56b3e77185103d7b93fc0e5e637f72aa27de2ba19ef72107d75c",
-      "before_sha256": "fab42bcce554cadf953c7843e084e61d4cbf8770395924eb7085f52b4415c0ac"
-    },
-    {
-      "path": "infrastructure/pdf_text_preparation.py",
-      "sha256": "dbdf75a3a8057b1d5c737267c0b6a94dbfed9db835268a2f97156ea3b4dde2bc",
-      "before_sha256": null
-    },
-    {
-      "path": "tests/test_pdf_research_batch.py",
-      "sha256": "72d6e342d59420dd35e1430d521f173986c18bf1fb72963a94730ca1d98d26e8",
-      "before_sha256": "cf59272f6c211ca5f695e1fb8103f14e9ff62c8f4a600a3c373da0b16baa8bef"
-    },
-    {
-      "path": "tests/test_pdf_research_remaining_once.py",
-      "sha256": "cb2f8f53ffc81c2a8d51b7bdc02ac210c6829e60de703427799982733bf57721",
-      "before_sha256": "ca7a0cc2708dfa7efdadcc8aae0e14fe5c1e2fb81e0aa0fbf00c6241e3e07a69"
-    },
-    {
-      "path": "tests/test_pdf_text_preparation.py",
-      "sha256": "06944e4ccdf3bd889012c726099106520e9fdecfa6a95333a05bf7ef4f048e3c",
-      "before_sha256": null
-    },
-    {
-      "path": "docs/pdf_text_preparation.md",
-      "sha256": "f292565f34a5dede34f169922def135952e50fdce2e03243bedc825c47d49295",
-      "before_sha256": null
-    }
-  ],
+  "independent_tests": "133 passed in 12.31s",
+  "test_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/v4_pdf_tools_testdeps:. <existing-runtime-python> -m pytest -q -p no:cacheprovider tests/test_pdf_text_preparation.py tests/test_pdf_research_batch.py tests/test_pdf_research_remaining_once.py tests/test_local_document_model.py tests/test_pdf_research_tools.py",
+  "receipt_sha256": "bc5ffa8667ac28b896720f86c8a50ebde8da3255dabf146fee3ee4fcc78a7503",
+  "real_canary": {
+    "pages": 31,
+    "source_recorded_ocr_calls": 23,
+    "reused_pages": 31,
+    "new_ocr_calls_on_reuse": 0,
+    "model_calls": 0
+  },
+  "full_cohort_completion": "NOT_YET_VERIFIED",
+  "model_stage_released": false,
+  "canonical_integration": "NOT_RUN",
   "research_only": true,
   "production_allowed": false,
   "buy_gate_updated": false,

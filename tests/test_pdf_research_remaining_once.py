@@ -72,6 +72,7 @@ def _synthetic_context(
     *,
     max_documents: int = 4,
 ) -> tuple[list[dict[str, str]], dict[str, dict[str, str]], set[str], dict[str, str], dict[str, object]]:
+    monkeypatch.setattr(dispatcher, "EVIDENCE_ROOT", tmp_path / "journal")
     monkeypatch.setattr(dispatcher, "_assert_runtime", lambda: None)
     monkeypatch.setattr(dispatcher, "_verify_static_bindings", lambda: {"scope_sha256": "a" * 64, "runner_sha256": "b" * 64})
     monkeypatch.setattr(batch, "DEFAULT_STATE_ROOT", tmp_path / "state" / "r3")
@@ -85,7 +86,7 @@ def _synthetic_context(
             "path": Path(path),
             "manifest_sha256": prepared_sha,
             "parent_manifest_sha256": expected_parent_sha256,
-            "documents": {},
+            "documents": {row["document_id"]: {"manifest_row": {"status": "READY"}} for row in _synthetic_documents()},
         }
 
     monkeypatch.setattr(batch.pdf_text_preparation, "verify_frozen_manifest", fake_verify)
@@ -113,6 +114,7 @@ def _synthetic_context(
     auth = {
         "authorization": {
             "authorization_id": "test-auth",
+            "prepared_text_manifest_sha256": prepared_sha,
             "max_documents": max_documents,
             "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
         },
@@ -1177,6 +1179,7 @@ def _case_invalid_gate_auth_stops_before_reading_actual_pilot_receipts(tmp_path:
         "status": "AUTHORIZED",
         "authorization_id": "test-auth",
         "scope_sha256": "a" * 64,
+        "prepared_text_manifest_sha256": "9" * 64,
         "dispatcher_sha256": _sha(Path(dispatcher.__file__).read_bytes()),
         "runner_sha256": "b" * 64,
         "manifest_sha256": "c" * 64,
@@ -1424,3 +1427,38 @@ class TestRemainingOnce(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_dispatch_skips_prepared_failures_and_continues_ready(tmp_path, monkeypatch):
+    docs, original, pilot, statuses, auth = _synthetic_context(monkeypatch, tmp_path, max_documents=1)
+    eligible = [row for row in docs if statuses[row['document_id']] == 'UNPROCESSED' and row['document_id'] not in pilot and row['document_id'] != dispatcher.QUARANTINE_DOCUMENT_ID]
+    prepared = {row['document_id']: {'manifest_row': {'status': 'READY'}} for row in docs}
+    prepared[eligible[0]['document_id']]['manifest_row']['status'] = 'FAILED'
+    prepared[eligible[1]['document_id']]['manifest_row']['status'] = 'QUARANTINED'
+    kwargs = _prepared_kwargs(monkeypatch)
+    monkeypatch.setattr(batch.pdf_text_preparation, 'verify_frozen_manifest', lambda *a, **k: {'path': kwargs['prepared_text_manifest_path'], 'manifest_sha256': kwargs['prepared_text_manifest_sha256'], 'documents': prepared})
+    dispatched = []
+    def child(path, **kwargs):
+        dispatched.append(json.loads(path.read_text())['selected_documents'][0]['document_id'])
+        return {'returncode': 0, 'resource_stop_reason': None}
+    monkeypatch.setattr(dispatcher, '_reconcile_singleton', lambda plan, sha, **k: {'document_id': plan['selected_documents'][0]['document_id'], 'status': 'MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING', 'decision': 'CONTINUE', 'model_request_count': 0})
+    result = dispatcher.execute_once(evidence_root=tmp_path/'journal', max_documents=1, sampler=lambda: {'available_bytes': dispatcher.MIN_AVAILABLE_BYTES+1, 'swap_used_bytes': 0}, sleep_fn=lambda _:None, plan_only=lambda _:None, child_runner=child, **kwargs)
+    assert dispatched == [eligible[2]['document_id']]
+    assert result['status'] != 'HALTED'
+
+
+def test_prepared_manifest_requires_authorization_exact_hash(tmp_path, monkeypatch):
+    docs, original, pilot, statuses, auth = _synthetic_context(monkeypatch, tmp_path)
+    dispatcher.load_and_validate_authorization(dispatcher.AUTHORIZATION_PATH)['authorization']['prepared_text_manifest_sha256'] = '0'*64
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, 'ROOT_PREPARED_MANIFEST_AUTHORIZATION_MISMATCH'):
+        dispatcher.execute_once(evidence_root=tmp_path/'journal', **_prepared_kwargs(monkeypatch))
+
+
+def test_prepared_new_root_cannot_hide_old_journal(tmp_path, monkeypatch):
+    docs, original, pilot, statuses, auth = _synthetic_context(monkeypatch, tmp_path)
+    historical = tmp_path/'journal'; historical.mkdir()
+    journal = historical/'dispatch.jsonl'; raw=b'{"event":"binding"}\n{"event":"halt"}\n'; journal.write_bytes(raw)
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, 'PREPARED_DISPATCH_MUST_RETAIN_HISTORY'):
+        dispatcher.execute_once(evidence_root=tmp_path/'fresh-root', **_prepared_kwargs(monkeypatch))
+    assert journal.read_bytes() == raw
+    assert not (tmp_path/'fresh-root').exists()

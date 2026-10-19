@@ -2479,7 +2479,7 @@ def _discover_native_pages(pdf_path: Path, pdf_sha: str) -> tuple[list[pdf_resea
                 page_total=page_count,
                 text=text,
                 status=status,
-                text_sha256=_sha(text.encode("utf-8")),
+                text_sha256=_sha256(text.encode("utf-8")),
                 extraction_method="pypdf-6.10.0-native",
             )
         )
@@ -2494,6 +2494,7 @@ def _load_pages(
     preparation_mode: bool = False,
     resume_pages: Mapping[int, tuple[pdf_research.PageText, Mapping[str, Any]]] | None = None,
     page_callback: Callable[[pdf_research.PageText, Mapping[str, Any]], None] | None = None,
+    before_page: Callable[[], None] | None = None,
 ) -> tuple[list[pdf_research.PageText], dict[str, Any]]:
     pdf_path = pdf_research._validate_pdf_path(Path(str(document.get("local_pdf_path", ""))))
     before = pdf_path.stat()
@@ -2576,12 +2577,13 @@ def _load_pages(
             pdf_path,
             pdf_sha256=pdf_sha,
             page_count=page_count,
-            page_numbers=[page for page in suspicious_pages if page not in cache_replacements],
+            # Even a good native layer can omit an image/table/chart body.
+            page_numbers=[page for page in range(1, page_count + 1) if page not in cache_replacements],
         )
     except pdf_text_preparation.PreparationError as exc:
         if exc.code in pdf_text_preparation.FATAL_SOURCE_CODES:
             raise BatchError(exc.code) from None
-        image_presence = {page_number: None for page_number in suspicious_pages if page_number not in cache_replacements}
+        image_presence = {page_number: None for page_number in range(1, page_count + 1) if page_number not in cache_replacements}
     try:
         geometries = _page_geometry(pdf_path, page_count, pdf_sha)
         geometry_error = None
@@ -2602,6 +2604,8 @@ def _load_pages(
         page_number = index + 1
         geometry = geometries[index] if index < len(geometries) else None
         row: dict[str, Any] = {"page_number": page_number}
+        if before_page is not None:
+            before_page()
         if resume_pages is not None and page_number in resume_pages:
             resumed_page, resumed_row = resume_pages[page_number]
             if resumed_page.page_total != page_count or resumed_page.page_number != page_number:
@@ -2662,7 +2666,7 @@ def _load_pages(
             )
             if _is_ocr_page(cached):
                 row["semantic_source_review_status"] = "SOURCE_REVIEW_PENDING"
-        elif native is not None and native.status == "NATIVE_TEXT" and (
+        elif native is not None and native.status == "NATIVE_TEXT" and image_status is False and (
             not native_assessment.get("needs_context")
             or image_status is False and not native_assessment.get("repeated_short_page") and not native_assessment.get("repeated_contact_page")
         ):
@@ -2704,7 +2708,7 @@ def _load_pages(
             low_resolution = (baseline_density is None and unknown_non_native_cache) or (
                 baseline_density is not None and baseline_density < LOW_RENDER_DENSITY_PIXELS_PER_POINT and not metadata_proves_adequate
             )
-            if image_status is True and (native is None or native.status != "NATIVE_TEXT" or native_assessment.get("needs_context")):
+            if image_status is True:
                 low_resolution = True
             row["low_resolution_raster_suspected"] = low_resolution
             row["native_text_quality"] = dict(native_assessment)
@@ -3610,6 +3614,66 @@ def _preflight_memory_recovery_input(
         raise BatchError("CONTINUATION_RECOVERY_TARGET_STAGE_UNSUPPORTED")
 
 
+def _prepared_recovery_input_bridge(
+    prepared: Mapping[str, Any],
+    document_id: str,
+    continuation: Mapping[str, Any],
+) -> tuple[dict[str, Any], bytes, str, dict[str, Any]]:
+    """Reuse old request identity only after exact READY page-by-page equivalence."""
+    recovery = continuation.get("recovery_binding")
+    if not isinstance(recovery, Mapping) or not isinstance(recovery.get("prior_payload"), Mapping):
+        raise BatchError("PREPARED_RECOVERY_BINDING_UNAVAILABLE")
+    verified = prepared.get("documents", {}).get(document_id)
+    if not isinstance(verified, Mapping) or verified.get("manifest_row", {}).get("status") != "READY":
+        raise BatchError("PREPARED_RECOVERY_DOCUMENT_NOT_READY")
+    current = verified.get("page_input")
+    old_root = Path(str(recovery.get("prior_queue_root", ""))).parent
+    old_path = old_root / "documents" / document_id / "page-input.json"
+    if not _continuation_path_is_safe(old_path, old_root, allow_missing=False):
+        raise BatchError("PREPARED_RECOVERY_INPUT_UNSAFE")
+    old_raw = old_path.read_bytes()
+    old_sha = _sha256(old_raw)
+    if old_sha != recovery.get("prior_page_input_sha256"):
+        raise BatchError("PREPARED_RECOVERY_INPUT_SHA_MISMATCH")
+    try:
+        old = json.loads(old_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise BatchError("PREPARED_RECOVERY_INPUT_INVALID") from None
+    if not isinstance(current, Mapping) or not isinstance(old, dict):
+        raise BatchError("PREPARED_RECOVERY_INPUT_INVALID")
+    for item in (old, current):
+        if (item.get("schema") != pdf_text_preparation.PAGE_INPUT_SCHEMA
+                or item.get("document_id") != document_id
+                or item.get("pdf_sha256") != document_id
+                or item.get("manifest_sha256") != prepared.get("parent_manifest_sha256")
+                or not isinstance(item.get("pages"), list)
+                or not item["pages"]
+                or item.get("source", {}).get("page_count") != len(item["pages"])):
+            raise BatchError("PREPARED_RECOVERY_INPUT_IDENTITY_MISMATCH")
+    if len(old["pages"]) != len(current["pages"]):
+        raise BatchError("PREPARED_RECOVERY_PAGE_COVERAGE_MISMATCH")
+    page_hashes = []
+    for number, (prior_page, ready_page) in enumerate(zip(old["pages"], current["pages"], strict=True), 1):
+        if (not isinstance(prior_page, Mapping) or not isinstance(ready_page, Mapping)
+                or prior_page.get("page_number") != number or ready_page.get("page_number") != number
+                or not isinstance(ready_page.get("text"), str) or not ready_page["text"].strip()
+                or prior_page.get("text") != ready_page["text"]):
+            raise BatchError("PREPARED_RECOVERY_PAGE_TEXT_MISMATCH")
+        text_sha = _sha256(ready_page["text"].encode("utf-8"))
+        if any(page.get("text_sha256") not in (None, text_sha) for page in (prior_page, ready_page)):
+            raise BatchError("PREPARED_RECOVERY_PAGE_TEXT_SHA_MISMATCH")
+        page_hashes.append({"page_number": number, "text_sha256": text_sha})
+    bridge = {"schema": "v4.pdf_research.prepared_recovery_input_bridge.v1", "document_id": document_id,
+              "pdf_sha256": document_id, "parent_manifest_sha256": prepared["parent_manifest_sha256"],
+              "prepared_text_manifest_sha256": prepared["manifest_sha256"],
+              "prepared_page_input_sha256": verified["page_input_sha256"],
+              "extractor_identity_sha256": prepared["manifest"]["extractor_identity_sha256"],
+              "historical_page_input_path": str(old_path), "historical_page_input_sha256": old_sha,
+              "page_count": len(page_hashes), "pages": page_hashes,
+              "status": "EXACT_PAGE_TEXT_EQUIVALENCE", "original_artifacts_modified": False}
+    return old, old_raw, old_sha, bridge
+
+
 def _bind_continuation_payload(
     payload: Mapping[str, Any],
     continuation: Mapping[str, Any] | None,
@@ -3950,6 +4014,9 @@ def _run_document(
                 raise BatchError("PREPARED_PAGE_INPUT_SHA_MISMATCH")
             source_doc["_prepared_text_manifest_sha256"] = prepared_manifest.get("manifest_sha256")
             source_doc["_prepared_text_revision"] = prepared_document_row.get("revision")
+            if isinstance(continuation, Mapping) and isinstance(continuation.get("recovery_binding"), Mapping):
+                input_value, page_input_raw, page_input_sha, bridge = _prepared_recovery_input_bridge(prepared_manifest, pdf_sha, continuation)
+                _write_immutable(doc_root / "prepared-recovery-input-bridge.json", _json_bytes(bridge, newline=True), state_root)
     except (BatchError, pdf_text_preparation.PreparationError) as exc:
         status = "TEXT_UNAVAILABLE" if exc.code in {"PAGE_COUNT_UNAVAILABLE"} else "SOURCE_INVALID"
         receipt = {
