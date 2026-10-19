@@ -1,0 +1,59 @@
+{
+  "schema": "v4.announcement_fixed_membership.handoff.v1",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_parent_commit": "b14fd7b07d37e8ee7eaa98bd36e0daa65d4aec82",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "runtime_release": "announcement-fixed-membership-20261019-r1",
+  "runtime_manifest_sha256": "0d4ae8d528c337befd9bcb8b51ef8847a81010702866c3e4b36f8b7e9531083e",
+  "source_files": [
+    {
+      "path": "v4/manager_workbench/announcement_membership.py",
+      "sha256": "756d43834b2f8ba816c6c71c70a4edc288b0f2c06c55934131da27ab5137d9dc",
+      "bytes": 25091,
+      "prior_runtime_sha256": "564e3ae25d78feeaa953153d5b7604d1ecbb24198f9c4e3aeb2c69ee29a844b0"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_membership_policy.json",
+      "sha256": "bd845a882a5dbb9089ddaf6b81c10c68814fd5bfc99d8f8d4b531ec60bd987ae",
+      "bytes": 2003,
+      "prior_runtime_sha256": null
+    },
+    {
+      "path": "tests/test_announcement_fixed_membership.py",
+      "sha256": "9954ccea76b1df555be4f3c021f48ccb1b1a4abbf0997276603f82ff9685631f",
+      "bytes": 7277,
+      "prior_runtime_sha256": null
+    },
+    {
+      "path": "docs/handoffs/announcement_fixed_membership_20261019/README.md",
+      "sha256": "59b2fb6a9bc56f886c9d98116dd8c8b18473c9882d3cb6443570dc92ed7b9cfb",
+      "bytes": 3504,
+      "prior_runtime_sha256": null
+    }
+  ],
+  "scope": "Fixed announcement-only universe, until explicit user update. No membership effective-period checks. Provenance, identity, available-at and issuer checks preserved.",
+  "independent_review": {
+    "status": "PASS",
+    "receipt_sha256": "7a3db0a16293f115fda2d09b42a2ae6a60a485ebf3d12fcbd885bcb49ad2c499",
+    "tests": "8 focused unittest cases passed in active-runtime dependency overlay; exact candidate resolve/revalidate passed for 20261020 and 20261120 at recorded current cutoff.",
+    "selection_result": "RUNNING; not implied by membership-code acceptance"
+  },
+  "integration": {
+    "runtime_delta_files": 2,
+    "non_delta_files_preserved": 1260,
+    "protected_state_files_preserved": 3954,
+    "api_membership": "VERIFIED",
+    "member_count": 698
+  },
+  "limitations": [
+    "Bounded source handoff, not a standalone whole-runtime snapshot.",
+    "Local commit blocked by precommit root validation for managed worktree; remote commit uses authorized GitHub connector.",
+    "Latest manual capture/selection and natural scheduled outcomes are not accepted by this code receipt."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
