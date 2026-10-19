@@ -1,0 +1,23 @@
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -53,5 +53,5 @@
+ ## 主控、Writer 与 Reviewer
+ 
+-- 主控负责目标、范围、ownership、派工、风险裁决、集成和最终状态；不代写业务代码、不重复 Writer 检查或 Reviewer verdict。新实现任务使用独立 task branch/worktree，记录基线与未部署依赖；同一文件集由一个 Writer 串行负责，主控只做集成。
++- 主控负责目标、范围、ownership、派工、风险裁决、集成和最终状态；不代写业务代码、不重复 Writer 检查或 Reviewer verdict。新实现任务使用独立 task branch/worktree，记录基线与未部署依赖；同一文件集由一个 Writer 串行负责，主控只做集成。主控最终声明完成时须写明用户目标、实际运行步骤、验收范围和未执行项；局部代码、展示或输入投影 PASS 只支持各自冻结范围内的结论，不能据此宣称端到端目标完成；相同代码/输入/配置/范围哈希已有有效 PASS 时复用，不重审，也不为完成声明补证扩展授权。
+ - 子智能体模型按当前任务复杂度路由：边界清楚、局部、机械或常规实现/检查默认由 GPT-6 Luna Max（`gpt-6-luna`、`reasoning_effort=max`）承担；跨模块实现、复杂根因、并发恢复、安全边界或证据冲突可直接派 GPT-6.1 Sol High（`gpt-6.1-sol`、`reasoning_effort=high`）。Luna Max 明确无法闭环，或同一目标经一次有证据的返修仍失败时，交 Sol High 并附最小证据；不要求 Luna 先盲试复杂任务。每个重叠文件集同一时刻只有一名 Writer；Reviewer 必须是不同身份且只读，按任务风险选择模型。Reviewer 按冻结范围复跑所需针对性验收后才可标记 `TESTED`；Writer 的测试仅辅助。Reviewer `PASS` 才是验收；Writer 的 `PASS`/`READY`/`FINAL` 只是交接。
+ - 默认一次独立 review。只有实际代码、输入、配置或冻结范围变化，或出现新证据/失败，才触发第二次或增量 review；只复核变化及直接影响。相同代码/输入/配置/范围哈希且已有有效独立 `PASS` 时复用 receipt，不重复测试或 review。最多三轮后交主控重新裁定，轮数不自动构成 `PASS`。
+@@ -64,10 +64,10 @@
+ - 单主会话最多同时运行 6 个子任务；父级 depth 1 且孩子不得 spawn；全局同时运行的重型父任务建议不超过 2 个，按独立性/资源/风险调整。主控不重复 worker 探索、测试、review，只核 receipt/ownership 与必要集成证据。
+ - 主控维护最小 ledger：`worker`、`milestone`、`dispatch time`、`expected terminal type`、`lifecycle status`、`final received/consumed`、`receipt verified`；`completed`/`cancelled`/`error` 保留原因，final consumed 且 receipt verified 才关闭。
+-- 健康 worker 按当前工具约束合并事件等待，不硬编码等待秒数；遵守宿主上限，可简短进度；timeout 且无新证据标记 `COMPLETION_PENDING_AUDIT`，只续等待，不插入 `list/status/read/send/followup`，普通发消息不唤醒；用户询问、故障诊断、恢复、真实新证据可例外。恢复先核实生命周期，初始化/排队不报运行；非失败/取消勿复制或取消活跃健康 worker；汇总消费全部结果并更新 ledger。
+-- 长任务/外部依赖等待先冻结输入条件、唯一 owner、命令/路径、`PASS_SIGNAL`/`STOP_RULE` 与既有授权，由唯一按任务路由的子智能体或受支持的既有执行器负责等待及条件满足后的已授权续行；优先进程等待/事件或工具内低频检查，主控完成派工与必要唤醒安排后退出等待循环，只消费完成、异常或需裁决事件，无新证据不重复 `status/read/send/followup`、不重复询问或复制健康 worker。超时、排队或健康长运行不代表能力失败，不因此换模型；分阶段通过后只续行未完成部分，已完成不重跑；独立 Reviewer、资源检查和权限边界不变，PID 退出不代表成功。后台唤醒仅在工具支持且已授权时采用，不假定 child final 自动唤醒；确需定时 fallback 时优先轻量既有机制，不默认高频主模型 heartbeat。此为行为约定，不表示程序强制、token 零消耗或配置已热加载。
++- 健康 worker 的状态等待按当前工具约束合并；正常工具/子任务允许遵守宿主上限的短期有界事件等待。timeout 且无新证据标记 `COMPLETION_PENDING_AUDIT`，保留健康任务且不因超时取消；仅在既有受支持的短期事件等待上下文继续等待，不重复调用 `list/status/read/send/followup`。这不授权主控无限轮询；长任务按下一条处理。普通发消息不唤醒；用户询问、故障诊断、恢复、真实新证据可例外。恢复先核实生命周期，初始化/排队不报运行；非失败/取消勿复制或取消活跃健康 worker；汇总消费全部结果并更新 ledger。
++- 长任务/外部依赖等待先冻结输入条件、唯一 owner、命令/路径、`PASS_SIGNAL`/`STOP_RULE` 与既有授权，由唯一按任务路由的子智能体或受支持的既有执行器负责等待及条件满足后的已授权续行；主控完成派工与必要、已授权且平台支持的唤醒安排后退出无实际工作的等待循环，仅消费完成、异常或需裁决事件；无新证据不无限主控轮询或重复 `status/read/send/followup`、询问或复制健康 worker。平台不支持后台唤醒时标记等待外部事件/平台再唤醒，不虚构自动唤醒，不新增高频 heartbeat，不杀/复制健康任务。超时、排队或健康长运行不代表能力失败，不因此换模型；分阶段通过后只续行未完成部分，已完成不重跑；独立 Reviewer、资源检查和权限边界不变，PID 退出不代表成功。后台唤醒仅在工具支持且已授权时采用，不假定 child final 自动唤醒；确需定时 fallback 时优先轻量既有机制，不默认高频主模型 heartbeat。此为行为约定，不表示程序强制、token 零消耗或配置已热加载。
+ 
+ ## 上下文、工作区与证据
+ 
+-- 先用原生搜索/笔记定位指令、记忆、状态，按需读原文；适用指令/代码按范围完整读，勿默认读索引、旧 session JSONL、完整历史。交接仅含目标边界、当前成果、证据路径、剩余问题，按需读取，不粘贴旧报告/完整历史。正式记忆走现有网关，不直改；不自建记忆框架、不写 512K/1M 硬阈值、不改 context 实验配置；只记结论、证据路径/缺口，截断不得掩盖关键证据。
++- 先用原生搜索/笔记定位指令、记忆、状态，按需读原文；适用指令/代码按范围完整读，勿默认读索引、旧 session JSONL、完整历史。交接仅含目标边界、当前成果、证据路径、剩余问题，按需读取，不粘贴旧报告/完整历史。跨聊天/日志优先使用 compact snapshot；需 `read_thread` 时先在工具编排层解析并筛选目标消息、命令或 receipt 再输出，不整轮原样展开；工具结果超长时复用已取得结果本地过滤，不重复拉取整轮；只取范围内必要上下文，截断证据不得作为结论依据。正式记忆走现有网关，不直改；不自建记忆框架、不写 512K/1M 硬阈值、不改 context 实验配置；只记结论、证据路径/缺口，截断不得掩盖关键证据。
+ - 先区分用户已有 tracked/untracked、本批和无关修改，保留用户改动。Git 只用明确仓库和路径；禁止无授权 `git reset --hard`、`git clean`、覆盖式 checkout、全局 stash、删除 worktree、`worktree prune`、无范围 `git add -A` 或全盘扫描。
+ - 状态：IMPLEMENTED/TESTED/DELIVERED/REVIEWED/INTEGRATED/DEPLOYED/API_VERIFIED/UI_VERIFIED/BEHAVIOR_VERIFIED/NATURAL_VERIFIED；TESTED见角色节；BEHAVIOR_VERIFIED需独立 Reviewer 目标行为 receipt；NATURAL_VERIFIED需任务目标要求的自然时段结果。NATURAL_SLOT_UNVERIFIED表示自然时段/证据无效；研究专用：无封存研究方向为 DIRECTION_ONLY；冻结研究评价达标为 BREAKTHROUGH_VERIFIED，否则 NO_BREAKTHROUGH。关键证据不足为 CANNOT_CONFIRM。文档自评不等于运行行为已验证。

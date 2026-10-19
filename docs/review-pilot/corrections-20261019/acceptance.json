@@ -1,0 +1,56 @@
+{
+  "schema": "v4.governance.correction.acceptance.v1",
+  "goal": "Correct only completion claim scope, parent long-wait handling, and oversized evidence retrieval",
+  "baseline_commit": "dc7ac0a0de29fcdf2812e122ec1961c70ea9a432",
+  "branch": "codex/v4-governance-corrections-20261019",
+  "configuration": "INSTALLED_EXACT_REVIEWED_BYTES",
+  "independent_review": "PASS; rebased global delta reviewed; identical role PASS reused",
+  "installed_sha256": {
+    "AGENTS.md": "e32aacea09a3dcf9e67ceaa1e027a0561771ffa7ea16c7d564bee7b3b374e15a",
+    "luna-writer.toml": "fed5ff3ecea5204a3c0110df530ac1d359d78fbe5e7c343f8f9147f00a590114",
+    "reviewer.toml": "1d8df1f297c1401b60ae4a9614c1e463ea485a31562ef1c2fd01dc111e716124"
+  },
+  "native": {
+    "load": "PASS",
+    "model": "gpt-6-luna",
+    "effort": "max",
+    "registered_roles": [
+      "reviewer",
+      "luna_writer"
+    ],
+    "synthetic_decisions": [
+      "completion limited to accepted scope; ranking and recommendation NOT_RUN",
+      "filter existing large result; no full refetch",
+      "healthy executor retained; controller exits long wait loop; no invented wakeup"
+    ],
+    "child_tool_calls": 0,
+    "receipt_sha256": "e51e73e0377fb6d19d94df2f224fed1519e531fd46c57afc607dc4429a94940d"
+  },
+  "related_chats": {
+    "mapping": "ACKNOWLEDGED; prior archive state restored",
+    "wechat": "ACKNOWLEDGED; no business restart requested"
+  },
+  "review_receipts_sha256": {
+    "initial": "c61a48259f5df2670d0fa77c45bd6be33680796432f9f4376558c9ef3b620793",
+    "global_incremental": "a5fe1a8cb72eb03627db636dfa42a5b2c280ec4185680732de370eb59f6fdfd5"
+  },
+  "install_receipt_sha256": "c17f6794bdc5404f0ff4b7f27297afc805a59a52925561aad3928994dc837591",
+  "not_run": [
+    "historical business tests",
+    "all active chat hot reload verification",
+    "global programmatic enforcement"
+  ],
+  "validation_commands": [
+    "python3.13 JSON/TOML/hash and patch reconstruction (independent reviewer)",
+    "codex --no-daemon -a never exec -m gpt-6-luna -c model_reasoning_effort=max -s read-only --skip-git-repo-check --json (native synthetic canary)",
+    "python3.13 verify_native_delta.py (trace readback)"
+  ],
+  "scope_limit": "Configuration and synthetic decisions only; no business completion claim",
+  "prior_publication_files_sha256": {
+    "README.md": "d4cb016dc8154ed04f9cef5f54fb4e08a1f719f2459ee3593b41caab6321c40a",
+    "patches/AGENTS.md.diff": "9abb81dfabaa7943d7663e4f017e53e30f9bee833ca50b3ac7db9ebad5e46c15",
+    "patches/luna-writer.toml.diff": "deef0655c43f7d32c5e8727a0293976ae1a8765b305d45f8fe68eda94938172f",
+    "patches/reviewer.toml.diff": "5ae76e1c296f893c5fe61c01452da972cf075138a80d03a9840742fbb72d27f7",
+    "sha_manifest.json": "5c96af580d470a705ce589f100308212d0b257c7f63a78862a773f8bf24cc816"
+  }
+}

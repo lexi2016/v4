@@ -1,0 +1,122 @@
+{
+  "task": "V4 governance corrections 2026-10-19 R1",
+  "stage": "PREPARE_REBASE_ONLY",
+  "scope_file": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/orchestration/scope-amendment-routing-baseline.json",
+  "scope_sha256": "8ec12f39e331911cfd7c78d29b971dd81da2aaa5884b497529f15ab7a186f1a7",
+  "baseline_worktree": {
+    "root": "/Users/lexi/.codex/worktrees/v4-review-governance/v4_app",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "branch": "codex/v4-review-pilot-20261019"
+  },
+  "files": [
+    {
+      "file": "AGENTS.md",
+      "source": "/Users/lexi/.codex/AGENTS.md",
+      "original": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/originals/AGENTS.routing-base.md",
+      "candidate": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/candidate/AGENTS.md",
+      "baseline_sha256": "346e1670697ef10561a86b6a4cd6466227e1b3909e7bd9984a019718672bc974",
+      "original_sha256": "346e1670697ef10561a86b6a4cd6466227e1b3909e7bd9984a019718672bc974",
+      "candidate_sha256": "e32aacea09a3dcf9e67ceaa1e027a0561771ffa7ea16c7d564bee7b3b374e15a",
+      "scope_check": "PASS: current routing baseline plus only the three approved correction areas",
+      "config_invariants": null
+    },
+    {
+      "file": "luna-writer.toml",
+      "source": "/Users/lexi/.codex/agents/luna-writer.toml",
+      "original": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/originals/luna-writer.toml",
+      "candidate": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/candidate/luna-writer.toml",
+      "baseline_sha256": "724b766be07e33bef5350bf251843ca3250da8c6d119edd658f034495ca36111",
+      "original_sha256": "724b766be07e33bef5350bf251843ca3250da8c6d119edd658f034495ca36111",
+      "candidate_sha256": "fed5ff3ecea5204a3c0110df530ac1d359d78fbe5e7c343f8f9147f00a590114",
+      "scope_check": "REUSED_IDENTICAL_SHA from prior independent PASS",
+      "config_invariants": {
+        "name": true,
+        "description": true,
+        "model": true,
+        "model_reasoning_effort": true,
+        "sandbox_mode": true
+      }
+    },
+    {
+      "file": "reviewer.toml",
+      "source": "/Users/lexi/.codex/agents/reviewer.toml",
+      "original": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/originals/reviewer.toml",
+      "candidate": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/candidate/reviewer.toml",
+      "baseline_sha256": "9cc56d293e631b1e5fd95e02a4239aab927aa51adca5670d1489485735363c3f",
+      "original_sha256": "9cc56d293e631b1e5fd95e02a4239aab927aa51adca5670d1489485735363c3f",
+      "candidate_sha256": "1d8df1f297c1401b60ae4a9614c1e463ea485a31562ef1c2fd01dc111e716124",
+      "scope_check": "REUSED_IDENTICAL_SHA from prior independent PASS",
+      "config_invariants": {
+        "name": true,
+        "description": true,
+        "model": true,
+        "model_reasoning_effort": true,
+        "sandbox_mode": true
+      }
+    }
+  ],
+  "checks": {
+    "scope_amendment_json_parse": "PASS",
+    "explicit_global_delta": "PASS: only three approved clause areas replaced in new routing baseline",
+    "complexity_routing": "PASS byte-identical to current source",
+    "healthy_timeout_no_model_switch": "PASS exact clause retained",
+    "role_candidates_and_role_patches": "PASS reused unchanged hashes from prior independent PASS",
+    "release_output": "only directly affected AGENTS patch and manifest updated; README and role patches unchanged",
+    "incremental_global_review": "REQUIRED",
+    "installation": "NOT_RUN",
+    "native_load": "NOT_RUN",
+    "LLM_runtime": "NOT_RUN",
+    "business_tests": "NOT_RUN by scope"
+  },
+  "dependencies": {
+    "added": [],
+    "state": "no runtime dependency added; candidates await independent review and separately authorized installation"
+  },
+  "stop_boundary": "PREPARE_REBASE_ONLY; do not install. Stop if live AGENTS SHA drifts from routing baseline.",
+  "routing_baseline_sha256": "346e1670697ef10561a86b6a4cd6466227e1b3909e7bd9984a019718672bc974",
+  "rebase_artifacts": {
+    "old_candidate": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/writer/r1/AGENTS.candidate.md",
+      "sha256": "364f5a0a5c4fe4105dcedd2228a0678313dd2d511c05bbfd72caa8ed79bb1d7c"
+    },
+    "old_manifest": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/writer/r1/sha_manifest.json",
+      "sha256": "e5995b7fbddf2b11c787fdbed7ae7e52c07e208b129d32c59c250ac1809fc832"
+    },
+    "old_writer_diff": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/writer/r1/corrections.diff",
+      "sha256": "5e8253fa3da5921720f5a625e08201b1d72ec097b9c2fccda46687a9e09f7e23"
+    },
+    "old_release_patch": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/writer/r1/release-AGENTS.md.diff",
+      "sha256": "d21b305b3b6c0d807d4a480dd6137be55b910621df4d92d0c0ff8cd899490d68"
+    },
+    "new_routing_baseline": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/originals/AGENTS.routing-base.md",
+      "sha256": "346e1670697ef10561a86b6a4cd6466227e1b3909e7bd9984a019718672bc974"
+    }
+  },
+  "review_reuse": {
+    "prior_receipt": "/Users/lexi/Desktop/学习/agents调试/V4_GOVERNANCE_CORRECTIONS_20261019_R1/orchestration/independent_review_receipt.json",
+    "prior_verdict": "REVIEWED/PASS",
+    "role_candidates": "REUSED_IDENTICAL_SHA",
+    "role_patch_sha256": {
+      "luna-writer.toml": "deef0655c43f7d32c5e8727a0293976ae1a8765b305d45f8fe68eda94938172f",
+      "reviewer.toml": "5ae76e1c296f893c5fe61c01452da972cf075138a80d03a9840742fbb72d27f7"
+    },
+    "rebased_global_candidate": "INCREMENTAL_REVIEW_REQUIRED"
+  },
+  "correction_presence_checks": {
+    "completion_scope_and_partial_PASS": "PASS",
+    "bounded_wait_and_controller_exit_and_no_fake_wakeup": "PASS",
+    "compact_snapshot_prefilter_and_no_truncated_conclusion": "PASS",
+    "complexity_routing_preserved_byte_for_byte": "PASS",
+    "healthy_timeout_no_model_switch_preserved_byte_for_byte": "PASS"
+  },
+  "release_sha256": {
+    "README.md": "d4cb016dc8154ed04f9cef5f54fb4e08a1f719f2459ee3593b41caab6321c40a",
+    "patches/AGENTS.md.diff": "9abb81dfabaa7943d7663e4f017e53e30f9bee833ca50b3ac7db9ebad5e46c15",
+    "patches/luna-writer.toml.diff": "deef0655c43f7d32c5e8727a0293976ae1a8765b305d45f8fe68eda94938172f",
+    "patches/reviewer.toml.diff": "5ae76e1c296f893c5fe61c01452da972cf075138a80d03a9840742fbb72d27f7"
+  }
+}
