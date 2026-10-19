@@ -109,6 +109,312 @@ def _synthetic_context(
     return docs, original, pilot, statuses, summary
 
 
+def _halt_resume_fixture(tmp_path: Path) -> tuple[dispatcher.DurableJournal, dict[str, object], dict[str, object]]:
+    document_id = "a" * 64
+    queue_key = "b" * 64
+    auth = {
+        "authorization_id": "resume-test-auth",
+        "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        "adoption_receipt": {"sha256": "c" * 64},
+    }
+    context: dict[str, object] = {
+        "authorization": auth,
+        "authorization_sha256": "d" * 64,
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "pilot_progress_sha256": "f" * 64,
+        "documents": [],
+        "inventory_summary": {"inventory_sha256": "e" * 64, "outstanding_count": 2122},
+    }
+    descriptor: dict[str, object] = {
+        "journal_event_count": 2,
+        "journal_prefix_sha256": "1" * 64,
+        "previous_authorization_sha256": "2" * 64,
+        "old_dispatcher_sha256": "3" * 64,
+        "old_runner_sha256": "4" * 64,
+        "new_dispatcher_sha256": "5" * 64,
+        "new_runner_sha256": "6" * 64,
+        "document_id": document_id,
+        "continuation_id": "resume-test-prior",
+        "plan_sha256": "f" * 64,
+        "recovery_generation": 1,
+        "prior_state_root": str(tmp_path / "prior-state"),
+        "queue_key": queue_key,
+        "failure_sample": {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 10_000},
+        "recovery_plan": {
+            "continuation_id": "memory-recovery-test",
+            "state_root": str(tmp_path / "recovery-state"),
+            "selected_documents": [{"document_id": document_id, "recovery": {"prior_queue_idempotency_key": queue_key}}],
+        },
+        "recovery_raw": b'{"test":"recovery"}',
+    }
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    journal.root.mkdir(parents=True)
+    journal.events = [
+        {"event": "binding", "at_utc": "fixed"},
+        {"event": "halt", "reason": "FAILED_NO_RETRY", "document_id": document_id, "at_utc": "fixed"},
+    ]
+    journal.events.append({"at_utc": "fixed", **dispatcher._source_adoption_event(context, descriptor)})
+    return journal, context, descriptor
+
+
+def test_halt_resume_recovery_wait_and_plan_are_append_only_and_restart_safe(
+    tmp_path: Path,
+) -> None:
+    journal, context, descriptor = _halt_resume_fixture(tmp_path)
+    samples = iter(
+        [
+            {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 10_000},
+            {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 10_000},
+            {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 10_000},
+        ]
+    )
+    plan_sha = _sha(descriptor["recovery_raw"])
+    with (
+        mock.patch.object(dispatcher, "_halt_resume_descriptor", return_value=descriptor),
+        mock.patch.object(batch, "validate_continuation_plan", return_value={"plan_sha256": plan_sha}),
+    ):
+        result = dispatcher._prepare_halt_resume(
+            journal,
+            context,
+            sampler=lambda: next(samples),
+            sleep_fn=lambda _seconds: None,
+            samples_path=journal.root / "resource-samples.jsonl",
+        )
+        assert result == descriptor["document_id"]
+        assert [event["event"] for event in journal.events[3:]] == [
+            "memory_recovery_wait",
+            "halt_resolution",
+            "plan_created",
+        ]
+        event_count = len(journal.events)
+        result = dispatcher._prepare_halt_resume(
+            journal,
+            context,
+            sampler=lambda: (_ for _ in ()).throw(AssertionError("restart must reuse durable resource evidence")),
+            sleep_fn=lambda _seconds: None,
+            samples_path=journal.root / "resource-samples.jsonl",
+        )
+    assert result == descriptor["document_id"]
+    assert len(journal.events) == event_count
+    assert journal.events[3]["status"] == "RESOURCE_CHANGE_OBSERVED"
+    assert journal.events[4]["wait_event_line_sha256"] == _sha(
+        dispatcher.canonical_json(journal.events[3]) + b"\n"
+    )
+
+
+def test_halt_resume_does_not_resolve_when_resource_change_is_unobserved(tmp_path: Path) -> None:
+    journal, context, descriptor = _halt_resume_fixture(tmp_path)
+    with (
+        mock.patch.object(dispatcher, "_halt_resume_descriptor", return_value=descriptor),
+        mock.patch.object(
+            dispatcher,
+            "_wait_for_recovery_resource_change",
+            return_value={"status": "RESOURCE_CHANGE_NOT_OBSERVED_WITHIN_BOUND"},
+        ),
+    ):
+        with unittest.TestCase().assertRaisesRegex(
+            dispatcher.DispatcherError,
+            "HALT_RESUME_RESOURCE_CHANGE_NOT_OBSERVED",
+        ):
+            dispatcher._prepare_halt_resume(
+                journal,
+                context,
+                sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 10_000},
+                sleep_fn=lambda _seconds: None,
+                samples_path=journal.root / "resource-samples.jsonl",
+            )
+    assert [event["event"] for event in journal.events] == ["binding", "halt", "source_adoption"]
+
+
+def test_halt_resume_source_adoption_preserves_prefix_and_restarts_idempotently(tmp_path: Path) -> None:
+    journal, context, descriptor = _halt_resume_fixture(tmp_path)
+    journal.events.pop()
+    prefix_raw = b"".join(dispatcher.canonical_json(event) + b"\n" for event in journal.events)
+    journal.path.write_bytes(prefix_raw)
+    descriptor["journal_prefix_sha256"] = _sha(prefix_raw)
+    with mock.patch.object(dispatcher, "_halt_resume_descriptor", return_value=descriptor):
+        dispatcher._verify_or_create_binding(journal, context)
+        adopted_raw = journal.path.read_bytes()
+        assert adopted_raw.startswith(prefix_raw)
+        assert len(journal.events) == 3
+        dispatcher._verify_or_create_binding(journal, context)
+    assert journal.path.read_bytes() == adopted_raw
+    assert journal.events[2]["event"] == "source_adoption"
+
+
+def test_halt_resume_rejects_incomplete_root_descriptor(tmp_path: Path) -> None:
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    context = {"adoption_evidence": {"halt_resume": {"schema": dispatcher.HALT_RESUME_SCHEMA}}}
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "HALT_RESUME_DESCRIPTOR_INVALID"):
+        dispatcher._halt_resume_descriptor(context, journal)
+
+
+def test_halt_resume_only_exempts_the_exact_original_reconciled_halt(tmp_path: Path) -> None:
+    document_id = "a" * 64
+    continuation_id = "resume-original"
+    reconciled = {
+        "event": "reconciled",
+        "document_id": document_id,
+        "continuation_id": continuation_id,
+        "decision": "HALT",
+        "status": "FAILED_NO_RETRY",
+    }
+    terminal_halt = {"event": "halt", "document_id": document_id, "reason": "FAILED_NO_RETRY"}
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    journal.events = [{"event": "binding"}, reconciled, terminal_halt]
+    descriptor = {
+        "reconciled_event_index": 1,
+        "reconciled_event_line_sha256": _sha(dispatcher.canonical_json(reconciled) + b"\n"),
+        "continuation_id": continuation_id,
+        "document_id": document_id,
+        "halt_event_index": 2,
+    }
+
+    dispatcher._halt_if_required(
+        journal,
+        dispatcher._latest_document_events(journal.events),
+        halt_resume_descriptor=descriptor,
+    )
+
+    # A generation-one retry can crash after reconciliation but before its
+    # terminal halt event. Same-document identity must not exempt this HALT.
+    journal.events.append({
+        "event": "reconciled",
+        "document_id": document_id,
+        "continuation_id": "memory-recovery-new-attempt",
+        "decision": "HALT",
+        "status": "FAILED_NO_RETRY",
+    })
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "DISPATCHER_PREVIOUSLY_HALTED"):
+        dispatcher._halt_if_required(
+            journal,
+            dispatcher._latest_document_events(journal.events),
+            halt_resume_descriptor=descriptor,
+        )
+
+
+def test_halt_resume_requires_original_reconciled_line_hash_and_continuation(tmp_path: Path) -> None:
+    document_id = "a" * 64
+    reconciled = {
+        "event": "reconciled",
+        "document_id": document_id,
+        "continuation_id": "resume-original",
+        "decision": "HALT",
+        "status": "FAILED_NO_RETRY",
+    }
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    journal.events = [{"event": "binding"}, reconciled, {"event": "halt", "document_id": document_id}]
+    descriptor = {
+        "reconciled_event_index": 1,
+        "reconciled_event_line_sha256": "f" * 64,
+        "continuation_id": "resume-original",
+        "document_id": document_id,
+        "halt_event_index": 2,
+    }
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "HALT_RESUME_TERMINAL_BINDING_MISMATCH"):
+        dispatcher._halt_if_required(
+            journal,
+            dispatcher._latest_document_events(journal.events),
+            halt_resume_descriptor=descriptor,
+        )
+
+
+def test_duplicate_guard_accepts_only_resource_bound_generation_one_after_adopted_halt() -> None:
+    document_id = "a" * 64
+    queue_key = "b" * 64
+    prior_plan = {
+        "continuation_id": "prior",
+        "state_root": "/tmp/prior-state",
+        "selected_documents": [{"document_id": document_id, "prior_status": "UNPROCESSED", "source_sha256": document_id}],
+    }
+    prior_raw = dispatcher._json_bytes(prior_plan)
+    prior_sha = _sha(prior_raw)
+    recovery = {
+        "generation": 1,
+        "prior_state_root": prior_plan["state_root"],
+        "prior_queue_idempotency_key": queue_key,
+        "prior_artifact_sha256": {"receipt.json": "c" * 64},
+    }
+    recovery_plan = {
+        "continuation_id": "memory-recovery-test",
+        "state_root": "/tmp/recovery-state",
+        "selected_documents": [{
+            "document_id": document_id,
+            "prior_status": "FAILED_NO_RETRY",
+            "source_sha256": document_id,
+            "recovery": recovery,
+        }],
+    }
+    recovery_raw = dispatcher._json_bytes(recovery_plan)
+    before = {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 2_000_000_000}
+    after = {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 2_000_000_000}
+    measured = {
+        "before": before,
+        "after": after,
+        "available_gain_bytes": 2_000_000_000,
+        "swap_reduction_bytes": 0,
+        "stable_samples": dispatcher.MEMORY_RECOVERY_STABLE_SAMPLE_COUNT,
+    }
+    wait_event = {
+        "event": "memory_recovery_wait",
+        "document_id": document_id,
+        "status": "RESOURCE_CHANGE_OBSERVED",
+        "decision": "CONTINUE",
+        "prior_plan_sha256": prior_sha,
+        "prior_state_root": prior_plan["state_root"],
+        "prior_queue_idempotency_key": queue_key,
+        **measured,
+    }
+    resolution_event = {
+        "event": "halt_resolution",
+        "document_id": document_id,
+        "status": "RESOURCE_CHANGE_OBSERVED",
+        "prior_plan_sha256": prior_sha,
+        "recovery_generation": 1,
+        "wait_event_line_sha256": _sha(dispatcher.canonical_json(wait_event) + b"\n"),
+        **measured,
+    }
+    events = [
+        {"event": "binding"},
+        {
+            "event": "plan_created",
+            "document_id": document_id,
+            "continuation_id": "prior",
+            "state_root": prior_plan["state_root"],
+            "plan_sha256": prior_sha,
+            "plan_bytes_b64": base64.b64encode(prior_raw).decode("ascii"),
+        },
+        {"event": "plan_only_pass"},
+        {"event": "dispatch_intent"},
+        {
+            "event": "reconciled",
+            "document_id": document_id,
+            "continuation_id": "prior",
+            "plan_sha256": prior_sha,
+            "status": "FAILED_NO_RETRY",
+            "decision": "HALT",
+        },
+        {"event": "halt", "document_id": document_id, "reason": "FAILED_NO_RETRY"},
+        {"event": "source_adoption", "document_id": document_id, "plan_sha256": prior_sha},
+        wait_event,
+        resolution_event,
+        {
+            "event": "plan_created",
+            "document_id": document_id,
+            "continuation_id": recovery_plan["continuation_id"],
+            "state_root": recovery_plan["state_root"],
+            "plan_sha256": _sha(recovery_raw),
+            "plan_bytes_b64": base64.b64encode(recovery_raw).decode("ascii"),
+            "recovery_generation": 1,
+            "recovery_of_plan_sha256": prior_sha,
+        },
+    ]
+    dispatcher._assert_no_duplicate_document_ids(events)
+    events[6] = {"event": "source_adoption", "document_id": "b" * 64, "plan_sha256": prior_sha}
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CROSS_PLAN_DUPLICATE_DOCUMENT"):
+        dispatcher._assert_no_duplicate_document_ids(events)
+
+
 def _case_original_progress_status_is_checked_against_frozen_inventory_not_live_receipts(
     monkeypatch: _MonkeyPatch,
     tmp_path: Path,
@@ -950,6 +1256,62 @@ class TestRemainingOnce(unittest.TestCase):
         self.assertEqual(_sha(raw), dispatcher.AI_VIDEO_RECOVERY_PLAN_SHA256)
         self.assertEqual(raw, dispatcher.AI_VIDEO_RECOVERY_PLAN_PATH.read_bytes())
         self.assertEqual(plan["selected_documents"][0]["recovery"]["generation"], 1)
+
+    def test_memory_recovery_accepts_missing_round_status_only_for_bound_prefill_failure(self) -> None:
+        _manifest, manifest_sha, documents = batch.load_manifest(batch.DEFAULT_MANIFEST)
+        self.assertEqual(manifest_sha, dispatcher.EXPECTED_MANIFEST_SHA256)
+        journal_events = [
+            json.loads(line)
+            for line in dispatcher.EVIDENCE_ROOT.joinpath("dispatch.jsonl").read_bytes().splitlines()
+        ]
+        prior_event = next(
+            event for event in journal_events
+            if event.get("event") == "plan_created"
+            and event.get("document_id") == "e2d660f090a972a43ba68bba37eea0a5889c1c6bef1bb760a0334fd0c4da6813"
+        )
+        prior_raw = base64.b64decode(prior_event["plan_bytes_b64"], validate=True)
+        prior_plan = json.loads(prior_raw.decode("utf-8"))
+        document_id = prior_event["document_id"]
+        document = next(row for row in documents if row.get("document_id") == document_id)
+        state_root = Path(prior_plan["state_root"])
+        prior_receipt = json.loads((state_root / "documents" / document_id / "receipt.json").read_bytes())
+        failed_chunk = next(
+            row for row in prior_receipt["chunks"]
+            if row.get("status") == "FAILED_NO_RETRY"
+        )
+        queue_key = failed_chunk["queue_item"]["idempotency_key"]
+        stream_receipt_path = state_root / "evidence" / "streams" / queue_key / "attempt-0001" / "stream-receipt.json"
+        original_read = dispatcher._read_regular
+        original_stream_receipt = json.loads(original_read(stream_receipt_path, "fixture").decode("utf-8"))
+        self.assertEqual(original_stream_receipt.get("status"), "FAILED")
+        self.assertNotIn("status", original_stream_receipt["rounds"][0])
+
+        def build_with_round_status(status: str | None, *, omit: bool) -> tuple[dict[str, object] | None, bytes | None]:
+            def read_with_round_status(path: Path, code: str) -> bytes:
+                raw = original_read(path, code)
+                if path == stream_receipt_path:
+                    receipt = json.loads(raw.decode("utf-8"))
+                    if omit:
+                        receipt["rounds"][0].pop("status", None)
+                    else:
+                        receipt["rounds"][0]["status"] = status
+                    return dispatcher._json_bytes(receipt)
+                return raw
+
+            with mock.patch.object(dispatcher, "_read_regular", side_effect=read_with_round_status):
+                return dispatcher.build_memory_recovery_plan(
+                    prior_plan,
+                    prior_raw,
+                    document,
+                    model_settings_sha256=dispatcher.EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256,
+                )
+
+        recovered = build_with_round_status(None, omit=True)
+        self.assertIsNotNone(recovered)
+        self.assertEqual(recovered[0]["selected_documents"][0]["recovery"]["generation"], 1)
+        for explicit_status in ("SUCCEEDED", "PENDING", None):
+            with self.assertRaisesRegex(dispatcher.DispatcherError, "MEMORY_RECOVERY_PRIOR_EVIDENCE_MISMATCH"):
+                build_with_round_status(explicit_status, omit=False)
 
     def test_duplicate_rejection(self) -> None:
         _case_document_plan_journal_rejects_cross_plan_duplicate()

@@ -2479,3 +2479,61 @@ def test_continuation_recovery_requires_exact_pre_post_settings_bindings() -> No
         missing_runtime,
         expected_model_settings_sha256=batch.EXPECTED_MODEL_SETTINGS_SHA256,
     )
+
+
+def test_continuation_recovery_recognizes_only_typed_terminal_sse_prefill_error() -> None:
+    import json
+
+    empty_choice_frames = [
+        {
+            "id": "synthetic-stream",
+            "object": "chat.completion.chunk",
+            "created": 1,
+            "model": "synthetic-model",
+            "choices": [{"index": 0, "delta": {"role": "assistant", "content": ""}, "finish_reason": None}],
+        },
+        {
+            "id": "synthetic-stream",
+            "object": "chat.completion.chunk",
+            "created": 1,
+            "model": "synthetic-model",
+            "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
+        },
+    ]
+    error_frame = {
+        "type": "error",
+        "error": {
+            "type": "invalid_request_error",
+            "code": "prefill_memory_exceeded",
+            "omlx_code": "prefill_memory_exceeded",
+            "estimated_bytes": 3,
+            "limit_bytes": 2,
+        },
+    }
+
+    def as_sse(frames: list[dict[str, object]]) -> bytes:
+        return b"".join(b"data: " + json.dumps(frame, separators=(",", ":")).encode() + b"\n\n" for frame in frames) + b"data: [DONE]\n\n"
+
+    valid = as_sse([*empty_choice_frames, error_frame])
+    assert batch._continuation_recovery_raw_has_exact_error(valid)
+
+    with_model_text = as_sse([
+        {**empty_choice_frames[0], "choices": [{"index": 0, "delta": {"role": "assistant", "content": "prefill_memory_exceeded"}, "finish_reason": None}]},
+        error_frame,
+    ])
+    assert not batch._continuation_recovery_raw_has_exact_error(with_model_text)
+
+    nested_model_text = as_sse([{
+        "object": "chat.completion.chunk",
+        "choices": [{"index": 0, "delta": {"content": json.dumps(error_frame)}, "finish_reason": None}],
+    }])
+    assert not batch._continuation_recovery_raw_has_exact_error(nested_model_text)
+
+    unrelated_error = as_sse([{**error_frame, "error": {**error_frame["error"], "code": "invalid_request_error"}}])
+    assert not batch._continuation_recovery_raw_has_exact_error(unrelated_error)
+    untyped_error = as_sse([{**error_frame, "type": "message"}])
+    assert not batch._continuation_recovery_raw_has_exact_error(untyped_error)
+    missing_done = valid.removesuffix(b"data: [DONE]\n\n")
+    assert not batch._continuation_recovery_raw_has_exact_error(missing_done)
+    malformed = b"data: {\"type\":\"error\",\"error\":\n\ndata: [DONE]\n\n"
+    assert not batch._continuation_recovery_raw_has_exact_error(malformed)

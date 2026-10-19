@@ -569,12 +569,106 @@ def _prior_progress_rows(progress: Mapping[str, Any]) -> dict[str, dict[str, Any
 
 
 def _continuation_recovery_raw_has_exact_error(raw: bytes) -> bool:
+    if not isinstance(raw, bytes) or not raw or len(raw) > 64 * 1024:
+        return False
     try:
         envelope = json.loads(raw.decode("utf-8"))
     except (UnicodeError, json.JSONDecodeError):
-        return False
+        return _continuation_recovery_sse_has_exact_error(raw)
     error = envelope.get("error") if isinstance(envelope, dict) else None
     return isinstance(error, dict) and error.get("code") == CONTINUATION_RECOVERY_ERROR_CODE
+
+
+def _continuation_recovery_sse_has_exact_error(raw: bytes) -> bool:
+    """Recognize only a terminal server error frame after empty stream metadata."""
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeError:
+        return False
+    if text.endswith("\r\n\r\n"):
+        text = text.replace("\r\n", "\n")
+    elif not text.endswith("\n\n"):
+        return False
+    if "\r" in text:
+        return False
+
+    frames: list[str] = []
+    current: list[str] = []
+    lines = text.split("\n")
+    if lines[-2:] != ["", ""]:
+        return False
+    for line in lines[:-1]:
+        if line == "":
+            if current:
+                if len(current) != 1 or not current[0].startswith("data:"):
+                    return False
+                payload = current[0][5:]
+                frames.append(payload[1:] if payload.startswith(" ") else payload)
+                current.clear()
+            else:
+                return False
+        else:
+            if not line.startswith("data:"):
+                return False
+            current.append(line)
+    if current or not frames or frames[-1] != "[DONE]" or frames.count("[DONE]") != 1:
+        return False
+
+    payloads = frames[:-1]
+    if not payloads or len(payloads) > 16:
+        return False
+    decoded: list[Mapping[str, Any]] = []
+    for payload in payloads:
+        try:
+            frame = json.loads(payload)
+        except json.JSONDecodeError:
+            return False
+        if not isinstance(frame, dict):
+            return False
+        decoded.append(frame)
+
+    error_frame = decoded[-1]
+    if (
+        error_frame.keys() != {"type", "error"}
+        or error_frame.get("type") != "error"
+        or not isinstance(error_frame.get("error"), dict)
+    ):
+        return False
+    error = error_frame["error"]
+    estimate = error.get("estimated_bytes")
+    limit = error.get("limit_bytes")
+    if (
+        error.get("code") != CONTINUATION_RECOVERY_ERROR_CODE
+        or error.get("omlx_code") != CONTINUATION_RECOVERY_ERROR_CODE
+        or error.get("type") != "invalid_request_error"
+        or type(estimate) is not int
+        or type(limit) is not int
+        or estimate <= limit
+        or limit < 1
+    ):
+        return False
+
+    for frame in decoded[:-1]:
+        if (
+            not set(frame).issubset({"id", "object", "created", "model", "choices", "system_fingerprint"})
+            or frame.get("object") != "chat.completion.chunk"
+            or not isinstance(frame.get("choices"), list)
+            or len(frame["choices"]) != 1
+        ):
+            return False
+        choice = frame["choices"][0]
+        if (
+            not isinstance(choice, dict)
+            or not set(choice).issubset({"index", "delta", "finish_reason"})
+            or choice.get("index") != 0
+            or choice.get("finish_reason") is not None
+            or not isinstance(choice.get("delta"), dict)
+            or not set(choice["delta"]).issubset({"role", "content"})
+            or choice["delta"].get("role", "assistant") != "assistant"
+            or choice["delta"].get("content", "") != ""
+        ):
+            return False
+    return True
 
 
 def _continuation_recovery_request_settings_confirmed(

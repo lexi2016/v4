@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "446b9408d0621f476698871e011ec7e9b3306487137bff4151198fa80ac191af"
+EXPECTED_RUNNER_SHA256 = "d66f733d0e9e62d9c28eac9259fe73003850de866d65a08888d4aa4478a8c187"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -184,9 +184,59 @@ SOURCE_ONLY_STATUSES = frozenset(
     }
 )
 SAFE_JSONL_EVENT_TYPES = frozenset(
-    {"binding", "plan_created", "plan_only_pass", "dispatch_intent", "reconciled", "memory_recovery_wait", "halt"}
+    {
+        "binding",
+        "source_adoption",
+        "plan_created",
+        "plan_only_pass",
+        "dispatch_intent",
+        "reconciled",
+        "memory_recovery_wait",
+        "halt_resolution",
+        "halt",
+    }
 )
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+HALT_RESUME_SCHEMA = "v4.pdf_remaining_once.halt_resume_adoption.v1"
+HALT_RESUME_DESCRIPTOR_FIELDS = frozenset(
+    {
+        "schema",
+        "status",
+        "authorization_id",
+        "previous_authorization_path",
+        "previous_authorization_sha256",
+        "journal_path",
+        "journal_prefix_sha256",
+        "journal_event_count",
+        "reconciled_event_index",
+        "reconciled_event_line_sha256",
+        "halt_event_index",
+        "halt_event_line_sha256",
+        "document_id",
+        "continuation_id",
+        "plan_sha256",
+        "receipt_sha256",
+        "run_progress_sha256",
+        "document_progress_sha256",
+        "page_input_sha256",
+        "queue_key",
+        "queue_state_sha256",
+        "job_input_sha256",
+        "stream_receipt_sha256",
+        "request_input_sha256",
+        "raw_sse_sha256",
+        "resource_samples_path",
+        "resource_samples_prefix_bytes",
+        "resource_samples_prefix_sha256",
+        "failed_resource_sample_line_sha256",
+        "recovery_generation",
+        "old_dispatcher_sha256",
+        "old_runner_sha256",
+        "new_dispatcher_sha256",
+        "new_runner_sha256",
+        "reviewer_receipt_sha256",
+    }
+)
 COMPLETED_INVENTORY_STATUSES = frozenset(
     {"USER_ACCEPTED_REUSED_REPORT", "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"}
 )
@@ -535,6 +585,7 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
         or not SHA256_RE.fullmatch(progress_ref["sha256"])
     ):
         raise DispatcherError("PILOT_PROGRESS_BINDING_INVALID")
+    adoption_evidence: dict[str, Any] | None = None
     for key, statuses in (
         ("resource_gate", {"PASS"}),
         ("sentinel_gate", {"PASS"}),
@@ -544,6 +595,8 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
         evidence = _verified_json_evidence(
             auth[key], expected_statuses=statuses, code=f"{key.upper()}_EVIDENCE_INVALID"
         )
+        if key == "adoption_receipt":
+            adoption_evidence = evidence
         if key == "resource_gate":
             available = evidence.get("minimum_available_memory_bytes")
             swap_growth = evidence.get("maximum_swap_used_growth_bytes")
@@ -591,6 +644,7 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
         "pilot_document_ids": pilot_ids,
         "pilot_progress_sha256": pilot_progress_sha,
         "pilot_plan": pilot_plan,
+        "adoption_evidence": adoption_evidence,
     }
 
 
@@ -1011,7 +1065,10 @@ def build_memory_recovery_plan(
         or not isinstance(rounds, list)
         or len(rounds) != 1
         or not isinstance(rounds[0], dict)
-        or rounds[0].get("status") != "FAILED"
+        or (
+            "status" in rounds[0]
+            and rounds[0].get("status") != "FAILED"
+        )
         or rounds[0].get("request_input_sha256") != sha256_bytes(request_raw)
         or rounds[0].get("raw_sse_sha256") != raw_sha256
         or not batch._continuation_recovery_raw_has_exact_error(response_raw)
@@ -1854,14 +1911,296 @@ def _event_binding(context: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _halt_resume_descriptor(context: Mapping[str, Any], journal: DurableJournal) -> dict[str, Any] | None:
+    adoption = context.get("adoption_evidence")
+    if not isinstance(adoption, Mapping):
+        return None
+    descriptor = adoption.get("halt_resume")
+    if descriptor is None:
+        return None
+    if not isinstance(descriptor, dict) or set(descriptor) != HALT_RESUME_DESCRIPTOR_FIELDS:
+        raise DispatcherError("HALT_RESUME_DESCRIPTOR_INVALID")
+    hash_fields = {
+        "previous_authorization_sha256",
+        "journal_prefix_sha256",
+        "reconciled_event_line_sha256",
+        "halt_event_line_sha256",
+        "plan_sha256",
+        "receipt_sha256",
+        "run_progress_sha256",
+        "document_progress_sha256",
+        "page_input_sha256",
+        "queue_key",
+        "queue_state_sha256",
+        "job_input_sha256",
+        "stream_receipt_sha256",
+        "request_input_sha256",
+        "raw_sse_sha256",
+        "resource_samples_prefix_sha256",
+        "failed_resource_sample_line_sha256",
+        "old_dispatcher_sha256",
+        "old_runner_sha256",
+        "new_dispatcher_sha256",
+        "new_runner_sha256",
+        "reviewer_receipt_sha256",
+    }
+    if (
+        any(not isinstance(descriptor.get(key), str) or not SHA256_RE.fullmatch(descriptor[key]) for key in hash_fields)
+        or descriptor.get("schema") != HALT_RESUME_SCHEMA
+        or descriptor.get("status") != "ROOT_ADOPTED"
+        or descriptor.get("authorization_id") != context["authorization"].get("authorization_id")
+        or type(descriptor.get("recovery_generation")) is not int
+        or descriptor.get("recovery_generation") != 1
+        or type(descriptor.get("journal_event_count")) is not int
+        or descriptor["journal_event_count"] < 2
+        or type(descriptor.get("reconciled_event_index")) is not int
+        or type(descriptor.get("halt_event_index")) is not int
+        or type(descriptor.get("resource_samples_prefix_bytes")) is not int
+        or descriptor["resource_samples_prefix_bytes"] < 0
+        or not isinstance(descriptor.get("document_id"), str)
+        or not SHA256_RE.fullmatch(descriptor["document_id"])
+        or not isinstance(descriptor.get("continuation_id"), str)
+        or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", descriptor["continuation_id"])
+        or not isinstance(descriptor.get("journal_path"), str)
+        or not isinstance(descriptor.get("resource_samples_path"), str)
+    ):
+        raise DispatcherError("HALT_RESUME_DESCRIPTOR_INVALID")
+    auth = context["authorization"]
+    current_dispatcher_sha = sha256_bytes(Path(__file__).read_bytes())
+    current_runner_sha = sha256_bytes((PROJECT_ROOT / "ops/run_pdf_research_batch.py").read_bytes())
+    reviewer_ref = auth.get("reviewer_receipt")
+    if (
+        auth.get("max_documents") != EXPECTED_POST_PILOT_COHORT
+        or descriptor.get("new_dispatcher_sha256") != current_dispatcher_sha
+        or descriptor.get("new_dispatcher_sha256") != auth.get("dispatcher_sha256")
+        or descriptor.get("new_runner_sha256") != current_runner_sha
+        or descriptor.get("new_runner_sha256") != EXPECTED_RUNNER_SHA256
+        or not isinstance(reviewer_ref, Mapping)
+        or descriptor.get("reviewer_receipt_sha256") != reviewer_ref.get("sha256")
+        or Path(descriptor["journal_path"]).expanduser().absolute() != journal.path.expanduser().absolute()
+        or Path(descriptor["resource_samples_path"]).expanduser().absolute()
+        != (journal.root / "resource-samples.jsonl").expanduser().absolute()
+    ):
+        raise DispatcherError("HALT_RESUME_CODE_OR_PATH_BINDING_MISMATCH")
+
+    old_auth_path = _safe_reference(descriptor.get("previous_authorization_path"), root=CONTINUATION_ROOT)
+    old_auth_raw = _read_regular(old_auth_path, "HALT_RESUME_PREVIOUS_AUTHORIZATION_UNAVAILABLE")
+    if sha256_bytes(old_auth_raw) != descriptor["previous_authorization_sha256"]:
+        raise DispatcherError("HALT_RESUME_PREVIOUS_AUTHORIZATION_SHA_MISMATCH")
+    try:
+        old_auth = json.loads(old_auth_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("HALT_RESUME_PREVIOUS_AUTHORIZATION_INVALID") from None
+    if (
+        not isinstance(old_auth, dict)
+        or old_auth.get("schema") != AUTHORIZATION_SCHEMA
+        or old_auth.get("status") != "AUTHORIZED"
+        or old_auth.get("authorization_id") != auth.get("authorization_id")
+        or old_auth.get("max_documents") != auth.get("max_documents")
+        or old_auth.get("scope_sha256") != auth.get("scope_sha256")
+        or old_auth.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or old_auth.get("runner_sha256") != descriptor.get("old_runner_sha256")
+        or old_auth.get("dispatcher_sha256") != descriptor.get("old_dispatcher_sha256")
+        or not isinstance(old_auth.get("model_settings_sha256"), str)
+        or old_auth.get("model_settings_sha256") != auth.get("model_settings_sha256")
+    ):
+        raise DispatcherError("HALT_RESUME_PREVIOUS_AUTHORIZATION_BINDING_MISMATCH")
+
+    journal_raw = _read_regular(journal.path, "DISPATCH_JOURNAL_UNREADABLE")
+    if journal_raw and not journal_raw.endswith(b"\n"):
+        raise DispatcherError("DISPATCH_JOURNAL_TRUNCATED")
+    lines = journal_raw.splitlines(keepends=True)
+    count = descriptor["journal_event_count"]
+    if (
+        len(lines) < count
+        or sha256_bytes(b"".join(lines[:count])) != descriptor.get("journal_prefix_sha256")
+        or descriptor.get("reconciled_event_index") != count - 2
+        or descriptor.get("halt_event_index") != count - 1
+        or len(journal.events) != len(lines)
+    ):
+        raise DispatcherError("HALT_RESUME_JOURNAL_PREFIX_MISMATCH")
+    old_events = journal.events[:count]
+    if (
+        sha256_bytes(lines[count - 2]) != descriptor.get("reconciled_event_line_sha256")
+        or sha256_bytes(lines[count - 1]) != descriptor.get("halt_event_line_sha256")
+    ):
+        raise DispatcherError("HALT_RESUME_TERMINAL_EVENT_SHA_MISMATCH")
+    prior_binding = {key: value for key, value in old_events[0].items() if key != "at_utc"}
+    failed = old_events[count - 2]
+    halt = old_events[count - 1]
+    if (
+        prior_binding.get("event") != "binding"
+        or prior_binding.get("authorization_id") != auth.get("authorization_id")
+        or prior_binding.get("authorization_sha256") != descriptor.get("previous_authorization_sha256")
+        or prior_binding.get("runner_sha256") != descriptor.get("old_runner_sha256")
+        or prior_binding.get("scope_sha256") != EXPECTED_SCOPE_SHA256
+        or failed.get("event") != "reconciled"
+        or failed.get("document_id") != descriptor.get("document_id")
+        or failed.get("continuation_id") != descriptor.get("continuation_id")
+        or failed.get("decision") != "HALT"
+        or failed.get("status") != "FAILED_NO_RETRY"
+        or failed.get("plan_sha256") != descriptor.get("plan_sha256")
+        or failed.get("receipt_sha256") != descriptor.get("receipt_sha256")
+        or failed.get("progress_sha256") != descriptor.get("run_progress_sha256")
+        or failed.get("model_request_count") != 1
+        or failed.get("returncode") != 0
+        or failed.get("resource_stop_reason") is not None
+        or halt.get("event") != "halt"
+        or halt.get("reason") != "FAILED_NO_RETRY"
+        or halt.get("document_id") != descriptor.get("document_id")
+    ):
+        raise DispatcherError("HALT_RESUME_TERMINAL_BINDING_MISMATCH")
+
+    plan_events = [
+        (index, event)
+        for index, event in enumerate(old_events[:count - 2])
+        if event.get("event") == "plan_created"
+        and event.get("document_id") == descriptor["document_id"]
+        and event.get("continuation_id") == descriptor["continuation_id"]
+        and event.get("plan_sha256") == descriptor["plan_sha256"]
+    ]
+    if len(plan_events) != 1:
+        raise DispatcherError("HALT_RESUME_PLAN_EVENT_MISMATCH")
+    plan_index, plan_event = plan_events[0]
+    try:
+        plan_raw = base64.b64decode(plan_event.get("plan_bytes_b64", ""), validate=True)
+        plan = json.loads(plan_raw.decode("utf-8"))
+    except (ValueError, base64.binascii.Error, UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("HALT_RESUME_PLAN_EVENT_INVALID") from None
+    if (
+        sha256_bytes(plan_raw) != descriptor["plan_sha256"]
+        or plan.get("continuation_id") != descriptor["continuation_id"]
+        or plan.get("state_root") != plan_event.get("state_root")
+        or plan_event.get("plan_path") != str(journal.root / "plans" / f"{descriptor['continuation_id']}.json")
+        or plan_index + 3 != count - 2
+        or old_events[plan_index + 1].get("event") != "plan_only_pass"
+        or old_events[plan_index + 2].get("event") != "dispatch_intent"
+        or any(
+            prior_event.get("document_id") != descriptor["document_id"]
+            or prior_event.get("continuation_id") != descriptor["continuation_id"]
+            or prior_event.get("plan_sha256") != descriptor["plan_sha256"]
+            or prior_event.get("state_root") != plan.get("state_root")
+            for prior_event in (plan_event, old_events[plan_index + 1], old_events[plan_index + 2], failed)
+        )
+    ):
+        raise DispatcherError("HALT_RESUME_PLAN_BINDING_MISMATCH")
+    prior_state_root = Path(str(plan.get("state_root", ""))).expanduser().absolute()
+    if _read_regular(prior_state_root / "continuation-plan.json", "HALT_RESUME_PLAN_UNAVAILABLE") != plan_raw:
+        raise DispatcherError("HALT_RESUME_SAVED_PLAN_MISMATCH")
+    selection = plan.get("selected_documents")
+    document = next(
+        (row for row in context.get("documents", []) if isinstance(row, Mapping) and row.get("document_id") == descriptor["document_id"]),
+        None,
+    )
+    if not isinstance(selection, list) or len(selection) != 1 or not isinstance(document, Mapping):
+        raise DispatcherError("HALT_RESUME_DOCUMENT_BINDING_MISMATCH")
+    recovery_candidate = build_memory_recovery_plan(
+        plan,
+        plan_raw,
+        document,
+        model_settings_sha256=auth["model_settings_sha256"],
+    )
+    if recovery_candidate is None:
+        raise DispatcherError("HALT_RESUME_PREFILL_EVIDENCE_UNAVAILABLE")
+    _recovery_plan, _recovery_raw = recovery_candidate
+    recovery = _recovery_plan["selected_documents"][0]["recovery"]
+    artifacts = recovery["prior_artifact_sha256"]
+    if (
+        recovery["generation"] != descriptor["recovery_generation"]
+        or recovery["prior_queue_idempotency_key"] != descriptor["queue_key"]
+        or recovery["prior_document_receipt_sha256"] != descriptor["receipt_sha256"]
+        or artifacts.get("run-progress.json") != descriptor["run_progress_sha256"]
+        or artifacts.get(f"documents/{descriptor['document_id']}/progress.json") != descriptor["document_progress_sha256"]
+        or artifacts.get(f"documents/{descriptor['document_id']}/page-input.json") != descriptor["page_input_sha256"]
+        or artifacts.get("queue/queue-state.json") != descriptor["queue_state_sha256"]
+        or artifacts.get(f"queue/jobs/{descriptor['queue_key']}/input.json") != descriptor["job_input_sha256"]
+        or artifacts.get(f"evidence/streams/{descriptor['queue_key']}/attempt-0001/stream-receipt.json") != descriptor["stream_receipt_sha256"]
+        or artifacts.get(f"evidence/streams/{descriptor['queue_key']}/attempt-0001/round-01.request-input.json") != descriptor["request_input_sha256"]
+        or artifacts.get(f"evidence/streams/{descriptor['queue_key']}/attempt-0001/round-01.raw.sse") != descriptor["raw_sse_sha256"]
+    ):
+        raise DispatcherError("HALT_RESUME_FAILURE_CHAIN_MISMATCH")
+
+    samples_path = Path(descriptor["resource_samples_path"]).expanduser().absolute()
+    samples_raw = _read_regular(samples_path, "HALT_RESUME_RESOURCE_SAMPLES_UNAVAILABLE")
+    prefix_bytes = descriptor["resource_samples_prefix_bytes"]
+    if len(samples_raw) < prefix_bytes or sha256_bytes(samples_raw[:prefix_bytes]) != descriptor["resource_samples_prefix_sha256"]:
+        raise DispatcherError("HALT_RESUME_RESOURCE_PREFIX_MISMATCH")
+    prefix = samples_raw[:prefix_bytes]
+    if prefix and not prefix.endswith(b"\n"):
+        raise DispatcherError("HALT_RESUME_RESOURCE_PREFIX_TRUNCATED")
+    matching_samples = []
+    for line in prefix.splitlines(keepends=True):
+        if sha256_bytes(line) == descriptor["failed_resource_sample_line_sha256"]:
+            try:
+                sample = json.loads(line.decode("utf-8"))
+            except (UnicodeError, json.JSONDecodeError):
+                raise DispatcherError("HALT_RESUME_RESOURCE_SAMPLE_INVALID") from None
+            matching_samples.append(sample)
+    if (
+        len(matching_samples) != 1
+        or not isinstance(matching_samples[0], dict)
+        or matching_samples[0].get("phase") != "running"
+        or type(matching_samples[0].get("available_bytes")) is not int
+        or type(matching_samples[0].get("swap_used_bytes")) is not int
+    ):
+        raise DispatcherError("HALT_RESUME_FAILURE_RESOURCE_SAMPLE_MISMATCH")
+    return {
+        **descriptor,
+        "prior_plan": plan,
+        "prior_plan_raw": plan_raw,
+        "prior_state_root": str(prior_state_root),
+        "failure_sample": matching_samples[0],
+        "recovery_plan": _recovery_plan,
+        "recovery_raw": _recovery_raw,
+    }
+
+
+def _source_adoption_event(context: Mapping[str, Any], descriptor: Mapping[str, Any]) -> dict[str, Any]:
+    adoption_ref = context["authorization"]["adoption_receipt"]
+    return {
+        "event": "source_adoption",
+        "schema": JOURNAL_SCHEMA,
+        "authorization_id": context["authorization"]["authorization_id"],
+        "previous_authorization_sha256": descriptor["previous_authorization_sha256"],
+        "authorization_sha256": context["authorization_sha256"],
+        "adoption_receipt_sha256": adoption_ref["sha256"],
+        "journal_prefix_sha256": descriptor["journal_prefix_sha256"],
+        "journal_event_count": descriptor["journal_event_count"],
+        "document_id": descriptor["document_id"],
+        "plan_sha256": descriptor["plan_sha256"],
+        "recovery_generation": descriptor["recovery_generation"],
+        "old_dispatcher_sha256": descriptor["old_dispatcher_sha256"],
+        "old_runner_sha256": descriptor["old_runner_sha256"],
+        "new_dispatcher_sha256": descriptor["new_dispatcher_sha256"],
+        "new_runner_sha256": descriptor["new_runner_sha256"],
+    }
+
+
 def _verify_or_create_binding(journal: DurableJournal, context: Mapping[str, Any]) -> None:
     binding = _event_binding(context)
+    descriptor = _halt_resume_descriptor(context, journal)
     if not journal.events:
+        if descriptor is not None:
+            raise DispatcherError("HALT_RESUME_EXISTING_JOURNAL_REQUIRED")
         journal.append(binding)
         return
     observed = {key: value for key, value in journal.events[0].items() if key != "at_utc"}
-    if observed != binding:
+    if observed == binding:
+        if descriptor is not None:
+            raise DispatcherError("HALT_RESUME_OLD_BINDING_REQUIRED")
+        return
+    if descriptor is None:
         raise DispatcherError("DISPATCH_JOURNAL_BINDING_MISMATCH")
+    source_event = _source_adoption_event(context, descriptor)
+    event_count = descriptor["journal_event_count"]
+    if len(journal.events) == event_count:
+        journal.append(source_event)
+        return
+    if len(journal.events) <= event_count:
+        raise DispatcherError("HALT_RESUME_SOURCE_ADOPTION_MISSING")
+    observed_source_event = {key: value for key, value in journal.events[event_count].items() if key != "at_utc"}
+    if observed_source_event != source_event:
+        raise DispatcherError("HALT_RESUME_SOURCE_ADOPTION_MISMATCH")
 
 
 def _latest_document_events(events: Sequence[Mapping[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -1873,16 +2212,253 @@ def _latest_document_events(events: Sequence[Mapping[str, Any]]) -> dict[str, di
     return latest
 
 
-def _halt_if_required(journal: DurableJournal, latest: Mapping[str, Mapping[str, Any]]) -> None:
-    for event in journal.events:
-        if event.get("event") == "halt":
+def _prepare_halt_resume(
+    journal: DurableJournal,
+    context: Mapping[str, Any],
+    *,
+    sampler: Callable[[], Mapping[str, int]],
+    sleep_fn: Callable[[float], Any],
+    samples_path: Path,
+) -> str | None:
+    descriptor = _halt_resume_descriptor(context, journal)
+    if descriptor is None:
+        return None
+    event_count = descriptor["journal_event_count"]
+    source_index = event_count
+    source_event = _source_adoption_event(context, descriptor)
+    if len(journal.events) <= source_index:
+        raise DispatcherError("HALT_RESUME_SOURCE_ADOPTION_MISSING")
+    if {key: value for key, value in journal.events[source_index].items() if key != "at_utc"} != source_event:
+        raise DispatcherError("HALT_RESUME_SOURCE_ADOPTION_MISMATCH")
+    post = journal.events[source_index + 1:]
+    doc_id = descriptor["document_id"]
+    waits = [
+        event for event in post
+        if event.get("event") == "memory_recovery_wait"
+        and event.get("document_id") == doc_id
+        and event.get("prior_plan_sha256") == descriptor["plan_sha256"]
+    ]
+    resolutions = [
+        event for event in post
+        if event.get("event") == "halt_resolution"
+        and event.get("document_id") == doc_id
+        and event.get("prior_plan_sha256") == descriptor["plan_sha256"]
+    ]
+    recovery_plans = [
+        event for event in post
+        if event.get("event") == "plan_created"
+        and event.get("document_id") == doc_id
+        and event.get("recovery_generation") == 1
+        and event.get("recovery_of_plan_sha256") == descriptor["plan_sha256"]
+    ]
+    if len(waits) > 1 or len(resolutions) > 1 or len(recovery_plans) > 1:
+        raise DispatcherError("HALT_RESUME_DUPLICATE_TRANSITION")
+    if post and post[0].get("event") != "memory_recovery_wait":
+        raise DispatcherError("HALT_RESUME_UNEXPECTED_POST_ADOPTION_EVENT")
+    if waits and journal.events.index(waits[0]) != source_index + 1:
+        raise DispatcherError("HALT_RESUME_WAIT_ORDER_INVALID")
+    if resolutions and (
+        not waits
+        or journal.events.index(resolutions[0]) != journal.events.index(waits[0]) + 1
+    ):
+        raise DispatcherError("HALT_RESUME_RESOLUTION_ORDER_INVALID")
+    if recovery_plans and (
+        not resolutions
+        or journal.events.index(recovery_plans[0]) != journal.events.index(resolutions[0]) + 1
+    ):
+        raise DispatcherError("HALT_RESUME_PLAN_ORDER_INVALID")
+    if (
+        (not waits and post)
+        or (waits and not resolutions and len(post) != 1)
+        or (resolutions and not recovery_plans and len(post) != 2)
+        or (recovery_plans and [event.get("event") for event in post[:3]] != [
+            "memory_recovery_wait", "halt_resolution", "plan_created"
+        ])
+    ):
+        raise DispatcherError("HALT_RESUME_UNEXPECTED_POST_ADOPTION_EVENT")
+    recovery_binding = descriptor["recovery_plan"]["selected_documents"][0]["recovery"]
+    if waits:
+        wait_event = waits[0]
+        if (
+            set(wait_event)
+            != {
+                "at_utc",
+                "event",
+                "document_id",
+                "status",
+                "decision",
+                "prior_plan_sha256",
+                "prior_state_root",
+                "prior_queue_idempotency_key",
+                "before",
+                "after",
+                "available_gain_bytes",
+                "swap_reduction_bytes",
+                "stable_samples",
+            }
+            or
+            wait_event.get("document_id") != doc_id
+            or wait_event.get("status") != "RESOURCE_CHANGE_OBSERVED"
+            or wait_event.get("decision") != "CONTINUE"
+            or wait_event.get("prior_plan_sha256") != descriptor["plan_sha256"]
+            or wait_event.get("prior_state_root") != descriptor["prior_state_root"]
+            or wait_event.get("prior_queue_idempotency_key") != descriptor["queue_key"]
+            or not _resource_change_event_is_bound(wait_event)
+        ):
+            raise DispatcherError("HALT_RESUME_WAIT_EVIDENCE_INVALID")
+    else:
+        if resolutions or recovery_plans:
+            raise DispatcherError("HALT_RESUME_WAIT_EVENT_MISSING")
+        try:
+            before_swap = descriptor["failure_sample"]["swap_used_bytes"]
+            baseline = dict(sampler())
+        except Exception:
+            raise DispatcherError("HALT_RESUME_RESOURCE_SAMPLE_CANNOT_CONFIRM") from None
+        if type(before_swap) is not int or type(baseline.get("swap_used_bytes")) is not int:
+            raise DispatcherError("HALT_RESUME_RESOURCE_SAMPLE_CANNOT_CONFIRM")
+        wait_result = _wait_for_recovery_resource_change(
+            descriptor["failure_sample"],
+            baseline_swap_used=baseline["swap_used_bytes"],
+            sampler=sampler,
+            sleep_fn=sleep_fn,
+            persist=lambda row: _persist_sample(samples_path, row),
+        )
+        if wait_result.get("status") != "RESOURCE_CHANGE_OBSERVED":
+            raise DispatcherError("HALT_RESUME_RESOURCE_CHANGE_NOT_OBSERVED")
+        journal.append({
+            "event": "memory_recovery_wait",
+            "document_id": doc_id,
+            "status": wait_result["status"],
+            "decision": "CONTINUE",
+            "prior_plan_sha256": descriptor["plan_sha256"],
+            "prior_state_root": descriptor["prior_state_root"],
+            "prior_queue_idempotency_key": descriptor["queue_key"],
+            "before": wait_result["before"],
+            "after": wait_result["after"],
+            "available_gain_bytes": wait_result["available_gain_bytes"],
+            "swap_reduction_bytes": wait_result["swap_reduction_bytes"],
+            "stable_samples": wait_result["stable_samples"],
+        })
+        wait_event = journal.events[-1]
+
+    wait_index = next(index for index, event in enumerate(journal.events) if event is wait_event)
+    wait_line_sha = sha256_bytes(canonical_json(wait_event) + b"\n")
+    resolution_base = {
+        "event": "halt_resolution",
+        "authorization_id": context["authorization"]["authorization_id"],
+        "authorization_sha256": context["authorization_sha256"],
+        "document_id": doc_id,
+        "status": "RESOURCE_CHANGE_OBSERVED",
+        "prior_plan_sha256": descriptor["plan_sha256"],
+        "recovery_generation": descriptor["recovery_generation"],
+        "wait_event_index": wait_index,
+        "wait_event_line_sha256": wait_line_sha,
+        "before": wait_event["before"],
+        "after": wait_event["after"],
+        "available_gain_bytes": wait_event["available_gain_bytes"],
+        "swap_reduction_bytes": wait_event["swap_reduction_bytes"],
+        "stable_samples": wait_event["stable_samples"],
+    }
+    if resolutions:
+        resolution = resolutions[0]
+        if {key: value for key, value in resolution.items() if key != "at_utc"} != resolution_base:
+            raise DispatcherError("HALT_RESUME_RESOLUTION_MISMATCH")
+    else:
+        journal.append(resolution_base)
+        resolution = journal.events[-1]
+
+    recovery_plan = descriptor["recovery_plan"]
+    recovery_raw = descriptor["recovery_raw"]
+    recovery_path = journal.root / "plans" / f"{recovery_plan['continuation_id']}.json"
+    if recovery_plans:
+        plan_event = recovery_plans[0]
+        if (
+            plan_event.get("plan_sha256") != sha256_bytes(recovery_raw)
+            or plan_event.get("continuation_id") != recovery_plan["continuation_id"]
+            or plan_event.get("recovery_of_plan_sha256") != descriptor["plan_sha256"]
+            or plan_event.get("state_root") != recovery_plan["state_root"]
+        ):
+            raise DispatcherError("HALT_RESUME_RECOVERY_PLAN_MISMATCH")
+    else:
+        plan_sha = _write_immutable(recovery_path, recovery_raw)
+        try:
+            validated = batch.validate_continuation_plan(
+                recovery_path,
+                manifest_sha256=context["manifest_sha256"],
+                documents=context["documents"],
+            )
+        except Exception as exc:
+            code = getattr(exc, "code", None) or type(exc).__name__
+            raise DispatcherError(f"HALT_RESUME_PLAN_REJECTED:{str(code)[:64]}") from None
+        if validated.get("plan_sha256") != plan_sha:
+            raise DispatcherError("HALT_RESUME_RECOVERY_PLAN_SHA_MISMATCH")
+        journal.append({
+            "event": "plan_created",
+            "document_id": doc_id,
+            "continuation_id": recovery_plan["continuation_id"],
+            "plan_path": str(recovery_path),
+            "plan_sha256": plan_sha,
+            "plan_bytes_b64": base64.b64encode(recovery_raw).decode("ascii"),
+            "state_root": recovery_plan["state_root"],
+            "inventory_sha256": context["inventory_summary"]["inventory_sha256"],
+            "outstanding_count": context["inventory_summary"]["outstanding_count"],
+            "recovery_generation": 1,
+            "recovery_of_plan_sha256": descriptor["plan_sha256"],
+        })
+    return doc_id
+
+
+def _halt_if_required(
+    journal: DurableJournal,
+    latest: Mapping[str, Mapping[str, Any]],
+    *,
+    halt_resume_descriptor: Mapping[str, Any] | None = None,
+) -> None:
+    resolved_halt_index: int | None = None
+    resolved_reconciled_index: int | None = None
+    if halt_resume_descriptor is not None:
+        resolved_halt_index = halt_resume_descriptor.get("halt_event_index")
+        resolved_reconciled_index = halt_resume_descriptor.get("reconciled_event_index")
+        if (
+            type(resolved_halt_index) is not int
+            or type(resolved_reconciled_index) is not int
+            or not isinstance(halt_resume_descriptor.get("reconciled_event_line_sha256"), str)
+            or not isinstance(halt_resume_descriptor.get("continuation_id"), str)
+            or not isinstance(halt_resume_descriptor.get("document_id"), str)
+            or resolved_halt_index < 0
+            or resolved_reconciled_index < 0
+            or resolved_halt_index >= len(journal.events)
+            or resolved_reconciled_index >= len(journal.events)
+        ):
+            raise DispatcherError("HALT_RESUME_TERMINAL_BINDING_MISMATCH")
+        reconciled_event = journal.events[resolved_reconciled_index]
+        if (
+            reconciled_event.get("event") != "reconciled"
+            or reconciled_event.get("decision") != "HALT"
+            or reconciled_event.get("document_id") != halt_resume_descriptor["document_id"]
+            or reconciled_event.get("continuation_id") != halt_resume_descriptor["continuation_id"]
+            or sha256_bytes(canonical_json(reconciled_event) + b"\n")
+            != halt_resume_descriptor["reconciled_event_line_sha256"]
+            or journal.events[resolved_halt_index].get("event") != "halt"
+            or journal.events[resolved_halt_index].get("document_id") != halt_resume_descriptor["document_id"]
+        ):
+            raise DispatcherError("HALT_RESUME_TERMINAL_BINDING_MISMATCH")
+    for index, event in enumerate(journal.events):
+        if event.get("event") == "halt" and index != resolved_halt_index:
             raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
+        if event.get("event") == "reconciled" and event.get("decision") == "HALT":
+            if (
+                index != resolved_reconciled_index
+                or halt_resume_descriptor is None
+                or event.get("document_id") != halt_resume_descriptor["document_id"]
+                or event.get("continuation_id") != halt_resume_descriptor["continuation_id"]
+                or sha256_bytes(canonical_json(event) + b"\n")
+                != halt_resume_descriptor["reconciled_event_line_sha256"]
+            ):
+                raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
     for event in latest.values():
         if event.get("event") == "dispatch_intent":
             raise DispatcherError("DISPATCH_OUTCOME_AMBIGUOUS_FAIL_CLOSED")
-        if event.get("event") == "reconciled" and event.get("decision") in {"HALT", "RESUME_REQUIRED"}:
-            if event.get("decision") == "HALT":
-                raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
 
 
 def _write_immutable(path: Path, raw: bytes) -> str:
@@ -2303,6 +2879,7 @@ def execute_once(
     context = {
         **auth_context,
         "manifest_sha256": manifest_sha,
+        "documents": documents,
         "inventory_summary": inventory_summary,
         "static": static,
     }
@@ -2313,8 +2890,21 @@ def execute_once(
     resume_required = False
     with journal:
         _verify_or_create_binding(journal, context)
+        samples_path = evidence_root / "resource-samples.jsonl"
+        resumed_document_id = _prepare_halt_resume(
+            journal,
+            context,
+            sampler=sampler,
+            sleep_fn=sleep_fn,
+            samples_path=samples_path,
+        )
         latest = _latest_document_events(journal.events)
-        _halt_if_required(journal, latest)
+        resolved_halt_resume_descriptor = None
+        if resumed_document_id is not None:
+            resolved_halt_resume_descriptor = _halt_resume_descriptor(context, journal)
+            if resolved_halt_resume_descriptor is None:
+                raise DispatcherError("HALT_RESUME_DESCRIPTOR_MISSING")
+        _halt_if_required(journal, latest, halt_resume_descriptor=resolved_halt_resume_descriptor)
         _assert_no_duplicate_document_ids(journal.events)
         if not latest:
             _first, initial_count = select_next_document(
@@ -2332,7 +2922,6 @@ def execute_once(
         if _resource_stop_reason(baseline, baseline_swap):
             journal.append({"event": "halt", "reason": _resource_stop_reason(baseline, baseline_swap), "phase": "before_first_plan"})
             raise DispatcherError("RESOURCE_GATE_FAILED_BEFORE_DISPATCH")
-        samples_path = evidence_root / "resource-samples.jsonl"
         _persist_sample(samples_path, {"phase": "invocation_baseline", **baseline})
         pending = _find_pending_plan(latest, evidence_root=evidence_root)
         while completed_this_call < limit:
@@ -2656,6 +3245,16 @@ def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]]) -> No
                     and prior_event.get("decision") == "CONTINUE"
                     and prior_event.get("memory_recovery_status") == "WAITING_FOR_RESOURCE_CHANGE"
                 ]
+                halted_failure_events = [
+                    (idx, prior_event)
+                    for idx, prior_event in enumerate(interim, start=previous_index + 1)
+                    if prior_event.get("event") == "reconciled"
+                    and prior_event.get("document_id") == document_id
+                    and prior_event.get("continuation_id") == previous_continuation_id
+                    and prior_event.get("plan_sha256") == previous_plan_sha
+                    and prior_event.get("status") == "FAILED_NO_RETRY"
+                    and prior_event.get("decision") == "HALT"
+                ]
                 resource_events = []
                 if len(failure_events) == 1:
                     failure_index, _failure_event = failure_events[0]
@@ -2669,7 +3268,58 @@ def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]]) -> No
                         and prior_event.get("prior_queue_idempotency_key") == recovery.get("prior_queue_idempotency_key")
                         and prior_event.get("status") == "RESOURCE_CHANGE_OBSERVED"
                     ] if isinstance(recovery, dict) else []
-                observed_resource_change = len(resource_events) == 1 and _resource_change_event_is_bound(resource_events[0])
+                halted_resolution_events = []
+                if len(halted_failure_events) == 1 and isinstance(recovery, dict):
+                    failure_index, _failure_event = halted_failure_events[0]
+                    after_failure = interim[failure_index - previous_index:]
+                    halts = [
+                        prior_event for prior_event in after_failure
+                        if prior_event.get("event") == "halt"
+                        and prior_event.get("document_id") == document_id
+                        and prior_event.get("reason") == "FAILED_NO_RETRY"
+                    ]
+                    source_adoptions = [
+                        prior_event for prior_event in after_failure
+                        if prior_event.get("event") == "source_adoption"
+                        and prior_event.get("document_id") == document_id
+                        and prior_event.get("plan_sha256") == previous_plan_sha
+                    ]
+                    resource_events = [
+                        prior_event for prior_event in after_failure
+                        if prior_event.get("event") == "memory_recovery_wait"
+                        and prior_event.get("document_id") == document_id
+                        and prior_event.get("prior_plan_sha256") == previous_plan_sha
+                        and prior_event.get("prior_state_root") == previous_state_root
+                        and prior_event.get("prior_queue_idempotency_key") == recovery.get("prior_queue_idempotency_key")
+                        and prior_event.get("status") == "RESOURCE_CHANGE_OBSERVED"
+                    ]
+                    halted_resolution_events = [
+                        prior_event for prior_event in after_failure
+                        if prior_event.get("event") == "halt_resolution"
+                        and prior_event.get("document_id") == document_id
+                        and prior_event.get("prior_plan_sha256") == previous_plan_sha
+                        and prior_event.get("recovery_generation") == 1
+                        and prior_event.get("status") == "RESOURCE_CHANGE_OBSERVED"
+                    ]
+                    if len(halts) != 1 or len(source_adoptions) != 1:
+                        resource_events = []
+                        halted_resolution_events = []
+                observed_resource_change = (
+                    len(resource_events) == 1
+                    and _resource_change_event_is_bound(resource_events[0])
+                    and (
+                        len(failure_events) == 1
+                        or (
+                            len(halted_failure_events) == 1
+                            and len(halted_resolution_events) == 1
+                            and _resource_change_event_is_bound(halted_resolution_events[0])
+                            and halted_resolution_events[0].get("before") == resource_events[0].get("before")
+                            and halted_resolution_events[0].get("after") == resource_events[0].get("after")
+                            and halted_resolution_events[0].get("wait_event_line_sha256")
+                            == sha256_bytes(canonical_json(resource_events[0]) + b"\n")
+                        )
+                    )
+                )
                 if (
                     recovery_counts.get(document_id, 0) != 0
                     or not isinstance(recovery, dict)
