@@ -1,0 +1,285 @@
+{
+  "schema_version": "v4.us_mapping_e2e_repair.deployment_scope.v1",
+  "date": "2026-10-19",
+  "goal": "在现役 V4 API 上验证 US_MAPPING 修复：仅生成一个 MANUAL run，确认 R924/WMT、R955/KO、R942/PG 的港股候选、DATED 弱标记、确定性排序和正负依据，并在精确 run 页面完成独立 API/UI 验收。",
+  "writer": "mapping_writer",
+  "reviewer": "独立只读 Reviewer，由主控另行指派",
+  "phase": {
+    "status": "READ_ONLY_PREFLIGHT_COMPLETE",
+    "user_deployment_authorization": "已由用户提供",
+    "controller_gate": "等待主控审阅本 scope 并确认后才进入候选准备或服务切换",
+    "not_executed": [
+      "业务 POST /api/v4/manager-workbench/runs",
+      "材料重跑或数据下载",
+      "release candidate 构建",
+      "8873 服务或 launchd plist 变更",
+      "scheduler、Vibe 8910、其他服务或计划任务变更"
+    ]
+  },
+  "repository": {
+    "worktree": "/Users/lexi/.codex/worktrees/us-mapping-e2e-repair/v4_app",
+    "branch": "codex/us-mapping-e2e-repair-20261019",
+    "head": "552c11aa58645a33078a5f67abed4a293ab71df0",
+    "source_scope_sha256": "51b07af967e802b11f352824fc2836333fba4614123c11095c139f8e116b03d1",
+    "source_implementation_receipt_sha256": "bcff20555309a2451c8fc95dc72411ffd309c28d0badfa0486909624dcf53a08"
+  },
+  "active_api": {
+    "base_url": "http://127.0.0.1:8873",
+    "launchd_label": "com.lexi.v35.api-only",
+    "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "plist_sha256": "efa716de4a6e75d75afda72aecbb8943782eef361254f22a1195903584b999f9",
+    "listener": "127.0.0.1:8873",
+    "listener_pid": 4473,
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app",
+    "active_release_id": "announcement-fixed-membership-20261019-r1",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/release-manifest.json",
+    "manifest_sha256": "0d4ae8d528c337befd9bcb8b51ef8847a81010702866c3e4b36f8b7e9531083e",
+    "active_app_inventory": {
+      "file_count": 1262,
+      "aggregate_sha256": "d7a0a56160f80ea35ba490f8a5b724305c3e5ed47712a25ce31fea26741f02c1"
+    },
+    "health_readback": {
+      "GET /healthz": "HTTP 200, status=ok",
+      "GET /readyz": "HTTP 200; production_allowed=false, buy_gate_updated=false, orders_sent=false",
+      "GET /api/v1/runs/date-list?date=20261020": "bounded 30-second retry returned HTTP 200; requested and selected date 20261020, navigation/default/system date 20261019, runtime identity MANIFEST_EXECUTION_FILES_VERIFIED; process_status remains CANNOT_CONFIRM in API payload"
+    }
+  },
+  "other_service_identities": [
+    {
+      "label": "com.lexi.v35.scheduler",
+      "pid": 75648,
+      "plist_sha256": "9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702",
+      "action": "read only; preserve"
+    },
+    {
+      "label": "com.lexi.vibe-astock.local",
+      "pid": 1102,
+      "listener": "127.0.0.1:8910",
+      "plist_sha256": "8fbaefce221e17b3b7ed5e1d8f6417411ad11cf022c703fc27b3a2e30fe7b34d",
+      "action": "read only; preserve"
+    },
+    {
+      "label": "com.lexi.stage-center.scheduler",
+      "loaded": true,
+      "pid_observed": false,
+      "plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+      "action": "read only; preserve"
+    }
+  ],
+  "target_run": {
+    "request": {
+      "method": "POST",
+      "path": "/api/v4/manager-workbench/runs",
+      "body": {
+        "target_date": "20261020",
+        "phase": "MANUAL",
+        "lanes": [
+          "US_MAPPING"
+        ]
+      },
+      "call_count": 1,
+      "status": "NOT_EXECUTED"
+    },
+    "date_contract": {
+      "target_hk_date": "20261020",
+      "us_quote_session_date": "20261016",
+      "rationale": "复用已有 US close 历史输入与目标港股交易日，不下载、不补跑 owner 材料"
+    },
+    "existing_history_to_preserve": [
+      {
+        "run_id": "c01031c0470f4908986390c4dcf8be01",
+        "phase": "NEXT_DAY",
+        "generated_at": "2026-10-19T21:01:11.562110+08:00",
+        "product_sha256": "d907e98963625e2afab80053e508916001572b8f2222891398af47cbcdde963e",
+        "input_sha256": "197782ad2b2b02c18fda046e83eac590487cbff1912cd2b568746a804ddba5e6"
+      },
+      {
+        "run_id": "571e25ceffed46528fbc6b8ea45de3d3",
+        "phase": "MANUAL",
+        "generated_at": "2026-10-19T18:38:23.711983+08:00",
+        "product_sha256": "83ce1a28a28d608bca6b6208905c60bd4eb645d6b77c57b46301c2b8c3d1cc30",
+        "input_sha256": "60f1e11c87b8b4dc30d2431c99b642560dfb103af5b473793df83db2c40f76ed"
+      }
+    ],
+    "history_readback": "GET /api/v4/manager-workbench/history?date=20261020 returned HTTP 200 and 12 versions; newest was NEXT_DAY c01031c0470f4908986390c4dcf8be01, existing MANUAL 571e25ceffed46528fbc6b8ea45de3d3 remained listed",
+    "ui_readback_rule": "Reviewer must open /manager-selection/?date=20261020&run_id=<new_run_id> and verify returned snapshot.run_id matches; do not accept latest default NEXT_DAY run as this MANUAL result"
+  },
+  "existing_inputs": {
+    "manager_config": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+      "sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+      "dynamic_source_bindings": true
+    },
+    "roots": {
+      "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+      "us_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "relation_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-recovery-v2r1-20261016-r2/app",
+      "shared_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data",
+      "capture_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench_capture"
+    },
+    "full_mapping_overlays": [
+      {
+        "path": "v4/manager_workbench/research_data/us_hk_667_catalog_20261015.json",
+        "sha256": "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
+      },
+      {
+        "path": "v4/manager_workbench/research_data/us_hk_667_review_overlay_20261015.json",
+        "sha256": "d45d44fb074fc82923a0af5e37a8d645923a84acb48dc2bb1794b1f4ddc98c69"
+      },
+      {
+        "path": "v4/manager_workbench/research_data/us_hk_667_recovery_overlay_20261016.json",
+        "sha256": "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
+      }
+    ],
+    "recovery_overlay_identities": {
+      "R924": {
+        "hk_code": "06808",
+        "us_symbol": "WMT"
+      },
+      "R955": {
+        "hk_code": "09633",
+        "us_symbol": "KO"
+      },
+      "R942": {
+        "hk_code": "06993",
+        "us_symbol": "PG"
+      },
+      "qualification": "这些身份来自 recovery overlay；不得误报为 raw top-level catalog rows 或 business relation registry entries"
+    },
+    "saved_quote_owner_artifact": {
+      "path": "research/peripherals/history_backfill/20261019/external_finance.json",
+      "sha256": "e60cf4282db3394061edebf930e07588bf67fe516ef217e02b45993fdec7861e",
+      "receipt_path": "receipts/research/peripherals/history_backfill/20261019/external_finance.json",
+      "receipt_sha256": "ac02f5ca8dd3617d05c9eae684fae91040aa9a27ce0e76736dc1f184eac7bb6e",
+      "owner_manifest_path": "research/peripherals/manifest.json",
+      "owner_manifest_sha256": "3e28590f0194e0d6758d9e6f87d183ff015bcc43ff45953d6738ee0d70138846",
+      "us_session_date": "20261016",
+      "capture_mode": "HISTORICAL_BACKFILL / MANUAL_QUOTE_SCOPE_EXPANSION",
+      "coverage": "PARTIAL, 490 of 547 symbols, 57 gaps; WMT, KO and PG quotes were present and passed finite-positive-price and change-arithmetic checks",
+      "expected_scope_sha256": "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf8"
+    }
+  },
+  "source_delta": [
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "active_preimage_sha256": "223d20720537006bf0b4c62f009332ea71b4a483ca050c7b3b980fb8bd9885d7",
+      "candidate_source_sha256": "1c080a44370260d75439b06e7747d592192fe919aa68261624062b699b0f8456"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "active_preimage_sha256": "ee1f4174f2922becd0b92444440b2902d53da6e29c3f56e4b8c1f12e34e0a468",
+      "candidate_source_sha256": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "active_preimage_sha256": "131eee09a9d85869361aba9137e10aad77fb8860c9f35c247277137d0b64b271",
+      "candidate_source_sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1"
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "active_preimage_sha256": "167cd5c2e798ea8923ae633c1f4ba7c9b78dfa75d88f9b7603b0697452ae489e",
+      "candidate_source_sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "active_preimage_sha256": "94613d11d933f8993dc346585f4ff4466c7041dc2e6e46f04509a86563956a64",
+      "candidate_source_sha256": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+      "active_preimage_sha256": "661731113975763f794a849a370cb01c8e75e65a33ef2eb925f6bdc49e907a34",
+      "candidate_source_sha256": "cb3934d9b6f9a6804123a089901c55b37a435633fd183758a51e0f5ad2e62c57"
+    }
+  ],
+  "byte_identical_active_sources": [
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "sha256": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f"
+    }
+  ],
+  "static_preimage": {
+    "active_dist": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app/apps/web/dist",
+    "index_html_sha256": "f36dc1fff0d419335885f93396d1c395e83bd5d3fda59ef062818ab384334a7a",
+    "manager_selection_index_sha256": "336bfa56428539a71b01cef042d6349c66b954fbb6eea4da23b8a7188a6b7ddb",
+    "daily_research_command_index_sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+    "asset_file_count": 26,
+    "asset_inventory_sha256": "aa99d1effa5b6b310840842741fa4db669bfba97d20071cd540989ff18f86ef8",
+    "manager_selection_existing_assets": [
+      "assets/managerSelection-DJHLubi0.js",
+      "assets/managerSelection-C_D9h9ai.css"
+    ],
+    "future_delta_rule": "基于现役前端源码和仅两份 manager-workbench 源码补丁在隔离临时目录构建；候选仅替换 manager-selection/index.html 并新增其所需 hash assets。根 index、daily-research-command/index.html 与现有全部 26 个 assets 保留原字节；不拷贝 worktree 的全量 UI 基线或本地 dist。"
+  },
+  "release_tooling": {
+    "active_explicit_delta_helper": {
+      "path": "ops/api_release_integration.py",
+      "sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b",
+      "observed_blocker": "调用 module_role_contract() 时 FileNotFoundError：现役 app 缺失 deployment/api_module_contracts.json",
+      "status": "CANNOT_CONFIRM_READY"
+    },
+    "noncompliant_or_stale_helpers": [
+      {
+        "path": "ops/build_release_candidate.py",
+        "reason": "按 tracked V4 tree 和 apps/web/dist 构建全量候选，不满足本次精确 allowlist"
+      },
+      {
+        "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/prepare_runtime_candidate.py",
+        "reason": "绑定旧 active release futu-industry-api-20261016-r1 和旧 candidate us-hk-recovery-v2r1-20261016-r1"
+      },
+      {
+        "path": "docs/handoffs/us_hk_recovery_v2r1_20261016/runtime/activate_runtime_candidate_r2.py",
+        "reason": "绑定旧 candidate us-hk-recovery-v2r1-20261016-r2 及该批旧 plan/review receipt"
+      }
+    ],
+    "task_candidate_paths": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r2"
+    ],
+    "task_candidate_paths_exist": false,
+    "deployment_route_status": "CANNOT_CONFIRM; 主控需裁定可用且符合精确 allowlist 的既有 release/activation 路径后，才可准备候选"
+  },
+  "rollback": {
+    "preimage_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1",
+    "preimage_manifest_sha256": "0d4ae8d528c337befd9bcb8b51ef8847a81010702866c3e4b36f8b7e9531083e",
+    "preimage_api_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "preimage_api_plist_sha256": "efa716de4a6e75d75afda72aecbb8943782eef361254f22a1195903584b999f9",
+    "history_ids_to_keep": [
+      "c01031c0470f4908986390c4dcf8be01",
+      "571e25ceffed46528fbc6b8ea45de3d3"
+    ],
+    "rollback_method": "切换前保留现役 release 原样并在候选准备阶段保存 plist 原字节；若候选不能通过 API/UI Reviewer 验收，恢复同一 plist 到原路径，仅重启 com.lexi.v35.api-only，再核对 listener PID/cwd、/healthz、/readyz 和旧 run history。",
+    "executable_activation_rollback_command": "CANNOT_CONFIRM; 现有激活器均绑定旧 candidate，当前通用 release helper 又缺 module contract。不得猜命令或运行旧 helper。"
+  },
+  "pass_signal": [
+    "部署后 API 身份与新 release manifest 一致，API-only 安全标志仍为 production_allowed=false、buy_gate_updated=false、orders_sent=false。",
+    "唯一新 MANUAL US_MAPPING run 对应 20261020，并在精确 run_id UI 页面完成读回。",
+    "06808/R924-WMT、09633/R955-KO、06993/R942-PG 均以 DATED 弱标记可见；候选按冻结的组别、正负依据、来源强度和 HK code 排序并去重。",
+    "来源正向和负向证据均可检查；有效 quote 与方向相符或相反的依据不丢；无效 quote 不制造方向；明确排除关系不成为候选。",
+    "其他模块源码、运行配置、根页面和 daily-research-command 页面原字节保留；旧 release/plist/run 均可回退或读回。",
+    "独立 Reviewer 对实际 API 和渲染页面给出 PASS；HTTP 200 或 Writer 自检不算通过。"
+  ],
+  "stop_rule": "当前只交只读 preflight 和冻结 scope。主控确认 release 路径前不准备候选或切服务。若现役 manifest/plist/config/owner SHA 漂移、目标报价或 overlay 输入变化、candidate 需要 allowlist 外文件、任何未知 POST 结果、或无法证明其他模块原字节保留，则停下记录证据交主控；未知 POST 先 GET history 查证，禁止重复 POST。",
+  "cannot_confirm": [
+    "现役 explicit-delta release helper 因缺失 deployment/api_module_contracts.json 无法完成 readiness。",
+    "现有 prepare/activate runtime helpers 均绑定旧 release/candidate；无可确认的当前 task 通用 activation/rollback 命令。",
+    "API date-list 返回的 process_status 字段仍为 CANNOT_CONFIRM，尽管 live launchd/listener/cwd 与 manifest 绑定一致。",
+    "新 run、实际候选表、精确 run_id 页面及独立 Reviewer verdict 尚未产生。"
+  ],
+  "evidence_corrections": [
+    {
+      "field": "existing_inputs.saved_quote_owner_artifact.expected_scope_sha256",
+      "before": "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf2",
+      "after": "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf8",
+      "reason": "preflight transcription error; original saved artifact, receipt and owner manifest SHAs unchanged; controller independently read original artifact market_snapshot.manual_quote_scope",
+      "controller_authorized": true
+    }
+  ]
+}

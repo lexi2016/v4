@@ -1,0 +1,118 @@
+{
+  "state": "DEPLOYED_PENDING_INDEPENDENT_REVIEW",
+  "release_id": "us-mapping-e2e-repair-20261019-r1",
+  "manifest_sha256": "610ac9a0d9422f5165b825aeca04a234d10c2c7fd121c52c7da1371e116dab79",
+  "pid": 32091,
+  "runtime_identity": "MANIFEST_EXECUTION_FILES_VERIFIED",
+  "process_status": "CANNOT_CONFIRM",
+  "health": "ok",
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "plist_changes": [
+    {
+      "path": "/EnvironmentVariables/PYTHONPATH",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_APP_ROOT",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_ID",
+      "before": "announcement-fixed-membership-20261019-r1",
+      "after": "us-mapping-e2e-repair-20261019-r1"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_MANIFEST_PATH",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/release-manifest.json",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/release-manifest.json"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_MANIFEST_SHA256",
+      "before": "0d4ae8d528c337befd9bcb8b51ef8847a81010702866c3e4b36f8b7e9531083e",
+      "after": "610ac9a0d9422f5165b825aeca04a234d10c2c7fd121c52c7da1371e116dab79"
+    },
+    {
+      "path": "/ProgramArguments/18",
+      "before": "V35_APP_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app",
+      "after": "V35_APP_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app"
+    },
+    {
+      "path": "/ProgramArguments/19",
+      "before": "V35_RELEASE_ID=announcement-fixed-membership-20261019-r1",
+      "after": "V35_RELEASE_ID=us-mapping-e2e-repair-20261019-r1"
+    },
+    {
+      "path": "/ProgramArguments/25",
+      "before": "PYTHONPATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app",
+      "after": "PYTHONPATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app"
+    },
+    {
+      "path": "/ProgramArguments/26",
+      "before": "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/release-manifest.json",
+      "after": "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/release-manifest.json"
+    },
+    {
+      "path": "/ProgramArguments/27",
+      "before": "V35_RELEASE_MANIFEST_SHA256=0d4ae8d528c337befd9bcb8b51ef8847a81010702866c3e4b36f8b7e9531083e",
+      "after": "V35_RELEASE_MANIFEST_SHA256=610ac9a0d9422f5165b825aeca04a234d10c2c7fd121c52c7da1371e116dab79"
+    },
+    {
+      "path": "/WorkingDirectory",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app"
+    }
+  ],
+  "other_services_preserved": [
+    {
+      "label": "com.lexi.v35.scheduler",
+      "plist_sha256": "9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702",
+      "launchctl_status": 0,
+      "state": [
+        "state = running",
+        "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/full-us-hk-mapping-scheduler-20261019-r2/app",
+        "pid = 75648",
+        "state = active",
+        "state = active"
+      ]
+    },
+    {
+      "label": "com.lexi.vibe-astock.local",
+      "plist_sha256": "8fbaefce221e17b3b7ed5e1d8f6417411ad11cf022c703fc27b3a2e30fe7b34d",
+      "launchctl_status": 0,
+      "state": [
+        "state = running",
+        "working directory = /Users/lexi/Desktop/学习/vibe-astock",
+        "pid = 1102",
+        "state = active",
+        "state = active"
+      ]
+    },
+    {
+      "label": "com.lexi.stage-center.scheduler",
+      "plist_sha256": "204c82f7eae38a6ef6ed819df383701ec36d361471ae3dacc8b3f316add44290",
+      "launchctl_status": 0,
+      "state": [
+        "state = not running",
+        "working directory = /Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-precapture-isolation-20261016-r1/app",
+        "state = active",
+        "state = active"
+      ]
+    }
+  ],
+  "activation_failure_recovery": {
+    "first_bootstrap": "FAILED code5 Input/output error; old job still SIGTERMed",
+    "observed_transition": "launchctl print returned113 service absent",
+    "bounded_recovery": "single bootstrap after absent succeeded, kickstart succeeded; no second bootout",
+    "script_fix": "wait for exact job removal up to16 seconds before bootstrap; absent job supported for rollback"
+  },
+  "business_post_count": 0,
+  "rollback_artifacts_retained": true,
+  "rollback_exercised": false,
+  "source_acceptance_tests": "NOT_RERUN; prior independent PASS reused"
+}

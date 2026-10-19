@@ -1,0 +1,51 @@
+{
+  "schema": "v4.us_mapping.deployment_sync_allowlist.v1",
+  "allowed_files": [
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/SCOPE.json",
+      "sha256": "4bf882217a6908835684a8ca0bb64af6a34c8d50673ba1cb206445cf4348c5ca"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/PREFLIGHT_RECEIPT.md",
+      "sha256": "512ecc6489a42bfcfb1772a82a94bc269e04ded16742b4c098796b29db445d98"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/DEPLOYMENT_PLAN.md",
+      "sha256": "b988eddb83dcaf94f769840e0317b01d5c499b806361e5d9f1336bfcfc1b3600"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/bounded_release.py",
+      "sha256": "c9385bcab72027f3ea045254ad620655dff0586cce9f37db30db988d37f52b48"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/PREPARED.json",
+      "sha256": "5b7a0e1292dc15668ecc1de610a23feb73790d7b7fb2ba35770c08e539a9dd44"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/ACTIVATED.json",
+      "sha256": "85580876d512967531d975cce5a6549bdfcf15565ee583daecd5899be0afc51a"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/SINGLE_POST.json",
+      "sha256": "c6472742cb177fed17c1641adb28d350df68f00fb920cf02b4630b848dcd5ba1"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/LIVE_RECEIPT.json",
+      "sha256": "5f41398a7c400a1a402ea7d938dea238cd756008be9513ff0f57c68502ad81d0"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/LIVE_HANDOFF.md",
+      "sha256": "1f6d1160d51faa9f8113c39145965f16d0eb448eebfdd35919a8c163d299b301"
+    }
+  ],
+  "also_include_this_file": "docs/handoffs/us_mapping_e2e_repair_20261019/deployment/SYNC_ALLOWLIST.json",
+  "excluded": [
+    "local_only/**",
+    "all runtime releases",
+    "all business data",
+    "all plists and backups",
+    "node_modules",
+    "dist"
+  ],
+  "commit_push_owner": "controller"
+}

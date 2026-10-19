@@ -1,0 +1,322 @@
+{
+  "schema": "v4.us_mapping.live_deployment_handoff.v1",
+  "writer": "/root/mapping_deployer",
+  "state": "DEPLOYED_LIVE_RUN_READY_FOR_INDEPENDENT_REVIEW",
+  "source_commit": "552c11aa58645a33078a5f67abed4a293ab71df0",
+  "release_id": "us-mapping-e2e-repair-20261019-r1",
+  "manifest_sha256": "610ac9a0d9422f5165b825aeca04a234d10c2c7fd121c52c7da1371e116dab79",
+  "script_sha256": "c9385bcab72027f3ea045254ad620655dff0586cce9f37db30db988d37f52b48",
+  "source_acceptance": "prior independent REVIEWED/PASS reused; no business source changes or repeated synthetic tests",
+  "runtime_identity": "MANIFEST_EXECUTION_FILES_VERIFIED",
+  "process_status": "CANNOT_CONFIRM",
+  "pid": 32091,
+  "health": "ok",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "post_count": 1,
+  "request": {
+    "target_date": "20261020",
+    "phase": "MANUAL",
+    "lanes": [
+      "US_MAPPING"
+    ]
+  },
+  "request_started_at": "2026-10-19T23:30:01.310707+08:00",
+  "run_id": "dc205639f22e483e984555d689dcd226",
+  "job_state": "PARTIAL",
+  "job_step": "DONE",
+  "run_cutoff": "2026-10-19T23:30:56.109249+08:00",
+  "source_sessions": {
+    "hk_price": "20261016",
+    "us": "20261016"
+  },
+  "input_sha256": "2fe953b79312575666dcebdf7f8784f69e324cbd8edde93c3daeae3cae09fd63",
+  "product_sha256": "d1a0e5acc01f7d4abe009fbc39b5060d560eef8e5185bab89696b5899da0c752",
+  "api_urls": {
+    "job": "/api/v4/manager-workbench/runs/dc205639f22e483e984555d689dcd226",
+    "day": "/api/v4/manager-workbench/days/20261020?run_id=dc205639f22e483e984555d689dcd226&limit=200",
+    "recommendations": "/api/v4/manager-workbench/days/20261020/recommendations/US_MAPPING?run_id=dc205639f22e483e984555d689dcd226&limit=200",
+    "history": "/api/v4/manager-workbench/history?date=20261020"
+  },
+  "ui_url": "http://127.0.0.1:8873/manager-selection/?date=20261020&run_id=dc205639f22e483e984555d689dcd226",
+  "candidate_count": 410,
+  "qualification_counts": {
+    "DATED_WEAK_PEER": 218,
+    "PENDING_REVIEW": 192
+  },
+  "direction_counts": {
+    "POSITIVE_WITHOUT_NEGATIVE": 130,
+    "MIXED_POSITIVE_NEGATIVE": 23,
+    "NEGATIVE_WITHOUT_POSITIVE": 250,
+    "FLAT_OR_UNKNOWN": 7
+  },
+  "ordering": "QUALIFICATION_THEN_SOURCE_DIRECTION_THEN_POSITIVE_US_SOURCE_RETURN_DESC_THEN_HK_CODE",
+  "ordering_note": "Positive source return is a source-strength tie-break only; it is not an HK return forecast.",
+  "target_rows": [
+    {
+      "hk_code": "09633",
+      "name": "农夫山泉",
+      "symbol": "HK.09633",
+      "qualification": "DATED_WEAK_PEER",
+      "direction_group": "POSITIVE_WITHOUT_NEGATIVE",
+      "positive_source_move_strength_pct": "2.065217",
+      "positive_relation_ids": [
+        "R955"
+      ],
+      "negative_relation_ids": [],
+      "risk_markers": [
+        "DATED_RELATION_REQUIRES_REVIEW"
+      ],
+      "rank": 11,
+      "relations": [
+        {
+          "catalog_relation_id": "R955",
+          "us_symbol": "KO",
+          "quote_status": "VERIFIED",
+          "us_source_return_pct": "2.065217",
+          "signed_hk_return_pct": null
+        }
+      ]
+    },
+    {
+      "hk_code": "06993",
+      "name": "蓝月亮集团",
+      "symbol": "HK.06993",
+      "qualification": "DATED_WEAK_PEER",
+      "direction_group": "POSITIVE_WITHOUT_NEGATIVE",
+      "positive_source_move_strength_pct": "1.445124",
+      "positive_relation_ids": [
+        "R942"
+      ],
+      "negative_relation_ids": [],
+      "risk_markers": [
+        "DATED_RELATION_REQUIRES_REVIEW"
+      ],
+      "rank": 20,
+      "relations": [
+        {
+          "catalog_relation_id": "R942",
+          "us_symbol": "PG",
+          "quote_status": "VERIFIED",
+          "us_source_return_pct": "1.445124",
+          "signed_hk_return_pct": null
+        }
+      ]
+    },
+    {
+      "hk_code": "06808",
+      "name": "高鑫零售",
+      "symbol": "HK.06808",
+      "qualification": "DATED_WEAK_PEER",
+      "direction_group": "POSITIVE_WITHOUT_NEGATIVE",
+      "positive_source_move_strength_pct": "0.797489",
+      "positive_relation_ids": [
+        "R924"
+      ],
+      "negative_relation_ids": [],
+      "risk_markers": [
+        "DATED_RELATION_REQUIRES_REVIEW"
+      ],
+      "rank": 42,
+      "relations": [
+        {
+          "catalog_relation_id": "R924",
+          "us_symbol": "WMT",
+          "quote_status": "VERIFIED",
+          "us_source_return_pct": "0.797489",
+          "signed_hk_return_pct": null
+        }
+      ]
+    }
+  ],
+  "opposing_evidence_examples": [
+    {
+      "hk_code": "00762",
+      "direction_group": "MIXED_POSITIVE_NEGATIVE",
+      "positive_relation_ids": [
+        "R306"
+      ],
+      "negative_relation_ids": [
+        "R307"
+      ],
+      "sources": [
+        {
+          "catalog_relation_id": "R307",
+          "us_symbol": "T",
+          "us_source_return_pct": "-0.255319",
+          "quote_status": "VERIFIED",
+          "signed_hk_return_pct": null
+        },
+        {
+          "catalog_relation_id": "R306",
+          "us_symbol": "VZ",
+          "us_source_return_pct": "0.878378",
+          "quote_status": "VERIFIED",
+          "signed_hk_return_pct": null
+        }
+      ]
+    },
+    {
+      "hk_code": "01138",
+      "direction_group": "MIXED_POSITIVE_NEGATIVE",
+      "positive_relation_ids": [
+        "R464"
+      ],
+      "negative_relation_ids": [
+        "R463",
+        "R465"
+      ],
+      "sources": [
+        {
+          "catalog_relation_id": "R464",
+          "us_symbol": "DHT",
+          "us_source_return_pct": "0.725566",
+          "quote_status": "VERIFIED",
+          "signed_hk_return_pct": null
+        },
+        {
+          "catalog_relation_id": "R465",
+          "us_symbol": "FLNG",
+          "us_source_return_pct": "-1.431564",
+          "quote_status": "VERIFIED",
+          "signed_hk_return_pct": null
+        },
+        {
+          "catalog_relation_id": "R463",
+          "us_symbol": "FRO",
+          "us_source_return_pct": "-0.095166",
+          "quote_status": "VERIFIED",
+          "signed_hk_return_pct": null
+        }
+      ]
+    }
+  ],
+  "catalog_consumption": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "disposition_counts": {
+      "CANNOT_CONFIRM_CURRENT_SCOPE": 39,
+      "CANNOT_CONFIRM_INVALID_US_SYMBOL": 1,
+      "CANNOT_CONFIRM_RECOVERY_STATE": 84,
+      "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING": 86,
+      "EXCLUDED_FOR_CURRENT_PEER_USE": 3,
+      "EXCLUDED_FOR_SPECIFIED_USE": 24,
+      "OBSERVATION_ONLY": 75,
+      "OPEN_OBSERVATION_PENDING": 221,
+      "PEER_BACKGROUND_OR_PENDING": 254,
+      "PEER_CURRENT_SCOPE_UNCONFIRMED": 172,
+      "SAME_ISSUER_CURRENT_SCOPE_UNCONFIRMED": 19,
+      "SAME_ISSUER_IDENTITY_ONLY_PENDING": 25
+    },
+    "mapping_policy_sha256": "4e40b759f5811383d2a9ea8211dfc77662cb0094d7d863c75e54d8a5dba9a3c2",
+    "mapping_policy_version": "FULL_US_HK_INDUSTRY_MAPPING_CONSUMPTION_V4_20261019",
+    "missing_quote_relation_count": 70,
+    "orders_sent": false,
+    "production_allowed": false,
+    "quoted_relation_count": 933,
+    "relation_count": 1003,
+    "route_counts": {
+      "BROAD_SECTOR_BACKGROUND": 90,
+      "CAPEX_DEMAND_CONTEXT": 14,
+      "COMMODITY_COST_OR_OUTPUT_EXPOSURE": 46,
+      "CONTRACT_OR_LICENSE_ECONOMIC_EXPOSURE": 65,
+      "COUNTRY_OR_SENTIMENT_BACKGROUND": 2,
+      "DATED_TRANSACTION_EVENT": 4,
+      "JOINT_VENTURE_ECONOMIC_EXPOSURE": 10,
+      "MACRO_BACKGROUND": 26,
+      "OWNERSHIP_ECONOMIC_EXPOSURE": 42,
+      "SAME_ISSUER_ADR_CONTEXT": 64,
+      "SUBINDUSTRY_BUSINESS_PEER": 538,
+      "UPSTREAM_DOWNSTREAM_ECONOMIC_EXPOSURE": 102
+    },
+    "state": "READY",
+    "unique_relation_id_count": 1003
+  },
+  "candidate_hk_codes_unique": true,
+  "history_count": 13,
+  "retained_history": [
+    {
+      "run_id": "c01031c0470f4908986390c4dcf8be01",
+      "phase": "NEXT_DAY",
+      "product_sha256": "d907e98963625e2afab80053e508916001572b8f2222891398af47cbcdde963e",
+      "input_sha256": "197782ad2b2b02c18fda046e83eac590487cbff1912cd2b568746a804ddba5e6"
+    },
+    {
+      "run_id": "571e25ceffed46528fbc6b8ea45de3d3",
+      "phase": "MANUAL",
+      "product_sha256": "83ce1a28a28d608bca6b6208905c60bd4eb645d6b77c57b46301c2b8c3d1cc30",
+      "input_sha256": "60f1e11c87b8b4dc30d2431c99b642560dfb103af5b473793df83db2c40f76ed"
+    }
+  ],
+  "app_byte_preservation": {
+    "old_inventory_sha256": "d7a0a56160f80ea35ba490f8a5b724305c3e5ed47712a25ce31fea26741f02c1",
+    "candidate_inventory_sha256": "c16fb5c8e87ff71d710c355868010ced3a5692ee9f54b5b044ab5823823908be",
+    "full_delta": [
+      "apps/web/dist/assets/managerSelection-CmTzys-z.js",
+      "apps/web/dist/manager-selection/index.html",
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+      "v4/manager_workbench/engines/strict_us_selection.py",
+      "v4/manager_workbench/engines/us_mapping.py",
+      "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "v4/manager_workbench/inputs/source_bindings.py"
+    ],
+    "non_delta_preserved": true,
+    "existing_26_assets_preserved": true,
+    "root_daily_html_preserved": true,
+    "announcement_fix_preserved": true
+  },
+  "rollback": {
+    "command": "python3 /Users/lexi/.codex/worktrees/us-mapping-e2e-repair/v4_app/docs/handoffs/us_mapping_e2e_repair_20261019/deployment/bounded_release.py rollback",
+    "original_plist_sha256": "efa716de4a6e75d75afda72aecbb8943782eef361254f22a1195903584b999f9",
+    "candidate_plist_sha256": "fb07bfc97dcaeaf5f50d925a5ee665e5b11c27acef5e8b6f48f067ee8e1e33c6",
+    "original_release_unchanged": true,
+    "artifacts_prepared": true,
+    "exercise": "NOT_RUN"
+  },
+  "gaps": [
+    "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+    "US_SYMBOL_RELATIONS_UNASSESSED:ARKX,BOTZ,CLOU,COPX,DRIV,FCG,GLD,GRID,ICLN,ITA,KBE,LIT,MU,NLR,PDD,REMX,SOXX,TAN,UFO,WDC,XBI,XLE,XLP,XLY",
+    "RECORDS_UNASSESSED",
+    "HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL",
+    "HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL",
+    "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND",
+    "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND"
+  ],
+  "evidence_correction": [
+    {
+      "field": "existing_inputs.saved_quote_owner_artifact.expected_scope_sha256",
+      "before": "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf2",
+      "after": "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf8",
+      "reason": "preflight transcription error; original saved artifact, receipt and owner manifest SHAs unchanged; controller independently read original artifact market_snapshot.manual_quote_scope",
+      "controller_authorized": true
+    }
+  ],
+  "independent_api_ui_review": "PENDING; writer readback is handoff only",
+  "natural_period": "NOT_RUN",
+  "commit_push": "NOT_RUN; controller owns allowlisted synchronization",
+  "raw_evidence": "local_only excluded from synchronization",
+  "source_cutoff": "2026-10-19T23:30:01.311952+08:00",
+  "snapshot_cutoff": "2026-10-19T23:30:56.109249+08:00",
+  "cutoff_semantics": {
+    "source_cutoff": "2026-10-19T23:30:01.311952+08:00",
+    "run_contract_cutoff": "2026-10-19T23:30:01.311952+08:00",
+    "snapshot_scope_source_cutoff": "2026-10-19T23:30:01.311952+08:00",
+    "snapshot_context_cutoff": "2026-10-19T23:30:56.109249+08:00",
+    "snapshot_generated_at": "2026-10-19T23:30:56.415248+08:00",
+    "reason": "Existing ManagerService._work preserves original cutoff as scope_refs.source_cutoff and assigns now() to snapshot context cutoff after lane execution for all non-PREOPEN runs. Not an engine re-resolution or new input capture. Source session and original source cutoff remain bound.",
+    "code": "v4/manager_workbench/service.py:308-310",
+    "service_source_sha256": "219d7228c2fd25e3903db5fac385010a6414cc6961e2716479871418472e96a3",
+    "unchanged_between_base_and_candidate": true,
+    "evidence": [
+      "local_only/job-final.json:data.context.cutoff",
+      "local_only/day-final.json:data.snapshot.context",
+      "local_only/day-final.json:data.us_mapping_summary.run_contract"
+    ],
+    "impact": "No change to frozen input identity or this US20261016 target run; no source code change."
+  }
+}

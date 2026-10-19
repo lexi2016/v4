@@ -1,0 +1,31 @@
+{
+  "state": "PREPARED",
+  "source_commit": "552c11aa58645a33078a5f67abed4a293ab71df0",
+  "old_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-fixed-membership-20261019-r1",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1",
+  "manifest_sha256": "610ac9a0d9422f5165b825aeca04a234d10c2c7fd121c52c7da1371e116dab79",
+  "old_inventory_sha256": "d7a0a56160f80ea35ba490f8a5b724305c3e5ed47712a25ce31fea26741f02c1",
+  "candidate_inventory_sha256": "c16fb5c8e87ff71d710c355868010ced3a5692ee9f54b5b044ab5823823908be",
+  "changed_paths": [
+    "apps/web/dist/assets/managerSelection-CmTzys-z.js",
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+    "v4/manager_workbench/engines/strict_us_selection.py",
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/engines/us_mapping_consumption.py",
+    "v4/manager_workbench/inputs/source_bindings.py"
+  ],
+  "required_assets": [
+    "assets/managerSelection-C_D9h9ai.css",
+    "assets/managerSelection-CmTzys-z.js",
+    "assets/runtime-dom.esm-bundler--lJ_qsB2.js"
+  ],
+  "non_delta_preserved": true,
+  "original_plist_sha256": "efa716de4a6e75d75afda72aecbb8943782eef361254f22a1195903584b999f9",
+  "candidate_plist_sha256": "fb07bfc97dcaeaf5f50d925a5ee665e5b11c27acef5e8b6f48f067ee8e1e33c6",
+  "build_command": "npm run build (isolated active frontend source plus two accepted patches)",
+  "activation_executed": false,
+  "business_post_count": 0,
+  "rollback_command": "python3 /Users/lexi/.codex/worktrees/us-mapping-e2e-repair/v4_app/docs/handoffs/us_mapping_e2e_repair_20261019/deployment/bounded_release.py rollback"
+}

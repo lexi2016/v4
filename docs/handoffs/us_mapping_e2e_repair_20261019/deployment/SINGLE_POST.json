@@ -1,0 +1,25 @@
+{
+  "state": "RESPONSE_RECEIVED",
+  "method": "POST",
+  "path": "/api/v4/manager-workbench/runs",
+  "body": {
+    "target_date": "20261020",
+    "phase": "MANUAL",
+    "lanes": [
+      "US_MAPPING"
+    ]
+  },
+  "attempt_count": 1,
+  "request_started_at": "2026-10-19T23:30:01.310707+08:00",
+  "pre_post_context_file": "local_only/pre-post-context.json",
+  "pre_post_cutoff": "2026-10-19T23:28:47.204691+08:00",
+  "expected_us_session": "20261016",
+  "retry_forbidden": true,
+  "http_status": 202,
+  "response_state": "RUNNING",
+  "job_id": "dc205639f22e483e984555d689dcd226",
+  "run_id": "dc205639f22e483e984555d689dcd226",
+  "status_url": "/api/v4/manager-workbench/runs/dc205639f22e483e984555d689dcd226",
+  "final_job_state": "PARTIAL",
+  "final_job_step": "DONE"
+}
