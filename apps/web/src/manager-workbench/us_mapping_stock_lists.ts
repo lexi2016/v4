@@ -24,7 +24,6 @@ export interface USMappingPeerObservation {
   catalogCondition: string;
   quoteStatus: string;
   statusDetail: string;
-  consumerRetail: boolean;
 }
 
 export interface USMappingPeerLists {
@@ -42,8 +41,6 @@ export interface USMappingPeerLists {
 
 const ACCEPTED_DISPOSITION = "ADOPTED_BUSINESS_PEER";
 const BUSINESS_PEER_ROUTE = "SUBINDUSTRY_BUSINESS_PEER";
-const CONSUMER_RETAIL_LABEL = /(消费|零售|餐饮|食品|饮品|饮料|调味|包袋|箱包|户外|旅行用品|纸品|卫生用品|日化|美妆|服饰|运动|家居|家电|乳品|添加剂|洗护|个人护理)/i;
-
 function asRecord(value: unknown): DataRecord | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? value as DataRecord
@@ -150,20 +147,6 @@ function stockDirectionLabel(directions: Set<USPeerDirection>): string {
   return "来源方向待核";
 }
 
-function consumerRetailLabel(basket: DataRecord, relation: DataRecord): boolean {
-  const sourceRecord = asRecord(relation.catalog_source_record);
-  const values = [
-    basket.peer_bucket,
-    relation.catalog_segment,
-    relation.catalog_research_industry,
-    relation.catalog_research_segment,
-    sourceRecord?.segment,
-    sourceRecord?.["研究行业"],
-    sourceRecord?.["商品类型"]
-  ];
-  return values.some(value => CONSUMER_RETAIL_LABEL.test(text(value)));
-}
-
 function createObservation(
   input: unknown,
   memberValue: unknown,
@@ -210,7 +193,6 @@ function createObservation(
   const catalogRelationName = firstText(nestedRelation.hk_name);
   const stockName = stockNames.get(hkSymbol) || firstText(relation.name, catalogRelationName);
   const sourceRecord = asRecord(relation.catalog_source_record);
-  const consumerRetail = consumerRetailLabel(basket, relation);
   const detail = verified ? "来源报价已核验" : statusDetail({
     quoteStatus,
     hasReturn,
@@ -242,8 +224,7 @@ function createObservation(
     catalogFailure: failure,
     catalogCondition: condition,
     quoteStatus: verified ? "报价已核验" : `来源待核 · ${detail}`,
-    statusDetail: detail,
-    consumerRetail
+    statusDetail: detail
   };
 }
 
@@ -340,4 +321,12 @@ export function projectUSMappingPeerLists(value: unknown): USMappingPeerLists {
     flat: partition("flat"),
     unknown: partition("unknown")
   };
+}
+
+/** Preserve the backend's frozen qualification and evidence ordering verbatim. */
+export function projectUSMappingCandidates(value: unknown): DataRecord[] {
+  const summary = asRecord(value) || {};
+  return asArray(summary.catalog_candidates)
+    .map(asRecord)
+    .filter((candidate): candidate is DataRecord => candidate !== null);
 }

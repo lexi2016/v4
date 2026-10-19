@@ -1,0 +1,513 @@
+{
+  "schema_version": "v4.us_mapping_e2e_repair.scope.v1",
+  "goal": "接通既有 US_MAPPING 的可复现研究候选生成：统一恢复字段 schema，保留 DATED 弱同行用于复核，按港股生成唯一候选表及确定性优先级，使用既有 session/date/cutoff 契约，覆盖代理观察与明确映射缺口，并让前端消费后端顺序。 明确排除用途不进入候选；US 手工报价必须匹配证券身份、有限正价格和既有涨跌幅算术合同。",
+  "writer": "mapping_writer",
+  "reviewer": "独立只读 Reviewer，由主控另行指派",
+  "baseline": {
+    "repository": "/Users/lexi/.codex/worktrees/us-mapping-e2e-repair/v4_app",
+    "branch": "codex/us-mapping-e2e-repair-20261019",
+    "commit": "0a43bc203545b81bfe54135e9c81de2e1ef7212f",
+    "working_tree_before_scope": "clean"
+  },
+  "inputs": [
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_mapping_end_to_end_audit_20261019/HANDOFF.md",
+      "sha256": "c4e036139fe60d9d7e7eb2b0be6f82068bdf7e94a92a4c534307de28d407ff70",
+      "usage": "背景参考，不作为测试输入或候选输出。"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_mapping_end_to_end_audit_20261019/INDUSTRY_CROSSWALK.md",
+      "sha256": "3b58fa9b9db577dc9064d4dca32c0248a48f6af680fa37511fe83a6f44fdc469",
+      "usage": "背景参考，不作为测试输入或候选输出。"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/v4_app/docs/handoffs/us_mapping_end_to_end_audit_20261019/DELIVERY_DEPENDENCY_READBACK.json",
+      "sha256": "1c4194b84fd6ae5ff751c747a3a51537c3e67bf1e54bf8a0aeb3559577900051",
+      "usage": "背景参考，不作为测试输入或候选输出。"
+    },
+    {
+      "path": "tests/fixtures/issue45/real_relation_projection.json",
+      "sha256": "400b7ea8c556205518c72f3653b4afb583ee456283d2a7ef12a08475fdf49230",
+      "usage": "只读核验此文件自身身份；本批修改的测试未加载或断言此文件。旧 SHA 17ead71366273364ad3057830e626392d856c554120df971f4b1c1d5416b82b9 实为 local_only/actual_full_mapping_r2/lane-response.json，不属于本 fixture。"
+    }
+  ],
+  "allowed_paths": [
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "baseline_sha256": "223d20720537006bf0b4c62f009332ea71b4a483ca050c7b3b980fb8bd9885d7"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "baseline_sha256": "ee1f4174f2922becd0b92444440b2902d53da6e29c3f56e4b8c1f12e34e0a468"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "baseline_sha256": "131eee09a9d85869361aba9137e10aad77fb8860c9f35c247277137d0b64b271"
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "baseline_sha256": "167cd5c2e798ea8923ae633c1f4ba7c9b78dfa75d88f9b7603b0697452ae489e"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "baseline_sha256": "94613d11d933f8993dc346585f4ff4466c7041dc2e6e46f04509a86563956a64"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+      "baseline_sha256": "661731113975763f794a849a370cb01c8e75e65a33ef2eb925f6bdc49e907a34"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "baseline_sha256": "9360b853f68623228202914b9e89684a63f4757095d3c01999e4808e62a304a9",
+      "deployed_source_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "baseline_sha256": "d172b6c936b1dc7f77b0c0a93d158254798f50ab8b181310427434dbfe171a99",
+      "deployed_source_sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping_consumption.py",
+      "baseline_sha256": "76ce06de99247d371379c5cc620cc875d84021c89fa9d6daec31ab0c559dde95"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "baseline_sha256": "0f866beb62766c569d16836795daf102d122580303a1ffa2651d9c7aed65f8d1"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "baseline_sha256": "315fc49b191281ea6461b7c9328df33edca99ecaaafc3228f41e571c411196f5"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_stock_lists.spec.ts",
+      "baseline_sha256": "e747c53e54f46fe163ef8f337afb179a7cfda251f783390aefbdcc673b59d0ee"
+    },
+    {
+      "path": "apps/web/package.json",
+      "baseline": "absent",
+      "deployed_source_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b"
+    },
+    {
+      "path": "apps/web/package-lock.json",
+      "baseline": "absent",
+      "deployed_source_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "baseline": "absent",
+      "deployed_source_sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe"
+    },
+    {
+      "path": "pyproject.toml",
+      "baseline": "absent",
+      "deployed_source_sha256": "956930fce7721aa3edafaab797c684b3d7e1af89ee0738a16e5f730b1d0308c8"
+    },
+    {
+      "path": "apps/web/index.html",
+      "baseline": "absent",
+      "deployed_source_sha256": "4a03a2c60e2becc71dfa7a4aeb9c7da7ed04e74832b77151cedc2cc9c814594d",
+      "authorization": "主控 2026-10-19 明确批准恢复 Vite 实际引用入口"
+    },
+    {
+      "path": "apps/web/daily-research-command/index.html",
+      "baseline": "absent",
+      "deployed_source_sha256": "a6994e5ce3832cada2ce4b6c4667969d9e33e905b5865c41a9db30217f3bde6e",
+      "authorization": "主控 2026-10-19 明确批准恢复 Vite 实际引用入口"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/SCOPE.json",
+      "baseline": "absent",
+      "purpose": "冻结本批目标、路径、哈希、PASS 与 STOP"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_e2e_repair_20261019/IMPLEMENTATION_RECEIPT.md",
+      "baseline": "absent",
+      "purpose": "记录本批精简实现/验证证据与未完成项"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "e6500223b08750e885d03202ca2776bb169095420cbc9608f8bbf03b6c7d2c41",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "e517c05557700bdf4fa5c61be9194d14239f33737ab8f58e81e87bdd10e60305",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/App.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "71fb358a0ca855273ae0159691fe9a9715fae75d8c6944d275417278a37ef776",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/api/globalIndustries.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "023b0316f3961abcd298cb0ae5fce05949e377548a57361c015ad2ad7eb9cdbe",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/api/pool_stage.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "f56ff86f819ded834bb9f7309d3b8a3194f40ad1dc4739f2828f74dfb827ebca",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/api/research_lane.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "e543f7d5e6c750678818bce166ccdbaf5175382e8a9471b8c73531eaf39c2c86",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/api/review.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "fc2c7551fe386a9b01375d6d82d7f633990bba169f48e9b918386e31baa6dd7d",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/api/runtime.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "96d257a9266400443b7aad1252c4f709a0f24873ce9afab3f4a6dc9a189ff7c0",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/api/wechat_research.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/app_shell/formatters.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "35529e105f67227f11fb73548144fdb9cc22698090e0a0c73bd2fbfdd0d23440",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/app_shell/timeline.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "58cb16b14b6791c25dc69fcfa1c1fd2c1980bd593a0ed407b3c5ea98b08470e8",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/app_shell/types.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "af426dc751a38a48c75c4216d6ba782f6244588c2aee00cc2bb4af5e2ede0c1f",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/app_shell/useAppShell.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "4e4eb64238c5d5c5734f8c5c5a642cb05688d9554589ec12616dbdab6f1fa0d8",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/GlobalIndustryMap.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "185b3cb586f5e0daeefe7f0016674bc904c22edd465e88b92bedfa87d02467ce",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchAppendix.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchContextPane.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedCard.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "6f3c6593fe19fccee3ed7b47e63a7c4493ce4199e2216d31dfc0ecf5a9b9ffbd",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedPane.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "8980cd832a42b8d9bd353933ae98cb458d3fb13bc28c36e2f0df5892ddf72e4a",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchImpactList.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "c2248151611747cf2c14f7e07983470cc85a94b3d566e7616ab133f533e7e087",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchSourceColumns.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "4b6d6ee1344dfcca5ed45df8e60853be099942a1930047f6091b9ded0359fe1c",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchStatusStrip.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "5066ba418f6502e4ae6eefb2d7ac94221232aab16f187cbe875e33172ad4ac8a",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/WechatMentionPool.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "e542fb168e3f3fd6b8303e01df3002c8ae01a33c353ab30da944de7b59f18ce7",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/research/WechatResearchPanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/review/AshareReviewPanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "f9deaf8d15a3273d3237458b083b847a72f6dcda86824d37731103c13d6672bf",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/review/DailyResearchReviewPanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "a62d8c47419cac7d3d674693eddb5984b12f18268188f0328b163a60d590efb9",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/review/ReviewEvidencePanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "6164c5cd0042f70315b3aa6daf102b706c8b99055dffa702a574ca96ce025ef4",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/review/StageSummaryPanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/composables/researchFeedPresentation.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/composables/useResearchLane.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "c185614a38c401a9afdf9d392c1e866b3942b7740f870894b120a83c690401ff",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/contracts/globalIndustries.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "1d99226b27c1716833828c4c2d442e4e7a40fa36bd8d4507cd41a0a845e57b3d",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/contracts/review.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "079adf7971e346a8da5d40c49bc3c1fdfb2307aaf6ed70df5ed4d9312699c507",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/contracts/runtime.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/style.css",
+      "baseline": "absent",
+      "deployed_source_sha256": "97b8dc6595fc7e972f543aad247feadfc2ddaf7b6439fd6655d217acf08d26ba",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/styles/v3-research-lane.css",
+      "baseline": "absent",
+      "deployed_source_sha256": "d7b56919209d8551d5fb44789db20246d745b63273a42a60d0b34927be7232e8",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/views/ResearchView.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "cc84ad2e71af8e3c3ce67c31d8eb3e1af10fc7e33018d32ab5b134b9b79f5aca",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/views/ReviewView.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "cb1f4f19d9b8100d0caf86a5563990a90b627fdb72699b9ccbe499b1e9542c71",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/views/TaskStatusView.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "f86f3403f377653ea34568c298048cab96e39a27754f52c6f538ef7fb4cce045",
+      "authorization": "主控 2026-10-19 批准：恢复已部署 US/HK API release 的 main.ts 与 AnnouncementCandidates.vue 入口，以及本地导入闭包依赖；仅恢复原字节，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "f682b6cc37c9d2f7236c1a0c4b7ad3ba99fa81d4073efbb08afe07b9b41abf9c",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchHero.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "c5b47faf17654b89e140358ecab6ceb31868eae79bd7c973f3f3557ad061e185",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "99994f2ec38e2b3061b5fdf7d6363d6eaad24805b787cf1822edbab0f106092e",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "94fa1c74db8701a9af734795a0c74579adba03d6ca3cceb262848ab95a5f9422",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "71f4f68432a9f8a9b23022aa2aae929954a6aa5100972042f9b4746ae3dcb3f4",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchPools.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "b03af7d1ca0f0abfcd6231bb9ba53f4e272349cf740b2bf179bcd0543ebfc395",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "ac61c10627dfa1b5cd0269efc22ae50412f681c91db88e8b6d4ae7845e845d57",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/components/daily-research-command/types.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "7b06a9da0e790083636a13b5994808676713d2ff91eea5e1de11ef8933bf5607",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/contracts/research.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "74324e313f8811822c18b3c65c7f80a6661d3dca8ac5a7f02820139d55bd7bf9",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/daily-research-command/main.ts",
+      "baseline": "absent",
+      "deployed_source_sha256": "b8235092c762fc5cb485b649a6a45a05b434511301ca9f0444515bb04a465385",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/styles/daily-research-command.css",
+      "baseline": "absent",
+      "deployed_source_sha256": "f49ca125c89c8420136260ebe2c911f897863247c3506f6813370c49e02374e7",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    },
+    {
+      "path": "apps/web/src/views/DailyResearchCommandView.vue",
+      "baseline": "absent",
+      "deployed_source_sha256": "38854e4945c10802596845e2a3f00cbecee628b6e723831b5a3ac9182c95b2b7",
+      "authorization": "主控 2026-10-19 批准：恢复 Vite 多入口静态导入闭包中的 daily-research-command 依赖，仅按已部署 release 原字节恢复，不作业务修改"
+    }
+  ],
+  "forbidden_paths_and_actions": [
+    "canonical checkout and other worktrees",
+    "original research overlays, market data, and business data",
+    "V3 repositories and Vibe 8910 source/config/service",
+    "release directories, running services, schedulers, permissions, and hooks",
+    "training, backtests, new market data capture, BUY gates, production permissions, and orders",
+    "commit, push, deploy, service/task changes, or external actions"
+  ],
+  "pass_signal": {
+    "behavior_cases": [
+      "R924/R955/R942 nested DATED state is preserved and visible as a weak review candidate; it is never promoted to current adopted support",
+      "top-level/nested conflicts are explicit, true missing values remain missing, and unknown enum values are pending rather than supported",
+      "the actual US_MAPPING entry invokes one backend aggregation and stable ordering; multiple source relations deduplicate by HK code while all positive and negative evidence remains expandable",
+      "ordering is current-supported, dated-weak, pending; within each group positive without negative, mixed positive/negative, negative, then flat/unknown; positive source return descending is a source-strength tie-break only; HK code resolves the final tie",
+      "ITA appears in available proxy coverage, and absent relation edges display mapping pending without constructing an edge",
+      "an invalid/wrong-session/pre-close quote cannot create direction and only degrades its own source relation",
+      "ordinary and post-holiday target sessions run from existing date/session/cutoff inputs without 2026-10-16 to 2026-10-20 gating",
+      "the frontend consumes backend candidate ordering and renders one default candidate table with date, source qualification, and visible risks; legacy summaries remain collapsed details",
+      "research safety remains RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false",
+      "CLOSED_RESEARCH_SCOPE + CURRENT_RESEARCH_SCOPE 不能覆盖 catalog_research_use=EXCLUDED_CURRENT；关系保留明确排除原因，但不进入 catalog_candidates。",
+      "手工 quote 的 map symbol 与 quote.symbol 不一致、last/previous_close 缺失/非有限/非正，或 change_pct 与价格推导不符时，quote 不得 VERIFIED 或制造方向；影响仅限该关系，其他有效候选保留。"
+    ],
+    "commands": [
+      "pytest -q tests/manager_workbench/engines/test_us_mapping_consumption.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "npm --prefix apps/web run typecheck",
+      "npm --prefix apps/web run test -- src/manager-workbench/__tests__/us_mapping_stock_lists.spec.ts",
+      "npm --prefix apps/web run build",
+      "PYTHONPATH=. ./.venv/bin/pytest -q tests/manager_workbench/engines/test_us_mapping.py::test_real_us_mapping_entry_quarantines_excluded_use_and_invalid_manual_quotes",
+      "PYTHONPATH=. ./.venv/bin/pytest -q tests/manager_workbench/engines/test_us_mapping_consumption.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_strict_us_selection.py"
+    ],
+    "scope_hash": "computed after the final source/input/config freeze; independent reviewer records its own verdict"
+  },
+  "stop_rule": "停止在精确 allowlist；任何新路径、数据 owner 歧义、需要改变关系准入或日期语义、无法维持研究安全边界时，记录证据并交主控裁定。阶段 PASS 后不重复测试；本 Writer 结果只交接，不代替独立 Reviewer PASS。",
+  "dependency_closure": {
+    "deployed_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-visible-stock-lists-api-20261019-r2/app",
+    "entry_paths": [
+      "apps/web/src/main.ts",
+      "apps/web/src/manager-workbench/AnnouncementCandidates.vue"
+    ],
+    "static_local_import_closure_file_count": 41,
+    "missing_at_baseline_count": 38,
+    "restored_only_from_deployed_release": true,
+    "source_sha256_recorded_per_path_in_allowed_paths": true,
+    "vite_input_paths": [
+      "apps/web/index.html",
+      "apps/web/daily-research-command/index.html",
+      "apps/web/manager-selection/index.html"
+    ],
+    "static_local_import_and_css_closure_file_count": 59,
+    "missing_at_original_baseline_count": 50
+  },
+  "test_input_provenance": [
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py::make_batch",
+      "kind": "synthetic inline fixture builder",
+      "usage": "提供真实 run_us_mapping 入口回归的合成来源上下文；未读取本地原始行情 JSON。"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py::test_real_us_mapping_entry_quarantines_excluded_use_and_invalid_manual_quotes",
+      "kind": "synthetic inline catalog relations and quote scope",
+      "usage": "经 run_us_mapping -> run_single_day_mapping 验证 EXCLUDED_CURRENT 隔离、错证券 quote.symbol、缺 previous_close、非有限价格、涨跌幅算术不符；GOOD 行确认其他有效候选保留。"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping_consumption.py::_row/_binding/_quote",
+      "kind": "synthetic unit-test helper records and quotes",
+      "usage": "消费投影、状态分类和 quote 守卫的窄回归，不代表原始 fixture 或原行情复现。"
+    }
+  ],
+  "quote_contract_references": [
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "usage": "_return_pct 既有合同：last / previous_close 为有限正价格，change_pct 与推导涨跌幅的差不超过 0.001 个百分点。只读参考。"
+    },
+    {
+      "path": "infrastructure/_research_peripheral_store_parts/market_validation.py",
+      "sha256": "48cf92c82e968023a9618b7d700385c50e8b3507c1e1fe226cc37f6721963ffd",
+      "usage": "既有 market_snapshot quote 字段/有限数值/涨跌幅算术验证合同。只读参考。"
+    }
+  ]
+}

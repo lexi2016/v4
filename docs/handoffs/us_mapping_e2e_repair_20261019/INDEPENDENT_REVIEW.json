@@ -1,0 +1,98 @@
+{
+  "schema": "v4.us_mapping_e2e_repair.independent_review.v1",
+  "reviewer": "/root/mapping_reviewer",
+  "baseline": "0a43bc203545b81bfe54135e9c81de2e1ef7212f",
+  "branch": "codex/us-mapping-e2e-repair-20261019",
+  "verdict": "REVIEWED/PASS",
+  "states": {
+    "TESTED": "PASS",
+    "BEHAVIOR_VERIFIED": "PASS_SCOPED_SYNTHETIC_ENTRY_AND_FRONTEND_COMPONENT",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN",
+    "UI_VERIFIED": "NOT_RUN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "REVIEWED/FAIL",
+      "scope_sha256": "a9ee38e7a91a18431de0cc0dae0bfc163d1494a7e5ba2169b3c17fd082b17861",
+      "receipt_sha256": "b13c828cd8aa2babc9c60216012245acf99ff8337d2364711afa38695ada1539",
+      "findings": [
+        {
+          "id": "F1",
+          "priority": "P1",
+          "issue": "EXCLUDED_CURRENT research use admitted as current-supported candidate"
+        },
+        {
+          "id": "F2",
+          "priority": "P1",
+          "issue": "Mismatched quote symbol or missing previous_close admitted as directional evidence"
+        },
+        {
+          "id": "F3",
+          "priority": "P2",
+          "issue": "Declared fixture path was associated with a different historical raw response SHA"
+        }
+      ],
+      "checks": "49 targeted Python tests, 6 frontend tests, focused spec typecheck, APP_TYPECHECK, Vite 3-entry build passed; actual-entry counterexamples failed acceptance."
+    },
+    {
+      "round": 2,
+      "verdict": "REVIEWED/PASS",
+      "closed": [
+        "F1",
+        "F2",
+        "F3"
+      ],
+      "scope_sha256": "51b07af967e802b11f352824fc2836333fba4614123c11095c139f8e116b03d1",
+      "receipt_sha256": "bcff20555309a2451c8fc95dc72411ffd309c28d0badfa0486909624dcf53a08",
+      "checks": [
+        {
+          "command": "PYTHONPATH=. ./.venv/bin/pytest -q tests/manager_workbench/engines/test_us_mapping_consumption.py tests/manager_workbench/engines/test_us_mapping.py tests/manager_workbench/runtime/test_strict_us_selection.py",
+          "result": "PASS: 51 tests"
+        },
+        {
+          "command": "git diff --check and SCOPE.json JSON parsing",
+          "result": "PASS"
+        }
+      ],
+      "reused_unchanged_checks": [
+        "APP_TYPECHECK",
+        "focused Vue spec typecheck",
+        "focused Vitest: 6 tests",
+        "Vite build: 3 HTML inputs, 100 modules"
+      ]
+    }
+  ],
+  "behavior_evidence": [
+    "R924/R955/R942 remain DATED_WEAK_PEER visible candidates without promotion to current support",
+    "Opposing source evidence retained and ordering stable under reversed input",
+    "ITA coverage shown without invented relationship edges",
+    "Ordinary and post-holiday source/target sessions through existing US_MAPPING entry",
+    "Explicit excluded use blocked in projection and candidate aggregation including stale adopted disposition",
+    "Mismatched symbol, missing/non-finite prices and price/return mismatch do not create direction; valid sources remain",
+    "Frontend component consumes backend order"
+  ],
+  "reviewed_sha256": {
+    "v4/manager_workbench/engines/us_mapping_consumption.py": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c",
+    "tests/manager_workbench/engines/test_us_mapping.py": "2296d39d4ce162c566b2e7e3364b1e1f35ddf192a028e255cec19d6ef53da13c",
+    "tests/manager_workbench/engines/test_us_mapping_consumption.py": "4b847099127400e8a536d547d567113ab69e87dbd4e4a4d69e8bf15f7ddfc0b3",
+    "tests/manager_workbench/runtime/test_strict_us_selection.py": "d90206bc2444e209aecc00ef84f341fd549547f4f5f3bf1fce79adad0885ee92",
+    "docs/handoffs/us_mapping_e2e_repair_20261019/SCOPE.json": "51b07af967e802b11f352824fc2836333fba4614123c11095c139f8e116b03d1",
+    "docs/handoffs/us_mapping_e2e_repair_20261019/IMPLEMENTATION_RECEIPT.md": "bcff20555309a2451c8fc95dc72411ffd309c28d0badfa0486909624dcf53a08"
+  },
+  "limitations": [
+    "Synthetic backend-entry and component behavior only; live API, rendered UI, natural-period results not verified",
+    "Python 3.12.14 used; pyproject requires >=3.14, Python 3.14 compatibility CANNOT_CONFIRM",
+    "APP_TYPECHECK is scoped to manager-workbench; full frontend typecheck and full Vitest suite not accepted",
+    "Fixture identity checked only; changed tests use synthetic inputs"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "controller_record": "Controller transcribed independent review verdict; no new source changes or duplicate acceptance testing."
+}

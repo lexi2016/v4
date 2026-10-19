@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from decimal import Decimal, InvalidOperation
+from datetime import datetime
+from decimal import Decimal, DecimalException, InvalidOperation
 import re
 from typing import Any, Mapping
+from contracts.us_equity_calendar import NY, session as us_equity_session
 
-from .common import current, valid_sha
+from .common import current, timestamp, valid_sha
 
 CATALOG_SOURCE_SHA256 = "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
 RECOVERY_OVERLAY_SHA256 = "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143fe07f9e9e91c"
@@ -32,7 +34,9 @@ RELATION_ROUTES = {
     "TRANSACTION_EVENT": ("DATED_TRANSACTION_EVENT", "SECONDARY"),
 }
 _EXCLUDED_MARKERS = ("EXCLUDED", "ENDED", "TERMINATED", "OLD_SECURITY", "OLD_PRICE")
-_NONCURRENT_MARKERS = ("BACKGROUND", "HISTORICAL", "PENDING", "CANNOT_CONFIRM", "OPEN_CURRENT")
+_NONCURRENT_MARKERS = ("DATED", "BACKGROUND", "HISTORICAL", "PENDING", "CANNOT_CONFIRM", "OPEN_CURRENT")
+_SUPPORTED_CURRENT_STATES = frozenset({"CURRENT_RESEARCH_SCOPE"})
+_QUOTE_RETURN_TOLERANCE_PP = Decimal("0.001")
 
 
 def normalize_us_symbol(value: Any) -> str | None:
@@ -46,29 +50,44 @@ def _text(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def _state(use_scope: Any, section: str) -> str | None:
-    if not isinstance(use_scope, Mapping):
-        return None
-    candidates = [use_scope.get("use_scope"), use_scope.get("research_layers"), use_scope]
-    for container in candidates:
-        if not isinstance(container, Mapping):
-            continue
-        value = container.get(section)
-        if isinstance(value, Mapping):
-            raw = value.get("state") or value.get("status") or value.get("finding")
-            if isinstance(raw, str) and raw.strip():
-                return raw.strip()
-        elif isinstance(value, str) and value.strip():
-            return value.strip()
+def _state_resolution(recovery: Any, section: str) -> tuple[str | None, list[dict[str, str]], bool]:
+    if not isinstance(recovery, Mapping):
+        return None, [], False
     fallback = {
         "CURRENT_APPLICABILITY": "current_applicability_state",
         "FACT_VERIFIED_SCOPE": "fact_state",
+        "IDENTITY_SCOPE": "identity_state",
+        "EXCLUDED_SCOPE": "excluded_scope_state",
+        "PENDING_SCOPE": "pending_scope_state",
     }.get(section)
+    values: list[dict[str, str]] = []
     if fallback:
-        raw = use_scope.get(fallback)
+        raw = recovery.get(fallback)
         if isinstance(raw, str) and raw.strip():
-            return raw.strip()
-    return None
+            values.append({"path": fallback, "value": raw.strip()})
+    for container_name in ("use_scope", "research_layers", "six_layers"):
+        container = recovery.get(container_name)
+        if not isinstance(container, Mapping):
+            continue
+        raw = container.get(section)
+        if isinstance(raw, Mapping):
+            for field in ("state", "status", "finding"):
+                state_value = raw.get(field)
+                if isinstance(state_value, str) and state_value.strip():
+                    values.append({"path": f"{container_name}.{section}.{field}",
+                                   "value": state_value.strip()})
+        elif isinstance(raw, str) and raw.strip():
+            values.append({"path": f"{container_name}.{section}", "value": raw.strip()})
+    conflicts = recovery.get("state_conflicts")
+    conflict_key = fallback or section
+    recorded = conflicts.get(conflict_key) if isinstance(conflicts, Mapping) else None
+    if isinstance(recorded, list):
+        values.extend(item for item in recorded if isinstance(item, dict)
+                      and isinstance(item.get("value"), str) and item.get("value").strip())
+    distinct = {item["value"].upper() for item in values}
+    if len(distinct) > 1:
+        return None, values, True
+    return (values[0]["value"] if values else None), values, False
 
 
 def _current_scope_class(state: str | None) -> str:
@@ -79,7 +98,9 @@ def _current_scope_class(state: str | None) -> str:
         return "EXPLICITLY_EXCLUDED_OR_ENDED"
     if any(marker in upper for marker in _NONCURRENT_MARKERS):
         return "DATED_OR_PENDING_SCOPE"
-    return "LIMITED_SCOPE_SUPPORTED_FOR_RESEARCH"
+    if upper in _SUPPORTED_CURRENT_STATES:
+        return "LIMITED_SCOPE_SUPPORTED_FOR_RESEARCH"
+    return "UNRECOGNIZED_CURRENT_APPLICABILITY"
 
 
 def _is_noncurrent(state: str | None) -> bool:
@@ -99,6 +120,21 @@ def _quote_return(quote: Any) -> Decimal | None:
     except (InvalidOperation, TypeError, ValueError):
         return None
     return parsed if parsed.is_finite() else None
+
+
+def _quote_price(quote: Mapping[str, Any], field: str) -> Decimal | None:
+    value = quote.get(field)
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        parsed = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError, OverflowError):
+        return None
+    return parsed if parsed.is_finite() else None
+
+
+def _research_use_explicitly_excluded(value: Any) -> bool:
+    return isinstance(value, str) and "EXCLUDED" in value.strip().upper()
 
 
 def _manual_quote(manual_binding: Any, symbol: str, expected_session: str,
@@ -121,13 +157,44 @@ def _manual_quote(manual_binding: Any, symbol: str, expected_session: str,
         gaps = manual_binding.get("symbol_gaps")
         reason = gaps.get(symbol) if isinstance(gaps, Mapping) else None
         return None, str(reason or "MANUAL_QUOTE_SYMBOL_MISSING")
+    if normalize_us_symbol(quote.get("symbol")) != symbol:
+        return None, "MANUAL_QUOTE_SYMBOL_MISMATCH"
     if quote.get("session_date") != expected_session:
         return None, "MANUAL_QUOTE_SESSION_DATE_MISMATCH"
     if not isinstance(quote.get("session_time"), str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d", quote["session_time"]):
         return None, "MANUAL_QUOTE_PROVIDER_TIME_INVALID"
+    try:
+        official = us_equity_session(expected_session)
+        if official.close_at is None:
+            return None, "MANUAL_QUOTE_SESSION_NOT_OPEN"
+        observed = datetime.strptime(expected_session + " " + quote["session_time"],
+            "%Y%m%d %H:%M:%S").replace(tzinfo=NY)
+        captured_at = timestamp(manual_binding.get("available_at"))
+    except (ValueError, TypeError, OverflowError):
+        return None, "MANUAL_QUOTE_SESSION_TIMESTAMP_INVALID"
+    if observed < official.close_at:
+        return None, "MANUAL_QUOTE_BEFORE_OFFICIAL_CLOSE"
+    if observed > captured_at:
+        return None, "MANUAL_QUOTE_AFTER_CAPTURE"
+    last = _quote_price(quote, "last")
+    previous_close = _quote_price(quote, "previous_close")
+    if last is None or last <= 0 or previous_close is None or previous_close <= 0:
+        return None, "MANUAL_QUOTE_PRICE_INVALID"
     value = _quote_return(quote)
     if value is None:
         return None, "MANUAL_QUOTE_RETURN_INVALID"
+    try:
+        calculated = (last / previous_close - Decimal(1)) * Decimal(100)
+    except DecimalException:
+        return None, "MANUAL_QUOTE_RETURN_INVALID"
+    if not calculated.is_finite():
+        return None, "MANUAL_QUOTE_RETURN_INVALID"
+    try:
+        return_gap = abs(value - calculated)
+    except DecimalException:
+        return None, "MANUAL_QUOTE_RETURN_INVALID"
+    if return_gap > _QUOTE_RETURN_TOLERANCE_PP:
+        return None, "MANUAL_QUOTE_RETURN_MISMATCH"
     return dict(quote), None
 
 
@@ -150,10 +217,14 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
     recovery = relation.get("recovery_v2r1")
     recovery = recovery if isinstance(recovery, Mapping) else {}
     use_scope = recovery.get("use_scope")
-    current_state = _state(recovery, "CURRENT_APPLICABILITY")
-    fact_scope = _state(recovery, "FACT_VERIFIED_SCOPE")
-    excluded_scope = _state(recovery, "EXCLUDED_SCOPE")
-    pending_scope = _state(recovery, "PENDING_SCOPE")
+    current_state, current_state_values, current_state_conflict = _state_resolution(
+        recovery, "CURRENT_APPLICABILITY")
+    fact_scope, fact_state_values, fact_state_conflict = _state_resolution(
+        recovery, "FACT_VERIFIED_SCOPE")
+    identity_scope, identity_state_values, identity_state_conflict = _state_resolution(
+        recovery, "IDENTITY_SCOPE")
+    excluded_scope, _, _ = _state_resolution(recovery, "EXCLUDED_SCOPE")
+    pending_scope, _, _ = _state_resolution(recovery, "PENDING_SCOPE")
 
     relation_id = relation.get("relation_id")
     raw_relation_id = source.get("关系编号")
@@ -167,8 +238,10 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
     source_id_matches = bool(relation_id and relation_id == raw_relation_id
         and hk_code and source.get("code") == hk_code)
 
-    closure = _text(recovery.get("closure_status")) or _text(
-        relation.get("catalog_recovery_status"))
+    closure_values = [value for value in (_text(recovery.get("closure_status")),
+        _text(relation.get("catalog_recovery_status"))) if value]
+    closure_conflict = len(set(closure_values)) > 1
+    closure = closure_values[0] if closure_values and not closure_conflict else ""
     route, priority = RELATION_ROUTES.get(relation_type, ("UNMAPPED_RELATION_TYPE", "UNASSESSED"))
     fact = _text(source.get("fact"))
     condition = _text(source.get("condition"))
@@ -176,7 +249,8 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
     research_industry = _text(source.get("研究行业"))
     quote, quote_gap = _manual_quote(manual_binding, us_symbol or "", expected_session, cutoff)
     quote_return = _quote_return(quote)
-    current_class = _current_scope_class(current_state)
+    current_class = ("CONFLICTING_CURRENT_APPLICABILITY" if current_state_conflict
+        else _current_scope_class(current_state))
 
     if not source_id_matches:
         disposition, reason = "CANNOT_CONFIRM_SOURCE_IDENTITY", "RELATION_ID_OR_HK_IDENTITY_MISMATCH"
@@ -184,6 +258,10 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
         disposition, reason = "CANNOT_CONFIRM_INVALID_US_SYMBOL", "RAW_US_SYMBOL_INVALID_NO_ALIAS_INFERRED"
     elif closure == "CLOSED_EXCLUDED_SCOPE":
         disposition, reason = "EXCLUDED_FOR_SPECIFIED_USE", "RECOVERY_SCOPE_EXPLICITLY_EXCLUDED"
+    elif _research_use_explicitly_excluded(relation.get("research_use")):
+        disposition, reason = "EXCLUDED_FOR_SPECIFIED_RESEARCH_USE", "CATALOG_RESEARCH_USE_EXPLICITLY_EXCLUDED"
+    elif closure_conflict:
+        disposition, reason = "CANNOT_CONFIRM_RECOVERY_SCOPE", "RECOVERY_CLOSURE_STATUS_CONFLICT"
     elif closure == "OPEN":
         disposition, reason = "OPEN_OBSERVATION_PENDING", "RECOVERY_SCOPE_OPEN"
     elif closure != "CLOSED_RESEARCH_SCOPE":
@@ -192,13 +270,19 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
         disposition, reason = "CANNOT_CONFIRM_RELATION_TYPE", "RELATION_TYPE_UNMAPPED"
     elif not fact:
         disposition, reason = "CANNOT_CONFIRM_FACT_SCOPE", "ORIGINAL_FACT_FIELD_EMPTY"
+    elif fact_state_conflict or identity_state_conflict:
+        disposition, reason = "CANNOT_CONFIRM_RECOVERY_STATE", "TOP_LEVEL_NESTED_RECOVERY_STATE_CONFLICT"
     elif relation_type == "BUSINESS_PEER":
         if current_class == "EXPLICITLY_EXCLUDED_OR_ENDED":
             disposition, reason = "EXCLUDED_FOR_CURRENT_PEER_USE", "CURRENT_APPLICABILITY_EXPLICITLY_EXCLUDED_OR_ENDED"
         elif current_class == "CANNOT_CONFIRM_CURRENT_APPLICABILITY":
             disposition, reason = "PEER_CURRENT_SCOPE_UNCONFIRMED", "CURRENT_APPLICABILITY_FIELD_MISSING"
+        elif current_class == "CONFLICTING_CURRENT_APPLICABILITY":
+            disposition, reason = "PEER_CURRENT_SCOPE_UNCONFIRMED", "CURRENT_APPLICABILITY_TOP_LEVEL_NESTED_CONFLICT"
         elif current_class == "DATED_OR_PENDING_SCOPE":
             disposition, reason = "PEER_BACKGROUND_OR_PENDING", "CURRENT_APPLICABILITY_IS_DATED_BACKGROUND_OR_PENDING"
+        elif current_class == "UNRECOGNIZED_CURRENT_APPLICABILITY":
+            disposition, reason = "PEER_CURRENT_SCOPE_UNCONFIRMED", "CURRENT_APPLICABILITY_ENUM_UNRECOGNIZED"
         elif not (segment or research_industry):
             disposition, reason = "PEER_SEGMENT_UNCLASSIFIED", "NO_EXACT_SEGMENT_OR_TARGET_INDUSTRY"
         else:
@@ -209,6 +293,8 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
             disposition, reason = "EXCLUDED_FOR_CURRENT_ROUTE", "CURRENT_APPLICABILITY_EXPLICITLY_EXCLUDED_OR_ENDED"
         elif current_class == "CANNOT_CONFIRM_CURRENT_APPLICABILITY":
             disposition, reason = "CANNOT_CONFIRM_CURRENT_SCOPE", "CURRENT_APPLICABILITY_FIELD_UNAVAILABLE"
+        elif current_class in {"CONFLICTING_CURRENT_APPLICABILITY", "UNRECOGNIZED_CURRENT_APPLICABILITY"}:
+            disposition, reason = "CANNOT_CONFIRM_CURRENT_SCOPE", "CURRENT_APPLICABILITY_CONFLICT_OR_ENUM_UNRECOGNIZED"
         elif current_class == "DATED_OR_PENDING_SCOPE":
             disposition, reason = "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING", "CURRENT_APPLICABILITY_IS_DATED_BACKGROUND_OR_PENDING"
         elif not condition:
@@ -221,6 +307,8 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
             disposition, reason = "EXCLUDED_FOR_CURRENT_ISSUER_USE", "CURRENT_ISSUER_OR_INSTRUMENT_SCOPE_EXCLUDED"
         elif current_class == "CANNOT_CONFIRM_CURRENT_APPLICABILITY":
             disposition, reason = "SAME_ISSUER_CURRENT_SCOPE_UNCONFIRMED", "CURRENT_ISSUER_OR_INSTRUMENT_SCOPE_UNAVAILABLE"
+        elif current_class in {"CONFLICTING_CURRENT_APPLICABILITY", "UNRECOGNIZED_CURRENT_APPLICABILITY"}:
+            disposition, reason = "SAME_ISSUER_CURRENT_SCOPE_UNCONFIRMED", "CURRENT_ISSUER_OR_INSTRUMENT_SCOPE_CONFLICT_OR_UNRECOGNIZED"
         elif current_class == "DATED_OR_PENDING_SCOPE":
             disposition, reason = "SAME_ISSUER_IDENTITY_ONLY_PENDING", "CURRENT_ISSUER_OR_INSTRUMENT_SCOPE_IS_DATED_OR_PENDING"
         else:
@@ -257,8 +345,16 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
         "catalog_recovery_closure_basis": recovery.get("acceptance_closure_basis"),
         "catalog_recovery_closure_scope": recovery.get("acceptance_closure_scope"),
         "catalog_current_applicability": current_state,
+        "catalog_current_applicability_state_values": current_state_values,
+        "catalog_current_applicability_conflict": current_state_conflict,
         "catalog_current_scope_class": current_class,
         "catalog_fact_verified_scope": fact_scope,
+        "catalog_fact_state_values": fact_state_values,
+        "catalog_fact_state_conflict": fact_state_conflict,
+        "catalog_identity_scope": identity_scope,
+        "catalog_identity_state_values": identity_state_values,
+        "catalog_identity_state_conflict": identity_state_conflict,
+        "catalog_recovery_status_conflict": closure_conflict,
         "catalog_excluded_scope": excluded_scope,
         "catalog_pending_scope": pending_scope,
         "catalog_research_layers": dict(recovery.get("research_layers")) if isinstance(recovery.get("research_layers"), Mapping) else {},
@@ -275,6 +371,7 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
         "catalog_asset_class": _text(source.get("asset_class")) or None,
         "catalog_source_record": dict(source),
         "catalog_relation": dict(relation),
+        "catalog_source_identity_verified": source_id_matches,
         "quote": quote,
         "quote_status": "VERIFIED" if source_valid else "MISSING_OR_UNVERIFIED",
         "quote_missing_reason": None if source_valid else quote_gap,
@@ -382,6 +479,111 @@ def build_peer_baskets(catalog_rows: list[Mapping[str, Any]]) -> dict[str, list[
     return {symbol: values for symbol, values in result.items()}
 
 
+def build_catalog_candidates(catalog_rows: list[Mapping[str, Any]], *,
+                            monthly_pool_symbols: set[str] | None = None) -> list[dict[str, Any]]:
+    """Aggregate reviewable business peers into one stable row per HK code."""
+    buckets: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in catalog_rows:
+        if not isinstance(row, Mapping):
+            continue
+        hk_code = _text(row.get("catalog_hk_code"))
+        target = _text(row.get("symbol"))
+        relation_id = _text(row.get("catalog_relation_id"))
+        us_symbol = normalize_us_symbol(row.get("us_symbol"))
+        disposition = _text(row.get("catalog_disposition"))
+        segment = _text(row.get("catalog_segment")) or _text(row.get("catalog_research_industry"))
+        if (not re.fullmatch(r"\d{5}", hk_code) or target != f"HK.{hk_code}"
+                or not relation_id or not row.get("catalog_source_identity_verified")
+                or not us_symbol or row.get("relation_type") != "BUSINESS_PEER"
+                or row.get("catalog_recovery_status") != "CLOSED_RESEARCH_SCOPE"
+                or row.get("catalog_recovery_status_conflict") or not _text(row.get("catalog_fact"))
+                or not segment or disposition.startswith("EXCLUDED")
+                or _research_use_explicitly_excluded(row.get("catalog_research_use"))):
+            continue
+        scope_class = _text(row.get("catalog_current_scope_class"))
+        state = _text(row.get("catalog_current_applicability"))
+        if disposition == "ADOPTED_BUSINESS_PEER":
+            qualification = "CURRENT_SUPPORTED"
+        elif (scope_class == "DATED_OR_PENDING_SCOPE" and state
+                and "DATED" in state.upper() and not row.get("catalog_current_applicability_conflict")):
+            qualification = "DATED_WEAK_PEER"
+        else:
+            qualification = "PENDING_REVIEW"
+        buckets[target].append(dict(row, catalog_candidate_qualification=qualification))
+
+    qualification_rank = {"CURRENT_SUPPORTED": 0, "DATED_WEAK_PEER": 1, "PENDING_REVIEW": 2}
+    direction_rank = {"POSITIVE_WITHOUT_NEGATIVE": 0, "MIXED_POSITIVE_NEGATIVE": 1,
+                      "NEGATIVE_WITHOUT_POSITIVE": 2, "FLAT_OR_UNKNOWN": 3}
+    candidates = []
+    for symbol, raw_relations in buckets.items():
+        relations = sorted(raw_relations, key=lambda row: (
+            _text(row.get("us_symbol")), _text(row.get("catalog_relation_id"))))
+        qualifications = sorted({row["catalog_candidate_qualification"] for row in relations},
+            key=lambda value: qualification_rank[value])
+        qualification = qualifications[0]
+        positive = []
+        negative = []
+        flat = []
+        unknown = []
+        for row in relations:
+            value = _quote_return(row.get("quote")) if row.get("quote_status") == "VERIFIED" else None
+            if value is None:
+                unknown.append(row)
+            elif value > 0:
+                positive.append((value, row))
+            elif value < 0:
+                negative.append((value, row))
+            else:
+                flat.append(row)
+        if positive and negative:
+            direction_group = "MIXED_POSITIVE_NEGATIVE"
+        elif positive:
+            direction_group = "POSITIVE_WITHOUT_NEGATIVE"
+        elif negative:
+            direction_group = "NEGATIVE_WITHOUT_POSITIVE"
+        else:
+            direction_group = "FLAT_OR_UNKNOWN"
+        positive_strength = max((value for value, _ in positive), default=None)
+        risk_markers = []
+        if negative:
+            risk_markers.append("NEGATIVE_SOURCE_MOVE")
+        if positive and negative:
+            risk_markers.append("MIXED_SOURCE_DIRECTIONS")
+        if unknown:
+            risk_markers.append("SOURCE_QUOTE_UNVERIFIED")
+        if "DATED_WEAK_PEER" in qualifications:
+            risk_markers.append("DATED_RELATION_REQUIRES_REVIEW")
+        if "PENDING_REVIEW" in qualifications:
+            risk_markers.append("CURRENT_SCOPE_REQUIRES_REVIEW")
+        hk_code = symbol[3:]
+        candidates.append({
+            "symbol": symbol,
+            "hk_code": hk_code,
+            "name": next((_text(row.get("name")) for row in relations if _text(row.get("name"))), None),
+            "in_monthly_pool": symbol in (monthly_pool_symbols or set()),
+            "qualification": qualification,
+            "qualification_groups": qualifications,
+            "direction_group": direction_group,
+            "positive_source_move_strength_pct": format(positive_strength, "f") if positive_strength is not None else None,
+            "positive_relation_ids": sorted(_text(row.get("catalog_relation_id")) for _, row in positive),
+            "negative_relation_ids": sorted(_text(row.get("catalog_relation_id")) for _, row in negative),
+            "flat_relation_ids": sorted(_text(row.get("catalog_relation_id")) for row in flat),
+            "unknown_relation_ids": sorted(_text(row.get("catalog_relation_id")) for row in unknown),
+            "risk_markers": risk_markers,
+            "relation_count": len(relations),
+            "relations": relations,
+            "sort_basis": "QUALIFICATION_THEN_SOURCE_DIRECTION_THEN_POSITIVE_US_SOURCE_RETURN_DESC_THEN_HK_CODE",
+        })
+    candidates.sort(key=lambda row: (
+        qualification_rank[row["qualification"]],
+        direction_rank[row["direction_group"]],
+        -(Decimal(row["positive_source_move_strength_pct"])
+          if row["positive_source_move_strength_pct"] is not None else Decimal(0)),
+        row["hk_code"],
+    ))
+    return candidates
+
+
 def catalog_consumption_summary(rows: list[Mapping[str, Any]]) -> dict[str, Any]:
     rows = [row for row in rows if isinstance(row, Mapping)]
     relation_ids = [row.get("catalog_relation_id") for row in rows]
@@ -415,6 +617,7 @@ __all__ = [
     "MAPPING_POLICY_SHA256",
     "MAPPING_POLICY_VERSION",
     "RECOVERY_OVERLAY_SHA256",
+    "build_catalog_candidates",
     "build_peer_baskets",
     "catalog_consumption_summary",
     "manual_quote_for_symbol",

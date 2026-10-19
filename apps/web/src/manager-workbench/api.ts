@@ -1,7 +1,8 @@
 import { SCHEMA_VERSION } from "./types";
 import type {
-  DayData, Decision, Envelope, HistoryData, JobCreated, JobRecord, Lane,
-  Phase, ReviewSummary, StockDetails, RecommendationLane
+  AnnouncementFlashData, AnnouncementFlashResumeAccepted, AnnouncementFlashResumeEligibility,
+  AnnouncementFlashUpdateAccepted, DayData, Decision, Envelope, HistoryData,
+  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData
 } from "./types";
 import { isValidDate } from "./route";
 
@@ -129,6 +130,51 @@ export function createWorkbenchApi(transport: FetchLike = fetch) {
       exactDate(date); assertRunId(runId);
       return request<ReviewSummary>(transport,
         "/reviews/" + date + "?plan_run_id=" + encodeURIComponent(runId), { signal });
+    },
+    async getUsMappingCatalog(query: string, offset = 0, limit = 25, signal?: AbortSignal, researchUse = "") {
+      if (query.length > 128) throw new ApiError("映射资料查询不能超过 128 个字符", 422);
+      if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > 200) {
+        throw new ApiError("资料分页参数无效", 422);
+      }
+      const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+      if (query.trim()) params.set("q", query.trim());
+      if (researchUse) params.set("research_use", researchUse);
+      return request<USMappingCatalogData>(transport, "/mapping-catalog?" + params.toString(), { signal });
+    },
+    async getAnnouncementFlash(targetDate?: string, signal?: AbortSignal) {
+      const params = new URLSearchParams();
+      if (targetDate) { exactDate(targetDate); params.set("target_date", targetDate); }
+      const suffix = params.toString();
+      return request<AnnouncementFlashData>(transport,
+        "/announcement-flash" + (suffix ? "?" + suffix : ""), { signal });
+    },
+    async startAnnouncementFlashUpdate(targetDate: string) {
+      exactDate(targetDate);
+      return request<AnnouncementFlashUpdateAccepted>(transport, "/announcement-flash/update", {
+        method: "POST", body: JSON.stringify({ target_date: targetDate })
+      });
+    },
+    async resumeAnnouncementFlash(targetDate: string, resume: AnnouncementFlashResumeEligibility,
+                                  resumeAction: "CANARY" | "CONTINUE") {
+      exactDate(targetDate);
+      if (!resume.eligible || resume.target_date !== targetDate || !resume.source_job_id
+        || !resume.source_input_sha256 || !resume.source_progress_sha256 || !resume.source_queue_state_sha256
+        || resume.resume_action !== resumeAction
+        || (resumeAction === "CONTINUE" && (resume.canary_passed !== true
+          || resume.canary_validation?.status !== "PASS"))) {
+        throw new ApiError("续跑资格或来源 SHA 无效", 409);
+      }
+      return request<AnnouncementFlashResumeAccepted>(transport, "/announcement-flash/resume", {
+        method: "POST",
+        body: JSON.stringify({
+          target_date: targetDate,
+          source_job_id: resume.source_job_id,
+          source_input_sha256: resume.source_input_sha256,
+          source_progress_sha256: resume.source_progress_sha256,
+          source_queue_state_sha256: resume.source_queue_state_sha256,
+          resume_action: resumeAction,
+        })
+      });
     },
     async createRun(date: string, phase: "MANUAL" | "RETROSPECTIVE", lanes?: Lane[]) {
       exactDate(date);

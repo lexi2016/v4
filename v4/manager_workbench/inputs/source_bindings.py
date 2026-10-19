@@ -722,6 +722,52 @@ def _valid_sha256(value):
             and all(char in '0123456789abcdef' for char in value))
 
 
+_RECOVERY_STATE_PATHS = {
+    "current_applicability_state": "CURRENT_APPLICABILITY",
+    "fact_state": "FACT_VERIFIED_SCOPE",
+    "identity_state": "IDENTITY_SCOPE",
+}
+
+
+def _adapt_effective_research_schema(effective_research):
+    """Normalize the two observed recovery layouts without hiding conflicts."""
+    if not isinstance(effective_research, dict):
+        return {"state_conflicts": {}}
+    adapted = dict(effective_research)
+    conflicts = {}
+    containers = [
+        ("whitelist_scope", effective_research.get("whitelist_scope")),
+        ("research_layers", effective_research.get("research_layers")),
+        ("six_layers", effective_research.get("six_layers")),
+    ]
+    for field, section in _RECOVERY_STATE_PATHS.items():
+        values = []
+        top_level = effective_research.get(field)
+        if isinstance(top_level, str) and top_level.strip():
+            values.append((field, top_level.strip()))
+        for container_name, container in containers:
+            if not isinstance(container, dict):
+                continue
+            nested = container.get(section)
+            if isinstance(nested, dict):
+                nested = nested.get("state") or nested.get("status") or nested.get("finding")
+            if isinstance(nested, str) and nested.strip():
+                values.append((f"{container_name}.{section}", nested.strip()))
+        distinct = {value.upper() for _, value in values}
+        if len(distinct) > 1:
+            conflicts[field] = [{"path": path, "value": value} for path, value in values]
+            adapted[field] = None
+        elif values:
+            adapted[field] = values[0][1]
+        else:
+            adapted[field] = None
+    adapted["use_scope"] = effective_research.get("whitelist_scope")
+    adapted["research_layers"] = effective_research.get("research_layers")
+    adapted["six_layers"] = effective_research.get("six_layers")
+    adapted["state_conflicts"] = conflicts
+    return adapted
+
+
 def _full_mapping_overlay():
     """Read the same pinned full overlay used by the existing catalog API.
 
@@ -802,12 +848,15 @@ def _full_mapping_overlay():
             status = recovery.get("closure_status")
             if status:
                 status_counts[status] = status_counts.get(status, 0) + 1
+            adapted_research = _adapt_effective_research_schema(effective_research)
             recovery = dict(recovery, field_sha256=field_sha256,
-                            use_scope=effective_research.get("whitelist_scope"),
-                            current_applicability_state=effective_research.get("current_applicability_state"),
-                            fact_state=effective_research.get("fact_state"),
-                            identity_state=effective_research.get("identity_state"),
-                            research_layers=effective_research.get("research_layers"),
+                            use_scope=adapted_research.get("use_scope"),
+                            current_applicability_state=adapted_research.get("current_applicability_state"),
+                            fact_state=adapted_research.get("fact_state"),
+                            identity_state=adapted_research.get("identity_state"),
+                            research_layers=adapted_research.get("research_layers"),
+                            six_layers=adapted_research.get("six_layers"),
+                            state_conflicts=adapted_research.get("state_conflicts"),
                             remaining_gaps=effective_research.get("remaining_gaps"),
                             acceptance_closure_basis=(recovery_record.get("current_summary_csv_row") or {}).get("closure_basis"),
                             acceptance_closure_scope=(recovery_record.get("current_summary_csv_row") or {}).get("closure_scope"))

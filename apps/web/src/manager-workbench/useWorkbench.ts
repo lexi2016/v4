@@ -3,12 +3,12 @@ import { ApiError, createWorkbenchApi } from "./api";
 import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
-  ReviewSummary, StockDecision, StockDetails, RecommendationLane
+  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
 } from "./types";
 import { parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
 
-export type Panel = "stocks" | "detail" | "progress" | "history" | "reviews";
+export type Panel = "stocks" | "announcements" | "detail" | "progress" | "history" | "reviews" | "catalog";
 type APIData<T> = Envelope<T> | null;
 
 function errorMessage(error: unknown): string {
@@ -53,6 +53,17 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const review = ref<APIData<ReviewSummary>>(null);
   const reviewLoading = ref(false);
   const reviewError = ref("");
+  const catalogResearchUse = ref("");
+  const catalogQueryDraft = ref("");
+  const catalogQuery = ref("");
+  const catalogOffset = ref(0);
+  const catalogLimit = 25;
+  const catalog = ref<APIData<USMappingCatalogData>>(null);
+  const catalogLoading = ref(false);
+  const catalogError = ref("");
+  const catalogRelationDetails = ref<Record<string, {
+    loading: boolean; error: string; data: USMappingCatalogRelation | null;
+  }>>({});
   const job = ref<APIData<JobRecord>>(null);
   const jobId = ref("");
   const jobLoading = ref(false);
@@ -72,11 +83,13 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const readMode = computed(() => route.value.runId ? "固定 run_id" : route.value.phase ? "按阶段读最新保存版" : "目标日最新保存版");
   const valid = computed(() => route.value.error === null);
 
-  let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, jobSeq = 0, operationSeq = 0;
+  let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, catalogSeq = 0, jobSeq = 0, operationSeq = 0;
   let dayAbort: AbortController | null = null;
   let detailAbort: AbortController | null = null;
   let historyAbort: AbortController | null = null;
   let reviewAbort: AbortController | null = null;
+  let catalogAbort: AbortController | null = null;
+  const catalogRelationAborts = new Map<string, AbortController>();
   let jobAbort: AbortController | null = null;
   let jobTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -88,8 +101,10 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     jobLoading.value = false;
   }
   function abortAll(): void {
-    daySeq++; detailSeq++; historySeq++; reviewSeq++;
-    dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort();
+    daySeq++; detailSeq++; historySeq++; reviewSeq++; catalogSeq++;
+    dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort(); catalogAbort?.abort();
+    catalogLoading.value = false;
+    clearCatalogRelationDetails();
     stopJobReads();
   }
   function resetPage(): void {
@@ -194,6 +209,86 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     panel.value = next;
     if (next === "history") void loadHistory();
     if (next === "reviews") void loadReview();
+    if (next === "catalog") void loadCatalog();
+    else clearCatalogRelationDetails();
+  }
+  async function loadCatalog(offset = catalogOffset.value): Promise<void> {
+    if (!Number.isInteger(offset) || offset < 0) return;
+    const query = catalogQuery.value.trim();
+    const seq = ++catalogSeq;
+    clearCatalogRelationDetails();
+    catalogAbort?.abort(); const ctrl = new AbortController(); catalogAbort = ctrl;
+    catalogOffset.value = offset; catalog.value = null; catalogError.value = ""; catalogLoading.value = true;
+    try {
+      const result = await api.getUsMappingCatalog(query, offset, catalogLimit, ctrl.signal, catalogResearchUse.value);
+      if (seq !== catalogSeq || ctrl.signal.aborted) return;
+      if (!result.data || result.data.catalog_state !== "STRUCTURE_VALID_ONLY" ||
+          result.data.query !== query || result.data.offset !== offset ||
+          result.data.research_use !== catalogResearchUse.value ||
+          result.data.safety?.RESEARCH_ONLY !== true || result.data.safety?.production_allowed !== false ||
+          result.data.safety?.buy_gate_updated !== false || result.data.safety?.orders_sent !== false ||
+          result.data.safety?.prediction_validation !== "UNTESTED" ||
+          result.data.safety?.historical_PIT !== "NOT_VALIDATED") {
+        throw new ApiError("美股映射资料库返回的来源或安全状态不一致", 502);
+      }
+      catalog.value = result;
+    } catch (error) {
+      if (seq === catalogSeq && !isAbort(error)) catalogError.value = errorMessage(error);
+    } finally {
+      if (seq === catalogSeq) catalogLoading.value = false;
+    }
+  }
+  function clearCatalogRelationDetails(): void {
+    for (const ctrl of catalogRelationAborts.values()) ctrl.abort();
+    catalogRelationAborts.clear();
+    catalogRelationDetails.value = {};
+  }
+  async function loadCatalogRelation(relation: USMappingCatalogRelation): Promise<void> {
+    const rid = relation.relation_id;
+    const base = catalog.value?.data;
+    if (!base || !/^R[0-9]{3,4}$/.test(rid)) return;
+    const seq = catalogSeq;
+    catalogRelationAborts.get(rid)?.abort();
+    const ctrl = new AbortController(); catalogRelationAborts.set(rid, ctrl);
+    catalogRelationDetails.value[rid] = { loading: true, error: "", data: null };
+    try {
+      const result = await api.getUsMappingCatalog(rid, 0, 1, ctrl.signal);
+      if (seq !== catalogSeq || ctrl.signal.aborted || catalogRelationAborts.get(rid) !== ctrl) return;
+      const data = result.data;
+      const rows = data?.items.flatMap(item => item.relations) || [];
+      const full = rows[0];
+      if (!data || data.catalog_state !== "STRUCTURE_VALID_ONLY" || data.query !== rid ||
+          data.catalog_integrity_sha256 !== base.catalog_integrity_sha256 ||
+          data.review_source?.integrity_sha256 !== base.review_source?.integrity_sha256 ||
+          data.total !== 1 || rows.length !== 1 || !full || full.relation_id !== rid ||
+          full.hk_code !== relation.hk_code || full.us_symbol !== relation.us_symbol ||
+          full.source_row !== relation.source_row || full.review_detail_level !== "FULL" ||
+          full.fact_review_status !== "PENDING" || full.independent_verification !== "NOT_RUN" ||
+          full.prediction_eligible !== false || full.prediction_validation !== "UNTESTED" ||
+          full.historical_PIT !== "NOT_VALIDATED" || data.safety?.RESEARCH_ONLY !== true ||
+          data.safety?.production_allowed !== false || data.safety?.buy_gate_updated !== false ||
+          data.safety?.orders_sent !== false || data.safety?.prediction_validation !== "UNTESTED" ||
+          data.safety?.historical_PIT !== "NOT_VALIDATED") {
+        throw new ApiError("完整补证返回的关系身份、来源或安全状态不一致", 502);
+      }
+      catalogRelationDetails.value[rid] = { loading: false, error: "", data: full };
+    } catch (error) {
+      if (seq === catalogSeq && !ctrl.signal.aborted && catalogRelationAborts.get(rid) === ctrl) {
+        catalogRelationDetails.value[rid] = { loading: false, error: errorMessage(error), data: null };
+      }
+    } finally {
+      if (catalogRelationAborts.get(rid) === ctrl) catalogRelationAborts.delete(rid);
+    }
+  }
+  function searchCatalog(): void {
+    catalogQuery.value = catalogQueryDraft.value.trim();
+    void loadCatalog(0);
+  }
+  function changeCatalogPage(direction: -1 | 1): void {
+    const total = catalog.value?.data?.total ?? 0;
+    const next = catalogOffset.value + direction * catalogLimit;
+    if (next < 0 || next >= total || next === catalogOffset.value) return;
+    void loadCatalog(next);
   }
   async function openStock(stock: StockDecision): Promise<void> {
     panel.value = "detail";
@@ -338,9 +433,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,
     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
     history, historyLoading, historyError, review, reviewLoading, reviewError,
+    catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,
     job, jobId, jobLoading, jobError, operationLoading, runPhase,
     stocks, snapshot, counts, pagination, versions, lanes, selectedRunId, selectedDate, readMode, valid,
     changeDate, changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
-    loadHistory, loadReview, pollJob, createPlan, retryJob, viewJobVersion
+    loadHistory, loadReview, loadCatalog, loadCatalogRelation, searchCatalog, changeCatalogPage,
+    pollJob, createPlan, retryJob, viewJobVersion
   };
 }

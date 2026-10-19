@@ -9,7 +9,7 @@ import re
 
 from .common import current, hk_symbol, valid_sha
 from .us_factor import _return_pct
-from .us_mapping_consumption import manual_quote_for_symbol
+from .us_mapping_consumption import build_catalog_candidates, manual_quote_for_symbol
 
 RULES_VERSION = "STRICT_US_SELECTION_V1_20261019"
 SINGLE_DAY_MAPPING_VERSION = "US_HK_SINGLE_DAY_MAPPING_V1_20261019"
@@ -491,25 +491,41 @@ def cannot_confirm_single_day_mapping(context, reason):
         production_allowed=False, buy_gate_updated=False, orders_sent=False)
 
 
+def single_day_mapping_context_ready(context):
+    context = context if isinstance(context, dict) else {}
+    sessions = context.get("source_sessions") or {}
+    target_date = _date_token(context.get("target_date"))
+    source_date = _date_token(sessions.get("us") or sessions.get("US"))
+    price_date = _date_token(sessions.get("hk_price") or sessions.get("HK_PRICE"))
+    if (not target_date or not source_date or not price_date
+            or source_date >= target_date or price_date >= target_date
+            or context.get("phase") not in ("MANUAL", "NEXT_DAY")):
+        return False
+    try:
+        cutoff = datetime.fromisoformat(str(context.get("cutoff")).replace("Z", "+00:00"))
+        return cutoff.tzinfo is not None and cutoff.utcoffset() is not None
+    except (TypeError, ValueError):
+        return False
+
+
 def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summary, membership,
                            catalog_rows=None, catalog_stock_identities=None,
                            catalog_expected_stock_count=None, manual_quote_scope=None):
-    """Display the frozen US 20261016 -> HK 20261020 mapping without HK history gates."""
+    """Display the context-bound US/HK mapping without HK history gates."""
     context = context if isinstance(context, dict) else {}
     sessions = context.get("source_sessions") or {}
     expected_session = sessions.get("us") or sessions.get("US")
     price_session = sessions.get("hk_price") or sessions.get("HK_PRICE")
-    if (context.get("target_date") != "20261020" or expected_session != "20261016"
-            or price_session != "20261016" or context.get("phase") not in ("MANUAL", "NEXT_DAY")):
+    target_date = _date_token(context.get("target_date"))
+    if not single_day_mapping_context_ready(context):
         return cannot_confirm_single_day_mapping(context, "SINGLE_DAY_DATE_OR_PHASE_BINDING_MISMATCH")
     membership = membership if isinstance(membership, dict) else {}
     codes = membership.get("codes")
     if (membership.get("status") != "VERIFIED" or membership.get("market") != "HK_CONNECT"
             or membership.get("owner") != "FUTU_HKCONNECT_PLATE_MEMBERSHIP"
-            or membership.get("target_month") != "202610"
+            or membership.get("target_month") != target_date[:6]
             or _date_token(membership.get("source_date")) != membership.get("source_date")
-            or membership.get("source_date", "")[:6] != "202610"
-            or membership.get("source_date", "") > "20261020"
+            or membership.get("source_date", "") > target_date
             or not valid_sha(membership.get("artifact_sha256"))
             or not isinstance(codes, list) or not codes
             or len(codes) != len(set(codes)) or not all(hk_symbol(code) for code in codes)):
@@ -530,6 +546,23 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
         for item in catalog_rows if isinstance(item, dict)]
     catalog_summary = catalog_consumption_summary(catalog_projection)
     catalog_peer_baskets = build_peer_baskets(catalog_projection)
+    catalog_candidates = build_catalog_candidates(catalog_projection,
+        monthly_pool_symbols=set(codes))
+    ita_quote, ita_quote_gap = manual_quote_for_symbol(manual_quote_scope, "ITA",
+        expected_session, context.get("cutoff"))
+    ita_relation_targets = sorted({row.get("symbol") for row in catalog_projection
+        if row.get("us_symbol") == "ITA" and isinstance(row.get("symbol"), str)})
+    sector_proxy_coverage = [{
+        "source_symbol": "ITA",
+        "source_session": expected_session,
+        "quote_status": "VERIFIED" if ita_quote is not None else "MISSING_OR_UNVERIFIED",
+        "source_return_pct": (str(ita_quote.get("change_pct")) if ita_quote is not None else None),
+        "quote_gap": ita_quote_gap,
+        "mapping_status": "MAPPED" if ita_relation_targets else "MAPPING_PENDING",
+        "mapped_hk_symbols": ita_relation_targets,
+        "existing_relation_count": sum(1 for row in catalog_projection if row.get("us_symbol") == "ITA"),
+        "edge_created": False,
+    }]
     relation_targets = sorted({row.get("symbol") for row in catalog_projection
         if isinstance(row.get("symbol"), str) and row.get("symbol")})
     catalog_identity_map, invalid_identity_count, duplicate_identity_count = _catalog_stock_identity_map(
@@ -810,6 +843,10 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
         catalog_stock_reconciliation=catalog_stock_reconciliation,
         catalog_relation_dispositions=catalog_projection,
         catalog_peer_baskets=catalog_peer_baskets,
+        catalog_candidates=catalog_candidates,
+        catalog_candidate_ordering="QUALIFICATION_THEN_SOURCE_DIRECTION_THEN_POSITIVE_US_SOURCE_RETURN_DESC_THEN_HK_CODE",
+        catalog_candidate_return_note="Positive source return is a source-strength tie-break only; it is not an HK return forecast.",
+        sector_proxy_coverage_observations=sector_proxy_coverage,
         manual_quote_scope=dict(state=(manual_quote_scope or {}).get("state", "CANNOT_CONFIRM"),
             session_date=(manual_quote_scope or {}).get("us_session_date"),
             scope_sha256=(manual_quote_scope or {}).get("scope_sha256"),

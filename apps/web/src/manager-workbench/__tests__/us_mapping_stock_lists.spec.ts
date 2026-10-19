@@ -1,9 +1,9 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/vue";
+import { cleanup, render, screen, within } from "@testing-library/vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Workbench from "../Workbench.vue";
 import { SCHEMA_VERSION } from "../types";
 import type { DayData, Envelope } from "../types";
-import { projectUSMappingPeerLists } from "../us_mapping_stock_lists";
+import { projectUSMappingCandidates, projectUSMappingPeerLists } from "../us_mapping_stock_lists";
 
 type PeerFixture = {
   baskets: Record<string, Record<string, unknown>[]>;
@@ -121,7 +121,6 @@ describe("US mapping peer stock lists", () => {
     expect(lists.mixedStockCount).toBe(1);
     expect(lists.positive[0].stockDirectionLabel).toBe("同一港股正负同行观察并存");
     expect(lists.negative[0].hasMixedStockDirection).toBe(true);
-    expect(lists.positive[1].consumerRetail).toBe(true);
     expect(lists.negative[1].hkName).toBe("ASMPT");
     expect(lists.positive[1].catalogFact).toBe("fact for R-PEP");
     expect(lists.positive[1].catalogFailure).toBe("risk for R-PEP");
@@ -130,6 +129,15 @@ describe("US mapping peer stock lists", () => {
     expect(lists.unknown[1].returnLabel).toContain("待核");
     expect(lists.observations.some(row => row.hkSymbol === "HK.09999")).toBe(false);
     expect(lists.formalTargetEligibility).toBe("CANNOT_CONFIRM");
+  });
+
+  it("preserves the backend candidate qualification and ordering", () => {
+    const candidates = [
+      { symbol: "HK.00002", qualification: "CURRENT_SUPPORTED" },
+      { symbol: "HK.00001", qualification: "DATED_WEAK_PEER" },
+      { symbol: "HK.00003", qualification: "PENDING_REVIEW" }
+    ];
+    expect(projectUSMappingCandidates({ catalog_candidates: candidates })).toEqual(candidates);
   });
 
   it("uses conservative evidence fallbacks and does not infer direction when sessions disagree", () => {
@@ -153,7 +161,7 @@ describe("US mapping peer stock lists", () => {
   });
 
   it("keeps verified returns pending when peer coverage is absent", () => {
-    const missingCoverage = basket("peer", "R-NO-COVERAGE-STATE", "PEER", "1.25");
+    const missingCoverage: Record<string, unknown> = basket("peer", "R-NO-COVERAGE-STATE", "PEER", "1.25");
     delete missingCoverage.coverage_state;
     const lists = projectUSMappingPeerLists({
       source_session: SESSION,
@@ -197,7 +205,7 @@ describe("US mapping peer stock lists", () => {
     expect(invalidSessionLists.unknown[0].statusDetail).toContain("会话日期格式无效");
   });
 
-  it("renders full positive and negative peer lists before the separate fixed-map counts", async () => {
+  it("renders one backend-ordered candidate table and keeps prior summaries collapsed", async () => {
     const fixture = peerFixture();
     const singleDay = {
       display_only: true,
@@ -218,7 +226,26 @@ describe("US mapping peer stock lists", () => {
       gaps: [], strict_v1_status: "PAUSED_NOT_EXECUTED", deferred_gates: [], historical_pit_verified: false,
       research_effectiveness: "UNVERIFIED",
       catalog_peer_baskets: fixture.baskets,
-      catalog_relation_dispositions: fixture.relations
+      catalog_relation_dispositions: fixture.relations,
+      catalog_candidates: [
+        {
+          symbol: "HK.00297", name: "中化化肥", in_monthly_pool: true,
+          qualification: "CURRENT_SUPPORTED", qualification_groups: ["CURRENT_SUPPORTED"],
+          direction_group: "MIXED_POSITIVE_NEGATIVE", positive_source_move_strength_pct: "2.414487",
+          risk_markers: ["NEGATIVE_SOURCE_MOVE", "MIXED_SOURCE_DIRECTIONS"], relation_count: 2,
+          relations: fixture.relations.slice(0, 2)
+        },
+        {
+          symbol: "HK.00506", name: "中国食品", in_monthly_pool: true,
+          qualification: "DATED_WEAK_PEER", qualification_groups: ["DATED_WEAK_PEER"],
+          direction_group: "POSITIVE_WITHOUT_NEGATIVE", positive_source_move_strength_pct: "2.422496",
+          risk_markers: ["DATED_RELATION_REQUIRES_REVIEW"], relation_count: 1,
+          relations: [fixture.relations[2]]
+        }
+      ],
+      sector_proxy_coverage_observations: [{ source_symbol: "ITA", source_session: SESSION,
+        quote_status: "VERIFIED", source_return_pct: "0.8", mapping_status: "MAPPING_PENDING",
+        mapped_hk_symbols: [], existing_relation_count: 0, edge_created: false }]
     };
     const factorSummary = {
       display_only: true,
@@ -258,21 +285,18 @@ describe("US mapping peer stock lists", () => {
     vi.stubGlobal("fetch", vi.fn(async () => response(wrapped(day))));
 
     render(Workbench);
-    const peerLists = await screen.findByRole("region", { name: "已采用美股同行来源观察名单" });
-    const peerListQuery = within(peerLists);
-    const positiveList = peerListQuery.getByRole("article", { name: "正向美股来源观察名单" });
-    const negativeList = peerListQuery.getByRole("article", { name: "负向美股来源观察名单" });
-    expect(within(positiveList).getByText("HK.00297 中化化肥")).toBeTruthy();
-    expect(within(positiveList).getByText("HK.00506 中国食品")).toBeTruthy();
-    expect(within(negativeList).getByText("HK.00297 中化化肥")).toBeTruthy();
-    expect(within(negativeList).getByText("HK.00522 ASMPT")).toBeTruthy();
-    expect(within(positiveList).getByText(/2\.422496%/)).toBeTruthy();
-    expect(within(positiveList).getByText("风险：risk for R-PEP")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /固定映射受益判定 0/ })).toBeTruthy();
-
-    await fireEvent.click(screen.getByRole("button", { name: /消费与零售/ }));
-    expect(peerListQuery.getByText("HK.00506 中国食品")).toBeTruthy();
-    expect(peerListQuery.queryByText("HK.00297 中化化肥")).toBeNull();
-    expect(peerListQuery.queryByText("HK.00522 ASMPT")).toBeNull();
+    const candidateTable = await screen.findByRole("table", { name: "港股去重研究候选表" });
+    const candidateRows = within(candidateTable).getAllByRole("row").slice(1);
+    expect(candidateRows.map(row => row.textContent)).toEqual(expect.arrayContaining([
+      expect.stringContaining("HK.00297 中化化肥"),
+      expect.stringContaining("HK.00506 中国食品")
+    ]));
+    expect(candidateRows[0].textContent).toContain("CURRENT_SUPPORTED");
+    expect(candidateRows[0].textContent).toContain("MIXED_SOURCE_DIRECTIONS");
+    expect(candidateRows[1].textContent).toContain("DATED_WEAK_PEER");
+    expect(screen.getByText(/ITA · 20261016 · 报价 VERIFIED 0.8% · 映射 MAPPING_PENDING/)).toBeTruthy();
+    const legacyArchive = screen.getByText("旧版方向列表与固定路径归档").closest("details");
+    expect(legacyArchive).toBeTruthy();
+    expect((legacyArchive as HTMLDetailsElement).open).toBe(false);
   });
 });

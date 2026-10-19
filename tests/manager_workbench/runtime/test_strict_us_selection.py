@@ -1,5 +1,6 @@
 from copy import deepcopy
 from datetime import date, timedelta
+from decimal import Decimal
 
 from v4.manager_workbench.engines.strict_us_selection import run_strict_us_selection
 from v4.manager_workbench.inputs.validation import owner_digest
@@ -137,30 +138,40 @@ def _single_membership(codes):
     }
 
 
-def _single_context():
-    return {"target_date": "20261020", "phase": "MANUAL",
-        "source_sessions": {"us": "20261016", "hk_price": "20261016"},
-        "cutoff": "2026-10-19T03:00:00+00:00"}
+def _single_context(target_date="20261020", *, us_session="20261016", hk_price_session="20261016",
+                    phase="MANUAL", cutoff=None):
+    cutoff = cutoff or ("2026-10-20T03:00:00+00:00" if target_date == "20261021"
+        else "2026-10-19T03:00:00+00:00")
+    return {"target_date": target_date, "phase": phase,
+        "source_sessions": {"us": us_session, "hk_price": hk_price_session},
+        "cutoff": cutoff}
 
 
 def _manual_quote_scope(values):
     from v4.manager_workbench.engines.us_mapping_consumption import (
         MANUAL_QUOTE_OWNER, MANUAL_QUOTE_SCOPE_SHA256,
     )
+    quotes = {}
+    for symbol, raw_change in values.items():
+        change = Decimal(str(raw_change))
+        previous_close = Decimal("100")
+        last = previous_close * (Decimal(1) + change / Decimal(100))
+        quotes[symbol] = {"symbol": symbol, "session_date": "20261016", "session_time": "16:00:02",
+            "last": format(last, "f"), "previous_close": format(previous_close, "f"),
+            "change_pct": raw_change}
     return dict(state="READY", owner=MANUAL_QUOTE_OWNER,
         scope_sha256=MANUAL_QUOTE_SCOPE_SHA256, us_session_date="20261016",
         payload_sha256=SHA, receipt_sha256="e" * 64, manifest_sha256="f" * 64,
         available_at="2026-10-18T20:00:00+00:00",
-        quotes={symbol: {"symbol": symbol, "session_date": "20261016", "session_time": "16:00:02",
-            "change_pct": value} for symbol, value in values.items()}, symbol_gaps={})
+        quotes=quotes, symbol_gaps={})
 
 
 def _single_day(codes, relations=(), industries=(), industry_status="READY",
                 catalog_rows=(), catalog_stock_identities=None,
-                catalog_expected_stock_count=None, manual_quote_scope=None):
+                catalog_expected_stock_count=None, manual_quote_scope=None, context=None):
     from v4.manager_workbench.engines.strict_us_selection import run_single_day_mapping
 
-    return run_single_day_mapping(_single_context(), relation_rows=list(relations),
+    return run_single_day_mapping(context or _single_context(), relation_rows=list(relations),
         catalog_rows=list(catalog_rows), manual_quote_scope=manual_quote_scope,
         catalog_stock_identities=catalog_stock_identities,
         catalog_expected_stock_count=catalog_expected_stock_count,
@@ -297,7 +308,8 @@ def test_single_day_projects_catalog_dispositions_and_partial_peer_basket_per_ta
         available_at="2026-10-18T20:00:00+00:00", payload_sha256=SHA,
         receipt_sha256="e" * 64, manifest_sha256="f" * 64,
         quotes={"AAPL": {"symbol": "AAPL", "session_date": "20261016",
-            "session_time": "16:00:02", "change_pct": "1.25"}},
+            "session_time": "16:00:02", "last": "101.25", "previous_close": "100",
+            "change_pct": "1.25"}},
         symbol_gaps={"MSFT": "QUOTE_PROVIDER_SYMBOL_MISSING"})
 
     def catalog_relation(relation_id, symbol, relation_type="BUSINESS_PEER", *, condition=""):
@@ -329,6 +341,21 @@ def test_single_day_projects_catalog_dispositions_and_partial_peer_basket_per_ta
     assert stocks["in_monthly_pool_stock_count"] == 1
     assert stocks["outside_monthly_pool_stock_count"] == 0
     assert row["catalog_peer_baskets"][0]["signal_type"] == "SINGLE_PEER_REFERENCE"
+    assert len(result["catalog_candidates"]) == 1
+    candidate = result["catalog_candidates"][0]
+    assert candidate["symbol"] == "HK.00001"
+    assert candidate["relation_count"] == 2
+    assert candidate["positive_relation_ids"] == ["R001"]
+    assert candidate["unknown_relation_ids"] == ["R002"]
+    assert candidate["qualification"] == "CURRENT_SUPPORTED"
+    assert result["catalog_candidate_ordering"] == (
+        "QUALIFICATION_THEN_SOURCE_DIRECTION_THEN_POSITIVE_US_SOURCE_RETURN_DESC_THEN_HK_CODE")
+    assert result["catalog_candidate_return_note"].endswith("not an HK return forecast.")
+    proxy_coverage = result["sector_proxy_coverage_observations"][0]
+    assert proxy_coverage["source_symbol"] == "ITA"
+    assert proxy_coverage["mapping_status"] == "MAPPING_PENDING"
+    assert proxy_coverage["mapped_hk_symbols"] == []
+    assert proxy_coverage["edge_created"] is False
     basket = row["catalog_peer_baskets"][0]
     assert basket["coverage_state"] == "PARTIAL"
     assert basket["declared_count"] == 2 and basket["valid_count"] == 1
@@ -406,9 +433,33 @@ def test_single_day_catalog_placeholder_keeps_catalog_row_and_broad_sector_displ
         for path in row["mapping_paths"])
 
 
-def test_single_day_rejects_other_target_date_without_claiming_a_result():
-    context = _single_context()
-    context["target_date"] = "20261019"
+def test_single_day_uses_calendar_bound_sessions_for_ordinary_and_post_holiday_targets():
+    from contracts.trading_calendar import load_market_calendar, next_session
+    from v4.manager_workbench.engines.strict_us_selection import run_single_day_mapping
+    calendar = load_market_calendar()
+    post_holiday_target = next_session(calendar, "20261018", market="hk_connect")
+    ordinary_target = next_session(calendar, post_holiday_target, market="hk_connect")
+    assert post_holiday_target == "20261020"
+    assert ordinary_target == "20261021"
+
+    post_holiday = run_single_day_mapping(
+        _single_context(post_holiday_target, us_session="20261016", hk_price_session="20261016"),
+        relation_rows=[], industry_rows=[], factor_summary={},
+        membership=_single_membership(["HK.00001"]))
+    ordinary = run_single_day_mapping(
+        _single_context(ordinary_target, us_session="20261020", hk_price_session="20261020",
+            phase="NEXT_DAY"),
+        relation_rows=[], industry_rows=[], factor_summary={},
+        membership=_single_membership(["HK.00001"]))
+
+    assert post_holiday["state"] != "CANNOT_CONFIRM"
+    assert post_holiday["target_date"] == post_holiday_target
+    assert ordinary["state"] != "CANNOT_CONFIRM"
+    assert ordinary["target_date"] == ordinary_target
+
+
+def test_single_day_rejects_source_session_on_or_after_target():
+    context = _single_context("20261020", us_session="20261020", hk_price_session="20261016")
     from v4.manager_workbench.engines.strict_us_selection import run_single_day_mapping
     result = run_single_day_mapping(context, relation_rows=[], industry_rows=[],
         factor_summary={}, membership=_single_membership(["HK.00001"]))

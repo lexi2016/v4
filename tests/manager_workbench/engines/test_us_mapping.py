@@ -370,3 +370,167 @@ def test_full_overlay_relations_are_consumed_as_non_selectable_observations():
     assert "OBSERVED_COUNT_MISMATCH" not in result["gaps"]
     assert "SCOPE_COUNT_MISMATCH" not in result["gaps"]
     assert "US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH" not in result["gaps"]
+
+
+def test_us_mapping_entry_runs_single_day_candidate_aggregation_for_ordinary_session(monkeypatch):
+    import json
+    import v4.manager_workbench.engines.us_mapping as mapping_module
+    from v4.manager_workbench.engines.common import US_FACTOR_RULES_VERSION
+
+    data = make_batch()
+    context = data["context"]
+    context["rules_version"] = US_FACTOR_RULES_VERSION
+    context["phase"] = "NEXT_DAY"
+    context["target_date"] = "20261021"
+    context["cutoff"] = "2026-10-21T09:25:00+08:00"
+    context["source_sessions"] = {"US": "20261020", "us": "20261020",
+        "HK_PRICE": "20261020", "hk_price": "20261020"}
+    context["scope_refs"]["US_MAPPING"]["source_session"] = "20261020"
+    for record in data["records"]:
+        record["source_session"] = "20261020"
+
+    codes = ["HK.00001"]
+    membership = {"status": "VERIFIED", "market": "HK_CONNECT",
+        "owner": "FUTU_HKCONNECT_PLATE_MEMBERSHIP", "target_month": "202610",
+        "source_date": "20261012", "artifact_sha256": "f" * 64, "codes": codes,
+        "codes_sha256": hashlib.sha256(json.dumps(
+            {"market": "HK_CONNECT", "codes": codes}, sort_keys=True,
+            separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()}
+    data["records"][0]["us_factor_payload"] = {
+        "single_day_mapping_payload": {"monthly_membership": membership},
+        "manual_quote_scope": None,
+    }
+    monkeypatch.setattr(mapping_module, "run_us_factor", lambda *_: ([], {
+        "display_only": True, "factor_decision_counts": {},
+        "industry_summary": {"source_status": "READY", "source_asof": "20261020"},
+    }))
+
+    result = run_us_mapping(context, data)
+    holder = next(row for row in result["rows"] if "us_factor_summary" in row)
+    single_day = holder["us_factor_summary"]["single_day_mapping"]
+
+    assert single_day["target_date"] == "20261021"
+    assert single_day["source_session"] == "20261020"
+    assert single_day["state"] != "CANNOT_CONFIRM"
+    assert single_day["catalog_candidate_ordering"] == (
+        "QUALIFICATION_THEN_SOURCE_DIRECTION_THEN_POSITIVE_US_SOURCE_RETURN_DESC_THEN_HK_CODE")
+
+
+def test_real_us_mapping_entry_quarantines_excluded_use_and_invalid_manual_quotes(monkeypatch):
+    import json
+    import v4.manager_workbench.engines.us_mapping as mapping_module
+    from v4.manager_workbench.engines.common import US_FACTOR_RULES_VERSION
+    from v4.manager_workbench.engines.us_mapping_consumption import (
+        MANUAL_QUOTE_OWNER, MANUAL_QUOTE_SCOPE_SHA256,
+    )
+
+    data = make_batch()
+    context = data["context"]
+    context["rules_version"] = US_FACTOR_RULES_VERSION
+    context["phase"] = "NEXT_DAY"
+    context["target_date"] = "20261021"
+    context["cutoff"] = "2026-10-21T09:25:00+08:00"
+    context["source_sessions"] = {"US": "20261020", "us": "20261020",
+        "HK_PRICE": "20261020", "hk_price": "20261020"}
+    context["scope_refs"]["US_MAPPING"]["source_session"] = "20261020"
+    for record in data["records"]:
+        record["source_session"] = "20261020"
+
+    codes = ["HK.00001", "HK.00002", "HK.00003", "HK.00004", "HK.00005", "HK.00006"]
+    membership = {"status": "VERIFIED", "market": "HK_CONNECT",
+        "owner": "FUTU_HKCONNECT_PLATE_MEMBERSHIP", "target_month": "202610",
+        "source_date": "20261012", "artifact_sha256": "f" * 64, "codes": codes,
+        "codes_sha256": hashlib.sha256(json.dumps(
+            {"market": "HK_CONNECT", "codes": codes}, sort_keys=True,
+            separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()}
+
+    def quote(symbol, change_pct, *, last=None, previous_close="100"):
+        return {"symbol": symbol, "session_date": "20261020", "session_time": "16:00:02",
+            "last": str(last if last is not None else 100 * (1 + float(change_pct) / 100)),
+            "previous_close": previous_close, "change_pct": str(change_pct)}
+
+    manual_quotes = {
+        # A matching map key must not override the different inner quote identity.
+        "BAD": {"symbol": "WMT", "session_date": "20261020", "session_time": "16:00:02",
+            "change_pct": "80"},
+        # A matching identity and numeric change_pct still need valid prices.
+        "NOPREV": {"symbol": "NOPREV", "session_date": "20261020", "session_time": "16:00:02",
+            "last": "101", "change_pct": "1"},
+        "BADRETURN": quote("BADRETURN", "1", last="120"),
+        "NONFINITE": {"symbol": "NONFINITE", "session_date": "20261020", "session_time": "16:00:02",
+            "last": "NaN", "previous_close": "100", "change_pct": "NaN"},
+        "GOOD": quote("GOOD", "1.25", last="101.25"),
+    }
+    binding = {"state": "PARTIAL", "owner": MANUAL_QUOTE_OWNER,
+        "scope_sha256": MANUAL_QUOTE_SCOPE_SHA256, "us_session_date": "20261020",
+        "available_at": "2026-10-21T06:00:00+08:00", "payload_sha256": "a" * 64,
+        "receipt_sha256": "b" * 64, "manifest_sha256": "c" * 64,
+        "quotes": manual_quotes, "symbol_gaps": {}}
+    data["records"][0]["us_factor_payload"] = {
+        "single_day_mapping_payload": {"monthly_membership": membership},
+        "manual_quote_scope": binding,
+    }
+
+    def catalog_record(relation_id, code, us_symbol, research_use):
+        source = {"关系编号": relation_id, "code": code, "type": "BUSINESS_PEER",
+            "asset_code": us_symbol, "fact": "Named synthetic business relation.",
+            "segment": "Cloud software", "研究行业": "Software"}
+        relation = {"relation_id": relation_id, "hk_code": code, "hk_name": f"Target {code}",
+            "research_use": research_use, "source_record": source,
+            "recovery_v2r1": {"closure_status": "CLOSED_RESEARCH_SCOPE",
+                "current_applicability_state": "CURRENT_RESEARCH_SCOPE",
+                "fact_state": "FACT_SCOPE_RECORDED", "identity_state": "IDENTITY_SCOPE_RECORDED"}}
+        return {"record_role": "CATALOG_OBSERVATION", "source_session": "20261020",
+            "source_status": "CATALOG_OBSERVATION", "owner": "v4.manager_workbench.us_mapping_catalog",
+            "source_sha256": "d" * 64, "available_at": "2026-10-21T05:00:00+08:00",
+            "positive_change_required": False, "quote": {}, "evidence_ids": [],
+            "relations": [{"status": "CANNOT_CONFIRM", "target_symbol": f"HK.{code}",
+                "target_name": f"Target {code}", "relation_type": "BUSINESS_PEER",
+                "catalog_relation_id": relation_id, "catalog_research_use": research_use,
+                "catalog_relation": relation}]}
+
+    data["records"].extend([
+        catalog_record("R-EXCLUDED", "00001", "GOOD", "EXCLUDED_CURRENT"),
+        catalog_record("R-BAD-QUOTE", "00002", "BAD", "CONDITIONAL_OBSERVATION"),
+        catalog_record("R-NO-PREV", "00003", "NOPREV", "CONDITIONAL_OBSERVATION"),
+        catalog_record("R-BAD-RETURN", "00005", "BADRETURN", "CONDITIONAL_OBSERVATION"),
+        catalog_record("R-NONFINITE", "00006", "NONFINITE", "CONDITIONAL_OBSERVATION"),
+        catalog_record("R-GOOD", "00004", "GOOD", "CONDITIONAL_OBSERVATION"),
+    ])
+    monkeypatch.setattr(mapping_module, "run_us_factor", lambda *_: ([], {
+        "display_only": True, "factor_decision_counts": {},
+        "industry_summary": {"source_status": "READY", "source_asof": "20261020"},
+    }))
+
+    result = run_us_mapping(context, data)
+    holder = next(row for row in result["rows"] if "us_factor_summary" in row)
+    single_day = holder["us_factor_summary"]["single_day_mapping"]
+    dispositions = {row["catalog_relation_id"]: row
+        for row in single_day["catalog_relation_dispositions"]}
+    candidates = {row["symbol"]: row for row in single_day["catalog_candidates"]}
+
+    mismatched = dispositions["R-BAD-QUOTE"]
+    assert mismatched["quote_status"] == "MISSING_OR_UNVERIFIED"
+    assert mismatched["quote_missing_reason"] == "MANUAL_QUOTE_SYMBOL_MISMATCH"
+    missing_price = dispositions["R-NO-PREV"]
+    assert missing_price["quote_status"] == "MISSING_OR_UNVERIFIED"
+    assert missing_price["quote_missing_reason"] == "MANUAL_QUOTE_PRICE_INVALID"
+    assert candidates["HK.00002"]["direction_group"] == "FLAT_OR_UNKNOWN"
+    assert candidates["HK.00002"]["unknown_relation_ids"] == ["R-BAD-QUOTE"]
+    assert candidates["HK.00003"]["direction_group"] == "FLAT_OR_UNKNOWN"
+    assert candidates["HK.00003"]["unknown_relation_ids"] == ["R-NO-PREV"]
+    bad_return = dispositions["R-BAD-RETURN"]
+    assert bad_return["quote_status"] == "MISSING_OR_UNVERIFIED"
+    assert bad_return["quote_missing_reason"] == "MANUAL_QUOTE_RETURN_MISMATCH"
+    assert candidates["HK.00005"]["direction_group"] == "FLAT_OR_UNKNOWN"
+    nonfinite = dispositions["R-NONFINITE"]
+    assert nonfinite["quote_status"] == "MISSING_OR_UNVERIFIED"
+    assert nonfinite["quote_missing_reason"] == "MANUAL_QUOTE_PRICE_INVALID"
+    assert candidates["HK.00006"]["direction_group"] == "FLAT_OR_UNKNOWN"
+    assert candidates["HK.00004"]["direction_group"] == "POSITIVE_WITHOUT_NEGATIVE"
+    assert candidates["HK.00004"]["positive_relation_ids"] == ["R-GOOD"]
+
+    excluded = dispositions["R-EXCLUDED"]
+    assert excluded["catalog_disposition"] == "EXCLUDED_FOR_SPECIFIED_RESEARCH_USE"
+    assert excluded["catalog_disposition_reason"] == "CATALOG_RESEARCH_USE_EXPLICITLY_EXCLUDED"
+    assert "HK.00001" not in candidates

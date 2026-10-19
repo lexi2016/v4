@@ -8,6 +8,7 @@ from .us_factor import run_us_factor
 from .strict_us_selection import (
     run_single_day_mapping,
     cannot_confirm_single_day_mapping,
+    single_day_mapping_context_ready,
 )
 from ..inputs.us_universe import (
     LEGACY_UNIVERSE_VERSION,
@@ -337,12 +338,7 @@ def run_us_mapping(context, batch):
                 paired_review_available=False, paired_review_gap="US_FACTOR_ENGINE_FAILED",
                 source_session=(context.get("source_sessions") or {}).get("us"),
                 historical_pit_verified=False, combined_source_and_stock_count=None)
-        full_mapping_mode = (context.get("target_date") == "20261020"
-            and context.get("phase") in ("MANUAL", "NEXT_DAY")
-            and ((context.get("source_sessions") or {}).get("us")
-                 or (context.get("source_sessions") or {}).get("US")) == "20261016"
-            and ((context.get("source_sessions") or {}).get("hk_price")
-                 or (context.get("source_sessions") or {}).get("HK_PRICE")) == "20261016")
+        full_mapping_mode = single_day_mapping_context_ready(context)
         if full_mapping_mode:
             legacy_counts = dict(factor_summary.get("factor_decision_counts") or {})
             for factor_row in factor_rows:
@@ -369,12 +365,7 @@ def run_us_mapping(context, batch):
                 factor_summary["industry_summary"]["triggered_unique_stock_count"] = 0
                 factor_summary["industry_summary"]["full_mapping_route"] = "BROAD_SECTOR_BACKGROUND"
                 factor_summary["industry_summary"]["full_mapping_direction"] = "US_SOURCE_OBSERVATION_ONLY"
-        if (context.get("phase") in ("MANUAL", "NEXT_DAY")
-                and context.get("target_date") == "20261020"
-                and ((context.get("source_sessions") or {}).get("us")
-                    or (context.get("source_sessions") or {}).get("US")) == "20261016"
-                and ((context.get("source_sessions") or {}).get("hk_price")
-                    or (context.get("source_sessions") or {}).get("HK_PRICE")) == "20261016"):
+        if full_mapping_mode:
             try:
                 mapping_payload = (payload.get("single_day_mapping_payload") or {}).get("monthly_membership") if isinstance(payload, dict) else None
                 single_day_summary = run_single_day_mapping(context,

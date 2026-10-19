@@ -1,0 +1,21 @@
+[project]
+name = "v3-5"
+version = "0.1.0"
+description = "Independent V3.5 application foundation"
+requires-python = ">=3.14"
+dependencies = [
+  "fastapi>=0.128,<1.0",
+  "uvicorn>=0.40,<1.0",
+]
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1.0",
+  "pytest>=9.0,<10.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Keep warnings-as-errors, but tolerate the starlette 1.6 TestClient(httpx)
+# deprecation until the suites migrate to the replacement client.
+addopts = "-W error -W default::starlette.exceptions.StarletteDeprecationWarning"
