@@ -1371,10 +1371,14 @@ class AnnouncementUpdate:
                                     queue_value: dict[str, Any], hashes: dict[str, str],
                                     source_root: Path, transport_recovery: Any) -> dict[str, Any]:
         from infrastructure.owned_io import SafeRoot
+        from ops.run_manager_flash_announcements import (
+            FlashRunError, _transport_canary_receipt_candidate, _validated_transport_canary_result,
+        )
 
         resume_value = result_value.get("resume")
-        validation = resume_value.get("canary_validation") if isinstance(resume_value, dict) else None
         plan = transport_recovery
+        validation = (_transport_canary_receipt_candidate(resume_value, plan, queue_value.get("jobs", {}))
+                      if isinstance(plan, dict) else None)
         source = input_value.get("resume_source")
         root = input_value.get("resume_root")
         failure = plan.get("failed_task") if isinstance(plan, dict) else None
@@ -1415,7 +1419,6 @@ class AnnouncementUpdate:
                 or resume_value.get("transport_recovery") != plan
                 or resume_value.get("canary_model_calls") != 1
                 or resume_value.get("max_model_calls") != 1
-                or resume_value.get("canary_passed") is not True
                 or resume_value.get("canary_status") != "SUCCEEDED"
                 or not isinstance(validation, dict) or validation.get("status") != "PASS"
                 or validation.get("key") != resume_value.get("canary_key")
@@ -1534,8 +1537,12 @@ class AnnouncementUpdate:
                 or not re.fullmatch(r"[0-9a-f]{64}", str(validation.get("raw_sha256", "")))
                 or not re.fullmatch(r"[0-9a-f]{64}", str(validation.get("validated_sha256", "")))):
             raise JobConflict("RESUME_TRANSPORT_CANARY_RESULT_BINDING_UNVERIFIED")
-        if self._queue_orphan_result_state(source_root / "announcement_flash" / "queue",
-                                           canary_key, canary_job) != "COMPLETE":
+        try:
+            strict_validation = _validated_transport_canary_result(
+                source_root / "announcement_flash" / "queue", canary_job, canary_payload, plan)
+        except FlashRunError as exc:
+            raise JobConflict("RESUME_TRANSPORT_CANARY_VALIDATED_RESULT_UNVERIFIED") from exc
+        if strict_validation != validation:
             raise JobConflict("RESUME_TRANSPORT_CANARY_VALIDATED_RESULT_UNVERIFIED")
         return {"mode": "CONTINUE_AFTER_CANARY", "canary_passed": True,
                 "canary_key": canary_key, "canary_status": "SUCCEEDED", "canary_model_calls": 1,

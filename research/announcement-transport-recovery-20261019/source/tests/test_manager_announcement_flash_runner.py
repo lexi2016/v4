@@ -3389,7 +3389,7 @@ def _transport_canary_runtime_fixture(tmp_path, monkeypatch):
             item = self.jobs[key]
             payload = json.loads((self.root / item["input_path"]).read_bytes())
             output = {"results": [{"article_id": payload["article_id"], "reader_output": {
-                "article_id": payload["article_id"], "source_sha256": payload["source_sha256"],
+                "source_sha256": payload["source_sha256"],
                 "body_sha256": payload["body_sha256"], "disposition": "UNKNOWN", "direction": "UNKNOWN",
             }}]}
             raw = bridge.canonical(output)
@@ -3400,7 +3400,8 @@ def _transport_canary_runtime_fixture(tmp_path, monkeypatch):
             item.update(status="SUCCEEDED", attempt_count=1, validated_path=validated_ref,
                         validated_sha256=bridge.sha(raw), raw_path=raw_ref, raw_sha256=bridge.sha(raw),
                         attempts=[{"status": "SUCCEEDED", "number": 1, "raw_path": raw_ref,
-                                   "raw_sha256": bridge.sha(raw), "raw_length_bytes": len(raw)}])
+                                   "raw_sha256": bridge.sha(raw), "raw_length_bytes": len(raw),
+                                   "validated_path": validated_ref, "validated_sha256": bridge.sha(raw)}])
             self.dispatched.append(key)
             return {"idempotency_key": key, "status": "SUCCEEDED"}
 
@@ -3459,7 +3460,7 @@ def _transport_canary_runtime_fixture(tmp_path, monkeypatch):
         _token_count=lambda _tokenizer, _messages: 17,
     )
     monkeypatch.setattr(bridge, "_load_helper", lambda: helper)
-    monkeypatch.setattr(bridge, "_validator", lambda *_args: None)
+    monkeypatch.setattr(bridge, "_validator", lambda *_args: lambda _job, parsed: parsed)
     monkeypatch.setattr(bridge, "_transport_executor", lambda *_args: None)
     monkeypatch.setattr(bridge, "_pinned_candidate_history", lambda: [])
     monkeypatch.setattr(bridge, "_project_historical_matches", lambda matches, _sha: {
@@ -3590,3 +3591,91 @@ def test_transport_continuation_versions_all_63_pending_parts_without_mutating_s
                for record in records)
     assert all(queue.jobs[key] == item for key, item in source_jobs_before.items())
     assert len(queue.jobs) == len(source_jobs_before) + 63
+
+
+def _saved_transport_readback_case(tmp_path, monkeypatch):
+    """An ordinary projection has row identity, never nested reader identity."""
+    (bridge, input_value, _material, plan, queue, state_root, capture_root,
+     _keys, _original_jobs) = _transport_canary_runtime_fixture(tmp_path, monkeypatch)
+    child = {**input_value, "job_id": "b" * 32,
+             "resume_root": {"source_job_id": input_value["job_id"],
+                             "source_input_sha256": plan["source_input_sha256"]},
+             "resume_source": {**plan, "schema": "v4.manager_workbench.announcement_flash_resume.v1",
+                               "transport_recovery": plan, "resume_action": "CANARY", "canary_passed": False}}
+    result = bridge._run(child, state_root=state_root, capture_root=capture_root, job_id=child["job_id"],
+                         progress=lambda _event: None, shared_root=tmp_path / "shared",
+                         resume_frozen_batch=True, resume_action="CANARY", max_model_calls=1,
+                         resume_source_job_id=input_value["job_id"],
+                         resume_source_input_sha256=plan["source_input_sha256"])
+    key = result["resume"]["canary_key"]
+    assert result["resume"]["canary_passed"] is True
+    saved = json.loads((queue.root / queue.jobs[key]["validated_path"]).read_bytes())
+    assert saved["results"][0]["article_id"] == plan["failed_task"]["article_id"]
+    assert "article_id" not in saved["results"][0]["reader_output"]
+    # Exact R2 failure from the former nested identity lookup; saved artifacts stay successful.
+    result["resume"].update(canary_passed=False, continue_eligible=False,
+        canary_validation={"status": "FAIL", "key": key,
+                           "failure_code": "FROZEN_RESUME_TRANSPORT_CANARY_RESULT_UNVERIFIED"})
+    return bridge, child, result, plan, queue, state_root, capture_root
+
+
+def test_saved_transport_ordinary_readback_revalidates_without_dispatch_or_writes(tmp_path, monkeypatch):
+    bridge, child, result, plan, queue, state_root, capture_root = _saved_transport_readback_case(tmp_path, monkeypatch)
+    before = {str(path): path.read_bytes() for path in state_root.rglob("*") if path.is_file()}
+    result_before = bridge.canonical(result)
+    bridge._verify_saved_transport_canary(bridge.SafeRoot(state_root), capture_root, child["job_id"],
+                                          "20261016", child, result, {"jobs": queue.jobs}, plan)
+    assert bridge.canonical(result) == result_before
+    assert {str(path): path.read_bytes() for path in state_root.rglob("*") if path.is_file()} == before
+    assert queue.dispatched == [result["resume"]["canary_key"]]
+
+
+@__import__("pytest").mark.parametrize("mutation", [
+    "raw_bytes", "validated_bytes", "missing_raw", "missing_sha", "payload_bytes", "wrong_article",
+    "second_attempt", "second_dispatch", "second_call", "semantic_failure", "other_failure", "wrong_key",
+    "source_drift", "configuration_drift",
+])
+def test_saved_transport_ordinary_readback_keeps_invalid_results_blocked(tmp_path, monkeypatch, mutation):
+    bridge, child, result, plan, queue, state_root, capture_root = _saved_transport_readback_case(tmp_path, monkeypatch)
+    key = result["resume"]["canary_key"]
+    job = queue.jobs[key]
+    if mutation == "raw_bytes":
+        (queue.root / job["raw_path"]).write_bytes(b"{}")
+    elif mutation == "validated_bytes":
+        (queue.root / job["validated_path"]).write_bytes(b"{}")
+    elif mutation == "missing_raw":
+        (queue.root / job["raw_path"]).unlink()
+    elif mutation == "missing_sha":
+        del job["raw_sha256"]
+    elif mutation == "payload_bytes":
+        (queue.root / job["input_path"]).write_bytes(b"{}")
+    elif mutation == "wrong_article":
+        saved_path = queue.root / job["validated_path"]
+        saved = json.loads(saved_path.read_bytes())
+        saved["results"][0]["article_id"] = "EASTMONEY:OTHER"
+        saved_path.write_bytes(bridge.canonical(saved))
+        job["validated_sha256"] = job["attempts"][0]["validated_sha256"] = bridge.sha(saved_path.read_bytes())
+    elif mutation == "second_attempt":
+        job["attempts"].append(dict(job["attempts"][0]))
+    elif mutation == "second_dispatch":
+        result["resume"]["dispatched_keys"].append(key)
+    elif mutation == "second_call":
+        result["resume"]["model_calls"] = 2
+    elif mutation == "semantic_failure":
+        def reject(_job, _parsed):
+            raise ValueError("SEMANTIC_REJECTED")
+        monkeypatch.setattr(bridge, "_validator", lambda *_args: reject)
+    elif mutation == "other_failure":
+        result["resume"]["canary_validation"]["failure_code"] = "SEMANTIC_REJECTED"
+    elif mutation == "wrong_key":
+        result["resume"]["canary_key"] = "0" * 64
+    elif mutation == "source_drift":
+        (state_root / "announcement_flash/jobs" / plan["source_job_id"] / "input.json").write_bytes(b"{}")
+    elif mutation == "configuration_drift":
+        helper = bridge._load_helper()
+        material = helper._full_day_request_material(None)
+        material["configuration_sha256"] = "0" * 64
+    with __import__("pytest").raises(bridge.FlashRunError):
+        bridge._verify_saved_transport_canary(bridge.SafeRoot(state_root), capture_root, child["job_id"],
+                                              "20261016", child, result, {"jobs": queue.jobs}, plan)
+    assert queue.dispatched == [key]

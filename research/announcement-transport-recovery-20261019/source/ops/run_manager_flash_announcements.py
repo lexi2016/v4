@@ -491,6 +491,93 @@ def _saved_orphan_result_state(queue_root: Path, job: dict[str, Any], payload: d
     return "NONE"
 
 
+def _transport_canary_receipt_candidate(resume: Any, plan: dict[str, Any],
+                                       jobs: dict[str, Any]) -> dict[str, Any] | None:
+    """Recognize only the saved one-call success or its ordinary-readback failure."""
+    if (not isinstance(resume, dict) or not isinstance(jobs, dict)
+            or not isinstance(plan.get("failed_task"), dict)):
+        return None
+    key = resume.get("canary_key")
+    if (not isinstance(key, str) or not SHA_RE.fullmatch(key)
+            or resume.get("model_calls") != 1 or resume.get("canary_model_calls") != 1
+            or resume.get("max_model_calls") != 1 or resume.get("dispatched_keys") != [key]
+            or resume.get("canary_status") != "SUCCEEDED"):
+        return None
+    validation = resume.get("canary_validation")
+    if (resume.get("canary_passed") is True and isinstance(validation, dict)
+            and validation.get("status") == "PASS" and validation.get("key") == key):
+        return validation
+    if (resume.get("canary_passed") is not False or resume.get("continue_eligible") is not False
+            or validation != {"status": "FAIL", "key": key,
+                              "failure_code": "FROZEN_RESUME_TRANSPORT_CANARY_RESULT_UNVERIFIED"}):
+        return None
+    job = jobs.get(key)
+    if not isinstance(job, dict):
+        return None
+    return {"status": "PASS", "key": key,
+            "binding_sha256": _transport_recovery_canary_binding(plan)["binding_sha256"],
+            "validated_sha256": job.get("validated_sha256"), "raw_sha256": job.get("raw_sha256")}
+
+
+def _validated_transport_canary_result(queue_root: Path, job: dict[str, Any],
+                                       payload: dict[str, Any], plan: dict[str, Any], *,
+                                       validator: Callable[[Any, Any], dict[str, Any]] | None = None
+                                       ) -> dict[str, Any]:
+    """Read and strictly replay an ordinary canary; never dispatch or persist anything."""
+    try:
+        key = job.get("idempotency_key")
+        attempts = job.get("attempts")
+        attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else None
+        if (not isinstance(key, str) or not SHA_RE.fullmatch(key)
+                or job.get("status") != "SUCCEEDED" or job.get("queue_id") != QUEUE_ID
+                or job.get("attempt_count") != 1 or job.get("max_attempts") != 1
+                or payload.get("queue_task_kind") is not None
+                or payload.get("role") != "announcement_reader"
+                or job.get("identity") != {field: payload.get(field) for field in QUEUE_IDENTITY_FIELDS}
+                or sha(canonical(job.get("identity"))) != key
+                or _queue_payload(queue_root, job) != payload
+                or not isinstance(attempt, dict) or attempt.get("status") != "SUCCEEDED"
+                or attempt.get("number") != 1 or attempt.get("error") is not None):
+            raise ValueError("binding")
+        for role, suffix in (("raw", "raw"), ("validated", "validated.json")):
+            ref = f"jobs/{key}/attempt-0001.{suffix}"
+            if (job.get(role + "_path") != ref or attempt.get(role + "_path") != ref
+                    or attempt.get(role + "_sha256") != job.get(role + "_sha256")):
+                raise ValueError("reference")
+        saved, validated_sha, raw_sha = _read_internal_validated_result(queue_root, job)
+        raw_bytes = (queue_root / job["raw_path"]).read_bytes()
+        if sha(raw_bytes) != raw_sha or attempt.get("raw_length_bytes") != len(raw_bytes):
+            raise ValueError("length")
+        rows = saved.get("results")
+        row = rows[0] if isinstance(rows, list) and len(rows) == 1 else None
+        output = row.get("reader_output") if isinstance(row, dict) else None
+        if (not isinstance(output, dict) or row.get("article_id") != payload.get("article_id")
+                or output.get("source_sha256") != payload.get("source_sha256")
+                or output.get("body_sha256") != payload.get("body_sha256")
+                or payload.get("transport_recovery_binding") != _transport_recovery_canary_binding(plan)):
+            raise ValueError("ordinary result")
+        if validator is None:
+            helper = _load_helper()
+            import announcement_queue as queue_module
+            import batch_runner as runner
+            import build_length_canary as length_canary
+            contract = runner.load_active_contract()
+            material = helper._full_day_request_material(contract)
+            if any(payload.get(field) != material.get(field) for field in (
+                    "prompt_sha256", "configuration_sha256", "workflow_profile", "citation_protocol")):
+                raise ValueError("configuration drift")
+            validator = _validator(queue_module, runner, contract, material, length_canary)
+        projected = validator(SimpleNamespace(payload=payload, idempotency_key=key),
+                              _json(raw_bytes, "TRANSPORT_CANARY_RAW_INVALID"))
+        if sha(canonical(projected)) != validated_sha:
+            raise ValueError("strict replay")
+        return {"status": "PASS", "key": key,
+                "binding_sha256": _transport_recovery_canary_binding(plan)["binding_sha256"],
+                "validated_sha256": validated_sha, "raw_sha256": raw_sha}
+    except Exception as exc:
+        raise FlashRunError("FROZEN_RESUME_TRANSPORT_CANARY_RESULT_UNVERIFIED") from exc
+
+
 def _load_frozen_resume_plan(state_root: Path, root_job_id: str, article: dict[str, Any],
                             unit_map: dict[str, Any], chunks: Any) -> tuple[dict[str, Any], str]:
     """Load the original immutable part plan so a prompt/schema repair keeps its part identities."""
@@ -4979,7 +5066,9 @@ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
             try:
                 stored_payload = _queue_payload(queue_root, canary_job)
                 binding = stored_payload.get("transport_recovery_binding")
-                result_state = _saved_orphan_result_state(queue_root, canary_job, stored_payload)
+                _validated_transport_canary_result(
+                    queue_root, canary_job, stored_payload, transport_recovery_plan, validator=validator)
+                result_state = "COMPLETE"
             except FlashRunError:
                 binding, result_state = None, "UNVERIFIED"
             expected_binding = _transport_recovery_canary_binding(transport_recovery_plan)
@@ -6654,6 +6743,8 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
                                    result_value: dict[str, Any], queue_value: dict[str, Any],
                                    plan: Any) -> None:
     resume = result_value.get("resume")
+    validation = (_transport_canary_receipt_candidate(resume, plan, queue_value.get("jobs", {}))
+                  if isinstance(plan, dict) and isinstance(queue_value, dict) else None)
     root = source_input.get("resume_root")
     nested = source_input.get("resume_source")
     if (not isinstance(plan, dict)
@@ -6668,9 +6759,7 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
             or result_value.get("target_trade_date") != target_date
             or result_value.get("state") != "PARTIAL"
             or resume.get("canary_model_calls") != 1 or resume.get("max_model_calls") != 1
-            or resume.get("canary_passed") is not True or resume.get("canary_status") != "SUCCEEDED"
-            or not isinstance(resume.get("canary_validation"), dict)
-            or resume["canary_validation"].get("status") != "PASS"
+            or validation is None or resume.get("canary_status") != "SUCCEEDED"
             or source_job_id == plan.get("source_job_id")
             or not isinstance(root, dict) or root.get("source_job_id") != plan.get("source_job_id")
             or root.get("source_input_sha256") != plan.get("source_input_sha256")
@@ -6775,7 +6864,6 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
             raise FlashRunError("FROZEN_RESUME_TRANSPORT_PENDING_PAYLOAD_INVALID")
     canary_key = resume.get("canary_key")
     canary_job = jobs.get(canary_key) if isinstance(canary_key, str) else None
-    validation = resume.get("canary_validation")
     if (not isinstance(canary_key, str) or not SHA_RE.fullmatch(canary_key)
             or not isinstance(canary_job, dict) or canary_job.get("queue_id") != QUEUE_ID
             or canary_job.get("status") != "SUCCEEDED" or canary_job.get("attempt_count") != 1
@@ -6795,8 +6883,8 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
                         "frozen_resume_binding": frozen_binding}
     if (canonical(canary_payload) != canonical(expected_payload)
             or {field: canary_payload.get(field) for field in QUEUE_IDENTITY_FIELDS} != canary_job.get("identity")
-            or _saved_orphan_result_state(state_io.root / "announcement_flash" / "queue",
-                                          canary_job, canary_payload) != "COMPLETE"):
+            or _validated_transport_canary_result(
+                state_io.root / "announcement_flash" / "queue", canary_job, canary_payload, plan) != validation):
         raise FlashRunError("FROZEN_RESUME_TRANSPORT_CANARY_RESULT_UNVERIFIED")
 
 

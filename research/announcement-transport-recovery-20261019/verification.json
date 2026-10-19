@@ -1,34 +1,34 @@
 {
-  "status": "SOURCE_REVIEWED_DEPLOYED_CANARY_PENDING",
+  "status": "R3_SOURCE_REVIEWED_DEPLOYED_SAVED_CANARY_VALIDATED",
   "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
-  "remote_base_commit": "1fcc32289c7f80ed84ae61417aed190989fcf08c",
+  "remote_base_commit": "4ecf8bac2269fe61a762a37d831d24f7ef3ad60c",
   "branch": "codex/announcement-transport-recovery-20261019",
-  "release_id": "announcement-transport-recovery-20261019-r2",
-  "manifest_sha256": "b634671b288cc6c27a71bee9be7b7262f6a590d7ceee28302f9de2db39a16e56",
+  "release_id": "announcement-transport-recovery-20261019-r3",
+  "manifest_sha256": "841543208b6f14e9dc1367d149dd8658de4d1d0a6da1b4292a61a4d0f7f207a9",
   "files": [
     {
       "path": "v4/manager_workbench/announcement_update.py",
       "baseline_sha256": "0ddf3b54a5c4f3fc0458a40cb04eaad409d2169106c4a2161b264124b5017ac4",
-      "deployed_sha256": "31edba960031cc8f46141091418f638225f0c49392c8c60276531db895f806d9",
-      "canonical_sha256": "55fb7379f4568309ecd15156e3e3593a9c8455ae63f40568b3c3773cec049d3a"
+      "deployed_sha256": "4563f9394e01ca6d52c9bf42102d445481ca00663f95aee0f4b03ccaf80b678c",
+      "canonical_sha256": "fb7e2fa41616122f5f1524a12206fc828b8c6b64829590f4622fc1a0a27cdbc3"
     },
     {
       "path": "ops/run_manager_flash_announcements.py",
       "baseline_sha256": "6b24dae4c1082953dbc560282127e9e88caea6c839946bd328c8404946930c7d",
-      "deployed_sha256": "48017f361cc3b867c8dda7d9e70c4f77817b98763150ef20a1e7035f3fcd1b53",
-      "canonical_sha256": "48017f361cc3b867c8dda7d9e70c4f77817b98763150ef20a1e7035f3fcd1b53"
+      "deployed_sha256": "56190f06f0b49b3094dc90adb107fe3be430f5755fc2f5e1cbf90604d8cea81e",
+      "canonical_sha256": "56190f06f0b49b3094dc90adb107fe3be430f5755fc2f5e1cbf90604d8cea81e"
     },
     {
       "path": "tests/test_manager_announcement_resume.py",
       "baseline_sha256": "b906021d6e3ad72baef14692096c0748e2e60abf91cd4882f19a81b4d4f34154",
-      "deployed_sha256": "f9cf8b24efe3f07b97abf2065eca944ef2816f7df58779feb8fedc648a82f84a",
-      "canonical_sha256": "b725bb65cd5d22025e56cbce59371bda4a576ea81621ea39d4ee77b8beb6d554"
+      "deployed_sha256": "e2447c76bf7496dbb16ee24e87aad501ffa98a1e820e3a905c6ad9b670d4485b",
+      "canonical_sha256": "183e401a2e2e6e4cc9517bf865bef9e2c8f33c1cd0f50120251e8488df108da4"
     },
     {
       "path": "tests/test_manager_announcement_flash_runner.py",
       "baseline_sha256": "5a2c2fbaf972b010e5b65d6005922a947d307662ad101bdb3a71dc65943ff0ee",
-      "deployed_sha256": "05d53a719c72f446abe1a66ce1ff9130c2672f7f6b17808507be688236361bb9",
-      "canonical_sha256": "05d53a719c72f446abe1a66ce1ff9130c2672f7f6b17808507be688236361bb9"
+      "deployed_sha256": "564ae41a14c7587355f43d244c963c06b907257e9c6993553c992d44fcf7d9ff",
+      "canonical_sha256": "564ae41a14c7587355f43d244c963c06b907257e9c6993553c992d44fcf7d9ff"
     },
     {
       "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
@@ -43,7 +43,7 @@
       "canonical_sha256": "e948c70dbce4ff1cfec4e4fcc506089c2b70c8d0b038f73b9ea685be27760a29"
     }
   ],
-  "canonical_preservation_patch_sha256": "80273acf2628429e37ed35e5e2ee23ff38559fad9af9e441a4151f18478cf263",
+  "canonical_preservation_patch_sha256": "660f90404f4823cb66cd44932b9bc8d4e6b5a38e9b6fa234bf3f6a32eab939d3",
   "review": {
     "r1": "FAIL: current request drift and long-part deepcopy NameError",
     "r2": "PASS",
@@ -51,14 +51,23 @@
     "targeted_checks": 15,
     "reused_python_checks": 100,
     "reused_ui_checks": 5,
-    "reused_canonical_checks": 5
+    "reused_canonical_checks": 5,
+    "r3": "PASS",
+    "r3_receipt_sha256": "17c3be050b51aba5d5d43623257d00e3bb59785aa14d010cd00c4ce92e5befce",
+    "r3_targeted_checks": 34,
+    "r3_command": "PYTHONDONTWRITEBYTECODE=1 runtime-python -m pytest -q -p no:cacheprovider -k 'transport or saved_transport' tests/test_manager_announcement_resume.py tests/test_manager_announcement_flash_runner.py",
+    "r3_environment": "v3.5-mac Python; isolated active dependencies plus exact reviewed R3 service/runner"
   },
   "runtime": {
     "api_identity": "VERIFIED",
     "ui_canary_job": "515335e08c7140f4abed10612f6181c4",
-    "live_canary_verdict": "PENDING",
-    "pending_continuation": "NOT_STARTED",
-    "natural_slot": "NOT_RUN"
+    "live_canary_verdict": "SAVED_SUCCEEDED_STRICT_READONLY_PASS",
+    "pending_continuation": "RUNNING",
+    "natural_slot": "NOT_RUN",
+    "saved_canary_extra_model_posts": 0,
+    "protected_success_records": 575,
+    "protected_success_files": 1150,
+    "continuation_job": "542d858cefce4f3a8e3bf9914137be68"
   },
   "safety": {
     "RESEARCH_ONLY": true,

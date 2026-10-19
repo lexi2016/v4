@@ -2051,3 +2051,71 @@ def test_runner_reproves_precontract_orphan_canary_without_writing_queue_or_stat
     assert verified["root_job_id"] == root_id
     assert verified["source_part_key"] == source_part_key
     assert verified["part_descriptor"]["part_index"] == 45
+
+
+def _saved_transport_service_case(tmp_path, monkeypatch):
+    # Reuse the ordinary wire-shape fixture across both entry points.
+    spec = importlib.util.spec_from_file_location(
+        "saved_transport_runner_fixture", Path(__file__).with_name("test_manager_announcement_flash_runner.py"))
+    fixture = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fixture)
+    values = fixture._saved_transport_readback_case(tmp_path, monkeypatch)
+    bridge, child, result, plan, queue, state_root, capture_root = values
+    monkeypatch.setitem(__import__("sys").modules, "ops.run_manager_flash_announcements", bridge)
+    service = SimpleNamespace(config=SimpleNamespace(capture_root=capture_root),
+                              store=SimpleNamespace(io=bridge.SafeRoot(state_root)))
+    return AnnouncementUpdate(service), values
+
+
+@pytest.mark.parametrize("saved_flag", [False, True])
+def test_saved_transport_service_and_runner_derive_same_readonly_continue_receipt(tmp_path, monkeypatch, saved_flag):
+    update, (bridge, child, result, plan, queue, state_root, capture_root) = \
+        _saved_transport_service_case(tmp_path, monkeypatch)
+    if saved_flag:
+        job = queue.jobs[result["resume"]["canary_key"]]
+        receipt = bridge._validated_transport_canary_result(
+            queue.root, job, bridge._queue_payload(queue.root, job), plan)
+        result["resume"].update(canary_passed=True, continue_eligible=True, canary_validation=receipt)
+    before = {str(path): path.read_bytes() for path in state_root.rglob("*") if path.is_file()}
+    original_result = bridge.canonical(result)
+    derived = update._completed_transport_canary(child["job_id"], "20261016", child, result,
+                                                 {"jobs": queue.jobs}, {}, state_root, plan)
+    bridge._verify_saved_transport_canary(bridge.SafeRoot(state_root), capture_root, child["job_id"],
+                                          "20261016", child, result, {"jobs": queue.jobs}, plan)
+    assert derived["mode"] == "CONTINUE_AFTER_CANARY"
+    assert derived["canary_passed"] is True
+    assert derived["canary_validation"]["status"] == "PASS"
+    assert result["resume"]["canary_passed"] is saved_flag
+    assert bridge.canonical(result) == original_result
+    assert {str(path): path.read_bytes() for path in state_root.rglob("*") if path.is_file()} == before
+    assert queue.dispatched == [result["resume"]["canary_key"]]
+
+
+@pytest.mark.parametrize("mutation", ["raw", "missing_sha", "wrong_article", "semantic", "multicall", "failure"])
+def test_saved_transport_service_rejects_invalid_or_nonexact_failure(tmp_path, monkeypatch, mutation):
+    update, (bridge, child, result, plan, queue, state_root, _capture_root) = \
+        _saved_transport_service_case(tmp_path, monkeypatch)
+    key = result["resume"]["canary_key"]
+    job = queue.jobs[key]
+    if mutation == "raw":
+        (queue.root / job["raw_path"]).write_bytes(b"{}")
+    elif mutation == "missing_sha":
+        del job["raw_sha256"]
+    elif mutation == "wrong_article":
+        path = queue.root / job["validated_path"]
+        value = json.loads(path.read_bytes())
+        value["results"][0]["article_id"] = "EASTMONEY:OTHER"
+        path.write_bytes(bridge.canonical(value))
+        job["validated_sha256"] = job["attempts"][0]["validated_sha256"] = bridge.sha(path.read_bytes())
+    elif mutation == "semantic":
+        def reject(_job, _parsed):
+            raise ValueError("SEMANTIC_REJECTED")
+        monkeypatch.setattr(bridge, "_validator", lambda *_args: reject)
+    elif mutation == "multicall":
+        result["resume"]["model_calls"] = 2
+    elif mutation == "failure":
+        result["resume"]["canary_validation"]["failure_code"] = "SEMANTIC_REJECTED"
+    with pytest.raises(JobConflict):
+        update._completed_transport_canary(child["job_id"], "20261016", child, result,
+                                           {"jobs": queue.jobs}, {}, state_root, plan)
+    assert queue.dispatched == [key]

@@ -133,7 +133,7 @@
          for field in ("mode", "source_job_id", "target_date", "source_input_sha256",
                        "source_progress_sha256", "source_result_sha256", "capture_product_sha256",
                        "canary_key", "canary_status", "canary_passed", "canary_model_calls",
-@@ -1545,13 +1635,15 @@
+@@ -1552,13 +1642,15 @@
      def _completed_resume_canary(self, source_job_id: str, target_date: str,
                                   input_value: dict[str, Any], result_value: Any,
                                   queue_value: dict[str, Any], hashes: dict[str, str],
@@ -151,7 +151,7 @@
  
          resume_value = result_value.get("resume") if isinstance(result_value, dict) else None
          validation = resume_value.get("canary_validation") if isinstance(resume_value, dict) else None
-@@ -1955,6 +2047,7 @@
+@@ -1962,6 +2054,7 @@
          source_job_id = latest["job_id"]
          expected = None
          ignore_active_job_id = None
@@ -159,7 +159,7 @@
          try:
              if source_job_id == FAILED_CANARY_REENTRY_JOB_ID:
                  failed_request = self._failed_canary_reentry_request(source_job_id, day)
-@@ -1962,15 +2055,23 @@
+@@ -1969,15 +2062,23 @@
                  expected = {key: failed_request[key] for key in
                              ("source_input_sha256", "source_progress_sha256", "source_queue_state_sha256")}
                  ignore_active_job_id = FAILED_CANARY_REENTRY_JOB_ID
@@ -185,7 +185,7 @@
                      if snapshot.get(key) != binding.get(key):
                          raise JobConflict("RESUME_FAILED_WRAPPER_SOURCE_BINDING_UNVERIFIED")
              snapshot.pop("source_input", None)
-@@ -2014,6 +2115,16 @@
+@@ -2021,6 +2122,16 @@
                  request_binding = {**base_request_binding,
                                     "reentry_from_job_id": reentry_from_job_id,
                                     "reentry_contract": FAILED_CANARY_REENTRY_CONTRACT,
@@ -202,7 +202,7 @@
                                     "reentry_evidence_sha256": failed_request["_reentry_evidence_sha256"]}
              elif latest_job_id != source_job_id:
                  try:
-@@ -2036,9 +2147,15 @@
+@@ -2043,9 +2154,15 @@
                      raise JobConflict("RESUME_SOURCE_NOT_LATEST")
                  marker = latest_request.get("reentry_from_job_id")
                  if marker is not None:
@@ -221,7 +221,7 @@
                              or latest_request.get("reentry_evidence_sha256")
                              != failed_request.get("_reentry_evidence_sha256")):
                          raise JobConflict("RESUME_REENTRY_MARKER_UNVERIFIED")
-@@ -2067,11 +2184,11 @@
+@@ -2074,11 +2191,11 @@
                  raise JobConflict("RESUME_SOURCE_NOT_LATEST")
              artifacts = self._resume_source_artifacts(
                  source_job_id, day, expected,
