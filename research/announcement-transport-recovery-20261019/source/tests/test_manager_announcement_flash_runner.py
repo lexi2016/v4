@@ -3426,10 +3426,11 @@ def _transport_canary_runtime_fixture(tmp_path, monkeypatch):
                          attempts=[{"status": "FAILED", "number": 1,
                                     "error": {"stage": "validator", "code": "SEMANTIC_REJECTED"}}])
 
-    plan_queue_state = {"jobs": queue.jobs}
+    plan_queue_state = {"schema": "v4.announcement-engine-queue/v1", "jobs": queue.jobs}
+    (queue_root / "queue-state.json").write_bytes(bridge.canonical(plan_queue_state))
     plan_hashes = {"source_input_sha256": bridge.sha(bridge.canonical(input_value)),
                    "source_progress_sha256": bridge.sha(bridge.canonical(progress)),
-                   "source_queue_state_sha256": "5" * 64}
+                   "source_queue_state_sha256": bridge.sha(bridge.canonical(plan_queue_state))}
     plan = bridge._build_transport_recovery_plan(
         root_id, "20261016", input_value, progress, result, bridge.canonical(result),
         plan_queue_state, plan_hashes, capture_product, queue_root)
@@ -3997,3 +3998,67 @@ def test_real_queue_stops_persistence_failures_but_continues_item_failures(tmp_p
         assert completed == 2 and stop is None
         assert jobs[b]["status"] == "SUCCEEDED" and jobs[b]["attempt_count"] == 1
         assert dispatched == [a, b] and calls == ["A", "B"]
+
+
+@__import__("pytest").mark.parametrize("mutation", [None, "root", "parent_sha", "cutoff", "capture"])
+def test_transport_lineage_binds_distinct_original_root_and_immediate_origin(tmp_path, mutation):
+    from copy import deepcopy
+    bridge, root_id, original, *_rest = _transport_recovery_runner_fixture(tmp_path / "seed")
+    state = tmp_path / "state"
+    root_ref = state / "announcement_flash/jobs" / root_id / "input.json"
+    root_ref.parent.mkdir(parents=True)
+    root_ref.write_bytes(bridge.canonical(original))
+    root_binding = {"source_job_id": root_id, "source_input_sha256": bridge.sha(root_ref.read_bytes())}
+    parent_id = "b" * 32
+    parent = {**deepcopy(original), "job_id": parent_id, "resume_root": root_binding}
+    parent_ref = state / "announcement_flash/jobs" / parent_id / "input.json"
+    parent_ref.parent.mkdir(parents=True)
+    parent_ref.write_bytes(bridge.canonical(parent))
+    plan = {"source_job_id": parent_id, "source_input_sha256": bridge.sha(parent_ref.read_bytes())}
+    child = {**deepcopy(parent), "job_id": "c" * 32}
+    if mutation == "root": child["resume_root"]["source_job_id"] = "d" * 32
+    elif mutation == "parent_sha": plan["source_input_sha256"] = "0" * 64
+    elif mutation == "cutoff": child["cutoff"] = "2026-10-17T00:00:00+08:00"
+    elif mutation == "capture": child["capture_product"]["sha256"] = "0" * 64
+    if mutation is None:
+        assert bridge._verify_transport_original_root(bridge.SafeRoot(state), child, plan) == parent
+        assert parent_id != root_id
+    else:
+        with __import__("pytest").raises(bridge.FlashRunError, match="FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID"):
+            bridge._verify_transport_original_root(bridge.SafeRoot(state), child, plan)
+
+
+@__import__("pytest").mark.parametrize("transport", [False, True])
+def test_main_routes_verified_transport_parent_and_preserves_legacy_root(tmp_path, monkeypatch, transport):
+    bridge = _bridge_module()
+    job_id, parent, root = "c" * 32, "b" * 32, "a" * 32
+    state = tmp_path / "state"
+    job_dir = state / "announcement_flash/jobs" / job_id
+    job_dir.mkdir(parents=True)
+    source = {"schema": "v4.manager_workbench.announcement_flash_resume.v1", "target_date": "20261016",
+              "source_job_id": parent, "source_input_sha256": "1" * 64,
+              "source_progress_sha256": "2" * 64, "source_queue_state_sha256": "3" * 64,
+              "max_model_calls": 1, "resume_action": "CANARY", "legacy_failed_canary": None}
+    if transport:
+        source["transport_recovery"] = {"schema": bridge.TRANSPORT_RECOVERY_SCHEMA, "source_job_id": parent}
+    value = {"schema": "v4.manager_workbench.announcement_flash_input.v1", "job_id": job_id,
+             "target_date": "20261016", "resume_source": source,
+             "resume_root": {"source_job_id": root, "source_input_sha256": "4" * 64}}
+    (job_dir / "input.json").write_bytes(bridge.canonical(value))
+    verified = []
+    def verify(_state, _capture, source_id, _date, hashes, **kwargs):
+        verified.append((source_id, hashes, kwargs))
+        return {}, {}, None
+    monkeypatch.setattr(bridge, "_verify_resume_source", verify)
+    calls = []
+    def execute(_value, **kwargs):
+        calls.append(kwargs)
+        return {"state": "PARTIAL", "counts": {"queue": {"succeeded": 0, "failed": 0, "pending": 0}}}
+    monkeypatch.setattr(bridge, "_run", execute)
+    exitcode = bridge.main(["--state-root", str(state), "--capture-root", str(tmp_path / "capture"),
+                            "--job-id", job_id, "--resume-frozen-batch", "--resume-action", "CANARY",
+                            "--max-model-calls", "1"])
+    assert exitcode == 0 and len(calls) == len(verified) == 1
+    assert verified[0][0] == parent
+    assert calls[0]["resume_source_job_id"] == (parent if transport else root)
+    assert calls[0]["resume_source_input_sha256"] == ("1" * 64 if transport else "4" * 64)

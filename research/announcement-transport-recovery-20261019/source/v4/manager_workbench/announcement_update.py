@@ -51,6 +51,17 @@ FAILED_CANARY_REENTRY_STACK = [
     {"file": "run_manager_flash_announcements.py", "function": "main", "line": 6080},
     {"file": "run_manager_flash_announcements.py", "function": "_run", "line": 4405},
 ]
+TRANSPORT_LINEAGE_REENTRY_JOB_ID = "e4252685cfe8447faf68fc27b7760501"
+TRANSPORT_LINEAGE_REENTRY_CONTRACT = "TRANSPORT_ROOT_PARENT_ZERO_DISPATCH_R6_V1"
+TRANSPORT_LINEAGE_REENTRY_HASHES = {
+    "input": "260229dee18d5b53d2707eb53b1ab543abffc978973646828bece2fa8536d46b",
+    "progress": "9ff383267b475efdf68dac73f3e5598edb4eb21a139606eef48ea1b5340234d7",
+    "attempt": "84966794ac4595adf2b17622cef9680212308e20e0353e9922aae1360260d0b3",
+}
+_CANARY_REENTRY_CONTRACTS = {
+    FAILED_CANARY_REENTRY_JOB_ID: FAILED_CANARY_REENTRY_CONTRACT,
+    TRANSPORT_LINEAGE_REENTRY_JOB_ID: TRANSPORT_LINEAGE_REENTRY_CONTRACT,
+}
 FAILED_DISPATCH_CANARY_REENTRY_JOB_ID = "c03940f67a3945809524bf697fca0c1a"
 FAILED_DISPATCH_CANARY_REENTRY_SOURCE_JOB_ID = "29983573dff34359bfd34f054641a1d6"
 FAILED_DISPATCH_CANARY_REENTRY_ROOT_JOB_ID = "07bfabf09f144360ab8869214aeecea8"
@@ -202,8 +213,65 @@ class AnnouncementUpdate:
                                "state": value.get("state")})
         return active
 
+    def _failed_transport_lineage_reentry_request(self, wrapper_job_id: str, target_date: str) -> dict[str, Any]:
+        """Reenter only the pinned e425 root/parent failure before any queue dispatch."""
+        if wrapper_job_id != TRANSPORT_LINEAGE_REENTRY_JOB_ID:
+            raise JobConflict("RESUME_FAILED_WRAPPER_ID_UNVERIFIED")
+        job = self.service.jobs.get(wrapper_job_id)
+        raw = {
+            "input": self.service.store.io.read_bytes(self._job_ref(wrapper_job_id, "input.json"), max_bytes=1024 * 1024),
+            "progress": self.service.store.io.read_bytes(self._job_ref(wrapper_job_id, PROGRESS_REF), max_bytes=1024 * 1024),
+            "attempt": self.service.store.io.read_bytes(f"attempts/{wrapper_job_id}.json", max_bytes=8 * 1024 * 1024),
+        }
+        if any(_sha(value) != TRANSPORT_LINEAGE_REENTRY_HASHES[field] for field, value in raw.items()):
+            raise JobConflict("RESUME_FAILED_WRAPPER_EVIDENCE_SHA_CHANGED")
+        value, progress, attempt = (json.loads(raw[field]) for field in ("input", "progress", "attempt"))
+        context = getattr(job, "context", None)
+        scope = getattr(context, "scope_refs", {})
+        request = scope.get("announcement_flash_resume_request") if isinstance(scope, dict) else None
+        binding = scope.get("announcement_flash_resume") if isinstance(scope, dict) else None
+        source = value.get("resume_source")
+        expected_keys = {"source_job_id", "target_date", "resume_action", "source_input_sha256",
+                         "source_progress_sha256", "source_queue_state_sha256"}
+        failure = "FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID"
+        if (getattr(getattr(job, "state", None), "value", getattr(job, "state", None)) != "FAILED"
+                or getattr(job, "failure_code", None) != failure or getattr(job, "completed_count", None) != 0
+                or getattr(job, "step", None) != "FLASH_SELECTION"
+                or scope.get("capture_operation") != FROZEN_RESUME_OPERATION
+                or not isinstance(request, dict) or set(request) != expected_keys
+                or request.get("target_date") != target_date or request.get("resume_action") != "CANARY"
+                or not isinstance(source, dict) or any(source.get(key) != request.get(key) for key in expected_keys)
+                or not isinstance(binding, dict) or value.get("resume_root") != binding.get("resume_root")
+                or any(source.get(key) != item for key, item in binding.items() if key != "resume_root")
+                or getattr(context, "target_date", None) != target_date
+                or attempt.get("state") != "FAILED" or attempt.get("completed_count") != 0
+                or attempt.get("failure_code") != failure or attempt.get("step") != "FLASH_SELECTION"
+                or attempt.get("context", {}).get("scope_refs") != scope
+                or progress.get("step") != "FAILED" or progress.get("failure_code") != failure):
+            raise JobConflict("RESUME_FAILED_WRAPPER_NOT_PRE_DISPATCH_CRASH")
+        queue_raw = self.service.store.io.read_bytes("announcement_flash/queue/queue-state.json", max_bytes=64 * 1024 * 1024)
+        if _sha(queue_raw) != request.get("source_queue_state_sha256"):
+            raise JobConflict("RESUME_SOURCE_SHA_CHANGED")
+        try:
+            self.service.store.io.read_bytes(self._job_ref(wrapper_job_id, RESULT_REF), max_bytes=64 * 1024 * 1024)
+        except FileNotFoundError:
+            pass
+        else:
+            raise JobConflict("RESUME_FAILED_WRAPPER_RESULT_EXISTS")
+        from infrastructure.owned_io import SafeRoot
+        from ops.run_manager_flash_announcements import FlashRunError, _verify_transport_original_root
+        try:
+            _verify_transport_original_root(self.service.store.io, value, source["transport_recovery"])
+        except (FlashRunError, KeyError) as exc:
+            raise JobConflict("RESUME_FAILED_WRAPPER_SOURCE_BINDING_UNVERIFIED") from exc
+        return {**request, "_reentry_evidence_sha256": _sha(_canonical({
+            "contract": TRANSPORT_LINEAGE_REENTRY_CONTRACT, "hashes": TRANSPORT_LINEAGE_REENTRY_HASHES,
+            "source_request": request}))}
+
     def _failed_canary_reentry_request(self, wrapper_job_id: str, target_date: str) -> dict[str, Any]:
         """Reopen only the recorded 4ac pre-dispatch crash, bound to its accepted 2998 source."""
+        if wrapper_job_id == TRANSPORT_LINEAGE_REENTRY_JOB_ID:
+            return self._failed_transport_lineage_reentry_request(wrapper_job_id, target_date)
         if (wrapper_job_id != FAILED_CANARY_REENTRY_JOB_ID
                 or not JOB_ID_RE.fullmatch(str(wrapper_job_id))):
             raise JobConflict("RESUME_FAILED_WRAPPER_ID_UNVERIFIED")
@@ -1381,6 +1449,7 @@ class AnnouncementUpdate:
         from infrastructure.owned_io import SafeRoot
         from ops.run_manager_flash_announcements import (
             FlashRunError, _transport_canary_receipt_candidate, _validated_transport_canary_result,
+            _verify_transport_original_root,
         )
 
         resume_value = result_value.get("resume")
@@ -1396,8 +1465,7 @@ class AnnouncementUpdate:
                               "source_result_sha256", "source_queue_state_sha256", "capture_product_sha256",
                               "failed_task", "pending_tasks", "pending_manifest_sha256", "queue_status_counts"}
             and plan.get("schema") == TRANSPORT_RECOVERY_SCHEMA
-            and plan.get("source_job_id") == (root.get("source_job_id") if isinstance(root, dict) else None)
-            and plan.get("source_input_sha256") == (root.get("source_input_sha256") if isinstance(root, dict) else None)
+            and isinstance(root, dict)
             and isinstance(failure, dict)
             and set(failure) == {"article_id", "key", "payload_sha256", "identity_sha256", "attempt_sha256"}
             and isinstance(pending, list) and pending
@@ -1462,6 +1530,10 @@ class AnnouncementUpdate:
                 or original_result.get("system_stop", {}).get("failure_code") != "TransportError"
                 or source.get("source_queue_state_sha256") != plan.get("source_queue_state_sha256")):
             raise JobConflict("RESUME_TRANSPORT_CANARY_SOURCE_BINDING_UNVERIFIED")
+        try:
+            _verify_transport_original_root(self.service.store.io, input_value, plan)
+        except FlashRunError as exc:
+            raise JobConflict("RESUME_TRANSPORT_CANARY_SOURCE_BINDING_UNVERIFIED") from exc
         jobs = queue_value.get("jobs") if isinstance(queue_value, dict) else None
         if not isinstance(jobs, dict):
             raise JobConflict("RESUME_TRANSPORT_CANARY_QUEUE_INVALID")
@@ -1528,8 +1600,8 @@ class AnnouncementUpdate:
             canary_payload = json.loads(canary_payload_raw)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             raise JobConflict("RESUME_TRANSPORT_CANARY_PAYLOAD_UNAVAILABLE") from exc
-        root_binding = {"source_job_id": plan["source_job_id"],
-                        "source_input_sha256": plan["source_input_sha256"],
+        root_binding = {"source_job_id": root["source_job_id"],
+                        "source_input_sha256": root["source_input_sha256"],
                         "target_date": target_date, "cutoff": input_value.get("cutoff"),
                         "capture_product_sha256": input_value["capture_product"]["sha256"],
                         "membership_authority_sha256": input_value.get("membership_gate", {}).get("authority_sha256")}
@@ -1971,16 +2043,16 @@ class AnnouncementUpdate:
         expected = None
         ignore_active_job_id = None
         try:
-            if source_job_id == FAILED_CANARY_REENTRY_JOB_ID:
+            if source_job_id in _CANARY_REENTRY_CONTRACTS:
                 failed_request = self._failed_canary_reentry_request(source_job_id, day)
                 source_job_id = failed_request["source_job_id"]
                 expected = {key: failed_request[key] for key in
                             ("source_input_sha256", "source_progress_sha256", "source_queue_state_sha256")}
-                ignore_active_job_id = FAILED_CANARY_REENTRY_JOB_ID
+                ignore_active_job_id = latest["job_id"]
             snapshot = self._resume_source_artifacts(source_job_id, day, expected,
                                                      ignore_active_job_id=ignore_active_job_id)
             if expected is not None:
-                wrapper_job = self.service.jobs.get(FAILED_CANARY_REENTRY_JOB_ID)
+                wrapper_job = self.service.jobs.get(ignore_active_job_id)
                 binding = wrapper_job.context.scope_refs["announcement_flash_resume"]
                 for key in ("mode", "source_job_id", "target_date", "capture_product_sha256",
                             "source_result_sha256", "canary_key", "canary_status", "canary_model_calls",
@@ -2019,7 +2091,7 @@ class AnnouncementUpdate:
             request_binding = base_request_binding
             reentry_from_job_id = None
             latest_job_id = latest["job_id"]
-            if latest_job_id == FAILED_CANARY_REENTRY_JOB_ID:
+            if latest_job_id in _CANARY_REENTRY_CONTRACTS:
                 failed_request = self._failed_canary_reentry_request(latest_job_id, day)
                 original_request = {key: value for key, value in failed_request.items()
                                     if not key.startswith("_")}
@@ -2028,7 +2100,7 @@ class AnnouncementUpdate:
                 reentry_from_job_id = latest_job_id
                 request_binding = {**base_request_binding,
                                    "reentry_from_job_id": reentry_from_job_id,
-                                   "reentry_contract": FAILED_CANARY_REENTRY_CONTRACT,
+                                   "reentry_contract": _CANARY_REENTRY_CONTRACTS[latest_job_id],
                                    "reentry_evidence_sha256": failed_request["_reentry_evidence_sha256"]}
             elif latest_job_id != source_job_id:
                 try:
@@ -2051,9 +2123,9 @@ class AnnouncementUpdate:
                     raise JobConflict("RESUME_SOURCE_NOT_LATEST")
                 marker = latest_request.get("reentry_from_job_id")
                 if marker is not None:
-                    failed_request = self._failed_canary_reentry_request(FAILED_CANARY_REENTRY_JOB_ID, day)
-                    if (marker != FAILED_CANARY_REENTRY_JOB_ID
-                            or latest_request.get("reentry_contract") != FAILED_CANARY_REENTRY_CONTRACT
+                    failed_request = self._failed_canary_reentry_request(marker, day)
+                    if (marker not in _CANARY_REENTRY_CONTRACTS
+                            or latest_request.get("reentry_contract") != _CANARY_REENTRY_CONTRACTS[marker]
                             or latest_request.get("reentry_evidence_sha256")
                             != failed_request.get("_reentry_evidence_sha256")):
                         raise JobConflict("RESUME_REENTRY_MARKER_UNVERIFIED")
@@ -2082,11 +2154,11 @@ class AnnouncementUpdate:
                 raise JobConflict("RESUME_SOURCE_NOT_LATEST")
             artifacts = self._resume_source_artifacts(
                 source_job_id, day, expected,
-                ignore_active_job_id=FAILED_CANARY_REENTRY_JOB_ID if reentry_from_job_id else None)
+                ignore_active_job_id=reentry_from_job_id)
             if artifacts.get("resume_action") != resume_action:
                 raise JobConflict("RESUME_ACTION_NOT_ELIGIBLE")
             if self._active_flash_attempts(
-                    ignore_job_id=FAILED_CANARY_REENTRY_JOB_ID if reentry_from_job_id else None):
+                    ignore_job_id=reentry_from_job_id):
                 raise JobConflict("ANNOUNCEMENT_FLASH_BUSY_ALL_TARGET_DATES")
             source_input = artifacts["source_input"]
             cutoff = artifacts.get("source_cutoff")

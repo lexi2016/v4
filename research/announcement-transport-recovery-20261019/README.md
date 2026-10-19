@@ -1,7 +1,5 @@
-# Announcement pending-only recovery and per-item failure isolation
+# Announcement transport recovery
 
-R4 binds the explicitly authorized balanced-to-custom-96-GiB runtime change while keeping frozen request identities and separately recording the actual execution configuration. R5 records individual HTTP400/413/422 request rejections, empty output and validation failures and continues the remaining queue. Authentication, unavailable service and broken queue state still stop execution. Successful tasks are never retried.
+R6 source and tests passed independent actual CLI entry checks in isolated state. The exact reviewed release is deployed; one real failed-only canary was accepted (a620bee188f44987a4c419c93784ce35). Actual model result and 347 pending tasks remain unverified.
 
-Independent acceptance and runtime state are recorded in verification.json. The source directory contains the exact candidate/deployed six files; canonical-preservation.patch retains pre-existing canonical additions. The exact authorized memory-transition receipt is needed for this narrowly bound recovery and contains no credentials or raw announcements. The launcher retains enabled prefill protection with a96GiB process ceiling.
-
-No raw inputs, model outputs, logs, settings secrets, build files or full runtime state are included. Twelve historical part identities remain unresolved and are isolated. Existing displayed Oct15 candidates are not newly selected Oct16 results.
+Canonical preservation merge remains pending; canonical-preservation.patch is historical R5b evidence only. See verification.json for release identity, hashes, commands, reused checks and limits. No raw runtime data or credentials are included. Research only; no BUY or order changes.

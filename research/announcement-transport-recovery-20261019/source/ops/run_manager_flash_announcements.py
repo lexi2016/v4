@@ -522,6 +522,35 @@ def _saved_orphan_result_state(queue_root: Path, job: dict[str, Any], payload: d
     return "NONE"
 
 
+def _verify_transport_original_root(state_io: SafeRoot, input_value: dict[str, Any],
+                                    plan: dict[str, Any]) -> dict[str, Any]:
+    """Prove the transport origin inherits the same original root as this child."""
+    try:
+        root = input_value.get("resume_root")
+        if not isinstance(root, dict) or set(root) != {"source_job_id", "source_input_sha256"}:
+            raise ValueError("root shape")
+        origin_id, origin_sha = plan.get("source_job_id"), plan.get("source_input_sha256")
+        if not JOB_ID_RE.fullmatch(str(origin_id)) or not SHA_RE.fullmatch(str(origin_sha)):
+            raise ValueError("origin shape")
+        origin_raw = state_io.read_bytes(f"announcement_flash/jobs/{origin_id}/input.json", max_bytes=1024 * 1024)
+        origin = _json(origin_raw, "FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID")
+        expected_root = origin.get("resume_root") if isinstance(origin, dict) else None
+        if expected_root is None:
+            expected_root = {"source_job_id": origin_id, "source_input_sha256": origin_sha}
+        if (sha(origin_raw) != origin_sha or not isinstance(origin, dict)
+                or origin.get("job_id") != origin_id or root != expected_root
+                or any(origin.get(field) != input_value.get(field)
+                       for field in ("target_date", "cutoff", "capture_product", "membership_gate"))):
+            raise ValueError("origin/root mismatch")
+        original = _verify_resume_root_input(state_io, root["source_job_id"], root["source_input_sha256"],
+                                               input_value["target_date"], input_value)
+        if original.get("cutoff") != input_value.get("cutoff"):
+            raise ValueError("cutoff mismatch")
+        return origin
+    except Exception as exc:
+        raise FlashRunError("FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID") from exc
+
+
 def _request_material_with_memory_identity(material: dict[str, Any], state_root: Path,
                                             plan: Any, settings_path: Path | None) -> dict[str, Any]:
     """Keep frozen request identity only for the exact authorized memory-only transition.
@@ -4603,12 +4632,18 @@ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
             "capture_product_sha256": capture_binding.get("sha256"),
             "membership_authority_sha256": gate_binding.get("authority_sha256"),
         }
-        if (transport_recovery_plan is not None
-                and (not isinstance(transport_recovery_plan, dict)
-                     or transport_recovery_plan.get("schema") != TRANSPORT_RECOVERY_SCHEMA
-                     or transport_recovery_plan.get("source_job_id") != frozen_root_job_id
-                     or transport_recovery_plan.get("source_input_sha256") != frozen_root_input_sha256)):
-            raise FlashRunError("FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID")
+        if transport_recovery_plan is not None:
+            if (not isinstance(transport_recovery_plan, dict)
+                    or transport_recovery_plan.get("schema") != TRANSPORT_RECOVERY_SCHEMA
+                    or prior_resume.get("source_job_id") != resume_source_job_id
+                    or prior_resume.get("source_input_sha256") != resume_source_input_sha256):
+                raise FlashRunError("FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID")
+            _verify_transport_original_root(SafeRoot(state_root), input_value, transport_recovery_plan)
+            _verify_resume_source(
+                SafeRoot(state_root), capture_root, str(resume_source_job_id), input_value["target_date"],
+                {field: prior_resume.get(field) for field in (
+                    "source_input_sha256", "source_progress_sha256", "source_queue_state_sha256")},
+                expected_transport_recovery=transport_recovery_plan)
     request_material = _request_material_with_memory_identity(
         request_material, state_root, transport_recovery_plan, getattr(runner, "OMLX_SETTINGS_PATH", None))
     configuration_material = request_material.get("configuration_material", {})
@@ -6922,8 +6957,7 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
             or resume.get("canary_model_calls") != 1 or resume.get("max_model_calls") != 1
             or validation is None or resume.get("canary_status") != "SUCCEEDED"
             or source_job_id == plan.get("source_job_id")
-            or not isinstance(root, dict) or root.get("source_job_id") != plan.get("source_job_id")
-            or root.get("source_input_sha256") != plan.get("source_input_sha256")
+            or not isinstance(root, dict)
             or not isinstance(nested, dict) or nested.get("transport_recovery") != plan
             or nested.get("source_job_id") != plan.get("source_job_id")
             or nested.get("source_input_sha256") != plan.get("source_input_sha256")
@@ -6940,6 +6974,7 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
             or len({row.get("key") for row in plan["pending_tasks"] if isinstance(row, dict)})
             != len(plan["pending_tasks"])):
         raise FlashRunError("FROZEN_RESUME_TRANSPORT_CANARY_RESULT_NOT_ELIGIBLE")
+    _verify_transport_original_root(state_io, source_input, plan)
     failure = plan.get("failed_task")
     if (not isinstance(failure, dict)
             or set(failure) != {"article_id", "key", "payload_sha256", "identity_sha256", "attempt_sha256"}
@@ -7034,7 +7069,7 @@ def _verify_saved_transport_canary(state_io: SafeRoot, capture_root: Path, sourc
             or validation.get("raw_sha256") != canary_job.get("raw_sha256")):
         raise FlashRunError("FROZEN_RESUME_TRANSPORT_CANARY_QUEUE_STATE_INVALID")
     canary_payload = _queue_payload(state_io.root / "announcement_flash" / "queue", canary_job)
-    frozen_binding = {"source_job_id": source_id, "source_input_sha256": plan["source_input_sha256"],
+    frozen_binding = {"source_job_id": root["source_job_id"], "source_input_sha256": root["source_input_sha256"],
                       "target_date": target_date, "cutoff": source_input.get("cutoff"),
                       "capture_product_sha256": source_input["capture_product"]["sha256"],
                       "membership_authority_sha256": source_input.get("membership_gate", {}).get("authority_sha256")}
@@ -7356,8 +7391,14 @@ def main(argv: list[str] | None = None) -> int:
                         or not isinstance(input_legacy_failed_canary.get("source_part_key"), str)
                         or not SHA_RE.fullmatch(input_legacy_failed_canary["source_part_key"])):
                     raise FlashRunError("FROZEN_RESUME_LEGACY_CANARY_BINDING_MISMATCH")
-            source_job_id = resume_root["source_job_id"]
-            source_input_sha256 = resume_root["source_input_sha256"]
+            if isinstance(expected_transport_recovery, dict):
+                # Transport recovery verifies the direct source separately from
+                # the inherited original root used by part plans and payloads.
+                source_job_id = resume_source["source_job_id"]
+                source_input_sha256 = source_hashes["source_input_sha256"]
+            else:
+                source_job_id = resume_root["source_job_id"]
+                source_input_sha256 = resume_root["source_input_sha256"]
         else:
             source_job_id = None
             source_input_sha256 = None

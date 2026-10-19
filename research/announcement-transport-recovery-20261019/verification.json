@@ -1,10 +1,10 @@
 {
-  "status": "R4_R5_INDEPENDENT_PASS_DEPLOYED_CANARY_SUBMITTED",
+  "status": "R6_CLI_INDEPENDENT_PASS_DEPLOYED_ACTUAL_CANARY_ACCEPTED",
   "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
-  "remote_base_commit": "b4ea96bf36b1aeab3d7281e800fcf1ca324b80ae",
+  "remote_base_commit": "0d6dad088242e2a92361c1fa3942c263011329f2",
   "branch": "codex/announcement-transport-recovery-20261019",
-  "release_id": "announcement-transport-recovery-20261020-r5b",
-  "manifest_sha256": "fd0bc7cba3eb83af909657db0e7a758c16e16cb31dbd1f96eb66057502dc137b",
+  "release_id": "announcement-transport-recovery-20261020-r6",
+  "manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
   "files": [
     {
       "path": "v4/manager_workbench/announcement_update.py",
@@ -83,20 +83,44 @@
         "exit_code": 0,
         "result": "Only _dispatch_pending_queue_keys changes; exact reviewed hashes; new constants fail closed on integrity stages/codes; canonical proof exact previous proof plus repair diff"
       }
+    ],
+    "r6": "PASS_AFTER_CLI_FORWARDING_REPAIR",
+    "r6_receipt_sha256": "75c7d7da7b4ec95b8490e8212c2e2df24dfcd74937d203920d01113b480a9293",
+    "r6_commands": [
+      {
+        "command": "v3.5-mac/bin/python -B review/r6-cli/run_focused_tests.py",
+        "exit_code": 0,
+        "result": "3 passed,190 deselected; CLI transport-parent/legacy-root routing + existing non-frozen CLI opt-in only"
+      },
+      {
+        "command": "TMPDIR=review/r6-cli/tmp R6_CLI_CASE=exact runtime/venv/bin/python -B review/r6-cli/full_cli.py",
+        "exit_code": 0,
+        "result": "Exact e425 inputSHA260229... passes actual main; one547 simulated HTTP, strict saved validation, no real POST"
+      },
+      {
+        "command": "TMPDIR=review/r6-cli/tmp R6_CLI_CASE=new-child runtime/venv/bin/python -B review/r6-cli/full_cli.py",
+        "exit_code": 0,
+        "result": "Original baseline CLI failure reproduced; wrong root/parent/hash zero boundary; exact wrapper safe reentry/new child and repeated click idempotence; real new-child main CANARY one547 only; saved runner and service CONTINUE readback; real CONTINUE main reaches347 PENDING attempt0 dispatch-plan boundary without consuming a task"
+      },
+      {
+        "command": "AST/source hash check",
+        "exit_code": 0,
+        "result": "Only main changes; _run/service/R6 lineage readers/guard-only/persistence/part/synthesis gates unchanged; four hashes exact"
+      }
     ]
   },
   "runtime": {
     "api_identity": "VERIFIED",
     "ui_canary_job": "515335e08c7140f4abed10612f6181c4",
-    "live_canary_verdict": "SAVED_SUCCEEDED_STRICT_READONLY_PASS",
-    "pending_continuation": "NOT_STARTED_AFTER_MEMORY_CHANGE",
+    "live_canary_verdict": "PENDING_ACTUAL_R6_RESULT",
+    "pending_continuation": "NOT_YET_STARTED",
     "natural_slot": "NOT_RUN",
     "saved_canary_extra_model_posts": 0,
     "protected_success_records": 576,
     "protected_success_files": 1152,
     "continuation_job": "542d858cefce4f3a8e3bf9914137be68",
     "release_deployment": "DEPLOYED_API_IDENTITY_VERIFIED",
-    "canary_after_memory_change": "RUNNING_UI_CONFIRMED",
+    "canary_after_memory_change": "RUNNING_UI_ACCEPTED",
     "prior_continuation_job": "542d858cefce4f3a8e3bf9914137be68",
     "prior_continuation_terminal": "PARTIAL: 1 new success, 1 prefill rejection",
     "ordinary_pending": 296,
@@ -105,7 +129,8 @@
     "memory_limit_gib": 96,
     "memory_limit_independent_review": "PASS",
     "runtime_transition_installed": true,
-    "canary_job": "e4252685cfe8447faf68fc27b7760501"
+    "canary_job": "a620bee188f44987a4c419c93784ce35",
+    "previous_e425": "FAILED_ZERO_DISPATCH_LINEAGE"
   },
   "safety": {
     "RESEARCH_ONLY": true,
@@ -113,5 +138,12 @@
     "buy_gate_updated": false,
     "orders_sent": false
   },
-  "runtime_transition_template_sha256": "c8a5b0dbfc2811cd567388997d60c68694384ad12a5e4b1ba90a16f9d933251f"
+  "runtime_transition_template_sha256": "c8a5b0dbfc2811cd567388997d60c68694384ad12a5e4b1ba90a16f9d933251f",
+  "canonical_integration": "PENDING_PRESERVATION_MERGE; previous patch is historical R5b only",
+  "r6_source_hashes": {
+    "ops/run_manager_flash_announcements.py": "bd84b0f5e102ded8f55effe51419e8c171de8a32e0d4570f1f820847b4143ba3",
+    "tests/test_manager_announcement_flash_runner.py": "5c4e0ef918a1970cf756589bb219f6a2bf78e66dc5cb56902397c9627038a2af",
+    "v4/manager_workbench/announcement_update.py": "d9f58f5c9de79625afec1463adb9f570412dcfe0fe8438ff7ef5657b7187a10e",
+    "tests/test_manager_announcement_resume.py": "44b0a7166be0345f03ba362ab9f24559e4f82108409676585def023efc7fde8b"
+  }
 }

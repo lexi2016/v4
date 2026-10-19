@@ -2145,3 +2145,70 @@ def test_memory_transition_service_requires_exact_authorization_before_resume_su
     if not verified:
         assert snapshot["reason"] == "RESUME_AUTHORIZED_MEMORY_TRANSITION_UNVERIFIED"
     assert service.jobs.submissions == []
+
+
+def _lineage_failed_wrapper_fixture(tmp_path, monkeypatch):
+    service, source_id = _resume_service(tmp_path)
+    _mark_transport_system_stop(service, source_id)
+    bridge = _runner()
+    monkeypatch.setitem(__import__("sys").modules, "ops.run_manager_flash_announcements", bridge)
+    update = AnnouncementUpdate(service)
+    snapshot = update.resume_snapshot("20261016")
+    wrapper = update.start_resume("20261016", source_id, snapshot["source_input_sha256"],
+                                  snapshot["source_progress_sha256"], snapshot["source_queue_state_sha256"], "CANARY")
+    wrapper.state, wrapper.step = JobState.FAILED, "FLASH_SELECTION"
+    wrapper.failure_code, wrapper.completed_count = "FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID", 0
+    binding = wrapper.context.scope_refs["announcement_flash_resume"]
+    source = json.loads(service.store.io._files[f"announcement_flash/jobs/{source_id}/input.json"])
+    value = {"schema": "v4.manager_workbench.announcement_flash_input.v1", "job_id": wrapper.job_id,
+             "target_date": "20261016", "cutoff": wrapper.context.cutoff,
+             "capture_product": source["capture_product"], "membership_gate": source["membership_gate"],
+             "resume_root": binding["resume_root"],
+             "resume_source": {key: item for key, item in binding.items() if key != "resume_root"}}
+    raws = {"input": _json_bytes(value),
+            "progress": _json_bytes({"step": "FAILED", "failure_code": wrapper.failure_code}),
+            "attempt": _json_bytes({"state": "FAILED", "step": wrapper.step, "failure_code": wrapper.failure_code,
+                                     "completed_count": 0, "context": {"scope_refs": wrapper.context.scope_refs}})}
+    for field, raw in raws.items():
+        ref = (f"attempts/{wrapper.job_id}.json" if field == "attempt" else
+               f"announcement_flash/jobs/{wrapper.job_id}/{field}.json")
+        service.store.io._files[ref] = raw
+    monkeypatch.setattr(update_module, "TRANSPORT_LINEAGE_REENTRY_JOB_ID", wrapper.job_id)
+    monkeypatch.setattr(update_module, "TRANSPORT_LINEAGE_REENTRY_HASHES", {field: _sha(raw) for field, raw in raws.items()})
+    monkeypatch.setattr(update_module, "_CANARY_REENTRY_CONTRACTS", {
+        update_module.FAILED_CANARY_REENTRY_JOB_ID: update_module.FAILED_CANARY_REENTRY_CONTRACT,
+        wrapper.job_id: update_module.TRANSPORT_LINEAGE_REENTRY_CONTRACT})
+    return service, update, source_id, wrapper, snapshot
+
+
+def test_lineage_zero_dispatch_wrapper_reentry_uses_new_slot_and_is_idempotent(tmp_path, monkeypatch):
+    service, update, source_id, wrapper, previous = _lineage_failed_wrapper_fixture(tmp_path, monkeypatch)
+    original_files = dict(service.store.io._files)
+    old_request = wrapper.context.scope_refs["announcement_flash_resume_request"]
+    old_slot = "announcement_flash_resume_" + update_module.digest(old_request)
+    old_cursor = dict(service.store.values[old_slot])
+    snapshot = update.resume_snapshot("20261016")
+    assert snapshot["eligible"] is True and snapshot["source_job_id"] == source_id
+    args = ("20261016", source_id, snapshot["source_input_sha256"], snapshot["source_progress_sha256"],
+            snapshot["source_queue_state_sha256"], "CANARY")
+    child = update.start_resume(*args)
+    assert child is update.start_resume(*args) and child.job_id != wrapper.job_id
+    assert len(service.jobs.submissions) == 2
+    assert child.context.scope_refs["announcement_flash_resume_request"]["reentry_from_job_id"] == wrapper.job_id
+    assert service.store.values[old_slot] == old_cursor
+    assert service.store.io._files == original_files
+
+
+@pytest.mark.parametrize("mutation", ["result", "dispatch", "queue", "input"])
+def test_lineage_wrapper_reentry_rejects_dispatch_result_and_drift(tmp_path, monkeypatch, mutation):
+    service, update, _source_id, wrapper, _previous = _lineage_failed_wrapper_fixture(tmp_path, monkeypatch)
+    if mutation == "result":
+        service.store.io._files[f"announcement_flash/jobs/{wrapper.job_id}/result.json"] = b"{}"
+    elif mutation == "dispatch":
+        wrapper.completed_count = 1
+    elif mutation == "queue":
+        service.store.io._files["announcement_flash/queue/queue-state.json"] += b" "
+    else:
+        service.store.io._files[f"announcement_flash/jobs/{wrapper.job_id}/input.json"] += b" "
+    assert update.resume_snapshot("20261016")["eligible"] is False
+    assert len(service.jobs.submissions) == 1
