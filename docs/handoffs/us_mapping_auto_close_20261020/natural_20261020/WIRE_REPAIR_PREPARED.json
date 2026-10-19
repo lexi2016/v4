@@ -1,0 +1,116 @@
+{
+  "state": "FROZEN_WIRE_REPAIR_AND_RECOVERY_PREPARED",
+  "recorded_at": "2026-10-20T05:41:22.743931+08:00",
+  "base_commit": "d15d97cd432ae4ac3f6955fcf73365a33f4381a5",
+  "branch": "codex/us-mapping-wire-repair-20261020",
+  "scope_sha256": "dc41c5d627e27de630f1df7c1b063695810b3ae432e3337b05f40f102b01b15e",
+  "candidate_receipt_sha256": "1245a9f516d037fc5c63b3c5a663bc3fe266945a384109e4d100fc2592568520",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-wire-fix-producer-20261020-r1",
+  "candidate_manifest_sha256": "8190a5fbc005f13bcadb0fde594376209f0e92bffb3bfdeb58059365af20b939",
+  "original_plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+  "proposed_plist_sha256": "9781cb3c43fa8855c561f55a765f736241b7af2368b35f21ab1b143bc98e6cce",
+  "source_test_sha256": {
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "4900166ee6fe6df1f0985cf4495a36868f126ea516fb8dd2cc175066209433da",
+    "ops/_us_market_digest_parts/snapshot_merge.py": "3063243ca8c3194281c361d4a3f5745300c248130e67e131530eb987dc681580",
+    "tests/test_us_market_natural_repair.py": "e629ff3f5c92c3e177bff5b1b0e883232255685da652c2e256d72953ecec1b97",
+    "tests/test_us_mapping_auto_close.py": "c2129edc6f651393e4520188b77d3a9912584f4de484d001d2ef4a66819dee36"
+  },
+  "file_changes": [
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "before": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+      "after": "4900166ee6fe6df1f0985cf4495a36868f126ea516fb8dd2cc175066209433da"
+    },
+    {
+      "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+      "before": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+      "after": "3063243ca8c3194281c361d4a3f5745300c248130e67e131530eb987dc681580"
+    },
+    {
+      "path": "tests/test_us_market_natural_repair.py",
+      "before": "dbac3259e32d101acbf731a6212ffb956cb68565c188cd4504f2d7281d9c6f37",
+      "after": "e629ff3f5c92c3e177bff5b1b0e883232255685da652c2e256d72953ecec1b97"
+    },
+    {
+      "path": "tests/test_us_mapping_auto_close.py",
+      "before": "f8cff4c538a023779b078868ed8a7b5c081153e69126157eb9863a7c7ada9492",
+      "after": "c2129edc6f651393e4520188b77d3a9912584f4de484d001d2ef4a66819dee36"
+    }
+  ],
+  "tests": {
+    "runtime": "CPython3.14.6 bundled v3.5-mac",
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q tests/test_us_market_natural_repair.py tests/test_us_mapping_auto_close.py -k 'wire_exchange or wire_unknown or saved_actual_wire or merge_retains' --basetemp=docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only/pytest-wire-r2 -p no:cacheprovider",
+    "passed": 17,
+    "deselected_unchanged": 33,
+    "rc": 0,
+    "first_attempt": "13 passed/4fixture failures: manual timestamp mutation left synthetic row metadata stale. Rebuilt fixture at provider seam; source gate unchanged."
+  },
+  "exact_real_raw_oracle": {
+    "raw_sha256": "9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457",
+    "requested": 547,
+    "valid": 488,
+    "isolated": 59,
+    "gaps": {
+      "QUOTE_SESSION_DATE_MISMATCH_CAPTURE": 10,
+      "QUOTE_PREVIOUS_CLOSE_ZERO": 1,
+      "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 42,
+      "QUOTE_SYMBOL_MISSING": 6
+    },
+    "main48": "READY/48 validated; prices and source timestamps from winning quote response"
+  },
+  "recovery_receipt_sha256": "1e19b03c60e7ee19f34e3aedb0dd9445498a1c8ecfb401198cdeb637be4db543",
+  "recovery_payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+  "expected_old_cas_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+  "predicted_receipt_sha256": "c94948b8913043c3329f379d267f1a978df96f9ee18481251d562f10a9c1838b",
+  "full_existing_validation": "PASS",
+  "late_binding": "PASS_PARTIAL488_OF547",
+  "capture_time": "2026-10-19T21:15:06Z",
+  "processing_time": "2026-10-19T21:31:48.760762Z",
+  "recovery_identity": "SAVED_NATURAL_RESPONSE_PROCESSING_RECOVERY",
+  "failed_receipts_raw_sha256": {
+    "0415": "9f67ad2c5c9a851b066bc3eb054b3be5ccbba870a3ec5e710c37d3a3334bc446",
+    "0515": "e6e220d39998c46ebaecaed22f5d569218206a03642352a40a6cda7f0aa52df1"
+  },
+  "prepare_candidate_helper_sha256": "2500fe765d159b0e1fd8caec3eec5a7157049880157ea390fab7d8f2a2ad079e",
+  "prepare_recovery_helper_sha256": "ea408eeebe8a5c0697847a7ec8effbf5c40cb50d82ccfafcf73ee00c0cd97c4b",
+  "publish_helper_sha256": "61bb652a49b0dab2cbbc62faee683cfec63090c059f546a4c5ef9c69054a7e16",
+  "activation_plan_sha256": "124865534b028e44c2c71983a8cc3a0296a202b7a9ceadb197f269738c461542",
+  "preservation": {
+    "candidate_delta_count": 2,
+    "all_other_parent_bytes": true,
+    "actual_api_r6_and_scheduler": "UNTOUCHED",
+    "source_main48_semantics": "UNCHANGED",
+    "old0415RSS_and_captures": "UNCHANGED_IN_DERIVED_PAYLOAD",
+    "old_ledgers_and_owner": "UNCHANGED",
+    "financial_gates": "UNCHANGED"
+  },
+  "natural0415": "FAIL_RETAINED",
+  "natural0515": "FAIL_RETAINED",
+  "independent_review": "PENDING_INCREMENTAL_BINDING_REVIEW",
+  "activated": false,
+  "authority_published": false,
+  "provider_calls": 0,
+  "business_posts": 0,
+  "not_run": [
+    "producer activation",
+    "authoritative CAS publish",
+    "new scheduler run/API/UI acceptance",
+    "rollback exercise",
+    "Git"
+  ],
+  "incremental_binding_repair": {
+    "review_round": 2,
+    "round1_fail_receipt_sha256": "00a25749e6f8a46b9ec0eaf98a3ac3a4412f8abdab2dd2e4f545f8b56a4fc167",
+    "round1_prepared_sha256": "7056a73419366e1fc41edd8544cdddfbfeb5a3c56f41910fa82829bd0d1e7d00",
+    "changed_files": [
+      "publish_prepared_recovery.py",
+      "tests/test_us_market_natural_repair.py"
+    ],
+    "business_source_candidate_and_exact_recovery_payload": "UNCHANGED_PRIOR_INDEPENDENT_PASS_REUSED",
+    "targeted_command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q tests/test_us_market_natural_repair.py -k 'publication_' --basetemp=docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only/pytest-publish-binding-r1 -p no:cacheprovider",
+    "tests_passed": 9,
+    "deselected": 38,
+    "rc": 0,
+    "side_effects": 0
+  }
+}

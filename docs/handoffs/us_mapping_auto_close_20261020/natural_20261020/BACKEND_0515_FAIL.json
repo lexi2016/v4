@@ -1,0 +1,104 @@
+{
+  "schema": "v4.us_mapping.natural0515.forensics.v1",
+  "state": "FAIL",
+  "observed_at": "2026-10-20T05:27:15.190159+08:00",
+  "dispatch": {
+    "run_id": "2f16d9f8bc6e4d7088dea33a05d1035e",
+    "status": "FAILED",
+    "failure_class": "EXTERNAL_SOURCE",
+    "child_exit": 2,
+    "finished_at": "2026-10-19T21:16:13.206600Z",
+    "reason": "ValueError:market_snapshot provider session times mismatch",
+    "recovery_mode": "LATE_POST_CLOSE_CAPTURE",
+    "actual_capture_context_time": "2026-10-19T17:15:06-04:00",
+    "us_session": "20261019",
+    "actual_target": "20261020",
+    "ledger_target": "20261021",
+    "ledger_target_note": "Inactive-slot helper reports nextHK21; actual collector artifact targetHK20 and scheduler US19->HK20 remain. No new owner published."
+  },
+  "wire": {
+    "body_sha256": "9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457",
+    "bytes": 199803,
+    "metadata_sha256": "3e1d23fa014f3de8b264e377e32090d98cab64a6f2a519de0b37448270d7d0ce",
+    "row_count": 541,
+    "suffix_counts": {
+      ".N": 267,
+      ".PS": 49,
+      ".OQ": 200,
+      ".AM": 25
+    },
+    "target_pairs": [
+      {
+        "inner_symbol": "AMD.OQ",
+        "response_key": "AMD"
+      },
+      {
+        "inner_symbol": "ITA.AM",
+        "response_key": "ITA"
+      },
+      {
+        "inner_symbol": "KO.N",
+        "response_key": "KO"
+      },
+      {
+        "inner_symbol": "PG.N",
+        "response_key": "PG"
+      },
+      {
+        "inner_symbol": "WMT.OQ",
+        "response_key": "WMT"
+      }
+    ],
+    "raw_mtime_hkt": "2026-10-20T05:16:13.032457+08:00"
+  },
+  "N2": {
+    "root_cause": "541 exchange-qualified inner tickers are compared directly with bare response keys. Actual suffixes .N/.OQ/.PS/.AM, zero other inner/base disagreements.",
+    "current": "547requested/0valid;541mismatch+6missing",
+    "proposed_in_memory_replay": {
+      "valid": 488,
+      "state": "PARTIAL",
+      "gaps": {
+        "QUOTE_SESSION_DATE_MISMATCH_CAPTURE": 10,
+        "QUOTE_PREVIOUS_CLOSE_ZERO": 1,
+        "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 42,
+        "QUOTE_SYMBOL_MISSING": 6
+      },
+      "source_return_pct": {
+        "WMT": -0.092585,
+        "KO": -0.511182,
+        "PG": -1.041732
+      },
+      "status": "OFFLINE_PROPOSED_NORMALIZER_ONLY_NO_SOURCE_CHANGE"
+    }
+  },
+  "N3": {
+    "root_cause": "snapshot_merge chooses one quote list but unions old+new provider timestamps; existing normalizer clears TIME_MIXED and sets READY, leaving metadata inconsistent with winning quotes.",
+    "old_provider_times": [
+      "16:00:01",
+      "16:00:30",
+      "16:00:40",
+      "16:00:46",
+      "16:00:51",
+      "16:00:58"
+    ],
+    "new_quote_times": [
+      "16:00:01",
+      "16:04:51"
+    ],
+    "repro": "incoming READY48 validates; merged READY48 fails provider session times mismatch",
+    "proposed_oracle": "Winning metadata describes only winning quote list; historical snapshot retained separately. Outer validator unchanged."
+  },
+  "current_owner_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+  "new_owner_published": false,
+  "new_scheduler_run": null,
+  "latest_api_run": "bea76e92247f494fabae501e215edc88",
+  "formal_recommendations": 0,
+  "diagnostic_candidates": 410,
+  "three_target_direction": "Existing04:15 FLAT_OR_UNKNOWN; no new05:15 run",
+  "natural0415": "FAIL_RETAINED",
+  "natural0515": "FAIL",
+  "provider_manual_calls": 0,
+  "business_posts": 0,
+  "source_runtime_changes": 0,
+  "raw_data": "local_only only"
+}

@@ -1,0 +1,97 @@
+{
+  "state": "REVIEWED_DEPLOYED_API_UI_BEHAVIOR_PASS_PROCESSING_RECOVERY_ONLY_NATURAL_FAIL_RETAINED",
+  "allowed_files": [
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "sha256": "4900166ee6fe6df1f0985cf4495a36868f126ea516fb8dd2cc175066209433da"
+    },
+    {
+      "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+      "sha256": "3063243ca8c3194281c361d4a3f5745300c248130e67e131530eb987dc681580"
+    },
+    {
+      "path": "tests/test_us_market_natural_repair.py",
+      "sha256": "e629ff3f5c92c3e177bff5b1b0e883232255685da652c2e256d72953ecec1b97"
+    },
+    {
+      "path": "tests/test_us_mapping_auto_close.py",
+      "sha256": "c2129edc6f651393e4520188b77d3a9912584f4de484d001d2ef4a66819dee36"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/BACKEND_0515_FAIL.json",
+      "sha256": "c0650d05f39c45f45d442a71a68721a8dce460fbf3abb99ec528b129e0f4a381"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/0515_RUNTIME_IDENTITY.json",
+      "sha256": "ce8c68e1edd82189eb67b0cdc88d224c95000f04ca8cb57fb8494dba539f2208"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_REPAIR_SCOPE_REQUEST.json",
+      "sha256": "7d8ab4fef47688519e2ebd1ba320dd09b0a70b3c639f656046684b28fcfd07a8"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_REPAIR_SCOPE.json",
+      "sha256": "dc41c5d627e27de630f1df7c1b063695810b3ae432e3337b05f40f102b01b15e"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/prepare_wire_candidate.py",
+      "sha256": "2500fe765d159b0e1fd8caec3eec5a7157049880157ea390fab7d8f2a2ad079e"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_CANDIDATE.json",
+      "sha256": "1245a9f516d037fc5c63b3c5a663bc3fe266945a384109e4d100fc2592568520"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/prepare_saved_response_recovery.py",
+      "sha256": "ea408eeebe8a5c0697847a7ec8effbf5c40cb50d82ccfafcf73ee00c0cd97c4b"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_RECOVERY_PREPARED.json",
+      "sha256": "1e19b03c60e7ee19f34e3aedb0dd9445498a1c8ecfb401198cdeb637be4db543"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/publish_prepared_recovery.py",
+      "sha256": "61bb652a49b0dab2cbbc62faee683cfec63090c059f546a4c5ef9c69054a7e16"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_ACTIVATION_AND_RECOVERY_PLAN.md",
+      "sha256": "124865534b028e44c2c71983a8cc3a0296a202b7a9ceadb197f269738c461542"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_REPAIR_PREPARED.json",
+      "sha256": "e6a38ae4bd24fb9b363607f58e10c47019bc94c087102d47ea48baa37b3aa0c2"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_REPAIR_PREPARED_ROUND1.json",
+      "sha256": "7056a73419366e1fc41edd8544cdddfbfeb5a3c56f41910fa82829bd0d1e7d00"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_REVIEW_ROUND1_FAIL.json",
+      "sha256": "00a25749e6f8a46b9ec0eaf98a3ac3a4412f8abdab2dd2e4f545f8b56a4fc167"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_RECOVERY_PUBLICATION.json",
+      "sha256": "a51cee94bfba166bffe4ca0bb7fe1c1d8481600ac1f7cc1fa147fc695aa36a99"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_API_MECHANICAL_READBACK.json",
+      "sha256": "e9a6680136f05c19b6f2c9bdf38e30b062b8b49157dff58a10b948be5d50dfb6"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_DEPLOYMENT_RECOVERY_RECEIPT.json",
+      "sha256": "ff3fa81fe885e2463226e105e2f98eea57923148248f8dd5f4f85d94727ef93a"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/INDEPENDENT_WIRE_REVIEW.json",
+      "sha256": "0b90d01ad2c350ebcc04c43b179a4a38695eaced7b59a4b3a952f35ceb9e4c3f"
+    }
+  ],
+  "also_include_this_file": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/WIRE_SYNC_ALLOWLIST.json",
+  "controller_owned_review_receipts": "Controller adds and refreshes its own INDEPENDENT review/runtime receipt after verdict; do not upload raw UI artifacts.",
+  "excluded": [
+    "local_only/** including savedbody/rawpayload/rawreceipt/derivedpayload/plist/images/build/testdata",
+    "all runtime release trees/venvs/logs",
+    "all other source/data/parallel changes"
+  ],
+  "commit_push_owner": "controller"
+}

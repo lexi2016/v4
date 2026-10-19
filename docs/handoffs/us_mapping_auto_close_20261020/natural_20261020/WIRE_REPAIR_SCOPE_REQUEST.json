@@ -1,0 +1,49 @@
+{
+  "state": "SCOPE_REQUEST_ONLY_NO_IMPLEMENTATION",
+  "GOAL": "Fix evidenced Tencent inner-ticker normalization and winner snapshot metadata; prepare transparent recovery from the same saved05:15 raw without fetch or falsely claiming natural success.",
+  "source_paths": {
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "For raw Tencent field2 only, accept exact bare symbol or exact response key plus one actually observed suffix .N/.OQ/.PS/.AM. Keep Mapping inner-symbol validation strict. Wrong ticker/unsupported suffix/malformed identity still reject. All date/time/arithmetic gates unchanged.",
+    "ops/_us_market_digest_parts/snapshot_merge.py": "Preserve provider dates/times from the winning quote snapshot, not a union from discarded quote lists. Preserve winner quote values/main48 universe/outer validator and old snapshot history."
+  },
+  "test_paths": [
+    "tests/test_us_market_natural_repair.py",
+    "tests/test_us_mapping_auto_close.py"
+  ],
+  "docs_paths": [
+    "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/**"
+  ],
+  "runtime": {
+    "role": "producer only",
+    "parent": "us-mapping-natural-producer-20261020-r1",
+    "candidate": "us-mapping-wire-fix-producer-20261020-r1",
+    "other_roles": "API and scheduler already consume canonical quote objects; preserve actual parallel releases/configs. No reload needed."
+  },
+  "oracles": [
+    "Exact saved raw9a2de449... replay gives488valid/59isolated;WMT -0.092585%,KO -0.511182%,PG -1.041732% as source moves, not HK forecasts. No network. Raw stayslocal_only.",
+    "Synthetic nonprice fixtures use exact observed suffix layout; wrong symbol and unknown suffix still reject. No generic suffix guessing or removed symbol check.",
+    "Actual0415+0515 snapshot replay reproduces mismatch; fixed winner metadata validates its own48quotes. Cover newer/older/invalid/preopen winner cases; old timestamps cannot contaminate quote metadata.",
+    "Independent source/candidate review before producer switch. Reuse prior main48/ranking PASS; only direct changed behavior rerun."
+  ],
+  "saved_response_recovery_proposal": {
+    "stage": "Prepare exact artifact/provenance for independent review before any authoritative write.",
+    "inputs": [
+      "saved raw SHA9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457",
+      "matching diagnostic metadata; filemtime within actual0515 collector period",
+      "chain-verified failed dispatch2f16d9f8bc6e4d7088dea33a05d1035e with recovery_executed_at2026-10-19T17:15:06-04:00",
+      "actual producer manifest6eef6b... and original0415 expectedpayload SHAa3de..."
+    ],
+    "method": "Reparse only saved raw with reviewed code, retaining actual05:15 source captured_at and strict read-time late/window validation. Do not call a fresh-capture entry with a fake now. Preserve original0415RSS exactly;05:15RSS body unavailable, so invent no news items.",
+    "identity": "Add explicit SAVED_NATURAL_RESPONSE_PROCESSING_RECOVERY provenance + distinctly named new capture_run_id. Record actual processing_at separately from original captured_at. Keep late=true/CONTROLLED_LATE_POST_CLOSE and original failed receipts. Source origin and processing outcome must be separate.",
+    "authority_request": "After independent review of exact derivedpayload SHA and controller continuation only, reuse ResearchPeripheralStore.replace(expected_sha256=a3de..., reason=explicit_saved_response_processing_recovery). Existing CAS retains original in history and supersession; no ledger edit/newproducer. Existing scheduler reads new SHA automatically, no manualPOST.",
+    "consumer_transparency": "Explicit processing-recovery capture_run_id is retained in existing binding capture_metadata/API job provenance; full processing_at/rawSHA/failedreceipt/runtime parentSHA in payload and compact receipt. No label NATURAL_VERIFIED.",
+    "if_insufficient_provenance": "STOP/CANNOT_CONFIRM; no invented capture or US16 fallback.",
+    "status": "PROPOSED_ONLY: current authorization forbids olddata/source/service writes until controller freezes the exact boundary."
+  },
+  "rollback": "Producer pointer restores parent, neverkickstart. Derived CAS publication requires separate reviewed exactSHA boundary; oldowner/history remains available. Do not delete historical events.",
+  "not_claimed": [
+    "0415success",
+    "0515success",
+    "newownerpublished",
+    "newAPIrunexists"
+  ]
+}

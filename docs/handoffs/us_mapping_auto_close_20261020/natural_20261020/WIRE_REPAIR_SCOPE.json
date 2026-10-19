@@ -1,0 +1,30 @@
+{
+  "GOAL": "Close proven N2 suffix/N3 winner metadata; prepare transparent recovery from same05:15 saved response. No activation/CAS yet.",
+  "WRITER": "mapping_deployer sole Sol High via supported default entry",
+  "REVIEWER": "deployment_reviewer",
+  "ALLOWED_PATHS": [
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+    "ops/_us_market_digest_parts/snapshot_merge.py",
+    "tests/test_us_market_natural_repair.py",
+    "tests/test_us_mapping_auto_close.py",
+    "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/** except controller UI/INDEPENDENT files"
+  ],
+  "FORBIDDEN": "other source/BUY/all olddata and ledgers/API+scheduler pointers/rawupload/provider/POST/kickstart/Git",
+  "PASS_SIGNAL": "Independent exact suffix+bad-symbol rejection; realraw488/59; winner48 timestamps validate; candidate and exact recovery artifact/hash/source chain PASS.",
+  "STOP_RULE": "drift/newpath/newpermission/provenance fail",
+  "base_commit": "d15d97cd432ae4ac3f6955fcf73365a33f4381a5",
+  "branch": "codex/us-mapping-wire-repair-20261020",
+  "before_sha256": {
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+    "ops/_us_market_digest_parts/snapshot_merge.py": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+    "tests/test_us_market_natural_repair.py": "dbac3259e32d101acbf731a6212ffb956cb68565c188cd4504f2d7281d9c6f37",
+    "tests/test_us_mapping_auto_close.py": "f8cff4c538a023779b078868ed8a7b5c081153e69126157eb9863a7c7ada9492"
+  },
+  "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-producer-20261020-r1",
+  "parent_manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+  "producer_plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+  "raw_sha256": "9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457",
+  "expected_old_payload_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+  "new_candidate": "us-mapping-wire-fix-producer-20261020-r1",
+  "activation": "FORBIDDEN_UNTIL_INDEPENDENT_PASS_CONTROLLER_CONTINUATION"
+}

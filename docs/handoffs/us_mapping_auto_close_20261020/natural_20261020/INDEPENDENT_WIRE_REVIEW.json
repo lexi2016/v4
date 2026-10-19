@@ -1,0 +1,153 @@
+{
+  "schema": "v4.us_mapping.wire_repair.independent_acceptance.v1",
+  "goal": "Repair two observed parsing/merge defects and transparently recover one saved natural response; original natural failures retained",
+  "reviewer": "/root/deployment_reviewer",
+  "writer": "/root/mapping_deployer",
+  "rounds": [
+    {
+      "round": 1,
+      "verdict": "FAIL",
+      "prepared_sha256": "7056a73419366e1fc41edd8544cdddfbfeb5a3c56f41910fa82829bd0d1e7d00",
+      "source": "PASS",
+      "tested": {
+        "runtime": "CPython 3.14.6",
+        "passed": 17,
+        "deselected": 33,
+        "rc": 0
+      },
+      "candidate": "PASS",
+      "candidate_manifest_sha256": "8190a5fbc005f13bcadb0fde594376209f0e92bffb3bfdeb58059365af20b939",
+      "exact_recovery_payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+      "exact_recovery_outer_and_actual_consumer_ingress": "PASS: actual scheduler close-r1/API r6 using real configuration and in-memory owner projection, US19/HK20 PARTIAL488/547",
+      "finding": {
+        "priority": "P1",
+        "path": "publish_prepared_recovery.py",
+        "issue": "Secondary candidate/recovery receipts not bound to frozen top-level SHA; unapproved CAS preimage can be accepted",
+        "reproduction": "Pure in-memory read_text tamper replaces secondary expected_old; fakeStore returns that current SHA; check-only incorrectly accepts while top-level prepared SHA unchanged. Zero publication calls.",
+        "required_fix": "Check secondary raw hashes before parsing and bind key candidate/old/new/predicted receipt values to approved top-level fields; reject drift"
+      },
+      "preservation": "Original failed ledgers and old source bytes retained; original RSS/board labeled retained; source capture and processing timestamps distinct; target21 ledger vs actual20 explicit",
+      "not_run": [
+        "activation",
+        "CAS",
+        "provider fetch",
+        "POST",
+        "new scheduler run",
+        "runtime API/UI",
+        "rollback",
+        "Git"
+      ]
+    },
+    {
+      "round": 2,
+      "verdict": "PASS",
+      "prepared_sha256": "e6a38ae4bd24fb9b363607f58e10c47019bc94c087102d47ea48baa37b3aa0c2",
+      "publish_helper_sha256": "61bb652a49b0dab2cbbc62faee683cfec63090c059f546a4c5ef9c69054a7e16",
+      "tested": {
+        "runtime": "CPython 3.14.6",
+        "command_selector": "tests/test_us_market_natural_repair.py -k publication_",
+        "passed": 9,
+        "deselected": 38,
+        "rc": 0
+      },
+      "finding_closed": "P1: secondary receipt raw SHA checked using same read_bytes buffer before parse; candidate/root/manifest/proposal and old/new/predicted receipt equal frozen top-level values",
+      "attack_replay": {
+        "receipt_read_text": 0,
+        "unapproved_owner": "REJECTED_OWNER_DRIFT",
+        "owner_reads": 1,
+        "publication_calls": 0,
+        "file_writes": 0
+      },
+      "actual_check_only": "RC0 CHECKED_NOT_PUBLISHED; approved olda3de... -> payload16c7...",
+      "reused": [
+        "SOURCE",
+        "CANDIDATE",
+        "EXACT_RECOVERY_PAYLOAD",
+        "OUTER_VALIDATION",
+        "ACTUAL_CONSUMER_INGRESS"
+      ],
+      "natural": "Both failures retained"
+    }
+  ],
+  "status": "REVIEWED_PASS_PROCESSING_RECOVERY_BEHAVIOR_VERIFIED",
+  "natural_0415": "FAIL_RETAINED",
+  "natural_0515": "FAIL_RETAINED",
+  "ledger": {
+    "writer": "FINAL_RECEIVED_CONSUMED_RECEIPT_VERIFIED_COMPLETED",
+    "reviewer": "FINAL_RECEIVED_CONSUMED_RECEIPT_VERIFIED_COMPLETED"
+  },
+  "controller_continuation": {
+    "producer": "exact reviewed candidate only, idle lifecycle guard, preserve original slots, no kickstart",
+    "publication": "one exact reviewed payload through existing mutex/CAS/history path; no provider/POST",
+    "followup": "existing scheduler automatically consumes new identity; actual API/UI and independent runtime review required"
+  },
+  "runtime_review": {
+    "verdict": "PASS",
+    "scope": "PROCESSING_RECOVERY_ONLY",
+    "producer": "actual loaded idle/runs0; approved plist9781cb and manifest8190; two source hashes match; original four slots and false startup flags",
+    "api_scheduler": "Actual API r6 and scheduler close-r1 retained",
+    "publication": "Exact one CAS16c7/c949/c3b60; historya3de/supersession and two FAILED unchanged",
+    "run_id": "52d6d87a1fe547a484b189448d0ddfb7",
+    "trigger": "SCHEDULED",
+    "phase": "NEXT_DAY",
+    "us_source": "20261019",
+    "hk_target": "20261020",
+    "status": "PARTIAL",
+    "input_sha256": "23c654f3d2c7e0e726a94c48dab2c11530c17ce4052c98545a59f9f1d0a01b29",
+    "product_sha256": "0eb298eea60bc41edb4c048ccdae2b60de9b3c7ff302084eb9b244dfee824fe5",
+    "contract_sha256": "0c8ae9a3879cf97220a490b429e0cb97f33b6f360f39e26ff645b1eae4a6e2a4",
+    "independent_api_checks": "actual exact run/day/health/ready GET200; 410 unique candidates,478 relations; full sorting/source quotations/directions checked; zero mismatches;27 excluded have zero overlap",
+    "ui_receipt_sha256": "92633f528e37c28a4a1ec160e1c3a9be41be92a4eca77eaa52c2f1c715462ac9",
+    "independent_ui_checks": "All410 code order,qualification,direction,risk and relation counts equal actual API; four expanded details including positive RMBS and three negative targets equal actual API; two actual screenshots hashes verified and visually inspected",
+    "targets": [
+      {
+        "hk_code": "06808",
+        "rank": 198,
+        "source": "WMT",
+        "source_return_pct": "-0.092585"
+      },
+      {
+        "hk_code": "06993",
+        "rank": 203,
+        "source": "PG",
+        "source_return_pct": "-1.041732"
+      },
+      {
+        "hk_code": "09633",
+        "rank": 207,
+        "source": "KO",
+        "source_return_pct": "-0.511182"
+      }
+    ],
+    "target_boundary": "All DATED_WEAK_PEER and NEGATIVE_WITHOUT_POSITIVE; no HK forecast or qualification upgrade",
+    "formal_selected": 0,
+    "formal_watch": 0,
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "states": {
+    "IMPLEMENTED": "PASS_SCOPED",
+    "TESTED": "PASS_INDEPENDENT_17_PLUS9",
+    "DEPLOYED": "PRODUCER_ONLY_PASS",
+    "API_VERIFIED": "PASS_SAME_RECOVERY_RUN",
+    "UI_VERIFIED": "PASS_SAME_RECOVERY_RUN",
+    "BEHAVIOR_VERIFIED": "PASS_PROCESSING_RECOVERY_ONLY",
+    "NATURAL_VERIFIED": false,
+    "natural_0415": "FAIL_RETAINED",
+    "natural_0515": "FAIL_RETAINED",
+    "future_natural_slot": "NOT_RUN"
+  },
+  "not_run": [
+    "new natural capture after fixes",
+    "rollback exercise"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "target_connect_eligibility": "CANNOT_CONFIRM",
+    "historical_pit_verified": false
+  }
+}

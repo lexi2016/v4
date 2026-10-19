@@ -1,0 +1,28 @@
+{
+  "state": "PROCESSING_RECOVERY_PUBLISHED",
+  "executed_at": "2026-10-19T21:43:04.294645+00:00",
+  "result": {
+    "trade_date": "20261020",
+    "source": "external_finance",
+    "payload_path": "research/peripherals/20261020/external_finance.json",
+    "receipt_path": "receipts/research/peripherals/20261020/external_finance.json",
+    "payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+    "replaced": true,
+    "previous_payload_path": "research/peripherals/history/20261020/external_finance/a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3.json",
+    "supersession_receipt_path": "receipts/research/peripherals/supersessions/20261020/external_finance/16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4.json",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+  "previous_payload_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+  "receipt_sha256": "c94948b8913043c3329f379d267f1a978df96f9ee18481251d562f10a9c1838b",
+  "captured_at": "2026-10-19T21:15:06Z",
+  "processing_at": "2026-10-19T21:31:48.760762Z",
+  "failed_receipts_unchanged": true,
+  "provider_calls": 0,
+  "business_posts": 0,
+  "natural0415": "FAIL_RETAINED",
+  "natural0515": "FAIL_RETAINED",
+  "behavior_verification": "PENDING_EXISTING_SCHEDULER_API_UI_AND_INDEPENDENT_REVIEW"
+}

@@ -151,8 +151,14 @@ def _provider_symbol_conflicts(raw):
         text = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
         for symbol, body in re.findall(r'v_us([A-Z0-9.\-]+)="([^"]*)"', text):
             fields = body.split("~")
-            if len(fields) > 2 and fields[2].strip().upper() != symbol:
-                conflicts.add(symbol)
+            if len(fields) > 2:
+                # The retained actual Tencent US response qualifies field2
+                # with these four exchange suffixes. Match the entire bare
+                # response key first, preserving dots inside the ticker.
+                inner = fields[2].strip().upper()
+                accepted = {symbol, *(symbol + suffix for suffix in (".N", ".OQ", ".PS", ".AM"))}
+                if inner not in accepted:
+                    conflicts.add(symbol)
     return conflicts
 
 

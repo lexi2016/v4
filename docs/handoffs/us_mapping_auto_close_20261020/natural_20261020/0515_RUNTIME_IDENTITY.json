@@ -1,0 +1,42 @@
+{
+  "read_at": "2026-10-20T05:28:05.417147+08:00",
+  "roles": {
+    "producer": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-producer-20261020-r1",
+      "plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+      "manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+      "pid": null,
+      "source_matches_actual_manifest": true,
+      "source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+        "ops/_us_market_digest_parts/snapshot_merge.py": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+        "v4/manager_workbench/inputs/source_bindings.py": "847bd15ab6e4ef74ede4e94fe9672fde19cc0ab899dccf96aae1b7b3819570cc"
+      }
+    },
+    "scheduler": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+      "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+      "pid": 64979,
+      "source_matches_actual_manifest": true,
+      "source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+        "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+      }
+    },
+    "api": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6",
+      "plist_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+      "manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+      "pid": 56894,
+      "source_matches_actual_manifest": true,
+      "source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+        "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+      }
+    }
+  },
+  "service_changes": 0
+}

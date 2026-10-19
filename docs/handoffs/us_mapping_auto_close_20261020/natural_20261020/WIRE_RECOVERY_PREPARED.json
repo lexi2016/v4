@@ -1,0 +1,55 @@
+{
+  "state": "RECOVERY_PREPARED_NOT_PUBLISHED",
+  "payload_relative": "local_only/wire-recovery-payload.json",
+  "payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+  "expected_old_cas_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+  "predicted_receipt_sha256": "c94948b8913043c3329f379d267f1a978df96f9ee18481251d562f10a9c1838b",
+  "provenance": {
+    "schema_version": "v4.us_mapping.saved_response_processing_recovery.v1",
+    "identity": "SAVED_NATURAL_RESPONSE_PROCESSING_RECOVERY",
+    "captured_at": "2026-10-19T21:15:06Z",
+    "processing_at": "2026-10-19T21:31:48.760762Z",
+    "source_session": "20261019",
+    "actual_capture_target": "20261020",
+    "ledger_target": "20261021",
+    "ledger_target_note": "Inactive-slot wrapper next-HK date; collector explicitly targetsHK20. Original ledger unchanged.",
+    "raw_response_sha256": "9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457",
+    "raw_response_bytes": 199803,
+    "diagnostic_metadata_sha256": "3e1d23fa014f3de8b264e377e32090d98cab64a6f2a519de0b37448270d7d0ce",
+    "failed_dispatch_run_id": "2f16d9f8bc6e4d7088dea33a05d1035e",
+    "failed_dispatch_raw_sha256": "e6e220d39998c46ebaecaed22f5d569218206a03642352a40a6cda7f0aa52df1",
+    "failed_dispatch_ledger_digest": "c12e2b1f111e8279f0ab63b8acfe02cee087321d2dfd7fa5aba05d878c17836c",
+    "failed_dispatch_finished_at": "2026-10-19T21:16:13.206600Z",
+    "source_runtime_manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+    "processing_candidate_manifest_sha256": "8190a5fbc005f13bcadb0fde594376209f0e92bffb3bfdeb58059365af20b939",
+    "previous_owner_payload_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+    "source_capture_outcome": "FAILED_RETAINED",
+    "processing_outcome": "DERIVED_FROM_SAVED_RESPONSE",
+    "retained_rss": {
+      "source_payload_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+      "captured_at": "2026-10-19T20:15:02Z",
+      "newly_fetched": false
+    },
+    "retained_board_snapshot": {
+      "source_payload_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+      "source_response_sha256": "b2db4912a5267699da4e0bb40e4a8a6c1b7cc324f03fb9452a4414242b29b10a",
+      "newly_fetched": false
+    },
+    "provider_calls": 0,
+    "business_posts": 0,
+    "natural_verification": "FAIL_RETAINED"
+  },
+  "full_existing_validation": "PASS",
+  "existing_scheduled_binding": "PASS_PARTIAL488_OF547",
+  "original_rss_and_capture_rows_preserved": true,
+  "authoritative_data_writes": 0,
+  "ledger_writes": 0,
+  "provider_calls": 0,
+  "business_posts": 0,
+  "publish_command": "Controller continuation only: existing ResearchPeripheralStore.replace(exact prepared payload, expected_sha256=old SHA, reason=SAVED_NATURAL_RESPONSE_PROCESSING_RECOVERY); no reprepare/no fake clock.",
+  "pre_freeze_correction": {
+    "before_payload_sha256": "fc2d6038adcc32797e2f7345bb612b3f999f5808f47d7fa6f06fb3a9beff64c8",
+    "after_payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+    "reason": "Immutable artifact describes processing derivation, not mutable publication lifecycle. Exact prepared/published state belongs in receipts."
+  }
+}

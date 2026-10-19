@@ -1,0 +1,118 @@
+{
+  "candidate_count": 410,
+  "relation_count": 478,
+  "hk_duplicates": 0,
+  "sorting_mismatches": 0,
+  "relation_source_quote_mismatches": 0,
+  "quote_status_counts": {
+    "VERIFIED": 475,
+    "MISSING_OR_UNVERIFIED": 3
+  },
+  "direction_counts": {
+    "POSITIVE_WITHOUT_NEGATIVE": 139,
+    "MIXED_POSITIVE_NEGATIVE": 19,
+    "NEGATIVE_WITHOUT_POSITIVE": 244,
+    "FLAT_OR_UNKNOWN": 8
+  },
+  "qualification_counts": {
+    "DATED_WEAK_PEER": 218,
+    "PENDING_REVIEW": 192
+  },
+  "excluded_relation_count": 27,
+  "excluded_candidate_overlap": 0,
+  "sorted_hk_codes_sha256": "54a6ad6a8b6a07d1191f2566fde6d2398747c58fee2a4311f1d820794b172bf6",
+  "first10_hk_codes": [
+    "06809",
+    "09976",
+    "02706",
+    "01364",
+    "02665",
+    "02631",
+    "02726",
+    "01211",
+    "03355",
+    "02715"
+  ],
+  "targets": [
+    {
+      "rank": 198,
+      "hk_code": "06808",
+      "name": "高鑫零售",
+      "qualification": "DATED_WEAK_PEER",
+      "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+      "risk_markers": [
+        "NEGATIVE_SOURCE_MOVE",
+        "DATED_RELATION_REQUIRES_REVIEW"
+      ],
+      "relations": [
+        {
+          "catalog_relation_id": "R924",
+          "us_symbol": "WMT",
+          "quote_status": "VERIFIED",
+          "us_source_return_pct": "-0.092585",
+          "direction_sign": null,
+          "quote_missing_reason": null
+        }
+      ]
+    },
+    {
+      "rank": 203,
+      "hk_code": "06993",
+      "name": "蓝月亮集团",
+      "qualification": "DATED_WEAK_PEER",
+      "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+      "risk_markers": [
+        "NEGATIVE_SOURCE_MOVE",
+        "DATED_RELATION_REQUIRES_REVIEW"
+      ],
+      "relations": [
+        {
+          "catalog_relation_id": "R942",
+          "us_symbol": "PG",
+          "quote_status": "VERIFIED",
+          "us_source_return_pct": "-1.041732",
+          "direction_sign": null,
+          "quote_missing_reason": null
+        }
+      ]
+    },
+    {
+      "rank": 207,
+      "hk_code": "09633",
+      "name": "农夫山泉",
+      "qualification": "DATED_WEAK_PEER",
+      "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+      "risk_markers": [
+        "NEGATIVE_SOURCE_MOVE",
+        "DATED_RELATION_REQUIRES_REVIEW"
+      ],
+      "relations": [
+        {
+          "catalog_relation_id": "R955",
+          "us_symbol": "KO",
+          "quote_status": "VERIFIED",
+          "us_source_return_pct": "-0.511182",
+          "direction_sign": null,
+          "quote_missing_reason": null
+        }
+      ]
+    }
+  ],
+  "formal_counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 701,
+    "observation_only": 0,
+    "not_selected": 0
+  },
+  "coverage": {
+    "requested": 547,
+    "available": 488,
+    "gaps": {
+      "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 42,
+      "QUOTE_SESSION_DATE_MISMATCH_CAPTURE": 10,
+      "QUOTE_SYMBOL_MISSING": 6,
+      "QUOTE_PREVIOUS_CLOSE_ZERO": 1
+    }
+  }
+}

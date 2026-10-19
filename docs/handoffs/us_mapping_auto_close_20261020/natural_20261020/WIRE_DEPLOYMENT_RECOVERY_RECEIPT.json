@@ -1,0 +1,328 @@
+{
+  "schema": "v4.us_mapping.wire_deployment_processing_recovery.v1",
+  "state": "WRITER_RUNTIME_API_HANDOFF_PENDING_INDEPENDENT_UI_ACCEPTANCE",
+  "recorded_at": "2026-10-20T05:47:16.619361+08:00",
+  "prepared_sha256": "e6a38ae4bd24fb9b363607f58e10c47019bc94c087102d47ea48baa37b3aa0c2",
+  "publish_helper_sha256": "61bb652a49b0dab2cbbc62faee683cfec63090c059f546a4c5ef9c69054a7e16",
+  "commands": [
+    {
+      "at": "2026-10-20T05:42:50.902185+08:00",
+      "command": "guarded original producer plist SHA then exact wire-producer-candidate.plist write",
+      "result": "9781cb3c43fa8855c561f55a765f736241b7af2368b35f21ab1b143bc98e6cce"
+    },
+    {
+      "at": "2026-10-20T05:42:50.906902+08:00",
+      "command": "/bin/launchctl bootout gui/501/com.lexi.v4.us-market-digest",
+      "rc": 0
+    },
+    {
+      "at": "2026-10-20T05:42:55.099089+08:00",
+      "command": "/bin/launchctl print gui/501/com.lexi.v4.us-market-digest",
+      "rc": 113
+    },
+    {
+      "at": "2026-10-20T05:42:55.102772+08:00",
+      "command": "/bin/launchctl bootstrap gui/501 /Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+      "rc": 0
+    },
+    {
+      "completed_at": "2026-10-19T21:43:04.294645+00:00",
+      "command": "bundled-python docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/publish_prepared_recovery.py --expected-prepared-sha e6a38ae4bd24fb9b363607f58e10c47019bc94c087102d47ea48baa37b3aa0c2 --publish",
+      "rc": 0,
+      "calls": 1
+    }
+  ],
+  "runtime": {
+    "producer": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-wire-fix-producer-20261020-r1",
+      "plist_sha256": "9781cb3c43fa8855c561f55a765f736241b7af2368b35f21ab1b143bc98e6cce",
+      "manifest_sha256": "8190a5fbc005f13bcadb0fde594376209f0e92bffb3bfdeb58059365af20b939",
+      "pid": null,
+      "state": "not running",
+      "changed_in_this_stage": true,
+      "relevant_source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "4900166ee6fe6df1f0985cf4495a36868f126ea516fb8dd2cc175066209433da",
+        "ops/_us_market_digest_parts/snapshot_merge.py": "3063243ca8c3194281c361d4a3f5745300c248130e67e131530eb987dc681580",
+        "v4/manager_workbench/inputs/source_bindings.py": "847bd15ab6e4ef74ede4e94fe9672fde19cc0ab899dccf96aae1b7b3819570cc"
+      },
+      "runs": 0,
+      "RunAtLoad": false,
+      "KeepAlive": false,
+      "schedule": [
+        {
+          "Hour": 4,
+          "Minute": 15
+        },
+        {
+          "Hour": 5,
+          "Minute": 15
+        },
+        {
+          "Hour": 21,
+          "Minute": 0
+        },
+        {
+          "Hour": 22,
+          "Minute": 0
+        }
+      ],
+      "diagnostic_directory": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only"
+    },
+    "scheduler": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+      "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+      "pid": 64979,
+      "state": "running",
+      "changed_in_this_stage": false,
+      "relevant_source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+        "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+      }
+    },
+    "api": {
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6",
+      "plist_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+      "manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+      "pid": 56894,
+      "state": "running",
+      "changed_in_this_stage": false,
+      "relevant_source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+        "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+      }
+    }
+  },
+  "preservation": {
+    "full_parent_candidate_inventory_before_switch": "PASS",
+    "old_owner_history_path": "research/peripherals/history/20261020/external_finance/a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3.json",
+    "old_owner_history_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+    "supersession_receipt_path": "receipts/research/peripherals/supersessions/20261020/external_finance/16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4.json",
+    "old_failed_receipts_raw_sha256": {
+      "0415": "9f67ad2c5c9a851b066bc3eb054b3be5ccbba870a3ec5e710c37d3a3334bc446",
+      "0515": "e6e220d39998c46ebaecaed22f5d569218206a03642352a40a6cda7f0aa52df1"
+    },
+    "api_scheduler_pointers": "UNTOUCHED",
+    "old_releases": "UNTOUCHED",
+    "main48": "UNCHANGED_CONTRACT_AND_WINNING_QUOTES",
+    "original_rss_and_board": "RETAINED_0415_WITH_EXPLICIT_PROVENANCE"
+  },
+  "published_owner": {
+    "payload_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+    "receipt_sha256": "c94948b8913043c3329f379d267f1a978df96f9ee18481251d562f10a9c1838b",
+    "manifest_sha256_at_binding": "c3b60e5cc41efbc68d0c5afe64592e24e94c0564a4228c5a9229f3a0066612ff",
+    "raw_source_response_sha256": "9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457",
+    "source_session": "20261019",
+    "actual_target": "20261020",
+    "ledger_target_original": "20261021",
+    "captured_at": "2026-10-19T21:15:06Z",
+    "processing_at": "2026-10-19T21:31:48.760762Z",
+    "published_at": "2026-10-19T21:43:04.294645+00:00",
+    "identity": "SAVED_NATURAL_RESPONSE_PROCESSING_RECOVERY",
+    "late": true,
+    "capture_mode": "CONTROLLED_LATE_POST_CLOSE"
+  },
+  "existing_scheduler": {
+    "run_id": "52d6d87a1fe547a484b189448d0ddfb7",
+    "state": "PARTIAL",
+    "trigger": "SCHEDULED",
+    "phase": "NEXT_DAY",
+    "source_sessions": {
+      "hk_price": "20261016",
+      "us": "20261019"
+    },
+    "target_date": "20261020",
+    "started_at": "2026-10-20T05:44:05.904286+08:00",
+    "finished_at": "2026-10-20T05:44:17.758648+08:00",
+    "job_cutoff": "2026-10-20T05:44:00.587402+08:00",
+    "snapshot_cutoff": "2026-10-20T05:44:13.198885+08:00",
+    "exact_cursor": {
+      "artifact_relative": "research/peripherals/20261020/external_finance.json",
+      "artifact_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+      "capture_cutoff": "2026-10-19T21:15:06Z",
+      "input_key": "21a709d133ec3c37ad9210afbc0edc128e826ec838a539923cfd8a027d395be0",
+      "job_id": "52d6d87a1fe547a484b189448d0ddfb7",
+      "manifest_relative": "research/peripherals/manifest.json",
+      "manifest_sha256": "c3b60e5cc41efbc68d0c5afe64592e24e94c0564a4228c5a9229f3a0066612ff",
+      "receipt_relative": "receipts/research/peripherals/20261020/external_finance.json",
+      "receipt_sha256": "c94948b8913043c3329f379d267f1a978df96f9ee18481251d562f10a9c1838b",
+      "run_id": "52d6d87a1fe547a484b189448d0ddfb7",
+      "state": "JOB_TRACKED",
+      "target_date": "20261020",
+      "us_session_date": "20261019"
+    },
+    "wait_started": "2026-10-20T05:43:04+08:00",
+    "observations": [
+      "05:43:54 no cursor yet",
+      "05:44:34 new cursor and terminalPARTIAL"
+    ],
+    "manual_submission": false
+  },
+  "api": {
+    "origin": "http://127.0.0.1:8873",
+    "job_path": "/api/v4/manager-workbench/runs/52d6d87a1fe547a484b189448d0ddfb7",
+    "day_path": "/api/v4/manager-workbench/days/20261020?run_id=52d6d87a1fe547a484b189448d0ddfb7",
+    "GET_status": 200,
+    "healthz": {
+      "status": "ok"
+    },
+    "readyz": {
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false
+    },
+    "mechanical_readback": {
+      "candidate_count": 410,
+      "relation_count": 478,
+      "hk_duplicates": 0,
+      "sorting_mismatches": 0,
+      "relation_source_quote_mismatches": 0,
+      "quote_status_counts": {
+        "VERIFIED": 475,
+        "MISSING_OR_UNVERIFIED": 3
+      },
+      "direction_counts": {
+        "POSITIVE_WITHOUT_NEGATIVE": 139,
+        "MIXED_POSITIVE_NEGATIVE": 19,
+        "NEGATIVE_WITHOUT_POSITIVE": 244,
+        "FLAT_OR_UNKNOWN": 8
+      },
+      "qualification_counts": {
+        "DATED_WEAK_PEER": 218,
+        "PENDING_REVIEW": 192
+      },
+      "excluded_relation_count": 27,
+      "excluded_candidate_overlap": 0,
+      "sorted_hk_codes_sha256": "54a6ad6a8b6a07d1191f2566fde6d2398747c58fee2a4311f1d820794b172bf6",
+      "first10_hk_codes": [
+        "06809",
+        "09976",
+        "02706",
+        "01364",
+        "02665",
+        "02631",
+        "02726",
+        "01211",
+        "03355",
+        "02715"
+      ],
+      "targets": [
+        {
+          "rank": 198,
+          "hk_code": "06808",
+          "name": "高鑫零售",
+          "qualification": "DATED_WEAK_PEER",
+          "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+          "risk_markers": [
+            "NEGATIVE_SOURCE_MOVE",
+            "DATED_RELATION_REQUIRES_REVIEW"
+          ],
+          "relations": [
+            {
+              "catalog_relation_id": "R924",
+              "us_symbol": "WMT",
+              "quote_status": "VERIFIED",
+              "us_source_return_pct": "-0.092585",
+              "direction_sign": null,
+              "quote_missing_reason": null
+            }
+          ]
+        },
+        {
+          "rank": 203,
+          "hk_code": "06993",
+          "name": "蓝月亮集团",
+          "qualification": "DATED_WEAK_PEER",
+          "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+          "risk_markers": [
+            "NEGATIVE_SOURCE_MOVE",
+            "DATED_RELATION_REQUIRES_REVIEW"
+          ],
+          "relations": [
+            {
+              "catalog_relation_id": "R942",
+              "us_symbol": "PG",
+              "quote_status": "VERIFIED",
+              "us_source_return_pct": "-1.041732",
+              "direction_sign": null,
+              "quote_missing_reason": null
+            }
+          ]
+        },
+        {
+          "rank": 207,
+          "hk_code": "09633",
+          "name": "农夫山泉",
+          "qualification": "DATED_WEAK_PEER",
+          "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+          "risk_markers": [
+            "NEGATIVE_SOURCE_MOVE",
+            "DATED_RELATION_REQUIRES_REVIEW"
+          ],
+          "relations": [
+            {
+              "catalog_relation_id": "R955",
+              "us_symbol": "KO",
+              "quote_status": "VERIFIED",
+              "us_source_return_pct": "-0.511182",
+              "direction_sign": null,
+              "quote_missing_reason": null
+            }
+          ]
+        }
+      ],
+      "formal_counts": {
+        "selected": 0,
+        "watch": 0,
+        "unassessed": 701,
+        "observation_only": 0,
+        "not_selected": 0
+      },
+      "coverage": {
+        "requested": 547,
+        "available": 488,
+        "gaps": {
+          "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 42,
+          "QUOTE_SESSION_DATE_MISMATCH_CAPTURE": 10,
+          "QUOTE_SYMBOL_MISSING": 6,
+          "QUOTE_PREVIOUS_CLOSE_ZERO": 1
+        }
+      }
+    },
+    "mechanical_receipt_sha256": "e9a6680136f05c19b6f2c9bdf38e30b062b8b49157dff58a10b948be5d50dfb6",
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "historical_pit_verified": false
+  },
+  "counts": {
+    "producer_reloads": 1,
+    "CAS_publish_calls": 1,
+    "provider_fetches": 0,
+    "manual_run_POSTs": 0,
+    "kickstarts": 0,
+    "API_scheduler_reloads": 0,
+    "lifecycle_retries": 0
+  },
+  "rollback": {
+    "producer_original_backup": "local_only/wire-producer-original.plist",
+    "backup_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+    "producer_restore": "Guard current proposal SHA; inspect loaded state; restore raw original plist; bootout only if loaded; wait print113; bootstrap. Neverkickstart.",
+    "data_restore": "Only if separately authorized: existing CAS original retained history payload, expected current16c7...; preserve recovery/history/FAILED records.",
+    "exercised": false
+  },
+  "natural0415": "FAIL_RETAINED",
+  "natural0515": "FAIL_RETAINED",
+  "recovery_classification": "PROCESSING_RECOVERY_ONLY",
+  "remaining": [
+    "Independent runtime/API/UI verdict",
+    "Git synchronization by controller"
+  ],
+  "not_run": [
+    "new natural capture after source fixes",
+    "rollback exercise",
+    "Git by writer"
+  ],
+  "writer_ownership": "RELEASED_AFTER_THIS_HANDOFF",
+  "raw_evidence": "local_only excluded from sync"
+}

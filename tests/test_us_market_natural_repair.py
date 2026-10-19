@@ -154,3 +154,146 @@ def test_original_natural_artifact_is_not_reused_as_late(tmp_path, monkeypatch):
         materialize_us_market_phase(data_root=tmp_path, trade_date="20261020", capture_phase="POST_CLOSE",
             us_session_date="20261019", allow_late_post_close=True, now="2026-10-19T21:15:02Z")
     assert calls == [True]
+
+
+@pytest.mark.parametrize("inner", ["WMT", "WMT.N", "WMT.OQ", "WMT.PS", "WMT.AM"])
+def test_wire_exchange_qualification_matches_exact_key(inner):
+    from v4.manager_workbench.inputs.us_mapping_close_scope import _provider_symbol_conflicts
+    assert _provider_symbol_conflicts(f'v_usWMT="200~synthetic~{inner}~";'.encode()) == set()
+    assert _provider_symbol_conflicts('v_usBRK.B="200~synthetic~BRK.B.N~";') == set()
+
+
+@pytest.mark.parametrize("inner", ["KO.N", "OTHER", "WMT.L", "WMT.N.EXTRA", "WMTN", "", "US.WMT.N"])
+def test_wire_unknown_exchange_or_different_ticker_stays_quarantined(inner):
+    from v4.manager_workbench.inputs.us_mapping_close_scope import _provider_symbol_conflicts
+    assert _provider_symbol_conflicts(f'v_usWMT="200~synthetic~{inner}~";') == {"WMT"}
+    # Explicit Mapping records keep their existing strict identity contract.
+    assert _provider_symbol_conflicts({"WMT": {"symbol": "WMT.N"}}) == {"WMT"}
+
+
+def test_saved_actual_wire_has_488_valid_and_59_isolated(monkeypatch):
+    from collections import Counter
+    from ops.us_market_digest import build_us_market_snapshot
+    from v4.manager_workbench.inputs.us_universe import build_us_universe_contract
+    from infrastructure.research_peripheral_store import _validate_market_snapshot
+    path = ROOT / "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only" / (
+        "us-quote-wire-20261019-9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457.bin")
+    if not path.exists():
+        pytest.skip("Retained actual response stays local; hermetic synthetic wire cases remain portable")
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == "9a2de44927e53cb8cc12d81f9ebf1e87a4bd18504299ca75c61f048e6e7b5457"
+    monkeypatch.setenv("V4_US_MAPPING_CLOSE_SCOPE_PATH", str(CONFIG))
+    monkeypatch.delenv("V4_US_MAPPING_WIRE_DIAGNOSTIC_DIR", raising=False)
+    calls = []
+    def fetch(*_):
+        calls.append(True)
+        return raw
+    value = build_us_market_snapshot("20261019", captured_at="2026-10-19T21:15:06Z",
+        universe_contract=build_us_universe_contract(), fetch_quotes=fetch)
+    assert calls == [True]
+    _validate_market_snapshot(value)
+    assert value["status"] == "READY" and value["available_symbol_count"] == 48
+    scope = value["scheduled_quote_scope"]
+    assert scope["state"] == "PARTIAL" and scope["available_symbol_count"] == 488
+    assert Counter(scope["quote_failures"].values()) == {
+        "QUOTE_SESSION_DATE_MISMATCH_CAPTURE": 10, "QUOTE_PREVIOUS_CLOSE_ZERO": 1,
+        "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 42, "QUOTE_SYMBOL_MISSING": 6}
+    observed = {q["symbol"]: q for q in scope["quotes"]}
+    for symbol, change in [("WMT", -0.092585), ("KO", -0.511182), ("PG", -1.041732)]:
+        assert observed[symbol]["change_pct"] == change
+
+
+def _publication_hash_fixture(tmp_path, monkeypatch):
+    """Isolate only publication hash binding; no real owner or authority IO."""
+    import runpy
+    import sys
+    import infrastructure.data_store as data_store
+    import infrastructure.research_peripheral_store as peripheral
+    import infrastructure.scheduling.execution_ledger as execution
+    helper = ROOT / "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/publish_prepared_recovery.py"
+    module = runpy.run_path(str(helper))
+    main = module["main"]
+    main.__globals__.update(HERE=tmp_path, WT=tmp_path, BASE=tmp_path / "authority")
+    candidate_root = tmp_path / "candidate"
+    candidate_root.mkdir()
+    manifest = candidate_root / "release-manifest.json"
+    manifest.write_text('{}')
+    hash_file = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+    candidate = dict(candidate=str(candidate_root), manifest_sha256=hash_file(manifest),
+        original_plist_sha256="1" * 64, proposed_plist_sha256="2" * 64, source_test_sha256={})
+    payload = tmp_path / "payload.json"
+    payload.write_text('{}')
+    recovery = dict(payload_relative="payload.json", payload_sha256=hash_file(payload),
+        expected_old_cas_sha256="a" * 64, predicted_receipt_sha256="b" * 64,
+        provenance=dict(identity="SAVED_NATURAL_RESPONSE_PROCESSING_RECOVERY",
+                        captured_at="2000-01-01T00:00:00Z", processing_at="2000-01-01T01:00:00Z"))
+    # Supply the capture field the helper checks independently of schema QA.
+    payload.write_text(json.dumps({"market_snapshot": {"captured_at": recovery["provenance"]["captured_at"]}}))
+    recovery["payload_sha256"] = hash_file(payload)
+    prepared = dict(source_test_sha256={}, publish_helper_sha256=hash_file(helper),
+        candidate=candidate["candidate"], candidate_manifest_sha256=candidate["manifest_sha256"],
+        original_plist_sha256=candidate["original_plist_sha256"], proposed_plist_sha256=candidate["proposed_plist_sha256"],
+        recovery_payload_sha256=recovery["payload_sha256"], expected_old_cas_sha256=recovery["expected_old_cas_sha256"],
+        predicted_receipt_sha256=recovery["predicted_receipt_sha256"], failed_receipts_raw_sha256={})
+    for slot, run in [("0415", "b69405c9b5214af7a24529ff6e6a9c36"), ("0515", "2f16d9f8bc6e4d7088dea33a05d1035e")]:
+        p = tmp_path / "authority/state/dispatcher/receipts/live/20261020" / slot / (run + ".dispatch-receipt.json")
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text('{}')
+        prepared["failed_receipts_raw_sha256"][slot] = hash_file(p)
+    calls = dict(read=0, publication=0, current="a" * 64)
+    class Store:
+        def __init__(self, *_):pass
+        def read_exact(self, *_):
+            calls["read"] += 1
+            return {"test_sha": calls["current"]}
+        def replace(self, *_a, **_k):
+            calls["publication"] += 1
+            raise RuntimeError("unexpected publication")
+    monkeypatch.setattr(peripheral, "ResearchPeripheralStore", Store)
+    monkeypatch.setattr(peripheral, "validate_research_peripheral", lambda *_a, **_k: None)
+    monkeypatch.setattr(data_store, "_sha256", lambda value: value["test_sha"])
+    monkeypatch.setattr(execution, "ExecutionLedger", lambda *_: SimpleNamespace(verify_receipt_chain=lambda *_a, **_k: (True, [])))
+    def seal():
+        for name, value in [("WIRE_CANDIDATE.json", candidate), ("WIRE_RECOVERY_PREPARED.json", recovery)]:
+            (tmp_path / name).write_text(json.dumps(value))
+        prepared["candidate_receipt_sha256"] = hash_file(tmp_path / "WIRE_CANDIDATE.json")
+        prepared["recovery_receipt_sha256"] = hash_file(tmp_path / "WIRE_RECOVERY_PREPARED.json")
+        (tmp_path / "WIRE_REPAIR_PREPARED.json").write_text(json.dumps(prepared))
+        monkeypatch.setattr(sys, "argv", [str(helper), "--expected-prepared-sha", hash_file(tmp_path / "WIRE_REPAIR_PREPARED.json")])
+    seal()
+    return main, seal, candidate, recovery, prepared, calls
+
+
+@pytest.mark.parametrize("change", ["candidate_raw", "recovery_raw", "candidate_root", "manifest", "proposal", "old_cas", "new_payload", "predicted_receipt"])
+def test_publication_rejects_secondary_receipt_drift_before_owner_read(tmp_path, monkeypatch, change):
+    main, seal, candidate, recovery, prepared, calls = _publication_hash_fixture(tmp_path, monkeypatch)
+    if change in {"candidate_raw", "recovery_raw"}:
+        path = tmp_path / ("WIRE_CANDIDATE.json" if change == "candidate_raw" else "WIRE_RECOVERY_PREPARED.json")
+        path.write_bytes(path.read_bytes() + b" ")
+    else:
+        if change == "candidate_root":candidate["candidate"] = str(tmp_path / "other")
+        if change == "manifest":candidate["manifest_sha256"] = "3" * 64
+        if change == "proposal":candidate["proposed_plist_sha256"] = "3" * 64
+        if change == "old_cas":recovery["expected_old_cas_sha256"] = "5dbf" + "0" * 60
+        if change == "new_payload":recovery["payload_sha256"] = "3" * 64
+        if change == "predicted_receipt":recovery["predicted_receipt_sha256"] = "3" * 64
+        seal()  # Even a hash-linked secondary receipt cannot contradict top-level fields.
+    with pytest.raises(AssertionError):main()
+    assert calls["read"] == calls["publication"] == 0
+
+
+def test_publication_ignores_read_text_tamper_and_keeps_frozen_cas(tmp_path, monkeypatch):
+    main, _, _, recovery, _, calls = _publication_hash_fixture(tmp_path, monkeypatch)
+    real_read = Path.read_text
+    attacks = []
+    def forged(path, *_a, **_k):
+        if path.name == "WIRE_RECOVERY_PREPARED.json":
+            attacks.append(True)
+            return json.dumps(dict(recovery, expected_old_cas_sha256="5dbf" + "0" * 60))
+        return real_read(path, *_a, **_k)
+    monkeypatch.setattr(Path, "read_text", forged)
+    calls["current"] = "5dbf" + "0" * 60
+    with pytest.raises(AssertionError, match="owner drift"):
+        main()
+    assert attacks == []  # Hashing and parsing use the very same sealed bytes.
+    assert calls["read"] == 1 and calls["publication"] == 0

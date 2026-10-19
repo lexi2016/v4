@@ -1,0 +1,9 @@
+{
+  "state": "FAIL",
+  "review_round": 1,
+  "finding": "P1_SECONDARY_RECEIPT_HASH_BINDING_MISSING",
+  "evidence": "Independent pure-memory read_text tamper changed recovery expected_old to5dbf... and fakeStore current5dbf...; top7056 and actual files unchanged; check-only accepted. publication_calls0, no real data modification.",
+  "affected": "publish_prepared_recovery.py only; business two sources/candidate/exactpayload PASS retained",
+  "original_prepared_sha256": "7056a73419366e1fc41edd8544cdddfbfeb5a3c56f41910fa82829bd0d1e7d00",
+  "repair_authorization": "Controller one concentrated minimal helper/test binding repair; no source/candidate/payload changes."
+}

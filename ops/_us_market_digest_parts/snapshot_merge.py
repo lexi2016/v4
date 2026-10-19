@@ -26,25 +26,8 @@ def __merge_market_snapshots_body(_v4_scope, /, existing, incoming):
     else:
         winner = incoming if incoming_time >= existing_time else existing
     merged = _v4_global(_v4_scope, 'copy').deepcopy(_v4_global(_v4_scope, 'dict')(winner))
-    # The two scheduled phases may have different provider identities.  Keep
-    # every observed session value visible instead of inventing a unified date.
-    for field in ("provider_session_dates", "provider_session_times"):
-        merged[field] = _v4_global(_v4_scope, 'sorted')(
-            {
-                _v4_global(_v4_scope, 'str')(value)
-                for source in (existing, incoming)
-                for value in (source.get(field) or [])
-                if _v4_global(_v4_scope, 'str')(value).strip()
-            }
-        )
-    mixed_reasons: set[str] = _v4_global(_v4_scope, 'set')()
-    if _v4_global(_v4_scope, 'len')(merged.get("provider_session_dates") or []) > 1:
-        mixed_reasons.add("QUOTE_SESSION_DATE_MIXED")
-    if _v4_global(_v4_scope, 'len')(merged.get("provider_session_times") or []) > 1:
-        mixed_reasons.add("QUOTE_SESSION_TIME_MIXED")
-    if mixed_reasons:
-        merged["status"] = "PARTIAL"
-        merged["cannot_confirm"] = _v4_global(_v4_scope, 'sorted')(
-            _v4_global(_v4_scope, 'set')(merged["cannot_confirm"]) | mixed_reasons
-        )
+    # Metadata belongs to the same winning observation as quotes/rows/SHA.
+    # Unioning timestamps from discarded quotes creates an invalid READY
+    # snapshot after close normalization. Prior observations remain in the
+    # owner's capture list and CAS history, not this winning quote identity.
     return merged

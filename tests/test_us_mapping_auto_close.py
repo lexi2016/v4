@@ -292,3 +292,30 @@ def test_wire_diagnostic_rejects_symlink_and_preserves_scope(tmp_path, monkeypat
     assert result["status"] == "READY"
     assert result["scheduled_quote_scope"]["available_symbol_count"] == 547
     assert '"us_mapping_wire_diagnostic": "FAILED"' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("case", ["newer", "older", "invalid", "preopen"])
+def test_merge_retains_only_winning_quote_timestamp_identity(monkeypatch, case):
+    from ops.us_market_digest import _merge_market_snapshots
+    old_data = quotes()
+    old_data["v_usAMD"]["session_time"] = "16:00:30"
+    old = snapshot(monkeypatch, old_data)
+    new_data = quotes()
+    new_data["v_usAMD"]["session_time"] = "16:04:51"
+    incoming = snapshot(monkeypatch, new_data, captured="2026-10-19T21:15:06Z")
+    if case == "older":incoming["captured_at"] = "2026-10-19T20:15:01Z"
+    if case == "invalid":
+        incoming["status"] = "CANNOT_CONFIRM"
+        incoming["cannot_confirm"] = ["US_MARKET_QUOTE_FETCH_FAILED:TimeoutError"]
+    if case == "preopen":
+        incoming = build_us_market_snapshot("20261019", capture_phase="PRE_OPEN",
+            captured_at="2026-10-19T13:00:01Z", universe_contract=build_us_universe_contract(),
+            fetch_quotes=lambda *_: (_ for _ in ()).throw(AssertionError("preopen fetch")))
+    expected = incoming if case == "newer" else old
+    merged = _merge_market_snapshots(old, incoming)
+    assert merged["quotes"] == expected["quotes"]
+    assert merged["provider_session_times"] == expected["provider_session_times"]
+    assert merged["provider_session_dates"] == expected["provider_session_dates"]
+    assert merged["source_response_sha256"] == expected["source_response_sha256"]
+    assert merged["captured_at"] == expected["captured_at"]
+    _validate_market_snapshot(merged)

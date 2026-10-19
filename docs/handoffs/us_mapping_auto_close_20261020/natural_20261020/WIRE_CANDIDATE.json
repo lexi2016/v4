@@ -1,0 +1,61 @@
+{
+  "state": "PREPARED_PENDING_INDEPENDENT_REVIEW",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-wire-fix-producer-20261020-r1",
+  "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-producer-20261020-r1",
+  "parent_manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+  "manifest_sha256": "8190a5fbc005f13bcadb0fde594376209f0e92bffb3bfdeb58059365af20b939",
+  "parent_inventory_sha256": "00e2594eaef15dac6f0f670eacd48c686aea5e175224adf271c75a2e7e8980da",
+  "candidate_inventory_sha256": "d383091004071441d0b9e8dbbaaaf655109392c98acbe588a64c7fea491426f2",
+  "delta": [
+    {
+      "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+      "before": {
+        "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+        "kind": "file",
+        "sha256": "2fdb99354861f5afbfad5cdcfef532050ed36720e474981cfddf69b1efbf4bf5",
+        "mode": "0644",
+        "size": 2535
+      },
+      "after": {
+        "path": "ops/_us_market_digest_parts/snapshot_merge.py",
+        "kind": "file",
+        "sha256": "3063243ca8c3194281c361d4a3f5745300c248130e67e131530eb987dc681580",
+        "mode": "0644",
+        "size": 1732
+      }
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "before": {
+        "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+        "kind": "file",
+        "sha256": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+        "mode": "0644",
+        "size": 17808
+      },
+      "after": {
+        "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+        "kind": "file",
+        "sha256": "4900166ee6fe6df1f0985cf4495a36868f126ea516fb8dd2cc175066209433da",
+        "mode": "0644",
+        "size": 18185
+      }
+    }
+  ],
+  "all_non_delta_entries_preserved": true,
+  "original_plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+  "proposed_plist_sha256": "9781cb3c43fa8855c561f55a765f736241b7af2368b35f21ab1b143bc98e6cce",
+  "source_test_sha256": {
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "4900166ee6fe6df1f0985cf4495a36868f126ea516fb8dd2cc175066209433da",
+    "ops/_us_market_digest_parts/snapshot_merge.py": "3063243ca8c3194281c361d4a3f5745300c248130e67e131530eb987dc681580",
+    "tests/test_us_market_natural_repair.py": "aa6f96775b183a82cff93264d744de6992a79e6be2cfca0307163f757cef95ea",
+    "tests/test_us_mapping_auto_close.py": "c2129edc6f651393e4520188b77d3a9912584f4de484d001d2ef4a66819dee36"
+  },
+  "diagnostic_directory": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only",
+  "activated": false,
+  "provider_fetches": 0,
+  "business_posts": 0,
+  "inventory_tool_sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b",
+  "natural_0415": "FAIL_RETAINED",
+  "quote_format_fix": "N2_SUFFIX_AND_N3_WINNER_METADATA_IMPLEMENTED_PENDING_REVIEW"
+}
