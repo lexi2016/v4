@@ -1,0 +1,41 @@
+{
+  "schema": "v4.us_mapping.natural_repair_review.v1",
+  "reviewer": "/root/deployment_reviewer",
+  "scope": "stdout terminal protocol, strict existing05:15 recovery admission, same-response local diagnostics",
+  "verdict": "PASS",
+  "runtime": "CPython3.14.6",
+  "independent_tests": {
+    "passed": 27,
+    "rc": 0
+  },
+  "actual_candidate_checks": [
+    "Original polluted stdout replay passed current verified owner chain without claiming new capture; tampered payload hash rejected",
+    "Actual ledger verify_chain passed; only strict original failed contract and published owner chain arm existing0515 opportunity",
+    "Original ledger/payload/receipt/manifest bytes unchanged",
+    "Exact3source candidate delta; all other bytes, modes and links preserved; all manifest entries match",
+    "Proposal only release identity and exact diagnostic directory; original4slots, RunAtLoad=false KeepAlive=false preserved; APIr5b/scheduler unchanged",
+    "Same-response diagnostic raw bytes/hash, one fetch, mode0600, symlink rejection and failure isolation passed; symbol gate unchanged"
+  ],
+  "failed_file_bytes_sha256": "9f67ad2c5c9a851b066bc3eb054b3be5ccbba870a3ec5e710c37d3a3334bc446",
+  "failed_ledger_canonical_digest": "58c4cedcd7c4a3fe55be896ce3e25b068fb0e661ec16fd00fc9eed5aa7cfda35",
+  "candidate_manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+  "prepared_sha256": "b20e25fc6bf03fc69f88af6cb36385cbc23c63273ca8a95d08115b39a79acb84",
+  "runtime_review": {
+    "verdict": "PASS",
+    "status": "READY_FOR_0515_DIAGNOSTIC_RECOVERY",
+    "producer": "loaded idle,no PID,runs0; exact new release,cwd,plist,manifest and3source SHA match independently approved candidate",
+    "active_plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+    "schedule": "original04:15/05:15/21:00/22:00, RunAtLoad=false KeepAlive=false; no extra trigger; exact diagnostic env",
+    "preservation": "Original0415 failed ledger and owner payload/receipt/manifest bytes remain; APIr5b and scheduler plist unchanged",
+    "deployment_receipt_sha256": "1e31187860c9933231038356c2c028a472299dc26046fcbf6e62ebe50239c79e"
+  },
+  "natural0415": "FAIL_RETAINED",
+  "quote_format_N2": "UNRESOLVED",
+  "real_provider_fetch": "NOT_RUN",
+  "business_post": "NOT_RUN",
+  "ledger": {
+    "writer": "DEPLOYED_FINAL_RECEIVED_CONSUMED_RECEIPT_VERIFIED_COMPLETED",
+    "reviewer": "RUNTIME_FINAL_RECEIVED_CONSUMED_RECEIPT_VERIFIED_COMPLETED"
+  },
+  "natural0515": "NOT_RUN"
+}

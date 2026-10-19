@@ -1,0 +1,69 @@
+{
+  "state": "REVIEWED_DEPLOYED_READY_FOR_0515_DIAGNOSTIC_RECOVERY_N2_UNRESOLVED",
+  "allowed_files": [
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+      "sha256": "442333afb7eaeb6d789974cce59bca5641409de8f08ea7dedc4a2896ea0dd913"
+    },
+    {
+      "path": "ops/run_us_market_slot.py",
+      "sha256": "f82396e9050a68078cc2e904571fee8aa4bd7cddb224400d641b337e488d7077"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "sha256": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc"
+    },
+    {
+      "path": "tests/test_us_mapping_auto_close.py",
+      "sha256": "f8cff4c538a023779b078868ed8a7b5c081153e69126157eb9863a7c7ada9492"
+    },
+    {
+      "path": "tests/test_us_market_natural_repair.py",
+      "sha256": "dbac3259e32d101acbf731a6212ffb956cb68565c188cd4504f2d7281d9c6f37"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/BACKEND_0415_FAIL.json",
+      "sha256": "e763c4857c4dd50776480b25e458098a7d476cd7172e2858179fdd3f5f56eddd"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_SCOPE_REQUEST.json",
+      "sha256": "8ff1525a1ecc52dfb8f4c6dac80072ba4b9970cee0352d14c7885bf218c3d28f"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_SCOPE.json",
+      "sha256": "7c7690ff36849a9287157166f9b549e34cc2d8f1c2abe3a8bee5d4c5f2ec3acd"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/prepare_natural_candidate.py",
+      "sha256": "fdd47f61e6d016f0018cff332e5166e383e689a79210ae5966d22ec921591199"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_PREPARED.json",
+      "sha256": "b20e25fc6bf03fc69f88af6cb36385cbc23c63273ca8a95d08115b39a79acb84"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_IMPLEMENTATION.json",
+      "sha256": "7ab36825e2569caf593fdc77096fb9fd834fa8f57e8c1ee795c9f11ce3407a8d"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_ACTIVATION_PLAN.md",
+      "sha256": "eee94cf9006fab4fe7fed38d4b48209240d21dcc41d271929cf25437b662e5fd"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_DEPLOYMENT_RECEIPT.json",
+      "sha256": "1e31187860c9933231038356c2c028a472299dc26046fcbf6e62ebe50239c79e"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_INDEPENDENT_REVIEW.json",
+      "sha256": "98558698395d38d694be69a506236c745e9d7409ec28a67ba9f70c4f0945b56a"
+    }
+  ],
+  "also_include_this_file": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/REPAIR_SYNC_ALLOWLIST.json",
+  "excluded": [
+    "natural_20261020/local_only/** including controller UI images/raw responses/plists/wire data/test data",
+    "all runtime release roots/venvs/logs",
+    "unrelated changes"
+  ],
+  "commit_push_owner": "controller",
+  "controller_owned_final_sha": "REPAIR_INDEPENDENT_REVIEW.json: controller refreshes final runtime fields and its SHA"
+}

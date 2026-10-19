@@ -1,0 +1,29 @@
+{
+  "GOAL": "stdout protocol recovery + narrowly verified05:15 admission + same-response local diagnostics; N2 remains unresolved",
+  "WRITER": "mapping_deployer",
+  "REVIEWER": "deployment_reviewer",
+  "ALLOWED_PATHS": [
+    "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+    "ops/run_us_market_slot.py",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+    "tests/test_us_mapping_auto_close.py",
+    "tests/test_us_market_natural_repair.py",
+    "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/**"
+  ],
+  "FORBIDDEN": "old releases/old04:15data/FAILEDledger/API/scheduler/main48/schedule times/provider manual/POST/Git/UI files owned by controller",
+  "PASS_SIGNAL": "proposal oracles + independent source/candidate PASS before activation",
+  "STOP_RULE": "drift/new paths/new permissions/provider side effect",
+  "base_commit": "51aef2fc271854ebe4ed701ee794746574e8d355",
+  "branch": "codex/us-mapping-natural-repair-20261020",
+  "source_preimage_sha256": {
+    "infrastructure/scheduling/_executor_registry_parts/us_digest.py": "6df32d3fb041cff7a644eabca5a138bc2f4278987f79093f2eeba1d1b60c4ee4",
+    "ops/run_us_market_slot.py": "2d4e6f60a219ce813cf75cb02c3751dcc5d74546d64861f21424bb2c5a77f06c",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+    "tests/test_us_mapping_auto_close.py": "3feba9708af9fc9d7d22a7f729e7720755d708a2960c1ab8addc847d7166888f",
+    "tests/test_us_market_natural_repair.py": null
+  },
+  "producer_parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+  "parent_manifest_sha256": "228d8a43dedba9214e87efdded1da77642dace5761a05a11af1373230ecf66b9",
+  "original_plist_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d",
+  "activation": "NOT_AUTHORIZED_UNTIL_REVIEW"
+}

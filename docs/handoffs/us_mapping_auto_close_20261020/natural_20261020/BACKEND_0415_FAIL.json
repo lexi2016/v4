@@ -1,0 +1,240 @@
+{
+  "schema": "v4.us_mapping.natural_node_receipt.v1",
+  "state": "FAIL",
+  "observed_at": "2026-10-20T04:28:22.955357+08:00",
+  "target": {
+    "us_session": "20261019",
+    "hk_target": "20261020",
+    "slot": "0415"
+  },
+  "runtime_identity": {
+    "producer": {
+      "label": "com.lexi.v4.us-market-digest",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "plist_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d",
+      "manifest_sha256": "228d8a43dedba9214e87efdded1da77642dace5761a05a11af1373230ecf66b9",
+      "relevant_source_sha256": {
+        "ops/_us_market_digest_parts/market_snapshot.py": "309ce3ddb97b0889bbfd5e8e7366ee72716e805507e4f9acdeefec33c0f8a019",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "847bd15ab6e4ef74ede4e94fe9672fde19cc0ab899dccf96aae1b7b3819570cc"
+      }
+    },
+    "scheduler": {
+      "label": "com.lexi.v35.scheduler",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+      "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+      "relevant_source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+        "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+      }
+    },
+    "api": {
+      "label": "com.lexi.v35.api-only",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r5b",
+      "plist_sha256": "4ac3ba4fbb69e26b3e7c182545614fa7745bab063564e694c0398a7e0ff8bf8c",
+      "manifest_sha256": "fd0bc7cba3eb83af909657db0e7a758c16e16cb31dbd1f96eb66057502dc137b",
+      "relevant_source_sha256": {
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "v4/manager_workbench/inputs/source_bindings.py": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+        "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+      }
+    }
+  },
+  "producer": {
+    "launchd_runs": 1,
+    "last_exit_code": 1,
+    "dispatch_run_id": "b69405c9b5214af7a24529ff6e6a9c36",
+    "dispatch_status": "FAILED",
+    "failure_class": "CONTRACT",
+    "reason": "US_MARKET_CAPTURE_INVALID_RESULT",
+    "collector_terminal_json_count": 1,
+    "collector_terminal_status": "READY",
+    "stdout_non_json_prefix": "Futu OpenD connection and disconnect log lines",
+    "capture": {
+      "capture_id": "9f05b85e1b2cb96e691cb733",
+      "capture_origin": "ORIGINAL_TIME_CAPTURE",
+      "capture_phase": "POST_CLOSE",
+      "capture_window_end": "2026-10-19T16:20:00-04:00",
+      "capture_window_start": "2026-10-19T16:15:00-04:00",
+      "captured_at": "2026-10-19T20:15:02Z",
+      "item_count": 3,
+      "original_time_capture": true,
+      "quote_capture_status": "ATTEMPTED",
+      "raw_item_count": 50,
+      "rss_item_count": 3,
+      "rss_raw_item_count": 50,
+      "rss_status": "READY",
+      "run_id": "us-rss:20261019:POST_CLOSE:9f05b85e1b2cb96e691cb733",
+      "session_timezone": "America/New_York",
+      "us_session_date": "20261019"
+    },
+    "payload_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+    "receipt_sha256": "210274e08661e8e535c3167f663b853f5369dc5bf031750416779265fbdd0f55",
+    "manifest_sha256": "124e5a23b0158eed166e44dad34e972f3557cf6b02535e6d2bf960b5cdf604dc",
+    "main48": {
+      "state": "READY",
+      "requested": 48,
+      "available": 48
+    },
+    "supplement547": {
+      "state": "CANNOT_CONFIRM",
+      "requested": 547,
+      "available": 0,
+      "gap_counts": {
+        "QUOTE_SYMBOL_MISMATCH": 541,
+        "QUOTE_SYMBOL_MISSING": 6
+      },
+      "source_response_sha256": "b2db4912a5267699da4e0bb40e4a8a6c1b7cc324f03fb9452a4414242b29b10a",
+      "record_sha256": "c91e45e63b5b8fc3f312fb4579d0f911815fe84225d2c362501525607be1d216"
+    }
+  },
+  "scheduler": {
+    "run_id": "bea76e92247f494fabae501e215edc88",
+    "trigger": "SCHEDULED",
+    "phase": "NEXT_DAY",
+    "target_date": "20261020",
+    "source_sessions": {
+      "hk_price": "20261016",
+      "us": "20261019"
+    },
+    "state": "PARTIAL",
+    "started_at": "2026-10-20T04:17:04.429855+08:00",
+    "finished_at": "2026-10-20T04:17:14.924533+08:00",
+    "cursor": {
+      "artifact_relative": "research/peripherals/20261020/external_finance.json",
+      "artifact_sha256": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+      "capture_cutoff": "2026-10-19T20:15:02Z",
+      "input_key": "7385d36a1a78af43c7910e02f178c04ca395578b0d9425ceb722462b9ef79232",
+      "job_id": "bea76e92247f494fabae501e215edc88",
+      "manifest_relative": "research/peripherals/manifest.json",
+      "manifest_sha256": "124e5a23b0158eed166e44dad34e972f3557cf6b02535e6d2bf960b5cdf604dc",
+      "receipt_relative": "receipts/research/peripherals/20261020/external_finance.json",
+      "receipt_sha256": "210274e08661e8e535c3167f663b853f5369dc5bf031750416779265fbdd0f55",
+      "run_id": "bea76e92247f494fabae501e215edc88",
+      "state": "JOB_TRACKED",
+      "target_date": "20261020",
+      "us_session_date": "20261019"
+    },
+    "exact_new_payload_consumed": true
+  },
+  "api": {
+    "origin": "http://127.0.0.1:8873",
+    "job_path": "/api/v4/manager-workbench/runs/bea76e92247f494fabae501e215edc88",
+    "day_path": "/api/v4/manager-workbench/days/20261020?run_id=bea76e92247f494fabae501e215edc88",
+    "recommendations_path": "/api/v4/manager-workbench/days/20261020/recommendations/US_MAPPING?run_id=bea76e92247f494fabae501e215edc88",
+    "http_statuses": {
+      "job": 200,
+      "day": 200,
+      "recommendations": 200
+    },
+    "diagnostic_candidate_count": 410,
+    "formal_recommendation_count": 0,
+    "targets": [
+      {
+        "rank": 185,
+        "hk_code": "06808",
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "FLAT_OR_UNKNOWN",
+        "positive_source_move_strength_pct": null,
+        "relations": [
+          {
+            "catalog_relation_id": "R924",
+            "us_symbol": "WMT",
+            "quote_status": "MISSING_OR_UNVERIFIED",
+            "quote_missing_reason": "US_SCHEDULED_QUOTE_SCOPE_PARTIAL",
+            "us_source_return_pct": null,
+            "direction_sign": null
+          }
+        ]
+      },
+      {
+        "rank": 194,
+        "hk_code": "06993",
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "FLAT_OR_UNKNOWN",
+        "positive_source_move_strength_pct": null,
+        "relations": [
+          {
+            "catalog_relation_id": "R942",
+            "us_symbol": "PG",
+            "quote_status": "MISSING_OR_UNVERIFIED",
+            "quote_missing_reason": "US_SCHEDULED_QUOTE_SCOPE_PARTIAL",
+            "us_source_return_pct": null,
+            "direction_sign": null
+          }
+        ]
+      },
+      {
+        "rank": 202,
+        "hk_code": "09633",
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "FLAT_OR_UNKNOWN",
+        "positive_source_move_strength_pct": null,
+        "relations": [
+          {
+            "catalog_relation_id": "R955",
+            "us_symbol": "KO",
+            "quote_status": "MISSING_OR_UNVERIFIED",
+            "quote_missing_reason": "US_SCHEDULED_QUOTE_SCOPE_PARTIAL",
+            "us_source_return_pct": null,
+            "direction_sign": null
+          }
+        ]
+      }
+    ],
+    "all_safety_flags_false": true
+  },
+  "findings": [
+    {
+      "id": "N1",
+      "severity": "P1",
+      "proven": "Executor applies json.loads to entire stdout; two Futu log lines precede unique valid READY object, causing dispatch CONTRACT failure after verified owner publication.",
+      "source": "infrastructure/scheduling/_executor_registry_parts/us_digest.py:156"
+    },
+    {
+      "id": "N2",
+      "severity": "P1",
+      "proven": "541 symbols classified QUOTE_SYMBOL_MISMATCH by raw-response inner-ticker conflict helper; scope zero despite main48 parsing successfully.",
+      "source": "v4/manager_workbench/inputs/us_mapping_close_scope.py:_provider_symbol_conflicts",
+      "unresolved": "Actual field2 wire bytes were not retained. No suffix/normalization cause claimed. Current bounded tests use Mapping seams only."
+    },
+    {
+      "id": "N3",
+      "severity": "P1",
+      "proven": "Existing retry policy excludes CONTRACT/INVALID_RESULT; 05:15 will be NOT_ARMED/NOT_DUE under current code, so it will not collect diagnostic response automatically."
+    }
+  ],
+  "current_0515_prediction": {
+    "status": "NOT_ARMED",
+    "reason": "US_MARKET_RETRYABLE_FAILURES excludes CONTRACT and allowed reasons exclude INVALID_RESULT",
+    "if_strictly_authorized_late_retry": "Existing original capture does not match late-mode reuse, so a valid late path would invoke provider; new valid SHA would receive separate scheduler identity, exact old identity remains deduplicated."
+  },
+  "bounded_evidence_search": {
+    "searched": [
+      "tests Tencent/manual/auto-close fixtures",
+      "existing Tencent parser and current publisher",
+      "previous US close handoff source packet",
+      "existing current capture artifact/receipt/provider metadata"
+    ],
+    "result": "NO_RETAINED_REAL_WIRE_FIXTURE_FOUND",
+    "provider_calls_performed": 0
+  },
+  "last_known_success": {
+    "producer": "US20261019 PRE_OPEN b073b75d491e42eea394b9896ca7e275; capture succeeded, quotes intentionally NOT_DUE",
+    "full_mapping": "Previously accepted US20261016 historical manual run; separate identity, cannot substitute for current natural target"
+  },
+  "first_failure": "20261020 0415 first natural full547 supplement attempt",
+  "not_done": [
+    "source changes",
+    "service changes",
+    "manual provider diagnostic",
+    "business POST",
+    "backfill",
+    "Git",
+    "UI (controller owns)"
+  ],
+  "natural_verification": "FAIL",
+  "raw_evidence_excluded_from_sync": "local_only/**"
+}

@@ -1,0 +1,79 @@
+{
+  "state": "PREPARED_PENDING_INDEPENDENT_REVIEW",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-producer-20261020-r1",
+  "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+  "parent_manifest_sha256": "228d8a43dedba9214e87efdded1da77642dace5761a05a11af1373230ecf66b9",
+  "manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+  "parent_inventory_sha256": "621b9e469061ef4e7f7c81e6c427955450ef169edf087884014024c5208681d2",
+  "candidate_inventory_sha256": "00e2594eaef15dac6f0f670eacd48c686aea5e175224adf271c75a2e7e8980da",
+  "delta": [
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+      "before": {
+        "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+        "kind": "file",
+        "sha256": "6df32d3fb041cff7a644eabca5a138bc2f4278987f79093f2eeba1d1b60c4ee4",
+        "mode": "0444",
+        "size": 19783
+      },
+      "after": {
+        "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+        "kind": "file",
+        "sha256": "442333afb7eaeb6d789974cce59bca5641409de8f08ea7dedc4a2896ea0dd913",
+        "mode": "0644",
+        "size": 20731
+      }
+    },
+    {
+      "path": "ops/run_us_market_slot.py",
+      "before": {
+        "path": "ops/run_us_market_slot.py",
+        "kind": "file",
+        "sha256": "2d4e6f60a219ce813cf75cb02c3751dcc5d74546d64861f21424bb2c5a77f06c",
+        "mode": "0444",
+        "size": 19576
+      },
+      "after": {
+        "path": "ops/run_us_market_slot.py",
+        "kind": "file",
+        "sha256": "f82396e9050a68078cc2e904571fee8aa4bd7cddb224400d641b337e488d7077",
+        "mode": "0644",
+        "size": 25351
+      }
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "before": {
+        "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+        "kind": "file",
+        "sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "mode": "0644",
+        "size": 14914
+      },
+      "after": {
+        "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+        "kind": "file",
+        "sha256": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+        "mode": "0644",
+        "size": 17808
+      }
+    }
+  ],
+  "all_non_delta_entries_preserved": true,
+  "original_plist_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d",
+  "proposed_plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+  "source_test_sha256": {
+    "infrastructure/scheduling/_executor_registry_parts/us_digest.py": "442333afb7eaeb6d789974cce59bca5641409de8f08ea7dedc4a2896ea0dd913",
+    "ops/run_us_market_slot.py": "f82396e9050a68078cc2e904571fee8aa4bd7cddb224400d641b337e488d7077",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+    "tests/test_us_mapping_auto_close.py": "f8cff4c538a023779b078868ed8a7b5c081153e69126157eb9863a7c7ada9492",
+    "tests/test_us_market_natural_repair.py": "dbac3259e32d101acbf731a6212ffb956cb68565c188cd4504f2d7281d9c6f37"
+  },
+  "diagnostic_directory": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only",
+  "activated": false,
+  "provider_fetches": 0,
+  "business_posts": 0,
+  "inventory_tool_sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b",
+  "natural_0415": "FAIL_RETAINED",
+  "quote_format_fix": "NOT_IMPLEMENTED_UNRESOLVED"
+}

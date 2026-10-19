@@ -245,3 +245,50 @@ def test_existing_official_calendar_slot_and_same_session_retry_rules(tmp_path):
         assert len(attempts) == 2
     finally:
         service.stop()
+
+
+def test_same_response_wire_diagnostic_has_exact_sha_and_no_extra_fetch(tmp_path, monkeypatch):
+    symbols = json.loads(CONFIG.read_text())["symbols"]
+    pieces = []
+    for symbol in symbols:
+        fields = ["200", "synthetic", "UNVERIFIED", "101", "100"] + [""] * 26
+        fields[30] = "20261019160001"
+        pieces.append(f'v_us{symbol}="' + "~".join(fields) + '";')
+    raw = "\n".join(pieces).encode()
+    monkeypatch.setenv("V4_US_MAPPING_CLOSE_SCOPE_PATH", str(CONFIG))
+    monkeypatch.setenv("V4_US_MAPPING_WIRE_DIAGNOSTIC_DIR", str(tmp_path))
+    calls = []
+    def fetch(*_):
+        calls.append(True)
+        return raw
+    result = build_us_market_snapshot("20261019", captured_at=CAPTURED,
+        universe_contract=build_us_universe_contract(), fetch_quotes=fetch)
+    assert calls == [True]
+    assert result["status"] == "READY" and result["available_symbol_count"] == 48
+    assert result["scheduled_quote_scope"]["available_symbol_count"] == 0
+    body = next(tmp_path.glob("*.bin"))
+    assert body.read_bytes() == raw
+    assert hashlib.sha256(raw).hexdigest() == result["source_response_sha256"]
+    meta = json.loads(next(tmp_path.glob("*.json")).read_text())
+    assert meta["source_response_sha256"] == result["source_response_sha256"]
+    assert {r["inner_symbol"] for r in meta["provider_key_inner_symbol"]} == {"UNVERIFIED"}
+    assert body.stat().st_mode & 0o777 == 0o600
+
+
+def test_wire_diagnostic_rejects_symlink_and_preserves_scope(tmp_path, monkeypatch, capsys):
+    from v4.manager_workbench.inputs.us_mapping_close_scope import _save_wire_diagnostic
+    raw = b'v_usWMT="200~synthetic~UNVERIFIED";'
+    digest = hashlib.sha256(raw).hexdigest()
+    target = tmp_path / "target"
+    target.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(target, target_is_directory=True)
+    monkeypatch.setenv("V4_US_MAPPING_WIRE_DIAGNOSTIC_DIR", str(link))
+    with pytest.raises(ValueError, match="DIRECTORY_INVALID"):
+        _save_wire_diagnostic(raw, "20261019", digest)
+    assert not list(target.iterdir())
+    # Optional diagnostic failure cannot change the observation contract.
+    result = snapshot(monkeypatch)
+    assert result["status"] == "READY"
+    assert result["scheduled_quote_scope"]["available_symbol_count"] == 547
+    assert '"us_mapping_wire_diagnostic": "FAILED"' in capsys.readouterr().err

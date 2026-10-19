@@ -1,0 +1,115 @@
+{
+  "schema": "v4.us_mapping.natural_repair_deployment.v1",
+  "state": "DEPLOYED_PENDING_INDEPENDENT_RUNTIME_READBACK",
+  "read_at": "2026-10-20T04:36:14.942568+08:00",
+  "prepared_sha256": "b20e25fc6bf03fc69f88af6cb36385cbc23c63273ca8a95d08115b39a79acb84",
+  "scope_sha256": "7c7690ff36849a9287157166f9b549e34cc2d8f1c2abe3a8bee5d4c5f2ec3acd",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-producer-20261020-r1",
+  "manifest_sha256": "6eef6b09683d8d1ae00e0a78f286d746498e9d937905dad924611fd20dc46563",
+  "original_plist_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d",
+  "active_plist_sha256": "36e564479dd418b31df8a070551ff97a6f630e083ce731eef1a7f959007ed080",
+  "source_test_sha256": {
+    "infrastructure/scheduling/_executor_registry_parts/us_digest.py": "442333afb7eaeb6d789974cce59bca5641409de8f08ea7dedc4a2896ea0dd913",
+    "ops/run_us_market_slot.py": "f82396e9050a68078cc2e904571fee8aa4bd7cddb224400d641b337e488d7077",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc",
+    "tests/test_us_mapping_auto_close.py": "f8cff4c538a023779b078868ed8a7b5c081153e69126157eb9863a7c7ada9492",
+    "tests/test_us_market_natural_repair.py": "dbac3259e32d101acbf731a6212ffb956cb68565c188cd4504f2d7281d9c6f37"
+  },
+  "all_non_delta_entries_preserved": true,
+  "preactivation_full_parent_candidate_inventory": "PASS",
+  "preactivation_idle_no_pid": "PASS",
+  "commands": [
+    {
+      "at": "2026-10-20T04:35:47.226685+08:00",
+      "command": "python3 stdin: original plist SHA guard; write_bytes(local_only/natural-producer-candidate.plist)",
+      "result": "EXACT_PREPARED_BYTES"
+    },
+    {
+      "completed_at": "2026-10-20T04:35:47.230962+08:00",
+      "command": "/bin/launchctl bootout gui/501/com.lexi.v4.us-market-digest",
+      "rc": 0
+    },
+    {
+      "completed_at": "2026-10-20T04:35:50.222779+08:00",
+      "command": "/bin/launchctl print gui/501/com.lexi.v4.us-market-digest",
+      "rc": 113
+    },
+    {
+      "completed_at": "2026-10-20T04:35:50.226184+08:00",
+      "command": "/bin/launchctl bootstrap gui/501 /Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+      "rc": 0
+    }
+  ],
+  "readback": {
+    "state": "not running",
+    "pid": null,
+    "runs": 0,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-producer-20261020-r1/app",
+    "diagnostic_directory": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only",
+    "RunAtLoad": false,
+    "KeepAlive": false,
+    "schedule": [
+      {
+        "Hour": 4,
+        "Minute": 15
+      },
+      {
+        "Hour": 5,
+        "Minute": 15
+      },
+      {
+        "Hour": 21,
+        "Minute": 0
+      },
+      {
+        "Hour": 22,
+        "Minute": 0
+      }
+    ],
+    "actual_loaded_identity": "MATCHES_PREPARED",
+    "raw_launchctl_evidence": "local_only/repair-producer-loaded.txt"
+  },
+  "other_roles": {
+    "api": {
+      "plist_sha256": "4ac3ba4fbb69e26b3e7c182545614fa7745bab063564e694c0398a7e0ff8bf8c",
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r5b/app",
+      "modified_by_this_stage": false
+    },
+    "scheduler": {
+      "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app",
+      "modified_by_this_stage": false
+    }
+  },
+  "retained_0415_bytes": {
+    "payload.json": "a3de0bc966c1a2422ce38e10dc1484d1cf64410765f0a552502e836e81d15ef3",
+    "receipt.json": "210274e08661e8e535c3167f663b853f5369dc5bf031750416779265fbdd0f55",
+    "dispatch.json": "9f67ad2c5c9a851b066bc3eb054b3be5ccbba870a3ec5e710c37d3a3334bc446"
+  },
+  "rollback": {
+    "available": true,
+    "exercised": false,
+    "backup": "local_only/natural-producer-original.plist",
+    "backup_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d",
+    "procedure": "Guard actual candidate plist SHA, inspect loaded/idle, restore original raw plist, bootout only if loaded, wait print113, bootstrap original; never kickstart. Do not alter API/scheduler or historical data."
+  },
+  "counts": {
+    "service_reloads": 1,
+    "kickstarts": 0,
+    "provider_calls": 0,
+    "business_posts": 0,
+    "lifecycle_retries": 0
+  },
+  "natural_0415": "FAIL_RETAINED",
+  "quote_format_fix": "NOT_IMPLEMENTED_UNRESOLVED_FAIL_CLOSED",
+  "next_slot": "Existing0515 automatic fallback; same-response diagnosis only. No claim of future execution.",
+  "not_run": [
+    "05:15 natural compensation",
+    "provider format fix",
+    "rollback exercise",
+    "Git",
+    "API/scheduler reload"
+  ],
+  "independent_runtime_review": "PENDING",
+  "writer_status": "WRITES_RELEASED"
+}

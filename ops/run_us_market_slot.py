@@ -185,8 +185,97 @@ def _timeout(value: float) -> float:
     return parsed
 
 
+def _published_zero_scope_protocol_failure(data_root, business_date, session, result):
+    """Read-only exception for a proven publication obscured by SDK stdout.
+
+    This is not a general CONTRACT retry. The original failure stays intact.
+    """
+    from infrastructure.scheduling._executor_registry_parts.us_digest import parse_us_market_result
+    from infrastructure.research_peripheral_store import ResearchPeripheralStore
+    from infrastructure.data_store import _sha256
+    from v4.manager_workbench.inputs.us_mapping_close_scope import _symbols, digest
+
+    if (data_root is None or result.get("failure_class") != "CONTRACT"
+            or result.get("reason") != "US_MARKET_CAPTURE_INVALID_RESULT"
+            or result.get("exit_code") != 0):
+        return False
+    try:
+        # Require the actual whole-stream parsing failure, not just its label.
+        try:
+            json.loads(str(result.get("stdout") or ""))
+        except json.JSONDecodeError:
+            pass
+        else:
+            return False
+        output = parse_us_market_result(result.get("stdout"))
+        store = ResearchPeripheralStore(Path(data_root))
+        stored = store.read_exact(business_date, "external_finance")
+        if not isinstance(stored, dict):
+            return False
+        snapshot = stored.get("market_snapshot") or {}
+        scope = snapshot.get("scheduled_quote_scope") or {}
+        symbols = _symbols(scope)
+        gaps = scope.get("quote_failures") or {}
+        sealed = dict(scope)
+        declared = sealed.pop("record_sha256", None)
+        captures = [c for c in stored.get("us_session_captures", []) if
+                    c.get("capture_id") == output.get("capture_id")
+                    and c.get("run_id") == output.get("capture_run_id")]
+        if (len(captures) != 1 or output.get("status") not in {"READY", "READY_EMPTY"}
+                or stored.get("status") != output["status"]
+                or output.get("source") != "external_finance"
+                or output.get("trade_date") != business_date
+                or output.get("target_trade_date") != business_date
+                or output.get("source_session_date") != session
+                or output.get("payload_path") != store._relative(business_date, "external_finance")
+                or output.get("receipt_path") != store._receipt_relative(business_date, "external_finance")
+                or output.get("payload_sha256") != _sha256(stored)
+                or output.get("reused") is not False
+                or type(output.get("replaced")) is not bool
+                or output.get("late") is not False
+                or output.get("capture_phase") != "POST_CLOSE"
+                or output.get("capture_us_session_date") != session
+                or output.get("capture_capture_origin") != "ORIGINAL_TIME_CAPTURE"
+                or output.get("capture_original_time") is not True
+                or snapshot.get("status") != "READY"
+                or snapshot.get("capture_session_date") != session
+                or snapshot.get("capture_phase") != "POST_CLOSE"
+                or snapshot.get("available_symbol_count") != 48
+                or snapshot.get("requested_symbol_count") != 48
+                or scope.get("us_session_date") != session
+                or scope.get("captured_at") != output.get("capture_captured_at")
+                or scope.get("capture_phase") != "POST_CLOSE"
+                or scope.get("state") != "CANNOT_CONFIRM"
+                or scope.get("owner") != "research_peripheral.external_finance.scheduled_quote_scope"
+                or scope.get("schema_version") != "v4.us_mapping.scheduled_quote_scope.v1"
+                or scope.get("RESEARCH_ONLY") is not True
+                or scope.get("source_response_sha256") != snapshot.get("source_response_sha256")
+                or scope.get("requested_symbol_count") != 547
+                or scope.get("available_symbol_count") != 0 or scope.get("quotes") != []
+                or declared != digest(sealed)
+                or set(gaps) != set(symbols)
+                or not set(gaps.values()) <= {"QUOTE_SYMBOL_MISMATCH", "QUOTE_SYMBOL_MISSING"}
+                or "QUOTE_SYMBOL_MISMATCH" not in gaps.values()):
+            return False
+        capture = captures[0]
+        instant = datetime.fromisoformat(str(output["capture_captured_at"]).replace("Z", "+00:00"))
+        start = datetime.fromisoformat(capture["capture_window_start"])
+        end = datetime.fromisoformat(capture["capture_window_end"])
+        if (not start <= instant <= end or capture.get("captured_at") != output["capture_captured_at"]
+                or snapshot.get("captured_at") != output["capture_captured_at"]
+                or capture.get("capture_phase") != "POST_CLOSE"
+                or capture.get("us_session_date") != session
+                or capture.get("capture_origin") != "ORIGINAL_TIME_CAPTURE"
+                or capture.get("original_time_capture") is not True or capture.get("late", False) is not False):
+            return False
+        return all(value.get(k) is False for value in (output, stored, snapshot, scope)
+                   for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        return False
+
+
 def _failed_close_retry_context(
-    *, ledger: ExecutionLedger, business_date: str, retry_slot: str
+    *, ledger: ExecutionLedger, business_date: str, retry_slot: str, data_root=None
 ) -> dict[str, str] | None:
     """Return a bounded retry identity only for an exact prior close failure.
 
@@ -242,7 +331,7 @@ def _failed_close_retry_context(
         or failed.get("scheduled_date") != business_date
         or failed.get("target_date") != business_date
         or failed.get("mode") != "LIVE"
-        or failed.get("failure_class") not in US_MARKET_RETRYABLE_FAILURES
+        or failed.get("failure_class") not in US_MARKET_RETRYABLE_FAILURES | {"CONTRACT"}
         or failed.get("production_allowed") is not False
         or failed.get("buy_gate_updated") is not False
         or failed.get("orders_sent") is not False
@@ -273,15 +362,21 @@ def _failed_close_retry_context(
     result = matching_results[0]
     if (
         result.get("status") != "FAILED"
-        or result.get("failure_class") not in US_MARKET_RETRYABLE_FAILURES
         or result.get("capture_phase") != "POST_CLOSE"
         or result.get("us_session_date") != primary_capture.get("us_session_date")
         or result.get("production_allowed") is not False
         or result.get("buy_gate_updated") is not False
         or result.get("orders_sent") is not False
-        or result.get("reason")
-        not in {"US_MARKET_CAPTURE_FAILED", "US_MARKET_CAPTURE_NOT_READY"}
     ):
+        return None
+
+    normal_failure = (failed.get("failure_class") in US_MARKET_RETRYABLE_FAILURES
+                      and result.get("failure_class") in US_MARKET_RETRYABLE_FAILURES
+                      and result.get("reason") in {"US_MARKET_CAPTURE_FAILED", "US_MARKET_CAPTURE_NOT_READY"})
+    protocol_failure = (failed.get("failure_class") == "CONTRACT"
+                        and _published_zero_scope_protocol_failure(
+                            data_root, business_date, str(primary_capture["us_session_date"]), result))
+    if not (normal_failure or protocol_failure):
         return None
 
     return {
@@ -406,6 +501,7 @@ def run_us_market_slot(
             ledger=dispatch_ledger,
             business_date=request.business_date,
             retry_slot=selected_slot,
+            data_root=data_path,
         )
     )
     if retry_context is not None:

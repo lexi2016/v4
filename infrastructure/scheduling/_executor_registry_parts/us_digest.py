@@ -3,6 +3,39 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
+def parse_us_market_result(stdout):
+    """Read one CLI object; SDK text is not a second protocol result."""
+    import json
+
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("US_RESULT_DUPLICATE_KEY")
+            value[key] = item
+        return value
+
+    def decode(text):
+        return json.loads(text, object_pairs_hook=unique,
+                          parse_constant=lambda _: (_ for _ in ()).throw(ValueError("US_RESULT_NONFINITE")))
+
+    text = str(stdout or "").strip()
+    try:
+        result = decode(text)
+    except json.JSONDecodeError:
+        values = []
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith(("{", "[")):
+                values.append(decode(line))
+        if len(values) != 1:
+            raise ValueError("US_RESULT_NOT_UNIQUE")
+        result = values[0]
+    if not isinstance(result, dict):
+        raise ValueError("US_RESULT_NOT_OBJECT")
+    return result
+
+
 def _FixedExecutorRegistry__us_market_digest_body(_v4_scope, /, self, request):
     """Run only the seasonal US capture slot that is due now.
 
@@ -155,8 +188,8 @@ def _FixedExecutorRegistry__us_market_digest_body(_v4_scope, /, self, request):
         result["reason"] = "US_MARKET_CAPTURE_FAILED"
         raise _v4_global(_v4_scope, 'WorkloadExecutionError')(result)
     try:
-        payload = _v4_global(_v4_scope, 'json').loads(_v4_global(_v4_scope, 'str')(result.get("stdout") or "{}"))
-    except _v4_global(_v4_scope, 'json').JSONDecodeError as error:
+        payload = parse_us_market_result(result.get("stdout"))
+    except ValueError as error:
         result.update(
             {
                 "status": "FAILED",

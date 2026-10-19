@@ -156,12 +156,66 @@ def _provider_symbol_conflicts(raw):
     return conflicts
 
 
+def _save_wire_diagnostic(raw, source_session, source_sha):
+    """Save the already fetched body locally, never request or publish data."""
+    directory = os.environ.get("V4_US_MAPPING_WIRE_DIAGNOSTIC_DIR", "").strip()
+    if not directory:
+        return
+    root = Path(directory)
+    if (not root.is_absolute() or root.resolve() != root or not root.is_dir()
+            or any(p.is_symlink() for p in [root, *root.parents])):
+        raise ValueError("WIRE_DIAGNOSTIC_DIRECTORY_INVALID")
+    if not re.fullmatch(r"\d{8}", source_session) or not _SHA.fullmatch(source_sha):
+        raise ValueError("WIRE_DIAGNOSTIC_IDENTITY_INVALID")
+    if isinstance(raw, bytes):
+        body, kind = raw, "bytes"
+    elif isinstance(raw, str):
+        body, kind = raw.encode("utf-8"), "string"
+    else:
+        # Hermetic Mapping seams need no raw provider diagnostic.
+        return
+    if len(body) > 8 * 1024 * 1024 or hashlib.sha256(body).hexdigest() != source_sha:
+        raise ValueError("WIRE_DIAGNOSTIC_BODY_HASH_INVALID")
+    pairs = [{"response_key": key, "inner_symbol": value.split("~")[2][:80]}
+             for key, value in re.findall(r'v_us([A-Z0-9.\-]+)="([^"]*)"',
+                                          body.decode("utf-8", errors="replace"))
+             if len(value.split("~")) > 2]
+    stem = f"us-quote-wire-{source_session}-{source_sha}"
+    metadata = json.dumps({"schema_version": "v4.us_mapping.provider_wire_diagnostic.v1",
+                           "us_session_date": source_session, "body_kind": kind,
+                           "source_response_sha256": source_sha, "body_size": len(body),
+                           "provider_key_inner_symbol": pairs}, sort_keys=True).encode()
+    directory_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        for name, content in [(stem + ".bin", body), (stem + ".json", metadata)]:
+            try:
+                fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                             0o600, dir_fd=directory_fd)
+            except FileExistsError:
+                fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory_fd)
+                with os.fdopen(fd, "rb") as stream:
+                    if stream.read(len(content) + 1) != content:
+                        raise ValueError("WIRE_DIAGNOSTIC_EXISTING_CONTENT_MISMATCH")
+            else:
+                with os.fdopen(fd, "wb") as stream:
+                    stream.write(content)
+    finally:
+        os.close(directory_fd)
+
+
 def build_scope_observations(request, records, parse_gaps, *, source_session,
                              captured_at, source_response_sha256, raw_response=None):
     """Derive supplementary records from the producer's one parsed response."""
     symbols = _symbols(request)
     if not isinstance(records, Mapping) or not isinstance(parse_gaps, Mapping):
         raise ValueError("SCHEDULED_SCOPE_PROVIDER_SHAPE_INVALID")
+    try:
+        _save_wire_diagnostic(raw_response, source_session, source_response_sha256)
+    except (OSError, ValueError, TypeError) as error:
+        # Diagnostics cannot alter the original quote or main48 contract.
+        import sys
+        print(json.dumps({"us_mapping_wire_diagnostic": "FAILED", "reason": type(error).__name__}),
+              file=sys.stderr)
     conflicts = _provider_symbol_conflicts(raw_response)
     gaps = dict(parse_gaps)
     gaps.update({symbol: "QUOTE_SYMBOL_MISMATCH" for symbol in conflicts})

@@ -1,0 +1,71 @@
+{
+  "state": "IMPLEMENTED_CANDIDATE_PREPARED_PENDING_REVIEW",
+  "recorded_at": "2026-10-20T04:33:34.086093+08:00",
+  "baseline_commit": "51aef2fc271854ebe4ed701ee794746574e8d355",
+  "branch": "codex/us-mapping-natural-repair-20261020",
+  "requested_route": "GPT-6.1 Sol High through supported default entry; named alias not claimed verified",
+  "files": [
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/us_digest.py",
+      "before_sha256": "6df32d3fb041cff7a644eabca5a138bc2f4278987f79093f2eeba1d1b60c4ee4",
+      "after_sha256": "442333afb7eaeb6d789974cce59bca5641409de8f08ea7dedc4a2896ea0dd913"
+    },
+    {
+      "path": "ops/run_us_market_slot.py",
+      "before_sha256": "2d4e6f60a219ce813cf75cb02c3751dcc5d74546d64861f21424bb2c5a77f06c",
+      "after_sha256": "f82396e9050a68078cc2e904571fee8aa4bd7cddb224400d641b337e488d7077"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "before_sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+      "after_sha256": "a27ac869946ef6a49c1ad6dc00dc95fc4b35e4b81f00cb8097eb57dc638d80fc"
+    },
+    {
+      "path": "tests/test_us_mapping_auto_close.py",
+      "before_sha256": "3feba9708af9fc9d7d22a7f729e7720755d708a2960c1ab8addc847d7166888f",
+      "after_sha256": "f8cff4c538a023779b078868ed8a7b5c081153e69126157eb9863a7c7ada9492"
+    },
+    {
+      "path": "tests/test_us_market_natural_repair.py",
+      "before_sha256": null,
+      "after_sha256": "dbac3259e32d101acbf731a6212ffb956cb68565c188cd4504f2d7281d9c6f37"
+    }
+  ],
+  "prepared_sha256": "b20e25fc6bf03fc69f88af6cb36385cbc23c63273ca8a95d08115b39a79acb84",
+  "prepare_helper_sha256": "fdd47f61e6d016f0018cff332e5166e383e689a79210ae5966d22ec921591199",
+  "tests": {
+    "runtime": "CPython3.14.6 bundled v3.5-mac venv",
+    "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest -q tests/test_us_market_natural_repair.py tests/test_us_mapping_auto_close.py -k 'natural_repair or wire_diagnostic' --basetemp=docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only/pytest-repair-r2 -p no:cacheprovider",
+    "passed": 27,
+    "deselected_unchanged_reused": 6,
+    "rc": 0,
+    "first_attempt": "26passed/1failed: synthetic fixture used unconfigured33-symbol baseline. Fixed fixture to actual configured48 contract; business gates unchanged."
+  },
+  "actual_read_only_admission": {
+    "state": "ELIGIBLE",
+    "failed_run_id": "b69405c9b5214af7a24529ff6e6a9c36",
+    "failed_ledger_sha256": "58c4cedcd7c4a3fe55be896ce3e25b068fb0e661ec16fd00fc9eed5aa7cfda35",
+    "fallback_slot": "0515",
+    "business_writes": 0,
+    "evidence": "local_only/actual-read-only-retry-admission.json"
+  },
+  "preservation": {
+    "producer_candidate_delta_count": 3,
+    "all_other_app_entries": "BYTE_IDENTICAL",
+    "current_api_r5b": "UNTOUCHED",
+    "scheduler": "UNTOUCHED",
+    "old_0415_owner_and_failed_receipt": "UNTOUCHED",
+    "main48_semantics": "UNCHANGED",
+    "quote_format_validation": "UNCHANGED_FAIL_CLOSED"
+  },
+  "preparation_note": "Producer parent omits API integration helper; reused previously accepted API r1 inventory-only helper SHA recorded in REPAIR_PREPARED. First preparation attempt stopped before clone/mutation on missing helper path. Corrected tooling path, not runtime business source.",
+  "not_run": [
+    "activation",
+    "real provider fetch",
+    "business POST",
+    "05:15 natural retry",
+    "N2 quote-format fix",
+    "Git"
+  ],
+  "independent_review": "PENDING"
+}

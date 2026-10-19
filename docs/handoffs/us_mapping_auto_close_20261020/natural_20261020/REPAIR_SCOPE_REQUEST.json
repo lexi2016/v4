@@ -1,0 +1,34 @@
+{
+  "state": "SCOPE_REQUEST_ONLY_NO_IMPLEMENTATION",
+  "goal": "Correct known stdout protocol result handling; permit only this fully verified recoverable publication failure through existing05:15; retain same-response raw wire diagnosis without second fetch. Do not claim quote-format fixed without real wire evidence.",
+  "source_paths": {
+    "infrastructure/scheduling/_executor_registry_parts/us_digest.py": "US-only bounded protocol parser: allow non-JSON log lines but exactly one legal terminal JSON object; reject ambiguous/multiple/status-invalid results. Existing artifact/receipt verification still required. No generic executor parser change.",
+    "ops/run_us_market_slot.py": "Add a separate strict branch for hash-valid FAILED CONTRACT/INVALID_RESULT with unique legal stdout READY object, exact original POST_CLOSE session and capture window, exact currently published payload/receipt/manifest chain, frozen547 scope with0available and per-symbol mismatch/missing gaps. Preserve old receipt, all other CONTRACT remain rejected; original schedule and one fallback opportunity unchanged. Pass existingdata_root read-only as needed.",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "Optional producer-only local diagnostic of the same already-fetched response: original bytes plus source SHA, requested key and raw inner symbol/schema; exact frozen output directory via scoped env. No fetching, no main48 change, no symbol-gate weakening."
+  },
+  "test_paths": [
+    "tests/test_us_mapping_auto_close.py",
+    "tests/test_us_market_natural_repair.py"
+  ],
+  "docs_allowlist": [
+    "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/**"
+  ],
+  "runtime_changes_request": {
+    "candidate": "new producer-only exact-parent clone, proposed us-mapping-natural-producer-20261020-r1",
+    "parent": "current us-mapping-close-producer-20261020-r1",
+    "plist": "com.lexi.v4.us-market-digest.plist: release identity plus exact diagnostic output env only",
+    "diagnostic_output": "docs/handoffs/us_mapping_auto_close_20261020/natural_20261020/local_only/; raw stays local",
+    "api_scheduler": "No source/runtime switch needed for this diagnostic stage; preserve parallel API r5b and actual current scheduler",
+    "activation": "Only after independent source/candidate PASS and controller continuation; never kickstart short owner"
+  },
+  "oracles": [
+    "Hermetic replay original polluted stdout gives exactly one valid result and existing artifact verification; duplicate JSON/invalid status/bad hashes/session/time/safety reject.",
+    "Exact current failed ledger + published same-owner identity can arm only existing05:15; arbitrary CONTRACT and forged/changed/missing owner chain reject; previous fallback receipt prevents repeat.",
+    "Existing natural original capture is not reused for legal late mode; new input SHA can trigger existing scheduler despite same HK target old plan; same identity no duplicate.",
+    "Injected network seam remains one call; local diagnostic body SHA equals same-response SHA and path has no escape/symlink; diagnostic failure does not change main48 result.",
+    "Source/scope/time/price/symbol validation retained; 547 cannot be declared ready until actual wire format is evidenced and isolated regression passes.",
+    "05:15 may still FAIL because format unresolved; record truthfully. No current04:15 artifact rewrite."
+  ],
+  "rollback": "Restore original producer raw plist pointer using inspected lifecycle only; no old release/data edits, no scheduler/API rollback. Local diagnostic can be disabled by restoring pointer/env.",
+  "unresolved_before_quote_fix": "Actual Tencent inner ticker bytes unknown; no guessed suffix stripping or removed symbol check. Controller may choose diagnosis-only stage first."
+}
