@@ -1,0 +1,33 @@
+{
+  "GOAL": "V4 existing US_MAPPING page visibly shows concrete HK stocks grouped by positive/negative US peer observations, US returns, reasons and risks; include retail/consumer coverage from complete existing saved input.",
+  "WRITER": "visible_stock_lists_writer Luna Max sole source writer",
+  "REVIEWER": "different read-only Luna Max reviewer after handoff",
+  "BASELINE": "3927fd22e188f8afd13116a1e6a741474afd2ecc",
+  "BRANCH": "codex/us-hk-visible-stock-lists-20261019",
+  "ALLOWED_PATHS": [
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/types.ts",
+    "apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "apps/web/src/manager-workbench/__tests__/us_mapping_stock_lists.spec.ts",
+    "docs/handoffs/us_hk_visible_stock_lists_20261019/"
+  ],
+  "FORBIDDEN_PATHS": "All other source; backend, strategy/eligibility gates, raw quote/catalog/pool producer, historical saved run data, schedules/services, other checkouts. No hardcoded dated result rows or fabricated relationships. Root owns later reviewed runtime integration/Git sync.",
+  "PASS_SIGNAL": "Independent PASS of actual diff and focused tests; all accepted same-session peer observations projected with HK identity, US returns, reasons and risk conditions; positive/negative separately visible, mixed/unknown honest; retail consumer examples present; original boundaries preserved; root integrates reviewed build to actual local 8873 and reads rendered page.",
+  "STOP_RULE": "Missing required existing input or necessary paths outside allowlist -> report evidence; no inferred mapping from ETF direction or conditional supplier relation, no new collection.",
+  "INPUT": "/Users/lexi/.codex/worktrees/full-us-hk-mapping-consumption/v4_app/docs/handoffs/full_us_hk_mapping_consumption_20261019/local_only/actual_full_mapping_r2/lane-response.json",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "orders_sent": false,
+  "buy_gate_updated": false,
+  "ROOT_INTEGRATION_ALLOWED_PATHS": {
+    "new_release_roots": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-visible-stock-lists-api-20261019-r1",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-visible-stock-lists-api-20261019-r2"
+    ],
+    "new_config_files": [],
+    "live_plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "local_integration_artifacts": "/Users/lexi/.codex/worktrees/us-hk-visible-stock-lists/v4_app/docs/handoffs/us_hk_visible_stock_lists_20261019/local_only",
+    "scope": "Only reviewed frontend source plus isolated manager-selection build in cloned current API; guarded local activation with rollback. Existing scheduler, configs and business saved artifacts untouched."
+  }
+}

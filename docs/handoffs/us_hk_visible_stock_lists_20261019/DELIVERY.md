@@ -1,0 +1,11 @@
+# Visible US–HK peer observation lists
+
+The saved US mapping page previously showed zero formal decisions and buried concrete peer observations in technical details. It now puts separate positive and negative US-source observation tables before those decision details, with HK identity, US dated returns, relation facts, mechanism, risks and review conditions. The consumer/retail filter exposes coverage beyond energy and infrastructure. All accepted peer relations are retained; opposing observations stay marked mixed. Missing coverage or valid matching source dates remains pending.
+
+Baseline: `3927fd22e188f8afd13116a1e6a741474afd2ecc`. Branch: `codex/us-hk-visible-stock-lists-20261019`.
+
+Validation: independent R1 review reproduced two missing-evidence defects; R2 fixed both and independently passed 5 regression tests. The unchanged rendering/filter suite and frozen-input checks from R1 remain valid. Frozen input SHA `17ead71366273364ad3057830e626392d856c554120df971f4b1c1d5416b82b9` yields 337 relations: 119 positive, 212 negative, 2 flat, 4 pending, with 20 mixed HK stocks. Consumer coverage is 51 observations across 45 HK stocks, including 27 positive and 20 negative observations. The manifest, four runtime delta paths and preserved non-delta bytes were independently checked.
+
+Deployment: local V4 API release `us-hk-visible-stock-lists-api-20261019-r2`, manifest SHA `5c7dcd463fa7d53ff0c1fd3b753b4e332d318ee5238abb992dbe6c52019a53c7`. Guarded activation passed with no active announcement jobs; health and readiness returned 200. Browser readback of saved run `571e25ceffed46528fbc6b8ea45de3d3` verified both lists, consumer filtering, the requested stock examples, exact source returns and relation/risk text. No new research run was submitted.
+
+States: IMPLEMENTED, TESTED, REVIEWED/PASS, DEPLOYED, UI_VERIFIED. Direction is a US-source observation, not an HK return forecast or trading decision. Formal target-day eligibility remains CANNOT_CONFIRM in the saved application artifact; PIT and research effectiveness remain unverified. RESEARCH_ONLY=true; production_allowed=false; buy_gate_updated=false; orders_sent=false. Scheduler and business inputs are unchanged. Raw inputs, screenshots, runtime files and built bundles are local-only.

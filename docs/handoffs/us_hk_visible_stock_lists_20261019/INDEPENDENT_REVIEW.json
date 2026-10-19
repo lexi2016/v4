@@ -1,0 +1,38 @@
+{
+  "reviewer": "/root/visible_stock_lists_review",
+  "recorded_by": "root transcription of independent reviewer final",
+  "verdict": "REVIEWED/PASS",
+  "round": 2,
+  "reused_unchanged_r1_checks": "INDEPENDENT_REVIEW_R1.json",
+  "corrected_findings": [
+    "Missing coverage remains pending unless READY",
+    "Missing, invalid or inconsistent session dates remain pending"
+  ],
+  "helper_sha256": "661731113975763f794a849a370cb01c8e75e65a33ef2eb925f6bdc49e907a34",
+  "spec_sha256": "e747c53e54f46fe163ef8f337afb179a7cfda251f783390aefbdcc673b59d0ee",
+  "independent_tests": {
+    "incremental": "1 file, 5 tests PASS",
+    "prior_unchanged": "2 files, 8 tests PASS in R1",
+    "diff_check": "PASS vs3927fd22"
+  },
+  "input_sha256": "17ead71366273364ad3057830e626392d856c554120df971f4b1c1d5416b82b9",
+  "projection": {
+    "observations": 337,
+    "positive": 119,
+    "negative": 212,
+    "flat": 2,
+    "pending": 4,
+    "mixed_hk_stocks": 20,
+    "consumer_observations": 51,
+    "consumer_hk_stocks": 45,
+    "all_required_pairs": 12,
+    "all_directional_quotes_have_verified_valid_session": true
+  },
+  "candidate_manifest_sha256": "5c7dcd463fa7d53ff0c1fd3b753b4e332d318ee5238abb992dbe6c52019a53c7",
+  "runtime_delta_paths": 4,
+  "non_delta_preserved": true,
+  "BEHAVIOR_VERIFIED": "evidence handling, frozen-input projection, regression tests",
+  "live_ui": "PENDING_ROOT_READBACK",
+  "writer_receipt_sha256": "f59510474762284d6379c06bb620a555a38910f4efc3afb362ada26a4e042b4b",
+  "scope_sha256": "a63b3fcd3fc980e926cad63f618a1089c2c78f01a27dab6dc0e085b4fbfcc7fa"
+}

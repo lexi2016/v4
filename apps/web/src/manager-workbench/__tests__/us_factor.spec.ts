@@ -116,7 +116,7 @@ describe("US daily-return factor fixture", () => {
     await screen.findByText(/固定美股来源 33 个/);
     expect(screen.getByText(/因子唯一港股 1 只，路径 1 条，未知港股 0 只/)).toBeTruthy();
     expect(screen.getByText(/保存 3 条来源研究记录（计数单位：研究记录）/)).toBeTruthy();
-    expect(screen.getByText(/当前保存版本没有 20261016 → HK 20261020 单日映射结果/)).toBeTruthy();
+    expect(screen.getByText(/当前保存版本没有单日映射结果/)).toBeTruthy();
     expect(screen.getByText(/美股映射来源记录分类（按行计.*待评估 1.*未入选 1/)).toBeTruthy();
     expect(screen.getByText(/这些数量属于不同范围，不能相加/)).toBeTruthy();
     expect(screen.getByText(/全量关系目录 1003 条 \/ 667 只/)).toBeTruthy();
@@ -214,7 +214,7 @@ describe("US daily-return factor fixture", () => {
     expect(screen.getByText(/未映射 · 1 只/)).toBeTruthy();
     expect(screen.getByText(/审核关系或固定行业传导依据 XLY\+XLP/)).toBeTruthy();
     expect(screen.getByText(/月度观察池外关系/)).toBeTruthy();
-    expect(screen.getByText(/正式港股通资格 CANNOT_CONFIRM/)).toBeTruthy();
+    expect(screen.getAllByText(/正式港股通资格 CANNOT_CONFIRM/).length).toBeGreaterThan(0);
     expect(screen.queryByText(/严格精选V1结果/)).toBeNull();
   });
 
@@ -324,7 +324,7 @@ describe("US daily-return factor fixture", () => {
 
     const button = await screen.findByRole("button", { name: /严格入选 0 \/ 条件观察 153/ });
     expect(button.textContent).toContain("条件观察 153");
-    expect(screen.getByText(/当前保存版本没有 20261016 → HK 20261020 单日映射结果/)).toBeTruthy();
+    expect(screen.getByText(/当前保存版本没有单日映射结果/)).toBeTruthy();
     expect(screen.getByLabelText("去重港股候选股票分类计数").textContent).toContain("153");
     expect(screen.getByText(/保存 60 条来源研究记录/)).toBeTruthy();
     const sourceSummary = screen.getByText((_, element) =>

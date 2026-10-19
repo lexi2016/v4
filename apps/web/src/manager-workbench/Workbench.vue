@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useWorkbench } from "./useWorkbench";
 import AnnouncementCandidates from "./AnnouncementCandidates.vue";
 import type { HKIndustrySummary, Lane, Phase, PlanVersion, SingleDayMappingPath, SingleDayMappingRow, SingleDayMappingSummary, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
+import { projectUSMappingPeerLists, type USPeerListName } from "./us_mapping_stock_lists";
 import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
   showCount, showText, gapText } from "./types";
 import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, labelForLane,
@@ -141,6 +142,18 @@ function catalogPeerBasketRows(): { symbol: string; basket: Record<string, unkno
 function singleDaySummary(): SingleDayMappingSummary | null {
   return vm.day?.data?.us_mapping_summary?.factor_summary?.single_day_mapping || null;
 }
+const peerListFilter = ref<"all" | "consumer">("all");
+const usMappingPeerLists = computed(() => projectUSMappingPeerLists(singleDayCatalogSummary()));
+function peerRows(direction: USPeerListName) {
+  const rows = usMappingPeerLists.value[direction];
+  return peerListFilter.value === "consumer" ? rows.filter(row => row.consumerRetail) : rows;
+}
+function consumerPeerCount(): number {
+  return usMappingPeerLists.value.observations.filter(row => row.consumerRetail).length;
+}
+function setPeerListFilter(filter: "all" | "consumer"): void {
+  peerListFilter.value = filter;
+}
 function singleDayRows(decision: SingleDayMappingRow["decision"]): SingleDayMappingRow[] {
   return (singleDaySummary()?.rows || []).filter(row => row.decision === decision);
 }
@@ -265,17 +278,17 @@ function revisionAssessments(value: unknown): [string, unknown][] {
 
     <section v-if="vm.panel === 'stocks'" class="mwb-panel" aria-label="今日研究名单">
       <div class="mwb-heading">
-        <div><h2 v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">US 20261016 → HK 20261020 · 单日映射推荐 / 下跌风险</h2><h2 v-else>{{ LANE_LABELS[vm.laneFilter] }} · {{ vm.decisionFilter ? decisionLabel(vm.decisionFilter) : '独立港股推荐' }}</h2><p v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">按固定 A/B/C 主路径展示全量月度观察池；单日代理变化仅为研究观察，目标日资格、历史 PIT 与效果未验证。</p><p v-else>美股映射与超跌是独立推荐；各自采用该路径已保存结论，同股可出现在两处。</p></div>
+        <div><h2 v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">US {{ singleDaySummary()?.source_session || '日期未知' }} → HK {{ singleDaySummary()?.target_date || '日期未知' }} · 单日映射推荐 / 下跌风险</h2><h2 v-else>{{ LANE_LABELS[vm.laneFilter] }} · {{ vm.decisionFilter ? decisionLabel(vm.decisionFilter) : '独立港股推荐' }}</h2><p v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">按固定 A/B/C 主路径展示全量月度观察池；单日代理变化仅为研究观察，目标日资格、历史 PIT 与效果未验证。</p><p v-else>美股映射与超跌是独立推荐；各自采用该路径已保存结论，同股可出现在两处。</p></div>
         <p v-if="vm.dayLoading" role="status">正在读取保存的研究版本…</p>
       </div>
       <nav class="mwb-tabs" aria-label="独立推荐来源">
         <button v-for="lane in (['US_MAPPING', 'OVERSOLD'] as const)" :key="lane" type="button"
           :class="{ active: vm.laneFilter === lane }" :aria-pressed="vm.laneFilter === lane" @click="vm.switchLane(lane)">
-          {{ LANE_LABELS[lane] }}推荐 · {{ lane === 'US_MAPPING' && singleDaySummary() ? `单日映射受益 ${showCount(singleDayCount('BENEFIT'))} / 下跌风险 ${showCount(singleDayCount('RISK'))}` : `严格入选 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.selected)} / 条件观察 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.watch)}` }}
+          {{ LANE_LABELS[lane] }}推荐 · {{ lane === 'US_MAPPING' && singleDaySummary() ? `固定映射受益判定 ${showCount(singleDayCount('BENEFIT'))} / 固定映射风险判定 ${showCount(singleDayCount('RISK'))}` : `严格入选 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.selected)} / 条件观察 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.watch)}` }}
         </button>
       </nav>
       <p v-if="vm.laneFilter === 'US_MAPPING' && !singleDaySummary()" class="mwb-muted">
-        当前保存版本没有 20261016 → HK 20261020 单日映射结果；不能从旧保存版本推断本次受益或风险名单。
+        当前保存版本没有单日映射结果；不能从旧保存版本推断本次受益或风险名单。
       </p>
 
       <section v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()" class="mwb-research-section" aria-label="单日映射推荐与下跌风险">
@@ -283,12 +296,63 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <p>月度观察池 {{ showCount(singleDaySummary()?.monthly_observed_scope_count) }} 只 · US 来源会话 {{ singleDaySummary()?.source_session || '未知' }} · HK 行情信号会话 {{ singleDaySummary()?.price_session || '未知' }} · HK 目标日 {{ singleDaySummary()?.target_date || '未知' }}。代理变化是固定映射下的同向传导研究假设，效果未验证；正式港股通资格 CANNOT_CONFIRM，历史 PIT 未验证。</p>
         <p>固定 A/B/C 映射、固定 primary 与 sign；不择当日最强路径。A/B primary ≥ +1% 为潜在受益，≤ -1% 为下跌风险；小幅变化观察；C 与未映射单独展示，不升级为 A/B。映射政策 {{ singleDaySummary()?.mapping_policy_version }} · SHA {{ singleDaySummary()?.mapping_policy_sha256 }}。</p>
         <p>严格 V1 门槛暂缓，未执行：MA20、5日收益、20日均成交额、Top10 与每主题3只限制均未运行，也未用于截断单日完整名单。RESEARCH ONLY · 不构成 BUY。</p>
+        <section class="mwb-directional-lists" aria-label="已采用美股同行来源观察名单">
+          <h3>已采用美股同行来源观察 · {{ showCount(usMappingPeerLists.acceptedRelationCount) }} 条关系</h3>
+          <p>来源会话 {{ usMappingPeerLists.sourceSession || singleDaySummary()?.source_session || '未知' }} · 港股目标日 {{ usMappingPeerLists.targetDate || singleDaySummary()?.target_date || '未知' }} · 正向 {{ showCount(usMappingPeerLists.positive.length) }} 条 · 负向 {{ showCount(usMappingPeerLists.negative.length) }} 条 · 零变动 {{ showCount(usMappingPeerLists.flat.length) }} 条 · 待核 {{ showCount(usMappingPeerLists.unknown.length) }} 条 · 同股正负并存 {{ showCount(usMappingPeerLists.mixedStockCount) }} 只。</p>
+          <p>下表按已保存且处置为 ADOPTED_BUSINESS_PEER 的关系逐条展示。涨跌仅描述对应美股来源会话的报价方向，不代表港股预期收益、因果结论或 BUY；正式港股通资格 {{ singleDaySummary()?.formal_target_eligibility || 'CANNOT_CONFIRM' }}，历史 PIT 未验证。</p>
+          <div class="mwb-filters" role="group" aria-label="美股映射行业筛选">
+            <button type="button" :aria-pressed="peerListFilter === 'all'" @click="setPeerListFilter('all')">全部行业 · {{ showCount(usMappingPeerLists.observations.length) }} 条</button>
+            <button type="button" :aria-pressed="peerListFilter === 'consumer'" @click="setPeerListFilter('consumer')">消费与零售 · {{ showCount(consumerPeerCount()) }} 条</button>
+          </div>
+          <article class="mwb-direction-card is-upside" aria-label="正向美股来源观察名单">
+            <h4>正向美股来源观察 · {{ showCount(peerRows('positive').length) }} 条关系</h4>
+            <div v-if="peerRows('positive').length" class="mwb-table-wrap"><table class="mwb-table">
+              <thead><tr><th>港股</th><th>美股来源报价</th><th>同行组 / 分类</th><th>映射依据（事实 / 机制）</th><th>风险 / 复核条件</th><th>港股关系方向状态</th></tr></thead>
+              <tbody><tr v-for="observation in peerRows('positive')" :key="observation.id">
+                <td><strong>{{ observation.hkSymbol }} {{ observation.hkName }}</strong><small>{{ observation.relationId }} · {{ observation.relationType }}</small></td>
+                <td><strong>{{ observation.usSymbol }}</strong><span>{{ observation.sourceSession }} 收盘 {{ observation.returnLabel }}</span><small>{{ observation.quoteStatus }}</small></td>
+                <td>{{ observation.peerBucket }}<small>{{ observation.catalogSegment || '分类未知' }}</small></td>
+                <td><span>事实：{{ observation.catalogFact }}</span><span>机制：{{ observation.catalogMechanism }}</span></td>
+                <td><span>风险：{{ observation.catalogFailure }}</span><span>复核条件：{{ observation.catalogCondition }}</span></td>
+                <td>{{ observation.stockDirectionLabel }}<small v-if="observation.hasMixedStockDirection">同一港股的正负路径均保留，不合并打分</small></td>
+              </tr></tbody>
+            </table></div>
+            <p v-else class="mwb-muted">当前筛选下没有已核验的正向美股同行来源报价。</p>
+          </article>
+          <article class="mwb-direction-card is-downside" aria-label="负向美股来源观察名单">
+            <h4>负向美股来源观察 · {{ showCount(peerRows('negative').length) }} 条关系</h4>
+            <div v-if="peerRows('negative').length" class="mwb-table-wrap"><table class="mwb-table">
+              <thead><tr><th>港股</th><th>美股来源报价</th><th>同行组 / 分类</th><th>映射依据（事实 / 机制）</th><th>风险 / 复核条件</th><th>港股关系方向状态</th></tr></thead>
+              <tbody><tr v-for="observation in peerRows('negative')" :key="observation.id">
+                <td><strong>{{ observation.hkSymbol }} {{ observation.hkName }}</strong><small>{{ observation.relationId }} · {{ observation.relationType }}</small></td>
+                <td><strong>{{ observation.usSymbol }}</strong><span>{{ observation.sourceSession }} 收盘 {{ observation.returnLabel }}</span><small>{{ observation.quoteStatus }}</small></td>
+                <td>{{ observation.peerBucket }}<small>{{ observation.catalogSegment || '分类未知' }}</small></td>
+                <td><span>事实：{{ observation.catalogFact }}</span><span>机制：{{ observation.catalogMechanism }}</span></td>
+                <td><span>风险：{{ observation.catalogFailure }}</span><span>复核条件：{{ observation.catalogCondition }}</span></td>
+                <td>{{ observation.stockDirectionLabel }}<small v-if="observation.hasMixedStockDirection">同一港股的正负路径均保留，不合并打分</small></td>
+              </tr></tbody>
+            </table></div>
+            <p v-else class="mwb-muted">当前筛选下没有已核验的负向美股同行来源报价。</p>
+          </article>
+          <details class="mwb-direction-secondary"><summary>零变动美股同行观察 · {{ showCount(peerRows('flat').length) }} 条</summary>
+            <div v-if="peerRows('flat').length" class="mwb-table-wrap"><table class="mwb-table"><thead><tr><th>港股 / 关系</th><th>美股来源报价</th><th>映射依据</th><th>风险 / 复核条件</th></tr></thead>
+              <tbody><tr v-for="observation in peerRows('flat')" :key="observation.id"><td>{{ observation.hkSymbol }} {{ observation.hkName }} · {{ observation.relationId }}</td><td>{{ observation.usSymbol }} · {{ observation.sourceSession }} · {{ observation.returnLabel }}</td><td>事实：{{ observation.catalogFact }}；机制：{{ observation.catalogMechanism }}</td><td>风险：{{ observation.catalogFailure }}；复核条件：{{ observation.catalogCondition }}</td></tr></tbody>
+            </table></div>
+            <p v-else class="mwb-muted">当前筛选下没有零变动关系。</p>
+          </details>
+          <details class="mwb-direction-secondary"><summary>来源报价 / 日期待核 · {{ showCount(peerRows('unknown').length) }} 条</summary>
+            <div v-if="peerRows('unknown').length" class="mwb-table-wrap"><table class="mwb-table"><thead><tr><th>港股 / 关系</th><th>美股来源报价</th><th>待核原因</th><th>映射依据</th><th>风险 / 复核条件</th></tr></thead>
+              <tbody><tr v-for="observation in peerRows('unknown')" :key="observation.id"><td>{{ observation.hkSymbol }} {{ observation.hkName }} · {{ observation.relationId }}</td><td>{{ observation.usSymbol }} · {{ observation.sourceSession }} · {{ observation.returnLabel }}</td><td>{{ observation.statusDetail }}</td><td>事实：{{ observation.catalogFact }}；机制：{{ observation.catalogMechanism }}</td><td>风险：{{ observation.catalogFailure }}；复核条件：{{ observation.catalogCondition }}</td></tr></tbody>
+            </table></div>
+            <p v-else class="mwb-muted">当前筛选下没有来源待核关系。</p>
+          </details>
+        </section>
         <p v-if="singleDaySummary()?.industry_source_date || singleDaySummary()?.industry_source_status">行业来源 {{ singleDaySummary()?.industry_source_status || '未知' }} · 观测日 {{ singleDaySummary()?.industry_source_date || '未知' }} · SHA {{ singleDaySummary()?.industry_source_sha256 || '未知' }}。</p>
         <p v-if="singleDaySummary()?.gaps?.length">映射缺口：{{ singleDaySummary()?.gaps.join('、') }}</p>
-        <details open><summary>潜在受益 · {{ showCount(singleDayCount('BENEFIT')) }} 只</summary>
+        <details open><summary>固定 A/B/C 规则分类：潜在受益判定 · {{ showCount(singleDayCount('BENEFIT')) }} 只</summary>
           <ul><li v-for="stock in singleDayRows('BENEFIT')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · {{ stock.mapping_grade }}</strong><p>主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} · {{ stock.primary_signed_return_pct }}% · {{ stock.primary_relation_type || stock.source_industry || '固定映射' }}；原因 {{ singleDayRowReason(stock) }}</p><small>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</small></li></ul>
         </details>
-        <details><summary>下跌风险 · {{ showCount(singleDayCount('RISK')) }} 只</summary>
+        <details open><summary>固定 A/B/C 规则分类：下跌风险判定 · {{ showCount(singleDayCount('RISK')) }} 只</summary>
           <ul><li v-for="stock in singleDayRows('RISK')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · {{ stock.mapping_grade }}</strong><p>主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} · {{ stock.primary_signed_return_pct }}% · {{ stock.primary_relation_type || stock.source_industry || '固定映射' }}；原因 {{ singleDayRowReason(stock) }}</p><small>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</small></li></ul>
         </details>
         <details><summary>方向冲突 · {{ showCount(singleDayCount('CONFLICT')) }} 只</summary>
@@ -363,8 +427,8 @@ function revisionAssessments(value: unknown): [string, unknown][] {
       </section>
 
       <div v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()" class="mwb-counts" aria-label="单日映射推荐与风险分类计数">
-        <div><strong>{{ showCount(singleDayCount('BENEFIT')) }}</strong><span>单日映射潜在受益</span></div>
-        <div><strong>{{ showCount(singleDayCount('RISK')) }}</strong><span>下跌风险</span></div>
+        <div><strong>{{ showCount(singleDayCount('BENEFIT')) }}</strong><span>固定映射受益判定</span></div>
+        <div><strong>{{ showCount(singleDayCount('RISK')) }}</strong><span>固定映射风险判定</span></div>
         <div><strong>{{ showCount(singleDayCount('CONFLICT')) }}</strong><span>方向冲突</span></div>
         <div><strong>{{ showCount(singleDayCount('SMALL_MOVE_WATCH')) }}</strong><span>A/B 小幅观察</span></div>
         <div><strong>{{ showCount(singleDayCount('C_WATCH')) }}</strong><span>C 级观察</span></div>
