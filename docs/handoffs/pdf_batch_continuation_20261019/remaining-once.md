@@ -8,7 +8,9 @@ The eligible set is derived from the frozen 2,209-row manifest and original R3 p
 
 ## Execution gate
 
-The configured runtime is Python **3.12.13** at `/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python`. The earlier draft’s Python 3.14.6 command is stale and must not be used for execution. The runner remains bound to SHA-256 `53b94d869d380ac33d2f5a51ab278aa502c2be610b40241e09503c45b5f29007`.
+The configured runtime is Python **3.12.13** at `/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python`. The earlier draft’s Python 3.14.6 command is stale and must not be used for execution. The runner is bound to SHA-256 `af909503480a5237603ce8695bd31ad6b4a3f7da9062875accc6b086e9d6db08`.
+
+The current runner candidate tightens temporal classification in the first-stage and synthesis prompts: classify each source item by its wording, period, and publication date; keep observed market data separate from earnings forecasts. This prompt change still requires independent code review and a new position-208 semantic sample before continuation. The prior ten-document content result remains FAIL, and no document has been rerun in this preparation phase.
 
 Root may create `continuation/ROOT_REMAINING_EXECUTION_AUTHORIZATION.json` only after the actual ten-document pilot has ten reconciled successful receipts, the resource gate and both content sentinels pass, an independent Reviewer passes this dispatcher, and root adoption is recorded. The authorization file must use schema `v4.pdf_remaining_once.execution_authorization.v1` and bind these fields:
 
@@ -19,7 +21,7 @@ Root may create `continuation/ROOT_REMAINING_EXECUTION_AUTHORIZATION.json` only 
   "authorization_id": "lowercase-unique-id",
   "scope_sha256": "<frozen scope SHA-256>",
   "dispatcher_sha256": "<reviewed dispatcher SHA-256>",
-  "runner_sha256": "53b94d869d380ac33d2f5a51ab278aa502c2be610b40241e09503c45b5f29007",
+  "runner_sha256": "af909503480a5237603ce8695bd31ad6b4a3f7da9062875accc6b086e9d6db08",
   "manifest_sha256": "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9",
   "original_progress_sha256": "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84",
   "runtime_python": "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python",

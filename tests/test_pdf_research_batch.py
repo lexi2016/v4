@@ -72,6 +72,36 @@ def test_synthesis_packing_is_bounded_and_preserves_text_order() -> None:
     assert all(len(item["text"]) <= batch.MAX_SYNTHESIS_PART_CHARACTERS for item in flattened)
 
 
+def test_temporal_prompts_keep_each_source_item_on_its_own_period_and_status() -> None:
+    source_text = (
+        "报告发布日期：2026-10-14。报告为2026Q3业绩前瞻。"
+        "原文记载7月至9月的商品价格变化，同时将公司盈利和EPS列为预测。"
+    )
+    chunk = batch._build_document_chunks("e" * 64, [_page(1, 1, source_text)])[0]
+
+    report_messages = batch._document_messages(
+        {"document_id": "e" * 64, "title": "通用季度研究样例"}, chunk, partial_source=False
+    )
+    report_system = report_messages[0]["content"]
+    assert "必须按每个数据或事项逐项分类" in report_system
+    assert "以原文对该项的明确表述和报告发布日期为准" in report_system
+    assert "报告标题、年份、同一期间还包含预测或先验知识" in report_system
+    assert "商品或燃料价格等市场观察，应保留为对应期间的事实" in report_system
+    assert "公司盈利、EPS或估值预测仍应标为预测" in report_system
+    assert source_text in report_messages[1]["content"]
+
+    synthesis_messages = batch._synthesis_messages(
+        "e" * 64,
+        [{"report_id": "part-1", "text": "商品价格为该期观察；公司盈利和EPS为预测。"}],
+        1,
+    )
+    synthesis_system = synthesis_messages[0]["content"]
+    assert "逐项保留每个数字或事项在原文明确给出的期间和事实性质" in synthesis_system
+    assert "不跨事项传播预测或未来标签" in synthesis_system
+    assert "只有原文明示事项发生在报告发布日期之后时" in synthesis_system
+    assert "商品或燃料价格等市场观察应保留为相应期间的事实" in synthesis_system
+
+
 def _write_queue_state(path: Path, jobs: dict[str, dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
