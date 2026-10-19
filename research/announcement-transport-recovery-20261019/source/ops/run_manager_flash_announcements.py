@@ -42,6 +42,37 @@ CANONICAL_HELPER_SHA256 = "43f70a0e57f81814a93f176079bfc5c20519dbda5b7a8f9e8062e
 QUEUE_ID = "v4-manager-flash-incremental"
 QUEUE_IDENTITY_FIELDS = ("date", "market", "article_id", "source_sha256", "body_sha256",
                          "prompt_sha256", "model_id", "configuration_sha256", "rules", "role", "stage")
+# One explicitly authorized resource-only transition; this is not a general configuration override.
+MEMORY_TRANSITION_REF = "announcement_flash/runtime-memory-transition.json"
+MEMORY_IDENTITY_TRANSITION = {'schema': 'v4.manager_workbench.authorized_memory_identity_transition.v1',
+ 'status': 'APPLIED_HEALTH_CEILING_VERIFIED',
+ 'source_job_id': '542d858cefce4f3a8e3bf9914137be68',
+ 'source_input_sha256': '3aea3e70130d253bc01bcf5366de5eaa17f0468b7806b01aa075943297270eaa',
+ 'source_result_sha256': 'fc4b53da3640cf1efc185c39f3371f8b813bcdb54ecef98eae7499afa3511cce',
+ 'failed_key': '9e29e0ddf85f8c19bca79b71115d1467ab6a45188ae91f4d1c1bd19dcb19e344',
+ 'failed_payload_sha256': '73b711f7adb5d7d39cb2d5e800e5f2b529aa0a6ccbc9a3427899bf1b54fddcec',
+ 'failed_attempt_sha256': 'd2b25af2f10feefaa172e963600889c1fef9facb2890833f6190d17c13b7fa8d',
+ 'settings_before_sha256': 'e05af04aa712ee134354a8c0fa97812761cee7d1304b3914c87b6a8636b22a99',
+ 'settings_after_sha256': '2713eb73ceb66ee77fbfb58c52b17211305d72774b5e9412073171854ba3e631',
+ 'non_memory_settings_sha256': 'e577d5f3b802eb29a6cee6955e16b81c4cc603d297298208512724a28fd6b287',
+ 'identity_configuration_sha256': 'ff0dede69789db93f7873615987fdf16baa75a17eefa94a270223a934d8822ef',
+ 'execution_configuration_sha256': '366496cbccf54d21c35aa35c4d327d17a60879cc80c1a3cead145a128f55ee4c',
+ 'launcher_sha256': '538d1d9c7a975acbd2a043232780a0e740b5ec9dcf956839eddcbfdc1da9b4e1',
+ 'memory_before': {'prefill_memory_guard': True,
+                   'memory_guard_tier': 'balanced',
+                   'memory_guard_custom_ceiling_gb': 0.0,
+                   'soft_threshold': 0.85,
+                   'hard_threshold': 0.95,
+                   'prefill_safe_zone_ratio': 0.8,
+                   'prefill_min_chunk_tokens': 32},
+ 'memory_after': {'prefill_memory_guard': True,
+                  'memory_guard_tier': 'custom',
+                  'memory_guard_custom_ceiling_gb': 96.0,
+                  'soft_threshold': 0.85,
+                  'hard_threshold': 0.95,
+                  'prefill_safe_zone_ratio': 0.8,
+                  'prefill_min_chunk_tokens': 32},
+ 'effective_ceiling_bytes': 103079215104}
 FAILED_DISPATCH_CANARY_REENTRY_JOB_ID = "c03940f67a3945809524bf697fca0c1a"
 FAILED_DISPATCH_CANARY_REENTRY_SOURCE_JOB_ID = "29983573dff34359bfd34f054641a1d6"
 FAILED_DISPATCH_CANARY_REENTRY_ROOT_JOB_ID = "07bfabf09f144360ab8869214aeecea8"
@@ -491,6 +522,84 @@ def _saved_orphan_result_state(queue_root: Path, job: dict[str, Any], payload: d
     return "NONE"
 
 
+def _request_material_with_memory_identity(material: dict[str, Any], state_root: Path,
+                                            plan: Any, settings_path: Path | None) -> dict[str, Any]:
+    """Keep frozen request identity only for the exact authorized memory-only transition.
+
+    Execution settings/configuration remain separately recorded and the transport
+    still checks the current physical settings SHA. No queue payload is rewritten.
+    """
+    expected = MEMORY_IDENTITY_TRANSITION
+    if not isinstance(plan, dict) or plan.get("source_job_id") != expected["source_job_id"]:
+        return material
+    try:
+        failure = plan.get("failed_task")
+        if (plan.get("source_input_sha256") != expected["source_input_sha256"]
+                or plan.get("source_result_sha256") != expected["source_result_sha256"]
+                or not isinstance(failure, dict) or failure.get("key") != expected["failed_key"]
+                or failure.get("payload_sha256") != expected["failed_payload_sha256"]
+                or failure.get("attempt_sha256") != expected["failed_attempt_sha256"]):
+            raise ValueError("source binding")
+        state_io = SafeRoot(state_root)
+        receipt_raw = state_io.read_bytes(MEMORY_TRANSITION_REF, max_bytes=16384)
+        if receipt_raw != canonical(expected) + b"\n":
+            raise ValueError("authorization receipt")
+        source_id = expected["source_job_id"]
+        source_input_raw = state_io.read_bytes(f"announcement_flash/jobs/{source_id}/input.json", max_bytes=1024 * 1024)
+        source_result_raw = state_io.read_bytes(f"announcement_flash/jobs/{source_id}/result.json", max_bytes=64 * 1024 * 1024)
+        if (sha(source_input_raw) != expected["source_input_sha256"]
+                or sha(source_result_raw) != expected["source_result_sha256"]):
+            raise ValueError("immutable source")
+        provenance = _json(source_result_raw, "MEMORY_TRANSITION_SOURCE_INVALID").get("provenance")
+        if not isinstance(provenance, dict) or any(material.get(field) != provenance.get(field) for field in (
+                "prompt_sha256", "model_settings_sha256", "schema_sha256", "parser_sha256", "source_code_sha256")):
+            raise ValueError("non-memory request drift")
+        if settings_path is None:
+            raise ValueError("settings unavailable")
+        settings_path = Path(settings_path)
+        settings_raw = settings_path.read_bytes()
+        settings = _json(settings_raw, "MEMORY_TRANSITION_SETTINGS_INVALID")
+        if (sha(settings_raw) != expected["settings_after_sha256"]
+                or material.get("runtime_settings_sha256") != expected["settings_after_sha256"]
+                or settings.get("memory") != expected["memory_after"]
+                or sha(canonical({key: value for key, value in settings.items() if key != "memory"}))
+                != expected["non_memory_settings_sha256"]
+                or sha((settings_path.parent.parent / "start_omlx.sh").read_bytes()) != expected["launcher_sha256"]):
+            raise ValueError("physical settings drift")
+        execution_material = material.get("configuration_material")
+        if (not isinstance(execution_material, dict)
+                or execution_material.get("runtime_settings_sha256") != expected["settings_after_sha256"]
+                or material.get("configuration_sha256") != expected["execution_configuration_sha256"]
+                or sha(canonical(execution_material)) != expected["execution_configuration_sha256"]
+                or provenance.get("runtime_settings_sha256") != expected["settings_before_sha256"]
+                or provenance.get("configuration_sha256") != expected["identity_configuration_sha256"]):
+            raise ValueError("configuration fingerprint")
+        identity_material = {**execution_material, "runtime_settings_sha256": expected["settings_before_sha256"]}
+        if sha(canonical(identity_material)) != expected["identity_configuration_sha256"]:
+            raise ValueError("inference configuration drift")
+        binding = {"schema": expected["schema"], "receipt_sha256": sha(receipt_raw),
+                   "source_job_id": source_id, "failed_key": expected["failed_key"],
+                   "identity_runtime_settings_sha256": expected["settings_before_sha256"],
+                   "execution_runtime_settings_sha256": expected["settings_after_sha256"],
+                   "identity_configuration_sha256": expected["identity_configuration_sha256"],
+                   "execution_configuration_sha256": expected["execution_configuration_sha256"]}
+        return {**material, "configuration_sha256": expected["identity_configuration_sha256"],
+                "configuration_material": identity_material,
+                "execution_configuration_sha256": expected["execution_configuration_sha256"],
+                "execution_configuration_material": execution_material,
+                "runtime_memory_transition": binding}
+    except Exception as exc:
+        raise FlashRunError("AUTHORIZED_MEMORY_TRANSITION_UNVERIFIED") from exc
+
+
+def _current_transport_request_material(state_root: Path, plan: Any) -> dict[str, Any]:
+    helper = _load_helper()
+    import batch_runner as runner
+    material = helper._full_day_request_material(runner.load_active_contract())
+    return _request_material_with_memory_identity(material, state_root, plan,
+                                                  getattr(runner, "OMLX_SETTINGS_PATH", None))
+
+
 def _transport_canary_receipt_candidate(resume: Any, plan: dict[str, Any],
                                        jobs: dict[str, Any]) -> dict[str, Any] | None:
     """Recognize only the saved one-call success or its ordinary-readback failure."""
@@ -563,6 +672,8 @@ def _validated_transport_canary_result(queue_root: Path, job: dict[str, Any],
             import build_length_canary as length_canary
             contract = runner.load_active_contract()
             material = helper._full_day_request_material(contract)
+            material = _request_material_with_memory_identity(
+                material, queue_root.parent.parent, plan, getattr(runner, "OMLX_SETTINGS_PATH", None))
             if any(payload.get(field) != material.get(field) for field in (
                     "prompt_sha256", "configuration_sha256", "workflow_profile", "citation_protocol")):
                 raise ValueError("configuration drift")
@@ -1961,12 +2072,72 @@ def _transport_executor(queue_module: Any, transport: Any, runner: Any, request_
             raw_paths = sorted(trace_path.glob("round-*.raw.sse")) if trace_path else []
             partial = raw_paths[-1].read_bytes() if raw_paths and raw_paths[-1].is_file() else None
             stable_code = str(code) if SAFE_CODE_RE.fullmatch(str(code)) else "MODEL_TRANSPORT_FAILED"
+            # A completed HTTP request rejected for this input does not mean the
+            # model service is unavailable. Keep authentication/5xx/network errors global.
+            http_rejection = re.fullmatch(r"CHAT_HTTP_STATUS:(400|413|422)", str(exc))
+            if isinstance(exc, runner.TransportError) and http_rejection:
+                stable_code = "REQUEST_HTTP_" + http_rejection.group(1)
+                if partial:
+                    try:
+                        response = json.loads(partial)
+                    except (UnicodeDecodeError, json.JSONDecodeError):
+                        response = None
+                    error = response.get("error") if isinstance(response, dict) else None
+                    if isinstance(error, dict):
+                        if error.get("code") in {"invalid_api_key", "authentication_error", "unauthorized", "permission_denied"}:
+                            stable_code = "MODEL_AUTHENTICATION_FAILED"
+                        elif (error.get("code") == "prefill_memory_exceeded"
+                              and http_rejection.group(1) == "400"):
+                            stable_code = "PREFILL_MEMORY_EXCEEDED"
             raise queue_module.ExecutorFailure(stable_code, code=stable_code, raw_response=partial) from None
         transport.finish_job(status="RESPONSE_RECEIVED", completion=completion)
         if not completion.final_text:
             raise queue_module.ExecutorFailure("EMPTY_MODEL_OUTPUT", code="EMPTY_MODEL_OUTPUT", raw_response=b"")
         return completion.final_text
     return execute
+
+
+_SINGLE_REQUEST_EXECUTOR_FAILURES = {
+    "REQUEST_HTTP_400", "REQUEST_HTTP_413", "REQUEST_HTTP_422",
+    "PREFILL_MEMORY_EXCEEDED", "EMPTY_MODEL_OUTPUT",
+}
+
+
+_QUEUE_INTEGRITY_FAILURE_STAGES = {"input_read", "raw_contract", "raw_persist", "result_persist", "validator_output"}
+_QUEUE_INTEGRITY_FAILURE_CODES = {
+    "INPUT_READ_ERROR", "RAW_RESPONSE_REQUIRED", "RAW_PERSIST_ERROR",
+    "RESULT_PERSIST_ERROR", "INVALID_VALIDATOR_OUTPUT",
+}
+
+
+def _dispatch_pending_queue_keys(queue: Any, executor: Any, validator: Any, keys: set[str], *,
+                                  completed: int, max_model_calls: int | None,
+                                  dispatched_keys: list[str], on_result: Callable[[int], None]
+                                  ) -> tuple[int, dict[str, Any] | None]:
+    """Advance past failed inputs once; stop only when execution itself is unavailable."""
+    while keys:
+        if max_model_calls is not None and completed >= max_model_calls:
+            break
+        result = queue.run_next(executor, validator, idempotency_keys=keys, wait_for_model_slot=False)
+        if result is None:
+            break
+        completed += 1
+        key = result.get("idempotency_key")
+        if isinstance(key, str):
+            dispatched_keys.append(key)
+        latest = queue._load_state().get("jobs", {}).get(key, {})
+        attempt = (latest.get("attempts") or [{}])[-1]
+        error = attempt.get("error") if isinstance(attempt, dict) else None
+        stage = error.get("stage") if isinstance(error, dict) else None
+        code = error.get("code") if isinstance(error, dict) else None
+        if (result.get("status") == "FAILED"
+                and (stage in _QUEUE_INTEGRITY_FAILURE_STAGES or code in _QUEUE_INTEGRITY_FAILURE_CODES
+                     or (stage == "executor" and code not in _SINGLE_REQUEST_EXECUTOR_FAILURES))):
+            return completed, {"failure_code": code if isinstance(code, str) else "FLASH_SYSTEM_FAILURE",
+                               "stage": stage, "attempt": latest.get("attempt_count"),
+                               "queue_action": "STOPPED_NO_AUTOMATIC_RETRY"}
+        on_result(completed)
+    return completed, None
 
 
 def _part_prompt_hard_cap(payload: dict[str, Any], chunks: Any) -> int | None:
@@ -4438,6 +4609,9 @@ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
                      or transport_recovery_plan.get("source_job_id") != frozen_root_job_id
                      or transport_recovery_plan.get("source_input_sha256") != frozen_root_input_sha256)):
             raise FlashRunError("FROZEN_RESUME_TRANSPORT_INPUT_BINDING_INVALID")
+    request_material = _request_material_with_memory_identity(
+        request_material, state_root, transport_recovery_plan, getattr(runner, "OMLX_SETTINGS_PATH", None))
+    configuration_material = request_material.get("configuration_material", {})
     tokenizer = AutoTokenizer.from_pretrained(
         str(runner.OMLX_TOKENIZER_PATH), local_files_only=True, trust_remote_code=False, use_fast=True)
     from v4.manager_workbench import announcement_chunks as chunks
@@ -5025,30 +5199,14 @@ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
 
         executor = _transport_executor(queue_module, transport, runner, request_material, evidence_root, on_progress)
         try:
-            while keys and not system_stop:
-                if max_model_calls is not None and completed >= max_model_calls:
-                    break
-                result = queue.run_next(executor, validator, idempotency_keys=keys,
-                                        wait_for_model_slot=False)
-                if result is None:
-                    break
-                completed += 1
-                if isinstance(result.get("idempotency_key"), str):
-                    dispatched_keys.append(result["idempotency_key"])
-                latest = queue._load_state().get("jobs", {}).get(result.get("idempotency_key"), {})
-                attempt = (latest.get("attempts") or [{}])[-1]
-                error = attempt.get("error") if isinstance(attempt, dict) else None
-                stage = error.get("stage") if isinstance(error, dict) else None
-                code = error.get("code") if isinstance(error, dict) else None
-                raw_length = attempt.get("raw_length_bytes") if isinstance(attempt, dict) else None
-                if result.get("status") == "FAILED" and (stage == "executor" or raw_length == 0):
-                    system_stop = {"failure_code": code if isinstance(code, str) else "FLASH_SYSTEM_FAILURE",
-                                   "stage": stage or "empty_response", "attempt": latest.get("attempt_count"),
-                                   "queue_action": "STOPPED_NO_AUTOMATIC_RETRY"}
-                    break
-                progress({"step": "FLASH_SELECTION", "completed": completed, "total": len(tracked_keys),
+            def report_result(completed_count: int) -> None:
+                progress({"step": "FLASH_SELECTION", "completed": completed_count, "total": len(tracked_keys),
                           "queue_counts": dict(current_counts()), "pending_body_gaps": len(body_gaps),
                           "pending_context": len(preflight_pending), "updated_at": datetime.now(timezone.utc).isoformat()})
+
+            completed, system_stop = _dispatch_pending_queue_keys(
+                queue, executor, validator, keys, completed=completed, max_model_calls=max_model_calls,
+                dispatched_keys=dispatched_keys, on_result=report_result)
         finally:
             transport.close()
 
@@ -5864,6 +6022,9 @@ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
                        "queue_id": QUEUE_ID,
                        "prompt_sha256": request_material["prompt_sha256"],
                        "configuration_sha256": request_material["configuration_sha256"],
+                       **({"execution_configuration_sha256": request_material["execution_configuration_sha256"],
+                           "runtime_memory_transition": request_material["runtime_memory_transition"]}
+                          if "runtime_memory_transition" in request_material else {}),
                        "source_code_sha256": request_material.get("source_code_sha256"),
                        "runtime_settings_sha256": request_material.get("runtime_settings_sha256"),
                        "model_settings_sha256": request_material.get("model_settings_sha256"),

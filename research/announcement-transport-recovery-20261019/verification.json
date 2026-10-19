@@ -1,34 +1,34 @@
 {
-  "status": "R3_SOURCE_REVIEWED_DEPLOYED_SAVED_CANARY_VALIDATED",
+  "status": "R4_R5_INDEPENDENT_PASS_DEPLOYED_CANARY_SUBMITTED",
   "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
-  "remote_base_commit": "4ecf8bac2269fe61a762a37d831d24f7ef3ad60c",
+  "remote_base_commit": "b4ea96bf36b1aeab3d7281e800fcf1ca324b80ae",
   "branch": "codex/announcement-transport-recovery-20261019",
-  "release_id": "announcement-transport-recovery-20261019-r3",
-  "manifest_sha256": "841543208b6f14e9dc1367d149dd8658de4d1d0a6da1b4292a61a4d0f7f207a9",
+  "release_id": "announcement-transport-recovery-20261020-r5b",
+  "manifest_sha256": "fd0bc7cba3eb83af909657db0e7a758c16e16cb31dbd1f96eb66057502dc137b",
   "files": [
     {
       "path": "v4/manager_workbench/announcement_update.py",
       "baseline_sha256": "0ddf3b54a5c4f3fc0458a40cb04eaad409d2169106c4a2161b264124b5017ac4",
-      "deployed_sha256": "4563f9394e01ca6d52c9bf42102d445481ca00663f95aee0f4b03ccaf80b678c",
-      "canonical_sha256": "fb7e2fa41616122f5f1524a12206fc828b8c6b64829590f4622fc1a0a27cdbc3"
+      "deployed_sha256": "bbcf01c65ccb019a9a414fb91bd27ea09352d31ec9aadfb14177c3fbf356a3f7",
+      "canonical_sha256": "e4cfc970dc9279dba13536192f032279cd7e3b963ed56928c16413ee650fed08"
     },
     {
       "path": "ops/run_manager_flash_announcements.py",
       "baseline_sha256": "6b24dae4c1082953dbc560282127e9e88caea6c839946bd328c8404946930c7d",
-      "deployed_sha256": "56190f06f0b49b3094dc90adb107fe3be430f5755fc2f5e1cbf90604d8cea81e",
-      "canonical_sha256": "56190f06f0b49b3094dc90adb107fe3be430f5755fc2f5e1cbf90604d8cea81e"
+      "deployed_sha256": "c1871209ac2a10f944d7ef95b89741df0bcf3c0fe072e20b02ce812144f37abd",
+      "canonical_sha256": "c1871209ac2a10f944d7ef95b89741df0bcf3c0fe072e20b02ce812144f37abd"
     },
     {
       "path": "tests/test_manager_announcement_resume.py",
       "baseline_sha256": "b906021d6e3ad72baef14692096c0748e2e60abf91cd4882f19a81b4d4f34154",
-      "deployed_sha256": "e2447c76bf7496dbb16ee24e87aad501ffa98a1e820e3a905c6ad9b670d4485b",
-      "canonical_sha256": "183e401a2e2e6e4cc9517bf865bef9e2c8f33c1cd0f50120251e8488df108da4"
+      "deployed_sha256": "bcca081ba2f069550b1a6fde2da26cad2f5d03932de445c402e0ee81740fffce",
+      "canonical_sha256": "69134b8b1c9d79b4fabaebdba1e670aa3af66769d8079217a6c3d4060d7b9ed0"
     },
     {
       "path": "tests/test_manager_announcement_flash_runner.py",
       "baseline_sha256": "5a2c2fbaf972b010e5b65d6005922a947d307662ad101bdb3a71dc65943ff0ee",
-      "deployed_sha256": "564ae41a14c7587355f43d244c963c06b907257e9c6993553c992d44fcf7d9ff",
-      "canonical_sha256": "564ae41a14c7587355f43d244c963c06b907257e9c6993553c992d44fcf7d9ff"
+      "deployed_sha256": "278cfd67c87e88553c17d74376b70e9c56f6d001f495e7b1e7b2b1be58d33c92",
+      "canonical_sha256": "278cfd67c87e88553c17d74376b70e9c56f6d001f495e7b1e7b2b1be58d33c92"
     },
     {
       "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
@@ -43,7 +43,7 @@
       "canonical_sha256": "e948c70dbce4ff1cfec4e4fcc506089c2b70c8d0b038f73b9ea685be27760a29"
     }
   ],
-  "canonical_preservation_patch_sha256": "660f90404f4823cb66cd44932b9bc8d4e6b5a38e9b6fa234bf3f6a32eab939d3",
+  "canonical_preservation_patch_sha256": "31c305b9debad4961bc63bd91350f6a1e5803d40420ac742504605f2a8de8739",
   "review": {
     "r1": "FAIL: current request drift and long-part deepcopy NameError",
     "r2": "PASS",
@@ -56,23 +56,62 @@
     "r3_receipt_sha256": "17c3be050b51aba5d5d43623257d00e3bb59785aa14d010cd00c4ce92e5befce",
     "r3_targeted_checks": 34,
     "r3_command": "PYTHONDONTWRITEBYTECODE=1 runtime-python -m pytest -q -p no:cacheprovider -k 'transport or saved_transport' tests/test_manager_announcement_resume.py tests/test_manager_announcement_flash_runner.py",
-    "r3_environment": "v3.5-mac Python; isolated active dependencies plus exact reviewed R3 service/runner"
+    "r3_environment": "v3.5-mac Python; isolated active dependencies plus exact reviewed R3 service/runner",
+    "r4_r5": "PASS_AFTER_ONE_PERSISTENCE_STOP_REPAIR",
+    "r4_writer_checks": 59,
+    "r5_writer_checks": 81,
+    "r4_independent_checks": 59,
+    "r5_independent_checks": 22,
+    "repair_independent_real_queue_checks": 8,
+    "repair_independent_receipt_sha256": "d02567646f8889085f6777e6e5ca33d084a51cc1497b4ec01674d4c46d8533f4",
+    "r5_initial_review": "FAIL: raw persistence failure incorrectly continued",
+    "repair_environment": "isolated fixed R4/R5 overlay plus active dependencies; no model POST or runtime state writes",
+    "repair_commands": [
+      {
+        "command": "v3.5-mac/bin/python -B review/r5-repair-run-incremental.py",
+        "cwd": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-transport-recovery-20261019/review/r5-repair-overlay",
+        "exit_code": 0,
+        "result": "8 passed,173 deselected; actual SerialAnnouncementQueue input_read/raw_contract/raw_persist/result_persist stop; prefill/validator/json_parse/decode continue"
+      },
+      {
+        "command": "v3.5-mac/bin/python -B review/r5-repair-real-queue.py",
+        "exit_code": 0,
+        "result": "Independent original raw_persist oracle now stops after A, B attempt0; HTTP400 prefill A once then B success;503 leaves B unattempted; synthetic prior success record/files unchanged"
+      },
+      {
+        "command": "AST/four-file hash + release/canonical identity checks",
+        "exit_code": 0,
+        "result": "Only _dispatch_pending_queue_keys changes; exact reviewed hashes; new constants fail closed on integrity stages/codes; canonical proof exact previous proof plus repair diff"
+      }
+    ]
   },
   "runtime": {
     "api_identity": "VERIFIED",
     "ui_canary_job": "515335e08c7140f4abed10612f6181c4",
     "live_canary_verdict": "SAVED_SUCCEEDED_STRICT_READONLY_PASS",
-    "pending_continuation": "RUNNING",
+    "pending_continuation": "NOT_STARTED_AFTER_MEMORY_CHANGE",
     "natural_slot": "NOT_RUN",
     "saved_canary_extra_model_posts": 0,
-    "protected_success_records": 575,
-    "protected_success_files": 1150,
-    "continuation_job": "542d858cefce4f3a8e3bf9914137be68"
+    "protected_success_records": 576,
+    "protected_success_files": 1152,
+    "continuation_job": "542d858cefce4f3a8e3bf9914137be68",
+    "release_deployment": "DEPLOYED_API_IDENTITY_VERIFIED",
+    "canary_after_memory_change": "RUNNING_UI_CONFIRMED",
+    "prior_continuation_job": "542d858cefce4f3a8e3bf9914137be68",
+    "prior_continuation_terminal": "PARTIAL: 1 new success, 1 prefill rejection",
+    "ordinary_pending": 296,
+    "current_part_pending": 51,
+    "historical_part_identity_blocked": 12,
+    "memory_limit_gib": 96,
+    "memory_limit_independent_review": "PASS",
+    "runtime_transition_installed": true,
+    "canary_job": "e4252685cfe8447faf68fc27b7760501"
   },
   "safety": {
     "RESEARCH_ONLY": true,
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
-  }
+  },
+  "runtime_transition_template_sha256": "c8a5b0dbfc2811cd567388997d60c68694384ad12a5e4b1ba90a16f9d933251f"
 }

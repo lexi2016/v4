@@ -3679,3 +3679,321 @@ def test_saved_transport_ordinary_readback_keeps_invalid_results_blocked(tmp_pat
         bridge._verify_saved_transport_canary(bridge.SafeRoot(state_root), capture_root, child["job_id"],
                                               "20261016", child, result, {"jobs": queue.jobs}, plan)
     assert queue.dispatched == [key]
+
+
+def _memory_identity_transition_fixture(tmp_path, monkeypatch):
+    from copy import deepcopy
+    bridge = _bridge_module()
+    expected = deepcopy(bridge.MEMORY_IDENTITY_TRANSITION)
+    settings_dir = tmp_path / "runtime/omlx-state"
+    settings_dir.mkdir(parents=True)
+    settings_path = settings_dir / "settings.json"
+    settings = {"server": {"host": "127.0.0.1"}, "memory": expected["memory_after"]}
+    settings_path.write_bytes(bridge.canonical(settings))
+    launcher = settings_dir.parent / "start_omlx.sh"
+    launcher.write_bytes(b"exec omlx serve --memory-guard-gb 96\n")
+    settings_before = {**settings, "memory": expected["memory_before"]}
+    before_sha = bridge.sha(bridge.canonical(settings_before))
+    after_sha = bridge.sha(settings_path.read_bytes())
+    config = {"model_id": "qwen3_8_flash_next", "runtime_settings_sha256": after_sha,
+              "model_settings_sha256": "a" * 64, "runtime_limits": {"context_limit_tokens": 10000},
+              "request_temperature": 0.0, "enable_thinking": False}
+    frozen_config = {**config, "runtime_settings_sha256": before_sha}
+    material = {"configuration_material": config, "configuration_sha256": bridge.sha(bridge.canonical(config)),
+                "runtime_settings_sha256": after_sha, "prompt_sha256": "b" * 64,
+                "model_settings_sha256": "a" * 64, "schema_sha256": "c" * 64,
+                "parser_sha256": "d" * 64, "source_code_sha256": {"batch_runner.py": "e" * 64}}
+    old_provenance = {**material, "configuration_material": frozen_config,
+                      "configuration_sha256": bridge.sha(bridge.canonical(frozen_config)),
+                      "runtime_settings_sha256": before_sha}
+    source_input = bridge.canonical({"job_id": expected["source_job_id"]})
+    source_result = bridge.canonical({"provenance": old_provenance})
+    expected.update(settings_before_sha256=before_sha, settings_after_sha256=after_sha,
+                    non_memory_settings_sha256=bridge.sha(bridge.canonical({"server": settings["server"]})),
+                    source_input_sha256=bridge.sha(source_input), source_result_sha256=bridge.sha(source_result),
+                    identity_configuration_sha256=old_provenance["configuration_sha256"],
+                    execution_configuration_sha256=material["configuration_sha256"],
+                    launcher_sha256=bridge.sha(launcher.read_bytes()))
+    monkeypatch.setattr(bridge, "MEMORY_IDENTITY_TRANSITION", expected)
+    state_root = tmp_path / "state"
+    source_dir = state_root / "announcement_flash/jobs" / expected["source_job_id"]
+    source_dir.mkdir(parents=True)
+    (source_dir / "input.json").write_bytes(source_input)
+    (source_dir / "result.json").write_bytes(source_result)
+    receipt_path = state_root / bridge.MEMORY_TRANSITION_REF
+    receipt_path.write_bytes(bridge.canonical(expected) + b"\n")
+    plan = {"source_job_id": expected["source_job_id"], "source_input_sha256": expected["source_input_sha256"],
+            "source_result_sha256": expected["source_result_sha256"],
+            "failed_task": {"key": expected["failed_key"], "payload_sha256": expected["failed_payload_sha256"],
+                            "attempt_sha256": expected["failed_attempt_sha256"]}}
+    return bridge, material, plan, state_root, settings_path, receipt_path
+
+
+def test_authorized_memory_transition_preserves_identity_and_records_current_execution(tmp_path, monkeypatch):
+    bridge, material, plan, state_root, settings_path, _receipt_path = \
+        _memory_identity_transition_fixture(tmp_path, monkeypatch)
+    before = bridge.canonical(material)
+    files_before = {str(path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    result = bridge._request_material_with_memory_identity(material, state_root, plan, settings_path)
+    assert result["configuration_sha256"] == bridge.MEMORY_IDENTITY_TRANSITION["identity_configuration_sha256"]
+    assert result["execution_configuration_sha256"] == material["configuration_sha256"]
+    assert result["runtime_settings_sha256"] == material["runtime_settings_sha256"]
+    assert result["configuration_material"]["runtime_settings_sha256"] != result["runtime_settings_sha256"]
+    assert result["execution_configuration_material"] == material["configuration_material"]
+    assert result["runtime_memory_transition"]["failed_key"] == plan["failed_task"]["key"]
+    assert bridge.canonical(material) == before
+    assert {str(path): path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()} == files_before
+
+
+@__import__("pytest").mark.parametrize("mutation", [
+    "receipt", "receipt_missing", "source_input", "source_result", "wrong_key", "wrong_payload", "wrong_attempt",
+    "prompt", "model_settings", "parser", "source_code", "configuration", "settings_sha", "settings_bytes",
+    "tier", "ceiling", "prefill", "other_memory", "non_memory", "launcher", "unknown_before",
+])
+def test_authorized_memory_transition_rejects_unmatched_drift(tmp_path, monkeypatch, mutation):
+    bridge, material, plan, state_root, settings_path, receipt_path = \
+        _memory_identity_transition_fixture(tmp_path, monkeypatch)
+    if mutation == "receipt":
+        receipt_path.write_bytes(receipt_path.read_bytes() + b" ")
+    elif mutation == "receipt_missing":
+        receipt_path.unlink()
+    elif mutation in {"source_input", "source_result"}:
+        path = state_root / "announcement_flash/jobs" / plan["source_job_id"] / (mutation.split("_")[1] + ".json")
+        path.write_bytes(b"{}")
+    elif mutation.startswith("wrong_"):
+        plan["failed_task"][{"wrong_key": "key", "wrong_payload": "payload_sha256", "wrong_attempt": "attempt_sha256"}[mutation]] = "0" * 64
+    elif mutation in {"prompt", "model_settings", "parser", "source_code"}:
+        material[{"prompt": "prompt_sha256", "model_settings": "model_settings_sha256", "parser": "parser_sha256", "source_code": "source_code_sha256"}[mutation]] = "0" * 64
+    elif mutation == "configuration":
+        material["configuration_material"]["request_temperature"] = 0.5
+    elif mutation == "settings_sha":
+        material["runtime_settings_sha256"] = "0" * 64
+    elif mutation == "unknown_before":
+        expected = dict(bridge.MEMORY_IDENTITY_TRANSITION)
+        expected["settings_before_sha256"] = "0" * 64
+        # Editing the external receipt cannot replace the source-pinned old SHA.
+        receipt_path.write_bytes(bridge.canonical(expected) + b"\n")
+    elif mutation == "launcher":
+        (settings_path.parent.parent / "start_omlx.sh").write_bytes(b"exec omlx serve --memory-guard-gb 120")
+    else:
+        settings = json.loads(settings_path.read_bytes())
+        if mutation == "settings_bytes":
+            settings_path.write_bytes(settings_path.read_bytes() + b" ")
+        else:
+            if mutation == "tier": settings["memory"]["memory_guard_tier"] = "aggressive"
+            elif mutation == "ceiling": settings["memory"]["memory_guard_custom_ceiling_gb"] = 120
+            elif mutation == "prefill": settings["memory"]["prefill_memory_guard"] = False
+            elif mutation == "other_memory": settings["memory"]["prefill_safe_zone_ratio"] = 0.9
+            elif mutation == "non_memory": settings["server"]["host"] = "0.0.0.0"
+            settings_path.write_bytes(bridge.canonical(settings))
+    with __import__("pytest").raises(bridge.FlashRunError, match="AUTHORIZED_MEMORY_TRANSITION_UNVERIFIED"):
+        bridge._request_material_with_memory_identity(material, state_root, plan, settings_path)
+
+
+def test_authorized_memory_transition_never_normalizes_another_source(tmp_path, monkeypatch):
+    bridge, material, plan, state_root, settings_path, _receipt_path = \
+        _memory_identity_transition_fixture(tmp_path, monkeypatch)
+    plan["source_job_id"] = "f" * 32
+    assert bridge._request_material_with_memory_identity(material, state_root, plan, settings_path) is material
+
+
+@__import__("pytest").mark.parametrize("http_status,response_code,expected", [
+    (400, "prefill_memory_exceeded", "PREFILL_MEMORY_EXCEEDED"),
+    (400, "context_length_exceeded", "REQUEST_HTTP_400"),
+    (400, "invalid_api_key", "MODEL_AUTHENTICATION_FAILED"),
+    (413, None, "REQUEST_HTTP_413"), (422, None, "REQUEST_HTTP_422"),
+    (401, None, "TransportError"), (403, None, "TransportError"), (503, None, "TransportError"),
+])
+def test_transport_executor_classifies_per_request_rejections_without_losing_raw(
+        tmp_path, http_status, response_code, expected):
+    bridge = _bridge_module()
+
+    class TransportError(RuntimeError):
+        pass
+
+    class ExecutorFailure(RuntimeError):
+        def __init__(self, message, *, code, raw_response):
+            super().__init__(message)
+            self.code, self.raw_response = code, raw_response
+
+    raw = _json_bytes({"error": {"code": response_code, "type": "invalid_request_error"}})
+    (tmp_path / "round-0001.raw.sse").write_bytes(raw)
+
+    def reject(*_args, **_kwargs):
+        raise TransportError(f"CHAT_HTTP_STATUS:{http_status}")
+
+    transport = SimpleNamespace(_attempt_dir=tmp_path, begin_job=lambda _job: None,
+                                finish_job=lambda **_kwargs: None, complete_batch=reject)
+    execute = bridge._transport_executor(SimpleNamespace(ExecutorFailure=ExecutorFailure), transport,
+        SimpleNamespace(TransportError=TransportError), {}, tmp_path)
+    job = SimpleNamespace(payload={"messages": [], "structured_output_schema": {}, "workflow_profile": "fixture"})
+    with __import__("pytest").raises(ExecutorFailure) as exc:
+        execute(job)
+    assert exc.value.code == expected
+    assert exc.value.raw_response == raw
+
+
+def _single_item_failure_queue(bridge, failures):
+    class Queue:
+        def __init__(self):
+            self.jobs = {"old_success": {"status": "SUCCEEDED", "attempt_count": 1, "attempts": []},
+                         **{key: {"status": "PENDING", "attempt_count": 0, "attempts": []}
+                            for key in ("A", "B", "C")}}
+            self.dispatched = []
+
+        def _load_state(self):
+            return {"jobs": self.jobs}
+
+        def run_next(self, _executor, _validator, *, idempotency_keys, wait_for_model_slot):
+            pending = sorted(key for key in idempotency_keys if self.jobs[key]["status"] == "PENDING")
+            if not pending:
+                return None
+            key = pending[0]
+            self.dispatched.append(key)
+            failure = failures.get(key)
+            self.jobs[key].update(status="FAILED" if failure else "SUCCEEDED", attempt_count=1,
+                                  attempts=[{"number": 1, "error": failure, "raw_length_bytes": 0}])
+            return {"idempotency_key": key, "status": self.jobs[key]["status"]}
+    return Queue()
+
+
+@__import__("pytest").mark.parametrize("stage,code", [
+    ("executor", "PREFILL_MEMORY_EXCEEDED"), ("executor", "REQUEST_HTTP_400"),
+    ("executor", "REQUEST_HTTP_413"), ("executor", "REQUEST_HTTP_422"),
+    ("executor", "EMPTY_MODEL_OUTPUT"), ("validator", "SCHEMA_REJECTED"),
+    ("validator", "PART_TOKEN_PREFLIGHT_INVALID"), ("parser", "JSON_INVALID"),
+])
+def test_single_item_failure_continues_next_once_without_replaying_success(stage, code):
+    bridge = _bridge_module()
+    queue = _single_item_failure_queue(bridge, {"A": {"stage": stage, "code": code}})
+    dispatched = []
+    completed, stop = bridge._dispatch_pending_queue_keys(queue, None, None, {"old_success", "A", "B"},
+        completed=0, max_model_calls=None, dispatched_keys=dispatched, on_result=lambda _count: None)
+    assert stop is None and completed == 2
+    assert queue.dispatched == dispatched == ["A", "B"]
+    assert queue.jobs["A"]["status"] == "FAILED" and queue.jobs["A"]["attempt_count"] == 1
+    assert queue.jobs["B"]["status"] == "SUCCEEDED"
+    assert queue.jobs["old_success"]["attempt_count"] == 1
+    assert queue.jobs["C"]["attempt_count"] == 0
+
+
+def test_repeated_prefill_rejections_continue_without_batch_threshold():
+    bridge = _bridge_module()
+    failures = {key: {"stage": "executor", "code": "PREFILL_MEMORY_EXCEEDED"} for key in ("A", "B")}
+    queue = _single_item_failure_queue(bridge, failures)
+    completed, stop = bridge._dispatch_pending_queue_keys(queue, None, None, {"A", "B", "C"},
+        completed=0, max_model_calls=None, dispatched_keys=[], on_result=lambda _count: None)
+    assert completed == 3 and stop is None
+    assert queue.dispatched == ["A", "B", "C"]
+    assert queue.jobs["C"]["status"] == "SUCCEEDED"
+
+
+@__import__("pytest").mark.parametrize("code", ["TransportError", "MODEL_AUTHENTICATION_FAILED", "MODEL_SERVICE_UNAVAILABLE"])
+def test_global_execution_failure_stops_before_later_attempts(code):
+    bridge = _bridge_module()
+    queue = _single_item_failure_queue(bridge, {"A": {"stage": "executor", "code": code}})
+    completed, stop = bridge._dispatch_pending_queue_keys(queue, None, None, {"A", "B"},
+        completed=0, max_model_calls=None, dispatched_keys=[], on_result=lambda _count: None)
+    assert completed == 1 and stop["failure_code"] == code
+    assert queue.dispatched == ["A"] and queue.jobs["B"]["attempt_count"] == 0
+
+
+def test_canary_request_limit_is_one_even_when_that_request_fails():
+    bridge = _bridge_module()
+    queue = _single_item_failure_queue(bridge, {"A": {"stage": "executor", "code": "PREFILL_MEMORY_EXCEEDED"}})
+    completed, stop = bridge._dispatch_pending_queue_keys(queue, None, None, {"A", "B"},
+        completed=0, max_model_calls=1, dispatched_keys=[], on_result=lambda _count: None)
+    assert completed == 1 and stop is None
+    assert queue.dispatched == ["A"] and queue.jobs["B"]["attempt_count"] == 0
+
+
+def test_queue_write_failure_propagates_without_dispatching_later_items():
+    bridge = _bridge_module()
+    queue = _single_item_failure_queue(bridge, {})
+    def broken(*_args, **_kwargs):
+        raise OSError("QUEUE_WRITE_FAILED")
+    queue.run_next = broken
+    with __import__("pytest").raises(OSError, match="QUEUE_WRITE_FAILED"):
+        bridge._dispatch_pending_queue_keys(queue, None, None, {"A", "B"},
+            completed=0, max_model_calls=None, dispatched_keys=[], on_result=lambda _count: None)
+    assert queue.dispatched == [] and queue.jobs["B"]["attempt_count"] == 0
+
+
+@__import__("pytest").mark.parametrize("failure", [
+    "raw_persist", "result_persist", "input_read", "raw_contract", "prefill", "validator", "json_parse", "decode",
+])
+def test_real_queue_stops_persistence_failures_but_continues_item_failures(tmp_path, monkeypatch, failure):
+    bridge = _bridge_module()
+    # Exercise the installed queue's conversion of I/O exceptions to FAILED
+    # records; run_next does not propagate these exceptions to the dispatcher.
+    queue_path = bridge.PIPELINE_ROOT / "announcement_queue.py"
+    spec = importlib.util.spec_from_file_location("r5_repair_real_announcement_queue", queue_path)
+    queue_module = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, spec.name, queue_module)
+    spec.loader.exec_module(queue_module)
+    queue = queue_module.SerialAnnouncementQueue(tmp_path, bridge.QUEUE_ID, "repair-test-model", max_attempts=1)
+
+    def payload(article_id, length):
+        body = article_id * length
+        return {"date": "2026-10-16", "market": "HK", "article_id": article_id,
+                "source_sha256": "1" * 64, "body_sha256": bridge.sha(body.encode()),
+                "prompt_sha256": "2" * 64, "model_id": "repair-test-model", "configuration_sha256": "3" * 64,
+                "rules": "repair-test", "role": "announcement_reader", "stage": "repair-test", "article_body": body}
+
+    old = queue.enqueue(payload("OLD", 1))["idempotency_key"]
+    queue.run_next(lambda _job: "{}", lambda _job, parsed: parsed, idempotency_keys={old})
+    old_before = bridge.canonical(queue._load_state()["jobs"][old])
+    old_files = {path: path.read_bytes() for path in (tmp_path / "jobs" / old).iterdir()}
+    a = queue.enqueue(payload("A", 10))["idempotency_key"]
+    b = queue.enqueue(payload("B", 20))["idempotency_key"]
+    calls = []
+    if failure == "raw_persist":
+        original = queue._persist_raw
+        def broken(item, attempt, raw):
+            if item["idempotency_key"] == a:
+                raise OSError("RAW_DISK_FAILURE")
+            return original(item, attempt, raw)
+        monkeypatch.setattr(queue, "_persist_raw", broken)
+    elif failure == "result_persist":
+        original = queue._record_success
+        def broken(key, *args):
+            if key == a:
+                raise OSError("RESULT_DISK_FAILURE")
+            return original(key, *args)
+        monkeypatch.setattr(queue, "_record_success", broken)
+    elif failure == "input_read":
+        input_path = tmp_path / queue._load_state()["jobs"][a]["input_path"]
+        input_path.write_bytes(b"{}")  # The saved payload SHA now fails at input_read.
+
+    def executor(job):
+        calls.append(job.payload["article_id"])
+        if job.idempotency_key == a:
+            if failure == "prefill":
+                raise queue_module.ExecutorFailure("PREFILL_MEMORY_EXCEEDED", code="PREFILL_MEMORY_EXCEEDED", raw_response=b"{}")
+            if failure == "raw_contract": return {"not": "raw bytes"}
+            if failure == "json_parse": return "{invalid"
+            if failure == "decode": return b"\xff"
+        return "{}"
+
+    def validator(job, parsed):
+        if job.idempotency_key == a and failure == "validator":
+            raise queue_module.ValidationRejected("SCHEMA_REJECTED", code="SCHEMA_REJECTED")
+        return parsed
+
+    dispatched = []
+    completed, stop = bridge._dispatch_pending_queue_keys(queue, executor, validator, {old, a, b},
+        completed=0, max_model_calls=None, dispatched_keys=dispatched, on_result=lambda _count: None)
+    jobs = queue._load_state()["jobs"]
+    assert bridge.canonical(jobs[old]) == old_before
+    assert all(path.read_bytes() == raw for path, raw in old_files.items())
+    assert jobs[a]["status"] == "FAILED" and jobs[a]["attempt_count"] == 1
+    if failure in {"raw_persist", "result_persist", "input_read", "raw_contract"}:
+        assert completed == 1 and stop is not None
+        assert stop["stage"] == failure
+        assert jobs[b]["status"] == "PENDING" and jobs[b]["attempt_count"] == 0
+        assert dispatched == [a]
+        assert calls == ([] if failure == "input_read" else ["A"])
+    else:
+        assert completed == 2 and stop is None
+        assert jobs[b]["status"] == "SUCCEEDED" and jobs[b]["attempt_count"] == 1
+        assert dispatched == [a, b] and calls == ["A", "B"]

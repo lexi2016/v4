@@ -1,7 +1,7 @@
-# Announcement saved-result recovery R3
+# Announcement pending-only recovery and per-item failure isolation
 
-Fix ordinary canary result identity readback and strictly revalidate its saved successful result to unlock pending-only continuation with zero repeated model requests. Preserve historical failure receipts and all 575 successful records / 1150 result files.
+R4 binds the explicitly authorized balanced-to-custom-96-GiB runtime change while keeping frozen request identities and separately recording the actual execution configuration. R5 records individual HTTP400/413/422 request rejections, empty output and validation failures and continues the remaining queue. Authentication, unavailable service and broken queue state still stop execution. Successful tasks are never retried.
 
-Independent review: PASS, 34 targeted regressions; real saved canary read-only replay PASS with zero state writes or model POSTs. R3 deployed to local research API and saved-canary resume eligibility verified. Full remaining run and final selection acceptance remain pending. Prior R2 passes are reused. No natural-slot verification.
+Independent acceptance and runtime state are recorded in verification.json. The source directory contains the exact candidate/deployed six files; canonical-preservation.patch retains pre-existing canonical additions. The exact authorized memory-transition receipt is needed for this narrowly bound recovery and contains no credentials or raw announcements. The launcher retains enabled prefill protection with a96GiB process ceiling.
 
-The source directory contains the exact six deployed files; canonical-preservation.patch records previously existing canonical additions kept during mechanical integration. Verification records baseline and resulting SHA-256 hashes. This bounded archive does not represent a repository-wide deployment or merge. No raw inputs, model outputs, logs, credentials, build files or runtime state are included.
+No raw inputs, model outputs, logs, settings secrets, build files or full runtime state are included. Twelve historical part identities remain unresolved and are isolated. Existing displayed Oct15 candidates are not newly selected Oct16 results.

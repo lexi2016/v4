@@ -658,6 +658,14 @@ class AnnouncementUpdate:
                 transport_recovery = self._transport_recovery_plan(
                     source_job_id, target_date, input_value, progress_value, result_value,
                     result_raw, queue_value, hashes, capture_value)
+                from ops.run_manager_flash_announcements import (
+                    MEMORY_IDENTITY_TRANSITION, FlashRunError, _current_transport_request_material,
+                )
+                if source_job_id == MEMORY_IDENTITY_TRANSITION["source_job_id"]:
+                    try:
+                        _current_transport_request_material(source_root, transport_recovery)
+                    except FlashRunError as exc:
+                        raise JobConflict("RESUME_AUTHORIZED_MEMORY_TRANSITION_UNVERIFIED") from exc
                 completed = {"mode": "INITIAL_CANARY", "canary_passed": False,
                              "canary_key": None, "canary_status": None, "canary_model_calls": 0,
                              "canary_validation": None, "legacy_failed_canary": None,

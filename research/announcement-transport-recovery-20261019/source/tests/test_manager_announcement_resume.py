@@ -2119,3 +2119,29 @@ def test_saved_transport_service_rejects_invalid_or_nonexact_failure(tmp_path, m
         update._completed_transport_canary(child["job_id"], "20261016", child, result,
                                            {"jobs": queue.jobs}, {}, state_root, plan)
     assert queue.dispatched == [key]
+
+
+@pytest.mark.parametrize("verified", [True, False])
+def test_memory_transition_service_requires_exact_authorization_before_resume_submission(tmp_path, monkeypatch, verified):
+    bridge = _runner()
+    source_id = bridge.MEMORY_IDENTITY_TRANSITION["source_job_id"]
+    service, _source_id = _resume_service(tmp_path, source_job_id=source_id)
+    _mark_transport_system_stop(service, source_id)
+    calls = []
+
+    def verify(state_root, plan):
+        calls.append((state_root, plan))
+        if not verified:
+            raise bridge.FlashRunError("AUTHORIZED_MEMORY_TRANSITION_UNVERIFIED")
+        return {"runtime_memory_transition": {"receipt_sha256": "a" * 64}}
+
+    monkeypatch.setattr(bridge, "_current_transport_request_material", verify)
+    monkeypatch.setitem(__import__("sys").modules, "ops.run_manager_flash_announcements", bridge)
+    update = AnnouncementUpdate(service)
+    snapshot = update.resume_snapshot("20261016")
+    assert calls and calls[0][0] == service.store.root
+    assert calls[0][1]["source_job_id"] == source_id
+    assert snapshot["eligible"] is verified
+    if not verified:
+        assert snapshot["reason"] == "RESUME_AUTHORIZED_MEMORY_TRANSITION_UNVERIFIED"
+    assert service.jobs.submissions == []
