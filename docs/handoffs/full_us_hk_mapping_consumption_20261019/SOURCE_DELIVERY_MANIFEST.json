@@ -1,0 +1,92 @@
+{
+  "baseline_commit": "46ec29868c5ba684d2d5c9b4cec143bc8c2143f5",
+  "branch": "codex/full-us-hk-mapping-consumption-20261019-r1",
+  "source_root": "/Users/lexi/.codex/worktrees/full-us-hk-mapping-consumption/v4_app",
+  "source_files": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "b0d05ef28f82bf1d252ded1b61888b543efc965641b3a303b110fc903dcd4541",
+      "after_sha256": "638f1ff1434e9559690c5a0ef345811ca1dc9435780b99847f6336891ec4d24e",
+      "bytes": 91747
+    },
+    {
+      "path": "ops/_us_market_digest_parts/cli_primitives.py",
+      "before_sha256": "252bcc75e3f1ff26ffe58c16c49935d36f5f9ed4811d8bd820f7a454a9d21968",
+      "after_sha256": "7e56d663481bd691978b8bbdc6fa5db8f1953fba7bbb7b668de50eb194467adb",
+      "bytes": 17213
+    },
+    {
+      "path": "ops/_us_market_digest_parts/manual_quote_scope.py",
+      "before_sha256": null,
+      "after_sha256": "7d8efd2be38cf630da207fe216ac4e6e7e584d7a36da2e585ca29e9926e39fd4",
+      "bytes": 18421
+    },
+    {
+      "path": "ops/us_market_digest.py",
+      "before_sha256": "96b15646e35fad6e399edb61eb8c3bd8d20b52141323e0bb1ce477b7313bcaf8",
+      "after_sha256": "5b6b4831bbf9edae2eb19344ef648a443cea0ffd2622ddc3f0df52ef7f73a4c0",
+      "bytes": 36649
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping_consumption.py",
+      "before_sha256": null,
+      "after_sha256": "76ce06de99247d371379c5cc620cc875d84021c89fa9d6daec31ab0c559dde95",
+      "bytes": 5337
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "before_sha256": "8b6e28bc88de8bb9efc2e72f8774b68fc0cbd7b7cba979170669a6b9691e2550",
+      "after_sha256": "315fc49b191281ea6461b7c9328df33edca99ecaaafc3228f41e571c411196f5",
+      "bytes": 21998
+    },
+    {
+      "path": "tests/test_manual_quote_scope_owner.py",
+      "before_sha256": null,
+      "after_sha256": "391347428bae34d944251f40b84dbdfea97a97cf7b10ef404f5f1727bf9d9495",
+      "bytes": 5645
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "before_sha256": "d5234596ea14316829779fa5d5791f75b238e846867df25e7e4d309ef2363341",
+      "after_sha256": "167cd5c2e798ea8923ae633c1f4ba7c9b78dfa75d88f9b7603b0697452ae489e",
+      "bytes": 61791
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "d2cc7e3490ecc892a804a01ac95e88e1d8cd6181a2cc8ff208f67d078e4655d5",
+      "after_sha256": "131eee09a9d85869361aba9137e10aad77fb8860c9f35c247277137d0b64b271",
+      "bytes": 28397
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "before_sha256": null,
+      "after_sha256": "ee1f4174f2922becd0b92444440b2902d53da6e29c3f56e4b8c1f12e34e0a468",
+      "bytes": 22813
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before_sha256": "3e0d5b7e32700f8cc3a96ed4172df4454bb533534da8e0ac3213ba896529a100",
+      "after_sha256": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2",
+      "bytes": 97324
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "before_sha256": "44b6552e734c02e29850f1df6d422afc5f704c858c751fd443041e9500813981",
+      "after_sha256": "223d20720537006bf0b4c62f009332ea71b4a483ca050c7b3b980fb8bd9885d7",
+      "bytes": 79631
+    },
+    {
+      "path": "v4/manager_workbench/store.py",
+      "before_sha256": "493df1a72bf4c4a533ae533ce5fc0185c9d9536d01c4e88082270908c8b1aa18",
+      "after_sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+      "bytes": 13492
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_publish_read_limits.py",
+      "before_sha256": null,
+      "after_sha256": "c637f65ff16386a2f2ef3271bac68223a893b54fbe354fb717e299db1b39e3ab",
+      "bytes": 3038
+    }
+  ],
+  "runtime_mapping": "Runtime-specific overlays preserve existing API/scheduler differences; release inventories and delta receipts are recorded separately. No deployment of a whole workspace tree."
+}

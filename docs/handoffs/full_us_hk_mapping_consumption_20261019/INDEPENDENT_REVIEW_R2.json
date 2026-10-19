@@ -1,0 +1,61 @@
+{
+  "reviewer": "full_mapping_consumption_review",
+  "stage": "P1_CATALOG_STOCK_IDENTITY_REPAIR",
+  "scope_sha256": "896d7500741a540357ac47d28d83524d0101fc07f0321669a7e79e2477f71656",
+  "verdict": "REVIEWED/PASS",
+  "behavior": "BEHAVIOR_VERIFIED for catalog identity reconciliation only",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "actual_input_reconciliation": {
+    "catalog_stock_identities": 667,
+    "original_relations": 1003,
+    "unique_original_relation_ids": 1003,
+    "stocks_with_relations": 649,
+    "no_relation_stocks": [
+      "01528",
+      "01811",
+      "01963",
+      "01988",
+      "02202",
+      "02357",
+      "02526",
+      "02635",
+      "02922",
+      "03311",
+      "03774",
+      "06049",
+      "06066",
+      "06658",
+      "06666",
+      "06681",
+      "06963",
+      "06979"
+    ],
+    "monthly_research_membership": {
+      "source_date": "20261012",
+      "count": 698,
+      "codes_sha256": "92f3404d30d980fa2695b8a50f4bc582b258c757112adf3a9fadb8eda8f638d1",
+      "members_outside_catalog": 31,
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    },
+    "engine_output": {
+      "catalog_identity_state": "READY",
+      "relation_dispositions": 1003,
+      "original_relation_ids_and_order_preserved": true,
+      "extra_members_created_as_relations": false,
+      "result_state": "PARTIAL; US16 quote data was not read"
+    }
+  },
+  "verification": {
+    "focused_tests": "37 passed",
+    "writer_receipt_changed_file_hashes": "44/44 match",
+    "p1_followup_changed_file_hashes": "15/15 match",
+    "api_overlay": "11 files checked; before/after hashes match receipt",
+    "scheduler_overlay": "10 files checked; before/after hashes match receipt",
+    "api_workbench_build": "R3 source and generated asset hashes verified in candidate overlay"
+  },
+  "full_mapping_runtime_status": "CANNOT_CONFIRM: provider execution, activation/deployment, live API/UI readback, and actual US20261016 run remain pending"
+}

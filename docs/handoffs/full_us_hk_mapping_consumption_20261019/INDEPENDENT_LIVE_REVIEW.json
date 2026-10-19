@@ -1,0 +1,82 @@
+{
+  "review": "REVIEWED/PASS",
+  "reviewer": "full_mapping_consumption_review; independent read-only Luna Max",
+  "scope": "Final deployed manual-run and loaded-UI acceptance; source/frozen scope unchanged",
+  "findings": [],
+  "BEHAVIOR_VERIFIED": "PASS for manual run and loaded workbench page 571e25ceffed46528fbc6b8ea45de3d3",
+  "live_identity": {
+    "api": {
+      "pid": 75469,
+      "release": "full-us-hk-mapping-api-20261019-r2",
+      "manifest_sha256": "9cdbb692be8630425792449ce00ff7710ad4253c9f36c9c20f4f5d32478805e7",
+      "healthz": 200,
+      "readyz": 200,
+      "exact_run_GET": "200 PARTIAL matching job/run"
+    },
+    "scheduler": {
+      "pid": 75648,
+      "release": "full-us-hk-mapping-scheduler-20261019-r2",
+      "manifest_sha256": "f273d60db4935d6654df3d9042a837002f0d5606d2bace03cac4bdf3ea0b42be",
+      "natural_tick": "CANNOT_CONFIRM"
+    }
+  },
+  "run": {
+    "run_id": "571e25ceffed46528fbc6b8ea45de3d3",
+    "state": "PARTIAL",
+    "step": "DONE",
+    "failed_steps": [],
+    "failure_code": null,
+    "snapshot_sha256": "7346b4635d9b3784194738806cd5663470db5dd3a850a0552bf228846bb30788",
+    "mapping_rows": 698,
+    "unique_mapping_symbols": 698,
+    "catalog_relations": 1003,
+    "unique_relation_ids": 1003,
+    "quote_status": {
+      "VERIFIED": 933,
+      "MISSING_OR_UNVERIFIED": 70
+    },
+    "catalog_identity": {
+      "stocks": 667,
+      "with_relations": 649,
+      "without_relations": 18,
+      "monthly_pool_extras": 31,
+      "outside_pool_relations": 0,
+      "fabricated_extra_relations": 0
+    },
+    "post_open_status": "All 698 PENDING_OPEN",
+    "post_open_reason": "HK_OPEN_NOT_YET_OCCURRED_AT_CUTOFF",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "ui": {
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261020&phase=MANUAL&run_id=571e25ceffed46528fbc6b8ea45de3d3",
+    "run_and_partial_visible": true,
+    "identity_lists": "All18 no-relation and31 monthly-only codes in expanded AX",
+    "peer_sample": "HK.00006/NGG R015 source-return observation, explicit no-HK-prediction disclaimer",
+    "conditional_sample": "HK.00267/PUK R127 ADOPTED_CONDITIONAL_ROUTE, CONDITION_NOT_EVALUATED, NO_ACTIVE_TRANSMISSION, direction_sign null",
+    "upstream_sample": "HK.00002/SHEL R005 upstream/downstream OPEN_OBSERVATION_PENDING, verified quote, no active transmission",
+    "ax_limit": "AX table snapshot reports0-500 of1004; full array rendering and screenshotR1003 prove display not truncated at500"
+  },
+  "focused_tests": "NOT_RUN in evidence-only increment; prior independent source PASS reused",
+  "evidence": {
+    "acceptance_summary_sha256": "4540e146ae121964f6bfd90aaa98f970b2ca4abdd7242db1329cd20660f61c0c",
+    "api_activation_receipt_sha256": "8d917973a1ea6cbad893c43ebfbc701302da58d875c95bd62ba04bb2dcf58f16",
+    "scheduler_activation_receipt_sha256": "0cc416edc1fec2a34a3a1080f59f8bffde5baf32ce7efd367c48262b932b208f",
+    "job_response_sha256": "a77c9c36ace442d5a89591869e57ba9feb00d8152af03f73480e146344055110",
+    "lane_response_sha256": "17ead71366273364ad3057830e626392d856c554120df971f4b1c1d5416b82b9",
+    "local_ui_files": [
+      "local_only/actual_full_mapping_r2/ui-overview-ax.txt",
+      "local_only/actual_full_mapping_r2/ui-expanded-ax.txt",
+      "local_only/actual_full_mapping_r2/page-overview.png",
+      "local_only/actual_full_mapping_r2/peer-observations.png"
+    ]
+  },
+  "cannot_confirm": [
+    "Formal target-date HK Connect eligibility",
+    "Historical PIT and strategy effectiveness",
+    "Natural target-session/open result"
+  ],
+  "recorded_by": "Root faithful structured transcription of independent final verdict"
+}

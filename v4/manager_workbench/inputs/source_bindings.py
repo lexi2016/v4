@@ -9,6 +9,11 @@ from datetime import date
 from pathlib import Path
 from infrastructure.owned_io import SafeRoot
 from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
+from ..engines.us_mapping_consumption import (
+    MANUAL_QUOTE_OWNER,
+    MANUAL_QUOTE_SCOPE_SHA256,
+    normalize_us_symbol,
+)
 from .validation import raw_sha, before, owner_digest, symbol
 
 OWNER = 'v35_dispatcher.research_panel_daily_hk'
@@ -798,7 +803,14 @@ def _full_mapping_overlay():
             if status:
                 status_counts[status] = status_counts.get(status, 0) + 1
             recovery = dict(recovery, field_sha256=field_sha256,
-                            use_scope=effective_research.get("whitelist_scope"))
+                            use_scope=effective_research.get("whitelist_scope"),
+                            current_applicability_state=effective_research.get("current_applicability_state"),
+                            fact_state=effective_research.get("fact_state"),
+                            identity_state=effective_research.get("identity_state"),
+                            research_layers=effective_research.get("research_layers"),
+                            remaining_gaps=effective_research.get("remaining_gaps"),
+                            acceptance_closure_basis=(recovery_record.get("current_summary_csv_row") or {}).get("closure_basis"),
+                            acceptance_closure_scope=(recovery_record.get("current_summary_csv_row") or {}).get("closure_scope"))
             relations.append({
                 "hk_code": stock.get("hk_code"),
                 "hk_name": stock.get("name"),
@@ -830,6 +842,10 @@ def _full_mapping_overlay():
         "recovery_overlay_integrity_sha256": recovery_meta.get("overlay_integrity_sha256"),
         "catalog_file_sha256": raw_sha(catalog_path.read_bytes()),
         "review_overlay_file_sha256": raw_sha(overlay_path.read_bytes()),
+        "stock_identities": [
+            {"hk_code": stock.get("hk_code"), "name": stock.get("name")}
+            for stock in stocks
+        ],
         "checked_files": [
             {"source_local_path": str(root), "relative": catalog_path.relative_to(root).as_posix(),
              "sha256": raw_sha(catalog_path.read_bytes())},
@@ -840,6 +856,163 @@ def _full_mapping_overlay():
         ],
         "relations": relations,
     }
+
+def _manual_quote_scope_binding(root, manifest, manifest_sha, session, cutoff,
+                                full_overlay, configured_symbols):
+    """Validate the frozen expanded scope against its separate immutable owner artifact."""
+    base_contract = build_us_universe_contract()
+    base_symbols = set(base_contract["symbols"])
+    catalog_symbols = set()
+    invalid_symbols = set()
+    for relation in full_overlay.get("relations", []):
+        source = relation.get("source_record") if isinstance(relation, dict) else None
+        raw = source.get("asset_code") if isinstance(source, dict) else None
+        normalized = normalize_us_symbol(raw)
+        if normalized:
+            catalog_symbols.add(normalized)
+        elif raw:
+            invalid_symbols.add(str(raw))
+    expected_symbols = sorted(base_symbols | catalog_symbols | {"XLU", "KIE"})
+
+    def unavailable(reason):
+        return dict(state="CANNOT_CONFIRM", gap=reason, owner=MANUAL_QUOTE_OWNER,
+                    scope_sha256=MANUAL_QUOTE_SCOPE_SHA256, us_session_date=session,
+                    requested_symbol_count=len(expected_symbols), available_symbol_count=0,
+                    quotes={}, symbol_gaps={})
+
+    if (full_overlay.get("state") != "READY"
+            or full_overlay.get("catalog_file_sha256") != "3d7e1c3931a66a6844f4cb5c0d35030ed0e615e3e8246bc0b22caddc61dbb671"
+            or len(catalog_symbols) != 517 or len(invalid_symbols) != 1
+            or len(expected_symbols) != 547
+            or set(configured_symbols) != base_symbols):
+        return unavailable("US_MANUAL_QUOTE_SCOPE_EXPECTED_SYMBOLS_UNVERIFIED")
+    expected_contract = build_us_universe_contract(sorted(set(expected_symbols) - base_symbols))
+    exact = []
+    for relative, expected_sha in sorted(manifest.items()):
+        parts = Path(relative).parts
+        if (len(parts) != 5 or parts[:3] != ("research", "peripherals", "history_backfill")
+                or parts[4] != "external_finance.json" or len(parts[3]) != 8 or not parts[3].isdigit()):
+            continue
+        try:
+            payload, payload_sha = read(root, relative, expected_sha)
+            snapshot = payload.get("market_snapshot")
+            if not isinstance(snapshot, dict) or snapshot.get("capture_session_date") != session:
+                continue
+            from infrastructure.research_peripheral_store import validate_research_peripheral
+            validate_research_peripheral(payload, expected_trade_date=parts[3], expected_source="external_finance")
+            receipt_relative = f"receipts/research/peripherals/history_backfill/{parts[3]}/external_finance.json"
+            receipt, receipt_sha = read(root, receipt_relative)
+            expected_receipt = dict(
+                schema_version="v3_5.research_peripheral_backfill_receipt.v1",
+                trade_date=parts[3], source="external_finance", payload_path=relative,
+                payload_sha256=payload_sha, item_count=payload.get("item_count"),
+                capture_origin="HISTORICAL_BACKFILL", original_time_capture=False,
+                write_policy="read_only", recommendation_status="RESEARCH_ONLY",
+                production_allowed=False, buy_gate_updated=False, orders_sent=False,
+            )
+            if (manifest.get(relative) != payload_sha or receipt != expected_receipt
+                    or payload.get("capture_origin") != "HISTORICAL_BACKFILL"
+                    or payload.get("original_time_capture") is not False
+                    or payload.get("capture_mode") != "MANUAL_QUOTE_SCOPE_EXPANSION"
+                    or payload.get("status") != "READY_EMPTY" or payload.get("item_count") != 0
+                    or payload.get("market_snapshot_status") != snapshot.get("status")
+                    or snapshot.get("capture_phase") != "HISTORICAL_BACKFILL"
+                    or snapshot.get("capture_mode") != "MANUAL_QUOTE_SCOPE_EXPANSION"
+                    or snapshot.get("status") not in {"READY", "PARTIAL"}
+                    or not valid_sha(snapshot.get("source_response_sha256"))):
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_OWNER_IDENTITY_INVALID")
+            scope_record = snapshot.get("manual_quote_scope")
+            expected_symbols_sha = __import__("hashlib").sha256(
+                json.dumps(expected_symbols, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            if (not isinstance(scope_record, dict)
+                    or scope_record.get("schema_version") != "v4.manual_us_quote_scope.v1"
+                    or scope_record.get("scope_sha256") != MANUAL_QUOTE_SCOPE_SHA256
+                    or scope_record.get("parent_scope_sha256") != MANUAL_QUOTE_SCOPE_SHA256
+                    or scope_record.get("scope_mode") != "FULL"
+                    or scope_record.get("symbols_sha256") != expected_symbols_sha
+                    or scope_record.get("symbols") != expected_symbols
+                    or scope_record.get("requested_symbol_count") != len(expected_symbols)
+                    or scope_record.get("captured_at") != snapshot.get("captured_at")
+                    or snapshot.get("universe_contract") != expected_contract
+                    or snapshot.get("requested_symbol_count") != len(expected_symbols)):
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_UNIVERSE_OR_DIGEST_MISMATCH")
+            captures = payload.get("us_session_captures") or []
+            matching = [row for row in captures if isinstance(row, dict)
+                        and row.get("us_session_date") == session
+                        and row.get("capture_phase") == "HISTORICAL_BACKFILL"]
+            if (len(matching) != 1
+                    or matching[0].get("capture_origin") != "HISTORICAL_BACKFILL"
+                    or matching[0].get("original_time_capture") is not False
+                    or matching[0].get("capture_mode") != "MANUAL_QUOTE_SCOPE_EXPANSION"
+                    or matching[0].get("captured_at") != snapshot.get("captured_at")):
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_CAPTURE_IDENTITY_INVALID")
+            captured_at = snapshot.get("captured_at")
+            checked_time(captured_at, cutoff)
+            from datetime import datetime
+            from zoneinfo import ZoneInfo
+            from contracts.us_equity_calendar import latest_completed_session, session as us_session
+            captured = datetime.fromisoformat(str(captured_at).replace("Z", "+00:00"))
+            if latest_completed_session(captured).session_date != session:
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_NOT_LATEST_COMPLETED_SESSION")
+            official = us_session(session)
+            quotes = snapshot.get("quotes") or []
+            if not isinstance(quotes, list):
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_QUOTES_INVALID")
+            quote_map = {}
+            symbol_gaps = dict(snapshot.get("quote_failures") or {})
+            if not isinstance(snapshot.get("quote_failures") or {}, dict):
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_FAILURES_INVALID")
+            for quote in quotes:
+                symbol_value = quote.get("symbol") if isinstance(quote, dict) else None
+                if symbol_value not in expected_symbols or symbol_value in quote_map:
+                    raise ValueError("US_MANUAL_QUOTE_SCOPE_QUOTE_SYMBOL_INVALID")
+                try:
+                    observed = datetime.strptime(
+                        session + " " + str(quote.get("session_time") or ""), "%Y%m%d %H:%M:%S"
+                    ).replace(tzinfo=ZoneInfo("America/New_York"))
+                except (TypeError, ValueError):
+                    symbol_gaps[symbol_value] = "QUOTE_SESSION_TIMESTAMP_INVALID"
+                    continue
+                if observed < official.close_at:
+                    symbol_gaps[symbol_value] = "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE"
+                    continue
+                if observed > captured:
+                    symbol_gaps[symbol_value] = "QUOTE_PROVIDER_TIMESTAMP_AFTER_CAPTURE"
+                    continue
+                quote_map[symbol_value] = dict(quote)
+            for symbol_value in expected_symbols:
+                if symbol_value not in quote_map:
+                    symbol_gaps.setdefault(symbol_value, "QUOTE_SYMBOL_MISSING")
+            if not quote_map:
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_NO_VALID_QUOTES")
+            if (snapshot.get("available_symbol_count") != len(quotes)
+                    or snapshot.get("status") != ("READY" if len(quotes) == len(expected_symbols) else "PARTIAL")):
+                raise ValueError("US_MANUAL_QUOTE_SCOPE_COVERAGE_STATUS_INVALID")
+            exact.append((relative, parts[3], payload_sha, receipt_relative, receipt_sha,
+                          snapshot, quote_map, symbol_gaps))
+        except (OSError, ValueError, KeyError, TypeError, UnicodeError):
+            continue
+    if len(exact) != 1:
+        return unavailable("US_MANUAL_QUOTE_SCOPE_ARTIFACT_NOT_UNIQUE" if exact
+                           else "US_MANUAL_QUOTE_SCOPE_ARTIFACT_NOT_FOUND")
+    relative, trade_date, payload_sha, receipt_relative, receipt_sha, snapshot, quote_map, symbol_gaps = exact[0]
+    state = "READY" if len(quote_map) == len(expected_symbols) else "PARTIAL"
+    return dict(
+        state=state, gap=None if state == "READY" else "US_MANUAL_QUOTE_SCOPE_PARTIAL",
+        owner=MANUAL_QUOTE_OWNER, scope_sha256=MANUAL_QUOTE_SCOPE_SHA256,
+        us_session_date=session, trade_date=trade_date, available_at=snapshot.get("captured_at"),
+        requested_symbol_count=len(expected_symbols), available_symbol_count=len(quote_map),
+        coverage_fraction=len(quote_map) / len(expected_symbols), symbols=expected_symbols,
+        quotes=quote_map, symbol_gaps=symbol_gaps, payload_relative=relative,
+        payload_sha256=payload_sha, receipt_relative=receipt_relative, receipt_sha256=receipt_sha,
+        manifest_relative="research/peripherals/manifest.json", manifest_sha256=manifest_sha,
+        source_response_sha256=snapshot.get("source_response_sha256"),
+        checked_files=[dict(source_local_path=str(root), relative=relative, sha256=payload_sha),
+                       dict(source_local_path=str(root), relative=receipt_relative, sha256=receipt_sha),
+                       dict(source_local_path=str(root), relative="research/peripherals/manifest.json", sha256=manifest_sha)],
+    )
+
 
 def us_mapping(config, context):
     session=context.source_sessions['us']; root=config.us_root
@@ -1060,6 +1233,10 @@ def us_mapping(config, context):
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
     industry = hk_industry_classification(config, context)
     full_overlay = _full_mapping_overlay()
+    manual_quote_scope = _manual_quote_scope_binding(
+        root, manifest, msha, session, context.cutoff,
+        full_overlay, universe_contract["symbols"],
+    )
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,
         quote_artifact_date=artifact_date,quote_source_session=session,
         quote_owner='research_peripheral.external_finance',
@@ -1073,13 +1250,17 @@ def us_mapping(config, context):
         relation_registry_version=US_RELATION_REGISTRY_VERSION,
         factor_exposure=factor,factor_exposure_gap=factor_gap,hk_industry_classification=industry,
         full_overlay_projection=full_overlay.get('relations',[]),
-        full_overlay_summary={k:v for k,v in full_overlay.items() if k!='relations'},
+        full_overlay_stock_identities=full_overlay.get('stock_identities',[]),
+        full_overlay_summary={k:v for k,v in full_overlay.items()
+            if k not in ('relations','stock_identities')},
+        manual_quote_scope=manual_quote_scope,
         checked_files=[dict(source_local_path=str(root),relative=receipt_rel,sha256=rsha),
             dict(source_local_path=str(config.relation_root),relative=config.relation_evidence_relative,sha256=esha),
             dict(source_local_path=str(config.relation_root),relative=config.relation_review_relative,sha256=vsha),
             dict(source_local_path=str(registry_root),relative=registry_relative,sha256=registry_sha),
             *seed_sources,*inherited_sources,*factor_files,*industry.get('checked_files',[]),
-            *full_overlay.get('checked_files',[])],
+            *full_overlay.get('checked_files',[]),
+            *manual_quote_scope.get('checked_files',[])],
         owner_manifest_ref='research/peripherals/manifest.json',owner_manifest_sha256=msha)
 
 

@@ -337,6 +337,38 @@ def run_us_mapping(context, batch):
                 paired_review_available=False, paired_review_gap="US_FACTOR_ENGINE_FAILED",
                 source_session=(context.get("source_sessions") or {}).get("us"),
                 historical_pit_verified=False, combined_source_and_stock_count=None)
+        full_mapping_mode = (context.get("target_date") == "20261020"
+            and context.get("phase") in ("MANUAL", "NEXT_DAY")
+            and ((context.get("source_sessions") or {}).get("us")
+                 or (context.get("source_sessions") or {}).get("US")) == "20261016"
+            and ((context.get("source_sessions") or {}).get("hk_price")
+                 or (context.get("source_sessions") or {}).get("HK_PRICE")) == "20261016")
+        if full_mapping_mode:
+            legacy_counts = dict(factor_summary.get("factor_decision_counts") or {})
+            for factor_row in factor_rows:
+                if not isinstance(factor_row, dict) or factor_row.get("subtype") != "HK_INDUSTRY_PROXY_FACTOR_CANDIDATE":
+                    continue
+                factor_row["legacy_factor_decision"] = factor_row.get("decision")
+                factor_row["full_mapping_source_observation_only"] = True
+                factor_row["direction_basis"] = "US_SECTOR_PROXY_SOURCE_RETURN"
+                factor_row["direction_sign"] = None
+                factor_row["signed_hk_return_pct"] = None
+                factor_row["decision"] = "UNASSESSED"
+                factor_row["reason"] = "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN"
+                factor_row["conditions"] = list(dict.fromkeys([
+                    *(factor_row.get("conditions") or []),
+                    "BROAD_SECTOR_BACKGROUND_ONLY", "NO_HK_SIGN_OR_PRIMARY_SELECTION_PATH"]))
+            factor_summary["full_mapping_sector_policy"] = "BROAD_SECTOR_BACKGROUND_ONLY"
+            factor_summary["sector_proxy_effectiveness"] = "UNVERIFIED"
+            factor_summary["sector_proxy_direction_basis"] = "US_SOURCE_RETURN_ONLY"
+            factor_summary["legacy_factor_decision_counts_before_full_mapping_policy"] = legacy_counts
+            factor_summary["factor_decision_counts"] = {
+                decision: sum(1 for item in factor_rows if isinstance(item, dict) and item.get("decision") == decision)
+                for decision in ("SELECTED", "CONDITIONAL_WATCH", "NOT_SELECTED", "UNASSESSED", "OBSERVATION_ONLY")}
+            if isinstance(factor_summary.get("industry_summary"), dict):
+                factor_summary["industry_summary"]["triggered_unique_stock_count"] = 0
+                factor_summary["industry_summary"]["full_mapping_route"] = "BROAD_SECTOR_BACKGROUND"
+                factor_summary["industry_summary"]["full_mapping_direction"] = "US_SOURCE_OBSERVATION_ONLY"
         if (context.get("phase") in ("MANUAL", "NEXT_DAY")
                 and context.get("target_date") == "20261020"
                 and ((context.get("source_sessions") or {}).get("us")
@@ -347,9 +379,15 @@ def run_us_mapping(context, batch):
                 mapping_payload = (payload.get("single_day_mapping_payload") or {}).get("monthly_membership") if isinstance(payload, dict) else None
                 single_day_summary = run_single_day_mapping(context,
                     relation_rows=rows,
+                    catalog_rows=catalog_rows,
+                    catalog_stock_identities=(u.get("full_overlay_stock_identities")
+                        if overlay_summary.get("state") == "READY" else None),
+                    catalog_expected_stock_count=(overlay_summary.get("stock_count")
+                        if overlay_summary.get("state") == "READY" else None),
                     industry_rows=factor_rows,
                     factor_summary=factor_summary,
-                    membership=mapping_payload)
+                    membership=mapping_payload,
+                    manual_quote_scope=(payload or {}).get("manual_quote_scope") if isinstance(payload, dict) else None)
             except Exception:
                 # A single-day summary failure must not discard prior
                 # reviewed US relations or the independent factor result.

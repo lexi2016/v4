@@ -143,10 +143,27 @@ def _single_context():
         "cutoff": "2026-10-19T03:00:00+00:00"}
 
 
-def _single_day(codes, relations=(), industries=(), industry_status="READY"):
+def _manual_quote_scope(values):
+    from v4.manager_workbench.engines.us_mapping_consumption import (
+        MANUAL_QUOTE_OWNER, MANUAL_QUOTE_SCOPE_SHA256,
+    )
+    return dict(state="READY", owner=MANUAL_QUOTE_OWNER,
+        scope_sha256=MANUAL_QUOTE_SCOPE_SHA256, us_session_date="20261016",
+        payload_sha256=SHA, receipt_sha256="e" * 64, manifest_sha256="f" * 64,
+        available_at="2026-10-18T20:00:00+00:00",
+        quotes={symbol: {"symbol": symbol, "session_date": "20261016", "session_time": "16:00:02",
+            "change_pct": value} for symbol, value in values.items()}, symbol_gaps={})
+
+
+def _single_day(codes, relations=(), industries=(), industry_status="READY",
+                catalog_rows=(), catalog_stock_identities=None,
+                catalog_expected_stock_count=None, manual_quote_scope=None):
     from v4.manager_workbench.engines.strict_us_selection import run_single_day_mapping
 
     return run_single_day_mapping(_single_context(), relation_rows=list(relations),
+        catalog_rows=list(catalog_rows), manual_quote_scope=manual_quote_scope,
+        catalog_stock_identities=catalog_stock_identities,
+        catalog_expected_stock_count=catalog_expected_stock_count,
         industry_rows=list(industries),
         factor_summary={"industry_summary": {"source_status": industry_status,
             "source_asof": "20261012", "source_artifact_sha256": SHA}},
@@ -174,11 +191,11 @@ def test_single_day_mapping_uses_full_membership_without_history_and_separates_c
     assert result["monthly_observed_scope_count"] == 7
     assert len(result["rows"]) == 7
     assert [row["decision"] for row in result["rows"]] == [
-        "BENEFIT", "RISK", "OBSERVATION", "OBSERVATION", "OBSERVATION", "UNMAPPED", "UNASSESSED"]
+        "BENEFIT", "RISK", "OBSERVATION", "OBSERVATION", "UNASSESSED", "UNMAPPED", "UNASSESSED"]
     assert result["counts"] == {
         "BENEFIT": 1, "RISK": 1, "CONFLICT": 0,
-        "OBSERVATION": 3, "UNMAPPED": 1, "UNASSESSED": 1,
-        "SMALL_MOVE_WATCH": 1, "C_WATCH": 2}
+        "OBSERVATION": 2, "UNMAPPED": 1, "UNASSESSED": 2,
+        "SMALL_MOVE_WATCH": 1, "C_WATCH": 1}
     assert result["rows"][3]["mapping_grade"] == "C"
     assert result["rows"][4]["mapping_paths"][0]["grade"] == "C"
     assert result["rows"][5]["decision"] == "UNMAPPED"
@@ -190,7 +207,7 @@ def test_single_day_mapping_uses_full_membership_without_history_and_separates_c
     assert result["buy_gate_updated"] is False and result["orders_sent"] is False
 
 
-def test_single_day_primary_is_fixed_before_returns_and_conflict_paths_are_retained():
+def test_single_day_industry_baseline_cannot_conflict_with_direct_peer_paths():
     code = "HK.00001"
     industries = [{"symbol": code, "source_industry": "半导体",
         "identity_status": "VERIFIED", "available_at": "2026-10-18T20:00:00+00:00",
@@ -202,15 +219,17 @@ def test_single_day_primary_is_fixed_before_returns_and_conflict_paths_are_retai
         _relation(code, return_pct="1.1", us_symbol="AMD")], industries)
 
     row = result["rows"][0]
-    assert row["decision"] == "CONFLICT"
+    assert row["decision"] == "BENEFIT"
     assert row["primary_us_symbol"] == "AMD"
     assert row["primary_signed_return_pct"] == "1.1"
     assert [path["us_symbol"] for path in row["mapping_paths"] if path["grade"] == "A"] == ["AMD", "NVDA"]
-    assert [path["proxy_symbol"] for path in row["conflict_paths"]] == ["SOXX"]
-    assert row["frozen_policy_conflict"] is True
+    assert row["conflict_paths"] == []
+    assert not row.get("frozen_policy_conflict")
+    assert any(path["source_type"] == "BROAD_SECTOR_BACKGROUND"
+        and path["signed_return_pct"] is None for path in row["mapping_paths"])
 
 
-def test_single_day_frozen_b_primary_precedes_secondary_regardless_of_proxy_symbol():
+def test_single_day_sector_etfs_are_secondary_observations_not_primary_paths():
     industry = {"symbol": "HK.00001", "source_industry": "石油及天然气",
         "identity_status": "VERIFIED", "available_at": "2026-10-18T20:00:00+00:00",
         "proxy_paths": [
@@ -220,17 +239,148 @@ def test_single_day_frozen_b_primary_precedes_secondary_regardless_of_proxy_symb
                 "return_pct": "0.5", "source_sha256": SHA, "available_at": "2026-10-18T20:00:00+00:00"},
         ]}
 
-    result = _single_day(["HK.00001"], industries=[industry])
+    result = _single_day(["HK.00001"], industries=[industry],
+        manual_quote_scope=_manual_quote_scope({"XLE": "-1.2", "FCG": "0.5"}))
 
     row = result["rows"][0]
-    assert [path["proxy_symbol"] for path in row["mapping_paths"] if path["grade"] == "B"] == ["XLE", "FCG"]
-    assert row["primary_proxy"] == "XLE"
-    assert row["primary_signed_return_pct"] == "-1.2"
-    assert row["decision"] == "RISK"
-    assert row["reason"] == "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT"
+    paths = [path for path in row["mapping_paths"] if path["source_type"] == "BROAD_SECTOR_BACKGROUND"]
+    assert [path["proxy_symbol"] for path in paths] == ["FCG", "XLE"]
+    assert row["primary_proxy"] is None
+    assert all(path["signed_return_pct"] is None and path["status"] == "VERIFIED" for path in paths)
+    assert row["decision"] == "OBSERVATION"
+    assert row["open_reaction_status"] == "PENDING_OPEN"
+    assert row["post_open_status"] == "PENDING_OPEN"
 
 
-def test_single_day_catalog_placeholder_with_broad_c_path_sorts_without_proxy_symbol():
+def test_single_day_utilities_insurance_and_consumer_subsectors_use_frozen_baselines():
+    cases = [
+        ("公用事业", {"XLU": "0.4"}, ["XLU"]),
+        ("保险", {"KIE": "-0.3"}, ["KIE"]),
+        ("食物饮品", {"XLP": "0.2"}, ["XLP"]),
+        ("专业零售", {"XLY": "0.8"}, ["XLY"]),
+        ("家庭电器及用品", {"XLY": "0.8"}, ["XLY", "XLP"]),
+    ]
+    for index, (industry_label, values, expected_symbols) in enumerate(cases, start=1):
+        code = f"HK.{index:05d}"
+        industry = {"symbol": code, "source_industry": industry_label,
+            "identity_status": "VERIFIED", "available_at": "2026-10-18T20:00:00+00:00"}
+        result = _single_day([code], industries=[industry],
+            manual_quote_scope=_manual_quote_scope(values))
+        row = result["rows"][0]
+        path = next(path for path in row["mapping_paths"]
+            if path["source_type"] == "BROAD_SECTOR_BACKGROUND")
+        assert path["proxy_symbols"] == expected_symbols
+        assert path["signed_return_pct"] is None
+        assert path["status"] == ("PARTIAL" if industry_label == "家庭电器及用品" else "VERIFIED")
+        assert row["primary_proxy"] is None
+
+
+def test_single_day_post_open_state_requires_bound_opening_owner():
+    context = _single_context()
+    context["cutoff"] = "2026-10-20T10:00:00+08:00"
+    from v4.manager_workbench.engines.strict_us_selection import run_single_day_mapping
+    result = run_single_day_mapping(context, relation_rows=[], industry_rows=[],
+        catalog_rows=[], factor_summary={}, membership=_single_membership(["HK.00001"]))
+
+    row = result["rows"][0]
+    assert row["open_reaction_status"] == "CANNOT_CONFIRM"
+    assert row["post_open_status"] == "CANNOT_CONFIRM"
+    assert row["post_open_reason"] == "HK_OPENING_DATA_OWNER_NOT_BOUND_AT_CUTOFF"
+
+
+def test_single_day_projects_catalog_dispositions_and_partial_peer_basket_per_target():
+    from v4.manager_workbench.engines.us_mapping_consumption import (
+        MANUAL_QUOTE_OWNER, MANUAL_QUOTE_SCOPE_SHA256,
+    )
+    binding = dict(state="PARTIAL", owner=MANUAL_QUOTE_OWNER,
+        scope_sha256=MANUAL_QUOTE_SCOPE_SHA256, us_session_date="20261016",
+        available_at="2026-10-18T20:00:00+00:00", payload_sha256=SHA,
+        receipt_sha256="e" * 64, manifest_sha256="f" * 64,
+        quotes={"AAPL": {"symbol": "AAPL", "session_date": "20261016",
+            "session_time": "16:00:02", "change_pct": "1.25"}},
+        symbol_gaps={"MSFT": "QUOTE_PROVIDER_SYMBOL_MISSING"})
+
+    def catalog_relation(relation_id, symbol, relation_type="BUSINESS_PEER", *, condition=""):
+        source = {"关系编号": relation_id, "code": "00001", "type": relation_type,
+            "asset_code": symbol, "fact": "Named business relationship.", "segment": "Cloud software",
+            "研究行业": "Software", "condition": condition, "direction": "positive"}
+        relation = {"relation_id": relation_id, "hk_code": "00001", "source_row": 12,
+            "source_record": source, "recovery_v2r1": {"closure_status": "CLOSED_RESEARCH_SCOPE",
+                "current_applicability_state": "CURRENT_RESEARCH_SCOPE",
+                "use_scope": {"FACT_VERIFIED_SCOPE": {"state": "LIMITED"}}}}
+        return {"symbol": "HK.00001", "record_role": "CATALOG_OBSERVATION",
+            "catalog_relation_id": relation_id, "catalog_relation": relation}
+
+    result = _single_day(["HK.00001"], catalog_rows=[
+        catalog_relation("R001", "AAPL"), catalog_relation("R002", "MSFT"),
+        catalog_relation("R003", "AAPL", "SUPPLY_CHAIN",
+            condition="Only when the disclosed customer award remains active.")],
+        catalog_stock_identities=[{"hk_code": "00001", "name": "Mapped"}],
+        catalog_expected_stock_count=1,
+        manual_quote_scope=binding)
+
+    summary = result["catalog_consumption"]
+    stocks = result["catalog_stock_reconciliation"]
+    row = result["rows"][0]
+    assert summary["relation_count"] == 3
+    assert summary["unique_relation_id_count"] == 3
+    assert summary["state"] == "PARTIAL"
+    assert stocks["catalog_stock_count"] == 1
+    assert stocks["in_monthly_pool_stock_count"] == 1
+    assert stocks["outside_monthly_pool_stock_count"] == 0
+    assert row["catalog_peer_baskets"][0]["signal_type"] == "SINGLE_PEER_REFERENCE"
+    basket = row["catalog_peer_baskets"][0]
+    assert basket["coverage_state"] == "PARTIAL"
+    assert basket["declared_count"] == 2 and basket["valid_count"] == 1
+    assert basket["source_move_direction"] == "UP"
+    assert "not HK expected return" in basket["interpretation"]
+    dispositions = {item["relation_id"]: item for item in row["catalog_relation_dispositions"]}
+    assert dispositions["R001"]["disposition"] == "ADOPTED_BUSINESS_PEER"
+    assert dispositions["R002"]["quote_missing_reason"] == "QUOTE_PROVIDER_SYMBOL_MISSING"
+    assert dispositions["R003"]["disposition"] == "ADOPTED_CONDITIONAL_ROUTE"
+    assert dispositions["R003"]["condition_trigger_state"] == "NOT_EVALUATED"
+    assert dispositions["R003"]["active_transmission"] is False
+    assert all(item["signed_hk_return_pct"] is None for item in dispositions.values())
+    assert row["decision"] == "UNMAPPED"
+    assert row["primary_proxy"] is None
+
+
+def test_catalog_stock_reconciliation_separates_no_relation_from_monthly_pool_additions():
+    relation_id = "R001"
+    source = {"关系编号": relation_id, "code": "00001", "type": "BUSINESS_PEER",
+        "asset_code": "AAPL", "fact": "Documented business exposure.",
+        "segment": "Cloud software", "研究行业": "Software"}
+    relation = {"relation_id": relation_id, "hk_code": "00001", "hk_name": "Mapped",
+        "source_record": source, "recovery_v2r1": {"closure_status": "CLOSED_RESEARCH_SCOPE",
+            "current_applicability_state": "CURRENT_RESEARCH_SCOPE",
+            "use_scope": {"FACT_VERIFIED_SCOPE": {"state": "VERIFIED_DATED_FACT"}}}}
+    catalog_row = {"symbol": "HK.00001", "record_role": "CATALOG_OBSERVATION",
+        "catalog_relation_id": relation_id, "catalog_relation": relation}
+
+    result = _single_day(["HK.00001", "HK.01528", "HK.09999"],
+        catalog_rows=[catalog_row],
+        catalog_stock_identities=[
+            {"hk_code": "00001", "name": "Mapped"},
+            {"hk_code": "01528", "name": "No relation"},
+        ], catalog_expected_stock_count=2)
+
+    reconciliation = result["catalog_stock_reconciliation"]
+    assert result["catalog_consumption"]["relation_count"] == 1
+    assert result["catalog_consumption"]["unique_relation_id_count"] == 1
+    assert reconciliation["catalog_stock_identity_state"] == "READY"
+    assert reconciliation["catalog_stock_count"] == 2
+    assert reconciliation["relation_target_stock_count"] == 1
+    assert reconciliation["catalog_stock_with_relation_count"] == 1
+    assert reconciliation["no_relation_stock_count"] == 1
+    assert reconciliation["no_relation_stocks"] == [
+        {"symbol": "HK.01528", "name": "No relation"}]
+    assert reconciliation["monthly_pool_stock_count"] == 3
+    assert reconciliation["in_monthly_pool_stock_count"] == 2
+    assert reconciliation["monthly_pool_not_in_catalog_stock_count"] == 1
+    assert reconciliation["monthly_pool_not_in_catalog_stock_symbols"] == ["HK.09999"]
+
+
+def test_single_day_catalog_placeholder_keeps_catalog_row_and_broad_sector_display_only():
     catalog_observation = {"symbol": "HK.00027", "us_symbol": None,
         "relation_type": "CATALOG_OBSERVATION_ONLY", "relation_status": "CANNOT_CONFIRM",
         "decision": "UNASSESSED", "record_role": "CATALOG_OBSERVATION",
@@ -243,15 +393,17 @@ def test_single_day_catalog_placeholder_with_broad_c_path_sorts_without_proxy_sy
             "source_sha256": SHA, "owner": "research_peripheral.external_finance",
             "available_at": "2026-10-17T15:35:31Z"}]}
 
-    result = _single_day(["HK.00027"], relations=[catalog_observation], industries=[broad_c])
+    result = _single_day(["HK.00027"], relations=[catalog_observation], industries=[broad_c],
+        manual_quote_scope=_manual_quote_scope({"XLY": "0.8", "XLP": "0.2"}))
 
     row = result["rows"][0]
     assert row["decision"] == "OBSERVATION"
     assert row["reason"] == "C_MAPPING_OBSERVE_ONLY"
     assert any(path["source_type"] == "C_RELATIONSHIP_OBSERVATION"
         and path["status"] == "UNASSESSED" for path in row["mapping_paths"])
-    assert any(path["source_type"] == "BROAD_CONSUMPTION_OBSERVATION"
-        and path["status"] == "VERIFIED" for path in row["mapping_paths"])
+    assert any(path["source_type"] == "BROAD_SECTOR_BACKGROUND"
+        and path["status"] == "VERIFIED" and path["signed_return_pct"] is None
+        for path in row["mapping_paths"])
 
 
 def test_single_day_rejects_other_target_date_without_claiming_a_result():

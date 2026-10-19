@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
+from datetime import datetime
 import hashlib
 import json
 import re
 
 from .common import current, hk_symbol, valid_sha
 from .us_factor import _return_pct
+from .us_mapping_consumption import manual_quote_for_symbol
 
 RULES_VERSION = "STRICT_US_SELECTION_V1_20261019"
 SINGLE_DAY_MAPPING_VERSION = "US_HK_SINGLE_DAY_MAPPING_V1_20261019"
@@ -138,6 +140,19 @@ def _date_token(value):
         return None
 
 
+def _post_open_state(context):
+    try:
+        cutoff = datetime.fromisoformat(str(context.get("cutoff")).replace("Z", "+00:00"))
+        if cutoff.tzinfo is None or cutoff.utcoffset() is None:
+            raise ValueError
+        open_at = datetime.fromisoformat(f"{context['target_date'][:4]}-{context['target_date'][4:6]}-{context['target_date'][6:]}T09:30:00+08:00")
+    except (TypeError, ValueError, KeyError):
+        return "CANNOT_CONFIRM", "HK_OPENING_CUTOFF_INVALID"
+    if cutoff < open_at:
+        return "PENDING_OPEN", "HK_OPEN_NOT_YET_OCCURRED_AT_CUTOFF"
+    return "CANNOT_CONFIRM", "HK_OPENING_DATA_OWNER_NOT_BOUND_AT_CUTOFF"
+
+
 def _source_quote_path(row, expected_session, context):
     us_symbol = row.get("us_symbol")
     relation_type = row.get("relation_type")
@@ -198,7 +213,8 @@ def _industry_paths(row, expected_session, context):
             and item.get("proxy_symbols") == [proxy_symbol]
             and item.get("source_session") == expected_session]
         gaps = []
-        if row.get("identity_status") != "VERIFIED":
+        identity_gap = row.get("identity_status") != "VERIFIED"
+        if identity_gap:
             gaps.append("HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED")
         if not current(context, row.get("available_at")):
             gaps.append("HK_INDUSTRY_CLASSIFICATION_TIME_UNVERIFIED")
@@ -307,6 +323,31 @@ def _mapping_path_order(path):
     return (2, path.get("proxy_symbol") or "")
 
 
+def _catalog_stock_identity_map(stock_identities):
+    if not isinstance(stock_identities, list):
+        return None, 0, 0
+    identities = {}
+    invalid_count = 0
+    duplicate_count = 0
+    for item in stock_identities:
+        if not isinstance(item, dict):
+            invalid_count += 1
+            continue
+        raw_symbol = item.get("symbol") or item.get("target_symbol") or item.get("hk_code")
+        text = str(raw_symbol or "")
+        if not hk_symbol(text) and re.fullmatch(r"\d{1,5}", text):
+            text = "HK." + text.zfill(5)
+        if not hk_symbol(text):
+            invalid_count += 1
+            continue
+        if text in identities:
+            duplicate_count += 1
+            continue
+        name = item.get("name") or item.get("hk_name")
+        identities[text] = name if isinstance(name, str) else None
+    return identities, invalid_count, duplicate_count
+
+
 def _mapping_index(relation_rows, industry_rows, expected_session, context):
     candidates = {}
     for row in relation_rows:
@@ -362,36 +403,73 @@ def _single_day_c_relation_path(row, expected_session, context):
     return path
 
 
-def _single_day_broad_c_paths(row, expected_session, context):
-    if not isinstance(row, dict) or row.get("source_industry") in INDUSTRY_PATHS:
+_SINGLE_DAY_BROAD_SECTOR = {
+    "公用事业": [(("XLU",), "公用事业")],
+    "保险": [(("KIE",), "保险")],
+    "食物饮品": [(("XLP",), "消费必需品")],
+    "消费者主要零售商": [(("XLP",), "消费必需品")],
+    "专业零售": [(("XLY",), "可选消费")],
+    "汽车": [(("XLY",), "可选消费")],
+    "旅游及消闲设施": [(("XLY",), "可选消费")],
+    "家庭电器及用品": [(("XLY", "XLP"), "广义消费观察")],
+    "纺织及服饰": [(("XLY", "XLP"), "广义消费观察")],
+    "药品及生物科技": [(("XBI",), "生物医药")],
+    "半导体": [(("SOXX",), "半导体")],
+    "银行": [(("KBE",), "银行金融")],
+    "黄金及贵金属": [(("GLD",), "黄金")],
+    "石油及天然气": [(("XLE",), "石油"), (("FCG",), "天然气")],
+}
+
+
+def _single_day_broad_c_paths(row, expected_session, context, manual_quote_scope):
+    if not isinstance(row, dict):
+        return []
+    specs = _SINGLE_DAY_BROAD_SECTOR.get(row.get("source_industry"))
+    if not specs:
         return []
     paths = []
-    for item in row.get("proxy_paths", []) if isinstance(row.get("proxy_paths"), list) else []:
-        if not isinstance(item, dict) or set(item.get("proxy_symbols") or []) != {"XLY", "XLP"}:
-            continue
-        gaps = list(item.get("conditions") or [])
-        if item.get("status") != "VERIFIED" and not gaps:
-            gaps.append(item.get("reason") or "C_PROXY_RETURN_UNASSESSED")
-        if item.get("source_session") != expected_session:
-            gaps.append("C_PROXY_SESSION_UNVERIFIED")
-        if not row.get("identity_status") == "VERIFIED":
+    for expected_symbols, theme in specs:
+        valid_quotes = []
+        missing_symbols = []
+        for symbol in expected_symbols:
+            quote, gap = manual_quote_for_symbol(manual_quote_scope, symbol,
+                expected_session, context.get("cutoff"))
+            value = _decimal(quote.get("change_pct")) if quote else None
+            if value is None:
+                missing_symbols.append(dict(symbol=symbol, reason=gap or "MANUAL_QUOTE_RETURN_INVALID"))
+            else:
+                valid_quotes.append((symbol, value))
+        gaps = []
+        identity_gap = row.get("identity_status") != "VERIFIED"
+        if identity_gap:
             gaps.append("HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED")
-        if not valid_sha(item.get("source_sha256")):
-            gaps.append("C_PROXY_SOURCE_SHA_UNVERIFIED")
-        if not item.get("owner") or not current(context, item.get("available_at")):
-            gaps.append("C_PROXY_SOURCE_TIME_UNVERIFIED")
-        value = _decimal(item.get("return_pct"))
-        if value is None:
-            gaps.append("C_PROXY_RETURN_UNVERIFIED")
-        paths.append(dict(grade="C", source_type="BROAD_CONSUMPTION_OBSERVATION",
-            source_industry=row.get("source_industry"), proxy_symbols=list(item.get("proxy_symbols") or []),
-            proxy_symbol="XLY + XLP", primary_theme=None, primary_path=False, sign=1,
-            return_pct=_decimal_text(value), signed_return_pct=_decimal_text(value),
-            status="VERIFIED" if not gaps else "UNASSESSED",
-            reason="BROAD_CONSUMPTION_C_OBSERVE_ONLY" if not gaps else gaps[0],
-            gaps=list(dict.fromkeys(gaps)), owner=item.get("owner"),
-            source_sha256=item.get("source_sha256"), source_session=item.get("source_session"),
-            available_at=item.get("available_at"), observation_only=True))
+        if missing_symbols:
+            gaps.append("SECTOR_BASELINE_MEMBER_QUOTES_PARTIAL" if valid_quotes else "SECTOR_BASELINE_QUOTES_UNAVAILABLE")
+        value = (sum((item[1] for item in valid_quotes), Decimal(0)) / Decimal(len(valid_quotes))
+            if valid_quotes else None)
+        reason = ("BROAD_SECTOR_BASELINE_ONLY_NO_HK_SIGN" if value is not None and not missing_symbols
+            else "SECTOR_BASELINE_MEMBER_QUOTES_PARTIAL" if value is not None
+            else (missing_symbols[0]["reason"] if missing_symbols else "SECTOR_BASELINE_QUOTES_UNAVAILABLE"))
+        paths.append(dict(grade="C", source_type="BROAD_SECTOR_BACKGROUND",
+            source_industry=row.get("source_industry"), proxy_symbols=list(expected_symbols),
+            proxy_symbol=" + ".join(expected_symbols),
+            primary_theme=None, primary_path=False, sign=None,
+            return_pct=_decimal_text(value), signed_return_pct=None,
+            source_return_pct=_decimal_text(value),
+            status=("UNASSESSED" if identity_gap or not valid_quotes else
+                "PARTIAL" if missing_symbols else "VERIFIED"),
+            reason=reason if not gaps else gaps[0],
+            gaps=list(dict.fromkeys(gaps)), owner=(manual_quote_scope or {}).get("owner"),
+            source_sha256=(manual_quote_scope or {}).get("payload_sha256"),
+            receipt_sha256=(manual_quote_scope or {}).get("receipt_sha256"),
+            manifest_sha256=(manual_quote_scope or {}).get("manifest_sha256"),
+            scope_sha256=(manual_quote_scope or {}).get("scope_sha256"),
+            source_session=expected_session,
+            available_at=(manual_quote_scope or {}).get("available_at"),
+            declared_count=len(expected_symbols), valid_count=len(valid_quotes),
+            missing_symbols=missing_symbols, members=[{"symbol": symbol,
+                "source_return_pct": _decimal_text(member_value)} for symbol, member_value in valid_quotes],
+            observation_only=True))
     return paths
 
 
@@ -413,7 +491,9 @@ def cannot_confirm_single_day_mapping(context, reason):
         production_allowed=False, buy_gate_updated=False, orders_sent=False)
 
 
-def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summary, membership):
+def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summary, membership,
+                           catalog_rows=None, catalog_stock_identities=None,
+                           catalog_expected_stock_count=None, manual_quote_scope=None):
     """Display the frozen US 20261016 -> HK 20261020 mapping without HK history gates."""
     context = context if isinstance(context, dict) else {}
     sessions = context.get("source_sessions") or {}
@@ -441,12 +521,77 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
 
     relation_rows = relation_rows if isinstance(relation_rows, list) else []
     industry_rows = industry_rows if isinstance(industry_rows, list) else []
+    catalog_rows = catalog_rows if isinstance(catalog_rows, list) else []
+    from .us_mapping_consumption import (
+        build_peer_baskets, catalog_consumption_summary, project_catalog_relation,
+    )
+    catalog_projection = [project_catalog_relation(item, manual_binding=manual_quote_scope,
+        expected_session=expected_session, cutoff=context.get("cutoff"))
+        for item in catalog_rows if isinstance(item, dict)]
+    catalog_summary = catalog_consumption_summary(catalog_projection)
+    catalog_peer_baskets = build_peer_baskets(catalog_projection)
+    relation_targets = sorted({row.get("symbol") for row in catalog_projection
+        if isinstance(row.get("symbol"), str) and row.get("symbol")})
+    catalog_identity_map, invalid_identity_count, duplicate_identity_count = _catalog_stock_identity_map(
+        catalog_stock_identities)
+    catalog_identity_gaps = []
+    if catalog_identity_map is None:
+        if catalog_expected_stock_count is not None:
+            catalog_identity_gaps.append("SINGLE_DAY_CATALOG_STOCK_IDENTITIES_UNAVAILABLE")
+    else:
+        if invalid_identity_count:
+            catalog_identity_gaps.append("SINGLE_DAY_CATALOG_STOCK_IDENTITY_INVALID")
+        if duplicate_identity_count:
+            catalog_identity_gaps.append("SINGLE_DAY_CATALOG_STOCK_IDENTITY_DUPLICATE")
+        if (isinstance(catalog_expected_stock_count, int)
+                and not isinstance(catalog_expected_stock_count, bool)
+                and len(catalog_identity_map) != catalog_expected_stock_count):
+            catalog_identity_gaps.append("SINGLE_DAY_CATALOG_STOCK_IDENTITY_COUNT_MISMATCH")
+    catalog_targets = sorted(catalog_identity_map) if catalog_identity_map is not None else []
+    catalog_target_set = set(catalog_targets)
+    relation_target_set = set(relation_targets)
+    no_relation_stocks = ([dict(symbol=target, name=catalog_identity_map[target])
+        for target in catalog_targets if target not in relation_target_set]
+        if catalog_identity_map is not None else [])
+    pool_targets = set(codes)
+    catalog_stock_reconciliation = {
+        "catalog_stock_identity_state": ("READY" if catalog_identity_map is not None and not catalog_identity_gaps
+            else "PARTIAL" if catalog_identity_map is not None else "CANNOT_CONFIRM"),
+        "expected_catalog_stock_count": catalog_expected_stock_count,
+        "catalog_stock_count": len(catalog_targets) if catalog_identity_map is not None else None,
+        "relation_target_stock_count": len(relation_targets),
+        "catalog_stock_with_relation_count": (len(catalog_target_set & relation_target_set)
+            if catalog_identity_map is not None else None),
+        "no_relation_stock_count": len(no_relation_stocks) if catalog_identity_map is not None else None,
+        "no_relation_stocks": no_relation_stocks,
+        "catalog_stock_identity_invalid_count": invalid_identity_count,
+        "catalog_stock_identity_duplicate_count": duplicate_identity_count,
+        "relation_target_not_in_catalog_stock_count": (len(relation_target_set - catalog_target_set)
+            if catalog_identity_map is not None else None),
+        "monthly_pool_stock_count": len(pool_targets),
+        "in_monthly_pool_stock_count": (len(pool_targets & catalog_target_set)
+            if catalog_identity_map is not None else None),
+        "outside_monthly_pool_stock_count": (len(catalog_target_set - pool_targets)
+            if catalog_identity_map is not None else None),
+        "outside_monthly_pool_stock_symbols": ([symbol for symbol in catalog_targets if symbol not in pool_targets]
+            if catalog_identity_map is not None else []),
+        "monthly_pool_not_in_catalog_stock_count": (len(pool_targets - catalog_target_set)
+            if catalog_identity_map is not None else None),
+        "monthly_pool_not_in_catalog_stock_symbols": (sorted(pool_targets - catalog_target_set)
+            if catalog_identity_map is not None else []),
+        "target_identity_missing_relation_count": sum(not row.get("symbol") for row in catalog_projection),
+        "in_monthly_pool_relation_count": sum(row.get("symbol") in pool_targets for row in catalog_projection),
+        "outside_monthly_pool_relation_count": sum(
+            bool(row.get("symbol")) and row.get("symbol") not in pool_targets for row in catalog_projection),
+    }
     accepted_a_rows = [item for item in relation_rows if isinstance(item, dict)
         and item.get("relation_type") in RELATIONSHIP_A
         and item.get("relation_status") == "REVIEWED"
         and item.get("relation_pit_status") != "PIT_UNCONFIRMED"]
+    # Frozen V4 policy treats every ETF route as secondary sector background.
+    # It remains visible in C paths and cannot become a primary A/B path.
     ab_paths, industry_index = _mapping_index(
-        accepted_a_rows, industry_rows, expected_session, context)
+        accepted_a_rows, [], expected_session, context)
     relation_index = {}
     for item in relation_rows:
         if isinstance(item, dict) and hk_symbol(item.get("symbol")):
@@ -496,12 +641,13 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
             factor_row_duplicates.add(key)
         else:
             factor_row_first[key] = item
-        for path in _single_day_broad_c_paths(item, expected_session, context):
+        for path in _single_day_broad_c_paths(item, expected_session, context, manual_quote_scope):
             broad_c_paths.setdefault(key, []).append(path)
 
     industry_state = (factor_summary or {}).get("industry_summary", {}) if isinstance(factor_summary, dict) else {}
     industry_source_ready = industry_state.get("source_status") in ("READY", "PARTIAL")
     rows = []
+    open_reaction_status, post_open_reason = _post_open_state(context)
     for code in sorted(codes):
         row_paths = list(ab_paths.get(code, []))
         row_paths.extend(relation_c_paths.get(code, []))
@@ -523,6 +669,28 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
             primary_signed_return_pct=primary.get("signed_return_pct") if primary else None,
             primary_status=primary.get("status") if primary else None,
             mapping_paths=row_paths, conflict_paths=[], reasons=[], reason=None,
+            catalog_peer_baskets=catalog_peer_baskets.get(code, []),
+            catalog_relation_dispositions=[{
+                "relation_id": relation.get("catalog_relation_id"),
+                "us_symbol": relation.get("us_symbol"),
+                "relation_type": relation.get("relation_type"),
+                "route": relation.get("route"),
+                "disposition": relation.get("catalog_disposition"),
+                "reason": relation.get("catalog_disposition_reason"),
+                "quote_status": relation.get("quote_status"),
+                "quote_missing_reason": relation.get("quote_missing_reason"),
+                "source_return_pct": relation.get("us_source_return_pct"),
+                "signed_hk_return_pct": relation.get("signed_hk_return_pct"),
+                "fact": relation.get("catalog_fact"),
+                "condition": relation.get("catalog_condition"),
+                "raw_direction": relation.get("catalog_direction_raw"),
+                "current_applicability": relation.get("catalog_current_applicability"),
+                "condition_trigger_state": relation.get("condition_trigger_state"),
+                "active_transmission": relation.get("active_transmission"),
+            } for relation in catalog_projection if relation.get("symbol") == code],
+            open_reaction_status=open_reaction_status,
+            post_open_status="PENDING_OPEN" if open_reaction_status == "PENDING_OPEN" else "CANNOT_CONFIRM",
+            post_open_reason=post_open_reason,
             formal_target_eligibility="CANNOT_CONFIRM")
         if primary is not None:
             if primary.get("status") != "VERIFIED":
@@ -614,7 +782,7 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
         and row.get("mapping_grade") in ("A", "B") for row in rows)
     counts["C_WATCH"] = sum(row["decision"] == "OBSERVATION"
         and row.get("mapping_grade") == "C" for row in rows)
-    gaps = []
+    gaps = list(catalog_identity_gaps)
     if counts["UNASSESSED"]:
         gaps.append("SINGLE_DAY_MAPPING_PATHS_UNASSESSED")
         if "SINGLE_DAY_MAPPING_ROWS_UNASSESSED" not in gaps:
@@ -638,6 +806,15 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
         industry_source_status=industry_state.get("source_status"),
         industry_source_date=industry_state.get("observed_trade_date") or industry_state.get("source_asof"),
         industry_source_sha256=industry_state.get("source_artifact_sha256"),
+        catalog_consumption=catalog_summary,
+        catalog_stock_reconciliation=catalog_stock_reconciliation,
+        catalog_relation_dispositions=catalog_projection,
+        catalog_peer_baskets=catalog_peer_baskets,
+        manual_quote_scope=dict(state=(manual_quote_scope or {}).get("state", "CANNOT_CONFIRM"),
+            session_date=(manual_quote_scope or {}).get("us_session_date"),
+            scope_sha256=(manual_quote_scope or {}).get("scope_sha256"),
+            payload_sha256=(manual_quote_scope or {}).get("payload_sha256"),
+            gap=(manual_quote_scope or {}).get("gap")),
         gaps=gaps, strict_v1_status="PAUSED_NOT_EXECUTED",
         deferred_gates=["HK_MA20", "HK_RETURN5", "HK_TURNOVER20", "TOP10", "THEME3"],
         historical_pit_verified=False, research_effectiveness="UNVERIFIED",

@@ -1,0 +1,135 @@
+{
+  "reviewer": "full_mapping_consumption_review",
+  "review": "REVIEWED/PASS",
+  "scope": "Stage2 frozen quote-input/config consumption, inactive API/scheduler candidates and activation plans",
+  "findings": [],
+  "behavior_verified": "Offline candidate-root -> NativeAdapters -> mapping-engine consumption for both candidates; no POST or service launch",
+  "candidates": {
+    "api": {
+      "release_manifest_sha256": "3270de5e6d43bd272dc9f92b61fcd6bd051cf7c86383211d25c90f57bf314ebb",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db"
+    },
+    "scheduler": {
+      "release_manifest_sha256": "66d55203d194a5b64822ac2ebbd5cf87452c784953aff15460ca07ed94afb2e8",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+    }
+  },
+  "input": {
+    "payload_sha256": "e60cf4282db3394061edebf930e07588bf67fe516ef217e02b45993fdec7861e",
+    "receipt_sha256": "ac02f5ca8dd3617d05c9eae684fae91040aa9a27ce0e76736dc1f184eac7bb6e",
+    "manifest_sha256": "88b56a19119bf63bd30ef99eb5601ede8da6f7d084ae3efd26271c393daad1d1",
+    "requested_symbols": 547,
+    "valid_quotes_consumed": 490,
+    "isolated_symbol_gaps": 57,
+    "gap_counts": {
+      "preclose": 41,
+      "session_date_mismatch": 9,
+      "symbol_missing": 6,
+      "previous_close_zero": 1
+    },
+    "provenance": {
+      "trade_date": "20261019",
+      "us_session": "20261016",
+      "capture_mode": "HISTORICAL_BACKFILL",
+      "original_time_capture": false,
+      "payload_status": "READY_EMPTY",
+      "payload_item_count": 0,
+      "snapshot_status": "PARTIAL"
+    }
+  },
+  "candidate_consumption": {
+    "api_and_scheduler_results_match": true,
+    "run_context": {
+      "target_date": "20261020",
+      "phase": "MANUAL",
+      "cutoff": "2026-10-19T18:00:00+08:00",
+      "source_sessions": {
+        "us": "20261016",
+        "hk_price": "20261016"
+      }
+    },
+    "input_records": 1051,
+    "source_candidates": 48,
+    "catalog_observations": 1003,
+    "manual_quote_scope_state": "PARTIAL",
+    "manual_quote_coverage": 0.8957952468,
+    "catalog_dispositions": 1003,
+    "unique_relation_ids": 1003,
+    "quoted_relation_rows": 933,
+    "missing_quote_relation_rows": 70,
+    "engine_state": "PARTIAL",
+    "all_valid_quotes_processed": true,
+    "missing_quote_counts_are_relation_rows": true
+  },
+  "identity_reconciliation": {
+    "catalog_stocks": 667,
+    "relation_target_stocks": 649,
+    "catalog_stocks_without_relations": 18,
+    "monthly_pool_members": 698,
+    "catalog_monthly_pool_overlap": 667,
+    "monthly_pool_members_outside_catalog": 31,
+    "fabricated_relations_for_either_set": false
+  },
+  "samples": {
+    "peer": {
+      "target": "HK.00006",
+      "relation_id": "R015",
+      "route": "SUBINDUSTRY_BUSINESS_PEER",
+      "peer_bucket": "受监管能源网络",
+      "member": "NGG",
+      "source_return_pct": "2.71911",
+      "valid_over_declared": "1/1",
+      "interpretation": "US source observation only; not HK expected return or prediction"
+    },
+    "conditional": {
+      "target": "HK.00267",
+      "relation_id": "R127",
+      "us_symbol": "PUK",
+      "route": "JOINT_VENTURE_ECONOMIC_EXPOSURE",
+      "disposition": "ADOPTED_CONDITIONAL_ROUTE",
+      "condition_trigger_state": "NOT_EVALUATED",
+      "active_transmission": false,
+      "signed_hk_return_pct": null,
+      "quote_status": "VERIFIED"
+    },
+    "industry_baselines": [
+      {
+        "target": "HK.00002",
+        "industry": "公用事业",
+        "proxy": "XLU",
+        "source_return_pct": "1.344538",
+        "signed_return_pct": null
+      },
+      {
+        "target": "HK.00376",
+        "industry": "保险",
+        "proxy": "KIE",
+        "source_return_pct": "1.180084",
+        "signed_return_pct": null
+      },
+      {
+        "target": "HK.00142",
+        "industry": "食物饮品",
+        "proxy": "XLP",
+        "source_return_pct": "1.084449",
+        "signed_return_pct": null
+      }
+    ]
+  },
+  "activation": {
+    "scripts_executed_by_reviewer": false,
+    "plans_review_pins": null,
+    "root_may_fill_this_receipt_sha256_before_activation": true
+  },
+  "limitations": [
+    "Historical backfill; original-time capture and provider authenticity CANNOT_CONFIRM",
+    "Formal target Stock Connect eligibility, historical PIT and research effectiveness unverified",
+    "Live API/scheduler trigger/deployed rendering/UI remain pending"
+  ],
+  "reused_evidence": {
+    "root_source_acceptance_sha256": "9c2eb6e926e10e27700c1341d020d53e4ff4c3d907555654cf39fa44317daf36",
+    "runtime_overlay_receipt_sha256": "8095813f9882a3bb1966fd53627631dfb9a6272938df149c6eac9e3bab67748c",
+    "root_web_build_sha256": "2e50f355dc4ab0ca1a5c702b0f1ad010ba99fac6e501fd75fc95ddddd7e35808"
+  },
+  "root_recording": "Faithful structured record of independent Stage2 final; symbol lists preserved in R2 and actual artifacts"
+}

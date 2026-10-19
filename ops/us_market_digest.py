@@ -46,6 +46,7 @@ from ops.materialize_research_peripherals import (
 )
 from v4.manager_workbench.inputs.us_universe import (
     build_legacy_us_universe_contract,
+    build_us_universe_contract,
     load_us_universe_contract,
     validate_us_universe_contract,
 )
@@ -526,11 +527,62 @@ def build_us_market_snapshot(
     timeout: int = 20,
     fetch_futu_boards: FutuBoardFetch | None = None,
     universe_contract: Mapping[str, Any] | None = None,
+    manual_quote_scope_sha256: str | None = None,
+    manual_quote_scope: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Capture the fixed 24-theme proxy map inside the existing US producer."""
+    """Capture quotes through the existing owner, with an explicit research expansion."""
+    if manual_quote_scope_sha256 is not None:
+        if (capture_phase != HISTORICAL_BACKFILL_PHASE
+                or manual_quote_scope_sha256 != "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf8"
+                or manual_quote_scope is None):
+            raise ValueError("US_MANUAL_QUOTE_SCOPE_MODE_INVALID")
+        from ops._us_market_digest_parts.manual_quote_scope import _build_manual_quote_scope_snapshot_body as _manual
+        return _manual(
+            globals(), us_session_date, scope=manual_quote_scope, captured_at=captured_at,
+            fetch_quotes=fetch_quotes, fetch_quote=fetch_quote, transport=transport,
+            timeout=timeout, universe_contract=universe_contract,
+        )
     from ops._us_market_digest_parts.market_snapshot import _build_us_market_snapshot_body as _v4_impl
     snapshot = _v4_impl(globals(), us_session_date, capture_phase=capture_phase, captured_at=captured_at, fetch_quotes=fetch_quotes, fetch_quote=fetch_quote, transport=transport, timeout=timeout, fetch_futu_boards=fetch_futu_boards, universe_contract=universe_contract)
     return _clear_same_session_time_dispersion(snapshot)
+
+
+def _build_manual_quote_scope_payload(
+    trade_date: str, *, session_date: str, scope: Mapping[str, Any],
+    now: datetime | str | None = None, fetch_quotes: QuoteFetch | None = None,
+    fetch_quote: QuoteFetch | None = None, transport: ProxyAwareHTTPTransport | None = None,
+    timeout: int = 20,
+) -> dict[str, Any]:
+    from ops._us_market_digest_parts.manual_quote_scope import _build_manual_quote_scope_payload_body as _v4_impl
+    return _v4_impl(globals(), trade_date, session_date=session_date, scope=scope, now=now,
+                    fetch_quotes=fetch_quotes, fetch_quote=fetch_quote,
+                    transport=transport, timeout=timeout)
+
+
+def build_manual_quote_scope_canary(
+    *, session_date: str, scope: Mapping[str, Any], now: datetime | str | None = None,
+    fetch_quotes: QuoteFetch | None = None, fetch_quote: QuoteFetch | None = None,
+    transport: ProxyAwareHTTPTransport | None = None, timeout: int = 20,
+) -> dict[str, Any]:
+    """Capture a deterministic, nonpublishing quote-source canary."""
+    from ops._us_market_digest_parts.manual_quote_scope import _build_manual_quote_scope_canary_body as _v4_impl
+    return _v4_impl(globals(), session_date=session_date, scope=scope, now=now,
+                    fetch_quotes=fetch_quotes, fetch_quote=fetch_quote,
+                    transport=transport, timeout=timeout)
+
+
+def materialize_us_manual_quote_scope_backfill(
+    *, data_root: Path, trade_date: str, session_date: str, scope: Mapping[str, Any],
+    now: datetime | str | None = None, fetch_quotes: QuoteFetch | None = None,
+    fetch_quote: QuoteFetch | None = None, transport: ProxyAwareHTTPTransport | None = None,
+    timeout: int = 20,
+) -> dict[str, Any]:
+    """Publish a single, non-original manual quote expansion without overwrite."""
+    from ops._us_market_digest_parts.manual_quote_scope import _materialize_manual_quote_scope_backfill_body as _v4_impl
+    return _v4_impl(globals(), data_root=data_root, trade_date=trade_date,
+                    session_date=session_date, scope=scope, now=now,
+                    fetch_quotes=fetch_quotes, fetch_quote=fetch_quote,
+                    transport=transport, timeout=timeout)
 
 
 def _clear_same_session_time_dispersion(snapshot: Mapping[str, Any]) -> dict[str, Any]:

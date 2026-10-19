@@ -58,6 +58,14 @@ def _parse_args_body(_v4_scope, /, argv):
     )
     parser.add_argument("--historical", action="store_true")
     parser.add_argument("--development-dates-file", type=_v4_global(_v4_scope, 'Path'))
+    parser.add_argument(
+        "--manual-quote-scope-file", type=_v4_global(_v4_scope, 'Path'),
+        help="explicit frozen manual quote expansion scope; uses existing historical_backfill owner lane",
+    )
+    parser.add_argument(
+        "--manual-quote-scope-canary", action="store_true",
+        help="read-only source canary for the fixed 48-symbol owner plus five frozen mapping symbols",
+    )
     parser.add_argument("--timeout", type=_v4_global(_v4_scope, 'int'), default=20)
     return parser.parse_args(_v4_global(_v4_scope, 'list')(argv) if argv is not None else None)
 
@@ -67,14 +75,68 @@ def _main_body(_v4_scope, /, argv):
     recovery_now = None
     session_date = None
     try:
-        session_date = _v4_global(_v4_scope, '_date')(
-            _v4_global(_v4_scope, 'str')(args.us_session_date or args.trade_date)
-        )
+        manual_scope = None
+        manual_scope_mode = bool(args.manual_quote_scope_file)
+        if manual_scope_mode:
+            if (args.capture_phase or args.historical or args.development_dates_file
+                    or args.allow_late_post_close or args.manual_late_recovery
+                    or args.rss_only_recovery):
+                raise _v4_global(_v4_scope, 'ValueError')("US_MANUAL_QUOTE_SCOPE_CLI_MODE_CONFLICT")
+            if args.manual_quote_scope_canary and not args.manual_quote_scope_file:
+                raise _v4_global(_v4_scope, 'ValueError')("US_MANUAL_QUOTE_CANARY_SCOPE_FILE_REQUIRED")
+            manual_scope = _v4_global(_v4_scope, 'json').loads(
+                args.manual_quote_scope_file.read_text(encoding="utf-8")
+            )
+            if _v4_global(_v4_scope, 'isinstance')(manual_scope, _v4_global(_v4_scope, 'Mapping')):
+                manual_scope = manual_scope.get("manual_quote_scope", manual_scope)
+            if not _v4_global(_v4_scope, 'isinstance')(manual_scope, _v4_global(_v4_scope, 'Mapping')):
+                raise _v4_global(_v4_scope, 'ValueError')("US_MANUAL_QUOTE_SCOPE_FILE_INVALID")
+            session_date = _v4_global(_v4_scope, '_date')(
+                _v4_global(_v4_scope, 'str')(args.us_session_date or manual_scope.get("us_session_date") or args.trade_date)
+            )
+        else:
+            if args.manual_quote_scope_canary:
+                raise _v4_global(_v4_scope, 'ValueError')("US_MANUAL_QUOTE_CANARY_SCOPE_FILE_REQUIRED")
+            session_date = _v4_global(_v4_scope, '_date')(
+                _v4_global(_v4_scope, 'str')(args.us_session_date or args.trade_date)
+            )
         if args.manual_late_recovery and (
             not args.allow_late_post_close or args.capture_phase != "POST_CLOSE"
         ):
             raise _v4_global(_v4_scope, 'ValueError')("US_MANUAL_LATE_RECOVERY_REQUIRES_POST_CLOSE_LATE_CAPTURE")
-        if args.historical:
+        if manual_scope_mode and args.manual_quote_scope_canary:
+            snapshot = _v4_global(_v4_scope, 'build_manual_quote_scope_canary')(
+                session_date=session_date, scope=manual_scope, timeout=args.timeout,
+            )
+            available = snapshot.get("available_symbol_count", 0)
+            requested = snapshot.get("requested_symbol_count", 0)
+            canary = snapshot.get("manual_quote_scope") or {}
+            status = snapshot.get("status", "CANNOT_CONFIRM")
+            _v4_global(_v4_scope, 'print')(_v4_global(_v4_scope, 'json').dumps({
+                "status": status,
+                "mode": snapshot.get("capture_mode"),
+                "owner": "research_peripheral.external_finance.manual_quote_scope",
+                "session_date": session_date,
+                "captured_at": snapshot.get("captured_at"),
+                "parent_scope_sha256": canary.get("parent_scope_sha256"),
+                "canary_scope_sha256": canary.get("scope_sha256"),
+                "source_response_sha256": snapshot.get("source_response_sha256"),
+                "requested_symbol_count": requested,
+                "available_symbol_count": available,
+                "quote_failures": snapshot.get("quote_failures"),
+                "published": False,
+                "production_allowed": False,
+                "buy_gate_updated": False,
+                "orders_sent": False,
+            }, ensure_ascii=False, sort_keys=True))
+            return 0 if available else 2
+        if manual_scope_mode:
+            result = _v4_global(_v4_scope, 'materialize_us_manual_quote_scope_backfill')(
+                data_root=args.data_root, trade_date=args.trade_date,
+                session_date=session_date, scope=manual_scope, timeout=args.timeout,
+            )
+            capture_phase = _v4_global(_v4_scope, 'HISTORICAL_BACKFILL_PHASE')
+        elif args.historical:
             if args.capture_phase or args.us_session_date or args.development_dates_file is None or args.allow_late_post_close or args.manual_late_recovery or args.rss_only_recovery:
                 raise _v4_global(_v4_scope, 'ValueError')("historical mode requires only --development-dates-file")
             allowlist_payload = _v4_global(_v4_scope, 'json').loads(args.development_dates_file.read_text(encoding="utf-8"))
@@ -120,7 +182,7 @@ def _main_body(_v4_scope, /, argv):
                 for row in _v4_global(_v4_scope, 'reversed')(capture_rows)
                 if _v4_global(_v4_scope, 'isinstance')(row, _v4_global(_v4_scope, 'Mapping'))
                 and row.get("us_session_date") == session_date
-                and row.get("capture_phase") == args.capture_phase
+                and row.get("capture_phase") == (capture_phase if manual_scope_mode else args.capture_phase)
                 and (not result.get("capture_id") or row.get("capture_id") == result.get("capture_id"))
             ),
             {},
@@ -133,10 +195,14 @@ def _main_body(_v4_scope, /, argv):
         )
         lane_has_success = (
             market_snapshot_status == "READY"
-            if args.capture_phase == "POST_CLOSE"
+            if (capture_phase if manual_scope_mode else args.capture_phase) == "POST_CLOSE"
             else rss_capture_status in {"READY", "READY_EMPTY"}
             or market_snapshot_status == "READY"
         )
+        if manual_scope_mode:
+            lane_has_success = bool(
+                result["payload"].get("market_snapshot", {}).get("available_symbol_count")
+            ) and market_snapshot_status in {"READY", "PARTIAL"}
         operation_status = (
             "CAPTURED"
             if lane_has_success and result["payload"].get("status") in {"READY", "READY_EMPTY"}
@@ -187,6 +253,19 @@ def _main_body(_v4_scope, /, argv):
             "quote_capture_reason": capture_identity.get("quote_capture_reason"),
             "operation_status": operation_status,
             "rss_only_recovery": args.rss_only_recovery,
+            "manual_quote_scope_sha256": (
+                ((result["payload"].get("market_snapshot") or {}).get("manual_quote_scope") or {}).get("scope_sha256")
+                if manual_scope_mode else None
+            ),
+            "manual_quote_requested_symbol_count": (
+                (result["payload"].get("market_snapshot") or {}).get("requested_symbol_count") if manual_scope_mode else None
+            ),
+            "manual_quote_available_symbol_count": (
+                (result["payload"].get("market_snapshot") or {}).get("available_symbol_count") if manual_scope_mode else None
+            ),
+            "manual_quote_failures": (
+                (result["payload"].get("market_snapshot") or {}).get("quote_failures") if manual_scope_mode else None
+            ),
             "original_time_capture": result["payload"].get("original_time_capture"),
             "capture_mode": result["payload"].get("capture_mode"),
             "reason": result["payload"].get("reason"),

@@ -119,6 +119,7 @@ class NativeAdapters:
                     calendar_verified=True, sha256=owner_digest(pin),
                     universe_ref="us:"+str(universe_version or "UNKNOWN")+":"+context.target_date,
                     full_overlay_projection=pin.get("full_overlay_projection", []),
+                    full_overlay_stock_identities=pin.get("full_overlay_stock_identities"),
                     full_overlay_summary=pin.get("full_overlay_summary", {"state":"CANNOT_CONFIRM","gap":"US_MAPPING_FULL_OVERLAY_NOT_BOUND"}))
                 if context.phase.value in ("MANUAL", "NEXT_DAY"):
                     context.scope_refs["US_MAPPING_RUN_CONTRACT_V1"] = self._us_mapping_run_contract(context, pin)
@@ -1128,6 +1129,7 @@ class NativeAdapters:
                     membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
                     research_membership=research_membership,
                     hk_industry_classification=industry_payload,
+                    manual_quote_scope=pin.get("manual_quote_scope"),
                     candidate_relative=factor_pin.get("candidate_relative"),
                     review_relative=factor_pin.get("review_relative"),
                     evidence_ids=[ref.evidence_id for ref in refs if ref.role in {
@@ -1147,6 +1149,7 @@ class NativeAdapters:
                     membership_artifact_sha256=formal_member_ref.sha256 if formal_member_ref else None,
                     research_membership=research_membership,
                     hk_industry_classification=industry_payload)
+            factor_payload["manual_quote_scope"] = pin.get("manual_quote_scope")
         for source in registry.get("additional_relation_sources",[]):
             refs.append(self._ref(source["owner"],"REVIEWED_US_HK_RELATIONS",expected,source["sha256"],source["relative"],source["available_at"]))
         if member_ref:

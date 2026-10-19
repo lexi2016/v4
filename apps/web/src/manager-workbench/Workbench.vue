@@ -103,6 +103,41 @@ function factorSummaryText(summary: USFactorSummary): string {
   const decisions = summary.factor_decision_counts || {};
   return `固定美股来源 ${showCount(summary.us_source_symbol_count)} 个；已配置代理主题 ${showCount(summary.proxy_source_count)} / ${showCount(summary.expected_proxy_source_count)} 个（核验通过 ${showCount(summary.verified_proxy_source_count)}，未知 ${showCount(summary.unknown_proxy_source_count)}）；目标日港股通范围 ${showCount(summary.eligible_hk_scope_count)} 只；因子唯一港股 ${showCount(summary.unique_factor_stock_count)} 只，路径 ${showCount(summary.factor_path_count)} 条，未知港股 ${showCount(summary.unknown_factor_stock_count)} 只。结果：条件观察 ${showCount(decisions.CONDITIONAL_WATCH)}，未入选 ${showCount(decisions.NOT_SELECTED)}，待核 ${showCount(decisions.UNASSESSED)}。这些数量属于不同范围，不能相加。`;
 }
+type SingleDayCatalogView = {
+  catalog_consumption?: Record<string, unknown>;
+  catalog_stock_reconciliation?: Record<string, unknown>;
+  manual_quote_scope?: Record<string, unknown>;
+  catalog_relation_dispositions?: Record<string, unknown>[];
+  catalog_peer_baskets?: Record<string, unknown[]>;
+  rows?: Record<string, unknown>[];
+};
+function singleDayCatalogSummary(): SingleDayCatalogView | null {
+  const value = vm.day?.data?.us_mapping_summary?.factor_summary?.single_day_mapping;
+  return value && typeof value === "object" ? value as SingleDayCatalogView : null;
+}
+type CatalogStockIdentity = { symbol?: string; name?: string };
+function catalogNoRelationStocks(): CatalogStockIdentity[] | null {
+  const rows = singleDayCatalogSummary()?.catalog_stock_reconciliation?.no_relation_stocks;
+  return Array.isArray(rows) ? rows.filter((row): row is CatalogStockIdentity => row !== null && typeof row === "object") : null;
+}
+function monthlyPoolExtraSymbols(): string[] | null {
+  const symbols = singleDayCatalogSummary()?.catalog_stock_reconciliation?.monthly_pool_not_in_catalog_stock_symbols;
+  return Array.isArray(symbols) ? symbols.filter((symbol): symbol is string => typeof symbol === "string") : null;
+}
+function catalogDispositionRows(): Record<string, unknown>[] {
+  const rows = singleDayCatalogSummary()?.catalog_relation_dispositions;
+  return Array.isArray(rows) ? rows : [];
+}
+function singleDayMappingRows(): Record<string, unknown>[] {
+  const rows = singleDayCatalogSummary()?.rows;
+  return Array.isArray(rows) ? rows : [];
+}
+function catalogPeerBasketRows(): { symbol: string; basket: Record<string, unknown> }[] {
+  const baskets = singleDayCatalogSummary()?.catalog_peer_baskets;
+  if (!baskets || typeof baskets !== "object") return [];
+  return Object.entries(baskets).flatMap(([symbol, values]) =>
+    Array.isArray(values) ? values.map(basket => ({ symbol, basket: basket as Record<string, unknown> })) : []);
+}
 function singleDaySummary(): SingleDayMappingSummary | null {
   return vm.day?.data?.us_mapping_summary?.factor_summary?.single_day_mapping || null;
 }
@@ -360,7 +395,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <p>美股来源标的 {{ vm.day.data.us_mapping_summary.source_symbol_count }} 个，候选来源记录 {{ vm.day.data.us_mapping_summary.source_row_count }} 条；
           候选港股关系 {{ vm.day.data.us_mapping_summary.relation_row_count }} 条，涉及 {{ vm.day.data.us_mapping_summary.mapped_hk_count }} 只港股。</p>
         <p v-if="vm.day.data.us_mapping_summary.catalog_summary">
-          全量关系目录 {{ vm.day.data.us_mapping_summary.catalog_summary.displayed_relation_count ?? vm.day.data.us_mapping_summary.catalog_summary.relation_count ?? '未知' }} 条 / {{ vm.day.data.us_mapping_summary.catalog_summary.stock_count ?? '未知' }} 只，目录状态 {{ vm.day.data.us_mapping_summary.catalog_summary.state || 'CANNOT_CONFIRM' }}；目录只用于检索，不计入候选、评估计数或合并结论。</p>
+          全量关系目录 {{ vm.day.data.us_mapping_summary.catalog_summary.displayed_relation_count ?? vm.day.data.us_mapping_summary.catalog_summary.relation_count ?? '未知' }} 条 / {{ vm.day.data.us_mapping_summary.catalog_summary.stock_count ?? '未知' }} 只，目录状态 {{ vm.day.data.us_mapping_summary.catalog_summary.state || 'CANNOT_CONFIRM' }}；全量逐关系消费见下方，仍独立于普通美股候选计数与合并结论。</p>
         <p>按美股来源标的计：严格入选 {{ vm.day.data.us_mapping_summary.source_decision_counts.SELECTED ?? '未知' }}，
           条件观察 {{ vm.day.data.us_mapping_summary.source_decision_counts.CONDITIONAL_WATCH ?? '未知' }}，
           未入选 {{ vm.day.data.us_mapping_summary.source_decision_counts.NOT_SELECTED ?? '未知' }}，
@@ -376,10 +411,59 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         </template>
         <p v-if="vm.day.data.us_mapping_summary.mixed_source_count">另有 {{ vm.day.data.us_mapping_summary.mixed_source_count }} 个标的包含不同关系结论，逐条保留如下。</p>
         <article v-if="vm.day.data.us_mapping_summary.factor_summary" class="mwb-factor-summary">
-          <h4>美股代理日收益因子 · 事后研究候选</h4>
+          <h4>{{ vm.day.data.us_mapping_summary.factor_summary.full_mapping_sector_policy ? '行业 ETF 宽基基线 · 来源市场观察' : '美股代理日收益因子 · 事后研究候选' }}</h4>
           <p>{{ factorSummaryText(vm.day.data.us_mapping_summary.factor_summary) }}</p>
           <p>收益会话 {{ vm.day.data.us_mapping_summary.factor_summary.source_session || '未知' }}；目标日 {{ vm.day.data.us_mapping_summary.factor_summary.target_date }}，阶段 {{ PHASE_LABELS[vm.day.data.us_mapping_summary.factor_summary.phase] }}。历史暴露有效期间仍可能未知；本结果未做 PIT 验证，也未验证研究效果。</p>
+          <p v-if="vm.day.data.us_mapping_summary.factor_summary.full_mapping_sector_policy">本批规则：{{ vm.day.data.us_mapping_summary.factor_summary.full_mapping_sector_policy }}；来源涨跌幅不会生成港股方向或主选股路径。行业方向仅记录美股来源观察。</p>
           <p v-if="vm.day.data.us_mapping_summary.factor_summary.paired_review_gap">审核材料缺口：{{ vm.day.data.us_mapping_summary.factor_summary.paired_review_gap }}</p>
+        </article>
+        <article v-if="singleDayCatalogSummary()" class="mwb-factor-summary" aria-label="全量映射关系消费">
+          <h4>{{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.catalog_stock_count) }} 只目录公司 / {{ showCount(singleDayCatalogSummary()?.catalog_consumption?.relation_count) }} 条关系的实际消费结果</h4>
+          <p>处置状态 {{ showText(singleDayCatalogSummary()?.catalog_consumption?.state) }}；关系 {{ showCount(singleDayCatalogSummary()?.catalog_consumption?.relation_count) }} 条，唯一编号 {{ showCount(singleDayCatalogSummary()?.catalog_consumption?.unique_relation_id_count) }} 个；已绑定来源报价 {{ showCount(singleDayCatalogSummary()?.catalog_consumption?.quoted_relation_count) }} 条，缺报价 {{ showCount(singleDayCatalogSummary()?.catalog_consumption?.missing_quote_relation_count) }} 条。日期 {{ showText(singleDayCatalogSummary()?.manual_quote_scope?.session_date) }}；报价范围 SHA {{ showText(singleDayCatalogSummary()?.manual_quote_scope?.scope_sha256) }}；报价绑定 {{ showText(singleDayCatalogSummary()?.manual_quote_scope?.state) }} {{ showText(singleDayCatalogSummary()?.manual_quote_scope?.gap) }}。</p>
+          <p>目录身份 {{ showText(singleDayCatalogSummary()?.catalog_stock_reconciliation?.catalog_stock_identity_state) }}：{{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.catalog_stock_count) }} 只，其中有关系 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.catalog_stock_with_relation_count) }} 只、无关系 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.no_relation_stock_count) }} 只；关系目标共 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.relation_target_stock_count) }} 只。当前月池内 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.in_monthly_pool_stock_count) }} 只 / {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.in_monthly_pool_relation_count) }} 条关系，目录池外 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.outside_monthly_pool_stock_count) }} 只 / {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.outside_monthly_pool_relation_count) }} 条关系；另有月池标的不在目录主表 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.monthly_pool_not_in_catalog_stock_count) }} 只；缺少目标身份 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.target_identity_missing_relation_count) }} 条。</p>
+          <details><summary>查看目录中没有关系的 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.no_relation_stock_count) }} 只股票</summary>
+            <ul v-if="catalogNoRelationStocks()"><li v-for="stock in catalogNoRelationStocks() || []" :key="stock.symbol || stock.name">{{ showText(stock.symbol) }} {{ showText(stock.name) }}</li></ul>
+            <p v-else>目录股票身份清单未提供。</p>
+          </details>
+          <details><summary>查看月池额外纳入、但不在目录主表中的 {{ showCount(singleDayCatalogSummary()?.catalog_stock_reconciliation?.monthly_pool_not_in_catalog_stock_count) }} 只股票</summary>
+            <p>{{ monthlyPoolExtraSymbols()?.join('、') || (monthlyPoolExtraSymbols() ? '无' : '未知') }}</p>
+          </details>
+          <p>各关系依据原关系类型、原始事实 / 条件、当前适用状态和 recovery 范围逐条给出采用或排除原因。原始方向不会被转成港股收益；美股 peer 收益只作为来源市场观察，不代表港股预测、收益或买入。</p>
+          <details><summary>查看 {{ singleDayMappingRows().length }} 只港股的路径、同行覆盖和开盘 / 盘中状态</summary>
+            <div class="mwb-table-wrap"><table class="mwb-table">
+              <thead><tr><th>港股</th><th>映射路径 / 主要来源</th><th>同行与关系</th><th>开盘反应</th><th>开盘后状态</th></tr></thead>
+              <tbody><tr v-for="stock in singleDayMappingRows()" :key="String(stock.symbol)">
+                <td>{{ showText(stock.symbol) }} {{ showText(stock.name) }}</td>
+                <td>{{ showText(stock.mapping_grade) }} · {{ showText(stock.primary_relation_type || stock.source_industry || stock.reason) }} · {{ showText(stock.primary_proxy || stock.primary_us_symbol) }}</td>
+                <td>{{ showCount(Array.isArray(stock.catalog_peer_baskets) ? stock.catalog_peer_baskets.length : null) }} 个同行组；{{ showCount(Array.isArray(stock.catalog_relation_dispositions) ? stock.catalog_relation_dispositions.length : null) }} 条关系；{{ showText(stock.reason) }}</td>
+                <td>{{ showText(stock.open_reaction_status) }}</td><td>{{ showText(stock.post_open_status) }} · {{ showText(stock.post_open_reason) }}</td>
+              </tr></tbody>
+            </table></div>
+          </details>
+          <details><summary>查看全量 {{ catalogDispositionRows().length }} 条关系的消费、报价与原因</summary>
+            <div class="mwb-table-wrap"><table class="mwb-table">
+              <thead><tr><th>港股 / 美股</th><th>关系 / 路由</th><th>处置与原因</th><th>原始事实 / 条件 / 方向</th><th>当前范围</th><th>报价</th></tr></thead>
+              <tbody><tr v-for="relation in catalogDispositionRows()" :key="String(relation.catalog_relation_id)">
+                <td>{{ showText(relation.symbol) }} / {{ showText(relation.us_symbol) }}</td>
+                <td>{{ showText(relation.catalog_relation_id) }} · {{ showText(relation.relation_type) }} · {{ showText(relation.route) }}</td>
+                <td>{{ showText(relation.catalog_disposition) }} · {{ showText(relation.catalog_disposition_reason) }}</td>
+                <td>{{ showText(relation.catalog_fact) }} · 条件：{{ showText(relation.catalog_condition) }} · 原始方向：{{ showText(relation.catalog_direction_raw) }}</td>
+                <td>{{ showText(relation.catalog_current_applicability) }} · {{ showText(relation.catalog_fact_verified_scope) }}</td>
+                <td>{{ showText(relation.quote_status) }} · {{ relation.us_source_return_pct == null ? '未知' : `${relation.us_source_return_pct}%` }} · {{ showText(relation.quote_missing_reason) }}</td>
+              </tr></tbody>
+            </table></div>
+          </details>
+          <details><summary>查看 {{ catalogPeerBasketRows().length }} 个 peer 研究观察</summary>
+            <div class="mwb-table-wrap"><table class="mwb-table">
+              <thead><tr><th>港股</th><th>关系组</th><th>覆盖</th><th>有效成员 / 等权来源收益</th><th>缺失代码</th><th>解释</th></tr></thead>
+              <tbody><tr v-for="(item, index) in catalogPeerBasketRows()" :key="`${item.symbol}:${String(item.basket.peer_bucket)}:${index}`">
+                <td>{{ item.symbol }}</td><td>{{ showText(item.basket.peer_bucket) }}</td>
+                <td>{{ showText(item.basket.signal_type) }} · {{ showText(item.basket.coverage_state) }} · {{ showCount(item.basket.valid_count) }} / {{ showCount(item.basket.declared_count) }} ({{ item.basket.coverage_fraction == null ? '未知' : `${Math.round(Number(item.basket.coverage_fraction) * 100)}%` }})</td>
+                <td>{{ showText(item.basket.source_mean_return_pct) }}% · {{ showText(item.basket.source_move_direction) }} · {{ showText(item.basket.relation_ids) }}</td>
+                <td>{{ showText(item.basket.missing_symbols) }}</td><td>{{ showText(item.basket.interpretation) }}</td>
+              </tr></tbody>
+            </table></div>
+          </details>
         </article>
         <details><summary>查看全部美股来源、港股关系与未入选／待核原因</summary>
           <article v-for="group in vm.day.data.us_mapping_summary.groups" :key="group.us_symbol">

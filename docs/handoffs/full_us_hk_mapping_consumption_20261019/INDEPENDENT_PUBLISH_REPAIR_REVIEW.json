@@ -1,0 +1,67 @@
+{
+  "review": "REVIEWED/PASS",
+  "scope": "Incremental store read-limit repair and inactive R2 API/scheduler candidates",
+  "reviewer": "full_mapping_consumption_review; read-only independent Luna Max",
+  "findings": [],
+  "scope_sha256": "36a8791d1a36c81155aaef3cb48fe1ef90a6f2c9418d1ee968cfdc8198e47a9c",
+  "writer_receipt_sha256": "a33b46ed433edc648c5864a716a317456d64f50da9dbc2964bba1da8eaf6cfee",
+  "runtime_overlay_receipt_sha256": "97264ab07048fe5c1287aceea7847f6e8c30dadf7f1630822bf496909e1610f1",
+  "BEHAVIOR_VERIFIED": "Both R2 candidate roots independently passed isolated checkpoint/snapshot commit/readback, immutable collision, in-process GET using same saved 82,083,879-byte PUBLISH checkpoint. Active state untouched.",
+  "input": {
+    "run_id": "77f55429608147a7b446b85d8f6f1cf5",
+    "checkpoint_bytes": 82083879,
+    "checkpoint_sha256": "6d8f101bc56fe243af23d6a5c2ae79f1d5b553ea798e16141a7eb267869ffcc4",
+    "product_sha256": "f3616a02c2f24c862514a70e75f7e87452afce8696ab8da1f2f1bf7bf8f76104"
+  },
+  "targeted_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python -B -m pytest -p no:cacheprovider -q tests/manager_workbench/runtime/test_publish_read_limits.py tests/manager_workbench/runtime/test_runtime.py::test_store_immutable_version_readback_and_orphan",
+    "result": "3 passed",
+    "warnings": "5 pytest temporary-directory cleanup warnings",
+    "git_diff_check": "PASS"
+  },
+  "bounds": {
+    "candidate": "api-r2",
+    "limit_bytes": 134217728,
+    "synthetic_file_bytes": 134217729,
+    "result": "OWNED_FILE_TOO_LARGE",
+    "non_publish_default_64_mib": "verified by focused pytest"
+  },
+  "candidate_replay": {
+    "api": {
+      "manifest_sha256": "9cdbb692be8630425792449ce00ff7710ad4253c9f36c9c20f4f5d32478805e7",
+      "store_sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+      "api_get_status": 200,
+      "immutable_checkpoint_and_snapshot_collision": "PASS",
+      "non_delta_preserved_count": 1258
+    },
+    "scheduler": {
+      "manifest_sha256": "f273d60db4935d6654df3d9042a837002f0d5606d2bace03cac4bdf3ea0b42be",
+      "store_sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+      "api_get_status": 200,
+      "immutable_checkpoint_and_snapshot_collision": "PASS",
+      "non_delta_preserved_count": 870
+    }
+  },
+  "release_integration": {
+    "delta_paths": [
+      "v4/manager_workbench/store.py"
+    ],
+    "config_changed": false,
+    "schedule_preserved": true,
+    "activation_executed": false
+  },
+  "active_state_readback": {
+    "failed_run_catalog_exists": false,
+    "manual_pointer_run_id": "6ac0f2403ab94a80943a911257bf556f",
+    "active_state_written_by_review": false
+  },
+  "limitations": [
+    "Original run remains failed; isolated replay is not active recovery.",
+    "Live activation and natural execution not verified by this review.",
+    "Initial temp parent symlink rejected; verified non-symlink cache rerun passed."
+  ],
+  "reused_prior_review": "INDEPENDENT_REVIEW_BEFORE_PUBLISH_REPAIR.json",
+  "recorded_by": "Root faithful structured transcription of independent final verdict"
+}

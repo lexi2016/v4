@@ -14,6 +14,9 @@ from infrastructure.owned_io import SafeRoot
 
 from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
 
+_DEFAULT_READ_LIMIT = 64 * 1024 * 1024
+_PLAN_READ_LIMIT = 128 * 1024 * 1024
+
 
 class StorageConflict(Exception):
     pass
@@ -58,9 +61,9 @@ class WorkbenchStore:
         with self.io.kernel_lock(f"locks/{lock_key}.lock", timeout=10):
             yield
 
-    def _read(self, path: Path) -> dict[str, Any] | None:
+    def _read(self, path: Path, *, max_bytes: int = _DEFAULT_READ_LIMIT) -> dict[str, Any] | None:
         try:
-            raw = self.io.read_bytes(str(path.relative_to(self.root)))
+            raw = self.io.read_bytes(str(path.relative_to(self.root)), max_bytes=max_bytes)
         except FileNotFoundError:
             return None
         obj = json.loads(raw)
@@ -76,12 +79,13 @@ class WorkbenchStore:
         finally:
             os.close(fd)
 
-    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool) -> None:
+    def _write(self, path: Path, obj: dict[str, Any], *, immutable: bool,
+               collision_read_limit: int = _DEFAULT_READ_LIMIT) -> None:
         data = canonical(obj)
         try:
             self.io.write_bytes(str(path.relative_to(self.root)),data,require_absent=immutable)
         except FileExistsError:
-            if self._read(path) != obj:
+            if self._read(path, max_bytes=collision_read_limit) != obj:
                 raise StorageConflict("IMMUTABLE_COLLISION")
 
     def save_input(self, input_sha: str, data: dict[str, Any]) -> None:
@@ -117,7 +121,8 @@ class WorkbenchStore:
                 previous=self.read_plan(before["run_id"]) if before else None
                 snap=merger(previous,snap)
             d = snap.model_dump(mode="json")
-            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True)
+            self._write(self._path("snapshots", _key(snap.run_id)), d, immutable=True,
+                        collision_read_limit=_PLAN_READ_LIMIT)
             saved = self.read_plan(snap.run_id)
             if saved.context != snap.context or saved.product_sha256 != snap.product_sha256 or saved.input_sha256 != snap.input_sha256:
                 raise StorageConflict("READBACK_MISMATCH")
@@ -136,7 +141,7 @@ class WorkbenchStore:
             return saved
 
     def read_plan(self, run_id: str) -> PlanSnapshot:
-        obj = self._read(self._path("snapshots", _key(run_id)))
+        obj = self._read(self._path("snapshots", _key(run_id)), max_bytes=_PLAN_READ_LIMIT)
         if obj is None:
             raise KeyError("PLAN_NOT_FOUND")
         saved = PlanSnapshot.model_validate(obj)
@@ -238,10 +243,13 @@ class WorkbenchStore:
 
     def save_checkpoint(self, job_id: str, step: str, payload: dict[str, Any]) -> None:
         with self.lock(f"checkpoint:{job_id}:{step}"):
-            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload, immutable=True)
+            limit = _PLAN_READ_LIMIT if step == "PUBLISH" else _DEFAULT_READ_LIMIT
+            self._write(self._path("checkpoints", _key(job_id), _key(step)), payload,
+                        immutable=True, collision_read_limit=limit)
 
     def load_checkpoint(self, job_id: str, step: str) -> dict[str, Any] | None:
-        return self._read(self._path("checkpoints", _key(job_id), _key(step)))
+        limit = _PLAN_READ_LIMIT if step == "PUBLISH" else _DEFAULT_READ_LIMIT
+        return self._read(self._path("checkpoints", _key(job_id), _key(step)), max_bytes=limit)
 
     def load_input(self, input_sha: str) -> dict[str, Any] | None:
         return self._read(self._path("input_snapshots", input_sha))

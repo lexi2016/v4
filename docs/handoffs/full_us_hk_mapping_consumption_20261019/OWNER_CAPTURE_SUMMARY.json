@@ -1,0 +1,34 @@
+{
+  "status": "REAL_PROVIDER_PARTIAL_CAPTURE_PUBLISHED",
+  "trade_date": "20261019",
+  "session_date": "20261016",
+  "captured_at": "2026-10-19T09:50:06Z",
+  "requested": 547,
+  "available": 490,
+  "quote_count": 490,
+  "isolated_failure_count": 57,
+  "failure_reasons": {
+    "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 41,
+    "QUOTE_SESSION_DATE_MISMATCH_CAPTURE": 9,
+    "QUOTE_SYMBOL_MISSING": 6,
+    "QUOTE_PREVIOUS_CLOSE_ZERO": 1
+  },
+  "provider": "Tencent qt.gtimg.cn",
+  "source_response_sha256": "5f9df0ed7dcf598e2a08a69ddf6de4fc1f7c67fbf076e195906ef5628d6a59d6",
+  "payload_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/history_backfill/20261019/external_finance.json",
+  "payload_sha256": "e60cf4282db3394061edebf930e07588bf67fe516ef217e02b45993fdec7861e",
+  "receipt_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/receipts/research/peripherals/history_backfill/20261019/external_finance.json",
+  "receipt_sha256": "ac02f5ca8dd3617d05c9eae684fae91040aa9a27ce0e76736dc1f184eac7bb6e",
+  "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data/research/peripherals/manifest.json",
+  "manifest_sha256": "88b56a19119bf63bd30ef99eb5601ede8da6f7d084ae3efd26271c393daad1d1",
+  "old_manifest_entries_preserved": 26,
+  "added_manifest_key": "research/peripherals/history_backfill/20261019/external_finance.json",
+  "original_time_capture": false,
+  "safety": {
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "provider_http_status": 200,
+  "scope_sha256": "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf8"
+}
