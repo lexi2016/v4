@@ -1,0 +1,64 @@
+{
+  "verdict": "REVIEWED/PASS",
+  "BEHAVIOR_VERIFIED": "R2 single-day engine output only; live API/UI behavior remains CANNOT_CONFIRM",
+  "scope": {
+    "base_commit": "f481db642c9a0e1ebc1580872b8a959c407d8a00",
+    "scope_sha256": "33482528a6d90578642836bd4fbca43448ffc1d225eb543e42fa00393e1c301a",
+    "mapping_policy_sha256": "43849d9090a9f1632ba5042544810f62855293859fcf6dff67f4c7b8e95cc1ac",
+    "writer_receipt_sha256": "6a2e0d8676d9803a17e52fa2ed8eb9a2717f9390367d76a4233b4e36017acaf8",
+    "r2_canary_sha256": "4268b2b339748571867ff52ac327feeeb2a30ffdc6da58d4b093bed0ff685dab"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": [
+      {
+        "file": "v4/manager_workbench/engines/strict_us_selection.py",
+        "line": 301,
+        "blocking": false,
+        "trigger": "A stock has multiple grade-A paths to the same US symbol but different relation types.",
+        "impact": "The shared comparator now ties these paths on us_symbol alone, so primary selection follows input order; R1 used relation_type and proxy_symbol tie-breakers. An in-memory probe with duplicate NVDA paths at +0.5% and +1.5% changed the result between OBSERVATION and BENEFIT when input order changed. The frozen R2 canary has no duplicate A/same-symbol groups, so this did not affect the reviewed 20261020 output."
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "result": "PASS: 9 passed"
+    },
+    {
+      "command": "<v3.5-mac-python> ops/verify_strict_us_selection_v1.py --config <existing API config> --cutoff 2026-10-19T03:40:25+00:00 --target-date 20261020 --us-session 20261016 --hk-price-session 20261016",
+      "result": "PASS: rerun matched the saved input and result SHA-256 values; PARTIAL state; 698 rows; all 11 oil-and-gas rows use XLE primary, FCG secondary"
+    },
+    {
+      "command": "R2 candidate manifest and package hash checks",
+      "result": "PASS: API manifest 847cc752dea27141920deff4aded45e94f32d08f34ab04e51c08a45ba5dd66b3 and scheduler manifest 0adfd006f14c72a73861b0aa2941659750c37433f46c2c477cda91c1822b1d91 bind the R2 engine and regression-test hashes; non-delta inventory counts and hashes match the build receipts. Both candidates remain inactive and live plist hashes match their bases."
+    },
+    {
+      "command": "R1 UI evidence reuse",
+      "result": "PASS reused: 5 Vitest tests; R2 makes no UI changes"
+    }
+  ],
+  "target_behavior": {
+    "r2_canary_result_sha256": "8cc92e84746c91779d91801cab910dd359794476c082d1481d7951861c8e7400",
+    "counts": {
+      "BENEFIT": 11,
+      "RISK": 101,
+      "OBSERVATION": 147,
+      "UNMAPPED": 420,
+      "UNASSESSED": 19,
+      "CONFLICT": 0
+    },
+    "r1_to_r2_changed_rows": "Only the 11 oil-and-gas rows; category counts are unchanged."
+  },
+  "activation": {
+    "review_gate": "PASS",
+    "may_proceed_for_frozen_20261020_scope": true,
+    "limitation": "This does not verify activation, a saved API run, or live API/UI readback. The P2 caveat is untriggered by the frozen input; avoid generalizing the result beyond this scope."
+  },
+  "CANNOT_CONFIRM": [
+    "Live service activation and API/UI readback",
+    "Formal target-date eligibility, historical PIT, research effectiveness, and natural-slot result",
+    "GitHub synchronization"
+  ]
+}

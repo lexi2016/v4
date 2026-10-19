@@ -1,0 +1,44 @@
+{
+  "verdict": "REVIEWED/PASS",
+  "scope": {
+    "frozen_scope_sha256": "33482528a6d90578642836bd4fbca43448ffc1d225eb543e42fa00393e1c301a",
+    "mapping_policy_sha256": "43849d9090a9f1632ba5042544810f62855293859fcf6dff67f4c7b8e95cc1ac",
+    "R3_writer_receipt_sha256": "2db8eca89cae89be32d14507a73abc8f228b5df77c523b706396eeeb5ea1a83e",
+    "R3_engine_sha256": "d5234596ea14316829779fa5d5791f75b238e846867df25e7e4d309ef2363341",
+    "R3_test_sha256": "8b6e28bc88de8bb9efc2e72f8774b68fc0cbd7b7cba979170669a6b9691e2550"
+  },
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "checks": [
+    {
+      "check": "R3 regression test from the staged API candidate",
+      "result": "PASS, 1 test; pytest cache disabled and bytecode writes disabled"
+    },
+    {
+      "check": "R3 candidate replay using the saved input snapshot",
+      "result": "PASS. Fresh Python process loaded both modules from the R3 candidate app. Snapshot SHA matched its ID; 1051 records; output SHA matched the saved artifact: 040f2d0a6a9e32d37718335ff5011ab605f518b5dfd7a3a597255e0335d52fad."
+    },
+    {
+      "check": "Previously failing HK.00027 C-path case",
+      "result": "Replay completed: both null-proxy catalog paths remain unassessed, the broad C path remains present, and the row is OBSERVATION/C_MAPPING_OBSERVE_ONLY."
+    },
+    {
+      "check": "Full single-day output and safety flags",
+      "result": "PARTIAL, 698 rows: BENEFIT 11, RISK 101, OBSERVATION 147, UNASSESSED 394, UNMAPPED 45, CONFLICT 0. All 11 oil-and-gas rows use XLE as primary; FCG count is 0. RESEARCH_ONLY=true, production_allowed=false, buy_gate_updated=false, orders_sent=false; strict_v1 remains PAUSED_NOT_EXECUTED."
+    },
+    {
+      "check": "R3 staged API and scheduler manifests",
+      "result": "PASS. Manifest SHA-256 values match the R3 receipts; each has the expected engine-and-test delta and unchanged non-delta inventory. Both declare NOT_ACTIVATED. Installed API and scheduler plist hashes still match their recorded R2 baselines."
+    }
+  ],
+  "behavior_verified": "R3 engine behavior independently verified against the frozen saved input, including the R2 TypeError case and the full 698-row output. Post-activation API/UI readback remains CANNOT_CONFIRM and is still required.",
+  "cannot_confirm": [
+    "Post-R3-activation API/UI behavior",
+    "Formal eligibility, PIT safety, and predictive effect",
+    "GitHub remote synchronization"
+  ],
+  "activation_authorized_by_review": true
+}

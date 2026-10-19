@@ -1156,6 +1156,12 @@ class NativeAdapters:
                 "US_UNIVERSE_CONTRACT_QUOTES", "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
                 "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW",
                 "HK_ISSUER_INDUSTRY_CLASSIFICATION", "HK_SECURITY_MASTER"}]
+            if (context.phase.value in ("MANUAL", "NEXT_DAY")
+                    and context.target_date >= "20261020"):
+                # Single-day mapping needs only the already bound monthly pool;
+                # strict V1 history gates remain paused and are not read here.
+                factor_payload["single_day_mapping_payload"] = {
+                    "monthly_membership": research_membership}
         quote_rows = snapshot.get("quotes",snapshot.get("symbols",snapshot.get("rows", [])))
         if isinstance(quote_rows, dict):
             quote_rows = [{"symbol":s, **v} for s,v in quote_rows.items()]

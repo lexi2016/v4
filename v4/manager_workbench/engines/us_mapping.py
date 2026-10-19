@@ -5,6 +5,10 @@ from decimal import Decimal,InvalidOperation
 import hashlib,json
 from .common import US_FACTOR_RULES_VERSION, current, hk_symbol, membership, result, row, valid_sha,timestamp
 from .us_factor import run_us_factor
+from .strict_us_selection import (
+    run_single_day_mapping,
+    cannot_confirm_single_day_mapping,
+)
 from ..inputs.us_universe import (
     LEGACY_UNIVERSE_VERSION,
     UNIVERSE_VERSION,
@@ -333,6 +337,25 @@ def run_us_mapping(context, batch):
                 paired_review_available=False, paired_review_gap="US_FACTOR_ENGINE_FAILED",
                 source_session=(context.get("source_sessions") or {}).get("us"),
                 historical_pit_verified=False, combined_source_and_stock_count=None)
+        if (context.get("phase") in ("MANUAL", "NEXT_DAY")
+                and context.get("target_date") == "20261020"
+                and ((context.get("source_sessions") or {}).get("us")
+                    or (context.get("source_sessions") or {}).get("US")) == "20261016"
+                and ((context.get("source_sessions") or {}).get("hk_price")
+                    or (context.get("source_sessions") or {}).get("HK_PRICE")) == "20261016"):
+            try:
+                mapping_payload = (payload.get("single_day_mapping_payload") or {}).get("monthly_membership") if isinstance(payload, dict) else None
+                single_day_summary = run_single_day_mapping(context,
+                    relation_rows=rows,
+                    industry_rows=factor_rows,
+                    factor_summary=factor_summary,
+                    membership=mapping_payload)
+            except Exception:
+                # A single-day summary failure must not discard prior
+                # reviewed US relations or the independent factor result.
+                single_day_summary = cannot_confirm_single_day_mapping(context,
+                    "SINGLE_DAY_MAPPING_FAILED")
+            factor_summary["single_day_mapping"] = single_day_summary
         out["rows"].extend(factor_rows)
         holder = next(iter(factor_rows), None) or next(iter(out["rows"]), None)
         if holder is not None:

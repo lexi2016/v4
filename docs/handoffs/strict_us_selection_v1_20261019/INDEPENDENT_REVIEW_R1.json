@@ -1,0 +1,56 @@
+{
+  "verdict": "REVIEWED/FAIL",
+  "BEHAVIOR_VERIFIED": "Engine-level only; the rerun confirms a frozen-primary mismatch. Full API/UI behavior is CANNOT_CONFIRM.",
+  "scope": {
+    "base_commit": "f481db642c9a0e1ebc1580872b8a959c407d8a00",
+    "scope_sha256": "33482528a6d90578642836bd4fbca43448ffc1d225eb543e42fa00393e1c301a",
+    "mapping_policy_sha256": "43849d9090a9f1632ba5042544810f62855293859fcf6dff67f4c7b8e95cc1ac",
+    "writer_receipt_sha256": "df269975b1de065efa8974aaf9aff6a74edd114672058b3cabd59b8814b756f5",
+    "source_paths_within_allowlist": true
+  },
+  "findings": {
+    "P0": [],
+    "P1": [
+      {
+        "file": "v4/manager_workbench/engines/strict_us_selection.py",
+        "line": 335,
+        "trigger": "An oil-and-gas industry row has both frozen B paths: XLE primary and FCG secondary.",
+        "error": "_mapping_index sorts those paths by the same industry rank, then alphabetically by proxy symbol. FCG therefore precedes XLE; run_single_day_mapping takes ab[0] as primary at line 509 without checking primary_path.",
+        "impact": "The real canary labels all 11 oil-and-gas stocks with FCG as primary even though FROZEN_MAPPING_POLICY.json fixes XLE primary and FCG secondary. A focused input with XLE=-1.2% and FCG=+0.5% is output as OBSERVATION; the frozen XLE primary requires RISK. This can misstate the primary return and change the classification.",
+        "test_gap": "The 37 passing Python tests cover multiple A paths but do not assert frozen B primary versus secondary ordering."
+      }
+    ],
+    "P2": []
+  },
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_strict_us_selection.py tests/manager_workbench/runtime/test_us_factor_display.py tests/manager_workbench/engines/test_us_mapping.py",
+      "result": "PASS, 37 tests"
+    },
+    {
+      "command": "node_modules/.bin/vitest run src/manager-workbench/__tests__/us_factor.spec.ts",
+      "result": "PASS, 5 tests"
+    },
+    {
+      "check": "Read-only canary rerun with the recorded config and cutoff",
+      "result": "Same input and result hashes as the saved canary; 698 rows, PARTIAL, counts match. All 11 oil-and-gas rows use FCG primary."
+    },
+    {
+      "check": "Focused oil-primary counterexample",
+      "result": "Frozen XLE=-1.2%, FCG=+0.5% produced FCG primary and OBSERVATION, confirming the defect."
+    },
+    {
+      "check": "API/scheduler candidate manifests, staged plists, configs, inline environment, and non-delta inventory",
+      "result": "Hashes and declared deltas match; 1244 API and 861 scheduler non-delta entries preserved; staged identity keys match. Live plist files still match their recorded base hashes; candidates remain unactivated."
+    }
+  ],
+  "target_behavior": {
+    "engine_canary": "Independently rerun and hash-matched; full 698-row output and honest PARTIAL/unmapped/unassessed counts are present. The frozen primary behavior fails for oil-and-gas rows.",
+    "strict_v1_and_history": "PAUSED_NOT_EXECUTED; the single-day mapping path does not call the strict history adapter or apply deferred gates.",
+    "formal_eligibility_pit_effect": "CANNOT_CONFIRM / unverified, correctly disclosed.",
+    "api_ui_live_readback": "CANNOT_CONFIRM; candidate has not been activated and no saved-run/API/UI readback exists.",
+    "github_sync": "CANNOT_CONFIRM; no remote commit/readback evidence."
+  },
+  "activation_authorized": false,
+  "reason": "The P1 frozen-primary defect blocks activation. Re-review only the corrected ordering and its direct impact after the code changes."
+}

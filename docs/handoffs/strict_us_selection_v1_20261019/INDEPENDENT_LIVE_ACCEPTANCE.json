@@ -1,0 +1,86 @@
+{
+  "verdict": "REVIEWED/PASS",
+  "BEHAVIOR_VERIFIED": "PASS — deployed API output and rendered AX content agree for run 6ac0f2403ab94a80943a911257bf556f",
+  "findings": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "checks": [
+    {
+      "name": "deployed runtime identity and manifest",
+      "result": "PASS",
+      "api": {
+        "pid": 23457,
+        "manifest_sha256": "043c701521d6a67185fdc8438fa3b99feb75c2c179ac51d523021f06d20c8013"
+      },
+      "scheduler": {
+        "pid": 24211,
+        "manifest_sha256": "82b8ac71dbf09d2dfe3ebddb7c18949cd59e8b9f0c8b6b557173947314070334"
+      },
+      "source_hashes_unchanged": {
+        "engine": "d5234596ea14316829779fa5d5791f75b238e846867df25e7e4d309ef2363341",
+        "test": "8b6e28bc88de8bb9efc2e72f8774b68fc0cbd7b7cba979170669a6b9691e2550"
+      }
+    },
+    {
+      "name": "actual run and saved API readbacks",
+      "result": "PASS",
+      "run_id": "6ac0f2403ab94a80943a911257bf556f",
+      "snapshot_sha256": "95623d2b54543b63e58e161f6905ee42c92f560724839ac22504c043f2285479",
+      "pagination_limit": 1,
+      "day_response_sha256": "1aea52e6cb1d3b6253a1a9793bb9b42f376c829ede41926f592f54721b3b730c",
+      "lane_response_sha256": "915ab1a52420f2aaaf64df8735b5343ce6c1bea2f89fbc2d4bceaa14365c3f45",
+      "mapping_summary_sha256_day_and_lane_match": "a434bce41b98cd7cd6e7d4579ec854c79867d932879c895e47772a4840ea6f5a"
+    },
+    {
+      "name": "full mapping output and safety",
+      "result": "PASS",
+      "scope": 698,
+      "counts": {
+        "BENEFIT": 11,
+        "RISK": 101,
+        "OBSERVATION": 147,
+        "UNASSESSED": 394,
+        "UNMAPPED": 45
+      },
+      "oil_and_gas_primary": {
+        "XLE": 11
+      },
+      "benefit_reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+      "risk_reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+      "flags": {
+        "RESEARCH_ONLY": true,
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "name": "rendered page AX readback",
+      "result": "PASS",
+      "url_run_id_matches_api": true,
+      "benefit_rows_expanded_and_matched": "11/11",
+      "risk_rows_expanded_and_matched": "101/101",
+      "matched_fields": [
+        "symbol",
+        "name",
+        "primary proxy",
+        "signed return",
+        "industry",
+        "reason"
+      ],
+      "ui_benefit_sha256": "3306a3e858257854d552120f928bbfd2a853c9e4d0440bb83853c2b913fc5fb5",
+      "ui_benefit_risk_sha256": "77ad3d90a1fbc845be4450fc864f703af8f4f7366db054be0c4ed25649c6494f"
+    }
+  ],
+  "evidence_boundaries": {
+    "pixel_screenshot": "CANNOT_CONFIRM; IAB viewport width 0; panel open queued",
+    "natural_slot": "NOT_VERIFIED; natural_verified=false",
+    "formal_eligibility": "CANNOT_CONFIRM",
+    "historical_pit": "NOT_VERIFIED",
+    "predictive_effectiveness": "UNVERIFIED",
+    "strict_v1": "PAUSED_NOT_EXECUTED"
+  },
+  "review_actions": "Read-only artifact, process identity, manifest, source-hash, API-response, snapshot, and AX checks only. No test rerun, replay, POST, data collection, or service action."
+}

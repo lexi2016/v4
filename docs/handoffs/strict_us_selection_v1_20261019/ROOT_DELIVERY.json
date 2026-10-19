@@ -1,0 +1,316 @@
+{
+  "schema": "single_day_mapping_delivery.v1",
+  "goal": "Complete US20261016 single-day mapping to HK20261020: show concrete potential-benefit, risk and watch stocks with fixed primary A/B/C mapping and reasons on V4; independent acceptance, authorized local deployment and GitHub sync.",
+  "created_at": "2026-10-19T04:55:38.726850+00:00",
+  "source_root": "/Users/lexi/.codex/worktrees/strict-us-selection-v1/v4_app",
+  "canonical_workspace": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_unrelated_changes_preserved": true,
+  "base_commit": "f481db642c9a0e1ebc1580872b8a959c407d8a00",
+  "repository": "lexi2016/v4",
+  "branch": "codex/strict-us-selection-v1-20261019-r1",
+  "status": {
+    "IMPLEMENTED": true,
+    "TESTED": true,
+    "REVIEWED": "PASS_R3_SOURCE",
+    "INTEGRATED": true,
+    "DEPLOYED": true,
+    "API_VERIFIED": true,
+    "UI_AX_VERIFIED": true,
+    "UI_PIXEL_VERIFIED": "CANNOT_CONFIRM",
+    "INDEPENDENT_LIVE_ACCEPTANCE": "PASS",
+    "NATURAL_VERIFIED": false,
+    "BEHAVIOR_VERIFIED": true
+  },
+  "actual_run": {
+    "run_id": "6ac0f2403ab94a80943a911257bf556f",
+    "mode": "MANUAL_LATE_SINGLE_DAY_MAPPING",
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261020&phase=MANUAL&run_id=6ac0f2403ab94a80943a911257bf556f",
+    "snapshot_sha256": "95623d2b54543b63e58e161f6905ee42c92f560724839ac22504c043f2285479",
+    "single_day_mapping": {
+      "state": "PARTIAL",
+      "status": null,
+      "counts": {
+        "BENEFIT": 11,
+        "CONFLICT": 0,
+        "C_WATCH": 117,
+        "OBSERVATION": 147,
+        "RISK": 101,
+        "SMALL_MOVE_WATCH": 30,
+        "UNASSESSED": 394,
+        "UNMAPPED": 45
+      },
+      "monthly_observed_scope_count": 698,
+      "source_session": "20261016",
+      "target_date": "20261020",
+      "gaps": [
+        "SINGLE_DAY_MAPPING_PATHS_UNASSESSED",
+        "SINGLE_DAY_MAPPING_ROWS_UNASSESSED",
+        "SINGLE_DAY_MAPPING_UNMAPPED_POOL_ROWS"
+      ],
+      "mapping_policy_sha256": "43849d9090a9f1632ba5042544810f62855293859fcf6dff67f4c7b8e95cc1ac",
+      "monthly_source_sha256": "e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+      "industry_source_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "formal_target_eligibility": "CANNOT_CONFIRM",
+      "historical_pit_verified": false
+    },
+    "benefit_stocks": [
+      {
+        "symbol": "HK.00386",
+        "name": "中国石油化工股份",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.00467",
+        "name": "联合能源集团",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.00568",
+        "name": "山东墨龙",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.00857",
+        "name": "中国石油股份",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.00883",
+        "name": "中国海洋石油",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.00934",
+        "name": "中石化冠德",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.01033",
+        "name": "中石化油服",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.01921",
+        "name": "达力普控股",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.02386",
+        "name": "中石化炼化工程",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.02883",
+        "name": "中海油田服务",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      },
+      {
+        "symbol": "HK.03899",
+        "name": "中集安瑞科",
+        "primary_proxy": "XLE",
+        "primary_signed_return_pct": "2.5240384615384615384615385",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT",
+        "source_industry": "石油及天然气"
+      }
+    ],
+    "risk_examples": [
+      {
+        "symbol": "HK.00013",
+        "name": "和黄医药",
+        "primary_proxy": "XBI",
+        "primary_signed_return_pct": "-3.64534650821204433168647349",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "药品及生物科技"
+      },
+      {
+        "symbol": "HK.00241",
+        "name": "阿里健康",
+        "primary_proxy": "XBI",
+        "primary_signed_return_pct": "-3.64534650821204433168647349",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "药品及生物科技"
+      },
+      {
+        "symbol": "HK.00460",
+        "name": "四环医药",
+        "primary_proxy": "XBI",
+        "primary_signed_return_pct": "-3.64534650821204433168647349",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "药品及生物科技"
+      },
+      {
+        "symbol": "HK.00501",
+        "name": "豪威集团",
+        "primary_proxy": "SOXX",
+        "primary_signed_return_pct": "-4.1421382914650968506537662",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "半导体"
+      },
+      {
+        "symbol": "HK.00512",
+        "name": "远大医药",
+        "primary_proxy": "XBI",
+        "primary_signed_return_pct": "-3.64534650821204433168647349",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "药品及生物科技"
+      },
+      {
+        "symbol": "HK.00522",
+        "name": "ASMPT Limited",
+        "primary_proxy": "SOXX",
+        "primary_signed_return_pct": "-4.1421382914650968506537662",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "半导体"
+      },
+      {
+        "symbol": "HK.00570",
+        "name": "中国中药",
+        "primary_proxy": "XBI",
+        "primary_signed_return_pct": "-3.64534650821204433168647349",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "药品及生物科技"
+      },
+      {
+        "symbol": "HK.00600",
+        "name": "爱芯元智",
+        "primary_proxy": "SOXX",
+        "primary_signed_return_pct": "-4.1421382914650968506537662",
+        "reason": "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT",
+        "source_industry": "半导体"
+      }
+    ],
+    "old_snapshot_unchanged": true
+  },
+  "runtime": {
+    "API": {
+      "release_id": "single-day-us-mapping-api-20261019-r3",
+      "pid": 23457,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/single-day-us-mapping-api-20261019-r3/app",
+      "plist_sha256": "d1fe66535033bbd964e5e725561905fcac30b74dfa2a5e9942fd347787ac4b4b",
+      "manifest_sha256": "043c701521d6a67185fdc8438fa3b99feb75c2c179ac51d523021f06d20c8013"
+    },
+    "SCHEDULER": {
+      "pid": 24211,
+      "release_id": "single-day-us-mapping-scheduler-20261019-r3",
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/single-day-us-mapping-scheduler-20261019-r3/app",
+      "plist_sha256": "d66e3f70d24be23a54ca74f4b6374837207b6a3c3250c1361ad9d834989359f6",
+      "manifest_sha256": "82b8ac71dbf09d2dfe3ebddb7c18949cd59e8b9f0c8b6b557173947314070334",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809"
+    }
+  },
+  "evidence_hashes": {
+    "SCOPE.json": "33482528a6d90578642836bd4fbca43448ffc1d225eb543e42fa00393e1c301a",
+    "FROZEN_MAPPING_POLICY.json": "43849d9090a9f1632ba5042544810f62855293859fcf6dff67f4c7b8e95cc1ac",
+    "ROOT_SOURCE_MANIFEST.json": "e2447dd8cf9a203f1fefee0e50a2622cbd7e7a16193c0b7f9ce6a412db9baa24",
+    "INDEPENDENT_REVIEW_R1.json": "786048ee18cd7b8d43031b357bfdf066f193e1307aa658516f5def57fc0a1297",
+    "INDEPENDENT_REVIEW_R2.json": "9d73c46f5180d8c7c866f9f771bf791252fdf5a09dfba359956d7e78fc4b9a95",
+    "INDEPENDENT_REVIEW_R3.json": "23c6d02e4e635439ebbb117f2112f4f55d5ebc16351120739c11cfa2e511543e",
+    "ROOT_API_ACTIVATION_RECEIPT.json": "126e7c04df48d22b2b168af2f4000a4ed0d1d193e5a4f3c976ba9c8d3b22f162",
+    "ROOT_SCHEDULER_BETWEEN_TICK_ACTIVATION_RECEIPT.json": "f41c5830a9581172e1ffde64bae76984d4d6348ff6ff0f03ae3254e062570891",
+    "INDEPENDENT_LIVE_ACCEPTANCE.json": "7fe32192a30c68b7d7caa549615f0d4c62c40fc8731e0b1e10c475b177385a83"
+  },
+  "local_only_evidence": {
+    "day-response.json": "1aea52e6cb1d3b6253a1a9793bb9b42f376c829ede41926f592f54721b3b730c",
+    "lane-response.json": "915ab1a52420f2aaaf64df8735b5343ce6c1bea2f89fbc2d4bceaa14365c3f45",
+    "ui-benefit.txt": "3306a3e858257854d552120f928bbfd2a853c9e4d0440bb83853c2b913fc5fb5",
+    "ui-benefit-risk.txt": "77ad3d90a1fbc845be4450fc864f703af8f4f7366db054be0c4ed25649c6494f"
+  },
+  "ui_pixel_limitation": "IAB screenshot unavailable with viewport width 0; page AX rendered 11 benefit stocks and expanded 101 risk stocks. open_in_codex queued the result page. No pixel verification claimed.",
+  "preserved_failure": {
+    "run_id": "c103592cf1ea49be952fac770a066304",
+    "state": "SINGLE_DAY_MAPPING_FAILED",
+    "root_cause": "Null C-path proxy mixed with string during tuple sort; missing proxy normalized to empty string in R3; actual immutable input reproduced and independently passed."
+  },
+  "known_nonblocking_limit": "R2 duplicate A-path same-US-symbol tie is input-order dependent. Not triggered by this frozen actual input; not generalized or expanded in this scope.",
+  "deferred": [
+    "Missing HK history investigation or collection",
+    "Strict V1 MA20/5-day return/20-day turnover/Top10/theme3",
+    "Formal target-date Connect eligibility",
+    "Historical PIT validation",
+    "Predictive effect evaluation",
+    "Natural-slot acceptance"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "sync_exclusions": [
+    "raw quotes",
+    "runtime snapshots",
+    "runtime release inventories",
+    "credentials",
+    "logs",
+    "dependencies",
+    "compiled assets"
+  ],
+  "remote_readback_receipt": "ROOT_GITHUB_READBACK.json (local receipt generated after branch update; omitted from own commit)",
+  "validation": {
+    "environment": {
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "writer_cwd": "/Users/lexi/.codex/worktrees/strict-us-selection-v1/v4_app",
+      "frontend_cwd": "/Users/lexi/.codex/worktrees/strict-us-selection-v1/v4_app/docs/handoffs/strict_us_selection_v1_20261019/local_only/frontend_test",
+      "independent_r3_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/single-day-us-mapping-api-20261019-r3/app"
+    },
+    "writer_r3_tests": [
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_strict_us_selection.py::test_single_day_catalog_placeholder_with_broad_c_path_sorts_without_proxy_symbol (before fix)",
+        "result": "EXPECTED RED: reproduces TypeError for null C proxy mixed with XLY + XLP."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_strict_us_selection.py::test_single_day_catalog_placeholder_with_broad_c_path_sorts_without_proxy_symbol tests/manager_workbench/runtime/test_strict_us_selection.py::test_single_day_frozen_b_primary_precedes_secondary_regardless_of_proxy_symbol",
+        "result": "PASS: 2 passed."
+      },
+      {
+        "command": "PYTHONDONTWRITEBYTECODE=1 <v3.5-mac-python> -m pytest -q -p no:cacheprovider tests/manager_workbench/runtime/test_strict_us_selection.py tests/manager_workbench/runtime/test_us_factor_display.py tests/manager_workbench/engines/test_us_mapping.py",
+        "result": "PASS: 39 passed."
+      },
+      {
+        "command": "R2 API release Python; call run_us_mapping with the input snapshot batch for run c103592cf1ea49be952fac770a066304 and capture run_single_day_mapping exception",
+        "result": "REPRODUCED from deployed R2 code: TypeError at HK.00027; fallback CANNOT_CONFIRM/SINGLE_DAY_MAPPING_FAILED."
+      },
+      {
+        "command": "R2 API release module stack plus R3 API overlay strict_us_selection.py loaded in memory; call run_us_mapping on the same immutable saved input batch",
+        "result": "PASS: PARTIAL, 698 rows, same input snapshot/batch SHA; HK.00027 retains unassessed catalog paths plus verified broad C observation; result SHA matches the saved-input regression artifact."
+      }
+    ],
+    "ui_reused_unchanged": {
+      "command": "node_modules/.bin/vitest run src/manager-workbench/__tests__/us_factor.spec.ts (cwd: local_only/frontend_test)",
+      "result": "PASS: 5 passed; package.json, tsconfig.json, vite.config.ts hashes unchanged"
+    },
+    "independent_tests_and_replay": "INDEPENDENT_REVIEW_R2.json and INDEPENDENT_REVIEW_R3.json",
+    "natural_slot": "NOT_RUN",
+    "strict_v1_gates": "PAUSED_NOT_EXECUTED"
+  }
+}

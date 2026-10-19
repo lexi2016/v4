@@ -1,0 +1,102 @@
+{
+  "schema": "single_day_us_mapping_source_delivery.v1",
+  "source_root": "/Users/lexi/.codex/worktrees/strict-us-selection-v1/v4_app",
+  "canonical_workspace": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_unrelated_work_preserved": true,
+  "base_commit": "f481db642c9a0e1ebc1580872b8a959c407d8a00",
+  "repository": "lexi2016/v4",
+  "branch": "codex/strict-us-selection-v1-20261019-r1",
+  "entries": [
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "size": 51400,
+      "before_sha256": null,
+      "sha256": "d5234596ea14316829779fa5d5791f75b238e846867df25e7e4d309ef2363341",
+      "git_blob_sha": "84841392a1e39ddc0560dd9b99d001b337fff254",
+      "api_overlay_sha256": "d5234596ea14316829779fa5d5791f75b238e846867df25e7e4d309ef2363341",
+      "scheduler_overlay_sha256": "d5234596ea14316829779fa5d5791f75b238e846867df25e7e4d309ef2363341"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "size": 25430,
+      "before_sha256": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830",
+      "sha256": "d2cc7e3490ecc892a804a01ac95e88e1d8cd6181a2cc8ff208f67d078e4655d5",
+      "git_blob_sha": "54a476fb66d715920741edb440420a353c11879a",
+      "api_overlay_sha256": "d2cc7e3490ecc892a804a01ac95e88e1d8cd6181a2cc8ff208f67d078e4655d5",
+      "scheduler_overlay_sha256": "d2cc7e3490ecc892a804a01ac95e88e1d8cd6181a2cc8ff208f67d078e4655d5"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "size": 97081,
+      "before_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49",
+      "sha256": "3e0d5b7e32700f8cc3a96ed4172df4454bb533534da8e0ac3213ba896529a100",
+      "git_blob_sha": "0d8118776f79a9b9594b9d0faf3dac870911a816",
+      "api_overlay_sha256": "3e0d5b7e32700f8cc3a96ed4172df4454bb533534da8e0ac3213ba896529a100",
+      "scheduler_overlay_sha256": "7ec0b7522573d963636084c2dd095d1818272f3c5429d119e9e18947e5bcf1fb"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/strict_us_selection.py",
+      "size": 7773,
+      "before_sha256": null,
+      "sha256": "b4573159e77d27373fd433a00a4da48372d38b4a1289f95ef684034a193b4750",
+      "git_blob_sha": "7672e1afea4999dbd7dc1313ed3ddedaeb54df13",
+      "api_overlay_sha256": "b4573159e77d27373fd433a00a4da48372d38b4a1289f95ef684034a193b4750",
+      "scheduler_overlay_sha256": "b4573159e77d27373fd433a00a4da48372d38b4a1289f95ef684034a193b4750"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "size": 81625,
+      "before_sha256": "7f7895f0b6289ff8382074b620bdae3823a5ac47050340be48ee878c5445dc9a",
+      "sha256": "b0d05ef28f82bf1d252ded1b61888b543efc965641b3a303b110fc903dcd4541",
+      "git_blob_sha": "448f66f9633b5c89e9b6ea663942a16f1de50b97",
+      "api_overlay_sha256": "235fdc369fc31864fc3246099b7ee0f2214707dc23c3d4cd2b47cee80b6fc9f7",
+      "scheduler_overlay_sha256": null
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "size": 29574,
+      "before_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d",
+      "sha256": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f",
+      "git_blob_sha": "7245b1395be054f9869f4039a3871390b2ccc7d3",
+      "api_overlay_sha256": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f",
+      "scheduler_overlay_sha256": null
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "size": 13363,
+      "before_sha256": null,
+      "sha256": "8b6e28bc88de8bb9efc2e72f8774b68fc0cbd7b7cba979170669a6b9691e2550",
+      "git_blob_sha": "12cb316d05f5351296a31bdfb7855f78cddf0f04",
+      "api_overlay_sha256": "8b6e28bc88de8bb9efc2e72f8774b68fc0cbd7b7cba979170669a6b9691e2550",
+      "scheduler_overlay_sha256": "8b6e28bc88de8bb9efc2e72f8774b68fc0cbd7b7cba979170669a6b9691e2550"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "size": 27549,
+      "before_sha256": "cab75abef9e6ef34135f8613a52b3391a48f1d253a7ff09fca6e122acd00da1c",
+      "sha256": "f12029f5bbb42dc6a27ab2e8b213461cf90ddf6e78755bf23350e53084678d6d",
+      "git_blob_sha": "2474fc13fcbd41362f29258955652a294ecfb27d",
+      "api_overlay_sha256": "f12029f5bbb42dc6a27ab2e8b213461cf90ddf6e78755bf23350e53084678d6d",
+      "scheduler_overlay_sha256": null
+    },
+    {
+      "path": "ops/verify_strict_us_selection_v1.py",
+      "size": 5728,
+      "before_sha256": null,
+      "sha256": "c3ddaec4bc3b7f60c8c1785d7ac1df3821cd9dd241149c01e21e180fdec2b2b2",
+      "git_blob_sha": "f54bef652838737dfe2dc7764bc145505d4e15c9",
+      "api_overlay_sha256": "c3ddaec4bc3b7f60c8c1785d7ac1df3821cd9dd241149c01e21e180fdec2b2b2",
+      "scheduler_overlay_sha256": "c3ddaec4bc3b7f60c8c1785d7ac1df3821cd9dd241149c01e21e180fdec2b2b2"
+    }
+  ],
+  "runtime_variant_note": "Git working-branch source is based on f481. API Workbench and scheduler native overlays preserve unrelated active-runtime changes; their exact SHA values are recorded separately. No whole runtime is uploaded.",
+  "excluded": [
+    "raw market data",
+    "local_only",
+    "runtime releases",
+    "logs",
+    "credentials",
+    "dependencies",
+    "compiled assets"
+  ]
+}

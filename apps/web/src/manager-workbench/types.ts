@@ -125,6 +125,120 @@ export interface USFactorSummary extends SafetyFlags {
   historical_pit_verified: false;
   combined_source_and_stock_count: null;
   industry_summary?: HKIndustrySummary | null;
+  strict_us_selection?: StrictUSSelectionSummary | null;
+  single_day_mapping?: SingleDayMappingSummary | null;
+}
+export interface SingleDayMappingPath {
+  grade: "A" | "B" | "C";
+  source_type?: string | null;
+  us_symbol?: string | null;
+  relation_type?: string | null;
+  relation_status?: string | null;
+  source_industry?: string | null;
+  proxy_symbol?: string | null;
+  proxy_symbols?: string[];
+  sign?: number;
+  return_pct?: string | null;
+  signed_return_pct?: string | null;
+  status: string;
+  reason?: string | null;
+  gaps?: string[];
+  research_basis?: string | null;
+  relation_limitations?: string[];
+  relation_source_refs?: unknown[];
+}
+export interface SingleDayMappingRow {
+  symbol: string;
+  name?: string | null;
+  in_monthly_pool: true;
+  decision: "BENEFIT" | "RISK" | "CONFLICT" | "OBSERVATION" | "UNMAPPED" | "UNASSESSED";
+  mapping_grade?: "A" | "B" | "C" | null;
+  source_industry?: string | null;
+  primary_proxy?: string | null;
+  primary_us_symbol?: string | null;
+  primary_relation_type?: string | null;
+  primary_signed_return_pct?: string | null;
+  primary_status?: string | null;
+  mapping_paths: SingleDayMappingPath[];
+  conflict_paths?: SingleDayMappingPath[];
+  reason?: string | null;
+  reasons: string[];
+  formal_target_eligibility: "CANNOT_CONFIRM";
+  frozen_policy_conflict?: boolean;
+}
+export interface SingleDayMappingSummary extends SafetyFlags {
+  display_only: true;
+  state: string;
+  rules_version: string;
+  mapping_policy_version: string;
+  mapping_policy_sha256: string;
+  target_date: string | null;
+  price_session: string | null;
+  source_session: string | null;
+  monthly_observed_scope_count: number | null;
+  monthly_source_date?: string | null;
+  monthly_source_sha256?: string | null;
+  monthly_codes_sha256?: string | null;
+  formal_target_eligibility: "CANNOT_CONFIRM";
+  counts: Record<SingleDayMappingRow["decision"], number | null> & {
+    SMALL_MOVE_WATCH: number | null;
+    C_WATCH: number | null;
+  };
+  rows: SingleDayMappingRow[];
+  outside_pool_observations: Record<string, unknown>[];
+  benefit_rows: string[];
+  risk_rows: string[];
+  conflict_rows: string[];
+  observation_rows: string[];
+  unmapped_rows: string[];
+  unassessed_rows: string[];
+  industry_source_status?: string | null;
+  industry_source_date?: string | null;
+  industry_source_sha256?: string | null;
+  gaps: string[];
+  strict_v1_status: "PAUSED_NOT_EXECUTED";
+  deferred_gates: string[];
+  historical_pit_verified: false;
+  research_effectiveness: "UNVERIFIED";
+}
+export interface StrictUSSelectionRow {
+  symbol: string;
+  decision: string;
+  rank: number | null;
+  reason: string | null;
+  reasons: string[];
+  mapping_grade?: string | null;
+  primary_theme?: string | null;
+  primary_proxy?: string | null;
+  primary_us_symbol?: string | null;
+  primary_signed_proxy_return_pct?: string | null;
+  metrics: Record<string, string>;
+  mapping_paths?: Record<string, unknown>[];
+  risks?: string[];
+}
+export interface StrictUSSelectionSummary extends SafetyFlags {
+  display_only: true;
+  state: string;
+  rules_version: string;
+  rules_sha256: string;
+  mapping_policy_version: string;
+  mapping_policy_sha256: string;
+  basic_unit_check_sha256?: string | null;
+  target_date: string | null;
+  price_session: string | null;
+  source_session: string | null;
+  monthly_observed_scope_count: number | null;
+  selected_count: number | null;
+  decision_counts?: Record<string, number>;
+  funnel: Record<string, number>;
+  rows: StrictUSSelectionRow[];
+  selected: StrictUSSelectionRow[];
+  gaps: string[];
+  amount_unit_status?: string | null;
+  amount_scale?: string | null;
+  amount_threshold_hkd?: string | null;
+  historical_pit_verified: false;
+  research_effectiveness: string;
 }
 export interface HKIndustrySummary {
   display_only: true;

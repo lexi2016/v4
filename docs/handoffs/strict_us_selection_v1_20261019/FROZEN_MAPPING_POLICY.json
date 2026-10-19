@@ -1,0 +1,45 @@
+{
+  "A_reviewed_types": [
+    "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+    "NAMED_CLOUD_CONNECTIVITY_PARTNERSHIP",
+    "NAMED_COMPONENT_OPTION",
+    "CO_DESIGNED_PRODUCT_PARTNERSHIP"
+  ],
+  "B_industries": {
+    "半导体": "SOXX",
+    "石油及天然气": "XLE",
+    "药品及生物科技": "XBI",
+    "银行": "KBE",
+    "黄金及贵金属": "GLD"
+  },
+  "C_relation_types": [
+    "INDIRECT_STRATEGIC_PLATFORM_COLLABORATION"
+  ],
+  "broad_consumption_XLY_XLP": "C_OBSERVE_ONLY",
+  "conflict": "Any other fixed A/B signed return <= -1 percent when primary >= +1 percent excludes strict selection.",
+  "frozen_at": "2026-10-19T03:24:03.409941+00:00",
+  "primary_policy": "A before B; multiple A by us_symbol lexical ascending; B follows frozen industry table. Select primary before reading returns.",
+  "primary_theme_by_proxy": {
+    "AMD": "半导体",
+    "DLR": "数据中心",
+    "EQIX": "数据中心",
+    "FCG": "能源",
+    "GLD": "黄金",
+    "KBE": "银行金融",
+    "NVDA": "半导体",
+    "SOXX": "半导体",
+    "STX": "存储",
+    "VRT": "数据中心",
+    "XBI": "生物医药",
+    "XLE": "能源"
+  },
+  "proposed_relations": "C_OBSERVE_ONLY",
+  "secondary_industry_paths": {
+    "石油及天然气": [
+      "FCG"
+    ]
+  },
+  "sign": 1,
+  "sign_basis": "Same-direction transmission research hypothesis, effect unverified; not a fact inferred from relationship_type or direction",
+  "version": "STRICT_US_SELECTION_MAPPING_V1_20261019"
+}

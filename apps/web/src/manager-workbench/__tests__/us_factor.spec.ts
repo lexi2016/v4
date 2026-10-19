@@ -116,7 +116,7 @@ describe("US daily-return factor fixture", () => {
     await screen.findByText(/固定美股来源 33 个/);
     expect(screen.getByText(/因子唯一港股 1 只，路径 1 条，未知港股 0 只/)).toBeTruthy();
     expect(screen.getByText(/保存 3 条来源研究记录（计数单位：研究记录）/)).toBeTruthy();
-    expect(screen.getByText(/当前版本严格精选规则尚未启用；本次严格入选 0/)).toBeTruthy();
+    expect(screen.getByText(/当前保存版本没有 20261016 → HK 20261020 单日映射结果/)).toBeTruthy();
     expect(screen.getByText(/美股映射来源记录分类（按行计.*待评估 1.*未入选 1/)).toBeTruthy();
     expect(screen.getByText(/这些数量属于不同范围，不能相加/)).toBeTruthy();
     expect(screen.getByText(/全量关系目录 1003 条 \/ 667 只/)).toBeTruthy();
@@ -131,6 +131,91 @@ describe("US daily-return factor fixture", () => {
     await fireEvent.click(screen.getByText("补充原始出处定位（不代表已接受）"));
     expect(screen.getByText("原文片段：原文位置可追溯")).toBeTruthy();
     expect(spy.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(true);
+  });
+
+  it("shows the full fixed single-day mapping categories, reasons, paths, and deferred gates", async () => {
+    window.history.replaceState(null, "", "?date=20261020");
+    const path = (grade: "A" | "B" | "C", signed: string, relation_type: string, proxy: string) => ({
+      grade, relation_type, source_industry: grade === "B" ? "半导体" : null,
+      us_symbol: grade === "A" ? proxy : null, proxy_symbol: proxy, sign: 1,
+      signed_return_pct: signed, status: "VERIFIED", reason: null,
+      gaps: [], research_basis: "审核关系或固定行业传导依据 " + proxy
+    });
+    const row = (symbol: string, decision: "BENEFIT" | "RISK" | "CONFLICT" | "OBSERVATION" | "UNMAPPED" | "UNASSESSED", mapping_grade: "A" | "B" | "C" | null,
+      primary_signed_return_pct: string | null, mapping_paths: ReturnType<typeof path>[], reason: string) => ({
+        symbol, name: symbol + "样本", in_monthly_pool: true, decision, mapping_grade,
+        primary_proxy: mapping_paths[0]?.proxy_symbol || null, primary_us_symbol: mapping_paths[0]?.us_symbol || null,
+        primary_signed_return_pct, primary_status: mapping_paths[0]?.status || null,
+        mapping_paths, conflict_paths: decision === "CONFLICT" ? mapping_paths.slice(1) : [],
+        reason, reasons: [reason], formal_target_eligibility: "CANNOT_CONFIRM" as const
+      });
+    const rows = [
+      row("HK.00001", "BENEFIT", "A", "1.5", [path("A", "1.5", "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER", "NVDA")], "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT"),
+      row("HK.00002", "RISK", "B", "-1.2", [path("B", "-1.2", "FROZEN_SUBINDUSTRY", "SOXX")], "PRIMARY_AB_SIGNED_RETURN_AT_MOST_MINUS_1_PERCENT"),
+      row("HK.00003", "CONFLICT", "A", "1.1", [path("A", "1.1", "NAMED_COMPONENT_OPTION", "NVDA"), path("B", "-1.3", "FROZEN_SUBINDUSTRY", "SOXX")], "FIXED_PRIMARY_AND_SECONDARY_A_B_PATHS_OPPOSE"),
+      row("HK.00004", "OBSERVATION", "A", "0.4", [path("A", "0.4", "CO_DESIGNED_PRODUCT_PARTNERSHIP", "AMD")], "PRIMARY_AB_MOVE_WITHIN_PLUS_OR_MINUS_1_PERCENT"),
+      row("HK.00005", "OBSERVATION", "C", null, [path("C", "0.8", "BROAD_CONSUMPTION_OBSERVATION", "XLY+XLP")], "C_MAPPING_OBSERVE_ONLY"),
+      row("HK.00006", "UNMAPPED", null, null, [], "INDUSTRY_LABEL_NOT_IN_FIXED_A_B_C_MAP"),
+      row("HK.00007", "UNASSESSED", "A", null, [path("A", "0.7", "NAMED_CLOUD_CONNECTIVITY_PARTNERSHIP", "VRT")], "US_QUOTE_RETURN_UNVERIFIED")
+    ];
+    const singleDay = {
+      display_only: true as const, state: "PARTIAL", rules_version: "US_HK_SINGLE_DAY_MAPPING_V1_20261019",
+      mapping_policy_version: "STRICT_US_SELECTION_MAPPING_V1_20261019", mapping_policy_sha256: "a".repeat(64),
+      target_date: "20261020", price_session: "20261016", source_session: "20261016",
+      monthly_observed_scope_count: 698, monthly_source_date: "20261012", monthly_source_sha256: "b".repeat(64),
+      monthly_codes_sha256: "c".repeat(64), formal_target_eligibility: "CANNOT_CONFIRM" as const,
+      counts: { BENEFIT: 1, RISK: 1, CONFLICT: 1, OBSERVATION: 2, SMALL_MOVE_WATCH: 1, C_WATCH: 1, UNMAPPED: 1, UNASSESSED: 1 },
+      rows, outside_pool_observations: [{ symbol: "HK.09999", name: "池外样本",
+        reason: "OUTSIDE_MONTHLY_RESEARCH_POOL", mapping_paths: [path("A", "1.2", "NAMED_COMPONENT_OPTION", "AMD")] }],
+      benefit_rows: ["HK.00001"], risk_rows: ["HK.00002"], conflict_rows: ["HK.00003"],
+      observation_rows: ["HK.00004", "HK.00005"], unmapped_rows: ["HK.00006"], unassessed_rows: ["HK.00007"],
+      industry_source_status: "PARTIAL", industry_source_date: "20261012", industry_source_sha256: "d".repeat(64),
+      gaps: ["SINGLE_DAY_MAPPING_ROWS_UNASSESSED"], strict_v1_status: "PAUSED_NOT_EXECUTED" as const,
+      deferred_gates: ["HK_MA20", "HK_RETURN5", "HK_TURNOVER20", "TOP10", "THEME3"],
+      historical_pit_verified: false as const, research_effectiveness: "UNVERIFIED" as const,
+      RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false
+    };
+    const day = sampleDay({
+      snapshot: { context: { market: "HK_CONNECT", target_date: "20261020", phase: "MANUAL",
+        cutoff: "2026-10-19T03:00:00+00:00" }, run_id: "single-day-run" },
+      stocks: [], counts: { selected: 0, watch: 0, unassessed: 0, observation_only: 0, not_selected: 0 },
+      recommendation_counts: { US_MAPPING: { selected: 0, watch: 0, unassessed: 0,
+        observation_only: 0, not_selected: 0 } },
+      us_mapping_summary: {
+        display_only: true, plan_run_id: "single-day-run", source_symbol_count: 33,
+        source_row_count: 33, relation_row_count: 1, mapped_hk_count: 1,
+        source_decision_counts: {}, mixed_source_count: 0,
+        coverage: { scope_count: 33, observed_count: 33, assessed_count: 33, unassessed_count: 0 },
+        groups: [], factor_summary: {
+          display_only: true, rules_version: "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1",
+          target_date: "20261020", phase: "MANUAL" as const, us_source_symbol_count: 33,
+          proxy_source_count: 24, expected_proxy_source_count: 24, verified_proxy_source_count: 24,
+          unknown_proxy_source_count: 0, eligible_hk_scope_count: 698, unique_factor_stock_count: 0,
+          factor_path_count: 0, unknown_factor_stock_count: 0, registry_fact_count: 0,
+          factor_decision_counts: {}, paired_review_available: true, source_session: "20261016",
+          historical_pit_verified: false as const, combined_source_and_stock_count: null as null,
+          single_day_mapping: singleDay
+        }
+      }
+    });
+    vi.stubGlobal("fetch", vi.fn(async () => response(wrapped(day))));
+
+    render(Workbench);
+    await screen.findByRole("region", { name: "单日映射推荐与下跌风险" });
+    expect(screen.getByRole("heading", { name: /US 20261016 → HK 20261020/ })).toBeTruthy();
+    expect(screen.getByText(/全量月度观察池/)).toBeTruthy();
+    expect(screen.getByText(/严格 V1 门槛暂缓，未执行/)).toBeTruthy();
+    expect(screen.getByText("HK.00001 HK.00001样本 · A")).toBeTruthy();
+    expect(screen.getByText(/HK.00003 HK.00003样本 · 主路径 NVDA 1.1%/)).toBeTruthy();
+    const dailyCounts = screen.getByLabelText("单日映射推荐与风险分类计数");
+    expect(dailyCounts.textContent).toContain("A/B 小幅观察");
+    expect(dailyCounts.textContent).toContain("C 级观察");
+    expect(screen.getByText(/待核 · 1 只/)).toBeTruthy();
+    expect(screen.getByText(/未映射 · 1 只/)).toBeTruthy();
+    expect(screen.getByText(/审核关系或固定行业传导依据 XLY\+XLP/)).toBeTruthy();
+    expect(screen.getByText(/月度观察池外关系/)).toBeTruthy();
+    expect(screen.getByText(/正式港股通资格 CANNOT_CONFIRM/)).toBeTruthy();
+    expect(screen.queryByText(/严格精选V1结果/)).toBeNull();
   });
 
   it("puts the unique-stock industry funnel before candidate counts and exposes source-row counts", async () => {
@@ -239,7 +324,7 @@ describe("US daily-return factor fixture", () => {
 
     const button = await screen.findByRole("button", { name: /严格入选 0 \/ 条件观察 153/ });
     expect(button.textContent).toContain("条件观察 153");
-    expect(screen.getByText(/当前版本严格精选规则尚未启用；本次严格入选 0/)).toBeTruthy();
+    expect(screen.getByText(/当前保存版本没有 20261016 → HK 20261020 单日映射结果/)).toBeTruthy();
     expect(screen.getByLabelText("去重港股候选股票分类计数").textContent).toContain("153");
     expect(screen.getByText(/保存 60 条来源研究记录/)).toBeTruthy();
     const sourceSummary = screen.getByText((_, element) =>

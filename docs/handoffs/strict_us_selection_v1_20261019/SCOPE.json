@@ -1,0 +1,184 @@
+{
+  "schema": "strict_us_selection_v1_scope.v1",
+  "GOAL": "Complete US20261016 single-day mapping to HK20261020: show concrete potential-benefit, risk and watch stocks with fixed primary A/B/C mapping and reasons on V4; independent acceptance, authorized local deployment and GitHub sync.",
+  "WRITER": "strict_v1_writer (luna_writer, gpt-6-luna max)",
+  "REVIEWER": "one different read-only reviewer (Luna Max), assigned after writer handoff",
+  "ALLOWED_PATHS": [
+    "v4/manager_workbench/engines/strict_us_selection.py",
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/engines/us_factor.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/strict_us_selection.py",
+    "v4/manager_workbench/config.py",
+    "v4/manager_workbench/display_read.py",
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/types.ts",
+    "tests/manager_workbench/runtime/test_strict_us_selection.py",
+    "tests/manager_workbench/runtime/test_us_factor_display.py",
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+    "ops/verify_strict_us_selection_v1.py",
+    "docs/handoffs/strict_us_selection_v1_20261019"
+  ],
+  "FORBIDDEN_PATHS": [
+    "Vibe8910",
+    "model/BUY/order/production gates",
+    "original raw market data and owner source artifacts",
+    "parallel producers",
+    "unrelated announcement/oversold logic",
+    "existing canonical workspace business files",
+    "credentials/auth/hooks/global config",
+    "unapproved rule relaxation"
+  ],
+  "PASS_SIGNAL": "Independent review verifies fixed monthly-universe/primary mapping and signed single-day direction, truthful deferred strict gates, full untruncated mapping list and reasons; deployed new saved run/API/UI agree, remote commit and necessary source/evidence SHA read back.",
+  "STOP_RULE": "Do not resume missing-HK-history lookup, cache repair or collection. No daily strongest-proxy cherry-picking, invented relation or strict-V1 pass claims. Preserve previous runs. Only concrete same-scope defects block completion.",
+  "base_local_commit": "f481db642c9a0e1ebc1580872b8a959c407d8a00",
+  "branch": "codex/strict-us-selection-v1-20261019-r1",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "worktree_root": "/Users/lexi/.codex/worktrees/strict-us-selection-v1/v4_app",
+  "runtime_api_base": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/monthly-membership-api-20261018-r4/app",
+  "runtime_api_manifest_sha256": "20714a2e697dda2bca7158a27d19e0938ae4d61c17024cdcbace838590051ef4",
+  "runtime_scheduler_base": "monthly-membership-scheduler-20261018-r2",
+  "runtime_scheduler_manifest_sha256": "8335f566cb329fcf534606f4ae638368cc894faa35b72f8666c2e7daa1540269",
+  "approved_rules": {
+    "universe": "full current monthly observed pool; extra direct relation stocks outside pool observation only",
+    "mapping": "A verified direct business / B specific subindustry; generic C watch only; freeze primary proxy and signed direction before quote evaluation",
+    "signed_proxy_return_pct_min": 1,
+    "hk_previous_close_gte_MA20": true,
+    "hk_close_to_MA20_max": 1.1,
+    "hk_return_5_sessions_pct_max": 15,
+    "hk_mean_turnover20_HKD_min": 20000000,
+    "max_selected": 10,
+    "max_per_primary_theme": 3,
+    "sort": [
+      "mapping_grade A before B",
+      "signed_primary_proxy_return descending",
+      "HK mean turnover20 descending",
+      "symbol ascending"
+    ],
+    "critical_data": "Correct completed-session window and cutoff, finite positive comparable prices, ordinary source-level turnover currency/scale check; known suspension exclusion with UNKNOWN shown. No per-row attestation prerequisite.",
+    "risk": "monthly research admitted despite formal_target_eligibility UNKNOWN; no historical PIT assertion",
+    "conflict_interpretation": "A frozen material second A/B path whose signed return <= -1% conflicts with a qualifying positive primary; retain observation and show both, never take daily strongest."
+  },
+  "approved_evaluation": {
+    "primary": "next HK session open-to-close net",
+    "secondary_holding_sessions": [
+      3,
+      5
+    ],
+    "positions": "10 fixed slots at10% each, unused cash",
+    "baseline": "same eligible coverage/HK gates/daily number/theme constraint/cash, HK turnover ranking",
+    "roundtrip_cost_base_bps": 70,
+    "roundtrip_cost_stress_bps": 100,
+    "cost_scenarios_not_fee_facts": true,
+    "first_economic_check_HK_sessions": 60,
+    "minimum_nonempty_days": 30,
+    "mean_excess_on_nonempty_days_min_bps": 10,
+    "paired_date_block_bootstrap_95pct_lower_gt_zero": true,
+    "cumulative_net_positive": true,
+    "max_drawdown_not_worse_than_baseline": true,
+    "stress_cumulative_nonnegative": true,
+    "natural_engineering_slots": 5,
+    "status_until_evidence": "RESEARCH_RULE_RECOMMENDATION_EFFECT_UNVERIFIED"
+  },
+  "at": "2026-10-19T03:07:07.739512+00:00",
+  "baseline_file_hashes": {
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "git_worktree_sha256": null,
+      "runtime_sha256": null
+    },
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "git_worktree_sha256": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830",
+      "runtime_sha256": "73f3ddcd517dd91f6719cce7ab7fbfce031887c5aaad2e9aaac6afdd6d3e7830"
+    },
+    "v4/manager_workbench/engines/us_factor.py": {
+      "git_worktree_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "runtime_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "git_worktree_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49",
+      "runtime_sha256": "2dfe22512b064708b747d44982e7051d48da903e3ea49e6c0127f88561675e49"
+    },
+    "v4/manager_workbench/inputs/strict_us_selection.py": {
+      "git_worktree_sha256": null,
+      "runtime_sha256": null
+    },
+    "v4/manager_workbench/config.py": {
+      "git_worktree_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "runtime_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1"
+    },
+    "v4/manager_workbench/display_read.py": {
+      "git_worktree_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "runtime_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20"
+    },
+    "apps/web/src/manager-workbench/Workbench.vue": {
+      "git_worktree_sha256": "7f7895f0b6289ff8382074b620bdae3823a5ac47050340be48ee878c5445dc9a",
+      "runtime_sha256": "fe8ea5def4834ee548b95d82313e52193404bf8a5e78182a5b86fb4afacf10e3"
+    },
+    "apps/web/src/manager-workbench/types.ts": {
+      "git_worktree_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d",
+      "runtime_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d"
+    },
+    "tests/manager_workbench/runtime/test_strict_us_selection.py": {
+      "git_worktree_sha256": null,
+      "runtime_sha256": null
+    },
+    "tests/manager_workbench/runtime/test_us_factor_display.py": {
+      "git_worktree_sha256": "75e789559edd874388559228fde7bfcc3fece57cbed342c8018a6c99b944ad74",
+      "runtime_sha256": "0e4fca949f1dc78012e8a5dc5dc3a51d23c7e31656e53b8c1f3224d6ee777e37"
+    },
+    "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts": {
+      "git_worktree_sha256": "cab75abef9e6ef34135f8613a52b3391a48f1d253a7ff09fca6e122acd00da1c",
+      "runtime_sha256": "cab75abef9e6ef34135f8613a52b3391a48f1d253a7ff09fca6e122acd00da1c"
+    },
+    "ops/verify_strict_us_selection_v1.py": {
+      "git_worktree_sha256": null,
+      "runtime_sha256": null
+    }
+  },
+  "role_load_note": "Active toml and spawned role identifiers checked; reading config files alone is not native process load proof.",
+  "implementation_phase": "SINGLE_DAY_MAPPING_PRIORITY; full strict V1 and HK20/21-session gates deferred",
+  "implementation_constraints": [
+    "Primary proxy grade and sign bind to reviewed fixed business/industry relation before quote consumption; no LLM runtime scoring.",
+    "Do not silently widen specific industry grade B to broad consumption or unspecified upstream/downstream exposure.",
+    "Suspension status UNKNOWN stays explicit; never manufacture false. Apply known-suspended exclusion as approved; report exact data admission semantics for review."
+  ],
+  "user_scope_correction": {
+    "at": "2026-10-19T03:22:43.038046+00:00",
+    "instruction": "成交额问题都是很基础的问题为什么要可追溯？不要专牛角尖！",
+    "decision": "Use ordinary source-level unit/scale checks and a few existing sample comparisons. Preserve existing input/source identity; do not demand per-row currency or adjustment attestation or build provenance remediation. Isolate actual anomalies. No new barriers based solely on missing new metadata.",
+    "unchanged": "Frozen numerical thresholds, no forced quantity, no future data, research only."
+  },
+  "mapping_policy_file": "FROZEN_MAPPING_POLICY.json",
+  "mapping_policy_sha256": "43849d9090a9f1632ba5042544810f62855293859fcf6dff67f4c7b8e95cc1ac",
+  "unit_policy": {
+    "basis_file": "BASIC_UNIT_CHECK.json",
+    "amount_field": "amount",
+    "scale": 1,
+    "threshold": 20000000,
+    "status": "SOURCE_SCALE_CHECKED",
+    "per_row_attestation_required": false
+  },
+  "price_policy": "Use existing daily close series with normal finite/positive/date/window checks; no new per-row price-basis attestation barrier.",
+  "target_date_correction": {
+    "target_hk_date": "20261020",
+    "latest_completed_hk_date": "20261016",
+    "us_source_session": "20261016",
+    "reason": "20261019 is HK securities market holiday, day following Chung Yeung Festival. Prior root target19 instruction superseded.",
+    "source": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2025/ce_SEHK_CT_075_2025.pdf"
+  },
+  "direct_data_remedy_scope": "PAUSED_BY_USER: no missing-HK-history lookup, cache repair or collection until explicitly reopened.",
+  "prior_GOAL": "Implement approved deterministic strict research recommendations after verified existing-data coverage and amount-unit check; independent acceptance, local V4 deployment and GitHub sync.",
+  "latest_user_scope": {
+    "instruction": "你先不要处理缺失行情问题，先把单日的美股映射给搞好再告别的",
+    "recorded_at": "2026-10-19T04:02:46.082374+00:00",
+    "single_day_rules": {
+      "universe": "existing 698 monthly pool; outside-pool observation remains separate",
+      "primary": "existing frozen A/B/C and sign; do not select daily largest return",
+      "benefit": "A/B signed primary return >=1%; conflicting second material path disclosed",
+      "risk": "A/B signed primary return <=-1%",
+      "watch": "small moves, broad C and unresolved mapping explicitly separated",
+      "strict_V1": "PAUSED_NOT_EXECUTED; no MA20/5d/turnover20 or Top10/theme3 applied to this full single-day mapping",
+      "missing_HK_data": "PAUSED"
+    }
+  }
+}
