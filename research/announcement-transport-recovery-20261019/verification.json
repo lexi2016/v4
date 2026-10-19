@@ -1,0 +1,69 @@
+{
+  "status": "SOURCE_REVIEWED_DEPLOYED_CANARY_PENDING",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_base_commit": "1fcc32289c7f80ed84ae61417aed190989fcf08c",
+  "branch": "codex/announcement-transport-recovery-20261019",
+  "release_id": "announcement-transport-recovery-20261019-r2",
+  "manifest_sha256": "b634671b288cc6c27a71bee9be7b7262f6a590d7ceee28302f9de2db39a16e56",
+  "files": [
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "baseline_sha256": "0ddf3b54a5c4f3fc0458a40cb04eaad409d2169106c4a2161b264124b5017ac4",
+      "deployed_sha256": "31edba960031cc8f46141091418f638225f0c49392c8c60276531db895f806d9",
+      "canonical_sha256": "55fb7379f4568309ecd15156e3e3593a9c8455ae63f40568b3c3773cec049d3a"
+    },
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "baseline_sha256": "6b24dae4c1082953dbc560282127e9e88caea6c839946bd328c8404946930c7d",
+      "deployed_sha256": "48017f361cc3b867c8dda7d9e70c4f77817b98763150ef20a1e7035f3fcd1b53",
+      "canonical_sha256": "48017f361cc3b867c8dda7d9e70c4f77817b98763150ef20a1e7035f3fcd1b53"
+    },
+    {
+      "path": "tests/test_manager_announcement_resume.py",
+      "baseline_sha256": "b906021d6e3ad72baef14692096c0748e2e60abf91cd4882f19a81b4d4f34154",
+      "deployed_sha256": "f9cf8b24efe3f07b97abf2065eca944ef2816f7df58779feb8fedc648a82f84a",
+      "canonical_sha256": "b725bb65cd5d22025e56cbce59371bda4a576ea81621ea39d4ee77b8beb6d554"
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_runner.py",
+      "baseline_sha256": "5a2c2fbaf972b010e5b65d6005922a947d307662ad101bdb3a71dc65943ff0ee",
+      "deployed_sha256": "05d53a719c72f446abe1a66ce1ff9130c2672f7f6b17808507be688236361bb9",
+      "canonical_sha256": "05d53a719c72f446abe1a66ce1ff9130c2672f7f6b17808507be688236361bb9"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "baseline_sha256": "e517c05557700bdf4fa5c61be9194d14239f33737ab8f58e81e87bdd10e60305",
+      "deployed_sha256": "aa3477bb63e9d47063f6c77a45c0ff4c6f355b49c408e87aeb9abbc74143a447",
+      "canonical_sha256": "aa3477bb63e9d47063f6c77a45c0ff4c6f355b49c408e87aeb9abbc74143a447"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "baseline_sha256": "2a414702409758df73fd78b4a7ac6731fa69a62353c0c985cd51f59057aa10fb",
+      "deployed_sha256": "e948c70dbce4ff1cfec4e4fcc506089c2b70c8d0b038f73b9ea685be27760a29",
+      "canonical_sha256": "e948c70dbce4ff1cfec4e4fcc506089c2b70c8d0b038f73b9ea685be27760a29"
+    }
+  ],
+  "canonical_preservation_patch_sha256": "80273acf2628429e37ed35e5e2ee23ff38559fad9af9e441a4151f18478cf263",
+  "review": {
+    "r1": "FAIL: current request drift and long-part deepcopy NameError",
+    "r2": "PASS",
+    "r2_receipt_sha256": "ca42ff7b5e7d5580bfcb556fca5391df31cfc9b6ef0ee3fd5cacf67fda40dd3f",
+    "targeted_checks": 15,
+    "reused_python_checks": 100,
+    "reused_ui_checks": 5,
+    "reused_canonical_checks": 5
+  },
+  "runtime": {
+    "api_identity": "VERIFIED",
+    "ui_canary_job": "515335e08c7140f4abed10612f6181c4",
+    "live_canary_verdict": "PENDING",
+    "pending_continuation": "NOT_STARTED",
+    "natural_slot": "NOT_RUN"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
