@@ -1,7 +1,7 @@
 {
   "status": "R6_CLI_INDEPENDENT_PASS_DEPLOYED_ACTUAL_CANARY_ACCEPTED",
   "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
-  "remote_base_commit": "0d6dad088242e2a92361c1fa3942c263011329f2",
+  "remote_base_commit": "38ffe736147218b8d54e2f7d21a5e95ca31d9f82",
   "branch": "codex/announcement-transport-recovery-20261019",
   "release_id": "announcement-transport-recovery-20261020-r6",
   "manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
@@ -9,26 +9,26 @@
     {
       "path": "v4/manager_workbench/announcement_update.py",
       "baseline_sha256": "0ddf3b54a5c4f3fc0458a40cb04eaad409d2169106c4a2161b264124b5017ac4",
-      "deployed_sha256": "bbcf01c65ccb019a9a414fb91bd27ea09352d31ec9aadfb14177c3fbf356a3f7",
-      "canonical_sha256": "e4cfc970dc9279dba13536192f032279cd7e3b963ed56928c16413ee650fed08"
+      "deployed_sha256": "d9f58f5c9de79625afec1463adb9f570412dcfe0fe8438ff7ef5657b7187a10e",
+      "canonical_sha256": "ce91b79a1186989332d917a4a4090e3a498bc3a06437ff56cb342d5f2cf4c446"
     },
     {
       "path": "ops/run_manager_flash_announcements.py",
       "baseline_sha256": "6b24dae4c1082953dbc560282127e9e88caea6c839946bd328c8404946930c7d",
-      "deployed_sha256": "c1871209ac2a10f944d7ef95b89741df0bcf3c0fe072e20b02ce812144f37abd",
-      "canonical_sha256": "c1871209ac2a10f944d7ef95b89741df0bcf3c0fe072e20b02ce812144f37abd"
+      "deployed_sha256": "bd84b0f5e102ded8f55effe51419e8c171de8a32e0d4570f1f820847b4143ba3",
+      "canonical_sha256": "bd84b0f5e102ded8f55effe51419e8c171de8a32e0d4570f1f820847b4143ba3"
     },
     {
       "path": "tests/test_manager_announcement_resume.py",
       "baseline_sha256": "b906021d6e3ad72baef14692096c0748e2e60abf91cd4882f19a81b4d4f34154",
-      "deployed_sha256": "bcca081ba2f069550b1a6fde2da26cad2f5d03932de445c402e0ee81740fffce",
-      "canonical_sha256": "69134b8b1c9d79b4fabaebdba1e670aa3af66769d8079217a6c3d4060d7b9ed0"
+      "deployed_sha256": "44b0a7166be0345f03ba362ab9f24559e4f82108409676585def023efc7fde8b",
+      "canonical_sha256": "e7bad164bc85cf9f4c2ea7851e7b019fed366772bb67a12a8c3496586171f742"
     },
     {
       "path": "tests/test_manager_announcement_flash_runner.py",
       "baseline_sha256": "5a2c2fbaf972b010e5b65d6005922a947d307662ad101bdb3a71dc65943ff0ee",
-      "deployed_sha256": "278cfd67c87e88553c17d74376b70e9c56f6d001f495e7b1e7b2b1be58d33c92",
-      "canonical_sha256": "278cfd67c87e88553c17d74376b70e9c56f6d001f495e7b1e7b2b1be58d33c92"
+      "deployed_sha256": "5c4e0ef918a1970cf756589bb219f6a2bf78e66dc5cb56902397c9627038a2af",
+      "canonical_sha256": "5c4e0ef918a1970cf756589bb219f6a2bf78e66dc5cb56902397c9627038a2af"
     },
     {
       "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
@@ -43,7 +43,7 @@
       "canonical_sha256": "e948c70dbce4ff1cfec4e4fcc506089c2b70c8d0b038f73b9ea685be27760a29"
     }
   ],
-  "canonical_preservation_patch_sha256": "31c305b9debad4961bc63bd91350f6a1e5803d40420ac742504605f2a8de8739",
+  "canonical_preservation_patch_sha256": "43687999cca842b988ebea5dcc09fa9b5d90c0adb69529edc6e475329cb13d6c",
   "review": {
     "r1": "FAIL: current request drift and long-part deepcopy NameError",
     "r2": "PASS",
@@ -107,7 +107,9 @@
         "exit_code": 0,
         "result": "Only main changes; _run/service/R6 lineage readers/guard-only/persistence/part/synthesis gates unchanged; four hashes exact"
       }
-    ]
+    ],
+    "canonical_r6_receipt_sha256": "b9eea0e29963b6c610a9b39acad5c808c7ac6f88608185f90b41849d6d8ef381",
+    "canonical_r6": "PASS: 8 targeted checks plus method/route preservation"
   },
   "runtime": {
     "api_identity": "VERIFIED",
@@ -139,7 +141,7 @@
     "orders_sent": false
   },
   "runtime_transition_template_sha256": "c8a5b0dbfc2811cd567388997d60c68694384ad12a5e4b1ba90a16f9d933251f",
-  "canonical_integration": "PENDING_PRESERVATION_MERGE; previous patch is historical R5b only",
+  "canonical_integration": "INTEGRATED_PRESERVED_R8_EXTRAS",
   "r6_source_hashes": {
     "ops/run_manager_flash_announcements.py": "bd84b0f5e102ded8f55effe51419e8c171de8a32e0d4570f1f820847b4143ba3",
     "tests/test_manager_announcement_flash_runner.py": "5c4e0ef918a1970cf756589bb219f6a2bf78e66dc5cb56902397c9627038a2af",
