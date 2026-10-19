@@ -1,0 +1,176 @@
+{
+  "schema": "v4.us_mapping.auto_close_implementation.v1",
+  "state": "FROZEN_REPAIR_READY",
+  "writer": "/root/mapping_deployer",
+  "requested_route": "GPT-6.1 Sol High; supported default entry, no named-role identity claim",
+  "source_root": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app",
+  "base_commit": "0c6a2fc584b4330dd5cead805f43fcb5dd361b0f",
+  "source_scope_sha256": "1b69cadd19f4118f52b758fe9793dd932b6ff79484fdfbc5c071dc29a476689b",
+  "source_sha256": {
+    "ops/_us_market_digest_parts/market_snapshot.py": "309ce3ddb97b0889bbfd5e8e7366ee72716e805507e4f9acdeefec33c0f8a019",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+    "v4/manager_workbench/inputs/source_bindings.py": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+    "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd",
+    "tests/test_us_mapping_auto_close.py": "3feba9708af9fc9d7d22a7f729e7720755d708a2960c1ab8addc847d7166888f",
+    "tests/manager_workbench/inputs/test_us_mapping_close_scope.py": "757926a3d55c54b6d646b7ae5b496be91685d7f631f4cc7eae2c958eced3e80f"
+  },
+  "source_preimage_sha256": {
+    "ops/_us_market_digest_parts/market_snapshot.py": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": null,
+    "v4/manager_workbench/inputs/source_bindings.py": "1c080a44370260d75439b06e7747d592192fe919aa68261624062b699b0f8456",
+    "v4/manager_workbench/engines/us_mapping_consumption.py": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c",
+    "tests/test_us_mapping_auto_close.py": null,
+    "tests/manager_workbench/inputs/test_us_mapping_close_scope.py": null
+  },
+  "configuration": {
+    "source": "docs/handoffs/us_mapping_auto_close_20261020/quote_scope.json",
+    "sha256": "cf6c940385d0b359393951928aec389b362059130a428d15d36d7ad06f4a2f83",
+    "symbols": 547,
+    "main_universe_symbols": 48,
+    "identity_origin": "existing accepted full mapping request scope/owner artifact SHA; no copied historical observations"
+  },
+  "writer_checks": {
+    "python": "actual runtime CPython3.14.6 / pytest9.1.1",
+    "collection_count": 38,
+    "count_note": "Round1 collected30. Round2 adds7 helper parameter cases and a controlled-late parameter to actual ingress: current38 total. 34 affected cases pass; unaffected4 auto cases reuse round1 independent PASS.",
+    "new_focused_checks": [
+      {
+        "result": "27 PASSED; 3 temp-fixture setup errors",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-r2 tests/test_us_mapping_auto_close.py tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+        "cause": "Explicit basetemp parent local_only missing, fixed by creating allowed local directory; no source repair."
+      },
+      {
+        "result": "3 PASSED",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-targeted-r3 tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates tests/test_us_mapping_auto_close.py::test_new_postclose_input_runs_despite_same_target_old_plans_and_deduplicates tests/test_us_mapping_auto_close.py::test_existing_official_calendar_slot_and_same_session_retry_rules"
+      },
+      {
+        "result": "1 PASSED incremental modified ingress case",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-source-ingress-r4 tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates",
+        "reason": "Added same-session PRE_OPEN and POST_CLOSE coexistence, source ingress filters POST_CLOSE."
+      }
+    ],
+    "earlier_diagnostic": "Initial full run: one synthetic fixture used bare USO key, which existing parser treats as prefix US; corrected fixtures to actual v_usSYMBOL provider-key form. Historical global pytest garbage cleanup also raised a permissions error. No permissions/old temp content changed. Targeted rerun isolated this fixture failure; main baseline semantics then passed.",
+    "ast_parse": "PASS all4 sources and2 tests",
+    "old_acceptance_suite": "NOT_RERUN; accepted ranking/qualification source receipts reused where unchanged",
+    "no_live_fetch": true,
+    "no_live_post": true,
+    "round2_incremental_checks": [
+      {
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-late-repair-r1 tests/manager_workbench/inputs/test_us_mapping_close_scope.py tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates",
+        "rc": 1,
+        "result": "33 PASSED;1 FAIL",
+        "cause": "New late integration fixture supplied late capture metadata but not matching snapshot late identity; real outer validator correctly rejected. Test fixture was replaced with the actual existing build_us_market_phase_payload path, with injected RSS/quote seams and no provider access."
+      },
+      {
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-late-ingress-r2 tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates",
+        "rc": 0,
+        "result": "2 PASSED; natural and controlled-late actual producer -> outer publish -> source binding -> DATED candidate ordering."
+      }
+    ],
+    "round2_effective_passed_cases": 34
+  },
+  "behavior_evidence": [
+    "One provider call requests frozen547 union, original48 quote/contract/row/status fields identical against unconfigured control; truthful request URL and supplementary field are the only new surface.",
+    "PRE_OPEN returns without requesting prices.",
+    "Mismatched ticker/session/price arithmetic, pre-close/future timestamp and nonfinite values isolated; valid siblings survive.",
+    "Exact source_bindings.us_mapping ingress accepts same-payload scheduled scope, excludes same-session PRE_OPEN sibling artifact, retains DATED_WEAK_PEER and source-return sorting for three targets.",
+    "Real existing JobCoordinator/WorkbenchStore canary shows old US16 MANUAL/NEXT_DAY same HK20 plans do not suppress US19 SCHEDULED/NEXT_DAY handoff.",
+    "Existing handoff same-identity dedup and retryable-PARTIAL job recovery checked at04:16 and05:16 without changing scheduler source."
+  ],
+  "candidate_roles": {
+    "producer": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-native-us-20261018-r1",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "manifest_sha256": "228d8a43dedba9214e87efdded1da77642dace5761a05a11af1373230ecf66b9",
+      "delta_paths": [
+        "ops/_us_market_digest_parts/market_snapshot.py",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_non_us_function_count": 0
+    },
+    "scheduler": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/full-us-hk-mapping-scheduler-20261019-r2",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+      "delta_paths": [
+        "v4/manager_workbench/engines/strict_us_selection.py",
+        "v4/manager_workbench/engines/us_mapping.py",
+        "v4/manager_workbench/engines/us_mapping_consumption.py",
+        "v4/manager_workbench/inputs/source_bindings.py",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_non_us_function_count": 20
+    },
+    "api": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261019-r3",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1",
+      "manifest_sha256": "1cfbae37a37d7826a3ad08219afddc1184ecac003f00ce65ec03e636a54283b7",
+      "delta_paths": [
+        "v4/manager_workbench/engines/us_mapping_consumption.py",
+        "v4/manager_workbench/inputs/source_bindings.py",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_non_us_function_count": 0
+    }
+  },
+  "producer_activation_safety": {
+    "RunAtLoad": false,
+    "KeepAlive": false,
+    "other_start_triggers_added": false,
+    "calendar_entries_preserved": [
+      {
+        "Hour": 4,
+        "Minute": 15
+      },
+      {
+        "Hour": 5,
+        "Minute": 15
+      },
+      {
+        "Hour": 21,
+        "Minute": 0
+      },
+      {
+        "Hour": 22,
+        "Minute": 0
+      }
+    ],
+    "kickstart_forbidden": true,
+    "bootstrap_exercised": "NOT_RUN"
+  },
+  "known_open_findings": [
+    {
+      "id": "WRITER_LATE_RETRY_COMPATIBILITY",
+      "status": "FIX_IMPLEMENTED_PENDING_INDEPENDENT_INCREMENTAL_REVIEW",
+      "issue": "Current supplemental binding rejects every late marker. Existing legal05:15 automatic controlled-late retry uses ORIGINAL_TIME_CAPTURE plus separate late timing; preserving that existing contract needs scoped correction after combined review findings.",
+      "proposed_constraint": "Reuse outer ResearchPeripheralStore strict late metadata/window validation; retain origin and actual late/timing. Continue rejecting historical/manual or invalid/missing late metadata.",
+      "repair_receipt": "REPAIR_ROUND2.json",
+      "repair": "Legal controlled late is revalidated by existing strict outer capture validator and retains actual late/mode/captured-at/natural+recovery windows; historical/manual and invalid metadata remain rejected."
+    }
+  ],
+  "service_reloads": 0,
+  "business_posts": 0,
+  "provider_fetches": 0,
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": "ROUND1_FAIL_LATE_ONLY; ROUND2_INDEPENDENT_INCREMENTAL_REVIEW_PENDING",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN_NEW_AUTO_CHAIN",
+    "UI_VERIFIED": "NOT_RUN_NEW_AUTO_CHAIN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "rollback": "Original raw plists in local_only, all old releases retained; exact inspected lifecycle plan in ACTIVATION_PLAN.md. Not exercised.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "git_sync": "NOT_RUN_BY_WRITER; controller owns allowlisted sync",
+  "review_round": 2,
+  "round1_review_receipt": "REVIEW_ROUND1_FAIL.json",
+  "round2_repair_receipt": "REPAIR_ROUND2.json"
+}

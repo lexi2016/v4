@@ -1,0 +1,157 @@
+{
+  "schema": "v4.us_mapping.auto_close_implementation.v1",
+  "state": "IMPLEMENTED_AND_CANDIDATES_PREPARED_PENDING_INDEPENDENT_REVIEW",
+  "writer": "/root/mapping_deployer",
+  "requested_route": "GPT-6.1 Sol High; supported default entry, no named-role identity claim",
+  "source_root": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app",
+  "base_commit": "0c6a2fc584b4330dd5cead805f43fcb5dd361b0f",
+  "source_scope_sha256": "855baaeaa14afbaf57dbe909dc58c62b39179a686646eba771e09b00f7c80e57",
+  "source_sha256": {
+    "ops/_us_market_digest_parts/market_snapshot.py": "309ce3ddb97b0889bbfd5e8e7366ee72716e805507e4f9acdeefec33c0f8a019",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+    "v4/manager_workbench/inputs/source_bindings.py": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+    "v4/manager_workbench/engines/us_mapping_consumption.py": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd",
+    "tests/test_us_mapping_auto_close.py": "509aa78c4d219e9142d5c123e34e08b2611cd342267b6a3ec889fa028f5e59fe",
+    "tests/manager_workbench/inputs/test_us_mapping_close_scope.py": "62c5fb5e289cadb91d63d475f58a1b9588c7ca7f3ff204eb114c8e73db3815b8"
+  },
+  "source_preimage_sha256": {
+    "ops/_us_market_digest_parts/market_snapshot.py": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": null,
+    "v4/manager_workbench/inputs/source_bindings.py": "1c080a44370260d75439b06e7747d592192fe919aa68261624062b699b0f8456",
+    "v4/manager_workbench/engines/us_mapping_consumption.py": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c",
+    "tests/test_us_mapping_auto_close.py": null,
+    "tests/manager_workbench/inputs/test_us_mapping_close_scope.py": null
+  },
+  "configuration": {
+    "source": "docs/handoffs/us_mapping_auto_close_20261020/quote_scope.json",
+    "sha256": "cf6c940385d0b359393951928aec389b362059130a428d15d36d7ad06f4a2f83",
+    "symbols": 547,
+    "main_universe_symbols": 48,
+    "identity_origin": "existing accepted full mapping request scope/owner artifact SHA; no copied historical observations"
+  },
+  "writer_checks": {
+    "python": "actual runtime CPython3.14.6 / pytest9.1.1",
+    "collection_count": 30,
+    "count_note": "Coexistence regression extended an existing test, so it is30 total, not31.",
+    "new_focused_checks": [
+      {
+        "result": "27 PASSED; 3 temp-fixture setup errors",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-r2 tests/test_us_mapping_auto_close.py tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+        "cause": "Explicit basetemp parent local_only missing, fixed by creating allowed local directory; no source repair."
+      },
+      {
+        "result": "3 PASSED",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-targeted-r3 tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates tests/test_us_mapping_auto_close.py::test_new_postclose_input_runs_despite_same_target_old_plans_and_deduplicates tests/test_us_mapping_auto_close.py::test_existing_official_calendar_slot_and_same_session_retry_rules"
+      },
+      {
+        "result": "1 PASSED incremental modified ingress case",
+        "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-source-ingress-r4 tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates",
+        "reason": "Added same-session PRE_OPEN and POST_CLOSE coexistence, source ingress filters POST_CLOSE."
+      }
+    ],
+    "earlier_diagnostic": "Initial full run: one synthetic fixture used bare USO key, which existing parser treats as prefix US; corrected fixtures to actual v_usSYMBOL provider-key form. Historical global pytest garbage cleanup also raised a permissions error. No permissions/old temp content changed. Targeted rerun isolated this fixture failure; main baseline semantics then passed.",
+    "ast_parse": "PASS all4 sources and2 tests",
+    "old_acceptance_suite": "NOT_RERUN; accepted ranking/qualification source receipts reused where unchanged",
+    "no_live_fetch": true,
+    "no_live_post": true
+  },
+  "behavior_evidence": [
+    "One provider call requests frozen547 union, original48 quote/contract/row/status fields identical against unconfigured control; truthful request URL and supplementary field are the only new surface.",
+    "PRE_OPEN returns without requesting prices.",
+    "Mismatched ticker/session/price arithmetic, pre-close/future timestamp and nonfinite values isolated; valid siblings survive.",
+    "Exact source_bindings.us_mapping ingress accepts same-payload scheduled scope, excludes same-session PRE_OPEN sibling artifact, retains DATED_WEAK_PEER and source-return sorting for three targets.",
+    "Real existing JobCoordinator/WorkbenchStore canary shows old US16 MANUAL/NEXT_DAY same HK20 plans do not suppress US19 SCHEDULED/NEXT_DAY handoff.",
+    "Existing handoff same-identity dedup and retryable-PARTIAL job recovery checked at04:16 and05:16 without changing scheduler source."
+  ],
+  "candidate_roles": {
+    "producer": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-native-us-20261018-r1",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "manifest_sha256": "0f5b62cd3f6e436301ad8bcbab6233389f2651f25d20e4b95887a95933ddf383",
+      "delta_paths": [
+        "ops/_us_market_digest_parts/market_snapshot.py",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_non_us_function_count": 0
+    },
+    "scheduler": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/full-us-hk-mapping-scheduler-20261019-r2",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "manifest_sha256": "696b01b722d051930d2243d23991bd92464b6f1e7a0e74a9951619902e4e6a49",
+      "delta_paths": [
+        "v4/manager_workbench/engines/strict_us_selection.py",
+        "v4/manager_workbench/engines/us_mapping.py",
+        "v4/manager_workbench/engines/us_mapping_consumption.py",
+        "v4/manager_workbench/inputs/source_bindings.py",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_non_us_function_count": 20
+    },
+    "api": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261019-r3",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1",
+      "manifest_sha256": "81e662a9f621c47d895563134fe9b1562b4d421ab26712d3022ac6afbdd5b629",
+      "delta_paths": [
+        "v4/manager_workbench/engines/us_mapping_consumption.py",
+        "v4/manager_workbench/inputs/source_bindings.py",
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_non_us_function_count": 0
+    }
+  },
+  "producer_activation_safety": {
+    "RunAtLoad": false,
+    "KeepAlive": false,
+    "other_start_triggers_added": false,
+    "calendar_entries_preserved": [
+      {
+        "Hour": 4,
+        "Minute": 15
+      },
+      {
+        "Hour": 5,
+        "Minute": 15
+      },
+      {
+        "Hour": 21,
+        "Minute": 0
+      },
+      {
+        "Hour": 22,
+        "Minute": 0
+      }
+    ],
+    "kickstart_forbidden": true,
+    "bootstrap_exercised": "NOT_RUN"
+  },
+  "known_open_findings": [
+    {
+      "id": "WRITER_LATE_RETRY_COMPATIBILITY",
+      "status": "REPORTED_TO_CONTROLLER_AND_FORMAL_REVIEWER; SOURCE_FROZEN",
+      "issue": "Current supplemental binding rejects every late marker. Existing legal05:15 automatic controlled-late retry uses ORIGINAL_TIME_CAPTURE plus separate late timing; preserving that existing contract needs scoped correction after combined review findings.",
+      "proposed_constraint": "Reuse outer ResearchPeripheralStore strict late metadata/window validation; retain origin and actual late/timing. Continue rejecting historical/manual or invalid/missing late metadata."
+    }
+  ],
+  "service_reloads": 0,
+  "business_posts": 0,
+  "provider_fetches": 0,
+  "states": {
+    "IMPLEMENTED": true,
+    "TESTED": "INDEPENDENT_REVIEW_PENDING",
+    "DEPLOYED": "NOT_RUN",
+    "API_VERIFIED": "NOT_RUN_NEW_AUTO_CHAIN",
+    "UI_VERIFIED": "NOT_RUN_NEW_AUTO_CHAIN",
+    "NATURAL_VERIFIED": "NOT_RUN"
+  },
+  "rollback": "Original raw plists in local_only, all old releases retained; exact inspected lifecycle plan in ACTIVATION_PLAN.md. Not exercised.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "git_sync": "NOT_RUN_BY_WRITER; controller owns allowlisted sync"
+}

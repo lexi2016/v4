@@ -1,0 +1,264 @@
+{
+  "state": "PREPARED_PENDING_INDEPENDENT_REVIEW",
+  "roles": {
+    "producer": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-native-us-20261018-r1",
+      "parent_manifest_sha256": "d187670c193c659fb5ff15bdf7446e7edcc751a35b0e6947d84214631f64fd18",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "manifest_sha256": "0f5b62cd3f6e436301ad8bcbab6233389f2651f25d20e4b95887a95933ddf383",
+      "parent_inventory_sha256": "b0f9eea02ee8d955b5b02ef4baeb5e1eced764fb4f27cf71bf9ca3d2a6cbdb21",
+      "candidate_inventory_sha256": "e0e3b2ddbff829f32427cd91192714a4d0a4c7261b697f9e8738e78e0c394321",
+      "delta": [
+        {
+          "path": "ops/_us_market_digest_parts/market_snapshot.py",
+          "before": {
+            "path": "ops/_us_market_digest_parts/market_snapshot.py",
+            "kind": "file",
+            "sha256": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+            "mode": "0644",
+            "size": 16132
+          },
+          "after": {
+            "path": "ops/_us_market_digest_parts/market_snapshot.py",
+            "kind": "file",
+            "sha256": "309ce3ddb97b0889bbfd5e8e7366ee72716e805507e4f9acdeefec33c0f8a019",
+            "mode": "0644",
+            "size": 17108
+          }
+        },
+        {
+          "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+          "before": null,
+          "after": {
+            "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+            "kind": "file",
+            "sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+            "mode": "0644",
+            "size": 13439
+          }
+        }
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_scheduler_functions": [],
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+      "original_plist_sha256": "dfe1fbffa8fc82602163012fb47c2074cc71b8f06b9b496b9f6c24225c92ea45",
+      "candidate_plist_sha256": "d1c1b0b1ba3162199166b9756cb6e5795cbc8f886b6ca2809c0df584b64be7d9",
+      "label": "com.lexi.v4.us-market-digest",
+      "producer_no_start_on_bootstrap": true,
+      "activated": false
+    },
+    "scheduler": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/full-us-hk-mapping-scheduler-20261019-r2",
+      "parent_manifest_sha256": "f273d60db4935d6654df3d9042a837002f0d5606d2bace03cac4bdf3ea0b42be",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "manifest_sha256": "696b01b722d051930d2243d23991bd92464b6f1e7a0e74a9951619902e4e6a49",
+      "parent_inventory_sha256": "35d171293debd201b06950f2ad489e5e61f2ff9b67effa779970cf5889ef116c",
+      "candidate_inventory_sha256": "bc619ae8d80e362e96f3d9bddd7bdfb4d75308ec7274ba08880dc42363ddef54",
+      "delta": [
+        {
+          "path": "v4/manager_workbench/engines/strict_us_selection.py",
+          "before": {
+            "path": "v4/manager_workbench/engines/strict_us_selection.py",
+            "kind": "file",
+            "sha256": "167cd5c2e798ea8923ae633c1f4ba7c9b78dfa75d88f9b7603b0697452ae489e",
+            "mode": "0644",
+            "size": 61791
+          },
+          "after": {
+            "path": "v4/manager_workbench/engines/strict_us_selection.py",
+            "kind": "file",
+            "sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+            "mode": "0644",
+            "size": 63891
+          }
+        },
+        {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "before": {
+            "path": "v4/manager_workbench/engines/us_mapping.py",
+            "kind": "file",
+            "sha256": "131eee09a9d85869361aba9137e10aad77fb8860c9f35c247277137d0b64b271",
+            "mode": "0644",
+            "size": 28397
+          },
+          "after": {
+            "path": "v4/manager_workbench/engines/us_mapping.py",
+            "kind": "file",
+            "sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+            "mode": "0644",
+            "size": 27641
+          }
+        },
+        {
+          "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+          "before": {
+            "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+            "kind": "file",
+            "sha256": "ee1f4174f2922becd0b92444440b2902d53da6e29c3f56e4b8c1f12e34e0a468",
+            "mode": "0644",
+            "size": 22813
+          },
+          "after": {
+            "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+            "kind": "file",
+            "sha256": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd",
+            "mode": "0644",
+            "size": 34289
+          }
+        },
+        {
+          "path": "v4/manager_workbench/inputs/source_bindings.py",
+          "before": {
+            "path": "v4/manager_workbench/inputs/source_bindings.py",
+            "kind": "file",
+            "sha256": "7df0d1969e24d8c62e9d7344cbefd75813684555b7561d2972afdabbea31273a",
+            "mode": "0644",
+            "size": 83368
+          },
+          "after": {
+            "path": "v4/manager_workbench/inputs/source_bindings.py",
+            "kind": "file",
+            "sha256": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+            "mode": "0644",
+            "size": 86285
+          }
+        },
+        {
+          "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+          "before": null,
+          "after": {
+            "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+            "kind": "file",
+            "sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+            "mode": "0644",
+            "size": 13439
+          }
+        }
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_scheduler_functions": [
+        "_date_token",
+        "_load_observed_hk_industry_pin",
+        "_manual_quote_scope_binding",
+        "_tdxpy_history_for_exact_parents",
+        "_valid_sha256",
+        "announcements",
+        "checked_time",
+        "files",
+        "hk_industry_classification",
+        "hk_panel",
+        "load_us_universe_contract",
+        "membership",
+        "priority_review",
+        "read",
+        "read_us_universe_contract",
+        "resolve_bindings",
+        "reviewed_seed",
+        "security_master",
+        "stage",
+        "us_factor_exposure"
+      ],
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+      "original_plist_sha256": "9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702",
+      "candidate_plist_sha256": "2a7a634eb3615960b502406e225a66260853090b170fe95fdf28e9caa7ae0471",
+      "label": "com.lexi.v35.scheduler",
+      "producer_no_start_on_bootstrap": false,
+      "activated": false
+    },
+    "api": {
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261019-r3",
+      "parent_manifest_sha256": "841543208b6f14e9dc1367d149dd8658de4d1d0a6da1b4292a61a4d0f7f207a9",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1",
+      "manifest_sha256": "81e662a9f621c47d895563134fe9b1562b4d421ab26712d3022ac6afbdd5b629",
+      "parent_inventory_sha256": "963669c48d24c998d32404003c140752c050469a9823ed394dfb3254c4a12ec8",
+      "candidate_inventory_sha256": "3188f1d6556b7f1e93c78f36eb8d4d06dcebe385b923af13e7977899a006b6f4",
+      "delta": [
+        {
+          "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+          "before": {
+            "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+            "kind": "file",
+            "sha256": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c",
+            "mode": "0644",
+            "size": 34166
+          },
+          "after": {
+            "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+            "kind": "file",
+            "sha256": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd",
+            "mode": "0644",
+            "size": 34289
+          }
+        },
+        {
+          "path": "v4/manager_workbench/inputs/source_bindings.py",
+          "before": {
+            "path": "v4/manager_workbench/inputs/source_bindings.py",
+            "kind": "file",
+            "sha256": "1c080a44370260d75439b06e7747d592192fe919aa68261624062b699b0f8456",
+            "mode": "0644",
+            "size": 81826
+          },
+          "after": {
+            "path": "v4/manager_workbench/inputs/source_bindings.py",
+            "kind": "file",
+            "sha256": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+            "mode": "0644",
+            "size": 82548
+          }
+        },
+        {
+          "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+          "before": null,
+          "after": {
+            "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+            "kind": "file",
+            "sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+            "mode": "0644",
+            "size": 13439
+          }
+        }
+      ],
+      "all_non_delta_entries_preserved": true,
+      "preserved_scheduler_functions": [],
+      "plist_path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+      "original_plist_sha256": "50d7f5b13c3c0e7ffc85d29d33bcb98cef156a227ac92f92b715e488cbd927f4",
+      "candidate_plist_sha256": "f33db8176f486939a7c1168b0fe093e805fcd95ccb128e79b504ec73d267512a",
+      "label": "com.lexi.v35.api-only",
+      "producer_no_start_on_bootstrap": false,
+      "activated": false
+    }
+  },
+  "scope_config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-mapping-close-quote-scope-20261020-r1.json",
+  "scope_config_sha256": "cf6c940385d0b359393951928aec389b362059130a428d15d36d7ad06f4a2f83",
+  "provider_fetches": 0,
+  "business_posts": 0,
+  "service_reloads": 0,
+  "natural_verification": "NOT_RUN",
+  "pre_review_corrections": [
+    {
+      "role": "scheduler",
+      "reason": "Same-session PRE_OPEN must not collide with POST_CLOSE directional artifact; controller approved before formal review.",
+      "before": {
+        "manifest_sha256": "6069d33d15f6678a39a13aba6f37b9f728b42833421af1745a22a508b40bc7c3",
+        "input_sha256": "54f8048559e7d2b46dad4a15357ebd8b7ae2e2863ae07c2a183fe03ac2bb3f32"
+      },
+      "after": {
+        "manifest_sha256": "696b01b722d051930d2243d23991bd92464b6f1e7a0e74a9951619902e4e6a49",
+        "input_sha256": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a"
+      }
+    },
+    {
+      "role": "api",
+      "reason": "Same-session PRE_OPEN must not collide with POST_CLOSE directional artifact; controller approved before formal review.",
+      "before": {
+        "manifest_sha256": "09caf1800c4007dbf051807191f9aa22535d8eef699cbf321fc8bdd2b25af94b",
+        "input_sha256": "9975c57a6c2cff3fb45721b3201519751778ad17b99b15a065af1da538b946ac"
+      },
+      "after": {
+        "manifest_sha256": "81e662a9f621c47d895563134fe9b1562b4d421ab26712d3022ac6afbdd5b629",
+        "input_sha256": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877"
+      }
+    }
+  ]
+}

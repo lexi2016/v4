@@ -1,0 +1,183 @@
+{
+  "schema": "v4.us_mapping.auto_close_preflight.v1",
+  "state": "READ_ONLY_PREFLIGHT_COMPLETE_REPAIR_REQUIRED",
+  "written_at": "2026-10-19T23:49:09.344031+08:00",
+  "goal": "US20261019 post-close automatic US_MAPPING with current accepted mapping behavior, HK target20261020, full frozen mapping quote scope, no manual replay",
+  "source_worktree": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app",
+  "base_commit": "0c6a2fc584b4330dd5cead805f43fcb5dd361b0f",
+  "branch": "codex/us-mapping-auto-close-20261020",
+  "live_owners": {
+    "producer": {
+      "label": "com.lexi.v4.us-market-digest",
+      "plist_sha256": "dfe1fbffa8fc82602163012fb47c2074cc71b8f06b9b496b9f6c24225c92ea45",
+      "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-native-us-20261018-r1/app",
+      "manifest_sha256": "d187670c193c659fb5ff15bdf7446e7edcc751a35b0e6947d84214631f64fd18",
+      "loaded": true,
+      "state": "not running between fixed events",
+      "last_exit_code": 0,
+      "launchd_runs": 6,
+      "slots_hkt": [
+        "0415",
+        "0515",
+        "2100",
+        "2200"
+      ],
+      "data_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/data",
+      "quote_universe_count": 48,
+      "target_symbols_in_quote_universe": {
+        "WMT": false,
+        "KO": false,
+        "PG": false
+      }
+    },
+    "consumer": {
+      "label": "com.lexi.v35.scheduler",
+      "plist_sha256": "9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702",
+      "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/full-us-hk-mapping-scheduler-20261019-r2/app",
+      "manifest_sha256": "f273d60db4935d6654df3d9042a837002f0d5606d2bace03cac4bdf3ea0b42be",
+      "pid": 75648,
+      "running": true,
+      "config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-scheduler-20261018-r1.json",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+      "hook": "ops.run_v35_macos_scheduler_daemon -> WorkbenchHook -> scheduler.tick -> _us_close_handoff",
+      "polling": "existing hook assesses once per minute; no new schedule proposed"
+    },
+    "api": {
+      "app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-e2e-repair-20261019-r1/app",
+      "release_id": "us-mapping-e2e-repair-20261019-r1",
+      "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+      "same_plan_store_as_scheduler": true
+    }
+  },
+  "date_contract": {
+    "official_source": "https://www.nyse.com/trade/hours-calendars",
+    "local_authoritative_code": "contracts.us_equity_calendar.session; ops.us_market_digest.resolve_capture_for_shanghai_slot; ops.run_us_market_slot._request_for_slot",
+    "us_session": "20261019",
+    "us_close": "2026-10-19T16:00:00-04:00",
+    "hk_close_equivalent": "2026-10-20T04:00:00+08:00",
+    "natural_capture_slot": "2026-10-20T04:15:00+08:00",
+    "phase": "POST_CLOSE",
+    "dispatch_business_date": "20261020",
+    "mapping_phase": "NEXT_DAY",
+    "mapping_trigger": "SCHEDULED",
+    "mapping_target_date": "20261020",
+    "future_natural_state": "NOT_RUN"
+  },
+  "backend_sha_drift": [
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "scheduler_sha256": "7df0d1969e24d8c62e9d7344cbefd75813684555b7561d2972afdabbea31273a",
+      "accepted_api_sha256": "1c080a44370260d75439b06e7747d592192fe919aa68261624062b699b0f8456"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "scheduler_sha256": "ee1f4174f2922becd0b92444440b2902d53da6e29c3f56e4b8c1f12e34e0a468",
+      "accepted_api_sha256": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "scheduler_sha256": "131eee09a9d85869361aba9137e10aad77fb8860c9f35c247277137d0b64b271",
+      "accepted_api_sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1"
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "scheduler_sha256": "167cd5c2e798ea8923ae633c1f4ba7c9b78dfa75d88f9b7603b0697452ae489e",
+      "accepted_api_sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "blocking_for_latest_mapping_behavior",
+      "fact": "All four accepted backend repairs absent from scheduler runtime."
+    },
+    {
+      "id": "F2",
+      "severity": "blocking_for_full_mapping_and_three_target_symbols",
+      "fact": "Existing dedicated producer requests only48 quotes. Manual full547 artifact is exact US20261016 historical expansion and cannot supply US20261019. Consumer supplemental resolver accepts history_backfill only."
+    },
+    {
+      "id": "F3",
+      "severity": "integration_guard",
+      "fact": "Do not replace complete scheduler source_bindings.py with API file: scheduler has additional exact-parent TDX61 discovery and resolve_bindings paths required by OVERSOLD. Merge only US mapping functions/constants."
+    },
+    {
+      "id": "F4",
+      "severity": "keep_existing_contract",
+      "fact": "Do not expand main universe to547: NativeAdapters daily contract explicitly requires48 and supplemental binding requires base48; preserve main48 and add same-producer supplemental quote-scope observations."
+    }
+  ],
+  "keep": [
+    {
+      "surface": "dedicated us-market-digest owner",
+      "reason": "Configured, loaded, recent natural PRE_OPEN20261019 succeeded. Main scheduler us_market_digest disabled intentionally avoids duplicate producer."
+    },
+    {
+      "surface": "close timestamp validation",
+      "reason": "Active producer wrapper already calls normalize_close_snapshot; completed regular-close per-symbol timestamps may differ. No additional timestamp repair needed."
+    },
+    {
+      "surface": "existing US handoff",
+      "reason": "Requires exact POST_CLOSE/READY owner artifact, receipt and manifest; computes next HK session from US session and submits existing US_MAPPING NEXT_DAY lane."
+    }
+  ],
+  "recent_natural_evidence": {
+    "receipt": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/dispatcher/receipts/live/20261019/2100/b073b75d491e42eea394b9896ca7e275.dispatch-receipt.json",
+    "state": "SUCCEEDED",
+    "phase": "PRE_OPEN",
+    "us_session": "20261019",
+    "original_time_capture": true,
+    "new_capture_verified": true,
+    "post_close20261019": "NOT_RUN"
+  },
+  "scope_request": {
+    "source_files": [
+      "ops/_us_market_digest_parts/market_snapshot.py",
+      "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "v4/manager_workbench/inputs/source_bindings.py",
+      "v4/manager_workbench/engines/us_mapping_consumption.py"
+    ],
+    "tests": [
+      "tests/test_us_mapping_auto_close.py",
+      "tests/manager_workbench/inputs/test_us_mapping_close_scope.py"
+    ],
+    "docs": [
+      "docs/handoffs/us_mapping_auto_close_20261020/**"
+    ],
+    "runtime_candidates": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1"
+    ],
+    "new_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-mapping-close-quote-scope-20261020-r1.json",
+    "plist_binding_updates_only": [
+      "com.lexi.v4.us-market-digest.plist",
+      "com.lexi.v35.scheduler.plist",
+      "com.lexi.v35.api-only.plist"
+    ],
+    "services_reloaded_only": [
+      "com.lexi.v4.us-market-digest",
+      "com.lexi.v35.scheduler",
+      "com.lexi.v35.api-only"
+    ],
+    "implementation": "Keep existing48 universe and same quote fetch. Add frozen547 supplementary request scope to the same scheduled producer response, validate per-symbol prices/date/official-close/captured-at and retain gaps. Consumer accepts validated natural supplemental scope while historical branch remains intact; owner tag distinguishes scheduled vs manual. Reuse accepted ranking/qualification behavior. Preserve all unrelated base bytes in three role-specific release clones."
+  },
+  "pass_oracle": [
+    "Hermetic single provider-call canary requests union547; main48 contract unchanged; no PRE_OPEN quote fetch; WMT/KO/PG valid quotes enter natural supplemental scope.",
+    "Mismatched symbol/date/price arithmetic/pre-close or future timestamps quarantined; valid siblings retained; exact payload/receipt/manifest SHA and source-session admission enforced.",
+    "Frozen source ingress yields existing accepted DATED_WEAK_PEER/order behavior; scheduler-target date pure evaluation US20261019->HK20261020; no live POST or capture during repair.",
+    "Independent review of bounded changes and runtime bindings before activation; preserved scheduler TDX61/OVERSOLD functions and all other modules.",
+    "Natural slot after04:15: owner ORIGINAL_TIME_CAPTURE/POST_CLOSE US20261019, automatic SCHEDULED/NEXT_DAY US_MAPPING HK20261020, correct source SHAs/target symbols and API/rendered page. Until then NATURAL_SLOT_UNVERIFIED."
+  ],
+  "rollback": "Retain all three old releases and original plist raw bytes. If activation fails inspect actual job lifecycle; restore only changed plist bytes and reload only corresponding owner. No business data deletion, overwrite or manual replay.",
+  "not_performed": [
+    "source change",
+    "service/config/plist change",
+    "provider fetch",
+    "business POST",
+    "old acceptance re-run",
+    "commit/push",
+    "Git index/ref operation"
+  ],
+  "next": "Controller freeze exact allowlist/role clones and source-file provenance, then sole Writer implements; no user reapproval required."
+}

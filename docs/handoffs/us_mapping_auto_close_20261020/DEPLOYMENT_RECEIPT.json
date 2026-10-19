@@ -1,0 +1,310 @@
+{
+  "schema": "v4.us_mapping.auto_close_deployment.v1",
+  "state": "DEPLOYED_PENDING_INDEPENDENT_RUNTIME_REVIEW",
+  "writer": "mapping_deployer",
+  "recorded_at": "2026-10-20T00:21:27.847095+08:00",
+  "target": {
+    "us_source_session": "20261019",
+    "hk_target_date": "20261020",
+    "official_close_hkt": "2026-10-20T04:00:00+08:00",
+    "scheduled_slot_hkt": "2026-10-20T04:15:00+08:00"
+  },
+  "prepared_sha256": "088e34f0788d2bce039db4f35a9454005570fdaff5c10b6004d27ab32b78e30e",
+  "activation_plan_sha256": "0bb074a61fd2706d4e7ffad117f77805237b980e588d26487b39fd442e25f5b5",
+  "preactivation": {
+    "full_parent_and_candidate_inventory_validation": "PASS",
+    "all_three_plist_and_backup_and_proposal_sha_validation": "PASS",
+    "scope_config_validation": "PASS",
+    "checked_at": "2026-10-20T00:18:47.271831+08:00",
+    "workbench_attempts_checked": 80,
+    "queued_or_running_attempts": 0,
+    "scheduler_original_pid": 75648,
+    "scheduler_child_policy": "Healthy PDF children were allowed to exit naturally; no pause, cancellation or kill. A controller-approved <=30-second polling guard sampled ps every 0.2 seconds; at 00:19:44.624406 no direct scheduler children and no active Workbench attempts were present before one bootout.",
+    "guard_result": "SAFE_WINDOW_OBSERVED",
+    "guard_timeout": false
+  },
+  "commands": [
+    {
+      "role": "api",
+      "time_window_hkt": [
+        "2026-10-20T00:18:52.460020+08:00",
+        "2026-10-20T00:19:08.212124+08:00"
+      ],
+      "timestamp_precision": "plist binding start exact; native lifecycle command completion bounded by subsequent observed state, no fabricated per-command timestamp",
+      "operations": [
+        {
+          "command": "python3 stdin: assert SHA256(/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist) == 50d7f5b13c3c0e7ffc85d29d33bcb98cef156a227ac92f92b715e488cbd927f4; Path.write_bytes(local_only/api-candidate.plist)",
+          "result": "APPLIED_EXACT_PREPARED_BYTES"
+        },
+        {
+          "command": "/bin/launchctl bootout gui/501/com.lexi.v35.api-only",
+          "rc": 0
+        },
+        {
+          "command": "/bin/launchctl print gui/501/com.lexi.v35.api-only",
+          "rc": 113,
+          "result": "JOB_ABSENT_BEFORE_BOOTSTRAP"
+        },
+        {
+          "command": "/bin/launchctl bootstrap gui/501 /Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+          "rc": 0
+        }
+      ]
+    },
+    {
+      "role": "scheduler",
+      "time_window_hkt": [
+        "2026-10-20T00:19:44.624406+08:00",
+        "2026-10-20T00:19:53.646158+08:00"
+      ],
+      "timestamp_precision": "plist binding start exact; native lifecycle command completion bounded by subsequent observed state, no fabricated per-command timestamp",
+      "operations": [
+        {
+          "command": "python3 stdin: assert SHA256(/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist) == 9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702; Path.write_bytes(local_only/scheduler-candidate.plist)",
+          "result": "APPLIED_EXACT_PREPARED_BYTES"
+        },
+        {
+          "command": "/bin/launchctl bootout gui/501/com.lexi.v35.scheduler",
+          "rc": 0
+        },
+        {
+          "command": "/bin/launchctl print gui/501/com.lexi.v35.scheduler",
+          "rc": 113,
+          "result": "JOB_ABSENT_BEFORE_BOOTSTRAP"
+        },
+        {
+          "command": "/bin/launchctl bootstrap gui/501 /Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
+          "rc": 0
+        }
+      ]
+    },
+    {
+      "role": "producer",
+      "time_window_hkt": [
+        "2026-10-20T00:19:58.850531+08:00",
+        "2026-10-20T00:20:42.936450+08:00"
+      ],
+      "timestamp_precision": "plist binding start exact; native lifecycle command completion bounded by subsequent observed state, no fabricated per-command timestamp",
+      "operations": [
+        {
+          "command": "python3 stdin: assert SHA256(/Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist) == dfe1fbffa8fc82602163012fb47c2074cc71b8f06b9b496b9f6c24225c92ea45; Path.write_bytes(local_only/producer-candidate.plist)",
+          "result": "APPLIED_EXACT_PREPARED_BYTES"
+        },
+        {
+          "command": "/bin/launchctl bootout gui/501/com.lexi.v4.us-market-digest",
+          "rc": 0
+        },
+        {
+          "command": "/bin/launchctl print gui/501/com.lexi.v4.us-market-digest",
+          "rc": 113,
+          "result": "JOB_ABSENT_BEFORE_BOOTSTRAP"
+        },
+        {
+          "command": "/bin/launchctl bootstrap gui/501 /Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+          "rc": 0
+        }
+      ]
+    }
+  ],
+  "runtime_read_at": "2026-10-20T00:20:43.053238+08:00",
+  "roles": {
+    "producer": {
+      "label": "com.lexi.v4.us-market-digest",
+      "state": "not running",
+      "pid": null,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1/app",
+      "plist_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d",
+      "manifest_sha256": "228d8a43dedba9214e87efdded1da77642dace5761a05a11af1373230ecf66b9",
+      "RunAtLoad": false,
+      "KeepAlive": false,
+      "schedule": [
+        {
+          "Hour": 4,
+          "Minute": 15
+        },
+        {
+          "Hour": 5,
+          "Minute": 15
+        },
+        {
+          "Hour": 21,
+          "Minute": 0
+        },
+        {
+          "Hour": 22,
+          "Minute": 0
+        }
+      ],
+      "runs": "0",
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/futu-native-us-20261018-r1",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "original_plist_sha256": "dfe1fbffa8fc82602163012fb47c2074cc71b8f06b9b496b9f6c24225c92ea45",
+      "backup_relative": "local_only/producer-original.plist",
+      "actual_cwd_verified": false,
+      "all_non_delta_application_entries_preserved": true
+    },
+    "scheduler": {
+      "label": "com.lexi.v35.scheduler",
+      "state": "running",
+      "pid": 64979,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app",
+      "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+      "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+      "RunAtLoad": true,
+      "KeepAlive": true,
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/full-us-hk-mapping-scheduler-20261019-r2",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "original_plist_sha256": "9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702",
+      "backup_relative": "local_only/scheduler-original.plist",
+      "actual_cwd_verified": true,
+      "all_non_delta_application_entries_preserved": true
+    },
+    "api": {
+      "label": "com.lexi.v35.api-only",
+      "state": "running",
+      "pid": 63690,
+      "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1/app",
+      "plist_sha256": "7b0f6e4b46829ac8632d0c1e141927a49a3811c9d7e2839cf5fafe31fb0f0f56",
+      "manifest_sha256": "1cfbae37a37d7826a3ad08219afddc1184ecac003f00ce65ec03e636a54283b7",
+      "RunAtLoad": false,
+      "KeepAlive": true,
+      "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261019-r3",
+      "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1",
+      "original_plist_sha256": "50d7f5b13c3c0e7ffc85d29d33bcb98cef156a227ac92f92b715e488cbd927f4",
+      "backup_relative": "local_only/api-original.plist",
+      "actual_cwd_verified": true,
+      "all_non_delta_application_entries_preserved": true
+    }
+  },
+  "api_gets": {
+    "/healthz": {
+      "http_status": 200,
+      "body": {
+        "status": "ok"
+      }
+    },
+    "/readyz": {
+      "http_status": 200,
+      "body": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    "/api/v1/runs/date-list?date=20261020": {
+      "http_status": 200,
+      "runtime_identity": {
+        "application": "V4",
+        "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+        "release_id": "us-mapping-close-api-20261020-r1",
+        "process_status": "CANNOT_CONFIRM",
+        "manifest_sha256": "1cfbae37a37d7826a3ad08219afddc1184ecac003f00ce65ec03e636a54283b7"
+      }
+    }
+  },
+  "scheduler": {
+    "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-scheduler-20261018-r1.json",
+    "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+    "scheduled_lanes": [
+      "US_MAPPING",
+      "OVERSOLD"
+    ],
+    "capture_enabled": false,
+    "runtime_thread_evidence": {
+      "command": "/usr/bin/sample 64979 1 10 -file local_only/scheduler-runtime-sample.txt",
+      "rc": 0,
+      "sha256": "78073d9090dc189190dc667dcdf4c062aeefdede973b7e1d4d667f699e10993b",
+      "observed_threads": [
+        "mwb-scheduler-hook",
+        "v35-zsxq-pdf-queue-drain"
+      ]
+    },
+    "daemon_events": [
+      {
+        "buy_gate_updated": false,
+        "heartbeat_seconds": 60.0,
+        "orders_sent": false,
+        "pdf_queue_drain": {
+          "execution_owner": "DAEMON_BACKGROUND_THREAD",
+          "latest_tick_status": "NOT_OBSERVED",
+          "queue_source": "OWNED_PDF_INGESTION_INDEX",
+          "status": "ACTIVE"
+        },
+        "pid": 64979,
+        "production_allowed": false,
+        "release_id": "us-mapping-close-scheduler-20261020-r1",
+        "schema_version": "v3_5.macos_scheduler_daemon.v1",
+        "started_at": "2026-10-20T00:19:53.646158+08:00",
+        "status": "DAEMON_READY",
+        "timezone": "Asia/Shanghai"
+      },
+      {
+        "buy_gate_updated": false,
+        "cycle": 1,
+        "minute": "2026-10-20T00:19",
+        "orders_sent": false,
+        "pid": 64979,
+        "production_allowed": false,
+        "release_id": "us-mapping-close-scheduler-20261020-r1",
+        "result_status": "NO_DUE_SLOT",
+        "return_code": 0,
+        "schema_version": "v3_5.macos_scheduler_daemon.v1",
+        "status": "DAEMON_CYCLE"
+      },
+      {
+        "buy_gate_updated": false,
+        "cycle": 2,
+        "minute": "2026-10-20T00:20",
+        "orders_sent": false,
+        "pid": 64979,
+        "production_allowed": false,
+        "release_id": "us-mapping-close-scheduler-20261020-r1",
+        "result_status": "NO_DUE_SLOT",
+        "return_code": 0,
+        "schema_version": "v3_5.macos_scheduler_daemon.v1",
+        "status": "DAEMON_CYCLE"
+      }
+    ],
+    "direct_workbench_last_result": "CANNOT_CONFIRM: existing hook does not publish a read-only last_result endpoint; running thread and unchanged config verified, future natural receipt remains required"
+  },
+  "preservation": {
+    "old_releases_unchanged": true,
+    "application_scope_frozen": true,
+    "original_four_producer_schedule_slots_preserved": true,
+    "other_service_plists_untouched": true,
+    "original_main48_semantics": "REUSED_INDEPENDENT_SOURCE_AND_CANDIDATE_PASS",
+    "scheduler_non_us_source_functions": "REUSED_INDEPENDENT_PRESERVATION_PASS",
+    "announcement_api_parent_fix_preserved": true
+  },
+  "rollback": {
+    "available": true,
+    "exercised": false,
+    "procedure": "For each changed exact role only: inspect actual loaded state, restore local_only/<role>-original.plist raw bytes guarded against current candidate SHA, bootout only if loaded, wait for print113, bootstrap original plist. If already absent skip bootout and bootstrap directly. Never kickstart producer. Recheck old identity and API health.",
+    "original_backups_sha256": {
+      "producer": "dfe1fbffa8fc82602163012fb47c2074cc71b8f06b9b496b9f6c24225c92ea45",
+      "scheduler": "9d051a538692e8b9f2d7d93caf708de15346a186dd45862d11d8ad566770b702",
+      "api": "50d7f5b13c3c0e7ffc85d29d33bcb98cef156a227ac92f92b715e488cbd927f4"
+    }
+  },
+  "unexpected_failures": [],
+  "lifecycle_retries": 0,
+  "not_run": [
+    "real provider fetch",
+    "business POST",
+    "manual canary run",
+    "historical backfill",
+    "producer kickstart",
+    "rollback exercise",
+    "future 04:15 natural acceptance",
+    "Git commit/push (controller owns)"
+  ],
+  "explicit_actor_counts": {
+    "service_reloads": 3,
+    "business_posts": 0,
+    "provider_fetches": 0,
+    "kickstarts": 0
+  },
+  "natural_verification": "NOT_RUN",
+  "independent_runtime_review": "PENDING_CONTROLLER_REVIEWER",
+  "raw_evidence_location": "local_only/; excluded from GitHub sync"
+}

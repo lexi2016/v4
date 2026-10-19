@@ -1,0 +1,121 @@
+{
+  "schema": "v4.us_mapping.auto_close_repair.v1",
+  "state": "FROZEN_REPAIR_READY",
+  "review_round": 2,
+  "finding": "P1_CONTROLLED_LATE_SCOPE_REJECTED",
+  "scope": [
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "before_sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+      "after_sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936"
+    },
+    {
+      "path": "tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+      "before_sha256": "62c5fb5e289cadb91d63d475f58a1b9588c7ca7f3ff204eb114c8e73db3815b8",
+      "after_sha256": "757926a3d55c54b6d646b7ae5b496be91685d7f631f4cc7eae2c958eced3e80f"
+    },
+    {
+      "path": "tests/test_us_mapping_auto_close.py",
+      "before_sha256": "509aa78c4d219e9142d5c123e34e08b2611cd342267b6a3ec889fa028f5e59fe",
+      "after_sha256": "3feba9708af9fc9d7d22a7f729e7720755d708a2960c1ab8addc847d7166888f"
+    }
+  ],
+  "reconstructed_round1_preimage_verified_by_sha256": true,
+  "behavior": "Only bind_scheduled_scope admission changed. Legal controlled-late capture is revalidated through real existing _validate_us_session_captures (session, capture/natural/recovery windows, captured-at, mode/reason/origin). Actual late/mode/timestamp/windows are retained. Historical/manual or forged/missing metadata remain rejected. Outer payload/receipt/manifest/source SHA chain unchanged.",
+  "writer_checks": [
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-late-repair-r1 tests/manager_workbench/inputs/test_us_mapping_close_scope.py tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates",
+      "rc": 1,
+      "result": "33 PASSED;1 FAIL",
+      "cause": "New late integration fixture supplied late capture metadata but not matching snapshot late identity; real outer validator correctly rejected. Test fixture was replaced with the actual existing build_us_market_phase_payload path, with injected RSS/quote seams and no provider access."
+    },
+    {
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B -m pytest -q -p no:cacheprovider --basetemp docs/handoffs/us_mapping_auto_close_20261020/local_only/pytest-late-ingress-r2 tests/test_us_mapping_auto_close.py::test_actual_source_binding_consumes_scheduled_owner_and_keeps_dated_candidates",
+      "rc": 0,
+      "result": "2 PASSED; natural and controlled-late actual producer -> outer publish -> source binding -> DATED candidate ordering."
+    }
+  ],
+  "effective_passed_incremental_cases": 34,
+  "case_note": "32 helper cases passed in first invocation and remain byte-identical after test-fixture repair; both modified ingress parameter cases passed in final invocation. Original unaffected4 auto tests reuse round1 PASS.",
+  "current_collection_summary": "38 tests collected in 0.16s",
+  "candidate_updates": [
+    {
+      "role": "producer",
+      "before": {
+        "manifest_sha256": "0f5b62cd3f6e436301ad8bcbab6233389f2651f25d20e4b95887a95933ddf383",
+        "helper_sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+        "candidate_plist_sha256": "d1c1b0b1ba3162199166b9756cb6e5795cbc8f886b6ca2809c0df584b64be7d9"
+      },
+      "after": {
+        "manifest_sha256": "228d8a43dedba9214e87efdded1da77642dace5761a05a11af1373230ecf66b9",
+        "helper_sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "candidate_plist_sha256": "b6abbd7ee3d62d0fd76910f8ad7db698e4d280836e435fa21a15b40affb06c9d"
+      },
+      "incremental_app_delta": [
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_helper_entries_preserved": true
+    },
+    {
+      "role": "scheduler",
+      "before": {
+        "manifest_sha256": "696b01b722d051930d2243d23991bd92464b6f1e7a0e74a9951619902e4e6a49",
+        "helper_sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+        "candidate_plist_sha256": "2a7a634eb3615960b502406e225a66260853090b170fe95fdf28e9caa7ae0471"
+      },
+      "after": {
+        "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+        "helper_sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "candidate_plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c"
+      },
+      "incremental_app_delta": [
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_helper_entries_preserved": true
+    },
+    {
+      "role": "api",
+      "before": {
+        "manifest_sha256": "81e662a9f621c47d895563134fe9b1562b4d421ab26712d3022ac6afbdd5b629",
+        "helper_sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+        "candidate_plist_sha256": "f33db8176f486939a7c1168b0fe093e805fcd95ccb128e79b504ec73d267512a"
+      },
+      "after": {
+        "manifest_sha256": "1cfbae37a37d7826a3ad08219afddc1184ecac003f00ce65ec03e636a54283b7",
+        "helper_sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936",
+        "candidate_plist_sha256": "7b0f6e4b46829ac8632d0c1e141927a49a3811c9d7e2839cf5fafe31fb0f0f56"
+      },
+      "incremental_app_delta": [
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+      ],
+      "all_non_helper_entries_preserved": true
+    }
+  ],
+  "candidate_total_deltas": {
+    "producer": [
+      "ops/_us_market_digest_parts/market_snapshot.py",
+      "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+    ],
+    "scheduler": [
+      "v4/manager_workbench/engines/strict_us_selection.py",
+      "v4/manager_workbench/engines/us_mapping.py",
+      "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "v4/manager_workbench/inputs/source_bindings.py",
+      "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+    ],
+    "api": [
+      "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "v4/manager_workbench/inputs/source_bindings.py",
+      "v4/manager_workbench/inputs/us_mapping_close_scope.py"
+    ]
+  },
+  "non_helper_candidate_entries_preserved": true,
+  "non_repair_source_files_preserved": true,
+  "scope_config_unchanged": true,
+  "service_reloads": 0,
+  "provider_fetches": 0,
+  "business_posts": 0,
+  "independent_incremental_review": "PENDING",
+  "natural_state": "NOT_RUN",
+  "Git": "NOT_RUN_BY_WRITER"
+}

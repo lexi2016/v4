@@ -107,7 +107,12 @@ def _build_us_market_snapshot_body(_v4_scope, /, us_session_date, *, capture_pha
     symbols = _v4_global(_v4_scope, 'list')(checked_contract["symbols"])
     if _v4_global(_v4_scope, 'any')(not _v4_global(_v4_scope, '_SAFE_US_SYMBOL').fullmatch(symbol) for symbol in symbols):
         raise _v4_global(_v4_scope, 'ValueError')("invalid fixed US proxy symbol")
-    quote_url = f"{_v4_global(_v4_scope, 'TENCENT_QUOTE_ENDPOINT')}{','.join(f'us{symbol}' for symbol in symbols)}"
+    from v4.manager_workbench.inputs.us_mapping_close_scope import (
+        configured_request_scope, build_scope_observations,
+    )
+    supplemental_request = configured_request_scope()
+    request_symbols = sorted(set(symbols) | set(supplemental_request["symbols"])) if supplemental_request else symbols
+    quote_url = f"{_v4_global(_v4_scope, 'TENCENT_QUOTE_ENDPOINT')}{','.join(f'us{symbol}' for symbol in request_symbols)}"
     reasons: set[str] = _v4_global(_v4_scope, 'set')()
     provider_receipt: Mapping[str, Any] | None = None
     source_response_sha256 = ""
@@ -131,9 +136,17 @@ def _build_us_market_snapshot_body(_v4_scope, /, us_session_date, *, capture_pha
         source_response_sha256 = _v4_global(_v4_scope, '_response_sha256')(raw)
         parsed, parse_reasons = _v4_global(_v4_scope, 'parse_tencent_quotes_diagnostic')(
             raw,
-            symbols,
+            request_symbols,
             expected_session_date=session_date,
         )
+        supplemental = build_scope_observations(
+            supplemental_request, parsed, parse_reasons, source_session=session_date,
+            captured_at=captured_iso, source_response_sha256=source_response_sha256,
+            raw_response=raw,
+        ) if supplemental_request else None
+        # Supplement failures never change the established 48-symbol surface.
+        parsed = {symbol: row for symbol, row in parsed.items() if symbol in symbols}
+        parse_reasons = {symbol: reason for symbol, reason in parse_reasons.items() if symbol in symbols}
         reasons.update(parse_reasons.values())
         # Keep the aggregate reason deterministic and attributable to the
         # provider record.  The unqualified reason remains for compatibility
@@ -296,4 +309,6 @@ def _build_us_market_snapshot_body(_v4_scope, /, us_session_date, *, capture_pha
     }
     if provider_receipt is not None:
         result["provider_receipt"] = _v4_global(_v4_scope, 'dict')(provider_receipt)
+    if supplemental is not None:
+        result["scheduled_quote_scope"] = supplemental
     return result

@@ -16,6 +16,7 @@ MANUAL_QUOTE_SCOPE_SHA256 = "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbb
 MAPPING_POLICY_VERSION = "FULL_US_HK_INDUSTRY_MAPPING_CONSUMPTION_V4_20261019"
 MAPPING_POLICY_SHA256 = "4e40b759f5811383d2a9ea8211dfc77662cb0094d7d863c75e54d8a5dba9a3c2"
 MANUAL_QUOTE_OWNER = "research_peripheral.external_finance.manual_quote_scope"
+SCHEDULED_QUOTE_OWNER = "research_peripheral.external_finance.scheduled_quote_scope"
 _US_SYMBOL = re.compile(r"^[A-Z][A-Z0-9.\-]{0,9}$")
 _ASCII_WHITESPACE = " \t\n\r\v\f"
 
@@ -144,7 +145,7 @@ def _manual_quote(manual_binding: Any, symbol: str, expected_session: str,
     if manual_binding.get("state") == "CANNOT_CONFIRM":
         return None, str(manual_binding.get("gap") or "MANUAL_QUOTE_SCOPE_NOT_READY")
     if (manual_binding.get("scope_sha256") != MANUAL_QUOTE_SCOPE_SHA256
-            or manual_binding.get("owner") != MANUAL_QUOTE_OWNER
+            or manual_binding.get("owner") not in {MANUAL_QUOTE_OWNER, SCHEDULED_QUOTE_OWNER}
             or manual_binding.get("us_session_date") != expected_session
             or manual_binding.get("state") not in {"READY", "PARTIAL"}
             or not all(valid_sha(manual_binding.get(key)) for key in
@@ -382,7 +383,7 @@ def project_catalog_relation(item: Mapping[str, Any], *, manual_binding: Any,
         "active_transmission": False,
         "source_session": expected_session,
         "available_at": source_time,
-        "owner": MANUAL_QUOTE_OWNER if isinstance(manual_binding, Mapping) else None,
+        "owner": manual_binding.get("owner") if isinstance(manual_binding, Mapping) else None,
         "source_sha256": manual_binding.get("payload_sha256") if isinstance(manual_binding, Mapping) else None,
         "receipt_sha256": manual_binding.get("receipt_sha256") if isinstance(manual_binding, Mapping) else None,
         "manifest_sha256": manual_binding.get("manifest_sha256") if isinstance(manual_binding, Mapping) else None,

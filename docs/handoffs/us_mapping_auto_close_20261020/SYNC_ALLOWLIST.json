@@ -1,0 +1,92 @@
+{
+  "schema": "v4.us_mapping.auto_close_sync_allowlist.v1",
+  "state": "INDEPENDENT_PASS_DEPLOYED_READY_FOR_SLOT_NATURAL_UNVERIFIED",
+  "allowed_files": [
+    {
+      "path": "ops/_us_market_digest_parts/market_snapshot.py",
+      "sha256": "309ce3ddb97b0889bbfd5e8e7366ee72716e805507e4f9acdeefec33c0f8a019"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "sha256": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+    },
+    {
+      "path": "tests/test_us_mapping_auto_close.py",
+      "sha256": "3feba9708af9fc9d7d22a7f729e7720755d708a2960c1ab8addc847d7166888f"
+    },
+    {
+      "path": "tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+      "sha256": "757926a3d55c54b6d646b7ae5b496be91685d7f631f4cc7eae2c958eced3e80f"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/PREFLIGHT.json",
+      "sha256": "9f7edd775dd4cc1f07f0d5d35acd6d4a2f4e5fc3dcb00e022a3d256ae78223f5"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/SCOPE.json",
+      "sha256": "e225d465f2bc75b91949b638847208638f6b16c5bafea9346698fd89610c2e5d"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/quote_scope.json",
+      "sha256": "cf6c940385d0b359393951928aec389b362059130a428d15d36d7ad06f4a2f83"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/prepare_candidates.py",
+      "sha256": "e4a3cea8297ab32c83849ed357d7362056f960cd3c837e05580d4901d93daaf1"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/PREPARED.json",
+      "sha256": "088e34f0788d2bce039db4f35a9454005570fdaff5c10b6004d27ab32b78e30e"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/ACTIVATION_PLAN.md",
+      "sha256": "0bb074a61fd2706d4e7ffad117f77805237b980e588d26487b39fd442e25f5b5"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/IMPLEMENTATION_RECEIPT.json",
+      "sha256": "5a98e2c46f62343209ef0d4d1c7c07261c64df726c9e3cc4adf23eab6ba4fc44"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/ROUND1_PREPARED.json",
+      "sha256": "dfdbbb5692099515c15b58a47f3d080c3debc6c16a6dcf3aac73f14e2f933e9c"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/ROUND1_IMPLEMENTATION_RECEIPT.json",
+      "sha256": "d4fddaaec654c8ffe72053488b5a0aefa58ce31ae737fc460c5e2dcd5055c729"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/REVIEW_ROUND1_FAIL.json",
+      "sha256": "c40e36994f9541cbc7bfa1b4d0a455e0cfc0203616aae43ec10dbf34f3641116"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/REPAIR_ROUND2.json",
+      "sha256": "82b7f683eb273241aa1cfcc5ca0858aff94bc1be36a6b9da6bf2e898afa661bd"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/DEPLOYMENT_RECEIPT.json",
+      "sha256": "fe5dc62f05367ee4a830498740dd48fc8edea9be7a2c6a3ba0970381e71e4cef"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_auto_close_20261020/INDEPENDENT_ACCEPTANCE.json",
+      "sha256": "a68c917c5628c4a12b953599eac3e8ee119c2cd611cf37fc5f49796ddb4f1624"
+    }
+  ],
+  "also_include_this_file": "docs/handoffs/us_mapping_auto_close_20261020/SYNC_ALLOWLIST.json",
+  "excluded": [
+    "local_only/**",
+    "all runtime releases and inventories",
+    "all original/candidate plists",
+    "all business payloads/receipts/raw quote responses",
+    "all old worktree/canonical unrelated changes"
+  ],
+  "commit_push_owner": "controller",
+  "controller_owned_final_sha": "docs/handoffs/us_mapping_auto_close_20261020/INDEPENDENT_ACCEPTANCE.json: controller refreshes after independent runtime review"
+}

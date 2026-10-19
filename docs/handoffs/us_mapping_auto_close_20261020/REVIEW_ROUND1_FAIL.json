@@ -1,0 +1,27 @@
+{
+  "schema": "v4.us_mapping.auto_close_review.v1",
+  "round": 1,
+  "verdict": "FAIL",
+  "source": "Controller relayed complete independent deployment_reviewer verdict; transcribed by Writer, not a new independent verdict.",
+  "source_scope_sha256": "855baaeaa14afbaf57dbe909dc58c62b39179a686646eba771e09b00f7c80e57",
+  "findings": [
+    {
+      "id": "P1_CONTROLLED_LATE_SCOPE_REJECTED",
+      "severity": "P1",
+      "issue": "Legal existing05:15 controlled-late automatic compensation had original producer origin plus separate late timing; blanket late rejection lost supplementary mapping quotes.",
+      "fix_scope": [
+        "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+        "tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+        "tests/test_us_mapping_auto_close.py"
+      ]
+    }
+  ],
+  "reused_passes": [
+    "30 focused assertions and collection",
+    "existing4 idempotency checks",
+    "three role-specific subprocess canaries",
+    "role-specific exact-parent/full non-delta preservation",
+    "original48 baseline, zero PRE_OPEN quote request and single547 provider call"
+  ],
+  "environment_note": "Reviewer initial global pytest historical garbage cleanup caused RC1 after passing assertions; isolated basetemp recovery preserved old permissions/directories. Controller confirmed round1 complete FAIL solely P1 late."
+}

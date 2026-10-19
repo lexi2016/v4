@@ -1087,7 +1087,8 @@ def us_mapping(config, context):
             snapshot=payload.get('market_snapshot',{})
             if not isinstance(snapshot, dict):
                 raise ValueError('US_OWNER_MARKET_SNAPSHOT_INVALID')
-            if snapshot.get('capture_session_date')!=session:
+            if (snapshot.get('capture_session_date') != session
+                    or snapshot.get('capture_phase') != 'POST_CLOSE'):
                 continue
             receipt_rel=f"receipts/research/peripherals/{parts[2]}/external_finance.json"
             receipt,rsha=read(root,receipt_rel)
@@ -1282,10 +1283,22 @@ def us_mapping(config, context):
     factor, factor_files, factor_gap = us_factor_exposure(config, context)
     industry = hk_industry_classification(config, context)
     full_overlay = _full_mapping_overlay()
-    manual_quote_scope = _manual_quote_scope_binding(
-        root, manifest, msha, session, context.cutoff,
-        full_overlay, universe_contract["symbols"],
+    from .us_mapping_close_scope import bind_scheduled_scope
+    manual_quote_scope = bind_scheduled_scope(
+        snapshot, payload, source_session=session, cutoff=context.cutoff,
+        payload_relative=quote_rel, payload_sha256=qsha,
+        receipt_relative=receipt_rel, receipt_sha256=rsha, manifest_sha256=msha,
     )
+    if manual_quote_scope is None:
+        manual_quote_scope = _manual_quote_scope_binding(
+            root, manifest, msha, session, context.cutoff,
+            full_overlay, universe_contract["symbols"],
+        )
+    else:
+        # Same owner artifact as the daily 48-symbol surface; no historical
+        # fallback can disguise an invalid scheduled supplement.
+        for checked in manual_quote_scope.get("checked_files", []):
+            checked["source_local_path"] = str(root)
     return dict(quote_local_path=str(root),quote_relative=quote_rel,quote_sha256=qsha,
         quote_artifact_date=artifact_date,quote_source_session=session,
         quote_owner='research_peripheral.external_finance',

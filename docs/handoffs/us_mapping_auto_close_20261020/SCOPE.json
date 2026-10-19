@@ -1,0 +1,111 @@
+{
+  "GOAL": "US20261019 post-close automatic US_MAPPING with current accepted mapping behavior, HK target20261020, full frozen mapping quote scope, no manual replay",
+  "WRITER": "/root/mapping_deployer; requested GPT-6.1 Sol High through supported default entry; no child spawn",
+  "REVIEWER": "controller-assigned deployment_reviewer",
+  "ALLOWED_PATHS": [
+    "ops/_us_market_digest_parts/market_snapshot.py",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/engines/us_mapping_consumption.py",
+    "tests/test_us_mapping_auto_close.py",
+    "tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+    "docs/handoffs/us_mapping_auto_close_20261020/**"
+  ],
+  "runtime_preparation_allowlist": {
+    "source_files": [
+      "ops/_us_market_digest_parts/market_snapshot.py",
+      "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "v4/manager_workbench/inputs/source_bindings.py",
+      "v4/manager_workbench/engines/us_mapping_consumption.py"
+    ],
+    "tests": [
+      "tests/test_us_mapping_auto_close.py",
+      "tests/manager_workbench/inputs/test_us_mapping_close_scope.py"
+    ],
+    "docs": [
+      "docs/handoffs/us_mapping_auto_close_20261020/**"
+    ],
+    "runtime_candidates": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-producer-20261020-r1",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1"
+    ],
+    "new_config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-mapping-close-quote-scope-20261020-r1.json",
+    "plist_binding_updates_only": [
+      "com.lexi.v4.us-market-digest.plist",
+      "com.lexi.v35.scheduler.plist",
+      "com.lexi.v35.api-only.plist"
+    ],
+    "services_reloaded_only": [
+      "com.lexi.v4.us-market-digest",
+      "com.lexi.v35.scheduler",
+      "com.lexi.v35.api-only"
+    ],
+    "implementation": "Keep existing48 universe and same quote fetch. Add frozen547 supplementary request scope to the same scheduled producer response, validate per-symbol prices/date/official-close/captured-at and retain gaps. Consumer accepts validated natural supplemental scope while historical branch remains intact; owner tag distinguishes scheduled vs manual. Reuse accepted ranking/qualification behavior. Preserve all unrelated base bytes in three role-specific release clones."
+  },
+  "FORBIDDEN_PATHS": [
+    "old releases",
+    "old worktree",
+    "canonical workspace",
+    "other modules/services/schedule times",
+    "main48 contract semantics",
+    "new producer",
+    "provider fetch or live POST or backfill",
+    "BUY/permissions/hooks/credentials",
+    "Git index/ref/commit/push"
+  ],
+  "PASS_SIGNAL": [
+    "Hermetic single provider-call canary requests union547; main48 contract unchanged; no PRE_OPEN quote fetch; WMT/KO/PG valid quotes enter natural supplemental scope.",
+    "Mismatched symbol/date/price arithmetic/pre-close or future timestamps quarantined; valid siblings retained; exact payload/receipt/manifest SHA and source-session admission enforced.",
+    "Frozen source ingress yields existing accepted DATED_WEAK_PEER/order behavior; scheduler-target date pure evaluation US20261019->HK20261020; no live POST or capture during repair.",
+    "Independent review of bounded changes and runtime bindings before activation; preserved scheduler TDX61/OVERSOLD functions and all other modules.",
+    "Natural slot after04:15: owner ORIGINAL_TIME_CAPTURE/POST_CLOSE US20261019, automatic SCHEDULED/NEXT_DAY US_MAPPING HK20261020, correct source SHAs/target symbols and API/rendered page. Until then NATURAL_SLOT_UNVERIFIED."
+  ],
+  "STOP_RULE": "preimage drift/new path need/real data write/new external permissions/outside module impact; independent PASS plus controller continuation required before any service reload",
+  "base_commit": "0c6a2fc584b4330dd5cead805f43fcb5dd361b0f",
+  "preimage_sha256": {
+    "ops/_us_market_digest_parts/market_snapshot.py": "ef27be69d45f1ff4273b5be89eda777febd0eec4b340d424c9f115b7a3a3c8df",
+    "v4/manager_workbench/inputs/us_mapping_close_scope.py": null,
+    "v4/manager_workbench/inputs/source_bindings.py": "1c080a44370260d75439b06e7747d592192fe919aa68261624062b699b0f8456",
+    "v4/manager_workbench/engines/us_mapping_consumption.py": "b29d529697ff76e6a5830bdfef82cd3cb742b9c0a77e4d159d380e526c26316c",
+    "tests/test_us_mapping_auto_close.py": null,
+    "tests/manager_workbench/inputs/test_us_mapping_close_scope.py": null
+  },
+  "source_scope_contract": "same frozen547 symbols from existing scope/owner SHA; main48 output unchanged; same provider-call response supplies both. Scheduled owner distinct from historical manual owner. Dynamic official US/HK calendar, no hardcoded trade day.",
+  "deployment_gate": "prepare candidates only; NO_ACTIVATION until independent source/candidate PASS and controller continuation",
+  "runtime_parent_update": {
+    "controller_adjudication": "Preserve parallel announcement transport recovery; no old candidate exists so retain requested r1 destination.",
+    "api_parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261019-r3",
+    "api_manifest_sha256": "841543208b6f14e9dc1367d149dd8658de4d1d0a6da1b4292a61a4d0f7f207a9",
+    "api_plist_sha256": "50d7f5b13c3c0e7ffc85d29d33bcb98cef156a227ac92f92b715e488cbd927f4",
+    "prior_api_parent_retained": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-api-20261020-r1"
+  },
+  "incremental_repair_round2": {
+    "authorized_by": "controller after independent round1 FAIL; one concentrated bounded repair",
+    "allowed_source_test_paths": [
+      "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+      "tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+      "tests/test_us_mapping_auto_close.py"
+    ],
+    "changes": [
+      {
+        "path": "v4/manager_workbench/inputs/us_mapping_close_scope.py",
+        "before_sha256": "a280fb266f042632b594ab2427da3703c0dc4cf983f97c838704dd9e8a455f13",
+        "after_sha256": "430315bcc8c330f07e521b57eb42946efcf745187169ed21e6473fb3b530c936"
+      },
+      {
+        "path": "tests/manager_workbench/inputs/test_us_mapping_close_scope.py",
+        "before_sha256": "62c5fb5e289cadb91d63d475f58a1b9588c7ca7f3ff204eb114c8e73db3815b8",
+        "after_sha256": "757926a3d55c54b6d646b7ae5b496be91685d7f631f4cc7eae2c958eced3e80f"
+      },
+      {
+        "path": "tests/test_us_mapping_auto_close.py",
+        "before_sha256": "509aa78c4d219e9142d5c123e34e08b2611cd342267b6a3ec889fa028f5e59fe",
+        "after_sha256": "3feba9708af9fc9d7d22a7f729e7720755d708a2960c1ab8addc847d7166888f"
+      }
+    ],
+    "unchanged_scope_passes_reused": true,
+    "state": "FROZEN_REPAIR_READY",
+    "activation": "FORBIDDEN_PENDING_INCREMENTAL_REVIEW_AND_CONTROLLER_CONTINUATION"
+  }
+}
