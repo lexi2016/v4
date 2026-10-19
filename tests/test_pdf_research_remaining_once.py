@@ -23,6 +23,8 @@ _spec = importlib.util.spec_from_file_location("remaining_once_dispatcher_test",
 assert _spec is not None and _spec.loader is not None
 dispatcher = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(dispatcher)
+TEST_PREPARED_TEXT_PATH = Path("/tmp/prepared-text-manifest.json")
+TEST_PREPARED_TEXT_SHA256 = "9" * 64
 
 
 def _sha(raw: bytes) -> str:
@@ -60,6 +62,10 @@ class _MonkeyPatch:
         self.test_case.addCleanup(setattr, target, name, old)
 
 
+def _prepared_kwargs(monkeypatch: _MonkeyPatch) -> dict[str, object]:
+    return dict(monkeypatch.prepared_kwargs)
+
+
 def _synthetic_context(
     monkeypatch: _MonkeyPatch,
     tmp_path: Path,
@@ -69,7 +75,30 @@ def _synthetic_context(
     monkeypatch.setattr(dispatcher, "_assert_runtime", lambda: None)
     monkeypatch.setattr(dispatcher, "_verify_static_bindings", lambda: {"scope_sha256": "a" * 64, "runner_sha256": "b" * 64})
     monkeypatch.setattr(batch, "DEFAULT_STATE_ROOT", tmp_path / "state" / "r3")
+    prepared_path = tmp_path / "prepared-text-manifest.json"
+    prepared_path.write_text("{}\n", encoding="utf-8")
+    prepared_sha = _sha(prepared_path.read_bytes())
+
+    def fake_verify(_batch, path, *, expected_sha256: str, expected_parent_sha256: str):
+        assert expected_sha256 == prepared_sha
+        return {
+            "path": Path(path),
+            "manifest_sha256": prepared_sha,
+            "parent_manifest_sha256": expected_parent_sha256,
+            "documents": {},
+        }
+
+    monkeypatch.setattr(batch.pdf_text_preparation, "verify_frozen_manifest", fake_verify)
+    monkeypatch.prepared_kwargs = {
+        "prepared_text_manifest_path": prepared_path,
+        "prepared_text_manifest_sha256": prepared_sha,
+    }
     docs = _synthetic_documents()
+    monkeypatch.setattr(
+        batch,
+        "load_manifest",
+        lambda _path: ({"status": "FROZEN"}, dispatcher.EXPECTED_MANIFEST_SHA256, docs),
+    )
     original = {row["document_id"]: {"status": "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"} for row in docs[:142]}
     pilot = {docs[position - 1]["document_id"] for position in (155, 168, 171, 176, 177, 188, 193, 199, 208, 210)}
     statuses = _synthetic_statuses(docs)
@@ -121,6 +150,7 @@ def _halt_resume_fixture(tmp_path: Path) -> tuple[dispatcher.DurableJournal, dic
         "authorization": auth,
         "authorization_sha256": "d" * 64,
         "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "prepared_text_manifest_sha256": "9" * 64,
         "pilot_progress_sha256": "f" * 64,
         "documents": [],
         "inventory_summary": {"inventory_sha256": "e" * 64, "outstanding_count": 2122},
@@ -438,6 +468,7 @@ def _case_original_progress_status_is_checked_against_frozen_inventory_not_live_
         return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
 
     result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
         authorization_path=tmp_path / "unused-auth.json",
         manifest_path=tmp_path / "unused-manifest.json",
         evidence_root=tmp_path / "evidence",
@@ -471,6 +502,7 @@ def _case_original_progress_must_match_frozen_inventory_history(
 
     with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "ORIGINAL_PROGRESS_INVENTORY_STATUS_MISMATCH"):
         dispatcher.execute_once(
+            **_prepared_kwargs(monkeypatch),
             authorization_path=tmp_path / "unused-auth.json",
             manifest_path=tmp_path / "unused-manifest.json",
             evidence_root=tmp_path / "evidence",
@@ -656,6 +688,7 @@ def _case_failure_receipt_stops_before_next_document(monkeypatch: _MonkeyPatch, 
         return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
 
     result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
         authorization_path=tmp_path / "unused-auth.json",
         manifest_path=tmp_path / "unused-manifest.json",
         evidence_root=tmp_path / "evidence",
@@ -670,6 +703,7 @@ def _case_failure_receipt_stops_before_next_document(monkeypatch: _MonkeyPatch, 
     assert result["status"] == "HALTED"
     with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "DISPATCHER_PREVIOUSLY_HALTED"):
         dispatcher.execute_once(
+            **_prepared_kwargs(monkeypatch),
             authorization_path=tmp_path / "unused-auth.json",
             manifest_path=tmp_path / "unused-manifest.json",
             evidence_root=tmp_path / "evidence",
@@ -694,6 +728,7 @@ def _case_deferred_resume_reuses_same_plan_and_state_root(monkeypatch: _MonkeyPa
         return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
 
     common = {
+        **_prepared_kwargs(monkeypatch),
         "authorization_path": tmp_path / "unused-auth.json",
         "manifest_path": tmp_path / "unused-manifest.json",
         "evidence_root": tmp_path / "evidence",
@@ -718,6 +753,7 @@ def _case_deferred_resume_reuses_same_plan_and_state_root(monkeypatch: _MonkeyPa
 def _case_ambiguous_dispatch_intent_fails_closed_on_next_invocation(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
     _synthetic_context(monkeypatch, tmp_path, max_documents=2)
     common = {
+        **_prepared_kwargs(monkeypatch),
         "authorization_path": tmp_path / "unused-auth.json",
         "manifest_path": tmp_path / "unused-manifest.json",
         "evidence_root": tmp_path / "evidence",
@@ -742,6 +778,7 @@ def _case_missing_terminal_receipt_is_recorded_and_halts(monkeypatch: _MonkeyPat
         return {"returncode": 2, "resource_stop_reason": None, "child_started": True, "stdout_sha256": "a" * 64}
 
     result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
         authorization_path=tmp_path / "unused-auth.json",
         manifest_path=tmp_path / "unused-manifest.json",
         evidence_root=tmp_path / "evidence",
@@ -904,6 +941,7 @@ def _case_memory_recovery_retry_is_bounded_and_second_failure_isolated(
         {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
     ))
     result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
         authorization_path=tmp_path / "unused-auth.json",
         manifest_path=tmp_path / "unused-manifest.json",
         evidence_root=tmp_path / "evidence",
@@ -964,6 +1002,8 @@ def _case_resource_failure_sends_one_owned_sigterm_then_waits(tmp_path: Path) ->
         plan_path,
         baseline_swap_used=10,
         samples_path=tmp_path / "samples.jsonl",
+        prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
+        prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
         sampler=lambda: next(samples),
         popen=lambda *_args, **_kwargs: proc,
         sleep_fn=lambda _seconds: None,
@@ -989,6 +1029,8 @@ def _case_resource_sampler_failure_before_spawn_never_starts_runner(tmp_path: Pa
         plan_path,
         baseline_swap_used=1,
         samples_path=tmp_path / "samples.jsonl",
+        prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
+        prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
         sampler=lambda: (_ for _ in ()).throw(dispatcher.DispatcherError("missing")),
         popen=popen,
     )
@@ -1011,6 +1053,7 @@ def _case_predispatch_resource_failure_halts_without_receipt(monkeypatch: _Monke
         }
 
     result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
         authorization_path=tmp_path / "unused-auth.json",
         manifest_path=tmp_path / "unused-manifest.json",
         evidence_root=tmp_path / "evidence",
@@ -1031,7 +1074,12 @@ def _case_predispatch_resource_failure_halts_without_receipt(monkeypatch: _Monke
 def _case_child_command_uses_native_module_entrypoint() -> None:
     plan_path = Path("/tmp/one-plan.json")
 
-    command = dispatcher._make_command(plan_path, execute=True)
+    command = dispatcher._make_command(
+        plan_path,
+        execute=True,
+        prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
+        prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+    )
 
     assert command == [
         str(dispatcher.EXPECTED_RUNTIME_PYTHON),
@@ -1041,6 +1089,10 @@ def _case_child_command_uses_native_module_entrypoint() -> None:
         str(batch.DEFAULT_MANIFEST),
         "--continuation-plan",
         str(plan_path),
+        "--prepared-text-manifest",
+        str(TEST_PREPARED_TEXT_PATH),
+        "--prepared-text-manifest-sha256",
+        TEST_PREPARED_TEXT_SHA256,
         "--execute",
     ]
 
@@ -1198,6 +1250,14 @@ class TestRemainingOnce(unittest.TestCase):
 
     def test_singleton_plan(self) -> None:
         _case_singleton_plan_matches_integrated_runner_contract(self.tmp_path, self.monkeypatch)
+
+    def test_execution_requires_prepared_text_before_reading_authorization(self) -> None:
+        with self.assertRaisesRegex(dispatcher.DispatcherError, "PREPARED_TEXT_MANIFEST_REQUIRED"):
+            dispatcher.execute_once(
+                authorization_path=self.tmp_path / "missing-authorization.json",
+                manifest_path=self.tmp_path / "missing-manifest.json",
+                evidence_root=self.tmp_path / "evidence",
+            )
 
     def test_selection_uses_statuses(self) -> None:
         _case_selection_uses_statuses_and_keeps_failures_outstanding()

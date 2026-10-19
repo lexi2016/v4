@@ -21,6 +21,75 @@ def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _install_fake_prepared_manifest(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    documents: list[dict[str, object]],
+    *,
+    parent_sha: str,
+    pages_by_document: dict[str, list[pdf_research.PageText]] | None = None,
+    sources_by_document: dict[str, dict[str, object]] | None = None,
+    revision_ids: set[str] | None = None,
+) -> tuple[Path, str]:
+    """Stub only manifest verification; use real prepared-page loading when supplied."""
+    manifest_path = tmp_path / "prepared-text-manifest.json"
+    manifest_path.write_text("{}\n", encoding="utf-8")
+    manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    verified_rows: dict[str, dict[str, object]] = {}
+    pages_by_document = pages_by_document or {}
+    sources_by_document = sources_by_document or {}
+    revision_ids = revision_ids or set()
+    for document in documents:
+        document_id = str(document["document_id"])
+        row: dict[str, object] = {"status": "READY"}
+        if document_id in revision_ids:
+            row["revision"] = {"reason": "PREPARED_SOURCE_TEXT_CHANGED", "supersedes": []}
+        entry: dict[str, object] = {"document": document, "manifest_row": row}
+        if document_id in pages_by_document:
+            pages = pages_by_document[document_id]
+            source = sources_by_document[document_id]
+            page_input = {
+                "schema": batch.pdf_text_preparation.PAGE_INPUT_SCHEMA,
+                "manifest_sha256": parent_sha,
+                "document_id": document_id,
+                "pdf_sha256": document["pdf_sha256"],
+                "source": source,
+                "pages": [
+                    {
+                        "page_number": page.page_number,
+                        "text": page.text,
+                        "text_sha256": page.text_sha256 or _sha(page.text),
+                        "status": page.status,
+                        "extraction_method": page.extraction_method,
+                    }
+                    for page in pages
+                ],
+            }
+            page_input_raw = batch.pdf_text_preparation.canonical_json(page_input) + b"\n"
+            entry.update(
+                {
+                    "page_input": page_input,
+                    "page_input_raw": page_input_raw,
+                    "page_input_sha256": hashlib.sha256(page_input_raw).hexdigest(),
+                }
+            )
+        verified_rows[document_id] = entry
+    verified = {
+        "manifest_sha256": manifest_sha,
+        "parent_manifest_sha256": parent_sha,
+        "documents": verified_rows,
+        "path": manifest_path,
+    }
+
+    def fake_verify(_batch, _path, *, expected_sha256: str, expected_parent_sha256: str):
+        assert expected_sha256 == manifest_sha
+        assert expected_parent_sha256 == parent_sha
+        return verified
+
+    monkeypatch.setattr(batch.pdf_text_preparation, "verify_frozen_manifest", fake_verify)
+    return manifest_path, manifest_sha
+
+
 def _page(number: int, total: int, text: str) -> pdf_research.PageText:
     return pdf_research.PageText(
         page_number=number,
@@ -417,6 +486,9 @@ def test_batch_isolates_one_document_failure_and_keeps_processing(tmp_path: Path
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
     monkeypatch.setattr(batch, "load_manifest", lambda _path: (manifest, manifest_sha, documents))
+    prepared_path, prepared_sha = _install_fake_prepared_manifest(
+        tmp_path, monkeypatch, documents, parent_sha=manifest_sha
+    )
     monkeypatch.setattr(batch.local_model, "require_runtime_python", lambda: None)
     monkeypatch.setattr(
         batch.local_model,
@@ -436,6 +508,8 @@ def test_batch_isolates_one_document_failure_and_keeps_processing(tmp_path: Path
     result = batch.run_batch(
         manifest_path,
         state_root=tmp_path / "state",
+        prepared_text_manifest_path=prepared_path,
+        prepared_text_manifest_sha256=prepared_sha,
         queue_factory=lambda root: (fake_queue, Path("/shared/model.lock")),
         identity_fn=lambda: pytest.fail("no request was attempted in this isolation test"),
         priority_reader=lambda: pytest.fail("no request was attempted in this isolation test"),
@@ -528,9 +602,19 @@ def _configure_single_doc_batch(
             "request_schema_sha256": "d" * 64,
         },
     )
+    prepared_path, prepared_sha = _install_fake_prepared_manifest(
+        tmp_path,
+        monkeypatch,
+        [document],
+        parent_sha=manifest_sha,
+        pages_by_document={str(document["document_id"]): pages},
+        sources_by_document={str(document["document_id"]): source},
+    )
     run_kwargs: dict[str, object] = {
         "manifest_path": tmp_path / "manifest.json",
         "state_root": state_root,
+        "prepared_text_manifest_path": prepared_path,
+        "prepared_text_manifest_sha256": prepared_sha,
         "queue_factory": lambda _root: (queue, Path("/shared/model.lock")),
         "identity_fn": lambda: {"status": "MATCH", "expected_model_id": local_model.MODEL_ID},
         "priority_reader": lambda: {"status": "ALLOW", "same_model_pending_count": 0},
@@ -538,6 +622,32 @@ def _configure_single_doc_batch(
         "sleep_fn": lambda _seconds: None,
     }
     return queue, run_kwargs
+
+
+def test_model_runner_consumes_frozen_prepared_pages_without_reextracting(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pdf_sha = "a" * 64
+    page = _page(1, 1, "公司主营业务和行业变化：" + "收入增长、市场份额改善，" * 40)
+    source = {
+        "page_count": 1,
+        "page_extraction_status": "COMPLETE",
+        "all_pages_nonempty": True,
+        "selected_pages_complete": True,
+        "source_page_text_sha256": _sha(page.text),
+        "source_repair_status": "NOT_REQUIRED",
+        "page_extraction_sources": [{"page_number": 1, "selected": "PINNED_PYPDF_NATIVE"}],
+        "source_text_acceptance": {"semantic_source_acceptance_status": "SOURCE_REVIEW_PENDING", "unreviewed_ocr_pages": []},
+    }
+    document = {"document_id": pdf_sha, "pdf_sha256": pdf_sha, "title": "prepared page fixture"}
+    _queue, run_kwargs = _configure_single_doc_batch(tmp_path, monkeypatch, document, [page], source)
+    monkeypatch.setattr(batch, "_load_pages", lambda *_args, **_kwargs: pytest.fail("model stage must not extract or OCR pages"))
+
+    result = batch.run_batch(**run_kwargs)
+
+    assert result["documents"][0]["status"] == "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    assert result["documents"][0]["prepared_text_manifest_sha256"] == run_kwargs["prepared_text_manifest_sha256"]
 
 
 def test_pending_source_snapshot_does_not_conflict_when_next_tick_repairs_page(
@@ -778,7 +888,7 @@ def test_sigterm_during_retryable_wait_stops_without_another_document_attempt(
     assert result["stop_reason"] == "SIGTERM_REQUESTED"
 
 
-def test_more_than_two_repair_pages_continue_over_ticks_in_one_runner_process(
+def test_preparation_resumes_only_unfinished_pages_after_a_repair_tick(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -840,61 +950,38 @@ def test_more_than_two_repair_pages_continue_over_ticks_in_one_runner_process(
             }
         ],
     }
-    manifest = {"schema": "v4.pdf_research_simple_batch.manifest.v1", "status": "FROZEN", "documents": [document]}
-    manifest_sha = "b" * 64
-    monkeypatch.setattr(batch, "load_manifest", lambda _path: (manifest, manifest_sha, [document]))
-    monkeypatch.setattr(batch.local_model, "require_runtime_python", lambda: None)
-    monkeypatch.setattr(batch, "EXPECTED_CANARY_DOCUMENT_IDS", (pdf_sha,))
-    monkeypatch.setattr(batch, "_read_r1_success", lambda *_args: None)
-    identity_calls: list[int] = []
+    state_root = tmp_path / "preparation-state"
+    resumed_pages: dict[int, tuple[pdf_research.PageText, dict[str, object]]] = {}
 
-    def identity_mismatch():
-        identity_calls.append(1)
-        return {"status": "MISMATCH", "expected_model_id": "other-model"}
+    def checkpoint(page: pdf_research.PageText, source_row: dict[str, object]) -> None:
+        resumed_pages[page.page_number] = (page, source_row)
 
-    state_root = tmp_path / "state"
-    queue = _ResumableFakeQueue(state_root / "queue")
-    monkeypatch.setattr(batch, "_queue_read_result", lambda _queue, item: queue.results.get(str(item["idempotency_key"])))
-    monkeypatch.setattr(
-        batch.local_model,
-        "build_request_material",
-        lambda _schema: {
-            "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
-            "model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
-            "runtime_python": str(batch.local_model.RUNTIME_PYTHON),
-            "evidence_root": str(state_root / "evidence"),
-            "configuration_sha256": "c" * 64,
-            "request_schema_sha256": "d" * 64,
-        },
-    )
-    waits: list[float] = []
-    result = batch.run_batch(
-        tmp_path / "manifest.json",
+    first_pages, first_source = batch._load_pages(
+        document,
         state_root=state_root,
-        queue_factory=lambda _root: (queue, Path("/shared/model.lock")),
-        identity_fn=identity_mismatch,
-        priority_reader=lambda: {"status": "ALLOW", "same_model_pending_count": 0},
-        request_fn=lambda **_kwargs: pytest.fail("model identity mismatch must not call model"),
-        sleep_fn=lambda _seconds: None,
-        max_documents=1,
-        wait_fn=lambda _event, seconds: (waits.append(seconds) or False),
+        repair_budget={"remaining": 2},
+        preparation_mode=True,
+        resume_pages={},
+        page_callback=checkpoint,
+    )
+    assert first_source["source_repair_status"] == "PENDING"
+    assert list(resumed_pages) == [1, 2]
+    assert [page.text for page in first_pages[:2]] == ["恢复后的长页文字 1", "恢复后的长页文字 2"]
+    assert ocr_calls == [1, 2]
+
+    final_pages, final_source = batch._load_pages(
+        document,
+        state_root=state_root,
+        repair_budget={"remaining": 2},
+        preparation_mode=True,
+        resume_pages=resumed_pages,
+        page_callback=checkpoint,
     )
 
-    assert result["status"] == "DEFERRED"
-    assert result["retryable_defer_waits"][0]["reason"] == "SOURCE_REPAIR_TICK_BUDGET"
-    assert result["retryable_defer_waits"][0]["wait_status"] == "ELAPSED"
-    assert waits == [batch.RETRYABLE_DEFER_BACKOFF_BASE_SECONDS]
+    assert final_source["source_repair_status"] == "COMPLETE"
+    assert [page.text for page in final_pages] == ["恢复后的长页文字 1", "恢复后的长页文字 2", "恢复后的长页文字 3"]
+    assert list(resumed_pages) == [1, 2, 3]
     assert ocr_calls == [1, 2, 3]
-    assert identity_calls == [1]
-    assert queue.requested_articles == []
-    final_receipt = json.loads((state_root / "documents" / pdf_sha / "receipt.json").read_text(encoding="utf-8"))
-    assert final_receipt["status"] == "DEFERRED_MODEL_IDENTITY_UNCONFIRMED"
-    assert final_receipt["source"]["source_repair_status"] == "COMPLETE"
-    assert [row["selected"] for row in final_receipt["source"]["page_extraction_sources"]] == [
-        "REUSED_DERIVED_OCR",
-        "REUSED_DERIVED_OCR",
-        "RENDERED_DERIVED_OCR",
-    ]
 
 
 @pytest.mark.parametrize(
@@ -940,6 +1027,14 @@ def test_sigterm_finishes_inflight_chunk_or_synthesis_then_resumes_only_unfinish
             "request_schema_sha256": "d" * 64,
         },
     )
+    prepared_path, prepared_sha = _install_fake_prepared_manifest(
+        tmp_path,
+        monkeypatch,
+        documents,
+        parent_sha=manifest_sha,
+        pages_by_document={pdf_sha: [page]},
+        sources_by_document={pdf_sha: source},
+    )
     prior_handler = signal.getsignal(signal.SIGTERM)
     signal_sent = False
 
@@ -953,6 +1048,8 @@ def test_sigterm_finishes_inflight_chunk_or_synthesis_then_resumes_only_unfinish
     run_kwargs = {
         "manifest_path": tmp_path / "manifest.json",
         "state_root": state_root,
+        "prepared_text_manifest_path": prepared_path,
+        "prepared_text_manifest_sha256": prepared_sha,
         "queue_factory": lambda _root: (queue, Path("/shared/model.lock")),
         "identity_fn": lambda: {"status": "MATCH", "expected_model_id": local_model.MODEL_ID},
         "priority_reader": lambda: {"status": "ALLOW", "same_model_pending_count": 0},
@@ -1624,6 +1721,9 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
             "configuration_sha256": "c" * 64,
         },
     )
+    prepared_path, prepared_sha = _install_fake_prepared_manifest(
+        tmp_path, monkeypatch, documents, parent_sha=manifest_sha
+    )
     calls: list[str] = []
 
     def run_unrelated(document, **_kwargs):
@@ -1639,6 +1739,8 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
     result = batch.run_batch(
         manifest_path,
         state_root=state_root,
+        prepared_text_manifest_path=prepared_path,
+        prepared_text_manifest_sha256=prepared_sha,
         queue_factory=lambda root: (fake_queue, Path("/shared/model.lock")),
         request_fn=lambda **_kwargs: pytest.fail("known failed documents must not enqueue a model request"),
         identity_fn=lambda: pytest.fail("known failed documents must not request model identity"),

@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "d66f733d0e9e62d9c28eac9259fe73003850de866d65a08888d4aa4478a8c187"
+EXPECTED_RUNNER_SHA256 = "731592fc38a8db826ae0dbc0cb54553e9a85f711fd713fa2a2e0bc752f9d4b70"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -1905,6 +1905,7 @@ def _event_binding(context: Mapping[str, Any]) -> dict[str, Any]:
         "scope_sha256": EXPECTED_SCOPE_SHA256,
         "runner_sha256": EXPECTED_RUNNER_SHA256,
         "manifest_sha256": context["manifest_sha256"],
+        "prepared_text_manifest_sha256": context["prepared_text_manifest_sha256"],
         "original_progress_sha256": ORIGINAL_PROGRESS_SHA256,
         "pilot_progress_sha256": context["pilot_progress_sha256"],
         "model_settings_sha256": context["authorization"]["model_settings_sha256"],
@@ -2522,7 +2523,13 @@ def _load_saved_plan(event: Mapping[str, Any], *, evidence_root: Path) -> tuple[
     return path, raw
 
 
-def _make_command(plan_path: Path, *, execute: bool) -> list[str]:
+def _make_command(
+    plan_path: Path,
+    *,
+    execute: bool,
+    prepared_text_manifest_path: Path | None = None,
+    prepared_text_manifest_sha256: str | None = None,
+) -> list[str]:
     command = [
         str(EXPECTED_RUNTIME_PYTHON),
         "-m",
@@ -2533,6 +2540,16 @@ def _make_command(plan_path: Path, *, execute: bool) -> list[str]:
         str(plan_path),
     ]
     if execute:
+        if prepared_text_manifest_path is None or prepared_text_manifest_sha256 is None:
+            raise DispatcherError("PREPARED_TEXT_MANIFEST_REQUIRED")
+        command.extend(
+            [
+                "--prepared-text-manifest",
+                str(prepared_text_manifest_path),
+                "--prepared-text-manifest-sha256",
+                prepared_text_manifest_sha256,
+            ]
+        )
         command.append("--execute")
     return command
 
@@ -2641,6 +2658,8 @@ def _run_execution_child(
     expected_plan_sha256: str | None = None,
     baseline_swap_used: int,
     samples_path: Path,
+    prepared_text_manifest_path: Path,
+    prepared_text_manifest_sha256: str,
     sampler: Callable[[], Mapping[str, int]] = sample_resource_metrics,
     popen: Callable[..., Any] = subprocess.Popen,
     sleep_fn: Callable[[float], Any] = time.sleep,
@@ -2666,7 +2685,12 @@ def _run_execution_child(
     last_resource_sample = initial
 
     proc = popen(
-        _make_command(plan_path, execute=True),
+        _make_command(
+            plan_path,
+            execute=True,
+            prepared_text_manifest_path=prepared_text_manifest_path,
+            prepared_text_manifest_sha256=prepared_text_manifest_sha256,
+        ),
         cwd=str(PROJECT_ROOT),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -2857,7 +2881,24 @@ def execute_once(
     plan_only: Callable[[Path], None] | None = None,
     child_runner: Callable[..., Mapping[str, Any]] | None = None,
     continuation_id_factory: Callable[[], str] | None = None,
+    prepared_text_manifest_path: Path | None = None,
+    prepared_text_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
+    if prepared_text_manifest_path is None or prepared_text_manifest_sha256 is None:
+        raise DispatcherError("PREPARED_TEXT_MANIFEST_REQUIRED")
+    try:
+        _, expected_parent_sha, _ = batch.load_manifest(manifest_path)
+        prepared_manifest = batch.pdf_text_preparation.verify_frozen_manifest(
+            batch,
+            prepared_text_manifest_path,
+            expected_sha256=prepared_text_manifest_sha256,
+            expected_parent_sha256=expected_parent_sha,
+        )
+    except Exception as exc:
+        code = getattr(exc, "code", None) or type(exc).__name__
+        raise DispatcherError(f"PREPARED_TEXT_MANIFEST_REJECTED:{str(code)[:64]}") from None
+    if expected_parent_sha != EXPECTED_MANIFEST_SHA256:
+        raise DispatcherError("PREPARED_PARENT_MANIFEST_SHA_MISMATCH")
     _assert_runtime()
     static = _verify_static_bindings()
     auth_context = load_and_validate_authorization(authorization_path)
@@ -2882,7 +2923,11 @@ def execute_once(
         "documents": documents,
         "inventory_summary": inventory_summary,
         "static": static,
+        "prepared_text_manifest_path": str(prepared_manifest["path"]),
+        "prepared_text_manifest_sha256": prepared_manifest["manifest_sha256"],
     }
+    if evidence_root == EVIDENCE_ROOT:
+        evidence_root = EVIDENCE_ROOT.parent / f"remaining-execution-prepared-{prepared_manifest['manifest_sha256'][:16]}"
     journal = DurableJournal(evidence_root)
     completed_this_call = 0
     authorization_limit_reached = False
@@ -3009,6 +3054,8 @@ def execute_once(
                     baseline_swap_used=baseline_swap,
                     samples_path=samples_path,
                     sampler=sampler,
+                    prepared_text_manifest_path=prepared_manifest["path"],
+                    prepared_text_manifest_sha256=prepared_manifest["manifest_sha256"],
                 )
                 if child_runner is not None
                 else _run_execution_child(
@@ -3016,6 +3063,8 @@ def execute_once(
                     expected_plan_sha256=plan_sha,
                     baseline_swap_used=baseline_swap,
                     samples_path=samples_path,
+                    prepared_text_manifest_path=prepared_manifest["path"],
+                    prepared_text_manifest_sha256=prepared_manifest["manifest_sha256"],
                     sampler=sampler,
                     sleep_fn=sleep_fn,
                 )
@@ -3368,6 +3417,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--authorization", type=Path, default=AUTHORIZATION_PATH)
     parser.add_argument("--max-documents", type=int, help="per-invocation cap; authorization still sets the cumulative ceiling")
+    parser.add_argument("--prepared-text-manifest", type=Path, help="full frozen text-stage manifest required for model execution")
+    parser.add_argument("--prepared-text-manifest-sha256", help="expected SHA-256 of the frozen text-stage manifest")
     parser.add_argument("--execute", action="store_true", help="requires root authorization plus completed pilot gates")
     args = parser.parse_args(argv)
     try:
@@ -3376,7 +3427,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             _verify_static_bindings()
             print(json.dumps({"status": "PREPARATION_ONLY", "execution": "NOT_RUN"}, sort_keys=True))
             return 0
-        result = execute_once(authorization_path=args.authorization, max_documents=args.max_documents)
+        result = execute_once(
+            authorization_path=args.authorization,
+            max_documents=args.max_documents,
+            prepared_text_manifest_path=args.prepared_text_manifest,
+            prepared_text_manifest_sha256=args.prepared_text_manifest_sha256,
+        )
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
     except Exception as exc:

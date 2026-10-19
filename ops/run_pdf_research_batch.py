@@ -28,6 +28,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 from infrastructure import local_document_model as local_model
 from infrastructure import pdf_research
 from infrastructure import pdf_research_tools
+from infrastructure import pdf_text_preparation
 
 
 R_ROOT = Path("/Users/lexi/Desktop/学习/agents调试/V4_PDF_SIMPLE_BATCH_20261018_R1")
@@ -2423,7 +2424,7 @@ def _source_repair_qualification(source: Mapping[str, Any]) -> dict[str, Any]:
         if isinstance(canary, dict):
             accepted.append({"page_number": page_number, **canary})
         elif row.get("selected") in {"REUSED_DERIVED_OCR", "RENDERED_DERIVED_OCR"} or (
-            row.get("selected") == "EXISTING_CACHE"
+            row.get("selected") in {"EXISTING_CACHE", "EXISTING_CACHE_QUALITY_REPLACEMENT"}
             and (
                 row.get("cache_status") == "OCR_OK"
                 or "ocr" in str(row.get("extraction_method", "")).casefold()
@@ -2490,6 +2491,9 @@ def _load_pages(
     *,
     state_root: Path | None = None,
     repair_budget: dict[str, int] | None = None,
+    preparation_mode: bool = False,
+    resume_pages: Mapping[int, tuple[pdf_research.PageText, Mapping[str, Any]]] | None = None,
+    page_callback: Callable[[pdf_research.PageText, Mapping[str, Any]], None] | None = None,
 ) -> tuple[list[pdf_research.PageText], dict[str, Any]]:
     pdf_path = pdf_research._validate_pdf_path(Path(str(document.get("local_pdf_path", ""))))
     before = pdf_path.stat()
@@ -2540,6 +2544,44 @@ def _load_pages(
             raise BatchError("PAGE_COUNT_UNAVAILABLE")
     else:
         native_pages, native_status = pdf_research.extract_native_pdf_pages(pdf_path, page_count)
+    native_quality = pdf_text_preparation.assess_document_pages(native_pages or [])
+    cached_quality = {
+        page.page_number: pdf_text_preparation.assess_text_quality(page.text)
+        for page in (cached_pages or [])
+    }
+    cache_replacements: set[int] = set()
+    suspicious_pages: list[int] = []
+    for page_number in range(1, page_count + 1):
+        native = native_pages[page_number - 1] if native_pages and page_number <= len(native_pages) else None
+        cached = cached_pages[page_number - 1] if cached_pages and page_number <= len(cached_pages) else None
+        native_assessment = native_quality.get(page_number, pdf_text_preparation.assess_text_quality(""))
+        cached_assessment = cached_quality.get(page_number, {})
+        cache_usable = (
+            cached is not None
+            and bool(cached.text.strip())
+            and cached.status in {"COMPLETE", "NATIVE_TEXT", "OCR_OK"}
+            and cached_assessment.get("status") == "PASS"
+        )
+        if cache_usable and pdf_text_preparation.cached_text_replaces_native(
+            native.text if native is not None else "",
+            cached.text,
+            native_assessment=native_assessment,
+            cached_assessment=cached_assessment,
+        ):
+            cache_replacements.add(page_number)
+        elif native is None or native.status != "NATIVE_TEXT" or native_assessment.get("needs_context"):
+            suspicious_pages.append(page_number)
+    try:
+        image_presence = pdf_text_preparation.inspect_page_images(
+            pdf_path,
+            pdf_sha256=pdf_sha,
+            page_count=page_count,
+            page_numbers=[page for page in suspicious_pages if page not in cache_replacements],
+        )
+    except pdf_text_preparation.PreparationError as exc:
+        if exc.code in pdf_text_preparation.FATAL_SOURCE_CODES:
+            raise BatchError(exc.code) from None
+        image_presence = {page_number: None for page_number in suspicious_pages if page_number not in cache_replacements}
     try:
         geometries = _page_geometry(pdf_path, page_count, pdf_sha)
         geometry_error = None
@@ -2560,6 +2602,18 @@ def _load_pages(
         page_number = index + 1
         geometry = geometries[index] if index < len(geometries) else None
         row: dict[str, Any] = {"page_number": page_number}
+        if resume_pages is not None and page_number in resume_pages:
+            resumed_page, resumed_row = resume_pages[page_number]
+            if resumed_page.page_total != page_count or resumed_page.page_number != page_number:
+                raise BatchError("PREPARATION_RESUME_PAGE_BINDING_MISMATCH")
+            selected.append(resumed_page)
+            page_sources.append(dict(resumed_row))
+            selected_kind = str(resumed_row.get("selected", ""))
+            if selected_kind in {"RENDERED_DERIVED_OCR", "REUSED_DERIVED_OCR", "EXISTING_CACHE_QUALITY_REPLACEMENT"}:
+                repair_states.append("COMPLETE")
+            elif selected_kind.startswith("SOURCE_REPAIR_PENDING"):
+                repair_states.append("PENDING_RESUME")
+            continue
         if geometry is not None:
             width_points = geometry["width_points"]
             height_points = geometry["height_points"]
@@ -2575,24 +2629,73 @@ def _load_pages(
         else:
             baseline_density = None
             row["page_geometry_status"] = geometry_error or "CANNOT_CONFIRM"
-        if native is not None and native.status == "NATIVE_TEXT":
-            selected.append(native)
-            row["selected"] = "PINNED_PYPDF_NATIVE"
-        else:
-            cache_render = (
-                _cache_render_dimensions(selected_cache_candidate, page_number)
-                if cached_pages and selected_cache_candidate is not None
-                else None
+        native_assessment = native_quality.get(page_number, pdf_text_preparation.assess_text_quality(""))
+        cached_assessment = cached_quality.get(page_number, {})
+        image_status = image_presence.get(page_number)
+        cache_render = (
+            _cache_render_dimensions(selected_cache_candidate, page_number)
+            if cached_pages and selected_cache_candidate is not None
+            else None
+        )
+        cache_density = None
+        if geometry is not None and cache_render is not None:
+            cache_density = min(
+                cache_render[0] / geometry["width_points"],
+                cache_render[1] / geometry["height_points"],
             )
-            cache_density = None
-            if geometry is not None and cache_render is not None:
-                cache_density = min(
-                    cache_render[0] / geometry["width_points"],
-                    cache_render[1] / geometry["height_points"],
-                )
-                row["cache_render_dimensions_pixels"] = {"width_pixels": cache_render[0], "height_pixels": cache_render[1]}
-                row["cache_render_density_pixels_per_point"] = cache_density
-            metadata_proves_adequate = cache_density is not None and cache_density >= 1.0
+            row["cache_render_dimensions_pixels"] = {"width_pixels": cache_render[0], "height_pixels": cache_render[1]}
+            row["cache_render_density_pixels_per_point"] = cache_density
+        metadata_proves_adequate = cache_density is not None and cache_density >= 1.0
+        if page_number in cache_replacements and cached is not None:
+            selected.append(cached)
+            row.update(
+                {
+                    "selected": "EXISTING_CACHE_QUALITY_REPLACEMENT",
+                    "cache_status": cached.status,
+                    "extraction_method": cached.extraction_method or "UNSPECIFIED",
+                    "native_text_quality": dict(native_assessment),
+                    "cache_text_quality": dict(cached_assessment),
+                    "quality_replacement_reason": "CACHE_HAS_DISTINCT_INFORMATION_WHERE_NATIVE_TEXT_IS_SUSPICIOUS",
+                    "cache_render_metadata_verified_adequate": metadata_proves_adequate or baseline_density is not None and baseline_density >= 1.0,
+                    "preparation_gate": "READY",
+                }
+            )
+            if _is_ocr_page(cached):
+                row["semantic_source_review_status"] = "SOURCE_REVIEW_PENDING"
+        elif native is not None and native.status == "NATIVE_TEXT" and (
+            not native_assessment.get("needs_context")
+            or image_status is False and not native_assessment.get("repeated_short_page") and not native_assessment.get("repeated_contact_page")
+        ):
+            selected.append(native)
+            row.update(
+                {
+                    "selected": "PINNED_PYPDF_NATIVE",
+                    "native_text_quality": dict(native_assessment),
+                    "preparation_gate": "READY",
+                    "preparation_quality_reason": "SPARSE_NATIVE_TEXT_NO_IMAGE_EVIDENCE" if native_assessment.get("needs_context") else "NATIVE_TEXT_PASSES_QUALITY_CHECK",
+                }
+            )
+        elif native is not None and native.status == "NATIVE_TEXT" and image_status is None:
+            selected.append(pdf_research.PageText(page_number, page_count, "", "TEXT_UNAVAILABLE", _sha256(b""), None))
+            row.update(
+                {
+                    "selected": "PAGE_IMAGE_IDENTITY_UNKNOWN",
+                    "native_text_quality": dict(native_assessment),
+                    "preparation_gate": "QUARANTINED",
+                    "preparation_failure_code": "PAGE_IMAGE_IDENTITY_UNKNOWN",
+                }
+            )
+        elif native is not None and native.status == "NATIVE_TEXT" and image_status is False:
+            selected.append(pdf_research.PageText(page_number, page_count, "", "TEXT_UNAVAILABLE", _sha256(b""), None))
+            row.update(
+                {
+                    "selected": "REPEATED_SHORT_TEXT_WITHOUT_BODY",
+                    "native_text_quality": dict(native_assessment),
+                    "preparation_gate": "QUARANTINED",
+                    "preparation_failure_code": "REPEATED_SHORT_TEXT_WITHOUT_BODY",
+                }
+            )
+        else:
             unknown_non_native_cache = (
                 cached is not None
                 and bool(cached.text.strip())
@@ -2601,11 +2704,15 @@ def _load_pages(
             low_resolution = (baseline_density is None and unknown_non_native_cache) or (
                 baseline_density is not None and baseline_density < LOW_RENDER_DENSITY_PIXELS_PER_POINT and not metadata_proves_adequate
             )
+            if image_status is True and (native is None or native.status != "NATIVE_TEXT" or native_assessment.get("needs_context")):
+                low_resolution = True
             row["low_resolution_raster_suspected"] = low_resolution
+            row["native_text_quality"] = dict(native_assessment)
+            row["image_presence"] = image_status if page_number in image_presence else "NOT_INSPECTED"
             if low_resolution:
                 repair_states.append("NEEDS_REPAIR")
                 recovered: tuple[pdf_research.PageText, dict[str, Any]] | None = None
-                if not canary_review_checked:
+                if not preparation_mode and not canary_review_checked:
                     canary_review = _read_source_text_canary_review()
                     canary_review_checked = True
                 if canary_review is not None and state_root is not None:
@@ -2622,7 +2729,7 @@ def _load_pages(
                         repair_provenance = dict(recovered[1])
                         row["selected"] = "REUSED_SOURCE_TEXT_CANARY"
                         row["source_text_canary"] = repair_provenance
-                    if recovered is None and canary_review is None:
+                    if recovered is None and canary_review is None and not preparation_mode:
                         repair_states[-1] = "PENDING_SOURCE_TEXT_CANARY_REVIEW"
                         row["selected"] = "SOURCE_REPAIR_PENDING_CANARY_REVIEW"
                     elif recovered is None and state_root is None:
@@ -2734,6 +2841,8 @@ def _load_pages(
                         "cache_status": cached.status,
                         "extraction_method": cached.extraction_method or "UNSPECIFIED",
                         "cache_render_metadata_verified_adequate": metadata_proves_adequate or baseline_density is not None and baseline_density >= 1.0,
+                        "preparation_gate": "READY" if cached_assessment.get("status") == "PASS" else "QUARANTINED",
+                        "preparation_quality": dict(cached_assessment),
                     }
                 )
                 if _is_ocr_page(cached):
@@ -2741,9 +2850,13 @@ def _load_pages(
             elif native is not None:
                 selected.append(native)
                 row["selected"] = "PINNED_PYPDF_NATIVE_EMPTY_OR_FAILED"
+                row["preparation_gate"] = "QUARANTINED"
+                row["preparation_failure_code"] = "PAGE_NATIVE_TEXT_EMPTY_OR_FAILED"
             elif cached is not None:
                 selected.append(cached)
                 row["selected"] = "EXISTING_CACHE_EMPTY"
+                row["preparation_gate"] = "QUARANTINED"
+                row["preparation_failure_code"] = "PAGE_CACHE_TEXT_EMPTY"
             else:
                 selected.append(
                     pdf_research.PageText(
@@ -2756,6 +2869,29 @@ def _load_pages(
                     )
                 )
                 row["selected"] = "TEXT_UNAVAILABLE"
+                row["preparation_gate"] = "QUARANTINED"
+                row["preparation_failure_code"] = "PAGE_TEXT_UNAVAILABLE"
+        chosen_page = selected[-1]
+        quality = pdf_text_preparation.assess_text_quality(chosen_page.text)
+        row.setdefault("preparation_quality", dict(quality))
+        row.setdefault("page_status", chosen_page.status)
+        if row.get("preparation_gate") not in {"READY", "QUARANTINED"}:
+            sparse_native_without_image = (
+                chosen_page.text.strip()
+                and chosen_page.status in {"NATIVE_TEXT", "COMPLETE"}
+                and image_status is False
+                and not native_assessment.get("repeated_short_page")
+                and not native_assessment.get("repeated_contact_page")
+            )
+            if chosen_page.text.strip() and chosen_page.status in {"NATIVE_TEXT", "COMPLETE", "OCR_OK"} and (
+                quality.get("status") == "PASS" or sparse_native_without_image
+            ):
+                row["preparation_gate"] = "READY"
+            else:
+                row["preparation_gate"] = "QUARANTINED"
+                row.setdefault("preparation_failure_code", quality.get("reason") or "PAGE_QUALITY_UNRESOLVED")
+        if page_callback is not None and row.get("selected", "").startswith("SOURCE_REPAIR_PENDING") is False:
+            page_callback(chosen_page, row)
         page_sources.append(row)
     if len(selected) != page_count:
         raise BatchError("SELECTED_PAGE_COUNT_MISMATCH")
@@ -2763,7 +2899,7 @@ def _load_pages(
     all_nonempty = all(bool(page.text.strip()) for page in selected)
     any_nonempty = any(bool(page.text.strip()) for page in selected)
     has_ocr = any(
-        row.get("selected") == "EXISTING_CACHE"
+        row.get("selected") in {"EXISTING_CACHE", "EXISTING_CACHE_QUALITY_REPLACEMENT"}
         and (row.get("cache_status") == "OCR_OK" or "ocr" in str(row.get("extraction_method", "")).casefold())
         for row in page_sources
     )
@@ -3759,6 +3895,7 @@ def _run_document(
     stop_event: threading.Event | None = None,
     repair_budget: dict[str, int] | None = None,
     continuation: Mapping[str, Any] | None = None,
+    prepared_manifest: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     pdf_sha = str(document["pdf_sha256"])
     doc_root = state_root / "documents" / pdf_sha
@@ -3779,10 +3916,41 @@ def _run_document(
             "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
             "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING",
         }:
-            return prior
+            if prepared_manifest is None:
+                return prior
+            if (
+                prior.get("prepared_text_manifest_sha256") == prepared_manifest.get("manifest_sha256")
+                and isinstance(prior.get("page_input"), dict)
+                and prior["page_input"].get("sha256")
+                == prepared_manifest.get("documents", {}).get(pdf_sha, {}).get("page_input_sha256")
+            ):
+                return prior
+            raise BatchError("PREPARED_MODEL_STATE_ROOT_COLLISION")
     try:
-        pages, source = _load_pages(document, state_root=state_root, repair_budget=repair_budget)
-    except BatchError as exc:
+        if prepared_manifest is None:
+            pages, source = _load_pages(document, state_root=state_root, repair_budget=repair_budget)
+            input_value = _page_input_value(source_doc, pages, source)
+            page_input_raw = _json_bytes(input_value, newline=True)
+            page_input_sha = _sha256(page_input_raw)
+            prepared_document_row = None
+        else:
+            pages, source, prepared_document_row = pdf_text_preparation.pages_from_frozen_manifest(
+                prepared_manifest,
+                pdf_sha,
+            )
+            verified_document = prepared_manifest.get("documents", {}).get(pdf_sha)
+            if not isinstance(verified_document, Mapping):
+                raise BatchError("PREPARED_DOCUMENT_BINDING_MISSING")
+            input_value = verified_document.get("page_input")
+            page_input_raw = verified_document.get("page_input_raw")
+            page_input_sha = verified_document.get("page_input_sha256")
+            if not isinstance(input_value, Mapping) or not isinstance(page_input_raw, bytes) or not isinstance(page_input_sha, str):
+                raise BatchError("PREPARED_PAGE_INPUT_BINDING_MISSING")
+            if _sha256(page_input_raw) != page_input_sha:
+                raise BatchError("PREPARED_PAGE_INPUT_SHA_MISMATCH")
+            source_doc["_prepared_text_manifest_sha256"] = prepared_manifest.get("manifest_sha256")
+            source_doc["_prepared_text_revision"] = prepared_document_row.get("revision")
+    except (BatchError, pdf_text_preparation.PreparationError) as exc:
         status = "TEXT_UNAVAILABLE" if exc.code in {"PAGE_COUNT_UNAVAILABLE"} else "SOURCE_INVALID"
         receipt = {
             "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
@@ -3800,12 +3968,8 @@ def _run_document(
         _write_state_json(doc_root / "receipt.json", receipt, state_root)
         _save_progress(state_root, doc_root, {"document_id": pdf_sha, "status": status, "failure_code": exc.code})
         return receipt
-
-    input_value = _page_input_value(source_doc, pages, source)
-    page_input_raw = _json_bytes(input_value, newline=True)
-    page_input_sha = _sha256(page_input_raw)
     _assert_bound_tool_canary_page_input(pdf_sha, continuation, page_input_sha)
-    pending_source = source.get("source_repair_status") == "PENDING"
+    pending_source = prepared_manifest is None and source.get("source_repair_status") == "PENDING"
     page_input_path = (
         doc_root / "pending-source-inputs" / f"page-input-{page_input_sha}.json"
         if pending_source
@@ -3843,14 +4007,15 @@ def _run_document(
         return receipt
 
     if pdf_sha == S18_PDF_SHA256:
-        return _reuse_s18(
-            state_root,
-            doc_root,
-            source_doc,
-            manifest_sha,
-            page_input=page_input_ref,
-            source=source,
-        )
+        if prepared_document_row is None or not prepared_document_row.get("revision"):
+            return _reuse_s18(
+                state_root,
+                doc_root,
+                source_doc,
+                manifest_sha,
+                page_input=page_input_ref,
+                source=source,
+            )
 
     if source.get("source_repair_status") == "PENDING":
         receipt = {
@@ -4528,7 +4693,7 @@ def _wait_for_retryable_defer(
 def _run_batch_impl(
     manifest_path: Path = DEFAULT_MANIFEST,
     *,
-    state_root: Path = DEFAULT_STATE_ROOT,
+    state_root: Path | None = None,
     queue_factory: Callable[[Path], tuple[Any, Path]] = _create_queue,
     request_fn: Callable[..., str] = local_model.request_document_analysis,
     identity_fn: Callable[[], Mapping[str, Any]] = local_model.inspect_local_api_identity,
@@ -4538,15 +4703,60 @@ def _run_batch_impl(
     wait_fn: Callable[[threading.Event, float], bool] | None = None,
     stop_event: threading.Event,
     continuation: Mapping[str, Any] | None = None,
+    prepared_text_manifest_path: Path | None = None,
+    prepared_text_manifest_sha256: str | None = None,
+    prepared_document_ids: Sequence[str] | None = None,
+    revision_only: bool = False,
 ) -> dict[str, Any]:
-    local_model.require_runtime_python()
     manifest, manifest_sha, documents = load_manifest(manifest_path)
+    if prepared_text_manifest_path is None or prepared_text_manifest_sha256 is None:
+        raise BatchError("PREPARED_TEXT_MANIFEST_REQUIRED")
+    try:
+        prepared = pdf_text_preparation.verify_frozen_manifest(
+            sys.modules[__name__],
+            prepared_text_manifest_path,
+            expected_sha256=prepared_text_manifest_sha256,
+            expected_parent_sha256=manifest_sha,
+        )
+    except pdf_text_preparation.PreparationError as exc:
+        raise BatchError(exc.code) from None
+    if prepared["parent_manifest_sha256"] != manifest_sha:
+        raise BatchError("PREPARED_PARENT_MANIFEST_SHA_MISMATCH")
     if continuation is None and (type(max_documents) is not int or max_documents < 1):
         raise BatchError("MAX_DOCUMENTS_INVALID")
     if continuation is None:
-        if tuple(str(row.get("document_id")) for row in documents[: len(EXPECTED_CANARY_DOCUMENT_IDS)]) != EXPECTED_CANARY_DOCUMENT_IDS:
-            raise BatchError("FROZEN_REPORT_CANARY_PREFIX_MISMATCH")
+        if prepared_document_ids is not None and revision_only:
+            raise BatchError("PREPARED_DOCUMENT_SELECTION_CONFLICT")
+        prepared_rows = prepared.get("documents", {})
+        if prepared_document_ids is not None:
+            if len(set(prepared_document_ids)) != len(prepared_document_ids):
+                raise BatchError("PREPARED_DOCUMENT_SELECTION_DUPLICATE")
+            selected_ids = list(prepared_document_ids)
+            if any(
+                document_id not in prepared_rows
+                or prepared_rows[document_id].get("manifest_row", {}).get("status") != "READY"
+                for document_id in selected_ids
+            ):
+                raise BatchError("PREPARED_DOCUMENT_NOT_READY")
+            selected_id_set = set(selected_ids)
+            documents = [row for row in documents if str(row.get("document_id")) in selected_id_set]
+            if [str(row.get("document_id")) for row in documents] != selected_ids:
+                raise BatchError("PREPARED_DOCUMENT_SELECTION_ORDER_INVALID")
+        else:
+            documents = [
+                row
+                for row in documents
+                if prepared_rows.get(str(row.get("document_id")), {}).get("manifest_row", {}).get("status") == "READY"
+                and (
+                    not revision_only
+                    or bool(prepared_rows[str(row["document_id"])].get("manifest_row", {}).get("revision"))
+                )
+            ]
+        if not documents:
+            raise BatchError("PREPARED_DOCUMENT_SELECTION_EMPTY")
         documents = documents[:max_documents]
+        if state_root is None:
+            state_root = DEFAULT_STATE_ROOT.parent / f"prepared-text-{prepared['manifest_sha256'][:20]}"
         state_root = state_root.expanduser().absolute()
     else:
         if manifest_sha != continuation["plan"]["manifest_sha256"]:
@@ -4555,6 +4765,13 @@ def _run_batch_impl(
         documents = list(continuation["selected_documents"])
         if not documents:
             raise BatchError("CONTINUATION_SELECTION_EMPTY")
+        prepared_rows = prepared.get("documents", {})
+        if any(
+            prepared_rows.get(str(row.get("document_id")), {}).get("manifest_row", {}).get("status") != "READY"
+            for row in documents
+        ):
+            raise BatchError("CONTINUATION_PREPARED_DOCUMENT_NOT_READY")
+    local_model.require_runtime_python()
     r1_root = R1_STATE_ROOT.expanduser().absolute().resolve(strict=False)
     resolved_state_root = state_root.resolve(strict=False)
     if resolved_state_root == r1_root or r1_root in resolved_state_root.parents:
@@ -4602,7 +4819,11 @@ def _run_batch_impl(
                     previous_progress = json.loads(progress_path.read_text(encoding="utf-8"))
                 except (OSError, UnicodeError, json.JSONDecodeError):
                     raise BatchError("BATCH_PROGRESS_INVALID") from None
-                if not isinstance(previous_progress, dict) or previous_progress.get("manifest_sha256") != manifest_sha:
+                if (
+                    not isinstance(previous_progress, dict)
+                    or previous_progress.get("manifest_sha256") != manifest_sha
+                    or previous_progress.get("prepared_text_manifest_sha256") != prepared["manifest_sha256"]
+                ):
                     raise BatchError("BATCH_PROGRESS_MANIFEST_MISMATCH")
                 if continuation is not None and (
                     previous_progress.get("continuation_id") != continuation["plan"]["continuation_id"]
@@ -4621,6 +4842,8 @@ def _run_batch_impl(
                 "last_resumed_at_utc": datetime.now(timezone.utc).isoformat(),
                 "manifest_path": str(manifest_path),
                 "manifest_sha256": manifest_sha,
+                "prepared_text_manifest_path": str(prepared["path"]),
+                "prepared_text_manifest_sha256": prepared["manifest_sha256"],
                 "document_count": len(documents),
                 "manifest_document_count": manifest.get("document_count", len(manifest.get("documents", []))),
                 "max_documents_this_tick": len(documents) if continuation is not None else max_documents,
@@ -4660,6 +4883,20 @@ def _run_batch_impl(
                 doc_continuation: dict[str, Any] | None = None
                 selected_entry: Mapping[str, Any] | None = None
                 preserve_existing_success = False
+                existing_receipt_path = state_root / "documents" / doc_sha / "receipt.json"
+                if existing_receipt_path.is_file() and not existing_receipt_path.is_symlink():
+                    try:
+                        existing_receipt = json.loads(existing_receipt_path.read_text(encoding="utf-8"))
+                    except (OSError, UnicodeError, json.JSONDecodeError):
+                        existing_receipt = None
+                    preserve_existing_success = (
+                        isinstance(existing_receipt, dict)
+                        and existing_receipt.get("status") in {
+                            "USER_ACCEPTED_REUSED_REPORT",
+                            "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
+                            "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING",
+                        }
+                    )
                 if continuation is not None:
                     selected_entry = continuation["selected_entries"][doc_sha]
                     doc_continuation = {
@@ -4699,6 +4936,7 @@ def _run_batch_impl(
                                 stop_event=stop_event,
                                 repair_budget=repair_budget,
                                 continuation=doc_continuation,
+                                prepared_manifest=prepared,
                             )
                     except Exception as exc:
                         code = getattr(exc, "code", None) or type(exc).__name__
@@ -4788,6 +5026,16 @@ def _run_batch_impl(
                     _write_state_json(progress_path, batch_receipt, state_root)
                 if identity_state.get("status") != "NOT_CHECKED":
                     batch_receipt["model_identity"] = dict(identity_state)
+                prepared_row = prepared["documents"].get(doc_sha, {}).get("manifest_row", {})
+                outcome = dict(outcome)
+                outcome["prepared_text_manifest_sha256"] = prepared["manifest_sha256"]
+                outcome["prepared_text_page_input_sha256"] = prepared["documents"].get(doc_sha, {}).get("page_input_sha256")
+                if prepared_row.get("revision"):
+                    outcome["source_text_revision"] = prepared_row["revision"]
+                    outcome["supersedes"] = prepared_row["revision"].get("supersedes", [])
+                if not preserve_existing_success:
+                    receipt_path = state_root / "documents" / doc_sha / "receipt.json"
+                    _write_state_json(receipt_path, outcome, state_root)
                 recovery_of = None
                 if continuation is not None and selected_entry is not None:
                     recovery = selected_entry.get("recovery")
@@ -4817,7 +5065,12 @@ def _run_batch_impl(
                 progress_row = {
                     "document_id": doc_sha,
                     "status": outcome.get("status"),
+                    "prepared_text_manifest_sha256": prepared["manifest_sha256"],
+                    "prepared_text_page_input_sha256": prepared["documents"].get(doc_sha, {}).get("page_input_sha256"),
                 }
+                if prepared_row.get("revision"):
+                    progress_row["source_text_revision"] = prepared_row["revision"]
+                    progress_row["supersedes"] = prepared_row["revision"].get("supersedes", [])
                 if continuation is not None and selected_entry is not None:
                     progress_row.update(
                         {
@@ -4866,7 +5119,7 @@ def _run_batch_impl(
 def run_batch(
     manifest_path: Path = DEFAULT_MANIFEST,
     *,
-    state_root: Path = DEFAULT_STATE_ROOT,
+    state_root: Path | None = None,
     queue_factory: Callable[[Path], tuple[Any, Path]] = _create_queue,
     request_fn: Callable[..., str] = local_model.request_document_analysis,
     identity_fn: Callable[[], Mapping[str, Any]] = local_model.inspect_local_api_identity,
@@ -4875,6 +5128,10 @@ def run_batch(
     max_documents: int = 3,
     wait_fn: Callable[[threading.Event, float], bool] | None = None,
     continuation_plan_path: Path | None = None,
+    prepared_text_manifest_path: Path | None = None,
+    prepared_text_manifest_sha256: str | None = None,
+    prepared_document_ids: Sequence[str] | None = None,
+    revision_only: bool = False,
 ) -> dict[str, Any]:
     continuation = None
     if continuation_plan_path is not None:
@@ -4899,6 +5156,10 @@ def run_batch(
             wait_fn=wait_fn,
             stop_event=stop_event,
             continuation=continuation,
+            prepared_text_manifest_path=prepared_text_manifest_path,
+            prepared_text_manifest_sha256=prepared_text_manifest_sha256,
+            prepared_document_ids=prepared_document_ids,
+            revision_only=revision_only,
         )
 
 
@@ -4907,10 +5168,32 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--max-documents", type=int, help="limit the frozen three-document canary prefix")
     parser.add_argument("--continuation-plan", type=Path, help="validate or execute a frozen explicit continuation subset")
+    parser.add_argument("--prepare-text-only", action="store_true", help="prepare source-bound text checkpoints without model binding or POST")
+    parser.add_argument("--prepare-run-id", help="stable run ID used to resume a text-preparation stage")
+    parser.add_argument("--document-id", action="append", help="prepare one document only; explicit selection never freezes a full-cohort manifest")
+    parser.add_argument("--prepared-text-manifest", type=Path, help="full frozen text-stage manifest required for model execution")
+    parser.add_argument("--prepared-text-manifest-sha256", help="expected SHA-256 of --prepared-text-manifest")
+    parser.add_argument("--prepared-document-id", action="append", help="explicit READY document to analyze from frozen text")
+    parser.add_argument("--revision-only", action="store_true", help="select only documents whose prepared text explicitly supersedes prior reports")
     parser.add_argument("--execute", action="store_true", help="run the frozen batch; without this flag only validate the manifest")
     args = parser.parse_args(argv)
     try:
         manifest, manifest_sha, documents = load_manifest(args.manifest)
+        if args.prepare_text_only:
+            if args.execute or args.continuation_plan is not None or args.prepared_text_manifest is not None or args.prepared_text_manifest_sha256 is not None or args.prepared_document_id is not None or args.revision_only:
+                raise BatchError("PREPARE_TEXT_ONLY_FLAG_CONFLICT")
+            if not args.prepare_run_id:
+                raise BatchError("PREPARE_RUN_ID_REQUIRED")
+            result = pdf_text_preparation.prepare_only(
+                sys.modules[__name__],
+                manifest_path=args.manifest,
+                run_id=args.prepare_run_id,
+                document_ids=args.document_id,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.document_id is not None or args.prepare_run_id is not None:
+            raise BatchError("PREPARE_FLAGS_REQUIRE_PREPARE_TEXT_ONLY")
         max_documents = args.max_documents if args.max_documents is not None else 3
         if max_documents < 1:
             raise BatchError("MAX_DOCUMENTS_INVALID")
@@ -4939,10 +5222,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "execution": "NOT_RUN",
                 }, ensure_ascii=False, sort_keys=True))
                 return 0
+            if args.prepared_document_id is not None or args.revision_only:
+                raise BatchError("CONTINUATION_PREPARED_SELECTION_CONFLICT")
             result = run_batch(
                 args.manifest,
                 max_documents=len(continuation["selected_documents"]),
                 continuation_plan_path=args.continuation_plan,
+                prepared_text_manifest_path=args.prepared_text_manifest,
+                prepared_text_manifest_sha256=args.prepared_text_manifest_sha256,
             )
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
             return 0
@@ -4954,7 +5241,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "selected_document_count": min(max_documents, len(documents)),
             }, ensure_ascii=False))
             return 0
-        result = run_batch(args.manifest, max_documents=max_documents)
+        if args.prepared_text_manifest is None or args.prepared_text_manifest_sha256 is None:
+            raise BatchError("PREPARED_TEXT_MANIFEST_REQUIRED")
+        result = run_batch(
+            args.manifest,
+            max_documents=max_documents,
+            prepared_text_manifest_path=args.prepared_text_manifest,
+            prepared_text_manifest_sha256=args.prepared_text_manifest_sha256,
+            prepared_document_ids=args.prepared_document_id,
+            revision_only=args.revision_only,
+        )
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
     except Exception as exc:
