@@ -13,6 +13,7 @@ import pytest
 
 from infrastructure import local_document_model as local_model
 from infrastructure import pdf_research
+from infrastructure import pdf_research_tools
 from ops import run_pdf_research_batch as batch
 
 
@@ -83,11 +84,15 @@ def test_temporal_prompts_keep_each_source_item_on_its_own_period_and_status() -
         {"document_id": "e" * 64, "title": "通用季度研究样例"}, chunk, partial_source=False
     )
     report_system = report_messages[0]["content"]
-    assert "必须按每个数据或事项逐项分类" in report_system
-    assert "以原文对该项的明确表述和报告发布日期为准" in report_system
+    assert "重要事项按原文明确表述和报告发布日期区分事实性质" in report_system
     assert "报告标题、年份、同一期间还包含预测或先验知识" in report_system
     assert "商品或燃料价格等市场观察，应保留为对应期间的事实" in report_system
     assert "公司盈利、EPS或估值预测仍应标为预测" in report_system
+    assert "公司整体、分部、业务/产品、混合产品和子公司数据" in report_system
+    assert "保留原文定性的供货与交付进展" in report_system
+    assert "无需按固定财务清单逐项补齐" in report_system
+    assert pdf_research_tools.ACTION_SYSTEM_PROMPT in report_system
+    assert "不联网、不调用工具" not in report_system
     assert source_text in report_messages[1]["content"]
 
     synthesis_messages = batch._synthesis_messages(
@@ -100,6 +105,7 @@ def test_temporal_prompts_keep_each_source_item_on_its_own_period_and_status() -
     assert "不跨事项传播预测或未来标签" in synthesis_system
     assert "只有原文明示事项发生在报告发布日期之后时" in synthesis_system
     assert "商品或燃料价格等市场观察应保留为相应期间的事实" in synthesis_system
+    assert "应用执行有限工具" not in synthesis_system
 
 
 def _write_queue_state(path: Path, jobs: dict[str, dict[str, object]]) -> None:
@@ -1777,6 +1783,345 @@ def test_continuation_plan_only_validates_ten_unprocessed_without_writes_or_mode
     assert not state_root.exists()
 
 
+def test_tool_canary_plan_binds_one_failed_inventory_document_without_recovery_reuse(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest_path, plan_path, plan, documents, _state_root = _continuation_fixture(
+        tmp_path, monkeypatch, count=1
+    )
+    document = documents[0]
+    document_id = str(document["document_id"])
+    prior_progress_path = batch._continuation_prior_progress_path()
+    prior_progress = json.loads(prior_progress_path.read_text(encoding="utf-8"))
+    prior_progress["documents"] = [{"document_id": document_id, "status": "FAILED_NO_RETRY"}]
+    prior_progress_path.write_text(json.dumps(prior_progress), encoding="utf-8")
+    plan["prior_progress_sha256"] = hashlib.sha256(prior_progress_path.read_bytes()).hexdigest()
+    plan["selected_documents"] = [{
+        "document_id": document_id,
+        "prior_status": "FAILED_NO_RETRY",
+        "source_sha256": document_id,
+        "tool_canary": {"inventory_sha256": "a" * 64},
+    }]
+    plan["continuation_id"] = "tool-canary"
+    plan["state_root"] = str(batch.DEFAULT_STATE_ROOT.parent / "continuation-tool-canary")
+    plan_path.write_text(json.dumps(plan, sort_keys=True), encoding="utf-8")
+    validated_entries: list[tuple[dict, dict, dict]] = []
+
+    def validate_canary(entry, selected_document, prior_row, queue_jobs):
+        validated_entries.append((entry, selected_document, prior_row))
+        assert queue_jobs == {}
+        return {"inventory_sha256": "a" * 64}
+
+    monkeypatch.setattr(batch, "_validate_fresh_tool_canary", validate_canary)
+    _manifest, manifest_sha, loaded_documents = batch.load_manifest(manifest_path)
+    validated = batch.validate_continuation_plan(
+        plan_path,
+        manifest_sha256=manifest_sha,
+        documents=loaded_documents,
+    )
+
+    assert len(validated_entries) == 1
+    assert validated["tool_canary_bindings"][document_id] == {"inventory_sha256": "a" * 64}
+    assert validated["recovery_bindings"] == {}
+    assert validated["selected_entries"][document_id]["tool_canary"]["inventory_sha256"] == "a" * 64
+
+
+def _pre_model_tool_canary_evidence_fixture(tmp_path: Path) -> dict[str, object]:
+    document_id = batch.TOOL_CANARY_DOCUMENT_ID
+    state_root = tmp_path / "continuation-tool-canary-20261019-r2"
+    source_failure = batch.TOOL_CANARY_PREMODEL_RETRY_FAILURE_CODE
+    return {
+        "document_id": document_id,
+        "state_root": state_root,
+        "plan": {
+            "continuation_id": "tool-canary-20261019-r2",
+            "state_root": str(state_root),
+            "selected_documents": [{
+                "document_id": document_id,
+                "prior_status": "FAILED_NO_RETRY",
+                "source_sha256": document_id,
+                "tool_canary": {"page_input_sha256": batch.TOOL_CANARY_PAGE_INPUT_SHA256},
+            }],
+        },
+        "run_progress": {
+            "status": "COMPLETED_WITH_PER_DOCUMENT_STATES",
+            "continuation_id": "tool-canary-20261019-r2",
+            "continuation_plan_sha256": batch.TOOL_CANARY_PREMODEL_RETRY_PLAN_SHA256,
+            "manifest_sha256": batch.EXPECTED_BATCH_MANIFEST_SHA256,
+            "document_count": 1,
+            "documents": [{
+                "document_id": document_id,
+                "continuation_id": "tool-canary-20261019-r2",
+                "continuation_plan_sha256": batch.TOOL_CANARY_PREMODEL_RETRY_PLAN_SHA256,
+                "status": "SOURCE_REPAIR_FAILED_NO_MODEL",
+            }],
+        },
+        "document_progress": {
+            "document_id": document_id,
+            "status": "SOURCE_REPAIR_FAILED_NO_MODEL",
+            "model_requests": 0,
+        },
+        "receipt": {
+            "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
+            "status": "SOURCE_REPAIR_FAILED_NO_MODEL",
+            "document_id": document_id,
+            "pdf_sha256": document_id,
+            "manifest_sha256": batch.EXPECTED_BATCH_MANIFEST_SHA256,
+            "page_input": {
+                "path": str(state_root / "documents" / document_id / "page-input.json"),
+                "sha256": batch.TOOL_CANARY_PREMODEL_RETRY_ARTIFACT_SHA256S[
+                    f"documents/{document_id}/page-input.json"
+                ],
+            },
+            "source": {
+                "source_repair_status": "FAILED_UNSUPPORTED_GEOMETRY",
+                "new_ocr_attempts_this_tick": 0,
+                "ocr_invoked": False,
+                "page_extraction_sources": [{"failure_code": source_failure}],
+            },
+        },
+        "page_input": {
+            "source": {"source_repair_status": "FAILED_UNSUPPORTED_GEOMETRY"},
+            "pages": [{
+                "page_number": 1,
+                "status": "TEXT_UNAVAILABLE",
+                "text": "",
+                "text_characters": 0,
+            }],
+        },
+        "failed_page": {
+            "schema": batch.SOURCE_REPAIR_SCHEMA,
+            "pdf_sha256": document_id,
+            "page_number": 1,
+            "status": "SOURCE_REPAIR_UNSUPPORTED_GEOMETRY",
+            "failure_code": source_failure,
+            "attempts_used_for_page": 0,
+        },
+        "queue_state": None,
+    }
+
+
+def test_canary_retry_requires_exact_pre_model_failure_and_zero_work(
+    tmp_path: Path,
+) -> None:
+    values = _pre_model_tool_canary_evidence_fixture(tmp_path)
+    assert batch._pre_model_tool_canary_abort_is_retryable(**values)
+
+    model_attempt = dict(values)
+    model_attempt["document_progress"] = {**values["document_progress"], "model_requests": 1}
+    assert not batch._pre_model_tool_canary_abort_is_retryable(**model_attempt)
+
+    queue_claim = dict(values)
+    queue_claim["queue_state"] = {"jobs": {"claimed": {"attempt_count": 1}}}
+    assert not batch._pre_model_tool_canary_abort_is_retryable(**queue_claim)
+
+    partial_analysis = dict(values)
+    partial_analysis["receipt"] = {**values["receipt"], "chunks": [{"status": "SUCCEEDED"}]}
+    assert not batch._pre_model_tool_canary_abort_is_retryable(**partial_analysis)
+
+    repair_attempt = dict(values)
+    repair_attempt["failed_page"] = {**values["failed_page"], "attempts_used_for_page": 1}
+    assert not batch._pre_model_tool_canary_abort_is_retryable(**repair_attempt)
+
+
+def test_tool_canary_requires_reconstructed_bound_original_page_input() -> None:
+    evidence = {
+        "page_input_path": str(batch.TOOL_CANARY_PAGE_INPUT_PATH),
+        "page_input_sha256": batch.TOOL_CANARY_PAGE_INPUT_SHA256,
+    }
+    continuation = {"entry": {"tool_canary": evidence}}
+    batch._assert_bound_tool_canary_page_input(
+        batch.TOOL_CANARY_DOCUMENT_ID,
+        continuation,
+        batch.TOOL_CANARY_PAGE_INPUT_SHA256,
+    )
+    with pytest.raises(batch.BatchError, match="TOOL_CANARY_PAGE_INPUT_RECONSTRUCTION_MISMATCH"):
+        batch._assert_bound_tool_canary_page_input(
+            batch.TOOL_CANARY_DOCUMENT_ID,
+            continuation,
+            "0" * 64,
+        )
+    batch._assert_bound_tool_canary_page_input("a" * 64, None, "b" * 64)
+
+
+def test_tool_canary_instruction_is_added_only_to_selected_chunk_request() -> None:
+    page = _page(1, 1, "奥士康2025年四层板产品营收41.78亿元，营业收入55.30亿元，占比75.56%。")
+    chunk = pdf_research.build_source_chunks("a" * 64, [page])[0]
+    messages = batch._document_messages(
+        {"document_id": "a" * 64},
+        chunk,
+        partial_source=False,
+        tool_canary=True,
+    )
+    assert batch.TOOL_CANARY_INSTRUCTION in messages[-1]["content"]
+    ordinary_messages = batch._document_messages(
+        {"document_id": "a" * 64},
+        chunk,
+        partial_source=False,
+    )
+    assert batch.TOOL_CANARY_INSTRUCTION not in ordinary_messages[-1]["content"]
+
+
+def test_ppi_partial_recovery_requires_prior_chunk_reuse_before_queue_work(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    document_id = batch.PPI_PARTIAL_RECOVERY_DOCUMENT_ID
+    chunks = [
+        pdf_research.SourceChunk(
+            document_id,
+            1,
+            2,
+            (pdf_research.SourceUnit("p1", 1, 0, 1, "fixture"),),
+            batch.PPI_PARTIAL_RECOVERY_SUCCESS_CHUNK_SHA256,
+        ),
+        pdf_research.SourceChunk(
+            document_id,
+            2,
+            2,
+            (pdf_research.SourceUnit("p2", 2, 0, 1, "fixture"),),
+            batch.PPI_PARTIAL_RECOVERY_FAILED_CHUNK_SHA256,
+        ),
+    ]
+    prior_payload = {
+        "article_id": batch.PPI_PARTIAL_RECOVERY_FAILED_PRIOR_ARTICLE_ID,
+        "model_binding": {
+            "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+            "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+        },
+    }
+    continuation = {
+        "plan": {
+            "continuation_id": "ppi-chunk2-recovery-20261019-r1",
+            "manifest_sha256": batch.EXPECTED_BATCH_MANIFEST_SHA256,
+            "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+            "expected_model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        },
+        "plan_sha256": "b" * 64,
+        "entry": {
+            "prior_status": "FAILED_NO_RETRY",
+            "recovery": {
+                "generation": 1,
+                "prior_queue_idempotency_key": batch.PPI_PARTIAL_RECOVERY_FAILED_QUEUE_KEY,
+                "prior_payload_sha256": batch.PPI_PARTIAL_RECOVERY_FAILED_PAYLOAD_SHA256,
+                "prior_article_id": batch.PPI_PARTIAL_RECOVERY_FAILED_PRIOR_ARTICLE_ID,
+                "prior_source_sha256": document_id,
+                "prior_raw_sha256": batch.PPI_PARTIAL_RECOVERY_FAILED_RAW_SSE_SHA256,
+            },
+        },
+        "recovery_binding": {"prior_payload": prior_payload},
+        "recovery_target_reached": threading.Event(),
+    }
+    recovery_binding = {"prior_queue_root": tmp_path / "prior-queue"}
+    monkeypatch.setattr(
+        batch,
+        "_document_chunk_request_material",
+        lambda _document, chunk, **_kwargs: ([], b"{}", {"article_id": f"{document_id}:chunk:{chunk.chunk_index:06d}:{chunk.chunk_sha256}"}),
+    )
+    monkeypatch.setattr(batch, "_bind_continuation_payload", lambda payload, _continuation, **_kwargs: (dict(payload), False))
+    read_calls: list[Path] = []
+
+    def missing_prior_success(_queue, _payload, prior_queue_root, **_kwargs):
+        read_calls.append(prior_queue_root)
+        return None
+
+    monkeypatch.setattr(batch, "_read_continuation_prior_outcome", missing_prior_success)
+
+    with pytest.raises(batch.BatchError, match="PPI_PARTIAL_RECOVERY_SUCCESS_CHUNK_REUSE_NOT_VERIFIED"):
+        batch._preflight_ppi_partial_chunk_recovery(
+            {"document_id": document_id},
+            chunks,
+            prompt_document={"document_id": document_id},
+            partial_source=False,
+            binding={},
+            page_input_sha256=batch.PPI_PARTIAL_RECOVERY_PAGE_INPUT_SHA256,
+            page_count=10,
+            queue=object(),
+            continuation=continuation,
+            recovery_binding=recovery_binding,
+        )
+    assert read_calls == [recovery_binding["prior_queue_root"]]
+    assert not continuation["recovery_target_reached"].is_set()
+
+
+def test_ppi_partial_recovery_only_rebinds_the_frozen_batch_runner_hash() -> None:
+    prior = {
+        "article_id": "fixture",
+        "model_binding": {
+            "source_sha256": {
+                "ops/run_pdf_research_batch.py": batch.CONTINUATION_PRIOR_RUNNER_SHA256,
+                "infrastructure/local_document_model.py": "a" * 64,
+            },
+            "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        },
+    }
+    current = json.loads(json.dumps(prior))
+    current["model_binding"]["source_sha256"]["ops/run_pdf_research_batch.py"] = hashlib.sha256(
+        Path(batch.__file__).resolve().read_bytes()
+    ).hexdigest()
+    assert batch._same_request_payload_ignoring_run_root(
+        prior,
+        current,
+        allow_frozen_runner_source_rebind=True,
+    )
+    changed_other_source = json.loads(json.dumps(current))
+    changed_other_source["model_binding"]["source_sha256"]["infrastructure/local_document_model.py"] = "b" * 64
+    assert not batch._same_request_payload_ignoring_run_root(
+        prior,
+        changed_other_source,
+        allow_frozen_runner_source_rebind=True,
+    )
+    changed_prior_runner = json.loads(json.dumps(prior))
+    changed_prior_runner["model_binding"]["source_sha256"]["ops/run_pdf_research_batch.py"] = "c" * 64
+    assert not batch._same_request_payload_ignoring_run_root(
+        changed_prior_runner,
+        current,
+        allow_frozen_runner_source_rebind=True,
+    )
+
+
+def test_ppi_partial_recovery_rejects_changed_reconstructed_chunk_before_prior_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    document_id = batch.PPI_PARTIAL_RECOVERY_DOCUMENT_ID
+    chunks = [
+        pdf_research.SourceChunk(
+            document_id,
+            1,
+            2,
+            (pdf_research.SourceUnit("p1", 1, 0, 1, "fixture"),),
+            "f" * 64,
+        ),
+        pdf_research.SourceChunk(
+            document_id,
+            2,
+            2,
+            (pdf_research.SourceUnit("p2", 2, 0, 1, "fixture"),),
+            batch.PPI_PARTIAL_RECOVERY_FAILED_CHUNK_SHA256,
+        ),
+    ]
+    monkeypatch.setattr(
+        batch,
+        "_read_continuation_prior_outcome",
+        lambda *_args: pytest.fail("changed chunk must fail before the prior queue read"),
+    )
+    with pytest.raises(batch.BatchError, match="PPI_PARTIAL_RECOVERY_RECONSTRUCTED_CHUNKS_MISMATCH"):
+        batch._preflight_ppi_partial_chunk_recovery(
+            {"document_id": document_id},
+            chunks,
+            prompt_document={"document_id": document_id},
+            partial_source=False,
+            binding={},
+            page_input_sha256=batch.PPI_PARTIAL_RECOVERY_PAGE_INPUT_SHA256,
+            page_count=10,
+            queue=object(),
+            continuation={},
+            recovery_binding={"prior_queue_root": tmp_path / "prior-queue"},
+        )
+
+
 @pytest.mark.parametrize("mutation, expected", [
     ("duplicate", "CONTINUATION_SELECTION_DUPLICATE_OR_INVALID"),
     ("outside", "CONTINUATION_SELECTION_OUTSIDE_MANIFEST"),
@@ -1820,6 +2165,20 @@ def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
     document = documents[0]
     document_id = str(document["document_id"])
     article_id = f"{document_id}:chunk:000001:{'a' * 64}"
+    prior_state_root = batch.DEFAULT_STATE_ROOT.parent / "continuation-prior-test"
+    prior_state_root.mkdir()
+    prior_doc_root = prior_state_root / "documents" / document_id
+    prior_doc_root.mkdir(parents=True)
+    page_input_value = {
+        "schema": "v4.pdf_research_simple_batch.page_input.v1",
+        "manifest_sha256": plan["manifest_sha256"],
+        "document_id": document_id,
+        "pdf_sha256": document_id,
+        "pages": [{"page_number": 1, "text": "fixture", "text_sha256": _sha("fixture")}],
+    }
+    page_input_path = prior_doc_root / "page-input.json"
+    page_input_path.write_text(json.dumps(page_input_value, sort_keys=True), encoding="utf-8")
+    page_input_sha = _sha(page_input_path.read_text(encoding="utf-8"))
     old_payload = {
         "date": "2026-10-18",
         "market": "PDF_RESEARCH",
@@ -1827,12 +2186,19 @@ def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
         "model_id": batch.local_model.MODEL_ID,
         "source_sha256": document_id,
         "source_document_id": document_id,
+        "source_text_sha256": "a" * 64,
+        "stage": "simple_batch_document_chunk_v1",
         "model_binding": {
             "model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
             "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
-            "evidence_root": str(batch.DEFAULT_STATE_ROOT / "evidence"),
+            "evidence_root": str(prior_state_root / "evidence"),
         },
-        "evidence_root": str(batch.DEFAULT_STATE_ROOT / "evidence"),
+        "pdf_tool_binding": {
+            "action_prompt_sha256": _sha(pdf_research_tools.ACTION_SYSTEM_PROMPT),
+            "page_input_sha256": page_input_sha,
+            "page_count": 1,
+        },
+        "evidence_root": str(prior_state_root / "evidence"),
     }
     identity = {name: old_payload.get(name) for name in ("date", "market", "article_id", "model_id")}
     key = hashlib.sha256(local_model.canonical_json(identity)).hexdigest()
@@ -1840,11 +2206,56 @@ def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
     payload_sha = hashlib.sha256(input_raw).hexdigest()
     raw = b'{"error":{"code":"prefill_memory_exceeded"}}'
     raw_sha = hashlib.sha256(raw).hexdigest()
-    queue_root = batch.DEFAULT_STATE_ROOT / "queue"
+    queue_root = prior_state_root / "queue"
     job_root = queue_root / "jobs" / key
     job_root.mkdir(parents=True)
     (job_root / "input.json").write_bytes(input_raw)
-    (job_root / "attempt-0001.raw").write_bytes(raw)
+    request_value = {
+        "model": batch.local_model.MODEL_ID,
+        "max_tokens": 32768,
+        "temperature": 0.0,
+        "stream": True,
+        "messages": [{"role": "user", "content": "fixture prompt"}],
+    }
+    request_path = prior_state_root / "evidence" / "streams" / key / "attempt-0001" / "round-01.request-input.json"
+    request_path.parent.mkdir(parents=True)
+    request_path.write_text(json.dumps(request_value, sort_keys=True), encoding="utf-8")
+    raw_path = request_path.parent / "round-01.raw.sse"
+    raw_path.write_bytes(raw)
+    request_sha = _sha(request_path.read_text(encoding="utf-8"))
+    stream_receipt = {
+        "status": "FAILED",
+        "idempotency_key": key,
+        "model_id": batch.local_model.MODEL_ID,
+        "model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+        "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+        "request_settings_bindings": [{
+            "status": "MATCH",
+            "matches_expected": True,
+            "source": "local_disk_read_immediately_before_http_post",
+            "bindings": [
+                {
+                    "setting_name": "runtime_settings",
+                    "expected_sha256": batch.EXPECTED_RUNTIME_SHA256,
+                    "observed_sha256": batch.EXPECTED_RUNTIME_SHA256,
+                    "matches_expected": True,
+                    "status": "MATCH",
+                    "source": "local_disk_read_immediately_before_http_post",
+                },
+                {
+                    "setting_name": "model_settings",
+                    "expected_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+                    "observed_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+                    "matches_expected": True,
+                    "status": "MATCH",
+                    "source": "local_disk_read_immediately_before_http_post",
+                },
+            ],
+        }],
+        "rounds": [{"status": "FAILED", "request_input_sha256": request_sha, "raw_sse_sha256": raw_sha}],
+    }
+    stream_path = request_path.parent / "stream-receipt.json"
+    stream_path.write_text(json.dumps(stream_receipt, sort_keys=True), encoding="utf-8")
     queue_item = {
         "idempotency_key": key,
         "queue_id": "v4-pdf-simple-batch",
@@ -1856,48 +2267,90 @@ def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
         "queue_policy": {"max_attempts": 1, "max_body_bytes": None},
         "payload_sha256": payload_sha,
         "input_path": f"jobs/{key}/input.json",
-        "raw_path": f"jobs/{key}/attempt-0001.raw",
-        "raw_sha256": raw_sha,
-        "attempts": [{
-            "number": 1,
-            "status": "FAILED",
-            "error": {"code": "prefill_memory_exceeded"},
-            "raw_path": f"jobs/{key}/attempt-0001.raw",
-            "raw_sha256": raw_sha,
-        }],
+        "raw_path": None,
+        "raw_sha256": None,
+        "attempts": [{"number": 1, "status": "FAILED", "error": {"code": "EXECUTOR_ERROR"}, "raw_path": None, "raw_sha256": None}],
     }
-    (queue_root / "queue-state.json").write_text(json.dumps({
-        "schema": "v4.announcement-engine-queue/v1", "jobs": {key: queue_item}, "events": [],
-    }), encoding="utf-8")
+    queue_state_path = queue_root / "queue-state.json"
+    _write_queue_state(queue_state_path, {key: queue_item})
     receipt = {
         "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
         "status": "FAILED_NO_RETRY",
         "manifest_sha256": plan["manifest_sha256"],
         "document_id": document_id,
         "pdf_sha256": document_id,
-        "chunks": [{"status": "FAILED_NO_RETRY", "queue_item": {"idempotency_key": key}}],
+        "page_input": {"path": str(page_input_path), "sha256": page_input_sha},
+        "chunks": [{"status": "FAILED_NO_RETRY", "chunk_index": 1, "chunk_sha256": "a" * 64, "queue_item": {"idempotency_key": key}}],
         "synthesis": [],
+        "report": None,
     }
-    receipt_path = batch.DEFAULT_STATE_ROOT / "documents" / document_id / "receipt.json"
-    receipt_path.parent.mkdir(parents=True)
-    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    receipt_path = prior_doc_root / "receipt.json"
+    receipt_path.write_text(json.dumps(receipt, sort_keys=True), encoding="utf-8")
+    document_progress = {
+        "document_id": document_id,
+        "pdf_sha256": document_id,
+        "manifest_sha256": plan["manifest_sha256"],
+        "page_input_sha256": page_input_sha,
+        "chunk_total": 1,
+        "chunk_states": {"1": "FAILED_NO_RETRY"},
+        "model_requests": 1,
+        "status": "FAILED_NO_RETRY",
+    }
+    (prior_doc_root / "progress.json").write_text(json.dumps(document_progress, sort_keys=True), encoding="utf-8")
+    prior_plan = {
+        "schema": batch.CONTINUATION_PLAN_SCHEMA,
+        "continuation_id": "prior-test",
+        "source_run_id": batch.CONTINUATION_SOURCE_RUN_ID,
+        "manifest_sha256": plan["manifest_sha256"],
+        "state_root": str(prior_state_root),
+        "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+        "expected_model_settings_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+        "selected_documents": [{"document_id": document_id, "source_sha256": document_id, "prior_status": "UNPROCESSED"}],
+    }
+    prior_plan_path = prior_state_root / "continuation-plan.json"
+    prior_plan_path.write_text(json.dumps(prior_plan, sort_keys=True), encoding="utf-8")
+    prior_run_progress = {
+        "schema": "v4.pdf_research_simple_batch.run_receipt.v1",
+        "status": "COMPLETED_WITH_PER_DOCUMENT_STATES",
+        "continuation_id": "prior-test",
+        "continuation_plan_sha256": _sha(prior_plan_path.read_text(encoding="utf-8")),
+        "manifest_sha256": plan["manifest_sha256"],
+        "queue_root": str(queue_root),
+        "documents": [{"document_id": document_id, "status": "FAILED_NO_RETRY"}],
+    }
+    prior_run_path = prior_state_root / "run-progress.json"
+    prior_run_path.write_text(json.dumps(prior_run_progress, sort_keys=True), encoding="utf-8")
+    artifact_paths = {
+        "continuation-plan.json": prior_plan_path,
+        "run-progress.json": prior_run_path,
+        f"documents/{document_id}/progress.json": prior_doc_root / "progress.json",
+        f"documents/{document_id}/receipt.json": receipt_path,
+        f"documents/{document_id}/page-input.json": page_input_path,
+        "queue/queue-state.json": queue_state_path,
+        f"queue/jobs/{key}/input.json": job_root / "input.json",
+        f"evidence/streams/{key}/attempt-0001/stream-receipt.json": stream_path,
+        f"evidence/streams/{key}/attempt-0001/round-01.request-input.json": request_path,
+        f"evidence/streams/{key}/attempt-0001/round-01.raw.sse": raw_path,
+    }
+    prior_artifact_sha = {relative: _sha(path.read_text(encoding="utf-8")) if path.suffix == ".json" else _sha(path.read_bytes().decode("utf-8")) for relative, path in artifact_paths.items()}
     recovery = {
         "generation": 1,
-        "prior_document_receipt_sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        "prior_document_receipt_sha256": prior_artifact_sha[f"documents/{document_id}/receipt.json"],
         "prior_queue_idempotency_key": key,
         "prior_payload_sha256": payload_sha,
         "prior_article_id": article_id,
         "prior_source_sha256": document_id,
         "prior_raw_sha256": raw_sha,
+        "prior_state_root": str(prior_state_root),
+        "prior_artifact_sha256": prior_artifact_sha,
     }
-    progress = {
+    progress_path = batch.DEFAULT_STATE_ROOT / "run-progress.json"
+    progress_path.write_text(json.dumps({
         "schema": "v4.pdf_research_simple_batch.run_receipt.v1",
         "status": "STOPPED_GRACEFULLY",
         "manifest_sha256": plan["manifest_sha256"],
         "documents": [{"document_id": document_id, "status": "FAILED_NO_RETRY", "receipt_path": str(receipt_path)}],
-    }
-    progress_path = batch.DEFAULT_STATE_ROOT / "run-progress.json"
-    progress_path.write_text(json.dumps(progress), encoding="utf-8")
+    }), encoding="utf-8")
     plan["prior_progress_sha256"] = hashlib.sha256(progress_path.read_bytes()).hexdigest()
     plan["selected_documents"] = [{
         "document_id": document_id,
@@ -1931,6 +2384,8 @@ def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
     assert batch._continuation_recovery_raw_has_exact_error(raw)
     assert not batch._continuation_recovery_raw_has_exact_error(b'{"error":{"message":"prefill_memory_exceeded"}}')
     assert not batch._continuation_recovery_raw_has_exact_error(b"message says prefill_memory_exceeded")
+    assert context["recovery_binding"]["prior_queue_root"] == queue_root
+
 
     class FakeQueue:
         queue_id = "v4-pdf-simple-batch"
@@ -1959,9 +2414,68 @@ def test_continuation_recovery_validates_raw_error_and_binds_generation_one(
         priority_reader=lambda: {"status": "ALLOW"},
         request_fn=lambda **_kwargs: "fixture response",
         sleep_fn=lambda _seconds: None,
+        tool_context={"page_input_sha256": page_input_sha, "pages": [{"text": "fixture"}]},
     )
     assert fake_queue.max_attempts == 1
     assert fake_queue.payload["article_id"] == f"{article_id}:recovery:1"
     assert fake_queue.payload["continuation"]["recovery_of"]["prior_idempotency_key"] == key
     assert result["status"] == "SUCCEEDED"
 
+    tampered_plan = dict(plan)
+    tampered_selection = dict(plan["selected_documents"][0])
+    tampered_recovery = dict(tampered_selection["recovery"])
+    tampered_hashes = dict(tampered_recovery["prior_artifact_sha256"])
+    tampered_hashes["queue/queue-state.json"] = "f" * 64
+    tampered_recovery["prior_artifact_sha256"] = tampered_hashes
+    tampered_selection["recovery"] = tampered_recovery
+    tampered_plan["selected_documents"] = [tampered_selection]
+    plan_path.write_text(json.dumps(tampered_plan, sort_keys=True), encoding="utf-8")
+    with pytest.raises(batch.BatchError, match="CONTINUATION_RECOVERY_ARTIFACT_SHA_MISMATCH"):
+        batch.validate_continuation_plan(plan_path, manifest_sha256=manifest_sha, documents=loaded_documents)
+
+
+def test_continuation_recovery_requires_exact_pre_post_settings_bindings() -> None:
+    source = "local_disk_read_immediately_before_http_post"
+    receipt = {
+        "request_settings_bindings": [{
+            "status": "MATCH",
+            "matches_expected": True,
+            "source": source,
+            "bindings": [
+                {
+                    "setting_name": "runtime_settings",
+                    "expected_sha256": batch.EXPECTED_RUNTIME_SHA256,
+                    "observed_sha256": batch.EXPECTED_RUNTIME_SHA256,
+                    "matches_expected": True,
+                    "status": "MATCH",
+                    "source": source,
+                },
+                {
+                    "setting_name": "model_settings",
+                    "expected_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+                    "observed_sha256": batch.EXPECTED_MODEL_SETTINGS_SHA256,
+                    "matches_expected": True,
+                    "status": "MATCH",
+                    "source": source,
+                },
+            ],
+        }],
+    }
+    assert batch._continuation_recovery_request_settings_confirmed(
+        receipt,
+        expected_model_settings_sha256=batch.EXPECTED_MODEL_SETTINGS_SHA256,
+    )
+
+    changed_observation = json.loads(json.dumps(receipt))
+    changed_observation["request_settings_bindings"][0]["bindings"][1]["observed_sha256"] = "f" * 64
+    assert not batch._continuation_recovery_request_settings_confirmed(
+        changed_observation,
+        expected_model_settings_sha256=batch.EXPECTED_MODEL_SETTINGS_SHA256,
+    )
+
+    missing_runtime = json.loads(json.dumps(receipt))
+    missing_runtime["request_settings_bindings"][0]["bindings"].pop(0)
+    assert not batch._continuation_recovery_request_settings_confirmed(
+        missing_runtime,
+        expected_model_settings_sha256=batch.EXPECTED_MODEL_SETTINGS_SHA256,
+    )

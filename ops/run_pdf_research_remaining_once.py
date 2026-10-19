@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Finite, receipt-gated continuation for the frozen R3 PDF cohort.
+"""Finite, receipt-gated continuation for the frozen PDF cohort.
 
 This module prepares or executes one immutable singleton plan at a time through
-the existing PDF batch runner. Execution requires a separate root-issued
-authorization that binds the completed pilot, resource/sentinel evidence,
-independent review, and candidate adoption.
+the existing PDF batch runner. Cohort status comes from the frozen completion
+inventory; existing failures stay outstanding and are held unless a specific
+recovery path is validated.
 """
 from __future__ import annotations
 
@@ -30,14 +30,111 @@ from ops import run_pdf_research_batch as batch
 PROJECT_ROOT = Path("/Users/lexi/Desktop/学习/v4_app")
 R_ROOT = Path("/Users/lexi/Desktop/学习/agents调试/V4_QWEN_MAC_MEMORY_20261019_R1")
 CONTINUATION_ROOT = R_ROOT / "continuation"
-EVIDENCE_ROOT = CONTINUATION_ROOT / "resume-writer"
+COMPLETION_EVIDENCE_ROOT = Path(
+    "/Users/lexi/Desktop/学习/agents调试/V4_PDF_TOOL_ENABLED_COMPLETION_20261019_R1"
+)
+EVIDENCE_ROOT = COMPLETION_EVIDENCE_ROOT / "remaining-execution-r1"
+REMAINING_INVENTORY_PATH = COMPLETION_EVIDENCE_ROOT / "inventory/remaining-core-inventory.json"
+EXPECTED_REMAINING_INVENTORY_SHA256 = "58c94d2899e02a17df46e2e3c9ed9e65ad7aa5e19194e7046c849fbe929a7dad"
+REMAINING_SELECTION_PATH = COMPLETION_EVIDENCE_ROOT / "writer/remaining-selection-r1/selection.json"
+TOOL_CANARY_PLAN_PATH = COMPLETION_EVIDENCE_ROOT / "writer/actual-tool-canary-r3/continuation-plan.json"
+TOOL_CANARY_STATE_ROOT = Path(
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/"
+    "zsxq_hourly/pdf_local/research/batches/continuation-tool-canary-20261019-r3"
+)
+THREE_DOCUMENT_CANARY_PLAN_PATH = COMPLETION_EVIDENCE_ROOT / "writer/actual-three-document-canary/continuation-plan.json"
+THREE_DOCUMENT_CANARY_STATE_ROOT = Path(
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/"
+    "zsxq_hourly/pdf_local/research/batches/continuation-three-document-canary-20261019-r1"
+)
+PPI_RECOVERY_PLAN_PATH = COMPLETION_EVIDENCE_ROOT / "writer/actual-three-document-canary/ppi-chunk2-recovery-r1/continuation-plan.json"
+PPI_RECOVERY_STATE_ROOT = Path(
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/"
+    "zsxq_hourly/pdf_local/research/batches/recovery-039fa67f32522085560d4c6032850a54d39612fdc2a1c6d12aae1925227428a1"
+)
+AI_VIDEO_RECOVERY_PLAN_PATH = COMPLETION_EVIDENCE_ROOT / "writer/ai-video-memory-recovery-r1/continuation-plan.json"
+AI_VIDEO_RECOVERY_STATE_ROOT = Path(
+    "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/"
+    "zsxq_hourly/pdf_local/research/batches/recovery-2c2e7b6aa372bc32abcb482043688cdd02feff3505d0f678c49efb171c467fc3"
+)
+THREE_DOCUMENT_CANARY_CONTINUATION_ID = "three-document-canary-20261019-r1"
+THREE_DOCUMENT_CANARY_PLAN_SHA256 = "393665466e50d74effefdbd6ea8e2f0b187baa1f342f5ef73de7999380866888"
+THREE_DOCUMENT_CANARY_PROGRESS_SHA256 = "20c451ed88ce495b66f691ffbe77be39a3e50bfe754cd819cfbb85b708a455ef"
+THREE_DOCUMENT_CANARY_QUEUE_SHA256 = "8e676cf4302b4c526cfe4e786f7c4a5e758986d1e30225754219563ed105ecc0"
+PPI_RECOVERY_CONTINUATION_ID = "ppi-chunk2-recovery-20261019-r1"
+PPI_RECOVERY_PLAN_SHA256 = "8892257dbdfbd8e9140575053442813971a6f1966f934794f1d31f82f6f4ebe9"
+PPI_RECOVERY_PROGRESS_SHA256 = "8f47951b0394e7160db0e4b34d15d7d700583182213d7a113a7bf9c8e34e4d5b"
+PPI_RECOVERY_DOCUMENT_PROGRESS_SHA256 = "af80b75351e87f816254c8e6a216b9cbb14a454780c467e0faad0adaaa5643a2"
+PPI_RECOVERY_RECEIPT_SHA256 = "03ff49b9eef8867d73acac1b808979bfe2cb0dc94d09b89080a6169bbe6246be"
+PPI_RECOVERY_REPORT_SHA256 = "01538e7fc7c19aa1520ed7c02323e364c862be4d72f441a49d5f3f3d9d680c47"
+PPI_RECOVERY_PAGE_INPUT_SHA256 = "7731789b3a3e4446e0c821496e0f29133e31964d7e65a85ef0dc16b58672493c"
+PPI_RECOVERY_QUEUE_SHA256 = "bd1388720f75f12c7caae41cbe8439e8191ce5df946403addd4268ceb9cdf667"
+AI_VIDEO_RECOVERY_CONTINUATION_ID = "memory-recovery-ai-video-20261019-r1"
+AI_VIDEO_RECOVERY_PLAN_SHA256 = "7b41c24d7ce9d77629b9da2bb6a1ab2060dcc5586e4a03e77e457d7ba8c4e6af"
+AI_VIDEO_RECOVERY_PROGRESS_SHA256 = "51c0f2302b843e6765f25b93d7b8472d9cf1a8857e948c528ec0f89982654cd2"
+AI_VIDEO_RECOVERY_DOCUMENT_PROGRESS_SHA256 = "215931a8a4917272716c4eb4dee850f455eb8c11eb16517ae26e2a6692c02bc5"
+AI_VIDEO_RECOVERY_RECEIPT_SHA256 = "36b029d65106a748ca19e5cdd8fa0ed61717efd7a66a3ae0b3eec84e8f215276"
+AI_VIDEO_RECOVERY_REPORT_SHA256 = "365d71e591e41f7fcad17bf135bf8f853448bbbb81be2c8d813d6345567f1735"
+AI_VIDEO_RECOVERY_PAGE_INPUT_SHA256 = "d1a644f6f463ce0528ceec582798e723ec50088c57078e6902f7a7695983f961"
+AI_VIDEO_RECOVERY_QUEUE_SHA256 = "17eb6e96fe361bd5e8fa0401a2ac38b91b3477b9e3212c5e78697091f01adace"
+THREE_DOCUMENT_CANARY_IDS = (
+    "8a8e06be978f10311bfdff6e6a17b6d49bce6c5db29400e88c4df014bd5558aa",
+    "6892ef7be8071665aa96fdf125a4a1acac8367f3f7eb3a772e84fd121b9fd87b",
+    "eeed6e4916c2a8b44d0f3911d9303de754e6164d8d33cc7f11f4c15dae9f49a5",
+)
+THREE_DOCUMENT_ORIGINAL_BINDINGS = {
+    "8a8e06be978f10311bfdff6e6a17b6d49bce6c5db29400e88c4df014bd5558aa": {
+        "status": "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
+        "progress_sha256": "42213404cb187fc6ee683ee53dfd501159c363b00b135d993564f198b9318bff",
+        "receipt_sha256": "925fbe8fc3d01bb9886f067f68dd662e4f16cca937504e1cb985712fe1231ea6",
+        "page_input_sha256": "d8ea959fc5a3d5334bf0373938e7cb51595a123506e7fb3d20a91ee4f4455098",
+        "report_sha256": "94726be4535b39d56d678acb5ce9ca687ad63a595c1d35e32fc700e8ef219b69",
+    },
+    "6892ef7be8071665aa96fdf125a4a1acac8367f3f7eb3a772e84fd121b9fd87b": {
+        "status": "FAILED_NO_RETRY",
+        "progress_sha256": "c74c7a87d397e304c8df980f4f0b192061c578ba2858e543895787f268bbf72c",
+        "receipt_sha256": "dec0ac530f63194956ce3e755d9e062d332abccf1b601966418238c438626634",
+        "page_input_sha256": "7731789b3a3e4446e0c821496e0f29133e31964d7e65a85ef0dc16b58672493c",
+        "report_sha256": None,
+    },
+    "eeed6e4916c2a8b44d0f3911d9303de754e6164d8d33cc7f11f4c15dae9f49a5": {
+        "status": "FAILED_NO_RETRY",
+        "progress_sha256": "f5d00a49a617d58f95669c881578d7c17017042ba60fa76f54383e1b4c89a888",
+        "receipt_sha256": "6e9843b06c2aaed4da7cb06cbe85e2f5332cf129adc4174cf7784d89c91ee469",
+        "page_input_sha256": "d1a644f6f463ce0528ceec582798e723ec50088c57078e6902f7a7695983f961",
+        "report_sha256": None,
+    },
+}
+TOOL_CANARY_DOCUMENT_ID = "fc551b8057828fc161d7efc134701242b43e9b95177c62e4fb6f625ec93b789b"
+TOOL_CANARY_CONTINUATION_ID = "tool-canary-20261019-r3"
+EXPECTED_TOOL_CANARY_PLAN_SHA256 = "40cab1194bd19d3caa5b54f4d9129fd8903c770d0cdc13f5f708b4b623e2f2d5"
+EXPECTED_TOOL_CANARY_PROGRESS_SHA256 = "efc7767988563f15550e6f5008ca26bf6875891214ae46954044c64cabb4bc89"
+EXPECTED_TOOL_CANARY_RECEIPT_SHA256 = "cfd15fc9c0b47abbaa8c966b6047da991034c062e059c2394e51cc2518e0d6ab"
+EXPECTED_TOOL_CANARY_REPORT_SHA256 = "d521155a327dec9d0013acd66894160b7a744e401403959e1b637e4916e15fe0"
+EXPECTED_TOOL_CANARY_PAGE_INPUT_SHA256 = "2408358e4ae95ff5e31dc296f1f24722ccd60870a3836d75bf07107f2d22be2e"
+EXPECTED_TOOL_CANARY_QUEUE_SHA256 = "f9708301309395b582d9dcc458ac63a2fbb23bea3e2d1c44db1a0ecfd9983f76"
+EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256 = "0da2c9d1044a1d86ac0037f06859248568ba82a03f1a26a17699c64b12e9c7c7"
+TERMINAL_RECEIPT_BINDINGS = {
+    "2bf9390cd9f4490b42f7cee921c23437b6c014dab1f973c07f6d5a6a9938232e": (
+        Path("/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/"
+             "zsxq_hourly/pdf_local/research/batches/continuation-resume-4d4f62ca2f654a6aa3b9f7b25a90b3b6/"
+             "documents/2bf9390cd9f4490b42f7cee921c23437b6c014dab1f973c07f6d5a6a9938232e/receipt.json"),
+        "f3921ac864c8749ecf5ef4365fa75d3778b62de9758f07de53dfcc7e46f130a1",
+    ),
+    "a87847018b68a74f4f9969c3ddce8352cf7ba03450c0ec51fbdd5c8ad181d0f5": (
+        Path("/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/"
+             "zsxq_hourly/pdf_local/research/batches/continuation-resume-7c46270727404030a4b82ac12a271ef1/"
+             "documents/a87847018b68a74f4f9969c3ddce8352cf7ba03450c0ec51fbdd5c8ad181d0f5/receipt.json"),
+        "861a1dca49bae7cfcbc60ac6591a46f1098d4cb12701164d26862f83e5c937f6",
+    ),
+}
 SCOPE_PATH = CONTINUATION_ROOT / "ROOT_REMAINING_ONCE_SCOPE.json"
 AUTHORIZATION_PATH = CONTINUATION_ROOT / "ROOT_REMAINING_EXECUTION_AUTHORIZATION.json"
 PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "af909503480a5237603ce8695bd31ad6b4a3f7da9062875accc6b086e9d6db08"
+EXPECTED_RUNNER_SHA256 = "446b9408d0621f476698871e011ec7e9b3306487137bff4151198fa80ac191af"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -54,13 +151,24 @@ SCOPE_SCHEMA = "v4.pdf_remaining_once.scope.v1"
 AUTHORIZATION_SCHEMA = "v4.pdf_remaining_once.execution_authorization.v1"
 JOURNAL_SCHEMA = "v4.pdf_remaining_once.dispatch_journal.v1"
 PLAN_SCHEMA = batch.CONTINUATION_PLAN_SCHEMA
-EXPECTED_POST_PILOT_COHORT = 2056
+FROZEN_COHORT_DOCUMENT_COUNT = 2209
+PRESERVED_COMPLETED_DOCUMENT_COUNT = 86
+PRE_CANARY_OUTSTANDING_DOCUMENT_COUNT = 2123
+CURRENT_COMPLETED_DOCUMENT_COUNT = 90
+CURRENT_OUTSTANDING_DOCUMENT_COUNT = 2119
+REMAINING_NONQUARANTINED_DOCUMENT_COUNT = 2118
+REMAINING_UNPROCESSED_RUNNABLE_COUNT = 2050
+EXPECTED_POST_PILOT_COHORT = REMAINING_UNPROCESSED_RUNNABLE_COUNT
 PILOT_DOCUMENT_COUNT = 10
-QUARANTINE_POSITION_1_BASED = 143
 QUARANTINE_DOCUMENT_ID = "23dd2b2a5a3b5a9107e389f27b1b73bf6e6ba6a61e63afa9a35f0b73246809a9"
 MIN_AVAILABLE_BYTES = 8_589_934_592
 MAX_SWAP_GROWTH_BYTES = 536_870_912
 RESOURCE_SAMPLE_INTERVAL_SECONDS = 1.0
+MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES = 1_073_741_824
+MEMORY_RECOVERY_SWAP_REDUCTION_BYTES = 536_870_912
+MEMORY_RECOVERY_STABLE_SAMPLE_COUNT = 2
+MEMORY_RECOVERY_POLL_SECONDS = 5.0
+MEMORY_RECOVERY_MAX_WAIT_SECONDS = 900.0
 SUCCESS_STATUSES = frozenset(
     {
         "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
@@ -76,9 +184,15 @@ SOURCE_ONLY_STATUSES = frozenset(
     }
 )
 SAFE_JSONL_EVENT_TYPES = frozenset(
-    {"binding", "plan_created", "plan_only_pass", "dispatch_intent", "reconciled", "halt"}
+    {"binding", "plan_created", "plan_only_pass", "dispatch_intent", "reconciled", "memory_recovery_wait", "halt"}
 )
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+COMPLETED_INVENTORY_STATUSES = frozenset(
+    {"USER_ACCEPTED_REUSED_REPORT", "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"}
+)
+OUTSTANDING_INVENTORY_STATUSES = frozenset(
+    {"FAILED_DOCUMENT_ISOLATED", "FAILED_NO_RETRY", "SOURCE_REPAIR_FAILED_NO_MODEL", "UNPROCESSED"}
+)
 
 
 class DispatcherError(RuntimeError):
@@ -500,22 +614,1072 @@ def _load_original_r3(manifest_path: Path) -> tuple[str, list[dict[str, Any]], d
     return manifest_sha, documents, prior_rows
 
 
+def _verify_terminal_receipt(document_id: str, path: Path, expected_sha256: str) -> dict[str, Any]:
+    raw = _read_regular(path, "TERMINAL_COMPLETION_RECEIPT_UNAVAILABLE")
+    if sha256_bytes(raw) != expected_sha256:
+        raise DispatcherError("TERMINAL_COMPLETION_RECEIPT_SHA_MISMATCH")
+    try:
+        receipt = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("TERMINAL_COMPLETION_RECEIPT_INVALID") from None
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("document_id") != document_id
+        or receipt.get("pdf_sha256") != document_id
+        or receipt.get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        or receipt.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or receipt.get("research_only") is not True
+        or receipt.get("production_allowed") is not False
+        or receipt.get("buy_gate_updated") is not False
+        or receipt.get("orders_sent") is not False
+    ):
+        raise DispatcherError("TERMINAL_COMPLETION_RECEIPT_BINDING_MISMATCH")
+    return {"path": str(path), "sha256": expected_sha256, "status": receipt["status"]}
+
+
+def _verify_current_tool_canary_completion() -> dict[str, Any]:
+    """Verify the post-inventory canary receipt before changing its prior status."""
+    plan_raw = _read_regular(TOOL_CANARY_PLAN_PATH, "TOOL_CANARY_PLAN_UNAVAILABLE")
+    if sha256_bytes(plan_raw) != EXPECTED_TOOL_CANARY_PLAN_SHA256:
+        raise DispatcherError("TOOL_CANARY_PLAN_SHA_MISMATCH")
+    try:
+        plan = json.loads(plan_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("TOOL_CANARY_PLAN_INVALID") from None
+    selected = plan.get("selected_documents") if isinstance(plan, dict) else None
+    if (
+        not isinstance(plan, dict)
+        or plan.get("continuation_id") != TOOL_CANARY_CONTINUATION_ID
+        or plan.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or plan.get("state_root") != str(TOOL_CANARY_STATE_ROOT)
+        or plan.get("expected_model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or plan.get("observed_model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or not isinstance(selected, list)
+        or len(selected) != 1
+        or not isinstance(selected[0], dict)
+        or selected[0].get("document_id") != TOOL_CANARY_DOCUMENT_ID
+        or selected[0].get("source_sha256") != TOOL_CANARY_DOCUMENT_ID
+        or selected[0].get("prior_status") != "FAILED_NO_RETRY"
+        or plan.get("research_only") != {
+            "research_only": True,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+    ):
+        raise DispatcherError("TOOL_CANARY_PLAN_BINDING_INVALID")
+
+    plan_sha256 = sha256_bytes(plan_raw)
+    progress_path = TOOL_CANARY_STATE_ROOT / "run-progress.json"
+    progress_raw = _read_regular(progress_path, "TOOL_CANARY_PROGRESS_UNAVAILABLE")
+    if sha256_bytes(progress_raw) != EXPECTED_TOOL_CANARY_PROGRESS_SHA256:
+        raise DispatcherError("TOOL_CANARY_PROGRESS_SHA_MISMATCH")
+    try:
+        progress = json.loads(progress_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("TOOL_CANARY_PROGRESS_INVALID") from None
+    rows = progress.get("documents") if isinstance(progress, dict) else None
+    if (
+        not isinstance(progress, dict)
+        or progress.get("status") != "COMPLETED_WITH_PER_DOCUMENT_STATES"
+        or progress.get("continuation_id") != TOOL_CANARY_CONTINUATION_ID
+        or progress.get("continuation_plan_sha256") != plan_sha256
+        or progress.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or progress.get("model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or progress.get("research_only") is not True
+        or progress.get("production_allowed") is not False
+        or progress.get("buy_gate_updated") is not False
+        or progress.get("orders_sent") is not False
+        or not isinstance(rows, list)
+        or len(rows) != 1
+        or not isinstance(rows[0], dict)
+        or rows[0].get("document_id") != TOOL_CANARY_DOCUMENT_ID
+        or rows[0].get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    ):
+        raise DispatcherError("TOOL_CANARY_PROGRESS_BINDING_INVALID")
+
+    document_root = TOOL_CANARY_STATE_ROOT / "documents" / TOOL_CANARY_DOCUMENT_ID
+    receipt_path = document_root / "receipt.json"
+    receipt_raw = _read_regular(receipt_path, "TOOL_CANARY_RECEIPT_UNAVAILABLE")
+    if sha256_bytes(receipt_raw) != EXPECTED_TOOL_CANARY_RECEIPT_SHA256:
+        raise DispatcherError("TOOL_CANARY_RECEIPT_SHA_MISMATCH")
+    try:
+        receipt = json.loads(receipt_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("TOOL_CANARY_RECEIPT_INVALID") from None
+    continuation = receipt.get("continuation") if isinstance(receipt, dict) else None
+    chunks = receipt.get("chunks") if isinstance(receipt, dict) else None
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("document_id") != TOOL_CANARY_DOCUMENT_ID
+        or receipt.get("pdf_sha256") != TOOL_CANARY_DOCUMENT_ID
+        or receipt.get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        or receipt.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or receipt.get("model_request_count") != 1
+        or receipt.get("research_only") is not True
+        or receipt.get("production_allowed") is not False
+        or receipt.get("buy_gate_updated") is not False
+        or receipt.get("orders_sent") is not False
+        or not isinstance(continuation, dict)
+        or continuation.get("continuation_id") != TOOL_CANARY_CONTINUATION_ID
+        or continuation.get("plan_sha256") != plan_sha256
+        or continuation.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or continuation.get("model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or not isinstance(chunks, list)
+        or len(chunks) != 1
+        or not isinstance(chunks[0], dict)
+        or chunks[0].get("status") not in {"SUCCEEDED", "SUCCEEDED_REUSED", "SUCCEEDED_REUSED_CONTINUATION_SOURCE"}
+    ):
+        raise DispatcherError("TOOL_CANARY_RECEIPT_BINDING_INVALID")
+
+    report_path = document_root / "report.md"
+    report_raw = _read_regular(report_path, "TOOL_CANARY_REPORT_UNAVAILABLE")
+    if sha256_bytes(report_raw) != EXPECTED_TOOL_CANARY_REPORT_SHA256:
+        raise DispatcherError("TOOL_CANARY_REPORT_SHA_MISMATCH")
+    page_input_path = document_root / "page-input.json"
+    page_input_raw = _read_regular(page_input_path, "TOOL_CANARY_PAGE_INPUT_UNAVAILABLE")
+    if sha256_bytes(page_input_raw) != EXPECTED_TOOL_CANARY_PAGE_INPUT_SHA256:
+        raise DispatcherError("TOOL_CANARY_PAGE_INPUT_SHA_MISMATCH")
+    try:
+        page_input = json.loads(page_input_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("TOOL_CANARY_PAGE_INPUT_INVALID") from None
+    pages = page_input.get("pages") if isinstance(page_input, dict) else None
+    if (
+        not isinstance(page_input, dict)
+        or page_input.get("document_id") != TOOL_CANARY_DOCUMENT_ID
+        or page_input.get("pdf_sha256") != TOOL_CANARY_DOCUMENT_ID
+        or not isinstance(pages, list)
+        or len(pages) != 1
+    ):
+        raise DispatcherError("TOOL_CANARY_PAGE_INPUT_BINDING_INVALID")
+
+    queue_path = TOOL_CANARY_STATE_ROOT / "queue" / "queue-state.json"
+    queue_raw = _read_regular(queue_path, "TOOL_CANARY_QUEUE_UNAVAILABLE")
+    if sha256_bytes(queue_raw) != EXPECTED_TOOL_CANARY_QUEUE_SHA256:
+        raise DispatcherError("TOOL_CANARY_QUEUE_SHA_MISMATCH")
+    try:
+        queue = json.loads(queue_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("TOOL_CANARY_QUEUE_INVALID") from None
+    jobs = queue.get("jobs") if isinstance(queue, dict) else None
+    job = next(iter(jobs.values()), None) if isinstance(jobs, dict) and len(jobs) == 1 else None
+    identity = job.get("identity") if isinstance(job, dict) else None
+    if (
+        not isinstance(queue, dict)
+        or queue.get("schema") != "v4.announcement-engine-queue/v1"
+        or not isinstance(jobs, dict)
+        or len(jobs) != 1
+        or not isinstance(job, dict)
+        or job.get("queue_id") != "v4-pdf-simple-batch"
+        or job.get("model_id") != "qwen3_8_flash_next"
+        or job.get("status") != "SUCCEEDED"
+        or job.get("attempt_count") != 1
+        or job.get("max_attempts") != 1
+        or not isinstance(identity, dict)
+        or not str(identity.get("article_id", "")).startswith(f"{TOOL_CANARY_DOCUMENT_ID}:chunk:000001:")
+    ):
+        raise DispatcherError("TOOL_CANARY_QUEUE_BINDING_INVALID")
+    attempts = job.get("attempts")
+    if not isinstance(attempts, list) or len(attempts) != 1:
+        raise DispatcherError("TOOL_CANARY_QUEUE_ATTEMPT_COUNT_INVALID")
+    return {
+        "continuation_id": TOOL_CANARY_CONTINUATION_ID,
+        "plan_sha256": plan_sha256,
+        "progress_sha256": EXPECTED_TOOL_CANARY_PROGRESS_SHA256,
+        "receipt_sha256": EXPECTED_TOOL_CANARY_RECEIPT_SHA256,
+        "report_sha256": EXPECTED_TOOL_CANARY_REPORT_SHA256,
+        "page_input_sha256": EXPECTED_TOOL_CANARY_PAGE_INPUT_SHA256,
+        "queue_sha256": EXPECTED_TOOL_CANARY_QUEUE_SHA256,
+        "model_settings_sha256": EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256,
+    }
+
+
+def _read_bound_json(
+    path: Path,
+    expected_sha256: str,
+    *,
+    unavailable_code: str,
+    mismatch_code: str,
+    invalid_code: str,
+) -> tuple[bytes, dict[str, Any]]:
+    raw = _read_regular(path, unavailable_code)
+    if sha256_bytes(raw) != expected_sha256:
+        raise DispatcherError(mismatch_code)
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError(invalid_code) from None
+    if not isinstance(value, dict):
+        raise DispatcherError(invalid_code)
+    return raw, value
+
+
+def build_memory_recovery_plan(
+    prior_plan: Mapping[str, Any],
+    prior_plan_raw: bytes,
+    document: Mapping[str, Any],
+    *,
+    model_settings_sha256: str,
+    continuation_id: str | None = None,
+) -> tuple[dict[str, Any], bytes] | None:
+    """Build one generic recovery plan only for a fully evidenced prefill failure."""
+    document_id = document.get("document_id")
+    selected = prior_plan.get("selected_documents")
+    matching_prior_rows = [
+        row for row in selected or []
+        if isinstance(row, dict) and row.get("document_id") == document_id
+    ] if isinstance(selected, list) else []
+    if (
+        not isinstance(document_id, str)
+        or document.get("pdf_sha256") != document_id
+        or not isinstance(selected, list)
+        or len(matching_prior_rows) != 1
+        or matching_prior_rows[0].get("source_sha256") != document_id
+        or matching_prior_rows[0].get("prior_status") != "UNPROCESSED"
+        or "recovery" in matching_prior_rows[0]
+        or prior_plan.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or prior_plan.get("prior_progress_path") != str(batch.DEFAULT_STATE_ROOT / "run-progress.json")
+        or prior_plan.get("prior_progress_sha256") != ORIGINAL_PROGRESS_SHA256
+        or model_settings_sha256 not in batch.CONTINUATION_ALLOWED_SETTINGS_SHA256S
+    ):
+        raise DispatcherError("MEMORY_RECOVERY_INITIAL_PLAN_INVALID")
+    prior_state_root = Path(str(prior_plan.get("state_root", ""))).expanduser().absolute()
+    batches_root = batch.DEFAULT_STATE_ROOT.expanduser().absolute().parent
+    if (
+        prior_state_root.parent != batches_root
+        or not re.fullmatch(r"continuation-[a-z0-9][a-z0-9-]{0,95}", prior_state_root.name)
+        or prior_state_root.is_symlink()
+        or not prior_state_root.is_dir()
+    ):
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_STATE_ROOT_INVALID")
+    plan_sha256 = sha256_bytes(prior_plan_raw)
+    saved_plan_raw = _read_regular(prior_state_root / "continuation-plan.json", "MEMORY_RECOVERY_PRIOR_PLAN_UNAVAILABLE")
+    if saved_plan_raw != prior_plan_raw:
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_PLAN_MISMATCH")
+
+    relative_document_root = Path("documents") / document_id
+    relative_paths = {
+        "continuation-plan.json": Path("continuation-plan.json"),
+        "run-progress.json": Path("run-progress.json"),
+        f"documents/{document_id}/progress.json": relative_document_root / "progress.json",
+        f"documents/{document_id}/receipt.json": relative_document_root / "receipt.json",
+        f"documents/{document_id}/page-input.json": relative_document_root / "page-input.json",
+    }
+    run_raw = _read_regular(prior_state_root / relative_paths["run-progress.json"], "MEMORY_RECOVERY_PRIOR_PROGRESS_UNAVAILABLE")
+    progress_raw = _read_regular(prior_state_root / relative_paths[f"documents/{document_id}/progress.json"], "MEMORY_RECOVERY_PRIOR_DOCUMENT_PROGRESS_UNAVAILABLE")
+    receipt_raw = _read_regular(prior_state_root / relative_paths[f"documents/{document_id}/receipt.json"], "MEMORY_RECOVERY_PRIOR_RECEIPT_UNAVAILABLE")
+    page_input_raw = _read_regular(prior_state_root / relative_paths[f"documents/{document_id}/page-input.json"], "MEMORY_RECOVERY_PRIOR_PAGE_INPUT_UNAVAILABLE")
+    try:
+        run_progress = json.loads(run_raw.decode("utf-8"))
+        progress = json.loads(progress_raw.decode("utf-8"))
+        receipt = json.loads(receipt_raw.decode("utf-8"))
+        page_input = json.loads(page_input_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_ARTIFACT_INVALID") from None
+    if (
+        not isinstance(run_progress, dict)
+        or run_progress.get("status") != "COMPLETED_WITH_PER_DOCUMENT_STATES"
+        or run_progress.get("continuation_id") != prior_plan.get("continuation_id")
+        or run_progress.get("continuation_plan_sha256") != plan_sha256
+        or run_progress.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or run_progress.get("queue_root") != str(prior_state_root / "queue")
+        or not isinstance(run_progress.get("documents"), list)
+        or sum(1 for row in run_progress["documents"] if isinstance(row, dict) and row.get("document_id") == document_id and row.get("status") == "FAILED_NO_RETRY") != 1
+        or not isinstance(progress, dict)
+        or progress.get("document_id") != document_id
+        or progress.get("pdf_sha256") != document_id
+        or progress.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or progress.get("status") != "FAILED_NO_RETRY"
+        or type(progress.get("model_requests")) is not int
+        or progress["model_requests"] < 1
+        or progress.get("page_input_sha256") != sha256_bytes(page_input_raw)
+        or not isinstance(page_input, dict)
+        or page_input.get("document_id") != document_id
+        or page_input.get("pdf_sha256") != document_id
+        or page_input.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or not isinstance(receipt, dict)
+        or receipt.get("schema") != "v4.pdf_research_simple_batch.document_receipt.v1"
+        or receipt.get("document_id") != document_id
+        or receipt.get("pdf_sha256") != document_id
+        or receipt.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or receipt.get("status") != "FAILED_NO_RETRY"
+        or receipt.get("report") is not None
+        or not isinstance(receipt.get("page_input"), dict)
+        or receipt["page_input"].get("sha256") != sha256_bytes(page_input_raw)
+    ):
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_DOCUMENT_BINDING_INVALID")
+
+    failure_rows: list[tuple[str, Mapping[str, Any], Mapping[str, Any]]] = []
+    for collection in ("chunks", "synthesis"):
+        rows = receipt.get(collection, [])
+        if not isinstance(rows, list):
+            raise DispatcherError("MEMORY_RECOVERY_PRIOR_RECEIPT_ROWS_INVALID")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise DispatcherError("MEMORY_RECOVERY_PRIOR_RECEIPT_ROWS_INVALID")
+            queue_item = row.get("queue_item")
+            if row.get("status") == "FAILED_NO_RETRY":
+                if not isinstance(queue_item, dict):
+                    raise DispatcherError("MEMORY_RECOVERY_PRIOR_QUEUE_REFERENCE_INVALID")
+                failure_rows.append((collection, row, queue_item))
+    if len(failure_rows) != 1:
+        return None
+    _, failed_row, queue_item_ref = failure_rows[0]
+    key = queue_item_ref.get("idempotency_key")
+    queue_identity_ref = queue_item_ref.get("identity")
+    article_id = queue_identity_ref.get("article_id") if isinstance(queue_identity_ref, dict) else None
+    if (
+        not isinstance(key, str)
+        or not SHA256_RE.fullmatch(key)
+        or not isinstance(article_id, str)
+        or not article_id.startswith(f"{document_id}:")
+    ):
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_QUEUE_REFERENCE_INVALID")
+    queue_relative = Path("queue") / "queue-state.json"
+    job_relative = Path("queue") / "jobs" / key / "input.json"
+    stream_dir = Path("evidence") / "streams" / key / "attempt-0001"
+    stream_relative = stream_dir / "stream-receipt.json"
+    request_relative = stream_dir / "round-01.request-input.json"
+    raw_relative = stream_dir / "round-01.raw.sse"
+    relative_paths.update(
+        {
+            "queue/queue-state.json": queue_relative,
+            f"queue/jobs/{key}/input.json": job_relative,
+            f"evidence/streams/{key}/attempt-0001/stream-receipt.json": stream_relative,
+            f"evidence/streams/{key}/attempt-0001/round-01.request-input.json": request_relative,
+            f"evidence/streams/{key}/attempt-0001/round-01.raw.sse": raw_relative,
+        }
+    )
+    queue_raw = _read_regular(prior_state_root / queue_relative, "MEMORY_RECOVERY_PRIOR_QUEUE_UNAVAILABLE")
+    job_input_raw = _read_regular(prior_state_root / job_relative, "MEMORY_RECOVERY_PRIOR_JOB_INPUT_UNAVAILABLE")
+    stream_raw = _read_regular(prior_state_root / stream_relative, "MEMORY_RECOVERY_PRIOR_STREAM_RECEIPT_UNAVAILABLE")
+    request_raw = _read_regular(prior_state_root / request_relative, "MEMORY_RECOVERY_PRIOR_REQUEST_INPUT_UNAVAILABLE")
+    response_raw = _read_regular(prior_state_root / raw_relative, "MEMORY_RECOVERY_PRIOR_RESPONSE_UNAVAILABLE")
+    try:
+        queue_state = json.loads(queue_raw.decode("utf-8"))
+        job_input = json.loads(job_input_raw.decode("utf-8"))
+        stream_receipt = json.loads(stream_raw.decode("utf-8"))
+        request_input = json.loads(request_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_QUEUE_ARTIFACT_INVALID") from None
+    jobs = queue_state.get("jobs") if isinstance(queue_state, dict) else None
+    job = jobs.get(key) if isinstance(jobs, dict) else None
+    attempts = job.get("attempts") if isinstance(job, dict) else None
+    rounds = stream_receipt.get("rounds") if isinstance(stream_receipt, dict) else None
+    failure_attempt = attempts[0] if isinstance(attempts, list) and len(attempts) == 1 else None
+    raw_sha256 = sha256_bytes(response_raw)
+    settings_bound = batch._continuation_recovery_request_settings_confirmed(
+        stream_receipt,
+        expected_model_settings_sha256=model_settings_sha256,
+    )
+    if (
+        not isinstance(queue_state, dict)
+        or queue_state.get("schema") != "v4.announcement-engine-queue/v1"
+        or not isinstance(job, dict)
+        or job.get("idempotency_key") != key
+        or job.get("queue_id") != "v4-pdf-simple-batch"
+        or job.get("model_id") != "qwen3_8_flash_next"
+        or job.get("status") != "FAILED"
+        or job.get("attempt_count") != 1
+        or job.get("max_attempts") != 1
+        or job.get("payload_sha256") != sha256_bytes(job_input_raw)
+        or job.get("input_path") != f"jobs/{key}/input.json"
+        or job.get("raw_path") is not None
+        or job.get("raw_sha256") is not None
+        or not isinstance(job.get("identity"), dict)
+        or job["identity"].get("article_id") != article_id
+        or job["identity"].get("model_id") != job_input.get("model_id")
+        or not isinstance(failure_attempt, dict)
+        or failure_attempt.get("number") != 1
+        or failure_attempt.get("status") != "FAILED"
+        or not isinstance(job_input, dict)
+        or job_input.get("article_id") != article_id
+        or job_input.get("source_sha256") != document_id
+        or job_input.get("source_document_id") != document_id
+        or not isinstance(job_input.get("model_binding"), dict)
+        or job_input["model_binding"].get("model_settings_sha256") != model_settings_sha256
+        or job_input["model_binding"].get("runtime_settings_sha256") != batch.EXPECTED_RUNTIME_SHA256
+        or not isinstance(job_input.get("pdf_tool_binding"), dict)
+        or job_input["pdf_tool_binding"].get("page_input_sha256") != sha256_bytes(page_input_raw)
+        or not isinstance(stream_receipt, dict)
+        or stream_receipt.get("status") != "FAILED"
+        or stream_receipt.get("idempotency_key") != key
+        or stream_receipt.get("model_id") != "qwen3_8_flash_next"
+        or stream_receipt.get("model_settings_sha256") != model_settings_sha256
+        or stream_receipt.get("runtime_settings_sha256") != batch.EXPECTED_RUNTIME_SHA256
+        or not isinstance(rounds, list)
+        or len(rounds) != 1
+        or not isinstance(rounds[0], dict)
+        or rounds[0].get("status") != "FAILED"
+        or rounds[0].get("request_input_sha256") != sha256_bytes(request_raw)
+        or rounds[0].get("raw_sse_sha256") != raw_sha256
+        or not batch._continuation_recovery_raw_has_exact_error(response_raw)
+        or not settings_bound
+        or not isinstance(request_input, dict)
+        or request_input.get("model") != "qwen3_8_flash_next"
+        or request_input.get("temperature") != 0.0
+        or request_input.get("stream") is not True
+        or type(request_input.get("max_tokens")) is not int
+        or request_input["max_tokens"] < 1
+        or not isinstance(request_input.get("messages"), list)
+        or not request_input["messages"]
+    ):
+        # A non-prefill model error is deliberately not routed through memory recovery.
+        if batch._continuation_recovery_raw_has_exact_error(response_raw):
+            raise DispatcherError("MEMORY_RECOVERY_PRIOR_EVIDENCE_MISMATCH")
+        return None
+
+    artifact_hashes = {
+        relative: sha256_bytes(_read_regular(prior_state_root / relative_path, "MEMORY_RECOVERY_PRIOR_ARTIFACT_UNAVAILABLE"))
+        for relative, relative_path in relative_paths.items()
+    }
+    if artifact_hashes["queue/jobs/" + key + "/input.json"] != job.get("payload_sha256"):
+        raise DispatcherError("MEMORY_RECOVERY_PRIOR_PAYLOAD_SHA_MISMATCH")
+    continuation_id = continuation_id or f"memory-recovery-{key[:24]}"
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", continuation_id):
+        raise DispatcherError("MEMORY_RECOVERY_CONTINUATION_ID_INVALID")
+    recovery = {
+        "generation": 1,
+        "prior_document_receipt_sha256": artifact_hashes[f"documents/{document_id}/receipt.json"],
+        "prior_queue_idempotency_key": key,
+        "prior_payload_sha256": job["payload_sha256"],
+        "prior_article_id": article_id,
+        "prior_source_sha256": document_id,
+        "prior_raw_sha256": raw_sha256,
+        "prior_state_root": str(prior_state_root),
+        "prior_artifact_sha256": artifact_hashes,
+    }
+    state_root = batches_root / f"recovery-{key}"
+    plan = {
+        "schema": PLAN_SCHEMA,
+        "continuation_id": continuation_id,
+        "source_run_id": batch.CONTINUATION_SOURCE_RUN_ID,
+        "manifest_sha256": EXPECTED_MANIFEST_SHA256,
+        "prior_progress_path": str(batch.DEFAULT_STATE_ROOT / "run-progress.json"),
+        "prior_progress_sha256": ORIGINAL_PROGRESS_SHA256,
+        "prior_progress_status": "STOPPED_GRACEFULLY",
+        "runtime_settings_sha256": batch.EXPECTED_RUNTIME_SHA256,
+        "expected_model_settings_sha256": model_settings_sha256,
+        "observed_model_settings_sha256": model_settings_sha256,
+        "state_root": str(state_root),
+        "selected_documents": [{
+            "document_id": document_id,
+            "prior_status": "FAILED_NO_RETRY",
+            "source_sha256": document_id,
+            "recovery": recovery,
+        }],
+        "one_time_recovery_limit": 1,
+        "excluded_prior_statuses": sorted(batch.CONTINUATION_EXCLUDED_PRIOR_STATUSES),
+        "research_only": {
+            "research_only": True,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        },
+    }
+    return plan, _json_bytes(plan)
+
+
+def _wait_for_recovery_resource_change(
+    failure_sample: Mapping[str, Any],
+    *,
+    baseline_swap_used: int,
+    sampler: Callable[[], Mapping[str, int]],
+    sleep_fn: Callable[[float], Any] = time.sleep,
+    persist: Callable[[Mapping[str, Any]], None] | None = None,
+    timeout_seconds: float = MEMORY_RECOVERY_MAX_WAIT_SECONDS,
+    poll_seconds: float = MEMORY_RECOVERY_POLL_SECONDS,
+) -> dict[str, Any]:
+    before_available = failure_sample.get("available_bytes")
+    before_swap = failure_sample.get("swap_used_bytes")
+    if type(before_available) is not int or type(before_swap) is not int or before_available < 0 or before_swap < 0:
+        return {"status": "RESOURCE_SAMPLE_CANNOT_CONFIRM", "before": dict(failure_sample), "after": None}
+    if timeout_seconds < 0 or poll_seconds <= 0:
+        raise DispatcherError("MEMORY_RECOVERY_WAIT_BOUND_INVALID")
+    stable = 0
+    last: dict[str, Any] | None = None
+    started = time.monotonic()
+    while time.monotonic() - started <= timeout_seconds:
+        sleep_fn(min(poll_seconds, max(0.0, timeout_seconds - (time.monotonic() - started))))
+        try:
+            last = dict(sampler())
+        except Exception:
+            last = None
+        if persist is not None:
+            persist({"phase": "memory_recovery_wait", "before": dict(failure_sample), "sample": last})
+        if last is None or _resource_stop_reason(last, baseline_swap_used):
+            stable = 0
+            continue
+        available_gain = last["available_bytes"] - before_available
+        swap_reduction = before_swap - last["swap_used_bytes"]
+        observed_change = (
+            available_gain >= MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES
+            or swap_reduction >= MEMORY_RECOVERY_SWAP_REDUCTION_BYTES
+        )
+        stable = stable + 1 if observed_change else 0
+        if stable >= MEMORY_RECOVERY_STABLE_SAMPLE_COUNT:
+            return {
+                "status": "RESOURCE_CHANGE_OBSERVED",
+                "before": dict(failure_sample),
+                "after": last,
+                "available_gain_bytes": available_gain,
+                "swap_reduction_bytes": swap_reduction,
+                "stable_samples": stable,
+            }
+    return {"status": "RESOURCE_CHANGE_NOT_OBSERVED_WITHIN_BOUND", "before": dict(failure_sample), "after": last}
+
+
+def _verify_document_output(
+    *,
+    state_root: Path,
+    document_id: str,
+    expected_status: str,
+    expected_progress_sha256: str,
+    expected_receipt_sha256: str,
+    expected_page_input_sha256: str,
+    expected_report_sha256: str | None,
+    expected_model_requests: int | None,
+    label: str,
+) -> dict[str, Any]:
+    document_root = state_root / "documents" / document_id
+    _progress_raw, progress = _read_bound_json(
+        document_root / "progress.json",
+        expected_progress_sha256,
+        unavailable_code=f"{label}_DOCUMENT_PROGRESS_UNAVAILABLE",
+        mismatch_code=f"{label}_DOCUMENT_PROGRESS_SHA_MISMATCH",
+        invalid_code=f"{label}_DOCUMENT_PROGRESS_INVALID",
+    )
+    _receipt_raw, receipt = _read_bound_json(
+        document_root / "receipt.json",
+        expected_receipt_sha256,
+        unavailable_code=f"{label}_DOCUMENT_RECEIPT_UNAVAILABLE",
+        mismatch_code=f"{label}_DOCUMENT_RECEIPT_SHA_MISMATCH",
+        invalid_code=f"{label}_DOCUMENT_RECEIPT_INVALID",
+    )
+    page_input_raw = _read_regular(document_root / "page-input.json", f"{label}_PAGE_INPUT_UNAVAILABLE")
+    if sha256_bytes(page_input_raw) != expected_page_input_sha256:
+        raise DispatcherError(f"{label}_PAGE_INPUT_SHA_MISMATCH")
+    try:
+        page_input = json.loads(page_input_raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError(f"{label}_PAGE_INPUT_INVALID") from None
+    if (
+        not isinstance(page_input, dict)
+        or page_input.get("schema") != "v4.pdf_research_simple_batch.page_input.v1"
+        or page_input.get("document_id") != document_id
+        or page_input.get("pdf_sha256") != document_id
+        or page_input.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or not isinstance(page_input.get("pages"), list)
+        or not page_input["pages"]
+    ):
+        raise DispatcherError(f"{label}_PAGE_INPUT_BINDING_INVALID")
+    requests = progress.get("model_requests")
+    receipt_requests = receipt.get("model_request_count")
+    report_ref = receipt.get("report")
+    if (
+        progress.get("document_id") != document_id
+        or progress.get("pdf_sha256") != document_id
+        or progress.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or progress.get("status") != expected_status
+        or progress.get("page_input_sha256") != expected_page_input_sha256
+        or receipt.get("schema") != "v4.pdf_research_simple_batch.document_receipt.v1"
+        or receipt.get("document_id") != document_id
+        or receipt.get("pdf_sha256") != document_id
+        or receipt.get("manifest_sha256") != EXPECTED_MANIFEST_SHA256
+        or receipt.get("status") != expected_status
+        or receipt.get("page_input", {}).get("sha256") != expected_page_input_sha256
+        or any(
+            receipt.get(key) is not expected
+            for key, expected in (
+                ("research_only", True),
+                ("production_allowed", False),
+                ("buy_gate_updated", False),
+                ("orders_sent", False),
+            )
+        )
+        or (expected_model_requests is not None and requests != expected_model_requests)
+        or (expected_model_requests is not None and receipt_requests != expected_model_requests)
+    ):
+        raise DispatcherError(f"{label}_DOCUMENT_OUTPUT_BINDING_INVALID")
+    if expected_report_sha256 is None:
+        if report_ref is not None or (document_root / "report.md").exists():
+            raise DispatcherError(f"{label}_UNEXPECTED_REPORT_PRESENT")
+        report_sha256 = None
+    else:
+        if not isinstance(report_ref, dict) or report_ref.get("sha256") != expected_report_sha256:
+            raise DispatcherError(f"{label}_REPORT_RECEIPT_BINDING_INVALID")
+        report_raw = _read_regular(document_root / "report.md", f"{label}_REPORT_UNAVAILABLE")
+        report_sha256 = sha256_bytes(report_raw)
+        if report_sha256 != expected_report_sha256 or report_ref.get("bytes") != len(report_raw):
+            raise DispatcherError(f"{label}_REPORT_SHA_MISMATCH")
+    return {
+        "status": expected_status,
+        "progress_sha256": expected_progress_sha256,
+        "receipt_sha256": expected_receipt_sha256,
+        "page_input_sha256": expected_page_input_sha256,
+        "report_sha256": report_sha256,
+        "model_requests": requests,
+    }
+
+
+def _verify_queue_state(
+    *,
+    state_root: Path,
+    expected_sha256: str,
+    expected_job_count: int,
+    expected_status_counts: Mapping[str, int],
+    selected_document_ids: set[str],
+    label: str,
+) -> dict[str, Any]:
+    _raw, queue = _read_bound_json(
+        state_root / "queue" / "queue-state.json",
+        expected_sha256,
+        unavailable_code=f"{label}_QUEUE_UNAVAILABLE",
+        mismatch_code=f"{label}_QUEUE_SHA_MISMATCH",
+        invalid_code=f"{label}_QUEUE_INVALID",
+    )
+    jobs = queue.get("jobs")
+    if (
+        queue.get("schema") != "v4.announcement-engine-queue/v1"
+        or not isinstance(jobs, dict)
+        or len(jobs) != expected_job_count
+    ):
+        raise DispatcherError(f"{label}_QUEUE_BINDING_INVALID")
+    observed_counts: dict[str, int] = {}
+    for key, job in jobs.items():
+        identity = job.get("identity") if isinstance(job, dict) else None
+        article_id = identity.get("article_id") if isinstance(identity, dict) else None
+        if (
+            not isinstance(job, dict)
+            or job.get("idempotency_key") != key
+            or job.get("queue_id") != "v4-pdf-simple-batch"
+            or job.get("model_id") != "qwen3_8_flash_next"
+            or job.get("attempt_count") != 1
+            or job.get("max_attempts") != 1
+            or not isinstance(job.get("attempts"), list)
+            or len(job["attempts"]) != 1
+            or not isinstance(article_id, str)
+            or not any(article_id.startswith(f"{document_id}:") for document_id in selected_document_ids)
+        ):
+            raise DispatcherError(f"{label}_QUEUE_JOB_BINDING_INVALID")
+        status = job.get("status")
+        observed_counts[status] = observed_counts.get(status, 0) + 1
+    if observed_counts != dict(expected_status_counts):
+        raise DispatcherError(f"{label}_QUEUE_STATUS_COUNTS_INVALID")
+    return {"queue_sha256": expected_sha256, "job_count": expected_job_count, "status_counts": observed_counts}
+
+
+def _verify_three_document_canary_completions(
+    manifest_documents: Sequence[Mapping[str, Any]],
+    *,
+    manifest_sha256: str,
+) -> dict[str, Any]:
+    """Fold the three frozen canary documents from their exact receipts into current status."""
+    plan_raw, plan = _read_bound_json(
+        THREE_DOCUMENT_CANARY_PLAN_PATH,
+        THREE_DOCUMENT_CANARY_PLAN_SHA256,
+        unavailable_code="THREE_DOCUMENT_CANARY_PLAN_UNAVAILABLE",
+        mismatch_code="THREE_DOCUMENT_CANARY_PLAN_SHA_MISMATCH",
+        invalid_code="THREE_DOCUMENT_CANARY_PLAN_INVALID",
+    )
+    selected = plan.get("selected_documents")
+    if (
+        plan.get("continuation_id") != THREE_DOCUMENT_CANARY_CONTINUATION_ID
+        or plan.get("manifest_sha256") != manifest_sha256
+        or plan.get("state_root") != str(THREE_DOCUMENT_CANARY_STATE_ROOT)
+        or plan.get("expected_model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or plan.get("observed_model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or not isinstance(selected, list)
+        or [row.get("document_id") for row in selected if isinstance(row, dict)] != list(THREE_DOCUMENT_CANARY_IDS)
+        or any(
+            not isinstance(row, dict)
+            or row.get("prior_status") != "UNPROCESSED"
+            or row.get("source_sha256") != row.get("document_id")
+            for row in selected
+        )
+        or plan.get("research_only") != {
+            "research_only": True,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+    ):
+        raise DispatcherError("THREE_DOCUMENT_CANARY_PLAN_BINDING_INVALID")
+    validated = batch.validate_continuation_plan(
+        THREE_DOCUMENT_CANARY_PLAN_PATH,
+        manifest_sha256=manifest_sha256,
+        documents=manifest_documents,
+    )
+    if validated.get("plan_sha256") != THREE_DOCUMENT_CANARY_PLAN_SHA256:
+        raise DispatcherError("THREE_DOCUMENT_CANARY_PLAN_VALIDATION_MISMATCH")
+    _progress_raw, run_progress = _read_bound_json(
+        THREE_DOCUMENT_CANARY_STATE_ROOT / "run-progress.json",
+        THREE_DOCUMENT_CANARY_PROGRESS_SHA256,
+        unavailable_code="THREE_DOCUMENT_CANARY_PROGRESS_UNAVAILABLE",
+        mismatch_code="THREE_DOCUMENT_CANARY_PROGRESS_SHA_MISMATCH",
+        invalid_code="THREE_DOCUMENT_CANARY_PROGRESS_INVALID",
+    )
+    rows = run_progress.get("documents")
+    if (
+        run_progress.get("status") != "COMPLETED_WITH_PER_DOCUMENT_STATES"
+        or run_progress.get("continuation_id") != THREE_DOCUMENT_CANARY_CONTINUATION_ID
+        or run_progress.get("continuation_plan_sha256") != THREE_DOCUMENT_CANARY_PLAN_SHA256
+        or run_progress.get("manifest_sha256") != manifest_sha256
+        or run_progress.get("model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+        or run_progress.get("research_only") is not True
+        or run_progress.get("production_allowed") is not False
+        or run_progress.get("buy_gate_updated") is not False
+        or run_progress.get("orders_sent") is not False
+        or not isinstance(rows, list)
+        or len(rows) != len(THREE_DOCUMENT_CANARY_IDS)
+    ):
+        raise DispatcherError("THREE_DOCUMENT_CANARY_PROGRESS_BINDING_INVALID")
+    run_statuses = {
+        row.get("document_id"): row.get("status")
+        for row in rows
+        if isinstance(row, dict)
+    }
+    if run_statuses != {document_id: binding["status"] for document_id, binding in THREE_DOCUMENT_ORIGINAL_BINDINGS.items()}:
+        raise DispatcherError("THREE_DOCUMENT_CANARY_DOCUMENT_STATUS_MISMATCH")
+    _verify_queue_state(
+        state_root=THREE_DOCUMENT_CANARY_STATE_ROOT,
+        expected_sha256=THREE_DOCUMENT_CANARY_QUEUE_SHA256,
+        expected_job_count=4,
+        expected_status_counts={"FAILED": 2, "SUCCEEDED": 2},
+        selected_document_ids=set(THREE_DOCUMENT_CANARY_IDS),
+        label="THREE_DOCUMENT_CANARY",
+    )
+
+    outputs: dict[str, Any] = {}
+    for document_id, binding in THREE_DOCUMENT_ORIGINAL_BINDINGS.items():
+        outputs[document_id] = _verify_document_output(
+            state_root=THREE_DOCUMENT_CANARY_STATE_ROOT,
+            document_id=document_id,
+            expected_status=binding["status"],
+            expected_progress_sha256=binding["progress_sha256"],
+            expected_receipt_sha256=binding["receipt_sha256"],
+            expected_page_input_sha256=binding["page_input_sha256"],
+            expected_report_sha256=binding["report_sha256"],
+            expected_model_requests=1 if binding["status"] in SUCCESS_STATUSES else None,
+            label="THREE_DOCUMENT_CANARY",
+        )
+
+    recovery_specs = (
+        {
+            "document_id": THREE_DOCUMENT_CANARY_IDS[1],
+            "plan_path": PPI_RECOVERY_PLAN_PATH,
+            "plan_sha256": PPI_RECOVERY_PLAN_SHA256,
+            "state_root": PPI_RECOVERY_STATE_ROOT,
+            "continuation_id": PPI_RECOVERY_CONTINUATION_ID,
+            "progress_sha256": PPI_RECOVERY_PROGRESS_SHA256,
+            "document_progress_sha256": PPI_RECOVERY_DOCUMENT_PROGRESS_SHA256,
+            "receipt_sha256": PPI_RECOVERY_RECEIPT_SHA256,
+            "page_input_sha256": PPI_RECOVERY_PAGE_INPUT_SHA256,
+            "report_sha256": PPI_RECOVERY_REPORT_SHA256,
+            "queue_sha256": PPI_RECOVERY_QUEUE_SHA256,
+            "model_requests": 2,
+            "queue_job_count": 2,
+        },
+        {
+            "document_id": THREE_DOCUMENT_CANARY_IDS[2],
+            "plan_path": AI_VIDEO_RECOVERY_PLAN_PATH,
+            "plan_sha256": AI_VIDEO_RECOVERY_PLAN_SHA256,
+            "state_root": AI_VIDEO_RECOVERY_STATE_ROOT,
+            "continuation_id": AI_VIDEO_RECOVERY_CONTINUATION_ID,
+            "progress_sha256": AI_VIDEO_RECOVERY_PROGRESS_SHA256,
+            "document_progress_sha256": AI_VIDEO_RECOVERY_DOCUMENT_PROGRESS_SHA256,
+            "receipt_sha256": AI_VIDEO_RECOVERY_RECEIPT_SHA256,
+            "page_input_sha256": AI_VIDEO_RECOVERY_PAGE_INPUT_SHA256,
+            "report_sha256": AI_VIDEO_RECOVERY_REPORT_SHA256,
+            "queue_sha256": AI_VIDEO_RECOVERY_QUEUE_SHA256,
+            "model_requests": 1,
+            "queue_job_count": 1,
+        },
+    )
+    for spec in recovery_specs:
+        _, recovery_plan = _read_bound_json(
+            spec["plan_path"],
+            spec["plan_sha256"],
+            unavailable_code="THREE_DOCUMENT_RECOVERY_PLAN_UNAVAILABLE",
+            mismatch_code="THREE_DOCUMENT_RECOVERY_PLAN_SHA_MISMATCH",
+            invalid_code="THREE_DOCUMENT_RECOVERY_PLAN_INVALID",
+        )
+        recovery_selected = recovery_plan.get("selected_documents")
+        if (
+            recovery_plan.get("continuation_id") != spec["continuation_id"]
+            or recovery_plan.get("state_root") != str(spec["state_root"])
+            or recovery_plan.get("expected_model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+            or recovery_plan.get("observed_model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+            or not isinstance(recovery_selected, list)
+            or len(recovery_selected) != 1
+            or not isinstance(recovery_selected[0], dict)
+            or recovery_selected[0].get("document_id") != spec["document_id"]
+        ):
+            raise DispatcherError("THREE_DOCUMENT_RECOVERY_PLAN_BINDING_INVALID")
+        recovery_validated = batch.validate_continuation_plan(
+            spec["plan_path"],
+            manifest_sha256=manifest_sha256,
+            documents=manifest_documents,
+        )
+        if recovery_validated.get("plan_sha256") != spec["plan_sha256"]:
+            raise DispatcherError("THREE_DOCUMENT_RECOVERY_PLAN_VALIDATION_MISMATCH")
+        _run_raw, recovery_run = _read_bound_json(
+            spec["state_root"] / "run-progress.json",
+            spec["progress_sha256"],
+            unavailable_code="THREE_DOCUMENT_RECOVERY_PROGRESS_UNAVAILABLE",
+            mismatch_code="THREE_DOCUMENT_RECOVERY_PROGRESS_SHA_MISMATCH",
+            invalid_code="THREE_DOCUMENT_RECOVERY_PROGRESS_INVALID",
+        )
+        if (
+            recovery_run.get("status") != "COMPLETED_WITH_PER_DOCUMENT_STATES"
+            or recovery_run.get("continuation_id") != spec["continuation_id"]
+            or recovery_run.get("continuation_plan_sha256") != spec["plan_sha256"]
+            or recovery_run.get("manifest_sha256") != manifest_sha256
+            or recovery_run.get("model_settings_sha256") != EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256
+            or not isinstance(recovery_run.get("documents"), list)
+            or len(recovery_run["documents"]) != 1
+            or not isinstance(recovery_run["documents"][0], dict)
+            or recovery_run["documents"][0].get("document_id") != spec["document_id"]
+            or recovery_run["documents"][0].get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        ):
+            raise DispatcherError("THREE_DOCUMENT_RECOVERY_PROGRESS_BINDING_INVALID")
+        outputs[spec["document_id"]] = _verify_document_output(
+            state_root=spec["state_root"],
+            document_id=spec["document_id"],
+            expected_status="MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
+            expected_progress_sha256=spec["document_progress_sha256"],
+            expected_receipt_sha256=spec["receipt_sha256"],
+            expected_page_input_sha256=spec["page_input_sha256"],
+            expected_report_sha256=spec["report_sha256"],
+            expected_model_requests=spec["model_requests"],
+            label="THREE_DOCUMENT_RECOVERY",
+        )
+        _verify_queue_state(
+            state_root=spec["state_root"],
+            expected_sha256=spec["queue_sha256"],
+            expected_job_count=spec["queue_job_count"],
+            expected_status_counts={"SUCCEEDED": spec["queue_job_count"]},
+            selected_document_ids={spec["document_id"]},
+            label="THREE_DOCUMENT_RECOVERY",
+        )
+
+    return {
+        "continuation_id": THREE_DOCUMENT_CANARY_CONTINUATION_ID,
+        "plan_sha256": sha256_bytes(plan_raw),
+        "progress_sha256": THREE_DOCUMENT_CANARY_PROGRESS_SHA256,
+        "queue_sha256": THREE_DOCUMENT_CANARY_QUEUE_SHA256,
+        "documents": outputs,
+        "recovery_plans": {
+            PPI_RECOVERY_CONTINUATION_ID: PPI_RECOVERY_PLAN_SHA256,
+            AI_VIDEO_RECOVERY_CONTINUATION_ID: AI_VIDEO_RECOVERY_PLAN_SHA256,
+        },
+    }
+
+
+def load_current_completion_statuses(
+    manifest_documents: Sequence[Mapping[str, Any]],
+    *,
+    manifest_sha256: str,
+) -> tuple[dict[str, str], dict[str, Any]]:
+    """Load frozen inventory states and fold in receipt-bound canary results."""
+    raw = _read_regular(REMAINING_INVENTORY_PATH, "REMAINING_INVENTORY_UNAVAILABLE")
+    if sha256_bytes(raw) != EXPECTED_REMAINING_INVENTORY_SHA256:
+        raise DispatcherError("REMAINING_INVENTORY_SHA_MISMATCH")
+    try:
+        inventory = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise DispatcherError("REMAINING_INVENTORY_INVALID") from None
+    if not isinstance(inventory, dict) or inventory.get("schema") != "v4.pdf_tool_enabled_completion.remaining_core_inventory.v1":
+        raise DispatcherError("REMAINING_INVENTORY_SCHEMA_INVALID")
+    frozen = inventory.get("frozen_cohort")
+    summary = inventory.get("summary")
+    completed_rows = inventory.get("completed")
+    outstanding_rows = inventory.get("outstanding")
+    if (
+        not isinstance(frozen, dict)
+        or frozen.get("manifest_sha256") != manifest_sha256
+        or manifest_sha256 != EXPECTED_MANIFEST_SHA256
+        or frozen.get("document_count") != FROZEN_COHORT_DOCUMENT_COUNT
+        or not isinstance(summary, dict)
+        or summary.get("completed_count") != PRESERVED_COMPLETED_DOCUMENT_COUNT
+        or summary.get("outstanding_count") != PRE_CANARY_OUTSTANDING_DOCUMENT_COUNT
+        or summary.get("unique_document_count") != FROZEN_COHORT_DOCUMENT_COUNT
+        or not isinstance(completed_rows, list)
+        or len(completed_rows) != PRESERVED_COMPLETED_DOCUMENT_COUNT
+        or not isinstance(outstanding_rows, list)
+        or len(outstanding_rows) != PRE_CANARY_OUTSTANDING_DOCUMENT_COUNT
+        or len(manifest_documents) != FROZEN_COHORT_DOCUMENT_COUNT
+    ):
+        raise DispatcherError("REMAINING_INVENTORY_BINDING_INVALID")
+    manifest_by_id = {
+        str(document.get("document_id")): document
+        for document in manifest_documents
+        if isinstance(document, Mapping)
+    }
+    if len(manifest_by_id) != FROZEN_COHORT_DOCUMENT_COUNT:
+        raise DispatcherError("MANIFEST_DOCUMENT_IDS_INVALID")
+    statuses: dict[str, str] = {}
+    for bucket, allowed_statuses, rows in (
+        ("completed", COMPLETED_INVENTORY_STATUSES, completed_rows),
+        ("outstanding", OUTSTANDING_INVENTORY_STATUSES, outstanding_rows),
+    ):
+        for row in rows:
+            if not isinstance(row, dict):
+                raise DispatcherError("REMAINING_INVENTORY_ROW_INVALID")
+            document_id = row.get("document_id")
+            status = row.get("actual_prior_status")
+            document = manifest_by_id.get(str(document_id))
+            if (
+                not isinstance(document_id, str)
+                or not SHA256_RE.fullmatch(document_id)
+                or document_id in statuses
+                or status not in allowed_statuses
+                or document is None
+                or document.get("pdf_sha256") != document_id
+            ):
+                raise DispatcherError(f"REMAINING_INVENTORY_{bucket.upper()}_ROW_INVALID")
+            statuses[document_id] = status
+    if set(statuses) != set(manifest_by_id):
+        raise DispatcherError("REMAINING_INVENTORY_PARTITION_MISMATCH")
+
+    # Keep the immutable inventory view separate from the live reconciled
+    # statuses below. Exact receipts may legitimately advance a document that
+    # was failed or unprocessed in the frozen inventory; the source history
+    # check must compare against that historical view, not the receipt-updated
+    # execution view.
+    frozen_inventory_statuses = dict(statuses)
+
+    if statuses.get(QUARANTINE_DOCUMENT_ID) != "UNPROCESSED":
+        raise DispatcherError("QUARANTINE_STATUS_BINDING_MISMATCH")
+    if statuses.get(TOOL_CANARY_DOCUMENT_ID) != "FAILED_NO_RETRY":
+        raise DispatcherError("TOOL_CANARY_PRIOR_STATUS_MISMATCH")
+
+    terminal_receipts: dict[str, dict[str, Any]] = {}
+    for document_id, (path, expected_sha256) in TERMINAL_RECEIPT_BINDINGS.items():
+        row = next((item for item in completed_rows if item.get("document_id") == document_id), None)
+        if (
+            not isinstance(row, dict)
+            or row.get("actual_prior_status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+            or row.get("status_source") != "remaining2056_stop_terminal_receipt"
+            or row.get("receipt_path") is not None
+        ):
+            raise DispatcherError("TERMINAL_COMPLETION_INVENTORY_BINDING_INVALID")
+        terminal_receipts[document_id] = _verify_terminal_receipt(document_id, path, expected_sha256)
+    referenced_terminal_ids = {
+        row.get("document_id")
+        for row in completed_rows
+        if isinstance(row, dict) and row.get("status_source") == "remaining2056_stop_terminal_receipt"
+    }
+    if referenced_terminal_ids != set(TERMINAL_RECEIPT_BINDINGS):
+        raise DispatcherError("TERMINAL_COMPLETION_RECEIPT_SET_MISMATCH")
+
+    canary_receipt = _verify_current_tool_canary_completion()
+    statuses[TOOL_CANARY_DOCUMENT_ID] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    three_document_canary = _verify_three_document_canary_completions(
+        manifest_documents,
+        manifest_sha256=manifest_sha256,
+    )
+    for document_id, binding in THREE_DOCUMENT_ORIGINAL_BINDINGS.items():
+        if statuses.get(document_id) != "UNPROCESSED":
+            raise DispatcherError("THREE_DOCUMENT_CANARY_PRIOR_STATUS_MISMATCH")
+        statuses[document_id] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    completed_count = sum(status in COMPLETED_INVENTORY_STATUSES for status in statuses.values())
+    outstanding_count = len(statuses) - completed_count
+    outstanding_status_counts: dict[str, int] = {}
+    for status in statuses.values():
+        if status not in COMPLETED_INVENTORY_STATUSES:
+            outstanding_status_counts[status] = outstanding_status_counts.get(status, 0) + 1
+    unprocessed_count = outstanding_status_counts.get("UNPROCESSED", 0)
+    if (
+        completed_count != CURRENT_COMPLETED_DOCUMENT_COUNT
+        or outstanding_count != CURRENT_OUTSTANDING_DOCUMENT_COUNT
+        or outstanding_status_counts.get("FAILED_DOCUMENT_ISOLATED") != 2
+        or outstanding_status_counts.get("FAILED_NO_RETRY") != 59
+        or outstanding_status_counts.get("SOURCE_REPAIR_FAILED_NO_MODEL") != 7
+        or unprocessed_count != 2051
+        or unprocessed_count - 1 != REMAINING_UNPROCESSED_RUNNABLE_COUNT
+        or outstanding_count - 1 != REMAINING_NONQUARANTINED_DOCUMENT_COUNT
+    ):
+        raise DispatcherError("CURRENT_COMPLETION_COUNTS_MISMATCH")
+    return statuses, {
+        "inventory_sha256": EXPECTED_REMAINING_INVENTORY_SHA256,
+        "frozen_inventory_statuses": frozen_inventory_statuses,
+        "completed_count": completed_count,
+        "outstanding_count": outstanding_count,
+        "outstanding_status_counts": outstanding_status_counts,
+        "runnable_unprocessed_count": unprocessed_count - 1,
+        "quarantine_document_id": QUARANTINE_DOCUMENT_ID,
+        "terminal_receipts": terminal_receipts,
+        "current_tool_canary": canary_receipt,
+        "three_document_canary": three_document_canary,
+    }
+
+
 def select_next_document(
     documents: Sequence[Mapping[str, Any]],
-    original_rows: Mapping[str, Mapping[str, Any]],
+    status_by_id: Mapping[str, str],
     pilot_ids: set[str],
     dispatched_ids: set[str],
 ) -> tuple[dict[str, Any] | None, int]:
-    if len(documents) != 2209 or len(original_rows) != 142 or len(pilot_ids) != PILOT_DOCUMENT_COUNT:
+    if (
+        len(documents) != FROZEN_COHORT_DOCUMENT_COUNT
+        or len(status_by_id) != FROZEN_COHORT_DOCUMENT_COUNT
+        or len(pilot_ids) not in {0, PILOT_DOCUMENT_COUNT}
+    ):
         raise DispatcherError("COHORT_INPUT_COUNTS_INVALID")
-    quarantine = str(documents[QUARANTINE_POSITION_1_BASED - 1].get("document_id", ""))
-    if quarantine != QUARANTINE_DOCUMENT_ID:
+    document_ids = [str(row.get("document_id", "")) for row in documents]
+    if len(set(document_ids)) != FROZEN_COHORT_DOCUMENT_COUNT or set(document_ids) != set(status_by_id):
+        raise DispatcherError("COHORT_STATUS_PARTITION_INVALID")
+    if QUARANTINE_DOCUMENT_ID not in set(document_ids):
         raise DispatcherError("QUARANTINE_POSITION_BINDING_MISMATCH")
-    excluded = set(original_rows) | set(pilot_ids) | set(dispatched_ids) | {quarantine}
-    eligible = [row for row in documents if str(row.get("document_id")) not in excluded]
+    if any(status_by_id.get(document_id) not in COMPLETED_INVENTORY_STATUSES for document_id in pilot_ids):
+        raise DispatcherError("PILOT_COMPLETION_STATUS_MISMATCH")
+    excluded = set(pilot_ids) | set(dispatched_ids) | {QUARANTINE_DOCUMENT_ID}
+    eligible: list[Mapping[str, Any]] = []
+    for row in documents:
+        document_id = str(row.get("document_id", ""))
+        status = status_by_id[document_id]
+        if status not in COMPLETED_INVENTORY_STATUSES | OUTSTANDING_INVENTORY_STATUSES:
+            raise DispatcherError("COHORT_STATUS_UNKNOWN")
+        if document_id in excluded or status in COMPLETED_INVENTORY_STATUSES:
+            continue
+        # Failure statuses remain visible in the frozen inventory, but the
+        # runner accepts only UNPROCESSED or a separately proven recovery plan.
+        if status == "UNPROCESSED":
+            eligible.append(row)
     if not eligible:
         return None, 0
     return dict(eligible[0]), len(eligible)
+
+
+def validate_unprocessed_selection(
+    document_ids: Sequence[str],
+    documents: Sequence[Mapping[str, Any]],
+    status_by_id: Mapping[str, str],
+    *,
+    expected_count: int,
+) -> list[dict[str, Any]]:
+    if type(expected_count) is not int or len(document_ids) != expected_count:
+        raise DispatcherError("FROZEN_SELECTION_COUNT_INVALID")
+    if len(set(document_ids)) != len(document_ids):
+        raise DispatcherError("FROZEN_SELECTION_DUPLICATE_DOCUMENT")
+    manifest_by_id = {str(row.get("document_id")): row for row in documents}
+    if len(manifest_by_id) != len(documents):
+        raise DispatcherError("MANIFEST_DOCUMENT_IDS_INVALID")
+    selected: list[dict[str, Any]] = []
+    for document_id in document_ids:
+        row = manifest_by_id.get(document_id)
+        if (
+            not SHA256_RE.fullmatch(document_id)
+            or row is None
+            or row.get("pdf_sha256") != document_id
+            or status_by_id.get(document_id) != "UNPROCESSED"
+            or document_id in {QUARANTINE_DOCUMENT_ID, TOOL_CANARY_DOCUMENT_ID}
+        ):
+            raise DispatcherError("FROZEN_SELECTION_DOCUMENT_NOT_RUNNABLE")
+        selected.append(dict(row))
+    return selected
 
 
 def build_singleton_plan(
@@ -526,13 +1690,44 @@ def build_singleton_plan(
     model_settings_sha256: str,
     continuation_id: str | None = None,
 ) -> tuple[dict[str, Any], bytes]:
+    return build_unprocessed_continuation_plan(
+        [document],
+        manifest_sha256=manifest_sha256,
+        prior_progress_sha256=prior_progress_sha256,
+        model_settings_sha256=model_settings_sha256,
+        continuation_id=continuation_id,
+    )
+
+
+def build_unprocessed_continuation_plan(
+    documents: Sequence[Mapping[str, Any]],
+    *,
+    manifest_sha256: str,
+    prior_progress_sha256: str,
+    model_settings_sha256: str,
+    continuation_id: str | None = None,
+) -> tuple[dict[str, Any], bytes]:
     continuation_id = continuation_id or f"resume-{uuid.uuid4().hex}"
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", continuation_id):
         raise DispatcherError("CONTINUATION_ID_INVALID")
-    document_id = document.get("document_id")
-    source_sha = document.get("pdf_sha256")
-    if not isinstance(document_id, str) or document_id != source_sha or not SHA256_RE.fullmatch(document_id):
-        raise DispatcherError("MANIFEST_DOCUMENT_ID_INVALID")
+    if not 1 <= len(documents) <= batch.CONTINUATION_MAX_DOCUMENTS:
+        raise DispatcherError("CONTINUATION_SELECTION_COUNT_INVALID")
+    selected_documents: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for document in documents:
+        document_id = document.get("document_id")
+        source_sha = document.get("pdf_sha256")
+        if (
+            not isinstance(document_id, str)
+            or document_id in seen
+            or document_id != source_sha
+            or not SHA256_RE.fullmatch(document_id)
+        ):
+            raise DispatcherError("MANIFEST_DOCUMENT_ID_INVALID")
+        seen.add(document_id)
+        selected_documents.append(
+            {"document_id": document_id, "prior_status": "UNPROCESSED", "source_sha256": source_sha}
+        )
     if manifest_sha256 != EXPECTED_MANIFEST_SHA256 or prior_progress_sha256 != ORIGINAL_PROGRESS_SHA256:
         raise DispatcherError("PLAN_SOURCE_BINDING_MISMATCH")
     if model_settings_sha256 not in batch.CONTINUATION_ALLOWED_SETTINGS_SHA256S:
@@ -550,9 +1745,7 @@ def build_singleton_plan(
         "expected_model_settings_sha256": model_settings_sha256,
         "observed_model_settings_sha256": model_settings_sha256,
         "state_root": str(state_root),
-        "selected_documents": [
-            {"document_id": document_id, "prior_status": "UNPROCESSED", "source_sha256": source_sha}
-        ],
+        "selected_documents": selected_documents,
         "one_time_recovery_limit": 1,
         "excluded_prior_statuses": sorted(batch.CONTINUATION_EXCLUDED_PRIOR_STATUSES),
         "research_only": {
@@ -894,6 +2087,7 @@ def _run_execution_child(
     reason = _resource_stop_reason(initial, baseline_swap_used)
     if reason:
         return {"returncode": None, "resource_stop_reason": reason, "child_started": False, "stdout_sha256": None}
+    last_resource_sample = initial
 
     proc = popen(
         _make_command(plan_path, execute=True),
@@ -912,6 +2106,7 @@ def _run_execution_child(
         sleep_fn(RESOURCE_SAMPLE_INTERVAL_SECONDS)
         try:
             sample = dict(sampler())
+            last_resource_sample = sample
             _persist_sample(samples_path, {"phase": "running", **sample})
             detected = _resource_stop_reason(sample, baseline_swap_used)
         except Exception:
@@ -946,6 +2141,7 @@ def _run_execution_child(
         "child_started": True,
         "stdout_sha256": sha256_bytes(stdout_raw),
         "stderr_sha256": sha256_bytes(stderr_raw),
+        "last_resource_sample": last_resource_sample,
     }
 
 
@@ -1081,6 +2277,7 @@ def execute_once(
     evidence_root: Path = EVIDENCE_ROOT,
     max_documents: int | None = None,
     sampler: Callable[[], Mapping[str, int]] = sample_resource_metrics,
+    sleep_fn: Callable[[float], Any] = time.sleep,
     plan_only: Callable[[Path], None] | None = None,
     child_runner: Callable[..., Mapping[str, Any]] | None = None,
     continuation_id_factory: Callable[[], str] | None = None,
@@ -1093,9 +2290,20 @@ def execute_once(
         raise DispatcherError("DISPATCH_LIMIT_INVALID")
     limit = min(max_documents or auth["max_documents"], auth["max_documents"])
     manifest_sha, documents, original_rows = _load_original_r3(manifest_path)
+    status_by_id, inventory_summary = load_current_completion_statuses(
+        documents,
+        manifest_sha256=manifest_sha,
+    )
+    frozen_inventory_statuses = inventory_summary.get("frozen_inventory_statuses")
+    if (
+        not isinstance(frozen_inventory_statuses, Mapping)
+        or any(frozen_inventory_statuses.get(document_id) != row.get("status") for document_id, row in original_rows.items())
+    ):
+        raise DispatcherError("ORIGINAL_PROGRESS_INVENTORY_STATUS_MISMATCH")
     context = {
         **auth_context,
         "manifest_sha256": manifest_sha,
+        "inventory_summary": inventory_summary,
         "static": static,
     }
     journal = DurableJournal(evidence_root)
@@ -1111,7 +2319,7 @@ def execute_once(
         if not latest:
             _first, initial_count = select_next_document(
                 documents,
-                original_rows,
+                status_by_id,
                 auth_context["pilot_document_ids"],
                 set(),
             )
@@ -1153,7 +2361,7 @@ def execute_once(
                 dispatched_ids = set(latest)
                 document, remaining = select_next_document(
                     documents,
-                    original_rows,
+                    status_by_id,
                     auth_context["pilot_document_ids"],
                     dispatched_ids,
                 )
@@ -1180,6 +2388,8 @@ def execute_once(
                     "plan_bytes_b64": base64.b64encode(plan_raw).decode("ascii"),
                     "state_root": plan["state_root"],
                     "remaining_eligible_at_selection": remaining,
+                    "inventory_sha256": inventory_summary["inventory_sha256"],
+                    "outstanding_count": inventory_summary["outstanding_count"],
                 })
                 if plan_only is None:
                     _run_plan_only(plan_path, expected_sha256=plan_sha)
@@ -1218,6 +2428,7 @@ def execute_once(
                     baseline_swap_used=baseline_swap,
                     samples_path=samples_path,
                     sampler=sampler,
+                    sleep_fn=sleep_fn,
                 )
             )
             if child.get("child_started") is False:
@@ -1263,6 +2474,41 @@ def execute_once(
                     "stdout_sha256": child.get("stdout_sha256"),
                     "stderr_sha256": child.get("stderr_sha256"),
                 }
+            selected_entry = plan["selected_documents"][0]
+            is_memory_recovery = isinstance(selected_entry, dict) and isinstance(selected_entry.get("recovery"), dict)
+            recovery_candidate: tuple[dict[str, Any], bytes] | None = None
+            recovery_error: str | None = None
+            if (
+                not is_memory_recovery
+                and reconciliation.get("status") == "FAILED_NO_RETRY"
+                and reconciliation.get("decision") == "HALT"
+                and child.get("returncode") == 0
+                and child.get("resource_stop_reason") is None
+            ):
+                try:
+                    recovery_candidate = build_memory_recovery_plan(
+                        plan,
+                        plan_raw,
+                        next(row for row in documents if row.get("document_id") == document_id),
+                        model_settings_sha256=auth["model_settings_sha256"],
+                    )
+                except DispatcherError as exc:
+                    recovery_error = getattr(exc, "code", None) or str(exc)
+            if (
+                is_memory_recovery
+                and reconciliation.get("status") == "FAILED_NO_RETRY"
+                and child.get("returncode") == 0
+                and child.get("resource_stop_reason") is None
+            ):
+                # The recovery limit is one. A second failed report is terminal
+                # for this document, but it must not stop unrelated documents.
+                reconciliation["decision"] = "CONTINUE"
+                reconciliation["memory_recovery_status"] = "SINGLE_RECOVERY_FAILED_ISOLATED"
+            elif recovery_candidate is not None:
+                reconciliation["decision"] = "CONTINUE"
+                reconciliation["memory_recovery_status"] = "WAITING_FOR_RESOURCE_CHANGE"
+            elif recovery_error is not None:
+                reconciliation["memory_recovery_status"] = f"EVIDENCE_REJECTED:{recovery_error[:72]}"
             journal.append({
                 "event": "reconciled",
                 "continuation_id": plan["continuation_id"],
@@ -1273,6 +2519,66 @@ def execute_once(
                 **reconciliation,
             })
             latest[document_id] = dict(journal.events[-1])
+            if recovery_candidate is not None:
+                recovery_plan, recovery_raw = recovery_candidate
+                wait_result = _wait_for_recovery_resource_change(
+                    child.get("last_resource_sample") if isinstance(child.get("last_resource_sample"), Mapping) else {},
+                    baseline_swap_used=baseline_swap,
+                    sampler=sampler,
+                    sleep_fn=sleep_fn,
+                    persist=lambda row: _persist_sample(samples_path, row),
+                )
+                candidate_entry = recovery_plan["selected_documents"][0]
+                recovery_binding = candidate_entry.get("recovery") if isinstance(candidate_entry, dict) else None
+                journal.append({
+                    "event": "memory_recovery_wait",
+                    "document_id": document_id,
+                    "status": wait_result.get("status"),
+                    "decision": "CONTINUE",
+                    "prior_plan_sha256": plan_sha,
+                    "prior_state_root": plan.get("state_root"),
+                    "prior_queue_idempotency_key": recovery_binding.get("prior_queue_idempotency_key") if isinstance(recovery_binding, dict) else None,
+                    "before": wait_result.get("before"),
+                    "after": wait_result.get("after"),
+                    "available_gain_bytes": wait_result.get("available_gain_bytes"),
+                    "swap_reduction_bytes": wait_result.get("swap_reduction_bytes"),
+                    "stable_samples": wait_result.get("stable_samples"),
+                })
+                latest[document_id] = dict(journal.events[-1])
+                if wait_result.get("status") == "RESOURCE_CHANGE_OBSERVED":
+                    recovery_path = evidence_root / "plans" / f"{recovery_plan['continuation_id']}.json"
+                    recovery_sha = _write_immutable(recovery_path, recovery_raw)
+                    try:
+                        validated_recovery = batch.validate_continuation_plan(
+                            recovery_path,
+                            manifest_sha256=manifest_sha,
+                            documents=documents,
+                        )
+                    except Exception as exc:
+                        code = getattr(exc, "code", None) or type(exc).__name__
+                        journal.append({"event": "halt", "reason": f"MEMORY_RECOVERY_PLAN_REJECTED:{str(code)[:64]}", "document_id": document_id})
+                        break
+                    if validated_recovery.get("plan_sha256") != recovery_sha:
+                        journal.append({"event": "halt", "reason": "MEMORY_RECOVERY_PLAN_SHA_MISMATCH", "document_id": document_id})
+                        break
+                    journal.append({
+                        "event": "plan_created",
+                        "document_id": document_id,
+                        "continuation_id": recovery_plan["continuation_id"],
+                        "plan_path": str(recovery_path),
+                        "plan_sha256": recovery_sha,
+                        "plan_bytes_b64": base64.b64encode(recovery_raw).decode("ascii"),
+                        "state_root": recovery_plan["state_root"],
+                        "inventory_sha256": inventory_summary["inventory_sha256"],
+                        "outstanding_count": inventory_summary["outstanding_count"],
+                        "recovery_generation": 1,
+                        "recovery_of_plan_sha256": plan_sha,
+                    })
+                    latest[document_id] = dict(journal.events[-1])
+                    pending = (recovery_plan, recovery_path, recovery_raw)
+                    continue
+                completed_this_call += 1
+                continue
             completed_this_call += 1
             if reconciliation["decision"] == "HALT":
                 journal.append({"event": "halt", "reason": reconciliation["status"], "document_id": document_id})
@@ -1296,26 +2602,116 @@ def execute_once(
 
 
 def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]]) -> None:
-    created: set[str] = set()
     continuation_ids: set[str] = set()
     state_roots: set[str] = set()
-    for event in events:
+    original_plans: dict[str, tuple[int, str, str, Mapping[str, Any]]] = {}
+    recovery_counts: dict[str, int] = {}
+    for event_index, event in enumerate(events):
         if event.get("event") == "plan_created":
             document_id = event.get("document_id")
             continuation_id = event.get("continuation_id")
             state_root = event.get("state_root")
+            encoded_plan = event.get("plan_bytes_b64")
+            if not isinstance(encoded_plan, str):
+                raise DispatcherError("PLAN_CREATED_BYTES_MISSING")
+            try:
+                plan_raw = base64.b64decode(encoded_plan, validate=True)
+                plan = json.loads(plan_raw.decode("utf-8"))
+            except (ValueError, base64.binascii.Error, UnicodeError, json.JSONDecodeError):
+                raise DispatcherError("PLAN_CREATED_BYTES_INVALID") from None
+            selected = plan.get("selected_documents") if isinstance(plan, dict) else None
+            selection = selected[0] if isinstance(selected, list) and len(selected) == 1 else None
             if (
                 not isinstance(document_id, str)
-                or document_id in created
                 or not isinstance(continuation_id, str)
                 or continuation_id in continuation_ids
                 or not isinstance(state_root, str)
                 or state_root in state_roots
+                or not isinstance(plan, dict)
+                or plan.get("continuation_id") != continuation_id
+                or plan.get("state_root") != state_root
+                or event.get("plan_sha256") != sha256_bytes(plan_raw)
+                or not isinstance(selection, dict)
+                or selection.get("document_id") != document_id
             ):
                 raise DispatcherError("CROSS_PLAN_DUPLICATE_DOCUMENT")
-            created.add(document_id)
+            previous = original_plans.get(document_id)
+            if previous is None:
+                if selection.get("prior_status") != "UNPROCESSED" or "recovery" in selection:
+                    raise DispatcherError("CROSS_PLAN_UNEXPECTED_RECOVERY")
+                original_plans[document_id] = (event_index, continuation_id, state_root, plan)
+            else:
+                previous_index, previous_continuation_id, previous_state_root, previous_plan = previous
+                previous_plan_sha = sha256_bytes(_json_bytes(previous_plan))
+                recovery = selection.get("recovery")
+                interim = events[previous_index + 1:event_index]
+                failure_events = [
+                    (idx, prior_event)
+                    for idx, prior_event in enumerate(interim, start=previous_index + 1)
+                    if prior_event.get("event") == "reconciled"
+                    and prior_event.get("document_id") == document_id
+                    and prior_event.get("continuation_id") == previous_continuation_id
+                    and prior_event.get("plan_sha256") == previous_plan_sha
+                    and prior_event.get("status") == "FAILED_NO_RETRY"
+                    and prior_event.get("decision") == "CONTINUE"
+                    and prior_event.get("memory_recovery_status") == "WAITING_FOR_RESOURCE_CHANGE"
+                ]
+                resource_events = []
+                if len(failure_events) == 1:
+                    failure_index, _failure_event = failure_events[0]
+                    resource_events = [
+                        prior_event
+                        for prior_event in interim[failure_index - previous_index:]
+                        if prior_event.get("event") == "memory_recovery_wait"
+                        and prior_event.get("document_id") == document_id
+                        and prior_event.get("prior_plan_sha256") == previous_plan_sha
+                        and prior_event.get("prior_state_root") == previous_state_root
+                        and prior_event.get("prior_queue_idempotency_key") == recovery.get("prior_queue_idempotency_key")
+                        and prior_event.get("status") == "RESOURCE_CHANGE_OBSERVED"
+                    ] if isinstance(recovery, dict) else []
+                observed_resource_change = len(resource_events) == 1 and _resource_change_event_is_bound(resource_events[0])
+                if (
+                    recovery_counts.get(document_id, 0) != 0
+                    or not isinstance(recovery, dict)
+                    or recovery.get("generation") != 1
+                    or recovery.get("prior_state_root") != previous_state_root
+                    or not isinstance(recovery.get("prior_queue_idempotency_key"), str)
+                    or not SHA256_RE.fullmatch(recovery["prior_queue_idempotency_key"])
+                    or not isinstance(recovery.get("prior_artifact_sha256"), dict)
+                    or selection.get("prior_status") != "FAILED_NO_RETRY"
+                    or event.get("recovery_of_plan_sha256") != previous_plan_sha
+                    or not observed_resource_change
+                ):
+                    raise DispatcherError("CROSS_PLAN_DUPLICATE_DOCUMENT")
+                recovery_counts[document_id] = 1
             continuation_ids.add(continuation_id)
             state_roots.add(state_root)
+
+
+def _resource_change_event_is_bound(event: Mapping[str, Any]) -> bool:
+    before = event.get("before")
+    after = event.get("after")
+    if (
+        not isinstance(before, Mapping)
+        or not isinstance(after, Mapping)
+        or type(before.get("available_bytes")) is not int
+        or type(before.get("swap_used_bytes")) is not int
+        or type(after.get("available_bytes")) is not int
+        or type(after.get("swap_used_bytes")) is not int
+        or type(event.get("stable_samples")) is not int
+        or event.get("stable_samples") != MEMORY_RECOVERY_STABLE_SAMPLE_COUNT
+    ):
+        return False
+    available_gain = after["available_bytes"] - before["available_bytes"]
+    swap_reduction = before["swap_used_bytes"] - after["swap_used_bytes"]
+    return (
+        event.get("available_gain_bytes") == available_gain
+        and event.get("swap_reduction_bytes") == swap_reduction
+        and (
+            available_gain >= MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES
+            or swap_reduction >= MEMORY_RECOVERY_SWAP_REDUCTION_BYTES
+        )
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:

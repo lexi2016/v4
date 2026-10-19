@@ -110,6 +110,93 @@ def test_request_uses_actual_structured_schema_and_never_advertises_tools(tmp_pa
     assert request.headers["authorization"] == "Bearer test-only-key"
 
 
+def test_pdf_context_runs_model_selected_local_action_loop(tmp_path, monkeypatch) -> None:
+    schema = {
+        "type": "object",
+        "properties": {"analysis_markdown": {"type": "string"}},
+        "required": ["analysis_markdown"],
+        "additionalProperties": False,
+    }
+    binding = _binding(tmp_path, schema)
+    evidence_root = Path(binding["evidence_root"])
+    monkeypatch.setattr(local_model, "PDF_EVIDENCE_ROOT", evidence_root)
+    monkeypatch.setattr(local_model, "build_request_material", lambda _schema: dict(binding))
+    fake_modules = SimpleNamespace(runner=SimpleNamespace(), canary=SimpleNamespace())
+    monkeypatch.setattr(local_model, "load_shared_modules", lambda: fake_modules)
+    context = {
+        "page_input_sha256": "d" * 64,
+        "pages": [
+            {
+                "page_number": 1,
+                "page_total": 1,
+                "text": "Acme delivery",
+                "text_sha256": hashlib.sha256(b"Acme delivery").hexdigest(),
+            }
+        ],
+    }
+    actions = [
+        {"action": "read", "arguments": {"page_number": 1}},
+        {"action": "final", "report": "Acme delivery is documented on page 1."},
+    ]
+    captured: list[tuple[list[dict[str, str]], dict[str, object]]] = []
+    finalizations: list[dict[str, object]] = []
+
+    class FakeTransport:
+        def __init__(self, *_args, **_kwargs):
+            self._trace_meta: dict[str, object] = {}
+
+        def begin_job(self, _job):
+            return None
+
+        def complete_batch(self, messages, *, tools, structured_outputs, workflow_profile):
+            captured.append((messages, {"tools": tools, "structured_outputs": structured_outputs, "workflow_profile": workflow_profile}))
+            action = actions[len(captured) - 1]
+            final_text = json.dumps(
+                {"analysis_markdown": json.dumps(action, ensure_ascii=False, separators=(",", ":"))},
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            return SimpleNamespace(
+                final_text=final_text,
+                request_rounds=1,
+                tool_receipts=[],
+                usage={"total_tokens": 1},
+                started_at="2026-10-19T00:00:00Z",
+                finished_at="2026-10-19T00:00:01Z",
+                first_event_at=None,
+                first_event_seconds=None,
+                ttft_seconds=None,
+                first_content_at=None,
+                ttfc_seconds=None,
+                response_model=local_model.MODEL_ID,
+            )
+
+        def finish_job(self, **kwargs):
+            finalizations.append(kwargs)
+
+        def close(self):
+            return None
+
+    monkeypatch.setattr(local_model, "_no_lookup_transport_class", lambda _modules: FakeTransport)
+    result = local_model.request_document_analysis(
+        job=SimpleNamespace(idempotency_key="f" * 64, attempt=1),
+        messages=[{"role": "system", "content": "research"}, {"role": "user", "content": "source"}],
+        schema=schema,
+        expected_binding=binding,
+        tool_context=context,
+        api_key="test-only-key",
+    )
+
+    assert json.loads(result) == {"analysis_markdown": actions[-1]["report"]}
+    assert len(captured) == 2
+    assert all(call_options["tools"] == [] for _messages, call_options in captured)
+    assert all(call_options["structured_outputs"] == {"json": schema} for _messages, call_options in captured)
+    assert all(call_options["workflow_profile"] == local_model.PROFILE_NAME for _messages, call_options in captured)
+    assert "Acme delivery" in captured[1][0][-1]["content"]
+    assert finalizations[0]["status"] == "SUCCEEDED"
+    assert finalizations[0]["completion"].tool_receipts[0]["name"] == "read"
+
+
 def test_binding_mismatch_is_rejected_before_transport_or_post(tmp_path, monkeypatch) -> None:
     schema = {"type": "object", "properties": {"ok": {"type": "boolean"}}}
     binding = _binding(tmp_path, schema)

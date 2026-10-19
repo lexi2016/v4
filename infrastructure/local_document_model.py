@@ -12,7 +12,8 @@ import importlib
 import json
 from pathlib import Path
 import sys
-from types import ModuleType
+import time
+from types import ModuleType, SimpleNamespace
 from typing import Any, Mapping, Sequence
 
 
@@ -101,6 +102,8 @@ def pinned_source_hashes() -> dict[str, str]:
     local_sources = {
         "infrastructure/local_document_model.py": Path(__file__),
         "infrastructure/pdf_research.py": Path(__file__).with_name("pdf_research.py"),
+        "infrastructure/pdf_research_tools.py": Path(__file__).with_name("pdf_research_tools.py"),
+        "ops/run_pdf_research_batch.py": Path(__file__).resolve().parents[1] / "ops/run_pdf_research_batch.py",
         "ops/run_pdf_research_sample.py": Path(__file__).resolve().parents[1] / "ops/run_pdf_research_sample.py",
     }
     for name, path in local_sources.items():
@@ -317,10 +320,11 @@ def request_document_analysis(
     messages: Sequence[Mapping[str, str]],
     schema: Mapping[str, Any],
     expected_binding: Mapping[str, Any],
+    tool_context: Mapping[str, Any] | None = None,
     api_key: str | None = None,
     http_transport: Any | None = None,
 ) -> str:
-    """Issue one pinned structured request and reject all lookup/tool routes."""
+    """Issue a pinned structured request, optionally running local PDF actions."""
     modules = load_shared_modules()
     observed = build_request_material(schema)
     evidence_root = Path(str(expected_binding.get("evidence_root", ""))).expanduser().absolute()
@@ -341,22 +345,101 @@ def request_document_analysis(
     )
     transport.begin_job(job)
     completion = None
-    try:
-        completion = transport.complete_batch(
-            [dict(message) for message in messages],
+    completions: list[Any] = []
+    tool_receipts: list[dict[str, Any]] = []
+    loop_started = time.monotonic()
+
+    def request_turn(turn_messages: Sequence[Mapping[str, str]]) -> Any:
+        result = transport.complete_batch(
+            [dict(message) for message in turn_messages],
             tools=[],
             structured_outputs={"json": dict(schema)},
             workflow_profile=PROFILE_NAME,
         )
-        if completion.request_rounds != 1 or completion.tool_receipts:
+        if result.request_rounds != 1 or result.tool_receipts:
             raise LocalModelError("PDF_REQUEST_ROUND_OR_TOOL_POLICY_VIOLATION")
-        transport.finish_job(status="SUCCEEDED", completion=completion)
-        return completion.final_text
+        completions.append(result)
+        return result
+
+    def aggregate_completion(final_text: str | None = None) -> Any:
+        if not completions:
+            return None
+        first = completions[0]
+        last = completions[-1]
+        usage: dict[str, int] = {}
+        for result in completions:
+            for key, value in (result.usage or {}).items():
+                if type(value) is int and value >= 0:
+                    usage[key] = usage.get(key, 0) + value
+        return SimpleNamespace(
+            usage=usage,
+            tool_receipts=list(tool_receipts),
+            request_rounds=len(completions),
+            started_at=first.started_at,
+            finished_at=last.finished_at,
+            wall_seconds=round(time.monotonic() - loop_started, 6),
+            first_event_at=first.first_event_at,
+            first_event_seconds=first.first_event_seconds,
+            ttft_seconds=first.ttft_seconds,
+            first_content_at=first.first_content_at,
+            ttfc_seconds=first.ttfc_seconds,
+            response_model=last.response_model,
+            final_text_sha256=sha256_bytes((final_text or last.final_text).encode("utf-8")),
+        )
+
+    try:
+        if tool_context is None:
+            completion = request_turn(messages)
+            transport.finish_job(status="SUCCEEDED", completion=completion)
+            return completion.final_text
+
+        from infrastructure import pdf_research_tools
+
+        def web_call(name: str, arguments: Mapping[str, str]) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+            if name == "fetch_url":
+                url = arguments.get("url")
+                if not isinstance(url, str) or set(arguments) != {"url"}:
+                    raise LocalModelError("PDF_WEB_TOOL_NOT_ALLOWED")
+                return pdf_research_tools.fetch_public_official_url(url)
+            if name != "web_search":
+                raise LocalModelError("PDF_WEB_TOOL_NOT_ALLOWED")
+            return modules.runner.OmlxTransport._call_web_tool(
+                transport,
+                name,
+                dict(arguments),
+                lambda _event: None,
+            )
+
+        action_result = pdf_research_tools.run_action_loop(
+            messages,
+            context=tool_context,
+            response_schema=schema,
+            request_turn=request_turn,
+            web_call=web_call,
+            on_tool_receipt=lambda receipt: tool_receipts.append(dict(receipt)),
+        )
+        final_text = canonical_json({"analysis_markdown": action_result["analysis_markdown"]}).decode("utf-8")
+        transport._trace_meta["pdf_action_loop"] = {
+            "status": "SUCCEEDED",
+            "turns": action_result["turns"],
+            "tool_actions": action_result["tool_actions"],
+            "page_input_sha256": tool_context.get("page_input_sha256"),
+        }
+        transport.finish_job(status="SUCCEEDED", completion=aggregate_completion(final_text))
+        return final_text
     except Exception as exc:
         code = getattr(exc, "code", None) or type(exc).__name__
         safe_code = str(code)[:96]
+        if tool_context is not None:
+            transport._trace_meta["pdf_action_loop"] = {
+                "status": "FAILED",
+                "failure_code": safe_code,
+                "turns": len(completions),
+                "tool_actions": len(tool_receipts),
+                "page_input_sha256": tool_context.get("page_input_sha256"),
+            }
         try:
-            transport.finish_job(status="FAILED", code=safe_code, completion=completion)
+            transport.finish_job(status="FAILED", code=safe_code, completion=aggregate_completion())
         except Exception:
             pass
         raise

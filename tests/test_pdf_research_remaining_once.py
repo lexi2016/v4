@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import base64
 from types import ModuleType
 from pathlib import Path
 import signal
@@ -13,8 +14,8 @@ from types import SimpleNamespace
 import unittest
 from unittest import mock
 
-CANONICAL_ROOT = Path("/Users/lexi/Desktop/学习/v4_app")
-sys.path.insert(0, str(CANONICAL_ROOT))
+WORKTREE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WORKTREE_ROOT))
 from ops import run_pdf_research_batch as batch
 
 DISPATCHER_PATH = Path(__file__).resolve().parents[1] / "ops" / "run_pdf_research_remaining_once.py"
@@ -28,16 +29,25 @@ def _sha(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def test_dispatcher_pins_the_current_batch_runner_bytes() -> None:
+    runner_path = Path(__file__).resolve().parents[1] / "ops" / "run_pdf_research_batch.py"
+    assert _sha(runner_path.read_bytes()) == dispatcher.EXPECTED_RUNNER_SHA256
+
+
 def _synthetic_documents() -> list[dict[str, str]]:
     rows = [
         {"document_id": f"{index:064x}", "pdf_sha256": f"{index:064x}"}
         for index in range(1, 2210)
     ]
-    rows[dispatcher.QUARANTINE_POSITION_1_BASED - 1] = {
+    rows[-1] = {
         "document_id": dispatcher.QUARANTINE_DOCUMENT_ID,
         "pdf_sha256": dispatcher.QUARANTINE_DOCUMENT_ID,
     }
     return rows
+
+
+def _synthetic_statuses(documents: list[dict[str, str]]) -> dict[str, str]:
+    return {row["document_id"]: "UNPROCESSED" for row in documents}
 
 
 class _MonkeyPatch:
@@ -50,13 +60,27 @@ class _MonkeyPatch:
         self.test_case.addCleanup(setattr, target, name, old)
 
 
-def _synthetic_context(monkeypatch: _MonkeyPatch, tmp_path: Path, *, max_documents: int = 4) -> tuple[list[dict[str, str]], dict[str, dict[str, str]], set[str]]:
+def _synthetic_context(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+    *,
+    max_documents: int = 4,
+) -> tuple[list[dict[str, str]], dict[str, dict[str, str]], set[str], dict[str, str], dict[str, object]]:
     monkeypatch.setattr(dispatcher, "_assert_runtime", lambda: None)
     monkeypatch.setattr(dispatcher, "_verify_static_bindings", lambda: {"scope_sha256": "a" * 64, "runner_sha256": "b" * 64})
     monkeypatch.setattr(batch, "DEFAULT_STATE_ROOT", tmp_path / "state" / "r3")
     docs = _synthetic_documents()
     original = {row["document_id"]: {"status": "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"} for row in docs[:142]}
     pilot = {docs[position - 1]["document_id"] for position in (155, 168, 171, 176, 177, 188, 193, 199, 208, 210)}
+    statuses = _synthetic_statuses(docs)
+    statuses.update({document_id: row["status"] for document_id, row in original.items()})
+    frozen_inventory_statuses = dict(statuses)
+    statuses.update({document_id: "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING" for document_id in pilot})
+    statuses[docs[142]["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    statuses[docs[143]["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    statuses[docs[144]["document_id"]] = "FAILED_NO_RETRY"
+    for row in docs[145:148]:
+        statuses[row["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
     auth = {
         "authorization": {
             "authorization_id": "test-auth",
@@ -70,7 +94,87 @@ def _synthetic_context(monkeypatch: _MonkeyPatch, tmp_path: Path, *, max_documen
     }
     monkeypatch.setattr(dispatcher, "load_and_validate_authorization", lambda _path: auth)
     monkeypatch.setattr(dispatcher, "_load_original_r3", lambda _path: (dispatcher.EXPECTED_MANIFEST_SHA256, docs, original))
-    return docs, original, pilot
+    summary: dict[str, object] = {
+        "inventory_sha256": dispatcher.EXPECTED_REMAINING_INVENTORY_SHA256,
+        "frozen_inventory_statuses": frozen_inventory_statuses,
+        "completed_count": 87,
+        "outstanding_count": 2122,
+        "outstanding_status_counts": {},
+        "runnable_unprocessed_count": 2050,
+        "quarantine_document_id": dispatcher.QUARANTINE_DOCUMENT_ID,
+        "terminal_receipts": {},
+        "current_tool_canary": {},
+    }
+    monkeypatch.setattr(dispatcher, "load_current_completion_statuses", lambda *_args, **_kwargs: (statuses, summary))
+    return docs, original, pilot, statuses, summary
+
+
+def _case_original_progress_status_is_checked_against_frozen_inventory_not_live_receipts(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    docs, original, _pilot, statuses, summary = _synthetic_context(monkeypatch, tmp_path, max_documents=1)
+    document_id = docs[0]["document_id"]
+    original[document_id]["status"] = "FAILED_NO_RETRY"
+    frozen_inventory_statuses = summary["frozen_inventory_statuses"]
+    assert isinstance(frozen_inventory_statuses, dict)
+    frozen_inventory_statuses[document_id] = "FAILED_NO_RETRY"
+    # The live receipt-bound view is already advanced to completion; the frozen
+    # inventory still records the prior failure that the original progress file
+    # must match.
+    assert statuses[document_id] == "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    executed: list[str] = []
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        executed.append(plan["selected_documents"][0]["document_id"])
+        _write_terminal_state(plan, "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING", model_requests=1)
+        return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
+
+    result = dispatcher.execute_once(
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=1,
+        sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: "resume-history-overlay",
+    )
+
+    assert result["status"] == "READY_FOR_NEXT_INVOCATION"
+    assert executed and executed[0] != document_id
+
+
+def _case_original_progress_must_match_frozen_inventory_history(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    docs, original, _pilot, statuses, summary = _synthetic_context(monkeypatch, tmp_path, max_documents=1)
+    document_id = docs[0]["document_id"]
+    original[document_id]["status"] = "FAILED_NO_RETRY"
+    frozen_inventory_statuses = summary["frozen_inventory_statuses"]
+    assert isinstance(frozen_inventory_statuses, dict)
+    frozen_inventory_statuses[document_id] = "UNPROCESSED"
+    child_called = False
+
+    def child_runner(*_args: object, **_kwargs: object) -> dict[str, object]:
+        nonlocal child_called
+        child_called = True
+        raise AssertionError("source mismatch must fail before dispatch")
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "ORIGINAL_PROGRESS_INVENTORY_STATUS_MISMATCH"):
+        dispatcher.execute_once(
+            authorization_path=tmp_path / "unused-auth.json",
+            manifest_path=tmp_path / "unused-manifest.json",
+            evidence_root=tmp_path / "evidence",
+            max_documents=1,
+            sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+            plan_only=lambda _path: None,
+            child_runner=child_runner,
+        )
+    assert child_called is False
+    assert not (tmp_path / "evidence" / "dispatch.jsonl").exists()
 
 
 def _write_terminal_state(plan: dict[str, object], status: str, *, model_requests: int | None = 1) -> None:
@@ -140,23 +244,95 @@ def _case_singleton_plan_matches_integrated_runner_contract(tmp_path: Path, monk
     assert len(plan["excluded_prior_statuses"]) == len(batch.CONTINUATION_EXCLUDED_PRIOR_STATUSES)
 
 
-def _case_selection_excludes_original_pilot_quarantine_and_prior_dispatch() -> None:
+def _case_selection_uses_statuses_and_keeps_failures_outstanding() -> None:
     docs = _synthetic_documents()
-    original = {row["document_id"]: {"status": "any-terminal"} for row in docs[:142]}
+    statuses = _synthetic_statuses(docs)
+    statuses[docs[0]["document_id"]] = "FAILED_NO_RETRY"
+    statuses[docs[1]["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    statuses[docs[2]["document_id"]] = "SOURCE_REPAIR_FAILED_NO_MODEL"
     pilot = {docs[position - 1]["document_id"] for position in (155, 168, 171, 176, 177, 188, 193, 199, 208, 210)}
-    prior = {docs[143]["document_id"]}
+    statuses.update({document_id: "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING" for document_id in pilot})
+    prior = {docs[3]["document_id"]}
 
-    selected, remaining = dispatcher.select_next_document(docs, original, pilot, prior)
+    selected, remaining = dispatcher.select_next_document(docs, statuses, pilot, prior)
 
-    assert selected == docs[144]
-    assert remaining == 2209 - 142 - 10 - 1 - 1
+    assert selected == docs[4]
+    assert statuses[docs[0]["document_id"]] == "FAILED_NO_RETRY"
+    assert statuses[docs[2]["document_id"]] == "SOURCE_REPAIR_FAILED_NO_MODEL"
+    assert remaining == len(docs) - 3 - len(pilot) - len(prior) - 1
+
+
+def _case_unprocessed_canary_selection_rejects_held_statuses() -> None:
+    docs = _synthetic_documents()
+    statuses = _synthetic_statuses(docs)
+    statuses[docs[0]["document_id"]] = "FAILED_NO_RETRY"
+
+    selected = dispatcher.validate_unprocessed_selection(
+        [docs[1]["document_id"], docs[2]["document_id"], docs[3]["document_id"]],
+        docs,
+        statuses,
+        expected_count=3,
+    )
+    assert [row["document_id"] for row in selected] == [row["document_id"] for row in docs[1:4]]
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "FROZEN_SELECTION_DOCUMENT_NOT_RUNNABLE"):
+        dispatcher.validate_unprocessed_selection(
+            [docs[0]["document_id"], docs[2]["document_id"], docs[3]["document_id"]],
+            docs,
+            statuses,
+            expected_count=3,
+        )
+
+
+def _case_multi_document_unprocessed_plan_is_bounded_and_runner_compatible() -> None:
+    docs = [
+        {"document_id": f"{index:064x}", "pdf_sha256": f"{index:064x}"}
+        for index in range(1, 4)
+    ]
+    plan, raw = dispatcher.build_unprocessed_continuation_plan(
+        docs,
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="three-doc-canary-test",
+    )
+    assert json.loads(raw) == plan
+    assert len(plan["selected_documents"]) == 3
+    assert all(row["prior_status"] == "UNPROCESSED" for row in plan["selected_documents"])
+    assert plan["one_time_recovery_limit"] == 1
 
 
 def _case_document_plan_journal_rejects_cross_plan_duplicate() -> None:
+    first, first_raw = dispatcher.build_singleton_plan(
+        {"document_id": "a" * 64, "pdf_sha256": "a" * 64},
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="duplicate-first",
+    )
+    second, second_raw = dispatcher.build_singleton_plan(
+        {"document_id": "a" * 64, "pdf_sha256": "a" * 64},
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="duplicate-second",
+    )
     events = [
         {"event": "binding"},
-        {"event": "plan_created", "document_id": "a" * 64},
-        {"event": "plan_created", "document_id": "a" * 64},
+        {
+            "event": "plan_created",
+            "document_id": "a" * 64,
+            "continuation_id": first["continuation_id"],
+            "state_root": first["state_root"],
+            "plan_bytes_b64": base64.b64encode(first_raw).decode("ascii"),
+        },
+        {
+            "event": "plan_created",
+            "document_id": "a" * 64,
+            "continuation_id": second["continuation_id"],
+            "state_root": second["state_root"],
+            "plan_bytes_b64": base64.b64encode(second_raw).decode("ascii"),
+        },
     ]
 
     with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CROSS_PLAN_DUPLICATE_DOCUMENT"):
@@ -338,6 +514,116 @@ def _case_resource_thresholds_use_only_existing_available_and_swap_metrics() -> 
     assert dispatcher._resource_stop_reason({"available_bytes": dispatcher.MIN_AVAILABLE_BYTES - 1, "swap_used_bytes": 100}, 100) == "AVAILABLE_MEMORY_BELOW_8_GIB"
     assert dispatcher._resource_stop_reason({"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 101 + dispatcher.MAX_SWAP_GROWTH_BYTES}, 100) == "SWAP_GROWTH_ABOVE_512_MIB"
     assert dispatcher._resource_stop_reason({"available_bytes": None, "swap_used_bytes": 100}, 100) == "RESOURCE_SAMPLE_CANNOT_CONFIRM"
+
+
+def _case_recovery_wait_requires_a_stable_observed_resource_change() -> None:
+    failure_sample = {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 900}
+    samples = iter((
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+    ))
+    sleeps: list[float] = []
+    persisted: list[dict[str, object]] = []
+
+    result = dispatcher._wait_for_recovery_resource_change(
+        failure_sample,
+        baseline_swap_used=900,
+        sampler=lambda: next(samples),
+        sleep_fn=sleeps.append,
+        persist=persisted.append,
+        timeout_seconds=dispatcher.MEMORY_RECOVERY_POLL_SECONDS * 3,
+    )
+
+    assert result["status"] == "RESOURCE_CHANGE_OBSERVED"
+    assert result["available_gain_bytes"] == dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES
+    assert result["stable_samples"] == dispatcher.MEMORY_RECOVERY_STABLE_SAMPLE_COUNT
+    assert sleeps == [dispatcher.MEMORY_RECOVERY_POLL_SECONDS] * 2
+    assert len(persisted) == 2
+
+
+def _case_memory_recovery_retry_is_bounded_and_second_failure_isolated(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    docs, _original, _pilot, _statuses, _summary = _synthetic_context(monkeypatch, tmp_path, max_documents=2)
+    plans: list[dict[str, object]] = []
+    def fake_builder(
+        prior_plan: dict[str, object],
+        prior_raw: bytes,
+        document: dict[str, str],
+        *,
+        model_settings_sha256: str,
+    ) -> tuple[dict[str, object], bytes]:
+        recovery_plan, _ = dispatcher.build_singleton_plan(
+            document,
+            manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+            prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+            model_settings_sha256=model_settings_sha256,
+            continuation_id="memory-recovery-test",
+        )
+        recovery_plan["selected_documents"][0]["prior_status"] = "FAILED_NO_RETRY"
+        recovery_plan["selected_documents"][0]["recovery"] = {
+            "generation": 1,
+            "prior_state_root": prior_plan["state_root"],
+            "prior_queue_idempotency_key": "f" * 64,
+            "prior_artifact_sha256": {},
+        }
+        recovery_plan["state_root"] = str(tmp_path / "state" / "recovery-test")
+        recovery_raw = dispatcher._json_bytes(recovery_plan)
+        return recovery_plan, recovery_raw
+
+    monkeypatch.setattr(dispatcher, "build_memory_recovery_plan", fake_builder)
+    monkeypatch.setattr(batch, "validate_continuation_plan", lambda path, **_kwargs: {
+        "plan_sha256": _sha(path.read_bytes()),
+    })
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        plans.append(plan)
+        status = "FAILED_NO_RETRY" if len(plans) <= 2 else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        _write_terminal_state(plan, status, model_requests=1)
+        return {
+            "returncode": 0,
+            "resource_stop_reason": None,
+            "child_started": True,
+            "last_resource_sample": {
+                "available_bytes": dispatcher.MIN_AVAILABLE_BYTES,
+                "swap_used_bytes": 900,
+            },
+        }
+
+    samples = iter((
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 900},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+    ))
+    result = dispatcher.execute_once(
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=2,
+        sampler=lambda: next(samples),
+        sleep_fn=lambda _seconds: None,
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: f"resume-test-{len(plans)}",
+    )
+
+    assert len(plans) == 3
+    assert plans[0]["selected_documents"][0]["document_id"] == plans[1]["selected_documents"][0]["document_id"]
+    assert plans[1]["selected_documents"][0]["recovery"]["generation"] == 1
+    assert plans[2]["selected_documents"][0]["document_id"] != plans[0]["selected_documents"][0]["document_id"]
+    assert result["status"] == "READY_FOR_NEXT_INVOCATION"
+    events = [json.loads(line) for line in (tmp_path / "evidence/dispatch.jsonl").read_text().splitlines()]
+    recovered = [event for event in events if event.get("event") == "reconciled" and event.get("memory_recovery_status") == "SINGLE_RECOVERY_FAILED_ISOLATED"]
+    assert len(recovered) == 1
+    assert not any(event.get("event") == "halt" for event in events)
+    dispatcher._assert_no_duplicate_document_ids(events)
+    tampered_events = [dict(event) for event in events]
+    wait_event = next(event for event in tampered_events if event.get("event") == "memory_recovery_wait")
+    wait_event["available_gain_bytes"] = 0
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CROSS_PLAN_DUPLICATE_DOCUMENT"):
+        dispatcher._assert_no_duplicate_document_ids(tampered_events)
 
 
 def _case_resource_failure_sends_one_owned_sigterm_then_waits(tmp_path: Path) -> None:
@@ -597,11 +883,73 @@ class TestRemainingOnce(unittest.TestCase):
     def test_runtime_guard(self) -> None:
         _case_runtime_guard_requires_exact_configured_312(self.monkeypatch, self.tmp_path)
 
+    def test_default_evidence_root_is_versioned_for_this_run(self) -> None:
+        self.assertEqual(
+            dispatcher.EVIDENCE_ROOT,
+            Path("/Users/lexi/Desktop/学习/agents调试/V4_PDF_TOOL_ENABLED_COMPLETION_20261019_R1/remaining-execution-r1"),
+        )
+        self.assertNotEqual(dispatcher.EVIDENCE_ROOT, dispatcher.CONTINUATION_ROOT / "resume-writer")
+
     def test_singleton_plan(self) -> None:
         _case_singleton_plan_matches_integrated_runner_contract(self.tmp_path, self.monkeypatch)
 
-    def test_selection_exclusions(self) -> None:
-        _case_selection_excludes_original_pilot_quarantine_and_prior_dispatch()
+    def test_selection_uses_statuses(self) -> None:
+        _case_selection_uses_statuses_and_keeps_failures_outstanding()
+
+    def test_unprocessed_canary_selection(self) -> None:
+        _case_unprocessed_canary_selection_rejects_held_statuses()
+
+    def test_original_progress_accepts_exact_receipt_bound_status_advance(self) -> None:
+        _case_original_progress_status_is_checked_against_frozen_inventory_not_live_receipts(
+            self.monkeypatch,
+            self.tmp_path,
+        )
+
+    def test_original_progress_must_match_frozen_inventory_history(self) -> None:
+        _case_original_progress_must_match_frozen_inventory_history(self.monkeypatch, self.tmp_path)
+
+    def test_current_canary_receipts_are_folded_before_dispatch(self) -> None:
+        _manifest, manifest_sha, documents = batch.load_manifest(batch.DEFAULT_MANIFEST)
+        statuses, summary = dispatcher.load_current_completion_statuses(
+            documents,
+            manifest_sha256=manifest_sha,
+        )
+        for document_id in (*dispatcher.THREE_DOCUMENT_CANARY_IDS, dispatcher.TOOL_CANARY_DOCUMENT_ID):
+            self.assertEqual(statuses[document_id], "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING")
+        self.assertEqual(summary["completed_count"], dispatcher.CURRENT_COMPLETED_DOCUMENT_COUNT)
+        self.assertEqual(summary["outstanding_count"], dispatcher.CURRENT_OUTSTANDING_DOCUMENT_COUNT)
+        self.assertEqual(summary["runnable_unprocessed_count"], dispatcher.EXPECTED_POST_PILOT_COHORT)
+        selected, remaining = dispatcher.select_next_document(documents, statuses, set(), set())
+        self.assertIsNotNone(selected)
+        self.assertNotIn(selected["document_id"], set(dispatcher.THREE_DOCUMENT_CANARY_IDS))
+        self.assertNotEqual(selected["document_id"], dispatcher.TOOL_CANARY_DOCUMENT_ID)
+        self.assertEqual(remaining, dispatcher.EXPECTED_POST_PILOT_COHORT)
+
+    def test_multi_document_plan(self) -> None:
+        _case_multi_document_unprocessed_plan_is_bounded_and_runner_compatible()
+
+    def test_memory_recovery_plan_reuses_exact_frozen_failure_chain(self) -> None:
+        _manifest, manifest_sha, documents = batch.load_manifest(batch.DEFAULT_MANIFEST)
+        self.assertEqual(manifest_sha, dispatcher.EXPECTED_MANIFEST_SHA256)
+        prior_raw = dispatcher.THREE_DOCUMENT_CANARY_PLAN_PATH.read_bytes()
+        prior_plan = json.loads(prior_raw.decode("utf-8"))
+        document = next(
+            row for row in documents
+            if row.get("document_id") == "eeed6e4916c2a8b44d0f3911d9303de754e6164d8d33cc7f11f4c15dae9f49a5"
+        )
+
+        plan, raw = dispatcher.build_memory_recovery_plan(
+            prior_plan,
+            prior_raw,
+            document,
+            model_settings_sha256=dispatcher.EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256,
+            continuation_id=dispatcher.AI_VIDEO_RECOVERY_CONTINUATION_ID,
+        )
+
+        self.assertIsNotNone(plan)
+        self.assertEqual(_sha(raw), dispatcher.AI_VIDEO_RECOVERY_PLAN_SHA256)
+        self.assertEqual(raw, dispatcher.AI_VIDEO_RECOVERY_PLAN_PATH.read_bytes())
+        self.assertEqual(plan["selected_documents"][0]["recovery"]["generation"], 1)
 
     def test_duplicate_rejection(self) -> None:
         _case_document_plan_journal_rejects_cross_plan_duplicate()
@@ -623,6 +971,12 @@ class TestRemainingOnce(unittest.TestCase):
 
     def test_resource_thresholds(self) -> None:
         _case_resource_thresholds_use_only_existing_available_and_swap_metrics()
+
+    def test_recovery_wait_requires_resource_change(self) -> None:
+        _case_recovery_wait_requires_a_stable_observed_resource_change()
+
+    def test_memory_recovery_retries_once_and_isolates_second_failure(self) -> None:
+        _case_memory_recovery_retry_is_bounded_and_second_failure_isolated(self.monkeypatch, self.tmp_path)
 
     def test_resource_owned_sigterm(self) -> None:
         _case_resource_failure_sends_one_owned_sigterm_then_waits(self.tmp_path)
