@@ -1,0 +1,367 @@
+{
+  "state": "PRECHECK_COMPLETE",
+  "at": "2026-10-20T20:17:37.567382+08:00",
+  "api": {
+    "label": "com.lexi.v35.api-only",
+    "pid": 16695,
+    "launchd_rc": 0,
+    "launchd_state_running": true,
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+    "release_id": "announcement-daily-workflow-20261020-r8",
+    "plist_sha256": "5d5c01d354c10787b70fb56919fa0652592a49dc9ca003c6ef4e8c1b2ba7b41b",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/release-manifest.json",
+    "manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+    "environment_manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+    "cwd_readback": [
+      "p16695",
+      "fcwd",
+      "n/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app"
+    ],
+    "cwd_matches_manifest": true,
+    "inventory_tool_sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b",
+    "inventory_sha256": "97b803c3e009e533e77089533171aec693e5f2f8a60a7317262cbdf093623595",
+    "manifest_inventory_sha256": "97b803c3e009e533e77089533171aec693e5f2f8a60a7317262cbdf093623595",
+    "inventory_count": 1274,
+    "manifest_inventory_count": 1274,
+    "inventory_matches_manifest": true,
+    "inventory_delta": [],
+    "direct_children": [],
+    "established_8873": false,
+    "lsof_rc": 1
+  },
+  "frontend_baseline_receipt": "docs/handoffs/workbench_date_top20_20261020/RUNTIME_FRONTEND_BASELINE.json",
+  "frontend_baseline_sha256": "c60787ee9e97d4169074d0bf05c4257bd7eafa7062c36ea18a4a002fb5e5c063",
+  "backend_three": {
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "actual_sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+      "r6_preimage_sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+      "accepted_wiring_sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "status": "R6_PREIMAGE_UNPATCHED"
+    },
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "actual_sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+      "r6_preimage_sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+      "accepted_wiring_sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "status": "R6_PREIMAGE_UNPATCHED"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "actual_sha256": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2",
+      "r6_preimage_sha256": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2",
+      "accepted_wiring_sha256": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+      "status": "R6_PREIMAGE_UNPATCHED"
+    }
+  },
+  "attempt_count": 95,
+  "active_attempts": [],
+  "today_pointers": [
+    {
+      "phase": "INTRADAY",
+      "relative": "pointers/20261020/INTRADAY.json",
+      "sha256": "264aa5930bff737bc8ef23247c03b20df4d651518f1ff60f734caf1b43ccc575",
+      "value": {
+        "generated_at": "2026-10-20T15:03:53.485272+08:00",
+        "product_sha256": "9969dec205e67169c3d7e7168497f5f40c71839caf68358e6f42a9e78a6811d9",
+        "run_id": "e96a793fe0f0464ca354927d301e13d3"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "pointers/20261020/MANUAL.json",
+      "sha256": "a6859e1458bc6467778c748d77271c23d3c96d402d4c55216628309d6d2e0ee8",
+      "value": {
+        "generated_at": "2026-10-19T23:30:56.415248+08:00",
+        "product_sha256": "d1a0e5acc01f7d4abe009fbc39b5060d560eef8e5185bab89696b5899da0c752",
+        "run_id": "dc205639f22e483e984555d689dcd226"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "pointers/20261020/NEXT_DAY.json",
+      "sha256": "81ea8ec394f2e874b381a9a2dba9206e9cd3eb40c98bf2e65c2766c95fdd11e4",
+      "value": {
+        "generated_at": "2026-10-20T05:44:13.463345+08:00",
+        "product_sha256": "0eb298eea60bc41edb4c048ccdae2b60de9b3c7ff302084eb9b244dfee824fe5",
+        "run_id": "52d6d87a1fe547a484b189448d0ddfb7"
+      }
+    },
+    {
+      "phase": "PREOPEN",
+      "relative": "pointers/20261020/PREOPEN.json",
+      "sha256": "0f467028e4341584c81d7e903b0783e51540be4b3e988399bde5aba163bc68bb",
+      "value": {
+        "generated_at": "2026-10-20T09:25:20.028549+08:00",
+        "product_sha256": "d13faf4995ee3673c1dcac988dba4b0ea68b5f2be44367f93350378344b21545",
+        "run_id": "be4981d552d74feca0e1e84c5f254cc3"
+      }
+    }
+  ],
+  "today_catalog": [
+    {
+      "phase": "INTRADAY",
+      "relative": "catalog/20261020/INTRADAY/e96a793fe0f0464ca354927d301e13d3.json",
+      "sha256": "60e305a947076d4c7269a4819c6cbdce1a02b98481da26729a31592fa37b4093",
+      "value": {
+        "generated_at": "2026-10-20T15:03:53.485272+08:00",
+        "input_sha256": "4ae3c713879c8c0d68ffe87ee0502492dbb772b8d979687d9009e9b054af9eba",
+        "product_sha256": "9969dec205e67169c3d7e7168497f5f40c71839caf68358e6f42a9e78a6811d9",
+        "run_id": "e96a793fe0f0464ca354927d301e13d3"
+      }
+    },
+    {
+      "phase": "INTRADAY",
+      "relative": "catalog/20261020/INTRADAY/12a13ff6bb384770ba249d6671ffb9ab.json",
+      "sha256": "ce8e52e62fdb795aed64c1c18b5670772c0e58c57ae76333c67bbc2f479bd945",
+      "value": {
+        "generated_at": "2026-10-20T13:19:04.795359+08:00",
+        "input_sha256": "f7af388307dffe6c02950ed39225eb4095015b0b3b547d08c95b02f612f1f436",
+        "product_sha256": "73a6f43969a2d1f483ca42280a8494fe9c53e5e0edacad35e61cbef242cd3449",
+        "run_id": "12a13ff6bb384770ba249d6671ffb9ab"
+      }
+    },
+    {
+      "phase": "INTRADAY",
+      "relative": "catalog/20261020/INTRADAY/9f12b7e877f741e1b24da9d2fda578d3.json",
+      "sha256": "ba8b002f3fb193913c2d73089b699453aab99cadbe09aa7fe4522ad267eaa936",
+      "value": {
+        "generated_at": "2026-10-20T10:34:37.344794+08:00",
+        "input_sha256": "6697c52642494dd697485597de5ef80974acc6578e9415743570431e6e5c32a3",
+        "product_sha256": "522286774efbf5a269bbf29b83bc75e93b0d0872b61d0f5734641e81b6b88a75",
+        "run_id": "9f12b7e877f741e1b24da9d2fda578d3"
+      }
+    },
+    {
+      "phase": "INTRADAY",
+      "relative": "catalog/20261020/INTRADAY/e1e5ca9797c84ce2b039ba726834c3ca.json",
+      "sha256": "fd82c4852e1ba70953a841e2e866130d6aab24db0a23dff442ceb413da272692",
+      "value": {
+        "generated_at": "2026-10-20T09:48:30.962588+08:00",
+        "input_sha256": "763299c0033872ae44f83e701ed3c03cc94136afa7453587d1342bb91155b92d",
+        "product_sha256": "4c775b00ac51a7baf88812e20318f22908dcf8bc6a2d638127f440582b3d79ed",
+        "run_id": "e1e5ca9797c84ce2b039ba726834c3ca"
+      }
+    },
+    {
+      "phase": "INTRADAY",
+      "relative": "catalog/20261020/INTRADAY/7a042afc6a9c49dca3e32c764ec06116.json",
+      "sha256": "98f31023f9cdd5863af7c423cf917d5961230e59007920af464013b8cf141f5e",
+      "value": {
+        "generated_at": "2026-10-20T09:43:35.936917+08:00",
+        "input_sha256": "8a91a603da285500a934d9364b8a5f4ae146bdeb5a21f934923ed998493da96e",
+        "product_sha256": "698f30b084702b56e40b286319250f0693296f5d31d50c420d7c36014311a95e",
+        "run_id": "7a042afc6a9c49dca3e32c764ec06116"
+      }
+    },
+    {
+      "phase": "INTRADAY",
+      "relative": "catalog/20261020/INTRADAY/fffc5d472f724bc6b3a8e0b76629d595.json",
+      "sha256": "baeab9c78135667e0c21466b6c32500086073aee238157a3fb67628fba47710f",
+      "value": {
+        "generated_at": "2026-10-20T09:38:37.283426+08:00",
+        "input_sha256": "d899b3a63c58a102dc535a2a832189ba3057846a21cccb873120ac72ea802871",
+        "product_sha256": "895f948681b279820997cd61f81447f694134d2b6ceee18ce1a7684f9734c553",
+        "run_id": "fffc5d472f724bc6b3a8e0b76629d595"
+      }
+    },
+    {
+      "phase": "PREOPEN",
+      "relative": "catalog/20261020/PREOPEN/be4981d552d74feca0e1e84c5f254cc3.json",
+      "sha256": "7a0de62ec46968dab9557ba8cc2551732bbf4aba0bca952b1dcecf47a97777ca",
+      "value": {
+        "generated_at": "2026-10-20T09:25:20.028549+08:00",
+        "input_sha256": "23c654f3d2c7e0e726a94c48dab2c11530c17ce4052c98545a59f9f1d0a01b29",
+        "product_sha256": "d13faf4995ee3673c1dcac988dba4b0ea68b5f2be44367f93350378344b21545",
+        "run_id": "be4981d552d74feca0e1e84c5f254cc3"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/52d6d87a1fe547a484b189448d0ddfb7.json",
+      "sha256": "504bad2cda97ffe680e09057eece9090292c3e06a2301d8eb1cc0ae649b513fd",
+      "value": {
+        "generated_at": "2026-10-20T05:44:13.463345+08:00",
+        "input_sha256": "23c654f3d2c7e0e726a94c48dab2c11530c17ce4052c98545a59f9f1d0a01b29",
+        "product_sha256": "0eb298eea60bc41edb4c048ccdae2b60de9b3c7ff302084eb9b244dfee824fe5",
+        "run_id": "52d6d87a1fe547a484b189448d0ddfb7"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/bea76e92247f494fabae501e215edc88.json",
+      "sha256": "ecd9f80b2fed820cf44e751c179c4a48d5f685dd13fa4f5cadebd1365bc10c28",
+      "value": {
+        "generated_at": "2026-10-20T04:17:10.642294+08:00",
+        "input_sha256": "205980bc186ef65c2247dc3322c2b5e4e55458ed37904c2355d46bfa306bc8e8",
+        "product_sha256": "152b9e46a78caad7dc868da111c4650e9f2d2b6a1828cc7c99656c0d2af23c92",
+        "run_id": "bea76e92247f494fabae501e215edc88"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/dc205639f22e483e984555d689dcd226.json",
+      "sha256": "537495baa1827bcdc2d9cf3e715cfd774f6b1ebd7e63860560e77c3ada11b5d8",
+      "value": {
+        "generated_at": "2026-10-19T23:30:56.415248+08:00",
+        "input_sha256": "2fe953b79312575666dcebdf7f8784f69e324cbd8edde93c3daeae3cae09fd63",
+        "product_sha256": "d1a0e5acc01f7d4abe009fbc39b5060d560eef8e5185bab89696b5899da0c752",
+        "run_id": "dc205639f22e483e984555d689dcd226"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/c01031c0470f4908986390c4dcf8be01.json",
+      "sha256": "4f30bf135ad5812e3d4e7387f07850bc42b86b426e959305cf493ae40f6866bd",
+      "value": {
+        "generated_at": "2026-10-19T21:01:11.562110+08:00",
+        "input_sha256": "197782ad2b2b02c18fda046e83eac590487cbff1912cd2b568746a804ddba5e6",
+        "product_sha256": "d907e98963625e2afab80053e508916001572b8f2222891398af47cbcdde963e",
+        "run_id": "c01031c0470f4908986390c4dcf8be01"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/571e25ceffed46528fbc6b8ea45de3d3.json",
+      "sha256": "4acc1319378724692a878011be72df58f8b0ef5bb43cabd62f76660dc6243b65",
+      "value": {
+        "generated_at": "2026-10-19T18:38:23.711983+08:00",
+        "input_sha256": "60f1e11c87b8b4dc30d2431c99b642560dfb103af5b473793df83db2c40f76ed",
+        "product_sha256": "83ce1a28a28d608bca6b6208905c60bd4eb645d6b77c57b46301c2b8c3d1cc30",
+        "run_id": "571e25ceffed46528fbc6b8ea45de3d3"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/9e51aded33804ff6b99fb3800b9e3f81.json",
+      "sha256": "0ed702dc1cf5b99e658387fc25a127e4082334de48e88aef851c1dbe84cda9d7",
+      "value": {
+        "generated_at": "2026-10-19T17:51:05.497350+08:00",
+        "input_sha256": "015c1bdf306c73b7fa19f560ea73a194790e7080bf73735c3f02e3e6039e6010",
+        "product_sha256": "52aaf3e66d4ed06d995cb3be9265bfdd15bc3a556825602db73507e6b08a22a2",
+        "run_id": "9e51aded33804ff6b99fb3800b9e3f81"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/6ac0f2403ab94a80943a911257bf556f.json",
+      "sha256": "1a5cd2c4512c773cab521115af1d71b94beccb35168d34fa1a21be1a094f4697",
+      "value": {
+        "generated_at": "2026-10-19T12:53:08.489517+08:00",
+        "input_sha256": "f68d586987ec4fd91862c5abd8fd3ae8ec18ca4a1db81bb0b6ab6170e97a37c0",
+        "product_sha256": "c91c09cb0b4afcadbd796eaf4f3e4bb9b7c9ce14b32d8246a4911ebc67799be0",
+        "run_id": "6ac0f2403ab94a80943a911257bf556f"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/c103592cf1ea49be952fac770a066304.json",
+      "sha256": "1f86fdf20d1e54369040e1ee277b35b09799f91944e4cb0a2d9505aea097fa38",
+      "value": {
+        "generated_at": "2026-10-19T12:36:51.277623+08:00",
+        "input_sha256": "eb92fec469ee1f259ba78b7d4de096a0e79e63e6e438e6ce85413b380b1812bb",
+        "product_sha256": "50816a0364fe0b6ab52cc2e87c0b57fe443cd1538f202d51a797193e7cbe6852",
+        "run_id": "c103592cf1ea49be952fac770a066304"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/2e2a1dbb1312422c8b1e21a58d2d44d0.json",
+      "sha256": "d25aa72d9808e26ff702842d257cab97f6c362853ef0e6fa745c1a6411a9cdab",
+      "value": {
+        "generated_at": "2026-10-19T00:54:58.614732+08:00",
+        "input_sha256": "1de9655dde06cbd4f15deca41df57eb73d00c00e657e880e0ffe3607d22a6c33",
+        "product_sha256": "78bfe4db1f37e5e356b7d71878faeb9a7d4edf551a7083570ab9fbca532bd922",
+        "run_id": "2e2a1dbb1312422c8b1e21a58d2d44d0"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/52231a267c5e4eb4859bcff275949786.json",
+      "sha256": "85f8263d00dade55ae1d8d7f71c43490bbf36c0c8ab1019492db75019aa022a5",
+      "value": {
+        "generated_at": "2026-10-18T22:29:30.515800+08:00",
+        "input_sha256": "2b09f02a9c9179ab0cc38aa595a7a0dbea340f070ee49c7333932439c6657952",
+        "product_sha256": "4ae4ecfa4ec66137bcedb74f43f18677a7aa27161980ee410be1972b33d72ac8",
+        "run_id": "52231a267c5e4eb4859bcff275949786"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/466dae7ee920499b9b92dc86fd791692.json",
+      "sha256": "1da18a56977f827234bfbe184e69a1228e3b9d42a3e78155b13f7e5f02e441de",
+      "value": {
+        "generated_at": "2026-10-18T18:00:30.510954+08:00",
+        "input_sha256": "f9544b788014bed5c2e2de90bb9095acaa5fe120b2f8e0b892cf7a1fb6e61b05",
+        "product_sha256": "b1a5d9f6cf313f566996bd4bde9efeb178f2cd4574d8748a9ab42afcfd0ce23c",
+        "run_id": "466dae7ee920499b9b92dc86fd791692"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/fbf5e99c50324c549a5c83792d875b3b.json",
+      "sha256": "40d385989ac1756431d6e5f122a038bcf10eb971ae407658aff44a2355e1858e",
+      "value": {
+        "generated_at": "2026-10-18T16:32:18.387495+08:00",
+        "input_sha256": "d343001cb6b76cc3fd4e8729da5497620d5c1c46ade5ed518824ca58f1258c46",
+        "product_sha256": "f8d33374199d0d8c01177744785268ef979ed5d0d884699d79c50b9e1e8368a5",
+        "run_id": "fbf5e99c50324c549a5c83792d875b3b"
+      }
+    },
+    {
+      "phase": "MANUAL",
+      "relative": "catalog/20261020/MANUAL/81f492f043a346828a5b72cc6bc4206b.json",
+      "sha256": "0a691ef549d893f70eda5883343726aa2e38755ee383bffe62277899348ac8be",
+      "value": {
+        "generated_at": "2026-10-18T14:54:49.465379+08:00",
+        "input_sha256": "d1afa15d1df2e664a453020ec3fc1c1003772122f806f2063eb5257125d03f49",
+        "product_sha256": "349e7d372b448e3f6cd448b69baa7db61165600cd6e486879dcdf88f11919031",
+        "run_id": "81f492f043a346828a5b72cc6bc4206b"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/5feb2dbf6d3c4b6b8598e9dae67af542.json",
+      "sha256": "7b9b028eb1d4fbe9d9bae74aca759ee8e3313ad5c10360bafb4717381d0ebbfa",
+      "value": {
+        "generated_at": "2026-10-16T17:39:41.030446+08:00",
+        "input_sha256": "0b6340806c0e6a33b0c57c995951f82c4baa7a435976b55362746adf43a11cf1",
+        "product_sha256": "b0ff4e3925fcb938e364c8f157e3ea993a138d803b0910216ded5054aedfa802",
+        "run_id": "5feb2dbf6d3c4b6b8598e9dae67af542"
+      }
+    },
+    {
+      "phase": "NEXT_DAY",
+      "relative": "catalog/20261020/NEXT_DAY/85bec0f938224cc4ac92be7dbefcb2df.json",
+      "sha256": "542a5fbf2a08d452b45baa5c8e5a6c2f96b926170e61bae34abd2dbcc5fd5b4e",
+      "value": {
+        "generated_at": "2026-10-16T16:30:04.972569+08:00",
+        "input_sha256": "bd584b28232fb3c458baab2c6ae93ea6e353c0ea30bfc4ecbcd2ba2920fb8438",
+        "product_sha256": "3b1bfe93cf5a7e1efdb4429eb2a739f3411f5d6b63cfc2e7df2ad2f1477b00c7",
+        "run_id": "85bec0f938224cc4ac92be7dbefcb2df"
+      }
+    }
+  ],
+  "old_prepared_run05d40_published_snapshot_exists": false,
+  "config": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+    "sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+    "state_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench",
+    "scheduled_lanes": [
+      "US_MAPPING",
+      "OVERSOLD"
+    ]
+  },
+  "safety": {
+    "scope_research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "note": "No trading or service action; configured bindings only, no new run."
+  },
+  "service_changes": 0,
+  "business_state_writes": 0,
+  "provider_calls": 0,
+  "business_posts": 0,
+  "candidate_changes": 0,
+  "scheduler": "NOT_TOUCHED",
+  "old_failed_task": "NOT_RETRIED",
+  "builds_tests": "NOT_RUN_READ_ONLY_PRECHECK"
+}

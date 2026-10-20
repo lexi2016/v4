@@ -1,0 +1,67 @@
+{
+  "at": "2026-10-20T20:18:53.428580+08:00",
+  "checks": [
+    {
+      "path": "/healthz",
+      "status": 200,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "bytes": 15,
+      "health": {
+        "status": "ok"
+      }
+    },
+    {
+      "path": "/readyz",
+      "status": 200,
+      "sha256": "cf22ea4da9ccd23f3edc11c29e1cc8a43d90d6496f6c62eb8993face61b7c3a1",
+      "bytes": 73,
+      "readiness": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "path": "/api/v1/runs/date-list?date=20261020",
+      "status": 200,
+      "sha256": "838c9e10932f137316bacd057cf0da96c8e2af62fe803e626e8c1c60e44bd727",
+      "bytes": 1447999,
+      "runtime_identity": {
+        "application": "V4",
+        "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+        "release_id": "announcement-daily-workflow-20261020-r8",
+        "process_status": "CANNOT_CONFIRM",
+        "manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a"
+      },
+      "keys": [
+        "ok",
+        "default_date",
+        "navigation_date",
+        "navigation_timezone",
+        "navigation_policy",
+        "dates",
+        "stage_dates",
+        "future_target_dates",
+        "independent_pool_evidence",
+        "system_date",
+        "hk_observation_only_dates",
+        "stage_artifacts",
+        "materialized",
+        "partial",
+        "blocked",
+        "materialized_stage_dates",
+        "partial_stage_dates",
+        "blocked_stage_dates",
+        "review_dates",
+        "research_dates",
+        "research_source",
+        "requested_date",
+        "selected_date",
+        "runtime_identity"
+      ]
+    }
+  ],
+  "state": "READ_ONLY_PRECHECK_NOT_NEW_RUN_VERIFICATION",
+  "posts": 0,
+  "provider_calls": 0
+}

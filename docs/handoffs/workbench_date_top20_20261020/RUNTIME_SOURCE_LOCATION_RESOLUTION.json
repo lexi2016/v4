@@ -1,0 +1,43 @@
+{
+  "state": "RESOLVED_TO_FROZEN_R8_OVERLAY_BYTES",
+  "first_attempt": "WT after-hash assertion failed before any binding/candidate write",
+  "choice": "Use exact receipt r8_source_overlay/build-stage bytes; no WT or frontend receipt edit",
+  "evidence": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "declared_r8_overlay_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+      "actual_staged_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+      "worktree_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+      "staged_matches_declared": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "declared_r8_overlay_sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+      "actual_staged_sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+      "worktree_sha256": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86",
+      "staged_matches_declared": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "declared_r8_overlay_sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+      "actual_staged_sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+      "worktree_sha256": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7",
+      "staged_matches_declared": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "declared_r8_overlay_sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+      "actual_staged_sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+      "worktree_sha256": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815",
+      "staged_matches_declared": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "declared_r8_overlay_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+      "actual_staged_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+      "worktree_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+      "staged_matches_declared": true
+    }
+  ],
+  "controller_notified": true
+}

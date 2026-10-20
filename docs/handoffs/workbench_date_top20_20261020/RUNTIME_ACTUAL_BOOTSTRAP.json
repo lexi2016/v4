@@ -1,0 +1,82 @@
+{
+  "state": "API_ACTIVATED_RUNNING_IDENTITY_VERIFIED",
+  "at": "2026-10-20T21:04:18.357097+08:00",
+  "commands": [
+    {
+      "command": [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:04:18.357481+08:00",
+      "finished_at": "2026-10-20T21:04:18.362156+08:00",
+      "rc": 113,
+      "raw_sha256": "7c8b4fb9424e06ab5897cc9254bb73061e725eb66237f9c6110a1c29a5b395d3",
+      "raw_evidence": "local_only/runtime/activation-complete-absence.txt"
+    },
+    {
+      "command": [
+        "/bin/launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist"
+      ],
+      "at": "2026-10-20T21:04:18.362210+08:00",
+      "finished_at": "2026-10-20T21:04:18.366495+08:00",
+      "rc": 0,
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_evidence": "local_only/runtime/activation-complete-bootstrap.txt"
+    },
+    {
+      "command": [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:04:18.366551+08:00",
+      "finished_at": "2026-10-20T21:04:18.370074+08:00",
+      "rc": 0,
+      "raw_sha256": "a881bf5ea6f68ba7b8b6cc88e6448aa11bf06801bf6e72048bd640d7dfdeff36",
+      "raw_evidence": "local_only/runtime/activation-complete-running-1.txt"
+    },
+    {
+      "command": [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:04:18.879765+08:00",
+      "finished_at": "2026-10-20T21:04:18.884826+08:00",
+      "rc": 0,
+      "raw_sha256": "3f6d296e32b116026e4963a59ddfd8152164b47f5fbf3112a663301740dfe1ef",
+      "raw_evidence": "local_only/runtime/activation-complete-running-2.txt"
+    },
+    {
+      "command": [
+        "/usr/sbin/lsof",
+        "-a",
+        "-p",
+        "42476",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "at": "2026-10-20T21:04:18.884963+08:00",
+      "finished_at": "2026-10-20T21:04:18.937274+08:00",
+      "rc": 0,
+      "raw_sha256": "c83452971295f6b34dc136b3bdec8348ff5c0fb2c3ca9249af705e313880d71b",
+      "raw_evidence": "local_only/runtime/activation-complete-cwd.txt"
+    }
+  ],
+  "original_bootout_count": 1,
+  "repeated_bootout": false,
+  "publication": "NOT_RUN",
+  "new_pid": 42476,
+  "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app",
+  "plist_sha256": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752",
+  "manifest_sha256": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+  "bootstrap_count": 1,
+  "finished_at": "2026-10-20T21:04:18.937596+08:00",
+  "transient_absence_note": "First immediate print after bootout showed SIGTERMed, subsequent read-only print showedRC113; no extra bootout, actualabsence reconfirmed before singlebootstrap",
+  "http_readback": "PENDING"
+}

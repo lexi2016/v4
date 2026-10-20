@@ -1,0 +1,18 @@
+{
+  "state": "SECOND_GUARD_SOCKET_DIAGNOSIS",
+  "at": "2026-10-20T21:01:52.482159+08:00",
+  "command": [
+    "/usr/sbin/lsof",
+    "-nP",
+    "-iTCP:57258",
+    "-sTCP:ESTABLISHED"
+  ],
+  "returncode": 1,
+  "output": "",
+  "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "guard_client_http_calls": 0,
+  "guard_process_exited": true,
+  "guard_http_connections": "NONE_CREATED; only launchctl/lsof/ps/filesystem reads",
+  "service_changes": 0,
+  "continuation": "STOP_NO_FURTHER_RETRY"
+}

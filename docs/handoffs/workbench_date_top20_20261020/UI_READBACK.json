@@ -1,0 +1,101 @@
+{
+  "operator": "/root",
+  "at": "2026-10-20T21:12:42.246472+08:00",
+  "state": "CONTROLLER_UI_OBSERVED_PENDING_INDEPENDENT_ACCEPTANCE",
+  "surface": "Existing user IAB tab http://127.0.0.1:8873/manager-selection/",
+  "actual_control": "native SELECT",
+  "date_options": 83,
+  "actions": [
+    "Reload after API owner reported new release active",
+    "Open date control and observe saved dates load",
+    "Select20261019: URL changes, no saved plan and previous run absent",
+    "Return20261020: default15:03 e96a793 restored",
+    "Select05d40 from version dropdown: route getsNEXT_DAY/run_id; observe original10:24 time, fixed benefit5/risk0 and410 research candidates",
+    "Change date to19 from fixed run: old phase/run cleared, NO_SAVED_PLAN",
+    "Return20 and preserve default15:03, final screenshot and markDeliverable"
+  ],
+  "reset_evidence": {
+    "date": "20261019",
+    "hasOldRun": false,
+    "noSavedPlan": true,
+    "phase": "",
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261019",
+    "version": ""
+  },
+  "final_evidence": {
+    "currentDateControlTag": "SELECT",
+    "date": "20261020",
+    "latestPreserved": true,
+    "optionCount": 83,
+    "phase": "",
+    "strictZero": true,
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261020",
+    "version": ""
+  },
+  "published_run_ui": {
+    "candidateRows": 410,
+    "dateValue": "20261020",
+    "lines": [
+      "16:30 次日草案 / 05d40e7775c44304bbd98016194b0d0e",
+      "手动研究 / fbf5e99c50324c549a5c83792d875b3b",
+      "2026/10/20 10:24 香港时间",
+      "05d40e7775c44304bbd98016194b0d0e",
+      "美股映射推荐 · 固定映射受益判定 5 / 固定映射风险判定 0",
+      "月度观察池 698 只 · US 来源会话 20261019 · HK 行情信号会话 20261016 · HK 目标日 20261020。代理变化是固定映射下的同向传导研究假设，效果未验证；正式港股通资格 CANNOT_CONFIRM，历史 PIT 未验证。",
+      "研究候选 410 只（不等于正式入选）",
+      "HK.02698 乐舒适",
+      "HK.03698 徽商银行",
+      "正向美股来源涨幅 5.963303%",
+      "HK.00303 未知",
+      "服务端筛选后共 0 行；本页 0 行， 每页最多 50 行。完整分类计数独立于此分页。"
+    ],
+    "namedRows": [
+      "HK.06808 高鑫零售\n在月度观察池\n\tDATED_WEAK_PEER\nDATED_WEAK_PEER\n\tNEGATIVE_WITHOUT_POSITIVE\n正向美股来源涨幅 未知\n\tNEGATIVE_SOURCE_MOVE、DATED_RELATION_REQUIRES_REVIEW\t\n查看 1 条",
+      "HK.06993 蓝月亮集团\n在月度观察池\n\tDATED_WEAK_PEER\nDATED_WEAK_PEER\n\tNEGATIVE_WITHOUT_POSITIVE\n正向美股来源涨幅 未知\n\tNEGATIVE_SOURCE_MOVE、DATED_RELATION_REQUIRES_REVIEW\t\n查看 1 条",
+      "HK.09633 农夫山泉\n在月度观察池\n\tDATED_WEAK_PEER\nDATED_WEAK_PEER\n\tNEGATIVE_WITHOUT_POSITIVE\n正向美股来源涨幅 未知\n\tNEGATIVE_SOURCE_MOVE、DATED_RELATION_REQUIRES_REVIEW\t\n查看 1 条"
+    ],
+    "phase": "NEXT_DAY",
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261020&phase=NEXT_DAY&run_id=05d40e7775c44304bbd98016194b0d0e",
+    "version": "05d40e7775c44304bbd98016194b0d0e"
+  },
+  "proof_files": [
+    {
+      "path": "date-20261019.png",
+      "sha256": "209b2304046697dac5764097928b9efba30f9dec36a91148298a81487389e96b"
+    },
+    {
+      "path": "date-20261019.ax.txt",
+      "sha256": "a16c8dae41aaf53b37ea97d5c4259b85ee9dcc13142ca696ff1e3aa77b661c04"
+    },
+    {
+      "path": "default20.json",
+      "sha256": "813a4fc85f57f18b3aa2728e570f40ef6106d879abe3d7692f9eea15284243ea"
+    },
+    {
+      "path": "repaired-run05d40.json",
+      "sha256": "376b42d1a30df057379c47922797b37991f6fbc5e855da7239d5398d1e0fd465"
+    },
+    {
+      "path": "repaired-run05d40.png",
+      "sha256": "f4b2facb9f2c125833d6e333cdde421b4605b509e6e4d2ab5b601880bfe6df48"
+    },
+    {
+      "path": "explicit-run-reset.json",
+      "sha256": "c5228da9270d35af389c514ee1d6982c6dd0917154e8b272efa14e2cbb706689"
+    },
+    {
+      "path": "date-dropdown-final.png",
+      "sha256": "7b9e3317d3a0c60a3986723015914af7d1a2e67aa2039fb67baa447d3d9a194b"
+    },
+    {
+      "path": "final20.json",
+      "sha256": "b44745f537c0813cebba47b71e99e629204f1ec970acab84bf3d84711ea69c61"
+    }
+  ],
+  "limitations": [
+    "Initial page/date-list delayed while concurrent API owner read87.6MB day/54.3MB lane; later completed without additional reload. No performance root-cause claim or remediation.",
+    "Screenshot capture did not include native select popup overlay; expanded accessibility state and actual dropdown selections observed",
+    "No new selection/POST/provider/training/trade or natural-slot acceptance"
+  ],
+  "read_only_ui": true
+}

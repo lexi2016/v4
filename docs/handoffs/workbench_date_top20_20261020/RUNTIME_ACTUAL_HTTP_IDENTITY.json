@@ -1,0 +1,126 @@
+{
+  "state": "ACTUAL_RUNTIME_HEALTH_AND_STATIC_VERIFIED",
+  "at": "2026-10-20T21:04:57.983017+08:00",
+  "actual_pid": 42476,
+  "manifest_sha256": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+  "checks": [
+    {
+      "path": "/healthz",
+      "status": 200,
+      "bytes": 15,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "response_closed": true
+    },
+    {
+      "path": "/readyz",
+      "status": 200,
+      "bytes": 73,
+      "sha256": "cf22ea4da9ccd23f3edc11c29e1cc8a43d90d6496f6c62eb8993face61b7c3a1",
+      "response_closed": true,
+      "readiness": {
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    },
+    {
+      "path": "/api/v1/runs/date-list?date=20261020",
+      "status": 200,
+      "bytes": 1447996,
+      "sha256": "8dab84e855a92c5baada3e05108ed9d882e068fdf352665a0d356ec58a4aba72",
+      "response_closed": true,
+      "runtime_identity": {
+        "application": "V4",
+        "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+        "release_id": "workbench-date-top20-api-20261020-r1",
+        "manifest_sha256": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+        "process_status": "CANNOT_CONFIRM"
+      },
+      "selected_date": "20261020"
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 752,
+      "sha256": "f36dc1fff0d419335885f93396d1c395e83bd5d3fda59ef062818ab384334a7a",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/daily-research-command/",
+      "status": 200,
+      "bytes": 606,
+      "sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/manager-selection/",
+      "status": 200,
+      "bytes": 588,
+      "sha256": "b9ed6f38df991da1feb4ca1aab22b4a9dddc714cadc80a0300c50b063af137dd",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/dailyResearchCommand-CgLVpOEW.js",
+      "status": 200,
+      "bytes": 26611,
+      "sha256": "165dabaaed9c7f86c0bd0d9c36d3baadfd1468c1ed042ccf082db39d00de2a21",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/dailyResearchCommand-D7J2FMsY.css",
+      "status": 200,
+      "bytes": 12281,
+      "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/main-CKM5QTE8.css",
+      "status": 200,
+      "bytes": 51279,
+      "sha256": "215c8826f88991fe97ebc941b2542bdcca2cbfe274dfe5674cfa5fe398fbc8fa",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/main-CbQYaqRl.js",
+      "status": 200,
+      "bytes": 239842,
+      "sha256": "2de8bb0be84c81219288eb34f1c9b169215856aabc5e6be19abb88f57b461b3f",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/managerSelection-Ch6yMZNt.js",
+      "status": 200,
+      "bytes": 152679,
+      "sha256": "8456c11750ef3638677a37904d31508a61c8c6af11913e2bc0cdac0a5f4684e7",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/managerSelection-G7Fr7fFO.css",
+      "status": 200,
+      "bytes": 12340,
+      "sha256": "00533007790440d4b4f5b2b926b8990b4e19176348eb0c4ad535660a363a0120",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    },
+    {
+      "path": "/assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+      "status": 200,
+      "bytes": 65713,
+      "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+      "response_closed": true,
+      "matches_candidate_bytes": true
+    }
+  ],
+  "all_http_responses_closed": true,
+  "requests_method": "GET_ONLY",
+  "publication": "NOT_YET_EXECUTED",
+  "UI": "NOT_RUN_CONTROLLER_OWNS_BROWSER"
+}

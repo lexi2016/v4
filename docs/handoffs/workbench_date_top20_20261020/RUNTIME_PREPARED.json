@@ -1,0 +1,78 @@
+{
+  "state": "FROZEN_PREPARED_NOT_ACTIVATED",
+  "at": "2026-10-20T20:55:39.410913+08:00",
+  "writer": "/root/mapping_deployer",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1",
+  "bindings": {
+    "RUNTIME_SCOPE.json": "d5e87ab8279a50ae6e7bfd37ed3334bd499b870a25a495649864693a4568f311",
+    "RUNTIME_FRONTEND_BINDING.json": "a6735743300a86bf15cb4bb88b9c2b4a9cd1807c16d25346a0fe279166155b39",
+    "RUNTIME_PREPARE_API.py": "f4770c8f2bb695153174e0289c32bfcd1328fa27c5887994f1bd3e79c93d86cd",
+    "RUNTIME_CANDIDATE_PREPARED.json": "145d40406e698859a43d7766da3c67ccf1a579a994567bda1cc6b6fa203bb105",
+    "RUNTIME_PUBLISH_RESULT.py": "98c642786209b9518d5152e6371813b465e5a0e4c7c467b7d94dca9b638757de",
+    "RUNTIME_RESULT_PREPARED.json": "bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958",
+    "RUNTIME_PUBLISHER_REBIND.json": "319c014621265048798aff1e1284b65e54b9f503a7cbbec3a73caa4760b53b9c",
+    "RUNTIME_PUBLISHER_COMPATIBILITY.json": "f827a1114f7e21abbfa86a2e1c2b1052ca791cd7b818bf76985f562824215c2d",
+    "RUNTIME_BACKEND_PREPARED.json": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+    "RUNTIME_CHECK_ONLY_RECEIPT.json": "7b8351abb9cdddedefb6198301e87308ce8cb2b2a02079f7e2974facb2f4b2a0",
+    "RUNTIME_EXECUTION_PLAN.md": "73ec7c92981cee8f6c24b80cf1a6dc011723229b412e1926e4f6402791598e1b",
+    "FRONTEND_PREPARED.json": "1fa62966c23663e99331ef9f7a150d23aebcc89a63024920d7eab1db00d54fc9",
+    "FRONTEND_DELTA.json": "b789fac96ac28754d9c600d930ecf0d930360c7e5977712e37e032a51e040f50",
+    "FRONTEND_SOURCE_OVERLAY.patch": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950"
+  },
+  "candidate_manifest_sha256": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+  "proposal_sha256": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752",
+  "parent_manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+  "parent_plist_sha256": "5d5c01d354c10787b70fb56919fa0652592a49dc9ca003c6ef4e8c1b2ba7b41b",
+  "inventory_counts": {
+    "parent": 1274,
+    "candidate": 1276,
+    "exact_delta": 11
+  },
+  "source_root": "FRONTEND binding.source_root: exact frozen actual-r8 staged production source",
+  "reused_run": "05d40e7775c44304bbd98016194b0d0e",
+  "lane_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+  "full_input_snapshot_sha256": "2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8",
+  "immutable_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+  "expected_old_pointer_sha256": "81ea8ec394f2e874b381a9a2dba9206e9cd3eb40c98bf2e65c2766c95fdd11e4",
+  "result_semantics": {
+    "daily_unique": 698,
+    "BENEFIT": 5,
+    "OBSERVATION": 303,
+    "UNMAPPED": 379,
+    "UNASSESSED": 11,
+    "merged_stocks": 701,
+    "merged_all_UNASSESSED": true,
+    "formal_selected": 0,
+    "strict": "PAUSED_NOT_EXECUTED"
+  },
+  "existing_today_intraday_preserved": "e96a793fe0f0464ca354927d301e13d3 /15:03:53 unchanged; new saved result keeps10:24 generated time, explicit run selection required",
+  "scheduler": "PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+  "reuse_pass": [
+    "backend source/tests",
+    "full existing05d40 isolated pipeline/artifacts",
+    "R2 guard repairs/tests",
+    "frontend r8 overlay source/tests/static build"
+  ],
+  "incremental_review": [
+    "candidate full inventory and exact11delta/non-delta preservation",
+    "proposal only API bindings",
+    "final frontend metadata/source provenance",
+    "literal R2 publisher rebind/rawSHA binding/check-only"
+  ],
+  "unexecuted": [
+    "activation",
+    "live publication",
+    "business POST/provider",
+    "scheduler changes",
+    "new pipeline execution",
+    "actual API/UI acceptance",
+    "natural verification",
+    "Git"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

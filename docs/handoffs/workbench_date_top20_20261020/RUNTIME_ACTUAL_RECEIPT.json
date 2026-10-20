@@ -1,0 +1,178 @@
+{
+  "state": "DEPLOYED_PUBLISHED_API_VERIFIED_UI_CONTROLLER_PENDING",
+  "at": "2026-10-20T21:09:48.508452+08:00",
+  "unique_runtime_owner": "/root/mapping_deployer",
+  "actual_release": "workbench-date-top20-api-20261020-r1",
+  "actual_pid": 42476,
+  "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app",
+  "manifest_sha256": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+  "plist_sha256": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752",
+  "evidence": {
+    "RUNTIME_PREPARED.json": "1b9fff0b22e83e01fbc9491450f7334c8aeb4a169b1fe27d7a9aebf7251b9bfa",
+    "CONTROLLER_RUNTIME_CONTINUATION.json": "2edecb8af6678e5a4ce3e4b1d1c56a48ebcceee27d9abc9ec6c26aa64c43f00a",
+    "INDEPENDENT_RUNTIME_REVIEW.json": "f73d639361c1a10e46750c255cb8d444a7ee719b2753252635f5e3ce503b63a1",
+    "RUNTIME_ACTUAL_STOP.json": "a9d9d64df7bdddb8d27b561fdfcea8e925882bd1a61a6544f20e16d41ec23360",
+    "RUNTIME_ACTUAL_ACTIVATION.json": "30917f5ccb4824c04aeba79a71dd3c620e91eee6f18b69958a6410fef6c6aa0a",
+    "RUNTIME_ACTUAL_SOCKET_DIAGNOSIS.json": "8a47250a8527bdf396c9ea03c6bf959eac7bd62795995999d098167b582bae90",
+    "RUNTIME_ACTUAL_FINAL_ACTIVATION.json": "0d3b274b5f21c1c8ea9c792fae55846479d2fcf60f7436bc38f1fe40c1f9dafb",
+    "RUNTIME_ACTUAL_BOOTSTRAP.json": "f49892a131eb67ebb5982231c4a7f5e4b5aa4ac92d483251ae8282029a8e7fe9",
+    "RUNTIME_ACTUAL_HTTP_IDENTITY.json": "6192b400d46833f91b4806686554c5b9cbe3340cb62555e77b2279085b445a93",
+    "RUNTIME_ACTUAL_PUBLICATION_COMMANDS.json": "cd2eaf3a3f6f31fb9411735908d3d3c2212c850e01b1179269b985e77eb02e46",
+    "RUNTIME_PUBLICATION_RECEIPT.json": "fe7e867b425029b8d09087f52384d57280488b09be2b406a0089d7d8824de2e0",
+    "RUNTIME_ACTUAL_API_VERIFIED.json": "6f5e8632f0455c9a9808976014ac7539ed163634f67cbaec0b19478a0bf85b13"
+  },
+  "activation": {
+    "final_guard": "PASS_NO_ACTIVE_ATTEMPT_CHILD_SOCKET",
+    "prior_two_socket_stops_retained": true,
+    "plist_exact_proposal": true,
+    "bootout_count": 1,
+    "bootstrap_count": 1,
+    "absence": "Immediate print after bootout brieflySIGTERMed; subsequent actualstateRC113 verified before the sole bootstrap; no extra bootout",
+    "idle_evidence_at": "2026-10-20T21:03:42.388328+08:00",
+    "new_running_identity_verified_at": "2026-10-20T21:04:18.937596+08:00"
+  },
+  "http": {
+    "health": "200ok",
+    "ready_safety_all_false": true,
+    "date_list_manifest_execution_files_verified": true,
+    "date_list_process_status": "CANNOT_CONFIRM retained; separate launchctl positivePID/lsof cwd proof verified",
+    "manager_html_js_css": "HTTP exact frozen SHA",
+    "root_daily_and_shared_assets": "HTTP exact retained bytes",
+    "all_own_http_responses_closed": true,
+    "no_further_business_GET_required": true
+  },
+  "publication": {
+    "mode": "PROCESSING_RECOVERY",
+    "invocations": 1,
+    "run_id": "05d40e7775c44304bbd98016194b0d0e",
+    "phase": "NEXT_DAY",
+    "trigger": "MANUAL",
+    "new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+    "source_cutoff": "2026-10-20T05:44:00.587402+08:00",
+    "snapshot_cutoff": "2026-10-20T10:24:44.342517+08:00",
+    "generated_at": "2026-10-20T10:24:44.683578+08:00",
+    "times_unchanged": true
+  },
+  "daily": {
+    "unique_stocks": 698,
+    "decision_counts": {
+      "BENEFIT": 5,
+      "OBSERVATION": 303,
+      "UNMAPPED": 379,
+      "UNASSESSED": 11
+    },
+    "benefit_symbols": [
+      "HK.00992",
+      "HK.01211",
+      "HK.01810",
+      "HK.02015",
+      "HK.09868"
+    ],
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "strict": "PAUSED_NOT_EXECUTED"
+  },
+  "merged": {
+    "total": 701,
+    "counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 701,
+      "observation_only": 0,
+      "not_selected": 0
+    }
+  },
+  "catalog": {
+    "diagnostic_candidates": 410,
+    "relation_dispositions": 1003,
+    "formal_selection": false,
+    "three_targets": [
+      {
+        "hk_code": "09633",
+        "rank": 207,
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+        "relation_ids": [
+          "R955"
+        ]
+      },
+      {
+        "hk_code": "06993",
+        "rank": 203,
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+        "relation_ids": [
+          "R942"
+        ]
+      },
+      {
+        "hk_code": "06808",
+        "rank": 198,
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+        "relation_ids": [
+          "R924"
+        ]
+      }
+    ]
+  },
+  "recommendation": {
+    "positive_count": 0,
+    "counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 699,
+      "not_selected": 2,
+      "observation_only": 0
+    }
+  },
+  "default_preserved": {
+    "run_id": "e96a793fe0f0464ca354927d301e13d3",
+    "generated_at": "2026-10-20T15:03:53.485272+08:00",
+    "product_sha256": "9969dec205e67169c3d7e7168497f5f40c71839caf68358e6f42a9e78a6811d9"
+  },
+  "history_preservation": {
+    "count": 23,
+    "new_run_occurrences": 1,
+    "existing_all_catalog_entries_unchanged": true,
+    "retained_catalog_and_pointer_count": 81,
+    "only_existing_entry_delta": [
+      {
+        "path": "pointers/20261020/NEXT_DAY.json",
+        "before": "81ea8ec394f2e874b381a9a2dba9206e9cd3eb40c98bf2e65c2766c95fdd11e4",
+        "after": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248"
+      }
+    ],
+    "added_catalog_entry": [
+      "catalog/20261020/NEXT_DAY/05d40e7775c44304bbd98016194b0d0e.json"
+    ]
+  },
+  "old_source_input_and_snapshot_preserved": true,
+  "five_published_artifacts_match_frozen_bytes": true,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "not_run": [
+    "strict selection",
+    "provider fetch",
+    "business POST",
+    "pipeline recomputation",
+    "scheduler/producer changes",
+    "model or gate changes",
+    "rollback unnecessary",
+    "new build/source tests already independently PASS",
+    "UI by runtime owner",
+    "natural operation",
+    "Git by runtime owner"
+  ],
+  "limits": [
+    "Processing recovery of frozenUS19/HK16/target20; not natural success",
+    "5BENEFIT are daily research classifications, merged formal selected0",
+    "410 catalog diagnostic candidates are not formal selections",
+    "scheduler PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+    "full typecheck pre-existing baseline failure retained; no target diagnostics added"
+  ],
+  "write_ownership": "Released at handoff; actual UI/controller acceptance and Git synchronization owned by controller"
+}

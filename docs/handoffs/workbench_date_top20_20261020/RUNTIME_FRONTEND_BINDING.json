@@ -1,0 +1,100 @@
+{
+  "frontend_prepared_path": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/FRONTEND_PREPARED.json",
+  "frontend_prepared_sha256": "1fa62966c23663e99331ef9f7a150d23aebcc89a63024920d7eab1db00d54fc9",
+  "frontend_delta_path": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/FRONTEND_DELTA.json",
+  "frontend_delta_sha256": "b789fac96ac28754d9c600d930ecf0d930360c7e5977712e37e032a51e040f50",
+  "frontend_patch_path": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/FRONTEND_SOURCE_OVERLAY.patch",
+  "frontend_patch_sha256": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950",
+  "parent_manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+  "parent_proofs": [
+    {
+      "pointer": "/actual_parent/app_root",
+      "expected": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app"
+    },
+    {
+      "pointer": "/actual_parent/manifest_sha256",
+      "expected": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a"
+    },
+    {
+      "pointer": "/actual_parent/application_inventory_sha256",
+      "expected": "97b803c3e009e533e77089533171aec693e5f2f8a60a7317262cbdf093623595"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web/src/manager-workbench/Workbench.vue",
+      "sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+      "parent_sha256": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec",
+      "receipt_path_pointer": "/r8_source_overlay/changed_files/0/path",
+      "receipt_sha_pointer": "/r8_source_overlay/changed_files/0/after_sha256",
+      "receipt_before_sha_pointer": "/r8_source_overlay/changed_files/0/before_sha256"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web/src/manager-workbench/api.ts",
+      "sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+      "parent_sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726",
+      "receipt_path_pointer": "/r8_source_overlay/changed_files/1/path",
+      "receipt_sha_pointer": "/r8_source_overlay/changed_files/1/after_sha256",
+      "receipt_before_sha_pointer": "/r8_source_overlay/changed_files/1/before_sha256"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web/src/manager-workbench/types.ts",
+      "sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+      "parent_sha256": "66d09d73f2a2c9ac58adf22b97d32f935d51dae53afb191d03f9a4f6d9a4e821",
+      "receipt_path_pointer": "/r8_source_overlay/changed_files/2/path",
+      "receipt_sha_pointer": "/r8_source_overlay/changed_files/2/after_sha256",
+      "receipt_before_sha_pointer": "/r8_source_overlay/changed_files/2/before_sha256"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web/src/manager-workbench/useWorkbench.ts",
+      "sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+      "parent_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+      "receipt_path_pointer": "/r8_source_overlay/changed_files/3/path",
+      "receipt_sha_pointer": "/r8_source_overlay/changed_files/3/after_sha256",
+      "receipt_before_sha_pointer": "/r8_source_overlay/changed_files/3/before_sha256"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web/src/manager-workbench/workbench.css",
+      "sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+      "parent_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+      "receipt_path_pointer": "/r8_source_overlay/changed_files/4/path",
+      "receipt_sha_pointer": "/r8_source_overlay/changed_files/4/after_sha256",
+      "receipt_before_sha_pointer": "/r8_source_overlay/changed_files/4/before_sha256"
+    }
+  ],
+  "static_files": [
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/build_output/dist/manager-selection/index.html",
+      "sha256": "b9ed6f38df991da1feb4ca1aab22b4a9dddc714cadc80a0300c50b063af137dd",
+      "receipt_path_pointer": "/static_delta/0/path",
+      "receipt_sha_pointer": "/static_delta/0/after_sha256"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-Ch6yMZNt.js",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/build_output/dist/assets/managerSelection-Ch6yMZNt.js",
+      "sha256": "8456c11750ef3638677a37904d31508a61c8c6af11913e2bc0cdac0a5f4684e7",
+      "receipt_path_pointer": "/static_delta/1/path",
+      "receipt_sha_pointer": "/static_delta/1/after_sha256"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-G7Fr7fFO.css",
+      "source_file": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/build_output/dist/assets/managerSelection-G7Fr7fFO.css",
+      "sha256": "00533007790440d4b4f5b2b926b8990b4e19176348eb0c4ad535660a363a0120",
+      "receipt_path_pointer": "/static_delta/2/path",
+      "receipt_sha_pointer": "/static_delta/2/after_sha256"
+    }
+  ],
+  "tests": "Two regression specs remain in source/test delivery; only five production sources enter runtime overlay.",
+  "source_location": "Frozen actual-r8 staged/build source, not whole task worktree",
+  "frozen_at": "2026-10-20T20:43:46.216693+08:00",
+  "initial_binding_before_frontend_metadata_correction_sha256": "994c77cb3f557f048b91e7f3b495a5f9b33339a251d56e339b44f01fb9b1627b",
+  "source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+  "metadata_change": "Final metadata corrected two explanatory ownership statements only; source/static/patch bytes unchanged.",
+  "previous_binding_sha256": "a2d4baebbeada18d27654dbffad2111e0c1bf492d3955ebd05e81246bd379d8a"
+}

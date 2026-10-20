@@ -1,0 +1,112 @@
+{
+  "repository": "lexi2016/v4",
+  "branch": "codex/workbench-date-top20-20261020",
+  "base": "9b19ca180138499e5e29501fbf07cb03f61b5fd7",
+  "hashes": {
+    "apps/web/src/manager-workbench/Workbench.vue": {
+      "before": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+      "after": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8"
+    },
+    "apps/web/src/manager-workbench/api.ts": {
+      "before": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827",
+      "after": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86"
+    },
+    "apps/web/src/manager-workbench/types.ts": {
+      "before": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f",
+      "after": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7"
+    },
+    "apps/web/src/manager-workbench/useWorkbench.ts": {
+      "before": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+      "after": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815"
+    },
+    "apps/web/src/manager-workbench/workbench.css": {
+      "before": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532",
+      "after": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b"
+    },
+    "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts": {
+      "before": "572737c02e6ed91f08d6a68bffcbf6331e442928cb0a311ac1c2f0c94a0d520d",
+      "after": "dcd571b9d65d526341fce0d94d332bb0cdaf31909fec2c474378dd9ea3f84450"
+    },
+    "apps/web/src/manager-workbench/__tests__/workbench_dates.spec.ts": {
+      "before": null,
+      "after": "6fd19bb70ac0191fb6d607a0b407ed30d647000b5c72bf51065f71a5501214c6"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/SCOPE.json": {
+      "before": null,
+      "after": "20e48d7da2f25fca3a49d684e13b0b687e9309c185688377e1aadf606a84a63f"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/FRONTEND_PREPARED.json": {
+      "before": null,
+      "after": "1fa62966c23663e99331ef9f7a150d23aebcc89a63024920d7eab1db00d54fc9"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/FRONTEND_DELTA.json": {
+      "before": null,
+      "after": "b789fac96ac28754d9c600d930ecf0d930360c7e5977712e37e032a51e040f50"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/FRONTEND_SOURCE_OVERLAY.patch": {
+      "before": null,
+      "after": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/FRONTEND_IMPLEMENTATION.md": {
+      "before": null,
+      "after": "e648551600a21dcdfed43769856f55cf5220974c77fcb5bb239a819ea1154490"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/FRONTEND_METADATA_CHANGELOG.json": {
+      "before": null,
+      "after": "b9f69bc6f66ac62626b457e97331267e28caca7d6c0c3b6e4c58f1d7e30b05b0"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/INDEPENDENT_FRONTEND_REVIEW_R1.json": {
+      "before": null,
+      "after": "4cad758a9e5b202b4f5658440cd56420eaf14d2b7fd4f58934a99e04d656b33c"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/INDEPENDENT_FRONTEND_REVIEW_R2.json": {
+      "before": null,
+      "after": "9b57f5e5c9afc3e4d646203df6abf5824af4264c540d428ca7fb2d59ccaf88dd"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/INDEPENDENT_FRONTEND_REVIEW_R3.json": {
+      "before": null,
+      "after": "2f99b613b1ac72d475b89bb19e99fca0673b2fc727fa87ca78b48add76cd2487"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_capture.py": {
+      "before": null,
+      "after": "e32467d6a09b7d87a2b243ffd90f5b8b07a53b42b80bd4ee2cd63a6bcaf1a04f"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_compare.py": {
+      "before": null,
+      "after": "e3d539d3d1be53947f0601e9b7979c745c316e47eb302e43dd81f82b2a7de242"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_REPORT.md": {
+      "before": null,
+      "after": "e73dfd7f2774d7544a03e249b0017a9c475c3baa53e9a98543ac68a9a12c711a"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_RESULT.json": {
+      "before": null,
+      "after": "ca29312b1b88596dd99cf70029ba43b443106b06cd83906864f1fa74fdc43665"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_TOP20.csv": {
+      "before": null,
+      "after": "f6f81a697ba6f32c738d4d2488327e457eb4f9a3cb9ceab68b1aa17d36b757f4"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_CHECKS.json": {
+      "before": null,
+      "after": "bc174ed081b312f78d7e23843dbad4eae68ed1efc59d58415e1c146dad9307ad"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/RESEARCH_PREPARED.json": {
+      "before": null,
+      "after": "d54f82d2a4a0057e217e11e9e428a85c82d48a4a631a75f67451a6a21d08081c"
+    },
+    "docs/handoffs/workbench_date_top20_20261020/INDEPENDENT_RESEARCH_REVIEW.json": {
+      "before": null,
+      "after": "18ed58bb5dca92ba630beba852be8d6755bb10ca22e9bfcd9d0b4b07f8ff4ccd"
+    }
+  },
+  "guard_errors": [],
+  "commit": "04bd54ba49d2b40876af4c887eca420570ffdf67",
+  "tree": "123f25c1c785fb680c70e7720c2c52419f317a08",
+  "file_count": 24,
+  "remote_ref_readback": "MATCH",
+  "remote_fetched_file_sha_readback": "ALL_MATCH",
+  "local_head_index_alignment": "MATCH",
+  "untracked_files": "PRESERVED",
+  "raw_data_uploaded": false
+}

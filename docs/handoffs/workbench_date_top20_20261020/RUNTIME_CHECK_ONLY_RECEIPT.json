@@ -1,0 +1,14 @@
+{
+  "state": "CHECK_ONLY_READY_NO_LIVE_WRITES",
+  "at": "2026-10-20T20:55:39.410913+08:00",
+  "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -B docs/handoffs/workbench_date_top20_20261020/RUNTIME_PUBLISH_RESULT.py --check-only --prepared-sha256 bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958",
+  "returncode": 0,
+  "stdout": {
+    "state": "CHECK_ONLY_READY_NO_LIVE_WRITES",
+    "run_id": "05d40e7775c44304bbd98016194b0d0e"
+  },
+  "literal_rebind_reconstruction_exact": true,
+  "syntax_check": "ast.parse RC0",
+  "pipeline_rerun": false,
+  "actual_service_or_state_writes": 0
+}

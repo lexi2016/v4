@@ -1,0 +1,43 @@
+{
+  "state": "PUBLISHED_ONCE_API_READBACK_PENDING",
+  "at": "2026-10-20T21:05:18.464635+08:00",
+  "commands": [
+    {
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "docs/handoffs/workbench_date_top20_20261020/RUNTIME_PUBLISH_RESULT.py",
+        "--check-only",
+        "--prepared-sha256",
+        "bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958"
+      ],
+      "at": "2026-10-20T21:05:18.464898+08:00",
+      "finished_at": "2026-10-20T21:05:19.914298+08:00",
+      "returncode": 0,
+      "stdout": "{\"state\": \"CHECK_ONLY_READY_NO_LIVE_WRITES\", \"run_id\": \"05d40e7775c44304bbd98016194b0d0e\"}",
+      "raw_sha256": "4729ffb47773c1e54fa65739e2510a43067be0c7335104c1ca3bc7d5e94cbada",
+      "raw_path": "local_only/runtime/publication-check-only.txt"
+    },
+    {
+      "command": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "docs/handoffs/workbench_date_top20_20261020/RUNTIME_PUBLISH_RESULT.py",
+        "--publish",
+        "--prepared-sha256",
+        "bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958"
+      ],
+      "at": "2026-10-20T21:05:19.914534+08:00",
+      "finished_at": "2026-10-20T21:05:24.337904+08:00",
+      "returncode": 0,
+      "stdout": "{\"state\": \"PUBLISHED_PROCESSING_RECOVERY\", \"at\": \"2026-10-20T21:05:24.250613+08:00\", \"run_id\": \"05d40e7775c44304bbd98016194b0d0e\", \"product_sha256\": \"62e4ea7dacd357a77c7d625a4cfdcb00a635cb3cd1797e9fc0c600700d5c2ba0\", \"prepared_receipt_sha256\": \"bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958\", \"actual_pointer_sha256\": \"985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248\", \"provider_calls\": 0, \"business_posts\": 0, \"natural_verification\": \"NOT_RUN\"}",
+      "raw_sha256": "f1806b4d38232ce4cef15fd1f34484fb462d59d17fa70467e378990e9221d115",
+      "raw_path": "local_only/runtime/publication-publish.txt"
+    }
+  ],
+  "publish_invocations": 1,
+  "provider_calls": 0,
+  "business_posts": 0,
+  "finished_at": "2026-10-20T21:05:24.338151+08:00",
+  "publication_receipt_sha256": "fe7e867b425029b8d09087f52384d57280488b09be2b406a0089d7d8824de2e0"
+}

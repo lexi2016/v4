@@ -1,0 +1,44 @@
+{
+  "reviewer": "/root/deployment_reviewer",
+  "verdict": "REVIEWED_PASS",
+  "scope": "RUNTIME_CANDIDATE_AND_PUBLICATION_PLAN",
+  "findings": [],
+  "verified": [
+    "Full inventory 1274 to1276, exactly11delta, all non-delta identical",
+    "Three backend/five r8 frontend/three static files match frozen accepted SHAs",
+    "Announcement/root/daily/old assets/parent sidecars retained",
+    "Plist changes only11 release-identity fields; other fields match parent and backup",
+    "Publisher literal replacements reproduce original R2 exactly; immutable985b/fullpointer/PIDcwd/lockedCAS/rollback guards retained",
+    "All five05d40 artifact files byte-identical; business fields not recomputed",
+    "All PREPARED/frontend JSON-pointer/sync allowlist SHA references match"
+  ],
+  "commands_results": [
+    "Independent inventory/manifest/plist/source/artifact/rebind comparison RC0",
+    "Runtime publisher --check-only --prepared-sha256 bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958 RC0 CHECK_ONLY_READY_NO_LIVE_WRITES",
+    "Rebound temporary isolated guards 3/3 PASS RC0",
+    "Wrong result rawSHA rejected before import/store"
+  ],
+  "sha256": {
+    "prepared": "1b9fff0b22e83e01fbc9491450f7334c8aeb4a169b1fe27d7a9aebf7251b9bfa",
+    "manifest": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+    "inventory": "a1c2dcd47565e39315a269970e3a97c6a36bc4d7c1f64fcea36fa8d141d0a080",
+    "proposal": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752",
+    "publisher": "98c642786209b9518d5152e6371813b465e5a0e4c7c467b7d94dca9b638757de",
+    "result_receipt": "bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958"
+  },
+  "live_readback": "NEXT_DAY still81ea8ec3;05d40 formal snapshot absent, unpublished",
+  "limits": [
+    "PUBLISHED in isolated guard belongs only to FakeStore",
+    "Actual identity/idle/drift guard required before activation",
+    "Existing full typecheck FAIL retained; scheduler PENDING_PARENT_DRIFT"
+  ],
+  "NOT_RUN": [
+    "actual activation",
+    "actual publish/rollback",
+    "actual API/UI",
+    "natural run",
+    "provider/POST",
+    "source retest/rebuild",
+    "Git write"
+  ]
+}

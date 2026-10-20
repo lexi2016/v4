@@ -1,0 +1,54 @@
+{
+  "state": "STOP_SAFE_IDLE_ESTABLISHED_8873",
+  "at": "2026-10-20T21:01:00.612448+08:00",
+  "guard_observed_at": "2026-10-20T21:00:23.942832+08:00",
+  "prepared_sha256": "1b9fff0b22e83e01fbc9491450f7334c8aeb4a169b1fe27d7a9aebf7251b9bfa",
+  "authorization_sha256": "2edecb8af6678e5a4ce3e4b1d1c56a48ebcceee27d9abc9ec6c26aa64c43f00a",
+  "independent_runtime_review_sha256": "f73d639361c1a10e46750c255cb8d444a7ee719b2753252635f5e3ce503b63a1",
+  "guard_completed": {
+    "all_prepared_bindings_exact": true,
+    "parent_plist_exact": true,
+    "parent_manifest_exact": true,
+    "candidate_manifest_exact": true,
+    "proposal_exact": true,
+    "parent_full_inventory_exact": true,
+    "candidate_full_inventory_exact": true,
+    "running_state": true,
+    "parent_pid": 16695,
+    "parent_cwd_exact": true,
+    "direct_children": []
+  },
+  "blocking_evidence": {
+    "command": [
+      "/usr/sbin/lsof",
+      "-nP",
+      "-a",
+      "-p",
+      "16695",
+      "-iTCP:8873",
+      "-sTCP:ESTABLISHED"
+    ],
+    "command_returncode": 0,
+    "connection": "127.0.0.1:8873 -> 127.0.0.1:56992 ESTABLISHED",
+    "owner_pid": 16695,
+    "raw_evidence_path": "local_only/runtime/activation-preflight-sockets.txt",
+    "raw_evidence_sha256": "38c73f37370ce6c5bde1b789fa9991f83ca128d9e7e9e62545d2399bc906c291"
+  },
+  "guard_not_reached": [
+    "active attempts and latest phase pointers/newrun checks after socket assertion"
+  ],
+  "execution_result": "Python guard assertion raised before any live mutation; outer shell later route-only rg exited0; not an activation success",
+  "actual_plist_writes": 0,
+  "service_commands_executed": [],
+  "actual_store_writes": 0,
+  "publication": "NOT_RUN",
+  "activation": "NOT_RUN",
+  "rollback": "NOT_REQUIRED_NO_LIVE_CHANGES",
+  "provider_calls": 0,
+  "business_posts": 0,
+  "scheduler": "NOT_TOUCHED",
+  "tests_build_pipeline": "NOT_RERUN",
+  "git_mutations": 0,
+  "continuation": "STOPPED_NO_RETRY_NO_WAITER; exact frozen candidate/helper/artifacts retained",
+  "UI": "NOT_RUN_OWNED_BY_CONTROLLER"
+}

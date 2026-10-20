@@ -1,0 +1,50 @@
+{
+  "reviewer": "/root/deployment_reviewer",
+  "verdict": "REVIEWED_PASS",
+  "scope": "Actual task deployment, published result, API and UI behavior",
+  "findings": [],
+  "deployment": {
+    "historical": "r1 activated21:04; exactly one publication21:05; both socket STOP and transient SIGTERMed retained",
+    "current_release": "manual-backfill-button-20261020-r2",
+    "current_pid": 44298,
+    "current_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/manual-backfill-button-20261020-r2/app",
+    "current_manifest_sha256": "4454d885713ceac187d0bccfee3e314a5bba4b60f12ff52bb5250510b74da49e",
+    "preservation": "Current manifest binds exact r1 parent; all11 task source/static entries and manager asset closure byte-identical",
+    "health": "Independent GET /healthz 200 ok"
+  },
+  "run": {
+    "id": "05d40e7775c44304bbd98016194b0d0e",
+    "mode": "PROCESSING_RECOVERY / MANUAL / NEXT_DAY / PARTIAL",
+    "sessions": "US20261019 / HK price20261016 / target20261020",
+    "daily": "698 unique: BENEFIT5 / OBSERVATION303 / UNMAPPED379 / UNASSESSED11",
+    "merged": "701; formal selected0 watch0",
+    "catalog": "410 diagnostic research candidates, not formal selections",
+    "targets": {
+      "06808": "rank198 / DATED_WEAK_PEER / NEGATIVE_WITHOUT_POSITIVE",
+      "06993": "rank203 / DATED_WEAK_PEER / NEGATIVE_WITHOUT_POSITIVE",
+      "09633": "rank207 / DATED_WEAK_PEER / NEGATIVE_WITHOUT_POSITIVE"
+    },
+    "history": "23 versions, new run once;81 retained entries only NEXT_DAY pointer changed; source and5 published artifacts byte-identical",
+    "default": "15:03 e96a793 retained;05d40 keeps original10:24 processing time"
+  },
+  "UI": {
+    "operator": "/root; Reviewer did not personally click",
+    "historical_evidence": "83-option nativeSELECT;20/19/20; fixed-run date change resets phase/run;410 rows and3 targets DOM;3 screenshots independently viewed",
+    "current_evidence": "Reloaded DOM/rawSHA match: SELECT/date20/empty phase-version/default/newrun option/assets retained",
+    "screenshot_limit": "Current IAB0width prevents new screenshot; no current screenshot claimed; unchanged-byte historical real interactions reused"
+  },
+  "evidence_sha256": {
+    "actual_receipt": "0edec809881ff471ec548cd0ba6ddacf9e25fbdc4c14292ff5c5c75124e9d81e",
+    "API": "6f5e8632f0455c9a9808976014ac7539ed163634f67cbaec0b19478a0bf85b13",
+    "original_UI": "f3c1f5b57256bcf97ac57a2a2b4f2215568c24700eaf73252c678b56bf982269",
+    "current_UI": "916d09c41a1a563b00a0ae381830c18c0db784b9f6a448efc7a6219a98ce319b"
+  },
+  "checks": "Existing5HTTP raw SHA/semantics, official store preservation, currentPID/cwd/taskbytes, UI evidence binding RC0; no repeated largeGET",
+  "limits": [
+    "RESEARCH_ONLY and3 false safety flags retained",
+    "Natural operation not verified; scheduler PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+    "Existing full typecheck FAIL retained",
+    "Parallel manual feature not audited; no rollback/provider/POST",
+    "Final Git sync controller-owned"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-20T21:17:31.751078+08:00",
+  "operator": "/root",
+  "reason": "Independent current-runtime audit found a parallel release after our r1 activation",
+  "current_release": "manual-backfill-button-20261020-r2",
+  "current_pid_independently_observed": 44298,
+  "preservation_receipt": "Reviewer reports all11 task source/static entries byte-identical and manifest parent binding exact to our r1; final independent receipt supplies full current identity",
+  "actions": "One reload after current-release preservation confirmation; read current DOM after loaded",
+  "dom": {
+    "assets": [
+      "/assets/managerSelection-Ch6yMZNt.js",
+      "/assets/managerSelection-G7Fr7fFO.css"
+    ],
+    "date": "20261020",
+    "dateControl": "SELECT",
+    "latestPreserved": true,
+    "phase": "",
+    "savedRunOption": true,
+    "url": "http://127.0.0.1:8873/manager-selection/?date=20261020",
+    "version": ""
+  },
+  "dom_sha256": "6d12bd86c852fa5a52d386c7a8cdb24a5ef6f2dfddfda2f6d5b21c9ca2f57362",
+  "interaction_reuse": "Reuse original actual83-option date20/19/20 and fixed-run reset evidence from UI_READBACK.json because all target source/static bytes remain identical",
+  "screenshot_limit": "After current reload IAB screenshot unavailable with0width; no new screenshot claimed. Prior actual r1 screenshots retained, same target assets. Subsequent attempted focus/Expand had no UI effect; no code defect inferred from tool viewport.",
+  "other_release_modified": false,
+  "old_release_restored": false,
+  "claims": "Current loaded DOM nativeSELECT/current20/defaulte96a/saved05d40 option and exact manager assets confirmed; prior actual interactions retained without repeating large GETs"
+}

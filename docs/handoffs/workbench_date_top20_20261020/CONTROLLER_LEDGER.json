@@ -1,0 +1,39 @@
+{
+  "updated_at": "2026-10-20T21:19:15.477972+08:00",
+  "workers": [
+    {
+      "worker": "/root/calendar_writer",
+      "milestone": "date dropdown and previously accepted candidate count label on actual r8",
+      "expected_terminal": "FRONTEND_PREPARED",
+      "lifecycle": "COMPLETED",
+      "final_consumed": true,
+      "receipt_verified": true
+    },
+    {
+      "worker": "/root/strict_mapping_diagnosis",
+      "milestone": "frozen close Top20 joins and miss report",
+      "expected_terminal": "RESEARCH_PREPARED",
+      "lifecycle": "COMPLETED",
+      "final_consumed": true,
+      "receipt_verified": true,
+      "receipt_sha256": "d54f82d2a4a0057e217e11e9e428a85c82d48a4a631a75f67451a6a21d08081c"
+    },
+    {
+      "worker": "/root/deployment_reviewer",
+      "milestone": "independent research acceptance; frontend and runtime increment later",
+      "expected_terminal": "PASS_OR_FAIL",
+      "lifecycle": "COMPLETED",
+      "final_consumed": true,
+      "receipt_verified": true
+    },
+    {
+      "worker": "/root/mapping_deployer",
+      "milestone": "r8 immutable candidate and rebound guarded publisher",
+      "expected_terminal": "RUNTIME_PREPARED",
+      "lifecycle": "COMPLETED",
+      "final_consumed": true,
+      "receipt_verified": true
+    }
+  ],
+  "terminal": "SOURCE_FRONTEND_RESEARCH_RUNTIME_API_UI_SCOPED_PASS; Git readback recorded separately"
+}

@@ -1,0 +1,170 @@
+{
+  "state": "API_VERIFIED_PROCESSING_RECOVERY_PUBLISHED",
+  "at": "2026-10-20T21:09:09.335398+08:00",
+  "run_id": "05d40e7775c44304bbd98016194b0d0e",
+  "product_sha256": "62e4ea7dacd357a77c7d625a4cfdcb00a635cb3cd1797e9fc0c600700d5c2ba0",
+  "input_snapshot_sha256": "2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8",
+  "lane_input_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+  "phase": "NEXT_DAY",
+  "trigger": "MANUAL",
+  "source_sessions": {
+    "hk_price": "20261016",
+    "us": "20261019"
+  },
+  "source_cutoff": "2026-10-20T05:44:00.587402+08:00",
+  "snapshot_cutoff": "2026-10-20T10:24:44.342517+08:00",
+  "generated_at": "2026-10-20T10:24:44.683578+08:00",
+  "processing_times_preserved": true,
+  "snapshot_state": "PARTIAL",
+  "daily": {
+    "unique_stocks": 698,
+    "decision_counts": {
+      "BENEFIT": 5,
+      "OBSERVATION": 303,
+      "UNMAPPED": 379,
+      "UNASSESSED": 11
+    },
+    "benefit_symbols": [
+      "HK.00992",
+      "HK.01211",
+      "HK.01810",
+      "HK.02015",
+      "HK.09868"
+    ],
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "strict": "PAUSED_NOT_EXECUTED"
+  },
+  "merged": {
+    "total": 701,
+    "counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 701,
+      "observation_only": 0,
+      "not_selected": 0
+    }
+  },
+  "recommendation": {
+    "positive_count": 0,
+    "counts": {
+      "selected": 0,
+      "watch": 0,
+      "unassessed": 699,
+      "not_selected": 2,
+      "observation_only": 0
+    }
+  },
+  "catalog": {
+    "diagnostic_candidates": 410,
+    "relation_dispositions": 1003,
+    "formal_selection": false,
+    "three_targets": [
+      {
+        "hk_code": "09633",
+        "rank": 207,
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+        "relation_ids": [
+          "R955"
+        ]
+      },
+      {
+        "hk_code": "06993",
+        "rank": 203,
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+        "relation_ids": [
+          "R942"
+        ]
+      },
+      {
+        "hk_code": "06808",
+        "rank": 198,
+        "qualification": "DATED_WEAK_PEER",
+        "direction_group": "NEGATIVE_WITHOUT_POSITIVE",
+        "relation_ids": [
+          "R924"
+        ]
+      }
+    ]
+  },
+  "default_preserved": {
+    "run_id": "e96a793fe0f0464ca354927d301e13d3",
+    "generated_at": "2026-10-20T15:03:53.485272+08:00",
+    "product_sha256": "9969dec205e67169c3d7e7168497f5f40c71839caf68358e6f42a9e78a6811d9"
+  },
+  "history": {
+    "count": 23,
+    "new_run_occurrences": 1,
+    "existing_all_catalog_entries_unchanged": true,
+    "retained_catalog_and_pointer_count": 81,
+    "only_existing_entry_delta": [
+      {
+        "path": "pointers/20261020/NEXT_DAY.json",
+        "before": "81ea8ec394f2e874b381a9a2dba9206e9cd3eb40c98bf2e65c2766c95fdd11e4",
+        "after": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248"
+      }
+    ],
+    "added_catalog_entry": [
+      "catalog/20261020/NEXT_DAY/05d40e7775c44304bbd98016194b0d0e.json"
+    ]
+  },
+  "five_published_artifacts_match_frozen_bytes": true,
+  "old_source_input_and_snapshot_preserved": true,
+  "api_checks": [
+    {
+      "name": "saved",
+      "path": "/api/v4/manager-workbench/days/20261020?run_id=05d40e7775c44304bbd98016194b0d0e&limit=200",
+      "status": 200,
+      "raw_sha256": "8b6ea0cfb19f72cc914591e850340bffb01d5e4b1744005cff0d148d4029972f",
+      "bytes": 87596443,
+      "response_closed": true
+    },
+    {
+      "name": "default",
+      "path": "/api/v4/manager-workbench/days/20261020?limit=1",
+      "status": 200,
+      "raw_sha256": "0e2b43f459964ea575464d8d58c647639cf6c3b1e59bb4a022a209bdfc696e15",
+      "bytes": 22322824,
+      "response_closed": true
+    },
+    {
+      "name": "lane",
+      "path": "/api/v4/manager-workbench/days/20261020/recommendations/US_MAPPING?run_id=05d40e7775c44304bbd98016194b0d0e&limit=200",
+      "status": 200,
+      "raw_sha256": "bc1d000c6c70fdc98029fda94a7c647d86ddd9daee2dda0f93aeadca577573d8",
+      "bytes": 54334816,
+      "response_closed": true
+    },
+    {
+      "name": "history",
+      "path": "/api/v4/manager-workbench/history?date=20261020",
+      "status": 200,
+      "raw_sha256": "039a4379c3bf8bfaa3217d45a82af6ccb383fa6007d1ef6249fe7bde08b5c80d",
+      "bytes": 7408,
+      "response_closed": true
+    },
+    {
+      "name": "job",
+      "path": "/api/v4/manager-workbench/runs/05d40e7775c44304bbd98016194b0d0e",
+      "status": 200,
+      "raw_sha256": "47d52d8da3ffed724de7cabd90223c57aec084859bddf536d060cd300bd29cc9",
+      "bytes": 20884758,
+      "response_closed": true
+    }
+  ],
+  "all_http_responses_closed": true,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "provider_calls": 0,
+  "business_posts": 0,
+  "pipeline_rerun": false,
+  "scheduler": "PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+  "UI": "NOT_RUN_BY_RUNTIME_OWNER_CONTROLLER_OWNS_BROWSER",
+  "natural": "NOT_RUN_PROCESSING_RECOVERY_ONLY",
+  "receipt_generation_note": "Initial local-only compact receipt generator had a now-string/call typo after all assertions; corrected only receipt generation, no HTTP/lifecycle/publication repeated"
+}

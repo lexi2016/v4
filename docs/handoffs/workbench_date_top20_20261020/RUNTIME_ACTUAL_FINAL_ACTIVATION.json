@@ -1,0 +1,111 @@
+{
+  "state": "STOP_GUARD_OR_LIFECYCLE_FAILURE",
+  "started_at": "2026-10-20T21:03:40.785460+08:00",
+  "prior_stop_receipt_sha256": "30917f5ccb4824c04aeba79a71dd3c620e91eee6f18b69958a6410fef6c6aa0a",
+  "new_evidence_authorization": "Controller12half-second socket observations allRC1 over6.7sec; last complete guard allowed; no kill/HTTP/UI during guard",
+  "commands": [
+    {
+      "command": [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:03:41.047126+08:00",
+      "finished_at": "2026-10-20T21:03:41.052274+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-last-guard-launch.txt",
+      "raw_sha256": "3d2241fe39cc32fdf41c059b7101818f2ec66f829e41240c5a291a216ebc95ad"
+    },
+    {
+      "command": [
+        "/usr/sbin/lsof",
+        "-a",
+        "-p",
+        "16695",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "at": "2026-10-20T21:03:41.052710+08:00",
+      "finished_at": "2026-10-20T21:03:41.105840+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-last-guard-cwd.txt",
+      "raw_sha256": "7f23ca844508ea7b23ab991a14639e38d68c0dbfbc8b292e4b3293939dc5109a"
+    },
+    {
+      "command": [
+        "/bin/ps",
+        "-axo",
+        "pid=,ppid=,command="
+      ],
+      "at": "2026-10-20T21:03:41.105932+08:00",
+      "finished_at": "2026-10-20T21:03:41.143502+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-last-guard-ps.txt",
+      "raw_sha256": "25510b4f6858c9842a357d7dc8bfa1ef045c8e78a5620cd19d78b05dc8a6c071"
+    },
+    {
+      "command": [
+        "/usr/sbin/lsof",
+        "-nP",
+        "-a",
+        "-p",
+        "16695",
+        "-iTCP:8873",
+        "-sTCP:ESTABLISHED"
+      ],
+      "at": "2026-10-20T21:03:42.334254+08:00",
+      "finished_at": "2026-10-20T21:03:42.388171+08:00",
+      "rc": 1,
+      "raw_evidence": "local_only/runtime/activation-last-guard-sockets.txt",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/bin/launchctl",
+        "bootout",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:03:42.388796+08:00",
+      "finished_at": "2026-10-20T21:03:42.393864+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-last-bootout.txt",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:03:42.393924+08:00",
+      "finished_at": "2026-10-20T21:03:42.398174+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-last-absence.txt",
+      "raw_sha256": "b3cced05ff955d94cbe1865a2f87bfa96113fbd32a10b8baeccc4bf8363c089a"
+    }
+  ],
+  "actual_plist_writes": 1,
+  "publication": "NOT_RUN",
+  "rollback": "NOT_RUN",
+  "provider_calls": 0,
+  "business_posts": 0,
+  "scheduler": "NOT_TOUCHED",
+  "retained_entry_count": 81,
+  "guard": {
+    "passed_at": "2026-10-20T21:03:42.388328+08:00",
+    "parent_pid": 16695,
+    "parent_full_inventory_exact": true,
+    "candidate_full_inventory_exact": true,
+    "all_frozen_bindings_exact": true,
+    "direct_children": [],
+    "active_attempts": [],
+    "established_8873": false,
+    "all_today_pointers_exact": true,
+    "parent_plist_sha256": "5d5c01d354c10787b70fb56919fa0652592a49dc9ca003c6ef4e8c1b2ba7b41b",
+    "proposal_sha256": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752"
+  },
+  "plist_written_at": "2026-10-20T21:03:42.388545+08:00",
+  "error": "AssertionError(('absence', 0))",
+  "finished_at": "2026-10-20T21:03:42.398243+08:00"
+}

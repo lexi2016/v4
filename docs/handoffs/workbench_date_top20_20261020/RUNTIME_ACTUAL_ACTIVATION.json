@@ -1,0 +1,74 @@
+{
+  "state": "STOP_GUARD_OR_LIFECYCLE_FAILURE",
+  "started_at": "2026-10-20T21:01:39.038456+08:00",
+  "prior_stop_receipt_sha256": "a9d9d64df7bdddb8d27b561fdfcea8e925882bd1a61a6544f20e16d41ec23360",
+  "new_evidence_authorization": "Controller observed previous peer56992 naturally closed (lsof RC1) and authorized one bounded complete guard replay; no kill/close",
+  "commands": [
+    {
+      "command": [
+        "/bin/launchctl",
+        "print",
+        "gui/501/com.lexi.v35.api-only"
+      ],
+      "at": "2026-10-20T21:01:39.329038+08:00",
+      "finished_at": "2026-10-20T21:01:39.334321+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-final-guard-launch.txt",
+      "raw_sha256": "3d2241fe39cc32fdf41c059b7101818f2ec66f829e41240c5a291a216ebc95ad"
+    },
+    {
+      "command": [
+        "/usr/sbin/lsof",
+        "-a",
+        "-p",
+        "16695",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "at": "2026-10-20T21:01:39.334547+08:00",
+      "finished_at": "2026-10-20T21:01:39.387517+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-final-guard-cwd.txt",
+      "raw_sha256": "7f23ca844508ea7b23ab991a14639e38d68c0dbfbc8b292e4b3293939dc5109a"
+    },
+    {
+      "command": [
+        "/bin/ps",
+        "-axo",
+        "pid=,ppid=,command="
+      ],
+      "at": "2026-10-20T21:01:39.387593+08:00",
+      "finished_at": "2026-10-20T21:01:39.427590+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-final-guard-ps.txt",
+      "raw_sha256": "da6736a67851ae65712839c8fdd2469210bf74617c8cda441f7366b182f7410e"
+    },
+    {
+      "command": [
+        "/usr/sbin/lsof",
+        "-nP",
+        "-a",
+        "-p",
+        "16695",
+        "-iTCP:8873",
+        "-sTCP:ESTABLISHED"
+      ],
+      "at": "2026-10-20T21:01:40.685650+08:00",
+      "finished_at": "2026-10-20T21:01:40.742009+08:00",
+      "rc": 0,
+      "raw_evidence": "local_only/runtime/activation-final-guard-sockets.txt",
+      "raw_sha256": "a016a3d62a588d13251019d39ac4477e7e2ed0349227a6bb06d86cd3e2ec3cbb"
+    }
+  ],
+  "actual_plist_writes": 0,
+  "publication": "NOT_RUN",
+  "rollback": "NOT_RUN",
+  "provider_calls": 0,
+  "business_posts": 0,
+  "scheduler": "NOT_TOUCHED",
+  "retained_state_hashes_sha256": "8530f23f1f655d24831dbca62bbbe108b52ada9d790f9bb985f8a851a838c42a",
+  "retained_entry_count": 81,
+  "error": "AssertionError('COMMAND     PID USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\\npython3.1 16695 lexi    9u  IPv4 0x6264733537269e74      0t0  TCP 127.0.0.1:8873->127.0.0.1:57258 (ESTABLISHED)\\n')",
+  "finished_at": "2026-10-20T21:01:40.742093+08:00"
+}

@@ -1,0 +1,67 @@
+{
+  "scope": "Read-only publication/validation dependency compatibility, no source/pipeline rerun",
+  "reviewed_old_candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-wiring-api-20261020-r1",
+  "current_parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8",
+  "dependencies": [
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "reviewed_old_candidate_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "current_r8_sha256": "9eaa0af37b1be888184a5962292e40069b6a5a5911ed098a40c2c5eb91482d62",
+      "same_bytes": false
+    },
+    {
+      "path": "v4/manager_workbench/store.py",
+      "reviewed_old_candidate_sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
+      "current_r8_sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/service.py",
+      "reviewed_old_candidate_sha256": "219d7228c2fd25e3903db5fac385010a6414cc6961e2716479871418472e96a3",
+      "current_r8_sha256": "219d7228c2fd25e3903db5fac385010a6414cc6961e2716479871418472e96a3",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/jobs.py",
+      "reviewed_old_candidate_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "current_r8_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/validation.py",
+      "reviewed_old_candidate_sha256": "497b4e349a9ec6f0dba2e3adb1793a10567221cb41cabffad946a5e6a5f5d1f9",
+      "current_r8_sha256": "497b4e349a9ec6f0dba2e3adb1793a10567221cb41cabffad946a5e6a5f5d1f9",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/__init__.py",
+      "reviewed_old_candidate_sha256": "30616498027b6625c2735ee96cd3b91ff7dc202db2c3369f1920ac80274a18d9",
+      "current_r8_sha256": "30616498027b6625c2735ee96cd3b91ff7dc202db2c3369f1920ac80274a18d9",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/core.py",
+      "reviewed_old_candidate_sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7",
+      "current_r8_sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "reviewed_old_candidate_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "current_r8_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "same_bytes": true
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "reviewed_old_candidate_sha256": "75924bdc48403c6ead023051d19aa760c827c3fb226ff99843eed8e5ced62df0",
+      "current_r8_sha256": "1a36e8c2db111a959ab741bd92caaf390569e95fa80ca15aee60a286b1a539c3",
+      "same_bytes": false
+    }
+  ],
+  "mode": "No change accepted or remediated by this receipt; any changed dependency requires scoped controller/reviewer interpretation.",
+  "changed_dependencies_interpretation": {
+    "contracts.py": "Only JobState.USER_STOPPED enum added; PlanSnapshot/JobRecord fields, canonical and product validation unchanged.",
+    "api.py": "Only announcement preprocessed-execute request and execute/stop routes added; existing US read/redaction unchanged.",
+    "store/service/jobs/validation/engine_core/display_read": "All compared files same SHA as reviewed old candidate."
+  }
+}

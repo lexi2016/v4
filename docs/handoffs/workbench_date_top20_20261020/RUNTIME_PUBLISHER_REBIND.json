@@ -1,0 +1,64 @@
+{
+  "state": "METADATA_ONLY_REBIND_PREPARED",
+  "original_helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "new_helper_sha256": "98c642786209b9518d5152e6371813b465e5a0e4c7c467b7d94dca9b638757de",
+  "original_result_receipt_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+  "new_result_receipt_sha256": "bc8f3de8ddcac53c6a6c2c5fa360119f4ecab56531caeb3f73faca210740e958",
+  "exact_text_rebindings": [
+    {
+      "before": "LOCAL=DOC/'local_only'",
+      "after": "LOCAL=DOC/'local_only/runtime'",
+      "count": 1
+    },
+    {
+      "before": "releases/us-mapping-wiring-api-20261020-r1",
+      "after": "releases/workbench-date-top20-api-20261020-r1",
+      "count": 1
+    },
+    {
+      "before": "DOC/'DEPLOYMENT_RESULT_PREPARED.json'",
+      "after": "DOC/'RUNTIME_RESULT_PREPARED.json'",
+      "count": 1
+    },
+    {
+      "before": "DOC/'PREPARED.json'",
+      "after": "DOC/'RUNTIME_BACKEND_PREPARED.json'",
+      "count": 4
+    },
+    {
+      "before": "DOC/'DEPLOYMENT_CANDIDATES.json'",
+      "after": "DOC/'RUNTIME_CANDIDATE_PREPARED.json'",
+      "count": 1
+    },
+    {
+      "before": "DOC/'DEPLOYMENT_PUBLICATION_RECEIPT.json'",
+      "after": "DOC/'RUNTIME_PUBLICATION_RECEIPT.json'",
+      "count": 2
+    },
+    {
+      "before": "DOC/'DEPLOYMENT_PUBLICATION_ROLLBACK_RECEIPT.json'",
+      "after": "DOC/'RUNTIME_PUBLICATION_ROLLBACK_RECEIPT.json'",
+      "count": 1
+    },
+    {
+      "before": "aa257878208f88c88a71441990ef54de7030fd4c23b2d1667152f304ae7ef04d",
+      "after": "145d40406e698859a43d7766da3c67ccf1a579a994567bda1cc6b6fa203bb105",
+      "count": 1
+    },
+    {
+      "before": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+      "after": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+      "count": 1
+    },
+    {
+      "before": "9e6fa1a90073cbc32b76f86c157ba2c86145b28b08f0927986b5e13ecdbbca1e",
+      "after": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752",
+      "count": 1
+    }
+  ],
+  "all_pipeline_artifacts_byte_identical": true,
+  "immutable_expected_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+  "business_run_recomputed": false,
+  "actual_service_changes": 0,
+  "actual_state_writes": 0
+}

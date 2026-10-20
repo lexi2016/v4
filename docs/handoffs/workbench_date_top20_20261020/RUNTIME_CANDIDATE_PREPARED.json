@@ -1,0 +1,256 @@
+{
+  "state": "PREPARED_NOT_ACTIVATED",
+  "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1",
+  "parent_plist_sha256": "5d5c01d354c10787b70fb56919fa0652592a49dc9ca003c6ef4e8c1b2ba7b41b",
+  "parent_manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+  "candidate_manifest_sha256": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8",
+  "parent_inventory_sha256": "97b803c3e009e533e77089533171aec693e5f2f8a60a7317262cbdf093623595",
+  "candidate_inventory_sha256": "a1c2dcd47565e39315a269970e3a97c6a36bc4d7c1f64fcea36fa8d141d0a080",
+  "before_count": 1274,
+  "after_count": 1276,
+  "exact_delta": [
+    {
+      "path": "apps/web/dist/assets/managerSelection-Ch6yMZNt.js",
+      "before": null,
+      "after": {
+        "path": "apps/web/dist/assets/managerSelection-Ch6yMZNt.js",
+        "kind": "file",
+        "sha256": "8456c11750ef3638677a37904d31508a61c8c6af11913e2bc0cdac0a5f4684e7",
+        "mode": "0644",
+        "size": 152679
+      }
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-G7Fr7fFO.css",
+      "before": null,
+      "after": {
+        "path": "apps/web/dist/assets/managerSelection-G7Fr7fFO.css",
+        "kind": "file",
+        "sha256": "00533007790440d4b4f5b2b926b8990b4e19176348eb0c4ad535660a363a0120",
+        "mode": "0644",
+        "size": 12340
+      }
+    },
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "before": {
+        "path": "apps/web/dist/manager-selection/index.html",
+        "kind": "file",
+        "sha256": "97e20cc85c993bb73d85c83503ade13cdf31fd82a277002f3ba37dd2c242ad8d",
+        "mode": "0644",
+        "size": 588
+      },
+      "after": {
+        "path": "apps/web/dist/manager-selection/index.html",
+        "kind": "file",
+        "sha256": "b9ed6f38df991da1feb4ca1aab22b4a9dddc714cadc80a0300c50b063af137dd",
+        "mode": "0644",
+        "size": 588
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before": {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "kind": "file",
+        "sha256": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec",
+        "mode": "0644",
+        "size": 103796
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "kind": "file",
+        "sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+        "mode": "0644",
+        "size": 104613
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "before": {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "kind": "file",
+        "sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726",
+        "mode": "0644",
+        "size": 11198
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "kind": "file",
+        "sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+        "mode": "0644",
+        "size": 12178
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before": {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "kind": "file",
+        "sha256": "66d09d73f2a2c9ac58adf22b97d32f935d51dae53afb191d03f9a4f6d9a4e821",
+        "mode": "0644",
+        "size": 31875
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "kind": "file",
+        "sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+        "mode": "0644",
+        "size": 32219
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "before": {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "kind": "file",
+        "sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+        "mode": "0600",
+        "size": 22018
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "kind": "file",
+        "sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+        "mode": "0600",
+        "size": 24073
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "before": {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "kind": "file",
+        "sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+        "mode": "0600",
+        "size": 14120
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "kind": "file",
+        "sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+        "mode": "0600",
+        "size": 14121
+      }
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "before": {
+        "path": "v4/manager_workbench/engines/strict_us_selection.py",
+        "kind": "file",
+        "sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+        "mode": "0644",
+        "size": 63891
+      },
+      "after": {
+        "path": "v4/manager_workbench/engines/strict_us_selection.py",
+        "kind": "file",
+        "sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+        "mode": "0644",
+        "size": 64275
+      }
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "before": {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "kind": "file",
+        "sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+        "mode": "0644",
+        "size": 27641
+      },
+      "after": {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "kind": "file",
+        "sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+        "mode": "0644",
+        "size": 28231
+      }
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "before": {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "kind": "file",
+        "sha256": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2",
+        "mode": "0644",
+        "size": 97324
+      },
+      "after": {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "kind": "file",
+        "sha256": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+        "mode": "0644",
+        "size": 98400
+      }
+    }
+  ],
+  "all_non_delta_entries_preserved": true,
+  "all_old_assets_root_daily_html_preserved": true,
+  "proposal_sha256": "fdc3e9536b892952fa404658e00fd6042c162f82df8302bbc1a6fe928db2f752",
+  "plist_delta": [
+    {
+      "path": "/EnvironmentVariables/PYTHONPATH",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_APP_ROOT",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_ID",
+      "before": "announcement-daily-workflow-20261020-r8",
+      "after": "workbench-date-top20-api-20261020-r1"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_MANIFEST_PATH",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/release-manifest.json",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/release-manifest.json"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_MANIFEST_SHA256",
+      "before": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+      "after": "7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8"
+    },
+    {
+      "path": "/ProgramArguments/18",
+      "before": "V35_APP_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+      "after": "V35_APP_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app"
+    },
+    {
+      "path": "/ProgramArguments/19",
+      "before": "V35_RELEASE_ID=announcement-daily-workflow-20261020-r8",
+      "after": "V35_RELEASE_ID=workbench-date-top20-api-20261020-r1"
+    },
+    {
+      "path": "/ProgramArguments/25",
+      "before": "PYTHONPATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+      "after": "PYTHONPATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app"
+    },
+    {
+      "path": "/ProgramArguments/26",
+      "before": "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/release-manifest.json",
+      "after": "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/release-manifest.json"
+    },
+    {
+      "path": "/ProgramArguments/27",
+      "before": "V35_RELEASE_MANIFEST_SHA256=0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+      "after": "V35_RELEASE_MANIFEST_SHA256=7bfd33c541b5bb19724f313e8df7deae1877b5ca96379215f3ebd61e723049b8"
+    },
+    {
+      "path": "/WorkingDirectory",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-date-top20-api-20261020-r1/app"
+    }
+  ],
+  "frontend_binding_sha256": "a6735743300a86bf15cb4bb88b9c2b4a9cd1807c16d25346a0fe279166155b39",
+  "frontend_prepared_sha256": "1fa62966c23663e99331ef9f7a150d23aebcc89a63024920d7eab1db00d54fc9",
+  "frontend_delta_sha256": "b789fac96ac28754d9c600d930ecf0d930360c7e5977712e37e032a51e040f50",
+  "backend_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "prepare_helper_sha256": "f4770c8f2bb695153174e0289c32bfcd1328fa27c5887994f1bd3e79c93d86cd",
+  "activated": false,
+  "published": false
+}
