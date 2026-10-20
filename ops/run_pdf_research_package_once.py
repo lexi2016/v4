@@ -53,6 +53,45 @@ def load_context() -> dict[str, Any]:
     return {**auth, "analysis_admission": admission}
 
 
+def _verify_package_history(context: Mapping[str, Any], history: bytes) -> None:
+    if context["analysis_admission"]["pilot"]["phase"]=="first3":
+        raise batch.BatchError("PACKAGE_FIRST3_CONTENT_NOT_ACCEPTED")
+    if "prepared_manifest" not in context:
+        # Reuse static full-manifest PASS; bind only the historical isolated input
+        # needed for the exact old HALT, without re-running the full verifier.
+        p=Path(context["analysis_admission"]["documents"][batch.ANALYSIS_CANARY_ID]["page_input"]["path"]).parents[2]/"prepared-text-manifest.json"
+        raw=dispatcher._read_regular(p,"PACKAGE_PREPARED_MANIFEST_REQUIRED")
+        expected=context["authorization"]["prepared_text_manifest_sha256"]
+        if sha(raw)!=expected:raise batch.BatchError("PACKAGE_PREPARED_MANIFEST_DRIFT")
+        rows=[r for r in json.loads(raw)["documents"] if r["document_id"]==batch.ANALYSIS_ISOLATED_ID]
+        if len(rows)!=1:raise batch.BatchError("PACKAGE_ISOLATED_INPUT_MISSING")
+        row=rows[0]
+        context={**context,"prepared_text_manifest_sha256":expected,
+                 "prepared_manifest":{"documents":{batch.ANALYSIS_ISOLATED_ID:{"manifest_row":row,"page_input_sha256":row["page_input"]["sha256"]}}}}
+    class ReadOnlyJournal:
+        path = dispatcher.EVIDENCE_ROOT / "dispatch.jsonl"
+        root = dispatcher.EVIDENCE_ROOT
+        events = [json.loads(line) for line in history.splitlines()]
+        def append(self, event: Any) -> None:
+            raise batch.BatchError("PACKAGE_HISTORY_TRANSITION_REQUIRED")
+    if not history.endswith(b"\n"):
+        raise batch.BatchError("PACKAGE_JOURNAL_TRUNCATED")
+    journal=ReadOnlyJournal()
+    index,digest=dispatcher.current_pilot_adoption_anchor(context)
+    lines=history.splitlines(keepends=True)
+    if len(lines)<=index or sha(b"".join(lines[:index]))!=digest:
+        raise batch.BatchError("PACKAGE_RETAINED_HISTORY_OR_HALT_MISMATCH")
+    dispatcher._verify_or_create_binding(journal,context)
+    isolation=dispatcher._analysis_isolation_descriptor(context,journal)
+    dispatcher._prepare_analysis_isolation(journal,context,isolation)
+    tool=dispatcher._prepare_pilot_tool_recovery(journal,context)
+    synthesis=dispatcher._prepare_synthesis_recovery(journal,context)
+    sectioned=dispatcher._prepare_sectioned_closure(journal,context)
+    dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=isolation,
+                                additional_halt_resume_descriptor=tool,synthesis_halt_resume_descriptor=synthesis,
+                                sectioned_halt_resume_descriptor=sectioned)
+
+
 def selected_package(package_id: str) -> tuple[dict[str, Any], list[dict[str, Any]], str]:
     if package_id not in PACKAGE_IDS:
         raise batch.BatchError("PACKAGE_ID_NOT_ADMITTED")
@@ -208,16 +247,7 @@ def package_worker(package_id: str, plan_path: Path) -> dict[str, Any]:
             history = dispatcher._read_regular(dispatcher.EVIDENCE_ROOT / "dispatch.jsonl", "PACKAGE_JOURNAL_REQUIRED")
             lines = history.splitlines(keepends=True)
             events = [json.loads(line) for line in lines]
-            is_v2 = current["analysis_admission"]["pilot"]["value"].get("schema")=="v4.pdf_research.pilot_adoption.v2"
-            prefix_count=55 if is_v2 else 45
-            prefix_sha=batch.PILOT_V2_PREFIX_SHA256 if is_v2 else batch.PILOT_JOURNAL_PREFIX_SHA256
-            if (not history.endswith(b"\n") or len(lines)<prefix_count+1
-                    or sha(b"".join(lines[:prefix_count]))!=prefix_sha
-                    or events[prefix_count].get("event")!="pilot_adoption"
-                    or events[prefix_count].get("authorization_sha256")!=current["authorization_sha256"]
-                    or events[prefix_count].get("adoption")!=current["analysis_admission"]["pilot"]["reference"]
-                    or any(e.get("event")=="halt" or e.get("event")=="reconciled" and e.get("decision")=="HALT" for e in events[prefix_count+1:])):
-                raise batch.BatchError("PACKAGE_RETAINED_HISTORY_OR_HALT_MISMATCH")
+            _verify_package_history(current, history)
             related = [e for e in events if e.get("package_id") == package_id]
             if not related or related[-1].get("event") != "package_dispatch_intent" or related[-1].get("plan_sha256") != sha(raw):
                 raise batch.BatchError("PACKAGE_RETAINED_DISPATCH_REQUIRED")
@@ -291,8 +321,11 @@ def execute_package(package_id: str) -> dict[str, Any]:
         descriptor = dispatcher._analysis_isolation_descriptor(context,journal)
         dispatcher._prepare_analysis_isolation(journal,context,descriptor)
         additional = dispatcher._prepare_pilot_tool_recovery(journal,context)
+        synthesis = dispatcher._prepare_synthesis_recovery(journal,context)
+        sectioned = dispatcher._prepare_sectioned_closure(journal,context)
         dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=descriptor,
-                                     additional_halt_resume_descriptor=additional)
+                                     additional_halt_resume_descriptor=additional, synthesis_halt_resume_descriptor=synthesis,
+                                     sectioned_halt_resume_descriptor=sectioned)
         prior = [e for e in journal.events if e.get("package_id")==package_id]
         if prior and prior[-1].get("event")=="package_terminal":
             return {"status":"PACKAGE_TERMINAL_REUSED_NO_POST","terminal":prior[-1]}

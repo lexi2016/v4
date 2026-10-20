@@ -3073,3 +3073,74 @@ def test_synthesis_v3_reuses_all_source_stages_and_at_most_two_requests(tmp_path
         assert calls[0]['intermediate_output_character_limit']==4385
         assert 'intermediate_output_character_limit' not in calls[1]
     assert all(p.exists() for p in persisted)
+
+
+def test_sectioned_v4_real_complete_inputs_and_zero_network_projection(monkeypatch):
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('no network allowed'))
+    value=batch.load_sectioned_reuse_v4()['value']
+    assert [r['initial_input_pages'] for r in value['source_rows']]==[list(range(1,6)),list(range(6,14)),list(range(14,21))]
+    assert [r['tool_requested_pages'] for r in value['source_rows']]==[list(range(6,11)),[],[]]
+    output=batch.build_sectioned_reuse_v4(persist=False)
+    assert output['new_model_POSTs']==0 and output['status']=='REUSED_SOURCE_STAGE_SECTIONED_REPORT_SOURCE_REVIEW_PENDING'
+    assert value['new_model_POST_limit']==0
+    for row in value['source_rows']:
+        original=Path(row['source_chunk']['report']['path']).read_text()
+        projected=batch._project_sectioned_text(original,row['edits'])
+        # Verify untouched runs explicitly, and retain the full original under its SHA.
+        cursor=0;scan=0
+        for e in row['edits']:
+            prefix=original[cursor:e['start_character']]
+            assert projected[scan:scan+len(prefix)]==prefix
+            scan+=len(prefix);assert projected[scan:scan+len(e['replacement'])]==e['replacement'];scan+=len(e['replacement']);cursor=e['end_character']
+        assert projected[scan:]==original[cursor:]
+        assert hashlib.sha256(Path(row['source_chunk']['report']['path']).read_bytes()).hexdigest()==row['source_chunk']['report']['sha256']
+
+
+def test_sectioned_v4_projection_rejects_forged_range_and_false_known():
+    text='before BAD after';edit={'start_character':7,'end_character':10,'finding':'C4','original_text_sha256':_sha('BAD'),'replacement':'CANNOT_CONFIRM'}
+    assert batch._project_sectioned_text(text,[edit])=='before CANNOT_CONFIRM after'
+    for changed in ({'start_character':6},{'original_text_sha256':'a'*64},{'replacement':'verified fact'},{'finding':'new'}):
+        with pytest.raises(batch.BatchError,match='PROJECTION_RANGE'):batch._project_sectioned_text(text,[{**edit,**changed}])
+
+
+def test_sectioned_v4_absent_review_never_means_content_pass(monkeypatch,tmp_path):
+    loaded=batch.load_sectioned_reuse_v4()
+    monkeypatch.setattr(batch,'RESEARCH_PILOT_ROOT',tmp_path)
+    monkeypatch.setattr(batch,'load_sectioned_reuse_v4',lambda: {'value':{**loaded['value'],'content_review_path':str(tmp_path/'independent-review/sectioned667-content-review-v4.json')}})
+    with pytest.raises(batch.BatchError,match='CONTENT_REVIEW_REQUIRED'):batch.verify_sectioned_content_v4()
+
+
+def test_sectioned_long_builder_is_finite_and_has_no_synthesis():
+    reports=[{'report_id':str(i),'text':f'chunk{i} [1]'} for i in range(11)]
+    index=[{'initial_input_pages':[i+1],'tool_requested_pages':[]} for i in range(11)]
+    output=batch._sectioned_text(batch.PILOT_LONG_DOCUMENT_ID,reports,index,None)
+    assert all(r['text'] in output for r in reports)
+    assert output.count('## 原模型分块 ')==11
+    assert '初始输入页' in output and '工具请求页' in output
+
+
+def test_sectioned_v4_long_actual11_source_chunks_never_recursive(tmp_path,monkeypatch):
+    did=batch.PILOT_LONG_DOCUMENT_ID
+    selection=json.loads(batch.ANALYSIS_SELECTION_PATH.read_text());row=next(r for r in selection['documents'] if r['document_id']==did)
+    raw=Path(row['page_input']['path']).read_bytes();value=json.loads(raw)
+    pages=[_page(p['page_number'],len(value['pages']),p['text']) for p in value['pages']]
+    prepared={'manifest_sha256':'b'*64,'documents':{did:{'page_input':value,'page_input_raw':raw,'page_input_sha256':hashlib.sha256(raw).hexdigest()}}}
+    monkeypatch.setattr(batch.pdf_text_preparation,'pages_from_frozen_manifest',lambda *_:(pages,value['source'],{}))
+    calls=[]
+    def perform(_queue,payload,messages,**kwargs):
+        assert payload['stage']!='simple_batch_synthesis_v1'
+        calls.append(payload);return {'status':'SUCCEEDED','attempted':True,'result':{'analysis_markdown':f'Original source stage {len(calls)} pending all16page content review'}}
+    monkeypatch.setattr(batch,'_perform_request',perform)
+    def persist(state,doc,source,outcome,*,name):
+        p=doc/'partials'/(name+'.md');p.parent.mkdir(parents=True,exist_ok=True);p.write_text(outcome['result']['analysis_markdown'])
+        return {'report':{'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()},'queue_idempotency_key':'synthetic'}
+    monkeypatch.setattr(batch,'_persist_model_result',persist)
+    monkeypatch.setattr(batch,'_sectioned_stage_index',lambda state,c,r:{'initial_input_pages':sorted({u.page_number for u in c.units}),'tool_requested_pages':[]})
+    monkeypatch.setattr(batch,'_pack_synthesis_groups',lambda *a,**k:pytest.fail('recursive synthesis forbidden'))
+    admission={'pilot':{'sectioned_reuse':{}}}
+    monkeypatch.setattr(batch,'guard_analysis_document',lambda a,x,**k: None if x==did else pytest.fail('foreigndocument'))
+    result=batch._run_document({'document_id':did,'pdf_sha256':did},manifest_sha=batch.EXPECTED_BATCH_MANIFEST_SHA256,state_root=tmp_path/'long-state',queue=object(),binding={'configuration_sha256':'c'*64,'request_schema_sha256':'d'*64,'evidence_root':str(tmp_path/'evidence')},identity={},priority_reader=lambda:{},identity_reader=lambda:{},identity_state={},request_fn=lambda **_:pytest.fail('offline only'),sleep_fn=lambda _:None,prepared_manifest=prepared,analysis_admission=admission)
+    assert len(calls)==11 and len(result['chunks'])==11 and result['synthesis_levels']==0
+    assert result['status']=='SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING'
+    assert (tmp_path/'long-state/documents'/did/'sectioned-components.json').is_file()

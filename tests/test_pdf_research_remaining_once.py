@@ -1608,6 +1608,8 @@ def test_synthesis_v3_actual62prefix_single_recovery_and_third_halt_guard(tmp_pa
         if reference==adopted['previous_synthesis_authorization']:return auth,auth_raw
         return original_ref(reference,**kwargs)
     monkeypatch.setattr(b,'_analysis_ref',reference)
+    original_read=dispatcher._read_regular
+    monkeypatch.setattr(dispatcher,"_read_regular",lambda path,code: raw if Path(path)==actual else original_read(path,code))
     emitted=[];readonly=SimpleNamespace(path=actual,root=dispatcher.EVIDENCE_ROOT,events=[json.loads(x) for x in raw.splitlines()],append=emitted.append)
     dispatcher._verify_pilot_append_only_adoption(readonly,context);assert len(emitted)==1
     old=dispatcher._analysis_isolation_descriptor(context,readonly)
@@ -1625,3 +1627,51 @@ def test_synthesis_v3_actual62prefix_single_recovery_and_third_halt_guard(tmp_pa
         with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
             dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third)
     assert actual.read_bytes()==actual_before and dispatcher.AUTHORIZATION_PATH.read_bytes()==current_auth_before
+
+
+def test_sectioned_v4_actual69_source_refresh_does_not_release_halt_then_exact_content_closure(tmp_path,monkeypatch):
+    import pytest
+    from types import SimpleNamespace
+    b=dispatcher.batch
+    actual=dispatcher.EVIDENCE_ROOT/'dispatch.jsonl';actual_before=actual.read_bytes()
+    fixture=b.RESEARCH_PILOT_ROOT/'model/v4-checkpoint'
+    raw=(fixture/'dispatch-prefix69.jsonl').read_bytes();auth_raw=(fixture/'authorization4ba.json').read_bytes();auth=json.loads(auth_raw)
+    assert len(raw.splitlines())==69 and _sha(raw)==b.PILOT_V4_PREFIX_SHA256 and actual_before.startswith(raw)
+    old_adopted=json.loads(Path(auth['pilot17_adoption']['path']).read_bytes())
+    recovery=b.load_synthesis_recovery();tool=b.load_tool_budget_recovery(old_adopted);reuse=b.load_sectioned_reuse_v4()
+    adopted={**old_adopted,'sectioned_reuse':{'descriptor':b._sectioned_v4_ref()},
+             'previous_package_authorization':{'path':str(dispatcher.CONTINUATION_ROOT/'ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PACKAGE_COMPAT_20261020_R1.json'),'sha256':_sha(auth_raw)},
+             'previous_package_adoption':auth['pilot17_adoption']}
+    selection=json.loads(b.ANALYSIS_SELECTION_PATH.read_bytes());admission={'reference':auth['analysis_admission'],'value':selection,
+               'documents':{r['document_id']:r for r in selection['documents']},'pilot':{'value':adopted,'reference':{'path':'SIMULATED_V4_NOT_ACTIVE','sha256':'f'*64},
+               'recovery':tool,'synthesis_recovery':recovery,'sectioned_reuse':reuse}}
+    mp=Path(selection['documents'][0]['page_input']['path']).parents[2]/'prepared-text-manifest.json';isolated=next(r for r in json.loads(mp.read_bytes())['documents'] if r['document_id']==b.ANALYSIS_ISOLATED_ID)
+    context={'authorization':auth,'authorization_sha256':'f'*64,'adoption_evidence':json.loads(Path(auth['adoption_receipt']['path']).read_bytes()),'analysis_admission':admission,
+             'prepared_text_manifest_sha256':auth['prepared_text_manifest_sha256'],'prepared_manifest':{'documents':{b.ANALYSIS_ISOLATED_ID:{'manifest_row':isolated,'page_input_sha256':isolated['page_input']['sha256']}}}}
+    original=b._analysis_ref
+    monkeypatch.setattr(b,'_analysis_ref',lambda reference,**kwargs:(auth,auth_raw) if reference==adopted['previous_package_authorization'] else original(reference,**kwargs))
+    original_read=dispatcher._read_regular
+    monkeypatch.setattr(dispatcher,"_read_regular",lambda path,code: raw if Path(path)==actual else original_read(path,code))
+    emitted=[];readonly=SimpleNamespace(path=actual,root=dispatcher.EVIDENCE_ROOT,events=[json.loads(x) for x in raw.splitlines()],append=emitted.append)
+    dispatcher._verify_pilot_append_only_adoption(readonly,context);assert len(emitted)==1 and emitted[0]['journal_event_count']==69
+    old=dispatcher._analysis_isolation_descriptor(context,readonly)
+    folder=tmp_path/'retained69-copy';folder.mkdir();(folder/'dispatch.jsonl').write_bytes(raw+dispatcher.canonical_json({**emitted[0],'at_utc':'2026-10-20T00:00:00Z'})+b'\n')
+    review=tmp_path/'content-review.json';reuse['value']['content_review_path']=str(review)
+    with dispatcher.DurableJournal(folder) as journal:
+        previous=dispatcher._prepare_pilot_tool_recovery(journal,context);third=dispatcher._prepare_synthesis_recovery(journal,context)
+        assert dispatcher._prepare_sectioned_closure(journal,context) is None
+        with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+            dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third)
+        # The only simulated fact is independent exact content acceptance; raw real69 history is unchanged.
+        composite={'content_review':{'path':str(review),'sha256':'a'*64},'report':{'path':str(tmp_path/'report.md'),'sha256':'b'*64},'receipt':{'path':str(tmp_path/'receipt.json'),'sha256':'c'*64}}
+        review.write_text('{}');monkeypatch.setattr(b,'verify_sectioned_content_v4',lambda:composite)
+        closure=dispatcher._prepare_sectioned_closure(journal,context)
+        assert len(journal.events)==72 and journal.events[70]['new_model_POST_limit']==0 and journal.events[71]['status']=='USER_ACCEPTED_REUSED_REPORT'
+        dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third,sectioned_halt_resume_descriptor=closure)
+        dispatcher._assert_no_duplicate_document_ids(journal.events,analysis_admission=admission)
+        dispatcher._prepare_sectioned_closure(journal,context);assert len(journal.events)==72
+        assert (folder/'dispatch.jsonl').read_bytes().startswith(raw)
+        journal.append({'event':'halt','document_id':b.PILOT_LONG_DOCUMENT_ID,'reason':'new actual failure'})
+        with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+            dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third,sectioned_halt_resume_descriptor=closure)
+    assert actual.read_bytes()==actual_before

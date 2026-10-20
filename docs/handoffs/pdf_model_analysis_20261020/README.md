@@ -21,3 +21,18 @@ Two independently verified OCR errors are held out of standalone remaining reque
 A demonstrated 2-to-2 synthesis loop repeated identical 6265-character text plus an unchanged1888-character carry. The stopped62-event history and every original stage are preserved. Intermediate multi-group output must satisfy a70% character budget; a layer must reduce report count or aggregate characters, and an identical text vector stops before another request. The unchanged12-level bound remains secondary. Budget failures retain the generated output and never slice text to pass.
 
 The sole admitted667 recovery authenticates the same complete prepared input, all three successful source stages and the last progress-producing6265+1888 derivative vector. It makes zero source POSTs and at most two new synthesis requests. Independently verified C4/C5 chronology/table mapping limits and C6 source-rating terms are explicit hash-bound qualifications included in both8k source and32k serialized budgets. They preserve original model drafts and source bytes. New append-only authorization resolves only the exact stopped checkpoint; any later HALT, drift, overbudget or content failure stops. Contraction acceptance is separate from final source-content acceptance.
+
+V4 removes recursive rewriting for the exact held 667 recovery and frozen long
+sample. The medium report reuses all three successful source analyses with four
+explicit hash-bound unknown projections; it makes zero new model requests.
+Original paragraphs, raw failures and all source stages remain unchanged.
+Initial input pages and tool-requested pages are indexed separately. A complete
+input reconstruction is not semantic acceptance: independent full20page review
+must cover material omissions, unsupported claims, cross-section conflicts,
+numbers, periods, conditions and manual source constraints. Only its exact PASS
+can append the bounded 67/68 HALT closure under the stopped69 checkpoint. Source
+refresh alone cannot release this HALT. The long sample performs its11 complete
+source chunks (at most77 model rounds), then deterministic sectioned assembly
+with zero synthesis calls and independent16page content review. Package workers
+validate the current authenticated adoption and every historical HALT rather
+than assuming adoption index55. No model/settings/announcement change occurs.

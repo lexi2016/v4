@@ -4059,7 +4059,10 @@ def _run_document(
             raise BatchError("EXISTING_DOCUMENT_RECEIPT_IDENTITY_MISMATCH")
         if prior.get("manifest_sha256") != manifest_sha:
             raise BatchError("EXISTING_DOCUMENT_RECEIPT_MANIFEST_MISMATCH")
+        if prior.get("status") == "SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING" and pdf_sha != PILOT_LONG_DOCUMENT_ID:
+            raise BatchError("SECTIONED_PRIOR_DOCUMENT_SCOPE_MISMATCH")
         if prior.get("status") in {
+            "SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING",
             "USER_ACCEPTED_REUSED_REPORT",
             "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
             "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING",
@@ -4424,6 +4427,15 @@ def _run_document(
         _save_progress(state_root, doc_root, {**progress, "status": stop_status, "resume_scope": "UNFINISHED_ONLY"})
         return receipt
 
+    sectioned_long = bool(analysis_admission and analysis_admission.get("pilot", {}).get("sectioned_reuse") is not None
+                          and pdf_sha == PILOT_LONG_DOCUMENT_ID)
+    if sectioned_long:
+        if len(chunks) != 11 or len(reports) != 11:
+            raise BatchError("SECTIONED_LONG_CHUNK_SCOPE_MISMATCH")
+        indexes = [_sectioned_stage_index(state_root, c, r) for c, r in zip(chunks, chunk_receipts)]
+        joined = _sectioned_text(pdf_sha, reports, indexes, manual_note=None)
+        reports = [{"report_id":"source-stage-sectioned", "text":joined}]
+        _write_immutable(doc_root / "sectioned-components.json", _json_bytes({"chunks":chunk_receipts,"index":indexes}, newline=True), state_root)
     synth_level = 0
     current_reports = reports
     synthesis_receipts: list[dict[str, Any]] = []
@@ -4536,7 +4548,8 @@ def _run_document(
     report_sha = _write_immutable(report_path, final_report.encode("utf-8"), state_root)
     receipt = {
         "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
-        "status": "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING" if partial_source else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
+        "status": ("SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING" if sectioned_long else
+                   "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING" if partial_source else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"),
         "manifest_sha256": manifest_sha,
         "document_id": pdf_sha,
         "pdf_sha256": pdf_sha,
@@ -4554,6 +4567,9 @@ def _run_document(
         "buy_gate_updated": False,
         "orders_sent": False,
     }
+    if sectioned_long:
+        component_path=doc_root / "sectioned-components.json"
+        receipt["sectioned_components"]={"path":str(component_path),"sha256":_sha256_file(component_path)}
     _write_state_json(doc_root / "receipt.json", receipt, state_root)
     _save_progress(state_root, doc_root, {**progress, "status": receipt["status"], "resume_scope": "UNFINISHED_ONLY"})
     return receipt
@@ -5146,6 +5162,7 @@ def _run_batch_impl(
                                 preserve_existing_success = (
                                     isinstance(existing_receipt, dict)
                                     and existing_receipt.get("status") in {
+                                        "SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING",
                                         "USER_ACCEPTED_REUSED_REPORT",
                                         "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING",
                                         "MODEL_GENERATED_TEXT_PARTIAL_SOURCE_REVIEW_PENDING",
@@ -5498,6 +5515,8 @@ def guard_analysis_document(admission: Mapping[str, Any], document_id: str, *, b
             raise BatchError("PILOT_PHASE_OR_ADOPTION_DRIFT")
     if document_id not in admission["allowed_ids"] or document_id == ANALYSIS_ISOLATED_ID:
         raise BatchError("ANALYSIS_DOCUMENT_NOT_ADMITTED")
+    if admission.get("pilot", {}).get("sectioned_reuse") is not None and document_id == PILOT_TOOL_BUDGET_DOCUMENT_ID:
+        raise BatchError("SECTIONED_MEDIUM_MODEL_POST_FORBIDDEN")
     row = admission["documents"][document_id]
     receipt, _ = _analysis_ref(row["prepared_receipt"])
     _analysis_ref(row["page_input"])
@@ -5560,9 +5579,11 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
     expected_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_EXECUTION_ADOPTION_20261020_R1.json"
     v2_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_ERRATA_ADOPTION_20261020_R1.json"
     v3_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT_SYNTHESIS_RECOVERY_ADOPTION_20261020_R1.json"
-    is_v3 = isinstance(reference, dict) and reference.get("path") == str(v3_path)
-    is_v2 = isinstance(reference, dict) and reference.get("path") in {str(v2_path), str(v3_path)}
-    if not isinstance(reference, dict) or reference.get("path") not in {str(expected_path), str(v2_path), str(v3_path)}:
+    v4_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT_PACKAGE_COMPAT_ADOPTION_20261020_R1.json"
+    is_v4 = isinstance(reference, dict) and reference.get("path") == str(v4_path)
+    is_v3 = isinstance(reference, dict) and reference.get("path") in {str(v3_path), str(v4_path)}
+    is_v2 = isinstance(reference, dict) and reference.get("path") in {str(v2_path), str(v3_path), str(v4_path)}
+    if not isinstance(reference, dict) or reference.get("path") not in {str(expected_path), str(v2_path), str(v3_path), str(v4_path)}:
         raise BatchError("PILOT_ADOPTION_REQUIRED")
     adopted, _ = _analysis_ref(reference, root=dispatcher.CONTINUATION_ROOT)
     if (adopted.get("status") != "ROOT_ADOPTED" or adopted.get("schema") != ("v4.pdf_research.pilot_adoption.v2" if is_v2 else "v4.pdf_research.pilot_adoption.v1")
@@ -5619,15 +5640,16 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
             raise BatchError("PILOT_V2_PREVIOUS_ADOPTION_MISMATCH")
         _analysis_ref(adopted["previous_pilot_adoption"], root=dispatcher.CONTINUATION_ROOT)
     synthesis_recovery = load_synthesis_recovery(adopted) if is_v3 else None
+    sectioned_reuse = load_sectioned_reuse_v4(adopted) if is_v4 else None
     phase = "first3"
     content_path = RESEARCH_PILOT_ROOT / "independent-review/stratified-first3-content-review.json"
     if content_path.exists():
-        proof_admission = {**admission, "pilot": {"value": adopted, "recovery": recovery, "synthesis_recovery": synthesis_recovery}}
+        proof_admission = {**admission, "pilot": {"value": adopted, "recovery": recovery, "synthesis_recovery": synthesis_recovery, "sectioned_reuse": sectioned_reuse}}
         verify_pilot_content_review(content_path, first, proof_admission)
         phase = "remaining12" if is_v2 else "remaining14"
     return {"reference": reference, "value": adopted, "phase": phase,
             "allowed_ids": first if phase == "first3" else [did for did in rest if did not in held],
-            "source_hold_ids": held, "recovery": recovery, "synthesis_recovery": synthesis_recovery}
+            "source_hold_ids": held, "recovery": recovery, "synthesis_recovery": synthesis_recovery, "sectioned_reuse": sectioned_reuse}
 
 
 def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mapping[str, Any]) -> None:
@@ -5646,6 +5668,15 @@ def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mappi
     for row in review["documents"]:
         did = row["document_id"]
         terms = [e for e in events if e.get("event") == "reconciled" and e.get("document_id") == did]
+        if admission.get("pilot", {}).get("sectioned_reuse") is not None and did==PILOT_TOOL_BUDGET_DOCUMENT_ID:
+            composite=verify_sectioned_content_v4()
+            if (len(terms)!=4 or [e.get("status") for e in terms]!=["FAILED_NO_RETRY","STOPPED_GRACEFULLY","FAILED_DOCUMENT_ISOLATED","USER_ACCEPTED_REUSED_REPORT"]
+                    or row.get("status")!=composite["content_status"] or row.get("content_review")!=composite["content_review"]
+                    or any(row.get(k)!=composite[k] for k in ("report","receipt","page_input"))
+                    or row.get("source_pages_reviewed")!=list(range(1,21))
+                    or terms[-1].get("receipt_sha256")!=composite["receipt"]["sha256"]):
+                raise BatchError("PILOT_SECTIONED_CONTENT_BINDING_MISMATCH")
+            continue
         if is_v2 and did == PILOT_TOOL_BUDGET_DOCUMENT_ID:
             recovery = admission["pilot"]["recovery"]
             synthesis = admission["pilot"].get("synthesis_recovery")
@@ -5661,7 +5692,8 @@ def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mappi
             e = terms[0]
         else:
             raise BatchError("PILOT_CONTENT_TERMINAL_MISMATCH")
-        if e.get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING":
+        is_sectioned_long = admission.get("pilot", {}).get("sectioned_reuse") is not None and did==PILOT_LONG_DOCUMENT_ID
+        if e.get("status") != ("SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING" if is_sectioned_long else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"):
             raise BatchError("PILOT_CONTENT_TERMINAL_MISMATCH")
         allowed_row_status = "REPORT_WITH_ERRATUM_PASS" if is_v2 and did == PILOT_YAOSHI_DOCUMENT_ID else "REPORT_CONTENT_PASS"
         if is_v2 and did == PILOT_YAOSHI_DOCUMENT_ID:
@@ -6020,5 +6052,166 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
 
+# V4: exact stopped69 source-stage reuse, with no recursive model rewrite.
+PILOT_V4_DECISION_SHA256 = "a2f9fc416c038d5278e100b9d9d940ccfa8c22da17f19c704c743ab5618dcd60"
+PILOT_V4_PREVIOUS_AUTH_SHA256 = "4ba1ffeef9883a25db2bb52450c2cafdae0b1374be51f97691271edb6591b825"
+PILOT_V4_PREFIX_SHA256 = "f04869e83b6a721e4d0319165240e0412e2a77d9a14c21cec5b779957a7a40d1"
+PILOT_V4_DESCRIPTOR_SHA256 = "2a2f12017a5fff10afcf7acf695980fa9b0cfc47c0584813290f2648135d9499"
+PILOT_LONG_DOCUMENT_ID = "003ecec0bb479256ad7bcbf1f1b0cbdbe2a613fdada22d9d806fc6835ab2a520"
+
+
+def _sectioned_v4_ref() -> dict[str, str]:
+    return {"path":str(RESEARCH_PILOT_ROOT / "model/sectioned-source-reuse-v4.json"),"sha256":PILOT_V4_DESCRIPTOR_SHA256}
+
+
+def load_sectioned_reuse_v4(adopted: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    from ops import run_pdf_research_remaining_once as dispatcher
+    descriptor = _sectioned_v4_ref()
+    value, _ = _analysis_ref(descriptor, root=RESEARCH_PILOT_ROOT)
+    decision = _pilot_fixed(RESEARCH_PILOT_ROOT / "controller-nonrecursive-v4-decision.json",PILOT_V4_DECISION_SHA256)
+    if (value.get("controller_decision")!={"path":str(RESEARCH_PILOT_ROOT / "controller-nonrecursive-v4-decision.json"),"sha256":PILOT_V4_DECISION_SHA256}
+            or value.get("document_id")!=PILOT_TOOL_BUDGET_DOCUMENT_ID or value.get("new_model_POST_limit")!=0
+            or value.get("recursive_synthesis_limit")!=0 or value.get("long_document_id")!=PILOT_LONG_DOCUMENT_ID
+            or value.get("long_source_chunks")!=11 or value.get("long_POST_upper_limit")!=77
+            or value.get("current_checkpoint")!={"event_count":69,"sha256":PILOT_V4_PREFIX_SHA256}
+            or decision.get("status")!="AUTHORIZED_V4_NONRECURSIVE_RECOVERY_AND_CONTINUATION"):
+        raise BatchError("SECTIONED_V4_SCOPE_MISMATCH")
+    if adopted is not None:
+        previous={"path":str(dispatcher.CONTINUATION_ROOT / "ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PACKAGE_COMPAT_20261020_R1.json"),"sha256":PILOT_V4_PREVIOUS_AUTH_SHA256}
+        if adopted.get("sectioned_reuse")!={"descriptor":descriptor} or adopted.get("previous_package_authorization")!=previous:
+            raise BatchError("SECTIONED_V4_ADOPTION_MISMATCH")
+        old, _ = _analysis_ref(previous,root=dispatcher.CONTINUATION_ROOT)
+        if adopted.get("previous_package_adoption")!=old.get("pilot17_adoption"):
+            raise BatchError("SECTIONED_V4_PREVIOUS_ADOPTION_MISMATCH")
+        _analysis_ref(adopted["previous_package_adoption"],root=dispatcher.CONTINUATION_ROOT)
+    old=load_synthesis_recovery()
+    failure,_=_analysis_ref(value["actual_failure"],root=RESEARCH_PILOT_ROOT)
+    independent,_=_analysis_ref(value["independent_failure"],root=RESEARCH_PILOT_ROOT)
+    _analysis_ref(value["source_qualification_review"],root=RESEARCH_PILOT_ROOT)
+    if (value["source_input"]!=old["descriptor"]["stopped_page_input"] or value["source_qualifications"]!=old["source_qualifications"]
+            or failure.get("failure_code")!="SYNTHESIS_OUTPUT_CHARACTER_BUDGET_EXCEEDED"
+            or value["independent_failure"]["sha256"]!="cf3894fca4ac11892f1810899e1a035013fd5aac6fc533672f5cd8b121b6a50d"
+            or independent.get("reviewer")!="/root/pdf_model_analysis_reviewer"):
+        raise BatchError("SECTIONED_V4_FAILURE_BINDING_MISMATCH")
+    page_input,_=_analysis_ref(value["source_input"])
+    pages=[pdf_research.PageText(p["page_number"],p["page_total"],p["text"],p["status"],p["text_sha256"],p.get("extraction_method")) for p in page_input["pages"]]
+    chunks=pdf_research.build_source_chunks(value["document_id"],pages)
+    rows=value.get("source_rows",[])
+    if (len(rows)!=3 or [r.get("source_chunk") for r in rows]!=old["descriptor"]["source_chunks"]
+            or [c.chunk_sha256 for c in chunks]!=[r["source_chunk"]["chunk_sha256"] for r in rows]
+            or not pdf_research.verify_chunk_reconstruction(pages,chunks)
+            or len(pages)!=20 or sorted({u.page_number for c in chunks for u in c.units})!=list(range(1,21))):
+        raise BatchError("SECTIONED_V4_COMPLETE_SOURCE_MISMATCH")
+    if sum(len(r.get("edits",[])) for r in rows)!=4:
+        raise BatchError("SECTIONED_V4_PROJECTION_SCOPE_MISMATCH")
+    for c,r in zip(chunks,rows):
+        if r["initial_input_pages"]!=sorted({u.page_number for u in c.units}):
+            raise BatchError("SECTIONED_V4_INITIAL_PAGE_INDEX_MISMATCH")
+        stream,_=_analysis_ref(r["stream"])
+        if stream.get("status")!="SUCCEEDED" or stream.get("idempotency_key")!=r["source_chunk"]["queue_idempotency_key"]:
+            raise BatchError("SECTIONED_V4_STREAM_BINDING_MISMATCH")
+        for request in r["requests"]:_analysis_ref(request)
+        evidence_root=Path(r["stream"]["path"]).parents[3]
+        for turn in stream.get("rounds",[]):
+            for kind in ("raw_sse","request_input"):
+                target=evidence_root / turn[kind+"_path"]
+                _analysis_ref({"path":str(target),"sha256":turn[kind+"_sha256"]},parse_json=False)
+        requested=_sectioned_requested_pages(json.loads(Path(r["requests"][-1]["path"]).read_bytes())["messages"])
+        if requested!=r["tool_requested_pages"]:
+            raise BatchError("SECTIONED_V4_TOOL_PAGE_INDEX_MISMATCH")
+    return {"reference":descriptor,"value":value}
+
+
+def _sectioned_requested_pages(messages: Sequence[Mapping[str, Any]]) -> list[int]:
+    return sorted({int(n) for m in messages if m.get("role")=="assistant"
+                   for n in re.findall(r'page_number\\*":\s*(\d+)',str(m.get("content","")))})
+
+
+def _project_sectioned_text(text: str, edits: Sequence[Mapping[str, Any]]) -> str:
+    previous=0
+    for e in sorted(edits,key=lambda e:e["start_character"]):
+        a=e.get("start_character");z=e.get("end_character")
+        if (type(a) is not int or type(z) is not int or a<previous or z<=a or z>len(text)
+                or e.get("finding") not in {"C4","C5"} or "CANNOT_CONFIRM" not in str(e.get("replacement"))
+                or _sha256(text[a:z].encode())!=e.get("original_text_sha256")):
+            raise BatchError("SECTIONED_PROJECTION_RANGE_MISMATCH")
+        previous=z
+    result=text
+    for e in sorted(edits,key=lambda e:e["start_character"],reverse=True):
+        result=result[:e["start_character"]]+e["replacement"]+result[e["end_character"]:]
+    return result
+
+
+def _sectioned_text(document_id: str, reports: Sequence[Mapping[str,str]], indexes: Sequence[Mapping[str,Any]], manual_note: str | None) -> str:
+    if not reports or len(reports)!=len(indexes):raise BatchError("SECTIONED_COMPONENTS_INCOMPLETE")
+    out=["# 原模型分块分析与来源约束\n\n此文按原顺序复用模型分块，未重新模型生成或递归合成；可能有重复。输入覆盖不等于内容已验收，重要事实、遗漏、跨块冲突仍须独立核对。\n",
+         f"文档：{document_id}\n\n## 输入和工具引用索引\n"]
+    for i,row in enumerate(indexes,1):
+        out.append(f"- 分块{i}：初始输入页 {row['initial_input_pages']}；工具请求页 {row['tool_requested_pages']}（请求不保证返回全文）；模型引用页见分块，原请求及工具stream的SHA见component manifest。\n")
+    if manual_note:out.append("\n## 验收补充的人工来源约束（非模型生成）\n\n"+manual_note+"\n")
+    for i,r in enumerate(reports,1):out.append(f"\n## 原模型分块 {i} 的来源约束投影\n\n"+r["text"])
+    return "\n".join(out)+"\n"
+
+
+def build_sectioned_reuse_v4(*, persist: bool = True) -> dict[str, Any]:
+    """No transport or queue access. Only exact adopted artifact inputs are read."""
+    loaded=load_sectioned_reuse_v4();value=loaded["value"];reports=[];components=[]
+    for row in value["source_rows"]:
+        reference={k:row["source_chunk"]["report"][k] for k in ("path","sha256")}
+        _,raw=_analysis_ref(reference,parse_json=False);text=raw.decode()
+        projected=_project_sectioned_text(text,row["edits"])
+        components.append({**row,"original_report":reference,"original_ranges":[{**e,"original_text":text[e["start_character"]:e["end_character"]]} for e in row["edits"]],
+                           "projected_text_sha256":_sha256(projected.encode())})
+        reports.append({"text":projected,"report_id":row["source_chunk"]["chunk_sha256"]})
+    qual=value["source_qualifications"]
+    note="原分块的第6页年份—事件配对、第9—10页管线行级映射已发现错配；下文对应段落显式替换为CANNOT_CONFIRM，原段落完整保留在component manifest。\n\n"+"\n\n".join(f"{f['id']}：{f['constraint']}" for f in qual["findings"])
+    report=_sectioned_text(value["document_id"],reports,value["source_rows"],note)
+    root=RESEARCH_PILOT_ROOT / "model/sectioned-reuse-v4/667"
+    if value["report_directory"]!=str(root):raise BatchError("SECTIONED_V4_REPORT_PATH_MISMATCH")
+    path=root/"report.md";digest=_sha256(report.encode())
+    if persist:_write_immutable(path,report.encode(),RESEARCH_PILOT_ROOT)
+    component_path=root/"components.json";component_raw=_json_bytes({"descriptor":loaded["reference"],"components":components},newline=True)
+    component_sha=_sha256(component_raw)
+    if persist:_write_immutable(component_path,component_raw,RESEARCH_PILOT_ROOT)
+    receipt={"schema":"v4.pdf_research.sectioned_reuse_receipt.v4","status":"REUSED_SOURCE_STAGE_SECTIONED_REPORT_SOURCE_REVIEW_PENDING", "document_id":value["document_id"],
+             "page_input":value["source_input"],"descriptor":loaded["reference"],"report":{"path":str(path),"sha256":digest},
+             "components":{"path":str(component_path),"sha256":component_sha},"new_model_POSTs":0,"original_source_reports_unchanged":True,
+             "manual_source_constraints":True,"research_only":True,"production_allowed":False,"orders_sent":False,"buy_gate_updated":False}
+    receipt_path=root/"receipt.json";receipt_raw=_json_bytes(receipt,newline=True)
+    if persist:_write_immutable(receipt_path,receipt_raw,RESEARCH_PILOT_ROOT)
+    return {**receipt,"receipt":{"path":str(receipt_path),"sha256":_sha256(receipt_raw)}}
+
+
+def verify_sectioned_content_v4() -> dict[str, Any]:
+    loaded=load_sectioned_reuse_v4();value=loaded["value"]
+    expected=RESEARCH_PILOT_ROOT / "independent-review/sectioned667-content-review-v4.json"
+    if value["content_review_path"]!=str(expected) or expected.is_symlink() or not expected.is_file():
+        raise BatchError("SECTIONED_CONTENT_REVIEW_REQUIRED")
+    review_ref={"path":str(expected),"sha256":_sha256_file(expected)};review,_=_analysis_ref(review_ref,root=RESEARCH_PILOT_ROOT)
+    generated=build_sectioned_reuse_v4(persist=False)
+    for field in ("report","components","receipt"):_analysis_ref(generated[field],parse_json=False)
+    checks=("all20_pages","important_omissions","unsupported_assertions","cross_section_conflicts","numeric_period_unit_conditions","C4_C5_unknown_exclusions","C6_manual_rating")
+    if (review.get("status")!="SECTIONED_REPORT_WITH_SOURCE_CONSTRAINTS_PASS" or review.get("reviewer")!="/root/pdf_model_analysis_reviewer"
+            or review.get("document_id")!=value["document_id"] or review.get("source_pages_reviewed")!=list(range(1,21))
+            or review.get("descriptor")!=loaded["reference"] or review.get("page_input")!=value["source_input"]
+            or any(review.get(k)!=generated[k] for k in ("report","components","receipt"))
+            or any(review.get("checks",{}).get(k) is not True for k in checks)):
+        raise BatchError("SECTIONED_CONTENT_PASS_BINDING_MISMATCH")
+    return {**generated,"content_review":review_ref,"content_status":review["status"]}
+
+
+def _sectioned_stage_index(state_root: Path, chunk: Any, receipt: Mapping[str, Any]) -> dict[str, Any]:
+    stream_path=state_root/"evidence/streams"/receipt["queue_idempotency_key"]/"attempt-0001/stream-receipt.json"
+    stream_raw=stream_path.read_bytes();stream=json.loads(stream_raw)
+    requests=sorted(stream_path.parent.glob("round-*.request-input.json"))
+    if stream.get("status")!="SUCCEEDED" or not requests or not 1<=stream.get("request_rounds",0)<=7:
+        raise BatchError("SECTIONED_SOURCE_STREAM_SCOPE_MISMATCH")
+    return {"initial_input_pages":sorted({u.page_number for u in chunk.units}),
+            "tool_requested_pages":_sectioned_requested_pages(json.loads(requests[-1].read_bytes())["messages"]),
+            "stream":{"path":str(stream_path),"sha256":_sha256(stream_raw)},
+            "requests":[{"path":str(p),"sha256":_sha256_file(p)} for p in requests]}
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
+

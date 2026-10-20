@@ -77,3 +77,16 @@ def test_v2_errata_rendered_separately_and_in_synthesis_budget():
     reports=[{'report_id':str(i),'text':'原始报告'*450} for i in range(6)]
     packed=package.synthesis_groups(large,reports)
     assert all(len(batch._request_envelope(package.package_messages(large,g,synthesis=True)))<=batch.MAX_REQUEST_ENVELOPE_BYTES for g in packed)
+
+
+def test_package_v4_current_anchor_and_old_v2_v3_boundaries():
+    for value,count,digest in [({'schema':'v4.pdf_research.pilot_adoption.v1'},45,batch.PILOT_JOURNAL_PREFIX_SHA256),
+                               ({'schema':'v4.pdf_research.pilot_adoption.v2'},55,batch.PILOT_V2_PREFIX_SHA256),
+                               ({'synthesis_stage_recovery':{}},62,batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256),
+                               ({'sectioned_reuse':{}},69,batch.PILOT_V4_PREFIX_SHA256)]:
+        assert dispatcher.current_pilot_adoption_anchor({'analysis_admission':{'pilot':{'value':value}}})==(count,digest)
+
+
+def test_package_v4_worker_cannot_bypass_first3_gate():
+    with pytest.raises(batch.BatchError,match='FIRST3_CONTENT_NOT_ACCEPTED'):
+        package._verify_package_history({'analysis_admission':{'pilot':{'phase':'first3'}}},b'{}\n')

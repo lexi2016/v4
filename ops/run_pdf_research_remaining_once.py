@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "e44e6169a6ada34b7de1d8ecb1845d036acadf18044a81c982082646bc8d2930"
+EXPECTED_RUNNER_SHA256 = "04c21f47b38154af58b90cd012472acac53140be755839d000eeaa9affc6146f"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -2329,6 +2329,9 @@ def _pilot_adoption_event(context: Mapping[str, Any], *, v2: bool = False) -> di
     if pilot["value"].get("synthesis_stage_recovery") is not None:
         event.update(previous_authorization_sha256=batch.PILOT_SYNTHESIS_PREVIOUS_AUTH_SHA256,
                      journal_prefix_sha256=batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256,journal_event_count=62)
+    if pilot["value"].get("sectioned_reuse") is not None:
+        event.update(previous_authorization_sha256=batch.PILOT_V4_PREVIOUS_AUTH_SHA256,
+                     journal_prefix_sha256=batch.PILOT_V4_PREFIX_SHA256,journal_event_count=69)
     return event
 
 
@@ -2336,6 +2339,19 @@ def _verify_pilot_append_only_adoption(journal: DurableJournal, context: Mapping
     pilot = context["analysis_admission"]["pilot"]
     raw = _read_regular(journal.path, "PILOT_PRIOR_JOURNAL_REQUIRED")
     lines = raw.splitlines(keepends=True)
+    if pilot["value"].get("sectioned_reuse") is not None:
+        if not raw.endswith(b"\n") or len(lines)<69 or sha256_bytes(b"".join(lines[:69]))!=batch.PILOT_V4_PREFIX_SHA256:
+            raise DispatcherError("SECTIONED_PRIOR69_PREFIX_MISMATCH")
+        old_auth, old_raw = batch._analysis_ref(pilot["value"]["previous_package_authorization"],root=CONTINUATION_ROOT)
+        old_adopted, _ = batch._analysis_ref(old_auth["pilot17_adoption"],root=CONTINUATION_ROOT)
+        old_context={**context,"authorization":old_auth,"authorization_sha256":sha256_bytes(old_raw),
+                     "analysis_admission":{**context["analysis_admission"],"pilot":{**pilot,"value":old_adopted,"reference":old_auth["pilot17_adoption"],"sectioned_reuse":None}}}
+        _verify_pilot_append_only_adoption(journal,old_context)
+        event=_pilot_adoption_event(context,v2=True)
+        if len(journal.events)==69:journal.append(event)
+        elif {k:v for k,v in journal.events[69].items() if k!="at_utc"}!=event:
+            raise DispatcherError("SECTIONED_CURRENT_ADOPTION_MISMATCH")
+        return
     if pilot["value"].get("synthesis_stage_recovery") is not None:
         if (not raw.endswith(b"\n") or len(lines)<62
                 or sha256_bytes(b"".join(lines[:62]))!=batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256):
@@ -2423,7 +2439,7 @@ def _prepare_synthesis_recovery(journal: DurableJournal, context: Mapping[str, A
         raise DispatcherError("SYNTHESIS_RECOVERY_STOP_PREFIX_MISMATCH")
     event={"event":"halt_resolution","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,"status":"BOUNDED_SYNTHESIS_ONLY_RECOVERY_AUTHORIZED",
            "recovery_generation":2,"prior_plan_sha256":descriptor["stopped_plan"]["sha256"],"prior_receipt_sha256":descriptor["stopped_receipt"]["sha256"],
-           "new_plan_sha256":recovery["plan_reference"]["sha256"],"authorization_sha256":context["authorization_sha256"],"source_model_rePOST_limit":0,"new_model_request_limit":2}
+           "new_plan_sha256":recovery["plan_reference"]["sha256"],"authorization_sha256":(batch.PILOT_V4_PREVIOUS_AUTH_SHA256 if (context.get("analysis_admission") or {}).get("pilot",{}).get("sectioned_reuse") is not None else context["authorization_sha256"]),"source_model_rePOST_limit":0,"new_model_request_limit":2}
     if len(journal.events)==63:journal.append(event)
     elif {k:v for k,v in journal.events[63].items() if k!="at_utc"}!=event:raise DispatcherError("SYNTHESIS_RECOVERY_RESOLUTION_MISMATCH")
     plans=[e for e in journal.events[62:] if e.get("event")=="plan_created" and e.get("document_id")==batch.PILOT_TOOL_BUDGET_DOCUMENT_ID]
@@ -2684,8 +2700,9 @@ def _halt_if_required(
     halt_resume_descriptor: Mapping[str, Any] | None = None,
     additional_halt_resume_descriptor: Mapping[str, Any] | None = None,
     synthesis_halt_resume_descriptor: Mapping[str, Any] | None = None,
+    sectioned_halt_resume_descriptor: Mapping[str, Any] | None = None,
 ) -> None:
-    descriptors=[d for d in (halt_resume_descriptor,additional_halt_resume_descriptor,synthesis_halt_resume_descriptor) if d is not None]
+    descriptors=[d for d in (halt_resume_descriptor,additional_halt_resume_descriptor,synthesis_halt_resume_descriptor,sectioned_halt_resume_descriptor) if d is not None]
     resolved_halts: set[int]=set()
     resolved_failures: set[int]=set()
     for descriptor in descriptors:
@@ -3069,7 +3086,14 @@ def _reconcile_singleton(
         raise DispatcherError("EXECUTION_RECEIPT_SAFETY_BINDING_INVALID")
     status = receipt.get("status")
     requests = receipt.get("model_request_count")
-    if status in SUCCESS_STATUSES:
+    sectioned = status=="SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING"
+    if sectioned:
+        components, _ = batch._analysis_ref(receipt.get("sectioned_components",{}))
+        if (document_id!=batch.PILOT_LONG_DOCUMENT_ID or len(receipt.get("chunks",[]))!=11 or receipt.get("synthesis")!=[]
+                or receipt.get("synthesis_levels")!=0 or len(components.get("index",[]))!=11 or requests!=11
+                or components.get("chunks")!=receipt["chunks"]):
+            raise DispatcherError("SECTIONED_LONG_EXECUTION_SCOPE_MISMATCH")
+    if status in SUCCESS_STATUSES or sectioned:
         decision = "CONTINUE"
         if type(requests) is not int or requests < 1:
             raise DispatcherError("EXECUTION_MODEL_REQUEST_COUNT_INVALID")
@@ -3213,6 +3237,7 @@ def execute_once(
         )
         tool_budget_halt_descriptor = _prepare_pilot_tool_recovery(journal, context)
         synthesis_halt_descriptor = _prepare_synthesis_recovery(journal, context)
+        sectioned_halt_descriptor = _prepare_sectioned_closure(journal, context)
         latest = _latest_document_events(journal.events)
         resolved_halt_resume_descriptor = None
         if resumed_document_id is not None:
@@ -3221,7 +3246,8 @@ def execute_once(
             if resolved_halt_resume_descriptor is None:
                 raise DispatcherError("HALT_RESUME_DESCRIPTOR_MISSING")
         _halt_if_required(journal, latest, halt_resume_descriptor=resolved_halt_resume_descriptor,
-                          additional_halt_resume_descriptor=tool_budget_halt_descriptor, synthesis_halt_resume_descriptor=synthesis_halt_descriptor)
+                          additional_halt_resume_descriptor=tool_budget_halt_descriptor, synthesis_halt_resume_descriptor=synthesis_halt_descriptor,
+                          sectioned_halt_resume_descriptor=sectioned_halt_descriptor)
         _assert_no_duplicate_document_ids(journal.events, analysis_admission=admission)
         if not latest:
             _first, initial_count = select_next_document(
@@ -3755,6 +3781,44 @@ def main(argv: Sequence[str] | None = None) -> int:
         code = getattr(exc, "code", None) or type(exc).__name__
         print(json.dumps({"status": "STOPPED", "code": str(code)[:96]}, ensure_ascii=False), file=sys.stderr)
         return 2
+
+
+def current_pilot_adoption_anchor(context: Mapping[str, Any]) -> tuple[int,str]:
+    value=context["analysis_admission"]["pilot"]["value"]
+    if value.get("sectioned_reuse") is not None:return 69,batch.PILOT_V4_PREFIX_SHA256
+    if value.get("synthesis_stage_recovery") is not None:return 62,batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256
+    if value.get("schema")=="v4.pdf_research.pilot_adoption.v2":return 55,batch.PILOT_V2_PREFIX_SHA256
+    return 45,batch.PILOT_JOURNAL_PREFIX_SHA256
+
+
+def _prepare_sectioned_closure(journal: DurableJournal, context: Mapping[str, Any]) -> dict[str, Any] | None:
+    reuse=(context.get("analysis_admission") or {}).get("pilot",{}).get("sectioned_reuse")
+    if reuse is None:return None
+    raw=_read_regular(journal.path,"SECTIONED_JOURNAL_REQUIRED");lines=raw.splitlines(keepends=True)
+    failure,_=batch._analysis_ref(reuse["value"]["actual_failure"])
+    if (len(lines)<70 or sha256_bytes(b"".join(lines[:69]))!=batch.PILOT_V4_PREFIX_SHA256
+            or journal.events[67].get("status")!="FAILED_DOCUMENT_ISOLATED" or journal.events[67].get("decision")!="HALT"
+            or journal.events[67].get("receipt_sha256")!=failure["receipt"]["sha256"]
+            or journal.events[68].get("event")!="halt" or journal.events[68].get("document_id")!=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID):
+        raise DispatcherError("SECTIONED_FAILURE69_BINDING_MISMATCH")
+    review_path=Path(reuse["value"]["content_review_path"])
+    if not review_path.exists():return None  # Source-only refresh never releases this HALT.
+    composite=batch.verify_sectioned_content_v4()
+    event={"event":"halt_resolution","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,
+           "status":"INDEPENDENT_CONTENT_ACCEPTED_SOURCE_STAGE_REUSE","prior_reconciled_event_index":67,"prior_halt_event_index":68,
+           "prior_receipt_sha256":failure["receipt"]["sha256"],"content_review":composite["content_review"],
+           "report":composite["report"],"descriptor":reuse["reference"],"new_model_POST_limit":0,
+           "authorization_sha256":context["authorization_sha256"]}
+    terminal={"event":"reconciled","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,"continuation_id":"source-stage-667-v4",
+              "status":"USER_ACCEPTED_REUSED_REPORT","decision":"CONTINUE","receipt_path":composite["receipt"]["path"],
+              "receipt_sha256":composite["receipt"]["sha256"],"state_root":str(Path(composite["report"]["path"]).parent),
+              "report":composite["report"],"content_review":composite["content_review"],"new_model_POSTs":0}
+    for index,expected in ((70,event),(71,terminal)):
+        if len(journal.events)==index:journal.append(expected)
+        elif len(journal.events)<=index or {k:v for k,v in journal.events[index].items() if k!="at_utc"}!=expected:
+            raise DispatcherError("SECTIONED_CONTENT_CLOSURE_MISMATCH")
+    return {"reconciled_event_index":67,"halt_event_index":68,"reconciled_event_line_sha256":sha256_bytes(lines[67]),
+            "continuation_id":journal.events[67]["continuation_id"],"document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID}
 
 
 if __name__ == "__main__":
