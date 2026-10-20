@@ -1,15 +1,36 @@
 {
+  "actual_source_regressions": {
+    "denominator_caption_fixed": true,
+    "material_form_cases_fixed": 4,
+    "publisher_case_fixed": 1,
+    "report_date_case_fixed": 1
+  },
   "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "date_value_changes": 63,
+  "delta_document_count": 509,
+  "field_delta_counts": {
+    "original_institution_candidate": 63,
+    "primary_type_candidate": 201,
+    "report_date": 307
+  },
   "gaps": [
-    "OCR final frozen2209 terminal manifest pending; this is fixed historical snapshot",
-    "Independent fresh60 semantic/field review pending; no population accuracy claim",
-    "Actual browser rendering CANNOT_CONFIRM, no bypass",
-    "Company extraction conservative literal cover names; mention entities and codes unknown where not extracted",
+    "Original OCR final frozen2209 terminal manifest and final integration pending; historical snapshot retained without rereading dynamic progress",
+    "Independent F1-F4 incremental repair review pending; original56/60 FAIL and unknown2 preserved; revealed60 is repair regression only",
+    "Actual browser rendering CANNOT_CONFIRM, existing policy refusal retained without bypass",
+    "Company extraction remains conservative literal cover names; mention entities and codes unknown where not extracted",
     "Fuzzy relation recall not exhaustive; candidates never merge/delete"
   ],
+  "historical_implementation_tests": {
+    "new_targeted": 17,
+    "old20_independent_PASS_reused": true,
+    "prior_changed_rule_regressions": 10,
+    "static_js_isolated_checks": 53
+  },
   "input_manifest_sha256": "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9",
   "known12_resolved": 12,
+  "new_targeted_tests": 9,
   "new_validation_selection_sha256": "bdf56f8bc1cfaffe80d10f8c16bce9d8c54d7a1d009733f0cfc30ade8a83f636",
+  "old60_candidate_label_deltas": 0,
   "operations": {
     "deletions": 0,
     "downloads": 0,
@@ -17,11 +38,29 @@
     "model_posts": 0,
     "ocr": 0
   },
-  "ownership": "Source frozen for independent review; Writer ownership released; controller wakes same Writer only for final increment after OCR terminal",
+  "ownership": "Source frozen after current repair build; controller arranges independent incremental review; final OCR integration separate",
+  "prior_independent_receipt_sha256": "2f1d5072f056421235828bc0da3e2163104bf3ffba42f0b0885cb7bab9480890",
+  "prior_independent_verdict": "CODE_FIXED_SNAPSHOT_FAIL",
+  "prior_validation_accuracy": {
+    "correct": 56,
+    "current_role": "REVEALED_REPAIR_REGRESSION_NOT_UNSEEN_VALIDATION",
+    "denominator": 60,
+    "target": 0.95,
+    "value": 0.9333333333333333,
+    "verdict": "FAIL_RETAINED"
+  },
+  "prior_validation_unknown_candidate_count": 2,
+  "repair_independent_verdict": "PENDING",
+  "repair_scope": [
+    "F1 cover publication and prose citation precedence/publisher",
+    "F2 existing later-page record form",
+    "F3 report versus market asof date",
+    "F4 available-text versus READY denominator"
+  ],
   "reviewed_sample_remote_commit": "5233c9f045cd729f443915279f5663e2e2581946",
-  "rules_version": "full-body-structure-v2-20261020",
+  "rules_version": "full-body-structure-v3-f1-f4-20261020",
   "schema": "v4.pdf_full_classification.review_handoff.v1",
-  "scope": "incremental offline full2209 classification/dedup/static dashboard candidate; old60 form/10pairs PASS retained; new holdout not self-scored",
+  "scope": "F1-F4 bounded repair of independently revealed material-form/publisher/date/denominator defects; original60 form/10pairs PASS and unaffected checks retained; original new60 now repair regression, no unseen accuracy claim",
   "snapshot_ocr_counts": {
     "FAILED": 14,
     "PENDING": 444,
@@ -29,11 +68,6 @@
     "READY": 1709
   },
   "snapshot_sha256": "59961eaababec01f9e09f733713737c19722e78016e13771af6ae0663ae232d3",
-  "status": "IMPLEMENTATION_HANDOFF_WAITING_OCR",
-  "tests": {
-    "new_targeted": 17,
-    "old20_independent_PASS_reused": true,
-    "prior_changed_rule_regressions": 10,
-    "static_js_isolated_checks": 53
-  }
+  "source_ownership_released": true,
+  "status": "F1_F4_REPAIR_HANDOFF_WAITING_OCR"
 }

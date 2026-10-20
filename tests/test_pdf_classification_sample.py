@@ -245,3 +245,58 @@ def test_full_dashboard_payload_escape_pagination_and_local_source_index(tmp_pat
     assert 'const fullPageSize=25' in body and 'function fullSelect' in body
     assert '</script><img src=x' not in body and '\\u003c/script>' in body
     assert 'replace(/#/g' in body and 'replace(/\\?/g' in body
+
+
+@pytest.mark.parametrize('text,publisher',[
+ ('平安证券\nPING AN SECURITIES\n海外策略周报\n证券分析师\n投资咨询编号\n平安观点：9月FOMC会议纪要偏鹰。','平安证券'),
+ ('财信证券\nCHASING SECURITIES\n策略点评\n证券研究报告\n从市场情绪看，据港交所及财联社，沽空比例下降。','财信证券'),
+])
+def test_repair_f1_cover_publication_outranks_prose_citations(text,publisher):
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]
+    assert tool.publisher_candidate(pages(text),tool.PRIMARY[0])[0]==publisher
+    assert tool.publisher_candidate(pages('据港交所及财联社，市场情绪回暖。'),tool.PRIMARY[3])==(None,None)
+
+
+@pytest.mark.parametrize('text',[
+ '【风口研报】财联社\n中信证券分析师认为景气改善。\n证券研究报告被引用。',
+ '财联社10月13日电\n据某证券研究报告，市场活跃。',
+])
+def test_repair_f1_genuine_news_material_stays_news(text):
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[3]
+
+
+@pytest.mark.parametrize('later_page',[
+ '问答整理\n（本次电话会议为策略观点播报，未设问答环节）\n原文\n发言人 00:00 欢迎参加会议。',
+ '问答整理\nQ1：经营情况如何？\n答：业务增长。',
+])
+def test_repair_f2_record_form_on_later_prepared_page(later_page):
+    source=[{'page_number':i+1,'text':text} for i,text in enumerate(['公司业务概览\n'+'要点总结。'*1600,'摘要续页。',later_page])]
+    candidate=tool.primary_candidate(source)
+    assert candidate[0]==tool.PRIMARY[2]
+    assert tool.evidence(source,candidate[2])['page_number']==3
+    broker=[{'page_number':1,'text':'财信证券\n策略点评\n证券研究报告'},source[-1]]
+    assert tool.primary_candidate(broker)[0]==tool.PRIMARY[0]
+    assert tool.primary_candidate(pages('正文引用了某次会议纪要与问答整理，但无记录结构。'))[0]==tool.PRIMARY[6]
+
+
+def test_repair_f3_masthead_and_explicit_date_precede_market_asof_date():
+    source=[{'page_number':1,'text':'证券研究报告\n市场数据：\n收盘价（元）\n数据来源：Wind\n2026年8月19日\n基础数据：\n2026年03月31日\n相关研究\nAIJIAN SECURITIES\n2026年08月20日\n长鑫科技公司深度报告'}, {'page_number':2,'text':'长鑫科技\n2026年08月20日\n投资案件'}]
+    got=tool.report_date_candidate(source)
+    assert got['value']=='2026-08-20' and got['status']=='COVER_MASTHEAD_DATE_CANDIDATE'
+    assert '2026年08月20日' in got['evidence']['excerpt']
+    assert tool.report_date_candidate(pages('市场数据：\n收盘价\n数据来源：Wind\n2026年8月19日'))['value'] is None
+    assert tool.report_date_candidate(pages('2026年8月19日\n报告日期：2026-08-20'))['value']=='2026-08-20'
+    assert tool.report_date_candidate(pages('报告日期：2026-08-20\n发布日期：2026-08-21'))['value'] is None
+
+
+def test_repair_f4_html_available_text_denominator_is_not_ready(tmp_path):
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/a.pdf','collection_directories':[]};row=tool.candidate_metadata(doc,{'status':'READY'},pages('材料正文'),{'labels':[],'version':'test'});row.update({'source_references':{'page_input':None},'sample_verification':'test'})
+    stats=tool.build_stats([row],[row['document_id']],{'same_normalized_page_sequence_groups':9,'ready_body_identity_denominator':1709,'available_text_identity_denominator':1751},{'asof_utc':'fixed'},{});stats.update({'sample_unknown_by_class':{},'sample_main_company_counts_nonexclusive':{}})
+    target=tmp_path/'report.html';tool.render_report(target,stats,[row],[]);body=target.read_text()
+    assert '9 / 1751 份可用准备正文（含隔离，质量状态单列）' in body
+    assert '1751 份READY正文' not in body
+
+
+def test_repair_f1_localized_research_masthead_still_precedes_consulting_reference():
+    text='J.P.Morgan\n摩根大通\n中国 证券研究\n2026年9月23日\n行业观点提及白皮书。'
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]

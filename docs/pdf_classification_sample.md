@@ -57,3 +57,11 @@ Run only `tests/test_pdf_classification_sample.py` for this tool. Writer test re
 最终增量命令使用同一工具 `--full --evidence-root FULL_ROOT --prepared-root PREPARED_ROOT --sample-root SAMPLE_ROOT --require-final`。`--require-final`只消费原OCR owner的2209终态 `prepared-text-manifest.json`，校验FROZEN_COMPLETE、原manifestSHA、完整唯一ID集合、READY/QUARANTINED/FAILED分区、计数及pending0，再核所有receipt/page-input/逐页SHA。缺最终manifest即报WAITING_OCR，无OCR尝试。初步固定快照使用不带refresh/final的命令；有新授权快照才可加`--refresh-snapshot`，单次原子读取，不轮询。资源失败/隔离身份保留在完整台账并路由REVIEW，不能冒充正文READY或拖住其他文件。
 
 本阶段所有执行均离线研究候选：0 OCR、0模型请求、0下载、0订单、0删除、0合并。部署/替换旧看板/提交推送由主控在独立验收后处理。原OCR和所有旧报告、原件、队列、HALT及服务保持由其原owner管理。
+
+### F1–F4 集中返修（独立 FAIL 后）
+
+保留初次全量代码/固定快照独立FAIL及原新60结果56/60（93.33%，含两个可识别但待分类的错误），未达到95%目标。该60现因错误已揭示而成为返修回归，返修结果不能再作为未见验证或总体准确率。稀有类别缺失、机构/日期unknown和字段错误原记录均保留。
+
+规则版本更新为 `full-body-structure-v3-f1-f4-20261020`，仅修F1–F4：封面证券研究/策略周报等出版结构优先于正文引用，资讯署名/会议性质须有标题或记录结构；补财信/平安封面别名，不按文档ID设特例。首面长摘要而问答/发言人结构在后续准备页时，仅在未命中明确出版形式的材料中扫描已有页结构，保留发言与出处不确定性。日期优先显式报告/发表字段及封面品牌后的刊头，排除市场/基础数据和相关研究上下文；日期冲突则unknown。全正文去重分母明确为“可用准备正文（含隔离，质量状态单列）”，READY分母另存真实数量。
+
+本轮只增量复核改变规则的实际原页及针对性测试，复用未受影响的身份、缓存、去重和静态JS PASS。源码版本变化允许必要重分类，旧输出/缓存/FAIL均保留；0OCR、0模型。最终OCR2209终态manifest仍单独等待，不因本轮返修重复读取动态进度。

@@ -23,10 +23,10 @@ from urllib.parse import quote
 
 MANIFEST_SHA = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
 SCHEMA = "v4.pdf_classification_sample.v1"
-RULES_VERSION = "full-body-structure-v2-20261020"
+RULES_VERSION = "full-body-structure-v3-f1-f4-20261020"
 PRIMARY = ("券商/研究机构研究", "公司一手披露", "调研/会议记录", "新闻/资讯解读", "数据/白皮书/咨询报告", "教程/方法/其他", "待分类")
 ROUTES = ("SAVE", "REUSE_CANDIDATE", "REVIEW", "LIGHT_EXTRACTION_CANDIDATE", "DEEP_RESEARCH_CANDIDATE")
-INSTITUTIONS = ("Morgan Stanley", "Goldman Sachs", "J.P. Morgan", "JPMorgan", "Jefferies", "UBS", "Citi Research", "Barclays", "Bernstein", "Deutsche Bank", "BofA", "Nomura", "Macquarie", "DBS", "国盛证券", "国金证券", "中信证券", "中信建投", "华泰证券", "招商证券", "光大证券", "东吴证券", "开源证券", "国联民生", "民生证券", "中泰证券", "浙商证券", "中金公司", "中银证券", "长江证券", "东北证券", "西南证券", "天风证券", "兴业证券", "国信证券", "申万宏源", "广发证券", "华福证券", "平安证券", "华创证券", "华安证券", "华西证券", "财通证券", "东方证券", "国泰海通", "信达证券", "银河证券", "东兴证券", "国投证券", "华源证券", "爱建证券", "招银国际", "招銀国际", "CMB INTERNATIONAL", "HUAAN SECURITIES", "AIJIAN SECURITIES", "摩根大通", "J.P.Morgan")
+INSTITUTIONS = ("Morgan Stanley", "Goldman Sachs", "J.P. Morgan", "JPMorgan", "Jefferies", "UBS", "Citi Research", "Barclays", "Bernstein", "Deutsche Bank", "BofA", "Nomura", "Macquarie", "DBS", "国盛证券", "国金证券", "中信证券", "中信建投", "华泰证券", "招商证券", "光大证券", "东吴证券", "开源证券", "国联民生", "民生证券", "中泰证券", "浙商证券", "中金公司", "中银证券", "长江证券", "东北证券", "西南证券", "天风证券", "兴业证券", "国信证券", "申万宏源", "广发证券", "华福证券", "平安证券", "华创证券", "华安证券", "华西证券", "财通证券", "东方证券", "国泰海通", "信达证券", "银河证券", "东兴证券", "国投证券", "华源证券", "爱建证券", "招银国际", "招銀国际", "CMB INTERNATIONAL", "HUAAN SECURITIES", "AIJIAN SECURITIES", "摩根大通", "J.P.Morgan", "财信证券", "CHASING SECURITIES", "PING AN SECURITIES")
 STRONG_NEWS = r"Bloomberg[\s\S]{0,60}News Story|【彭博】|风口研报|财联社|早知道|盘前必读|盘中资讯|今日早盘|当下市场重点题材|题材复盘|投资舆情|盘前热点|今日财经|今日题材"
 MEETING = r"调研纪要|会议纪要|业绩会纪要|交流纪要|专家纪要|访谈纪要|调研记录|投资者关系活动记录|会议记录|访谈实录|调研问答|公司交流|专家交流|访谈记录|Earnings Call Transcript|Conference Call Transcript"
 DATA = r"白皮书|统计公报|统计年鉴|white paper|whitepaper|产业发展报告|发展研究报告|行业调查报告|消费者调查|调研报告|麦肯锡|McKinsey|Deloitte|德勤|普华永道|PwC|艾瑞咨询|艾媒咨询|QuestMobile|易观分析|亿欧智库|罗兰贝格|灼识咨询|Euromonitor|中国信通院|中国信息通信研究院"
@@ -138,7 +138,7 @@ def publisher_candidate(pages, primary):
     if derivative_guide(short):
         return None, None
     if primary == PRIMARY[3]:
-        for label, pattern in (("Bloomberg", r"Bloomberg[\s\S]{0,60}News Story|【彭博】"), ("财联社", r"财联社")):
+        for label, pattern in (("Bloomberg", r"Bloomberg[\s\S]{0,60}News Story|【彭博】"), ("财联社", r"(?m)^\s*(?:来源[：:]\s*)?财联社(?:\s*$|[\s（(]|记者|[0-9一二三四五六七八九十]+月)")):
             ref = evidence(pages[:1], pattern)
             if ref:
                 return label, ref
@@ -147,7 +147,7 @@ def publisher_candidate(pages, primary):
         names = ("Deloitte", "德勤", "McKinsey", "麦肯锡", "PwC", "普华永道", "中国信通院", "中国信息通信研究院", "QuestMobile")
     else:
         names = INSTITUTIONS
-    aliases = {"HUAAN SECURITIES":"华安证券", "AIJIAN SECURITIES":"爱建证券", "CMB INTERNATIONAL":"招银国际", "招銀国际":"招银国际", "J.P.Morgan":"J.P. Morgan", "JPMorgan":"J.P. Morgan", "摩根大通":"J.P. Morgan", "德勤":"Deloitte", "麦肯锡":"McKinsey", "普华永道":"PwC"}
+    aliases = {"CHASING SECURITIES":"财信证券", "PING AN SECURITIES":"平安证券", "HUAAN SECURITIES":"华安证券", "AIJIAN SECURITIES":"爱建证券", "CMB INTERNATIONAL":"招银国际", "招銀国际":"招银国际", "J.P.Morgan":"J.P. Morgan", "JPMorgan":"J.P. Morgan", "摩根大通":"J.P. Morgan", "德勤":"Deloitte", "麦肯锡":"McKinsey", "普华永道":"PwC"}
     # Standalone cover brand lines or explicitly branded research headings.
     candidates = {}
     for name in names:
@@ -222,14 +222,19 @@ def primary_candidate(pages):
     institutions = [name for name in INSTITUTIONS if re.search(institution_pattern(name), head, re.I)]
     if derivative_guide(short):
         return PRIMARY[5], "二手导读/摘要导出", r"全文摘要|章节速览|思维导图", "正文含摘要导出模板；标题提及机构不代表机构原文，来源与转写可靠性待核"
-    if re.search(STRONG_NEWS, short[:1000], re.I):
+    cover_news = r"(?m)^\s*[【\[]?(?:风口研报|早知道|盘前必读|盘中资讯|今日早盘|题材复盘|投资舆情|盘前热点|今日财经|今日题材)|Bloomberg[\s\S]{0,60}News Story|【彭博】"
+    if re.search(cover_news, short[:1000], re.I):
         return PRIMARY[3], "资讯栏目/题材线索", STRONG_NEWS, "正文出现明确资讯栏目或题材汇编结构"
-    if institutions and re.search(r"证券研究报告|证券研究|Equity Research|SWS RESEARCH|产业研究报告|行业研究|公司覆盖", short[:1800], re.I):
+    publication_form = r"(?m)^\s*(?:(?:(?:中国|香港|亚洲|全球|美国|欧洲|亚太)\s*)?证券研究(?:报告)?|Equity Research|SWS RESEARCH|产业研究报告|行业研究|公司覆盖|[^\n]{0,12}(?:策略|行业|公司|宏观)(?:点评|周报|日报|月报|深度|专题|研究))\s*$"
+    if institutions and re.search(publication_form, short[:1800], re.I):
         return PRIMARY[0], "研究报告/策略/行业", re.escape(institutions[0]), "首页出版机构及研究报告结构明确；不会因引用会议纪要或白皮书改变材料性质"
+    if re.search(r"(?m)^\s*(?:来源[：:]\s*)?财联社(?:\s*$|[\s（(]|记者|[0-9一二三四五六七八九十]+月)", short[:1000]):
+        return PRIMARY[3], "资讯署名/电讯", r"(?m)^\s*(?:来源[：:]\s*)?财联社", "资讯正文署名或电讯行，不把据财联社引用视为出版机构"
     if re.search(r"发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+", short, re.I):
         return PRIMARY[2], "会议/访谈转录", r"发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+", "正文含发言人及时间戳；仅确认记录形式，不确认转录准确性或发言人身份"
-    if re.search(MEETING, short[:900], re.I):
-        return PRIMARY[2], "调研/会议记录", MEETING, "首页正文含纪要/调研记录性质标记；发言及记录身份仍需核验"
+    meeting_headline = next((line.strip() for line in short[:900].splitlines()[:12] if re.search(MEETING,line,re.I) and len(line.strip())<=100 and not re.search(r"引用|提及|参考|据|指出|认为|[。；;]",line)), None)
+    if meeting_headline:
+        return PRIMARY[2], "调研/会议记录", re.escape(meeting_headline), "首页标题含纪要/调研记录性质标记，排除正文引用；发言及记录身份仍需核验"
     if re.search(r"(?m)^\s*(?:Q\s*&\s*A|问答|问[:：]|Q[:：])", short) and not (institutions and re.search(BROKER, head, re.I)):
         return PRIMARY[2], "问答记录", r"Q\s*&\s*A|问答|问[:：]|Q[:：]", "正文问答结构；记录形式可识别，但发言人、原始出处与事实仍待核"
     if re.search(DATA, short[:1000], re.I) and not (institutions and re.search(r"证券研究报告", short)):
@@ -243,41 +248,64 @@ def primary_candidate(pages):
         return PRIMARY[0], "公司研究" if re.search(r"公司点评|公司深度|个股研究|Company Report", short, re.I) else "研究报告/策略/行业", marker, "正文同时出现研究机构名称和研究/评级结构；规则候选待语义核验"
     if re.search(r"催化因素|重点标的|市场热点|板块催化", short) and not institutions:
         return PRIMARY[3], "题材资讯汇编", r"催化因素|重点标的|市场热点|板块催化", "正文以事件催化/题材标的汇编为主，不以文件名认定券商研报"
+    record_marker = r"(?m)^\s*问答整理\s*$|发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+"
+    for page in pages:
+        prepared = page["text"][:6000]
+        if re.search(r"发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+", prepared, re.I) or re.search(r"(?m)^\s*问答整理\s*\n[\s\S]{0,200}(?:Q\d*\s*[:：]|答[:：]|电话会议|问答环节)", prepared):
+            return PRIMARY[2], "后续页问答/转录记录", record_marker, "既有准备正文后续页含问答整理与问答/电话会或发言人结构；只确认记录形式，来源和转录事实仍待核"
     return PRIMARY[6], "未知", None, "现有正文证据不足以确认材料性质；禁止由文件名补定类别"
 
 
 def report_date_candidate(pages):
+    unknown = {"value":None,"status":"UNKNOWN","evidence":None}
     if not pages:
-        return {"value": None, "status": "UNKNOWN", "evidence": None}
-    text = pages[0]["text"][:5000]
-    text = re.split(r"相关研究|相關研究|相关报告|相關報告", text, maxsplit=1)[0]
-    patterns = [
-        r"(?m)^\s*(20\d{2})[年./-]\s*(\d{1,2})[月./-]\s*(\d{1,2})日?\s*$",
-        r"(?:报告日期|发布日期|发布时间|發佈日期|Report date|Publication date)[^\n\d]{0,35}(20\d{2})[年./-]\s*(\d{1,2})[月./-]\s*(\d{1,2})",
-    ]
-    for pattern in patterns:
-        for match in re.finditer(pattern, text[:1000] if pattern.startswith("(?m)") else text, re.I):
-            try:
-                value = date(*map(int, match.groups())).isoformat()
-            except ValueError:
-                continue
-            return {"value": value, "status": "BODY_HEADER_DATE_CANDIDATE", "evidence": evidence(pages, re.escape(match.group(0).strip()))}
-    # Standalone cover dates only; event dates inside sentences stay unknown.
-    month_names = {name:i for i,name in enumerate(("January","February","March","April","May","June","July","August","September","October","November","December"),1)}
-    for line in text[:1000].splitlines():
-        value = None
-        m = re.fullmatch(r"\s*(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})\s*", line)
-        n = re.fullmatch(r"\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(20\d{2})\s*", line)
-        numeric = re.fullmatch(r"\s*(\d{1,2})/(\d{1,2})/(20\d{2})\s*",line) if re.search(r"Bloomberg[\s\S]{0,60}News Story",text[:300],re.I) else None
+        return unknown
+    numeric = r"(20\d{2})[年./-]\s*(\d{1,2})[月./-]\s*(\d{1,2})日?"
+    def valid(groups):
+        try:return date(*map(int,groups)).isoformat()
+        except ValueError:return None
+    def result(items, status):
+        values={v for v,ref in items if v}
+        if len(values)!=1:return unknown
+        value=next(iter(values))
+        return {"value":value,"status":status,"evidence":next(ref for v,ref in items if v==value)}
+    # Explicit publication semantics precede all standalone table/header dates.
+    explicit=[]
+    for match in re.finditer(r"(?:报告日期|发布日期|发布时间|發佈日期|Report date|Publication date)[^\n\d]{0,35}"+numeric,pages[0]["text"][:5000],re.I):
+        explicit.append((valid(match.groups()),evidence(pages[:1],re.escape(match.group(0).strip()))))
+    if explicit:return result(explicit,"EXPLICIT_REPORT_PUBLICATION_DATE_CANDIDATE")
+    mastheads=[];standalone=[]
+    for page in pages[:2]:
+        text=page["text"][:5000]
+        for match in re.finditer(r"(?m)^\s*"+numeric+r"\s*$",text):
+            before=text[max(0,match.start()-180):match.start()]
+            brand=any(re.search(r"(?m)^\s*"+institution_pattern(name)+r"\s*$",before,re.I) for name in INSTITUTIONS)
+            bad_context=re.search(r"市场数据|基础数据|收盘价|数据来源|资料来源|截至|截止|as of|market data|相关研究|相關研究|相关报告|相關報告",before,re.I)
+            ref=evidence([page],re.escape(match.group(0).strip()))
+            value=valid(match.groups())
+            # A new standalone brand/date masthead after a sidebar starts a fresh
+            # publication context; market data earlier in OCR order cannot win.
+            recent_brand=any(re.search(r"(?m)^\s*"+institution_pattern(name)+r"\s*$",before[-90:],re.I) for name in INSTITUTIONS)
+            if brand and recent_brand:mastheads.append((value,ref))
+            elif page["page_number"]==1 and match.start()<1000 and not bad_context:standalone.append((value,ref))
+    if mastheads:return result(mastheads,"COVER_MASTHEAD_DATE_CANDIDATE")
+    if standalone:return result(standalone,"BODY_HEADER_DATE_CANDIDATE")
+    # English cover dates and Bloomberg's explicitly formatted news header.
+    text=pages[0]["text"][:1000]
+    month_names={name:i for i,name in enumerate(("January","February","March","April","May","June","July","August","September","October","November","December"),1)}
+    english=[]
+    for line in text.splitlines():
+        value=None
+        m=re.fullmatch(r"\s*(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})\s*",line)
+        n=re.fullmatch(r"\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(20\d{2})\s*",line)
+        us=re.fullmatch(r"\s*(\d{1,2})/(\d{1,2})/(20\d{2})\s*",line) if re.search(r"Bloomberg[\s\S]{0,60}News Story",text[:300],re.I) else None
         try:
             if m and m[2].title() in month_names:value=date(int(m[3]),month_names[m[2].title()],int(m[1]))
             elif n and n[1].title() in month_names:value=date(int(n[3]),month_names[n[1].title()],int(n[2]))
-            elif numeric:value=date(int(numeric[3]),int(numeric[1]),int(numeric[2]))
-        except ValueError:
-            continue
-        if value:
-            return {"value":value.isoformat(),"status":"BODY_HEADER_DATE_CANDIDATE","evidence":evidence(pages[:1],re.escape(line.strip()))}
-    return {"value": None, "status": "UNKNOWN", "evidence": None}
+            elif us:value=date(int(us[3]),int(us[1]),int(us[2]))
+        except ValueError:continue
+        if value:english.append((value.isoformat(),evidence(pages[:1],re.escape(line.strip()))))
+    return result(english,"BODY_HEADER_DATE_CANDIDATE") if english else unknown
 
 
 def candidate_metadata(document, receipt, pages, taxonomy):
@@ -584,13 +612,15 @@ def render_report(path, stats, sample, pairs):
         pair_cards.append(f'<details class="pair"><summary>关系样例 {pair["pair_id"]} · {e(pair["relation_candidate"])}</summary><p>{e(pair["reason"])}</p><p>左 {e(pair["left_document_id"])}<br>右 {e(pair["right_document_id"])}</p><p>同 PDF SHA={e(pair["confirmed_same_pdf_sha"])}；同归一化分页正文={e(pair["confirmed_same_normalized_page_sequence"])}；动作：保留双方、不合并</p><blockquote>左 p.{pair["left_evidence"]["page_number"]}：{e(pair["left_evidence"]["excerpt"])}</blockquote><blockquote>右 p.{pair["right_evidence"]["page_number"]}：{e(pair["right_evidence"]["excerpt"])}</blockquote><p>差异核验：{e(pair.get("difference_review", "候选，尚待正文核对"))}</p><p>左独有数字/日期：{e(pair["left_only_numeric_tokens"])}<br>右独有数字/日期：{e(pair["right_only_numeric_tokens"])}<br>对比边界：{e(pair["numeric_comparison_scope"])}</p><a href="{e(quote(pair["left_pdf_path"],safe="/")+"#page="+str(pair["left_evidence"]["page_number"]))}">左原PDF p.{pair["left_evidence"]["page_number"]}</a> · <a href="{e(quote(pair["right_pdf_path"],safe="/")+"#page="+str(pair["right_evidence"]["page_number"]))}">右原PDF p.{pair["right_evidence"]["page_number"]}</a><small>左page text SHA {e(pair["left_evidence"]["page_text_sha256"])}<br>右page text SHA {e(pair["right_evidence"]["page_text_sha256"])}<br>左输入 {e(pair["left_page_input"])}<br>右输入 {e(pair["right_page_input"])}</small></details>')
     status = " · ".join(f'{e(k)} {v}' for k, v in stats["ocr_status_counts"].items())
     distribution = "".join(f'<tr><td>{e(k)}</td><td>{v}</td></tr>' for k, v in stats["primary_type_candidate_counts"].items())
+    body_denominator = stats["dedup"].get("available_text_identity_denominator", stats["dedup"]["ready_body_identity_denominator"])
+    body_denominator_label = "可用准备正文（含隔离，质量状态单列）" if "available_text_identity_denominator" in stats["dedup"] else "READY正文"
     sample_distribution = "".join(f'<tr><td>{e(k)}</td><td>{v["sample_count"]}</td><td>{v["source_or_content_uncertain"]}</td></tr>' for k,v in stats["sample_unknown_by_class"].items() if v["sample_count"])
     multi_stats = e(json.dumps(stats["multilabel_counts_nonexclusive"],ensure_ascii=False))
     company_stats = e(json.dumps(stats["sample_main_company_counts_nonexclusive"],ensure_ascii=False))
     source_stats = e(json.dumps({"来源机构候选":stats["source_institution_candidate_counts"],"日期证据状态":stats["report_date_status_counts"],"语言候选":stats["language_candidate_counts"]},ensure_ascii=False))
     ocr_options = "".join(f"<option>{e(k)}</option>" for k in sorted({row["ocr_status_asof"] for row in sample}))
     options = "".join(f'<option>{e(k)}</option>' for k in PRIMARY)
-    doc = f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PDF 分类与去重看板 · 2026-10-20</title><style>body{{font:16px/1.65 system-ui,sans-serif;background:#f5f7fa;color:#172b40;max-width:1150px;margin:0 auto;padding:28px}}h1{{font-size:28px}}h2{{margin-top:36px}}.banner,details,table{{background:white;border:1px solid #d8e0e8;border-radius:9px;padding:16px;margin:12px 0}}summary{{cursor:pointer}}summary span{{float:right;font-size:12px;color:#47657e}}small{{display:block;overflow-wrap:anywhere;color:#526677}}blockquote{{border-left:3px solid #698ea8;padding-left:12px;margin:15px 0;background:#f7fafc}}input,select{{padding:10px;margin:6px 8px 6px 0;max-width:90%}}table{{border-collapse:collapse;min-width:380px}}td,th{{padding:7px 18px;text-align:left;border-bottom:1px solid #e4e9ee}}a{{color:#16638e}}.warn{{color:#8b4a12}}[hidden]{{display:none!important}}</style><body><h1>PDF 分类与去重看板</h1><div class="banner"><b>2209 个原始身份全部对账；本页展示60份样例、10对真实材料关系。</b><p>固定快照 {e(stats["asof_utc"])}（UTC）：{status}。只反映该时点，不追随仍在运行的OCR。</p><p class="warn">全量标签为规则候选；样例 Writer 核验等待独立 Reviewer。无模型分析、无OCR重跑、无删除合并、无买入信号；未设研究问题，不自动判高价值。行业/公司/主题为多标签，统计不相加为2209。</p><p><b>身份2209</b> · <b>快照READY {stats["ocr_status_counts"].get("READY",0)}</b> · <b>快照待完成 {stats["ocr_status_counts"].get("PENDING",0)}</b> · <b>样例60 / 关系10对</b></p><a href="ledger.csv">完整台账 CSV</a> · <a href="ledger.json">完整台账 JSON</a> · <a href="statistics.json">统计 JSON</a> · <a href="sample60.csv">60份样例 CSV</a> · <a href="relations10.json">10对证据 JSON</a></div><h2>全量规则候选主类（互斥，含待分类）</h2><table><tr><th>类型</th><th>文件数 / 2209</th></tr>{distribution}</table><p>确证相同分页正文组：{stats["dedup"]["same_normalized_page_sequence_groups"]} / {stats["dedup"]["ready_body_identity_denominator"]} 份READY正文；相同文件SHA组为0（manifest内2209唯一PDF身份）。没有真实正例时不会补造重复。</p><h2>样例主类与待核率</h2><table><tr><th>Writer标签</th><th>样本数/60</th><th>来源或内容仍待核</th></tr>{sample_distribution}</table><p>独立分类准确率：尚未评分。样例为覆盖/边界抽样，不代表总体频率或全量准确率。主类和署名识别不等于报告事实已验收；来源或OCR质量待核单列。公司披露、咨询仅各1份，按当前检出事实保留，不补造5份。</p><details><summary>多标签覆盖与公司对象（非互斥计数）</summary><p>{multi_stats}</p><p>样例主研究公司：{company_stats}。主对象与提及对象分开；全量实体尚未核验，证券代码仍为未知。</p></details><details><summary>来源、报告日期与语言覆盖</summary><p>{source_stats}</p><p>机构与语言为规则候选；机构名称是正文归属声明，不等于官方来源真实性已认证。转载渠道单列。下载目录/转录生成时间不充当报告发布日期。</p></details><h2>60份可筛选样例</h2><input id="q" placeholder="搜索标题、公司、主题、证据"><select id="kind"><option value="">全部主类</option>{options}</select><select id="route"><option value="">全部分流</option>{"".join(f"<option>{x}</option>" for x in ROUTES)}</select><select id="ocr"><option value="">全部OCR状态</option>{ocr_options}</select><p id="visible"></p>{"".join(cards)}<h2>10对重复/转载/版本或同主题材料证据</h2><p>相似分数仅用于候选召回；数字、正负号、日期、单位保留。不同观点或数字不会自动合并。</p>{"".join(pair_cards)}<script>function filter(){{let q=document.getElementById('q').value.toLowerCase(),k=document.getElementById('kind').value,r=document.getElementById('route').value,o=document.getElementById('ocr').value,n=0;document.querySelectorAll('.sample').forEach(x=>{{let ok=(!q||x.textContent.toLowerCase().includes(q))&&(!k||x.dataset.type===k)&&(!r||x.dataset.route===r)&&(!o||x.dataset.status===o);x.hidden=!ok;if(ok)n++}});document.getElementById('visible').textContent='显示 '+n+' / 60'}}['q','kind','route','ocr'].forEach(id=>document.getElementById(id).addEventListener('input',filter));filter();</script></body></html>'''
+    doc = f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PDF 分类与去重看板 · 2026-10-20</title><style>body{{font:16px/1.65 system-ui,sans-serif;background:#f5f7fa;color:#172b40;max-width:1150px;margin:0 auto;padding:28px}}h1{{font-size:28px}}h2{{margin-top:36px}}.banner,details,table{{background:white;border:1px solid #d8e0e8;border-radius:9px;padding:16px;margin:12px 0}}summary{{cursor:pointer}}summary span{{float:right;font-size:12px;color:#47657e}}small{{display:block;overflow-wrap:anywhere;color:#526677}}blockquote{{border-left:3px solid #698ea8;padding-left:12px;margin:15px 0;background:#f7fafc}}input,select{{padding:10px;margin:6px 8px 6px 0;max-width:90%}}table{{border-collapse:collapse;min-width:380px}}td,th{{padding:7px 18px;text-align:left;border-bottom:1px solid #e4e9ee}}a{{color:#16638e}}.warn{{color:#8b4a12}}[hidden]{{display:none!important}}</style><body><h1>PDF 分类与去重看板</h1><div class="banner"><b>2209 个原始身份全部对账；本页展示60份样例、10对真实材料关系。</b><p>固定快照 {e(stats["asof_utc"])}（UTC）：{status}。只反映该时点，不追随仍在运行的OCR。</p><p class="warn">全量标签为规则候选；样例 Writer 核验等待独立 Reviewer。无模型分析、无OCR重跑、无删除合并、无买入信号；未设研究问题，不自动判高价值。行业/公司/主题为多标签，统计不相加为2209。</p><p><b>身份2209</b> · <b>快照READY {stats["ocr_status_counts"].get("READY",0)}</b> · <b>快照待完成 {stats["ocr_status_counts"].get("PENDING",0)}</b> · <b>样例60 / 关系10对</b></p><a href="ledger.csv">完整台账 CSV</a> · <a href="ledger.json">完整台账 JSON</a> · <a href="statistics.json">统计 JSON</a> · <a href="sample60.csv">60份样例 CSV</a> · <a href="relations10.json">10对证据 JSON</a></div><h2>全量规则候选主类（互斥，含待分类）</h2><table><tr><th>类型</th><th>文件数 / 2209</th></tr>{distribution}</table><p>确证相同分页正文组：{stats["dedup"]["same_normalized_page_sequence_groups"]} / {body_denominator} 份{body_denominator_label}；相同文件SHA组为0（manifest内2209唯一PDF身份）。没有真实正例时不会补造重复。</p><h2>样例主类与待核率</h2><table><tr><th>Writer标签</th><th>样本数/60</th><th>来源或内容仍待核</th></tr>{sample_distribution}</table><p>独立分类准确率：尚未评分。样例为覆盖/边界抽样，不代表总体频率或全量准确率。主类和署名识别不等于报告事实已验收；来源或OCR质量待核单列。公司披露、咨询仅各1份，按当前检出事实保留，不补造5份。</p><details><summary>多标签覆盖与公司对象（非互斥计数）</summary><p>{multi_stats}</p><p>样例主研究公司：{company_stats}。主对象与提及对象分开；全量实体尚未核验，证券代码仍为未知。</p></details><details><summary>来源、报告日期与语言覆盖</summary><p>{source_stats}</p><p>机构与语言为规则候选；机构名称是正文归属声明，不等于官方来源真实性已认证。转载渠道单列。下载目录/转录生成时间不充当报告发布日期。</p></details><h2>60份可筛选样例</h2><input id="q" placeholder="搜索标题、公司、主题、证据"><select id="kind"><option value="">全部主类</option>{options}</select><select id="route"><option value="">全部分流</option>{"".join(f"<option>{x}</option>" for x in ROUTES)}</select><select id="ocr"><option value="">全部OCR状态</option>{ocr_options}</select><p id="visible"></p>{"".join(cards)}<h2>10对重复/转载/版本或同主题材料证据</h2><p>相似分数仅用于候选召回；数字、正负号、日期、单位保留。不同观点或数字不会自动合并。</p>{"".join(pair_cards)}<script>function filter(){{let q=document.getElementById('q').value.toLowerCase(),k=document.getElementById('kind').value,r=document.getElementById('route').value,o=document.getElementById('ocr').value,n=0;document.querySelectorAll('.sample').forEach(x=>{{let ok=(!q||x.textContent.toLowerCase().includes(q))&&(!k||x.dataset.type===k)&&(!r||x.dataset.route===r)&&(!o||x.dataset.status===o);x.hidden=!ok;if(ok)n++}});document.getElementById('visible').textContent='显示 '+n+' / 60'}}['q','kind','route','ocr'].forEach(id=>document.getElementById(id).addEventListener('input',filter));filter();</script></body></html>'''
     path.write_text(doc, encoding="utf-8")
 
 
@@ -778,15 +808,15 @@ def render_full_report(path, stats, rows, sample, pairs, validation):
     render_report(path, stats, sample, pairs)
     old=path.read_text()
     old=old.replace('本页展示60份样例、10对真实材料关系。','本页提供全部2209份分页索引、保留60份历史样例及10对关系证据。')
-    old=old.replace('样例 Writer 核验等待独立 Reviewer。','历史60份材料形式及10关系已独立PASS；全量新候选与新验证集待独立验收。')
-    old=old.replace('独立分类准确率：尚未评分。','历史样例主类形式独立60/60；这是开发回归集，不能估计全量准确率。新冻结60份验证待独立评分。')
+    old=old.replace('样例 Writer 核验等待独立 Reviewer。','历史60份材料形式及10关系已独立PASS；全量新候选及F1-F4返修待独立增量验收。')
+    old=old.replace('独立分类准确率：尚未评分。','历史样例主类形式独立60/60；这是开发回归集，不能估计全量准确率。该60份原独立56/60（93.33%）FAIL保留；返修后仅作回归，不能再声称未见泛化准确率。')
     old=old.replace('WRITER_REVIEWED_PENDING_INDEPENDENT_REVIEW','HISTORICAL_SAMPLE_FORM_INDEPENDENT_PASS_SOURCE_AUTHENTICITY_SEPARATE')
     compact=[]
     for row in rows:
         compact.append({k:row.get(k) for k in ('document_id','pdf_sha256','original_pdf_path','filename_candidate_title','body_header_candidate_title','primary_type_candidate','ocr_status_asof','route_candidate','route_reason','classification_reason','classification_evidence','original_institution_candidate','institution_status','institution_evidence','report_date','collection_dates','language_candidate','main_research_companies','mentioned_companies','industry_theme_candidates','markets_mentioned_candidate','text_quality','text_characters','page_count','source_references','duplicate_group','relation_candidates','classification_binding','company_status','main_company_status','mentioned_company_status','body_quality_metrics')})
     payload=json.dumps(compact,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
     opts=lambda vals:''.join('<option>'+html.escape(str(x))+'</option>' for x in sorted(set(vals)) if x)
-    panel='''<h2>全部2209份 · 分页检索</h2><p>每条为正文规则候选；历史样例另列。READY仅表示正文准备完成，来源真实性、数字与投资结论未获验证。非READY保留且进入REVIEW。公司为字面对象候选；代码不猜配。<br>严格相同分页正文仅折叠显示，不删除、不合并；质量状态独立保留。</p><div class="banner"><input id="full-q" aria-label="搜索完整台账" placeholder="搜索标题、公司、机构、主题或ID"><select id="full-type"><option value="">全部主类</option>'''+opts(PRIMARY)+'''</select><select id="full-route"><option value="">全部分流</option>'''+opts(ROUTES)+'''</select><select id="full-status"><option value="">全部OCR状态</option>'''+opts(r['ocr_status_asof'] for r in rows)+'''</select><select id="full-language"><option value="">全部语言</option>'''+opts(r['language_candidate'] for r in rows)+'''</select><label><input type="checkbox" id="full-fold">折叠严格相同正文组</label><p id="full-count" aria-live="polite"></p><button id="full-prev">上一页</button> <span id="full-page"></span> <button id="full-next">下一页</button></div><div id="full-list"></div><details><summary>全量字段覆盖与未知（分母各2209）</summary><pre style="white-space:pre-wrap">'''+html.escape(json.dumps(stats['field_coverage'],ensure_ascii=False,indent=2))+'''</pre></details><p>新验证集60份已在调优前冻结，排除原60样例及关系开发资料；覆盖抽样不是总体统计估计。<a href="validation60.json">新60份原页证据与候选字段</a> · <a href="all-relations.json">全部关系索引</a> · <a href="regression12.json">12项已知差异逐项归因</a></p>'''
+    panel='''<h2>全部2209份 · 分页检索</h2><p>每条为正文规则候选；历史样例另列。READY仅表示正文准备完成，来源真实性、数字与投资结论未获验证。非READY保留且进入REVIEW。公司为字面对象候选；代码不猜配。<br>严格相同分页正文仅折叠显示，不删除、不合并；质量状态独立保留。</p><div class="banner"><input id="full-q" aria-label="搜索完整台账" placeholder="搜索标题、公司、机构、主题或ID"><select id="full-type"><option value="">全部主类</option>'''+opts(PRIMARY)+'''</select><select id="full-route"><option value="">全部分流</option>'''+opts(ROUTES)+'''</select><select id="full-status"><option value="">全部OCR状态</option>'''+opts(r['ocr_status_asof'] for r in rows)+'''</select><select id="full-language"><option value="">全部语言</option>'''+opts(r['language_candidate'] for r in rows)+'''</select><label><input type="checkbox" id="full-fold">折叠严格相同正文组</label><p id="full-count" aria-live="polite"></p><button id="full-prev">上一页</button> <span id="full-page"></span> <button id="full-next">下一页</button></div><div id="full-list"></div><details><summary>全量字段覆盖与未知（分母各2209）</summary><pre style="white-space:pre-wrap">'''+html.escape(json.dumps(stats['field_coverage'],ensure_ascii=False,indent=2))+'''</pre></details><p>验证集60份曾在初次调优前冻结；原独立56/60（93.33%）未达95%目标，现已揭示用于返修，仅作回归。排除原60样例及关系开发资料；不是总体准确率估计。<a href="validation60.json">新60份原页证据与候选字段</a> · <a href="all-relations.json">全部关系索引</a> · <a href="regression12.json">12项已知差异逐项归因</a></p>'''
     script=r'''<script id="full-data" type="application/json">PAYLOAD</script><script>
 const fullRows=JSON.parse(document.getElementById('full-data').textContent);const fullPageSize=25;let fullPage=0,fullFiltered=[];
 function fullSelect(data,q,k,r,o,l,fold){const seen=new Set();return data.filter(x=>{if(k&&x.primary_type_candidate!==k||r&&x.route_candidate!==r||o&&x.ocr_status_asof!==o||l&&x.language_candidate!==l)return false;if(q&&!JSON.stringify(x).toLowerCase().includes(q.toLowerCase()))return false;if(fold&&x.duplicate_group){if(seen.has(x.duplicate_group))return false;seen.add(x.duplicate_group)}return true})}
@@ -812,9 +842,9 @@ def full_main(argv):
     sample_data,_=read_json(args.sample_root/'delivery/sample60.json');sample=sample_data['documents'];sample_ids=[r['document_id'] for r in sample]
     old_pairs,_=read_json(args.sample_root/'delivery/relations10.json');pairs=old_pairs['pairs']
     relations=full_relations(rows,texts);byid={r['document_id']:r for r in rows}
-    pair_summary={'same_normalized_page_sequence_groups':len(relations['exact_normalized_text_groups']),'ready_body_identity_denominator':relations['available_text_denominator'],'writer_review_ref':old_pairs['summary'].get('writer_review_ref'),'all_text_scope':'all available text including quarantined; quality separately shown','merged_or_deleted':0}
+    pair_summary={'same_normalized_page_sequence_groups':len(relations['exact_normalized_text_groups']),'ready_body_identity_denominator':sum(r['ocr_status_asof']=='READY' and bool(r['exact_body_sha256']) for r in rows),'available_text_identity_denominator':relations['available_text_denominator'],'writer_review_ref':old_pairs['summary'].get('writer_review_ref'),'all_text_scope':'all available text including quarantined; quality separately shown','merged_or_deleted':0}
     stats=build_stats(rows,sample_ids,pair_summary,snapshot,taxonomy)
-    stats.update({'field_coverage':coverage_stats(rows),'sample_unknown_by_class':{label:{'sample_count':sum(r['sample_primary_type']==label for r in sample),'source_or_content_uncertain':sum(r['sample_primary_type']==label and (r['sample_certainty']!='TYPE_AND_SOURCE_IDENTIFIED' or r['ocr_status_asof']!='READY') for r in sample)} for label in PRIMARY},'sample_main_company_counts_nonexclusive':dict(Counter(n for r in sample for n in r.get('sample_main_research_companies',[]))),'classification_rules_version':RULES_VERSION,'incremental':metrics,'final_prepared_manifest':final_ref,'full_delivery_status':'OCR_TERMINAL_CLASSIFICATION_CANDIDATE_PENDING_INDEPENDENT_REVIEW' if final_ref else 'IMPLEMENTATION_HANDOFF_WAITING_OCR','validation60_selection_sha256':sha(validation_raw),'semantic_accuracy':'NOT_SCORED_NEW_FROZEN60_REVIEW_PENDING','historical60_scope':'Development regression only; prior independent form PASS preserved; no population estimate','repost_or_version_candidate_pairs':len(relations['repost_or_version_candidates'])})
+    stats.update({'field_coverage':coverage_stats(rows),'sample_unknown_by_class':{label:{'sample_count':sum(r['sample_primary_type']==label for r in sample),'source_or_content_uncertain':sum(r['sample_primary_type']==label and (r['sample_certainty']!='TYPE_AND_SOURCE_IDENTIFIED' or r['ocr_status_asof']!='READY') for r in sample)} for label in PRIMARY},'sample_main_company_counts_nonexclusive':dict(Counter(n for r in sample for n in r.get('sample_main_research_companies',[]))),'classification_rules_version':RULES_VERSION,'incremental':metrics,'final_prepared_manifest':final_ref,'full_delivery_status':'OCR_TERMINAL_CLASSIFICATION_CANDIDATE_PENDING_INDEPENDENT_REVIEW' if final_ref else 'IMPLEMENTATION_HANDOFF_WAITING_OCR','validation60_selection_sha256':sha(validation_raw),'semantic_accuracy':'PRIOR_INDEPENDENT56_OF60_FAIL_RETAINED_NOW_REPAIR_REGRESSION_ONLY','validation60_role':'Revealed by independent review; no longer held-out after F1-F4 repair; cannot claim unseen generalization or population accuracy','historical60_scope':'Development regression only; prior independent form PASS preserved; no population estimate','repost_or_version_candidate_pairs':len(relations['repost_or_version_candidates'])})
     initial,_=read_json(root/'input/pre-tuning-old60-disagreements.json');regression=[]
     for item in initial:
         row=byid[item['document_id']];regression.append({**item,'new_candidate':row['primary_type_candidate'],'matches_reviewed_form':row['primary_type_candidate']==item['reviewed'],'new_reason':row['classification_reason'],'evidence':row['classification_evidence'],'root_cause':'导出摘要模板非原机构材料' if item['reviewed']==PRIMARY[5] else '原字典缺机构别名/封面研究结构' if item['reviewed']==PRIMARY[0] else '新闻栏目或问答结构缺识别'})
@@ -833,7 +863,7 @@ def full_main(argv):
     write_json(out/'ledger.json',{'schema':'v4.pdf_full_classification.v1','snapshot':snapshot,'final_prepared_manifest':final_ref,'documents':rows});write_json(out/'frozen-text-index.json',{'snapshot':snapshot,'documents':index});write_json(out/'statistics.json',stats);write_json(out/'all-relations.json',relations);write_json(out/'regression12.json',regression)
     write_json(out/'sample60.json',sample_data);write_json(out/'relations10.json',old_pairs)
     validation_rows=[byid[k] for k in validation['sample_document_ids']]
-    write_json(out/'validation60.json',{'selection':validation,'selection_sha256':sha(validation_raw),'boundary':'Frozen before tuning; labels are rule candidates only. Independent reviewer supplies truth and accuracy, unknown separate; not population estimate.','documents':validation_rows})
+    write_json(out/'validation60.json',{'selection':validation,'selection_sha256':sha(validation_raw),'boundary':'Originally frozen before tuning; independent56/60 FAIL retained. Revealed F1-F4 now used for bounded repair regression; not unseen validation or population accuracy. Unknown separate.','documents':validation_rows})
     write_csv(out/'ledger.csv',rows,list(rows[0]));write_csv(out/'sample60.csv',sample,list(sample[0]))
     render_full_report(out/'report.html',stats,rows,sample,pairs,validation_rows)
     (out/'statistics.md').write_text('# 全量分类索引\n\n'+stats['full_delivery_status']+'\n\n固定UTC '+snapshot['asof_utc']+'；原身份分母2209。\n\nOCR '+json.dumps(stats['ocr_status_counts'],ensure_ascii=False)+'\n\n主类候选 '+json.dumps(stats['primary_type_candidate_counts'],ensure_ascii=False)+'\n\n[完整分页看板](report.html) · [字段覆盖](statistics.json) · [新冻结60证据](validation60.json)\n\n全量规则候选不等于全量语义验收。非READY隔离保留，零OCR/模型/合并/删除。\n',encoding='utf-8')
