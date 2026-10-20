@@ -80,6 +80,19 @@ def selected_package(package_id: str) -> tuple[dict[str, Any], list[dict[str, An
                           "page_input":source["page_input"], "page_text_sha256":page["text_sha256"], "text":page["text"]})
     if len({p["document_id"] for p in pages}) < 2:
         raise batch.BatchError("PACKAGE_CROSS_DOCUMENT_SOURCES_REQUIRED")
+    projection_path = batch.RESEARCH_PILOT_ROOT / "model/package-input-plan-v2.json"
+    if projection_path.exists():
+        projection_ref = batch._v2_data_ref("package-input-plan-v2.json")
+        projection, _ = batch._analysis_ref(projection_ref, root=batch.RESEARCH_PILOT_ROOT)
+        source_errata = batch.verify_package_source_errata(projection["source_errata"])
+        package = {**package, "source_projection": projection_ref,
+                   "source_errata": [e for e in source_errata if e["package_id"] == package_id]}
+        selected_keys = {(p["document_id"],p["page_number"],p["page_input"]["sha256"]) for p in pages}
+        if any((e["document_id"],e["source_page"],e["page_input"]["sha256"]) not in selected_keys for e in package["source_errata"]):
+            raise batch.BatchError("PACKAGE_ERRATUM_OUTSIDE_SELECTED_SOURCE")
+        original_review = batch._pilot_fixed(batch.RESEARCH_PILOT_ROOT / "independent-review/package-input-review.json",
+            "4cdb967c76f904f2e66bb44bc329b2b94010a3a31abb6649dec5696627086ce5")
+        package["source_review_limits"] = original_review.get("packages",{}).get(package_id,{}).get("limits",[])
     digest = sha(local_model.canonical_json({"package":package, "pages":pages}))
     return package, pages, digest
 
@@ -89,7 +102,10 @@ def verify_package_input_review(package_id: str, digest: str) -> None:
     if path.is_symlink() or not path.is_file():
         raise batch.BatchError("PACKAGE_SELECTED_PAGE_ADMISSION_REQUIRED")
     value = json.loads(path.read_bytes())
-    expected = batch.RESEARCH_PILOT_ROOT / "independent-review/package-input-review.json"
+    projection = value.get("source_projection")
+    if projection is not None and projection != batch._v2_data_ref("package-input-plan-v2.json"):
+        raise batch.BatchError("PACKAGE_SOURCE_PROJECTION_MISMATCH")
+    expected = batch.RESEARCH_PILOT_ROOT / ("independent-review/package-input-review-v2.json" if projection is not None else "independent-review/package-input-review.json")
     reference = value.get("independent_review", {})
     review, _ = batch._analysis_ref(reference, root=batch.RESEARCH_PILOT_ROOT)
     if (value.get("status") != "ROOT_ADOPTED" or reference.get("path") != str(expected)
@@ -105,7 +121,9 @@ def package_messages(package: Mapping[str, Any], material: Any, *, synthesis: bo
     return [{"role":"system", "content":PACKAGE_SYSTEM}, {"role":"user", "content":json.dumps({
         "package_id":package["package_id"], "kind":package["kind"], "question":package["question"],
         "task":"综合下列有来源标注的部分研究结果，保留冲突/缺口，回答跨文档比较问题" if synthesis else "提取下列完整选页分段的相关证据。保留来源标识与前后边界，不声称覆盖未给出的资料",
-        "material":material}, ensure_ascii=False)}]
+        "source_errata":package.get("source_errata",[]),
+        "source_qualifications":package.get("source_review_limits",[]) + package.get("facts_forecasts_conflicts_gaps",[]),
+        "source_projection":package.get("source_projection"), "material":material}, ensure_ascii=False)}]
 
 
 def source_groups(package: Mapping[str, Any], pages: Sequence[Mapping[str, Any]]) -> list[list[dict[str, Any]]]:
@@ -136,6 +154,26 @@ def source_groups(package: Mapping[str, Any], pages: Sequence[Mapping[str, Any]]
             reconstructed[key] += u["text"]
     if any(reconstructed[(p["document_id"],p["page_number"])] != p["text"] for p in pages):
         raise batch.BatchError("PACKAGE_SOURCE_RECONSTRUCTION_FAILED")
+    return groups
+
+
+
+def synthesis_groups(package: Mapping[str, Any], reports: Sequence[Mapping[str, str]]) -> list[list[dict[str, str]]]:
+    groups=[]
+    current=[]
+    for part in batch._split_report_items(reports):
+        candidate=current+[part]
+        if (sum(len(p["text"]) for p in candidate)<=batch.MAX_SOURCE_CHARACTERS
+                and len(batch._request_envelope(package_messages(package,candidate,synthesis=True)))<=batch.MAX_REQUEST_ENVELOPE_BYTES):
+            current=candidate
+        else:
+            if current:
+                groups.append(current)
+            current=[part]
+            if len(batch._request_envelope(package_messages(package,current,synthesis=True)))>batch.MAX_REQUEST_ENVELOPE_BYTES:
+                raise batch.BatchError("PACKAGE_SYNTHESIS_ITEM_OVERSIZE")
+    if current:
+        groups.append(current)
     return groups
 
 
@@ -170,12 +208,15 @@ def package_worker(package_id: str, plan_path: Path) -> dict[str, Any]:
             history = dispatcher._read_regular(dispatcher.EVIDENCE_ROOT / "dispatch.jsonl", "PACKAGE_JOURNAL_REQUIRED")
             lines = history.splitlines(keepends=True)
             events = [json.loads(line) for line in lines]
-            if (not history.endswith(b"\n") or len(lines)<46
-                    or sha(b"".join(lines[:45]))!=batch.PILOT_JOURNAL_PREFIX_SHA256
-                    or events[45].get("event")!="pilot_adoption"
-                    or events[45].get("authorization_sha256")!=current["authorization_sha256"]
-                    or events[45].get("adoption")!=current["analysis_admission"]["pilot"]["reference"]
-                    or any(e.get("event")=="halt" or e.get("event")=="reconciled" and e.get("decision")=="HALT" for e in events[46:])):
+            is_v2 = current["analysis_admission"]["pilot"]["value"].get("schema")=="v4.pdf_research.pilot_adoption.v2"
+            prefix_count=55 if is_v2 else 45
+            prefix_sha=batch.PILOT_V2_PREFIX_SHA256 if is_v2 else batch.PILOT_JOURNAL_PREFIX_SHA256
+            if (not history.endswith(b"\n") or len(lines)<prefix_count+1
+                    or sha(b"".join(lines[:prefix_count]))!=prefix_sha
+                    or events[prefix_count].get("event")!="pilot_adoption"
+                    or events[prefix_count].get("authorization_sha256")!=current["authorization_sha256"]
+                    or events[prefix_count].get("adoption")!=current["analysis_admission"]["pilot"]["reference"]
+                    or any(e.get("event")=="halt" or e.get("event")=="reconciled" and e.get("decision")=="HALT" for e in events[prefix_count+1:])):
                 raise batch.BatchError("PACKAGE_RETAINED_HISTORY_OR_HALT_MISMATCH")
             related = [e for e in events if e.get("package_id") == package_id]
             if not related or related[-1].get("event") != "package_dispatch_intent" or related[-1].get("plan_sha256") != sha(raw):
@@ -211,7 +252,7 @@ def package_worker(package_id: str, plan_path: Path) -> dict[str, Any]:
         for level in range(1,batch.MAX_SYNTHESIS_LEVELS+1):
             if len(reports) == 1:
                 break
-            groups = batch._pack_synthesis_groups(package_id,reports,level)
+            groups = synthesis_groups(package,reports)
             if len(groups) >= len(reports) and all(len(g)==1 for g in groups):
                 raise batch.BatchError("PACKAGE_SYNTHESIS_DID_NOT_REDUCE_INPUT")
             reports = [{"report_id":f"synthesis-{level:02d}-{i:04d}",
@@ -234,6 +275,8 @@ def package_worker(package_id: str, plan_path: Path) -> dict[str, Any]:
 
 def execute_package(package_id: str) -> dict[str, Any]:
     context = load_context()
+    if context["analysis_admission"]["pilot"]["phase"] == "first3":
+        raise batch.BatchError("PACKAGE_FIRST3_CONTENT_NOT_ACCEPTED")
     package, pages, digest = selected_package(package_id)
     verify_package_input_review(package_id,digest)
     source_groups(package,pages)
@@ -247,7 +290,9 @@ def execute_package(package_id: str) -> dict[str, Any]:
         dispatcher._verify_or_create_binding(journal,context)
         descriptor = dispatcher._analysis_isolation_descriptor(context,journal)
         dispatcher._prepare_analysis_isolation(journal,context,descriptor)
-        dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=descriptor)
+        additional = dispatcher._prepare_pilot_tool_recovery(journal,context)
+        dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=descriptor,
+                                     additional_halt_resume_descriptor=additional)
         prior = [e for e in journal.events if e.get("package_id")==package_id]
         if prior and prior[-1].get("event")=="package_terminal":
             return {"status":"PACKAGE_TERMINAL_REUSED_NO_POST","terminal":prior[-1]}

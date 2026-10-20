@@ -28,6 +28,7 @@ def test_package_foreign_id_has_no_model_path():
 
 
 def test_package_selected_pages_preserve_exact_offsets_and_fail_tampered_hash(tmp_path,monkeypatch):
+    monkeypatch.setattr(batch,'RESEARCH_PILOT_ROOT',tmp_path)
     source=tmp_path/'page-input.json';text='首付款不是潜在里程碑。'
     source.write_text(json.dumps({'document_id':'a'*64,'pdf_sha256':'a'*64,'pages':[{'page_number':1,'status':'NATIVE_TEXT','text':text,'text_sha256':hashlib.sha256(text.encode()).hexdigest()}]}))
     source2=tmp_path/'second.json';v=json.loads(source.read_text());v.update(document_id='b'*64,pdf_sha256='b'*64);source2.write_text(json.dumps(v))
@@ -58,3 +59,21 @@ def test_package_review_binds_exact_source_digest(tmp_path,monkeypatch):
     package.verify_package_input_review(package.PACKAGE_IDS[0],'a'*64)
     with pytest.raises(batch.BatchError,match='REVIEW_MISMATCH'):
         package.verify_package_input_review(package.PACKAGE_IDS[0],'b'*64)
+
+
+def test_v2_errata_rendered_separately_and_in_synthesis_budget():
+    p={'package_id':package.PACKAGE_IDS[0],'kind':'company','question':'compare',
+       'source_errata':[{'document_id':'a'*64,'source_page':38,'corrections':[{'prepared_text':'1.2%','original_visual':'7.2%'}],
+                         'annotation':'manual source correction; original preserved'}],'source_review_limits':['forecasts are not actual']}
+    pages=[{'document_id':'a'*64,'page_number':38,'text':'original OCR 1.2% untouched','page_text_sha256':'a'*64},
+           {'document_id':'b'*64,'page_number':2,'text':'another source','page_text_sha256':'b'*64}]
+    groups=package.source_groups(p,pages)
+    for synthesis in [False,True]:
+        message=json.loads(package.package_messages(p,groups[0],synthesis=synthesis)[1]['content'])
+        assert message['source_errata']==p['source_errata'] and message['material']==groups[0]
+        assert message['source_qualifications']==p['source_review_limits']
+    assert pages[0]['text']=='original OCR 1.2% untouched'
+    large={**p,'source_errata':[{'note':'来源校验'*500}]}
+    reports=[{'report_id':str(i),'text':'原始报告'*450} for i in range(6)]
+    packed=package.synthesis_groups(large,reports)
+    assert all(len(batch._request_envelope(package.package_messages(large,g,synthesis=True)))<=batch.MAX_REQUEST_ENVELOPE_BYTES for g in packed)

@@ -1550,3 +1550,31 @@ def test_pilot_adoption_keeps_all45_previous_lines_and_rejects_rebinding(tmp_pat
     journal=SimpleNamespace(path=path,events=events)
     with pytest.raises(dispatcher.DispatcherError,match='PRIOR_JOURNAL_PREFIX_MISMATCH'):
         dispatcher._verify_pilot_append_only_adoption(journal,context)
+
+
+def test_v2_only_proven_generation1_recovery_pair_and_new_halt_blocks(monkeypatch):
+    import pytest
+    did=dispatcher.batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
+    def plan(cid,root,extra=None):return {'continuation_id':cid,'state_root':root,'selected_documents':[{'document_id':did,'prior_status':'UNPROCESSED','source_sha256':did}],**(extra or {})}
+    original=plan('old','/old');repaired=plan('new','/new',{'tool_budget_recovery':{'path':'descriptor','sha256':'d'*64}})
+    def event(p):
+        raw=dispatcher._json_bytes(p)
+        return {'event':'plan_created','document_id':did,'continuation_id':p['continuation_id'],'state_root':p['state_root'],
+                'plan_sha256':_sha(raw),'plan_bytes_b64':base64.b64encode(raw).decode()}
+    old_event=event(original);new_event=event(repaired)
+    recovery={'descriptor':{'failed_plan':{'sha256':old_event['plan_sha256']}},'plan_reference':{'sha256':new_event['plan_sha256']}}
+    admission={'pilot':{'recovery':recovery}}
+    failure={'event':'reconciled','document_id':did,'continuation_id':'old','plan_sha256':old_event['plan_sha256'],'decision':'HALT','status':'FAILED_NO_RETRY'}
+    halt={'event':'halt','document_id':did};resolution={'event':'halt_resolution','document_id':did,'status':'BOUNDED_TOOL_BUDGET_RECOVERY_AUTHORIZED','new_plan_sha256':new_event['plan_sha256']}
+    events=[old_event,failure,halt,resolution,new_event]
+    dispatcher._assert_no_duplicate_document_ids(events,analysis_admission=admission)
+    with pytest.raises(dispatcher.DispatcherError,match='RECOVERY_PAIR_INVALID'):
+        dispatcher._assert_no_duplicate_document_ids(events)
+    third=event(plan('third','/third',{'tool_budget_recovery':repaired['tool_budget_recovery']}))
+    with pytest.raises(dispatcher.DispatcherError,match='RECOVERY_PAIR_INVALID'):
+        dispatcher._assert_no_duplicate_document_ids(events+[third],analysis_admission=admission)
+    descriptor={'halt_event_index':2,'reconciled_event_index':1,'document_id':did,'continuation_id':'old','reconciled_event_line_sha256':_sha(dispatcher.canonical_json(failure)+b'\n')}
+    journal=SimpleNamespace(events=events)
+    dispatcher._halt_if_required(journal,{},additional_halt_resume_descriptor=descriptor)
+    with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+        dispatcher._halt_if_required(SimpleNamespace(events=events+[{'event':'halt','document_id':did}]),{},additional_halt_resume_descriptor=descriptor)

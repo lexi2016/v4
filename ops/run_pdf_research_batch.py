@@ -1724,6 +1724,12 @@ def validate_continuation_plan(
         "excluded_prior_statuses",
         "research_only",
     }
+    if "tool_budget_recovery" in plan:
+        expected_fields.add("tool_budget_recovery")
+        recovery = load_tool_budget_recovery({"tool_budget_recovery": {
+            "descriptor": _v2_data_ref("tool-budget-recovery-v2.json"), "plan_source": _v2_data_ref("recovery-plan-v2.json")}})
+        if raw != recovery["plan_raw"]:
+            raise BatchError("CONTINUATION_TOOL_RECOVERY_PLAN_MISMATCH")
     if "execution_runtime_settings_sha256" in plan:
         expected_fields.add("execution_runtime_settings_sha256")
         if plan["execution_runtime_settings_sha256"] != ANALYSIS_RUNTIME_SHA256:
@@ -3767,7 +3773,7 @@ def _perform_request(
     if analysis_admission is not None:
         verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
         guard_analysis_document(analysis_admission, document_id, binding=binding)
-        verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
+        verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")), analysis_admission)
     if stop_event is not None and stop_event.is_set():
         return {"status": "STOPPED_GRACEFULLY", "attempted": False}
     if len(_request_envelope(messages)) > MAX_REQUEST_ENVELOPE_BYTES:
@@ -3848,7 +3854,7 @@ def _perform_request(
             if analysis_admission is not None:
                 verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
                 guard_analysis_document(analysis_admission, document_id, binding=binding)
-                verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
+                verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")), analysis_admission)
             return original_claim(state, allowed_keys)
         queue._claim_next_locked = guarded_claim
     try:
@@ -4898,7 +4904,7 @@ def _run_batch_impl(
         verify_analysis_plan_runtime(continuation["plan"], admission)
         for document in documents:
             guard_analysis_document(admission, str(document["document_id"]))
-            verify_analysis_dispatch(str(document["document_id"]), continuation["plan_sha256"])
+            verify_analysis_dispatch(str(document["document_id"]), continuation["plan_sha256"], admission)
     local_model.require_runtime_python()
     r1_root = R1_STATE_ROOT.expanduser().absolute().resolve(strict=False)
     resolved_state_root = state_root.resolve(strict=False)
@@ -5406,7 +5412,7 @@ def _verify_analysis_canary_artifacts(admission: Mapping[str, Any], review: Mapp
 
 
 
-def verify_analysis_dispatch(document_id: str, plan_sha256: str) -> None:
+def verify_analysis_dispatch(document_id: str, plan_sha256: str, admission: Mapping[str, Any] | None = None) -> None:
     from ops import run_pdf_research_remaining_once as dispatcher
     journal_path = dispatcher.EVIDENCE_ROOT / "dispatch.jsonl"
     if journal_path.is_symlink() or not journal_path.is_file():
@@ -5416,9 +5422,15 @@ def verify_analysis_dispatch(document_id: str, plan_sha256: str) -> None:
         raise BatchError("ANALYSIS_DISPATCH_TRUNCATED")
     events = [json.loads(line) for line in raw.splitlines()]
     events = [e for e in events if e.get("document_id") == document_id]
+    plan_count = len({e.get("plan_sha256") for e in events if e.get("event") == "plan_created"})
+    expected_count = 1
+    recovery = (admission or {}).get("pilot", {}).get("recovery")
+    if recovery is not None and document_id == PILOT_TOOL_BUDGET_DOCUMENT_ID:
+        if plan_sha256 != recovery["plan_reference"]["sha256"]:
+            raise BatchError("ANALYSIS_RECOVERY_PLAN_NOT_CURRENT")
+        expected_count = 2
     if (not events or events[-1].get("event") != "dispatch_intent"
-            or events[-1].get("plan_sha256") != plan_sha256
-            or len({e.get("plan_sha256") for e in events if e.get("event") == "plan_created"}) != 1):
+            or events[-1].get("plan_sha256") != plan_sha256 or plan_count != expected_count):
         raise BatchError("ANALYSIS_DISPATCH_NOT_CURRENT")
 
 
@@ -5494,10 +5506,12 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
     auth = auth_context["authorization"]
     reference = auth.get("pilot17_adoption")
     expected_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_EXECUTION_ADOPTION_20261020_R1.json"
-    if not isinstance(reference, dict) or reference.get("path") != str(expected_path):
+    v2_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_ERRATA_ADOPTION_20261020_R1.json"
+    is_v2 = isinstance(reference, dict) and reference.get("path") == str(v2_path)
+    if not isinstance(reference, dict) or reference.get("path") not in {str(expected_path), str(v2_path)}:
         raise BatchError("PILOT_ADOPTION_REQUIRED")
     adopted, _ = _analysis_ref(reference, root=dispatcher.CONTINUATION_ROOT)
-    if (adopted.get("status") != "ROOT_ADOPTED" or adopted.get("schema") != "v4.pdf_research.pilot_adoption.v1"
+    if (adopted.get("status") != "ROOT_ADOPTED" or adopted.get("schema") != ("v4.pdf_research.pilot_adoption.v2" if is_v2 else "v4.pdf_research.pilot_adoption.v1")
             or adopted.get("previous_authorization") != {"path": str(dispatcher.CONTINUATION_ROOT / "ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PILOT_20261020_R1.json"), "sha256": PILOT_PREVIOUS_AUTH_SHA256}
             or adopted.get("journal_event_count") != 45 or adopted.get("journal_prefix_sha256") != PILOT_JOURNAL_PREFIX_SHA256
             or adopted.get("selection") != admission["reference"]
@@ -5512,6 +5526,9 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
         raise BatchError("PILOT_INPUT_PLAN_MISMATCH")
     expected_sources = {"ops/run_pdf_research_batch.py": Path(__file__), "ops/run_pdf_research_remaining_once.py": Path(dispatcher.__file__),
                         "ops/run_pdf_research_package_once.py": Path(__file__).with_name("run_pdf_research_package_once.py")}
+    if is_v2:
+        expected_sources["infrastructure/pdf_research_tools.py"] = Path(pdf_research_tools.__file__)
+        _pilot_fixed(RESEARCH_PILOT_ROOT / "controller-delta-v2-decision.json", PILOT_V2_DECISION_SHA256)
     if set(adopted.get("sources", {})) != set(expected_sources):
         raise BatchError("PILOT_SOURCE_SET_MISMATCH")
     for name, path in expected_sources.items():
@@ -5531,12 +5548,31 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
     if (not isinstance(first, list) or len(first) != 3 or not isinstance(rest, list) or len(rest) != 14
             or len(set(first + rest)) != 17 or set(first + rest) != allowed):
         raise BatchError("PILOT_STRATIFIED_SUBSET_INVALID")
+    held: list[str] = []
+    recovery = None
+    if is_v2:
+        held = verify_source_hold_admission(adopted)
+        if len(held)!=2 or any(did not in rest for did in held):
+            raise BatchError("PILOT_SOURCE_HOLDS_OUTSIDE_REMAINING_SUBSET")
+        verify_yaoshi_source_erratum()
+        recovery = load_tool_budget_recovery(adopted)
+        previous = adopted.get("previous_pilot_authorization")
+        expected_previous = {"path": str(dispatcher.CONTINUATION_ROOT / "ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PILOT_ERRATA_20261020_R1.json"), "sha256": PILOT_V1_AUTHORIZATION_SHA256}
+        if previous != expected_previous:
+            raise BatchError("PILOT_V2_PREVIOUS_AUTHORIZATION_MISMATCH")
+        old_auth, _ = _analysis_ref(previous, root=dispatcher.CONTINUATION_ROOT)
+        if adopted.get("previous_pilot_adoption") != old_auth.get("pilot17_adoption"):
+            raise BatchError("PILOT_V2_PREVIOUS_ADOPTION_MISMATCH")
+        _analysis_ref(adopted["previous_pilot_adoption"], root=dispatcher.CONTINUATION_ROOT)
     phase = "first3"
     content_path = RESEARCH_PILOT_ROOT / "independent-review/stratified-first3-content-review.json"
     if content_path.exists():
-        verify_pilot_content_review(content_path, first, admission)
-        phase = "remaining14"
-    return {"reference": reference, "value": adopted, "phase": phase, "allowed_ids": first if phase == "first3" else rest}
+        proof_admission = {**admission, "pilot": {"value": adopted, "recovery": recovery}}
+        verify_pilot_content_review(content_path, first, proof_admission)
+        phase = "remaining12" if is_v2 else "remaining14"
+    return {"reference": reference, "value": adopted, "phase": phase,
+            "allowed_ids": first if phase == "first3" else [did for did in rest if did not in held],
+            "source_hold_ids": held, "recovery": recovery}
 
 
 def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mapping[str, Any]) -> None:
@@ -5544,7 +5580,9 @@ def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mappi
     if path.is_symlink() or not path.is_file():
         raise BatchError("PILOT_CONTENT_REVIEW_REQUIRED")
     review = json.loads(path.read_bytes())
-    if (review.get("status") != "FIRST3_CONTENT_PASS" or review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+    is_v2 = admission.get("pilot", {}).get("value", {}).get("schema") == "v4.pdf_research.pilot_adoption.v2"
+    expected_statuses = {"FIRST3_CONTENT_PASS", "FIRST3_ACCEPTED_WITH_SOURCE_ERRATA"} if is_v2 else {"FIRST3_CONTENT_PASS"}
+    if (review.get("status") not in expected_statuses or review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
             or review.get("selection_sha256") != admission["reference"]["sha256"]
             or review.get("stratified17_sha256") != PILOT_STRATA_SHA256
             or [r.get("document_id") for r in review.get("documents", [])] != list(ids)):
@@ -5553,16 +5591,137 @@ def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mappi
     for row in review["documents"]:
         did = row["document_id"]
         terms = [e for e in events if e.get("event") == "reconciled" and e.get("document_id") == did]
-        if len(terms) != 1 or terms[0].get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING":
+        if is_v2 and did == PILOT_TOOL_BUDGET_DOCUMENT_ID:
+            recovery = admission["pilot"]["recovery"]
+            if (len(terms) != 2 or terms[0].get("status") != "FAILED_NO_RETRY"
+                    or terms[0].get("plan_sha256") != recovery["descriptor"]["failed_plan"]["sha256"]
+                    or terms[1].get("plan_sha256") != recovery["plan_reference"]["sha256"]):
+                raise BatchError("PILOT_CONTENT_RECOVERY_PAIR_MISMATCH")
+            e = terms[1]
+        elif len(terms) == 1:
+            e = terms[0]
+        else:
             raise BatchError("PILOT_CONTENT_TERMINAL_MISMATCH")
-        e = terms[0]
-        if (row.get("status") != "REPORT_CONTENT_PASS" or row.get("page_input") != admission["documents"][did]["page_input"]
+        if e.get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING":
+            raise BatchError("PILOT_CONTENT_TERMINAL_MISMATCH")
+        allowed_row_status = "REPORT_WITH_ERRATUM_PASS" if is_v2 and did == PILOT_YAOSHI_DOCUMENT_ID else "REPORT_CONTENT_PASS"
+        if is_v2 and did == PILOT_YAOSHI_DOCUMENT_ID:
+            combined = verify_yaoshi_source_erratum()
+            if (review.get("status") != "FIRST3_ACCEPTED_WITH_SOURCE_ERRATA"
+                    or row.get("original_content_review") != combined["original_content_review"]
+                    or row.get("display_content_review") != combined["review_reference"]
+                    or row.get("display_report") != combined["display"]):
+                raise BatchError("PILOT_CONTENT_YAOSHI_COMBINATION_MISMATCH")
+        if (row.get("status") != allowed_row_status or row.get("page_input") != admission["documents"][did]["page_input"]
                 or row.get("receipt") != {"path": e.get("receipt_path"), "sha256": e.get("receipt_sha256")}
                 or row.get("report", {}).get("path") != str(Path(e["state_root"]) / "documents" / did / "report.md")
                 or row.get("source_pages_reviewed") != list(range(1, admission["documents"][did]["page_count"] + 1))):
             raise BatchError("PILOT_CONTENT_REPORT_BINDING_MISMATCH")
         _analysis_ref(row["receipt"])
         _analysis_ref(row["report"], parse_json=False)
+
+
+PILOT_V2_DECISION_SHA256 = "bb737dae5d3fd982e025f4d28347cd839892cd44540c5e0ef6734510fabf2175"
+PILOT_V1_AUTHORIZATION_SHA256 = "e7429418250add6d2646e1522017e4c91e9b34c9c1ead3ad771fe5f23c58f9ff"
+PILOT_V2_PREFIX_SHA256 = "0747e773c12339fd7ec19b953de67525aa713d6b591aa44eb22bfb17f7ff7137"
+PILOT_TOOL_BUDGET_DOCUMENT_ID = "667565ef19142d4d08afb2794d20486b22323a433e595e5b46eb7dbedd99e891"
+PILOT_YAOSHI_DOCUMENT_ID = "01423dc338fde73e0445b440024154111937d6dd5d36526127a0a559a0b6cee5"
+PILOT_V2_DATA_SHA256 = {
+    "package-source-errata-v2.json": "af9626e9f2e3d3c8d5626df5e5408b25983284eb55248d9e2ae4337b943f51bf",
+    "source-hold-admission-v2.json": "0271bb76cb5af873d588ca31a05b7c213e672bde9257b79e7747031d736e867c",
+    "package-input-plan-v2.json": "da20b4464d38045305daa5629861961a4a12fdb5cc322d60116224ea9af9e14f",
+    "tool-budget-recovery-v2.json": "7a84e8cd98e319187ecfa02091e736409d15a78957f14571bbd43fbad0919c1f",
+    "recovery-plan-v2.json": "45eabc7870e3d1f342b9404672ea527247111a18bacdfa55e555b1766f5ccd1b",
+}
+
+
+def _v2_data_ref(name: str) -> dict[str, str]:
+    return {"path": str(RESEARCH_PILOT_ROOT / "model" / name), "sha256": PILOT_V2_DATA_SHA256[name]}
+
+
+def verify_package_source_errata(reference: Mapping[str, Any]) -> list[dict[str, Any]]:
+    if reference != _v2_data_ref("package-source-errata-v2.json"):
+        raise BatchError("PILOT_SOURCE_ERRATA_REFERENCE_MISMATCH")
+    value, _ = _analysis_ref(reference, root=RESEARCH_PILOT_ROOT)
+    decision = _pilot_fixed(RESEARCH_PILOT_ROOT / "controller-delta-v2-decision.json", PILOT_V2_DECISION_SHA256)
+    expected = []
+    for source_ref in decision["source_findings"]:
+        finding, _ = _analysis_ref(source_ref, root=RESEARCH_PILOT_ROOT)
+        if finding.get("status") != "SOURCE_CONTENT_ERROR_VERIFIED" or finding.get("reviewer") != "/root/pdf_model_analysis_reviewer":
+            raise BatchError("PILOT_SOURCE_FINDING_NOT_VERIFIED")
+        source, _ = _analysis_ref(finding["prepared_page_input"])
+        page = next((p for p in source["pages"] if p["page_number"] == finding["source_page"]), None)
+        if (source.get("document_id") != finding["document_id"] or page is None
+                or _sha256(page["text"].encode()) != finding["prepared_page_text_sha256"]):
+            raise BatchError("PILOT_SOURCE_FINDING_PAGE_MISMATCH")
+        _analysis_ref(finding["rendered_original_page"], parse_json=False)
+        cells = finding.get("cells") or [{"column":finding["column"], "original_visual":finding["original_pdf_displayed_value"], "prepared_text":finding["prepared_page_extracted_value"]}]
+        expected.append({"finding":source_ref,"document_id":finding["document_id"],"package_id":finding["package_id"],
+            "source_page":finding["source_page"],"original_pdf":finding["original_pdf"],"page_input":finding["prepared_page_input"],
+            "page_text_sha256":finding["prepared_page_text_sha256"],"page_image":finding["rendered_original_page"],
+            "table":finding["table"],"row":finding["row"],"source_metadata_limit":finding.get("source_metadata_limit",""),"corrections":cells,"verification_identity":finding["reviewer"],
+            "annotation":"人工来源勘误；非重新模型生成。完整原页/OCR原文保留；下列已视觉核对的字段以单独勘误注明，不能把OCR错误当精确数字。"})
+    if value.get("findings") != expected or len(expected) != 2:
+        raise BatchError("PILOT_SOURCE_ERRATA_FIELDS_MISMATCH")
+    return expected
+
+
+def verify_source_hold_admission(adopted: Mapping[str, Any]) -> list[str]:
+    expected_ref = _v2_data_ref("source-hold-admission-v2.json")
+    if adopted.get("source_holds") != expected_ref or adopted.get("package_source_projection") != _v2_data_ref("package-input-plan-v2.json"):
+        raise BatchError("PILOT_SOURCE_HOLD_BINDING_MISMATCH")
+    holds, _ = _analysis_ref(expected_ref, root=RESEARCH_PILOT_ROOT)
+    projection, _ = _analysis_ref(adopted["package_source_projection"], root=RESEARCH_PILOT_ROOT)
+    findings = verify_package_source_errata(projection.get("source_errata", {}))
+    ids = [f["document_id"] for f in findings]
+    if holds.get("held_document_ids") != ids or holds.get("findings") != [f["finding"] for f in findings]:
+        raise BatchError("PILOT_SOURCE_HOLD_SET_MISMATCH")
+    return ids
+
+
+def load_tool_budget_recovery(adopted: Mapping[str, Any]) -> dict[str, Any]:
+    expected = {"descriptor": _v2_data_ref("tool-budget-recovery-v2.json"), "plan_source": _v2_data_ref("recovery-plan-v2.json")}
+    if adopted.get("tool_budget_recovery") != expected:
+        raise BatchError("PILOT_TOOL_RECOVERY_BINDING_MISMATCH")
+    descriptor, _ = _analysis_ref(expected["descriptor"], root=RESEARCH_PILOT_ROOT)
+    plan, raw = _analysis_ref(expected["plan_source"], root=RESEARCH_PILOT_ROOT)
+    failure, _ = _analysis_ref(descriptor["failed_receipt"])
+    stream, _ = _analysis_ref(descriptor["failed_stream"])
+    old_plan, _ = _analysis_ref(descriptor["failed_plan"])
+    _analysis_ref(descriptor["failed_page_input"])
+    independent, _ = _analysis_ref(descriptor["independent_failure_review"], root=RESEARCH_PILOT_ROOT)
+    if (descriptor.get("document_id") != PILOT_TOOL_BUDGET_DOCUMENT_ID or descriptor.get("generation_limit") != 1
+            or failure.get("status") != "FAILED_NO_RETRY" or failure.get("document_id") != PILOT_TOOL_BUDGET_DOCUMENT_ID
+            or stream.get("failure_code") != "PDF_ACTION_ENVELOPE_BUDGET_EXCEEDED" or stream.get("request_rounds") != 5
+            or stream.get("runtime_settings_sha256") != ANALYSIS_RUNTIME_SHA256
+            or independent.get("status") != "ACTUAL_FAILURE_CONFIRMED_NO_RETRY"
+            or plan.get("tool_budget_recovery") != expected["descriptor"]
+            or plan.get("continuation_id") != "resume-tool-budget-667-20261020-r1"
+            or plan.get("selected_documents") != old_plan.get("selected_documents")
+            or plan.get("state_root") != str(Path(old_plan["state_root"]).parent / "continuation-resume-tool-budget-667-20261020-r1")
+            or failure.get("page_input", {}).get("sha256") != descriptor["failed_page_input"]["sha256"]):
+        raise BatchError("PILOT_TOOL_RECOVERY_EVIDENCE_MISMATCH")
+    return {"descriptor": descriptor, "plan": plan, "plan_raw": raw, "plan_reference": expected["plan_source"]}
+
+
+def verify_yaoshi_source_erratum() -> dict[str, Any]:
+    path = RESEARCH_PILOT_ROOT / "independent-review/yaoshi-erratum-content-review.json"
+    reference = {"path":str(path),"sha256":"eea17d6f6746f69cb0b77bb0fb0d975e6d6b7a6d914e111d66b3e3618896351d"}
+    review, _ = _analysis_ref(reference, root=RESEARCH_PILOT_ROOT)
+    original_ref = {k:review.get("original_content_review", {}).get(k) for k in ("path","sha256")}
+    if original_ref != {"path":str(RESEARCH_PILOT_ROOT / "independent-review/first3-yaoshi-content-review.json"),"sha256":"8b3e6552b55f2b58fa27167e7448438bf4693335cbb7e1dc170d1db711760246"}:
+        raise BatchError("PILOT_YAOSHI_ORIGINAL_REVIEW_MISMATCH")
+    original, _ = _analysis_ref(original_ref, root=RESEARCH_PILOT_ROOT)
+    raw_ref = {k:review.get("original_report", {}).get(k) for k in ("path","sha256")}
+    display_ref = {k:review.get("display", {}).get(k) for k in ("path","sha256")}
+    _, raw = _analysis_ref(raw_ref, parse_json=False)
+    _, display = _analysis_ref(display_ref, root=RESEARCH_PILOT_ROOT, parse_json=False)
+    if (review.get("status") != "REPORT_WITH_ERRATUM_PASS" or review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or review.get("document_id") != PILOT_YAOSHI_DOCUMENT_ID or original.get("status") != "REPORT_CONTENT_FAIL"
+            or review.get("prefix_bytes") != 630 or display[630:] != raw
+            or not all(t in display[:630].decode() for t in ("临床前至临床II期","临床III期及商业化","1200","62","非重新模型生成"))):
+        raise BatchError("PILOT_YAOSHI_ERRATUM_BYTES_MISMATCH")
+    return {"review_reference":reference,"original_content_review":original_ref,"original_report":raw_ref,"display":display_ref}
 
 
 def run_batch(

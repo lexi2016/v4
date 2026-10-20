@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "b7c108e5ed015ef0e0845a6111eed16e657c31b30df0617e9adbb2326dc93036"
+EXPECTED_RUNNER_SHA256 = "8e6e51fdc351c47f555736d292ac96141e230fed4b30ed49917d50c5df595f02"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -2318,29 +2318,79 @@ def _pilot_historical_context(context: Mapping[str, Any]) -> Mapping[str, Any]:
     return {**context, "authorization": old, "authorization_sha256": sha256_bytes(raw), "adoption_evidence": adopted}
 
 
+def _pilot_adoption_event(context: Mapping[str, Any], *, v2: bool = False) -> dict[str, Any]:
+    pilot = context["analysis_admission"]["pilot"]
+    return {"event":"pilot_adoption", "schema":JOURNAL_SCHEMA,
+            "previous_authorization_sha256":batch.PILOT_V1_AUTHORIZATION_SHA256 if v2 else batch.PILOT_PREVIOUS_AUTH_SHA256,
+            "authorization_sha256":context["authorization_sha256"], "adoption":pilot["reference"],
+            "journal_prefix_sha256":batch.PILOT_V2_PREFIX_SHA256 if v2 else batch.PILOT_JOURNAL_PREFIX_SHA256,
+            "journal_event_count":55 if v2 else 45, "sources":pilot["value"]["sources"],
+            "stratified17_sha256":batch.PILOT_STRATA_SHA256,"package_input_plan_sha256":batch.PILOT_PACKAGE_PLAN_SHA256}
+
+
 def _verify_pilot_append_only_adoption(journal: DurableJournal, context: Mapping[str, Any]) -> None:
     pilot = context["analysis_admission"]["pilot"]
     raw = _read_regular(journal.path, "PILOT_PRIOR_JOURNAL_REQUIRED")
     lines = raw.splitlines(keepends=True)
-    if (not raw.endswith(b"\n") or len(lines) < 45
-            or sha256_bytes(b"".join(lines[:45])) != batch.PILOT_JOURNAL_PREFIX_SHA256):
+    if (not raw.endswith(b"\n") or len(lines)<45 or sha256_bytes(b"".join(lines[:45]))!=batch.PILOT_JOURNAL_PREFIX_SHA256):
         raise DispatcherError("PILOT_PRIOR_JOURNAL_PREFIX_MISMATCH")
     historical = _pilot_historical_context(context)
-    descriptor = _analysis_isolation_descriptor(context, journal)
-    old_event = _source_adoption_event(historical, descriptor)
-    if {k:v for k,v in journal.events[39].items() if k != "at_utc"} != old_event:
+    descriptor = _analysis_isolation_descriptor(context,journal)
+    old_event = _source_adoption_event(historical,descriptor)
+    if {k:v for k,v in journal.events[39].items() if k!="at_utc"}!=old_event:
         raise DispatcherError("PILOT_PRIOR_SOURCE_ADOPTION_MISMATCH")
-    event = {"event":"pilot_adoption", "schema":JOURNAL_SCHEMA,
-             "previous_authorization_sha256":batch.PILOT_PREVIOUS_AUTH_SHA256,
-             "authorization_sha256":context["authorization_sha256"],
-             "adoption":pilot["reference"], "journal_prefix_sha256":batch.PILOT_JOURNAL_PREFIX_SHA256,
-             "journal_event_count":45, "sources":pilot["value"]["sources"],
-             "stratified17_sha256":batch.PILOT_STRATA_SHA256,
-             "package_input_plan_sha256":batch.PILOT_PACKAGE_PLAN_SHA256}
-    if len(journal.events) == 45:
+    is_v2 = pilot["value"].get("schema")=="v4.pdf_research.pilot_adoption.v2"
+    if is_v2:
+        if len(lines)<55 or sha256_bytes(b"".join(lines[:55]))!=batch.PILOT_V2_PREFIX_SHA256:
+            raise DispatcherError("PILOT_V2_JOURNAL_PREFIX_MISMATCH")
+        old_auth, old_auth_raw = batch._analysis_ref(pilot["value"]["previous_pilot_authorization"],root=CONTINUATION_ROOT)
+        old_adoption, _ = batch._analysis_ref(old_auth["pilot17_adoption"],root=CONTINUATION_ROOT)
+        old_context={**context,"authorization_sha256":sha256_bytes(old_auth_raw),
+                     "analysis_admission":{"pilot":{"reference":old_auth["pilot17_adoption"],"value":old_adoption}}}
+        if {k:v for k,v in journal.events[45].items() if k!="at_utc"}!=_pilot_adoption_event(old_context):
+            raise DispatcherError("PILOT_V2_OLD_ADOPTION_MISMATCH")
+    index=55 if is_v2 else 45
+    event=_pilot_adoption_event(context,v2=is_v2)
+    if len(journal.events)==index:
         journal.append(event)
-    elif {k:v for k,v in journal.events[45].items() if k != "at_utc"} != event:
+    elif {k:v for k,v in journal.events[index].items() if k!="at_utc"}!=event:
         raise DispatcherError("PILOT_CURRENT_ADOPTION_MISMATCH")
+
+
+def _prepare_pilot_tool_recovery(journal: DurableJournal, context: Mapping[str, Any]) -> dict[str, Any] | None:
+    recovery=(context.get("analysis_admission") or {}).get("pilot",{}).get("recovery")
+    if recovery is None:
+        return None
+    descriptor=recovery["descriptor"]
+    raw=_read_regular(journal.path,"PILOT_TOOL_RECOVERY_JOURNAL_REQUIRED")
+    lines=raw.splitlines(keepends=True)
+    if (len(lines)<56 or sha256_bytes(b"".join(lines[:55]))!=batch.PILOT_V2_PREFIX_SHA256
+            or journal.events[53].get("receipt_sha256")!=descriptor["failed_receipt"]["sha256"]
+            or journal.events[53].get("status")!="FAILED_NO_RETRY" or journal.events[53].get("decision")!="HALT"
+            or journal.events[54].get("event")!="halt" or journal.events[54].get("document_id")!=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID):
+        raise DispatcherError("PILOT_TOOL_RECOVERY_FAILURE_PREFIX_MISMATCH")
+    event={"event":"halt_resolution","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,
+           "status":"BOUNDED_TOOL_BUDGET_RECOVERY_AUTHORIZED","recovery_generation":1,
+           "prior_plan_sha256":descriptor["failed_plan"]["sha256"],"prior_receipt_sha256":descriptor["failed_receipt"]["sha256"],
+           "new_plan_sha256":recovery["plan_reference"]["sha256"],"authorization_sha256":context["authorization_sha256"]}
+    if len(journal.events)==56:
+        journal.append(event)
+    elif {k:v for k,v in journal.events[56].items() if k!="at_utc"}!=event:
+        raise DispatcherError("PILOT_TOOL_RECOVERY_RESOLUTION_MISMATCH")
+    plans=[e for e in journal.events[55:] if e.get("event")=="plan_created" and e.get("document_id")==batch.PILOT_TOOL_BUDGET_DOCUMENT_ID]
+    if not plans:
+        plan=recovery["plan"];raw=recovery["plan_raw"]
+        path=journal.root/"plans"/(plan["continuation_id"]+".json")
+        _write_immutable(path,raw)
+        journal.append({"event":"plan_created","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,
+                       "continuation_id":plan["continuation_id"],"plan_path":str(path),"plan_sha256":sha256_bytes(raw),
+                       "plan_bytes_b64":base64.b64encode(raw).decode("ascii"),"state_root":plan["state_root"],
+                       "recovery_generation":1,"recovery_reason":"PDF_ACTION_ENVELOPE_BUDGET_EXCEEDED"})
+    elif len(plans)!=1 or plans[0].get("plan_sha256")!=recovery["plan_reference"]["sha256"]:
+        raise DispatcherError("PILOT_TOOL_RECOVERY_LIMIT_EXCEEDED")
+    return {"reconciled_event_index":53,"halt_event_index":54,
+            "reconciled_event_line_sha256":sha256_bytes(lines[53]),
+            "continuation_id":journal.events[53]["continuation_id"],"document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID}
 
 
 def _verify_or_create_binding(journal: DurableJournal, context: Mapping[str, Any]) -> None:
@@ -2585,56 +2635,35 @@ def _prepare_halt_resume(
 
 
 def _halt_if_required(
-    journal: DurableJournal,
-    latest: Mapping[str, Mapping[str, Any]],
-    *,
+    journal: DurableJournal, latest: Mapping[str, Mapping[str, Any]], *,
     halt_resume_descriptor: Mapping[str, Any] | None = None,
+    additional_halt_resume_descriptor: Mapping[str, Any] | None = None,
 ) -> None:
-    resolved_halt_index: int | None = None
-    resolved_reconciled_index: int | None = None
-    if halt_resume_descriptor is not None:
-        resolved_halt_index = halt_resume_descriptor.get("halt_event_index")
-        resolved_reconciled_index = halt_resume_descriptor.get("reconciled_event_index")
-        if (
-            type(resolved_halt_index) is not int
-            or type(resolved_reconciled_index) is not int
-            or not isinstance(halt_resume_descriptor.get("reconciled_event_line_sha256"), str)
-            or not isinstance(halt_resume_descriptor.get("continuation_id"), str)
-            or not isinstance(halt_resume_descriptor.get("document_id"), str)
-            or resolved_halt_index < 0
-            or resolved_reconciled_index < 0
-            or resolved_halt_index >= len(journal.events)
-            or resolved_reconciled_index >= len(journal.events)
-        ):
+    descriptors=[d for d in (halt_resume_descriptor,additional_halt_resume_descriptor) if d is not None]
+    resolved_halts: set[int]=set()
+    resolved_failures: set[int]=set()
+    for descriptor in descriptors:
+        hi=descriptor.get("halt_event_index");ri=descriptor.get("reconciled_event_index")
+        if (type(hi) is not int or type(ri) is not int or hi<0 or ri<0 or hi>=len(journal.events) or ri>=len(journal.events)
+                or not isinstance(descriptor.get("reconciled_event_line_sha256"),str)
+                or not isinstance(descriptor.get("continuation_id"),str) or not isinstance(descriptor.get("document_id"),str)
+                or hi in resolved_halts or ri in resolved_failures):
             raise DispatcherError("HALT_RESUME_TERMINAL_BINDING_MISMATCH")
-        reconciled_event = journal.events[resolved_reconciled_index]
-        if (
-            reconciled_event.get("event") != "reconciled"
-            or reconciled_event.get("decision") != "HALT"
-            or reconciled_event.get("document_id") != halt_resume_descriptor["document_id"]
-            or reconciled_event.get("continuation_id") != halt_resume_descriptor["continuation_id"]
-            or sha256_bytes(canonical_json(reconciled_event) + b"\n")
-            != halt_resume_descriptor["reconciled_event_line_sha256"]
-            or journal.events[resolved_halt_index].get("event") != "halt"
-            or journal.events[resolved_halt_index].get("document_id") != halt_resume_descriptor["document_id"]
-        ):
+        failed=journal.events[ri];halt=journal.events[hi]
+        if (failed.get("event")!="reconciled" or failed.get("decision")!="HALT"
+                or failed.get("document_id")!=descriptor.get("document_id")
+                or failed.get("continuation_id")!=descriptor.get("continuation_id")
+                or sha256_bytes(canonical_json(failed)+b"\n")!=descriptor.get("reconciled_event_line_sha256")
+                or halt.get("event")!="halt" or halt.get("document_id")!=descriptor.get("document_id")):
             raise DispatcherError("HALT_RESUME_TERMINAL_BINDING_MISMATCH")
-    for index, event in enumerate(journal.events):
-        if event.get("event") == "halt" and index != resolved_halt_index:
+        resolved_halts.add(hi);resolved_failures.add(ri)
+    for i,e in enumerate(journal.events):
+        if e.get("event")=="halt" and i not in resolved_halts:
             raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
-        if event.get("event") == "reconciled" and event.get("decision") == "HALT":
-            if (
-                index != resolved_reconciled_index
-                or halt_resume_descriptor is None
-                or event.get("document_id") != halt_resume_descriptor["document_id"]
-                or event.get("continuation_id") != halt_resume_descriptor["continuation_id"]
-                or sha256_bytes(canonical_json(event) + b"\n")
-                != halt_resume_descriptor["reconciled_event_line_sha256"]
-            ):
-                raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
-    for event in latest.values():
-        if event.get("event") == "dispatch_intent":
-            raise DispatcherError("DISPATCH_OUTCOME_AMBIGUOUS_FAIL_CLOSED")
+        if e.get("event")=="reconciled" and e.get("decision")=="HALT" and i not in resolved_failures:
+            raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
+    if any(e.get("event")=="dispatch_intent" for e in latest.values()):
+        raise DispatcherError("DISPATCH_OUTCOME_AMBIGUOUS_FAIL_CLOSED")
 
 
 def _write_immutable(path: Path, raw: bytes) -> str:
@@ -3136,6 +3165,7 @@ def execute_once(
             sleep_fn=sleep_fn,
             samples_path=samples_path,
         )
+        tool_budget_halt_descriptor = _prepare_pilot_tool_recovery(journal, context)
         latest = _latest_document_events(journal.events)
         resolved_halt_resume_descriptor = None
         if resumed_document_id is not None:
@@ -3143,8 +3173,9 @@ def execute_once(
                                                else _halt_resume_descriptor(context, journal))
             if resolved_halt_resume_descriptor is None:
                 raise DispatcherError("HALT_RESUME_DESCRIPTOR_MISSING")
-        _halt_if_required(journal, latest, halt_resume_descriptor=resolved_halt_resume_descriptor)
-        _assert_no_duplicate_document_ids(journal.events)
+        _halt_if_required(journal, latest, halt_resume_descriptor=resolved_halt_resume_descriptor,
+                          additional_halt_resume_descriptor=tool_budget_halt_descriptor)
+        _assert_no_duplicate_document_ids(journal.events, analysis_admission=admission)
         if not latest:
             _first, initial_count = select_next_document(
                 documents,
@@ -3450,7 +3481,7 @@ def execute_once(
     }
 
 
-def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]]) -> None:
+def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]], *, analysis_admission: Mapping[str, Any] | None = None) -> None:
     continuation_ids: set[str] = set()
     state_roots: set[str] = set()
     original_plans: dict[str, tuple[int, str, str, Mapping[str, Any]]] = {}
@@ -3491,6 +3522,20 @@ def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]]) -> No
                 original_plans[document_id] = (event_index, continuation_id, state_root, plan)
             else:
                 previous_index, previous_continuation_id, previous_state_root, previous_plan = previous
+                pilot_recovery=(analysis_admission or {}).get("pilot",{}).get("recovery")
+                if plan.get("tool_budget_recovery") is not None:
+                    if (pilot_recovery is None or document_id!=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
+                            or sha256_bytes(plan_raw)!=pilot_recovery["plan_reference"]["sha256"]
+                            or previous_plan.get("continuation_id")==plan.get("continuation_id")
+                            or sha256_bytes(_json_bytes(previous_plan))!=pilot_recovery["descriptor"]["failed_plan"]["sha256"]
+                            or recovery_counts.get(document_id,0)!=0
+                            or not any(e.get("event")=="halt_resolution" and e.get("document_id")==document_id
+                                       and e.get("status")=="BOUNDED_TOOL_BUDGET_RECOVERY_AUTHORIZED"
+                                       and e.get("new_plan_sha256")==sha256_bytes(plan_raw) for e in events[previous_index+1:event_index])):
+                        raise DispatcherError("TOOL_BUDGET_RECOVERY_PAIR_INVALID")
+                    recovery_counts[document_id]=1
+                    continuation_ids.add(continuation_id);state_roots.add(state_root)
+                    continue
                 previous_plan_sha = sha256_bytes(_json_bytes(previous_plan))
                 recovery = selection.get("recovery")
                 interim = events[previous_index + 1:event_index]

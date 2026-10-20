@@ -252,3 +252,55 @@ class PdfResearchToolsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_budgeted_read_keeps_complete_initial_chunk_and_history(monkeypatch):
+    messages=[{'role':'system','content':'research only'},{'role':'user','content':'complete original chunk完整原文'*50}]
+    page='中文123ABC'*500
+    context={'page_input_sha256':'a'*64,'pages':[{'page_number':1,'page_total':1,'text':page,'text_sha256':_sha(page)}]}
+    read={'action':'read','arguments':{'page_number':1,'start_offset':5,'max_characters':2000}}
+    raw=_model_completion(read).final_text;schema={'type':'object'}
+    original=json.dumps(messages,ensure_ascii=False,sort_keys=True)
+    limit=tools._envelope_size(messages,schema)+len(raw.encode())+1500
+    monkeypatch.setattr(tools,'MAX_REQUEST_ENVELOPE_BYTES',limit)
+    observation=tools._read_pdf(context,read['arguments'])
+    shown,limited=tools._budget_read_observation(messages,raw,read,observation,schema)
+    assert limited and shown['text']==page[5:shown['end_offset']]
+    assert shown['start_offset']==5 and shown['truncated'] and shown['page_text_sha256']==_sha(page)
+    assert shown['next_action_required']=='final' and shown['observation_budget_limited']
+    assert tools._envelope_size(messages+[{'role':'assistant','content':raw},tools._observation_message(shown)],schema)<=limit
+    assert json.dumps(messages,ensure_ascii=False,sort_keys=True)==original
+
+
+def test_budgeted_loop_requires_final_after_explicit_limited_read(monkeypatch):
+    import pytest
+    messages=[{'role':'system','content':'research'},{'role':'user','content':'full chunk'*40}]
+    page='中文'*1500;context={'page_input_sha256':'a'*64,'pages':[{'page_number':1,'page_total':1,'text':page,'text_sha256':_sha(page)}]}
+    read={'action':'read','arguments':{'page_number':1,'max_characters':2000}}
+    schema={'type':'object'};limit=tools._envelope_size(messages,schema)+len(_model_completion(read).final_text.encode())+1500
+    monkeypatch.setattr(tools,'MAX_REQUEST_ENVELOPE_BYTES',limit)
+    calls=[];receipts=[]
+    def request(conversation):
+        calls.append(conversation)
+        return _model_completion(read if len(calls)==1 else {'action':'final','report':'bounded supplied source only'})
+    result=tools.run_action_loop(messages,context=context,response_schema=schema,request_turn=request,
+        web_call=lambda *a:pytest.fail('no external tools'),on_tool_receipt=receipts.append)
+    assert len(calls)==2 and result['analysis_markdown']=='bounded supplied source only'
+    assert receipts[0]['observation_budget_limited'] and receipts[0]['next_action_required']=='final'
+    observation=json.loads(calls[1][-1]['content'].split('\n',1)[1])
+    assert receipts[0]['result_sha256']==tools._sha(observation)
+    assert calls[1][:2]==messages
+    calls.clear()
+    with pytest.raises(tools.PdfToolError,match='FINAL_REQUIRED_AFTER_BUDGET'):
+        tools.run_action_loop(messages,context=context,response_schema=schema,request_turn=lambda c:(_model_completion(read)),web_call=lambda *a:None)
+
+
+def test_budget_no_fit_or_nonread_is_fail_closed_without_more_request(monkeypatch):
+    import pytest
+    messages=[{'role':'system','content':'original complete input'}];schema={'type':'object'}
+    monkeypatch.setattr(tools,'MAX_REQUEST_ENVELOPE_BYTES',tools._envelope_size(messages,schema)+1)
+    with pytest.raises(tools.PdfToolError,match='ENVELOPE_BUDGET_EXCEEDED'):
+        tools._budget_read_observation(messages,'large model action',{'action':'read','arguments':{}},
+            {'ok':True,'text':'x','start_offset':0,'page_characters':1},schema)
+    with pytest.raises(tools.PdfToolError,match='ENVELOPE_BUDGET_EXCEEDED'):
+        tools._budget_read_observation(messages,'action',{'action':'search_pdf'},{'ok':True,'matches':['x'*5000]},schema)

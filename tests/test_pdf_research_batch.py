@@ -2974,3 +2974,38 @@ def test_pilot_phase_is_hash_bound_first3_then_reviewer_gated_remaining14(analys
     context['authorization']['pilot17_adoption']=f.write(Path(adoption_ref['path']),adoption)
     with pytest.raises(batch.BatchError,match='SOURCE_SHA_MISMATCH'):
         batch.load_research_pilot(admission,context)
+
+
+def test_v2_source_hold_rechecked_before_enqueue_and_attempt(analysis_fixture,monkeypatch):
+    f=analysis_fixture;held=f.rows[1]['document_id'];admission=_load_test_admission(f)
+    admission['allowed_ids']=[held]
+    admission['pilot']={'reference':{'path':'adoption','sha256':'a'*64}}
+    monkeypatch.setattr(f.dispatcher,'load_and_validate_authorization',lambda :f.context)
+    monkeypatch.setattr(batch,'load_research_pilot',lambda *a:{'reference':admission['pilot']['reference'],'allowed_ids':[],'source_hold_ids':[held]})
+    monkeypatch.setattr(batch,'verify_analysis_plan_runtime',lambda *a:None)
+    class Queue:
+        attempts=0;enqueues=0
+        def enqueue(self,p):self.enqueues+=1;raise AssertionError('held source must not enqueue')
+    q=Queue()
+    with pytest.raises(batch.BatchError,match='PHASE_OR_ADOPTION_DRIFT'):
+        batch._perform_request(q,{'source_document_id':held},[{'role':'user','content':'body'}],binding={},identity={},identity_reader=lambda:{},
+            priority_reader=lambda:{'status':'ALLOW'},request_fn=lambda **k:pytest.fail('POST'),sleep_fn=lambda _:None,analysis_admission=admission)
+    assert q.attempts==0 and q.enqueues==0
+
+
+def test_v2_dispatch_accepts_only_exact_reviewed_second_plan(analysis_fixture):
+    f=analysis_fixture;did=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
+    path=f.dispatcher.EVIDENCE_ROOT/'dispatch.jsonl';path.parent.mkdir()
+    events=[{'event':'plan_created','document_id':did,'plan_sha256':'a'*64},
+            {'event':'plan_created','document_id':did,'plan_sha256':'b'*64},
+            {'event':'dispatch_intent','document_id':did,'plan_sha256':'b'*64}]
+    path.write_text(''.join(json.dumps(e)+'\n' for e in events))
+    admission={'pilot':{'recovery':{'plan_reference':{'sha256':'b'*64}}}}
+    batch.verify_analysis_dispatch(did,'b'*64,admission)
+    with pytest.raises(batch.BatchError,match='RECOVERY_PLAN_NOT_CURRENT'):
+        batch.verify_analysis_dispatch(did,'a'*64,admission)
+    with pytest.raises(batch.BatchError,match='DISPATCH_NOT_CURRENT'):
+        batch.verify_analysis_dispatch(did,'b'*64)
+    events.insert(2,{'event':'plan_created','document_id':did,'plan_sha256':'c'*64});path.write_text(''.join(json.dumps(e)+'\n' for e in events))
+    with pytest.raises(batch.BatchError,match='DISPATCH_NOT_CURRENT'):
+        batch.verify_analysis_dispatch(did,'b'*64,admission)
