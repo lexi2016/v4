@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -334,6 +335,15 @@ def _futu_snapshot_probe(
         "started_at": None,
         "finished_at": None,
     }
+    transport_observations: list[str] = []
+
+    def transport_evidence() -> tuple[str, ...]:
+        if stage_id != "STAGE_1545_1555":
+            return ()
+        return tuple(transport_observations or (
+            "active_snapshot_transport_raw_status=NO_RESPONSE",
+        ))
+
     try:
         module = _load_shared_module(shared_root, "shared_data.hk_auction_0920")
         fetch = module.fetch_futu_snapshot
@@ -366,6 +376,32 @@ def _futu_snapshot_probe(
             # and immediately before the external runner is invoked.
             provider_times["started_at"] = started.isoformat()
             completed = process_runner(*args, **kwargs)
+            if stage_id == "STAGE_1545_1555":
+                # This is the last boundary before shared fetch_futu_snapshot
+                # filters non-Mapping rows. Observe its original protocol
+                # payload here; filtered fetch rows cannot prove emptiness.
+                observation = ("active_snapshot_transport_raw_status=UNKNOWN",)
+                try:
+                    marker = module.MARKER
+                    if not isinstance(marker, str) or not marker:
+                        raise ValueError("snapshot transport marker is unavailable")
+                    marker_line = next(
+                        (line for line in reversed(completed.stdout.splitlines())
+                         if line.startswith(marker)), None,
+                    )
+                    encoded = marker_line[len(marker):].strip() if marker_line else ""
+                    original = json.JSONDecoder().raw_decode(encoded)[0]
+                    if (completed.returncode == 0 and isinstance(original, Mapping)
+                            and isinstance(original.get("rows"), list)):
+                        observation = (
+                            "active_snapshot_transport_raw_status=VERIFIED",
+                            f"active_snapshot_transport_raw_rows={len(original['rows'])}",
+                            "active_snapshot_transport_payload_sha256="
+                            + hashlib.sha256(encoded.encode("utf-8")).hexdigest(),
+                        )
+                except (AttributeError, TypeError, ValueError):
+                    pass
+                transport_observations.extend(observation)
             finished = _snapshot_now(clock)
             provider_times["finished_at"] = finished.isoformat()
             if not _snapshot_provider_time_safe(
@@ -400,6 +436,10 @@ def _futu_snapshot_probe(
         if not isinstance(fetched, tuple) or len(fetched) != 2:
             raise ValueError("Futu snapshot bridge returned an invalid result")
         raw_rows, errors = fetched
+        if stage_id == "STAGE_1545_1555":
+            # Keep the bridge response count before Mapping/code filtering;
+            # malformed nonempty data must never become an empty retry case.
+            evidence_base += (f"active_snapshot_bridge_returned_rows={len(raw_rows or ())}",)
         bridge_errors = tuple(str(item) for item in (errors or ()) if str(item))
         snapshot_rows = [item for item in (raw_rows or ()) if isinstance(item, Mapping)]
     except _SnapshotCaptureWindowExpired as error:
@@ -413,7 +453,7 @@ def _futu_snapshot_probe(
             [],
             {},
             ("HK_ACTIVE_SNAPSHOT_PROVIDER_WINDOW_EXPIRED",),
-            evidence_base + time_evidence + (f"active_snapshot_provider_window_error={str(error)}",),
+            evidence_base + transport_evidence() + time_evidence + (f"active_snapshot_provider_window_error={str(error)}",),
             provider_times["started_at"],
             provider_times["finished_at"],
         )
@@ -428,7 +468,7 @@ def _futu_snapshot_probe(
             [],
             {},
             (typed_error,),
-            evidence_base
+            evidence_base + transport_evidence()
             + (
                 f"active_snapshot_bridge_error_type={error_type}",
                 f"active_snapshot_bridge_error_detail={error_detail}",
@@ -482,7 +522,7 @@ def _futu_snapshot_probe(
         trade_date=trade_date,
         cutoff_at=cutoff_at,
     )
-    evidence = evidence_base + (
+    evidence = evidence_base + transport_evidence() + (
         f"active_snapshot_codes_sha256={codes_sha}",
         f"active_snapshot_sha256={snapshot_sha}",
         f"active_snapshot_returned_rows={len(by_code)}",
@@ -743,6 +783,55 @@ def load_hk_active_snapshot(
     }
 
 
+def _stage8_transient_empty_failure(
+    rows: Sequence[Mapping[str, Any]], errors: Sequence[str], evidence: Sequence[str]
+) -> bool:
+    """Retry only an empty transport failure, never a data-contract failure."""
+    if rows or not errors:
+        return False
+    transport_statuses = [item.split("=", 1)[1] for item in evidence
+                          if item.startswith("active_snapshot_transport_raw_status=")]
+    transport_counts = [item.split("=", 1)[1] for item in evidence
+                        if item.startswith("active_snapshot_transport_raw_rows=")]
+    if transport_statuses != ["NO_RESPONSE"] and not (
+        transport_statuses == ["VERIFIED"] and transport_counts == ["0"]
+    ):
+        return False
+    raw_counts = [item.split("=", 1)[1] for item in evidence
+                  if item.startswith("active_snapshot_bridge_returned_rows=")]
+    if raw_counts and raw_counts != ["0"]:
+        return False
+    transport_errors = {"网络中断", "network interrupted", "connection reset by peer"}
+    transport_prefixes = tuple(
+        f"HK_ACTIVE_SNAPSHOT_BRIDGE_ERROR:{kind}"
+        for kind in ("ConnectionError", "ConnectionResetError", "ConnectionAbortedError",
+                     "TimeoutError", "TimeoutExpired")
+    )
+    derived_errors = {
+        "HK_ACTIVE_SNAPSHOT_FULL_COVERAGE_MISSING",
+        "HK_ACTIVE_SNAPSHOT_NO_ELIGIBLE_ROWS",
+        "HK_ACTIVE_SNAPSHOT_TEMPORAL_CUTOFF_UNSAFE",
+    }
+    saw_transport = False
+    saw_transport_exception = False
+    for error in errors:
+        if error in transport_prefixes or error.startswith(tuple(
+            prefix + ":" for prefix in transport_prefixes
+        )):
+            saw_transport_exception = True
+            saw_transport = True
+        elif error in transport_errors:
+            saw_transport = True
+        elif error not in derived_errors:
+            return False
+    # A raised transport exception may have no response. A returned response
+    # must prove raw protocol emptiness before the shared wrapper's filters;
+    # missing/unknown/multiple observations never count as empty.
+    if transport_statuses == ["NO_RESPONSE"]:
+        return saw_transport_exception and not raw_counts
+    return saw_transport and (raw_counts == ["0"] or saw_transport_exception)
+
+
 def prepare_hk_active_snapshot(
     snapshot_root: Path | str,
     *,
@@ -756,6 +845,7 @@ def prepare_hk_active_snapshot(
     pool_artifact_sha256: str,
     process_runner: BridgeRunner = subprocess.run,
     clock: Callable[[], datetime] | None = None,
+    sleeper: Callable[[float], None] = time.sleep,
 ) -> dict[str, Any]:
     """Capture one immutable exact-stage Futu snapshot before the cutoff."""
     path = _snapshot_path(snapshot_root, trade_date, stage_id)
@@ -802,17 +892,54 @@ def prepare_hk_active_snapshot(
     # evaluated_at explains why the scheduler considered this node due; the
     # provider boundary records its own actual start and finish times.
     _ = evaluated_at
-    requested, rows, _by_code, probe_errors, evidence, provider_started_at, provider_finished_at = _futu_snapshot_probe(
-        Path(shared_root).expanduser().resolve(),
-        codes=codes,
-        python_path=python_path,
-        process_runner=process_runner,
-        trade_date=trade_date,
-        stage_id=stage_id,
-        cutoff_at=cutoff_at,
-        pool_artifact_sha256=pool_artifact_sha256,
-        clock=clock,
-    )
+    is_stage8 = stage_id == "STAGE_1545_1555"
+    capture_attempts: list[dict[str, Any]] = []
+    for attempt in range(1, 4 if is_stage8 else 2):
+        requested, rows, _by_code, probe_errors, evidence, provider_started_at, provider_finished_at = _futu_snapshot_probe(
+            Path(shared_root).expanduser().resolve(),
+            codes=codes,
+            python_path=python_path,
+            process_runner=process_runner,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            cutoff_at=cutoff_at,
+            pool_artifact_sha256=pool_artifact_sha256,
+            clock=clock,
+        )
+        if not is_stage8:
+            break
+        capture_attempts.append({
+            "attempt_number": attempt,
+            "cannot_confirm": list(probe_errors),
+            "source_evidence": list(evidence),
+            "requested_rows": len(requested),
+            "returned_rows": len(rows),
+            "provider_started_at": provider_started_at,
+            "provider_finished_at": provider_finished_at,
+        })
+        if attempt == 3 or not _stage8_transient_empty_failure(rows, probe_errors, evidence):
+            break
+        # Use actual wall time, never the scheduler's stale evaluated_at.
+        # The probe independently checks again after sleeping/importing and
+        # immediately before and after every external process invocation.
+        if not _snapshot_provider_time_safe(
+            _snapshot_now(clock), trade_date=trade_date,
+            capture_start=capture_start, capture_end=capture_end,
+            cutoff_at=cutoff_iso,
+        ):
+            break
+        sleeper(1.0)
+        if not _snapshot_provider_time_safe(
+            _snapshot_now(clock), trade_date=trade_date,
+            capture_start=capture_start, capture_end=capture_end,
+            cutoff_at=cutoff_iso,
+        ):
+            break
+    attempt_metadata = {"capture_attempts": capture_attempts} if is_stage8 else {}
+    if is_stage8:
+        evidence += ("active_snapshot_capture_attempts_json=" + json.dumps(
+            capture_attempts, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ),)
     eligible_rows, excluded_rows = _snapshot_temporal_partition(
         rows, trade_date=trade_date, cutoff_at=cutoff_iso
     )
@@ -836,6 +963,7 @@ def prepare_hk_active_snapshot(
             "provider_started_at": provider_started_at,
             "provider_finished_at": provider_finished_at,
             "write_performed": False,
+            **attempt_metadata,
             **_HK_ACTIVE_SNAPSHOT_SAFETY,
         }
     payload = {
@@ -861,8 +989,20 @@ def prepare_hk_active_snapshot(
         "captured_at": provider_finished_at,
         "cutoff_at": cutoff_iso,
         "temporal_cutoff_safe": True,
+        **attempt_metadata,
         **_HK_ACTIVE_SNAPSHOT_SAFETY,
     }
+    if is_stage8 and not _snapshot_provider_time_safe(
+        _snapshot_now(clock), trade_date=trade_date,
+        capture_start=capture_start, capture_end=capture_end,
+        cutoff_at=cutoff_iso,
+    ):
+        return {
+            "status": "CANNOT_CONFIRM", "snapshot_path": str(path),
+            "cannot_confirm": ("HK_ACTIVE_SNAPSHOT_PROVIDER_WINDOW_EXPIRED",),
+            "source_evidence": evidence, "write_performed": False,
+            **attempt_metadata, **_HK_ACTIVE_SNAPSHOT_SAFETY,
+        }
     if not _atomic_snapshot_create(path, payload):
         existing = load_hk_active_snapshot(
             snapshot_root,
@@ -900,5 +1040,6 @@ def prepare_hk_active_snapshot(
             "active_snapshot_temporal_cutoff_safe=true",
         ),
         "write_performed": True,
+        **attempt_metadata,
         **_HK_ACTIVE_SNAPSHOT_SAFETY,
     }

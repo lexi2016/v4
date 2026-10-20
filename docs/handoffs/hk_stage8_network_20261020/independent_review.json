@@ -1,0 +1,86 @@
+{
+  "schema": "v4.independent_review_transcription.v1",
+  "recorded_at": "2026-10-20T20:52:48.164169+08:00",
+  "reviewer": "/root/stage8_retry_review",
+  "transcribed_by": "/root",
+  "scope": "Stage8 empty transient network retries only; no late historical quote replacement",
+  "rounds": [
+    {
+      "round": 1,
+      "source_sha256": "441eaac06fe7cb575132a1004a4011a68d74e5f8d06a8a759aac7f448f2aa5aa",
+      "verdict": "REVIEWED/FAIL",
+      "findings": [
+        "P2_DETAIL_FREE_TRANSPORT",
+        "P2_FILTERED_NONEMPTY_RESPONSE"
+      ],
+      "targeted_tests": "16 passed; 2 independent adversarial probes failed"
+    },
+    {
+      "round": 2,
+      "source_sha256": "244961ea9c139b60c62a6b7d97860bd29686f107cdb5fc24895dc48d847d5df1",
+      "test_sha256": "97c3530e24ac523b4a0e575b62bf654f9b7a941a3156d5fb58bd51049f7766c6",
+      "verdict": "REVIEWED/FAIL",
+      "targeted_tests": "4 passed, 14 deselected",
+      "dependencies": "42 declared SHA values unchanged",
+      "closed": [
+        "P2_DETAIL_FREE_TRANSPORT"
+      ],
+      "open": [
+        "P2_FILTERED_NONEMPTY_RESPONSE"
+      ],
+      "real_bridge_probes": [
+        {
+          "raw_rows": [
+            "bad semantic row"
+          ],
+          "errors": [
+            "网络中断"
+          ],
+          "observed_calls": 2,
+          "observed_status": "READY",
+          "snapshot_writes": 1
+        },
+        {
+          "raw_rows": [
+            null
+          ],
+          "errors": [
+            "网络中断"
+          ],
+          "observed_calls": 2,
+          "observed_status": "READY",
+          "snapshot_writes": 1
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "source_sha256": "b3e2d641b2bce4e4ef6103a76f0b19d6c8cef4e8dbe243fcb5d6f200d63d55a4",
+      "test_sha256": "c435336c12cabae8a0038ac4c84d3a0f8c51346ceba52b03259a7560f6c72557",
+      "writer_receipt_sha256": "c3d0f4d85afd09b86a905c761b3df2784b5babff5cf012790ec6b16d9dfad46f",
+      "verdict": "REVIEWED/PASS",
+      "closed": [
+        "P2_FILTERED_NONEMPTY_RESPONSE"
+      ],
+      "open": [],
+      "targeted_tests": "21 passed, 8 deselected in 1.07s",
+      "supplemental_checks": {
+        "first_success": "1 provider call, 1 snapshot",
+        "third_success": "3 provider calls, 1 snapshot",
+        "unknown_observation": "retry refused",
+        "multiple_observations": "retry refused",
+        "window_guard": "PASS",
+        "failure_zero_writes": "PASS"
+      },
+      "dependency_sha_check": "42 of 42 unchanged"
+    }
+  ],
+  "not_run": [
+    "live collector",
+    "deployment",
+    "natural window",
+    "full repository tests"
+  ],
+  "behavior_verified": true,
+  "behavior_scope": "Offline real snapshot entry and shared bridge with controlled external process and clock; frozen Stage8 retry behavior only"
+}
