@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "04c21f47b38154af58b90cd012472acac53140be755839d000eeaa9affc6146f"
+EXPECTED_RUNNER_SHA256 = "6c048579fae3c72ad4242cef0a05a1829a7192419281e8ce24e55dfb1574ec37"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -192,6 +192,12 @@ SAFE_JSONL_EVENT_TYPES = frozenset(
         "package_dispatch_intent",
         "package_terminal",
         "package_deferred",
+        "full_adoption",
+        "full_plan",
+        "full_intent",
+        "full_terminal",
+        "full_deferred",
+        "full_light_lane_isolation",
         "plan_created",
         "plan_only_pass",
         "dispatch_intent",
@@ -3813,10 +3819,27 @@ def _prepare_sectioned_closure(journal: DurableJournal, context: Mapping[str, An
               "status":"USER_ACCEPTED_REUSED_REPORT","decision":"CONTINUE","receipt_path":composite["receipt"]["path"],
               "receipt_sha256":composite["receipt"]["sha256"],"state_root":str(Path(composite["report"]["path"]).parent),
               "report":composite["report"],"content_review":composite["content_review"],"new_model_POSTs":0}
-    for index,expected in ((70,event),(71,terminal)):
-        if len(journal.events)==index:journal.append(expected)
-        elif len(journal.events)<=index or {k:v for k,v in journal.events[index].items() if k!="at_utc"}!=expected:
+    # LIGHT may append its independently scoped events before this content
+    # verdict arrives. Positions are free; the protected failure and exact typed
+    # content closure are not. No unknown later HALT may be hidden by closure.
+    if any(e.get("event")=="halt" or e.get("event")=="reconciled" and e.get("decision")=="HALT" for e in journal.events[69:]):
+        raise DispatcherError("DISPATCHER_PREVIOUSLY_HALTED")
+    closures=[i for i,e in enumerate(journal.events[69:],69) if e.get("event")=="halt_resolution"
+              and e.get("status")=="INDEPENDENT_CONTENT_ACCEPTED_SOURCE_STAGE_REUSE"]
+    if len(closures)>1:raise DispatcherError("SECTIONED_CONTENT_CLOSURE_DUPLICATE")
+    index=closures[0] if closures else len(journal.events)
+    if closures:
+        terminals=[i for i,e in enumerate(journal.events[69:],69) if e.get("event")=="reconciled"
+                   and e.get("continuation_id")=="source-stage-667-v4"]
+        if terminals!=[index+1]:raise DispatcherError("SECTIONED_CONTENT_CLOSURE_DUPLICATE_OR_MISMATCH")
+        if ({k:v for k,v in journal.events[index].items() if k!="at_utc"}!=event or index+1>=len(journal.events)
+                or {k:v for k,v in journal.events[index+1].items() if k!="at_utc"}!=terminal):
             raise DispatcherError("SECTIONED_CONTENT_CLOSURE_MISMATCH")
+    else:
+        # A forged terminal cannot be made valid by appending a second copy.
+        if any(e.get("event")=="reconciled" and e.get("continuation_id")=="source-stage-667-v4" for e in journal.events[69:]):
+            raise DispatcherError("SECTIONED_CONTENT_CLOSURE_MISMATCH")
+        journal.append(event);journal.append(terminal)
     return {"reconciled_event_index":67,"halt_event_index":68,"reconciled_event_line_sha256":sha256_bytes(lines[67]),
             "continuation_id":journal.events[67]["continuation_id"],"document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID}
 

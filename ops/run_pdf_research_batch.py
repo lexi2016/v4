@@ -6056,12 +6056,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 PILOT_V4_DECISION_SHA256 = "a2f9fc416c038d5278e100b9d9d940ccfa8c22da17f19c704c743ab5618dcd60"
 PILOT_V4_PREVIOUS_AUTH_SHA256 = "4ba1ffeef9883a25db2bb52450c2cafdae0b1374be51f97691271edb6591b825"
 PILOT_V4_PREFIX_SHA256 = "f04869e83b6a721e4d0319165240e0412e2a77d9a14c21cec5b779957a7a40d1"
-PILOT_V4_DESCRIPTOR_SHA256 = "2a2f12017a5fff10afcf7acf695980fa9b0cfc47c0584813290f2648135d9499"
+PILOT_V4_DESCRIPTOR_SHA256 = "2b2c7d130e498d087f8520d5eeeb25d83c16b8d7c16dde4910e06e892f361ecb"
 PILOT_LONG_DOCUMENT_ID = "003ecec0bb479256ad7bcbf1f1b0cbdbe2a613fdada22d9d806fc6835ab2a520"
 
 
 def _sectioned_v4_ref() -> dict[str, str]:
-    return {"path":str(RESEARCH_PILOT_ROOT / "model/sectioned-source-reuse-v4.json"),"sha256":PILOT_V4_DESCRIPTOR_SHA256}
+    return {"path":str(RESEARCH_PILOT_ROOT / "model/sectioned-source-reuse-v4-name-erratum.json"),"sha256":PILOT_V4_DESCRIPTOR_SHA256}
 
 
 def load_sectioned_reuse_v4(adopted: Mapping[str, Any] | None = None) -> dict[str, Any]:
@@ -6102,8 +6102,29 @@ def load_sectioned_reuse_v4(adopted: Mapping[str, Any] | None = None) -> dict[st
             or not pdf_research.verify_chunk_reconstruction(pages,chunks)
             or len(pages)!=20 or sorted({u.page_number for c in chunks for u in c.units})!=list(range(1,21))):
         raise BatchError("SECTIONED_V4_COMPLETE_SOURCE_MISMATCH")
-    if sum(len(r.get("edits",[])) for r in rows)!=4:
+    if sum(len(r.get("edits",[])) for r in rows)!=5:
         raise BatchError("SECTIONED_V4_PROJECTION_SCOPE_MISMATCH")
+    _pilot_fixed(RESEARCH_PILOT_ROOT / "controller-single-entity-erratum-v4-decision.json", "5a6db12414af7c12f402017adb3bd0bab573b1744946507771782becd290834c")
+    old_descriptor={"path":str(RESEARCH_PILOT_ROOT / "model/sectioned-source-reuse-v4.json"),"sha256":"2a2f12017a5fff10afcf7acf695980fa9b0cfc47c0584813290f2648135d9499"}
+    prior,_=_analysis_ref(old_descriptor,root=RESEARCH_PILOT_ROOT)
+    finding_ref={"path":str(RESEARCH_PILOT_ROOT / "independent-review/sectioned667-content-review-v4.json"),"sha256":"6ac710cf158e18e83a01f781c66b2c1f269275829aab681682159fc5b497f001"}
+    reviewed,_=_analysis_ref(finding_ref,root=RESEARCH_PILOT_ROOT)
+    entity=value.get("entity_erratum",{});findings=reviewed.get("findings",[])
+    if (value.get("previous_descriptor")!=old_descriptor or value.get("original_content_failure")!=finding_ref
+            or entity.get("source_finding")!=finding_ref or entity.get("expected_occurrences")!=1
+            or entity.get("original_ocr")!="吴帆生物" or entity.get("visually_verified")!="昊帆生物"
+            or reviewed.get("status")!="SECTIONED_REPORT_CONTENT_FAIL" or reviewed.get("reviewer")!="/root/pdf_model_analysis_reviewer"
+            or len(findings)!=1 or findings[0].get("id")!="V4-CONTENT-ENTITY-P1"
+            or findings[0].get("source_exact")!="昊帆生物" or findings[0].get("prepared_exact")!="吴帆生物"
+            or reviewed.get("source_pages_reviewed")!=list(range(1,21))
+            or any(reviewed.get("checks",{}).get(k) is not True for k in ("all20_pages","important_omissions","cross_section_conflicts","numeric_period_unit_conditions","C4_C5_unknown_exclusions","C6_manual_rating"))):
+        raise BatchError("SECTIONED_ENTITY_FINDING_MISMATCH")
+    _analysis_ref(entity["source_crop"],parse_json=False)
+    if entity["source_crop"]!=findings[0]["source_crop"] or entity["source_pdf"]!=findings[0]["source_pdf"]:
+        raise BatchError("SECTIONED_ENTITY_SOURCE_MISMATCH")
+    without_entity=[{**r,"edits":[e for e in r["edits"] if e.get("finding")!="V4-CONTENT-ENTITY-P1"]} for r in rows]
+    if without_entity!=prior["source_rows"] or sum(e.get("finding")=="V4-CONTENT-ENTITY-P1" for r in rows for e in r["edits"])!=1:
+        raise BatchError("SECTIONED_ENTITY_EXPECTED1_OTHER_BYTES_MISMATCH")
     for c,r in zip(chunks,rows):
         if r["initial_input_pages"]!=sorted({u.page_number for u in c.units}):
             raise BatchError("SECTIONED_V4_INITIAL_PAGE_INDEX_MISMATCH")
@@ -6132,7 +6153,9 @@ def _project_sectioned_text(text: str, edits: Sequence[Mapping[str, Any]]) -> st
     for e in sorted(edits,key=lambda e:e["start_character"]):
         a=e.get("start_character");z=e.get("end_character")
         if (type(a) is not int or type(z) is not int or a<previous or z<=a or z>len(text)
-                or e.get("finding") not in {"C4","C5"} or "CANNOT_CONFIRM" not in str(e.get("replacement"))
+                or not ((e.get("finding") in {"C4","C5"} and "CANNOT_CONFIRM" in str(e.get("replacement")))
+                        or (e.get("finding")=="V4-CONTENT-ENTITY-P1" and text[a:z]=="吴帆生物"
+                            and e.get("replacement")=="昊帆生物〔人工来源勘误：原PDF第1页；原OCR为“吴帆生物”〕"))
                 or _sha256(text[a:z].encode())!=e.get("original_text_sha256")):
             raise BatchError("SECTIONED_PROJECTION_RANGE_MISMATCH")
         previous=z
@@ -6164,9 +6187,9 @@ def build_sectioned_reuse_v4(*, persist: bool = True) -> dict[str, Any]:
                            "projected_text_sha256":_sha256(projected.encode())})
         reports.append({"text":projected,"report_id":row["source_chunk"]["chunk_sha256"]})
     qual=value["source_qualifications"]
-    note="原分块的第6页年份—事件配对、第9—10页管线行级映射已发现错配；下文对应段落显式替换为CANNOT_CONFIRM，原段落完整保留在component manifest。\n\n"+"\n\n".join(f"{f['id']}：{f['constraint']}" for f in qual["findings"])
+    note="原分块的第6页年份—事件配对、第9—10页管线行级映射已发现错配；下文对应段落显式替换为CANNOT_CONFIRM，原段落完整保留在component manifest。另依据独立第1页原图，仅将原OCR公司名吴帆生物显式勘误为昊帆生物；此为验收人工补充，未重新OCR或模型生成。\n\n"+"\n\n".join(f"{f['id']}：{f['constraint']}" for f in qual["findings"])
     report=_sectioned_text(value["document_id"],reports,value["source_rows"],note)
-    root=RESEARCH_PILOT_ROOT / "model/sectioned-reuse-v4/667"
+    root=RESEARCH_PILOT_ROOT / "model/sectioned-reuse-v4/667-name-erratum"
     if value["report_directory"]!=str(root):raise BatchError("SECTIONED_V4_REPORT_PATH_MISMATCH")
     path=root/"report.md";digest=_sha256(report.encode())
     if persist:_write_immutable(path,report.encode(),RESEARCH_PILOT_ROOT)
@@ -6184,7 +6207,7 @@ def build_sectioned_reuse_v4(*, persist: bool = True) -> dict[str, Any]:
 
 def verify_sectioned_content_v4() -> dict[str, Any]:
     loaded=load_sectioned_reuse_v4();value=loaded["value"]
-    expected=RESEARCH_PILOT_ROOT / "independent-review/sectioned667-content-review-v4.json"
+    expected=RESEARCH_PILOT_ROOT / "independent-review/sectioned667-name-erratum-content-review-v4.json"
     if value["content_review_path"]!=str(expected) or expected.is_symlink() or not expected.is_file():
         raise BatchError("SECTIONED_CONTENT_REVIEW_REQUIRED")
     review_ref={"path":str(expected),"sha256":_sha256_file(expected)};review,_=_analysis_ref(review_ref,root=RESEARCH_PILOT_ROOT)

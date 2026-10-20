@@ -36,3 +36,22 @@ source chunks (at most77 model rounds), then deterministic sectioned assembly
 with zero synthesis calls and independent16page content review. Package workers
 validate the current authenticated adoption and every historical HALT rather
 than assuming adoption index55. No model/settings/announcement change occurs.
+
+The fifth explicit source projection corrects only the independently verified
+p1 entity 吴帆生物 to 昊帆生物 (expected1). Old four projections, raw OCR,
+source reports, old candidate and content FAIL stay immutable; only the new
+version receives incremental name/source-binding review, with zero new POST.
+
+
+### Full routed LIGHT adapter
+
+`ops.run_pdf_research_full_once` binds the independently accepted 716 LIGHT inputs and 36 ordered checkpoints. It supplies all pages through deterministic 8000-character/32768-byte source groups, with exact reconstruction and explicit original page hashes. The frozen card separates attributed facts, forecasts, inferences, numeric units/periods, exact source quotes and unknowns. Source instructions are data; there are no tool rounds. Synthesis never truncates oversize units; strict reduction bounds total model jobs by `2 * source_groups - 1` per document.
+
+The existing PDF authority/journal, shared model lock, priority and unchanged memory/swap guards remain mandatory in dispatch and worker/preclaim paths. Root adoption requires accepted pilot17 dispositions (including two original-source holds and retained rawFAIL/displayPASS pairs), three actual package content reviews, planning/code/runtime bindings and the exact template. The first LIGHT card needs independent content acceptance before the remainder; each <=20-document checkpoint needs an exact output/source review before the next. Missing gates, unknown IDs, drift, failed prior jobs or a new HALT refuse dispatch. Successful stages reuse their existing exact queue results; no automatic failed retry or schedule is created. A planning/preflight PASS is not an actual generated-card or content PASS.
+
+Independent LIGHT uses only its frozen716 inputs and its own first-card/content
+checkpoint gates; long17 and DEEP packages are separately pending. The same
+journal retains every old HALT and adds only a typed716-only isolation. Unknown
+HALTs still reject, and its six exact events are registered with the existing
+consumer. The eventual667 content closure is unique, hash-bound and appended
+after intervening LIGHT events; it does not depend on fixed70/71 positions.

@@ -1675,3 +1675,41 @@ def test_sectioned_v4_actual69_source_refresh_does_not_release_halt_then_exact_c
         with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
             dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third,sectioned_halt_resume_descriptor=closure)
     assert actual.read_bytes()==actual_before
+
+
+def test_light_events_before_exact667_closure_remain_readable_and_reject_forgery(tmp_path,monkeypatch):
+    import pytest
+    b=dispatcher.batch;raw=(b.RESEARCH_PILOT_ROOT/'model/v4-checkpoint/dispatch-prefix69.jsonl').read_bytes()
+    assert _sha(raw)==b.PILOT_V4_PREFIX_SHA256
+    reuse=b.load_sectioned_reuse_v4();review=tmp_path/'independentaccepted.json';review.write_text('{}');reuse['value']['content_review_path']=str(review)
+    context={'authorization_sha256':'f'*64,'analysis_admission':{'pilot':{'sectioned_reuse':reuse}}}
+    accepted={'content_review':{'path':str(review),'sha256':'a'*64},'report':{'path':str(tmp_path/'report.md'),'sha256':'b'*64},'receipt':{'path':str(tmp_path/'receipt.json'),'sha256':'c'*64}}
+    monkeypatch.setattr(b,'verify_sectioned_content_v4',lambda:accepted)
+    folder=tmp_path/'same69';folder.mkdir();(folder/'dispatch.jsonl').write_bytes(raw)
+    with dispatcher.DurableJournal(folder) as journal:
+        journal.append({'event':'pilot_adoption','fixture':'sourceidentity'})
+        for event in ['full_adoption','full_light_lane_isolation','full_plan','full_intent','full_terminal','full_deferred']:
+            journal.append({'event':event,'fixture':'typedLIGHT'})
+        initial=len(journal.events);descriptor=dispatcher._prepare_sectioned_closure(journal,context)
+        assert descriptor['halt_event_index']==68 and len(journal.events)==initial+2
+        assert journal.events[initial]['status']=='INDEPENDENT_CONTENT_ACCEPTED_SOURCE_STAGE_REUSE'
+        dispatcher._prepare_sectioned_closure(journal,context);assert len(journal.events)==initial+2
+        valid=(folder/'dispatch.jsonl').read_bytes()
+    # The existing shared consumer accepts only the registered exact event set.
+    with dispatcher.DurableJournal(folder) as reread:assert len(reread.events)==initial+2
+    for kind in ['forged','duplicate','duplicate_terminal','forged_extra_terminal','unknownHALT']:
+        case=tmp_path/kind;case.mkdir();(case/'dispatch.jsonl').write_bytes(valid)
+        with dispatcher.DurableJournal(case) as journal:
+            if kind=='forged':journal.events[initial]['authorization_sha256']='other'
+            elif kind=='duplicate':journal.append({k:v for k,v in journal.events[initial].items() if k!='at_utc'})
+            elif kind in {'duplicate_terminal','forged_extra_terminal'}:
+                terminal={k:v for k,v in journal.events[initial+1].items() if k!='at_utc'}
+                if kind=='forged_extra_terminal':terminal['receipt_sha256']='d'*64
+                journal.append(terminal)
+            else:journal.append({'event':'halt','reason':'newactualfailure'})
+            before=(case/'dispatch.jsonl').read_bytes()
+            with pytest.raises(dispatcher.DispatcherError,match='CLOSURE|PREVIOUSLY_HALTED'):dispatcher._prepare_sectioned_closure(journal,context)
+            assert (case/'dispatch.jsonl').read_bytes()==before
+    with dispatcher.DurableJournal(folder) as journal:
+        with pytest.raises(dispatcher.DispatcherError,match='EVENT_INVALID'):journal.append({'event':'full_unapproved_anything'})
+    assert (folder/'dispatch.jsonl').read_bytes().startswith(raw)

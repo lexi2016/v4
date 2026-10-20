@@ -3144,3 +3144,21 @@ def test_sectioned_v4_long_actual11_source_chunks_never_recursive(tmp_path,monke
     assert len(calls)==11 and len(result['chunks'])==11 and result['synthesis_levels']==0
     assert result['status']=='SECTIONED_SOURCE_STAGE_REPORT_SOURCE_REVIEW_PENDING'
     assert (tmp_path/'long-state/documents'/did/'sectioned-components.json').is_file()
+
+
+def test_sectioned_v4_single_entity_source_erratum_exact1_preserves_old_candidate(monkeypatch):
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('no model or OCR'))
+    old=batch.RESEARCH_PILOT_ROOT/'model/sectioned-reuse-v4/667/report.md';before=old.read_bytes()
+    loaded=batch.load_sectioned_reuse_v4();v=loaded['value'];row=v['source_rows'][0]
+    raw=Path(row['source_chunk']['report']['path']).read_text();projected=batch._project_sectioned_text(raw,row['edits'])
+    entity=[e for e in row['edits'] if e['finding']=='V4-CONTENT-ENTITY-P1'];assert len(entity)==1
+    assert raw[entity[0]['start_character']:entity[0]['end_character']]=='吴帆生物'
+    assert '昊帆生物〔人工来源勘误：原PDF第1页；原OCR为“吴帆生物”〕' in projected
+    candidate=batch.build_sectioned_reuse_v4(persist=False)
+    assert candidate['new_model_POSTs']==0 and '667-name-erratum' in candidate['report']['path']
+    assert old.read_bytes()==before and hashlib.sha256(before).hexdigest()=='d2563373f6c35a62dff50faa7f6a78e01e30c3a4c69147730c2d2a080e2acac5'
+    bad={**entity[0],'replacement':'其他公司'}
+    with pytest.raises(batch.BatchError,match='PROJECTION_RANGE'):batch._project_sectioned_text(raw,[bad])
+    bad={**entity[0],'start_character':entity[0]['start_character']+1}
+    with pytest.raises(batch.BatchError,match='PROJECTION_RANGE'):batch._project_sectioned_text(raw,[bad])
