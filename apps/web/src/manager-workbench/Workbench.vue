@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useWorkbench } from "./useWorkbench";
+import { isValidDate } from "./route";
 import AnnouncementCandidates from "./AnnouncementCandidates.vue";
 import type { HKIndustrySummary, Lane, Phase, PlanVersion, SingleDayMappingPath, SingleDayMappingRow, SingleDayMappingSummary, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
 import { projectUSMappingCandidates, projectUSMappingPeerLists, type USPeerListName } from "./us_mapping_stock_lists";
@@ -12,6 +13,12 @@ import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, la
 import "./workbench.css";
 
 const vm = reactive(useWorkbench());
+const datePickerValue = computed({
+  get: () => isValidDate(vm.dateInput)
+    ? `${vm.dateInput.slice(0, 4)}-${vm.dateInput.slice(4, 6)}-${vm.dateInput.slice(6, 8)}`
+    : "",
+  set: (value: string) => { vm.dateInput = value ? value.replace(/-/g, "") : ""; }
+});
 function showCount(value: unknown): string {
   return formatCount(typeof value === "number" && Number.isFinite(value) ? value : null);
 }
@@ -158,6 +165,12 @@ function singleDayMappingPaths(value: unknown): SingleDayMappingPath[] {
 }
 const usMappingPeerLists = computed(() => projectUSMappingPeerLists(singleDayCatalogSummary()));
 const usMappingCandidateRows = computed(() => projectUSMappingCandidates(singleDayCatalogSummary()));
+const usMappingCandidateCountLabel = computed(() => {
+  if (!Array.isArray(singleDayCatalogSummary()?.catalog_candidates)) {
+    return "研究候选数未知（不等于正式入选）";
+  }
+  return `研究候选 ${showCount(usMappingCandidateRows.value.length)} 只（不等于正式入选）`;
+});
 const sectorProxyCoverageRows = computed(() => singleDayCatalogSummary()?.sector_proxy_coverage_observations || []);
 function peerRows(direction: USPeerListName) {
   return usMappingPeerLists.value[direction];
@@ -238,8 +251,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
     <section class="mwb-panel mwb-toolbar" aria-label="日期和版本导航">
       <form class="mwb-date" @submit.prevent="vm.changeDate">
         <label for="mwb-date">目标港股日</label>
-        <input id="mwb-date" v-model="vm.dateInput" inputmode="numeric" maxlength="8"
-          pattern="[0-9]{8}" placeholder="YYYYMMDD" aria-describedby="mwb-date-hint" />
+        <input id="mwb-date" v-model="datePickerValue" type="date" required aria-describedby="mwb-date-hint" />
         <button type="submit">切换日期</button>
         <small id="mwb-date-hint">日期是计划目标日，不是公告或行情来源日</small>
       </form>
@@ -316,6 +328,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
           {{ proxy.source_return_pct == null ? '涨跌未知' : `${proxy.source_return_pct}%` }} · 映射 {{ showText(proxy.mapping_status) }}
           <span v-if="proxy.mapping_status === 'MAPPING_PENDING'">（映射待补；未构造关系边）</span> · {{ showText(proxy.quote_gap || '') }}
         </p>
+        <p class="mwb-muted">{{ usMappingCandidateCountLabel }}</p>
         <div class="mwb-table-wrap"><table class="mwb-table" aria-label="港股去重研究候选表">
           <thead><tr><th>港股 / 观察池</th><th>来源资格 / 排序组</th><th>方向证据 / 美股来源强弱</th><th>风险标记</th><th>关系证据</th></tr></thead>
           <tbody><tr v-for="candidate in usMappingCandidateRows" :key="String(candidate.symbol)">

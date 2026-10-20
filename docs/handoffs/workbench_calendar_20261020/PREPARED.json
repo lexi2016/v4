@@ -1,0 +1,203 @@
+{
+  "task": "workbench_calendar_20261020",
+  "state": "PREPARED",
+  "prepared_date": "2026-10-20",
+  "source_root": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app",
+  "branch": "codex/workbench-calendar-20261020",
+  "base_commit": "cd27b909af8d7865ecbb32c968effd936ef1d844",
+  "baseline": {
+    "tracked_worktree_clean": true,
+    "preexisting_untracked_artifacts_preserved": true,
+    "canonical_directory_written": false,
+    "canonical_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "canonical_workbench_vue_sha256": "7f7895f0b6289ff8382074b620bdae3823a5ac47050340be48ee878c5445dc9a",
+    "active_release_source_matches_worktree_preimages": true,
+    "active_dependency_graph_matches_worktree": false,
+    "active_reachable_dependency_differences": [
+      {
+        "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+        "worktree_sha256": "e517c05557700bdf4fa5c61be9194d14239f33737ab8f58e81e87bdd10e60305",
+        "active_r6_sha256": "aa3477bb63e9d47063f6c77a45c0ff4c6f355b49c408e87aeb9abbc74143a447"
+      },
+      {
+        "path": "apps/web/package.json",
+        "worktree_sha256": "83def8f02a4a690b46017513bb9e984f1ca5746ecea40a02bd31295b271b69a5",
+        "active_r6_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b"
+      }
+    ]
+  },
+  "source_sha256": {
+    "apps/web/src/manager-workbench/Workbench.vue": {
+      "before": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec",
+      "after": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1"
+    },
+    "apps/web/src/manager-workbench/useWorkbench.ts": {
+      "before": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+      "after": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b"
+    },
+    "apps/web/src/manager-workbench/workbench.css": {
+      "before": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+      "after": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532"
+    },
+    "apps/web/src/manager-workbench/route.ts": {
+      "before": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8",
+      "after": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8"
+    },
+    "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts": {
+      "before": null,
+      "after": "572737c02e6ed91f08d6a68bffcbf6331e442928cb0a311ac1c2f0c94a0d520d"
+    }
+  },
+  "implementation": [
+    "Workbench.vue adapts the native date input's YYYY-MM-DD value to the existing YYYYMMDD view-model value and shows the current selected day.",
+    "useWorkbench.changeDate returns on an empty value, preventing its route parser from substituting today's date or making a request.",
+    "The existing candidate table receives a count from its displayed candidate array; absent candidate data is labelled unknown. The list, ordering, and formal selection values are unchanged.",
+    "workbench.css gives the native date field 150px to accommodate its formatted value and calendar affordance."
+  ],
+  "checks": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run --root . --config vite.config.ts --cache=false src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+      "workdir": "apps/web",
+      "result": "PASS; 1 file, 3 tests",
+      "dependency_setup": "Reused existing canonical apps/web/node_modules through a temporary symlink; removed after execution. No packages installed."
+    },
+    {
+      "command": "npm run typecheck",
+      "workdir": "apps/web",
+      "result": "PASS; vue-tsc --noEmit"
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build --config vite.config.ts --outDir /Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/workbench_calendar_20261020/local_only/candidate-build-r1 --emptyOutDir --manifest",
+      "workdir": "apps/web",
+      "result": "PASS; 100 modules transformed; 3 entry pages built to local_only only"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run typecheck",
+      "workdir": "docs/handoffs/workbench_calendar_20261020/local_only/r6-source-r2/apps/web",
+      "result": "FAIL; pre-existing type errors in unrelated API/App/review/fixture/test files; no diagnostics in the three overlaid workbench source files. See run output in writer handoff.",
+      "dependency_setup": "Temporary symlink to canonical apps/web/node_modules; removed after checks."
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build --config vite.config.ts --outDir /Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/workbench_calendar_20261020/local_only/candidate-build-r2 --emptyOutDir --manifest",
+      "workdir": "docs/handoffs/workbench_calendar_20261020/local_only/r6-source-r2/apps/web",
+      "result": "PASS; 100 modules transformed; all three pages built; root and daily page HTML and referenced assets byte-identical to active r6.",
+      "dependency_setup": "Temporary symlink to canonical apps/web/node_modules; removed after checks."
+    }
+  ],
+  "local_build": {
+    "path": "local_only/candidate-build-r2",
+    "status": "LOCAL_ONLY_CANDIDATE_BUILT_FROM_ACTIVE_R6_OVERLAY",
+    "source_release_id": "announcement-transport-recovery-20261020-r6",
+    "source_release_manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+    "vite": "7.3.6",
+    "vue": "3.5.40",
+    "vitest": "4.1.10",
+    "manifest_sha256": "aca3451591fda38b83dec662f867b89b8960a9a182afdd762918dffe63460846",
+    "manager_selection_html": {
+      "path": "manager-selection/index.html",
+      "sha256": "048e0782fa7bd1f7dde36d75f2d1d964b0ebdfe7f71e1da1bd4da9bde563394e"
+    },
+    "manager_selection_assets": [
+      {
+        "path": "assets/managerSelection-C4fEVFr9.js",
+        "sha256": "daa373b3cdce342930256235f96d5d477f5f3c17dcaf4e9f1206975b522a31e9",
+        "bytes": 142221
+      },
+      {
+        "path": "assets/managerSelection-DLQD5xzb.css",
+        "sha256": "c1f6a3327b51c1bb3bd934cc5e9cf7824227bd0e70d73253830c903430b3c46a",
+        "bytes": 12378
+      },
+      {
+        "path": "assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+        "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+        "bytes": 65713,
+        "active_release_same_bytes": true
+      }
+    ],
+    "other_pages_unchanged": true
+  },
+  "active_runtime_readback": {
+    "listener": "127.0.0.1:8873",
+    "launch_agent": "com.lexi.v35.api-only",
+    "pid_observed": 56894,
+    "release_id": "announcement-transport-recovery-20261020-r6",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+    "plist_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+    "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/release-manifest.json",
+    "manifest_sha256_expected_and_actual": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+    "static_root": "apps/web/dist",
+    "manager_selection_entry": "apps/web/dist/manager-selection/index.html",
+    "entry_sha256_active_and_live_http_body": "9eefacb48ad4cf2d20dd928f1435a50002b6932c582aa12a9fe53bf5c1169ffc",
+    "entry_http_status": 200,
+    "active_manager_selection_js": {
+      "path": "assets/managerSelection-CUTZ-vO-.js",
+      "sha256": "a3f2663be613570d0067fcfaad2e047cbf7ecee36c2c4bf5958042bbd940fdbb"
+    },
+    "active_manager_selection_css": {
+      "path": "assets/managerSelection-C_D9h9ai.css",
+      "sha256": "9b0215b987ac560b7dbc759c224f1a04fc98af1c627d4a3d052200997125e040"
+    },
+    "active_shared_runtime_asset_sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+    "active_source_preimage_match": true,
+    "release_manifest_inventory": {
+      "aggregate_sha256": "6637da496a116786ef284dcdaea867d7fd7f6a511cc169b5d5a94bccfad0b51a",
+      "entry_count": 1265,
+      "manager_selection_html_entry_sha256": "9eefacb48ad4cf2d20dd928f1435a50002b6932c582aa12a9fe53bf5c1169ffc",
+      "manager_selection_js_entry_sha256": "a3f2663be613570d0067fcfaad2e047cbf7ecee36c2c4bf5958042bbd940fdbb",
+      "manager_selection_css_entry_sha256": "9b0215b987ac560b7dbc759c224f1a04fc98af1c627d4a3d052200997125e040",
+      "shared_runtime_entry_sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+      "all_four_paths_are_inventory_entries": true
+    }
+  },
+  "not_run": [
+    "Independent reviewer acceptance",
+    "Controller's IAB/browser verification of calendar popup and rendered candidate label",
+    "Integration to the canonical working tree",
+    "Static release publication, API plist update, service reload, API/selection run, commit, and push"
+  ],
+  "status_boundary": {
+    "implementation": "IMPLEMENTED",
+    "targeted_component": "WRITER_CHECKS_PASS_INDEPENDENT_REVIEW_PENDING",
+    "independent_review": "PENDING",
+    "integration": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "api_ui_after_change": "CANNOT_CONFIRM",
+    "natural_period": "NOT_RUN",
+    "active_release_snapshot_typecheck": "FAIL_WITH_UNRELATED_EXISTING_DIAGNOSTICS",
+    "active_release_overlay_build": "LOCAL_ONLY_PASS"
+  },
+  "initial_worktree_build_inputs_r1": {
+    "apps/web/package.json": "83def8f02a4a690b46017513bb9e984f1ca5746ecea40a02bd31295b271b69a5",
+    "apps/web/package-lock.json": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+    "apps/web/vite.config.ts": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+    "apps/web/manager-selection/index.html": "1cfb59aebbc8747ca6f4696a9b13832fb16d75dadbe198cc85344c8965341274"
+  },
+  "r6_overlay_build_inputs": {
+    "source_release_id": "announcement-transport-recovery-20261020-r6",
+    "source_release_manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/release-manifest.json",
+    "source_release_manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+    "source_inventory_aggregate_sha256": "6637da496a116786ef284dcdaea867d7fd7f6a511cc169b5d5a94bccfad0b51a",
+    "source_app_web_file_count_excluding_generated": 129,
+    "source_app_web_bytes_excluding_generated": 2593950,
+    "source_app_web_copy": "local_only/r6-source-r2/apps/web",
+    "package_json_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+    "package_lock_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+    "vite_config_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+    "announcement_candidates_sha256": "aa3477bb63e9d47063f6c77a45c0ff4c6f355b49c408e87aeb9abbc74143a447",
+    "overlay_source_files": {
+      "apps/web/src/manager-workbench/Workbench.vue": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+      "apps/web/src/manager-workbench/useWorkbench.ts": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+      "apps/web/src/manager-workbench/workbench.css": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532"
+    }
+  },
+  "local_build_r1": {
+    "path": "local_only/candidate-build-r1",
+    "status": "LOCAL_ONLY_NON_RELEASEABLE",
+    "reason": "Built from worktree package.json and older AnnouncementCandidates.vue; its output would not preserve the reachable active r6 UI dependency bytes."
+  }
+}

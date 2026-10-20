@@ -1,0 +1,35 @@
+{
+  "state": "ACTIVATION_STOPPED_NO_SAFE_IDLE_GAP",
+  "read_at": "2026-10-20T09:31:42.526232+08:00",
+  "guard_started_at": "2026-10-20T09:30:55.957580+08:00",
+  "guard_max_seconds": 30,
+  "guard_exit_code": 3,
+  "mutations": 0,
+  "plist_sha256_actual": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+  "api_pid": 56894,
+  "current_established_tcp8873": true,
+  "current_direct_children": [
+    "31644 56894"
+  ],
+  "attempts_checked": 85,
+  "current_active_attempts": [
+    {
+      "job_id": "b1b6f772a9fc441bae8c9245ed485f66",
+      "state": "RUNNING",
+      "step": "FLASH_SELECTION",
+      "started_at": "2026-10-20T06:41:01.660079+08:00",
+      "last_progress_at": "2026-10-20T09:31:26.768186+08:00",
+      "execution_refs": [
+        {
+          "kind": "host",
+          "pid": 56894
+        }
+      ],
+      "target": "20261020",
+      "trigger": "MANUAL"
+    }
+  ],
+  "bootout_runs": 0,
+  "bootstrap_runs": 0,
+  "next_action": "Controller adjudicates next safe window; do not kill/pause healthy tasks or repeat switch blindly."
+}

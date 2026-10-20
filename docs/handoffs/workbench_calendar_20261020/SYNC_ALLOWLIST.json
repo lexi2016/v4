@@ -1,0 +1,105 @@
+{
+  "repository": "lexi2016/v4",
+  "branch": "codex/workbench-calendar-20261020",
+  "baseline": "cd27b909af8d7865ecbb32c968effd936ef1d844",
+  "source_root": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app",
+  "runtime_identity": "announcement-transport-recovery-20261020-r6; API PID56894 at stop receipt",
+  "candidate_identity": "workbench-calendar-api-20261020-r1; NOT_DEPLOYED",
+  "guard": "PASS unchanged learning_guard.validate_paths",
+  "entries": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec",
+      "after_sha256": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+      "size": 104406
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "before_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+      "after_sha256": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+      "size": 22052
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "before_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+      "after_sha256": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532",
+      "size": 14167
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+      "before_sha256": null,
+      "after_sha256": "572737c02e6ed91f08d6a68bffcbf6331e442928cb0a311ac1c2f0c94a0d520d",
+      "size": 5291
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/SCOPE.json",
+      "before_sha256": null,
+      "after_sha256": "eed689c38028ce083e615f4c78e0621eed9bd9c28f067ab8b1f3f3194dfe9190",
+      "size": 1893
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/PREPARED.json",
+      "before_sha256": null,
+      "after_sha256": "7262ec4152954cef9c89071a757e012ea8b5a59aa2c353b7fd0ece17da35dcd6",
+      "size": 11489
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/STATIC_RELEASE_PLAN.md",
+      "before_sha256": null,
+      "after_sha256": "97fac57ee1e7c68fe754f6c42e813022e981590f6ae76c5feae3c99a9925380d",
+      "size": 4543
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/DEPLOYMENT_SCOPE.json",
+      "before_sha256": null,
+      "after_sha256": "bbfc083b9b98dcecfdbeb8b6b1c57e1514837ac71f11512b1b6fc6a76099e20f",
+      "size": 2436
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/prepare_calendar_release.py",
+      "before_sha256": null,
+      "after_sha256": "98ac29f302db4d5bf95f2d9321057007f67033218aaccc28c14939af4812931a",
+      "size": 8934
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/DEPLOYMENT_PREPARED.json",
+      "before_sha256": null,
+      "after_sha256": "f8b0430247e087f1da8c974f5182e043c742d91df5aa2030ad083e6db8f7498c",
+      "size": 9246
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/DEPLOYMENT_PLAN.md",
+      "before_sha256": null,
+      "after_sha256": "90de44b823d7a2ccdde0e2e432e21ae5e3153acefe12ff40ce696438223a6903",
+      "size": 4407
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/DEPLOYMENT_SYNC_ALLOWLIST.json",
+      "before_sha256": null,
+      "after_sha256": "5f98153f8d2545e0f198b7c387ff6c893ee345b544c6f90dc3edf27c6f3c59f7",
+      "size": 1495
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/DEPLOYMENT_RECEIPT.json",
+      "before_sha256": null,
+      "after_sha256": "8af4f300b56c82768282ee5d3fcbcd449d96cc4f51ec89106dfda242415ecbd8",
+      "size": 1059
+    },
+    {
+      "path": "docs/handoffs/workbench_calendar_20261020/INDEPENDENT_REVIEW.json",
+      "before_sha256": null,
+      "after_sha256": "5742a1dfdf52ecebb198da867460b561eb0c1bb509c9f643274ba5b91cde71b3",
+      "size": 2327
+    }
+  ],
+  "exclude": [
+    "local_only",
+    "builds",
+    "dist",
+    "runtime releases",
+    "plists",
+    "raw business data",
+    "unrelated files"
+  ],
+  "self": "docs/handoffs/workbench_calendar_20261020/SYNC_ALLOWLIST.json"
+}

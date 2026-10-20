@@ -1,0 +1,194 @@
+{
+  "state": "PREPARED_PENDING_INDEPENDENT_CANDIDATE_REVIEW",
+  "source_prepared_sha256": "7262ec4152954cef9c89071a757e012ea8b5a59aa2c353b7fd0ece17da35dcd6",
+  "deployment_scope_sha256": "bbfc083b9b98dcecfdbeb8b6b1c57e1514837ac71f11512b1b6fc6a76099e20f",
+  "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1",
+  "parent_manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+  "candidate_manifest_sha256": "d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d",
+  "parent_inventory_sha256": "6637da496a116786ef284dcdaea867d7fd7f6a511cc169b5d5a94bccfad0b51a",
+  "candidate_inventory_sha256": "af854f8b349a5bc74f11cbb54dd6934e4df44bd1a42a59c04db6ef2a262cb4b4",
+  "parent_entry_count": 1265,
+  "candidate_entry_count": 1267,
+  "exact_delta": [
+    {
+      "path": "apps/web/dist/assets/managerSelection-C4fEVFr9.js",
+      "before": null,
+      "after": {
+        "path": "apps/web/dist/assets/managerSelection-C4fEVFr9.js",
+        "kind": "file",
+        "sha256": "daa373b3cdce342930256235f96d5d477f5f3c17dcaf4e9f1206975b522a31e9",
+        "mode": "0644",
+        "size": 142221
+      }
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-DLQD5xzb.css",
+      "before": null,
+      "after": {
+        "path": "apps/web/dist/assets/managerSelection-DLQD5xzb.css",
+        "kind": "file",
+        "sha256": "c1f6a3327b51c1bb3bd934cc5e9cf7824227bd0e70d73253830c903430b3c46a",
+        "mode": "0644",
+        "size": 12378
+      }
+    },
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "before": {
+        "path": "apps/web/dist/manager-selection/index.html",
+        "kind": "file",
+        "sha256": "9eefacb48ad4cf2d20dd928f1435a50002b6932c582aa12a9fe53bf5c1169ffc",
+        "mode": "0644",
+        "size": 588
+      },
+      "after": {
+        "path": "apps/web/dist/manager-selection/index.html",
+        "kind": "file",
+        "sha256": "048e0782fa7bd1f7dde36d75f2d1d964b0ebdfe7f71e1da1bd4da9bde563394e",
+        "mode": "0644",
+        "size": 588
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before": {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "kind": "file",
+        "sha256": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec",
+        "mode": "0644",
+        "size": 103796
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "kind": "file",
+        "sha256": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+        "mode": "0644",
+        "size": 104406
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "before": {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "kind": "file",
+        "sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+        "mode": "0600",
+        "size": 22018
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "kind": "file",
+        "sha256": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+        "mode": "0644",
+        "size": 22052
+      }
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "before": {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "kind": "file",
+        "sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+        "mode": "0600",
+        "size": 14120
+      },
+      "after": {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "kind": "file",
+        "sha256": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532",
+        "mode": "0644",
+        "size": 14167
+      }
+    }
+  ],
+  "all_non_delta_entries_preserved": true,
+  "all_dist_enumerated": true,
+  "dist_entry_count": 33,
+  "unchanged_root_daily_and_referenced_assets": [
+    "assets/dailyResearchCommand-CgLVpOEW.js",
+    "assets/dailyResearchCommand-D7J2FMsY.css",
+    "assets/main-CKM5QTE8.css",
+    "assets/main-CbQYaqRl.js",
+    "assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+    "daily-research-command/index.html",
+    "index.html"
+  ],
+  "old_hashed_assets_preserved": true,
+  "shared_runtime_unchanged": {
+    "path": "assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+    "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+    "bytes": 65713,
+    "active_release_same_bytes": true
+  },
+  "original_plist_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+  "proposed_plist_sha256": "5515167934594af314f2920e8b35a72d3330540f30129e7264b4e488c03a9ea8",
+  "plist_delta": [
+    {
+      "path": "/EnvironmentVariables/PYTHONPATH",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_APP_ROOT",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_ID",
+      "before": "announcement-transport-recovery-20261020-r6",
+      "after": "workbench-calendar-api-20261020-r1"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_MANIFEST_PATH",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/release-manifest.json",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/release-manifest.json"
+    },
+    {
+      "path": "/EnvironmentVariables/V35_RELEASE_MANIFEST_SHA256",
+      "before": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+      "after": "d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d"
+    },
+    {
+      "path": "/ProgramArguments/18",
+      "before": "V35_APP_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+      "after": "V35_APP_ROOT=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app"
+    },
+    {
+      "path": "/ProgramArguments/19",
+      "before": "V35_RELEASE_ID=announcement-transport-recovery-20261020-r6",
+      "after": "V35_RELEASE_ID=workbench-calendar-api-20261020-r1"
+    },
+    {
+      "path": "/ProgramArguments/25",
+      "before": "PYTHONPATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+      "after": "PYTHONPATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app"
+    },
+    {
+      "path": "/ProgramArguments/26",
+      "before": "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/release-manifest.json",
+      "after": "V35_RELEASE_MANIFEST_PATH=/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/release-manifest.json"
+    },
+    {
+      "path": "/ProgramArguments/27",
+      "before": "V35_RELEASE_MANIFEST_SHA256=ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+      "after": "V35_RELEASE_MANIFEST_SHA256=d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d"
+    },
+    {
+      "path": "/WorkingDirectory",
+      "before": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+      "after": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1/app"
+    }
+  ],
+  "full_git_equivalence_claimed": false,
+  "inventory_tool_sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b",
+  "source_overlay_sha256": {
+    "apps/web/src/manager-workbench/Workbench.vue": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+    "apps/web/src/manager-workbench/useWorkbench.ts": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+    "apps/web/src/manager-workbench/workbench.css": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532"
+  },
+  "activated": false,
+  "research_data_writes": 0,
+  "provider_calls": 0,
+  "business_posts": 0
+}

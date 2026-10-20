@@ -1,0 +1,45 @@
+{
+  "goal": "Native calendar target-date selection preserving YYYYMMDD navigation, plus clear dynamic research-candidate count label",
+  "source_writer": "/root/calendar_writer (registered Luna Max)",
+  "runtime_writer": "/root/mapping_deployer (Sol High for immutable release and parallel dependency preservation)",
+  "reviewer": "/root/deployment_reviewer",
+  "baseline": "cd27b909af8d7865ecbb32c968effd936ef1d844",
+  "source_review": {
+    "verdict": "PASS",
+    "prepared_sha256": "7262ec4152954cef9c89071a757e012ea8b5a59aa2c353b7fd0ece17da35dcd6",
+    "targeted_tests": 3,
+    "rc": 0,
+    "WT_typecheck": "PASS",
+    "r6_baseline_vs_overlay_typecheck": "Both RC2,47 lines diagnostics byte-identical; inherited failure, zero newly introduced diagnostics",
+    "r6_build": "Independent RC0, all10outputs exactly match frozen r2",
+    "preservation": "129 input files; only3overlays, other126 unchanged; root/daily page and all references match current r6",
+    "issues": []
+  },
+  "runtime_review": "NOT_RUN: activation stopped because healthy API-owned task has no safe idle gap",
+  "ui_review": "NOT_RUN: current page remains old release",
+  "not_run": [
+    "native calendar popup",
+    "live date change/back",
+    "activation",
+    "rollback exercise"
+  ],
+  "ledger": {
+    "calendar_writer": "FINAL_CONSUMED_PREPARED_VERIFIED_COMPLETE",
+    "mapping_deployer": "STOP_FINAL_CONSUMED_RECEIPT_VERIFIED; CONDITION_WAIT_CONTINUATION_DISPATCHED",
+    "reviewer": "SOURCE_AND_CANDIDATE_FINAL_CONSUMED_RECEIPT_VERIFIED_COMPLETE"
+  },
+  "candidate_review": {
+    "reviewer": "/root/deployment_reviewer",
+    "verdict": "PASS",
+    "blockers": [],
+    "prepared_sha256": "f8b0430247e087f1da8c974f5182e043c742d91df5aa2030ad083e6db8f7498c",
+    "manifest_sha256": "d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d",
+    "proposal_plist_sha256": "5515167934594af314f2920e8b35a72d3330540f30129e7264b4e488c03a9ea8",
+    "plan_sha256": "90de44b823d7a2ccdde0e2e432e21ae5e3153acefe12ff40ce696438223a6903",
+    "inventory": "1265 to1267; exact6delta; non-delta preserved",
+    "source_and_build_checks": "reused independent PASS unchanged hashes",
+    "activation_authorized": true
+  },
+  "runtime_ui": "PENDING",
+  "activation_stop_receipt_sha256": "8af4f300b56c82768282ee5d3fcbcd449d96cc4f51ec89106dfda242415ecbd8"
+}

@@ -130,6 +130,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (!next.error) void loadDay();
   }
   function changeDate(): void {
+    if (!dateInput.value) return;
     const candidate = parseWorkbenchRoute("?date=" + encodeURIComponent(dateInput.value));
     navigate(candidate);
   }

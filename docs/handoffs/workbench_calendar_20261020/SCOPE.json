@@ -1,0 +1,27 @@
+{
+  "task": "workbench_calendar_20261020",
+  "state": "FROZEN",
+  "goal": "Make the manager workbench target Hong Kong date selectable with a native calendar while preserving the YYYYMMDD URL/API contract, and label the existing US-to-HK table as research candidates rather than formal selections.",
+  "writer": "/root/calendar_writer",
+  "reviewer": "Controller-assigned independent read-only reviewer; pending",
+  "allowed_paths": [
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/workbench.css",
+    "apps/web/src/manager-workbench/useWorkbench.ts",
+    "apps/web/src/manager-workbench/route.ts",
+    "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+    "docs/handoffs/workbench_calendar_20261020/**"
+  ],
+  "forbidden_paths": [
+    "Backend, selection, ranking, gates, data, saved runs, schedulers, or other modules",
+    "Canonical user directory source files",
+    "Provider, POST, service lifecycle, runtime static files, Git commit/push, or external actions"
+  ],
+  "pass_signal": [
+    "The native date field displays the selected date and converts ISO display values to YYYYMMDD before existing URL/API navigation.",
+    "Changing the date clears phase/run_id through existing changeDate navigation; popstate updates the picker; an empty picker value issues no request and does not default to today.",
+    "The existing full candidate table remains intact and gets a dynamic count label that says it is not formal selection; missing candidate data is shown as unknown.",
+    "The focused component test, web typecheck, and isolated web build pass; independent review is still required for acceptance."
+  ],
+  "stop_rule": "Stop if active release source or static inventory drifts from the verified baseline, if a change outside the listed paths is required, or before any runtime/static publication or service action."
+}
