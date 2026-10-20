@@ -1,5 +1,5 @@
 {
-  "status": "FIRST_LIVE_REVIEW_FAIL_FULL_ANALYSIS_UI",
+  "status": "FIRST_ACTUAL_ACCEPTED_AFTER_READ_ONLY_DISPLAY_REPAIR",
   "job_id": "4523cf36ed8944bfa0fc80d5d979524c",
   "source_hashes": {
     "input": "f19fcf59d5a14214e8155e84af0d4174b0a583301ed69a515d225511ea594848",
@@ -71,12 +71,21 @@
   "trigger": "Existing V4 API; visible Chrome readback completed after IAB unavailable",
   "first_receipt_sha256": "3b29e7668d2bf40671f30db1ae86a339db4b1d8885a4700b14fba5bbee8ba181",
   "raw_model_or_source_contents_uploaded": false,
-  "independent_review": {
+  "original_live_review": {
     "receipt_sha256": "ee8a4c5c96ff6a3d9af8804e011803af5180b120d90238551bcf3d4f2052c2a5",
     "verdict": "FAIL",
     "only_blocker": "Complete existing validated analysis unavailable through API/UI detail entry",
     "source_correct_request_persistence_history": "PASS",
     "continue": "HELD",
     "first_rerun": false
+  },
+  "current_live_review": {
+    "verdict": "PASS",
+    "receipt_sha256": "9bf72cca556ea7f391e57025b7eacf31dab6dac8232ea9459fe63bcfbc4c13f2",
+    "four_facts_exact_quotes_and_locators": true,
+    "two_model_risk_notes_and_one_PIT_metadata_note": true,
+    "saved_reader_business_fields_equal": true,
+    "original_artifacts_unchanged": true,
+    "model_rerun": false
   }
 }

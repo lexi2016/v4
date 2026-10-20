@@ -1,58 +1,80 @@
 {
-  "status": "DEPLOYED_API_IDENTITY_VERIFIED",
-  "release_id": "announcement-daily-workflow-20261020-r7",
-  "manifest_sha256": "8c1b0562da17053b2345b3b374aeeae3457673b4c8a711f6e7c1ff2f0c76101f",
-  "runtime_identity": {
-    "application": "V4",
-    "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+  "status": "R8_DEPLOYED_IDENTITY_AND_FIRST_API_UI_VERIFIED",
+  "previous_R7": {
+    "status": "DEPLOYED_API_IDENTITY_VERIFIED",
     "release_id": "announcement-daily-workflow-20261020-r7",
-    "process_status": "CANNOT_CONFIRM",
-    "manifest_sha256": "8c1b0562da17053b2345b3b374aeeae3457673b4c8a711f6e7c1ff2f0c76101f"
+    "manifest_sha256": "8c1b0562da17053b2345b3b374aeeae3457673b4c8a711f6e7c1ff2f0c76101f",
+    "runtime_identity": {
+      "application": "V4",
+      "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+      "release_id": "announcement-daily-workflow-20261020-r7",
+      "process_status": "CANNOT_CONFIRM",
+      "manifest_sha256": "8c1b0562da17053b2345b3b374aeeae3457673b4c8a711f6e7c1ff2f0c76101f"
+    },
+    "actual_process_identity": {
+      "pid": 93705,
+      "entry_command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r7/app",
+      "entry_module": "apps.api.v35_api.run"
+    },
+    "candidate_inventory_sha256": "c1c9f8b687b526422b6a278f48cf202ce859354a99fa0f6f507746d8b89207bd",
+    "integration_review": {
+      "verdict": "PASS",
+      "receipt_sha256": "68e4f4a07c7397156f705e26bf27404d89eb981db3a044d06dc8119655e65d05",
+      "counts": {
+        "base_items": 1265,
+        "candidate_items": 1273,
+        "delta": 20,
+        "non_delta_preserved": 1253,
+        "accepted_source_refs": 28,
+        "business_source_refs": 18,
+        "reviewer_dist_refs": 10,
+        "dist_refs_already_identical_to_R6": 8,
+        "actual_entry_local_modules": 101
+      }
+    },
+    "activation_receipt_sha256": "57b16256031fb66be48127eed031da5b7a25fdebadd12cc5d71be3f09d5da35a",
+    "plist_before_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+    "plist_after_sha256": "72f4f176c91af0c42246cc477f0e5f7e9dbfd2b8580e358873bb553ea4f55db4",
+    "history": {
+      "before_after_identical": true,
+      "files_checked": 8,
+      "queue_sha256": "feb5d0a29768f3b5ef139242d5a67c1ae2559669c6e87c7741acc70e8640a77e",
+      "old_orphan_not_resumed_reclassified_or_claimed": true
+    },
+    "boundaries": {
+      "R6_R7_business_bytes_changed": false,
+      "runtime_transition_written": false,
+      "business_state_queue_history_edited_by_activation": false,
+      "only_api_plist_identity_and_existing_api_service_changed": true,
+      "model_POST_requests_by_activation": 0,
+      "capture_requests_by_activation": 0,
+      "schedules_or_other_services_changed": false,
+      "frontend_business_acceptance": "NOT_RUN",
+      "new_model_canary": "NOT_RUN",
+      "natural_slot_acceptance": "NOT_RUN"
+    },
+    "rollback": "NOT_NEEDED",
+    "new_only_canary": "NOT_YET_ACCEPTED",
+    "natural_slot": "NOT_RUN"
   },
+  "release_id": "announcement-daily-workflow-20261020-r8",
+  "manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
   "actual_process_identity": {
-    "pid": 93705,
+    "pid": 16695,
     "entry_command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
-    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r7/app",
+    "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
     "entry_module": "apps.api.v35_api.run"
   },
-  "candidate_inventory_sha256": "c1c9f8b687b526422b6a278f48cf202ce859354a99fa0f6f507746d8b89207bd",
-  "integration_review": {
-    "verdict": "PASS",
-    "receipt_sha256": "68e4f4a07c7397156f705e26bf27404d89eb981db3a044d06dc8119655e65d05",
-    "counts": {
-      "base_items": 1265,
-      "candidate_items": 1273,
-      "delta": 20,
-      "non_delta_preserved": 1253,
-      "accepted_source_refs": 28,
-      "business_source_refs": 18,
-      "reviewer_dist_refs": 10,
-      "dist_refs_already_identical_to_R6": 8,
-      "actual_entry_local_modules": 101
-    }
-  },
-  "activation_receipt_sha256": "57b16256031fb66be48127eed031da5b7a25fdebadd12cc5d71be3f09d5da35a",
-  "plist_before_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
-  "plist_after_sha256": "72f4f176c91af0c42246cc477f0e5f7e9dbfd2b8580e358873bb553ea4f55db4",
-  "history": {
-    "before_after_identical": true,
-    "files_checked": 8,
-    "queue_sha256": "feb5d0a29768f3b5ef139242d5a67c1ae2559669c6e87c7741acc70e8640a77e",
-    "old_orphan_not_resumed_reclassified_or_claimed": true
-  },
-  "boundaries": {
-    "R6_R7_business_bytes_changed": false,
-    "runtime_transition_written": false,
-    "business_state_queue_history_edited_by_activation": false,
-    "only_api_plist_identity_and_existing_api_service_changed": true,
-    "model_POST_requests_by_activation": 0,
-    "capture_requests_by_activation": 0,
-    "schedules_or_other_services_changed": false,
-    "frontend_business_acceptance": "NOT_RUN",
-    "new_model_canary": "NOT_RUN",
-    "natural_slot_acceptance": "NOT_RUN"
-  },
-  "rollback": "NOT_NEEDED",
-  "new_only_canary": "NOT_YET_ACCEPTED",
-  "natural_slot": "NOT_RUN"
+  "integration_review_sha256": "063b098029fbfa1ece841b6d697187dddad4457851a1ba86f5a375dec1be39b8",
+  "activation_receipt_sha256": "43d628ce7dae3cd621e26822d12138d759b710a6acf00b21afc5320ff906a142",
+  "first_live_review_sha256": "9bf72cca556ea7f391e57025b7eacf31dab6dac8232ea9459fe63bcfbc4c13f2",
+  "non_delta_preserved": 1266,
+  "release_delta_entries": 8,
+  "protected_history_and_FIRST_files_unchanged": 15,
+  "api_process_status": "CANNOT_CONFIRM; actual OS PID/entry/cwd separately verified",
+  "model_requests_during_activation": 0,
+  "schedule_changes": false,
+  "natural_slot": "NOT_RUN",
+  "raw_model_data_dist_plist_credentials_uploaded": false
 }

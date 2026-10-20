@@ -1,5 +1,5 @@
 {
-  "status": "DISPLAY_R1_REVIEW_PASS_CANONICAL_INTEGRATED",
+  "status": "DISPLAY_R1_DEPLOYED_API_UI_VERIFIED",
   "original_first_review": "FAIL_FULL_ANALYSIS_UI",
   "original_failure_retained": true,
   "writer_receipt_sha256": "9eb5daa9f9fcd6f07fe1c7876b50efd91e41feff893acc8a221ec355da1c57bc",
@@ -65,11 +65,14 @@
   "first_rerun": false,
   "raw_and_immutable_artifacts_rewritten": false,
   "canonical_types_extra_delta_preserved": true,
-  "live_R8_API_UI": "NOT_RUN",
-  "real_CONTINUE": "NOT_RUN",
+  "live_R8_API_UI": "FIRST_DISPLAY_LIVE_PASS",
+  "real_CONTINUE": "AUTHORIZED_PENDING_TERMINAL",
   "raw_model_or_source_contents_uploaded": false,
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "live_review_receipt_sha256": "9bf72cca556ea7f391e57025b7eacf31dab6dac8232ea9459fe63bcfbc4c13f2",
+  "deployed_manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+  "actual_browser": "Visible Chrome fallback after recorded IAB unavailable"
 }
