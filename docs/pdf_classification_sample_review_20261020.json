@@ -1,0 +1,43 @@
+{
+  "schema": "v4.pdf_classification_sample.compact_writer_receipt.v1",
+  "status": "IMPLEMENTED_WRITER_CHECKS_PASSED_INDEPENDENT_REVIEW_PENDING",
+  "date": "2026-10-20",
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "branch": "codex/pdf-classification-sample-20261020-r1",
+  "source_sha256": {
+    "ops/build_pdf_classification_sample.py": "70156a1120b06a5dfefbe377601ede646ee4e907f5d73f49c8136fe8be06e470",
+    "tests/test_pdf_classification_sample.py": "67d66193287764b6712aac5f2bf2fe5b626cbedfee01291fbdc30d3aad594216",
+    "docs/pdf_classification_sample.md": "3f6e3572d786661f9211c9cdcf219624051315ef73b4100bb5c09af501c57b93"
+  },
+  "manifest_sha256": "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9",
+  "snapshot_progress_sha256": "718abdecd92a6069d17421725f5b9fa704668bad0e54ec065568a14d8f7b32f6",
+  "snapshot_counts": {
+    "FAILED": 12,
+    "PENDING": 560,
+    "QUARANTINED": 39,
+    "READY": 1598
+  },
+  "identity_reconciliation": "2209/2209;0missing/extra/duplicate",
+  "sample_count": 60,
+  "sample_writer_material_types": {
+    "公司一手披露": 1,
+    "券商/研究机构研究": 40,
+    "教程/方法/其他": 6,
+    "数据/白皮书/咨询报告": 1,
+    "新闻/资讯解读": 6,
+    "调研/会议记录": 6
+  },
+  "relation_pair_count": 10,
+  "false_merges_executed": 0,
+  "security_code_mapping": "All codes unknown; no inferred assignment",
+  "tests": "20 passed; only tests/test_pdf_classification_sample.py",
+  "reproducibility": "12 stable artifacts byte-identical in fresh output root",
+  "independent_semantic_accuracy": "NOT_SCORED;target>=95% with per-class uncertainty",
+  "ocr_calls": 0,
+  "model_requests": 0,
+  "downloads": 0,
+  "new_services_or_ports": 0,
+  "original_state_writes": false,
+  "model_batch_analysis": "NOT_RUN_NOT_AUTHORIZED_IN_THIS_STAGE",
+  "sync": "NOT_SYNCED_CONTROLLER_OWNED"
+}
