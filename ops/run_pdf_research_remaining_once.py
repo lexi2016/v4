@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "913dbd280764199594d0422b43659fa2fdb5d3dc75bfbc2c63d8e40a47385139"
+EXPECTED_RUNNER_SHA256 = "b7c108e5ed015ef0e0845a6111eed16e657c31b30df0617e9adbb2326dc93036"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -187,6 +187,11 @@ SAFE_JSONL_EVENT_TYPES = frozenset(
     {
         "binding",
         "source_adoption",
+        "pilot_adoption",
+        "package_plan",
+        "package_dispatch_intent",
+        "package_terminal",
+        "package_deferred",
         "plan_created",
         "plan_only_pass",
         "dispatch_intent",
@@ -502,6 +507,8 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
     }
     if "analysis_admission" in auth:
         expected_fields.add("analysis_admission")
+    if "pilot17_adoption" in auth:
+        expected_fields.add("pilot17_adoption")
     if set(auth) != expected_fields or auth.get("status") != "AUTHORIZED":
         raise DispatcherError("ROOT_EXECUTION_AUTHORIZATION_INVALID")
     if not SHA256_RE.fullmatch(str(auth.get("prepared_text_manifest_sha256", ""))):
@@ -2203,6 +2210,7 @@ def _source_adoption_event(context: Mapping[str, Any], descriptor: Mapping[str, 
 
 
 def _analysis_isolation_descriptor(context: Mapping[str, Any], journal: DurableJournal) -> dict[str, Any] | None:
+    context = _pilot_historical_context(context)
     admission = context.get("analysis_admission")
     if admission is None:
         return None
@@ -2299,7 +2307,46 @@ def _prepare_analysis_isolation(journal: DurableJournal, context: Mapping[str, A
     return str(descriptor["document_id"])
 
 
+
+def _pilot_historical_context(context: Mapping[str, Any]) -> Mapping[str, Any]:
+    pilot = (context.get("analysis_admission") or {}).get("pilot")
+    if pilot is None:
+        return context
+    old, raw = batch._analysis_ref(pilot["value"]["previous_authorization"], root=CONTINUATION_ROOT)
+    adopted, _ = batch._analysis_ref(old["adoption_receipt"], root=CONTINUATION_ROOT)
+    # This is the preserved old source identity, never current execution authority.
+    return {**context, "authorization": old, "authorization_sha256": sha256_bytes(raw), "adoption_evidence": adopted}
+
+
+def _verify_pilot_append_only_adoption(journal: DurableJournal, context: Mapping[str, Any]) -> None:
+    pilot = context["analysis_admission"]["pilot"]
+    raw = _read_regular(journal.path, "PILOT_PRIOR_JOURNAL_REQUIRED")
+    lines = raw.splitlines(keepends=True)
+    if (not raw.endswith(b"\n") or len(lines) < 45
+            or sha256_bytes(b"".join(lines[:45])) != batch.PILOT_JOURNAL_PREFIX_SHA256):
+        raise DispatcherError("PILOT_PRIOR_JOURNAL_PREFIX_MISMATCH")
+    historical = _pilot_historical_context(context)
+    descriptor = _analysis_isolation_descriptor(context, journal)
+    old_event = _source_adoption_event(historical, descriptor)
+    if {k:v for k,v in journal.events[39].items() if k != "at_utc"} != old_event:
+        raise DispatcherError("PILOT_PRIOR_SOURCE_ADOPTION_MISMATCH")
+    event = {"event":"pilot_adoption", "schema":JOURNAL_SCHEMA,
+             "previous_authorization_sha256":batch.PILOT_PREVIOUS_AUTH_SHA256,
+             "authorization_sha256":context["authorization_sha256"],
+             "adoption":pilot["reference"], "journal_prefix_sha256":batch.PILOT_JOURNAL_PREFIX_SHA256,
+             "journal_event_count":45, "sources":pilot["value"]["sources"],
+             "stratified17_sha256":batch.PILOT_STRATA_SHA256,
+             "package_input_plan_sha256":batch.PILOT_PACKAGE_PLAN_SHA256}
+    if len(journal.events) == 45:
+        journal.append(event)
+    elif {k:v for k,v in journal.events[45].items() if k != "at_utc"} != event:
+        raise DispatcherError("PILOT_CURRENT_ADOPTION_MISMATCH")
+
+
 def _verify_or_create_binding(journal: DurableJournal, context: Mapping[str, Any]) -> None:
+    if (context.get("analysis_admission") or {}).get("pilot") is not None:
+        _verify_pilot_append_only_adoption(journal, context)
+        return
     binding = _event_binding(context)
     descriptor = (_analysis_isolation_descriptor(context, journal) if context.get("analysis_admission") is not None
                   else _halt_resume_descriptor(context, journal))

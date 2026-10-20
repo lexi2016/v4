@@ -1526,3 +1526,27 @@ def test_analysis_new_plan_binds_execution_runtime_preserving_identity_and_legac
     assert {k:v for k,v in new.items() if k!='execution_runtime_settings_sha256'}==old
     with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'EXECUTION_RUNTIME_MISMATCH'):
         dispatcher.build_singleton_plan(document,execution_runtime_settings_sha256='0'*64,**kwargs)
+
+
+def test_pilot_adoption_keeps_all45_previous_lines_and_rejects_rebinding(tmp_path,monkeypatch):
+    import pytest
+    root=tmp_path/'journal';root.mkdir();path=root/'dispatch.jsonl'
+    events=[{'event':'binding','index':i} for i in range(45)]
+    events[39]={'event':'source_adoption','preserved':'old identity'}
+    raw=b''.join(dispatcher.canonical_json(e)+b'\n' for e in events);path.write_bytes(raw)
+    monkeypatch.setattr(batch,'PILOT_JOURNAL_PREFIX_SHA256',_sha(raw))
+    monkeypatch.setattr(dispatcher,'_pilot_historical_context',lambda c:{'old':'identity'})
+    monkeypatch.setattr(dispatcher,'_analysis_isolation_descriptor',lambda c,j:{'old':'descriptor'})
+    monkeypatch.setattr(dispatcher,'_source_adoption_event',lambda c,d:events[39])
+    context={'authorization_sha256':'a'*64,'analysis_admission':{'pilot':{'reference':{'path':'adoption','sha256':'b'*64},'value':{'sources':{'runner':'c'*64}}}}}
+    with dispatcher.DurableJournal(root) as journal:
+        dispatcher._verify_pilot_append_only_adoption(journal,context)
+        assert path.read_bytes().startswith(raw) and len(journal.events)==46
+        dispatcher._verify_pilot_append_only_adoption(journal,context)
+        assert len(journal.events)==46
+        with pytest.raises(dispatcher.DispatcherError,match='CURRENT_ADOPTION_MISMATCH'):
+            dispatcher._verify_pilot_append_only_adoption(journal,{**context,'authorization_sha256':'d'*64})
+    path.write_bytes(b'changed'+path.read_bytes())
+    journal=SimpleNamespace(path=path,events=events)
+    with pytest.raises(dispatcher.DispatcherError,match='PRIOR_JOURNAL_PREFIX_MISMATCH'):
+        dispatcher._verify_pilot_append_only_adoption(journal,context)

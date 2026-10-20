@@ -2872,3 +2872,105 @@ def test_analysis_payload_records_identity_and_execution_runtime_separately():
     payload,_=batch._bind_continuation_payload({}, {'entry':{'prior_status':'UNPROCESSED'},'plan':plan,'plan_sha256':'b'*64})
     assert payload['continuation']['runtime_settings_sha256']==batch.EXPECTED_RUNTIME_SHA256
     assert payload['continuation']['execution_runtime_settings_sha256']==batch.ANALYSIS_RUNTIME_SHA256
+
+
+def test_pilot_erratum_preserves_raw_fail_and_checks_display_bytes(analysis_fixture,monkeypatch):
+    f=analysis_fixture
+    state=f.root/'state';doc=state/'documents'/batch.ANALYSIS_CANARY_ID
+    receipt=f.write(doc/'receipt.json',{'status':'MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING'})
+    report=doc/'report.md';report.write_text('原始评级遗漏期限；其他数据保留 [第1页]\n')
+    report_ref={'path':str(report),'sha256':hashlib.sha256(report.read_bytes()).hexdigest()}
+    original={'schema':'v4.pdf_research.canary_content_review.v1','status':'REPORT_CONTENT_FAIL','reviewer':'/root/pdf_model_analysis_reviewer',
+              'document_id':batch.ANALYSIS_CANARY_ID,'selection_sha256':f.reference['sha256'],'page_input':f.rows[0]['page_input'],
+              'receipt':receipt,'report':report_ref,'source_pages_reviewed':[1,2,3]}
+    original_ref=f.write(batch.ANALYSIS_REVIEW_PATH,original)
+    monkeypatch.setattr(batch,'PILOT_ORIGINAL_REVIEW_SHA256',original_ref['sha256'])
+    journal=f.dispatcher.EVIDENCE_ROOT/'dispatch.jsonl';journal.parent.mkdir()
+    journal.write_text(json.dumps({'event':'reconciled','document_id':batch.ANALYSIS_CANARY_ID,'status':'MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING',
+                                  'receipt_path':receipt['path'],'receipt_sha256':receipt['sha256'],'state_root':str(state)})+'\n')
+    folder=f.root/'first-report-execution';folder.mkdir()
+    prefix='未来6个月内 原PDF第2页 验收补充 非重新模型生成'.encode();prefix+=b' '*(448-len(prefix))
+    display=folder/'report-with-erratum.md';display.write_bytes(prefix+report.read_bytes())
+    combined={'status':'REPORT_WITH_ERRATUM_PASS','reviewer':'/root/pdf_model_analysis_reviewer',
+              'original_model_content_review':{**original_ref,'status':'REPORT_CONTENT_FAIL'},'checks':{'prefix_bytes':448},
+              'original_model_report':report_ref,'display':{'path':str(display),'sha256':hashlib.sha256(display.read_bytes()).hexdigest()}}
+    combined_ref=f.write(folder/'erratum-content-review.json',combined)
+    monkeypatch.setattr(batch,'PILOT_ERRATUM_REVIEW_SHA256',combined_ref['sha256'])
+    admission={'reference':f.reference,'documents':{r['document_id']:r for r in f.rows}}
+    assert batch.verify_source_erratum_pair(admission)=={'original':'REPORT_CONTENT_FAIL','display':'REPORT_WITH_ERRATUM_PASS'}
+    assert json.loads(batch.ANALYSIS_REVIEW_PATH.read_bytes())['status']=='REPORT_CONTENT_FAIL'
+    display.write_bytes(prefix+report.read_bytes()+b'changed')
+    with pytest.raises(batch.BatchError,match='REFERENCE_SHA'):
+        batch.verify_source_erratum_pair(admission)
+
+
+@pytest.mark.parametrize('reason',['PACKAGE_DEFER_ANNOUNCEMENT_PRIORITY','AVAILABLE_MEMORY_BELOW_MINIMUM','ANALYSIS_RUNTIME_DRIFT'])
+def test_pilot_package_guard_runs_under_lock_before_attempt(monkeypatch,reason):
+    calls=[]
+    def guard():
+        calls.append('checked')
+        if len(calls)==2:raise batch.BatchError(reason)
+    monkeypatch.setattr(batch,'_read_r1_success',lambda *a,**k:None)
+    class Queue:
+        attempts=0
+        def enqueue(self,p):return {'status':'PENDING','idempotency_key':'k'}
+        def _claim_next_locked(self,state,allowed_keys=None):self.attempts+=1
+        def run_next(self,*a,**k):self._claim_next_locked({}, {'k'});raise AssertionError('POST must not execute')
+    q=Queue();original=q._claim_next_locked
+    with pytest.raises(batch.BatchError,match=reason):
+        batch._perform_request(q,{'source_document_id':'company-xindairy-profit-20261020-r1'},[{'role':'user','content':'source'}],binding={},
+            identity={'status':'MATCH','expected_model_id':local_model.MODEL_ID},identity_reader=lambda:{},priority_reader=lambda:{'status':'ALLOW'},
+            request_fn=lambda **k:pytest.fail('POST'),sleep_fn=lambda _:None,request_guard=guard)
+    assert q.attempts==0 and q._claim_next_locked==original and len(calls)==2
+
+
+def test_pilot_first3_review_rejects_missing_or_foreign_coverage(analysis_fixture):
+    f=analysis_fixture
+    admission={'reference':f.reference,'documents':{r['document_id']:{**r,'page_count':2} for r in f.rows}}
+    review=f.root/'review.json'
+    f.write(review,{'status':'FIRST3_CONTENT_PASS','reviewer':'/root/pdf_model_analysis_reviewer','selection_sha256':f.reference['sha256'],
+                    'stratified17_sha256':batch.PILOT_STRATA_SHA256,'documents':[{'document_id':'foreign'}]})
+    with pytest.raises(batch.BatchError,match='FIRST3_CONTENT_PASS_REQUIRED'):
+        batch.verify_pilot_content_review(review,[r['document_id'] for r in f.rows[1:4]],admission)
+
+
+def test_pilot_phase_is_hash_bound_first3_then_reviewer_gated_remaining14(analysis_fixture,monkeypatch):
+    f=analysis_fixture
+    from ops import run_pdf_research_package_once as package
+    pilot_root=f.root/'pilot';pilot_root.mkdir()
+    monkeypatch.setattr(batch,'RESEARCH_PILOT_ROOT',pilot_root)
+    continuation=f.root/'continuation';continuation.mkdir()
+    monkeypatch.setattr(f.dispatcher,'CONTINUATION_ROOT',continuation)
+    old=f.write(continuation/'ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PILOT_20261020_R1.json',{'old':'preserved'})
+    monkeypatch.setattr(batch,'PILOT_PREVIOUS_AUTH_SHA256',old['sha256'])
+    ids=[r['document_id'] for r in f.rows[1:]];first=[ids[1],ids[7],ids[14]];rest=[i for i in ids if i not in first]
+    strata=f.write(pilot_root/'model/stratified17.json',{'first_group_document_ids':first,'remaining14_document_ids':rest})
+    monkeypatch.setattr(batch,'PILOT_STRATA_SHA256',strata['sha256'])
+    package_plan=f.write(pilot_root/'model/package-input-plan.json',{'packages':[]})
+    monkeypatch.setattr(batch,'PILOT_PACKAGE_PLAN_SHA256',package_plan['sha256'])
+    decision=f.write(pilot_root/'controller-model-implementation-decision.json',{'status':'approved'})
+    monkeypatch.setattr(batch,'PILOT_DECISION_SHA256',decision['sha256'])
+    sources={'ops/run_pdf_research_batch.py':hashlib.sha256(Path(batch.__file__).read_bytes()).hexdigest(),
+             'ops/run_pdf_research_remaining_once.py':hashlib.sha256(Path(f.dispatcher.__file__).read_bytes()).hexdigest(),
+             'ops/run_pdf_research_package_once.py':hashlib.sha256(Path(package.__file__).read_bytes()).hexdigest()}
+    independent=f.write(pilot_root/'independent-review/code-review.json',{'status':'REVIEWED_PASS','reviewer':'/root/pdf_model_analysis_reviewer','sources':sources})
+    review=f.write(continuation/'source-review.json',{'status':'REVIEWED_PASS','sources':sources,'independent_review':independent})
+    adoption={'schema':'v4.pdf_research.pilot_adoption.v1','status':'ROOT_ADOPTED','previous_authorization':old,
+              'journal_event_count':45,'journal_prefix_sha256':batch.PILOT_JOURNAL_PREFIX_SHA256,'selection':f.reference,
+              'prepared_text_manifest_sha256':'f'*64,'stratified17':strata,'package_input_plan':package_plan,'sources':sources}
+    adoption_ref=f.write(continuation/'ROOT_PDF_PILOT17_EXECUTION_ADOPTION_20261020_R1.json',adoption)
+    context={'authorization':{'pilot17_adoption':adoption_ref,'reviewer_receipt':review}}
+    admission={'reference':f.reference,'value':f.value,'documents':{r['document_id']:r for r in f.rows}}
+    monkeypatch.setattr(batch,'verify_source_erratum_pair',lambda a:{'original':'REPORT_CONTENT_FAIL','display':'REPORT_WITH_ERRATUM_PASS'})
+    assert batch.load_research_pilot(admission,context)['allowed_ids']==first
+    review_path=pilot_root/'independent-review/stratified-first3-content-review.json';review_path.parent.mkdir(exist_ok=True)
+    review_path.write_text(json.dumps({'status':'REPORT_CONTENT_FAIL'}))
+    with pytest.raises(batch.BatchError,match='FIRST3_CONTENT_PASS_REQUIRED'):
+        batch.load_research_pilot(admission,context)
+    checked=[]
+    monkeypatch.setattr(batch,'verify_pilot_content_review',lambda path,ordered,adm:checked.append(ordered))
+    assert batch.load_research_pilot(admission,context)['allowed_ids']==rest and checked==[first]
+    adoption['sources']['ops/run_pdf_research_batch.py']='0'*64
+    context['authorization']['pilot17_adoption']=f.write(Path(adoption_ref['path']),adoption)
+    with pytest.raises(batch.BatchError,match='SOURCE_SHA_MISMATCH'):
+        batch.load_research_pilot(admission,context)

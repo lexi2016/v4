@@ -3759,7 +3759,10 @@ def _perform_request(
     tool_context: Mapping[str, Any] | None = None,
     allow_frozen_runner_source_rebind: bool = False,
     analysis_admission: Mapping[str, Any] | None = None,
+    request_guard: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
+    if request_guard is not None:
+        request_guard()
     document_id = str(payload.get("source_document_id", ""))
     if analysis_admission is not None:
         verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
@@ -3836,13 +3839,16 @@ def _perform_request(
         )
 
     original_claim = getattr(queue, "_claim_next_locked", None)
-    if analysis_admission is not None:
+    if analysis_admission is not None or request_guard is not None:
         if not callable(original_claim):
             raise BatchError("ANALYSIS_PRECLAIM_GUARD_UNAVAILABLE")
         def guarded_claim(state: Any, allowed_keys: Any = None) -> Any:
-            verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
-            guard_analysis_document(analysis_admission, document_id, binding=binding)
-            verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
+            if request_guard is not None:
+                request_guard()
+            if analysis_admission is not None:
+                verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
+                guard_analysis_document(analysis_admission, document_id, binding=binding)
+                verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
             return original_claim(state, allowed_keys)
         queue._claim_next_locked = guarded_claim
     try:
@@ -3852,7 +3858,7 @@ def _perform_request(
             return {"status": "DEFERRED_MODEL_LOCK_BUSY", "queue_item": queued, "attempted": False}
         raise
     finally:
-        if analysis_admission is not None:
+        if analysis_admission is not None or request_guard is not None:
             queue._claim_next_locked = original_claim
     if outcome is None:
         return {"status": "UNFINISHED_NO_OUTCOME", "queue_item": queued, "attempted": False}
@@ -5242,7 +5248,7 @@ def _run_batch_impl(
 
 
 
-def _analysis_ref(reference: Any, *, root: Path | None = None) -> tuple[dict[str, Any], bytes]:
+def _analysis_ref(reference: Any, *, root: Path | None = None, parse_json: bool = True) -> tuple[dict[str, Any], bytes]:
     if not isinstance(reference, dict) or set(reference) != {"path", "sha256"}:
         raise BatchError("ANALYSIS_REFERENCE_INVALID")
     path = Path(str(reference["path"]))
@@ -5253,6 +5259,8 @@ def _analysis_ref(reference: Any, *, root: Path | None = None) -> tuple[dict[str
     raw = path.read_bytes()
     if _sha256(raw) != reference["sha256"]:
         raise BatchError("ANALYSIS_REFERENCE_SHA_MISMATCH")
+    if not parse_json:
+        return {}, raw
     try:
         value = json.loads(raw)
     except (ValueError, UnicodeError):
@@ -5339,6 +5347,10 @@ def load_analysis_admission(
                  "authorization_sha256": authorization_context["authorization_sha256"]}
     verify_analysis_runtime(admission)
     admission["allowed_ids"] = [ANALYSIS_CANARY_ID]
+    if auth.get("pilot17_adoption") is not None:
+        admission["pilot"] = load_research_pilot(admission, authorization_context)
+        admission["allowed_ids"] = admission["pilot"]["allowed_ids"]
+        return admission
     review_path = ANALYSIS_REVIEW_PATH
     if review_path.exists():
         _verify_analysis_canary_review(admission, review_path)
@@ -5367,6 +5379,10 @@ def _verify_analysis_canary_review(admission: Mapping[str, Any], path: Path) -> 
             or review.get("document_id") != ANALYSIS_CANARY_ID
             or review.get("page_input") != admission["documents"][ANALYSIS_CANARY_ID]["page_input"]):
         raise BatchError("ANALYSIS_CANARY_CONTENT_PASS_REQUIRED")
+    _verify_analysis_canary_artifacts(admission, review)
+
+
+def _verify_analysis_canary_artifacts(admission: Mapping[str, Any], review: Mapping[str, Any]) -> None:
     from ops import run_pdf_research_remaining_once as dispatcher
     journal_path = dispatcher.EVIDENCE_ROOT / "dispatch.jsonl"
     events = [json.loads(line) for line in journal_path.read_bytes().splitlines()]
@@ -5412,6 +5428,10 @@ def guard_analysis_document(admission: Mapping[str, Any], document_id: str, *, b
     auth_path = dispatcher.AUTHORIZATION_PATH
     if auth_path.is_symlink() or _sha256(auth_path.read_bytes()) != admission["authorization_sha256"]:
         raise BatchError("ANALYSIS_AUTHORIZATION_DRIFT")
+    if admission.get("pilot") is not None:
+        current = load_research_pilot(admission, dispatcher.load_and_validate_authorization())
+        if current["reference"] != admission["pilot"]["reference"] or document_id not in current["allowed_ids"]:
+            raise BatchError("PILOT_PHASE_OR_ADOPTION_DRIFT")
     if document_id not in admission["allowed_ids"] or document_id == ANALYSIS_ISOLATED_ID:
         raise BatchError("ANALYSIS_DOCUMENT_NOT_ADMITTED")
     row = admission["documents"][document_id]
@@ -5421,6 +5441,128 @@ def guard_analysis_document(admission: Mapping[str, Any], document_id: str, *, b
             or receipt.get("pdf_sha256") != document_id):
         raise BatchError("ANALYSIS_DOCUMENT_NOT_READY")
     verify_analysis_runtime(admission, binding)
+
+
+# A bounded continuation of the same authority. Prior receipts remain immutable.
+RESEARCH_PILOT_ROOT = Path("/Users/lexi/Desktop/学习/agents调试/V4_PDF_RESEARCH_PILOT_20261020_R1")
+PILOT_STRATA_SHA256 = "b86486207af8219b0841590d0526a1e54cad10d2e74e7ffb67cb5e9b8eb7c18f"
+PILOT_PACKAGE_PLAN_SHA256 = "d0d33282482012e20de4d5f88be1188817e703238b895aed394baa7432e2a3c4"
+PILOT_DECISION_SHA256 = "dc4c21aa6d205d0d5413495a2d8a87709b92ac1280708a75f440c43c63fa1a67"
+PILOT_PREVIOUS_AUTH_SHA256 = "26fce1aec7938b60d0e2cea8f7f64aa12b5d2647a83ec0b221285fd620abcfae"
+PILOT_JOURNAL_PREFIX_SHA256 = "ea6afb0223fa70e3fb3142be6c4dc53b0622c231a49aad1c10e0c506a83aa4c6"
+PILOT_ORIGINAL_REVIEW_SHA256 = "11f61a2736f4b1f401ac9d5ee48578607ac45e9adb177ea3dab837ad51c6375f"
+PILOT_ERRATUM_REVIEW_SHA256 = "d072ad3050cc0cb61d17988828af9a113613842b276b4f562a4f2c4448f21180"
+
+
+def _pilot_fixed(path: Path, expected_sha: str) -> dict[str, Any]:
+    value, _ = _analysis_ref({"path": str(path), "sha256": expected_sha})
+    return value
+
+
+def verify_source_erratum_pair(admission: Mapping[str, Any]) -> dict[str, Any]:
+    original = _pilot_fixed(ANALYSIS_REVIEW_PATH, PILOT_ORIGINAL_REVIEW_SHA256)
+    combined = _pilot_fixed(ANALYSIS_ROOT / "first-report-execution/erratum-content-review.json", PILOT_ERRATUM_REVIEW_SHA256)
+    if (original.get("status") != "REPORT_CONTENT_FAIL"
+            or original.get("document_id") != ANALYSIS_CANARY_ID
+            or original.get("page_input") != admission["documents"][ANALYSIS_CANARY_ID]["page_input"]
+            or original.get("selection_sha256") != admission["reference"]["sha256"]
+            or combined.get("status") != "REPORT_WITH_ERRATUM_PASS"
+            or combined.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or original.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or combined.get("original_model_content_review") != {"path": str(ANALYSIS_REVIEW_PATH), "sha256": PILOT_ORIGINAL_REVIEW_SHA256, "status": "REPORT_CONTENT_FAIL"}):
+        raise BatchError("PILOT_SOURCE_ERRATUM_REVIEW_MISMATCH")
+    # Reuse the original terminal identity checks without promoting its verdict.
+    _verify_analysis_canary_artifacts(admission, original)
+    raw_ref = combined.get("original_model_report", {})
+    display_ref = combined.get("display", {})
+    if ({k: raw_ref.get(k) for k in ("path", "sha256")} != original.get("report")
+            or combined.get("checks", {}).get("prefix_bytes") != 448):
+        raise BatchError("PILOT_SOURCE_ERRATUM_REPORT_MISMATCH")
+    _, raw = _analysis_ref(original["report"], parse_json=False)
+    display_path = ANALYSIS_ROOT / "first-report-execution/report-with-erratum.md"
+    if display_ref.get("path") != str(display_path):
+        raise BatchError("PILOT_SOURCE_ERRATUM_DISPLAY_PATH")
+    _, display = _analysis_ref({k: display_ref.get(k) for k in ("path", "sha256")}, root=ANALYSIS_ROOT, parse_json=False)
+    prefix = display[:448].decode("utf-8")
+    if (display[448:] != raw or not all(t in prefix for t in ("未来6个月内", "原PDF第2页", "验收补充", "非重新模型生成"))):
+        raise BatchError("PILOT_SOURCE_ERRATUM_BYTES_MISMATCH")
+    return {"original": "REPORT_CONTENT_FAIL", "display": "REPORT_WITH_ERRATUM_PASS"}
+
+
+def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str, Any]) -> dict[str, Any]:
+    from ops import run_pdf_research_remaining_once as dispatcher
+    auth = auth_context["authorization"]
+    reference = auth.get("pilot17_adoption")
+    expected_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_EXECUTION_ADOPTION_20261020_R1.json"
+    if not isinstance(reference, dict) or reference.get("path") != str(expected_path):
+        raise BatchError("PILOT_ADOPTION_REQUIRED")
+    adopted, _ = _analysis_ref(reference, root=dispatcher.CONTINUATION_ROOT)
+    if (adopted.get("status") != "ROOT_ADOPTED" or adopted.get("schema") != "v4.pdf_research.pilot_adoption.v1"
+            or adopted.get("previous_authorization") != {"path": str(dispatcher.CONTINUATION_ROOT / "ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PILOT_20261020_R1.json"), "sha256": PILOT_PREVIOUS_AUTH_SHA256}
+            or adopted.get("journal_event_count") != 45 or adopted.get("journal_prefix_sha256") != PILOT_JOURNAL_PREFIX_SHA256
+            or adopted.get("selection") != admission["reference"]
+            or adopted.get("prepared_text_manifest_sha256") != admission["value"]["prepared_text_manifest_sha256"]):
+        raise BatchError("PILOT_ADOPTION_BINDING_MISMATCH")
+    _analysis_ref(adopted["previous_authorization"], root=dispatcher.CONTINUATION_ROOT)
+    _pilot_fixed(RESEARCH_PILOT_ROOT / "controller-model-implementation-decision.json", PILOT_DECISION_SHA256)
+    strata = _pilot_fixed(RESEARCH_PILOT_ROOT / "model/stratified17.json", PILOT_STRATA_SHA256)
+    _pilot_fixed(RESEARCH_PILOT_ROOT / "model/package-input-plan.json", PILOT_PACKAGE_PLAN_SHA256)
+    if (adopted.get("stratified17") != {"path": str(RESEARCH_PILOT_ROOT / "model/stratified17.json"), "sha256": PILOT_STRATA_SHA256}
+            or adopted.get("package_input_plan") != {"path": str(RESEARCH_PILOT_ROOT / "model/package-input-plan.json"), "sha256": PILOT_PACKAGE_PLAN_SHA256}):
+        raise BatchError("PILOT_INPUT_PLAN_MISMATCH")
+    expected_sources = {"ops/run_pdf_research_batch.py": Path(__file__), "ops/run_pdf_research_remaining_once.py": Path(dispatcher.__file__),
+                        "ops/run_pdf_research_package_once.py": Path(__file__).with_name("run_pdf_research_package_once.py")}
+    if set(adopted.get("sources", {})) != set(expected_sources):
+        raise BatchError("PILOT_SOURCE_SET_MISMATCH")
+    for name, path in expected_sources.items():
+        if adopted["sources"].get(name) != _sha256_file(path):
+            raise BatchError("PILOT_SOURCE_SHA_MISMATCH")
+    review = dispatcher._verified_json_evidence(auth["reviewer_receipt"], expected_statuses={"REVIEWED_PASS"}, code="PILOT_SOURCE_REVIEW_REQUIRED")
+    if review.get("sources") != adopted["sources"]:
+        raise BatchError("PILOT_SOURCE_REVIEW_BINDING_MISMATCH")
+    # The independent receipt itself must match this exact code snapshot.
+    independent, _ = _analysis_ref(review.get("independent_review", {}), root=RESEARCH_PILOT_ROOT)
+    if independent.get("status") != "REVIEWED_PASS" or independent.get("sources") != adopted["sources"] or independent.get("reviewer") != "/root/pdf_model_analysis_reviewer":
+        raise BatchError("PILOT_INDEPENDENT_CODE_PASS_REQUIRED")
+    verify_source_erratum_pair(admission)
+    first = strata.get("first_group_document_ids")
+    rest = strata.get("remaining14_document_ids")
+    allowed = set(admission["documents"]) - {ANALYSIS_CANARY_ID}
+    if (not isinstance(first, list) or len(first) != 3 or not isinstance(rest, list) or len(rest) != 14
+            or len(set(first + rest)) != 17 or set(first + rest) != allowed):
+        raise BatchError("PILOT_STRATIFIED_SUBSET_INVALID")
+    phase = "first3"
+    content_path = RESEARCH_PILOT_ROOT / "independent-review/stratified-first3-content-review.json"
+    if content_path.exists():
+        verify_pilot_content_review(content_path, first, admission)
+        phase = "remaining14"
+    return {"reference": reference, "value": adopted, "phase": phase, "allowed_ids": first if phase == "first3" else rest}
+
+
+def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mapping[str, Any]) -> None:
+    from ops import run_pdf_research_remaining_once as dispatcher
+    if path.is_symlink() or not path.is_file():
+        raise BatchError("PILOT_CONTENT_REVIEW_REQUIRED")
+    review = json.loads(path.read_bytes())
+    if (review.get("status") != "FIRST3_CONTENT_PASS" or review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or review.get("selection_sha256") != admission["reference"]["sha256"]
+            or review.get("stratified17_sha256") != PILOT_STRATA_SHA256
+            or [r.get("document_id") for r in review.get("documents", [])] != list(ids)):
+        raise BatchError("PILOT_FIRST3_CONTENT_PASS_REQUIRED")
+    events = [json.loads(line) for line in (dispatcher.EVIDENCE_ROOT / "dispatch.jsonl").read_bytes().splitlines()]
+    for row in review["documents"]:
+        did = row["document_id"]
+        terms = [e for e in events if e.get("event") == "reconciled" and e.get("document_id") == did]
+        if len(terms) != 1 or terms[0].get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING":
+            raise BatchError("PILOT_CONTENT_TERMINAL_MISMATCH")
+        e = terms[0]
+        if (row.get("status") != "REPORT_CONTENT_PASS" or row.get("page_input") != admission["documents"][did]["page_input"]
+                or row.get("receipt") != {"path": e.get("receipt_path"), "sha256": e.get("receipt_sha256")}
+                or row.get("report", {}).get("path") != str(Path(e["state_root"]) / "documents" / did / "report.md")
+                or row.get("source_pages_reviewed") != list(range(1, admission["documents"][did]["page_count"] + 1))):
+            raise BatchError("PILOT_CONTENT_REPORT_BINDING_MISMATCH")
+        _analysis_ref(row["receipt"])
+        _analysis_ref(row["report"], parse_json=False)
 
 
 def run_batch(
