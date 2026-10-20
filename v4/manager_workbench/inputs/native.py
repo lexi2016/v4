@@ -973,12 +973,26 @@ class NativeAdapters:
             protocol_request_count=128,projected_session_count=61)
 
     def _security_master_identity(self, context):
-        """Read the exact, already-pinned D-1 security master for identity coverage."""
+        """Read the required exact-date D-1 security-master identity owner."""
         day = context.source_sessions.get("hk_price")
         if not isinstance(day, str):
             return dict(status="UNAVAILABLE", gap="HK_SECURITY_MASTER_SOURCE_DATE_UNKNOWN"), []
         root = self.config.shared_root
         try:
+            # A US-close handoff freezes its US owner before submission and
+            # therefore already has a partial owner_bindings dictionary. Add
+            # only the required D-1 identity owner, preserving all frozen pins.
+            owners = context.scope_refs.setdefault("owner_bindings", {})
+            configured = self.config.source_bindings.get("security_master", {}).get(day)
+            if (self.config.dynamic_source_bindings and "security_master" not in owners
+                    and not configured):
+                from .source_bindings import security_master
+                try:
+                    owners["security_master"] = security_master(self.config, context)
+                    context.scope_refs.setdefault("owner_binding_gaps", {}).pop("security_master", None)
+                except (OSError, ValueError, KeyError, TypeError) as error:
+                    gap = str(error) if isinstance(error, ValueError) else "SECURITY_MASTER_OWNER_UNAVAILABLE"
+                    context.scope_refs.setdefault("owner_binding_gaps", {})["security_master"] = gap
             pin, manifest, _ = self._manifest("security_master", day, root, context)
             if manifest.get("schema_version") != "v3_shared_data.hk_security_master_manifest.v1":
                 raise ValueError("HK_SECURITY_MASTER_SCHEMA_INVALID")

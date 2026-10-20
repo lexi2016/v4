@@ -1,0 +1,70 @@
+{
+  "GOAL": "Repair only approved single-day US_MAPPING wiring: distinct relation/catalog/display collections, complete source and membership diagnostics, required exact-date security-master binding; independent review, authorized local deployment and saved-run/API/UI readback. Strict V1 remains paused.",
+  "WRITER": "/root/strict_mapping_diagnosis, existing generic Sol High identity, newly assigned sole Writer for this batch",
+  "REVIEWER": "different read-only Sol High identity, assigned after frozen source handoff",
+  "ALLOWED_PATHS": [
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/engines/strict_us_selection.py",
+    "v4/manager_workbench/inputs/native.py",
+    "tests/manager_workbench/engines/test_us_mapping.py",
+    "tests/manager_workbench/runtime/test_strict_us_selection.py",
+    "tests/manager_workbench/runtime/test_native_input.py",
+    "tests/manager_workbench/runtime/test_us_mapping_wiring.py",
+    "docs/handoffs/us_mapping_wiring_20261020/**"
+  ],
+  "FORBIDDEN_PATHS": [
+    "common.py global behavior",
+    "screening thresholds, grade or ETF policy changes",
+    "strict selection restoration or HK history loaders",
+    "other business modules/frontend",
+    "canonical user edits, raw authoritative data, providers, collection, new producers",
+    "services/schedules/runtime writes before independent PASS and controller continuation",
+    "Git mutations by Writer"
+  ],
+  "PASS_SIGNAL": [
+    "Targeted before/after canaries prove alias isolation, inherited valid source fields, approved monthly research admission with formal eligibility still unknown, exact-date identity binding preserving existing pins.",
+    "Dated/pending/excluded catalog evidence does not promote; real missing publication/quote/identity still blocked; all safety unchanged.",
+    "Frozen US20261019/HK20261016 inputs and target20261020 replay gives unique full698 monthly stocks and complete1003 catalog relations, counts match row decisions with explicit reasons; no required nonzero count.",
+    "Independent Reviewer reruns focused acceptance and checks real source behavior; then deployed saved result/API/browser all refer to exact accepted run."
+  ],
+  "STOP_RULE": "Stop on out-of-scope dependency or frozen source drift; no weakening guards, invented relationship or changing rules to force stock counts. Healthy unrelated runtime tasks must not be interrupted.",
+  "baseline_commit": "e24a0f2bc038aed9afd1117b07bf1cd884ff4e46",
+  "work_branch": "codex/us-mapping-wiring-20261020",
+  "runtime_baseline_at_start": "announcement-transport-recovery-20261020-r6; subject to future exact re-freeze before deployment",
+  "user_scope": "Approved only plan steps1-3, independent acceptance then deployment and UI; report corrected counts and remaining blockers.",
+  "input_anchor_run": "52d6d87a1fe547a484b189448d0ddfb7",
+  "input_readback_local": "/tmp/v4-zero-selection-readback-20261020.json",
+  "numerical_rules_unchanged": {
+    "signed_primary_min_pct": 1,
+    "close_to_MA20_range": [
+      1,
+      1.1
+    ],
+    "return5_max_pct": 15,
+    "mean_turnover20_min_HKD": 20000000,
+    "max_selected": 10,
+    "theme_max": 3
+  },
+  "strict_v1_status": "PAUSED_NOT_EXECUTED",
+  "current_ETF_policy": "background only; never resurrect old strict B ETF paths",
+  "evidence_scope": "Research only, no effectiveness/PIT/natural proof implied",
+  "ledger": [
+    {
+      "worker": "strict_mapping_diagnosis",
+      "milestone": "diagnosis",
+      "lifecycle_status": "FINAL_CONSUMED_RECEIPT_VERIFIED_COMPLETE"
+    },
+    {
+      "worker": "strict_mapping_diagnosis",
+      "milestone": "implementation",
+      "dispatch_time": "2026-10-20T10:03:16.821262+08:00",
+      "requested_model": "gpt-6.1-sol",
+      "requested_effort": "high",
+      "reason": "Cross-file dataflow, source identity and runtime dependency conflict",
+      "expected_terminal_type": "PREPARED with precise source/input hashes and focused validation",
+      "lifecycle_status": "DISPATCH_PENDING",
+      "final_received_consumed": false,
+      "receipt_verified": false
+    }
+  ]
+}

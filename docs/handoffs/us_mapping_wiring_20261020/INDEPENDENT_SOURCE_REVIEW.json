@@ -1,0 +1,74 @@
+{
+  "reviewer": "/root/deployment_reviewer",
+  "writer": "/root/strict_mapping_diagnosis",
+  "verdict": "PASS",
+  "scope": "SOURCE / TESTED / OFFLINE_BEHAVIOR, approved steps1-3",
+  "consumed_at": "2026-10-20T10:16:07.212119+08:00",
+  "scope_sha256": "dddc60818f85b6f24413d9529a9bce32a45b2ed1638f244ff690b29538b98a68",
+  "prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "replay_sha256": "03b46d8f6807afea9b71081d03dce5eb93c0dbcdba8bd78c71e38eb1f813ae3d",
+  "source_sha256": {
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "before": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48"
+    },
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "before": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "after": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+      "before": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2"
+    }
+  },
+  "test_sha256": {
+    "tests/manager_workbench/runtime/test_strict_us_selection.py": "fcfa1bd2d9b0eda31b6691fc50c532c643a93d0b532cc6b26a3677d566b4e706",
+    "tests/manager_workbench/runtime/test_us_mapping_wiring.py": "ec83a9427e971695d6a5e934f16a8f359ab454f94e19bd096c27d5f96285d39d"
+  },
+  "findings": [],
+  "checks": {
+    "focused_tests": {
+      "passed": 53,
+      "rc": 0,
+      "python": "3.14.6"
+    },
+    "additional_bad_input_checks": {
+      "count": 10,
+      "all_blocked": true,
+      "coverage": "owner/SHA/session/cutoff, quote session/zero previous close, publication time, relation review owner/SHA, monthly source hash"
+    },
+    "actual_three_way_replay_raw_sha256_match": true,
+    "unique_monthly_stocks": 698,
+    "catalog_relations": 1003,
+    "candidate_qualification": {
+      "DATED_WEAK_PEER": 218,
+      "PENDING_REVIEW": 192
+    },
+    "source_pins_quote_unchanged": true,
+    "input_delta": "Only existing exact HK16 security master identity and associated evidence references",
+    "strict_v1_status": "PAUSED_NOT_EXECUTED",
+    "numeric_grade_ETF_policy_unchanged": true
+  },
+  "accepted_master_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+  "accepted_counts": {
+    "BENEFIT": 5,
+    "RISK": 0,
+    "OBSERVATION": 303,
+    "UNMAPPED": 379,
+    "UNASSESSED": 11
+  },
+  "baseline_failures_retained": "9 older fixture failures US_MAPPING_EXACT_DATE_BINDING_MISSING matched exact nodeids and runtime native.py:252; not expanded",
+  "review_output_local_only": "/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/us-wiring-independent-362dzs4q",
+  "not_run": [
+    "candidate deployment review",
+    "activation",
+    "new saved run",
+    "API/UI",
+    "natural slot"
+  ],
+  "ledger": {
+    "writer": "FINAL_CONSUMED_PREPARED_RECEIPT_VERIFIED_SOURCE_FROZEN",
+    "reviewer": "FINAL_CONSUMED_RECEIPT_VERIFIED_SOURCE_STAGE_COMPLETE",
+    "runtime_owner": "PREPARING_NEW_CANDIDATE_AND_PERSISTENCE_PLAN"
+  }
+}

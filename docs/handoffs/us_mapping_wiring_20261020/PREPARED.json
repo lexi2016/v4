@@ -1,0 +1,407 @@
+{
+  "anchor": {
+    "anchor_run_id": "52d6d87a1fe547a484b189448d0ddfb7",
+    "frozen_input_file_sha256": "3f281b06fc2723809a57a4b42a04dc727d9cb9bc99cc8bc8800f84676fcc87c2",
+    "frozen_input_snapshot_sha256": "3f281b06fc2723809a57a4b42a04dc727d9cb9bc99cc8bc8800f84676fcc87c2",
+    "original_batch_sha256": "d9165487fe4e26d5e0a0fcd239779f10d284dc1fa19f0cee5ff329a595ee612a",
+    "original_snapshot_sha256": "59578771cbc90f6440171a5a2280453e52160ff50552885d62b119f5127b9663",
+    "price_session": "20261016",
+    "quote_manifest_sha256": "c3b60e5cc41efbc68d0c5afe64592e24e94c0564a4228c5a9229f3a0066612ff",
+    "quote_receipt_sha256": "c94948b8913043c3329f379d267f1a978df96f9ee18481251d562f10a9c1838b",
+    "quote_sha256": "16c7f5799e9c2803b2cdafd25a19c65fc285d823bd4dd01a33ce220c276464b4",
+    "relation_registry_sha256": "0abcacbe028fd3c59fc7cec6091d7cf8111235e2118a02fca3e3c5fb1cdfa75d",
+    "source_pin_sha256": "f98eb909f4070bc37e6a15898b3d0edca63ee0b9369cb9112c8ad055d6996f0d",
+    "source_session": "20261019",
+    "target_date": "20261020"
+  },
+  "api_ui": "NOT_RUN",
+  "baseline_commit": "e24a0f2bc038aed9afd1117b07bf1cd884ff4e46",
+  "branch": "codex/us-mapping-wiring-20261020",
+  "deployment": "NOT_RUN",
+  "environment": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "python_version": "3.14.6"
+  },
+  "handoff": "README.md contains exact tests/replay and source-only deployment plan; controller must verify final receipts before closing.",
+  "independent_review": "NOT_RUN",
+  "input_delta": "Existing exact-date master pin, verified identity and corresponding evidence references; all original source pins unchanged. New input SHA is intentional.",
+  "local_only_artifacts": [
+    {
+      "root": "/tmp/v4-us-mapping-wiring-baseline-20261020",
+      "summary_sha256": "b5fab51589358b34645c7fc91a19a702206d07e9af2d052efba767d296af6dd7"
+    },
+    {
+      "root": "/tmp/v4-us-mapping-wiring-candidate-frozen-20261020",
+      "summary_sha256": "7b18bdc60f986eb81e6ac965664458b5e163b88e0ecec7295bbedf37d9b67667"
+    },
+    {
+      "root": "/tmp/v4-us-mapping-wiring-candidate-final-20261020",
+      "summary_sha256": "a2e166643173c8573086dbcb7248fd649ed47b577c315ba486461c8605d5382d"
+    }
+  ],
+  "master_enrichment": {
+    "artifact_relative": "assets/hk_security_master/runs/20261016/e2f3110eded941aadd05195e/artifact.csv",
+    "artifact_sha256": "58f917cf3621c45f195b034e472cada257f0ac873649a6a5ba4d661d340497a1",
+    "available_at": "2026-10-16T17:30:19+08:00",
+    "identity_codes_sha256": "1110ea7cb1380ad041253f564b956c7729247988cc36ed613381f00a13792259",
+    "manifest_relative": "assets/hk_security_master/runs/20261016/e2f3110eded941aadd05195e/manifest.json",
+    "manifest_sha256": "79ddfee6e6ad700be453c4fc505e0f381460516a5e5d9bf84cd9c130511a549c",
+    "master_scope_count": 691,
+    "owner": "v3_shared_data",
+    "source_date": "20261016",
+    "status": "READY"
+  },
+  "natural_slot": "NOT_RUN",
+  "not_run": [
+    "strict selection",
+    "HK history loader",
+    "collection/network",
+    "business GET/POST execution",
+    "runtime writes or services",
+    "Git mutations",
+    "independent review",
+    "deployment/API/UI/natural verification"
+  ],
+  "only_added_owner": "security_master",
+  "remaining_unassessed": [
+    {
+      "reason": "RELATIONSHIP_NOT_REVIEWED",
+      "reasons": [
+        "RELATIONSHIP_NOT_REVIEWED",
+        "RELATIONSHIP_PIT_UNCONFIRMED",
+        "RELATIONSHIP_SOURCE_OR_REVIEW_GATE_UNVERIFIED"
+      ],
+      "symbol": "HK.00700"
+    },
+    {
+      "reason": "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN",
+      "reasons": [
+        "INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP",
+        "UNASSESSED_IDENTITY",
+        "BROAD_SECTOR_BACKGROUND_ONLY",
+        "NO_HK_SIGN_OR_PRIMARY_SELECTION_PATH"
+      ],
+      "symbol": "HK.00853"
+    },
+    {
+      "reason": "RELATIONSHIP_NOT_REVIEWED",
+      "reasons": [
+        "RELATIONSHIP_NOT_REVIEWED",
+        "RELATIONSHIP_PIT_UNCONFIRMED",
+        "RELATIONSHIP_SOURCE_OR_REVIEW_GATE_UNVERIFIED"
+      ],
+      "symbol": "HK.01024"
+    },
+    {
+      "reason": "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN",
+      "reasons": [
+        "INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP",
+        "UNASSESSED_IDENTITY",
+        "BROAD_SECTOR_BACKGROUND_ONLY",
+        "NO_HK_SIGN_OR_PRIMARY_SELECTION_PATH"
+      ],
+      "symbol": "HK.02172"
+    },
+    {
+      "reason": "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN",
+      "reasons": [
+        "INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP",
+        "UNASSESSED_IDENTITY",
+        "BROAD_SECTOR_BACKGROUND_ONLY",
+        "NO_HK_SIGN_OR_PRIMARY_SELECTION_PATH"
+      ],
+      "symbol": "HK.02252"
+    },
+    {
+      "reason": "HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED",
+      "reasons": [
+        "HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED"
+      ],
+      "symbol": "HK.02555"
+    },
+    {
+      "reason": "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN",
+      "reasons": [
+        "INDUSTRY_UNMAPPED_TO_FROZEN_24_PROXY_MAP",
+        "UNASSESSED_IDENTITY",
+        "BROAD_SECTOR_BACKGROUND_ONLY",
+        "NO_HK_SIGN_OR_PRIMARY_SELECTION_PATH"
+      ],
+      "symbol": "HK.02723"
+    },
+    {
+      "reason": "RELATIONSHIP_NOT_REVIEWED",
+      "reasons": [
+        "RELATIONSHIP_NOT_REVIEWED",
+        "RELATIONSHIP_PIT_UNCONFIRMED",
+        "RELATIONSHIP_SOURCE_OR_REVIEW_GATE_UNVERIFIED"
+      ],
+      "symbol": "HK.09626"
+    },
+    {
+      "reason": "RELATIONSHIP_NOT_REVIEWED",
+      "reasons": [
+        "RELATIONSHIP_NOT_REVIEWED",
+        "RELATIONSHIP_PIT_UNCONFIRMED",
+        "RELATIONSHIP_SOURCE_OR_REVIEW_GATE_UNVERIFIED"
+      ],
+      "symbol": "HK.09888"
+    },
+    {
+      "reason": "RELATIONSHIP_PUBLICATION_TIME_UNVERIFIED",
+      "reasons": [
+        "RELATIONSHIP_PUBLICATION_TIME_UNVERIFIED"
+      ],
+      "symbol": "HK.09988"
+    },
+    {
+      "reason": "RELATIONSHIP_NOT_REVIEWED",
+      "reasons": [
+        "RELATIONSHIP_NOT_REVIEWED",
+        "RELATIONSHIP_PIT_UNCONFIRMED",
+        "RELATIONSHIP_SOURCE_OR_REVIEW_GATE_UNVERIFIED"
+      ],
+      "symbol": "HK.09999"
+    }
+  ],
+  "replay": {
+    "baseline": {
+      "catalog_candidate_qualifications": {
+        "DATED_WEAK_PEER": 218,
+        "PENDING_REVIEW": 192
+      },
+      "catalog_dispositions": {
+        "CANNOT_CONFIRM_CURRENT_SCOPE": 39,
+        "CANNOT_CONFIRM_INVALID_US_SYMBOL": 1,
+        "CANNOT_CONFIRM_RECOVERY_STATE": 84,
+        "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING": 86,
+        "EXCLUDED_FOR_CURRENT_PEER_USE": 3,
+        "EXCLUDED_FOR_SPECIFIED_USE": 24,
+        "OBSERVATION_ONLY": 75,
+        "OPEN_OBSERVATION_PENDING": 221,
+        "PEER_BACKGROUND_OR_PENDING": 254,
+        "PEER_CURRENT_SCOPE_UNCONFIRMED": 172,
+        "SAME_ISSUER_CURRENT_SCOPE_UNCONFIRMED": 19,
+        "SAME_ISSUER_IDENTITY_ONLY_PENDING": 25
+      },
+      "catalog_relation_count": 1003,
+      "counts": {
+        "BENEFIT": 0,
+        "CONFLICT": 0,
+        "C_WATCH": 0,
+        "OBSERVATION": 0,
+        "RISK": 0,
+        "SMALL_MOVE_WATCH": 0,
+        "UNASSESSED": 667,
+        "UNMAPPED": 31
+      },
+      "identity_gap_count": 698,
+      "identity_resolved_count": 0,
+      "mapping_grade_counts": {
+        "A": 6,
+        "C": 649,
+        "None": 43
+      },
+      "raw_output_sha256": "8867814d6a957d5ca19304ebcc0b8eefe4ab25f1a31e33d328490447689e3bb7",
+      "reasons": {
+        "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN": 43,
+        "HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED": 6,
+        "RELATIONSHIP_NOT_REVIEWED": 643,
+        "RELATIONSHIP_PUBLICATION_TIME_UNVERIFIED": 1,
+        "RELATIONSHIP_SOURCE_OR_REVIEW_GATE_UNVERIFIED": 5
+      },
+      "replay_batch_sha256": "d9165487fe4e26d5e0a0fcd239779f10d284dc1fa19f0cee5ff329a595ee612a",
+      "selected_symbols": {
+        "BENEFIT": [],
+        "CONFLICT": [],
+        "RISK": []
+      },
+      "synthetic_catalog_legacy_path_count": 1003
+    },
+    "candidate_existing_master": {
+      "catalog_candidate_qualifications": {
+        "DATED_WEAK_PEER": 218,
+        "PENDING_REVIEW": 192
+      },
+      "catalog_dispositions": {
+        "CANNOT_CONFIRM_CURRENT_SCOPE": 39,
+        "CANNOT_CONFIRM_INVALID_US_SYMBOL": 1,
+        "CANNOT_CONFIRM_RECOVERY_STATE": 84,
+        "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING": 86,
+        "EXCLUDED_FOR_CURRENT_PEER_USE": 3,
+        "EXCLUDED_FOR_SPECIFIED_USE": 24,
+        "OBSERVATION_ONLY": 75,
+        "OPEN_OBSERVATION_PENDING": 221,
+        "PEER_BACKGROUND_OR_PENDING": 254,
+        "PEER_CURRENT_SCOPE_UNCONFIRMED": 172,
+        "SAME_ISSUER_CURRENT_SCOPE_UNCONFIRMED": 19,
+        "SAME_ISSUER_IDENTITY_ONLY_PENDING": 25
+      },
+      "catalog_relation_count": 1003,
+      "counts": {
+        "BENEFIT": 5,
+        "CONFLICT": 0,
+        "C_WATCH": 303,
+        "OBSERVATION": 303,
+        "RISK": 0,
+        "SMALL_MOVE_WATCH": 0,
+        "UNASSESSED": 11,
+        "UNMAPPED": 379
+      },
+      "identity_gap_count": 8,
+      "identity_resolved_count": 690,
+      "mapping_grade_counts": {
+        "A": 6,
+        "C": 309,
+        "None": 383
+      },
+      "raw_output_sha256": "d3f7a7ac99359249294fad41ac522ae7712b2c027c8a43fc27a70fb7ed6a5ce3",
+      "reasons": {
+        "C_MAPPING_OBSERVE_ONLY": 303,
+        "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN": 383,
+        "HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED": 1,
+        "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT": 5,
+        "RELATIONSHIP_NOT_REVIEWED": 5,
+        "RELATIONSHIP_PUBLICATION_TIME_UNVERIFIED": 1
+      },
+      "replay_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+      "selected_symbols": {
+        "BENEFIT": [
+          "HK.00992",
+          "HK.01211",
+          "HK.01810",
+          "HK.02015",
+          "HK.09868"
+        ],
+        "CONFLICT": [],
+        "RISK": []
+      },
+      "synthetic_catalog_legacy_path_count": 0
+    },
+    "candidate_same_frozen_input": {
+      "catalog_candidate_qualifications": {
+        "DATED_WEAK_PEER": 218,
+        "PENDING_REVIEW": 192
+      },
+      "catalog_dispositions": {
+        "CANNOT_CONFIRM_CURRENT_SCOPE": 39,
+        "CANNOT_CONFIRM_INVALID_US_SYMBOL": 1,
+        "CANNOT_CONFIRM_RECOVERY_STATE": 84,
+        "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING": 86,
+        "EXCLUDED_FOR_CURRENT_PEER_USE": 3,
+        "EXCLUDED_FOR_SPECIFIED_USE": 24,
+        "OBSERVATION_ONLY": 75,
+        "OPEN_OBSERVATION_PENDING": 221,
+        "PEER_BACKGROUND_OR_PENDING": 254,
+        "PEER_CURRENT_SCOPE_UNCONFIRMED": 172,
+        "SAME_ISSUER_CURRENT_SCOPE_UNCONFIRMED": 19,
+        "SAME_ISSUER_IDENTITY_ONLY_PENDING": 25
+      },
+      "catalog_relation_count": 1003,
+      "counts": {
+        "BENEFIT": 5,
+        "CONFLICT": 0,
+        "C_WATCH": 3,
+        "OBSERVATION": 3,
+        "RISK": 0,
+        "SMALL_MOVE_WATCH": 0,
+        "UNASSESSED": 657,
+        "UNMAPPED": 33
+      },
+      "identity_gap_count": 698,
+      "identity_resolved_count": 0,
+      "mapping_grade_counts": {
+        "A": 6,
+        "C": 309,
+        "None": 383
+      },
+      "raw_output_sha256": "442600dc829fb96ac293d950aa4b776bac5de352cb252d492e0a08e4da7a6629",
+      "reasons": {
+        "C_MAPPING_OBSERVE_ONLY": 3,
+        "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN": 383,
+        "HK_INDUSTRY_SECURITY_IDENTITY_UNVERIFIED": 299,
+        "PRIMARY_AB_SIGNED_RETURN_AT_LEAST_1_PERCENT": 5,
+        "RELATIONSHIP_NOT_REVIEWED": 7,
+        "RELATIONSHIP_PUBLICATION_TIME_UNVERIFIED": 1
+      },
+      "replay_batch_sha256": "d9165487fe4e26d5e0a0fcd239779f10d284dc1fa19f0cee5ff329a595ee612a",
+      "selected_symbols": {
+        "BENEFIT": [
+          "HK.00992",
+          "HK.01211",
+          "HK.01810",
+          "HK.02015",
+          "HK.09868"
+        ],
+        "CONFLICT": [],
+        "RISK": []
+      },
+      "synthetic_catalog_legacy_path_count": 0
+    }
+  },
+  "rules": {
+    "ETF_background_only": true,
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "grades_unchanged": true,
+    "orders_sent": false,
+    "production_allowed": false,
+    "strict_v1_status": "PAUSED_NOT_EXECUTED",
+    "thresholds_unchanged": true
+  },
+  "runtime_baseline": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+  "scope_sha256": "dddc60818f85b6f24413d9529a9bce32a45b2ed1638f244ff690b29538b98a68",
+  "source_allowlist": [
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/engines/strict_us_selection.py",
+    "v4/manager_workbench/inputs/native.py"
+  ],
+  "source_baselines_identical_before_patch": true,
+  "source_sha256": {
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "before": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48"
+    },
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "before": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "after": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+      "before": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2"
+    }
+  },
+  "status": "PREPARED",
+  "test_allowlist": [
+    "tests/manager_workbench/runtime/test_us_mapping_wiring.py",
+    "tests/manager_workbench/runtime/test_strict_us_selection.py"
+  ],
+  "test_sha256": {
+    "tests/manager_workbench/runtime/test_strict_us_selection.py": "fcfa1bd2d9b0eda31b6691fc50c532c643a93d0b532cc6b26a3677d566b4e706",
+    "tests/manager_workbench/runtime/test_us_mapping_wiring.py": "ec83a9427e971695d6a5e934f16a8f359ab454f94e19bd096c27d5f96285d39d"
+  },
+  "worktree": "/Users/lexi/.codex/worktrees/us-mapping-wiring/v4_app",
+  "writer": "existing generic Sol High child /root/strict_mapping_diagnosis",
+  "writer_validation": {
+    "additional_existing_suite": {
+      "baseline_log": "/tmp/v4-us-mapping-wiring-baseline-regressions2-20261020.log",
+      "candidate_log": "/tmp/v4-us-mapping-wiring-direct-regressions-20261020.log",
+      "error": "US_MAPPING_EXACT_DATE_BINDING_MISSING",
+      "failed": 9,
+      "passed": 28,
+      "same_failures_against_unmodified_runtime": true
+    },
+    "before_canary": {
+      "failed": 6,
+      "log": "/tmp/v4-us-mapping-wiring-red-20261020.log",
+      "passed": 3
+    },
+    "focused": {
+      "failed": 0,
+      "log": "/tmp/v4-us-mapping-wiring-final-focused-20261020.log",
+      "passed": 53
+    },
+    "initial_environment_failure": "Default pytest cleanup encountered unrelated historical tmp permission errors; isolated basetemp fixed test environment without touching old files."
+  }
+}

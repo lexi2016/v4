@@ -535,7 +535,12 @@ def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summ
     if membership.get("codes_sha256") != expected_codes_sha:
         return cannot_confirm_single_day_mapping(context, "MONTHLY_RESEARCH_UNIVERSE_HASH_INVALID")
 
-    relation_rows = relation_rows if isinstance(relation_rows, list) else []
+    # Catalog records have their own provenance-aware projection below; they
+    # are not unreviewed legacy relations and must not create synthetic C paths.
+    relation_rows = [item for item in relation_rows if isinstance(item, dict)
+        and item.get("record_role") != "CATALOG_OBSERVATION"
+        and item.get("relation_type") != "CATALOG_OBSERVATION_ONLY"
+        and item.get("catalog_relation_id") is None] if isinstance(relation_rows, list) else []
     industry_rows = industry_rows if isinstance(industry_rows, list) else []
     catalog_rows = catalog_rows if isinstance(catalog_rows, list) else []
     from .us_mapping_consumption import (

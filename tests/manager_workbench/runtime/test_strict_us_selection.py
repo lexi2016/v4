@@ -421,13 +421,15 @@ def test_single_day_catalog_placeholder_keeps_catalog_row_and_broad_sector_displ
             "available_at": "2026-10-17T15:35:31Z"}]}
 
     result = _single_day(["HK.00027"], relations=[catalog_observation], industries=[broad_c],
+        catalog_rows=[catalog_observation],
         manual_quote_scope=_manual_quote_scope({"XLY": "0.8", "XLP": "0.2"}))
 
     row = result["rows"][0]
     assert row["decision"] == "OBSERVATION"
     assert row["reason"] == "C_MAPPING_OBSERVE_ONLY"
-    assert any(path["source_type"] == "C_RELATIONSHIP_OBSERVATION"
-        and path["status"] == "UNASSESSED" for path in row["mapping_paths"])
+    assert len(result["catalog_relation_dispositions"]) == 1
+    assert not any(path["source_type"] == "C_RELATIONSHIP_OBSERVATION"
+        for path in row["mapping_paths"])
     assert any(path["source_type"] == "BROAD_SECTOR_BACKGROUND"
         and path["status"] == "VERIFIED" and path["signed_return_pct"] is None
         for path in row["mapping_paths"])

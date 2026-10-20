@@ -211,6 +211,8 @@ def run_us_mapping(context, batch):
                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
             extra = dict(record_role=item.get("record_role") or ("CATALOG_OBSERVATION" if is_catalog else "SOURCE_CANDIDATE"),
                          source_index=row_source_index, us_symbol=item.get("us_symbol"),
+                         owner=item.get("owner"), source_sha256=item.get("source_sha256"),
+                         source_session=item.get("source_session"),
                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
                          source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None,
                          catalog_relation=relation.get("catalog_relation") if isinstance(relation,dict) else None,
@@ -283,7 +285,10 @@ def run_us_mapping(context, batch):
             if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True
                     and (change is not False or change_evidence_verified)):
                 blockers=[]
+                if not source_ok:blockers.append('US_SOURCE_IDENTITY_OR_TIME_UNVERIFIED')
+                if not relation_ok:blockers.append('US_RELATION_REVIEW_OR_CUTOFF_GUARD_NOT_PASSED')
                 if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
+                if eligible is None:blockers.append('CONNECT_MEMBERSHIP_UNKNOWN')
                 if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
                 if change is False and not change_evidence_verified:
                     blockers.append('US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED')
@@ -299,7 +304,9 @@ def run_us_mapping(context, batch):
                 output_rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
                     conditions=["RELATION_NOT_A_STRICT_SELECTION_RULE"], **extra))
     source_batch = dict(batch, records=source_records)
-    out=result("US_MAPPING", source_batch, context, rows, gaps=gaps)
+    # The display result appends catalog/factor observations. Keep its list
+    # separate from the source relations consumed by the daily mapper below.
+    out=result("US_MAPPING", source_batch, context, list(rows), gaps=gaps)
     out["rows"].extend(catalog_rows)
     overlay_summary = u.get("full_overlay_summary") or {}
     consumed_relations = sum(len(item.get("relations", [])) for item in catalog_records
