@@ -23,7 +23,7 @@ from urllib.parse import quote
 
 MANIFEST_SHA = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
 SCHEMA = "v4.pdf_classification_sample.v1"
-RULES_VERSION = "full-body-structure-v3-f1-f4-20261020"
+RULES_VERSION = "full-body-structure-v4-news-and-form-20261020"
 PRIMARY = ("券商/研究机构研究", "公司一手披露", "调研/会议记录", "新闻/资讯解读", "数据/白皮书/咨询报告", "教程/方法/其他", "待分类")
 ROUTES = ("SAVE", "REUSE_CANDIDATE", "REVIEW", "LIGHT_EXTRACTION_CANDIDATE", "DEEP_RESEARCH_CANDIDATE")
 INSTITUTIONS = ("Morgan Stanley", "Goldman Sachs", "J.P. Morgan", "JPMorgan", "Jefferies", "UBS", "Citi Research", "Barclays", "Bernstein", "Deutsche Bank", "BofA", "Nomura", "Macquarie", "DBS", "国盛证券", "国金证券", "中信证券", "中信建投", "华泰证券", "招商证券", "光大证券", "东吴证券", "开源证券", "国联民生", "民生证券", "中泰证券", "浙商证券", "中金公司", "中银证券", "长江证券", "东北证券", "西南证券", "天风证券", "兴业证券", "国信证券", "申万宏源", "广发证券", "华福证券", "平安证券", "华创证券", "华安证券", "华西证券", "财通证券", "东方证券", "国泰海通", "信达证券", "银河证券", "东兴证券", "国投证券", "华源证券", "爱建证券", "招银国际", "招銀国际", "CMB INTERNATIONAL", "HUAAN SECURITIES", "AIJIAN SECURITIES", "摩根大通", "J.P.Morgan", "财信证券", "CHASING SECURITIES", "PING AN SECURITIES")
@@ -216,12 +216,70 @@ def company_entities(pages, primary):
     return result[:3]
 
 
+def owned_news_marker(pages):
+    """A source-owned column/byline, never a prose mention of a newswire."""
+    head = page_slice(pages, 1, 2000)
+    columns = r"风口研报|九点特供|盘中宝|狙击龙虎榜|点金互动易|电报解读|季报高增长|脱水研报|财联社早知道|早知道|机构调研|机构龙虎榜解读|公告全知道|掘金行业龙头|研选|玩转ETF"
+    patterns = [r"(?m)^\s*[【\[（(]?(?:"+columns+r")", r"(?m)^\s*[^\n]{0,160}(?:脱水研报|强势股脱水)",
+                r"xuangu(?:tong)?\.com\.cn|本文来自持牌证券机构|研报深度复盘",
+                r"(?m)^\s*[©CＣ]?财联社资讯获悉", r"(?m)^\s*[©CＣ]?财联社(?:[0-9一二三四五六七八九十]+月|记者)",
+                r"Bloomberg[\s\S]{0,60}News Story|【彭博】"]
+    for pattern in patterns:
+        if re.search(pattern, head, re.I):
+            return pattern
+    if re.search(r"(?m)^\s*[©CＣ]?财联社\s*$", head) and re.search(r"电报内容|题材解读|大头条|今日精选|市场大热点|互动易情绪指标", head):
+        return r"(?m)^\s*[©CＣ]?财联社\s*$"
+    return None
+
+
+def publication_structure_marker(pages):
+    head = page_slice(pages, 1, 6000)
+    support = r"分析师|执业|研究员|投资评级|评级|目标价|证券分析|本报告导读|投资要点|核心观点|策略跟踪报告|股票研究|S\d{12}|SAC|Analyst|Rating|Target|Disclosures"
+    explicit = r"(?m)^\s*[•·●]*\s*(?:证券研究报告|策略研究报告|Equity Research|Investment Research|Global Research)"
+    if re.search(explicit, head, re.I) and re.search(support, page_slice(pages, 2, 16000), re.I):
+        return explicit
+    record_title = any(re.fullmatch(r"\s*[^\n。；;]{0,40}(?:"+MEETING+r")(?:\s*|[：:|].{0,80})",line,re.I) and not re.search(r"引用|提及|参考|据|指出|认为",line)
+                       for line in head[:900].splitlines()[:15])
+    if record_title:
+        return None
+    brand = r"(?m)^\s*(?:[^\n]{1,22}证券(?:股份有限公司|有限公司)?|[A-Z .,&]{2,60}SECURITIES(?:[A-Z .,&]{0,25})?)\s*$"
+    if re.search(brand, head[:2000], re.I) and re.search(support, head, re.I):
+        return brand
+    issuer, _ref = publisher_candidate(pages, PRIMARY[0])
+    if issuer and re.search(r"股票策略|市场策略|证券研究|行业研究", head[:1600]):
+        return r"股票策略|市场策略|证券研究|行业研究"
+    return None
+
+
+def disposition(row):
+    status = row["ocr_status_asof"]
+    if status == "PENDING":
+        return "WAITING_OCR", "待OCR", "固定快照尚无终态准备记录；尚未取得正文，不属于正文证据不足"
+    if status == "FAILED":
+        return "EXTRACTION_FAILED", "提取失败", "原准备记录为FAILED；保留失败身份，待原OCR owner处置，不以空正文推断材料形式"
+    if row.get("quality_flags") or status == "READY" and row["text_characters"] < 80:
+        return "READY_QUALITY_REVIEW", row["primary_type_candidate"] if row["primary_type_candidate"] != PRIMARY[6] else "正文质量待核", "已有正文但过短或存在有证据的可读性异常；原READY状态不改，质量与材料形式分开复核"
+    if row["primary_type_candidate"] == PRIMARY[6]:
+        return "QUARANTINED_FORM_REVIEW" if status == "QUARANTINED" else "READY_FORM_REVIEW", "待核分类", "已读取逐页正文；未识别可靠出版或记录结构，需按原页人工核材料形式，机构未知不单独构成阻断"
+    return "FORM_CANDIDATE", row["primary_type_candidate"], row["classification_reason"]
+
+
 def primary_candidate(pages):
     head = page_slice(pages, 2, 11000)
     short = page_slice(pages, 1, 3500)
     institutions = [name for name in INSTITUTIONS if re.search(institution_pattern(name), head, re.I)]
     if derivative_guide(short):
         return PRIMARY[5], "二手导读/摘要导出", r"全文摘要|章节速览|思维导图", "正文含摘要导出模板；标题提及机构不代表机构原文，来源与转写可靠性待核"
+    news_marker = owned_news_marker(pages)
+    if news_marker:
+        return PRIMARY[3], "资讯栏目/研报摘要", news_marker, "正文栏目标题、采编署名或电报结构归属资讯；引述券商/咨询机构不改变二手资讯形式"
+    if re.search(r"招股说明书",short) and re.search(r"首次公开发行|发行人声明|申报稿",page_slice(pages,3)):
+        return PRIMARY[1], "招股说明书/申报材料", r"招股说明书", "正文声明招股说明书及首次公开发行/发行人信息；保荐券商是中介，不当作研报发行机构"
+    publication_marker = publication_structure_marker(pages)
+    if publication_marker:
+        return PRIMARY[0], "研究报告/研究简报", publication_marker, "正文研究出版结构与分析师/评级/研究导读等共同支持材料形式；机构字典缺失独立保留unknown"
+    if re.search(r"(?m)^\s*(?:KPMG|毕马威)\s*$", short, re.I) and re.search(r"IPO市场|报告|回顾", page_slice(pages, 2)):
+        return PRIMARY[4], "咨询机构市场报告", r"KPMG|毕马威", "正文封面咨询品牌与市场回顾/报告结构共同支持咨询材料形式"
     cover_news = r"(?m)^\s*[【\[]?(?:风口研报|早知道|盘前必读|盘中资讯|今日早盘|题材复盘|投资舆情|盘前热点|今日财经|今日题材)|Bloomberg[\s\S]{0,60}News Story|【彭博】"
     if re.search(cover_news, short[:1000], re.I):
         return PRIMARY[3], "资讯栏目/题材线索", STRONG_NEWS, "正文出现明确资讯栏目或题材汇编结构"
@@ -248,11 +306,28 @@ def primary_candidate(pages):
         return PRIMARY[0], "公司研究" if re.search(r"公司点评|公司深度|个股研究|Company Report", short, re.I) else "研究报告/策略/行业", marker, "正文同时出现研究机构名称和研究/评级结构；规则候选待语义核验"
     if re.search(r"催化因素|重点标的|市场热点|板块催化", short) and not institutions:
         return PRIMARY[3], "题材资讯汇编", r"催化因素|重点标的|市场热点|板块催化", "正文以事件催化/题材标的汇编为主，不以文件名认定券商研报"
-    record_marker = r"(?m)^\s*问答整理\s*$|发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+"
+    if re.search(r"(?m)^\s*(?:行业近况|行业动态|热点速评|业绩预览|观点聚焦|投资建议)\s*$", short) and re.search(r"盈利预测|估值|风险|投资建议|评论", page_slice(pages, 3)):
+        return PRIMARY[0], "研究简报/节录（机构待核）", r"行业近况|行业动态|热点速评|业绩预览|观点聚焦|投资建议", "正文有行业简报及建议/评论/估值等研究结构；不因缺机构署名而留空材料形式"
+    if re.search(r"[（(]\s*\d{6}\s*[）)]",short[:500]) and all(re.search(v,short) for v in ("盈利预测","估值","风险")):
+        return PRIMARY[0], "公司业绩研究简报/节录（机构待核）", r"盈利预测", "正文公司题名与盈利预测、估值、风险等研究章节共同支持业绩简报形式；不确认原机构或邻近证券代码映射"
+    record_marker = r"(?m)^\s*(?:问答整理|Q\.?\s*&\s*A|Q8A|O&A|C&A|08[:：]A|[（(]28\.A|会议要点)(?:\s|$)|^\s*Q\d+[:：]|发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+"
     for page in pages:
         prepared = page["text"][:6000]
         if re.search(r"发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+", prepared, re.I) or re.search(r"(?m)^\s*问答整理\s*\n[\s\S]{0,200}(?:Q\d*\s*[:：]|答[:：]|电话会议|问答环节)", prepared):
             return PRIMARY[2], "后续页问答/转录记录", record_marker, "既有准备正文后续页含问答整理与问答/电话会或发言人结构；只确认记录形式，来源和转录事实仍待核"
+        if re.search(record_marker, prepared, re.I) and len(re.findall(r"[？?]", prepared)) >= 2:
+            return PRIMARY[2], "问答整理（含OCR标题形变）", record_marker, "既有正文有问答标题/编号和连续问答结构；只识别记录形式，保留来源和转写质量不确定性"
+    if any(re.search(record_marker,p['text'][:6000],re.I) for p in pages) and sum(len(re.findall(r"[？?]",p['text'])) for p in pages)>=2:
+        return PRIMARY[2], "跨页问答整理", record_marker, "正文问答标题与跨页连续问答结构共同支持记录形式，标题断页不再阻断"
+    if re.search(r"(?m)^\s*[^\n]{0,50}调研总结\s*$|^\s*会议要点\s*$", short[:600]):
+        return PRIMARY[2], "调研总结/会议要点", r"调研总结|会议要点", "正文标题明确调研总结/会议要点并有观点条目，来源及发言身份仍待核"
+    if re.search(r"原视频",short[:800]) and re.search(r"演讲嘉宾",short[:1800]):
+        return PRIMARY[2], "视频演讲整理", r"原视频|演讲嘉宾", "正文声明原视频和演讲嘉宾，为演讲整理材料；不验证视频链接/嘉宾身份或转写事实"
+    if re.search(r"调研", short[:400]) and re.search(r"专家观点整理|以下内容来自资深行业专家|核心要点|主题概览|核心观点", short):
+        return PRIMARY[2], "产业调研观点整理", r"调研|专家观点整理", "正文调研标题与专家观点/主题结构共同支持产业调研摘要形式；不认证发言人与原机构"
+    fallback_news = r"股票市场复盘|股票巿场复盘|市场日志|市场⽇志|题材机会梳理|策略复盘|收市点评|TMT BREAKOUT|(?m:^\s*[一二三四五六七八九十]+、市场热点)"
+    if re.search(fallback_news, short, re.I):
+        return PRIMARY[3], "市场复盘/栏目解读", fallback_news, "正文栏目与市场评论结构支持资讯解读，非由文件名认定机构研究"
     return PRIMARY[6], "未知", None, "现有正文证据不足以确认材料性质；禁止由文件名补定类别"
 
 
@@ -803,26 +878,61 @@ def coverage_stats(rows):
     return {k:{'candidate_present':sum(bool(fn(r)) for r in rows),'unknown_or_not_extracted':sum(not fn(r) for r in rows),'denominator':n,'semantic_acceptance':'NOT_FULL_COHORT_VERIFIED'} for k,fn in predicates.items()}
 
 
+def apply_full_form_reviews(rows, texts, review_path):
+    if review_path is None:
+        return None
+    review, raw = read_json(review_path)
+    byid = {r['document_id']:r for r in rows}
+    items = review.get('documents', [])
+    if review.get('manifest_sha256') != MANIFEST_SHA or len({r['document_id'] for r in items}) != len(items):
+        raise ValueError('FULL_FORM_REVIEW_IDENTITY_INVALID')
+    for item in items:
+        row = byid.get(item['document_id'])
+        if (row is None or item.get('pdf_sha256') != row['pdf_sha256']
+                or item.get('page_input_sha256') != row['frozen_page_input_sha256']
+                or item.get('exact_body_sha256') != row['exact_body_sha256']
+                or row['ocr_status_asof'] not in {'READY','QUARANTINED'}
+                or item.get('primary_type') not in PRIMARY or not item.get('evidence') or not item.get('reason')):
+            raise ValueError('FULL_FORM_REVIEW_SOURCE_BINDING_MISMATCH')
+        for ref in item['evidence']:
+            number = ref['page_number']
+            pages = texts[row['document_id']]
+            if not 1 <= number <= len(pages):
+                raise ValueError('FULL_FORM_REVIEW_PAGE_INVALID')
+            text = pages[number-1]['text']
+            if sha(text.encode()) != ref['page_text_sha256'] or ref['excerpt'] not in re.sub(r'\s+',' ',text).strip():
+                raise ValueError('FULL_FORM_REVIEW_EVIDENCE_MISMATCH')
+        row.update({'primary_type_candidate':item['primary_type'],'subtype_candidate':item.get('subtype','正文人工核定候选'),
+                    'classification_reason':item['reason'],'classification_evidence':item['evidence'][0],
+                    'classification_status':'WRITER_SOURCE_BOUND_FORM_LABEL_PENDING_INDEPENDENT_REVIEW',
+                    'manual_form_review':{'file_sha256':sha(raw),'page_input_sha256':item['page_input_sha256'],'exact_body_sha256':item['exact_body_sha256']},
+                    'quality_flags':item.get('quality_flags',[]),'route_candidate':'REVIEW',
+                    'route_reason':'材料形式为绑定正文的人工候选；独立语义或质量/来源仍待核，不触发模型'})
+    return {'path':str(review_path),'sha256':sha(raw),'document_count':len(items),'scope':'material form/quality proposal only; no issuer/date/code override'}
+
+
 def render_full_report(path, stats, rows, sample, pairs, validation):
     # Preserve reviewed60 and10-pair content in the same single static artifact.
-    render_report(path, stats, sample, pairs)
+    display_stats={**stats,"primary_type_candidate_counts":stats.get("material_disposition_counts",stats["primary_type_candidate_counts"])}
+    render_report(path, display_stats, sample, pairs)
     old=path.read_text()
+    old=old.replace("全量规则候选主类（互斥，含待分类）","材料形式与处理去向（互斥；待OCR/提取失败单列）")
     old=old.replace('本页展示60份样例、10对真实材料关系。','本页提供全部2209份分页索引、保留60份历史样例及10对关系证据。')
     old=old.replace('样例 Writer 核验等待独立 Reviewer。','历史60份材料形式及10关系已独立PASS；全量新候选及F1-F4返修待独立增量验收。')
     old=old.replace('独立分类准确率：尚未评分。','历史样例主类形式独立60/60；这是开发回归集，不能估计全量准确率。该60份原独立56/60（93.33%）FAIL保留；返修后仅作回归，不能再声称未见泛化准确率。')
     old=old.replace('WRITER_REVIEWED_PENDING_INDEPENDENT_REVIEW','HISTORICAL_SAMPLE_FORM_INDEPENDENT_PASS_SOURCE_AUTHENTICITY_SEPARATE')
     compact=[]
     for row in rows:
-        compact.append({k:row.get(k) for k in ('document_id','pdf_sha256','original_pdf_path','filename_candidate_title','body_header_candidate_title','primary_type_candidate','ocr_status_asof','route_candidate','route_reason','classification_reason','classification_evidence','original_institution_candidate','institution_status','institution_evidence','report_date','collection_dates','language_candidate','main_research_companies','mentioned_companies','industry_theme_candidates','markets_mentioned_candidate','text_quality','text_characters','page_count','source_references','duplicate_group','relation_candidates','classification_binding','company_status','main_company_status','mentioned_company_status','body_quality_metrics')})
+        compact.append({k:row.get(k) for k in ('document_id','pdf_sha256','original_pdf_path','filename_candidate_title','body_header_candidate_title','primary_type_candidate','display_material_type','classification_state','disposition_reason','quality_flags','ocr_status_asof','route_candidate','route_reason','classification_reason','classification_evidence','original_institution_candidate','institution_status','institution_evidence','report_date','collection_dates','language_candidate','main_research_companies','mentioned_companies','industry_theme_candidates','markets_mentioned_candidate','text_quality','text_characters','page_count','source_references','duplicate_group','relation_candidates','classification_binding','manual_form_review','company_status','main_company_status','mentioned_company_status','body_quality_metrics')})
     payload=json.dumps(compact,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
     opts=lambda vals:''.join('<option>'+html.escape(str(x))+'</option>' for x in sorted(set(vals)) if x)
-    panel='''<h2>全部2209份 · 分页检索</h2><p>每条为正文规则候选；历史样例另列。READY仅表示正文准备完成，来源真实性、数字与投资结论未获验证。非READY保留且进入REVIEW。公司为字面对象候选；代码不猜配。<br>严格相同分页正文仅折叠显示，不删除、不合并；质量状态独立保留。</p><div class="banner"><input id="full-q" aria-label="搜索完整台账" placeholder="搜索标题、公司、机构、主题或ID"><select id="full-type"><option value="">全部主类</option>'''+opts(PRIMARY)+'''</select><select id="full-route"><option value="">全部分流</option>'''+opts(ROUTES)+'''</select><select id="full-status"><option value="">全部OCR状态</option>'''+opts(r['ocr_status_asof'] for r in rows)+'''</select><select id="full-language"><option value="">全部语言</option>'''+opts(r['language_candidate'] for r in rows)+'''</select><label><input type="checkbox" id="full-fold">折叠严格相同正文组</label><p id="full-count" aria-live="polite"></p><button id="full-prev">上一页</button> <span id="full-page"></span> <button id="full-next">下一页</button></div><div id="full-list"></div><details><summary>全量字段覆盖与未知（分母各2209）</summary><pre style="white-space:pre-wrap">'''+html.escape(json.dumps(stats['field_coverage'],ensure_ascii=False,indent=2))+'''</pre></details><p>验证集60份曾在初次调优前冻结；原独立56/60（93.33%）未达95%目标，现已揭示用于返修，仅作回归。排除原60样例及关系开发资料；不是总体准确率估计。<a href="validation60.json">新60份原页证据与候选字段</a> · <a href="all-relations.json">全部关系索引</a> · <a href="regression12.json">12项已知差异逐项归因</a></p>'''
+    panel='''<h2>全部2209份 · 分页检索</h2><p>每条为正文规则候选；历史样例另列。READY仅表示正文准备完成，来源真实性、数字与投资结论未获验证。非READY保留且进入REVIEW。公司为字面对象候选；代码不猜配。<br>严格相同分页正文仅折叠显示，不删除、不合并；质量状态独立保留。</p><div class="banner"><input id="full-q" aria-label="搜索完整台账" placeholder="搜索标题、公司、机构、主题或ID"><select id="full-type"><option value="">全部主类</option>'''+opts(r.get('display_material_type') or r['primary_type_candidate'] for r in rows)+'''</select><select id="full-route"><option value="">全部分流</option>'''+opts(ROUTES)+'''</select><select id="full-status"><option value="">全部OCR状态</option>'''+opts(r['ocr_status_asof'] for r in rows)+'''</select><select id="full-language"><option value="">全部语言</option>'''+opts(r['language_candidate'] for r in rows)+'''</select><label><input type="checkbox" id="full-fold">折叠严格相同正文组</label><p id="full-count" aria-live="polite"></p><button id="full-prev">上一页</button> <span id="full-page"></span> <button id="full-next">下一页</button></div><div id="full-list"></div><details><summary>全量字段覆盖与未知（分母各2209）</summary><pre style="white-space:pre-wrap">'''+html.escape(json.dumps(stats['field_coverage'],ensure_ascii=False,indent=2))+'''</pre></details><p>验证集60份曾在初次调优前冻结；原独立56/60（93.33%）未达95%目标，现已揭示用于返修，仅作回归。排除原60样例及关系开发资料；不是总体准确率估计。<a href="validation60.json">新60份原页证据与候选字段</a> · <a href="all-relations.json">全部关系索引</a> · <a href="regression12.json">12项已知差异逐项归因</a></p>'''
     script=r'''<script id="full-data" type="application/json">PAYLOAD</script><script>
 const fullRows=JSON.parse(document.getElementById('full-data').textContent);const fullPageSize=25;let fullPage=0,fullFiltered=[];
-function fullSelect(data,q,k,r,o,l,fold){const seen=new Set();return data.filter(x=>{if(k&&x.primary_type_candidate!==k||r&&x.route_candidate!==r||o&&x.ocr_status_asof!==o||l&&x.language_candidate!==l)return false;if(q&&!JSON.stringify(x).toLowerCase().includes(q.toLowerCase()))return false;if(fold&&x.duplicate_group){if(seen.has(x.duplicate_group))return false;seen.add(x.duplicate_group)}return true})}
+function fullSelect(data,q,k,r,o,l,fold){const seen=new Set();return data.filter(x=>{if(k&&(x.display_material_type||x.primary_type_candidate)!==k||r&&x.route_candidate!==r||o&&x.ocr_status_asof!==o||l&&x.language_candidate!==l)return false;if(q&&!JSON.stringify(x).toLowerCase().includes(q.toLowerCase()))return false;if(fold&&x.duplicate_group){if(seen.has(x.duplicate_group))return false;seen.add(x.duplicate_group)}return true})}
 function fullEl(tag,text,parent){const n=document.createElement(tag);n.textContent=text;if(parent)parent.appendChild(n);return n}
 function fullCite(row,ref,parent){if(!ref)return;fullEl('blockquote',ref.excerpt,parent);const a=fullEl('a','原PDF 第'+ref.page_number+'页',parent);a.href=encodeURI(row.original_pdf_path).replace(/#/g,'%23').replace(/\?/g,'%3F')+'#page='+ref.page_number;fullEl('small','页正文SHA '+ref.page_text_sha256,parent)}
-function fullRender(){const list=document.getElementById('full-list');list.replaceChildren();const total=Math.max(1,Math.ceil(fullFiltered.length/fullPageSize));fullPage=Math.max(0,Math.min(fullPage,total-1));for(const x of fullFiltered.slice(fullPage*fullPageSize,(fullPage+1)*fullPageSize)){const d=fullEl('details','',list);fullEl('summary',x.primary_type_candidate+' · '+x.filename_candidate_title+' · '+x.ocr_status_asof,d);fullEl('p','规则候选待独立语义验收 · '+x.route_candidate+'：'+x.route_reason,d);fullEl('p',x.classification_reason,d);fullEl('p','机构候选：'+(x.original_institution_candidate||'未知')+'（'+x.institution_status+'）；报告日期：'+JSON.stringify(x.report_date)+'；采集日期仅作采集：'+x.collection_dates.join(', '),d);fullEl('p','语言候选 '+x.language_candidate+'；正文质量 '+x.text_quality+'；'+x.page_count+'页 / '+x.text_characters+'字符；机械质量指标 '+JSON.stringify(x.body_quality_metrics),d);fullEl('p','主对象候选 '+(x.main_research_companies.length?JSON.stringify(x.main_research_companies):'未知/未抽取')+'；提及对象 '+(x.mentioned_companies.length?JSON.stringify(x.mentioned_companies):'未知/未抽取')+'；代码未知；主题 '+x.industry_theme_candidates.join(', ')+'；市场仅文字提及 '+x.markets_mentioned_candidate.join(', '),d);fullCite(x,x.classification_evidence,d);fullCite(x,x.institution_evidence,d);const p=fullEl('details','',d);fullEl('summary','原页索引及SHA（'+x.source_references.pages.length+'页）',p);for(const ref of x.source_references.pages){const a=fullEl('a','p.'+ref.page_number+' ',p);a.href=encodeURI(x.original_pdf_path).replace(/#/g,'%23').replace(/\?/g,'%3F')+'#page='+ref.page_number;fullEl('small',ref.text_sha256,p)}fullEl('small','PDF SHA '+x.pdf_sha256+'；文本输入 '+JSON.stringify(x.source_references.page_input)+'；严格重复组 '+(x.duplicate_group||'无已确证组（不等于不存在相似）')+'；关系候选 '+JSON.stringify(x.relation_candidates)+'；分类绑定 '+JSON.stringify(x.classification_binding),d)}document.getElementById('full-count').textContent='筛选/折叠后 '+fullFiltered.length+' / 原始身份2209；每页25份';document.getElementById('full-page').textContent=(fullPage+1)+' / '+total;document.getElementById('full-prev').disabled=fullPage===0;document.getElementById('full-next').disabled=fullPage===total-1}
+function fullRender(){const list=document.getElementById('full-list');list.replaceChildren();const total=Math.max(1,Math.ceil(fullFiltered.length/fullPageSize));fullPage=Math.max(0,Math.min(fullPage,total-1));for(const x of fullFiltered.slice(fullPage*fullPageSize,(fullPage+1)*fullPageSize)){const d=fullEl('details','',list);fullEl('summary',(x.display_material_type||x.primary_type_candidate)+' · '+x.filename_candidate_title+' · '+x.ocr_status_asof,d);fullEl('p','规则候选待独立语义验收 · '+x.route_candidate+'：'+x.route_reason,d);fullEl('p',x.classification_reason,d);fullEl('p','分类去向 '+x.classification_state+'：'+x.disposition_reason+'；质量标记 '+JSON.stringify(x.quality_flags),d);fullEl('p','机构候选：'+(x.original_institution_candidate||'未知')+'（'+x.institution_status+'）；报告日期：'+JSON.stringify(x.report_date)+'；采集日期仅作采集：'+x.collection_dates.join(', '),d);fullEl('p','语言候选 '+x.language_candidate+'；正文质量 '+x.text_quality+'；'+x.page_count+'页 / '+x.text_characters+'字符；机械质量指标 '+JSON.stringify(x.body_quality_metrics),d);fullEl('p','主对象候选 '+(x.main_research_companies.length?JSON.stringify(x.main_research_companies):'未知/未抽取')+'；提及对象 '+(x.mentioned_companies.length?JSON.stringify(x.mentioned_companies):'未知/未抽取')+'；代码未知；主题 '+x.industry_theme_candidates.join(', ')+'；市场仅文字提及 '+x.markets_mentioned_candidate.join(', '),d);fullCite(x,x.classification_evidence,d);fullCite(x,x.institution_evidence,d);const p=fullEl('details','',d);fullEl('summary','原页索引及SHA（'+x.source_references.pages.length+'页）',p);for(const ref of x.source_references.pages){const a=fullEl('a','p.'+ref.page_number+' ',p);a.href=encodeURI(x.original_pdf_path).replace(/#/g,'%23').replace(/\?/g,'%3F')+'#page='+ref.page_number;fullEl('small',ref.text_sha256,p)}fullEl('small','PDF SHA '+x.pdf_sha256+'；文本输入 '+JSON.stringify(x.source_references.page_input)+'；严格重复组 '+(x.duplicate_group||'无已确证组（不等于不存在相似）')+'；关系候选 '+JSON.stringify(x.relation_candidates)+'；分类绑定 '+JSON.stringify(x.classification_binding),d)}document.getElementById('full-count').textContent='筛选/折叠后 '+fullFiltered.length+' / 原始身份2209；每页25份';document.getElementById('full-page').textContent=(fullPage+1)+' / '+total;document.getElementById('full-prev').disabled=fullPage===0;document.getElementById('full-next').disabled=fullPage===total-1}
 function fullFilter(){fullPage=0;fullFiltered=fullSelect(fullRows,...['full-q','full-type','full-route','full-status','full-language'].map(k=>document.getElementById(k).value),document.getElementById('full-fold').checked);fullRender()}['full-q','full-type','full-route','full-status','full-language','full-fold'].forEach(k=>document.getElementById(k).addEventListener('input',fullFilter));document.getElementById('full-prev').addEventListener('click',()=>{fullPage--;fullRender()});document.getElementById('full-next').addEventListener('click',()=>{fullPage++;fullRender()});fullFilter();</script>'''.replace('PAYLOAD',payload)
     old=old.replace('<h2>60份可筛选样例</h2>',panel+'<h2>历史60份可筛选样例 · 固定于原样例快照</h2><p>历史样例 asof UTC：'+html.escape(sample[0]['asof_utc'])+'；原独立验收仅材料形式/关系范围，不代表官方来源或事实认证。</p>')
     old=old.replace('</body>',script+'</body>')
@@ -832,11 +942,27 @@ function fullFilter(){fullPage=0;fullFiltered=fullSelect(fullRows,...['full-q','
 def full_main(argv):
     parser=argparse.ArgumentParser(description='Incremental offline classification over existing prepared text; no OCR/model')
     parser.add_argument('--full',action='store_true');parser.add_argument('--evidence-root',type=Path,required=True);parser.add_argument('--prepared-root',type=Path,required=True);parser.add_argument('--sample-root',type=Path,required=True);parser.add_argument('--refresh-snapshot',action='store_true');parser.add_argument('--require-final',action='store_true')
+    parser.add_argument('--snapshot-root',type=Path)
+    parser.add_argument('--classification-review',type=Path)
     args=parser.parse_args(argv);root=args.evidence_root.resolve();prepared=args.prepared_root.resolve()
     if root.name!='V4_PDF_CLASSIFICATION_FULL_20261020_R1' or root.is_relative_to(prepared) or root==args.sample_root.resolve():raise ValueError('FULL_OUTPUT_ROOT_SCOPE_INVALID')
-    started=time.monotonic();inp,final_ref=freeze_full_snapshot(root,prepared,args.require_final,args.refresh_snapshot)
+    started=time.monotonic()
+    if args.snapshot_root:
+        if args.require_final or args.refresh_snapshot or not args.snapshot_root.resolve().is_relative_to(root):
+            raise ValueError('EXPLICIT_SNAPSHOT_SCOPE_OR_FLAGS_INVALID')
+        inp,final_ref=args.snapshot_root.resolve(),None
+    else:
+        inp,final_ref=freeze_full_snapshot(root,prepared,args.require_final,args.refresh_snapshot)
     taxonomy,_=read_json(inp/'industry-taxonomy.json');metrics={}
     rows,texts,snapshot,index=load_frozen_inputs(inp/'batch-manifest.json',inp/'ocr-progress-snapshot.json',inp/'snapshot-receipt.json',prepared,taxonomy,root/'classification-cache',metrics)
+    form_review_ref=apply_full_form_reviews(rows,texts,args.classification_review)
+    for row in rows:
+        state,label,reason=disposition(row)
+        row.update({'classification_state':state,'display_material_type':label,'disposition_reason':reason})
+        if state in {'WAITING_OCR','EXTRACTION_FAILED','READY_QUALITY_REVIEW','READY_FORM_REVIEW','QUARANTINED_FORM_REVIEW'}:
+            row['route_candidate']='REVIEW';row['route_reason']=reason
+        if state in {'WAITING_OCR','EXTRACTION_FAILED'}:
+            row['classification_reason']=reason
     validation,validation_raw=read_json(root/'input/validation60-frozen-before-tuning.json')
     if validation['manifest_sha256']!=MANIFEST_SHA or set(validation['sample_document_ids'])&set(validation['exclusion_document_ids']):raise ValueError('VALIDATION_HOLDOUT_BINDING_INVALID')
     sample_data,_=read_json(args.sample_root/'delivery/sample60.json');sample=sample_data['documents'];sample_ids=[r['document_id'] for r in sample]
@@ -844,12 +970,15 @@ def full_main(argv):
     relations=full_relations(rows,texts);byid={r['document_id']:r for r in rows}
     pair_summary={'same_normalized_page_sequence_groups':len(relations['exact_normalized_text_groups']),'ready_body_identity_denominator':sum(r['ocr_status_asof']=='READY' and bool(r['exact_body_sha256']) for r in rows),'available_text_identity_denominator':relations['available_text_denominator'],'writer_review_ref':old_pairs['summary'].get('writer_review_ref'),'all_text_scope':'all available text including quarantined; quality separately shown','merged_or_deleted':0}
     stats=build_stats(rows,sample_ids,pair_summary,snapshot,taxonomy)
+    stats['material_disposition_counts']=dict(Counter(r['display_material_type'] for r in rows))
+    stats['classification_state_counts']=dict(Counter(r['classification_state'] for r in rows))
+    stats['full_form_review']=form_review_ref
     stats.update({'field_coverage':coverage_stats(rows),'sample_unknown_by_class':{label:{'sample_count':sum(r['sample_primary_type']==label for r in sample),'source_or_content_uncertain':sum(r['sample_primary_type']==label and (r['sample_certainty']!='TYPE_AND_SOURCE_IDENTIFIED' or r['ocr_status_asof']!='READY') for r in sample)} for label in PRIMARY},'sample_main_company_counts_nonexclusive':dict(Counter(n for r in sample for n in r.get('sample_main_research_companies',[]))),'classification_rules_version':RULES_VERSION,'incremental':metrics,'final_prepared_manifest':final_ref,'full_delivery_status':'OCR_TERMINAL_CLASSIFICATION_CANDIDATE_PENDING_INDEPENDENT_REVIEW' if final_ref else 'IMPLEMENTATION_HANDOFF_WAITING_OCR','validation60_selection_sha256':sha(validation_raw),'semantic_accuracy':'PRIOR_INDEPENDENT56_OF60_FAIL_RETAINED_NOW_REPAIR_REGRESSION_ONLY','validation60_role':'Revealed by independent review; no longer held-out after F1-F4 repair; cannot claim unseen generalization or population accuracy','historical60_scope':'Development regression only; prior independent form PASS preserved; no population estimate','repost_or_version_candidate_pairs':len(relations['repost_or_version_candidates'])})
     initial,_=read_json(root/'input/pre-tuning-old60-disagreements.json');regression=[]
     for item in initial:
         row=byid[item['document_id']];regression.append({**item,'new_candidate':row['primary_type_candidate'],'matches_reviewed_form':row['primary_type_candidate']==item['reviewed'],'new_reason':row['classification_reason'],'evidence':row['classification_evidence'],'root_cause':'导出摘要模板非原机构材料' if item['reviewed']==PRIMARY[5] else '原字典缺机构别名/封面研究结构' if item['reviewed']==PRIMARY[0] else '新闻栏目或问答结构缺识别'})
     if not all(r['matches_reviewed_form'] for r in regression):raise ValueError('KNOWN12_FORM_REGRESSION_UNRESOLVED:'+','.join(r['document_id'] for r in regression if not r['matches_reviewed_form']))
-    build_key=sha(json_raw({'progress':snapshot['progress_sha256'],'source':sha(Path(__file__).read_bytes()),'validation':sha(validation_raw),'sample60':sha(json_raw(sample_data))}))[:20]
+    build_key=sha(json_raw({'progress':snapshot['progress_sha256'],'source':sha(Path(__file__).read_bytes()),'validation':sha(validation_raw),'sample60':sha(json_raw(sample_data)),'form_review':form_review_ref}))[:20]
     out=root/'builds'/build_key
     if out.exists():
         existing,_=read_json(out/'BUILD.json')

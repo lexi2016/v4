@@ -300,3 +300,71 @@ def test_repair_f4_html_available_text_denominator_is_not_ready(tmp_path):
 def test_repair_f1_localized_research_masthead_still_precedes_consulting_reference():
     text='J.P.Morgan\n摩根大通\n中国 证券研究\n2026年9月23日\n行业观点提及白皮书。'
     assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]
+
+
+@pytest.mark.parametrize('column', ['盘中宝','电报解读','财联社早知道','研选•研报数据','九点特供','机构调研','点金互动易'])
+def test_third_owned_news_column_over_quoted_broker_and_consultant(column):
+    text='关于我们\nC财联社\n首页 电报 投研\n【'+column+'】产业事件\n电报内容\n财联社资讯获悉，国信证券研究报告认为需求增长，中国信通院白皮书引用德勤数据。'
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[3]
+
+
+def test_third_prose_wire_citation_and_broker_record_heading_do_not_fake_publication():
+    assert tool.primary_candidate(pages('财信证券\n策略点评\n证券研究报告\n据港交所及财联社，市场情绪回暖。'))[0]==tool.PRIMARY[0]
+    assert tool.primary_candidate(pages('某证券\n公司交流纪要\n证券分析师\n问：经营情况？\n答：变化。'))[0]==tool.PRIMARY[2]
+    assert tool.owned_news_marker(pages('正文引用了盘中宝报道和财联社的数据。')) is None
+
+
+@pytest.mark.parametrize('text,label',[
+ ('• 证券研究报告•\n证券分析师：张某 A0230525040004\n行业研究',tool.PRIMARY[0]),
+ ('MISSING BRAND SECURITIES\n行业周报\nAnalyst\nRating: Buy',tool.PRIMARY[0]),
+ ('KPMG\n毕马威\n中国IPO市场\n2026年第三季回顾',tool.PRIMARY[4]),
+ ('行业研究摘要\nQ1：需求如何？\n回答：增长。\nQ2：供给如何？\n回答：稳定。',tool.PRIMARY[2]),
+ ('调研总结\n核心观点\n·需求\n·供给',tool.PRIMARY[2]),
+ ('原视频：Liquid-Cooled Power Shelf\n演讲嘉宾：某工程师\n内容整理',tool.PRIMARY[2]),
+ ('行业近况\n估值与建议\n风险\n盈利预测',tool.PRIMARY[0]),
+ ('股票市场复盘\n市场走势和事件点评。',tool.PRIMARY[3]),
+ ('xuanguTong.com.cn\n本文来自持牌证券机构，不代表平台观点\n两家公司评级日报与摘要',tool.PRIMARY[3]),
+])
+def test_third_missing_form_patterns_use_existing_body(text,label):
+    assert tool.primary_candidate(pages(text))[0]==label
+
+
+def test_third_state_dispositions_separate_unavailable_failed_and_actual_form_unknown():
+    base={'ocr_status_asof':'READY','primary_type_candidate':tool.PRIMARY[6],'text_characters':1000,'classification_reason':'body inspected'}
+    assert tool.disposition({**base,'ocr_status_asof':'PENDING'})[:2]==('WAITING_OCR','待OCR')
+    assert tool.disposition({**base,'ocr_status_asof':'FAILED'})[:2]==('EXTRACTION_FAILED','提取失败')
+    assert tool.disposition({**base,'text_characters':11})[:2]==('READY_QUALITY_REVIEW','正文质量待核')
+    assert tool.disposition(base)[:2]==('READY_FORM_REVIEW','待核分类')
+    assert tool.disposition({**base,'primary_type_candidate':tool.PRIMARY[3],'quality_flags':['body unreadable']})[:2]==('READY_QUALITY_REVIEW',tool.PRIMARY[3])
+
+
+def test_third_manual_form_data_requires_exact_source_and_literal_evidence(tmp_path):
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/a.pdf','collection_directories':[]};ps=pages('独立研究文章\n作者\n实际正文。');row=tool.candidate_metadata(doc,{'status':'READY'},ps,{'labels':[],'version':'test'});row['frozen_page_input_sha256']='b'*64
+    item={'document_id':doc['document_id'],'pdf_sha256':doc['pdf_sha256'],'page_input_sha256':'b'*64,'exact_body_sha256':row['exact_body_sha256'],'primary_type':tool.PRIMARY[0],'reason':'字面研究形式','evidence':[tool.evidence(ps)]};path=tmp_path/'review.json';tool.write_json(path,{'manifest_sha256':tool.MANIFEST_SHA,'documents':[item]})
+    tool.apply_full_form_reviews([row],{doc['document_id']:ps},path)
+    assert row['primary_type_candidate']==tool.PRIMARY[0] and row['verified_stock_codes']==[]
+    assert row['original_institution_candidate'] is None
+    bad=copy.deepcopy(item);bad['page_input_sha256']='c'*64;tool.write_json(path,{'manifest_sha256':tool.MANIFEST_SHA,'documents':[bad]})
+    with pytest.raises(ValueError,match='SOURCE_BINDING'):tool.apply_full_form_reviews([row],{doc['document_id']:ps},path)
+    bad=copy.deepcopy(item);bad['evidence'][0]['excerpt']='伪造正文';tool.write_json(path,{'manifest_sha256':tool.MANIFEST_SHA,'documents':[bad]})
+    with pytest.raises(ValueError,match='EVIDENCE_MISMATCH'):tool.apply_full_form_reviews([row],{doc['document_id']:ps},path)
+
+
+def test_third_ipo_intermediary_not_research_publisher_and_earnings_brief_unknown_issuer():
+    assert tool.primary_candidate(pages('科创板投资风险提示\n某公司\n首次公开发行股票\n招股说明书（申报稿）\n中信证券是保荐人'))[0]==tool.PRIMARY[1]
+    assert tool.primary_candidate(pages('某公司（123456）业绩点评\n盈利预测与估值\n风险：行业变化'))[0]==tool.PRIMARY[0]
+    assert tool.primary_candidate(pages('某公司（123456）发布新闻，业绩符合预期。'))[0]==tool.PRIMARY[6]
+
+
+def test_third_explicit_snapshot_cannot_mix_final_or_escape_evidence(tmp_path):
+    root=tmp_path/'V4_PDF_CLASSIFICATION_FULL_20261020_R1';root.mkdir();prepared=tmp_path/'prepared';prepared.mkdir()
+    base=['--full','--evidence-root',str(root),'--prepared-root',str(prepared),'--sample-root',str(tmp_path/'sample')]
+    with pytest.raises(ValueError,match='EXPLICIT_SNAPSHOT_SCOPE'):
+        tool.full_main(base+['--snapshot-root',str(tmp_path/'outside')])
+    with pytest.raises(ValueError,match='EXPLICIT_SNAPSHOT_SCOPE'):
+        tool.full_main(base+['--snapshot-root',str(root/'snapshot'),'--require-final'])
+
+
+def test_third_research_cover_cannot_be_masked_by_wrapped_fed_citation():
+    text='国泰海通证券\nGUOTAI HAITONG SECURITIES\n资产概览\n本报告导读：\n投资要点：\n美债配置需求回暖，\n但偏鹰的 FED 会议纪要和欧元疲软仍支撑美元上涨。'
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]
