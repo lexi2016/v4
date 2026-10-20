@@ -55,3 +55,17 @@ journal retains every old HALT and adds only a typed716-only isolation. Unknown
 HALTs still reject, and its six exact events are registered with the existing
 consumer. The eventual667 content closure is unique, hash-bound and appended
 after intervening LIGHT events; it does not depend on fixed70/71 positions.
+
+The first LIGHT source and its adjacent summary contain only conference access
+errors, not research discussion. Their exact two input hashes require an
+independent source-invalid receipt before exclusion. They remain in716/2209
+accounting as SOURCE_INVALID_NO_RESEARCH_BODY, with the first original1POST and
+negative card retained and the second0POST. The original next valid source is
+the positive canary; only its independent content PASS releases the rest of the
+checkpoint. Prior fullROOT/adoption/lane events remain authenticated history;
+the same ROOT revision appends one exact current full_adoption, with no change
+to baseAUTH, model, template, protected667 failure or unknown-HALT refusal.
+
+The source-invalid revision uses distinct full-source-invalid code/runtime
+review receipts. The original full-adapter code proof remains byte-identical
+because unchanged baseAUTH still references its original hash.

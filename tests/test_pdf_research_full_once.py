@@ -170,3 +170,95 @@ def test_independent_light_lane_does_not_require_pilot_or_packages(monkeypatch):
     f.independent_light_gates(adoption,context)
     assert 'pilot_acceptance' not in adoption and 'package_acceptance' not in adoption
     with pytest.raises(b.BatchError,match='ADMISSION'):f.independent_light_gates({**adoption,'independent_light_lane':{**lane,'excluded_document_id':'foreign'}},context)
+
+
+def test_source_invalid_exact_pair_receipt_inputs_and_retained_root(tmp_path,monkeypatch):
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('offline source-invalid test'))
+    docs,_=f.selection();backup=b.RESEARCH_PILOT_ROOT/'model/full-source-invalid-before'
+    previous=f.ref(backup/'previous-full-root.json');oldproof=f.ref(backup/'previous-code-review.json')
+    adoption=json.loads(Path(previous['path']).read_text())
+    monkeypatch.setattr(b,'RESEARCH_PILOT_ROOT',tmp_path)
+    rp=tmp_path/'independent-review/full-source-invalid-review.json';rp.parent.mkdir()
+    rows=[{'document_id':did,'status':'SOURCE_INVALID_NO_RESEARCH_BODY','page_input':docs[did]['page_input']} for did in f.SOURCE_INVALID_INPUTS]
+    rp.write_text(json.dumps({'reviewer':f.REVIEWER,'status':'SOURCE_INVALID_PAIR_CONFIRMED','documents':rows}))
+    data={'independent_review':f.ref(rp),'documents':[{'document_id':did,'page_input':docs[did]['page_input']} for did in f.SOURCE_INVALID_INPUTS],
+          'positive_first_document_id':f.POSITIVE_FIRST_ID,'previous_adoption_backup':previous,'previous_source_review_backup':oldproof}
+    adoption['source_invalid_admission']=data
+    actual,prior=f.source_invalid_admission(adoption,docs)
+    assert list(actual)==list(f.SOURCE_INVALID_INPUTS) and prior['adoption']['sha256']==f.PRE_INVALID_ROOT_SHA
+    for changed in ['foreign','input','proof','positive','previous']:
+        invalid=copy.deepcopy(adoption)
+        if changed=='foreign':invalid['source_invalid_admission']['documents'][0]['document_id']='f'*64
+        elif changed=='input':invalid['source_invalid_admission']['documents'][0]['page_input']['sha256']='f'*64
+        elif changed=='proof':invalid['source_invalid_admission']['independent_review']['sha256']='f'*64
+        elif changed=='positive':invalid['source_invalid_admission']['positive_first_document_id']=f.LIGHT_FIRST_ID
+        else:invalid['source_invalid_admission']['previous_adoption_backup']['sha256']='f'*64
+        with pytest.raises(b.BatchError):f.source_invalid_admission(invalid,docs)
+
+
+def test_source_invalid_positive_canary_only_then_checkpoint_mixed_rows(tmp_path,monkeypatch):
+    ids=[*f.SOURCE_INVALID_INPUTS,f.POSITIVE_FIRST_ID,'f'*64]
+    context={'checkpoints':[{'batch_id':'LIGHT-001','document_ids':ids}],
+             'source_invalid_rows':{did:{} for did in f.SOURCE_INVALID_INPUTS},'source_invalid_review':{'path':'source-review','sha256':'a'*64},
+             'documents':{did:{'page_input':{'path':did,'sha256':'b'*64}} for did in ids}}
+    monkeypatch.setattr(f,'first_card_gate',lambda _:False)
+    original={'event':'full_terminal','document_id':f.LIGHT_FIRST_ID,'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING'}
+    assert f.pending_ids(context,[original])==('FIRST_CARD_ONLY',[f.POSITIVE_FIRST_ID])
+    rp=tmp_path/'receipt.json';rp.write_text('{}')
+    positive={'event':'full_terminal','document_id':f.POSITIVE_FIRST_ID,'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','receipt':f.ref(rp)}
+    assert f.pending_ids(context,[original,positive])==('WAITING_FIRST_CARD_CONTENT_REVIEW',[])
+    rp.write_text(json.dumps({'page_input':context['documents'][f.POSITIVE_FIRST_ID]['page_input'],'template_sha256':f.TEMPLATE_SHA,'card':f.ref(rp)}))
+    monkeypatch.setattr(f,'read',lambda ref,**_: {'page_input':context['documents'][f.POSITIVE_FIRST_ID]['page_input'],'template_sha256':f.TEMPLATE_SHA,'card':{}})
+    monkeypatch.setattr(f,'first_card_gate',lambda _:True)
+    assert f.pending_ids(context,[original,positive])==('LIGHT-001',['f'*64])
+    # Checkpoint receipt accounts for invalid sources without pretending they have cards.
+    monkeypatch.setattr(b,'RESEARCH_PILOT_ROOT',tmp_path);monkeypatch.setattr(f,'ARTIFACTS',tmp_path/'output')
+    cp={'batch_id':'LIGHT-001','document_ids':ids[:3]};card=f.job_folder(f.POSITIVE_FIRST_ID)/'card.json';card.parent.mkdir(parents=True);card.write_text('{}')
+    expected=[{'document_id':did,'page_input':context['documents'][did]['page_input'],'status':'SOURCE_INVALID_NO_RESEARCH_BODY','source_invalid_review':context['source_invalid_review']} for did in ids[:2]]
+    expected.append({'document_id':f.POSITIVE_FIRST_ID,'card':f.ref(card),'page_input':context['documents'][f.POSITIVE_FIRST_ID]['page_input'],'status':'LIGHT_CARD_CONTENT_PASS'})
+    monkeypatch.setattr(f,'independent',lambda *a,**k:{'documents':expected,'template_sha256':f.TEMPLATE_SHA})
+    review=tmp_path/'independent-review/full-LIGHT-001-content-review.json';review.parent.mkdir();review.write_text('{}')
+    f.checkpoint_gate(cp,context)
+    expected[0]['status']='LIGHT_CARD_CONTENT_PASS'
+    with pytest.raises(b.BatchError,match='CHECKPOINT_CONTENT_BINDING'):f.checkpoint_gate(cp,context)
+    monkeypatch.setattr(f,'checkpoint_gate',lambda *a:None)
+    done={**context,'checkpoints':[cp]}
+    assert f.pending_ids(done,[original,positive])==('ALL716_ACCOUNTED_WITH_SOURCE_INVALID_AND_CHECKPOINTS_ACCEPTED',[])
+
+
+def test_source_invalid_current_adoption_preserves_exact_previous_event_and_worker_gate():
+    from types import SimpleNamespace
+    prior={'adoption':{'path':'sameROOT','sha256':f.PRE_INVALID_ROOT_SHA},'sources':{'old':'hash'}}
+    context={'full_adoption_ref':{'path':'sameROOT','sha256':'c'*64},'sources':{'current':'hash'},'previous_full_adoption':prior}
+    old={'event':'full_adoption',**prior,'template_sha256':f.TEMPLATE_SHA};events=[old]
+    journal=SimpleNamespace(events=events,append=events.append)
+    with pytest.raises(b.BatchError,match='PRECLAIM'):f.verify_full_adoption(journal,context,append=False)
+    f.verify_full_adoption(journal,context,append=True);assert len(events)==2 and events[0]==old
+    f.verify_full_adoption(journal,context,append=False);assert len(events)==2
+    for bad in [events+[events[-1]],list(reversed(events)),[{**old,'sources':{'fake':'hash'}},events[-1]],[]]:
+        with pytest.raises(b.BatchError,match='ADOPTION_MISMATCH'):f.verify_full_adoption(SimpleNamespace(events=bad),context,append=True)
+
+
+def test_source_invalid_disposition_retains_all_identities_and_never_counts_completion(tmp_path,monkeypatch):
+    ids=list(f.SOURCE_INVALID_INPUTS);pdf=tmp_path/'source.pdf';pdf.write_bytes(b'preserved')
+    rows=[{'document_id':did,'route':'LIGHT_EXTRACTION' if i<2 else 'SAVE','original_pdf_path':str(pdf),'pdf_sha256':did} for i,did in enumerate(ids+[f'{i:064x}' for i in range(2207)])]
+    monkeypatch.setattr(f,'pinned',lambda _: {'documents':rows})
+    monkeypatch.setattr(f.packages,'selected_package',lambda _:({},[],''))
+    monkeypatch.setattr(f,'ARTIFACTS',tmp_path/'accounting')
+    context={'full_adoption':{},'full_adoption_ref':{'path':'sameROOT','sha256':'a'*64},'source_invalid_rows':{did:{} for did in ids},'source_invalid_review':{'path':'review','sha256':'b'*64},'analysis_admission':{'pilot':{'source_hold_ids':[]}}}
+    negative={'event':'full_terminal','document_id':ids[0],'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','receipt':{'path':'retained1POST','sha256':'c'*64}}
+    output=f.write_disposition(context,[negative]);value=json.loads(Path(output['path']).read_text())
+    assert value['identity_count']==2209 and len(value['documents'])==2209 and value['counts']['SOURCE_INVALID_NO_RESEARCH_BODY']==2
+    first,second=value['documents'][:2]
+    assert all(x['model_complete'] is False and x['route']=='LIGHT_EXTRACTION' for x in (first,second))
+    assert first['actual_model_POSTs']==1 and first['prior_negative_terminal']==negative and second['actual_model_POSTs']==0
+    assert pdf.read_bytes()==b'preserved'
+
+
+def test_source_invalid_proofs_have_distinct_paths_preserving_base_authority():
+    old_code,old_runtime=f.release_review_paths({})
+    new_code,new_runtime=f.release_review_paths({'source_invalid_admission':{'exact_pair':'present'}})
+    assert old_code.name=='full-adapter-code-review.json' and old_runtime.name=='full-adapter-runtime-review.json'
+    assert new_code.name=='full-source-invalid-code-review.json' and new_runtime.name=='full-source-invalid-runtime-review.json'
+    assert old_code!=new_code and old_runtime!=new_runtime

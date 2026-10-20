@@ -249,6 +249,55 @@ def independent_light_gates(adoption:Mapping[str,Any],context:Mapping[str,Any]) 
         fail('FULL_LIGHT_BASE_SOURCE_BINDING_MISMATCH')
 
 
+
+# Only independently established invalid-source negatives may be skipped. These
+# identities remain in the original716 and in checkpoint/2209 accounting.
+SOURCE_INVALID_INPUTS={
+ '95190d5463e88b9e46bb85fd8da40a5d92a6562738af7412381254ce1848686f':'0c373e15f83afeb5b465b1c8bd50f451322e36d408a035bd40fde6b33c8263dc',
+ '7635be1c5a8f4067849e93e35a663b4ffec9f7d649c29c100eeccdfc95b19c67':'1f2979247746c7089be9ccb613ff5d3c063121f0acdb71f612c2e83e2aad3e18',
+}
+POSITIVE_FIRST_ID='81e29888baa54224d4d261305a3ef1921873c0c564385cd76bf47a5e9281945e'
+PRE_INVALID_ROOT_SHA='96e5822c10c2efa352e1b72ba0d5722fb1a89d3e4bf867111e62d3ec146cc02a'
+PRE_INVALID_CODE_SHA='028bed04f1fc2f59af8f7c2324c8072c9cd208e3556566cb6e1f656ad0f2c5d9'
+
+
+def source_invalid_admission(adoption:Mapping[str,Any],documents:Mapping[str,Any]) -> tuple[dict[str,Any],dict[str,Any]|None]:
+    data=adoption.get('source_invalid_admission')
+    if data is None:return {},None
+    review=independent(data['independent_review'],{'SOURCE_INVALID_PAIR_CONFIRMED'})
+    if Path(data['independent_review']['path'])!=b.RESEARCH_PILOT_ROOT/'independent-review/full-source-invalid-review.json':fail('FULL_SOURCE_INVALID_REVIEW_PATH')
+    rows=review.get('documents',[])
+    if ([r.get('document_id') for r in rows]!=list(SOURCE_INVALID_INPUTS)
+            or data.get('positive_first_document_id')!=POSITIVE_FIRST_ID
+            or data.get('documents')!=[{'document_id':did,'page_input':documents[did]['page_input']} for did in SOURCE_INVALID_INPUTS]):fail('FULL_SOURCE_INVALID_EXACT_PAIR_REQUIRED')
+    for row in rows:
+        did=row['document_id'];expected=documents[did]['page_input']
+        if row.get('status')!='SOURCE_INVALID_NO_RESEARCH_BODY' or row.get('page_input')!=expected or expected['sha256']!=SOURCE_INVALID_INPUTS[did]:fail('FULL_SOURCE_INVALID_INPUT_BINDING')
+        source(did,documents)
+    previous=read(data['previous_adoption_backup']);proof=independent(data['previous_source_review_backup'],{'REVIEWED_PASS'})
+    if (data['previous_adoption_backup']['sha256']!=PRE_INVALID_ROOT_SHA or data['previous_source_review_backup']['sha256']!=PRE_INVALID_CODE_SHA
+            or previous.get('sources')!=proof.get('full_sources') or previous.get('source_review',{}).get('sha256')!=PRE_INVALID_CODE_SHA
+            or any(previous.get(k)!=adoption.get(k) for k in ('authorization','base_sources','template_sha256','planning_pins','independent_light_lane'))):fail('FULL_SOURCE_INVALID_RETAINED_ADOPTION_MISMATCH')
+    anchor={'path':str(ROOT),'sha256':PRE_INVALID_ROOT_SHA}
+    return {row['document_id']:row for row in rows},{'adoption':anchor,'sources':previous['sources']}
+
+
+def positive_first(context:Mapping[str,Any]) -> str:
+    invalid=context.get('source_invalid_rows',{})
+    return next(did for did in context['checkpoints'][0]['document_ids'] if did not in invalid)
+
+
+def verify_full_adoption(journal:Any,context:Mapping[str,Any],*,append:bool) -> None:
+    current={'event':'full_adoption','adoption':context['full_adoption_ref'],'template_sha256':TEMPLATE_SHA,'sources':context['sources']}
+    previous=context.get('previous_full_adoption')
+    expected=([{'event':'full_adoption',**previous,'template_sha256':TEMPLATE_SHA}] if previous else [])+[current]
+    prior=[{k:v for k,v in e.items() if k!='at_utc'} for e in journal.events if e.get('event')=='full_adoption']
+    if previous and not prior or prior!=expected[:len(prior)] or len(prior)>len(expected):fail('FULL_JOURNAL_ADOPTION_MISMATCH')
+    if prior!=expected:
+        if not append:fail('FULL_PRECLAIM_ADOPTION_REQUIRED')
+        journal.append(current)
+
+
 def prepare_light_lane_isolation(journal:Any,context:Mapping[str,Any]) -> dict[str,Any]:
     lane=context['full_adoption']['independent_light_lane']
     raw=d._read_regular(journal.path,'FULL_JOURNAL_REQUIRED');lines=raw.splitlines(keepends=True)
@@ -258,7 +307,7 @@ def prepare_light_lane_isolation(journal:Any,context:Mapping[str,Any]) -> dict[s
             or journal.events[67].get('receipt_sha256')!=lane['failed_receipt']['sha256']
             or journal.events[68].get('event')!='halt' or journal.events[68].get('document_id')!=b.PILOT_TOOL_BUDGET_DOCUMENT_ID):
         fail('FULL_LIGHT_EXACT69_HALT_BOUNDARY_REQUIRED')
-    event={'event':'full_light_lane_isolation','adoption':context['full_adoption_ref'],'authorization_sha256':context['authorization_sha256'],
+    event={'event':'full_light_lane_isolation','adoption':context.get('light_lane_anchor',context['full_adoption_ref']),'authorization_sha256':context['authorization_sha256'],
            'isolated_document_id':b.PILOT_TOOL_BUDGET_DOCUMENT_ID,'reconciled_event_index':67,'halt_event_index':68,
            'reconciled_event_line_sha256':sha(lines[67]),'journal_prefix69_sha256':b.PILOT_V4_PREFIX_SHA256,
            'allowed_selection_sha256':PINS['planning/light716.json'],'template_sha256':TEMPLATE_SHA,
@@ -270,21 +319,31 @@ def prepare_light_lane_isolation(journal:Any,context:Mapping[str,Any]) -> dict[s
             'continuation_id':journal.events[67]['continuation_id'],'document_id':b.PILOT_TOOL_BUDGET_DOCUMENT_ID}
 
 
+
+def release_review_paths(adoption:Mapping[str,Any]) -> tuple[Path,Path]:
+    # Preserve the original code proof referenced by unchanged baseAUTH.
+    prefix='full-source-invalid' if adoption.get('source_invalid_admission') else 'full-adapter'
+    root=b.RESEARCH_PILOT_ROOT/'independent-review'
+    return root/f'{prefix}-code-review.json',root/f'{prefix}-runtime-review.json'
+
+
 def load_context(*,runtime_release:bool=True) -> dict[str,Any]:
     context=packages.load_context();documents,checkpoints=selection()
     adoption=read(ref(ROOT))
     if adoption.get('status')!='ROOT_ADOPTED' or adoption.get('authorization')!=ref(d.AUTHORIZATION_PATH) or adoption.get('template_sha256')!=TEMPLATE_SHA or adoption.get('planning_pins')!=PINS:
         fail('FULL_ROOT_ADOPTION_MISMATCH')
     code=independent(adoption['source_review'],{'REVIEWED_PASS'})
-    if Path(adoption['source_review']['path'])!=b.RESEARCH_PILOT_ROOT/'independent-review/full-adapter-code-review.json':fail('FULL_CODE_REVIEW_PATH_MISMATCH')
+    if Path(adoption['source_review']['path'])!=release_review_paths(adoption)[0]:fail('FULL_CODE_REVIEW_PATH_MISMATCH')
     current={name:ref(d.PROJECT_ROOT/name)['sha256'] for name in SOURCE_PATHS}
     if adoption.get('sources')!=current or code.get('full_sources',code.get('sources'))!=current:fail('FULL_SOURCE_REVIEW_MISMATCH')
     independent_light_gates(adoption,context)
+    invalid,previous=source_invalid_admission(adoption,documents)
+    if invalid and (checkpoints[0]['document_ids'][:3]!=[*SOURCE_INVALID_INPUTS,POSITIVE_FIRST_ID] or documents[POSITIVE_FIRST_ID]['page_input']['sha256']!='9653c17fb83c287313b7a77e6f9e7b983ecf3bfe86784032debae655755db95a'):fail('FULL_SOURCE_INVALID_POSITIVE_ORDER_MISMATCH')
     if runtime_release:
-        rp=b.RESEARCH_PILOT_ROOT/'independent-review/full-adapter-runtime-review.json';review=independent(ref(rp),{'FULL_RUNTIME_ADOPTION_PASS'})
+        rp=release_review_paths(adoption)[1];review=independent(ref(rp),{'FULL_RUNTIME_ADOPTION_PASS'})
         if (review.get('adoption')!=ref(ROOT) or review.get('sources')!=current or review.get('authorization')!=ref(d.AUTHORIZATION_PATH)
                 or review.get('base_sources')!=adoption['base_sources']):fail('FULL_RUNTIME_RELEASE_MISMATCH')
-    return {**context,'full_adoption':adoption,'full_adoption_ref':ref(ROOT),'documents':documents,'checkpoints':checkpoints,'sources':current}
+    return {**context,'full_adoption':adoption,'full_adoption_ref':ref(ROOT),'documents':documents,'checkpoints':checkpoints,'sources':current,'source_invalid_rows':invalid,'source_invalid_review':adoption.get('source_invalid_admission',{}).get('independent_review'),'previous_full_adoption':previous,'light_lane_anchor':previous['adoption'] if previous else ref(ROOT)}
 
 
 def historical_context(context:Mapping[str,Any]) -> dict[str,Any]:
@@ -300,6 +359,14 @@ def verify_history(journal:Any,context:Mapping[str,Any]) -> None:
     old=d._analysis_isolation_descriptor(context,journal);extra=d._prepare_pilot_tool_recovery(journal,context);synthesis=d._prepare_synthesis_recovery(journal,context)
     lane=prepare_light_lane_isolation(journal,context)
     d._halt_if_required(journal,d._latest_document_events(journal.events),halt_resume_descriptor=old,additional_halt_resume_descriptor=extra,synthesis_halt_resume_descriptor=synthesis,sectioned_halt_resume_descriptor=lane)
+    if context.get('source_invalid_rows'):
+        first=[e for e in journal.events if e.get('event')=='full_terminal' and e.get('document_id')==LIGHT_FIRST_ID]
+        second=list(SOURCE_INVALID_INPUTS)[1]
+        if (len(first)!=1 or first[0].get('status')!='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING'
+                or first[0].get('receipt',{}).get('sha256')!='c6ca76b7cf9e41810616532af4526542f269feca0c391c7a1a0486d64d0f1366'
+                or any(e.get('event') in {'full_plan','full_intent','full_terminal'} and e.get('document_id')==second for e in journal.events)):
+            fail('FULL_SOURCE_INVALID_PRIOR_EXECUTION_MISMATCH')
+        read(first[0]['receipt'])
     for event in journal.events:
         if event.get('event')=='full_terminal' and event.get('status')=='FAILED_NO_RETRY':fail('FULL_PRIOR_FAILURE_NO_RETRY')
 
@@ -310,7 +377,7 @@ def job_folder(did:str) -> Path:
 
 
 def first_card_gate(context:Mapping[str,Any]) -> bool:
-    did=context['checkpoints'][0]['document_ids'][0];path=b.RESEARCH_PILOT_ROOT/'independent-review/full-first-card-content-review.json'
+    did=positive_first(context);path=b.RESEARCH_PILOT_ROOT/'independent-review/full-first-card-content-review.json'
     if not path.exists():return False
     review=independent(ref(path),{'LIGHT_CARD_CONTENT_PASS'});row=context['documents'][did]
     if review.get('document_id')!=did or review.get('card')!=ref(job_folder(did)/'card.json') or review.get('page_input')!=row['page_input'] or review.get('template_sha256')!=TEMPLATE_SHA:fail('FULL_FIRST_CARD_CONTENT_BINDING_MISMATCH')
@@ -320,12 +387,12 @@ def first_card_gate(context:Mapping[str,Any]) -> bool:
 def checkpoint_gate(checkpoint:Mapping[str,Any],context:Mapping[str,Any]) -> None:
     path=b.RESEARCH_PILOT_ROOT/'independent-review'/f"full-{checkpoint['batch_id']}-content-review.json"
     review=independent(ref(path),{'FULL_LIGHT_CHECKPOINT_CONTENT_PASS'})
-    expected=[{'document_id':did,'card':ref(job_folder(did)/'card.json'),'page_input':context['documents'][did]['page_input'],'status':'LIGHT_CARD_CONTENT_PASS'} for did in checkpoint['document_ids']]
+    expected=[({'document_id':did,'page_input':context['documents'][did]['page_input'],'status':'SOURCE_INVALID_NO_RESEARCH_BODY','source_invalid_review':context['source_invalid_review']} if did in context.get('source_invalid_rows',{}) else {'document_id':did,'card':ref(job_folder(did)/'card.json'),'page_input':context['documents'][did]['page_input'],'status':'LIGHT_CARD_CONTENT_PASS'}) for did in checkpoint['document_ids']]
     if review.get('documents')!=expected or review.get('template_sha256')!=TEMPLATE_SHA:fail('FULL_CHECKPOINT_CONTENT_BINDING_MISMATCH')
 
 
 def pending_ids(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]) -> tuple[str,list[str]]:
-    first=context['checkpoints'][0]['document_ids'][0];released=first_card_gate(context)
+    first=positive_first(context);released=first_card_gate(context)
     terms={}
     for event in events:
         if event.get('event')=='full_terminal':
@@ -339,6 +406,7 @@ def pending_ids(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]) -> t
     for checkpoint in context['checkpoints']:
         todo=[]
         for did in checkpoint['document_ids']:
+            if did in context.get('source_invalid_rows',{}):continue
             if did not in terms:todo.append(did);continue
             event=terms[did]
             if event.get('status')!='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING':fail('FULL_PRIOR_FAILURE_NO_RETRY')
@@ -347,7 +415,7 @@ def pending_ids(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]) -> t
             read(receipt['card'])
         if todo:return checkpoint['batch_id'],todo
         checkpoint_gate(checkpoint,context)
-    return 'ALL716_GENERATED_AND_CHECKPOINTS_ACCEPTED',[]
+    return ('ALL716_ACCOUNTED_WITH_SOURCE_INVALID_AND_CHECKPOINTS_ACCEPTED' if context.get('source_invalid_rows') else 'ALL716_GENERATED_AND_CHECKPOINTS_ACCEPTED'),[]
 
 
 
@@ -370,7 +438,10 @@ def write_disposition(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]
         row={'document_id':did,'route':route,'original_pdf_path':item['original_pdf_path'],'pdf_sha256':item['pdf_sha256'],
              'frozen_page_input':item.get('frozen_page_input'),'blocking_fields':item.get('blocking_fields',[]),
              'original_source_exists':Path(item['original_pdf_path']).is_file(),'model_complete':False}
-        if route=='SAVE':row['status']='ORIGINAL_SAVED_NO_NEW_MODEL_REQUIRED'
+        if did in context.get('source_invalid_rows',{}):
+            row.update(status='SOURCE_INVALID_NO_RESEARCH_BODY',source_invalid_review=context['source_invalid_review'],actual_model_POSTs=1 if did==LIGHT_FIRST_ID else 0)
+            if did in terminals:row.update(prior_negative_terminal=terminals[did])
+        elif route=='SAVE':row['status']='ORIGINAL_SAVED_NO_NEW_MODEL_REQUIRED'
         elif route=='REVIEW':row['status']='REVIEW_REQUIRED_NOT_MODEL_COMPLETE'
         elif route=='REUSE':
             row.update(status='REUSED_EXISTING_ACCEPTED_DISPLAY_COMBINATION',accepted_existing_result=item.get('existing_accepted_result'))
@@ -391,7 +462,7 @@ def write_disposition(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]
                     if rp.exists():
                         checkpoint_gate(checkpoint,context)
                         row.update(status='LIGHT_CARD_CONTENT_PASS',content_review=ref(rp),model_complete=True)
-                    elif did==context['checkpoints'][0]['document_ids'][0] and first_card_gate(context):
+                    elif did==positive_first(context) and first_card_gate(context):
                         row.update(status='LIGHT_CARD_CONTENT_PASS',content_review=ref(b.RESEARCH_PILOT_ROOT/'independent-review/full-first-card-content-review.json'),model_complete=True)
                 else:row['failure']=event
         else:fail('FULL_UNKNOWN_ROUTE')
@@ -424,8 +495,9 @@ def worker(did:str,plan_path:Path) -> dict[str,Any]:
         b.verify_analysis_runtime(fresh['analysis_admission'],lm.build_request_material(b.RESPONSE_SCHEMA))
         if fresh['full_adoption_ref']!=context['full_adoption_ref'] or sha(d._read_regular(plan_path,'FULL_PLAN_REQUIRED'))!=sha(plan_raw):fail('FULL_DISPATCH_DRIFT')
         events=[json.loads(x) for x in d._read_regular(d.EVIDENCE_ROOT/'dispatch.jsonl','FULL_JOURNAL_REQUIRED').splitlines()]
-        expected={'event':'full_adoption','adoption':fresh['full_adoption_ref'],'template_sha256':TEMPLATE_SHA,'sources':fresh['sources']}
-        if [{k:v for k,v in x.items() if k!='at_utc'} for x in events if x.get('event')=='full_adoption']!=[expected]:fail('FULL_PRECLAIM_ADOPTION_REQUIRED')
+        from types import SimpleNamespace
+        verify_full_adoption(SimpleNamespace(events=events),fresh,append=False)
+        if did in fresh.get('source_invalid_rows',{}):fail('FULL_SOURCE_INVALID_MODEL_POST_FORBIDDEN')
         related=[x for x in events if x.get('document_id')==did and x.get('event','').startswith('full_')]
         if not related or related[-1].get('event')!='full_intent' or related[-1].get('plan_sha256')!=sha(plan_raw):fail('FULL_PRECLAIM_DISPATCH_REQUIRED')
         # Read-only historical verification: existing authenticated descriptors, no append allowed in worker.
@@ -472,10 +544,7 @@ def execute(max_documents:int) -> dict[str,Any]:
     context=load_context();ARTIFACTS.mkdir(parents=True,exist_ok=True)
     with d.DurableJournal(d.EVIDENCE_ROOT) as journal:
         verify_history(journal,context)
-        adoption_event={'event':'full_adoption','adoption':context['full_adoption_ref'],'template_sha256':TEMPLATE_SHA,'sources':context['sources']}
-        prior=[{k:v for k,v in e.items() if k!='at_utc'} for e in journal.events if e.get('event')=='full_adoption']
-        if not prior:journal.append(adoption_event)
-        elif prior!=[adoption_event]:fail('FULL_JOURNAL_ADOPTION_MISMATCH')
+        verify_full_adoption(journal,context,append=True)
         phase,ids=pending_ids(context,journal.events);results=[];write_disposition(context,journal.events)
         for did in ids[:max_documents]:
             fresh=load_context();phase,allowed=pending_ids(fresh,journal.events)
