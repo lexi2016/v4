@@ -1,0 +1,24 @@
+{
+  "schema_version": "receipt-count-runtime-delta-baseline-v1",
+  "git_base": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "branch": "codex/receipt-selector-row-count-20261020",
+  "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app",
+  "git_runtime_equivalence_claimed": false,
+  "runtime_source_revision": "CANNOT_CONFIRM_LEGACY_MODULE_ABSENT_FROM_CHECKOUT",
+  "files": {
+    "ops/macos_research_panel_daily.py": "19278e31e237c84bc4dc3a146bf74d2a1fac837d249676c7faa624acde39c1e6",
+    "ops/macos_research_panel_daily_common.py": "023fc378f17c8fe2c9b7c821db27ed63ae3c192a261c93c78991f1a89bca8052",
+    "ops/macos_research_panel_daily_collectors.py": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87",
+    "ops/macos_research_panel_daily_authority.py": "6b709403414d362bca0bf997a2be55cc7c833361b4a9c465cbf1f7a129827303",
+    "ops/macos_research_panel_daily_pack.py": "f717f72ab568939c4c69e3d2dcf810022f483b027b927837b172bc56d204fb9f",
+    "ops/macos_research_panel_daily_gate.py": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+    "ops/macos_research_panel_daily_receipts.py": "1f18a817e2d732403ee9b573c94fb80d53732702f089fc4d0d064965e3467064"
+  },
+  "allowed_delta": [
+    "ops/macos_research_panel_daily_receipts.py"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
