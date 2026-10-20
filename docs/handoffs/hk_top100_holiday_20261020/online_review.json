@@ -1,0 +1,34 @@
+{
+  "schema_version": "v4.hk_top100_online_review.v1",
+  "reviewer": "/root/hk_top100_runtime_review",
+  "recorded_by": "root from independent reviewer final",
+  "verdict": "RUNTIME_IDENTITY_VERIFIED_PASS",
+  "scope": "loaded scheduler identity, approved source hashes, retained dependencies and recorded safety flags",
+  "label": "gui/501/com.lexi.v35.scheduler",
+  "pid": 72933,
+  "release": "hk-top100-holiday-scheduler-20261020-r1",
+  "plist_sha256": "80125421f00e29cc2dbaa629395ec12c0b87dc4380d2699a8fbeaf3a769e6f1a",
+  "manifest_sha256": "a80dbd4ecdcb8e3a45f7641f6761e8ab62010df78a42619de9e421006d41bde4",
+  "runtime_files": {
+    "infrastructure/scheduling/executor_registry_preselection.py": "75e065bb68add1cb6c87a133edbdc5ee508e8395906e0a57ccb9fa07195afbb9",
+    "ops/materialize_scheduled_preselection.py": "08c0cbaa5ae638f93aef20f17c1791e9c73178b9f0a1ab3cbe4b7c1e3039eeac"
+  },
+  "environment": {
+    "loaded_matches_plist": 81,
+    "unchanged_entries": 76,
+    "expected_release_identity_changes": 5
+  },
+  "log_readback": "DAEMON_READY and at least five DAEMON_CYCLE records match release/PID; production_allowed, buy_gate_updated, orders_sent are false.",
+  "research_only_environment_value": "CANNOT_CONFIRM: activation receipt declares true, but no separate live environment/cycle field exposes this flag.",
+  "prior_actual_file_drift_preserved": {
+    "ops/macos_research_panel_daily_receipts.py": "14197397d9d7dcd7e748492973f5a0ea2c215cfe4ac22dbbd1a0ed4646ee2aa1"
+  },
+  "not_run": [
+    "code test repetition",
+    "provider/scorer calls",
+    "manual stage or business data regeneration",
+    "natural slot acceptance",
+    "API/UI behavior"
+  ],
+  "natural_slot_verified": false
+}

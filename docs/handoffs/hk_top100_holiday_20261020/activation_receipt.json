@@ -1,0 +1,75 @@
+{
+  "schema_version": "v4.hk_top100_activation.v1",
+  "status": "DEPLOYED_RUNTIME_BINDING_VERIFIED",
+  "activated_at": "2026-10-20T02:56:29.291843+00:00",
+  "label": "gui/501/com.lexi.v35.scheduler",
+  "old_pid": 72192,
+  "previous_release": "us-mapping-close-scheduler-20261020-r1",
+  "release": "hk-top100-holiday-scheduler-20261020-r1",
+  "manifest_sha256": "a80dbd4ecdcb8e3a45f7641f6761e8ab62010df78a42619de9e421006d41bde4",
+  "plist_before_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+  "plist_after_sha256": "80125421f00e29cc2dbaa629395ec12c0b87dc4380d2699a8fbeaf3a769e6f1a",
+  "idle_guard": "two snapshots no active children; old process exit verified before bootstrap",
+  "bootstrap_attempts": [
+    {
+      "returncode": 0,
+      "stderr": ""
+    }
+  ],
+  "prior_attempt": "initial immediate bootstrap returned 5; old configuration restored and old service reloaded before this bounded retry",
+  "stdout_readback_offset": 65899033,
+  "manual_provider_or_stage_rerun": false,
+  "natural_slot_verified": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "runtime_readback": {
+    "pid": 72933,
+    "launchd_state": "running",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-top100-holiday-scheduler-20261020-r1/app",
+    "environment_manifest_matches": true,
+    "matching_new_release_log_records": [
+      {
+        "schema_version": "v3_5.macos_scheduler_daemon.v1",
+        "status": "DAEMON_READY",
+        "release_id": "hk-top100-holiday-scheduler-20261020-r1",
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      {
+        "schema_version": "v3_5.macos_scheduler_result.v1",
+        "status": "NO_DUE_SLOT",
+        "release_id": "hk-top100-holiday-scheduler-20261020-r1",
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      {
+        "schema_version": "v3_5.macos_scheduler_daemon.v1",
+        "status": "DAEMON_CYCLE",
+        "release_id": "hk-top100-holiday-scheduler-20261020-r1",
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      {
+        "schema_version": "v3_5.macos_scheduler_result.v1",
+        "status": "NO_DUE_SLOT",
+        "release_id": "hk-top100-holiday-scheduler-20261020-r1",
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      },
+      {
+        "schema_version": "v3_5.macos_scheduler_daemon.v1",
+        "status": "DAEMON_CYCLE",
+        "release_id": "hk-top100-holiday-scheduler-20261020-r1",
+        "production_allowed": false,
+        "buy_gate_updated": false,
+        "orders_sent": false
+      }
+    ]
+  }
+}
