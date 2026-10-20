@@ -1,0 +1,34 @@
+{
+  "phase": "CUTOVER_GUARD_ONLY",
+  "status": "INDEPENDENT_PASS_CANONICAL_INTEGRATED_NOT_ACTIVATED",
+  "implementation_source_branch": "codex/announcement-daily-workflow-20261020",
+  "local_delivery_branch": "codex/announcement-daily-delivery-local-20261020",
+  "remote_delivery_branch": "codex/announcement-daily-workflow-20261020",
+  "remote_baseline_commit": "d04ad805fe64e6f50a0217b385dad745c5dc3c60",
+  "source_sha256": {
+    "ops/api_release_integration.py": "4bcda4d0a2a26d15616ab0ba809ad86c0f874bfbcc7367cbc54cd1f77d56597d",
+    "tests/test_api_release_integration.py": "43f9daeb913ce1ca3e9b58683bdc59db88d8dc14e9ce46091087a0fbb018b215"
+  },
+  "review_receipt_sha256": "538194599a5ce198e026f3b9cf1ac73fbe49dcac78ac3c3ec029d16ea84a367b",
+  "validation": {
+    "independent_regression": "47 passed",
+    "exact_metadata_cases": {
+      "allowed": 1,
+      "blocked": 29
+    },
+    "three_locks_held": true,
+    "legacy_orphan_compatibility": true,
+    "historical_bytes_preserved": true
+  },
+  "test_environment": "API Python 3.14.6; isolated metadata and candidate guard; frozen existing operator-helper dependencies",
+  "NOT_RUN": [
+    "live cutover guard",
+    "release activation",
+    "real model requests",
+    "P23 acceptance"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
