@@ -31,7 +31,8 @@ def _install_fake_prepared_manifest(
     sources_by_document: dict[str, dict[str, object]] | None = None,
     revision_ids: set[str] | None = None,
 ) -> tuple[Path, str]:
-    """Stub only manifest verification; use real prepared-page loading when supplied."""
+    """Synthetic prepared/input tests isolate admission; dedicated admission tests use its real loader."""
+    monkeypatch.setattr(batch, "load_analysis_admission", lambda *args, **kwargs: None)
     manifest_path = tmp_path / "prepared-text-manifest.json"
     manifest_path.write_text("{}\n", encoding="utf-8")
     manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
@@ -2639,3 +2640,205 @@ def test_continuation_recovery_recognizes_only_typed_terminal_sse_prefill_error(
     assert not batch._continuation_recovery_raw_has_exact_error(missing_done)
     malformed = b"data: {\"type\":\"error\",\"error\":\n\ndata: [DONE]\n\n"
     assert not batch._continuation_recovery_raw_has_exact_error(malformed)
+
+# Admission is a separate, real fail-closed boundary; the earlier synthetic
+# prepared fixtures intentionally isolate it when testing unrelated old logic.
+@pytest.fixture
+def analysis_fixture(tmp_path, monkeypatch):
+    from ops import run_pdf_research_remaining_once as active_dispatcher
+    root = tmp_path / 'admission'; root.mkdir()
+    selection = root / 'execution-selection18.json'
+    monkeypatch.setattr(batch, 'ANALYSIS_ROOT', root)
+    monkeypatch.setattr(batch, 'ANALYSIS_SELECTION_PATH', selection)
+    monkeypatch.setattr(batch, 'ANALYSIS_REVIEW_PATH', root / 'canary-content-review.json')
+    monkeypatch.setattr(active_dispatcher, 'AUTHORIZATION_PATH', root / 'authorization.json')
+    monkeypatch.setattr(active_dispatcher, 'EVIDENCE_ROOT', root / 'journal')
+    def write(path, value):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value, sort_keys=True) + '\n')
+        return {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    rows = []
+    ids = [batch.ANALYSIS_CANARY_ID] + [f'{i:064x}' for i in range(1, 18)]
+    for did in ids:
+        receipt = write(root / did / 'document.json', {'status':'READY','document_id':did,'pdf_sha256':did})
+        page_input = write(root / did / 'page-input.json', {'document_id':did,'pages':[{'text':'research body'}]})
+        rows.append({'document_id':did, 'prepared_receipt':receipt, 'page_input':page_input,
+                     'prior_status':'UNPROCESSED','source_or_content_unverified':False,
+                     'reviewer_primary_type':'券商/研究机构研究'})
+    base = write(root / 'preflight-selection.json', {'eligible_documents':rows})
+    monkeypatch.setattr(batch, 'ANALYSIS_BASE_SELECTION_SHA256', base['sha256'])
+    classification = write(root / 'classification.json', {'verdict':'PASS'})
+    monkeypatch.setattr(batch, 'ANALYSIS_CLASSIFICATION_REVIEW_PATH', Path(classification['path']))
+    monkeypatch.setattr(batch, 'ANALYSIS_CLASSIFICATION_REVIEW_SHA256', classification['sha256'])
+    value = {'schema':batch.ANALYSIS_SCHEMA,'status':'ROOT_ADOPTED',
+             'parent_manifest_sha256':batch.EXPECTED_BATCH_MANIFEST_SHA256,
+             'prepared_text_manifest_sha256':'f'*64,'canary_document_id':batch.ANALYSIS_CANARY_ID,'documents':rows}
+    reference = write(selection, value)
+    auth = {'analysis_admission':reference,'prepared_text_manifest_sha256':'f'*64}
+    auth_ref = write(active_dispatcher.AUTHORIZATION_PATH, auth)
+    context = {'authorization':auth,'authorization_sha256':auth_ref['sha256']}
+    monkeypatch.setattr(batch, 'verify_analysis_runtime', lambda *a, **k: None)
+    return SimpleNamespace(root=root,selection=selection,value=value,reference=reference,context=context,
+                           write=write,dispatcher=active_dispatcher,rows=rows)
+
+
+def _load_test_admission(f):
+    return batch.load_analysis_admission(f.selection, f.reference['sha256'], prepared_sha256='f'*64,
+                                         authorization_context=f.context)
+
+
+def test_analysis_missing_selection_stops_before_state_creation(tmp_path):
+    target = tmp_path / 'must-not-exist'
+    with pytest.raises(batch.BatchError, match='ANALYSIS_ADMISSION_REQUIRED'):
+        batch.run_batch(state_root=target, prepared_text_manifest_sha256='f'*64)
+    assert not target.exists()
+
+
+def test_analysis_real_loader_limits_initial_phase_to_canary(analysis_fixture):
+    admission = _load_test_admission(analysis_fixture)
+    assert len(admission['documents']) == 18
+    assert admission['allowed_ids'] == [batch.ANALYSIS_CANARY_ID]
+    batch.guard_analysis_document(admission, batch.ANALYSIS_CANARY_ID)
+    with pytest.raises(batch.BatchError, match='NOT_ADMITTED'):
+        batch.guard_analysis_document(admission, analysis_fixture.rows[1]['document_id'])
+
+
+@pytest.mark.parametrize('field,wrong', [('prior_status','FAILED_NO_RETRY'),('reviewer_primary_type','新闻/资讯解读'),
+                                         ('source_or_content_unverified',True)])
+def test_analysis_tampered_admission_cannot_expand_accepted_form(analysis_fixture, field, wrong):
+    f = analysis_fixture
+    f.value['documents'][1][field] = wrong
+    f.reference.update(f.write(f.selection, f.value))
+    f.context['authorization']['analysis_admission'] = dict(f.reference)
+    with pytest.raises(batch.BatchError, match='ELIGIBILITY'):
+        _load_test_admission(f)
+
+
+def test_analysis_wrong_final_manifest_or_root_selection_rejected(analysis_fixture):
+    f = analysis_fixture
+    with pytest.raises(batch.BatchError, match='BINDING'):
+        batch.load_analysis_admission(f.selection, f.reference['sha256'], prepared_sha256='0'*64, authorization_context=f.context)
+    f.context['authorization']['analysis_admission'] = {'path':str(f.selection),'sha256':'0'*64}
+    with pytest.raises(batch.BatchError, match='BINDING'):
+        _load_test_admission(f)
+
+
+def test_analysis_source_or_authorization_drift_stops_before_dispatch(analysis_fixture):
+    f = analysis_fixture; admission = _load_test_admission(f)
+    path = Path(f.rows[0]['page_input']['path']); original = path.read_bytes(); path.write_bytes(b'changed')
+    with pytest.raises(batch.BatchError, match='REFERENCE_SHA'):
+        batch.guard_analysis_document(admission, batch.ANALYSIS_CANARY_ID)
+    path.write_bytes(original)
+    f.dispatcher.AUTHORIZATION_PATH.write_bytes(b'changed')
+    with pytest.raises(batch.BatchError, match='AUTHORIZATION_DRIFT'):
+        batch.guard_analysis_document(admission, batch.ANALYSIS_CANARY_ID)
+
+
+def test_analysis_only_bound_independent_complete_canary_opens_remaining(analysis_fixture):
+    f = analysis_fixture
+    state = f.root / 'state'; doc = state / 'documents' / batch.ANALYSIS_CANARY_ID
+    receipt = f.write(doc / 'receipt.json', {'status':'MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING'})
+    report_path = doc / 'report.md'; report_path.write_text('事实 [第1页]\n预测 [第2页]\n风险 [第3页]\n')
+    report = {'path':str(report_path),'sha256':hashlib.sha256(report_path.read_bytes()).hexdigest()}
+    event = {'event':'reconciled','document_id':batch.ANALYSIS_CANARY_ID,'status':'MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING',
+             'receipt_path':receipt['path'],'receipt_sha256':receipt['sha256'],'state_root':str(state)}
+    journal = f.dispatcher.EVIDENCE_ROOT / 'dispatch.jsonl'; journal.parent.mkdir(); journal.write_text(json.dumps(event)+'\n')
+    review = {'schema':'v4.pdf_research.canary_content_review.v1','status':'REPORT_CONTENT_PASS',
+              'reviewer':'/root/pdf_model_analysis_reviewer','selection_sha256':f.reference['sha256'],
+              'document_id':batch.ANALYSIS_CANARY_ID,'page_input':f.rows[0]['page_input'],
+              'receipt':receipt,'report':report,'source_pages_reviewed':[1,2,3]}
+    with pytest.raises(batch.BatchError, match='CONTENT_REVIEW_REQUIRED'):
+        _load_test_admission(f)
+    f.write(batch.ANALYSIS_REVIEW_PATH, {**review,'status':'FAIL'})
+    with pytest.raises(batch.BatchError, match='CONTENT_PASS'):
+        _load_test_admission(f)
+    f.write(batch.ANALYSIS_REVIEW_PATH, review)
+    admission = _load_test_admission(f)
+    assert admission['allowed_ids'] == [r['document_id'] for r in f.rows]
+    report_path.write_text('tampered')
+    with pytest.raises(batch.BatchError, match='REPORT_MISMATCH'):
+        _load_test_admission(f)
+
+
+def test_analysis_direct_child_cannot_replay_completed_or_unowned_plan(analysis_fixture):
+    f = analysis_fixture; path = f.dispatcher.EVIDENCE_ROOT / 'dispatch.jsonl'
+    with pytest.raises(batch.BatchError, match='RETAINED_DISPATCH'):
+        batch.verify_analysis_dispatch(batch.ANALYSIS_CANARY_ID, 'a'*64)
+    path.parent.mkdir()
+    events = [{'event':'plan_created','document_id':batch.ANALYSIS_CANARY_ID,'plan_sha256':'a'*64},
+              {'event':'dispatch_intent','document_id':batch.ANALYSIS_CANARY_ID,'plan_sha256':'a'*64}]
+    path.write_text(''.join(json.dumps(e)+'\n' for e in events))
+    batch.verify_analysis_dispatch(batch.ANALYSIS_CANARY_ID,'a'*64)
+    with pytest.raises(batch.BatchError, match='NOT_CURRENT'):
+        batch.verify_analysis_dispatch(batch.ANALYSIS_CANARY_ID,'b'*64)
+    with path.open('a') as stream: stream.write(json.dumps({**events[-1],'event':'reconciled','status':'COMPLETE'})+'\n')
+    with pytest.raises(batch.BatchError, match='NOT_CURRENT'):
+        batch.verify_analysis_dispatch(batch.ANALYSIS_CANARY_ID,'a'*64)
+
+
+def test_analysis_settings_drift_under_model_lock_consumes_zero_attempt(monkeypatch):
+    calls=[]
+    def guard(*a, **k):
+        calls.append('guard')
+        if len(calls)==2: raise batch.BatchError('ANALYSIS_RUNTIME_DRIFT')
+    monkeypatch.setattr(batch,'guard_analysis_document',guard)
+    monkeypatch.setattr(batch,'verify_analysis_dispatch',lambda *a:None)
+    monkeypatch.setattr(batch,'_read_r1_success',lambda *a,**k:None)
+    class Queue:
+        attempts=0
+        def enqueue(self,p):return {'status':'PENDING','idempotency_key':'k'}
+        def _claim_next_locked(self,state,allowed_keys=None):self.attempts+=1
+        def run_next(self,*a,**k):self._claim_next_locked({}, {'k'});raise AssertionError('POST must not execute')
+    q=Queue(); original=q._claim_next_locked
+    with pytest.raises(batch.BatchError,match='RUNTIME_DRIFT'):
+        batch._perform_request(q,{'source_document_id':batch.ANALYSIS_CANARY_ID},[{'role':'user','content':'body'}],
+                               binding={},identity={'status':'MATCH','expected_model_id':local_model.MODEL_ID},
+                               identity_reader=lambda:{},priority_reader=lambda:{'status':'ALLOW'},request_fn=lambda **k:'',
+                               sleep_fn=lambda _:None,analysis_admission={})
+    assert q.attempts == 0
+    assert q._claim_next_locked == original
+
+
+def test_analysis_busy_shared_lock_does_not_claim_or_post(monkeypatch):
+    monkeypatch.setattr(batch,'guard_analysis_document',lambda *a,**k:None)
+    monkeypatch.setattr(batch,'verify_analysis_dispatch',lambda *a:None)
+    monkeypatch.setattr(batch,'_read_r1_success',lambda *a,**k:None)
+    class ModelSlotBusy(Exception): pass
+    class Queue:
+        attempts=0
+        def enqueue(self,p):return {'status':'PENDING','idempotency_key':'k'}
+        def _claim_next_locked(self,state,allowed_keys=None):self.attempts+=1
+        def run_next(self,*a,**k):raise ModelSlotBusy()
+    q=Queue()
+    out=batch._perform_request(q,{'source_document_id':batch.ANALYSIS_CANARY_ID},[{'role':'user','content':'body'}],
+                               binding={},identity={'status':'MATCH','expected_model_id':local_model.MODEL_ID},
+                               identity_reader=lambda:{},priority_reader=lambda:{'status':'ALLOW'},request_fn=lambda **k:'',
+                               sleep_fn=lambda _:None,analysis_admission={})
+    assert out['status']=='DEFERRED_MODEL_LOCK_BUSY' and q.attempts==0 and out['attempted'] is False
+
+
+def test_analysis_runtime_adopts_only_exact_existing_memory_transition(tmp_path, monkeypatch):
+    settings_root=tmp_path/'runtime'/'omlx-state';settings_root.mkdir(parents=True)
+    def ref(path,value):
+        path.write_text(json.dumps(value,sort_keys=True)+'\n');return {'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+    memory={'prefill_memory_guard':True,'memory_guard_custom_ceiling_gb':96.0}
+    settings={'memory':memory,'sampling':{'temperature':1.0}}
+    sr=ref(settings_root/'settings.json',settings); mr=ref(settings_root/'model_settings.json',{'model':'retained'})
+    launcher=settings_root.parent/'start_omlx.sh';launcher.write_text('# existing launcher\n')
+    transition={'status':'APPLIED_HEALTH_CEILING_VERIFIED','settings_before_sha256':batch.EXPECTED_RUNTIME_SHA256,
+                'settings_after_sha256':sr['sha256'],'memory_after':memory,
+                'non_memory_settings_sha256':hashlib.sha256(local_model.canonical_json({'sampling':settings['sampling']})).hexdigest(),
+                'launcher_sha256':hashlib.sha256(launcher.read_bytes()).hexdigest()}
+    tr=ref(tmp_path/'transition.json',transition)
+    proof={'schema':'v4.pdf_research.runtime_adoption.v1','status':'ROOT_ADOPTED','identity_runtime_sha256':batch.EXPECTED_RUNTIME_SHA256,
+           'execution_runtime_sha256':sr['sha256'],'model_settings_sha256':mr['sha256'],'transition':tr}
+    pr=ref(tmp_path/'proof.json',proof)
+    monkeypatch.setattr(batch,'ANALYSIS_RUNTIME_SHA256',sr['sha256'])
+    monkeypatch.setattr(batch,'ANALYSIS_RUNTIME_RECEIPT_SHA256',tr['sha256'])
+    monkeypatch.setattr(batch,'CONTINUATION_CANDIDATE_SETTINGS_SHA256',mr['sha256'])
+    monkeypatch.setattr(local_model,'load_shared_modules',lambda:SimpleNamespace(runner=SimpleNamespace(OMLX_SETTINGS_PATH=Path(sr['path']),OMLX_MODEL_SETTINGS_PATH=Path(mr['path']))))
+    admission={'value':{'runtime_adoption':pr}}
+    batch.verify_analysis_runtime(admission)
+    Path(sr['path']).write_text(json.dumps({**settings,'sampling':{'temperature':0.5}}))
+    with pytest.raises(batch.BatchError,match='REFERENCE_SHA'):
+        batch.verify_analysis_runtime(admission)

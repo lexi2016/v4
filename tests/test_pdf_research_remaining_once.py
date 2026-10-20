@@ -72,6 +72,8 @@ def _synthetic_context(
     *,
     max_documents: int = 4,
 ) -> tuple[list[dict[str, str]], dict[str, dict[str, str]], set[str], dict[str, str], dict[str, object]]:
+    # Legacy synthetic scheduler tests isolate admission, independently tested below.
+    monkeypatch.setattr(batch, "load_analysis_admission", lambda *args, **kwargs: None)
     monkeypatch.setattr(dispatcher, "EVIDENCE_ROOT", tmp_path / "journal")
     monkeypatch.setattr(dispatcher, "_assert_runtime", lambda: None)
     monkeypatch.setattr(dispatcher, "_verify_static_bindings", lambda: {"scope_sha256": "a" * 64, "runner_sha256": "b" * 64})
@@ -1006,6 +1008,8 @@ def _case_resource_failure_sends_one_owned_sigterm_then_waits(tmp_path: Path) ->
         samples_path=tmp_path / "samples.jsonl",
         prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
         prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+            eligible_selection_path=Path("/tmp/selection18.json"),
+            eligible_selection_sha256="8" * 64,
         sampler=lambda: next(samples),
         popen=lambda *_args, **_kwargs: proc,
         sleep_fn=lambda _seconds: None,
@@ -1033,6 +1037,8 @@ def _case_resource_sampler_failure_before_spawn_never_starts_runner(tmp_path: Pa
         samples_path=tmp_path / "samples.jsonl",
         prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
         prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+            eligible_selection_path=Path("/tmp/selection18.json"),
+            eligible_selection_sha256="8" * 64,
         sampler=lambda: (_ for _ in ()).throw(dispatcher.DispatcherError("missing")),
         popen=popen,
     )
@@ -1081,6 +1087,8 @@ def _case_child_command_uses_native_module_entrypoint() -> None:
         execute=True,
         prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
         prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+            eligible_selection_path=Path("/tmp/selection18.json"),
+            eligible_selection_sha256="8" * 64,
     )
 
     assert command == [
@@ -1095,6 +1103,10 @@ def _case_child_command_uses_native_module_entrypoint() -> None:
         str(TEST_PREPARED_TEXT_PATH),
         "--prepared-text-manifest-sha256",
         TEST_PREPARED_TEXT_SHA256,
+        "--eligible-selection",
+        "/tmp/selection18.json",
+        "--eligible-selection-sha256",
+        "8" * 64,
         "--execute",
     ]
 
@@ -1462,3 +1474,40 @@ def test_prepared_new_root_cannot_hide_old_journal(tmp_path, monkeypatch):
         dispatcher.execute_once(evidence_root=tmp_path/'fresh-root', **_prepared_kwargs(monkeypatch))
     assert journal.read_bytes() == raw
     assert not (tmp_path/'fresh-root').exists()
+
+
+def test_analysis_allowlist_order_precedes_parent_inventory_order():
+    docs = _synthetic_documents(); docs[-2] = {'document_id':batch.ANALYSIS_CANARY_ID,'pdf_sha256':batch.ANALYSIS_CANARY_ID}
+    statuses = _synthetic_statuses(docs)
+    prepared = {d['document_id']:{'manifest_row':{'status':'READY'}} for d in docs}
+    allowed = [batch.ANALYSIS_CANARY_ID, docs[0]['document_id']]
+    selected, count = dispatcher.select_next_document(docs,statuses,set(),set(),prepared,allowed)
+    assert selected['document_id']==batch.ANALYSIS_CANARY_ID and count==2
+    selected, count = dispatcher.select_next_document(docs,statuses,set(),{batch.ANALYSIS_CANARY_ID},prepared,allowed)
+    assert selected['document_id']==docs[0]['document_id'] and count==1
+
+
+def test_analysis_isolation_appends_once_preserves_old_prefix_and_forbids_replay(tmp_path):
+    root=tmp_path/'journal';root.mkdir();path=root/'dispatch.jsonl'
+    old=[{'event':'binding'}]+[{'event':'reconciled','document_id':str(i)} for i in range(37)]+[{'event':'halt','document_id':batch.ANALYSIS_ISOLATED_ID}]
+    prefix=b''.join(dispatcher.canonical_json(e)+b'\n' for e in old);path.write_bytes(prefix)
+    descriptor={'document_id':batch.ANALYSIS_ISOLATED_ID,'plan_sha256':'a'*64,'journal_event_count':39}
+    context={'analysis_admission':{'value':{'halt_isolation':{'sha256':'b'*64}}},'prepared_text_manifest_sha256':'c'*64}
+    with dispatcher.DurableJournal(root) as journal:
+        journal.append({'event':'source_adoption','document_id':batch.ANALYSIS_ISOLATED_ID})
+        assert dispatcher._prepare_analysis_isolation(journal,context,descriptor)==batch.ANALYSIS_ISOLATED_ID
+        current=path.read_bytes();assert current.startswith(prefix) and len(journal.events)==41
+        dispatcher._prepare_analysis_isolation(journal,context,descriptor)
+        assert path.read_bytes()==current
+        journal.append({'event':'plan_created','document_id':batch.ANALYSIS_ISOLATED_ID})
+        with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'REPLAY_FORBIDDEN'):
+            dispatcher._prepare_analysis_isolation(journal,context,descriptor)
+
+
+def test_analysis_child_command_requires_eligibility_and_propagates_exact_hash():
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'ANALYSIS_ADMISSION_REQUIRED'):
+        dispatcher._make_command(Path('/tmp/plan.json'),execute=True,prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256)
+    command=dispatcher._make_command(Path('/tmp/plan.json'),execute=True,prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+                                     eligible_selection_path=Path('/tmp/selection18.json'),eligible_selection_sha256='8'*64)
+    assert command[command.index('--eligible-selection')+1]=='/tmp/selection18.json'
+    assert command[command.index('--eligible-selection-sha256')+1]=='8'*64

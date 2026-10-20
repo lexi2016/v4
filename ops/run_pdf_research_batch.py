@@ -266,6 +266,20 @@ SYNTHESIS_SYSTEM_PROMPT = (
 )
 
 
+
+# This admission is deliberately bounded to the independently reviewed first18.
+ANALYSIS_ROOT = Path("/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_ANALYSIS_20261020_R1")
+ANALYSIS_SELECTION_PATH = ANALYSIS_ROOT / "execution-selection18.json"
+ANALYSIS_REVIEW_PATH = ANALYSIS_ROOT / "canary-content-review.json"
+ANALYSIS_SCHEMA = "v4.pdf_research.analysis_admission.v1"
+ANALYSIS_BASE_SELECTION_SHA256 = "d63d5764228111a1231a39a5fd8b7d5df9c6dcecdbeda5ec5aa60419f6c8e6e7"
+ANALYSIS_CLASSIFICATION_REVIEW_PATH = Path("/Users/lexi/Desktop/学习/agents调试/V4_PDF_CLASSIFICATION_SAMPLE_20261020_R1/independent-review/independent-review.json")
+ANALYSIS_CLASSIFICATION_REVIEW_SHA256 = "fa4274868c8e0dd537af32eda9e52f7a0e2b5b9ce3a63b83c1508ad35a7e8bda"
+ANALYSIS_RUNTIME_SHA256 = "2713eb73ceb66ee77fbfb58c52b17211305d72774b5e9412073171854ba3e631"
+ANALYSIS_RUNTIME_RECEIPT_SHA256 = "c8a5b0dbfc2811cd567388997d60c68694384ad12a5e4b1ba90a16f9d933251f"
+ANALYSIS_CANARY_ID = "0ba93abc16adbd4963b3ab96dfea6e63a62d343a9d950d1ad4376b2dbef2d818"
+ANALYSIS_ISOLATED_ID = "e2d660f090a972a43ba68bba37eea0a5889c1c6bef1bb760a0334fd0c4da6813"
+
 class BatchError(RuntimeError):
     def __init__(self, code: str):
         super().__init__(code)
@@ -3737,7 +3751,12 @@ def _perform_request(
     recovery_target_pending: bool = False,
     tool_context: Mapping[str, Any] | None = None,
     allow_frozen_runner_source_rebind: bool = False,
+    analysis_admission: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    document_id = str(payload.get("source_document_id", ""))
+    if analysis_admission is not None:
+        guard_analysis_document(analysis_admission, document_id, binding=binding)
+        verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
     if stop_event is not None and stop_event.is_set():
         return {"status": "STOPPED_GRACEFULLY", "attempted": False}
     if len(_request_envelope(messages)) > MAX_REQUEST_ENVELOPE_BYTES:
@@ -3808,12 +3827,24 @@ def _perform_request(
             **({"tool_context": tool_context} if tool_context is not None else {}),
         )
 
+    original_claim = getattr(queue, "_claim_next_locked", None)
+    if analysis_admission is not None:
+        if not callable(original_claim):
+            raise BatchError("ANALYSIS_PRECLAIM_GUARD_UNAVAILABLE")
+        def guarded_claim(state: Any, allowed_keys: Any = None) -> Any:
+            guard_analysis_document(analysis_admission, document_id, binding=binding)
+            verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
+            return original_claim(state, allowed_keys)
+        queue._claim_next_locked = guarded_claim
     try:
         outcome = queue.run_next(executor, _validate_output, wait_for_model_slot=False, idempotency_keys=[key])
     except Exception as exc:
         if type(exc).__name__ == "ModelSlotBusy":
             return {"status": "DEFERRED_MODEL_LOCK_BUSY", "queue_item": queued, "attempted": False}
         raise
+    finally:
+        if analysis_admission is not None:
+            queue._claim_next_locked = original_claim
     if outcome is None:
         return {"status": "UNFINISHED_NO_OUTCOME", "queue_item": queued, "attempted": False}
     attempted = int(outcome.get("attempt_count", 0)) > 0
@@ -3960,8 +3991,11 @@ def _run_document(
     repair_budget: dict[str, int] | None = None,
     continuation: Mapping[str, Any] | None = None,
     prepared_manifest: Mapping[str, Any] | None = None,
+    analysis_admission: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     pdf_sha = str(document["pdf_sha256"])
+    if analysis_admission is not None:
+        guard_analysis_document(analysis_admission, pdf_sha, binding=binding)
     doc_root = state_root / "documents" / pdf_sha
     doc_root.mkdir(mode=0o700, parents=True, exist_ok=True)
     source_doc = {**dict(document), "_manifest_sha256": manifest_sha}
@@ -4269,6 +4303,7 @@ def _run_document(
             stop_event=stop_event,
             prior_queue_root=prior_queue_root,
             recovery_target_pending=recovery_target_pending,
+            analysis_admission=analysis_admission,
             tool_context=tool_context,
             allow_frozen_runner_source_rebind=(
                 isinstance(partial_recovery, Mapping)
@@ -4380,6 +4415,7 @@ def _run_document(
                 stop_event=stop_event,
                 prior_queue_root=prior_queue_root,
                 recovery_target_pending=recovery_target_pending,
+                analysis_admission=analysis_admission,
             )
             progress["model_requests"] += int(bool(outcome.get("attempted")))
             progress.setdefault("synthesis_states", {})[f"{synth_level}:{group_index}"] = outcome["status"]
@@ -4774,7 +4810,10 @@ def _run_batch_impl(
     prepared_text_manifest_sha256: str | None = None,
     prepared_document_ids: Sequence[str] | None = None,
     revision_only: bool = False,
+    eligible_selection_path: Path | None = None,
+    eligible_selection_sha256: str | None = None,
 ) -> dict[str, Any]:
+    admission = load_analysis_admission(eligible_selection_path, eligible_selection_sha256, prepared_sha256=str(prepared_text_manifest_sha256))
     manifest, manifest_sha, documents = load_manifest(manifest_path)
     if prepared_text_manifest_path is None or prepared_text_manifest_sha256 is None:
         raise BatchError("PREPARED_TEXT_MANIFEST_REQUIRED")
@@ -4838,6 +4877,12 @@ def _run_batch_impl(
             for row in documents
         ):
             raise BatchError("CONTINUATION_PREPARED_DOCUMENT_NOT_READY")
+    if admission is not None:
+        if continuation is None:
+            raise BatchError("ANALYSIS_RETAINED_DISPATCHER_REQUIRED")
+        for document in documents:
+            guard_analysis_document(admission, str(document["document_id"]))
+            verify_analysis_dispatch(str(document["document_id"]), continuation["plan_sha256"])
     local_model.require_runtime_python()
     r1_root = R1_STATE_ROOT.expanduser().absolute().resolve(strict=False)
     resolved_state_root = state_root.resolve(strict=False)
@@ -4851,7 +4896,9 @@ def _run_batch_impl(
         local_model.PDF_EVIDENCE_ROOT = evidence_root
         try:
             binding = local_model.build_request_material(RESPONSE_SCHEMA)
-            if binding.get("runtime_settings_sha256") != EXPECTED_RUNTIME_SHA256:
+            if admission is not None:
+                verify_analysis_runtime(admission, binding)
+            elif binding.get("runtime_settings_sha256") != EXPECTED_RUNTIME_SHA256:
                 raise BatchError("FROZEN_RUNTIME_SETTINGS_SHA_MISMATCH")
             expected_model_settings_sha256 = (
                 continuation["expected_model_settings_sha256"]
@@ -5004,6 +5051,7 @@ def _run_batch_impl(
                                 repair_budget=repair_budget,
                                 continuation=doc_continuation,
                                 prepared_manifest=prepared,
+                                analysis_admission=admission,
                             )
                     except Exception as exc:
                         code = getattr(exc, "code", None) or type(exc).__name__
@@ -5183,6 +5231,181 @@ def _run_batch_impl(
             local_model.PDF_EVIDENCE_ROOT = original_evidence_root
 
 
+
+def _analysis_ref(reference: Any, *, root: Path | None = None) -> tuple[dict[str, Any], bytes]:
+    if not isinstance(reference, dict) or set(reference) != {"path", "sha256"}:
+        raise BatchError("ANALYSIS_REFERENCE_INVALID")
+    path = Path(str(reference["path"]))
+    if not path.is_absolute() or path.is_symlink() or not path.is_file():
+        raise BatchError("ANALYSIS_REFERENCE_UNAVAILABLE")
+    if path.resolve() != path.absolute() or (root is not None and not path.resolve().is_relative_to(root.resolve())):
+        raise BatchError("ANALYSIS_REFERENCE_PATH_UNSAFE")
+    raw = path.read_bytes()
+    if _sha256(raw) != reference["sha256"]:
+        raise BatchError("ANALYSIS_REFERENCE_SHA_MISMATCH")
+    try:
+        value = json.loads(raw)
+    except (ValueError, UnicodeError):
+        raise BatchError("ANALYSIS_REFERENCE_INVALID") from None
+    if not isinstance(value, dict):
+        raise BatchError("ANALYSIS_REFERENCE_INVALID")
+    return value, raw
+
+
+def verify_analysis_runtime(admission: Mapping[str, Any], binding: Mapping[str, Any] | None = None) -> None:
+    proof, _ = _analysis_ref(admission["value"]["runtime_adoption"])
+    if (proof.get("schema") != "v4.pdf_research.runtime_adoption.v1"
+            or proof.get("status") != "ROOT_ADOPTED"
+            or proof.get("identity_runtime_sha256") != EXPECTED_RUNTIME_SHA256
+            or proof.get("execution_runtime_sha256") != ANALYSIS_RUNTIME_SHA256
+            or proof.get("model_settings_sha256") != CONTINUATION_CANDIDATE_SETTINGS_SHA256):
+        raise BatchError("ANALYSIS_RUNTIME_ADOPTION_INVALID")
+    transition, _ = _analysis_ref(proof["transition"])
+    if (proof["transition"]["sha256"] != ANALYSIS_RUNTIME_RECEIPT_SHA256
+            or transition.get("status") != "APPLIED_HEALTH_CEILING_VERIFIED"
+            or transition.get("settings_before_sha256") != EXPECTED_RUNTIME_SHA256
+            or transition.get("settings_after_sha256") != ANALYSIS_RUNTIME_SHA256):
+        raise BatchError("ANALYSIS_RUNTIME_TRANSITION_INVALID")
+    modules = local_model.load_shared_modules()
+    settings_path = Path(modules.runner.OMLX_SETTINGS_PATH)
+    settings_ref = {"path": str(settings_path), "sha256": ANALYSIS_RUNTIME_SHA256}
+    settings, _ = _analysis_ref(settings_ref)
+    model_path = Path(modules.runner.OMLX_MODEL_SETTINGS_PATH)
+    if (model_path.is_symlink() or _sha256(model_path.read_bytes()) != CONTINUATION_CANDIDATE_SETTINGS_SHA256
+            or settings.get("memory") != transition.get("memory_after")
+            or _sha256(local_model.canonical_json({k: v for k, v in settings.items() if k != "memory"})) != transition.get("non_memory_settings_sha256")
+            or _sha256((settings_path.parent.parent / "start_omlx.sh").read_bytes()) != transition.get("launcher_sha256")):
+        raise BatchError("ANALYSIS_RUNTIME_DRIFT")
+    if binding is not None and (binding.get("runtime_settings_sha256") != ANALYSIS_RUNTIME_SHA256
+            or binding.get("model_settings_sha256") != CONTINUATION_CANDIDATE_SETTINGS_SHA256
+            or binding.get("model_id") != local_model.MODEL_ID):
+        raise BatchError("ANALYSIS_REQUEST_RUNTIME_MISMATCH")
+
+
+def load_analysis_admission(
+    selection_path: Path | None,
+    expected_sha256: str | None,
+    *,
+    prepared_sha256: str,
+    authorization_context: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    if selection_path is None or expected_sha256 is None:
+        raise BatchError("ANALYSIS_ADMISSION_REQUIRED")
+    if selection_path.absolute() != ANALYSIS_SELECTION_PATH.absolute():
+        raise BatchError("ANALYSIS_SELECTION_PATH_MISMATCH")
+    reference = {"path": str(selection_path), "sha256": expected_sha256}
+    value, _ = _analysis_ref(reference, root=ANALYSIS_ROOT)
+    if authorization_context is None:
+        from ops import run_pdf_research_remaining_once as dispatcher
+        authorization_context = dispatcher.load_and_validate_authorization()
+    auth = authorization_context["authorization"]
+    if (auth.get("analysis_admission") != reference
+            or auth.get("prepared_text_manifest_sha256") != prepared_sha256
+            or value.get("schema") != ANALYSIS_SCHEMA or value.get("status") != "ROOT_ADOPTED"
+            or value.get("parent_manifest_sha256") != EXPECTED_BATCH_MANIFEST_SHA256
+            or value.get("prepared_text_manifest_sha256") != prepared_sha256
+            or value.get("canary_document_id") != ANALYSIS_CANARY_ID):
+        raise BatchError("ANALYSIS_ADMISSION_BINDING_MISMATCH")
+    base, _ = _analysis_ref({"path": str(ANALYSIS_ROOT / "preflight-selection.json"), "sha256": ANALYSIS_BASE_SELECTION_SHA256}, root=ANALYSIS_ROOT)
+    classification, _ = _analysis_ref({"path": str(ANALYSIS_CLASSIFICATION_REVIEW_PATH), "sha256": ANALYSIS_CLASSIFICATION_REVIEW_SHA256})
+    if classification.get("verdict") != "PASS":
+        raise BatchError("ANALYSIS_CLASSIFICATION_REVIEW_REQUIRED")
+    rows = value.get("documents")
+    expected = base.get("eligible_documents")
+    if (not isinstance(rows, list) or len(rows) != 18 or rows != expected
+            or rows[0].get("document_id") != ANALYSIS_CANARY_ID
+            or len({r.get("document_id") for r in rows}) != 18
+            or any(r.get("prior_status") != "UNPROCESSED" or r.get("source_or_content_unverified") is not False
+                or r.get("reviewer_primary_type") != "券商/研究机构研究" for r in rows)):
+        raise BatchError("ANALYSIS_ELIGIBILITY_MISMATCH")
+    admission = {"value": value, "reference": reference, "documents": {r["document_id"]: r for r in rows},
+                 "authorization_sha256": authorization_context["authorization_sha256"]}
+    verify_analysis_runtime(admission)
+    admission["allowed_ids"] = [ANALYSIS_CANARY_ID]
+    review_path = ANALYSIS_REVIEW_PATH
+    if review_path.exists():
+        _verify_analysis_canary_review(admission, review_path)
+        admission["allowed_ids"] = [r["document_id"] for r in rows]
+    else:
+        from ops import run_pdf_research_remaining_once as dispatcher
+        journal_path = dispatcher.EVIDENCE_ROOT / "dispatch.jsonl"
+        if journal_path.is_file():
+            if journal_path.is_symlink():
+                raise BatchError("ANALYSIS_DISPATCH_PATH_UNSAFE")
+            events = [json.loads(line) for line in journal_path.read_bytes().splitlines()]
+            if any(e.get("event") == "reconciled" and e.get("document_id") == ANALYSIS_CANARY_ID for e in events):
+                raise BatchError("ANALYSIS_CANARY_CONTENT_REVIEW_REQUIRED")
+    return admission
+
+
+def _verify_analysis_canary_review(admission: Mapping[str, Any], path: Path) -> None:
+    # The reviewer authors this fixed, separately owned receipt after the first live result.
+    if path.is_symlink() or not path.is_file() or path.resolve() != path.absolute():
+        raise BatchError("ANALYSIS_CANARY_REVIEW_INVALID")
+    review = json.loads(path.read_bytes())
+    if (not isinstance(review, dict) or review.get("schema") != "v4.pdf_research.canary_content_review.v1"
+            or review.get("status") != "REPORT_CONTENT_PASS"
+            or review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or review.get("selection_sha256") != admission["reference"]["sha256"]
+            or review.get("document_id") != ANALYSIS_CANARY_ID
+            or review.get("page_input") != admission["documents"][ANALYSIS_CANARY_ID]["page_input"]):
+        raise BatchError("ANALYSIS_CANARY_CONTENT_PASS_REQUIRED")
+    from ops import run_pdf_research_remaining_once as dispatcher
+    journal_path = dispatcher.EVIDENCE_ROOT / "dispatch.jsonl"
+    events = [json.loads(line) for line in journal_path.read_bytes().splitlines()]
+    terminal = [e for e in events if e.get("event") == "reconciled" and e.get("document_id") == ANALYSIS_CANARY_ID]
+    if len(terminal) != 1 or terminal[0].get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING":
+        raise BatchError("ANALYSIS_CANARY_TERMINAL_REQUIRED")
+    event = terminal[0]
+    receipt_ref = {"path": event.get("receipt_path"), "sha256": event.get("receipt_sha256")}
+    if review.get("receipt") != receipt_ref:
+        raise BatchError("ANALYSIS_CANARY_RECEIPT_MISMATCH")
+    receipt, _ = _analysis_ref(receipt_ref)
+    report = review.get("report")
+    if not isinstance(report, dict) or set(report) != {"path", "sha256"}:
+        raise BatchError("ANALYSIS_CANARY_REPORT_INVALID")
+    expected_report = Path(event["state_root"]) / "documents" / ANALYSIS_CANARY_ID / "report.md"
+    if (Path(str(report["path"])) != expected_report or expected_report.is_symlink()
+            or _sha256(expected_report.read_bytes()) != report["sha256"]
+            or receipt.get("status") != "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+            or review.get("source_pages_reviewed") != [1, 2, 3]):
+        raise BatchError("ANALYSIS_CANARY_REPORT_MISMATCH")
+
+
+
+def verify_analysis_dispatch(document_id: str, plan_sha256: str) -> None:
+    from ops import run_pdf_research_remaining_once as dispatcher
+    journal_path = dispatcher.EVIDENCE_ROOT / "dispatch.jsonl"
+    if journal_path.is_symlink() or not journal_path.is_file():
+        raise BatchError("ANALYSIS_RETAINED_DISPATCH_REQUIRED")
+    raw = journal_path.read_bytes()
+    if not raw.endswith(b"\n"):
+        raise BatchError("ANALYSIS_DISPATCH_TRUNCATED")
+    events = [json.loads(line) for line in raw.splitlines()]
+    events = [e for e in events if e.get("document_id") == document_id]
+    if (not events or events[-1].get("event") != "dispatch_intent"
+            or events[-1].get("plan_sha256") != plan_sha256
+            or len({e.get("plan_sha256") for e in events if e.get("event") == "plan_created"}) != 1):
+        raise BatchError("ANALYSIS_DISPATCH_NOT_CURRENT")
+
+
+def guard_analysis_document(admission: Mapping[str, Any], document_id: str, *, binding: Mapping[str, Any] | None = None) -> None:
+    _analysis_ref(admission["reference"], root=ANALYSIS_ROOT)
+    from ops import run_pdf_research_remaining_once as dispatcher
+    auth_path = dispatcher.AUTHORIZATION_PATH
+    if auth_path.is_symlink() or _sha256(auth_path.read_bytes()) != admission["authorization_sha256"]:
+        raise BatchError("ANALYSIS_AUTHORIZATION_DRIFT")
+    if document_id not in admission["allowed_ids"] or document_id == ANALYSIS_ISOLATED_ID:
+        raise BatchError("ANALYSIS_DOCUMENT_NOT_ADMITTED")
+    row = admission["documents"][document_id]
+    receipt, _ = _analysis_ref(row["prepared_receipt"])
+    _analysis_ref(row["page_input"])
+    if (receipt.get("status") != "READY" or receipt.get("document_id") != document_id
+            or receipt.get("pdf_sha256") != document_id):
+        raise BatchError("ANALYSIS_DOCUMENT_NOT_READY")
+    verify_analysis_runtime(admission, binding)
+
+
 def run_batch(
     manifest_path: Path = DEFAULT_MANIFEST,
     *,
@@ -5199,6 +5422,8 @@ def run_batch(
     prepared_text_manifest_sha256: str | None = None,
     prepared_document_ids: Sequence[str] | None = None,
     revision_only: bool = False,
+    eligible_selection_path: Path | None = None,
+    eligible_selection_sha256: str | None = None,
 ) -> dict[str, Any]:
     continuation = None
     if continuation_plan_path is not None:
@@ -5227,6 +5452,8 @@ def run_batch(
             prepared_text_manifest_sha256=prepared_text_manifest_sha256,
             prepared_document_ids=prepared_document_ids,
             revision_only=revision_only,
+            eligible_selection_path=eligible_selection_path,
+            eligible_selection_sha256=eligible_selection_sha256,
         )
 
 
@@ -5242,6 +5469,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--prepared-text-manifest-sha256", help="expected SHA-256 of --prepared-text-manifest")
     parser.add_argument("--prepared-document-id", action="append", help="explicit READY document to analyze from frozen text")
     parser.add_argument("--revision-only", action="store_true", help="select only documents whose prepared text explicitly supersedes prior reports")
+    parser.add_argument("--eligible-selection", type=Path)
+    parser.add_argument("--eligible-selection-sha256")
     parser.add_argument("--execute", action="store_true", help="run the frozen batch; without this flag only validate the manifest")
     args = parser.parse_args(argv)
     try:
@@ -5297,6 +5526,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 continuation_plan_path=args.continuation_plan,
                 prepared_text_manifest_path=args.prepared_text_manifest,
                 prepared_text_manifest_sha256=args.prepared_text_manifest_sha256,
+                eligible_selection_path=args.eligible_selection,
+                eligible_selection_sha256=args.eligible_selection_sha256,
             )
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
             return 0
@@ -5317,6 +5548,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             prepared_text_manifest_sha256=args.prepared_text_manifest_sha256,
             prepared_document_ids=args.prepared_document_id,
             revision_only=args.revision_only,
+            eligible_selection_path=args.eligible_selection,
+            eligible_selection_sha256=args.eligible_selection_sha256,
         )
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0

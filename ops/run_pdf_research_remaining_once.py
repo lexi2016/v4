@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "9bacc8a23c9885de18278427e3099cdc72cbd2f871a6d7908b36ea51301e9ade"
+EXPECTED_RUNNER_SHA256 = "116d89add58ef2ae7134aef7df4ba75c56f3ce86372a59f63d4e27da951ecc00"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -500,6 +500,8 @@ def load_and_validate_authorization(path: Path = AUTHORIZATION_PATH) -> dict[str
         "research_only",
         "prepared_text_manifest_sha256",
     }
+    if "analysis_admission" in auth:
+        expected_fields.add("analysis_admission")
     if set(auth) != expected_fields or auth.get("status") != "AUTHORIZED":
         raise DispatcherError("ROOT_EXECUTION_AUTHORIZATION_INVALID")
     if not SHA256_RE.fullmatch(str(auth.get("prepared_text_manifest_sha256", ""))):
@@ -1683,6 +1685,7 @@ def select_next_document(
     pilot_ids: set[str],
     dispatched_ids: set[str],
     prepared_rows: Mapping[str, Any] | None = None,
+    allowed_ids: Sequence[str] | None = None,
 ) -> tuple[dict[str, Any] | None, int]:
     if (
         len(documents) != FROZEN_COHORT_DOCUMENT_COUNT
@@ -1701,6 +1704,8 @@ def select_next_document(
     eligible: list[Mapping[str, Any]] = []
     for row in documents:
         document_id = str(row.get("document_id", ""))
+        if allowed_ids is not None and document_id not in allowed_ids:
+            continue
         status = status_by_id[document_id]
         if status not in COMPLETED_INVENTORY_STATUSES | OUTSTANDING_INVENTORY_STATUSES:
             raise DispatcherError("COHORT_STATUS_UNKNOWN")
@@ -1716,6 +1721,8 @@ def select_next_document(
             eligible.append(row)
     if not eligible:
         return None, 0
+    if allowed_ids is not None:
+        eligible.sort(key=lambda row: list(allowed_ids).index(str(row["document_id"])))
     return dict(eligible[0]), len(eligible)
 
 
@@ -2187,9 +2194,108 @@ def _source_adoption_event(context: Mapping[str, Any], descriptor: Mapping[str, 
     }
 
 
+
+def _analysis_isolation_descriptor(context: Mapping[str, Any], journal: DurableJournal) -> dict[str, Any] | None:
+    admission = context.get("analysis_admission")
+    if admission is None:
+        return None
+    value, _ = batch._analysis_ref(admission["value"]["halt_isolation"], root=CONTINUATION_ROOT)
+    if (value.get("schema") != "v4.pdf_research.halt_isolation.v1" or value.get("status") != "ROOT_ADOPTED"
+            or value.get("document_id") != batch.ANALYSIS_ISOLATED_ID
+            or value.get("reason") != "PREPARED_SOURCE_TEXT_CHANGED_NO_REPLAY"):
+        raise DispatcherError("ANALYSIS_HALT_ISOLATION_INVALID")
+    descriptor = context["adoption_evidence"].get("halt_resume")
+    if not isinstance(descriptor, dict) or set(descriptor) != HALT_RESUME_DESCRIPTOR_FIELDS:
+        raise DispatcherError("ANALYSIS_HALT_HISTORY_DESCRIPTOR_REQUIRED")
+    if (descriptor["document_id"] != batch.ANALYSIS_ISOLATED_ID or descriptor["journal_event_count"] != 39
+            or descriptor["journal_prefix_sha256"] != "8e583d56bb2c0fd60fa97d93a16e54b9665bbc87f673f1070c45e3f870d5bb79"
+            or descriptor["previous_authorization_sha256"] != "5a7e345c041c423c142f04a39062c6345d8dc197f3a134d1b40511893bbae598"
+            or Path(descriptor["journal_path"]).absolute() != journal.path.absolute()
+            or journal.root.absolute() != EVIDENCE_ROOT.absolute()
+            or descriptor["new_dispatcher_sha256"] != context["authorization"]["dispatcher_sha256"]
+            or descriptor["new_runner_sha256"] != context["authorization"]["runner_sha256"]
+            or descriptor["reviewer_receipt_sha256"] != context["authorization"]["reviewer_receipt"]["sha256"]):
+        raise DispatcherError("ANALYSIS_HALT_HISTORY_BINDING_MISMATCH")
+    prior_auth = _safe_reference(descriptor["previous_authorization_path"], root=CONTINUATION_ROOT)
+    if sha256_bytes(prior_auth.read_bytes()) != descriptor["previous_authorization_sha256"]:
+        raise DispatcherError("ANALYSIS_HALT_OLD_AUTHORIZATION_MISMATCH")
+    raw = _read_regular(journal.path, "DISPATCH_JOURNAL_UNREADABLE")
+    lines = raw.splitlines(keepends=True)
+    if (len(lines) < 39 or not raw.endswith(b"\n")
+            or sha256_bytes(b"".join(lines[:39])) != descriptor["journal_prefix_sha256"]
+            or len(journal.events) != len(lines)
+            or descriptor["reconciled_event_index"] != 37 or descriptor["halt_event_index"] != 38
+            or sha256_bytes(lines[37]) != descriptor["reconciled_event_line_sha256"]
+            or sha256_bytes(lines[38]) != descriptor["halt_event_line_sha256"]):
+        raise DispatcherError("ANALYSIS_HALT_PREFIX_MISMATCH")
+    failed = journal.events[37]
+    if (failed.get("event") != "reconciled" or failed.get("decision") != "HALT"
+            or failed.get("document_id") != batch.ANALYSIS_ISOLATED_ID
+            or failed.get("plan_sha256") != descriptor["plan_sha256"]
+            or failed.get("receipt_sha256") != descriptor["receipt_sha256"]):
+        raise DispatcherError("ANALYSIS_HALT_TERMINAL_MISMATCH")
+    old_root = Path(failed["state_root"])
+    did = batch.ANALYSIS_ISOLATED_ID
+    key = descriptor["queue_key"]
+    artifact_paths = {
+        "receipt_sha256": old_root / "documents" / did / "receipt.json",
+        "run_progress_sha256": old_root / "run-progress.json",
+        "document_progress_sha256": old_root / "documents" / did / "progress.json",
+        "page_input_sha256": old_root / "documents" / did / "page-input.json",
+        "queue_state_sha256": old_root / "queue/queue-state.json",
+        "job_input_sha256": old_root / "queue/jobs" / key / "input.json",
+        "stream_receipt_sha256": old_root / "evidence/streams" / key / "attempt-0001/stream-receipt.json",
+        "request_input_sha256": old_root / "evidence/streams" / key / "attempt-0001/round-01.request-input.json",
+        "raw_sse_sha256": old_root / "evidence/streams" / key / "attempt-0001/round-01.raw.sse",
+    }
+    for field, path in artifact_paths.items():
+        if sha256_bytes(_read_regular(path, "ANALYSIS_HALT_ARTIFACT_UNAVAILABLE")) != descriptor[field]:
+            raise DispatcherError("ANALYSIS_HALT_ARTIFACT_MISMATCH")
+    resource_path = Path(descriptor["resource_samples_path"])
+    resource_raw = _read_regular(resource_path, "ANALYSIS_HALT_RESOURCE_UNAVAILABLE")
+    prefix = resource_raw[:descriptor["resource_samples_prefix_bytes"]]
+    if (resource_path.absolute() != (journal.root / "resource-samples.jsonl").absolute()
+            or sha256_bytes(prefix) != descriptor["resource_samples_prefix_sha256"]
+            or not prefix.endswith(b"\n")
+            or sum(sha256_bytes(line) == descriptor["failed_resource_sample_line_sha256"] for line in prefix.splitlines(keepends=True)) != 1):
+        raise DispatcherError("ANALYSIS_HALT_RESOURCE_PREFIX_MISMATCH")
+    old_input, _ = batch._analysis_ref(value["old_input"])
+    new_input, _ = batch._analysis_ref(value["new_input"])
+    receipt, _ = batch._analysis_ref(value["prepared_receipt"])
+    if (value["old_input"] != {"path": str(artifact_paths["page_input_sha256"]), "sha256": descriptor["page_input_sha256"]}
+            or receipt.get("status") != "READY" or receipt.get("document_id") != did
+            or any(old_input.get(k) != new_input.get(k) for k in ("document_id", "pdf_sha256", "manifest_sha256"))
+            or old_input.get("document_id") != did
+            or value.get("prepared_text_manifest_sha256") != context["prepared_text_manifest_sha256"]):
+        raise DispatcherError("ANALYSIS_HALT_INPUT_BINDING_MISMATCH")
+    prepared = context["prepared_manifest"]["documents"].get(did, {})
+    if (prepared.get("manifest_row", {}).get("status") != "READY"
+            or prepared.get("page_input_sha256") != value["new_input"]["sha256"]
+            or new_input.get("pages") == old_input.get("pages")):
+        raise DispatcherError("ANALYSIS_HALT_CHANGED_SOURCE_REQUIRED")
+    return dict(descriptor)
+
+
+def _prepare_analysis_isolation(journal: DurableJournal, context: Mapping[str, Any], descriptor: Mapping[str, Any]) -> str:
+    event = {"event": "halt_resolution", "document_id": descriptor["document_id"],
+             "prior_plan_sha256": descriptor["plan_sha256"], "status": "ISOLATED_CHANGED_SOURCE_NO_REPLAY",
+             "isolation_receipt_sha256": context["analysis_admission"]["value"]["halt_isolation"]["sha256"],
+             "prepared_text_manifest_sha256": context["prepared_text_manifest_sha256"]}
+    index = descriptor["journal_event_count"] + 1
+    if len(journal.events) == index:
+        journal.append(event)
+    elif len(journal.events) <= index or {k: v for k, v in journal.events[index].items() if k != "at_utc"} != event:
+        raise DispatcherError("ANALYSIS_HALT_ISOLATION_EVENT_MISMATCH")
+    if any(e.get("event") in {"plan_created", "dispatch_intent", "memory_recovery_wait"}
+           and e.get("document_id") == descriptor["document_id"] for e in journal.events[index + 1:]):
+        raise DispatcherError("ANALYSIS_ISOLATED_INPUT_REPLAY_FORBIDDEN")
+    return str(descriptor["document_id"])
+
+
 def _verify_or_create_binding(journal: DurableJournal, context: Mapping[str, Any]) -> None:
     binding = _event_binding(context)
-    descriptor = _halt_resume_descriptor(context, journal)
+    descriptor = (_analysis_isolation_descriptor(context, journal) if context.get("analysis_admission") is not None
+                  else _halt_resume_descriptor(context, journal))
     if not journal.events:
         if descriptor is not None:
             raise DispatcherError("HALT_RESUME_EXISTING_JOURNAL_REQUIRED")
@@ -2231,6 +2337,11 @@ def _prepare_halt_resume(
     sleep_fn: Callable[[float], Any],
     samples_path: Path,
 ) -> str | None:
+    if context.get("analysis_admission") is not None:
+        isolation = _analysis_isolation_descriptor(context, journal)
+        if isolation is None:
+            raise DispatcherError("ANALYSIS_HALT_ISOLATION_REQUIRED")
+        return _prepare_analysis_isolation(journal, context, isolation)
     descriptor = _halt_resume_descriptor(context, journal)
     if descriptor is None:
         return None
@@ -2539,6 +2650,8 @@ def _make_command(
     execute: bool,
     prepared_text_manifest_path: Path | None = None,
     prepared_text_manifest_sha256: str | None = None,
+    eligible_selection_path: Path | None = None,
+    eligible_selection_sha256: str | None = None,
 ) -> list[str]:
     command = [
         str(EXPECTED_RUNTIME_PYTHON),
@@ -2560,6 +2673,9 @@ def _make_command(
                 prepared_text_manifest_sha256,
             ]
         )
+        if eligible_selection_path is None or eligible_selection_sha256 is None:
+            raise DispatcherError("ANALYSIS_ADMISSION_REQUIRED")
+        command.extend(["--eligible-selection", str(eligible_selection_path), "--eligible-selection-sha256", eligible_selection_sha256])
         command.append("--execute")
     return command
 
@@ -2670,6 +2786,8 @@ def _run_execution_child(
     samples_path: Path,
     prepared_text_manifest_path: Path,
     prepared_text_manifest_sha256: str,
+    eligible_selection_path: Path | None = None,
+    eligible_selection_sha256: str | None = None,
     sampler: Callable[[], Mapping[str, int]] = sample_resource_metrics,
     popen: Callable[..., Any] = subprocess.Popen,
     sleep_fn: Callable[[float], Any] = time.sleep,
@@ -2700,6 +2818,8 @@ def _run_execution_child(
             execute=True,
             prepared_text_manifest_path=prepared_text_manifest_path,
             prepared_text_manifest_sha256=prepared_text_manifest_sha256,
+            eligible_selection_path=eligible_selection_path,
+            eligible_selection_sha256=eligible_selection_sha256,
         ),
         cwd=str(PROJECT_ROOT),
         stdout=subprocess.PIPE,
@@ -2893,6 +3013,8 @@ def execute_once(
     continuation_id_factory: Callable[[], str] | None = None,
     prepared_text_manifest_path: Path | None = None,
     prepared_text_manifest_sha256: str | None = None,
+    eligible_selection_path: Path | None = None,
+    eligible_selection_sha256: str | None = None,
 ) -> dict[str, Any]:
     if prepared_text_manifest_path is None or prepared_text_manifest_sha256 is None:
         raise DispatcherError("PREPARED_TEXT_MANIFEST_REQUIRED")
@@ -2915,6 +3037,7 @@ def execute_once(
     auth = auth_context["authorization"]
     if auth.get("prepared_text_manifest_sha256") != prepared_manifest["manifest_sha256"]:
         raise DispatcherError("ROOT_PREPARED_MANIFEST_AUTHORIZATION_MISMATCH")
+    admission = batch.load_analysis_admission(eligible_selection_path, eligible_selection_sha256, prepared_sha256=prepared_manifest["manifest_sha256"], authorization_context=auth_context)
     # Keep old dispatches, HALT and duplicate prevention in their original root.
     # A manifest-specific empty root is never a substitute for state adoption.
     if evidence_root != EVIDENCE_ROOT and (EVIDENCE_ROOT / "dispatch.jsonl").is_file():
@@ -2938,6 +3061,8 @@ def execute_once(
         "manifest_sha256": manifest_sha,
         "documents": documents,
         "inventory_summary": inventory_summary,
+        "analysis_admission": admission,
+        "prepared_manifest": prepared_manifest,
         "static": static,
         "prepared_text_manifest_path": str(prepared_manifest["path"]),
         "prepared_text_manifest_sha256": prepared_manifest["manifest_sha256"],
@@ -2960,7 +3085,8 @@ def execute_once(
         latest = _latest_document_events(journal.events)
         resolved_halt_resume_descriptor = None
         if resumed_document_id is not None:
-            resolved_halt_resume_descriptor = _halt_resume_descriptor(context, journal)
+            resolved_halt_resume_descriptor = (_analysis_isolation_descriptor(context, journal) if context.get("analysis_admission") is not None
+                                               else _halt_resume_descriptor(context, journal))
             if resolved_halt_resume_descriptor is None:
                 raise DispatcherError("HALT_RESUME_DESCRIPTOR_MISSING")
         _halt_if_required(journal, latest, halt_resume_descriptor=resolved_halt_resume_descriptor)
@@ -2986,6 +3112,8 @@ def execute_once(
         while completed_this_call < limit:
             if pending is not None:
                 plan, plan_path, plan_raw = pending
+                if admission is not None:
+                    batch.guard_analysis_document(admission, str(plan["selected_documents"][0]["document_id"]))
                 document_id = plan["selected_documents"][0]["document_id"]
                 if plan_only is None:
                     _run_plan_only(plan_path, expected_sha256=sha256_bytes(plan_raw))
@@ -3013,6 +3141,7 @@ def execute_once(
                     auth_context["pilot_document_ids"],
                     dispatched_ids,
                     prepared_manifest["documents"],
+                    admission["allowed_ids"] if admission is not None else None,
                 )
                 if document is None:
                     cohort_exhausted = True
@@ -3054,6 +3183,8 @@ def execute_once(
                     "state_root": plan["state_root"],
                 })
             plan_sha = sha256_bytes(plan_raw)
+            if admission is not None:
+                batch.guard_analysis_document(admission, document_id)
             if prepared_manifest["documents"].get(document_id, {}).get("manifest_row", {}).get("status") != "READY":
                 raise DispatcherError("PENDING_PLAN_PREPARED_DOCUMENT_NOT_READY")
             journal.append({
@@ -3073,6 +3204,8 @@ def execute_once(
                     sampler=sampler,
                     prepared_text_manifest_path=prepared_manifest["path"],
                     prepared_text_manifest_sha256=prepared_manifest["manifest_sha256"],
+                    eligible_selection_path=eligible_selection_path,
+                    eligible_selection_sha256=eligible_selection_sha256,
                 )
                 if child_runner is not None
                 else _run_execution_child(
@@ -3082,6 +3215,8 @@ def execute_once(
                     samples_path=samples_path,
                     prepared_text_manifest_path=prepared_manifest["path"],
                     prepared_text_manifest_sha256=prepared_manifest["manifest_sha256"],
+                    eligible_selection_path=eligible_selection_path,
+                    eligible_selection_sha256=eligible_selection_sha256,
                     sampler=sampler,
                     sleep_fn=sleep_fn,
                 )
@@ -3134,7 +3269,8 @@ def execute_once(
             recovery_candidate: tuple[dict[str, Any], bytes] | None = None
             recovery_error: str | None = None
             if (
-                not is_memory_recovery
+                context.get("analysis_admission") is None
+                and not is_memory_recovery
                 and reconciliation.get("status") == "FAILED_NO_RETRY"
                 and reconciliation.get("decision") == "HALT"
                 and child.get("returncode") == 0
@@ -3436,6 +3572,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--max-documents", type=int, help="per-invocation cap; authorization still sets the cumulative ceiling")
     parser.add_argument("--prepared-text-manifest", type=Path, help="full frozen text-stage manifest required for model execution")
     parser.add_argument("--prepared-text-manifest-sha256", help="expected SHA-256 of the frozen text-stage manifest")
+    parser.add_argument("--eligible-selection", type=Path)
+    parser.add_argument("--eligible-selection-sha256")
     parser.add_argument("--execute", action="store_true", help="requires root authorization plus completed pilot gates")
     args = parser.parse_args(argv)
     try:
@@ -3449,6 +3587,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             max_documents=args.max_documents,
             prepared_text_manifest_path=args.prepared_text_manifest,
             prepared_text_manifest_sha256=args.prepared_text_manifest_sha256,
+            eligible_selection_path=args.eligible_selection,
+            eligible_selection_sha256=args.eligible_selection_sha256,
         )
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
