@@ -1,0 +1,82 @@
+{
+  "status": "FIRST_LIVE_REVIEW_FAIL_FULL_ANALYSIS_UI",
+  "job_id": "4523cf36ed8944bfa0fc80d5d979524c",
+  "source_hashes": {
+    "input": "f19fcf59d5a14214e8155e84af0d4174b0a583301ed69a515d225511ea594848",
+    "report": "c5eeb9038318c8335543fa7f738c889380c16ba670e209daeef47d72ca036928",
+    "classification_plan": "b5ed66c9d4f64f24a718ee88927d9ae81454089e1c51f5e9d7a345ffa49035dc",
+    "classification_model_plan": "4cec94da0e85478988dfdf22f9c057f104bbb75bb44c326ac42289bbcbf8fd46",
+    "capture": "a9875b53fbe9737d90d1dc621f62198bf692c554f19235285540df726ad0eff7"
+  },
+  "first_identity": {
+    "article_id": "EASTMONEY:AN202610201830709288",
+    "body_sha256": "93807df80383d015960b749f299b699c9b76bc8c2740b9e37ec2053eefe3f13e",
+    "expected_requests": 1,
+    "part_count": 0,
+    "primary_disposition": "MODEL_ORDINARY",
+    "reader_requests": 1,
+    "reason_codes": [
+      "UNKNOWN_MIXED_OR_UNCOVERED_FULL_BODY"
+    ],
+    "route_group": "C",
+    "row_index": 910,
+    "source_date": "2026-10-20",
+    "source_sha256": "a8cf42e34049ab8de0c912c25a12e6b4fb99edf420ff2cad4b81586007e24790",
+    "symbol": "HK.00917",
+    "synthesis_requests": 0
+  },
+  "outcome": "SUCCEEDED_VALIDATED_COMPLETE_ARTICLE",
+  "parent_job": {
+    "state": "PARTIAL",
+    "step": "DONE",
+    "completed_count": 1,
+    "total_count": 8,
+    "started_at": "2026-10-20T14:38:59.163966+08:00",
+    "finished_at": "2026-10-20T14:42:37.015053+08:00",
+    "failure_code": null
+  },
+  "model_metrics": {
+    "usage": {
+      "completion_tokens": 373,
+      "prompt_tokens": 5906,
+      "total_tokens": 6279
+    },
+    "request_rounds": 1,
+    "wall_seconds": 52.732,
+    "ttfc_seconds": 30.179,
+    "response_model": "qwen3_8_flash_next"
+  },
+  "actual_request_count": 1,
+  "queue_key": "a93699ee522cb8e569dbb4f2622ccbfc85ee45e4dcc64b173d3ec54258dc630c",
+  "queue_status": "SUCCEEDED",
+  "raw_sha256": "e1882c0bf71f44cf2eba66eba31982313fc86c9a51b920b74e76fd7d5db2fab1",
+  "validated_sha256": "ea04862f97f508f9bbc20ef0b736222aeea9cc00adc0529b4c841d028e8bb7a8",
+  "delivery_binding": {
+    "artifact_ref": "announcement_flash/jobs/4523cf36ed8944bfa0fc80d5d979524c/deliveries/b39adbd1667e68e866387e615ef688aac7be6c41fb495e23f903d17582854777.json",
+    "job_id": "4523cf36ed8944bfa0fc80d5d979524c",
+    "schema": "v4.manager_workbench.announcement_delivery.v1",
+    "sha256": "b39adbd1667e68e866387e615ef688aac7be6c41fb495e23f903d17582854777"
+  },
+  "history": {
+    "original1369_queue_records_unchanged": true,
+    "successful_records_checked": 846,
+    "original_success_files_checked": 1692,
+    "mismatches": [],
+    "old_stale99059_unchanged": true,
+    "stopped_three_and_inputs_unchanged": true,
+    "queue_sha256_before": "feb5d0a29768f3b5ef139242d5a67c1ae2559669c6e87c7741acc70e8640a77e",
+    "queue_sha256_after": "365c0cd89e4e01aa51a1a1414b60162c3c22838df5d0bbb041fe234fb3c1d616",
+    "queue_difference_expected": "Only one current FIRST new key may be admitted/attempted; all baseline records remain identical."
+  },
+  "trigger": "Existing V4 API; visible Chrome readback completed after IAB unavailable",
+  "first_receipt_sha256": "3b29e7668d2bf40671f30db1ae86a339db4b1d8885a4700b14fba5bbee8ba181",
+  "raw_model_or_source_contents_uploaded": false,
+  "independent_review": {
+    "receipt_sha256": "ee8a4c5c96ff6a3d9af8804e011803af5180b120d90238551bcf3d4f2052c2a5",
+    "verdict": "FAIL",
+    "only_blocker": "Complete existing validated analysis unavailable through API/UI detail entry",
+    "source_correct_request_persistence_history": "PASS",
+    "continue": "HELD",
+    "first_rerun": false
+  }
+}

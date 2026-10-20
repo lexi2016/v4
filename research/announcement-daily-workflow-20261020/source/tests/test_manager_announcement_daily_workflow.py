@@ -165,6 +165,12 @@ def test_api_reports_preprocessing_and_incremental_delivery_while_preserving_pri
             bridge._run(value,**kwargs,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='FIRST')
             first_api=client.get('/api/v4/manager-workbench/announcement-flash?target_date='+context.target_date).json()
             assert first_api['data']['daily_delivery']['counts']['SUCCEEDED']==1
+            saved_delivery,saved_binding=read_delivery(store.io,job.job_id)
+            assert first_api['data']['daily_delivery']==saved_delivery
+            analysis=first_api['data']['daily_analysis']
+            assert analysis['delivery_sha256']==saved_binding['sha256']
+            assert analysis['articles'][0]['analysis_state']=='AVAILABLE'
+            assert 'facts' in analysis['articles'][0]['reader_output']
             assert any(e['article_id']=='HISTORY:OLD' for stock in first_api['data']['stocks'] for e in stock['articles'])
             bridge._run(value,**kwargs,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE')
             final_api=client.get('/api/v4/manager-workbench/announcement-flash?target_date='+context.target_date).json()
@@ -337,3 +343,94 @@ def test_single_article_failure_is_visible_and_never_retried_by_continuation(tmp
     bridge._run(value,**kwargs,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE')
     assert calls==[('EASTMONEY:NEW_A','ordinary'),('EASTMONEY:NEW_B','ordinary')]
     assert json.loads(state_file.read_text())['jobs'][failed['queue_key']]==old
+
+
+def _saved_analysis_fixture(tmp_path, coverage='COMPLETE_ARTICLE'):
+    """Only persisted, isolated artifacts: no runner or model invocation."""
+    import hashlib
+    from infrastructure.owned_io import SafeRoot
+    from v4.manager_workbench.announcement_delivery import publish
+    from v4.manager_workbench.announcement_preprocessing import encoded
+    io=SafeRoot(tmp_path);key='1'*64;aid='EASTMONEY:SAVED_ANALYSIS'
+    reader={'disposition':'NOT_SELECTED','direction':'NEUTRAL','selection_basis':'NOT_SELECTED',
+        'evidence_sufficiency':'VERIFIED_EXISTING_FACTS','reason':'完整已保存理由。',
+        'facts':[{'claim':f'事实{i}','quote':f' 原文事实{i}。\n','locator':f'article_body[codepoint:{i}:{i+1}]',
+                  'start_source_unit_id':f'{aid}::U{i}'} for i in range(4)],
+        'changes':[],'impact':[],'confirmation_conditions':[],'counter_evidence':[],
+        'risk_notes':['已披露风险一。','已披露风险二。','输入元数据：pit_status=CANNOT_CONFIRM；OFFICIAL_FIRST_PUBLICATION_TIME_NOT_BOUND'],
+        'source_sha256':'2'*64,'body_sha256':'3'*64}
+    result={'results':[{'article_id':aid,'reader_output':reader}]}
+    ref=f'jobs/{key}/attempt-0001.validated.json';raw=encoded(result)+b'\n'
+    io.write_bytes('announcement_flash/queue/'+ref,raw)
+    entry={k:reader[k] for k in ('source_sha256','body_sha256','disposition','direction','selection_basis','reason')}
+    entry.update(article_id=aid,title='已保存完整公告',state='SUCCEEDED',source_coverage=coverage,
+                 queue_key=key,result_ref=ref,result_sha256=hashlib.sha256(raw).hexdigest())
+    delivery={'schema':'v4.manager_workbench.announcement_delivery.v1','job_id':'a'*32,
+              'articles':[entry],'stocks':[],'counts':{'SUCCEEDED':1}}
+    binding=publish(io,delivery['job_id'],delivery)
+    return io,delivery,binding,reader,result
+
+
+@pytest.mark.parametrize('coverage',['COMPLETE_ARTICLE','COMPLETE_SYNTHESIS'])
+def test_saved_full_analysis_is_readonly_and_preserves_all_evidence_and_empty_sections(tmp_path,coverage):
+    from v4.manager_workbench.announcement_delivery import read_analysis
+    io,delivery,binding,reader,_=_saved_analysis_fixture(tmp_path,coverage)
+    before={str(p.relative_to(tmp_path)):p.read_bytes() for p in tmp_path.rglob('*') if p.is_file()}
+    original=deepcopy(delivery)
+    projection=read_analysis(io,delivery,binding)
+    assert projection['delivery_sha256']==binding['sha256']
+    article=projection['articles'][0]
+    assert article['analysis_state']=='AVAILABLE' and article['reader_output']==reader
+    assert len(article['reader_output']['facts'])==4 and len(article['reader_output']['risk_notes'])==3
+    assert article['reader_output']['confirmation_conditions']==[]
+    assert delivery==original
+    assert before=={str(p.relative_to(tmp_path)):p.read_bytes() for p in tmp_path.rglob('*') if p.is_file()}
+    # The returned business objects do not alias the stored delivery/result.
+    article['reader_output']['facts'][0]['claim']='mutated client copy'
+    assert read_analysis(io,delivery,binding)['articles'][0]['reader_output']==reader
+
+
+@pytest.mark.parametrize('case',[
+    'sha','missing','symlink','traversal','wrong_queue_key','wrong_article','wrong_source','wrong_body',
+    'summary_decision','invalid_evidence','part_coverage','delivery_binding',
+])
+def test_saved_analysis_bad_reference_or_identity_is_unavailable_without_replacing_success(tmp_path,case):
+    import hashlib
+    from v4.manager_workbench.announcement_delivery import read_analysis,publish
+    from v4.manager_workbench.announcement_preprocessing import encoded
+    io,delivery,binding,reader,result=_saved_analysis_fixture(tmp_path)
+    entry=delivery['articles'][0];ref='announcement_flash/queue/'+entry['result_ref'];path=tmp_path/ref
+    if case=='sha':path.write_bytes(path.read_bytes()+b' ')
+    elif case=='missing':path.unlink()
+    elif case=='symlink':
+        target=tmp_path/'elsewhere.json';target.write_bytes(path.read_bytes());path.unlink();path.symlink_to(target)
+    elif case=='traversal':entry['result_ref']='../elsewhere.json'
+    elif case=='wrong_queue_key':entry['queue_key']='f'*64
+    elif case=='summary_decision':entry['direction']='POSITIVE'
+    elif case=='part_coverage':entry['source_coverage']='INCOMPLETE_PARTS'
+    elif case=='delivery_binding':binding['sha256']='f'*64
+    else:
+        if case=='wrong_article':result['results'][0]['article_id']='OTHER'
+        elif case=='wrong_source':reader['source_sha256']='4'*64
+        elif case=='wrong_body':reader['body_sha256']='4'*64
+        elif case=='invalid_evidence':reader['facts'][0]['quote']=None
+        raw=encoded(result)+b'\n';path.write_bytes(raw);entry['result_sha256']=hashlib.sha256(raw).hexdigest()
+    if case!='delivery_binding':binding=publish(io,delivery['job_id'],delivery)
+    before=deepcopy(delivery)
+    projection=read_analysis(io,delivery,binding)
+    assert projection['articles'][0]['analysis_state']=='UNAVAILABLE'
+    assert projection['articles'][0]['failure_code'].startswith('ANALYSIS_')
+    assert 'reader_output' not in projection['articles'][0]
+    assert delivery==before and delivery['counts']=={'SUCCEEDED':1} and delivery['articles'][0]['state']=='SUCCEEDED'
+
+
+def test_saved_analysis_one_bad_entry_does_not_hide_other_results_and_parts_are_not_complete(tmp_path):
+    from v4.manager_workbench.announcement_delivery import read_analysis,publish
+    io,delivery,_,reader,_=_saved_analysis_fixture(tmp_path)
+    bad=deepcopy(delivery['articles'][0]);bad['article_id']='UNBOUND'
+    pending=deepcopy(bad);pending.update(article_id='PENDING_PART',state='PENDING',source_coverage='INCOMPLETE_PARTS')
+    delivery['articles'] += [bad,pending]
+    binding=publish(io,delivery['job_id'],delivery)
+    rows=read_analysis(io,delivery,binding)['articles']
+    assert [e['analysis_state'] for e in rows]==['AVAILABLE','UNAVAILABLE']
+    assert rows[0]['reader_output']==reader

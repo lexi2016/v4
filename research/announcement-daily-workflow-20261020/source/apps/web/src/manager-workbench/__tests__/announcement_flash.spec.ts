@@ -421,3 +421,72 @@ describe("daily preprocessing and per-article delivery", () => {
     expect(screen.getByText(/增量任务：停止中（等待在途结果保存）/)).toBeTruthy();
   });
 });
+
+describe("saved whole-article analysis reading", () => {
+  afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  function savedAnalysisResponse() {
+    const source = "2".repeat(64), body = "3".repeat(64), deliverySha = "4".repeat(64);
+    const reader = { disposition: "NOT_SELECTED", direction: "NEUTRAL", selection_basis: "NOT_SELECTED",
+      evidence_sufficiency: "VERIFIED_EXISTING_FACTS", reason: "首篇完整保存的判断理由。",
+      facts: Array.from({ length: 4 }, (_, i) => ({ claim: `事实${i}`, quote: ` 原文事实${i}。\n`,
+        locator: `article_body[codepoint:${i}:${i + 1}]` })),
+      changes: [], impact: [], confirmation_conditions: [], counter_evidence: [],
+      risk_notes: ["已披露风险一。", "已披露风险二。", "输入元数据：pit_status=CANNOT_CONFIRM；OFFICIAL_FIRST_PUBLICATION_TIME_NOT_BOUND"],
+      source_sha256: source, body_sha256: body };
+    const data = { ...announcementResult([], "c".repeat(64)),
+      daily_delivery: { state: "PARTIAL", counts: { SUCCEEDED: 1, DEFERRED: 1 }, articles: [
+        { article_id: "SAVED", source_sha256: source, body_sha256: body, title: "首篇已保存完整公告",
+          state: "SUCCEEDED", reason: reader.reason, disposition: "NOT_SELECTED", source_coverage: "COMPLETE_ARTICLE" },
+        { article_id: "DEFERRED", title: "未尝试公告", state: "DEFERRED" }
+      ] }, daily_delivery_binding: { sha256: deliverySha },
+      daily_analysis: { schema: "v4.manager_workbench.announcement_analysis_projection.v1", delivery_sha256: deliverySha,
+        articles: [{ article_id: "SAVED", source_sha256: source, body_sha256: body, result_sha256: "5".repeat(64),
+          analysis_state: "AVAILABLE", reader_output: reader }] } };
+    return { ...envelope(data), data };
+  }
+
+  it("opens the saved full result with every exact quote/locator, risks and PIT without execution", async () => {
+    const path = process.env.ANNOUNCEMENT_ANALYSIS_OFFLINE_RESPONSE;
+    const value = path ? JSON.parse(await (await import("node:fs/promises")).readFile(path, "utf8")) : savedAnalysisResponse();
+    const saved = value.data.daily_analysis.articles.find((a: { analysis_state: string }) => a.analysis_state === "AVAILABLE");
+    const reader = saved.reader_output;
+    const fetcher = vi.fn(async () => response(value)); vi.stubGlobal("fetch", fetcher);
+    render(AnnouncementCandidates, { props: { targetDate: "20261020" } });
+    const summary = await screen.findByText("阅读完整分析");
+    const details = summary.closest("details")!;
+    expect(details.open).toBe(false);
+    await fireEvent.click(summary);
+    const facts = within(details).getByRole("region", { name: "事实" });
+    expect(facts.querySelectorAll("ol > li")).toHaveLength(4);
+    expect(Array.from(facts.querySelectorAll("pre")).map(node => node.textContent)).toEqual(reader.facts.map((f: { quote: string }) => f.quote));
+    for (const fact of reader.facts) expect(facts.textContent).toContain(fact.locator);
+    const risks = within(details).getByRole("region", { name: "风险与数据限制" });
+    expect(within(risks).getAllByRole("listitem")).toHaveLength(3);
+    for (const note of reader.risk_notes) expect(risks.textContent).toContain(note);
+    expect(risks.textContent).toContain("CANNOT_CONFIRM");
+    expect(risks.textContent).toContain("OFFICIAL_FIRST_PUBLICATION_TIME_NOT_BOUND");
+    for (const label of ["变化", "影响", "确认条件", "反面证据"]) {
+      expect(within(details).getByRole("region", { name: label }).textContent).toContain("本次保存分析未提供此项");
+    }
+    expect(details.textContent).toContain(reader.evidence_sufficiency);
+    expect(details.textContent).toContain(saved.result_sha256);
+    expect(details.textContent).toContain(value.data.daily_delivery_binding.sha256);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    const dom = process.env.ANNOUNCEMENT_ANALYSIS_OFFLINE_DOM;
+    if (dom) await (await import("node:fs/promises")).writeFile(dom, document.body.innerHTML);
+  });
+
+  it.each(["unavailable", "wrong_delivery"])("keeps success and reason while details are %s", async kind => {
+    const value = savedAnalysisResponse();
+    if (kind === "wrong_delivery") value.data.daily_analysis.delivery_sha256 = "f".repeat(64);
+    else Object.assign(value.data.daily_analysis.articles[0], { analysis_state: "UNAVAILABLE", reader_output: undefined,
+      failure_code: "ANALYSIS_RESULT_SHA_CHANGED" });
+    const fetcher = vi.fn(async () => response(value)); vi.stubGlobal("fetch", fetcher);
+    render(AnnouncementCandidates, { props: { targetDate: "20261020" } });
+    expect(await screen.findByText(/完整分析暂不可读/)).toBeTruthy();
+    expect(screen.queryByText("阅读完整分析")).toBeNull();
+    expect(screen.getByRole("region", { name: "逐篇交付与未完成" }).textContent).toContain("完整分析已保存");
+    expect(screen.getByText(/首篇完整保存的判断理由/)).toBeTruthy();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+});

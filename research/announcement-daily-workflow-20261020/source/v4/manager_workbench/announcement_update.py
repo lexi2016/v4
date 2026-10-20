@@ -3715,7 +3715,7 @@ class AnnouncementUpdate:
                     update["stop_requested"] = True
                 if active_target and active_target != job.context.target_date:
                     update = None
-        from .announcement_delivery import read as read_delivery
+        from .announcement_delivery import read as read_delivery, read_analysis
         delivery_index = self.service.store.cursor("announcement_flash_delivery_index") or {"items": []}
         delivery_jobs = [e["job_id"] for e in delivery_index.get("items", []) if e.get("target_date") == active_target]
         if latest and latest.get("target_date") == active_target and latest.get("job_id") not in delivery_jobs:
@@ -3730,6 +3730,7 @@ class AnnouncementUpdate:
                 view["stocks"] = _merge_stocks(view.get("stocks", []), eligible)
                 view["daily_delivery"] = delivered
                 view["daily_delivery_binding"] = delivery_binding
+                view["daily_analysis"] = read_analysis(self.service.store.io, delivered, delivery_binding)
                 view["preprocessing"] = report
                 view["preprocessing_binding"] = {"sha256": _report_sha}
         if latest and latest.get("target_date") == active_target:

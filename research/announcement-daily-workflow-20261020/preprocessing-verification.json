@@ -1,0 +1,129 @@
+{
+  "status": "PREPROCESSING_REPORT_READY",
+  "job_id": "4523cf36ed8944bfa0fc80d5d979524c",
+  "cutoff": "2026-10-20T14:27:00+08:00",
+  "source": "EASTMONEY_HK",
+  "source_scope": "EASTMONEY_ONLY",
+  "market": "HK_CONNECT",
+  "window": {
+    "calendar_owner": "contracts.trading_calendar / hk_securities",
+    "calendar_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+    "left_inclusive": false,
+    "publication_dates": [
+      "2026-10-15",
+      "2026-10-16",
+      "2026-10-17",
+      "2026-10-18",
+      "2026-10-19",
+      "2026-10-20"
+    ],
+    "publication_window_end": "2026-10-20T14:27:00+08:00",
+    "publication_window_mode": "TWO_COMPLETED_HK_SESSIONS_POST_CLOSE_WINDOW",
+    "publication_window_start": "2026-10-15T16:10:00+08:00",
+    "research_cutoff": "2026-10-20T14:27:00+08:00",
+    "right_inclusive": true,
+    "target_trade_date": "20261020",
+    "timezone": "Asia/Hong_Kong"
+  },
+  "capture_run_id": "160329ed9f3e48f0aada8be052346852",
+  "capture_product": {
+    "artifact_ref": "products/a9875b53fbe9737d90d1dc621f62198bf692c554f19235285540df726ad0eff7.json",
+    "owner": "v4.manager_workbench.capture_announcements",
+    "sha256": "a9875b53fbe9737d90d1dc621f62198bf692c554f19235285540df726ad0eff7",
+    "source": "EASTMONEY_HK"
+  },
+  "capture_observed_count": 968,
+  "capture_scope_count": 968,
+  "capture_coverage_status": "PARTIAL",
+  "capture_gaps": [
+    "ANNOUNCEMENT_OUTSIDE_PUBLICATION_WINDOW",
+    "BODY_116_H_ISSUER_IDENTITY_MISMATCH",
+    "BODY_PAGE_TOTAL_INVALID",
+    "CAPTURE_AVAILABLE_AFTER_RESEARCH_CUTOFF"
+  ],
+  "counts": {
+    "bounded_articles": 8,
+    "bounded_model_requests": 8,
+    "deferred_model_articles": 29,
+    "exact_duplicates": 0,
+    "expected_model_requests": 63,
+    "model_long_articles": 3,
+    "model_ordinary_articles": 34,
+    "model_required_articles": 37,
+    "ordinary_requests": 34,
+    "primary_dispositions": {
+      "MEMBERSHIP_OUT": 443,
+      "MEMBERSHIP_UNKNOWN": 23,
+      "MODEL_LONG": 3,
+      "MODEL_ORDINARY": 34,
+      "OTHER_HISTORY_PRESERVED": 437,
+      "OUTSIDE_WINDOW": 25,
+      "USER_STOPPED_EXCLUDED": 3
+    },
+    "raw_rows": 968,
+    "reader_parts": 26,
+    "syntheses": 3,
+    "unique_articles": 968,
+    "workload_unknown_articles": 0
+  },
+  "classification_policy": {
+    "classifier_sha256": "d0c276c9adbdcf1723c02de1f92e8fd0017e0dd9525d983142aeb04742885d73",
+    "legacy_default": "MODEL_REVIEW",
+    "mode": "CONSERVATIVE_FULL_BODY",
+    "version": "announcement-classification-20261020-v2"
+  },
+  "input_sha256": "f19fcf59d5a14214e8155e84af0d4174b0a583301ed69a515d225511ea594848",
+  "report_sha256": "c5eeb9038318c8335543fa7f738c889380c16ba670e209daeef47d72ca036928",
+  "membership_gate_sha256": "913a89f2b03a6904b687fa2acf4759df5195037510cf3e2eb2ab62f5fa1ebeb3",
+  "zero_model_evidence": {
+    "only_update_POSTs": 1,
+    "FIRST_POSTs": 0,
+    "CONTINUE_POSTs": 0,
+    "model_POSTs_by_operator": 0,
+    "report_model_requests": 0,
+    "report_queue_claims": 0,
+    "queue_SHA_before_after": "feb5d0a29768f3b5ef139242d5a67c1ae2559669c6e87c7741acc70e8640a77e",
+    "queue_record_keys_count_before_after": 1369,
+    "total_attempt_count_before_after": 965,
+    "queue_bytes_unchanged": true
+  },
+  "resources_summary": {
+    "swap_used_mb_before": 12675.75,
+    "swap_used_mb_after": 12667.75,
+    "swap_delta_mb": -8.0,
+    "sources": [
+      "resources-before.json",
+      "resources-after-preprocessing.json",
+      "preprocessing-process-health.json"
+    ]
+  },
+  "execution_timing": {
+    "started_at": "2026-10-20T14:27:49.706392+08:00",
+    "finished_at": "2026-10-20T14:32:12.047291+08:00",
+    "owner_wall_seconds": 262.340899
+  },
+  "canary_coverage_limit": "Frozen8-entry manifest currently contains ordinary articles only. A new4-part long article exists in full denominator but was not selected by the frozen new/old ordering before8 slots filled; no claim of absent long input or live long-path coverage. Do not edit this report or add keys; parent decides if later separately reviewed coverage is needed.",
+  "capture_completeness_limit": "All6 daily catalogues complete and totals close968; capture remains PARTIAL:4 BODY_PAGE_TOTAL_INVALID in membershipOUT,4 BODY_116_H_ISSUER_IDENTITY_MISMATCH in membershipUNKNOWN,25 outside-window rows; post-cutoff availability retained. No affected row entered model manifest. Mirror display time is not official publication PIT.",
+  "receipt_sha256": "422b4a77801763d81ff2ac850ef72af95e38e64a1de0f8edfac6b28e409c59bb",
+  "history_preservation": {
+    "records_checked": 1369,
+    "successful_records": 846,
+    "successful_files_checked": 1692,
+    "mismatches": []
+  },
+  "user_report_gate": {
+    "status": "ACTUAL_COUNTS_AND_RULES_REPORTED_BEFORE_FIRST",
+    "report_sha256": "c5eeb9038318c8335543fa7f738c889380c16ba670e209daeef47d72ca036928",
+    "raw_rows": 968,
+    "unique_articles": 968,
+    "model_required_articles": 37,
+    "expected_model_requests": 63,
+    "bounded_articles": 8,
+    "bounded_model_requests": 8,
+    "source_partial_disclosed": true,
+    "live_long_path_uncovered_disclosed": true,
+    "FIRST_authorized_requests": 1,
+    "CONTINUE_authorized_now": false
+  },
+  "boundary": "Preprocessing checkpoint only; no model selection claim"
+}

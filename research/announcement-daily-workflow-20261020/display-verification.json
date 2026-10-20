@@ -1,0 +1,75 @@
+{
+  "status": "DISPLAY_R1_REVIEW_PASS_CANONICAL_INTEGRATED",
+  "original_first_review": "FAIL_FULL_ANALYSIS_UI",
+  "original_failure_retained": true,
+  "writer_receipt_sha256": "9eb5daa9f9fcd6f07fe1c7876b50efd91e41feff893acc8a221ec355da1c57bc",
+  "independent_review_sha256": "88c5c37aed7972ddc00a6a20d16e67ef3a6a7a03f9a056f6afcb564992ef2600",
+  "candidate_freeze_sha256": "2dbec899c44cbd2eb7c2cb350760635778a6a3e7fbc49ec41d7ba8a2fb02b52f",
+  "frozen_sources": [
+    {
+      "path": "v4/manager_workbench/announcement_delivery.py",
+      "before_sha256": "381c75d495c5367868e7d627c5809eae30c0201e3a5d3ed5201652398eb4e55a",
+      "after_sha256": "17bb9880895505a212e4f6ad7c30ae82ec98c3f8c5c190abf576255c4a02d87d",
+      "runtime_R7_before_sha256": "381c75d495c5367868e7d627c5809eae30c0201e3a5d3ed5201652398eb4e55a"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "before_sha256": "347636a7fe31a6d9fa0b73859c209eba9e508f7af3cc5a3be64e6fbdd262bdd3",
+      "after_sha256": "82bd3e0d9180ab63ac43cec135f503bc1bfb77c7990247dbe4fc67e884654b53",
+      "runtime_R7_before_sha256": "347636a7fe31a6d9fa0b73859c209eba9e508f7af3cc5a3be64e6fbdd262bdd3"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "5345663ef0ff0882f9585fce74c959ea05c155360a148e0bf8a69462a5dc14f1",
+      "after_sha256": "66d09d73f2a2c9ac58adf22b97d32f935d51dae53afb191d03f9a4f6d9a4e821",
+      "runtime_R7_before_sha256": "5345663ef0ff0882f9585fce74c959ea05c155360a148e0bf8a69462a5dc14f1"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "before_sha256": "f970cd79b59f28c1cab65118ce71d33ccae710849df064f87c2dda126b28a53b",
+      "after_sha256": "a6dcf2ea2f543a179743d9ecfdef9b2add6475aaaa02a64038bc4bd641461d20",
+      "runtime_R7_before_sha256": "f970cd79b59f28c1cab65118ce71d33ccae710849df064f87c2dda126b28a53b"
+    },
+    {
+      "path": "tests/test_manager_announcement_daily_workflow.py",
+      "before_sha256": "b42c2a7df349ccdca47ae39c0a384bfe715631aff33a0b7823d6959a0d6550b2",
+      "after_sha256": "c59b8a5eba51e33d54ce42648f8a2eeb30bfc4a6d8bc921ba9df606459470a54",
+      "runtime_R7_before_sha256": "b42c2a7df349ccdca47ae39c0a384bfe715631aff33a0b7823d6959a0d6550b2"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "before_sha256": "da2146cda795ace3b36715e2dac3f050723336775742e5516268a2452c812e7a",
+      "after_sha256": "4d425f064a09482c2f307ba7a92cfb72f4f88711c3a1d404ac67ac8383ca7475",
+      "runtime_R7_before_sha256": "da2146cda795ace3b36715e2dac3f050723336775742e5516268a2452c812e7a"
+    }
+  ],
+  "acceptance": {
+    "source_identity_and_scope": "PASS",
+    "SHA_bound_reference_safety": "PASS",
+    "original_FIRST_full_reader_and_quote_locator_equality": "PASS",
+    "immutable_delivery_latest_input_report_raw_validated": "PASS",
+    "isolated_existing_GET_projection": "PASS",
+    "component_reading_and_escaped_references": "PASS",
+    "focused_typecheck": "PASS",
+    "independent_R7_overlay_build": "BUILD_PASS",
+    "deployed_R8_API_UI": "NOT_RUN"
+  },
+  "validation_counts": {
+    "backend": 25,
+    "additional_invalid_reference_cases": 10,
+    "components": 10,
+    "additional_safe_text_case": 1
+  },
+  "frontend_build_manifest_sha256": "558377184a14378dbbe73aaacf420e4f3223a677106e8681ee342784b78f51a5",
+  "existing_first_complete_analysis_equal": true,
+  "first_rerun": false,
+  "raw_and_immutable_artifacts_rewritten": false,
+  "canonical_types_extra_delta_preserved": true,
+  "live_R8_API_UI": "NOT_RUN",
+  "real_CONTINUE": "NOT_RUN",
+  "raw_model_or_source_contents_uploaded": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

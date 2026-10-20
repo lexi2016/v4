@@ -610,10 +610,28 @@ export interface AnnouncementPreprocessing {
 }
 export interface AnnouncementDelivery {
   state: string;
-  articles: { article_id: string; body_sha256?: string; title?: string; state: string;
+  articles: { article_id: string; source_sha256?: string; body_sha256?: string; title?: string; state: string;
     disposition?: string; reason?: string; queue_reason?: string; failure_code?: string;
     parts_complete?: number; parts_total?: number; source_coverage?: string }[];
   counts: Record<string, number>;
+}
+export interface AnnouncementReaderEvidence {
+  claim: string; quote: string; locator: string;
+  [field: string]: unknown;
+}
+export interface AnnouncementSavedReader {
+  disposition: string; direction: string; selection_basis: string;
+  evidence_sufficiency: string; reason: string;
+  facts: AnnouncementReaderEvidence[]; changes: AnnouncementReaderEvidence[];
+  impact: AnnouncementReaderEvidence[]; confirmation_conditions: AnnouncementReaderEvidence[];
+  counter_evidence: AnnouncementReaderEvidence[]; risk_notes: string[];
+  source_sha256: string; body_sha256: string;
+}
+export interface AnnouncementAnalysisProjection {
+  schema: string; delivery_sha256: string;
+  articles: { article_id: string; source_sha256: string; body_sha256: string;
+    result_sha256: string; analysis_state: "AVAILABLE" | "UNAVAILABLE";
+    reader_output?: AnnouncementSavedReader; failure_code?: string }[];
 }
 export interface AnnouncementFlashData extends SafetyFlags {
   state: string;
@@ -621,6 +639,7 @@ export interface AnnouncementFlashData extends SafetyFlags {
   preprocessing_binding?: { sha256: string };
   daily_delivery?: AnnouncementDelivery;
   daily_delivery_binding?: { sha256: string };
+  daily_analysis?: AnnouncementAnalysisProjection;
   source_date: string;
   target_trade_date: string;
   updated_at?: string | null;

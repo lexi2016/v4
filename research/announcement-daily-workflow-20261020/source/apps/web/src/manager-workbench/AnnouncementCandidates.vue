@@ -66,6 +66,23 @@ const membership = computed(() => data.value?.membership || null);
 const isActive = computed(() => ["QUEUED", "RUNNING", "STOP_REQUESTED"].includes(activeJob.value?.state || ""));
 const preprocessing = computed(() => data.value?.preprocessing || null);
 const delivery = computed(() => data.value?.daily_delivery || null);
+const evidenceSections = [
+  ["facts", "事实"], ["changes", "变化"], ["impact", "影响"],
+  ["confirmation_conditions", "确认条件"], ["counter_evidence", "反面证据"],
+] as const;
+const deliveryRows = computed(() => {
+  const projection = data.value?.daily_analysis;
+  const bound = projection?.delivery_sha256 === data.value?.daily_delivery_binding?.sha256;
+  return (delivery.value?.articles || []).map(article => {
+    const analysis = bound ? projection?.articles.find(item => item.article_id === article.article_id
+      && item.body_sha256 === article.body_sha256 && item.source_sha256 === article.source_sha256) : undefined;
+    return { ...article, analysis, evidenceSections: analysis?.reader_output
+      ? evidenceSections.map(([field, label]) => ({ field, label, items: analysis.reader_output![field] })) : [] };
+  });
+});
+function evidenceValue(value: unknown): string {
+  return typeof value === "string" ? value : JSON.stringify(value);
+}
 const firstComplete = computed(() => delivery.value?.articles.some(article =>
   article.article_id === preprocessing.value?.first_article_id
   && article.body_sha256 === preprocessing.value?.execution_manifest[0]?.body_sha256 && article.state === "SUCCEEDED") || false);
@@ -362,12 +379,55 @@ onBeforeUnmount(() => {
       <section v-if="delivery" class="mwb-announcement-job" aria-label="逐篇交付与未完成">
         <h3>逐篇完整结果与未完成清单</h3>
         <p>分块仅作为证据；正文完整且综合通过后才显示文章终态和候选。</p>
-        <ul><li v-for="article in delivery.articles" :key="article.article_id + ':' + article.body_sha256">
+        <ul><li v-for="article in deliveryRows" :key="article.article_id + ':' + article.body_sha256">
           <strong>{{ article.title || article.article_id }}</strong>：{{ articleStateText(article.state) }}
           <span v-if="article.disposition"> · {{ articleStateText(article.disposition) }}</span>
           <span v-if="article.parts_total != null">（证据分块 {{ article.parts_complete }}/{{ article.parts_total }}）</span>
           <span v-if="article.reason"> — {{ article.reason }}</span>
           <span v-else-if="article.queue_reason || article.failure_code"> — {{ article.queue_reason || article.failure_code }}</span>
+          <details v-if="article.analysis?.analysis_state === 'AVAILABLE' && article.analysis.reader_output"
+            :aria-label="'完整分析：' + (article.title || article.article_id)">
+            <summary>阅读完整分析</summary>
+            <p>已保存的模型分析，供人工复核；完整正文覆盖不代表官方首次发布时间已确认。</p>
+            <dl>
+              <dt>判断</dt><dd>{{ article.analysis.reader_output.disposition }}</dd>
+              <dt>方向</dt><dd>{{ article.analysis.reader_output.direction }}</dd>
+              <dt>判断依据</dt><dd>{{ article.analysis.reader_output.selection_basis }}</dd>
+              <dt>证据充分性</dt><dd>{{ article.analysis.reader_output.evidence_sufficiency }}</dd>
+              <dt>完整理由</dt><dd>{{ article.analysis.reader_output.reason }}</dd>
+            </dl>
+            <section v-for="group in article.evidenceSections" :key="group.field" :aria-label="group.label">
+              <h4>{{ group.label }}</h4>
+              <p v-if="!group.items.length">本次保存分析未提供此项。</p>
+              <ol v-else><li v-for="(citation, index) in group.items" :key="index">
+                <p>{{ citation.claim }}</p>
+                <blockquote><pre style="white-space: pre-wrap; overflow-wrap: anywhere">{{ citation.quote }}</pre></blockquote>
+                <dl><template v-for="(value, key) in citation" :key="key">
+                  <template v-if="key !== 'claim' && key !== 'quote'">
+                    <dt>{{ key === 'locator' ? '原文定位（locator）' : key }}</dt><dd>{{ evidenceValue(value) }}</dd>
+                  </template>
+                </template></dl>
+              </li></ol>
+            </section>
+            <section aria-label="风险与数据限制">
+              <h4>风险与数据限制</h4>
+              <ul v-if="article.analysis.reader_output.risk_notes.length">
+                <li v-for="(note, index) in article.analysis.reader_output.risk_notes" :key="index">{{ note }}</li>
+              </ul>
+              <p v-else>本次保存分析未提供此项。</p>
+            </section>
+            <dl style="overflow-wrap: anywhere">
+              <dt>来源覆盖</dt><dd>{{ article.source_coverage }}</dd>
+              <dt>来源 SHA256</dt><dd>{{ article.analysis.source_sha256 }}</dd>
+              <dt>正文 SHA256</dt><dd>{{ article.analysis.body_sha256 }}</dd>
+              <dt>已校验结果 SHA256</dt><dd>{{ article.analysis.result_sha256 }}</dd>
+              <dt>交付版本 SHA256</dt><dd>{{ data.daily_analysis?.delivery_sha256 }}</dd>
+            </dl>
+          </details>
+          <p v-else-if="article.state === 'SUCCEEDED'" role="status">
+            完整分析暂不可读，请保留已保存结果并核对来源绑定。
+            <small v-if="article.analysis?.failure_code">{{ article.analysis.failure_code }}</small>
+          </p>
         </li></ul>
       </section>
       <button v-if="isActive" type="button" :disabled="activeJob?.state === 'STOP_REQUESTED'" @click="stopUpdate">
