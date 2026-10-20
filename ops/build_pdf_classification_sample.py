@@ -16,15 +16,18 @@ import json
 from pathlib import Path
 import re
 import time
+import sys
+from datetime import datetime, timezone
 import unicodedata
 from urllib.parse import quote
 
 MANIFEST_SHA = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
 SCHEMA = "v4.pdf_classification_sample.v1"
+RULES_VERSION = "full-body-structure-v2-20261020"
 PRIMARY = ("券商/研究机构研究", "公司一手披露", "调研/会议记录", "新闻/资讯解读", "数据/白皮书/咨询报告", "教程/方法/其他", "待分类")
 ROUTES = ("SAVE", "REUSE_CANDIDATE", "REVIEW", "LIGHT_EXTRACTION_CANDIDATE", "DEEP_RESEARCH_CANDIDATE")
-INSTITUTIONS = ("Morgan Stanley", "Goldman Sachs", "J.P. Morgan", "JPMorgan", "Jefferies", "UBS", "Citi Research", "Barclays", "Bernstein", "Deutsche Bank", "BofA", "Nomura", "Macquarie", "DBS", "国盛证券", "国金证券", "中信证券", "中信建投", "华泰证券", "招商证券", "光大证券", "东吴证券", "开源证券", "国联民生", "民生证券", "中泰证券", "浙商证券", "中金公司", "中银证券", "长江证券", "东北证券", "西南证券", "天风证券", "兴业证券", "国信证券", "申万宏源", "广发证券", "华福证券", "平安证券", "华创证券", "华安证券", "华西证券", "财通证券", "东方证券", "国泰海通", "信达证券", "银河证券", "东兴证券", "国投证券", "华源证券")
-STRONG_NEWS = r"风口研报|财联社|早知道|盘前必读|盘中资讯|今日早盘|当下市场重点题材|题材复盘|投资舆情|盘前热点|今日财经|今日题材"
+INSTITUTIONS = ("Morgan Stanley", "Goldman Sachs", "J.P. Morgan", "JPMorgan", "Jefferies", "UBS", "Citi Research", "Barclays", "Bernstein", "Deutsche Bank", "BofA", "Nomura", "Macquarie", "DBS", "国盛证券", "国金证券", "中信证券", "中信建投", "华泰证券", "招商证券", "光大证券", "东吴证券", "开源证券", "国联民生", "民生证券", "中泰证券", "浙商证券", "中金公司", "中银证券", "长江证券", "东北证券", "西南证券", "天风证券", "兴业证券", "国信证券", "申万宏源", "广发证券", "华福证券", "平安证券", "华创证券", "华安证券", "华西证券", "财通证券", "东方证券", "国泰海通", "信达证券", "银河证券", "东兴证券", "国投证券", "华源证券", "爱建证券", "招银国际", "招銀国际", "CMB INTERNATIONAL", "HUAAN SECURITIES", "AIJIAN SECURITIES", "摩根大通", "J.P.Morgan")
+STRONG_NEWS = r"Bloomberg[\s\S]{0,60}News Story|【彭博】|风口研报|财联社|早知道|盘前必读|盘中资讯|今日早盘|当下市场重点题材|题材复盘|投资舆情|盘前热点|今日财经|今日题材"
 MEETING = r"调研纪要|会议纪要|业绩会纪要|交流纪要|专家纪要|访谈纪要|调研记录|投资者关系活动记录|会议记录|访谈实录|调研问答|公司交流|专家交流|访谈记录|Earnings Call Transcript|Conference Call Transcript"
 DATA = r"白皮书|统计公报|统计年鉴|white paper|whitepaper|产业发展报告|发展研究报告|行业调查报告|消费者调查|调研报告|麦肯锡|McKinsey|Deloitte|德勤|普华永道|PwC|艾瑞咨询|艾媒咨询|QuestMobile|易观分析|亿欧智库|罗兰贝格|灼识咨询|Euromonitor|中国信通院|中国信息通信研究院"
 DISCLOSURE = r"財務報告摘要|财务报告摘要|財報發布|财报发布|公告编号|上市公告书|年度报告全文|半年度报告全文|季度报告全文|年度业绩公告|中期业绩公告|Annual Report|INTERIM REPORT|INTERIM RESULTS|EARNINGS PRESENTATION|业绩演示|业绩发布会演示|Investor Presentation"
@@ -123,19 +126,113 @@ def institution_pattern(name):
     return r"(?<![A-Za-z])"+escaped+r"(?![A-Za-z])" if re.search(r"[A-Za-z]", name) else escaped
 
 
+def derivative_guide(text):
+    return sum(bool(re.search(marker, text)) for marker in (r"全文摘要", r"章节速览", r"思维导图")) >= 2
+
+
+def publisher_candidate(pages, primary):
+    """Cover branding only; body mentions, citations and guide titles are not bylines."""
+    if primary not in (PRIMARY[0], PRIMARY[3], PRIMARY[4]):
+        return None, None
+    short = page_slice(pages, 1, 2200)
+    if derivative_guide(short):
+        return None, None
+    if primary == PRIMARY[3]:
+        for label, pattern in (("Bloomberg", r"Bloomberg[\s\S]{0,60}News Story|【彭博】"), ("财联社", r"财联社")):
+            ref = evidence(pages[:1], pattern)
+            if ref:
+                return label, ref
+        return None, None
+    if primary == PRIMARY[4]:
+        names = ("Deloitte", "德勤", "McKinsey", "麦肯锡", "PwC", "普华永道", "中国信通院", "中国信息通信研究院", "QuestMobile")
+    else:
+        names = INSTITUTIONS
+    aliases = {"HUAAN SECURITIES":"华安证券", "AIJIAN SECURITIES":"爱建证券", "CMB INTERNATIONAL":"招银国际", "招銀国际":"招银国际", "J.P.Morgan":"J.P. Morgan", "JPMorgan":"J.P. Morgan", "摩根大通":"J.P. Morgan", "德勤":"Deloitte", "麦肯锡":"McKinsey", "普华永道":"PwC"}
+    # Standalone cover brand lines or explicitly branded research headings.
+    candidates = {}
+    for name in names:
+        pattern = institution_pattern(name)
+        for line in short.splitlines():
+            if re.search(pattern, line, re.I) and (re.fullmatch(r"\s*"+pattern+r"[\s.,·|/-]*(?:RESEARCH|证券研究所|研究报告)?[\s.,·|/-]*", line, re.I) or re.search(r"^\s*"+pattern+r"[\s|·/-]*(?:研究|RESEARCH|环球市场)", line, re.I)):
+                canonical = aliases.get(name, name)
+                candidates[canonical] = evidence(pages[:1], re.escape(line.strip()))
+                break
+    if len(candidates) == 1:
+        return next(iter(candidates.items()))
+    return None, None
+
+
+def classification_binding(document, receipt, pages, taxonomy, refs):
+    return {"document_id": document["document_id"], "pdf_sha256": document["pdf_sha256"],
+            "page_text_sequence_sha256": body_sha(pages) if pages else None,
+            "page_input_sha256": (refs["page_input"] or {}).get("sha256"),
+            "receipt_sha256": (refs["receipt"] or {}).get("sha256"),
+            "status": (receipt or {}).get("status", "PENDING"), "rules_version": RULES_VERSION,
+            "source_code_sha256": sha(Path(__file__).read_bytes()),
+            "taxonomy_sha256": sha(json_raw(taxonomy)), "document_identity_sha256": sha(json_raw(document))}
+
+
+def cached_metadata(document, receipt, pages, taxonomy, refs, cache_root=None, metrics=None):
+    binding = classification_binding(document, receipt, pages, taxonomy, refs)
+    key = sha(json_raw(binding))
+    path = cache_root / key[:2] / (key+".json") if cache_root else None
+    if path and path.exists():
+        cached, _ = read_json(path)
+        if cached.get("binding") != binding or sha(json_raw(cached["metadata"])) != cached.get("metadata_sha256"):
+            raise ValueError("CLASSIFICATION_CACHE_BINDING_OR_CONTENT_MISMATCH")
+        metadata = cached["metadata"]
+        outcome = "reused"
+    else:
+        metadata = candidate_metadata(document, receipt, pages, taxonomy)
+        metadata["company_entity_evidence"] = company_entities(pages, metadata["primary_type_candidate"])
+        metadata["main_research_companies"] = [x["name"] for x in metadata["company_entity_evidence"] if x["role"] == "main_header_candidate"]
+        metadata["mentioned_companies"] = [x["name"] for x in metadata["company_entity_evidence"] if x["role"] == "mentioned_literal_candidate"]
+        metadata["company_status"] = "LITERAL_BODY_ENTITY_CANDIDATES_NO_STOCK_MAPPING" if metadata["company_entity_evidence"] else "UNKNOWN_PENDING_ENTITY_REVIEW"
+        metadata["main_company_status"] = "LITERAL_HEADER_CANDIDATE_UNVERIFIED" if metadata["main_research_companies"] else "UNKNOWN_NOT_EXTRACTED"
+        metadata["mentioned_company_status"] = "UNKNOWN_NOT_EXTRACTED"
+        metadata["body_quality_metrics"] = {"page_count":len(pages),"empty_page_count":sum(not p["text"].strip() for p in pages),"replacement_character_count":sum(p["text"].count("\ufffd") for p in pages),"scope":"mechanical text metrics only; numerical fidelity and source authenticity unverified"}
+        metadata["classification_binding"] = binding
+        metadata["classification_cache_key"] = key
+        if path:
+            write_json(path, {"binding": binding, "metadata_sha256": sha(json_raw(metadata)), "metadata": metadata})
+        outcome = "classified"
+    if metrics is not None:
+        metrics[outcome] = metrics.get(outcome, 0)+1
+        metrics.setdefault(outcome+"_document_ids", []).append(document["document_id"])
+    return metadata
+
+
+def company_entities(pages, primary):
+    # Literal cover company-name + ticker-like text is only an entity hint. Never
+    # validate/assign the nearby number as a stock code or infer issuer industry.
+    result = []
+    if not pages:
+        return result
+    for match in re.finditer(r"(?m)^\s*([\u3400-\u9fffA-Za-z][\u3400-\u9fffA-Za-z .&-]{1,35})\s*[（(]\s*(?:\d{4,6}(?:\.[A-Z]{1,3})?)\s*[）)]", pages[0]["text"][:1800]):
+        name = match.group(1).strip()
+        if any(v in name for v in ("证券", "指数", "资料", "来源")):
+            continue
+        result.append({"name":name,"role":"main_header_candidate","evidence":evidence(pages[:1],re.escape(match.group(0).strip())),"identity_status":"LITERAL_NAME_ONLY_NO_CODE_VALIDATION"})
+    return result[:3]
+
+
 def primary_candidate(pages):
     head = page_slice(pages, 2, 11000)
     short = page_slice(pages, 1, 3500)
     institutions = [name for name in INSTITUTIONS if re.search(institution_pattern(name), head, re.I)]
-    if re.search(STRONG_NEWS, short, re.I):
+    if derivative_guide(short):
+        return PRIMARY[5], "二手导读/摘要导出", r"全文摘要|章节速览|思维导图", "正文含摘要导出模板；标题提及机构不代表机构原文，来源与转写可靠性待核"
+    if re.search(STRONG_NEWS, short[:1000], re.I):
         return PRIMARY[3], "资讯栏目/题材线索", STRONG_NEWS, "正文出现明确资讯栏目或题材汇编结构"
-    if institutions and re.search(r"证券研究报告|Equity Research|SWS RESEARCH|产业研究报告", short[:1800], re.I):
+    if institutions and re.search(r"证券研究报告|证券研究|Equity Research|SWS RESEARCH|产业研究报告|行业研究|公司覆盖", short[:1800], re.I):
         return PRIMARY[0], "研究报告/策略/行业", re.escape(institutions[0]), "首页出版机构及研究报告结构明确；不会因引用会议纪要或白皮书改变材料性质"
     if re.search(r"发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+", short, re.I):
         return PRIMARY[2], "会议/访谈转录", r"发言人\s*\d{1,2}:\d{2}|说话人\s*\d|Speaker\s*\d+", "正文含发言人及时间戳；仅确认记录形式，不确认转录准确性或发言人身份"
     if re.search(MEETING, short[:900], re.I):
         return PRIMARY[2], "调研/会议记录", MEETING, "首页正文含纪要/调研记录性质标记；发言及记录身份仍需核验"
-    if re.search(DATA, short, re.I) and not (institutions and re.search(r"证券研究报告", short)):
+    if re.search(r"(?m)^\s*(?:Q\s*&\s*A|问答|问[:：]|Q[:：])", short) and not (institutions and re.search(BROKER, head, re.I)):
+        return PRIMARY[2], "问答记录", r"Q\s*&\s*A|问答|问[:：]|Q[:：]", "正文问答结构；记录形式可识别，但发言人、原始出处与事实仍待核"
+    if re.search(DATA, short[:1000], re.I) and not (institutions and re.search(r"证券研究报告", short)):
         return PRIMARY[4], "行业资料/咨询", DATA, "正文出现白皮书、统计或咨询机构资料标记"
     if re.search(DISCLOSURE, short, re.I) and not institutions:
         return PRIMARY[1], "公司披露/业绩材料", DISCLOSURE, "首页出现公告或公司报告/演示结构，未检测到研究机构出版标记"
@@ -165,14 +262,28 @@ def report_date_candidate(pages):
             except ValueError:
                 continue
             return {"value": value, "status": "BODY_HEADER_DATE_CANDIDATE", "evidence": evidence(pages, re.escape(match.group(0).strip()))}
+    # Standalone cover dates only; event dates inside sentences stay unknown.
+    month_names = {name:i for i,name in enumerate(("January","February","March","April","May","June","July","August","September","October","November","December"),1)}
+    for line in text[:1000].splitlines():
+        value = None
+        m = re.fullmatch(r"\s*(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})\s*", line)
+        n = re.fullmatch(r"\s*([A-Za-z]+)\s+(\d{1,2}),?\s+(20\d{2})\s*", line)
+        numeric = re.fullmatch(r"\s*(\d{1,2})/(\d{1,2})/(20\d{2})\s*",line) if re.search(r"Bloomberg[\s\S]{0,60}News Story",text[:300],re.I) else None
+        try:
+            if m and m[2].title() in month_names:value=date(int(m[3]),month_names[m[2].title()],int(m[1]))
+            elif n and n[1].title() in month_names:value=date(int(n[3]),month_names[n[1].title()],int(n[2]))
+            elif numeric:value=date(int(numeric[3]),int(numeric[1]),int(numeric[2]))
+        except ValueError:
+            continue
+        if value:
+            return {"value":value.isoformat(),"status":"BODY_HEADER_DATE_CANDIDATE","evidence":evidence(pages[:1],re.escape(line.strip()))}
     return {"value": None, "status": "UNKNOWN", "evidence": None}
 
 
 def candidate_metadata(document, receipt, pages, taxonomy):
     text = page_slice(pages)
     primary, subtype, marker, reason = primary_candidate(pages)
-    institutions = [name for name in INSTITUTIONS if re.search(institution_pattern(name), text, re.I)]
-    issuer = institutions[0] if primary == PRIMARY[0] and len(institutions) == 1 else None
+    issuer, issuer_ref = publisher_candidate(pages, primary)
     label_hits = [label for label in taxonomy["labels"] if label in text]
     industry_evidence = {label: evidence(pages[:3], re.escape(label)) for label in label_hits}
     # Existing dictionary labels only. No stock/issuer mapping or guessed ticker.
@@ -202,15 +313,15 @@ def candidate_metadata(document, receipt, pages, taxonomy):
         "page_count_status": "PREPARED_RECEIPT" if receipt else "UNKNOWN_PENDING", "language_candidate": language(text),
         "primary_type_candidate": primary, "subtype_candidate": subtype, "classification_status": "RULE_CANDIDATE_NOT_SEMANTICALLY_ACCEPTED",
         "classification_reason": reason, "classification_evidence": evidence(pages, marker) if pages else None,
-        "original_institution_candidate": issuer, "institution_status": "BODY_MENTION_PUBLISHER_CANDIDATE" if issuer else "UNKNOWN_OR_CONFLICTED",
-        "institution_evidence": evidence(pages[:3], re.escape(issuer)) if issuer else None,
+        "original_institution_candidate": issuer, "institution_status": "COVER_BRAND_PUBLISHER_CANDIDATE_NOT_AUTHENTICATED" if issuer else "UNKNOWN_OR_CONFLICTED",
+        "institution_evidence": issuer_ref,
         "repost_channels_candidate": channels, "author": None, "author_status": "UNKNOWN_NOT_GUESSED",
         "report_date": ({"value": None, "status": "UNKNOWN_EXPORT_OR_TRANSCRIPT_TIMESTAMP_NOT_PUBLICATION", "evidence": None} if re.search(r"_导读|_原文|发言人\s*\d{1,2}:\d{2}", page_slice(pages, 1, 1200)) else report_date_candidate(pages)), "collection_dates": sorted(set(collection_dates)), "collection_date_basis": "COLLECTION_DIRECTORY_ONLY_NOT_PUBLICATION_DATE",
         "industry_theme_candidates": label_hits, "industry_evidence": industry_evidence, "industry_dictionary_version": taxonomy["version"],
         "markets_mentioned_candidate": markets, "market_semantics": "Text mention only, not issuer domicile, exchange eligibility or A/HK mapping",
         "main_research_companies": [], "mentioned_companies": [], "company_status": "UNKNOWN_PENDING_ENTITY_REVIEW", "verified_stock_codes": [], "stock_code_status": "UNKNOWN_NO_GUESSED_MAPPING",
-        "exact_body_sha256": body_sha(pages) if ready and pages else None,
-        "exact_body_scope": "NFC_WHITESPACE_COLLAPSE_PAGE_SEQUENCE" if ready and pages else None,
+        "exact_body_sha256": body_sha(pages) if any(p["text"].strip() for p in pages) else None,
+        "exact_body_scope": "NFC_WHITESPACE_COLLAPSE_PAGE_SEQUENCE" if pages else None,
         "text_quality": "PREPARED_READY_OCR_SEMANTICS_UNREVIEWED" if ready else selected_status,
         "existing_analysis_status": "PRIOR_REPORT_REFERENCE_PRESENT_NOT_REVIEWED" if receipt and (receipt.get("revision") or {}).get("supersedes") else "UNKNOWN_NOT_READ",
         "route_candidate": route, "route_reason": route_reason, "deep_research_scope": "NO_EXPLICIT_RESEARCH_QUESTION_NO_HIGH_VALUE_ASSIGNMENT",
@@ -218,7 +329,7 @@ def candidate_metadata(document, receipt, pages, taxonomy):
     }
 
 
-def load_frozen_inputs(manifest_path, progress_path, snapshot_receipt_path, prepared_root, taxonomy):
+def load_frozen_inputs(manifest_path, progress_path, snapshot_receipt_path, prepared_root, taxonomy, cache_root=None, cache_metrics=None):
     manifest, _ = read_json(manifest_path, MANIFEST_SHA)
     snapshot, _ = read_json(snapshot_receipt_path)
     progress, progress_raw = read_json(progress_path, snapshot["progress_sha256"])
@@ -260,7 +371,7 @@ def load_frozen_inputs(manifest_path, progress_path, snapshot_receipt_path, prep
                         raise ValueError("PREPARED_PAGE_TEXT_SHA_MISMATCH")
                     refs["pages"].append({"page_number": number, "text_sha256": text_sha})
                 refs["page_input"] = {"path": str(page_path), "sha256": page_ref["sha256"]}
-        metadata = candidate_metadata(document, receipt, pages, taxonomy)
+        metadata = cached_metadata(document, receipt, pages, taxonomy, refs, cache_root, cache_metrics)
         metadata["source_references"] = refs
         metadata["frozen_page_input_sha256"] = refs["page_input"]["sha256"] if refs["page_input"] else None
         metadata["frozen_page_input_path"] = refs["page_input"]["path"] if refs["page_input"] else None
@@ -580,6 +691,157 @@ def main(argv=None):
     write_json(out/"BUILD.json", {"schema":SCHEMA,"source_sha256":sha(Path(__file__).read_bytes()),"manifest_sha256":MANIFEST_SHA,"snapshot":snapshot,"runtime_seconds":round(time.monotonic()-started,3),"runtime":"stdlib offline","sample_review":review_ref,"artifacts":artifacts,"model_requests":0,"ocr_calls":0,"downloads":0,"deleted_or_merged":0})
     print(json.dumps({"ledger":2209,"snapshot":stats["ocr_status_counts"],"primary":stats["primary_type_candidate_counts"],"sample":stats["sample_candidate_class_counts"],"pairs":pair_summary,"output":str(out)},ensure_ascii=False))
 
+def verify_terminal_manifest(value, expected_ids):
+    rows = value.get('documents', [])
+    ids = [r.get('document_id') for r in rows]
+    counts = Counter(r.get('status') for r in rows)
+    if (value.get('status') != 'FROZEN_COMPLETE' or value.get('parent_manifest_sha256') != MANIFEST_SHA
+            or value.get('full_cohort') is not True or value.get('parent_document_count') != 2209
+            or len(ids) != 2209 or len(set(ids)) != 2209 or set(ids) != set(expected_ids)
+            or not set(counts) <= {'READY', 'QUARANTINED', 'FAILED'}
+            or value.get('counts') != {'total':2209,'ready':counts['READY'],'quarantined':counts['QUARANTINED'],'failed':counts['FAILED'],'pending':0}):
+        raise ValueError('FULL_OCR_TERMINAL_MANIFEST_REQUIRED')
+    return rows
+
+
+def freeze_full_snapshot(root, prepared, require_final=False, refresh=False):
+    manifest, _ = read_json(root/'input/batch-manifest.json', MANIFEST_SHA)
+    final_ref = None
+    if require_final:
+        final_path = prepared/'prepared-text-manifest.json'
+        if not final_path.exists():
+            raise ValueError('WAITING_OCR_FINAL_MANIFEST_ABSENT_NO_EXTRACTION_ATTEMPTED')
+        final, raw = read_json(final_path)
+        verify_terminal_manifest(final, [d['document_id'] for d in manifest['documents']])
+        final_ref = {'path':str(final_path),'sha256':sha(raw),'counts':final['counts']}
+    elif refresh:
+        _progress, raw = read_json(prepared/'progress.json')  # single atomic producer file read
+    else:
+        receipt, _ = read_json(root/'input/snapshot-receipt.json')
+        _progress, raw = read_json(root/'input/ocr-progress-snapshot.json', receipt['progress_sha256'])
+        return root/'input', None
+    frozen = root/'snapshots'/sha(raw)
+    if not frozen.exists():
+        frozen.mkdir(parents=True)
+        (frozen/'ocr-progress-snapshot.json').write_bytes(raw)
+        (frozen/'batch-manifest.json').write_bytes((root/'input/batch-manifest.json').read_bytes())
+        (frozen/'industry-taxonomy.json').write_bytes((root/'input/industry-taxonomy.json').read_bytes())
+        write_json(frozen/'snapshot-receipt.json', {'asof_utc':datetime.now(timezone.utc).isoformat(),'progress_sha256':sha(raw),'source':str(prepared/('prepared-text-manifest.json' if require_final else 'progress.json')),'method':'ONE_READ_IMMUTABLE_SNAPSHOT','final_manifest':final_ref})
+    return frozen, final_ref
+
+
+def full_relations(rows, texts):
+    """All exact groups; bounded title retrieval for differing-text candidates."""
+    exact, titles = defaultdict(list), defaultdict(list)
+    for row in rows:
+        if row['exact_body_sha256']:
+            exact[row['exact_body_sha256']].append(row['document_id'])
+            title = re.sub(r'\d{6,8}|20\d{2}年\d+月\d+日', '', row['filename_candidate_title'])
+            # Retrieval identity only. Text symbols/numbers never removed for proof.
+            titles[normalize_exact(title).casefold()].append(row['document_id'])
+    byid = {r['document_id']:r for r in rows}
+    groups = []
+    for digest, ids in sorted(exact.items()):
+        if len(ids) > 1:
+            group = {'group_id':'normalized-body:'+digest,'document_ids':sorted(ids),'relation':'SAME_NORMALIZED_PAGE_SEQUENCE','normalization':'NFC_WHITESPACE_ONLY_PRESERVE_PAGE_SEQUENCE_DIGITS_SIGNS_UNITS_WORD_BOUNDARIES','quality_statuses':dict(Counter(byid[k]['ocr_status_asof'] for k in ids)),'action':'PRESERVE_ALL_NO_MERGE'}
+            groups.append(group)
+            for k in ids:
+                byid[k]['duplicate_group'] = group['group_id']
+                byid[k]['relation_status'] = 'EXACT_NORMALIZED_BODY_MATCH_SOURCE_QUALITY_SEPARATE'
+                ready_ids=sorted(v for v in ids if byid[v]['ocr_status_asof']=='READY')
+                if byid[k]['ocr_status_asof']=='READY' and ready_ids and k!=ready_ids[0]:
+                    byid[k]['route_candidate']='REUSE_CANDIDATE'
+                    byid[k]['route_reason']='严格相同分页正文已确证；仅作为复用候选，来源与既有研究匹配仍须核验；保留所有原件'
+    candidates = []
+    for title, ids in sorted(titles.items()):
+        if not title or len(ids) < 2:
+            continue
+        for i,left in enumerate(sorted(ids)):
+            for right in sorted(ids)[i+1:i+26]:
+                if byid[left]['exact_body_sha256'] == byid[right]['exact_body_sha256']:
+                    continue
+                candidate = {'relation_id':sha((left+right).encode()),'left_document_id':left,'right_document_id':right,'relation':'REPOST_OR_VERSION_CANDIDATE_DIFFERENT_TEXT','retrieval_reason':'date-stripped filename title equal; filename is retrieval hint only, not duplicate proof','left_evidence':evidence(texts[left]),'right_evidence':evidence(texts[right]),'left_page_input':byid[left]['source_references']['page_input'],'right_page_input':byid[right]['source_references']['page_input'],'left_only_numeric_tokens':sorted(set(NUMBER.findall(page_slice(texts[left])))-set(NUMBER.findall(page_slice(texts[right]))))[:15],'right_only_numeric_tokens':sorted(set(NUMBER.findall(page_slice(texts[right])))-set(NUMBER.findall(page_slice(texts[left]))))[:15],'numeric_scope':'first3pages/14000chars, candidate only; not complete numeric audit','action':'PRESERVE_BOTH_NO_MERGE'}
+                candidates.append(candidate)
+                for k,other in ((left,right),(right,left)):
+                    byid[k]['relation_candidates'].append({'other_document_id':other,'relation_id':candidate['relation_id'],'relation':candidate['relation'],'action':candidate['action']})
+    return {'same_file_groups':[],'exact_normalized_text_groups':groups,'repost_or_version_candidates':candidates,'retrieval_boundary':'all same-title groups, max25 later neighbors per item; no claim of exhaustive fuzzy duplicate recall; same-topic relations remain separate examples','same_pdf_identity_denominator':len(rows),'available_text_denominator':sum(bool(r['exact_body_sha256']) for r in rows),'deleted':0,'merged':0}
+
+
+def coverage_stats(rows):
+    n=len(rows)
+    predicates={'material_type':lambda r:r['primary_type_candidate']!=PRIMARY[6], 'institution':lambda r:r['original_institution_candidate'] is not None,'report_date':lambda r:r['report_date']['value'] is not None,'language':lambda r:r['language_candidate']!='UNKNOWN','main_company_literal':lambda r:bool(r['main_research_companies']),'mentioned_company_literal':lambda r:bool(r['mentioned_companies']),'verified_stock_code':lambda r:bool(r['verified_stock_codes']),'theme':lambda r:bool(r['industry_theme_candidates']),'market_mention':lambda r:bool(r['markets_mentioned_candidate']),'source_page_index':lambda r:bool(r['source_references']['pages'])}
+    return {k:{'candidate_present':sum(bool(fn(r)) for r in rows),'unknown_or_not_extracted':sum(not fn(r) for r in rows),'denominator':n,'semantic_acceptance':'NOT_FULL_COHORT_VERIFIED'} for k,fn in predicates.items()}
+
+
+def render_full_report(path, stats, rows, sample, pairs, validation):
+    # Preserve reviewed60 and10-pair content in the same single static artifact.
+    render_report(path, stats, sample, pairs)
+    old=path.read_text()
+    old=old.replace('本页展示60份样例、10对真实材料关系。','本页提供全部2209份分页索引、保留60份历史样例及10对关系证据。')
+    old=old.replace('样例 Writer 核验等待独立 Reviewer。','历史60份材料形式及10关系已独立PASS；全量新候选与新验证集待独立验收。')
+    old=old.replace('独立分类准确率：尚未评分。','历史样例主类形式独立60/60；这是开发回归集，不能估计全量准确率。新冻结60份验证待独立评分。')
+    old=old.replace('WRITER_REVIEWED_PENDING_INDEPENDENT_REVIEW','HISTORICAL_SAMPLE_FORM_INDEPENDENT_PASS_SOURCE_AUTHENTICITY_SEPARATE')
+    compact=[]
+    for row in rows:
+        compact.append({k:row.get(k) for k in ('document_id','pdf_sha256','original_pdf_path','filename_candidate_title','body_header_candidate_title','primary_type_candidate','ocr_status_asof','route_candidate','route_reason','classification_reason','classification_evidence','original_institution_candidate','institution_status','institution_evidence','report_date','collection_dates','language_candidate','main_research_companies','mentioned_companies','industry_theme_candidates','markets_mentioned_candidate','text_quality','text_characters','page_count','source_references','duplicate_group','relation_candidates','classification_binding','company_status','main_company_status','mentioned_company_status','body_quality_metrics')})
+    payload=json.dumps(compact,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
+    opts=lambda vals:''.join('<option>'+html.escape(str(x))+'</option>' for x in sorted(set(vals)) if x)
+    panel='''<h2>全部2209份 · 分页检索</h2><p>每条为正文规则候选；历史样例另列。READY仅表示正文准备完成，来源真实性、数字与投资结论未获验证。非READY保留且进入REVIEW。公司为字面对象候选；代码不猜配。<br>严格相同分页正文仅折叠显示，不删除、不合并；质量状态独立保留。</p><div class="banner"><input id="full-q" aria-label="搜索完整台账" placeholder="搜索标题、公司、机构、主题或ID"><select id="full-type"><option value="">全部主类</option>'''+opts(PRIMARY)+'''</select><select id="full-route"><option value="">全部分流</option>'''+opts(ROUTES)+'''</select><select id="full-status"><option value="">全部OCR状态</option>'''+opts(r['ocr_status_asof'] for r in rows)+'''</select><select id="full-language"><option value="">全部语言</option>'''+opts(r['language_candidate'] for r in rows)+'''</select><label><input type="checkbox" id="full-fold">折叠严格相同正文组</label><p id="full-count" aria-live="polite"></p><button id="full-prev">上一页</button> <span id="full-page"></span> <button id="full-next">下一页</button></div><div id="full-list"></div><details><summary>全量字段覆盖与未知（分母各2209）</summary><pre style="white-space:pre-wrap">'''+html.escape(json.dumps(stats['field_coverage'],ensure_ascii=False,indent=2))+'''</pre></details><p>新验证集60份已在调优前冻结，排除原60样例及关系开发资料；覆盖抽样不是总体统计估计。<a href="validation60.json">新60份原页证据与候选字段</a> · <a href="all-relations.json">全部关系索引</a> · <a href="regression12.json">12项已知差异逐项归因</a></p>'''
+    script=r'''<script id="full-data" type="application/json">PAYLOAD</script><script>
+const fullRows=JSON.parse(document.getElementById('full-data').textContent);const fullPageSize=25;let fullPage=0,fullFiltered=[];
+function fullSelect(data,q,k,r,o,l,fold){const seen=new Set();return data.filter(x=>{if(k&&x.primary_type_candidate!==k||r&&x.route_candidate!==r||o&&x.ocr_status_asof!==o||l&&x.language_candidate!==l)return false;if(q&&!JSON.stringify(x).toLowerCase().includes(q.toLowerCase()))return false;if(fold&&x.duplicate_group){if(seen.has(x.duplicate_group))return false;seen.add(x.duplicate_group)}return true})}
+function fullEl(tag,text,parent){const n=document.createElement(tag);n.textContent=text;if(parent)parent.appendChild(n);return n}
+function fullCite(row,ref,parent){if(!ref)return;fullEl('blockquote',ref.excerpt,parent);const a=fullEl('a','原PDF 第'+ref.page_number+'页',parent);a.href=encodeURI(row.original_pdf_path).replace(/#/g,'%23').replace(/\?/g,'%3F')+'#page='+ref.page_number;fullEl('small','页正文SHA '+ref.page_text_sha256,parent)}
+function fullRender(){const list=document.getElementById('full-list');list.replaceChildren();const total=Math.max(1,Math.ceil(fullFiltered.length/fullPageSize));fullPage=Math.max(0,Math.min(fullPage,total-1));for(const x of fullFiltered.slice(fullPage*fullPageSize,(fullPage+1)*fullPageSize)){const d=fullEl('details','',list);fullEl('summary',x.primary_type_candidate+' · '+x.filename_candidate_title+' · '+x.ocr_status_asof,d);fullEl('p','规则候选待独立语义验收 · '+x.route_candidate+'：'+x.route_reason,d);fullEl('p',x.classification_reason,d);fullEl('p','机构候选：'+(x.original_institution_candidate||'未知')+'（'+x.institution_status+'）；报告日期：'+JSON.stringify(x.report_date)+'；采集日期仅作采集：'+x.collection_dates.join(', '),d);fullEl('p','语言候选 '+x.language_candidate+'；正文质量 '+x.text_quality+'；'+x.page_count+'页 / '+x.text_characters+'字符；机械质量指标 '+JSON.stringify(x.body_quality_metrics),d);fullEl('p','主对象候选 '+(x.main_research_companies.length?JSON.stringify(x.main_research_companies):'未知/未抽取')+'；提及对象 '+(x.mentioned_companies.length?JSON.stringify(x.mentioned_companies):'未知/未抽取')+'；代码未知；主题 '+x.industry_theme_candidates.join(', ')+'；市场仅文字提及 '+x.markets_mentioned_candidate.join(', '),d);fullCite(x,x.classification_evidence,d);fullCite(x,x.institution_evidence,d);const p=fullEl('details','',d);fullEl('summary','原页索引及SHA（'+x.source_references.pages.length+'页）',p);for(const ref of x.source_references.pages){const a=fullEl('a','p.'+ref.page_number+' ',p);a.href=encodeURI(x.original_pdf_path).replace(/#/g,'%23').replace(/\?/g,'%3F')+'#page='+ref.page_number;fullEl('small',ref.text_sha256,p)}fullEl('small','PDF SHA '+x.pdf_sha256+'；文本输入 '+JSON.stringify(x.source_references.page_input)+'；严格重复组 '+(x.duplicate_group||'无已确证组（不等于不存在相似）')+'；关系候选 '+JSON.stringify(x.relation_candidates)+'；分类绑定 '+JSON.stringify(x.classification_binding),d)}document.getElementById('full-count').textContent='筛选/折叠后 '+fullFiltered.length+' / 原始身份2209；每页25份';document.getElementById('full-page').textContent=(fullPage+1)+' / '+total;document.getElementById('full-prev').disabled=fullPage===0;document.getElementById('full-next').disabled=fullPage===total-1}
+function fullFilter(){fullPage=0;fullFiltered=fullSelect(fullRows,...['full-q','full-type','full-route','full-status','full-language'].map(k=>document.getElementById(k).value),document.getElementById('full-fold').checked);fullRender()}['full-q','full-type','full-route','full-status','full-language','full-fold'].forEach(k=>document.getElementById(k).addEventListener('input',fullFilter));document.getElementById('full-prev').addEventListener('click',()=>{fullPage--;fullRender()});document.getElementById('full-next').addEventListener('click',()=>{fullPage++;fullRender()});fullFilter();</script>'''.replace('PAYLOAD',payload)
+    old=old.replace('<h2>60份可筛选样例</h2>',panel+'<h2>历史60份可筛选样例 · 固定于原样例快照</h2><p>历史样例 asof UTC：'+html.escape(sample[0]['asof_utc'])+'；原独立验收仅材料形式/关系范围，不代表官方来源或事实认证。</p>')
+    old=old.replace('</body>',script+'</body>')
+    path.write_text(old,encoding='utf-8')
+
+
+def full_main(argv):
+    parser=argparse.ArgumentParser(description='Incremental offline classification over existing prepared text; no OCR/model')
+    parser.add_argument('--full',action='store_true');parser.add_argument('--evidence-root',type=Path,required=True);parser.add_argument('--prepared-root',type=Path,required=True);parser.add_argument('--sample-root',type=Path,required=True);parser.add_argument('--refresh-snapshot',action='store_true');parser.add_argument('--require-final',action='store_true')
+    args=parser.parse_args(argv);root=args.evidence_root.resolve();prepared=args.prepared_root.resolve()
+    if root.name!='V4_PDF_CLASSIFICATION_FULL_20261020_R1' or root.is_relative_to(prepared) or root==args.sample_root.resolve():raise ValueError('FULL_OUTPUT_ROOT_SCOPE_INVALID')
+    started=time.monotonic();inp,final_ref=freeze_full_snapshot(root,prepared,args.require_final,args.refresh_snapshot)
+    taxonomy,_=read_json(inp/'industry-taxonomy.json');metrics={}
+    rows,texts,snapshot,index=load_frozen_inputs(inp/'batch-manifest.json',inp/'ocr-progress-snapshot.json',inp/'snapshot-receipt.json',prepared,taxonomy,root/'classification-cache',metrics)
+    validation,validation_raw=read_json(root/'input/validation60-frozen-before-tuning.json')
+    if validation['manifest_sha256']!=MANIFEST_SHA or set(validation['sample_document_ids'])&set(validation['exclusion_document_ids']):raise ValueError('VALIDATION_HOLDOUT_BINDING_INVALID')
+    sample_data,_=read_json(args.sample_root/'delivery/sample60.json');sample=sample_data['documents'];sample_ids=[r['document_id'] for r in sample]
+    old_pairs,_=read_json(args.sample_root/'delivery/relations10.json');pairs=old_pairs['pairs']
+    relations=full_relations(rows,texts);byid={r['document_id']:r for r in rows}
+    pair_summary={'same_normalized_page_sequence_groups':len(relations['exact_normalized_text_groups']),'ready_body_identity_denominator':relations['available_text_denominator'],'writer_review_ref':old_pairs['summary'].get('writer_review_ref'),'all_text_scope':'all available text including quarantined; quality separately shown','merged_or_deleted':0}
+    stats=build_stats(rows,sample_ids,pair_summary,snapshot,taxonomy)
+    stats.update({'field_coverage':coverage_stats(rows),'sample_unknown_by_class':{label:{'sample_count':sum(r['sample_primary_type']==label for r in sample),'source_or_content_uncertain':sum(r['sample_primary_type']==label and (r['sample_certainty']!='TYPE_AND_SOURCE_IDENTIFIED' or r['ocr_status_asof']!='READY') for r in sample)} for label in PRIMARY},'sample_main_company_counts_nonexclusive':dict(Counter(n for r in sample for n in r.get('sample_main_research_companies',[]))),'classification_rules_version':RULES_VERSION,'incremental':metrics,'final_prepared_manifest':final_ref,'full_delivery_status':'OCR_TERMINAL_CLASSIFICATION_CANDIDATE_PENDING_INDEPENDENT_REVIEW' if final_ref else 'IMPLEMENTATION_HANDOFF_WAITING_OCR','validation60_selection_sha256':sha(validation_raw),'semantic_accuracy':'NOT_SCORED_NEW_FROZEN60_REVIEW_PENDING','historical60_scope':'Development regression only; prior independent form PASS preserved; no population estimate','repost_or_version_candidate_pairs':len(relations['repost_or_version_candidates'])})
+    initial,_=read_json(root/'input/pre-tuning-old60-disagreements.json');regression=[]
+    for item in initial:
+        row=byid[item['document_id']];regression.append({**item,'new_candidate':row['primary_type_candidate'],'matches_reviewed_form':row['primary_type_candidate']==item['reviewed'],'new_reason':row['classification_reason'],'evidence':row['classification_evidence'],'root_cause':'导出摘要模板非原机构材料' if item['reviewed']==PRIMARY[5] else '原字典缺机构别名/封面研究结构' if item['reviewed']==PRIMARY[0] else '新闻栏目或问答结构缺识别'})
+    if not all(r['matches_reviewed_form'] for r in regression):raise ValueError('KNOWN12_FORM_REGRESSION_UNRESOLVED:'+','.join(r['document_id'] for r in regression if not r['matches_reviewed_form']))
+    build_key=sha(json_raw({'progress':snapshot['progress_sha256'],'source':sha(Path(__file__).read_bytes()),'validation':sha(validation_raw),'sample60':sha(json_raw(sample_data))}))[:20]
+    out=root/'builds'/build_key
+    if out.exists():
+        existing,_=read_json(out/'BUILD.json')
+        for name,ref in existing['artifacts'].items():
+            artifact=bound_path(out,name)
+            if not artifact.is_file() or artifact.is_symlink() or sha(artifact.read_bytes())!=ref['sha256']:
+                raise ValueError('EXISTING_BUILD_SHA_MISMATCH')
+        write_json(root/'LAST_INVOCATION.json',{'existing_immutable_build_reused':True,'build':str(out),'incremental':metrics,'source_sha256':sha(Path(__file__).read_bytes())})
+        print(json.dumps({'status':stats['full_delivery_status'],'existing_build_reused':str(out),'incremental':{k:v for k,v in metrics.items() if not k.endswith('_document_ids')}},ensure_ascii=False));return
+    out.mkdir(parents=True)
+    write_json(out/'ledger.json',{'schema':'v4.pdf_full_classification.v1','snapshot':snapshot,'final_prepared_manifest':final_ref,'documents':rows});write_json(out/'frozen-text-index.json',{'snapshot':snapshot,'documents':index});write_json(out/'statistics.json',stats);write_json(out/'all-relations.json',relations);write_json(out/'regression12.json',regression)
+    write_json(out/'sample60.json',sample_data);write_json(out/'relations10.json',old_pairs)
+    validation_rows=[byid[k] for k in validation['sample_document_ids']]
+    write_json(out/'validation60.json',{'selection':validation,'selection_sha256':sha(validation_raw),'boundary':'Frozen before tuning; labels are rule candidates only. Independent reviewer supplies truth and accuracy, unknown separate; not population estimate.','documents':validation_rows})
+    write_csv(out/'ledger.csv',rows,list(rows[0]));write_csv(out/'sample60.csv',sample,list(sample[0]))
+    render_full_report(out/'report.html',stats,rows,sample,pairs,validation_rows)
+    (out/'statistics.md').write_text('# 全量分类索引\n\n'+stats['full_delivery_status']+'\n\n固定UTC '+snapshot['asof_utc']+'；原身份分母2209。\n\nOCR '+json.dumps(stats['ocr_status_counts'],ensure_ascii=False)+'\n\n主类候选 '+json.dumps(stats['primary_type_candidate_counts'],ensure_ascii=False)+'\n\n[完整分页看板](report.html) · [字段覆盖](statistics.json) · [新冻结60证据](validation60.json)\n\n全量规则候选不等于全量语义验收。非READY隔离保留，零OCR/模型/合并/删除。\n',encoding='utf-8')
+    artifacts={p.name:{'sha256':sha(p.read_bytes()),'bytes':p.stat().st_size} for p in sorted(out.iterdir()) if p.is_file()}
+    build={'schema':'v4.pdf_full_classification.build.v1','status':stats['full_delivery_status'],'source_sha256':sha(Path(__file__).read_bytes()),'manifest_sha256':MANIFEST_SHA,'snapshot':snapshot,'final_prepared_manifest':final_ref,'rules_version':RULES_VERSION,'incremental':metrics,'runtime_seconds':round(time.monotonic()-started,3),'artifacts':artifacts,'ocr_calls':0,'model_requests':0,'downloads':0,'merges':0,'deletions':0}
+    write_json(out/'BUILD.json',build);write_json(root/'LATEST_BUILD.json',{'build':str(out),'build_sha256':sha((out/'BUILD.json').read_bytes()),'status':build['status']})
+    print(json.dumps({'status':build['status'],'output':str(out),'ocr':stats['ocr_status_counts'],'primary':stats['primary_type_candidate_counts'],'incremental':{k:v for k,v in metrics.items() if not k.endswith('_document_ids')},'runtime_seconds':build['runtime_seconds']},ensure_ascii=False))
+
 
 if __name__ == "__main__":
-    main()
+    full_main(sys.argv[1:]) if '--full' in sys.argv[1:] else main()

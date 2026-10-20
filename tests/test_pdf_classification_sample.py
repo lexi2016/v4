@@ -131,3 +131,117 @@ def test_dashboard_escapes_source_and_contains_native_filters(tmp_path):
     assert all(f'id="{key}"' in body for key in ('q','kind','route','ocr'))
     assert 'src="http' not in body
     assert '独立分类准确率：尚未评分' in body
+
+
+@pytest.mark.parametrize('text,label',[
+ ('J.P. Morgan专栏_导读\n关键词\n全文摘要\n章节速览\n思维导图',tool.PRIMARY[5]),
+ ('HUAAN SECURITIES\n中国石油（601857）\n公司覆盖\n投资评级：买入',tool.PRIMARY[0]),
+ ('J.P.Morgan\n摩根大通\n证券研究\n评级：增持',tool.PRIMARY[0]),
+ ('CMB INTERNATIONAL\nA Wholly Owned Subsidlary\n行业研究\n目标价',tool.PRIMARY[0]),
+ ('爱建证券\n证券研究报告\n相关研究：ESG白皮书',tool.PRIMARY[0]),
+ ('Bloomberg\nNews Story\n记者报道Bianco Research和UBS看法',tool.PRIMARY[3]),
+ ('极兔速递业务展望\n摘要\nQ&A\n问：增速？\n答：业务发展。',tool.PRIMARY[2]),
+])
+def test_full_generalized_structure_repairs(text,label):
+    assert tool.primary_candidate(pages(text))[0]==label
+
+
+def test_full_publisher_cover_not_cited_bank_or_derivative_title():
+    assert tool.publisher_candidate(pages('记者指出，UBS认为需求增长。'),tool.PRIMARY[3])==(None,None)
+    assert tool.publisher_candidate(pages('J.P. Morgan专栏\n全文摘要\n章节速览'),tool.PRIMARY[5])==(None,None)
+    name,ref=tool.publisher_candidate(pages('CMB INTERNATIONAL\n行业研究\nUBS分析师认为需求增加。'),tool.PRIMARY[0])
+    assert name=='招银国际' and ref['page_text_sha256']==tool.sha(pages('CMB INTERNATIONAL\n行业研究\nUBS分析师认为需求增加。')[0]['text'].encode())
+
+
+def test_full_incremental_cache_binds_body_status_rules_and_reuses(tmp_path,monkeypatch):
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/file.pdf','collection_directories':[]}
+    refs={'receipt':{'sha256':'r'},'page_input':{'sha256':'p'}};taxonomy={'labels':[],'version':'test'};metrics={}
+    first=tool.cached_metadata(doc,{'status':'READY'},pages('HUAAN SECURITIES\n公司覆盖\n中国石油（601857）'),taxonomy,refs,tmp_path,metrics)
+    def forbidden(*a,**k):raise AssertionError('classification repeated')
+    original=tool.candidate_metadata;monkeypatch.setattr(tool,'candidate_metadata',forbidden)
+    second=tool.cached_metadata(doc,{'status':'READY'},pages('HUAAN SECURITIES\n公司覆盖\n中国石油（601857）'),taxonomy,refs,tmp_path,metrics)
+    assert first==second and metrics['classified']==metrics['reused']==1
+    monkeypatch.setattr(tool,'candidate_metadata',original)
+    changed=tool.cached_metadata(doc,{'status':'READY'},pages('HUAAN SECURITIES\n公司覆盖\n中国石油（601857） +5%'),taxonomy,refs,tmp_path,metrics)
+    assert changed['classification_cache_key']!=first['classification_cache_key']
+    monkeypatch.setattr(tool,'RULES_VERSION','new-rules')
+    revised=tool.cached_metadata(doc,{'status':'READY'},pages('HUAAN SECURITIES\n公司覆盖\n中国石油（601857）'),taxonomy,refs,tmp_path,metrics)
+    assert revised['classification_cache_key']!=first['classification_cache_key']
+    assert len(list(tmp_path.rglob('*.json')))==3
+
+
+def test_full_cache_tampering_fails_closed(tmp_path):
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/file.pdf','collection_directories':[]};refs={'receipt':None,'page_input':None};taxonomy={'labels':[],'version':'test'}
+    tool.cached_metadata(doc,None,[],taxonomy,refs,tmp_path,{})
+    path=next(tmp_path.rglob('*.json'));value=json.loads(path.read_text());value['metadata']['primary_type_candidate']='fabricated';tool.write_json(path,value)
+    with pytest.raises(ValueError,match='CACHE_BINDING_OR_CONTENT'):tool.cached_metadata(doc,None,[],taxonomy,refs,tmp_path,{})
+
+
+def test_full_terminal_gate_rejects_missing_pending_duplicate_or_status():
+    ids=[f'{i:064x}' for i in range(2209)]
+    value={'status':'FROZEN_COMPLETE','parent_manifest_sha256':tool.MANIFEST_SHA,'full_cohort':True,'parent_document_count':2209,'counts':{'total':2209,'ready':2209,'quarantined':0,'failed':0,'pending':0},'documents':[{'document_id':k,'status':'READY'} for k in ids]}
+    assert len(tool.verify_terminal_manifest(value,ids))==2209
+    for key,changed in [('counts',{**value['counts'],'pending':1}),('documents',value['documents'][:-1]),('documents',[value['documents'][0]]*2209),('status','RUNNING')]:
+        bad=copy.deepcopy(value);bad[key]=changed
+        with pytest.raises(ValueError,match='TERMINAL_MANIFEST'):tool.verify_terminal_manifest(bad,ids)
+
+
+def test_full_no_ocr_retry_when_final_manifest_missing(tmp_path):
+    root=tmp_path/'root';(root/'input').mkdir(parents=True);prepared=tmp_path/'prepared';prepared.mkdir()
+    raw=b'{"documents":[]}';(root/'input/batch-manifest.json').write_bytes(raw)
+    original=tool.MANIFEST_SHA
+    try:
+        tool.MANIFEST_SHA=tool.sha(raw)
+        with pytest.raises(ValueError,match='WAITING_OCR_FINAL_MANIFEST_ABSENT'):tool.freeze_full_snapshot(root,prepared,require_final=True)
+    finally:tool.MANIFEST_SHA=original
+
+
+def test_full_dedup_preserves_quarantine_and_numeric_sign_variants():
+    rows=[];texts={}
+    for i,(text,status) in enumerate([('盈利 +5%','READY'),('盈利 +5%','READY'),('盈利 -5%','READY'),('盈利 +5%','QUARANTINED')]):
+        doc={'document_id':str(i),'pdf_sha256':str(i),'pdf_bytes':10,'local_pdf_path':'/safe/同题20261013.pdf','collection_directories':[]}
+        row=tool.candidate_metadata(doc,{'status':status},pages(text),{'labels':[],'version':'test'});row['source_references']={'page_input':None};rows.append(row);texts[str(i)]=pages(text)
+    result=tool.full_relations(rows,texts)
+    assert len(result['exact_normalized_text_groups'])==1
+    assert result['exact_normalized_text_groups'][0]['document_ids']==['0','1','3']
+    assert rows[1]['route_candidate']=='REUSE_CANDIDATE' and rows[3]['route_candidate']=='REVIEW'
+    assert rows[2]['duplicate_group'] is None
+    assert all(p['action']=='PRESERVE_BOTH_NO_MERGE' for p in result['repost_or_version_candidates'])
+    assert result['merged']==result['deleted']==0
+
+
+def test_full_company_literal_does_not_validate_ticker_or_infer_issuer_industry():
+    result=tool.company_entities(pages('中国石油（601857）\n投资评级：买入'),tool.PRIMARY[0])
+    assert result[0]['name']=='中国石油' and 'stock_code' not in result[0]
+    assert tool.company_entities(pages('资料来源：某证券（123456）'),tool.PRIMARY[0])==[]
+
+
+def test_full_header_dates_keep_event_export_and_download_dates_separate():
+    assert tool.report_date_candidate(pages('Equity Research\n13 October 2026\nIndustry outlook'))['value']=='2026-10-13'
+    assert tool.report_date_candidate(pages('Bloomberg\nNews Story\n09/29/2026\n记者报道'))['value']=='2026-09-29'
+    assert tool.report_date_candidate(pages('正文讨论September 29, 2026公司发生的事件。'))['value'] is None
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/20261018.pdf','collection_directories':['2026年10月18日']}
+    row=tool.candidate_metadata(doc,{'status':'READY'},pages('某公司_导读\n2026年10月15日\n全文摘要\n章节速览'),{'labels':[],'version':'test'})
+    assert row['report_date']['value'] is None and row['original_institution_candidate'] is None
+
+
+def test_full_new_completion_classifies_only_changed_binding(tmp_path):
+    taxonomy={'labels':[],'version':'test'};refs={'receipt':None,'page_input':None};a={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/a.pdf','collection_directories':[]};b={**a,'document_id':'b'*64,'pdf_sha256':'b'*64};metrics={}
+    tool.cached_metadata(a,{'status':'READY'},pages('已完成正文'),taxonomy,refs,tmp_path,metrics)
+    tool.cached_metadata(b,None,[],taxonomy,refs,tmp_path,metrics)
+    metrics={}
+    tool.cached_metadata(a,{'status':'READY'},pages('已完成正文'),taxonomy,refs,tmp_path,metrics)
+    tool.cached_metadata(b,{'status':'READY'},pages('新完成正文'),taxonomy,refs,tmp_path,metrics)
+    assert metrics['reused_document_ids']==[a['document_id']]
+    assert metrics['classified_document_ids']==[b['document_id']]
+
+
+def test_full_dashboard_payload_escape_pagination_and_local_source_index(tmp_path):
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/a#b?.pdf','collection_directories':[]}
+    row=tool.candidate_metadata(doc,{'status':'READY'},pages('</script><img src=x onerror=alert(1)>'),{'labels':[],'version':'test'});row.update({'source_references':{'page_input':None,'pages':[{'page_number':1,'text_sha256':'f'*64}]},'sample_verification':'historical','classification_binding':{},'asof_utc':'frozen-before'})
+    stats=tool.build_stats([row],[row['document_id']],{'same_normalized_page_sequence_groups':0,'ready_body_identity_denominator':1},{'asof_utc':'frozen-full'},{});stats.update({'sample_unknown_by_class':{},'sample_main_company_counts_nonexclusive':{},'field_coverage':tool.coverage_stats([row])})
+    path=tmp_path/'report.html';tool.render_full_report(path,stats,[row],[row],[],[]);body=path.read_text()
+    assert all('id="'+key+'"' in body for key in ('full-q','full-type','full-route','full-status','full-language','full-fold','full-prev','full-next','full-list'))
+    assert 'const fullPageSize=25' in body and 'function fullSelect' in body
+    assert '</script><img src=x' not in body and '\\u003c/script>' in body
+    assert 'replace(/#/g' in body and 'replace(/\\?/g' in body
