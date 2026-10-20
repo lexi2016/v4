@@ -23,7 +23,7 @@ from urllib.parse import quote
 
 MANIFEST_SHA = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
 SCHEMA = "v4.pdf_classification_sample.v1"
-RULES_VERSION = "full-body-structure-v4-news-and-form-20261020"
+RULES_VERSION = "full-body-structure-v5-anchored-cues-20261020"
 PRIMARY = ("券商/研究机构研究", "公司一手披露", "调研/会议记录", "新闻/资讯解读", "数据/白皮书/咨询报告", "教程/方法/其他", "待分类")
 ROUTES = ("SAVE", "REUSE_CANDIDATE", "REVIEW", "LIGHT_EXTRACTION_CANDIDATE", "DEEP_RESEARCH_CANDIDATE")
 INSTITUTIONS = ("Morgan Stanley", "Goldman Sachs", "J.P. Morgan", "JPMorgan", "Jefferies", "UBS", "Citi Research", "Barclays", "Bernstein", "Deutsche Bank", "BofA", "Nomura", "Macquarie", "DBS", "国盛证券", "国金证券", "中信证券", "中信建投", "华泰证券", "招商证券", "光大证券", "东吴证券", "开源证券", "国联民生", "民生证券", "中泰证券", "浙商证券", "中金公司", "中银证券", "长江证券", "东北证券", "西南证券", "天风证券", "兴业证券", "国信证券", "申万宏源", "广发证券", "华福证券", "平安证券", "华创证券", "华安证券", "华西证券", "财通证券", "东方证券", "国泰海通", "信达证券", "银河证券", "东兴证券", "国投证券", "华源证券", "爱建证券", "招银国际", "招銀国际", "CMB INTERNATIONAL", "HUAAN SECURITIES", "AIJIAN SECURITIES", "摩根大通", "J.P.Morgan", "财信证券", "CHASING SECURITIES", "PING AN SECURITIES")
@@ -153,7 +153,10 @@ def publisher_candidate(pages, primary):
     for name in names:
         pattern = institution_pattern(name)
         for line in short.splitlines():
-            if re.search(pattern, line, re.I) and (re.fullmatch(r"\s*"+pattern+r"[\s.,·|/-]*(?:RESEARCH|证券研究所|研究报告)?[\s.,·|/-]*", line, re.I) or re.search(r"^\s*"+pattern+r"[\s|·/-]*(?:研究|RESEARCH|环球市场)", line, re.I)):
+            institute_heading = re.fullmatch(r"[ \t]*"+pattern+r"研究(?:院|所)(?:[\u3400-\u9fff]{0,12}研究(?:团队|小组))?[ \t]*", line)
+            account_heading = (re.fullmatch(r"[ \t]*"+pattern+r"研究微信服务号[ \t]*", line)
+                               and re.search(r"(?m)^[ \t]*(?:证券分析师|证券研究报告|SWS RESEARCH)[ \t]*$", short, re.I))
+            if re.search(pattern, line, re.I) and (institute_heading or account_heading or re.fullmatch(r"\s*"+pattern+r"[\s.,·|/-]*(?:RESEARCH|证券研究所|研究报告)?[\s.,·|/-]*", line, re.I) or re.fullmatch(r"[ \t]*"+pattern+r"[ \t|·/-]*(?:研究(?:所|报告)?|RESEARCH|环球市场)[ \t.,·|/-]*", line, re.I)):
                 canonical = aliases.get(name, name)
                 candidates[canonical] = evidence(pages[:1], re.escape(line.strip()))
                 break
@@ -219,7 +222,14 @@ def company_entities(pages, primary):
 def owned_news_marker(pages):
     """A source-owned column/byline, never a prose mention of a newswire."""
     head = page_slice(pages, 1, 2000)
-    columns = r"风口研报|九点特供|盘中宝|狙击龙虎榜|点金互动易|电报解读|季报高增长|脱水研报|财联社早知道|早知道|机构调研|机构龙虎榜解读|公告全知道|掘金行业龙头|研选|玩转ETF"
+    columns = r"风口研报|九点特供|盘中宝|狙击龙虎榜|点金互动易|电报解读|季报高增长|脱水研报|财联社早知道|早知道|机构龙虎榜解读|公告全知道|掘金行业龙头|研选|玩转ETF"
+    # Generic “机构调研” is a column only with an enclosed heading or a
+    # standalone heading plus source-owned news context, never “机构调研是…”.
+    survey_column = r"(?m)^[ \t]*[【\[（(]机构调研[】\]）)]"
+    if re.search(survey_column, head):
+        return survey_column
+    if re.search(r"(?m)^[ \t]*机构调研[ \t]*$", head) and re.search(r"财联社|电报内容|xuangu(?:tong)?\.com\.cn", head, re.I):
+        return r"(?m)^[ \t]*机构调研[ \t]*$"
     patterns = [r"(?m)^\s*[【\[（(]?(?:"+columns+r")", r"(?m)^\s*[^\n]{0,160}(?:脱水研报|强势股脱水)",
                 r"xuangu(?:tong)?\.com\.cn|本文来自持牌证券机构|研报深度复盘",
                 r"(?m)^\s*[©CＣ]?财联社资讯获悉", r"(?m)^\s*[©CＣ]?财联社(?:[0-9一二三四五六七八九十]+月|记者)",
@@ -246,8 +256,13 @@ def publication_structure_marker(pages):
     if re.search(brand, head[:2000], re.I) and re.search(support, head, re.I):
         return brand
     issuer, _ref = publisher_candidate(pages, PRIMARY[0])
-    if issuer and re.search(r"股票策略|市场策略|证券研究|行业研究", head[:1600]):
-        return r"股票策略|市场策略|证券研究|行业研究"
+    localized_heading = r"(?m)^[ \t]*(?:(?:中国(?:[ \t]*A股)?|亚洲|香港|全球)[ \t]*)?(?:股票策略|市场策略|证券研究|行业研究)[ \t]*$"
+    if issuer and re.search(localized_heading, head[:1600]):
+        return localized_heading
+    institute_heading = r"(?m)^[ \t]*[^\n]{1,22}证券研究(?:院|所)(?:[\u3400-\u9fff]{0,12}研究(?:团队|小组))?[ \t]*$"
+    team_heading = r"(?m)^[ \t]*[\u3400-\u9fff]{0,30}研究(?:团队|小组)[ \t]*$"
+    if issuer and re.search(institute_heading, head[:1600]) and re.search(team_heading, head[:1600]):
+        return institute_heading
     return None
 
 

@@ -368,3 +368,51 @@ def test_third_explicit_snapshot_cannot_mix_final_or_escape_evidence(tmp_path):
 def test_third_research_cover_cannot_be_masked_by_wrapped_fed_citation():
     text='国泰海通证券\nGUOTAI HAITONG SECURITIES\n资产概览\n本报告导读：\n投资要点：\n美债配置需求回暖，\n但偏鹰的 FED 会议纪要和欧元疲软仍支撑美元上涨。'
     assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]
+
+
+@pytest.mark.parametrize('sentence', ['机构调研是资本市场信息传递的重要环节。', '机构调研信息是对基本面信息的重要补充。'])
+def test_bounded_structure_generic_survey_prose_is_not_news_column(sentence):
+    text='开源证券\n策略研究\n分析师\n投资评级\n'+sentence
+    assert tool.owned_news_marker(pages(text)) is None
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]
+    assert tool.owned_news_marker(pages('机构调研\n机构交流信息')) is None
+    assert tool.primary_candidate(pages('财联社\n机构调研\n电报内容\n引述开源证券研究报告'))[0]==tool.PRIMARY[3]
+
+
+@pytest.mark.parametrize('disclaimer', ['天风证券研究所保留追究相关方法律责任的权利。', '天风证券研究报告仅供参考，不构成投资建议。'])
+def test_bounded_structure_disclaimer_does_not_establish_publication(disclaimer):
+    text='行业观点电话原文\n发言人 00:00\n'+disclaimer+'\n欢迎参加电话会议。\n发言人 00:52\n行业分析师分享观点。'
+    assert tool.publisher_candidate(pages(text),tool.PRIMARY[0])==(None,None)
+    assert tool.publication_structure_marker(pages(text)) is None
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[2]
+    genuine='天风证券研究所\n中国 证券研究\n证券分析师\n正文引用发言人 00:00及FOMC会议纪要。'
+    assert tool.publisher_candidate(pages(genuine),tool.PRIMARY[0])[0]=='天风证券'
+    assert tool.primary_candidate(pages(genuine))[0]==tool.PRIMARY[0]
+
+
+def test_bounded_structure_negative_template_requires_pending_form_data(tmp_path):
+    doc={'document_id':'a'*64,'pdf_sha256':'a'*64,'pdf_bytes':10,'local_pdf_path':'/safe/a.pdf','collection_directories':[]}
+    ps=pages('观点整理\n问答整理\n原文未提供问答环节内容\n'+'观点正文。'*30)
+    row=tool.candidate_metadata(doc,{'status':'READY'},ps,{'labels':[],'version':'test'});row['frozen_page_input_sha256']='b'*64
+    item={'document_id':doc['document_id'],'pdf_sha256':doc['pdf_sha256'],'page_input_sha256':'b'*64,'exact_body_sha256':row['exact_body_sha256'],'primary_type':tool.PRIMARY[6],'reason':'仅否定模板，无实际问答/会议正证据；材料形式待核，不是质量异常','evidence':[tool.evidence(ps,r'原文未提供问答环节内容')],'quality_flags':[]}
+    path=tmp_path/'bound-v2.json';tool.write_json(path,{'manifest_sha256':tool.MANIFEST_SHA,'documents':[item]})
+    tool.apply_full_form_reviews([row],{doc['document_id']:ps},path)
+    assert row['primary_type_candidate']==tool.PRIMARY[6] and row['route_candidate']=='REVIEW'
+    assert tool.disposition(row)[:2]==('READY_FORM_REVIEW','待核分类')
+    assert row['quality_flags']==[] and '否定模板' in row['classification_reason']
+
+
+@pytest.mark.parametrize('text,publisher',[
+ ('西南证券\nSOUTHWEST SECURITIES\n传媒行业2026年Q4投资策略\n西南证券研究院\n传媒研究团队','西南证券'),
+ ('长江证券\n机械周机汇1011：\nFPSO景气上行\n长江证券研究所机械研究小组\n2026-10-13','长江证券'),
+ ('非银金融\n证券分析师\n申万宏源研究微信服务号\nSWS RESEARCH\n保险行业三季报前瞻','申万宏源'),
+])
+def test_bounded_structure_complete_institute_team_and_research_account_cover(text,publisher):
+    assert tool.publisher_candidate(pages(text),tool.PRIMARY[0])[0]==publisher
+    assert tool.primary_candidate(pages(text))[0]==tool.PRIMARY[0]
+
+
+def test_bounded_structure_quoted_or_unsubstantiated_research_account_not_masthead():
+    assert tool.publisher_candidate(pages('参阅申万宏源研究微信服务号，证券分析师认为行业改善。'),tool.PRIMARY[0])==(None,None)
+    assert tool.publisher_candidate(pages('申万宏源研究微信服务号\n转发市场观点，无封面研究结构。'),tool.PRIMARY[0])==(None,None)
+    assert tool.publisher_candidate(pages('天风证券研究所保留追究相关方法律责任的权利。\n证券分析师\n发言人 00:00'),tool.PRIMARY[0])==(None,None)

@@ -1,18 +1,24 @@
 {
+  "actual_source_regressions_this_batch": 20,
+  "date_changed_documents": 0,
   "direct_prior_regression_tests": 5,
   "field_semantic_boundary": "Form proposals and mechanical source binding only; source institution/issuer authenticity, codes and factual report contents not certified; no unseen/population accuracy claim",
+  "full_fixed_input_changed_documents": 4,
   "gaps": [
-    "Third independent semantic/behavior review pending; third FAIL returns to controller, no automatic further repair",
-    "Final originalOCR2209 terminal manifest/pending0 and final input/output integration pending",
-    "Three material-form unknowns require source text quality disposition; no blind OCR retry",
+    "Independent bounded correction review pending; next FAIL returns controller without automatic repair",
+    "Final originalOCR2209 terminal manifest/pending0 and final input/output review pending",
+    "Three quality-form unknowns plus one readable unresolved material form retained separately",
     "Actual browser rendering CANNOT_CONFIRM; no bypass",
-    "Mentioned companies and stock codes remain unknown where unextracted; no NER/model expansion"
+    "Company and code uncertainty retained; no NER/model expansion"
   ],
   "isolated_js_checks": 57,
   "manifest_sha256": "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9",
   "manual_form_review_records_total": 25,
+  "manual_form_review_version": 2,
   "new_tests": 22,
   "operations": {
+    "canonical_incident_prior_miswrite": true,
+    "canonical_recovery_by_controller": true,
     "commits": 0,
     "deletions": 0,
     "downloads": 0,
@@ -20,7 +26,7 @@
     "model_posts": 0,
     "ocr": 0,
     "original_state_writes": 0,
-    "progress_reads": 1,
+    "progress_reads": 0,
     "pushes": 0
   },
   "original310": {
@@ -49,7 +55,8 @@
     "stock_codes_assigned": 0,
     "true_content_insufficient": 0
   },
-  "ownership": "SOURCE_FROZEN_RELEASED; direct third Reviewer followup recorded separately by actual tool response",
+  "ownership": "SOURCE_FROZEN_RELEASED_FOR_EXISTING_REVIEWER",
+  "primary_type_changed_documents": 3,
   "prior_FAIL_receipts": [
     {
       "sha256": "2f1d5072f056421235828bc0da3e2163104bf3ffba42f0b0885cb7bab9480890",
@@ -58,18 +65,34 @@
     {
       "sha256": "a32e63fe9ec1de80927299f59612d7b0c46707b8951b73a5f75f2a72708c466d",
       "validation_result": "58/60 revealed regression;8 actual news errors; FAIL preserved"
+    },
+    {
+      "sha256": "4feabc136954925122432b57b9d1f9177f06ba95e95a27e64b3b01e989174539",
+      "validation_result": "Third FAIL retained; two weak-structure errors and one unsupported manual meeting label"
     }
   ],
+  "prior_third_handoff_summary": {
+    "original310_boundary": "Historical proposal preserved;6322 meeting proposal now retracted by one bound v2 correction",
+    "remaining_form_unknowns": {
+      "FAILED": 14,
+      "PENDING": 248,
+      "READY_quality_review": 3,
+      "READY_unresolved_form": 0
+    },
+    "rules_version": "full-body-structure-v4-news-and-form-20261020"
+  },
+  "quality_changed_documents": 0,
   "remaining_form_unknowns": {
     "FAILED": 14,
     "PENDING": 248,
     "READY_quality_review": 3,
-    "READY_unresolved_form": 0
+    "READY_unresolved_form": 1
   },
   "review_round": 3,
-  "rules_version": "full-body-structure-v4-news-and-form-20261020",
-  "schema": "v4.pdf_full_classification.third_review_handoff.v1",
-  "scope": "8 source-owned-news regressions; original310 material-form triage; one captured completion snapshot increment; explicit unavailable/failed/quality/form dispositions; no date/dedup/model expansion",
+  "review_round_note": "Controller-adjudicated bounded correction after third FAIL; history not reset; next FAIL returns controller",
+  "rules_version": "full-body-structure-v5-anchored-cues-20261020",
+  "schema": "v4.pdf_full_classification.controller_bounded_handoff.v1",
+  "scope": "After third FAIL/controller adjudication: structural masthead anchoring, generic survey prose exclusion, one unsupported manual form downgrade; no priority reorder",
   "snapshot_ocr_counts": {
     "FAILED": 14,
     "PENDING": 248,
@@ -77,6 +100,8 @@
     "READY": 1903
   },
   "snapshot_sha256": "f2134aee89f7cc9d0c5fe4b166170e73ec4a3c1dffc5a8827543b65362d31489",
-  "source_sha256": "7d6c457157b96c492c98aae97e1b5eef798f5f2a08be4b7aef148eb221a68aa1",
-  "status": "SOURCE_FROZEN_THIRD_REVIEW_PENDING_WAITING_OCR"
+  "source_sha256": "5f83698f677a2b64e1e1c254a4c287533863681037cf90a7597058863596d328",
+  "status": "CONTROLLER_BOUNDED_CORRECTION_FROZEN_PENDING_INDEPENDENT_REVIEW_WAITING_OCR",
+  "targeted_tests_this_batch": 21,
+  "unrelated_delta_documents": 0
 }
