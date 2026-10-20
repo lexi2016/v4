@@ -1724,6 +1724,12 @@ def validate_continuation_plan(
         "excluded_prior_statuses",
         "research_only",
     }
+    synthesis_recovery = None
+    if "synthesis_stage_recovery" in plan:
+        expected_fields.add("synthesis_stage_recovery")
+        synthesis_recovery = load_synthesis_recovery()
+        if raw != synthesis_recovery["plan_raw"]:
+            raise BatchError("CONTINUATION_SYNTHESIS_RECOVERY_PLAN_MISMATCH")
     if "tool_budget_recovery" in plan:
         expected_fields.add("tool_budget_recovery")
         recovery = load_tool_budget_recovery({"tool_budget_recovery": {
@@ -1891,6 +1897,7 @@ def validate_continuation_plan(
         "plan": plan,
         "plan_raw": raw,
         "plan_sha256": plan_sha,
+        "synthesis_stage_recovery": synthesis_recovery,
         "state_root": expected_state_root,
         "selected_documents": [manifest_by_id[row["document_id"]] for row in selected],
         "selected_entries": {row["document_id"]: row for row in selected},
@@ -3087,12 +3094,19 @@ def _synthesis_messages(
     report_items: Sequence[Mapping[str, str]],
     level: int,
     source_boundary: Mapping[str, Any] | None = None,
+    output_character_budget: int | None = None,
+    source_qualifications: Mapping[str, Any] | None = None,
 ) -> list[dict[str, str]]:
     user_material = {
         "document_id": document_id,
         "synthesis_level": level,
         "partial_reports": [dict(item) for item in report_items],
     }
+    if source_qualifications is not None:
+        user_material["independently_verified_source_qualifications"] = dict(source_qualifications)
+    if output_character_budget is not None:
+        user_material["intermediate_output_character_limit"] = output_character_budget
+        user_material["contraction_requirement"] = ("这是非终层中间合成，analysis_markdown字符数不得超过指定上限。优先关键事实、单位、时期、条件与原页引用，保留未知；不得用重复原文填充。不得截字或伪称完整。")
     priority = ""
     if isinstance(source_boundary, Mapping):
         user_material["reviewed_page_1_source_boundary"] = dict(source_boundary)
@@ -3140,26 +3154,41 @@ def _split_report_items(reports: Sequence[Mapping[str, str]]) -> list[dict[str, 
     return parts
 
 
+
+def _synthesis_output_budget(reports: Sequence[Mapping[str, str]]) -> int:
+    return max(1, sum(len(item["text"]) for item in reports) * 7 // 10)
+
+
+def _require_synthesis_progress(before: Sequence[Mapping[str, str]], after: Sequence[Mapping[str, str]]) -> None:
+    previous = [item["text"] for item in before]
+    current = [item["text"] for item in after]
+    if (current == previous or not current
+            or not (len(current) < len(previous) or sum(map(len, current)) < sum(map(len, previous)))):
+        raise BatchError("SYNTHESIS_NONCONVERGENT_OUTPUT")
+
+
 def _pack_synthesis_groups(
     document_id: str,
     reports: Sequence[Mapping[str, str]],
     level: int,
     source_boundary: Mapping[str, Any] | None = None,
+    reserve_contraction: bool = False,
+    source_qualifications: Mapping[str, Any] | None = None,
 ) -> list[list[dict[str, str]]]:
     parts = _split_report_items(reports)
     groups: list[list[dict[str, str]]] = []
     current: list[dict[str, str]] = []
     for part in parts:
         candidate = current + [part]
-        source_chars = sum(len(item["text"]) for item in candidate)
-        messages = _synthesis_messages(document_id, candidate, level, source_boundary)
+        source_chars = sum(len(item["text"]) for item in candidate) + (len(_json_bytes(source_qualifications).decode()) if source_qualifications else 0)
+        messages = _synthesis_messages(document_id, candidate, level, source_boundary, _synthesis_output_budget(candidate) if reserve_contraction else None, source_qualifications)
         if source_chars <= MAX_SOURCE_CHARACTERS and len(_request_envelope(messages)) <= MAX_REQUEST_ENVELOPE_BYTES:
             current = candidate
             continue
         if current:
             groups.append(current)
             current = [part]
-            single_messages = _synthesis_messages(document_id, current, level, source_boundary)
+            single_messages = _synthesis_messages(document_id, current, level, source_boundary, _synthesis_output_budget(current) if reserve_contraction else None, source_qualifications)
             if len(_request_envelope(single_messages)) > MAX_REQUEST_ENVELOPE_BYTES:
                 raise BatchError("SYNTHESIS_ITEM_ENVELOPE_BUDGET_EXCEEDED")
             continue
@@ -4276,7 +4305,17 @@ def _run_document(
         "page_input_sha256": page_input_sha,
         "page_count": len(pages),
     }
-    for chunk in chunks:
+    synthesis_recovery = continuation.get("synthesis_stage_recovery") if isinstance(continuation, Mapping) else None
+    if synthesis_recovery is not None:
+        if (pdf_sha != PILOT_TOOL_BUDGET_DOCUMENT_ID or page_input_sha != synthesis_recovery["descriptor"]["source_input_sha256"]
+                or [c.chunk_sha256 for c in chunks] != [c["chunk_sha256"] for c in synthesis_recovery["descriptor"]["source_chunks"]]):
+            raise BatchError("SYNTHESIS_RECOVERY_SOURCE_CHUNKS_MISMATCH")
+        chunk_receipts = [dict(c, source_stage_reused=True) for c in synthesis_recovery["descriptor"]["source_chunks"]]
+        reports = [dict(item) for item in synthesis_recovery["seed_reports"]]
+        progress["chunk_states"] = {str(c.chunk_index): "SUCCEEDED_REUSED_SYNTHESIS_SOURCE" for c in chunks}
+        progress["synthesis_stage_recovery"] = _synthesis_v3_ref("synthesis-recovery-v3-qualified.json")
+        _save_progress(state_root, doc_root, progress)
+    for chunk in ([] if synthesis_recovery is not None else chunks):
         tool_canary = bool(
             isinstance(continuation, Mapping)
             and isinstance(continuation.get("entry"), Mapping)
@@ -4388,11 +4427,12 @@ def _run_document(
     synth_level = 0
     current_reports = reports
     synthesis_receipts: list[dict[str, Any]] = []
+    synthesis_qualifications = synthesis_recovery.get("source_qualifications") if synthesis_recovery else None
     while len(current_reports) > 1:
         synth_level += 1
         if synth_level > MAX_SYNTHESIS_LEVELS:
             raise BatchError("SYNTHESIS_DEPTH_EXCEEDED")
-        groups = _pack_synthesis_groups(pdf_sha, current_reports, synth_level, accepted_boundary)
+        groups = _pack_synthesis_groups(pdf_sha, current_reports, synth_level, accepted_boundary, reserve_contraction=True, source_qualifications=synthesis_qualifications)
         if len(groups) == len(current_reports) and all(len(group) == 1 for group in groups):
             raise BatchError("SYNTHESIS_DID_NOT_REDUCE_INPUT")
         next_reports: list[dict[str, str]] = []
@@ -4400,7 +4440,8 @@ def _run_document(
             if len(group) == 1:
                 next_reports.append(dict(group[0]))
                 continue
-            messages = _synthesis_messages(pdf_sha, group, synth_level, accepted_boundary)
+            output_budget = _synthesis_output_budget(group) if len(groups) > 1 else None
+            messages = _synthesis_messages(pdf_sha, group, synth_level, accepted_boundary, output_budget, synthesis_qualifications)
             envelope = _request_envelope(messages)
             payload = _request_payload(
                 source_doc,
@@ -4409,8 +4450,8 @@ def _run_document(
                 messages=messages,
                 binding=binding,
                 envelope=envelope,
-                source_characters=sum(len(item["text"]) for item in group),
-                source_text_sha256=_sha256(_json_bytes(group)),
+                source_characters=sum(len(item["text"]) for item in group) + (len(_json_bytes(synthesis_qualifications).decode()) if synthesis_qualifications else 0),
+                source_text_sha256=_sha256(_json_bytes({"reports":group,"source_qualifications":synthesis_qualifications})),
             )
             payload, is_recovery_target = _bind_continuation_payload(payload, continuation)
             recovery_binding = continuation.get("recovery_binding") if isinstance(continuation, dict) else None
@@ -4423,6 +4464,8 @@ def _run_document(
                 isinstance(recovery_binding, dict)
                 and not continuation["recovery_target_reached"].is_set()
             )
+            if synthesis_recovery is not None and progress["model_requests"] >= 2:
+                raise BatchError("SYNTHESIS_RECOVERY_REQUEST_LIMIT_EXCEEDED")
             outcome = _perform_request(
                 queue,
                 payload,
@@ -4453,12 +4496,15 @@ def _run_document(
             synthesis_receipts.append(
                 _persist_model_result(state_root, doc_root, source_doc, outcome, name=name)
             )
+            if output_budget is not None and len(outcome["result"]["analysis_markdown"]) > output_budget:
+                raise BatchError("SYNTHESIS_OUTPUT_CHARACTER_BUDGET_EXCEEDED")
             next_reports.append({"report_id": name, "text": outcome["result"]["analysis_markdown"]})
             if stop_event is not None and stop_event.is_set():
                 stop_status = "STOPPED_GRACEFULLY"
                 break
         if stop_status:
             break
+        _require_synthesis_progress(current_reports, next_reports)
         current_reports = next_reports
     if stop_status:
         receipt = {
@@ -5039,6 +5085,7 @@ def _run_batch_impl(
                         "plan": continuation["plan"],
                         "plan_sha256": continuation["plan_sha256"],
                         "entry": selected_entry,
+                        "synthesis_stage_recovery": continuation.get("synthesis_stage_recovery"),
                     }
                     recovery_binding = continuation["recovery_bindings"].get(doc_sha)
                     if recovery_binding is not None:
@@ -5425,7 +5472,12 @@ def verify_analysis_dispatch(document_id: str, plan_sha256: str, admission: Mapp
     plan_count = len({e.get("plan_sha256") for e in events if e.get("event") == "plan_created"})
     expected_count = 1
     recovery = (admission or {}).get("pilot", {}).get("recovery")
-    if recovery is not None and document_id == PILOT_TOOL_BUDGET_DOCUMENT_ID:
+    synthesis = (admission or {}).get("pilot", {}).get("synthesis_recovery")
+    if synthesis is not None and document_id == PILOT_TOOL_BUDGET_DOCUMENT_ID:
+        if plan_sha256 != synthesis["plan_reference"]["sha256"]:
+            raise BatchError("ANALYSIS_SYNTHESIS_PLAN_NOT_CURRENT")
+        expected_count = 3
+    elif recovery is not None and document_id == PILOT_TOOL_BUDGET_DOCUMENT_ID:
         if plan_sha256 != recovery["plan_reference"]["sha256"]:
             raise BatchError("ANALYSIS_RECOVERY_PLAN_NOT_CURRENT")
         expected_count = 2
@@ -5507,8 +5559,10 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
     reference = auth.get("pilot17_adoption")
     expected_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_EXECUTION_ADOPTION_20261020_R1.json"
     v2_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT17_ERRATA_ADOPTION_20261020_R1.json"
-    is_v2 = isinstance(reference, dict) and reference.get("path") == str(v2_path)
-    if not isinstance(reference, dict) or reference.get("path") not in {str(expected_path), str(v2_path)}:
+    v3_path = dispatcher.CONTINUATION_ROOT / "ROOT_PDF_PILOT_SYNTHESIS_RECOVERY_ADOPTION_20261020_R1.json"
+    is_v3 = isinstance(reference, dict) and reference.get("path") == str(v3_path)
+    is_v2 = isinstance(reference, dict) and reference.get("path") in {str(v2_path), str(v3_path)}
+    if not isinstance(reference, dict) or reference.get("path") not in {str(expected_path), str(v2_path), str(v3_path)}:
         raise BatchError("PILOT_ADOPTION_REQUIRED")
     adopted, _ = _analysis_ref(reference, root=dispatcher.CONTINUATION_ROOT)
     if (adopted.get("status") != "ROOT_ADOPTED" or adopted.get("schema") != ("v4.pdf_research.pilot_adoption.v2" if is_v2 else "v4.pdf_research.pilot_adoption.v1")
@@ -5564,15 +5618,16 @@ def load_research_pilot(admission: Mapping[str, Any], auth_context: Mapping[str,
         if adopted.get("previous_pilot_adoption") != old_auth.get("pilot17_adoption"):
             raise BatchError("PILOT_V2_PREVIOUS_ADOPTION_MISMATCH")
         _analysis_ref(adopted["previous_pilot_adoption"], root=dispatcher.CONTINUATION_ROOT)
+    synthesis_recovery = load_synthesis_recovery(adopted) if is_v3 else None
     phase = "first3"
     content_path = RESEARCH_PILOT_ROOT / "independent-review/stratified-first3-content-review.json"
     if content_path.exists():
-        proof_admission = {**admission, "pilot": {"value": adopted, "recovery": recovery}}
+        proof_admission = {**admission, "pilot": {"value": adopted, "recovery": recovery, "synthesis_recovery": synthesis_recovery}}
         verify_pilot_content_review(content_path, first, proof_admission)
         phase = "remaining12" if is_v2 else "remaining14"
     return {"reference": reference, "value": adopted, "phase": phase,
             "allowed_ids": first if phase == "first3" else [did for did in rest if did not in held],
-            "source_hold_ids": held, "recovery": recovery}
+            "source_hold_ids": held, "recovery": recovery, "synthesis_recovery": synthesis_recovery}
 
 
 def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mapping[str, Any]) -> None:
@@ -5593,11 +5648,15 @@ def verify_pilot_content_review(path: Path, ids: Sequence[str], admission: Mappi
         terms = [e for e in events if e.get("event") == "reconciled" and e.get("document_id") == did]
         if is_v2 and did == PILOT_TOOL_BUDGET_DOCUMENT_ID:
             recovery = admission["pilot"]["recovery"]
-            if (len(terms) != 2 or terms[0].get("status") != "FAILED_NO_RETRY"
+            synthesis = admission["pilot"].get("synthesis_recovery")
+            expected_terms = 3 if synthesis is not None else 2
+            if (len(terms) != expected_terms or terms[0].get("status") != "FAILED_NO_RETRY"
                     or terms[0].get("plan_sha256") != recovery["descriptor"]["failed_plan"]["sha256"]
-                    or terms[1].get("plan_sha256") != recovery["plan_reference"]["sha256"]):
+                    or terms[1].get("plan_sha256") != recovery["plan_reference"]["sha256"]
+                    or synthesis is not None and (terms[1].get("status") != "STOPPED_GRACEFULLY"
+                        or terms[2].get("plan_sha256") != synthesis["plan_reference"]["sha256"])):
                 raise BatchError("PILOT_CONTENT_RECOVERY_PAIR_MISMATCH")
-            e = terms[1]
+            e = terms[-1]
         elif len(terms) == 1:
             e = terms[0]
         else:
@@ -5677,6 +5736,89 @@ def verify_source_hold_admission(adopted: Mapping[str, Any]) -> list[str]:
     if holds.get("held_document_ids") != ids or holds.get("findings") != [f["finding"] for f in findings]:
         raise BatchError("PILOT_SOURCE_HOLD_SET_MISMATCH")
     return ids
+
+
+
+PILOT_SYNTHESIS_V3_PREFIX_SHA256 = "02803f3dab0b0984ebf17a5c33429bdc1c4de8984760993f16f7444d147e6039"
+PILOT_SYNTHESIS_PREVIOUS_AUTH_SHA256 = "02f1610988e8e04d38148b0c2163fe5a14d80ae7423db419858fb3844d0710da"
+PILOT_SYNTHESIS_DATA = {
+    "synthesis-recovery-v3-qualified.json": "0816f6173de98ef3f90431097ddbefd900a8a829eb78d2f194a1fd7e39a5045c",
+    "synthesis-plan-v3-qualified.json": "3d8def66ce70eb91dd7afadf87f5a7bab2f9c96926eaa1b1a107b7fa951d5343",
+}
+
+
+def _synthesis_v3_ref(name: str) -> dict[str, str]:
+    return {"path": str(RESEARCH_PILOT_ROOT / "model" / name), "sha256": PILOT_SYNTHESIS_DATA[name]}
+
+
+def load_synthesis_recovery(adopted: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    from ops import run_pdf_research_remaining_once as dispatcher
+    expected = {"descriptor": _synthesis_v3_ref("synthesis-recovery-v3-qualified.json"),
+                "plan_source": _synthesis_v3_ref("synthesis-plan-v3-qualified.json")}
+    if adopted is not None:
+        previous = {"path": str(dispatcher.CONTINUATION_ROOT / "ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_SYNTHESIS_RECOVERY_20261020_R1.json"),
+                    "sha256": PILOT_SYNTHESIS_PREVIOUS_AUTH_SHA256}
+        if adopted.get("synthesis_stage_recovery") != expected or adopted.get("previous_synthesis_authorization") != previous:
+            raise BatchError("SYNTHESIS_RECOVERY_ADOPTION_MISMATCH")
+        auth, _ = _analysis_ref(previous, root=dispatcher.CONTINUATION_ROOT)
+        if adopted.get("previous_synthesis_adoption") != auth.get("pilot17_adoption"):
+            raise BatchError("SYNTHESIS_RECOVERY_PREVIOUS_IDENTITY_MISMATCH")
+        _analysis_ref(adopted["previous_synthesis_adoption"], root=dispatcher.CONTINUATION_ROOT)
+    value, _ = _analysis_ref(expected["descriptor"], root=RESEARCH_PILOT_ROOT)
+    plan, raw = _analysis_ref(expected["plan_source"], root=RESEARCH_PILOT_ROOT)
+    decision, _ = _analysis_ref(value["controller_decision"], root=RESEARCH_PILOT_ROOT)
+    stopped, _ = _analysis_ref(value["stopped_receipt"])
+    progress, _ = _analysis_ref(value["stopped_progress"])
+    stop_review, _ = _analysis_ref(value["independent_stopped_review"], root=RESEARCH_PILOT_ROOT)
+    failure_review, _ = _analysis_ref(value["independent_nonprogress_review"], root=RESEARCH_PILOT_ROOT)
+    old_plan, _ = _analysis_ref(value["stopped_plan"], root=RESEARCH_PILOT_ROOT)
+    page_input, _ = _analysis_ref(value["stopped_page_input"])
+    if (value.get("document_id") != PILOT_TOOL_BUDGET_DOCUMENT_ID or value.get("model_request_limit") != 2
+            or value.get("source_model_rePOST_limit") != 0
+            or value.get("journal_event_count") != 62 or value["journal_prefix"]["sha256"] != PILOT_SYNTHESIS_V3_PREFIX_SHA256
+            or value["controller_decision"]["sha256"] != "dc593a360ea6c6a48fd6d3deae12efee967cbc73cab45f514e6c05587a85c143"
+            or stop_review.get("status") != "GRACEFUL_CHECKPOINT_STOP_PASS" or stop_review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or failure_review.get("verdict") != "FAIL_TARGET_PROGRESS" or failure_review.get("reviewer") != "/root/pdf_model_analysis_reviewer"
+            or stopped.get("status") != "STOPPED_GRACEFULLY" or stopped.get("document_id") != PILOT_TOOL_BUDGET_DOCUMENT_ID
+            or progress.get("chunk_states") != {"1":"SUCCEEDED","2":"SUCCEEDED","3":"SUCCEEDED"}
+            or page_input.get("document_id") != PILOT_TOOL_BUDGET_DOCUMENT_ID or value["source_input_sha256"] != value["stopped_page_input"]["sha256"]
+            or stopped.get("page_input",{}).get("sha256") != value["source_input_sha256"]
+            or plan.get("selected_documents") != old_plan.get("selected_documents")
+            or plan.get("synthesis_stage_recovery") != expected["descriptor"] or "tool_budget_recovery" in plan
+            or plan.get("continuation_id") != "resume-synthesis-667-20261020-r1"
+            or plan.get("state_root") != str(Path(old_plan["state_root"]).parent / "continuation-resume-synthesis-667-20261020-r1")
+            or plan.get("execution_runtime_settings_sha256") != ANALYSIS_RUNTIME_SHA256):
+        raise BatchError("SYNTHESIS_RECOVERY_EVIDENCE_MISMATCH")
+    chunks = value.get("source_chunks")
+    if chunks != stopped.get("chunks") or len(chunks) != 3 or [c.get("chunk_index") for c in chunks] != [1,2,3]:
+        raise BatchError("SYNTHESIS_RECOVERY_SOURCE_STAGE_MISMATCH")
+    for chunk in chunks:
+        if chunk.get("status") != "SUCCEEDED" or chunk.get("attempt_count") != 1 or chunk.get("chunk_total") != 3:
+            raise BatchError("SYNTHESIS_RECOVERY_SOURCE_STAGE_MISMATCH")
+        keep = lambda r: {k:r[k] for k in ("path","sha256")}
+        result, _ = _analysis_ref(keep(chunk["validated_result"]))
+        _, report = _analysis_ref(keep(chunk["report"]), parse_json=False)
+        _analysis_ref(keep(chunk["queue_raw"]), parse_json=False)
+        _analysis_ref(keep(chunk["raw"]), parse_json=False)
+        if result.get("analysis_markdown") != report.decode("utf-8"):
+            raise BatchError("SYNTHESIS_RECOVERY_PARTIAL_RESULT_MISMATCH")
+    seeds = []
+    for item in value["seed_reports"]:
+        _, original = _analysis_ref(item["source"], parse_json=False)
+        text = original.decode("utf-8");offset=item["offset"];length=item["characters"]
+        if (type(offset) is not int or type(length) is not int or offset < 0 or offset+length != len(text)
+                or _sha256(text[offset:].encode()) != item["text_sha256"]):
+            raise BatchError("SYNTHESIS_RECOVERY_SEED_BYTES_MISMATCH")
+        seeds.append({"report_id":item["report_id"],"text":text[offset:]})
+    if [len(x["text"]) for x in seeds] != [6265,1888]:
+        raise BatchError("SYNTHESIS_RECOVERY_SEED_SCOPE_MISMATCH")
+    qualifications = value["source_qualifications"]
+    paired, _ = _analysis_ref(qualifications["independent_finding"])
+    if (qualifications["independent_finding"]["sha256"] != "6b13ae98b59f60f87e883cec805ce24755e3b9cadc70fa861e35080026d1a9ec"
+            or [x["id"] for x in qualifications["findings"]] != ["C4","C5","C6"]):
+        raise BatchError("SYNTHESIS_RECOVERY_SOURCE_QUALIFICATIONS_MISMATCH")
+    return {"descriptor":value,"plan":plan,"plan_raw":raw,"plan_reference":expected["plan_source"],
+            "seed_reports":seeds,"source_qualifications":qualifications}
 
 
 def load_tool_budget_recovery(adopted: Mapping[str, Any]) -> dict[str, Any]:

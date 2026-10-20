@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "8e6e51fdc351c47f555736d292ac96141e230fed4b30ed49917d50c5df595f02"
+EXPECTED_RUNNER_SHA256 = "e44e6169a6ada34b7de1d8ecb1845d036acadf18044a81c982082646bc8d2930"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -2320,18 +2320,36 @@ def _pilot_historical_context(context: Mapping[str, Any]) -> Mapping[str, Any]:
 
 def _pilot_adoption_event(context: Mapping[str, Any], *, v2: bool = False) -> dict[str, Any]:
     pilot = context["analysis_admission"]["pilot"]
-    return {"event":"pilot_adoption", "schema":JOURNAL_SCHEMA,
+    event = {"event":"pilot_adoption", "schema":JOURNAL_SCHEMA,
             "previous_authorization_sha256":batch.PILOT_V1_AUTHORIZATION_SHA256 if v2 else batch.PILOT_PREVIOUS_AUTH_SHA256,
             "authorization_sha256":context["authorization_sha256"], "adoption":pilot["reference"],
             "journal_prefix_sha256":batch.PILOT_V2_PREFIX_SHA256 if v2 else batch.PILOT_JOURNAL_PREFIX_SHA256,
             "journal_event_count":55 if v2 else 45, "sources":pilot["value"]["sources"],
             "stratified17_sha256":batch.PILOT_STRATA_SHA256,"package_input_plan_sha256":batch.PILOT_PACKAGE_PLAN_SHA256}
+    if pilot["value"].get("synthesis_stage_recovery") is not None:
+        event.update(previous_authorization_sha256=batch.PILOT_SYNTHESIS_PREVIOUS_AUTH_SHA256,
+                     journal_prefix_sha256=batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256,journal_event_count=62)
+    return event
 
 
 def _verify_pilot_append_only_adoption(journal: DurableJournal, context: Mapping[str, Any]) -> None:
     pilot = context["analysis_admission"]["pilot"]
     raw = _read_regular(journal.path, "PILOT_PRIOR_JOURNAL_REQUIRED")
     lines = raw.splitlines(keepends=True)
+    if pilot["value"].get("synthesis_stage_recovery") is not None:
+        if (not raw.endswith(b"\n") or len(lines)<62
+                or sha256_bytes(b"".join(lines[:62]))!=batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256):
+            raise DispatcherError("SYNTHESIS_PRIOR62_PREFIX_MISMATCH")
+        old_auth, old_raw = batch._analysis_ref(pilot["value"]["previous_synthesis_authorization"],root=CONTINUATION_ROOT)
+        old_adopted, _ = batch._analysis_ref(old_auth["pilot17_adoption"],root=CONTINUATION_ROOT)
+        old_context={**context,"authorization":old_auth,"authorization_sha256":sha256_bytes(old_raw),
+                     "analysis_admission":{**context["analysis_admission"],"pilot":{**pilot,"value":old_adopted,"reference":old_auth["pilot17_adoption"],"synthesis_recovery":None}}}
+        _verify_pilot_append_only_adoption(journal,old_context)
+        event=_pilot_adoption_event(context,v2=True)
+        if len(journal.events)==62:journal.append(event)
+        elif {k:v for k,v in journal.events[62].items() if k!="at_utc"}!=event:
+            raise DispatcherError("SYNTHESIS_CURRENT_ADOPTION_MISMATCH")
+        return
     if (not raw.endswith(b"\n") or len(lines)<45 or sha256_bytes(b"".join(lines[:45]))!=batch.PILOT_JOURNAL_PREFIX_SHA256):
         raise DispatcherError("PILOT_PRIOR_JOURNAL_PREFIX_MISMATCH")
     historical = _pilot_historical_context(context)
@@ -2372,12 +2390,12 @@ def _prepare_pilot_tool_recovery(journal: DurableJournal, context: Mapping[str, 
     event={"event":"halt_resolution","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,
            "status":"BOUNDED_TOOL_BUDGET_RECOVERY_AUTHORIZED","recovery_generation":1,
            "prior_plan_sha256":descriptor["failed_plan"]["sha256"],"prior_receipt_sha256":descriptor["failed_receipt"]["sha256"],
-           "new_plan_sha256":recovery["plan_reference"]["sha256"],"authorization_sha256":context["authorization_sha256"]}
+           "new_plan_sha256":recovery["plan_reference"]["sha256"],"authorization_sha256":(batch.PILOT_SYNTHESIS_PREVIOUS_AUTH_SHA256 if (context.get("analysis_admission") or {}).get("pilot",{}).get("synthesis_recovery") is not None else context["authorization_sha256"])}
     if len(journal.events)==56:
         journal.append(event)
     elif {k:v for k,v in journal.events[56].items() if k!="at_utc"}!=event:
         raise DispatcherError("PILOT_TOOL_RECOVERY_RESOLUTION_MISMATCH")
-    plans=[e for e in journal.events[55:] if e.get("event")=="plan_created" and e.get("document_id")==batch.PILOT_TOOL_BUDGET_DOCUMENT_ID]
+    plans=[e for e in journal.events[55:] if e.get("event")=="plan_created" and e.get("document_id")==batch.PILOT_TOOL_BUDGET_DOCUMENT_ID and e.get("recovery_reason")=="PDF_ACTION_ENVELOPE_BUDGET_EXCEEDED"]
     if not plans:
         plan=recovery["plan"];raw=recovery["plan_raw"]
         path=journal.root/"plans"/(plan["continuation_id"]+".json")
@@ -2391,6 +2409,33 @@ def _prepare_pilot_tool_recovery(journal: DurableJournal, context: Mapping[str, 
     return {"reconciled_event_index":53,"halt_event_index":54,
             "reconciled_event_line_sha256":sha256_bytes(lines[53]),
             "continuation_id":journal.events[53]["continuation_id"],"document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID}
+
+
+
+def _prepare_synthesis_recovery(journal: DurableJournal, context: Mapping[str, Any]) -> dict[str, Any] | None:
+    recovery=(context.get("analysis_admission") or {}).get("pilot",{}).get("synthesis_recovery")
+    if recovery is None:return None
+    descriptor=recovery["descriptor"];raw=_read_regular(journal.path,"SYNTHESIS_JOURNAL_REQUIRED");lines=raw.splitlines(keepends=True)
+    if (len(lines)<63 or sha256_bytes(b"".join(lines[:62]))!=batch.PILOT_SYNTHESIS_V3_PREFIX_SHA256
+            or journal.events[60].get("receipt_sha256")!=descriptor["stopped_receipt"]["sha256"]
+            or journal.events[60].get("status")!="STOPPED_GRACEFULLY" or journal.events[60].get("decision")!="HALT"
+            or journal.events[61].get("event")!="halt" or journal.events[61].get("document_id")!=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID):
+        raise DispatcherError("SYNTHESIS_RECOVERY_STOP_PREFIX_MISMATCH")
+    event={"event":"halt_resolution","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,"status":"BOUNDED_SYNTHESIS_ONLY_RECOVERY_AUTHORIZED",
+           "recovery_generation":2,"prior_plan_sha256":descriptor["stopped_plan"]["sha256"],"prior_receipt_sha256":descriptor["stopped_receipt"]["sha256"],
+           "new_plan_sha256":recovery["plan_reference"]["sha256"],"authorization_sha256":context["authorization_sha256"],"source_model_rePOST_limit":0,"new_model_request_limit":2}
+    if len(journal.events)==63:journal.append(event)
+    elif {k:v for k,v in journal.events[63].items() if k!="at_utc"}!=event:raise DispatcherError("SYNTHESIS_RECOVERY_RESOLUTION_MISMATCH")
+    plans=[e for e in journal.events[62:] if e.get("event")=="plan_created" and e.get("document_id")==batch.PILOT_TOOL_BUDGET_DOCUMENT_ID]
+    if not plans:
+        plan=recovery["plan"];path=journal.root/"plans"/(plan["continuation_id"]+".json");_write_immutable(path,recovery["plan_raw"])
+        journal.append({"event":"plan_created","document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID,"continuation_id":plan["continuation_id"],
+                        "plan_path":str(path),"plan_sha256":recovery["plan_reference"]["sha256"],"plan_bytes_b64":base64.b64encode(recovery["plan_raw"]).decode("ascii"),
+                        "state_root":plan["state_root"],"recovery_generation":2,"recovery_reason":"SYNTHESIS_NONCONVERGENCE"})
+    elif len(plans)!=1 or plans[0].get("plan_sha256")!=recovery["plan_reference"]["sha256"]:
+        raise DispatcherError("SYNTHESIS_RECOVERY_LIMIT_EXCEEDED")
+    return {"reconciled_event_index":60,"halt_event_index":61,"reconciled_event_line_sha256":sha256_bytes(lines[60]),
+            "continuation_id":journal.events[60]["continuation_id"],"document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID}
 
 
 def _verify_or_create_binding(journal: DurableJournal, context: Mapping[str, Any]) -> None:
@@ -2638,8 +2683,9 @@ def _halt_if_required(
     journal: DurableJournal, latest: Mapping[str, Mapping[str, Any]], *,
     halt_resume_descriptor: Mapping[str, Any] | None = None,
     additional_halt_resume_descriptor: Mapping[str, Any] | None = None,
+    synthesis_halt_resume_descriptor: Mapping[str, Any] | None = None,
 ) -> None:
-    descriptors=[d for d in (halt_resume_descriptor,additional_halt_resume_descriptor) if d is not None]
+    descriptors=[d for d in (halt_resume_descriptor,additional_halt_resume_descriptor,synthesis_halt_resume_descriptor) if d is not None]
     resolved_halts: set[int]=set()
     resolved_failures: set[int]=set()
     for descriptor in descriptors:
@@ -3166,6 +3212,7 @@ def execute_once(
             samples_path=samples_path,
         )
         tool_budget_halt_descriptor = _prepare_pilot_tool_recovery(journal, context)
+        synthesis_halt_descriptor = _prepare_synthesis_recovery(journal, context)
         latest = _latest_document_events(journal.events)
         resolved_halt_resume_descriptor = None
         if resumed_document_id is not None:
@@ -3174,7 +3221,7 @@ def execute_once(
             if resolved_halt_resume_descriptor is None:
                 raise DispatcherError("HALT_RESUME_DESCRIPTOR_MISSING")
         _halt_if_required(journal, latest, halt_resume_descriptor=resolved_halt_resume_descriptor,
-                          additional_halt_resume_descriptor=tool_budget_halt_descriptor)
+                          additional_halt_resume_descriptor=tool_budget_halt_descriptor, synthesis_halt_resume_descriptor=synthesis_halt_descriptor)
         _assert_no_duplicate_document_ids(journal.events, analysis_admission=admission)
         if not latest:
             _first, initial_count = select_next_document(
@@ -3523,6 +3570,15 @@ def _assert_no_duplicate_document_ids(events: Sequence[Mapping[str, Any]], *, an
             else:
                 previous_index, previous_continuation_id, previous_state_root, previous_plan = previous
                 pilot_recovery=(analysis_admission or {}).get("pilot",{}).get("recovery")
+                synthesis=(analysis_admission or {}).get("pilot",{}).get("synthesis_recovery")
+                if plan.get("synthesis_stage_recovery") is not None:
+                    if (synthesis is None or document_id!=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
+                            or sha256_bytes(plan_raw)!=synthesis["plan_reference"]["sha256"] or recovery_counts.get(document_id)!=1
+                            or not any(e.get("event")=="halt_resolution" and e.get("document_id")==document_id
+                                       and e.get("status")=="BOUNDED_SYNTHESIS_ONLY_RECOVERY_AUTHORIZED"
+                                       and e.get("new_plan_sha256")==sha256_bytes(plan_raw) for e in events[previous_index+1:event_index])):
+                        raise DispatcherError("SYNTHESIS_RECOVERY_PAIR_INVALID")
+                    recovery_counts[document_id]=2;continuation_ids.add(continuation_id);state_roots.add(state_root);continue
                 if plan.get("tool_budget_recovery") is not None:
                     if (pilot_recovery is None or document_id!=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
                             or sha256_bytes(plan_raw)!=pilot_recovery["plan_reference"]["sha256"]

@@ -3009,3 +3009,67 @@ def test_v2_dispatch_accepts_only_exact_reviewed_second_plan(analysis_fixture):
     events.insert(2,{'event':'plan_created','document_id':did,'plan_sha256':'c'*64});path.write_text(''.join(json.dumps(e)+'\n' for e in events))
     with pytest.raises(batch.BatchError,match='DISPATCH_NOT_CURRENT'):
         batch.verify_analysis_dispatch(did,'b'*64,admission)
+
+
+def test_synthesis_v3_rejects_actual_stagnant_vector_and_reserves_contraction_bytes():
+    reports=[{'report_id':'first','text':'a'*6265},{'report_id':'carry','text':'b'*1888}]
+    with pytest.raises(batch.BatchError,match='NONCONVERGENT'):
+        batch._require_synthesis_progress(reports,[{'report_id':'new-name','text':'a'*6265},reports[1]])
+    shorter=[{'report_id':'shorter','text':'a'*4385},reports[1]]
+    batch._require_synthesis_progress(reports,shorter)
+    q={'finding':'C4/C5/C6 independent, unknown table mappings'}
+    groups=batch._pack_synthesis_groups('a'*64,reports,1,None,reserve_contraction=True,source_qualifications=q)
+    assert [len(g) for g in groups]==[4,1]
+    assert batch._synthesis_output_budget(groups[0])==4385
+    msg=batch._synthesis_messages('a'*64,groups[0],1,None,4385,q)
+    value=json.loads(msg[1]['content'].split('\n',1)[1])
+    assert value['intermediate_output_character_limit']==4385 and value['independently_verified_source_qualifications']==q
+    assert len(batch._request_envelope(msg))<=32768
+
+
+def test_synthesis_v3_actual_frozen_stage_loader_and_qualified_plan():
+    recovery=batch.load_synthesis_recovery()
+    assert [len(x['text']) for x in recovery['seed_reports']]==[6265,1888]
+    assert len(recovery['descriptor']['source_chunks'])==3
+    assert recovery['descriptor']['model_request_limit']==2
+    assert recovery['descriptor']['source_model_rePOST_limit']==0
+    assert [r['id'] for r in recovery['source_qualifications']['findings']]==['C4','C5','C6']
+    _manifest,manifest_sha,documents=batch.load_manifest(batch.DEFAULT_MANIFEST)
+    validated=batch.validate_continuation_plan(Path(recovery['plan_reference']['path']),manifest_sha256=manifest_sha,documents=documents)
+    assert validated['synthesis_stage_recovery']['plan_raw']==recovery['plan_raw']
+
+
+@pytest.mark.parametrize('oversize',[False,True])
+def test_synthesis_v3_reuses_all_source_stages_and_at_most_two_requests(tmp_path,monkeypatch,oversize):
+    recovery=batch.load_synthesis_recovery();did=batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
+    value=json.loads(Path(recovery['descriptor']['stopped_page_input']['path']).read_bytes())
+    raw=Path(recovery['descriptor']['stopped_page_input']['path']).read_bytes()
+    pages=[_page(p['page_number'],len(value['pages']),p['text']) for p in value['pages']]
+    prepared={'manifest_sha256':'b'*64,'documents':{did:{'page_input':value,'page_input_raw':raw,'page_input_sha256':hashlib.sha256(raw).hexdigest()}}}
+    monkeypatch.setattr(batch.pdf_text_preparation,'pages_from_frozen_manifest',lambda *_:(pages,value['source'],{}))
+    calls=[];persisted=[]
+    def perform(_queue,payload,messages,**kwargs):
+        assert payload['stage']=='simple_batch_synthesis_v1','no source rePOST permitted'
+        data=json.loads(messages[1]['content'].split('\n',1)[1]);calls.append(data)
+        assert data['independently_verified_source_qualifications']==recovery['source_qualifications']
+        answer='x'*(4386 if oversize else 4385) if len(calls)==1 else 'Final cited report pending independent semantic review'
+        return {'status':'SUCCEEDED','attempted':True,'result':{'analysis_markdown':answer}}
+    monkeypatch.setattr(batch,'_perform_request',perform)
+    def persist(state,doc,source,outcome,*,name):
+        p=doc/'partials'/(name+'.md');p.parent.mkdir(parents=True,exist_ok=True);p.write_text(outcome['result']['analysis_markdown']);persisted.append(p)
+        return {'report':{'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}}
+    monkeypatch.setattr(batch,'_persist_model_result',persist)
+    continuation={'plan':recovery['plan'],'plan_sha256':recovery['plan_reference']['sha256'],'entry':recovery['plan']['selected_documents'][0],'synthesis_stage_recovery':recovery}
+    kwargs=dict(manifest_sha=batch.EXPECTED_BATCH_MANIFEST_SHA256,state_root=tmp_path/'new-state',queue=object(),binding={'configuration_sha256':'c'*64,'request_schema_sha256':'d'*64,'evidence_root':str(tmp_path/'evidence')},identity={},priority_reader=lambda:{},identity_reader=lambda:{},identity_state={},request_fn=lambda **_:pytest.fail('offline only'),sleep_fn=lambda _:None,prepared_manifest=prepared,continuation=continuation)
+    document={'document_id':did,'pdf_sha256':did}
+    if oversize:
+        with pytest.raises(batch.BatchError,match='CHARACTER_BUDGET'):batch._run_document(document,**kwargs)
+        assert len(calls)==1 and persisted[0].read_text()=='x'*4386
+        assert not (tmp_path/'new-state/documents'/did/'report.md').exists()
+    else:
+        result=batch._run_document(document,**kwargs)
+        assert result['status']=='MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING'
+        assert len(calls)==2 and len(result['chunks'])==3 and all(c['source_stage_reused'] for c in result['chunks'])
+        assert calls[0]['intermediate_output_character_limit']==4385
+        assert 'intermediate_output_character_limit' not in calls[1]
+    assert all(p.exists() for p in persisted)
