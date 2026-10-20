@@ -1,0 +1,219 @@
+{
+  "status": "P1_P23_INDEPENDENT_PASS_CANONICAL_INTEGRATED",
+  "baseline_source_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "2647b5f347fab9562b77beef91b80a44e931913a",
+  "runtime_base_release": "announcement-transport-recovery-20261020-r6",
+  "runtime_base_manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+  "p1_independent_receipt_sha256": "49de0b68e59da696992871b19f4d8d3c5c5e7061b21787b6a35db6cfc4c2a2a8",
+  "p23_independent_receipt_sha256": "c9c4304c09e4b64d8f4622fd394d8bbf20e9afd9130b48b00a31d587f3280ce1",
+  "tests": {
+    "API_Python": "3.14.6; 274 passed, 1 deselected",
+    "actual_runner_Python": "3.12.13; 274 passed, 1 deselected",
+    "independent_additional_checks_passed": 3,
+    "exact_old_queue_key": "99059cb118c9718604e942a6e14507f0b25cbdf4bfa0aeb1e91fc74e97550953",
+    "preexisting_isolated_queue_records_preserved": 1369,
+    "old_running_attempts_before_after": 1,
+    "model_transport_responses": "SYNTHETIC_ONLY",
+    "real_model_POST": 0,
+    "frontend_component_tests": "7 passed",
+    "focused_typecheck": "PASS",
+    "full_R6_frontend_build": "PASS",
+    "browser_readback": "PASS: compiled UI / isolated real API GET JSON replay; not live deployment",
+    "guard_violations": []
+  },
+  "commands": [
+    {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/助手/announcement-daily-workflow-20261020/review/p23/run_tests.py",
+        "api"
+      ],
+      "result": "274 passed; 1 deselected"
+    },
+    {
+      "argv": [
+        "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/助手/announcement-daily-workflow-20261020/review/p23/run_tests.py",
+        "runner"
+      ],
+      "result": "274 passed; 1 deselected"
+    },
+    {
+      "argv": [
+        "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/助手/announcement-daily-workflow-20261020/review/p23/run_independent.py"
+      ],
+      "result": "1 passed after correcting isolated fixture permissions"
+    },
+    {
+      "argv": [
+        "/Users/lexi/Desktop/学习/助手/local_llm/qwen3_8_flash_next/runtime/venv/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/助手/announcement-daily-workflow-20261020/review/p23/run_independent.py",
+        "-k",
+        "daily_entry or three_stopped"
+      ],
+      "result": "2 passed; 1 deselected"
+    },
+    {
+      "argv": [
+        "/Users/lexi/.local/node-v24.19.0/bin/node",
+        "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vite/bin/vite.js",
+        "build",
+        "--outDir",
+        "/Users/lexi/Desktop/学习/agents调试/助手/announcement-daily-workflow-20261020/review/p23/build"
+      ],
+      "result": "10 dist files; full R6 frontend build PASS"
+    },
+    {
+      "argv": [
+        "/Users/lexi/.local/node-v24.19.0/bin/node",
+        "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vitest/vitest.mjs",
+        "run",
+        "src/manager-workbench/__tests__/announcement_flash.spec.ts"
+      ],
+      "result": "7 passed"
+    },
+    {
+      "argv": [
+        "/Users/lexi/.local/node-v24.19.0/bin/node",
+        "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vue-tsc/bin/vue-tsc.js",
+        "--noEmit",
+        "-p",
+        "tsconfig.announcement.json"
+      ],
+      "result": "exit 0"
+    },
+    {
+      "argv": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+        "-B",
+        "/Users/lexi/Desktop/学习/agents调试/助手/announcement-daily-workflow-20261020/review/p23/dependency_check.py"
+      ],
+      "result": "R6/overlay import closure PASS"
+    }
+  ],
+  "source": [
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "before_sha256": "aa3477bb63e9d47063f6c77a45c0ff4c6f355b49c408e87aeb9abbc74143a447",
+      "after_sha256": "f970cd79b59f28c1cab65118ce71d33ccae710849df064f87c2dda126b28a53b"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "before_sha256": "e948c70dbce4ff1cfec4e4fcc506089c2b70c8d0b038f73b9ea685be27760a29",
+      "after_sha256": "da2146cda795ace3b36715e2dac3f050723336775742e5516268a2452c812e7a"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "before_sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827",
+      "after_sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d",
+      "after_sha256": "d8fb74dcf62a91457683a28fbd75e64830677cfdfc7ce68b2c9da8296a3d21ad"
+    },
+    {
+      "path": "docs/announcement-daily-workflow.md",
+      "before_sha256": null,
+      "after_sha256": "40cf639429775c074e783dbbe66de601ade2a7217509d4f5928576e12acd97d1"
+    },
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "before_sha256": "bd84b0f5e102ded8f55effe51419e8c171de8a32e0d4570f1f820847b4143ba3",
+      "after_sha256": "91f22c44234868b76fe85e89ba20ad7a25beab2a367dbc1d93fc67f30f780552"
+    },
+    {
+      "path": "tests/test_manager_announcement_contract_repair.py",
+      "before_sha256": "538ee06f1a0258c0e146c4b1a1f4ce36948a1f11819ed0c58d758a7350c7664a",
+      "after_sha256": "4248805b7229b1c96b9f297ec09b314cd1b5b6018f9ba756b779c4ec9f9153ee"
+    },
+    {
+      "path": "tests/test_manager_announcement_daily_workflow.py",
+      "before_sha256": null,
+      "after_sha256": "b42c2a7df349ccdca47ae39c0a384bfe715631aff33a0b7823d6959a0d6550b2"
+    },
+    {
+      "path": "tests/test_manager_announcement_flash_runner.py",
+      "before_sha256": "5c4e0ef918a1970cf756589bb219f6a2bf78e66dc5cb56902397c9627038a2af",
+      "after_sha256": "5605afa8a574ed3a4c1653f7256a4e69ca4f98566cbc5700067e3ff201ab94da"
+    },
+    {
+      "path": "tests/test_manager_announcement_preprocessing.py",
+      "before_sha256": null,
+      "after_sha256": "23d7f0e354d76cfa5e29fbc929fdb2b6dfc64dc316dd387ffc2b8aeb1cba6b7c"
+    },
+    {
+      "path": "tests/test_manager_announcement_user_stop.py",
+      "before_sha256": null,
+      "after_sha256": "a13e94c26f99606e1eb54b53f1130d39cc31404a07339551a46d120aeae002ce"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_classification.py",
+      "before_sha256": null,
+      "after_sha256": "d0c276c9adbdcf1723c02de1f92e8fd0017e0dd9525d983142aeb04742885d73"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_delivery.py",
+      "before_sha256": null,
+      "after_sha256": "381c75d495c5367868e7d627c5809eae30c0201e3a5d3ed5201652398eb4e55a"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_preprocessing.py",
+      "before_sha256": null,
+      "after_sha256": "a0058f4271a915ab072c50b5a16d8898b5a258cb887614bee602be6ef9b7ba1d"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "before_sha256": "ce91b79a1186989332d917a4a4090e3a498bc3a06437ff56cb342d5f2cf4c446",
+      "after_sha256": "347636a7fe31a6d9fa0b73859c209eba9e508f7af3cc5a3be64e6fbdd262bdd3"
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "before_sha256": "75924bdc48403c6ead023051d19aa760c827c3fb226ff99843eed8e5ced62df0",
+      "after_sha256": "1a36e8c2db111a959ab741bd92caaf390569e95fa80ca15aee60a286b1a539c3"
+    },
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "before_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "after_sha256": "9eaa0af37b1be888184a5962292e40069b6a5a5911ed098a40c2c5eb91482d62"
+    },
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "before_sha256": "e1e1c9d5df3a2e87c636469c3023ce19b4e0cb615fdd6a3d4aa6091d35861cc3",
+      "after_sha256": "2741bc6975c185f06aabe35e070de9e125cd7616f02bfa7a37507b79339d2c93"
+    }
+  ],
+  "canonical_types": {
+    "status": "CANONICAL_TYPE_PRESERVATION_ACCEPTABLE",
+    "preview_sha256": "d8fb74dcf62a91457683a28fbd75e64830677cfdfc7ce68b2c9da8296a3d21ad",
+    "canonical_before_sha256": "6de8a2d4763642d69c117224ede7a01a199ffe00992a5995f75cb9692985e56d",
+    "r6_base_sha256": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f",
+    "runtime_candidate_sha256": "5345663ef0ff0882f9585fce74c959ea05c155360a148e0bf8a69462a5dc14f1",
+    "canonical_existing_delta_preserved_exactly": true,
+    "candidate_delta_retained_exactly": true,
+    "existing_delta_summary": [
+      {
+        "operation": "delete",
+        "before_lines": 114,
+        "after_lines": 0
+      }
+    ],
+    "runtime_build_uses_preview": false,
+    "canonical_written": false
+  },
+  "boundaries": {
+    "real_model_POST": 0,
+    "new_capture": false,
+    "deployed": false,
+    "schedules_restored": false,
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
