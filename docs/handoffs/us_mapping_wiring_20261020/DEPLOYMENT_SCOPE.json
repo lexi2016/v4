@@ -1,0 +1,65 @@
+{
+  "GOAL": "Prepare immutable API and scheduler overlays plus one transparent saved US_MAPPING-only reprocessing run; strict remains PAUSED_NOT_EXECUTED.",
+  "WRITER": "/root/mapping_deployer; sole runtime and deployment-doc owner",
+  "REVIEWER": "controller-assigned independent deployment_reviewer; SOURCE PASS reused",
+  "ALLOWED_PATHS": [
+    "new releases us-mapping-wiring-api-20261020-r1 and us-mapping-wiring-scheduler-20261020-r1",
+    "this DOCROOT/DEPLOYMENT_*",
+    "this DOCROOT/prepare_wiring_release.py",
+    "this DOCROOT/publish_wiring_result.py",
+    "this DOCROOT/local_only/**"
+  ],
+  "FORBIDDEN_PATHS": [
+    "writer source/test/PREPARED/replay files",
+    "old releases",
+    "actual plists/services/config/data before continuation",
+    "provider/POST/history/strict/other lanes",
+    "Git",
+    "calendar executor/receipts/source",
+    "other modules"
+  ],
+  "PASS_SIGNAL": "Independent candidate/inventory/function-projection/pipeline/store publication-plan PASS; then explicit controller activation/publication continuation.",
+  "STOP_RULE": "Any frozen source or parent/plist drift, unknown owner, required extra scope, invalid input or healthy inflight task. Do not retry unknown publication.",
+  "source_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "api_prepare_dependency": {
+    "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1",
+    "manifest_sha256": "d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d",
+    "currently_active": false,
+    "activation_prerequisite": "calendar executor succeeds; re-freeze actual calendar active identity and exact551516plist; otherwise no wiring switch."
+  },
+  "runtime_read_at": "2026-10-20T10:18:21.114227+08:00",
+  "roles": [
+    {
+      "label": "com.lexi.v35.api-only",
+      "pid": 56894,
+      "plist_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app",
+      "manifest_sha256": "ab7704b388f1789e4d2a4d18fa91c8538f12282ca83899f5b9bf070e57789d41",
+      "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json",
+      "config_sha256": "75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db",
+      "source_sha256": {
+        "v4/manager_workbench/engines/us_mapping.py": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+        "v4/manager_workbench/engines/strict_us_selection.py": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+        "v4/manager_workbench/inputs/native.py": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2"
+      }
+    },
+    {
+      "label": "com.lexi.v35.scheduler",
+      "pid": 64979,
+      "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app",
+      "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+      "config_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-scheduler-20261018-r1.json",
+      "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+      "source_sha256": {
+        "v4/manager_workbench/engines/us_mapping.py": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+        "v4/manager_workbench/engines/strict_us_selection.py": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+        "v4/manager_workbench/inputs/native.py": "50e59d9610433977a9cf7953333e911d720670cec4de164523c612e6c3778ace"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "business_posts": 0,
+  "activation": "NOT_RUN",
+  "publication": "NOT_RUN"
+}

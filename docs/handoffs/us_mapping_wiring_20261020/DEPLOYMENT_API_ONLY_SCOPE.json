@@ -1,0 +1,31 @@
+{
+  "GOAL": "Prepare exact existing API r1 plus a complete US_MAPPING-only reprocessing pipeline result in an isolated store, without runtime activation or publication.",
+  "WRITER": "/root/mapping_deployer sole deployment writer",
+  "REVIEWER": "independent deployment_reviewer; approved SOURCE PASS reused",
+  "ALLOWED_PATHS": [
+    "this DOCROOT/DEPLOYMENT_*",
+    "this DOCROOT/prepare_wiring_release.py",
+    "this DOCROOT/publish_wiring_result.py",
+    "this DOCROOT/local_only/**"
+  ],
+  "FORBIDDEN_PATHS": [
+    "business source/tests/PREPARED/replay",
+    "old or new release mutation; existing API r1 read-only reuse",
+    "actual service/plist/config/manager state/old jobs and inputs",
+    "scheduler drift acceptance or scheduler candidate",
+    "provider, POST, history, strict, other lane execution",
+    "Git"
+  ],
+  "PASS_SIGNAL": "Independent API candidate/full-pipeline/input-publication-plan PASS then controller continuation.",
+  "STOP_RULE": "Any candidate/source/receipt/input/actual-publication preimage drift; unknown/partial publication; any extra lane/provider or existing runtime mutation.",
+  "candidate_receipt_sha256": "aa257878208f88c88a71441990ef54de7030fd4c23b2d1667152f304ae7ef04d",
+  "source_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "publisher_helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "accepted_master_input_raw_sha256": "ad43cb7d0d963e9d3c9aaca8d5bc916daeb03c19f9a1c9094a9f5f71749879f4",
+  "lane_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+  "scheduler": "PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+  "calendar_executor": "continues unchanged; actual API activation remains serialized and conditional on accepted calendar identity",
+  "initial_publisher_helper_sha256": "7af9bf5ef0febe7d2911324bfd18f9594608c77293def71a9a731c14cb643dc4",
+  "before_guard_repair_helper_sha256": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+  "guard_repair_scope": "Only publish/rollback guard and re import; no prepare function, business source, candidate or pipeline data changes."
+}

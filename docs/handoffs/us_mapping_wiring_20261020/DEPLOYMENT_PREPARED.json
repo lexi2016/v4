@@ -1,0 +1,87 @@
+{
+  "state": "FROZEN_REPAIR_READY_PENDING_INCREMENTAL_REVIEW",
+  "at": "2026-10-20T10:28:38.383026+08:00",
+  "source_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "source_review": "REVIEWED_PASS_REUSED",
+  "api_candidate_review": "REVIEWED_PASS_REUSED; no rebuild or repeated source checks",
+  "api_candidate_manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+  "api_proposal_sha256": "9e6fa1a90073cbc32b76f86c157ba2c86145b28b08f0927986b5e13ecdbbca1e",
+  "candidate_receipt_sha256": "aa257878208f88c88a71441990ef54de7030fd4c23b2d1667152f304ae7ef04d",
+  "result_receipt_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+  "scope_sha256": "107179e18a72a5633c314b3d4f7220678f56983e29fecfcbc933421a16103179",
+  "plan_sha256": "79a5f9aade7a9ddf61dbfe5bb5a418375af2be3bb38cfee72b1bd499a31dae6c",
+  "helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "prepare_release_helper_sha256": "57de8c2c9c4e2612a81c0ec34d337a487cb60091727c2141d14b66db5bdb3ce7",
+  "original_stop_receipt_sha256": "3500c3708c8a6f31feb155f84e81165c54698b1df637b3758d7c0667abff3f99",
+  "new_run_id": "05d40e7775c44304bbd98016194b0d0e",
+  "lane_input_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+  "full_input_snapshot_sha256": "2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8",
+  "aggregate_plan_input_sha256": "930f15974cf1c11335784dd535494fa98f5d1c31f58fb2ee20ae11b3de46f785",
+  "product_sha256": "62e4ea7dacd357a77c7d625a4cfdcb00a635cb3cd1797e9fc0c600700d5c2ba0",
+  "global_stock_count": 701,
+  "global_counts": {
+    "selected": 0,
+    "watch": 0,
+    "unassessed": 701,
+    "observation_only": 0,
+    "not_selected": 0
+  },
+  "daily_counts": {
+    "BENEFIT": 5,
+    "CONFLICT": 0,
+    "C_WATCH": 303,
+    "OBSERVATION": 303,
+    "RISK": 0,
+    "SMALL_MOVE_WATCH": 0,
+    "UNASSESSED": 11,
+    "UNMAPPED": 379
+  },
+  "monthly_stock_count": 698,
+  "catalog_relation_count": 1003,
+  "strict": "PAUSED_NOT_EXECUTED",
+  "formal_target_eligibility": "CANNOT_CONFIRM",
+  "pipeline_calls": {
+    "load_inputs": 1,
+    "run_lanes": 1,
+    "merge_decisions": 1,
+    "semantic_executor": 0
+  },
+  "commands": [
+    {
+      "command": "python3 -B docs/handoffs/us_mapping_wiring_20261020/prepare_wiring_release.py --reuse-prepared-api",
+      "rc": 0
+    },
+    {
+      "command": "runtime/venvs/v3.5-mac/bin/python -B docs/handoffs/us_mapping_wiring_20261020/publish_wiring_result.py --prepare",
+      "rc": 0,
+      "environment": "Python3.14.6 existing runtime venv; isolated store; no live coordinator"
+    },
+    {
+      "command": "runtime/venvs/v3.5-mac/bin/python -B docs/handoffs/us_mapping_wiring_20261020/publish_wiring_result.py --check-only --prepared-sha256 8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+      "rc": 0,
+      "live_writes": 0
+    }
+  ],
+  "scheduler": "PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+  "calendar": "Existing executor continues unchanged; successful activation and exact active551516/d4b39 identity re-freeze required before wiring activation",
+  "activation": "NOT_RUN",
+  "publication": "NOT_RUN",
+  "api_ui": "NOT_RUN",
+  "natural": "NOT_RUN",
+  "provider_calls": 0,
+  "business_posts": 0,
+  "live_state_writes": 0,
+  "other_lane_executions": 0,
+  "git_mutations_by_writer": 0,
+  "previous_prepared_sha256": "51b04216185959e171fa8bed8eca53bfcfd976185d342e9d0a2bea73d9a5e881",
+  "round1_fail_receipt_sha256": "f8614720cd7687a5276c0286298d3bdd6e5f71e9092d47dfe2b6ae47b76a9b85",
+  "guard_repair_receipt_sha256": "01439c1a65253dbeaca65e392d460e407dc6d6af2523e7dd10daba931e6d8b9e",
+  "expected_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+  "guard_self_test": {
+    "command": "python3 -B docs/handoffs/us_mapping_wiring_20261020/local_only/test_wiring_frozen_guards.py",
+    "tests": 10,
+    "rc": 0,
+    "test_scope": "Post-verify guard scenarios in isolated temp store only; real runtime changes0"
+  },
+  "guard_repair_changed_file_note": "Repair receipt records this top-level pre-link-refresh SHA; final top-level SHA is external and included by sync allowlist."
+}

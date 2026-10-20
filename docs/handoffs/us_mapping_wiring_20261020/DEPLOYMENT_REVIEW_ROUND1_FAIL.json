@@ -1,0 +1,27 @@
+{
+  "verdict": "REVIEWED_FAIL",
+  "round": 1,
+  "from": "controller-consumed independent Reviewer actual temp-store evidence",
+  "evidence": "/private/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/wiring-publication-review-atjhwola",
+  "reviewed_helper_sha256": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+  "reviewed_result_receipt_sha256": "0816f7302d2a966470db044e0f164e2d7030f44098b838405dba9707e3b1f597",
+  "defects": [
+    {
+      "id": "F1",
+      "priority": "P1",
+      "finding": "Rollback accepted a parallel-newer-run pointer when mutable future publication receipt supplied its SHA."
+    },
+    {
+      "id": "F2",
+      "priority": "P1",
+      "finding": "Same run_id pointer with wrong product SHA accepted as exact already-published."
+    },
+    {
+      "id": "F3",
+      "priority": "P2",
+      "finding": "launchctl RC0/cwd with not-running and no PID could publish to temp store."
+    }
+  ],
+  "source_candidate_input_pipeline_pass": "REUSED_UNCHANGED",
+  "real_publication": "NOT_RUN"
+}

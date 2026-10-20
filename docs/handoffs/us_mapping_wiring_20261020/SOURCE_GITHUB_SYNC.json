@@ -1,0 +1,63 @@
+{
+  "state": "SOURCE_GITHUB_SYNC_VERIFIED",
+  "branch": "codex/us-mapping-wiring-20261020",
+  "baseline_commit": "e24a0f2bc038aed9afd1117b07bf1cd884ff4e46",
+  "remote_commit": "8b7c811859d5696552dcd70cad3765c4d6c5c639",
+  "remote_tree": "988d69c0626be907e305b5120639de0beacf592f",
+  "github_ref_readback": "PASS",
+  "fetch_url": "https://github.com/lexi2016/v4.git",
+  "file_sha256_readback": [
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "bytes_equal": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "bytes_equal": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+      "bytes_equal": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "sha256": "fcfa1bd2d9b0eda31b6691fc50c532c643a93d0b532cc6b26a3677d566b4e706",
+      "bytes_equal": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_mapping_wiring.py",
+      "sha256": "ec83a9427e971695d6a5e934f16a8f359ab454f94e19bd096c27d5f96285d39d",
+      "bytes_equal": true
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/SCOPE.json",
+      "sha256": "dddc60818f85b6f24413d9529a9bce32a45b2ed1638f244ff690b29538b98a68",
+      "bytes_equal": true
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/PREPARED.json",
+      "sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+      "bytes_equal": true
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/README.md",
+      "sha256": "2451475b3dfc42f8ed29ddec9f51992445366fc77f8c8577108d0615c870b857",
+      "bytes_equal": true
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/replay.py",
+      "sha256": "03b46d8f6807afea9b71081d03dce5eb93c0dbcdba8bd78c71e38eb1f813ae3d",
+      "bytes_equal": true
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/INDEPENDENT_SOURCE_REVIEW.json",
+      "sha256": "d8dd021ccfd2448a8e0dd0a4bc60b662bd98cf9d8def6b4938a9f8bf3b8c5559",
+      "bytes_equal": true
+    }
+  ],
+  "runtime_deployment": "PENDING",
+  "local_ref_alignment": "PASS_HEAD_INDEX_REMOTE_TREE_MATCH"
+}

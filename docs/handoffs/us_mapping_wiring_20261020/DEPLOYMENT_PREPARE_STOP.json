@@ -1,0 +1,100 @@
+{
+  "state": "PREPARE_STOPPED_PARENT_INVENTORY_DRIFT",
+  "read_at": "2026-10-20T10:19:50.780990+08:00",
+  "source_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "deployment_scope_sha256": "48dfb1de5c90669a65f9a0c09448b8b6c36be4fd82a19604deb22dacb6814737",
+  "helper_sha256": "85cb3acd131d9e6163e8f6580f6f493e8e7daebbb02c90ea464f2df246fb3d37",
+  "prepare_command": "python3 -B docs/handoffs/us_mapping_wiring_20261020/prepare_wiring_release.py",
+  "prepare_command_rc": 1,
+  "failure": "scheduler actual application inventory differs from frozen manifest; assertion before scheduler clone/backup/write",
+  "api_partial_prepared": {
+    "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-wiring-api-20261020-r1",
+    "manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+    "inventory_sha256": "e105f1c15f53d77c2b2f576b0048f07801bd110ff92c03b3e39c055cc7f67f04",
+    "entry_count": 1267,
+    "proposal_sha256": "9e6fa1a90073cbc32b76f86c157ba2c86145b28b08f0927986b5e13ecdbbca1e",
+    "exact_delta": [
+      {
+        "path": "v4/manager_workbench/engines/strict_us_selection.py",
+        "before": {
+          "path": "v4/manager_workbench/engines/strict_us_selection.py",
+          "kind": "file",
+          "sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+          "mode": "0644",
+          "size": 63891
+        },
+        "after": {
+          "path": "v4/manager_workbench/engines/strict_us_selection.py",
+          "kind": "file",
+          "sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+          "mode": "0644",
+          "size": 64275
+        }
+      },
+      {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "before": {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "kind": "file",
+          "sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+          "mode": "0644",
+          "size": 27641
+        },
+        "after": {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "kind": "file",
+          "sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+          "mode": "0644",
+          "size": 28231
+        }
+      },
+      {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "before": {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "kind": "file",
+          "sha256": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2",
+          "mode": "0644",
+          "size": 97324
+        },
+        "after": {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "kind": "file",
+          "sha256": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+          "mode": "0644",
+          "size": 98400
+        }
+      }
+    ],
+    "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1",
+    "parent_manifest_sha256": "d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d",
+    "pending_dependency": "calendar must be active and re-frozen before API activation",
+    "all_non_delta_entries_preserved": true,
+    "activated": false
+  },
+  "scheduler_blocker": {
+    "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1",
+    "plist_sha256": "a88d2634041083f4ff7bb8904230666c3afc4100cce1a8a9e49469f1b8199b3c",
+    "manifest_sha256": "d2d73d8417026d888bba9e8043c39b804b9ffdaa82b8a7c91cd322eb38ee8d95",
+    "path": "ops/macos_research_panel_daily_receipts.py",
+    "expected_sha256": "1f18a817e2d732403ee9b573c94fb80d53732702f089fc4d0d064965e3467064",
+    "expected_size": 17894,
+    "actual_sha256": "14197397d9d7dcd7e748492973f5a0ea2c215cfe4ac22dbbd1a0ed4646ee2aa1",
+    "actual_size": 18816,
+    "candidate_created": false,
+    "reason": "Unaccepted out-of-scope parent file change; owner and preserved baseline require controller adjudication."
+  },
+  "actual_api_plist_sha256": "4f341d12c05782895ed7d0d58ea1500d92971b345bef3e8b4db555a1956cc62c",
+  "service_changes": 0,
+  "research_data_writes": 0,
+  "provider_calls": 0,
+  "business_posts": 0,
+  "source_tests_builds": "NOT_RUN_REUSED_SOURCE_PASS",
+  "calendar_executor": {
+    "session_id": 86382,
+    "pid": 30450,
+    "log": "/Users/lexi/.codex/worktrees/us-mapping-auto-close/v4_app/docs/handoffs/workbench_calendar_20261020/local_only/calendar-activation-wait.jsonl",
+    "continued_unchanged": true
+  },
+  "next_action": "Controller resolves exact scheduler parent drift. Do not retry helper or overwrite existing API r1. PREPARE ownership released; calendar conditional execution remains owned."
+}

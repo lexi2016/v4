@@ -1,0 +1,49 @@
+{
+  "verdict": "REVIEWED_FAIL",
+  "scope": "PIPELINE_AND_PUBLICATION_PLAN",
+  "reviewer": "/root/deployment_reviewer",
+  "prepared_sha256": "51b04216185959e171fa8bed8eca53bfcfd976185d342e9d0a2bea73d9a5e881",
+  "helper_sha256": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+  "result_receipt_sha256": "0816f7302d2a966470db044e0f164e2d7030f44098b838405dba9707e3b1f597",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P1",
+      "target": "rollback pointer preimage",
+      "result": "Mutable future publication receipt could redefine current pointer preimage and overwrite a newer parallel run; reproduced with real isolated WorkbenchStore"
+    },
+    {
+      "id": "F2",
+      "priority": "P1",
+      "target": "idempotent pointer equality",
+      "result": "Same run_id with wrong product_sha passed ALREADY_PUBLISHED_EXACT_NO_REPEAT; reproduced"
+    },
+    {
+      "id": "F3",
+      "priority": "P2",
+      "target": "active runtime guard",
+      "result": "launchctl RC0 plus cwd accepted not-running/no-PID stub and published to isolated Store"
+    }
+  ],
+  "passed": [
+    "prepared snapshot/input/job/checkpoints completeness and hashes",
+    "real check-only RC0",
+    "source/API candidate previous PASS reused",
+    "original helper reconstruction and unchanged prepare function",
+    "unchanged original owner pins and quotes; approved HK16 master only",
+    "daily 698 counts5/303/379/11 and merged701 allUNASSESSED strict paused",
+    "old pointer drift and existing job/checkpoint collisions rejected",
+    "normal exact idempotence and history retention"
+  ],
+  "expected_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+  "isolated_evidence_root": "/private/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/wiring-publication-review-atjhwola",
+  "actual_store_writes": 0,
+  "service_operations": 0,
+  "provider_calls": 0,
+  "next": "Original sole Writer bounded helper repair, then same independent Reviewer delta recheck",
+  "ledger": {
+    "final_received_consumed": true,
+    "receipt_verified": true,
+    "lifecycle": "FAIL_HANDED_TO_WRITER"
+  }
+}

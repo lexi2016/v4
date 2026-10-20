@@ -1,0 +1,42 @@
+{
+  "GOAL": "Conditionally activate the reviewed API-only wiring release and publish only its exact frozen manual recovery run, preserving all prior runs and other services",
+  "WRITER": "/root/mapping_deployer sole existing runtime owner",
+  "REVIEWER": "/root/deployment_reviewer independent post-activation readback; prior source/candidate/publication PASS reused",
+  "ALLOWED_PATHS": [
+    "existing exact API candidate/proposal read-only",
+    "com.lexi.v35.api-only plist with fresh exact calendar backup and guarded rollback",
+    "exact new WorkbenchStore input/job/checkpoints/snapshot/catalog pointer for run05d40e7775c44304bbd98016194b0d0e using reviewed helper",
+    "DOCROOT/DEPLOYMENT_* receipts and local_only evidence"
+  ],
+  "FORBIDDEN_PATHS": [
+    "scheduler or its drifted parent",
+    "other modules/providers/history/model/strict execution",
+    "source/helper/input/candidate mutation",
+    "healthy task interruption",
+    "old research snapshot/job/checkpoint/cursor rewrites",
+    "new polling automation",
+    "Git by runtime owner"
+  ],
+  "PASS_SIGNAL": "Exact reviewed wiring API running identity and exact frozen saved run read back through API; actual UI independently pending until readback",
+  "STOP_RULE": "Existing calendar executor timeout/failure, any expected identity or source/pointer drift, healthy inflight work, unknown or partial publication. Retain existing tasks and evidence; no blind retry or alternate owner",
+  "prior_authorization": "User explicitly approved steps1-3 repair, independent review, deployment and actual page check; this is necessary bounded continuation",
+  "calendar_prerequisite": "Only after sole existing calendar executor succeeds before its existing deadline; refreeze actual calendar plist5515167934594af314f2920e8b35a72d3330540f30129e7264b4e488c03a9ea8 and manifestd4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d and active PID/cwd; no duplicate waiter",
+  "api_manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+  "api_proposal_sha256": "9e6fa1a90073cbc32b76f86c157ba2c86145b28b08f0927986b5e13ecdbbca1e",
+  "publisher_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "prepared_result_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+  "new_run_id": "05d40e7775c44304bbd98016194b0d0e",
+  "expected_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+  "source_cutoff": "2026-10-20T05:44:00.587402+08:00",
+  "trigger": "MANUAL",
+  "strict": "PAUSED_NOT_EXECUTED",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "controller_continuation": "AUTHORIZED_CONDITIONAL_ONLY",
+  "runtime_activation": "NOT_RUN",
+  "publication": "NOT_RUN",
+  "UI": "NOT_RUN",
+  "NATURAL": "NOT_RUN"
+}

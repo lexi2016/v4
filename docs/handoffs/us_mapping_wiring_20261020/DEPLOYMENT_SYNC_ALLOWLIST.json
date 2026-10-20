@@ -1,0 +1,66 @@
+{
+  "scope": "Only deployment additions; controller combines with separately synced source and independent receipts.",
+  "files": [
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_SCOPE.json",
+      "sha256": "48dfb1de5c90669a65f9a0c09448b8b6c36be4fd82a19604deb22dacb6814737"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_PREPARE_STOP.json",
+      "sha256": "3500c3708c8a6f31feb155f84e81165c54698b1df637b3758d7c0667abff3f99"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_API_ONLY_SCOPE.json",
+      "sha256": "107179e18a72a5633c314b3d4f7220678f56983e29fecfcbc933421a16103179"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_CANDIDATES.json",
+      "sha256": "aa257878208f88c88a71441990ef54de7030fd4c23b2d1667152f304ae7ef04d"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_RESULT_PREPARED.json",
+      "sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_PLAN.md",
+      "sha256": "79a5f9aade7a9ddf61dbfe5bb5a418375af2be3bb38cfee72b1bd499a31dae6c"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_PREPARED.json",
+      "sha256": "a4a65b7d78c5169b58a74500b683611d60b27c3561c349a778fe264f0d8ba6e2"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/prepare_wiring_release.py",
+      "sha256": "57de8c2c9c4e2612a81c0ec34d337a487cb60091727c2141d14b66db5bdb3ce7"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/publish_wiring_result.py",
+      "sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_REVIEW_ROUND1_FAIL.json",
+      "sha256": "f8614720cd7687a5276c0286298d3bdd6e5f71e9092d47dfe2b6ae47b76a9b85"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_HELPER_REPAIR.json",
+      "sha256": "01439c1a65253dbeaca65e392d460e407dc6d6af2523e7dd10daba931e6d8b9e"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_TEST_FROZEN_GUARDS.py",
+      "sha256": "6e8914288efc69401ba74dc9f15cdd8bf4f4a5ad277f8c7d38ec1b92f9988fbe"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_TEST_DELIVERY.json",
+      "sha256": "165e0b3a3116953a66b9ac6ff80a5df61514cc5391d09e3faa39bbd7b8f2a259"
+    }
+  ],
+  "self_path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_SYNC_ALLOWLIST.json",
+  "self_sha_basis": "external controller readback; no recursive self hash",
+  "exclude": [
+    "local_only/**",
+    "raw inputs/snapshots/jobs/checkpoints",
+    "all release/dist/plist/log/backup/runtime trees"
+  ],
+  "parent_owned_receipts": "INDEPENDENT_* and SOURCE_GITHUB_SYNC.json refreshed by controller only",
+  "guard_test_note": "Portable necessary test source and compact delivery receipt included; all temporary test stores/logs and original local_only remain excluded."
+}

@@ -1,0 +1,119 @@
+{
+  "state": "FULL_PIPELINE_PREPARED_NOT_PUBLISHED",
+  "mode": "PROCESSING_RECOVERY",
+  "helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "candidate_receipt_sha256": "aa257878208f88c88a71441990ef54de7030fd4c23b2d1667152f304ae7ef04d",
+  "candidate_manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+  "source_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "source_run_id": "52d6d87a1fe547a484b189448d0ddfb7",
+  "source_snapshot_sha256": "59578771cbc90f6440171a5a2280453e52160ff50552885d62b119f5127b9663",
+  "source_input_snapshot_sha256": "3f281b06fc2723809a57a4b42a04dc727d9cb9bc99cc8bc8800f84676fcc87c2",
+  "accepted_master_input_raw_sha256": "ad43cb7d0d963e9d3c9aaca8d5bc916daeb03c19f9a1c9094a9f5f71749879f4",
+  "new_run_id": "05d40e7775c44304bbd98016194b0d0e",
+  "new_job_id": "05d40e7775c44304bbd98016194b0d0e",
+  "new_job_state": "PARTIAL",
+  "lane_input_batch_sha256": "6b1f625cd98fa024c87a35aede2dbb6442659f3267c38078e6e5546a1bd55943",
+  "full_input_snapshot_sha256": "2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8",
+  "aggregate_plan_input_sha256": "930f15974cf1c11335784dd535494fa98f5d1c31f58fb2ee20ae11b3de46f785",
+  "product_sha256": "62e4ea7dacd357a77c7d625a4cfdcb00a635cb3cd1797e9fc0c600700d5c2ba0",
+  "old_trigger": "SCHEDULED",
+  "new_trigger": "MANUAL",
+  "phase": "NEXT_DAY",
+  "source_cutoff": "2026-10-20T05:44:00.587402+08:00",
+  "processing_started_at": "2026-10-20T10:24:42.058387+08:00",
+  "processing_finished_at": "2026-10-20T10:24:51.324549+08:00",
+  "snapshot_cutoff": "2026-10-20T10:24:44.342517+08:00",
+  "snapshot_generated_at": "2026-10-20T10:24:44.683578+08:00",
+  "target_date": "20261020",
+  "us_session": "20261019",
+  "hk_price_session": "20261016",
+  "context_delta": [
+    "trigger SCHEDULED -> MANUAL",
+    "scope_refs.run_id/mwb_run_id -> unique new execution IDs",
+    "snapshot.cutoff advances at existing pipeline merge; source_cutoff retained; generated_at is actual processing time"
+  ],
+  "business_input_delta": "Only reviewed HK16 master owner/identity/evidence, already sealed in accepted batch. Quotes and all original pins unchanged.",
+  "owner_bindings_unchanged_from_accepted_master_input": true,
+  "records_and_evidence_unchanged": true,
+  "pipeline_calls": {
+    "load_inputs": 1,
+    "run_lanes": 1,
+    "merge_decisions": 1,
+    "semantic_executor": 0
+  },
+  "pipeline_files": [
+    {
+      "path": "local_only/pipeline-store/manager_workbench/input_snapshots/2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8.json",
+      "sha256": "2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8",
+      "bytes": 53524925
+    },
+    {
+      "path": "local_only/pipeline-store/manager_workbench/snapshots/05d40e7775c44304bbd98016194b0d0e.json",
+      "sha256": "cc37d7899d973025cbb0549a731dc37fc41d46328268518a1de49b81c67348d8",
+      "bytes": 103341739
+    },
+    {
+      "path": "local_only/pipeline-store/manager_workbench/attempts/05d40e7775c44304bbd98016194b0d0e.json",
+      "sha256": "ccd433756e669c299bbb8e274bf8cd6efdd1f1e8c876fbb6b8f53a764766a5ab",
+      "bytes": 20894514
+    },
+    {
+      "path": "local_only/pipeline-store/manager_workbench/checkpoints/05d40e7775c44304bbd98016194b0d0e/LOAD_INPUTS.json",
+      "sha256": "2d9ed180c2aad6f94e505dbbff0148244cecc529247d9bb1bfa9a2a2514164f8",
+      "bytes": 53524925
+    },
+    {
+      "path": "local_only/pipeline-store/manager_workbench/checkpoints/05d40e7775c44304bbd98016194b0d0e/PUBLISH.json",
+      "sha256": "cc37d7899d973025cbb0549a731dc37fc41d46328268518a1de49b81c67348d8",
+      "bytes": 103341739
+    }
+  ],
+  "old_pointer_sha256": "81ea8ec394f2e874b381a9a2dba9206e9cd3eb40c98bf2e65c2766c95fdd11e4",
+  "old_pointer_value": {
+    "generated_at": "2026-10-20T05:44:13.463345+08:00",
+    "product_sha256": "0eb298eea60bc41edb4c048ccdae2b60de9b3c7ff302084eb9b244dfee824fe5",
+    "run_id": "52d6d87a1fe547a484b189448d0ddfb7"
+  },
+  "daily_counts": {
+    "BENEFIT": 5,
+    "CONFLICT": 0,
+    "C_WATCH": 303,
+    "OBSERVATION": 303,
+    "RISK": 0,
+    "SMALL_MOVE_WATCH": 0,
+    "UNASSESSED": 11,
+    "UNMAPPED": 379
+  },
+  "monthly_stocks": 698,
+  "catalog_relations": 1003,
+  "strict": "PAUSED_NOT_EXECUTED",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "provider_calls": 0,
+  "business_posts": 0,
+  "other_lane_executions": 0,
+  "live_state_writes": 0,
+  "publication": "NOT_RUN",
+  "natural_verification": "NOT_RUN",
+  "scheduler": "PENDING_PARENT_DRIFT_NOT_DEPLOYED",
+  "pipeline_executed_helper_sha256": "7af9bf5ef0febe7d2911324bfd18f9594608c77293def71a9a731c14cb643dc4",
+  "prepare_function_sha256": "200b9ad935796f585d5e9542f37d75af2fd0f02d62792c82a784fbe6f9e3eaeb",
+  "pre_review_helper_amendment": {
+    "before": "7af9bf5ef0febe7d2911324bfd18f9594608c77293def71a9a731c14cb643dc4",
+    "after": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+    "changed_only": "Add plistlib/subprocess imports and pre-publication exact active API proposal/running cwd guard. Prepare function unchanged byte-for-byte; accepted input/snapshot/job/checkpoints unchanged.",
+    "pipeline_rerun": false
+  },
+  "guard_repair": {
+    "before_helper_sha256": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+    "after_helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+    "frozen_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+    "prepare_function_unchanged": true,
+    "pipeline_files_unchanged": true,
+    "pipeline_rerun": false
+  }
+}

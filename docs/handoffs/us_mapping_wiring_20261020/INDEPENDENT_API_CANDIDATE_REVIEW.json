@@ -1,0 +1,37 @@
+{
+  "verdict": "REVIEWED_PASS",
+  "scope": "API_CANDIDATE_ONLY",
+  "reviewer": "/root/deployment_reviewer",
+  "source_pass_reused": true,
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "stop_receipt_sha256": "3500c3708c8a6f31feb155f84e81165c54698b1df637b3758d7c0667abff3f99",
+  "manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+  "inventory_sha256": "e105f1c15f53d77c2b2f576b0048f07801bd110ff92c03b3e39c055cc7f67f04",
+  "inventory_entries": 1267,
+  "exact_delta": "Only approved 3 source files; all other bytes, modes, symlinks and calendar source/static dependencies preserved",
+  "proposal_sha256": "9e6fa1a90073cbc32b76f86c157ba2c86145b28b08f0927986b5e13ecdbbca1e",
+  "proposal_check": "PASS calendar-to-wiring release identity rebind only",
+  "checks": {
+    "complete_inventory": "PASS_RC0",
+    "syntax_compile_without_writes": "PASS_RC0",
+    "candidate_import_dependencies": "PASS_RC0_CPython3.14.6",
+    "prior_source_tests_replay": "PASS_REUSED_NOT_RERUN"
+  },
+  "activation_prerequisite": "Calendar actual activation and re-freeze first; pipeline/publication plan still requires independent review and controller continuation",
+  "scheduler": "PENDING_PARENT_DRIFT_NOT_REVIEWED",
+  "not_run": [
+    "pipeline/helper review",
+    "activation",
+    "business execution/API/UI",
+    "service operations",
+    "network/POST/collection",
+    "Git"
+  ],
+  "ledger": {
+    "final_received_consumed": true,
+    "receipt_verified": true,
+    "lifecycle": "CANDIDATE_REVIEW_COMPLETE"
+  }
+}

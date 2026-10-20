@@ -1,0 +1,84 @@
+{
+  "state": "API_ONLY_PREPARED_PENDING_INDEPENDENT_REVIEW",
+  "source_prepared_sha256": "5877b60482ffa577a67fa089ce2c971eff7d29a2e344bde90219fb5da8ca1a8e",
+  "helper_sha256": "57de8c2c9c4e2612a81c0ec34d337a487cb60091727c2141d14b66db5bdb3ce7",
+  "explicit_reuse": true,
+  "candidate_rebuilt": false,
+  "original_stop_receipt_sha256": "3500c3708c8a6f31feb155f84e81165c54698b1df637b3758d7c0667abff3f99",
+  "api": {
+    "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-wiring-api-20261020-r1",
+    "manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+    "inventory_sha256": "e105f1c15f53d77c2b2f576b0048f07801bd110ff92c03b3e39c055cc7f67f04",
+    "entry_count": 1267,
+    "proposal_sha256": "9e6fa1a90073cbc32b76f86c157ba2c86145b28b08f0927986b5e13ecdbbca1e",
+    "exact_delta": [
+      {
+        "path": "v4/manager_workbench/engines/strict_us_selection.py",
+        "before": {
+          "path": "v4/manager_workbench/engines/strict_us_selection.py",
+          "kind": "file",
+          "sha256": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+          "mode": "0644",
+          "size": 63891
+        },
+        "after": {
+          "path": "v4/manager_workbench/engines/strict_us_selection.py",
+          "kind": "file",
+          "sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+          "mode": "0644",
+          "size": 64275
+        }
+      },
+      {
+        "path": "v4/manager_workbench/engines/us_mapping.py",
+        "before": {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "kind": "file",
+          "sha256": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+          "mode": "0644",
+          "size": 27641
+        },
+        "after": {
+          "path": "v4/manager_workbench/engines/us_mapping.py",
+          "kind": "file",
+          "sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+          "mode": "0644",
+          "size": 28231
+        }
+      },
+      {
+        "path": "v4/manager_workbench/inputs/native.py",
+        "before": {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "kind": "file",
+          "sha256": "dd8ab5c5e1c576275075c2eae208039e47effb76e0cf1d38aeab213062e63cc2",
+          "mode": "0644",
+          "size": 97324
+        },
+        "after": {
+          "path": "v4/manager_workbench/inputs/native.py",
+          "kind": "file",
+          "sha256": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+          "mode": "0644",
+          "size": 98400
+        }
+      }
+    ],
+    "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/workbench-calendar-api-20261020-r1",
+    "parent_manifest_sha256": "d4b39f80c0b34271373617ccbd402a5927193e94e140f20feee4a08511a8189d",
+    "pending_dependency": "calendar must be active and re-frozen before API activation",
+    "all_non_delta_entries_preserved": true,
+    "activated": false
+  },
+  "scheduler": {
+    "state": "PENDING_PARENT_DRIFT",
+    "accepted": false,
+    "activated": false,
+    "natural_automatic_wiring": "NOT_DEPLOYED",
+    "stop_receipt_sha256": "3500c3708c8a6f31feb155f84e81165c54698b1df637b3758d7c0667abff3f99"
+  },
+  "activation": "NOT_RUN",
+  "research_publication": "NOT_RUN",
+  "provider_calls": 0,
+  "business_posts": 0
+}

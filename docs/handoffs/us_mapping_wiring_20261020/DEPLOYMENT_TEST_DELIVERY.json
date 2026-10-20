@@ -1,0 +1,15 @@
+{
+  "state": "PORTABLE_TEST_ENTRY_VERIFIED",
+  "original_local_only_test_sha256": "e69b2896fd3d23bc50ea0d8d4883d335ab5d3d3ce7c6bea140fbd6014cf50e91",
+  "sync_test_path": "docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_TEST_FROZEN_GUARDS.py",
+  "sync_test_sha256": "6e8914288efc69401ba74dc9f15cdd8bf4f4a5ad277f8c7d38ec1b92f9988fbe",
+  "only_change": "Resolve DOC for either direct DOCROOT or original local_only file location; test logic identical.",
+  "test_command": "python3 -B docs/handoffs/us_mapping_wiring_20261020/DEPLOYMENT_TEST_FROZEN_GUARDS.py",
+  "test_count": 10,
+  "rc": 0,
+  "log_sha256": "bf0c8406b1ec2f53e74b07ad4b23b7771b96d6311a5f8dc38dfcca332e464cb3",
+  "fresh_checkout_prerequisite": "Create DOCROOT/local_only for temporary test stores; tests use only Python stdlib and synced compact DEPLOYMENT_RESULT_PREPARED.json. No pipeline raw files or live services are required.",
+  "helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "helper_pipeline_candidate_unchanged": true,
+  "real_publication": "NOT_RUN"
+}

@@ -1,0 +1,70 @@
+{
+  "verdict": "PIPELINE_AND_PUBLICATION_PLAN_REVIEWED_PASS",
+  "reviewer": "/root/deployment_reviewer",
+  "prepared_sha256": "a4a65b7d78c5169b58a74500b683611d60b27c3561c349a778fe264f0d8ba6e2",
+  "helper_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "result_receipt_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+  "closed_findings": [
+    "F1",
+    "F2",
+    "F3"
+  ],
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "tests": {
+    "independent_guard_cases": "10_PASS_Python3.14.6",
+    "real_cli_check_only": "RC0",
+    "real_isolated_WorkbenchStore_incremental": "RC0",
+    "rejected": [
+      "wrong pointer product/time",
+      "forged receipt targeting parallel pointer",
+      "wrong receipt product",
+      "pointer drift inside rollback lock",
+      "not-running",
+      "missing PID",
+      "zero PID",
+      "wrong PID cwd"
+    ],
+    "positive": [
+      "exact idempotence",
+      "exact rollback with new history retained",
+      "running with matching PID cwd"
+    ]
+  },
+  "preserved": [
+    "all five pipeline artifact SHAs",
+    "prepare function SHA 200b9ad935796f585d5e9542f37d75af2fd0f02d62792c82a784fbe6f9e3eaeb",
+    "run/input/product/processing times",
+    "first REVIEWED_FAIL"
+  ],
+  "prior_pass_reused": [
+    "SOURCE",
+    "API_CANDIDATE"
+  ],
+  "actual_store_writes": 0,
+  "service_operations": 0,
+  "network_calls": 0,
+  "isolated_evidence_root": "/private/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/wiring-guard-incremental-03mm65o7",
+  "not_run": [
+    "calendar dependency refreeze",
+    "activation",
+    "publication",
+    "actual API/UI",
+    "natural"
+  ],
+  "scheduler": "PENDING_PARENT_DRIFT",
+  "ledger": {
+    "final_received_consumed": true,
+    "receipt_verified": true,
+    "lifecycle": "PASS_SCOPED_COMPLETE"
+  },
+  "portable_test_delivery_review": {
+    "verdict": "REVIEWED_PASS",
+    "reviewer": "/root/deployment_reviewer",
+    "test_sha256": "6e8914288efc69401ba74dc9f15cdd8bf4f4a5ad277f8c7d38ec1b92f9988fbe",
+    "allowlist_sha256": "c02a271fbdddaadefdee5fe5185536dcb16aae92d8b728f5263cc1ecdd9bacfa",
+    "diff": "DOC path resolution only; identical test logic",
+    "tests_rerun": "NOT_RUN_PASS_REUSED"
+  }
+}

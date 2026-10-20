@@ -1,0 +1,58 @@
+{
+  "state": "FROZEN_REPAIR_READY_PENDING_INCREMENTAL_REVIEW",
+  "at": "2026-10-20T10:40:54.117924+08:00",
+  "helper_before_sha256": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+  "helper_after_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d",
+  "result_receipt_before_sha256": "0816f7302d2a966470db044e0f164e2d7030f44098b838405dba9707e3b1f597",
+  "result_receipt_after_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+  "prepare_function_sha256": "200b9ad935796f585d5e9542f37d75af2fd0f02d62792c82a784fbe6f9e3eaeb",
+  "prepare_function_unchanged": true,
+  "all_pipeline_file_sha256_unchanged": true,
+  "candidate_manifest_sha256": "118d3d465007dd3d9fff05a462b17a4efb950e4cb891f345c59308eb0ea51e59",
+  "targeted_test_command": "python3 -B docs/handoffs/us_mapping_wiring_20261020/local_only/test_wiring_frozen_guards.py",
+  "test_python": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+  "test_count": 10,
+  "test_rc": 0,
+  "test_script_sha256": "e69b2896fd3d23bc50ea0d8d4883d335ab5d3d3ce7c6bea140fbd6014cf50e91",
+  "test_log_sha256": "a0cf817d159d26abd1d33db676045800a9cde6e993a4b15e5c6ca86dab05e58a",
+  "test_scope": "Only post-verify guards in isolated temp stores; verify/source/candidate/pipeline PASS reused; no real state/service writes.",
+  "expected_new_pointer_sha256": "985b91b19eaaf878f87295f02d8f191d2aaf4bcc2150911522a5e2a68823a248",
+  "publication": "NOT_RUN",
+  "activation": "NOT_RUN",
+  "provider_calls": 0,
+  "business_posts": 0,
+  "direct_check_only": {
+    "prepared_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7",
+    "rc": 0,
+    "live_writes": 0
+  },
+  "changed_files": [
+    {
+      "path": "publish_wiring_result.py",
+      "before_sha256": "128bd1f1f06f8935b81330d7c77fb8ddb539d5dc91b6d6a7f3daa6b7e0c61fb0",
+      "after_sha256": "753d1fc6abfb62b3f869190dcf0b778523b223e142e8cdfebf270e7b50732a6d"
+    },
+    {
+      "path": "DEPLOYMENT_API_ONLY_SCOPE.json",
+      "before_sha256": "96170d6dd8c55708d74220fb2796178839bd5f5ceade9d81a3f9b7ccb0e8e3d9",
+      "after_sha256": "107179e18a72a5633c314b3d4f7220678f56983e29fecfcbc933421a16103179"
+    },
+    {
+      "path": "DEPLOYMENT_RESULT_PREPARED.json",
+      "before_sha256": "0816f7302d2a966470db044e0f164e2d7030f44098b838405dba9707e3b1f597",
+      "after_sha256": "8318f44531ed40fa3e1b73da617c7fd7ceee0274348f7546f98b590e3c600be7"
+    },
+    {
+      "path": "DEPLOYMENT_PLAN.md",
+      "before_sha256": "b9ab614bdc26608eaaa79c96b226348dfcaff402f212a11e81be630f1d2849f8",
+      "after_sha256": "79a5f9aade7a9ddf61dbfe5bb5a418375af2be3bb38cfee72b1bd499a31dae6c"
+    },
+    {
+      "path": "DEPLOYMENT_PREPARED.json",
+      "before_sha256": "51b04216185959e171fa8bed8eca53bfcfd976185d342e9d0a2bea73d9a5e881",
+      "after_sha256": "1771c8901c62c6087feef54fec4f261b33c5028c6a6514c0fa6e72824ec6990c"
+    }
+  ],
+  "new_compact_file": "DEPLOYMENT_REVIEW_ROUND1_FAIL.json",
+  "new_compact_file_sha256": "f8614720cd7687a5276c0286298d3bdd6e5f71e9092d47dfe2b6ae47b76a9b85"
+}
