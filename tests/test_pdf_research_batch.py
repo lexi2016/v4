@@ -2783,6 +2783,7 @@ def test_analysis_settings_drift_under_model_lock_consumes_zero_attempt(monkeypa
         if len(calls)==2: raise batch.BatchError('ANALYSIS_RUNTIME_DRIFT')
     monkeypatch.setattr(batch,'guard_analysis_document',guard)
     monkeypatch.setattr(batch,'verify_analysis_dispatch',lambda *a:None)
+    monkeypatch.setattr(batch,'verify_analysis_plan_runtime',lambda *a:None)
     monkeypatch.setattr(batch,'_read_r1_success',lambda *a,**k:None)
     class Queue:
         attempts=0
@@ -2802,6 +2803,7 @@ def test_analysis_settings_drift_under_model_lock_consumes_zero_attempt(monkeypa
 def test_analysis_busy_shared_lock_does_not_claim_or_post(monkeypatch):
     monkeypatch.setattr(batch,'guard_analysis_document',lambda *a,**k:None)
     monkeypatch.setattr(batch,'verify_analysis_dispatch',lambda *a:None)
+    monkeypatch.setattr(batch,'verify_analysis_plan_runtime',lambda *a:None)
     monkeypatch.setattr(batch,'_read_r1_success',lambda *a,**k:None)
     class ModelSlotBusy(Exception): pass
     class Queue:
@@ -2842,3 +2844,31 @@ def test_analysis_runtime_adopts_only_exact_existing_memory_transition(tmp_path,
     Path(sr['path']).write_text(json.dumps({**settings,'sampling':{'temperature':0.5}}))
     with pytest.raises(batch.BatchError,match='REFERENCE_SHA'):
         batch.verify_analysis_runtime(admission)
+
+
+@pytest.mark.parametrize('execution_sha',[None,'0'*64,batch.EXPECTED_RUNTIME_SHA256])
+def test_analysis_plan_missing_or_forged_execution_runtime_rejects_before_adoption(monkeypatch,execution_sha):
+    calls=[]
+    monkeypatch.setattr(batch,'verify_analysis_runtime',lambda *a:calls.append('adoption'))
+    plan={} if execution_sha is None else {'execution_runtime_settings_sha256':execution_sha}
+    with pytest.raises(batch.BatchError,match='PLAN_EXECUTION_RUNTIME_MISMATCH'):
+        batch.verify_analysis_plan_runtime(plan,{})
+    assert calls==[]
+
+
+def test_analysis_plan_current_execution_field_still_requires_actual_adoption_and_settings(monkeypatch):
+    def drift(*args):raise batch.BatchError('ANALYSIS_RUNTIME_DRIFT')
+    monkeypatch.setattr(batch,'verify_analysis_runtime',drift)
+    with pytest.raises(batch.BatchError,match='RUNTIME_DRIFT'):
+        batch.verify_analysis_plan_runtime({'execution_runtime_settings_sha256':batch.ANALYSIS_RUNTIME_SHA256},{})
+    calls=[];monkeypatch.setattr(batch,'verify_analysis_runtime',lambda *a:calls.append(a))
+    batch.verify_analysis_plan_runtime({'execution_runtime_settings_sha256':batch.ANALYSIS_RUNTIME_SHA256},{'value':'adopted'})
+    assert len(calls)==1
+
+
+def test_analysis_payload_records_identity_and_execution_runtime_separately():
+    plan={'continuation_id':'new','manifest_sha256':'a'*64,'runtime_settings_sha256':batch.EXPECTED_RUNTIME_SHA256,
+          'execution_runtime_settings_sha256':batch.ANALYSIS_RUNTIME_SHA256,'expected_model_settings_sha256':batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256}
+    payload,_=batch._bind_continuation_payload({}, {'entry':{'prior_status':'UNPROCESSED'},'plan':plan,'plan_sha256':'b'*64})
+    assert payload['continuation']['runtime_settings_sha256']==batch.EXPECTED_RUNTIME_SHA256
+    assert payload['continuation']['execution_runtime_settings_sha256']==batch.ANALYSIS_RUNTIME_SHA256

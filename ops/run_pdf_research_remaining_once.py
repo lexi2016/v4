@@ -134,7 +134,7 @@ PILOT_PLAN_PATH = CONTINUATION_ROOT / "pilot-continuation-r2.json"
 PILOT_SELECTION_PATH = CONTINUATION_ROOT / "pilot-selection-r2.json"
 ORIGINAL_PROGRESS_SHA256 = "67a658ecc731cd01413523bb9a8cff3393a21e317f4cdfb00f011e055b4fdb84"
 EXPECTED_MANIFEST_SHA256 = "e739287d70abaafe428dabe08fb1025308d195dd717053f8189fe5f84ace25c9"
-EXPECTED_RUNNER_SHA256 = "116d89add58ef2ae7134aef7df4ba75c56f3ce86372a59f63d4e27da951ecc00"
+EXPECTED_RUNNER_SHA256 = "913dbd280764199594d0422b43659fa2fdb5d3dc75bfbc2c63d8e40a47385139"
 EXPECTED_SCOPE_SHA256 = "50eecbf8b9c26c5cb30fdea0e379f08a24d3da80b5b8b83f1cdcc4a9bd1f077f"
 EXPECTED_PILOT_PLAN_SHA256 = "d9c8a6ce47b5e0fd723f40f91b4aa0d11fe8c5f4e9c4195ef0e066b8c0a56c87"
 EXPECTED_PILOT_SELECTION_FILE_SHA256 = "6428b8e14520e70b4cb578b4b9642c38d1a868056ce4229e605d1046b167abac"
@@ -1762,6 +1762,7 @@ def build_singleton_plan(
     prior_progress_sha256: str,
     model_settings_sha256: str,
     continuation_id: str | None = None,
+    execution_runtime_settings_sha256: str | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     return build_unprocessed_continuation_plan(
         [document],
@@ -1769,6 +1770,7 @@ def build_singleton_plan(
         prior_progress_sha256=prior_progress_sha256,
         model_settings_sha256=model_settings_sha256,
         continuation_id=continuation_id,
+        execution_runtime_settings_sha256=execution_runtime_settings_sha256,
     )
 
 
@@ -1779,6 +1781,7 @@ def build_unprocessed_continuation_plan(
     prior_progress_sha256: str,
     model_settings_sha256: str,
     continuation_id: str | None = None,
+    execution_runtime_settings_sha256: str | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     continuation_id = continuation_id or f"resume-{uuid.uuid4().hex}"
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", continuation_id):
@@ -1828,6 +1831,10 @@ def build_unprocessed_continuation_plan(
             "orders_sent": False,
         },
     }
+    if execution_runtime_settings_sha256 is not None:
+        if execution_runtime_settings_sha256 != batch.ANALYSIS_RUNTIME_SHA256:
+            raise DispatcherError("ANALYSIS_PLAN_EXECUTION_RUNTIME_MISMATCH")
+        plan["execution_runtime_settings_sha256"] = execution_runtime_settings_sha256
     return plan, _json_bytes(plan)
 
 
@@ -3113,6 +3120,7 @@ def execute_once(
             if pending is not None:
                 plan, plan_path, plan_raw = pending
                 if admission is not None:
+                    batch.verify_analysis_plan_runtime(plan, admission)
                     batch.guard_analysis_document(admission, str(plan["selected_documents"][0]["document_id"]))
                 document_id = plan["selected_documents"][0]["document_id"]
                 if plan_only is None:
@@ -3153,7 +3161,10 @@ def execute_once(
                     prior_progress_sha256=ORIGINAL_PROGRESS_SHA256,
                     model_settings_sha256=auth["model_settings_sha256"],
                     continuation_id=continuation_id,
+                    execution_runtime_settings_sha256=batch.ANALYSIS_RUNTIME_SHA256 if admission is not None else None,
                 )
+                if admission is not None:
+                    batch.verify_analysis_plan_runtime(plan, admission)
                 document_id = plan["selected_documents"][0]["document_id"]
                 plan_path = evidence_root / "plans" / f"{continuation_id}.json"
                 plan_sha = _write_immutable(plan_path, plan_raw)

@@ -1707,7 +1707,7 @@ def validate_continuation_plan(
         raise BatchError("CONTINUATION_PLAN_INVALID") from None
     if not isinstance(plan, dict) or plan.get("schema") != CONTINUATION_PLAN_SCHEMA:
         raise BatchError("CONTINUATION_PLAN_SCHEMA_INVALID")
-    if set(plan) != {
+    expected_fields = {
         "schema",
         "continuation_id",
         "source_run_id",
@@ -1723,7 +1723,12 @@ def validate_continuation_plan(
         "one_time_recovery_limit",
         "excluded_prior_statuses",
         "research_only",
-    }:
+    }
+    if "execution_runtime_settings_sha256" in plan:
+        expected_fields.add("execution_runtime_settings_sha256")
+        if plan["execution_runtime_settings_sha256"] != ANALYSIS_RUNTIME_SHA256:
+            raise BatchError("ANALYSIS_PLAN_EXECUTION_RUNTIME_MISMATCH")
+    if set(plan) != expected_fields:
         raise BatchError("CONTINUATION_PLAN_FIELDS_INVALID")
     continuation_id = plan.get("continuation_id")
     if not isinstance(continuation_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", continuation_id):
@@ -3732,6 +3737,8 @@ def _bind_continuation_payload(
         "selected_prior_status": entry["prior_status"],
         "recovery_of": recovery_of,
     }
+    if "execution_runtime_settings_sha256" in plan:
+        bound["continuation"]["execution_runtime_settings_sha256"] = plan["execution_runtime_settings_sha256"]
     return bound, is_recovery_target
 
 
@@ -3755,6 +3762,7 @@ def _perform_request(
 ) -> dict[str, Any]:
     document_id = str(payload.get("source_document_id", ""))
     if analysis_admission is not None:
+        verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
         guard_analysis_document(analysis_admission, document_id, binding=binding)
         verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
     if stop_event is not None and stop_event.is_set():
@@ -3832,6 +3840,7 @@ def _perform_request(
         if not callable(original_claim):
             raise BatchError("ANALYSIS_PRECLAIM_GUARD_UNAVAILABLE")
         def guarded_claim(state: Any, allowed_keys: Any = None) -> Any:
+            verify_analysis_plan_runtime(payload.get("continuation", {}), analysis_admission, binding)
             guard_analysis_document(analysis_admission, document_id, binding=binding)
             verify_analysis_dispatch(document_id, str(payload.get("continuation", {}).get("plan_sha256", "")))
             return original_claim(state, allowed_keys)
@@ -4880,6 +4889,7 @@ def _run_batch_impl(
     if admission is not None:
         if continuation is None:
             raise BatchError("ANALYSIS_RETAINED_DISPATCHER_REQUIRED")
+        verify_analysis_plan_runtime(continuation["plan"], admission)
         for document in documents:
             guard_analysis_document(admission, str(document["document_id"]))
             verify_analysis_dispatch(str(document["document_id"]), continuation["plan_sha256"])
@@ -5282,6 +5292,13 @@ def verify_analysis_runtime(admission: Mapping[str, Any], binding: Mapping[str, 
         raise BatchError("ANALYSIS_REQUEST_RUNTIME_MISMATCH")
 
 
+
+def verify_analysis_plan_runtime(plan: Mapping[str, Any], admission: Mapping[str, Any], binding: Mapping[str, Any] | None = None) -> None:
+    if plan.get("execution_runtime_settings_sha256") != ANALYSIS_RUNTIME_SHA256:
+        raise BatchError("ANALYSIS_PLAN_EXECUTION_RUNTIME_MISMATCH")
+    verify_analysis_runtime(admission, binding)
+
+
 def load_analysis_admission(
     selection_path: Path | None,
     expected_sha256: str | None,
@@ -5508,6 +5525,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "continuation_plan_sha256": continuation["plan_sha256"],
                     "manifest_sha256": manifest_sha,
                     "runtime_settings_sha256": continuation["plan"]["runtime_settings_sha256"],
+                    "execution_runtime_settings_sha256": continuation["plan"].get("execution_runtime_settings_sha256"),
                     "model_settings_sha256": continuation["expected_model_settings_sha256"],
                     "selected_document_count": len(continuation["selected_documents"]),
                     "selected_prior_statuses": {

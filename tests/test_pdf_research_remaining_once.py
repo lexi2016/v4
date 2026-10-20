@@ -1511,3 +1511,18 @@ def test_analysis_child_command_requires_eligibility_and_propagates_exact_hash()
                                      eligible_selection_path=Path('/tmp/selection18.json'),eligible_selection_sha256='8'*64)
     assert command[command.index('--eligible-selection')+1]=='/tmp/selection18.json'
     assert command[command.index('--eligible-selection-sha256')+1]=='8'*64
+
+
+def test_analysis_new_plan_binds_execution_runtime_preserving_identity_and_legacy_bytes():
+    document={'document_id':batch.ANALYSIS_CANARY_ID,'pdf_sha256':batch.ANALYSIS_CANARY_ID}
+    kwargs={'manifest_sha256':dispatcher.EXPECTED_MANIFEST_SHA256,'prior_progress_sha256':dispatcher.ORIGINAL_PROGRESS_SHA256,
+            'model_settings_sha256':batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,'continuation_id':'runtime-provenance-field'}
+    old,old_raw=dispatcher.build_singleton_plan(document,**kwargs)
+    new,new_raw=dispatcher.build_singleton_plan(document,execution_runtime_settings_sha256=batch.ANALYSIS_RUNTIME_SHA256,**kwargs)
+    assert old['runtime_settings_sha256']==new['runtime_settings_sha256']==batch.EXPECTED_RUNTIME_SHA256
+    assert 'execution_runtime_settings_sha256' not in old
+    assert new['execution_runtime_settings_sha256']==batch.ANALYSIS_RUNTIME_SHA256
+    assert old_raw==dispatcher._json_bytes(old)
+    assert {k:v for k,v in new.items() if k!='execution_runtime_settings_sha256'}==old
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'EXECUTION_RUNTIME_MISMATCH'):
+        dispatcher.build_singleton_plan(document,execution_runtime_settings_sha256='0'*64,**kwargs)
