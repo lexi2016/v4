@@ -1,0 +1,45 @@
+{
+  "schema": "v4.manual_collection_independent_review.v1",
+  "reviewer": "/root/manual_button_review",
+  "transcribed_by": "/root",
+  "verdict": "REVIEWED/PASS",
+  "P0": [],
+  "P1": [],
+  "P2": [],
+  "scope": [
+    "4 new production modules and app.py/App.vue wiring",
+    "r8 compatibility and fixed stage owner",
+    "async progress, errors, date isolation and refresh"
+  ],
+  "tests": {
+    "backend": "20 passed, 1 excluded obsolete r8 same-process canary; real owner subprocess canary passed",
+    "frontend": "10 passed",
+    "scoped_typecheck": "exit 0",
+    "production_python_router_load": "PASS Python 3.14.6 / Pydantic 2.13.4, 2 routes"
+  },
+  "verified": [
+    "11 handoff file SHA and 6 integrated production source SHA",
+    "owner config/root/env/source SHA binding",
+    "missing replay and historical close cache zero network",
+    "cache reuse and partial preservation",
+    "same-target dedupe and foreign target busy rejection",
+    "orphan task recovery_required; live child blocks other target",
+    "late date response ignored; 20 polls bound",
+    "stage GET and HK close refresh=true",
+    "origin and extra parameters rejected"
+  ],
+  "patch_sha256": "716700e8c9627afb55a315fa3e926be66a92f823887faa6e56e5a6f1591bf8a0",
+  "binding_sha256": "3082c6c4ece32ccdd4e979f0650cb7778748a61a68e6f4051d5def2d783ed1c4",
+  "owner_config_sha256": "3af916af04878e298a7377759288dfcd3a8a83a12d2feeb71ede6c1e54183ed2",
+  "behavior_verified_scope": "offline API/service/real owner subprocess; independent UI component tests",
+  "cannot_confirm": [
+    "full historical replay selection without compliant real fixture"
+  ],
+  "not_run": [
+    "deployment",
+    "live API/UI",
+    "live quote",
+    "natural slot",
+    "full repository regression"
+  ]
+}

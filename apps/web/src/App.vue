@@ -2,6 +2,7 @@
 
 
 import TaskStatusView from "./views/TaskStatusView.vue";
+import ManualCollectionControls from "./components/ManualCollectionControls.vue";
 import ReviewView from "./views/ReviewView.vue";
 import ResearchView from "./views/ResearchView.vue";
 import GlobalIndustryMap from "./components/research/GlobalIndustryMap.vue";
@@ -238,6 +239,7 @@ const {
         <p v-if="stageWorkbench">{{ stageWorkbench.stage.status }} · {{ stageWorkbench.stage.window || currentStageDefinition.label }}</p>
       </div>
       <div class="stage-actions">
+        <ManualCollectionControls :date="selectedDate" target="HK_STAGE" :stage-id="selectedStage" @completed="selectedDate === $event.trade_date && selectedStage === $event.stage_id && loadStage(selectedStage, true)" />
         <button type="button" :disabled="stageLoading || !selectedDate" @click="ensureStage(false)">运行 / 恢复当前阶段</button>
         <button type="button" :disabled="stageLoading || !selectedDate" @click="ensureStage(true)">强制重新物化</button>
         <span v-if="referenceMode" class="reference-label">参考快照 · WATCH_ONLY</span>
@@ -397,6 +399,7 @@ const {
         <div><span class="eyebrow">EXACT_DATE_REVIEW</span><h2>{{ reviewTitle }}</h2></div>
         <p>{{ closeReview.trade_date || closeReviewPayload?.trade_date || selectedDate }} · 只读，不回填 BUY gate</p>
       </div>
+      <ManualCollectionControls v-if="reviewFocus === 'HK'" :date="selectedDate" target="HK_CLOSE" @completed="selectedDate === $event.trade_date && reviewFocus === 'HK' && loadCloseReview('HK', true, false)" />
       <p v-if="closeReviewLoading" class="review-loading" role="status">正在读取 {{ selectedDate }} 的{{ reviewTitle }}。</p>
       <p v-else-if="closeReviewError" class="review-loading error" role="alert">{{ closeReviewError }}</p>
       <ReviewView v-else-if="closeReviewPayload" :payload="closeReviewPayload" :focus="reviewFocus" />

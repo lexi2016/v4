@@ -17,6 +17,7 @@ from apps.api.v35_api.research_lane_router import create_research_lane_router
 from apps.api.v35_api.runtime_router import create_runtime_router
 from apps.api.v35_api.runtime_graph_router import create_runtime_graph_router
 from apps.api.v35_api.review_router import create_review_router
+from apps.api.v35_api.manual_collection_router import create_manual_collection_router
 from apps.api.v35_api.research_router import create_research_router
 from contracts.stages import FROZEN_STAGE_IDS, STAGE_DEFINITIONS
 from contracts.trading_safety import TRADING_SAFETY_FLAGS
@@ -5478,6 +5479,10 @@ def create_app(
         )
     )
     app.include_router(create_runtime_graph_router(store.root))
+    app.include_router(create_manual_collection_router(
+        Path(os.environ.get("V35_REVIEW_CORE_CLOSE_ROOT") or store.root),
+        stage_selection_root=configured_selection_root,
+    ))
     app.include_router(create_review_router(
         store.root,
         hk_close_root=os.environ.get("V35_REVIEW_CORE_CLOSE_ROOT") or None,
