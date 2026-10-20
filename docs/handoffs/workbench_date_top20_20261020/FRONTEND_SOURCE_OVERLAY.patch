@@ -1,0 +1,425 @@
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -12,6 +12,12 @@
+ import "./workbench.css";
+ 
+ const vm = reactive(useWorkbench());
++function displayDate(value: string): string {
++  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
++}
++function changeDateBySelect(event: Event): void {
++  vm.selectDate((event.target as HTMLSelectElement).value);
++}
+ function showCount(value: unknown): string {
+   return formatCount(typeof value === "number" && Number.isFinite(value) ? value : null);
+ }
+@@ -158,6 +164,12 @@
+ }
+ const usMappingPeerLists = computed(() => projectUSMappingPeerLists(singleDayCatalogSummary()));
+ const usMappingCandidateRows = computed(() => projectUSMappingCandidates(singleDayCatalogSummary()));
++const usMappingCandidateCountLabel = computed(() => {
++  if (!Array.isArray(singleDayCatalogSummary()?.catalog_candidates)) {
++    return "研究候选数未知（不等于正式入选）";
++  }
++  return `研究候选 ${showCount(usMappingCandidateRows.value.length)} 只（不等于正式入选）`;
++});
+ const sectorProxyCoverageRows = computed(() => singleDayCatalogSummary()?.sector_proxy_coverage_observations || []);
+ function peerRows(direction: USPeerListName) {
+   return usMappingPeerLists.value[direction];
+@@ -236,13 +248,14 @@
+     </header>
+ 
+     <section class="mwb-panel mwb-toolbar" aria-label="日期和版本导航">
+-      <form class="mwb-date" @submit.prevent="vm.changeDate">
++      <div class="mwb-date">
+         <label for="mwb-date">目标港股日</label>
+-        <input id="mwb-date" v-model="vm.dateInput" inputmode="numeric" maxlength="8"
+-          pattern="[0-9]{8}" placeholder="YYYYMMDD" aria-describedby="mwb-date-hint" />
+-        <button type="submit">切换日期</button>
+-        <small id="mwb-date-hint">日期是计划目标日，不是公告或行情来源日</small>
+-      </form>
++        <select id="mwb-date" :value="vm.route.date" aria-describedby="mwb-date-hint"
++          @focus="vm.loadSavedDates" @change="changeDateBySelect">
++          <option v-for="date in vm.availableDates" :key="date" :value="date">{{ displayDate(date) }}</option>
++        </select>
++        <small id="mwb-date-hint"><span v-if="vm.savedDateLoading">正在读取已保存日期</span><span v-else-if="vm.savedDateError">日期清单暂不可用，仅显示当前目标日</span><span v-else>从已保存目标日期快速切换；当前目标日始终保留</span></small>
++      </div>
+       <div class="mwb-selectors">
+         <label for="mwb-phase">阶段</label>
+         <select id="mwb-phase" :value="vm.route.phase" @change="changePhaseBySelect">
+@@ -316,6 +329,7 @@
+           {{ proxy.source_return_pct == null ? '涨跌未知' : `${proxy.source_return_pct}%` }} · 映射 {{ showText(proxy.mapping_status) }}
+           <span v-if="proxy.mapping_status === 'MAPPING_PENDING'">（映射待补；未构造关系边）</span> · {{ showText(proxy.quote_gap || '') }}
+         </p>
++        <p class="mwb-muted">{{ usMappingCandidateCountLabel }}</p>
+         <div class="mwb-table-wrap"><table class="mwb-table" aria-label="港股去重研究候选表">
+           <thead><tr><th>港股 / 观察池</th><th>来源资格 / 排序组</th><th>方向证据 / 美股来源强弱</th><th>风险标记</th><th>关系证据</th></tr></thead>
+           <tbody><tr v-for="candidate in usMappingCandidateRows" :key="String(candidate.symbol)">
+--- a/apps/web/src/manager-workbench/api.ts
++++ b/apps/web/src/manager-workbench/api.ts
+@@ -2,7 +2,8 @@
+ import type {
+   AnnouncementFlashData, AnnouncementFlashResumeAccepted, AnnouncementFlashResumeEligibility,
+   AnnouncementFlashUpdateAccepted, DayData, Decision, Envelope, HistoryData,
+-  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData
++  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData,
++  SavedDateCatalog
+ } from "./types";
+ import { isValidDate } from "./route";
+ 
+@@ -86,6 +87,26 @@
+ }
+ export function createWorkbenchApi(transport: FetchLike = fetch) {
+   return {
++    async getSavedDates(signal?: AbortSignal): Promise<SavedDateCatalog> {
++      let response: Response;
++      try {
++        response = await transport("/api/v1/runs/date-list", {
++          credentials: "same-origin", cache: "no-store", signal,
++          headers: { Accept: "application/json" }
++        });
++      } catch (error) {
++        if (error instanceof Error && error.name === "AbortError") throw error;
++        throw new ApiError("日期清单读取失败，请核实 API 连接", 0);
++      }
++      let payload: unknown;
++      try { payload = await response.json(); }
++      catch { throw new ApiError("日期清单响应不是有效 JSON", response.status); }
++      if (!response.ok) throw new ApiError("日期清单读取失败", response.status);
++      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
++        throw new ApiError("日期清单响应格式无效", 502);
++      }
++      return payload as SavedDateCatalog;
++    },
+     async getRecommendations(query: DayQuery, signal?: AbortSignal) {
+       exactDate(query.date);
+       if (query.lane !== 'US_MAPPING' && query.lane !== 'OVERSOLD') throw new ApiError('推荐来源无效', 422);
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -22,6 +22,17 @@
+   state: string;
+   data: T | null;
+   gaps: Gap[] | null;
++}
++/** Read-only catalog returned by the shared /api/v1/runs/date-list endpoint. */
++export interface SavedDateCatalog {
++  dates?: unknown;
++  future_target_dates?: unknown;
++  stage_dates?: unknown;
++  review_dates?: unknown;
++  research_dates?: unknown;
++  hk_observation_only_dates?: unknown;
++  navigation_date?: unknown;
++  default_date?: unknown;
+ }
+ export interface Coverage {
+   scope_count: NullableCount;
+--- a/apps/web/src/manager-workbench/useWorkbench.ts
++++ b/apps/web/src/manager-workbench/useWorkbench.ts
+@@ -3,9 +3,10 @@
+ import type { DayQuery, WorkbenchApi } from "./api";
+ import type {
+   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
+-  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
++  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation,
++  SavedDateCatalog
+ } from "./types";
+-import { parseWorkbenchRoute, routeSearch } from "./route";
++import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
+ import type { WorkbenchRoute } from "./route";
+ 
+ export type Panel = "stocks" | "announcements" | "detail" | "progress" | "history" | "reviews" | "catalog";
+@@ -31,6 +32,23 @@
+   const route = ref<WorkbenchRoute>(parseWorkbenchRoute(window.location.search));
+   const panel = ref<Panel>("stocks");
+   const dateInput = ref(route.value.date);
++  const savedDateCatalog = ref<SavedDateCatalog | null>(null);
++  const savedDateLoading = ref(false);
++  const savedDateError = ref("");
++  let savedDatesLoaded = false;
++  const availableDates = computed(() => {
++    const catalog = savedDateCatalog.value;
++    const values = [
++      ...(Array.isArray(catalog?.dates) ? catalog.dates : []),
++      ...(Array.isArray(catalog?.future_target_dates) ? catalog.future_target_dates : []),
++      ...(Array.isArray(catalog?.stage_dates) ? catalog.stage_dates : []),
++      ...(Array.isArray(catalog?.review_dates) ? catalog.review_dates : []),
++      ...(Array.isArray(catalog?.research_dates) ? catalog.research_dates : []),
++      ...(Array.isArray(catalog?.hk_observation_only_dates) ? catalog.hk_observation_only_dates : []),
++      catalog?.navigation_date, catalog?.default_date, route.value.date,
++    ];
++    return [...new Set(values.filter((date): date is string => typeof date === "string" && isValidDate(date)))].sort();
++  });
+   const decisionFilter = ref<Decision | "">("");
+   const laneFilter = ref<RecommendationLane>('US_MAPPING');
+   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
+@@ -91,6 +109,7 @@
+   let catalogAbort: AbortController | null = null;
+   const catalogRelationAborts = new Map<string, AbortController>();
+   let jobAbort: AbortController | null = null;
++  let savedDateAbort: AbortController | null = null;
+   let jobTimer: ReturnType<typeof setTimeout> | null = null;
+ 
+   function stopJobReads(): void {
+@@ -124,7 +143,9 @@
+   function navigate(next: WorkbenchRoute, replace = false): void {
+     resetPage();
+     route.value = next; dateInput.value = next.date;
+-    const url = window.location.pathname + routeSearch(next, window.location.search) + window.location.hash;
++    const previous = new URLSearchParams(window.location.search);
++    ["offset", "limit", "decision", "lane", "q"].forEach(key => previous.delete(key));
++    const url = window.location.pathname + routeSearch(next, previous.toString()) + window.location.hash;
+     if (replace) window.history.replaceState(null, "", url);
+     else window.history.pushState(null, "", url);
+     if (!next.error) void loadDay();
+@@ -132,6 +153,25 @@
+   function changeDate(): void {
+     const candidate = parseWorkbenchRoute("?date=" + encodeURIComponent(dateInput.value));
+     navigate(candidate);
++  }
++  function selectDate(date: string): void {
++    if (!isValidDate(date) || date === route.value.date) return;
++    dateInput.value = date;
++    changeDate();
++  }
++  async function loadSavedDates(): Promise<void> {
++    if (savedDatesLoaded || savedDateLoading.value) return;
++    const controller = new AbortController();
++    savedDateAbort?.abort(); savedDateAbort = controller;
++    savedDateLoading.value = true; savedDateError.value = "";
++    try {
++      savedDateCatalog.value = await api.getSavedDates(controller.signal);
++      savedDatesLoaded = true;
++    } catch (error) {
++      if (!isAbort(error)) savedDateError.value = errorMessage(error);
++    } finally {
++      if (!controller.signal.aborted) savedDateLoading.value = false;
++    }
+   }
+   function changeVersion(phase: Phase | "", runId = ""): void {
+     navigate({ date: route.value.date, phase, runId, error: null });
+@@ -427,10 +467,11 @@
+         routeSearch(route.value, window.location.search) + window.location.hash);
+     }
+   });
+-  onBeforeUnmount(() => { operationSeq++; window.removeEventListener("popstate", onPopState); abortAll(); });
++  onBeforeUnmount(() => { operationSeq++; savedDateAbort?.abort(); window.removeEventListener("popstate", onPopState); abortAll(); });
+ 
+   return {
+-    route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,
++    route, panel, dateInput, availableDates, savedDateLoading, savedDateError, loadSavedDates, selectDate,
++    decisionFilter, laneFilter, searchDraft, search, offset, limit,
+     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
+     history, historyLoading, historyError, review, reviewLoading, reviewError,
+     catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,
+--- a/apps/web/src/manager-workbench/workbench.css
++++ b/apps/web/src/manager-workbench/workbench.css
+@@ -19,7 +19,7 @@
+ .mwb-date, .mwb-selectors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+ .mwb-date small { flex-basis: 100%; margin-left: 89px; color: #64748b; }
+ .mwb-date label, .mwb-selectors label, .mwb-filters label { font-size: 12px; color: #475569; font-weight: 700; }
+-.mwb-date input { width: 125px; font-variant-numeric: tabular-nums; }
++.mwb-date select { width: 150px; font-variant-numeric: tabular-nums; }
+ .mwb-quiet, .mwb-detail-link { background: #fff; color: #163957; border-color: #9bafc3; }
+ .mwb-quiet:hover:not(:disabled), .mwb-detail-link:hover:not(:disabled) { color: #fff; }
+ .mwb-alert { background: #fff5e9; border-left: 4px solid #c27a17; padding: 11px 13px; color: #704308; border-radius: 4px; }
+--- /dev/null
++++ b/apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts
+@@ -0,0 +1,126 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/vue";
++import Workbench from "../Workbench.vue";
++import { SCHEMA_VERSION } from "../types";
++import type { DayData, Envelope } from "../types";
++
++function response(data: unknown, state = "NOT_RUN"): Response {
++  const payload: Envelope<unknown> = {
++    schema_version: SCHEMA_VERSION,
++    state,
++    data,
++    gaps: [],
++    RESEARCH_ONLY: true,
++    production_allowed: false,
++    buy_gate_updated: false,
++    orders_sent: false
++  };
++  return new Response(JSON.stringify(payload), { status: 200, headers: { "Content-Type": "application/json" } });
++}
++
++function candidateDay(catalogCandidates?: Record<string, unknown>[]): DayData {
++  const singleDay: Record<string, unknown> = {
++    state: "PARTIAL",
++    source_session: "20261020",
++    target_date: "20261013",
++    formal_target_eligibility: "CANNOT_CONFIRM",
++    rows: [],
++    catalog_candidates: catalogCandidates
++  };
++  return {
++    snapshot: {
++      context: { market: "HK_CONNECT", target_date: "20261013", phase: "PREOPEN", cutoff: null },
++      run_id: "synthetic-run-1", generated_at: "2026-10-13T09:25:00+08:00", lanes: []
++    },
++    stocks: [],
++    counts: { selected: 0, watch: 0, unassessed: null, observation_only: 0, not_selected: null },
++    pagination: { total: 0, offset: 0, limit: 50 },
++    versions: [],
++    us_mapping_summary: {
++      display_only: true, plan_run_id: "synthetic-run-1", source_symbol_count: 0,
++      source_row_count: 0, relation_row_count: 0, mapped_hk_count: 0,
++      source_decision_counts: {}, mixed_source_count: 0,
++      coverage: { scope_count: 0, observed_count: 0, assessed_count: 0, unassessed_count: 0 },
++      groups: [], factor_summary: { single_day_mapping: singleDay }
++    }
++  } as unknown as DayData;
++}
++
++describe("manager workbench saved-date dropdown", () => {
++  beforeEach(() => {
++    window.history.replaceState(null, "", "?date=20261020&phase=INTRADAY&run_id=old-run");
++  });
++  afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
++
++  it("switches to a saved date using compact URL and request dates, clears the old version, and follows browser history", async () => {
++    const requests: Array<{ url: URL; method: string }> = [];
++    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
++      const url = new URL(String(input), window.location.origin);
++      requests.push({ url, method: init?.method || "GET" });
++      if (url.pathname === "/api/v1/runs/date-list") {
++        return new Response(JSON.stringify({ dates: ["20261020", "20261021"] }), {
++          status: 200, headers: { "Content-Type": "application/json" }
++        });
++      }
++      return response(null);
++    }));
++
++    render(Workbench);
++    const date = await screen.findByLabelText("目标港股日") as HTMLSelectElement;
++    expect(date.tagName).toBe("SELECT");
++    expect(date.value).toBe("20261020");
++    expect(date.textContent).toContain("2026-10-20");
++    await waitFor(() => expect(requests).toHaveLength(1));
++    expect(requests[0].url.pathname).toContain("/days/20261020/recommendations/");
++    expect(requests[0].url.searchParams.get("phase")).toBe("INTRADAY");
++    expect(requests[0].url.searchParams.get("run_id")).toBe("old-run");
++
++    await fireEvent.focus(date);
++    await waitFor(() => expect(requests.some(x => x.url.pathname === "/api/v1/runs/date-list")).toBe(true));
++    await waitFor(() => expect(date.querySelectorAll("option")).toHaveLength(2));
++    expect([...date.options].map(option => option.textContent)).toEqual(["2026-10-20", "2026-10-21"]);
++    await fireEvent.update(date, "20261021");
++    await waitFor(() => expect(requests).toHaveLength(3));
++    expect(date.value).toBe("20261021");
++    const selectedRequest = requests.find(x => x.url.pathname.includes("/days/20261021/recommendations/"));
++    expect(selectedRequest).toBeTruthy();
++    expect(selectedRequest?.url.searchParams.has("phase")).toBe(false);
++    expect(selectedRequest?.url.searchParams.has("run_id")).toBe(false);
++    expect(new URLSearchParams(window.location.search).get("date")).toBe("20261021");
++    expect(new URLSearchParams(window.location.search).has("phase")).toBe(false);
++    expect(new URLSearchParams(window.location.search).has("run_id")).toBe(false);
++
++    window.history.replaceState(null, "", "?date=20261022");
++    window.dispatchEvent(new PopStateEvent("popstate"));
++    await waitFor(() => expect(requests).toHaveLength(4));
++    expect(date.value).toBe("20261022");
++    window.history.replaceState(null, "", "?date=20261021");
++    window.dispatchEvent(new PopStateEvent("popstate"));
++    await waitFor(() => expect(requests).toHaveLength(5));
++    expect(date.value).toBe("20261021");
++    expect(requests.every(x => x.method === "GET")).toBe(true);
++    expect(requests.some(x => x.method === "POST")).toBe(false);
++  });
++
++  it("labels the table as research candidates and leaves a missing count unknown", async () => {
++    window.history.replaceState(null, "", "?date=20261013");
++    const candidates = [
++      { symbol: "HK.00001", qualification: "CURRENT_SUPPORTED" },
++      { symbol: "HK.00002", qualification: "DATED_WEAK_PEER" }
++    ];
++    vi.stubGlobal("fetch", vi.fn(async () => response(candidateDay(candidates), "READY")));
++
++    render(Workbench);
++    expect(await screen.findByRole("table", { name: "港股去重研究候选表" })).toBeTruthy();
++    expect(screen.getByText("研究候选 2 只（不等于正式入选）")).toBeTruthy();
++  });
++
++  it("does not display an absent candidate count as zero", async () => {
++    window.history.replaceState(null, "", "?date=20261013");
++    vi.stubGlobal("fetch", vi.fn(async () => response(candidateDay(undefined), "READY")));
++
++    render(Workbench);
++    expect(await screen.findByRole("table", { name: "港股去重研究候选表" })).toBeTruthy();
++    expect(screen.getByText("研究候选数未知（不等于正式入选）")).toBeTruthy();
++  });
++});
+--- /dev/null
++++ b/apps/web/src/manager-workbench/__tests__/workbench_dates.spec.ts
+@@ -0,0 +1,68 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/vue";
++import Workbench from "../Workbench.vue";
++import { SCHEMA_VERSION } from "../types";
++import type { Envelope } from "../types";
++
++function response(data: unknown, state = "NOT_RUN"): Response {
++  const payload: Envelope<unknown> = {
++    schema_version: SCHEMA_VERSION,
++    state,
++    data,
++    gaps: [],
++    RESEARCH_ONLY: true,
++    production_allowed: false,
++    buy_gate_updated: false,
++    orders_sent: false
++  };
++  return new Response(JSON.stringify(payload), { status: 200, headers: { "Content-Type": "application/json" } });
++}
++
++describe("manager workbench saved-date selector", () => {
++  beforeEach(() => {
++    window.history.replaceState(null, "", "?date=20261020&phase=INTRADAY&run_id=old-run&offset=50");
++  });
++  afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
++
++  it("loads saved choices on demand and switches the target with a clean read-only route", async () => {
++    const calls: { url: URL; method: string }[] = [];
++    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
++      const url = new URL(String(input), window.location.origin);
++      calls.push({ url, method: init.method || "GET" });
++      if (url.pathname === "/api/v1/runs/date-list") {
++        return new Response(JSON.stringify({
++          dates: ["20261018", "20261018", "invalid"],
++          future_target_dates: ["20261021"],
++          stage_dates: ["20261019"],
++          review_dates: ["bad-date"]
++        }), { status: 200, headers: { "Content-Type": "application/json" } });
++      }
++      return response(null);
++    }));
++
++    render(Workbench);
++    await waitFor(() => expect(calls.filter(call => call.url.pathname.includes("/recommendations/")).length).toBe(1));
++    expect(calls.some(call => call.url.pathname === "/api/v1/runs/date-list")).toBe(false);
++
++    const selector = screen.getByLabelText("目标港股日") as HTMLSelectElement;
++    await fireEvent.focus(selector);
++    await screen.findByRole("option", { name: "2026-10-18" });
++    expect(Array.from(selector.options).map(option => option.textContent)).toEqual([
++      "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21"
++    ]);
++
++    await fireEvent.update(selector, "20261018");
++    await waitFor(() => expect(calls.filter(call => call.url.pathname.includes("/recommendations/")).length).toBe(2));
++    const switched = calls.filter(call => call.url.pathname.includes("/recommendations/"))[1].url;
++    expect(switched.pathname).toContain("/days/20261018/recommendations/");
++    expect(switched.searchParams.has("phase")).toBe(false);
++    expect(switched.searchParams.has("run_id")).toBe(false);
++    expect(switched.searchParams.get("offset")).toBe("0");
++    expect(switched.searchParams.get("limit")).toBe("50");
++    expect(new URLSearchParams(window.location.search).get("date")).toBe("20261018");
++    expect(new URLSearchParams(window.location.search).has("phase")).toBe(false);
++    expect(new URLSearchParams(window.location.search).has("run_id")).toBe(false);
++    expect(new URLSearchParams(window.location.search).has("offset")).toBe(false);
++    expect(calls.every(call => call.method === "GET")).toBe(true);
++  });
++});

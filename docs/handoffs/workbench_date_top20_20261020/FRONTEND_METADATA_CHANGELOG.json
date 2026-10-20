@@ -1,0 +1,78 @@
+{
+  "state": "SUPERSEDED_METADATA_FAIL_RETAINED",
+  "scope": "receipt metadata only; source, tests, patch, static build output and runtime state are unchanged",
+  "superseded_receipts": {
+    "FRONTEND_DELTA.json": "640bc625dc74a8b538731ba2946e53cdb517edc2d7aeb9d791cc33d9ae6ab9aa",
+    "FRONTEND_PREPARED.json": "c4e428fa1ed782bf2a8e91ebf99f9b3b2674bce2be1690a4a1b1f926af450806",
+    "FRONTEND_IMPLEMENTATION.md": "b910b013e7db93f4635882376a7c1dbbbc06f6b1a6215a924eff9e9faea961b4"
+  },
+  "prior_independent_review": {
+    "component_verdict": "PASS",
+    "delivery_metadata_verdict": "FAIL",
+    "evidence": "4/4 component tests and 10 static rebuild output bytes matched; r8 baseline/overlay typecheck diagnostics had the same SHA."
+  },
+  "failure_facts": [
+    "FRONTEND_DELTA.task_worktree.changed_source_and_tests used r8 overlay after hashes for the task worktree. The task worktree api.ts, types.ts, and useWorkbench.ts differ because its frozen branch lacks r8-only announcement methods/types and has a different guard state.",
+    "The prior task_worktree before hashes came from the r8 runtime baseline rather than the task base revision 9b19ca180138499e5e29501fbf07cb03f61b5fd7.",
+    "The prior task_worktree row marked workbench_calendar.spec.ts before as absent even though it exists in the frozen task base; only workbench_dates.spec.ts is new."
+  ],
+  "corrected_evidence": {
+    "task_worktree_base_commit": "9b19ca180138499e5e29501fbf07cb03f61b5fd7",
+    "base_hash_method": "Read-only exact-path lookup at the frozen base revision; no repository write action was performed.",
+    "task_worktree_source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app",
+    "r8_overlay_build_source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+    "r8_overlay_target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+    "patch_sha256_unchanged": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950",
+    "files": [
+      {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "task_worktree_before_sha256": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+        "task_worktree_after_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+        "task_worktree_before_state": "PRESENT",
+        "category": "date_dropdown_plus_prior_candidate_count_label"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "task_worktree_before_sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827",
+        "task_worktree_after_sha256": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86",
+        "task_worktree_before_state": "PRESENT",
+        "category": "date_dropdown_and_saved_date_api"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "task_worktree_before_sha256": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f",
+        "task_worktree_after_sha256": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7",
+        "task_worktree_before_state": "PRESENT",
+        "category": "date_dropdown_and_saved_date_api"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "task_worktree_before_sha256": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+        "task_worktree_after_sha256": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815",
+        "task_worktree_before_state": "PRESENT",
+        "category": "date_dropdown_and_saved_date_api"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "task_worktree_before_sha256": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532",
+        "task_worktree_after_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+        "task_worktree_before_state": "PRESENT",
+        "category": "date_dropdown_and_saved_date_api"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+        "task_worktree_before_sha256": "572737c02e6ed91f08d6a68bffcbf6331e442928cb0a311ac1c2f0c94a0d520d",
+        "task_worktree_after_sha256": "dcd571b9d65d526341fce0d94d332bb0cdaf31909fec2c474378dd9ea3f84450",
+        "task_worktree_before_state": "PRESENT",
+        "category": "frontend_regression_test"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/workbench_dates.spec.ts",
+        "task_worktree_before_sha256": null,
+        "task_worktree_after_sha256": "6fd19bb70ac0191fb6d607a0b407ed30d647000b5c72bf51065f71a5501214c6",
+        "task_worktree_before_state": "ABSENT",
+        "category": "frontend_regression_test"
+      }
+    ]
+  }
+}

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useWorkbench } from "./useWorkbench";
-import { isValidDate } from "./route";
 import AnnouncementCandidates from "./AnnouncementCandidates.vue";
 import type { HKIndustrySummary, Lane, Phase, PlanVersion, SingleDayMappingPath, SingleDayMappingRow, SingleDayMappingSummary, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
 import { projectUSMappingCandidates, projectUSMappingPeerLists, type USPeerListName } from "./us_mapping_stock_lists";
@@ -13,12 +12,12 @@ import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, la
 import "./workbench.css";
 
 const vm = reactive(useWorkbench());
-const datePickerValue = computed({
-  get: () => isValidDate(vm.dateInput)
-    ? `${vm.dateInput.slice(0, 4)}-${vm.dateInput.slice(4, 6)}-${vm.dateInput.slice(6, 8)}`
-    : "",
-  set: (value: string) => { vm.dateInput = value ? value.replace(/-/g, "") : ""; }
-});
+function displayDate(value: string): string {
+  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+}
+function changeDateBySelect(event: Event): void {
+  vm.selectDate((event.target as HTMLSelectElement).value);
+}
 function showCount(value: unknown): string {
   return formatCount(typeof value === "number" && Number.isFinite(value) ? value : null);
 }
@@ -249,12 +248,14 @@ function revisionAssessments(value: unknown): [string, unknown][] {
     </header>
 
     <section class="mwb-panel mwb-toolbar" aria-label="日期和版本导航">
-      <form class="mwb-date" @submit.prevent="vm.changeDate">
+      <div class="mwb-date">
         <label for="mwb-date">目标港股日</label>
-        <input id="mwb-date" v-model="datePickerValue" type="date" required aria-describedby="mwb-date-hint" />
-        <button type="submit">切换日期</button>
-        <small id="mwb-date-hint">日期是计划目标日，不是公告或行情来源日</small>
-      </form>
+        <select id="mwb-date" :value="vm.route.date" aria-describedby="mwb-date-hint"
+          @focus="vm.loadSavedDates" @change="changeDateBySelect">
+          <option v-for="date in vm.availableDates" :key="date" :value="date">{{ displayDate(date) }}</option>
+        </select>
+        <small id="mwb-date-hint"><span v-if="vm.savedDateLoading">正在读取已保存日期</span><span v-else-if="vm.savedDateError">日期清单暂不可用，仅显示当前目标日</span><span v-else>从已保存目标日期快速切换；当前目标日始终保留</span></small>
+      </div>
       <div class="mwb-selectors">
         <label for="mwb-phase">阶段</label>
         <select id="mwb-phase" :value="vm.route.phase" @change="changePhaseBySelect">

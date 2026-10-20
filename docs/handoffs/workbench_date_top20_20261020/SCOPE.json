@@ -1,0 +1,51 @@
+{
+  "GOAL": "Make target date selectable from a dropdown and compare 20261020 HK Connect close Top20 with saved US_MAPPING selections, explaining misses without tuning rules",
+  "WRITER": {
+    "frontend": "/root/calendar_writer",
+    "research_artifacts": "/root/strict_mapping_diagnosis",
+    "runtime": "/root/mapping_deployer after reviewed candidate only"
+  },
+  "REVIEWER": "/root/deployment_reviewer distinct read-only scope acceptance",
+  "ALLOWED_PATHS": [
+    "apps/web/src/manager-workbench/Workbench.vue",
+    "apps/web/src/manager-workbench/useWorkbench.ts",
+    "apps/web/src/manager-workbench/api.ts",
+    "apps/web/src/manager-workbench/types.ts",
+    "apps/web/src/manager-workbench/workbench.css",
+    "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+    "apps/web/src/manager-workbench/__tests__/workbench_dates.spec.ts",
+    "docs/handoffs/workbench_date_top20_20261020/**"
+  ],
+  "FORBIDDEN_PATHS": [
+    "other modules",
+    "screening rules/thresholds/strict restoration",
+    "new data producer",
+    "canonical user changes",
+    "actual services/state until reviewed release and controller continuation",
+    "raw data uploaded to GitHub"
+  ],
+  "PASS_SIGNAL": [
+    "date dropdown shows dated saved-run choices plus current target; select then switch resets old run/phase consistently",
+    "existing US_MAPPING counts/labels and other pages unchanged",
+    "traceable 20261020 closing rank coverage plus time-bound frozen selection intersection and per-stock blocker evidence",
+    "independent review PASS then exact runtime identity/API/UI check"
+  ],
+  "STOP_RULE": "Unresolved data date/universe/coverage or runtime parent drift keeps CANNOT_CONFIRM; no rule retune or overwriting other task bytes",
+  "base_commit": "9b19ca180138499e5e29501fbf07cb03f61b5fd7",
+  "branch": "codex/workbench-date-top20-20261020",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "created_at": "2026-10-20T20:14:10.997569+08:00",
+  "continuation": {
+    "stage": "R8_CANDIDATE_PREPARE_ONLY",
+    "runtime_writer": "/root/mapping_deployer",
+    "runtime_scope_file": "RUNTIME_SCOPE.json",
+    "backend_source_pass": "docs/handoffs/us_mapping_wiring_20261020/INDEPENDENT_SOURCE_REVIEW.json",
+    "preserved_prior_goal": "Continue previously authorized US_MAPPING integration and explicit saved-run API/UI acceptance after independent candidate PASS",
+    "review_reuse": "Unchanged source and pipeline artifacts retain prior independent PASS; review only frontend change, new runtime parent preservation and publisher bindings",
+    "actual_activation": "NOT_AUTHORIZED_BY_THIS_PREPARE_RECORD; requires controller continuation after independent PASS within existing user authorization",
+    "preserve": "r8 unrelated bytes; all newer saved results and phase pointers; frozen processing time; strict paused; no scheduler change"
+  }
+}

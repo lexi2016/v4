@@ -3,7 +3,6 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/vu
 import Workbench from "../Workbench.vue";
 import { SCHEMA_VERSION } from "../types";
 import type { DayData, Envelope } from "../types";
-import { sampleDay } from "./fixtures/sample";
 
 function response(data: unknown, state = "NOT_RUN"): Response {
   const payload: Envelope<unknown> = {
@@ -28,73 +27,79 @@ function candidateDay(catalogCandidates?: Record<string, unknown>[]): DayData {
     rows: [],
     catalog_candidates: catalogCandidates
   };
-  const factorSummary = { single_day_mapping: singleDay };
-  return sampleDay({ us_mapping_summary: {
-    display_only: true,
-    plan_run_id: "synthetic-run-1",
-    source_symbol_count: 0,
-    source_row_count: 0,
-    relation_row_count: 0,
-    mapped_hk_count: 0,
-    source_decision_counts: {},
-    mixed_source_count: 0,
-    coverage: { scope_count: 0, observed_count: 0, assessed_count: 0, unassessed_count: 0 },
-    groups: [],
-    factor_summary: factorSummary
-  } as unknown as NonNullable<DayData["us_mapping_summary"]> });
+  return {
+    snapshot: {
+      context: { market: "HK_CONNECT", target_date: "20261013", phase: "PREOPEN", cutoff: null },
+      run_id: "synthetic-run-1", generated_at: "2026-10-13T09:25:00+08:00", lanes: []
+    },
+    stocks: [],
+    counts: { selected: 0, watch: 0, unassessed: null, observation_only: 0, not_selected: null },
+    pagination: { total: 0, offset: 0, limit: 50 },
+    versions: [],
+    us_mapping_summary: {
+      display_only: true, plan_run_id: "synthetic-run-1", source_symbol_count: 0,
+      source_row_count: 0, relation_row_count: 0, mapped_hk_count: 0,
+      source_decision_counts: {}, mixed_source_count: 0,
+      coverage: { scope_count: 0, observed_count: 0, assessed_count: 0, unassessed_count: 0 },
+      groups: [], factor_summary: { single_day_mapping: singleDay }
+    }
+  } as unknown as DayData;
 }
 
-describe("manager workbench date calendar", () => {
+describe("manager workbench saved-date dropdown", () => {
   beforeEach(() => {
     window.history.replaceState(null, "", "?date=20261020&phase=INTRADAY&run_id=old-run");
   });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-  it("uses a native date picker while keeping URL and request dates compact, clears old version, and ignores empty input", async () => {
-    const requests: URL[] = [];
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
-      requests.push(new URL(String(input), window.location.origin));
+  it("switches to a saved date using compact URL and request dates, clears the old version, and follows browser history", async () => {
+    const requests: Array<{ url: URL; method: string }> = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input), window.location.origin);
+      requests.push({ url, method: init?.method || "GET" });
+      if (url.pathname === "/api/v1/runs/date-list") {
+        return new Response(JSON.stringify({ dates: ["20261020", "20261021"] }), {
+          status: 200, headers: { "Content-Type": "application/json" }
+        });
+      }
       return response(null);
     }));
 
     render(Workbench);
-    const date = await screen.findByLabelText("目标港股日") as HTMLInputElement;
-    expect(date.type).toBe("date");
-    expect(date.value).toBe("2026-10-20");
-    expect(date.required).toBe(true);
+    const date = await screen.findByLabelText("目标港股日") as HTMLSelectElement;
+    expect(date.tagName).toBe("SELECT");
+    expect(date.value).toBe("20261020");
+    expect(date.textContent).toContain("2026-10-20");
     await waitFor(() => expect(requests).toHaveLength(1));
-    expect(requests[0].pathname).toContain("/days/20261020/recommendations/");
-    expect(requests[0].searchParams.get("phase")).toBe("INTRADAY");
-    expect(requests[0].searchParams.get("run_id")).toBe("old-run");
+    expect(requests[0].url.pathname).toContain("/days/20261020/recommendations/");
+    expect(requests[0].url.searchParams.get("phase")).toBe("INTRADAY");
+    expect(requests[0].url.searchParams.get("run_id")).toBe("old-run");
 
-    const form = date.closest("form");
-    if (!form) throw new Error("date picker form missing");
-    await fireEvent.update(date, "2026-10-21");
-    await fireEvent.submit(form);
-    await waitFor(() => expect(requests).toHaveLength(2));
-    expect(date.value).toBe("2026-10-21");
-    expect(requests[1].pathname).toContain("/days/20261021/recommendations/");
-    expect(requests[1].searchParams.has("phase")).toBe(false);
-    expect(requests[1].searchParams.has("run_id")).toBe(false);
+    await fireEvent.focus(date);
+    await waitFor(() => expect(requests.some(x => x.url.pathname === "/api/v1/runs/date-list")).toBe(true));
+    await waitFor(() => expect(date.querySelectorAll("option")).toHaveLength(2));
+    expect([...date.options].map(option => option.textContent)).toEqual(["2026-10-20", "2026-10-21"]);
+    await fireEvent.update(date, "20261021");
+    await waitFor(() => expect(requests).toHaveLength(3));
+    expect(date.value).toBe("20261021");
+    const selectedRequest = requests.find(x => x.url.pathname.includes("/days/20261021/recommendations/"));
+    expect(selectedRequest).toBeTruthy();
+    expect(selectedRequest?.url.searchParams.has("phase")).toBe(false);
+    expect(selectedRequest?.url.searchParams.has("run_id")).toBe(false);
     expect(new URLSearchParams(window.location.search).get("date")).toBe("20261021");
     expect(new URLSearchParams(window.location.search).has("phase")).toBe(false);
     expect(new URLSearchParams(window.location.search).has("run_id")).toBe(false);
 
-    const requestCount = requests.length;
-    const selectedUrl = window.location.href;
-    await fireEvent.update(date, "");
-    await fireEvent.submit(form);
-    await waitFor(() => expect(requests).toHaveLength(requestCount));
-    expect(window.location.href).toBe(selectedUrl);
-
     window.history.replaceState(null, "", "?date=20261022");
     window.dispatchEvent(new PopStateEvent("popstate"));
-    await waitFor(() => expect(requests).toHaveLength(requestCount + 1));
-    expect(date.value).toBe("2026-10-22");
+    await waitFor(() => expect(requests).toHaveLength(4));
+    expect(date.value).toBe("20261022");
     window.history.replaceState(null, "", "?date=20261021");
     window.dispatchEvent(new PopStateEvent("popstate"));
-    await waitFor(() => expect(requests).toHaveLength(requestCount + 2));
-    expect(date.value).toBe("2026-10-21");
+    await waitFor(() => expect(requests).toHaveLength(5));
+    expect(date.value).toBe("20261021");
+    expect(requests.every(x => x.method === "GET")).toBe(true);
+    expect(requests.some(x => x.method === "POST")).toBe(false);
   });
 
   it("labels the table as research candidates and leaves a missing count unknown", async () => {

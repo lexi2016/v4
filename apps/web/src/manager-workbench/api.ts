@@ -2,7 +2,8 @@ import { SCHEMA_VERSION } from "./types";
 import type {
   AnnouncementFlashData, AnnouncementFlashResumeAccepted, AnnouncementFlashResumeEligibility,
   AnnouncementFlashUpdateAccepted, DayData, Decision, Envelope, HistoryData,
-  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData
+  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData,
+  SavedDateCatalog
 } from "./types";
 import { isValidDate } from "./route";
 
@@ -86,6 +87,26 @@ async function request<T>(
 }
 export function createWorkbenchApi(transport: FetchLike = fetch) {
   return {
+    async getSavedDates(signal?: AbortSignal): Promise<SavedDateCatalog> {
+      let response: Response;
+      try {
+        response = await transport("/api/v1/runs/date-list", {
+          credentials: "same-origin", cache: "no-store", signal,
+          headers: { Accept: "application/json" }
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") throw error;
+        throw new ApiError("日期清单读取失败，请核实 API 连接", 0);
+      }
+      let payload: unknown;
+      try { payload = await response.json(); }
+      catch { throw new ApiError("日期清单响应不是有效 JSON", response.status); }
+      if (!response.ok) throw new ApiError("日期清单读取失败", response.status);
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        throw new ApiError("日期清单响应格式无效", 502);
+      }
+      return payload as SavedDateCatalog;
+    },
     async getRecommendations(query: DayQuery, signal?: AbortSignal) {
       exactDate(query.date);
       if (query.lane !== 'US_MAPPING' && query.lane !== 'OVERSOLD') throw new ApiError('推荐来源无效', 422);

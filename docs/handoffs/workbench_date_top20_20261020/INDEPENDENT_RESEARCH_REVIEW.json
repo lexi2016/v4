@@ -1,0 +1,58 @@
+{
+  "reviewer": "/root/deployment_reviewer",
+  "verdict": "REVIEWED_PASS",
+  "scope": "Read-only single-day frozen Top20 ranking, saved source identities and time-bound selection intersection",
+  "open_findings": [],
+  "handoff_sha256": "d54f82d2a4a0057e217e11e9e428a85c82d48a4a631a75f67451a6a21d08081c",
+  "checks": [
+    {
+      "check": "Frozen RESEARCH_compare.py deterministic join with original raw-root and original 05d40 snapshot, separate reviewer temp output",
+      "exit_code": 0,
+      "output_root": "/private/var/folders/mw/045dzcpj70x3m5nnfwj6lmnm0000gn/T/top20-independent-hvw3skkj",
+      "exact_hash_matches": [
+        "RESEARCH_RESULT.json ca29312b1b88596dd99cf70029ba43b443106b06cd83906864f1fa74fdc43665",
+        "RESEARCH_TOP20.csv f6f81a697ba6f32c738d4d2488327e457eb4f9a3cb9ceab68b1aa17d36b757f4",
+        "RESEARCH_CHECKS.json bc174ed081b312f78d7e23843dbad4eae68ed1efc59d58415e1c146dad9307ad"
+      ]
+    },
+    {
+      "check": "Independent Decimal rank, raw/product SHA and frozen actual sets recomputation",
+      "exit_code": 0,
+      "snapshot_coverage": "698/698",
+      "stock_etf": "667 STOCK / 31 ETF; stock-only Top20 identical",
+      "suspended_retained": [
+        "00853",
+        "02172",
+        "02252",
+        "02555"
+      ],
+      "top20_denominator": 20,
+      "pool_absence": "02947 retained in denominator; no unverified alias to 02723"
+    }
+  ],
+  "results": {
+    "actual_selected_hits": 0,
+    "morning_benefit_hits": 0,
+    "intraday_watch_hits": 7,
+    "intraday_watch_set": 232,
+    "offline_benefit_hits": 0,
+    "offline_benefit_set": 5,
+    "highxin_rank": 17,
+    "highxin_return_pct": "6.880733944954128440366972500"
+  },
+  "highxin_evidence": [
+    "R924 original overlay nested CURRENT_APPLICABILITY.state DATED_SCOPE_ONLY; top-level state absent; 18:38 projection empty and PEER_CURRENT_SCOPE_UNCONFIRMED",
+    "23:30 actual projection DATED_SCOPE_ONLY with WMT +0.797489%",
+    "05:44 verified WMT -0.092585% plus one CATALOG_OBSERVATION_ONLY contaminated daily path",
+    "09:38 onward XLY/XLP +0.655240% wide-industry CONDITIONAL_WATCH only"
+  ],
+  "limitations": [
+    "No causal explanation of price rise, CCASS or predictive effectiveness established",
+    "No new quote collection or business execution",
+    "Source/pipeline earlier unchanged PASS reused; not re-reviewed",
+    "Date frontend and actual runtime/API/UI are outside this research receipt"
+  ],
+  "business_writes": false,
+  "provider_calls": false,
+  "orders_sent": false
+}

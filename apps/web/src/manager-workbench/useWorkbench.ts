@@ -3,9 +3,10 @@ import { ApiError, createWorkbenchApi } from "./api";
 import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
-  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
+  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation,
+  SavedDateCatalog
 } from "./types";
-import { parseWorkbenchRoute, routeSearch } from "./route";
+import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
 
 export type Panel = "stocks" | "announcements" | "detail" | "progress" | "history" | "reviews" | "catalog";
@@ -31,6 +32,23 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const route = ref<WorkbenchRoute>(parseWorkbenchRoute(window.location.search));
   const panel = ref<Panel>("stocks");
   const dateInput = ref(route.value.date);
+  const savedDateCatalog = ref<SavedDateCatalog | null>(null);
+  const savedDateLoading = ref(false);
+  const savedDateError = ref("");
+  let savedDatesLoaded = false;
+  const availableDates = computed(() => {
+    const catalog = savedDateCatalog.value;
+    const values = [
+      ...(Array.isArray(catalog?.dates) ? catalog.dates : []),
+      ...(Array.isArray(catalog?.future_target_dates) ? catalog.future_target_dates : []),
+      ...(Array.isArray(catalog?.stage_dates) ? catalog.stage_dates : []),
+      ...(Array.isArray(catalog?.review_dates) ? catalog.review_dates : []),
+      ...(Array.isArray(catalog?.research_dates) ? catalog.research_dates : []),
+      ...(Array.isArray(catalog?.hk_observation_only_dates) ? catalog.hk_observation_only_dates : []),
+      catalog?.navigation_date, catalog?.default_date, route.value.date,
+    ];
+    return [...new Set(values.filter((date): date is string => typeof date === "string" && isValidDate(date)))].sort();
+  });
   const decisionFilter = ref<Decision | "">("");
   const laneFilter = ref<RecommendationLane>('US_MAPPING');
   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
@@ -91,6 +109,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   let catalogAbort: AbortController | null = null;
   const catalogRelationAborts = new Map<string, AbortController>();
   let jobAbort: AbortController | null = null;
+  let savedDateAbort: AbortController | null = null;
   let jobTimer: ReturnType<typeof setTimeout> | null = null;
 
   function stopJobReads(): void {
@@ -124,7 +143,9 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   function navigate(next: WorkbenchRoute, replace = false): void {
     resetPage();
     route.value = next; dateInput.value = next.date;
-    const url = window.location.pathname + routeSearch(next, window.location.search) + window.location.hash;
+    const previous = new URLSearchParams(window.location.search);
+    ["offset", "limit", "decision", "lane", "q"].forEach(key => previous.delete(key));
+    const url = window.location.pathname + routeSearch(next, previous.toString()) + window.location.hash;
     if (replace) window.history.replaceState(null, "", url);
     else window.history.pushState(null, "", url);
     if (!next.error) void loadDay();
@@ -133,6 +154,25 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (!dateInput.value) return;
     const candidate = parseWorkbenchRoute("?date=" + encodeURIComponent(dateInput.value));
     navigate(candidate);
+  }
+  function selectDate(date: string): void {
+    if (!isValidDate(date) || date === route.value.date) return;
+    dateInput.value = date;
+    changeDate();
+  }
+  async function loadSavedDates(): Promise<void> {
+    if (savedDatesLoaded || savedDateLoading.value) return;
+    const controller = new AbortController();
+    savedDateAbort?.abort(); savedDateAbort = controller;
+    savedDateLoading.value = true; savedDateError.value = "";
+    try {
+      savedDateCatalog.value = await api.getSavedDates(controller.signal);
+      savedDatesLoaded = true;
+    } catch (error) {
+      if (!isAbort(error)) savedDateError.value = errorMessage(error);
+    } finally {
+      if (!controller.signal.aborted) savedDateLoading.value = false;
+    }
   }
   function changeVersion(phase: Phase | "", runId = ""): void {
     navigate({ date: route.value.date, phase, runId, error: null });
@@ -428,10 +468,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         routeSearch(route.value, window.location.search) + window.location.hash);
     }
   });
-  onBeforeUnmount(() => { operationSeq++; window.removeEventListener("popstate", onPopState); abortAll(); });
+  onBeforeUnmount(() => { operationSeq++; savedDateAbort?.abort(); window.removeEventListener("popstate", onPopState); abortAll(); });
 
   return {
-    route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,
+    route, panel, dateInput, availableDates, savedDateLoading, savedDateError, loadSavedDates, selectDate,
+    decisionFilter, laneFilter, searchDraft, search, offset, limit,
     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
     history, historyLoading, historyError, review, reviewLoading, reviewError,
     catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,

@@ -1,0 +1,37 @@
+{
+  "state": "PREPARED_NOT_DEPLOYED",
+  "release_id": "announcement-daily-workflow-20261020-r8",
+  "manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+  "application_inventory_sha256": "97b803c3e009e533e77089533171aec693e5f2f8a60a7317262cbdf093623595",
+  "task_branch": "codex/workbench-date-top20-20261020",
+  "task_base_commit": "9b19ca180138499e5e29501fbf07cb03f61b5fd7",
+  "change_ids": [
+    "date_dropdown_added",
+    "prior_candidate_count_label_continued"
+  ],
+  "source_patch_path": "docs/handoffs/workbench_date_top20_20261020/FRONTEND_SOURCE_OVERLAY.patch",
+  "source_patch_sha256": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950",
+  "delta_manifest_path": "docs/handoffs/workbench_date_top20_20261020/FRONTEND_DELTA.json",
+  "delta_manifest_sha256": "b789fac96ac28754d9c600d930ecf0d930360c7e5977712e37e032a51e040f50",
+  "delta_directory": "docs/handoffs/workbench_date_top20_20261020/local_only/frontend_delta",
+  "full_dist_directory": "docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/build_output/dist",
+  "static_delta_paths": [
+    "apps/web/dist/manager-selection/index.html",
+    "apps/web/dist/assets/managerSelection-Ch6yMZNt.js",
+    "apps/web/dist/assets/managerSelection-G7Fr7fFO.css"
+  ],
+  "component_tests": "PASS 4/4",
+  "build": "PASS",
+  "typecheck": "FAIL unchanged non-target diagnostics",
+  "active_release_changed": false,
+  "runtime_activation": "NOT_RUN",
+  "implementation_receipt_path": "docs/handoffs/workbench_date_top20_20261020/FRONTEND_IMPLEMENTATION.md",
+  "task_worktree_source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app",
+  "r8_candidate_build_source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+  "r8_overlay_target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+  "metadata_change_record_path": "docs/handoffs/workbench_date_top20_20261020/FRONTEND_METADATA_CHANGELOG.json",
+  "metadata_change_record_sha256": "b9f69bc6f66ac62626b457e97331267e28caca7d6c0c3b6e4c58f1d7e30b05b0",
+  "metadata_review_state": "COMPONENT_PASS_REUSED; METADATA_CORRECTION_PENDING_INCREMENTAL_REVIEW",
+  "git_sync_owner": "controller",
+  "git_sync_status": "NOT_RUN_BY_WRITER"
+}

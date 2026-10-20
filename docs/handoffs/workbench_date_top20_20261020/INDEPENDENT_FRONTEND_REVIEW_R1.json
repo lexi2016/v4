@@ -1,0 +1,43 @@
+{
+  "reviewer": "/root/deployment_reviewer",
+  "verdict": "REVIEWED_FAIL",
+  "source_and_build": "PASS",
+  "delivery_metadata": "FAIL",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P2",
+      "file": "FRONTEND_DELTA.json:23",
+      "issue": "task_worktree.changed_source_and_tests incorrectly records r8 overlay SHA as WT SHA",
+      "actual_WT": {
+        "api.ts": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86",
+        "types.ts": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7",
+        "useWorkbench.ts": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815"
+      },
+      "impact": "WT lacks unrelated r8 announcement APIs/types and keeps an existing empty-value guard; it is not interchangeable with tested r8 overlay",
+      "fix": "Metadata only: separate WT and r8 overlay identities and reproducibility contract; no unrelated announcement source backport"
+    }
+  ],
+  "frozen_hashes": {
+    "prepared": "c4e428fa1ed782bf2a8e91ebf99f9b3b2674bce2be1690a4a1b1f926af450806",
+    "delta": "640bc625dc74a8b538731ba2946e53cdb517edc2d7aeb9d791cc33d9ae6ab9aa",
+    "patch": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950"
+  },
+  "independent_checks": [
+    "vitest run workbench_calendar.spec.ts workbench_dates.spec.ts RC0 4/4",
+    "vite build --outDir ../rebuilt --emptyOutDir RC0; all 10 frozen output SHAs identical",
+    "vue-tsc --noEmit baseline and overlay both RC2; full diagnostic SHA c40611cc98839c70f0d4dc6ea8e8d1ac794f9ad5160907d8ff4ecff401df9094",
+    "patch --dry-run -p1 RC0, 7 paths match actual r8",
+    "Source diff exactly 5 business files + 2 tests; announcement/package/lock preserved",
+    "Seven root/daily/shared static files byte-identical; three deployment delta hashes correct"
+  ],
+  "behavior": "valid sorted deduped ISO date options, compact values, phase/run/paging reset, popstate, count and unknown labels pass; no row filtering/truncation",
+  "reuse": "Research PASS reused; metadata correction requires only incremental review",
+  "NOT_RUN": [
+    "deployment",
+    "actual API",
+    "actual UI",
+    "natural slot",
+    "Git synchronization"
+  ]
+}

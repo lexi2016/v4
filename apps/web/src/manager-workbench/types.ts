@@ -23,6 +23,17 @@ export interface Envelope<T> extends SafetyFlags {
   data: T | null;
   gaps: Gap[] | null;
 }
+/** Read-only catalog returned by the shared /api/v1/runs/date-list endpoint. */
+export interface SavedDateCatalog {
+  dates?: unknown;
+  future_target_dates?: unknown;
+  stage_dates?: unknown;
+  review_dates?: unknown;
+  research_dates?: unknown;
+  hk_observation_only_dates?: unknown;
+  navigation_date?: unknown;
+  default_date?: unknown;
+}
 export interface Coverage {
   scope_count: NullableCount;
   observed_count: NullableCount;

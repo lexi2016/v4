@@ -1,0 +1,412 @@
+{
+  "state": "FRONTEND_PREPARED_NOT_DEPLOYED",
+  "goal_scope": "r8-based manager-workbench saved-date dropdown plus prior US_MAPPING research-candidate count label; no production API, business-state, scheduler, or service mutation",
+  "change_categories": [
+    {
+      "id": "date_dropdown_added",
+      "behavior": "Replace the old free-form date calendar with one dropdown sourced lazily from read-only GET /api/v1/runs/date-list. Options are valid distinct sorted YYYYMMDD values displayed as YYYY-MM-DD, including the current target. Selection keeps compact YYYYMMDD route/API dates and clears old phase/run/paging state."
+    },
+    {
+      "id": "prior_candidate_count_label_continued",
+      "behavior": "Transplant the previously accepted usMappingCandidateCountLabel computed value and its existing muted paragraph. It reports candidate row count only when catalog_candidates is present; otherwise it says unknown. All candidate table rows remain rendered without truncation or filtering."
+    }
+  ],
+  "actual_parent": {
+    "release_id": "announcement-daily-workflow-20261020-r8",
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+    "manifest_sha256": "0de62ef4d96018f56cfa2ebbf91470d64b292728c8623cd0a60dd5d9ac11332a",
+    "application_inventory_sha256": "97b803c3e009e533e77089533171aec693e5f2f8a60a7317262cbdf093623595",
+    "precheck_state": "PRECHECK_COMPLETE",
+    "precheck_sha256": "17c18e3bef71af95dd15002df2b361d1b6b381dde1ebab1dcf3f1afbb3d47c58",
+    "frontend_baseline_sha256": "c60787ee9e97d4169074d0bf05c4257bd7eafa7062c36ea18a4a002fb5e5c063"
+  },
+  "task_worktree": {
+    "base_commit": "9b19ca180138499e5e29501fbf07cb03f61b5fd7",
+    "branch": "codex/workbench-date-top20-20261020",
+    "changed_source_and_tests": [
+      {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "before_sha256": "b2f4c7d87debadc93e6ffbde1b395467f9f2ba9c2f12470949602fe3b5d724b1",
+        "after_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+        "category": "date_dropdown_plus_prior_candidate_count_label",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "before_sha256": "956a6b671ea02e1635096415585989ce1e8efdd6c8d3b718dc45b5ee5630f827",
+        "after_sha256": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "before_sha256": "8f61a25d860b052a755b1436e109fbbb26c4c94ae8af1193dba66dafc2db368f",
+        "after_sha256": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "before_sha256": "13aa06f4abd9fb518d832d2d9fdcf66b952785b034b56c7440a2ac80c6168e5b",
+        "after_sha256": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "before_sha256": "42be5379ab52a240deff7d46283483a909758d91c9e4f1701b26d2b5dc310532",
+        "after_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+        "before_sha256": "572737c02e6ed91f08d6a68bffcbf6331e442928cb0a311ac1c2f0c94a0d520d",
+        "after_sha256": "dcd571b9d65d526341fce0d94d332bb0cdaf31909fec2c474378dd9ea3f84450",
+        "category": "frontend_regression_test",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/workbench_dates.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "6fd19bb70ac0191fb6d607a0b407ed30d647000b5c72bf51065f71a5501214c6",
+        "category": "frontend_regression_test",
+        "before_state": "ABSENT"
+      }
+    ],
+    "source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app",
+    "base_sha_method": "Read-only exact-path lookup at frozen base revision 9b19ca180138499e5e29501fbf07cb03f61b5fd7.",
+    "source_identity_note": "These hashes describe the isolated task worktree at base 9b19ca180138499e5e29501fbf07cb03f61b5fd7; they are independent of the r8 source overlay and candidate build.",
+    "r8_overlay_hash_differences": [
+      {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "task_worktree_after_sha256": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86",
+        "r8_candidate_after_sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+        "reason": "task branch lacks r8-only announcement API methods"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "task_worktree_after_sha256": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7",
+        "r8_candidate_after_sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+        "reason": "task branch lacks r8-only announcement types"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "task_worktree_after_sha256": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815",
+        "r8_candidate_after_sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+        "reason": "The task worktree retains `if (!dateInput.value) return` in changeDate; the r8 overlay keeps the original changeDate without that line. Its selectDate entry validates with isValidDate before calling changeDate."
+      }
+    ]
+  },
+  "r8_source_overlay": {
+    "patch_path": "docs/handoffs/workbench_date_top20_20261020/FRONTEND_SOURCE_OVERLAY.patch",
+    "patch_sha256": "56639d36eed894a7663ee098e92d98fa3dc1f8f1a04672e9eb14e7f6f063e950",
+    "changed_files": [
+      {
+        "path": "apps/web/src/manager-workbench/Workbench.vue",
+        "before_sha256": "00c0dad5e67d43e2c75b8661e785c2d1be8bb115a0b7fe46f86d34c646f213ec",
+        "after_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+        "category": "date_dropdown_plus_prior_candidate_count_label",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "before_sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726",
+        "after_sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "before_sha256": "66d09d73f2a2c9ac58adf22b97d32f935d51dae53afb191d03f9a4f6d9a4e821",
+        "after_sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+        "before_sha256": "31ef076cce59efefbefc12d5b4ec259222705f51fcc2867dddf888eea5992aa7",
+        "after_sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/workbench.css",
+        "before_sha256": "87503cd2b87865fdfc145a388925ee7e436325fd736b0ce0a5813825de39a3cd",
+        "after_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+        "category": "date_dropdown_and_saved_date_api",
+        "before_state": "PRESENT"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/workbench_calendar.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "dcd571b9d65d526341fce0d94d332bb0cdaf31909fec2c474378dd9ea3f84450",
+        "category": "frontend_regression_test",
+        "before_state": "ABSENT_IN_ACTUAL_R8_BASELINE"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/workbench_dates.spec.ts",
+        "before_sha256": null,
+        "after_sha256": "6fd19bb70ac0191fb6d607a0b407ed30d647000b5c72bf51065f71a5501214c6",
+        "category": "frontend_regression_test",
+        "before_state": "ABSENT_IN_ACTUAL_R8_BASELINE"
+      }
+    ],
+    "preserved_r8_inputs": [
+      {
+        "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+        "sha256": "a6dcf2ea2f543a179743d9ecfdef9b2add6475aaaa02a64038bc4bd641461d20",
+        "baseline_sha256": "a6dcf2ea2f543a179743d9ecfdef9b2add6475aaaa02a64038bc4bd641461d20",
+        "candidate_sha256": "a6dcf2ea2f543a179743d9ecfdef9b2add6475aaaa02a64038bc4bd641461d20",
+        "match": true
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+        "baseline_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+        "candidate_sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+        "match": true
+      },
+      {
+        "path": "apps/web/package-lock.json",
+        "sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+        "baseline_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+        "candidate_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+        "match": true
+      }
+    ],
+    "preimage_verification": "All five production source preimages matched RUNTIME_FRONTEND_BASELINE.json and the actual r8 app root before building.",
+    "source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+    "target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+    "source_root_role": "Complete actual-r8 source clone used for the successful candidate build; patch target is the actual r8 app root. This is not the task worktree.",
+    "build_source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+    "overlay_target_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+    "test_absence_basis": "Both test additions were represented as new-file patch entries; the recorded patch dry-run passed against the actual r8 app root."
+  },
+  "build": {
+    "command": "npm run build",
+    "working_directory": "docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+    "exit_code": 0,
+    "vite": "7.3.6",
+    "modules_transformed": 100,
+    "dependency_install": "npm ci",
+    "npm_ci_exit_code": 0,
+    "installed_packages": 244,
+    "npm_ci_note": "8 audit advisories (2 moderate, 6 high); npm policy denied esbuild/fsevents install scripts. The build and focused component tests succeeded.",
+    "focused_tests": {
+      "command": "npm test -- --run src/manager-workbench/__tests__/workbench_calendar.spec.ts src/manager-workbench/__tests__/workbench_dates.spec.ts",
+      "exit_code": 0,
+      "test_files_passed": 2,
+      "tests_passed": 4
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exit_code": 2,
+      "diagnostics": [
+        "src/api/managerWorkspace.attention.spec.ts",
+        "src/App.vue",
+        "src/app_shell/types.ts",
+        "src/components/review/HkCloseReviewPanel.vue",
+        "src/manager-workbench/__tests__/us_factor.spec.ts",
+        "src/views/ManagerSelectionView.spec.ts"
+      ],
+      "changed_frontend_file_diagnostics": 0
+    },
+    "full_dist_path": "docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/build_output/dist",
+    "full_dist_file_count": 10,
+    "full_dist_files": [
+      {
+        "path": "assets/dailyResearchCommand-CgLVpOEW.js",
+        "sha256": "165dabaaed9c7f86c0bd0d9c36d3baadfd1468c1ed042ccf082db39d00de2a21",
+        "size": 26611
+      },
+      {
+        "path": "assets/dailyResearchCommand-D7J2FMsY.css",
+        "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+        "size": 12281
+      },
+      {
+        "path": "assets/main-CKM5QTE8.css",
+        "sha256": "215c8826f88991fe97ebc941b2542bdcca2cbfe274dfe5674cfa5fe398fbc8fa",
+        "size": 51279
+      },
+      {
+        "path": "assets/main-CbQYaqRl.js",
+        "sha256": "2de8bb0be84c81219288eb34f1c9b169215856aabc5e6be19abb88f57b461b3f",
+        "size": 239842
+      },
+      {
+        "path": "assets/managerSelection-Ch6yMZNt.js",
+        "sha256": "8456c11750ef3638677a37904d31508a61c8c6af11913e2bc0cdac0a5f4684e7",
+        "size": 152679
+      },
+      {
+        "path": "assets/managerSelection-G7Fr7fFO.css",
+        "sha256": "00533007790440d4b4f5b2b926b8990b4e19176348eb0c4ad535660a363a0120",
+        "size": 12340
+      },
+      {
+        "path": "assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+        "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+        "size": 65713
+      },
+      {
+        "path": "daily-research-command/index.html",
+        "sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+        "size": 606
+      },
+      {
+        "path": "index.html",
+        "sha256": "f36dc1fff0d419335885f93396d1c395e83bd5d3fda59ef062818ab384334a7a",
+        "size": 752
+      },
+      {
+        "path": "manager-selection/index.html",
+        "sha256": "b9ed6f38df991da1feb4ca1aab22b4a9dddc714cadc80a0300c50b063af137dd",
+        "size": 588
+      }
+    ],
+    "source_root": "/Users/lexi/.codex/worktrees/workbench-date-top20/v4_app/docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/apps/web",
+    "source_root_identity": "The Vite PASS candidate was built from the complete actual-r8 clone at this path, not from task_worktree.source_root."
+  },
+  "static_delta": [
+    {
+      "path": "apps/web/dist/manager-selection/index.html",
+      "action": "replace",
+      "before_sha256": "97e20cc85c993bb73d85c83503ade13cdf31fd82a277002f3ba37dd2c242ad8d",
+      "after_sha256": "b9ed6f38df991da1feb4ca1aab22b4a9dddc714cadc80a0300c50b063af137dd",
+      "bytes": 588
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-Ch6yMZNt.js",
+      "action": "add",
+      "before_sha256": null,
+      "after_sha256": "8456c11750ef3638677a37904d31508a61c8c6af11913e2bc0cdac0a5f4684e7",
+      "bytes": 152679
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-G7Fr7fFO.css",
+      "action": "add",
+      "before_sha256": null,
+      "after_sha256": "00533007790440d4b4f5b2b926b8990b4e19176348eb0c4ad535660a363a0120",
+      "bytes": 12340
+    }
+  ],
+  "manager_page_asset_closure": [
+    {
+      "path": "apps/web/dist/assets/managerSelection-Ch6yMZNt.js",
+      "status": "NEW",
+      "sha256": "8456c11750ef3638677a37904d31508a61c8c6af11913e2bc0cdac0a5f4684e7"
+    },
+    {
+      "path": "apps/web/dist/assets/managerSelection-G7Fr7fFO.css",
+      "status": "NEW",
+      "sha256": "00533007790440d4b4f5b2b926b8990b4e19176348eb0c4ad535660a363a0120"
+    },
+    {
+      "path": "apps/web/dist/assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+      "status": "EXISTING_IDENTICAL",
+      "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf"
+    }
+  ],
+  "unchanged_pages_and_assets": [
+    {
+      "path": "apps/web/dist/index.html",
+      "sha256": "f36dc1fff0d419335885f93396d1c395e83bd5d3fda59ef062818ab384334a7a",
+      "baseline_sha256": "f36dc1fff0d419335885f93396d1c395e83bd5d3fda59ef062818ab384334a7a",
+      "match": true
+    },
+    {
+      "path": "apps/web/dist/daily-research-command/index.html",
+      "sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+      "baseline_sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+      "match": true
+    },
+    {
+      "path": "apps/web/dist/assets/dailyResearchCommand-CgLVpOEW.js",
+      "sha256": "165dabaaed9c7f86c0bd0d9c36d3baadfd1468c1ed042ccf082db39d00de2a21",
+      "baseline_sha256": "165dabaaed9c7f86c0bd0d9c36d3baadfd1468c1ed042ccf082db39d00de2a21",
+      "match": true
+    },
+    {
+      "path": "apps/web/dist/assets/dailyResearchCommand-D7J2FMsY.css",
+      "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+      "baseline_sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+      "match": true
+    },
+    {
+      "path": "apps/web/dist/assets/main-CKM5QTE8.css",
+      "sha256": "215c8826f88991fe97ebc941b2542bdcca2cbfe274dfe5674cfa5fe398fbc8fa",
+      "baseline_sha256": "215c8826f88991fe97ebc941b2542bdcca2cbfe274dfe5674cfa5fe398fbc8fa",
+      "match": true
+    },
+    {
+      "path": "apps/web/dist/assets/main-CbQYaqRl.js",
+      "sha256": "2de8bb0be84c81219288eb34f1c9b169215856aabc5e6be19abb88f57b461b3f",
+      "baseline_sha256": "2de8bb0be84c81219288eb34f1c9b169215856aabc5e6be19abb88f57b461b3f",
+      "match": true
+    },
+    {
+      "path": "apps/web/dist/assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+      "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+      "baseline_sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+      "match": true
+    }
+  ],
+  "runtime_state": {
+    "candidate_source_build_only": true,
+    "active_r8_files_written": false,
+    "actual_api_or_business_post_count": 0,
+    "business_state_writes": 0,
+    "service_changes": 0,
+    "scheduler_changes": 0,
+    "deployment_or_activation": "NOT_RUN"
+  },
+  "caveats": [
+    "The full `dist` is a build receipt; apply only the three `static_delta` paths to the release, preserving all pre-existing/historical static files.",
+    "Live rendered UI and an activated API readback remain CANNOT_CONFIRM until the separately controlled runtime step.",
+    "This frontend receipt does not close the overall research comparison goal or establish strict-selection performance."
+  ],
+  "verification": {
+    "r8_preimage_checks": {
+      "result": "PASS",
+      "scope": "Five changed production sources, the announcement component, package.json, package-lock.json, target page root/daily HTML and shared runtime-dom matched the frozen RUNTIME_FRONTEND_BASELINE before build."
+    },
+    "overlay_applicability": {
+      "command": "patch --dry-run -p1 -i docs/handoffs/workbench_date_top20_20261020/FRONTEND_SOURCE_OVERLAY.patch",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-daily-workflow-20261020-r8/app",
+      "exit_code": 0,
+      "files_checked": 7
+    },
+    "worktree_diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "json_parse": {
+      "command": "node -e JSON.parse(SCOPE.json, FRONTEND_DELTA.json, FRONTEND_PREPARED.json)",
+      "result": "PASS"
+    },
+    "asset_closure": "PASS: manager-selection/index.html references the new manager-selection JS/CSS plus the byte-identical existing runtime-dom chunk; all are present in the candidate dist."
+  },
+  "superseded_attempts": [
+    {
+      "state": "SUPERSEDED_NOT_DELIVERABLE",
+      "delta_path": "docs/handoffs/workbench_date_top20_20261020/local_only/frontend_delta_date_only_superseded",
+      "build_path": "docs/handoffs/workbench_date_top20_20261020/local_only/frontend_candidate/build_output_date_only_superseded/dist",
+      "reason": "Date-only build used before the final single-dropdown UI and prior candidate-count label transplant; final delta is the current frontend_delta and build_output/dist."
+    }
+  ],
+  "metadata_correction": {
+    "change_record_path": "docs/handoffs/workbench_date_top20_20261020/FRONTEND_METADATA_CHANGELOG.json",
+    "change_record_sha256": "b9f69bc6f66ac62626b457e97331267e28caca7d6c0c3b6e4c58f1d7e30b05b0",
+    "prior_metadata_verdict": "FAIL",
+    "component_pass_reused": true,
+    "new_code_or_build_test_run": "NONE; metadata-only correction"
+  },
+  "git_sync_contract": {
+    "owner": "controller",
+    "status": "NOT_RUN_BY_WRITER",
+    "scope": "minimal task-worktree source delta, two focused tests, r8 overlay patch and compact receipts",
+    "excluded": "local_only/frontend_candidate, build_output, node_modules, and runtime release contents"
+  }
+}
