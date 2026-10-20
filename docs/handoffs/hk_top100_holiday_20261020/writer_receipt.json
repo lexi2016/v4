@@ -1,0 +1,163 @@
+{
+  "schema_version": "v4.hk_top100_holiday_writer.v1",
+  "state": "IMPLEMENTED_SECOND_INCREMENTAL_REPAIR_READY_FOR_THIRD_REVIEW",
+  "goal": "HK target 20261020 uses last HK securities/Connect session 20261016 across scheduler normal, HK-only retry, consumer reader and preparation gates; A dates and research safety remain unchanged.",
+  "writer": "hk_top100_runtime_writer; generic worker entry; no specialist role claimed",
+  "baseline_commit": "cd27b909af8d7865ecbb32c968effd936ef1d844",
+  "branch": "codex/hk-top100-holiday-runtime-20261020-r1",
+  "source_root": "/Users/lexi/.codex/worktrees/hk-top100-holiday-runtime-20261020/v4_app",
+  "retained_runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app",
+  "runtime_entry": "infrastructure.scheduling.executor_registry.FixedExecutorRegistry._preselection_pools via facade FunctionType rebinding",
+  "runtime_files": {
+    "infrastructure/scheduling/executor_registry_preselection.py": {
+      "before_sha256": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+      "after_sha256": "75e065bb68add1cb6c87a133edbdc5ee508e8395906e0a57ccb9fa07195afbb9",
+      "reviewed_source": "infrastructure/scheduling/executor_registry_preselection.py"
+    },
+    "ops/materialize_scheduled_preselection.py": {
+      "before_sha256": "36a67a960f27a6119459e9380cc8ec6fd06b079c415b850195fda168bf540e66",
+      "after_sha256": "08c0cbaa5ae638f93aef20f17c1791e9c73178b9f0a1ab3cbe4b7c1e3039eeac",
+      "reviewed_source": "docs/handoffs/hk_top100_holiday_20261020/runtime_overlay/ops/materialize_scheduled_preselection.py"
+    }
+  },
+  "candidate_split": {
+    "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+    "before_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+    "after_sha256": "b6b4b4845bad1e2acf03c33a7d1bcf802495be8247c15cc6eb192cfa020b9f70",
+    "delta": "HK eligibility uses next HK target-session state so an A-open HK holiday still prepares HK from previous close."
+  },
+  "tests": {
+    "python_executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+    "python_version": "3.14.6",
+    "actual_import_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app",
+    "baseline": {
+      "result": "2 passed, 12 skipped (before last two preparation-gate additions)",
+      "facts": [
+        "normal HK update/security-master/scorer received holiday 20261019",
+        "existing HK-only retry raises NameError for missing rebound helper"
+      ]
+    },
+    "overlay": {
+      "result": "17 passed, 2 skipped",
+      "command": "cd /tmp && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=\"/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app\" /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest \"/Users/lexi/.codex/worktrees/hk-top100-holiday-runtime-20261020/v4_app/tests/test_preselection_scheduler_lane_repair.py\" -c /dev/null -p no:cacheprovider --basetemp=/tmp/hk-top100-writer-contract-r2 --tb=short -q"
+    },
+    "scope": [
+      "actual retained facade importer and normal handler",
+      "A signal/target args unchanged",
+      "HK-only retry caller and real first preparation step",
+      "real retained domain HK mapper plus formal consumer gate with synthetic READY100 source",
+      "unknown calendar fails before producer",
+      "preparation failure prohibits scorer",
+      "retained dispatcher continues preselection after independent evidence failure",
+      "candidate split holiday lane",
+      "retained shared CLI parser accepts normal and real retry generated scorer argv; parser declarations only executed",
+      "actual retained strict reader imported and inspect.signature binds exact production keywords",
+      "actual facade enters real retry through all three preparation/scorer command generations; final scorer execution stub fails before read/score/write",
+      "unsupported split HK dates rejected before preparation/producer/reader with explicit CANNOT_CONFIRM; A continues"
+    ],
+    "previous_overlay_not_acceptance": {
+      "result": "15 passed, 2 skipped",
+      "command": "cd /tmp && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=\"/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app\" /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest \"/Users/lexi/.codex/worktrees/hk-top100-holiday-runtime-20261020/v4_app/tests/test_preselection_scheduler_lane_repair.py\" -c /dev/null -p no:cacheprovider --basetemp=/tmp/hk-top100-writer-overlay-20261020-r4 --tb=short -q"
+    },
+    "incremental_note": "Source changes and shared-contract evidence justify targeted suite rerun; original baseline/evidence-workload/candidate split receipts remain supporting, first Reviewer FAIL retained.",
+    "second_incremental": {
+      "before": "2 failed, 2 passed, 19 deselected",
+      "after": "4 passed, 19 deselected",
+      "command": "cd /tmp && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=\"/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app\" /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -m pytest \"/Users/lexi/.codex/worktrees/hk-top100-holiday-runtime-20261020/v4_app/tests/test_preselection_scheduler_lane_repair.py\" -c /dev/null -p no:cacheprovider --basetemp=/tmp/hk-top100-dependency-after-r1 -k dependency_checks_follow_execution_branch --tb=short -q",
+      "scope": "Only branch-specific HK dependencies skipped after split-date rejection; missing unused HK scorer/security permits A; normal HK scorer and A selector remain required.",
+      "prior_pass_reused": "Prior 17 passed tests and Reviewer P1 resolution reused; no date helper/shared/ops/candidate changes or broad rerun."
+    }
+  },
+  "preflight_workload": {
+    "status": "INDEPENDENT_FAILURE_PRESERVED",
+    "failure": "PRODUCER_RECEIPT_MISSING:HK:20261019",
+    "evidence": [
+      "ops/run_v35_macos_scheduler.py:463-580 only stage slots acquire stage inputs; 1730/1800 dispatch directly",
+      "infrastructure/scheduling/dispatcher.py:291-350 per-workload failure appends result and continues loop",
+      "contracts/runtime_workloads.json research_panel_runtime_evidence and preselection_pools have independent catalog entries"
+    ],
+    "patched": false
+  },
+  "not_run": [
+    "independent Reviewer verdict",
+    "full release integration/inventory rebinding",
+    "commit/push",
+    "deployment/restart",
+    "provider requests/data regeneration",
+    "natural scheduler slot",
+    "API/UI revalidation for this code patch"
+  ],
+  "pass_scope": "Writer second incremental 4-case branch-check regression only; third independent review pending. Prior P1 resolved per Reviewer, second-round P2 failure retained.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "business_state_writes": false,
+    "provider_calls": false,
+    "release_writes": false
+  },
+  "overlay_build": {
+    "result": "OVERLAY_BUILT_NOT_DEPLOYED",
+    "output": "/private/tmp/hk-top100-reviewed-overlay-20261020-contract-r2",
+    "files_compiled": 2,
+    "sha_matches_receipt": true,
+    "supersedes": [
+      "/private/tmp/hk-top100-reviewed-overlay-20261020-r1",
+      "/private/tmp/hk-top100-reviewed-overlay-20261020-contract-r1"
+    ]
+  },
+  "diff_check": "PASS",
+  "supporting_files": {
+    "tests/test_preselection_scheduler_lane_repair.py": {
+      "before_sha256": null,
+      "after_sha256": "11427fb6726e760bd5f75fe16bb6e74ea628d79a565e66b5fe14deba3a1cd432"
+    },
+    "docs/handoffs/hk_top100_holiday_20261020/build_runtime_overlay.py": {
+      "before_sha256": null,
+      "after_sha256": "d95befb8e1946750a761be6c54b3b8c5296ff886c775ec576dbc71bed692ad74"
+    },
+    "docs/handoffs/hk_top100_holiday_20261020/runtime.patch": {
+      "before_sha256": null,
+      "after_sha256": "7e193c8924724bdc87fb70f5a6efbcbe58c37743ce3d4509d0271ea369017df5"
+    },
+    "docs/handoffs/hk_top100_holiday_20261020/README.md": {
+      "before_sha256": null,
+      "after_sha256": "0e36c18438e2188095efdf3f17cebef415ac137b316674a67f2771a106004832"
+    },
+    "docs/handoffs/hk_top100_holiday_20261020/review_round1_fail.json": {
+      "before_sha256": null,
+      "after_sha256": "f713ab0f345e9dc7d6c42b4950c46ed67b106e439215c625b71c833a8655fc41"
+    },
+    "docs/handoffs/hk_top100_holiday_20261020/review_round2_fail.json": {
+      "before_sha256": null,
+      "after_sha256": "1dab3dc89a7d0d28a9627f0a00bce4725713966a2a7b0e24c8cb02e64381c08c"
+    },
+    "docs/handoffs/hk_top100_holiday_20261020/review_round2_delta.patch": {
+      "before_sha256": null,
+      "after_sha256": "b97d0b8fdc6d60095d12740495d06be074e04c9c115c5abd0aeab5f3ce33b47f"
+    }
+  },
+  "review_round": 2,
+  "previous_review": "review_round1_fail.json",
+  "current_contract_policy": "Only equal price and Connect eligibility dates supported by retained shared contract. No extra producer CLI flag or strict-reader keyword. Split dates fail HK early with HK_SPLIT_DATE_CONTRACT_UNSUPPORTED, CANNOT_CONFIRM; A continues.",
+  "retained_shared_contract": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+    "files": {
+      "scripts/materialize_hk_0_2.py": "da2b7ded436badd1406700ba0674324382cc3fa6d5a802178e1ef31fe5e2cdf6",
+      "shared_data/hk_0_2.py": "6dde013afb9140728ec60bfc160976caf2e4e10ea181b984d5b1a6e5f33689a1"
+    },
+    "reader_signature": "(store_root, *, target_date, expected_signal_date)",
+    "producer_flags": [
+      "--store-root",
+      "--asset-root",
+      "--signal-date",
+      "--target-date"
+    ],
+    "changed": false
+  },
+  "review_history": [
+    "review_round1_fail.json",
+    "review_round2_fail.json"
+  ]
+}

@@ -1,0 +1,393 @@
+--- a/infrastructure/scheduling/executor_registry_preselection.py
++++ b/infrastructure/scheduling/executor_registry_preselection.py
+@@ -12,6 +12,71 @@
+ from contracts.runtime_tasks import DispatchRequest
+ from infrastructure.preselection_pool_store import PreselectionPoolStore
+ from ops.daily_materialize import resolve_selector_panel
++
++
++def _hk_price_and_eligibility_dates(target_date: str) -> tuple[str, str]:
++    """Keep HK securities pricing separate from Southbound eligibility."""
++    from contracts.trading_calendar import load_market_calendar, previous_session
++
++    calendar = load_market_calendar()
++    price_signal_date = previous_session(
++        calendar, target_date, market="hk_securities"
++    )
++    eligibility_source_date = previous_session(
++        calendar, target_date, market="hk_connect"
++    )
++    return price_signal_date, eligibility_source_date
++
++
++def _hk_next_target_date(business_date: str) -> str:
++    """Use the deployed calendar API; reject dates outside its frozen year."""
++    from datetime import datetime, timedelta
++    from contracts.trading_calendar import TradingDayState, load_market_calendar, resolve_market_states
++
++    calendar = load_market_calendar()
++    if resolve_market_states(calendar, business_date)["hk_securities"] == TradingDayState.UNKNOWN:
++        raise ValueError("next-session date is outside frozen calendar")
++    cursor = datetime.strptime(business_date, "%Y%m%d").date() + timedelta(days=1)
++    while cursor.year == calendar.year:
++        day = cursor.strftime("%Y%m%d")
++        if resolve_market_states(calendar, day)["hk_securities"] in {
++            TradingDayState.FULL_TRADING_DAY, TradingDayState.HALF_TRADING_DAY_AM,
++        }:
++            return day
++        cursor += timedelta(days=1)
++    raise ValueError("next session is outside frozen calendar")
++
++
++def _hk_preselection_source_dates(
++    business_date: str,
++    hk_target_date: str,
++) -> tuple[str, str]:
++    """Bind price features to the business-date HK close and eligibility to D-1 Connect."""
++    from contracts.trading_calendar import (
++        TradingDayState,
++        load_market_calendar,
++        previous_session,
++        resolve_market_states,
++    )
++
++    calendar = load_market_calendar()
++    expected_target = _hk_next_target_date(business_date)
++    if hk_target_date != expected_target:
++        raise ValueError("HK target must be the next HK securities session")
++    hk_state = resolve_market_states(calendar, business_date)["hk_securities"]
++    if hk_state in {
++        TradingDayState.FULL_TRADING_DAY,
++        TradingDayState.HALF_TRADING_DAY_AM,
++    }:
++        price_signal_date = business_date
++    else:
++        price_signal_date = previous_session(
++            calendar, business_date, market="hk_securities"
++        )
++    eligibility_source_date = previous_session(
++        calendar, hk_target_date, market="hk_connect"
++    )
++    return price_signal_date, eligibility_source_date
+ 
+ 
+ def _verified_formal_pool_reuse(
+@@ -90,13 +155,16 @@
+                 if payload.get("status") not in {"READY", "STRICT_0_2_READY", "HK_0_2_TOP100_READY"}:
+                     return reject_hk_or_fallback()
+                 try:
+-                    from contracts.trading_calendar import load_market_calendar, previous_session
++                    from infrastructure.scheduling.executor_registry_preselection import _hk_price_and_eligibility_dates
++                    expected_signal, eligibility_source_date = _hk_price_and_eligibility_dates(trade_date)
++                    if eligibility_source_date != expected_signal:
++                        raise ValueError("HK_SPLIT_DATE_CONTRACT_UNSUPPORTED")
+                     signal_dates = {str(row.get("signal_date") or "") for row in rows}
+                     target_dates = {str(row.get("target_date") or "") for row in rows}
+                     if len(signal_dates) != 1 or target_dates != {trade_date}:
+                         raise ValueError("HK_HISTORY_RESOLUTION_CACHE_ROW_DATE_MISMATCH")
+                     signal_date = next(iter(signal_dates))
+-                    if (signal_date != previous_session(load_market_calendar(), trade_date, market="hk_securities")
++                    if (signal_date != expected_signal
+                             or (payload.get("signal_date") is not None and payload["signal_date"] != signal_date)
+                             or (payload.get("target_date") is not None and payload["target_date"] != trade_date)
+                             or any(row.get("trade_date") is not None and row["trade_date"] != trade_date for row in rows)):
+@@ -105,8 +173,8 @@
+                     module = load_isolated_package_module(self.shared_package_root,
+                         package_directory="shared_data", module_leaf="hk_0_2",
+                         namespace_prefix="hk_history_cache_gate")
+-                    verified = module.read_verified_hk_0_2_pool(self.shared_data_root,
+-                        target_date=trade_date, expected_signal_date=signal_date)
++                    reader_arguments = {"target_date": trade_date, "expected_signal_date": signal_date}
++                    verified = module.read_verified_hk_0_2_pool(self.shared_data_root, **reader_arguments)
+                     if (verified.run.receipt.get("status") != "READY"
+                             or verified.run.verification["artifact_sha256"] != payload.get("source_sha256")
+                             or verified.run.verification["artifact_sha256"] != payload.get("source_artifact_sha256",payload.get("source_sha256"))
+@@ -128,12 +196,14 @@
+                         raise ValueError("HK_HISTORY_RESOLUTION_CACHE_VALUES_MISMATCH")
+                 except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:
+                     # A is already independently verified. Never enter its producer or rewrite its cache.
+-                    return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
+-                        "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
++                    unsupported = str(error) == "HK_SPLIT_DATE_CONTRACT_UNSUPPORTED"
++                    return {"status":"FAILED", "exit_code":1,
++                        "failure_class":"UPSTREAM_NOT_READY" if unsupported else "HK_HISTORY_RESOLUTION_CACHE_REJECTED",
++                        "a_selector_status":"READY", "hk_lane_status":"CANNOT_CONFIRM" if unsupported else "QUARANTINED",
+                         "hk_quality_rejected":True, "producer_called":False, "write_performed":False,
+                         "formal_pool_reuse":{"a_pool_id":"a_d1_premarket_pool",
+                             "a_source_sha256":pools["a_d1_premarket_pool"].get("source_sha256")},
+-                        "reason":"HK_HISTORY_RESOLUTION_CACHE_REJECTED", "production_allowed":False,
++                        "reason":str(error) if unsupported else "HK_HISTORY_RESOLUTION_CACHE_REJECTED", "production_allowed":False,
+                         "buy_gate_updated":False, "orders_sent":False}
+             pools[pool_id] = payload
+     except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError):
+@@ -163,20 +233,40 @@
+ def _preselection_pools(
+     self, request: DispatchRequest
+ ) -> dict[str, Any]:
++    # The facade rebinds this handler's globals; helpers must be imported locally.
++    from infrastructure.scheduling.executor_registry_preselection import (
++        _hk_next_target_date, _hk_preselection_source_dates, _retry_missing_hk_only,
++    )
++    # HK pricing and eligibility follow their own frozen sessions, independently of A.
++    try:
++        hk_target_date = _hk_next_target_date(request.business_date)
++        hk_signal_date, hk_eligibility_source_date = _hk_preselection_source_dates(
++            request.business_date, hk_target_date
++        )
++    except ValueError as error:
++        raise WorkloadExecutionError(
++            self._failure_result("preselection_pools", [], str(error))
++        ) from error
++    hk_date_contract_error = (
++        "HK_SPLIT_DATE_CONTRACT_UNSUPPORTED"
++        if hk_signal_date != hk_eligibility_source_date else ""
++    )
+     # A pending journal must not be recovered as a side effect of an HK-only retry.
+     pending = self.data_root / "preselection_pending_commits"
+     local_day = self.data_root / "preselection_pools" / request.target_date
+     if ((local_day / "a_d1_premarket_pool.json").exists()
+-            and not (local_day / "hkconnect_d1_top100.json").exists()
++            and not (self.data_root / "preselection_pools" / hk_target_date / "hkconnect_d1_top100.json").exists()
+             and pending.exists() and any(pending.rglob("*.json"))):
+         return {"status": "FAILED", "exit_code": 1, "failure_class": "UPSTREAM_NOT_READY",
+             "reason": "HK_RETRY_PENDING_JOURNAL", "a_selector_status": "CANNOT_CONFIRM",
+             "hk_lane_status": "QUARANTINED", "producer_called": False, "A_producer_called": False,
+             "write_performed": False, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+-    reused = self._verified_formal_pool_reuse(request.target_date)
++    reused = (self._verified_formal_pool_reuse(request.target_date)
++        if hk_target_date == request.target_date and not hk_date_contract_error else None)
+     if reused is not None and reused.get("hk_missing_retry"):
+-        return _retry_missing_hk_only(self, request, signal_date=request.business_date,
+-            target_date=request.target_date, a_identity=reused["a_identity"])
++        return _retry_missing_hk_only(self, request, signal_date=hk_signal_date,
++            target_date=hk_target_date, a_identity=reused["a_identity"],
++            eligibility_source_date=hk_eligibility_source_date)
+     if reused is not None and reused.get("hk_quality_rejected"):
+         return reused  # keep exact A bytes; HK rejection must not fall through to paired producers
+     modules = [
+@@ -212,13 +302,12 @@
+         self.shared_package_root / "scripts" / "capture_public_fupan.py",
+     ]
+     if reused is None:
+-        shared_entries.extend(
+-            (
+-                self.shared_package_root / "scripts" / "materialize_v192_selector.py",
++        shared_entries.append(self.shared_package_root / "scripts" / "materialize_v192_selector.py")
++        if not hk_date_contract_error:
++            shared_entries.extend((
+                 self.shared_package_root / "scripts" / "update_hk_0_2_panel.py",
+                 self.shared_package_root / "scripts" / "materialize_hk_0_2.py",
+-            )
+-        )
++            ))
+     for shared_entry in shared_entries:
+         if not shared_entry.is_file():
+             raise WorkloadExecutionError(
+@@ -229,7 +318,7 @@
+                 )
+             )
+     security_entry = (self.repo_root or Path.cwd()) / "ops" / "ensure_hk_security_master.py"
+-    if reused is None and not security_entry.is_file():
++    if reused is None and not hk_date_contract_error and not security_entry.is_file():
+         raise WorkloadExecutionError(
+             self._failure_result(
+                 "preselection_pools",
+@@ -327,6 +416,12 @@
+         }
+         hk_result = dict(update_result)
+         hk_result["modules"] = ["scripts.materialize_hk_0_2"]
++    elif hk_date_contract_error:
++        hk_result = self._failure_result("preselection_pools", [], hk_date_contract_error)
++        hk_result.update(status="CANNOT_CONFIRM", lane="HK_CONNECT",
++            first_gate="HK_DATE_CONTRACT", reason=hk_date_contract_error,
++            failure_class="UPSTREAM_NOT_READY", producer_called=False, write_performed=False)
++        hk_lane_degradations.append(dict(hk_result))
+     else:
+         hk_runtime_error = self._hk_0_2_runtime_error()
+         hk_runtime_missing = (
+@@ -350,7 +445,7 @@
+                 [
+                     "--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
+                     "--tdx-root", str(self.hk_0_2_tdx_root),
+-                    "--through-date", request.business_date,
++                    "--through-date", hk_signal_date,
+                 ],
+                 cwd=self.shared_package_root,
+                 env=trusted_env,
+@@ -367,7 +462,7 @@
+                 "--store-root", str(self.shared_data_root),
+                 "--universe-root", str(hk_universe_root),
+                 "--shared-package-root", str(self.shared_package_root),
+-                "--trade-date", request.business_date,
++                "--trade-date", hk_eligibility_source_date,
+                 "--futu-python", str(self.shared_futu_python_executable),
+                 "--prepare-exact-date",
+             ],
+@@ -399,8 +494,8 @@
+                 [
+                     "--store-root", str(self.shared_data_root),
+                     "--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
+-                    "--signal-date", request.business_date,
+-                    "--target-date", request.target_date,
++                    "--signal-date", hk_signal_date,
++                    "--target-date", hk_target_date,
+                 ],
+                 cwd=self.shared_package_root,
+                 env=trusted_env,
+@@ -458,6 +553,9 @@
+     arguments = [
+         "--trade-date", request.target_date,
+         "--signal-date", request.business_date,
++        "--hk-target-date", hk_target_date,
++        "--hk-signal-date", hk_signal_date,
++        "--hk-eligibility-source-date", hk_eligibility_source_date,
+         "--data-root", str(self.data_root),
+         "--input-root", str(self.preselection_input_root),
+         "--shared-data-root", str(self.shared_data_root),
+@@ -479,9 +577,10 @@
+         else {}
+     )
+     hk_local_gate = formal_required.get("hkconnect_d1_top100")
+-    hk_local_ready = isinstance(hk_local_gate, dict) and hk_local_gate.get("ready") is True
++    hk_local_ready = not hk_date_contract_error and isinstance(hk_local_gate, dict) and hk_local_gate.get("ready") is True
+     hk_local_research_ready = (
+-        isinstance(hk_local_gate, dict)
++        not hk_date_contract_error
++        and isinstance(hk_local_gate, dict)
+         and hk_local_gate.get("research_ready") is True
+         and hk_local_gate.get("status") == "PARTIAL_WITH_ROWS"
+     )
+@@ -504,6 +603,11 @@
+     if isinstance(formal_pool_gate, dict):
+         result["formal_pool_gate"] = formal_pool_gate
+     result["modules"] = modules
++    result["hk_target_date"] = hk_target_date
++    result["hk_signal_date"] = hk_signal_date
++    result["hk_eligibility_source_date"] = hk_eligibility_source_date
++    if hk_date_contract_error:
++        result["hk_date_contract_error"] = hk_date_contract_error
+     result["formal_pool_reuse"] = (
+         reused.get("formal_pool_reuse") if reused is not None else None
+     )
+@@ -572,7 +676,7 @@
+     wrote_consumer = False
+     def result(reason, *, ready=False):
+         retryable = reason.startswith("HK_RETRY_UPSTREAM_NOT_READY:") or reason in {
+-            "HK_RETRY_PENDING_JOURNAL", "HK_RETRY_RUNTIME_OR_UNIVERSE_MISSING"}
++            "HK_RETRY_PENDING_JOURNAL", "HK_RETRY_RUNTIME_OR_UNIVERSE_MISSING", "HK_SPLIT_DATE_CONTRACT_UNSUPPORTED"}
+         return {"status": "SUCCEEDED" if ready else "FAILED", "exit_code": 0 if ready else 1,
+             "failure_class": None if ready else "UPSTREAM_NOT_READY" if retryable else "HK_HISTORY_RESOLUTION_CACHE_REJECTED",
+             "reason": reason, "a_selector_status": "READY", "hk_lane_status": "READY" if ready else "CANNOT_CONFIRM" if retryable else "QUARANTINED",
+@@ -580,6 +684,8 @@
+             "modules": list(calls), "producer_called": bool(calls), "A_producer_called": False,
+             "write_performed": wrote_consumer or bool(calls), "production_allowed": False,
+             "buy_gate_updated": False, "orders_sent": False}
++    if eligibility_source_date is not None and eligibility_source_date != signal_date:
++        return result("HK_SPLIT_DATE_CONTRACT_UNSUPPORTED")
+     try:
+         if self.shared_data_root is None or self.shared_package_root is None:
+             raise ValueError("HK_RETRY_ROOT_NOT_CONFIGURED")
+@@ -607,8 +713,6 @@
+             package_directory="shared_data", module_leaf="hk_0_2", namespace_prefix="hk_history_cache_gate")
+         def read():
+             arguments = {"target_date": target_date, "expected_signal_date": signal_date}
+-            if eligibility_source_date is not None and eligibility_source_date != signal_date:
+-                arguments["expected_eligibility_source_date"] = eligibility_source_date
+             pool = module.read_verified_hk_0_2_pool(self.shared_data_root, **arguments)
+             if pool.run.receipt.get("status") != "READY" or len(pool.rows) != 100:
+                 raise ValueError("HK_RETRY_SOURCE_NOT_READY100")
+@@ -646,8 +750,7 @@
+                     "--futu-python", str(self.shared_futu_python_executable), "--prepare-exact-date"], self.repo_root, None),
+                 ("scripts.materialize_hk_0_2", ["--store-root", str(self.shared_data_root),
+                     "--asset-root", str(self.shared_data_root / "assets" / "hk_0_2"),
+-                    "--signal-date", signal_date, "--target-date", target_date,
+-                    *(["--eligibility-source-date", eligibility_source_date] if eligibility_source_date is not None else [])], self.shared_package_root, self.hk_0_2_python_executable)]
++                    "--signal-date", signal_date, "--target-date", target_date], self.shared_package_root, self.hk_0_2_python_executable)]
+             for name, arguments, cwd, python in steps:
+                 if source_key in source_store._load_latest()["entries"]:
+                     pool = read()  # a concurrent valid source may be consumed, never overwritten
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -160,8 +160,31 @@
+     data_root: Path,
+     pool_reader=None,
+     hk_pool_reader=None,
++    hk_target_date: str | None = None,
++    hk_signal_date: str | None = None,
++    hk_eligibility_source_date: str | None = None,
+     reuse_formal_pools: Mapping[str, Mapping] | None = None,
+ ) -> list[dict]:
++    from infrastructure.scheduling.executor_registry_preselection import (
++        _hk_next_target_date, _hk_preselection_source_dates,
++    )
++
++    expected_hk_target = _hk_next_target_date(signal_date)
++    expected_hk_signal, expected_hk_eligibility = _hk_preselection_source_dates(
++        signal_date, expected_hk_target
++    )
++    hk_target_date = hk_target_date or expected_hk_target
++    hk_signal_date = hk_signal_date or expected_hk_signal
++    hk_eligibility_source_date = hk_eligibility_source_date or expected_hk_eligibility
++    if (hk_target_date, hk_signal_date, hk_eligibility_source_date) != (
++        expected_hk_target, expected_hk_signal, expected_hk_eligibility
++    ):
++        raise ValueError("HK preselection dates do not match the frozen calendar")
++    hk_date_contract_error = (
++        "HK_SPLIT_DATE_CONTRACT_UNSUPPORTED"
++        if hk_eligibility_source_date != hk_signal_date else ""
++    )
++
+     day = Path(input_root) / trade_date
+     fupan = day / "fupan.csv"
+     fupan_manifest = day / "fupan.manifest.json"
+@@ -219,14 +242,18 @@
+                 market="A",
+                 reason=f"{reason_code}:{error}",
+             )
+-    if "hkconnect_d1_top100" in reused_formal:
++    if hk_date_contract_error:
++        hk_0_2 = _missing(hk_target_date, pool_id="hkconnect_d1_top100",
++            display_name="港股通 0.2 D-1 Top100", market="HK", reason=hk_date_contract_error)
++    elif ("hkconnect_d1_top100" in reused_formal
++            and hk_target_date == trade_date):
+         hk_0_2 = dict(reused_formal["hkconnect_d1_top100"])
+     else:
+         try:
+             hk_0_2 = build_shared_hk_0_2_pool(
+                 shared_data_root,
+-                trade_date=trade_date,
+-                signal_date=signal_date,
++                trade_date=hk_target_date,
++                signal_date=hk_signal_date,
+                 shared_package_root=shared_package_root,
+                 reader=hk_pool_reader,
+             )
+@@ -235,7 +262,7 @@
+                 raise
+             reason_code = _input_error_code("HK_0_2", error)
+             hk_0_2 = _missing(
+-                trade_date,
++                hk_target_date,
+                 pool_id="hkconnect_d1_top100",
+                 display_name="港股通 0.2 D-1 Top100",
+                 market="HK",
+@@ -379,6 +406,9 @@
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--trade-date", required=True)
+     parser.add_argument("--signal-date", required=True)
++    parser.add_argument("--hk-target-date")
++    parser.add_argument("--hk-signal-date")
++    parser.add_argument("--hk-eligibility-source-date")
+     # The selector is an A-share research-preview fallback only.  HK 0.2
+     # materialization has its own exact-date source and must not be gated by
+     # this optional A-share input.
+@@ -413,6 +443,9 @@
+         data_root=args.data_root,
+         pool_reader=pool_reader,
+         hk_pool_reader=hk_pool_reader,
++        hk_target_date=args.hk_target_date,
++        hk_signal_date=args.hk_signal_date,
++        hk_eligibility_source_date=args.hk_eligibility_source_date,
+         reuse_formal_pools=reuse_formal_pools,
+     )
+     results = publish_scheduled_artifacts(

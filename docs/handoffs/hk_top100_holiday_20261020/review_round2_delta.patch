@@ -1,0 +1,29 @@
+--- a/infrastructure/scheduling/executor_registry_preselection.py
++++ b/infrastructure/scheduling/executor_registry_preselection.py
+@@ -302,13 +302,12 @@
+         self.shared_package_root / "scripts" / "capture_public_fupan.py",
+     ]
+     if reused is None:
+-        shared_entries.extend(
+-            (
+-                self.shared_package_root / "scripts" / "materialize_v192_selector.py",
++        shared_entries.append(self.shared_package_root / "scripts" / "materialize_v192_selector.py")
++        if not hk_date_contract_error:
++            shared_entries.extend((
+                 self.shared_package_root / "scripts" / "update_hk_0_2_panel.py",
+                 self.shared_package_root / "scripts" / "materialize_hk_0_2.py",
+-            )
+-        )
++            ))
+     for shared_entry in shared_entries:
+         if not shared_entry.is_file():
+             raise WorkloadExecutionError(
+@@ -319,7 +318,7 @@
+                 )
+             )
+     security_entry = (self.repo_root or Path.cwd()) / "ops" / "ensure_hk_security_master.py"
+-    if reused is None and not security_entry.is_file():
++    if reused is None and not hk_date_contract_error and not security_entry.is_file():
+         raise WorkloadExecutionError(
+             self._failure_result(
+                 "preselection_pools",

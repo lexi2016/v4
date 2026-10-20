@@ -1,0 +1,22 @@
+{
+  "schema_version": "v4.hk_top100_integration.v1",
+  "state": "INTEGRATED_NOT_DEPLOYED",
+  "candidate": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-top100-holiday-scheduler-20261020-r1",
+  "manifest_sha256": "a80dbd4ecdcb8e3a45f7641f6761e8ab62010df78a42619de9e421006d41bde4",
+  "delta_paths": [
+    "infrastructure/scheduling/executor_registry_preselection.py",
+    "ops/materialize_scheduled_preselection.py"
+  ],
+  "unchanged_other_actual_files": true,
+  "parent_manifest_drift_preserved": [
+    {
+      "path": "ops/macos_research_panel_daily_receipts.py",
+      "manifest_sha256": "1f18a817e2d732403ee9b573c94fb80d53732702f089fc4d0d064965e3467064",
+      "actual_sha256": "14197397d9d7dcd7e748492973f5a0ea2c215cfe4ac22dbbd1a0ed4646ee2aa1"
+    }
+  ],
+  "parent_inventory_entry_count": 871,
+  "candidate_inventory_entry_count": 871,
+  "code_review_receipt_sha256": "bc5cca6a7a2db9ff9b7ec901d6c9ecd71553b4a2a8b6cff2fa24965468b5f1e5",
+  "rollback_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1"
+}

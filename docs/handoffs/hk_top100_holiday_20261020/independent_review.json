@@ -1,0 +1,26 @@
+{
+  "schema_version": "v4.hk_top100_independent_review.v1",
+  "reviewer": "/root/hk_top100_runtime_review",
+  "recorded_by": "root from independent reviewer final messages",
+  "verdict": "REVIEWED_PASS",
+  "round": 3,
+  "previous_findings_resolved": [
+    "P1 retained shared CLI/reader contract incompatibility",
+    "P2 unused HK dependency checks blocked A during HK split-date rejection"
+  ],
+  "verification": [
+    "Round 2 independent suite: 17 passed, 2 skipped; unchanged component evidence retained",
+    "Round 3 independent delta: 4 passed, 19 deselected (-k dependency_checks_follow_execution_branch)"
+  ],
+  "reviewed_runtime_sha256": {
+    "infrastructure/scheduling/executor_registry_preselection.py": "75e065bb68add1cb6c87a133edbdc5ee508e8395906e0a57ccb9fa07195afbb9",
+    "ops/materialize_scheduled_preselection.py": "08c0cbaa5ae638f93aef20f17c1791e9c73178b9f0a1ab3cbe4b7c1e3039eeac"
+  },
+  "scope": "offline actual facade date routing, real retry command generation and retained parser/reader signatures; HK unsupported split-date fail-closed with A continuing; dependency branch checks",
+  "not_run": [
+    "actual producer scoring/data regeneration",
+    "deployment verification",
+    "natural slot",
+    "API/UI behavior for new code"
+  ]
+}

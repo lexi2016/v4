@@ -196,6 +196,9 @@ def _FixedExecutorRegistry__preselection_pools_body(_v4_scope, /, self, request)
     )
     trading_states = {"FULL_TRADING_DAY", "HALF_TRADING_DAY_AM"}
     a_lane_eligible = a_market_state in trading_states
+    # A may be open on an HK holiday: still prepare the next HK session
+    # from its last real close rather than skipping the HK producer.
+    _, hk_market_state = _preselection_market_lane_states(hk_target_date)
     hk_lane_eligible = hk_market_state in trading_states
     if a_lane_eligible and self.preselection_input_root is None:
         raise _v4_global(_v4_scope, 'WorkloadExecutionError')(

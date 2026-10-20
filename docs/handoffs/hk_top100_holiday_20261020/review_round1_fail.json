@@ -1,0 +1,31 @@
+{
+  "schema_version": "v4.hk_top100_review_failure.v1",
+  "review_round": 1,
+  "reviewer": "/root/hk_top100_runtime_review",
+  "verdict": "REVIEWED/FAIL",
+  "priority": "P1",
+  "reviewed_runtime_files": {
+    "infrastructure/scheduling/executor_registry_preselection.py": {
+      "before_sha256": "68adcbfbe5a000786e94c20fedc0105b2dd95b239c52de8249bcaac452967864",
+      "after_sha256": "43a14d20a8a2dc302d3a7017738c3bbbf7075a199e9fdb2e2a044391de0ef2be",
+      "reviewed_source": "infrastructure/scheduling/executor_registry_preselection.py"
+    },
+    "ops/materialize_scheduled_preselection.py": {
+      "before_sha256": "36a67a960f27a6119459e9380cc8ec6fd06b079c415b850195fda168bf540e66",
+      "after_sha256": "d79206c6dd75d2b69ea91bc6daf56f94094e55e243ad61a44257c32cb95fdaa3",
+      "reviewed_source": "docs/handoffs/hk_top100_holiday_20261020/runtime_overlay/ops/materialize_scheduled_preselection.py"
+    }
+  },
+  "writer_test_claim": {
+    "result": "15 passed, 2 skipped",
+    "command": "cd /tmp && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=\"/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-close-scheduler-20261020-r1/app\" /Users/lexi/Desktop/\u5b66\u4e60/v4_app/.venv/bin/python -m pytest \"/Users/lexi/.codex/worktrees/hk-top100-holiday-runtime-20261020/v4_app/tests/test_preselection_scheduler_lane_repair.py\" -c /dev/null -p no:cacheprovider --basetemp=/tmp/hk-top100-writer-overlay-20261020-r4 --tb=short -q"
+  },
+  "reason": "Writer synthetic **kwargs and first-step retry mocks masked retained shared-contract incompatibility.",
+  "facts": [
+    "retained scripts.materialize_hk_0_2 parser accepts only store-root/asset-root/signal-date/target-date",
+    "retained read_verified_hk_0_2_pool accepts only target_date/expected_signal_date",
+    "retry supplied unsupported eligibility flag even when both dates were 20261016; Reviewer real wrapper/dummy roots returned exit 2",
+    "normal/consumer split-date keyword and flag unsupported"
+  ],
+  "disposition": "First Writer 15-pass result is insufficient and does not establish acceptance; repair current contract without changing shared roots/library/producer."
+}

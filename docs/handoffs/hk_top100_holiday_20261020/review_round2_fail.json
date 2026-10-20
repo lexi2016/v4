@@ -1,0 +1,14 @@
+{
+  "schema_version": "v4.hk_top100_review_failure.v1",
+  "review_round": 2,
+  "reviewer": "/root/hk_top100_runtime_review",
+  "verdict": "REVIEWED/FAIL",
+  "priority": "P2",
+  "prior_P1": "RESOLVED per Reviewer",
+  "reviewed_handler_sha256": "beb1e6e195d8f51cfa3a4d28f04b6157144df649f169c98505e5bff47c115149",
+  "reason": "Unsupported split-date path checked unused HK-only entry files before HK lane rejection; absent HK scorer blocked A before its first run.",
+  "reproduction": "New branch dependency cases before fix: 2 failed, 2 passed, 19 deselected (missing HK scorer and security entries wrongly blocked A; normal HK and A checks correctly remained strict).",
+  "fix_scope": "Guard only HK-only entry checks with not hk_date_contract_error; A entries and normal HK checks unchanged.",
+  "after_targeted_result": "4 passed, 19 deselected",
+  "review_round3_scope": "review_round2_delta.patch and direct branch-check regression only; reuse prior accepted P1/shared-contract evidence."
+}
