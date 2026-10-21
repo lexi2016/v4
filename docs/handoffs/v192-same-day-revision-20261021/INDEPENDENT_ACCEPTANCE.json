@@ -1,0 +1,102 @@
+{
+  "all_cases_executed_on_final_source": false,
+  "buy_gate_updated": false,
+  "controller_ruling": "R3 business source unchanged in R4; only three exact dead-child local import lock oracle assertions changed. Preserve earlier FAIL; reuse unchanged passing scopes without rerun.",
+  "decision": "PASS_WITH_EXPLICIT_UNCHANGED_SCOPE_REUSE",
+  "independent_executions": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 NEXT_V192_PUBLISH_ADAPTER_TEST_CONTEXT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_FIXTURE_R2_CONTEXT.json' '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider tests/test_v192_same_day_revision.py",
+      "counts": {
+        "failed": 7,
+        "passed": 42,
+        "total": 49,
+        "warnings": 12
+      },
+      "execution_id": "A_V192_PUBLISH_ADAPTER_SYNTHETIC_20261021_FIXTURE_R2_01",
+      "exit_code": 1,
+      "failed_cases": [
+        "tests/test_v192_same_day_revision.py::test_actual_process_exit_after_shared_before_receipt_resumes",
+        "tests/test_v192_same_day_revision.py::test_claimed_old_and_new_half_archives_resume_after_process_exit[apply-old]",
+        "tests/test_v192_same_day_revision.py::test_claimed_old_and_new_half_archives_resume_after_process_exit[apply-new]",
+        "tests/test_v192_same_day_revision.py::test_claimed_old_and_new_half_archives_resume_after_process_exit[rollback-old]",
+        "tests/test_v192_same_day_revision.py::test_claimed_old_and_new_half_archives_resume_after_process_exit[rollback-new]",
+        "tests/test_v192_same_day_revision.py::test_claimed_half_archive_drift_is_never_overwritten[old]",
+        "tests/test_v192_same_day_revision.py::test_claimed_half_archive_drift_is_never_overwritten[new]"
+      ],
+      "payload_sha256": "416136bfae4e4b2caa023224ab18937621c8450f32fbeec7430dea58176dc427",
+      "receipt_sha256": "0f4d2492f01b3d7694799f1a5fa9dd59e14088224461c614c176a32a0c75c13d",
+      "review_verdict": "REVIEWED/FAIL",
+      "reviewer": "/root/current6_independent_review",
+      "revision": "R2",
+      "status": "SYNTHETIC_SAME_DAY_REVISION_FIXTURE_FAIL",
+      "test_sha256": "d3dac6bd6e6112470f0308bc1026da0611d554d80116e82784c0bbbb401e6824",
+      "wall_seconds": 72.35
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 NEXT_V192_PUBLISH_ADAPTER_TEST_CONTEXT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_FIXTURE_R3_CONTEXT.json' '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider tests/test_v192_same_day_revision.py -k 'actual_process_exit_after_shared_before_receipt_resumes or claimed_old_and_new_half_archives_resume_after_process_exit or claimed_half_archive_drift_is_never_overwritten or shared_lock_ or signal_day_generation_projects_to_next_target_without_future_rows or generation_cannot_be_redated_to_pool_target_to_pass_admission'",
+      "counts": {
+        "deselected": 42,
+        "failed": 3,
+        "passed": 16,
+        "selected": 19,
+        "warnings": 17
+      },
+      "execution_id": "A_V192_PUBLISH_ADAPTER_SYNTHETIC_20261021_FIXTURE_R3_01",
+      "exit_code": 1,
+      "failed_cases": [
+        "tests/test_v192_same_day_revision.py::test_claimed_half_archive_drift_is_never_overwritten[old]",
+        "tests/test_v192_same_day_revision.py::test_claimed_half_archive_drift_is_never_overwritten[new]",
+        "tests/test_v192_same_day_revision.py::test_shared_lock_claim_must_belong_to_exact_operation_binding"
+      ],
+      "payload_sha256": "1eee2f9731afb12bf6672b73822c0a828c27f24553898cd4193998d0304bb710",
+      "receipt_sha256": "71b6b59dac9ca2df1a09093bb3703d25eb7e89162ca79c42eae91a03e02fa20d",
+      "review_verdict": "REVIEWED/FAIL",
+      "reviewer": "/root/current6_independent_review",
+      "revision": "R3",
+      "status": "SYNTHETIC_SAME_DAY_REVISION_FIXTURE_FAIL",
+      "test_sha256": "0e9835551a5016fddaaec147caea75295b234064f81dc50f0f44576a0f9ae6f0",
+      "wall_seconds": 211.23
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 NEXT_V192_PUBLISH_ADAPTER_TEST_CONTEXT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_FIXTURE_R4_CONTEXT.json' '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider 'tests/test_v192_same_day_revision.py::test_claimed_half_archive_drift_is_never_overwritten[old]' 'tests/test_v192_same_day_revision.py::test_claimed_half_archive_drift_is_never_overwritten[new]' tests/test_v192_same_day_revision.py::test_shared_lock_claim_must_belong_to_exact_operation_binding",
+      "counts": {
+        "failed": 0,
+        "passed": 3,
+        "selected": 3,
+        "warnings": 8
+      },
+      "execution_id": "A_V192_PUBLISH_ADAPTER_SYNTHETIC_20261021_FIXTURE_R4_01",
+      "exit_code": 0,
+      "failed_cases": [],
+      "payload_sha256": "1eee2f9731afb12bf6672b73822c0a828c27f24553898cd4193998d0304bb710",
+      "receipt_sha256": "e5ab721eba1bd95d456ec7e87de36be310abf333bb997d6e07f47c82414b2310",
+      "review_verdict": "REVIEWED/PASS",
+      "reviewer": "/root/current6_independent_review",
+      "revision": "R4",
+      "status": "SYNTHETIC_SAME_DAY_REVISION_FIXTURE_PASS",
+      "test_sha256": "05123308f81ec4c25133affa04e7d4709459cc08d137cc8d5825aff97202f5e5",
+      "wall_seconds": 60.51
+    }
+  ],
+  "kind": "COMPACT_EXISTING_RECEIPTS_NOT_NEW_REVIEW",
+  "limitations": [
+    "Real complete-universe admission and same-generation publication not executed.",
+    "Original shared lock has no cross-writer compare-and-swap protocol; no global race-free guarantee.",
+    "No live service activation, formal pointer/pool update, API/UI or natural-slot verification."
+  ],
+  "local_baseline_commit": "96d24610fb3fd6289faa9e9f7b56d3ae60653d02",
+  "orders_sent": false,
+  "production_allowed": false,
+  "registry_R4_terminal_event_sha256": "81a52823848983809d319499fbbc8e9a9cf8952b9386fc58e1085eda39e89f75",
+  "remote_baseline_commit": "3fc51ed0a8d3838e379a4c4ed85bd310e2ad4cd5",
+  "research_only": true,
+  "reused_passes": {
+    "R2": 42,
+    "R3": 16,
+    "R4_new": 3
+  },
+  "schema": "V192_POOL_ADAPTER_ACCEPTANCE_SUMMARY_V1",
+  "scope": "SYNTHETIC_SAME_DAY_REVISION_ONLY",
+  "source_sha256": "1eee2f9731afb12bf6672b73822c0a828c27f24553898cd4193998d0304bb710",
+  "test_sha256": "05123308f81ec4c25133affa04e7d4709459cc08d137cc8d5825aff97202f5e5"
+}

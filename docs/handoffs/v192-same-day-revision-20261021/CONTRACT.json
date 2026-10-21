@@ -1,0 +1,38 @@
+{
+  "schema": "v192.same_day_revision.static_contract.v1",
+  "status": "STATIC_IMPLEMENTED_NOT_EXECUTED",
+  "revision": "R4_CONTROLLER_RULING_EXACT_LOCAL_IMPORT_LOCK_ORACLE_ONLY",
+  "prior_review": "Round1 STATIC_FAIL; R2 fixture FAIL 7/42/49; R3 fixture FAIL 3/16/42deselected with expected STOPs and only dead local control-lock snapshot mismatches; evidence retained in review_round1-3",
+  "registration_mode": "CONTRACT_ONLY_NOT_COUNTED",
+  "GOAL": "One explicit same-day A V192 whole-pool revision through the existing shared replay and local projection/journal, with safe reentry and conditional rollback",
+  "WRITER": "v192_publish_adapter_writer",
+  "REVIEWER": "Independent read-only reviewer to be assigned by controller",
+  "BASELINE_COMMIT": "6471a955b0b40248986400ddc62086ee979c45cf",
+  "ALLOWED_PATHS": [
+    "ops/runtime_payloads/v192_same_day_revision_v1.py",
+    "tests/test_v192_same_day_revision.py",
+    "docs/handoffs/v192-same-day-revision-20261021/"
+  ],
+  "FORBIDDEN_PATHS": [
+    "accepted 17-field and action-reference payloads/tests",
+    "legacy V3 source and all live state/artifact roots",
+    "selector, shared store, local store/transactions/readers, scheduler, oracle",
+    "central EXPERIMENT_REGISTRY.jsonl and root Markdown/indexes",
+    "services, schedules, Windows, Git commit/push and external actions"
+  ],
+  "ONE_VARIABLE": "Explicit A-only same-day revision adapter; existing producers and projections remain authoritative",
+  "SIGNAL_DATE": "20261020",
+  "TARGET_DATE": "20261021",
+  "PASS_SIGNAL": "Independent Reviewer PASS on exactly three R4 oracle cases in R4_ACCEPTANCE_PLAN.md, verify unchanged payload SHA1eee2f9731afb12bf6672b73822c0a828c27f24553898cd4193998d0304bb710 and only two-test-function oracle diff. Reuse R3's16 and R2's42 prior passes per controller ruling; no broad retest or business patch",
+  "R4_STOP_RULE": "Only test/docs static modification authorized. If the unique three-case oracle correction still fails, preserve actual new evidence and stop for controller decision; no automatic fourth-round business patch, no full rerun, no real apply or registration by Writer",
+  "LOCK_RECOVERY_DECISION": "Controller explicitly replaced immediate recovery with operation-bound ESRCH evidence, original stale-window wait only during acquisition, unchanged original 10s timeout reserved within <=40s budget, and actual-state CAS after acquisition. Healthy/unknown/replaced owners stop; adapter never unlinks shared lock and introduces no private lock protocol",
+  "STOP_RULE": "No tests or numeric execution before controller creates a SHA-frozen execution contract and RUN_STARTED context. No real apply in this Writer scope. Identity/gate/CAS/provenance/universe drift or unrelated pending journals stop closed; do not weaken gates, repair unrelated code, fabricate whole-pool receipts or repeat already accepted tests",
+  "test_context_env": "NEXT_V192_PUBLISH_ADAPTER_TEST_CONTEXT",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "not_executed": ["tests", "candidate numerical evaluation", "real apply", "rollback on real stores", "service reload", "API/UI readback", "Git commit/push"]
+}
