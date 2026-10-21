@@ -1,0 +1,249 @@
+--- a/apps/web/src/manager-workbench/Workbench.vue
++++ b/apps/web/src/manager-workbench/Workbench.vue
+@@ -1,6 +1,7 @@
+ <script setup lang="ts">
+ import { reactive } from "vue";
+ import { useWorkbench } from "./useWorkbench";
++import { isValidDate } from "./route";
+ import AnnouncementCandidates from "./AnnouncementCandidates.vue";
+ import type { HKIndustrySummary, Lane, Phase, PlanVersion, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
+ import { LANES, LANE_LABELS, LANE_STATE_LABELS, JOB_STATE_LABELS, PHASE_LABELS,
+@@ -11,6 +12,20 @@
+ import "./workbench.css";
+ 
+ const vm = reactive(useWorkbench());
++function dateInputValue(value: string): string {
++  return /^\d{8}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}` : "";
++}
++function changeDateByCalendar(event: Event): void {
++  const input = event.currentTarget as HTMLInputElement;
++  const date = /^\d{4}-\d{2}-\d{2}$/.test(input.value) ? input.value.replace(/-/g, "") : "";
++  if (!isValidDate(date)) {
++    input.setCustomValidity("请选择有效的目标港股日");
++    input.reportValidity();
++    return;
++  }
++  input.setCustomValidity("");
++  vm.selectDate(date);
++}
+ const panels = [
+   { key: "stocks", label: "今日名单" },
+   { key: "announcements", label: "公告选股" },
+@@ -145,13 +160,12 @@
+     </header>
+ 
+     <section class="mwb-panel mwb-toolbar" aria-label="日期和版本导航">
+-      <form class="mwb-date" @submit.prevent="vm.changeDate">
++      <div class="mwb-date">
+         <label for="mwb-date">目标港股日</label>
+-        <input id="mwb-date" v-model="vm.dateInput" inputmode="numeric" maxlength="8"
+-          pattern="[0-9]{8}" placeholder="YYYYMMDD" aria-describedby="mwb-date-hint" />
+-        <button type="submit">切换日期</button>
+-        <small id="mwb-date-hint">日期是计划目标日，不是公告或行情来源日</small>
+-      </form>
++        <input id="mwb-date" type="date" :value="dateInputValue(vm.route.date)" aria-describedby="mwb-date-hint"
++          @change="changeDateByCalendar" />
++        <small id="mwb-date-hint">选择目标港股日查看已保存结果</small>
++      </div>
+       <div class="mwb-selectors">
+         <label for="mwb-phase">阶段</label>
+         <select id="mwb-phase" :value="vm.route.phase" @change="changePhaseBySelect">
+--- a/apps/web/src/manager-workbench/useWorkbench.ts
++++ b/apps/web/src/manager-workbench/useWorkbench.ts
+@@ -5,7 +5,7 @@
+   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
+   ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
+ } from "./types";
+-import { parseWorkbenchRoute, routeSearch } from "./route";
++import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
+ import type { WorkbenchRoute } from "./route";
+ 
+ export type Panel = "stocks" | "announcements" | "detail" | "progress" | "history" | "reviews" | "catalog";
+@@ -30,7 +30,6 @@
+ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
+   const route = ref<WorkbenchRoute>(parseWorkbenchRoute(window.location.search));
+   const panel = ref<Panel>("stocks");
+-  const dateInput = ref(route.value.date);
+   const decisionFilter = ref<Decision | "">("");
+   const laneFilter = ref<RecommendationLane>('US_MAPPING');
+   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
+@@ -123,15 +122,15 @@
+   }
+   function navigate(next: WorkbenchRoute, replace = false): void {
+     resetPage();
+-    route.value = next; dateInput.value = next.date;
++    route.value = next;
+     const url = window.location.pathname + routeSearch(next, window.location.search) + window.location.hash;
+     if (replace) window.history.replaceState(null, "", url);
+     else window.history.pushState(null, "", url);
+     if (!next.error) void loadDay();
+   }
+-  function changeDate(): void {
+-    const candidate = parseWorkbenchRoute("?date=" + encodeURIComponent(dateInput.value));
+-    navigate(candidate);
++  function selectDate(date: string): void {
++    if (!isValidDate(date) || date === route.value.date) return;
++    navigate(parseWorkbenchRoute("?date=" + encodeURIComponent(date)));
+   }
+   function changeVersion(phase: Phase | "", runId = ""): void {
+     navigate({ date: route.value.date, phase, runId, error: null });
+@@ -139,7 +138,6 @@
+   function onPopState(): void {
+     resetPage();
+     route.value = parseWorkbenchRoute(window.location.search);
+-    dateInput.value = route.value.date;
+     if (!route.value.error) void loadDay();
+   }
+   function dayQuery(): DayQuery {
+@@ -430,13 +428,13 @@
+   onBeforeUnmount(() => { operationSeq++; window.removeEventListener("popstate", onPopState); abortAll(); });
+ 
+   return {
+-    route, panel, dateInput, decisionFilter, laneFilter, searchDraft, search, offset, limit,
++    route, panel, selectDate, decisionFilter, laneFilter, searchDraft, search, offset, limit,
+     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
+     history, historyLoading, historyError, review, reviewLoading, reviewError,
+     catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,
+     job, jobId, jobLoading, jobError, operationLoading, runPhase,
+     stocks, snapshot, counts, pagination, versions, lanes, selectedRunId, selectedDate, readMode, valid,
+-    changeDate, changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
++    changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
+     loadHistory, loadReview, loadCatalog, loadCatalogRelation, searchCatalog, changeCatalogPage,
+     pollJob, createPlan, retryJob, viewJobVersion
+   };
+--- a/apps/web/src/manager-workbench/workbench.css
++++ b/apps/web/src/manager-workbench/workbench.css
+@@ -19,7 +19,7 @@
+ .mwb-date, .mwb-selectors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+ .mwb-date small { flex-basis: 100%; margin-left: 89px; color: #64748b; }
+ .mwb-date label, .mwb-selectors label, .mwb-filters label { font-size: 12px; color: #475569; font-weight: 700; }
+-.mwb-date input { width: 125px; font-variant-numeric: tabular-nums; }
++.mwb-date input[type="date"] { width: 150px; font-variant-numeric: tabular-nums; }
+ .mwb-quiet, .mwb-detail-link { background: #fff; color: #163957; border-color: #9bafc3; }
+ .mwb-quiet:hover:not(:disabled), .mwb-detail-link:hover:not(:disabled) { color: #fff; }
+ .mwb-alert { background: #fff5e9; border-left: 4px solid #c27a17; padding: 11px 13px; color: #704308; border-radius: 4px; }
+--- /dev/null
++++ b/apps/web/src/manager-workbench/__tests__/calendar_date.spec.ts
+@@ -0,0 +1,122 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/vue";
++import Workbench from "../Workbench.vue";
++
++const newJob = "2ee51b0e18814052b324578fe771e258";
++const reportSha = "8b2851c2a1658f03e7b2fb939a32eb0aa3595e0de65b40a1b07130b63f1bbaa9";
++function envelope(data: unknown) {
++  return { schema_version: "v4.manager_workbench.v1", state: "READY", data, gaps: [],
++    RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false };
++}
++function response(value: unknown, status = 200) {
++  return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
++}
++const day = { snapshot: null, stocks: [], counts: null,
++  pagination: { total: 0, offset: 0, limit: 50 }, versions: [{ run_id: "new-day-version", phase: "INTRADAY" }] };
++function transport(announcement?: unknown) {
++  const calls: { url: string; method: string; body: unknown }[] = [];
++  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
++    const url = String(input), method = init.method || "GET";
++    calls.push({ url, method, body: init.body ? JSON.parse(String(init.body)) : null });
++    if (method === "GET" && url.includes("/recommendations/")) return response(envelope(day));
++    if (method === "GET" && url.includes("/announcement-flash")) return response(announcement);
++    if (method === "POST" && url.endsWith(`/${newJob}/execute-preprocessed`)) {
++      return response(envelope({ job_id: newJob }), 202);
++    }
++    throw new Error("Unexpected business request " + method + " " + url);
++  }));
++  return calls;
++}
++async function mountedCalendar() {
++  const input = screen.getByLabelText("目标港股日") as HTMLInputElement;
++  expect(input.tagName).toBe("INPUT");
++  expect(input.type).toBe("date");
++  expect(input.value).toBe("2026-10-13");
++  return input;
++}
++
++describe("workbench native target-day calendar", () => {
++  beforeEach(() => window.history.replaceState(null, "", "?date=20261013&phase=PREOPEN&run_id=old-day-version"));
++  afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
++
++  it("converts calendar dates to compact request/route dates and releases the prior date's fixed version", async () => {
++    const calls = transport(); render(Workbench);
++    await waitFor(() => expect(calls).toHaveLength(1));
++    const input = await mountedCalendar();
++    expect(document.querySelectorAll("#mwb-date")).toHaveLength(1);
++    expect(document.querySelector("select#mwb-date")).toBeNull();
++    await fireEvent.focus(input);
++    expect(calls).toHaveLength(1); // Calendar focus has no legacy date-catalog request.
++    await fireEvent.change(input, { target: { value: "2026-10-20" } });
++    await waitFor(() => expect(calls).toHaveLength(2));
++    const request = new URL(calls[1].url, "http://localhost");
++    expect(request.pathname).toContain("/days/20261020/recommendations/");
++    expect(request.searchParams.has("run_id")).toBe(false);
++    expect(request.searchParams.has("phase")).toBe(false); // Existing date selection reads the new day's latest.
++    expect(new URLSearchParams(window.location.search).get("date")).toBe("20261020");
++    expect(new URLSearchParams(window.location.search).has("run_id")).toBe(false);
++    expect(input.value).toBe("2026-10-20");
++    expect(calls.every(call => call.method === "GET")).toBe(true);
++  });
++
++  it.each(["", "2026-02-30", "2026-10-20oops"])("does not navigate or request on an empty/invalid calendar value %j", async value => {
++    const calls = transport(); render(Workbench);
++    await waitFor(() => expect(calls).toHaveLength(1));
++    const input = await mountedCalendar();
++    await fireEvent.change(input, { target: { value } });
++    expect(calls).toHaveLength(1);
++    expect(new URLSearchParams(window.location.search).get("date")).toBe("20261013");
++    expect(new URLSearchParams(window.location.search).get("run_id")).toBe("old-day-version");
++    expect(input.validity.customError).toBe(true);
++    await fireEvent.change(input, { target: { value: "2026-10-20" } });
++    await waitFor(() => expect(calls).toHaveLength(2));
++    expect(input.validity.customError).toBe(false);
++  });
++
++  it("retains phase/version selection and historical route readback after a calendar change", async () => {
++    const calls = transport(); render(Workbench);
++    const input = await mountedCalendar();
++    await fireEvent.change(input, { target: { value: "2026-10-20" } });
++    await waitFor(() => expect(calls).toHaveLength(2));
++    await fireEvent.change(screen.getByLabelText("阶段"), { target: { value: "INTRADAY" } });
++    await waitFor(() => expect(calls).toHaveLength(3));
++    expect(new URL(calls[2].url, "http://localhost").searchParams.get("phase")).toBe("INTRADAY");
++    await screen.findByRole("option", { name: /new-day-version/ });
++    await fireEvent.change(screen.getByLabelText("计划版本"), { target: { value: "new-day-version" } });
++    await waitFor(() => expect(calls).toHaveLength(4));
++    expect(new URL(calls[3].url, "http://localhost").searchParams.get("run_id")).toBe("new-day-version");
++    window.history.replaceState(null, "", "?date=20261013&phase=PREOPEN&run_id=old-day-version");
++    window.dispatchEvent(new PopStateEvent("popstate"));
++    await waitFor(() => expect(calls).toHaveLength(5));
++    expect(input.value).toBe("2026-10-13");
++    expect(new URL(calls[4].url, "http://localhost").searchParams.get("run_id")).toBe("old-day-version");
++    expect(calls.every(call => call.method === "GET")).toBe(true);
++  });
++
++  it("passes the selected target date to announcements and keeps FIRST bound to the frozen prepared job", async () => {
++    const path = process.env.ANNOUNCEMENT_CALENDAR_RESPONSE;
++    const announcement = path ? JSON.parse(await (await import("node:fs/promises")).readFile(path, "utf8"))
++      : envelope({ state: "PREPROCESSING_COMPLETE", source_date: "2026-10-20", target_trade_date: "20261020",
++        counts: {}, stocks: [], failures: [], pending: [], gaps: [],
++        job: { job_id: newJob, target_date: "20261020", state: "PARTIAL", step: "DONE" },
++        preprocessing: { job_id: newJob, target_date: "20261020", accounting_closed: true, counts: {},
++          rules_explanation: [], first_article_id: "FIRST", execution_manifest: [{ article_id: "FIRST", body_sha256: "d".repeat(64) }] },
++        preprocessing_binding: { sha256: reportSha },
++        daily_delivery: { job_id: "4523cf36ed8944bfa0fc80d5d979524c", state: "PARTIAL", counts: {}, articles: [] },
++        daily_delivery_binding: { job_id: "4523cf36ed8944bfa0fc80d5d979524c", sha256: "3".repeat(64) } });
++    const calls = transport(announcement); render(Workbench);
++    await fireEvent.change(await mountedCalendar(), { target: { value: "2026-10-20" } });
++    await waitFor(() => expect(calls.filter(call => call.url.includes("/days/20261020/"))).toHaveLength(1));
++    await fireEvent.click(screen.getByRole("tab", { name: "公告选股" }));
++    const first = await screen.findByRole("button", { name: "运行首篇新增公告" });
++    expect((screen.getByLabelText("历史目标港股日") as HTMLInputElement).value).toBe("2026-10-20");
++    expect(calls.every(call => call.method === "GET")).toBe(true);
++    await fireEvent.click(first); // Mocked transport only; no live model request.
++    await waitFor(() => expect(calls.filter(call => call.method === "POST")).toHaveLength(1));
++    expect(calls.find(call => call.method === "POST")).toEqual({
++      url: `/api/v4/manager-workbench/announcement-flash/${newJob}/execute-preprocessed`, method: "POST",
++      body: { phase: "FIRST", report_sha256: reportSha, first_delivery_sha256: null }
++    });
++    expect(calls.some(call => call.url.endsWith("/announcement-flash/update"))).toBe(false);
++  });
++});

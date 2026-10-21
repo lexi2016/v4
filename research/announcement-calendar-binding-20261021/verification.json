@@ -1,0 +1,257 @@
+{
+  "status": "DEPLOYED_API_UI_VERIFIED_FIRST_ACTUAL_EXECUTION_VERIFIED",
+  "goal": "Replace target-day dropdown with one native calendar, remove superseded date code, restore new-job FIRST and verify one real page submission.",
+  "source_root": "/Users/lexi/.codex/worktrees/announcement-job-binding-20261020/v4_app",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "source_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_branch": "codex/announcement-job-binding-20261020",
+  "github_repository": "lexi2016/v4",
+  "github_branch": "codex/announcement-calendar-binding-20261021",
+  "github_base_commit": "22d66f4652ed619bc2f62370b6f832c243e0255d",
+  "local_delivery_base_commit": "27e230b0c878d0efaa055f7a77550adb516176de",
+  "source_files_before_after": [
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "category": "NEW_CALENDAR_AND_SUPERSEDED_CODE_REMOVAL",
+      "runtime_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+      "candidate_sha256": "a16b9ae1774d3dcd53f80f0f1761aec2abf8226b8763812f0c16ddef428bd1d0"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "category": "NEW_CALENDAR_AND_SUPERSEDED_CODE_REMOVAL",
+      "runtime_sha256": "88861f98917a9ebb6bfb897cbe5fd1d0a183a390d39e8aea51e6e3b543ccee63",
+      "candidate_sha256": "46bcd289b43c94f324f85f139753b60e47bc09a9b4380d215ef66d4eebcbb9b3"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "category": "NEW_CALENDAR_AND_SUPERSEDED_CODE_REMOVAL",
+      "runtime_sha256": "b9fdced4a374fd0980cd5ccbd74188806e7b1efa9ca479ac4bc43e44f0b78813",
+      "candidate_sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "category": "NEW_CALENDAR_AND_SUPERSEDED_CODE_REMOVAL",
+      "runtime_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+      "candidate_sha256": "33f7ecd579f7901a2eccbb4a1fcd80ab242f91491ad13fa4c48b7b72696f162c"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/calendar_date.spec.ts",
+      "category": "NEW_CALENDAR_AND_SUPERSEDED_CODE_REMOVAL",
+      "runtime_sha256": null,
+      "candidate_sha256": "d4c4bf51f2d83e234954f7d2bb7b8d0fb87a253c442437bc6d7dbf69a4361980"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "category": "BYTE_IDENTICAL_ACCEPTED_BINDING_REUSE",
+      "runtime_sha256": "a6dcf2ea2f543a179743d9ecfdef9b2add6475aaaa02a64038bc4bd641461d20",
+      "candidate_sha256": "23abb4e1e953fda3d3b424ca4c071d07469408aaebc9d9b2933d819e5bf7e106"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "category": "REMOVED_OLD_CATALOG_TYPE_PLUS_REUSED_BINDING",
+      "runtime_sha256": "ff6de3071d72c6898924536a6364b40ea7365ff5cfca80835eeb5c00dfc5ca83",
+      "candidate_sha256": "004df6e9a03847bf11314f8340c0568cf6d7a33d85f29af960c3d85674761433"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "category": "BYTE_IDENTICAL_ACCEPTED_BINDING_REUSE",
+      "runtime_sha256": "4d425f064a09482c2f307ba7a92cfb72f4f88711c3a1d404ac67ac8383ca7475",
+      "candidate_sha256": "4b1711cf269b8f4240558e87878447660f2856b60b3f64da1531db76eb85d554"
+    },
+    {
+      "path": "tests/test_manager_announcement_daily_workflow.py",
+      "category": "BYTE_IDENTICAL_ACCEPTED_BINDING_REUSE",
+      "runtime_sha256": "c59b8a5eba51e33d54ce42648f8a2eeb30bfc4a6d8bc921ba9df606459470a54",
+      "candidate_sha256": "d8348fcf92cbcd51f18242a09bbfd79cbfae844853452138b198c19c300e74c9"
+    }
+  ],
+  "independent_acceptance": {
+    "candidate": "CALENDAR_BINDING_CANDIDATE_REVIEW_PASS",
+    "calendar_tests": 6,
+    "scope_typecheck": "PASS",
+    "manager_build": "PASS",
+    "reused_unchanged_binding_tests": {
+      "UI": 21,
+      "backend": 25
+    },
+    "release": "CALENDAR_BINDING_RELEASE_INTEGRATION_PASS",
+    "first_live": "FIRST_ACTUAL_EXECUTION_VERIFIED"
+  },
+  "test_commands": [
+    {
+      "purpose": "Independent 6-case calendar and composed announcement request acceptance using current GET snapshot, all POST mocked",
+      "cwd": "/Users/lexi/.codex/worktrees/announcement-job-binding-20261020/v4_app/apps/web",
+      "command": "ANNOUNCEMENT_CALENDAR_RESPONSE='/Users/lexi/Desktop/学习/agents调试/助手/announcement-calendar-binding-20261021/review/live-api-response.json' ./node_modules/.bin/vitest run --config '/Users/lexi/Desktop/学习/agents调试/助手/announcement-calendar-binding-20261021/review/vite.config.mjs' src/manager-workbench/__tests__/calendar_date.spec.ts",
+      "exit_code": 0
+    },
+    {
+      "purpose": "Scoped typecheck after old date/catalog API removal",
+      "cwd": "/Users/lexi/.codex/worktrees/announcement-job-binding-20261020/v4_app/apps/web",
+      "command": "./node_modules/.bin/vue-tsc --noEmit -p '/Users/lexi/Desktop/学习/agents调试/助手/announcement-calendar-binding-20261021/review/tsconfig.scope.json'",
+      "exit_code": 0
+    },
+    {
+      "purpose": "Independent manager production build with dedicated review outputs only",
+      "cwd": "/Users/lexi/.codex/worktrees/announcement-job-binding-20261020/v4_app",
+      "command": "node '/Users/lexi/Desktop/学习/agents调试/助手/announcement-calendar-binding-20261021/review/build-manager.mjs'",
+      "exit_code": 0
+    },
+    {
+      "purpose": "Combined patch applies cleanly to actual current runtime baseline isolated copy",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-calendar-binding-20261021/review/patch-check",
+      "command": "patch -p1 --batch --forward --input='/Users/lexi/Desktop/学习/agents调试/助手/announcement-calendar-binding-20261021/writer/combined.patch'",
+      "exit_code": 0
+    }
+  ],
+  "receipt_sha256": {
+    "writer/receipt.json": "e93eafb48e49a3f7acb5566977fe7a9531c0102e9d639996fb1c21ecb9c484a1",
+    "review/receipt.json": "598a6ddfcf80f1d729a3bca8ad8a2d911eb973cb22e421fc19f71afe8efec79b",
+    "release/receipt.json": "ff368e95c4bdb9b3e04e21979675623912885f0bdc2132497537f6f9f0db119e",
+    "release-review/receipt.json": "679401156b0fedcaacced2e6305f657f75868ed59fb37ae1b2c440b1ee58915c",
+    "deployment/receipt.json": "c7bee32fec6f8513660cff9323e9838a690275031674a1d1e74edc9186d5a8b7",
+    "live-review/receipt.json": "aa4fd4b25dba01375e7195d7695ac40252dc2072aed15c82a828faede64d5d61",
+    "ui/browser-submission.json": "41eeb5ad268fb4ca1860ebfb875615389eb93f83acd2b322f3ec84bcfb68a7dc",
+    "ui/result-readback.json": "6e3b07fce5c5933142ab1b3c4c5b167149b5829b5200f542cc1452818644f564"
+  },
+  "canonical_integration": {
+    "changed_paths": [
+      "apps/web/src/manager-workbench/Workbench.vue",
+      "apps/web/src/manager-workbench/useWorkbench.ts",
+      "apps/web/src/manager-workbench/workbench.css",
+      "apps/web/src/manager-workbench/__tests__/calendar_date.spec.ts"
+    ],
+    "unrelated_existing_content_preserved": true,
+    "patch_sha256": "6036eaf4dfb457b44bfbc5a03d491c02ae502feaf11a79b7f9b938d3586badfb",
+    "full_canonical_runtime_equivalence": "NOT_CLAIMED"
+  },
+  "deployment": {
+    "release_id": "announcement-calendar-binding-20261021-r1",
+    "manifest_sha256": "3925e005376e33dc8a88fb89c8997d0c7977e12ef567ce1bd24a5a2df8579615",
+    "actual_process": {
+      "pid": 23238,
+      "entry_command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m apps.api.v35_api.run --host 127.0.0.1 --port 8873 --stage-selection-root /Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/selection",
+      "working_directory": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-calendar-binding-20261021-r1/app",
+      "entry_module": "apps.api.v35_api.run"
+    },
+    "served_manager": {
+      "manager_path": "/manager-selection/",
+      "html_sha256": "33a66abecd29577d77582ba7fc498c8ae2d06a8421a4b3cb09ab46aa2faabf80",
+      "html_bytes": 494,
+      "bundles": [
+        {
+          "path": "/assets/managerSelection-Cx_ih7vy.js",
+          "sha256": "8ff1f9715de4a1412c67cb497e2fc1db425588c6b9c7610a86c47fc4526c00c9",
+          "bytes": 217606
+        }
+      ]
+    },
+    "base_release_id": "manual-backfill-button-20261020-r2",
+    "base_manifest_sha256": "4454d885713ceac187d0bccfee3e314a5bba4b60f12ff52bb5250510b74da49e",
+    "protected_files_unchanged_at_switch": 33,
+    "original_release_review_failure": "Receipt directory mismatch; one-line correction independently passed; original FAIL retained locally.",
+    "API_process_status_metadata": "CANNOT_CONFIRM; actual OS process independently verified"
+  },
+  "removed_obsolete_code": [
+    "saved-date dropdown/select/options",
+    "old text-date input adapter",
+    "catalog state and loader",
+    "getSavedDates frontend helper",
+    "SavedDateCatalog frontend type",
+    "exclusive dead imports and references"
+  ],
+  "retained_inactive_assets": {
+    "count": 23,
+    "status": "UNREFERENCED_INHERITED_ASSETS_RETAINED",
+    "physical_deletion": false,
+    "active_manager_entry_only_new_bundle": true,
+    "reason": "Existing immutable release-baseline contract rejects deleting inherited files; release verifier not broadened."
+  },
+  "browser": {
+    "type": "Chrome",
+    "native_input_type": "date",
+    "date_change": "20261013 -> 20261020",
+    "old_phase_run_id_cleared": true,
+    "date_change_only_GET": true,
+    "FIRST_clicks": 1,
+    "HTTP_status": 202,
+    "full_analysis_open": true,
+    "FIRST_button_after_completion": 0,
+    "CONTINUE_visible": true,
+    "CONTINUE_clicked": false,
+    "native_popup_visual_capture": "NOT_CONFIRMED; native date field and actual date change verified"
+  },
+  "frozen_job": {
+    "job_id": "2ee51b0e18814052b324578fe771e258",
+    "target_date": "20261020",
+    "report_sha256": "8b2851c2a1658f03e7b2fb939a32eb0aa3595e0de65b40a1b07130b63f1bbaa9",
+    "first_article": {
+      "article_id": "EASTMONEY:AN202610201830722937",
+      "body_sha256": "297c56d1f21f4aa6637ebddf9c7c0cc9cc2ab82d1755f324ace27cfade1dc16b",
+      "expected_requests": 1,
+      "part_count": 0,
+      "primary_disposition": "MODEL_ORDINARY",
+      "reader_requests": 1,
+      "reason_codes": [
+        "TEMPLATE_PARSE_AMBIGUOUS_OR_INCOMPLETE"
+      ],
+      "route_group": "C",
+      "row_index": 906,
+      "source_date": "2026-10-20",
+      "source_sha256": "ce1e80ceeec1196a1913b76eac1552c5d27fb03ce9428ae662e5aa34c6a9185d",
+      "symbol": "HK.02869",
+      "synthesis_requests": 0
+    },
+    "input_sha256": "cfd577bde1a1b4e1d09589beae5ba19885b8b23145d48727c8a9cf2b70f0286b",
+    "capture_product_sha256": "ea46fe2315a5531dec4b6a8f61f4b2b0e1abf3517fb7faadfb4fc0840b09a564"
+  },
+  "terminal": {
+    "state": "PARTIAL",
+    "step": "DONE",
+    "completed_count": 1,
+    "subset_total": 8,
+    "finished_at": "2026-10-21T09:31:38.662112+08:00",
+    "failure_code": null,
+    "expected_scope_explanation": "FIRST completes only its first article; PARTIAL with remaining DEFERRED is expected.",
+    "new_selected_stocks": 0,
+    "model_result": "NOT_SELECTED",
+    "model_direction": "NEUTRAL"
+  },
+  "actual_model": {
+    "queue_key": "229e70eb393dedbc273510e6de5e1152d48cf365ebaa27fb73fc80755918a454",
+    "queue_attempt_count": 1,
+    "status": "SUCCEEDED",
+    "started_at": "2026-10-21T01:30:00.510Z",
+    "finished_at": "2026-10-21T01:31:36.542Z",
+    "queue_duration_seconds": 96.002096,
+    "model_id": "qwen3_8_flash_next",
+    "HTTP_stream_request_rounds": 1,
+    "stream_status": "RESPONSE_RECEIVED",
+    "raw_response_sha256": "e3ee083f99f19f66b2ea2fbabae456451f77cfa4c8218b0a3334ea01b96d1562",
+    "SSE_DONE": true
+  },
+  "validated_result_sha256": "8c853bd22050961fa0023dd6aef235616645ea03185173ba29309fef212dde79",
+  "delivery_sha256": "fdcc03e73d8332949edc25b69fa3512b86479ced540697ef84cec4651ae1b6ab",
+  "preservation": {
+    "immutable_file_paths": 27,
+    "capture_product_SHA_verified": true,
+    "all_1377_old_queue_records_unchanged": true,
+    "old_success_count": 854,
+    "report_input_classification_unchanged": true
+  },
+  "not_run": [
+    "CONTINUE",
+    "remaining 166 model-eligible articles",
+    "recapture",
+    "repeat FIRST",
+    "rerun prior successes",
+    "global project test suite",
+    "natural-slot acceptance",
+    "stock-selection effectiveness or forecasting validation"
+  ],
+  "PIT_status": "CANNOT_CONFIRM: official first-publication timing not bound",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "raw_announcements_model_responses_runtime_state_dist_plists_credentials_uploaded": false
+}
