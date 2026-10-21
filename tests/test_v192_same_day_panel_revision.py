@@ -52,7 +52,7 @@ def registered_execution():
     # Read only the explicitly supplied registry and frozen synthetic contract.
     contract_path = Path(os.environ["V192_SAME_DAY_FIXTURE_CONTRACT"])
     contract = json.loads(contract_path.read_text())
-    assert contract["scope"] in ("SYNTHETIC_SAME_DAY_PANEL_FIXTURE_ONLY", "SYNTHETIC_SAME_DAY_PANEL_V2_INTERFACE_ONLY")
+    assert contract["scope"] in ("SYNTHETIC_SAME_DAY_PANEL_FIXTURE_ONLY", "SYNTHETIC_SAME_DAY_PANEL_V2_INTERFACE_ONLY", "SYNTHETIC_SAME_DAY_PANEL_V2_APPROVED_DELETE_AND_NAME_ONLY")
     assert contract["code_sha256"] == file_sha(PAYLOAD)
     assert contract["test_sha256"] == file_sha(__file__)
     assert contract["market_input_rows_read"] == 0
@@ -919,3 +919,238 @@ def test_v2_only_remaining_partition_computes_and_captures_one_canonical_call(tm
     assert len(evidence) == 1
     for name in ("producer", "canonical", "enrichment"):
         assert file_sha(evidence[0]["sources"][name]["path"]) == evidence[0]["sources"][name]["sha256"]
+
+
+def v6_transform(item):
+    identity = {"schema": "V192_EXACT_ORDERED_KEY_TRANSFORM_V1", "source_key_sha256": item["source_key_sha256"],
+                "delete_keys_sha256": item["approved_delete_keys"]["sha256"],
+                "insert_keys_sha256": item["approved_insert_keys"]["sha256"],
+                "order": "RETAIN_SOURCE_PHYSICAL_ORDER_THEN_SORTED_APPROVED_INSERTS"}
+    return {**identity, "sha256": json_sha(identity)}
+
+
+def v6_fixture(tmp_path, module):
+    contract, old, keys = v2_fixture(tmp_path, module)
+    delete_keys = [(keys[0][0], day) for day in (20260526, 20260527, 20260528, 20260529)]
+    evidence_ref = dump(tmp_path / "v6_native_absence_review.json", {
+        "status": "SYNTHETIC_NATIVE_ABSENCE_REVIEW", "keys": [list(key) for key in delete_keys]})
+    for role, item in contract["roles"].items():
+        path = Path(item["source"]["path"])
+        table = pq.read_table(path)
+        extra = []
+        for code, day in delete_keys:
+            row = table.slice(0, 1)
+            for field, value in (("ts_code", code), ("trade_date", day)):
+                row = row.set_column(row.schema.get_field_index(field), row.schema.field(field), pa.array([value], type=row.schema.field(field).type))
+            extra.append(row)
+        table = pa.concat_tables([table, *extra])
+        pq.write_table(table, path, row_group_size=2)
+        source_keys = [(str(code), int(day)) for code, day in table.select(["ts_code", "trade_date"]).to_pandas().itertuples(index=False, name=None)]
+        item["source"] = ref(path)
+        item["approved_delete_keys"] = bound([list(key) for key in delete_keys])
+        item["approved_delete_evidence"] = [{"key": list(key), "policy": "APPROVED_NATIVE_ABSENT_SUSPENSION_CURRENT_REVISION",
+                                             "reason": "Synthetic independently approved suspension-native absent source row",
+                                             "review_receipt": evidence_ref, "native_absence_binding": evidence_ref}
+                                            for key in delete_keys]
+        item["expected_old_rows"] = table.num_rows
+        item["source_key_sha256"] = v2_ordered_key_sha(source_keys)
+        item["expected_new_key_sha256"] = None
+        item["approved_key_transform"] = v6_transform(item)
+        # Removing the four appended legacy-only rows restores the original
+        # retained key order/count; the original fixture already binds +insert.
+    return contract, old, keys, delete_keys
+
+
+def v6_run(tmp_path, module, monkeypatch, contract, *, deletion_flag=True):
+    frozen = v2_bind(tmp_path, module, contract)
+    binding_path = Path(contract["input_binding_receipt"]["path"])
+    binding = json.loads(binding_path.read_text())
+    if deletion_flag is not None:
+        binding["approved_deletions"] = deletion_flag
+    contract["input_binding_receipt"] = dump(binding_path, binding)
+    frozen = dump(Path(frozen["path"]), contract)
+    monkeypatch.setattr(module, "compute_formula_features", lambda *a, **k: pytest.fail("accepted generations must not be recomputed"))
+    return module.run_same_day_revision_candidate(Path(frozen["path"]), frozen["sha256"])
+
+
+def test_v6_four_approved_native_absent_rows_removed_from_candidate_only(tmp_path, producer, monkeypatch):
+    contract, old, _keys, deletes = v6_fixture(tmp_path, producer)
+    source_sha = {role: item["source"]["sha256"] for role, item in contract["roles"].items()}
+    receipt = v6_run(tmp_path, producer, monkeypatch, contract)
+    for role in ("selector", "backtest"):
+        artifact = receipt["artifacts"][role]
+        result = pq.read_table(artifact["path"])
+        actual_keys = {(str(code), int(day)) for code, day in result.select(["ts_code", "trade_date"]).to_pandas().itertuples(index=False, name=None)}
+        assert not actual_keys.intersection(deletes)
+        assert artifact["old_rows"] == old[role].num_rows + 4 and artifact["deleted_rows"] == 4
+        assert artifact["rows"] == old[role].num_rows + 1
+        retained_keys = [(str(code), int(day)) for code, day in old[role].select(["ts_code", "trade_date"]).to_pandas().itertuples(index=False, name=None)]
+        expected_keys = retained_keys + [tuple(key) for key in contract["roles"][role]["approved_insert_keys"]["items"]]
+        assert artifact["new_key_sha256"] == v2_ordered_key_sha(expected_keys)
+        assert artifact["key_transform_sha256"] == contract["roles"][role]["approved_key_transform"]["sha256"]
+        assert result.schema == old[role].schema
+        assert result.column("untouched_integer").slice(0, old[role].num_rows).equals(old[role].column("untouched_integer"))
+        assert result.slice(old[role].num_rows - 2, 2).equals(old[role].slice(old[role].num_rows - 2, 2))
+        assert file_sha(contract["roles"][role]["source"]["path"]) == source_sha[role]
+        assert file_sha(contract["roles"][role]["pointer"]["path"]) == contract["roles"][role]["pointer"]["sha256"]
+
+
+@pytest.mark.parametrize("deletion_flag", [None, False])
+def test_v6_deletion_needs_explicit_independent_full_input_approval(tmp_path, producer, monkeypatch, deletion_flag):
+    contract, _old, _keys, _deletes = v6_fixture(tmp_path, producer)
+    with pytest.raises(RuntimeError, match="input binder did not approve"):
+        v6_run(tmp_path, producer, monkeypatch, contract, deletion_flag=deletion_flag)
+    assert not (tmp_path / "v2_candidate").exists()
+
+
+@pytest.mark.parametrize("defect", ["missing_reason", "missing_entry", "duplicate_entry", "unlisted_entry", "wrong_policy", "native_absence_identity_drift"])
+def test_v6_exact_delete_reason_and_evidence_are_required(tmp_path, producer, monkeypatch, defect):
+    contract, _old, _keys, _deletes = v6_fixture(tmp_path, producer)
+    entries = contract["roles"]["selector"]["approved_delete_evidence"]
+    if defect == "missing_reason":
+        entries[0]["reason"] = " "
+    elif defect == "missing_entry":
+        entries.pop()
+    elif defect == "duplicate_entry":
+        entries.append(dict(entries[0]))
+    elif defect == "unlisted_entry":
+        entries[0]["key"] = ["000001.SZ", 20260525]
+    elif defect == "wrong_policy":
+        entries[0]["policy"] = "AUTOMATIC_MISSING_VALUE_DROP"
+    else:
+        entries[0]["native_absence_binding"] = {**entries[0]["native_absence_binding"], "sha256": "0" * 64}
+    with pytest.raises(RuntimeError):
+        v6_run(tmp_path, producer, monkeypatch, contract)
+    assert not (tmp_path / "v2_candidate").exists()
+
+
+@pytest.mark.parametrize("overlap", ["existing_update_keys", "approved_insert_keys"])
+def test_v6_deletion_cannot_overlap_update_or_insert(tmp_path, producer, monkeypatch, overlap):
+    contract, _old, _keys, _deletes = v6_fixture(tmp_path, producer)
+    role = contract["roles"]["selector"]
+    role["approved_delete_keys"] = bound([role[overlap]["items"][0]])
+    with pytest.raises(RuntimeError, match="key partition"):
+        v6_run(tmp_path, producer, monkeypatch, contract)
+
+
+@pytest.mark.parametrize("defect", ["absent_key", "duplicate_source_key"])
+def test_v6_deletion_requires_one_existing_source_row(tmp_path, producer, monkeypatch, defect):
+    contract, _old, _keys, deletes = v6_fixture(tmp_path, producer)
+    role = contract["roles"]["selector"]
+    if defect == "absent_key":
+        replacement = [deletes[0][0], 20260525]
+        role["approved_delete_keys"] = bound([replacement] + [list(key) for key in deletes[1:]])
+        role["approved_delete_evidence"][0]["key"] = replacement
+        role["approved_key_transform"] = v6_transform(role)
+    else:
+        path = Path(role["source"]["path"])
+        table = pq.read_table(path)
+        table = pa.concat_tables([table, table.slice(table.num_rows - 1, 1)])
+        pq.write_table(table, path, row_group_size=2)
+        source_keys = [(str(code), int(day)) for code, day in table.select(["ts_code", "trade_date"]).to_pandas().itertuples(index=False, name=None)]
+        role["source"] = ref(path)
+        role["source_key_sha256"] = v2_ordered_key_sha(source_keys)
+        role["expected_old_rows"] += 1
+        role["expected_new_rows"] += 1
+        role["approved_key_transform"] = v6_transform(role)
+    with pytest.raises(RuntimeError, match="unique existing source row|exact update/delete/raw/source-key"):
+        v6_run(tmp_path, producer, monkeypatch, contract)
+    assert not (tmp_path / "v2_candidate" / "candidate_receipt.json").exists()
+
+
+@pytest.mark.parametrize("defect", ["wrong_row_count", "wrong_transform_digest", "source_key_mismatch", "source_order_drift"])
+def test_v6_deletion_count_and_retained_physical_order_are_bound(tmp_path, producer, monkeypatch, defect):
+    contract, _old, _keys, _deletes = v6_fixture(tmp_path, producer)
+    role = contract["roles"]["selector"]
+    if defect == "wrong_row_count":
+        role["expected_new_rows"] += 1
+    elif defect == "wrong_transform_digest":
+        role["approved_key_transform"]["sha256"] = "0" * 64
+    elif defect == "source_key_mismatch":
+        role["source_key_sha256"] = "0" * 64
+        role["approved_key_transform"] = v6_transform(role)
+    else:
+        path = Path(role["source"]["path"])
+        table = pq.read_table(path)
+        table = table.take(pa.array(list(reversed(range(table.num_rows))), type=pa.int64()))
+        pq.write_table(table, path)
+        role["source"] = ref(path)
+        # Keep the independently frozen old physical-key digest and transform.
+    with pytest.raises(RuntimeError, match="expected row count|exact frozen key transform|exact update/delete/raw/source-key"):
+        v6_run(tmp_path, producer, monkeypatch, contract)
+    assert not (tmp_path / "v2_candidate" / "candidate_receipt.json").exists()
+
+
+def test_v6_undeclared_native_absence_does_not_automatically_drop_old_rows(tmp_path, producer, monkeypatch):
+    contract, _old, _keys, deletes = v6_fixture(tmp_path, producer)
+    for role in contract["roles"].values():
+        del role["approved_delete_keys"]
+        del role["approved_delete_evidence"]
+        del role["approved_key_transform"]
+        table = pq.read_table(role["source"]["path"])
+        source_keys = [(str(code), int(day)) for code, day in table.select(["ts_code", "trade_date"]).to_pandas().itertuples(index=False, name=None)]
+        role["expected_new_rows"] = role["expected_old_rows"] + role["approved_insert_keys"]["count"]
+        role["expected_new_key_sha256"] = v2_ordered_key_sha(source_keys + [tuple(key) for key in role["approved_insert_keys"]["items"]])
+    receipt = v6_run(tmp_path, producer, monkeypatch, contract, deletion_flag=None)
+    for role in ("selector", "backtest"):
+        table = pq.read_table(receipt["artifacts"][role]["path"])
+        actual = {(str(code), int(day)) for code, day in table.select(["ts_code", "trade_date"]).to_pandas().itertuples(index=False, name=None)}
+        assert set(deletes) <= actual
+        assert receipt["artifacts"][role]["deleted_rows"] == 0
+
+
+@pytest.mark.parametrize("defect", ["missing_independent_verification", "wrong_new_key_digest"])
+def test_v6_candidate_computed_digest_cannot_self_approve_deletion_publication(tmp_path, producer, monkeypatch, defect):
+    contract, _old, _keys, _deletes = v6_fixture(tmp_path, producer)
+    receipt = v6_run(tmp_path, producer, monkeypatch, contract)
+    candidate_ref = ref(Path(contract["candidate_dir"]) / "candidate_receipt.json")
+    review = {"decision": "PASS_SAME_DAY_PANEL_REVISION", "candidate_receipt_sha256": candidate_ref["sha256"],
+              "producer_sha256": receipt["producer_sha256"], "reviewer_identity": "SYNTHETIC_INDEPENDENT_REVIEWER",
+              "writer_identity": "SYNTHETIC_WRITER", "approved_delete_transform_verified": True,
+              "approved_key_transforms": {role: {name: artifact[name] for name in ("key_transform_sha256", "new_key_sha256", "rows", "deleted_rows")}
+                                          for role, artifact in receipt["artifacts"].items()}}
+    if defect == "missing_independent_verification":
+        del review["approved_delete_transform_verified"]
+    else:
+        review["approved_key_transforms"]["selector"]["new_key_sha256"] = "0" * 64
+    owner = {"decision": "EXCLUSIVE_ORIGINAL_PRODUCER_PUBLISHER_CONFIRMED", "candidate_receipt_sha256": candidate_ref["sha256"],
+             "legacy_publishers_excluded": True, "publisher_owner": "SYNTHETIC_OWNER",
+             "valid_until": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()}
+    with pytest.raises(RuntimeError, match="independent review did not verify exact deletion"):
+        producer.promote_same_day_revision(candidate_ref, dump(tmp_path / "v6_review.json", review), dump(tmp_path / "v6_owner.json", owner))
+    for item in contract["roles"].values():
+        assert file_sha(item["pointer"]["path"]) == item["pointer"]["sha256"]
+
+
+@pytest.mark.parametrize("case", ["approved", "missing_receipt", "after_revision_cutoff", "other_static_field", "missing_revision_cutoff"])
+def test_v6_name_observation_after_signal_needs_explicit_reviewed_nonpit_revision_boundary(tmp_path, producer, monkeypatch, case):
+    contract, _old, keys = v2_fixture(tmp_path, producer)
+    contract["runtime_binding"] = {"revision_observation_date": 20261021}
+    path = Path(contract["static_rows"]["path"])
+    rows = json.loads(path.read_text())
+    row = rows["records"][0]
+    row["value"] = "Current name actually observed on revision day"
+    row["observed_date"] = 20261021
+    row["observation_review_receipt"] = dump(tmp_path / "v6_name_review.json", {
+        "status": "SYNTHETIC_CURRENT_REVISION_NON_PIT_NAME_REVIEW", "ts_code": row["ts_code"],
+        "name": row["value"], "observed_date": row["observed_date"], "source": row["source"]})
+    if case == "missing_receipt":
+        del row["observation_review_receipt"]
+    elif case == "after_revision_cutoff":
+        row["observed_date"] = 20261022
+    elif case == "other_static_field":
+        row["field"] = "sector"
+    elif case == "missing_revision_cutoff":
+        del contract["runtime_binding"]["revision_observation_date"]
+    contract["static_rows"] = dump(path, rows)
+    if case == "approved":
+        receipt = v2_run(tmp_path, producer, monkeypatch, contract)
+        actual = pd.read_parquet(receipt["artifacts"]["selector"]["path"])
+        assert v2_exact_row(actual, keys[1])["name"] == row["value"]
+        assert receipt["revision_observation_date"] == row["observed_date"] == 20261021
+        assert receipt["name_observation_status"] == "CURRENT_REVISION_NON_PIT"
+        assert receipt["historical_name_pit_claimed"] is False
+    else:
+        with pytest.raises(RuntimeError, match="post-signal name observation needs frozen revision cutoff and independent receipt"):
+            v2_run(tmp_path, producer, monkeypatch, contract)
+        assert not (tmp_path / "v2_candidate" / "candidate_receipt.json").exists()

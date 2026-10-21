@@ -1,9 +1,11 @@
 {
   "R5_terminal_event_sha256": "b5da77b1c51212575251821eac14a0344d596f19abcf97a139e152d9e88fb987",
+  "R6_terminal_event_sha256": "60c8cff22c3276db519aa522a7508e429e83722b28df47bdb10ee8069e91018a",
   "accepted_cases": {
+    "R6": 25,
     "V1": 45,
     "V2": 28,
-    "total": 73
+    "total": 98
   },
   "buy_gate_updated": false,
   "not_claimed": [
@@ -211,6 +213,39 @@
         "passed": 5
       },
       "test_sha256": "57a35840082362375e3e0d06f82604b6612922459d6000ec1846b8feced4a7ea"
+    },
+    {
+      "behavior_verified_scope": "REGISTERED_SYNTHETIC_APPROVED_DELETE_AND_NAME_ONLY",
+      "code_sha256": "35d9ea0e684bcb3b703fdd9a5150bb0024e722dec0a6369c89a5870944e9ac54",
+      "decision": "SYNTHETIC_SAME_DAY_PANEL_APPROVED_DELETE_NAME_R6_PASS",
+      "exact_command_executed": "ARROW_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 V192_SAME_DAY_EXECUTION_ID=A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R6_01 V192_SAME_DAY_FIXTURE_CONTRACT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R6_CONTRACT.json' V192_SAME_DAY_REGISTRY='/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl' V192_SAME_DAY_RUN_STARTED_EVENT_SHA256=1ee37e206bbd97b68351315f3fe560fec249c77e15dc62328e9b6e09b8bd6141 VECLIB_MAXIMUM_THREADS=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider '--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R6_TMP' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py' -k test_v6_",
+      "execution_id": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R6_01",
+      "exit_code": 0,
+      "failed_count": 0,
+      "pass_reuse": {
+        "combined_synthetic_cases_accepted": 98,
+        "previous_receipt": {
+          "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R5_RECEIPT.json",
+          "sha256": "24b71a14d68b42dd6448ccd6faeeeec0b67b4b82a064503e45981f005c670966"
+        },
+        "prior73_synthetic_cases_reused": true,
+        "prior_cases_rerun": false,
+        "reason": "New scope only approved-delete transform and post-signal name observations; existing tests unchanged except registration scope admission"
+      },
+      "passed_count": 25,
+      "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R6_RECEIPT.json",
+      "receipt_sha256": "498b6dcd212e4d48b5a94738afb1c9adf7d2e39774521d4aaa644cfb17609f8f",
+      "reviewer_identity": "/root/same_day_panel_independent_review",
+      "round": 6,
+      "scope": "SYNTHETIC_SAME_DAY_PANEL_V2_APPROVED_DELETE_AND_NAME_ONLY",
+      "test_counts": {
+        "deselected": 73,
+        "errors": 0,
+        "failed": 0,
+        "passed": 25
+      },
+      "test_sha256": "d4309cb6cd6f61fffbd83053cc226488f1e8b1f7bcb242bce010d90405f63cd8",
+      "writer_identity": "/root/v192_same_day_panel_writer"
     }
   ],
   "research_only": true,

@@ -3256,7 +3256,15 @@ def promote_same_day_revision(candidate_ref: Dict[str, Any], review_ref: Dict[st
         raise RuntimeError("same-day independent candidate review missing or changed")
     contract = json.loads(_same_day_ref(candidate["contract"]).read_text(encoding="utf-8"))
     if contract.get("schema") == "V192_SAME_DAY_PANEL_REVISION_V2":
-        _same_day_v2_scope(contract)
+        scope = _same_day_v2_scope(contract)
+        deleting_roles = {role: {"key_transform_sha256": contract["roles"][role]["approved_key_transform"]["sha256"],
+                                 "new_key_sha256": candidate["artifacts"][role]["new_key_sha256"],
+                                 "rows": candidate["artifacts"][role]["rows"],
+                                 "deleted_rows": candidate["artifacts"][role]["deleted_rows"]}
+                          for role, item in scope["roles"].items() if item["deletes"]}
+        if deleting_roles and (review.get("approved_delete_transform_verified") is not True
+                               or review.get("approved_key_transforms") != deleting_roles):
+            raise RuntimeError("same-day independent review did not verify exact deletion/retained-order/new-key transformation")
     else:
         _same_day_scope(contract)
     states = candidate["pointers"]
@@ -3370,6 +3378,9 @@ def _same_day_v2_scope(contract: Dict[str, Any]) -> Dict[str, Any]:
     signal = contract["signal_date"]
     if type(signal) is not int or type(contract["target_date"]) is not int or contract["target_date"] <= signal:
         raise RuntimeError("same-day V2 signal/target boundary invalid")
+    revision_observation_date = contract.get("runtime_binding", {}).get("revision_observation_date", signal)
+    if type(revision_observation_date) is not int or revision_observation_date < signal:
+        raise RuntimeError("same-day V2 current-revision observation cutoff invalid")
     ledger = contract["admission_ledger"]
     if set(ledger["original_receipts"]) != {"target", "accepted", "boundary"}:
         raise RuntimeError("same-day V2 original admission evidence incomplete")
@@ -3459,18 +3470,41 @@ def _same_day_v2_scope(contract: Dict[str, Any]) -> Dict[str, Any]:
         item = contract["roles"][role]
         updates = set(_same_day_bound_list(item["existing_update_keys"], keys=True))
         inserts = set(_same_day_bound_list(item["approved_insert_keys"], keys=True))
+        deletes = set(_same_day_bound_list(item["approved_delete_keys"], keys=True)) if "approved_delete_keys" in item else set()
         raw_replacements = set(_same_day_bound_list(item["approved_raw_replace_keys"], keys=True))
-        if updates & inserts or updates | inserts != keys or not raw_replacements <= updates:
+        if updates & inserts or updates | inserts != keys or not raw_replacements <= updates or deletes & (updates | inserts):
             raise RuntimeError("same-day V2 per-role exact update/insert/raw key partition invalid")
+        deletion_evidence = {}
+        for evidence in item.get("approved_delete_evidence", []):
+            key = tuple(evidence["key"])
+            if (key in deletion_evidence or key not in deletes or key[0] not in accepted
+                    or evidence.get("policy") != "APPROVED_NATIVE_ABSENT_SUSPENSION_CURRENT_REVISION"
+                    or not isinstance(evidence.get("reason"), str) or not evidence["reason"].strip()):
+                raise RuntimeError("same-day V2 deletion evidence is duplicate, out of scope or unexplained")
+            _same_day_ref(evidence["review_receipt"])
+            _same_day_ref(evidence["native_absence_binding"])
+            deletion_evidence[key] = evidence
+        if set(deletion_evidence) != deletes:
+            raise RuntimeError("same-day V2 every approved deletion needs exact independent native-absence evidence")
         raw_map = {field: field for field in ("open", "high", "low", "close", "amount")}
         raw_map["volume" if role == "selector" else "vol"] = "volume"
         if item["raw_field_map"] != raw_map:
             raise RuntimeError("same-day V2 only the exact native volume/vol role mapping is allowed")
-        if item["expected_new_rows"] != item["expected_old_rows"] + len(inserts):
-            raise RuntimeError("same-day V2 expected row count is not old plus approved inserts")
-        if not item["source_key_sha256"] or not item["expected_new_key_sha256"] or not item["schema_sha256"]:
+        if item["expected_new_rows"] != item["expected_old_rows"] + len(inserts) - len(deletes):
+            raise RuntimeError("same-day V2 expected row count is not old plus approved inserts minus approved deletions")
+        if not item["source_key_sha256"] or not item["schema_sha256"]:
             raise RuntimeError("same-day V2 source/schema/key identity missing")
-        role_scopes[role] = {"updates": updates, "inserts": inserts, "raw_replacements": raw_replacements, "raw_map": raw_map}
+        if deletes:
+            transform = {"schema": "V192_EXACT_ORDERED_KEY_TRANSFORM_V1", "source_key_sha256": item["source_key_sha256"],
+                         "delete_keys_sha256": item["approved_delete_keys"]["sha256"],
+                         "insert_keys_sha256": item["approved_insert_keys"]["sha256"],
+                         "order": "RETAIN_SOURCE_PHYSICAL_ORDER_THEN_SORTED_APPROVED_INSERTS"}
+            if (item.get("expected_new_key_sha256") is not None
+                    or item.get("approved_key_transform") != {**transform, "sha256": _same_day_digest(transform)}):
+                raise RuntimeError("same-day V2 approved deletion requires an exact frozen key transform, not a guessed new digest")
+        elif not item.get("expected_new_key_sha256") or item.get("approved_key_transform") is not None:
+            raise RuntimeError("same-day V2 ordinary overlay requires its exact expected new key digest")
+        role_scopes[role] = {"updates": updates, "inserts": inserts, "deletes": deletes, "raw_replacements": raw_replacements, "raw_map": raw_map}
     structural = {}
     for item in contract.get("structural_na", []):
         field = item["field"]
@@ -3507,14 +3541,20 @@ def _same_day_v2_native_volume(frame: pd.DataFrame) -> pd.DataFrame:
     return frame
 
 
-def _same_day_v2_static(ref: Dict[str, Any], signal: int) -> dict:
+def _same_day_v2_static(ref: Dict[str, Any], signal: int, revision_observation_date: Optional[int] = None) -> dict:
     data = json.loads(_same_day_ref(ref).read_text(encoding="utf-8"))
+    revision_observation_date = signal if revision_observation_date is None else revision_observation_date
     result = {}
     for row in data["records"]:
         identity = (row["ts_code"], row["field"])
-        if (identity in result or type(row["observed_date"]) is not int or row["observed_date"] > signal
+        if (identity in result or type(row["observed_date"]) is not int
                 or row["status"] != "CURRENT_REVISION_NON_PIT" or not row["reason"]):
             raise RuntimeError("same-day V2 ambiguous/future/unexplained static observation")
+        if row["observed_date"] > signal:
+            if (row["field"] != "name" or row["observed_date"] > revision_observation_date
+                    or not isinstance(row.get("observation_review_receipt"), dict)):
+                raise RuntimeError("same-day V2 post-signal name observation needs frozen revision cutoff and independent receipt")
+            _same_day_ref(row["observation_review_receipt"])
         _same_day_ref(row["source"])
         result[identity] = row["value"]
     return result
@@ -3575,7 +3615,8 @@ def _same_day_v2_packets(contract: dict, scope: dict) -> list[dict]:
     """Reuse admitted generations; compute only the disjoint remaining partition."""
     global CANONICAL_FORMULA_PATH, _CANONICAL_FORMULA_MODULE, _compute_canonical_v192_formula
     packets, approved = [], set()
-    static = _same_day_v2_static(contract["static_rows"], contract["signal_date"])
+    static = _same_day_v2_static(contract["static_rows"], contract["signal_date"],
+                                 contract.get("runtime_binding", {}).get("revision_observation_date"))
     for item in contract["approved_generations"]:
         keys = set(_same_day_bound_list(item["keys"], keys=True))
         if not keys or not keys <= scope["keys"] or approved & keys or item["same_input_generation"] is not True:
@@ -3778,10 +3819,10 @@ def _same_day_v2_role(contract: dict, scope: dict, packets: list[dict], role: st
         key_values = list(_same_day_key_index(key_frame))
         ordering = sorted(range(len(key_values)), key=lambda position: key_values[position])
         insert_table = insert_table.take(pa.array(ordering, type=pa.int64()))
-    old_digest = hashlib.sha256()
-    seen_updates, changed_raw = set(), set()
+    old_digest, retained_digest = hashlib.sha256(), hashlib.sha256()
+    seen_updates, changed_raw, seen_deletes = set(), set(), set()
     temporary = output.with_suffix(".tmp.parquet")
-    rows = 0
+    rows, source_rows = 0, 0
     try:
         with pq.ParquetWriter(temporary, schema=schema, compression="snappy") as writer:
             for batch in parquet.iter_batches(batch_size=65536):
@@ -3792,6 +3833,16 @@ def _same_day_v2_role(contract: dict, scope: dict, packets: list[dict], role: st
                     raise RuntimeError("same-day V2 invalid source key date")
                 keys = list(zip(key_frame["ts_code"].astype(str), dates.astype(int)))
                 _same_day_v2_key_digest_update(old_digest, keys)
+                source_rows += len(keys)
+                deleting = [key for key in keys if key in approved["deletes"]]
+                if len(set(deleting)) != len(deleting) or set(deleting) & seen_deletes:
+                    raise RuntimeError("same-day V2 approved deletion must match one unique existing source row")
+                seen_deletes.update(deleting)
+                if deleting:
+                    retained_positions = [position for position, key in enumerate(keys) if key not in approved["deletes"]]
+                    table = table.take(pa.array(retained_positions, type=pa.int64()))
+                    keys = [keys[position] for position in retained_positions]
+                _same_day_v2_key_digest_update(retained_digest, keys)
                 relevant = [key for key in keys if key in approved["updates"]]
                 if len(set(relevant)) != len(relevant) or set(relevant) & seen_updates or set(keys) & approved["inserts"]:
                     raise RuntimeError("same-day V2 duplicate update or approved insert already exists")
@@ -3828,16 +3879,17 @@ def _same_day_v2_role(contract: dict, scope: dict, packets: list[dict], role: st
                     table = table.set_column(schema.get_field_index(field), schema.field(field), replacement)
                 writer.write_table(table)
                 rows += table.num_rows
-            if (seen_updates != approved["updates"] or changed_raw != approved["raw_replacements"]
+            if (seen_updates != approved["updates"] or changed_raw != approved["raw_replacements"] or seen_deletes != approved["deletes"]
                     or old_digest.hexdigest() != item["source_key_sha256"]):
-                raise RuntimeError("same-day V2 exact update/raw/source-key binding mismatch")
+                raise RuntimeError("same-day V2 exact update/delete/raw/source-key binding mismatch")
             insert_keys_frame = insert_table.select(["ts_code", "trade_date"]).to_pandas()
             insert_keys = list(_same_day_key_index(insert_keys_frame)) if insert_table.num_rows else []
             if set(insert_keys) != approved["inserts"]:
                 raise RuntimeError("same-day V2 strict insert table key mismatch")
-            new_digest = old_digest.copy()
+            new_digest = retained_digest.copy()
             _same_day_v2_key_digest_update(new_digest, insert_keys)
-            if new_digest.hexdigest() != item["expected_new_key_sha256"] or rows + len(insert_keys) != item["expected_new_rows"]:
+            if ((not approved["deletes"] and new_digest.hexdigest() != item["expected_new_key_sha256"])
+                    or rows + len(insert_keys) != item["expected_new_rows"]):
                 raise RuntimeError("same-day V2 new ordered-key/row identity mismatch")
             if insert_table.num_rows:
                 writer.write_table(insert_table)
@@ -3852,11 +3904,13 @@ def _same_day_v2_role(contract: dict, scope: dict, packets: list[dict], role: st
     finally:
         if temporary.exists():
             temporary.unlink()
-    return {"path": str(output), "sha256": _same_day_file_sha(output), "old_rows": rows,
-            "inserted_rows": insert_table.num_rows, "rows": rows + insert_table.num_rows,
+    return {"path": str(output), "sha256": _same_day_file_sha(output), "old_rows": source_rows,
+            "inserted_rows": insert_table.num_rows, "deleted_rows": len(seen_deletes), "rows": rows + insert_table.num_rows,
             "source_key_sha256": old_digest.hexdigest(), "new_key_sha256": new_digest.hexdigest(),
+            "key_transform_sha256": item["approved_key_transform"]["sha256"] if seen_deletes else None,
             "updated_key_count": len(seen_updates), "raw_replaced_key_count": len(changed_raw),
-            "write_mode": "EXACT_CONSUMER_OVERLAY_AND_APPROVED_ABSENT_KEY_APPEND"}
+            "write_mode": ("EXACT_CONSUMER_OVERLAY_AND_APPROVED_ABSENT_KEY_APPEND_AND_APPROVED_NATIVE_ABSENCE_DELETE"
+                           if seen_deletes else "EXACT_CONSUMER_OVERLAY_AND_APPROVED_ABSENT_KEY_APPEND")}
 
 
 def _same_day_v2_candidate(contract_path: Path, contract_sha256: str, contract: dict) -> dict:
@@ -3870,6 +3924,8 @@ def _same_day_v2_candidate(contract_path: Path, contract_sha256: str, contract: 
                 "complete_consumer_closure", "exact_raw_derived_generation", "approved_generation_reviews",
                 "effective_admissions", "strict_insert_lineage", "actual_consumer_history"))):
         raise RuntimeError("same-day V2 independent complete input/admission/insert binding missing")
+    if any(item["deletes"] for item in scope["roles"].values()) and binding.get("approved_deletions") is not True:
+        raise RuntimeError("same-day V2 independent input binder did not approve exact source-row deletions")
     _same_day_v2_verify_refs(identity)
     output_dir = Path(contract["candidate_dir"])
     if not output_dir.is_absolute() or output_dir.exists():
@@ -3911,6 +3967,8 @@ def _same_day_v2_candidate(contract_path: Path, contract_sha256: str, contract: 
     receipt = {"schema": "V192_SAME_DAY_PANEL_CANDIDATE_V1", "status": "CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW",
                "revision_contract_schema": contract["schema"], "revision_id": contract["revision_id"],
                "signal_date": contract["signal_date"], "target_date": contract["target_date"],
+               "revision_observation_date": contract.get("runtime_binding", {}).get("revision_observation_date", contract["signal_date"]),
+               "name_observation_status": "CURRENT_REVISION_NON_PIT", "historical_name_pit_claimed": False,
                "contract": {"path": str(contract_path), "sha256": contract_sha256}, "producer_sha256": _same_day_file_sha(Path(__file__)),
                "input_binding_receipt": contract["input_binding_receipt"], "artifacts": artifacts, "pointers": pointers,
                "consumer_columns_sha256": _same_day_digest(sorted(scope["columns"])),
