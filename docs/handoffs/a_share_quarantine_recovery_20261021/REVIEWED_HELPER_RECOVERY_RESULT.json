@@ -1,0 +1,198 @@
+{
+  "record_type": "BOUNDED_RESEARCH_RECOVERY_SOURCE_AND_RESULT_RECEIPT",
+  "source_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "0f2eef27c8df29d830b439921b8b69c58815accd",
+  "source_files": [
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/source_candidate_600228.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/source_candidate_600228.py",
+      "sha256": "a76870f14dba4d647058afdf3a1f7995d9c69c1275d9e4f30b5a098d6746cc76"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/source_candidate_batch_r2.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/source_candidate_batch_r2.py",
+      "sha256": "b859b7ef06ef71312a1c2a286365786d1a8536336bce2202ef7d795739850dc7"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/source_candidate_bj86.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/source_candidate_bj86.py",
+      "sha256": "e31bab4e43132496eb8145eeaae3eb6659060bd73231b3d6da24e89b57961d14"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/panel_candidate_600228.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/panel_candidate_600228.py",
+      "sha256": "096bbd1e8c0bbe4487a0a7e05ef1bc35861a4c5bf78e075f71f6a5a0e809fb8f"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/panel_candidate_600228_resume.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/panel_candidate_600228_resume.py",
+      "sha256": "c55b83ff3c2c4d1fc9b057acb40030d67d529873603db572b35d07194c9ed00e"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/bulk_panel_recovery.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/bulk_panel_recovery.py",
+      "sha256": "8e0f3bf0e3e3cd0d1b1edcbec29a7451351788baa0a7b5a4e280d52b674d3077"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/recovery_publish.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/recovery_publish.py",
+      "sha256": "a0a91b0e7f2c2de8ab7603df76f0b7250ecc47d2a48cd1ead334bc8e77ec2aa0"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/recovery_publish_r2.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/recovery_publish_r2.py",
+      "sha256": "c56a94e8e7eb11496a59436ea29c5fcaa8b84d38d9a0bab25e59199f919e135e"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/test_publish_r2_faults.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/test_publish_r2_faults.py",
+      "sha256": "d170557fa7f9c765390cb876639f5f00f24848c3cf875f502d7052181f4e01db"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/prepare_fresh_selection_binding.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/prepare_fresh_selection_binding.py",
+      "sha256": "26ec3b35d8b856f7f121b007a8da31e6e5f5668d7401b7ab8ae9e220e9bb9721"
+    },
+    {
+      "path": "docs/handoffs/a_share_quarantine_recovery_20261021/helpers/compare_repaired_selection.py",
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_quarantine_recovery_20261021/helpers/compare_repaired_selection.py",
+      "sha256": "24e54b8c2f6f8ad939aee57081313eaea6c8cc1a516db89c91e9042d7ad01b9a"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "ops/a_share_daily_sync.py and 12 parts plus original test",
+      "closure_sha256": "810fa5719bda359a0d1ef9a33889a9b4bd0d65b648fec73e6396fafbaf7354cb",
+      "upload": false,
+      "reason": "User current dirty source closure is not this change."
+    },
+    {
+      "path": "build_canonical_formula_research_panel.py",
+      "sha256": "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258",
+      "upload": false
+    },
+    {
+      "path": "replay_tdx_today_r3.py",
+      "sha256": "aa3f6cf691c200796f8b2a880bf372a00c2366a270e27092de891ba791263204",
+      "upload": false,
+      "reason": "Existing frozen runner reused unchanged."
+    }
+  ],
+  "source_acceptance": {
+    "same_owner_dtype": "c9a2e3399a214ee3e43b632720501c83ec1eb5ead121e7bf9cf7fff413a8f733",
+    "explicit_keys": "f233dc39654a10f3213d6c2d0d1f917fa71f8d697a4a6b447f6a8679b1dad692",
+    "source354": "66cae466eeae3fbfe783b52a88cbb8d5444cda40f66b9572174fa91d528b8400",
+    "panel600228": "383c1f9d0b23e32403d26eea2ad59e780b04a7ea96814fc9795d8ed434ba5f03",
+    "bulk366": "9bb0799b692ef03e026a28c840ae696f9e85279d17c2a4732b9f8a5a094001ab"
+  },
+  "publisher_focused_review_terminal": "d03bdabf3cfd7cfe618cdd1920eaf6a4d1de2b1666b68a2c0c541af5627ac09b",
+  "publisher_review_stdout_sha256": "790c84f17c9f35c7eab281d58dd4f58ff1c3c3028a89b11bc9183c8375eb55a2",
+  "actual_publication": {
+    "writer_terminal_sha256": "ce937766037cfad7bce9bff89d3584a0122a14aad7d8c443345d797a95363fe7",
+    "registry_terminal": "610be10cfee4c85e85d76cf44f48f95f088b43a4507584d141b73bbd0d73611d",
+    "publish_receipt_sha256": "10cc85a0549b721a531ab96a1e824a4990bcb348e204d202debcf337dc2256ac",
+    "physical_source_cas": 366,
+    "quarantined_restored": 354,
+    "previously_accepted_source_alignment": 12,
+    "panel_target_date": "20261021",
+    "panel_current_unique_before": 5129,
+    "panel_current_unique_after": 5495,
+    "old_history_retained": true,
+    "remaining_excluded": 305,
+    "excluded_classes": {
+      "original_guard_or_no_target_bar": 69,
+      "exact_archive_member_unmatched": 235,
+      "windows_tail_duplicate": 1
+    },
+    "schema_ready": false
+  },
+  "actual_selection": {
+    "execution_id": "A_SHARE_QUARANTINE_FRESH_TDX_SELECTION_20261021_01",
+    "writer_terminal_sha256": "e4f55f462f81fea56f78a7933de195f5668de9621c6a1870e6d5ee3fc8fae93b",
+    "full_runner_exit_code": 0,
+    "diff_exit_code": 0,
+    "observed_today_stock_count": 5495,
+    "pure_tdx_selected_count": 33,
+    "unknown_count": 0,
+    "old_local_selected_count": 30,
+    "common_saved_windows_count": 32,
+    "a_scope_saved_windows_count": 35,
+    "membership_matches_a_scope": false,
+    "old_mac_union_used": false,
+    "wall_seconds": 36.531517207971774,
+    "formula_and_history_window_unchanged": true,
+    "artifact_sha256": [
+      {
+        "file": "START_GATE_RECEIPT.json",
+        "sha256": "3ad3c78ead3c311a25ee25b461aa1123837b92c586a6a693ae7dc55e1eb6cab8"
+      },
+      {
+        "file": "RESULT.json",
+        "sha256": "db6a83101e1fc45510d1502c23b078a45fdec93f38c181b2465ba22b7929af68"
+      },
+      {
+        "file": "tdx_selected.csv",
+        "sha256": "eb0293966d825d3cd372ed92e6a91e3e7197714119a669648bb56e51b7b682a7"
+      },
+      {
+        "file": "MODEL_UNION_HANDOFF.json",
+        "sha256": "5797671375688db1dff55bec1e31f245fc507b3be93eef8c50c40c40e86b2e79"
+      },
+      {
+        "file": "WINDOWS37_EXACT_CODE_COMPARISON.csv",
+        "sha256": "459dfbdc8cfde36f9565b2ca735f747edd547faa809f527173e2bfef8eed8925"
+      },
+      {
+        "file": "WINDOWS37_COMPARISON_RESULT.json",
+        "sha256": "4a6908c6485a8422b7293f783e5377a808c207f9270f9d3928ce05b3c289c53e"
+      },
+      {
+        "file": "RECOVERY_RESULT.md",
+        "sha256": "2f392d773ade1a45b515bcb52df763366e01d020bb8db67bf556e34041e844a9"
+      }
+    ]
+  },
+  "independent_final_behavior_review": {
+    "verdict": "REVIEWED/PASS",
+    "behavior_verified_scope": "Actual original-source and existing-panel restoration plus this fresh pure-TDX selection/comparison only",
+    "registered_start_event": "920c65c0f65a11a4ee0d93a15d344f7174eb4437a9d67c2a9f58a4ad633de250",
+    "actual_exit_code": 0,
+    "stdout_sha256": "94be0bc9f44e64394592be0ab4323a5d8f3ae7e9914377c0ad895f21b6bc2bda",
+    "verified_frozen_refs": 834,
+    "live_source_refs": 366,
+    "new_snapshot_changed_source_refs": 366,
+    "selection_trace_rows": 5495,
+    "selected": 33,
+    "scope_excludes": "Windows-client/date/engine parity, full schema readiness, API/UI, scheduler runtime fixes and unresolved305."
+  },
+  "limits": {
+    "saved_windows_membership_is_persisted_group_snapshot": true,
+    "windows_run_date_confirmed": false,
+    "windows_formula_body_confirmed": false,
+    "windows_engine_parity_confirmed": false,
+    "remaining_a_scope_mismatch": true,
+    "full_schema_ready": false,
+    "scheduler_runtime_fix_deployed": false,
+    "full659_restore_claimed": false
+  },
+  "source_archive_notes": [
+    {
+      "path": "helpers/recovery_publish.py",
+      "meaning": "Retained for original immutable prepare provenance and old-red fault fixture; actual publication must use independently accepted recovery_publish_r2.py."
+    },
+    {
+      "path": "helpers/panel_candidate_600228.py",
+      "meaning": "Retained original canary source; corrected saved-artifact resume and accepted bulk use independently validated storage projection. Old R1 receipt is not acceptance."
+    }
+  ],
+  "excluded_from_git": "No raw prices/native data/parquets/source snapshots/selected code lists/large logs/registry/authentication files/private account data or unrelated dirty source.",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "remote_path": "docs/handoffs/a_share_quarantine_recovery_20261021/REVIEWED_HELPER_RECOVERY_RESULT.json",
+  "before_new_paths_sha256": null,
+  "before_new_paths_reason": "New recovery-helper paths added on the previously verified source-only commit; no remote user source replaced."
+}
