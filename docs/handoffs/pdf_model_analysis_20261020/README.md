@@ -95,3 +95,5 @@ Only changed V2 prompt/envelope/group budgets are recomputed from the previously
 accepted716 input bytes; PDF/OCR/input acceptance and unchanged tests are reused.
 
 V2增量：引用页号严格为非bool整数，角色必须为字符串，畸形模型字段返回本篇schema错误；未知系统异常继续全局停止。唯一修复样本的零请求DEFER只有绑定同一plan/job/generation的独立不可变零attempt证明才允许续行；每次真实transport前持久化attempt-start标记，有标记、未知是否发出、已发出或未闭合并发intent均拒绝第二请求。≤1新POST预算保持。
+
+来源约束规范化 V1：共用解码器审计 UNKNOWN 哨兵、证据明确的当前判断原条目转 facts、无时期且精确位于页尾的行情数移出核心 numeric、未知项中未采用的日期猜测。保留原 raw/FAIL 与每条变换前后值、源页 SHA/跨度；歧义或 facts 超5拒绝。本批81e只重放真实 generation1 输出，零新请求，产物标记来源约束派生卡；须独立派生内容验收后才精确闭合84/85，原始模型内容不升级PASS。

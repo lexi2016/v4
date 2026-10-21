@@ -187,7 +187,66 @@ def canonicalize_citations(raw_inner:str,pages:Sequence[Mapping[str,Any]]) -> tu
             for key,item in value.items():visit(item,path+'.'+key)
         elif isinstance(value,list):
             for i,item in enumerate(value):visit(item,f'{path}[{i}]')
-    visit(result,'card');return result,audit
+    visit(result,'card')
+    # UNKNOWN is a schema sentinel, never a guessed source entity/name.
+    roles=result.get('speaker_and_source_attribution',[]) if isinstance(result,dict) else []
+    if isinstance(roles,list):
+        for index,item in enumerate(roles):
+            if isinstance(item,dict) and item.get('role')=='UNKNOWN' and isinstance(item.get('entity'),str) and item['entity'].casefold()=='unknown' and item['entity']!='UNKNOWN':
+                audit.append({'path':f'card.speaker_and_source_attribution[{index}].entity','transformation':'SCHEMA_UNKNOWN_SENTINEL_CASE_NORMALIZATION','rule_version':'LIGHT_SOURCE_CONSTRAINTS_V1','source_page_sha256':{str(p['page_number']):p['text_sha256'] for p in pages},'before_path':f'card.speaker_and_source_attribution[{index}].entity','after_path':f'card.speaker_and_source_attribution[{index}].entity','raw_inner_sha256':sha(raw_inner.encode()),'original_value':item['entity'],'canonical_value':'UNKNOWN','role':'UNKNOWN','no_source_entity_identity_inferred':True})
+                item['entity']='UNKNOWN'
+    normalize_source_constraints(result,pages,audit,raw_inner_sha256=sha(raw_inner.encode()))
+    return result,audit
+
+
+def normalize_source_constraints(card:Any,pages:Sequence[Mapping[str,Any]],audit:list[dict[str,Any]],*,raw_inner_sha256:str) -> None:
+    if not isinstance(card,dict):return  # The strict schema validator owns malformed outer fields.
+    page_map={p['page_number']:p for p in pages}
+    future=re.compile(r'未来|预计|预测|有望|后续|将|计划|目标|情景|假设|展望|拟|可能|\d{4}E|\b(?:will|expect|forecast|scenario|target|next)\b',re.I)
+    base={'rule_version':'LIGHT_SOURCE_CONSTRAINTS_V1','raw_inner_sha256':raw_inner_sha256,'source_page_sha256':{str(p['page_number']):p['text_sha256'] for p in pages}}
+    def spans(item:Mapping[str,Any]) -> list[dict[str,Any]]:
+        evidence=item.get('evidence')
+        if not isinstance(evidence,list) or not evidence:fail('FULL_CITATION_REQUIRED')
+        found=[]
+        for ev in evidence:
+            if not isinstance(ev,dict) or set(ev)!={'page_number','text_sha256','excerpt'} or type(ev['page_number']) is not int or not isinstance(ev['text_sha256'],str):fail('FULL_CITATION_INVALID')
+            page=page_map.get(ev['page_number']);quote=ev['excerpt']
+            if not page or ev['text_sha256']!=page['text_sha256'] or not isinstance(quote,str) or not 1<=len(quote)<=300 or quote not in page['text']:fail('FULL_CITATION_NOT_EXACT_SOURCE')
+            start=page['text'].find(quote)
+            found.append({**ev,'source_start_character':start,'source_end_character':start+len(quote),'unique_source_span':page['text'].find(quote,start+1)<0})
+        return found
+    facts=card.get('facts');forecasts=card.get('forecasts')
+    if isinstance(facts,list) and isinstance(forecasts,list):
+        kept=[]
+        for index,item in enumerate(forecasts):
+            if isinstance(item,dict) and isinstance(item.get('period'),str) and item['period'].strip() in {'当前','目前','现在'} and isinstance(item.get('claim'),str):
+                bound=spans(item);token=item['period'].strip()
+                if not any(token in e['excerpt'] for e in bound) or future.search(item['claim']+' '+''.join(e['excerpt'] for e in bound)):fail('FULL_CURRENT_TEMPORAL_EVIDENCE_AMBIGUOUS')
+                if len(facts)>=5:fail('FULL_CURRENT_SOURCE_MOVE_OVERFLOW')
+                audit.append({**base,'transformation':'EXPLICIT_CURRENT_SOURCE_STATEMENT','before_path':f'card.forecasts[{index}]','after_path':f'card.facts[{len(facts)}]','original_value':copy.deepcopy(item),'canonical_value':copy.deepcopy(item),'source_spans':bound,'reason':'EXPLICIT_CURRENT_SOURCE_ATTRIBUTION_NO_FUTURE_MARKER'})
+                facts.append(item);continue
+            kept.append(item)
+        card['forecasts']=kept
+    numbers=card.get('numeric_values')
+    if isinstance(numbers,list):
+        kept=[]
+        for index,item in enumerate(numbers):
+            if isinstance(item,dict) and item.get('measure_kind')=='price_return' and isinstance(item.get('period'),str) and item['period'].strip()=='UNKNOWN':
+                bound=spans(item)
+                tail=all(e['unique_source_span'] and not re.search(r'产能|产量|年产|收入|利润|capacity|revenue|profit',e['excerpt'],re.I) and not page_map[e['page_number']]['text'][e['source_end_character']:].strip() and re.fullmatch(r'[^\n。;；]{0,60}[-+＋－]\d+(?:[.,]\d+)*\s*[%％]',e['excerpt'].strip()) for e in bound)
+                if tail:
+                    audit.append({**base,'transformation':'UNPERIODIZED_FOOTER_RETURN_EXCLUDED','before_path':f'card.numeric_values[{index}]','after_path':None,'original_value':copy.deepcopy(item),'canonical_value':None,'source_spans':bound,'reason':'NONCORE_PAGE_TAIL_PRICE_RETURN_WITHOUT_TIME_BASIS_NO_PERIOD_INFERRED'});continue
+            kept.append(item)
+        card['numeric_values']=kept
+    unknowns=card.get('unknowns')
+    if isinstance(unknowns,list):
+        kept=[];excluded=False
+        for index,item in enumerate(unknowns):
+            if isinstance(item,str) and re.search(r'(?:19|20)\d{2}',item) and re.search(r'推测|猜测|推断|估计|可能为|推定|推算',item) and re.search(r'年份|日期|事件年|调研.{0,8}年',item):
+                audit.append({**base,'transformation':'UNSUPPORTED_DATE_GUESS_NOT_ADOPTED','before_path':f'card.unknowns[{index}]','after_path':'card.unknowns','original_value':item,'canonical_value':'模型对事件年份的猜测未被采用；原文未明示的事件年份保持UNKNOWN，不依据发布日期补齐。','reason':'EXPLICIT_DATE_GUESS_WITH_PROPOSED_YEAR_NOT_ACCEPTED_RESEARCH_CONTENT'});excluded=True
+            else:kept.append(item)
+        if excluded:kept.append('模型对事件年份的猜测未被采用；原文未明示的事件年份保持UNKNOWN，不依据发布日期补齐。')
+        card['unknowns']=kept
 
 
 def _source_comparator(value:str,evidences:Sequence[Mapping[str,Any]]) -> str|None:
@@ -381,7 +440,11 @@ V2_PREFIX80_SHA='ea5100bafef6eef1b5d8292499ec1b0b9783625a781efba02bb9ef70e68f409
 V2_PREVIOUS_ROOT_SHA='ef32a9abcf5a01f4e154e1369a76f278ee11203373a75f5247b364baa952627d'
 V2_FAILURE_REVIEW_SHA='8510e4eceee128d96481b39966de401e03e1fa0367211bd67bca825db9395941'
 V2_PREVIOUS_CODE_SHA='50448fbb75695e3e3f5508a0c1b9fd211988a98cdb4d3d3b6e0c3da8a04c22e9'
-LOCAL_OUTPUT_ERRORS={'FULL_CARD_SCHEMA_INVALID','FULL_DATE_INVALID','FULL_LIGHT_MODEL_INFERENCE_FORBIDDEN','FULL_CLAIM_LIMIT_INVALID','FULL_CLAIM_SCHEMA_INVALID','FULL_SOURCE_FORECAST_CLASSIFIED_AS_FACT','FULL_NUMERIC_SCHEMA_INVALID','FULL_NUMERIC_SEMANTICS_INVALID','FULL_NUMERIC_BOUND_LOST','FULL_CAPACITY_MISCLASSIFIED_AS_OUTPUT','FULL_OUTPUT_MEASURE_MISMATCH','FULL_NUMERIC_VALUE_NOT_IN_QUOTE','FULL_ATTRIBUTION_ROLE_INVALID','FULL_ATTRIBUTION_ENTITY_UNSUPPORTED','FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED','FULL_UNNAMED_SPEAKER_LIMIT_REQUIRED','FULL_CARD_LIST_INVALID','FULL_SOURCE_USE_LIMIT_INVALID','FULL_SOURCE_USE_LIMIT_OMITTED','FULL_CARD_NO_RESEARCH_CONTENT','FULL_CITATION_REQUIRED','FULL_CITATION_INVALID','FULL_CITATION_NOT_EXACT_SOURCE','FULL_CITATION_WHITESPACE_SPAN_NOT_UNIQUE','FULL_MODEL_INNER_JSON_INVALID','FULL_SINGLE_SOURCE_OR_SYNTHESIS_UNIT_OVERSIZE','FULL_SYNTHESIS_DID_NOT_REDUCE','FULL_SYNTHESIS_DEPTH_EXCEEDED'}
+NORMALIZATION_DECISION={'path':str(b.RESEARCH_PILOT_ROOT/'controller-light-v2-common-normalization-decision.json'),'sha256':'a6f2e439d0b40245f6e9b4dea70e60eba16dcaf143b299443bc6719f9aaace73'}
+NORMALIZATION_PREFIX86_SHA='6f2f344f523329c7966fe06473007969381afcb7c51cf318550ebbfb956da32e'
+NORMALIZATION_OLD_ROOT_SHA='7fbd9925c2d908e625e8575dac40857c386867fdab81085f4d20bf3cff1ae8b2'
+NORMALIZATION_RAW_SHA='6a6d3e9ca1076b4664504533e7ce272a702e755403c684ae9a83691b3d8b36ea'
+LOCAL_OUTPUT_ERRORS={'FULL_CURRENT_TEMPORAL_EVIDENCE_AMBIGUOUS','FULL_CURRENT_SOURCE_MOVE_OVERFLOW','FULL_CARD_SCHEMA_INVALID','FULL_DATE_INVALID','FULL_LIGHT_MODEL_INFERENCE_FORBIDDEN','FULL_CLAIM_LIMIT_INVALID','FULL_CLAIM_SCHEMA_INVALID','FULL_SOURCE_FORECAST_CLASSIFIED_AS_FACT','FULL_NUMERIC_SCHEMA_INVALID','FULL_NUMERIC_SEMANTICS_INVALID','FULL_NUMERIC_BOUND_LOST','FULL_CAPACITY_MISCLASSIFIED_AS_OUTPUT','FULL_OUTPUT_MEASURE_MISMATCH','FULL_NUMERIC_VALUE_NOT_IN_QUOTE','FULL_ATTRIBUTION_ROLE_INVALID','FULL_ATTRIBUTION_ENTITY_UNSUPPORTED','FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED','FULL_UNNAMED_SPEAKER_LIMIT_REQUIRED','FULL_CARD_LIST_INVALID','FULL_SOURCE_USE_LIMIT_INVALID','FULL_SOURCE_USE_LIMIT_OMITTED','FULL_CARD_NO_RESEARCH_CONTENT','FULL_CITATION_REQUIRED','FULL_CITATION_INVALID','FULL_CITATION_NOT_EXACT_SOURCE','FULL_CITATION_WHITESPACE_SPAN_NOT_UNIQUE','FULL_MODEL_INNER_JSON_INVALID','FULL_SINGLE_SOURCE_OR_SYNTHESIS_UNIT_OVERSIZE','FULL_SYNTHESIS_DID_NOT_REDUCE','FULL_SYNTHESIS_DEPTH_EXCEEDED'}
 ISOLATED_STATUSES={'SOURCE_INVALID_NO_MODEL','FAILED_DOCUMENT_ISOLATED'}
 
 
@@ -412,6 +475,7 @@ def load_v2_recovery(adoption:Mapping[str,Any],documents:Mapping[str,Any]) -> tu
 
 def output_folder(did:str,context:Mapping[str,Any]) -> Path:
     folder=job_folder(did)
+    if did==POSITIVE_FIRST_ID and context.get('common_normalization'):return folder/'repair-generation1/source-constrained-replay-v1'
     return folder/'repair-generation1' if did==POSITIVE_FIRST_ID and context.get('light_v2_recovery') else folder
 
 
@@ -424,7 +488,7 @@ def prepare_v2_recovery(journal:Any,context:Mapping[str,Any],*,append:bool) -> N
     expected={'event':'halt_resolution','status':'BOUNDED_LIGHT_V2_GENERATION1_AUTHORIZED','document_id':POSITIVE_FIRST_ID,
               'generation':1,'failed_terminal_index':78,'halt_index':79,'failed_terminal_line_sha256':sha(lines[78]),
               'journal_prefix80_sha256':V2_PREFIX80_SHA,'decision':LIGHT_V2_DECISION,'failure_review':recovery['failure_review'],
-              'page_input':recovery['page_input'],'template_sha256':TEMPLATE_SHA,'max_new_POSTs':1,'adoption':context['full_adoption_ref']}
+              'page_input':recovery['page_input'],'template_sha256':TEMPLATE_SHA,'max_new_POSTs':1,'adoption':context.get('v2_resolution_anchor',context['full_adoption_ref'])}
     prior=[{k:v for k,v in e.items() if k!='at_utc'} for e in journal.events[80:] if e.get('event')=='halt_resolution' and e.get('status')=='BOUNDED_LIGHT_V2_GENERATION1_AUTHORIZED']
     if prior and prior!=[expected]:fail('FULL_V2_RECOVERY_DUPLICATE_OR_MISMATCH')
     if not prior:
@@ -440,7 +504,9 @@ def prepare_v2_recovery(journal:Any,context:Mapping[str,Any],*,append:bool) -> N
             if len(deferred)!=1:fail('FULL_V2_REPAIR_QUOTA_EXCEEDED')
             verify_zero_attempt_defer(deferred[0],intent,index,context)
             if any(e.get('event')=='full_terminal' and e.get('document_id')==POSITIVE_FIRST_ID for e in journal.events[index+1:next_index]):fail('FULL_V2_REPAIR_QUOTA_EXCEEDED')
-    for event in journal.events[80:]:
+    closed=normalization_closure(journal.events,context)
+    for index,event in enumerate(journal.events[80:],80):
+        if closed and index in {84,85}:continue
         if event.get('event')=='halt' or event.get('event')=='reconciled' and event.get('decision')=='HALT' or event.get('event')=='full_terminal' and event.get('status')=='FAILED_NO_RETRY':fail('FULL_PRIOR_FAILURE_NO_RETRY')
 
 
@@ -471,16 +537,19 @@ def verify_zero_attempt_defer(event:Mapping[str,Any],intent:Mapping[str,Any],ind
 
 
 def terminal_map(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]) -> dict[str,Any]:
-    terms={}
+    terms={};closed=normalization_closure(events,context)
     for index,event in enumerate(events):
         if event.get('event')!='full_terminal':continue
         did=event['document_id']
         if index==78 and context.get('light_v2_recovery'):
             if did!=POSITIVE_FIRST_ID or event.get('status')!='FAILED_NO_RETRY' or event.get('code')!='FULL_CITATION_NOT_EXACT_SOURCE':fail('FULL_V2_FAILURE_TERMINAL_MISMATCH')
             continue  # This preserved failed generation is not an accepted output.
+        if context.get('common_normalization') and did==POSITIVE_FIRST_ID and index>=86:fail('FULL_NORMALIZATION_EXTRA_TERMINAL')
+        if index==84 and closed:continue
         if did in terms:fail('FULL_DUPLICATE_TERMINAL')
         if did==POSITIVE_FIRST_ID and context.get('light_v2_recovery') and event.get('generation')!=1:fail('FULL_V2_REPAIR_GENERATION_MISMATCH')
         terms[did]=event
+    if closed:terms[POSITIVE_FIRST_ID]={'event':'halt_resolution','document_id':POSITIVE_FIRST_ID,'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','receipt':closed['derived_receipt'],'generation':1,'template_sha256':TEMPLATE_SHA,'derived_from_accepted_zero_POST_replay':True}
     return terms
 
 
@@ -497,7 +566,7 @@ def positive_first(context:Mapping[str,Any]) -> str:
 def verify_full_adoption(journal:Any,context:Mapping[str,Any],*,append:bool) -> None:
     current={'event':'full_adoption','adoption':context['full_adoption_ref'],'template_sha256':TEMPLATE_SHA,'sources':context['sources']}
     previous=context.get('previous_full_adoption')
-    history=([previous] if previous else [])+([context['v2_previous_adoption']] if context.get('v2_previous_adoption') else [])
+    history=([previous] if previous else [])+([context['v2_previous_adoption']] if context.get('v2_previous_adoption') else [])+([context['normalization_previous_adoption']] if context.get('normalization_previous_adoption') else [])
     expected=[{'event':'full_adoption',**row} for row in history]+[current]
     prior=[{k:v for k,v in e.items() if k!='at_utc'} for e in journal.events if e.get('event')=='full_adoption']
     if previous and not prior or prior!=expected[:len(prior)] or len(prior)>len(expected):fail('FULL_JOURNAL_ADOPTION_MISMATCH')
@@ -530,7 +599,7 @@ def prepare_light_lane_isolation(journal:Any,context:Mapping[str,Any]) -> dict[s
 
 def release_review_paths(adoption:Mapping[str,Any]) -> tuple[Path,Path]:
     # Preserve the original code proof referenced by unchanged baseAUTH.
-    prefix='full-light-v2' if adoption.get('light_v2_recovery') else ('full-source-invalid' if adoption.get('source_invalid_admission') else 'full-adapter')
+    prefix='full-light-v2-normalization' if adoption.get('common_normalization') else 'full-light-v2' if adoption.get('light_v2_recovery') else ('full-source-invalid' if adoption.get('source_invalid_admission') else 'full-adapter')
     root=b.RESEARCH_PILOT_ROOT/'independent-review'
     return root/f'{prefix}-code-review.json',root/f'{prefix}-runtime-review.json'
 
@@ -547,12 +616,13 @@ def load_context(*,runtime_release:bool=True) -> dict[str,Any]:
     independent_light_gates(adoption,context)
     invalid,previous=source_invalid_admission(adoption,documents)
     recovery,v2_previous=load_v2_recovery(adoption,documents)
+    normalization,normalization_previous=load_normalization_admission(adoption,documents)
     if invalid and (checkpoints[0]['document_ids'][:3]!=[*SOURCE_INVALID_INPUTS,POSITIVE_FIRST_ID] or documents[POSITIVE_FIRST_ID]['page_input']['sha256']!='9653c17fb83c287313b7a77e6f9e7b983ecf3bfe86784032debae655755db95a'):fail('FULL_SOURCE_INVALID_POSITIVE_ORDER_MISMATCH')
     if runtime_release:
         rp=release_review_paths(adoption)[1];review=independent(ref(rp),{'FULL_RUNTIME_ADOPTION_PASS'})
         if (review.get('adoption')!=ref(ROOT) or review.get('sources')!=current or review.get('authorization')!=ref(d.AUTHORIZATION_PATH)
                 or review.get('base_sources')!=adoption['base_sources']):fail('FULL_RUNTIME_RELEASE_MISMATCH')
-    return {**context,'full_adoption':adoption,'full_adoption_ref':ref(ROOT),'documents':documents,'checkpoints':checkpoints,'sources':current,'source_invalid_rows':invalid,'source_invalid_review':adoption.get('source_invalid_admission',{}).get('independent_review'),'previous_full_adoption':previous,'light_v2_recovery':recovery,'v2_previous_adoption':v2_previous,'light_lane_anchor':previous['adoption'] if previous else ref(ROOT)}
+    return {**context,'full_adoption':adoption,'full_adoption_ref':ref(ROOT),'documents':documents,'checkpoints':checkpoints,'sources':current,'source_invalid_rows':invalid,'source_invalid_review':adoption.get('source_invalid_admission',{}).get('independent_review'),'previous_full_adoption':previous,'light_v2_recovery':recovery,'v2_previous_adoption':v2_previous,'common_normalization':normalization,'normalization_previous_adoption':normalization_previous,'v2_resolution_anchor':normalization_previous['adoption'] if normalization_previous else ref(ROOT),'light_lane_anchor':previous['adoption'] if previous else ref(ROOT)}
 
 
 def historical_context(context:Mapping[str,Any]) -> dict[str,Any]:
@@ -584,7 +654,7 @@ def verify_history(journal:Any,context:Mapping[str,Any],*,append:bool=False) -> 
                 or any(e.get('event') in {'full_plan','full_intent','full_terminal'} and e.get('document_id')==second for e in journal.events)):fail('FULL_SOURCE_INVALID_PRIOR_EXECUTION_MISMATCH')
         read(first[0]['receipt'])
     for index,event in enumerate(journal.events):
-        if event.get('event')=='full_terminal' and event.get('status')=='FAILED_NO_RETRY' and not (context.get('light_v2_recovery') and index==78):fail('FULL_PRIOR_FAILURE_NO_RETRY')
+        if event.get('event')=='full_terminal' and event.get('status')=='FAILED_NO_RETRY' and not (context.get('light_v2_recovery') and index==78) and not (index==84 and normalization_closure(journal.events,context)):fail('FULL_PRIOR_FAILURE_NO_RETRY')
     if protocol_failure_streak(journal.events):fail('FULL_SYSTEMIC_PROTOCOL_FAILURE_STREAK')
 
 
@@ -597,7 +667,7 @@ def first_card_gate(context:Mapping[str,Any]) -> bool:
     did=positive_first(context);name='full-light-v2-first-card-content-review.json' if context.get('light_v2_recovery') else 'full-first-card-content-review.json'
     path=b.RESEARCH_PILOT_ROOT/'independent-review'/name
     if not path.exists():return False
-    review=independent(ref(path),{'LIGHT_CARD_CONTENT_PASS'});row=context['documents'][did]
+    review=independent(ref(path),{'SOURCE_CONSTRAINED_DERIVED_CARD_PASS'} if context.get('common_normalization') else {'LIGHT_CARD_CONTENT_PASS'});row=context['documents'][did]
     if review.get('document_id')!=did or review.get('card')!=ref(output_folder(did,context)/'card.json') or review.get('page_input')!=row['page_input'] or review.get('template_sha256')!=TEMPLATE_SHA:fail('FULL_FIRST_CARD_CONTENT_BINDING_MISMATCH')
     return True
 
@@ -633,7 +703,7 @@ def checkpoint_gate(checkpoint:Mapping[str,Any],context:Mapping[str,Any],events:
         receipt=read(terminal['receipt'])
         card_ref=ref(output_folder(did,context)/'card.json')
         if receipt.get('card')!=card_ref or receipt.get('page_input')!=source_ref or receipt.get('template_sha256')!=TEMPLATE_SHA:fail('FULL_CHECKPOINT_RECEIPT_MISMATCH')
-        expected={'document_id':did,'page_input':source_ref,'card':card_ref,'status':'LIGHT_CARD_CONTENT_PASS'}
+        expected={'document_id':did,'page_input':source_ref,'card':card_ref,'status':'SOURCE_CONSTRAINED_DERIVED_CARD_PASS' if context.get('common_normalization') else 'LIGHT_CARD_CONTENT_PASS'}
         if row==expected:continue
         failed={k:v for k,v in row.items() if k!='findings'}
         if failed!={**expected,'status':'CONTENT_FAILED_DOCUMENT_ISOLATED'} or not isinstance(row.get('findings'),list) or not row['findings']:fail('FULL_CHECKPOINT_CONTENT_BINDING_MISMATCH')
@@ -707,10 +777,10 @@ def write_disposition(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]
                     if rp.exists():
                         checkpoint_gate(checkpoint,context,events)
                         reviewed=next(x for x in read(ref(rp))['documents'] if x['document_id']==did)
-                        row.update(status=reviewed['status'],content_review=ref(rp),model_complete=reviewed['status']=='LIGHT_CARD_CONTENT_PASS')
+                        row.update(status=reviewed['status'],content_review=ref(rp),model_complete=reviewed['status'] in {'LIGHT_CARD_CONTENT_PASS','SOURCE_CONSTRAINED_DERIVED_CARD_PASS'})
                         if 'findings' in reviewed:row['content_failure_findings']=reviewed['findings']
                     elif did==positive_first(context) and first_card_gate(context):
-                        row.update(status='LIGHT_CARD_CONTENT_PASS',content_review=ref(b.RESEARCH_PILOT_ROOT/'independent-review/full-light-v2-first-card-content-review.json'),model_complete=True)
+                        row.update(status='SOURCE_CONSTRAINED_DERIVED_CARD_PASS' if context.get('common_normalization') else 'LIGHT_CARD_CONTENT_PASS',content_review=ref(b.RESEARCH_PILOT_ROOT/'independent-review/full-light-v2-first-card-content-review.json'),model_complete=True)
                 else:row['failure']=event
         else:fail('FULL_UNKNOWN_ROUTE')
         if did in samples:row['separately_validated_sample']=samples[did]
@@ -730,8 +800,111 @@ def write_disposition(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]]
     return ref(path)
 
 
+
+def load_normalization_admission(adoption:Mapping[str,Any],documents:Mapping[str,Any]) -> tuple[dict[str,Any]|None,dict[str,Any]|None]:
+    data=adoption.get('common_normalization')
+    if data is None:return None,None
+    decision=read(NORMALIZATION_DECISION);binding=decision['raw_binding']
+    if (data.get('decision')!=NORMALIZATION_DECISION or decision.get('status')!='AUTHORIZED_COMMON_SOURCE_CONSTRAINED_NORMALIZATION_AND_ZERO_POST_REPLAY'
+            or data.get('document_id')!=POSITIVE_FIRST_ID or data.get('page_input')!=documents[POSITIVE_FIRST_ID]['page_input']
+            or data['page_input']['sha256']!=binding['input_sha256'] or binding['template_sha256']!=TEMPLATE_SHA
+            or data.get('raw_inner',{}).get('sha256')!=NORMALIZATION_RAW_SHA or data.get('journal_prefix86_sha256')!=NORMALIZATION_PREFIX86_SHA):fail('FULL_NORMALIZATION_ADMISSION_MISMATCH')
+    failure=independent(data['raw_failure_review'],{'ACTUAL_V2_CANARY_CONTENT_FAIL_CONFIRMED_NO_RETRY'})
+    if data['raw_failure_review']['sha256']!=decision['failure_review_sha256'] or not contains(failure,data['raw_inner']):fail('FULL_NORMALIZATION_FAILURE_BINDING_MISMATCH')
+    old=read(data['previous_adoption_backup']);code=independent(data['previous_source_review_backup'],{'REVIEWED_PASS'})
+    if (data['previous_adoption_backup']['sha256']!=NORMALIZATION_OLD_ROOT_SHA or code.get('full_sources')!=old.get('sources')
+            or old.get('source_review',{}).get('sha256')!=data['previous_source_review_backup']['sha256']
+            or any(old.get(k)!=adoption.get(k) for k in ('authorization','base_sources','planning_pins','independent_light_lane','source_invalid_admission','light_v2_recovery','template_sha256'))):fail('FULL_NORMALIZATION_PREVIOUS_AUTHORITY_MISMATCH')
+    read(data['raw_inner'],json_value=False)
+    return dict(data),{'adoption':{'path':str(ROOT),'sha256':NORMALIZATION_OLD_ROOT_SHA},'sources':old['sources'],'template_sha256':TEMPLATE_SHA}
+
+
+def authenticate_replay(context:Mapping[str,Any]) -> tuple[dict[str,Any],list[dict[str,Any]],str]:
+    data=context.get('common_normalization')
+    if not data:fail('FULL_NORMALIZATION_AUTHORITY_REQUIRED')
+    decision=read(NORMALIZATION_DECISION);binding=decision['raw_binding'];raw=d._read_regular(d.EVIDENCE_ROOT/'dispatch.jsonl','FULL_JOURNAL_REQUIRED');lines=raw.splitlines(keepends=True)
+    if len(lines)<86 or sha(b''.join(lines[:86]))!=NORMALIZATION_PREFIX86_SHA:fail('FULL_NORMALIZATION_PREFIX86_MISMATCH')
+    events=[json.loads(x) for x in lines]
+    if any(e.get('event')=='halt' or e.get('event')=='full_terminal' and e.get('status')=='FAILED_NO_RETRY' for e in events[86:]):fail('FULL_NORMALIZATION_UNKNOWN_HALT_OR_FAILURE')
+    if (events[84].get('event')!='full_terminal' or events[84].get('document_id')!=POSITIVE_FIRST_ID or events[84].get('generation')!=1
+            or events[84].get('code')!='FULL_ATTRIBUTION_ENTITY_UNSUPPORTED' or events[84].get('status')!='FAILED_NO_RETRY'
+            or events[85].get('event')!='halt' or events[85].get('document_id')!=POSITIVE_FIRST_ID):fail('FULL_NORMALIZATION_FAILURE_BOUNDARY_MISMATCH')
+    row,pages=source(POSITIVE_FIRST_ID,context['documents']);inner=read(data['raw_inner'],json_value=False).decode()
+    original=job_folder(POSITIVE_FIRST_ID)/'repair-generation1'
+    if data['raw_inner']['path']!=str(original/'stages/source-0001.raw-model-inner.json') or sha(inner.encode())!=binding['raw_sha256']:fail('FULL_NORMALIZATION_RAW_PATH_MISMATCH')
+    plan=read(ref(original/'plan.json'));call=read(ref(original/'calls/source-0001-SUCCEEDED.json'))
+    if (plan.get('source')!=row['page_input'] or plan.get('generation')!=1 or plan.get('template_sha256')!=TEMPLATE_SHA
+            or plan.get('adoption')!=context['normalization_previous_adoption']['adoption'] or events[83].get('plan_sha256')!=ref(original/'plan.json')['sha256']
+            or call.get('queue_key')!=binding['queue_key'] or call.get('status')!='SUCCEEDED' or call.get('attempted') is not True):fail('FULL_NORMALIZATION_ACTUAL_ATTEMPT_MISMATCH')
+    state=Path(plan['state_root']);queue=json.loads(d._read_regular(state/'queue/queue-state.json','FULL_QUEUE_STATE_REQUIRED'));item=queue['jobs'].get(binding['queue_key'],{})
+    if item.get('status')!='SUCCEEDED' or item.get('attempt_count')!=1 or len(item.get('attempts',[]))!=1:fail('FULL_NORMALIZATION_QUEUE_ATTEMPT_MISMATCH')
+    validated=read({'path':str(state/'queue'/item['validated_path']),'sha256':item['validated_sha256']})
+    if validated.get('analysis_markdown')!=inner:fail('FULL_NORMALIZATION_RAW_QUEUE_MISMATCH')
+    return row,pages,inner
+
+
+def normalization_closure(events:Sequence[Mapping[str,Any]],context:Mapping[str,Any]) -> dict[str,Any]|None:
+    if not context.get('common_normalization'):return None
+    prior=[{k:v for k,v in e.items() if k!='at_utc'} for e in events[86:] if e.get('event')=='halt_resolution' and e.get('status')=='SOURCE_CONSTRAINED_DERIVED_CARD_ACCEPTED']
+    if not prior:return None
+    expected=normalization_closure_event(context)
+    if prior!=[expected]:fail('FULL_NORMALIZATION_CLOSURE_DUPLICATE_OR_MISMATCH')
+    # No other closure or unknown event may silently release an unrelated HALT.
+    return expected
+
+
+def normalization_closure_event(context:Mapping[str,Any]) -> dict[str,Any]:
+    row,_,_=authenticate_replay(context);folder=output_folder(POSITIVE_FIRST_ID,context)
+    receipt=read(ref(folder/'receipt.json'));card=ref(folder/'card.json');audit=ref(folder/'normalization-audit.json')
+    review_ref=ref(b.RESEARCH_PILOT_ROOT/'independent-review/full-light-v2-first-card-content-review.json');review=independent(review_ref,{'SOURCE_CONSTRAINED_DERIVED_CARD_PASS'})
+    if (review.get('document_id')!=POSITIVE_FIRST_ID or review.get('card')!=card or review.get('receipt')!=ref(folder/'receipt.json')
+            or review.get('normalization_audit')!=audit or review.get('page_input')!=row['page_input'] or review.get('template_sha256')!=TEMPLATE_SHA
+            or receipt.get('status')!='SOURCE_CONSTRAINED_DERIVED_CARD_PENDING_REVIEW' or receipt.get('card')!=card or receipt.get('new_model_POSTs')!=0
+            or receipt.get('raw_inner')!=context['common_normalization']['raw_inner'] or receipt.get('adoption')!=context['full_adoption_ref']):fail('FULL_NORMALIZATION_CONTENT_BINDING_MISMATCH')
+    return {'event':'halt_resolution','status':'SOURCE_CONSTRAINED_DERIVED_CARD_ACCEPTED','document_id':POSITIVE_FIRST_ID,'generation':1,
+            'failed_terminal_index':84,'halt_index':85,'journal_prefix86_sha256':NORMALIZATION_PREFIX86_SHA,'decision':NORMALIZATION_DECISION,
+            'original_raw':context['common_normalization']['raw_inner'],'original_raw_content_status':'CONTENT_FAIL_PRESERVED','page_input':row['page_input'],
+            'template_sha256':TEMPLATE_SHA,'adoption':context['full_adoption_ref'],'derived_receipt':ref(folder/'receipt.json'),'derived_card':card,
+            'normalization_audit':audit,'independent_content_review':review_ref,'new_model_POSTs':0}
+
+
+def replay_normalized_card() -> dict[str,Any]:
+    context=load_context();row,pages,raw=authenticate_replay(context);folder=output_folder(POSITIVE_FIRST_ID,context)
+    content,changes=canonicalize_citations(raw,pages);validate_card(content,pages)
+    card=build_derived_card(POSITIVE_FIRST_ID,row,pages,content,len(source_groups(row,pages)))
+    card.update(original_raw_content_status='CONTENT_FAIL_PRESERVED',raw_inner=context['common_normalization']['raw_inner'])
+    audit={'status':'AUDITED_COMMON_SOURCE_CONSTRAINTS_NOT_RAW_MODEL_PASS','decision':NORMALIZATION_DECISION,'page_input':row['page_input'],
+           'raw_inner':context['common_normalization']['raw_inner'],'changes':changes,'source_page_sha256':card['coverage']['page_text_sha256']}
+    d._write_immutable(folder/'card.json',lm.canonical_json(card)+b'\n');d._write_immutable(folder/'normalization-audit.json',lm.canonical_json(audit)+b'\n')
+    receipt={'schema':'v4.pdf_research.source_constrained_replay.v1','status':'SOURCE_CONSTRAINED_DERIVED_CARD_PENDING_REVIEW','document_id':POSITIVE_FIRST_ID,
+             'page_input':row['page_input'],'template_sha256':TEMPLATE_SHA,'adoption':context['full_adoption_ref'],'generation':1,'raw_inner':context['common_normalization']['raw_inner'],
+             'original_raw_content_status':'CONTENT_FAIL_PRESERVED','original_raw_failure_review':context['common_normalization']['raw_failure_review'],
+             'card':ref(folder/'card.json'),'normalization_audit':ref(folder/'normalization-audit.json'),'new_model_POSTs':0,'same_common_decoder_as_future_outputs':True}
+    d._write_immutable(folder/'receipt.json',lm.canonical_json(receipt)+b'\n');return receipt
+
+
+def close_normalized_replay() -> dict[str,Any]:
+    context=load_context();expected=normalization_closure_event(context)
+    with d.DurableJournal(d.EVIDENCE_ROOT) as journal:
+        authenticate_replay(context)
+        if normalization_closure(journal.events,context) is None:
+            if any(e.get('event') in {'halt','halt_resolution','full_intent','full_terminal'} for e in journal.events[86:]):fail('FULL_NORMALIZATION_UNEXPECTED_EVENT_BEFORE_CLOSURE')
+            verify_full_adoption(journal,context,append=True);journal.append(expected)
+        verify_history(journal,context);verify_full_adoption(journal,context,append=False)
+        phase,pending=pending_ids(context,journal.events)
+        return {'status':'EXACT84_85_CLOSED_DERIVED_ACCEPTANCE_RAW_FAIL_PRESERVED','phase':phase,'pending_ids':pending,'journal':ref(journal.path),'new_model_POSTs':0}
+
+
+def build_derived_card(did:str,row:Mapping[str,Any],pages:Sequence[Mapping[str,Any]],content:dict[str,Any],source_group_count:int) -> dict[str,Any]:
+    card={'schema':'v4.pdf_research.light_card.v2','document_id':did,'pdf_sha256':did,'original_pdf_path':row['original_pdf_path'],'page_input':row['page_input'],'output_contract_version':'SOURCE_CITED_LIGHT_FACT_CARD_V2','template_sha256':TEMPLATE_SHA,'content':content,'material_type':content['material_type'],'event_or_meeting_object':content['event_or_meeting_object'],'speaker_and_source_attribution':content['speaker_and_source_attribution'],'date_value_and_basis_or_explicit_unknown':content['date'],'facts':content['facts'],'author_forecasts':content['forecasts'],'model_inferences':content['inferences'],'numeric_values_with_sign_unit_period_actual_or_forecast':content['numeric_values'],'source_use_qualifications':content['source_usage_limits'],'unknowns_and_source_limits':content['unknowns']+row.get('restricted_uses',[])+[x['limitation'] for x in content['source_usage_limits']],'evidence_document_id_page_number_text_sha256_short_verbatim_excerpt':[{'document_id':did,**ev} for field in ['facts','forecasts','inferences','numeric_values'] for item in content[field] for ev in item['evidence']],'all_input_pages_accounted_or_explicit_exclusion_reason':list(range(1,len(pages)+1)),'coverage':{'all_pages':list(range(1,len(pages)+1)),'source_groups':source_group_count,'page_text_sha256':{str(p['page_number']):p['text_sha256'] for p in pages}},'source_limits':row.get('restricted_uses',[]),'independent_content_acceptance_receipt':None,'research_only':True,'production_allowed':False,'orders_sent':False,'buy_gate_updated':False}
+    card.update(processing_status='SOURCE_CONSTRAINED_DERIVED_CARD_PENDING_REVIEW',common_normalization_rules='LIGHT_SOURCE_CONSTRAINTS_V1',raw_model_content_acceptance='NOT_CERTIFIED_BY_NORMALIZATION')
+    return card
+
+
 def worker(did:str,plan_path:Path) -> dict[str,Any]:
-    context=load_context();row,pages=source(did,context['documents']);folder=output_folder(did,context)
+    context=load_context()
+    if did==POSITIVE_FIRST_ID and context.get('common_normalization'):fail('FULL_REPLAY_CANARY_MODEL_POST_FORBIDDEN')
+    row,pages=source(did,context['documents']);folder=output_folder(did,context)
     if plan_path!=folder/'plan.json':fail('FULL_WORKER_PLAN_PATH_MISMATCH')
     if did==POSITIVE_FIRST_ID and context.get('light_v2_recovery') and len(source_groups(row,pages))!=1:fail('FULL_V2_REPAIR_ONE_REQUEST_REQUIRED')
     plan_raw=d._read_regular(plan_path,'FULL_PLAN_REQUIRED');plan=json.loads(plan_raw)
@@ -810,7 +983,7 @@ def worker(did:str,plan_path:Path) -> dict[str,Any]:
             reports=[{'stage':f'synthesis-{level:02d}-{i:04d}','card':request(g,f'synthesis-{level:02d}-{i:04d}',True) if len(g)>1 else g[0]['card']} for i,g in enumerate(packed,1)]
         if len(reports)!=1:fail('FULL_SYNTHESIS_DEPTH_EXCEEDED')
         validate_card(reports[0]['card'],pages)  # Final all-page source-use constraints must survive aggregation.
-        card={'schema':'v4.pdf_research.light_card.v2','document_id':did,'pdf_sha256':did,'original_pdf_path':row['original_pdf_path'],'page_input':row['page_input'],'output_contract_version':'SOURCE_CITED_LIGHT_FACT_CARD_V2','template_sha256':TEMPLATE_SHA,'content':reports[0]['card'],'material_type':reports[0]['card']['material_type'],'event_or_meeting_object':reports[0]['card']['event_or_meeting_object'],'speaker_and_source_attribution':reports[0]['card']['speaker_and_source_attribution'],'date_value_and_basis_or_explicit_unknown':reports[0]['card']['date'],'facts':reports[0]['card']['facts'],'author_forecasts':reports[0]['card']['forecasts'],'model_inferences':reports[0]['card']['inferences'],'numeric_values_with_sign_unit_period_actual_or_forecast':reports[0]['card']['numeric_values'],'source_use_qualifications':reports[0]['card']['source_usage_limits'],'unknowns_and_source_limits':reports[0]['card']['unknowns']+row.get('restricted_uses',[])+[x['limitation'] for x in reports[0]['card']['source_usage_limits']],'evidence_document_id_page_number_text_sha256_short_verbatim_excerpt':[{'document_id':did,**ev} for field in ['facts','forecasts','inferences','numeric_values'] for item in reports[0]['card'][field] for ev in item['evidence']],'all_input_pages_accounted_or_explicit_exclusion_reason':list(range(1,len(pages)+1)),'coverage':{'all_pages':list(range(1,len(pages)+1)),'source_groups':len(groups),'page_text_sha256':{str(p['page_number']):p['text_sha256'] for p in pages}},'source_limits':row.get('restricted_uses',[]),'independent_content_acceptance_receipt':None,'research_only':True,'production_allowed':False,'orders_sent':False,'buy_gate_updated':False}
+        card=build_derived_card(did,row,pages,reports[0]['card'],len(groups))
         d._write_immutable(folder/'card.json',lm.canonical_json(card)+b'\n')
         receipt={'schema':'v4.pdf_research.full_light_receipt.v1','status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','document_id':did,'page_input':row['page_input'],'template_sha256':TEMPLATE_SHA,'adoption':context['full_adoption_ref'],'plan':ref(plan_path),'card':ref(folder/'card.json'),'source_groups':len(groups),'model_job_upper_bound':2*len(groups)-1,'tool_rounds':0,'generation':1 if did==POSITIVE_FIRST_ID else 0,'citation_audits':[ref(folder/'stages'/f"{x['name']}.citation-audit.json") for x in calls],'calls':calls,'finished_utc':datetime.now(timezone.utc).isoformat()}
         d._write_immutable(folder/'receipt.json',lm.canonical_json(receipt)+b'\n');return receipt
@@ -907,9 +1080,12 @@ def preflight() -> dict[str,Any]:
 
 
 def main(argv:Sequence[str]|None=None) -> int:
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--execute',action='store_true');p.add_argument('--max-documents',type=int,default=1);p.add_argument('--worker-id',help=argparse.SUPPRESS);p.add_argument('--plan',type=Path,help=argparse.SUPPRESS);p.add_argument('--preflight',action='store_true');a=p.parse_args(argv)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--execute',action='store_true');p.add_argument('--max-documents',type=int,default=1);p.add_argument('--worker-id',help=argparse.SUPPRESS);p.add_argument('--plan',type=Path,help=argparse.SUPPRESS);p.add_argument('--preflight',action='store_true');p.add_argument('--replay-normalized',action='store_true');p.add_argument('--close-normalized',action='store_true');a=p.parse_args(argv)
     try:
-        if a.worker_id:
+        if a.replay_normalized or a.close_normalized:
+            if a.execute or a.preflight or a.worker_id or a.plan or a.replay_normalized and a.close_normalized:fail('FULL_REPLAY_ARGS_INVALID')
+            result=close_normalized_replay() if a.close_normalized else replay_normalized_card()
+        elif a.worker_id:
             if a.execute or a.preflight or a.plan is None:fail('FULL_WORKER_ARGS_INVALID')
             result=worker(a.worker_id,a.plan)
         elif a.preflight:

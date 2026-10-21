@@ -487,3 +487,125 @@ def test_v2_r2_proven_zero_attempt_defer_same_plan_resume_and_real_attempt_rejec
     journal.events[-1]['plan_sha256']='d'*64
     with pytest.raises(b.BatchError,match='QUOTA_EXCEEDED'):f.prepare_v2_recovery(journal,ctx,append=False)
     assert jp.read_bytes()==actual  # No production journal, queue or network mutation.
+
+
+@pytest.mark.parametrize('entity,role,normalized',[('unknown','UNKNOWN',True),('UnKnOwN','UNKNOWN',True),('UNKNOWN','UNKNOWN',False),(' unknown','UNKNOWN',False),('unknown','publisher',False),('Unknown Corp','UNKNOWN',False),('润邦股份','UNKNOWN',False)])
+def test_v2_sentinel_schema_only_audited_no_entity_rewrite(entity,role,normalized):
+    _,pages,valid,_=_v2_81e_fixture();valid['speaker_and_source_attribution'].append({'entity':entity,'role':role,'evidence':[valid['date']['evidence'][0]]})
+    raw=json.dumps(valid,ensure_ascii=False);candidate,audit=f.canonicalize_citations(raw,pages)
+    changes=[x for x in audit if x['transformation']=='SCHEMA_UNKNOWN_SENTINEL_CASE_NORMALIZATION']
+    assert bool(changes)==normalized and candidate['speaker_and_source_attribution'][-1]['entity']==('UNKNOWN' if normalized else entity)
+    assert json.loads(raw)['speaker_and_source_attribution'][-1]['entity']==entity
+    if normalized:
+        assert changes[0]['original_value']==entity and changes[0]['raw_inner_sha256']==f.sha(raw.encode()) and changes[0]['no_source_entity_identity_inferred'] is True
+        f.validate_card(candidate,pages)
+    elif entity not in {'UNKNOWN','润邦股份'}:
+        with pytest.raises(b.BatchError,match='ENTITY_UNSUPPORTED'):f.validate_card(candidate,pages)
+
+
+def _actual_v2_normalized():
+    did=f.POSITIVE_FIRST_ID;folder=f.job_folder(did)/'repair-generation1'
+    raw=(folder/'stages/source-0001.raw-model-inner.json').read_text()
+    assert f.sha(raw.encode())==f.NORMALIZATION_RAW_SHA
+    docs,_=f.selection();_,pages=f.source(did,docs)
+    card,audit=f.canonicalize_citations(raw,pages)
+    return raw,pages,card,audit
+
+
+def test_common_normalization_actual_raw_preserves_supported_content_and_full_audit():
+    raw,pages,card,audit=_actual_v2_normalized();original=json.loads(raw)
+    assert f.validate_card(card,pages)==card
+    assert [a['transformation'] for a in audit]==['SCHEMA_UNKNOWN_SENTINEL_CASE_NORMALIZATION','EXPLICIT_CURRENT_SOURCE_STATEMENT','UNPERIODIZED_FOOTER_RETURN_EXCLUDED','UNSUPPORTED_DATE_GUESS_NOT_ADOPTED']
+    assert card['facts']==original['facts']+[original['forecasts'][1]] and card['forecasts']==original['forecasts'][:1]
+    assert card['numeric_values']==original['numeric_values'][:1]
+    assert card['date']==original['date'] and card['source_usage_limits']==original['source_usage_limits']
+    assert card['unknowns'][:-1]==original['unknowns'][:2] and '2026' not in card['unknowns'][-1] and 'UNKNOWN' in card['unknowns'][-1]
+    assert card['speaker_and_source_attribution'][:3]==original['speaker_and_source_attribution'][:3]
+    assert card['speaker_and_source_attribution'][3]['entity']=='UNKNOWN'
+    assert all(a['raw_inner_sha256']==f.NORMALIZATION_RAW_SHA and a['rule_version']=='LIGHT_SOURCE_CONSTRAINTS_V1' for a in audit)
+    assert audit[1]['original_value']==audit[1]['canonical_value']==original['forecasts'][1]
+    assert audit[2]['original_value']==original['numeric_values'][1] and audit[2]['canonical_value'] is None
+    assert audit[3]['original_value']==original['unknowns'][2]
+    assert all(a['source_page_sha256']=={'1':pages[0]['text_sha256']} for a in audit)
+
+
+@pytest.mark.parametrize('variant',['future_marker','unsupported_current','overflow','non_footer','supported_period','capacity','not_date_guess'])
+def test_common_normalization_conservative_boundaries_no_doc_or_index_rules(variant):
+    text='目前需求旺盛。未来预计增长。已知产能100艘。\n某公司 +2.38％';p={'page_number':1,'text':text,'text_sha256':f.sha(text.encode())}
+    ev=lambda q:{'page_number':1,'text_sha256':p['text_sha256'],'excerpt':q}
+    item={'claim':'目前需求旺盛','attribution':'来源称','period':'目前','unit':'UNKNOWN','evidence':[ev('目前需求旺盛。')]}
+    card={'facts':[],'forecasts':[copy.deepcopy(item)],'numeric_values':[{'measure_kind':'price_return','period':'UNKNOWN','evidence':[ev('某公司 +2.38％')]}],'unknowns':['事件年份推测为2028年']}
+    if variant=='future_marker':card['forecasts'][0]['claim']='目前未来预计增长'
+    elif variant=='unsupported_current':card['forecasts'][0]['evidence']=[ev('已知产能100艘。')]
+    elif variant=='overflow':card['facts']=[copy.deepcopy(item)]*5
+    elif variant=='non_footer':card['numeric_values'][0]['evidence']=[ev('目前需求旺盛。')]
+    elif variant=='supported_period':card['numeric_values'][0]['period']='2025年'
+    elif variant=='capacity':card['numeric_values'][0]['measure_kind']='annual_capacity'
+    else:card['unknowns']=['产能估计2028年增长，但口径不明']
+    before=copy.deepcopy(card);audit=[]
+    if variant in {'future_marker','unsupported_current','overflow'}:
+        with pytest.raises(b.BatchError,match='CURRENT_'):f.normalize_source_constraints(card,[p],audit,raw_inner_sha256='f'*64)
+    else:
+        f.normalize_source_constraints(card,[p],audit,raw_inner_sha256='f'*64)
+        if variant in {'non_footer','supported_period','capacity'}:assert card['numeric_values']==before['numeric_values']
+        if variant=='not_date_guess':assert card['unknowns']==before['unknowns']
+        assert card['facts']==[item] and card['forecasts']==[]
+
+
+def _normalization_real86_context():
+    ctx=_v2_real80_context();backup=b.RESEARCH_PILOT_ROOT/'model/light-v2-sentinel-before'
+    adoption=json.loads((backup/'full-root-7fbd.json').read_bytes())
+    data={'decision':f.NORMALIZATION_DECISION,'document_id':f.POSITIVE_FIRST_ID,'page_input':ctx['documents'][f.POSITIVE_FIRST_ID]['page_input'],
+          'raw_inner':f.ref(f.job_folder(f.POSITIVE_FIRST_ID)/'repair-generation1/stages/source-0001.raw-model-inner.json'),
+          'raw_failure_review':f.ref(b.RESEARCH_PILOT_ROOT/'independent-review/full-light-v2-actual-failure-review.json'),
+          'previous_adoption_backup':f.ref(backup/'full-root-7fbd.json'),'previous_source_review_backup':f.ref(backup/'code-482.json'),
+          'journal_prefix86_sha256':f.NORMALIZATION_PREFIX86_SHA}
+    adoption['common_normalization']=data
+    parsed,previous=f.load_normalization_admission(adoption,ctx['documents'])
+    return {**ctx,'full_adoption':adoption,'common_normalization':parsed,'normalization_previous_adoption':previous,'v2_resolution_anchor':previous['adoption']}
+
+
+def test_common_normalization_same_raw_replay_exact_closure_and_unknown_halt_zero_network(tmp_path,monkeypatch):
+    import socket
+    from ops import run_pdf_research_remaining_once as d
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('replay and closure must never connect'))
+    ctx=_normalization_real86_context();actual_jp=d.EVIDENCE_ROOT/'dispatch.jsonl';actual_raw=actual_jp.read_bytes()
+    assert f.sha(actual_raw)==f.NORMALIZATION_PREFIX86_SHA
+    row,pages,raw=f.authenticate_replay(ctx)
+    original_hash=f.ref(Path(ctx['common_normalization']['raw_inner']['path']))
+    monkeypatch.setattr(f,'load_context',lambda **_:ctx);monkeypatch.setattr(f,'output_folder',lambda did,context:tmp_path/'derived')
+    receipt=f.replay_normalized_card();cp=tmp_path/'derived/card.json';ap=tmp_path/'derived/normalization-audit.json';rp=tmp_path/'derived/receipt.json'
+    assert receipt['new_model_POSTs']==0 and receipt['original_raw_content_status']=='CONTENT_FAIL_PRESERVED'
+    common,audit=f.canonicalize_citations(raw,pages)
+    assert f.read(f.ref(cp))['content']==common and f.read(f.ref(ap))['changes']==audit
+    # Real proof is not fabricated: this fixture supplies an explicit mocked independent verdict only in memory.
+    proofpath=b.RESEARCH_PILOT_ROOT/'independent-review/full-light-v2-first-card-content-review.json'
+    oldref=f.ref;oldread=f.read
+    proofref={'path':str(proofpath),'sha256':'f'*64}
+    proof={'status':'SOURCE_CONSTRAINED_DERIVED_CARD_PASS','reviewer':f.REVIEWER,'fixture_only':'not actual semantic acceptance','document_id':f.POSITIVE_FIRST_ID,
+           'page_input':row['page_input'],'template_sha256':f.TEMPLATE_SHA,'card':oldref(cp),'receipt':oldref(rp),'normalization_audit':oldref(ap)}
+    monkeypatch.setattr(f,'ref',lambda p:proofref if Path(p)==proofpath else oldref(p))
+    monkeypatch.setattr(f,'read',lambda r,**kw:proof if r==proofref else oldread(r,**kw))
+    original_exists=Path.exists;monkeypatch.setattr(Path,'exists',lambda p:True if p==proofpath else original_exists(p))
+    class Memory:
+        path=actual_jp;root=d.EVIDENCE_ROOT
+        def __init__(self):self.raw=actual_raw;self.events=[json.loads(x) for x in self.raw.splitlines()]
+        def __enter__(self):return self
+        def __exit__(self,*_):pass
+        def append(self,e):self.events.append(e);self.raw+=d.canonical_json(e)+b'\n'
+    j=Memory();oldregular=d._read_regular;monkeypatch.setattr(d,'_read_regular',lambda p,c:j.raw if Path(p)==actual_jp else oldregular(p,c));monkeypatch.setattr(d,'DurableJournal',lambda _:j)
+    with pytest.raises(b.BatchError,match='FULL_PRIOR_FAILURE_NO_RETRY'):f.verify_history(j,ctx)
+    first=f.close_normalized_replay()
+    assert first['status']=='EXACT84_85_CLOSED_DERIVED_ACCEPTANCE_RAW_FAIL_PRESERVED' and len(first['pending_ids'])==17
+    assert [e['event'] for e in j.events[86:]]==['full_adoption','halt_resolution']
+    assert f.terminal_map(ctx,j.events)[f.POSITIVE_FIRST_ID]['derived_from_accepted_zero_POST_replay']
+    before=j.raw;f.close_normalized_replay();assert j.raw==before
+    original_events=copy.deepcopy(j.events)
+    for variant in ['duplicate','unknown_halt','extra_terminal']:
+        j.events=copy.deepcopy(original_events);j.raw=before
+        if variant=='duplicate':j.append(j.events[-1])
+        elif variant=='unknown_halt':j.append({'event':'halt','document_id':'a'*64})
+        else:j.append({'event':'full_terminal','document_id':f.POSITIVE_FIRST_ID,'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','generation':1,'receipt':oldref(rp)})
+        with pytest.raises((b.BatchError,d.DispatcherError),match='DUPLICATE|FAILURE|EXTRA_TERMINAL'):
+            f.verify_history(j,ctx);f.terminal_map(ctx,j.events)
+    assert actual_jp.read_bytes()==actual_raw and f.ref(Path(ctx['common_normalization']['raw_inner']['path']))==original_hash
