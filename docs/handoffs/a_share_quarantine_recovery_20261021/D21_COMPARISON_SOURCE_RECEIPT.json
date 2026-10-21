@@ -1,0 +1,203 @@
+{
+  "record_kind": "SOURCE_AND_CHECKS_WITH_SCOPED_COUNTS_NO_MARKET_ROWS_OR_FULL_MEMBERSHIP",
+  "signal_date": "20261021",
+  "same_Windows_formula_and_date": "USER_CONFIRMED",
+  "history_start": "20260101",
+  "status": "LOCAL_PANEL_REPAIR_PUBLICATION_FRESH_D21_PURE_TDX_DIFF_REVIEWED_PASS",
+  "counts": {
+    "Mac_only": 0,
+    "Windows_A_scope": 35,
+    "Windows_only_A": 2,
+    "Windows_only_HK": 2,
+    "Windows_only_total": 4,
+    "accepted_sources_unchanged": 5495,
+    "added": 0,
+    "after_pure_tdx": 33,
+    "before_pure_tdx": 34,
+    "common": 33,
+    "compared_union": false,
+    "earlier_archive_mixed": false,
+    "excluded_sources_unchanged": 305,
+    "historical_union_sideartifact": 34,
+    "inserted_keys": 0,
+    "native_writes": 0,
+    "new_tail_5495_scan": 0,
+    "new_tail_consumer_calls": 0,
+    "new_tail_formula_calls": 0,
+    "new_tail_part_hashes": 0,
+    "observed_universe": 5495,
+    "parts": 55,
+    "pointer_CAS": 2,
+    "removed": 1,
+    "repair_raw_cells_per_role": 20,
+    "replacement_existing_keys_per_role": 60,
+    "retired_keys": 0,
+    "saved_Windows": 37,
+    "snapshot_writes": 0,
+    "source_context_bars": 304,
+    "source_context_first_date": "20250718",
+    "unknown": 0
+  },
+  "independent_actual_acceptance": {
+    "stdout_sha256": "1a5b376f38ea80d54b2cd63e61c41410af7f9bf05af82e5ebce621d034ffe120",
+    "stdout_utf8_bytes": 1052,
+    "terminal_event_sha256": "92a41c9bf4272b7ae6ae930999db874bad67d37f0263a2acb0581cfc4b0ae69e",
+    "terminal_path": "research/a_share_quarantine_recovery_20261021/registry_receipts/FORMAL001210_ACTUAL_REVIEW_R2_REGISTRY_TERMINAL.json",
+    "terminal_sha256": "217878655a27f00507e62cd2c9eb864c4675a0d08b70b2ccb1c7193899745e94",
+    "wrapper_path": "research/a_share_quarantine_recovery_20261021/review/FORMAL001210_ACTUAL_REVIEW_R2_RECEIPT_TRANSCRIPTION.json",
+    "wrapper_sha256": "3b9505d8d176ccc4db6b0815f83adc5fd7a06b08b42c7ff5365dfa71fbfb03f8"
+  },
+  "acceptance_basis": "R1 actual exit1 successful control-flow prefix + R2 remaining static tail; original failure immutable, no fabricated historical positive checkpoints",
+  "candidate_review_sha256": "96b7a2525e2f99f8820f99b89a758abe6c51ca441629a128db96de52df8b5d31",
+  "two_stock_prior_combined_review_sha256": "c6bae8276397699ed578cd8189ac7cf0e3d1a850cc6440ee1efda69ba8c6dc72",
+  "stored_native_matrix_and_bridge_review_sha256": "fc5708a601f5986be59fb9ab21fc8238ff701cdc1b2ff85a4a13a1b1ef128560",
+  "final_local_counts_receipt_sha256": "d72217191846a383ab63df3d1f18369584939360f73b72bc5e248426adfc32a8",
+  "report": {
+    "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile_20261022/formal001210_repair/FINAL_RESULT.md",
+    "sha256": "6d11a9e7762afb1a7e298d515ae5b637eb5e60ff548bf95aaa803a49dc0672d5"
+  },
+  "scope_limits": [
+    "Windows actual adjustment/history/engine vector parity and two remaining A-share positive causes",
+    "Two HK names outside A-share repair scope",
+    "Full207/API/UI/fullhistory unification",
+    "D20 all-market draft DEFERRED_NOT_STARTED"
+  ],
+  "registry": {
+    "global_route_event_execution_correction_counts": [
+      419,
+      3980,
+      1296,
+      91
+    ],
+    "route_route_event_execution_correction_counts": [
+      1,
+      174,
+      67,
+      2
+    ],
+    "sha256": "5c8146cb2ac2f14cbc50af95c8940e2fe653f8c8b2a06a9a1979c8564c83a46a",
+    "scope_open_executions": 0,
+    "scope_unregistered_route_count": 0,
+    "known_route_contract_only_count": 1,
+    "global_unregistered_route_count": null,
+    "global_unregistered_reason": "Global inventory audit not performed",
+    "external_registry_persistence": "CANNOT_CONFIRM_RAW_REGISTRY_NOT_UPLOADED"
+  },
+  "source_sync": {
+    "repository": "lexi2016/v4",
+    "branch": "codex/a-share-quarantine-recovery-20261021",
+    "parent_commit": "6d5b4cdcdc152e14f139bf96acdfa79057e215cf",
+    "local_worktree_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "file_before_after_sha256": [
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/repair_panels_r3.py",
+        "before_sha256": null,
+        "after_sha256": "d2a30b99c6d34b859fa055036344d6171bba1e78fd43f5083f8c30b8724bda9d"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/repair_carry_r5_final.py",
+        "before_sha256": null,
+        "after_sha256": "98a818fbc81be6c8e7a9fc7af373d1f93592f35efb9467dffafd7eb7b401ff6d"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/publish_pair_r4.py",
+        "before_sha256": null,
+        "after_sha256": "8d3ae60b73b3638cf6131410d96ac560d2be7d41c9e68097a644d930a03d5a82"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/freeze_replay_r4_r2.py",
+        "before_sha256": null,
+        "after_sha256": "39b2edfbb3d9e6d4a39849bbca6349ec19246bc535406ba317d14ba56da9d8c3"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/compare_selection_r2.py",
+        "before_sha256": null,
+        "after_sha256": "87ebff78bd5ff2e7106054e71beb5841dd67ff22bfe9a230dd951e7ef038fbbc"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/formal001210_repair/repair_001210.py",
+        "before_sha256": null,
+        "after_sha256": "cb8cea3e6e8aac52bb17c9a246b2fc05d2dc6befebf278cfbcabda8d151a915c"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/local_a3_d21/diagnose_a3.py",
+        "before_sha256": null,
+        "after_sha256": "fe32d65486c2bf5ad3d566c74abf2742cd5e0197ed282f7c46216db5a66d448a"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/local_a3_d21/bind_formal_001210.py",
+        "before_sha256": null,
+        "after_sha256": "e63d275b814e64da6be6d4d3ff11fce286b1e207fa2f6adc89bc70e4daacea25"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/three_missing_diagnosis_20261022/diagnose_three.py",
+        "before_sha256": null,
+        "after_sha256": "f44036ee60cd48f755c08d1979edd15161fccb211f7d589e6889074e68cdd0f3"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows_engine_d21/capability.ps1",
+        "before_sha256": null,
+        "after_sha256": "d3c724e3c5081d4d72a7b4bd4a6ce4a12df90c38118101fb159643fd8ed553a0"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows_engine_d21/capture_capability.py",
+        "before_sha256": null,
+        "after_sha256": "679ff0692a5e4689cfceb1040229e7b7570143ba5aa926b9067f0fac1e38273f"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows_engine_d21/capture_capability_r2.py",
+        "before_sha256": null,
+        "after_sha256": "7e95e7c8c4fcf972d5ae552c2d861f33a669cf9fd1012d0bee5b7321c35092de"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/formal001210_repair/publish_001210_r2.py",
+        "before_sha256": null,
+        "after_sha256": "32c47e99897b06908e57d4bf4c879f88ed36d9aef269cf1facda46eee0c97243"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/formal001210_repair/freeze_001210_replay.py",
+        "before_sha256": null,
+        "after_sha256": "d00fddd078ee16509042d19b28089c6d566689acd5981a43c8ba03ac8e9b46ed"
+      },
+      {
+        "path": "research/a_share_quarantine_recovery_20261021/windows37_d21_reconcile/formal001210_repair/compare_001210.py",
+        "before_sha256": null,
+        "after_sha256": "429175f72add584e0fcb94e55c13755ac0fabee7fcddf89eb4345c40845395a1"
+      },
+      {
+        "path": "docs/handoffs/a_share_quarantine_recovery_20261021/checks/formal001210_candidate_review_r2.sh",
+        "before_sha256": null,
+        "after_sha256": "8c7581be67b9626e0ffc1f12bd8868d7137b45a709cf79e4549e677428136f38"
+      },
+      {
+        "path": "docs/handoffs/a_share_quarantine_recovery_20261021/checks/formal001210_actual_tail_review_r2.sh",
+        "before_sha256": null,
+        "after_sha256": "2617b6104cb073c9b897042811c3ce9b1e87a7da458bbbab06f3434e310d61e3"
+      }
+    ],
+    "before_null_reason": "All17 paths absent at parent; verified via GitHub API404",
+    "postpush_policy": "Independent remoteHEAD and exactremotecontentSHA256 readback in separate local integration receipt; this frozenreceipt predates its commit"
+  },
+  "checks": [
+    {
+      "command_source": "docs/handoffs/a_share_quarantine_recovery_20261021/checks/formal001210_candidate_review_r2.sh",
+      "command_sha256": "8c7581be67b9626e0ffc1f12bd8868d7137b45a709cf79e4549e677428136f38",
+      "exit_code": 0,
+      "scope": "One original304bar projection, eachrole60samekeys/20rawcells, carryvalidbits, allunaffected, matchingpublisherbindings"
+    },
+    {
+      "command_source": "docs/handoffs/a_share_quarantine_recovery_20261021/checks/formal001210_actual_tail_review_r2.sh",
+      "command_sha256": "2617b6104cb073c9b897042811c3ce9b1e87a7da458bbbab06f3434e310d61e3",
+      "exit_code": 0,
+      "scope": "Recorded successfulprefix of actualR1 plus completedCSV/set/branch/reporttail; originalR1exit1 preserved",
+      "prior_failed_command_sha256": "65054809124eac8cc9a51ef811f24a1def1229b1871ca566dd7c733b699a1d7d",
+      "prior_failed_stdout_sha256": "f1c12f96a451ad73f76fc5656597d46ab90a71cd5c25d8dd043a89b657a93c64"
+    }
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "runtime_code_deployed": false,
+  "rawdata_or_credentials_uploaded": false
+}
