@@ -1,0 +1,70 @@
+{
+  "buy_gate_updated": false,
+  "full47_lowlevel": {
+    "codes": 47,
+    "rows": 25022,
+    "six_already_synced": true,
+    "six_review_sha256": "7422b9ca506bc37c5ace8c7fece9c286e4a8be9b4dac2cfb2c965c91c7f95482"
+  },
+  "independent_receipts": [
+    {
+      "codes": 39,
+      "local_receipt_name": "NEXT_REMAIN47_DERIVED_REVIEW_R2_RECEIPT.json",
+      "rows": 20755,
+      "scope": "DERIVED39_SAVED_READBACK",
+      "sha256": "55147f981a05a47a142ee85b29617c1c99769df2b621667b7a5dde38ed27ca51"
+    },
+    {
+      "codes": 2,
+      "local_receipt_name": "NEXT_REMAIN47_ACTION2_INPUT_RECEIPT.json",
+      "rows": null,
+      "scope": "EXACT_TWO_EVENT_INCREMENT_AND_23_CASES",
+      "sha256": "a2564941099cc44c11b1792835769a7d366518571502c772cf03a32464ed8c3b"
+    },
+    {
+      "codes": 2,
+      "local_receipt_name": "NEXT_REMAIN47_DERIVED_ACTION2_REVIEW_RECEIPT.json",
+      "rows": 1068,
+      "scope": "FINAL2_DERIVED_SAVED_READBACK",
+      "sha256": "d2e577f714bc16bbf87c26e9dd942ddf3d3fc7630ffab3e34ecd3f50cacc2de6"
+    },
+    {
+      "codes": 47,
+      "local_receipt_name": "NEXT_REMAIN47_TRACE_SAVED_REVIEW_RECEIPT.json",
+      "rows": null,
+      "scope": "SAVED_TRACE47_SEMANTICS",
+      "sha256": "21cc20793c7db07e52ee8d5c81914175d13bad77cbdb7023a1e9e39850faeadc"
+    }
+  ],
+  "orders_sent": false,
+  "prior_failed_attempts_retained_locally": true,
+  "production_allowed": false,
+  "research_only": true,
+  "scope": "CURRENT_REVISION_RESEARCH_NON_PIT_ONLY",
+  "scope_limits": [
+    "NOT_HISTORICAL_PIT",
+    "NOT_WINDOWS_ENGINE_AUTHENTICATION_OR_ERROR_PROOF",
+    "NOT_FULL_U_INPUT_OR_FORMAL_PANEL_ACCEPTANCE",
+    "NO_PARAMETERS_CHANGED",
+    "RAW_CACHE_AND_NATIVE_NOT_MUTATED"
+  ],
+  "sources": {
+    "remain47_action2_derived.py": "a726cb086fd26c5fd3895a3e1d84c7ff78636b9cbc1c63234c9cd2ebd3c8768c",
+    "remain47_action2_derived_review.py": "5e86fad05235f7d181459c2f82ab44b63e3acb32f2a0b139b30f50c5d501a9e6",
+    "remain47_action2_input_check.py": "5aefa6f7f2e9766bd05a0b831a9685654c06e292eb2160ab96de1ace22e047ca",
+    "remain47_action_reference_two_event_increment.py": "19f4bfc176c7601f56901a87301e78443502b64915e914bbc05b0e1746a9aea3",
+    "remain47_derived.py": "1dd6d47ece7f4ea9f6edb560c7e801746e47c0d2024adcdb026c39e69a30ec65",
+    "remain47_derived_review_r2.py": "05745acfee2e10b9df2e02c16b9137344b7a8a43eff6356d6cc99da7c24f5cfc",
+    "remain47_trace_observer.py": "ab049850848397a5d19c2ba2f1cacba424c05aa2b3f59a03484ab4fb2c55438e",
+    "remain47_trace_r2.py": "b77c30de6f6c9565eb3231420372153e05c81e529c8b112543a204366328257f",
+    "remain47_trace_review.py": "01c43aaa2eaad3f1cf447a4c81db9b3828e78d1fb2d07eafed932ccd7ec60297"
+  },
+  "status": "INDEPENDENT_REVIEWED_PASS_COMPONENTS_REUSED",
+  "trace_counts": {
+    "assignments": 284,
+    "consumers_called_once_in_trace": 4,
+    "expressions": 1361,
+    "role_steps": 18,
+    "saved_reader_consumer_calls": 0
+  }
+}
