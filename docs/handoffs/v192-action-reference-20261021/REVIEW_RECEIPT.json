@@ -1,0 +1,60 @@
+{
+  "acceptance": "REVIEWED/PASS",
+  "buy_gate_updated": false,
+  "code_sha256": "daed7f9c924e74d10360ada2d3d131ad4a8741d53d4a8a7d9edb2beef1d6fb06",
+  "command_invocations": 1,
+  "contract_sha256": "c8de2bb570f8aeb1a55ef807626d2ecdb2e47a718116b8b59a9887712898ef8b",
+  "deterministic_metrics": {
+    "candidate_writes": 0,
+    "candidates": [
+      {
+        "candidate_sha256": "8a3a83ecbd3cbce1875adbb12d7f392b21a00cb142493766f598555d2212b800",
+        "code": "301550",
+        "eligible_rows": 745,
+        "full_rows": 746,
+        "original_covered": 278,
+        "outside_rows": 1,
+        "reference": 118.34482758620689
+      },
+      {
+        "candidate_sha256": "08587b7bb8af1c912c3e61727cdfa956e3b5da461a44dbe8a4ed8e82335b3c7e",
+        "code": "688489",
+        "eligible_rows": 799,
+        "full_rows": 800,
+        "original_covered": 272,
+        "outside_rows": 1,
+        "reference": 28.78231292517007
+      }
+    ],
+    "formal_writes": 0,
+    "lineage_exact": true,
+    "native32B_exact": true,
+    "network_calls": 0,
+    "original_record_reconciliation_pass": true,
+    "provider_local_signature_target_ratio_pass": true,
+    "selection_slots": 0,
+    "sixfield_diff": 0,
+    "sources_unchanged": true,
+    "synthetic_expected": 22,
+    "synthetic_passed": 22,
+    "synthetic_tmp_only": true,
+    "truth_positive_denominator": null
+  },
+  "evidence_origin": "Controllerforwarded independentlyexecuted one-command verdict and metrics; fullstdout not supplied, not fabricated",
+  "execution_id": "A_V192_TDX_ACTION_REFERENCE_FIX_20261021_REVIEW_01",
+  "exit_code": 0,
+  "formal_panel_updated": false,
+  "orders_sent": false,
+  "payload_sha256": "ef24ab38676be7592bef76db38d90083492b30be4b3a35f78d31186d9dc2c867",
+  "peak_rss_bytes": 384008192,
+  "production_allowed": false,
+  "research_only": true,
+  "reviewer": "/root/v192_projection_review",
+  "route_id": "A_V192_TDX_ACTION_REFERENCE_FIX_20261021",
+  "runtime_deployed": false,
+  "scope": "Exact two action reference/binding/context/isolated candidates only; no formal-panel/PIT/Windows parity",
+  "source_sync": "NOT_SYNCED_PENDING_CONTROLLER_INTEGRATION",
+  "status": "ACTION_REFERENCE_22_SYNTHETIC_AND_TWO_SAVED_RESPONSE_CANDIDATES_EXACT_PASS",
+  "test_sha256": "d031c0d89abd8567b0c99f03d6375c576964d19080ccd3541c039f9a1d3cc4c7",
+  "wall_seconds": 0.9318220410495996
+}
