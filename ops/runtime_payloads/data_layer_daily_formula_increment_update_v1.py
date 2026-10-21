@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
+import base64
 import gc
 import hashlib
 import importlib.util
@@ -10,6 +12,7 @@ import json
 import math
 import os
 import re
+import runpy
 import shutil
 import struct
 import subprocess
@@ -19,6 +22,7 @@ import traceback
 import warnings
 import zipfile
 from collections import Counter
+from contextlib import contextmanager
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
@@ -32,6 +36,7 @@ warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 try:
     import pyarrow as pa
+    import pyarrow.compute as pc
     import pyarrow.parquet as pq
 except Exception as exc:
     print("pyarrow import failed:", repr(exc))
@@ -121,6 +126,9 @@ V192_REQUIRED_CANONICAL_PROJECTION_FIELDS = (
     "macd_above_zero_second_gold",
     "macd_top_divergence",
     "white_yellow_death_cross",
+    "fd_volume_yin",
+    "break_yesterday_keyline",
+    "plry_first",
 )
 
 # Output directory: timestamped run_dir under RETURN_ROOT to avoid stale failure_report/run.log mixing.
@@ -2833,13 +2841,1089 @@ def promote_candidate_outputs(
     ensure_dir(backup_dir)
     shutil.copy2(SELECTOR_POINTER, backup_dir / f"CURRENT_SELECTOR_READY_PANEL_before_promote_{RUN_TS}.txt")
     shutil.copy2(BACKTEST_POINTER, backup_dir / f"CURRENT_BACKTEST_BASE_PANEL_before_promote_{RUN_TS}.txt")
-    write_pointer_atomic(SELECTOR_POINTER, selector_out)
-    write_pointer_atomic(BACKTEST_POINTER, backtest_out)
+    with _same_day_pointer_lock([SELECTOR_POINTER, BACKTEST_POINTER]):
+        write_pointer_atomic(SELECTOR_POINTER, selector_out)
+        write_pointer_atomic(BACKTEST_POINTER, backtest_out)
     pointer_after = {"selector": read_pointer(SELECTOR_POINTER), "backtest": read_pointer(BACKTEST_POINTER)}
     return {
         "backup_dir": str(backup_dir),
         "pointer_after": pointer_after,
     }
+
+
+def _same_day_digest(value: Any) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def _same_day_file_sha(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _same_day_ref(ref: Dict[str, Any]) -> Path:
+    path = Path(ref["path"])
+    if not path.is_absolute() or not path.is_file() or _same_day_file_sha(path) != ref["sha256"]:
+        raise RuntimeError(f"same-day bound file missing or changed: {path}")
+    return path
+
+
+def _same_day_bound_list(bound: Dict[str, Any], *, keys: bool = False) -> list:
+    items = bound["items"]
+    if not isinstance(items, list):
+        raise RuntimeError("same-day scope must be an explicit list")
+    if keys:
+        valid = all(isinstance(x, list) and len(x) == 2 and isinstance(x[0], str)
+                    and type(x[1]) is int and x[1] > 0 for x in items)
+        normalized = [tuple(x) for x in items] if valid else []
+    else:
+        valid = all(isinstance(x, str) and x for x in items)
+        normalized = items
+    if not valid or len(set(normalized)) != len(items) or items != sorted(items):
+        raise RuntimeError("same-day scope must be sorted, typed and unique")
+    if bound["count"] != len(items) or bound["sha256"] != _same_day_digest(items):
+        raise RuntimeError("same-day scope count/SHA mismatch")
+    return normalized
+
+
+def _same_day_key_index(frame: pd.DataFrame) -> pd.MultiIndex:
+    dates = frame["trade_date"].map(normalize_trade_date_value)
+    if dates.isna().any():
+        raise RuntimeError("same-day invalid trade_date")
+    index = pd.MultiIndex.from_arrays([frame["ts_code"].astype(str), dates.astype(int)])
+    if index.has_duplicates:
+        raise RuntimeError("same-day duplicate keys")
+    return index
+
+
+def _same_day_atomic_json(path: Path, value: Dict[str, Any]) -> None:
+    temporary = path.with_name(path.name + f".tmp.{os.getpid()}")
+    with temporary.open("w", encoding="utf-8") as stream:
+        json.dump(value, stream, ensure_ascii=False, sort_keys=True, indent=2)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
+    directory = os.open(path.parent, os.O_RDONLY)
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+
+
+@contextmanager
+def _same_day_pointer_lock(pointers: list[Path]):
+    # Same-day revision is Mac/POSIX only. Keep the ordinary Windows path usable.
+    if os.name == "nt":
+        yield
+        return
+    import fcntl
+    handles = []
+    try:
+        for pointer in sorted(set(pointers), key=str):
+            handle = pointer.with_name("." + pointer.name + ".revision.lock").open("a+b")
+            handles.append(handle)
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        yield
+    finally:
+        for handle in reversed(handles):
+            handle.close()
+
+
+def _same_day_scope(contract: Dict[str, Any]) -> Dict[str, Any]:
+    if contract["schema"] != "V192_SAME_DAY_PANEL_REVISION_V1" or not contract["revision_id"]:
+        raise RuntimeError("same-day revision contract identity missing")
+    if contract["research_only"] is not True or any(contract[k] is not False for k in (
+        "production_allowed", "buy_gate_updated", "orders_sent",
+    )):
+        raise RuntimeError("same-day research boundary violated")
+    signal = contract["signal_date"]
+    if type(signal) is not int or type(contract["target_date"]) is not int or contract["target_date"] <= signal:
+        raise RuntimeError("same-day signal/target boundary invalid")
+    universe = contract["universe"]
+    target = set(_same_day_bound_list(universe["target_symbols"]))
+    accepted = set(_same_day_bound_list(universe["accepted_symbols"]))
+    excluded = set(_same_day_bound_list(universe["excluded_symbols"]))
+    boundary = set(_same_day_bound_list(universe["boundary_excluded_symbols"]))
+    if not target or not accepted or accepted & excluded or accepted | excluded != target or not boundary <= accepted:
+        raise RuntimeError("same-day target/accepted/exclusion partition mismatch")
+    if not universe["original_target_fingerprint"] or universe["coverage_status"] != "ACCEPTED_ONLY_EXCLUDED_PRESERVED":
+        raise RuntimeError("same-day full-target coverage must not be claimed")
+    consumer = contract["consumer_history"]
+    if not consumer["consumer_sha256"] or consumer["signal_end_date"] != signal:
+        raise RuntimeError("same-day consumer history binding missing")
+    rkeys = set(_same_day_bound_list(consumer["keys"], keys=True))
+    if not rkeys or any(code not in accepted or date < consumer["signal_start_date"] or date > signal for code, date in rkeys):
+        raise RuntimeError("same-day consumer history outside accepted/date boundary")
+    if consumer["recurrence_start_date"] > consumer["signal_start_date"]:
+        raise RuntimeError("same-day recurrence starts after consumer history")
+    ukeys = {(code, signal) for code in accepted - boundary}
+    projection = set(_same_day_bound_list(contract["projection_keys"], keys=True))
+    raw = set(_same_day_bound_list(contract["raw_repair_keys"], keys=True))
+    if projection != ukeys | rkeys or not raw <= projection:
+        raise RuntimeError("same-day projection must cover exact U union R; raw keys must be within it")
+    if any(code in boundary and date == signal for code, date in projection):
+        raise RuntimeError("same-day boundary-excluded signal keys cannot be revised")
+    raw_fields = contract["raw_repair_fields"]
+    allowed_raw = {"open", "high", "low", "close", "vol", "volume", "amount", "pre_close", "pct_chg"}
+    if len(set(raw_fields)) != len(raw_fields) or not set(raw_fields) <= allowed_raw or bool(raw) != bool(raw_fields):
+        raise RuntimeError("same-day raw repair fields invalid")
+    derived_fields = contract["raw_repair_derived_fields"]
+    # A raw correction must replace every producer-derived value consumed from
+    # that row, including local rolling features as well as canonical fields.
+    minimum_derived = set(V192_FORMULA_FIELDS) | set(V192_REQUIRED_CANONICAL_PROJECTION_FIELDS)
+    if raw and (len(set(derived_fields)) != len(derived_fields) or not minimum_derived <= set(derived_fields)):
+        raise RuntimeError("same-day raw/derived replacement closure incomplete")
+    if set(derived_fields) & (allowed_raw | {"ts_code", "trade_date"}):
+        raise RuntimeError("same-day derived field scope overlaps raw/keys")
+    if set(derived_fields) & set(STATIC_MAP_CANDIDATES):
+        raise RuntimeError("same-day derived field scope cannot modify static names/qualification")
+    role_fields = {}
+    for role in ("selector", "backtest"):
+        item = contract["roles"][role]
+        pfields = item["projection_fields"]
+        rfields = item["raw_fields"]
+        dfields = item["derived_fields"]
+        for fields in (pfields, rfields, dfields):
+            if not isinstance(fields, list) or len(set(fields)) != len(fields):
+                raise RuntimeError("same-day role fields must be explicit unique lists")
+        if (not set(pfields) <= set(V192_REQUIRED_CANONICAL_PROJECTION_FIELDS)
+                or not set(rfields) <= set(raw_fields) or not set(dfields) <= set(derived_fields)):
+            raise RuntimeError("same-day role fields exceed approved replacement scope")
+        if role == "selector" and (set(pfields) != set(V192_REQUIRED_CANONICAL_PROJECTION_FIELDS)
+                                   or set(rfields) != set(raw_fields) or set(dfields) != set(derived_fields)):
+            raise RuntimeError("same-day selector repair closure incomplete")
+        role_fields[role] = {"projection_fields": set(pfields), "raw_fields": set(rfields), "derived_fields": set(dfields)}
+    return {"projection": projection, "raw": raw, "raw_fields": raw_fields,
+            "derived_fields": derived_fields, "accepted": accepted, "ukeys": ukeys, "rkeys": rkeys,
+            "role_fields": role_fields}
+
+
+def _same_day_overlay_parquet(
+    source: Path, output: Path, generated: pd.DataFrame, scope: Dict[str, Any], role: str,
+) -> Dict[str, Any]:
+    """Preserve source order, row count, schema and every unapproved cell."""
+    parquet = pq.ParquetFile(source)
+    schema = parquet.schema_arrow
+    role_fields = scope["role_fields"][role]
+    projection_fields = role_fields["projection_fields"]
+    fields = projection_fields | role_fields["raw_fields"] | role_fields["derived_fields"]
+    # Schema additions need a separately frozen full-history policy. Never
+    # silently invent values for rows outside the approved repair keys.
+    if not fields <= set(schema.names) or not fields <= set(generated.columns):
+        raise RuntimeError(f"same-day {role} missing frozen replacement columns: {sorted(fields - (set(schema.names) & set(generated.columns)))}")
+    generated = generated.copy()
+    generated.index = _same_day_key_index(generated)
+    if not scope["projection"] <= set(generated.index):
+        raise RuntimeError("same-day generated history misses approved keys")
+    patch = generated.loc[sorted(scope["projection"]), sorted(fields)]
+    for field in fields:
+        arrow_type = schema.field(field).type
+        keys = sorted(scope["projection"] if field in projection_fields else scope["raw"])
+        values = patch.loc[keys, field]
+        if (pa.types.is_boolean(arrow_type) or pa.types.is_integer(arrow_type) or pa.types.is_floating(arrow_type)) and not np.isfinite(pd.to_numeric(values, errors="coerce").to_numpy(dtype=float, na_value=np.nan)).all():
+            raise RuntimeError(f"same-day invalid replacement value: {field}")
+        if field == "formula_source" and not values.eq(CANONICAL_FORMULA_SOURCE).all():
+            raise RuntimeError("same-day canonical formula_source mismatch")
+    seen = set()
+    rows = 0
+    changed_cells = 0
+    temporary = output.with_suffix(".tmp.parquet")
+    try:
+        with pq.ParquetWriter(temporary, schema=schema, compression="snappy") as writer:
+            for batch in parquet.iter_batches(batch_size=65536):
+                table = pa.Table.from_batches([batch], schema=schema)
+                key_frame = table.select(["ts_code", "trade_date"]).to_pandas()
+                index = _same_day_key_index(key_frame)
+                relevant = set(index) & scope["projection"]
+                if seen & relevant:
+                    raise RuntimeError("same-day duplicate approved source key across batches")
+                seen.update(relevant)
+                projection_positions = [i for i, key in enumerate(index) if key in scope["projection"]]
+                raw_positions = [i for i, key in enumerate(index) if key in scope["raw"]]
+                for field in fields:
+                    positions = projection_positions if field in projection_fields else raw_positions
+                    if not positions:
+                        continue
+                    target_type = schema.field(field).type
+                    values = []
+                    for position in positions:
+                        value = generated.at[index[position], field]
+                        value = value.item() if isinstance(value, np.generic) else value
+                        if pa.types.is_boolean(target_type):
+                            if value not in (0, 1, False, True):
+                                raise RuntimeError(f"same-day non-binary boolean replacement: {field}")
+                            value = bool(value)
+                        elif pa.types.is_integer(target_type):
+                            if isinstance(value, (int, bool)):
+                                value = int(value)
+                            elif isinstance(value, float) and math.isfinite(value) and value.is_integer():
+                                value = int(value)
+                            else:
+                                raise RuntimeError(f"same-day non-integral integer replacement: {field}")
+                        values.append(value)
+                    # Convert only approved replacements to the original field
+                    # type. Unapproved Arrow values never pass through Python
+                    # inference (which can coerce bools or round large int64s).
+                    if pa.types.is_boolean(target_type):
+                        # The admitted Arrow runtime produced an invalid bool
+                        # buffer through replace_with_mask for nullable bools.
+                        # This source is already bool/null: rebuild explicitly
+                        # as bool, preserving every unapproved value verbatim.
+                        boolean_values = table[field].to_pylist()
+                        for position, value in zip(positions, values):
+                            boolean_values[position] = value
+                        replacement = pa.array(boolean_values, type=pa.bool_())
+                    else:
+                        typed_values = pa.array(values, type=target_type, safe=True)
+                        mask = np.zeros(table.num_rows, dtype=bool)
+                        mask[positions] = True
+                        replacement = pc.replace_with_mask(table[field], pa.array(mask), typed_values)
+                    table = table.set_column(schema.get_field_index(field), schema.field(field), replacement)
+                    changed_cells += len(positions)
+                writer.write_table(table)
+                rows += table.num_rows
+        if seen != scope["projection"]:
+            raise RuntimeError(f"same-day {role} source misses approved keys")
+        with temporary.open("rb") as stream:
+            os.fsync(stream.fileno())
+        os.replace(temporary, output)
+        directory = os.open(output.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    return {"path": str(output), "sha256": _same_day_file_sha(output), "rows": rows,
+            "replacement_cells": changed_cells, "replacement_key_count": len(seen),
+            "write_mode": "EXACT_KEY_FIELD_OVERLAY_SOURCE_ORDER_PRESERVED"}
+
+
+def run_same_day_revision_candidate(contract_path: Path, contract_sha256: str) -> Dict[str, Any]:
+    """Explicit same-date path; never invokes ordinary append/main or pointers."""
+    global CANONICAL_FORMULA_PATH, _CANONICAL_FORMULA_MODULE
+    contract_path = _same_day_ref({"path": str(contract_path), "sha256": contract_sha256})
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    if contract.get("schema") == "V192_SAME_DAY_PANEL_REVISION_V2":
+        return _same_day_v2_candidate(contract_path, contract_sha256, contract)
+    scope = _same_day_scope(contract)
+    binding_path = _same_day_ref(contract["input_binding_receipt"])
+    binding = json.loads(binding_path.read_text(encoding="utf-8"))
+    expected_binding = {key: contract[key] for key in (
+        "revision_id", "signal_date", "target_date",
+        "input_history", "xdxr_events", "canonical_source", "roles", "universe", "consumer_history",
+        "projection_keys", "raw_repair_keys", "raw_repair_fields", "raw_repair_derived_fields", "approved_overlays",
+    )}
+    if (binding.get("decision") != "PASS_SAME_DAY_REVISION_INPUT_BINDING"
+            or binding.get("binding_sha256") != _same_day_digest(expected_binding)
+            or binding.get("raw_and_derived_same_input") is not True
+            or binding.get("derived_closure_confirmed") is not True
+            or binding.get("producer_sha256") != _same_day_file_sha(Path(__file__))):
+        raise RuntimeError("same-day independent U/R/raw/derived input binding missing or changed")
+    canonical = _same_day_ref(contract["canonical_source"])
+    sources = {}
+    pointer_states = {}
+    for role in ("selector", "backtest"):
+        item = contract["roles"][role]
+        sources[role] = _same_day_ref(item["source"])
+        pointer = _same_day_ref(item["pointer"])
+        old = pointer.read_bytes()
+        if old.decode("utf-8-sig").strip() != str(sources[role]):
+            raise RuntimeError("same-day pointer/source mismatch")
+        pointer_states[role] = {"path": str(pointer), "old_b64": base64.b64encode(old).decode("ascii"),
+                                "old_sha256": hashlib.sha256(old).hexdigest()}
+    if len({str(sources[r]) for r in sources}) != 2 or len({s["path"] for s in pointer_states.values()}) != 2:
+        raise RuntimeError("same-day selector/backtest identities must be distinct")
+    output_dir = Path(contract["candidate_dir"])
+    if not output_dir.is_absolute() or output_dir.exists():
+        raise RuntimeError("same-day candidate directory must be new and absolute")
+    partitions = []
+    approved_keys = set()
+    for overlay in contract["approved_overlays"]:
+        keys = set(_same_day_bound_list(overlay["keys"], keys=True))
+        if not keys or not keys <= scope["projection"] or approved_keys & keys:
+            raise RuntimeError("same-day approved overlays overlap or exceed U/R")
+        # Existing independently accepted results retain their exact raw/event/
+        # window/producer identity. They are reused rather than recomputed.
+        for name in ("artifact", "source_binding", "review_receipt"):
+            _same_day_ref(overlay[name])
+        identity = overlay["origin"]
+        if (not all(identity.get(name) for name in ("raw_sha256", "event_sha256", "window_sha256", "producer_sha256", "canonical_sha256"))
+                or identity["canonical_sha256"] != contract["canonical_source"]["sha256"]
+                or overlay["raw_and_derived_same_input"] is not True):
+            raise RuntimeError("same-day approved raw/derived provenance incomplete")
+        part = pd.read_parquet(overlay["artifact"]["path"])
+        if set(_same_day_key_index(part)) != keys:
+            raise RuntimeError("same-day approved overlay key mismatch")
+        approved_keys.update(keys)
+        partitions.append(part)
+    compute_keys = scope["projection"] - approved_keys
+    if compute_keys:
+        history_path = _same_day_ref(contract["input_history"])
+        xdxr_path = _same_day_ref(contract["xdxr_events"])
+        raw_columns = {"ts_code", "trade_date", "open", "high", "low", "close", "vol", "amount"}
+        history_columns = set(pq.read_schema(history_path).names)
+        if not raw_columns <= history_columns or not history_columns <= raw_columns | {"volume"}:
+            raise RuntimeError("same-day computation input must contain only authoritative raw OHLCV/amount keys")
+        history = pd.read_parquet(history_path)
+        history_index = _same_day_key_index(history)
+        consumer = contract["consumer_history"]
+        compute_symbols = {code for code, _date in compute_keys}
+        if (not compute_keys <= set(history_index)
+                or any(code not in compute_symbols or code not in scope["accepted"]
+                       or date < consumer["recurrence_start_date"] or date > contract["signal_date"]
+                       for code, date in history_index)):
+            raise RuntimeError("same-day computation history misses scope or violates recurrence/date/universe bounds")
+        events = pd.read_parquet(xdxr_path)
+        # Only the remaining U/R partition is computed by this original
+        # producer, using one input generation for raw and derived values.
+        original_canonical = CANONICAL_FORMULA_PATH
+        original_module = _CANONICAL_FORMULA_MODULE
+        try:
+            # This explicit, independently bound Mac path is actually consumed
+            # by the original canonical loader. Never fall back to Windows.
+            CANONICAL_FORMULA_PATH = canonical
+            _CANONICAL_FORMULA_MODULE = None
+            fresh = compute_formula_features(history, 0, {}, _NoopLogger(), emit_all_rows=True, xdxr_events=events)
+        finally:
+            CANONICAL_FORMULA_PATH = original_canonical
+            _CANONICAL_FORMULA_MODULE = original_module
+        fresh.index = _same_day_key_index(fresh)
+        if set(fresh.index) != set(history_index):
+            raise RuntimeError("same-day producer changed input keys")
+        partitions.append(fresh.loc[sorted(compute_keys)].reset_index(drop=True))
+    elif contract["input_history"] is not None or contract["xdxr_events"] is not None:
+        raise RuntimeError("same-day fully approved scope must not request unnecessary recomputation")
+    generated = pd.concat(partitions, ignore_index=True)
+    if set(_same_day_key_index(generated)) != scope["projection"]:
+        raise RuntimeError("same-day approved/computed partitions do not cover exact U union R")
+    output_dir.mkdir(parents=True, exist_ok=False)
+    artifacts = {}
+    for role in ("selector", "backtest"):
+        artifacts[role] = _same_day_overlay_parquet(sources[role], output_dir / f"{role}.parquet", generated, scope, role)
+        new = artifacts[role]["path"].encode("utf-8")
+        pointer_states[role].update(new_b64=base64.b64encode(new).decode("ascii"), new_sha256=hashlib.sha256(new).hexdigest())
+    # Detect any upstream drift during the potentially long candidate write.
+    for role in ("selector", "backtest"):
+        _same_day_ref(contract["roles"][role]["source"])
+        _same_day_ref(contract["roles"][role]["pointer"])
+    for dependency in (contract["input_binding_receipt"], contract["canonical_source"],
+                       {"path": str(contract_path), "sha256": contract_sha256}):
+        _same_day_ref(dependency)
+    for overlay in contract["approved_overlays"]:
+        for name in ("artifact", "source_binding", "review_receipt"):
+            _same_day_ref(overlay[name])
+    if compute_keys:
+        _same_day_ref(contract["input_history"])
+        _same_day_ref(contract["xdxr_events"])
+    receipt = {"schema": "V192_SAME_DAY_PANEL_CANDIDATE_V1", "status": "CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW",
+               "revision_id": contract["revision_id"], "signal_date": contract["signal_date"], "target_date": contract["target_date"],
+               "contract": {"path": str(contract_path), "sha256": contract_sha256}, "input_binding_receipt": contract["input_binding_receipt"],
+               "producer_sha256": _same_day_file_sha(Path(__file__)), "artifacts": artifacts, "pointers": pointer_states,
+               "coverage_status": "ACCEPTED_ONLY_EXCLUDED_PRESERVED", "projection_key_count": len(scope["projection"]),
+               "u_key_count": len(scope["ukeys"]), "r_key_count": len(scope["rkeys"]), "raw_key_count": len(scope["raw"]),
+               "approved_overlay_key_count": len(approved_keys), "computed_key_count": len(compute_keys),
+               "research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+    _same_day_atomic_json(output_dir / "candidate_receipt.json", receipt)
+    return receipt
+
+
+def promote_same_day_revision(candidate_ref: Dict[str, Any], review_ref: Dict[str, Any], owner_ref: Dict[str, Any]) -> Dict[str, Any]:
+    """Bounded two-pointer CAS with durable phases; resume only old/new prefix states."""
+    if os.name == "nt":
+        raise RuntimeError("same-day revision promotion is Mac/POSIX only")
+    candidate_path = _same_day_ref(candidate_ref)
+    candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+    review = json.loads(_same_day_ref(review_ref).read_text(encoding="utf-8"))
+    owner = json.loads(_same_day_ref(owner_ref).read_text(encoding="utf-8"))
+    valid_until = datetime.fromisoformat(owner["valid_until"])
+    if (owner.get("decision") != "EXCLUSIVE_ORIGINAL_PRODUCER_PUBLISHER_CONFIRMED"
+            or owner.get("candidate_receipt_sha256") != candidate_ref["sha256"]
+            or owner.get("legacy_publishers_excluded") is not True or not owner.get("publisher_owner")
+            or valid_until.tzinfo is None or valid_until <= datetime.now().astimezone()):
+        raise RuntimeError("same-day exclusive publisher owner binding missing or expired")
+    if (candidate["schema"] != "V192_SAME_DAY_PANEL_CANDIDATE_V1"
+            or candidate["status"] != "CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW"
+            or review.get("decision") != "PASS_SAME_DAY_PANEL_REVISION"
+            or review.get("candidate_receipt_sha256") != candidate_ref["sha256"]
+            or review.get("producer_sha256") != candidate["producer_sha256"]
+            or not review.get("reviewer_identity") or not review.get("writer_identity")
+            or review["reviewer_identity"] == review["writer_identity"]
+            or candidate["producer_sha256"] != _same_day_file_sha(Path(__file__))):
+        raise RuntimeError("same-day independent candidate review missing or changed")
+    contract = json.loads(_same_day_ref(candidate["contract"]).read_text(encoding="utf-8"))
+    if contract.get("schema") == "V192_SAME_DAY_PANEL_REVISION_V2":
+        _same_day_v2_scope(contract)
+    else:
+        _same_day_scope(contract)
+    states = candidate["pointers"]
+    for role in ("selector", "backtest"):
+        _same_day_ref(candidate["artifacts"][role])
+        state = states[role]
+        if state["path"] != contract["roles"][role]["pointer"]["path"]:
+            raise RuntimeError("same-day pointer path differs from frozen contract")
+        old = base64.b64decode(state["old_b64"], validate=True)
+        new = base64.b64decode(state["new_b64"], validate=True)
+        if (hashlib.sha256(old).hexdigest() != state["old_sha256"]
+                or state["old_sha256"] != contract["roles"][role]["pointer"]["sha256"]
+                or hashlib.sha256(new).hexdigest() != state["new_sha256"]
+                or new != candidate["artifacts"][role]["path"].encode("utf-8") or old == new):
+            raise RuntimeError("same-day old/new pointer identity mismatch")
+    journal_path = candidate_path.parent / "promote_receipt.json"
+    with _same_day_pointer_lock([Path(states[r]["path"]) for r in ("selector", "backtest")]):
+        for role in ("selector", "backtest"):
+            _same_day_ref(contract["roles"][role]["source"])
+        if journal_path.exists():
+            journal = json.loads(journal_path.read_text(encoding="utf-8"))
+            if journal["candidate"] != candidate_ref or journal["review"] != review_ref or journal["pointers"] != states:
+                raise RuntimeError("same-day existing operation belongs to another revision/review")
+        else:
+            journal = {"schema": "V192_SAME_DAY_PANEL_PROMOTE_V1", "candidate": candidate_ref, "review": review_ref,
+                       "revision_id": candidate["revision_id"], "pointers": states, "phases": [], "owner_bindings": []}
+        current = [Path(states[r]["path"]).read_bytes() for r in ("selector", "backtest")]
+        old = [base64.b64decode(states[r]["old_b64"]) for r in ("selector", "backtest")]
+        new = [base64.b64decode(states[r]["new_b64"]) for r in ("selector", "backtest")]
+        if any(value not in (old[i], new[i]) for i, value in enumerate(current)) or current == [old[0], new[1]]:
+            raise RuntimeError("same-day third-version or non-prefix pointer state: STOP")
+        if not journal_path.exists() and current != old:
+            raise RuntimeError("same-day changed pointers without operation receipt: STOP")
+        if journal.get("status") == "PROMOTED" and current != new:
+            raise RuntimeError("same-day completed operation changed afterwards: STOP")
+        if journal.get("status") == "PROMOTED":
+            return journal
+        journal["owner_bindings"].append(owner_ref)
+        journal["phases"].append("PREPARED_OR_RESUMED")
+        _same_day_atomic_json(journal_path, journal)
+        for i, role in enumerate(("selector", "backtest")):
+            if valid_until <= datetime.now().astimezone():
+                raise RuntimeError("same-day exclusive publisher owner expired: STOP")
+            # Recheck BOTH pointers immediately before each conditional write.
+            observed = [Path(states[r]["path"]).read_bytes() for r in ("selector", "backtest")]
+            if observed != current:
+                raise RuntimeError("same-day pointer CAS lost: STOP")
+            if current[i] == old[i]:
+                pointer = Path(states[role]["path"])
+                temporary = pointer.with_name(pointer.name + ".same_day.tmp")
+                if temporary.exists():
+                    if temporary.read_bytes() != new[i]:
+                        raise RuntimeError("same-day foreign temporary pointer: STOP")
+                else:
+                    with temporary.open("xb") as stream:
+                        stream.write(new[i])
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                os.replace(temporary, pointer)
+                current[i] = new[i]
+                directory = os.open(pointer.parent, os.O_RDONLY)
+                try:
+                    os.fsync(directory)
+                finally:
+                    os.close(directory)
+            journal["phases"].append(role.upper() + "_NEW")
+            _same_day_atomic_json(journal_path, journal)
+        if [Path(states[r]["path"]).read_bytes() for r in ("selector", "backtest")] != new:
+            raise RuntimeError("same-day pointer readback mismatch: STOP")
+        journal["status"] = "PROMOTED"
+        journal["phases"].append("PROMOTED")
+        _same_day_atomic_json(journal_path, journal)
+        return journal
+
+
+def _same_day_v2_declared_columns(ref: Dict[str, Any], symbol: str) -> list[str]:
+    """Read a frozen literal field declaration without importing its module."""
+    tree = ast.parse(_same_day_ref(ref).read_text(encoding="utf-8"))
+    values = []
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == symbol for target in node.targets):
+            values.append(ast.literal_eval(node.value))
+    if len(values) != 1 or not isinstance(values[0], (list, tuple)):
+        raise RuntimeError(f"same-day V2 missing unique literal consumer declaration: {symbol}")
+    fields = list(values[0])
+    if not all(isinstance(field, str) and field for field in fields) or len(set(fields)) != len(fields):
+        raise RuntimeError("same-day V2 invalid consumer declaration")
+    return fields
+
+
+def _same_day_v2_verify_refs(value: Any, seen: Optional[set] = None) -> None:
+    seen = set() if seen is None else seen
+    if isinstance(value, dict):
+        if "path" in value and "sha256" in value:
+            identity = (value["path"], value["sha256"])
+            if identity not in seen:
+                _same_day_ref(value)
+                seen.add(identity)
+        for item in value.values():
+            _same_day_v2_verify_refs(item, seen)
+    elif isinstance(value, list):
+        for item in value:
+            _same_day_v2_verify_refs(item, seen)
+
+
+def _same_day_v2_scope(contract: Dict[str, Any]) -> Dict[str, Any]:
+    if (contract["schema"] != "V192_SAME_DAY_PANEL_REVISION_V2" or not contract["revision_id"]
+            or contract["research_only"] is not True
+            or any(contract[key] is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent"))):
+        raise RuntimeError("same-day V2 identity/safety boundary invalid")
+    signal = contract["signal_date"]
+    if type(signal) is not int or type(contract["target_date"]) is not int or contract["target_date"] <= signal:
+        raise RuntimeError("same-day V2 signal/target boundary invalid")
+    ledger = contract["admission_ledger"]
+    if set(ledger["original_receipts"]) != {"target", "accepted", "boundary"}:
+        raise RuntimeError("same-day V2 original admission evidence incomplete")
+    for ref in ledger["original_receipts"].values():
+        _same_day_ref(ref)
+    original = {key: set(_same_day_bound_list(ledger[key])) for key in ("target", "accepted", "excluded", "boundary")}
+    if (not original["target"] or original["accepted"] & original["excluded"]
+            or original["accepted"] | original["excluded"] != original["target"]
+            or not original["boundary"] <= original["accepted"] or not ledger["original_target_fingerprint"]):
+        raise RuntimeError("same-day V2 original admission partition invalid")
+    admissions, releases = set(), set()
+    for change in ledger["approved_changes"]:
+        code = change["ts_code"]
+        if code in admissions | releases or not change["original_reason"] or not change["current_reason"]:
+            raise RuntimeError("same-day V2 duplicate or unexplained admission change")
+        _same_day_ref(change["input_review"])
+        _same_day_ref(change["derived_review"])
+        if change["from"] == "EXCLUDED" and code in original["excluded"]:
+            admissions.add(code)
+        elif change["from"] == "BOUNDARY_EXCLUDED" and code in original["boundary"]:
+            releases.add(code)
+        else:
+            raise RuntimeError("same-day V2 admission change does not match original ledger")
+        if change["to"] != "ACCEPTED_CURRENT_REVISION":
+            raise RuntimeError("same-day V2 unsupported admission change")
+    accepted = original["accepted"] | admissions
+    excluded = original["excluded"] - admissions
+    boundary = original["boundary"] - releases
+    effective = contract["effective_universe"]
+    for name, expected in (("accepted", accepted), ("excluded", excluded), ("boundary", boundary)):
+        if set(_same_day_bound_list(effective[name])) != expected:
+            raise RuntimeError("same-day V2 effective admission ledger mismatch")
+    if effective["coverage_status"] != "APPROVED_CURRENT_REVISION_EXCLUSIONS_RETAINED":
+        raise RuntimeError("same-day V2 excluded coverage must remain explicit")
+    consumer = contract["consumer_history"]
+    rkeys = set(_same_day_bound_list(consumer["keys"], keys=True))
+    if (not rkeys or not consumer["consumer_sha256"] or consumer["signal_end_date"] != signal
+            or consumer["recurrence_start_date"] > consumer["signal_start_date"]
+            or any(code not in accepted or not consumer["signal_start_date"] <= day <= signal for code, day in rkeys)):
+        raise RuntimeError("same-day V2 actual consumer history boundary invalid")
+    ukeys = {(code, signal) for code in accepted - boundary}
+    keys = set(_same_day_bound_list(contract["projection_keys"], keys=True))
+    if keys != ukeys | rkeys or any(code in boundary and day == signal for code, day in keys):
+        raise RuntimeError("same-day V2 requires complete new U union actual R")
+    declarations = contract["consumer_sources"]
+    for name, symbols in (("score", {"score_v19", "score_multi_head"}),
+                          ("role", {"entry_pool", "base_fmla04_role"}),
+                          ("runtime_consumer", {"run_frozen_v192_oracle"})):
+        tree = ast.parse(_same_day_ref(declarations[name]).read_text(encoding="utf-8"))
+        definitions = {node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+        if not symbols <= definitions:
+            raise RuntimeError(f"same-day V2 bound {name} implementation identity incomplete")
+    if consumer["consumer_sha256"] != declarations["runtime_consumer"]["sha256"]:
+        raise RuntimeError("same-day V2 actual consumer SHA differs from its bound source")
+    feature = _same_day_v2_declared_columns(declarations["feature"], "REQUIRED_BASE_COLUMNS")
+    selector = _same_day_v2_declared_columns(declarations["selector"], "_PREMARKET_SOURCE_FIELDS")
+    columns = set(feature) | set(selector)
+    if set(_same_day_bound_list(contract["consumer_columns"])) != columns:
+        raise RuntimeError("same-day V2 consumer closure differs from frozen source declarations")
+    projected = columns | set(V192_REQUIRED_CANONICAL_PROJECTION_FIELDS)
+    if set(contract["projection_lineage"]) != projected:
+        raise RuntimeError("same-day V2 per-field complete consumer/projection provenance missing")
+    native_fields = {"open", "high", "low", "close", "volume", "amount"}
+    for field, rule in contract["projection_lineage"].items():
+        if field in ("ts_code", "trade_date"):
+            expected = "key"
+        elif field in native_fields:
+            expected = "raw"
+        elif field == "name":
+            expected = "static"
+        elif field == "field_contract_version":
+            expected = "constant"
+        elif field in ("is_st_snapshot", "is_one_word_limit_up_est"):
+            expected = "enrichment"
+        elif field in set(V192_FORMULA_FIELDS) | set(V192_REQUIRED_CANONICAL_PROJECTION_FIELDS):
+            expected = "canonical"
+        else:
+            expected = "producer"
+        if rule.get("kind") != expected or (expected not in ("key", "constant") and rule.get("field") != field):
+            raise RuntimeError(f"same-day V2 changed the original consumer field producer: {field}")
+        if field == "field_contract_version" and rule.get("value") != CONTRACT_PROVENANCE_FIELD_DEFAULTS[field]:
+            raise RuntimeError("same-day V2 field contract version changed")
+    if not {"ts_code", "trade_date", "name", "volume", "open", "high", "low", "close", "amount"} <= columns:
+        raise RuntimeError("same-day V2 consumer raw/name/key closure incomplete")
+    role_scopes = {}
+    for role in ("selector", "backtest"):
+        item = contract["roles"][role]
+        updates = set(_same_day_bound_list(item["existing_update_keys"], keys=True))
+        inserts = set(_same_day_bound_list(item["approved_insert_keys"], keys=True))
+        raw_replacements = set(_same_day_bound_list(item["approved_raw_replace_keys"], keys=True))
+        if updates & inserts or updates | inserts != keys or not raw_replacements <= updates:
+            raise RuntimeError("same-day V2 per-role exact update/insert/raw key partition invalid")
+        raw_map = {field: field for field in ("open", "high", "low", "close", "amount")}
+        raw_map["volume" if role == "selector" else "vol"] = "volume"
+        if item["raw_field_map"] != raw_map:
+            raise RuntimeError("same-day V2 only the exact native volume/vol role mapping is allowed")
+        if item["expected_new_rows"] != item["expected_old_rows"] + len(inserts):
+            raise RuntimeError("same-day V2 expected row count is not old plus approved inserts")
+        if not item["source_key_sha256"] or not item["expected_new_key_sha256"] or not item["schema_sha256"]:
+            raise RuntimeError("same-day V2 source/schema/key identity missing")
+        role_scopes[role] = {"updates": updates, "inserts": inserts, "raw_replacements": raw_replacements, "raw_map": raw_map}
+    structural = {}
+    for item in contract.get("structural_na", []):
+        field = item["field"]
+        admitted = set(_same_day_bound_list(item["keys"], keys=True))
+        if (field in structural or field not in projected - native_fields - {"ts_code", "trade_date", "name", "formula_source", "field_contract_version"}
+                or not admitted <= keys or (field != "bar_close_pos" and any(day == signal for _code, day in admitted)) or not item["reason"]):
+            raise RuntimeError("same-day V2 invalid original structural-NA admission")
+        _same_day_ref(item["review_receipt"])
+        structural[field] = admitted
+    return {"keys": keys, "ukeys": ukeys, "rkeys": rkeys, "accepted": accepted, "excluded": excluded,
+            "columns": columns, "projected": projected, "roles": role_scopes, "structural_na": structural}
+
+
+def _same_day_v2_frame(ref: Dict[str, Any]) -> pd.DataFrame:
+    frame = pd.read_parquet(_same_day_ref(ref))
+    frame.index = _same_day_key_index(frame)
+    return frame
+
+
+def _same_day_v2_native_volume(frame: pd.DataFrame) -> pd.DataFrame:
+    frame = frame.copy()
+    if "volume" not in frame and "vol" not in frame:
+        raise RuntimeError("same-day V2 native volume missing")
+    if "volume" not in frame:
+        frame["volume"] = frame["vol"]
+    if "vol" in frame:
+        for left, right in zip(frame["vol"].tolist(), frame["volume"].tolist()):
+            left = left.item() if isinstance(left, np.generic) else left
+            right = right.item() if isinstance(right, np.generic) else right
+            if pd.isna(left) or pd.isna(right) or left != right:
+                raise RuntimeError("same-day V2 native vol/volume mismatch")
+    if any(pd.isna(value) or isinstance(value, (bool, np.bool_)) or not math.isfinite(value) or value < 0 for value in frame["volume"]):
+        raise RuntimeError("same-day V2 invalid native volume")
+    return frame
+
+
+def _same_day_v2_static(ref: Dict[str, Any], signal: int) -> dict:
+    data = json.loads(_same_day_ref(ref).read_text(encoding="utf-8"))
+    result = {}
+    for row in data["records"]:
+        identity = (row["ts_code"], row["field"])
+        if (identity in result or type(row["observed_date"]) is not int or row["observed_date"] > signal
+                or row["status"] != "CURRENT_REVISION_NON_PIT" or not row["reason"]):
+            raise RuntimeError("same-day V2 ambiguous/future/unexplained static observation")
+        _same_day_ref(row["source"])
+        result[identity] = row["value"]
+    return result
+
+
+def _same_day_v2_index(keys: Iterable[tuple[str, int]]) -> pd.MultiIndex:
+    values = list(keys)
+    return pd.MultiIndex.from_tuples(values, names=["ts_code", "trade_date"]) if values else pd.MultiIndex.from_arrays([[], []], names=["ts_code", "trade_date"])
+
+
+def _same_day_v2_values(field: str, rule: Dict[str, Any], packet: dict, index: pd.MultiIndex,
+                        static: dict, consumers: set, *, nullable: bool = False, insertion: bool = False) -> pd.Series:
+    kind = rule["kind"]
+    if kind == "key":
+        if field not in ("ts_code", "trade_date"):
+            raise RuntimeError("same-day V2 key provenance used for non-key field")
+        return pd.Series(index.get_level_values(0 if field == "ts_code" else 1), index=index)
+    if kind in ("producer", "canonical", "raw", "enrichment", "backtest_producer"):
+        if rule.get("field") != field or field not in packet[kind].columns:
+            raise RuntimeError(f"same-day V2 missing exact admitted {kind} field: {field}")
+        if not set(index) <= set(packet[kind].index):
+            raise RuntimeError("same-day V2 generation misses exact approved keys")
+        values = packet[kind].loc[index, field]
+        if field == "bar_close_pos" and values.isna().any():
+            missing = values.index[values.isna()]
+            raw = packet["raw"].loc[missing]
+            if not raw["high"].eq(raw["low"]).all():
+                raise RuntimeError("same-day V2 bar_close_pos missingness violates original flat-bar null policy")
+        if field == "formula_source" and not values.eq(CANONICAL_FORMULA_SOURCE).all():
+            raise RuntimeError("same-day V2 original formula source identity changed")
+        return values
+    if kind == "static":
+        if field in consumers - {"name"} or rule.get("field") != field:
+            raise RuntimeError("same-day V2 derived consumer field cannot be static carry")
+        values = []
+        for code, _day in index:
+            if (code, field) not in static:
+                raise RuntimeError(f"same-day V2 missing separately bound static value: {code}/{field}")
+            value = static[(code, field)]
+            if field == "name" and (value is None or not str(value).strip()):
+                raise RuntimeError("same-day V2 admitted name must be known")
+            values.append(value)
+        return pd.Series(values, index=index, dtype=object)
+    if kind == "constant":
+        if field in consumers - {"field_contract_version", "formula_source"} or not rule.get("reason"):
+            raise RuntimeError("same-day V2 formula/raw consumer field cannot be an invented constant")
+        _same_day_ref(rule["approval"])
+        return pd.Series([rule["value"]] * len(index), index=index, dtype=object)
+    if kind == "unknown_null":
+        if not insertion or not nullable or field in consumers or not rule.get("reason"):
+            raise RuntimeError("same-day V2 unknown value is not an approved nullable nonconsumer insert field")
+        _same_day_ref(rule["approval"])
+        return pd.Series([None] * len(index), index=index, dtype=object)
+    raise RuntimeError(f"same-day V2 unsupported field provenance: {field}/{kind}")
+
+
+def _same_day_v2_packets(contract: dict, scope: dict) -> list[dict]:
+    """Reuse admitted generations; compute only the disjoint remaining partition."""
+    global CANONICAL_FORMULA_PATH, _CANONICAL_FORMULA_MODULE, _compute_canonical_v192_formula
+    packets, approved = [], set()
+    static = _same_day_v2_static(contract["static_rows"], contract["signal_date"])
+    for item in contract["approved_generations"]:
+        keys = set(_same_day_bound_list(item["keys"], keys=True))
+        if not keys or not keys <= scope["keys"] or approved & keys or item["same_input_generation"] is not True:
+            raise RuntimeError("same-day V2 approved generations overlap or exceed exact scope")
+        for name in ("source_binding", "review_receipt"):
+            _same_day_ref(item[name])
+        if not all(item["origin"].get(name) for name in ("raw_sha256", "event_sha256", "window_sha256", "producer_sha256", "canonical_sha256")):
+            raise RuntimeError("same-day V2 approved generation provenance incomplete")
+        if item["origin"]["canonical_sha256"] != contract["canonical_source"]["sha256"]:
+            raise RuntimeError("same-day V2 approved canonical identity changed")
+        packet = {name: _same_day_v2_frame(item[name]) for name in ("producer", "canonical", "raw", "enrichment")}
+        packet["raw"] = _same_day_v2_native_volume(packet["raw"])
+        if any(not keys <= set(packet[name].index) for name in ("producer", "canonical", "raw", "enrichment")):
+            raise RuntimeError("same-day V2 approved generation missing keys")
+        packet.update(keys=keys, approved=True, evidence={name: item[name] for name in (
+            "producer", "canonical", "raw", "enrichment", "source_binding", "review_receipt")})
+        packets.append(packet)
+        approved.update(keys)
+    remaining = scope["keys"] - approved
+    if remaining:
+        fresh = contract["remaining_generation"]
+        if set(_same_day_bound_list(fresh["keys"], keys=True)) != remaining:
+            raise RuntimeError("same-day V2 remaining generation must equal exact unapproved partition")
+        history = _same_day_v2_frame(fresh["input_history"])
+        raw_columns = {"ts_code", "trade_date", "open", "high", "low", "close", "vol", "amount"}
+        if not raw_columns <= set(history.columns) or not set(history.columns) <= raw_columns | {"volume"}:
+            raise RuntimeError("same-day V2 remaining history must contain only authoritative native raw columns")
+        history = _same_day_v2_native_volume(history)
+        symbols = {code for code, _day in remaining}
+        if (not remaining <= set(history.index)
+                or any(code not in symbols or code not in scope["accepted"]
+                       or not contract["consumer_history"]["recurrence_start_date"] <= day <= contract["signal_date"]
+                       for code, day in history.index)):
+            raise RuntimeError("same-day V2 remaining raw recurrence/universe coverage invalid")
+        events = pd.read_parquet(_same_day_ref(fresh["xdxr_events"]))
+        authority = _same_day_ref(contract["canonical_source"])
+        captured = []
+        previous = (CANONICAL_FORMULA_PATH, _CANONICAL_FORMULA_MODULE, _compute_canonical_v192_formula)
+        def same_call(frame):
+            if captured:
+                raise RuntimeError("same-day V2 unexpected second canonical invocation")
+            value = previous[2](frame)
+            captured.append(value.copy())
+            return value
+        latest_static = {"name": {code: static[(code, "name")] for code in symbols if (code, "name") in static}}
+        if set(latest_static["name"]) != symbols:
+            raise RuntimeError("same-day V2 remaining producer needs separately bound names")
+        try:
+            CANONICAL_FORMULA_PATH, _CANONICAL_FORMULA_MODULE = authority, None
+            _compute_canonical_v192_formula = same_call
+            producer = compute_formula_features(history.reset_index(drop=True), 0, latest_static, _NoopLogger(), emit_all_rows=True, xdxr_events=events)
+        finally:
+            CANONICAL_FORMULA_PATH, _CANONICAL_FORMULA_MODULE, _compute_canonical_v192_formula = previous
+        if len(captured) != 1:
+            raise RuntimeError("same-day V2 canonical generation was not captured exactly once")
+        producer.index = _same_day_key_index(producer)
+        canonical = captured[0]
+        canonical.index = _same_day_key_index(canonical)
+        if set(producer.index) != set(history.index) or set(canonical.index) != set(history.index):
+            raise RuntimeError("same-day V2 original producer/canonical changed raw keys")
+        functions = runpy.run_path(str(_same_day_ref(contract["enrichment_source"])), run_name="v192_same_day_bound_enrichment")
+        _summary, enriched = functions["add_limit_fields"](producer.copy())
+        enriched.index = _same_day_key_index(enriched)
+        packets.append({"keys": remaining, "approved": False, "producer": producer, "canonical": canonical,
+                        "raw": history, "enrichment": enriched, "evidence": {
+                            "raw": fresh["input_history"], "xdxr_events": fresh["xdxr_events"],
+                            "canonical_source": contract["canonical_source"], "enrichment_source": contract["enrichment_source"]}})
+    elif contract["remaining_generation"] is not None:
+        raise RuntimeError("same-day V2 must not recompute an entirely approved generation")
+    for packet in packets:
+        index = _same_day_v2_index(packet["keys"])
+        raw = packet["raw"].loc[index]
+        produced = packet["producer"].loc[index].copy()
+        for channel in ("producer", "canonical", "enrichment"):
+            for field in ("open", "high", "low", "close", "volume", "amount"):
+                if field not in packet[channel] or packet[channel].loc[index, field].tolist() != raw[field].tolist():
+                    raise RuntimeError(f"same-day V2 {channel}/native raw mismatch: {field}")
+        needs_backtest_fields = any(rule.get("kind") == "backtest_producer"
+                                   for role in contract["roles"].values()
+                                   for rules in (role["update_lineage"], role["insert_lineage"])
+                                   for rule in rules.values())
+        if needs_backtest_fields:
+            produced["vol"] = raw["volume"]
+            packet["backtest_producer"] = append_backtest_provenance_and_tradeability(produced, Path(contract["roles"]["backtest"]["source"]["path"]))
+        else:
+            packet["backtest_producer"] = pd.DataFrame(index=index)
+        packet["static"] = static
+    return packets
+
+
+def _same_day_v2_array(values: list, field: pa.Field, *, volume: bool = False, structural: Optional[list[bool]] = None) -> pa.Array:
+    normalized = []
+    for position, value in enumerate(values):
+        value = value.item() if isinstance(value, np.generic) else value
+        if field.name == "trade_date" and isinstance(value, int):
+            if (pa.types.is_string(field.type) or pa.types.is_large_string(field.type)
+                    or (pa.types.is_dictionary(field.type) and pa.types.is_string(field.type.value_type))):
+                value = str(value)
+            elif pa.types.is_date(field.type):
+                value = datetime.strptime(str(value), "%Y%m%d").date()
+            elif pa.types.is_timestamp(field.type):
+                value = pd.Timestamp(datetime.strptime(str(value), "%Y%m%d"), tz=field.type.tz).to_pydatetime()
+        if value is None:
+            if not field.nullable:
+                raise RuntimeError(f"same-day V2 null in nonnullable field: {field.name}")
+        elif pa.types.is_boolean(field.type):
+            if value not in (0, 1, False, True):
+                raise RuntimeError(f"same-day V2 nonbinary field: {field.name}")
+            value = bool(value)
+        elif pa.types.is_integer(field.type):
+            if isinstance(value, (int, bool)):
+                value = int(value)
+            elif isinstance(value, float) and math.isfinite(value) and value.is_integer():
+                value = int(value)
+            else:
+                raise RuntimeError(f"same-day V2 nonintegral field: {field.name}")
+        elif pa.types.is_floating(field.type) and not math.isfinite(value):
+            if not (math.isnan(value) and structural is not None and structural[position]):
+                raise RuntimeError(f"same-day V2 nonfinite field requires prior explicit structural admission: {field.name}")
+        normalized.append(value)
+    result = pa.array(normalized, type=field.type, safe=True)
+    if volume and any(original is None or original != converted for original, converted in zip(normalized, result.to_pylist())):
+        raise RuntimeError("same-day V2 volume cannot be represented exactly in role schema")
+    return result
+
+
+def _same_day_v2_structural_mask(field: pa.Field, values: pd.Series, scope: dict) -> list[bool]:
+    approved = scope["structural_na"].get(field.name, set())
+    mask = [key in approved for key in values.index]
+    missing = values.isna().tolist()
+    if any(flag != is_missing for flag, is_missing in zip(mask, missing)) or (any(mask) and (not field.nullable or not pa.types.is_floating(field.type))):
+        raise RuntimeError(f"same-day V2 consumer missingness differs from original structural admission: {field.name}")
+    return mask
+
+
+def _same_day_v2_key_digest_update(digest, keys: Iterable[tuple[str, int]]) -> None:
+    for code, date in keys:
+        digest.update((json.dumps([code, date], ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8"))
+
+
+def _same_day_v2_role(contract: dict, scope: dict, packets: list[dict], role: str, output: Path) -> dict:
+    item, approved = contract["roles"][role], scope["roles"][role]
+    source = _same_day_ref(item["source"])
+    parquet = pq.ParquetFile(source)
+    schema = parquet.schema_arrow
+    schema_identity = [{"name": field.name, "type": str(field.type), "nullable": field.nullable} for field in schema]
+    if _same_day_digest(schema_identity) != item["schema_sha256"] or parquet.metadata.num_rows != item["expected_old_rows"]:
+        raise RuntimeError("same-day V2 source schema/row identity changed")
+    raw_map = approved["raw_map"]
+    needed = (scope["projected"] - {"ts_code", "trade_date"}) & set(schema.names)
+    needed.update(raw_map)
+    needed.update(set(item["required_nonnull_fields"]) - {"ts_code", "trade_date"})
+    if role == "selector" and not scope["projected"] <= set(schema.names):
+        raise RuntimeError("same-day V2 selector schema misses consumer closure")
+    if set(item["update_lineage"]) != needed:
+        raise RuntimeError("same-day V2 per-role update field closure incomplete")
+    for target, source_field in raw_map.items():
+        if item["update_lineage"][target] != {"kind": "raw", "field": source_field}:
+            raise RuntimeError("same-day V2 raw role field must use the exact native source")
+    for field in needed - set(raw_map):
+        rule = item["update_lineage"][field]
+        if field in scope["projected"] and rule != contract["projection_lineage"][field]:
+            raise RuntimeError("same-day V2 role changed a consumer field's authoritative source")
+        if field not in scope["projected"] and (rule.get("kind") not in ("producer", "canonical", "backtest_producer") or rule.get("field") != field):
+            raise RuntimeError("same-day V2 extra required role field must have an exact original producer source")
+    consumers = scope["projected"] | set(item["required_nonnull_fields"])
+    if not set(item["required_nonnull_fields"]) <= set(schema.names):
+        raise RuntimeError("same-day V2 required role field absent from schema")
+    if approved["inserts"] and set(item["insert_lineage"]) != set(schema.names):
+        raise RuntimeError("same-day V2 insertion needs explicit lineage for every schema field")
+    updates = {}
+    insert_parts = []
+    for packet in packets:
+        update_index = _same_day_v2_index(packet["keys"] & approved["updates"])
+        for target in needed:
+            rule = item["update_lineage"][target]
+            source_field = raw_map.get(target, target)
+            values = _same_day_v2_values(source_field, rule, packet, update_index, packet["static"], consumers)
+            updates.setdefault(target, []).append(values)
+        insert_index = _same_day_v2_index(packet["keys"] & approved["inserts"])
+        if len(insert_index):
+            arrays = []
+            for field in schema:
+                rule = item["insert_lineage"][field.name]
+                source_field = raw_map.get(field.name, field.name)
+                expected_rule = item["update_lineage"].get(field.name)
+                if field.name in ("ts_code", "trade_date"):
+                    expected_rule = {"kind": "key"}
+                if expected_rule is not None and rule != expected_rule:
+                    raise RuntimeError("same-day V2 insert consumer/raw provenance differs from update generation")
+                values = _same_day_v2_values(source_field, rule, packet, insert_index, packet["static"], consumers,
+                                              nullable=field.nullable, insertion=True)
+                structural = _same_day_v2_structural_mask(field, values, scope) if field.name in consumers else None
+                arrays.append(_same_day_v2_array(values.tolist(), field, volume=source_field == "volume", structural=structural))
+            insert_parts.append(pa.Table.from_arrays(arrays, schema=schema))
+    updates = {field: pd.concat(parts) for field, parts in updates.items()}
+    insert_table = pa.concat_tables(insert_parts) if insert_parts else pa.Table.from_batches([], schema=schema)
+    if insert_table.num_rows:
+        key_frame = insert_table.select(["ts_code", "trade_date"]).to_pandas()
+        key_values = list(_same_day_key_index(key_frame))
+        ordering = sorted(range(len(key_values)), key=lambda position: key_values[position])
+        insert_table = insert_table.take(pa.array(ordering, type=pa.int64()))
+    old_digest = hashlib.sha256()
+    seen_updates, changed_raw = set(), set()
+    temporary = output.with_suffix(".tmp.parquet")
+    rows = 0
+    try:
+        with pq.ParquetWriter(temporary, schema=schema, compression="snappy") as writer:
+            for batch in parquet.iter_batches(batch_size=65536):
+                table = pa.Table.from_batches([batch], schema=schema)
+                key_frame = table.select(["ts_code", "trade_date"]).to_pandas()
+                dates = key_frame["trade_date"].map(normalize_trade_date_value)
+                if dates.isna().any():
+                    raise RuntimeError("same-day V2 invalid source key date")
+                keys = list(zip(key_frame["ts_code"].astype(str), dates.astype(int)))
+                _same_day_v2_key_digest_update(old_digest, keys)
+                relevant = [key for key in keys if key in approved["updates"]]
+                if len(set(relevant)) != len(relevant) or set(relevant) & seen_updates or set(keys) & approved["inserts"]:
+                    raise RuntimeError("same-day V2 duplicate update or approved insert already exists")
+                seen_updates.update(relevant)
+                positions = [i for i, key in enumerate(keys) if key in approved["updates"]]
+                index = _same_day_v2_index([keys[i] for i in positions])
+                for field in needed:
+                    values = updates[field].reindex(index)
+                    structural = _same_day_v2_structural_mask(schema.field(field), values, scope) if field in consumers else None
+                    typed = _same_day_v2_array(values.tolist(), schema.field(field), volume=field in raw_map and raw_map[field] == "volume", structural=structural)
+                    old_values = [table[field][position].as_py() for position in positions]
+                    new_values = typed.to_pylist()
+                    if field in raw_map:
+                        differences = {keys[position] for position, left, right in zip(positions, old_values, new_values) if left != right}
+                        if not differences <= approved["raw_replacements"]:
+                            raise RuntimeError("same-day V2 unapproved native raw mismatch")
+                        changed_raw.update(differences)
+                        selected = [i for i, (left, right) in enumerate(zip(old_values, new_values)) if left != right]
+                        field_positions = [positions[i] for i in selected]
+                        typed = typed.take(pa.array(selected, type=pa.int64()))
+                    else:
+                        field_positions = positions
+                    if not field_positions:
+                        continue
+                    if pa.types.is_boolean(schema.field(field).type) or pa.types.is_dictionary(schema.field(field).type):
+                        preserved_values = table[field].to_pylist()
+                        for position, value in zip(field_positions, typed.to_pylist()):
+                            preserved_values[position] = value
+                        replacement = pa.array(preserved_values, type=schema.field(field).type, safe=True)
+                    else:
+                        mask = np.zeros(table.num_rows, dtype=bool)
+                        mask[field_positions] = True
+                        replacement = pc.replace_with_mask(table[field], pa.array(mask), typed)
+                    table = table.set_column(schema.get_field_index(field), schema.field(field), replacement)
+                writer.write_table(table)
+                rows += table.num_rows
+            if (seen_updates != approved["updates"] or changed_raw != approved["raw_replacements"]
+                    or old_digest.hexdigest() != item["source_key_sha256"]):
+                raise RuntimeError("same-day V2 exact update/raw/source-key binding mismatch")
+            insert_keys_frame = insert_table.select(["ts_code", "trade_date"]).to_pandas()
+            insert_keys = list(_same_day_key_index(insert_keys_frame)) if insert_table.num_rows else []
+            if set(insert_keys) != approved["inserts"]:
+                raise RuntimeError("same-day V2 strict insert table key mismatch")
+            new_digest = old_digest.copy()
+            _same_day_v2_key_digest_update(new_digest, insert_keys)
+            if new_digest.hexdigest() != item["expected_new_key_sha256"] or rows + len(insert_keys) != item["expected_new_rows"]:
+                raise RuntimeError("same-day V2 new ordered-key/row identity mismatch")
+            if insert_table.num_rows:
+                writer.write_table(insert_table)
+        with temporary.open("rb") as stream:
+            os.fsync(stream.fileno())
+        os.replace(temporary, output)
+        directory = os.open(output.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    return {"path": str(output), "sha256": _same_day_file_sha(output), "old_rows": rows,
+            "inserted_rows": insert_table.num_rows, "rows": rows + insert_table.num_rows,
+            "source_key_sha256": old_digest.hexdigest(), "new_key_sha256": new_digest.hexdigest(),
+            "updated_key_count": len(seen_updates), "raw_replaced_key_count": len(changed_raw),
+            "write_mode": "EXACT_CONSUMER_OVERLAY_AND_APPROVED_ABSENT_KEY_APPEND"}
+
+
+def _same_day_v2_candidate(contract_path: Path, contract_sha256: str, contract: dict) -> dict:
+    scope = _same_day_v2_scope(contract)
+    binding = json.loads(_same_day_ref(contract["input_binding_receipt"]).read_text(encoding="utf-8"))
+    identity = {key: value for key, value in contract.items() if key != "input_binding_receipt"}
+    if (binding.get("decision") != "PASS_SAME_DAY_V2_COMPLETE_INPUT_BINDING"
+            or binding.get("binding_sha256") != _same_day_digest(identity)
+            or binding.get("producer_sha256") != _same_day_file_sha(Path(__file__))
+            or any(binding.get(key) is not True for key in (
+                "complete_consumer_closure", "exact_raw_derived_generation", "approved_generation_reviews",
+                "effective_admissions", "strict_insert_lineage", "actual_consumer_history"))):
+        raise RuntimeError("same-day V2 independent complete input/admission/insert binding missing")
+    _same_day_v2_verify_refs(identity)
+    output_dir = Path(contract["candidate_dir"])
+    if not output_dir.is_absolute() or output_dir.exists():
+        raise RuntimeError("same-day V2 candidate directory must be new and absolute")
+    pointers = {}
+    for role in ("selector", "backtest"):
+        item = contract["roles"][role]
+        raw = _same_day_ref(item["pointer"]).read_bytes()
+        if raw.decode("utf-8-sig").strip() != item["source"]["path"]:
+            raise RuntimeError("same-day V2 old pointer/source mismatch")
+        pointers[role] = {"path": item["pointer"]["path"], "old_b64": base64.b64encode(raw).decode("ascii"),
+                          "old_sha256": hashlib.sha256(raw).hexdigest()}
+    if len({item["path"] for item in pointers.values()}) != 2:
+        raise RuntimeError("same-day V2 selector/backtest pointers must be distinct")
+    packets = _same_day_v2_packets(contract, scope)
+    output_dir.mkdir(parents=True, exist_ok=False)
+    for number, packet in enumerate(packets):
+        if packet["approved"]:
+            continue
+        for channel in ("producer", "canonical", "enrichment"):
+            path = output_dir / f"generation_{number}_{channel}.parquet"
+            packet[channel].reset_index(drop=True).to_parquet(path, index=False)
+            with path.open("rb") as stream:
+                os.fsync(stream.fileno())
+            packet["evidence"][channel] = {"path": str(path), "sha256": _same_day_file_sha(path)}
+    directory = os.open(output_dir, os.O_RDONLY)
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+    artifacts = {}
+    for role in ("selector", "backtest"):
+        artifacts[role] = _same_day_v2_role(contract, scope, packets, role, output_dir / f"{role}.parquet")
+        new = artifacts[role]["path"].encode("utf-8")
+        pointers[role].update(new_b64=base64.b64encode(new).decode("ascii"), new_sha256=hashlib.sha256(new).hexdigest())
+    _same_day_v2_verify_refs(identity)
+    _same_day_ref({"path": str(contract_path), "sha256": contract_sha256})
+    _same_day_ref(contract["input_binding_receipt"])
+    receipt = {"schema": "V192_SAME_DAY_PANEL_CANDIDATE_V1", "status": "CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW",
+               "revision_contract_schema": contract["schema"], "revision_id": contract["revision_id"],
+               "signal_date": contract["signal_date"], "target_date": contract["target_date"],
+               "contract": {"path": str(contract_path), "sha256": contract_sha256}, "producer_sha256": _same_day_file_sha(Path(__file__)),
+               "input_binding_receipt": contract["input_binding_receipt"], "artifacts": artifacts, "pointers": pointers,
+               "consumer_columns_sha256": _same_day_digest(sorted(scope["columns"])),
+               "projection_key_count": len(scope["keys"]), "u_key_count": len(scope["ukeys"]), "r_key_count": len(scope["rkeys"]),
+               "approved_generation_keys": sum(len(packet["keys"]) for packet in packets if packet["approved"]),
+               "computed_generation_keys": sum(len(packet["keys"]) for packet in packets if not packet["approved"]),
+               "generation_evidence": [{"approved_reused": packet["approved"], "key_count": len(packet["keys"]),
+                                        "keys_sha256": _same_day_digest(sorted(packet["keys"])),
+                                        "sources": packet["evidence"]} for packet in packets],
+               "coverage_status": "APPROVED_CURRENT_REVISION_EXCLUSIONS_RETAINED",
+               "research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+    _same_day_atomic_json(output_dir / "candidate_receipt.json", receipt)
+    return receipt
 
 
 def validate_promoted_outputs(
@@ -3615,12 +4699,51 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--v192-selector-input", type=Path, default=None)
     parser.add_argument("--v192-selector-signal-date", type=int, default=0)
     parser.add_argument("--v192-selector-output", type=Path, default=None)
-    return parser.parse_args()
+    revision_mode = parser.add_mutually_exclusive_group()
+    revision_mode.add_argument("--same-day-revision", action="store_true", help="Build only a frozen same-day revision candidate using the original producer.")
+    revision_mode.add_argument("--same-day-promote", action="store_true", help="Promote an independently reviewed candidate with an exclusive publisher owner receipt.")
+    parser.add_argument("--candidate-only", action="store_true")
+    parser.add_argument("--same-day-contract", type=Path)
+    parser.add_argument("--same-day-contract-sha256")
+    parser.add_argument("--same-day-candidate-receipt", type=Path)
+    parser.add_argument("--same-day-candidate-sha256")
+    parser.add_argument("--same-day-review-receipt", type=Path)
+    parser.add_argument("--same-day-review-sha256")
+    parser.add_argument("--same-day-owner-receipt", type=Path)
+    parser.add_argument("--same-day-owner-sha256")
+    args = parser.parse_args()
+    if args.same_day_revision or args.same_day_promote:
+        if args.isolated_history_rebuild or args.v192_selector_canary or args.run_full_maintenance_stages:
+            parser.error("same-day modes cannot be combined with ordinary/isolated maintenance modes")
+        if args.same_day_revision:
+            if not args.candidate_only or args.same_day_contract is None or not args.same_day_contract_sha256:
+                parser.error("--same-day-revision requires --candidate-only and frozen --same-day-contract/--same-day-contract-sha256")
+            if any((args.same_day_candidate_receipt, args.same_day_candidate_sha256, args.same_day_review_receipt,
+                    args.same_day_review_sha256, args.same_day_owner_receipt, args.same_day_owner_sha256)):
+                parser.error("candidate-only cannot receive promotion arguments")
+        elif (args.candidate_only or args.same_day_contract is not None or args.same_day_contract_sha256
+              or not all((args.same_day_candidate_receipt, args.same_day_candidate_sha256,
+                          args.same_day_review_receipt, args.same_day_review_sha256,
+                          args.same_day_owner_receipt, args.same_day_owner_sha256))):
+            parser.error("--same-day-promote requires exact candidate/review/owner receipt paths and SHA, without candidate flags")
+    elif any((args.candidate_only, args.same_day_contract, args.same_day_contract_sha256,
+              args.same_day_candidate_receipt, args.same_day_candidate_sha256, args.same_day_review_receipt,
+              args.same_day_review_sha256, args.same_day_owner_receipt, args.same_day_owner_sha256)):
+        parser.error("same-day arguments require an explicit same-day mode")
+    return args
 
 
 if __name__ == "__main__":
     args = parse_args()
-    if args.isolated_history_rebuild:
+    if args.same_day_revision:
+        print(json.dumps(run_same_day_revision_candidate(args.same_day_contract, args.same_day_contract_sha256), ensure_ascii=False, indent=2))
+    elif args.same_day_promote:
+        print(json.dumps(promote_same_day_revision(
+            {"path": str(args.same_day_candidate_receipt), "sha256": args.same_day_candidate_sha256},
+            {"path": str(args.same_day_review_receipt), "sha256": args.same_day_review_sha256},
+            {"path": str(args.same_day_owner_receipt), "sha256": args.same_day_owner_sha256},
+        ), ensure_ascii=False, indent=2))
+    elif args.isolated_history_rebuild:
         if not args.isolated_start_date or not args.isolated_end_date or args.isolated_output_dir is None:
             raise SystemExit("--isolated-history-rebuild requires --isolated-start-date, --isolated-end-date, and --isolated-output-dir")
         print(json.dumps(run_isolated_history_rebuild(TDX_ROOT, args.isolated_start_date, args.isolated_end_date, args.isolated_output_dir, args.isolated_lookback_records), ensure_ascii=False, indent=2))

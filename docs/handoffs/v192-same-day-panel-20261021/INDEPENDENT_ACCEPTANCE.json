@@ -1,0 +1,225 @@
+{
+  "R5_terminal_event_sha256": "b5da77b1c51212575251821eac14a0344d596f19abcf97a139e152d9e88fb987",
+  "accepted_cases": {
+    "V1": 45,
+    "V2": 28,
+    "total": 73
+  },
+  "buy_gate_updated": false,
+  "not_claimed": [
+    "real full-universe input gate",
+    "real candidate semantic acceptance",
+    "formal publication",
+    "API or UI verification"
+  ],
+  "orders_sent": false,
+  "production_allowed": false,
+  "receipts": [
+    {
+      "code_sha256": "f5d42469c15859243b0eb2fef37276c5c8439bb9f57d4081f1afc332c889b24f",
+      "command": {
+        "binding_sha256": "9fcca4346ea3a6cb8d165d3bb724fc15651234b3a5bd076d4d8dd6f9ba0d5808",
+        "command": "ARROW_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 V192_SAME_DAY_EXECUTION_ID=A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R2_01 V192_SAME_DAY_FIXTURE_CONTRACT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R2_CONTRACT.json' V192_SAME_DAY_REGISTRY='/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl' V192_SAME_DAY_RUN_STARTED_EVENT_SHA256=cce550ff841894711fabc23d3f9fdc19e5e1976ad7da69819dd31a28415ea674 VECLIB_MAXIMUM_THREADS=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider '--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R2_TMP' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py'",
+        "contract_sha256": "2dd213365709e461cd410c69336200a049074245cb38066785a24931667d5feb",
+        "environment": {
+          "ARROW_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "V192_SAME_DAY_EXECUTION_ID": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R2_01",
+          "V192_SAME_DAY_FIXTURE_CONTRACT": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R2_CONTRACT.json",
+          "V192_SAME_DAY_REGISTRY": "/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl",
+          "V192_SAME_DAY_RUN_STARTED_EVENT_SHA256": "cce550ff841894711fabc23d3f9fdc19e5e1976ad7da69819dd31a28415ea674",
+          "VECLIB_MAXIMUM_THREADS": "1"
+        },
+        "pytest_arguments": [
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R2_TMP",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py"
+        ],
+        "python_executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "start_event_sha256": "cce550ff841894711fabc23d3f9fdc19e5e1976ad7da69819dd31a28415ea674",
+        "status": "REGISTERED_START_REVIEWER_ONLY_EXECUTION",
+        "working_directory": "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021"
+      },
+      "decision": "SYNTHETIC_SAME_DAY_PANEL_FIXTURE_R2_FAIL",
+      "execution_id": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R2_01",
+      "exit_code": 1,
+      "failed_count": 2,
+      "passed_count": 43,
+      "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R2_RECEIPT.json",
+      "receipt_sha256": "9176e0c05d13dc7bce5df9d5ae73f726235ff7b6696f2c57e3302cbd94057e7d",
+      "round": 2,
+      "scope": "SYNTHETIC_SAME_DAY_PANEL_FIXTURE_ONLY",
+      "test_counts": {
+        "errors": 0,
+        "failed": 2,
+        "passed": 43
+      },
+      "test_sha256": "2b60277965f74870eb71545c09ca7b1d8d51f6de6d155aee442e93db826a525d"
+    },
+    {
+      "code_sha256": "5441df5ca2d09ca3959c9cab7d8ae5082bf8914c678e935970a9bf110d38662b",
+      "command": {
+        "binding_sha256": "8de420450c836d00a85d6846c2354763819a842db897fa8e48f834449f0d13f0",
+        "command": "ARROW_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 V192_SAME_DAY_EXECUTION_ID=A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R3_01 V192_SAME_DAY_FIXTURE_CONTRACT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R3_CONTRACT.json' V192_SAME_DAY_REGISTRY='/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl' V192_SAME_DAY_RUN_STARTED_EVENT_SHA256=5896705563b043983a1515f89dbede536c144b975daa8a2a56d802f833e3bc14 VECLIB_MAXIMUM_THREADS=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider '--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R3_TMP' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_boolean_overlay_accepts_numeric_flags_and_preserves_unapproved_nulls'",
+        "contract_sha256": "4ad1318d99c87e3af7881223a0591ed7426021400a9732080f97c7abfce2e950",
+        "environment": {
+          "ARROW_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "V192_SAME_DAY_EXECUTION_ID": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R3_01",
+          "V192_SAME_DAY_FIXTURE_CONTRACT": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R3_CONTRACT.json",
+          "V192_SAME_DAY_REGISTRY": "/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl",
+          "V192_SAME_DAY_RUN_STARTED_EVENT_SHA256": "5896705563b043983a1515f89dbede536c144b975daa8a2a56d802f833e3bc14",
+          "VECLIB_MAXIMUM_THREADS": "1"
+        },
+        "pytest_arguments": [
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R3_TMP",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_boolean_overlay_accepts_numeric_flags_and_preserves_unapproved_nulls"
+        ],
+        "python_executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "start_event_sha256": "5896705563b043983a1515f89dbede536c144b975daa8a2a56d802f833e3bc14",
+        "working_directory": "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021"
+      },
+      "decision": "SYNTHETIC_SAME_DAY_PANEL_FIXTURE_R3_PASS",
+      "execution_id": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R3_01",
+      "exit_code": 0,
+      "failed_count": 0,
+      "passed_count": 2,
+      "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R3_RECEIPT.json",
+      "receipt_sha256": "d6fb4eb7d31d0d8222b225304bfe080c34bc7d9d5755771445c8e0f53aa73252",
+      "round": 3,
+      "scope": "SYNTHETIC_SAME_DAY_PANEL_FIXTURE_ONLY",
+      "test_counts": {
+        "errors": 0,
+        "failed": 0,
+        "passed": 2
+      },
+      "test_sha256": "2b60277965f74870eb71545c09ca7b1d8d51f6de6d155aee442e93db826a525d"
+    },
+    {
+      "code_sha256": "182872309e50ceff39abef513fcda08f0088606767eb2b89f95efda1d6c796a7",
+      "command": {
+        "binding_sha256": "4e0be1238dbde363b529094efef0825cd1fb0f59aa1def3307ad29fbf98a5345",
+        "command": "ARROW_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 V192_SAME_DAY_EXECUTION_ID=A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R4_01 V192_SAME_DAY_FIXTURE_CONTRACT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R4_CONTRACT.json' V192_SAME_DAY_REGISTRY='/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl' V192_SAME_DAY_RUN_STARTED_EVENT_SHA256=daa5b7343d6614e1ebfc8633049e1cc30548a20215fcce615ddd60176458e75c VECLIB_MAXIMUM_THREADS=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider '--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R4_TMP' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py' -k test_v2_",
+        "contract_sha256": "95f5056824f0e95edfb789275b8e0cc1392c0fe78d4c7b2ccad8b4551b13afe1",
+        "environment": {
+          "ARROW_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "V192_SAME_DAY_EXECUTION_ID": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R4_01",
+          "V192_SAME_DAY_FIXTURE_CONTRACT": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R4_CONTRACT.json",
+          "V192_SAME_DAY_REGISTRY": "/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl",
+          "V192_SAME_DAY_RUN_STARTED_EVENT_SHA256": "daa5b7343d6614e1ebfc8633049e1cc30548a20215fcce615ddd60176458e75c",
+          "VECLIB_MAXIMUM_THREADS": "1"
+        },
+        "pytest_arguments": [
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R4_TMP",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py",
+          "-k",
+          "test_v2_"
+        ],
+        "python_executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "start_event_sha256": "daa5b7343d6614e1ebfc8633049e1cc30548a20215fcce615ddd60176458e75c",
+        "working_directory": "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021"
+      },
+      "decision": "SYNTHETIC_SAME_DAY_PANEL_V2_INTERFACE_R4_FAIL",
+      "execution_id": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R4_01",
+      "exit_code": 1,
+      "failed_count": 5,
+      "passed_count": 23,
+      "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R4_RECEIPT.json",
+      "receipt_sha256": "b4681abe0b0d5c85609e0ac83e4087ed23597d2d94333e89eca51b67f187cf0e",
+      "round": 4,
+      "scope": "SYNTHETIC_SAME_DAY_PANEL_V2_INTERFACE_ONLY",
+      "test_counts": {
+        "deselected": 45,
+        "errors": 0,
+        "failed": 5,
+        "passed": 23
+      },
+      "test_sha256": "4610592be3c0c7d6e39e9ca02e64234c4d32f2970941e35edb70adad13192558"
+    },
+    {
+      "code_sha256": "182872309e50ceff39abef513fcda08f0088606767eb2b89f95efda1d6c796a7",
+      "command": {
+        "binding_sha256": "1d45c2cec28b325fa8ef67014b377c177329bcc11a6c53f09f491c33e6e21957",
+        "command": "ARROW_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 V192_SAME_DAY_EXECUTION_ID=A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R5_01 V192_SAME_DAY_FIXTURE_CONTRACT='/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R5_CONTRACT.json' V192_SAME_DAY_REGISTRY='/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl' V192_SAME_DAY_RUN_STARTED_EVENT_SHA256=97a09382dd7740d573947023410862b2f2df5a42ceb3f909c5b215b1a58a3bc3 VECLIB_MAXIMUM_THREADS=1 '/Users/lexi/Desktop/学习/v4_app/.venv/bin/python' -m pytest -q -p no:cacheprovider '--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R5_TMP' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_complete_consumer_overlay_role_volume_and_absent_key_insert' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_native_volume_mismatch_or_loss_stops[role_volume_precision_loss]' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_nonnullable_unknown_insert_field_stops' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_original_structural_na_needs_exact_prior_review_and_no_default_zero[reviewed]' '/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_signal_day_bar_close_pos_retains_original_reviewed_flat_bar_null_policy[True]'",
+        "contract_sha256": "824c469f673fe810f1dfea491d9af6f87d78f5bc08456d5214e46ca789f49b4f",
+        "environment": {
+          "ARROW_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "OMP_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "V192_SAME_DAY_EXECUTION_ID": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R5_01",
+          "V192_SAME_DAY_FIXTURE_CONTRACT": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R5_CONTRACT.json",
+          "V192_SAME_DAY_REGISTRY": "/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl",
+          "V192_SAME_DAY_RUN_STARTED_EVENT_SHA256": "97a09382dd7740d573947023410862b2f2df5a42ceb3f909c5b215b1a58a3bc3",
+          "VECLIB_MAXIMUM_THREADS": "1"
+        },
+        "pytest_arguments": [
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp=/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R5_TMP",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_complete_consumer_overlay_role_volume_and_absent_key_insert",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_native_volume_mismatch_or_loss_stops[role_volume_precision_loss]",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_nonnullable_unknown_insert_field_stops",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_original_structural_na_needs_exact_prior_review_and_no_default_zero[reviewed]",
+          "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021/tests/test_v192_same_day_panel_revision.py::test_v2_signal_day_bar_close_pos_retains_original_reviewed_flat_bar_null_policy[True]"
+        ],
+        "python_executable": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "start_event_sha256": "97a09382dd7740d573947023410862b2f2df5a42ceb3f909c5b215b1a58a3bc3",
+        "working_directory": "/Users/lexi/Desktop/学习/.worktrees/v192-same-day-panel-20261021"
+      },
+      "decision": "SYNTHETIC_SAME_DAY_PANEL_V2_INTERFACE_R5_PASS",
+      "execution_id": "A_V192_SAME_DAY_PANEL_SYNTHETIC_20261021_FIXTURE_R5_01",
+      "exit_code": 0,
+      "failed_count": 0,
+      "passed_count": 5,
+      "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_v192_signal_pool_return_stability_v1/batches/v192_logic_input_diagnostic_20261020/NEXT_V192_PUBLISH_ADAPTER_PANEL_FIXTURE_R5_RECEIPT.json",
+      "receipt_sha256": "24b71a14d68b42dd6448ccd6faeeeec0b67b4b82a064503e45981f005c670966",
+      "round": 5,
+      "scope": "SYNTHETIC_SAME_DAY_PANEL_V2_INTERFACE_ONLY",
+      "test_counts": {
+        "deselected": 0,
+        "errors": 0,
+        "failed": 0,
+        "passed": 5
+      },
+      "test_sha256": "57a35840082362375e3e0d06f82604b6612922459d6000ec1846b8feced4a7ea"
+    }
+  ],
+  "research_only": true,
+  "reuse": "R2 43 + R3 2; R4 23 + R5 5. Earlier failures retained, no repeated passing cases.",
+  "reviewer": "/root/same_day_panel_independent_review",
+  "schema": "V192_SAME_DAY_PANEL_INDEPENDENT_ACCEPTANCE_SUMMARY_V1",
+  "scope": "same-day original-producer candidate interface, typed projection, exact raw alias and explicitly admitted missing-row insertion",
+  "source_sha256": "182872309e50ceff39abef513fcda08f0088606767eb2b89f95efda1d6c796a7",
+  "status": "INDEPENDENT_SYNTHETIC_ACCEPTANCE_PASS",
+  "test_sha256": "57a35840082362375e3e0d06f82604b6612922459d6000ec1846b8feced4a7ea",
+  "writer": "/root/v192_same_day_panel_writer"
+}
