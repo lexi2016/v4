@@ -72,19 +72,72 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 exact-source stage_selection_eligible is not true")
         elif payload.get("target_date") != trade_date or payload.get("stage_selection_eligible") is not True:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 exact-source explicit target/eligibility mismatch")
-    if payload.get("status") != "STRICT_0_2_READY":
-        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 status must be STRICT_0_2_READY")
+    d1_status = payload.get("status")
+    partial_d1 = d1_status == "PARTIAL_WITH_ROWS"
+    # The canonical producer also emits READY.  Admit that spelling only
+    # through the verified exact-date trio with explicit stage eligibility;
+    # standalone legacy JSONs retain their existing status contract.
+    canonical_ready = (
+        d1_status == "READY"
+        and resolved_snapshot is not None
+        and payload.get("schema_version") == "v3_5.preselection_pool.v1"
+        and payload.get("target_date") == trade_date
+        and payload.get("stage_selection_eligible") is True
+    )
+    if d1_status not in {"STRICT_0_2_READY", "PARTIAL_WITH_ROWS"} and not canonical_ready:
+        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 status is not stage-selection eligible")
     if resolved_snapshot is not None and (
         payload.get("pool_id") != "hkconnect_d1_top100"
         or payload.get("producer_id") != "v3_shared_hk_0_2_consumer_v1"
-        or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2"
+        or payload.get("source_role") != (
+            "UPSTREAM_PRODUCER_ARTIFACT" if partial_d1 else "SHARED_VERIFIED_HK_0_2"
+        )
     ):
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 exact-source producer/source identity mismatch")
+    if partial_d1:
+        run_id = _v4_global(_v4_scope, 'str')(payload.get("source_run_id") or "")
+        source_sha = _v4_global(_v4_scope, 'str')(payload.get("source_sha256") or "").lower()
+        reasons = payload.get("cannot_confirm")
+        expected_source_path = (
+            f"runs/{trade_date}/HK_CONNECT_D1_TOP100_0_2/{run_id}/artifact.csv"
+        )
+        if (
+            payload.get("schema_version") != "v3_5.preselection_pool.v1"
+            or payload.get("market") != "HK"
+            or payload.get("target_date") != trade_date
+            or payload.get("stage_selection_eligible") is not True
+            or payload.get("signal_date") != _v4_global(_v4_scope, 'str')(payload.get("signal_date") or "")
+            or _v4_global(_v4_scope, 're').fullmatch(r"\d{8}", _v4_global(_v4_scope, 'str')(payload.get("signal_date") or "")) is None
+            or _v4_global(_v4_scope, 're').fullmatch(
+                _v4_global(_v4_scope, 're').escape(trade_date) + r"-hk-connect-d1-top100-0-2-[0-9a-f]{12}",
+                run_id,
+            ) is None
+            or payload.get("source_path") != expected_source_path
+            or _v4_global(_v4_scope, 're').fullmatch(r"[0-9a-f]{64}", source_sha) is None
+            or payload.get("source_artifact_sha256") != source_sha
+            or payload.get("source_row_count") != len(payload.get("rows") or ())
+            or not isinstance(reasons, list)
+            or not reasons
+            or _v4_global(_v4_scope, 'any')(
+                not _v4_global(_v4_scope, 'str')(reason).startswith("HK_0_2_")
+                for reason in reasons
+            )
+        ):
+            raise _v4_global(_v4_scope, 'RunnerError')(
+                "HK D1 partial source provenance/diagnostics invalid"
+            )
     if _v4_global(_v4_scope, 'any')(payload.get(flag) is not False for flag in _v4_global(_v4_scope, 'SAFETY_FLAGS')):
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 safety flags must be false")
     rows = payload.get("rows", payload.get("data"))
-    if not _v4_global(_v4_scope, 'isinstance')(rows, _v4_global(_v4_scope, 'list')) or _v4_global(_v4_scope, 'len')(rows) != 100:
-        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 input must contain exactly 100 rows")
+    if (
+        not _v4_global(_v4_scope, 'isinstance')(rows, _v4_global(_v4_scope, 'list'))
+        or (partial_d1 and not 1 <= _v4_global(_v4_scope, 'len')(rows) <= 100)
+        or (not partial_d1 and _v4_global(_v4_scope, 'len')(rows) != 100)
+    ):
+        raise _v4_global(_v4_scope, 'RunnerError')(
+            "HK D1 partial input must contain 1..100 rows"
+            if partial_d1 else "HK D1 input must contain exactly 100 rows"
+        )
     envelope_date = payload.get("target_date", payload.get("trade_date"))
     if envelope_date is not None:
         if envelope_date != trade_date:
@@ -165,7 +218,10 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
 
         price_signal_date = previous_session("hk_securities")
         eligibility_source_date = previous_session("hk_connect")
-        if payload.get("market") != "HK" or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2":
+        expected_source_role = (
+            "UPSTREAM_PRODUCER_ARTIFACT" if partial_d1 else "SHARED_VERIFIED_HK_0_2"
+        )
+        if payload.get("market") != "HK" or payload.get("source_role") != expected_source_role:
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 market/source role mismatch")
         if payload.get("signal_date") not in (None, price_signal_date):
             raise _v4_global(_v4_scope, 'RunnerError')("HK D1 envelope signal_date mismatch")
@@ -231,8 +287,14 @@ def __validate_hk_d1_body(_v4_scope, /, root, trade_date, *, preselection_source
             if _v4_global(_v4_scope, 'any')(row.get(key) not in (None, trade_date) for key in ("trade_date", "target_date")):
                 raise _v4_global(_v4_scope, 'RunnerError')("HK D1 row trade/target_date mismatch")
             codes.append(code)
-        if _v4_global(_v4_scope, 'len')(_v4_global(_v4_scope, 'set')(codes)) != 100:
-            raise _v4_global(_v4_scope, 'RunnerError')("HK D1 unique Top100 required")
+        unique_count = _v4_global(_v4_scope, 'len')(_v4_global(_v4_scope, 'set')(codes))
+        if unique_count != _v4_global(_v4_scope, 'len')(rows) or (
+            partial_d1 and not 1 <= unique_count <= 100
+        ) or (not partial_d1 and unique_count != 100):
+            raise _v4_global(_v4_scope, 'RunnerError')(
+                "HK D1 partial rows must be unique and within 1..100"
+                if partial_d1 else "HK D1 unique Top100 required"
+            )
     digest = _v4_global(_v4_scope, '_sha')(path)
     if resolved_snapshot is not None and (
         digest != resolved_snapshot.get("artifact_raw_sha256")
@@ -279,8 +341,14 @@ def __hk_selection_codes_body(_v4_scope, /, root, trade_date, *, preselection_so
         match = _v4_global(_v4_scope, 're').search(r"(?:HK\.)?(\d{5})", raw)
         if match:
             codes.add(f"HK.{match.group(1)}")
-    if _v4_global(_v4_scope, 'len')(codes) != 100:
-        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 selection code set must contain exactly 100 unique codes")
+    partial_d1 = payload.get("status") == "PARTIAL_WITH_ROWS"
+    if _v4_global(_v4_scope, 'len')(codes) != len(rows) or (
+        partial_d1 and not 1 <= _v4_global(_v4_scope, 'len')(codes) <= 100
+    ) or (not partial_d1 and _v4_global(_v4_scope, 'len')(codes) != 100):
+        raise _v4_global(_v4_scope, 'RunnerError')(
+            "HK D1 partial code set must contain 1..100 unique codes"
+            if partial_d1 else "HK D1 selection code set must contain exactly 100 unique codes"
+        )
     return codes, path_sha
 
 
@@ -298,6 +366,19 @@ def __build_hk_d1_binding_body(_v4_scope, /, root, trade_date, *, preselection_s
         )
     if _codes_sha != source_sha:
         raise _v4_global(_v4_scope, 'RunnerError')("HK D1 membership SHA changed during binding")
+    try:
+        payload = _v4_global(_v4_scope, 'json').loads(path.read_text(encoding="utf-8"))
+    except (_v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'UnicodeError'), _v4_global(_v4_scope, 'ValueError')) as error:
+        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 binding status unreadable") from error
+    if _v4_global(_v4_scope, '_sha')(path) != source_sha:
+        raise _v4_global(_v4_scope, 'RunnerError')("HK D1 binding status changed during read")
+    partial_d1 = payload.get("status") == "PARTIAL_WITH_ROWS"
+    binding_evidence = (
+        f"hk_d1_json={path}",
+        f"hk_d1_sha256={source_sha}",
+        f"hk_d1_status={payload.get('status')}",
+        f"hk_d1_membership={'available_source_rows' if partial_d1 else 'exact_date_top100'}",
+    )
     return _v4_global(_v4_scope, 'StageUniverseBinding').ready(
         market="HK_CONNECT",
         trade_date=trade_date,
@@ -305,11 +386,7 @@ def __build_hk_d1_binding_body(_v4_scope, /, root, trade_date, *, preselection_s
         codes=_v4_global(_v4_scope, 'tuple')(_v4_global(_v4_scope, 'sorted')(codes)),
         source_run_id=f"hk-d1-{source_sha[:16]}",
         sha256=source_sha,
-        evidence=(
-            f"hk_d1_json={path}",
-            f"hk_d1_sha256={source_sha}",
-            "hk_d1_membership=exact_date_top100",
-        ),
+        evidence=binding_evidence,
     )
 
 
