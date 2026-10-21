@@ -1,0 +1,355 @@
+{
+  "artifact_type": "bounded_source_delivery_verification",
+  "recorded_at": "2026-10-21T06:37:25.474079+00:00",
+  "goal": "Repair announcement semantic contract and recover failed article before continuing unfinished preprocessed items.",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_parent_commit": "b70a0c1ef280c4f8610d1af4f1029db7db576755",
+  "github_branch": "codex/announcement-semantic-recovery-20261021",
+  "candidate_files": [
+    {
+      "path": "ops/run_manager_flash_announcements.py",
+      "baseline_runtime_sha256": "91f22c44234868b76fe85e89ba20ad7a25beab2a367dbc1d93fc67f30f780552",
+      "final_sha256": "13d3d73945045257dc4f71a94a09a7e5ba4c27b09c36bd9e58dd9143efba4de3"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_preprocessing.py",
+      "baseline_runtime_sha256": "a0058f4271a915ab072c50b5a16d8898b5a258cb887614bee602be6ef9b7ba1d",
+      "final_sha256": "ebf374151bbee08a9949d8a4807f9eb169cb8916cfadf47a5f264ebe77404dff"
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "baseline_runtime_sha256": "82bd3e0d9180ab63ac43cec135f503bc1bfb77c7990247dbe4fc67e884654b53",
+      "final_sha256": "b9fd5c7a9702bad76f5d2d25ead4fb987df3bd8b46d06104bb21640cbc8ea95e"
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "baseline_runtime_sha256": "1a36e8c2db111a959ab741bd92caaf390569e95fa80ca15aee60a286b1a539c3",
+      "final_sha256": "a208c8f7397997dfaf00470c6c2be5b6e8ce994328f2d660d764da741d583d7a"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "baseline_runtime_sha256": "23abb4e1e953fda3d3b424ca4c071d07469408aaebc9d9b2933d819e5bf7e106",
+      "final_sha256": "f9d9f5078c5f0fe3c99d430f871ccde131287de6007cfdf24d79a914268012ac"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "baseline_runtime_sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726",
+      "final_sha256": "fbd8aff029964d45e47cb8270917294f2403de82ea256ba091528e5396916449"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "baseline_runtime_sha256": "004df6e9a03847bf11314f8340c0568cf6d7a33d85f29af960c3d85674761433",
+      "final_sha256": "b299419e928c99ac6db2b8b36840be700a6614ac0d161478178e5e3edd223935"
+    },
+    {
+      "path": "tests/test_manager_announcement_daily_workflow.py",
+      "baseline_runtime_sha256": "d8348fcf92cbcd51f18242a09bbfd79cbfae844853452138b198c19c300e74c9",
+      "final_sha256": "25a55d880fe4d545e3450a066fc7cff2e10b3345ede36d6ecb6c161ab55db62e"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "baseline_runtime_sha256": "4b1711cf269b8f4240558e87878447660f2856b60b3f64da1531db76eb85d554",
+      "final_sha256": "6e2320deeec8a9faf2e4143c2aa7b9964fc6fc971451aa9cfcee9c0241c00a6d"
+    }
+  ],
+  "runtime_identity": {
+    "release_id": "announcement-semantic-recovery-20261021-r4",
+    "manifest_sha256": "ba6516230cc071fdd6d7e658eb73279f6cebe644b05b09b442af1058251b6427",
+    "pid_at_deploy": 30495,
+    "entry_module": "apps.api.v35_api.run"
+  },
+  "canonical_integration": {
+    "status": "ACTUAL_INTEGRATED_CANONICAL_BYTES_VERIFIED",
+    "files": [
+      {
+        "path": "ops/run_manager_flash_announcements.py",
+        "before_sha256": "91f22c44234868b76fe85e89ba20ad7a25beab2a367dbc1d93fc67f30f780552",
+        "expected_after_sha256": "13d3d73945045257dc4f71a94a09a7e5ba4c27b09c36bd9e58dd9143efba4de3"
+      },
+      {
+        "path": "v4/manager_workbench/announcement_preprocessing.py",
+        "before_sha256": "a0058f4271a915ab072c50b5a16d8898b5a258cb887614bee602be6ef9b7ba1d",
+        "expected_after_sha256": "ebf374151bbee08a9949d8a4807f9eb169cb8916cfadf47a5f264ebe77404dff"
+      },
+      {
+        "path": "v4/manager_workbench/announcement_update.py",
+        "before_sha256": "82bd3e0d9180ab63ac43cec135f503bc1bfb77c7990247dbe4fc67e884654b53",
+        "expected_after_sha256": "b9fd5c7a9702bad76f5d2d25ead4fb987df3bd8b46d06104bb21640cbc8ea95e"
+      },
+      {
+        "path": "v4/manager_workbench/api.py",
+        "before_sha256": "1a36e8c2db111a959ab741bd92caaf390569e95fa80ca15aee60a286b1a539c3",
+        "expected_after_sha256": "a208c8f7397997dfaf00470c6c2be5b6e8ce994328f2d660d764da741d583d7a"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+        "before_sha256": "23abb4e1e953fda3d3b424ca4c071d07469408aaebc9d9b2933d819e5bf7e106",
+        "expected_after_sha256": "f9d9f5078c5f0fe3c99d430f871ccde131287de6007cfdf24d79a914268012ac"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/api.ts",
+        "before_sha256": "4756f2d4bb0168ac2c1619851796ef8b380c78c301f72c02dd279d2835d40726",
+        "expected_after_sha256": "fbd8aff029964d45e47cb8270917294f2403de82ea256ba091528e5396916449"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/types.ts",
+        "before_sha256": "3306cda44d613d86a5b203d8897c2fecf727d0576bc497373f18352efc60feb9",
+        "expected_after_sha256": "f04d6acb9d29b627886610f53f514b6c3e5b82f65bf916c8960f1b67f79de132"
+      },
+      {
+        "path": "tests/test_manager_announcement_daily_workflow.py",
+        "before_sha256": "d8348fcf92cbcd51f18242a09bbfd79cbfae844853452138b198c19c300e74c9",
+        "expected_after_sha256": "25a55d880fe4d545e3450a066fc7cff2e10b3345ede36d6ecb6c161ab55db62e"
+      },
+      {
+        "path": "apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+        "before_sha256": "4b1711cf269b8f4240558e87878447660f2856b60b3f64da1531db76eb85d554",
+        "expected_after_sha256": "6e2320deeec8a9faf2e4143c2aa7b9964fc6fc971451aa9cfcee9c0241c00a6d"
+      }
+    ],
+    "patch_sha256": "fda24ba8475d6dde4fc47a8b9f5b7f05b16abed40f1ff4d13402bcdb05fa3a4c"
+  },
+  "independent_review": {
+    "candidate": "PASS_AFTER_ONE_P1_FIX",
+    "release": "PASS",
+    "tests": [
+      {
+        "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest tests/test_manager_announcement_daily_workflow.py -k \"semantic_extension or preprocess_then_first_then_continue\" -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/pytest",
+        "result": "9 PASSED,24 DESELECTED",
+        "exit_code": 0
+      },
+      {
+        "command": "node node_modules/vitest/vitest.mjs run src/manager-workbench/__tests__/announcement_flash.spec.ts -t \"semantic recovery|allows FIRST for the new prepared job\" --cache=false",
+        "result": "8 PASSED,20 SKIPPED",
+        "exit_code": 0
+      },
+      {
+        "command": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit -p /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/writer/tsconfig.scope.json",
+        "result": "PASS",
+        "exit_code": 0
+      },
+      {
+        "command": "node /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/build-manager.mjs",
+        "result": "MANAGER BUILD PASS",
+        "exit_code": 0
+      },
+      {
+        "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/verify-real-artifacts.py",
+        "result": "ORIGINAL RAW REJECTED; TWO REAL SAVED SUCCESSES EXACTLY REUSED; 215/253 AND7 LONG PLANS BOUND;39 SHA MATCH",
+        "exit_code": 0
+      },
+      {
+        "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/test_review_semantic.py -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/pytest-independent",
+        "result": "3 PASSED before adding fourth regression; partial-long reuse, content failure continue, executor system STOP",
+        "exit_code": 0
+      },
+      {
+        "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/test_review_semantic.py -k real_shape -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/pytest-real-shape",
+        "result": "1 FAILED,3 DESELECTED; EXTENSION_PREPARED_COVERAGE_CHANGED",
+        "exit_code": 1
+      },
+      {
+        "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/test_review_semantic.py -k real_shape -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review-fix/pytest-original",
+        "result": "1 PASSED,3 DESELECTED; exact independently discovered round1 failure now passes",
+        "exit_code": 0
+      },
+      {
+        "command": "ANNOUNCEMENT_PREPARED_IDENTITY_FIXTURE=/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review-fix/real459-identity-fixture.json /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest tests/test_manager_announcement_daily_workflow.py -k \"full459 or prepared_identity_drift or long_parts_and_synthesis_use_original_plan\" -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review-fix/pytest-delta",
+        "result": "11 PASSED,33 DESELECTED; actual459 input shape, nine drift/missing cases, long parts+synthesis",
+        "exit_code": 0
+      },
+      {
+        "command": "ANNOUNCEMENT_PREPARED_IDENTITY_FIXTURE=/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review-fix/real459-identity-fixture.json /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review-fix/test_long_coverage.py -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review-fix/pytest-independent-long",
+        "result": "5 PASSED; independently authored long missing/body drift/part issuer drift/part missing/duplicate expected rejection",
+        "exit_code": 0
+      }
+    ],
+    "final_source_guard_candidate": "PASS",
+    "source_guard_final_manifest_sha256": "adcb3f844d042d6817ba0076ba647924e3a5bea06491a3ff772248faf99bfe8a",
+    "final_incremental_check": {
+      "command": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B -m pytest /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/semantic-fix-review/test_independent_edges.py tests/test_manager_announcement_daily_workflow.py -k \"actual_synthesis_interval_format or wrong_bound_acceptance or semantic_correction or risk_extract_is_new_identity\" -q -p no:cacheprovider --basetemp /Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/semantic-fix-correction-review/pytest",
+      "cwd": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/baseline-app",
+      "result": "10 PASSED,51 DESELECTED",
+      "exit_code": 0,
+      "log": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/semantic-fix-correction-review/regression.log",
+        "sha256": "ea7231f1c9ef8ecc5049ec75b1602c838074dff4de02d93d618d978f893fb4c7",
+        "bytes": 114
+      },
+      "original_counterexamples_unmodified": {
+        "path": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/semantic-fix-review/test_independent_edges.py",
+        "sha256": "691aade617f5f6e539dafda1d5244da06e7ea81d0045208ec29e3a0ca48e63f2",
+        "bytes": 4181
+      }
+    },
+    "final_release": "PASS"
+  },
+  "NOT_RUN": [
+    "Full batch completion acceptance",
+    "Natural-slot acceptance"
+  ],
+  "receipt_sha256": {
+    "diagnosis/receipt.json": "dd7fced24eeff9074545fb982bd7bb743fc3a3d5b2e75a75d0ca4012c585adb8",
+    "review/receipt.json": "86d336c4f05e53b8ea0118a906891defff852b0aa4c6526a30d305d1e2f6e4f3",
+    "review-fix/receipt.json": "5cebb712341823e35f5d9e43a0a4ccf1db9d8a27da27e435b4a200207f1e6cf2",
+    "release-review/receipt.json": "63694dcf7176b1b6ff5e6a7410eb13a8420a93b85c16a6a95047b8e55b646092",
+    "release-final/deployment-result.json": "77ef3273c8e58b687ee031e6c10815c3d3fe2bd4632547e9f920554292f1c1b8",
+    "live-review/receipt.json": "030843790194142c117a91051fb6cf32d350bb266e6dfebe57ef53077b0ae2d1",
+    "semantic-fix-diagnosis/receipt.json": "0fa71513c28ee37009ed603c9ef8c8c0cfb730bf4449dc7a1ad55aab6af5478a",
+    "semantic-fix/receipt.json": "070f971d7c5f2e11ebb5d2cb0f7f24b6e28350dedc517d46a53b399303efcea1",
+    "semantic-fix-review/receipt.json": "3704018bd5c19f43f2ea15b4724b06cfb6952c1c842d89caa86345e36f93443f",
+    "semantic-fix-correction/receipt.json": "6016c6493360dfe2d20744a72e415ce0c80c9b5a0adb62c3ba63711488226f65",
+    "semantic-fix-correction-review/receipt.json": "efbc1d951fad6c6c760019340f9b2d6244d529edb31245f58efac5e4e0aa2fb4",
+    "semantic-final-release/receipt.json": "23a316e848ec0f9d5e3d368bf0993b3bf1f60f4b60a4c79fdd7a0c718687f918",
+    "semantic-final-release-review/receipt.json": "faa5ce76a2122b564d1fd5e5762bb0a7a0f15247344b0e926958e9e0f141c3cc",
+    "semantic-final-release/deployment-result.json": "34c5868451be9558c8e23eb18de5420d0235d9d55a3cc5d01fbe4a6b3b73c54c",
+    "semantic-final-integration-plan/integration-runs/b3851644329b441a9f8b88276ca8b785/receipt.json": "a98f18040d010b8d2e0101beb6139cd701538eb6686b1feaa89ce64fad497c70",
+    "semantic-fix-live-review/receipt.json": "dacdf6267dab9f031ee5e235734861040376898c50b6aa9df36a300d6ff15b18"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "status": "DEPLOYED_CANARY_BEHAVIOR_VERIFIED_REMAINING_BATCH_RUNNING",
+  "retained_failures": [
+    {
+      "phase": "initial candidate",
+      "cause": "Prepared coverage 459 was not narrowed to qualified215",
+      "status": "RESOLVED"
+    },
+    {
+      "phase": "first real recovery",
+      "cause": "Unsupported risk and wider causal attribution; mechanical SUCCEEDED but semantic FAIL",
+      "status": "PRESERVED_QUARANTINED_FINAL_CANARY_PASSED"
+    },
+    {
+      "phase": "source guard candidate",
+      "cause": "Integer synthesis intervals and invalid-acceptance quarantine errors",
+      "status": "RESOLVED_BY_INDEPENDENT_COUNTEREXAMPLES"
+    }
+  ],
+  "earlier_recovery_rejected": {
+    "calls": {
+      "new_queue_jobs": 1,
+      "logical_attempt": 2,
+      "physical_new_attempts": 1,
+      "request_rounds": 1,
+      "started_at": "2026-10-21T05:14:52.621Z",
+      "finished_at": "2026-10-21T05:15:54.030Z",
+      "duration_seconds": 61.409,
+      "usage": {
+        "completion_tokens": 1002,
+        "prompt_tokens": 10893,
+        "total_tokens": 11895
+      },
+      "new_key": "e6593b3354234aba23b81d6c7fbef002daaf202416d817c2bc828001a22354a9"
+    },
+    "mechanical_queue_status": "SUCCEEDED",
+    "semantic_verdict": "LIVE_RECOVERY_SEMANTIC_FAIL",
+    "findings": [
+      {
+        "id": "LIVE-S1",
+        "field": "reader_output.risk_notes[1]",
+        "error": "The source states a change in the basis of industry competition, from scale to quality/efficiency. It does not disclose intensifying competition or the asserted future operating uncertainty. The output upgrades that text to an unsupported risk statement."
+      },
+      {
+        "id": "LIVE-S2",
+        "field": "reader_output.impact[0].claim",
+        "error": "Distribution and retail profit growth are joined into one primary-cause statement. Expense control is disclosed for Guoda retail, while the source separately describes distribution structure/market changes. It does not establish that the combined growth is primarily due to the combined list of causes. The cited range is byte-exact, but that does not establish the new causal relationship or shared entity scope."
+      }
+    ],
+    "old_records_unchanged": 1379,
+    "old_successes_unchanged": 855,
+    "remaining_articles": 214
+  },
+  "final_recovery": {
+    "status": "FIRST_RECOVERY_ACTUAL_EXECUTION_VERIFIED",
+    "verdict": "PASS",
+    "source_faithfulness": "PASS",
+    "job_id": "c2fddbf07be044978b5b01e448899b35",
+    "queue_key": "1f31e58d914c7b5a225bc7ddd71814c14c394d91bdc96576b0db1cf9d8486152",
+    "report_sha256": "fbfbb264752820e1337e2880578d25282d244f10b23f5d267e4fd5d64e17d1f2",
+    "capture_sha256": "620cdbd5e7d32e739b5f2849589a1c47550b106ccba495053dcf0395636007b2",
+    "extension_sha256": "72eaf123e465ebde52eda4cf808aeae7c95c8170733919ffa88d336be9418aba",
+    "payload_sha256": "7428b61e8371f247381bc10ccdf8a3fd22fb1c14e4140d9f9ebd5d1c12e601f0",
+    "raw_sha256": "49e2fc6a89f5061ef30c4ed03ec7868a5f23d46491b9cc6462684bfa096bba54",
+    "validated_sha256": "2694bb45c47e070f7d3d1c2a3995f833cdf085f8eca7724e33a20bb7bc546aab",
+    "request_sha256": "fb1517d6cc9c6f73a2558ea7ddd63100fe6ff7afd9e2f4e8164fa6fdb8b282dc",
+    "prompt_sha256": "68ac565524d935d633bd6e70e3d0b9050f9ef0f818963dcf57d0c1285e88a76f",
+    "configuration_sha256": "3ee8c1f35c0faa7cfc541c352d7978e5ec6b698b4256798340796bde215d0500",
+    "article_id": "EASTMONEY:AN202610201830727036",
+    "source_sha256": "d353c055669b96c310ae1aa80f28369cd3ed9d076fe54462303236e459f40545",
+    "body_sha256": "39cf8cd77bd734da821da4dedee7422467a0e175e68c35d4caf4d14f1689c002",
+    "actual_calls": 1,
+    "actual_attempts": 1,
+    "logical_attempt": 3,
+    "mechanical_status": "SUCCEEDED",
+    "decision": {
+      "disposition": "NOT_SELECTED",
+      "selection_basis": "NOT_SELECTED",
+      "direction": "MIXED",
+      "evidence_sufficiency": "VERIFIED_EXISTING_FACTS"
+    },
+    "execution": {
+      "started_at": "2026-10-21T06:24:06.776Z",
+      "finished_at": "2026-10-21T06:25:13.524Z",
+      "request_rounds": 1,
+      "lookup_requests": 0,
+      "native_tools": 0,
+      "wall_seconds": 66.748,
+      "usage": {
+        "completion_tokens": 1189,
+        "prompt_tokens": 11055,
+        "total_tokens": 12244
+      },
+      "response_model": "qwen3_8_flash_next",
+      "runtime_disk_settings": "MATCH",
+      "active_server_memory_settings": "CANNOT_CONFIRM"
+    },
+    "behavior_verified": {
+      "full_frozen_body_in_actual_request": true,
+      "request_messages_and_schema_equal_saved_payload": true,
+      "stream_response_equals_raw": true,
+      "all_saved_quote_intervals_exact": true,
+      "risk_extracts_exact_ignoring_whitespace": true,
+      "manual_impact_reason_entity_cause_fact_direction_review": "PASS",
+      "no_program_rewrite_of_model_judgment": true,
+      "single_http_cap_observed": true
+    },
+    "protection": {
+      "all1380_predecessor_queue_records_unchanged": true,
+      "original1379_queue_records_unchanged": true,
+      "original855_success_records_unchanged": true,
+      "original855_success_identity_reexecutions": 0,
+      "sole_new_queue_key": "1f31e58d914c7b5a225bc7ddd71814c14c394d91bdc96576b0db1cf9d8486152",
+      "e659_mechanical_success_row_and_input_raw_validated_unchanged": true,
+      "original_failed_raw_and_attempt_preserved": true,
+      "immutable_objects_unchanged": 36,
+      "report_capture_source_and_long_plan_preserved": true,
+      "total_articles": 215,
+      "remaining_deferred": 214,
+      "long_article_plan_count": 7,
+      "original_baseline_path": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/review/pre-live-queue-state.json",
+      "original_baseline_sha256": "642a59a967d1d81ae035e56a8d48969ab1156d182274158c1eb686b8a5274462",
+      "predecessor_snapshot_path": "/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021/live-review/queue-after-recovery.json",
+      "predecessor_snapshot_sha256": "90b34e087d6adf6e0d6805e0ee17ca54a6706e933da3b3e472f59b5db831edc2",
+      "after_snapshot_sha256": "873959feeba24c6bc360de705b3953ae85376e467bedc2da8ef842c15fff5ab7"
+    }
+  },
+  "continuation": {
+    "phase": "CONTINUE_REMAINING",
+    "submitted_once": true,
+    "http_status": 202,
+    "ui_observed_at": "2026-10-21T14:37:03+08:00",
+    "status": "RUNNING",
+    "step": "EXTENSION_MODEL_REQUEST",
+    "total_articles": 215,
+    "completed_articles": 1,
+    "remaining_articles": 214,
+    "current_article": "EASTMONEY:AN202610201830722022",
+    "final_batch_acceptance": "PENDING"
+  }
+}

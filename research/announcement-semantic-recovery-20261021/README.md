@@ -1,0 +1,11 @@
+# Announcement semantic recovery
+
+The effective announcement prompt omitted the existing rule that a selected result must have a positive direction and verified factual evidence. A real response combined `SELECTED_PERFORMANCE` with `MIXED`, which the unchanged semantic validator correctly rejected. The V4-owned prompt now states that rule explicitly and preserves honest mixed or negative assessments without forcing selection.
+
+A real recovery then passed mechanical validation but failed independent source-faithfulness review: it introduced an unsupported risk and widened a causal attribution across business units. The final bounded repair gives new-format risk notes an exact source-excerpt requirement, rejects unmatched raw notes, and states explicit entity boundaries for causal claims. Historical successful results retain their original validation contract.
+
+Recovery uses the existing preprocessed execution endpoint and queue. An immutable extension binds the original report, source identities, failed attempt and corrected processing identity. It permits a precisely bound successor attempt for the independently rejected first article, with a one-request cap for the final canary. The earlier mechanically successful but semantically failed result is preserved. Continuing unfinished eligible articles requires an independently reviewed PASS bound to the actual new artifacts. Saved successful results retain their original processing provenance and are reused across prompt versions. The original report, failed response, historical exclusions, seven long-article chunk plans and token safety limits are preserved.
+
+`source/` contains the nine necessary source and test files as an overlay on the `announcement-calendar-binding-20261021-r1` runtime baseline. It is a delivery record, not a second application. The canonical integration record preserves pre-existing workspace differences. Actual acceptance, release identity, execution state, retained failures and unexecuted checks are recorded in `verification.json`; this README does not establish completion. Only the final recorded states in that file apply.
+
+Raw announcements, model responses, queue snapshots, credentials, runtime configuration and generated bundles are excluded. Research-only boundaries remain unchanged: no production permission, BUY-gate updates or orders.

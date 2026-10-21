@@ -1,0 +1,1769 @@
+--- a/ops/run_manager_flash_announcements.py
++++ b/ops/run_manager_flash_announcements.py
+@@ -693,7 +693,7 @@
+     return NewOnlyQueue(queue_root, QUEUE_ID, model_id, max_attempts=1, max_body_bytes=None)
+ 
+ 
+-def _owned_request_material(helper: Any, runner: Any, contract: Any) -> dict[str, Any]:
++def _owned_request_material(helper: Any, runner: Any, contract: Any, *, semantic_contract: bool = True) -> dict[str, Any]:
+     """Reuse the frozen request builder without relabeling its canonical source.
+ 
+     The external builder pins its own canonical prompt/schema source. The owned
+@@ -709,6 +709,12 @@
+     if not SHA_RE.fullmatch(str(validation_sha)):
+         raise FlashRunError("OWNED_READER_CONTRACT_SHA_INVALID")
+     config = {**material["configuration_material"], "validation_contract_sha256": validation_sha}
++    if semantic_contract:
++        from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT, SEMANTIC_CONTRACT_VERSION
++        prompt = material["prompt"] + "\n\n" + SEMANTIC_CONTRACT
++        config = {**config, "semantic_contract_version": SEMANTIC_CONTRACT_VERSION,
++                  "base_prompt_sha256": material["prompt_sha256"], "system_prompt_sha256": sha(prompt.encode())}
++        material = {**material, "prompt": prompt, "prompt_sha256": sha(prompt.encode())}
+     return {**material, "configuration_material": config,
+             "configuration_sha256": sha(canonical(config)),
+             "validation_contract_sha256": validation_sha,
+@@ -2335,6 +2341,10 @@
+ def _validator(queue_module: Any, runner: Any, contract: Any, request_material: dict[str, Any], length_canary: Any):
+     def validate(job: Any, parsed: Any) -> dict[str, Any]:
+         payload = job.payload
++        try:
++            _risk_extract_guard(payload, parsed, request_material, runner)
++        except FlashRunError as exc:
++            raise queue_module.ValidationRejected(exc.code, code=exc.code) from None
+         task_kind = payload.get("queue_task_kind")
+         if task_kind == "announcement_reader_part":
+             from v4.manager_workbench import announcement_chunks as chunks
+@@ -4864,6 +4874,587 @@
+     return matches
+ 
+ 
++# This is the single independently rejected live canary, not a retry-success policy.
++SEMANTIC_REPAIR_EVIDENCE_ROOT = Path('/Users/lexi/Desktop/学习/agents调试/助手/announcement-semantic-recovery-20261021')
++SEMANTIC_REPAIR = {
++    'job_id': 'c2fddbf07be044978b5b01e448899b35',
++    'report_sha256': 'fbfbb264752820e1337e2880578d25282d244f10b23f5d267e4fd5d64e17d1f2',
++    'predecessor_sha256': '91dcdfda52ea2fdf55c61f45b9abc9493d252574a234429906a2baaf7fcb30dd',
++    'review_sha256': '030843790194142c117a91051fb6cf32d350bb266e6dfebe57ef53077b0ae2d1',
++    'queue_key': 'e6593b3354234aba23b81d6c7fbef002daaf202416d817c2bc828001a22354a9',
++    'queue_record_sha256': '8e4466a6a89ac926376b54370d1628cb219803f2648bfc7dd0f248f33a02e2bd',
++    'payload_sha256': '78a5e2bacc0ad81dae9f2d806d11aae33d984cc011df520cd9b7b8f5c9c15698',
++    'raw_sha256': '2f101ce634eecf7c8d40dca19e22994082656da3bb7d159a1acc21c6a8c192e5',
++    'validated_sha256': '73b8fae4f29bbd7ec1d7eb487e5e4d276fd415452daa5b498e56c164bdd922d3',
++    'request_sha256': 'e8b9ec09682c3be95f3ba46de90aa255dc1a6584083bca607fad924b48ad470c',
++    'stream_sha256': '13db1165a5ba7be3d2993e54e1e64cf30860364b702b5722a5f4805c6db87027',
++    'sse_sha256': '63b2192bd54418a894f909a380ebb1c4afdeafc351d66455e28af4668b4eebc2',
++}
++SEMANTIC_ACCEPTANCE_REF = 'semantic-fix-live-review/receipt.json'
++
++
++def _risk_extract_guard(payload, parsed, request_material, runner):
++    """New wire identity only: reject the whole raw, never normalize its output."""
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT, SEMANTIC_CONTRACT_VERSION
++    system = payload.get('messages', [{}])[0].get('content', '')
++    marker = payload.get('semantic_contract_version')
++    new_config = (request_material.get('configuration_material', {}).get('semantic_contract_version') == SEMANTIC_CONTRACT_VERSION
++                  and payload.get('configuration_sha256') == request_material['configuration_sha256'])
++    if not (marker is not None or SEMANTIC_CONTRACT_VERSION in system
++            or SEMANTIC_CONTRACT_VERSION in payload.get('rules','') or new_config):
++        return # Historical success replay keeps its original contract.
++    if (marker not in (None, SEMANTIC_CONTRACT_VERSION) or SEMANTIC_CONTRACT not in system or not new_config
++            or payload.get('prompt_sha256') != sha(system.encode())):
++        raise FlashRunError('RISK_EXTRACT_CONTRACT_IDENTITY_INVALID')
++    reader = parsed.get('reader_output') if isinstance(parsed, dict) else None
++    notes = reader.get('risk_notes') if isinstance(reader, dict) else None
++    if not isinstance(notes, list):
++        raise FlashRunError('RISK_EXTRACT_SOURCE_UNSUPPORTED')
++    if not notes:
++        return
++    body = payload['article_body']
++    kind = payload.get('queue_task_kind')
++    intervals = None
++    sources = [body]
++    if kind in {'announcement_reader_part', 'announcement_reader_synthesis'}:
++        units = runner.build_source_unit_map(body, payload['body_sha256'])['units']
++        if kind == 'announcement_reader_part':
++            part = payload['part_descriptor']
++            index = {u['source_unit_id']: i for i, u in enumerate(units)}
++            start, end = part['start_source_unit_id'], part['end_source_unit_id']
++            if not isinstance(start, str) or not isinstance(end, str):
++                raise FlashRunError('RISK_EXTRACT_SOURCE_INTERVAL_INVALID')
++            intervals = [(index.get(start.split('::')[-1]), index.get(end.split('::')[-1]))]
++        else:
++            # synthesis_intervals_from_reports returns inclusive zero-based unit
++            # indices. The existing synthesis validator rechecks their report binding.
++            intervals = payload['allowed_source_intervals']
++        if not isinstance(intervals, (list, tuple)):
++            raise FlashRunError('RISK_EXTRACT_SOURCE_INTERVAL_INVALID')
++        allowed = set()
++        for interval in intervals:
++            if (not isinstance(interval, (list, tuple)) or len(interval) != 2
++                    or any(type(i) is not int for i in interval)):
++                raise FlashRunError('RISK_EXTRACT_SOURCE_INTERVAL_INVALID')
++            start, end = interval
++            if not 0 <= start <= end < len(units):
++                raise FlashRunError('RISK_EXTRACT_SOURCE_INTERVAL_INVALID')
++            allowed.update(range(start, end + 1))
++        # Follow the same unit-union allowance as validate_synthesis_citations;
++        # never join across an unseen source unit.
++        spans = []
++        for position in sorted(allowed):
++            if spans and position == spans[-1][1] + 1:spans[-1][1] = position
++            else:spans.append([position, position])
++        sources = [body[units[start]['start_cp']:units[end]['end_cp']] for start, end in spans]
++    normalize = lambda text: re.sub(r'\s+', '', text)
++    sources = [normalize(text) for text in sources]
++    if any(not isinstance(note, str) or not normalize(note)
++           or not any(normalize(note) in source for source in sources) for note in notes):
++        raise FlashRunError('RISK_EXTRACT_SOURCE_UNSUPPORTED')
++
++
++def _single_http_canary_transport(canary, runner, *args, **kwargs):
++    class OneRequest(canary.GatedStreamingTransport):
++        def _stream_completion(self, *a, **kw):
++            if self._round >= 1:
++                raise runner.TransportError('SEMANTIC_CANARY_ONE_HTTP_LIMIT')
++            return super()._stream_completion(*a, **kw)
++
++        def _call_simple_workflow_lookup(self, *a, **kw):
++            raise runner.TransportError('SEMANTIC_CANARY_ONE_HTTP_LIMIT')
++    return OneRequest(*args, **kwargs)
++
++
++def _semantic_repair_seed(state_root, job_id, report_sha256):
++    if job_id != SEMANTIC_REPAIR['job_id']:
++        return None
++    if report_sha256 != SEMANTIC_REPAIR['report_sha256']:
++        raise FlashRunError('SEMANTIC_REPAIR_REPORT_CHANGED')
++    io = SafeRoot(state_root)
++    prefix = f'announcement_flash/jobs/{job_id}/execution-extensions/'
++    old_raw = io.read_bytes(prefix + SEMANTIC_REPAIR['predecessor_sha256'] + '.json')
++    if sha(old_raw) != SEMANTIC_REPAIR['predecessor_sha256']:
++        raise FlashRunError('SEMANTIC_REPAIR_PREDECESSOR_CHANGED')
++    old_plan = _json(old_raw, 'SEMANTIC_REPAIR_PREDECESSOR_INVALID')
++    review_raw = SafeRoot(SEMANTIC_REPAIR_EVIDENCE_ROOT).read_bytes('live-review/receipt.json')
++    if sha(review_raw) != SEMANTIC_REPAIR['review_sha256']:
++        raise FlashRunError('SEMANTIC_REPAIR_REVIEW_CHANGED')
++    review = _json(review_raw, 'SEMANTIC_REPAIR_REVIEW_INVALID')
++    binding = review.get('identity_binding', {})
++    calls = review.get('actual_calls', {})
++    if (review.get('status') != 'LIVE_RECOVERY_SEMANTIC_FAIL' or not isinstance(calls,dict)
++            or any(calls.get(f)!=1 for f in ('new_queue_jobs','physical_new_attempts','request_rounds'))
++            or calls.get('logical_attempt')!=2 or calls.get('new_key')!=SEMANTIC_REPAIR['queue_key']
++            or review.get('job_id') != job_id or review.get('source_report_sha256') != report_sha256
++            or review.get('execution_extension_sha256') != SEMANTIC_REPAIR['predecessor_sha256']
++            or binding.get('new_key') != SEMANTIC_REPAIR['queue_key']):
++        raise FlashRunError('SEMANTIC_REPAIR_REVIEW_BINDING_INVALID')
++    root = state_root / 'announcement_flash/queue'
++    jobs = _json(SafeRoot(root).read_bytes('queue-state.json'), 'SEMANTIC_REPAIR_QUEUE_INVALID')['jobs']
++    item = jobs.get(SEMANTIC_REPAIR['queue_key'])
++    if (not isinstance(item, dict) or sha(canonical(item)) != SEMANTIC_REPAIR['queue_record_sha256']
++            or item.get('status') != 'SUCCEEDED' or item.get('attempt_count') != 1 or item.get('max_attempts') != 1):
++        raise FlashRunError('SEMANTIC_REPAIR_SAVED_SUCCESS_CHANGED')
++    refs = [('announcement_flash/queue/' + item['input_path'], 'payload_sha256'),
++            ('announcement_flash/queue/' + item['raw_path'], 'raw_sha256'),
++            ('announcement_flash/queue/' + item['validated_path'], 'validated_sha256')]
++    trace = f"announcement_flash/evidence/streams/{SEMANTIC_REPAIR['queue_key']}/attempt-0001/"
++    refs += [(trace + 'round-01.request-input.json', 'request_sha256'),
++             (trace + 'stream-receipt.json', 'stream_sha256'), (trace + 'round-01.raw.sse', 'sse_sha256')]
++    artifacts = []
++    for ref, field in refs:
++        if sha(io.read_bytes(ref)) != SEMANTIC_REPAIR[field]:
++            raise FlashRunError('SEMANTIC_REPAIR_SAVED_ARTIFACT_CHANGED')
++        artifacts.append({'root': 'state', 'artifact_ref': ref, 'sha256': SEMANTIC_REPAIR[field]})
++    payload = _queue_payload(root, item)
++    if (payload.get('execution_extension_sha256') != SEMANTIC_REPAIR['predecessor_sha256']
++            or payload.get('recovery_of') != old_plan['failed']
++            or any(payload.get(f) != old_plan['failed'][f] for f in ('article_id', 'source_sha256', 'body_sha256'))):
++        raise FlashRunError('SEMANTIC_REPAIR_SOURCE_BINDING_INVALID')
++    return {**SEMANTIC_REPAIR, 'logical_attempt': 3, 'max_canary_model_http_requests': 1,
++            'acceptance_ref': SEMANTIC_ACCEPTANCE_REF}, old_plan, artifacts
++
++
++def _semantic_canary_review(state_root, plan, extension_sha, key, item):
++    """A mechanically successful third attempt still needs bound independent evidence."""
++    if not plan.get('semantic_repair'):
++        return 'PASS', None
++    root = state_root / 'announcement_flash/queue'
++    payload = _queue_payload(root, item)
++    if (payload.get('execution_extension_sha256')!=extension_sha
++            or payload.get('semantic_recovery_of')!=plan['semantic_repair']
++            or payload.get('recovery_of')!=plan['failed']):
++        raise FlashRunError('SEMANTIC_REVIEW_CANARY_IDENTITY_CHANGED')
++    trace = f'announcement_flash/evidence/streams/{key}/attempt-0001/'
++    io = SafeRoot(state_root)
++    request_raw = io.read_bytes(trace + 'round-01.request-input.json')
++    request = _json(request_raw, 'SEMANTIC_REVIEW_REQUEST_INVALID')
++    stream = _json(io.read_bytes(trace + 'stream-receipt.json'), 'SEMANTIC_REVIEW_STREAM_INVALID')
++    if (item.get('attempt_count') != 1 or len(stream.get('rounds', [])) != 1
++            or request.get('messages') != payload.get('messages')
++            or request.get('structured_outputs', {}).get('json') != payload.get('structured_output_schema')):
++        raise FlashRunError('SEMANTIC_REVIEW_ACTUAL_REQUEST_CHANGED')
++    try:
++        raw = SafeRoot(SEMANTIC_REPAIR_EVIDENCE_ROOT).read_bytes(plan['semantic_repair']['acceptance_ref'])
++    except FileNotFoundError:
++        return 'PENDING', None
++    receipt = _json(raw, 'SEMANTIC_REVIEW_INVALID')
++    expected = {'schema': 'v4.manager_workbench.semantic_canary_acceptance.v1',
++        'job_id': plan['job_id'], 'queue_key': key, 'report_sha256': plan['report_sha256'],
++        'capture_sha256': plan['capture_product']['sha256'], 'extension_sha256': extension_sha,
++        'payload_sha256': item['payload_sha256'], 'raw_sha256': item['raw_sha256'],
++        'validated_sha256': item['validated_sha256'], 'request_sha256': sha(request_raw),
++        **{f: payload[f] for f in ('article_id', 'source_sha256', 'body_sha256', 'prompt_sha256', 'configuration_sha256')},
++        'actual_calls': 1}
++    if any(receipt.get(f) != v for f, v in expected.items()) or not receipt.get('reviewer'):
++        raise FlashRunError('SEMANTIC_REVIEW_BINDING_CHANGED')
++    if receipt.get('verdict') == 'FAIL':
++        return 'FAIL', sha(raw)
++    if receipt.get('verdict') != 'PASS' or receipt.get('source_faithfulness') != 'PASS':
++        raise FlashRunError('SEMANTIC_REVIEW_VERDICT_INVALID')
++    return 'PASS', sha(raw)
++
++
++def _semantic_quarantined_results(state_root, plan, checkpoint):
++    if not plan.get('semantic_repair'):
++        return []
++    repair = plan['semantic_repair']
++    result = [{'queue_key': repair['queue_key'], 'result_sha256': repair['validated_sha256']}]
++    if checkpoint and checkpoint[1] != 'SUCCEEDED':
++        jobs = _json(SafeRoot(state_root / 'announcement_flash/queue').read_bytes('queue-state.json'), 'SEMANTIC_QUEUE_INVALID')['jobs']
++        item = jobs[checkpoint[0]]
++        if item.get('status') == 'SUCCEEDED':
++            result.append({'queue_key': checkpoint[0], 'result_sha256': item['validated_sha256']})
++    return result
++
++
++def _extension_plan(state_root: Path, capture_root: Path, job_id: str,
++                    report_sha256: str, extension_sha256: str | None = None):
++    """Read-only plan/verification; persistence belongs to the existing submit owner."""
++    from v4.manager_workbench.announcement_preprocessing import build_extension, extension_entries
++    from v4.manager_workbench.announcement_delivery import read as read_delivery
++    if not JOB_ID_RE.fullmatch(job_id) or not SHA_RE.fullmatch(report_sha256):
++        raise FlashRunError("EXTENSION_IDENTITY_INVALID")
++    io=SafeRoot(state_root);prefix=f'announcement_flash/jobs/{job_id}'
++    report_raw=io.read_bytes(prefix+'/preprocessing-report.json',max_bytes=64*1024*1024)
++    if sha(report_raw)!=report_sha256:raise FlashRunError('EXTENSION_REPORT_CHANGED')
++    report=_json(report_raw,'EXTENSION_REPORT_INVALID');extension_entries(report)
++    if report['job_id']!=job_id:raise FlashRunError('EXTENSION_JOB_CHANGED')
++    saved=None
++    if extension_sha256 is None:
++        try:extension_sha256=_json(io.read_bytes(prefix+'/execution-extensions/latest.json',max_bytes=4096),'EXTENSION_POINTER_INVALID')['sha256']
++        except FileNotFoundError:pass
++    if extension_sha256 is not None:
++        if not SHA_RE.fullmatch(str(extension_sha256)):raise FlashRunError('EXTENSION_REFERENCE_INVALID')
++        raw=io.read_bytes(prefix+'/execution-extensions/'+extension_sha256+'.json',max_bytes=64*1024*1024)
++        if sha(raw)!=extension_sha256:raise FlashRunError('EXTENSION_SHA_CHANGED')
++        saved=_json(raw,'EXTENSION_INVALID')
++    successor=_semantic_repair_seed(state_root,job_id,report_sha256)
++    original_saved=saved
++    if successor:
++        repair,old_plan,repair_artifacts=successor
++        saved=old_plan
++    jobs=_json(io.read_bytes('announcement_flash/queue/queue-state.json',max_bytes=64*1024*1024),'EXTENSION_QUEUE_INVALID')['jobs']
++    if saved:
++        failed=saved['failed'];old=jobs.get(failed['queue_key'])
++        if not isinstance(old,dict) or sha(canonical(old))!=failed['queue_record_sha256']:
++            raise FlashRunError('EXTENSION_ORIGINAL_FAILURE_CHANGED')
++        artifacts=saved['source_artifacts']
++    else:
++        delivery,binding=read_delivery(io,job_id)
++        failed_rows=[e for e in (delivery or {}).get('articles',[]) if e.get('article_id')==report['first_article_id'] and e.get('state')=='FAILED']
++        if len(failed_rows)!=1:raise FlashRunError('EXTENSION_FAILED_FIRST_REQUIRED')
++        key=failed_rows[0]['queue_key'];old=jobs.get(key)
++        if (not isinstance(old,dict) or old.get('status')!='FAILED' or old.get('attempt_count')!=1
++                or old.get('max_attempts')!=1 or old.get('last_error',{}).get('code')!='ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT'):
++            raise FlashRunError('EXTENSION_FAILURE_NOT_ELIGIBLE')
++        payload=_queue_payload(state_root/'announcement_flash/queue',old)
++        if (old.get('raw_path')!=f'jobs/{key}/attempt-0001.raw' or old.get('input_path')!=f'jobs/{key}/input.json'
++                or len(old.get('attempts',[]))!=1 or old['attempts'][0].get('raw_sha256')!=old.get('raw_sha256')
++                or sha(io.read_bytes('announcement_flash/queue/'+old['raw_path'],max_bytes=64*1024*1024))!=old.get('raw_sha256')):
++            raise FlashRunError('EXTENSION_ORIGINAL_RAW_CHANGED')
++        if payload.get('bounded_execution')!={'job_id':job_id,'report_sha256':report_sha256}:
++            raise FlashRunError('EXTENSION_FAILURE_JOB_UNVERIFIED')
++        failed={**{f:payload[f] for f in ('article_id','source_sha256','body_sha256')},
++            'queue_key':key,'queue_record_sha256':sha(canonical(old)),'raw_sha256':old['raw_sha256'],
++            'payload_sha256':old['payload_sha256'],'failure_code':old['last_error']['code'],'logical_attempt':2}
++        trace_request=_json(io.read_bytes(f'announcement_flash/evidence/streams/{key}/attempt-0001/round-01.request-input.json',max_bytes=64*1024*1024),'EXTENSION_REQUEST_TRACE_INVALID')
++        if trace_request.get('messages')!=payload.get('messages') or trace_request.get('structured_outputs',{}).get('json')!=payload.get('structured_output_schema'):
++            raise FlashRunError('EXTENSION_REQUEST_TRACE_BINDING_CHANGED')
++        artifacts=[]
++        refs=[prefix+'/'+name for name in ('input.json','preprocessing-report.json','classification.json','classification-plan.json','classification-plan-binding.json','classification-model-plan.json','execution-request.json')]
++        refs += [prefix+'/long-body/'+name for name in io.files(prefix+'/long-body')]
++        refs += [binding['artifact_ref'],'announcement_flash/queue/'+old['input_path'],'announcement_flash/queue/'+old['raw_path']]
++        trace=f'announcement_flash/evidence/streams/{key}/attempt-0001/'
++        for name in ('round-01.request-input.json','round-01.raw.sse','stream-receipt.json'):
++            try:io.read_bytes(trace+name,max_bytes=64*1024*1024)
++            except FileNotFoundError:raise FlashRunError('EXTENSION_REQUEST_TRACE_MISSING')
++            else:refs.append(trace+name)
++        for ref in refs:
++            raw=io.read_bytes(ref,max_bytes=64*1024*1024);artifacts.append({'root':'state','artifact_ref':ref,'sha256':sha(raw)})
++        capture_ref=report['capture_product'];raw=SafeRoot(capture_root).read_bytes(capture_ref['artifact_ref'],max_bytes=256*1024*1024)
++        if sha(raw)!=capture_ref['sha256']:raise FlashRunError('EXTENSION_CAPTURE_CHANGED')
++        artifacts.append({'root':'capture',**capture_ref})
++    if successor:
++        artifacts=[*artifacts,*repair_artifacts]
++        failed={**failed,'logical_attempt':3}
++    for artifact in artifacts:
++        root=io if artifact['root']=='state' else SafeRoot(capture_root)
++        raw=root.read_bytes(artifact['artifact_ref'],max_bytes=256*1024*1024)
++        if sha(raw)!=artifact['sha256']:raise FlashRunError('EXTENSION_SOURCE_ARTIFACT_CHANGED')
++    helper=_load_helper();import batch_runner as runner
++    contract=runner.load_active_contract(REPO_ROOT/'v4/manager_workbench/engines/announcement.py')
++    material=_owned_request_material(helper,runner,contract)
++    execution_contract={f:material[f] for f in ('prompt_sha256','configuration_sha256','schema_sha256','runtime_settings_sha256','model_settings_sha256')}
++    execution_contract.update(validator_sha256=contract.source_sha256,
++        implementation_sha256=sha(Path(__file__).read_bytes()),
++        extension_contract_sha256=sha((REPO_ROOT/'v4/manager_workbench/announcement_preprocessing.py').read_bytes()))
++    plan=build_extension(report,report_sha256=report_sha256,source_artifacts=artifacts,failed=failed,execution_contract=execution_contract)
++    if successor:
++        plan['semantic_repair']=repair
++    plan_sha=sha(canonical(plan)+b'\n')
++    if successor:
++        if original_saved is not None and extension_sha256!=repair['predecessor_sha256'] and (original_saved!=plan or extension_sha256!=plan_sha):
++            raise FlashRunError('EXTENSION_CONTRACT_CHANGED')
++    elif saved is not None and (saved!=plan or extension_sha256!=plan_sha):raise FlashRunError('EXTENSION_CONTRACT_CHANGED')
++    return plan,plan_sha
++
++
++def _extension_checkpoint(state_root: Path, plan: dict[str, Any], extension_sha: str):
++    helper=_load_helper();import batch_runner as runner
++    import announcement_queue as queue_module
++    import build_length_canary as length_canary
++    contract=runner.load_active_contract(REPO_ROOT/'v4/manager_workbench/engines/announcement.py')
++    material=_owned_request_material(helper,runner,contract)
++    validator=_validator(queue_module,runner,contract,material,length_canary)
++    root=state_root/'announcement_flash/queue'
++    jobs=_json(SafeRoot(root).read_bytes('queue-state.json',max_bytes=64*1024*1024),'EXTENSION_QUEUE_INVALID')['jobs']
++    matches=[]
++    for key,item in jobs.items():
++        if item.get('identity',{}).get('article_id')!=plan['failed']['article_id']:continue
++        payload=_queue_payload(root,item)
++        if payload.get('execution_extension_sha256')!=extension_sha:continue
++        if (payload.get('recovery_of')!=plan['failed'] or item.get('queue_id')!=QUEUE_ID
++                or any(payload.get(f)!=plan['failed'][f] for f in ('source_sha256','body_sha256'))
++                or queue_module.SerialAnnouncementQueue._identity(payload)!=item.get('identity')
++                or sha(canonical(item['identity']))!=key):
++            raise FlashRunError('EXTENSION_CHECKPOINT_INVALID')
++        if item.get('status')=='PENDING' and item.get('attempt_count')!=0:raise FlashRunError('EXTENSION_PENDING_ATTEMPT_CONFLICT')
++        if item.get('status')=='SUCCEEDED':
++            result,_v,raw_sha=_read_internal_validated_result(root,item)
++            raw=_read_json_file(root/item['raw_path'],raw_sha,'EXTENSION_SAVED_RAW_CHANGED')
++            if validator(SimpleNamespace(payload=payload),raw)!=result:raise FlashRunError('EXTENSION_CHECKPOINT_REPLAY_CHANGED')
++        status=item['status']
++        if status=='SUCCEEDED' and plan.get('semantic_repair'):
++            try:
++                review,_receipt_sha=_semantic_canary_review(state_root,plan,extension_sha,key,item)
++            except (OSError,KeyError,TypeError,ValueError,FlashRunError) as exc:
++                # Source/identity/raw replay above already proved this exact result.
++                # Invalid approval evidence must not erase its display quarantine.
++                blocked=FlashRunError(getattr(exc,'code','SEMANTIC_REVIEW_EVIDENCE_INVALID'))
++                blocked.quarantined_results=_semantic_quarantined_results(state_root,plan,(key,'AWAITING_SEMANTIC_REVIEW'))
++                raise blocked from None
++            status={'PENDING':'AWAITING_SEMANTIC_REVIEW','FAIL':'SEMANTIC_REVIEW_FAILED','PASS':'SUCCEEDED'}[review]
++        matches.append((key,status))
++    if len(matches)>1:raise FlashRunError('EXTENSION_CHECKPOINT_AMBIGUOUS')
++    return matches[0] if matches else None
++
++
++def _extension_saved_task(payload, queue, queue_root, validator, *, failed_key, extension_sha256, semantic_repair=None):
++    """Identity-based reuse across prompt versions, with full raw replay."""
++    matches=[]
++    for key,item in queue._load_state()['jobs'].items():
++        identity=item.get('identity',{})
++        if (item.get('queue_id')!=QUEUE_ID or any(identity.get(f)!=payload.get(f) for f in ('article_id','source_sha256','body_sha256','date','market','model_id'))):continue
++        stored=_queue_payload(queue_root,item)
++        if (stored.get('article_body')!=payload.get('article_body')
++                or stored.get('article_metadata',{}).get('symbol')!=payload['article_metadata'].get('symbol')):
++            raise FlashRunError('EXTENSION_ISSUER_CONFLICT')
++        kind=payload.get('queue_task_kind');stored_kind=stored.get('queue_task_kind')
++        # A complete synthesis/ordinary result may cover the same full source;
++        # part reuse always requires the exact frozen part and plan.
++        if kind=='announcement_reader_part':
++            if stored_kind!=kind or stored.get('chunk_plan_sha256')!=payload.get('chunk_plan_sha256') or stored.get('part_descriptor')!=payload.get('part_descriptor'):continue
++        elif stored_kind=='announcement_reader_part':continue
++        if _stable_queue_identity(queue,stored)!=key or queue._identity(stored)!=identity:
++            raise FlashRunError('EXTENSION_SAVED_IDENTITY_CHANGED')
++        if semantic_repair and key==semantic_repair['queue_key']:
++            if (sha(canonical(item))!=semantic_repair['queue_record_sha256']
++                    or item.get('raw_sha256')!=semantic_repair['raw_sha256']
++                    or item.get('validated_sha256')!=semantic_repair['validated_sha256']):
++                raise FlashRunError('SEMANTIC_REPAIR_SAVED_SUCCESS_CHANGED')
++            continue # This exact independent FAIL is the sole success-reuse exception.
++        if item.get('status')=='SUCCEEDED':
++            result,_result_sha,raw_sha=_read_internal_validated_result(queue_root,item)
++            raw=_read_json_file(queue_root/item['raw_path'],raw_sha,'EXTENSION_SAVED_RAW_CHANGED')
++            if validator(SimpleNamespace(payload=stored),raw)!=result:
++                raise FlashRunError('EXTENSION_SAVED_RESULT_REPLAY_CHANGED')
++            matches.append((key,item))
++        elif payload.get('_complete_probe'):
++            continue
++        elif key==failed_key:
++            continue # Only this immutable original failure has a repair mandate.
++        elif stored.get('execution_extension_sha256')==extension_sha256:
++            if canonical(stored)!=canonical(payload):raise FlashRunError('EXTENSION_PAYLOAD_CHANGED')
++            matches.append((key,item))
++        else:
++            raise FlashRunError('EXTENSION_OTHER_PRIOR_STATUS_PRESERVED')
++    succeeded=[m for m in matches if m[1]['status']=='SUCCEEDED']
++    if succeeded:
++        outputs=[_read_internal_validated_result(queue_root,item)[0] for _key,item in succeeded]
++        if any(output!=outputs[0] for output in outputs[1:]):raise FlashRunError('EXTENSION_SAVED_SUCCESS_CONFLICT')
++        # Never enqueue a new prompt-version key over a valid saved full result.
++        return sorted(succeeded,key=lambda m:m[0])[0]
++    if len(matches)>1:raise FlashRunError('EXTENSION_TASK_AMBIGUOUS')
++    return matches[0] if matches else None
++
++
++def _extension_payload(payload, material, extension, extension_sha, count_tokens, cap):
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT, SEMANTIC_CONTRACT_VERSION
++    p=copy.deepcopy(payload)
++    if SEMANTIC_CONTRACT not in p['messages'][0]['content']:p['messages'][0]['content']+='\n\n'+SEMANTIC_CONTRACT
++    p['prompt_sha256']=sha(p['messages'][0]['content'].encode())
++    p['configuration_sha256']=material['configuration_sha256']
++    p['semantic_contract_version']=SEMANTIC_CONTRACT_VERSION
++    p['rules']+=f'+semantic-contract:{SEMANTIC_CONTRACT_VERSION}+execution-extension:{extension_sha}'
++    p['execution_extension_sha256']=extension_sha
++    if p['article_id']==extension['failed']['article_id']:
++        p['recovery_of']=copy.deepcopy(extension['failed'])
++        if extension.get('semantic_repair'):p['semantic_recovery_of']=copy.deepcopy(extension['semantic_repair'])
++    p['prompt_tokens_exact']=count_tokens(p['messages'])
++    if p['prompt_tokens_exact']>cap:raise FlashRunError('EXTENSION_PROMPT_TOKEN_CAP_EXCEEDED')
++    return p
++
++
++def _extension_prepared_subset(entries, payloads, long_specs):
++    """Select frozen eligible versions, then require complete, exact coverage.
++
++    Source preparation also retains historical and USER_STOPPED versions. They
++    are not execution work. A missing/drifted eligible identity still fails.
++    """
++    expected={(e['article_id'],e['source_sha256'],e['body_sha256'],e['source_date'],e['symbol']):e for e in entries}
++    def identity(article):
++        metadata=article.get('article_metadata',{})
++        return (article.get('article_id'),article.get('source_sha256'),article.get('body_sha256'),
++                article.get('date',metadata.get('publication_date')),metadata.get('symbol'))
++    ordinary=[p for p in payloads if identity(p) in expected]
++    long={aid:spec for aid,spec in long_specs.items() if identity(spec['article']) in expected}
++    short_ids={identity(p) for p in ordinary};long_ids={identity(s['article']) for s in long.values()}
++    expected_short={key for key,e in expected.items() if e['primary_disposition']=='MODEL_ORDINARY'}
++    expected_long={key for key,e in expected.items() if e['primary_disposition']=='MODEL_LONG'}
++    if (len(expected)!=len(entries) or short_ids!=expected_short or long_ids!=expected_long
++            or len(ordinary)+len(long)!=len(entries)
++            or any(p['article_metadata'].get('publication_date')!=p.get('date') for p in ordinary)
++            or any(aid!=spec['article']['article_id'] or len(spec['part_payloads'])!=expected[identity(spec['article'])]['part_count']
++                or any(identity(p)!=identity(spec['article']) or p['article_metadata'].get('publication_date')!=p.get('date') for p in spec['part_payloads'])
++                for aid,spec in long.items())):
++        raise FlashRunError('EXTENSION_PREPARED_COVERAGE_CHANGED')
++    return ordinary,long
++
++
++def _execute_extension(input_value, *, state_root, capture_root, job_id, report, report_sha256,
++                       extension_sha256, phase, payloads, long_specs, queue, helper, runner,
++                       contract, canary, queue_module, length_canary, count_tokens, progress, stop_requested):
++    """Additional phases of the same source-preparation/queue/delivery pipeline."""
++    from v4.manager_workbench import announcement_chunks as chunks
++    from v4.manager_workbench.announcement_delivery import read as read_delivery, publish
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT
++    extension,actual_sha=_extension_plan(state_root,capture_root,job_id,report_sha256,extension_sha256)
++    if actual_sha!=extension_sha256 or phase not in {'RECOVER_FAILED','CONTINUE_REMAINING'}:
++        raise FlashRunError('EXTENSION_EXECUTION_BINDING_INVALID')
++    material=_owned_request_material(helper,runner,contract)
++    validator=_validator(queue_module,runner,contract,material,length_canary)
++    io=SafeRoot(state_root);queue_root=state_root/'announcement_flash/queue'
++    delivered,_binding=read_delivery(io,job_id)
++    if not delivered or delivered['preprocessing_report_sha256']!=report_sha256:raise FlashRunError('EXTENSION_DELIVERY_CHANGED')
++    entries=extension['entries'];versions={(e['article_id'],e['source_sha256'],e['body_sha256']) for e in entries}
++    payloads,long_specs=_extension_prepared_subset(entries,payloads,long_specs)
++    by_identity={(e['article_id'],e.get('body_sha256')):copy.deepcopy(e) for e in delivered['articles']}
++    failed=extension['failed'];failed_id=failed['article_id'];completed=0;dispatched=[];system_stop=None
++    context=material['runtime_limits']['context_limit_tokens'];reserve=material['configuration_material']['max_completion_tokens']
++    hard=min(chunks.SYNTHESIS_TOKEN_CAP,context-reserve-chunks.TOKEN_SAFETY_MARGIN)
++    part_cap=min(chunks.PART_TARGET_TOKEN_CAP,hard)
++    def saved(p):return _extension_saved_task(p,queue,queue_root,validator,failed_key=failed['queue_key'],extension_sha256=extension_sha256,semantic_repair=extension.get('semantic_repair'))
++    def publish_progress(step='EXTENSION_PROGRESS',current=None):
++        articles=list(by_identity.values());counts=dict(Counter(e['state'] for e in articles))
++        model=[e for e in articles if (e['article_id'],e.get('source_sha256'),e.get('body_sha256')) in versions]
++        model_counts=dict(Counter(e['state'] for e in model))
++        selected=[e for e in articles if e.get('state')=='SUCCEEDED' and e.get('disposition') in {'SELECTED_EVENT','SELECTED_PERFORMANCE'} and e.get('direction')=='POSITIVE']
++        state='USER_STOPPED' if (system_stop or {}).get('failure_code')=='USER_STOPPED' else 'PARTIAL' if system_stop or any(e['state'] in {'FAILED','PENDING','DEFERRED'} for e in model) else 'SUCCEEDED'
++        binding=publish(io,job_id,{**delivered,'state':state,'articles':articles,'counts':counts,
++            'stocks':_aggregate(selected),'pending':[e for e in model if e['state'] in {'PENDING','DEFERRED'}],
++            'failures':[e for e in model if e['state']=='FAILED'],'execution_extension_sha256':extension_sha256,
++            'model_progress':{'total':len(entries),'counts':model_counts,'current_article_id':current},
++            'model_requests_this_invocation':completed,'system_stop':system_stop})
++        progress({'step':step,'preprocessing':{'sha256':report_sha256},'delivery':binding,'execution_extension_sha256':extension_sha256,
++            'completed':model_counts.get('SUCCEEDED',0),'total':len(entries),'failed':model_counts.get('FAILED',0),
++            'current_article_id':current,'updated_at':datetime.now(timezone.utc).isoformat()})
++    def task(p):
++        nonlocal completed,system_stop
++        if phase=='CONTINUE_REMAINING' and extension.get('semantic_repair'):
++            review,current_approval=_semantic_canary_review(state_root,extension,extension_sha256,*recovered)
++            if review!='PASS' or current_approval!=approval_sha:raise FlashRunError('EXTENSION_SEMANTIC_APPROVAL_CHANGED')
++        prior=saved(p)
++        if prior is None:
++            if system_stop or stop_requested():system_stop=system_stop or _user_stop_receipt();return None
++            item=queue.enqueue(p);key=item['idempotency_key']
++        else:key,item=prior
++        if item['status']=='RUNNING':raise FlashRunError('EXTENSION_ACTIVE_TASK_OWNER')
++        if item['status']=='PENDING':
++            if item.get('attempt_count')!=0:raise FlashRunError('EXTENSION_PENDING_ATTEMPT_CONFLICT')
++            transport_factory=(lambda *a,**kw:_single_http_canary_transport(canary,runner,*a,**kw)) if extension.get('semantic_repair') and phase=='RECOVER_FAILED' else canary.GatedStreamingTransport
++            transport=transport_factory(runner.load_local_api_key(),state_root/'announcement_flash/evidence',
++                expected_runtime_settings_sha256=material['runtime_settings_sha256'],expected_model_settings_sha256=material['model_settings_sha256'])
++            try:
++                executor=_transport_executor(queue_module,transport,runner,material,state_root/'announcement_flash/evidence',lambda _j,_e:None)
++                before=completed
++                publish_progress('EXTENSION_MODEL_REQUEST',p['article_id'])
++                try:
++                    completed,system_stop=_dispatch_pending_queue_keys(queue,executor,validator,{key},completed=completed,
++                        max_model_calls=completed+1,dispatched_keys=dispatched,on_result=lambda _n:None,stop_requested=stop_requested)
++                except queue_module.ModelSlotBusy:
++                    system_stop={'failure_code':'MODEL_LOCK_BUSY','queue_action':'DEFERRED_NO_ATTEMPT'}
++                if completed==before and system_stop is None:
++                    system_stop={'failure_code':'MODEL_LOCK_BUSY','queue_action':'DEFERRED_NO_ATTEMPT'}
++            finally:transport.close()
++            item=queue._load_state()['jobs'][key]
++        return key,item
++    def record(p,outcome):
++        if outcome is None:return
++        key,item=outcome;ident=(p['article_id'],p['body_sha256']);old=by_identity[ident]
++        if item['status']=='SUCCEEDED':
++            stored,reader=_queue_result(queue_root,item)
++            by_identity[ident]={**old,**_public_article(p['article_id'],stored,reader),'state':'SUCCEEDED','queue_key':key,
++                'result_ref':item['validated_path'],'result_sha256':item['validated_sha256'],
++                'source_coverage':'COMPLETE_SYNTHESIS' if stored.get('queue_task_kind')=='announcement_reader_synthesis' else 'COMPLETE_ARTICLE',
++                'processing_identity':copy.deepcopy(item['identity'])}
++        elif item['status']=='FAILED':
++            by_identity[ident]={**old,'state':'FAILED','queue_key':key,'failure_code':item.get('last_error',{}).get('code','MODEL_ATTEMPT_FAILED')}
++        else:by_identity[ident]={**old,'state':'PENDING','queue_key':key}
++    prepared={p['article_id']:p for p in payloads}
++    # Replaying an already attempted recovery is read-only and idempotent.
++    recovered_payload=_extension_payload(prepared[failed_id],material,extension,extension_sha256,count_tokens,hard)
++    recovered=saved(recovered_payload)
++    if phase=='CONTINUE_REMAINING' and (not recovered or recovered[1]['status']!='SUCCEEDED'):
++        raise FlashRunError('EXTENSION_RECOVERY_CANARY_NOT_SUCCEEDED')
++    if phase=='CONTINUE_REMAINING' and extension.get('semantic_repair'):
++        review,approval_sha=_semantic_canary_review(state_root,extension,extension_sha256,*recovered)
++        if review!='PASS':raise FlashRunError('EXTENSION_SEMANTIC_CANARY_NOT_ACCEPTED')
++        request_binding=_json(io.read_bytes(f'announcement_flash/jobs/{job_id}/extension-request.json'),'EXTENSION_REQUEST_INVALID')
++        if request_binding.get('artifact_ref')!=f"announcement_flash/jobs/{job_id}/extension-requests/{request_binding.get('sha256')}.json":
++            raise FlashRunError('EXTENSION_REQUEST_REFERENCE_INVALID')
++        request_raw=io.read_bytes(request_binding['artifact_ref'])
++        request=_json(request_raw,'EXTENSION_REQUEST_INVALID')
++        if (sha(request_raw)!=request_binding.get('sha256') or request.get('phase')!=phase
++                or request.get('report_sha256')!=report_sha256 or request.get('extension_sha256')!=extension_sha256
++                or request.get('semantic_review_sha256')!=approval_sha):
++            raise FlashRunError('EXTENSION_SEMANTIC_APPROVAL_CHANGED')
++    ordered=[e for e in entries if e['article_id']==failed_id] if phase=='RECOVER_FAILED' else entries
++    for e in ordered:
++        aid=e['article_id'];ident=(aid,e['body_sha256'])
++        if stop_requested():system_stop=_user_stop_receipt();break
++        if system_stop:break
++        if aid in prepared:
++            p=_extension_payload(prepared[aid],material,extension,extension_sha256,count_tokens,hard)
++            record(p,task(p));publish_progress(current=aid)
++            continue
++        spec=long_specs[aid]
++        # Reuse a complete saved synthesis before scheduling any part.
++        probe={**spec['article'],'date':spec['article']['article_metadata']['publication_date'],'market':'HK',
++               'model_id':runner.MODEL_ID,'queue_task_kind':'announcement_reader_synthesis','_complete_probe':True}
++        complete=saved(probe)
++        if complete and complete[1]['status']=='SUCCEEDED':record(probe,complete);publish_progress(current=aid);continue
++        reports=[];part_shas=[];part_failed=False
++        for part,base in zip(spec['plan']['parts'],spec['part_payloads']):
++            p=_extension_payload(base,material,extension,extension_sha256,count_tokens,part_cap)
++            outcome=task(p)
++            if outcome is None or outcome[1]['status']!='SUCCEEDED':
++                if outcome and outcome[1]['status']=='FAILED':
++                    by_identity[ident]={**by_identity[ident],'state':'FAILED','failure_code':outcome[1].get('last_error',{}).get('code'),'queue_key':outcome[0]};part_failed=True
++                break
++            item=outcome[1];result,result_sha,raw_sha=_read_internal_validated_result(queue_root,item)
++            reports.append({'part_index':part['part_index'],'part_count':part['part_count'],'part_descriptor':part,
++                'part_sha256':part['part_sha256'],'part_result_sha256':result_sha,'part_raw_response_sha256':raw_sha,
++                'reader_report':result['reader_output'],'citation_ranges':result['citation_ranges']});part_shas.append(result_sha)
++            by_identity[ident]={**by_identity[ident],'state':'PENDING','parts_complete':len(reports),'parts_total':len(spec['plan']['parts'])}
++            publish_progress(current=aid)
++        if len(reports)!=len(spec['plan']['parts']):
++            if not part_failed:by_identity[ident]={**by_identity[ident],'state':'PENDING'}
++            publish_progress(current=aid);continue
++        synthesis_input={'schema':chunks.SYNTHESIS_INPUT_SCHEMA,'article_id':aid,'source_sha256':e['source_sha256'],
++            'body_sha256':e['body_sha256'],'source_unit_map_sha256':spec['unit_map']['source_unit_map_sha256'],
++            'plan_sha256':spec['plan']['plan_sha256'],'batch_binding_sha256':spec['plan']['batch_binding_sha256'],
++            'frozen_recovery_manifest_sha256':None,'root_batch_job_id':None,'target_date':input_value['target_date'],
++            'cutoff':input_value['cutoff'],'membership_authority_sha256':spec['article']['article_metadata'].get('membership_authority_sha256'),
++            'part_count':len(reports),'part_reports':reports,'cross_part_fixed_fact_ledger':chunks.cross_part_ledger(
++                spec['article']['fixed_fact_ledger'],spec['unit_map'],spec['plan'],model_ledger=lambda v:runner._simple_model_fixed_fact_ledger_for_article(v,aid))}
++        input_sha=sha(canonical(synthesis_input));synthesis_input['synthesis_input_sha256']=input_sha
++        system=chunks.reader_task_system_prompt(material['prompt'],'synthesis')+'\n\n'+chunks.SYNTHESIS_ADDENDUM
++        messages=_synthesis_messages(system_prompt=system,article_id=aid,article_metadata=spec['article']['article_metadata'],synthesis_input=synthesis_input,input_schema=chunks.SYNTHESIS_INPUT_SCHEMA)
++        p={**spec['article'],'date':spec['article']['article_metadata']['publication_date'],'market':'HK','model_id':runner.MODEL_ID,
++            'prompt_sha256':sha(system.encode()),'configuration_sha256':material['configuration_sha256'],
++            'rules':f'execution-extension:{extension_sha256}+synthesis:{input_sha}','role':'announcement_reader_synthesis',
++            'stage':'v4_manager_announcement_flash_long_body_synthesis_v1','queue_task_kind':'announcement_reader_synthesis',
++            'chunk_plan_sha256':spec['plan']['plan_sha256'],'synthesis_input_sha256':input_sha,'part_result_sha256s':part_shas,
++            'synthesis_input':synthesis_input,'allowed_source_intervals':chunks.synthesis_intervals_from_reports(reports,article_id=aid,unit_map=spec['unit_map']),
++            'source_unit_map_sha256':spec['unit_map']['source_unit_map_sha256'],'validated_article_batch':spec['batch'],
++            'messages':messages,'structured_output_schema':chunks.empty_reader_fixed_fields_schema(material['schema']),
++            'workflow_profile':PROFILE,'citation_protocol':material['citation_protocol'],'input_schema':chunks.SYNTHESIS_INPUT_SCHEMA,
++            'prompt_tokens_exact':count_tokens(messages),'prompt_token_cap':hard,'context_limit_tokens':context,
++            'completion_reserve_tokens':reserve,'token_safety_margin':chunks.TOKEN_SAFETY_MARGIN,
++            'batch_binding_sha256':spec['plan']['batch_binding_sha256'],'execution_extension_sha256':extension_sha256,
++            'semantic_contract_version':material['configuration_material']['semantic_contract_version']}
++        if p['prompt_tokens_exact']>hard:raise FlashRunError('EXTENSION_SYNTHESIS_TOKEN_CAP_EXCEEDED')
++        record(p,task(p));publish_progress(current=aid)
++    publish_progress('EXTENSION_DONE')
++    model=[by_identity[(e['article_id'],e['body_sha256'])] for e in entries];counts=Counter(e['state'] for e in model)
++    return {'state':'USER_STOPPED' if (system_stop or {}).get('failure_code')=='USER_STOPPED' else 'PARTIAL' if system_stop or counts['FAILED'] or counts['PENDING'] or counts['DEFERRED'] else 'SUCCEEDED',
++        'execution_phase':phase,'execution_extension_sha256':extension_sha256,'preprocessing':{'sha256':report_sha256},
++        'system_stop':system_stop,'dispatched_keys':dispatched,'model_requests':completed,
++        'counts':{'queue':{'succeeded':counts['SUCCEEDED'],'failed':counts['FAILED'],'pending':counts['PENDING']+counts['DEFERRED']}}}
++
++
+ def _run(input_value: dict[str, Any], *, state_root: Path, capture_root: Path,
+          job_id: str, progress: Callable[[dict[str, Any]], None],
+          shared_root: Path | None = None,
+@@ -4878,7 +5469,7 @@
+          require_classification_policy: bool = False,
+          stop_requested: Callable[[], bool] = lambda: False,
+          preprocess_only: bool = False, execute_report_sha256: str | None = None,
+-         execution_phase: str | None = None) -> dict[str, Any]:
++         execution_phase: str | None = None, extension_sha256: str | None = None) -> dict[str, Any]:
+     from v4.manager_workbench.announcement_classification import (
+         MODEL, QUARANTINE, ROUTINE, STRUCTURED, classify, frozen_policy,
+     )
+@@ -4984,6 +5575,14 @@
+ 
+     contract = runner.load_active_contract(REPO_ROOT / "v4/manager_workbench/engines/announcement.py")
+     request_material = _owned_request_material(helper, runner, contract)
++    if execute_report_sha256 is not None:
++        frozen_bytes=SafeRoot(state_root).read_bytes(f"announcement_flash/jobs/{job_id}/preprocessing-report.json",max_bytes=64*1024*1024)
++        if sha(frozen_bytes)!=execute_report_sha256:raise FlashRunError("PREPROCESSING_REPORT_SHA_CHANGED")
++        frozen=_json(frozen_bytes,"PREPROCESSING_REPORT_INVALID")
++        if frozen["processing_contract"]["prompt_sha256"] != request_material["prompt_sha256"]:
++            # Replay the original frozen preparation identity; new execution is
++            # separately versioned below, never written over the original report.
++            request_material = _owned_request_material(helper, runner, contract, semantic_contract=False)
+     configuration_material = request_material.get("configuration_material", {})
+     if (request_material.get("workflow_profile") != runner.SIMPLE_WORKFLOW_RANGE_PROFILE
+             or request_material.get("citation_protocol") != runner.SIMPLE_WORKFLOW_RANGE_CITATION_PROTOCOL
+@@ -5219,9 +5818,9 @@
+                     encoded = tokenizer.encode(text, add_special_tokens=False)
+                     return len(encoded)
+ 
+-                if resume_frozen_batch:
++                if resume_frozen_batch or extension_sha256:
+                     plan, plan_ref = _load_frozen_resume_plan(
+-                        state_root, str(frozen_root_job_id), article, unit_map, chunks)
++                        state_root, str(frozen_root_job_id) if resume_frozen_batch else job_id, article, unit_map, chunks)
+                 else:
+                     plan = chunks.plan_parts(
+                         article_id=article_id, source_sha256=article["source_sha256"],
+@@ -5235,7 +5834,7 @@
+                     plan_ref = f"long-body/{article_id.replace(':', '_')}-{plan['plan_sha256']}.json"
+                 chunks.verify_part_coverage(article["article_body"], article["body_sha256"], unit_map, plan)
+                 plan_root = state_root / "announcement_flash" / "jobs" / job_id
+-                if not materialize_only:
++                if not materialize_only and not extension_sha256:
+                     plan_root.mkdir(parents=True, exist_ok=True)
+                     _write_json(SafeRoot(plan_root), plan_ref, plan)
+                 units = unit_map["units"]
+@@ -5310,7 +5909,7 @@
+     }
+     classification_raw = canonical(classification_artifact) + b"\n"
+     classification_ref = f"announcement_flash/jobs/{job_id}/classification.json"
+-    if classification_policy is not None and not materialize_only:
++    if classification_policy is not None and not materialize_only and not extension_sha256:
+         _write_json(SafeRoot(state_root), classification_ref, classification_artifact)
+     classification_model_plan = None
+     if classification_plan is not None:
+@@ -5326,7 +5925,7 @@
+                 part['prompt_tokens_exact'] for spec in long_body_specs.values() for part in spec['part_payloads']),
+             'synthesis_tokens':'UNKNOWN_UNTIL_PART_REPORTS',
+         }
+-        if not materialize_only:
++        if not materialize_only and not extension_sha256:
+             _write_json(SafeRoot(state_root),f'announcement_flash/jobs/{job_id}/classification-model-plan.json',classification_model_plan)
+         progress({'step':'MODEL_PLANNING_FROZEN','classification_model_plan':classification_model_plan,
+                   'classification_preview':classification_plan['preview'],'classification_plan':classification_binding,
+@@ -5383,6 +5982,13 @@
+             raise FlashRunError("PREPROCESSING_SOURCE_OR_REPORT_CHANGED")
+         if not preprocessing_report.get("first_article_id"):
+             raise FlashRunError("CANNOT_CONFIRM_NEW_INPUT_UNAVAILABLE")
++        if extension_sha256:
++            return _execute_extension(input_value, state_root=state_root, capture_root=capture_root,
++                job_id=job_id, report=preprocessing_report, report_sha256=execute_report_sha256,
++                extension_sha256=extension_sha256, phase=execution_phase, payloads=payloads,
++                long_specs=long_body_specs, queue=queue, helper=helper, runner=runner, contract=contract,
++                canary=canary, queue_module=queue_module, length_canary=length_canary,
++                count_tokens=count_prompt_tokens, progress=progress, stop_requested=stop_requested)
+         execution_article_ids = execution_subset(preprocessing_report, str(execution_phase))
+         phase_entries = preprocessing_report["execution_manifest"][:1] if execution_phase == "FIRST" else preprocessing_report["execution_manifest"]
+         execution_versions = {(e["article_id"], e["source_sha256"], e["body_sha256"]) for e in phase_entries}
+@@ -8036,7 +8642,8 @@
+     parser.add_argument("--max-model-calls", type=int)
+     parser.add_argument("--preprocess-only", action="store_true")
+     parser.add_argument("--execute-preprocessed-report-sha256")
+-    parser.add_argument("--execution-phase", choices=("FIRST", "CONTINUE"))
++    parser.add_argument("--execution-phase", choices=("FIRST", "CONTINUE", "RECOVER_FAILED", "CONTINUE_REMAINING"))
++    parser.add_argument("--extension-sha256")
+     parser.add_argument("--materialize-saved-partial", action="store_true",
+                         help="Publish only hash-verified saved results after a recorded failed run; never dispatch queue work.")
+     parser.add_argument("--failure-code", help="Exact failure code recorded in progress.json for saved-result materialization.")
+@@ -8201,7 +8808,7 @@
+                       require_classification_policy=not args.resume_frozen_batch and not args.resume_pending,
+                       stop_requested=user_stop, preprocess_only=args.preprocess_only,
+                       execute_report_sha256=args.execute_preprocessed_report_sha256,
+-                      execution_phase=args.execution_phase)
++                      execution_phase=args.execution_phase, extension_sha256=args.extension_sha256)
+         if result.get("state") == "PREPROCESSING_COMPLETE":
+             print(json.dumps(result, ensure_ascii=False, sort_keys=True), flush=True)
+             return 0
+--- a/v4/manager_workbench/announcement_preprocessing.py
++++ b/v4/manager_workbench/announcement_preprocessing.py
+@@ -127,3 +127,46 @@
+     if phase=='FIRST':return {report['first_article_id']} if report.get('first_article_id') else set()
+     if phase=='CONTINUE':return {e['article_id'] for e in manifest}
+     raise ValueError('PREPROCESSING_EXECUTION_PHASE_INVALID')
++
++
++EXTENSION_SCHEMA = 'v4.manager_workbench.announcement_execution_extension.v1'
++SEMANTIC_CONTRACT_VERSION = 'source_risk_extract_entity_cause_v2'
++SEMANTIC_CONTRACT = '''入选字段一致性（既有 Reader 合同，不增加或放宽门槛）：
++SELECTED_EVENT 或 SELECTED_PERFORMANCE 必须同时满足：正文直接支持正向经营/业绩催化、selection_basis 与 disposition 对应、direction=POSITIVE、evidence_sufficiency=VERIFIED_EXISTING_FACTS。
++先依据完整正文诚实判断方向及充分性，再决定 disposition。若整体判断为 MIXED、NEGATIVE、NEUTRAL 或 UNKNOWN，不能输出任何 SELECTED；按既有合同选择合适的 NOT_SELECTED、CONDITIONAL_WATCH 或 NOT_ASSESSED。不得为获得入选而把方向改成 POSITIVE，不得隐藏反面事实、添加阈值或猜测正向效果。
++输出前检查上述字段组合；此检查只要求保持既有标准与证据一致，不预定本文答案。
++来源忠实性输出格式 source_risk_extract_entity_cause_v2：risk_notes 只能逐字摘录本次提供正文明确写出的风险或限定原句，保留标点，仅允许空白差异；没有适合的原句就输出 []。不要概括改写、添加行业常识、推断未来风险或加强原文语气。
++impact 和 reason 中每个因果陈述必须分别写明一个原文明示的公司、子公司或业务板块主体，且引用范围直接支持该主体与该原因。不同主体的增长与原因不得合并为共同原因；不得把某主体的措施或原因转用于另一主体。原文只披露变化而未直接建立原因时，只写变化，不补写“主要得益于”等归因。上述约束不预定入选、方向或本文答案。'''
++
++
++def extension_entries(report: dict[str, Any]) -> list[dict[str, Any]]:
++    """Expand only the frozen workload budget, never eligibility or source rules."""
++    if report.get('schema') != SCHEMA or report.get('accounting_closed') is not True:
++        raise ValueError('EXTENSION_REPORT_INVALID')
++    entries=[e for e in report['catalogue'] if e['primary_disposition'] in {'MODEL_ORDINARY','MODEL_LONG'}]
++    counts=report['counts']
++    identities={(e['article_id'],e['source_sha256'],e['body_sha256']) for e in entries}
++    if (len(entries)!=counts['model_required_articles'] or len(identities)!=len(entries)
++            or sum(e['expected_requests'] for e in entries)!=counts['expected_model_requests']
++            or any(not re.fullmatch(r'[0-9a-f]{64}',str(e.get(f,''))) for e in entries for f in ('source_sha256','body_sha256'))
++            or any(not re.fullmatch(r'HK\.\d{5}',str(e.get('symbol',''))) for e in entries)):
++        raise ValueError('EXTENSION_ACCOUNTING_INVALID')
++    return entries
++
++
++def build_extension(report: dict[str, Any], *, report_sha256: str,
++                    source_artifacts: list[dict[str, Any]], failed: dict[str, Any],
++                    execution_contract: dict[str, Any]) -> dict[str, Any]:
++    entries=extension_entries(report)
++    first=next((e for e in entries if e['article_id']==report.get('first_article_id')),None)
++    if (not first or first.get('part_count')!=0 or any(first.get(f)!=failed.get(f) for f in ('article_id','source_sha256','body_sha256'))
++            or failed.get('failure_code')!='ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT'):
++        raise ValueError('EXTENSION_FAILED_SOURCE_INVALID')
++    return {'schema':EXTENSION_SCHEMA,'job_id':report['job_id'],'target_date':report['target_date'],
++        'report_sha256':report_sha256,'capture_product':report['capture_product'],
++        'membership_gate_sha256':report['membership_gate_sha256'],'policy':report['policy'],
++        'source_artifacts':source_artifacts,'failed':failed,'execution_contract':execution_contract,
++        'entries':entries,'preserved_history_sha256':digest(report['history_context']),
++        'replaces_canary_quantity_limits':report['limits'],
++        'workload':{'articles':len(entries),'expected_requests':sum(e['expected_requests'] for e in entries)},
++        'safety':report['safety']}
+--- a/v4/manager_workbench/announcement_update.py
++++ b/v4/manager_workbench/announcement_update.py
+@@ -17,6 +17,20 @@
+ from .announcement_membership import capture_recovery_manifest
+ from .contracts import HK, JobState, Phase, RunContext, digest, validate_date
+ from .jobs import JobConflict, StepFailure
++
++
++def _semantic_project_stocks(stocks, quarantined):
++    """Read projection only; retain unrelated articles and immutable saved analysis."""
++    blocked={(e['queue_key'],e['result_sha256']) for e in quarantined}
++    projected=[]
++    for stock in stocks:
++        articles=stock.get('articles',[])
++        kept=[a for a in articles if (a.get('queue_key'),a.get('result_sha256')) not in blocked]
++        if len(kept)==len(articles):
++            projected.append(stock)
++        elif kept:
++            projected.append({**stock,'articles':kept,'reasons':[a['reason'] for a in kept]})
++    return projected
+ 
+ 
+ JOB_ID_RE = re.compile(r"^[0-9a-f]{32}$")
+@@ -3435,12 +3449,111 @@
+             raise JobConflict("PREPROCESSING_REPORT_BINDING_INVALID")
+         return value, _sha(raw)
+ 
++    def semantic_recovery_snapshot(self, job_id: str, report_sha256: str) -> dict[str, Any]:
++        """Read-only, current-job eligibility. No queue or extension creation."""
++        from ops.run_manager_flash_announcements import (_extension_plan, _extension_checkpoint,
++            _semantic_quarantined_results, _semantic_canary_review, _json, SafeRoot, FlashRunError)
++        from .announcement_delivery import read
++        try:
++            job=self.service.jobs.get(job_id)
++            if self._stop_requested(job_id):raise JobConflict('EXTENSION_USER_STOPPED')
++            plan,extension_sha=_extension_plan(self.service.store.root,Path(self.service.config.capture_root),job_id,report_sha256)
++            checkpoint=_extension_checkpoint(self.service.store.root,plan,extension_sha)
++            delivery,binding=read(self.service.store.io,job_id)
++            phase='RECOVER_FAILED' if checkpoint is None or checkpoint[1]=='PENDING' else 'CONTINUE_REMAINING' if checkpoint[1]=='SUCCEEDED' else None
++            remaining=sum(e.get('state') in {'PENDING','DEFERRED'} for e in delivery['articles']
++                if any(e.get('article_id')==m['article_id'] and e.get('source_sha256')==m['source_sha256'] and e.get('body_sha256')==m['body_sha256'] for m in plan['entries']))
++            eligible=job.state==JobState.PARTIAL and phase is not None and (phase=='RECOVER_FAILED' or remaining>0)
++            semantic={}
++            if plan.get('semantic_repair'):
++                semantic={'quarantined_results':_semantic_quarantined_results(self.service.store.root,plan,checkpoint),
++                    'semantic_review_state':checkpoint[1] if checkpoint else 'SOURCE_SEMANTIC_FAIL_RECOVERABLE',
++                    'semantic_review_sha256':None}
++                if checkpoint and checkpoint[1]=='SUCCEEDED':
++                    jobs=_json(SafeRoot(self.service.store.root/'announcement_flash/queue').read_bytes('queue-state.json'),'SEMANTIC_QUEUE_INVALID')['jobs']
++                    _verdict,semantic['semantic_review_sha256']=_semantic_canary_review(self.service.store.root,plan,extension_sha,checkpoint[0],jobs[checkpoint[0]])
++            return {**semantic,'status':'READY' if eligible else 'BLOCKED','eligible':eligible,'job_id':job_id,
++                'target_date':plan['target_date'],'report_sha256':report_sha256,'extension_sha256':extension_sha,
++                'delivery_sha256':binding['sha256'],'phase':phase,'total_articles':len(plan['entries']),
++                'remaining_articles':remaining,'failed_article_id':plan['failed']['article_id'],
++                'checkpoint_state':checkpoint[1] if checkpoint else None}
++        except (OSError,KeyError,TypeError,ValueError,JobConflict,FlashRunError) as exc:
++            quarantined=deepcopy(getattr(exc,'quarantined_results',[]))
++            return {'status':'BLOCKED','eligible':False,'job_id':job_id,'reason':getattr(exc,'code',str(exc)),
++                'quarantined_results':quarantined,
++                'checkpoint_state':'SEMANTIC_REVIEW_EVIDENCE_INVALID' if quarantined else None}
++
++    def _submit_semantic_recovery(self, job_id, report_sha256, phase, extension_sha256, delivery_sha256):
++        snapshot=self.semantic_recovery_snapshot(job_id,report_sha256)
++        if (snapshot.get('eligible') is not True or snapshot.get('phase')!=phase
++                or snapshot.get('extension_sha256')!=extension_sha256 or snapshot.get('delivery_sha256')!=delivery_sha256):
++            raise JobConflict('EXTENSION_EXECUTION_NOT_ELIGIBLE')
++        if self._active_flash_attempts(ignore_job_id=job_id):raise JobConflict('ANNOUNCEMENT_FLASH_BUSY_ALL_TARGET_DATES')
++        from ops.run_manager_flash_announcements import _extension_plan
++        plan,actual_sha=_extension_plan(self.service.store.root,Path(self.service.config.capture_root),job_id,report_sha256)
++        if actual_sha!=extension_sha256:raise JobConflict('EXTENSION_SUBMIT_DRIFT')
++        prefix=f'announcement_flash/jobs/{job_id}'
++        ref=prefix+'/execution-extensions/'+actual_sha+'.json';raw=_canonical(plan)+b'\n'
++        try:prior=self.service.store.io.read_bytes(ref,max_bytes=64*1024*1024)
++        except FileNotFoundError:self.service.store.io.write_bytes(ref,raw,require_absent=True)
++        else:
++            if prior!=raw:raise JobConflict('EXTENSION_IMMUTABLE_CONFLICT')
++        self.service.store.io.write_bytes(prefix+'/execution-extensions/latest.json',_canonical({'sha256':actual_sha})+b'\n')
++        request={'report_sha256':report_sha256,'phase':phase,'extension_sha256':actual_sha,'delivery_sha256':delivery_sha256}
++        if plan.get('semantic_repair') and phase=='CONTINUE_REMAINING':
++            if not snapshot.get('semantic_review_sha256'):raise JobConflict('EXTENSION_SEMANTIC_CANARY_NOT_ACCEPTED')
++            request['semantic_review_sha256']=snapshot['semantic_review_sha256']
++        request_raw=_canonical(request)+b'\n';request_sha=_sha(request_raw)
++        request_ref=prefix+'/extension-requests/'+request_sha+'.json'
++        try:old=self.service.store.io.read_bytes(request_ref,max_bytes=4096)
++        except FileNotFoundError:self.service.store.io.write_bytes(request_ref,request_raw,require_absent=True)
++        else:
++            if old!=request_raw:raise JobConflict('EXTENSION_REQUEST_CHANGED')
++        self.service.store.io.write_bytes(prefix+'/extension-request.json',_canonical({'artifact_ref':request_ref,'sha256':request_sha})+b'\n')
++        job=self.service.jobs.get(job_id);job.retryable=True;self.service.store.save_job(job)
++        return self.service.jobs.submit(job.context,self._execute_extension_work,retry_job_id=job_id)
++
++    def _execute_extension_work(self, job):
++        prefix=f'announcement_flash/jobs/{job.job_id}'
++        binding=json.loads(self.service.store.io.read_bytes(prefix+'/extension-request.json',max_bytes=4096))
++        if binding.get('artifact_ref')!=prefix+'/extension-requests/'+str(binding.get('sha256'))+'.json':raise StepFailure('EXTENSION_REQUEST_REFERENCE_INVALID',retryable=False)
++        raw=self.service.store.io.read_bytes(binding['artifact_ref'],max_bytes=4096)
++        if _sha(raw)!=binding['sha256']:raise StepFailure('EXTENSION_REQUEST_SHA_CHANGED',retryable=False)
++        request=json.loads(raw)
++        if self._stop_requested(job.job_id):return self._stopped_before_dispatch(job)
++        command=[str(RUNNER_PYTHON),'-B',str(RUNNER_SCRIPT),'--state-root',str(self.service.store.root),
++            '--capture-root',str(self.service.config.capture_root),'--job-id',job.job_id,
++            '--execute-preprocessed-report-sha256',request['report_sha256'],'--execution-phase',request['phase'],
++            '--extension-sha256',request['extension_sha256']]
++        shared=getattr(self.service.config,'shared_root',None)
++        if shared:command.extend(['--shared-root',str(shared)])
++        process=self.popen(command,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env={'PATH':'/usr/bin:/bin:/usr/sbin:/sbin'})
++        while process.poll() is None:
++            progress=self._read_job_artifact(job.job_id,PROGRESS_REF) or {}
++            self.service.jobs.update(job,step=_safe_code(progress.get('step'),'DAILY_MODEL_EXECUTION'));self.sleep(0.5)
++        return self._consume_runner_exit(job,process.returncode)
++
+     def execute_preprocessed(self, job_id: str, report_sha256: str, phase: str,
+-                             first_delivery_sha256: str | None = None):
++                             first_delivery_sha256: str | None = None, extension_sha256: str | None = None):
+         with self.service.store.lock("announcement_flash_submit"):
+             job = self.service.jobs.get(job_id)
+             if job.state in (JobState.QUEUED, JobState.RUNNING):
++                if phase in {"RECOVER_FAILED","CONTINUE_REMAINING"}:
++                    prefix=f'announcement_flash/jobs/{job_id}'
++                    try:
++                        binding=json.loads(self.service.store.io.read_bytes(prefix+'/extension-request.json',max_bytes=4096))
++                        if binding.get('artifact_ref')!=prefix+'/extension-requests/'+str(binding.get('sha256'))+'.json':raise ValueError('reference')
++                        raw=self.service.store.io.read_bytes(binding['artifact_ref'],max_bytes=4096)
++                        if _sha(raw)!=binding['sha256']:raise ValueError('sha')
++                        request=json.loads(raw)
++                        expected={'report_sha256':report_sha256,'phase':phase,'extension_sha256':extension_sha256,'delivery_sha256':first_delivery_sha256}
++                        if (any(request.get(k)!=v for k,v in expected.items()) or set(request)-set(expected)-{'semantic_review_sha256'}
++                                or ('semantic_review_sha256' in request and (phase!='CONTINUE_REMAINING' or not re.fullmatch(r'[0-9a-f]{64}',str(request['semantic_review_sha256']))))):raise ValueError('binding')
++                    except (OSError,ValueError,KeyError):raise JobConflict('EXTENSION_ACTIVE_REQUEST_MISMATCH') from None
+                 return job
++            if phase in {"RECOVER_FAILED","CONTINUE_REMAINING"}:
++                return self._submit_semantic_recovery(job_id,report_sha256,phase,extension_sha256,first_delivery_sha256)
++            if extension_sha256 is not None:raise JobConflict("EXTENSION_PHASE_REQUIRED")
+             if job.state != JobState.PARTIAL or self._stop_requested(job_id):
+                 raise JobConflict("DAILY_EXECUTION_NOT_ELIGIBLE")
+             report, actual_sha = self._preprocessing(job_id, report_sha256)
+@@ -3720,6 +3833,7 @@
+         delivery_jobs = [e["job_id"] for e in delivery_index.get("items", []) if e.get("target_date") == active_target]
+         if latest and latest.get("target_date") == active_target and latest.get("job_id") not in delivery_jobs:
+             delivery_jobs.append(latest["job_id"])
++        semantic_snapshot=None
+         for delivery_job_id in delivery_jobs:
+             delivered, delivery_binding = read_delivery(self.service.store.io, delivery_job_id)
+             if delivered:
+@@ -3728,6 +3842,15 @@
+                     raise ValueError("DELIVERY_CAPTURE_BINDING_CHANGED")
+                 eligible, _out, _unknown = project_stocks(delivered.get("stocks", []), gate)
+                 view["stocks"] = _merge_stocks(view.get("stocks", []), eligible)
++                if latest and latest.get('job_id')==delivery_job_id:
++                    semantic_snapshot=self.semantic_recovery_snapshot(delivery_job_id,_report_sha)
++                    quarantined=semantic_snapshot.get('quarantined_results',[])
++                    if quarantined:
++                        view['stocks']=_semantic_project_stocks(view['stocks'],quarantined)
++                        waiting=semantic_snapshot.get('checkpoint_state') in {'AWAITING_SEMANTIC_REVIEW','SEMANTIC_REVIEW_FAILED','SEMANTIC_REVIEW_EVIDENCE_INVALID'}
++                        view.setdefault('gaps',[]).append({'code':'ANNOUNCEMENT_SOURCE_SEMANTIC_REVIEW_REQUIRED','count':1,
++                            'detail':'本篇机械执行已保存，但来源语义验收未通过；当前候选已隔离。' +
++                            ('等待本次独立语义验收，期间不能继续剩余公告。' if waiting else '先恢复这篇失败公告，通过独立语义验收后再继续冻结的剩余公告。')})
+                 view["daily_delivery"] = delivered
+                 view["daily_delivery_binding"] = delivery_binding
+                 view["daily_analysis"] = read_analysis(self.service.store.io, delivered, delivery_binding)
+@@ -3741,6 +3864,7 @@
+             else:
+                 view["preprocessing"] = report
+                 view["preprocessing_binding"] = {"sha256": report_sha}
++                view["semantic_recovery"] = semantic_snapshot if semantic_snapshot is not None else self.semantic_recovery_snapshot(latest["job_id"],report_sha)
+                 if progress and progress.get("step") == "PREPROCESSING_COMPLETE":
+                     view["state"] = "PREPROCESSING_COMPLETE"
+         view["counts"]["displayed_stocks"] = len(view.get("stocks", []))
+@@ -4332,7 +4456,7 @@
+                 raise StepFailure("DAILY_DELIVERY_MISSING", retryable=False)
+             job.completed_count = sum(e.get("state") == "SUCCEEDED" for e in delivery["articles"])
+             report, _report_sha = self._preprocessing(job.job_id, delivery["preprocessing_report_sha256"])
+-            job.total_count = report["counts"]["bounded_articles"]
++            job.total_count = report["counts"]["model_required_articles"] if delivery.get("execution_extension_sha256") else report["counts"]["bounded_articles"]
+             job.execution_refs.append({"kind": "announcement_article_delivery", **binding})
+             with self.service.store.lock("announcement_flash_delivery_index"):
+                 index = self.service.store.cursor("announcement_flash_delivery_index") or {"items": []}
+--- a/v4/manager_workbench/api.py
++++ b/v4/manager_workbench/api.py
+@@ -60,8 +60,9 @@
+ class AnnouncementPreprocessedExecuteRequest(BaseModel):
+     model_config = ConfigDict(extra="forbid")
+     report_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+-    phase: Literal["FIRST", "CONTINUE"]
++    phase: Literal["FIRST", "CONTINUE", "RECOVER_FAILED", "CONTINUE_REMAINING"]
+     first_delivery_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
++    extension_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+ 
+ 
+ class AnnouncementFlashCachedProductRecoveryRequest(BaseModel):
+@@ -205,7 +206,7 @@
+             raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+         def execute():
+             job = announcement_update.execute_preprocessed(job_id, payload.report_sha256,
+-                    payload.phase, payload.first_delivery_sha256)
++                    payload.phase, payload.first_delivery_sha256, payload.extension_sha256)
+             return envelope(job.state.value, {"job_id": job.job_id, "phase": payload.phase,
+                                               "report_sha256": payload.report_sha256})
+         return _safe_errors(execute)
+--- a/apps/web/src/manager-workbench/AnnouncementCandidates.vue
++++ b/apps/web/src/manager-workbench/AnnouncementCandidates.vue
+@@ -105,9 +105,30 @@
+   && article.body_sha256 === preprocessing.value?.execution_manifest[0]?.body_sha256 && article.state === "SUCCEEDED") || false);
+ const canExecuteFirst = computed(() => !isActive.value && preparedJob.value?.state === "PARTIAL"
+   && (!delivery.value || Boolean(identifiedDelivery.value && identifiedDelivery.value.job_id !== preparedJob.value.job_id)));
+-const canExecuteRemaining = computed(() => !isActive.value && preparedJob.value?.state === "PARTIAL"
++const canExecuteRemaining = computed(() => !data.value?.semantic_recovery?.extension_sha256 && !isActive.value && preparedJob.value?.state === "PARTIAL"
+   && firstComplete.value && currentDelivery.value?.articles.some(article => ["PENDING", "DEFERRED"].includes(article.state)
+     && preprocessing.value?.execution_manifest.some(entry => entry.article_id === article.article_id && entry.body_sha256 === article.body_sha256)));
++const semanticRecovery = computed(() => {
++  const recovery = data.value?.semantic_recovery;
++  return recovery?.eligible && !isActive.value && preparedJob.value?.state === "PARTIAL"
++    && recovery.job_id === preparedJob.value.job_id && recovery.target_date === props.targetDate
++    && recovery.report_sha256 === data.value?.preprocessing_binding?.sha256
++    && recovery.delivery_sha256 === data.value?.daily_delivery_binding?.sha256
++    && /^[0-9a-f]{64}$/.test(recovery.extension_sha256 || "")
++    && recovery.total_articles === preprocessing.value?.counts.model_required_articles
++    && ["RECOVER_FAILED", "CONTINUE_REMAINING"].includes(recovery.phase || "") ? recovery : null;
++});
++async function executeRecovery(): Promise<void> {
++  const recovery = semanticRecovery.value;
++  if (!recovery?.phase || !recovery.report_sha256 || starting.value) return;
++  starting.value = true; error.value = "";
++  try {
++    await api.executePreprocessedAnnouncement(recovery.job_id, recovery.report_sha256, recovery.phase,
++      recovery.delivery_sha256, recovery.extension_sha256);
++    await load(true);
++  } catch (caught) { error.value = readableError(caught); }
++  finally { starting.value = false; }
++}
+ async function stopUpdate(): Promise<void> {
+   if (!activeJob.value) return;
+   try { await api.stopAnnouncementFlash(activeJob.value.job_id); await load(true); }
+@@ -391,11 +412,16 @@
+           <dt>{{ articleStateText(String(disposition)) }}</dt><dd>{{ count }}</dd>
+         </template></dl>
+         <ul><li v-for="rule in preprocessing.rules_explanation" :key="rule">{{ rule }}</li></ul>
++        <p v-if="delivery?.execution_extension_sha256">已扩展为分析本次全部 {{ preprocessing.counts.model_required_articles }} 篇符合资格公告；复用已完成结果。</p>
++        <button v-if="semanticRecovery?.phase === 'RECOVER_FAILED'" type="button" :disabled="starting" @click="executeRecovery">恢复失败公告</button>
++        <button v-if="semanticRecovery?.phase === 'CONTINUE_REMAINING'" type="button" :disabled="starting" @click="executeRecovery">继续分析剩余公告</button>
++        <p v-if="semanticRecovery">本批 {{ semanticRecovery.total_articles }} 篇，剩余待分析 {{ semanticRecovery.remaining_articles }} 篇；成功公告不重跑。</p>
+         <button v-if="canExecuteFirst" type="button" :disabled="starting" @click="executePrepared('FIRST')">运行首篇新增公告</button>
+         <button v-if="canExecuteRemaining" type="button" :disabled="starting" @click="executePrepared('CONTINUE')">首篇已核验，继续其余未尝试部分</button>
+       </section>
+       <section v-if="delivery" class="mwb-announcement-job" aria-label="逐篇交付与未完成">
+         <h3>逐篇完整结果与未完成清单</h3>
++        <p v-if="delivery.model_progress">共 {{ delivery.model_progress.total }} 篇，完成 {{ delivery.model_progress.counts.SUCCEEDED || 0 }}，失败 {{ delivery.model_progress.counts.FAILED || 0 }}，待分析 {{ (delivery.model_progress.counts.PENDING || 0) + (delivery.model_progress.counts.DEFERRED || 0) }}<span v-if="delivery.model_progress.current_article_id">；当前 {{ delivery.model_progress.current_article_id }}</span></p>
+         <p>分块仅作为证据；正文完整且综合通过后才显示文章终态和候选。</p>
+         <ul><li v-for="article in deliveryRows" :key="article.article_id + ':' + article.body_sha256">
+           <strong>{{ article.title || article.article_id }}</strong>：{{ articleStateText(article.state) }}
+--- a/apps/web/src/manager-workbench/api.ts
++++ b/apps/web/src/manager-workbench/api.ts
+@@ -158,11 +158,11 @@
+       if (!/^[0-9a-f]{32}$/.test(jobId)) throw new ApiError("公告任务编号无效", 422);
+       return request<{ job_id: string; state: string }>(transport, `/announcement-flash/${jobId}/stop`, { method: "POST" });
+     },
+-    async executePreprocessedAnnouncement(jobId: string, reportSha: string, phase: "FIRST" | "CONTINUE", firstDeliverySha?: string) {
++    async executePreprocessedAnnouncement(jobId: string, reportSha: string, phase: "FIRST" | "CONTINUE" | "RECOVER_FAILED" | "CONTINUE_REMAINING", firstDeliverySha?: string, extensionSha?: string) {
+       if (!/^[0-9a-f]{32}$/.test(jobId) || !/^[0-9a-f]{64}$/.test(reportSha)) throw new ApiError("预处理来源绑定无效", 422);
+       return request<{ job_id: string; phase: string; report_sha256: string }>(transport,
+         `/announcement-flash/${jobId}/execute-preprocessed`, { method: "POST",
+-          body: JSON.stringify({ report_sha256: reportSha, phase, first_delivery_sha256: firstDeliverySha || null }) });
++          body: JSON.stringify({ report_sha256: reportSha, phase, first_delivery_sha256: firstDeliverySha || null, ...(extensionSha ? { extension_sha256: extensionSha } : {}) }) });
+     },
+     async resumeAnnouncementFlash(targetDate: string, resume: AnnouncementFlashResumeEligibility,
+                                   resumeAction: "CANARY" | "CONTINUE") {
+--- a/apps/web/src/manager-workbench/types.ts
++++ b/apps/web/src/manager-workbench/types.ts
+@@ -496,6 +496,11 @@
+   first_article_id: string | null;
+   execution_manifest: { article_id: string; body_sha256?: string }[];
+ }
++export interface AnnouncementSemanticRecovery {
++  status: string; eligible: boolean; job_id: string; target_date?: string; report_sha256?: string;
++  extension_sha256?: string; delivery_sha256?: string; phase?: "RECOVER_FAILED" | "CONTINUE_REMAINING" | null;
++  total_articles?: number; remaining_articles?: number; failed_article_id?: string; checkpoint_state?: string | null; reason?: string;
++}
+ export interface AnnouncementDelivery {
+   job_id: string;
+   target_trade_date: string;
+@@ -505,6 +510,8 @@
+     disposition?: string; reason?: string; queue_reason?: string; failure_code?: string;
+     parts_complete?: number; parts_total?: number; source_coverage?: string }[];
+   counts: Record<string, number>;
++  execution_extension_sha256?: string;
++  model_progress?: { total: number; counts: Record<string, number>; current_article_id?: string | null };
+ }
+ export interface AnnouncementReaderEvidence {
+   claim: string; quote: string; locator: string;
+@@ -526,6 +533,7 @@
+ }
+ export interface AnnouncementFlashData extends SafetyFlags {
+   state: string;
++  semantic_recovery?: AnnouncementSemanticRecovery;
+   preprocessing?: AnnouncementPreprocessing;
+   preprocessing_binding?: { sha256: string };
+   daily_delivery?: AnnouncementDelivery;
+--- a/tests/test_manager_announcement_daily_workflow.py
++++ b/tests/test_manager_announcement_daily_workflow.py
+@@ -457,3 +457,649 @@
+     rows=read_analysis(io,delivery,binding)['articles']
+     assert [e['analysis_state'] for e in rows]==['AVAILABLE','UNAVAILABLE']
+     assert rows[0]['reader_output']==reader
++
++
++def _semantic_failure_fixture(tmp_path, monkeypatch, *, include_long=False):
++    bridge,value,state,capture,calls,observations=_fixture(tmp_path,monkeypatch,include_long=include_long)
++    normal=bridge._transport_executor
++    first=[True]
++    def factory(*args,**kwargs):
++        execute=normal(*args,**kwargs)
++        def wrapped(job):
++            raw=execute(job)
++            if first[0] and job.payload['article_id']=='EASTMONEY:NEW_A':
++                first[0]=False;data=json.loads(raw);data['reader_output'].update(disposition='SELECTED_PERFORMANCE',selection_basis='PERFORMANCE_RESEARCH',direction='MIXED');raw=json.dumps(data,ensure_ascii=False)
++            return raw
++        return wrapped
++    monkeypatch.setattr(bridge,'_transport_executor',factory)
++    io=bridge.SafeRoot(state);prefix=f'announcement_flash/jobs/{value["job_id"]}'
++    io.write_bytes(prefix+'/input.json',bridge.canonical(value))
++    progress=lambda data:io.write_bytes(prefix+'/progress.json',bridge.canonical(data)+b'\n')
++    kwargs=dict(state_root=state,capture_root=capture,job_id=value['job_id'],progress=progress,shared_root=tmp_path/'shared')
++    pre=bridge._run(value,**kwargs,preprocess_only=True);report_sha=pre['preprocessing']['sha256']
++    io.write_bytes(prefix+'/execution-request.json',bridge.canonical({'report_sha256':report_sha,'phase':'FIRST','first_delivery_sha256':None}))
++    bridge._run(value,**kwargs,execute_report_sha256=report_sha,execution_phase='FIRST')
++    q=json.loads((state/'announcement_flash/queue/queue-state.json').read_bytes())['jobs'];key=next(k for k,j in q.items() if j['status']=='FAILED');old=q[key]
++    payload=json.loads((state/'announcement_flash/queue'/old['input_path']).read_bytes())
++    trace=f'announcement_flash/evidence/streams/{key}/attempt-0001/'
++    io.write_bytes(trace+'round-01.request-input.json',bridge.canonical({'messages':payload['messages'],'structured_outputs':{'json':payload['structured_output_schema']}}))
++    io.write_bytes(trace+'round-01.raw.sse',b'SYNTHETIC_OFFLINE_TRANSPORT_FIXTURE')
++    io.write_bytes(trace+'stream-receipt.json',b'{"synthetic":true}')
++    plan,sha=bridge._extension_plan(state,capture,value['job_id'],report_sha)
++    io.write_bytes(prefix+'/execution-extensions/'+sha+'.json',bridge.canonical(plan)+b'\n')
++    io.write_bytes(prefix+'/execution-extensions/latest.json',bridge.canonical({'sha256':sha})+b'\n')
++    return bridge,value,state,capture,calls,kwargs,pre,plan,sha,key,old
++
++
++def test_semantic_extension_recovers_once_then_all_remaining_and_preserves_original_failure(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=_semantic_failure_fixture(tmp_path,monkeypatch)
++    root=state/'announcement_flash/queue';raw=(root/old['raw_path']).read_bytes();frozen=(state/pre['preprocessing']['artifact_ref']).read_bytes()
++    # A full source-bound success produced under another prompt/config must be reused.
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    assert calls==[('EASTMONEY:NEW_A','ordinary'),('EASTMONEY:NEW_A','ordinary')]
++    after=json.loads((root/'queue-state.json').read_bytes())['jobs'];assert after[key]==old and (root/old['raw_path']).read_bytes()==raw
++    new=[j for k,j in after.items() if k!=key];assert len(new)==1
++    recovered_payload=json.loads((root/new[0]['input_path']).read_bytes());assert recovered_payload['recovery_of']['logical_attempt']==2
++    assert bridge._extension_checkpoint(state,plan,sha)[1]=='SUCCEEDED'
++    # Repeating the recovery does not create another attempt or request.
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    assert len(calls)==2
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    assert calls[-1]==('EASTMONEY:NEW_B','ordinary') and len(calls)==3
++    delivered,_=read_delivery(bridge.SafeRoot(state),value['job_id']);assert delivered['counts']['SUCCEEDED']==2
++    assert delivered['model_progress']['total']==2 and (state/pre['preprocessing']['artifact_ref']).read_bytes()==frozen
++    assert json.loads((root/'queue-state.json').read_bytes())['jobs'][key]==old
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    assert len(calls)==3
++
++
++def test_semantic_extension_first_gate_drift_and_nonpositive_answers_stay_honest(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=_semantic_failure_fixture(tmp_path,monkeypatch)
++    with pytest.raises(bridge.FlashRunError,match='CANARY_NOT_SUCCEEDED'):
++        bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    assert len(calls)==1
++    import batch_runner as runner
++    import announcement_queue as qm
++    import build_length_canary as lc
++    helper=bridge._load_helper();contract=runner.load_active_contract(bridge.REPO_ROOT/'v4/manager_workbench/engines/announcement.py');material=bridge._owned_request_material(helper,runner,contract)
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT
++    assert SEMANTIC_CONTRACT in material['prompt'] and '不得为获得入选而把方向改成 POSITIVE' in material['prompt']
++    payload=json.loads((state/'announcement_flash/queue'/old['input_path']).read_bytes());raw=json.loads((state/'announcement_flash/queue'/old['raw_path']).read_bytes());validate=bridge._validator(qm,runner,contract,material,lc)
++    with pytest.raises(qm.ValidationRejected,match='ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT'):validate(SimpleNamespace(payload=payload),raw)
++    for direction in ('MIXED','NEGATIVE'):
++        honest=deepcopy(raw);honest['reader_output'].update(disposition='NOT_SELECTED',selection_basis='NOT_SELECTED',direction=direction)
++        assert validate(SimpleNamespace(payload=payload),honest)['results'][0]['reader_output']['direction']==direction
++    (state/'announcement_flash/queue'/old['raw_path']).write_bytes(b'changed')
++    with pytest.raises(bridge.FlashRunError,match='SOURCE_ARTIFACT_CHANGED'):bridge._extension_plan(state,capture,value['job_id'],pre['preprocessing']['sha256'],sha)
++    assert len(calls)==1
++
++
++def test_semantic_extension_preserves_215_identity_and_all_seven_frozen_long_budgets():
++    from v4.manager_workbench.announcement_preprocessing import build_extension,extension_entries,SCHEMA
++    entries=[]
++    for i in range(208):entries.append({'article_id':f'NEWS:{i}','source_sha256':f'{i:064x}','body_sha256':f'{i+1000:064x}','symbol':'HK.00001','primary_disposition':'MODEL_ORDINARY','part_count':0,'expected_requests':1})
++    for i,n in enumerate((5,3,2,2,4,9,13)):entries.append({'article_id':f'LONG:{i}','source_sha256':f'{i+500:064x}','body_sha256':f'{i+1500:064x}','symbol':'HK.00001','primary_disposition':'MODEL_LONG','part_count':n,'expected_requests':n+1})
++    preserved=[{'article_id':f'HISTORY:{i}','primary_disposition':'OTHER_HISTORY_PRESERVED'} for i in range(247)]+[{'article_id':'STOPPED','primary_disposition':'USER_STOPPED_EXCLUDED'}]
++    report={'schema':SCHEMA,'accounting_closed':True,'job_id':'a'*32,'target_date':'20261021','first_article_id':'NEWS:0','catalogue':entries+preserved,'counts':{'model_required_articles':215,'expected_model_requests':253},'history_context':preserved,'capture_product':{},'membership_gate_sha256':'a'*64,'policy':{},'limits':{'max_articles':8,'max_model_requests':16,'max_reader_parts_per_article':6},'safety':{}}
++    old=deepcopy(report);failed={**entries[0],'failure_code':'ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT'}
++    result=build_extension(report,report_sha256='b'*64,source_artifacts=[],failed=failed,execution_contract={})
++    assert result['workload']=={'articles':215,'expected_requests':253} and report==old
++    assert [e['part_count'] for e in result['entries'] if e['primary_disposition']=='MODEL_LONG']==[5,3,2,2,4,9,13]
++    assert len(result['entries'])==215 and not any(e['article_id'].startswith(('HISTORY:','STOPPED')) for e in result['entries'])
++
++
++def test_semantic_extension_long_parts_and_synthesis_use_original_plan(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=_semantic_failure_fixture(tmp_path,monkeypatch,include_long=True)
++    original={p.name:p.read_bytes() for p in (state/'announcement_flash/jobs'/value['job_id']/'long-body').iterdir()}
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    kinds=[kind for aid,kind in calls if aid=='EASTMONEY:LONG'];assert kinds[-1]=='announcement_reader_synthesis' and all(kind=='announcement_reader_part' for kind in kinds[:-1])
++    assert {p.name:p.read_bytes() for p in (state/'announcement_flash/jobs'/value['job_id']/'long-body').iterdir()}==original
++    delivered,_=read_delivery(bridge.SafeRoot(state),value['job_id']);assert next(e for e in delivered['articles'] if e['article_id']=='EASTMONEY:LONG')['source_coverage']=='COMPLETE_SYNTHESIS'
++
++
++def test_semantic_extension_cross_prompt_success_reused_and_new_semantic_failures_continue(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=_semantic_failure_fixture(tmp_path,monkeypatch)
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    import announcement_queue as qm
++    import batch_runner as runner
++    import build_length_canary as lc
++    helper=bridge._load_helper();contract=runner.load_active_contract(bridge.REPO_ROOT/'v4/manager_workbench/engines/announcement.py');material=bridge._owned_request_material(helper,runner,contract)
++    queue=bridge._new_only_queue(qm,state/'announcement_flash/queue',runner.MODEL_ID)
++    jobs=queue._load_state()['jobs'];recovered=next(j for k,j in jobs.items() if k!=key)
++    payload=bridge._queue_payload(state/'announcement_flash/queue',recovered)
++    old_success=deepcopy(payload);old_success['prompt_sha256']='f'*64;old_success['configuration_sha256']='e'*64
++    old_success['rules']+=':old-version';old_success.pop('execution_extension_sha256');old_success.pop('recovery_of')
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT, SEMANTIC_CONTRACT_VERSION
++    old_success['rules']=old_success['rules'].replace(SEMANTIC_CONTRACT_VERSION,'historical_version')
++    old_success['messages'][0]['content']=old_success['messages'][0]['content'].replace(SEMANTIC_CONTRACT,'历史版本仅按来源分析。')
++    old_success.pop('semantic_contract_version',None)
++    old_success['prompt_sha256']=bridge.sha(old_success['messages'][0]['content'].encode())
++    queue.enqueue(old_success)
++    validator=bridge._validator(qm,runner,contract,material,lc)
++    raw=(state/'announcement_flash/queue'/recovered['raw_path']).read_text()
++    old_item=queue.run_next(lambda _j:raw,validator,idempotency_keys={bridge._stable_queue_identity(queue,old_success)},wait_for_model_slot=False)
++    old_saved=queue._load_state()['jobs'][old_item['idempotency_key']];old_bytes=(state/'announcement_flash/queue'/old_saved['validated_path']).read_bytes()
++    candidate=bridge._extension_payload(payload,material,plan,sha,lambda _m:1,999999)
++    candidate['rules']+=':another-prompt';candidate['prompt_sha256']='d'*64
++    selected=bridge._extension_saved_task(candidate,queue,state/'announcement_flash/queue',validator,failed_key=key,extension_sha256=sha)
++    assert selected[1]['status']=='SUCCEEDED' and (state/'announcement_flash/queue'/old_saved['validated_path']).read_bytes()==old_bytes
++    # A new failure is kept as failed; a repeated continuation cannot retry it.
++    normal=bridge._transport_executor
++    def factory(*args,**kwargs):
++        execute=normal(*args,**kwargs)
++        def invalid(job):
++            result=json.loads(execute(job))
++            if job.payload['article_id']=='EASTMONEY:NEW_B':result['reader_output']['direction']='MIXED'
++            return json.dumps(result,ensure_ascii=False)
++        return invalid
++    monkeypatch.setattr(bridge,'_transport_executor',factory)
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    count=len(calls);delivered,_=read_delivery(bridge.SafeRoot(state),value['job_id']);assert delivered['counts']['FAILED']==1
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    assert len(calls)==count
++
++
++def test_semantic_extension_model_lock_busy_and_user_stop_leave_checkpoint_without_claim(tmp_path,monkeypatch):
++    import fcntl,os
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=_semantic_failure_fixture(tmp_path,monkeypatch)
++    import announcement_queue as qm
++    import batch_runner as runner
++    q=bridge._new_only_queue(qm,state/'announcement_flash/queue',runner.MODEL_ID)
++    fd=os.open(q._model_lock_path,os.O_RDONLY)
++    try:
++        fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
++        result=bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    finally:fcntl.flock(fd,fcntl.LOCK_UN);os.close(fd)
++    assert result['system_stop']['failure_code']=='MODEL_LOCK_BUSY' and len(calls)==1
++    jobs=q._load_state()['jobs'];pending=next(j for k,j in jobs.items() if k!=key)
++    assert pending['status']=='PENDING' and pending['attempt_count']==0
++    result=bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha,stop_requested=lambda:True)
++    assert result['state']=='USER_STOPPED' and len(calls)==1
++
++
++@pytest.mark.parametrize('busy_first',[False,True])
++def test_semantic_extension_api_bound_submit_and_no_repeat_first(tmp_path,monkeypatch,busy_first):
++    import time
++    from fastapi import FastAPI
++    from fastapi.testclient import TestClient
++    from v4.manager_workbench import api as api_module
++    from v4.manager_workbench import announcement_update as update_module
++    from v4.manager_workbench.announcement_update import AnnouncementUpdate
++    from v4.manager_workbench.contracts import JobRecord,JobState,RunContext,Phase
++    from v4.manager_workbench.jobs import JobCoordinator
++    from v4.manager_workbench.store import WorkbenchStore
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=_semantic_failure_fixture(tmp_path,monkeypatch)
++    # The API imports the same owned runner; retain the offline test transport.
++    import ops.run_manager_flash_announcements as live_bridge
++    for name in ('_extension_plan','_extension_checkpoint'):monkeypatch.setattr(live_bridge,name,getattr(bridge,name))
++    store=WorkbenchStore(tmp_path/'owner');jobs=JobCoordinator(store,workers=1)
++    service=SimpleNamespace(store=store,jobs=jobs,config=SimpleNamespace(capture_root=capture,shared_root=tmp_path/'shared'))
++    def popen(command,**_kw):
++        code=bridge._main(command[3:],signalled=[]);return SimpleNamespace(returncode=code,poll=lambda:code)
++    update=AnnouncementUpdate(service,popen=popen)
++    context=RunContext(target_date=value['target_date'],cutoff=value['cutoff'],phase=Phase.MANUAL,trigger='MANUAL',rules_version='V4_ANNOUNCEMENT_FLASH_INCREMENTAL_V1',scope_refs={'capture_operation':'ANNOUNCEMENT_FLASH_INCREMENTAL'})
++    job=JobRecord(job_id=value['job_id'],run_id=value['job_id'],context=context,state=JobState.PARTIAL,step='DONE',retryable=True);store.save_job(job)
++    monkeypatch.setattr(api_module,'AnnouncementUpdate',lambda _s:update)
++    app=FastAPI();app.include_router(api_module.create_router(service))
++    def settled():
++        for _ in range(200):
++            saved=jobs.get(job.job_id)
++            if saved.state not in {JobState.QUEUED,JobState.RUNNING}:return saved
++            time.sleep(.01)
++        pytest.fail('offline worker failed to terminalize')
++    try:
++        with TestClient(app) as client:
++            url=f'/api/v4/manager-workbench/announcement-flash/{job.job_id}/execute-preprocessed'
++            s=update.semantic_recovery_snapshot(job.job_id,pre['preprocessing']['sha256']);assert s['eligible'] and s['phase']=='RECOVER_FAILED'
++            request={'phase':s['phase'],'report_sha256':s['report_sha256'],'extension_sha256':s['extension_sha256'],'first_delivery_sha256':s['delivery_sha256']}
++            assert client.post(url,json={**request,'extension_sha256':'0'*64}).status_code==409
++            assert client.post(url,json={**request,'first_delivery_sha256':'0'*64}).status_code==409
++            assert len(calls)==1
++            if busy_first:
++                import announcement_queue as qm, batch_runner as runner,fcntl,os
++                queue=bridge._new_only_queue(qm,state/'announcement_flash/queue',runner.MODEL_ID)
++                fd=os.open(queue._model_lock_path,os.O_RDONLY)
++                try:
++                    fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
++                    assert client.post(url,json=request).status_code==202;assert settled().state==JobState.PARTIAL
++                finally:fcntl.flock(fd,fcntl.LOCK_UN);os.close(fd)
++                assert len(calls)==1
++                pending=update.semantic_recovery_snapshot(job.job_id,pre['preprocessing']['sha256'])
++                assert pending['eligible'] and pending['phase']=='RECOVER_FAILED' and pending['checkpoint_state']=='PENDING'
++                request={**request,'first_delivery_sha256':pending['delivery_sha256']}
++            assert client.post(url,json=request).status_code==202;assert settled().state==JobState.PARTIAL
++            assert len(calls)==2
++            assert client.post(url,json=request).status_code==409
++            assert client.post(url,json={'phase':'FIRST','report_sha256':s['report_sha256']}).status_code==409
++            s=update.semantic_recovery_snapshot(job.job_id,pre['preprocessing']['sha256']);assert s['phase']=='CONTINUE_REMAINING'
++            assert client.post(url,json={'phase':s['phase'],'report_sha256':s['report_sha256'],'extension_sha256':s['extension_sha256'],'first_delivery_sha256':s['delivery_sha256']}).status_code==202
++            assert settled().state==JobState.SUCCEEDED and len(calls)==3
++    finally:jobs.stop()
++
++
++def test_semantic_extension_real_shape_history_preserved_sources_do_not_block_recovery(tmp_path,monkeypatch):
++    """Reviewer P1: prepared C sources still include history after report admission."""
++    import test_manager_announcement_daily_workflow as workflow
++    original=workflow._fixture
++    def with_history(*args,**kwargs):
++        fixture=original(*args,**kwargs);bridge,value,state,capture,calls,observations=fixture
++        product=json.loads((capture/value['capture_product']['artifact_ref']).read_bytes())
++        row=next(r for r in product['rows'] if r['art_code']=='NEW_B')
++        monkeypatch.setattr(bridge,'_pinned_candidate_history',lambda:[{'identity':{'article_id':'EASTMONEY:NEW_B','body_sha256':row['body_text_sha256']},'status':'SUCCEEDED'}])
++        return fixture
++    monkeypatch.setattr(workflow,'_fixture',with_history)
++    bridge,value,state,capture,calls,kw,pre,plan,sha,key,old=workflow._semantic_failure_fixture(tmp_path,monkeypatch)
++    assert pre['report']['counts']['model_required_articles']==1
++    assert next(e for e in pre['report']['catalogue'] if e['article_id']=='EASTMONEY:NEW_B')['primary_disposition']=='OTHER_HISTORY_PRESERVED'
++    args=dict(execute_report_sha256=pre['preprocessing']['sha256'],extension_sha256=sha)
++    result=bridge._run(value,**kw,**args,execution_phase='RECOVER_FAILED')
++    assert result['counts']['queue']['succeeded']==1 and calls==[('EASTMONEY:NEW_A','ordinary')]*2
++    saved=json.loads((state/'announcement_flash/queue/queue-state.json').read_bytes())['jobs']
++    assert saved[key]==old and not any(j['identity']['article_id']=='EASTMONEY:NEW_B' for j in saved.values())
++
++
++def _semantic_prepared_identity_shape():
++    import os
++    fixture=os.environ.get('ANNOUNCEMENT_PREPARED_IDENTITY_FIXTURE')
++    if fixture:
++        data=json.loads(Path(fixture).read_bytes());entries=data['eligible'];prepared=data['prepared']
++    else:
++        entries=[]
++        for i in range(215):
++            parts=0 if i<208 else (5,3,2,2,4,9,13)[i-208]
++            entries.append({'article_id':f'NEWS:{i}','source_sha256':f'{i:064x}','body_sha256':f'{i+1000:064x}',
++                'source_date':'2026-10-20','symbol':'HK.00001','primary_disposition':'MODEL_LONG' if parts else 'MODEL_ORDINARY','part_count':parts})
++        prepared=deepcopy(entries)+[{'article_id':f'EXCLUDED:{i}','source_sha256':f'{i+500:064x}',
++            'body_sha256':f'{i+1500:064x}','source_date':'2026-10-16','symbol':'HK.00002',
++            'primary_disposition':'OTHER_HISTORY_PRESERVED' if i<242 else 'USER_STOPPED_EXCLUDED','part_count':2 if i%24==0 else 0} for i in range(244)]
++    ordinary=[];long={}
++    for entry in prepared:
++        article={f:entry[f] for f in ('article_id','source_sha256','body_sha256')}
++        article['article_metadata']={'publication_date':entry['source_date'],'symbol':entry['symbol']}
++        if entry['part_count']:
++            long[entry['article_id']]={'article':article,'part_payloads':[{**deepcopy(article),'date':entry['source_date']} for _ in range(entry['part_count'])]}
++        else:ordinary.append({**article,'date':entry['source_date']})
++    return entries,ordinary,long,prepared
++
++
++def test_semantic_extension_full459_shape_filters_history_and_stopped():
++    bridge=_bridge_module();entries,ordinary,long,prepared=_semantic_prepared_identity_shape()
++    original=deepcopy((ordinary,long));assert len(prepared)==459 and len(entries)==215
++    excluded=[e for e in prepared if e['primary_disposition'] not in {'MODEL_ORDINARY','MODEL_LONG'}]
++    assert sum(e['primary_disposition']=='OTHER_HISTORY_PRESERVED' for e in excluded)==242
++    assert sum(e['primary_disposition']=='USER_STOPPED_EXCLUDED' for e in excluded)==2
++    selected,selected_long=bridge._extension_prepared_subset(entries,ordinary,long)
++    assert len(selected)==208 and len(selected_long)==7
++    assert {p['article_id'] for p in selected}|set(selected_long)=={e['article_id'] for e in entries}
++    assert not ({p['article_id'] for p in selected}|set(selected_long)) & {e['article_id'] for e in excluded}
++    assert sorted(len(s['part_payloads']) for s in selected_long.values())==[2,2,3,4,5,9,13]
++    assert (ordinary,long)==original
++
++
++@pytest.mark.parametrize('field',['article_id','source_sha256','body_sha256','date','symbol','publication_date','missing','duplicate','long_part_date'])
++def test_semantic_extension_prepared_identity_drift_never_hides_eligible_missing(field):
++    bridge=_bridge_module();entries,ordinary,long,prepared=_semantic_prepared_identity_shape()
++    first=next(p for p in ordinary if p['article_id']==next(e['article_id'] for e in entries if e['primary_disposition']=='MODEL_ORDINARY'))
++    if field in ('symbol','publication_date'):first['article_metadata'][field]='WRONG'
++    elif field=='missing':ordinary.remove(first)
++    elif field=='duplicate':ordinary.append(deepcopy(first))
++    elif field=='long_part_date':
++        aid=next(e['article_id'] for e in entries if e['primary_disposition']=='MODEL_LONG');long[aid]['part_payloads'][0]['date']='2026-10-19'
++    else:first[field]='WRONG'
++    with pytest.raises(bridge.FlashRunError,match='EXTENSION_PREPARED_COVERAGE_CHANGED'):
++        bridge._extension_prepared_subset(entries,ordinary,long)
++
++
++def test_semantic_fix_risk_extract_is_new_identity_only_and_never_edits_raw():
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT, SEMANTIC_CONTRACT_VERSION
++    bridge=_bridge_module();bridge._load_helper();import batch_runner as runner
++    material={'configuration_sha256':'c'*64,'configuration_material':{'semantic_contract_version':SEMANTIC_CONTRACT_VERSION}}
++    payload={'article_body':'公告限定：未经审计。\n\n另段文字。','messages':[{'content':SEMANTIC_CONTRACT}],
++        'configuration_sha256':'c'*64,'prompt_sha256':bridge.sha(SEMANTIC_CONTRACT.encode()),'body_sha256':'b'*64,
++        'semantic_contract_version':SEMANTIC_CONTRACT_VERSION}
++    for notes in ([],['未经 审计。'],['公告限定：未经审计。']):
++        raw={'reader_output':{'risk_notes':notes}};original=deepcopy(raw)
++        bridge._risk_extract_guard(payload,raw,material,runner);assert raw==original
++    for notes in (['未经审计，可能影响后续经营。'],[''],[1]):
++        raw={'reader_output':{'risk_notes':notes}};original=deepcopy(raw)
++        with pytest.raises(bridge.FlashRunError,match='RISK_EXTRACT_SOURCE_UNSUPPORTED'):
++            bridge._risk_extract_guard(payload,raw,material,runner)
++        assert raw==original
++    legacy={**payload,'messages':[{'content':'original historical contract'}],'configuration_sha256':'d'*64}
++    legacy.pop('semantic_contract_version')
++    bridge._risk_extract_guard(legacy,{'reader_output':{'risk_notes':['历史格式允许改写，回放不增加新规则。']}},material,runner)
++    with pytest.raises(bridge.FlashRunError,match='CONTRACT_IDENTITY'):
++        bridge._risk_extract_guard({**legacy,'rules':'semantic-contract:'+SEMANTIC_CONTRACT_VERSION},{'reader_output':{'risk_notes':[]}},material,runner)
++    with pytest.raises(bridge.FlashRunError,match='CONTRACT_IDENTITY'):
++        bridge._risk_extract_guard({**payload,'configuration_sha256':'d'*64},{'reader_output':{'risk_notes':[]}},material,runner)
++    # A part may not cite a risk from outside the frozen chunk it was shown.
++    body=payload['article_body'];units=runner.build_source_unit_map(body,bridge.sha(body.encode()))['units']
++    first=units[0]['source_unit_id']
++    part={**payload,'queue_task_kind':'announcement_reader_part','body_sha256':bridge.sha(body.encode()),
++        'part_descriptor':{'start_source_unit_id':first,'end_source_unit_id':first}}
++    assert len(units)>1
++    with pytest.raises(bridge.FlashRunError,match='SOURCE_UNSUPPORTED'):
++        bridge._risk_extract_guard(part,{'reader_output':{'risk_notes':[units[-1]['text'].strip()]}},material,runner)
++    synthesis={**part,'queue_task_kind':'announcement_reader_synthesis','allowed_source_intervals':[[0,0]]}
++    bridge._risk_extract_guard(synthesis,{'reader_output':{'risk_notes':['未经审计。']}},material,runner)
++    with pytest.raises(bridge.FlashRunError,match='SOURCE_UNSUPPORTED'):
++        bridge._risk_extract_guard(synthesis,{'reader_output':{'risk_notes':[units[-1]['text'].strip()]}},material,runner)
++
++
++def test_semantic_fix_actual_raw_rejected_new_contract_but_legacy_replay_unchanged():
++    import os
++    fixture=os.environ.get('ANNOUNCEMENT_SEMANTIC_FIX_FIXTURE')
++    if not fixture:pytest.skip('Set actual read-only semantic diagnosis fixture path for live-shape replay')
++    root=Path(fixture);bridge=_bridge_module();helper=bridge._load_helper()
++    import batch_runner as runner,announcement_queue as qm,build_length_canary as lc
++    contract=runner.load_active_contract(bridge.REPO_ROOT/'v4/manager_workbench/engines/announcement.py')
++    material=bridge._owned_request_material(helper,runner,contract);validator=bridge._validator(qm,runner,contract,material,lc)
++    payload=json.loads((root/'input.json').read_bytes());raw=json.loads((root/'raw.json').read_bytes());saved=json.loads((root/'validated.json').read_bytes())
++    assert validator(SimpleNamespace(payload=payload),raw)==saved
++    original=deepcopy(raw);new=deepcopy(payload)
++    new['messages'][0]['content']=material['prompt'];new['prompt_sha256']=material['prompt_sha256'];new['configuration_sha256']=material['configuration_sha256']
++    with pytest.raises(qm.ValidationRejected,match='RISK_EXTRACT_SOURCE_UNSUPPORTED'):
++        validator(SimpleNamespace(payload=new),raw)
++    assert raw==original
++    # Keep the original selected-direction oracle: never manufacture POSITIVE.
++    old_raw=json.loads((root.parent/'diagnosis/failed-raw.json').read_bytes());old_raw['reader_output']['risk_notes']=[]
++    with pytest.raises(qm.ValidationRejected,match='ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT'):
++        validator(SimpleNamespace(payload=new),old_raw)
++
++
++def test_semantic_fix_transport_stops_before_second_model_http_and_lookup():
++    bridge=_bridge_module();calls=[]
++    class Base:
++        def __init__(self,*a,**kw):self._round=0
++        def begin_job(self):self._round=0
++        def _stream_completion(self,*a,**kw):self._round+=1;calls.append('HTTP');return 'response'
++        def _call_simple_workflow_lookup(self,*a,**kw):calls.append('lookup')
++    transport=bridge._single_http_canary_transport(SimpleNamespace(GatedStreamingTransport=Base),SimpleNamespace(TransportError=RuntimeError))
++    transport.begin_job();assert transport._stream_completion()=='response'
++    with pytest.raises(RuntimeError,match='ONE_HTTP_LIMIT'):transport._stream_completion()
++    with pytest.raises(RuntimeError,match='ONE_HTTP_LIMIT'):transport._call_simple_workflow_lookup({})
++    assert calls==['HTTP']
++
++
++def _semantic_reviewed_success_fixture(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,old_plan,old_sha,failed_key,failed=_semantic_failure_fixture(tmp_path,monkeypatch)
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=old_sha)
++    io=bridge.SafeRoot(state);root=state/'announcement_flash/queue';jobs=json.loads((root/'queue-state.json').read_bytes())['jobs']
++    reviewed_key=next(k for k in jobs if k!=failed_key);item=jobs[reviewed_key];payload=bridge._queue_payload(root,item)
++    trace=f'announcement_flash/evidence/streams/{reviewed_key}/attempt-0001/'
++    io.write_bytes(trace+'round-01.request-input.json',bridge.canonical({'messages':payload['messages'],'structured_outputs':{'json':payload['structured_output_schema']}}))
++    io.write_bytes(trace+'stream-receipt.json',bridge.canonical({'rounds':[{'synthetic':True}]}))
++    io.write_bytes(trace+'round-01.raw.sse',b'SYNTHETIC_OFFLINE_RESPONSE')
++    evidence=tmp_path/'review-evidence';(evidence/'live-review').mkdir(parents=True)
++    review={'status':'LIVE_RECOVERY_SEMANTIC_FAIL','actual_calls':{'new_queue_jobs':1,'physical_new_attempts':1,
++        'request_rounds':1,'logical_attempt':2,'new_key':reviewed_key},'job_id':value['job_id'],
++        'source_report_sha256':pre['preprocessing']['sha256'],'execution_extension_sha256':old_sha,'identity_binding':{'new_key':reviewed_key}}
++    review_raw=bridge.canonical(review);(evidence/'live-review/receipt.json').write_bytes(review_raw)
++    pins={**bridge.SEMANTIC_REPAIR,'job_id':value['job_id'],'report_sha256':pre['preprocessing']['sha256'],
++        'predecessor_sha256':old_sha,'review_sha256':bridge.sha(review_raw),'queue_key':reviewed_key,'queue_record_sha256':bridge.sha(bridge.canonical(item)),
++        **{f:item[f] for f in ('payload_sha256','raw_sha256','validated_sha256')},
++        'request_sha256':bridge.sha(io.read_bytes(trace+'round-01.request-input.json')),
++        'stream_sha256':bridge.sha(io.read_bytes(trace+'stream-receipt.json')),'sse_sha256':bridge.sha(io.read_bytes(trace+'round-01.raw.sse'))}
++    monkeypatch.setattr(bridge,'SEMANTIC_REPAIR',pins);monkeypatch.setattr(bridge,'SEMANTIC_REPAIR_EVIDENCE_ROOT',evidence)
++    # Offline transport executor fixture returns directly and never makes HTTP.
++    monkeypatch.setattr(bridge,'_single_http_canary_transport',lambda *a,**kw:SimpleNamespace(close=lambda:None))
++    plan,sha=bridge._extension_plan(state,capture,value['job_id'],pre['preprocessing']['sha256'])
++    prefix=f'announcement_flash/jobs/{value["job_id"]}'
++    io.write_bytes(prefix+'/execution-extensions/'+sha+'.json',bridge.canonical(plan)+b'\n')
++    io.write_bytes(prefix+'/execution-extensions/latest.json',bridge.canonical({'sha256':sha})+b'\n')
++    return bridge,value,state,capture,calls,kw,pre,plan,sha,pins,jobs,evidence
++
++
++def _semantic_write_new_trace_and_acceptance(bridge,state,plan,sha,evidence,*,verdict=None):
++    root=state/'announcement_flash/queue';jobs=json.loads((root/'queue-state.json').read_bytes())['jobs']
++    key,item=next((k,j) for k,j in jobs.items() if bridge._queue_payload(root,j).get('execution_extension_sha256')==sha)
++    payload=bridge._queue_payload(root,item);io=bridge.SafeRoot(state)
++    trace=f'announcement_flash/evidence/streams/{key}/attempt-0001/'
++    request=bridge.canonical({'messages':payload['messages'],'structured_outputs':{'json':payload['structured_output_schema']}})
++    io.write_bytes(trace+'round-01.request-input.json',request);io.write_bytes(trace+'stream-receipt.json',bridge.canonical({'rounds':[{'synthetic':True}]}))
++    receipt={'schema':'v4.manager_workbench.semantic_canary_acceptance.v1','reviewer':'independent-offline-test',
++        'verdict':verdict,'source_faithfulness':verdict,'job_id':plan['job_id'],'queue_key':key,'report_sha256':plan['report_sha256'],
++        'capture_sha256':plan['capture_product']['sha256'],'extension_sha256':sha,'payload_sha256':item['payload_sha256'],
++        'raw_sha256':item['raw_sha256'],'validated_sha256':item['validated_sha256'],'request_sha256':bridge.sha(request),
++        **{f:payload[f] for f in ('article_id','source_sha256','body_sha256','prompt_sha256','configuration_sha256')},'actual_calls':1}
++    path=evidence/bridge.SEMANTIC_ACCEPTANCE_REF
++    if verdict is not None:path.parent.mkdir(exist_ok=True);path.write_bytes(bridge.canonical(receipt))
++    return key,item,payload,receipt,path
++
++
++def test_semantic_fix_only_reviewed_success_recovers_once_and_continue_waits_for_bound_pass(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    root=state/'announcement_flash/queue';prefix=f'announcement_flash/jobs/{value["job_id"]}';io=bridge.SafeRoot(state)
++    assert plan['failed']['logical_attempt']==3 and plan['semantic_repair']['max_canary_model_http_requests']==1
++    assert len(plan['entries'])==2
++    kwargs=dict(execute_report_sha256=pre['preprocessing']['sha256'],extension_sha256=sha)
++    bridge._run(value,**kw,**kwargs,execution_phase='RECOVER_FAILED');assert len(calls)==3
++    key,item,payload,receipt,path=_semantic_write_new_trace_and_acceptance(bridge,state,plan,sha,evidence)
++    assert payload['semantic_recovery_of']['queue_key']==pins['queue_key'] and payload['recovery_of']['logical_attempt']==3
++    assert bridge._extension_checkpoint(state,plan,sha)==(key,'AWAITING_SEMANTIC_REVIEW')
++    bridge._run(value,**kw,**kwargs,execution_phase='RECOVER_FAILED');assert len(calls)==3
++    with pytest.raises(bridge.FlashRunError,match='SEMANTIC_CANARY_NOT_ACCEPTED'):
++        bridge._run(value,**kw,**kwargs,execution_phase='CONTINUE_REMAINING')
++    path.parent.mkdir(exist_ok=True);path.write_bytes(bridge.canonical({**receipt,'verdict':'PASS','source_faithfulness':'PASS','raw_sha256':'0'*64}))
++    with pytest.raises(bridge.FlashRunError,match='SEMANTIC_REVIEW_BINDING_CHANGED'):bridge._extension_checkpoint(state,plan,sha)
++    path.write_bytes(bridge.canonical({**receipt,'verdict':'FAIL','source_faithfulness':'FAIL'}))
++    assert bridge._extension_checkpoint(state,plan,sha)==(key,'SEMANTIC_REVIEW_FAILED')
++    path.write_bytes(bridge.canonical({**receipt,'verdict':'PASS','source_faithfulness':'PASS'}));approval=bridge.sha(path.read_bytes())
++    assert bridge._extension_checkpoint(state,plan,sha)==(key,'SUCCEEDED')
++    # The runner requires the exact evidence admitted by the existing submit owner.
++    request={'phase':'CONTINUE_REMAINING','report_sha256':pre['preprocessing']['sha256'],'extension_sha256':sha,'semantic_review_sha256':'0'*64}
++    def save_request(request):
++        raw=bridge.canonical(request)+b'\n';rsha=bridge.sha(raw);ref=prefix+'/extension-requests/'+rsha+'.json'
++        io.write_bytes(ref,raw);io.write_bytes(prefix+'/extension-request.json',bridge.canonical({'artifact_ref':ref,'sha256':rsha}))
++    save_request(request)
++    with pytest.raises(bridge.FlashRunError,match='SEMANTIC_APPROVAL_CHANGED'):
++        bridge._run(value,**kw,**kwargs,execution_phase='CONTINUE_REMAINING')
++    assert len(calls)==3
++    save_request({**request,'semantic_review_sha256':approval})
++    bridge._run(value,**kw,**kwargs,execution_phase='CONTINUE_REMAINING');assert len(calls)==4
++    after=json.loads((root/'queue-state.json').read_bytes())['jobs'];assert all(after[k]==v for k,v in old.items())
++    # The exact rejected old success is never overwritten, nor globally retried.
++    assert after[pins['queue_key']]['status']=='SUCCEEDED' and after[key]['attempt_count']==1
++
++
++def test_semantic_fix_seed_rejects_drift_and_other_successes_remain_reusable(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    root=state/'announcement_flash/queue';item=old[pins['queue_key']];original=(root/item['raw_path']).read_bytes()
++    (root/item['raw_path']).write_bytes(original+b' ')
++    with pytest.raises(bridge.FlashRunError,match='SAVED_ARTIFACT_CHANGED'):bridge._extension_plan(state,capture,value['job_id'],pre['preprocessing']['sha256'])
++    (root/item['raw_path']).write_bytes(original)
++    receipt=evidence/'live-review/receipt.json';original_review=receipt.read_bytes();receipt.write_bytes(original_review+b' ')
++    with pytest.raises(bridge.FlashRunError,match='REVIEW_CHANGED'):bridge._extension_plan(state,capture,value['job_id'],pre['preprocessing']['sha256'])
++    receipt.write_bytes(original_review)
++    helper=bridge._load_helper();import announcement_queue as qm,batch_runner as runner,build_length_canary as lc
++    contract=runner.load_active_contract(bridge.REPO_ROOT/'v4/manager_workbench/engines/announcement.py');material=bridge._owned_request_material(helper,runner,contract)
++    validator=bridge._validator(qm,runner,contract,material,lc);queue=bridge._new_only_queue(qm,root,runner.MODEL_ID)
++    payload=bridge._queue_payload(root,item);candidate=bridge._extension_payload(payload,material,plan,sha,lambda _:1,999999)
++    # Without the exact independent failure exception this saved full success wins.
++    preserved=bridge._extension_saved_task(candidate,queue,root,validator,failed_key=plan['failed']['queue_key'],extension_sha256=sha)
++    assert preserved[0]==pins['queue_key']
++    assert bridge._extension_saved_task(candidate,queue,root,validator,failed_key=plan['failed']['queue_key'],extension_sha256=sha,semantic_repair=plan['semantic_repair']) is None
++
++
++def test_semantic_fix_rest_gate_and_current_candidate_projection_preserve_saved_history(tmp_path,monkeypatch):
++    from v4.manager_workbench import announcement_update as update_module
++    from v4.manager_workbench.announcement_update import AnnouncementUpdate,_semantic_project_stocks
++    from v4.manager_workbench.contracts import JobState
++    from v4.manager_workbench.jobs import JobConflict
++    from v4.manager_workbench.store import WorkbenchStore
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    import ops.run_manager_flash_announcements as live_bridge
++    for name in ('_extension_plan','_extension_checkpoint','_semantic_canary_review','_semantic_quarantined_results'):
++        monkeypatch.setattr(live_bridge,name,getattr(bridge,name))
++    store=WorkbenchStore(tmp_path/'owner');job=SimpleNamespace(state=JobState.PARTIAL)
++    service=SimpleNamespace(store=store,jobs=SimpleNamespace(get=lambda _:job),config=SimpleNamespace(capture_root=capture))
++    update=AnnouncementUpdate(service);monkeypatch.setattr(update,'_stop_requested',lambda _:False)
++    snapshot=update.semantic_recovery_snapshot(value['job_id'],pre['preprocessing']['sha256'])
++    assert snapshot['phase']=='RECOVER_FAILED' and snapshot['semantic_review_state']=='SOURCE_SEMANTIC_FAIL_RECOVERABLE'
++    delivered,_=read_delivery(bridge.SafeRoot(state),value['job_id']);quarantine=snapshot['quarantined_results']
++    bad={'queue_key':pins['queue_key'],'result_sha256':pins['validated_sha256'],'reason':'bad','article_id':'FIRST'}
++    good={'queue_key':'e'*64,'result_sha256':'f'*64,'reason':'good','article_id':'OTHER'}
++    stocks=[{'symbol':'HK.00001','articles':[bad,good],'reasons':['bad','good']},{'symbol':'HK.00002','articles':[good],'reasons':['good']}]
++    original=deepcopy(stocks);projected=_semantic_project_stocks(stocks,quarantine)
++    assert stocks==original and projected[0]['articles']==[good] and projected[1]==stocks[1]
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    key,item,payload,receipt,path=_semantic_write_new_trace_and_acceptance(bridge,state,plan,sha,evidence)
++    blocked=update.semantic_recovery_snapshot(value['job_id'],pre['preprocessing']['sha256'])
++    assert not blocked['eligible'] and blocked['phase'] is None and blocked['checkpoint_state']=='AWAITING_SEMANTIC_REVIEW'
++    assert len(blocked['quarantined_results'])==2
++    with pytest.raises(JobConflict,match='EXTENSION_EXECUTION_NOT_ELIGIBLE'):
++        update._submit_semantic_recovery(value['job_id'],pre['preprocessing']['sha256'],'CONTINUE_REMAINING',sha,blocked['delivery_sha256'])
++    assert len(calls)==3
++
++
++def test_semantic_fix_api_cannot_continue_without_review_and_pins_pass_at_submit(tmp_path,monkeypatch):
++    from fastapi import FastAPI
++    from fastapi.testclient import TestClient
++    from v4.manager_workbench import api as api_module
++    from v4.manager_workbench.announcement_update import AnnouncementUpdate
++    from v4.manager_workbench.contracts import JobRecord,JobState,RunContext,Phase
++    from v4.manager_workbench.store import WorkbenchStore
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    import ops.run_manager_flash_announcements as live_bridge
++    for name in ('_extension_plan','_extension_checkpoint','_semantic_canary_review','_semantic_quarantined_results'):
++        monkeypatch.setattr(live_bridge,name,getattr(bridge,name))
++    store=WorkbenchStore(tmp_path/'owner')
++    context=RunContext(target_date=value['target_date'],cutoff=value['cutoff'],phase=Phase.MANUAL,trigger='MANUAL',rules_version='V4_ANNOUNCEMENT_FLASH_INCREMENTAL_V1',scope_refs={'capture_operation':'ANNOUNCEMENT_FLASH_INCREMENTAL'})
++    job=JobRecord(job_id=value['job_id'],run_id=value['job_id'],context=context,state=JobState.PARTIAL,step='DONE',retryable=True)
++    service=SimpleNamespace(store=store,jobs=SimpleNamespace(get=lambda _:job,submit=lambda *a,**kw:job),config=SimpleNamespace(capture_root=capture))
++    update=AnnouncementUpdate(service);monkeypatch.setattr(update,'_stop_requested',lambda _:False);monkeypatch.setattr(update,'_active_flash_attempts',lambda **kw:[])
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    key,item,payload,receipt,path=_semantic_write_new_trace_and_acceptance(bridge,state,plan,sha,evidence)
++    snapshot=update.semantic_recovery_snapshot(value['job_id'],pre['preprocessing']['sha256'])
++    monkeypatch.setattr(api_module,'AnnouncementUpdate',lambda _:update)
++    app=FastAPI();app.include_router(api_module.create_router(service))
++    request={'phase':'CONTINUE_REMAINING','report_sha256':pre['preprocessing']['sha256'],'extension_sha256':sha,'first_delivery_sha256':snapshot['delivery_sha256']}
++    with TestClient(app) as client:
++        assert client.post(f'/api/v4/manager-workbench/announcement-flash/{value["job_id"]}/execute-preprocessed',json=request).status_code==409
++    assert len(calls)==3
++    path.parent.mkdir(exist_ok=True);path.write_bytes(bridge.canonical({**receipt,'verdict':'PASS','source_faithfulness':'PASS'}))
++    update._submit_semantic_recovery(value['job_id'],pre['preprocessing']['sha256'],'CONTINUE_REMAINING',sha,snapshot['delivery_sha256'])
++    prefix=f'announcement_flash/jobs/{value["job_id"]}'
++    io=bridge.SafeRoot(state);binding=json.loads(io.read_bytes(prefix+'/extension-request.json'));saved=json.loads(io.read_bytes(binding['artifact_ref']))
++    assert saved['semantic_review_sha256']==bridge.sha(path.read_bytes()) and saved['extension_sha256']==sha
++    assert len(calls)==3 # Submit fixture does not launch another executor.
++
++
++def test_semantic_fix_failed_third_attempt_is_preserved_and_never_automatically_retried(tmp_path,monkeypatch):
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    normal=bridge._transport_executor
++    def factory(*a,**kw):
++        execute=normal(*a,**kw)
++        def unsupported(job):
++            raw=json.loads(execute(job));raw['reader_output']['risk_notes']=['未披露的未来经营风险。']
++            return json.dumps(raw,ensure_ascii=False)
++        return unsupported
++    monkeypatch.setattr(bridge,'_transport_executor',factory)
++    args=dict(execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    bridge._run(value,**kw,**args);assert len(calls)==3
++    root=state/'announcement_flash/queue';jobs=json.loads((root/'queue-state.json').read_bytes())['jobs']
++    key,item=next((k,j) for k,j in jobs.items() if bridge._queue_payload(root,j).get('execution_extension_sha256')==sha)
++    assert item['status']=='FAILED' and item['last_error']['code']=='RISK_EXTRACT_SOURCE_UNSUPPORTED'
++    raw=(root/item['raw_path']).read_bytes();assert '未披露的未来经营风险' in raw.decode()
++    assert bridge._extension_checkpoint(state,plan,sha)==(key,'FAILED')
++    bridge._run(value,**kw,**args);assert len(calls)==3 and (root/item['raw_path']).read_bytes()==raw
++    with pytest.raises(bridge.FlashRunError,match='CANARY_NOT_SUCCEEDED'):
++        bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='CONTINUE_REMAINING',extension_sha256=sha)
++    after=json.loads((root/'queue-state.json').read_bytes())['jobs'];assert all(after[k]==v for k,v in old.items())
++
++
++def test_semantic_correction_synthesis_uses_authoritative_integer_intervals_and_rejects_unseen_units():
++    from v4.manager_workbench.announcement_preprocessing import SEMANTIC_CONTRACT,SEMANTIC_CONTRACT_VERSION
++    from v4.manager_workbench import announcement_chunks as chunks
++    bridge=_bridge_module();bridge._load_helper();import batch_runner as runner
++    body='第一风险：未经审计。\n\n中间段：另一限定。\n\n最后段：不同事项。'
++    bsha=bridge.sha(body.encode());unit_map=runner.build_source_unit_map(body,bsha);units=unit_map['units'];assert len(units)==3
++    aid='EASTMONEY:INTEGER_INTERVAL';first=units[0]['source_unit_id']
++    reports=[{'part_index':1,'part_count':1,'part_result_sha256':'a'*64,'part_raw_response_sha256':'b'*64,
++        'part_descriptor':{'part_index':1,'part_count':1,'source_unit_ids':[first]},
++        'citation_ranges':[{'start_source_unit_id':aid+'::'+first,'end_source_unit_id':aid+'::'+first}]}]
++    intervals=chunks.synthesis_intervals_from_reports(reports,article_id=aid,unit_map=unit_map);assert intervals==[[0,0]]
++    material={'configuration_sha256':'c'*64,'configuration_material':{'semantic_contract_version':SEMANTIC_CONTRACT_VERSION}}
++    payload={'article_body':body,'body_sha256':bsha,'messages':[{'content':SEMANTIC_CONTRACT}],
++        'prompt_sha256':bridge.sha(SEMANTIC_CONTRACT.encode()),'configuration_sha256':'c'*64,
++        'semantic_contract_version':SEMANTIC_CONTRACT_VERSION,'queue_task_kind':'announcement_reader_synthesis','allowed_source_intervals':intervals}
++    raw={'reader_output':{'risk_notes':['第一风险：未经审计。']}};original=deepcopy(raw)
++    bridge._risk_extract_guard(payload,raw,material,runner);assert raw==original
++    with pytest.raises(bridge.FlashRunError,match='SOURCE_UNSUPPORTED'):
++        bridge._risk_extract_guard(payload,{'reader_output':{'risk_notes':[units[1]['text'].strip()]}},material,runner)
++    for invalid in ([[first,first]],[[-1,0]],[[0,len(units)]],[[1,0]],[[True,0]],[[0]],None):
++        with pytest.raises(bridge.FlashRunError,match='SOURCE_INTERVAL_INVALID'):
++            bridge._risk_extract_guard({**payload,'allowed_source_intervals':invalid},raw,material,runner)
++    # Adjacent visible units share the existing union allowance; gaps remain unseen.
++    joined=units[0]['text']+units[1]['text']
++    bridge._risk_extract_guard({**payload,'allowed_source_intervals':[[0,0],[1,1]]},{'reader_output':{'risk_notes':[joined]}},material,runner)
++    with pytest.raises(bridge.FlashRunError,match='SOURCE_UNSUPPORTED'):
++        bridge._risk_extract_guard({**payload,'allowed_source_intervals':[[0,0],[2,2]]},{'reader_output':{'risk_notes':[body]}},material,runner)
++
++
++@pytest.mark.parametrize('acceptance',['missing','FAIL','wrong_raw','wrong_key','invalid_json'])
++def test_semantic_correction_review_errors_keep_verified_quarantine_and_other_stock_contributions(tmp_path,monkeypatch,acceptance):
++    from v4.manager_workbench.announcement_update import AnnouncementUpdate,_semantic_project_stocks
++    from v4.manager_workbench.contracts import JobState
++    from v4.manager_workbench.store import WorkbenchStore
++    from v4.manager_workbench.announcement_delivery import read_analysis
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    normal=bridge._transport_executor
++    def factory(*a,**kwargs):
++        execute=normal(*a,**kwargs)
++        def selected(job):
++            raw=json.loads(execute(job));out=raw['reader_output'];out.update(disposition='SELECTED_EVENT',selection_basis='OPERATING_EVENT',direction='POSITIVE');out['changes']=list(out['impact'])
++            return json.dumps(raw,ensure_ascii=False)
++        return selected
++    monkeypatch.setattr(bridge,'_transport_executor',factory)
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    key,item,payload,receipt,path=_semantic_write_new_trace_and_acceptance(bridge,state,plan,sha,evidence)
++    if acceptance!='missing':
++        path.parent.mkdir(exist_ok=True);review={**receipt,'verdict':'PASS','source_faithfulness':'PASS'}
++        if acceptance=='FAIL':review.update(verdict='FAIL',source_faithfulness='FAIL')
++        elif acceptance=='wrong_raw':review['raw_sha256']='0'*64
++        elif acceptance=='wrong_key':review['queue_key']='0'*64
++        path.write_bytes(b'{' if acceptance=='invalid_json' else bridge.canonical(review))
++    import ops.run_manager_flash_announcements as live_bridge
++    for name in ('_extension_plan','_extension_checkpoint','_semantic_canary_review','_semantic_quarantined_results','FlashRunError'):
++        monkeypatch.setattr(live_bridge,name,getattr(bridge,name))
++    service=SimpleNamespace(store=WorkbenchStore(tmp_path/'owner'),jobs=SimpleNamespace(get=lambda _:SimpleNamespace(state=JobState.PARTIAL)),config=SimpleNamespace(capture_root=capture))
++    update=AnnouncementUpdate(service);monkeypatch.setattr(update,'_stop_requested',lambda _:False)
++    delivered,binding=read_delivery(bridge.SafeRoot(state),value['job_id']);saved=deepcopy(delivered)
++    root=state/'announcement_flash/queue';raw_before=(root/item['raw_path']).read_bytes();validated_before=(root/item['validated_path']).read_bytes();queue_before=(root/'queue-state.json').read_bytes()
++    snapshot=update.semantic_recovery_snapshot(value['job_id'],pre['preprocessing']['sha256'])
++    assert snapshot['eligible'] is False
++    assert {'queue_key':key,'result_sha256':item['validated_sha256']} in snapshot['quarantined_results']
++    if acceptance.startswith('wrong'):assert snapshot['reason']=='SEMANTIC_REVIEW_BINDING_CHANGED'
++    assert any(a['queue_key']==key for stock in delivered['stocks'] for a in stock['articles'])
++    stocks=deepcopy(delivered['stocks']);good={**stocks[0]['articles'][0],'queue_key':'9'*64,'result_sha256':'8'*64,'article_id':'OTHER_VALID','reason':'其它已验收贡献'}
++    stocks[0]['articles'].append(good);stocks[0]['reasons'].append(good['reason']);original=deepcopy(stocks)
++    projected=_semantic_project_stocks(stocks,snapshot['quarantined_results'])
++    assert stocks==original and projected[0]['articles']==[good] and projected[0]['reasons']==[good['reason']]
++    assert all(a.get('queue_key')!=key for stock in projected for a in stock['articles'])
++    analysis=read_analysis(bridge.SafeRoot(state),delivered,binding)
++    assert any(a.get('result_sha256')==item['validated_sha256'] and a['analysis_state']=='AVAILABLE' for a in analysis['articles'])
++    assert delivered==saved and (root/item['raw_path']).read_bytes()==raw_before
++    assert (root/item['validated_path']).read_bytes()==validated_before and (root/'queue-state.json').read_bytes()==queue_before
++
++
++def test_semantic_correction_exact_pass_releases_only_the_accepted_canary_quarantine(tmp_path,monkeypatch):
++    from v4.manager_workbench.announcement_update import AnnouncementUpdate,_semantic_project_stocks
++    from v4.manager_workbench.contracts import JobState
++    from v4.manager_workbench.store import WorkbenchStore
++    bridge,value,state,capture,calls,kw,pre,plan,sha,pins,old,evidence=_semantic_reviewed_success_fixture(tmp_path,monkeypatch)
++    bridge._run(value,**kw,execute_report_sha256=pre['preprocessing']['sha256'],execution_phase='RECOVER_FAILED',extension_sha256=sha)
++    key,item,payload,receipt,path=_semantic_write_new_trace_and_acceptance(bridge,state,plan,sha,evidence,verdict='PASS')
++    import ops.run_manager_flash_announcements as live_bridge
++    for name in ('_extension_plan','_extension_checkpoint','_semantic_canary_review','_semantic_quarantined_results','FlashRunError'):
++        monkeypatch.setattr(live_bridge,name,getattr(bridge,name))
++    service=SimpleNamespace(store=WorkbenchStore(tmp_path/'owner'),jobs=SimpleNamespace(get=lambda _:SimpleNamespace(state=JobState.PARTIAL)),config=SimpleNamespace(capture_root=capture))
++    update=AnnouncementUpdate(service);monkeypatch.setattr(update,'_stop_requested',lambda _:False)
++    snapshot=update.semantic_recovery_snapshot(value['job_id'],pre['preprocessing']['sha256'])
++    assert snapshot['eligible'] is True and snapshot['phase']=='CONTINUE_REMAINING'
++    assert snapshot['semantic_review_sha256']==bridge.sha(path.read_bytes())
++    assert snapshot['quarantined_results']==[{'queue_key':pins['queue_key'],'result_sha256':pins['validated_sha256']}]
++    approved={'queue_key':key,'result_sha256':item['validated_sha256'],'reason':'已验收'}
++    stock={'symbol':'HK.00001','articles':[approved],'reasons':['已验收']}
++    assert _semantic_project_stocks([stock],snapshot['quarantined_results'])==[stock]
+--- a/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
++++ b/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts
+@@ -601,3 +601,49 @@
+     expect(fetcher).toHaveBeenCalledTimes(1);
+   });
+ });
++
++describe("semantic recovery of the frozen announcement job", () => {
++  afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
++  function value(phase = "RECOVER_FAILED") {
++    const job = "a".repeat(32), report = "b".repeat(64), delivery = "c".repeat(64);
++    return { ...announcementResult([], "d".repeat(64)),
++      job: { job_id: job, target_date: "20261021", state: "PARTIAL", step: "DONE" },
++      preprocessing: { job_id: job, target_date: "20261021", accounting_closed: true,
++        counts: { model_required_articles: 215, primary_dispositions: {} }, rules_explanation: [],
++        first_article_id: "FIRST", execution_manifest: [{ article_id: "FIRST", body_sha256: "e".repeat(64) }] },
++      preprocessing_binding: { sha256: report },
++      daily_delivery: { job_id: job, target_trade_date: "20261021", preprocessing_report_sha256: report,
++        state: "PARTIAL", counts: { FAILED: 1, DEFERRED: 214 }, articles: [
++          { article_id: "FIRST", body_sha256: "e".repeat(64), state: phase === "RECOVER_FAILED" ? "FAILED" : "SUCCEEDED" }],
++        model_progress: { total: 215, counts: { SUCCEEDED: 1, FAILED: 0, DEFERRED: 214 }, current_article_id: "NEXT" } },
++      daily_delivery_binding: { job_id: job, sha256: delivery },
++      semantic_recovery: { eligible: true, status: "READY", job_id: job, target_date: "20261021",
++        report_sha256: report, delivery_sha256: delivery, extension_sha256: "f".repeat(64), phase,
++        total_articles: 215, remaining_articles: 214 } };
++  }
++  it.each(["RECOVER_FAILED", "CONTINUE_REMAINING"])("binds %s to the current job/report/extension and delivery", async phase => {
++    const data = value(phase); const posts: unknown[] = [];
++    vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init: RequestInit = {}) => {
++      if (init.method === "POST") { posts.push(JSON.parse(String(init.body))); return response(envelope({ job_id: data.job.job_id }), 202); }
++      return response(envelope(data));
++    }));
++    render(AnnouncementCandidates, { props: { targetDate: "20261021" } });
++    const button = await screen.findByRole("button", { name: phase === "RECOVER_FAILED" ? "恢复失败公告" : "继续分析剩余公告" });
++    expect(posts).toHaveLength(0);
++    expect(screen.queryByRole("button", { name: "运行首篇新增公告" })).toBeNull();
++    expect(screen.getByText(/本批 215 篇/)).toBeTruthy();
++    expect(screen.getByText(/当前 NEXT/)).toBeTruthy();
++    await fireEvent.click(button);
++    await waitFor(() => expect(posts).toHaveLength(1));
++    expect(posts[0]).toEqual({ phase, report_sha256: data.preprocessing_binding.sha256,
++      first_delivery_sha256: data.daily_delivery_binding.sha256, extension_sha256: data.semantic_recovery.extension_sha256 });
++  });
++  it.each(["job_id", "target_date", "report_sha256", "delivery_sha256", "extension_sha256"])("fails closed on a mismatched %s", async field => {
++    const data = value(); (data.semantic_recovery as Record<string, unknown>)[field] = "";
++    vi.stubGlobal("fetch", vi.fn(async () => response(envelope(data))));
++    render(AnnouncementCandidates, { props: { targetDate: "20261021" } });
++    await screen.findByText("逐篇完整结果与未完成清单");
++    expect(screen.queryByRole("button", { name: "恢复失败公告" })).toBeNull();
++    expect(screen.queryByRole("button", { name: "继续分析剩余公告" })).toBeNull();
++  });
++});
