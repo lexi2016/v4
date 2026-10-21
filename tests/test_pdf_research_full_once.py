@@ -21,7 +21,7 @@ def sample_card(pages):
     p=pages[0];e={'page_number':p['page_number'],'text_sha256':p['text_sha256'],'excerpt':'2026年收入预测100万元。'}
     claim={'claim':'作者预测2026年收入100万元','attribution':'原作者','period':'2026年','unit':'万元','evidence':[e]}
     return {'material_type':'研究材料','event_or_meeting_object':'UNKNOWN','speaker_and_source_attribution':['原作者'],'date':{'value':None,'basis':'UNKNOWN','evidence':[]},'facts':[],'forecasts':[claim],'inferences':[],
-            'numeric_values':[{'value_as_source':'100','sign':'正','unit':'万元','period':'2026年','actual_or_forecast':'预测','evidence':[e]}],'related_entities':[],'unknowns':['发布日期未核实']}
+            'numeric_values':[{'value_as_source':'100','sign':'正','unit':'万元','period':'2026年','actual_or_forecast':'预测','comparison_operator':'EQ','measure_kind':'revenue','evidence':[e]}],'related_entities':[],'unknowns':['发布日期未核实'],'source_usage_limits':[]}
 
 
 def test_full_lossless_unicode_all_pages_and_actual_envelopes():
@@ -262,3 +262,228 @@ def test_source_invalid_proofs_have_distinct_paths_preserving_base_authority():
     assert old_code.name=='full-adapter-code-review.json' and old_runtime.name=='full-adapter-runtime-review.json'
     assert new_code.name=='full-source-invalid-code-review.json' and new_runtime.name=='full-source-invalid-runtime-review.json'
     assert old_code!=new_code and old_runtime!=new_runtime
+
+
+# V2 cases exercise only the changed contract and direct recovery/isolation risks.
+def _v2_81e_fixture():
+    root=b.RESEARCH_PILOT_ROOT/'model/full-routed-execution/positive-first-light-execution'
+    raw=(root/'preserved-raw-model-inner-card.json').read_text()
+    ip=Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/pdf_local/research/prepared/full-cohort-sol-20261019-r1/documents')/f.POSITIVE_FIRST_ID/'page-input.json'
+    assert f.sha(ip.read_bytes())=='9653c17fb83c287313b7a77e6f9e7b983ecf3bfe86784032debae655755db95a'
+    pages=[{k:p[k] for k in ('page_number','text_sha256','text')} for p in json.loads(ip.read_text())['pages']]
+    card,audit=f.canonicalize_citations(raw,pages);original=copy.deepcopy(card)
+    card['facts']=[original['facts'][0],original['facts'][2],original['facts'][3],original['inferences'][0],original['inferences'][2]]
+    card['forecasts']=[original['inferences'][1]];card['inferences']=[]
+    for item in card['numeric_values']:item.update(comparison_operator='EQ',measure_kind='date')
+    card['numeric_values'][0].update(value_as_source='不少于10',comparison_operator='GE',measure_kind='annual_capacity',actual_or_forecast='REPORTED_CAPACITY_NOT_OUTPUT')
+    card['numeric_values'][1]['measure_kind']='price_return'
+    page=pages[0];quote=lambda text:{'page_number':1,'text_sha256':page['text_sha256'],'excerpt':text}
+    card['speaker_and_source_attribution']=[{'entity':'风口研报','role':'publisher','evidence':[quote('风口研报')]},{'entity':'润邦股份','role':'respondent','evidence':[quote('润邦股份于9月28日接待南方基金独家调研')]},{'entity':'南方基金','role':'visitor','evidence':[quote('润邦股份于9月28日接待南方基金独家调研')]}]
+    card['unknowns'].append('实际发言人及作者身份未核实')
+    card['source_usage_limits']=[{'limitation':e['excerpt'],'evidence':[e]} for e in f.source_limit_quotes(pages)]
+    return raw,pages,card,audit
+
+
+def test_v2_real_failure_only_three_unique_whitespace_spans_no_lexical_repair():
+    raw,pages,card,audit=_v2_81e_fixture()
+    assert len(audit)==3 and [x['source_start_character'] for x in audit]==[219,327,428]
+    assert all(x['raw_inner_sha256']==f.sha(raw.encode()) and x['source_excerpt'] in pages[0]['text'] and f._compact(x['original_excerpt'])==f._compact(x['source_excerpt']) for x in audit)
+    assert 'REPORTED_CAPACITY_NOT_OUTPUT' in json.dumps(card)
+    page={'page_number':1,'text':'甲\n乙；甲\n乙；10艘','text_sha256':'a'*64}
+    for quote in ['甲乙','11艘','甲丙']:
+        inner=json.dumps({'evidence':[{'page_number':1,'text_sha256':'a'*64,'excerpt':quote}]},ensure_ascii=False)
+        with pytest.raises(b.BatchError,match='SPAN_NOT_UNIQUE'):f.canonicalize_citations(inner,[page])
+    assert page['text']=='甲\n乙；甲\n乙；10艘'
+
+
+@pytest.mark.parametrize('mutation,code',[('inference','INFERENCE_FORBIDDEN'),('future','FORECAST_CLASSIFIED'),('bound','BOUND_LOST'),('capacity','CAPACITY_MISCLASSIFIED'),('role','ROLE_INVALID'),('speaker','NOT_IDENTIFIED'),('restriction','USE_LIMIT_OMITTED')])
+def test_v2_four_confirmed_semantic_failures_rejected(mutation,code):
+    _,pages,valid,_=_v2_81e_fixture();assert f.validate_card(valid,pages)==valid
+    bad=copy.deepcopy(valid)
+    if mutation=='inference':bad['inferences']=[bad['facts'].pop()]
+    elif mutation=='future':bad['facts'][0]=bad['forecasts'].pop()
+    elif mutation=='bound':bad['numeric_values'][0]['comparison_operator']='EQ'
+    elif mutation=='capacity':bad['numeric_values'][0].update(measure_kind='actual_output',actual_or_forecast='actual')
+    elif mutation=='role':bad['speaker_and_source_attribution']=['风口研报','润邦股份','南方基金']
+    elif mutation=='speaker':bad['speaker_and_source_attribution'][2]['role']='speaker'
+    else:bad['source_usage_limits']=[]
+    with pytest.raises(b.BatchError,match=code):f.validate_card(bad,pages)
+
+
+def test_v2_source_use_limits_survive_source_and_synthesis():
+    _,pages,card,_=_v2_81e_fixture();limits=f.source_limit_quotes(pages)
+    assert limits and '不构成投研观点' in limits[0]['excerpt'] and '公告和分析师公开报告为准' in limits[0]['excerpt']
+    units=[{**pages[0],'offset':0}]
+    assert f.material_limits(units,synthesis=False)==limits
+    assert f.material_limits([{'card':card}],synthesis=True)==[e for item in card['source_usage_limits'] for e in item['evidence']]
+    missing=copy.deepcopy(card);missing['source_usage_limits']=[]
+    with pytest.raises(b.BatchError,match='USE_LIMIT_OMITTED'):f.validate_card(missing,pages,required_limits=limits)
+
+
+def _v2_real80_context():
+    from ops import run_pdf_research_remaining_once as d
+    docs,checkpoints=f.selection();base=f.packages.load_context();backup=b.RESEARCH_PILOT_ROOT/'model/light-v2-before'
+    adoption=json.loads((backup/'full-root-ef32.json').read_text())
+    data={'decision':f.LIGHT_V2_DECISION,'document_id':f.POSITIVE_FIRST_ID,'page_input':docs[f.POSITIVE_FIRST_ID]['page_input'],'generation':1,'max_new_POSTs':1,
+          'journal_prefix80_sha256':f.V2_PREFIX80_SHA,'failed_terminal_index':78,'halt_index':79,'template_sha256':f.TEMPLATE_SHA,
+          'failure_review':f.ref(b.RESEARCH_PILOT_ROOT/'independent-review/full-positive-first-failure-review.json'),
+          'previous_adoption_backup':f.ref(backup/'full-root-ef32.json'),'previous_source_review_backup':f.ref(backup/'code-504.json'),'template_budget':f.ref(b.RESEARCH_PILOT_ROOT/'model/light-v2-template-budget.json')}
+    adoption.update(template_sha256=f.TEMPLATE_SHA,light_v2_recovery=data)
+    invalid,previous=f.source_invalid_admission(adoption,docs);recovery,previous_v2=f.load_v2_recovery(adoption,docs)
+    return {**base,'documents':docs,'checkpoints':checkpoints,'full_adoption':adoption,'full_adoption_ref':{'path':str(f.ROOT),'sha256':'e'*64},'sources':{'reviewed_candidate':'e'*64},'source_invalid_rows':invalid,'source_invalid_review':adoption['source_invalid_admission']['independent_review'],'previous_full_adoption':previous,'light_lane_anchor':previous['adoption'],'light_v2_recovery':recovery,'v2_previous_adoption':previous_v2}
+
+
+def test_v2_actual80_typed_recovery_no_journal_write_unknown_halt_and_quota_refused(monkeypatch):
+    from datetime import datetime,timezone
+    from ops import run_pdf_research_remaining_once as d
+    ctx=_v2_real80_context();jp=d.EVIDENCE_ROOT/'dispatch.jsonl';actual=jp.read_bytes();raw=(b.RESEARCH_PILOT_ROOT/'model/light-v2-before/dispatch-prefix80.jsonl').read_bytes()
+    assert f.sha(raw)==f.V2_PREFIX80_SHA
+    class Memory:
+        path=jp;root=d.EVIDENCE_ROOT
+        def __init__(self):self.raw=raw;self.events=[json.loads(x) for x in raw.splitlines()];self.emitted=[]
+        def append(self,event):
+            row={'at_utc':datetime.now(timezone.utc).isoformat(),**event};self.events.append(row);self.emitted.append(row);self.raw+=d.canonical_json(row)+b'\n'
+    journal=Memory();original=d._read_regular;monkeypatch.setattr(d,'_read_regular',lambda path,code:journal.raw if Path(path)==jp else original(path,code))
+    with pytest.raises(b.BatchError,match='TRANSITION_REQUIRED'):f.verify_history(journal,ctx)
+    f.verify_history(journal,ctx,append=True);f.verify_full_adoption(journal,ctx,append=True)
+    assert [x['event'] for x in journal.emitted]==['halt_resolution','full_adoption']
+    f.verify_history(journal,ctx);f.verify_full_adoption(journal,ctx,append=False);assert len(journal.emitted)==2
+    before_raw=journal.raw;before_events=copy.deepcopy(journal.events)
+    for variant in ['unknown','duplicate','quota']:
+        journal.raw=before_raw;journal.events=copy.deepcopy(before_events)
+        if variant=='unknown':journal.append({'event':'halt','document_id':'f'*64})
+        elif variant=='duplicate':journal.append({k:v for k,v in journal.events[80].items() if k!='at_utc'})
+        else:
+            for _ in range(2):journal.append({'event':'full_intent','document_id':f.POSITIVE_FIRST_ID,'generation':1})
+        with pytest.raises((b.BatchError,d.DispatcherError),match='FAILURE|DUPLICATE|QUOTA'):f.verify_history(journal,ctx)
+    assert jp.read_bytes()==actual
+
+
+def test_v2_failure_isolation_streak_and_repair_terminal_generation():
+    raw=(b.RESEARCH_PILOT_ROOT/'model/light-v2-before/dispatch-prefix80.jsonl').read_bytes();events=[json.loads(x) for x in raw.splitlines()];context={'light_v2_recovery':{'generation':1}}
+    good={'event':'full_terminal','document_id':f.POSITIVE_FIRST_ID,'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','generation':1}
+    assert f.terminal_map(context,events+[good])[f.POSITIVE_FIRST_ID]==good
+    for bad in [events+[good,good],events+[{**good,'generation':2}]]:
+        with pytest.raises(b.BatchError,match='DUPLICATE|GENERATION'):f.terminal_map(context,bad)
+    failures=[{'event':'full_terminal','document_id':str(i)*64,'status':'FAILED_DOCUMENT_ISOLATED','code':'FULL_CITATION_NOT_EXACT_SOURCE'} for i in range(3)]
+    assert f.protocol_failure_streak(events+failures)
+    assert not f.protocol_failure_streak(events+failures[:2])
+    assert not f.protocol_failure_streak(events+failures[:2]+[good])
+    assert not f.protocol_failure_streak(events+[failures[0]]*3)
+
+
+@pytest.mark.parametrize('worker_code,should_continue',[('FULL_CITATION_NOT_EXACT_SOURCE',True),('MODEL_IDENTITY_DRIFT',False)])
+def test_v2_actual_loop_isolates_document_failures_continues_and_system_fault_stops(tmp_path,monkeypatch,worker_code,should_continue):
+    from ops import run_pdf_research_remaining_once as d
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('no model or network in loop fixture'))
+    ids=['a'*64,'b'*64,'c'*64];sources={}
+    for did in ids:
+        p=tmp_path/(did+'.json');p.write_text('{}');sources[did]={'document_id':did,'page_input':f.ref(p)}
+    context={'documents':sources,'checkpoints':[{'batch_id':'LIGHT-001','document_ids':ids}],'full_adoption':{},'full_adoption_ref':{'path':'fixedROOT','sha256':'d'*64}}
+    monkeypatch.setattr(f,'load_context',lambda **_:context);monkeypatch.setattr(f,'verify_history',lambda *a,**k:None);monkeypatch.setattr(f,'verify_full_adoption',lambda *a,**k:None)
+    monkeypatch.setattr(f,'first_card_gate',lambda _:True);monkeypatch.setattr(f,'write_disposition',lambda *a:{'fixture':'accounting-not-semanticPASS'})
+    monkeypatch.setattr(f,'ARTIFACTS',tmp_path/'outputs');monkeypatch.setattr(d,'EVIDENCE_ROOT',tmp_path/'journal')
+    d.EVIDENCE_ROOT.mkdir();(d.EVIDENCE_ROOT/'dispatch.jsonl').write_text('{"event":"binding"}\n')
+    monkeypatch.setattr(b,'_priority_snapshot',lambda:{'status':'ALLOW'});monkeypatch.setattr(d,'sample_resource_metrics',lambda:{'swap_used_bytes':0});monkeypatch.setattr(d,'_resource_stop_reason',lambda *a:None);monkeypatch.setattr(d,'_owned_child_create_time',lambda _:1)
+    def source(did,docs):
+        if did==ids[0]:raise b.BatchError('FULL_PAGE_COUNT_MISMATCH')
+        return docs[did],[]
+    monkeypatch.setattr(f,'source',source);launched=[]
+    class Child:
+        def __init__(self,argv,**kwargs):
+            path=Path(argv[-1]);plan=json.loads(path.read_bytes());did=plan['document_id'];launched.append(did);self.pid=1000+len(launched)
+            self.rc=2 if did==ids[1] else 0
+            if self.rc:kwargs['stderr'].write((json.dumps({'status':'FAILED_CLOSED','code':worker_code})+'\n').encode());kwargs['stderr'].flush()
+            else:
+                cp=path.parent/'card.json';cp.write_text('{}');rp=path.parent/'receipt.json';rp.write_text(json.dumps({'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','plan':f.ref(path),'card':f.ref(cp),'page_input':sources[did]['page_input'],'template_sha256':f.TEMPLATE_SHA}))
+        def poll(self):return self.rc
+        def wait(self):return self.rc
+    monkeypatch.setattr(f.subprocess,'Popen',Child)
+    result=f.execute(3);events=[json.loads(x) for x in (d.EVIDENCE_ROOT/'dispatch.jsonl').read_bytes().splitlines()]
+    terms=[e for e in events if e['event']=='full_terminal']
+    assert terms[0]['status']=='SOURCE_INVALID_NO_MODEL' and f.read(terms[0]['failure'])['new_model_POSTs']==0
+    if should_continue:
+        assert launched==ids[1:] and [e['status'] for e in terms]==['SOURCE_INVALID_NO_MODEL','FAILED_DOCUMENT_ISOLATED','GENERATED_MACHINE_VALIDATED_CONTENT_PENDING']
+        assert not any(e['event']=='halt' for e in events)
+        # One independent checkpoint may accept mixed truthful dispositions.
+        monkeypatch.setattr(b,'RESEARCH_PILOT_ROOT',tmp_path)
+        q=tmp_path/'independent-review/full-LIGHT-001-content-review.json';q.parent.mkdir()
+        rows=[{'document_id':e['document_id'],'page_input':sources[e['document_id']]['page_input'],'status':e['status'],'failure':e['failure']} for e in terms[:2]]
+        rows.append({'document_id':ids[2],'page_input':sources[ids[2]]['page_input'],'status':'LIGHT_CARD_CONTENT_PASS','card':f.ref(f.output_folder(ids[2],context)/'card.json')})
+        q.write_text(json.dumps({'status':'FULL_LIGHT_CHECKPOINT_DISPOSITION_ACCEPTED','reviewer':f.REVIEWER,'template_sha256':f.TEMPLATE_SHA,'documents':rows}))
+        context['light_v2_recovery']={'fixture_only':'no recovery POST'}
+        f.checkpoint_gate(context['checkpoints'][0],context,events)
+        rows[-1].update(status='CONTENT_FAILED_DOCUMENT_ISOLATED',findings=[{'id':'fixture-semantic-failure'}]);q.write_text(json.dumps({'status':'FULL_LIGHT_CHECKPOINT_DISPOSITION_ACCEPTED','reviewer':f.REVIEWER,'template_sha256':f.TEMPLATE_SHA,'documents':rows}))
+        f.checkpoint_gate(context['checkpoints'][0],context,events)
+    else:
+        assert launched==[ids[1]] and terms[-1]['status']=='FAILED_NO_RETRY' and events[-1]['event']=='halt' and ids[2] not in launched
+    assert all(x.get('status')!='LIGHT_CARD_CONTENT_PASS' for x in terms)  # Execution never fabricates independent acceptance.
+
+
+def test_v2_company_name_future_is_not_automatically_a_forecast():
+    text='未来电器2025年收入为100万元。';page={'page_number':1,'text':text,'text_sha256':f.sha(text.encode())};e={'page_number':1,'text_sha256':page['text_sha256'],'excerpt':text}
+    card={'material_type':'来源摘要','event_or_meeting_object':'UNKNOWN','speaker_and_source_attribution':[],'date':{'value':None,'basis':'UNKNOWN','evidence':[]},'facts':[{'claim':text,'attribution':'原文','period':'2025年','unit':'万元','evidence':[e]}],'forecasts':[],'inferences':[],'numeric_values':[],'related_entities':['未来电器'],'unknowns':[],'source_usage_limits':[]}
+    assert f.validate_card(card,[page])==card
+
+
+@pytest.mark.parametrize('field,value,code',[
+    ('page_number',[], 'FULL_CITATION_INVALID'),('page_number',True,'FULL_CITATION_INVALID'),
+    ('page_number','1','FULL_CITATION_INVALID'),('text_sha256',{},'FULL_CITATION_INVALID'),
+    ('role',[],'FULL_ATTRIBUTION_ROLE_INVALID'),('role',{},'FULL_ATTRIBUTION_ROLE_INVALID'),
+])
+def test_v2_r2_malformed_hashed_fields_are_local_schema_failures(field,value,code):
+    _,pages,valid,_=_v2_81e_fixture();bad=copy.deepcopy(valid)
+    if field=='role':bad['speaker_and_source_attribution'][0][field]=value
+    else:bad['date']['evidence'][0][field]=value
+    raw=json.dumps(bad,ensure_ascii=False)
+    with pytest.raises(b.BatchError,match='^'+code+'$'):
+        candidate,_=f.canonicalize_citations(raw,pages);f.validate_card(candidate,pages)
+    with pytest.raises(b.BatchError,match='^'+code+'$'):f.validate_card(bad,pages)
+    assert code in f.LOCAL_OUTPUT_ERRORS and json.loads(raw)==bad
+
+
+@pytest.mark.parametrize('kind',['PRECLAIM_PRIORITY_GUARD','QUEUE_ZERO_ATTEMPT'])
+def test_v2_r2_proven_zero_attempt_defer_same_plan_resume_and_real_attempt_rejected(tmp_path,monkeypatch,kind):
+    from types import SimpleNamespace
+    from ops import run_pdf_research_remaining_once as d
+    ctx=_v2_real80_context();jp=d.EVIDENCE_ROOT/'dispatch.jsonl';actual=jp.read_bytes()
+    raw=(b.RESEARCH_PILOT_ROOT/'model/light-v2-before/dispatch-prefix80.jsonl').read_bytes()
+    journal=SimpleNamespace(path=jp,events=[json.loads(x) for x in raw.splitlines()])
+    def append(e):
+        nonlocal raw
+        journal.events.append(e);raw+=d.canonical_json(e)+b'\n'
+    journal.append=append;oldread=d._read_regular
+    monkeypatch.setattr(d,'_read_regular',lambda path,code:raw if Path(path)==jp else oldread(path,code))
+    monkeypatch.setattr(f,'output_folder',lambda did,context:tmp_path)
+    plan=tmp_path/'plan.json';plan.write_text(json.dumps({'document_id':f.POSITIVE_FIRST_ID,'generation':1,'state_root':'same-existing-job','template_sha256':f.TEMPLATE_SHA}))
+    f.prepare_v2_recovery(journal,ctx,append=True)
+    intent={'event':'full_intent','document_id':f.POSITIVE_FIRST_ID,'generation':1,'template_sha256':f.TEMPLATE_SHA,'plan_sha256':f.ref(plan)['sha256']}
+    append(intent);index=len(journal.events)-1
+    # A second unresolved intent is never a zero-attempt proof.
+    saved_events=copy.deepcopy(journal.events);saved_raw=raw
+    append(intent)
+    with pytest.raises(b.BatchError,match='QUOTA_EXCEEDED'):f.prepare_v2_recovery(journal,ctx,append=False)
+    journal.events=saved_events;raw=saved_raw
+    code='DEFERRED_ANNOUNCEMENT_PRIORITY' if kind=='PRECLAIM_PRIORITY_GUARD' else 'DEFERRED_MODEL_LOCK_BUSY'
+    proof={'status':'PROVEN_ZERO_ATTEMPT_DEFER','document_id':f.POSITIVE_FIRST_ID,'generation':1,'intent_index':index,
+           'plan':f.ref(plan),'page_input':ctx['documents'][f.POSITIVE_FIRST_ID]['page_input'],'adoption':ctx['full_adoption_ref'],
+           'template_sha256':f.TEMPLATE_SHA,'attempted':False,'issued_attempts':0,'new_model_POSTs':0,'code':code,'proof_kind':kind,
+           'queue_outcome':None if kind=='PRECLAIM_PRIORITY_GUARD' else {'status':code,'attempted':False,'attempt_count':0,'queue_status':'PENDING','queue_key':'same-bound-request'}}
+    pp=f.zero_attempt_path(ctx,index);pp.write_text(json.dumps(proof))
+    deferred={'event':'full_deferred','document_id':f.POSITIVE_FIRST_ID,'generation':1,'template_sha256':f.TEMPLATE_SHA,'code':code,'intent_index':index,'attempted':False,'new_model_POSTs':0,'zero_attempt_proof':f.ref(pp)}
+    append(deferred);append(intent)
+    f.prepare_v2_recovery(journal,ctx,append=False)  # Same immutable plan, no real request consumed.
+    marker=tmp_path/f'request-started-{index}.json';marker.write_text('{"status":"REQUEST_ATTEMPT_STARTED"}')
+    with pytest.raises(b.BatchError,match='QUOTA_EXCEEDED'):f.prepare_v2_recovery(journal,ctx,append=False)
+    marker.unlink()
+    for field,value in [('attempted',True),('issued_attempts',1),('new_model_POSTs',1),('plan',{'path':str(plan),'sha256':'f'*64})]:
+        bad=copy.deepcopy(proof);bad[field]=value;pp.write_text(json.dumps(bad));journal.events[-2]['zero_attempt_proof']=f.ref(pp)
+        with pytest.raises(b.BatchError,match='QUOTA_EXCEEDED'):f.prepare_v2_recovery(journal,ctx,append=False)
+    if kind=='QUEUE_ZERO_ATTEMPT':
+        bad=copy.deepcopy(proof);bad['queue_outcome']['attempt_count']=1;pp.write_text(json.dumps(bad));journal.events[-2]['zero_attempt_proof']=f.ref(pp)
+        with pytest.raises(b.BatchError,match='QUOTA_EXCEEDED'):f.prepare_v2_recovery(journal,ctx,append=False)
+    pp.write_text(json.dumps(proof));journal.events[-2]['zero_attempt_proof']=f.ref(pp)
+    journal.events[-1]['plan_sha256']='d'*64
+    with pytest.raises(b.BatchError,match='QUOTA_EXCEEDED'):f.prepare_v2_recovery(journal,ctx,append=False)
+    assert jp.read_bytes()==actual  # No production journal, queue or network mutation.

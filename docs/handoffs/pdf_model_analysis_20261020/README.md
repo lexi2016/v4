@@ -69,3 +69,29 @@ to baseAUTH, model, template, protected667 failure or unknown-HALT refusal.
 The source-invalid revision uses distinct full-source-invalid code/runtime
 review receipts. The original full-adapter code proof remains byte-identical
 because unchanged baseAUTH still references its original hash.
+
+LIGHT V2 repairs the four independently confirmed first-positive defects as one
+contract change. It extracts attributed source facts and source forecasts only,
+with no model inferences; roles carry entity/role/source evidence. Numeric
+comparison_operator and measure_kind retain lower bounds and capacity rather
+than claiming realized output. Source-use qualifications remain cited. A
+deterministic quote projection only restores a unique whitespace-equivalent
+source span and retains the raw quote, raw model hash, source offsets and hashes;
+lexical/numeric differences and ambiguous matches still fail.
+
+The original80-event journal prefix and failed81e attempt stay byte-identical.
+A typed same-ROOT generation1 authority permits at most one new V2 canary POST
+in the original queue/state; old67/68 and all other lanes remain protected.
+Legacy reconciled/HALT pairs and the later full_terminal/HALT tail are each
+authenticated under their own frozen representation, covering the entire ledger.
+Unknown HALT/identity/history, ownership/resource/service ambiguity stops.
+After independent V2 canary acceptance, document-local invalid input or output
+gets an honest isolation terminal and processing continues. Three consecutive
+distinct documents with the same output-protocol failure stop as systemic.
+Checkpoint review accepts a fully accounted mixture of accepted cards and
+reviewed isolations; isolation is never completed research. Raw failures,
+original proofs, input hashes, source holds and existing successes are retained.
+Only changed V2 prompt/envelope/group budgets are recomputed from the previously
+accepted716 input bytes; PDF/OCR/input acceptance and unchanged tests are reused.
+
+V2增量：引用页号严格为非bool整数，角色必须为字符串，畸形模型字段返回本篇schema错误；未知系统异常继续全局停止。唯一修复样本的零请求DEFER只有绑定同一plan/job/generation的独立不可变零attempt证明才允许续行；每次真实transport前持久化attempt-start标记，有标记、未知是否发出、已发出或未闭合并发intent均拒绝第二请求。≤1新POST预算保持。
