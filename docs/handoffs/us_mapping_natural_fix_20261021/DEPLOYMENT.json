@@ -1,0 +1,512 @@
+{
+  "schema_version": "v4.us_mapping_natural_scheduler_deployment.v1",
+  "state": "DEPLOYED_WRITER_READBACK_COMPLETE_INDEPENDENT_ACTUAL_REVIEW_PENDING",
+  "writer": "/root/natural_fix_writer",
+  "at": "2026-10-21T13:23:13.208573+08:00",
+  "authorization": "Controller relayed explicit user approval; only this scheduler lifecycle and new formal release; no business source change in deployment phase",
+  "independent_source_review": {
+    "path": "INDEPENDENT_REVIEW_R4.json",
+    "sha256": "7ec17da659e44d23846ae3ed8df60a9548908ad8c9bd52d917a5b34adb833648",
+    "verdict": "REVIEWED_PASS",
+    "prepared_sha256": "6ccfbed76487453d777cf9a67ec1318d4b59e2210a639db5c47f31202d7dc014"
+  },
+  "github_sync": {
+    "owner": "controller",
+    "reported_verified_repository": "lexi2016/v4",
+    "branch": "codex/us-mapping-natural-fix-20261021",
+    "commit": "2d858c567c5c88d13c790da32e22f3a42157aefb",
+    "controller_reported_remote_files_verified": 22,
+    "writer_commit_or_push": false
+  },
+  "formal_release": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4",
+    "source_identity": {
+      "v4/manager_workbench/engines/us_mapping.py": {
+        "before": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+        "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a"
+      },
+      "v4/manager_workbench/engines/strict_us_selection.py": {
+        "before": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+        "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367"
+      },
+      "v4/manager_workbench/inputs/native.py": {
+        "before": "50e59d9610433977a9cf7953333e911d720670cec4de164523c612e6c3778ace",
+        "after": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa"
+      },
+      "v4/manager_workbench/inputs/source_bindings.py": {
+        "before": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+        "after": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494"
+      },
+      "v4/manager_workbench/service.py": {
+        "before": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+        "after": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+      }
+    },
+    "physical_app_files": 941,
+    "app_bytes_identical_to_independently_reviewed_local_r4": true,
+    "formal_manifest_sha256": "b94e52292eadff07c2d5c6ef7640dfeae9256c262259c7adb23435ac10e42d2f",
+    "formal_prepared_sha256": "6453226a7e778c9200db07bfd1a963920a6d16fd6c20003738843c616187aea1",
+    "config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236",
+    "proposal_plist_sha256": "e9dbd09d2b114f14df667f17b3d4decaed0ef849487451616ae8e2f0ce787ad2",
+    "config_only_added_template": true,
+    "old_parent_retained": true
+  },
+  "lifecycle": {
+    "old_pid": 72933,
+    "old_pid_exit_and_label_absence_confirmed": true,
+    "new_pid": 22616,
+    "new_cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+    "rollback_performed": false,
+    "commands": [
+      {
+        "command": [
+          "python3",
+          "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/preactivation_guard.py"
+        ],
+        "started_at": "2026-10-21T13:16:19.535253+08:00",
+        "finished_at": "2026-10-21T13:16:21.751377+08:00",
+        "returncode": 0,
+        "stdout_path": "guard-immediate-before-cutover.stdout",
+        "stderr_path": "guard-immediate-before-cutover.stderr"
+      },
+      {
+        "command": [
+          "launchctl",
+          "bootout",
+          "gui/501/com.lexi.v35.scheduler"
+        ],
+        "started_at": "2026-10-21T13:16:21.751568+08:00",
+        "finished_at": "2026-10-21T13:16:21.756499+08:00",
+        "returncode": 0,
+        "stdout_path": "bootout.stdout",
+        "stderr_path": "bootout.stderr"
+      },
+      {
+        "step": "old_label_absent_old_pid_exited",
+        "old_pid": 72933,
+        "at": "2026-10-21T13:16:22.280573+08:00"
+      },
+      {
+        "step": "plist_replaced_exact_proposal",
+        "sha256": "e9dbd09d2b114f14df667f17b3d4decaed0ef849487451616ae8e2f0ce787ad2",
+        "at": "2026-10-21T13:16:22.281198+08:00"
+      },
+      {
+        "command": [
+          "launchctl",
+          "bootstrap",
+          "gui/501",
+          "/Users/lexi/Library/LaunchAgents/com.lexi.v35.scheduler.plist"
+        ],
+        "started_at": "2026-10-21T13:16:22.281286+08:00",
+        "finished_at": "2026-10-21T13:16:22.286243+08:00",
+        "returncode": 0,
+        "stdout_path": "bootstrap.stdout",
+        "stderr_path": "bootstrap.stderr"
+      },
+      {
+        "command": [
+          "launchctl",
+          "kickstart",
+          "gui/501/com.lexi.v35.scheduler"
+        ],
+        "started_at": "2026-10-21T13:16:22.286394+08:00",
+        "finished_at": "2026-10-21T13:16:22.290258+08:00",
+        "returncode": 0,
+        "stdout_path": "kickstart.stdout",
+        "stderr_path": "kickstart.stderr"
+      },
+      {
+        "step": "cutover_commands_completed",
+        "launchctl_readback_returncode": 0,
+        "at": "2026-10-21T13:16:22.294371+08:00"
+      }
+    ],
+    "initial_busy_events": [
+      {
+        "kind": "SCHEDULER_CHILD",
+        "pid": 21435,
+        "outcome": "Naturally exited before next guard"
+      },
+      {
+        "kind": "EXISTING_MANUAL_JOB",
+        "job_id": "c2fddbf07be044978b5b01e448899b35",
+        "step": "EXTENSION_MODEL_REQUEST",
+        "outcome": "Naturally PARTIAL/DONE; no kill or duplication; terminal wait12.02sec"
+      }
+    ]
+  },
+  "loaded_runtime": {
+    "state": "DEPLOYED_IDENTITY_READBACK_PASS_NOT_NATURAL_ACCEPTANCE",
+    "at": "2026-10-21T13:17:32.027025+08:00",
+    "pid": 22616,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+    "launchd_state": "running",
+    "plist_sha256": "e9dbd09d2b114f14df667f17b3d4decaed0ef849487451616ae8e2f0ce787ad2",
+    "manifest_sha256": "b94e52292eadff07c2d5c6ef7640dfeae9256c262259c7adb23435ac10e42d2f",
+    "config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236",
+    "launch_environment": {
+      "V35_APP_ROOT": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+      "PYTHONPATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app/upstreams:/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+      "V35_RELEASE_ID": "us-mapping-natural-scheduler-20261021-r4",
+      "V35_RELEASE_MANIFEST_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/release-manifest.json",
+      "V35_RELEASE_MANIFEST_SHA256": "b94e52292eadff07c2d5c6ef7640dfeae9256c262259c7adb23435ac10e42d2f",
+      "V4_MANAGER_WORKBENCH_CONFIG_PATH": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/us-industry-observed-scheduler-20261021-r2.json",
+      "PRODUCTION_ALLOWED": "false",
+      "BUY_GATE_UPDATED": "false",
+      "ORDERS_SENT": "false",
+      "production_allowed": "false",
+      "buy_gate_updated": "false",
+      "orders_sent": "false"
+    },
+    "source_sha256": {
+      "v4/manager_workbench/engines/us_mapping.py": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "v4/manager_workbench/engines/strict_us_selection.py": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "v4/manager_workbench/inputs/native.py": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa",
+      "v4/manager_workbench/inputs/source_bindings.py": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494",
+      "v4/manager_workbench/service.py": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    },
+    "manifest_entries": 872,
+    "inventory_sha256": "a424d2ca1c47eb10a27e8a146d42019106f8ed364d8ed94ab9811badd5d3965d",
+    "process_module": "ops.run_v35_macos_scheduler_daemon",
+    "RESEARCH_ONLY_contract": "unchanged true; contracts.py preserved byte-identically",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "first_natural_result": {
+    "state": "ACTUAL_RESULT_OBSERVED_REVIEWER_ACCEPTANCE_PENDING",
+    "run_id": "3c23ab11aa5142e799c0520198cfb02b",
+    "job_state": "PARTIAL",
+    "job_submitted_cutoff": "2026-10-21T13:18:00.313823+08:00",
+    "context": {
+      "target_date": "20261021",
+      "phase": "INTRADAY",
+      "trigger": "SCHEDULED",
+      "cutoff": "2026-10-21T13:18:46.510483+08:00",
+      "source_sessions": {
+        "hk_price": "20261020",
+        "us": "20261020"
+      },
+      "rules_version": "POSITIVE_OPERATING_RESEARCH_V1_US_DAILY_RETURN_FACTOR_V1"
+    },
+    "generated_at": "2026-10-21T13:18:46.664596+08:00",
+    "available_at": "2026-10-21T13:18:46.664596+08:00",
+    "snapshot_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench/manager_workbench/snapshots/3c23ab11aa5142e799c0520198cfb02b.json",
+    "snapshot_sha256": "72b9a78d461775c37d6179395b6bc42eeb4a9fa71ac98c9e9a80e3afb4fe447b",
+    "stage_run_id": "run-49df72784c9837d81c555831",
+    "input_sha256": "d91c1425ca8f45be30121e0742da935c877699439942b015325172ebbad4af62",
+    "input_snapshot_sha256": "dea0f7850d4c67c3cbbb7abe64ea66774fe5f6d54c2107e3c4640117faf564c8",
+    "lanes": [
+      {
+        "lane": "US_MAPPING",
+        "state": "PARTIAL",
+        "row_count": 1761,
+        "gap_prefix_counts": {
+          "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED": 1,
+          "US_SYMBOL_RELATIONS_UNASSESSED": 1,
+          "RECORDS_UNASSESSED": 1,
+          "HK_INDUSTRY_CLASSIFICATION_COVERAGE_PARTIAL": 2,
+          "US_FACTOR_PHASE_NOT_SUPPORTED": 2
+        }
+      },
+      {
+        "lane": "OVERSOLD",
+        "state": "PARTIAL",
+        "row_count": 692,
+        "gap_prefix_counts": {
+          "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED": 1,
+          "TDXPY_GLOBAL_CATALOGUE_PARTIAL": 1,
+          "TDXPY_EXACT_HISTORY_UNAVAILABLE": 692,
+          "RECORDS_UNASSESSED": 1
+        }
+      }
+    ],
+    "us_lane_decisions": {
+      "NOT_SELECTED": 56,
+      "UNASSESSED": 1476,
+      "CONDITIONAL_WATCH": 229
+    },
+    "industry_summary": {
+      "source_status": "PARTIAL",
+      "scope_count": 698,
+      "identity_resolved_count": 691,
+      "identity_gap_count": 7,
+      "historical_pit_verified": false,
+      "formal_target_eligibility": "CANNOT_CONFIRM"
+    },
+    "industry_owner": {
+      "status": "READY",
+      "policy": "LATEST_OBSERVED",
+      "observed_trade_date": "20261014",
+      "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "receipt_sha256": "c3b580bb8c55a52b5a473a9b8291afef657b6e5baf9dbf92602becaa579d6366",
+      "manifest_sha256": "4a12b615749b49bab12c65955429a56fde07dd1d0cc833993821c16d54f4c1a5",
+      "source_asof_status": "UNKNOWN"
+    },
+    "quote_identity": {
+      "quote_sha256": "decd7e4b3b79d437cf1f49ca243a6f71978216cba83d5543d1c8c9fae37b28e8",
+      "owner_receipt_sha256": "da12c3e963f6d42c4f79c74ae8dc2624f660e8156a1b994741bea97f60a45752",
+      "owner_manifest_sha256": "6fb4fa6bf036ae8847c23bd376ebe41c680c63edbf8279424af8a19805530618",
+      "capture_session_date": "20261020",
+      "capture_cutoff": "2026-10-20T20:15:04Z",
+      "capture_run_id": null
+    },
+    "quote_matches_prior_frozen_three_hashes": true,
+    "formal_plan_counts": {
+      "not_selected": 0,
+      "observation_only": 0,
+      "selected": 0,
+      "unassessed": 473,
+      "watch": 229
+    },
+    "medical_industry_rows": [
+      {
+        "symbol": "HK.01801",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "source_industry": "药品及生物科技",
+        "temporal_status": "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN",
+        "historical_pit_verified": false,
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        }
+      },
+      {
+        "symbol": "HK.02157",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "source_industry": "药品及生物科技",
+        "temporal_status": "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN",
+        "historical_pit_verified": false,
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        }
+      },
+      {
+        "symbol": "HK.02269",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "source_industry": "药品及生物科技",
+        "temporal_status": "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN",
+        "historical_pit_verified": false,
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        }
+      },
+      {
+        "symbol": "HK.03692",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "source_industry": "药品及生物科技",
+        "temporal_status": "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN",
+        "historical_pit_verified": false,
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        }
+      },
+      {
+        "symbol": "HK.09926",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "source_industry": "药品及生物科技",
+        "temporal_status": "LATEST_OBSERVED_SOURCE_ASOF_UNKNOWN",
+        "historical_pit_verified": false,
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        }
+      }
+    ],
+    "medical_relation_catalog_states": [
+      {
+        "relation_id": "R600",
+        "hk_code": "01801",
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "SOURCE_REVIEWED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R601",
+        "hk_code": "01801",
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "SOURCE_REVIEWED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R659",
+        "hk_code": "02157",
+        "closure_status": "OPEN",
+        "source_review_status": "SOURCE_REVIEWED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R678",
+        "hk_code": "02269",
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "SOURCE_REVIEWED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R844",
+        "hk_code": "03692",
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "NOT_PROCESSED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R979",
+        "hk_code": "09926",
+        "closure_status": "OPEN",
+        "source_review_status": "NOT_PROCESSED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R980",
+        "hk_code": "09926",
+        "closure_status": "OPEN",
+        "source_review_status": "NOT_PROCESSED",
+        "research_use": "PENDING_REVIEW"
+      },
+      {
+        "relation_id": "R981",
+        "hk_code": "09926",
+        "closure_status": "CLOSED_RESEARCH_SCOPE",
+        "source_review_status": "NOT_PROCESSED",
+        "research_use": "PENDING_REVIEW"
+      }
+    ],
+    "single_day_mapping_availability": "ABSENT_FOR_INTRADAY_PHASE_BY_RETAINED_SINGLE_DAY_CONTEXT_RULE",
+    "raw_summary_local_path": "local_only/deployment/first-natural-result-summary.local-only.json",
+    "raw_summary_sha256": "9fcb49902b6d6f86fcb124662f2821ef4fc68d5409a41b0ece13e413a960bcaa",
+    "direct_per_run_pid_field": "Not persisted in JobRecord; runtime identity and exclusive scheduler cutover are separate evidence, not a claimed per-run PID field"
+  },
+  "next_existing_natural_schedule": {
+    "checked_source_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+    "hk_today_state": "FULL_TRADING_DAY",
+    "next_hk_session": "20261022",
+    "next_day_0925": "2026-10-22T09:25:00+08:00",
+    "existing_known_due": "2026-10-21T16:30:00+08:00",
+    "due_scope": "Existing scheduled US_MAPPING non-OVERSOLD NEXT_DAY lane, target next HK session; no new schedule",
+    "earlier_event": "Any new committed Stage input is detected by existing once-per-minute hook; 13:18 INTRADAY event observed for STAGE_1300_1315",
+    "existing_us_collector_schedule_read_only": {
+      "plist": "/Users/lexi/Library/LaunchAgents/com.lexi.v4.us-market-digest.plist",
+      "StartCalendarInterval": [
+        {
+          "Hour": 4,
+          "Minute": 15
+        },
+        {
+          "Hour": 5,
+          "Minute": 15
+        },
+        {
+          "Hour": 21,
+          "Minute": 0
+        },
+        {
+          "Hour": 22,
+          "Minute": 0
+        }
+      ],
+      "StartInterval": null,
+      "changed": false
+    }
+  },
+  "unresolved": [
+    "Independent actual deployment/natural-result review pending",
+    "INTRADAY preserves US_FACTOR_PHASE_NOT_SUPPORTED and does not produce single_day_mapping; NEXT_DAY natural flow remains to verify",
+    "Source classification is PARTIAL/non-PIT with UNKNOWN source_asof; formal membership target effective period remains unconfirmed",
+    "No next-trading-day09:25 result yet; NATURAL_SLOT_UNVERIFIED for that required scope",
+    "Existing OVERSOLD history/data gaps remain; no changes or repairs attempted"
+  ],
+  "not_run": [
+    "API lifecycle or UI verification",
+    "US collector or Stage-center service/config changes",
+    "Manual submit/tick/replay",
+    "Historical09:25 rewrite",
+    "New automation or scheduled-task modification",
+    "Writer Git actions"
+  ],
+  "reader_harness_corrections": [
+    "Initial readback expected a .py entrypoint; actual retained launcher uses -m ops.run_v35_macos_scheduler_daemon. Corrected assertion only; no lifecycle retry for this.",
+    "Initial natural-reader assertion equated queued job cutoff with persisted plan cutoff; actual values are13:18:00.313823 and13:18:46.510483. Both retained as evidence; no source or state rewrite."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "writer_direct_business_state_writes": false,
+    "automatic_existing_scheduler_natural_state_writes": true
+  },
+  "evidence": [
+    {
+      "path": "local_only/deployment/guard-before-prepare.log",
+      "sha256": "2ef84d0d264ea1df20760c9065b7a245fed0ac9723af070a211f4820026dd2f5"
+    },
+    {
+      "path": "local_only/deployment/formal-package-check.json",
+      "sha256": "6e939242b57eda1f28c1e6660d1570b407cac3ff6cd6aa0070976dc58f432cd9"
+    },
+    {
+      "path": "local_only/deployment/activation-journal.json",
+      "sha256": "f408094bf7e560babe8169922a5c27110ff20df16abf02d0d6258c02401cbde4"
+    },
+    {
+      "path": "local_only/deployment/attempt2/activation-journal.json",
+      "sha256": "7d5c5ac9a0e481a27c4c7df4c20ddb24b9cbafc9da133aa05d7c19515065f387"
+    },
+    {
+      "path": "local_only/deployment/manual-job-terminal-wait.json",
+      "sha256": "b89e586b06c4ce777c841d11c51e0f565ed2b914f458134e70aac0777b50da3d"
+    },
+    {
+      "path": "local_only/deployment/first-natural-terminal-wait.json",
+      "sha256": "98f5cebb76224b196add2b91a83002f884012e3f5232b08253c313df8923771f"
+    },
+    {
+      "path": "local_only/deployment/loaded-identity.json",
+      "sha256": "cba5a91f1fd7dd08d0d52d279993d7fa41a70f4868412572956cc7f3618b9ebd"
+    },
+    {
+      "path": "local_only/deployment/natural-schedule-readonly.json",
+      "sha256": "bed746272293a4fa142500137516874b54d836d0bb5b12d3ec5378ffdc6f7c1e"
+    },
+    {
+      "path": "local_only/deployment/readback_identity.py",
+      "sha256": "089abc6d9982cd02c80ea9416f4e611c61fdcce0cd9568a94de7915b7c52f93f"
+    },
+    {
+      "path": "local_only/deployment/read_natural_result.py",
+      "sha256": "f2fbd47429c3be691c50a49eb4051428afef28a5f18140309187a887aa801fa3"
+    },
+    {
+      "path": "local_only/deployment/activate_once.py",
+      "sha256": "387043ababcbde9d0973388f5535dbeb840e5c91fdf0f36cbf852b313bd72be2"
+    },
+    {
+      "path": "local_only/deployment/activate_once_attempt2.py",
+      "sha256": "c32cd3978344f7006b24667cf4e020b5188e8ecd615997ddd6421e46885b2063"
+    }
+  ]
+}

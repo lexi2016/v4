@@ -1,0 +1,288 @@
+{
+  "schema_version": "v4.independent_deployment_natural_review.v1",
+  "reviewer": "/root/medicine_mapping_diagnosis",
+  "writer": "/root/natural_fix_writer",
+  "identity_distinct": true,
+  "verdict": "REVIEWED_PASS",
+  "scope": "Actual r4 scheduler runtime deployment and first SCHEDULED INTRADAY US_MAPPING industry projection only",
+  "findings": [],
+  "reused_source_review": {
+    "path": "INDEPENDENT_REVIEW_R4.json",
+    "sha256": "7ec17da659e44d23846ae3ed8df60a9548908ad8c9bd52d917a5b34adb833648",
+    "tests_repeated": false
+  },
+  "DEPLOYED_RUNTIME": {
+    "verdict": "REVIEWED_PASS",
+    "label": "com.lexi.v35.scheduler",
+    "pid": 22616,
+    "process_started_at": "2026-10-21T13:16:22+08:00",
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+    "command_module": "ops.run_v35_macos_scheduler_daemon",
+    "actual_launchctl_environment_and_cwd_verified": true,
+    "manifest_sha256": "b94e52292eadff07c2d5c6ef7640dfeae9256c262259c7adb23435ac10e42d2f",
+    "manifest_entries_verified": 872,
+    "manifest_aggregate_verified": true,
+    "formal_app_equals_accepted_local_app": true,
+    "actual_files": 941,
+    "source_sha256": {
+      "v4/manager_workbench/engines/us_mapping.py": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "v4/manager_workbench/engines/strict_us_selection.py": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "v4/manager_workbench/inputs/native.py": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa",
+      "v4/manager_workbench/inputs/source_bindings.py": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494",
+      "v4/manager_workbench/service.py": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    },
+    "plist_sha256": "e9dbd09d2b114f14df667f17b3d4decaed0ef849487451616ae8e2f0ce787ad2",
+    "config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236"
+  },
+  "INTRADAY_NATURAL": {
+    "verdict": "REVIEWED_PASS",
+    "run_id": "3c23ab11aa5142e799c0520198cfb02b",
+    "phase": "INTRADAY",
+    "trigger": "SCHEDULED",
+    "target_date": "20261021",
+    "sessions": {
+      "hk_price": "20261020",
+      "us": "20261020"
+    },
+    "attempt_state": "PARTIAL",
+    "attempt_step": "DONE",
+    "failure_code": null,
+    "started_at": "2026-10-21T13:18:07.994218+08:00",
+    "finished_at": "2026-10-21T13:18:48.112567+08:00",
+    "execution_refs": [
+      {
+        "kind": "host",
+        "pid": 22616
+      }
+    ],
+    "PID_binding_basis": "Official attempts/<run>.json execution_refs host PID22616, independently read; launchctl/cwd confirms that host runtime. JobRecord lack of PID does not erase this separate persisted attempt evidence.",
+    "stage_run_id": "run-49df72784c9837d81c555831",
+    "stage_input_sha256": "1d292e7f98df7a9310461e60715eeb61efa839c06618a087d9cc41794e3c1d22",
+    "stage_cursor_maps_to_run": true,
+    "submitted_cutoff": "2026-10-21T13:18:00.313823+08:00",
+    "plan_cutoff": "2026-10-21T13:18:46.510483+08:00",
+    "generated_at": "2026-10-21T13:18:46.664596+08:00",
+    "available_at": "2026-10-21T13:18:46.664596+08:00",
+    "snapshot_sha256": "72b9a78d461775c37d6179395b6bc42eeb4a9fa71ac98c9e9a80e3afb4fe447b",
+    "product_sha256": "aeabf620a56058c7bbedd75beda2fb873eb45c86f92543c1317805a4d05496f1",
+    "aggregate_input_sha256": "d91c1425ca8f45be30121e0742da935c877699439942b015325172ebbad4af62",
+    "input_snapshot_sha256": "dea0f7850d4c67c3cbbb7abe64ea66774fe5f6d54c2107e3c4640117faf564c8",
+    "US_lane_input_sha256": "5b11e3a7257ff179888e9d0a98d4bb2112183507726d4c610856e69ac9173c2e",
+    "display_rows": 1761,
+    "source_candidate_rows": 60,
+    "catalog_observation_rows": 1003,
+    "industry_rows": 698,
+    "industry_unique_symbols": 698,
+    "industry_decisions": {
+      "CONDITIONAL_WATCH": 229,
+      "UNASSESSED": 436,
+      "NOT_SELECTED": 33
+    },
+    "formal_selected_count": 0,
+    "US_quote_identity_unchanged_from_original_run": {
+      "quote_sha256": "decd7e4b3b79d437cf1f49ca243a6f71978216cba83d5543d1c8c9fae37b28e8",
+      "owner_receipt_sha256": "da12c3e963f6d42c4f79c74ae8dc2624f660e8156a1b994741bea97f60a45752",
+      "owner_manifest_sha256": "6fb4fa6bf036ae8847c23bd376ebe41c680c63edbf8279424af8a19805530618",
+      "quote_source_session": "20261020",
+      "capture_cutoff": "2026-10-20T20:15:04Z"
+    },
+    "whole_US_owner_pin_equal_claimed": false,
+    "whole_pin_note": "Natural phase and industry binding/source-root fields intentionally differ; source quote identity/session/capture fields are unchanged.",
+    "industry_observation": {
+      "observed_trade_date": "20261014",
+      "captured_at": "2026-10-14T11:03:29.919614+08:00",
+      "source_status": "PARTIAL",
+      "source_asof": null,
+      "source_asof_status": "UNKNOWN",
+      "source_artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "historical_pit_verified": false,
+      "formal_target_eligibility": "CANNOT_CONFIRM",
+      "security_master_source_date": "20261020",
+      "security_master_artifact_sha256": "e228ce49b00a4aa4cfc83c4836336fb1d9f845da05897ab2f71401e1ff14258d",
+      "security_master_manifest_sha256": "c73a8ca45c77d5200ac1b2322708fa3d620f51b37984b0b0048b068e0a4486d8",
+      "security_master_scope_count": 692
+    },
+    "medical_industry_rows": [
+      {
+        "symbol": "HK.01801",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        },
+        "proxy_symbols": [
+          "XBI"
+        ],
+        "classification_policy": "LATEST_OBSERVED",
+        "historical_pit_verified": false
+      },
+      {
+        "symbol": "HK.02157",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        },
+        "proxy_symbols": [
+          "XBI"
+        ],
+        "classification_policy": "LATEST_OBSERVED",
+        "historical_pit_verified": false
+      },
+      {
+        "symbol": "HK.02269",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        },
+        "proxy_symbols": [
+          "XBI"
+        ],
+        "classification_policy": "LATEST_OBSERVED",
+        "historical_pit_verified": false
+      },
+      {
+        "symbol": "HK.03692",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        },
+        "proxy_symbols": [
+          "XBI"
+        ],
+        "classification_policy": "LATEST_OBSERVED",
+        "historical_pit_verified": false
+      },
+      {
+        "symbol": "HK.09926",
+        "decision": "CONDITIONAL_WATCH",
+        "reason": "HK_INDUSTRY_US_PROXY_RETURN_POSITIVE_RESEARCH_ONLY",
+        "target_eligibility": {
+          "effective_from": null,
+          "effective_through": null,
+          "eligible": null,
+          "gap": "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED",
+          "status": "CANNOT_CONFIRM"
+        },
+        "proxy_symbols": [
+          "XBI"
+        ],
+        "classification_policy": "LATEST_OBSERVED",
+        "historical_pit_verified": false
+      }
+    ],
+    "medical_catalog_relations": [
+      {
+        "relation_id": "R600",
+        "symbol": "HK.01801",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R601",
+        "symbol": "HK.01801",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R659",
+        "symbol": "HK.02157",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R678",
+        "symbol": "HK.02269",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R844",
+        "symbol": "HK.03692",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R979",
+        "symbol": "HK.09926",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R980",
+        "symbol": "HK.09926",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      },
+      {
+        "relation_id": "R981",
+        "symbol": "HK.09926",
+        "decision": "UNASSESSED",
+        "source_record_and_recovery_byte_values_unchanged": true
+      }
+    ],
+    "API_mixed_source_count": 0,
+    "single_day_mapping_executed": false,
+    "retained_phase_gap": "US_FACTOR_PHASE_NOT_SUPPORTED",
+    "research_watch_note": "229 and five medical CONDITIONAL_WATCH rows are broad industry research observations, not formal recommendations or signed HK benefit conclusions."
+  },
+  "API_READBACK": {
+    "status": 200,
+    "method": "GET",
+    "path": "/api/v4/manager-workbench/days/20261021/recommendations/US_MAPPING?run_id=3c23ab11aa5142e799c0520198cfb02b&limit=1",
+    "raw_local_only_path": "/private/tmp/v4-r4-natural-api-readback.json",
+    "raw_sha256": "0f038769b35d4962eba2938985523eb7fa96178f94fd2ce56db5a2afc5cba64b",
+    "run_and_product_match_official_snapshot": true,
+    "state": "PARTIAL",
+    "counts": {
+      "selected": 0,
+      "watch": 229,
+      "unassessed": 439,
+      "not_selected": 33,
+      "observation_only": 0
+    },
+    "scope_count": 698,
+    "formal_target_eligibility": "CANNOT_CONFIRM"
+  },
+  "writer_deployment_receipt": {
+    "path": "DEPLOYMENT.json",
+    "sha256": "37d96365cdb462bf616c070ac7dddf0e3c5e3859d303f5e523c4f2336db1d4b0",
+    "source": "Used only as cross-reference; actual runtime/store/API were independently read"
+  },
+  "pending": {
+    "NEXT_DAY_NATURAL": "CANNOT_CONFIRM_NOT_COVERED_BY_INTRADAY",
+    "PREOPEN_20261022_0925": "NATURAL_SLOT_UNVERIFIED",
+    "UI": "NOT_RUN_THIS_PHASE",
+    "GITHUB_REMOTE": "Controller-owned existing readback not repeated in this phase"
+  },
+  "limits": [
+    "INTRADAY has no single_day_mapping under the existing phase contract; offline NEXT_DAY counts are not substituted for a natural daily result",
+    "Official state remains PARTIAL with source/identity/history gaps; this PASS proves deployed repair and industry projection recovery only",
+    "Today PREOPEN was not rewritten and tomorrow natural PREOPEN is not yet accepted",
+    "No service lifecycle, POST, formal business-state mutation, model or collection action by Reviewer"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
