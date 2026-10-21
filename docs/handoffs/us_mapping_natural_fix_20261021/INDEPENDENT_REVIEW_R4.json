@@ -1,0 +1,155 @@
+{
+  "reviewer": "/root/medicine_mapping_diagnosis",
+  "writer": "/root/natural_fix_writer",
+  "identity_distinct": true,
+  "review_type": "INCREMENTAL_R4_REVIEW_OF_TWO_P2_FIXES_AND_DIRECT_IMPACT",
+  "verdict": "REVIEWED_PASS",
+  "deployable_scope": "Frozen local r4 source behavior and prepared package; actual activation requires fresh parent/idle guard and controller integration readback",
+  "prepared_sha256": "6ccfbed76487453d777cf9a67ec1318d4b59e2210a639db5c47f31202d7dc014",
+  "candidate": "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r4",
+  "manifest_sha256": "b21f6084fa046c3575fd356e43ab5a6408442f1d9f0e998cf978a218a321607c",
+  "config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236",
+  "source_delta": {
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "before": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+      "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a"
+    },
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "before": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+      "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "before": "50e59d9610433977a9cf7953333e911d720670cec4de164523c612e6c3778ace",
+      "after": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa"
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "before": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+      "after": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494"
+    },
+    "v4/manager_workbench/service.py": {
+      "before": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "after": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    }
+  },
+  "open_findings": [],
+  "resolved_findings": [
+    {
+      "id": "R3-P2-1",
+      "file": "v4/manager_workbench/inputs/source_bindings.py",
+      "resolution": "Presence is now tracked separately from value for owner, direct dated and nested dated industry pins. Explicit malformed values stop before lower-priority pins or template. Absent nested key still permits template. Owner SHA/time validation retained.",
+      "evidence": "Independent r4 --review-fixes: owner/dated/nested x None/list/string/0 cases plus template, override, SHA/cutoff and source-date checks PASS"
+    },
+    {
+      "id": "R3-P2-2",
+      "file": "v4/manager_workbench/service.py",
+      "resolution": "Optional reasons metadata is normalized to a list; only string list items and scalar string reason are counted. Null/scalar/mixed unhashable values no longer abort PREOPEN. Admission gate unchanged.",
+      "evidence": "Independent r4 --review-fixes: null, integer, string, mapping, mixed list values PASS; PARTIAL/all-filtered, inclusive cutoff/valid subset, absent/late prior source PASS"
+    }
+  ],
+  "independent_tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 <runtime-python> docs/handoffs/us_mapping_natural_fix_20261021/run_checks.py --code-root <r4-app> --review-fixes --basetemp=/private/tmp/v4-natural-independent-r4-incremental",
+    "passed": 24,
+    "failed": 0,
+    "actual_import_root_verified": true
+  },
+  "independent_frozen_replay": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 <runtime-python> docs/handoffs/us_mapping_natural_fix_20261021/replay_frozen.py --code-root <r4-app> --config <r4-config> --output /private/tmp/v4-natural-independent-r4-canary",
+    "summary_path": "/private/tmp/v4-natural-independent-r4-canary/summary.json",
+    "summary_sha256": "8dee9858cdaf8ca41e5f44459f6666b415008c277bf45efe1f81d883daeec87b",
+    "state": "OFFLINE_CANARY_COMPLETED_NOT_NATURAL",
+    "source_snapshot_sha256": "bf73a5dd72233165495369dc759300ea0058fb0f08fbba05e6c7927328928d4e",
+    "input_snapshot_sha256": "1488f9594fd952a607e92d5f7f628341805a83bf9c4377c34ad2a189d1685b58",
+    "frozen_us_pin_sha256": "b59bc9ab71b449c9c840b5a0a7752ece41a03b16cfc51c0ea6484eb620092b3a",
+    "frozen_us_pin_unchanged": true,
+    "daily_rows": 698,
+    "daily_counts": {
+      "BENEFIT": 0,
+      "RISK": 0,
+      "CONFLICT": 0,
+      "OBSERVATION": 308,
+      "UNMAPPED": 379,
+      "UNASSESSED": 11,
+      "SMALL_MOVE_WATCH": 5,
+      "C_WATCH": 303
+    },
+    "catalog_relations": 1003,
+    "observed_source": {
+      "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "observed_trade_date": "20261014",
+      "captured_at": "2026-10-14T11:03:29.919614+08:00",
+      "source_asof_status": "UNKNOWN",
+      "status": "PARTIAL"
+    },
+    "master_source_date": "20261020",
+    "medical_observations": [
+      {
+        "symbol": "HK.01801",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY"
+      },
+      {
+        "symbol": "HK.02157",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY"
+      },
+      {
+        "symbol": "HK.02269",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY"
+      },
+      {
+        "symbol": "HK.03692",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY"
+      },
+      {
+        "symbol": "HK.09926",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY"
+      }
+    ],
+    "medical_relations_promoted": false,
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "strict_v1_status": "PAUSED_NOT_EXECUTED",
+    "preopen_state": "PARTIAL",
+    "preopen_source_rows": 1063,
+    "preopen_accepted_rows": 0,
+    "r3_comparison": "All semantic output fields identical to independent r3; only code_root and changed source_files hashes differ",
+    "network_or_model_calls": false,
+    "official_state_writes": false
+  },
+  "package_checks": {
+    "r3_r4_actual_files": 941,
+    "changed_from_r3": [
+      "v4/manager_workbench/inputs/source_bindings.py",
+      "v4/manager_workbench/service.py"
+    ],
+    "other_files_unchanged_from_r3": 939,
+    "manifest_entries": 872,
+    "manifest_entries_and_aggregate_verified": true,
+    "config_byte_identical_to_r3": true,
+    "plist_only_controlled_rebind": true,
+    "final_prepared_source_helper_test_overlay_commands_allowlist_hashes_verified": true
+  },
+  "reused_evidence": {
+    "r3_review_receipt": "INDEPENDENT_REVIEW_R3.json",
+    "r3_review_sha256": "c23c788567ea2cf4f7d4d7ac0d4b8ede66b29c7811598e29e64b70efd605cfe1",
+    "valid_r3_checks": "61 focused passes and actual-parent/file/config preservation. No full suite rerun. Both reported P2 findings are superseded by this bounded fix review.",
+    "existing_failures": "Two independent unmodified-parent failures retained: next_session ImportError; old native fixture COUNTS_MISMATCH before freeze. Not new and outside frozen scope.",
+    "guard_and_rollback": "r3 read-only preactivation guard and bounded activation/conditional rollback plan reviewed; unchanged helpers reused. Repeat guard at activation."
+  },
+  "states": {
+    "TESTED": "R4_INCREMENTAL_AND_FROZEN_OFFLINE_CASES",
+    "BEHAVIOR_VERIFIED": "FROZEN_OFFLINE_SCOPE_ONLY",
+    "DEPLOYED": "NOT_RUN",
+    "GITHUB_REMOTE_SYNC": "NOT_RUN",
+    "LOADED_RUNTIME": "CANNOT_CONFIRM",
+    "NATURAL": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "limits": [
+    "No live activation, restart, reload, business POST, collection or model call",
+    "No current or next natural 09:25 acceptance claimed",
+    "No medical relationship/eligibility/ETF or selection gate promotion",
+    "Fresh preactivation parent/idle guard remains required; preserve healthy workloads"
+  ]
+}

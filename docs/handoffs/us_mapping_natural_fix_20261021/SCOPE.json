@@ -1,0 +1,43 @@
+{
+  "goal": "Repair actual natural US mapping scheduler wiring, cross-date fixed observed industry binding, and PREOPEN executed-but-filtered state; independently review, deploy, GitHub sync, and verify actual natural runs",
+  "authorization": "User approved 2026-10-21; no recommendation gate relaxation or medical relation promotion",
+  "writer": "natural_fix_writer",
+  "reviewer": "medicine_mapping_diagnosis (independent Sol High reviewer)",
+  "branch": "codex/us-mapping-natural-fix-20261021",
+  "git_base": "4e00084d8ef9c606bfff2892dcab35515423c776",
+  "scheduler_parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-top100-holiday-scheduler-20261020-r1/app",
+  "scheduler_pid_at_freeze": 72933,
+  "api_parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-calendar-binding-20261021-r1/app",
+  "api_pid_at_freeze": 23238,
+  "config": "/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-scheduler-20261018-r1.json",
+  "config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+  "scheduler_plist_sha256": "80125421f00e29cc2dbaa629395ec12c0b87dc4380d2699a8fbeaf3a769e6f1a",
+  "allowed_source_paths": [
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/engines/strict_us_selection.py",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/source_bindings.py",
+    "v4/manager_workbench/service.py"
+  ],
+  "allowed_additional": "Focused existing tests for these behaviors; docs/handoffs/us_mapping_natural_fix_20261021 except controller SCOPE.json and CONTROLLER_LEDGER.json; sanitized configuration example and narrowly scoped reproducible overlay/release helper under handoff",
+  "forbidden": [
+    "medical relation catalog edits",
+    "threshold changes",
+    "formal eligibility promotion",
+    "business historical artifact overwrite",
+    "US quote collector changes",
+    "API/frontend unrelated changes",
+    "HK Top100 holiday repair changes",
+    "live deployment before independent PASS"
+  ],
+  "pass_signal": "Independent source/frozen-input review PASS, pre-activation parent/idle guard PASS, actual scheduler PID/cwd/source/config/manifest readback PASS, remote commit and file byte readback PASS; separate natural post-release result and next 09:25 source/filter lineage verification",
+  "stop_rule": "Parent drift or active conflicting workload -> rebase/review bounded changes; missing/invalid evidence remains pending; do not reset or overwrite parallel work; no natural claim from offline canary",
+  "resource_check": {
+    "memory_pressure_free_percent": 90,
+    "swap_used_mb": 4017.69,
+    "load_1m": 3.51,
+    "disk_available_gib": 595,
+    "concurrency": "one writer; tests small serial or bounded; independent review after handoff; no model calls/training"
+  },
+  "created_at": "2026-10-21T12:45:10+08:00"
+}

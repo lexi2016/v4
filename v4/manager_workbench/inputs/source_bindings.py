@@ -61,8 +61,8 @@ def _load_observed_hk_industry_pin(config, context, pin):
     """Load one explicitly pinned owner capture under the observed-use policy.
 
     The owner capture date and capture timestamp stay separate from the run's
-    target date. This path is opt-in per target date and never scans for a newer
-    file or infers an effective date from capture time.
+    target date. This path opts in through an exact-date pin or fixed template;
+    it never scans for a newer file or derives an effective date from capture time.
     """
     day = context.target_date
     observed_day = _date_token(pin.get('observed_trade_date'))
@@ -394,19 +394,35 @@ def hk_industry_classification(config, context):
 
     ResearchPeripheralStore validates its payload, receipt, and manifest before
     projection. The existing explicit V4 pin remains a compatibility path for
-    already materialized candidate artifacts; no latest or network fallback is
-    introduced.
+    already materialized candidate artifacts. A fixed observed-policy template
+    is an explicit fallback after date pins; no source discovery or network is used.
     """
     day = context.target_date
     owner_pins = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
-    pin = owner_pins.get('hk_industry_classification') if isinstance(owner_pins, dict) else None
-    if pin is None:
+    explicit_pin = isinstance(owner_pins, dict) and 'hk_industry_classification' in owner_pins
+    pin = owner_pins.get('hk_industry_classification') if explicit_pin else None
+    if not explicit_pin:
         date_pins = config.source_bindings.get('hk_industry_classification', {})
-        pin = date_pins.get(day) if isinstance(date_pins, dict) else None
-    if pin is None:
+        explicit_pin = isinstance(date_pins, dict) and day in date_pins
+        pin = date_pins.get(day) if explicit_pin else None
+    if not explicit_pin:
         date_pins = config.source_bindings.get('us_mapping', {})
         us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
-        pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
+        explicit_pin = isinstance(us_pin, dict) and 'hk_industry_classification' in us_pin
+        pin = us_pin.get('hk_industry_classification') if explicit_pin else None
+    if explicit_pin and not isinstance(pin, dict):
+        return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID')
+    if not explicit_pin:
+        # An explicitly configured fixed capture can be reused across target
+        # sessions. Only the projection target changes; source date/time and
+        # all three owner hashes are still checked by the same pinned loader.
+        date_pins = config.source_bindings.get('hk_industry_classification', {})
+        template = date_pins.get('observed_policy_template') if isinstance(date_pins, dict) else None
+        if template is not None:
+            if (not isinstance(template, dict) or 'target_date' in template
+                    or template.get('policy') != 'LATEST_OBSERVED'):
+                return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_OBSERVED_POLICY_TEMPLATE_INVALID')
+            pin = dict(template, target_date=day)
     if isinstance(pin, dict) and pin.get('policy') == 'LATEST_OBSERVED':
         try:
             return _load_observed_hk_industry_pin(config, context, pin)

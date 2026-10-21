@@ -1,0 +1,25 @@
+{
+  "operation": "ADD_ONLY_IF_MISSING",
+  "path": "/source_bindings/hk_industry_classification/observed_policy_template",
+  "value": {
+    "policy": "LATEST_OBSERVED",
+    "observed_trade_date": "20261014",
+    "source_asof": null,
+    "source_asof_status": "UNKNOWN",
+    "source_date_semantics": "CAPTURED_ON_OR_BEFORE_TARGET_DATE_SOURCE_ASOF_UNKNOWN",
+    "captured_at": "2026-10-14T11:03:29.919614+08:00",
+    "expected_status": "PARTIAL",
+    "expected_scope_count": 698,
+    "expected_item_count": 695,
+    "owner": "research_peripheral.hk_industry_classification",
+    "source_local_path": "<existing_read_only_shared_source_root>",
+    "artifact_relative": "research/peripherals/20261014/hk_industry_classification.json",
+    "receipt_relative": "receipts/research/peripherals/20261014/hk_industry_classification.json",
+    "manifest_relative": "research/peripherals/manifest.json",
+    "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+    "receipt_sha256": "c3b580bb8c55a52b5a473a9b8291afef657b6e5baf9dbf92602becaa579d6366",
+    "manifest_sha256": "4a12b615749b49bab12c65955429a56fde07dd1d0cc833993821c16d54f4c1a5",
+    "expected_failure_count": 3
+  },
+  "other_configuration": "UNCHANGED"
+}

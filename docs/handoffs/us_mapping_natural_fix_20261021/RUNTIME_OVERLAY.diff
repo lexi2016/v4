@@ -1,0 +1,230 @@
+--- scheduler-parent/v4/manager_workbench/engines/us_mapping.py
++++ candidate/v4/manager_workbench/engines/us_mapping.py
+@@ -211,6 +211,8 @@
+                         evidence_ids=(item.get("evidence_ids") or []) + (relation.get("evidence_ids") or [] if isinstance(relation, dict) else []))
+             extra = dict(record_role=item.get("record_role") or ("CATALOG_OBSERVATION" if is_catalog else "SOURCE_CANDIDATE"),
+                          source_index=row_source_index, us_symbol=item.get("us_symbol"),
++                         owner=item.get("owner"), source_sha256=item.get("source_sha256"),
++                         source_session=item.get("source_session"),
+                          relation_type=relation.get("relation_type") if isinstance(relation, dict) else None,
+                          source_status=priority, publication_time_gaps=relation.get("publication_time_gaps",[]) if isinstance(relation,dict) else [], research_basis=relation.get("research_basis") if isinstance(relation,dict) else None, relation_source_refs=relation.get("relation_source_refs",[]) if isinstance(relation,dict) else [], relation_limitations=relation.get("relation_limitations",[]) if isinstance(relation,dict) else [],quote=item.get("quote"), relation_status=relation.get("status") if isinstance(relation, dict) else None,
+                          catalog_relation=relation.get("catalog_relation") if isinstance(relation,dict) else None,
+@@ -283,7 +285,10 @@
+             if not (relation_ok and priority in ("PRIORITY","WATCH","NONE") and change is not None and eligible is True
+                     and (change is not False or change_evidence_verified)):
+                 blockers=[]
++                if not source_ok:blockers.append('US_SOURCE_IDENTITY_OR_TIME_UNVERIFIED')
++                if not relation_ok:blockers.append('US_RELATION_REVIEW_OR_CUTOFF_GUARD_NOT_PASSED')
+                 if relation_ok and priority not in ('PRIORITY','WATCH','NONE'):blockers.append('AUDITED_RESEARCH_PRIORITY_UNAVAILABLE')
++                if eligible is None:blockers.append('CONNECT_MEMBERSHIP_UNKNOWN')
+                 if eligible is False:blockers.append('TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP')
+                 if change is False and not change_evidence_verified:
+                     blockers.append('US_SOURCE_CHANGE_EVIDENCE_UNVERIFIED')
+@@ -299,7 +304,9 @@
+                 output_rows.append(row(base, "CONDITIONAL_WATCH", "US_REVIEWED_RELATION_CONDITIONAL_ONLY",
+                     conditions=["RELATION_NOT_A_STRICT_SELECTION_RULE"], **extra))
+     source_batch = dict(batch, records=source_records)
+-    out=result("US_MAPPING", source_batch, context, rows, gaps=gaps)
++    # The display result appends catalog/factor observations. Keep its list
++    # separate from the source relations consumed by the daily mapper below.
++    out=result("US_MAPPING", source_batch, context, list(rows), gaps=gaps)
+     out["rows"].extend(catalog_rows)
+     overlay_summary = u.get("full_overlay_summary") or {}
+     consumed_relations = sum(len(item.get("relations", [])) for item in catalog_records
+--- scheduler-parent/v4/manager_workbench/engines/strict_us_selection.py
++++ candidate/v4/manager_workbench/engines/strict_us_selection.py
+@@ -535,7 +535,12 @@
+     if membership.get("codes_sha256") != expected_codes_sha:
+         return cannot_confirm_single_day_mapping(context, "MONTHLY_RESEARCH_UNIVERSE_HASH_INVALID")
+ 
+-    relation_rows = relation_rows if isinstance(relation_rows, list) else []
++    # Catalog records have their own provenance-aware projection below; they
++    # are not unreviewed legacy relations and must not create synthetic C paths.
++    relation_rows = [item for item in relation_rows if isinstance(item, dict)
++        and item.get("record_role") != "CATALOG_OBSERVATION"
++        and item.get("relation_type") != "CATALOG_OBSERVATION_ONLY"
++        and item.get("catalog_relation_id") is None] if isinstance(relation_rows, list) else []
+     industry_rows = industry_rows if isinstance(industry_rows, list) else []
+     catalog_rows = catalog_rows if isinstance(catalog_rows, list) else []
+     from .us_mapping_consumption import (
+--- scheduler-parent/v4/manager_workbench/inputs/native.py
++++ candidate/v4/manager_workbench/inputs/native.py
+@@ -129,12 +129,26 @@
+         return context
+ 
+     def _security_master_identity(self, context):
+-        """Read the exact, already-pinned D-1 security master for identity coverage."""
++        """Read the required exact-date D-1 security-master identity owner."""
+         day = context.source_sessions.get("hk_price")
+         if not isinstance(day, str):
+             return dict(status="UNAVAILABLE", gap="HK_SECURITY_MASTER_SOURCE_DATE_UNKNOWN"), []
+         root = self.config.shared_root
+         try:
++            # A US-close handoff freezes its US owner before submission and
++            # therefore already has a partial owner_bindings dictionary. Add
++            # only the required D-1 identity owner, preserving all frozen pins.
++            owners = context.scope_refs.setdefault("owner_bindings", {})
++            configured = self.config.source_bindings.get("security_master", {}).get(day)
++            if (self.config.dynamic_source_bindings and "security_master" not in owners
++                    and not configured):
++                from .source_bindings import security_master
++                try:
++                    owners["security_master"] = security_master(self.config, context)
++                    context.scope_refs.setdefault("owner_binding_gaps", {}).pop("security_master", None)
++                except (OSError, ValueError, KeyError, TypeError) as error:
++                    gap = str(error) if isinstance(error, ValueError) else "SECURITY_MASTER_OWNER_UNAVAILABLE"
++                    context.scope_refs.setdefault("owner_binding_gaps", {})["security_master"] = gap
+             pin, manifest, _ = self._manifest("security_master", day, root, context)
+             if manifest.get("schema_version") != "v3_shared_data.hk_security_master_manifest.v1":
+                 raise ValueError("HK_SECURITY_MASTER_SCHEMA_INVALID")
+@@ -1051,8 +1065,10 @@
+             industry_pin = pin.get("hk_industry_classification")
+             identity, identity_refs = self._security_master_identity(context)
+             refs.extend(identity_refs)
+-            configured_industry_pin = self.config.source_bindings.get(
+-                "hk_industry_classification", {}).get(context.target_date)
++            industry_bindings = self.config.source_bindings.get("hk_industry_classification", {})
++            configured_industry_pin = (industry_bindings.get(context.target_date)
++                if context.target_date in industry_bindings
++                else industry_bindings.get("observed_policy_template"))
+             refresh_missing_owner_result = bool(
+                 isinstance(industry_pin, dict)
+                 and industry_pin.get("status") == "UNAVAILABLE"
+--- scheduler-parent/v4/manager_workbench/inputs/source_bindings.py
++++ candidate/v4/manager_workbench/inputs/source_bindings.py
+@@ -76,8 +76,8 @@
+     """Load one explicitly pinned owner capture under the observed-use policy.
+ 
+     The owner capture date and capture timestamp stay separate from the run's
+-    target date. This path is opt-in per target date and never scans for a newer
+-    file or infers an effective date from capture time.
++    target date. This path opts in through an exact-date pin or fixed template;
++    it never scans for a newer file or derives an effective date from capture time.
+     """
+     day = context.target_date
+     observed_day = _date_token(pin.get('observed_trade_date'))
+@@ -448,19 +448,35 @@
+ 
+     ResearchPeripheralStore validates its payload, receipt, and manifest before
+     projection. The existing explicit V4 pin remains a compatibility path for
+-    already materialized candidate artifacts; no latest or network fallback is
+-    introduced.
++    already materialized candidate artifacts. A fixed observed-policy template
++    is an explicit fallback after date pins; no source discovery or network is used.
+     """
+     day = context.target_date
+     owner_pins = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
+-    pin = owner_pins.get('hk_industry_classification') if isinstance(owner_pins, dict) else None
+-    if pin is None:
++    explicit_pin = isinstance(owner_pins, dict) and 'hk_industry_classification' in owner_pins
++    pin = owner_pins.get('hk_industry_classification') if explicit_pin else None
++    if not explicit_pin:
+         date_pins = config.source_bindings.get('hk_industry_classification', {})
+-        pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+-    if pin is None:
++        explicit_pin = isinstance(date_pins, dict) and day in date_pins
++        pin = date_pins.get(day) if explicit_pin else None
++    if not explicit_pin:
+         date_pins = config.source_bindings.get('us_mapping', {})
+         us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+-        pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
++        explicit_pin = isinstance(us_pin, dict) and 'hk_industry_classification' in us_pin
++        pin = us_pin.get('hk_industry_classification') if explicit_pin else None
++    if explicit_pin and not isinstance(pin, dict):
++        return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID')
++    if not explicit_pin:
++        # An explicitly configured fixed capture can be reused across target
++        # sessions. Only the projection target changes; source date/time and
++        # all three owner hashes are still checked by the same pinned loader.
++        date_pins = config.source_bindings.get('hk_industry_classification', {})
++        template = date_pins.get('observed_policy_template') if isinstance(date_pins, dict) else None
++        if template is not None:
++            if (not isinstance(template, dict) or 'target_date' in template
++                    or template.get('policy') != 'LATEST_OBSERVED'):
++                return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_OBSERVED_POLICY_TEMPLATE_INVALID')
++            pin = dict(template, target_date=day)
+     if isinstance(pin, dict) and pin.get('policy') == 'LATEST_OBSERVED':
+         try:
+             return _load_observed_hk_industry_pin(config, context, pin)
+--- scheduler-parent/v4/manager_workbench/service.py
++++ candidate/v4/manager_workbench/service.py
+@@ -379,6 +379,7 @@
+         current = candidates[0] if candidates else None
+         acceptable: list[LaneResult] = []
+         names = set()
++        filter_diagnostics = {}
+         if current and (datetime.fromisoformat(current.generated_at) <= cutoff and
+                         datetime.fromisoformat(current.available_at) <= cutoff):
+             for lane in current.lanes:
+@@ -387,20 +388,53 @@
+                 refs={e.evidence_id:e for e in lane.evidence_refs if e.verification.value=="VERIFIED" and e.available_at
+                       and datetime.fromisoformat(e.available_at)<=cutoff}
+                 completed=[]
++                rejected_reasons = {}
++                source_reasons = {}
+                 for row in lane.rows:
+                     available=row.get("available_at")
+                     reviewed=row.get("semantic",{}).get("reviewed_at")
+-                    if (row.get("decision") in {"SELECTED","CONDITIONAL_WATCH","NOT_SELECTED","OBSERVATION_ONLY"}
+-                            and row.get("evidence_ids") and set(row["evidence_ids"]).issubset(refs)
+-                            and available and datetime.fromisoformat(available)<=cutoff
+-                            and (not reviewed or datetime.fromisoformat(reviewed)<=cutoff)):
++                    reasons = []
++                    if row.get("decision") not in {"SELECTED","CONDITIONAL_WATCH","NOT_SELECTED","OBSERVATION_ONLY"}:
++                        reasons.append("PREOPEN_DECISION_INCOMPLETE")
++                    if not row.get("evidence_ids"):
++                        reasons.append("PREOPEN_ROW_EVIDENCE_MISSING")
++                    elif not set(row["evidence_ids"]).issubset(refs):
++                        reasons.append("PREOPEN_ROW_EVIDENCE_UNVERIFIED_OR_AFTER_CUTOFF")
++                    if not available or datetime.fromisoformat(available)>cutoff:
++                        reasons.append("PREOPEN_ROW_AVAILABLE_AFTER_CUTOFF_OR_UNKNOWN")
++                    if reviewed and datetime.fromisoformat(reviewed)>cutoff:
++                        reasons.append("PREOPEN_ROW_REVIEW_AFTER_CUTOFF")
++                    if not reasons:
+                         completed.append(row)
+-                if lane.rows and not completed:continue
+-                if lane.state==LaneState.PARTIAL and not completed:continue
++                    else:
++                        for reason in reasons:
++                            rejected_reasons[reason] = rejected_reasons.get(reason, 0) + 1
++                        row_reasons = row.get("reasons")
++                        row_reasons = row_reasons if isinstance(row_reasons, list) else []
++                        source_reason = row.get("reason")
++                        if isinstance(source_reason, str):
++                            row_reasons = [*row_reasons, source_reason]
++                        for reason in {value for value in row_reasons if isinstance(value, str)}:
++                            source_reasons[reason] = source_reasons.get(reason, 0) + 1
++                filter_diagnostics[lane.lane.value] = dict(
++                    source_run_id=current.run_id, source_state=lane.state.value,
++                    input_sha256=lane.input_sha256, source_coverage=lane.coverage.model_dump(mode="json"),
++                    source_row_count=len(lane.rows), accepted_row_count=len(completed),
++                    filtered_row_count=len(lane.rows)-len(completed),
++                    rejection_reason_counts=rejected_reasons, filtered_source_reason_counts=source_reasons,
++                    source_gaps=list(lane.gaps),
++                    excluded_evidence=[dict(evidence_id=e.evidence_id, verification=e.verification.value,
++                        available_at=e.available_at, gaps=list(e.gaps)) for e in lane.evidence_refs
++                        if e.evidence_id not in refs])
+                 accepted=lane.model_copy(update={"rows":completed,"evidence_refs":list(refs.values())},deep=True)
+-                if len(completed)!=len(lane.rows):
++                if len(completed)!=len(lane.rows) or lane.state==LaneState.PARTIAL:
+                     accepted.state=LaneState.PARTIAL
+-                    accepted.gaps=list(dict.fromkeys([*accepted.gaps,"PREOPEN_ROWS_INCOMPLETE"]))
++                    accepted.gaps=list(dict.fromkeys([*accepted.gaps,"PREOPEN_ROWS_INCOMPLETE",
++                        *(["PREOPEN_ALL_ROWS_FILTERED"] if lane.rows and not completed else [])]))
++                    if not completed:
++                        accepted.coverage=lane.coverage.model_copy(update={"assessed_count":0,
++                            "unassessed_count":None,"gaps":list(dict.fromkeys([
++                                *lane.coverage.gaps,*accepted.gaps]))},deep=True)
+                 acceptable.append(accepted)
+                 names.add(lane.lane)
+             ctx.source_sessions=dict(current.context.source_sessions)
+@@ -424,7 +458,8 @@
+                   "generated_at":ts, "available_at":ts, "lanes":[l.model_dump(mode="json") for l in lanes],
+                   "stocks":[s.model_dump(mode="json") for s in stocks],
+                   "counts":(Counts() if not stocks and len(names)<len(ALL_LANES) else count_rows(stocks)).model_dump(mode="json"),
+-                  "changes":{"freeze_cutoff":ctx.cutoff,"source_run_id":current.run_id if current else None},
++                  "changes":{"freeze_cutoff":ctx.cutoff,"source_run_id":current.run_id if current else None,
++                      "preopen_filter_diagnostics":filter_diagnostics},
+                   "gaps":["PREOPEN_PARTIAL"] if len(names) < len(ALL_LANES) or any(l.state==LaneState.PARTIAL for l in lanes) else []})
+         validate_selected_evidence(snap)
+         try:

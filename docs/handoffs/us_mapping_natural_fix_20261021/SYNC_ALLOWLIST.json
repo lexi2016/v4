@@ -1,0 +1,86 @@
+{
+  "owner": "Writer changed-byte upload allowlist; controller-owned SCOPE/LEDGER separately controlled",
+  "paths": [
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "sha256": "0be4a17b3f7a515234ef45ca7fa9ff234299971e026df690dc0ec4e3e96db348"
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "sha256": "5bbdc7a6e339ac8976aa33013d0066175f7a14ceab54049b5803970c72fcb956"
+    },
+    {
+      "path": "v4/manager_workbench/service.py",
+      "sha256": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "sha256": "932f4823afb7c87782944eba41aea739eadd6bb1e89ee9b30ff68f4e276fcd51"
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_runtime.py",
+      "sha256": "8dc377229b429746bae6945049d8f2c4e8abe2f0eed8b4d9d1136e15a49abcd4"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/.gitignore",
+      "sha256": "62178faca3e5a3972f735701258cadc913052f47c35adefd086433455a3340b9"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/OVERLAY_SPEC.json",
+      "sha256": "c472343f01df7fee396047c33b0570f51c4f34d4874cc2ca3a8e09c552e70219"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/RUNTIME_OVERLAY.diff",
+      "sha256": "2615a1eb4ea02da2ecc81c9f721e9682c49e5630a34a00bc1d75f9230b7606d5"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/CONFIG_DELTA.example.json",
+      "sha256": "96f43288c124f31bbe4e1633fc51a440a6819aa6caa6ffb94ddd0e2f294b7808"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/prepare_candidate.py",
+      "sha256": "2b4cf01f524b5624674fb7aa2286bf0a71384419e073bec0050b9a42ef53bb84"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/preactivation_guard.py",
+      "sha256": "c88e22030f61b6f129a0bedcc278457b14d1dafd4e1c677a57b1e6fb476060e7"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/run_checks.py",
+      "sha256": "9703b83584bd9ba1ade3fecfd17c7245a166ab23f1afe2ecb4c4d56d926fa4db"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/replay_frozen.py",
+      "sha256": "bdadcaff480e02e3a71d33c12fdf3419a187f7239f92fd3f87ea7b2bc17ca71b"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/DEPLOYMENT_PLAN.md",
+      "sha256": "6c90981a41143c30da74daeaa93c99309473a909bd60cecbeac2ed164e9745f7"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/COMMANDS.json",
+      "sha256": "098e678d00268c7582aa949ea7d7f4eec23f39383eebcaf7577aff3db7a5241f"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/PREPARED.json",
+      "sha256": "6ccfbed76487453d777cf9a67ec1318d4b59e2210a639db5c47f31202d7dc014"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/README.md",
+      "sha256": "89ac826455fbce306fb4acad287cba439958df6ed18398fd71e15426e97eabf8"
+    },
+    {
+      "path": "docs/handoffs/us_mapping_natural_fix_20261021/REVIEW_FIXES_R4.diff",
+      "sha256": "a97ebd8fd20f245924f78ec27bb558f7ab9f553c96935193382410968deec6b6"
+    }
+  ],
+  "exclude": [
+    "local_only/**",
+    "runtime release/config/plist bodies",
+    "raw owner/market/plan/history data",
+    "credentials and operational tokens",
+    "all __pycache__ test byproducts"
+  ],
+  "no_commit_or_push_performed": true,
+  "r4_scope": "Only source_bindings.py/service.py and affected test increments are new versus prior writer handoff; source/native/engines and raw runtime evidence remain preserved or reused."
+}

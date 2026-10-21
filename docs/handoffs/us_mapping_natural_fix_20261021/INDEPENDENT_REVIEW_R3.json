@@ -1,0 +1,136 @@
+{
+  "reviewer": "/root/medicine_mapping_diagnosis",
+  "writer": "/root/natural_fix_writer",
+  "identity_distinct": true,
+  "review_type": "ONE_INDEPENDENT_FROZEN_R3_REVIEW",
+  "verdict": "REVIEWED_FAIL",
+  "scope": "Frozen local r3 source behavior and prepared scheduler package only",
+  "prepared_sha256": "7124b05925fd02f21476bfb27d1e702fcafd2087108335e385b152a967579fc4",
+  "candidate": "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3",
+  "manifest_sha256": "34e1428138b76ac362b3b8c1859c61f8fa1d646a33b160b37c0394867f058b38",
+  "config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236",
+  "source_delta": {
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "before": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+      "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a"
+    },
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "before": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+      "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "before": "50e59d9610433977a9cf7953333e911d720670cec4de164523c612e6c3778ace",
+      "after": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa"
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "before": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+      "after": "cf3578057f129c5235a9a4f8553fb5fb151114ca2c81d1b960f25c4c4772f8df"
+    },
+    "v4/manager_workbench/service.py": {
+      "before": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "after": "23ab1e97e39b9e26e0a86e37faf30df2543789f67da66380eac0ed277a72a419"
+    }
+  },
+  "findings": [
+    {
+      "id": "R3-P2-1",
+      "priority": "P2",
+      "file": "v4/manager_workbench/inputs/source_bindings.py",
+      "runtime_lines": [
+        463,
+        476
+      ],
+      "trigger": "Valid observed_policy_template plus source_bindings.us_mapping[target_date].hk_industry_classification explicitly null",
+      "error": "Resolver falls through to template and returns READY instead of preserving explicit malformed-pin failure",
+      "independent_evidence": "Same resolved temporary fixture: template_only READY; top_level_null UNAVAILABLE/HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID; nested_us_null READY",
+      "impact": "Exact-date compatibility override can be silently bypassed, violating frozen explicit-malformed-pin fail-closed requirement",
+      "requested_fix": "Distinguish key absent from present-but-malformed in each supported explicit pin entry; do not weaken owner SHA/time checks"
+    },
+    {
+      "id": "R3-P2-2",
+      "priority": "P2",
+      "file": "v4/manager_workbench/service.py",
+      "runtime_lines": [
+        412,
+        413
+      ],
+      "trigger": "A rejected source row has reasons:null; source PlanSnapshot independently validates with seal_snapshot",
+      "error": "TypeError: Value after * must be an iterable, not NoneType",
+      "independent_evidence": "Constructed validated source using existing _preopen_source_plan fixture; only row optional reasons changed to null; freeze_preopen fails on new diagnostic expansion",
+      "impact": "Optional source diagnostics abort the entire PREOPEN freeze rather than retaining executed PARTIAL source and filtering the row",
+      "requested_fix": "Normalize optional diagnostic reasons safely; keep evidence VERIFIED and cutoff acceptance gate unchanged"
+    }
+  ],
+  "focused_checks": {
+    "candidate_command": "PYTHONDONTWRITEBYTECODE=1 <runtime-python> docs/handoffs/us_mapping_natural_fix_20261021/run_checks.py --code-root <frozen-r3-app> --basetemp=/tmp/v4-natural-independent-r3-tests",
+    "candidate": {
+      "passed": 61,
+      "failed": 2
+    },
+    "known_failures_independently_reproduced_on_unmodified_parent": [
+      "test_single_day_uses_calendar_bound_sessions_for_ordinary_and_post_holiday_targets: ImportError next_session from retained parent calendar",
+      "test_preopen_keeps_completed_rows_from_partial_lane_and_never_changes: fixture COUNTS_MISMATCH before freeze_preopen"
+    ],
+    "existing_failures_block_scope": false,
+    "additional_repros": 2
+  },
+  "package_checks": {
+    "actual_parent_files": 941,
+    "candidate_files": 941,
+    "added": 0,
+    "removed": 0,
+    "changed_allowed_source_files": 5,
+    "other_full_files_preserved": 936,
+    "manifest_entries": 872,
+    "non_delta_manifest_entries_preserved": 867,
+    "manifest_entries_and_digest_verified": true,
+    "config_only_template_addition": true,
+    "plist_only_controlled_rebind": true,
+    "scope_sync_allowlist_hashes_matched_at_review": true,
+    "parent_DS_Store": "Exact approved SHA preserved"
+  },
+  "independent_frozen_canary": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 <runtime-python> docs/handoffs/us_mapping_natural_fix_20261021/replay_frozen.py --code-root <frozen-r3-app> --config <frozen-r3-config> --output /private/tmp/v4-natural-independent-r3-canary-resolved",
+    "summary_path": "/private/tmp/v4-natural-independent-r3-canary-resolved/summary.json",
+    "summary_sha256": "059a510c23d1ff73621f0a17db5d26b61b681f1cb3b58a5e661aa1317c35b6fe",
+    "state": "OFFLINE_CANARY_COMPLETED_NOT_NATURAL",
+    "source_snapshot_sha256": "bf73a5dd72233165495369dc759300ea0058fb0f08fbba05e6c7927328928d4e",
+    "input_snapshot_sha256": "1488f9594fd952a607e92d5f7f628341805a83bf9c4377c34ad2a189d1685b58",
+    "frozen_us_pin_sha256": "b59bc9ab71b449c9c840b5a0a7752ece41a03b16cfc51c0ea6484eb620092b3a",
+    "frozen_us_pin_unchanged": true,
+    "observed_source": {
+      "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+      "observed_trade_date": "20261014",
+      "captured_at": "2026-10-14T11:03:29.919614+08:00",
+      "source_asof_status": "UNKNOWN",
+      "status": "PARTIAL"
+    },
+    "master_source_date": "20261020",
+    "daily_rows": 698,
+    "daily_counts": {
+      "BENEFIT": 0,
+      "RISK": 0,
+      "CONFLICT": 0,
+      "OBSERVATION": 308,
+      "UNMAPPED": 379,
+      "UNASSESSED": 11,
+      "SMALL_MOVE_WATCH": 5,
+      "C_WATCH": 303
+    },
+    "preopen_state": "PARTIAL",
+    "preopen_source_rows": 1063,
+    "preopen_accepted_rows": 0,
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "strict_v1_status": "PAUSED_NOT_EXECUTED",
+    "network_or_model_calls": false,
+    "official_state_writes": false,
+    "initial_harness_path_error": "First /tmp output attempt rejected by existing UNSAFE_STATE_ROOT symlink guard; rerun with resolved /private/tmp isolated directory passed"
+  },
+  "preactivation_and_rollback_review": "Read-only guard and documented bounded lifecycle/conditional rollback reviewed. Guard is point-in-time and must repeat at activation; no live lifecycle action executed.",
+  "limits": [
+    "No deployment, loaded-runtime, Git remote or natural-slot acceptance",
+    "R3 remains rejected despite successful ordinary frozen canary",
+    "Both P2 findings require bounded fixes and incremental review; preserve valid prior checks",
+    "BEHAVIOR_VERIFIED applies only to independently observed offline cases, not end-to-end or natural execution"
+  ]
+}

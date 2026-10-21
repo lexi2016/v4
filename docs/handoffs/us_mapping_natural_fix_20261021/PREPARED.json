@@ -1,0 +1,263 @@
+{
+  "state": "PREPARED_NOT_ACTIVATED",
+  "candidate": "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r4",
+  "historical_manifest_gap": "Controller accepted existing upstreams/review_core/.DS_Store exact SHA; old manifest has 871 entries, actual 872; all actual bytes preserved",
+  "parent": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-top100-holiday-scheduler-20261020-r1/app",
+  "parent_manifest_sha256": "a80dbd4ecdcb8e3a45f7641f6761e8ab62010df78a42619de9e421006d41bde4",
+  "parent_inventory_sha256": "4f4ea3421d2b8a816d8a071234afa2bf9f233a695afd002a5dfbc15464ac7d37",
+  "candidate_inventory_sha256": "a424d2ca1c47eb10a27e8a146d42019106f8ed364d8ed94ab9811badd5d3965d",
+  "candidate_manifest_sha256": "b21f6084fa046c3575fd356e43ab5a6408442f1d9f0e998cf978a218a321607c",
+  "old_config_sha256": "10cb6ca6446c145b735e7aa51f6928063b96c68a7ee7908b011dbe6f52d57809",
+  "new_config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236",
+  "original_plist_sha256": "80125421f00e29cc2dbaa629395ec12c0b87dc4380d2699a8fbeaf3a769e6f1a",
+  "proposed_plist_sha256": "788a4c91a75caacf5ed7e19f6f570d3bf91ac62fbe76d3eec6eb92349174d4f0",
+  "source_delta": {
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "before": "6d98c575e9c03ca58eace87331bb08ec17243738923af9160a8e1eee5eac6ec1",
+      "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a"
+    },
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "before": "7178bb4f0b19ee2c09c1f1a6d32ac1b7e0f1d7afd980512f44afc238d1615c48",
+      "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367"
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "before": "50e59d9610433977a9cf7953333e911d720670cec4de164523c612e6c3778ace",
+      "after": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa"
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "before": "0850de028c3ba14b1a1568e1065d1b347512656edc05913d9155c9e8ab4ff98a",
+      "after": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494"
+    },
+    "v4/manager_workbench/service.py": {
+      "before": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "after": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    }
+  },
+  "exact_delta_count": 5,
+  "non_delta_entries_preserved": 867,
+  "config_delta": [
+    "/source_bindings/hk_industry_classification/observed_policy_template"
+  ],
+  "live_activation": "NOT_RUN",
+  "official_state_writes": false,
+  "collection_or_model_calls": false,
+  "writer": "/root/natural_fix_writer",
+  "status": "IMPLEMENTED_PREPARED_R4_INCREMENTAL_REVIEW_PENDING",
+  "source_root": "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app",
+  "git_base": "4e00084d8ef9c606bfff2892dcab35515423c776",
+  "branch": "codex/us-mapping-natural-fix-20261021",
+  "canonical_source": {
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "before": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "after": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "changed": false
+    },
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "before": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "after": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "changed": false
+    },
+    "v4/manager_workbench/inputs/native.py": {
+      "before": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+      "after": "0be4a17b3f7a515234ef45ca7fa9ff234299971e026df690dc0ec4e3e96db348",
+      "changed": true
+    },
+    "v4/manager_workbench/inputs/source_bindings.py": {
+      "before": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+      "after": "5bbdc7a6e339ac8976aa33013d0066175f7a14ceab54049b5803970c72fcb956",
+      "changed": true
+    },
+    "v4/manager_workbench/service.py": {
+      "before": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "after": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46",
+      "changed": true
+    }
+  },
+  "overlay_spec_sha256": "c472343f01df7fee396047c33b0570f51c4f34d4874cc2ca3a8e09c552e70219",
+  "runtime_overlay_diff_sha256": "2615a1eb4ea02da2ecc81c9f721e9682c49e5630a34a00bc1d75f9230b7606d5",
+  "writer_validation": {
+    "r2_scoped": {
+      "passed": 61,
+      "failed": 2,
+      "failures": "Exact unmodified-parent failures; not fixed in this scope"
+    },
+    "r3_incremental": {
+      "passed": 3,
+      "failed": 0,
+      "scope": "Only resolver changed between r2 and r3; other four runtime source files identical; prior checks reused"
+    },
+    "actual_frozen_canary": {
+      "state": "OFFLINE_CANARY_COMPLETED_NOT_NATURAL",
+      "summary_path": "local_only/frozen-canary-r3/summary.json",
+      "summary_sha256": "059a510c23d1ff73621f0a17db5d26b61b681f1cb3b58a5e661aa1317c35b6fe",
+      "source_run_id": "e6feeeb310bf40fda91e1561f285d908",
+      "source_snapshot_sha256": "bf73a5dd72233165495369dc759300ea0058fb0f08fbba05e6c7927328928d4e",
+      "input_snapshot_sha256": "1488f9594fd952a607e92d5f7f628341805a83bf9c4377c34ad2a189d1685b58",
+      "frozen_us_pin_sha256": "b59bc9ab71b449c9c840b5a0a7752ece41a03b16cfc51c0ea6484eb620092b3a",
+      "frozen_us_pin_unchanged": true,
+      "quote_artifact_sha256": "decd7e4b3b79d437cf1f49ca243a6f71978216cba83d5543d1c8c9fae37b28e8",
+      "quote_receipt_sha256": "da12c3e963f6d42c4f79c74ae8dc2624f660e8156a1b994741bea97f60a45752",
+      "quote_manifest_sha256": "6fb4fa6bf036ae8847c23bd376ebe41c680c63edbf8279424af8a19805530618",
+      "quote_source_session": "20261020",
+      "capture_cutoff": "2026-10-20T20:15:04Z",
+      "capture_run_id": null,
+      "observed_source": {
+        "artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b",
+        "observed_trade_date": "20261014",
+        "captured_at": "2026-10-14T11:03:29.919614+08:00",
+        "source_asof_status": "UNKNOWN",
+        "status": "PARTIAL"
+      },
+      "master_identity": {
+        "source_date": "20261020",
+        "artifact_sha256": "e228ce49b00a4aa4cfc83c4836336fb1d9f845da05897ab2f71401e1ff14258d",
+        "manifest_sha256": "c73a8ca45c77d5200ac1b2322708fa3d620f51b37984b0b0048b068e0a4486d8",
+        "master_scope_count": 692
+      },
+      "daily_counts": {
+        "BENEFIT": 0,
+        "RISK": 0,
+        "CONFLICT": 0,
+        "OBSERVATION": 308,
+        "UNMAPPED": 379,
+        "UNASSESSED": 11,
+        "SMALL_MOVE_WATCH": 5,
+        "C_WATCH": 303
+      },
+      "daily_row_count": 698,
+      "medical_rows": [
+        {
+          "symbol": "HK.01801",
+          "decision": "OBSERVATION",
+          "reason": "C_MAPPING_OBSERVE_ONLY"
+        },
+        {
+          "symbol": "HK.02157",
+          "decision": "OBSERVATION",
+          "reason": "C_MAPPING_OBSERVE_ONLY"
+        },
+        {
+          "symbol": "HK.02269",
+          "decision": "OBSERVATION",
+          "reason": "C_MAPPING_OBSERVE_ONLY"
+        },
+        {
+          "symbol": "HK.03692",
+          "decision": "OBSERVATION",
+          "reason": "C_MAPPING_OBSERVE_ONLY"
+        },
+        {
+          "symbol": "HK.09926",
+          "decision": "OBSERVATION",
+          "reason": "C_MAPPING_OBSERVE_ONLY"
+        }
+      ],
+      "preopen_state": "PARTIAL",
+      "preopen_source_rows": 1063,
+      "preopen_accepted_rows": 0,
+      "preopen_rejection_reason_counts": {
+        "PREOPEN_DECISION_INCOMPLETE": 1040,
+        "PREOPEN_ROW_EVIDENCE_MISSING": 1003,
+        "PREOPEN_ROW_EVIDENCE_UNVERIFIED_OR_AFTER_CUTOFF": 60
+      },
+      "formal_target_eligibility": "CANNOT_CONFIRM",
+      "strict_v1_status": "PAUSED_NOT_EXECUTED",
+      "r4_reuse_limit": "Recorded r3 actual-input ordinary case, independently reproduced; r4 has not rerun full canary. Only explicit malformed pin and optional reason type branches changed; 24 incremental checks cover these and direct guards."
+    },
+    "preactivation_guard": {
+      "result": "PASS_POINT_IN_TIME_ONLY",
+      "pid": 72933,
+      "log_sha256": "fd6e6a9b4dc887568e383e2a6a4c3d7d99968f8958809b350c1a12b0215eba10",
+      "must_repeat_at_actual_activation": true
+    },
+    "r4_review_fixes": {
+      "reproduction": {
+        "candidate": "immutable_r3",
+        "failed": 11,
+        "passed": 7,
+        "log": "local_only/r4-review-fixes-red-final.log",
+        "sha256": "dab1163fdfa666137f848d50b6f1d3f9ec68a1679a679ac4f5635e5a8f72fe2b"
+      },
+      "incremental": {
+        "candidate": "r4",
+        "passed": 24,
+        "failed": 0,
+        "log": "local_only/r4-review-fixes-green.log",
+        "sha256": "e945065b913021fd5ae16ee1fb5c00073382390c345b1c8dd263f9df76a73942"
+      },
+      "full_suite_repeated": false,
+      "full_frozen_replay_repeated": false,
+      "prior_valid_evidence_reused": true
+    }
+  },
+  "independent_review": "R3_REVIEWED_FAIL_RETAINED; R4_INCREMENTAL_REVIEW_PENDING",
+  "git_sync": "NOT_RUN_CONTROLLER_OWNED",
+  "deployment": "NOT_RUN",
+  "runtime_loaded_readback": "NOT_RUN",
+  "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+  "cannot_confirm": [
+    "Independent r4 incremental Reviewer acceptance pending",
+    "Actual scheduler activation and loaded-runtime identity not performed",
+    "Git remote sync is controller-owned and not performed by Writer",
+    "No post-release natural run or next trading-day09:25 result yet",
+    "Two pre-existing calendar/fixture failures remain outside frozen repair scope"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "commands_receipt_sha256": "098e678d00268c7582aa949ea7d7f4eec23f39383eebcaf7577aff3db7a5241f",
+  "scope_sha256": "1219a9ad0ebc93f07a45360a2f449093f330c105172b2a8a6e92fe14feb21761",
+  "actual_parent_freeze_sha256": "ee587d5b1d9dab11737697eb40a71a7eff9fdeaddc653a4a1aa398de8fcc856d",
+  "test_sha256": {
+    "tests/manager_workbench/engines/test_us_factor.py": {
+      "before": "c3115d9d610268d5503181b00db5d6dd1b10ec359cd28b082004adc97f97ec96",
+      "after": "932f4823afb7c87782944eba41aea739eadd6bb1e89ee9b30ff68f4e276fcd51"
+    },
+    "tests/manager_workbench/runtime/test_runtime.py": {
+      "before": "d667853111a25de62a986b90a5d7d528cebb0276ba23b62f494e2c2b3a58a6eb",
+      "after": "8dc377229b429746bae6945049d8f2c4e8abe2f0eed8b4d9d1136e15a49abcd4"
+    }
+  },
+  "helper_sha256": {
+    "preactivation_guard.py": "c88e22030f61b6f129a0bedcc278457b14d1dafd4e1c677a57b1e6fb476060e7",
+    "prepare_candidate.py": "2b4cf01f524b5624674fb7aa2286bf0a71384419e073bec0050b9a42ef53bb84",
+    "replay_frozen.py": "bdadcaff480e02e3a71d33c12fdf3419a187f7239f92fd3f87ea7b2bc17ca71b",
+    "run_checks.py": "9703b83584bd9ba1ade3fecfd17c7245a166ab23f1afe2ecb4c4d56d926fa4db"
+  },
+  "final_candidate_readback": "R4_EXACT_MANIFEST_CONFIG_AND_FIVE_SOURCE_HASHES_MATCH; EXACT_TWO_SOURCE_DELTA_VS_R3",
+  "test_byproducts": "Initial direct pytest/helper imports generated previously absent canonical untracked __pycache__ files. Controller instructed retaining and excluding them from Git. No cache is part of source/runtime delta or synchronization allowlist.",
+  "reviewer_prior_receipt": {
+    "path": "INDEPENDENT_REVIEW_R3.json",
+    "sha256": "c23c788567ea2cf4f7d4d7ac0d4b8ede66b29c7811598e29e64b70efd605cfe1",
+    "verdict": "REVIEWED_FAIL",
+    "reused_scope": "61 ordinary passes, two same-parent historical failures, independently reproduced ordinary frozen-input canary and unchanged package bytes; no overall PASS reused"
+  },
+  "r4_relative_to_r3": {
+    "prior_prepared_sha256": "7124b05925fd02f21476bfb27d1e702fcafd2087108335e385b152a967579fc4",
+    "prior_candidate": "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3",
+    "prior_manifest_sha256": "34e1428138b76ac362b3b8c1859c61f8fa1d646a33b160b37c0394867f058b38",
+    "delta": [
+      {
+        "path": "v4/manager_workbench/inputs/source_bindings.py",
+        "before": "cf3578057f129c5235a9a4f8553fb5fb151114ca2c81d1b960f25c4c4772f8df",
+        "after": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494"
+      },
+      {
+        "path": "v4/manager_workbench/service.py",
+        "before": "23ab1e97e39b9e26e0a86e37faf30df2543789f67da66380eac0ed277a72a419",
+        "after": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+      }
+    ],
+    "physical_files_unchanged": 939,
+    "source_changed_count": 2,
+    "incremental_diff_path": "REVIEW_FIXES_R4.diff",
+    "incremental_diff_sha256": "a97ebd8fd20f245924f78ec27bb558f7ab9f553c96935193382410968deec6b6",
+    "findings_fixed": [
+      "R3-P2-1",
+      "R3-P2-2"
+    ]
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "cwd": "/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app",
+  "commands": [
+    {
+      "label": "initial-direct-preopen",
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest tests/manager_workbench/engines/test_us_factor.py -k 'fixed_observed_template or explicit_observed_override or latest_observed_owner_pin' tests/manager_workbench/runtime/test_runtime.py -k 'preopen' --basetemp=/tmp/v4-natural-fix-tests-r1 -q",
+      "exit_code": 0,
+      "result": "6 passed,43 deselected; last -k selects preopen only",
+      "log": "session tool output"
+    },
+    {
+      "label": "initial-direct-observed",
+      "command": "'/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' -m pytest tests/manager_workbench/engines/test_us_factor.py -k 'fixed_observed_template or explicit_observed_override or latest_observed_owner_pin' --basetemp=/tmp/v4-natural-fix-observed-r1 -q",
+      "exit_code": 0,
+      "result": "3 passed,26 deselected",
+      "log": "session tool output"
+    },
+    {
+      "label": "initial-prepare",
+      "command": "python3 docs/handoffs/us_mapping_natural_fix_20261021/prepare_candidate.py --output '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r2'",
+      "exit_code": 1,
+      "result": "PARENT_INVENTORY_DRIFT; one existing DS_Store; controller accepted exact preservation",
+      "log": "local_only/PARENT_MANIFEST_DRIFT.json",
+      "log_sha256": "12c3c567e1b30d14e44d699420aeb3e894c60d15cbd87161368d667ad7d28e89"
+    },
+    {
+      "label": "baseline-new",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/us_mapping_natural_fix_20261021/run_checks.py --code-root '/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-top100-holiday-scheduler-20261020-r1/app' --baseline --basetemp=/tmp/v4-natural-parent-red",
+      "exit_code": 1,
+      "result": "2 failed, 1 passed; expected reproduction of missing template and NOT_RUN mislabel",
+      "log": "local_only/baseline-red.log",
+      "log_sha256": "452940e9302b6f972038ab54b9d2b1e62f613bcd6f213fb1181757ea94a1e0bb"
+    },
+    {
+      "label": "candidate-r2-scoped",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/us_mapping_natural_fix_20261021/run_checks.py --code-root '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r2/app' --basetemp=/tmp/v4-natural-candidate-scoped",
+      "exit_code": 1,
+      "result": "61 passed, 2 failed; two exact failures reproduced against unmodified parent",
+      "log": "local_only/candidate-scoped.log",
+      "log_sha256": "6a14fe375b7f398e0197e826ff01ad57c4027005c9651bf710a0c61ac2a769f0"
+    },
+    {
+      "label": "parent-existing-failures",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' - <<'PY'\nimport sys\nroot='/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-top100-holiday-scheduler-20261020-r1/app'\nsys.path[:0]=[root,root+'/upstreams']\nimport pytest\nraise SystemExit(pytest.main(['tests/manager_workbench/runtime/test_strict_us_selection.py::test_single_day_uses_calendar_bound_sessions_for_ordinary_and_post_holiday_targets', 'tests/manager_workbench/runtime/test_native_pipeline.py::test_preopen_keeps_completed_rows_from_partial_lane_and_never_changes', '-q', '--basetemp=/tmp/v4-natural-baseline-existing-failures']))\nPY",
+      "exit_code": 1,
+      "result": "2 failed identically: missing next_session import; legacy oversold fixture COUNTS_MISMATCH",
+      "log": "local_only/baseline-existing-failures.log",
+      "log_sha256": "b262c44eee9e8dc764c48bf6e5bcf68a853aff0a8f962ac4145e5d0e7ba46a13"
+    },
+    {
+      "label": "r2-canary-initial",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/us_mapping_natural_fix_20261021/replay_frozen.py --code-root '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r2/app' --config '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r2/us-industry-observed-scheduler-20261021-r2.json' --output '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/frozen-canary-r2'",
+      "exit_code": 1,
+      "result": "Harness assertion used shortened membership gap label; runtime correctly retained full CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED. Fixed harness only.",
+      "log": "local_only/frozen-canary-r2.log",
+      "log_sha256": "4c46c92c493e4821ab6d1f49e966e60832f78d0a6d79588d6388a1aa7e5b5174"
+    },
+    {
+      "label": "r2-canary-final",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/us_mapping_natural_fix_20261021/replay_frozen.py --code-root '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r2/app' --config '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r2/us-industry-observed-scheduler-20261021-r2.json' --output '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/frozen-canary-r2-final'",
+      "exit_code": 0,
+      "result": "Actual frozen replay complete; off-line only",
+      "log": "local_only/frozen-canary-r2-final.log",
+      "log_sha256": "80daa4aef208e85e8ea1d059cf52ed476ce6a5706ecbc614a526965f7c1ae9e9"
+    },
+    {
+      "label": "final-prepare",
+      "command": "python3 docs/handoffs/us_mapping_natural_fix_20261021/prepare_candidate.py --output '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3'",
+      "exit_code": 0,
+      "result": "PREPARED_NOT_ACTIVATED; full parent/config/plist guard and exact five-file app delta",
+      "log": "local_only/prepare-r3.log",
+      "log_sha256": "ab28929c9493876eaf263a2f169c3eda15498a50b510310a3a87570f2a97ec25"
+    },
+    {
+      "label": "r3-incremental-observed",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' - <<'PY'\nimport sys\nroot='/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3/app'\nsys.path[:0]=[root,root+'/upstreams']\nimport pytest\nraise SystemExit(pytest.main(['tests/manager_workbench/engines/test_us_factor.py::test_fixed_observed_template_spans_consecutive_sessions_and_keeps_original_source', 'tests/manager_workbench/engines/test_us_factor.py::test_explicit_observed_override_wins_and_invalid_override_never_uses_template', 'tests/manager_workbench/engines/test_us_factor.py::test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture', '-q', '--basetemp=/tmp/v4-natural-r3-incremental']))\nPY",
+      "exit_code": 0,
+      "result": "3 passed; changed resolver branch plus valid template and owner guards",
+      "log": "local_only/r3-incremental-observed.log",
+      "log_sha256": "384bc856829ad1e3821bff5aae1eef2c0c216712d76383366711faa52cba688c"
+    },
+    {
+      "label": "r3-actual-frozen-replay",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/us_mapping_natural_fix_20261021/replay_frozen.py --code-root '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3/app' --config '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3/us-industry-observed-scheduler-20261021-r2.json' --output '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/frozen-canary-r3'",
+      "exit_code": 0,
+      "result": "Actual frozen replay complete; 698 unique research rows; PREOPEN PARTIAL/all1063 filtered; frozen US pin unchanged",
+      "log": "local_only/frozen-canary-r3.log",
+      "log_sha256": "80daa4aef208e85e8ea1d059cf52ed476ce6a5706ecbc614a526965f7c1ae9e9"
+    },
+    {
+      "label": "read-only-preactivation",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 docs/handoffs/us_mapping_natural_fix_20261021/preactivation_guard.py",
+      "exit_code": 0,
+      "result": "PREACTIVATION_GUARD_PASS; point-in-time only; no service action",
+      "log": "local_only/preactivation-readonly.log",
+      "log_sha256": "fd6e6a9b4dc887568e383e2a6a4c3d7d99968f8958809b350c1a12b0215eba10"
+    },
+    {
+      "label": "diff-check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "No whitespace errors",
+      "log": null,
+      "log_sha256": null
+    },
+    {
+      "label": "r4-review-red-initial-collection",
+      "command": "Same red target invocation before adding the missing pytest test import",
+      "exit_code": 4,
+      "result": "Test-harness NameError pytest not defined; corrected before behavior reproduction",
+      "log": "local_only/r4-review-fixes-red.log",
+      "log_sha256": "a97622cdf435817800fe55d84586bf76afbcba510e7e603cdf61a39e9c43f65d"
+    },
+    {
+      "label": "r4-review-fixed-reproduction-on-r3",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' - <<'PY'\nimport sys\nroot='/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r3/app'\nsys.path[:0]=[root,root+'/upstreams']\nimport pytest\nraise SystemExit(pytest.main(['tests/manager_workbench/engines/test_us_factor.py::test_explicit_malformed_industry_pin_never_falls_through_to_template', 'tests/manager_workbench/engines/test_us_factor.py::test_absent_nested_industry_key_can_use_fixed_template', 'tests/manager_workbench/runtime/test_runtime.py::test_preopen_optional_reason_metadata_cannot_crash_or_change_gate', '-q', '--basetemp=/tmp/v4-natural-r4-review-red-final']))\nPY",
+      "exit_code": 1,
+      "result": "11 failed,7 passed; explicit malformed owner/nested pins and optional diagnostic null/types reproduced on immutable r3",
+      "log": "local_only/r4-review-fixes-red-final.log",
+      "log_sha256": "dab1163fdfa666137f848d50b6f1d3f9ec68a1679a679ac4f5635e5a8f72fe2b"
+    },
+    {
+      "label": "r4-prepare",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 docs/handoffs/us_mapping_natural_fix_20261021/prepare_candidate.py --output '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r4'",
+      "exit_code": 0,
+      "result": "PREPARED_NOT_ACTIVATED; exact five-file delta from scheduler parent, exactly two changed files relative to r3",
+      "log": "local_only/prepare-r4.log",
+      "log_sha256": "4b7f8c0f3727e2286ca0d41cc985896730eec0ff4a8ded0e79cf0d7df5c3437c"
+    },
+    {
+      "label": "r4-review-fixes-green",
+      "command": "PYTHONDONTWRITEBYTECODE=1 '/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python' docs/handoffs/us_mapping_natural_fix_20261021/run_checks.py --code-root '/Users/lexi/.codex/worktrees/us-mapping-natural-fix/v4_app/docs/handoffs/us_mapping_natural_fix_20261021/local_only/us-mapping-natural-scheduler-20261021-r4/app' --review-fixes --basetemp=/tmp/v4-natural-r4-review-fixes",
+      "exit_code": 0,
+      "result": "24 passed; only affected source-binding and PREOPEN diagnostic boundaries; prior independent ordinary cases reused",
+      "log": "local_only/r4-review-fixes-green.log",
+      "log_sha256": "e945065b913021fd5ae16ee1fb5c00073382390c345b1c8dd263f9df76a73942"
+    }
+  ],
+  "exact_existing_failures": [
+    "tests/manager_workbench/runtime/test_strict_us_selection.py::test_single_day_uses_calendar_bound_sessions_for_ordinary_and_post_holiday_targets",
+    "tests/manager_workbench/runtime/test_native_pipeline.py::test_preopen_keeps_completed_rows_from_partial_lane_and_never_changes"
+  ],
+  "final_incremental_tests": [
+    "tests/manager_workbench/engines/test_us_factor.py::test_fixed_observed_template_spans_consecutive_sessions_and_keeps_original_source",
+    "tests/manager_workbench/engines/test_us_factor.py::test_explicit_observed_override_wins_and_invalid_override_never_uses_template",
+    "tests/manager_workbench/engines/test_us_factor.py::test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture"
+  ],
+  "notes": "Read-only searches/source comparisons and Python edit commands are in session history. This ledger records reproducible preparation and verification. Source generation had one corrected hunk-context assertion before OVERLAY_SPEC creation. No live path touched.",
+  "r4_scope": "Only two review findings, affected tests and package rebind; no full suite or real-input replay repeated; r3 independent valid evidence reused within its original scope."
+}

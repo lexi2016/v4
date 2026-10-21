@@ -419,3 +419,113 @@ def test_canary_scope_separates_normal_job(tmp_path):
     finally:
         wait.set(); s.jobs.stop()
 
+
+
+def _preopen_source_plan(service, *, include_valid=False, generated_at="2026-10-13T09:20:00+08:00", additional_rows=()):
+    from v4.manager_workbench.contracts import Counts, EvidenceRef
+    cutoff = "2026-10-13T09:25:00+08:00"
+    refs = [EvidenceRef(evidence_id="unknown-registry", owner="registry", role="US_RELATION",
+        sha256="a"*64, verification="CANNOT_CONFIRM", gaps=["SOURCE_AVAILABLE_AT_UNKNOWN"]),
+        EvidenceRef(evidence_id="unknown-membership", owner="membership", role="MEMBERSHIP",
+        sha256="b"*64, verification="CANNOT_CONFIRM", available_at=generated_at,
+        gaps=["TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"]),
+        EvidenceRef(evidence_id="boundary", owner="fixture", role="QUOTE", sha256="c"*64,
+            verification="VERIFIED", available_at=cutoff),
+        EvidenceRef(evidence_id="late", owner="fixture", role="QUOTE", sha256="d"*64,
+            verification="VERIFIED", available_at="2026-10-13T09:25:00.000001+08:00")]
+    rows = [dict(symbol="HK.00001", decision="NOT_SELECTED", available_at=generated_at,
+        evidence_ids=["unknown-registry", "unknown-membership"], reason="US_PROXY_NOT_POSITIVE"),
+        dict(symbol="HK.00002", decision="UNASSESSED", available_at=generated_at,
+            evidence_ids=["boundary"], reason="RELATIONSHIP_NOT_REVIEWED"),
+        dict(symbol="HK.00003", decision="NOT_SELECTED", available_at=generated_at,
+            evidence_ids=["late"], reason="US_PROXY_NOT_POSITIVE")]
+    if include_valid:
+        rows += [dict(symbol="HK.00004", decision="NOT_SELECTED", available_at=cutoff,
+            semantic={"reviewed_at":cutoff}, evidence_ids=["boundary"]),
+            dict(symbol="HK.00005", decision="NOT_SELECTED", available_at="2026-10-13T09:25:00.000001+08:00",
+                evidence_ids=["boundary"]),
+            dict(symbol="HK.00006", decision="NOT_SELECTED", available_at=cutoff,
+                semantic={"reviewed_at":"2026-10-13T09:25:00.000001+08:00"}, evidence_ids=["boundary"])]
+    rows.extend(additional_rows)
+    ctx=service.context("20261013",Phase.NEXT_DAY,trigger="SCHEDULED",
+        cutoff=datetime.fromisoformat(generated_at),lanes=[Lane.US_MAPPING])
+    lane=LaneResult(lane=Lane.US_MAPPING,state="PARTIAL",rows=rows,
+        coverage=Coverage(scope_count=len(rows),observed_count=len(rows)),input_sha256="e"*64,
+        rules_version=ctx.rules_version,run_id="prior-source",evidence_refs=refs,gaps=["SOURCE_PARTIAL"])
+    plan=seal_snapshot(dict(context=ctx,run_id="prior-source",input_sha256="f"*64,
+        generated_at=generated_at,available_at=generated_at,lanes=[lane],stocks=[],counts=Counts(),gaps=["SOURCE_PARTIAL"]))
+    service.store.commit_plan(plan)
+    return plan
+
+
+def test_preopen_executed_but_all_filtered_is_partial_with_source_and_exact_gaps(tmp_path):
+    s,e,_=make(tmp_path)
+    try:
+        source=_preopen_source_plan(s)
+        frozen=s.freeze_preopen("20261013",cutoff=datetime.fromisoformat("2026-10-13T09:25:00+08:00"))
+        lane=next(l for l in frozen.lanes if l.lane==Lane.US_MAPPING)
+        assert lane.state.value=="PARTIAL" and lane.rows==[]
+        assert lane.input_sha256==source.lanes[0].input_sha256
+        assert "PREOPEN_ALL_ROWS_FILTERED" in lane.gaps and "SOURCE_PARTIAL" in lane.gaps
+        assert frozen.changes["source_run_id"]==source.run_id
+        diagnostic=frozen.changes["preopen_filter_diagnostics"]["US_MAPPING"]
+        assert diagnostic["accepted_row_count"]==0 and diagnostic["filtered_row_count"]==3
+        assert diagnostic["source_state"]=="PARTIAL"
+        assert diagnostic["filtered_source_reason_counts"]["US_PROXY_NOT_POSITIVE"]==2
+        assert diagnostic["rejection_reason_counts"]["PREOPEN_DECISION_INCOMPLETE"]==1
+        assert {gap for ref in diagnostic["excluded_evidence"] for gap in ref["gaps"]}=={
+            "SOURCE_AVAILABLE_AT_UNKNOWN","TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"}
+        assert all(l.state.value=="NOT_RUN" for l in frozen.lanes if l.lane!=Lane.US_MAPPING)
+        assert frozen.stocks==[] and frozen.counts.selected is None
+        assert e.loads==e.lane_runs==0
+    finally:s.jobs.stop()
+
+
+def test_preopen_valid_subset_and_inclusive_cutoff_preserve_gate(tmp_path):
+    s,e,_=make(tmp_path)
+    try:
+        _preopen_source_plan(s,include_valid=True)
+        frozen=s.freeze_preopen("20261013",cutoff=datetime.fromisoformat("2026-10-13T09:25:00+08:00"))
+        lane=next(l for l in frozen.lanes if l.lane==Lane.US_MAPPING)
+        assert lane.state.value=="PARTIAL"
+        assert [row["symbol"] for row in lane.rows]==["HK.00004"]
+        assert [ref.evidence_id for ref in lane.evidence_refs]==["boundary"]
+        diag=frozen.changes["preopen_filter_diagnostics"]["US_MAPPING"]
+        assert diag["accepted_row_count"]==1 and diag["filtered_row_count"]==5
+        assert diag["rejection_reason_counts"]["PREOPEN_ROW_REVIEW_AFTER_CUTOFF"]==1
+        assert diag["rejection_reason_counts"]["PREOPEN_ROW_AVAILABLE_AFTER_CUTOFF_OR_UNKNOWN"]==1
+    finally:s.jobs.stop()
+
+
+def test_preopen_no_prior_or_only_late_run_is_not_run(tmp_path):
+    for has_late in (False,True):
+        s,e,_=make(tmp_path/str(has_late))
+        try:
+            if has_late:
+                _preopen_source_plan(s,generated_at="2026-10-13T09:26:00+08:00")
+            frozen=s.freeze_preopen("20261013",cutoff=datetime.fromisoformat("2026-10-13T09:25:00+08:00"))
+            assert all(lane.state.value=="NOT_RUN" for lane in frozen.lanes)
+            assert frozen.changes["source_run_id"] is None
+            assert frozen.changes["preopen_filter_diagnostics"]=={}
+        finally:s.jobs.stop()
+
+
+@pytest.mark.parametrize("optional_reasons", [None, 42, "scalar", {"unexpected":[]}, [None, [], {}, "KNOWN_REASON", "KNOWN_REASON"]])
+def test_preopen_optional_reason_metadata_cannot_crash_or_change_gate(tmp_path, optional_reasons):
+    s,e,_=make(tmp_path)
+    try:
+        source=_preopen_source_plan(s,include_valid=True,additional_rows=[dict(symbol="HK.00007",
+            decision="NOT_SELECTED",available_at="2026-10-13T09:20:00+08:00",
+            evidence_ids=["unknown-registry"],reasons=optional_reasons,reason="OPTIONAL_REASON_FIXTURE")])
+        # seal_snapshot above accepts the real persisted row, including reasons:null.
+        assert source.lanes[0].rows[-1]["reasons"]==optional_reasons
+        frozen=s.freeze_preopen("20261013",cutoff=datetime.fromisoformat("2026-10-13T09:25:00+08:00"))
+        lane=next(l for l in frozen.lanes if l.lane==Lane.US_MAPPING)
+        assert [row["symbol"] for row in lane.rows]==["HK.00004"]
+        assert lane.state.value=="PARTIAL"
+        diag=frozen.changes["preopen_filter_diagnostics"]["US_MAPPING"]
+        assert diag["filtered_row_count"]==6 and diag["accepted_row_count"]==1
+        assert diag["filtered_source_reason_counts"]["OPTIONAL_REASON_FIXTURE"]==1
+        assert diag["filtered_source_reason_counts"].get("KNOWN_REASON",0)==(1 if isinstance(optional_reasons,list) else 0)
+        assert e.loads==e.lane_runs==0
+    finally:s.jobs.stop()

@@ -1079,8 +1079,10 @@ class NativeAdapters:
             industry_pin = pin.get("hk_industry_classification")
             identity, identity_refs = self._security_master_identity(context)
             refs.extend(identity_refs)
-            configured_industry_pin = self.config.source_bindings.get(
-                "hk_industry_classification", {}).get(context.target_date)
+            industry_bindings = self.config.source_bindings.get("hk_industry_classification", {})
+            configured_industry_pin = (industry_bindings.get(context.target_date)
+                if context.target_date in industry_bindings
+                else industry_bindings.get("observed_policy_template"))
             refresh_missing_owner_result = bool(
                 isinstance(industry_pin, dict)
                 and industry_pin.get("status") == "UNAVAILABLE"

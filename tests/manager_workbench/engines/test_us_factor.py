@@ -1,6 +1,7 @@
 from copy import deepcopy
 from hashlib import sha256
 import json
+import pytest
 from types import SimpleNamespace
 
 from v4.manager_workbench.engines.us_factor import HK_INDUSTRY_TO_PROXY, _industry_time_state, run_us_factor
@@ -873,7 +874,7 @@ def test_observed_owner_projection_keeps_missing_or_unverified_current_membershi
     assert owner_artifact["source_membership_artifact_sha256"] == "b" * 64
 
 
-def test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture(tmp_path):
+def _fixed_observed_owner_fixture(tmp_path):
     from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
 
     artifact_relative = "research/peripherals/20261014/hk_industry_classification.json"
@@ -913,6 +914,14 @@ def test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture(
     cfg = SimpleNamespace(shared_root=tmp_path, source_bindings={"hk_industry_classification": {"20261020": pin}})
     ctx = SimpleNamespace(target_date="20261020", cutoff="2026-10-20T10:00:00+08:00", scope_refs={})
 
+    return cfg, ctx, pin
+
+
+def test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture(tmp_path):
+    from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
+    cfg, ctx, pin = _fixed_observed_owner_fixture(tmp_path)
+    artifact_relative, receipt_relative, manifest_relative = (pin[key] for key in
+        ("artifact_relative", "receipt_relative", "manifest_relative"))
     loaded = hk_industry_classification(cfg, ctx)
 
     assert loaded["status"] == "READY"
@@ -926,3 +935,82 @@ def test_latest_observed_owner_pin_checks_artifact_receipt_manifest_and_capture(
     pin["captured_at"] = "2026-10-20T10:00:01+08:00"
     assert hk_industry_classification(cfg, ctx)["status"] == "UNAVAILABLE"
 
+
+
+def test_fixed_observed_template_spans_consecutive_sessions_and_keeps_original_source(tmp_path):
+    from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
+    cfg, ctx, pin = _fixed_observed_owner_fixture(tmp_path)
+    template = {key: value for key, value in pin.items() if key != "target_date"}
+    cfg.source_bindings = {"hk_industry_classification": {"observed_policy_template": template}}
+    original = deepcopy(template)
+    for day in ("20261021", "20261022"):
+        ctx.target_date = day
+        ctx.cutoff = f"{day[:4]}-{day[4:6]}-{day[6:]}T09:25:00+08:00"
+        loaded = hk_industry_classification(cfg, ctx)
+        assert loaded["status"] == "READY"
+        assert loaded["artifact"]["target_date"] == day
+        assert loaded["artifact"]["observed_trade_date"] == "20261014"
+        assert loaded["artifact"]["captured_at"] == pin["captured_at"]
+        assert loaded["artifact"]["status"] == "PARTIAL"
+        assert loaded["artifact"]["source_asof"] is None
+        assert loaded["artifact"]["source_asof_status"] == "UNKNOWN"
+        assert [loaded[key] for key in ("artifact_sha256", "receipt_sha256", "manifest_sha256")] == [
+            pin[key] for key in ("artifact_sha256", "receipt_sha256", "manifest_sha256")]
+    assert template == original
+
+
+def test_explicit_observed_override_wins_and_invalid_override_never_uses_template(tmp_path):
+    from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
+    cfg, ctx, pin = _fixed_observed_owner_fixture(tmp_path)
+    template = {key: value for key, value in pin.items() if key != "target_date"}
+    cfg.source_bindings["hk_industry_classification"]["observed_policy_template"] = template
+    # A broken template cannot override a valid exact-date pin.
+    template["artifact_sha256"] = "0" * 64
+    assert hk_industry_classification(cfg, ctx)["status"] == "READY"
+    template["artifact_sha256"] = pin["artifact_sha256"]
+    for key, bad in (("artifact_sha256", "0" * 64), ("receipt_sha256", "0" * 64),
+                     ("manifest_sha256", "0" * 64),
+                     ("captured_at", "2026-10-20T10:00:01+08:00")):
+        prior = pin[key]
+        pin[key] = bad
+        assert hk_industry_classification(cfg, ctx)["status"] == "UNAVAILABLE"
+        pin[key] = prior
+    cfg.source_bindings["hk_industry_classification"][ctx.target_date] = None
+    assert hk_industry_classification(cfg, ctx) == dict(status="UNAVAILABLE",
+        gap="HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID")
+    # Template fallback retains all evidence and cutoff checks too.
+    del cfg.source_bindings["hk_industry_classification"][ctx.target_date]
+    for key, bad in (("artifact_sha256", "0" * 64),
+                     ("captured_at", "2026-10-20T10:00:01+08:00")):
+        prior = template[key]
+        template[key] = bad
+        assert hk_industry_classification(cfg, ctx)["status"] == "UNAVAILABLE"
+        template[key] = prior
+
+
+@pytest.mark.parametrize("location", ["owner", "dated", "nested"])
+@pytest.mark.parametrize("malformed", [None, [], "invalid", 0])
+def test_explicit_malformed_industry_pin_never_falls_through_to_template(tmp_path, location, malformed):
+    from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
+    cfg, ctx, pin = _fixed_observed_owner_fixture(tmp_path)
+    template = {key:value for key,value in pin.items() if key != "target_date"}
+    cfg.source_bindings = {"hk_industry_classification": {"observed_policy_template":template}}
+    if location == "owner":
+        # A lower-priority valid date pin must not hide an explicit bad owner pin.
+        ctx.scope_refs = {"owner_bindings":{"hk_industry_classification":malformed}}
+        cfg.source_bindings["hk_industry_classification"][ctx.target_date] = pin
+    elif location == "dated":
+        cfg.source_bindings["hk_industry_classification"][ctx.target_date] = malformed
+    else:
+        cfg.source_bindings["us_mapping"] = {ctx.target_date:{"hk_industry_classification":malformed}}
+    assert hk_industry_classification(cfg, ctx) == dict(status="UNAVAILABLE",
+        gap="HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID")
+
+
+def test_absent_nested_industry_key_can_use_fixed_template(tmp_path):
+    from v4.manager_workbench.inputs.source_bindings import hk_industry_classification
+    cfg, ctx, pin = _fixed_observed_owner_fixture(tmp_path)
+    cfg.source_bindings = {"hk_industry_classification": {
+        "observed_policy_template":{key:value for key,value in pin.items() if key != "target_date"}},
+        "us_mapping":{ctx.target_date:{"unrelated_frozen_field":"unchanged"}}}
+    assert hk_industry_classification(cfg, ctx)["status"] == "READY"

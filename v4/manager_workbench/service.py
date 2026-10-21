@@ -379,6 +379,7 @@ class ManagerService:
         current = candidates[0] if candidates else None
         acceptable: list[LaneResult] = []
         names = set()
+        filter_diagnostics = {}
         if current and (datetime.fromisoformat(current.generated_at) <= cutoff and
                         datetime.fromisoformat(current.available_at) <= cutoff):
             for lane in current.lanes:
@@ -387,20 +388,53 @@ class ManagerService:
                 refs={e.evidence_id:e for e in lane.evidence_refs if e.verification.value=="VERIFIED" and e.available_at
                       and datetime.fromisoformat(e.available_at)<=cutoff}
                 completed=[]
+                rejected_reasons = {}
+                source_reasons = {}
                 for row in lane.rows:
                     available=row.get("available_at")
                     reviewed=row.get("semantic",{}).get("reviewed_at")
-                    if (row.get("decision") in {"SELECTED","CONDITIONAL_WATCH","NOT_SELECTED","OBSERVATION_ONLY"}
-                            and row.get("evidence_ids") and set(row["evidence_ids"]).issubset(refs)
-                            and available and datetime.fromisoformat(available)<=cutoff
-                            and (not reviewed or datetime.fromisoformat(reviewed)<=cutoff)):
+                    reasons = []
+                    if row.get("decision") not in {"SELECTED","CONDITIONAL_WATCH","NOT_SELECTED","OBSERVATION_ONLY"}:
+                        reasons.append("PREOPEN_DECISION_INCOMPLETE")
+                    if not row.get("evidence_ids"):
+                        reasons.append("PREOPEN_ROW_EVIDENCE_MISSING")
+                    elif not set(row["evidence_ids"]).issubset(refs):
+                        reasons.append("PREOPEN_ROW_EVIDENCE_UNVERIFIED_OR_AFTER_CUTOFF")
+                    if not available or datetime.fromisoformat(available)>cutoff:
+                        reasons.append("PREOPEN_ROW_AVAILABLE_AFTER_CUTOFF_OR_UNKNOWN")
+                    if reviewed and datetime.fromisoformat(reviewed)>cutoff:
+                        reasons.append("PREOPEN_ROW_REVIEW_AFTER_CUTOFF")
+                    if not reasons:
                         completed.append(row)
-                if lane.rows and not completed:continue
-                if lane.state==LaneState.PARTIAL and not completed:continue
+                    else:
+                        for reason in reasons:
+                            rejected_reasons[reason] = rejected_reasons.get(reason, 0) + 1
+                        row_reasons = row.get("reasons")
+                        row_reasons = row_reasons if isinstance(row_reasons, list) else []
+                        source_reason = row.get("reason")
+                        if isinstance(source_reason, str):
+                            row_reasons = [*row_reasons, source_reason]
+                        for reason in {value for value in row_reasons if isinstance(value, str)}:
+                            source_reasons[reason] = source_reasons.get(reason, 0) + 1
+                filter_diagnostics[lane.lane.value] = dict(
+                    source_run_id=current.run_id, source_state=lane.state.value,
+                    input_sha256=lane.input_sha256, source_coverage=lane.coverage.model_dump(mode="json"),
+                    source_row_count=len(lane.rows), accepted_row_count=len(completed),
+                    filtered_row_count=len(lane.rows)-len(completed),
+                    rejection_reason_counts=rejected_reasons, filtered_source_reason_counts=source_reasons,
+                    source_gaps=list(lane.gaps),
+                    excluded_evidence=[dict(evidence_id=e.evidence_id, verification=e.verification.value,
+                        available_at=e.available_at, gaps=list(e.gaps)) for e in lane.evidence_refs
+                        if e.evidence_id not in refs])
                 accepted=lane.model_copy(update={"rows":completed,"evidence_refs":list(refs.values())},deep=True)
-                if len(completed)!=len(lane.rows):
+                if len(completed)!=len(lane.rows) or lane.state==LaneState.PARTIAL:
                     accepted.state=LaneState.PARTIAL
-                    accepted.gaps=list(dict.fromkeys([*accepted.gaps,"PREOPEN_ROWS_INCOMPLETE"]))
+                    accepted.gaps=list(dict.fromkeys([*accepted.gaps,"PREOPEN_ROWS_INCOMPLETE",
+                        *(["PREOPEN_ALL_ROWS_FILTERED"] if lane.rows and not completed else [])]))
+                    if not completed:
+                        accepted.coverage=lane.coverage.model_copy(update={"assessed_count":0,
+                            "unassessed_count":None,"gaps":list(dict.fromkeys([
+                                *lane.coverage.gaps,*accepted.gaps]))},deep=True)
                 acceptable.append(accepted)
                 names.add(lane.lane)
             ctx.source_sessions=dict(current.context.source_sessions)
@@ -424,7 +458,8 @@ class ManagerService:
                   "generated_at":ts, "available_at":ts, "lanes":[l.model_dump(mode="json") for l in lanes],
                   "stocks":[s.model_dump(mode="json") for s in stocks],
                   "counts":(Counts() if not stocks and len(names)<len(ALL_LANES) else count_rows(stocks)).model_dump(mode="json"),
-                  "changes":{"freeze_cutoff":ctx.cutoff,"source_run_id":current.run_id if current else None},
+                  "changes":{"freeze_cutoff":ctx.cutoff,"source_run_id":current.run_id if current else None,
+                      "preopen_filter_diagnostics":filter_diagnostics},
                   "gaps":["PREOPEN_PARTIAL"] if len(names) < len(ALL_LANES) or any(l.state==LaneState.PARTIAL for l in lanes) else []})
         validate_selected_evidence(snap)
         try:

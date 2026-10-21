@@ -1,0 +1,47 @@
+--- r3/v4/manager_workbench/inputs/source_bindings.py
++++ r4/v4/manager_workbench/inputs/source_bindings.py
+@@ -453,17 +453,20 @@
+     """
+     day = context.target_date
+     owner_pins = context.scope_refs.get('owner_bindings', {}) if hasattr(context, 'scope_refs') else {}
+-    pin = owner_pins.get('hk_industry_classification') if isinstance(owner_pins, dict) else None
+-    if pin is None:
++    explicit_pin = isinstance(owner_pins, dict) and 'hk_industry_classification' in owner_pins
++    pin = owner_pins.get('hk_industry_classification') if explicit_pin else None
++    if not explicit_pin:
+         date_pins = config.source_bindings.get('hk_industry_classification', {})
+-        pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+-        if isinstance(date_pins, dict) and day in date_pins and not isinstance(pin, dict):
+-            return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID')
+-    if pin is None:
++        explicit_pin = isinstance(date_pins, dict) and day in date_pins
++        pin = date_pins.get(day) if explicit_pin else None
++    if not explicit_pin:
+         date_pins = config.source_bindings.get('us_mapping', {})
+         us_pin = date_pins.get(day) if isinstance(date_pins, dict) else None
+-        pin = us_pin.get('hk_industry_classification') if isinstance(us_pin, dict) else None
+-    if pin is None:
++        explicit_pin = isinstance(us_pin, dict) and 'hk_industry_classification' in us_pin
++        pin = us_pin.get('hk_industry_classification') if explicit_pin else None
++    if explicit_pin and not isinstance(pin, dict):
++        return dict(status='UNAVAILABLE', gap='HK_INDUSTRY_CLASSIFICATION_EXPLICIT_PIN_INVALID')
++    if not explicit_pin:
+         # An explicitly configured fixed capture can be reused across target
+         # sessions. Only the projection target changes; source date/time and
+         # all three owner hashes are still checked by the same pinned loader.
+--- r3/v4/manager_workbench/service.py
++++ r4/v4/manager_workbench/service.py
+@@ -409,7 +409,12 @@
+                     else:
+                         for reason in reasons:
+                             rejected_reasons[reason] = rejected_reasons.get(reason, 0) + 1
+-                        for reason in set([*row.get("reasons", []), *([row["reason"]] if row.get("reason") else [])]):
++                        row_reasons = row.get("reasons")
++                        row_reasons = row_reasons if isinstance(row_reasons, list) else []
++                        source_reason = row.get("reason")
++                        if isinstance(source_reason, str):
++                            row_reasons = [*row_reasons, source_reason]
++                        for reason in {value for value in row_reasons if isinstance(value, str)}:
+                             source_reasons[reason] = source_reasons.get(reason, 0) + 1
+                 filter_diagnostics[lane.lane.value] = dict(
+                     source_run_id=current.run_id, source_state=lane.state.value,
