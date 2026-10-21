@@ -1,0 +1,50 @@
+{
+  "scope": "REVIEWED_SOURCE_ONLY_NOT_DATA_OR_RUNTIME_ACCEPTANCE",
+  "baseline_legacy_sha256": "901d4802c784decda9d43e757b367496d1171e5e702485a29f4c66fad3c7ae2e",
+  "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "remote_parent_commit": "615d1ce5417ed65ca2c8b736435c5d4596b79b19",
+  "files": [
+    {
+      "path": "runtime/v1/data_layer_daily_formula_increment_update_v1.py",
+      "sha256": "a37c65e85f62696f2162973e7bea62a7402ba85eb0369faae207666364e957f3"
+    },
+    {
+      "path": "tests/test_a_share_legacy_increment_boundary.py",
+      "sha256": "65f15648353028b6e1073eff7c67c64e942d3c79a4dc8652727765448b4c121c"
+    }
+  ],
+  "behavior": [
+    "Project generated pre_close into stored close dtype before unchanged comparison threshold.",
+    "Add opt-in explicit key retire/replace/insert with fail-closed uniqueness and row accounting; default branch unchanged."
+  ],
+  "independent_review": [
+    {
+      "execution_id": "A_SHARE_QUARANTINE_BOUNDARY_DTYPE_INDEPENDENT_REVIEW_20261021_01",
+      "terminal_event_sha256": "c9a2e3399a214ee3e43b632720501c83ec1eb5ead121e7bf9cf7fff413a8f733",
+      "verdict": "REVIEWED/PASS",
+      "tests": 7,
+      "exit_code": 0,
+      "command_artifact": "BOUNDARY_DTYPE_REVIEW_COMMAND.sh",
+      "command_sha256": "46c7c5b3a8555f3b587a61745a3824416fe1178799befe1bd6974a0c0aebaa1d"
+    },
+    {
+      "execution_id": "A_SHARE_QUARANTINE_EXPLICIT_KEY_INDEPENDENT_REVIEW_20261021_01",
+      "terminal_event_sha256": "f233dc39654a10f3213d6c2d0d1f917fa71f8d697a4a6b447f6a8679b1dad692",
+      "verdict": "REVIEWED/PASS_SYNTHETIC_API_ONLY",
+      "tests": 7,
+      "exit_code": 0,
+      "command_artifact": "EXPLICIT_KEY_REVIEW_COMMAND.sh",
+      "command_sha256": "5604726092740800688459fb0c05ba121fa5a180b3f197bc06fdb5293e7624c5",
+      "unchanged_dtype_and_default_branch_AST_verified": true
+    }
+  ],
+  "limitations": [
+    "Original legacy module is a configured external owner, not a complete V4 app checkout.",
+    "Actual panel recovery, source promotion, loaded runtime and full field contract are not accepted by these source-only receipts.",
+    "Full schema remains subject to the existing policy gate; no invented field values or trading permissions."
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
