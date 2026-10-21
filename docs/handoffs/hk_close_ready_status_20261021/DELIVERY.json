@@ -1,0 +1,94 @@
+{
+  "goal": "Restore verified READY HK 0.2 pool consumption in exact-date close review.",
+  "baseline_commit": "f592406e3fb32d425a2cbf5506b28b262938f610",
+  "branch": "codex/hk-close-ready-status-20261021-r1",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "source_overlay": {
+    "path": "ops/build_close_review.py",
+    "before_sha256": "a7cf3beea192aa997c1f4f31016ccafc8c32cff8348147bf4051f5aba9877693",
+    "after_sha256": "1d9b06c2e5edf35bdd9ab11eff17dc370b9ae1fa7b180ecae127c716c8f2cadf"
+  },
+  "runtime_dependency_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-natural-scheduler-20261021-r4/app",
+  "accepted_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-ready-status-20261021-r1",
+  "release_manifest_sha256": "78acc4660398bc8a67879ee7cf597bc111e67034dd2918b36e0ff48f55ddc6f0",
+  "independent_tests": {
+    "result": "55 passed in 0.36s",
+    "environment": "Python 3.14.6 / pytest 9.1.1",
+    "command": "service Python -B; explicitly import source-worktree/ops/build_close_review.py as ops.build_close_review with pinned r4 app first in sys.path; pytest -q -p no:cacheprovider --basetemp E/reviewer-pytest [candidate test_close_review_ready_status_20261021.py, canonical tests/test_close_review_producer.py, canonical tests/test_close_review_verified_inputs.py]",
+    "receipt_sha256": "28844b56d2c08a0c7d84f05faf4cc56518495b935e23f38f6381b324a79c3e1f"
+  },
+  "actual_execution": {
+    "command": "service Python -B publish_accepted_close_once.py --accepted-app-root hk-close-ready-status-20261021-r1/app",
+    "operation": "existing-input-only guarded build_close_review; manual recovery; original archived",
+    "artifact_sha256": "dd8361865a26fc60a02bb46ab118ef2282842b5e81a6624ee9556a59fdd8b517",
+    "independent_receipt_sha256": "01b091d996e50959fe3f3a503eeeb670884bc4c96b5d0c6a34cea66c1c927e81"
+  },
+  "api_ui": {
+    "date": "20261021",
+    "endpoint": "http://127.0.0.1:8873/api/v3/review?date=20261021",
+    "before_status": "MODEL_0_2_SOURCE_MISSING",
+    "after_status": "MODEL_REVIEW_PARTIAL_STAGE_EVIDENCE",
+    "row_counts": {
+      "close_top20": 20,
+      "hkconnect_universe": 698,
+      "model_0_2": 100,
+      "stage_rows": 70
+    },
+    "model": {
+      "coverage": 0.55,
+      "coverage_pct": 55.0,
+      "evidence_status": "READY",
+      "hit_count": 11,
+      "precision": 0.11,
+      "precision_pct": 11.0,
+      "selected_count": 100
+    },
+    "recovery_mode": "MANUAL_HISTORICAL_RECOVERY",
+    "api_after_sha256": "a0c98ee43bf85d4462130f13f6f73e28792acf58f796df49f18ff9e7afccb020",
+    "ui_after_sha256": "2eebd931d257259a54cf9e508798b570973204dc1586f58b919474a5bcc2da82",
+    "ui_result": "UI_VERIFIED: refreshed exact-date HK close panel shows model100/11hits and stage70 with existing gaps"
+  },
+  "states": {
+    "implementation": "IMPLEMENTED",
+    "independent_tests": "TESTED",
+    "canonical": "INTEGRATED",
+    "actual_close": "BEHAVIOR_VERIFIED",
+    "API": "API_VERIFIED",
+    "UI": "UI_VERIFIED",
+    "automatic_scheduler": "DEPLOYED",
+    "natural": "NATURAL_SLOT_UNVERIFIED"
+  },
+  "not_run": [
+    "new model training",
+    "new market collection",
+    "original natural result reclassification",
+    "production trading"
+  ],
+  "limits": [
+    "STAGE_0930_0935 PIT/orderbook unverified",
+    "STAGE_1300_1315 and STAGE_1445_1500 partial evidence retained",
+    "branch is source overlay, not a complete standalone runtime"
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "activation": {
+    "at": "2026-10-21T17:20:28.611567+08:00",
+    "old_pid": 22616,
+    "new_pid": 48377,
+    "release_id": "hk-close-ready-status-20261021-r1",
+    "plist_before_sha256": "e9dbd09d2b114f14df667f17b3d4decaed0ef849487451616ae8e2f0ce787ad2",
+    "plist_after_sha256": "8654e41efdbdf6958095590dc9ea703f90f5f5f5ce7a1d567dbcbe9833815ffa",
+    "manifest_sha256": "78acc4660398bc8a67879ee7cf597bc111e67034dd2918b36e0ff48f55ddc6f0",
+    "builder_sha256": "1d9b06c2e5edf35bdd9ab11eff17dc370b9ae1fa7b180ecae127c716c8f2cadf",
+    "script_sha256": "2ec9032f59ec425c3c50e6841e5c86e6e49d61f3bf9d332ffb20a383ce17792e",
+    "activation_receipt_sha256": "0ace2c66d704dee8e89117e15fdc6ac5b7873c02b8cfb0460f33e22dc1ea52a9",
+    "script_independent_review_sha256": "3ce79d862b1f817d7c13e26be73197807c189792359ce49a372ddd15ef2abd7f",
+    "command": "service Python -B activate_scheduler_when_idle.py --approval-receipt activation-review-approval.json",
+    "verification": "Independent actual PID/cwd/env/plist/manifest/builder/module-resolution plus DAEMON_READY and successful cycle verified; close unchanged",
+    "independent_operator_tests": "8 isolated fault-path mock tests passed",
+    "close_review_recomputed": false,
+    "independent_runtime_receipt_sha256": "8f00d5a8d838e04c44424c988aa1cbff275e5cd9551480c7bdc87100ef4efc08"
+  }
+}

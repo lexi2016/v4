@@ -1,0 +1,45 @@
+--- a/ops/build_close_review.py
++++ b/ops/build_close_review.py
+@@ -70,13 +70,31 @@
+     )
+ 
+ 
+-def _model_rows(preselection: dict[str, Any], trade_date: str) -> list[dict[str, Any]]:
++def _model_rows(
++    preselection: dict[str, Any], trade_date: str, *, verified_pool: bool = False,
++) -> list[dict[str, Any]]:
+     if not isinstance(preselection, dict):
+         return []
++    # READY is the canonical producer's other success spelling.  Admit it only
++    # after the store has verified the exact-date pool/manifest/receipt trio.
++    canonical_ready = (
++        verified_pool is True
++        and preselection.get("status") == "READY"
++        and preselection.get("schema_version") == "v3_5.preselection_pool.v1"
++        and preselection.get("market") == "HK"
++        and preselection.get("producer_id") == "v3_shared_hk_0_2_consumer_v1"
++        and preselection.get("source_role") == "SHARED_VERIFIED_HK_0_2"
++        and preselection.get("target_date") == trade_date
++        and preselection.get("stage_selection_eligible") is True
++        and preselection.get("source_artifact_sha256") == preselection.get("source_sha256")
++        and all(isinstance(preselection.get(key), str)
++                and re.fullmatch(r"[0-9a-f]{64}", preselection[key])
++                for key in ("source_sha256", "source_manifest_sha256", "source_receipt_sha256"))
++    )
+     if (
+         preselection.get("pool_id") != "hkconnect_d1_top100"
+         or preselection.get("trade_date") != trade_date
+-        or preselection.get("status") != "STRICT_0_2_READY"
++        or (preselection.get("status") != "STRICT_0_2_READY" and not canonical_ready)
+         or preselection.get("source_role") not in _HK_MODEL_SOURCE_ROLES
+         or any(preselection.get(flag) is not False for flag in (
+             "production_allowed", "buy_gate_updated", "orders_sent",
+@@ -296,7 +314,7 @@
+     review = build_native_close_review(
+         trade_date,
+         close_rows=snapshot["rows"],
+-        model_rows=_model_rows(preselection, trade_date),
++        model_rows=_model_rows(preselection, trade_date, verified_pool=True),
+         stage_rows=stage_rows,
+         close_source_sha256=snapshot_sha,
+         stage_evidence=stage_evidence,

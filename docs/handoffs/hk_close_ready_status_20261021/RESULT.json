@@ -1,0 +1,27 @@
+{
+  "status": "WRITER_HANDOFF_NOT_ACCEPTANCE",
+  "baseline_commit": "f592406e3fb32d425a2cbf5506b28b262938f610",
+  "branch": "codex/hk-close-ready-status-20261021-r1",
+  "source_overlay": {
+    "path": "ops/build_close_review.py",
+    "before_sha256": "a7cf3beea192aa997c1f4f31016ccafc8c32cff8348147bf4051f5aba9877693",
+    "after_sha256": "1d9b06c2e5edf35bdd9ab11eff17dc370b9ae1fa7b180ecae127c716c8f2cadf"
+  },
+  "test_environment": "macOS arm64, Python 3.14.6, pytest 9.1.1; pinned us-mapping-natural-scheduler-20261021-r4 dependencies; candidate builder explicitly imported",
+  "test_result": "55 passed in 0.44s",
+  "before_model_count": 0,
+  "isolated_after_model_count": 100,
+  "isolated_hits": 11,
+  "isolated_coverage_pct": 55.0,
+  "isolated_precision_pct": 11.0,
+  "live_close_modified": false,
+  "candidate_branch_standalone": false,
+  "independent_review": "NOT_RUN_BY_WRITER",
+  "integration": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "api_ui_after": "NOT_RUN",
+  "natural_reclassification": "NOT_PERFORMED",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
