@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useWorkbench } from "./useWorkbench";
+import { isValidDate } from "./route";
 import AnnouncementCandidates from "./AnnouncementCandidates.vue";
 import type { HKIndustrySummary, Lane, Phase, PlanVersion, SingleDayMappingPath, SingleDayMappingRow, SingleDayMappingSummary, StockDecision, USFactorSummary, USMappingCatalogRelation } from "./types";
 import { projectUSMappingCandidates, projectUSMappingPeerLists, type USPeerListName } from "./us_mapping_stock_lists";
@@ -12,11 +13,19 @@ import { conditionLabel, decisionLabel, evidenceLink, firstReason, humanTime, la
 import "./workbench.css";
 
 const vm = reactive(useWorkbench());
-function displayDate(value: string): string {
-  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+function dateInputValue(value: string): string {
+  return /^\d{8}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}` : "";
 }
-function changeDateBySelect(event: Event): void {
-  vm.selectDate((event.target as HTMLSelectElement).value);
+function changeDateByCalendar(event: Event): void {
+  const input = event.currentTarget as HTMLInputElement;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(input.value) ? input.value.replace(/-/g, "") : "";
+  if (!isValidDate(date)) {
+    input.setCustomValidity("请选择有效的目标港股日");
+    input.reportValidity();
+    return;
+  }
+  input.setCustomValidity("");
+  vm.selectDate(date);
 }
 function showCount(value: unknown): string {
   return formatCount(typeof value === "number" && Number.isFinite(value) ? value : null);
@@ -250,11 +259,9 @@ function revisionAssessments(value: unknown): [string, unknown][] {
     <section class="mwb-panel mwb-toolbar" aria-label="日期和版本导航">
       <div class="mwb-date">
         <label for="mwb-date">目标港股日</label>
-        <select id="mwb-date" :value="vm.route.date" aria-describedby="mwb-date-hint"
-          @focus="vm.loadSavedDates" @change="changeDateBySelect">
-          <option v-for="date in vm.availableDates" :key="date" :value="date">{{ displayDate(date) }}</option>
-        </select>
-        <small id="mwb-date-hint"><span v-if="vm.savedDateLoading">正在读取已保存日期</span><span v-else-if="vm.savedDateError">日期清单暂不可用，仅显示当前目标日</span><span v-else>从已保存目标日期快速切换；当前目标日始终保留</span></small>
+        <input id="mwb-date" type="date" :value="dateInputValue(vm.route.date)" aria-describedby="mwb-date-hint"
+          @change="changeDateByCalendar" />
+        <small id="mwb-date-hint">选择目标港股日查看已保存结果</small>
       </div>
       <div class="mwb-selectors">
         <label for="mwb-phase">阶段</label>
@@ -316,20 +323,38 @@ function revisionAssessments(value: unknown): [string, unknown][] {
           {{ LANE_LABELS[lane] }}推荐 · {{ lane === 'US_MAPPING' && singleDaySummary() ? `固定映射受益判定 ${showCount(singleDayCount('BENEFIT'))} / 固定映射风险判定 ${showCount(singleDayCount('RISK'))}` : `严格入选 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.selected)} / 条件观察 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.watch)}` }}
         </button>
       </nav>
-      <p v-if="vm.laneFilter === 'US_MAPPING' && !singleDaySummary()" class="mwb-muted">
-        当前保存版本没有单日映射结果；不能从旧保存版本推断本次受益或风险名单。
-      </p>
+      <section v-if="vm.laneFilter === 'US_MAPPING' && !singleDaySummary()" aria-label="单日映射保存版入口" class="mwb-muted">
+        <p>当前保存版本没有单日映射结果；不能从旧保存版本推断本次受益或风险名单。</p>
+        <p v-if="vm.singleDayVersionLoading" role="status">正在查找同目标日已有单日映射保存版…</p>
+        <div v-else-if="vm.singleDayVersion">
+          <p>同目标日 {{ vm.route.date }} 已有单日映射保存版：{{ PHASE_LABELS[vm.singleDayVersion.phase] }} · 研究截止 {{ humanTime(vm.singleDayVersion.cutoff) }} · US {{ vm.singleDayVersion.sourceSession || '未知' }} → HK {{ vm.route.date }} · run_id {{ vm.singleDayVersion.run_id }}。</p>
+          <button type="button" @click="vm.changeVersion(vm.singleDayVersion.phase, vm.singleDayVersion.run_id)">查看该保存版的潜在受益 / 风险观察名单</button>
+          <p>点击后切换整个保存版本；当前版本不会混入该名单。</p>
+        </div>
+        <p v-else-if="vm.singleDayVersionError">{{ vm.singleDayVersionError }}</p>
+      </section>
 
       <section v-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()" class="mwb-research-section" aria-label="单日映射推荐与下跌风险">
         <h3>单日映射推荐 / 下跌风险 · {{ singleDaySummary()?.state }}</h3>
         <p>月度观察池 {{ showCount(singleDaySummary()?.monthly_observed_scope_count) }} 只 · US 来源会话 {{ singleDaySummary()?.source_session || '未知' }} · HK 行情信号会话 {{ singleDaySummary()?.price_session || '未知' }} · HK 目标日 {{ singleDaySummary()?.target_date || '未知' }}。代理变化是固定映射下的同向传导研究假设，效果未验证；正式港股通资格 CANNOT_CONFIRM，历史 PIT 未验证。</p>
+        <section aria-label="当前版本潜在受益观察名单" class="mwb-direction-card is-upside">
+          <h4>潜在受益观察 · {{ showCount(singleDayCount('BENEFIT')) }} 只</h4>
+          <p>来自当前保存版本 {{ vm.selectedRunId }} · {{ vm.snapshot ? PHASE_LABELS[vm.snapshot.context.phase] : '阶段未知' }} · 研究截止 {{ humanTime(researchCutoff(vm.snapshot?.context)) }}。固定 A/B 映射研究判定，正式入选 {{ showCount(vm.day?.data?.recommendation_counts?.US_MAPPING?.selected) }} 只；不构成 BUY，目标日资格及效果未验证。</p>
+          <ul><li v-for="stock in singleDayRows('BENEFIT')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · {{ stock.mapping_grade }}</strong><p>潜在受益观察 · 主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} · {{ stock.primary_signed_return_pct }}% · {{ stock.primary_relation_type || stock.source_industry || '固定映射' }}；原因 {{ singleDayRowReason(stock) }}</p><details><summary>查看固定映射依据与风险</summary><p>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</p></details></li></ul>
+          <p v-if="!singleDayRows('BENEFIT').length" class="mwb-muted">当前保存版本没有潜在受益观察股票。</p>
+        </section>
+        <section aria-label="当前版本下跌风险观察名单" class="mwb-direction-card is-downside">
+          <h4>下跌风险观察 · {{ showCount(singleDayCount('RISK')) }} 只</h4>
+          <ul><li v-for="stock in singleDayRows('RISK')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · {{ stock.mapping_grade }}</strong><p>主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} · {{ stock.primary_signed_return_pct }}% · {{ singleDayRowReason(stock) }}</p><details><summary>查看固定映射依据与风险</summary><p>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</p></details></li></ul>
+          <p v-if="!singleDayRows('RISK').length" class="mwb-muted">当前保存版本没有下跌风险观察股票。</p>
+        </section>
         <p>RESEARCH ONLY · 不构成 BUY。候选按当前支持、DATED 弱同行、待核排序；组内先列有正向来源且无反向来源的标的，再列正负分歧、仅负向和零变动 / 未知。正向来源涨幅只作来源强弱并列排序，不是港股收益预测。</p>
         <p v-for="proxy in sectorProxyCoverageRows" :key="String(proxy.source_symbol)">
           代理覆盖 {{ showText(proxy.source_symbol) }} · {{ showText(proxy.source_session) }} · 报价 {{ showText(proxy.quote_status) }}
           {{ proxy.source_return_pct == null ? '涨跌未知' : `${proxy.source_return_pct}%` }} · 映射 {{ showText(proxy.mapping_status) }}
           <span v-if="proxy.mapping_status === 'MAPPING_PENDING'">（映射待补；未构造关系边）</span> · {{ showText(proxy.quote_gap || '') }}
         </p>
-        <p class="mwb-muted">{{ usMappingCandidateCountLabel }}</p>
+        <details aria-label="完整港股诊断候选来源"><summary>{{ usMappingCandidateCountLabel }} · 展开完整来源</summary>
         <div class="mwb-table-wrap"><table class="mwb-table" aria-label="港股去重研究候选表">
           <thead><tr><th>港股 / 观察池</th><th>来源资格 / 排序组</th><th>方向证据 / 美股来源强弱</th><th>风险标记</th><th>关系证据</th></tr></thead>
           <tbody><tr v-for="candidate in usMappingCandidateRows" :key="String(candidate.symbol)">
@@ -349,6 +374,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
           </tr></tbody>
         </table></div>
         <p v-if="!usMappingCandidateRows.length" class="mwb-muted">当前已核目录证据没有可展示的港股业务同行候选；不能把缺失关系补成映射边。</p>
+        </details>
         <details><summary>旧版方向列表与固定路径归档</summary>
         <p>固定 A/B/C 映射、固定 primary 与 sign；不择当日最强路径。A/B primary ≥ +1% 为潜在受益，≤ -1% 为下跌风险；小幅变化观察；C 与未映射单独展示，不升级为 A/B。映射政策 {{ singleDaySummary()?.mapping_policy_version }} · SHA {{ singleDaySummary()?.mapping_policy_sha256 }}。</p>
         <p>严格 V1 门槛暂缓，未执行：MA20、5日收益、20日均成交额、Top10 与每主题3只限制均未运行，也未用于截断单日完整名单。</p>
@@ -401,12 +427,6 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         </section>
         <p v-if="singleDaySummary()?.industry_source_date || singleDaySummary()?.industry_source_status">行业来源 {{ singleDaySummary()?.industry_source_status || '未知' }} · 观测日 {{ singleDaySummary()?.industry_source_date || '未知' }} · SHA {{ singleDaySummary()?.industry_source_sha256 || '未知' }}。</p>
         <p v-if="singleDaySummary()?.gaps?.length">映射缺口：{{ singleDaySummary()?.gaps.join('、') }}</p>
-        <details open><summary>固定 A/B/C 规则分类：潜在受益判定 · {{ showCount(singleDayCount('BENEFIT')) }} 只</summary>
-          <ul><li v-for="stock in singleDayRows('BENEFIT')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · {{ stock.mapping_grade }}</strong><p>主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} · {{ stock.primary_signed_return_pct }}% · {{ stock.primary_relation_type || stock.source_industry || '固定映射' }}；原因 {{ singleDayRowReason(stock) }}</p><small>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</small></li></ul>
-        </details>
-        <details open><summary>固定 A/B/C 规则分类：下跌风险判定 · {{ showCount(singleDayCount('RISK')) }} 只</summary>
-          <ul><li v-for="stock in singleDayRows('RISK')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · {{ stock.mapping_grade }}</strong><p>主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} · {{ stock.primary_signed_return_pct }}% · {{ stock.primary_relation_type || stock.source_industry || '固定映射' }}；原因 {{ singleDayRowReason(stock) }}</p><small>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</small></li></ul>
-        </details>
         <details><summary>方向冲突 · {{ showCount(singleDayCount('CONFLICT')) }} 只</summary>
           <ul><li v-for="stock in singleDayRows('CONFLICT')" :key="stock.symbol"><strong>{{ stock.symbol }} {{ stock.name || '名称未知' }} · 主路径 {{ stock.primary_proxy || stock.primary_us_symbol }} {{ stock.primary_signed_return_pct }}%</strong><p>路径保留，不择最强；原因 {{ singleDayRowReason(stock) }}</p><small>{{ stock.mapping_paths.map(singleDayPathText).join('；') }}</small></li></ul>
         </details>

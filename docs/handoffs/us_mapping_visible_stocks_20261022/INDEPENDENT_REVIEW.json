@@ -1,0 +1,47 @@
+{
+  "recorded_by": "controller from independent reviewer final message",
+  "reviewer": "/root/visible_stocks_reviewer",
+  "writer": "/root/visible_stocks_writer",
+  "identity_distinct": true,
+  "verdict": "REVIEWED_PASS",
+  "scope": "Visible saved BENEFIT research stocks, same-target-date explicit saved-version navigation, runtime-compatible build",
+  "independent_tests": {
+    "command": "npm test -- --config docs/handoffs/us_mapping_visible_stocks_20261022/local_only/runtime-compatible.config.ts src/manager-workbench/__tests__/visible_stocks.spec.ts",
+    "passed": 6,
+    "failed": 0,
+    "exit_code": 0,
+    "build": "vite.build({write:false}); 19 modules; all three artifact SHA equal frozen candidate"
+  },
+  "source_manifest": "source_manifest.json",
+  "source_sha_verified": true,
+  "runtime_dependencies_sha_verified": true,
+  "css_unchanged": true,
+  "saved_run_GET": {
+    "run_id": "173530a9ac4b4105b41094337907b801",
+    "date": "20261022",
+    "phase": "NEXT_DAY",
+    "response_sha256": "0c8a5cd0f3348f66149013ed71109db95a456a64b241d711798f1221b2c23d02",
+    "benefit_codes": [
+      "HK.00992",
+      "HK.01211",
+      "HK.01810",
+      "HK.02015",
+      "HK.09868"
+    ],
+    "benefit": 5,
+    "risk": 0,
+    "rows": 698,
+    "diagnostic_candidates": 410,
+    "formal_selected": 0
+  },
+  "findings": [],
+  "behavior_verified": "Independent component test scope only",
+  "not_run": [
+    "actual browser layout",
+    "deployment",
+    "release manifest/plist activation",
+    "rollback"
+  ],
+  "deployment_requirement": "Use a new immutable release; existing application_inventory covers source/static assets; do not silently mutate current release and claim original manifest identity. Reuse this source PASS for incremental release-boundary review.",
+  "recorded_at": "2026-10-22T10:00:28.216351+08:00"
+}

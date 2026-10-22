@@ -1,10 +1,10 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { ApiError, createWorkbenchApi } from "./api";
+import { researchCutoff } from "./display";
 import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
-  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation,
-  SavedDateCatalog
+  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
 } from "./types";
 import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
@@ -31,24 +31,11 @@ function keyForQuery(q: DayQuery): string {
 export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const route = ref<WorkbenchRoute>(parseWorkbenchRoute(window.location.search));
   const panel = ref<Panel>("stocks");
-  const dateInput = ref(route.value.date);
-  const savedDateCatalog = ref<SavedDateCatalog | null>(null);
-  const savedDateLoading = ref(false);
-  const savedDateError = ref("");
-  let savedDatesLoaded = false;
-  const availableDates = computed(() => {
-    const catalog = savedDateCatalog.value;
-    const values = [
-      ...(Array.isArray(catalog?.dates) ? catalog.dates : []),
-      ...(Array.isArray(catalog?.future_target_dates) ? catalog.future_target_dates : []),
-      ...(Array.isArray(catalog?.stage_dates) ? catalog.stage_dates : []),
-      ...(Array.isArray(catalog?.review_dates) ? catalog.review_dates : []),
-      ...(Array.isArray(catalog?.research_dates) ? catalog.research_dates : []),
-      ...(Array.isArray(catalog?.hk_observation_only_dates) ? catalog.hk_observation_only_dates : []),
-      catalog?.navigation_date, catalog?.default_date, route.value.date,
-    ];
-    return [...new Set(values.filter((date): date is string => typeof date === "string" && isValidDate(date)))].sort();
-  });
+  const singleDayVersion = ref<{
+    run_id: string; phase: Phase; cutoff: string | null; sourceSession: string | null;
+  } | null>(null);
+  const singleDayVersionLoading = ref(false);
+  const singleDayVersionError = ref("");
   const decisionFilter = ref<Decision | "">("");
   const laneFilter = ref<RecommendationLane>('US_MAPPING');
   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
@@ -109,7 +96,6 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   let catalogAbort: AbortController | null = null;
   const catalogRelationAborts = new Map<string, AbortController>();
   let jobAbort: AbortController | null = null;
-  let savedDateAbort: AbortController | null = null;
   let jobTimer: ReturnType<typeof setTimeout> | null = null;
 
   function stopJobReads(): void {
@@ -130,6 +116,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     operationSeq++;
     operationLoading.value = false;
     abortAll();
+    singleDayVersion.value = null; singleDayVersionLoading.value = false; singleDayVersionError.value = "";
     day.value = null; dayLoading.value = false; dayError.value = ""; stale.value = false;
     lastSuccessfulKey.value = "";
     detail.value = null; detailSymbol.value = ""; detailError.value = ""; detailLoading.value = false;
@@ -142,7 +129,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   }
   function navigate(next: WorkbenchRoute, replace = false): void {
     resetPage();
-    route.value = next; dateInput.value = next.date;
+    route.value = next;
     const previous = new URLSearchParams(window.location.search);
     ["offset", "limit", "decision", "lane", "q"].forEach(key => previous.delete(key));
     const url = window.location.pathname + routeSearch(next, previous.toString()) + window.location.hash;
@@ -150,29 +137,9 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     else window.history.pushState(null, "", url);
     if (!next.error) void loadDay();
   }
-  function changeDate(): void {
-    if (!dateInput.value) return;
-    const candidate = parseWorkbenchRoute("?date=" + encodeURIComponent(dateInput.value));
-    navigate(candidate);
-  }
   function selectDate(date: string): void {
     if (!isValidDate(date) || date === route.value.date) return;
-    dateInput.value = date;
-    changeDate();
-  }
-  async function loadSavedDates(): Promise<void> {
-    if (savedDatesLoaded || savedDateLoading.value) return;
-    const controller = new AbortController();
-    savedDateAbort?.abort(); savedDateAbort = controller;
-    savedDateLoading.value = true; savedDateError.value = "";
-    try {
-      savedDateCatalog.value = await api.getSavedDates(controller.signal);
-      savedDatesLoaded = true;
-    } catch (error) {
-      if (!isAbort(error)) savedDateError.value = errorMessage(error);
-    } finally {
-      if (!controller.signal.aborted) savedDateLoading.value = false;
-    }
+    navigate(parseWorkbenchRoute("?date=" + encodeURIComponent(date)));
   }
   function changeVersion(phase: Phase | "", runId = ""): void {
     navigate({ date: route.value.date, phase, runId, error: null });
@@ -180,13 +147,51 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   function onPopState(): void {
     resetPage();
     route.value = parseWorkbenchRoute(window.location.search);
-    dateInput.value = route.value.date;
     if (!route.value.error) void loadDay();
   }
   function dayQuery(): DayQuery {
     return { date: route.value.date, phase: route.value.phase, run_id: route.value.runId,
       offset: offset.value, limit, decision: decisionFilter.value,
       lane: laneFilter.value, q: search.value };
+  }
+  // Discovery only: never replace the selected run with another version's rows.
+  async function findSingleDayVersion(response: Envelope<DayData>, query: DayQuery,
+    seq: number, signal: AbortSignal): Promise<void> {
+    singleDayVersion.value = null; singleDayVersionError.value = "";
+    if (query.lane !== "US_MAPPING" || !response.data?.snapshot
+      || response.data.us_mapping_summary?.factor_summary?.single_day_mapping) return;
+    const candidates = (response.data.versions || [])
+      .filter(version => version.run_id !== response.data?.snapshot?.run_id
+        && (!version.target_date || version.target_date === query.date))
+      .sort((a, b) => Number(b.phase === "NEXT_DAY") - Number(a.phase === "NEXT_DAY"));
+    singleDayVersionLoading.value = true;
+    let failed = false;
+    try {
+      for (const version of candidates) {
+        if (seq !== daySeq || signal.aborted) return;
+        try {
+          const candidate = await api.getRecommendations({ date: query.date, phase: version.phase,
+            run_id: version.run_id, lane: "US_MAPPING", offset: 0, limit: 1 }, signal);
+          if (seq !== daySeq || signal.aborted) return;
+          const snap = candidate.data?.snapshot;
+          const summary = candidate.data?.us_mapping_summary?.factor_summary?.single_day_mapping;
+          if (snap?.context.target_date !== query.date || snap.run_id !== version.run_id
+            || snap.context.phase !== version.phase) { failed = true; continue; }
+          if (!summary || summary.target_date !== query.date || !Array.isArray(summary.rows)) continue;
+          singleDayVersion.value = { run_id: snap.run_id, phase: snap.context.phase,
+            cutoff: researchCutoff(snap.context), sourceSession: summary.source_session };
+          return;
+        } catch (error) {
+          if (seq !== daySeq || signal.aborted || isAbort(error)) return;
+          failed = true;
+        }
+      }
+      singleDayVersionError.value = failed
+        ? "部分同日保存版读取失败，单日映射版本仍待核；可从计划版本选择器重试。"
+        : "同目标日暂未找到可读取的单日映射保存版。";
+    } finally {
+      if (seq === daySeq) singleDayVersionLoading.value = false;
+    }
   }
   async function loadDay(preserve = false): Promise<void> {
     if (!valid.value) return;
@@ -196,6 +201,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     const seq = ++daySeq;
     dayAbort?.abort(); const ctrl = new AbortController(); dayAbort = ctrl;
     if (!old) day.value = null;
+    singleDayVersion.value = null; singleDayVersionLoading.value = false; singleDayVersionError.value = "";
     stale.value = false; dayLoading.value = true; dayError.value = "";
     try {
       const response = await api.getRecommendations(query, ctrl.signal);
@@ -216,6 +222,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         review.value = null; reviewLoading.value = false; reviewError.value = "";
       }
       day.value = response;
+      void findSingleDayVersion(response, query, seq, ctrl.signal);
       if (response.data?.snapshot) lastSuccessfulKey.value = key;
       else lastSuccessfulKey.value = "";
     } catch (error) {
@@ -468,17 +475,17 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         routeSearch(route.value, window.location.search) + window.location.hash);
     }
   });
-  onBeforeUnmount(() => { operationSeq++; savedDateAbort?.abort(); window.removeEventListener("popstate", onPopState); abortAll(); });
+  onBeforeUnmount(() => { operationSeq++; window.removeEventListener("popstate", onPopState); abortAll(); });
 
   return {
-    route, panel, dateInput, availableDates, savedDateLoading, savedDateError, loadSavedDates, selectDate,
+    route, panel, selectDate, singleDayVersion, singleDayVersionLoading, singleDayVersionError,
     decisionFilter, laneFilter, searchDraft, search, offset, limit,
     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
     history, historyLoading, historyError, review, reviewLoading, reviewError,
     catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,
     job, jobId, jobLoading, jobError, operationLoading, runPhase,
     stocks, snapshot, counts, pagination, versions, lanes, selectedRunId, selectedDate, readMode, valid,
-    changeDate, changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
+    changeVersion, loadDay, applyFilters, switchLane, setOffset, showPanel, openStock,
     loadHistory, loadReview, loadCatalog, loadCatalogRelation, searchCatalog, changeCatalogPage,
     pollJob, createPlan, retryJob, viewJobVersion
   };
