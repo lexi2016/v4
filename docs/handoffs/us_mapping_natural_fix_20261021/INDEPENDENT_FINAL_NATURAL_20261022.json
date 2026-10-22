@@ -1,0 +1,447 @@
+{
+  "schema_version": "v4.independent_final_natural_review.v1",
+  "reviewer": "/root/natural_final_reviewer",
+  "writer": "/root/natural_fix_writer",
+  "identity_distinct": true,
+  "checked_at": "2026-10-22T09:34:42.736946+08:00",
+  "timezone": "Asia/Shanghai",
+  "verdict": "REVIEWED_PASS",
+  "scope": "Natural behavior of frozen minimal industry projection and PREOPEN state/diagnostic repair, including fresh US21 post-close NEXT_DAY and actual 20261022 09:25 freeze; existing R4 source tests and deployment PASS reused",
+  "states": {
+    "BEHAVIOR_VERIFIED": "FROZEN_MINIMAL_REPAIR_NATURAL_SCOPE",
+    "NATURAL_VERIFIED": "US21_POST_CLOSE_NEXT_DAY_AND_20261022_PREOPEN0925_STATE_LINEAGE_ONLY",
+    "complete_research_or_formal_recommendation_acceptance": "CANNOT_CONFIRM",
+    "UI_VERIFIED": "NOT_RUN"
+  },
+  "new_findings": [],
+  "reused_receipts": {
+    "INDEPENDENT_REVIEW_R4.json": "7ec17da659e44d23846ae3ed8df60a9548908ad8c9bd52d917a5b34adb833648",
+    "INDEPENDENT_DEPLOYMENT_NATURAL.json": "753dc6472bef76dc4503d71cb2ee8ab0affb09d53887d518c885b7c7e3d21321",
+    "INDEPENDENT_NEXT_DAY_1630.json": "eb5394d3ce3522d0b36c5cbda71ef4705fa66eaedd460786ffd2720ec97f1ca7"
+  },
+  "tests_or_replay_repeated": false,
+  "runtime": {
+    "label": "com.lexi.v35.scheduler",
+    "pid": 48377,
+    "process_started_at": "2026-10-21T17:20:18+08:00",
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-close-ready-status-20261021-r1/app",
+    "parallel_release": "hk-close-ready-status-20261021-r1",
+    "prior_pid": 22616,
+    "five_accepted_source_hashes_preserved": true,
+    "source_sha256": {
+      "v4/manager_workbench/engines/us_mapping.py": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "v4/manager_workbench/engines/strict_us_selection.py": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "v4/manager_workbench/inputs/native.py": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa",
+      "v4/manager_workbench/inputs/source_bindings.py": "65ab01fd93e82ffb3eb4d213097553f8389e37c8d4ad5f3763265d709a932494",
+      "v4/manager_workbench/service.py": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    },
+    "config_sha256": "a69635705c6018b275b65dce28dd12b315c39138c5aaa6bd84b4c284c57c0236",
+    "actual_launchctl_ps_cwd_readback": true,
+    "existing_PYTHONPATH_points_to_R4": true,
+    "actual_import_path_memory_attestation": "CANNOT_CONFIRM; no debugger or interpreter attached; cwd sources and PYTHONPATH R4 copies have equal accepted five source hashes",
+    "slot_daemon_cycles": [
+      {
+        "minute": "2026-10-22T04:17",
+        "pid": 48377,
+        "release_id": "hk-close-ready-status-20261021-r1",
+        "cycle": 653,
+        "return_code": 0
+      },
+      {
+        "minute": "2026-10-22T09:25",
+        "pid": 48377,
+        "release_id": "hk-close-ready-status-20261021-r1",
+        "cycle": 957,
+        "return_code": 0
+      }
+    ]
+  },
+  "NEXT_DAY": {
+    "run_id": "173530a9ac4b4105b41094337907b801",
+    "target_date": "20261022",
+    "trigger": "SCHEDULED",
+    "source_sessions": {
+      "hk_price": "20261021",
+      "us": "20261021"
+    },
+    "source_cutoff": "2026-10-22T04:17:00.341182+08:00",
+    "persisted_cutoff": "2026-10-22T04:17:10.466630+08:00",
+    "generated_at": "2026-10-22T04:17:10.681746+08:00",
+    "attempt_started_at": "2026-10-22T04:17:04.480094+08:00",
+    "attempt_finished_at": "2026-10-22T04:17:14.080118+08:00",
+    "state": "PARTIAL",
+    "attempt_step": "DONE",
+    "execution_refs": [
+      {
+        "kind": "host",
+        "pid": 48377
+      }
+    ],
+    "snapshot_sha256": "5ae220d14464afbd9202af145973fd5137252f41ff9ec0b730183839912c6538",
+    "attempt_sha256": "925be0edcbfbfa80ea527aa6cc3bccb0b721ba9d8879790bd5f66b3c9b59f4c1",
+    "input_snapshot_sha256": "b80a8bc475f6aeb8976c706674ad4791c803720eb2e3134c09ad55a784c61b37",
+    "aggregate_input_sha256": "3f2430fb19d36cde542a8caf99fe781971ea2a13056f2ab09834a7d659cd33f4",
+    "lane_input_sha256": "5b37816a699a7dab7ab4a76e504fd5146831b76cbb31eb6d436fc37d724ff064",
+    "product_sha256": "4928f7b2c5a65258ef86419aa227767543c4ea8bba195221285b00ec995c967a",
+    "formal_selected": 0
+  },
+  "sources": {
+    "bound_checked_files_count": 24,
+    "all_hashes_match": true,
+    "US": {
+      "source_session": "20261021",
+      "phase": "POST_CLOSE",
+      "status": "READY",
+      "captured_at": "2026-10-22T04:15:04+08:00",
+      "quote_sha256": "f4e744fd463eddd7e2b70c50f5a7c261cfdaea22981ced95f116689e05770b00",
+      "receipt_sha256": "054f2f5978c434626a71e7d325a7ed5dcd8c4305da67b74d96c371436701e6dc",
+      "manifest_sha256": "4c60279ee7d878bb20756ab65b76212ebaafd0e3a164b4fc3d5c2e091857164e",
+      "configured_quotes": 48,
+      "configured_quote_sessions": [
+        "20261021"
+      ],
+      "scheduled_quote_available": 493,
+      "scheduled_quote_requested": 547,
+      "scheduled_quote_failures": 54,
+      "provider_session_times": [
+        "16:00:01",
+        "16:00:40",
+        "16:00:45",
+        "16:00:52"
+      ],
+      "provider_times_timezone": "America/New_York; provider quote-local market time",
+      "actual_48_price_return_arithmetic_verified": true
+    },
+    "D1_master": {
+      "owner": "v3_shared_data",
+      "trade_date": "20261021",
+      "run_id": "58c9261af6042291068f11a1",
+      "captured_at": "2026-10-21T17:30:18+08:00",
+      "row_count": 690,
+      "artifact_sha256": "2dcb26ff0b23a459c2831abc5913b13ea4902ac0a5cf1dc06784555915efa728",
+      "manifest_sha256": "93ba3ef83c2d62ca5ed8ca5b4fa220ab4e3cc2a2aafede2c3e77c25f54cb4ad8",
+      "receipt_sha256": "7ec875db2cc3dc5552f63fc47eeddeac1877e8dd06e61812d53e1634fed66e78",
+      "identity_resolved_count": 688,
+      "identity_unknown_count": 10,
+      "identity_gap_symbols": [
+        "HK.00853",
+        "HK.02172",
+        "HK.02252",
+        "HK.02555",
+        "HK.02723",
+        "HK.02922",
+        "HK.03040",
+        "HK.03167",
+        "HK.03432",
+        "HK.03443"
+      ],
+      "natural1720_HK_owner_status": "SUCCEEDED",
+      "natural1720_dispatch_receipt_sha256": "d44e48110b833f5d242030c88966ae3473bc8859a3698a69c187b797e3b6ae8c",
+      "natural1720_finished_at": "2026-10-21T17:20:03.580695+08:00"
+    },
+    "industry": {
+      "observed_trade_date": "20261014",
+      "captured_at": "2026-10-14T11:03:29.919614+08:00",
+      "source_status": "PARTIAL",
+      "source_asof": null,
+      "source_asof_status": "UNKNOWN",
+      "historical_pit_verified": false,
+      "classification_policy": "LATEST_OBSERVED",
+      "source_artifact_sha256": "b234a12d68c775418ed70ed404fa01938a1d85245e1bdbc53249d33478d86b8b"
+    }
+  },
+  "daily_mapping": {
+    "actually_executed": true,
+    "rules_version": "US_HK_SINGLE_DAY_MAPPING_V1_20261019",
+    "rows": 698,
+    "unique_symbols": 698,
+    "counts": {
+      "BENEFIT": 5,
+      "CONFLICT": 0,
+      "C_WATCH": 303,
+      "OBSERVATION": 303,
+      "RISK": 0,
+      "SMALL_MOVE_WATCH": 0,
+      "UNASSESSED": 12,
+      "UNMAPPED": 378
+    },
+    "catalog_relations": 1003,
+    "catalog_unique_relation_ids": 1003,
+    "synthetic_catalog_legacy_paths": 0,
+    "catalog_quoted_relations": 936,
+    "catalog_missing_quote_relations": 67,
+    "formal_target_eligibility": "CANNOT_CONFIRM",
+    "strict_v1_status": "PAUSED_NOT_EXECUTED",
+    "medical_rows": [
+      {
+        "symbol": "HK.01801",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY",
+        "mapping_grade": "C",
+        "formal_target_eligibility": "CANNOT_CONFIRM"
+      },
+      {
+        "symbol": "HK.02157",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY",
+        "mapping_grade": "C",
+        "formal_target_eligibility": "CANNOT_CONFIRM"
+      },
+      {
+        "symbol": "HK.02269",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY",
+        "mapping_grade": "C",
+        "formal_target_eligibility": "CANNOT_CONFIRM"
+      },
+      {
+        "symbol": "HK.03692",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY",
+        "mapping_grade": "C",
+        "formal_target_eligibility": "CANNOT_CONFIRM"
+      },
+      {
+        "symbol": "HK.09926",
+        "decision": "OBSERVATION",
+        "reason": "C_MAPPING_OBSERVE_ONLY",
+        "mapping_grade": "C",
+        "formal_target_eligibility": "CANNOT_CONFIRM"
+      }
+    ],
+    "medical_relations": [
+      {
+        "catalog_relation_id": "R600",
+        "symbol": "HK.01801",
+        "us_symbol": "LLY",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING",
+        "catalog_disposition_reason": "CURRENT_APPLICABILITY_IS_DATED_BACKGROUND_OR_PENDING",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R601",
+        "symbol": "HK.01801",
+        "us_symbol": "PFE",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "CANNOT_CONFIRM_CURRENT_SCOPE",
+        "catalog_disposition_reason": "CURRENT_APPLICABILITY_CONFLICT_OR_ENUM_UNRECOGNIZED",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R659",
+        "symbol": "HK.02157",
+        "us_symbol": "AZN",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "OPEN_OBSERVATION_PENDING",
+        "catalog_disposition_reason": "RECOVERY_SCOPE_OPEN",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R678",
+        "symbol": "HK.02269",
+        "us_symbol": "TMO",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "PEER_CURRENT_SCOPE_UNCONFIRMED",
+        "catalog_disposition_reason": "CURRENT_APPLICABILITY_ENUM_UNRECOGNIZED",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R844",
+        "symbol": "HK.03692",
+        "us_symbol": "GSK",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING",
+        "catalog_disposition_reason": "CURRENT_APPLICABILITY_IS_DATED_BACKGROUND_OR_PENDING",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R979",
+        "symbol": "HK.09926",
+        "us_symbol": "SMMT",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "OPEN_OBSERVATION_PENDING",
+        "catalog_disposition_reason": "RECOVERY_SCOPE_OPEN",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R980",
+        "symbol": "HK.09926",
+        "us_symbol": "SMMT",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "OPEN_OBSERVATION_PENDING",
+        "catalog_disposition_reason": "RECOVERY_SCOPE_OPEN",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      },
+      {
+        "catalog_relation_id": "R981",
+        "symbol": "HK.09926",
+        "us_symbol": "INO",
+        "decision": "UNASSESSED",
+        "catalog_disposition": "CONDITIONAL_ROUTE_BACKGROUND_OR_PENDING",
+        "catalog_disposition_reason": "CURRENT_APPLICABILITY_IS_DATED_BACKGROUND_OR_PENDING",
+        "quote_status": "VERIFIED",
+        "active_transmission": false,
+        "signed_hk_return_pct": null
+      }
+    ],
+    "medical_material_values_unchanged": true,
+    "signed_research_benefit_rows_are_not_formal_recommendations": true
+  },
+  "PREOPEN": {
+    "run_id": "65f16f249baf4391a5c87eb3b8c68621",
+    "target_date": "20261022",
+    "phase": "PREOPEN",
+    "trigger": "SCHEDULED",
+    "cutoff": "2026-10-22T09:25:00+08:00",
+    "generated_at": "2026-10-22T09:25:08.215223+08:00",
+    "latency_after_cutoff_seconds": 8.215223,
+    "source_run_id": "173530a9ac4b4105b41094337907b801",
+    "state": "PARTIAL",
+    "source_state": "PARTIAL",
+    "source_row_count": 1761,
+    "accepted_row_count": 0,
+    "filtered_row_count": 1761,
+    "aggregate_input_sha256": "3f2430fb19d36cde542a8caf99fe781971ea2a13056f2ab09834a7d659cd33f4",
+    "lane_input_sha256": "5b37816a699a7dab7ab4a76e504fd5146831b76cbb31eb6d436fc37d724ff064",
+    "snapshot_sha256": "8227fefa3480f7410f61e752971c6c87873d5ba993f432acc05f088003ab2dd1",
+    "product_sha256": "4ea4f3414f1beed950bcb12fc99545664e2441aa43baff96a7a12b3da48db627",
+    "rejection_reason_counts": {
+      "PREOPEN_DECISION_INCOMPLETE": 1741,
+      "PREOPEN_ROW_EVIDENCE_UNVERIFIED_OR_AFTER_CUTOFF": 758,
+      "PREOPEN_ROW_EVIDENCE_MISSING": 1003
+    },
+    "filtered_source_reason_counts": {
+      "US_SESSION_RELATION_OR_CONNECT_UNVERIFIED": 1017,
+      "US_ETF_THEME_PROXY_ONLY": 21,
+      "US_REVIEWED_ASSESSMENT_WITH_GAPS": 2,
+      "US_RELATION_PROPOSED_PIT_UNCONFIRMED": 2,
+      "US_SOURCE_CHANGE_NOT_POSITIVE": 20,
+      "US_RELATION_UNMAPPED_CANNOT_CONFIRM": 1,
+      "FULL_MAPPING_SECTOR_BASELINE_ONLY_NO_HK_SIGN": 698
+    },
+    "excluded_evidence": [
+      {
+        "available_at": null,
+        "evidence_id": "US_MAPPING_BUSINESS_RELATION_PROPOSAL_REGISTRY:US_HK_RELATION_PROPOSAL_REGISTRY:0abcacbe028fd3c59fc7cec6091d7cf8111235e2118a02fca3e3c5fb1cdfa75d",
+        "gaps": [
+          "SOURCE_AVAILABLE_AT_UNKNOWN"
+        ],
+        "verification": "CANNOT_CONFIRM"
+      },
+      {
+        "available_at": "2026-10-12T19:58:59.501065+08:00",
+        "evidence_id": "FUTU_HKCONNECT_PLATE_MEMBERSHIP:MONTHLY_CONNECT_MEMBERSHIP:e908f19bed7c46a5837bbf564114958e923e6ebadae55db83175240ea4dd3c7d",
+        "gaps": [
+          "CONNECT_MEMBERSHIP_TARGET_EFFECTIVE_PERIOD_UNCONFIRMED"
+        ],
+        "verification": "CANNOT_CONFIRM"
+      }
+    ],
+    "filter_recounts_independently_match": true,
+    "not_NOT_RUN": true,
+    "attempt_file_present": false,
+    "execution_lineage": "Existing in-process WorkbenchHook -> scheduler.tick -> service.freeze_preopen direct store.commit_plan; no attempt by design. Natural09:25 daemon cycle PID48377, PREOPEN generated09:25:08, SCHEDULED/cutoff/source/input/product/catalog/frozen pointer establish execution. PREOPEN itself does not persist a host execution_ref; exact direct PID assertion CANNOT_CONFIRM.",
+    "timing_status": "LATE_CATCHUP",
+    "timing_note": "Existing implementation marks every generated_at later than exact09:25:00 LATE_CATCHUP. This natural result was8.215223 seconds later in the same09:25 minute."
+  },
+  "API": [
+    {
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/days/20261022/recommendations/US_MAPPING?run_id=173530a9ac4b4105b41094337907b801&limit=1",
+      "http_status": 200,
+      "raw_sha256": "0c55415f5eb659f5653763ffe9186e0fb3329006850588338d02a1ac101bbf26",
+      "run_and_product_match": true,
+      "state": "PARTIAL",
+      "selected": 0
+    },
+    {
+      "method": "GET",
+      "path": "/api/v4/manager-workbench/days/20261022/recommendations/US_MAPPING?run_id=65f16f249baf4391a5c87eb3b8c68621&limit=1",
+      "http_status": 200,
+      "raw_sha256": "1293b28a49c9a8c825e0549a4ae1a6c2a17cf3a0765b436563c9d1483c32bfb9",
+      "run_and_product_match": true,
+      "state": "PARTIAL",
+      "selected": 0
+    }
+  ],
+  "independent_checks": {
+    "reused_receipts_exact": true,
+    "five_loaded_sources_preserve_accepted_r4": true,
+    "config_preserves_accepted_r4": true,
+    "natural_NEXT_DAY_host_pid": true,
+    "target_and_source_sessions": true,
+    "product_hash_NEXT_DAY": true,
+    "catalog_binding_NEXT_DAY": true,
+    "product_hash_PREOPEN": true,
+    "catalog_binding_PREOPEN": true,
+    "persisted_input_snapshot_hash": true,
+    "persisted_input_lane_binding": true,
+    "all_24_bound_owner_files_hashes": true,
+    "US21_quote_receipt_manifest": true,
+    "US21_actual_POST_CLOSE_quotes": true,
+    "D1_exact_master_hash_and_availability": true,
+    "natural1720_HK_owner_succeeded": true,
+    "fixed_industry_capture_boundaries": true,
+    "daily698_dedup_executed": true,
+    "catalog1003_unique_no_synthetic_legacy": true,
+    "medical_observation_and_eight_relation_gates": true,
+    "medical_material_values_unchanged_since_prior_review": true,
+    "PREOPEN_exact0925_retains_source_run_input_and_PARTIAL": true,
+    "PREOPEN_independent_filter_recounts": true,
+    "PREOPEN_cutoff_source_timing": true,
+    "API_exact_run_product_NEXT_DAY": true,
+    "API_saved_daily_mapping_equal_after_documented_public_redaction": true,
+    "API_exact_run_product_PREOPEN": true,
+    "API_PREOPEN_diagnostics_equal": true,
+    "actual_daemon_cycles_at_both_natural_slots": true,
+    "research_safety_all_results": true
+  },
+  "retained_gaps": [
+    "Exact D1 master covers690 securities; identity688/698 resolved,10 unknown remain",
+    "Industry capture remains20261014 PARTIAL with source_asof UNKNOWN and historical_pit_verified=false",
+    "Connect target effective period unconfirmed; formal eligibility CANNOT_CONFIRM",
+    "US_FACTOR_DAILY_PAIRED_REVIEW_NOT_BOUND; strict_v1 PAUSED_NOT_EXECUTED",
+    "54 scheduled source quotes unavailable affecting67 catalog relations",
+    "Medical dated/open applicability and PIT limits preserved; formal selected0",
+    "PREOPEN accepted0 is verified fail-closed filtering, not completed source/relationship research",
+    "API is a display projection: counts may differ from original merged snapshot; exact run/input/product and saved daily mapping after documented local-reference redaction were independently matched. UI rendering not assessed"
+  ],
+  "not_run": [
+    "source edit",
+    "business-state write",
+    "POST",
+    "submit",
+    "tick",
+    "replay",
+    "collection",
+    "model call",
+    "service lifecycle",
+    "automation mutation",
+    "Git write or push",
+    "UI",
+    "full suite",
+    "repeat prior accepted focused tests",
+    "unrelated failures audit"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
