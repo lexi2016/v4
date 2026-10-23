@@ -1,0 +1,55 @@
+--- actual-runtime/ops/materialize_scheduled_preselection.py
++++ candidate/ops/materialize_scheduled_preselection.py
+@@ -300,21 +300,41 @@
+                 observation = f"REJECTED_INPUT_UNREADABLE:{path}:{type(read_error).__name__}"
+             fupan_artifact["cannot_confirm"].append(observation)
+ 
+-    return [
+-        a_premarket,
+-        fupan_artifact,
+-        build_stage7_review_pool(
+-            stage7,
+-            stage7_manifest,
+-            trade_date=trade_date,
+-            signal_date=signal_date,
+-        ) if stage7.is_file() and stage7_manifest.is_file() else _missing(
++    try:
++        stage7_artifact = (
++            build_stage7_review_pool(
++                stage7,
++                stage7_manifest,
++                trade_date=trade_date,
++                signal_date=signal_date,
++            ) if stage7.is_file() and stage7_manifest.is_file() else _missing(
++                trade_date,
++                pool_id="a_d1_stage7_fenshi_review_pool",
++                display_name="A股 D-1 Stage7/分时复盘池",
++                market="A",
++                reason="A_D1_STAGE7_FENSHI_EVIDENCE_MISSING",
++            )
++        )
++    except (UnicodeDecodeError, csv.Error) as error:
++        stage7_artifact = _missing(
+             trade_date,
+             pool_id="a_d1_stage7_fenshi_review_pool",
+             display_name="A股 D-1 Stage7/分时复盘池",
+             market="A",
+-            reason="A_D1_STAGE7_FENSHI_EVIDENCE_MISSING",
+-        ),
++            reason=f"A_D1_STAGE7_INPUT_CONTRACT_INVALID:{type(error).__name__}:{error}",
++        )
++        for path in (stage7_manifest, stage7):
++            try:
++                digest = hashlib.sha256(path.read_bytes()).hexdigest()
++                observation = f"REJECTED_INPUT_OBSERVED_AFTER_ERROR:{path}:sha256={digest}"
++            except OSError as read_error:
++                observation = f"REJECTED_INPUT_UNREADABLE:{path}:{type(read_error).__name__}"
++            stage7_artifact["cannot_confirm"].append(observation)
++
++    return [
++        a_premarket,
++        fupan_artifact,
++        stage7_artifact,
+         research_artifact,
+         build_baimao_pool(baimao, trade_date)
+         if baimao.is_file()

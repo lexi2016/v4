@@ -1,0 +1,768 @@
+--- a/stage_center/hk_stage8/precapture.py
++++ b/stage_center/hk_stage8/precapture.py
+@@ -58,41 +58,32 @@
+             due.append((candidate_stage, capture_start_at, capture_end_at, cutoff_at))
+     if not due:
+         return []
++    from .snapshot import record_hk_capture_event
++
++    def unavailable(message: str) -> list[dict[str, Any]]:
++        results = []
++        for candidate_stage, start, end, _cutoff in due:
++            attempt = record_hk_capture_event(config.raw_root, trade_date=trade_date, stage_id=candidate_stage,
++                payload={"status": "CANNOT_CONFIRM", "cannot_confirm": [message], "scope_known": False,
++                         "requested_rows": None, "returned_rows": 0, "evaluated_at": current.isoformat()})
++            results.append({"status": "CANNOT_CONFIRM", "trade_date": trade_date, "stage_id": candidate_stage,
++                "error": message, "capture_window_start": start, "capture_window_end": end,
++                "native_capture_attempts": [attempt], **SAFETY_FLAGS})
++        return results
++
+     try:
+         states = resolve_market_states(trade_date)
+     except Exception as error:
+-        return [{
+-            "status": "CANNOT_CONFIRM",
+-            "trade_date": trade_date,
+-            "stage_id": candidate_stage,
+-            "error": f"calendar:{type(error).__name__}",
+-            **SAFETY_FLAGS,
+-        } for candidate_stage, _start, _end, _cutoff in due]
++        return unavailable(f"calendar:{type(error).__name__}")
+     if states.get("hk_securities") not in {
+         TradingDayState.FULL_TRADING_DAY,
+         TradingDayState.HALF_TRADING_DAY_AM,
+     }:
+         return []
+     if config.hk_d1_root is None:
+-        return [{
+-            "status": "CANNOT_CONFIRM",
+-            "trade_date": trade_date,
+-            "stage_id": candidate_stage,
+-            "error": "production HK D1 Top100 root is required for active snapshot pre-capture",
+-            "capture_window_start": start,
+-            "capture_window_end": end,
+-            **SAFETY_FLAGS,
+-        } for candidate_stage, start, end, _cutoff in due]
++        return unavailable("production HK D1 Top100 root is required for active snapshot pre-capture")
+     if config.shared_data_root is None or config.python_path is None:
+-        return [{
+-            "status": "CANNOT_CONFIRM",
+-            "trade_date": trade_date,
+-            "stage_id": candidate_stage,
+-            "error": "production shared_data_root and python_path are required for active snapshot pre-capture",
+-            "capture_window_start": start,
+-            "capture_window_end": end,
+-            **SAFETY_FLAGS,
+-        } for candidate_stage, start, end, _cutoff in due]
++        return unavailable("production shared_data_root and python_path are required for active snapshot pre-capture")
+ 
+     results: list[dict[str, Any]] = []
+     for candidate_stage, start, end, cutoff_at in due:
+@@ -124,8 +115,13 @@
+                 "hk_d1_top100_sha256": universe_sha,
+                 **window,
+             })
+-        except (OSError, ValueError, ImportError) as error:
++        except Exception as error:
++            attempt = record_hk_capture_event(config.raw_root, trade_date=trade_date, stage_id=candidate_stage,
++                payload={"status": "CANNOT_CONFIRM", "cannot_confirm": [f"HK_SNAPSHOT_UNIVERSE_OR_CAPTURE_ERROR:{type(error).__name__}:{error}"],
++                         "scope_known": False, "requested_rows": None, "returned_rows": 0,
++                         "evaluated_at": current.isoformat(), **window})
+             results.append({
++                "native_capture_attempts": [attempt],
+                 "status": "CANNOT_CONFIRM",
+                 "trade_date": trade_date,
+                 "stage_id": candidate_stage,
+--- a/stage_center/hk_stage8/snapshot.py
++++ b/stage_center/hk_stage8/snapshot.py
+@@ -2,6 +2,8 @@
+ from __future__ import annotations
+ 
+ import hashlib
++import base64
++from uuid import uuid4
+ import inspect
+ import json
+ import os
+@@ -280,6 +282,57 @@
+             pass
+ 
+ 
++def record_hk_capture_event(
++    snapshot_root: Path | str, *, trade_date: str, stage_id: str,
++    payload: Mapping[str, Any], attempt_id: str | None = None, event: str = "result",
++) -> dict[str, Any]:
++    """Append diagnostic evidence through the same immutable atomic store.
++
++    These events never authorize an active stock or replace snapshot.json.
++    Native transport is recorded before the shared bridge parses its payload.
++    """
++    identity = attempt_id or uuid4().hex
++    if not re.fullmatch(r"[0-9a-f]{32}", identity) or not re.fullmatch(r"[a-z0-9_-]+", event):
++        raise ValueError("invalid snapshot capture event identity")
++    path = _snapshot_path(snapshot_root, trade_date, stage_id).parent / "attempts" / identity / f"{event}.json"
++    data = {
++        **payload,
++        "schema_version": "stage_center.hk_snapshot_capture_attempt.v1",
++        "attempt_id": identity, "event": event,
++        "trade_date": trade_date, "stage_id": stage_id,
++        "market": _HK_ACTIVE_SNAPSHOT_MARKET,
++        "recorded_at": datetime.now(_SHANGHAI).isoformat(),
++        "capture_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
++        "authorizes_selection": False, **_HK_ACTIVE_SNAPSHOT_SAFETY,
++    }
++    if not _atomic_snapshot_create(path, data):
++        raise FileExistsError(f"snapshot attempt event already exists: {path}")
++    return {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
++            "attempt_id": identity, "event": event}
++
++
++def hk_snapshot_capture_receipt(snapshot_root: Path | str, *, trade_date: str, stage_id: str) -> dict[str, Any]:
++    """Bind durable native attempts to any later stage failure receipt."""
++    path = _snapshot_path(snapshot_root, trade_date, stage_id)
++    result: dict[str, Any] = {"snapshot_path": str(path), "authorizes_selection": False}
++    if path.is_file():
++        raw = path.read_bytes()
++        stored = json.loads(raw)
++        result.update(snapshot_file_sha256=hashlib.sha256(raw).hexdigest(),
++                      captured_at=stored.get("captured_at"), requested_rows=stored.get("requested_rows"),
++                      returned_rows=stored.get("returned_rows"), pool_artifact_sha256=stored.get("pool_artifact_sha256"))
++    events = []
++    for event_path in sorted(path.parent.glob("attempts/*/result.json")):
++        raw = event_path.read_bytes()
++        data = json.loads(raw)
++        events.append({"path": str(event_path), "sha256": hashlib.sha256(raw).hexdigest(),
++                       **{key: data.get(key) for key in ("attempt_id", "status", "captured_at", "provider_started_at",
++                           "provider_finished_at", "requested_rows", "returned_rows", "cannot_confirm", "payload_events")}})
++    result["attempts"] = events
++    result["status"] = "RECORDED" if events or path.is_file() else "UNAVAILABLE"
++    return result
++
++
+ def _futu_snapshot_probe(
+     shared_root: Path,
+     *,
+@@ -291,6 +344,7 @@
+     cutoff_at: str | None,
+     pool_artifact_sha256: str,
+     clock: Callable[[], datetime] | None = None,
++    preserve_payload: Callable[[str, Mapping[str, Any]], None] | None = None,
+ ) -> tuple[
+     tuple[str, ...],
+     list[dict[str, Any]],
+@@ -375,7 +429,33 @@
+             # Only report an actual provider start after the final guard passes
+             # and immediately before the external runner is invoked.
+             provider_times["started_at"] = started.isoformat()
+-            completed = process_runner(*args, **kwargs)
++            try:
++                completed = process_runner(*args, **kwargs)
++            except Exception as error:
++                if preserve_payload is not None:
++                    failed: dict[str, Any] = {"error_type": type(error).__name__, "error": str(error),
++                        "provider_started_at": provider_times["started_at"],
++                        "provider_failed_at": _snapshot_now(clock).isoformat()}
++                    for field in ("stdout", "stderr", "output"):
++                        value = getattr(error, field, None)
++                        if value is not None:
++                            raw = value if isinstance(value, bytes) else str(value).encode("utf-8")
++                            failed[field + "_base64"] = base64.b64encode(raw).decode("ascii")
++                            failed[field + "_sha256"] = hashlib.sha256(raw).hexdigest()
++                    preserve_payload("provider-error", failed)
++                raise
++            # Preserve the original native protocol before parsing, filtering,
++            # row validation or the completion-time guard can reject it.
++            if preserve_payload is not None:
++                native: dict[str, Any] = {"returncode": completed.returncode,
++                    "provider_started_at": provider_times["started_at"],
++                    "provider_received_at": _snapshot_now(clock).isoformat()}
++                for field in ("stdout", "stderr"):
++                    value = getattr(completed, field, None)
++                    raw = value if isinstance(value, bytes) else (value or "").encode("utf-8")
++                    native[field + "_base64"] = base64.b64encode(raw).decode("ascii")
++                    native[field + "_sha256"] = hashlib.sha256(raw).hexdigest()
++                preserve_payload("transport", native)
+             if stage_id == "STAGE_1545_1555":
+                 # This is the last boundary before shared fetch_futu_snapshot
+                 # filters non-Mapping rows. Observe its original protocol
+@@ -415,11 +495,21 @@
+             return completed
+ 
+         first_parameter = next(iter(inspect.signature(fetch).parameters), "")
++        if preserve_payload is not None:
++            bridge_file = getattr(module, "__file__", None)
++            preserve_payload("provider", {"bridge_module_sha256": hashlib.sha256(Path(bridge_file).read_bytes()).hexdigest() if bridge_file else None,
++                "query_parameters": {"codes": list(requested),
++                    "include_order_book": bool("include_order_book" in inspect.signature(fetch).parameters and stage_id != "STAGE_1545_1555"),
++                    "bridge_signature": str(inspect.signature(fetch))}})
+         if first_parameter in {"codes", "symbols"}:
+             fetched = fetch(list(requested), process_runner=guarded_process_runner)
+         else:
+             options = {"include_order_book": True} if "include_order_book" in inspect.signature(fetch).parameters and stage_id != "STAGE_1545_1555" else {}
+             fetched = fetch(python_path, list(requested), process_runner=guarded_process_runner, **options)
++        if preserve_payload is not None:
++            preserve_payload("bridge", {"bridge_response": fetched,
++                "provider_started_at": provider_times["started_at"],
++                "provider_finished_at": provider_times["finished_at"]})
+         if provider_times["started_at"] is None:
+             raise ValueError("Futu snapshot bridge did not invoke the guarded provider runner")
+         result_time = _snapshot_now(clock)
+@@ -846,6 +936,8 @@
+     process_runner: BridgeRunner = subprocess.run,
+     clock: Callable[[], datetime] | None = None,
+     sleeper: Callable[[float], None] = time.sleep,
++    capture_source_evidence: Sequence[str] = (),
++    capture_only: bool = False,
+ ) -> dict[str, Any]:
+     """Capture one immutable exact-stage Futu snapshot before the cutoff."""
+     path = _snapshot_path(snapshot_root, trade_date, stage_id)
+@@ -894,18 +986,52 @@
+     _ = evaluated_at
+     is_stage8 = stage_id == "STAGE_1545_1555"
+     capture_attempts: list[dict[str, Any]] = []
++    durable_attempts: list[dict[str, Any]] = []
+     for attempt in range(1, 4 if is_stage8 else 2):
+-        requested, rows, _by_code, probe_errors, evidence, provider_started_at, provider_finished_at = _futu_snapshot_probe(
+-            Path(shared_root).expanduser().resolve(),
+-            codes=codes,
+-            python_path=python_path,
+-            process_runner=process_runner,
+-            trade_date=trade_date,
+-            stage_id=stage_id,
+-            cutoff_at=cutoff_at,
+-            pool_artifact_sha256=pool_artifact_sha256,
+-            clock=clock,
+-        )
++        identity = uuid4().hex
++        query_context = {
++            "evaluated_at": evaluated_at, "cutoff_at": cutoff_iso,
++            "codes": list(_canonical_snapshot_codes(codes)), "codes_sha256": _snapshot_codes_sha(codes),
++            "pool_artifact_sha256": pool_artifact_sha256,
++            "requested_rows": len(_canonical_snapshot_codes(codes)),
++            "source_role": _HK_ACTIVE_SNAPSHOT_SOURCE_ROLE,
++            "source_evidence": list(capture_source_evidence),
++            "query": {"method": "fetch_futu_snapshot", "shared_package_root": str(shared_root),
++                      "python_path": str(python_path)},
++        }
++        payload_events = [record_hk_capture_event(snapshot_root, trade_date=trade_date, stage_id=stage_id,
++            attempt_id=identity, event="query", payload=query_context)]
++
++        def preserve_payload(event: str, native: Mapping[str, Any]) -> None:
++            payload_events.append(record_hk_capture_event(snapshot_root, trade_date=trade_date, stage_id=stage_id,
++                attempt_id=identity, event=f"{event}-{uuid4().hex}", payload={**query_context, **native}))
++
++        try:
++            probe = _futu_snapshot_probe(
++                Path(shared_root).expanduser().resolve(),
++                codes=codes,
++                python_path=python_path,
++                process_runner=process_runner,
++                trade_date=trade_date,
++                stage_id=stage_id,
++                cutoff_at=cutoff_at,
++                pool_artifact_sha256=pool_artifact_sha256,
++                clock=clock,
++                preserve_payload=preserve_payload,
++            )
++            requested, rows, _by_code, probe_errors, evidence, provider_started_at, provider_finished_at = probe
++        except Exception as error:
++            # Raw protocol was already saved even if normalization failed.
++            requested, rows = _canonical_snapshot_codes(codes), []
++            probe_errors = (f"HK_ACTIVE_SNAPSHOT_PARSE_ERROR:{type(error).__name__}:{error}",)
++            evidence, provider_started_at, provider_finished_at = (), None, None
++        durable_attempts.append(record_hk_capture_event(snapshot_root, trade_date=trade_date, stage_id=stage_id,
++            attempt_id=identity, payload={**query_context,
++                "status": "CANNOT_CONFIRM" if probe_errors else "CAPTURED_DIAGNOSTIC" if capture_only else "CAPTURED",
++                "cannot_confirm": list(probe_errors), "returned_rows": len(rows),
++                "provider_started_at": provider_started_at, "provider_finished_at": provider_finished_at,
++                "captured_at": provider_finished_at, "payload_events": payload_events,
++                "normalized_rows_sha256": _snapshot_rows_sha(rows)}))
+         if not is_stage8:
+             break
+         capture_attempts.append({
+@@ -935,7 +1061,9 @@
+             cutoff_at=cutoff_iso,
+         ):
+             break
+-    attempt_metadata = {"capture_attempts": capture_attempts} if is_stage8 else {}
++    attempt_metadata = {"native_capture_attempts": durable_attempts}
++    if is_stage8:
++        attempt_metadata["capture_attempts"] = capture_attempts
+     if is_stage8:
+         evidence += ("active_snapshot_capture_attempts_json=" + json.dumps(
+             capture_attempts, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+@@ -949,11 +1077,12 @@
+         trade_date=trade_date,
+         cutoff_at=cutoff_iso,
+     )
+-    if probe_errors:
++    if probe_errors or capture_only:
+         return {
+             "status": "CANNOT_CONFIRM",
+             "snapshot_path": str(path),
+-            "cannot_confirm": probe_errors,
++            "cannot_confirm": probe_errors or ("HK_ACTIVE_SNAPSHOT_LOCAL_SELECTION_BINDING_UNAVAILABLE",),
++            "strict_active_eligibility": False,
+             "source_evidence": evidence,
+             "requested_rows": len(requested),
+             "returned_rows": len(rows),
+--- a/stage_center/_runner_parts/runner_receipts.py
++++ b/stage_center/_runner_parts/runner_receipts.py
+@@ -17,11 +17,52 @@
+         nonlocal loaded_binding
+         if self.config.hk_d1_root is None:
+             raise _v4_global(_v4_scope, 'RunnerError')("production HK D1 Top100 root is required for Stage 8 pre-capture")
+-        binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
+-            self.config.hk_d1_root,
+-            trade_date,
+-            preselection_source_root=self.config.preselection_source_root,
+-        )
++        try:
++            binding = _v4_global(_v4_scope, '_build_hk_stage_binding')(
++                self.config.hk_d1_root, trade_date,
++                preselection_source_root=self.config.preselection_source_root,
++            )
++        except (OSError, ValueError, _v4_global(_v4_scope, 'RunnerError')):
++            store = self.config.hk_snapshot_shared_store_root
++            if store is None:
++                raise
++            # Only this capture loader can use the already verified same-target
++            # shared producer. Selection still requires its original local binding.
++            from datetime import datetime, timedelta
++            from domains.preselection_materializer import build_shared_hk_0_2_pool
++            states = _v4_global(_v4_scope, 'resolve_market_states')
++            open_states = {_v4_global(_v4_scope, 'TradingDayState').FULL_TRADING_DAY,
++                           _v4_global(_v4_scope, 'TradingDayState').HALF_TRADING_DAY_AM}
++            if states(trade_date)["hk_connect"] not in open_states:
++                raise ValueError("capture-only shared membership requires an open exact Connect target")
++            cursor = datetime.strptime(trade_date, "%Y%m%d")
++            signal_date = None
++            for _ in range(45):
++                cursor -= timedelta(days=1)
++                prior = states(cursor.strftime("%Y%m%d"))
++                if any(prior[k] is _v4_global(_v4_scope, 'TradingDayState').UNKNOWN for k in ("hk_securities", "hk_connect")):
++                    raise ValueError("capture-only shared signal calendar CANNOT_CONFIRM")
++                if prior["hk_securities"] in open_states or prior["hk_connect"] in open_states:
++                    if not all(prior[k] in open_states for k in ("hk_securities", "hk_connect")):
++                        raise ValueError("capture-only shared split signal dates unsupported")
++                    signal_date = cursor.strftime("%Y%m%d")
++                    break
++            if signal_date is None:
++                raise ValueError("capture-only shared signal date unavailable")
++            payload = build_shared_hk_0_2_pool(store, trade_date=trade_date,
++                signal_date=signal_date, shared_package_root=self.config.shared_data_root)
++            if payload.get("status") != "STRICT_0_2_READY" or len(payload.get("rows") or ()) != 100:
++                raise ValueError("capture-only shared exact membership is not strict Top100")
++            digest = payload["source_sha256"]
++            binding = _v4_global(_v4_scope, 'StageUniverseBinding').ready(
++                market="HK_CONNECT", trade_date=trade_date, role="HK_CAPTURE_ONLY_SHARED_VERIFIED_D1",
++                codes=tuple(row["symbol"] for row in payload["rows"]), sha256=digest,
++                source_run_id=payload["source_run_id"], evidence=(
++                    "hk_snapshot_membership_role=CAPTURE_ONLY_SHARED_VERIFIED_D1",
++                    f"hk_d1_json={store / payload['source_path']}",
++                    f"hk_d1_source_trade_date={trade_date}", f"hk_d1_source_signal_date={signal_date}",
++                    f"hk_d1_sha256={digest}", f"hk_d1_source_run_id={payload['source_run_id']}",
++                ))
+         loaded_binding = binding
+         return (
+             _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, '_evidence_value')(binding.evidence, "hk_d1_json") or self.config.hk_d1_root),
+@@ -31,6 +72,11 @@
+ 
+     from stage_center.hk_stage8 import prepare_due_snapshot, prepare_hk_active_snapshot
+ 
++    def snapshot_preparer(*args, **kwargs):
++        kwargs["capture_source_evidence"] = list(loaded_binding.evidence) if loaded_binding is not None else []
++        kwargs["capture_only"] = loaded_binding is not None and loaded_binding.role == "HK_CAPTURE_ONLY_SHARED_VERIFIED_D1"
++        return prepare_hk_active_snapshot(*args, **kwargs)
++
+     results = prepare_due_snapshot(
+         self.config,
+         trade_date,
+@@ -38,7 +84,7 @@
+         stage_id=stage_id,
+         historical_backfill=historical_backfill,
+         universe_loader=universe_loader,
+-        snapshot_preparer=prepare_hk_active_snapshot,
++        snapshot_preparer=snapshot_preparer,
+     )
+     if loaded_binding is not None:
+         source_trade_date = _v4_global(_v4_scope, '_evidence_value')(
+@@ -63,6 +109,15 @@
+     if "RESEARCH_ONLY" in payload and payload["RESEARCH_ONLY"] is not True:
+         raise runner_error("runner receipt RESEARCH_ONLY contract conflict")
+     result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **_v4_global(_v4_scope, '_deadline').before_receipt(payload), **_v4_global(_v4_scope, 'SAFETY_FLAGS')}
++    from stage_center.contracts import HK_SNAPSHOT_SCHEDULE
++    if stage_id in HK_SNAPSHOT_SCHEDULE and not self.config.backfill_run_id:
++        from stage_center.hk_stage8.snapshot import hk_snapshot_capture_receipt
++        try:
++            result["hk_snapshot_capture"] = hk_snapshot_capture_receipt(
++                self.config.raw_root, trade_date=trade_date, stage_id=stage_id)
++        except (OSError, ValueError, TypeError) as error:
++            result["hk_snapshot_capture"] = {"status": "CANNOT_CONFIRM", "error": f"{type(error).__name__}:{error}",
++                                              "authorizes_selection": False}
+     if any(result.get(key) is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent")):
+         raise runner_error("runner receipt safety contract conflict")
+     if "RESEARCH_ONLY" not in result:
+--- a/stage_center/_runner_parts/slot_execution.py
++++ b/stage_center/_runner_parts/slot_execution.py
+@@ -877,7 +877,11 @@
+         if decision.status in {"LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
+             source_evidence.append(decision.status)
+         return self._write_receipt({"status": status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": raw_bundle.get("bundle_id"), **({"raw_bundle_publication_status": "OMITTED_HK_ONLY_RESEARCH_BACKFILL"} if single_market_research_bundle_evidence else {}), "markets": published, "source_evidence": _v4_global(_v4_scope, 'list')(_v4_global(_v4_scope, 'dict').fromkeys((*source_evidence, *((single_market_research_bundle_evidence,) if single_market_research_bundle_evidence else ())))), "write_performed": True}, trade_date, stage_id)
+-    except (_v4_global(_v4_scope, 'RunnerError'), _v4_global(_v4_scope, 'RawStoreError'), _v4_global(_v4_scope, 'SelectionError'), _v4_global(_v4_scope, 'CandidateInputError'), _v4_global(_v4_scope, 'OSError'), _v4_global(_v4_scope, 'ValueError')) as error:
++    except Exception as error:
++        known_errors = tuple(_v4_global(_v4_scope, name) for name in
++            ("RunnerError", "RawStoreError", "SelectionError", "CandidateInputError", "OSError", "ValueError"))
++        if "HK_CONNECT" not in markets and not isinstance(error, known_errors):
++            raise
+         lane_failures = {}
+         for market in markets:
+             source = sources.get(market)
+--- a/ops/_run_stage_center_nodes_parts/node_entry.py
++++ b/ops/_run_stage_center_nodes_parts/node_entry.py
+@@ -250,6 +250,8 @@
+         for key in _v4_global(_v4_scope, 'REQUIRED_CONFIG_KEYS')
+         if key in config and key != "candidate_source_root"
+     }
++    if config.get("hk_snapshot_shared_store_root") is not None:
++        kwargs["hk_snapshot_shared_store_root"] = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(config["hk_snapshot_shared_store_root"]))
+     if config.get("v4_morning_news_root") is not None:
+         kwargs["v4_morning_news_root"] = _v4_global(_v4_scope, 'Path')(_v4_global(_v4_scope, 'str')(config["v4_morning_news_root"]))
+     # The runner's production constructor does not accept arbitrary config
+--- a/stage_center/runner.py
++++ b/stage_center/runner.py
+@@ -683,6 +683,8 @@
+     # Independent owner root for exact-date shared morning news.  It is kept
+     # separate from the hourly research archive root.
+     v4_morning_news_root: Path | None = None
++    # Capture-only verified shared store; never a selection authority fallback.
++    hk_snapshot_shared_store_root: Path | None = None
+     hk_d1_root: Path | None = None
+     # Separate read-only owner root retained from the active Stage release.
+     # A date directory in hk_d1_root owns that date even when incomplete;
+@@ -725,7 +727,7 @@
+         object.__setattr__(self, "selection_root", Path(self.selection_root).expanduser().resolve())
+         object.__setattr__(self, "receipt_root", Path(self.receipt_root).expanduser().resolve())
+         object.__setattr__(self, "candidate_input_root", Path(candidate).expanduser().resolve())
+-        for name in ("v3_formal_root", "v3_research_root", "v4_research_data_root", "v4_morning_news_root", "hk_d1_root", "preselection_source_root", "hk_second_filter_root", "hk_full_universe_root", "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path"):
++        for name in ("v3_formal_root", "v3_research_root", "v4_research_data_root", "v4_morning_news_root", "hk_d1_root", "hk_snapshot_shared_store_root", "preselection_source_root", "hk_second_filter_root", "hk_full_universe_root", "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path"):
+             value = getattr(self, name)
+             if value is not None:
+                 expanded = Path(value).expanduser()
+@@ -753,6 +755,7 @@
+     v3_research_root: Path | str | None = None,
+     v4_research_data_root: Path | str | None = None,
+     v4_morning_news_root: Path | str | None = None,
++    hk_snapshot_shared_store_root: Path | str | None = None,
+     hk_d1_root: Path | str | None = None,
+     preselection_source_root: Path | str | None = None,
+     hk_second_filter_root: Path | str | None = None,
+@@ -775,7 +778,7 @@
+     time.
+     """
+     from stage_center._runner_parts.configuration import _build_production_config_body as _v4_impl
+-    return _v4_impl(globals(), candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
++    return _v4_impl(globals(), candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, hk_snapshot_shared_store_root=hk_snapshot_shared_store_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
+ 
+ 
+ class SlotLock:
+--- a/stage_center/_runner_parts/configuration.py
++++ b/stage_center/_runner_parts/configuration.py
+@@ -3,7 +3,7 @@
+ from ._namespace import read_global as _v4_global
+ 
+ 
+-def _build_production_config_body(_v4_scope, /, *, candidate_acquisition_root, raw_root, selection_root, receipt_root, v3_formal_root, v3_research_root, v4_research_data_root, v4_morning_news_root, hk_d1_root, preselection_source_root, hk_second_filter_root, hk_full_universe_root, a_auction_root, hk_auction_root, hk_stage_replay_root, a_research_panel_receipt_root, shared_data_root, python_path):
++def _build_production_config_body(_v4_scope, /, *, candidate_acquisition_root, raw_root, selection_root, receipt_root, v3_formal_root, v3_research_root, v4_research_data_root, v4_morning_news_root, hk_d1_root, preselection_source_root, hk_second_filter_root, hk_full_universe_root, a_auction_root, hk_auction_root, hk_stage_replay_root, a_research_panel_receipt_root, shared_data_root, python_path, hk_snapshot_shared_store_root=None):
+     """Construct a production-shaped config without starting any collector.
+ 
+     ``v4_research_data_root`` is the explicit V4-owned hourly archive root for
+@@ -23,6 +23,7 @@
+         v3_research_root=_v4_global(_v4_scope, 'Path')(v3_research_root) if v3_research_root is not None else None,
+         v4_research_data_root=(_v4_global(_v4_scope, 'Path')(v4_research_data_root) if v4_research_data_root is not None else None),
+         v4_morning_news_root=(_v4_global(_v4_scope, 'Path')(v4_morning_news_root) if v4_morning_news_root is not None else None),
++        hk_snapshot_shared_store_root=(_v4_global(_v4_scope, 'Path')(hk_snapshot_shared_store_root) if hk_snapshot_shared_store_root is not None else None),
+         hk_d1_root=_v4_global(_v4_scope, 'Path')(hk_d1_root) if hk_d1_root is not None else None,
+         preselection_source_root=(_v4_global(_v4_scope, 'Path')(preselection_source_root) if preselection_source_root is not None else None),
+         hk_second_filter_root=_v4_global(_v4_scope, 'Path')(hk_second_filter_root) if hk_second_filter_root is not None else None,
+--- a/tests/test_hk_snapshot_on_stage_failure.py
++++ b/tests/test_hk_snapshot_on_stage_failure.py
+@@ -0,0 +1,278 @@
++"""Frozen HK failure-snapshot acceptance; fake provider, real immutable store."""
++from __future__ import annotations
++
++import base64
++import hashlib
++import json
++import subprocess
++from datetime import datetime
++from pathlib import Path
++from types import SimpleNamespace
++from zoneinfo import ZoneInfo
++
++import pytest
++
++from stage_center import runner as runner_module
++from stage_center.hk_stage8 import snapshot as snapshot_module
++from stage_center.hk_stage8.precapture import prepare_due_snapshot
++from stage_center._runner_parts.slot_execution import _StageCenterRunner__run_one_body
++from stage_center.acquisition import SourceResult
++from stage_center.contracts import SAFETY_FLAGS
++
++DATE = "20261023"
++STAGE = "STAGE_0930_0935"
++CODES = ("HK.00001", "HK.00002")
++POOL_SHA = "a" * 64
++NOW = datetime(2026, 10, 23, 9, 34, 10, tzinfo=ZoneInfo("Asia/Shanghai"))
++
++
++def native_rows(codes=CODES):
++    return [{"code": code, "update_time": "2026-10-23 09:34:09", "last_price": 11,
++             "prev_close_price": 10, "turnover": 30_000_000, "volume_ratio": 2,
++             "native_extra": {"unaltered": "盘口"}, "order_book": {"Bid": [[10.9, 100, 1]], "Ask": [[11, 200, 2]]}}
++            for code in codes]
++
++
++def capture(tmp_path, monkeypatch, *, rows=None, error=None, clock=None):
++    rows = native_rows() if rows is None else rows
++    original = "FUTU_NATIVE " + json.dumps({"rows": rows}, ensure_ascii=False) + "\n"
++
++    def fetch(python_path, codes, *, process_runner, include_order_book=False):
++        assert tuple(codes) == CODES
++        assert include_order_book is True
++        process_runner([str(python_path), "native-snapshot"])
++        return rows, ()
++
++    monkeypatch.setattr(snapshot_module, "_load_shared_module", lambda *_: SimpleNamespace(fetch_futu_snapshot=fetch))
++
++    def process(*args, **kwargs):
++        if error:
++            raise error
++        return subprocess.CompletedProcess(args[0], 0, stdout=original, stderr="")
++
++    result = snapshot_module.prepare_hk_active_snapshot(tmp_path, trade_date=DATE, stage_id=STAGE,
++        codes=CODES, python_path=Path("/fake/python"), shared_root=tmp_path / "package",
++        evaluated_at=NOW.isoformat(), cutoff_at="09:35:05", pool_artifact_sha256=POOL_SHA,
++        process_runner=process, clock=clock or (lambda: NOW), sleeper=lambda _: None)
++    return result, original.encode("utf-8")
++
++
++def config(tmp_path, *, builders=None):
++    return runner_module.RunnerConfig(candidate_acquisition_root=tmp_path / "candidate",
++        raw_root=tmp_path / "raw", selection_root=tmp_path / "selection", receipt_root=tmp_path / "receipts",
++        hk_d1_root=tmp_path / "d1", shared_data_root=tmp_path / "package", python_path=Path("/fake/python"),
++        selection_builders=builders)
++
++
++def assert_transport(result, original):
++    event = json.loads(Path(result["native_capture_attempts"][0]["path"]).read_bytes())
++    transport = next(ref for ref in event["payload_events"] if ref["event"].startswith("transport-"))
++    raw = Path(transport["path"]).read_bytes()
++    assert hashlib.sha256(raw).hexdigest() == transport["sha256"]
++    stored = json.loads(raw)
++    assert base64.b64decode(stored["stdout_base64"]) == original
++    assert stored["stdout_sha256"] == hashlib.sha256(original).hexdigest()
++    assert stored["codes"] == list(CODES)
++    assert stored["pool_artifact_sha256"] == POOL_SHA
++    assert stored["provider_started_at"] == NOW.isoformat()
++    assert stored["authorizes_selection"] is False
++    return event
++
++
++def test_canary_snapshot_survives_subsequent_local_binding_failure(tmp_path, monkeypatch):
++    cfg = config(tmp_path)
++    result, original = capture(cfg.raw_root, monkeypatch)
++    assert result["status"] == "READY"
++    before = Path(result["snapshot_path"]).read_bytes()
++    assert_transport(result, original)
++    monkeypatch.setattr(runner_module, "read_candidate_input", lambda *_args, **_kwargs: (_ for _ in ()).throw(runner_module.CandidateInputError("A absent")))
++    monkeypatch.setattr(runner_module, "_build_hk_stage_binding", lambda *_args, **_kwargs: (_ for _ in ()).throw(runner_module.RunnerError("local D1 absent")))
++    monkeypatch.setattr(runner_module, "_resolve_stage_market_scope", lambda *_args, **_kwargs: ("HK_CONNECT",))
++    runner = runner_module.StageCenterRunner(cfg)
++    receipt = runner._run_one(SimpleNamespace(trade_date=DATE, stage_id=STAGE, status="DUE"))
++    assert receipt["status"] == "CANNOT_CONFIRM"
++    assert receipt["first_failed_layer"] == "EXACT_SELECTION_INPUT_BINDING"
++    assert Path(result["snapshot_path"]).read_bytes() == before
++    linked = receipt["hk_snapshot_capture"]
++    assert linked["captured_at"] == NOW.isoformat()
++    assert linked["snapshot_file_sha256"] == hashlib.sha256(before).hexdigest()
++    assert linked["attempts"][0]["sha256"] == result["native_capture_attempts"][0]["sha256"]
++
++
++@pytest.mark.parametrize("mode", ["partial", "exception", "parse", "late"])
++def test_partial_exception_and_late_responses_preserve_diagnostics_only(tmp_path, monkeypatch, mode):
++    rows = native_rows(CODES[:1]) if mode == "partial" else native_rows()
++    if mode == "parse":
++        monkeypatch.setattr(snapshot_module, "_safe_number", lambda *_: (_ for _ in ()).throw(ValueError("bad numeric")))
++    ticks = iter([NOW, NOW, NOW, NOW.replace(minute=36)])
++    result, original = capture(tmp_path, monkeypatch, rows=rows,
++        error=ConnectionError("provider unavailable") if mode == "exception" else None,
++        clock=(lambda: next(ticks, NOW.replace(minute=36))) if mode == "late" else None)
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert not Path(result["snapshot_path"]).exists()
++    event = json.loads(Path(result["native_capture_attempts"][0]["path"]).read_bytes())
++    assert event["status"] == "CANNOT_CONFIRM"
++    assert event["authorizes_selection"] is False
++    if mode != "exception":
++        assert_transport(result, original)
++    else:
++        assert "provider unavailable" in str(event["cannot_confirm"])
++    assert snapshot_module.load_hk_active_snapshot(tmp_path, trade_date=DATE, stage_id=STAGE,
++        codes=CODES, cutoff_at="09:35:05", pool_artifact_sha256=POOL_SHA)["status"] == "CANNOT_CONFIRM"
++
++
++def test_original_good_snapshot_is_immutable_on_late_failed_retry(tmp_path, monkeypatch):
++    first, _ = capture(tmp_path, monkeypatch)
++    path = Path(first["snapshot_path"])
++    before = path.read_bytes()
++    second, _ = capture(tmp_path, monkeypatch, rows=[], error=RuntimeError("must not fetch"), clock=lambda: NOW.replace(hour=11))
++    assert second["status"] == "NOOP_ALREADY_VERIFIED"
++    assert path.read_bytes() == before
++
++
++@pytest.mark.parametrize("field,value,reason", [
++    ("trade_date", "20261022", "TRADE_DATE_MISMATCH"),
++    ("market", "A_SHARE", "MARKET_MISMATCH"),
++    ("codes", ["HK.00003"], "CODE_SET_MISMATCH"),
++    ("pool_artifact_sha256", "b" * 64, "POOL_ARTIFACT_SHA_MISMATCH"),
++])
++def test_wrong_date_market_membership_still_rejected(tmp_path, monkeypatch, field, value, reason):
++    result, _ = capture(tmp_path, monkeypatch)
++    path = Path(result["snapshot_path"])
++    payload = json.loads(path.read_bytes()); payload[field] = value
++    path.write_text(json.dumps(payload))
++    loaded = snapshot_module.load_hk_active_snapshot(tmp_path, trade_date=DATE, stage_id=STAGE,
++        codes=CODES, cutoff_at="09:35:05", pool_artifact_sha256=POOL_SHA)
++    assert loaded["status"] == "CANNOT_CONFIRM"
++    assert any(reason in item for item in loaded["cannot_confirm"])
++
++
++def test_unknown_universe_records_error_without_querying_arbitrary_codes(tmp_path, monkeypatch):
++    cfg = config(tmp_path)
++    monkeypatch.setattr("stage_center.hk_stage8.precapture.resolve_market_states", runner_module.resolve_market_states)
++    result = prepare_due_snapshot(cfg, DATE, NOW, stage_id=STAGE, historical_backfill=False,
++        universe_loader=lambda: (_ for _ in ()).throw(RuntimeError("strict universe absent")),
++        snapshot_preparer=lambda *_args, **_kwargs: pytest.fail("unknown universe queried"))
++    attempt = json.loads(Path(result[0]["native_capture_attempts"][0]["path"]).read_bytes())
++    assert attempt["scope_known"] is False
++    assert attempt["requested_rows"] is None
++    assert attempt["status"] == "CANNOT_CONFIRM"
++    assert not snapshot_module._snapshot_path(cfg.raw_root, DATE, STAGE).exists()
++
++
++def test_scorer_runtime_error_returns_receipt_with_native_sha(tmp_path, monkeypatch):
++    cfg = config(tmp_path, builders={"HK_CONNECT": lambda *_: (_ for _ in ()).throw(RuntimeError("scorer failed"))})
++    result, original = capture(cfg.raw_root, monkeypatch)
++    before = Path(result["snapshot_path"]).read_bytes()
++    candidate = SimpleNamespace(codes=CODES, current_sha256=POOL_SHA, run_id="frozen-input", source_evidence=())
++    plan = SimpleNamespace(codes_for=lambda _: CODES)
++    source = SourceResult("HK_CONNECT", "READY", rows=({"symbol": CODES[0]},), requested_rows=1)
++    runner = runner_module.StageCenterRunner(cfg, collectors={"HK_CONNECT": lambda *_: source})
++    monkeypatch.setattr(runner, "_existing_slot", lambda *_: ("MISSING", None))
++    scope = dict(vars(runner_module))
++
++    class FakeRawStore:
++        def __init__(self, *_): pass
++        def publish_bundle(self, **kwargs): return {"bundle_id": "test-bundle"}
++
++    scope.update(
++        _resolve_stage_market_scope=lambda *_args, **_kwargs: ("HK_CONNECT",),
++        read_candidate_input=lambda *_args, **_kwargs: candidate,
++        _validate_exact_selection_inputs=lambda *_args, **_kwargs: (),
++        build_plan=lambda *_args, **_kwargs: plan,
++        _with_candidate_evidence=lambda value, *_args, **_kwargs: value,
++        _selection_source=lambda value, **_kwargs: value,
++        _project_raw_rows=lambda rows, **_kwargs: rows,
++        publish_raw_artifact=lambda *_args, **_kwargs: {"status": "READY", "artifact_sha256": "b" * 64},
++        _attach_stage_research_roots=lambda *_args, **_kwargs: None,
++        RawStore=FakeRawStore,
++    )
++    receipt = _StageCenterRunner__run_one_body(scope, runner,
++        SimpleNamespace(trade_date=DATE, stage_id=STAGE, status="DUE"),
++        historical_backfill=False, backfill_run_id=None, historical_markets=None)
++    assert receipt["error"] == "scorer failed"
++    assert receipt["status"] == "PARTIAL_COMMIT_RETRY_REQUIRED"
++    assert receipt["hk_snapshot_capture"]["snapshot_file_sha256"] == hashlib.sha256(before).hexdigest()
++    assert receipt["hk_snapshot_capture"]["captured_at"] == NOW.isoformat()
++    assert Path(result["snapshot_path"]).read_bytes() == before
++    assert_transport(result, original)
++    persisted = json.loads(runner._receipt_path(DATE, STAGE).read_bytes())
++    assert persisted["hk_snapshot_capture"] == receipt["hk_snapshot_capture"]
++
++
++def test_missing_local_binding_uses_only_explicit_verified_shared_target_for_capture(tmp_path, monkeypatch):
++    from dataclasses import replace
++    from domains import preselection_materializer
++    cfg = replace(config(tmp_path), hk_snapshot_shared_store_root=tmp_path / "existing-shared-store")
++    runner = runner_module.StageCenterRunner(cfg)
++    monkeypatch.setattr(runner_module, "_build_hk_stage_binding", lambda *_args, **_kwargs: (_ for _ in ()).throw(runner_module.RunnerError("missing local D1")))
++    calls = []
++
++    def shared_reader(store, **kwargs):
++        calls.append((store, kwargs))
++        return {"status": "STRICT_0_2_READY", "source_sha256": POOL_SHA, "source_run_id": "same-target-run",
++                "source_path": "runs/exact/artifact.csv", "rows": [{"symbol": f"HK.{i:05d}"} for i in range(1, 101)]}
++
++    monkeypatch.setattr(preselection_materializer, "build_shared_hk_0_2_pool", shared_reader)
++    captures = []
++
++    def preparer(*args, **kwargs):
++        captures.append(kwargs)
++        assert kwargs["capture_only"] is True
++        assert kwargs["codes"] == tuple(f"HK.{i:05d}" for i in range(1, 101))
++        assert kwargs["pool_artifact_sha256"] == POOL_SHA
++        return {"status": "CANNOT_CONFIRM", "strict_active_eligibility": False}
++
++    monkeypatch.setattr("stage_center.hk_stage8.prepare_hk_active_snapshot", preparer)
++    result = runner._prepare_hk_active_snapshots(DATE, NOW, stage_id=STAGE)
++    assert len(captures) == len(calls) == 1
++    assert calls[0][0] == cfg.hk_snapshot_shared_store_root
++    assert calls[0][1]["trade_date"] == DATE
++    assert calls[0][1]["signal_date"] == "20261022"
++    assert result[0]["strict_active_eligibility"] is False
++    assert "CAPTURE_ONLY_SHARED_VERIFIED_D1" in str(result[0]["source_evidence"])
++
++
++def test_capture_only_shared_membership_never_publishes_strict_active_index(tmp_path, monkeypatch):
++    # Exercise real serialization/probe rather than the binding-loader seam.
++    saved = snapshot_module.prepare_hk_active_snapshot
++    def capture_only(*args, **kwargs):
++        kwargs["capture_only"] = True
++        return saved(*args, **kwargs)
++    monkeypatch.setattr(snapshot_module, "prepare_hk_active_snapshot", capture_only)
++    result, original = capture(tmp_path, monkeypatch)
++    assert result["status"] == "CANNOT_CONFIRM"
++    assert result["strict_active_eligibility"] is False
++    assert not Path(result["snapshot_path"]).exists()
++    event = assert_transport(result, original)
++    assert event["status"] == "CAPTURED_DIAGNOSTIC"
++
++
++def test_timeout_partial_native_bytes_are_retained(tmp_path, monkeypatch):
++    partial = b'{"rows":[{"code":"HK.00001"'
++    error = subprocess.TimeoutExpired("fake-native", 1, output=partial, stderr=b"timeout")
++    result, _ = capture(tmp_path, monkeypatch, error=error)
++    assert result["status"] == "CANNOT_CONFIRM"
++    event = json.loads(Path(result["native_capture_attempts"][0]["path"]).read_bytes())
++    ref = next(x for x in event["payload_events"] if x["event"].startswith("provider-error-"))
++    stored = json.loads(Path(ref["path"]).read_bytes())
++    assert base64.b64decode(stored["output_base64"]) == partial
++    assert stored["output_sha256"] == hashlib.sha256(partial).hexdigest()
++    assert not Path(result["snapshot_path"]).exists()
++
++
++def test_partial_failure_does_not_block_later_valid_attempt(tmp_path, monkeypatch):
++    first, _ = capture(tmp_path, monkeypatch, rows=native_rows(CODES[:1]))
++    second, _ = capture(tmp_path, monkeypatch)
++    assert first["status"] == "CANNOT_CONFIRM"
++    assert second["status"] == "READY"
++    assert len(list(Path(second["snapshot_path"]).parent.glob("attempts/*/result.json"))) == 2
++    assert Path(first["native_capture_attempts"][0]["path"]).is_file()
++
++
++def test_a_0925_receipt_has_no_hk_snapshot_metadata(tmp_path):
++    runner = runner_module.StageCenterRunner(config(tmp_path))
++    receipt = runner._write_receipt({"status": "READY", "markets": {"A_SHARE": {"status": "READY"}}}, DATE, "STAGE_0925")
++    assert receipt["status"] == "READY"
++    assert "hk_snapshot_capture" not in receipt
++    assert all(receipt[key] is False for key in SAFETY_FLAGS)

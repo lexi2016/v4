@@ -1,0 +1,16 @@
+--- actual-runtime/infrastructure/tdx_minute_replay_provider.py
++++ candidate/infrastructure/tdx_minute_replay_provider.py
+@@ -494,10 +494,9 @@
+         api = TdxHq_API(heartbeat=False)
+         try:
+             if api.connect(host, port, time_out=1.5):
+-                probe = api.get_security_bars(9, 1, "600000", 0, 1) or []
+-                if probe:
+-                    return api
+-                failures.append(f"{name}: connected without A-share bar capability")
++                # Validate the requested minute/transaction method when reading
++                # it; an unrelated daily-bar probe may fail on a usable host.
++                return api
+             else:
+                 failures.append(f"{name}: connect returned false")
+         except Exception as error:

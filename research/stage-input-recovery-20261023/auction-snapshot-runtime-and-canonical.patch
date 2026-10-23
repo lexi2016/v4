@@ -1,0 +1,294 @@
+--- a/ops/run_hkconnect_0915_0920_capture.py
++++ b/ops/run_hkconnect_0915_0920_capture.py
+@@ -7,6 +7,9 @@
+ from __future__ import annotations
+ 
+ import argparse
++import base64
++import subprocess
++from uuid import uuid4
+ import csv
+ import hashlib
+ import importlib.util
+@@ -26,6 +29,7 @@
+ from domains.opening_second_filter import build_v11_opening_second_filter
+ from infrastructure.isolated_package_loader import load_isolated_package_module
+ from infrastructure.opening_second_filter_store import OpeningSecondFilterStore
++from infrastructure.owned_io import SafeRoot
+ 
+ 
+ HK_AUCTION_ROLE = "HK_CONNECT_AUCTION_REFERENCE_STAGE_0925"
+@@ -226,7 +230,92 @@
+     return {"ok": True, "status": "ELIGIBLE", "trade_date": trade_date, "calendar": serialized}
+ 
+ 
++class _AuctionNativeEvidence:
++    """Append native evidence within the existing single auction capture."""
++
++    def __init__(self, shared_root: Path | str, trade_date: str):
++        datetime.strptime(trade_date, "%Y%m%d")
++        if not re.fullmatch(r"\d{8}", trade_date):
++            raise ValueError("auction capture date must be YYYYMMDD")
++        self.root, self.trade_date, self.attempt_id = Path(shared_root), trade_date, uuid4().hex
++        self.refs: list[dict[str, Any]] = []
++        self.membership: dict[str, Any] = {"status": "UNKNOWN_SCOPE"}
++
++    def save(self, event: str, **payload: Any) -> dict[str, Any]:
++        relative = f"attempt_evidence/{self.trade_date}/{HK_AUCTION_ROLE}/{self.attempt_id}/{len(self.refs):04d}-{event}.json"
++        raw = json.dumps({**payload, "trade_date": self.trade_date, "stage_id": "STAGE_0925",
++            "market": "HK_CONNECT", "attempt_id": self.attempt_id,
++            "recorded_at": datetime.now().astimezone().isoformat(),
++            "source_sha256": _sha_file(Path(__file__)), "membership": self.membership,
++            "authorizes_selection": False, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False},
++            ensure_ascii=False, sort_keys=True).encode("utf-8")
++        SafeRoot(self.root).write_bytes(relative, raw, require_absent=True)
++        ref = {"path": str(self.root / relative), "sha256": _sha_bytes(raw), "event": event}
++        self.refs.append(ref)
++        return ref
++
++    @staticmethod
++    def native_fields(value: Any, *fields: str) -> dict[str, Any]:
++        result = {}
++        for field in fields:
++            data = getattr(value, field, None)
++            if data is not None:
++                raw = data if isinstance(data, bytes) else str(data).encode("utf-8")
++                result[field + "_base64"] = base64.b64encode(raw).decode("ascii")
++                result[field + "_sha256"] = _sha_bytes(raw)
++        return result
++
++    def reader(self, module: Any, executable: Path | str, codes: Sequence[str]):
++        if self.membership["status"] == "UNKNOWN_SCOPE":
++            try:
++                members, evidence = module.load_verified_candidates(self.root, self.trade_date)
++                exact = {str(row["code"]) for row in members} == set(codes)
++                self.membership = {"status": "VERIFIED_EXACT_CODES" if exact else "CANNOT_CONFIRM_CODE_BINDING", **dict(evidence)}
++            except Exception as error:
++                self.membership = {"status": "CANNOT_CONFIRM", "error": f"{type(error).__name__}:{error}"}
++
++        def observed_runner(*args: Any, **kwargs: Any):
++            started = datetime.now().astimezone().isoformat()
++            query = kwargs.get("input")
++            requested = list(codes)
++            metadata = {"query_id": uuid4().hex, "provider_started_at": started,
++                "query_input": query, "codes": requested, "codes_sha256": _sha_json(requested),
++                "shared_store_root": str(self.root), "method": "fetch_futu_snapshot"}
++            self.save("query", **metadata)
++            try:
++                completed = subprocess.run(*args, **kwargs)
++            except Exception as error:
++                self.save("provider-error", **metadata, provider_finished_at=datetime.now().astimezone().isoformat(),
++                    error_type=type(error).__name__, error=str(error),
++                    **self.native_fields(error, "stdout", "stderr", "output"))
++                raise
++            self.save("native", **metadata, provider_finished_at=datetime.now().astimezone().isoformat(),
++                returncode=completed.returncode, **self.native_fields(completed, "stdout", "stderr"))
++            return completed
++
++        return module.fetch_futu_snapshot(executable, codes, process_runner=observed_runner)
++
++
+ def materialize_hkconnect_0915_0920(
++    data_root: Path | str, shared_data_root: Path | str, shared_package_root: Path | str,
++    trade_date: str, futu_python: Path | str, *, shared_module: ModuleType | Any | None = None,
++    consumer_module: ModuleType | Any | None = None, capture_runner: Callable[..., Mapping[str, Any]] | None = None,
++) -> dict[str, Any]:
++    journal = _AuctionNativeEvidence(shared_data_root, trade_date)
++    try:
++        result = _materialize_hkconnect_0915_0920(data_root, shared_data_root, shared_package_root,
++            trade_date, futu_python, shared_module=shared_module, consumer_module=consumer_module,
++            capture_runner=capture_runner, _native_evidence=journal)
++    except Exception as error:
++        journal.save("capture-error", error_type=type(error).__name__, error=str(error), payload_events=list(journal.refs))
++        error.auction_native_evidence = list(journal.refs)
++        raise
++    if journal.refs:
++        result["auction_native_evidence"] = list(journal.refs)
++    return result
++
++
++def _materialize_hkconnect_0915_0920(
+     data_root: Path | str,
+     shared_data_root: Path | str,
+     shared_package_root: Path | str,
+@@ -236,6 +325,7 @@
+     shared_module: ModuleType | Any | None = None,
+     consumer_module: ModuleType | Any | None = None,
+     capture_runner: Callable[..., Mapping[str, Any]] | None = None,
++    _native_evidence: _AuctionNativeEvidence | None = None,
+ ) -> dict[str, Any]:
+     gate = _calendar_gate(trade_date)
+     if gate["status"] != "ELIGIBLE":
+@@ -253,7 +343,10 @@
+         capture, auction = existing
+     else:
+         run_capture = capture_runner or shared_module.run_capture
+-        capture = dict(run_capture(shared_root, trade_date, Path(futu_python), sleeper=time.sleep))
++        capture_options = {"sleeper": time.sleep}
++        if capture_runner is None and _native_evidence is not None:
++            capture_options["snapshot_reader"] = lambda executable, codes: _native_evidence.reader(shared_module, executable, codes)
++        capture = dict(run_capture(shared_root, trade_date, Path(futu_python), **capture_options))
+     if capture.get("ok") is not True or str(capture.get("status")) != "READY":
+         raise ValueError(f"shared HK capture did not complete: {capture.get('status')}")
+     capture_run = capture.get("run")
+@@ -346,8 +439,8 @@
+     args = parser.parse_args(argv)
+     try:
+         result = materialize_hkconnect_0915_0920(args.data_root, args.shared_data_root, args.shared_package_root, args.trade_date, args.futu_python)
+-    except (OSError, ValueError, KeyError, TypeError) as error:
+-        result = {"ok": False, "status": "CANNOT_CONFIRM", "error": str(error), "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
++    except Exception as error:
++        result = {"ok": False, "status": "CANNOT_CONFIRM", "error": str(error), "auction_native_evidence": getattr(error, "auction_native_evidence", []), "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+     return 0 if result.get("ok") else 1
+ 
+--- a/tests/test_hk_auction_snapshot_on_failure.py
++++ b/tests/test_hk_auction_snapshot_on_failure.py
+@@ -0,0 +1,147 @@
++"""Auction-only native failure retention; original shared gates, fake provider."""
++from __future__ import annotations
++
++import base64
++import hashlib
++import json
++import os
++import subprocess
++import sys
++from datetime import datetime
++from pathlib import Path
++from types import SimpleNamespace
++
++import pytest
++
++from ops import run_hkconnect_0915_0920_capture as auction
++
++DATE = "20261023"
++CODES = [f"HK.{index:05d}" for index in range(1, 101)]
++
++
++@pytest.fixture
++def bridge(tmp_path, monkeypatch):
++    package = Path(os.environ["AUCTION_SHARED_PACKAGE_ROOT"])
++    module, _ = auction._load_shared(package)
++    members = [{"code": code, "name": code, "preselect_rank": index} for index, code in enumerate(CODES, 1)]
++    monkeypatch.setattr(module, "load_verified_candidates", lambda *_: (members, {
++        "signal_date": "20261022", "d1_pool_sha256": "a" * 64, "d1_run_id": "same-target-verified"}))
++    consumer = SimpleNamespace(StoreError=module.StoreError,
++        read_verified_latest=lambda *_: (_ for _ in ()).throw(module.StoreError("not published")))
++    monkeypatch.setattr(auction, "_calendar_gate", lambda _: {"status": "ELIGIBLE"})
++    monkeypatch.setattr(auction.time, "sleep", lambda _: None)
++    monkeypatch.setattr(module, "_test_frozen_run_capture", module.run_capture, raising=False)
++    return module, consumer
++
++
++def invoke(tmp_path, monkeypatch, bridge, mode):
++    module, consumer = bridge
++    original_run = module._test_frozen_run_capture
++    # Each invocation gets an independent clock; no quote process is launched.
++    values = (["09:19:10", "09:19:10", "09:20:00"] if mode == "late" else
++              ["09:19:10", "09:19:10", "09:19:10", "09:20:00"] if mode in {"coverage", "parse", "exception", "timeout"} else
++              ["09:19:10", "09:19:10", "09:19:10", "09:19:40", "09:19:40", "09:20:00"])
++    ticks = iter(datetime.fromisoformat(f"2026-10-23 {clock}") for clock in values)
++    def run(store, date, python, **kwargs):
++        return original_run(store, date, python, now=lambda: next(ticks), **kwargs)
++    monkeypatch.setattr(module, "run_capture", run)
++    monkeypatch.setattr(module, "publish_reference_rows", lambda *_args, **_kwargs: {"status": "READY", "run_id": "frozen-top50"})
++    originals = []
++    def provider(command, **kwargs):
++        assert json.loads(kwargs["input"])["codes"] == CODES
++        if mode == "exception":
++            raise ConnectionError("provider had no bytes")
++        if mode == "timeout":
++            raise subprocess.TimeoutExpired(command, 1, output=b'{"partial":', stderr=b"timeout")
++        row_codes = CODES[:2] if mode == "partial" else CODES
++        rows = [{"code": code, "update_time": "2026-10-23 09:19:09", "last_price": 10,
++                 "prev_close_price": 9, "bid_price": 9.9, "ask_price": 10, "bid_vol": 100,
++                 "ask_vol": 100, "turnover": 100000, "native_extra": "原生字段"} for code in row_codes]
++        stdout = "malformed-native" if mode == "parse" else module.MARKER + json.dumps({"rows": rows, "errors": []}, ensure_ascii=False)
++        originals.append(stdout.encode())
++        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
++    monkeypatch.setattr(auction.subprocess, "run", provider)
++    with pytest.raises(Exception) as raised:
++        auction.materialize_hkconnect_0915_0920(tmp_path / "data", tmp_path / "shared", Path("/unused/package"), DATE,
++            Path(sys.executable), shared_module=module, consumer_module=consumer)
++    return raised.value, originals
++
++
++def events(error):
++    refs = error.auction_native_evidence
++    result = []
++    for ref in refs:
++        raw = Path(ref["path"]).read_bytes()
++        assert hashlib.sha256(raw).hexdigest() == ref["sha256"]
++        result.append((ref, json.loads(raw)))
++    return result
++
++
++def test_canary_native_retained_before_real_bridge_parse_failure(tmp_path, monkeypatch, bridge):
++    error, originals = invoke(tmp_path, monkeypatch, bridge, "parse")
++    stored = events(error)
++    native = next(data for ref, data in stored if ref["event"] == "native")
++    assert base64.b64decode(native["stdout_base64"]) == originals[0]
++    assert native["stdout_sha256"] == hashlib.sha256(originals[0]).hexdigest()
++    assert stored[0][0]["event"] == "query"
++    assert stored[-1][0]["event"] == "capture-error"
++    assert native["membership"]["d1_pool_sha256"] == "a" * 64
++    assert native["codes"] == CODES
++    assert native["market"] == "HK_CONNECT" and native["stage_id"] == "STAGE_0925"
++    assert native["trade_date"] == DATE
++    assert native["provider_started_at"] <= native["provider_finished_at"]
++    # Historical market time stays inside the original native payload; capture
++    # timestamps come from the actual wall clock, never this fake source clock.
++    assert native["provider_started_at"] != "2026-10-23T09:19:10+08:00"
++    assert native["authorizes_selection"] is False
++
++
++@pytest.mark.parametrize("mode,reason", [
++    ("coverage", "CONTINUOUS_COVERAGE"),
++    ("partial", "reference shortfall"),
++    ("late", "CONTINUOUS_COVERAGE"),
++    ("projection", "not published"),
++])
++def test_real_coverage_top50_and_later_projection_failures_keep_native(tmp_path, monkeypatch, bridge, mode, reason):
++    error, originals = invoke(tmp_path, monkeypatch, bridge, mode)
++    assert reason in str(error)
++    stored = events(error)
++    native = [data for ref, data in stored if ref["event"] == "native"]
++    assert [base64.b64decode(data["stdout_base64"]) for data in native] == originals
++    assert all(data["authorizes_selection"] is False for _, data in stored)
++    assert not (tmp_path / "data" / "opening_second_filter").exists()
++
++
++@pytest.mark.parametrize("mode", ["exception", "timeout"])
++def test_provider_failure_records_query_error_and_only_actual_partial_bytes(tmp_path, monkeypatch, bridge, mode):
++    error, originals = invoke(tmp_path, monkeypatch, bridge, mode)
++    stored = events(error)
++    assert originals == []
++    assert [ref["event"] for ref, _ in stored] == ["query", "provider-error", "capture-error"]
++    failure = stored[1][1]
++    assert "stdout_base64" not in failure if mode == "exception" else base64.b64decode(failure["output_base64"]) == b'{"partial":'
++    assert all(data[flag] is False for _, data in stored for flag in ("production_allowed", "buy_gate_updated", "orders_sent"))
++
++
++def test_late_retry_never_overwrites_earlier_native_attempt(tmp_path, monkeypatch, bridge):
++    error, _ = invoke(tmp_path, monkeypatch, bridge, "coverage")
++    previous = {ref["path"]: Path(ref["path"]).read_bytes() for ref in error.auction_native_evidence}
++    late, _ = invoke(tmp_path, monkeypatch, bridge, "late")
++    assert all(Path(path).read_bytes() == raw for path, raw in previous.items())
++    assert set(previous).isdisjoint(ref["path"] for ref in late.auction_native_evidence)
++
++
++def test_wrong_date_cannot_escape_owned_root(tmp_path):
++    with pytest.raises(ValueError):
++        auction._AuctionNativeEvidence(tmp_path / "shared", "../../20261023")
++    assert not (tmp_path / "shared").exists()
++
++
++def test_main_failure_output_links_durable_native_attempts(tmp_path, monkeypatch, bridge, capsys):
++    error, _ = invoke(tmp_path, monkeypatch, bridge, "coverage")
++    monkeypatch.setattr(auction, "materialize_hkconnect_0915_0920", lambda *_: (_ for _ in ()).throw(error))
++    code = auction.main(["--data-root", str(tmp_path / "data"), "--shared-data-root", str(tmp_path / "shared"),
++        "--shared-package-root", "/unused/package", "--trade-date", DATE, "--futu-python", sys.executable])
++    output = json.loads(capsys.readouterr().out)
++    assert code == 1 and output["status"] == "CANNOT_CONFIRM"
++    assert output["auction_native_evidence"] == error.auction_native_evidence

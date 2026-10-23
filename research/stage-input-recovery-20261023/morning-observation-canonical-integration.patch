@@ -1,0 +1,366 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -4154,6 +4154,294 @@
+     return response
+ 
+ 
++
++# Exact saved 20261023 observation inputs; this grants no formal/PIT eligibility.
++_HK_MORNING_HISTORY_20261023 = {'STAGE_0930_0935': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/artifact.csv': '701da95236a8fbe1182a2a9764472794f2429963721ffdcdf4b646a0c42e3659',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/manifest.json': '57d86298fd5741a95315e311711d409ac8a4f6a728bc3f27d51fcf85190984f9',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/receipt.json': '38c146f3a37c308c01d891bf66774132666c7cb5db3923bfbcac8c74c69d0f22',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/artifact.csv': 'f6892dd0a6f0da01fc4e79a9d3c3f64eb6f3fff3fad33e8be44f08a3dfb65a43',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/manifest.json': 'a3c1da782b5d6a5af2455e938f2c937c02439789f03638f4f98b509d1a9fce6e',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/receipt.json': 'b05faa232b96866af443cb61b8db1d525f7e1dda92cd0844acc24e73cbf721b9',
++                               'raw/.futu_minute_captures/20261023/STAGE_0930_0935/e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706.json': 'e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706',
++                               'receipts/20261023/STAGE_0930_0935/receipt.json': '9d460bf292ae29da6badaba9f9be5786eb4d8d58aa658ce510bf9e13339f9b4f'},
++                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/manifest.json',
++                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/manifest.json',
++                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/artifact.csv',
++                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0930_0935/e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706.json',
++                     'capture_sha256': 'e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706',
++                     'run_id': 'run-c189009adf3a4eebf481d892',
++                     'captured_at': '2026-10-23T11:03:25.217128+08:00',
++                     'cutoff_at': '2026-10-23T09:35:05+08:00',
++                     'window_start': '2026-10-23 09:31:00',
++                     'window_end': '2026-10-23 09:35:00',
++                     'bars_per_code': 5},
++ 'STAGE_0935_0940': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/artifact.csv': '6e52e72acfaf6626724484b9d931bcbafb1dd7577a27af5a6a697bbe1671a2a0',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/manifest.json': 'b5e37cda6e032c60046edec7fa1accb0fefdf9315b5112c0facfb0fae45acf3a',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/receipt.json': '8ea0642b67cdaeaf80efe34048493684ebce1805e72458a5ce9fb7331fca67d6',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/artifact.csv': 'f8070e1f4a6c758137a525d7f709f769728f737094b13dc57debd2dc649986fe',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/manifest.json': '69eade2952a355a4d357bb168637c0160e92fc7516de9003c4546e20947f050f',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/receipt.json': '62baf4a9a04055d6e4392fa2fa8dab7b1002139728ef33f3a9125b41fd6818bf',
++                               'raw/.futu_minute_captures/20261023/STAGE_0935_0940/dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759.json': 'dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759',
++                               'receipts/20261023/STAGE_0935_0940/receipt.json': '2796c68a950bbae12730cf927d1b31ec818f2812919ec063c55721f8fb5511cf'},
++                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/manifest.json',
++                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/manifest.json',
++                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/artifact.csv',
++                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0935_0940/dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759.json',
++                     'capture_sha256': 'dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759',
++                     'run_id': 'run-3365f6cb264f0a04cf63eb2d',
++                     'captured_at': '2026-10-23T11:04:35.595295+08:00',
++                     'cutoff_at': '2026-10-23T09:40:05+08:00',
++                     'window_start': '2026-10-23 09:36:00',
++                     'window_end': '2026-10-23 09:40:00',
++                     'bars_per_code': 5},
++ 'STAGE_0940_0945': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/artifact.csv': 'bf21d7ab87b3952b8d660778245252c0fdd566c70a8e41ef3a5caa4bb3790ccc',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/manifest.json': 'eae87f78c78e11f525a525cc7c3cae8e54d2d4bef8f9d79da578b1c7fc69bfb6',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/receipt.json': 'eceda83c242390c80146dc5ea6dfa00a1bc6dd89bb4bd3adff88665dffbe77c2',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/artifact.csv': '4e011cb4d14e5116ab0696cbe499cef951985786623b80dcebe2969b7375b6b9',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/manifest.json': 'fa48d6d3c34b3f221fe601fe35875182d8c9c2e6a5f60b02bd8deabafd6b8e97',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/receipt.json': '20aaece7a864b6902e57a2326653f533a4fd1e5d84f6bbe8118c1e33e6839e93',
++                               'raw/.futu_minute_captures/20261023/STAGE_0940_0945/dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea.json': 'dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea',
++                               'receipts/20261023/STAGE_0940_0945/receipt.json': '8b84f04d86dc978cd6622c99decb3dbbdc9e33d03ec01123d7618b61e851ca38'},
++                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/manifest.json',
++                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/manifest.json',
++                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/artifact.csv',
++                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0940_0945/dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea.json',
++                     'capture_sha256': 'dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea',
++                     'run_id': 'run-02a055be59ac29221881ecc1',
++                     'captured_at': '2026-10-23T11:05:08.649061+08:00',
++                     'cutoff_at': '2026-10-23T09:45:05+08:00',
++                     'window_start': '2026-10-23 09:41:00',
++                     'window_end': '2026-10-23 09:45:00',
++                     'bars_per_code': 5},
++ 'STAGE_0945_1030': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/artifact.csv': '65cd3535437703c80e89b76920bb473833dd4614d290b97eda493cf1d75e709a',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/manifest.json': 'afb32532f9f5ebf418ade4f5acff47a485be0619c168dac49948c22d5b90ade4',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/receipt.json': '96e696894c67c74f97ed115b42e2d7df0c2793e52dccdb072a5eb91036274fe0',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/artifact.csv': '8a3210d20ae0d7cd0bea61ae3b98d586a4e8e23124d56a8bbd4d9c22482029b3',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/manifest.json': '1548b6314b181c0f14b88a80312e0d3797990d2ed54e5925c38a2fa85e15a92d',
++                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/receipt.json': '78cf3347e5fa7e91a09a0d86d56c06a80246c17d3a1f2d809b47e8b7d1e5c963',
++                               'raw/.futu_minute_captures/20261023/STAGE_0945_1030/c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460.json': 'c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460',
++                               'receipts/20261023/STAGE_0945_1030/receipt.json': 'b97055c40b2944559a524a01037cae52841643070084203cbaef9c825cc5e823'},
++                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/manifest.json',
++                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/manifest.json',
++                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/artifact.csv',
++                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0945_1030/c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460.json',
++                     'capture_sha256': 'c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460',
++                     'run_id': 'run-00601d8e8688ada1f675d798',
++                     'captured_at': '2026-10-23T11:05:50.283826+08:00',
++                     'cutoff_at': '2026-10-23T10:30:00+08:00',
++                     'window_start': '2026-10-23 09:46:00',
++                     'window_end': '2026-10-23 10:29:00',
++                     'bars_per_code': 44}}
++
++_HK_MORNING_HISTORY_SAFE_PACKETS = {'STAGE_0930_0935': {'files': {'derived_raw.csv': '79c431cbfba8b87b7697b96150eb0ead54c94afd14753a0e65217426f327cb7e',
++                               'observation_receipt.json': '2b1984c1347464048707b040e0d73dfcf974006fe3c7bf8c00dcbeb4abbd2c4a',
++                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
++                               'selection/selection_latest.json': 'c75ce537291bc1675bf245fe13e617c9d4476c1b57d2d24f0b7224adec21b409',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/artifact.csv': 'ac3a091fd6f213f5dcc880b33737f7d87e1624f4eb160b1e1b31fa200d28712d',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/manifest.json': 'ef573bf94741185288dcc241312147bd88a35cb206edb98c01912a800de18d90',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/receipt.json': '82e2d93cd0a0625a55f7a2f72dbff69da62892ced51470bd2997f8169eeb55f9'},
++                     'selection_run_id': 'run-418f15f2beca8fef1c0b986e',
++                     'window_start': '2026-10-23 09:31:00',
++                     'window_end': '2026-10-23 09:34:00',
++                     'bars_per_code': 4},
++ 'STAGE_0935_0940': {'files': {'derived_raw.csv': '7412095d3bc2ebbb5e0b99dcd68140d7f7d239bd5ba16ed105b78f960f0f8844',
++                               'observation_receipt.json': 'fce74ac9201a70768cf0532f3ae777e0167ec130d981cbbae1f01242bb19ed69',
++                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
++                               'selection/selection_latest.json': '3c559b18159d4d29559e0b0ef34a18df29ceaa7ceab711a59e378701321c7cf4',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/artifact.csv': '773534448ff06d297536517d2bd79c7e24afce9c3f697b34910477e2ee9849ec',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/manifest.json': '4bfc1f9889ae1c0f4fea9cc933af5888a1b97e9a55a5e672e2dc6d8e2673d002',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/receipt.json': '9471f5b3bcd4e5b8d9083b5960930539fa30946602f68c504516fc2eb6c9cbcf'},
++                     'selection_run_id': 'run-220305b51cdbc8c6dcf661d0',
++                     'window_start': '2026-10-23 09:36:00',
++                     'window_end': '2026-10-23 09:39:00',
++                     'bars_per_code': 4},
++ 'STAGE_0940_0945': {'files': {'derived_raw.csv': '23b740ab2cdb7b85a24d4f11acdc1956a13e0027f0d01c8ff541daeda643a7a9',
++                               'observation_receipt.json': '6c68cb52aeb1e0230bb01e3299bbaaf85c05012e0f92cd18167ef901b7ff2578',
++                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
++                               'selection/selection_latest.json': 'ee02a86b3c72e892c5ca9dd1df4b032fc01d6958323f667f18c49396e661d7ab',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/artifact.csv': '6917ddeb0c43f6e5a0a7a28204062708d24ef6cd06a1b73fc1790eabeaab9bef',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/manifest.json': '65e5119e7ebaa203fd174c87f8e2e262525a31297a937cdcf72984865c7bcaf5',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/receipt.json': 'dde981f4e97c797b7967f25764c7234374d025ab3afbbedf2773e0408c00cd60'},
++                     'selection_run_id': 'run-c20b5937969e33c36510e94f',
++                     'window_start': '2026-10-23 09:41:00',
++                     'window_end': '2026-10-23 09:44:00',
++                     'bars_per_code': 4},
++ 'STAGE_0945_1030': {'files': {'derived_raw.csv': '0030c37c07627c00528a6740df1579dc034bd410e2a8fb776218c4d0c5fcdbd6',
++                               'observation_receipt.json': '12ae9f02fd8f340a418a1302fe2665e75176635824d8c09fbc56cef14c6f0166',
++                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
++                               'selection/selection_latest.json': '7f3a35356ec84e5f06c04889a913d2ba8038f78681a4d2c84330235e10bf8afc',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/artifact.csv': '65cd3535437703c80e89b76920bb473833dd4614d290b97eda493cf1d75e709a',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/manifest.json': '2c88829cdcc4e172fed87d48d0dc05f5ea43ff89ba48e85f67100635bc66fe4d',
++                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/receipt.json': '03e20c0f8dbd76e806f7775061990399aa6895d238f4944f49f9b23b1070d42a'},
++                     'selection_run_id': 'run-39eb622c15067fbe1775b711',
++                     'window_start': '2026-10-23 09:46:00',
++                     'window_end': '2026-10-23 10:29:00',
++                     'bars_per_code': 44}}
++
++def _hk_morning_history_observation(
++    selection_root: Path | None, pool_root: Path, market_payload: Mapping[str, Any],
++    rows: list[dict], *, trade_date: str, stage_id: str,
++) -> dict[str, Any]:
++    """Verify saved bars and original scorer output for the approved dated observation.
++
++    Read only: no acquisition, scoring, repair or fallback. Bar labels and the
++    late capture clock remain distinct from the requested stage cutoff.
++    """
++    import csv
++    import io
++    import json
++    import math
++
++    binding = _HK_MORNING_HISTORY_20261023.get(stage_id) if trade_date == "20261023" else None
++    if binding is None or selection_root is None:
++        return {}
++    root = Path(selection_root).parent
++    try:
++        # Verify full immutable trios and the cache before interpreting any values.
++        documents: dict[str, bytes] = {}
++        for relative, expected in binding["files"].items():
++            path = root / relative
++            if any(parent.is_symlink() for parent in (path, *path.parents)):
++                return {}
++            raw = path.read_bytes()
++            if hashlib.sha256(raw).hexdigest() != expected:
++                return {}
++            documents[relative] = raw
++        manifest = json.loads(documents[binding["selection_manifest"]])
++        envelope = manifest["selection_envelope"]
++        for key in ("trade_date", "stage_id", "market", "run_id", "artifact_id",
++                    "algorithm_id", "algorithm_sha256", "raw_artifact_sha256",
++                    "selection_status", "source_status", "requested_rows", "source_rows",
++                    "selected_rows", "missing_symbols", "cannot_confirm", "source_evidence"):
++            if market_payload.get(key) != envelope.get(key):
++                return {}
++        if (envelope["trade_date"] != trade_date or envelope["stage_id"] != stage_id
++                or envelope["market"] != "HK_CONNECT" or envelope["run_id"] != binding["run_id"]
++                or market_payload.get("status") != "PARTIAL_WITH_ROWS"
++                or envelope["selection_status"] != "PARTIAL_WITH_ROWS"
++                or envelope["source_status"] != "CANNOT_CONFIRM"
++                or envelope["cannot_confirm"] != ["HK_ACTIVE_SNAPSHOT_UNAVAILABLE"]
++                or envelope["missing_symbols"] or envelope["requested_rows"] != 100
++                or envelope["source_rows"] != 100 or envelope["selected_rows"] != 10
++                or len(rows) != 10):
++            return {}
++        # Consumer adds only the display order. All scorer values must be identical.
++        if [{k: v for k, v in row.items() if k != "order"} for row in rows] != envelope["rows"]:
++            return {}
++        if any(row.get("formal_eligible") is not False or row.get("action_level") != "NO_BUY"
++               or row.get("source_mode") != "HK_CONNECT_FOUR_LANE"
++               or row.get("trade_status") not in {"NO_TRADE", "WATCH_ONLY"} for row in rows):
++            return {}
++        if any(envelope.get(key) is not False for key in
++               ("production_allowed", "buy_gate_updated", "orders_sent")):
++            return {}
++        pool_bytes = (Path(pool_root) / "preselection_pools/20261023/hkconnect_d1_top100.json").read_bytes()
++        if hashlib.sha256(pool_bytes).hexdigest() != "e8921f1eadf3cbac3d63fe2b012e5c9ac25652af08a68681886fc179b540dbef":
++            return {}
++        pool = json.loads(pool_bytes)
++        codes = {row["code_norm"] for row in pool["rows"]}
++        if (len(codes) != 100 or len(pool["rows"]) != 100 or pool["market"] != "HK"
++                or pool["target_date"] != trade_date or pool["signal_date"] != "20261022"
++                or pool["status"] != "STRICT_0_2_READY"):
++            return {}
++        capture = json.loads(documents[binding["capture_relative"]])
++        if (capture["market"] != "HK_CONNECT" or capture["trade_date"] != trade_date
++                or capture["stage_id"] != stage_id or capture["adjustment"] != "NONE"
++                or capture["captured_at"] != binding["captured_at"]
++                or capture["errors"] or capture["no_data_codes"]
++                or len(capture["codes"]) != 100 or set(capture["codes"]) != codes):
++            return {}
++        cutoff = datetime.fromisoformat(binding["cutoff_at"])
++        captured = datetime.fromisoformat(capture["captured_at"])
++        # Bind the requested cutoff to the frozen stage definition, not caller data.
++        if binding["cutoff_at"] != f"2026-10-23T{STAGE_DEFINITIONS[stage_id]['cutoff']}+08:00":
++            return {}
++        if captured <= cutoff:
++            return {}
++        raw_manifest = json.loads(documents[binding["raw_manifest"]])
++        if (raw_manifest["trade_date"] != trade_date or raw_manifest["stage_id"] != stage_id
++                or raw_manifest["market"] != "HK_CONNECT" or raw_manifest["source_id"] != "futu"
++                or raw_manifest["temporal_cutoff_safe"] is not False
++                or raw_manifest["artifact_sha256"] != envelope["raw_artifact_sha256"]):
++            return {}
++        safe = _HK_MORNING_HISTORY_SAFE_PACKETS[stage_id]
++        packet_root = Path(selection_root) / "historical_observations/20261023" / stage_id
++        packet: dict[str, bytes] = {}
++        for relative, expected in safe["files"].items():
++            path = packet_root / relative
++            if any(parent.is_symlink() for parent in (path, *path.parents)):
++                return {}
++            raw = path.read_bytes()
++            if hashlib.sha256(raw).hexdigest() != expected:
++                return {}
++            packet[relative] = raw
++        from stage_center.selection import SelectionStore
++        observed = SelectionStore(packet_root / "selection").read_verified(trade_date, stage_id, "HK_CONNECT")
++        if (observed["run_id"] != safe["selection_run_id"] or len(observed["rows"]) != 10
++                or observed["algorithm_sha256"] != envelope["algorithm_sha256"]
++                or observed["source_status"] != "CANNOT_CONFIRM"
++                or observed["selection_status"] != "PARTIAL_WITH_ROWS"
++                or observed["requested_rows"] != 100 or observed["source_rows"] != 100
++                or any(row.get("formal_eligible") is not False or row.get("action_level") != "NO_BUY"
++                       for row in observed["rows"])
++                or any(observed.get(key) is not False for key in
++                       ("production_allowed", "buy_gate_updated", "orders_sent"))):
++            return {}
++        bars = {code: [] for code in codes}
++        for bar in capture["rows"]:
++            if safe["window_start"] <= bar["time_key"] <= safe["window_end"]:
++                if bar["code"] not in codes:
++                    return {}
++                if any(not math.isfinite(float(bar[key])) for key in
++                       ("open", "high", "low", "close", "volume", "turnover", "last_close")):
++                    return {}
++                bars[bar["code"]].append(bar)
++        raw_rows = list(csv.DictReader(io.StringIO(packet["derived_raw.csv"].decode("utf-8-sig"))))
++        if len(raw_rows) != 100 or {row["code"] for row in raw_rows} != codes:
++            return {}
++        for raw_row in raw_rows:
++            code_bars = sorted(bars[raw_row["code"]], key=lambda bar: bar["time_key"])
++            if (len(code_bars) != safe["bars_per_code"]
++                    or len({bar["time_key"] for bar in code_bars}) != len(code_bars)
++                    or code_bars[0]["time_key"] != safe["window_start"]
++                    or code_bars[-1]["time_key"] != safe["window_end"]
++                    or raw_row["trade_date"] != trade_date
++                    or raw_row["window_start"] != safe["window_start"]
++                    or raw_row["window_end"] != safe["window_end"]
++                    or int(raw_row["bar_count"]) != len(code_bars)):
++                return {}
++            aggregate = {
++                "open_price": code_bars[0]["open"], "last_price": code_bars[-1]["close"],
++                "high_price": max(bar["high"] for bar in code_bars),
++                "low_price": min(bar["low"] for bar in code_bars),
++                "volume": sum(bar["volume"] for bar in code_bars),
++                "turnover": sum(bar["turnover"] for bar in code_bars),
++            }
++            if any(not math.isclose(float(raw_row[key]), float(value), rel_tol=1e-9, abs_tol=1e-6)
++                   for key, value in aggregate.items()):
++                return {}
++        return {
++            "label": "早盘历史回放观察 / 缺失原时点盘口 / 非正式阶段结果",
++            "source_id": "FUTU_K_1M", "raw_source_id": "futu", "adjustment": "NONE",
++            "trade_date": trade_date, "stage_id": stage_id, "selection_run_id": observed["run_id"], "original_selection_run_id": binding["run_id"],
++            "artifact_id": observed["artifact_id"], "raw_artifact_sha256": observed["raw_artifact_sha256"],
++            "algorithm_id": observed["algorithm_id"], "algorithm_sha256": observed["algorithm_sha256"],
++            "source_evidence": observed["source_evidence"],
++            "_rows": [{**row, "order": index + 1} for index, row in enumerate(observed["rows"])],
++            "capture_sha256": binding["capture_sha256"], "captured_at": capture["captured_at"],
++            "asof_cutoff": binding["cutoff_at"], "captured_after_cutoff": True,
++            "bar_label_start": safe["window_start"], "bar_label_end": safe["window_end"],
++            "bar_interval_semantics": "CANNOT_CONFIRM", "stage_window_coverage": "CONSERVATIVE_INTERSECTION_ONLY", "boundary_bars_excluded": True,
++            "bars_per_code": safe["bars_per_code"], "window_bar_count": sum(map(len, bars.values())),
++            "d1_membership_count": 100, "formal_eligible": False, "natural": False,
++            "active_snapshot_available": False, "temporal_cutoff_safe": False,
++            "missing_fields": ["order_book", "volume_ratio", "native_update_time", "native_snapshot"],
++            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++        }
++    except (OSError, ValueError, TypeError, KeyError, IndexError, OverflowError):
++        return {}
++
++
+ def create_app(
+     data_root: Path | None = None,
+     quote_provider: ReadOnlyQuoteProvider | None = None,
+@@ -4636,18 +4924,54 @@
+             frontend_markets[alias]["candidate_count"] = len(rows)
+             frontend_markets[alias]["rows"] = rows
+             if canonical_market == "HK_CONNECT" and ordinary_hk_display:
++                history_observation = _hk_morning_history_observation(
++                    configured_selection_root, resolved_pool_source, market_payload, rows,
++                    trade_date=str(payload.get("trade_date") or ""),
++                    stage_id=str(payload.get("stage_id") or ""),
++                )
++                if history_observation:
++                    rows = history_observation.pop("_rows")
++                    projected_rows = rows
++                    frontend_markets[alias].update({
++                        key: history_observation[key] for key in (
++                            "selection_run_id", "artifact_id", "raw_artifact_sha256",
++                            "algorithm_id", "algorithm_sha256", "source_evidence")
++                    })
++                    frontend_markets[alias]["run_id"] = history_observation["selection_run_id"]
++                    frontend_markets[alias]["rows"] = rows
++                    # The original formal/source failure remains independently visible.
++                    frontend_markets[alias]["original_formal_selection"] = {
++                        key: market_payload.get(key) for key in (
++                            "run_id", "artifact_id", "status", "selection_status", "source_status",
++                            "raw_artifact_sha256", "cannot_confirm")
++                    }
++                    if selection_markets is canonical_markets:
++                        selection_markets = dict(canonical_markets)
++                    selection_markets[canonical_market] = {**market_payload, "rows": []}
+                 display_mode, display_reasons = _hk_display_mode(
+                     market_payload, rows, execution_markets.get(canonical_market),
+                     legacy_pit_observation=_legacy_hk_pit_observation(
+                         market_payload, rows, trade_date=str(payload.get("trade_date") or ""),
+                         stage_id=str(payload.get("stage_id") or "")),
+-                    morning_selection_recovery=_hk_morning_selection_recovery_observation(
++                    morning_selection_recovery=bool(history_observation) or _hk_morning_selection_recovery_observation(
+                         market_payload,
+                         rows,
+                         trade_date=str(payload.get("trade_date") or ""),
+                         stage_id=str(payload.get("stage_id") or ""),
+                     ),
+                 )
++                if history_observation:
++                    frontend_markets[alias].update({
++                        "historical_observation": history_observation,
++                        "formal_count": 0, "formal_eligible": False, "natural": False,
++                        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
++                    })
++                    display_reasons = list(dict.fromkeys(display_reasons + [
++                        history_observation["label"],
++                        "来源 FUTU_K_1M；历史分钟线；原时点盘口/量比/原生更新时间缺失",
++                        f"实际采集 {history_observation['captured_at']}；阶段截止 {history_observation['asof_cutoff']}",
++                        f"原始bar标签 {history_observation['bar_label_start']}—{history_observation['bar_label_end']}；每只{history_observation['bars_per_code']}根×100只；已排除边界bar，仅保守交集，分钟标签语义待确认",
++                    ]))
+                 frontend_markets[alias]["display_mode"] = display_mode
+                 frontend_markets[alias]["display_reasons"] = display_reasons
+                 frontend_markets[alias]["observation_count"] = (
+@@ -4721,7 +5045,11 @@
+                 "label": stage_definition.get("label", stage_id),
+                 "window": stage_definition.get("window", ""),
+                 "status": stage_status,
+-                "display_status": stage_status,
++                "display_status": (
++                    stage_status + "；港股历史回放观察·未验证；分钟线事后采集；缺原时点盘口、量比/原生更新时间；边界分钟未计入；不能证明原时点选股结果"
++                    if frontend_markets.get("HK", {}).get("historical_observation")
++                    else stage_status
++                ),
+                 "cannot_confirm": cannot_confirm,
+             },
+             "selected_a_rows": selected_a,

@@ -1,0 +1,430 @@
+{
+  "schema": "v4.stage_input_recovery.final_verification.v2",
+  "recorded_at_utc": "2026-10-23T05:03:44.055146+00:00",
+  "target_date": "20261023",
+  "goal": "Repair demonstrated TDX capability gate and HK D1 publication failure; restore failed morning HK as explicitly accepted historical observations; preserve successful A stages; retain native snapshots before future failures.",
+  "source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "canonical_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "github_parent_commit": "1544d4d644a66c11032fba0ef347cac28046a71b",
+  "github_branch": "codex/stage-input-recovery-20261023",
+  "status": "INTEGRATED_DEPLOYED_API_AND_UI_VERIFIED_HISTORICAL_OBSERVATION_ONLY",
+  "root_causes": {
+    "tdx": {
+      "cause": "A-minute shared probe accepts connection and requests actual exact-date minute method; A0925 unrelated daily capability gate rejects same usable hosts",
+      "live_provider_sha256": "02d7505614b66768f6c3f6b86e4e606f0df9f4fabb6aaad5ea8f8a0fa3738260",
+      "proof": "Three connected hosts returned target-date minute data while the unrelated daily-bar probe returned a malformed response. Auction request was never reached.",
+      "upstream_malformed_response_reason": "CANNOT_CONFIRM"
+    },
+    "hk_pool": {
+      "cause": "Optional A Stage7 CSV field exceeds Python default parser limit; unguarded optional builder aborts artifact list before exact READY100 HK source can be published. Existing fupan guard isolates equivalent parse errors but Stage7 lacks it.",
+      "last_good_signal_date": "20261021",
+      "first_failure_signal_date": "20261022",
+      "failed_materializer_attempts": 38,
+      "stage7_diagnostic_field_chars": 379188,
+      "csv_field_limit_preserved": 131072,
+      "verified_existing_shared_source": {
+        "run_id": "20261023-hk-connect-d1-top100-0-2-95c8f4c974be",
+        "status": "READY",
+        "artifact_sha256": "8adbd669efb843c4dccf644be8cdfa5ed97906ef91d4b6930f0abd33c4ac5092",
+        "manifest_sha256": "b38e8cd72160578c30102119e8e4521dc4b86bd920623916527cf605bcad5a99",
+        "receipt_sha256": "09b59f2259218216d61f38be7f278837ffd51318b34236f8c72ac385efa9c1f1",
+        "input_sha256": "8adbd669efb843c4dccf644be8cdfa5ed97906ef91d4b6930f0abd33c4ac5092",
+        "row_count": 100,
+        "manifest_relative": "runs/20261023/HK_CONNECT_D1_TOP100_0_2/20261023-hk-connect-d1-top100-0-2-95c8f4c974be/manifest.json",
+        "receipt_relative": "runs/20261023/HK_CONNECT_D1_TOP100_0_2/20261023-hk-connect-d1-top100-0-2-95c8f4c974be/receipt.json",
+        "artifact_relative": "runs/20261023/HK_CONNECT_D1_TOP100_0_2/20261023-hk-connect-d1-top100-0-2-95c8f4c974be/artifact.csv"
+      }
+    }
+  },
+  "preserved_successes": {
+    "A_successful_stage_runs": 4,
+    "A_stage_reexecutions": 0,
+    "original_protected_files": 13,
+    "all_original_file_SHA_unchanged": true,
+    "live_A_run_ids": {
+      "STAGE_0930_0935": "run-5556f578f53db20e2e002991",
+      "STAGE_0935_0940": "run-beec7a2d9e87507c7269d868",
+      "STAGE_0940_0945": "run-7e8171dedce154a722a442a3",
+      "STAGE_0945_1030": "run-8e822074fbbbe02040522e9a"
+    },
+    "source_model_reexecutions_for_HK100": 0
+  },
+  "source_delivery_files": [
+    {
+      "path": "research/stage-input-recovery-20261023/README.md",
+      "sha256": "d5231aeb08322032762b5b2be55f4618cce76e21a5edfeb22fe40b853557e0d7",
+      "chars": 2448
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/runtime-stage.patch",
+      "sha256": "dfecd7361da76db07e785b785e5937f6f4ceccb586d18f65032a2b254cb4cfe1",
+      "chars": 786
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/runtime-producer.patch",
+      "sha256": "cdd2aac8e880f4d1849cad9cf67e880af35e7443bdb36787a03783a98444eec9",
+      "chars": 2203
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/ops/materialize_scheduled_preselection.py",
+      "sha256": "db791bf27d819f2f27792cd597c131a33f71b65072ff99b1110dd3a64205b87d",
+      "chars": 19984
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/infrastructure/tdx_minute_replay_provider.py",
+      "sha256": "755990356f9d757e182d8d0b5bf3a8aeea5d2422463df858d995287c842a6b41",
+      "chars": 21225
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/tests/test_scheduled_preselection_stage7_isolation.py",
+      "sha256": "34bedb64618264d9ccc02fa810a750adf97af8b16db3313dc622cd61bd6f5a0f",
+      "chars": 4368
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/tests/test_tdx_minute_replay_provider.py",
+      "sha256": "6d28aff5b1cc99c1e2387ec67e6bbb62081c22d49ead2d7c3a21f252cdd4d46d",
+      "chars": 14756
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/stage_center/hk_stage8/precapture.py",
+      "sha256": "031cd68399a413f0e05fb85e524e7127e009b08c1207465a0a9b402949e1bd8c",
+      "chars": 5444
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/stage_center/hk_stage8/snapshot.py",
+      "sha256": "0d50895524d9da92a358d089c2ebd8482797b9a99d907e9845dcad82c9dae65e",
+      "chars": 51609
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/stage_center/_runner_parts/runner_receipts.py",
+      "sha256": "a0f589a9debdf1d984f592621268198b324c36b34cb30cd65be91452628694b4",
+      "chars": 12551
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/stage_center/_runner_parts/slot_execution.py",
+      "sha256": "48635469bad4a24fa597e79424843d24620206b3c863583915af638ed0aab131",
+      "chars": 53459
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "26575adbabf93b23a7ef7294e84e8b8c79f9bbbd254a618a3866f7c13e0b0a1c",
+      "chars": 49630
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/stage_center/runner.py",
+      "sha256": "8beb970f5d00a1c22354931f0a4700da1f972482885dbdfa50bad26cb2337f2f",
+      "chars": 45215
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/stage_center/_runner_parts/configuration.py",
+      "sha256": "bbf325df58b14c52b69e9f143218ebf0629d378331d22ef77a757f745ce1618a",
+      "chars": 3363
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/tests/test_hk_snapshot_on_stage_failure.py",
+      "sha256": "b0aa26cc821b3c0decfc90b6e4d16e38d8f5404eb0463e1a33737dc4e3eb721d",
+      "chars": 14798
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/failure-snapshot-runtime.patch",
+      "sha256": "217566fc6f6bcbe28d5044991f8be8ebf8263ff606cccb8c6315ac62348cef28",
+      "chars": 45658
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/failure-snapshot-canonical-integration.patch",
+      "sha256": "df3eb21fc8ef8aaa159782b62ccf7028128799f00eddb15bcd909cdf362aee1e",
+      "chars": 45750
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/apps/api/v35_api/app.py",
+      "sha256": "1e2a5d38a77bb0850feeed8ee15ada924d49c5be2b91b9ddd75b068b7d70a70c",
+      "chars": 379341
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/tests/test_hk_morning_history_observation.py",
+      "sha256": "4270dff9b89a159b638f867a5a0b03819b502c4a8a613113615384c441cf4c84",
+      "chars": 9637
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/morning-observation-runtime.patch",
+      "sha256": "fee231474eb7a9a38de826fb0c6e12e4f844fc95fe1eb72971ff9d483615925c",
+      "chars": 31840
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/morning-observation-canonical-integration.patch",
+      "sha256": "228640dc334e641a07aac6aceda43ad6ccd16de792aff35e713c73f310a4976f",
+      "chars": 31843
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/morning-observation-build_safe_observations.py",
+      "sha256": "109fab9bd88b39674737c87ad3ebc97deb4c5cadc0cc7b17640e0e450971ac41",
+      "chars": 5887
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/ops/run_hkconnect_0915_0920_capture.py",
+      "sha256": "89221b1c531cf1c79fb1828871f6c7b0bb99f5ec1f38f37dc5ab3a44f2fc161f",
+      "chars": 23708
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/source/tests/test_hk_auction_snapshot_on_failure.py",
+      "sha256": "278070bded6b9b930b5ee2fe8347ea5e48bc5e2bc7eac5995e43e3c385c377ce",
+      "chars": 7679
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/auction-snapshot-runtime-and-canonical.patch",
+      "sha256": "ca87fd9aa95882c9773b294fc2c03b7a6cf9d376692634badfe493e4b56c2bbe",
+      "chars": 15713
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/verify-failure-snapshot.py",
+      "sha256": "1abcc6f4d5e61a87c4510eb96f350d3486730f8c728c0d11db655faa4220d018",
+      "chars": 1186
+    },
+    {
+      "path": "research/stage-input-recovery-20261023/verify-auction-snapshot.py",
+      "sha256": "69421a36704e5eb1bcc0bd420d58df8d4eda0ac220759afd3074e67402adc701",
+      "chars": 1027
+    }
+  ],
+  "integration": {
+    "canonical_dirty_changes_preserved": true,
+    "runtime_full_source_is_not_a_canonical_overwrite": true,
+    "snapshots": {
+      "schema": "v4.canonical_integration_receipt.v1",
+      "status": "INTEGRATED",
+      "time_utc": "2026-10-23T04:20:14.805600+00:00",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "review_sha256": "e2396e8a98e9f5f5ac4e7d25a411f56679ebcc6de6ccf0ebf892eed251a07431",
+      "patch_sha256": "df3eb21fc8ef8aaa159782b62ccf7028128799f00eddb15bcd909cdf362aee1e",
+      "before_sha256": {
+        "stage_center/hk_stage8/precapture.py": "3db89b6073d0c9d2f6067787fb857685b4115fc2cf4cf1f746d9f425c971ce77",
+        "stage_center/hk_stage8/snapshot.py": "b3e2d641b2bce4e4ef6103a76f0b19d6c8cef4e8dbe243fcb5d6f200d63d55a4",
+        "stage_center/_runner_parts/runner_receipts.py": "39c917bd4a8b3279c550b45fbd3c3d24c2f727b3a07ffb0e04647d848ccca77d",
+        "stage_center/_runner_parts/slot_execution.py": "6a0728117ff11478bab3a46eb2fb9ec3586863937392c64bfa504bc36c6bcefd",
+        "ops/_run_stage_center_nodes_parts/node_entry.py": "258922cc9aab5c353f3e9e1767e883c5bff01c9100cb032e7a3404e01ced62cc",
+        "stage_center/runner.py": "72ffbfa62daefe44158882c5f90e0c657741d3de0c85e18bad8d9f0b7aa5691e",
+        "stage_center/_runner_parts/configuration.py": "713ac5b8ac81fe186904eca38c8e7a28a2edb83a0cf98766546a09f7169c7486",
+        "tests/test_hk_snapshot_on_stage_failure.py": null
+      },
+      "after_sha256": {
+        "stage_center/hk_stage8/precapture.py": "031cd68399a413f0e05fb85e524e7127e009b08c1207465a0a9b402949e1bd8c",
+        "stage_center/hk_stage8/snapshot.py": "0d50895524d9da92a358d089c2ebd8482797b9a99d907e9845dcad82c9dae65e",
+        "stage_center/_runner_parts/runner_receipts.py": "8282335646d36ef9ce46e3398784745499a032b0d2087332521a002c32ae42be",
+        "stage_center/_runner_parts/slot_execution.py": "0c32aae451b74ed61a42d61349f0f523781cec33ec661c0e79d9b07dfc7788ee",
+        "ops/_run_stage_center_nodes_parts/node_entry.py": "062bd091eb21c618a607eb3d0068ee3876128be7e8e2d95d51f74b85dd64d2c1",
+        "stage_center/runner.py": "e06383ea256ba802ffe7894e7f6fcef4b7ed8d64e53e1e8d48fcf6c81444a962",
+        "stage_center/_runner_parts/configuration.py": "bbf325df58b14c52b69e9f143218ebf0629d378331d22ef77a757f745ce1618a",
+        "tests/test_hk_snapshot_on_stage_failure.py": "b0aa26cc821b3c0decfc90b6e4d16e38d8f5404eb0463e1a33737dc4e3eb721d"
+      },
+      "files": 8,
+      "prior_dirty_changes_preserved_by_exact_patch": true,
+      "tests_reused": "Independent17 tests; no code changed from accepted candidate within patch scope",
+      "runtime_activation": "NOT_YET"
+    },
+    "auction": {
+      "schema": "v4.canonical_integration_receipt.v1",
+      "status": "INTEGRATED",
+      "time_utc": "2026-10-23T04:36:11.604136+00:00",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "files": {
+        "ops/run_hkconnect_0915_0920_capture.py": {
+          "before_sha256": "5ee22a690604e392e403b2241ac3116a4d5ce15b2a7203d331b4e24eab65c0aa",
+          "after_sha256": "89221b1c531cf1c79fb1828871f6c7b0bb99f5ec1f38f37dc5ab3a44f2fc161f"
+        },
+        "tests/test_hk_auction_snapshot_on_failure.py": {
+          "before_sha256": null,
+          "after_sha256": "278070bded6b9b930b5ee2fe8347ea5e48bc5e2bc7eac5995e43e3c385c377ce"
+        }
+      },
+      "review_sha256": "644c3bc73c1621db518c54cdf9cd336d1d9edda613d4d1c0ce9a8e84e408dee0",
+      "calendar_function_changed": false,
+      "tentative_10d_integrated": false
+    },
+    "API": {
+      "schema": "v4.canonical_integration_receipt.v1",
+      "status": "INTEGRATED",
+      "source_root": "/Users/lexi/Desktop/学习/v4_app",
+      "app_before_sha256": "a68080d42c3cda51b7b8bf3c474934a0c78ae2df11107cf3ad4b4a98f0f1349c",
+      "app_after_sha256": "3a64f71c8e5365d70ddf622c9f76f69e0028e4d3f75ce1b0df852b75df9cf615",
+      "test_sha256": "4270dff9b89a159b638f867a5a0b03819b502c4a8a613113615384c441cf4c84",
+      "independent_review_sha256": "a857bc5cba210b43849330fdf39601d8871cdd56ab65bcd87f51cbcc69cf8d9a",
+      "patch_sha256": "228640dc334e641a07aac6aceda43ad6ccd16de792aff35e713c73f310a4976f",
+      "dirty_changes_preserved": true
+    },
+    "original_two_fix_canonical_integration": "NO_BYTE_CHANGE; equivalent existing canonical fixes retained"
+  },
+  "independent_acceptance": {
+    "original_source": "PASS;4 optionalStage7 and19 TDX checks; unchanged bytes reused",
+    "seven_stage_failure_snapshot": "PASS;17 targeted checks plus installed-node materializer-failure and7module identity checks; no repeat",
+    "auction_failure_snapshot": "PASS;10 new native cases+7 existing selected regressions; corrected false calendar attribution by identical actualbaseline/candidate function and same preexistinglegacytestfailure",
+    "history_observation": "PASS; frozen cache/date/market/artifact/window/member/source drift tests, symlinknegative, firstpacket byte reproduction and22scorer dependencies; priorPASS reused",
+    "warning_visibility": "PASS;one incremental endpoint test, fourstage caveat/A parity/formal boundary",
+    "live_API": "REVIEWED/PASS;4 exact live GETs;10HK observations each and originalA run/order",
+    "runtime_publication": "REVIEWED/PASS;producer realPID/cwd/988inventory/2source;stage pointer unchanged fromPASS",
+    "UI": "Controller real browser readback, screenshot and DOM; no run buttons clicked"
+  },
+  "deployment": {
+    "stage": {
+      "release": "stage-failure-snapshots-20261023-r1",
+      "manifest_sha256": "524ea828e1a21bb44e283b067c52e122c834f1a45a1b09373ac4661624f58629",
+      "plist_sha256": "815d7a9509c69138ae6abf9ecaadc6161e1f5bc81bfc3774b258022af8039969",
+      "status": "DEPLOYED_REGISTERED_IDENTITY_VERIFIED",
+      "natural_slot": "NOT_RUN"
+    },
+    "producer": {
+      "release": "stage-input-recovery-20261023-producer-r2",
+      "PID": 61106,
+      "manifest_sha256": "9cf6171a2347db117b4442f1742fc8be0bd39a713fa2e7bab8679c99b9c86631",
+      "plist_sha256": "6849321a75d23d90604f70491ad97088cc03ffe9824d1e3b11b3b86c0cd20345",
+      "status": "DEPLOYED_REGISTERED_AND_IMPORTED_IDENTITY_VERIFIED",
+      "identity_method": "Actual legacy daemon._release_identity([]),six safety env,actualPID/cwd/registration,full988manifest inventory and2imported source paths/SHA. The newer validate_release_identity function does not exist in this producer and was not claimed.",
+      "healthy_children_cancelled": 0
+    },
+    "API": {
+      "release": "hk-morning-history-observation-20261023-r2",
+      "PID": 61639,
+      "manifest_sha256": "a3e19a5b2647aac830940d3aac810ec903d062396b6bfa8fdb47168b9bbab8b6",
+      "app_sha256": "1e2a5d38a77bb0850feeed8ee15ada924d49c5be2b91b9ddd75b068b7d70a70c",
+      "status": "DEPLOYED_API_IDENTITY_VERIFIED",
+      "native_identity": {
+        "application": "V4",
+        "status": "MANIFEST_EXECUTION_FILES_VERIFIED",
+        "release_id": "hk-morning-history-observation-20261023-r2",
+        "process_status": "CANNOT_CONFIRM",
+        "manifest_sha256": "a3e19a5b2647aac830940d3aac810ec903d062396b6bfa8fdb47168b9bbab8b6"
+      },
+      "native_catalog_elapsed_seconds": 2.771,
+      "identity_caveat": "Graph overallstatus/process_status stays CANNOT_CONFIRM for legacy metadata; actualPID/cwd/importedapp/manifest verified separately; native date-list MANIFEST_EXECUTION_FILES_VERIFIED succeeded."
+    }
+  },
+  "recovery": {
+    "HK_D1_rows": 100,
+    "HK_D1_source_run_id": "20261023-hk-connect-d1-top100-0-2-95c8f4c974be",
+    "HK_D1_original_source_artifact_sha256": "8adbd669efb843c4dccf644be8cdfa5ed97906ef91d4b6930f0abd33c4ac5092",
+    "original_four_recovery_trios": "Retained; they do not establish original-window or formal verification. No original formal latest pointer overwritten by the derived observations.",
+    "user_accepted_mode": "历史回放观察，保留缺失盘口标记",
+    "historical_observations": [
+      {
+        "stage": "STAGE_0930_0935",
+        "response_sha256": "fc5c9367b1abc6038025f7713e7474af33fd08e64547583981cb3d4f295831d5",
+        "hk_observations": 10,
+        "a_run_id": "run-5556f578f53db20e2e002991"
+      },
+      {
+        "stage": "STAGE_0935_0940",
+        "response_sha256": "0342f276a4f44071fe55790df627ebc6992579a9682198c6e703f55930672f69",
+        "hk_observations": 10,
+        "a_run_id": "run-beec7a2d9e87507c7269d868"
+      },
+      {
+        "stage": "STAGE_0940_0945",
+        "response_sha256": "bbc3136444feadfda2c6802b3f3cde5d39ebf4093f92f86676ea93286b9c516c",
+        "hk_observations": 10,
+        "a_run_id": "run-7e8171dedce154a722a442a3"
+      },
+      {
+        "stage": "STAGE_0945_1030",
+        "response_sha256": "38e7146673cddde7bc9e43affafddff61439fdd9d9fe65f4c73563e7cb3263ba",
+        "hk_observations": 10,
+        "a_run_id": "run-8e822074fbbbe02040522e9a"
+      }
+    ],
+    "source_bars_per_code": [
+      4,
+      4,
+      4,
+      44
+    ],
+    "cache_policy": "Existing4 FutuK1M caches only; raw label conservativeintersection start+1minute..end-1minute; 100codes; original scorer. Vendor start/end semantics CANNOT_CONFIRM; no boundary bar assumed.",
+    "new_historical_scorer_calls": 4,
+    "new_market_calls_for_observations": 0,
+    "new_model_inference_calls": 0,
+    "formal_rows": 0,
+    "formal_eligible": false,
+    "source_status": "CANNOT_CONFIRM: original native snapshot missing",
+    "future_snapshot_coverage": [
+      "STAGE_0925 via existing0915_0920 auction capture",
+      "STAGE_0930_0935",
+      "STAGE_0935_0940",
+      "STAGE_0940_0945",
+      "STAGE_0945_1030",
+      "STAGE_1300_1315",
+      "STAGE_1445_1500",
+      "STAGE_1545_1555"
+    ],
+    "future_failure_contract": "Immutable query/native response/error before parsing or downstream failure; receipt links path/time/SHA; no bytes =>only honestquery/error; prior good not overwritten; verifiedshared fallback capture is diagnostic only.",
+    "shared_source_config_key": "hk_snapshot_shared_store_root",
+    "shared_source_config_effect": "Existing same-target verified shared HK100 reader; capture-only fallback, not local formal selection authority"
+  },
+  "retained_failures_and_corrections": {
+    "history_warning_R1": "IndependentFAIL:criticalcaveats not rendered in frozenconsumer; corrected by oneconditional existing display_status field; no Vue/assets changed",
+    "auction_calendar_false_P2": "OriginalFAIL retained; actual runtime5ee22 and candidate89221 have identical_calendar_gate; legacytestfailsboth. Temporarycalendar10d withdrawn and not integrated. No calendar change.",
+    "operator_failures": "All retained: initial asynchronous bootstrap/rollback issue safely restored; healthyproduceridle refusals; wrong-S verifier restored baseline; phantomnewproducervalidator corrected to actuallegacydaemon oracle before mutation; APIcontroltoolpreflight missing rolecontract causedzero service actions; subsequent5secondcatalogreadbacktimeout safely restoredbaseline; final directgraph guard proof+single60second date-list succeeded. No business source change due operator errors.",
+    "API_readback_timeout_root_cause": "CANNOT_CONFIRM; no stack captured, guard deadlock not proven; catalog/date-list AST unchanged."
+  },
+  "retained_data_gaps": [
+    "Original20261023 nativeHK morning order_book,volume_ratio,native_update_time/nativesnapshot absent; latecache cannot recreate them",
+    "A0925 exact transaction samples unavailable",
+    "HK0920 previously retained stale-date quote remains rejected; HK0925 exact50uniqueTop50 contract unchanged; no49partial substitute",
+    "Vendor minute label start/end convention remains CANNOT_CONFIRM; historicalobservations deliberately exclude ambiguousboundary bars"
+  ],
+  "UI": {
+    "schema": "v4.controller.ui_readback.v1",
+    "status": "UI_VERIFIED",
+    "browser": "IAB2/tab2 existing page",
+    "url": "http://127.0.0.1:8873/?date=20261023&stage=STAGE_0945_1030",
+    "stage": "STAGE_0945_1030",
+    "date": "20261023",
+    "actual_release_badge": "hk-morning-history-observation-20261023-r2; manifest/执行文件已核验",
+    "A_visible_rows": 10,
+    "HK_visible_observation_rows": 10,
+    "visible_qualifications": [
+      "历史回放观察·未验证",
+      "分钟线事后采集",
+      "缺原时点盘口、量比/原生更新时间",
+      "边界分钟未计入",
+      "不能证明原时点选股结果"
+    ],
+    "dom_sha256": "625a3ae8705095700cd7347ce1becfd4707cb65e7bd59e7d0b06914049138aaf",
+    "screenshot_sha256": "f9ae5c2eba6d1c9036a8cafb256870a22adf8e739162dfa62837a09c6287e2e7",
+    "screenshot": "/Users/lexi/Desktop/学习/agents调试/V4_STAGE_INPUT_RECOVERY_20261023/ui/history-observation-hk-proof.png",
+    "no_run_buttons_clicked": true,
+    "not_natural": true
+  },
+  "receipt_sha256": {
+    "review/source-receipt.json": "d7a8004052d2e7fd95075e2757fbd022cde9653f8c7aa94fc86f3b094a56f008",
+    "review-fix-r1/receipt.json": "615ec5f03a0f37a3faae90bd7fce1bff3c101707a6fa174f49cf67cf81901eb0",
+    "failure-snapshot-review/receipt.json": "e2396e8a98e9f5f5ac4e7d25a411f56679ebcc6de6ccf0ebf892eed251a07431",
+    "failure-snapshot-review/node-and-installed-receipt.json": "46fa052186e8f6c12295bc0b1952009c349bf9823990168852e90cb2542ac6e3",
+    "failure-snapshot-review/auction-review-receipt.json": "4b92a9ce4fe6e705caf76649484bf69d74542ce7fa49060188b11401a85f2505",
+    "failure-snapshot-review/auction-corrected-scope-receipt.json": "644c3bc73c1621db518c54cdf9cd336d1d9edda613d4d1c0ce9a8e84e408dee0",
+    "failure-snapshot-review/final-runtime-receipt.json": "f207fb89e1855917a0e7cb0432d681e20467c1bbad4eca8d4ec526696505a3b5",
+    "review-morning-observation/receipt.json": "a95c9dd566cce9b26cb07e1e98cc29fec75b5c715cbf1bbc4aa1605dbb5e7fed",
+    "review-morning-observation-r2/receipt.json": "a857bc5cba210b43849330fdf39601d8871cdd56ab65bcd87f51cbcc69cf8d9a",
+    "review-morning-observation-live/receipt.json": "bd92ae40ce488b07c790d1aa58f67f72cf8a5ded98907400b62dbc422691e0c1",
+    "ui/history-ui-receipt.json": "478b8987b465980b8cccf8e43fabce82eaa13ba2120f29c3cfa17dcf2425f818",
+    "writer/d1-restoration.json": "95d4962dd2deb3e7d8c916e67b5d52c9d9ef6e6c694b88bb2d7f48beaa6b8f2c",
+    "failure-snapshot/controller-integration-receipt.json": "45215b7aae1a3c437149a94e3740149d4b63889a4486faee6e9ee0a7b6d99315",
+    "failure-snapshot/controller-publication/activation-receipt.json": "c92e65260104c0928d14d50b9a6a7b5b6f867c26c5794c3379e27305b5bd89da",
+    "failure-snapshot-auction/controller-integration-receipt.json": "858a7b9483ca00624f6a257a884e6866cb48daf63c44c532647bc2926147f6b6",
+    "live/producer-combined-r2-sol-oracle-20261023T125311/receipt.json": "19d9098777ef83a52e7ee20aea69e2d0ee7cc54eb59b22ca656786d586ac1e23",
+    "morning-observation/r2/controller-integration-receipt.json": "7825fb803a9ba5e9cb3b9187b147ccbe9d40ba842663f7993ef6b9c030bf630b",
+    "morning-observation/r2/activation-receipt.json": "c7f7cff14bd0ed6254471d9912c632192e107071bb7c2e2b121121c6118dba75",
+    "morning-observation/r2/activation-preflight-missing-tool-contract.json": "685734f1beeb3d8bcc673778c0626fa068af6dc2523c47c4f0e7b905ab640740",
+    "morning-observation/r2/activation-attempt-readback-timeout.json": "c905aa79400693a91baa8779d6b52ae0e7b4b00b3f96829d9db8669ab04bd6fd",
+    "morning-observation/r2/deployment-diagnosis.json": "8a71dd828024082ee7bec7c1389060fddd5f3d3801c1ce96c6d997cd019b5fbc"
+  },
+  "NOT_RUN": [
+    "Original earlynative snapshots cannot be regenerated retrospectively",
+    "Formal/PIT/natural acceptance for historicalmorning observations",
+    "Natural slot acceptance of futurefailure snapshot capture",
+    "Fullunrelatedtest suites, crossdate catalogaudit and unrelatedrefactors",
+    "Externaldeployment/merge/PR/orders"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
