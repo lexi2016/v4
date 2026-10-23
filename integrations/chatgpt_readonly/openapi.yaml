@@ -1,0 +1,644 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Saved V4 research reader",
+    "version": "v4-readonly-gateway.v1"
+  },
+  "servers": [
+    {
+      "url": "https://v4-readonly.example.invalid",
+      "description": "NOT_DEPLOYED: replace only after authorized HTTPS verification."
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Gateway liveness only; does not prove V4 data is available.",
+        "operationId": "savedV4Health",
+        "responses": {
+          "200": {
+            "description": "Saved-data result; inspect status, as_of, source, missing_reasons and pagination.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "ok"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "RESEARCH_ONLY": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "production_allowed": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "buy_gate_updated": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "orders_sent": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "GET bodies refused"
+          },
+          "401": {
+            "description": "Authentication refused"
+          },
+          "404": {
+            "description": "No exact saved data or route"
+          },
+          "405": {
+            "description": "Method refused"
+          },
+          "413": {
+            "description": "Reduce page limit; no silent truncation"
+          },
+          "422": {
+            "description": "Invalid parameters"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Source unavailable, invalid or concurrency limit"
+          },
+          "504": {
+            "description": "Read deadline exceeded"
+          }
+        },
+        "security": [],
+        "x-openai-isConsequential": false
+      }
+    },
+    "/v1/pools": {
+      "get": {
+        "summary": "Read one exact-date saved pool; follow next_offset for all rows.",
+        "operationId": "readSavedV4Pool",
+        "parameters": [
+          {
+            "name": "trade_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$",
+              "description": "Exact saved trading date YYYYMMDD; no latest fallback.",
+              "title": "Trade Date"
+            },
+            "description": "Exact saved trading date YYYYMMDD; no latest fallback."
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "A",
+                "HK"
+              ],
+              "type": "string",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "pool_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "a_d1_premarket_pool",
+                "a_d1_fupan_watchlist_pool",
+                "a_d1_stage7_fenshi_review_pool",
+                "a_share_research_recommendation_pool",
+                "a_share_baimao_research_map",
+                "hkconnect_d1_top100",
+                "wechat_public_account_v3_preselect"
+              ],
+              "type": "string",
+              "title": "Pool Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved-data result; inspect status, as_of, source, missing_reasons and pagination.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "GET bodies refused"
+          },
+          "401": {
+            "description": "Authentication refused"
+          },
+          "404": {
+            "description": "No exact saved data or route"
+          },
+          "405": {
+            "description": "Method refused"
+          },
+          "413": {
+            "description": "Reduce page limit; no silent truncation"
+          },
+          "422": {
+            "description": "Invalid parameters"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Source unavailable, invalid or concurrency limit"
+          },
+          "504": {
+            "description": "Read deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "V4ReadOnlyBearer": []
+          }
+        ],
+        "x-openai-isConsequential": false
+      }
+    },
+    "/v1/stocks/{code}/research": {
+      "get": {
+        "summary": "Read one HK stock from a saved plan for an explicit date and phase.",
+        "operationId": "readSavedV4StockResearch",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "trade_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$",
+              "description": "Exact saved trading date YYYYMMDD; no latest fallback.",
+              "title": "Trade Date"
+            },
+            "description": "Exact saved trading date YYYYMMDD; no latest fallback."
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "HK",
+              "type": "string",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "PREOPEN",
+                "INTRADAY",
+                "NEXT_DAY",
+                "RETROSPECTIVE",
+                "MANUAL"
+              ],
+              "type": "string",
+              "title": "Phase"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved-data result; inspect status, as_of, source, missing_reasons and pagination.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "GET bodies refused"
+          },
+          "401": {
+            "description": "Authentication refused"
+          },
+          "404": {
+            "description": "No exact saved data or route"
+          },
+          "405": {
+            "description": "Method refused"
+          },
+          "413": {
+            "description": "Reduce page limit; no silent truncation"
+          },
+          "422": {
+            "description": "Invalid parameters"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Source unavailable, invalid or concurrency limit"
+          },
+          "504": {
+            "description": "Read deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "V4ReadOnlyBearer": []
+          }
+        ],
+        "x-openai-isConsequential": false
+      }
+    },
+    "/v1/announcements": {
+      "get": {
+        "summary": "Read saved HK delivery summaries; unknown does not mean verified or actionable.",
+        "operationId": "readSavedV4Announcements",
+        "parameters": [
+          {
+            "name": "trade_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$",
+              "description": "Exact saved trading date YYYYMMDD; no latest fallback.",
+              "title": "Trade Date"
+            },
+            "description": "Exact saved trading date YYYYMMDD; no latest fallback."
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "HK",
+              "type": "string",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved-data result; inspect status, as_of, source, missing_reasons and pagination.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "GET bodies refused"
+          },
+          "401": {
+            "description": "Authentication refused"
+          },
+          "404": {
+            "description": "No exact saved data or route"
+          },
+          "405": {
+            "description": "Method refused"
+          },
+          "413": {
+            "description": "Reduce page limit; no silent truncation"
+          },
+          "422": {
+            "description": "Invalid parameters"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Source unavailable, invalid or concurrency limit"
+          },
+          "504": {
+            "description": "Read deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "V4ReadOnlyBearer": []
+          }
+        ],
+        "x-openai-isConsequential": false
+      }
+    },
+    "/v1/reviews": {
+      "get": {
+        "summary": "Read a saved manager-plan review; absent data remains unavailable.",
+        "operationId": "readSavedV4Review",
+        "parameters": [
+          {
+            "name": "trade_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$",
+              "description": "Exact saved trading date YYYYMMDD; no latest fallback.",
+              "title": "Trade Date"
+            },
+            "description": "Exact saved trading date YYYYMMDD; no latest fallback."
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "HK",
+              "type": "string",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "phase",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "PREOPEN",
+                "INTRADAY",
+                "NEXT_DAY",
+                "RETROSPECTIVE",
+                "MANUAL"
+              ],
+              "type": "string",
+              "title": "Phase"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved-data result; inspect status, as_of, source, missing_reasons and pagination.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "GET bodies refused"
+          },
+          "401": {
+            "description": "Authentication refused"
+          },
+          "404": {
+            "description": "No exact saved data or route"
+          },
+          "405": {
+            "description": "Method refused"
+          },
+          "413": {
+            "description": "Reduce page limit; no silent truncation"
+          },
+          "422": {
+            "description": "Invalid parameters"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Source unavailable, invalid or concurrency limit"
+          },
+          "504": {
+            "description": "Read deadline exceeded"
+          }
+        },
+        "security": [
+          {
+            "V4ReadOnlyBearer": []
+          }
+        ],
+        "x-openai-isConsequential": false
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "SavedResult": {
+        "type": "object",
+        "properties": {
+          "trade_date": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$"
+          },
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Source-recorded time only; null with a reason when not recorded."
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "stale",
+              "unknown",
+              "unavailable"
+            ]
+          },
+          "source_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "market": {
+            "type": "string",
+            "enum": [
+              "A",
+              "HK"
+            ]
+          },
+          "missing_reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "version": {
+            "type": "object"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "coverage": {
+            "type": "object"
+          },
+          "RESEARCH_ONLY": {
+            "type": "boolean",
+            "const": true
+          },
+          "production_allowed": {
+            "type": "boolean",
+            "const": false
+          },
+          "buy_gate_updated": {
+            "type": "boolean",
+            "const": false
+          },
+          "orders_sent": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "V4ReadOnlyBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Dedicated V4 read-only secret; configured separately after approval."
+      }
+    }
+  }
+}
