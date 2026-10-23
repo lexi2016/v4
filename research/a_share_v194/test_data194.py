@@ -72,4 +72,33 @@ class Data194PolicyFixTests(unittest.TestCase):
         self.assertFalse(policy['effect_date_gate_met'])
         self.assertEqual(policy['effect_acceptance_ceiling'],'CANNOT_CONFIRM_INSUFFICIENT_OOF_DATES')
 
+class SourceRepairTests(unittest.TestCase):
+    def test_windows_mac_mapping_and_single_path_legacy(self):
+        self.assertEqual(d.mapped_source_path(r'C:\Users\huang\Desktop\学习\v3.5\.runtime\preselection_inputs\20260810\fupan.csv'),d.STATE/'preselection_inputs/20260810/fupan.csv')
+        self.assertEqual(d.mapped_source_path(r'C:\Users\huang\Desktop\学习\v3_system\lane.csv'),d.ROOT.parent/'v3_system/lane.csv')
+
+    def test_empty_and_unbound_pool_remain_unknown(self):
+        self.assertEqual(d.repaired_pool_binding({'cache_rows':0})['state'],'unknown')
+        self.assertEqual(d.repaired_pool_binding({'cache_rows':3})['state'],'unknown')
+
+    def test_hk_overall_failure_does_not_reject_exact_a_publication(self):
+        r=dict(cache_rows=1,cache_identity_ok=True,mapped_source_sha_matches_cache=True,target_date='20261009',cache_canonical_sha256='a'*64,valid_stock_codes_after_fieldwise_resolution=['000001'],earliest_preopen_exact_parent_receipt=dict(finished_at='2026-10-08T15:02:05Z',artifact_sha256='a'*64,payload_trade_date='20261009',receipt_overall_status='FAILED'))
+        self.assertEqual(d.repaired_pool_binding(r)['state'],'hit')
+        r['earliest_preopen_exact_parent_receipt']['finished_at']='2026-10-09T01:26:00Z'
+        self.assertEqual(d.repaired_pool_binding(r)['state'],'unknown')
+
+    def test_bound_title_is_not_required_to_be_body_substring(self):
+        wrapper=d.historical_compact('原始 正文','公司附件标题')
+        self.assertEqual(wrapper,'原始 正文 公司附件标题')
+        self.assertFalse(d.full_text_bound(wrapper,'原始 正文'))
+
+    def test_subject_false_compatibility_and_cross_day_cutoff(self):
+        row=dict(target_date='20261009',code='000001',published_at='2026-10-08T23:00:00Z',modify_time='',available_at='2026-10-09T09:00:00+08:00',evidence_tier='UNDECLARED_COLLECTOR_COMPATIBILITY_ONLY',original_research_subject_eligible=False)
+        ref=dict(fetched_at='2026-10-09T01:00:00Z',original_full_body_sha256='a'*64,raw_text_sha256='b'*64)
+        self.assertIsNone(d.research_record_gate(row,ref))
+        row['available_at']='2026-10-09T01:25:01Z'
+        self.assertEqual(d.research_record_gate(row,ref),'SOURCE_TIME_CONFLICT_OR_LATE')
+        row['available_at']='2026-10-09T09:00:00'
+        with self.assertRaisesRegex(ValueError,'TIMEZONE_UNPROVEN'):d.research_record_gate(row,ref)
+
 if __name__=='__main__':unittest.main()

@@ -19,3 +19,10 @@ baseline为192触发＋原主图十路触发共11列；194仅追加复盘、Stag
 ## 4. 分工、路径与停止条件
 
 Root裁决/集成/远端同步；模型Writer独占model194/test_model194/registry_bridge/run194/report194/README/PLAN/SLIM_STATUS及本地除inputs外工件和registry追加；数据Writer独占data194/test_data194及inputs。所有代理GPT-6.1 Sol High，均不spawn。实现路径worktrees/a_share_v194_20261023/research/a_share_v194/，本地产物research/a_share_v194_20261023/。必要源码与slim摘要由Root同步lexi2016/v4分支codex/a-share-v194-20261023，基线ef3aac383ab1b63af11e286769691d039d67d5d7，不上传行情/文章/名单/权重/原registry。不启scheduler；趋势补漏/09:35二筛另立阶段。缺关键feature/label/time字段就停止该依赖，继续可独立工作；健康运行不因等待超时取消。research_only=true，production_allowed=false，buy_gate_updated=false，orders_sent=false。
+
+
+## 2026-10-24 授权来源修复及后续边界
+
+本轮唯一变量是来源恢复投影：复盘/Stage7原池可追溯成员、研报原发布时间/字面实体与原collector拼接重建，三来源与三语义轴分开，未知不补0，主体false不作新过滤。模型/标签/Top50/拆分/统计门不变。30完整日按原算法15训练+15OOF，8真实fit已独立验收；技术11特征L2基线66对194的94（750slots），共同49/新增45/丢失17，15OOF不足20，不能效果PASS。旧结果与输入字节保留，当前字典改正引用新DATE_POLICY的副本单独交付。
+
+新增逐日导出把结果Top100、冻结tech_192字段自然投影（身份另核）、技术11特征L2 Top50、194 Top50明确区分。所有名单只连冻结标签/保存名单，0新增fit/公式/采集。当前作用是项目隔离sklearn模块而非已经调用因子工厂长历史pipeline。用户另授权长窗口与总并发预算12（未来先8路canary、按吞吐升12），独立LONG_HISTORY_AUTHORITY_PREFLIGHT先查既有20+年源/passport/复权/日历、真实pipeline入口及用户192身份；该preflight本身0fit/0公式/0标签构造，不因扩线程重跑本批。

@@ -22,6 +22,10 @@ TECH = ['tech_192','B1','B2','B3','BREAKOUT','BREAKOUT_DOJI','M2_MINUS','M2_PLUS
 SOURCES = ['source_fupan','source_stage7','source_research']
 FLAGS = dict(research_only=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 EXPOSED = {'20261016','20261019','20261020','20261021','20261022'}
+REPAIR = ROOT / 'research/a_share_v194_20261023/repair_r1_20261024'
+REPAIR_OUT = REPAIR / 'inputs'
+SOURCE_PACKET = ROOT / 'research/a_share_v194_20261023/diagnostics/source_effect_r1/source'
+SOURCE_AUTHOR_SHA = 'fac18f24c3974764f525fd2898f46bc6189cd94cbaff064dbf667f95b7c53c2f'
 
 def sha(p):
     h=hashlib.sha256()
@@ -129,6 +133,263 @@ def materialize_date_policy():
     mp=OUT/'MANIFEST_V4_COMPLETE_DATES_FINAL.json';save(mp,m)
     receipt=dict(schema='V194_TWO_FIXES_WRITER_HANDOFF',manifest=dict(path=str(mp),sha256=sha(mp)),date_policy=dict(path=str(pp),sha256=sha(pp)),calendar=dict(path=str(cp),sha256=sha(cp)),dictionary=dict(path=str(dp),sha256=sha(dp)),adapter_sha256=sha(__file__),tests_sha256=sha(Path(__file__).with_name('test_data194.py')),eligible_dates=len(policy['eligible_target_dates']),initial_train_dates=len(policy['initial_train_target_dates']),oof_dates=len(policy['oof_target_dates']),all_incomplete_dates=len(policy['all_incomplete_target_dates']),excluded_formerly_eligible_dates=len(policy['excluded_incomplete_target_dates']),candidate_unchanged_sha256=m['files']['candidates']['sha256'],truth_unchanged_sha256=m['files']['truth']['sha256'],candidate_rows=len(candidates),unknown_historical_candidate_rows=sum(r['unknown_candidate_label_rows'] for r in revised if r['cohort_role']!='unlabelled_prediction'),unlabelled_prediction_candidate_rows=sum(r['unknown_candidate_label_rows'] for r in revised if r['cohort_role']=='unlabelled_prediction'),effect_acceptance_ceiling=policy['effect_acceptance_ceiling'],new_technical_formula_evaluations=0,new_label_computations=0,new_fit_count=0,**FLAGS)
     save(OUT/'TWO_FIXES_V4_FINAL_WRITER_RECEIPT.json',receipt);return receipt
+
+def repair_start_gate(event_sha):
+    """Require this repair START and its explicit DataWriter scope checkpoint."""
+    events=[]
+    with (ROOT/'contracts/EXPERIMENT_REGISTRY.jsonl').open() as f:
+        for line in f:
+            e=json.loads(line)
+            if e.get('execution_id')=='A_SHARE_V194_SOURCE_RESONANCE_R1_20261023_DATA_BINDING_REPAIR_R1_20261024_01':events.append(e)
+    assert any(e['event_sha256']==event_sha and e['event_type']=='RUN_STARTED' for e in events),'REPAIR_START_REQUIRED'
+    assert any(e['event_sha256']=='0a2dd37286feb30e3517843ca7ba964e222638564acad97acf831c734fb3a8ca' for e in events),'DATAWRITER_SCOPE_CHECKPOINT_REQUIRED'
+    assert sha(REPAIR/'DATAWRITER_SCOPE_ADDENDUM.json')=='c330cc1991571171b5af620cecca20e987b673d98462bf64637fffff0fe54ca1'
+
+class RepairPacket:
+    """Consume only the frozen diagnostic package; never search dispatchers."""
+    def __init__(self):
+        p=SOURCE_PACKET/'AUTHOR_RECEIPT.json';assert sha(p)==SOURCE_AUTHOR_SHA,'DIAGNOSTIC_AUTHOR_DRIFT'
+        self.author=load(p);self.specs={Path(r['path']).name:r for r in self.author['artifact_manifest']};self.loaded={};self.verified={}
+    def path(self,name):
+        p=SOURCE_PACKET/name;expected=self.specs[name]['sha256']
+        assert sha(p)==expected,'FROZEN_PACKET_DRIFT:'+name
+        self.verified[str(p)]=expected;return p
+    def get(self,name):
+        if name not in self.loaded:
+            p=self.path(name)
+            if name.endswith('.gz'):
+                import gzip
+                self.loaded[name]=json.loads(gzip.decompress(p.read_bytes()))
+            else:self.loaded[name]=load(p)
+        return self.loaded[name]
+    def resource_file(self,path,expected):
+        p=Path(path)
+        if not p.is_absolute():p=DATA/p
+        if str(p) not in self.verified:
+            assert expected and sha(p)==expected,'BOUND_ORIGINAL_RESOURCE_DRIFT:'+str(p)
+            self.verified[str(p)]=expected
+        else:assert self.verified[str(p)]==expected,'RESOURCE_SHA_CONFLICT'
+        return p
+
+def mapped_source_path(value):
+    raw=str(value);path=raw.replace('\\','/')
+    if re.match(r'^[A-Za-z]:/',path):
+        if '/v3.5/.runtime/' in path:return STATE/path.split('/v3.5/.runtime/',1)[1]
+        if '/学习/' in path:return ROOT.parent/path.split('/学习/',1)[1]
+    p=Path(raw);return p if p.is_absolute() else DATA/p
+
+def repaired_pool_binding(record,packet=None):
+    """Parent actual UTC publication binds nonempty A bytes, independent of HK."""
+    if not record.get('cache_rows'):return dict(state='unknown',reason='EMPTY_PLACEHOLDER_OR_CACHE_ABSENT')
+    parent=record.get('earliest_preopen_exact_parent_receipt')
+    if not parent or not record.get('cache_identity_ok'):return dict(state='unknown',reason='NO_EXACT_PREOPEN_PARENT_PUBLICATION')
+    cut=aware(iso(record['target_date'])+'T09:25:00+08:00')
+    if aware(parent['finished_at'])>cut:return dict(state='unknown',reason='PARENT_PUBLICATION_AFTER_DECISION')
+    if parent['artifact_sha256']!=record['cache_canonical_sha256'] or parent.get('payload_trade_date')!=record['target_date']:return dict(state='unknown',reason='PARENT_ARTIFACT_IDENTITY_MISMATCH')
+    if not record.get('mapped_source_sha_matches_cache'):return dict(state='unknown',reason='ORIGINAL_SOURCE_BYTES_NOT_BOUND')
+    if packet:
+        cache=load(packet.resource_file(record['cache_path'],record['cache_bytes_sha256']))
+        assert digest(cache)==record['cache_canonical_sha256'],'CACHE_CANONICAL_DRIFT'
+        packet.resource_file(record['cache_receipt_path'],record['cache_receipt_bytes_sha256'])
+        packet.resource_file(parent['receipt_path'],parent['receipt_sha256'])
+        mapped=record.get('mapped_source_paths',[])
+        for ref in mapped:
+            assert mapped_source_path(ref['original'])==Path(ref['local']),'LOCAL_PATH_MAPPING_PARITY'
+            packet.resource_file(ref['local'],ref['sha256'])
+    return dict(state='hit',available_at=parent['finished_at'],reason='EXACT_NONEMPTY_A_ARTIFACT_PREOPEN_PUBLICATION',parent_receipt=parent,
+                historical_overall_status=parent.get('receipt_overall_status'),codes=record.get('valid_stock_codes_after_fieldwise_resolution',[]))
+
+def research_record_gate(row,resource):
+    """Reuse exact producer body/title proof; retain version and role axes."""
+    cut=aware(iso(row['target_date'])+'T09:25:00+08:00')
+    published=aware(row['published_at']);fetched=aware(resource['fetched_at']);modified=aware(row['modify_time']) if row.get('modify_time') else published
+    available=aware(row['available_at'])
+    if published>fetched or modified>fetched or max(published,modified,fetched,available)>cut:return 'SOURCE_TIME_CONFLICT_OR_LATE'
+    if row['evidence_tier'] not in {'DECLARED_COLLECTOR_BYTES_EXACT_RECONSTRUCTION','UNDECLARED_COLLECTOR_COMPATIBILITY_ONLY'}:return 'UNRECOGNIZED_RECONSTRUCTION_TIER'
+    if row['evidence_tier'].startswith('DECLARED') and not resource.get('historical_collector_source_sha256'):return 'DECLARED_VERSION_SHA_MISSING'
+    if not re.fullmatch(r'\d{6}',row['code']):return 'ENTITY_CODE_UNCERTAIN'
+    for field in ('original_full_body_sha256','raw_text_sha256'):
+        if not re.fullmatch(r'[a-f0-9]{64}',str(resource.get(field) or '')):return 'ORIGINAL_BODY_OR_PRODUCER_PROOF_MISSING'
+    # No subject eligibility or dated pool membership condition here.
+    return None
+
+def historical_compact(body,title,limit=5000):
+    """Exact historical _compact definition, independently canaried against source."""
+    return re.sub(r'\s+',' ', ' '.join(str(v or '') for v in (body,title))).strip()[:limit]
+
+def verify_research_wrapper(row,resource,slot,packet):
+    """Small canary only: replay original body plus company-bound title wrapper."""
+    incoming=load(packet.resource_file(slot['incoming_path'],resource['incoming_sha256']))
+    topics=load(packet.resource_file(resource['topics_path'],resource['topics_sha256']))
+    summaries=load(packet.resource_file(resource['summary_path'],resource['summary_sha256']))
+    topic=next(t for t in topics['topics_brief'] if str(t.get('topic_id') or t.get('id'))==row['topic_id'])
+    summary=next(t for t in summaries['effective_topics'] if str(t['topic_id'])==row['topic_id'])
+    body=str(topic.get('content') or topic.get('text') or topic.get('plain_text') or '')
+    assert hashlib.sha256(body.encode()).hexdigest()==resource['original_full_body_sha256'],'ORIGINAL_BODY_DRIFT'
+    assert re.search(r'(?<!\d)'+re.escape(row['code'])+r'(?!\d)',body) or len(row['name'])>=2 and row['name'] in body,'BODY_LITERAL_ENTITY_MISSING'
+    raw=next(r for r in incoming['raw_items'] if hashlib.sha256(str(r.get('raw_text')).encode()).hexdigest()==resource['raw_text_sha256'] and str((r.get('raw_payload') or {}).get('stock_code'))==row['code'])
+    nested=raw['raw_payload'];company=nested.get('source_report_binding')
+    title=(('' if company.get('attachment_binding_status')=='NO_MATCH_UNCONFIRMED' else str(company.get('bound_source_title') or '')) if company is not None else str(summary.get('title') or summary.get('evidence') or '知识星球研报'))
+    head=str(summary.get('content_head') or summary.get('evidence') or title);expected=historical_compact(head,title)
+    assert str(nested['raw_text'])==expected and str(raw['raw_text'])==re.sub(r'\s+',' ',expected).strip()[:5000],'BODY_BOUND_TITLE_WRAPPER_PARITY'
+    if resource.get('historical_collector_source_path'):
+        import ast
+        source=packet.resource_file(resource['historical_collector_source_path'],resource['historical_collector_source_sha256'])
+        tree=ast.parse(source.read_text());fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_compact');ns={'re':re,'Any':object}
+        exec(compile(ast.Module(body=[fn],type_ignores=[]),str(source),'exec'),ns)
+        assert ns['_compact'](head,title)==expected,'HISTORICAL_COMPACT_SOURCE_PARITY'
+    return dict(target_date=row['target_date'],code=row['code'],topic_id=row['topic_id'],wrapper=resource['body_company_title_wrapper'],subject_eligible=row['original_research_subject_eligible'],tier=row['evidence_tier'],entire_wrapper_body_substring=full_text_bound(raw['raw_text'],body),producer_wrapper_parity=True,literal_entity=True)
+
+def repair_canary():
+    packet=RepairPacket();pool=packet.get('POOL_SOURCE_GATE_TRACE_V3.json');compact=packet.get('RESEARCH_RECOVERY_COMPACT.json.gz');rows=[dict(zip(compact['columns'],r)) for r in compact['rows']];slots={(r['target_date'],r['slot']):r for r in packet.get('RESEARCH_SLOT_GATES_V3.json')}
+    checks=[]
+    for lane in ('fupan','stage7'):
+        record=next(r for r in pool if r['lane']==lane and r.get('membership_status')=='CONFIRMED_PREOPEN_MEMBERSHIP_FOR_VALID_MAPPED_ROWS')
+        result=repaired_pool_binding(record,packet);assert result['state']=='hit';checks.append(dict(lane=lane,result=result['state'],overall_status=result['historical_overall_status']))
+    legacy=next(r for r in pool if r['lane']=='fupan' and len((r.get('source_path') or '').split('|'))==1 and r.get('mapped_source_sha_matches_cache'))
+    checks.append(dict(lane='legacy_fupan',mapped_paths=[str(mapped_source_path(p)) for p in legacy['source_path'].split('|')],result=repaired_pool_binding(legacy)['state'],reason='PATH_SCHEMA_SUPPORTED_BUT_NO_PARENT_TIME_MUST_STAY_UNKNOWN'))
+    selected=[]
+    for predicate in (lambda r:r['old_substring_false_rejection'] and r['evidence_tier'].startswith('DECLARED'),lambda r:r['original_research_subject_eligible'] is False,lambda r:r['evidence_tier'].startswith('UNDECLARED')):
+        row=next(r for r in rows if predicate(r));resource=compact['resource_bindings'][row['resource_ref_sha256']]
+        assert research_record_gate(row,resource) is None
+        selected.append(verify_research_wrapper(row,resource,slots[(row['target_date'],row['slot'])],packet))
+    result=dict(schema='V194_SOURCE_BINDING_REPAIR_CANARY',pool_checks=checks,research_checks=selected,subject_false_still_wide_admitted=True,unknown_never_zero=True,thread_limit=2,resource_rss_bytes=resource_module_rss(),real_fit_count=0,new_technical_formula_evaluations=0,**FLAGS)
+    save(REPAIR_OUT/'CANARY_RECEIPT.json',result);return result
+
+def resource_module_rss():return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+
+def repair_project():
+    """Rebuild source OR views from frozen proofs and full existing11 projections."""
+    import copy,shutil
+    started=time.monotonic();packet=RepairPacket()
+    assert load(REPAIR_OUT/'CANARY_RECEIPT.json')['subject_false_still_wide_admitted']
+    assert load(REPAIR_OUT/'CANARY_COMPANY_TITLE_INCREMENT_RECEIPT.json')['producer_wrapper_parity']
+    oldpath=OUT/'MANIFEST_V4_COMPLETE_DATES_FINAL.json';old=load(oldpath)
+    def readcsv(path):
+        with Path(path).open() as f:return list(csv.DictReader(f))
+    calendar=readcsv(old['files']['calendar']['path']);date_rows={r['target_date'].replace('-',''):r for r in calendar};scope=set(date_rows)
+    old_candidates=readcsv(old['files']['candidates']['path']);old_keys={(r['target_date'],r['code']) for r in old_candidates}
+    truth=readcsv(old['files']['truth']['path']);truthkeys={(r['target_date'],r['code']) for r in truth}
+    # Copy accepted labels byte-for-byte. No return/ranking/formula evaluator call.
+    truthpath=REPAIR_OUT/'truth.csv';assert not truthpath.exists(),'REPAIR_OUTPUT_EXISTS'
+    shutil.copyfile(old['files']['truth']['path'],truthpath)
+    assert sha(truthpath)==old['files']['truth']['sha256'],'ACCEPTED_TRUTH_COPY_DRIFT'
+    paths=sorted(p for p in (OUT/'full').glob('*.json') if p.name!='RECEIPT.json')
+    universe={p.name[:-5][:6]:p.name[:-5] for p in paths};assert len(universe)==5533
+    technical={};tech_union=set();names={};projection_bindings=[]
+    for path in paths:
+        obj=load(path);code=obj['code'];projection_bindings.append(dict(path=str(path),sha256=sha(path)))
+        for r in obj['features']:
+            if r['target_date'] not in scope:continue
+            key=(r['target_date'],code[:6]);assert all(r[f] in (0,1) for f in TECH),'FROZEN_TECHNICAL_FLAG_DRIFT'
+            technical[key]=r;names[code[:6]]=r.get('name','')
+            if any(r[f] for f in TECH):tech_union.add(key)
+    original_tech_exclusions=load(OUT/'TECHNICAL_EXCLUSIONS.json');tech_reasons={(r['target_date'],r['code'][:6]):r['reason'] for r in original_tech_exclusions}
+    # hits[(date, six-digit code)][lane] is a positive observed source only.
+    hits=defaultdict(dict);pool_bindings=[];source_exclusions=[]
+    for record in packet.get('POOL_SOURCE_GATE_TRACE_V3.json'):
+        if record['target_date'] not in scope:continue
+        try:binding=repaired_pool_binding(record,packet)
+        except ValueError as e:binding=dict(state='unknown',reason=str(e))
+        out=dict(target_date=record['target_date'],lane=record['lane'],cache_path=record['cache_path'],cache_rows=record.get('cache_rows'),cache_canonical_sha256=record.get('cache_canonical_sha256'),mapped_source_paths=record.get('mapped_source_paths',[]),binding=binding)
+        pool_bindings.append(out)
+        if binding['state']!='hit':source_exclusions.append(dict(target_date=record['target_date'],source=record['lane'],reason=binding['reason'],count=record.get('cache_rows',0)));continue
+        for code in binding['codes']:
+            assert code in universe,'RECOVERED_POOL_OUTSIDE_RESEARCH_UNIVERSE'
+            hits[(record['target_date'],code)][record['lane']]=dict(available_at=binding['available_at'],evidence_ref=digest(out),parent_receipt_sha256=binding['parent_receipt']['receipt_sha256'])
+    compact=packet.get('RESEARCH_RECOVERY_COMPACT.json.gz');assert compact['historical_availability_bound'] is False
+    resources=compact['resource_bindings'];slots={(r['target_date'],r['slot']):r for r in packet.get('RESEARCH_SLOT_GATES_V3.json')}
+    snapshot={(r['target_date'],r['code']):r for r in packet.get('OLD77_AND_38_STOCK_DATE_KEY_ALIGNMENT.json')}
+    research_rows=[];research_by_key=defaultdict(list)
+    for values in compact['rows']:
+        row=dict(zip(compact['columns'],values));dt=row['target_date'];code=row['code']
+        if dt not in scope:continue
+        ref=resources[row['resource_ref_sha256']];assert digest(ref)==row['resource_ref_sha256'],'RESOURCE_PROOF_SHA_DRIFT'
+        try:reason=research_record_gate(row,ref)
+        except (ValueError,TypeError) as e:reason=str(e)
+        if code not in universe:reason='OUTSIDE_FROZEN5533_RESEARCH_SCOPE'
+        if reason:source_exclusions.append(dict(target_date=dt,source='research',topic_id=row['topic_id'],code=code,reason=reason,count=1));continue
+        slot=slots[(dt,row['slot'])]
+        # All exact producer body/title/entity checks are the frozen diagnostic
+        # proof, with current immutable input/source bytes SHA-bound once here.
+        packet.resource_file(slot['incoming_path'],ref['incoming_sha256'])
+        packet.resource_file(slot['archive_path'],slot['archive_sha256'])
+        for prefix in ('status','summary','topics','fetch_result'):
+            packet.resource_file(ref[prefix+'_path'],ref[prefix+'_sha256'])
+        for prefix in ('historical_collector_source','historical_report_policy'):
+            if ref.get(prefix+'_path'):packet.resource_file(ref[prefix+'_path'],ref[prefix+'_sha256'])
+        known=snapshot.get((dt,code));row.update(raw_publication_reconstruction_state='hit',actual_pool_membership=known['dated_pool_stock_membership'] if known else 'UNKNOWN_NOT_BOUND_FOR_THIS_KEY',actual_pool_snapshot_not_decision_complete=True,actual_pool_snapshot_evidence=known.get('snapshot_asof_witness') if known else None,research_subject_evidence_qualification=row['original_research_subject_eligible'],subject_qualification_used_as_admission_filter=False,historical_availability_bound=False,proof_mode='REUSED_SHA_BOUND_EXACT_PRODUCER_DIAGNOSTIC_PROOF')
+        research_rows.append(row);research_by_key[(dt,code)].append(row);names.setdefault(code,row['name'])
+    for key,rows in research_by_key.items():
+        hits[key]['research']=dict(available_at=min((r['available_at'] for r in rows),key=aware),evidence_ref=digest(sorted(r['resource_ref_sha256'] for r in rows)),topic_count=len({r['topic_id'] for r in rows}),declared_topic_count=sum(r['evidence_tier'].startswith('DECLARED') for r in rows),compatibility_topic_count=sum(r['evidence_tier'].startswith('UNDECLARED') for r in rows))
+    # Preserve rejected source-gate evidence at the original slot/count scope.
+    for slot in slots.values():
+        if slot['target_date'] not in scope:continue
+        for reason,count in slot.get('row_gate_counts',{}).items():
+            if reason!='EXACT_PRODUCER_EQUIVALENT_BODY_TITLE_TIME_ENTITY_BOUND':source_exclusions.append(dict(target_date=slot['target_date'],source='research',slot=slot['slot'],reason=reason,count=count,evidence='FROZEN_DIAGNOSTIC_ROW_GATE_COUNTS'))
+    wide_keys=tech_union|set(hits);rawrows=[];modelrows=[];excluded_technical=[];axes=[]
+    for dt,code in sorted(wide_keys):
+        tech=technical.get((dt,code));lanes=hits.get((dt,code),{});reason=tech_reasons.get((dt,code),'FROZEN_COMPLETE11_KEY_UNAVAILABLE') if tech is None else ''
+        sourceflags={'source_'+lane:'hit' if lane in lanes else 'unknown' for lane in ('fupan','stage7','research')}
+        triggers=[f for f in TECH if tech is not None and tech[f]]+['source_'+lane for lane in ('fupan','stage7','research') if lane in lanes]
+        assert triggers,'EMPTY_BROAD_UNION_REASON'
+        available=[v['available_at'] for v in lanes.values()]
+        if tech:available.append(iso(tech['signal_date'])+'T15:00:00+08:00')
+        at=max(available,key=aware);assert aware(at)<=aware(iso(dt)+'T09:25:00+08:00'),'REPAIR_CANDIDATE_AFTER_CUTOFF'
+        row=dict(target_date=iso(dt),signal_date=date_rows[dt]['signal_date'],code=universe[code],decision_at=iso(dt)+'T09:25:00+08:00',available_at=at,**{f:tech[f] if tech else '' for f in TECH},**sourceflags,candidate_reasons='|'.join(triggers),evidence_refs=json.dumps(dict(technical=tech.get('technical_evidence_ref') if tech else None,sources=lanes),ensure_ascii=False,separators=(',',':')),technical_status='COMPLETE_11_FLAGS' if tech else 'UNKNOWN_TECHNICAL_DEPENDENCY',technical_exclusion_reason=reason)
+        rawrows.append(row)
+        if tech:modelrows.append({k:v for k,v in row.items() if k not in {'technical_status','technical_exclusion_reason'}})
+        else:excluded_technical.append(dict(target_date=iso(dt),code=universe[code],reason=reason,source_flags=sourceflags,in_raw_candidate_union=True,excluded_only_from_model_view=True,unknown_never_zero=True))
+        rs=research_by_key.get((dt,code),[]);known=snapshot.get((dt,code));roles=Counter('true' if r['original_research_subject_eligible'] is True else 'false' if r['original_research_subject_eligible'] is False else 'unknown' for r in rs)
+        axes.append(dict(target_date=iso(dt),code=universe[code],source_fupan=sourceflags['source_fupan'],source_stage7=sourceflags['source_stage7'],raw_publication_reconstruction=sourceflags['source_research'],actual_pool_snapshot_membership=known['dated_pool_stock_membership'] if known else 'UNKNOWN_NOT_BOUND_FOR_THIS_KEY',subject_true_topics=roles['true'],subject_false_topics=roles['false'],subject_unknown_topics=roles['unknown'],role_used_as_filter=False,actual_pool_snapshot_not_decision_complete=True,declared_topics=sum(r['evidence_tier'].startswith('DECLARED') for r in rs),compatibility_topics=sum(r['evidence_tier'].startswith('UNDECLARED') for r in rs)))
+    revised,policy=freeze_date_policy(calendar,[(r['target_date'],r['code']) for r in modelrows],truthkeys)
+    policy.update(old_date_policy=dict(path=old['files']['date_policy']['path'],sha256=old['files']['date_policy']['sha256']),technical_row_policy='Unknowntechnical rows remain raw union plus exclusions; model view requires all11 known',unknown_labels_never_zero=True)
+    model_keys={(r['target_date'],r['code']) for r in modelrows};raw_keys={(r['target_date'],r['code']) for r in rawrows};assert old_keys<=model_keys,'OLD_TECHNICAL_OR_WIDE_SOURCE_CANDIDATE_LOST'
+    gap_old={(r['target_date'],r['code']):r['reason'] for r in load(OUT/'MISSING95_DIRECT_CAUSE_AUDIT.json')['rows']}
+    missing=[]
+    for row in rawrows:
+        key=(row['target_date'],row['code'])
+        if key not in truthkeys:missing.append(dict(target_date=key[0],code=key[1],in_model_view=key in model_keys,old_candidate=key in old_keys,reason='UNLABELLED_TARGET_NO_TRUTH_INPUT' if key[0] in old['unlabelled_target_dates'] else gap_old.get(key,'ACCEPTED_TRUTH_KEY_MISSING_REASON_NOT_RECHECKED'),label_value=None,not_filled_zero=True))
+    rowfields=['target_date','signal_date','code','decision_at','available_at',*TECH,*SOURCES,'candidate_reasons','evidence_refs']
+    writecsv(REPAIR_OUT/'candidate.csv',modelrows,rowfields);writecsv(REPAIR_OUT/'RAW_CANDIDATE_UNION.csv',rawrows,rowfields+['technical_status','technical_exclusion_reason'])
+    writecsv(REPAIR_OUT/'calendar.csv',revised,list(revised[0]));writecsv(REPAIR_OUT/'RESEARCH_THREE_AXIS.csv',axes,list(axes[0]))
+    save(REPAIR_OUT/'DATE_POLICY.json',policy);save(REPAIR_OUT/'TECHNICAL_EXCLUSIONS.json',excluded_technical);save(REPAIR_OUT/'UNKNOWN_LABEL_KEYS.json',missing);save(REPAIR_OUT/'POOL_SOURCE_BINDINGS.json',pool_bindings);save(REPAIR_OUT/'SOURCE_EXCLUSIONS.json',source_exclusions);save(REPAIR_OUT/'RESEARCH_TOPIC_ENTITY_BINDINGS.json',research_rows)
+    save(REPAIR_OUT/'SOURCE_HITS.json',[dict(target_date=dt,code=universe[code],lanes=lanes) for (dt,code),lanes in sorted(hits.items())]);save(REPAIR_OUT/'REUSED_TECHNICAL_PROJECTIONS.json',projection_bindings);save(REPAIR_OUT/'BOUND_SOURCE_RESOURCES.json',packet.verified)
+    coverage=[];date_changes=[];old_by_date=Counter(r['target_date'] for r in old_candidates);old_eligible=set(old['eligible_target_dates']);new_eligible=set(policy['eligible_target_dates'])
+    for cal in revised:
+        dt=cal['target_date'];rr=[r for r in rawrows if r['target_date']==dt];mm=[r for r in modelrows if r['target_date']==dt];ax=[r for r in axes if r['target_date']==dt]
+        cov=dict(**cal,raw_candidate_union_rows=len(rr),model_candidate_rows=len(mm),raw_source_only_rows=sum(not any(r[f] for f in TECH if r[f]!='') for r in rr),unknown_technical_candidate_rows=len(rr)-len(mm),partial_technical_coverage=len(rr)!=len(mm),old_candidate_rows=old_by_date[dt],added_model_candidate_rows=len(mm)-old_by_date[dt],historical_availability_bound=False)
+        for lane in SOURCES:cov[lane+'_raw_hit_rows']=sum(r[lane]=='hit' for r in rr);cov[lane+'_model_hit_rows']=sum(r[lane]=='hit' for r in mm)
+        cov.update(research_declared_topic_entities=sum(r['declared_topics'] for r in ax),research_compatibility_topic_entities=sum(r['compatibility_topics'] for r in ax),research_subject_false_topics=sum(r['subject_false_topics'] for r in ax))
+        coverage.append(cov);date_changes.append(dict(target_date=dt,old_eligible=dt in old_eligible,new_eligible=dt in new_eligible,old_candidate_rows=old_by_date[dt],new_raw_candidate_rows=len(rr),new_model_candidate_rows=len(mm),unknown_technical_rows=len(rr)-len(mm),unknown_label_model_rows=cal['unknown_candidate_label_rows'],new_cohort_role=cal['cohort_role'],reason=cal['eligibility_exclusion_reason']))
+    writecsv(REPAIR_OUT/'coverage.csv',coverage,list(coverage[0]));writecsv(REPAIR_OUT/'OLD_TO_NEW_DATE_POLICY.csv',date_changes,list(date_changes[0]))
+    dictionary=load(old['files']['dictionary']['path']);dictionary.update(source_repair='EXACT_PUBLISHED_A_POOLS_AND_DECLARED_OR_COMPATIBLE_PRODUCER_BODY_BOUND_TITLE',research_three_axes='Raw publication reconstruction is broad-in hit; exact original dated pool membership and original subject eligibility remain metadata only',subject_false_is_not_filter=True,three_axis_features_added_to_model=False,raw_and_model_views='RAW_CANDIDATE_UNION retains unknowntechnical keys; model candidate requires original11flag complete row gate',historical_availability_bound=False)
+    save(REPAIR_OUT/'DATA_DICTIONARY.json',dictionary)
+    filenames=dict(candidates='candidate.csv',raw_candidate_union='RAW_CANDIDATE_UNION.csv',truth='truth.csv',calendar='calendar.csv',coverage='coverage.csv',date_policy='DATE_POLICY.json',dictionary='DATA_DICTIONARY.json',technical_exclusions='TECHNICAL_EXCLUSIONS.json',unknown_labels='UNKNOWN_LABEL_KEYS.json',research_three_axis='RESEARCH_THREE_AXIS.csv',research_topic_entities='RESEARCH_TOPIC_ENTITY_BINDINGS.json',pool_bindings='POOL_SOURCE_BINDINGS.json',source_exclusions='SOURCE_EXCLUSIONS.json',source_hits='SOURCE_HITS.json',old_new_date_policy='OLD_TO_NEW_DATE_POLICY.csv',reused_technical='REUSED_TECHNICAL_PROJECTIONS.json',bound_resources='BOUND_SOURCE_RESOURCES.json')
+    files={k:dict(path=str(REPAIR_OUT/v),sha256=sha(REPAIR_OUT/v)) for k,v in filenames.items()}
+    manifest=copy.deepcopy(old);manifest.update(schema='V194_SOURCE_REPAIRED_DATASET_R1',files=files,input_sha256=digest(files),previous_manifest=dict(path=str(oldpath),sha256=sha(oldpath)),config_sha256=sha(REPAIR/'DATA_BINDING_REPAIR_CONTRACT.json'),policy_revision='REPAIRED_THREE_SOURCE_WIDE_IN_ORIGINAL_TECHNICAL_ROW_AND_LABEL_DATE_POLICY',candidate_rows=len(modelrows),raw_candidate_union_rows=len(rawrows),unknown_technical_candidate_rows=len(excluded_technical),truth_rows=len(truth),eligible_dates=len(new_eligible),eligible_target_dates=policy['eligible_target_dates'],initial_train_target_dates=policy['initial_train_target_dates'],oof_target_dates=policy['oof_target_dates'],excluded_incomplete_target_dates=policy['excluded_incomplete_target_dates'],all_incomplete_target_dates=policy['all_incomplete_target_dates'],exclusions=policy['exclusions'],effect_acceptance_ceiling=policy['effect_acceptance_ceiling'],semantic_ready=policy['total_date_gate_met'],training_data_gate='TOTAL_ELIGIBLE20_MET' if policy['total_date_gate_met'] else 'STOP_INSUFFICIENT_COMPLETE_TARGET_DATES',candidate_values_changed=True,truth_values_changed=False,date_eligibility_changed=old_eligible!=new_eligible,lineage_review_pass=False,design_review_pass=False,historical_availability_bound=False,source_unknown='UNKNOWN_NEVER_ZERO_EMPTY_PLACEHOLDERS_NOT_ABSENT',research_subject_eligibility_filter=False,research_pool_membership_is_raw_mention=False,research_three_axis_features_in_model=False,raw_union_partial_technical_coverage=bool(excluded_technical),source_coverage_reused_from_review=None,start_event_sha256='ea7d796d41ab1023324ce3f654109ed116df8af679c6603ec7460e584080114a',diagnostic_source_author=dict(path=str(SOURCE_PACKET/'AUTHOR_RECEIPT.json'),sha256=SOURCE_AUTHOR_SHA))
+    manifest['source_code_sha256'][str(Path(__file__))]=sha(__file__)
+    manifest['source_repair_frozen_package']=packet.verified
+    save(REPAIR_OUT/'MANIFEST.json',manifest)
+    receipt=dict(schema='V194_SOURCE_REPAIR_AUTHOR_RECEIPT',author='/root/v194_data_writer_sol',status='READY_FOR_INDEPENDENT_INPUT_REVIEW',manifest=dict(path=str(REPAIR_OUT/'MANIFEST.json'),sha256=sha(REPAIR_OUT/'MANIFEST.json')),adapter_sha256=sha(__file__),tests_sha256=sha(Path(__file__).with_name('test_data194.py')),raw_candidate_rows=len(rawrows),model_candidate_rows=len(modelrows),old_candidate_rows=len(old_candidates),added_model_candidate_rows=len(modelrows)-len(old_candidates),unknowntechnical_source_candidate_rows=len(excluded_technical),unknown_historical_model_candidate_labels=sum(r['in_model_view'] and r['target_date'] not in old['unlabelled_target_dates'] for r in missing),old_eligible_dates=len(old_eligible),new_eligible_dates=len(new_eligible),initial_train_dates=len(policy['initial_train_target_dates']),oof_dates=len(policy['oof_target_dates']),effect_acceptance_ceiling=policy['effect_acceptance_ceiling'],source_hit_model_rows={s:sum(r[s]=='hit' for r in modelrows) for s in SOURCES},declared_research_topic_entities=sum(r['evidence_tier'].startswith('DECLARED') for r in research_rows),compatible_research_topic_entities=sum(r['evidence_tier'].startswith('UNDECLARED') for r in research_rows),research_subject_false_kept=sum(r['original_research_subject_eligible'] is False for r in research_rows),truth_bytes_reused=True,truth_sha256=sha(truthpath),original_materials_unchanged=True,full11_formula_evaluations=0,new_market_or_article_fetches=0,real_fit_count=0,resource_rss_bytes=resource_module_rss(),thread_limit=2,elapsed_seconds=time.monotonic()-started,**FLAGS)
+    save(REPAIR_OUT/'AUTHOR_RECEIPT.json',receipt);return repair_finalize_metadata(receipt)
+
+def repair_finalize_metadata(receipt=None):
+    """Freeze final counters and policy references without reprojecting sources."""
+    import copy
+    initial=load(REPAIR_OUT/'MANIFEST.json');m=copy.deepcopy(initial)
+    receipt=copy.deepcopy(receipt or load(REPAIR_OUT/'AUTHOR_RECEIPT.json'))
+    with (REPAIR_OUT/'calendar.csv').open() as f:calendar=list(csv.DictReader(f))
+    dictionary=load(REPAIR_OUT/'DATA_DICTIONARY.json')
+    dictionary.update(candidate_label_gap_policy='Keep all original and added UNKNOWN labels; apply whole-date label completeness only to retained complete11 modelcandidate rows',raw_unknowntechnical_policy='Keep every broad-union source-only unknowntechnical key in RAW_CANDIDATE_UNION and per-key exclusions; no zero imputation; retain original model row gate',source_role_limit='Subject qualification=false is metadata only and never a broad candidate or source-hit filter')
+    dp=REPAIR_OUT/'DATA_DICTIONARY_FINAL.json';save(dp,dictionary)
+    m['files']['dictionary']=dict(path=str(dp),sha256=sha(dp));m['input_sha256']=digest(m['files'])
+    m.update(incomplete_target_date_count=len(m['all_incomplete_target_dates']),incomplete_diagnostic_target_dates=[r['target_date'] for r in calendar if r['cohort_role']=='diagnostic' and int(r['unknown_candidate_label_rows'])],technical_exclusions=receipt['unknowntechnical_source_candidate_rows'],original_full_projection_exclusions=dict(path=str(OUT/'TECHNICAL_EXCLUSIONS.json'),sha256=sha(OUT/'TECHNICAL_EXCLUSIONS.json'),row_count=initial['technical_exclusions']),original_source_projection_draft=dict(path=str(REPAIR_OUT/'MANIFEST.json'),sha256=sha(REPAIR_OUT/'MANIFEST.json')),unknown_historical_model_candidate_labels=receipt['unknown_historical_model_candidate_labels'],metadata_finalized_without_source_recompute=True)
+    m['source_code_sha256'][str(Path(__file__))]=sha(__file__)
+    m['methodology_clarifications']={str(REPAIR/name):sha(REPAIR/name) for name in ['DATAWRITER_SCOPE_ADDENDUM.json','DATE_POLICY_CLARIFICATION.json','TECHNICAL_ROW_POLICY_CLARIFICATION.json']}
+    mp=REPAIR_OUT/'MANIFEST_FINAL.json';save(mp,m)
+    receipt.update(manifest=dict(path=str(mp),sha256=sha(mp)),adapter_sha256=sha(__file__),dictionary=dict(path=str(dp),sha256=sha(dp)),final_source_data_changed=False,metadata_only_finalization=True)
+    save(REPAIR_OUT/'AUTHOR_RECEIPT_FINAL.json',receipt);return receipt
 
 def engines():
     if str(OLD) not in sys.path:sys.path.insert(0,str(OLD))
@@ -365,8 +626,12 @@ def assemble():
     save(OUT/'MANIFEST.json',manifest);return {k:manifest[k] for k in ('candidate_rows','truth_rows','eligible_dates','technical_exclusions','semantic_ready')}
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('phase',choices=['sources','canary','full','assemble','date-policy']);p.add_argument('--start-event-sha',required=True);args=p.parse_args();start_gate(args.start_event_sha)
-    if args.phase=='date-policy':r=materialize_date_policy()
+    p=argparse.ArgumentParser();p.add_argument('phase',choices=['sources','canary','full','assemble','date-policy','repair-canary','repair-project']);p.add_argument('--start-event-sha',required=True);args=p.parse_args()
+    if args.phase.startswith('repair-'):repair_start_gate(args.start_event_sha)
+    else:start_gate(args.start_event_sha)
+    if args.phase=='repair-canary':r=repair_canary()
+    elif args.phase=='repair-project':r=repair_project()
+    elif args.phase=='date-policy':r=materialize_date_policy()
     elif args.phase=='sources':r=source_materialize();save(OUT/'SOURCE_RECEIPT.json',r)
     elif args.phase in {'canary','full'}:r=run_technical(args.phase)
     else:r=assemble()

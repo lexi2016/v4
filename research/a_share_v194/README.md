@@ -116,3 +116,57 @@ are historical and are retained without being passed off as future predictions.
 
 Full training reruns need fresh execution IDs and a new output directory; do
 not replay completed IDs or repeat accepted fits just to inspect results.
+
+## Source repair R1 (2026-10-24)
+
+The new repaired dataset and actual run are under the local research directory
+`a_share_v194_20261023/repair_r1_20261024/`. Frozen parameters,11technical
+features, label basis, Top50 and effect gates are unchanged. The retained model
+candidate view grew48618->67878; full raw union68043 retains165technical-unknown
+keys. Unknown retained historical labels212 (including old95) cause whole-date
+label exclusions;35eligible dates become30,15initial train+15OOF.
+
+The actual comparator is **TECHNICAL11_L2_TOP50**, not raw192 natural selections.
+Its15OOF hits are66/750 versus94/750 for V194_SOURCE_L2_TOP50; common49/new45/
+lost17, mean paired delta1.8666667, block95%CI[0.0666667,3.3333333].15<20OOF
+means CANNOT_CONFIRM_INSUFFICIENT_OOF_DATES: effect gate remainsfalse and no
+promotion. Actual8fits=2canary+4remainingOOF+2refits; firstfold reused.
+Input independent receiptaf080a93e263ca8e510067ed30674935d2fa7e98d079a9a7483078033c0c80fe
+and actual reviewe4d179642c96aaba86ff811ed4bd0ef5083866a5d6bdcc33c6c4e5b577959cba
+are persisted locally.19465 saved candidate probabilities and all15Top50 sets
+change. Source coefficients are nonzero3/3/9 byfold; early fupan/Stage7 training
+remainsunknown, so the overall lift is not a per-source causal attribution.
+
+Three-source hit rows differ by scope(all56/eligible30/OOF15):
+fupan569/264/264; Stage7109/49/49; research24542/11259/7883. Separate original
+pool membership, raw publication mention and report-subject qualification;
+subjectfalse does not become an admission filter. Unbound pools/placeholders
+stayunknown; undeclared collector compatibility remainsdistinct. Remaining date
+and reason tables are linked in local REPORT.md and SOURCE_GAP_SUMMARY.json.
+
+The current delivery dictionary is `CURRENT_DATA_DICTIONARY_CORRECTED.json`,
+pointing to actual new `inputs/DATE_POLICY.json`; its immutable parent and
+reference-only correction are in METADATA_REFERENCE_CORRECTION.json. Original
+training input and43run artifacts are unchanged. `RUNTIME_INPUT_MANIFEST_V2.json`
+is only a schema-name projection of final repairedmanifest e5f57acb6e5555f3a08e8e76387b427bf50d57eb57560f6f80de2dda9594bfcf;
+no data/PIT/feature gate is relaxed. Use this manifest and a fresh output/ID for
+future authorized reruns; do not replay completed IDs.
+
+`extract_source_effect.py` describes saved fold states/coefficients/predictions
+without fit. `daily_top100_report.py` exports the existing outcomeTop100 and
+raw-field/L2 membership, never recalculating labels. Canonical local scripts are
+in repair_r1_20261024; necessary source-only copies are synchronized byRoot.
+Downloadable local derived_daily files include DAILY_TOP100_MEMBERSHIP.csv,
+DAILY_MODEL_COUNTS.csv, DAILY_RAW192_NATURAL.csv and bothmodel Top50 CSVs.
+The1535natural keys/61hits are **冻结tech_192投影（原公式身份另核）**: no TopN/no
+fill and no certified Windows realtime192 identity. This is distinct from both
+L2 models. No bound names exist; names are blank. Daily parity receipt
+5e2a3a10f05534b7750d2dd812aa71f121c87b63b32c1f64fcdf24d167fe464c verifies these
+exports without repeating training. New export/review ceiling4threads does not
+change the past8fits'2thread setting.
+
+Current work uses an isolated sklearn module/shared data/official registry;
+it has not invoked the existing FactorFactory long-history generation/training
+pipeline. A separate read-only long-history authority and192identity preflight
+must bind those existing entrypoints before long-history computation. No new
+producer, services, UI, scheduler, sealed/live or trading acceptance is implied.
