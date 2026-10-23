@@ -1,0 +1,124 @@
+{
+  "status": "R1_FAILED_R2_PREPARED_NOT_EXECUTED",
+  "prior_verdict": "FAIL_VERIFIER_ASSERTION",
+  "prior_exit_code": 1,
+  "prior_verdict_sha256": "15ba4cf2f233c54fb7a97c48cbee8ec0d3b0d74b1e0579ba515913f65d4262a9",
+  "prior_verifier_sha256": "e907064120b86cb86833d110e1d0c6dbd1a33d3d7b9827b1734ae2526f1b7857",
+  "r1_archived_verifier_sha256": "e907064120b86cb86833d110e1d0c6dbd1a33d3d7b9827b1734ae2526f1b7857",
+  "r2_verifier_sha256": "54d159a3311ab546bf639fcb157fd822153a8326897c6e504d6546a6ab065801",
+  "signals_seal_sha256": "8311fa13d9281cda93fdbab248272beb0b1eca3efd091de26cb6bfc854104c4f",
+  "original_report_sha256": "47902e3857a26b50b2a7cd136e7676630ebe029e29d0d8da75e82cda06a1f1d9",
+  "metadata_only_compact_counts": [
+    {
+      "selection_date": "20261016",
+      "ledger_securities": 5533,
+      "long_rows": 55270,
+      "securities_without_expanded_rules": 6,
+      "omitted_rule_rows": 60,
+      "omitted_reasons": {
+        "EXACT_SIGNAL_BAR_MISSING_NO_DATE_SUBSTITUTION": 4,
+        "SOURCE_UNKNOWN:ARCHIVE_FULL_HISTORY_VALIDATION_FAILED": 1,
+        "SOURCE_UNKNOWN:CONSUMER_HLCV_DATE_OR_EVENT_CONTINUITY_UNAVAILABLE": 1
+      },
+      "omitted_codes": [
+        "002388.SZ",
+        "300773.SZ",
+        "301139.SZ",
+        "600293.SH",
+        "600825.SH",
+        "603007.SH"
+      ]
+    },
+    {
+      "selection_date": "20261019",
+      "ledger_securities": 5533,
+      "long_rows": 55280,
+      "securities_without_expanded_rules": 5,
+      "omitted_rule_rows": 50,
+      "omitted_reasons": {
+        "EXACT_SIGNAL_BAR_MISSING_NO_DATE_SUBSTITUTION": 3,
+        "SOURCE_UNKNOWN:ARCHIVE_FULL_HISTORY_VALIDATION_FAILED": 1,
+        "SOURCE_UNKNOWN:CONSUMER_HLCV_DATE_OR_EVENT_CONTINUITY_UNAVAILABLE": 1
+      },
+      "omitted_codes": [
+        "002388.SZ",
+        "300773.SZ",
+        "301139.SZ",
+        "600293.SH",
+        "603007.SH"
+      ]
+    },
+    {
+      "selection_date": "20261020",
+      "ledger_securities": 5533,
+      "long_rows": 55260,
+      "securities_without_expanded_rules": 7,
+      "omitted_rule_rows": 70,
+      "omitted_reasons": {
+        "EXACT_SIGNAL_BAR_MISSING_NO_DATE_SUBSTITUTION": 5,
+        "SOURCE_UNKNOWN:ARCHIVE_FULL_HISTORY_VALIDATION_FAILED": 1,
+        "SOURCE_UNKNOWN:CONSUMER_HLCV_DATE_OR_EVENT_CONTINUITY_UNAVAILABLE": 1
+      },
+      "omitted_codes": [
+        "002388.SZ",
+        "301139.SZ",
+        "600293.SH",
+        "603007.SH",
+        "603517.SH",
+        "603759.SH",
+        "603838.SH"
+      ]
+    },
+    {
+      "selection_date": "20261021",
+      "ledger_securities": 5533,
+      "long_rows": 55300,
+      "securities_without_expanded_rules": 3,
+      "omitted_rule_rows": 30,
+      "omitted_reasons": {
+        "EXACT_SIGNAL_BAR_MISSING_NO_DATE_SUBSTITUTION": 1,
+        "SOURCE_UNKNOWN:ARCHIVE_FULL_HISTORY_VALIDATION_FAILED": 1,
+        "SOURCE_UNKNOWN:CONSUMER_HLCV_DATE_OR_EVENT_CONTINUITY_UNAVAILABLE": 1
+      },
+      "omitted_codes": [
+        "002388.SZ",
+        "301139.SZ",
+        "603007.SH"
+      ]
+    },
+    {
+      "selection_date": "20261022",
+      "ledger_securities": 5533,
+      "long_rows": 55300,
+      "securities_without_expanded_rules": 3,
+      "omitted_rule_rows": 30,
+      "omitted_reasons": {
+        "EXACT_SIGNAL_BAR_MISSING_NO_DATE_SUBSTITUTION": 1,
+        "SOURCE_UNKNOWN:ARCHIVE_FULL_HISTORY_VALIDATION_FAILED": 1,
+        "SOURCE_UNKNOWN:CONSUMER_HLCV_DATE_OR_EVENT_CONTINUITY_UNAVAILABLE": 1
+      },
+      "omitted_codes": [
+        "002388.SZ",
+        "301139.SZ",
+        "603007.SH"
+      ]
+    },
+    {
+      "selection_date": "20261023",
+      "ledger_securities": 5533,
+      "long_rows": 55330,
+      "securities_without_expanded_rules": 0,
+      "omitted_rule_rows": 0,
+      "omitted_reasons": {},
+      "omitted_codes": []
+    }
+  ],
+  "regression_planned": "Actual002388.SZ/selection20261016 valid UNKNOWN with bound source date-key absence; changed-to-NO/unexplained reason/incomplete unknown rules/present signal key must reject; root Reviewer executes",
+  "model_recalculations_by_writer": 0,
+  "final_verifier_executions_by_writer": 0,
+  "final_receipt_reference": "independent_review_r2/INDEPENDENT_VERIFIER_RECEIPT.json (not yet created)",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

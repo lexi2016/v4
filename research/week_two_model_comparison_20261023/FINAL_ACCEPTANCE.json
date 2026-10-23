@@ -1,0 +1,97 @@
+{
+  "schema": "WEEK_TWO_MODEL_FINAL_ACCEPTANCE_V1",
+  "status": "TESTED_BEHAVIOR_VERIFIED_SCOPED_RESEARCH_COMPARISON",
+  "verdict": "PASS_SCOPED_RESEARCH_COMPARISON_WITH_EXPLICIT_LIMITATIONS",
+  "review_round": 2,
+  "R1_preserved_verdict": "FAIL_VERIFIER_ASSERTION",
+  "R1_receipt_sha256": "15ba4cf2f233c54fb7a97c48cbee8ec0d3b0d74b1e0579ba515913f65d4262a9",
+  "review_receipt_reference": "independent_review_r2/INDEPENDENT_VERIFIER_RECEIPT.json",
+  "review_receipt_sha256": "461a85d01dc1038cd23ab19c44a165d6602775aa1c8e8ee756356cddd9810151",
+  "review_contract_sha256": "ed1a3e03ed4a7b0bafedb9c86270ba288f28f3f2f5a3908ec94a3568e048da4d",
+  "review_terminal_event_sha256": "d62256005ef0a26fef5e6a024ea80b4ca7db03e8eee79279a7732742eb60d93c",
+  "review_terminal_registry_receipt_reference": "WEEK_FINAL_REVIEW_R2_PASS_REGISTRY_RECEIPT.json",
+  "signals_seal_sha256": "8311fa13d9281cda93fdbab248272beb0b1eca3efd091de26cb6bfc854104c4f",
+  "result_receipt_sha256": "5bd29b7e8391924d427df4878a2570b5d9a0f046b30758fff4511e822ef316f9",
+  "original_report_sha256": "47902e3857a26b50b2a7cd136e7676630ebe029e29d0d8da75e82cda06a1f1d9",
+  "scope": "Unchanged original255 formula A versus unchanged ten-route formula B on existing5533-code research pool; previous-session signals, main20261016/19/20/21/22 and D23 candidates; descriptive openbook research only",
+  "counts": {
+    "model_a_main_candidates": 299,
+    "model_b_main_candidates": 3894,
+    "model_a_main_top100_hits": 17,
+    "model_b_main_top100_hits": 113,
+    "common_hits": 17,
+    "a_exclusive_hits": 0,
+    "b_exclusive_hits": 96,
+    "confirmed_common_misses": 387,
+    "top100_unknown_impact": 0,
+    "main_benchmark_rows": 500,
+    "full_code_dates": 33198,
+    "full_two_model_ledger_rows": 66396,
+    "D23_a_candidates": 7,
+    "D23_b_candidates": 204
+  },
+  "independent_validation": {
+    "command_exit": 0,
+    "actual_R2_runs": 1,
+    "seconds": 13.11489204200916,
+    "sample_source_codes": 30,
+    "sample_model_code_dates": 175,
+    "cutoff_negative_cases": 350,
+    "actual002388_regression": true,
+    "compact_unknown_negative_cases": 4,
+    "D23_b_reused_codes": 5533,
+    "full_pool_ranking_and_join_rows": 500,
+    "report_and_result_daily_totals_parity": "ROOT_CONSUMED_INDEPENDENT_REVIEWER_READBACK",
+    "full33198_model_rerun": false
+  },
+  "effective_output_scope_note": {
+    "contract_field_inconsistency": true,
+    "contract_review_output": "/Users/lexi/Desktop/学习/因子工厂/research/week_two_model_comparison_20261023/independent_review_r2",
+    "effective_output_scope": "/Users/lexi/Desktop/学习/因子工厂/research/week_two_model_comparison_20261023/independent_review_r2",
+    "effective_output_scope_source": "ROOT unique controller capsule explicitly authorized independent_review_r2 before the R2 run; ROOT final acceptance instruction attests this effective scope",
+    "evidence_level": "TRUSTED_ROOT_CONTROLLER_ATTESTATION_PLUS_FROZEN_REVIEW_OUTPUT_AND_START_BINDING",
+    "future_prevention": "Before any later review, freeze ALLOWED_PATHS consistently with review_output",
+    "original_ALLOWED_PATHS": [
+      "/Users/lexi/Desktop/学习/因子工厂/research/week_two_model_comparison_20261023/independent_review"
+    ],
+    "resolution": "Append-only disclosure; old contract untouched; no out-of-effective-scope write established; no new follow-on review for this completed scope"
+  },
+  "registry": {
+    "path_reference": "contracts/EXPERIMENT_REGISTRY.jsonl",
+    "sha256": "3f3acb14fe1a3e64f16eade7527a71f3121748c0de7f77035c73bf68c5ba5749",
+    "scope_counts": {
+      "routes": 1,
+      "events": 26,
+      "executions": 6,
+      "corrections": 0
+    },
+    "global_counts": {
+      "routes": 426,
+      "events": 4516,
+      "executions": 1399,
+      "corrections": 122
+    },
+    "scope_open_executions": [],
+    "scope_unregistered_route_count": 0,
+    "scope_contract_only_count": 0,
+    "global_unregistered_route_count": null,
+    "global_contract_only_count": null,
+    "count_gap_reason": "NOT_A_GLOBAL_DISCOVERY_AUDIT",
+    "external_registry_persistence": "CANNOT_CONFIRM"
+  },
+  "limitations": [
+    "Existing research-pool ranking is not certified historical all-A universe or ranking",
+    "Historical qualification/alias timing/source publication/revision/available_at/PIT CANNOT_CONFIRM",
+    "Full-market cross-vendor open/amount/volume value and unit parity not certified",
+    "D23 benchmark CANNOT_CONFIRM:NO_D23_BENCHMARK; authority maxD22",
+    "Original318 recovery incomplete; explicit dispositions retained",
+    "Compact longtables omit unavailable sources or exact signal bars; complete ledger preserves UNKNOWN and all10 unknown_rules",
+    "Openbook descriptive research with admitted diagnostic price exposure; no blind-forecast/breakthrough/production promotion",
+    "D23 repaired research V192=7 and old RAW5494=5 are different basis/window/source-state, without single-cause attribution"
+  ],
+  "remote_status_as_of_acceptance": "NOT_SYNCED_PENDING_ROOT_CAS; future local SYNC_RECEIPT is separate and will not mutate this accepted payload",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
