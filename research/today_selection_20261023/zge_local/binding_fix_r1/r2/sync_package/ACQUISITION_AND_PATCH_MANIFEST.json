@@ -1,0 +1,192 @@
+{
+  "repository": "lexi2016/zge-trading",
+  "fixed_commit": "8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf",
+  "source_prefix": "research/20261023/optimized/source",
+  "original_snapshots_uploaded": false,
+  "upstream_sources": {
+    "modules/simulator/signal_filter.py": {
+      "git_blob_sha1": "3fefbfff3064e8a5f6e08a6b4ed1250c0ba7c742",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/simulator/signal_filter.py",
+      "sha256": "9d0a20edc5510853ed9892329a9998420767a37b247004fc6a532738d2209917"
+    },
+    "modules/simulator/__init__.py": {
+      "git_blob_sha1": "676d010c72d89b57ec4023f879f2095be6581456",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/simulator/__init__.py",
+      "sha256": "ad4d7919bce275d59af92afdb8387f1a1d15f6a6ff8c3fee21ef3a472e3ca67d"
+    },
+    "modules/simulator/strategy_adapter.py": {
+      "git_blob_sha1": "8238684ae7ec598316444b4ac2e3406a7514f480",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/simulator/strategy_adapter.py",
+      "sha256": "17d8cf6206505ca64697e17461d35f6e56ffd878a9cc0535f3255654b8460ecd"
+    },
+    "modules/simulator/simulator.py": {
+      "git_blob_sha1": "0a234e42de8a0e1fe0e83b548dcf58ebe857006a",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/simulator/simulator.py",
+      "sha256": "02cccfc92001a0caa6424778e6ca4327674680262d42663415276f837312164a"
+    },
+    "modules/strategies/core.py": {
+      "git_blob_sha1": "7b712193ab38f0c2ee63d05f3ae92a23fe914ae5",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/strategies/core.py",
+      "sha256": "90388ec487e9269befedd951132e76dea6cad2f7cd0069fa4990595494c037ee"
+    },
+    "modules/datasource.py": {
+      "git_blob_sha1": "75257bb4fcd9dfe767fadce0365cf4e1e18c6503",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/datasource.py",
+      "sha256": "8d1f1e21a69fbaff084625363f5c39b5f0289eda1dd88a6ef661115b3611df69"
+    },
+    "modules/strategies/__init__.py": {
+      "git_blob_sha1": "33de11cd841a62f5152c01bd67dd38b169c2b213",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/strategies/__init__.py",
+      "sha256": "51c83c4d6905adbe0939899ae31814dc450585c3f86045e386933d578e52182b"
+    },
+    "modules/strategies/compound_strategies.py": {
+      "git_blob_sha1": "bfa5592d066aabe46ec5f972d0a7ccce3e12ed75",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/strategies/compound_strategies.py",
+      "sha256": "014e2c7cd992aef0167e7cf6fff099f79c09a5d7d33c9f3961b2e393c1b448aa"
+    },
+    "modules/strategies/sell_signals.py": {
+      "git_blob_sha1": "a7cbd805070786844b4cf900d008138b449fd78e",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/strategies/sell_signals.py",
+      "sha256": "ac0a5216aa0c9ac14dcf9487854961ea5c3166c6ce6e53a2ef35dd0e467445d4"
+    },
+    "modules/strategies/b1_b2.py": {
+      "git_blob_sha1": "17a4b3ad20aa30b5afdbb2d5e15468fc4ca87d27",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/strategies/b1_b2.py",
+      "sha256": "b7164e55f2e4831e908f32f682f0e6d984962d8709e640be566881d482c02c5d"
+    },
+    "modules/simulator/resonance_scorer.py": {
+      "git_blob_sha1": "29016260a9acced2f1d2c345715b92af0a93b4ed",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/simulator/resonance_scorer.py",
+      "sha256": "d376d7ced54729f05f421b0a4abd8f72d09580a2aadde5167fa775fc90c2851d"
+    },
+    "modules/simulator/environment_weights.py": {
+      "git_blob_sha1": "aab347b5925c8e1824aa274206fb5e4252ad5db4",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/simulator/environment_weights.py",
+      "sha256": "9d58ee19061e76ce281690772987aa6f9e79b24af9ab8c894f6241d9a009fe93"
+    },
+    "modules/self_optimizer/param_registry.py": {
+      "git_blob_sha1": "606f0ff5a3b2e671fdc5d4f9de679d0ef7217c0e",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/self_optimizer/param_registry.py",
+      "sha256": "89ac4a9abe0320ead6992a8e24fd7b0e9a21268eef40434e6d309456fb7a2c7e"
+    },
+    "modules/core/market_context.py": {
+      "git_blob_sha1": "d610c196099eeabb31722072758735904fdc9883",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/core/market_context.py",
+      "sha256": "fb05da29820ab6c1156be182c9c56142b549aa12607e5f0f8a42cad5e8e656d0"
+    },
+    "modules/constants.py": {
+      "git_blob_sha1": "80a89806ea7f01832f984af03090b40d00cf7eab",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/constants.py",
+      "sha256": "94a2c5c799c769dde01416544d7b675e679212cbb4688f1ad35f377b4bbf5278"
+    },
+    "modules/strategies/base_strategies.py": {
+      "git_blob_sha1": "a16335d0f148230893e12c1b613d54bd7c8a317f",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/strategies/base_strategies.py",
+      "sha256": "3d6c2fe4b3c7fcabb4c81b72fc39b536ec1e82f6c0a0a60010e71835740c04dc"
+    }
+  },
+  "indicator_test_dependencies": {
+    "modules/indicators/core.py": {
+      "git_blob_sha1": "54e00a7196697e0eff77784cf4cfa195212a5e3d",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/core.py",
+      "sha256": "8f003ba0d865b7f976886c50c6def47d4d2d1a9d3518b10ed4495a579e597287"
+    },
+    "modules/indicators/price_patterns/key_candles.py": {
+      "git_blob_sha1": "da184ada1db973e55cf2429b4d5ea40680c2fdcf",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/key_candles.py",
+      "sha256": "65284f984d5f10501c42f9d9a71f5b8ec19edc0c3f57cb6d800950e7139f5057"
+    },
+    "modules/screener/engine.py": {
+      "git_blob_sha1": "31c0b95c2fa1c981ff51c4a9c956130633247d1f",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/screener/engine.py",
+      "sha256": "5f566e2347b253b64c585510bd20019e16c5ced11ac7780d09d11c4c35543272"
+    },
+    "modules/screener/scoring.py": {
+      "git_blob_sha1": "151644d5f44dbfce23216fc548ba5459be8833d6",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/screener/scoring.py",
+      "sha256": "4ee0c9fde0f2b160d065ec00b0ff7e0b24122d89808d66a35a2c38e2ffd01535"
+    },
+    "modules/screener/models.py": {
+      "git_blob_sha1": "352e7cfd2f68119ebe51b0a103f287b89f23e38b",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/screener/models.py",
+      "sha256": "3448255e30f357590d80d58355c714bb26c069846d3f6dda802425e8ebc810c6"
+    },
+    "modules/screener/criteria.py": {
+      "git_blob_sha1": "4219fc4cdfa8f665b27e16f650d76c3b8f4cccf5",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/screener/criteria.py",
+      "sha256": "35a31e10c5451c880c1280b1e0fc285bcc98313f964aa3cac42ba27de31cbc48"
+    },
+    "modules/indicators/__init__.py": {
+      "git_blob_sha1": "3456a2899dfcbf1e77e6a9feb4db0857b0c6d631",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/__init__.py",
+      "sha256": "b316101618a96bc11c1916ee7330f37ac0701bde51ab20a8b3e9d34880d8389f"
+    },
+    "modules/cli_commands/screen.py": {
+      "git_blob_sha1": "8050ff313ffe8372441455cda2a5b68971166ab9",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/cli_commands/screen.py",
+      "sha256": "3bb22fe03e37b461f760b57d6563ecd86c1f026c9c44ee193dbda24c7d66affe"
+    },
+    "modules/indicators/volume_patterns.py": {
+      "git_blob_sha1": "9298831b523f7fff4e794e0e61fd7f47d23a976b",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/volume_patterns.py",
+      "sha256": "42141485be6b9f55ca6cf016e2160271e7d20287b2f7284f907b74c119bfc2ce"
+    },
+    "modules/indicators/wave_theory.py": {
+      "git_blob_sha1": "f1ea18452929d2db5f0208665d4d4b369779fc01",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/wave_theory.py",
+      "sha256": "417f1fe559998060516e3a295675897d357998e484701bd0ed02ec5ffa87093d"
+    },
+    "modules/indicators/kirin_detector.py": {
+      "git_blob_sha1": "a9dfbc693c911aca5db5d03cfc8c4d7f7a319853",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/kirin_detector.py",
+      "sha256": "fce412b92117a209b32406d770d9d229c1ea8229fea70503972b1baa007f3ac2"
+    },
+    "modules/indicators/price_patterns/base.py": {
+      "git_blob_sha1": "753d57fa0bdcc391f32d09af76c994087190016b",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/base.py",
+      "sha256": "999c2cb21dc24a1fec37add14a5a49e4b7ed2a5911e0149d8a54474893b7835c"
+    },
+    "modules/indicators/price_patterns/sandglass.py": {
+      "git_blob_sha1": "8a6b875d3d90c90408d7f1dced4d9159dfc288d9",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/sandglass.py",
+      "sha256": "c128eb53d0bd1cdb505405fcbd0bb964c03945d34d0af056e0207cffec4154de"
+    },
+    "modules/indicators/price_patterns/screener_helper.py": {
+      "git_blob_sha1": "deb4bba8c82817e409e8d96b0e9b860b1492b92a",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/screener_helper.py",
+      "sha256": "e27ccaea93af97729969395bb8bc3f5dc526177cdcec7496d96fb9fa3bcffefd"
+    },
+    "modules/indicators/price_patterns/bull_rope.py": {
+      "git_blob_sha1": "3baf48112b4a1b564ee2114fd552803d361df4fb",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/bull_rope.py",
+      "sha256": "78dd0b8b2097e888e409c9a2ddb4da5e807f760ecd4753af253a9c6d632f662e"
+    },
+    "modules/indicators/price_patterns/complex_patterns.py": {
+      "git_blob_sha1": "d6702740aeb020643e7052aaa9eb7979274de63c",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/complex_patterns.py",
+      "sha256": "2c640ded837f5b091ebb5fdba6c8b0235a6c41a09985934cf27c740bceffb517"
+    },
+    "modules/indicators/price_patterns/brick.py": {
+      "git_blob_sha1": "a2d04cfd499a0f2cfd2878ad01034a64778791bd",
+      "url": "https://github.com/lexi2016/zge-trading/blob/8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf/research/20261023/optimized/source/modules/indicators/price_patterns/brick.py",
+      "sha256": "a87ed7f6025387b6c1977d27ff0662bce0ed4f97b3360bc86a004cf83292401e"
+    }
+  },
+  "modified_upstream_files": {
+    "modules/simulator/__init__.py": {
+      "original_sha256": "ad4d7919bce275d59af92afdb8387f1a1d15f6a6ff8c3fee21ef3a472e3ca67d",
+      "patched_sha256": "bbb715640b46031e5db72b93525d95cd533742993cb8ec738caf2a4d7f714433"
+    },
+    "modules/simulator/signal_filter.py": {
+      "original_sha256": "9d0a20edc5510853ed9892329a9998420767a37b247004fc6a532738d2209917",
+      "patched_sha256": "5458ddd428e82477e47554a3bd6c246107411746b2c8ef818fb089d759fdd16e"
+    },
+    "modules/simulator/simulator.py": {
+      "original_sha256": "02cccfc92001a0caa6424778e6ca4327674680262d42663415276f837312164a",
+      "patched_sha256": "c70a72a7d03e2b769d2d1fa21621ce90dd4c1d7233251424222a426a6f3b5e49"
+    }
+  },
+  "new_helper_sha256": "9fbc0e604e9a9815615026560cb987198d5a0cabcf88f08badf3ba0cdee42dc7",
+  "patch_sha256": "2c696d0865a5c6d067219e8351eb3b66e6e54cd0a5da1bb4e4a95a370056e7a5",
+  "b1_rule_changed": false
+}

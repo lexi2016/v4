@@ -1,0 +1,112 @@
+--- a/modules/simulator/__init__.py
++++ b/modules/simulator/__init__.py
+@@ -105,6 +105,7 @@
+     warnings: list[str]
+     verdict: SignalVerdict = SignalVerdict.NO_SIGNAL
+     resonance: ResonanceScore | None = None
++    input_binding: dict[str, Any] | None = None
+ 
+ 
+ @dataclass
+--- a/modules/simulator/signal_filter.py
++++ b/modules/simulator/signal_filter.py
+@@ -11,6 +11,8 @@
+ from __future__ import annotations
+ 
+ import logging
++
++from .input_binding import ResonanceInputBinding, prepare_resonance_input
+ 
+ from ..screener import StockScore, analyze_stock
+ from ..datasource import DataSource, get_datasource
+@@ -98,9 +100,11 @@
+     klines: list[DailyData],
+     context: MarketContext | None,
+     config: SimulationConfig,
++    input_binding: ResonanceInputBinding | None = None,
+ ) -> SignalScore:
+     """resonance 模式：使用 modules.strategies 检测战法并计算共振分。"""
+-    raw_signals = adapt(detect_all_strategies(ts_code, days=120))
++    rows, bound_identity = prepare_resonance_input(ts_code, trade_date, klines, context, config, input_binding)
++    raw_signals = adapt(detect_all_strategies(ts_code, days=120, klines=rows))
+     recent = filter_by_date(raw_signals, trade_date, config.strategy_lookback_days)
+     recent = deduplicate(recent)
+ 
+@@ -122,7 +126,7 @@
+     # 将 resonance.total_score 映射到 0-100
+     mapped_score = max(0.0, min(100.0, resonance.total_score * 50 + 50))
+ 
+-    return SignalScore(
++    result = SignalScore(
+         ts_code=ts_code,
+         name=name,
+         date=trade_date,
+@@ -136,7 +140,9 @@
+         warnings=resonance.conflicts,
+         verdict=resonance.verdict,
+         resonance=resonance,
++        input_binding=bound_identity,
+     )
++    return result
+ 
+ 
+ def evaluate_stock(
+@@ -146,6 +152,8 @@
+     datasource: DataSource | None = None,
+     config: SimulationConfig | None = None,
+     context: MarketContext | None = None,
++    *,
++    input_binding: ResonanceInputBinding | None = None,
+ ) -> SignalScore:
+     """
+     评估单只股票在某交易日的信号质量。
+@@ -164,7 +172,7 @@
+     config = config or SimulationConfig()
+ 
+     if config.strategy_mode == "resonance":
+-        return _evaluate_resonance(ts_code, trade_date, ts_code, klines or [], context, config)
++        return _evaluate_resonance(ts_code, trade_date, ts_code, klines, context, config, input_binding)
+ 
+     # simple 模式保持 v0.2 原逻辑
+     ds = datasource or get_datasource()
+--- a/modules/simulator/simulator.py
++++ b/modules/simulator/simulator.py
+@@ -43,6 +43,7 @@
+ from .market_context import get_market_context, max_positions_allowed, precompute_market_contexts
+ from .position_sizer import build_position
+ from .signal_filter import filter_signals, evaluate_stock
++from .input_binding import InputBindingError, evaluate_signal_window
+ from .metrics import calculate_metrics
+ from ..core.metrics import TRADING_DAYS_PER_YEAR, compute_drawdown, compute_sharpe, daily_returns
+ from modules.core.errors import ErrorCode, ZettarancError
+@@ -278,6 +279,8 @@
+     datasource: DataSource | None = None,
+     start_date: str | None = None,
+     end_date: str | None = None,
++    *,
++    input_bindings: dict | None = None,
+ ) -> SimulationResult:
+     """
+     运行少女/少妇模拟器回测。
+@@ -298,6 +301,8 @@
+         ZettarancError(SIMULATOR_NO_KLINES): 全部候选股票都拿不到 K 线
+     """
+     config = config or SimulationConfig()
++    if config.strategy_mode == "resonance" and (datasource is None or not input_bindings):
++        raise InputBindingError("EXPLICIT_DATASOURCE_AND_INPUT_BINDINGS_REQUIRED")
+     ds = datasource or get_datasource()
+ 
+     # v3.10.4: 配置合法性校验
+@@ -386,7 +391,11 @@
+             if len(signal_window) < 60:
+                 continue
+             signal_date = signal_window[-1].trade_date
+-            sig = evaluate_stock(code, signal_date, klines=signal_window, datasource=ds, config=config, context=context)
++            if config.strategy_mode == "resonance":
++                binding = input_bindings.get((code, signal_date, date))
++                sig = evaluate_signal_window(code, signal_window, date, market_contexts, config, binding)
++            else:
++                sig = evaluate_stock(code, signal_date, klines=signal_window, datasource=ds, config=config, context=context)
+             if sig.verdict == SignalVerdict.PASS:
+                 candidates.append(sig)
+ 

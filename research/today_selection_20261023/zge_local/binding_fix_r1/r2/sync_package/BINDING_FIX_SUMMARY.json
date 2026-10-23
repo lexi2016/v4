@@ -1,0 +1,83 @@
+{
+  "status": "PASS_LOCAL_REAL_CANARY_ONLY",
+  "source_repository": "lexi2016/zge-trading",
+  "source_commit": "8b9c68ffbd18f44aa2a56b24d3f6e9979c340bdf",
+  "scope": "Isolated resonance source-to-window binding, serializable identity and direct caller context boundary",
+  "reviewer": "/root/today_selection_review",
+  "reviewer_role": "market-data-lineage-auditor",
+  "execution_id": "ZGE_BINDING_R2_REAL_REVIEW_20261023_06",
+  "independent_review_receipt_sha256": "ff1c511eb9536949a72e2bd73d58444abc2e14cf407c8195024ac9f3b411c686",
+  "verification": {
+    "real_symbols": 3,
+    "window_rows_per_symbol": 120,
+    "invalid_cases_rejected_before_detector": 15,
+    "future_append_invariant": true,
+    "input_unchanged": true,
+    "native_detector_explicit_window_signal_parity": true,
+    "identity_serializable": true,
+    "frozen_source_sha_count": 52
+  },
+  "input_manifest_sha256": "402dc4952ac3db4c6ca684618fcd8550df51642bb1ea717fa16e7b5770ea1e08",
+  "local_sample_artifact_sha256": "dbe550fcc8161f13fbc0b96a128bf847ec895fbfa4659b780d20f80cf88af11a",
+  "sample_data_uploaded": false,
+  "source_panel_sha_policy": "Reuse same-turn owner binding full SHA with unchanged inode/size/mtime; no new full-file panel hash or full-market certification",
+  "symbols": [
+    {
+      "code": "600000.SH",
+      "rows": 120,
+      "signal_date": "20261022",
+      "window_sha256": "985d4426ac9443cd0b530b678957fd6cdcee9b00a61abee14919ab1b0d9e5a05",
+      "native_signal_count": 20,
+      "native_signal_sha256": "2c37111067e814cc19febab5fe867791570673f4609120d51fe9ae48ffc46cd3"
+    },
+    {
+      "code": "000001.SZ",
+      "rows": 120,
+      "signal_date": "20261022",
+      "window_sha256": "6cd92fc82146008220afdf1edf404a6bafb001cf08248180b5545fe80ad82420",
+      "native_signal_count": 21,
+      "native_signal_sha256": "79a8ef1d06b9ffe73ee58896b3083e7363329a0fd4bfe7c9420564e63e988b0e"
+    },
+    {
+      "code": "920000.BJ",
+      "rows": 120,
+      "signal_date": "20261022",
+      "window_sha256": "11f3d90e8741f943cc1a16e72dd8a25128cf516438ff61c5e6e862b615342f1b",
+      "native_signal_count": 22,
+      "native_signal_sha256": "36b5fd977d18ee3b190e4fa821ead9e95a965f5ec2f2694c25769aa325cc03fc"
+    }
+  ],
+  "prior_results": [
+    "R1 REQUIRES_REPAIR with six synthetic local checks PASS",
+    "R2 first test native Enum JSON serializer failure"
+  ],
+  "not_verified": [
+    "complete simulator/provider entry",
+    "all exports",
+    "B1 semantic rule or other strategy changes",
+    "four-route implementation",
+    "V4 live integration",
+    "all-pool selection",
+    "backtest/model effectiveness"
+  ],
+  "registry_terminal_event_sha256": "6a35e2d24cf720dfb68feba49900a3b406bc831f97e15e6435704ca69298e3d1",
+  "registry_route_event_execution_correction_counts": [
+    1,
+    12,
+    6,
+    0
+  ],
+  "registry_global_route_event_execution_correction_counts": [
+    424,
+    4120,
+    1325,
+    121
+  ],
+  "scope_open_executions": 0,
+  "remote_status": "NOT_SYNCED",
+  "deployed": false,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
