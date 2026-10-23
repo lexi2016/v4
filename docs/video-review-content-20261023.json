@@ -1,0 +1,90 @@
+{
+  "scope": "V4 video raw-content projection and evidence display",
+  "base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "branch": "codex/video-review-20261023",
+  "source_status": "REVIEWED/PASS",
+  "source_changes": [
+    {
+      "path": "domains/review_evidence_layers.py",
+      "canonical_before_sha256": "96886aa56318968625bfb57e484fde39ba267388591234fe7ed9e3f2939d77a7",
+      "after_sha256": "c9783013b3d9d1942f93a42e13703db59c8afbf2d50af865ea2d532c5a0c6c77"
+    },
+    {
+      "path": "domains/video_evidence_content.py",
+      "canonical_before_sha256": null,
+      "after_sha256": "f53f57c23db963d360b39514ab8a4d45dc49b13518ca87f13e07ab12ebd17b78"
+    },
+    {
+      "path": "tests/test_video_evidence_content.py",
+      "canonical_before_sha256": null,
+      "after_sha256": "41a7aa1e3c038835187a01bf62efdd87e31dc72f177bd7c166d870027d373023"
+    },
+    {
+      "path": "apps/web/src/components/review/AshareReviewPanel.vue",
+      "canonical_before_sha256": "c310818d19989534bda2a001b2d19240795515b11ad76a1c172ddfc36f972978",
+      "after_sha256": "edce70a70ec5506b67c1915fd46f2304a776b831873de2173ce31c9c1cc8c156"
+    },
+    {
+      "path": "apps/web/src/components/review/VideoReviewPanel.vue",
+      "canonical_before_sha256": null,
+      "after_sha256": "6dc7ada7315fe591cd450d0acb6b01a9669ba6ae2d6e19a0c35d337bfbf49f46"
+    },
+    {
+      "path": "apps/web/src/components/review/VideoReviewPanel.spec.ts",
+      "canonical_before_sha256": null,
+      "after_sha256": "0ad01c8002dc5bdea1e1991d7cc614e9e94c6301d2b62a3b7280095de7d914c2"
+    },
+    {
+      "path": "apps/web/src/components/review/videoReview.ts",
+      "canonical_before_sha256": null,
+      "after_sha256": "96ff160ddbbaf9789f6daa52af7abecc2b5b720d31eb5a88a2ca8edaa0889ad9"
+    },
+    {
+      "path": "apps/web/src/components/review/videoReview.spec.ts",
+      "canonical_before_sha256": null,
+      "after_sha256": "f7b73df08f85d53ac6ec0901ddf6b4b348176d1e5f81ffcd64bd8b88747ed1ac"
+    }
+  ],
+  "independent_checks": {
+    "initial_frontend": "69 PASS",
+    "incremental_affected_frontend": "75 PASS",
+    "backend": "59 PASS",
+    "real_asr": "56 text/time/SHA exact match",
+    "browser_baseline": "1440/390 PASS; full56; safe links; no panel overflow; date/BV isolation"
+  },
+  "test_commands": {
+    "backend": "python -m pytest -q -p no:cacheprovider --basetemp=<isolated-test-output> tests/test_review_evidence_layers.py tests/test_video_evidence_content.py",
+    "frontend": "node node_modules/vitest/vitest.mjs run src/components/review/VideoReviewPanel.spec.ts src/components/review/videoReview.spec.ts src/components/review/AshareReviewPanel.spec.ts",
+    "typecheck": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit",
+    "build": "node node_modules/vite/bin/vite.js build --outDir <isolated-build-output>"
+  },
+  "runtime": {
+    "candidate": "video-content-review-20261023-r1",
+    "candidate_manifest_sha256": "c3a1f47b372b23146cc45f2624c587b0f78ff518a83ea774848279277e79e34f",
+    "candidate_review": "REVIEWED/PASS",
+    "non_delta_entries_preserved": 1283,
+    "activation_status": "INITIAL_BOOTSTRAP_FAILED_ORIGINAL_SERVICE_RECOVERED",
+    "active_release_at_record": "us-mapping-visible-stocks-api-20261023-r2",
+    "live_api_ui": "PENDING"
+  },
+  "data_boundary": {
+    "content_status": "RAW_ASR_AVAILABLE",
+    "evidence_status": "ASR_UNVERIFIED",
+    "asr_semantic_accuracy": "CANNOT_CONFIRM",
+    "video_input_count": 0,
+    "video_augmented": false,
+    "producer_data_modified": false,
+    "scheduler_modified": false
+  },
+  "not_verified": [
+    "ASR semantic accuracy",
+    "natural-slot operation",
+    "executed rollback after successful deployment"
+  ],
+  "financial_safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
