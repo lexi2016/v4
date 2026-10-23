@@ -1,0 +1,44 @@
+{
+  "canonical_source": "/Users/lexi/Desktop/\u5b66\u4e60/v4_app",
+  "baseline": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/V4_PRESELECTION_PROVENANCE_REPAIR_20261023/writer/canonical-baseline",
+  "candidate": "/Users/lexi/Desktop/\u5b66\u4e60/agents\u8c03\u8bd5/V4_PRESELECTION_PROVENANCE_REPAIR_20261023/writer/canonical-candidate-r3",
+  "facades_modified": false,
+  "canonical_newer_hourly_pit_modified": false,
+  "paths": [
+    {
+      "path": "ops/materialize_shared_v192_preselection.py",
+      "before_sha256": "afc49544d63eab79c82bc6a24e6be6cf2c60ad3c0b832cd0ce00c07decb8e419",
+      "after_sha256": "5f0e5deb8974f3c327db60940a9fbba554ae6e67183581994521997a167fb2fa"
+    },
+    {
+      "path": "ops/materialize_scheduled_preselection.py",
+      "before_sha256": "046c4f08d08a250d44d9a6af9b9fe5ec615ad05aae268f8c1e451fbd9110a34c",
+      "after_sha256": "40be529c5c3981e72c4b68b4e4f37c24e28e39fe1f1df731087cd9f1b94a3957"
+    },
+    {
+      "path": "infrastructure/scheduling/dispatcher.py",
+      "before_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+      "after_sha256": "57d24754ef1dcf054d4b40a0e167eeba3ca92001f5fd2e3cdf87925ae5545d45"
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py",
+      "before_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+      "after_sha256": "39e7f70ba44618b4b0df6e1d0eb7bdbb3a9fe31132147818e9e728f6275c571f"
+    },
+    {
+      "path": "infrastructure/scheduling/_executor_registry_parts/research_materials.py",
+      "before_sha256": "2d835b8707f4330496170ebd9667401c11346c60165dede8d6f87213e492aa52",
+      "after_sha256": "e9244b42b5057972d8c7adf87182581ebe43f7255b62f28199a29d6f79e28a1b"
+    },
+    {
+      "path": "ops/_run_v35_macos_scheduler_parts/schedule_selection.py",
+      "before_sha256": "187311ceadb94b65a1972bee713423af416136d562c52af40c4a0a620388e7e1",
+      "after_sha256": "38ea33eb3db757e8a7d7d27ea71bcb8ef746f3b5f7b37c91754222cef8b0b709"
+    },
+    {
+      "path": "infrastructure/scheduling/input_retry_identity.py",
+      "before_sha256": null,
+      "after_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f"
+    }
+  ]
+}

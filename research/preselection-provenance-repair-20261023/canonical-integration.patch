@@ -1,0 +1,667 @@
+--- a/ops/materialize_shared_v192_preselection.py
++++ b/ops/materialize_shared_v192_preselection.py
+@@ -29,7 +29,8 @@
+     args = parser.parse_args(argv)
+     package_root = Path(os.environ["V35_SHARED_PACKAGE_ROOT"])
+     store_root = Path(os.environ["V3_SHARED_DATA_STORE_ROOT"])
+-    panel = Path(os.environ["V3_SHARED_SELECTOR_READY_PANEL"])
++    panel_value = os.environ.get("V3_SHARED_SELECTOR_READY_PANEL")
++    panel = Path(panel_value) if panel_value else None
+     generation_evidence: dict[str, object] | None = None
+     if args.generation_pointer is not None:
+         try:
+@@ -113,6 +114,11 @@
+                 **existing.run.verification,
+             }
+     except StoreError:
++        if panel is None or not panel.is_file():
++            print(json.dumps({"ok": False, "status": "CANNOT_CONFIRM",
++                "failure_class": "UPSTREAM_NOT_READY", "reason": "A_V192_EXACT_INPUT_MISSING:selector panel unavailable",
++                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}, sort_keys=True))
++            return 1
+         try:
+             outcome = materialize_frozen_v192_selector(
+                 store_root,
+--- a/ops/materialize_scheduled_preselection.py
++++ b/ops/materialize_scheduled_preselection.py
+@@ -41,6 +41,86 @@
+ 
+ 
+ DEFAULT_DATA_ROOT = Path(__file__).resolve().parents[1] / ".runtime" / "data"
++
++
++def _verified_cached_formal_pool(store, pool_id, trade_date, shared_root, package_root):
++    """Verify the current shared chain and compare its complete local projection."""
++    from infrastructure.isolated_package_loader import load_isolated_package_module
++    from infrastructure.scheduling._executor_registry_parts.preselection import _hk_price_and_eligibility_dates
++    cached = store.read_pool(trade_date, pool_id)
++    validate_pool_artifact(cached)
++    if pool_id == "hkconnect_d1_top100":
++        signal, eligibility = _hk_price_and_eligibility_dates(trade_date)
++        leaf, reader_name, builder = "hk_0_2", "read_verified_hk_0_2_pool", build_shared_hk_0_2_pool
++    else:
++        from contracts.trading_calendar import load_market_calendar, previous_session
++        signal = previous_session(load_market_calendar(), trade_date, market="a_share")
++        leaf, reader_name, builder = "v192_selector", "read_verified_v192_pool", build_shared_v192_premarket_pool
++    module = load_isolated_package_module(package_root, package_directory="shared_data",
++        module_leaf=leaf, namespace_prefix="preselection_cache_verification")
++    reader_args = {"target_date": trade_date, "expected_signal_date": signal}
++    if pool_id == "hkconnect_d1_top100" and eligibility != signal:
++        reader_args["expected_eligibility_source_date"] = eligibility
++    verified = getattr(module, reader_name)(shared_root, **reader_args)
++    # The strict reader owns validation. Retain any immutable registry pins
++    # as well as optional cache duplicates; a missing cache field cannot
++    # discard a declared source-chain hash.
++    for key in ("artifact_sha256", "manifest_sha256", "receipt_sha256"):
++        if key in verified.run.latest and verified.run.latest[key] != verified.run.verification[key]:
++            raise ValueError("FORMAL_SOURCE_REGISTRY_HASH_MISMATCH:" + key)
++    if verified.run.receipt.get("status") != "READY":
++        raise ValueError("FORMAL_CACHE_SOURCE_NOT_READY")
++    extra = {"eligibility_source_date": eligibility} if pool_id == "hkconnect_d1_top100" else {}
++    fresh = builder(shared_root, trade_date=trade_date, signal_date=signal, reader=lambda *a, **k: verified, **extra)
++    if (cached.get("status") not in {"a_d1_premarket_pool": {"V192_CANDIDATE_READY"}, "hkconnect_d1_top100": {"STRICT_0_2_READY", "HK_0_2_TOP100_READY"}}[pool_id] | {"READY"}
++            or not cached.get("rows") or cached.get("stage_selection_eligible") is not True):
++        raise ValueError("FORMAL_CACHE_NOT_READY")
++    legacy_rows = fresh["rows"]
++    if pool_id == "hkconnect_d1_top100":
++        # Accept the previously reviewed builder projection too. The newer
++        # builder adds display-only name resolution and duplicate pins;
++        # neither may rewrite an immutable accepted same-source cache.
++        legacy_rows = []
++        for mapped, raw in zip(fresh["rows"], verified.rows, strict=True):
++            # Exact pinned runtime builder: preserve all authoritative raw
++            # fields (including declared name pins), then its fixed overlays.
++            row = dict(raw)
++            for key in ("symbol", "market", "pool_id", "pool_rank", "pool_score",
++                        "recommendation_status", "production_allowed", "buy_gate_updated", "orders_sent"):
++                row[key] = mapped[key]
++            row["stock_name"] = str(raw.get("name") or mapped["symbol"])
++            legacy_rows.append(row)
++    if cached.get("rows") != fresh["rows"] and cached.get("rows") != legacy_rows:
++        raise ValueError("FORMAL_CACHE_SOURCE_PROJECTION_MISMATCH:rows")
++    for field in ("pool_id", "market", "trade_date", "target_date", "signal_date",
++                  "source_role", "source_sha256", "source_run_id", "source_row_count"):
++        if cached.get(field) != fresh.get(field):
++            raise ValueError("FORMAL_CACHE_SOURCE_PROJECTION_MISMATCH:" + field)
++    for field, key in (("source_artifact_sha256", "artifact_sha256"),
++                       ("source_manifest_sha256", "manifest_sha256"),
++                       ("source_receipt_sha256", "receipt_sha256")):
++        if field in cached and cached[field] != verified.run.verification[key]:
++            raise ValueError("FORMAL_CACHE_DECLARED_HASH_MISMATCH:" + field)
++    return cached
++
++def _quarantined_research_cache(data_root: Path, trade_date: str, error: Exception) -> dict:
++    """Keep a rejected immutable cache as evidence, without rebuilding it."""
++    from infrastructure.owned_io import SafeRoot
++    root = Path(data_root)
++    reader = SafeRoot(root)
++    pool_id = "a_share_research_recommendation_pool"
++    artifact = _missing(trade_date, pool_id=pool_id, display_name="A股研报推荐股票池",
++        market="A", reason=f"A_RESEARCH_CACHE_REJECTED:{type(error).__name__}:{error}")
++    directory = root / "preselection_pools" / trade_date
++    for path in (directory / f"{pool_id}.json", directory / "manifest.json",
++                 directory / "receipts" / f"{pool_id}.json"):
++        try:
++            digest = hashlib.sha256(reader.read_bytes(str(path.relative_to(root)))).hexdigest()
++            observation = f"REJECTED_INPUT_OBSERVED_AFTER_ERROR:{path}:sha256={digest}"
++        except (OSError, ValueError) as read_error:
++            observation = f"REJECTED_INPUT_UNREADABLE:{path}:{type(read_error).__name__}"
++        artifact["cannot_confirm"].append(observation)
++    return artifact
+ 
+ 
+ def _hk_rows_match_exact_dates(
+@@ -135,10 +215,36 @@
+         required[pool_id] = {"ready": ready}
+     ready_count = sum(1 for item in required.values() if item["ready"])
+     status = "FAILED" if ready_count == 0 else "PARTIAL" if ready_count < len(required) else "READY"
+-    return {
+-        "status": status,
+-        "required": required,
+-    }
++    eligible_pools = {"A": [], "HK": []}
++    rejected_pools = []
++    for artifact in artifacts:
++        pool_id = str(artifact.get("pool_id") or "")
++        try:
++            validate_pool_artifact(artifact)
++        except (ValueError, TypeError):
++            rejected_pools.append(pool_id)
++            continue
++        publication = publication_by_id.get(pool_id, {})
++        market = artifact.get("market")
++        if (market not in eligible_pools or not artifact.get("rows")
++                or publication.get("status") in {"DEFERRED", "REJECTED"}
++                or artifact.get("status") in {"CANNOT_CONFIRM", "MISSING", "VALID_EMPTY"}
++                or artifact.get("source_role") == "EXPECTED_MISSING"
++                or artifact.get("stage_selection_eligible") is False
++                or artifact.get("source_merge_role") == "SOURCE_ONLY"
++                or (scope == "A_SHARE" and market != "A")
++                or (scope == "HK_CONNECT" and market != "HK")):
++            continue
++        if (artifact.get("source_role") == "VERIFIED_HOURLY_RESEARCH"
++                or artifact.get("stage_selection_eligible") is True
++                or artifact.get("source_role") in {"VERIFIED_D1_FUPAN_REVIEW", "VERIFIED_D1_STAGE7_REVIEW"}):
++            eligible_pools[market].append(pool_id)
++    usable = any(eligible_pools.values())
++    status = "CANNOT_CONFIRM" if not usable else "PARTIAL" if ready_count < len(required) or rejected_pools else "READY"
++    return {"status": status, "required": required, "research_ready": usable,
++        "eligible_pools_by_market": eligible_pools, "rejected_pools": rejected_pools,
++        "missing_or_invalid": [pool_id for pool_id, gate in required.items() if not gate["ready"]]}
++
+ 
+ 
+ def _hk_expected_missing_recovery_main(argv, *, hk_pool_reader=None) -> int:
+@@ -342,6 +448,12 @@
+ 
+     def build_hk_pool() -> dict:
+         try:
++            try:
++                return _verified_cached_formal_pool(PreselectionPoolStore(data_root), "hkconnect_d1_top100",
++                    hk_target_date, shared_data_root, shared_package_root)
++            except FileNotFoundError as error:
++                if error.args != ("hkconnect_d1_top100",):
++                    raise
+             return build_shared_hk_0_2_pool(
+                 shared_data_root,
+                 trade_date=hk_target_date,
+@@ -377,6 +489,15 @@
+     wechat_manifest = day / "wechat_manifest.json"
+ 
+     def build_research() -> dict:
++        try:
++            cached = PreselectionPoolStore(data_root).read_pool(trade_date, "a_share_research_recommendation_pool")
++            if (cached.get("source_role") == "VERIFIED_HOURLY_RESEARCH"
++                    and cached.get("status") == "RESEARCH_RECOMMENDATION_POOL_READY" and cached.get("rows")):
++                return cached
++        except FileNotFoundError:
++            pass
++        except (OSError, UnicodeError, ValueError) as error:
++            return _quarantined_research_cache(data_root, trade_date, error)
+         try:
+             return build_hourly_research_pool(
+                 data_root,
+@@ -407,7 +528,13 @@
+     )
+ 
+     try:
+-        a_premarket = build_shared_v192_premarket_pool(
++        try:
++            a_premarket = _verified_cached_formal_pool(PreselectionPoolStore(data_root), "a_d1_premarket_pool",
++                trade_date, shared_data_root, shared_package_root)
++        except FileNotFoundError as error:
++            if error.args != ("a_d1_premarket_pool",):
++                raise
++            a_premarket = build_shared_v192_premarket_pool(
+             shared_data_root,
+             trade_date=trade_date,
+             signal_date=signal_date,
+@@ -491,6 +618,16 @@
+     for artifact in artifacts:
+         validate_pool_artifact(artifact)
+         pool_id = str(artifact["pool_id"])
++        if (pool_id == "a_share_research_recommendation_pool"
++                and artifact.get("source_role") == "EXPECTED_MISSING"
++                and any(str(reason).startswith("A_RESEARCH_CACHE_REJECTED:")
++                        for reason in artifact.get("cannot_confirm", []))):
++            results.append({"trade_date": str(artifact["trade_date"]), "pool_id": pool_id,
++                "status": "DEFERRED", "reason_code": "INPUT_CACHE_REJECTED",
++                "source_role": "EXPECTED_MISSING", "artifact_written": False,
++                "cannot_confirm": list(artifact["cannot_confirm"]),
++                "production_allowed": False, "buy_gate_updated": False, "orders_sent": False})
++            continue
+         if pool_id in _FORMAL_IMMUTABLE_POOLS and artifact.get("source_role") == "EXPECTED_MISSING":
+             if not _is_exact_expected_missing_placeholder(
+                 artifact, trade_date=str(artifact["trade_date"]), pool_id=pool_id,
+@@ -634,7 +771,7 @@
+     ready_count = sum(1 for value in formal_pool_gate["required"].values() if value["ready"])
+     if market_scope_explicit:
+         status = formal_pool_gate["status"]
+-        exit_code = 0 if ready_count else 1
++        exit_code = 0 if formal_pool_gate["research_ready"] else 1
+     else:
+         # Keep the existing no-scope publication contract for direct callers.
+         # The scheduled executor now passes an explicit lane scope and uses
+--- a/infrastructure/scheduling/dispatcher.py
++++ b/infrastructure/scheduling/dispatcher.py
+@@ -37,6 +37,7 @@
+ # This is NOT a complete transitive dependency closure or signature trust store.
+ _RUNTIME_IDENTITY_FILES = (
+     'infrastructure/scheduling/dispatcher.py',
++    'infrastructure/scheduling/input_retry_identity.py',
+     'ops/run_scheduled_slot.py',
+     'infrastructure/scheduling/executor_registry.py',
+     'contracts/runtime_workloads.json',
+@@ -142,6 +143,11 @@
+ 
+ def _failure_class(workload_results: tuple[dict[str, Any], ...]) -> str:
+     """Return a typed, scheduler-consumable class for a failed dispatch."""
++    # Deterministic contract rejection takes priority over a sibling's outage.
++    for result in workload_results:
++        explicit = str(result.get("failure_class") or "").strip().upper()
++        if explicit in {"INVALID_INPUT", "CONTRACT", "SAFETY"}:
++            return explicit
+     for result in workload_results:
+         explicit = str(result.get("failure_class") or "").strip().upper()
+         if explicit:
+@@ -450,8 +456,35 @@
+             try:
+                 # Keep the legacy started field's success semantics, while
+                 # exposing calls that fail before producing a successful result.
+-                invoked.append(workload.workload_id)
+-                output = executor(workload, request, decisions[workload.workload_id])
++                from infrastructure.scheduling.input_retry_identity import observe_input_identity, make_input_wait, input_wait_changed
++                before_identity = observe_input_identity(workload.workload_id, request.business_date, request.target_date, request.slot)
++                prior_wait = None
++                prior_output = None
++                if ledger is not None and before_identity is not None:
++                    prior = sorted(ledger.list_receipts(request.business_date, mode=request.mode.value),
++                        key=lambda item: str(item.get("finished_at") or ""), reverse=True)
++                    for item in prior:
++                        if str(item.get("slot")) != request.slot:
++                            continue
++                        prior_output = next((r for r in item.get("workload_results", [])
++                            if r.get("workload_id") == workload.workload_id), None)
++                        prior_wait = prior_output.get("input_wait") if prior_output is not None else None
++                        if prior_output is not None:
++                            break
++                if prior_wait is not None and not input_wait_changed(prior_wait):
++                    output = {**prior_output, "workload_id": workload.workload_id,
++                        "input_wait": prior_wait,
++                        "reason": "UNCHANGED_INPUT_WAIT", "producer_called": False}
++                elif (prior_output is not None
++                        and prior_output.get("status") == "FAILED"
++                        and str(prior_output.get("failure_class") or "") in RETRYABLE_FAILURE_CLASSES
++                        and prior_output.get("retry_after")
++                        and datetime.now(UTC) < datetime.fromisoformat(str(prior_output["retry_after"]).replace("Z", "+00:00"))):
++                    output = {**prior_output, "reason": "TRANSIENT_BACKOFF", "producer_called": False}
++                else:
++                    invoked.append(workload.workload_id)
++                    output = executor(workload, request, decisions[workload.workload_id])
++
+                 if isinstance(output, dict):
+                     output = dict(output)
+                     output.setdefault("workload_id", workload.workload_id)
+@@ -519,6 +552,20 @@
+             status = "FAILED"
+         elif len(started) != len(selected_workloads):
+             status = "DUPLICATE_WORKLOAD_SKIPPED"
++    if status == "FAILED":
++        from infrastructure.scheduling.input_retry_identity import observe_input_identity, make_input_wait
++        for output in results:
++            if output.get("status") in {"SUCCEEDED", "ALREADY_EXISTS"}:
++                continue
++            kind = str(output.get("failure_class") or "") or _failure_class((output,))
++            output.setdefault("failure_class", kind)
++            if kind in {"UPSTREAM_NOT_READY", "INVALID_INPUT", "CONTRACT", "HK_HISTORY_RESOLUTION_CACHE_REJECTED"}:
++                input_identity = observe_input_identity(str(output.get("workload_id") or ""), request.business_date, request.target_date, request.slot)
++                if input_identity is not None and not isinstance(output.get("input_wait"), dict):
++                    output["input_wait"] = make_input_wait(input_identity, str(output.get("failure_code") or kind))
++            if (kind in RETRYABLE_FAILURE_CLASSES and not isinstance(output.get("input_wait"), dict)
++                    and observe_input_identity(str(output.get("workload_id") or ""), request.business_date, request.target_date, request.slot) is not None):
++                output.setdefault("retry_after", (datetime.now(UTC) + timedelta(minutes=5)).isoformat().replace("+00:00", "Z"))
+     receipt_path = (
+         ledger.receipt_relative(request, run_id=run_id)
+         if ledger is not None
+@@ -538,6 +585,13 @@
+             retry_after = capture_metadata["retry_after"] if failure_class in capture_retry.RETRYABLE else ""
+         else:
+             retry_after = (finished_at + timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
++    if status == "FAILED" and not is_capture:
++        transient_deadlines = [str(output["retry_after"]) for output in results
++            if output.get("status") == "FAILED" and output.get("retry_after")
++            and not isinstance(output.get("input_wait"), dict)
++            and output.get("failure_class") in RETRYABLE_FAILURE_CLASSES]
++        if transient_deadlines:
++            retry_after = min(transient_deadlines)
+     receipt = _receipt(
+         request,
+         status=status,
+@@ -562,10 +616,12 @@
+         if capture_metadata is not None:
+             payload["capture_retry"] = capture_metadata
+         ledger.write_receipt(receipt_path, payload)
+-        if status == "FAILED":
+-            ledger.release_failed_request(
+-                request,
+-                run_id=run_id,
+-                workload_ids=tuple(failed),
+-            )
++        # Consumer success may still have an unfinished formal lane. Release
++        # only that incomplete workload's own claim; successful siblings retain
++        # their original claims and never re-enter their executors.
++        incomplete = tuple(dict.fromkeys([*failed, *(str(output["workload_id"])
++            for output in results if isinstance(output.get("input_wait"), dict)
++            and output["input_wait"].get("wait_for_input_change") is True)]))
++        if status == "FAILED" or incomplete:
++            ledger.release_failed_request(request, run_id=run_id, workload_ids=incomplete)
+     return receipt
+--- a/infrastructure/scheduling/_executor_registry_parts/preselection.py
++++ b/infrastructure/scheduling/_executor_registry_parts/preselection.py
+@@ -223,16 +223,8 @@
+         )
+     else:
+         hk_exact_source, hk_exact_error = None, ""
+-    if (
+-        a_exact_source is not None
+-        and hk_lane_eligible
+-        and hk_exact_source is None
+-        and hk_exact_error != _EXACT_HK_POOL_LATEST_RUN_MISSING
+-    ):
+-        return {"status":"FAILED", "exit_code":1, "failure_class":"HK_HISTORY_RESOLUTION_CACHE_REJECTED",
+-            "a_selector_status":"READY", "hk_lane_status":"QUARANTINED",
+-            "a_exact_source_reused":a_exact_source,"producer_called":False,"write_performed":False,
+-            "production_allowed":False,"buy_gate_updated":False,"orders_sent":False}
++    hk_source_rejected = bool(hk_lane_eligible and hk_exact_source is None
++        and hk_exact_error and hk_exact_error != _EXACT_HK_POOL_LATEST_RUN_MISSING)
+     if a_exact_source is not None and hk_lane_eligible:
+         local_hk = self.data_root / "preselection_pools" / hk_target_date / "hkconnect_d1_top100.json"
+         if ((hk_exact_source is None and hk_exact_error == _EXACT_HK_POOL_LATEST_RUN_MISSING)
+@@ -248,7 +240,7 @@
+     a_entry_error = "" if (not a_lane_eligible or a_exact_source is not None) else missing_entries((
+         self.shared_package_root / "scripts" / "materialize_v192_selector.py",
+     ))
+-    hk_configuration_error = ""
++    hk_configuration_error = "HK_HISTORY_RESOLUTION_CACHE_REJECTED" if hk_source_rejected else ""
+     hk_universe_root = self.hk_universe_root
+ 
+     def has_canonical_hk_authority_layout(root):
+@@ -259,7 +251,7 @@
+             and (root / "assets" / "hk_security_master").is_dir()
+         )
+ 
+-    if hk_lane_eligible and hk_exact_source is None:
++    if hk_lane_eligible and hk_exact_source is None and not hk_source_rejected:
+         if self.hk_universe_root is None:
+             hk_configuration_error = "HK_UNIVERSE_ROOT_NOT_CONFIGURED"
+         else:
+@@ -663,7 +655,8 @@
+         result["hk_lane_degradations"] = hk_lane_degradations
+     if optional_lane_degradation is not None:
+         result["optional_d1_review_lane"] = optional_lane_degradation
+-    if hk_lane_eligible and result["hk_lane_status"] != "SUCCEEDED":
++    consumer_usable = isinstance(formal_pool_gate, dict) and formal_pool_gate.get("research_ready") is True
++    if hk_lane_eligible and result["hk_lane_status"] != "SUCCEEDED" and not consumer_usable:
+         # Keep independently verified A output while leaving the failed HK
+         # lane recoverable through the dispatcher's existing retry contract.
+         result["materializer_status"] = result["status"]
+@@ -678,6 +671,14 @@
+             result["first_gate"] = "HK_LOCAL_POOL"
+             detail = f"HK_LOCAL_POOL: required local HK pool is not verified for target_date={hk_target_date}"
+         result["stderr"] = (str(result.get("stderr") or "") + "\n" + detail).strip()
++    if consumer_usable and formal_pool_gate.get("missing_or_invalid"):
++        from infrastructure.scheduling.input_retry_identity import observe_input_identity, make_input_wait
++        pending_pools = list(formal_pool_gate["missing_or_invalid"])
++        identity = observe_input_identity("preselection_pools", request.business_date,
++            request.target_date, request.slot, pending_pools)
++        result["consumer_status"] = "PARTIAL_WITH_ROWS"
++        result["input_wait"] = make_input_wait(identity, "FORMAL_LANES_PENDING")
++        result["pending_pool_ids"] = pending_pools
+     return result
+ 
+ 
+--- a/infrastructure/scheduling/_executor_registry_parts/research_materials.py
++++ b/infrastructure/scheduling/_executor_registry_parts/research_materials.py
+@@ -132,6 +132,13 @@
+         "ops.run_hourly_research",
+         run_arguments,
+     )
++    if result.get("status") != "SUCCEEDED":
++        detail = str(result.get("stderr") or "")
++        if "ValueError:" in detail:
++            result["failure_class"] = "INVALID_INPUT"
++            result["failure_code"] = ("HOURLY_SOURCE_PIT_INVALID"
++                if "point-in-time safe" in detail or "HOURLY_SOURCE_PIT" in detail or "HOURLY_SOURCE_MANIFEST_PIT_MISMATCH" in detail
++                else "HOURLY_SOURCE_PROVENANCE_INVALID")
+     result["modules"] = modules
+     if degraded_inputs is not None:
+         result["degraded_inputs"] = degraded_inputs
+--- a/ops/_run_v35_macos_scheduler_parts/schedule_selection.py
++++ b/ops/_run_v35_macos_scheduler_parts/schedule_selection.py
+@@ -45,6 +45,31 @@
+         observed.append(payload)
+     if not observed:
+         return False
++    from infrastructure.scheduling.input_retry_identity import input_wait_changed
++    if any(payload.get("attempt") is not None and
++            (type(payload["attempt"]) is not int or payload["attempt"] < 0)
++            for payload in observed):
++        return True
++    latest = max(observed, key=lambda p: (str(p.get("finished_at") or ""), int(p.get("attempt") or 0), observed.index(p)))
++    failed_results = [r for r in latest.get("workload_results", []) if isinstance(r, dict)
++        and (r.get("status") not in {"SUCCEEDED", "ALREADY_EXISTS"}
++             or isinstance(r.get("input_wait"), dict))]
++    waits = [r.get("input_wait") for r in failed_results
++        if isinstance(r.get("input_wait"), dict) and r["input_wait"].get("wait_for_input_change") is True]
++    if waits:
++        remaining = [r for r in failed_results if r.get("input_wait") not in waits]
++        remaining_classes = {str(r.get("failure_class") or "").upper() for r in remaining}
++        # An input change in one lane cannot override another lane's retained
++        # terminal/unknown stop. Check this before admitting a validation try.
++        if remaining and not remaining_classes.issubset(_v4_global(_v4_scope, 'RETRYABLE_FAILURE_CLASSES')):
++            return True
++        if any(input_wait_changed(wait) for wait in waits):
++            return False  # one validation attempt; unchanged rejection will persist a new wait
++        if not remaining:
++            return True
++        # The waiting lanes remain suppressed by the dispatcher. Only the
++        # transient siblings contribute to the existing time/backoff checks.
++        observed = [{**latest, "status": "FAILED", "failure_class": sorted(remaining_classes)[0]}]
+     if _v4_global(_v4_scope, 'any')(_v4_global(_v4_scope, 'str')(payload.get("status") or "") != "FAILED" for payload in observed):
+         return True
+     failure_classes = {_v4_global(_v4_scope, 'str')(payload.get("failure_class") or "").upper() for payload in observed}
+--- /dev/null
++++ b/infrastructure/scheduling/input_retry_identity.py
+@@ -0,0 +1,212 @@
++"""Observe fixed owned inputs for retry permission, never for source admission."""
++from __future__ import annotations
++import hashlib
++import json
++import os
++import re
++from pathlib import Path
++from typing import Any
++
++_WORKLOADS = frozenset({'preselection_pools', 'hourly_research', 'research_panel_runtime_evidence'})
++_CODE_PATHS = ('ops/materialize_shared_v192_preselection.py', 'ops/materialize_scheduled_preselection.py',
++    'infrastructure/scheduling/executor_registry_preselection.py', 'ops/run_hourly_research.py',
++    'infrastructure/scheduling/executor_registry_research.py', 'infrastructure/scheduling/dispatcher.py',
++    'ops/run_v35_macos_scheduler_due.py', 'infrastructure/scheduling/input_retry_identity.py',
++    'infrastructure/scheduling/_executor_registry_parts/preselection.py',
++    'infrastructure/scheduling/_executor_registry_parts/research_materials.py',
++    'ops/_run_v35_macos_scheduler_parts/schedule_selection.py')
++_LIMIT = 16 * 1024 * 1024
++
++
++def _hash(value: Any) -> str:
++    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
++
++
++def _path(root: Path, value: str) -> Path:
++    path = Path(value)
++    if '..' in path.parts:
++        raise ValueError('UNSAFE_PATH')
++    if not path.is_absolute():
++        path = root / path
++    path.resolve().relative_to(root.resolve())
++    return path
++
++
++def _read(root: Path, relative: str) -> tuple[dict, bytes | None]:
++    try:
++        path = _path(root, relative)
++        if not path.exists():
++            return {'state': 'MISSING'}, None
++        if not path.is_file() or path.stat().st_size > _LIMIT:
++            return {'state': 'UNREADABLE_OR_OVERSIZE'}, None
++        raw = path.read_bytes()
++        return {'state': 'PRESENT', 'sha256': hashlib.sha256(raw).hexdigest()}, raw
++    except (OSError, ValueError, RuntimeError):
++        return {'state': 'REJECTED_OWNED_PATH'}, None
++
++
++def _json(root: Path, relative: str):
++    observation, raw = _read(root, relative)
++    if raw is None:
++        return observation, None
++    try:
++        value = json.loads(raw.decode('utf-8-sig'))
++        if not isinstance(value, dict):
++            raise ValueError('not object')
++        return observation, value
++    except (ValueError, UnicodeError):
++        return {**observation, 'state': 'INVALID_JSON'}, None
++
++
++def _source_content(value):
++    """Only attempt-generated header fields are excluded; event/PIT times remain."""
++    result = dict(value)
++    manifest = result.get('source_manifest')
++    if isinstance(manifest, dict):
++        result['source_manifest'] = {k: v for k, v in manifest.items()
++            if k not in {'generated_at', 'published_at', 'version'}}
++    return result
++
++
++def _dependency_content(value):
++    if isinstance(value, dict):
++        return {k: _dependency_content(v) for k, v in value.items() if k not in {
++            'generated_at', 'created_at', 'finished_at', 'started_at', 'updated_at',
++            'attempt', 'elapsed_seconds', 'duration_seconds', 'runner_called',
++            'receipt_written', 'argv', 'error', 'exception_type'}}
++    if isinstance(value, list):
++        return [_dependency_content(v) for v in value]
++    return value
++
++
++def _dependency(root, relative):
++    state, value = _json(root, relative)
++    return {'state': 'PRESENT', 'semantic_sha256': _hash(_dependency_content(value))} if value is not None else state
++
++
++def observe_input_identity(workload_id: str, business_date: str, target_date: str, slot: str, pending_pool_ids: list[str] | None = None) -> dict | None:
++    if workload_id not in _WORKLOADS or (workload_id == 'hourly_research' and slot in {'0700', '0800', '1530'}):
++        return None
++    if workload_id == 'hourly_research':
++        target_date = business_date  # hourly archives own the business date
++    if not re.fullmatch(r'\d{8}', business_date) or not re.fullmatch(r'\d{8}', target_date) or not re.fullmatch(r'\d{4}', slot):
++        raise ValueError('INPUT_WAIT_DATE_SLOT_INVALID')
++    observations: dict[str, Any] = {}
++    def configured(name):
++        value = os.environ.get(name)
++        observations[name] = {'root': str(Path(value).resolve()) if value else None}
++        return Path(value) if value else None
++    if workload_id in {'preselection_pools', 'research_panel_runtime_evidence'}:
++        shared = configured('V35_SHARED_DATA_ROOT')
++        if shared is not None:
++            state, registry = _json(shared, 'latest.json')
++            if registry is None and state.get('state') == 'MISSING':
++                registry = {'entries': {}}
++            if registry is None:
++                observations['exact_registry'] = state
++            else:
++                entries = registry.get('entries')
++                if not isinstance(entries, dict):
++                    observations['exact_registry'] = {'state': 'INVALID_ENTRIES'}
++                else:
++                    roles = {'a_d1_premarket_pool': 'A_SHARE_V192_PREMARKET_POOL_V3', 'hkconnect_d1_top100': 'HK_CONNECT_D1_TOP100_0_2'}
++                    for pool_id, role in roles.items():
++                        if pending_pool_ids is not None and pool_id not in pending_pool_ids:
++                            continue
++                        entry = entries.get(target_date + '/' + role)
++                        # Ignore unrelated entries and mutable registry timestamps.
++                        if not isinstance(entry, dict):
++                            observations[role] = {'state': 'MISSING'}
++                            continue
++                        identity = {k: entry.get(k) for k in ('run_id','status','artifact_relative','artifact_sha256',
++                            'manifest_relative','manifest_sha256','receipt_relative','receipt_sha256')}
++                        observations[role] = identity
++                        for kind in ('artifact', 'manifest', 'receipt'):
++                            relative = entry.get(kind + '_relative')
++                            observations[role + '/' + kind] = (_read(shared, relative)[0]
++                                if isinstance(relative, str) else {'state': 'INVALID_REFERENCE'})
++        selector = (configured('V35_SELECTOR_DATA_ROOT')
++            if pending_pool_ids is None or 'a_d1_premarket_pool' in pending_pool_ids else None)
++        if selector is not None:
++            state, raw = _read(selector, 'data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt')
++            observations['selector_pointer'] = state
++            if raw is not None:
++                try:
++                    panel = _path(selector, raw.decode('utf-8-sig').strip())
++                    observations['selector_availability'] = {'path': str(panel), 'state': 'PRESENT' if panel.is_file() else 'MISSING'}
++                    # The panel is immutable; never scan or hash millions of rows per tick.
++                    for name in ('manifest.json', 'receipt.json', panel.stem + '.manifest.json'):
++                        observations['selector/' + name] = _read(selector, str(panel.parent / name))[0]
++                except (ValueError, UnicodeError, OSError, RuntimeError):
++                    observations['selector_availability'] = {'state': 'REJECTED_OWNED_PATH'}
++    else:
++        data = configured('V35_DATA_ROOT')
++        if data is not None:
++            incoming = data / 'research/incoming' / business_date
++            relative = f'research/incoming/{business_date}/{slot}.json'
++            state, source = _json(data, relative)
++            observations['canonical_source'] = ({'state':'PRESENT', 'content_sha256':_hash(_source_content(source))} if source is not None else state)
++            # Content dedupe prevents retries from manufacturing progress via a new recovery filename/version.
++            recoveries = set()
++            try:
++                _path(data, str(incoming))
++                paths = sorted(incoming.glob(slot + '.recovery-*.json'))
++                if len(paths) > 128:
++                    raise ValueError('TOO_MANY_RECOVERIES')
++                for path in paths:
++                    st, payload = _json(data, str(path))
++                    recoveries.add(_hash(_source_content(payload)) if payload is not None else _hash(st))
++                observations['recovery_content'] = sorted(recoveries)
++            except (OSError, ValueError, RuntimeError):
++                observations['recovery_content'] = {'state': 'REJECTED_OWNED_PATH'}
++            receipt = f'research_module/runtime_outputs/zsxq_hourly/{business_date}/{slot}/v35_zsxq_hourly_status_{business_date}_{slot}.json'
++            state, status = _json(data, receipt)
++            observations['zsxq_receipt'] = state
++            if status is not None:
++                paths = status.get('paths')
++                if isinstance(paths, dict):
++                    for key in ('fetch_result', 'recent_topics', 'summary'):
++                        value = paths.get(key)
++                        try:
++                            path = _path(data, value) if isinstance(value,str) else None
++                            if path is None or not path.resolve().is_relative_to((data/'external_sources/zsxq_hourly').resolve()):
++                                raise ValueError('UNOWNED_SOURCE_REFERENCE')
++                            observations['zsxq/' + key] = _read(data, str(path))[0]
++                        except (OSError, ValueError, RuntimeError):
++                            observations['zsxq/' + key] = {'state':'REJECTED_OWNED_PATH'}
++    if workload_id == 'research_panel_runtime_evidence':
++        data = configured('V35_DATA_ROOT')
++        if data is not None:
++            producer = Path(os.environ.get('V35_RESEARCH_PANEL_RECEIPT_ROOT') or
++                str(data.parent / 'research_panel_daily/receipts'))
++            observations['daily_producer_root'] = str(producer.resolve())
++            for lane in ('a', 'hk'):
++                observations['producer/' + lane] = _dependency(producer, lane + '-' + business_date + '.json')
++            for role, env, default in (
++                ('close_review', 'V35_CLOSE_REVIEW_PATH', f'close_reviews/{business_date}.json'),
++                ('close_review_receipt', 'V35_CLOSE_REVIEW_RECEIPT', f'receipts/close_reviews/{business_date}.json')):
++                observations[role] = _dependency(data, os.environ.get(env) or default)
++            selector_value = os.environ.get('V35_SELECTOR_DATA_ROOT')
++            if selector_value:
++                selector = Path(selector_value)
++                observations['backtest_pointer'] = _read(selector, os.environ.get('V35_BACKTEST_POINTER') or
++                    'backtest_panel_interface_current/CURRENT_BACKTEST_BASE_PANEL.txt')[0]
++    app = Path(__file__).resolve().parents[2]
++    code = {name: _read(app,name)[0] for name in _CODE_PATHS}
++    return {'workload_id': workload_id, 'business_date': business_date, 'target_date': target_date,
++        'slot': slot, 'code_identity': _hash(code), 'input_identity_sha256': _hash(observations),
++        'observations': observations, 'pending_pool_ids': pending_pool_ids}
++
++
++def make_input_wait(identity: dict, failure_code: str) -> dict:
++    return {'schema_version':'v4.input_retry_wait.v1', **identity,
++        'failure_code': failure_code, 'wait_for_input_change': True}
++
++
++def input_wait_changed(wait: dict) -> bool:
++    try:
++        current = observe_input_identity(wait['workload_id'],wait['business_date'],wait['target_date'],wait['slot'],wait.get('pending_pool_ids'))
++        return current is not None and (current['code_identity'] != wait['code_identity']
++            or current['input_identity_sha256'] != wait['input_identity_sha256'])
++    except (KeyError, ValueError, TypeError, OSError):
++        return False

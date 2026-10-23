@@ -1,0 +1,197 @@
+{
+  "canonical_source_root": "/Users/lexi/Desktop/学习/v4_app",
+  "created_at": "2026-10-23T12:26:31.805935+00:00",
+  "delivery_local_base_commit": "9cbbc5f53aef447f81ec1a59032048bc44dc1761",
+  "deployment": {
+    "actual_loaded_new_release": "NOT_CONFIRMED",
+    "baseline_manifest_sha256": "9cf6171a2347db117b4442f1742fc8be0bd39a713fa2e7bab8679c99b9c86631",
+    "baseline_release_id": "stage-input-recovery-20261023-producer-r2",
+    "candidate_manifest_sha256": "c6b346d246f4224f4f862f053ec4eb35104f60f1508e3734dbbe8fec882c92a7",
+    "candidate_release_id": "preselection-provenance-20261023-producer-r3",
+    "healthy_work_rule": "No PDF/business child cancellation; exact reviewed cooperative drain; no force or bootout while running",
+    "latest_owner_event": "20:24:37HKT PDF11, reviewed1730 work,0driver/signal/service actions; event wait bounded to20:50:44HKT",
+    "only_label": "com.lexi.v35.scheduler",
+    "status": "WAITING_HEALTHY_WORK_OWNER_RECEIPT"
+  },
+  "evidence_sha256": {
+    "canonical_integration": "4f936155eabf0951c932d273b663e573dcfe6d96ebb69751c8ed40d224c7f2ef",
+    "combined_review_r3": "d138b2c700d11b48ac4dc3d4ea9d0645faa8845ff22f84aeefcb8a0dd2de8531",
+    "control_continuation_review": "09fb69b0aa3ebd73ef232298b46781893093f3956c5a99e8130965d897e04e15",
+    "control_review": "deff6f369d95cde2876dd748cbb53f0500ab5e47e43360fccc7bf74075c907fe",
+    "current_input_214_review": "37e4dfae61fad06a36c5518f91308f2e449883784901411dc1ebab4593504053",
+    "source_review_r3": "2a742c27dc0eed23bc501f018ba66392864a41507d1765ba7526716c31b2163c"
+  },
+  "existing_api_ui": {
+    "A": 214,
+    "A_complete": true,
+    "A_second_page": 14,
+    "HK": 100,
+    "api_summary_sha256": "7d58fe28bbb005029fedd8b40a78b796f26b1bd61922567a7db4115e664090c4",
+    "data_status": "PARTIAL_WITH_ROWS",
+    "date": "20261026",
+    "scope": "Existing API/UI current data readback before producer activation; not deployment proof",
+    "ui_summary_sha256": "369b59d75ff749ae2c1dcadca04a9cce30ae0a9cbf81c6fec36e6e856ea90ac7"
+  },
+  "independent_acceptance": {
+    "canonical_focused_r3": {
+      "failed": 0,
+      "passed": 15
+    },
+    "continuation_existing_exact_release": {
+      "failed": 0,
+      "passed": 9
+    },
+    "control": {
+      "failed": 0,
+      "passed": 28,
+      "repeated_after_source_revision": false
+    },
+    "current214_new_source": "PASS; old11 hourly archive proofs reused by unchangedSHA",
+    "final_source": "PASS",
+    "previous_source_checks": "Unchanged independently accepted R1/R2 checks reused; all material findings closed",
+    "runtime_focused_r3": {
+      "failed": 0,
+      "passed": 15
+    }
+  },
+  "integration": "INTEGRATED_EXACT_REVIEWED_7_SOURCE_POSTIMAGES_PLUS_TEST",
+  "not_run": [
+    "full model/scorer/collector rerun",
+    "manual1800 source recovery/publication",
+    "actual postdeployment natural failed-lane behavior",
+    "future20261026 natural Stage acceptance",
+    "live rollback",
+    "merge or PR"
+  ],
+  "preserved_successes": {
+    "historical210_and211_bindings": "retained; current natural214 append verified; old sources not regenerated",
+    "research_pool_current214_sha256": "f58e28e97c9abb511d868a8d02255111b805297d8aed527f8590a61c4f0352d8",
+    "strict_hk100_pool_sha256": "a76388ce6818b694ddbf4d8f33d8f8306537fff6ae1014a25791988cd9e85a42"
+  },
+  "remote_base_commit": "41272262da6c8863dd20e12a08882191c3cb219c",
+  "remote_branch": "codex/preselection-provenance-20261023",
+  "repository": "lexi2016/v4",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema_version": "v4.preselection_provenance_repair.verification.v1",
+  "scope": "V192/hourly provenance, valid partial pool isolation and deterministic retry; research only",
+  "source_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "source_variants": {
+    "canonical": [
+      {
+        "after_sha256": "5f0e5deb8974f3c327db60940a9fbba554ae6e67183581994521997a167fb2fa",
+        "before_sha256": "afc49544d63eab79c82bc6a24e6be6cf2c60ad3c0b832cd0ce00c07decb8e419",
+        "path": "ops/materialize_shared_v192_preselection.py"
+      },
+      {
+        "after_sha256": "40be529c5c3981e72c4b68b4e4f37c24e28e39fe1f1df731087cd9f1b94a3957",
+        "before_sha256": "046c4f08d08a250d44d9a6af9b9fe5ec615ad05aae268f8c1e451fbd9110a34c",
+        "path": "ops/materialize_scheduled_preselection.py"
+      },
+      {
+        "after_sha256": "57d24754ef1dcf054d4b40a0e167eeba3ca92001f5fd2e3cdf87925ae5545d45",
+        "before_sha256": "aba5d9b3b692d8e4b9bbb9174f6803dab19f33b3d39d7fd202195aca585c5f59",
+        "path": "infrastructure/scheduling/dispatcher.py"
+      },
+      {
+        "after_sha256": "39e7f70ba44618b4b0df6e1d0eb7bdbb3a9fe31132147818e9e728f6275c571f",
+        "before_sha256": "6854d38819613cd09bfb51030887bb92840bebb4bd93d0d92cd08adbe5ee3f8f",
+        "path": "infrastructure/scheduling/_executor_registry_parts/preselection.py"
+      },
+      {
+        "after_sha256": "e9244b42b5057972d8c7adf87182581ebe43f7255b62f28199a29d6f79e28a1b",
+        "before_sha256": "2d835b8707f4330496170ebd9667401c11346c60165dede8d6f87213e492aa52",
+        "path": "infrastructure/scheduling/_executor_registry_parts/research_materials.py"
+      },
+      {
+        "after_sha256": "38ea33eb3db757e8a7d7d27ea71bcb8ef746f3b5f7b37c91754222cef8b0b709",
+        "before_sha256": "187311ceadb94b65a1972bee713423af416136d562c52af40c4a0a620388e7e1",
+        "path": "ops/_run_v35_macos_scheduler_parts/schedule_selection.py"
+      },
+      {
+        "after_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+        "before_sha256": null,
+        "path": "infrastructure/scheduling/input_retry_identity.py"
+      }
+    ],
+    "runtime": [
+      {
+        "after_sha256": "7fa3d8f264bad5272ec6be1d9682e06b25c1f4ea4466fcfca444da6deba17acd",
+        "before_sha256": "141bb7337cf23205c22275d8d6f80c8f1a0a5b011bafb3712949542cd6180028",
+        "path": "ops/materialize_shared_v192_preselection.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "0a28a8fe793b6c467d8a109c9df67f9c18feb25c5d6dbc41309604978804ac8b",
+        "before_sha256": "db791bf27d819f2f27792cd597c131a33f71b65072ff99b1110dd3a64205b87d",
+        "path": "ops/materialize_scheduled_preselection.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "b4834e45f4bfb29fdd045dfa4311587187c9aeced6322bd9a9ba2a33bffdf0a8",
+        "before_sha256": "75e065bb68add1cb6c87a133edbdc5ee508e8395906e0a57ccb9fa07195afbb9",
+        "path": "infrastructure/scheduling/executor_registry_preselection.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "57d0b709defecc559ddaf72cd413a4e8b97d781c8899f644b7127750bc21425a",
+        "before_sha256": "437583faa896896b2d5d7c700040cb9bfb930e89fe0b654a0c6b9a710a4d8b72",
+        "path": "ops/run_hourly_research.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "46d984a0f1982223bfae16fdfea92125477b9bce252da1094b8be1d05cea836f",
+        "before_sha256": "eb1b31fadcb484dd032f1e91b84fede0d81546fece6171ceb6df56355e00d1d2",
+        "path": "infrastructure/scheduling/executor_registry_research.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "987cfcc953b1f75932aab40606a5346277569ff857b1cf16349409d24a82805f",
+        "before_sha256": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3",
+        "path": "infrastructure/scheduling/dispatcher.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "51839a2b2f4c573e5b3023fa89626d70653c1aabae42fa5b088af2469be34839",
+        "before_sha256": "07a914e94670a9f56b1666ed407a9fdfd07e663f05b895efbc861b0909498aa5",
+        "path": "ops/run_v35_macos_scheduler_due.py",
+        "worktree_matches": true
+      },
+      {
+        "after_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+        "before_sha256": null,
+        "path": "infrastructure/scheduling/input_retry_identity.py",
+        "worktree_matches": true
+      }
+    ],
+    "test": {
+      "path": "tests/test_preselection_provenance_repair_20261023.py",
+      "sha256": "c2f54fcb39dfcd43c87f87e67391b3cdea7fccbb7d19bd3048a5ac3b1d6c3c51"
+    }
+  },
+  "test_environment": {
+    "args": [
+      "-B",
+      "-S",
+      "-m",
+      "pytest",
+      "--noconftest",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "candidate_first_on_pythonpath_with_actual_sitepackages": true,
+    "full_suite": "NOT_RUN; unchanged acceptance reused",
+    "outputs": "isolated evidence fixtures",
+    "plugin_autoload": false,
+    "python": "actual schedulerPython3.14",
+    "test_capsule_requirement": "V4_REPAIR_EVIDENCE_ROOT plus local frozen private source/manifest capsule; raw fixtures excluded from GitHub"
+  },
+  "unresolved": {
+    "V192": "Configured owned selector panel maximum20261022; required signal20261023/target20261026 exact source absent; CANNOT_CONFIRM",
+    "hourly1800": "Actual source generated/published18:01:32 after unchanged18:00:59.999999 cutoff; stays rejected/CANNOT_CONFIRM"
+  }
+}

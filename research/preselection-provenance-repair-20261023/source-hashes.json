@@ -1,0 +1,57 @@
+{
+  "canonical_map_sha256": "3ec38c9edc3fa4495169c6756856bf4553012c014ea4213ca4458512ad3a981b",
+  "runtime": [
+    {
+      "after_sha256": "7fa3d8f264bad5272ec6be1d9682e06b25c1f4ea4466fcfca444da6deba17acd",
+      "before_sha256": "141bb7337cf23205c22275d8d6f80c8f1a0a5b011bafb3712949542cd6180028",
+      "path": "ops/materialize_shared_v192_preselection.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "0a28a8fe793b6c467d8a109c9df67f9c18feb25c5d6dbc41309604978804ac8b",
+      "before_sha256": "db791bf27d819f2f27792cd597c131a33f71b65072ff99b1110dd3a64205b87d",
+      "path": "ops/materialize_scheduled_preselection.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "b4834e45f4bfb29fdd045dfa4311587187c9aeced6322bd9a9ba2a33bffdf0a8",
+      "before_sha256": "75e065bb68add1cb6c87a133edbdc5ee508e8395906e0a57ccb9fa07195afbb9",
+      "path": "infrastructure/scheduling/executor_registry_preselection.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "57d0b709defecc559ddaf72cd413a4e8b97d781c8899f644b7127750bc21425a",
+      "before_sha256": "437583faa896896b2d5d7c700040cb9bfb930e89fe0b654a0c6b9a710a4d8b72",
+      "path": "ops/run_hourly_research.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "46d984a0f1982223bfae16fdfea92125477b9bce252da1094b8be1d05cea836f",
+      "before_sha256": "eb1b31fadcb484dd032f1e91b84fede0d81546fece6171ceb6df56355e00d1d2",
+      "path": "infrastructure/scheduling/executor_registry_research.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "987cfcc953b1f75932aab40606a5346277569ff857b1cf16349409d24a82805f",
+      "before_sha256": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3",
+      "path": "infrastructure/scheduling/dispatcher.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "51839a2b2f4c573e5b3023fa89626d70653c1aabae42fa5b088af2469be34839",
+      "before_sha256": "07a914e94670a9f56b1666ed407a9fdfd07e663f05b895efbc861b0909498aa5",
+      "path": "ops/run_v35_macos_scheduler_due.py",
+      "worktree_matches": true
+    },
+    {
+      "after_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+      "before_sha256": null,
+      "path": "infrastructure/scheduling/input_retry_identity.py",
+      "worktree_matches": true
+    }
+  ],
+  "test": {
+    "path": "tests/test_preselection_provenance_repair_20261023.py",
+    "sha256": "c2f54fcb39dfcd43c87f87e67391b3cdea7fccbb7d19bd3048a5ac3b1d6c3c51"
+  }
+}
