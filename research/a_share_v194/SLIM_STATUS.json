@@ -1,35 +1,91 @@
 {
-  "schema": "V194_SLIM_STATUS_V1",
-  "status": "PLAN_READY_REAL_FIT_NOT_STARTED",
-  "evidence_level": "ENGINEERING_CANARY_ONLY; PLANNED_REAL_RESEARCH=PUBLICATION_TIME_RECONSTRUCTION/DIRECTION_ONLY",
-  "goal": "194-R0 source/resonance research model, chronological OOF comparison and research batch prediction",
-  "plan_path": "research/a_share_v194/PLAN.md",
-  "plan_sha256": "dd9152279ee24bab992478fcd1493ce5df24aa06f86a02c9240dcdd145f1bbc8",
-  "independent_engineering_verdict": "PASS_ENGINEERING_SCOPE_ONLY",
-  "independent_engineering_review_sha256": "b1542b0004e028a34bffec75e50b6dbda29c7dfeda44d8e2bc975111d6dc046e",
-  "engineering_tests_writer": 9,
-  "engineering_tests_reviewer": 9,
-  "synthetic_fits_writer": 2,
-  "synthetic_fits_reviewer": 2,
-  "real_fit_entered": 0,
-  "real_fit_returned": 0,
-  "CANNOT_CONFIRM": [
-    "full 192+ten main-chart historical candidate union",
-    "complete materialized valid-date and stock-row bindings",
-    "historical availability/PIT/full-body lineage",
-    "real labels, chronological folds and effect metrics",
-    "real model and future predictions"
+  "schema": "V194_SLIM_RESULT_V2",
+  "status": "RESEARCH_MODEL_IMPLEMENTED_TESTED_BEHAVIOR_VERIFIED_FROZEN_SCOPE",
+  "scope": "194-R0 publication-time reconstruction model, historical chronological OOF, final safe JSON and batch entry",
+  "mode": "PUBLICATION_TIME_RECONSTRUCTION",
+  "evidence_level": "DIRECTION_ONLY",
+  "statistical_decision": "CANNOT_CONFIRM_SAMPLE_SIZE",
+  "effect_gate_pass": false,
+  "observed_gain": false,
+  "baseline_retained": true,
+  "real_fit_count": 10,
+  "first_fold_reused": true,
+  "eligible_target_dates": 35,
+  "initial_training_target_dates": 17,
+  "oof_target_dates": 18,
+  "fold_sizes": [
+    5,
+    5,
+    5,
+    3
   ],
-  "not_run": [
-    "new numeric source audit",
-    "real fit",
-    "formal OOF",
-    "sealed-forward",
-    "deployment",
-    "scheduler",
-    "production",
-    "trading"
+  "final_training_rows": 31529,
+  "baseline_hits": 92,
+  "candidate_hits": 92,
+  "fixed_selection_slots": 900,
+  "truth_positive_denominator": 1800,
+  "mean_paired_delta_hits": 0.0,
+  "paired_block_95_ci": [
+    0.0,
+    0.0
   ],
+  "common_hits": 92,
+  "new_hits": 0,
+  "lost_hits": 0,
+  "source_coverage": {
+    "research_hit_dates": 6,
+    "research_hit_candidate_rows": 38,
+    "fupan": "UNKNOWN_ALL",
+    "stage7": "UNKNOWN_ALL",
+    "three_state_encoding_not_three_source_certification": true
+  },
+  "model_features": {
+    "baseline": "tech_192+original ten main-chart triggers",
+    "candidate": "same11+three-state one-hot(fupan/stage7/research)+each source hit times technical_any"
+  },
+  "algorithm": {
+    "family": "L2_LOGISTIC_REGRESSION",
+    "C": 1.0,
+    "seed": 194,
+    "solver": "lbfgs",
+    "max_iter": 1000,
+    "tol": 1e-08,
+    "preprocessing": "TRAIN_FOLD_ONLY_STANDARD_SCALER"
+  },
+  "bootstrap": {
+    "method": "NON_CIRCULAR_MOVING_BLOCK",
+    "block_dates": 5,
+    "replicates": 2000,
+    "seed": 194,
+    "CI_percentiles": [
+      2.5,
+      97.5
+    ]
+  },
+  "input_manifest_sha256": "12c5fecbe3cd8f89d5f3d5823ac767477786cc52feb10a825a332a920791259d",
+  "input_review_sha256": "ebe78916b88399376f44595ccd8359c28d534ba1acb6ca788086a35d21cb31db",
+  "real_run_review_sha256": "2c2dd17611a086f6e7c31351c2400e63f0f1e70786f5740544d6d9a7864edc40",
+  "real_artifact_manifest_sha256": "461beb806d8683ec50033db14652d2e81c695e67035858bdcd95e73a45163923",
+  "local_run_reference": "research/a_share_v194_20261023/runs/v194_r0_v2_01",
+  "future_prediction_delivered": false,
+  "not_verified": [
+    "certified_historical_PIT_vintage",
+    "sealed_forward",
+    "future_market_prediction",
+    "V4_UI_API_deployment",
+    "production_trading"
+  ],
+  "registry_scope_counts": {
+    "routes": 1,
+    "events": 41,
+    "executions": 15,
+    "corrections": 3
+  },
+  "scope_open_executions": [],
+  "scope_unregistered_route_count": 0,
+  "scope_contract_only_count": 0,
+  "registry_external_persistence": "CANNOT_CONFIRM_LOCAL_ONLY_NOT_UPLOADED",
+  "remote_status": "PENDING_ROOT_SOURCE_ONLY_SYNC",
   "research_only": true,
   "production_allowed": false,
   "buy_gate_updated": false,
