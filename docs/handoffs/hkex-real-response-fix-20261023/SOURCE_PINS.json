@@ -1,0 +1,64 @@
+{
+  "schema": "hkex.two_p1_reuse_freeze.v1",
+  "frozen_at": "2026-10-23T14:27:38.406478+00:00",
+  "source_candidate": "/Users/lexi/Desktop/学习/agents调试/HKEX_ALL_QUERY_LOCAL_R2_20260928/writer/candidate",
+  "source_candidate_git_baseline": null,
+  "source_candidate_git_baseline_reason": "HISTORICAL_ISOLATED_COPY_NOT_GIT_REPOSITORY",
+  "worktree": "/Users/lexi/.codex/worktrees/hkex-real-response-fix-20261023/v4_app",
+  "branch": "codex/hkex-real-response-fix-20261023",
+  "git_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "zip_path": "/Users/lexi/Downloads/HKEX_R2_REAL_FAILURES_FOR_CHAT_20260928.zip",
+  "zip_sha256": "5f47700656847df8f5fb5516228844d26c1c90b53835ca06ac5add2c714ce5e0",
+  "candidate_inventory_sha256": "f22b7d4dae8e9cde0cc8221ede3c60956fa72894d414c5206c31ac763d97cc75",
+  "candidate_files": 1053,
+  "candidate_bytes": 29839199,
+  "files": [
+    {
+      "path": "v4/manager_research/hkex_directory_protocol.py",
+      "before_sha256": "4d85ce9d4d53a2284c82c646c7a4d06efef10dea3a32d80e34b4a8597c033bfb",
+      "before_bytes": 23827,
+      "after_sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc",
+      "after_bytes": 26462,
+      "worktree_sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc",
+      "source_reused_without_edit": true
+    },
+    {
+      "path": "tests/test_hkex_official_all_r2.py",
+      "before_sha256": "ee80483184efabbdb30140cfbaa6ba7e6f606927a1734ee3598c6cf5079ac198",
+      "before_bytes": 12087,
+      "after_sha256": "61246369d9d9267d35f46b43303c7842291dd5d15b85c3df72eb7b33e9b6b047",
+      "after_bytes": 13334,
+      "worktree_sha256": "61246369d9d9267d35f46b43303c7842291dd5d15b85c3df72eb7b33e9b6b047",
+      "source_reused_without_edit": true
+    },
+    {
+      "path": "tests/test_hkex_real_failures_r2.py",
+      "before_sha256": null,
+      "before_bytes": null,
+      "after_sha256": "260dc122ae725892825dd598de6b9a9c43e08ccfb43557064da91fd0ce222160",
+      "after_bytes": 15799,
+      "worktree_sha256": "260dc122ae725892825dd598de6b9a9c43e08ccfb43557064da91fd0ce222160",
+      "source_reused_without_edit": true
+    }
+  ],
+  "patch_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/minimal.patch",
+  "patch_sha256": "28c15291d09ecd557fc287e91ffbd27c6ed0da0d3d422c2f49210cfd278d52d6",
+  "implementation_origin": "REUSED_EXISTING_20260928_CANDIDATE_BYTES_NO_NEW_BUSINESS_CODE_EDIT",
+  "tests_run_by_this_writer": false,
+  "network_run_by_this_writer": false,
+  "independent_review": "PENDING",
+  "deployed": false,
+  "natural_verified": false,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "candidate_inventory_sha256_algorithm": "SHA-256 of exact CANDIDATE_INVENTORY.json file bytes",
+  "candidate_inventory_canonical_sha256": "7e4632c08346ea0bacf91a2ad3ae5d064da49fabe3aaa9f6a466ceda4c5bee78",
+  "candidate_inventory_canonical_algorithm": "SHA-256 of UTF-8 JSON, sorted keys, ensure_ascii=false, separators comma colon, no whitespace",
+  "metadata_pin_correction": {
+    "previous_source_pins_sha256": "4f3c79d7f8604180960617ad84a41349f0db50ed5cbc7b6b3948cb6d5ee2f138",
+    "reason": "Clarify inventory exact-file and canonical hashing; code/tests/fixture bytes unchanged",
+    "corrected_at": "2026-10-23T14:29:38.426096+00:00"
+  }
+}

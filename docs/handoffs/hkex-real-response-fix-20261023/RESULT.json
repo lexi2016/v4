@@ -1,0 +1,69 @@
+{
+  "schema": "hkex.two_p1.final_delivery.v1",
+  "recorded_at": "2026-10-23T14:36:16.042199+00:00",
+  "goal": "Repair the two observed HKEX P1 failures with original-byte regressions and bounded protocol readback",
+  "implementation": "REUSED_EXISTING_20260928_CANDIDATE_BYTES",
+  "offline_review": {
+    "verdict": "PASS",
+    "passed": 174,
+    "existing_regression_targets_preserved": 82,
+    "new_real_failure_cases": 92,
+    "receipt": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/reviewer/VERDICT.json",
+    "receipt_sha256": "4747e5f51ac5d4220b42f44d2e97063401e4a31e0a4f737c0409ffaed863e685"
+  },
+  "historical_query": {
+    "attempts": 1,
+    "issuer": "HK.00002",
+    "window_start": "2026-09-24T16:10:00+08:00",
+    "research_cutoff": "2026-09-28T18:29:55.388780+08:00",
+    "fetch_date": "2026-10-23",
+    "query_status": "OBSERVED",
+    "reason": "NO_ROWS_IN_OBSERVED_RESPONSE",
+    "directory_exhaustion_verified": true,
+    "directory_pages": 1,
+    "directory_rows": 0,
+    "documents": 0,
+    "parsed_documents": 0,
+    "pending_documents": 0,
+    "nonempty_body_acceptance": "FAIL_NONEMPTY_BODY_ACCEPTANCE_NOT_MET",
+    "protocol_p1_crossing": "PASS_REAL_SESSION_SHELL_EMPTY_ALL_POST_SENTINEL_ECHO_AND_SENTINEL_GET",
+    "owner_receipt": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/actual-owner-single-00002-historical/original_owner_attempt.json",
+    "owner_receipt_sha256": "57d260aa61aa79463810fce4e22de785abb116f8dda35f0ceebdffd01c03ad4b",
+    "independent_readback": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/reviewer/ONLINE_READBACK.json",
+    "independent_readback_sha256": "48bc427c54c750d9b2996f39f648925783581d2a5113806731c6dd68df51abfb",
+    "store_readback": "PASS",
+    "network_retries": 0,
+    "old_cutoff_availability_verified": false
+  },
+  "states": {
+    "REVIEWED": true,
+    "TESTED": true,
+    "BEHAVIOR_VERIFIED": true,
+    "behavior_scope": "TWO_P1_PROTOCOL_CONSTRUCTION_CAPTURE_AND_READBACK_ONLY",
+    "INTEGRATED": false,
+    "DEPLOYED": false,
+    "API_VERIFIED": false,
+    "UI_VERIFIED": false,
+    "NATURAL_VERIFIED": false,
+    "manager_usable": false,
+    "nonempty_body_verified": false
+  },
+  "source_pins": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/SOURCE_PINS.json",
+  "source_pins_sha256": "0620cb8adb44f44d0fb365a6a4047da5101e2531cf6af2b7d2104b1e95ea9111",
+  "remote_sync": "CONTROLLER_OWNED_NOT_CLAIMED_BY_WRITER",
+  "external_dependencies": {
+    "complete_local_candidate": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/candidate",
+    "inventory": "/Users/lexi/Desktop/学习/agents调试/HKEX_REAL_FAILURES_REPAIR_20261023/CANDIDATE_INVENTORY.json",
+    "inventory_sha256": "f22b7d4dae8e9cde0cc8221ede3c60956fa72894d414c5206c31ac763d97cc75",
+    "full_historical_runtime_snapshot_included_in_zip": false,
+    "problem_zip": "/Users/lexi/Downloads/HKEX_R2_REAL_FAILURES_FOR_CHAT_20260928.zip",
+    "problem_zip_sha256": "5f47700656847df8f5fb5516228844d26c1c90b53835ca06ac5add2c714ce5e0",
+    "additional_leading_hyphen_fixture_provenance": "NOT_AUTHENTICATED_BY_THIS_REVIEW"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
