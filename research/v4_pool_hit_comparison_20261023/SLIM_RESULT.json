@@ -1,0 +1,462 @@
+{
+  "status": "RETROSPECTIVE_DESCRIPTIVE_ONLY_INDEPENDENT_VERDICT_SEPARATE",
+  "valid_historical_premarket_dates": 0,
+  "benchmark": "Existing5533-code research Top100; not certified historical all-A",
+  "summary": [
+    {
+      "pool_id": "RECOVERABLE_A_SUBPOOL_UNION_RETROSPECTIVE",
+      "tier": "RETROSPECTIVE_OR_UNCONFIRMED",
+      "days": [
+        "20261016",
+        "20261019",
+        "20261020",
+        "20261021",
+        "20261022"
+      ],
+      "valid_day_count": 5,
+      "N": 1627,
+      "raw_entity_N": 1640,
+      "excluded_non_stock_ETF": 13,
+      "unknown_identity_N": 0,
+      "H": 95,
+      "precision": 0.05838967424708052,
+      "recall": 0.19,
+      "truth_positive_denominator": 500,
+      "selection_slots": 1627,
+      "old387_covered": 49,
+      "model_comparators": {
+        "A": {
+          "N": 299,
+          "H": 17,
+          "precision": 0.056856187290969896,
+          "recall": 0.034
+        },
+        "B": {
+          "N": 3894,
+          "H": 113,
+          "precision": 0.029019003595274782,
+          "recall": 0.226
+        }
+      }
+    },
+    {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "tier": "RETROSPECTIVE_OR_UNCONFIRMED",
+      "days": [
+        "20261016",
+        "20261019",
+        "20261021",
+        "20261022"
+      ],
+      "valid_day_count": 4,
+      "N": 170,
+      "raw_entity_N": 170,
+      "excluded_non_stock_ETF": 0,
+      "unknown_identity_N": 0,
+      "H": 47,
+      "precision": 0.27647058823529413,
+      "recall": 0.1175,
+      "truth_positive_denominator": 400,
+      "selection_slots": 170,
+      "old387_covered": 22,
+      "model_comparators": {
+        "A": {
+          "N": 221,
+          "H": 11,
+          "precision": 0.049773755656108594,
+          "recall": 0.0275
+        },
+        "B": {
+          "N": 3029,
+          "H": 77,
+          "precision": 0.025420931000330143,
+          "recall": 0.1925
+        }
+      }
+    },
+    {
+      "pool_id": "a_d1_premarket_pool",
+      "tier": "RETROSPECTIVE_OR_UNCONFIRMED",
+      "days": [
+        "20261016",
+        "20261019",
+        "20261021",
+        "20261022"
+      ],
+      "valid_day_count": 4,
+      "N": 124,
+      "raw_entity_N": 124,
+      "excluded_non_stock_ETF": 0,
+      "unknown_identity_N": 0,
+      "H": 5,
+      "precision": 0.04032258064516129,
+      "recall": 0.0125,
+      "truth_positive_denominator": 400,
+      "selection_slots": 124,
+      "old387_covered": 0,
+      "model_comparators": {
+        "A": {
+          "N": 221,
+          "H": 11,
+          "precision": 0.049773755656108594,
+          "recall": 0.0275
+        },
+        "B": {
+          "N": 3029,
+          "H": 77,
+          "precision": 0.025420931000330143,
+          "recall": 0.1925
+        }
+      }
+    },
+    {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "tier": "RETROSPECTIVE_OR_UNCONFIRMED",
+      "days": [
+        "20261016",
+        "20261019",
+        "20261021",
+        "20261022"
+      ],
+      "valid_day_count": 4,
+      "N": 40,
+      "raw_entity_N": 40,
+      "excluded_non_stock_ETF": 0,
+      "unknown_identity_N": 0,
+      "H": 1,
+      "precision": 0.025,
+      "recall": 0.0025,
+      "truth_positive_denominator": 400,
+      "selection_slots": 40,
+      "old387_covered": 1,
+      "model_comparators": {
+        "A": {
+          "N": 221,
+          "H": 11,
+          "precision": 0.049773755656108594,
+          "recall": 0.0275
+        },
+        "B": {
+          "N": 3029,
+          "H": 77,
+          "precision": 0.025420931000330143,
+          "recall": 0.1925
+        }
+      }
+    },
+    {
+      "pool_id": "a_share_research_recommendation_pool",
+      "tier": "RETROSPECTIVE_OR_UNCONFIRMED",
+      "days": [
+        "20261016",
+        "20261019",
+        "20261020",
+        "20261021",
+        "20261022"
+      ],
+      "valid_day_count": 5,
+      "N": 1413,
+      "raw_entity_N": 1426,
+      "excluded_non_stock_ETF": 13,
+      "unknown_identity_N": 0,
+      "H": 62,
+      "precision": 0.043878273177636234,
+      "recall": 0.124,
+      "truth_positive_denominator": 500,
+      "selection_slots": 1413,
+      "old387_covered": 35,
+      "model_comparators": {
+        "A": {
+          "N": 299,
+          "H": 17,
+          "precision": 0.056856187290969896,
+          "recall": 0.034
+        },
+        "B": {
+          "N": 3894,
+          "H": 113,
+          "precision": 0.029019003595274782,
+          "recall": 0.226
+        }
+      }
+    }
+  ],
+  "union_daily": [
+    {
+      "pool_id": "RECOVERABLE_A_SUBPOOL_UNION_RETROSPECTIVE",
+      "selection_date": "20261016",
+      "timing_status": "RETROSPECTIVE",
+      "pool_size": "263",
+      "raw_entity_N": "268",
+      "excluded_non_stock_ETF": "5",
+      "unknown_identity_N": "0",
+      "top100_hits": "10",
+      "precision": "0.03802281368821293",
+      "recall": "0.1",
+      "truth_positive_denominator": "100",
+      "selection_slots": "263",
+      "old387_covered": "5",
+      "raw_rows": "296",
+      "duplicate_a_rows": "28",
+      "complete": "True",
+      "available_child_count": "4",
+      "missing_children": "a_share_baimao_research_map|wechat_public_account_v3_preselect",
+      "reason": "OFFLINE_DERIVED_PARTIAL_SAVED_SOURCE_UNION_ONLY; NOT_HISTORICAL_A_ALL_RESPONSE;NO_PRODUCER_WRITE"
+    },
+    {
+      "pool_id": "RECOVERABLE_A_SUBPOOL_UNION_RETROSPECTIVE",
+      "selection_date": "20261019",
+      "timing_status": "RETROSPECTIVE",
+      "pool_size": "444",
+      "raw_entity_N": "446",
+      "excluded_non_stock_ETF": "2",
+      "unknown_identity_N": "0",
+      "top100_hits": "22",
+      "precision": "0.04954954954954955",
+      "recall": "0.22",
+      "truth_positive_denominator": "100",
+      "selection_slots": "444",
+      "old387_covered": "10",
+      "raw_rows": "472",
+      "duplicate_a_rows": "26",
+      "complete": "True",
+      "available_child_count": "4",
+      "missing_children": "a_share_baimao_research_map|wechat_public_account_v3_preselect",
+      "reason": "OFFLINE_DERIVED_PARTIAL_SAVED_SOURCE_UNION_ONLY; NOT_HISTORICAL_A_ALL_RESPONSE;NO_PRODUCER_WRITE"
+    },
+    {
+      "pool_id": "RECOVERABLE_A_SUBPOOL_UNION_RETROSPECTIVE",
+      "selection_date": "20261020",
+      "timing_status": "RETROSPECTIVE",
+      "pool_size": "297",
+      "raw_entity_N": "298",
+      "excluded_non_stock_ETF": "1",
+      "unknown_identity_N": "0",
+      "top100_hits": "21",
+      "precision": "0.0707070707070707",
+      "recall": "0.21",
+      "truth_positive_denominator": "100",
+      "selection_slots": "297",
+      "old387_covered": "8",
+      "raw_rows": "298",
+      "duplicate_a_rows": "0",
+      "complete": "True",
+      "available_child_count": "1",
+      "missing_children": "a_d1_premarket_pool|a_d1_fupan_watchlist_pool|a_d1_stage7_fenshi_review_pool|a_share_baimao_research_map|wechat_public_account_v3_preselect",
+      "reason": "OFFLINE_DERIVED_PARTIAL_SAVED_SOURCE_UNION_ONLY; NOT_HISTORICAL_A_ALL_RESPONSE;NO_PRODUCER_WRITE"
+    },
+    {
+      "pool_id": "RECOVERABLE_A_SUBPOOL_UNION_RETROSPECTIVE",
+      "selection_date": "20261021",
+      "timing_status": "RETROSPECTIVE",
+      "pool_size": "326",
+      "raw_entity_N": "327",
+      "excluded_non_stock_ETF": "1",
+      "unknown_identity_N": "0",
+      "top100_hits": "27",
+      "precision": "0.08282208588957055",
+      "recall": "0.27",
+      "truth_positive_denominator": "100",
+      "selection_slots": "326",
+      "old387_covered": "17",
+      "raw_rows": "362",
+      "duplicate_a_rows": "35",
+      "complete": "True",
+      "available_child_count": "4",
+      "missing_children": "a_share_baimao_research_map|wechat_public_account_v3_preselect",
+      "reason": "OFFLINE_DERIVED_PARTIAL_SAVED_SOURCE_UNION_ONLY; NOT_HISTORICAL_A_ALL_RESPONSE;NO_PRODUCER_WRITE"
+    },
+    {
+      "pool_id": "RECOVERABLE_A_SUBPOOL_UNION_RETROSPECTIVE",
+      "selection_date": "20261022",
+      "timing_status": "RETROSPECTIVE",
+      "pool_size": "297",
+      "raw_entity_N": "301",
+      "excluded_non_stock_ETF": "4",
+      "unknown_identity_N": "0",
+      "top100_hits": "15",
+      "precision": "0.050505050505050504",
+      "recall": "0.15",
+      "truth_positive_denominator": "100",
+      "selection_slots": "297",
+      "old387_covered": "9",
+      "raw_rows": "332",
+      "duplicate_a_rows": "31",
+      "complete": "True",
+      "available_child_count": "4",
+      "missing_children": "a_share_baimao_research_map|wechat_public_account_v3_preselect",
+      "reason": "OFFLINE_DERIVED_PARTIAL_SAVED_SOURCE_UNION_ONLY; NOT_HISTORICAL_A_ALL_RESPONSE;NO_PRODUCER_WRITE"
+    }
+  ],
+  "source_contribution": [
+    {
+      "source": "a_d1_fupan_watchlist_pool",
+      "days": 4,
+      "N": 170,
+      "H": 47,
+      "unique_N": 85,
+      "unique_H": 29,
+      "old387_covered": 22,
+      "unique_old387_covered": 14
+    },
+    {
+      "source": "a_d1_premarket_pool",
+      "days": 4,
+      "N": 124,
+      "H": 5,
+      "unique_N": 93,
+      "unique_H": 3,
+      "old387_covered": 0,
+      "unique_old387_covered": 0
+    },
+    {
+      "source": "a_d1_stage7_fenshi_review_pool",
+      "days": 4,
+      "N": 40,
+      "H": 1,
+      "unique_N": 22,
+      "unique_H": 0,
+      "old387_covered": 1,
+      "unique_old387_covered": 0
+    },
+    {
+      "source": "a_share_research_recommendation_pool",
+      "days": 5,
+      "N": 1413,
+      "H": 62,
+      "unique_N": 1313,
+      "unique_H": 43,
+      "old387_covered": 35,
+      "unique_old387_covered": 26
+    }
+  ],
+  "excluded_entity_rows": 26,
+  "raw_entity_membership_rows": 3400,
+  "new_old387_stock_dates": 49,
+  "new_old387_distinct_codes": 42,
+  "gaps": [
+    {
+      "pool_id": "RESEARCH_FORMAL_SELECTION",
+      "selection_date": "20261016",
+      "status": "CANNOT_CONFIRM_NOT_MATERIALIZED;NO_FORMAL_SHORTLIST"
+    },
+    {
+      "pool_id": "RESEARCH_FORMAL_SELECTION",
+      "selection_date": "20261019",
+      "status": "CANNOT_CONFIRM_NOT_MATERIALIZED;NO_FORMAL_SHORTLIST"
+    },
+    {
+      "pool_id": "RESEARCH_FORMAL_SELECTION",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_NOT_MATERIALIZED;NO_FORMAL_SHORTLIST"
+    },
+    {
+      "pool_id": "RESEARCH_FORMAL_SELECTION",
+      "selection_date": "20261021",
+      "status": "CANNOT_CONFIRM_NOT_MATERIALIZED;NO_FORMAL_SHORTLIST"
+    },
+    {
+      "pool_id": "RESEARCH_FORMAL_SELECTION",
+      "selection_date": "20261022",
+      "status": "CANNOT_CONFIRM_NOT_MATERIALIZED;NO_FORMAL_SHORTLIST"
+    },
+    {
+      "pool_id": "V4_A_ALL_SAVED_SNAPSHOT",
+      "selection_date": "20261016",
+      "status": "CANNOT_CONFIRM_NO_SAVED_CANONICAL_A_ALL_RESPONSE;EXACT_GET_TIMEOUT_NO_BODY"
+    },
+    {
+      "pool_id": "V4_A_ALL_SAVED_SNAPSHOT",
+      "selection_date": "20261019",
+      "status": "CANNOT_CONFIRM_NO_SAVED_CANONICAL_A_ALL_RESPONSE;EXACT_GET_TIMEOUT_NO_BODY"
+    },
+    {
+      "pool_id": "V4_A_ALL_SAVED_SNAPSHOT",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_NO_SAVED_CANONICAL_A_ALL_RESPONSE;EXACT_GET_TIMEOUT_NO_BODY"
+    },
+    {
+      "pool_id": "V4_A_ALL_SAVED_SNAPSHOT",
+      "selection_date": "20261021",
+      "status": "CANNOT_CONFIRM_NO_SAVED_CANONICAL_A_ALL_RESPONSE;EXACT_GET_TIMEOUT_NO_BODY"
+    },
+    {
+      "pool_id": "V4_A_ALL_SAVED_SNAPSHOT",
+      "selection_date": "20261022",
+      "status": "CANNOT_CONFIRM_NO_SAVED_CANONICAL_A_ALL_RESPONSE;EXACT_GET_TIMEOUT_NO_BODY"
+    },
+    {
+      "pool_id": "a_d1_fupan_watchlist_pool",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_d1_premarket_pool",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_d1_stage7_fenshi_review_pool",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_share_baimao_research_map",
+      "selection_date": "20261016",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_share_baimao_research_map",
+      "selection_date": "20261019",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_share_baimao_research_map",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_share_baimao_research_map",
+      "selection_date": "20261021",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "a_share_baimao_research_map",
+      "selection_date": "20261022",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "selection_date": "20261016",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "selection_date": "20261019",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "selection_date": "20261020",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "selection_date": "20261021",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    },
+    {
+      "pool_id": "wechat_public_account_v3_preselect",
+      "selection_date": "20261022",
+      "status": "CANNOT_CONFIRM_MISSING_OR_EMPTY_SOURCE_ARTIFACT_OR_RECEIPT"
+    }
+  ],
+  "historical_summary": "CANNOT_CONFIRM_NO_SAVED_CANONICAL_A_ALL_RESPONSE_API_TIMEOUT",
+  "formal_research_selection": "NOT_MATERIALIZED_ALL_FIVE_DATES_NOT_ZERO_HIT",
+  "report_pool_semantics": "Hourly research article-entity mention pool; not explicit analyst recommendation or formal shortlist",
+  "information_set": "Saved pool may use overnight articles/review information; prior-close model information sets differ",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
