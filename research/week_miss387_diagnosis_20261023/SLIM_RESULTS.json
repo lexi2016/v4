@@ -1,0 +1,71 @@
+{
+  "schema": "MISS387_TECHNICAL_DIAGNOSIS_SLIM_RESULT_V1",
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_REVIEW",
+  "scope": "FROZEN_OFFLINE_NUMERIC_IMPLEMENTATION_AND_INDEPENDENT_SOURCE_AST_STRUCTURE_ONLY",
+  "events": 387,
+  "unique_codes": 342,
+  "daily_counts": {
+    "20261016": 92,
+    "20261022": 90,
+    "20261021": 65,
+    "20261020": 64,
+    "20261019": 76
+  },
+  "archive_parity_rows": 387,
+  "independent_numeric_difference_rows": 0,
+  "source_mapping": {
+    "A_assignments": 255,
+    "B_assignments": 50,
+    "status": "PASS_INDEPENDENT_TEXT_TO_AST_STRUCTURE"
+  },
+  "primary_reason_counts": {
+    "ENTRYPOOL_FALSE": 385,
+    "ROLE_SCORE_OR_ROUTE_FALSE": 2
+  },
+  "atomic_multilabel_counts": {
+    "BBI位置或趋势": 382,
+    "J_KDJ_RSI条件": 387,
+    "其他冻结形态或时序门": 387,
+    "成交量额或缩放量": 387,
+    "涨幅突破或阳线结构": 387,
+    "白黄线趋势或距离": 386,
+    "砖图反包结构": 387,
+    "分数角色风险或热度": 2
+  },
+  "local_risk_flags": {
+    "SHORT_HISTORY_LT200": 10,
+    "NAME_MISSING": 11
+  },
+  "posthoc_D_counts": {
+    "a_yes": 71,
+    "b_yes": 256,
+    "note": "POSTHOC_DIFFERENT_INFORMATION_TIME_NOT_PREDICTION"
+  },
+  "CANNOT_CONFIRM": [
+    "NativeTDX/Futu engine parity",
+    "Historical available_at/vintage/PIT/security identity/qualification",
+    "Cross-vendor volume/amount unit parity",
+    "External registry persistence"
+  ],
+  "registry_note": "Root local append-only only. Final review/catalyst terminal receipts are separate.",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "B1_exact_condition_counts": {
+    "BBI>白线": {
+      "TRUE": 113,
+      "FALSE": 274
+    },
+    "白线>黄线": {
+      "FALSE": 245,
+      "TRUE": 139,
+      "UNKNOWN": 3
+    },
+    "J<=13": {
+      "FALSE": 251,
+      "TRUE": 136
+    }
+  },
+  "classification_note": "Type categories mean >=1 saved failing constraint on some alternative route; J387 does not mean all J>13. B1 yellow relation UNKNOWN3 stays unknown."
+}

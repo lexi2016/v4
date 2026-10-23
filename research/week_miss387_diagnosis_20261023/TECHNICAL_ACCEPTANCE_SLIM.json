@@ -1,0 +1,25 @@
+{
+  "schema": "MISS387_TECHNICAL_ACCEPTANCE_SLIM_V1",
+  "verdict": "PASS_SCOPED_TECHNICAL_DIAGNOSIS_WITH_EXPLICIT_CANNOT_CONFIRM_LIMITATIONS",
+  "status": "TESTED_BEHAVIOR_VERIFIED_SCOPED_TECHNICAL_DIAGNOSIS",
+  "supersedes_status_only_of": "SLIM_RESULTS.json (immutable implemented handoff snapshot)",
+  "reviewer": "/root/miss387_review",
+  "review_start_event_sha256": "52a70f6c1f5603892756fe11b1d11ac30f3180a1bab4766866a5946538a9de2f",
+  "review_terminal_event_sha256": "98435915c3f1d9a1ce3446d8eaa2d9f1c8070131c16a7672b69c7bdcb45b5e53",
+  "review_receipt_sha256": {
+    "VERIFIER_RECEIPT.json": "fd2dbf64428fd79b65d1f3a5b06f12b709fa829f453fc7601c7cb136fd846314",
+    "INDEPENDENT_SOURCE_AST_RECEIPT.json": "72630bee2dbd75195fba35cc326f954cd0dea932a3b4e2c5b8db0e76345a9bfc",
+    "independent_ast_compare.py": "3d2a4cbc2159d4221a7ee146d78a1c7ad9e701946673511cebca0e755c1e9990"
+  },
+  "excluded_from_this_acceptance": [
+    "Catalyst evidence pending separate incremental review",
+    "Native TDX/Futu original-client full formula equivalence",
+    "Historical PIT/source availability/security identity/qualification",
+    "Complete cross-vendor volume/amount unit parity",
+    "GitHub persistence or production/trading promotion"
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
