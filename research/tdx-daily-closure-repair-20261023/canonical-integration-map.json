@@ -1,0 +1,38 @@
+{
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "canonical_source": "/Users/lexi/Desktop/学习/v4_app",
+  "integration_receipt_sha256": "095683852bf6b24126c06bcdc9bbe422e225db3113f4acf5eca3247dd82e4079",
+  "method": "CAS exact reviewed postimages; no facade/core/SDK changes; retain accepted R3 canonical dependency",
+  "paths": [
+    {
+      "after_sha256": "28ed1512313f1c6d9121cd4f3cf2b667b85d654fc10b399aeadb8236d28ba140",
+      "before_sha256": "0224f525a8f3e5b5ab3c32b871d486ca3568208881da7ba6e99e1573d4142a74",
+      "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "91b5a04aefe2169719a7aee78700fa1a33c874bd229c5e65756da9f1e8977a02",
+      "before_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+      "path": "infrastructure/scheduling/input_retry_identity.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "846eb2565e2461c3c1268fdbb095c661c679b870dfa09d73b3ccc660bc696ec5",
+      "before_sha256": "576b81d65bc993bd93ea415ac142cbfe94a0307ba59d0ecd11f5e1b573e3fb81",
+      "path": "ops/_macos_research_panel_daily_parts/bounded_execution.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "4f505d02ba7390eb074d0306211aad9d500e0a44c745bcba68d43a9ae31e2f57",
+      "before_sha256": "7ab4e0d3d9529e4e59cc875e44f4b368caaa2b2ae3cad45d8c11ad01a7326a03",
+      "path": "ops/_macos_research_panel_daily_parts/panel_primitives.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "b17c1e9c80161e70c3468a7ada5e8fbe7aba1e56fad6be189af5caaf78d7216c",
+      "before_sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+      "path": "ops/_macos_research_panel_daily_parts/cli.py",
+      "variant": "canonical"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# TDX daily closure repair · 2026-10-23
+
+The 17:00 A-share daily lane received a complete, request-correlated invalid TDX bars response. The SDK decoder rejected it. Existing shared route exhaustion then prevented later symbols from being queried, and the outer scheduler flattened this into a retryable upstream-not-ready result without a stable daily-input wait. The configured sync entry also pointed to a separate legacy release. The server-internal cause and a healthy replacement data route remain unconfirmed.
+
+The reviewed repair correlates the native failure with the exact run, preserves strict validation, distinguishes terminal unknown/safety failures from bounded transient failures, and waits for a relevant input/config/source change before trying unchanged invalid input again. Trusted same-path config bytes are part of identity. The proposed release binds the unchanged sync core to the same app as the daemon. No market/threshold/budget/SDK or sync-core behavior was loosened.
+
+Independent R2 acceptance passed 23 focused checks in each runtime/canonical variant; 28 unaffected R1 cases per variant were reused. The two R1 findings and original failed receipts remain retained. Canonical integration copied only five reviewed source postimages and the approved test. Source before/after SHA-256 values, exact commands and local fixture evidence are in `source-hashes.json`, `canonical-integration-map.json` and `verification.json`.
+
+Actual cutover did not complete. The unchanged driver stopped in PREFLIGHT when new healthy work entered after an external admission snapshot. The last attempt made zero service, signal, release or plist actions. Static review of the actual entry/call chain found no accepted external atomic pause/drain interface; the signal-exit path may cancel healthy PDF work. Further idle-window/driver retries have stopped. Source/control/packet PASS does not establish deployment or natural behavior.
+
+The existing page showed A255/HK100; one direct API request timed out, the future dated stage receipt was missing, and one displayed stock identity remains unresolved. Physical20261023 bars/panel recovery and new-runtime API/UI/natural acceptance remain CANNOT_CONFIRM. All healthy jobs, valid successes and original errors are retained.
+
+This delivery contains reviewed source, patches, targeted tests and compact evidence only. Operational tests reference frozen private local fixtures/capsules that are deliberately excluded. A fresh clone is not a standalone acceptance or activation package; do not treat these controls as a proven atomic cutover mechanism. Raw market/network data, live configs/plists, queues, logs, full releases, credentials, model outputs and binaries are excluded. No merge or deployment is included.
+
+Repository: `lexi2016/v4`; new branch: `codex/tdx-daily-closure-20261023`; parent: `116c80efe59130ac8a210e40cde3c752ea5f3499`. Remote commit and exact content readback are recorded separately after publication. Research only: `RESEARCH_ONLY=true`, `production_allowed=false`, `buy_gate_updated=false`, `orders_sent=false`.

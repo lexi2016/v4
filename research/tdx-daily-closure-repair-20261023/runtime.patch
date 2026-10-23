@@ -1,0 +1,344 @@
+--- a/infrastructure/scheduling/executor_registry_review.py
++++ b/infrastructure/scheduling/executor_registry_review.py
+@@ -405,6 +405,8 @@
+         "--hk-python-executable", str(self.hk_0_2_python_executable),
+         "--hk-asset-root", env["V35_RESEARCH_PANEL_HK_ASSET_ROOT"],
+     ]
++    from infrastructure.scheduling.input_retry_identity import begin_daily_attempt, failed_daily_classification
++    daily_attempt = begin_daily_attempt(request.business_date) if lane == "A" else None
+     if lane == "HK" and hk_child_binding is not None:
+         result = self._run(
+             module,
+@@ -514,6 +516,8 @@
+                 failure["reason"] = source_reason
+         else:
+             failure["reason"] = "RESEARCH_PANEL_DAILY_LANE_NOT_READY"
++        if lane == "A" and lane_status not in {"READY", "PARTIAL", "PARTIAL_WITH_ROWS"}:
++            failure.update(failed_daily_classification(payload, result, request.business_date, request.slot, daily_attempt))
+         result.update(failure)
+         raise WorkloadExecutionError(result)
+     return result
+--- a/infrastructure/scheduling/input_retry_identity.py
++++ b/infrastructure/scheduling/input_retry_identity.py
+@@ -1,13 +1,15 @@
+ """Observe fixed owned inputs for retry permission, never for source admission."""
+ from __future__ import annotations
+ import hashlib
++import importlib.util
++import time
+ import json
+ import os
+ import re
+ from pathlib import Path
+ from typing import Any
+ 
+-_WORKLOADS = frozenset({'preselection_pools', 'hourly_research', 'research_panel_runtime_evidence'})
++_WORKLOADS = frozenset({'preselection_pools', 'hourly_research', 'research_panel_runtime_evidence', 'research_panel_daily_a'})
+ _CODE_PATHS = ('ops/materialize_shared_v192_preselection.py', 'ops/materialize_scheduled_preselection.py',
+     'infrastructure/scheduling/executor_registry_preselection.py', 'ops/run_hourly_research.py',
+     'infrastructure/scheduling/executor_registry_research.py', 'infrastructure/scheduling/dispatcher.py',
+@@ -84,9 +86,11 @@
+     return {'state': 'PRESENT', 'semantic_sha256': _hash(_dependency_content(value))} if value is not None else state
+ 
+ 
+-def observe_input_identity(workload_id: str, business_date: str, target_date: str, slot: str, pending_pool_ids: list[str] | None = None) -> dict | None:
++def observe_input_identity(workload_id: str, business_date: str, target_date: str, slot: str, pending_pool_ids: list[str] | None = None, daily_source_refs: list[str] | None = None) -> dict | None:
+     if workload_id not in _WORKLOADS or (workload_id == 'hourly_research' and slot in {'0700', '0800', '1530'}):
+         return None
++    if workload_id == 'research_panel_daily_a':
++        return _observe_daily_identity(business_date, slot, daily_source_refs)
+     if workload_id == 'hourly_research':
+         target_date = business_date  # hourly archives own the business date
+     if not re.fullmatch(r'\d{8}', business_date) or not re.fullmatch(r'\d{8}', target_date) or not re.fullmatch(r'\d{4}', slot):
+@@ -205,8 +209,262 @@
+ 
+ def input_wait_changed(wait: dict) -> bool:
+     try:
+-        current = observe_input_identity(wait['workload_id'],wait['business_date'],wait['target_date'],wait['slot'],wait.get('pending_pool_ids'))
++        current = observe_input_identity(wait['workload_id'],wait['business_date'],wait['target_date'],wait['slot'],wait.get('pending_pool_ids'), wait.get('daily_source_refs'))
+         return current is not None and (current['code_identity'] != wait['code_identity']
+             or current['input_identity_sha256'] != wait['input_identity_sha256'])
+     except (KeyError, ValueError, TypeError, OSError):
+         return False
++
++
++_DAILY_CODE = ('ops/a_share_daily_sync.py', 'ops/macos_research_panel_daily.py',
++    'ops/macos_research_panel_daily_authority.py', 'ops/macos_research_panel_daily_gate.py',
++    'ops/macos_research_panel_daily_receipts.py', 'ops/_macos_research_panel_daily_parts/bounded_execution.py',
++    'ops/_macos_research_panel_daily_parts/panel_primitives.py', 'ops/_macos_research_panel_daily_parts/cli.py',
++    'infrastructure/scheduling/executor_registry_review.py',
++    'infrastructure/scheduling/_executor_registry_parts/panel_execution.py',
++    'infrastructure/scheduling/input_retry_identity.py')
++_DAILY_FLAGS = ('production_allowed', 'buy_gate_updated', 'orders_sent')
++_DAY_REFERENCE = re.compile(r'vipdoc/(sh|sz|bj)/lday/\1[0-9]{6}\.day')
++# Native source rejection codes from the unchanged synchronizer contract.
++# Every row must be recognized before one protocol row can grant a wait.
++_DAILY_NATIVE_REASONS = frozenset({
++    'EMPTY_RESPONSE', 'PROTOCOL_RESPONSE_MALFORMED', 'TARGET_DATE_MISSING',
++    'DUPLICATE_DATE', 'NON_MONOTONIC_DATE', 'CROSS_DAY_CLOSE_RATIO',
++    'OUT_OF_SCOPE_AFTER_TARGET_DATE', 'SOURCE_DATE_AFTER_TARGET', 'INVALID_BAR',
++    'SOURCE_IDENTITY_CHANGED', 'KNOWN_MALFORMED_AMOUNT_VOLUME_SIGNATURE',
++    'HOST_UNAVAILABLE', 'A_SYNC_TIMEOUT',
++})
++
++
++def _daily_config_input_identity(value):
++    if not value:
++        return {'state': 'UNCONFIGURED'}
++    try:
++        path = Path(value).expanduser()
++        # Match the native owner's absolute, no-symlink input boundary.
++        if (not path.is_absolute() or '..' in path.parts or path.resolve() != path
++                or any(part.is_symlink() for part in (path, *path.parents))):
++            raise ValueError('UNSAFE_CONFIG_INPUT')
++        return _read(path.parent, path.name)[0]  # Existing 16 MiB cap; no recursive refs.
++    except (OSError, ValueError, RuntimeError):
++        return {'state': 'REJECTED_OWNED_PATH'}
++
++
++def _daily_roots():
++    receipt = os.environ.get('V35_RESEARCH_PANEL_A_RECEIPT_ROOT') or os.environ.get('V35_RESEARCH_PANEL_RECEIPT_ROOT')
++    tdx = os.environ.get('V35_RESEARCH_PANEL_A_TDX_ROOT')
++    if not receipt or not tdx:
++        raise ValueError('DAILY_ROOT_MISSING')
++    return Path(receipt), Path(tdx)
++
++
++def _observe_daily_identity(date, slot, refs=None):
++    if not re.fullmatch(r'\d{8}', date) or not re.fullmatch(r'\d{4}', slot):
++        raise ValueError('INPUT_WAIT_DATE_SLOT_INVALID')
++    refs = [] if refs is None else refs
++    if (not isinstance(refs, list) or len(refs) > 2 or len(set(refs)) != len(refs)
++            or any(not isinstance(ref, str) or not _DAY_REFERENCE.fullmatch(ref) for ref in refs)):
++        raise ValueError('DAILY_REFERENCE_INVALID')
++    try:
++        receipt, tdx = _daily_roots()
++    except ValueError:
++        return None
++    observations = {'receipt_root': str(receipt.resolve()), 'tdx_root': str(tdx.resolve())}
++    # Reports, UUIDs, progress and logs are outputs, never retry permission.
++    for ref in refs:
++        observations[ref] = _read(tdx, ref)[0]
++    app = Path(__file__).resolve().parents[2]
++    code = {name: _read(app, name)[0] for name in _DAILY_CODE}
++    script = os.environ.get('V35_RESEARCH_PANEL_A_SYNC_SCRIPT', '')
++    script_path = Path(script)
++    code['configured_sync'] = {'path': script, **(_read(script_path.parent, script_path.name)[0] if script else {'state': 'MISSING'})}
++    # The child inherits this interpreter's import path. Resolve without importing
++    # the SDK or calling any transport; hash only its fixed source components.
++    spec = importlib.util.find_spec('pytdx')
++    sdk = Path(spec.origin).parent if spec is not None and spec.origin else None
++    code['sdk_root'] = str(sdk) if sdk else None
++    if sdk is not None:
++        for name in ('hq.py', 'base_socket_client.py', 'parser/base.py', 'parser/get_security_bars.py', 'config/hosts.py'):
++            code['sdk/' + name] = _read(sdk, name)[0]
++    for name in ('V35_A_SYNC_HOST', 'V35_RESEARCH_PANEL_A_SYNC_RUN_BUDGET_SECONDS',
++                 'V35_A_SYNC_TRUSTED_CAS_INPUTS', 'V35_RESEARCH_PANEL_A_SYNC_SCRIPT'):
++        observations[name] = os.environ.get(name)
++    observations['trusted_cas_input_content'] = _daily_config_input_identity(
++        os.environ.get('V35_A_SYNC_TRUSTED_CAS_INPUTS'))
++    return {'workload_id': 'research_panel_daily_a', 'business_date': date, 'target_date': date,
++        'slot': slot, 'code_identity': _hash(code), 'input_identity_sha256': _hash(observations),
++        'observations': observations, 'daily_source_refs': refs}
++
++
++def _daily_stat(root, relative):
++    path = _path(root, relative)
++    stat = path.stat()
++    return (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns)
++
++
++def begin_daily_attempt(date):
++    """Cheap pre-child witness. Never read the potentially large source report."""
++    witness = {'started_ns': time.time_ns()}
++    try:
++        root, _ = _daily_roots()
++        for key, relative in (('summary', f'a_sync_authority/{date}/summary.json'), ('receipt', f'a-{date}.json')):
++            try:
++                witness[key] = _daily_stat(root, relative)
++            except (OSError, ValueError):
++                witness[key] = None
++    except ValueError:
++        pass
++    return witness
++
++
++def failed_daily_classification(payload, result, date, slot, witness):
++    """Only a fresh same-child native zero-accepted protocol failure may wait.
++
++    Classification is never admission. READY/PARTIAL validators remain at the
++    caller; invalid/stale/unbound evidence is an explicit terminal UNKNOWN.
++    """
++    end_ns = time.time_ns()
++    if result.get('failure_class') in {'SAFETY', 'UNKNOWN', 'NETWORK', 'EXTERNAL_SOURCE'}:
++        return {'failure_class': result['failure_class']}
++    if result.get('status') == 'TIMEOUT' or result.get('exception_type') in {'TimeoutExpired', 'TimeoutError', 'ConnectionError', 'ConnectionResetError', 'ConnectionRefusedError'}:
++        return {'failure_class': 'NETWORK', 'failure_code': 'A_DAILY_TRANSIENT_NETWORK'}
++    rejected = {'failure_class': 'UNKNOWN', 'failure_code': 'A_DAILY_FAILURE_EVIDENCE_UNVERIFIED'}
++    try:
++        receipt_root, tdx = _daily_roots()
++        start_ns = witness['started_ns']
++        if (payload.get('schema_version') != 'v3.macos.research_panel_authority_envelope.v1'
++                or payload.get('target_date') != date
++                or payload.get('requested_lane', payload.get('lane')) != 'A'
++                or any(payload.get(k) is not False for k in _DAILY_FLAGS)):
++            raise ValueError('ENVELOPE_IDENTITY_OR_SAFETY')
++        lane = payload['lanes']['A']
++        if not isinstance(lane, dict) or lane.get('status') != 'FAILED' or result.get('exit_code') != 1:
++            raise ValueError('CHILD_FAILURE_NOT_BOUND')
++        receipt_stat = _daily_stat(receipt_root, f'a-{date}.json')
++        context = lane.get('native_failure')
++        if not isinstance(context, dict) or context.get('schema_version') != 'v4.a_daily_native_failure.v1':
++            raise ValueError('NATIVE_CHILD_CORRELATION_MISSING')
++        summary_rel = context.get('summary_relative')
++        if (context.get('target_date') != date or summary_rel not in {
++                f'a_sync_authority/{date}/summary.json', 'a_sync_authority/summary.json'}):
++            raise ValueError('NATIVE_CHILD_CORRELATION_INVALID')
++        summary_stat = _daily_stat(receipt_root, summary_rel)
++        for key, current in (('summary', summary_stat), ('receipt', receipt_stat)):
++            if current == witness.get(key) or not start_ns <= current[3] <= end_ns:
++                raise ValueError('STALE_' + key.upper())
++        state, receipt = _json(receipt_root, f'a-{date}.json')
++        if (receipt is None or receipt.get('schema_version') != 'v3.macos.research_panel_receipt.v1'
++                or receipt.get('lane') != 'A' or receipt.get('target_date') != date
++                or receipt.get('status') != 'FAILED' or receipt.get('exit_code') != 1
++                or receipt.get('runner_called') is not True or receipt.get('receipt_written') is not True
++                or receipt.get('exception_type') != 'SnapshotGateError'
++                or receipt.get('error') not in {
++                    'SnapshotGateError: A sync partial closure has no healthy accepted subset',
++                    'A sync authority did not prove exact-date success: status=FAILED,exit_code=2'}
++                or any(receipt.get(k) is not False for k in _DAILY_FLAGS)):
++            raise ValueError('RECEIPT_IDENTITY_OR_SAFETY')
++        if receipt.get('native_failure') != context:
++            raise ValueError('CHILD_RECEIPT_CONTEXT_MISMATCH')
++        for key in ('status', 'target_date', 'error', *_DAILY_FLAGS):
++            if key in lane and lane.get(key) != receipt.get(key):
++                raise ValueError('CHILD_RECEIPT_MISMATCH')
++        if ('receipt_sha256' in lane or 'receipt_bytes' in lane) and (
++                lane.get('receipt_sha256') != state.get('sha256') or lane.get('receipt_bytes') != receipt_stat[2]):
++            raise ValueError('RECEIPT_SHA_MISMATCH')
++        path = _path(receipt_root, summary_rel)
++        # The diagnosed native summary is ~34 MiB. Bound the one postfailure
++        # audit to 64 MiB; no scan or summary digest enters the due identity.
++        if summary_stat[2] > 64 * 1024 * 1024:
++            raise ValueError('NATIVE_SUMMARY_OVERSIZE')
++        raw = path.read_bytes()
++        summary_sha = hashlib.sha256(raw).hexdigest()
++        if summary_sha != context.get('summary_sha256'):
++            raise ValueError('NATIVE_CHILD_SUMMARY_SHA_MISMATCH')
++        summary = json.loads(raw)
++        if not isinstance(summary, dict):
++            raise ValueError('NATIVE_SUMMARY_NOT_OBJECT')
++        if _daily_stat(receipt_root, summary_rel) != summary_stat:
++            raise ValueError('NATIVE_SUMMARY_CHANGED_DURING_AUDIT')
++        if summary.get('run_id') != context.get('run_id'):
++            raise ValueError('NATIVE_CHILD_RUN_MISMATCH')
++        fingerprint = summary.get('target_fingerprint')
++        run_id = summary.get('run_id')
++        if (not isinstance(fingerprint, str) or not re.fullmatch(r'[0-9a-f]{64}', fingerprint)
++                or not isinstance(run_id, str)
++                or not re.fullmatch(date + '-' + fingerprint[:16] + r'-[0-9]{19}', run_id)
++                or not start_ns <= int(run_id.rsplit('-', 1)[1]) <= summary_stat[3]):
++            raise ValueError('NATIVE_RUN_MISMATCH')
++        if (summary.get('task_name') != 'tdxpy_daily_vipdoc_sync_v1'
++                or summary.get('target_date') != date or summary.get('status') != 'FAILED'
++                or summary.get('exit_code') != 2 or summary.get('authority_status') != 'FAILED'
++                or any(summary.get(k) is not False for k in (*_DAILY_FLAGS, 'timeout', 'interrupted', 'dry_run'))
++                or summary.get('RESEARCH_ONLY') is not True
++                or summary.get('accepted_count') != 0 or summary.get('accepted_target_date_file_count') != 0
++                or summary.get('pending_count') != 0 or summary.get('coverage_rate') != 0
++                or summary.get('rule_id') != 'A-FI-SYNC-001' or summary.get('rule_version') != '1'
++                or summary.get('field_rule_id') != 'A-FI-SYNC-001.FIELD_SIGNATURE' or summary.get('field_rule_version') != '1'
++                or Path(summary.get('tdx_root', '')).resolve() != tdx.resolve()
++                or Path(summary.get('run_dir', '')).resolve() != path.parent.resolve()):
++            raise ValueError('NATIVE_IDENTITY_OR_SAFETY')
++        rows = summary.get('by_symbol')
++        count = summary.get('target_count')
++        if (not isinstance(rows, dict) or not isinstance(count, int) or isinstance(count, bool)
++                or count <= 0 or count > 10000 or len(rows) != count
++                or summary.get('quarantine_count') != count):
++            raise ValueError('NATIVE_COUNTS')
++        selected = {}
++        for symbol, row in rows.items():
++            if not isinstance(row, dict) or row.get('run_id') != run_id:
++                raise ValueError('NATIVE_ROW_RUN_MISMATCH')
++            reason = row.get('reason_code')
++            if (reason not in _DAILY_NATIVE_REASONS
++                    or row.get('failure_class') in {'UNKNOWN', 'SAFETY'}
++                    or any(row.get(flag) is not False for flag in _DAILY_FLAGS if flag in row)):
++                raise ValueError('NATIVE_ROW_FAILURE_CONTRACT_UNKNOWN')
++            if reason in {'PROTOCOL_RESPONSE_MALFORMED', 'HOST_UNAVAILABLE'} and reason not in selected:
++                selected[reason] = (symbol, row)
++        if 'PROTOCOL_RESPONSE_MALFORMED' not in selected:
++            raise ValueError('NO_PROTOCOL_EVIDENCE')
++        refs = []
++        for symbol, row in selected.values():
++            market = row.get('market')
++            prefix = {0: 'sz', 1: 'sh', 2: 'bj'}.get(market)
++            relative = f'vipdoc/{prefix}/lday/{prefix}{symbol}.day'
++            if (not re.fullmatch(r'[0-9]{6}', symbol) or row.get('symbol') != symbol
++                    or not _DAY_REFERENCE.fullmatch(relative)
++                    or row.get('classification') != 'QUARANTINED' or row.get('quarantine') is not True
++                    or row.get('target_date_ready') is not False or row.get('status') != 'FAILED'
++                    or row.get('fetch_status') != 'REBUILD_REQUIRED'
++                    or _path(tdx, row.get('path', '')) != tdx / relative):
++                raise ValueError('NATIVE_REFERENCE_INVALID')
++            observation, _ = _read(tdx, relative)
++            expected = row.get('source_sha256_after')
++            if (not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected)
++                    or expected != row.get('source_sha256_before') or observation.get('sha256') != expected):
++                raise ValueError('NATIVE_REFERENCE_SHA_MISMATCH')
++            refs.append(relative)
++        identity = _observe_daily_identity(date, slot, sorted(refs))
++        return {'failure_class': 'INVALID_INPUT', 'failure_code': 'A_DAILY_PROTOCOL_SOURCE_REJECTED',
++            'input_wait': make_input_wait(identity, 'A_DAILY_PROTOCOL_SOURCE_REJECTED'),
++            'daily_failure_evidence': {'native_summary_sha256': summary_sha, 'native_run_id': run_id,
++                'target_date': date, 'receipt_sha256': state['sha256'], 'audit_count': 1}}
++    except (OSError, ValueError, KeyError, TypeError, RuntimeError, UnicodeError) as error:
++        return {**rejected, 'daily_failure_evidence_error': str(error)[:180]}
++
++
++
++def bind_native_daily_failure(error, reported):
++    """Attach only this producer return object's identity, never a latest read.
++
++    The existing native writer uses this exact JSON encoding. The caller checks
++    these bytes against the owned report. Concurrent replacements fail closed.
++    """
++    run_dir = Path(str(reported.get('run_dir') or ''))
++    date = str(reported.get('target_date') or '')
++    relative = ('a_sync_authority/' + date + '/summary.json'
++        if run_dir.name == date else 'a_sync_authority/summary.json')
++    context = {'schema_version': 'v4.a_daily_native_failure.v1',
++        'target_date': date, 'run_id': reported.get('run_id'), 'summary_relative': relative,
++        'summary_sha256': hashlib.sha256(json.dumps(reported, ensure_ascii=False,
++            indent=2, default=str).encode('utf-8')).hexdigest()}
++    error.result = {'error': type(error).__name__ + ': ' + str(error), 'native_failure': context}
+--- a/ops/macos_research_panel_daily_authority.py
++++ b/ops/macos_research_panel_daily_authority.py
+@@ -496,7 +496,13 @@
+         authority_status = "PASS"
+     elif reported_status in {"FAILED", "REBUILD_REQUIRED"}:
+         if accepted_count <= 0 or quarantine_count <= 0:
+-            raise SnapshotGateError("A sync partial closure has no healthy accepted subset")
++            error = SnapshotGateError("A sync partial closure has no healthy accepted subset")
++            try:
++                from infrastructure.scheduling.input_retry_identity import bind_native_daily_failure
++                bind_native_daily_failure(error, reported)
++            except Exception:  # Metadata must never replace the original gate failure.
++                pass
++            raise error
+         if reported_status == "FAILED" and exit_code == 0:
+             raise SnapshotGateError("A sync FAILED report has a zero exit code")
+         authority_status = "REBUILD_REQUIRED"
+--- a/ops/macos_research_panel_daily_gate.py
++++ b/ops/macos_research_panel_daily_gate.py
+@@ -793,7 +793,7 @@
+         result = run_scheduled_lanes(target_date=args.date, receipt_root=args.receipt_root, a_runner=run_a, hk_runner=run_hk, lane=args.lane)
+     overall_status = result.get("overall_status", result.get("status", "CANNOT_CONFIRM"))
+     status = result.get("status", overall_status)
+-    summary_keys = ("status", "target_date", "row_count", "coverage_rate", "sha256", "authority_status", "reason", "error", "persistent_stale_files", "persistent_orphan_files", "persistent_out_of_scope_count", *SAFETY_FLAGS)
++    summary_keys = ("status", "target_date", "row_count", "coverage_rate", "sha256", "authority_status", "reason", "error", "native_failure", "persistent_stale_files", "persistent_orphan_files", "persistent_out_of_scope_count", *SAFETY_FLAGS)
+     lanes = result.get("lanes") if isinstance(result.get("lanes"), Mapping) else {}
+     envelope = {"schema_version": "v3.macos.research_panel_authority_envelope.v1", "status": status, "overall_status": overall_status, "target_date": result.get("target_date"), "lane": result.get("requested_lane"), "lanes": {name: {key: item[key] for key in summary_keys if key in item} for name, item in lanes.items() if isinstance(item, Mapping)}, **SAFETY_FLAGS}
+     print(json.dumps(envelope, ensure_ascii=False, sort_keys=True, separators=(",", ":")))

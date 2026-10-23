@@ -1,0 +1,76 @@
+{
+  "accepted_R3_parent_remote_commit": "116c80efe59130ac8a210e40cde3c752ea5f3499",
+  "canonical_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "control_code": {
+    "activation_driver.py": "49bf590cd14eafd215941e4967675b92e9d83aa607c118eb292d77637ddd33ff",
+    "control_prepare.py": "73bb10d6f4a128dd79899dd4c88e3b3a5280bd8bf57451ed3b06dfef6378434a",
+    "event_wait_continuation.py": "bc7dc0d8990f1517aeac5e37c2be466d3cb83e482feebbd39f1b18aa250ee5a1",
+    "pdf_readonly.py": "554f74f9d3e177240aa1f2688d61f8b03c559c3142cbf7dd8398d622cf8a0ae7",
+    "test_diagnostic_delta.py": "07c9dcf94b4bb0811a9f63f2012daaa380d022cd3fc7b58261aafafd694627a5",
+    "test_event_preparation.py": "7bdea80b9996f8f3793cd2dbdafe21c5ff980f22cfaac07c28b06924a24f5b16",
+    "test_source_binding.py": "584f7f44b05887fd19e157bd451839605672f9f5b46c7d4dd84e5ff364a9dc96"
+  },
+  "cumulative_source_map_sha256": "37ca1c9874357d38c631953cc780091e0419f5e095ad2bfe390ee4304adcd4bf",
+  "independent_event_diagnostic_review_sha256": "7018b326adf0f98b6f2473736f6f685b4fe853e16b0f2348a7d9ebb260ce593d",
+  "independent_source_review_R2_sha256": "a9c120341db13e87d01aab9cb017cfd593edf964ad743f8eef213c5da9c7ff3c",
+  "sources": [
+    {
+      "after_sha256": "3eff4805f7a61bffe0ff1cb2d2a1cab24ddf6f465e25b1a915aa5899e1dcc8d2",
+      "before_sha256": "b4802f59a5faed70cbc17501780cecbd51ecdf1bd87ded5c260abfe545bce324",
+      "path": "infrastructure/scheduling/executor_registry_review.py",
+      "variant": "runtime"
+    },
+    {
+      "after_sha256": "91b5a04aefe2169719a7aee78700fa1a33c874bd229c5e65756da9f1e8977a02",
+      "before_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+      "path": "infrastructure/scheduling/input_retry_identity.py",
+      "variant": "runtime"
+    },
+    {
+      "after_sha256": "28ed1512313f1c6d9121cd4f3cf2b667b85d654fc10b399aeadb8236d28ba140",
+      "before_sha256": "0224f525a8f3e5b5ab3c32b871d486ca3568208881da7ba6e99e1573d4142a74",
+      "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "91b5a04aefe2169719a7aee78700fa1a33c874bd229c5e65756da9f1e8977a02",
+      "before_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+      "path": "infrastructure/scheduling/input_retry_identity.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "8088a6951ae428990ce6498946c784adef4f51afd3ab9c4c97496dc6d92717d3",
+      "before_sha256": "6b709403414d362bca0bf997a2be55cc7c833361b4a9c465cbf1f7a129827303",
+      "path": "ops/macos_research_panel_daily_authority.py",
+      "variant": "runtime"
+    },
+    {
+      "after_sha256": "0cd435241c68fbb9cfb5ed590dd3f0265cbc1a3f6be309a1831dc70321ecb90c",
+      "before_sha256": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+      "path": "ops/macos_research_panel_daily_gate.py",
+      "variant": "runtime"
+    },
+    {
+      "after_sha256": "846eb2565e2461c3c1268fdbb095c661c679b870dfa09d73b3ccc660bc696ec5",
+      "before_sha256": "576b81d65bc993bd93ea415ac142cbfe94a0307ba59d0ecd11f5e1b573e3fb81",
+      "path": "ops/_macos_research_panel_daily_parts/bounded_execution.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "4f505d02ba7390eb074d0306211aad9d500e0a44c745bcba68d43a9ae31e2f57",
+      "before_sha256": "7ab4e0d3d9529e4e59cc875e44f4b368caaa2b2ae3cad45d8c11ad01a7326a03",
+      "path": "ops/_macos_research_panel_daily_parts/panel_primitives.py",
+      "variant": "canonical"
+    },
+    {
+      "after_sha256": "b17c1e9c80161e70c3468a7ada5e8fbe7aba1e56fad6be189af5caaf78d7216c",
+      "before_sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+      "path": "ops/_macos_research_panel_daily_parts/cli.py",
+      "variant": "canonical"
+    }
+  ],
+  "test": {
+    "path": "tests/test_tdx_daily_closure_repair_20261023.py",
+    "sha256": "71d06d29e495ae3e454903d69083f66eff09ae748e7fad5da718fa26fd3a9b2e"
+  }
+}

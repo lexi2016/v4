@@ -1,0 +1,290 @@
+{
+  "API_VERIFIED": "NOT_RUN_FOR_NEW_RUNTIME",
+  "NATURAL_VERIFIED": "NOT_RUN_FOR_NEW_RUNTIME",
+  "NOT_RUN": [
+    "Candidate runtime installation/loading",
+    "Candidate actual daily or due execution",
+    "New-runtime API/UI/natural acceptance",
+    "Physical20261023 panel or V192 selection recovery",
+    "Further TDX calls after bounded diagnosis",
+    "Successful business/model result reruns"
+  ],
+  "UI_VERIFIED": "NOT_RUN_FOR_NEW_RUNTIME",
+  "accepted_R3_parent_remote_commit": "116c80efe59130ac8a210e40cde3c752ea5f3499",
+  "actual_runtime": {
+    "cutover_verdict": "REVIEWED/FAIL",
+    "guard": "New active cycle outside reviewed scope; unchanged guard stopped before install/drain/signal.",
+    "last_verified_producer_release": "stage-input-recovery-20261023-producer-r2",
+    "live_mutated": false,
+    "no_further_retries": true,
+    "phase": "PREFLIGHT",
+    "proposed_not_installed_release": "tdx-daily-closure-20261023-producer-r1",
+    "quiescence_independent_review_sha256": "aeb84bd51f8a639309398617f06a31a80384c693a1a5e0ce33f34f17632fad96",
+    "quiescence_readproof_sha256": "e9b516746f191292118b013503522564a9187439ffb055126dfabdca83ad13f8",
+    "quiescence_status": "CANNOT_CONFIRM_SAFELY_QUIESCE_CURRENT_RUNTIME",
+    "race": "Saved admission-clear log precedes new claim by 0.392556 seconds; exact fork time and direct internal offending-row binding are not recorded.",
+    "scope_limitation": "Inspected actual entry and call chain only, not all possible system locations",
+    "service_release_plist_signal_actions": 0,
+    "stop_review_sha256": "98fdf7f1addaea46676920c57d77f8a5a892a4a167bff46345e08c696d9aed96"
+  },
+  "baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "branch": "codex/tdx-daily-closure-20261023",
+  "canonical_root": "/Users/lexi/Desktop/学习/v4_app",
+  "control": {
+    "control_review_sha256": "a0993d89799f3bed83dd04a38909bde7090d0397eaa05f911d1240e3d38ee415",
+    "diagnostic_review_sha256": "7018b326adf0f98b6f2473736f6f685b4fe853e16b0f2348a7d9ebb260ce593d",
+    "diagnostic_tests": {
+      "capsule_sha256": "ecda86a7d4abbb6326066742c8c5cca7378f703d7d815d848e7a7533e79c4e46",
+      "errors": 0,
+      "exact_diff_rebuilt": true,
+      "failures": 0,
+      "isolation": "Pure mocked subprocess and AST-extracted diagnostic/claims functions only; no real ps/live files/executor import/waiter/driver.",
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/event-diagnostic-independent.log",
+      "log_sha256": "fd8cac73ad3e61143d9cd3b8250037a3eb7fd94b6bb8dcde536679076d0c4153",
+      "python": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "successful": true,
+      "test_sha256": "07c9dcf94b4bb0811a9f63f2012daaa380d022cd3fc7b58261aafafd694627a5",
+      "tests": 7,
+      "wrapper_sha256": "bc7dc0d8990f1517aeac5e37c2be466d3cb83e482feebbd39f1b18aa250ee5a1"
+    },
+    "driver_sha256": "49bf590cd14eafd215941e4967675b92e9d83aa607c118eb292d77637ddd33ff",
+    "event_review_sha256": "4910af1a0b26afa1b0cd89139b867cc130592b1cd16ca66e45aae022d9c98e33",
+    "independent_tests": {
+      "command": "python3 -B inline unittest loading unchanged owner/test_source_binding.py; redirect tests TemporaryDirectory only to reviewer",
+      "errors": 0,
+      "failures": 0,
+      "log": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/control-binding-independent.log",
+      "log_sha256": "7ec2e86622e0982679aad719a0d7ff9020c22722de1ffa5b9407ccefe311bec8",
+      "report": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/control-binding-independent.json",
+      "report_sha256": "f945a8556fc69259c68ac1f8f858b50f0d64ac14da46658a54a292ffeb020f45",
+      "tests": 8
+    },
+    "new_independent_checks": 8,
+    "packet_review_sha256": "3c8eac8ed4e73bd2002e1afdb301de467f4b298a6c3a7efabc6dca88ffaa6a6b",
+    "preparer_sha256": "73bb10d6f4a128dd79899dd4c88e3b3a5280bd8bf57451ed3b06dfef6378434a",
+    "state": "ISOLATED_BINDING_AND_PACKET_SCOPED_PASS_ACTUAL_CUTOVER_NOT_PASSED",
+    "unchanged_prior_checks_reused": [
+      28,
+      9
+    ]
+  },
+  "date": "2026-10-23",
+  "deployment": "NOT_DEPLOYED_PREFLIGHT_GUARD_STOP",
+  "diagnosis": {
+    "confirmed": [
+      "Complete invalid two-byte TDX bars response has request-correlated command and identifier; source SDK decoder rejects it.",
+      "Exact-source isolated reproduction demonstrates global route exhaustion prevents subsequent symbol query.",
+      "Outer daily lane flattened failure to UPSTREAM_NOT_READY without relevant daily input wait.",
+      "Actual daemon daily sync script key points to a separate legacy release although its source bytes equal unchanged composite core."
+    ],
+    "failed_target_date": "20261023",
+    "frozen_HOST_UNAVAILABLE": 5733,
+    "frozen_failure_accepted": 0,
+    "frozen_quarantined": 5800,
+    "last_good_accepted": 5494,
+    "last_good_date": "20261022",
+    "limits": [
+      "Server-internal invalid-response cause and historical SDK identity remain unproved.",
+      "No currently healthy route or physical20261023 panel recovery established."
+    ]
+  },
+  "exclusions": "No credentials/env/plist/live config/raw bars/raw frame/private source fixtures/logs/full runtime/binaries uploaded. No model or successful business result rerun.",
+  "existing_runtime_readback": {
+    "API": "One direct GET timed out at15s; no retry; not successful machine API acceptance.",
+    "UI": "Dated existing runtime reload and page2 shows A255/HK100; display observation only.",
+    "receipt_sha256": "e092d8cebefa9bb79b985d8d1bf3d2d8eb49e1c028a9bc9219cc418bd1c4c894",
+    "stage_20261026_0935": "EXACT_DATE_STAGE_RECEIPT_MISSING/CANNOT_CONFIRM",
+    "stock_identity_gap": "Displayed A.261023 identity CANNOT_CONFIRM_OUTSIDE_TDX_SCOPE; rowcount does not authenticate every stock."
+  },
+  "fixture_portability": "Tests preserve the exact reviewed local fixture paths/capsule references. Private fixtures are excluded; fresh clone is not a standalone reproduced runtime or safe activation package.",
+  "integration": {
+    "receipt_sha256": "095683852bf6b24126c06bcdc9bbe422e225db3113f4acf5eca3247dd82e4079",
+    "scope": "Canonical five source files plus the approved test only",
+    "status": "INTEGRATED_EXACT_REVIEWED_POSTIMAGES"
+  },
+  "packaging_validation": {
+    "all_staged_diff_check_exit": 2,
+    "artifact_lines": {
+      "canonical-integration.patch": [
+        41,
+        49,
+        50,
+        61
+      ],
+      "runtime.patch": [
+        34,
+        42,
+        43,
+        54
+      ]
+    },
+    "behavior_tests_repeated": 0,
+    "cause": "Only eight exact single-space context-marker lines inside the two immutable nested unified-diff artifacts; original failure retained. No source whitespace defect was suppressed.",
+    "non_patch_staged_diff_check_exit": 0,
+    "patch_parse": [
+      {
+        "command": [
+          "git",
+          "apply",
+          "--numstat",
+          "research/tdx-daily-closure-repair-20261023/canonical-integration.patch"
+        ],
+        "exit_code": 0,
+        "path": "canonical-integration.patch",
+        "summary": "5\t0\tinfrastructure/scheduling/_executor_registry_parts/panel_execution.py\n261\t3\tinfrastructure/scheduling/input_retry_identity.py\n7\t1\tops/_macos_research_panel_daily_parts/bounded_execution.py\n5\t1\tops/_macos_research_panel_daily_parts/panel_primitives.py\n2\t0\tops/_macos_research_panel_daily_parts/cli.py"
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--numstat",
+          "research/tdx-daily-closure-repair-20261023/runtime.patch"
+        ],
+        "exit_code": 0,
+        "path": "runtime.patch",
+        "summary": "4\t0\tinfrastructure/scheduling/executor_registry_review.py\n261\t3\tinfrastructure/scheduling/input_retry_identity.py\n7\t1\tops/macos_research_panel_daily_authority.py\n1\t1\tops/macos_research_panel_daily_gate.py"
+      }
+    ]
+  },
+  "remote_sync": "THIS_FILE_IS_PRECOMMIT_EVIDENCE_REMOTE_COMMIT_AND_BYTE_READBACK_RECORDED_SEPARATELY",
+  "repository": "lexi2016/v4",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema": "v4.tdx_daily_repair_delivery_verification.v1",
+  "source": {
+    "R1_material_findings_preserved": 2,
+    "R2_material_findings": 0,
+    "candidate_receipt_sha256": "2c0421a50ed47e1547e03a30c6cdd5348bc02b9d752f990b979e7469a7cad296",
+    "independent_TESTED": true,
+    "independent_review_r1_sha256": "d2b9604c401e21e96ab0dca6223a0bdc25f49fcf793e18d96315419f75c48fd9",
+    "independent_review_r2_sha256": "a9c120341db13e87d01aab9cb017cfd593edf964ad743f8eef213c5da9c7ff3c",
+    "independent_tests": {
+      "canonical": {
+        "command": [
+          "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python",
+          "-B",
+          "-S",
+          "-m",
+          "pytest",
+          "--noconftest",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/r2-canonical-fixtures",
+          "-q",
+          "/Users/lexi/.codex/worktrees/tdx-daily-closure-20261023/v4_app/tests/test_tdx_daily_closure_repair_20261023.py",
+          "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/test_daily_delta_adversarial.py",
+          "-k",
+          "r2_ or exact_same_run_native_failure or actual_native_exception_receipt_stdout or real_daily_caller_ledger_due or genuine_connect_failure or changed_daily_input_never or mixed_unknown_native_failure_stays_terminal or same_path_trusted_cas_input_content_change_wakes"
+        ],
+        "counterexample_test_sha256": "0d79573a489986c0ac3690315cd71285a2cdb7c0937779a791001999ae79bfd3",
+        "deselected_R1_unchanged": 28,
+        "errors": 0,
+        "exit_code": 0,
+        "failures": 0,
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/r2-canonical-independent.log",
+        "log_sha256": "145258486e88a6e42cfb2512caf9665a5e27eb0ca43ccf3abcbc1d67610b50f0",
+        "passed": 23,
+        "source": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/writer/canonical-candidate-r2",
+        "test_sha256": "71d06d29e495ae3e454903d69083f66eff09ae748e7fad5da718fa26fd3a9b2e",
+        "variant": "canonical"
+      },
+      "runtime": {
+        "command": [
+          "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime/venvs/v3.5-mac/bin/python",
+          "-B",
+          "-S",
+          "-m",
+          "pytest",
+          "--noconftest",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp=/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/r2-runtime-fixtures",
+          "-q",
+          "/Users/lexi/.codex/worktrees/tdx-daily-closure-20261023/v4_app/tests/test_tdx_daily_closure_repair_20261023.py",
+          "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/test_daily_delta_adversarial.py",
+          "-k",
+          "r2_ or exact_same_run_native_failure or actual_native_exception_receipt_stdout or real_daily_caller_ledger_due or genuine_connect_failure or changed_daily_input_never or mixed_unknown_native_failure_stays_terminal or same_path_trusted_cas_input_content_change_wakes"
+        ],
+        "counterexample_test_sha256": "0d79573a489986c0ac3690315cd71285a2cdb7c0937779a791001999ae79bfd3",
+        "deselected_R1_unchanged": 28,
+        "errors": 0,
+        "exit_code": 0,
+        "failures": 0,
+        "log": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/reviewer/r2-runtime-independent.log",
+        "log_sha256": "2563f038faadfa253d5cf9ef981e6abf5426e0e0ecd234d84b05ea11cc08c1bc",
+        "passed": 23,
+        "source": "/Users/lexi/Desktop/学习/agents调试/V4_TDX_DAILY_CLOSURE_REPAIR_20261023/writer/candidate-app-r2",
+        "test_sha256": "71d06d29e495ae3e454903d69083f66eff09ae748e7fad5da718fa26fd3a9b2e",
+        "variant": "runtime"
+      }
+    },
+    "new_TDX_calls_in_implementation": 0,
+    "reused_R1_unaffected_cases_each_variant": 28,
+    "source_map_sha256": "37ca1c9874357d38c631953cc780091e0419f5e095ad2bfe390ee4304adcd4bf",
+    "state": "R2_REVIEWED_PASS_FROZEN_SOURCE_REPLAY_ONLY",
+    "test_sha256": "71d06d29e495ae3e454903d69083f66eff09ae748e7fad5da718fa26fd3a9b2e",
+    "unchanged_sync_core_sha256": "a29dec6ad8d7c1a409318553b393cc6355ae253a9f130cf62c60801af3a85eff",
+    "variant_pre_post_sha256": [
+      {
+        "after_sha256": "3eff4805f7a61bffe0ff1cb2d2a1cab24ddf6f465e25b1a915aa5899e1dcc8d2",
+        "before_sha256": "b4802f59a5faed70cbc17501780cecbd51ecdf1bd87ded5c260abfe545bce324",
+        "path": "infrastructure/scheduling/executor_registry_review.py",
+        "variant": "runtime"
+      },
+      {
+        "after_sha256": "91b5a04aefe2169719a7aee78700fa1a33c874bd229c5e65756da9f1e8977a02",
+        "before_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+        "path": "infrastructure/scheduling/input_retry_identity.py",
+        "variant": "runtime"
+      },
+      {
+        "after_sha256": "28ed1512313f1c6d9121cd4f3cf2b667b85d654fc10b399aeadb8236d28ba140",
+        "before_sha256": "0224f525a8f3e5b5ab3c32b871d486ca3568208881da7ba6e99e1573d4142a74",
+        "path": "infrastructure/scheduling/_executor_registry_parts/panel_execution.py",
+        "variant": "canonical"
+      },
+      {
+        "after_sha256": "91b5a04aefe2169719a7aee78700fa1a33c874bd229c5e65756da9f1e8977a02",
+        "before_sha256": "3aeb96db0efb4ce6c102ab52934eba91995cdc47c75cdc2149a3d90e11f33c8f",
+        "path": "infrastructure/scheduling/input_retry_identity.py",
+        "variant": "canonical"
+      },
+      {
+        "after_sha256": "8088a6951ae428990ce6498946c784adef4f51afd3ab9c4c97496dc6d92717d3",
+        "before_sha256": "6b709403414d362bca0bf997a2be55cc7c833361b4a9c465cbf1f7a129827303",
+        "path": "ops/macos_research_panel_daily_authority.py",
+        "variant": "runtime"
+      },
+      {
+        "after_sha256": "0cd435241c68fbb9cfb5ed590dd3f0265cbc1a3f6be309a1831dc70321ecb90c",
+        "before_sha256": "fc852dcbbcde3e3a6bfcf9ea6af46ea773cefe32e00355594edc1a4816665b34",
+        "path": "ops/macos_research_panel_daily_gate.py",
+        "variant": "runtime"
+      },
+      {
+        "after_sha256": "846eb2565e2461c3c1268fdbb095c661c679b870dfa09d73b3ccc660bc696ec5",
+        "before_sha256": "576b81d65bc993bd93ea415ac142cbfe94a0307ba59d0ecd11f5e1b573e3fb81",
+        "path": "ops/_macos_research_panel_daily_parts/bounded_execution.py",
+        "variant": "canonical"
+      },
+      {
+        "after_sha256": "4f505d02ba7390eb074d0306211aad9d500e0a44c745bcba68d43a9ae31e2f57",
+        "before_sha256": "7ab4e0d3d9529e4e59cc875e44f4b368caaa2b2ae3cad45d8c11ad01a7326a03",
+        "path": "ops/_macos_research_panel_daily_parts/panel_primitives.py",
+        "variant": "canonical"
+      },
+      {
+        "after_sha256": "b17c1e9c80161e70c3468a7ada5e8fbe7aba1e56fad6be189af5caaf78d7216c",
+        "before_sha256": "f6161a61951e60de66a50e2ee28751400d316ede9dc503bb9b84967e8f4b09f2",
+        "path": "ops/_macos_research_panel_daily_parts/cli.py",
+        "variant": "canonical"
+      }
+    ]
+  },
+  "state": "INDEPENDENT_SOURCE_PASS_INTEGRATED_RUNTIME_CUTOVER_FAIL",
+  "updated_at_utc": "2026-10-23T15:20:19.578823+00:00"
+}
