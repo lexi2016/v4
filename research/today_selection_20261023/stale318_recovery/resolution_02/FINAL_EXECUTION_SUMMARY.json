@@ -1,0 +1,210 @@
+{
+  "signal_asof": "20261022",
+  "selection_date": "20261023",
+  "original_research_source_keys": 5812,
+  "original_owner_target_keys": 5800,
+  "canonical_source_eligible_count": 5533,
+  "canonical_input_ready": 5531,
+  "canonical_input_unavailable": 2,
+  "new_D22_research_inputs": 38,
+  "candidate_counts": {
+    "NO": 5325,
+    "YES": 204,
+    "UNKNOWN": 4
+  },
+  "unique_selected": 204,
+  "original318_hit_source_keys": 9,
+  "original318_hit_unique_canonical_securities": 9,
+  "original318_disposition_counts": {
+    "NO_D22_BAR_ORIGINAL_CODE_DELISTED": 2,
+    "D22_INPUT_CANNOT_CONFIRM_NO_BAR_FABRICATED": 34,
+    "NO_D22_BAR_OFFICIAL_DELISTING_EVENT": 1,
+    "D22_RESEARCH_INPUT_RECOVERED": 38,
+    "NO_UPDATE_NON_EQUITY": 11,
+    "IDENTITY_CANNOT_CONFIRM": 1,
+    "D22_RESEARCH_INPUT_AVAILABLE_ALIAS_REUSED": 230,
+    "NO_D22_BAR_OLD_MARKET_TERMINATED": 1
+  },
+  "rule_coverage": [
+    {
+      "rule_id": "B1",
+      "TRIGGERED": 64,
+      "NOT_TRIGGERED": 5465,
+      "DATA_UNAVAILABLE": 4
+    },
+    {
+      "rule_id": "B2",
+      "TRIGGERED": 2,
+      "NOT_TRIGGERED": 5529,
+      "DATA_UNAVAILABLE": 2
+    },
+    {
+      "rule_id": "B3",
+      "TRIGGERED": 2,
+      "NOT_TRIGGERED": 5529,
+      "DATA_UNAVAILABLE": 2
+    },
+    {
+      "rule_id": "BREAKOUT",
+      "TRIGGERED": 28,
+      "NOT_TRIGGERED": 5503,
+      "DATA_UNAVAILABLE": 2
+    },
+    {
+      "rule_id": "BREAKOUT_DOJI",
+      "TRIGGERED": 10,
+      "NOT_TRIGGERED": 5521,
+      "DATA_UNAVAILABLE": 2
+    },
+    {
+      "rule_id": "M2_MINUS",
+      "TRIGGERED": 9,
+      "NOT_TRIGGERED": 5520,
+      "DATA_UNAVAILABLE": 4
+    },
+    {
+      "rule_id": "M2_PLUS",
+      "TRIGGERED": 9,
+      "NOT_TRIGGERED": 5520,
+      "DATA_UNAVAILABLE": 4
+    },
+    {
+      "rule_id": "SINGLE_NEEDLE",
+      "TRIGGERED": 14,
+      "NOT_TRIGGERED": 5517,
+      "DATA_UNAVAILABLE": 2
+    },
+    {
+      "rule_id": "THREE_QUARTER_YIN",
+      "TRIGGERED": 15,
+      "NOT_TRIGGERED": 5516,
+      "DATA_UNAVAILABLE": 2
+    },
+    {
+      "rule_id": "BRICK_FANBAO",
+      "TRIGGERED": 60,
+      "NOT_TRIGGERED": 5469,
+      "DATA_UNAVAILABLE": 4
+    }
+  ],
+  "price_basis": "TDX_RAW_PLUS_TDX_EVENT_AFFINE_UNROUNDED_D22_RESEARCH_REPLICA",
+  "volume_basis": "TDX_ORIGINAL_STORAGE_UINT32_COUNT_DOMAIN_TIMES_EXPLICIT_SONGZHUAN_RIGHTS_GROWTH;NO_CASH_FACTOR_NO_AUTOFITTING;NOT_GLOBAL_CROSS_VENDOR_UNIT_PARITY",
+  "evaluation_provenance_counts": {
+    "REUSED_IDENTICAL_SOURCE_INPUT_AND_FROZEN_KERNEL": 4719,
+    "EVALUATED_NEW_SOURCE_BOUND_INPUT_THIS_EXECUTION": 814
+  },
+  "current_V4_API_UI": "NOT_VERIFIED_NOT_CHANGED",
+  "live_native_recovery": 0,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "status": "TESTED_BEHAVIOR_VERIFIED_SCOPED_RESEARCH_ARTIFACT_ONLY",
+  "final_review_contract_sha256": "853037cdfcae434e4b215084d97ccabe8ba632cb91ca8c563c7f68f8bbdd1912",
+  "review_receipt_sha256": "095a5dbf6173af6df078394457d49f3ac633fa24af6cad015665d10e3f471f72",
+  "name_unknown_codes": [
+    "920066.BJ",
+    "920176.BJ"
+  ],
+  "EXTERNAL_OWNER_DEPENDENCY_NOT_BUNDLED": {
+    "relative_path": "ops/a_share_daily_sync.py",
+    "sha256": "42d2ef712abca59e2d230e8a37253a08a922001d7fd88b3baa1e0e0fb7ce4b7c",
+    "remote_baseline_path": "ROOT_OBSERVED_404",
+    "source_modified_this_batch": false
+  },
+  "local_baseline": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "local_branch": "codex/zge-local-selection-20261023",
+  "authorized_remote_base": "6be27d7b9569207c1a44afcb8bf6a5b461ae6478",
+  "remote_sync": "NOT_SYNCED_PENDING_ROOT_CAS",
+  "daily_incremental_bars_fixed": false,
+  "archive_policy": "ONE_TIME_HISTORICAL_REPAIR_ONLY_NOT_DAILY_DEFAULT",
+  "historical_PIT_and_live_Futu_parity": "NOT_CERTIFIED",
+  "independent_verdict": "PASS_SCOPED_WITH_LIMITATION",
+  "review_execution": "ZGE_FINAL_INPUT_SELECTION_INDEPENDENT_REVIEW_20261023_67",
+  "review_actual_exit_code": 0,
+  "review_frozen_bindings": 81,
+  "review_counts": {
+    "candidate_counts": {
+      "NO": 5325,
+      "UNKNOWN": 4,
+      "YES": 204
+    },
+    "identical_source_and_kernel_reuse": 4719,
+    "input_rows_checked": 2928643,
+    "logical_result_rows": 5533,
+    "long_rows": 55330,
+    "market_calendar_boundary_cases": 17,
+    "name_unknown_codes": [
+      "920066.BJ",
+      "920176.BJ"
+    ],
+    "new_and_reader_sample_signal_replays": 824,
+    "new_source_inputs_evaluated": 814,
+    "original318_hit_source_keys": 9,
+    "original318_rows": 318,
+    "source_inputs_ready": 5531,
+    "source_unavailable_codes": [
+      "301139.SZ",
+      "603007.SH"
+    ]
+  },
+  "P1_limitations": [
+    {
+      "id": "P1-001",
+      "severity": "P1",
+      "summary": "The result field raw_invalid_counts is semantically misleading for 300573.SZ and 600866.SH: its C/H/L counts equal nonpositive values after the event-affine price transform, not invalid raw-source bars. The underlying raw OHLC bars were positive in the targeted comparison. The candidate result is conservatively UNKNOWN, so these rows are not represented as NO."
+    },
+    {
+      "id": "P1-002",
+      "severity": "P1",
+      "summary": "The frozen positive-OHLC guard in the RAW-oriented formula kernel is incompatible with some valid raw rows after the bound cash-event affine adjustment. Those two rows are source READY but only PARTIAL for this formula evaluation. Preserve their UNKNOWN status; do not reinterpret as source loss or impute values."
+    }
+  ],
+  "source_unknown_codes": [
+    "301139.SZ",
+    "603007.SH"
+  ],
+  "post_affine_kernel_unknown_codes": [
+    "300573.SZ",
+    "600866.SH"
+  ],
+  "raw_source_status_for_post_affine_unknown": "READY; actual RAW OHLC positive. raw_invalid_counts is retained historical field name; for these rows it counts post-affine nonpositive values, not source defects.",
+  "original318_unresolved_classification": {
+    "relation_noD22_alias_cohort_owner_snapshot_gaps": 33,
+    "301139_archive_validation_failure": 1,
+    "separate_identity_unknown": 1
+  },
+  "scope_promotions_forbidden": [
+    "All318 recovery",
+    "Full historicalPIT/liveFutu/globalvolumeunit certification",
+    "CurrentV4API/UI/nativepointer deployment",
+    "Daily incremental bar interface repaired",
+    "Trade/BUY permission"
+  ],
+  "registry_terminal": {
+    "event_sha256": "251f5303285d773ea4e5c968b2a41d59c2377621c16c2483f273105ffde6c897",
+    "registry_sha256": "531c81da07f2eba522292d7e2efb06d7285ab3b3e9ef4586f23b7231cdeff5d8",
+    "global_route_event_execution_correction_counts": [
+      425,
+      4490,
+      1393,
+      122
+    ],
+    "scope_route_event_execution_correction_counts": [
+      1,
+      364,
+      66,
+      1
+    ],
+    "scope_open_executions": [],
+    "global_unregistered_route_count": null,
+    "global_contract_only_count": null,
+    "unknown_reason": "NOT_A_GLOBAL_DISCOVERY_AUDIT"
+  },
+  "final_artifact_sha256": {
+    "input_manifest": "04b6bb8ad1bd58e1154bd70234180cad78a29a02f935d04b7ee23cb8ebe181fa",
+    "selection_result": "ffefdb0615bae87133c062184d287adbe3df37459b0e9c6150daa7d0a83a6f1f",
+    "annotated_union_csv": "f802e40a74e2244340bea51d39862873db9207cb4b561c5611bc33e69587370b",
+    "annotated_original318_hits_csv": "4c0843984a8ec526a39318ce19af6c6dd22654603ee739decc8c6be6b2250699"
+  }
+}
