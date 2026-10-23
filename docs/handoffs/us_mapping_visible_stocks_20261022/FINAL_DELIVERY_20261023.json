@@ -1,0 +1,84 @@
+{
+  "goal": "Make saved research-benefit stocks visible and navigable in manager workbench",
+  "status": [
+    "IMPLEMENTED",
+    "TESTED",
+    "REVIEWED",
+    "DEPLOYED",
+    "API_VERIFIED",
+    "UI_VERIFIED"
+  ],
+  "source_commit": "f4a19049de7c5e6aaa79f815a6cd0823fad47fe0",
+  "source_tests": "Prior independent 6/6 PASS and build reused; no source change on resume",
+  "writer": "/root/visible_release_resume",
+  "independent_reviewer": "/root/visible_release_review_resume",
+  "review_recorded_by": "controller from reviewer final messages",
+  "review_verdicts": [
+    "INCREMENTAL_RELEASE_PASS",
+    "DEPLOYMENT_READBACK_PASS"
+  ],
+  "runtime": {
+    "pid": 7329,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-visible-stocks-api-20261023-r2/app"
+  },
+  "manifest_sha256": "374974f1d116716f7a335a5c5fb9fa29ce7d18de7ff34526146a47e10660873e",
+  "plist_sha256": "9866aff3ce19d57b51f91fdf9a5c1e9825f2d1f73a932ac80cabb743fa782896",
+  "served_assets": [
+    {
+      "url": "http://127.0.0.1:8873/manager-selection/",
+      "http_status": 200,
+      "sha256": "804267df00ca4420322b15dad640f95271f94d754ba89f143605cabe54eab043",
+      "equals_candidate_disk": true
+    },
+    {
+      "url": "http://127.0.0.1:8873/assets/managerSelection-BgE49dzD.js",
+      "http_status": 200,
+      "sha256": "b9e0988c5e2dc92c1e705090a44db44cce3e4cc79135cedd2a0e6c81be5c765a",
+      "equals_candidate_disk": true
+    }
+  ],
+  "preserved_guard_count": 18,
+  "non_delta_files_preserved": 1283,
+  "application_delta_count": 4,
+  "ui": {
+    "verified_by": "controller via CUA browser",
+    "target_date": "20261022",
+    "run_id": "173530a9ac4b4105b41094337907b801",
+    "benefit_symbols": [
+      "HK.00992",
+      "HK.01211",
+      "HK.01810",
+      "HK.02015",
+      "HK.09868"
+    ],
+    "formal_selected": 0,
+    "diagnostic_candidates": 410,
+    "diagnostic_candidates_collapsed": true,
+    "default_intraday_run": "622c0b49c9e44ed2ac78503e6999048b",
+    "explicit_same_date_button_clicked": true,
+    "resulting_saved_run_matches": true,
+    "all_five_rendered": true,
+    "list_scroll_last_two_visually_verified": true,
+    "screenshot": "mapping-visible-stocks-20261023.jpg",
+    "screenshot_bottom": "mapping-visible-stocks-rest-20261023.jpg"
+  },
+  "not_run": [
+    "new selection/research run",
+    "natural result reevaluation",
+    "actual rollback",
+    "full clean branch deployment"
+  ],
+  "retained_limitations": [
+    "Research observations only; formal selection remains zero",
+    "Original PIT, eligibility and relationship gaps preserved",
+    "Full branch build does not include unrelated newer runtime dependencies; deploy only reviewed runtime overlay",
+    "Local commit previously blocked by workspace hook; remote source commit and readback completed through authorized connector"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "recorded_at": "2026-10-23T22:11:58.030119+08:00"
+}
