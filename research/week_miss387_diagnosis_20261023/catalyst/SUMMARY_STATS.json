@@ -1,0 +1,36 @@
+{
+  "status": "WRITER_HANDOFF_REQUIRES_INDEPENDENT_REVIEW",
+  "decision": "OPENBOOK_CATALYST_EVIDENCE_WITH_EXPLICIT_CANNOT_CONFIRM",
+  "rows": 387,
+  "unique_codes": 342,
+  "news_row_queries": 387,
+  "official_unique_code_queries": 342,
+  "query_ledger_count": 729,
+  "label_counts": {
+    "TIMING_UNKNOWN": 172,
+    "SOURCE_NOT_COVERED": 136,
+    "PUBLIC_REPORTED_ATTRIBUTION": 79
+  },
+  "main_window_report_context_rows": 63,
+  "known_before_signal_report_context_rows": 22,
+  "company_announcement_content_rows": 6,
+  "evidence_records": 16,
+  "verified_epoch_report_sources": 6,
+  "price_cause_claims": 0,
+  "zero_announcement_claims": 0,
+  "historical_universe_certified": false,
+  "pit_certified": false,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "main_known_overlap_rows": 6,
+  "source_limitations": [
+    "Factiva USER_NOT_LOGGED_IN",
+    "Aiera required preflight tool unavailable",
+    "Existing V4 announcement catalog HK-only",
+    "Morning-news 20261021 missing; timezone unspecified on cached publication strings",
+    "Public search indices not exhaustive",
+    "Company PDF publication available_at unconfirmed"
+  ]
+}

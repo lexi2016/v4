@@ -1,0 +1,83 @@
+{
+  "schema": "MISS387_FINAL_ACCEPTANCE_SLIM_V1",
+  "status": "TESTED_BEHAVIOR_VERIFIED_SCOPED_TWO_AXIS_DIAGNOSIS",
+  "scope": "Existing5533 research pool, dates20261016/19/20/21/22,387 events342codes; openbook descriptive research only",
+  "technical_verdict": "PASS_SCOPED_TECHNICAL_DIAGNOSIS_WITH_EXPLICIT_CANNOT_CONFIRM_LIMITATIONS",
+  "catalyst_merge_verdict": "PASS_SCOPED_CATALYST_EVIDENCE_AND_EXACT_MERGE_WITH_EXPLICIT_CANNOT_CONFIRM_LIMITATIONS",
+  "incremental_review_terminal_event_sha256": "ca8215186090c063310c687c026748e1fda34528e21342cec6b3fb0841924531",
+  "result": {
+    "rows": 387,
+    "unique_codes": 342,
+    "daily_counts": {
+      "20261016": 92,
+      "20261019": 76,
+      "20261020": 64,
+      "20261021": 65,
+      "20261022": 90
+    },
+    "technical_primary_reasons": {
+      "ENTRYPOOL_FALSE": 385,
+      "ROLE_SCORE_OR_ROUTE_FALSE": 2
+    },
+    "catalyst_partition": {
+      "PUBLIC_REPORTED_ATTRIBUTION": 79,
+      "TIMING_UNKNOWN": 172,
+      "SOURCE_NOT_COVERED": 136
+    },
+    "main_context_rows": 63,
+    "known_before_rows": 22,
+    "main_known_overlap_rows": 6,
+    "query_count": 729,
+    "entity_evidence_bindings": 86,
+    "publisher_epoch_sources": 6,
+    "all_merged_fields_preserved": true
+  },
+  "CANNOT_CONFIRM": [
+    "Historical all-A universe and qualification/alias/PIT/source available_at",
+    "Native TDX/Futu original-client full formula equivalence",
+    "Complete cross-vendor volume/amount unit parity",
+    "Exhaustive announcement/news coverage",
+    "Morning-news cached publication timezone and20261021 availability",
+    "Company PDF first-publication/available_at",
+    "Economic cause of returns or formula misses from reported context",
+    "External registry persistence"
+  ],
+  "remote_as_of": {
+    "technical12_commit": "a6ba63245b18f2a5742f86b63b12cf8aa49a9a79",
+    "technical_parent": "3c1d666f971bf3d151fcb70e8582970368378434",
+    "technical_tree": "d1cb856b053f1d9f791682d377dcca91cec42e0e",
+    "technical_readback": "ROOT_VERIFIED12_EXACT_UTF8_AND_GIT_BLOBS",
+    "delta_status": "NOT_SYNCED_PENDING_ROOT_CAS",
+    "final_sync_receipt": "Separate later SYNC_RECEIPT.json; do not mutate this accepted as-of payload"
+  },
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "local_full_acceptance_sha256": "b3a8a34b21685ef4c9996856d34373ea6edeb9eba93624dc09ddde7e82c887de",
+  "review_receipt_sha256": {
+    "INDEPENDENT_REVIEW_VERDICT.json": "636b164513e7a085fb6ea3b3ca757d89d1a7506e8d84b5bbe8356adb0d93ad9a",
+    "INCREMENTAL_CHECK_RECEIPT.json": "2605848cbef080829605e11314982764c293e343b98b7656caf49bdd4ea7657a",
+    "MERGE_VERIFIER_RECEIPT.json": "a146ea4b50021427d995ff386274eec7a7f0db2660062d11965d37b80319cd59",
+    "ENTITY_EVIDENCE_BINDINGS.json": "fa3a4d9efa2380309fa3c6bbbc28e8b3f555618256da1d4d448c24d176c08f5e"
+  },
+  "registry_counts": {
+    "scope": {
+      "routes": 3,
+      "events": 26,
+      "executions": 9,
+      "corrections": 0
+    },
+    "scope_open_executions": [],
+    "global_counts": {
+      "routes": 429,
+      "events": 4542,
+      "executions": 1408,
+      "corrections": 122
+    },
+    "scope_unregistered_route_count": 0,
+    "scope_contract_only_count": 0,
+    "global_unregistered_route_count": null,
+    "global_contract_only_count": null
+  }
+}
