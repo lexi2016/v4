@@ -1,0 +1,18 @@
+{
+  "source_sha256": "924ab78f0adb0ee0705e41d7824282f40ec275a97da532ffee5b61e29d2925e6",
+  "source_formula": "ACTIVE_MA_USER_20261021.txt",
+  "rule_version": "TEN_ROUTE_OR_FORMULA_FILE_REPLICA_V3",
+  "rules": [
+    {"id":"B1","source":"B1","class":"MAIN","requires":["C","H","L"],"predicate":"BBI>white AND white>yellow AND J<=13"},
+    {"id":"B2","source":"B2","class":"MAIN","requires":["C","H","L","VOL"],"predicate":"COUNT(J<13,3)>0 AND VOL>MA(REF(VOL,1),4)*1.25 AND today_pct>4 AND J<70 AND white>yellow"},
+    {"id":"B3","source":"B3","class":"MAIN","requires":["C","H","L","VOL"],"predicate":"REF(J,2)<20 AND yesterday_volume AND yesterday_pct>3 AND white>yellow AND real_breakout"},
+    {"id":"BRICK_FANBAO","source":"fixed-ref native brick kernel/detect_fanbao","class":"MAIN","requires":["C","H","L"],"predicate":"F[t]>F[t-1] AND F[t-1]<F[t-2] AND F[t]>F[t-1]+(F[t-2]-F[t-1])*2/3; round2, >=14 valid bars"},
+    {"id":"BREAKOUT","source":"突破","class":"MAIN","requires":["C","H","VOL"],"predicate":"break_prev_high AND COUNT(break_prev_high,8)=1"},
+    {"id":"BREAKOUT_DOJI","source":"突破接十字星","class":"MAIN","requires":["C","H","VOL"],"predicate":"COUNT(yesterday_break_high,8)=1 AND yesterday_break_high AND today_pct<4 AND real_breakout; no candle-body gate"},
+    {"id":"M2_MINUS","source":"零下二金","class":"MAIN","requires":["C"],"predicate":"cross AND DEA<0 AND COUNT(COUNT(cross,BARSLAST(DEA>=0))=2,21)=1"},
+    {"id":"M2_PLUS","source":"零上二金","class":"MAIN","requires":["C"],"predicate":"cross AND DEA>0 AND COUNT(cross,BARSLAST(DEA<=0))>=2"},
+    {"id":"SINGLE_NEEDLE","source":"单针下20","class":"OBSERVATION_CAN_ENTER_POOL","requires":["C","L"],"predicate":"long>=75 AND short<=25"},
+    {"id":"THREE_QUARTER_YIN","source":"四分之三阴量线","class":"OBSERVATION_CAN_ENTER_POOL","requires":["C","H","VOL"],"predicate":"COUNT(yesterday_break_high,8)=1 AND yesterday_break_high AND today_pct<0 AND 0.6<=VOL/REF(VOL,1)<=0.9 AND yesterday_volume AND yesterday_pct>4"}
+  ],
+  "union": "OR of all ten; both observations admitted; all labels retained; deterministic code order only, no buy order"
+}

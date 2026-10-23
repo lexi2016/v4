@@ -1,0 +1,106 @@
+{
+  "status": "PASS_TEN_ROUTE_CANARY_ONLY",
+  "scope": "FORMULA_FILE_REPLICA_ONLY; independent unchanged original canary scope plus two synthetic incremental cases",
+  "reviewer": "/root/today_selection_review",
+  "signal_asof": "20261022",
+  "selection_date": "20261023",
+  "price_basis": "RAW_UNADJUSTED",
+  "numerical_identity": "NOT_LIVE_FUTU_OR_WINDOWS_PARITY",
+  "independent_evidence": [
+    {
+      "receipt": "review/INDEPENDENT_CANARY_REVIEW_RECEIPT.json",
+      "sha256": "d4e0bbe603dcd5162700fcd25d08ddf7df79fad6ff03c090d9d15bbab3c2ab44",
+      "historical_status": "CANNOT_CONFIRM_CANARY_PASS",
+      "inherited_passed_scope": "ten routes/three real symbols/PIT/boundaries/scalar checks; only missing aggregation runtime case closed by increment"
+    },
+    {
+      "receipt": "incremental_review_02/review/INDEPENDENT_PARTIAL_UNKNOWN_REVIEW_RECEIPT.json",
+      "sha256": "ff164a05fabab98ebef164e2b5c6ce36345e07bd08c1311bfe2441e8a72bc669",
+      "status": "PASS_TEN_ROUTE_CANARY_ONLY",
+      "scope": "two synthetic cases only"
+    }
+  ],
+  "cases": [
+    {
+      "caller_input_unchanged": true,
+      "candidate": "YES",
+      "case_id": "KNOWN_BRICK_HIT_PLUS_VOLUME_UNKNOWN",
+      "execution_status": "PARTIAL",
+      "history_rows": 301,
+      "hit_rules": [
+        "BRICK_FANBAO"
+      ],
+      "unknown_rules": [
+        "B2",
+        "BREAKOUT"
+      ]
+    },
+    {
+      "caller_input_unchanged": true,
+      "candidate": "UNKNOWN",
+      "case_id": "NO_HIT_WITH_UNKNOWN_COUNTERCASE",
+      "execution_status": "PARTIAL",
+      "history_rows": 301,
+      "hit_rules": [],
+      "unknown_rules": [
+        "B1",
+        "B2",
+        "BREAKOUT",
+        "M2_MINUS",
+        "M2_PLUS",
+        "SINGLE_NEEDLE",
+        "BRICK_FANBAO"
+      ]
+    }
+  ],
+  "production_sources_unchanged": true,
+  "test_command": [
+    "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+    "-B",
+    "/Users/lexi/Desktop/学习/因子工厂/worktrees/zge_local_selection_20261023/research/today_selection_20261023/zge_local/broad_recall_v3/test_partial_unknown.py",
+    "/Users/lexi/Desktop/学习/因子工厂/research/today_selection_20261023/zge_local/broad_recall_v3/incremental_review_02/REVIEW_CONTRACT.json"
+  ],
+  "actual_independent_execution": "Python -B runpy.run_path on the frozen test_partial_unknown.py with its parent directory added to sys.path; the test assertions and source/fixture checks ran unchanged.",
+  "independent_output_interception": "Suppressed only the script optional write to independent_review/PARTIAL_UNKNOWN_RECEIPT.json, preserving the requested reviewer-only write scope. No source, fixture, contract, input, or registry write was permitted by the wrapper.",
+  "test_exit_evidence": "Both frozen cases passed; independent receipt records all assertions completing",
+  "full05": {
+    "execution_id": "ZGE_TEN_ROUTE_BROAD_RECALL_FULL_20261023_05",
+    "status": "HOLD_CONTRACT_ONLY_NOT_COUNTED",
+    "run_started": false,
+    "results": null
+  },
+  "data_status": {
+    "recovered": false,
+    "stale_members": 318,
+    "owner_quarantined": 306,
+    "missing_owner_target": 12,
+    "root_causes_fully_confirmed": false,
+    "original_chain_saved_failure_review": "SEPARATE_SCOPE_PENDING",
+    "legacy_component_nonfinite_rows": 50,
+    "field_level_nonfinite_resolution": "UNRESOLVED; old combined validity failure is not a ten-route rule verdict"
+  },
+  "second_screen_executed": false,
+  "registry_terminal_event": "ce94994be58f9d631dcfe973dd99a816fb67de74713886ba05dffa9d2136e4ee",
+  "registry_counts": [
+    425,
+    4137,
+    1333,
+    121
+  ],
+  "registry_scope_counts": [
+    1,
+    16,
+    7,
+    0
+  ],
+  "broad_scope_open_executions": [],
+  "scope_contract_only_count": 1,
+  "source_sync_status": "READY_NOT_SYNCED_CONTROLLER_CAS_PENDING",
+  "local_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "local_branch": "codex/zge-local-selection-20261023",
+  "existing_unrelated_dirty": "PRESERVED; no staging/reset/checkout",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

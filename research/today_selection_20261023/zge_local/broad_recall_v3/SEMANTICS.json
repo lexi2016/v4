@@ -1,0 +1,19 @@
+{
+  "identity": "FORMULA_FILE_REPLICA_V3_STRICT_UNKNOWN",
+  "platform_parity": "CANNOT_CONFIRM; no live Futu or Windows numerical certification",
+  "history": "Every available bound producer bar through D22, without 120-bar or Jan1 truncation. Dates sorted unique, exact latest D22. Future rows removed by reader before evaluation.",
+  "MA_HHV_LLV": "Full fixed window and all finite values required. Otherwise unknown, never partial-window mean. Yellow MA114 is not shortened.",
+  "EMA": "2/(N+1), first observed close seed, full prefix retained. Invalid close at any point poisons subsequent state.",
+  "SMA": "M/N, first finite input after necessary lookback initializes. Any later invalid input poisons subsequent state; initial warmup outputs remain unknown.",
+  "REF": "Nonnegative integer scalar/dynamic offsets; absent history or invalid offset unknown.",
+  "COUNT": "Dynamic integer N supported exactly. N>0 includes current and prior N-1 rows; incomplete or nonfinite input window unknown. N=0 counts entire observed prefix. Unknown N remains unknown.",
+  "BARSLAST": "Current known true ->0; distance since most recent known true. No proven anchor or an unknown condition after the anchor ->unknown until next known true. Never invent 0 for no anchor.",
+  "CROSS": "Current A>B and previous A<=B; first observed row false. Required nonfinite current/previous values ->unknown.",
+  "logical": "Kleene three-valued AND/OR. A proven false conjunct determines false; a proven true disjunct determines true. Unknown numeric comparisons stay unknown.",
+  "division": "Zero or nonfinite denominator ->unknown. No zero/50 fill in user main-chart formulas.",
+  "invalid_raw": "Nonfinite/nonpositive HLC invalid only respective fields; impossible finite HLC geometry invalidates those HLC values. Negative/nonfinite volume invalid only volume. Amount, open, owner pct_chg are not required or read by these ten rules.",
+  "brick": "Execute unmodified fixed-ref calculate_sma_series/calculate_brick_value/detect_fanbao functions from source AST. Their kernel-specific flat range defaults and Python round(value,2) are retained. Need >=14 valid full-prefix HLC bars; strict today > yesterday, yesterday < before, today > yesterday+(before-yesterday)*2/3. No early short-history zero admitted.",
+  "stock_state": "Any known true ->YES; all ten known false ->NO; no hit plus unknown ->UNKNOWN. Ten known states COMPLETE, some known PARTIAL, all unknown FAILED; unattempted NOT_SCANNED distinct.",
+  "parameters": "Original exact predicates; no resonance, score, count-of-labels, risk or TopN admission gate. Risks remain explanation fields.",
+  "initialization_limit": "These explicit offline semantics are reproducible and independently compared on identical inputs, but cannot establish platform numerical equivalence. Missing earlier producer history remains a provenance limitation."
+}
