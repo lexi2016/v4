@@ -1,0 +1,87 @@
+{
+  "status": "PASS_DIAGNOSTIC_FACTS_PARITY_FAILED",
+  "execution_id": "A_SHARE_STALE318_LOCAL_ALIAS_PAIR_CANARY_20261023_10",
+  "old_key": "830779.BJ",
+  "new_key": "920779.BJ",
+  "signal_asof": "20261022",
+  "selection_date": "20261023",
+  "inputs": {
+    "old": {
+      "total_records": 280,
+      "expected_records": 280,
+      "row_count_matches": true,
+      "calendar_dates_valid": true,
+      "dates_unique": true,
+      "dates_strictly_ascending": true,
+      "max_date_all": 20260825,
+      "min_date_all": 20240905,
+      "rows_after_signal_cutoff": 0,
+      "rows_at_or_before_cutoff": 280,
+      "max_date_at_or_before_cutoff": 20260825,
+      "has_D22": false,
+      "finite_compare_fields_through_D22": true
+    },
+    "new": {
+      "total_records": 305,
+      "expected_records": 305,
+      "row_count_matches": true,
+      "calendar_dates_valid": true,
+      "dates_unique": true,
+      "dates_strictly_ascending": true,
+      "max_date_all": 20261022,
+      "min_date_all": 20250717,
+      "rows_after_signal_cutoff": 0,
+      "rows_at_or_before_cutoff": 305,
+      "max_date_at_or_before_cutoff": 20261022,
+      "has_D22": true,
+      "finite_compare_fields_through_D22": true
+    }
+  },
+  "nonempty_overlap_count": 74,
+  "overlap_date_bounds": {
+    "first": 20250717,
+    "last": 20260825
+  },
+  "strict_field_diff_counts": {
+    "open": 20,
+    "high": 20,
+    "low": 20,
+    "close": 20,
+    "vol": 20,
+    "amount": 20
+  },
+  "nonoverlap_counts": {
+    "old_only_dates": 206,
+    "new_only_dates": 231
+  },
+  "problems": [
+    "STRICT_FIELD_MISMATCH"
+  ],
+  "inputs_and_source_unchanged": true,
+  "input_binding_sha256": "6c24fe9de3e12ff8be9f117cbf3a21e0db00b5a02abc2f392c03407fb62d594b",
+  "source_sha256": "d16ce9ad6e934828ba35cb2b85173ea9525c6e62dda664a0caea3ca1ea36a0cb",
+  "config_sha256": "0f05c31067009357398bca3b6f35c8dc901623939bdafdbc60c6639b055c1ad0",
+  "raw_rows_exported": 0,
+  "market_data_requests": 0,
+  "source_writes": 0,
+  "daily_bars_recovered": 0,
+  "canonical_or_PIT_certified": false,
+  "full05_status": "HOLD_CONTRACT_ONLY_NOT_COUNTED",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "writer_exit_code": 2,
+  "independent_review": "PASS_DIAGNOSTIC_FACTS_PARITY_FAILED",
+  "source_sync_status": "READY_NOT_SYNCED_AT_PACKAGE_FREEZE",
+  "canary_receipt_sha256": "8505ac6d2b2193e9d28f8f372268dd088b389d404a1a047f22feac0c135280d3",
+  "contract_sha256": "1bbe60b48301b2a165335386eaee4fe6ec76baf382c4ae0cf77108abf9201e10",
+  "review_contract_sha256": "6c88893453ac5c0531076e0b92b23ab31340274eb8c50655b727ed8087bce93c",
+  "data_result": "CANNOT_CONFIRM_LOCAL_PAIR_PARITY",
+  "writer_data_status": "CANNOT_CONFIRM_LOCAL_PAIR_PARITY",
+  "independent_actual_exit_code": 2,
+  "independent_replay_receipt_sha256": "4db45dacf00fa3f8312305b711ec95e9119c2018d1226fc03dec99018980d29c",
+  "assessment_source": "Independent remediation agent final transferred by root plus actual replay receipt; no separately signed reviewer assessment artifact asserted",
+  "parity_passed": false,
+  "alias_recovery_success": false
+}
