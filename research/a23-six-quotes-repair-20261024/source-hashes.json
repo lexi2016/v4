@@ -1,0 +1,151 @@
+{
+  "schema_version": "a23-six-quotes-remote-source-hashes-v1",
+  "repository": "lexi2016/v4",
+  "snapshot_path": "research/a23-six-quotes-repair-20261024",
+  "snapshot_kind": "partial reviewed source snapshot",
+  "source_snapshot": {
+    "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "local_branch": "codex/a23-six-quotes-repair-20261024",
+    "remote_parent_commit": "3df892e8ce54d42d122bfb344d43638a9a5edbdb",
+    "relationship_assertion": "Local baseline and remote parent are recorded separately; no claim that local HEAD maps to remote HEAD.",
+    "input_candidate_sha256": "2a0891e4fe4222032be34694bd4eefb6c5fae191958bb4f9bfb1eb39aceb7707",
+    "independent_review_receipt_sha256": "919f581130f6273de96c7e418e0b68e1b30ac041d88360568529f7dc411dbaf7",
+    "source_origin": "Reviewed candidate postimages plus unchanged facade dependencies copied from their frozen baseline SHA."
+  },
+  "parent_inventory": {
+    "remote_tree_entries_scanned": 309,
+    "target_facade_or_dependencies_found": 0,
+    "target_adapter_or_test_found": 0,
+    "dependency_upload_reason": "The parent commit has no A-share sync facade or its 12 unchanged split modules; these exact baseline dependencies are required by the facade snapshot."
+  },
+  "files": [
+    {
+      "path": "runtime-source/ops/a_share_daily_sync.py",
+      "source_path": "ops/a_share_daily_sync.py",
+      "bytes": 28763,
+      "sha256": "c41913bdbedf36b32eebc4f54056e4464e4e5f00bc686ba1023cef3ef5669fa9",
+      "classification": "reviewed_delta",
+      "before_sha256": "42d2ef712abca59e2d230e8a37253a08a922001d7fd88b3baa1e0e0fb7ce4b7c"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/__init__.py",
+      "source_path": "ops/_a_share_daily_sync_parts/__init__.py",
+      "bytes": 70,
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/_namespace.py",
+      "source_path": "ops/_a_share_daily_sync_parts/_namespace.py",
+      "bytes": 527,
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/cli_runtime.py",
+      "source_path": "ops/_a_share_daily_sync_parts/cli_runtime.py",
+      "bytes": 9232,
+      "sha256": "9da0144d0750be48a17e25937de15651540c4f03133513ac7861ef56deeece4c",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "9da0144d0750be48a17e25937de15651540c4f03133513ac7861ef56deeece4c"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/day_file_format.py",
+      "source_path": "ops/_a_share_daily_sync_parts/day_file_format.py",
+      "bytes": 5277,
+      "sha256": "a49564253c9b493c148e6bf0910dc4654dd6c13a7ca890c7690a0a2aab965545",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "a49564253c9b493c148e6bf0910dc4654dd6c13a7ca890c7690a0a2aab965545"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/field_rules.py",
+      "source_path": "ops/_a_share_daily_sync_parts/field_rules.py",
+      "bytes": 4946,
+      "sha256": "6a553b1a1948ec964e9009a4dcadab9ffe7ede89784696af03489f8aa906f25d",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "6a553b1a1948ec964e9009a4dcadab9ffe7ede89784696af03489f8aa906f25d"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/network_session.py",
+      "source_path": "ops/_a_share_daily_sync_parts/network_session.py",
+      "bytes": 8141,
+      "sha256": "77dcb01e5ba315adf654c4ffc9b0df0193cde9c34366f9ada2c4ce23ffb89586",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "77dcb01e5ba315adf654c4ffc9b0df0193cde9c34366f9ada2c4ce23ffb89586"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/progress.py",
+      "source_path": "ops/_a_share_daily_sync_parts/progress.py",
+      "bytes": 6318,
+      "sha256": "df948bef15b7ca1bcf6f514d7bb01e2ede992c3afb721b6250adc469431e505a",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "df948bef15b7ca1bcf6f514d7bb01e2ede992c3afb721b6250adc469431e505a"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/rebuild.py",
+      "source_path": "ops/_a_share_daily_sync_parts/rebuild.py",
+      "bytes": 11760,
+      "sha256": "a5f751c32812263ff67829d8fe0db8df6ae52782f45e49bb8ccef9d9b50a83cc",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "a5f751c32812263ff67829d8fe0db8df6ae52782f45e49bb8ccef9d9b50a83cc"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/response_capture.py",
+      "source_path": "ops/_a_share_daily_sync_parts/response_capture.py",
+      "bytes": 5470,
+      "sha256": "ba0c47c85196c4d8f46f6c8a215bd081f6e90430f242d2ee80c4ff2d4fea991e",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "ba0c47c85196c4d8f46f6c8a215bd081f6e90430f242d2ee80c4ff2d4fea991e"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/scope_validation.py",
+      "source_path": "ops/_a_share_daily_sync_parts/scope_validation.py",
+      "bytes": 4349,
+      "sha256": "0cc7d65cde16d953a294a948dfec41e6b83e1a1b8319bd479e241b1f7e06e9f4",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "0cc7d65cde16d953a294a948dfec41e6b83e1a1b8319bd479e241b1f7e06e9f4"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/sync_workflow.py",
+      "source_path": "ops/_a_share_daily_sync_parts/sync_workflow.py",
+      "bytes": 57536,
+      "sha256": "8654d5d673abcd5e2c091e89c903e276b38f02656455f6d21db0ea4e6de0e4d8",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "8654d5d673abcd5e2c091e89c903e276b38f02656455f6d21db0ea4e6de0e4d8"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/trusted_cas.py",
+      "source_path": "ops/_a_share_daily_sync_parts/trusted_cas.py",
+      "bytes": 24266,
+      "sha256": "072acb3abad0b39e1ac74b34e3d753c4367d47f1123cf77ff64032eb2e36cfe8",
+      "classification": "unchanged_facade_dependency",
+      "before_sha256": "072acb3abad0b39e1ac74b34e3d753c4367d47f1123cf77ff64032eb2e36cfe8"
+    },
+    {
+      "path": "runtime-source/ops/_a_share_daily_sync_parts/tdx_mac_adapter.py",
+      "source_path": "ops/_a_share_daily_sync_parts/tdx_mac_adapter.py",
+      "bytes": 4979,
+      "sha256": "f8d32c3f762294866ce8e4522a5c8bee90b578034a774c3514ff56ec1ed7087c",
+      "classification": "reviewed_delta",
+      "before_sha256": null
+    },
+    {
+      "path": "tests/test_a23_six_quotes_repair_20261024.py",
+      "source_path": "tests/test_a23_six_quotes_repair_20261024.py",
+      "bytes": 4802,
+      "sha256": "85beafedc903fa7cb19e8bc94092915a9ac3c5b6a5479b352867bf82c025e303",
+      "classification": "reviewed_test",
+      "before_sha256": null
+    }
+  ],
+  "excluded": [
+    "cached six .day candidates and market-data response captures",
+    "raw market/network data, logs, test output files, and local replay artifacts",
+    "virtual environments, wheels, runtime releases, and source archives",
+    "credentials, authentication files, .env files, account data, and holdings"
+  ],
+  "deployment_status": "NOT_DEPLOYED",
+  "runtime_binding_status": "NOT_RUN"
+}

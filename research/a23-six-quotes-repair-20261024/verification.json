@@ -1,0 +1,55 @@
+{
+  "schema_version": "a23-six-quotes-review-verification-v1",
+  "candidate_ready_sha256": "2a0891e4fe4222032be34694bd4eefb6c5fae191958bb4f9bfb1eb39aceb7707",
+  "independent_review_receipt_sha256": "919f581130f6273de96c7e418e0b68e1b30ac041d88360568529f7dc411dbaf7",
+  "review": {
+    "verdict": "PASS",
+    "independent_identity": true,
+    "frozen_scope": "Three-file source delta, six cached real TDX candidate images/response references, phase-one exact canonical command preflight, and original authority execution plan. No semantic report review.",
+    "tests": {
+      "command_shape": "PYTHONPATH='<reviewed-worktree>:<existing-v4-site-packages>' <review-python> -S -m unittest discover -s '<reviewed-worktree>/tests' -p test_a23_six_quotes_repair_20261024.py -v",
+      "exit_code": 0,
+      "passed": 8,
+      "rerun_for_github_sync": false
+    },
+    "cached_behavior": {
+      "status": "BEHAVIOR_VERIFIED",
+      "scope": "No-network cached response replay into reviewer-owned copies using unchanged original run_sync.",
+      "result": "6 accepted, 0 quarantined; replay output byte-identical to frozen candidates; each original historical prefix retained and only 32 bytes appended; original six live source SHA values unchanged."
+    }
+  },
+  "source_snapshot": {
+    "local_baseline_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "local_branch": "codex/a23-six-quotes-repair-20261024",
+    "remote_parent_commit": "3df892e8ce54d42d122bfb344d43638a9a5edbdb",
+    "snapshot_path": "research/a23-six-quotes-repair-20261024",
+    "location_note": "runtime-source is a review archive path, not the application's active runtime entry or a deployment release."
+  },
+  "not_run": [
+    "Canonical source integration or data mutation",
+    "six_canonical_command.py --execute",
+    "Reviewer live TDX network requests",
+    "Full original authority collection and 5000-floor closure",
+    "Formula or panel promotion",
+    "Pointer-bound six-row readback",
+    "Automatic scheduler binding or reload",
+    "Natural scheduled recovery",
+    "Drive updates",
+    "Research report semantic review"
+  ],
+  "cannot_confirm": [
+    "Provider-internal meaning of body2003",
+    "Full-market authority and panel recovery",
+    "Actual future automatic A child loading",
+    "Natural scheduled recovery",
+    "Canonical execution success"
+  ],
+  "status": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "deployment": "NOT_DEPLOYED",
+    "runtime_binding": "NOT_RUN"
+  }
+}
