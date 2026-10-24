@@ -892,11 +892,193 @@ def accepted_history_retention(pointers: dict[str, Path]) -> dict | None:
     return value
 
 
+TAIL_DELTA_ASOF_FIELDS = frozenset({
+    "user_v1_hold_yesterday_keyline_display_asof", "user_v1_break_yesterday_keyline_display_asof",
+    "user_v1_sell_signal_display_asof",
+})
+
+
+def _native_tail_extension(before: dict, after: dict, dates: list[int], code: str) -> None:
+    """A composite keeps original native bytes, including archive conflicts."""
+    if (before.get("name"), before.get("kind")) != ("native", "day_bytes") or (after.get("name"), after.get("kind")) != ("native", "day_bytes"):
+        raise QfqGateError("TAIL_DELTA_NATIVE_SOURCE_KIND:" + code)
+    old = _source(before, owner="delta original native " + code).read_bytes()
+    new = _source(after, owner="delta composed native " + code).read_bytes()
+    if not old or len(old) % 32 or len(new) % 32 or not new.startswith(old):
+        raise QfqGateError("TAIL_DELTA_OLD_NATIVE_BYTES_CHANGED:" + code)
+    old_dates = np.frombuffer(old, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"].astype(int).tolist()
+    added = np.frombuffer(new[len(old):], dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"].astype(int).tolist()
+    if (added != dates or set(added) & set(old_dates) or not dates or min(dates) <= max(old_dates)):
+        raise QfqGateError("TAIL_DELTA_NATIVE_NEW_KEYS_CHANGED:" + code)
+
+
+def _tail_selected_bytes_sha(refs: list[dict], target: int) -> str:
+    """Hash exactly the original archive-first whole raw32 rows, before decode."""
+    selected = {}
+    for role in ("native", "archive"):
+        matching = [ref for ref in refs if ref.get("source_role") == role]
+        if len(matching) > 1:
+            raise QfqGateError("TAIL_DELTA_DUPLICATE_SOURCE_ROLE")
+        for ref in matching:
+            payload = _source(ref, owner="tail reviewed complete source").read_bytes()
+            if not payload or len(payload) % 32:
+                raise QfqGateError("TAIL_DELTA_RAW_RECORD_BOUNDARY")
+            dates = np.frombuffer(payload, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"].astype(int).tolist()
+            if dates != sorted(set(dates)) or min(dates) <= 19000101:
+                raise QfqGateError("TAIL_DELTA_RAW_DATE_KEYS_INVALID")
+            selected.update({date: payload[index*32:(index+1)*32]
+                             for index, date in enumerate(dates) if date <= target})
+    return hashlib.sha256(b"".join(selected[date] for date in sorted(selected))).hexdigest()
+
+
+def tail_delta_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, Path],
+                       identity: dict, target: int, retained_history: dict | None) -> dict | None:
+    """Verify a same-asof, independently accepted native-tail-only revision.
+
+    All symbols remain in the snapshot. Unchanged active rows are an explicit
+    Arrow-copy category, never disguised as inactive retained history.
+    """
+    if ref is None:
+        return None
+    value = json.loads(_source(ref, owner="tail delta contract").read_text())
+    codes = value.get("codes", {})
+    if (value.get("schema") != "qfq_native_tail_delta_v1" or value.get("asof_date") != target
+            or not isinstance(codes, dict) or not 1 <= len(codes) <= 6
+            or any(not CODE.fullmatch(c) for c in codes) or not retained_history):
+        raise QfqGateError("TAIL_DELTA_CONTRACT_INVALID")
+    old = json.loads(_source(value["baseline_snapshot"], owner="delta baseline snapshot").read_text())
+    if (old.get("asof_date") != target or set(old["symbols"]) != set(snapshot["symbols"])
+            or not set(codes).issubset(old["symbols"]) or set(value.get("baseline_roles", {})) != set(pointers)):
+        raise QfqGateError("TAIL_DELTA_ASOF_OR_MEMBERSHIP_CHANGED")
+    original_core = _source(value["baseline_core"], owner="delta baseline computation kernel")
+    if computation_kernel_sha(original_core) != computation_kernel_sha(Path(__file__)):
+        raise QfqGateError("TAIL_DELTA_COMPUTATION_CHANGED")
+    for role, pointer in pointers.items():
+        bound = value["baseline_roles"][role]
+        path = _source(bound, owner="delta baseline " + role)
+        meta = panel_contract(path)
+        if (path != Path(pointer.read_text(encoding="utf-8-sig").strip())
+                or meta.get("generation_id") != value["baseline_generation_id"]
+                or meta.get("input_sha256") != canonical_sha(old) or meta.get("asof_date") != target
+                or meta.get("adapter_sha256") != sha(original_core)
+                or any(meta.get(k) != v for k, v in identity.items() if k not in {"adapter_sha256", "input_sha256"})
+                or not set(USER_FORMULA_SIGNAL_FIELDS).issubset(pq.ParquetFile(path).schema_arrow.names)):
+            raise QfqGateError("TAIL_DELTA_BASELINE_OR_FORMULA_CHANGED:" + role)
+    changed_top = {"symbols", "source_files", "revision", "observed_at", "history_extension", "history_retention_binding"}
+    if ({k: v for k, v in old.items() if k not in changed_top}
+            != {k: v for k, v in snapshot.items() if k not in changed_top}):
+        raise QfqGateError("TAIL_DELTA_NON_RAW_SNAPSHOT_CHANGED")
+    if not all(ref in snapshot["source_files"] for ref in old["source_files"]):
+        raise QfqGateError("TAIL_DELTA_OLD_SOURCE_CLOSURE_LOST")
+    retained = snapshot.get("history_retention_binding")
+    if not isinstance(retained, dict) or snapshot.get("history_extension") is not None:
+        raise QfqGateError("TAIL_DELTA_FUTURE_RETENTION_UNBOUND")
+    if ({k: v for k, v in retained_history.items() if k not in {"source_config", "accepted_evidence"}}
+            != {k: v for k, v in retained.items() if k not in {"source_config", "accepted_evidence"}}
+            or not all(x in retained.get("accepted_evidence", []) for x in retained_history.get("accepted_evidence", []))):
+        raise QfqGateError("TAIL_DELTA_SOURCE_POLICY_CHANGED")
+    configs = [json.loads(_source(x["source_config"], owner="delta whole-row config").read_text())
+               for x in (retained_history, retained)]
+    if ({k: v for k, v in configs[0].items() if k != "stocks"}
+            != {k: v for k, v in configs[1].items() if k != "stocks"}):
+        raise QfqGateError("TAIL_DELTA_SOURCE_CONFIG_POLICY_CHANGED")
+    stocks = [{x["code"]: x for x in c["stocks"]} for c in configs]
+    if (set(stocks[0]) != set(stocks[1]) or not set(codes).issubset(stocks[0])
+            or any(len(stocks[i]) != len(configs[i]["stocks"]) for i in (0, 1))):
+        raise QfqGateError("TAIL_DELTA_SOURCE_MEMBERSHIP_CHANGED")
+    for code, before in stocks[0].items():
+        after = stocks[1][code]
+        if code not in codes:
+            if before != after:
+                raise QfqGateError("TAIL_DELTA_THIRD_CODE_SOURCE_CHANGED:" + code)
+            continue
+        dates = codes[code].get("added_dates")
+        if (not isinstance(dates, list) or not dates or dates != sorted(set(dates))
+                or any(type(d) is not int or d > target for d in dates)):
+            raise QfqGateError("TAIL_DELTA_DATE_CONTRACT_INVALID:" + code)
+        review = json.loads(_source(codes[code]["independent_review"], owner="tail recovery review " + code).read_text())
+        if review.get("verdict") != "REVIEWED/PASS_ISOLATED_TWO_STOCK_TAIL_RECOVERY_ONLY":
+            raise QfqGateError("TAIL_DELTA_RECOVERY_REVIEW_NOT_ACCEPTED:" + code)
+        approved = [row for row in review.get("reports", []) if row.get("code") == code]
+        if (codes[code]["independent_review"] not in retained.get("accepted_evidence", [])
+                or len(approved) != 1 or approved[0].get("added_dates") != dates
+                or approved[0].get("old_keys_lost") != 0 or approved[0].get("old_values_changed") != 0
+                or approved[0].get("old_raw32_prefix_unchanged") is not True
+                or approved[0].get("buffer_admitted_as_full_history") is not False
+                or approved[0].get("staged_sha256") != _tail_selected_bytes_sha(snapshot["symbols"][code]["raw_files"], target)):
+            raise QfqGateError("TAIL_DELTA_REVIEW_CODE_KEYS_OR_COMPLETE_SOURCE_CONFLICT:" + code)
+        if ({k: v for k, v in before.items() if k != "sources"}
+                != {k: v for k, v in after.items() if k != "sources"}):
+            raise QfqGateError("TAIL_DELTA_SOURCE_STOCK_METADATA_CHANGED:" + code)
+        pairs = [{x["name"]: x for x in stock["sources"]} for stock in (before, after)]
+        if (len(pairs[0]) != len(before["sources"]) or len(pairs[1]) != len(after["sources"])
+                or set(pairs[0]) != set(pairs[1]) or "native" not in pairs[0]
+                or any(pairs[0][k] != pairs[1][k] for k in pairs[0] if k != "native")):
+            raise QfqGateError("TAIL_DELTA_ARCHIVE_OR_SOURCE_ROLES_CHANGED:" + code)
+        _native_tail_extension(pairs[0]["native"], pairs[1]["native"], dates, code)
+    if not all(x in snapshot["source_files"] for x in [retained["source_config"], retained["source_policy"],
+            *retained.get("accepted_evidence", [])]):
+        raise QfqGateError("TAIL_DELTA_NEW_SOURCE_CLOSURE_UNBOUND")
+    item_metadata = {"source_config", "accepted_evidence"}
+    for code, before in old["symbols"].items():
+        after = snapshot["symbols"][code]
+        allowed = item_metadata | ({"raw_files", "history_end_date"} if code in codes else set())
+        if ({k: v for k, v in before.items() if k not in allowed}
+                != {k: v for k, v in after.items() if k not in allowed}):
+            raise QfqGateError("TAIL_DELTA_EVENT_OR_THIRD_CODE_INPUT_CHANGED:" + code)
+        if after.get("source_config") != retained["source_config"]:
+            raise QfqGateError("TAIL_DELTA_SYMBOL_RETENTION_CONFLICT:" + code)
+        if not all(x in after.get("accepted_evidence", []) for x in before.get("accepted_evidence", [])):
+            raise QfqGateError("TAIL_DELTA_ACCEPTED_EVIDENCE_LOST:" + code)
+        if code in codes:
+            if min(codes[code]["added_dates"]) <= before["history_end_date"] or after["history_end_date"] != max(codes[code]["added_dates"]):
+                raise QfqGateError("TAIL_DELTA_NOT_TAIL_ONLY:" + code)
+            old_refs = {x["source_role"]: x for x in before["raw_files"]}
+            new_refs = {x["source_role"]: x for x in after["raw_files"]}
+            if (set(old_refs) != set(new_refs) or len(new_refs) != len(after["raw_files"])
+                    or any(old_refs[k] != new_refs[k] for k in old_refs if k != "native")
+                    or any(new_refs["native"].get(k) != stocks[1][code]["sources"][[x["name"] for x in stocks[1][code]["sources"]].index("native")].get(k) for k in ("path", "sha256"))):
+                raise QfqGateError("TAIL_DELTA_NATIVE_ITEM_BINDING_CHANGED:" + code)
+    return {**value, "binding_ref": ref}
+
+
+def tail_delta_prefix(old: pa.Table, fresh: pa.Table, dates: list[int], code: str) -> list[dict]:
+    """Old prefix values stay exact; enumerate only original asof/lineage changes."""
+    old_dates = [int(x) for x in old["trade_date"].to_pylist()]
+    new_dates = [int(x) for x in fresh["trade_date"].to_pylist()]
+    if (len(set(old_dates)) != len(old_dates) or len(set(new_dates)) != len(new_dates)
+            or set(new_dates) != set(old_dates) | set(dates) or set(old_dates) & set(dates)):
+        raise QfqGateError("TAIL_DELTA_OUTPUT_KEYS_CHANGED:" + code)
+    positions = {d: i for i, d in enumerate(new_dates)}
+    prefix = fresh.take(pa.array([positions[d] for d in old_dates]))
+    changes = []
+    for name in old.schema.names:
+        a, b = old[name].to_pandas(), prefix[name].to_pandas()
+        if a.equals(b):
+            continue
+        if name not in TAIL_DELTA_ASOF_FIELDS | {"raw_source_ref_sha256"}:
+            raise QfqGateError("TAIL_DELTA_PREFIX_VALUE_CHANGED:" + code + ":" + name)
+        # These values still come directly from original rebuild_symbol and
+        # merge_rebuilt. No replacement or equality-forcing is performed here.
+        for i, date in enumerate(old_dates):
+            left, right = a.iloc[i], b.iloc[i]
+            if (pd.isna(left) and pd.isna(right)) or left == right:
+                continue
+            changes.append(dict(code=code, trade_date=date, field=name,
+                                before=None if pd.isna(left) else left.item() if hasattr(left, "item") else left,
+                                after=None if pd.isna(right) else right.item() if hasattr(right, "item") else right,
+                                reason="ORIGINAL_ASOF_DISPLAY" if name in TAIL_DELTA_ASOF_FIELDS else "BOUND_NATIVE_SOURCE_SHA_REVISION"))
+    return changes
+
+
 def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, data_root: Path,
                       pointers: dict[str, Path], contract_csv: Path, return_root: Path,
                       target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
-                      checkpoint_resume: dict | None = None, history_extension: dict | None = None) -> dict:
+                      checkpoint_resume: dict | None = None, history_extension: dict | None = None,
+                      tail_delta: dict | None = None) -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
+    if tail_delta is not None and (history_extension is not None or checkpoint_resume is not None or refresh_inputs):
+        raise QfqGateError("TAIL_DELTA_EXPLICIT_SNAPSHOT_ONLY_NO_GLOBAL_CHECKPOINT_REUSE")
     if not 1 <= workers <= 4:
         raise QfqGateError("WORKER_LIMIT_MUST_BE_1_TO_4")
     history = (history_extension_binding(history_extension, data_root=data_root, return_root=return_root,
@@ -920,11 +1102,13 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                              force_refresh=False if history is not None else refresh_due(data_root, target) or os.environ.get("RESEARCH_PANEL_QFQ_REFRESH_FACTORS") == "1",
                              history_extension=history, retained_history=retained_history)
         snapshot = load_snapshot(snapshot_file, target)
-        if snapshot.get("history_retention_binding") != retained_history:
+        if tail_delta is None and snapshot.get("history_retention_binding") != retained_history:
             raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")
         if snapshot.get("history_extension") != history_extension:
             raise QfqGateError("HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT")
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv)
+        delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
+                                   target=target, retained_history=retained_history)
         # One fixed journal owned by the original entry covers crashes between
         # replacing the original two files, even after a new input revision.
         expected = {role: path.read_bytes() for role, path in pointers.items()}
@@ -988,6 +1172,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                         selector_pointer_ready=True, backtest_pointer_ready=True, run_dir=str(run_dir),
                         authority=dict(final_status="PASS_QFQ_FULL_HISTORY_IDEMPOTENT", source_sha256=identity["input_sha256"], generation_id=run_id), **FLAGS)
         old_symbols = {role: _panel_symbols(path) for role, path in currents.items()}
+        if delta and any(not set(delta["codes"]).issubset(values) for values in old_symbols.values()):
+            raise QfqGateError("TAIL_DELTA_CANNOT_ADMIT_NONBASELINE_CODE")
         expected_codes = set().union(*old_symbols.values())
         # The A-share lane must never reprice a foreign market under its basis.
         foreign = {c for c in expected_codes if not CODE.fullmatch(c)}
@@ -995,6 +1181,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         legacy_codes = set(snapshot.get("legacy_preservation_codes", [])) & expected_codes
         available = set(snapshot["symbols"])
         retained_history_codes = set(snapshot.get("retained_history_codes", [])) & expected_codes
+        if delta and set(delta["codes"]) & (retained_history_codes | legacy_codes | set(snapshot.get("quarantine_symbols", {}))):
+            raise QfqGateError("TAIL_DELTA_CHANGED_CODE_CANNOT_BE_EXCLUDED_OR_INACTIVE")
         quarantined = snapshot.get("quarantine_symbols", {})
         from ops.research_panel_adjustment_inputs import existing_day_files
         discovered = {code for code, _ in existing_day_files(tdx_root)}
@@ -1021,7 +1209,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     quarantine_manifest_path=str(run_dir / "quarantine_manifest.json"),
                     convention=snapshot["convention"], revision=snapshot["revision"], pit_certified=False, **identity, **FLAGS)
         retention_binding = ({key: history[key] for key in ("source_config", "source_policy", "archive_refs", "accepted_evidence")}
-                             if history is not None else retained_history)
+                             if history is not None else snapshot["history_retention_binding"] if delta else retained_history)
         if retention_binding is not None:
             meta.update(history_retention_binding=retention_binding,
                 retained_history_codes=sorted(retained_history_codes),
@@ -1033,6 +1221,10 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 historical_PIT=False, inherited_history_sidecars=retained_history_sidecars,
                 history_source_policy=history["source_policy"], history_source_config=history["source_config"],
                 nullable_context_reason="NO_AUTHENTICATED_HISTORICAL_CONTEXT; BARS_OBSERVED_NOT_LISTING_AGE")
+        if delta:
+            meta.update(tail_delta=tail_delta, maximum_claim="DIRECTION_ONLY", historical_PIT=False,
+                        tail_delta_semantics="CHANGED_FULL_PREFIX_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
+                        tail_delta_baseline_generation=delta["baseline_generation_id"])
         candidates = {
             "selector": data_root / "selector_ready_panels/data_layer_daily_formula_increment_update_v1" / f"selector_ready_current_to_{target}_qfq_{run_id[:16]}" / f"selector_ready_current_to_{target}.parquet",
             "backtest": data_root / "backtest_panels/data_layer_daily_formula_increment_update_v1" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}_qfq_{run_id[:16]}" / "panel" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}.parquet",
@@ -1076,7 +1268,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             os.replace(temporary, checkpoint)
             _json(checkpoint_receipt, dict(checkpoint_id=fingerprint, sha256=sha(checkpoint)))
             return code, checkpoint
-        codes = sorted(available)
+        codes = sorted(delta["codes"] if delta else available)
+        unchanged_codes = ((expected_codes & available) - set(codes) - foreign - legacy_codes
+                                  - set(quarantined) - retained_history_codes) if delta else set()
         quarantine_reasons = dict(quarantined)
         quarantine_reasons.update({c: dict(reason=legacy_policy["reason"], legacy_non_target=True,
                                           policy=snapshot["legacy_preservation_policy"])
@@ -1086,7 +1280,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             try:
                 return one(code)
             except QfqGateError as exc:
-                if code not in eligible:
+                if delta or code not in eligible:
                     raise
                 quarantine_reasons[code] = dict(reason=str(exc), original_status=eligible[code])
                 return code, None
@@ -1113,17 +1307,17 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                     or approved.get("date_sha256") != canonical_sha(actual_dates)
                                     or approved.get("rows") != len(actual_dates)):
                                 raise QfqGateError(f"LEGACY_PRESERVATION_KEYS_OR_BASELINE_CHANGED:{role}:{code}")
-                        if code in quarantine_reasons or code in foreign or code in retained_history_codes:
+                        if code in quarantine_reasons or code in foreign or code in retained_history_codes or code in unchanged_codes:
                             continue
                         rebuilt_keys = pq.read_table(parts_root / (code + ".parquet"), columns=["trade_date"]).column(0).to_pylist()
                         missing_keys = sorted(set(pd.to_numeric(old_keys.trade_date).astype(int)) - set(rebuilt_keys))
                         if missing_keys:
-                            if code not in eligible:
+                            if delta or code not in eligible:
                                 raise QfqGateError(f"RAW_HISTORY_KEYS_MISSING:{role}:{code}:{missing_keys[:10]}")
                             quarantine_reasons[code] = dict(reason="RAW_HISTORY_KEYS_MISSING", role=role,
                                 missing_dates=missing_keys, original_status=eligible[code])
             codes = [code for code in codes if code not in quarantine_reasons]
-            quarantine_artifacts, role_counts = {}, {}
+            quarantine_artifacts, role_counts, delta_prefix_changes = {}, {}, {}
             for role, candidate in candidates.items():
                 old_buckets = old_spools[role]
                 candidate.parent.mkdir(parents=True, exist_ok=True)
@@ -1141,6 +1335,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 quarantined_rows = 0
                 old_rows, replaced_old_rows, retained_non_a_rows, retained_a_history_rows = 0, 0, 0, 0
                 retained_by_market = {}
+                unchanged_active_rows = 0
+                unchanged_inactive_rows = 0
+                delta_prefix_changes[role] = []
                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
                     for bucket in range(32):
                         old_table = pq.read_table(old_buckets[bucket]) if bucket in old_buckets else None
@@ -1157,14 +1354,24 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             if len(excluded):
                                 quarantine_writer.write_table(excluded.replace_schema_metadata(quarantine_schema.metadata))
                                 quarantined_rows += len(excluded)
-                            retained = old_table.filter(pa.array([c in foreign or c in retained_history_codes for c in old_codes]))
+                            retained = old_table.filter(pa.array([c in foreign or c in retained_history_codes or c in unchanged_codes for c in old_codes]))
                             if len(retained):
                                 for field in schema:
                                     if field.name not in retained.schema.names and field.name in USER_FORMULA_SIGNAL_FIELDS:
                                         retained = retained.append_column(field, pa.nulls(len(retained), type=field.type))
-                                writer.write_table(retained.cast(schema))
+                                if delta and not retained.schema.equals(schema, check_metadata=False):
+                                    raise QfqGateError("TAIL_DELTA_UNCHANGED_SCHEMA_CHANGED:" + role)
+                                writer.write_table(retained.replace_schema_metadata(schema.metadata) if delta else retained.cast(schema))
                                 retained_non_a_rows += sum(c in foreign for c in retained["ts_code"].to_pylist())
                                 retained_a_history_rows += sum(c in retained_history_codes for c in retained["ts_code"].to_pylist())
+                                unchanged_target_here = set(old_frame.loc[pd.to_numeric(old_frame.trade_date).eq(target), "ts_code"]) & unchanged_codes
+                                unchanged_active_rows += sum(c in unchanged_target_here for c in retained["ts_code"].to_pylist())
+                                unchanged_inactive_rows += sum(c in unchanged_codes - unchanged_target_here for c in retained["ts_code"].to_pylist())
+                                if delta:
+                                    for c, d in zip(retained["ts_code"].to_pylist(), retained["trade_date"].to_pylist()):
+                                        if CODE.fullmatch(c) and int(d) == target:
+                                            latest_codes.add(c)
+                                            latest = target
                                 for c in retained["ts_code"].to_pylist():
                                     if c not in foreign:
                                         continue
@@ -1189,12 +1396,15 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                 if gate["status"] != "PASS":
                                     raise QfqGateError(f"ORIGINAL_SELECTOR_FORMULA_GATE_FAILED:{code}:{gate}")
                             table = _table(frame, schema, driver, role, history_extension=history is not None or retained_history is not None)
+                            if delta:
+                                original = old_table.take(pa.array(old_groups[code]))
+                                delta_prefix_changes[role].extend(tail_delta_prefix(original, table, delta["codes"][code]["added_dates"], code))
                             writer.write_table(table)
                             latest = max(latest, int(frame.trade_date.max()))
                             rows_written += len(frame)
                             if frame.trade_date.eq(target).any():
                                 latest_codes.add(code)
-                if old_rows != replaced_old_rows + quarantined_rows + retained_non_a_rows + retained_a_history_rows:
+                if old_rows != replaced_old_rows + quarantined_rows + retained_non_a_rows + retained_a_history_rows + unchanged_active_rows + unchanged_inactive_rows:
                     raise QfqGateError(f"OLD_KEYS_PRESERVATION_COUNT_FAILED:{role}")
                 if not old_latest_codes.issubset(latest_codes):
                     raise QfqGateError(f"ORIGINAL_TARGET_ACCEPTED_KEYS_LOST:{role}:{sorted(old_latest_codes-latest_codes)}")
@@ -1205,7 +1415,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     original_path=str(currents[role]), original_sha256=baseline_hashes[role],
                     old_keys_preservation="REBUILT_A_OR_RETAINED_NON_A_OR_EXACT_LEGACY_QUARANTINE_DISJOINT")
                 role_counts[role] = dict(accepted_rows=rows_written - retained_non_a_rows, panel_rows=rows_written, retained_non_a_old_rows=retained_non_a_rows, target_date_symbols=len(latest_codes), quarantined_old_rows=quarantined_rows,
-                    original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, retained_a_history_rows=retained_a_history_rows, retained_non_a_by_market=retained_by_market, old_key_conservation=True)
+                    original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, retained_a_history_rows=retained_a_history_rows, unchanged_active_rows=unchanged_active_rows, unchanged_inactive_rows=unchanged_inactive_rows, retained_non_a_by_market=retained_by_market, old_key_conservation=True)
                 if history is not None:
                     role_counts[role].update(added_accepted_history_rows=rows_written - retained_non_a_rows - replaced_old_rows,
                         inherited_sidecar_files=len(retained_history_sidecars[role]),
@@ -1219,12 +1429,21 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     temporary.unlink()
                 else:
                     os.replace(temporary, candidate)
+            if delta:
+                _json(run_dir / "tail_delta_changes.json", dict(generation_id=run_id, codes=sorted(delta["codes"]),
+                    expected_new_keys=sum(len(x["added_dates"]) for x in delta["codes"].values()),
+                    prefix_display_or_lineage_changes=delta_prefix_changes,
+                    unchanged_active_rows={role: counts["unchanged_active_rows"] for role, counts in role_counts.items()},
+                    unchanged_inactive_rows={role: counts["unchanged_inactive_rows"] for role, counts in role_counts.items()},
+                    unchanged_row_method="ORIGINAL_ARROW_FILTER_REPLACE_FOOTER_ONLY"))
             # Revalidate source bytes before CURRENT can change.
             if generation_identity(load_snapshot(snapshot_file, target), driver_path, formula_path, contract_csv) != identity:
                 raise QfqGateError("INPUT_CHANGED_DURING_BUILD")
             if factor_cache_identity(data_root, target, snapshot) != readiness["factor_cache_identity"]:
                 raise QfqGateError("FACTOR_CACHE_CHANGED_DURING_BUILD")
             check_baseline(pointers, frozen_baseline)
+            if delta:
+                _source(tail_delta, owner="tail delta contract before publication")
             for ref in inherited_quarantine.values():
                 _source(ref, owner="prior-generation quarantine")
             _json(run_dir / "quarantine_manifest.json", dict(generation_id=run_id, reasons=quarantine_reasons,
