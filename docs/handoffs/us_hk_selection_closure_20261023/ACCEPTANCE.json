@@ -1,6 +1,6 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T05:55:16.629283+00:00",
+  "as_of": "2026-10-24T06:26:39.133423+00:00",
   "overall": "IN_PROGRESS_LOCAL_RELEASE_AND_NATURAL_UNVERIFIED",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
@@ -120,7 +120,7 @@
     "independent_real_cases_twice": 3
   },
   "runtime": {
-    "helpers": "CURRENT_SOURCE_SCOPES_PASS_ACTUAL_DELIVERY_BLOCKED",
+    "helpers": "SDK_LOGGER_SOURCE_FIXTURE_PASS_NEW_LIFECYCLE_P1_REPAIR_PENDING",
     "candidate": "API_R1_STORAGE_SIGNATURE_BLOCKED_SHARED_IDENTITY_PASS",
     "deployment": "NOT_RUN",
     "api": "ISOLATED_TESTCLIENT_ONLY_LIVE_NOT_RUN",
@@ -162,13 +162,17 @@
         "state": "NOT_PREPARED"
       },
       "hk_child": {
-        "state": "NOT_PREPARED"
+        "state": "R1_MATERIALIZED_UNSEALED_LOGGER_IMPORT_FAILURE_R2_SOURCE_REPAIR_IN_PROGRESS",
+        "failed_candidate_preserved": true
       },
       "api_r2": {
-        "state": "INPUT_ASSEMBLY_NOT_PREPARED",
+        "state": "STORE_AND_SCHEDULER_SOURCE_PASS_FINAL_INPUT_REBIND_PENDING",
         "expected_source_overlays": 25,
         "build_artifact_overlays": 3,
-        "frontend_rebuild_required": false
+        "frontend_rebuild_required": false,
+        "independent_source_input_receipt_sha256": "a02ae9b6937bebd4af3ba7c6e881bce096deed55614e8d20ff2e8ff656681293",
+        "store_review_projection_sha256": "17733f6bdc317ab6c1e0c31c7ebfdc2be11e115432f6c46f6f30daa65500a85a",
+        "actual_behavior": "NOT_RUN"
       }
     },
     "frontend_build": {
@@ -200,14 +204,20 @@
       "actual_prepare_returncode": 1,
       "candidate_created": true,
       "empty_record_bound_files": 11,
-      "actual_sdk_import_verified": false
+      "actual_sdk_import_verified": false,
+      "logger_lifecycle": {
+        "state": "P1_CONFIRMED_ACTUAL_PREPARE_BLOCKED",
+        "input_sha256": "3f08127b142c49558a39ee3240dccd6061091722b053ca140510fda0e0f49e1d",
+        "independent_fail_receipt_sha256": "b699cd95bd61bf2d6f960ff78245322a60c93c756eb6d249b3aa133e71594488",
+        "reason": "Unrelated log directory nlink mutation blocks prepared child activation/rollback validation; actualcanary restrictions must remain"
+      }
     },
     "probe_program": {
       "reviewed": "SOURCE_GUARD_AND_ACTUAL_IMPORT_STAGE_PASS_FULLPROBE_NOT_RUN",
       "receipt_sha256": "38e4bd1cbcd9a3e215f35774be67adcb0dc3465dfa081be1ff3ca0cde9666b6b",
       "actual_behavior_probes": 0,
-      "native_and_preopen_input_blocker": "Original frozen peripheral manifest pin has drifted; original missing hk_panel binding retained",
-      "actual_import_guard_defect": "Old profile incorrectly rejects executor class body during import; dedicated minimal repair in progress, old failure retained",
+      "native_and_preopen_input_blocker": "Current peripheral observation input pin was independently reviewed; new final input still must bind probe82 and actual API r2 candidate. Historical missing hk_panel binding remains CANNOT_CONFIRM.",
+      "actual_import_guard_defect": "Source/16 guard cases and 10 actual imports independently PASS; full Native/PREOPEN remains NOT_RUN",
       "program_sha256": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
       "independent_transcription_sha256": "640c61fc01cd3fca42a22a86e6de7f470feb823fb8eab8aeb3a3c0c98762a4ff"
     },
@@ -228,6 +238,23 @@
       "state": "SOURCE_TESTED_PASS_INPUT_BLOCKED_UNTIL_API_R2_STORE_ALIGNED",
       "independent_transcript_sha256": "bfc667e9bea33221f4785f9cfe30e0dc27af3ead5817cbc3347f758d40b55008",
       "actual_publication": "NOT_RUN"
+    },
+    "future_native_binding": {
+      "state": "SOURCE_ISOLATED_BEHAVIOR_INDEPENDENT_PASS_ACTUAL_RELEASE_NOT_RUN",
+      "root_cause": "US-close handoff resolves complete owner bindings, then submit replaces them with US-only dict; PREOPEN inherits incomplete binding",
+      "scope": "Preserve full already-resolved bindings/gaps and exact US pin at existing caller; do not re-resolve frozen history or upgrade financial proof",
+      "actual_new_runtime": "NOT_RUN",
+      "scheduler_sha256": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+      "independent_public_review_sha256": "3d733b2f0411079a333e57a8a1ef25ae50879610c5466e8e48356bec7ce9848f"
+    },
+    "runtime_source_closure": {
+      "state": "EXACT21_SOURCE_IDENTITY_AND_FINITE_SENSITIVE_MATERIAL_ADMISSION_PASS",
+      "source_files": 21,
+      "source_bytes": 408910,
+      "review_sha256": "de22481416497002e5a66210fc2a125c26d5dae03d9eedcb4c05ef0913c05b79",
+      "runtime_bytes_changed": false,
+      "standalone_installation": "CANNOT_CONFIRM",
+      "new21_remote_sync": "PENDING_NEXT_SCOPED_SYNC"
     }
   },
   "material_gaps": [

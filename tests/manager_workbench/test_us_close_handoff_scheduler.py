@@ -279,3 +279,178 @@ def test_missing_or_non_post_close_owner_artifact_does_not_submit(tmp_path):
         assert service.store.list_plans("20261020", Phase.NEXT_DAY.value) == []
     finally:
         service.stop()
+
+
+def _resolved_owner_handoff_fixture(monkeypatch, *, panel=True):
+    """Real context/submit/Native path; only resolution and job/store edges are inert.
+
+    Pins describe synthetic CANNOT_CONFIRM material, never VERIFIED financial facts.
+    No provider, JobCoordinator, worker or physical Store is constructed/executed.
+    """
+    from copy import deepcopy
+    import socket
+    import subprocess
+    from v4.manager_workbench import engines, service as service_module
+    from v4.manager_workbench.inputs import native, source_bindings
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("network/provider/process/live job or Store is forbidden")
+
+    monkeypatch.setattr(socket, "create_connection", forbidden)
+    monkeypatch.setattr(socket.socket, "connect", forbidden)
+    monkeypatch.setattr(subprocess, "Popen", forbidden)
+    monkeypatch.setattr(JobCoordinator, "__init__", forbidden)
+    monkeypatch.setattr(WorkbenchStore, "__init__", forbidden)
+    monkeypatch.setattr(native, "previous_session", lambda *args, **kwargs: "20261016")
+    owners = {
+        "us_mapping": _pin(quote_source_cutoff=None),
+        "membership": {"projection": {"owner": "FIXTURE_OBSERVED_ONLY", "codes": [], "effective_from": None}},
+        "security_master": {"status": "CANNOT_CONFIRM", "source_cutoff": None},
+        "other_owner": {"opaque": ["keep", {"source_cutoff": None}]},
+    }
+    if panel:
+        owners["hk_panel"] = {"owner": "FIXTURE_HK_PANEL", "readiness": "CANNOT_CONFIRM", "source_cutoff": None}
+    gaps = {"membership": "TARGET_EFFECTIVE_PERIOD_UNCONFIRMED", "security_master": "POINT_IN_TIME_UNCONFIRMED"}
+    if not panel:
+        gaps["hk_panel"] = "HK_PANEL_OWNER_NOT_BOUND"
+    expected = deepcopy((owners, gaps))
+    resolved = []
+    current = {"owners": owners, "gaps": gaps}
+
+    def resolve(config, context):
+        resolved.append(context.model_dump(mode="json"))
+        return deepcopy(current["owners"]), deepcopy(current["gaps"])
+
+    monkeypatch.setattr(source_bindings, "resolve_bindings", resolve)
+
+    class ObservedNative(native.NativeAdapters):
+        def prepare_context(self, context):
+            prepared = super().prepare_context(context)
+            self.prepared_contexts.append(prepared.model_copy(deep=True))
+            return prepared
+
+    adapters = ObservedNative.__new__(ObservedNative)
+    adapters.config = SimpleNamespace(us_root=Path("/unused-fixture-owner"), dynamic_source_bindings=True,
+                                      capture_root=None, source_bindings={})
+    adapters.calendar = None
+    adapters._us_session = lambda cutoff: "20261016"
+    adapters.prepared_contexts = []
+
+    class MemoryStore:
+        def __init__(self):
+            self.cursors, self.plans, self.frozen = {}, [], None
+
+        def cursor(self, key):
+            return deepcopy(self.cursors.get(key))
+
+        def set_cursor(self, key, value):
+            self.cursors[key] = deepcopy(value)
+
+        def list_plans(self, *args):
+            return self.plans
+
+        def get_plan(self, *args):
+            return self.frozen
+
+        def commit_plan(self, snapshot, *, freeze=False):
+            assert freeze
+            self.frozen = snapshot
+            return snapshot
+
+    class InertJobs:
+        def __init__(self):
+            self.submitted = []
+
+        def submit(self, context, work):
+            # The genuine ManagerService._work callback is captured, never run.
+            assert work.__func__ is service_module.ManagerService._work
+            job = SimpleNamespace(job_id="a" * 32, run_id="b" * 32, context=context,
+                                  state=JobState.QUEUED, retryable=False)
+            self.submitted.append(job)
+            return job
+
+        def get(self, job_id):
+            return next(job for job in self.submitted if job.job_id == job_id)
+
+    service = service_module.ManagerService.__new__(service_module.ManagerService)
+    service.config = SimpleNamespace(rules_version="POSITIVE_OPERATING_RESEARCH_V1_OVERSOLD_PRICE40_V2")
+    service.adapters, service.store, service.jobs = adapters, MemoryStore(), InertJobs()
+    service.capture_jobs = None
+    service.engines = engines
+    return SimpleNamespace(service=service, adapters=adapters, resolved=resolved, expected=expected,
+                           current=current, local=datetime(2026, 10, 17, 4, 20, tzinfo=HK),
+                           deepcopy=deepcopy, service_module=service_module)
+
+
+def test_real_handoff_preserves_resolved_owners_gaps_and_exact_us_pin(monkeypatch):
+    fixture = _resolved_owner_handoff_fixture(monkeypatch)
+    result = _us_close_handoff(fixture.service, calendar=Calendar(), local=fixture.local)
+    assert result and result[0]["state"] == "SUBMITTED"
+    context = fixture.service.jobs.submitted[0].context
+    owners, gaps = fixture.expected
+    assert context.scope_refs["owner_bindings"] == owners
+    assert context.scope_refs["owner_binding_gaps"] == gaps
+    assert context.scope_refs["owner_bindings"]["us_mapping"] == owners["us_mapping"]
+    assert context.scope_refs["source_cutoff"] == owners["us_mapping"]["capture_cutoff"]
+    assert context.cutoff == fixture.local.isoformat()
+    assert context.source_sessions == {"hk_price": "20261016", "us": "20261016"}
+    assert context.scope_refs["requested_lanes"] == ["US_MAPPING"]
+    # Submit carries the exact already-resolved US pin; it cannot resolve a newer input.
+    assert len(fixture.resolved) == 1
+    assert len(fixture.adapters.prepared_contexts) == 2
+    assert fixture.adapters.prepared_contexts[0].scope_refs["owner_bindings"] == owners
+    assert fixture.current["owners"] == owners and fixture.current["gaps"] == gaps
+    assert context.scope_refs["US_MAPPING_RUN_CONTRACT_V1"]["state"] == "CANNOT_CONFIRM"
+    assert context.scope_refs["US_MAPPING_RUN_CONTRACT_V1"]["owners"]["connect"]["target_eligibility"] == "CANNOT_CONFIRM"
+    before = context.model_dump(mode="json")
+    published = fixture.service_module._publication_context(context, "2026-10-17T04:25:00+08:00")
+    assert published.scope_refs["decision_input_cutoff"] == published.scope_refs["source_execution_cutoff"] == context.cutoff
+    assert published.scope_refs["source_cutoff"] == owners["us_mapping"]["capture_cutoff"]
+    assert published.scope_refs["processing_cutoff"] == "2026-10-17T04:25:00+08:00"
+    assert published.scope_refs["owner_bindings"] == owners
+    assert context.model_dump(mode="json") == before
+    assert _us_close_handoff(fixture.service, calendar=Calendar(), local=fixture.local) == []
+    assert len(fixture.service.jobs.submitted) == 1
+
+
+def test_real_handoff_preopen_inherits_same_source_context_without_repair(monkeypatch):
+    fixture = _resolved_owner_handoff_fixture(monkeypatch)
+    assert _us_close_handoff(fixture.service, calendar=Calendar(), local=fixture.local)
+    job = fixture.service.jobs.submitted[0]
+    context = fixture.service_module._publication_context(job.context, "2026-10-17T04:25:00+08:00")
+    lane = LaneResult(lane=Lane.US_MAPPING, state=LaneState.INPUT_MISSING, rows=[],
+                      coverage=Coverage(scope_count=None, observed_count=None, assessed_count=None, unassessed_count=None),
+                      input_sha256="d" * 64, rules_version=context.rules_version, run_id=job.run_id,
+                      gaps=["FIXTURE_FINANCIAL_MATERIAL_UNCONFIRMED"])
+    snapshot = seal_snapshot({"context": context.model_dump(mode="json"), "run_id": job.run_id,
+        "input_sha256": "e" * 64, "generated_at": context.cutoff, "available_at": context.cutoff,
+        "lanes": [lane.model_dump(mode="json")], "stocks": [], "counts": Counts().model_dump(mode="json"),
+        "gaps": ["FIXTURE_FINANCIAL_MATERIAL_UNCONFIRMED"]})
+    before = snapshot.model_dump(mode="json")
+    fixture.service.store.plans = [snapshot]
+    # A fresh PREOPEN resolution must not replace the saved US source context.
+    fixture.current["owners"] = {"us_mapping": _pin(quote_sha256="9" * 64), "hk_panel": {"owner": "NEWER_UNCONFIRMED"}}
+    fixture.current["gaps"] = {"hk_panel": "NEWER_OWNER_UNCONFIRMED"}
+    monkeypatch.setattr(fixture.service_module, "now", lambda: "2026-10-20T09:25:00+08:00")
+    frozen = fixture.service.freeze_preopen("20261020", cutoff=datetime(2026, 10, 20, 9, 25, tzinfo=HK))
+    owners, gaps = fixture.expected
+    assert frozen.context.scope_refs["owner_bindings"] == owners
+    assert frozen.context.scope_refs["owner_binding_gaps"] == gaps
+    assert frozen.context.cutoff == "2026-10-20T09:25:00+08:00"
+    for key in ("source_cutoff", "source_execution_cutoff", "decision_input_cutoff", "processing_cutoff"):
+        assert frozen.context.scope_refs[key] == context.scope_refs[key]
+    assert frozen.context.source_sessions == context.source_sessions
+    assert frozen.changes["phase_lane_contexts"]["US_MAPPING"]["scope_refs"]["owner_bindings"] == owners
+    assert snapshot.model_dump(mode="json") == before
+    assert frozen.stocks == [] and "PREOPEN_PARTIAL" in frozen.gaps
+
+
+def test_real_handoff_keeps_missing_panel_and_material_unconfirmed(monkeypatch):
+    fixture = _resolved_owner_handoff_fixture(monkeypatch, panel=False)
+    assert _us_close_handoff(fixture.service, calendar=Calendar(), local=fixture.local)
+    context = fixture.service.jobs.submitted[0].context
+    assert "hk_panel" not in context.scope_refs["owner_bindings"]
+    assert context.scope_refs["owner_binding_gaps"] == fixture.expected[1]
+    assert context.scope_refs["owner_bindings"]["security_master"]["source_cutoff"] is None
+    assert context.scope_refs["owner_bindings"]["us_mapping"]["quote_source_cutoff"] is None
+    assert context.scope_refs["US_MAPPING_RUN_CONTRACT_V1"]["state"] == "CANNOT_CONFIRM"

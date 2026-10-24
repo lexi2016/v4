@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.runtime_requirements.v1",
   "component_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
-  "source_mode": "reviewed component overlays over manifest-bound immutable role bases; not a standalone repository installation",
+  "source_mode": "reviewed component overlays plus exact21 immutable-API-parent internal dependency source import; role runtimes/data still required; not a standalone repository installation",
   "api_parent": {
     "release_id": "hkex-announcements-api-20261023-r1",
     "manifest_sha256": "6b91f3cabebe2a056e449eb0797df5660d68495ab4d2de14f0d0af0394dca6ed",
@@ -133,9 +133,26 @@
         "bytes": 4550
       }
     ],
-    "all21_absent_in_fixed_parent_and_worktree": true,
+    "all21_absent_in_fixed_parent_and_worktree": false,
     "retained_base_required": true,
-    "scope": "preserve existing routes and source; no new semantics certified"
+    "scope": "preserve existing routes and source; no new semantics certified",
+    "source_closure": {
+      "state": "EXACT21_PRESENT_IN_WORKTREE_INDEPENDENT_REVIEW_PENDING",
+      "manifest": "RUNTIME_SOURCE_CLOSURE.json",
+      "manifest_sha256": "f3ba9ca431433f910ee47cf1ee2d1aec26ec18e30720f1baf20dbca56f447102",
+      "file_count": 21,
+      "worktree_sources_present": true,
+      "original_observation": {
+        "all21_absent_in_fixed_parent_and_worktree": true,
+        "requirements_preimage_sha256": "4507829267c241c1d8cf896b45e5ed9adbb113767141fc78e39ac556300bfa00",
+        "scope": "Historical original Git-parent/worktree observation; immutable API runtime parent always supplied these files"
+      },
+      "runtime_base_still_required": true,
+      "candidate_bytes_changed": false,
+      "new_overlay_required": false,
+      "recursive_dependency_closure_certified": false,
+      "remote_sync": "NOT_RUN"
+    }
   },
   "role_python": {
     "api": "3.14.6; retained com.lexi.v4.local runtime v3.5-mac",

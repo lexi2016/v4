@@ -1,0 +1,33 @@
+{
+  "schema": "v4.us_hk.runtime_source_closure_review.v1",
+  "verdict": "PASS",
+  "scope": "exact21 SOURCE_IDENTITY / SENSITIVE_MATERIAL_ADMISSION only",
+  "reviewer": "/root/release_helper_reviewer",
+  "transcribed_by": "/root",
+  "provenance": "Controller transcription of independent final; not signed reviewer-written report",
+  "source_file_count": 21,
+  "source_bytes": 408910,
+  "identity_checks_passed": 21,
+  "AST_parse_passed": 21,
+  "strings_scanned": 5713,
+  "handoff_pins_verified": 34,
+  "sensitive_material_findings": 0,
+  "metadata_original21_expectations_unchanged": true,
+  "historical_no_overwrite_provenance": "Bound preimage/preflight/copy receipts, not reviewer eyewitness of earlier writes",
+  "handoff_sha256": "2d2c28ae773fc57d7616df4e4107c3fbd09e3147169766213edab44341e97f86",
+  "runtime_source_closure_sha256": "f3ba9ca431433f910ee47cf1ee2d1aec26ec18e30720f1baf20dbca56f447102",
+  "runtime_requirements_sha256": "5e13ffa90c069abaf84c04dc32086ed838d7609de7e3963559eea9a5deaf4e41",
+  "old_runtime_requirements_sha256": "4507829267c241c1d8cf896b45e5ed9adbb113767141fc78e39ac556300bfa00",
+  "parent_manifest_sha256": "6b91f3cabebe2a056e449eb0797df5660d68495ab4d2de14f0d0af0394dca6ed",
+  "independent_identity_aggregate_sha256": "e7b5752077106361fbb84aa3283529e144e150beb44f462fa868a78420e21f94",
+  "aggregate_method": "records path/sha256/git_blob_sha/bytes/mode sorted by path; JSON sort_keys=True,separators=(',',':'); SHA256",
+  "not_run": [
+    "module import/recursive dependency closure",
+    "API route behavior/comprehensive security audit",
+    "standalone installation/candidate build",
+    "provider/services/Git/natural"
+  ],
+  "candidate_runtime_bytes_changed": false,
+  "other_sources_reviewed": false,
+  "controller_local_receipt_sha256": "9e90d4bc356d4863050c77eddacd0bd9236001fed797b810be61e3ff57c38af5"
+}

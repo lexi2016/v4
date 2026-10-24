@@ -1,0 +1,40 @@
+{
+  "schema": "v4.us_hk.scheduler_handoff_review.v1",
+  "verdict": "PASS",
+  "scope": "scheduler owner-handoff SOURCE and isolated real caller behavior only",
+  "reviewer": "/root/backend_reviewer",
+  "transcribed_by": "/root",
+  "provenance": "Controller transcription of independent final; not signed reviewer-written report",
+  "original_finding_receipt_sha256": "9e01b9325a19dde377847086440050d7937c5dfc7cc694c8d8584cf81a460a8e",
+  "scheduler_before_sha256": "e1e6aac6ab9b4deaec3c377f506d9cd9165e4186de68afc3024c9b0faf7a9fe7",
+  "scheduler_after_sha256": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+  "test_after_sha256": "46962894e6988c2bca0f23bed797f87e306305d9619e1ae60fdc4e945a77cc96",
+  "old_function_test_result": {
+    "failed": 3,
+    "deselected": 4
+  },
+  "new_function_test_result": {
+    "passed": 3,
+    "deselected": 4
+  },
+  "cases": [
+    "test_real_handoff_preserves_resolved_owners_gaps_and_exact_us_pin",
+    "test_real_handoff_preopen_inherits_same_source_context_without_repair",
+    "test_real_handoff_keeps_missing_panel_and_material_unconfirmed"
+  ],
+  "actual_isolated_paths": [
+    "ManagerService.context/submit",
+    "NativeAdapters.prepare_context",
+    "freeze_preopen"
+  ],
+  "other_scheduler_AST_and_old4tests_unchanged": true,
+  "review_canonical_receipt_sha256": "84808bd6d0837527675a51509629c0161d987a53d4aeff54bc793c7ed7a3f852",
+  "commands_and_outputs_canonical_bundle_sha256": "4daf7c0d20d1732968eafc736bef310af32c864d6d76af032077d3bb4c70d9c6",
+  "not_run": [
+    "worker/real provider/Native data/JobCoordinator/Store constructor",
+    "network/model/services/fullsuite/replay/Git/browser",
+    "actual r2 candidate/release/natural"
+  ],
+  "financial_material": "PENDING_CANNOT_CONFIRM",
+  "controller_local_receipt_sha256": "df80938363060c8abc8c0802aead5681e80f75f355e822270c8343b249fe2a6c"
+}

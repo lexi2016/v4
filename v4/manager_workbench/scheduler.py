@@ -201,9 +201,10 @@ def _us_close_handoff(service: ManagerService, *, calendar: Any,
                 "owner_receipt_sha256": identity["receipt_sha256"],
                 "owner_manifest_sha256": identity["manifest_sha256"],
                 "source_cutoff": identity["capture_cutoff"],
-                # Keep the exact pin used above; don't re-resolve a newer
-                # artifact between validation and job creation.
-                "owner_bindings": {"us_mapping": pin},
+                # Keep the complete resolved owners/gaps and exact US pin;
+                # an existing bindings key prevents dynamic re-resolution.
+                "owner_bindings": context.scope_refs["owner_bindings"],
+                "owner_binding_gaps": context.scope_refs.get("owner_binding_gaps", {}),
             },
         )
         if not _matches_handoff_job(job, input_key, identity):
