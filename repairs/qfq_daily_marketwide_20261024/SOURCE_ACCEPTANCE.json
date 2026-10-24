@@ -1,0 +1,261 @@
+{
+  "excluded_local_install_docs": [
+    {
+      "logical_name": "docs/staged_skill_docs/SKILL.md",
+      "reason": "LOCAL_INSTALL_DOCUMENT_NOT_NEEDED_IN_PUBLIC_SOURCE_SYNC",
+      "sha256": "0e8f177a4ff03e6e0b42d2555e2af870cf39530b64427c8da18f34dc4bc3b1fe"
+    },
+    {
+      "logical_name": "docs/staged_skill_docs/PANEL_READ_CONTRACT.md",
+      "reason": "LOCAL_INSTALL_DOCUMENT_NOT_NEEDED_IN_PUBLIC_SOURCE_SYNC",
+      "sha256": "43fe22b151afacea4cbc6cc9d0cfcbbac0cb853d3ac6bb9d224b5ac9a5fbc57e"
+    }
+  ],
+  "excluded_other": [
+    "Four CORE_READY input/config JSON files.",
+    "First-generation one-time recipe scripts and input JSON; not frozen daily-source dependencies.",
+    "All raw market data, factor caches, CSV/parquet/NPZ inputs, logs, runtime/run directories, credentials, account/holdings data, .env, venv, node_modules, and dist.",
+    "Full review reports and files outside the frozen CORE_R2_READY/ENTRY_READY allowlists."
+  ],
+  "files": [
+    {
+      "bytes": 8480,
+      "expected_git_blob_sha1": "fb76dd16687ec64896a4800d534bde1b2399335d",
+      "group": "core_reviewed_source",
+      "path": "docs/research_panel_qfq.md",
+      "sha256": "fe0689b41c16f76419e3000a6f2b41401747a1d5806da2b9f774f6dc3ebe5d98"
+    },
+    {
+      "bytes": 4244,
+      "expected_git_blob_sha1": "3238cc9fc5d6547d76e2bcd2e223f49b2d876f68",
+      "group": "core_reviewed_source",
+      "path": "ops/canary_research_panel_qfq.py",
+      "sha256": "bf4b3bbf6257d57df7f3af7eea9e774b83abb9779cb85a363e8b43b0beed3e98"
+    },
+    {
+      "bytes": 3494,
+      "expected_git_blob_sha1": "6817cfac6da3b09c0bb7322671c4acb673c9733e",
+      "group": "core_reviewed_source",
+      "path": "ops/collect_research_panel_adjustment_metadata.py",
+      "sha256": "83f37fd99d66a0f11eaac71537ac2e1954fe33036d4fa750c0d0bf9bc0f96068"
+    },
+    {
+      "bytes": 3983,
+      "expected_git_blob_sha1": "1732f1dc9d2f7bf237e8dd4372804f5ceebbf441",
+      "group": "entry_reviewed_source",
+      "path": "ops/launch_v35_macos_scheduler.sh",
+      "sha256": "60a3800f6f2df534c030eeff50351318686b258e36aa01aadc6c7dfba210ca16"
+    },
+    {
+      "bytes": 4605,
+      "expected_git_blob_sha1": "f2728507665232d0bf773298b3a473f7f87cf3fd",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily.py",
+      "sha256": "19278e31e237c84bc4dc3a146bf74d2a1fac837d249676c7faa624acde39c1e6"
+    },
+    {
+      "bytes": 45923,
+      "expected_git_blob_sha1": "94a7ed128386fc4f1d19c07a2eef3a3170918496",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily_authority.py",
+      "sha256": "dbe16eb036dbfa34794563acf2b6ffb17653bebd3ef6e66d796c3f1473991755"
+    },
+    {
+      "bytes": 19250,
+      "expected_git_blob_sha1": "a9d70e5a3ed96f71c0b8cf6a49fc84ed0a5bbc09",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily_collectors.py",
+      "sha256": "afd6a4fa768a59e2ebe85c82482a593bb40203bd53abc81036af57f3a8e61f87"
+    },
+    {
+      "bytes": 8974,
+      "expected_git_blob_sha1": "bcf6e14d80a7fca7d376370f4a2081fcf2fb0d97",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily_common.py",
+      "sha256": "023fc378f17c8fe2c9b7c821db27ed63ae3c192a261c93c78991f1a89bca8052"
+    },
+    {
+      "bytes": 38771,
+      "expected_git_blob_sha1": "82ca4a66328b024c5bf092455e239149e93ada67",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily_gate.py",
+      "sha256": "f0afb618b61ccc0b973bb577c292a22f0eebbc50f3c8e23358e803d6fc59b695"
+    },
+    {
+      "bytes": 11732,
+      "expected_git_blob_sha1": "ea5ea1c05953d65a5fb076abc9acf8664e4db553",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily_pack.py",
+      "sha256": "f717f72ab568939c4c69e3d2dcf810022f483b027b927837b172bc56d204fb9f"
+    },
+    {
+      "bytes": 18816,
+      "expected_git_blob_sha1": "457828717d9e9b47edc9b96bd6329dfdf7d7119a",
+      "group": "entry_reviewed_source",
+      "path": "ops/macos_research_panel_daily_receipts.py",
+      "sha256": "14197397d9d7dcd7e748492973f5a0ea2c215cfe4ac22dbbd1a0ed4646ee2aa1"
+    },
+    {
+      "bytes": 13607,
+      "expected_git_blob_sha1": "268c5a1e4ebe9bf4db127a6db67b031befd6423b",
+      "group": "core_reviewed_source",
+      "path": "ops/research_panel_adjustment_inputs.py",
+      "sha256": "3e2acd93b971bb945f054d722306485753e3819bee472890d4bcbda3110983e3"
+    },
+    {
+      "bytes": 11451,
+      "expected_git_blob_sha1": "eab9048d316eba9918fd5b754ed70a8aef31b614",
+      "group": "core_reviewed_source",
+      "path": "ops/research_panel_factor_cache.py",
+      "sha256": "9df2744b724629db3208c05a8f03553ed1f6e24fed3c6f3ac1679a6e34c5d2e9"
+    },
+    {
+      "bytes": 51975,
+      "expected_git_blob_sha1": "f543c590554c111a5f81453d9a6b4a0883e7d123",
+      "group": "core_reviewed_source",
+      "path": "ops/research_panel_qfq.py",
+      "sha256": "525dd18309f18c2f5c50c447d98415044b18b2c2964e4e5ebb4e1bf9ca91dff4"
+    },
+    {
+      "bytes": 9212,
+      "expected_git_blob_sha1": "fd37f97e2fb520834b748575bc1b6104668c0224",
+      "group": "core_reviewed_source",
+      "path": "ops/research_panel_tdx_adjustment_inputs.py",
+      "sha256": "1d254536dd02bcada9fe366a77e91d3b8ce098eba7d9be1a01c7412719ad2eaf"
+    },
+    {
+      "bytes": 47792,
+      "expected_git_blob_sha1": "4cab77ba969308d75aad0ce9e2e2196aebab1aed",
+      "group": "core_reviewed_source",
+      "path": "ops/vendor/build_canonical_formula_research_panel.py",
+      "sha256": "074a038699eae84d093602ee6df551b5279368c5800ad78067902a496c990258"
+    },
+    {
+      "bytes": 149446,
+      "expected_git_blob_sha1": "c44642fe9b7604d1a4a0eee5499e6c9140bd6c58",
+      "group": "core_reviewed_source",
+      "path": "ops/vendor/data_layer_daily_formula_increment_update_v1.py",
+      "sha256": "1b5f4caa099add5f0c369b72e0c6b9d8d80c964fe245a662290971e5142dcdae"
+    },
+    {
+      "bytes": 7097,
+      "expected_git_blob_sha1": "7ccd5a59444aead82b0ca810eef16af746055163",
+      "group": "core_reviewed_source",
+      "path": "tests/test_research_panel_factor_cache.py",
+      "sha256": "d4f5154a4ef3cd72233f1ac67b1495d98fb589637c56d63f0b31d7b0b1afb321"
+    },
+    {
+      "bytes": 30396,
+      "expected_git_blob_sha1": "9d98b754dbff7cf52b126ae52168c0938d5c3dbd",
+      "group": "core_reviewed_source",
+      "path": "tests/test_research_panel_qfq.py",
+      "sha256": "2e85dc61deb7e447604206b92f3e44c9c67af2636b16ae0268f0fe1bd83c3456"
+    },
+    {
+      "bytes": 4580,
+      "expected_git_blob_sha1": "28b5aff75c4762e90953237e16c56d4e6aa08a3a",
+      "group": "entry_reviewed_test",
+      "path": "tests/test_research_panel_qfq_entry_binding.py",
+      "sha256": "f4a2e62e4df938aec999d93e2a7736dbfe1923273cf23f343a4d79a677cb4683"
+    },
+    {
+      "bytes": 3297,
+      "expected_git_blob_sha1": "e9efb457d59c0933e08772dfcaac406214995248",
+      "group": "core_reviewed_source",
+      "path": "tests/test_research_panel_tdx_adjustment_inputs.py",
+      "sha256": "949c0c2a937301ef805c8e157bf4efeeb6bdfe13a0cac2844a270ae38d0d50ae"
+    },
+    {
+      "bytes": 5442,
+      "expected_git_blob_sha1": "4e60ff92162bc8cca3f66a29ab1a4203c2dfe33c",
+      "group": "core_reviewed_source",
+      "path": "tests/test_selector_qfq_metadata.py",
+      "sha256": "3c52c2b7589bd808a21932bf004e7e15770b94e1e8fbb88cc9890fdb349d9517"
+    },
+    {
+      "bytes": 28799,
+      "expected_git_blob_sha1": "3eddd45b32cdcddfb076c96576075db592e9094b",
+      "group": "core_reviewed_source",
+      "path": "upstreams/v3_shared_data/shared_data/selector_data_layer_interface.py",
+      "sha256": "5274ae87f7ea5e064aaf2ad9c259a40537e57f5aa021151e2d25c57fa194aa2e"
+    }
+  ],
+  "independent_acceptance": {
+    "core_software": {
+      "handoff_file": "CORE_R2_READY.json",
+      "handoff_sha256": "f6814ca63300e08f3ddaca6dd62e48b477dda40b5925ddc4e673d75d4fb13c48",
+      "receipt_file": "CORE_REVIEW_R2.json",
+      "receipt_sha256": "16483527a44005492369267260c7359a8f1a407e1ec92f8d8999bec67eca7022",
+      "scope": "Frozen core software behavior plus prior actual two-symbol pure transform. Not full-market or installed behavior.",
+      "verdict": "REVIEWED/PASS"
+    },
+    "daily_entry": {
+      "handoff_file": "ENTRY_READY.json",
+      "handoff_sha256": "99b36bb6c20420e08ca8356534c0e9b84855a9d43917c55ce99e8fe96c8672bd",
+      "receipt_file": "ENTRY_REVIEW_R1.json",
+      "receipt_sha256": "b3eb446769cd07e40797d81e99dbacd16a73d493a32c060f425a3211f11a96c3",
+      "scope": "Local stubbed call binding and shell syntax only; no source installation, service reload, or live publication.",
+      "verdict": "REVIEWED/PASS"
+    },
+    "two_symbol_pure_transform": {
+      "receipt_file": "CORE_TWO_SYMBOL_CONFORMANCE.json",
+      "receipt_sha256": "9afbf9683e6817c1f2e795e80d8093fd71153d78a70319949215c7e6ac506eaf",
+      "scope": "Two-symbol original-producer/Futu conformance and pure transform; not market-wide certification.",
+      "verdict": "PASS_FOR_TWO_SYMBOL_CANARY_SCOPE"
+    }
+  },
+  "namespace": "repairs/qfq_daily_marketwide_20261024/",
+  "not_completed": {
+    "default_consumer_readback": "NOT_RUN",
+    "full_market_price_rebuild": "NOT_RUN",
+    "installation_or_service_reload": "NOT_RUN",
+    "natural_daily_readback": "NOT_RUN",
+    "paired_current_publication": "NOT_RUN",
+    "runtime_14400_active_readback": "CANNOT_CONFIRM_NOT_RUN"
+  },
+  "not_deployed": true,
+  "remote_base": {
+    "branch": "codex/futu-formula-basis-20261024",
+    "commit_sha": "1b9cae764f9340054790bfa4dfeb42e4a48f0a11",
+    "tree_sha": "47f1eb3ac19439766fcb231d4de57fab26f86ecf"
+  },
+  "repository": "lexi2016/v4",
+  "reused_acceptance": {
+    "prior_stage_A_passes": "Three frozen stage-A source/test files retained unchanged.",
+    "prior_two_symbol_conformance_sha256": "9afbf9683e6817c1f2e795e80d8093fd71153d78a70319949215c7e6ac506eaf",
+    "prior_unchanged_core_software_tests": "CORE_REVIEW_R2 reused 23 unaffected tests and positives; R2 addressed the prior R1 P1 finding."
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema": "QFQ_DAILY_MARKETWIDE_SOURCE_ACCEPTANCE_V1",
+  "scope": "Frozen core software, existing daily-entry binding, and two-symbol pure-transform conformance; source-only repository snapshot.",
+  "source_only": true,
+  "status": "BOUNDED_SOURCE_ACCEPTANCE_PASS",
+  "target_branch": "codex/qfq-daily-marketwide-20261024",
+  "tests": {
+    "core_r2_writer_delta_tests": [
+      {
+        "command": "python -B -m pytest -q tests/test_research_panel_qfq.py -k 'ready_requires or latest_same_asof or factor_cache_identity' --tb=short --basetemp '<task>/tests/pytest_core_r2_delta1'",
+        "result": "3 passed,15 deselected in1.73s"
+      },
+      {
+        "command": "python -B -m pytest -q tests/test_research_panel_qfq.py -k cache_state_change_during_build --tb=short --basetemp '<task>/tests/pytest_core_r2_delta2'",
+        "result": "1 passed,18 deselected in0.96s"
+      }
+    ],
+    "independent_core_r2": {
+      "command": "python -B -m pytest -q -p no:cacheprovider tests/test_research_panel_qfq.py -k ready_requires or latest_same_asof or factor_cache_identity or cache_state_change_during_build --basetemp review/core_r2_delta_pytest",
+      "result": "4passed,15deselected in2.36s",
+      "source": "CORE_REVIEW_R2.json independent focused test receipt"
+    },
+    "independent_entry_r1": {
+      "command": "'<v4-runtime-python>' -B -m pytest -q tests/test_research_panel_qfq_entry_binding.py --tb=short --basetemp '<task>/tests/pytest_entry_r2'",
+      "result": "3 passed in0.21s; bash -n launcher passed",
+      "source": "ENTRY_REVIEW_R1.json independent test receipt"
+    }
+  }
+}
