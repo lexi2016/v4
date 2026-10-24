@@ -1,8 +1,8 @@
 {
   "schema": "v4.us_hk.delivery_checkpoint.v1",
-  "as_of": "2026-10-24T11:24:29.994616+00:00",
+  "as_of": "2026-10-24T12:11:40.729100+00:00",
   "user_goal": "同行业即可列出；保留前复权并行成果后合并调度；既有美股/港股研究修复与历史验收边界继续",
-  "overall": "PARTIAL_API5_API_UI_VERIFIED_WAIT_EXTERNAL_PARENT_INVENTORY_AND_FUTURE_NATURAL_CYCLES",
+  "overall": "PARTIAL_DATE23_DEFAULT578_API_UI_VERIFIED_WAIT_EXTERNAL_PARENT_INVENTORY_AND_FUTURE_NATURAL_CYCLES",
   "source": {
     "root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
     "canonical_project": "/Users/lexi/Desktop/学习/v4_app",
@@ -10,7 +10,8 @@
     "source_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
     "source_sync_receipt_sha256": "929eea319e8c587c5b1772757116001b1a76e4743e9d22771e20c1531b408796",
     "repository": "lexi2016/v4",
-    "branch": "codex/us-hk-selection-closure-20261023"
+    "branch": "codex/us-hk-selection-closure-20261023",
+    "publisher_helper_commit": "ad6ab60236500cb31660e08cb9803c003cfe3695"
   },
   "default_listing": {
     "mode": "INDUSTRY_MATCH",
@@ -22,21 +23,26 @@
     "strict_reference": {
       "candidates": 670,
       "selected": 0,
-      "rejected": 397,
-      "pending": 273,
+      "rejected": 355,
+      "pending": 315,
+      "evaluation_complete": false,
       "state": "PARTIAL"
-    }
+    },
+    "target_date": "20261023"
   },
   "saved_run": {
-    "run_id": "a9892b5bbdd8463d92d07fc26a1d9c79",
-    "source_run_id": "173530a9ac4b4105b41094337907b801",
-    "target_date": "20261022",
+    "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+    "source_run_id": "d2562717f12740648af5ee84662a1643",
+    "target_date": "20261023",
+    "US_session": "20261022",
+    "HK_price_session": "20261022",
     "phase": "RETROSPECTIVE",
     "origin": "MANUAL_FROZEN_INPUT_REPLAY",
-    "source_cutoff": "2026-10-21T20:15:04Z",
-    "original_decision_cutoff": "2026-10-22T04:17:00.341182+08:00",
-    "product_sha256": "8b7e3ff606d9d1e383177121f763f091c749a79e698c190c3dcd6575874fbb3a",
-    "original_NEXT_DAY_unchanged": true
+    "source_cutoff": "2026-10-22T20:15:02Z",
+    "source_execution_cutoff": "2026-10-23T21:01:00.921047+08:00",
+    "processing_at": "2026-10-24T11:57:35.812764+00:00",
+    "product_sha256": "8688a9330d95876ffce58a064f2b984466eacb6ee37e4e0145fbeda3aa96f2f9",
+    "evaluation_complete": false
   },
   "api5": {
     "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED",
@@ -69,7 +75,38 @@
     },
     "latency_SLA": "NOT_FROZEN_CANNOT_CONFIRM",
     "all_UI_latency_solved": false,
-    "browser_new_tab": "Queued in calling Codex task; independently renderedChrome PASS exists"
+    "browser_new_tab": "Original user IAB baredate23 refreshed and displayed578; independent Chrome baredate23 passed",
+    "existing_verification_arrays_target_date": "20261022",
+    "latest_date23_verification": {
+      "pages": [
+        200,
+        200,
+        178
+      ],
+      "bytes": [
+        513339,
+        500761,
+        459669
+      ],
+      "elapsed_ms": [
+        3945.105,
+        4019.416,
+        3746.125
+      ],
+      "ordered_unique578_match_stage": true,
+      "all_below_1MiB": true
+    },
+    "date23_UI_verification": {
+      "bare_date_url": true,
+      "run_and_578_visible": true,
+      "one_page_roundtrip": true,
+      "console_errors_warnings": [],
+      "observed_seconds": {
+        "first": 17.3,
+        "next": 18.2,
+        "previous": 10.0
+      }
+    }
   },
   "scheduler": {
     "state": "WAIT_EXTERNAL_ACCEPTED_PARENT_INVENTORY_CLOSURE",
@@ -136,5 +173,44 @@
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
+  },
+  "saved_runs_by_date": {
+    "20261022": {
+      "run_id": "a9892b5bbdd8463d92d07fc26a1d9c79",
+      "source_run_id": "173530a9ac4b4105b41094337907b801",
+      "target_date": "20261022",
+      "phase": "RETROSPECTIVE",
+      "origin": "MANUAL_FROZEN_INPUT_REPLAY",
+      "source_cutoff": "2026-10-21T20:15:04Z",
+      "original_decision_cutoff": "2026-10-22T04:17:00.341182+08:00",
+      "product_sha256": "8b7e3ff606d9d1e383177121f763f091c749a79e698c190c3dcd6575874fbb3a",
+      "original_NEXT_DAY_unchanged": true
+    },
+    "20261023": {
+      "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+      "source_run_id": "d2562717f12740648af5ee84662a1643",
+      "target_date": "20261023",
+      "US_session": "20261022",
+      "HK_price_session": "20261022",
+      "phase": "RETROSPECTIVE",
+      "origin": "MANUAL_FROZEN_INPUT_REPLAY",
+      "source_cutoff": "2026-10-22T20:15:02Z",
+      "source_execution_cutoff": "2026-10-23T21:01:00.921047+08:00",
+      "processing_at": "2026-10-24T11:57:35.812764+00:00",
+      "product_sha256": "8688a9330d95876ffce58a064f2b984466eacb6ee37e4e0145fbeda3aa96f2f9",
+      "evaluation_complete": false
+    }
+  },
+  "latest_dated_publication": {
+    "file": "DATE23_PUBLICATION.json",
+    "sha256": "6d88419bfde65826b6af85a348bde0eb92c48c40a57070e3802fc74f56c6fdf5",
+    "target_date": "20261023",
+    "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+    "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED_DATE23_MANUAL_REPLAY_ONLY",
+    "industry_count": 578,
+    "source_US_session": "20261022",
+    "manual_retrospective": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true
   }
 }

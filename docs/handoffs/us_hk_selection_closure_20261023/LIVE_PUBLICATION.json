@@ -89,5 +89,19 @@
     "schedule": "Asia/Shanghai工作日17:10;未变化静默;两周期通过后暂停",
     "no_new_business_scheduler": true,
     "cycle_count_starts_after_combined_scheduler_activation": true
+  },
+  "record_target_date": "20261022",
+  "record_scope": "Preserved dated22 publication; latest dated23 result linked separately",
+  "latest_date23_publication": {
+    "file": "DATE23_PUBLICATION.json",
+    "sha256": "6d88419bfde65826b6af85a348bde0eb92c48c40a57070e3802fc74f56c6fdf5",
+    "target_date": "20261023",
+    "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+    "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED_DATE23_MANUAL_REPLAY_ONLY",
+    "industry_count": 578,
+    "source_US_session": "20261022",
+    "manual_retrospective": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true
   }
 }

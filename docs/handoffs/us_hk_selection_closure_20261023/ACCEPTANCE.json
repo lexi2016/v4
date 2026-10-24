@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T11:24:29.994616+00:00",
-  "overall": "PARTIAL_DEFAULT_INDUSTRY578_PUBLISHED_API5_API_UI_VERIFIED_SCHED_MERGE_AND_NATURAL_PENDING",
+  "as_of": "2026-10-24T12:11:40.729100+00:00",
+  "overall": "PARTIAL_DATE23_INDUSTRY578_API_UI_VERIFIED_SCHED_MERGE_PANEL_PROOF_NATURAL_PENDING",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
   "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
@@ -480,6 +480,44 @@
     "manual_retrospective": true,
     "natural_verified": 0,
     "UI_VERIFIED": true,
-    "API_VERIFIED": true
+    "API_VERIFIED": true,
+    "date23": {
+      "file": "DATE23_PUBLICATION.json",
+      "sha256": "6d88419bfde65826b6af85a348bde0eb92c48c40a57070e3802fc74f56c6fdf5",
+      "target_date": "20261023",
+      "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+      "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED_DATE23_MANUAL_REPLAY_ONLY",
+      "industry_count": 578,
+      "source_US_session": "20261022",
+      "manual_retrospective": true,
+      "API_VERIFIED": true,
+      "UI_VERIFIED": true
+    }
+  },
+  "named23": {
+    "mode": "INDUSTRY_MATCH",
+    "total": 578,
+    "individual_US_path": 491,
+    "ETF_classification_context_only": 87,
+    "strict_reference": {
+      "candidates": 670,
+      "selected": 0,
+      "rejected": 355,
+      "pending": 315,
+      "evaluation_complete": false
+    },
+    "sequence_sha256": "c8693e7fc684935f5edf66aef0c903bccc337fe2bc9d83af09c8bfe53ace10ba"
+  },
+  "latest_dated_publication": {
+    "file": "DATE23_PUBLICATION.json",
+    "sha256": "6d88419bfde65826b6af85a348bde0eb92c48c40a57070e3802fc74f56c6fdf5",
+    "target_date": "20261023",
+    "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+    "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED_DATE23_MANUAL_REPLAY_ONLY",
+    "industry_count": 578,
+    "source_US_session": "20261022",
+    "manual_retrospective": true,
+    "API_VERIFIED": true,
+    "UI_VERIFIED": true
   }
 }

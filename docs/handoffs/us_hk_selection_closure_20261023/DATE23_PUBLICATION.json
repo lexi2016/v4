@@ -1,0 +1,142 @@
+{
+  "schema": "v4.us_hk.date23.publication_checkpoint.v1",
+  "as_of": "2026-10-24T12:11:40.729100+00:00",
+  "user_goal": "20261023原网址能按最新决定显示同行业股票",
+  "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED_DATE23_MANUAL_REPLAY_ONLY",
+  "overall_plan": "PARTIAL_SCHEDULER_MERGE_PANEL_PROOF_AND_FUTURE_NATURAL_PENDING",
+  "cause": "此前只发布了22日新版历史重放；23日默认读取旧d256保存版，固定映射受益0、风险5，未按新同行业口径生成展示。",
+  "change": "复用同一发布器v2，绑定23日冻结清单行、输入SHA、US会话、原截止时间与独立验收，发布一个手动事后回看版本及该日RETROSPECTIVE指针；未修改API/前端/Store/引擎或重启服务。",
+  "url": "http://127.0.0.1:8873/manager-selection/?date=20261023",
+  "run": {
+    "run_id": "b3776b2ce3f8418da91469b4b9af17ea",
+    "source_run_id": "d2562717f12740648af5ee84662a1643",
+    "target_date": "20261023",
+    "US_session": "20261022",
+    "HK_price_session": "20261022",
+    "phase": "RETROSPECTIVE",
+    "origin": "MANUAL_FROZEN_INPUT_REPLAY",
+    "source_cutoff": "2026-10-22T20:15:02Z",
+    "source_execution_cutoff": "2026-10-23T21:01:00.921047+08:00",
+    "processing_at": "2026-10-24T11:57:35.812764+00:00",
+    "product_sha256": "8688a9330d95876ffce58a064f2b984466eacb6ee37e4e0145fbeda3aa96f2f9",
+    "evaluation_complete": false
+  },
+  "listing": {
+    "mode": "INDUSTRY_MATCH",
+    "total": 578,
+    "individual_US_path": 491,
+    "ETF_classification_context_only": 87,
+    "strict_reference": {
+      "candidates": 670,
+      "selected": 0,
+      "rejected": 355,
+      "pending": 315,
+      "evaluation_complete": false
+    },
+    "sequence_sha256": "c8693e7fc684935f5edf66aef0c903bccc337fe2bc9d83af09c8bfe53ace10ba"
+  },
+  "source": {
+    "repository": "lexi2016/v4",
+    "branch": "codex/us-hk-selection-closure-20261023",
+    "app_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
+    "publisher_commit": "ad6ab60236500cb31660e08cb9803c003cfe3695",
+    "publisher_sha256": "a08359b03857294ba08fbe5230e2a5ad6e94113e5d571173da5873021712e0a9",
+    "test_sha256": "e7f832c4612f7d1faec6fc8f3b341aa7d19be347ddb04ebab2cca38b0a11dff2",
+    "api_release_manifest_sha256": "073bf9e9f37994022aa1f3c54a88b2c7f93d0d17daeaa0c743a492cf5e34e1a8",
+    "role_python": "3.14.6"
+  },
+  "validation": {
+    "source_independent_review_sha256": "23c79b46b38717d2c2f40c86db6376223f3c70652a1ea08a0c7ef5489c43314a",
+    "independent_focused_cases": 24,
+    "source_review_public_record": "DATE23_PUBLISHER_REVIEW.json",
+    "actual_stage_review_sha256": "91ef58175a695e539ec326fa20faf3c088c348f982c777b6bad466bc63e8d274",
+    "prepare": {
+      "exit_code": 0,
+      "engine_calls": 1,
+      "merge_calls": 1,
+      "capture_model_network_calls": 0,
+      "elapsed_seconds": 10.574158667
+    },
+    "prepared_sha256": "15a88251972398ffd6ad50d42bde6378853345b5e91e9f8ad6c3e2f45ba71ca5",
+    "publication_sha256": "f15281024c03a17de98a017f9cb3ab80d36415c8e821a190040b9c074f2f3ce3",
+    "publish": {
+      "exit_code": 0,
+      "elapsed_seconds": 8.250822083
+    },
+    "pointer_sha256": "77a0f2af32322d6816f51a5bd19b2ca6b84bd7319b07c0492a432c78ec36f35f",
+    "live_api_receipt_sha256": "d73a8e994520d2d3c8b8880405edd46ec3d12d126a7a7bd5f467a0febb801ba4",
+    "live_api": {
+      "pages": [
+        200,
+        200,
+        178
+      ],
+      "bytes": [
+        513339,
+        500761,
+        459669
+      ],
+      "elapsed_ms": [
+        3945.105,
+        4019.416,
+        3746.125
+      ],
+      "ordered_unique578_match_stage": true,
+      "all_below_1MiB": true
+    },
+    "independent_Chrome_UI_receipt_sha256": "ab2efc2f5770b25e397aa9427fd7c4638f8c77dc6224e37f7e34a1fc5267d2f2",
+    "independent_Chrome_UI": {
+      "bare_date_url": true,
+      "run_and_578_visible": true,
+      "one_page_roundtrip": true,
+      "console_errors_warnings": [],
+      "observed_seconds": {
+        "first": 17.3,
+        "next": 18.2,
+        "previous": 10.0
+      }
+    },
+    "current_user_IAB": {
+      "observer": "controller",
+      "observation_sha256": "5e7d3bb009c59746df5c74b91ad6bbc77bb69e3d077480f67b336d29e64a3103",
+      "same_original_bare_url": true,
+      "one_reload_shows_same_run_and578": true
+    },
+    "legacy23_explicit_lookup": {
+      "run_id": "d2562717f12740648af5ee84662a1643",
+      "http_status": 200,
+      "identity_phase_target_match": true,
+      "rows": 0,
+      "pagination_total": 0,
+      "recommendation_completeness": "CANNOT_CONFIRM; only identity resolution and immutable bytes preservation verified"
+    },
+    "date22_explicit_lookup": {
+      "run_id": "a9892b5bbdd8463d92d07fc26a1d9c79",
+      "http_status": 200,
+      "identity_match": true,
+      "pagination_total": 578
+    },
+    "review_provenance": "LiveAPI/UI receipt files are faithful controller transcriptions of independent read-only role finals, not self-verdicts.",
+    "hashes_verified": {
+      "new_published_files_match_PREPARED": 6,
+      "protected_old_pointers_unchanged": 7,
+      "protected_source_files_unchanged": 2
+    }
+  },
+  "limits": [
+    "23日结果为手动历史重放，不能冒充当时盘前或自然任务结果。",
+    "PARTIAL、历史成员/PIT/金额/复权证据缺口不升级；收益效果NA。",
+    "页面加载及翻页仍偏慢，未声明延迟SLA通过。",
+    "合并scheduler尚待已授权的并行QFQ父库存闭环；两次完整自然运行0/2。",
+    "原23旧run的推荐页0行；本轮仅证明其身份仍可读和原字节未改，完整性CANNOT_CONFIRM。"
+  ],
+  "nonblocking_backlog": [
+    "HK.00975名称显示源对象；既有输入/显示问题，未纳入本轮日期发布器修复。"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
