@@ -1071,14 +1071,136 @@ def tail_delta_prefix(old: pa.Table, fresh: pa.Table, dates: list[int], code: st
     return changes
 
 
+def archive_addition_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, Path],
+                             identity: dict, target: int, retained_history: dict | None) -> dict | None:
+    """A separate bounded membership addition; never a native-tail exception.
+
+    Both original raw keys/bytes and adjustment inputs need independently
+    accepted, exact-code receipts. The ordinary formula/publication gates still
+    apply after this input binding. No missing current-date bar is synthesized.
+    """
+    if ref is None:
+        return None
+    value = json.loads(_source(ref, owner="archive addition contract").read_text())
+    codes = value.get("codes", {})
+    if (value.get("schema") != "qfq_archive_only_history_additions_v1" or value.get("asof_date") != target
+            or not isinstance(codes, dict) or not 1 <= len(codes) <= 8 or not retained_history
+            or any(not CODE.fullmatch(c) for c in codes)):
+        raise QfqGateError("ARCHIVE_ADDITION_CONTRACT_INVALID")
+    old = json.loads(_source(value["baseline_snapshot"], owner="archive addition baseline input").read_text())
+    if (old.get("asof_date") != target or set(old["symbols"]) & set(codes)
+            or set(snapshot["symbols"]) != set(old["symbols"]) | set(codes)
+            or set(value.get("baseline_roles", {})) != set(pointers)):
+        raise QfqGateError("ARCHIVE_ADDITION_BASELINE_OR_NEW_MEMBERSHIP_CONFLICT")
+    core = _source(value["baseline_core"], owner="archive addition original kernel")
+    if computation_kernel_sha(core) != computation_kernel_sha(Path(__file__)):
+        raise QfqGateError("ARCHIVE_ADDITION_COMPUTATION_CHANGED")
+    for role, pointer in pointers.items():
+        path = _source(value["baseline_roles"][role], owner="archive addition original " + role)
+        meta = panel_contract(path)
+        if (path != Path(pointer.read_text(encoding="utf-8-sig").strip())
+                or meta.get("generation_id") != value["baseline_generation_id"]
+                or meta.get("input_sha256") != canonical_sha(old) or meta.get("asof_date") != target
+                or meta.get("adapter_sha256") != sha(core)
+                or any(meta.get(k) != v for k, v in identity.items() if k not in {"adapter_sha256", "input_sha256"})
+                or set(codes) & _panel_symbols(path)
+                or not set(USER_FORMULA_SIGNAL_FIELDS).issubset(pq.ParquetFile(path).schema_arrow.names)):
+            raise QfqGateError("ARCHIVE_ADDITION_BASELINE_FORMULA_OR_OLD_CODE_CONFLICT:" + role)
+    changed_top = {"symbols", "source_files", "revision", "observed_at", "history_retention_binding"}
+    if ({k: v for k, v in old.items() if k not in changed_top}
+            != {k: v for k, v in snapshot.items() if k not in changed_top}):
+        raise QfqGateError("ARCHIVE_ADDITION_OLD_POLICY_OR_FLOOR_CHANGED")
+    retained = snapshot.get("history_retention_binding")
+    if (not isinstance(retained, dict)
+            or {k: v for k, v in retained_history.items() if k not in {"source_config", "accepted_evidence"}}
+            != {k: v for k, v in retained.items() if k not in {"source_config", "accepted_evidence"}}
+            or not all(x in retained.get("accepted_evidence", []) for x in retained_history.get("accepted_evidence", []))
+            or not all(x in snapshot["source_files"] for x in old["source_files"])):
+        raise QfqGateError("ARCHIVE_ADDITION_RETENTION_POLICY_OR_SOURCE_CLOSURE_CHANGED")
+    configs = [json.loads(_source(x["source_config"], owner="archive addition original source config").read_text())
+               for x in (retained_history, retained)]
+    stocks = [{row["code"]: row for row in cfg["stocks"]} for cfg in configs]
+    if (any(len(stocks[i]) != len(configs[i]["stocks"]) for i in (0, 1))
+            or {k: v for k, v in configs[0].items() if k != "stocks"}
+            != {k: v for k, v in configs[1].items() if k != "stocks"}
+            or set(stocks[0]) & set(codes) or set(stocks[1]) != set(stocks[0]) | set(codes)
+            or any(stocks[1][c] != row for c, row in stocks[0].items())):
+        raise QfqGateError("ARCHIVE_ADDITION_OLD_SOURCE_CONFIG_CHANGED")
+    for code, before in old["symbols"].items():
+        after = snapshot["symbols"][code]
+        if ({k: v for k, v in before.items() if k not in {"source_config", "accepted_evidence"}}
+                != {k: v for k, v in after.items() if k not in {"source_config", "accepted_evidence"}}
+                or after.get("source_config") != retained["source_config"]
+                or not all(x in after.get("accepted_evidence", []) for x in before.get("accepted_evidence", []))):
+            raise QfqGateError("ARCHIVE_ADDITION_OLD_SYMBOL_CHANGED:" + code)
+    archives = {r["path"]: r for r in retained.get("archive_refs", [])}
+    for code, binding in codes.items():
+        item = snapshot["symbols"][code]
+        dates = binding.get("dates")
+        if (not isinstance(dates, list) or not dates or dates != sorted(set(dates))
+                or any(type(d) is not int or not 19000101 < d <= target for d in dates)
+                or item.get("history_start_date") != dates[0] or item.get("history_end_date") != dates[-1]
+                or item.get("compute_start_date", dates[0]) != dates[0]
+                or item.get("required_output_start_date", dates[0]) != dates[0]
+                or item.get("event_coverage_complete") is not True
+                or not isinstance(item.get("source_method"), str) or not item["source_method"]
+                or set(item.get("publish_roles", [])) != set(pointers)
+                or item.get("source_config") != retained["source_config"]
+                or code in snapshot.get("quarantine_symbols", {}) or code in snapshot.get("legacy_preservation_codes", [])
+                or code in snapshot.get("retained_history_codes", [])):
+            raise QfqGateError("ARCHIVE_ADDITION_EXACT_INPUT_WINDOW_UNBOUND:" + code)
+        sources = stocks[1][code].get("sources", [])
+        refs = item.get("raw_files", [])
+        if (len(sources) != 1 or sources[0].get("name") != "archive" or sources[0].get("kind") != "archive_member"
+                or sources[0].get("path") not in archives or len(refs) != 1 or refs[0].get("source_role") != "archive"
+                or refs[0].get("original_ref") != sources[0] or refs[0].get("sha256") != sources[0].get("member_sha256")):
+            raise QfqGateError("ARCHIVE_ADDITION_ORIGINAL_MEMBER_BINDING_CONFLICT:" + code)
+        payload = _source(refs[0], owner="archive addition original member bytes").read_bytes()
+        if len(payload) != len(dates) * 32:
+            raise QfqGateError("ARCHIVE_ADDITION_SOURCE_RECORD_COUNT_CHANGED:" + code)
+        actual_dates = np.frombuffer(payload, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"].astype(int).tolist()
+        if actual_dates != dates:
+            raise QfqGateError("ARCHIVE_ADDITION_SOURCE_DATE_KEYS_CHANGED:" + code)
+        adjustment_sources = binding.get("adjustment_source_files")
+        if (not isinstance(adjustment_sources, list) or not adjustment_sources
+                or not all(x in snapshot["source_files"] for x in adjustment_sources)):
+            raise QfqGateError("ARCHIVE_ADDITION_ADJUSTMENT_SOURCE_PROVENANCE_UNBOUND:" + code)
+        for source in adjustment_sources:
+            _source(source, owner="archive addition accepted adjustment evidence")
+        for kind, verdict, expected in (
+            ("raw_review", "REVIEWED/PASS_ARCHIVE_ONLY_SOURCE_KEYS_AND_BYTES",
+             dict(original_ref=sources[0], raw32_sha256=sha(Path(refs[0]["path"])), dates_sha256=canonical_sha(dates),
+                  rows=len(dates), first_date=dates[0], last_date=dates[-1])),
+            ("adjustment_review", "REVIEWED/PASS_ARCHIVE_ADDITION_ADJUSTMENT_INPUTS",
+             dict(events_sha256=canonical_sha(item["events"]), source_method=item.get("source_method"),
+                  history_coverage_start_date=dates[0], history_coverage_end_date=target,
+                  source_files=adjustment_sources))):
+            review_ref = binding[kind]
+            review = json.loads(_source(review_ref, owner="archive addition " + kind).read_text())
+            if (review.get("verdict") != verdict or not review.get("reviewer_id")
+                    or review.get("reviewer_id") == "/root/local_panel_completion_writer"
+                    or review.get("asof_date") != target or review.get("codes", {}).get(code) != expected
+                    or review_ref not in retained.get("accepted_evidence", [])
+                    or review_ref not in item.get("accepted_evidence", [])):
+                raise QfqGateError("ARCHIVE_ADDITION_INDEPENDENT_" + kind.upper() + "_UNBOUND:" + code)
+    if not all(x in snapshot["source_files"] for x in [retained["source_config"], retained["source_policy"],
+            *retained.get("archive_refs", []), *retained.get("accepted_evidence", [])]):
+        raise QfqGateError("ARCHIVE_ADDITION_NEW_SOURCE_CLOSURE_UNBOUND")
+    return {**value, "binding_ref": ref}
+
+
 def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, data_root: Path,
                       pointers: dict[str, Path], contract_csv: Path, return_root: Path,
                       target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
                       checkpoint_resume: dict | None = None, history_extension: dict | None = None,
-                      tail_delta: dict | None = None) -> dict:
+                      tail_delta: dict | None = None, archive_additions: dict | None = None) -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
     if tail_delta is not None and (history_extension is not None or checkpoint_resume is not None or refresh_inputs):
         raise QfqGateError("TAIL_DELTA_EXPLICIT_SNAPSHOT_ONLY_NO_GLOBAL_CHECKPOINT_REUSE")
+    if archive_additions is not None and any(x is not None for x in (tail_delta, history_extension, checkpoint_resume)):
+        raise QfqGateError("ARCHIVE_ADDITION_MUTUALLY_EXCLUSIVE_MODE")
+    if archive_additions is not None and refresh_inputs:
+        raise QfqGateError("ARCHIVE_ADDITION_EXPLICIT_SNAPSHOT_ONLY")
     if not 1 <= workers <= 4:
         raise QfqGateError("WORKER_LIMIT_MUST_BE_1_TO_4")
     history = (history_extension_binding(history_extension, data_root=data_root, return_root=return_root,
@@ -1102,13 +1224,16 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                              force_refresh=False if history is not None else refresh_due(data_root, target) or os.environ.get("RESEARCH_PANEL_QFQ_REFRESH_FACTORS") == "1",
                              history_extension=history, retained_history=retained_history)
         snapshot = load_snapshot(snapshot_file, target)
-        if tail_delta is None and snapshot.get("history_retention_binding") != retained_history:
+        if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:
             raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")
         if snapshot.get("history_extension") != history_extension:
             raise QfqGateError("HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT")
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv)
         delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
                                    target=target, retained_history=retained_history)
+        addition = archive_addition_binding(archive_additions, snapshot=snapshot, pointers=pointers, identity=identity,
+                                           target=target, retained_history=retained_history)
+        incremental = delta or addition
         # One fixed journal owned by the original entry covers crashes between
         # replacing the original two files, even after a new input revision.
         expected = {role: path.read_bytes() for role, path in pointers.items()}
@@ -1209,7 +1334,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     quarantine_manifest_path=str(run_dir / "quarantine_manifest.json"),
                     convention=snapshot["convention"], revision=snapshot["revision"], pit_certified=False, **identity, **FLAGS)
         retention_binding = ({key: history[key] for key in ("source_config", "source_policy", "archive_refs", "accepted_evidence")}
-                             if history is not None else snapshot["history_retention_binding"] if delta else retained_history)
+                             if history is not None else snapshot["history_retention_binding"] if incremental else retained_history)
         if retention_binding is not None:
             meta.update(history_retention_binding=retention_binding,
                 retained_history_codes=sorted(retained_history_codes),
@@ -1225,6 +1350,10 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             meta.update(tail_delta=tail_delta, maximum_claim="DIRECTION_ONLY", historical_PIT=False,
                         tail_delta_semantics="CHANGED_FULL_PREFIX_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
                         tail_delta_baseline_generation=delta["baseline_generation_id"])
+        if addition:
+            meta.update(archive_additions=archive_additions, maximum_claim="DIRECTION_ONLY", historical_PIT=False,
+                        archive_addition_semantics="NEW_BOUND_ARCHIVE_HISTORY_ONLY_UNCHANGED_ARROW_ROWS_EXACT",
+                        archive_addition_baseline_generation=addition["baseline_generation_id"])
         candidates = {
             "selector": data_root / "selector_ready_panels/data_layer_daily_formula_increment_update_v1" / f"selector_ready_current_to_{target}_qfq_{run_id[:16]}" / f"selector_ready_current_to_{target}.parquet",
             "backtest": data_root / "backtest_panels/data_layer_daily_formula_increment_update_v1" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}_qfq_{run_id[:16]}" / "panel" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}.parquet",
@@ -1268,9 +1397,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             os.replace(temporary, checkpoint)
             _json(checkpoint_receipt, dict(checkpoint_id=fingerprint, sha256=sha(checkpoint)))
             return code, checkpoint
-        codes = sorted(delta["codes"] if delta else available)
+        codes = sorted(incremental["codes"] if incremental else available)
         unchanged_codes = ((expected_codes & available) - set(codes) - foreign - legacy_codes
-                                  - set(quarantined) - retained_history_codes) if delta else set()
+                                  - set(quarantined) - retained_history_codes) if incremental else set()
         quarantine_reasons = dict(quarantined)
         quarantine_reasons.update({c: dict(reason=legacy_policy["reason"], legacy_non_target=True,
                                           policy=snapshot["legacy_preservation_policy"])
@@ -1280,7 +1409,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             try:
                 return one(code)
             except QfqGateError as exc:
-                if delta or code not in eligible:
+                if incremental or code not in eligible:
                     raise
                 quarantine_reasons[code] = dict(reason=str(exc), original_status=eligible[code])
                 return code, None
@@ -1312,7 +1441,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                         rebuilt_keys = pq.read_table(parts_root / (code + ".parquet"), columns=["trade_date"]).column(0).to_pylist()
                         missing_keys = sorted(set(pd.to_numeric(old_keys.trade_date).astype(int)) - set(rebuilt_keys))
                         if missing_keys:
-                            if delta or code not in eligible:
+                            if incremental or code not in eligible:
                                 raise QfqGateError(f"RAW_HISTORY_KEYS_MISSING:{role}:{code}:{missing_keys[:10]}")
                             quarantine_reasons[code] = dict(reason="RAW_HISTORY_KEYS_MISSING", role=role,
                                 missing_dates=missing_keys, original_status=eligible[code])
@@ -1359,15 +1488,15 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                 for field in schema:
                                     if field.name not in retained.schema.names and field.name in USER_FORMULA_SIGNAL_FIELDS:
                                         retained = retained.append_column(field, pa.nulls(len(retained), type=field.type))
-                                if delta and not retained.schema.equals(schema, check_metadata=False):
+                                if incremental and not retained.schema.equals(schema, check_metadata=False):
                                     raise QfqGateError("TAIL_DELTA_UNCHANGED_SCHEMA_CHANGED:" + role)
-                                writer.write_table(retained.replace_schema_metadata(schema.metadata) if delta else retained.cast(schema))
+                                writer.write_table(retained.replace_schema_metadata(schema.metadata) if incremental else retained.cast(schema))
                                 retained_non_a_rows += sum(c in foreign for c in retained["ts_code"].to_pylist())
                                 retained_a_history_rows += sum(c in retained_history_codes for c in retained["ts_code"].to_pylist())
                                 unchanged_target_here = set(old_frame.loc[pd.to_numeric(old_frame.trade_date).eq(target), "ts_code"]) & unchanged_codes
                                 unchanged_active_rows += sum(c in unchanged_target_here for c in retained["ts_code"].to_pylist())
                                 unchanged_inactive_rows += sum(c in unchanged_codes - unchanged_target_here for c in retained["ts_code"].to_pylist())
-                                if delta:
+                                if incremental:
                                     for c, d in zip(retained["ts_code"].to_pylist(), retained["trade_date"].to_pylist()):
                                         if CODE.fullmatch(c) and int(d) == target:
                                             latest_codes.add(c)
@@ -1384,7 +1513,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             rebuilt = pq.read_table(parts_root / (code + ".parquet")).to_pandas()
                             old = old_frame.iloc[old_groups[code]].copy() if code in old_groups else pd.DataFrame()
                             replaced_old_rows += len(old)
-                            if old.empty and history is None:
+                            if old.empty and history is None and addition is None:
                                 rebuilt = rebuilt.loc[rebuilt.trade_date.ge(role_start[role])].copy()
                             if rebuilt.empty:
                                 continue
@@ -1420,6 +1549,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     role_counts[role].update(added_accepted_history_rows=rows_written - retained_non_a_rows - replaced_old_rows,
                         inherited_sidecar_files=len(retained_history_sidecars[role]),
                         inherited_sidecar_preservation="BYTE_IDENTICAL_SEPARATE_EXCLUDED_ARTIFACTS")
+                if addition:
+                    role_counts[role].update(archive_added_codes=sorted(addition["codes"]),
+                                            archive_added_rows=rows_written - old_rows)
                 if latest != target:
                     raise QfqGateError(f"PANEL_TARGET_DATE_MISSING:{role}:{latest}")
                 if candidate.exists():
@@ -1444,6 +1576,8 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             check_baseline(pointers, frozen_baseline)
             if delta:
                 _source(tail_delta, owner="tail delta contract before publication")
+            if addition:
+                _source(archive_additions, owner="archive addition contract before publication")
             for ref in inherited_quarantine.values():
                 _source(ref, owner="prior-generation quarantine")
             _json(run_dir / "quarantine_manifest.json", dict(generation_id=run_id, reasons=quarantine_reasons,

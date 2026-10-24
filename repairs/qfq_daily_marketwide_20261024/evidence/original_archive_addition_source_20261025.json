@@ -1,0 +1,21 @@
+{
+  "schema": "ORIGINAL_ARCHIVE_ADDITION_SOURCE_ACCEPTANCE_R1",
+  "scope": "SOURCE_PATCH_AND_SYNTHETIC_ONLY_NOT_STANDALONE_V4",
+  "baseline_commit": "61a74225d1b84de167b8218bbe77760f67cdff60",
+  "before_qfq_sha256": "6155429c8e783c18488381b8b7823e4c9da4da5fb36ee3058182304029c631bb",
+  "qfq_sha256": "f6a8fa42938202567ab6ff91296b2cbbabafd5616dfdd2ccc80b11418b549a70",
+  "test_sha256": "9dcb687b071626f70410830720085933ac27471850689cab57864ab76f0749a9",
+  "independent_review_sha256": "3b7abd3075b9478df6b49aa8c81d74f92dcb3e47a886725142f308cb40329947",
+  "independent_passed": 13,
+  "deselected": 8,
+  "failed": 0,
+  "new_branch": "Versioned archive-only additions with separate exact raw and adjustment receipts; unchanged old rows Arrow passthrough; original kernel/publisher/CAS retained",
+  "test_dependencies": "Prior repair namespace baseline files plus before-image research_panel_qfq_before.py from parent commit 61a74225 ops source; local test requires frozen before-image path or equivalent exact-byte fixture binding",
+  "actual_source_admission": false,
+  "actual_candidate_build": false,
+  "deployment": false,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
