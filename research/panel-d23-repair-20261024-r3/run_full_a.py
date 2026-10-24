@@ -1,4 +1,77 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×}ùN‹Z–‹­¦ëeŠw¬Ôˆˆ‰=¹”É•Ù¥•Ý•µ½¹±ä‘¥ÍÁ…Ñ Ñ¡É½Õ ½É¥¥¹…°‘¥ÍÁ…Ñ¡•È½É•¥ÍÑÉäì‘•™…Õ±Ð¥ÌÉ•…µ½¹±ä¸ˆˆˆ)™É½´Á…Ñ¡±¥ˆ¥µÁ½ÉÐA…Ñ )¥µÁ½ÉÐ…ÉÁ…ÉÍ”±‘…Ñ…±…ÍÍ•Ì±‘…Ñ•Ñ¥µ”±¡…Í¡±¥ˆ±©Í½¸±½Ì±ÍÑ…Ð±ÍÑÉÕÐ±ÍÕ‰ÁÉ½•ÍÌ±ÍåÌ±Ñ•µÁ™¥±”)™É½´é½¹•¥¹™¼¥µÁ½ÉÐi½¹•%¹™¼)™É½´ÁÕ‰±¥…Ñ¥½¹}Õ…É‘}ÈÈ¥µÁ½ÉÐAÕ‰±¥…Ñ¥½¹Õ…É±µ…¹Õ…±}Ý¥¹‘½Ý}½Á•¸±ÉÕ¹}‘¥É•Ñ½É¥•Ì)õA…Ñ ¡}}™¥±•}|¤¹É•Í½±Ù” ¤¹Á…É•¹ÑÍlÅtíÍÁ•Á…Ñ õ¼•á•ÕÑ¥½¸½U11}}aUQ%=9}MA¹©Í½¸œíÍÁ•Œõ©Í½¸¹±½…‘Ì¡ÍÁ•Á…Ñ ¹É•…‘}Ñ•áÐ ¤¤)„õ…ÉÁ…ÉÍ”¹ÉÕµ•¹ÑA…ÉÍ•È ¤í„¹…‘‘}…ÉÕµ•¹Ð œ´µ•á•ÕÑ”œ±…Ñ¥½¸ôÍÑ½É•}ÑÉÕ”œ¤í…ÉÌõ„¹Á…ÉÍ•}…ÉÌ ¤)‘•˜‘¥•ÍÐ¡À¤éÉ•ÑÕÉ¸¡…Í¡±¥ˆ¹Í¡„ÈÔØ¡A…Ñ ¡À¤¹É•…‘}‰åÑ•Ì ¤¤¹¡•á‘¥•ÍÐ ¤)‘•˜ÝÉ¥Ñ”¡¹…µ”±Ù…±Õ”¤è(€¡¼•á•ÕÑ¥½¸œ½¹…µ”¤¹ÝÉ¥Ñ•}Ñ•áÐ¡©Í½¸¹‘ÕµÁÌ¡Ù…±Õ”±•¹ÍÕÉ•}…Í¥¤õ…±Í”±¥¹‘•¹ÐôÈ±‘•™…Õ±ÐõÍÑÈ¤¬q¸œ¤)‘•˜É•ÅÕ¥É”¡½¹‘¥Ñ¥½¸±µ•ÍÍ…”¤è(¥˜¹½Ð½¹‘¥Ñ¥½¸éÉ…¥Í”IÕ¹Ñ¥µ•ÉÉ½È¡µ•ÍÍ…”¤)Õ…É‘}Á…Ñ õA…Ñ ¡ÍÁ•lÈÉ}ÁÕ‰±¥…Ñ¥½¹}Õ…É‘}Á…Ñ t¤íÉ•ÅÕ¥É”¡Õ…É‘}Á…Ñ ¹É•Í½±Ù” ¤ôô¡¼•á•ÕÑ¥½¸½ÁÕ‰±¥…Ñ¥½¹}Õ…É‘}ÈÈ¹Áäœ¤¹É•Í½±Ù” ¤°HÉ}AU	1%Q%=9}UI}AQ!}Lœ¤íÉ•ÅÕ¥É”¡‘¥•ÍÐ¡Õ…É‘}Á…Ñ ¤ôõÍÁ•lÈÉ}ÁÕ‰±¥…Ñ¥½¹}Õ…É‘}Í¡„ÈÔØt°HÉ}AU	1%Q%=9}UI}M!}Lœ¤)µ…¹¥™•ÍÐõ©Í½¸¹±½…‘Ì¡A…Ñ ¡ÍÁ•l¡¥±‘}µ…¹¥™•ÍÐt¤¹É•…‘}Ñ•áÐ ¤¤íÉ•ÅÕ¥É”¡‘¥•ÍÐ¡ÍÁ•l¡¥±‘}µ…¹¥™•ÍÐt¤ôõÍÁ•l¡¥±‘}µ…¹¥™•ÍÑ}Í¡„ÈÔØt°!%1}59%MQ}Lœ¤)¡¥±õA…Ñ ¡ÍÁ•l¡¥±‘}…ÁÀt¤)™½ÈÉ½Ü¥¸µ…¹¥™•ÍÑl™¥±•ÌtéÉ•ÅÕ¥É”¡‘¥•ÍÐ¡¡¥±½É½ÝlÁ…Ñ t¤ôõÉ½ÝlÍ¡„ÈÔØt°!%1}M=UI}Lèœ­É½ÝlÁ…Ñ t¤)É•ÅÕ¥É”¡‘¥•ÍÐ¡ÍÁ•lÁÉ•¥µ…•Ìt¤ôõÍÁ•lÁÉ•¥µ…•Í}Í¡„ÈÔØt°AI%5}59%MQ}Lœ¤íÁÉ”õ©Í½¸¹±½…‘Ì¡A…Ñ ¡ÍÁ•lÁÉ•¥µ…•Ìt¤¹É•…‘}Ñ•áÐ ¤¤)É•ÅÕ¥É”¡‘¥•ÍÐ¡ÍÁ•lÍ¥á}…¹‘¥‘…Ñ•}µ…¹¥™•ÍÐt¤ôõÍÁ•lÍ¥á}…¹‘¥‘…Ñ•}µ…¹¥™•ÍÑ}Í¡„ÈÔØt°M%a}9%Q}59%MQ}Lœ¤íÅÕ½Ñ•Ìõ©Í½¸¹±½…‘Ì¡A…Ñ ¡ÍÁ•lÍ¥á}…¹‘¥‘…Ñ•}µ…¹¥™•ÍÐt¤¹É•…‘}Ñ•áÐ ¤¤)™½ÈÉ½Ü¥¸ÁÉ•l™¥±•ÌtéÉ•ÅÕ¥É”¡‘¥•ÍÐ¡É½ÝlÁ…Ñ t¤ôõÉ½ÝlÍ¡„ÈÔØt°e}AI%5}Lèœ­É½ÝlÁ…Ñ t¤)™½ÈÉ½Ü¥»]ù¶‰žËkºwµçBu4•…ôTäEõ4„Rr¢266÷R—2F†R6öçG&öÆÆW"×&Wf–WvVB†ÆbÖ÷VâÖçVÂv–æF÷rf÷"F†—26ÖRC#2à¢2—B6ææ÷BG&–gBFòæ÷F†W"F&vWBFFR÷"&V6öÖRâVæGFVæFVBÆVæ6†W"à§v–æF÷s×7V2ævWB‚vÖçVÅöW†V7WF–öå÷v–æF÷rrÇ·Ò“¶æ÷sÖFFWF–ÖRæFFWF–ÖRææ÷r…¦öæT–æfò‚t6–õ6†æv†’r’“·&WV—&R†ÆÂ‡7G"‡7V5²w&WVW7BuÒævWB†²’“Ó×7G"‡v–æF÷rævWB‚wF&vWEöFFRr’’f÷"²–â²w66†VGVÆVEöFFRrÂv'W6–æW75öFFRrÂwF&vWEöFFRuÒ’ÂtÔåTÅõt”äDõuõ$UTU5EôDDUô42r“·&WV—&R†ÖçVÅ÷v–æF÷uö÷Vâ‡v–æF÷rÇ7G"‡7V5²w&WVW7BuÕ²wF&vWEöFFRuÒ’Ææ÷r’ÂtÔåTÅõt”äDõuô4Äõ4TEõ$Ud”Uuõ$UT•$TBr¦÷2æVçf—&öâçWFFR‡7V5²vVçbuÒ¦f÷"–â&WfW'6VB‡7V5²vVçbuÕ²u•D„ôåD‚uÒç7Æ—B‚s¢r’“§7—2çF‚æ–ç6W'BƒÇ¦g&öÒ6öçG&7G2ç'VçF–ÖU÷F6·2–×÷'BF—7F6…&WVW7@¦g&öÒ–æg&7G'V7GW&Rç66†VGVÆ–æræ6FÆör–×÷'BÆöE÷v÷&¶ÆöEö6FÆöp¦g&öÒ–æg&7G'V7GW&Rç66†VGVÆ–æræW†V7WF–öåöÆVFvW"–×÷'BW†V7WF–öäÆVFvW ¦g&öÒ–æg&7G'V7GW&Rç66†VGVÆ–æræF—7F6†W"–×÷'BF—7F6…öGVP¦g&öÒ–æg&7G'V7GW&Rç66†VGVÆ–æræW†V7WF÷%÷&Vv—7G'’–×÷'Bf—†VDW†V7WF÷%&Vv—7G'¦g&öÒ÷2ç'Vå÷c3UöÖ6÷5÷66†VGVÆW%öGVR–×÷'B&W6öÇfUöGVU÷6Æ÷@¦6FÆösÖÆöE÷v÷&¶ÆöEö6FÆör‚“·6VÆV7FVC×GWÆR‡rf÷"r–â6FÆörçv÷&¶ÆöG2–brçv÷&¶ÆöEö–CÓ×7V5²wv÷&¶ÆöEö–BuÒ“·&WV—&R†ÆVâ‡6VÆV7FVB“ÓÓæB6VÆV7FVE³ÒæVæ&ÆVBÂtô4DÄôuôõtäU%õTäd”Ä$ÄRr¦öæÇ•öÖFF6Æ76W2ç&WÆ6R†6FÆörÇv÷&¶ÆöG3×6VÆV7FVB¦ÆVFvW'&ö÷CÕF‚‡7V5²vÆVFvW%÷&ö÷BuÒ“·&WVW7CÔF—7F6…&WVW7B‚¢§7V5²w&WVW7BuÒ¦6Æ–Õ÷7FFS×·¢†ÆVFvW'&ö÷B÷’ç&VE÷FW‡B‚’–b†ÆVFvW'&ö÷B÷’æW†—7G2‚’VÇ6RæöæRf÷"–â7V5²v6Æ–Õ÷F‡2u×Ð§&WV—&R†ÆÂ‡b—2æöæRf÷"b–â6Æ–Õ÷7FFRçfÇVW2‚’’Ât4Ä”ÕôU„•5E5õ5Dõôäõõ$T4Ä”Òr¢2ÆÂ7W'&VçFÇ’ÆöFVBVçG'’&ö6W76W2×W7B&R'6VçBâF†—2—27WÆVÖVçF'¢2Wf–FVæ6S²7GVÂ÷væW'6†—6öÖW2g&öÒ÷&–v–æÂFöÖ–2F—7F6‚·v÷&¶ÆöB6Æ–×2à§3×7V'&ö6W72æ6†V6µö÷WGWB…²w2rÂrÖ†òrÂw–CÒÇ–CÒÆ6öÖÖæCÐYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×}ùN‹Z–‹­¦ëeŠw¬Ôt±Ñ•áÐõQÉÕ”¤)…Ñ¥Ù”õm±¥¹”™½È±¥¹”¥¸ÁÌ¹ÍÁ±¥Ñ±¥¹•Ì ¤¥˜…¹ä¡Ì¥¸±¥¹”™½ÈÌ¥¸lœµ´½ÁÌ¹µ…½Í}É•Í•…É¡}Á…¹•±}‘…¥±äœ°œ½…}Í¡…É•}‘…¥±å}Íå¹Œ¹Áäœ°‘…Ñ…}±…å•É}‘…¥±å}™½ÉµÕ±…}¥¹É•µ•¹Ñ}ÕÁ‘…Ñ•}ØÄ¹Áät¤…¹¹½Ð±¥¹”¹±ÍÑÉ¥À ¤¹ÍÑ…ÉÑÍÝ¥Ñ ¡ÍÑÈ¡½Ì¹•ÑÁ¥ ¤¤¬œ€œ¥t)É•ÅÕ¥É”¡¹½Ð…Ñ¥Ù”°Q%Y}}!%1}MQ=@œ¤)É•…‘ÁÉ½½˜õì½‰Í•ÉÙ•‘}…Ðœé¹½Ü¹¥Í½™½Éµ…Ð ¤°‘Õ”œéÉ•Í½±Ù•}‘Õ•}Í±½Ð¡±•‘•É}É½½Ðõ±•‘•ÉÉ½½Ð±¹½Üõ¹½Ü¤°±…¥µ}ÁÉ•¥µ…•Ìœé±…¥µ}ÍÑ…Ñ”°…Ñ¥Ù•}…}ÁÉ½•ÍÍ•Ìœé…Ñ¥Ù”°…}…Ñ…±½œœé‘…Ñ…±…ÍÍ•Ì¹…Í‘¥Ð¡Í•±•Ñ•‘lÁt¤°…Ñ…±½}Á…Ñ œéÍÑÈ¡¡¥±¼½¹ÑÉ…ÑÌ½ÉÕ¹Ñ¥µ•}Ý½É­±½…‘Ì¹©Í½¸œ¤°…Ñ…±½}Í¡„ÈÔØœé‘¥•ÍÐ¡¡¥±¼½¹ÑÉ…ÑÌ½ÉÕ¹Ñ¥µ•}Ý½É­±½…‘Ì¹©Í½¸œ¤°Ñ…É•Ñ}½Õ¹ÐœéÁÉ•lÑ…É•Ñ}½Õ¹Ðt°ÁÉ•¥µ…•Í}Ù•É¥™¥•œéQÉÕ”°¡¥±‘}Í½ÕÉ•}Ù•É¥™¥•œéQÉÕ”°µ½‘”œèaUQœ¥˜…ÉÌ¹•á•ÕÑ”•±Í”€I}=91e}AI1%!Pœ°‘½•Í}¹½Ñ}±…¥µ}±½‰…±}ÅÕ¥•Í•¹”œéQÉÕ•ô)ÝÉ¥Ñ” U11}}AI1%!P¹©Í½¸œ±É•…‘ÁÉ½½˜¤íÁÉ¥¹Ð¡©Í½¸¹‘ÕµÁÌ¡ìÍÑ…ÑÕÌœèAI1%!Q}=,œ°Ñ…É•Ñ}½Õ¹ÐœéÁÉ•lÑ…É•Ñ}½Õ¹Ðt°•á•ÕÑ”œé…ÉÌ¹•á•ÕÑ•ô¤±™±ÕÍ õQÉÕ”¤)¥˜¹½Ð…ÉÌ¹•á•ÕÑ”éÍåÌ¹•á¥Ð À¤)É•ÅÕ¥É”¡¹½Ð€¡¼•á•ÕÑ¥½¸½U11}}%MAQ!}IMU1P¹©Í½¸œ¤¹•á¥ÍÑÌ ¤°a%MQ%9}IMU1Q}MQ=A}9=}IAPœ¤)É•¥ÍÑÉäõ¥á•‘á•ÕÑ½ÉI•¥ÍÑÉä¡‘…Ñ…}É½½ÐõÍÁ•l‘…Ñ…}É½½Ðt±É•Á½}É½½Ðõ¡¥±±Ñ¥µ•½ÕÑ}Í•½¹‘ÌôØÀÀ±…}‘…¥±å}Ñ¥µ•½ÕÑ}Í•½¹‘ÌõÍÁ•l…}‘…¥±å}Ñ¥µ•½ÕÑ}Í•½¹‘Ìt±¡­|Á|É}ÁåÑ¡½¹}•á•ÕÑ…‰±”ôœ½UÍ•ÉÌ½±•á¤½1¥‰É…Éä½ÁÁ±¥…Ñ¥½¸MÕÁÁ½ÉÐ½½´¹±•á¤¹ØÌÔ¹±½…°½É•±•…Í•Ì¼ÈÀÈØÀäÀÑPÀàÄÄÄÅhµØÌÔµÍÑÉ¥ÐµÍÑ…”µ…ÅÕ¥Í¥Ñ¥½¸µØÄÔ½…ÁÀ½½ÁÌ½±…Õ¹¡}¡­|Á|É}ÁåÑ¡½¹}¹½Í¥Ñ”¹Í œ¤)ÝÉ¥Ñ” IM=UI}	=I¹©Í½¸œ±ì½‰Í•ÉÙ•‘}…Ðœé¹½Ü¹¥Í½™½Éµ…Ð ¤°ÍÝ…ÁÕÍ…”œéÍÕ‰ÁÉ½•ÍÌ¹¡•­}½ÕÑÁÕÐ¡lÍåÍÑ°œ°œµ¸œ°Ù´¹ÍÝ…ÁÕÍ…”t±Ñ•áÐõQÉÕ”¥ô¤)Í••‘•õmtíÁÕ‰±¥…Ñ¥½¹}Õ…É‘}É•ÍÕ±Ðõ9½¹”)‘•˜½Ý¹•‘}…}•á•ÕÑ½È¡Ý½É­±½…±É•Ä±‘•¥Í¥½¸¤è(±½‰…°ÁÕ‰±¥…Ñ¥½¹}Õ…É‘}É•ÍÕ±Ð(É•ÅÕ¥É”¡Ý½É­±½…¹Ý½É­±½…‘}¥ôõÍÁ•lÝ½É­±½…‘}¥t°9=9}}aUQ=I}=I	%8œ¤(±…¥µÌõm©Í½¸¹±½…‘Ì ¡±•‘•ÉÉ½½Ð¿]ù¶‰žËkºwµçFæòÖçVÆ6Æ–ÒFVÆWF–öârÂv6†–ÆEööæÇ’s¥G'VWÒ¢2fÆ–FFRWfW'’6÷W&6RgFW"&÷F‚æF—fR6Æ–×2&R†VÆBÂ&Vf÷&Rç’×WFF–öâà¢f÷"&÷r–â&U²vf–ÆW2uÓ§&WV—&R†F–vW7B‡&÷u²wF‚uÒ“Ó×&÷u²w6†#SbuÒÂtÄô4´TEôD•õ$T”ÔtUô43¢r·&÷u²wF‚uÒ¢f÷"&÷r–â&U²w&V6V—E÷ö–çFW%÷&V–ÖvW2uÓ§&WV—&R†F–vW7B‡&÷u²wF‚uÒ“Ó×&÷u²w6†#SbuÒÂtÄô4´TEõ$T4T•Eõô”åDU%ô43¢r·&÷u²wF‚uÒ¢2&WW6RW†7B–æFWVæFVçFÇ’&Wf–WvVB6—‚÷&–v–æÂ×&öGV6W"÷7F–ÖvW2âF†P¢2gVÆÂ&öGV6W"7V'6WVVçFÇ’FÖ—G2F†VÒ2Å$TE•ô5U%$TåBÂv—F‚ÆÂwV&G2à¢f÷"–âV÷FW3 ¢ÕF‚‡²w6÷W&6U÷F‚uÒ“·&WV—&R†F–vW7B‡“Ó×²w6÷W&6U÷6†#Seö&Vf÷&RuÒÂtÄô4´TEõ4•…ô42r“·–ÆöCÕF‚‡²v6æF–FFU÷F‚uÒ’ç&VEö'—FW2‚“¶ÖöFS×7FBå5ô”ÔôDR‡ç7FB‚’ç7EöÖöFR¢fBÇFV××FV×f–ÆRæÖ·7FV×‡&Vf—ƒ×ææÖR²ræ#2ÒrÆF—#×ç&VçB¢G'“ ¢v—F‚÷2æfF÷Vâ†fBÂwv"r’2c¦bçw&—FR‡–ÆöB“¶bæfÇW6‚‚“¶÷2æg7–æ2†bæf–ÆVæò‚’¢÷2æ6†ÖöB‡FV×ÆÖöFR“·&WV—&R†F–vW7B‡“Ó×²w6÷W&6U÷6†#Seö&Vf÷&RuÒÂtÄ5Eõ4•…ô42r“¶÷2ç&WÆ6R‡FV×Ç¢f–æÆÇ“ ¢–b÷2çF‚æW†—7G2‡FV×“¦÷2çVæÆ–æ²‡FV×¢&WV—&R†F–vW7B‡“Ó×²v6æF–FFU÷6†#SbuÒÂu4•…õõ5D”ÔtUô42r“·6VVFVBæVæB‡²wF‚s§7G"‡’Âv&Vf÷&Rs§²w6÷W&6U÷6†#Seö&Vf÷&RuÒÂvgFW"s§²v6æF–FFU÷6†#Sbu×Ò“·w&—FR‚u4•…õ$Ud”UtTEô”ÔtU5õ$UU4TBæ§6öârÇ6VVFVB¢f÷&×VÆ÷&ö÷CÕF‚‡7V5²vVçbuÕ²uc3Uõ$U4T$4…õäTÅôõ$UEU$åõ$ôõBuÒ“¶ÆæU÷FƒÕF‚‡7V5²vVçbuÕ²uc3Uõ$U4T$4…õäTÅõ$T4T•Eõ$ôõBuÒ’òvÓ##c#2æ§6öâp¢V&Æ–6F–öåöwV&CÕV&Æ–6F–öäwV&B‡6VÆV7F÷%÷ö–çFW#×7V5²vVçbuÕ²uc3Uõ$U4T$4…õäTÅôõ4TÄT5Dõ%õô”åDU"uÒÆ&6·FW7E÷ö–çFW#×7V5²vVçbuÕ²uc3Uõ$U4T$4…õäTÅôô$4µDU5Eõô”åDU"uÒÆÆæU÷&V6V—CÖÆæU÷F‚Æf÷&×VÆ÷'Vç5÷&ö÷CÖf÷&×VÆ÷&ö÷BÇ&V–ÖvU÷&÷w3×&U²w&V6V—E÷ö–çFW%÷&V–ÖvW2uÒÆW†—7F–æu÷'VåöæÖW3×'VåöF—&V7F÷&–W2†f÷&×VÆ÷&ö÷B’ÆÆVFvW%÷&ö÷CÖÆVFvW'&ö÷BÆ6Æ–Õ÷F‡3×7V5²v6Æ–Õ÷F‡2uÒÇ–CÖ÷2ævWG–B‚’Ç'Våö–CÖ6Æ–×5³Õ²w'Våö–Bp],target_date='20261023',slot='1700')
+"""One reviewed A-only dispatch through original dispatcher/registry; default is read-only."""
+from pathlib import Path
+import argparse,dataclasses,datetime,hashlib,json,os,stat,struct,subprocess,sys,tempfile
+from zoneinfo import ZoneInfo
+from publication_guard_r2 import PublicationGuard,manual_window_open,run_directories
+E=Path(__file__).resolve().parents[1];specpath=E/'execution/FULL_A_EXECUTION_SPEC.json';spec=json.loads(specpath.read_text())
+a=argparse.ArgumentParser();a.add_argument('--execute',action='store_true');args=a.parse_args()
+def digest(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def write(name,value):
+ (E/'execution'/name).write_text(json.dumps(value,ensure_ascii=False,indent=2,default=str)+'\n')
+def require(condition,message):
+ if not condition:raise RuntimeError(message)
+guard_path=Path(spec['r2_publication_guard_path']);require(guard_path.resolve()==(E/'execution/publication_guard_r2.py').resolve(),'R2_PUBLICATION_GUARD_PATH_CAS');require(digest(guard_path)==spec['r2_publication_guard_sha256'],'R2_PUBLICATION_GUARD_SHA_CAS')
+manifest=json.loads(Path(spec['child_manifest']).read_text());require(digest(spec['child_manifest'])==spec['child_manifest_sha256'],'CHILD_MANIFEST_CAS')
+child=Path(spec['child_app'])
+for row in manifest['files']:require(digest(child/row['path'])==row['sha256'],'CHILD_SOURCE_CAS:'+row['path'])
+require(digest(spec['preimages'])==spec['preimages_sha256'],'PREIMAGE_MANIFEST_CAS');pre=json.loads(Path(spec['preimages']).read_text())
+require(digest(spec['six_candidate_manifest'])==spec['six_candidate_manifest_sha256'],'SIX_CANDIDATE_MANIFEST_CAS');quotes=json.loads(Path(spec['six_candidate_manifest']).read_text())
+for row in pre['files']:require(digest(row['path'])==row['sha256'],'DAY_PREIMAGE_CAS:'+row['path'])
+for row in pre['receipt_pointer_preimages']:require(digest(row['path'])==row['sha256'],'RECEIPT_POINTER_CAS:'+row['path'])
+for q in quotes:
+ require(digest(q['candidate_path'])==q['candidate_sha256'],'SIX_CANDIDATE_BYTES_CAS')
+ b=Path(q['candidate_path']).read_bytes();old=Path(q['source_path']).read_bytes()
+ require(b[:len(old)]==old and len(b)==len(old)+32 and struct.unpack_from('<I',b,len(old))[0]==20261023,'SIX_APPEND_SHAPE')
+# Scope is the controller-reviewed half-open manual window for this same D23.
+# It cannot drift to another target date or become an unattended launcher.
+window=spec.get('manual_execution_window',{});now=datetime.datetime.now(ZoneInfo('Asia/Shanghai'));require(all(str(spec['request'].get(k))==str(window.get('target_date')) for k in ['scheduled_date','business_date','target_date']),'MANUAL_WINDOW_REQUEST_DATE_CAS');require(manual_window_open(window,str(spec['request']['target_date']),now),'MANUAL_WINDOW_CLOSED_REVIEW_REQUIRED')
+os.environ.update(spec['env'])
+for p in reversed(spec['env']['PYTHONPATH'].split(':')):sys.path.insert(0,p)
+from contracts.runtime_tasks import DispatchRequest
+from infrastructure.scheduling.catalog import load_workload_catalog
+from infrastructure.scheduling.execution_ledger import ExecutionLedger
+from infrastructure.scheduling.dispatcher import dispatch_due
+from infrastructure.scheduling.executor_registry import FixedExecutorRegistry
+from ops.run_v35_macos_scheduler_due import resolve_due_slot
+catalog=load_workload_catalog();selected=tuple(w for w in catalog.workloads if w.workload_id==spec['workload_id']);require(len(selected)==1 and selected[0].enabled,'A_CATALOG_OWNER_UNAVAILABLE')
+only_a=dataclasses.replace(catalog,workloads=selected)
+ledgerroot=Path(spec['ledger_root']);request=DispatchRequest(**spec['request'])
+claim_state={p:(ledgerroot/p).read_text() if (ledgerroot/p).exists() else None for p in spec['claim_paths']}
+require(all(v is None for v in claim_state.values()),'CLAIM_EXISTS_STOP_NO_RECLAIM')
+# All currently loaded A entry processes must be absent. This is supplementary
+# evidence; actual ownership comes from original atomic dispatch+workload claims.
+ps=subprocess.check_output(['ps','-axo','pid=,ppid=,command='],text=True)
+active=[line for line in ps.splitlines() if any(s in line for s in ['-m ops.macos_research_panel_daily','/a_share_daily_sync.py','data_layer_daily_formula_increment_update_v1.py']) and not line.lstrip().startswith(str(os.getpid())+' ')]
+require(not active,'ACTIVE_A_CHILD_STOP')
+readproof={'observed_at':now.isoformat(),'due':resolve_due_slot(ledger_root=ledgerroot,now=now),'claim_preimages':claim_state,'active_a_processes':active,'a_catalog':dataclasses.asdict(selected[0]),'catalog_path':str(child/'contracts/runtime_workloads.json'),'catalog_sha256':digest(child/'contracts/runtime_workloads.json'),'target_count':pre['target_count'],'preimages_verified':True,'child_source_verified':True,'mode':'EXECUTE' if args.execute else 'READ_ONLY_PREFLIGHT','does_not_claim_global_quiescence':True}
+write('FULL_A_PREFLIGHT.json',readproof);print(json.dumps({'status':'PREFLIGHT_OK','target_count':pre['target_count'],'execute':args.execute}),flush=True)
+if not args.execute:sys.exit(0)
+require(not (E/'execution/FULL_A_DISPATCH_RESULT.json').exists(),'EXISTING_RESULT_STOP_NO_REPEAT')
+registry=FixedExecutorRegistry(data_root=spec['data_root'],repo_root=child,timeout_seconds=600,a_daily_timeout_seconds=spec['a_daily_timeout_seconds'],hk_0_2_python_executable='/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/app/ops/launch_hk_0_2_python_nosite.sh')
+write('RESOURCE_BEFORE.json',{'observed_at':now.isoformat(),'swapusage':subprocess.check_output(['sysctl','-n','vm.swapusage'],text=True)})
+seeded=[];publication_guard_result=None
+def owned_a_executor(workload,req,decision):
+ global publication_guard_result
+ require(workload.workload_id==spec['workload_id'],'NON_A_EXECUTOR_FORBIDDEN')
+ claims=[json.loads((ledgerroot/p).read_text()) for p in spec['claim_paths']]
+ require(all(c['pid']==os.getpid() and c['business_date']=='20261023' and c['slot']=='1700' for c in claims) and claims[0]['run_id']==claims[1]['run_id'],'NATIVE_DOUBLE_CLAIM_OWNERSHIP_REQUIRED')
+ write('FULL_A_NATIVE_OWNER.json',{'claims':claims,'owner_pid':os.getpid(),'claim_source':'unchanged ExecutionLedger originalO_EXCL acquisition; no custom lock; no manualclaim deletion','child_only':True})
+ # Validate every source after both native claims are held, before any mutation.
+ for row in pre['files']:require(digest(row['path'])==row['sha256'],'LOCKED_DAY_PREIMAGE_CAS:'+row['path'])
+ for row in pre['receipt_pointer_preimages']:require(digest(row['path'])==row['sha256'],'LOCKED_RECEIPT_POINTER_CAS:'+row['path'])
+ # Reuse exact independently reviewed six original-producer postimages. The
+ # full producer subsequently admits them as ALREADY_CURRENT, with all guards.
+ for q in quotes:
+  p=Path(q['source_path']);require(digest(p)==q['source_sha256_before'],'LOCKED_SIX_CAS');payload=Path(q['candidate_path']).read_bytes();mode=stat.S_IMODE(p.stat().st_mode)
+  fd,temp=tempfile.mkstemp(prefix=p.name+'.a23-',dir=p.parent)
+  try:
+   with os.fdopen(fd,'wb') as f:f.write(payload);f.flush();os.fsync(f.fileno())
+   os.chmod(temp,mode);require(digest(p)==q['source_sha256_before'],'LAST_SIX_CAS');os.replace(temp,p)
+  finally:
+   if os.path.exists(temp):os.unlink(temp)
+  require(digest(p)==q['candidate_sha256'],'SIX_POSTIMAGE_CAS');seeded.append({'path':str(p),'before':q['source_sha256_before'],'after':q['candidate_sha256']});write('SIX_REVIEWED_IMAGES_REUSED.json',seeded)
+ formula_root=Path(spec['env']['V35_RESEARCH_PANEL_A_RETURN_ROOT']);lane_path=Path(spec['env']['V35_RESEARCH_PANEL_RECEIPT_ROOT'])/'a-20261023.json'
+ publication_guard=PublicationGuard(selector_pointer=spec['env']['V35_RESEARCH_PANEL_A_SELECTOR_POINTER'],backtest_pointer=spec['env']['V35_RESEARCH_PANEL_A_BACKTEST_POINTER'],lane_receipt=lane_path,formula_runs_root=formula_root,preimage_rows=pre['receipt_pointer_preimages'],existing_run_names=run_directories(formula_root),ledger_root=ledgerroot,claim_paths=spec['claim_paths'],pid=os.getpid(),run_id=claims[0]['run_id'],target_date='20261023',slot='1700')
  publication_guard_result={'preimages':publication_guard.capture(),'status':'SNAPSHOT_CAPTURED_UNDER_NATIVE_DOUBLE_CLAIMS'}
  try:
   output=registry(workload,req,decision)
