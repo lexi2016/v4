@@ -1,0 +1,103 @@
+{
+  "schema_version": "panel_daily_component_archive_verification.v1",
+  "state": "R2_REVIEWED_PASS_ARCHIVE_ONLY",
+  "created_at_utc": "2026-10-24T02:37:34.308213+00:00",
+  "goal": "Archive the existing reviewed A-only component repair source, test, and compact PASS evidence; no new development or deployment.",
+  "source_identity": {
+    "worktree": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app",
+    "branch": "codex/a-panel-daily-binding-20261024",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "worktree_status": [
+      "?? ops/a_share_daily_sync_component_overlay.py",
+      "?? ops/install_a_share_daily_sync_component.py",
+      "?? tests/test_a_share_daily_sync_component_overlay.py"
+    ],
+    "source_files": [
+      {
+        "source_path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app/ops/a_share_daily_sync_component_overlay.py",
+        "archive_path": "ops/a_share_daily_sync_component_overlay.py",
+        "bytes": 44896,
+        "sha256": "ae79b4b50b30e1a386b1f20b6efd6167d1d1f0181aedac35466034266c088fb6",
+        "git_blob_sha1": "6f2eda329fa9d549a9035847358a2fe82ee0eb9e"
+      },
+      {
+        "source_path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app/ops/install_a_share_daily_sync_component.py",
+        "archive_path": "ops/install_a_share_daily_sync_component.py",
+        "bytes": 223,
+        "sha256": "8ddfa1bb12a76f42a0eecf3eb1b78d37bccfcc11146e6f5a9eb507e282833625",
+        "git_blob_sha1": "0561367185609e29d6c763fc6a62e8fcb3218063"
+      },
+      {
+        "source_path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app/tests/test_a_share_daily_sync_component_overlay.py",
+        "archive_path": "tests/test_a_share_daily_sync_component_overlay.py",
+        "bytes": 21214,
+        "sha256": "24767715968ab94f6aa63d6aebf7ba830822f13d46bd6e3a2fba374a30f57a9e",
+        "git_blob_sha1": "325c1041bf1680ea287e2925d1a04db7d73d4db8"
+      }
+    ]
+  },
+  "binding": {
+    "ready_path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/implementation/R2_READY_FOR_INCREMENTAL_REVIEW.json",
+    "ready_sha256": "b52ae093d2020b05bd96ee53adb31547fed52e20b89d884a63a32e576ae7e23b",
+    "ready_status": "R2_READY_FOR_INCREMENTAL_REVIEW",
+    "candidate_state": "CANDIDATE_PREPARED_INACTIVE",
+    "independent_review_path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/review/COMPONENT_REVIEW_R2.json",
+    "independent_review_sha256": "df158728b3b46652253200b545fc6a635d384e42b4be08dd0cebd42c397d4244",
+    "review_status": "REVIEWED/PASS",
+    "risk_counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "review_scope": "R1 three findings incremental correction only; exact native terminal receipt identity/integrity/status, actual ledger root binding, activation/rollback idle/window/process checks",
+    "acceptance_limit": "Candidate only, awaiting controller activation release after successful manual original A terminal. No deployment or natural claim."
+  },
+  "review_result": {
+    "independent_tests": "10 focused pytest tests passed; original22suite not repeated",
+    "scenarios": [
+      "RUNNING/unknown and wrong receipt identity refuse idle",
+      "Valid terminal SUCCEEDED and FAILED claims retained",
+      "Wrong-root rollback CLI refused; shared binding also called by install/activate",
+      "Active A, unfinished claim, process appearing at second gate,1700 boundary refuse rollback",
+      "Clean exact postimage restores retained preimage",
+      "Actual scheduled A and missing-lane process rows block; HK-only does not"
+    ],
+    "writer_22_test_r2_result": {
+      "exit_code": 0,
+      "status": "PASS",
+      "summary": "22 passed in 0.46s"
+    },
+    "source_sync_reran_tests": false,
+    "previous_pass_reused": "Same-module globals, namespace/mac/pins, exact17file candidate, oldentry/manifests preimage; original3source/6canary/8tests PASS unchanged"
+  },
+  "inactive_runtime_boundary": {
+    "component_not_rebuilt": true,
+    "generated_shim_byte_match": true,
+    "fixed_entry_activated": false,
+    "deployment_claimed": false,
+    "producer_or_network_run": false,
+    "natural_run_or_api_ui_end_to_end_claimed": false
+  },
+  "not_executed": [
+    "Activation and rollback commands (recorded for controlled later use only)",
+    "Activation/rollback",
+    "Fixed entry activation or modification",
+    "Git commit/push or remote readback",
+    "Git local commit in source worktree",
+    "Independent incremental Reviewer R2 verdict",
+    "Live scheduler claim or production ledger inspection",
+    "Manual A run termination receipt verification",
+    "Natural run or API/UI end-to-end",
+    "Producer, network fetch, natural 1700 slot, API/UI, end-to-end acceptance",
+    "Producer/network",
+    "Real processlist/ledger inspection",
+    "Source 14-file re-audit or component rebuild (R1 PASS reused; shim and component metadata read back unchanged)",
+    "Source-sync test rerun"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
