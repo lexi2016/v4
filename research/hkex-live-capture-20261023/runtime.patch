@@ -1,0 +1,1322 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -6065,6 +6065,14 @@
+     )
+     assemble_api(app, config=manager_config)
+ 
++    # Explicit bounded HKEX source capture reuses its original owner/store.
++    # It does not assemble the removed manager router or ordinary model jobs.
++    from v4.manager_research.hkex_runtime import assemble_hkex_announcements_api
++    assemble_hkex_announcements_api(
++        app, manager_root=manager_config.manager_root,
++        security_master_root=(os.environ.get("V4_MANAGER_SECURITY_MASTER_ROOT") or manager_config.shared_root),
++    )
++
+     preview_root = Path(__file__).resolve().parents[2] / "web" / "preview"
+     if preview_root.is_dir():
+         app.mount("/preview", StaticFiles(directory=preview_root, html=True), name="preview")
+--- /dev/null
++++ b/apps/api/v35_api/hkex_announcements_router.py
+@@ -0,0 +1,132 @@
++"""Three bounded original-owner HKEX endpoints; GET never collects sources."""
++from typing import Annotated
++from urllib.parse import urlsplit
++import re
++
++from fastapi import APIRouter, Depends, HTTPException, Query, Request
++
++from v4.manager_research.announcement_source import (
++    MAX_BYTES, _cached_extract_pdf_pages, read_response, safe_reason,
++)
++from v4.manager_research.contracts import strict_trade_date
++from v4.manager_research.workspace_announcements import TARGETED_HKEX_SCOPE, validate_product
++from v4.manager_research.workspace_projection import FLAGS, digest
++
++PREFIX = '/api/v4/manager/research/announcements'
++SHA = r'^[a-f0-9]{64}$'
++
++
++def _date(value):
++    try:
++        return strict_trade_date(value)
++    except ValueError as exc:
++        raise HTTPException(422, 'TARGET_TRADE_DATE_INVALID') from exc
++
++
++def _keys(request, allowed):
++    if set(request.query_params) - set(allowed):
++        raise HTTPException(422, 'UNEXPECTED_QUERY_PARAMETER')
++
++
++async def _explicit_same_origin(request: Request):
++    origin = request.headers.get('origin')
++    if origin:
++        try:
++            parsed = urlsplit(origin)
++            valid = (parsed.scheme == request.url.scheme and parsed.netloc == request.url.netloc
++                     and not (parsed.path or parsed.query or parsed.fragment or parsed.username))
++        except ValueError:
++            valid = False
++        if not valid:
++            raise HTTPException(403, 'SAME_ORIGIN_REQUIRED')
++    if request.headers.get('sec-fetch-site') not in (None, 'same-origin', 'none'):
++        raise HTTPException(403, 'SAME_ORIGIN_REQUIRED')
++    if request.headers.get('transfer-encoding') or request.headers.get('content-length', '0') != '0':
++        raise HTTPException(400, 'REQUEST_BODY_NOT_ALLOWED')
++    async for chunk in request.stream():
++        if chunk:
++            raise HTTPException(400, 'REQUEST_BODY_NOT_ALLOWED')
++
++
++def _failure(exc):
++    return HTTPException(409, safe_reason(exc, 'HKEX_OWNER_READBACK_FAILED'))
++
++
++def create_hkex_announcements_router(service):
++    router = APIRouter(tags=['hkex-announcements'])
++
++    @router.get(PREFIX)
++    def announcements(request: Request, target_trade_date: str,
++                      scope_id: Annotated[str, Query(pattern=SHA)]):
++        _keys(request, {'target_trade_date', 'scope_id'})
++        try:
++            return service.get_announcements(_date(target_trade_date), scope_id=scope_id)
++        except (ValueError, RuntimeError, OSError, KeyError) as exc:
++            raise _failure(exc) from exc
++
++    @router.post(PREFIX + '/refresh', dependencies=[Depends(_explicit_same_origin)])
++    def refresh(request: Request, target_trade_date: str,
++                issuer_codes: Annotated[list[str], Query(min_length=1, max_length=24)],
++                resume: bool = False):
++        _keys(request, {'target_trade_date', 'issuer_codes', 'resume'})
++        if (len(set(issuer_codes)) != len(issuer_codes)
++                or any(re.fullmatch(r'HK\.[0-9]{5}', code) is None for code in issuer_codes)):
++            raise HTTPException(422, 'ISSUER_CODES_INVALID')
++        try:
++            return service.refresh_announcements(
++                _date(target_trade_date), issuer_codes=issuer_codes, resume=resume)
++        except (ValueError, RuntimeError, OSError, KeyError) as exc:
++            raise _failure(exc) from exc
++
++    @router.get(PREFIX + '/body')
++    def body(request: Request, target_trade_date: str,
++             scope_id: Annotated[str, Query(pattern=SHA)],
++             product_sha256: Annotated[str, Query(pattern=SHA)],
++             event_id: Annotated[str, Query(pattern=SHA)]):
++        _keys(request, {'target_trade_date', 'scope_id', 'product_sha256', 'event_id'})
++        date = _date(target_trade_date)
++        try:
++            # Same owner transaction as refresh: bind projection and exact saved
++            # product together; a concurrent revision cannot switch the body.
++            with service.store._transaction(date, 'workspace-announcements'):
++                projected = service.get_announcements(date, scope_id=scope_id)
++                identity = projected.get('product_identity') or {}
++                if identity.get('sha256') != product_sha256 or identity.get('consumed') is not True:
++                    raise HTTPException(409, 'PRODUCT_IDENTITY_OR_CONSUMPTION_MISMATCH')
++                visible = [row for row in projected.get('official_documents', [])
++                           if row.get('event_id') == event_id and row.get('body_status') == 'BODY_PARSED']
++                if len(visible) != 1:
++                    raise HTTPException(404, 'SOURCE_VERIFIED_BODY_NOT_FOUND')
++                path = (service.store.root / 'workspace_announcements' / date
++                        / 'issuer_subsets' / scope_id / 'latest.json')
++                product = validate_product(service.store._read(path), date)
++                if (product['sha256'] != product_sha256 or product.get('scope_id') != scope_id
++                        or product.get('capture_scope') != TARGETED_HKEX_SCOPE):
++                    raise HTTPException(409, 'PRODUCT_BINDING_CHANGED')
++                docs = [doc for doc in product['documents']
++                        if digest([doc['code'], doc['row']['url']]) == event_id]
++                if len(docs) != 1 or docs[0].get('parse_status') != 'BODY_PARSED':
++                    raise HTTPException(404, 'SOURCE_VERIFIED_BODY_NOT_FOUND')
++                doc = docs[0]
++                ref = doc['body_ref']
++                if ref['request'] != {'url': doc['row']['url'], 'method': 'GET'}:
++                    raise ValueError('ANNOUNCEMENT_DOCUMENT_URL_MISMATCH')
++                raw = read_response(service._material_store, ref)
++                pages = _cached_extract_pdf_pages(raw, max_bytes=MAX_BYTES, max_pages=40,
++                                                 max_text_characters=240000, timeout_seconds=10)
++                if not pages or visible[0].get('document_sha256') != ref['body_sha256']:
++                    raise ValueError('ANNOUNCEMENT_BODY_READABILITY_DERIVATION_MISMATCH')
++                return dict(status='BODY_PARSED', target_trade_date=date, scope_id=scope_id,
++                            product_sha256=product_sha256, event_id=event_id,
++                            title=doc['row']['document_title'], source_url=doc['row']['url'],
++                            published_at=doc['row']['published_at'], retrieved_at=ref['retrieved_at'],
++                            available_at=ref['retrieved_at'], document_sha256=ref['body_sha256'],
++                            query_cutoff=product['query_context']['research_cutoff'],
++                            capture_cutoff=product['context']['research_cutoff'],
++                            late_acquisition=visible[0].get('late_acquisition'), pages=pages, **FLAGS)
++        except HTTPException:
++            raise
++        except (ValueError, RuntimeError, OSError, KeyError, TypeError) as exc:
++            raise _failure(exc) from exc
++
++    return router
+--- /dev/null
++++ b/v4/manager_research/hkex_runtime.py
+@@ -0,0 +1,45 @@
++"""Lifecycle binding for the original bounded HKEX source owner only."""
++from contextlib import asynccontextmanager
++from pathlib import Path
++
++from .hkex_provider import HkexOfficialProvider
++from .materials import MaterialStore
++from .service import ManagerResearchJobService
++from .store import ManagerResearchStore
++
++
++def create_hkex_service(*, manager_root, security_master_root):
++    root = Path(manager_root)
++    materials = MaterialStore(root / 'materials')
++    provider = HkexOfficialProvider(material_store=materials)
++    return ManagerResearchJobService(
++        ManagerResearchStore(root), observation_reader=None, source_provider=provider,
++        material_store=materials, workspace_security_master_root=security_master_root,
++    )
++
++
++def assemble_hkex_announcements_api(app, *, manager_root, security_master_root, service=None):
++    from apps.api.v35_api.hkex_announcements_router import create_hkex_announcements_router
++
++    if getattr(app.state, 'hkex_announcements_service', None) is not None:
++        raise RuntimeError('HKEX_ANNOUNCEMENTS_ALREADY_BOUND')
++    service = service or create_hkex_service(
++        manager_root=manager_root, security_master_root=security_master_root)
++    if (service._material_store is None
++            or service.source_provider._material_store is not service._material_store):
++        service.close()
++        raise RuntimeError('HKEX_ORIGINAL_SHARED_STORE_NOT_BOUND')
++    app.state.hkex_announcements_service = service
++    app.include_router(create_hkex_announcements_router(service))
++    previous = app.router.lifespan_context
++
++    @asynccontextmanager
++    async def lifespan(instance):
++        try:
++            async with previous(instance):
++                yield
++        finally:
++            service.close()
++
++    app.router.lifespan_context = lifespan
++    return service
+--- a/v4/manager_research/hkex_provider.py
++++ b/v4/manager_research/hkex_provider.py
+@@ -714,7 +714,9 @@
+                                    max_issuers=3, max_documents=4, budget=None,
+                                    reusable_documents=None):
+         """Original official transport/store, bounded native-master scope; no Stage."""
+-        from .announcement_source import collect_batch
++        from .announcement_source import collect_batch, CaptureBudget
++        if budget is None and context.get('targeted_source_window'):
++            budget = CaptureBudget()
+         return collect_batch(self, context=context, issuers=issuers,
+                              pending_documents=pending_documents, max_issuers=max_issuers,
+                              max_documents=max_documents, budget=budget,
+--- a/v4/manager_research/announcement_source.py
++++ b/v4/manager_research/announcement_source.py
+@@ -741,7 +741,7 @@
+             budget.before_request()
+         response=provider._request(req['url'],method=req['method'],
+             body=b64decode(req['body_b64']) if req.get('body_b64') else None,
+-            headers={'Content-Type':'application/x-www-form-urlencoded','Referer':req['referer']} if req['method']=='POST' else None,
++            headers={'Content-Type':'application/x-www-form-urlencoded','Referer':req['referer']} if req['method']=='POST' else ({'Referer':req['referer']} if req.get('referer') else None),
+             cache_response=req.get('cache_policy')!='SESSION_PRIME')
+         _time(response.retrieved_at)
+         return dict(body=_encode_envelope(response),retrieved_at=response.retrieved_at,
+@@ -884,20 +884,40 @@
+                 req=query_request(match,context)
+                 # Preserve the existing cookie/form priming flow, and its raw bytes.
+                 q['prime_ref']=capture(provider,dict(url=req['referer'],method='GET',context=req['context'],cache_policy='SESSION_PRIME'), budget=budget)
+-                ref=capture(provider,req,budget=budget);q['directory_ref']=ref
+-                raw=read_response(provider._material_store,ref)
+-                if not 200<=ref['http_status']<300:raise ValueError('ANNOUNCEMENT_DIRECTORY_HTTP_FAILED')
+-                found,rejected,reason=directory_entries(
+-                    raw, symbol, context,
+-                    expected_stock_id=q['official_issuer']['stock_id'],
+-                )
+-                q.update(status='OBSERVED',entries=found,rejected=rejected,reason=reason)
++                from .hkex_directory_protocol import is_search_shell, capture_servlet_query
++                prime_raw=read_response(provider._material_store,q['prime_ref'])
++                # Only the explicit issuer-subset contract opts into this adapter.
++                # Existing daily and Eastmoney owners retain their current paths.
++                if (context.get('targeted_source_window') and q['prime_ref']['http_status']==200
++                        and is_search_shell(prime_raw)):
++                    q['directory_ref']=q['prime_ref']
++                    capture_servlet_query(provider,q,context,budget)
++                    ref=q['directory_ref'];found=q['entries']
++                else:
++                    ref=capture(provider,req,budget=budget);q['directory_ref']=ref
++                    raw=read_response(provider._material_store,ref)
++                    if not 200<=ref['http_status']<300:raise ValueError('ANNOUNCEMENT_DIRECTORY_HTTP_FAILED')
++                    found,rejected,reason=directory_entries(
++                        raw, symbol, context,
++                        expected_stock_id=q['official_issuer']['stock_id'],
++                    )
++                    q.update(status='OBSERVED',entries=found,rejected=rejected,reason=reason)
+                 for row in found:todo.append(dict(code=symbol,name=issuer['name'],row=row,
+                     directory_ref=ref,mapping_ref=mapping_ref,official_issuer=match))
+-            except CaptureBudgetExpired:
++            except CaptureBudgetExpired as exc:
++                request=q.pop('pending_protocol_request',None)
++                if request is None:break
++                q['reason']=safe_reason(exc,'ANNOUNCEMENT_ISSUER_QUERY_FAILED')
++                q['capture_failure']=dict(request=deepcopy(request),reason=q['reason'],
++                    exception_type=type(exc).__name__,outcome='BUDGET_REFUSED_BEFORE_PROVIDER_CALL')
++                queries.append(q)
+                 break
+             except (ValueError,RuntimeError,OSError,KeyError,TypeError) as exc:
+                 q['reason']=safe_reason(exc,'ANNOUNCEMENT_ISSUER_QUERY_FAILED')
++                request=q.pop('pending_protocol_request',None)
++                if request is not None:
++                    q['capture_failure']=dict(request=deepcopy(request),reason=q['reason'],
++                        exception_type=type(exc).__name__,outcome='NO_RESPONSE_REFERENCE_RETURNED')
+             queries.append(q)
+     reusable_documents = reusable_documents or {}
+     for item in todo[:max_documents]:
+--- /dev/null
++++ b/v4/manager_research/hkex_directory_protocol.py
+@@ -0,0 +1,442 @@
++"""Original HKEX provider's executed-directory adapter, with conservative pagination.
++
++The uploaded HTTP200 pages are JS search shells, not executed zero-result pages.
++A fallback is permitted only after the same official transport retrieves the
++research script actually referenced by the shell and its source binds the
++allowlisted GET servlet. No JS is executed; no third-party endpoint, challenge
++bypass or new HTTP client is used. JSON positive fixtures are synthetic;
++native protocol acceptance is a Mac gate.
++"""
++from __future__ import annotations
++from datetime import datetime, timezone, timedelta
++from html import unescape
++from typing import Mapping, Any, Callable
++from urllib.parse import urlencode, urljoin, urlparse, unquote
++import json
++import re
++
++LEGACY_PROTOCOL='HKEX_SERVLET_CUMULATIVE_V1'
++PROTOCOL='HKEX_SERVLET_ALL_SELECTION_V2'
++SELECTION_SCRIPT_URL='https://www1.hkexnews.hk/ncms/js/titlesearch.js'
++# Reviewed official source: ALL -> ResetDocumentTypeDDL/ResetHeadlineDDL.
++# New/changed source must be reviewed; a syntactically valid script is not enough.
++SELECTION_SCRIPT_SHA256='abba9c4103523220e47ba1436487872b0069d487ee3e3cb12ae7d909303a4817'
++RESEARCH_SCRIPT_PATH='/ncms/js/titlesearch_research.js'
++RESEARCH_SCRIPT_URL='https://www1.hkexnews.hk'+RESEARCH_SCRIPT_PATH
++SERVLET_URL='https://www1.hkexnews.hk/search/titleSearchServlet.do'
++RANGES=(100,300,600,1000,2000)
++HK=timezone(timedelta(hours=8))
++
++
++def is_search_shell(raw: bytes) -> bool:
++    from html.parser import HTMLParser
++    from .hkex_provider import TITLE_SEARCH_URL
++    class Shell(HTMLParser):
++        def __init__(self):
++            super().__init__(); self.empty_flag=False; self.forms=[]; self.config=False; self.result_cell=False; self.scripts=[]
++        def handle_starttag(self,tag,attrs):
++            a=dict(attrs)
++            if tag=='input' and a.get('id')=='displayResultTable':
++                self.empty_flag=a.get('value','')==''
++            if tag=='form':
++                # Match literal endpoints, not a normalized path or arbitrary suffix.
++                # The optional session token is routing metadata, never a new URL.
++                action=a.get('action') or ''
++                endpoint=any(re.fullmatch(re.escape(base)+r'(?:;jsessionid=[-A-Za-z0-9][A-Za-z0-9._-]{0,255})?',action)
++                             for base in (urlparse(TITLE_SEARCH_URL).path,TITLE_SEARCH_URL))
++                self.forms.append(bool(endpoint and len(attrs)==len(a) and a.get('id')
++                                       and a.get('name')==a['id'] and (a.get('method') or '').lower()=='post'))
++            if tag=='script' and a.get('src'):
++                self.scripts.append(a['src'])
++                if a.get('src')=='/ncms/eds/titlesearch/config.js':self.config=True
++            if tag=='td' and 'release-time' in str(a.get('class','')).split():self.result_cell=True
++    p=Shell();p.feed(raw.decode('utf-8',errors='replace'))
++    research_scripts=[urljoin(TITLE_SEARCH_URL,src) for src in p.scripts
++                      if urlparse(urljoin(TITLE_SEARCH_URL,src)).path==RESEARCH_SCRIPT_PATH]
++    return (p.empty_flag and p.forms==[True] and p.config and not p.result_cell
++            and research_scripts==[RESEARCH_SCRIPT_URL])
++
++
++def research_script_request(page: bytes,context: Mapping[str,Any]) -> dict:
++    """Bind a GET to the one research script named by the captured search page."""
++    from html.parser import HTMLParser
++    from .hkex_provider import TITLE_SEARCH_URL
++    class Scripts(HTMLParser):
++        def __init__(self):super().__init__();self.sources=[]
++        def handle_starttag(self,tag,attrs):
++            if tag=='script':
++                src=dict(attrs).get('src')
++                if src:self.sources.append(src)
++    parser=Scripts();parser.feed(page.decode('utf-8',errors='replace'))
++    urls=[urljoin(TITLE_SEARCH_URL,src) for src in parser.sources
++          if urlparse(urljoin(TITLE_SEARCH_URL,src)).path==RESEARCH_SCRIPT_PATH]
++    if urls!=[RESEARCH_SCRIPT_URL]:raise ValueError('HKEX_OFFICIAL_RESEARCH_SCRIPT_UNCONFIRMED')
++    start,end=_aware(context['focus_window_start']),_aware(context['research_cutoff'])
++    return dict(url=urls[0],method='GET',referer=TITLE_SEARCH_URL,
++                context=dict(since=start.isoformat(),as_of=end.isoformat()))
++
++
++def selection_script_request(page: bytes, context: Mapping[str,Any]) -> dict:
++    """Bind ALL-selection semantics to the main script referenced by this page."""
++    from html.parser import HTMLParser
++    from .hkex_provider import TITLE_SEARCH_URL
++    class Scripts(HTMLParser):
++        def __init__(self):super().__init__();self.sources=[]
++        def handle_starttag(self,tag,attrs):
++            if tag=='script' and dict(attrs).get('src'):
++                self.sources.append(urljoin(TITLE_SEARCH_URL,dict(attrs)['src']))
++    parser=Scripts();parser.feed(page.decode('utf-8',errors='strict'))
++    urls=[url for url in parser.sources if urlparse(url).path=='/ncms/js/titlesearch.js']
++    if urls!=[SELECTION_SCRIPT_URL]:raise ValueError('HKEX_OFFICIAL_SELECTION_SCRIPT_UNCONFIRMED')
++    start,end=_aware(context['focus_window_start']),_aware(context['research_cutoff'])
++    return dict(url=urls[0],method='GET',referer=TITLE_SEARCH_URL,
++                context=dict(since=start.isoformat(),as_of=end.isoformat()))
++
++
++def attest_selection_script(raw: bytes) -> None:
++    from hashlib import sha256
++    if sha256(raw).hexdigest()!=SELECTION_SCRIPT_SHA256:
++        raise ValueError('HKEX_ALL_SELECTION_SCRIPT_CHANGED')
++
++
++def _protocol(q: Mapping[str,Any]) -> str:
++    value=q.get('directory_protocol')
++    if value not in (PROTOCOL,LEGACY_PROTOCOL):
++        raise ValueError('HKEX_DIRECTORY_PROTOCOL_INVALID')
++    if value==LEGACY_PROTOCOL and (q.get('selection_script_ref') is not None or q.get('form_directory_ref') is not None):
++        raise ValueError('HKEX_LEGACY_SELECTION_REFERENCE_UNEXPECTED')
++    return value
++
++
++def servlet_from_research_script(raw: bytes) -> str:
++    if len(raw)>2_000_000: raise ValueError('HKEX_PROTOCOL_SCRIPT_TOO_LARGE')
++    text=raw.decode('utf-8',errors='strict')
++    route=re.search(r"\bthis\.titleSearchServletPath\s*=\s*(['\"])titleSearchServlet\.do\1\s*;",text)
++    ajax=re.search(r"\$\s*\.\s*ajax\s*\(\s*\{(.*?)\}\s*\)\s*;?",text,re.S)
++    if not route or not ajax:
++        raise ValueError('HKEX_OFFICIAL_SEARCH_PROTOCOL_UNCONFIRMED')
++    request=ajax.group(1)
++    if not re.search(r"\btype\s*:\s*(['\"])GET\1",request) or not re.search(r"\burl\s*:\s*titleSearchServletPath\b",request):
++        raise ValueError('HKEX_OFFICIAL_SEARCH_PROTOCOL_UNCONFIRMED')
++    data=re.search(r"\bdata\s*:\s*\{(.*?)\}",request,re.S)
++    expected=(('sortDir','sortDir'),('sortByOptions','sortBy'),('category','category'),
++        ('market','market'),('stockId','stockId'),('documentType','documentType'),
++        ('fromDate','fromDate'),('toDate','toDate'),('title','title'),('searchType','searchType'),
++        ('t1code','t1code'),('t2Gcode','t2Gcode'),('t2code','t2code'),
++        ('rowRange','currLoadRecordCnt'),('lang','lang'))
++    if not data or any(not re.search(r'\b'+key+r'\s*:\s*'+value+r'\b',data.group(1)) for key,value in expected):
++        raise ValueError('HKEX_OFFICIAL_SEARCH_PROTOCOL_UNCONFIRMED')
++    return SERVLET_URL
++
++
++def _aware(value: str) -> datetime:
++    dt=datetime.fromisoformat(value.replace('Z','+00:00'))
++    if dt.tzinfo is None:raise ValueError('HKEX_QUERY_CLOCK_TIMEZONE_REQUIRED')
++    return dt.astimezone(HK)
++
++
++def _query_bounds(issuer,context,limit):
++    stock_id=str(issuer.get('stock_id',''))
++    if not re.fullmatch(r'[1-9][0-9]*',stock_id) or limit not in RANGES:
++        raise ValueError('HKEX_SERVLET_QUERY_ID_OR_LIMIT_INVALID')
++    start,end=_aware(context['focus_window_start']),_aware(context['research_cutoff'])
++    if not start < end or (end-start).days>370:raise ValueError('HKEX_SERVLET_QUERY_WINDOW_INVALID')
++    return stock_id,start,end
++
++
++def servlet_request(issuer: Mapping[str,Any],context: Mapping[str,Any],limit: int, *,
++                    protocol: str = PROTOCOL, form_raw: bytes | None = None) -> dict:
++    from .hkex_provider import TITLE_SEARCH_URL
++    stock_id,start,end=_query_bounds(issuer,context,limit)
++    if protocol not in (PROTOCOL,LEGACY_PROTOCOL):raise ValueError('HKEX_DIRECTORY_PROTOCOL_INVALID')
++    criteria=dict(category=0,stockId=stock_id,documentType=-1,
++        fromDate=start.strftime('%Y%m%d'),toDate=end.strftime('%Y%m%d'),title='',searchType=0,
++        t1code=-2,t2Gcode=-2,t2code=-2,lang='E')
++    if protocol==PROTOCOL:
++        if not isinstance(form_raw,bytes):raise ValueError('HKEX_ALL_FORM_ECHO_REQUIRED')
++        echo=attest_form_echo(form_raw,issuer,context)
++        # Official getTitleSearchCriteria reads these returned IDs, NOT the POST.
++        criteria=dict(category=echo['selectedSecurities'],stockId=echo['stockId'],
++            documentType=echo['selectedDocType'],fromDate=echo['startDate'].replace('-',''),
++            toDate=echo['endDate'].replace('-',''),title=echo['newsTitle'],searchType=echo['searchTypeInt'],
++            t1code=echo['tierOneId'],t2Gcode=echo['tierTwoGpId'],t2code=echo['tierTwoId'],lang=echo['lang'])
++    # Preserve the original parameter order, including immutable legacy requests.
++    query=urlencode(dict(sortDir=0,sortByOptions='DateTime',category=criteria['category'],market='SEHK',
++        stockId=criteria['stockId'],documentType=criteria['documentType'],fromDate=criteria['fromDate'],
++        toDate=criteria['toDate'],title=criteria['title'],searchType=criteria['searchType'],
++        t1code=criteria['t1code'],t2Gcode=criteria['t2Gcode'],t2code=criteria['t2code'],rowRange=limit,lang=criteria['lang']))
++    return dict(url=SERVLET_URL+'?'+query,method='GET',referer=TITLE_SEARCH_URL,
++                context=dict(since=start.isoformat(),as_of=end.isoformat()),protocol=protocol)
++
++
++def _pairs(pairs):
++    out={}
++    for k,v in pairs:
++        if k in out:raise ValueError('HKEX_DIRECTORY_DUPLICATE_JSON_KEY')
++        out[k]=v
++    return out
++
++
++def decode_page(raw: bytes,symbol: str,context: Mapping[str,Any],limit: int) -> dict:
++    from .hkex_provider import _safe_official_url
++    if len(raw)>8_000_000:raise ValueError('HKEX_DIRECTORY_BYTES_EXCEEDED')
++    if not re.fullmatch(r'HK\.\d{5}',symbol) or limit not in RANGES:
++        raise ValueError('HKEX_DIRECTORY_ID_INVALID')
++    try:
++        obj=json.loads(raw,object_pairs_hook=_pairs)
++        if (not isinstance(obj,dict) or type(obj.get('hasNextRow')) is not bool
++                or type(obj.get('rowRange')) is not int or obj['rowRange']!=limit or obj.get('lang')!='E'):
++            raise ValueError('HKEX_DIRECTORY_EXECUTED_ENVELOPE_UNVERIFIED')
++        if any(type(obj.get(key)) is not int or obj[key]<0 for key in ('loadedRecord','recordCnt')):
++            raise ValueError('HKEX_DIRECTORY_COUNTERS_INVALID')
++        result=obj.get('result')
++        if not isinstance(result,str):raise ValueError('HKEX_DIRECTORY_RESULT_JSON_STRING_REQUIRED')
++        rows=json.loads(result,object_pairs_hook=_pairs)
++        if not isinstance(rows,list) or len(rows)>limit:
++            raise ValueError('HKEX_DIRECTORY_ROW_COUNT_INVALID')
++        if not rows and (obj['hasNextRow'] or obj['loadedRecord']!=0 or obj['recordCnt']!=0):
++            raise ValueError('HKEX_DIRECTORY_EMPTY_RESPONSE_COUNTER_MISMATCH')
++    except (UnicodeError,json.JSONDecodeError,TypeError) as exc:
++        raise ValueError('HKEX_DIRECTORY_JSON_INVALID') from exc
++    start,end=_aware(context['focus_window_start']),_aware(context['research_cutoff'])
++    normalized=[];ids=set();urls=set()
++    for row in rows:
++        if not isinstance(row,dict):raise ValueError('HKEX_DIRECTORY_ROW_INVALID')
++        news=str(row.get('NEWS_ID',''))
++        if not re.fullmatch(r'\d+',news) or news in ids:raise ValueError('HKEX_DIRECTORY_NEWS_ID_INVALID_OR_DUPLICATE')
++        codes=[s for s in re.split(r'<br\s*/?>|\s+|,',str(row.get('STOCK_CODE',''))) if s]
++        if not codes or any(not re.fullmatch(r'\d{5}',c) for c in codes) or symbol[3:] not in codes or len(codes)!=len(set(codes)):
++            raise ValueError('HKEX_DIRECTORY_ISSUER_MISMATCH')
++        href=row.get('FILE_LINK')
++        if not isinstance(href,str):raise ValueError('HKEX_DIRECTORY_DOCUMENT_URL_INVALID')
++        url=urljoin(SERVLET_URL,unescape(href));parts=urlparse(url);path=unquote(parts.path)
++        if (not _safe_official_url(url) or not path.startswith('/listedco/listconews/')
++                or '..' in path.split('/') or parts.query or url in urls):
++            raise ValueError('HKEX_DIRECTORY_DOCUMENT_URL_INVALID_OR_DUPLICATE')
++        try:
++            published=datetime.strptime(str(row.get('DATE_TIME','')),'%d/%m/%Y %H:%M').replace(tzinfo=HK)
++        except ValueError as exc:raise ValueError('HKEX_DIRECTORY_PUBLICATION_INVALID') from exc
++        if not start.date() <= published.date() <= end.date():raise ValueError('HKEX_DIRECTORY_DATE_RANGE_MISMATCH')
++        title=row.get('TITLE');name=row.get('STOCK_NAME')
++        if not isinstance(title,str) or not title.strip() or not isinstance(name,str) or not name.strip():
++            raise ValueError('HKEX_DIRECTORY_TITLE_OR_NAME_INVALID')
++        ids.add(news);urls.add(url)
++        normalized.append(dict(published_at=published.isoformat(timespec='minutes'),release_time=row['DATE_TIME'],
++            stock_code=symbol[3:],stock_name=unescape(name),source_stock_codes=codes,news_id=news,
++            headline=unescape(str(row.get('LONG_TEXT',''))),document_title=unescape(title),url=url))
++    # Cumulative query is frozen to an immutable cutoff; stable order/prefix is checked between requests.
++    return {'rows':normalized,'has_next':obj['hasNextRow'],'row_range':limit}
++
++
++def filter_rows(rows,symbol,context):
++    start,end=_aware(context['focus_window_start']),_aware(context['research_cutoff'])
++    retained=[];rejected=[]
++    for row in rows:
++        published=_aware(row['published_at'])
++        reason=('AT_OR_BEFORE_WINDOW_START' if published<=start else
++                'PUBLICATION_AFTER_QUERY_CUTOFF' if published>end else None)
++        if reason:rejected.append({'reason':reason,'row':row})
++        else:retained.append(row)
++    return sorted(retained,key=lambda x:(x['published_at'],x['url'])),rejected,(
++        'OBSERVED_DIRECTORY_ROWS' if rows else 'NO_ROWS_IN_OBSERVED_RESPONSE')
++
++
++def _captured_form_raw(q,context,read):
++    if _protocol(q)==LEGACY_PROTOCOL:return None
++    ref=q.get('form_directory_ref')
++    if (not isinstance(ref,dict) or ref.get('http_status')!=200
++            or ref.get('request')!=all_form_request(q['official_issuer'],context)):
++        raise ValueError('HKEX_ALL_FORM_REQUEST_BINDING_INVALID')
++    return read(ref)
++
++
++def _state_from_pages(q,context,read:Callable) -> tuple[list, bool]:
++    pages=q.get('directory_pages');previous=[];terminal=False
++    if not isinstance(pages,list) or not 1<=len(pages)<=len(RANGES):
++        raise ValueError('HKEX_DIRECTORY_PAGE_CHAIN_INVALID')
++    form_raw=_captured_form_raw(q,context,read)
++    for index,ref in enumerate(pages):
++        if terminal:raise ValueError('HKEX_DIRECTORY_PAGE_AFTER_TERMINAL')
++        limit=RANGES[index]
++        if ref['request']!=servlet_request(q['official_issuer'],context,limit,protocol=_protocol(q),form_raw=form_raw):
++            raise ValueError('HKEX_DIRECTORY_REQUEST_BINDING_MISMATCH')
++        raw=read(ref)
++        if ref['http_status']!=200:raise ValueError('ANNOUNCEMENT_DIRECTORY_HTTP_FAILED')
++        page=decode_page(raw,q['code'],context,limit);rows=page['rows']
++        if rows[:len(previous)]!=previous:raise ValueError('HKEX_DIRECTORY_CUMULATIVE_PREFIX_CHANGED')
++        if index and page['has_next'] and len(rows)<=len(previous):
++            raise ValueError('HKEX_DIRECTORY_PAGINATION_NO_PROGRESS')
++        # At an exact range boundary confirm again at a larger range, even if hasNextRow says false.
++        terminal=not page['has_next'] and len(rows)<limit
++        previous=rows
++    return previous,terminal
++
++
++def all_form_request(issuer, context):
++    """Actual TitleSearchPanel ALL form, attested by the pinned official script.
++
++    The posted form and server's echoed criteria are separate evidence. Never
++    assume the browser's reset values were echoed without checking the HTML.
++    """
++    from .hkex_provider import TITLE_SEARCH_URL
++    # Same identity/range checks, without inventing an echo for a not-yet-posted form.
++    _,since,as_of=_query_bounds(issuer,context,RANGES[0])
++    form=urlencode(dict(lang='EN',category='0',market='SEHK',searchType='0',
++        documentType='',t1code='',t2Gcode='',t2code='',stockId=issuer['stock_id'],
++        **{'from':since.strftime('%Y%m%d'),'to':as_of.strftime('%Y%m%d')},title=''))
++    from base64 import b64encode
++    return dict(url=TITLE_SEARCH_URL+'?lang=en',method='POST',body_b64=b64encode(form.encode('ascii')).decode(),referer=TITLE_SEARCH_URL,
++                context=dict(since=since.isoformat(),as_of=as_of.isoformat()))
++
++
++def attest_form_echo(raw, issuer, context):
++    """Require actual server echoes, not an invented intermediate browser DOM."""
++    from html.parser import HTMLParser
++    expected={'stockId':str(issuer['stock_id']), 'searchTypeInt':'0','selectedSecurities':'0',
++       'selectedDocType':'','tierOneId':'','tierTwoGpId':'','tierTwoId':'','newsTitle':'','lang':'E',
++       'startDate':_aware(context['focus_window_start']).strftime('%Y-%m-%d'),
++       'endDate':_aware(context['research_cutoff']).strftime('%Y-%m-%d')}
++    class Inputs(HTMLParser):
++        def __init__(self):super().__init__();self.values={}
++        def handle_starttag(self,tag,attrs):
++            a=dict(attrs);key=a.get('id')
++            if tag=='input' and any(k=='id' and v in expected for k,v in attrs):
++                if len(attrs)!=len(a) or a.get('type')!='hidden':
++                    raise ValueError('HKEX_FORM_ECHO_AMBIGUOUS_INPUT')
++                if key in self.values:raise ValueError('HKEX_FORM_ECHO_DUPLICATE')
++                # HTML input.value is empty when the value attribute is absent.
++                # The input element itself must still exist exactly once.
++                self.values[key]=a.get('value','')
++    p=Inputs();p.feed(raw.decode('utf-8',errors='strict'))
++    # Keep the complete unnormalized representation for compatibility; the new
++    # complete sentinel vector is witnessed in the immutable HK.00002/3 POSTs.
++    # Never accept per-field mixtures, arbitrary filters, or a different scope.
++    normalized={**expected,'selectedDocType':'-1','tierOneId':'-2','tierTwoGpId':'-2','tierTwoId':'-2'}
++    if p.values not in (expected,normalized):raise ValueError('HKEX_ALL_FORM_ECHO_MISMATCH')
++    return p.values
++
++
++def capture_servlet_query(provider,q:dict,context,budget=None):
++    """Capture witnessed ALL form, validate returned criteria, then execute GET."""
++    from .announcement_source import capture,read_response
++    q.update(directory_protocol=PROTOCOL,directory_pages=[],directory_exhaustion_verified=False,
++             legacy_directory_ref=q.get('directory_ref'),directory_ref=None,protocol_ref=None,
++             selection_script_ref=None,form_directory_ref=None)
++    page_raw=read_response(provider._material_store,q['legacy_directory_ref'])
++    def acquire(field,request,http_error):
++        q['pending_protocol_request']=request
++        q[field]=capture(provider,request,budget=budget)
++        q.pop('pending_protocol_request',None)
++        if q[field]['http_status']!=200:raise ValueError(http_error)
++        return read_response(provider._material_store,q[field])
++    main=acquire('selection_script_ref',selection_script_request(page_raw,context),'HKEX_SELECTION_SCRIPT_HTTP_FAILED')
++    attest_selection_script(main)
++    form_raw=acquire('form_directory_ref',all_form_request(q['official_issuer'],context),'HKEX_ALL_FORM_HTTP_FAILED')
++    attest_form_echo(form_raw,q['official_issuer'],context)
++    script=acquire('protocol_ref',research_script_request(form_raw,context),'HKEX_PROTOCOL_SCRIPT_HTTP_FAILED')
++    servlet_from_research_script(script)
++    previous=[];terminal=False
++    for limit in RANGES:
++        request=servlet_request(q['official_issuer'],context,limit,form_raw=form_raw)
++        q['pending_protocol_request']=request
++        ref=capture(provider,request,budget=budget)
++        q.pop('pending_protocol_request',None)
++        q['directory_pages'].append(ref);q['directory_ref']=ref
++        rows,terminal=_state_from_pages(q,context,lambda r:read_response(provider._material_store,r))
++        previous=rows
++        if terminal:break
++    entries,rejected,reason=filter_rows(previous,q['code'],context)
++    q.update(entries=entries,rejected=rejected,reason=reason,status='OBSERVED',directory_exhaustion_verified=terminal)
++
++
++def _attest_query_sources(q,context,checked,legacy_raw):
++    """Return first uncaptured request; a missing step cannot be jumped over."""
++    if _protocol(q)==LEGACY_PROTOCOL:
++        steps=[('protocol_ref',lambda:research_script_request(legacy_raw,context),
++                servlet_from_research_script,'HKEX_PROTOCOL_SCRIPT_HTTP_FAILED')]
++    else:
++        state={}
++        def form_check(raw):
++            attest_form_echo(raw,q['official_issuer'],context);state['form_raw']=raw
++        steps=[('selection_script_ref',lambda:selection_script_request(legacy_raw,context),
++                attest_selection_script,'HKEX_SELECTION_SCRIPT_HTTP_FAILED'),
++               ('form_directory_ref',lambda:all_form_request(q['official_issuer'],context),
++                form_check,'HKEX_ALL_FORM_HTTP_FAILED'),
++               ('protocol_ref',lambda:research_script_request(state['form_raw'],context),
++                servlet_from_research_script,'HKEX_PROTOCOL_SCRIPT_HTTP_FAILED')]
++    for index,(key,expected_fn,attest,http_error) in enumerate(steps):
++        expected=expected_fn();ref=q.get(key)
++        if ref is None:
++            if any(q.get(later[0]) is not None for later in steps[index+1:]) or q.get('directory_pages'):
++                raise ValueError('HKEX_PROTOCOL_SOURCE_SEQUENCE_INVALID')
++            return expected
++        if ref.get('request')!=expected:raise ValueError('HKEX_PROTOCOL_SCRIPT_BINDING_INVALID')
++        raw=checked(ref)
++        if ref.get('http_status')!=200:raise ValueError(http_error)
++        attest(raw)
++    return None
++
++
++def revalidate_servlet_query(q,context,checked):
++    """Re-read current and historical captures without network or clock rewrite.
++
++    Legacy acceptance means stored-request integrity only, NOT evidence that
++    its -1/-2 filters were equivalent to the official ALL query.
++    """
++    from .announcement_source import query_request,safe_reason
++    protocol=_protocol(q)
++    legacy=q.get('legacy_directory_ref')
++    expected_shell=query_request(q['official_issuer'],context)
++    if protocol==PROTOCOL:
++        expected_shell=dict(url=expected_shell['referer'],method='GET',
++                            context=expected_shell['context'],cache_policy='SESSION_PRIME')
++        if legacy!=q.get('prime_ref'):raise ValueError('HKEX_DIRECTORY_SHELL_BINDING_INVALID')
++    if not legacy or legacy['request']!=expected_shell or legacy['http_status']!=200:
++        raise ValueError('HKEX_DIRECTORY_SHELL_BINDING_INVALID')
++    legacy_raw=checked(legacy)
++    if not is_search_shell(legacy_raw):raise ValueError('HKEX_DIRECTORY_SHELL_NOT_REPRODUCIBLE')
++    pages=q.get('directory_pages')
++    if not isinstance(pages,list) or q.get('directory_ref') != (pages[-1] if pages else None):
++        raise ValueError('HKEX_DIRECTORY_LAST_PAGE_BINDING_MISMATCH')
++    failure=q.get('capture_failure')
++    if failure is not None:
++        if (not isinstance(failure,dict)
++                or set(failure)!={'request','reason','exception_type','outcome'}
++                or not isinstance(failure.get('request'),dict)
++                or not isinstance(failure.get('reason'),str)
++                or failure['reason']!=q.get('reason')
++                or not re.fullmatch(r'[A-Z][A-Z0-9_]{3,100}(?::[A-Za-z][A-Za-z0-9_]{0,80})?',str(failure.get('reason','')))
++                or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,80}',str(failure.get('exception_type','')))):
++            raise ValueError('HKEX_CAPTURE_FAILURE_WITNESS_INVALID')
++        if (q.get('status')!='FAILED' or q.get('entries') or q.get('rejected')
++                or q.get('directory_exhaustion_verified') is not False):
++            raise ValueError('HKEX_BUDGET_PARTIAL_QUERY_INVALID')
++        budget_reasons={'ANNOUNCEMENT_TIME_BUDGET_EXHAUSTED','ANNOUNCEMENT_REQUEST_BUDGET_EXHAUSTED'}
++        if failure.get('outcome')=='BUDGET_REFUSED_BEFORE_PROVIDER_CALL':
++            if failure['exception_type']!='CaptureBudgetExpired' or failure['reason'] not in budget_reasons:
++                raise ValueError('HKEX_CAPTURE_FAILURE_WITNESS_INVALID')
++        elif (failure.get('outcome')!='NO_RESPONSE_REFERENCE_RETURNED'
++                or failure['exception_type']=='CaptureBudgetExpired' or failure['reason'] in budget_reasons):
++            raise ValueError('HKEX_CAPTURE_FAILURE_WITNESS_INVALID')
++        pending=_attest_query_sources(q,context,checked,legacy_raw)
++        if pending is None:
++            if pages:
++                _,terminal=_state_from_pages(q,context,checked)
++                if terminal or len(pages)>=len(RANGES):raise ValueError('HKEX_BUDGET_PARTIAL_AFTER_TERMINAL_PAGE')
++            pending=servlet_request(q['official_issuer'],context,RANGES[len(pages)],protocol=protocol,
++                                    form_raw=_captured_form_raw(q,context,checked))
++        if failure['request']!=pending:raise ValueError('HKEX_CAPTURE_FAILURE_REQUEST_MISMATCH')
++        return
++    try:
++        if _attest_query_sources(q,context,checked,legacy_raw) is not None:
++            raise ValueError('HKEX_PROTOCOL_SCRIPT_BINDING_INVALID')
++        rows,terminal=_state_from_pages(q,context,checked)
++    except (ValueError,RuntimeError,OSError,KeyError,TypeError) as exc:
++        if (q.get('status')!='FAILED' or q.get('reason')!=safe_reason(exc,'ANNOUNCEMENT_ISSUER_QUERY_FAILED')
++                or q.get('entries') or q.get('rejected') or q.get('directory_exhaustion_verified') is not False):
++            raise ValueError('HKEX_FAILED_DIRECTORY_DERIVATION_MISMATCH') from exc
++        return
++    entries,rejected,reason=filter_rows(rows,q['code'],context)
++    if (q.get('status')!='OBSERVED' or q.get('entries')!=entries or q.get('rejected')!=rejected
++            or q.get('reason')!=reason or q.get('directory_exhaustion_verified') is not terminal):
++        raise ValueError('HKEX_DIRECTORY_DERIVATION_MISMATCH')
+--- a/v4/manager_research/workspace_announcements.py
++++ b/v4/manager_research/workspace_announcements.py
+@@ -356,7 +356,10 @@
+             request=query_request(q['official_issuer'],query_context)
+             if q['prime_ref']['request']!=dict(url=request['referer'],method='GET',context=request['context'],cache_policy='SESSION_PRIME'):
+                 raise ValueError('ANNOUNCEMENT_QUERY_PRIME_MISMATCH')
+-        if q.get('directory_ref'):
++        if q.get('directory_protocol'):
++            from .hkex_directory_protocol import revalidate_servlet_query
++            revalidate_servlet_query(q,query_context,checked)
++        elif q.get('directory_ref'):
+             ref=q['directory_ref'];raw=checked(ref)
+             if ref['request']!=query_request(q['official_issuer'],query_context):
+                 raise ValueError('ANNOUNCEMENT_QUERY_WINDOW_OR_ISSUER_MISMATCH')
+--- /dev/null
++++ b/tests/test_hkex_announcements_runtime_adapter.py
+@@ -0,0 +1,337 @@
++"""Current owner integration; captured positives are external local fixtures.
++
++No test makes a network request. Fixture time/window changes are synthetic and
++do not replace the separately reviewed real positive-control capture.
++"""
++from copy import deepcopy
++from datetime import datetime
++from pathlib import Path
++import json
++import os
++import socket
++import sys
++import hashlib
++import importlib.util
++from contextlib import contextmanager
++from types import SimpleNamespace
++
++from fastapi import FastAPI
++from fastapi.testclient import TestClient
++import pytest
++
++from v4.manager_research import announcement_source as source
++from v4.manager_research import workspace_announcements as owner
++from v4.manager_research.hkex_provider import HkexOfficialProvider
++from v4.manager_research.hkex_runtime import assemble_hkex_announcements_api, create_hkex_service
++from v4.manager_research.materials import MaterialStore
++from v4.manager_research.ports import SourceResponse
++from v4.manager_research.service import ManagerResearchJobService
++from v4.manager_research.store import ManagerResearchStore
++from v4.manager_research.workspace_projection import FLAGS
++
++PREFIX = '/api/v4/manager/research/announcements'
++NATIVE_MASTER = owner._master
++
++
++@pytest.fixture(autouse=True)
++def no_network(monkeypatch):
++    def denied(*args, **kwargs):
++        pytest.fail('NETWORK_NOT_ALLOWED_IN_ADAPTER_TEST')
++    monkeypatch.setattr(socket.socket, 'connect', denied)
++    monkeypatch.setattr(socket.socket, 'connect_ex', denied)
++
++
++@pytest.fixture
++def setup_owner(tmp_path, monkeypatch):
++    evidence = Path(os.environ.get('HKEX_EVIDENCE_ROOT', '/not-configured'))
++    receipt = evidence / 'positive-control-00002-20260901-20260928/original_owner_attempt.json'
++    if not receipt.is_file():
++        pytest.skip('Set HKEX_EVIDENCE_ROOT to the frozen local evidence root')
++    saved = json.loads(receipt.read_bytes())
++    original_store = MaterialStore(receipt.parent / 'materials')
++    q = saved['result']['queries'][0]
++    mapping = source.read_response(original_store, q['mapping_ref'])
++    html = source.read_response(original_store, q['directory_ref'])
++    pdfs = {d['row']['url']: source.read_response(original_store, d['body_ref'])
++            for d in saved['result']['documents']}
++    state = {'mode': 'html', 'calls': []}
++
++    def transport(url, **kwargs):
++        state['calls'].append((url, kwargs.get('method', 'GET')))
++        if 'activestock_sehk_e.json' in url:
++            raw = mapping
++        elif url in pdfs:
++            raw = pdfs[url]
++        elif state['mode'] == 'modern':
++            if url.endswith('/ncms/js/titlesearch.js'):
++                raw = (evidence / 'saved/selection_script_ref.js').read_bytes()
++            elif url.endswith('/ncms/js/titlesearch_research.js'):
++                raw = (evidence / 'saved/protocol_ref.js').read_bytes()
++            elif 'titleSearchServlet.do' in url:
++                raw = (evidence / 'saved/directory_ref.json').read_bytes()
++            else:
++                raw = (evidence / 'saved/form_directory_ref.html').read_bytes()
++                raw = raw.replace(b'2026-09-24', b'2026-09-25')
++        else:
++            raw = html
++        return SourceResponse(url=url, final_url=url, status_code=200, body=raw,
++                              headers={}, retrieved_at='2026-10-23T14:47:30+00:00')
++
++    class FixtureProvider(HkexOfficialProvider):
++        def collect_announcement_batch(self, **kwargs):
++            return source.collect_batch(self, budget=source.CaptureBudget(interval=0), **kwargs)
++
++    materials = MaterialStore(tmp_path / 'state/materials')
++    provider = FixtureProvider(transport=transport, material_store=materials)
++    service = ManagerResearchJobService(ManagerResearchStore(tmp_path / 'state'), None, provider,
++        material_store=materials, workspace_security_master_root=tmp_path / 'master')
++    monkeypatch.setattr(owner, '_now', lambda: '2026-10-23T15:00:00+00:00')
++    names = {'HK.00002': {'name': 'CLP HOLDINGS'}}
++    witness = {'owner': 'TEST_VERIFIED_MASTER', 'source_date': '20260922', 'artifact_sha256': 'a' * 64}
++    monkeypatch.setattr(owner, '_master', lambda *_: (deepcopy(names), deepcopy(witness)))
++
++    def plan(date, now=None):
++        previous = '20260925' if date == '20260928' else '20260922'
++        close = f'{previous[:4]}-{previous[4:6]}-{previous[6:]}T16:10:00+08:00'
++        return dict(plan_trade_date=date, market_session=previous, market_session_close=close,
++                    focus_window_start=close, research_cutoff=now.isoformat(), **FLAGS)
++    monkeypatch.setattr(owner, 'plan_context', plan)
++    app = FastAPI()
++    assemble_hkex_announcements_api(app, manager_root=tmp_path / 'state',
++                                    security_master_root=tmp_path / 'master', service=service)
++    with TestClient(app) as client:
++        yield client, service, state, tmp_path
++    assert service._closed
++
++
++def refresh(client, date='20260923'):
++    response = client.post(PREFIX + '/refresh', params={'target_trade_date': date, 'issuer_codes': 'HK.00002'})
++    assert response.status_code == 200, response.text
++    return response.json()
++
++
++def test_factory_same_original_store_and_shutdown(tmp_path):
++    service = create_hkex_service(manager_root=tmp_path / 'state', security_master_root=tmp_path / 'master')
++    assert service.observation_reader is None
++    assert service._material_store is service.source_provider._material_store
++    assert not service._active
++    service.close()
++    assert service._closed
++
++
++def test_targeted_provider_uses_original_default_budget_only(monkeypatch):
++    received = []
++    monkeypatch.setattr(source, 'collect_batch', lambda *a, **kw: received.append(kw))
++    provider = HkexOfficialProvider(transport=lambda *a, **kw: None)
++    provider.collect_announcement_batch(context={'targeted_source_window': {'start': 'frozen'}}, issuers=[])
++    budget = received[-1]['budget']
++    assert (budget.seconds, budget.max_requests, budget.interval) == (45, 57, 0.5)
++    explicit = source.CaptureBudget(seconds=1, max_requests=1)
++    provider.collect_announcement_batch(context={'targeted_source_window': {}}, issuers=[], budget=explicit)
++    assert received[-1]['budget'] is explicit
++    provider.collect_announcement_batch(context={}, issuers=[])
++    assert received[-1]['budget'] is None
++
++
++@pytest.mark.parametrize('captured,accepted', [('2026-10-23T15:00:00+00:00', True),
++                                             ('2026-10-23T15:00:01+00:00', False)])
++def test_native_master_capture_cutoff_is_preserved(tmp_path, monkeypatch, captured, accepted):
++    from types import SimpleNamespace
++    from upstreams.v3_shared_data.shared_data import hk_security_master
++    names = {'HK.00002': {'name': 'CLP HOLDINGS', 'captured_at': captured}}
++    monkeypatch.setattr(hk_security_master, 'load_verified_hk_security_master',
++                        lambda *a: (names, {'artifact_sha256': 'a' * 64}))
++    service = SimpleNamespace(_workspace_security_master_root=tmp_path / 'master')
++    context = {'market_session': '20260922', 'research_cutoff': '2026-10-23T15:00:00+00:00'}
++    if accepted:
++        assert NATIVE_MASTER(service, context)[0] == names
++    else:
++        with pytest.raises(ValueError, match='MASTER_IDENTITY_OR_TIME_INVALID'):
++            NATIVE_MASTER(service, context)
++
++
++def test_html_refresh_directory_body_and_late_acquisition_readonly(setup_owner):
++    client, service, state, _ = setup_owner
++    result = refresh(client)
++    assert result['source_scope'] == 'HKEX_OFFICIAL_EXPLICIT_ISSUER_SUBSET'
++    assert result['coverage']['observed_document_count'] == 1
++    rows = result['official_documents']
++    assert len(rows) == 1 and rows[0]['body_status'] == 'BODY_PARSED'
++    assert rows[0]['late_acquisition'] is True
++    assert rows[0]['published_at'].startswith('2026-09-23')
++    assert rows[0]['retrieved_at'].startswith('2026-10-23')
++    calls = deepcopy(state['calls'])
++    query = {'target_trade_date': '20260923', 'scope_id': result['scope_id']}
++    readback = client.get(PREFIX, params=query).json()
++    assert readback['product_identity'] == result['product_identity']
++    body = client.get(PREFIX + '/body', params={**query,
++        'product_sha256': result['product_identity']['sha256'], 'event_id': rows[0]['event_id']})
++    assert body.status_code == 200, body.text
++    value = body.json()
++    assert value['status'] == 'BODY_PARSED'
++    assert sum(len(p['text']) for p in value['pages']) > 100
++    assert value['document_sha256'] == rows[0]['document_sha256']
++    assert state['calls'] == calls
++
++
++@pytest.mark.parametrize('attack', ['product', 'event', 'scope', 'date', 'arbitrary-url'])
++def test_body_requires_exact_consumed_product_and_event(setup_owner, attack):
++    client, service, state, _ = setup_owner
++    result = refresh(client)
++    query = dict(target_trade_date='20260923', scope_id=result['scope_id'],
++        product_sha256=result['product_identity']['sha256'], event_id=result['official_documents'][0]['event_id'])
++    if attack == 'product': query['product_sha256'] = 'b' * 64
++    elif attack == 'event': query['event_id'] = 'c' * 64
++    elif attack == 'scope': query['scope_id'] = 'd' * 64
++    elif attack == 'date': query['target_trade_date'] = '20260924'
++    else: query['url'] = 'https://evil.test/a.pdf'
++    calls = deepcopy(state['calls'])
++    assert client.get(PREFIX + '/body', params=query).status_code in {404, 409, 422}
++    assert state['calls'] == calls
++
++
++@pytest.mark.parametrize('attack', ['cross-origin', 'fetch-site', 'json-body', 'extra-query', 'duplicate-issuer', 'foreign-code', 'too-many'])
++def test_refresh_rejects_unsafe_or_unbounded_request_before_provider(setup_owner, attack):
++    client, _, state, _ = setup_owner
++    params = [('target_trade_date', '20260923'), ('issuer_codes', 'HK.00002')]
++    headers = {}; kwargs = {}
++    if attack == 'cross-origin': headers['Origin'] = 'https://evil.test'
++    elif attack == 'fetch-site': headers['Sec-Fetch-Site'] = 'cross-site'
++    elif attack == 'json-body': kwargs['json'] = {'url': 'https://evil.test/a.pdf'}
++    elif attack == 'extra-query': params.append(('blob', 'a' * 64))
++    elif attack == 'duplicate-issuer': params.append(('issuer_codes', 'HK.00002'))
++    elif attack == 'foreign-code': params[1] = ('issuer_codes', 'US.AAPL')
++    else: params = [('target_trade_date', '20260923')] + [('issuer_codes', f'HK.{n:05d}') for n in range(1, 26)]
++    assert client.post(PREFIX + '/refresh', params=params, headers=headers, **kwargs).status_code in {400, 403, 422}
++    assert state['calls'] == []
++
++
++def test_master_failure_is_not_bypassed(setup_owner, monkeypatch):
++    client, _, state, _ = setup_owner
++    def failed(*_): raise ValueError('ANNOUNCEMENT_NATIVE_MASTER_IDENTITY_OR_TIME_INVALID')
++    monkeypatch.setattr(owner, '_master', failed)
++    response = client.post(PREFIX + '/refresh', params={'target_trade_date': '20260923', 'issuer_codes': 'HK.00002'})
++    assert response.status_code == 409
++    assert 'MASTER' in response.text and state['calls'] == []
++
++
++def test_modern_targeted_empty_and_tampered_query_revalidation(setup_owner):
++    client, service, state, _ = setup_owner
++    state['mode'] = 'modern'
++    result = refresh(client, '20260928')
++    assert result['coverage']['failed_issuers'] == []
++    assert result['official_documents'] == []
++    path = service.store.root / 'workspace_announcements/20260928/issuer_subsets' / result['scope_id'] / 'latest.json'
++    product = service.store._read(path)
++    assert product['queries'][0]['directory_protocol'] == 'HKEX_SERVLET_ALL_SELECTION_V2'
++    assert product['queries'][0]['directory_exhaustion_verified'] is True
++    product['queries'][0]['directory_pages'][0]['request']['url'] += '&stockId=3'
++    service.store._write_atomic(path, owner._seal(product))
++    calls = deepcopy(state['calls'])
++    readback = client.get(PREFIX, params={'target_trade_date': '20260928', 'scope_id': result['scope_id']}).json()
++    assert readback['status'] == 'READBACK_FAILED'
++    assert state['calls'] == calls
++
++
++def test_tampered_original_pdf_fails_closed_without_repair(setup_owner):
++    client, service, state, tmp_path = setup_owner
++    result = refresh(client)
++    path = service.store.root / 'workspace_announcements/20260923/issuer_subsets' / result['scope_id'] / 'latest.json'
++    product = service.store._read(path)
++    blob = product['documents'][0]['body_ref']['blob_sha256']
++    (tmp_path / 'state/materials/blobs' / blob).write_bytes(b'altered source')
++    calls = deepcopy(state['calls'])
++    value = client.get(PREFIX, params={'target_trade_date': '20260923', 'scope_id': result['scope_id']}).json()
++    assert value['status'] == 'READBACK_FAILED'
++    assert state['calls'] == calls
++
++
++@pytest.fixture
++def deployment(tmp_path):
++    path = Path(__file__).resolve().parents[1] / 'ops/deploy_hkex_announcements_bounded.py'
++    spec = importlib.util.spec_from_file_location('test_bounded_hkex_deployment', path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    old = tmp_path / 'old'
++    (old / 'app').mkdir(parents=True)
++    plist = tmp_path / 'api.plist'
++    plist.write_bytes(b'active-original')
++    pre = dict(parent=str(old), candidate=str(tmp_path / 'new'), api_plist=str(plist),
++        runtime_python=sys.executable, runtime_pid=123, workbench_store_root=str(tmp_path / 'workbench'),
++        api_plist_sha256=hashlib.sha256(plist.read_bytes()).hexdigest())
++    (tmp_path / 'DEPLOYMENT_PRECONDITIONS.json').write_text(json.dumps(pre))
++    return module.Deployment(tmp_path), plist
++
++
++def test_deployment_stale_active_release_fails_inside_both_locks_before_copy(deployment, monkeypatch):
++    deploy, plist = deployment
++    held = []
++    @contextmanager
++    def lock(name):
++        held.append(name)
++        yield
++    helper = SimpleNamespace(
++        shared_api_release_lock=lambda *a, **kw: lock('api'),
++        announcement_flash_cutover_guard=lambda *a, **kw: lock('flash'),
++        read_active_release=lambda *a: {'release_root': '/some/newer/release'},
++    )
++    monkeypatch.setattr(deploy, 'source_guards', lambda: None)
++    monkeypatch.setattr(deploy, 'runtime', lambda *a: {'pid': 123})
++    monkeypatch.setattr(deploy, 'helper', lambda: helper)
++    with pytest.raises(AssertionError, match='ACTIVE_RELEASE_CHANGED'):
++        deploy.prepare()
++    assert held == ['api', 'flash']
++    assert not deploy.new.exists() and plist.read_bytes() == b'active-original'
++
++
++def test_deployment_activation_requires_review_gate_before_mutation(deployment, monkeypatch):
++    deploy, plist = deployment
++    monkeypatch.setattr(deploy, 'verify', lambda *a: (object(), {}, {}))
++    with pytest.raises(FileNotFoundError):
++        deploy.cutover()
++    assert plist.read_bytes() == b'active-original'
++
++
++def test_deployment_rollback_will_not_overwrite_a_newer_plist(deployment, monkeypatch):
++    deploy, plist = deployment
++    @contextmanager
++    def lock(*a, **kw): yield
++    helper = SimpleNamespace(shared_api_release_lock=lock, announcement_flash_cutover_guard=lock)
++    monkeypatch.setattr(deploy, 'verify', lambda *a: (helper, {'proposed_plist_sha256': 'not-current'}, {}))
++    with pytest.raises(AssertionError, match='PLIST_DRIFT_NO_OVERWRITE'):
++        deploy.cutover(rollback=True)
++    assert plist.read_bytes() == b'active-original'
++
++
++def test_prepare_emits_sorted_delta_accepted_by_retained_helper(deployment, monkeypatch):
++    from ops import api_release_integration as retained
++    deploy, plist = deployment
++    source_root = deploy.root / 'reviewed-source'
++    source_root.mkdir()
++    rows = []
++    for path in ['z.py', 'a.py']:
++        (source_root / path).write_text('unchanged reviewed bytes\n')
++        rows.append(dict(path=path, before_sha256=None,
++                         after_sha256=hashlib.sha256((source_root / path).read_bytes()).hexdigest()))
++    active = dict(release_root=str(deploy.old), app_root=str(deploy.old / 'app'), release_id='old',
++        release_manifest_path=str(deploy.old / 'release-manifest.json'), release_manifest_sha256='a' * 64,
++        application_inventory_sha256='b' * 64, application_inventory_entry_count=1)
++    deploy.pre.update(source_worktree=str(source_root), sources=rows, parent_manifest_sha256='a' * 64)
++    @contextmanager
++    def lock(*a, **kw): yield
++    class ValidatedBeforeAnyActivation(Exception): pass
++    def bounded_build(**kwargs):
++        receipt = json.loads(kwargs['delta_receipt_path'].read_bytes())
++        checked = retained._validate_delta_receipt(receipt, base_identity=active)
++        assert [row['path'] for row in checked] == ['a.py', 'z.py']
++        raise ValidatedBeforeAnyActivation()
++    helper = SimpleNamespace(shared_api_release_lock=lock, announcement_flash_cutover_guard=lock,
++        read_active_release=lambda *a: active, _diff_proof=retained._diff_proof,
++        _base_binding=retained._base_binding, DELTA_SCHEMA_VERSION=retained.DELTA_SCHEMA_VERSION,
++        build_integrated_app=bounded_build)
++    monkeypatch.setattr(deploy, 'source_guards', lambda: None)
++    monkeypatch.setattr(deploy, 'runtime', lambda *a: {'pid': 123})
++    monkeypatch.setattr(deploy, 'helper', lambda: helper)
++    with pytest.raises(ValidatedBeforeAnyActivation):
++        deploy.prepare()
++    assert plist.read_bytes() == b'active-original'
+--- /dev/null
++++ b/ops/deploy_hkex_announcements_bounded.py
+@@ -0,0 +1,246 @@
++"""Exact active-base API overlay. Preparation never changes the live plist.
++
++Activation/rollback are controller-only, retain both existing cutover locks,
++and refuse a changed active release instead of restoring a stale baseline.
++"""
++import argparse
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import plistlib
++import re
++import shutil
++import subprocess
++import sys
++import time
++import urllib.request
++
++sys.dont_write_bytecode = True
++
++
++def sha(path):
++    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
++
++
++def emit(path, value):
++    with path.open('x') as handle:
++        json.dump(value, handle, ensure_ascii=False, indent=2)
++        handle.write('\n')
++
++
++class Deployment:
++    def __init__(self, root):
++        self.root = root
++        self.pre = json.loads((root / 'DEPLOYMENT_PRECONDITIONS.json').read_bytes())
++        self.old = Path(self.pre['parent'])
++        self.new = Path(self.pre['candidate'])
++        self.plist = Path(self.pre['api_plist'])
++        self.backup = root / 'current-r2-api.plist'
++        self.proposal = root / 'candidate-api.plist'
++        self.receipt = root / 'DEPLOYMENT_PREPARED.json'
++        self.label = 'com.lexi.v35.api-only'
++        if Path(sys.executable).resolve() != Path(self.pre['runtime_python']).resolve():
++            raise RuntimeError('CURRENT_RUNTIME_PYTHON_REQUIRED')
++
++    def helper(self):
++        for path in reversed([str(self.old / 'app'), str(self.old / 'app/upstreams')]):
++            if path not in sys.path:
++                sys.path.insert(0, path)
++        source = self.old / 'app/ops/api_release_integration.py'
++        assert sha(source) == self.pre['helper_sha256'], 'INTEGRATION_HELPER_DRIFT'
++        spec = importlib.util.spec_from_file_location('retained_hkex_release_integration', source)
++        module = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(module)
++        contract = Path(self.pre['module_contract_path'])
++        assert sha(contract) == self.pre['module_contract_sha256'], 'MODULE_CONTRACT_DRIFT'
++        module.MODULE_CONTRACT_PATH = contract
++        return module
++
++    def source_guards(self):
++        assert sha(self.old / 'release-manifest.json') == self.pre['parent_manifest_sha256'], 'PARENT_MANIFEST_DRIFT'
++        assert sha(self.root / 'IMPLEMENTATION_SOURCE_MANIFEST.json') == self.pre['source_manifest_sha256'], 'SOURCE_MANIFEST_DRIFT'
++        for row in self.pre['sources']:
++            assert sha(Path(self.pre['source_worktree']) / row['path']) == row['after_sha256'], 'REVIEWED_SOURCE_DRIFT'
++            path = self.old / 'app' / row['path']
++            assert (sha(path) if path.exists() else None) == row['before_sha256'], 'ACTIVE_SOURCE_DRIFT'
++        for path, expected in self.pre['external_guards'].items():
++            assert sha(path) == expected, 'EXTERNAL_BINDING_DRIFT'
++
++    def runtime(self, app, expected_pid=None):
++        state = subprocess.run(['/bin/launchctl', 'print', 'gui/' + str(os.getuid()) + '/' + self.label],
++                               capture_output=True, text=True, check=True).stdout
++        match = re.search(r'\n\s*pid = (\d+)', state)
++        assert match, 'API_RUNNING_PID_MISSING'
++        pid = int(match.group(1))
++        assert expected_pid is None or pid == expected_pid, 'API_PID_CHANGED_REFREEZE_REQUIRED'
++        cwd = subprocess.run(['/usr/sbin/lsof', '-a', '-p', str(pid), '-d', 'cwd', '-Fn'],
++                             capture_output=True, text=True, check=True).stdout
++        assert 'n' + str(app) in cwd.splitlines(), 'API_CWD_MISMATCH'
++        return {'pid': pid, 'cwd': str(app)}
++
++    def prepare(self):
++        self.source_guards()
++        assert not any(p.exists() for p in [self.new, self.receipt, self.backup, self.proposal]), 'PREPARATION_EXISTS_DO_NOT_OVERWRITE'
++        module = self.helper()
++        with module.shared_api_release_lock(self.plist, timeout_seconds=2), module.announcement_flash_cutover_guard(
++                Path(self.pre['workbench_store_root']), timeout_seconds=2):
++            assert sha(self.plist) == self.pre['api_plist_sha256'], 'ACTIVE_PLIST_DRIFT'
++            running = self.runtime(self.old / 'app', self.pre['runtime_pid'])
++            self.source_guards()
++            active = module.read_active_release(self.plist)
++            assert active['release_root'] == str(self.old), 'ACTIVE_RELEASE_CHANGED'
++            assert active['release_manifest_sha256'] == self.pre['parent_manifest_sha256'], 'ACTIVE_MANIFEST_CHANGED'
++            delta_root = self.root / 'deployment-delta-source'
++            delta_root.mkdir()
++            entries = []
++            for row in sorted(self.pre['sources'], key=lambda row: row['path']):
++                source = Path(self.pre['source_worktree']) / row['path']
++                target = delta_root / row['path']
++                target.parent.mkdir(parents=True, exist_ok=True)
++                shutil.copy2(source, target)
++                before = self.old / 'app' / row['path']
++                proof = module._diff_proof(before.read_bytes(), source.read_bytes()) if before.exists() else (None, None)
++                entries.append(dict(path=row['path'], before_sha256=row['before_sha256'],
++                    after_sha256=row['after_sha256'], unified_diff_sha256=proof[0], unified_diff_hunk_count=proof[1]))
++            delta = self.root / 'deployment-delta-receipt.json'
++            emit(delta, dict(schema_version=module.DELTA_SCHEMA_VERSION, base=module._base_binding(active), entries=entries))
++            self.new.mkdir()
++            integration = module.build_integrated_app(active_api_plist_path=self.plist, source_root=delta_root,
++                candidate_root=self.new, delta_receipt_path=delta,
++                explicit_untracked_paths=[row['path'] for row in entries if row['before_sha256'] is None])
++            inventory = module.inventory_tree(self.new / 'app')
++            old_manifest = active['manifest']
++            identity = dict(old_manifest['candidate'], root=str(self.new), app_root=str(self.new / 'app'),
++                            formal_release_root=str(self.new), release_id=self.new.name)
++            manifest = dict(schema_version='v4.release_candidate.v1', candidate=identity,
++                descriptor_status='IMMUTABLE_PREPARED_DESCRIPTOR_ACTIVATION_RECORDED_SEPARATELY', api_integration=integration,
++                application_inventory=dict(entries=inventory, entry_count=len(inventory), aggregate_sha256=module.inventory_digest(inventory)),
++                financial_safety=old_manifest.get('financial_safety'), manual_stage_binding=old_manifest.get('manual_stage_binding'),
++                release_preparation=dict(state='PREPARED_NOT_ACTIVATED', parent_manifest_sha256=self.pre['parent_manifest_sha256'],
++                    source_manifest_sha256=self.pre['source_manifest_sha256'], source_workspace_full_tree_copied=False,
++                    scheduler_changed=False, business_data_changed=False))
++            emit(self.new / 'release-manifest.json', manifest)
++            raw = self.plist.read_bytes()
++            self.backup.write_bytes(raw)
++            self.backup.chmod(0o600)
++            manifest_sha = sha(self.new / 'release-manifest.json')
++
++            def rebind(value):
++                if isinstance(value, str):
++                    return value.replace(str(self.old), str(self.new)).replace(self.old.name, self.new.name).replace(self.pre['parent_manifest_sha256'], manifest_sha)
++                if isinstance(value, list): return [rebind(x) for x in value]
++                if isinstance(value, dict): return {key: rebind(x) for key, x in value.items()}
++                return value
++
++            original = plistlib.loads(raw)
++            proposed = rebind(original)
++            assert proposed['Label'] == original['Label'] == self.label
++            assert proposed['WorkingDirectory'] == str(self.new / 'app')
++            assert proposed.get('KeepAlive') == original.get('KeepAlive')
++            assert proposed.get('RunAtLoad') == original.get('RunAtLoad')
++            self.proposal.write_bytes(plistlib.dumps(proposed, sort_keys=False))
++            self.proposal.chmod(0o600)
++            verification = module.verify_api_release_candidate(candidate_root=self.new, active_api_plist_path=self.plist,
++                expected_manifest_sha256=manifest_sha, active_pointer='base')
++            assert set(verification['delta_paths']) == {row['path'] for row in entries}
++            assert sha(self.plist) == self.pre['api_plist_sha256'], 'PLIST_CHANGED_DURING_PREPARE'
++            emit(self.receipt, dict(state='PREPARED_NOT_ACTIVATED', candidate=str(self.new), parent=str(self.old),
++                candidate_manifest_sha256=manifest_sha, original_plist_sha256=sha(self.backup),
++                proposed_plist_sha256=sha(self.proposal), exact_delta=entries, verification=verification,
++                runtime_before=running, source_manifest_sha256=self.pre['source_manifest_sha256'],
++                activated=False, services_reloaded=0, business_posts=0))
++        print('PREPARED_NOT_ACTIVATED ' + str(self.receipt))
++
++    def verify(self, pointer='base'):
++        self.source_guards()
++        receipt = json.loads(self.receipt.read_bytes())
++        assert sha(self.backup) == receipt['original_plist_sha256'] == self.pre['api_plist_sha256']
++        assert sha(self.proposal) == receipt['proposed_plist_sha256']
++        module = self.helper()
++        result = module.verify_api_release_candidate(candidate_root=self.new, active_api_plist_path=self.plist,
++            expected_manifest_sha256=receipt['candidate_manifest_sha256'], active_pointer=pointer)
++        return module, receipt, result
++
++    def atomic_plist(self, raw):
++        staged = self.plist.with_name(self.plist.name + '.hkex-staged')
++        assert not staged.exists(), 'STAGED_PLIST_EXISTS'
++        mode = self.plist.stat().st_mode & 0o777
++        with staged.open('xb') as handle:
++            handle.write(raw); handle.flush(); os.fsync(handle.fileno())
++        staged.chmod(mode)
++        os.replace(staged, self.plist)
++
++    def reload(self):
++        domain = 'gui/' + str(os.getuid())
++        target = domain + '/' + self.label
++        state = subprocess.run(['/bin/launchctl', 'print', target], capture_output=True, text=True)
++        if state.returncode == 0 and 'state = SIGTERMed' not in state.stdout:
++            subprocess.run(['/bin/launchctl', 'bootout', target], check=True)
++        elif state.returncode not in (0, 113):
++            raise RuntimeError('UNEXPECTED_API_LIFECYCLE')
++        for _ in range(20):
++            state = subprocess.run(['/bin/launchctl', 'print', target], capture_output=True, text=True)
++            if state.returncode == 113: break
++            if state.returncode != 0: raise RuntimeError('UNEXPECTED_API_UNLOAD_STATE')
++            time.sleep(1)
++        else: raise RuntimeError('API_UNLOAD_PENDING_DO_NOT_REPEAT_BOOTOUT')
++        subprocess.run(['/bin/launchctl', 'bootstrap', domain, str(self.plist)], check=True)
++        subprocess.run(['/bin/launchctl', 'kickstart', target], check=True)
++
++    def cutover(self, rollback=False):
++        module, receipt, _ = self.verify('candidate' if rollback else 'base')
++        if not rollback:
++            gate = json.loads((self.root / 'DEPLOYMENT_APPROVAL.json').read_bytes())
++            assert gate['controller_authorized'] is True
++            assert gate['source_manifest_sha256'] == self.pre['source_manifest_sha256']
++            assert gate['candidate_manifest_sha256'] == receipt['candidate_manifest_sha256']
++            assert sha(gate['review_receipt']) == gate['review_receipt_sha256']
++            assert json.loads(Path(gate['review_receipt']).read_bytes())['verdict'] == 'PASS'
++        with module.shared_api_release_lock(self.plist, timeout_seconds=2), module.announcement_flash_cutover_guard(
++                Path(self.pre['workbench_store_root']), timeout_seconds=2):
++            expected = receipt['proposed_plist_sha256'] if rollback else self.pre['api_plist_sha256']
++            assert sha(self.plist) == expected, 'PLIST_DRIFT_NO_OVERWRITE'
++            self.verify('candidate' if rollback else 'base')
++            self.runtime((self.new if rollback else self.old) / 'app',
++                         None if rollback else self.pre['runtime_pid'])
++            try:
++                self.atomic_plist((self.backup if rollback else self.proposal).read_bytes())
++                self.reload()
++                for _ in range(15):
++                    try:
++                        with urllib.request.urlopen('http://127.0.0.1:8873/healthz', timeout=2) as response:
++                            if json.load(response).get('status') == 'ok': break
++                    except (OSError, ValueError): pass
++                    time.sleep(1)
++                else: raise RuntimeError('API_HEALTH_PENDING')
++                self.verify('base' if rollback else 'candidate')
++                running = self.runtime((self.old if rollback else self.new) / 'app')
++            except Exception:
++                if not rollback and sha(self.plist) == receipt['proposed_plist_sha256']:
++                    self.atomic_plist(self.backup.read_bytes())
++                    self.reload()
++                    self.verify('base')
++                    self.runtime(self.old / 'app')
++                    emit(self.root / 'ACTIVATION_FAILED_ROLLED_BACK.json', dict(state='EXACT_R2_POINTER_RESTORED',
++                        recovery_behavior='CANNOT_CONFIRM', business_posts=0))
++                raise
++            emit(self.root / ('ROLLED_BACK.json' if rollback else 'ACTIVATED.json'),
++                dict(state='ROLLED_BACK_PENDING_BEHAVIOR' if rollback else 'ACTIVATED_PENDING_BEHAVIOR',
++                     runtime=running, plist_sha256=sha(self.plist), scheduler_changed=False, business_posts=0))
++
++
++if __name__ == '__main__':
++    parser = argparse.ArgumentParser()
++    parser.add_argument('action', choices=['prepare', 'verify', 'activate', 'rollback'])
++    parser.add_argument('--evidence-root', type=Path, required=True)
++    parser.add_argument('--controller-authorized', action='store_true')
++    args = parser.parse_args()
++    if not args.evidence_root.is_absolute(): parser.error('absolute evidence root required')
++    if args.action in ('activate', 'rollback') and not args.controller_authorized:
++        parser.error('controller authorization required after independent review')
++    deployment = Deployment(args.evidence_root)
++    if args.action == 'prepare': deployment.prepare()
++    elif args.action == 'verify': print(json.dumps(deployment.verify()[2], ensure_ascii=False))
++    else: deployment.cutover(args.action == 'rollback')

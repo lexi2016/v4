@@ -1,0 +1,154 @@
+{
+  "schema": "hkex.delivery.source_hashes.v1",
+  "source_manifest_sha256": "553e13373ebc6d4f80b16e03112adda2b4022f74c46cc25d4787c96c44d35d83",
+  "source_worktree": "/Users/lexi/Desktop/学习/.worktrees/hkex-live-capture-20261023",
+  "source_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "files": [
+    {
+      "source_path": "apps/api/v35_api/app.py",
+      "delivery_path": "runtime-source/apps/api/v35_api/app.py",
+      "runtime_delta": true,
+      "before_sha256": "1e2a5d38a77bb0850feeed8ee15ada924d49c5be2b91b9ddd75b068b7d70a70c",
+      "after_sha256": "9c90c88c82b4f2f456d5229ba91270c6ccabcaccaf9d7b696d40f763e1b9051a",
+      "worktree_sha256": "9c90c88c82b4f2f456d5229ba91270c6ccabcaccaf9d7b696d40f763e1b9051a",
+      "delivery_sha256": "9c90c88c82b4f2f456d5229ba91270c6ccabcaccaf9d7b696d40f763e1b9051a",
+      "bytes": 380075
+    },
+    {
+      "source_path": "apps/api/v35_api/hkex_announcements_router.py",
+      "delivery_path": "runtime-source/apps/api/v35_api/hkex_announcements_router.py",
+      "runtime_delta": true,
+      "before_sha256": null,
+      "after_sha256": "5462eda5497252e91ce79f1a1b02c9a126a42825f07ddbeeed32eadb2fcd5552",
+      "worktree_sha256": "5462eda5497252e91ce79f1a1b02c9a126a42825f07ddbeeed32eadb2fcd5552",
+      "delivery_sha256": "5462eda5497252e91ce79f1a1b02c9a126a42825f07ddbeeed32eadb2fcd5552",
+      "bytes": 6972
+    },
+    {
+      "source_path": "v4/manager_research/hkex_runtime.py",
+      "delivery_path": "runtime-source/v4/manager_research/hkex_runtime.py",
+      "runtime_delta": true,
+      "before_sha256": null,
+      "after_sha256": "6212a79f701df0a7ff0720ef2c19ae17912fceffd6eacdfd63f9d7223b9636c5",
+      "worktree_sha256": "6212a79f701df0a7ff0720ef2c19ae17912fceffd6eacdfd63f9d7223b9636c5",
+      "delivery_sha256": "6212a79f701df0a7ff0720ef2c19ae17912fceffd6eacdfd63f9d7223b9636c5",
+      "bytes": 1817
+    },
+    {
+      "source_path": "v4/manager_research/hkex_provider.py",
+      "delivery_path": "runtime-source/v4/manager_research/hkex_provider.py",
+      "runtime_delta": true,
+      "before_sha256": "060fdba44b28d29e621f943cedf6ae4be350070301ed192898af8b623ff17242",
+      "after_sha256": "7fac7f81b53cabc69a6d8e733fc91017f851e54bef0dcf751ea4c735c51f80f1",
+      "worktree_sha256": "7fac7f81b53cabc69a6d8e733fc91017f851e54bef0dcf751ea4c735c51f80f1",
+      "delivery_sha256": "7fac7f81b53cabc69a6d8e733fc91017f851e54bef0dcf751ea4c735c51f80f1",
+      "bytes": 40441
+    },
+    {
+      "source_path": "v4/manager_research/announcement_source.py",
+      "delivery_path": "runtime-source/v4/manager_research/announcement_source.py",
+      "runtime_delta": true,
+      "before_sha256": "adacf42be83a53c3472de65426d2269904e1ab33151887b921e8af11b0b1c4dc",
+      "after_sha256": "9ec101dd942c0ed5c554692e8d0665e90fd2df217bffc8580fab7feeb4429645",
+      "worktree_sha256": "9ec101dd942c0ed5c554692e8d0665e90fd2df217bffc8580fab7feeb4429645",
+      "delivery_sha256": "9ec101dd942c0ed5c554692e8d0665e90fd2df217bffc8580fab7feeb4429645",
+      "bytes": 78227
+    },
+    {
+      "source_path": "v4/manager_research/hkex_directory_protocol.py",
+      "delivery_path": "runtime-source/v4/manager_research/hkex_directory_protocol.py",
+      "runtime_delta": true,
+      "before_sha256": null,
+      "after_sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc",
+      "worktree_sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc",
+      "delivery_sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc",
+      "bytes": 26462
+    },
+    {
+      "source_path": "v4/manager_research/workspace_announcements.py",
+      "delivery_path": "runtime-source/v4/manager_research/workspace_announcements.py",
+      "runtime_delta": true,
+      "before_sha256": "2c6bcba2f04184c022c2ba3d95bfbd4f0076ca1015f8b89f96d041a891e04749",
+      "after_sha256": "1514268aaaec7916658f1e7a989b06141b3909843b296ab056bb3ea1ac7e7f93",
+      "worktree_sha256": "1514268aaaec7916658f1e7a989b06141b3909843b296ab056bb3ea1ac7e7f93",
+      "delivery_sha256": "1514268aaaec7916658f1e7a989b06141b3909843b296ab056bb3ea1ac7e7f93",
+      "bytes": 223812
+    },
+    {
+      "source_path": "tests/test_hkex_announcements_runtime_adapter.py",
+      "delivery_path": "tests/test_hkex_announcements_runtime_adapter.py",
+      "runtime_delta": false,
+      "before_sha256": null,
+      "after_sha256": "5944083562686f27fed22ee11005fd986789f212107c500261ab22066fd17349",
+      "worktree_sha256": "5944083562686f27fed22ee11005fd986789f212107c500261ab22066fd17349",
+      "delivery_sha256": "5944083562686f27fed22ee11005fd986789f212107c500261ab22066fd17349",
+      "bytes": 17226
+    },
+    {
+      "source_path": "ops/deploy_hkex_announcements_bounded.py",
+      "delivery_path": "control/deploy_hkex_announcements_bounded.py",
+      "runtime_delta": false,
+      "before_sha256": null,
+      "after_sha256": "e1850c1516211873bfd6eff1fa941d8b9f53de88405ba9075a320a973edb1e31",
+      "worktree_sha256": "e1850c1516211873bfd6eff1fa941d8b9f53de88405ba9075a320a973edb1e31",
+      "delivery_sha256": "e1850c1516211873bfd6eff1fa941d8b9f53de88405ba9075a320a973edb1e31",
+      "bytes": 14605
+    }
+  ],
+  "runtime_patch": {
+    "source_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/implementation.patch",
+    "sha256": "11d84f9fc59a7b5b4f15a3bf1e490ed4a858695021359ac1d1d0b87228772de2",
+    "delivery_path": "runtime.patch",
+    "bytes": 75417
+  },
+  "readonly_dependencies": [
+    {
+      "path": "v4/manager_research/service.py",
+      "sha256": "388bd3169b54bf9bcc1970766b28c0a026fee62357d671473e4c9751689666a6",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_research/store.py",
+      "sha256": "79e077d2133f8c0bd33dde253e752bc6482423565ec11e9217d88b86f02cc07e",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_research/materials.py",
+      "sha256": "0d3c6c3fa0404c7006e5a8127b6123b99f7fff7c4d99af04b524fc04cb0e1ac2",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_research/announcement_autorun.py",
+      "sha256": "9c77b9894274eb812f694ce015fde487bfc0ed2755f6d8c2d6a232f0db92c876",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_workbench/binding.py",
+      "sha256": "69094d79badb2000261fc4326c37160f99e504ee243c41b9a79a42c4ae5f7a54",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "sha256": "a208c8f7397997dfaf00470c6c2be5b6e8ce994328f2d660d764da741d583d7a",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "sha256": "b9fd5c7a9702bad76f5d2d25ead4fb987df3bd8b46d06104bb21640cbc8ea95e",
+      "unchanged": true,
+      "included_in_delivery": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "unchanged": true,
+      "included_in_delivery": false
+    }
+  ]
+}

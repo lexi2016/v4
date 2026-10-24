@@ -1,0 +1,174 @@
+{
+  "schema": "hkex.delivery.verification.v1",
+  "goal": "Synchronize a precise source/test/control/evidence snapshot for the already deployed scoped HKEX adapter.",
+  "source_identity": {
+    "source_manifest_path": "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/IMPLEMENTATION_SOURCE_MANIFEST.json",
+    "source_manifest_sha256": "553e13373ebc6d4f80b16e03112adda2b4022f74c46cc25d4787c96c44d35d83",
+    "source_worktree": "/Users/lexi/Desktop/学习/.worktrees/hkex-live-capture-20261023",
+    "source_branch": "codex/hkex-live-capture-20261023",
+    "source_base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "runtime_source_constructed_against": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-visible-stocks-api-20261023-r2/app",
+    "patch_sha256": "11d84f9fc59a7b5b4f15a3bf1e490ed4a858695021359ac1d1d0b87228772de2"
+  },
+  "independent_receipts": {
+    "implementation": {
+      "path": "reviewer/IMPLEMENTATION_VERDICT.json",
+      "sha256": "65452833efc37d5c64413fae33d4f47e916f3d291ec4168301f64cb9dfd73503",
+      "verdict": "PASS",
+      "scope": "THREE_TARGETED_HKEX_ROUTES_ORIGINAL_OWNER_STORE_BODY_AND_MINIMAL_PROTOCOL_INTEGRATION; SEVEN_RUNTIME_FILES; CONTROLLER_DEPLOYMENT_GUARDS"
+    },
+    "live_behavior": {
+      "path": "reviewer/LIVE_BEHAVIOR_VERDICT.json",
+      "sha256": "c7d3f0633141b968c7bd55d75c7319c7ff790f5c7442a09eafa9514a612d9352",
+      "verdict": "PASS",
+      "scope": "DEPLOYED_TARGETED_HK00002_20260923_SAVED_PRODUCT_DIRECTORY_AND_BODY_GET_ORIGINAL_STORE_ONLY"
+    },
+    "activation": {
+      "path": "ACTIVATED.json",
+      "sha256": "3d51e506a1a2ca0c71964e968a26bf00c673e2dc50e9eda2de4f97e30b8ef8c7"
+    }
+  },
+  "previously_completed_checks_reused": {
+    "adapter_tests": {
+      "original_cases_passed": 23,
+      "incremental_cases_passed": 1,
+      "incremental_deselected": 23,
+      "execution_sha_source_manifest": "553e13373ebc6d4f80b16e03112adda2b4022f74c46cc25d4787c96c44d35d83"
+    },
+    "isolated_deployment_failure_probes_passed": 2,
+    "protocol_regressions_reused": 174,
+    "delivery_turn_tests_run": false,
+    "reason": "Frozen source and receipt SHAs match; task is version delivery only."
+  },
+  "recorded_commands": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "environment": [
+      "env",
+      "-u",
+      "PYTHONPATH",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "HKEX_EVIDENCE_ROOT=/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2"
+    ],
+    "implementation_test_argv": [
+      "-W",
+      "error",
+      "-W",
+      "default::starlette.exceptions.StarletteDeprecationWarning",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/reviewer/adapter_pytest",
+      "--junitxml",
+      "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/reviewer/implementation_23.xml",
+      "tests/test_hkex_announcements_runtime_adapter.py"
+    ],
+    "incremental_test_argv": [
+      "-W",
+      "error",
+      "-W",
+      "default::starlette.exceptions.StarletteDeprecationWarning",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/reviewer/sort_delta_pytest",
+      "--junitxml",
+      "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/reviewer/implementation_sort.xml",
+      "tests/test_hkex_announcements_runtime_adapter.py",
+      "-k",
+      "prepare_emits_sorted"
+    ],
+    "failure_probe_argv": [
+      "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "-B",
+      "/Users/lexi/Desktop/学习/agents调试/HKEX_LIVE_CAPTURE_REPAIR_20261023_R2/reviewer/deployment_failure_probe.py"
+    ]
+  },
+  "deployed_runtime": {
+    "release": "hkex-announcements-api-20261023-r1",
+    "pid": 42989,
+    "cwd": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1/app",
+    "listener": "127.0.0.1:8873",
+    "state": "DEPLOYED"
+  },
+  "live_readback": {
+    "reviewer_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/announcements?target_trade_date=20260923&scope_id=205d2a7d67ce8143c0e727498709df1fd0aa8cddaeae0e8b2b4b271f243c4a77",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:8873/api/v4/manager/research/announcements/body?target_trade_date=20260923&scope_id=205d2a7d67ce8143c0e8b2b4b271f243c4a77&product_sha256=97dd792fa412b44034bffacab4ab9647aec27d7b7e23452377d8c56f947de5b0&event_id=4e0a0be4efbf4b2d5ac32c69ea58bf79f4cf19b024225c156ed29e1fa6036d41",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:8873/openapi.json",
+        "status": 200
+      }
+    ],
+    "controller_refresh_post": {
+      "url": "http://127.0.0.1:8873/api/v4/manager/research/announcements/refresh?target_trade_date=20260923&issuer_codes=HK.00002&resume=false",
+      "count": 1,
+      "result": "BODY_PARSED",
+      "reviewer_repeated_post": false
+    },
+    "identity": {
+      "target_trade_date": "20260923",
+      "issuer": "HK.00002",
+      "scope_id": "205d2a7d67ce8143c0e727498709df1fd0aa8cddaeae0e8b2b4b271f243c4a77",
+      "product_sha256": "97dd792fa412b44034bffacab4ab9647aec27d7b7e23452377d8c56f947de5b0",
+      "event_id": "4e0a0be4efbf4b2d5ac32c69ea58bf79f4cf19b024225c156ed29e1fa6036d41"
+    },
+    "body": {
+      "pages": 1,
+      "text_characters": 1418,
+      "document_sha256": "92e2843ec6a17cd678fecba9aa66831a03596baa6a2d6039f65c8fae6ee2b0fa",
+      "exact_original_store_parse_match": true,
+      "late_acquisition": true
+    }
+  },
+  "scope_boundaries": {
+    "product_status": "PARTIAL",
+    "single_issuer_only": true,
+    "all_market": false,
+    "directory_exhaustion": "UNVERIFIED",
+    "historical_pit_availability": "CANNOT_CONFIRM_NEW_RETRIEVAL_ON_2026_10_23",
+    "live_sample_route": "ORIGINAL_HTML_TABLE_BRANCH",
+    "modern_all_empty_post_nonempty_body_path_established": false,
+    "UI_VERIFIED": false,
+    "NATURAL_VERIFIED": false,
+    "announcement_selection_end_to_end": false
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "remote_sync": {
+    "state": "PENDING",
+    "repository": "lexi2016/v4",
+    "branch": "codex/hkex-live-capture-20261023",
+    "parent_commit": "98a53824e20e4f520054325c71bc82397cfa712a",
+    "parent_tree": "095f86e2c92515b8cba0bd2a6884440b785b4e0b",
+    "target_paths": [
+      "research/hkex-live-capture-20261023/runtime-source/apps/api/v35_api/app.py",
+      "research/hkex-live-capture-20261023/runtime-source/apps/api/v35_api/hkex_announcements_router.py",
+      "research/hkex-live-capture-20261023/runtime-source/v4/manager_research/hkex_runtime.py",
+      "research/hkex-live-capture-20261023/runtime-source/v4/manager_research/hkex_provider.py",
+      "research/hkex-live-capture-20261023/runtime-source/v4/manager_research/announcement_source.py",
+      "research/hkex-live-capture-20261023/runtime-source/v4/manager_research/hkex_directory_protocol.py",
+      "research/hkex-live-capture-20261023/runtime-source/v4/manager_research/workspace_announcements.py",
+      "research/hkex-live-capture-20261023/tests/test_hkex_announcements_runtime_adapter.py",
+      "research/hkex-live-capture-20261023/control/deploy_hkex_announcements_bounded.py",
+      "research/hkex-live-capture-20261023/source-hashes.json",
+      "research/hkex-live-capture-20261023/runtime.patch",
+      "research/hkex-live-capture-20261023/README.md",
+      "research/hkex-live-capture-20261023/verification.json"
+    ]
+  }
+}
