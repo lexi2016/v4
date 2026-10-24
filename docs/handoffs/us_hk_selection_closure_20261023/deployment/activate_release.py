@@ -191,8 +191,30 @@ class FreezeGuardian:
         while not self.owner_gone():
             require(time.monotonic()<deadline,'GUARDIAN_IDLE_OWNER_EXIT_UNCONFIRMED');time.sleep(.02)
         self.record('OLD_OWNER_EXITED')
-        state=self.ops.job_state()
-        require(state.get('state')=='absent','GUARDIAN_NEW_OR_UNKNOWN_OWNER_PRESERVED')
+        deadline=time.monotonic()+5;pending=None
+        while True:
+            require(time.monotonic()<deadline,'GUARDIAN_JOB_EXIT_UNCONFIRMED')
+            if self.token is not None:
+                current=process_token(self.token['pid'])
+                if current is not None:
+                    require(all(current.get(k)==self.token.get(k) for k in ('pid','start_sec','start_usec')),
+                            'GUARDIAN_OLD_PID_REUSED')
+                    require(current['status']==5,'GUARDIAN_OLD_OWNER_EXIT_UNCONFIRMED')
+            try:state=self.ops.job_state()
+            except Stop as error:
+                observation=getattr(error,'launchctl_exit_observation',None)
+                if str(error)!='LAUNCHCTL_NOT_RUNNING' or not isinstance(observation,dict):raise
+                require(self.committed and self.token is not None,'GUARDIAN_EXIT_WAIT_REQUIRES_COMMITTED_OWNER')
+                require(observation['printed_pid'] is None or self.token is not None and observation['printed_pid']==self.token['pid'],
+                        'GUARDIAN_NEW_OR_UNKNOWN_OWNER_PRESERVED')
+                # Still UNKNOWN, never absent: retain the committed fence and wait
+                # only for an actual named-job 113. No signal/bootstrap occurs here.
+                if pending!=observation:
+                    self.record('OLD_OWNER_EXITED',job_removal_pending=observation,job_removal_absent=False);pending=observation
+                require(time.monotonic()<deadline,'GUARDIAN_JOB_EXIT_UNCONFIRMED');time.sleep(.05);continue
+            require(time.monotonic()<deadline,'GUARDIAN_JOB_EXIT_UNCONFIRMED')
+            require(state.get('state')=='absent','GUARDIAN_NEW_OR_UNKNOWN_OWNER_PRESERVED')
+            self.record('OLD_OWNER_EXITED',job_removal_absent=True);return
 
     def run(self):
         self.record('OWNED');emit_control(self.output,dict(event='OWNED',guardian_pid=os.getpid()))
@@ -1111,7 +1133,11 @@ class LaunchctlLifecycle:
         require(result.returncode==0,'LAUNCHCTL_PRINT_UNAVAILABLE')
         state=re.search(r'^\s*state = (\S+)\s*$',result.stdout,re.M)
         pid=re.search(r'^\s*pid = ([1-9][0-9]*)\s*$',result.stdout,re.M)
-        require(state and state.group(1)=='running' and pid,'LAUNCHCTL_NOT_RUNNING')
+        if not (state and state.group(1)=='running' and pid):
+            error=Stop('LAUNCHCTL_NOT_RUNNING')
+            observation=self._exit_observation(result.stdout)
+            if observation is not None:error.launchctl_exit_observation=observation
+            raise error
         pid=int(pid.group(1))
         cwd=self.command(['/usr/sbin/lsof','-a','-p',str(pid),'-d','cwd','-Fn'])
         require(cwd.returncode==0,'PROCESS_CWD_UNAVAILABLE')
@@ -1120,6 +1146,39 @@ class LaunchctlLifecycle:
         comm=self.command(['/bin/ps','-p',str(pid),'-o','comm='])
         require(comm.returncode==0 and comm.stdout.strip()==self.scope['runtime_probe']['python']['path'], 'PROCESS_INTERPRETER_MISMATCH')
         return dict(state='running',pid=pid,app_root=roots[0])
+
+    def _exit_observation(self,output):
+        # Supplement the strict identity error with parseable print evidence only.
+        # No printed non-running state is asserted legal/idle/absent.
+        lines=[line for line in output.splitlines() if line.strip()]
+        job=self.domain+'/'+self.label
+        if len(lines)<3 or lines[0].strip()!=job+' = {' or lines[-1].strip()!='}':return None
+        blocks=[]
+        for index,line in enumerate(lines):
+            text=line.strip();prefix=re.match(r'^[ \t]*',line).group()
+            if text.endswith(' = {'):
+                if blocks and (not prefix.startswith(blocks[-1]) or len(prefix)<=len(blocks[-1])):return None
+                blocks.append(prefix)
+            elif text=='}':
+                if not blocks or prefix!=blocks.pop():return None
+                if not blocks and index!=len(lines)-1:return None
+        if blocks:return None
+        body=lines[1:-1];indents=[re.match(r'^[ \t]*',line).group() for line in body]
+        width=min(map(len,indents))
+        if width==0:return None
+        prefixes={prefix for prefix in indents if len(prefix)==width}
+        if len(prefixes)!=1:return None
+        indent=prefixes.pop();fields=[line[len(indent):] for line in body if line.startswith(indent) and
+            len(line)>len(indent) and line[len(indent)] not in ' \t']
+        states=[line for line in fields if re.match(r'^state\b',line)]
+        pids=[line for line in fields if re.match(r'^pid\b',line)]
+        if len(states)!=1 or len(pids)>1:return None
+        state=re.fullmatch(r'state = ([^{}\r\n]+)',states[0])
+        if state is None or not state[1].strip() or state[1].strip()=='running':return None
+        pid=re.fullmatch(r'pid = ([1-9][0-9]*)',pids[0]) if pids else None
+        if pids and pid is None:return None
+        return dict(job=job,printed_state=state[1].strip(),printed_pid=int(pid[1]) if pid else None,
+            print_sha256=digest(output.encode()),identity_available=False,absent=False)
 
     def inspect(self):
         value=self.identity();activity=activity_snapshot(self.scope,self.runner,activity_authority=self.activity_authority)

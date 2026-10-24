@@ -1,0 +1,33 @@
+{
+  "schema": "v4.us_hk.guardian_exit_delta_review.v1",
+  "verdict": "PASS",
+  "reviewer": "Independent Sol High reviewer; focused scope only",
+  "review_receipt_sha256": "c0c087619d21868818e636ea03204fda7fef59859b38530894a7ddeb63be3f8b",
+  "prior_failure_sha256": "8a0fc39d2c22afa75272d24599eb0ebb9a2201a8ad28634b0f189bae016b06d8",
+  "source_sha256": {
+    "activate_release.py": {
+      "before": "ab215492ae25e0a310aa2130d23489e5b3a46e4dc6f8b4d6a83461ea5acb272f",
+      "after": "b34a385fa5bd5bfa966cbc48f74705d7fe72fb6331495cf635e6c66e593807bf"
+    },
+    "test_release.py": {
+      "before": "84b93c74074b394f2e34c6960a1f58710833aeee8d693f5f747f186665bc7da8",
+      "after": "41769cb0ad01a67aac3adf93584d80a8860a912e1afd3c21d2ff523d60177591"
+    }
+  },
+  "goal": "After commit and verified old-kernel exit, preserve the named transitional job and wait within deadline for actual113. Do not treat UNKNOWN/malformed/new/reused owner as absence; no signals/bootstrap during waiting. Fresh START absence check unchanged.",
+  "independent_result": {
+    "focused_cases": 8,
+    "passed": 8,
+    "failures": 0,
+    "prior_structural_P2": "Closed; missing root/nested closing brace stops on first print and never reads queued113",
+    "original_old_to_new_counterexample": "Independently reproduced"
+  },
+  "actual_transient_raw_stdout": "UNAVAILABLE_CANNOT_CONFIRM_NO_INVENTED_STATE_ALLOWLIST",
+  "actual_deployment_or_service_operations": "NOT_RUN_BY_REVIEWER",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

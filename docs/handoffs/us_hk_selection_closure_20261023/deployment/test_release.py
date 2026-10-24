@@ -3060,6 +3060,104 @@ old_os_open=_raced_descriptor_open
         self.assertEqual(len(manifest['task_overlay']['parent_inventory_reconciliation']['excluded_generated_cache']),1)
 
 
+    def exit_transition_fixture(self,observations):
+        job='gui/'+str(os.getuid())+'/com.lexi.v35.api-only';commands=[];pending=list(observations)
+        scope=dict(mode='REHEARSAL',role='api',activity=dict(uid=os.getuid(),expected_pid=111),
+            runtime_probe={'python':{'path':'/fixture/python'}})
+        def runner(args,**kwargs):
+            commands.append(args)
+            if args==['/bin/launchctl','print',job]:
+                row=pending.pop(0) if len(pending)>1 else pending[0]
+                return SimpleNamespace(returncode=row[0],stdout=row[1],stderr='fixture')
+            if args[:1]==['/usr/sbin/lsof']:return SimpleNamespace(returncode=0,stdout='n/fixture/new-owner\n',stderr='')
+            if args[:1]==['/bin/ps']:return SimpleNamespace(returncode=0,stdout='/fixture/python\n',stderr='')
+            raise AssertionError('forbidden lifecycle command: '+repr(args))
+        lifecycle=activate.LaunchctlLifecycle(scope,runner=runner)
+        ops=object.__new__(activate.RealGuardianOps);ops.lifecycle=lifecycle;ops.calls=[]
+        token=dict(pid=111,start_sec=2,start_usec=3,status=5)
+        intent=dict(owner_token=token,controller_pid=os.getpid(),journal=str(self.evidence/'exit-transition.json'))
+        guardian=activate.FreezeGuardian(ops,intent,io.StringIO(),io.StringIO());guardian.committed=True;guardian.owner_gone=lambda:True
+        now=[0.0]
+        def sleep(delay):now[0]+=delay
+        return SimpleNamespace(job=job,commands=commands,lifecycle=lifecycle,ops=ops,guardian=guardian,token=token,now=now,sleep=sleep)
+
+    def exit_print(self,state,pid=None):
+        text='gui/'+str(os.getuid())+'/com.lexi.v35.api-only = {\n\tstate = '+state+'\n'
+        if pid is not None:text+='\tpid = '+str(pid)+'\n'
+        return (0,text+'\tresource coalition = {\n\t\tstate = active\n\t}\n}\n')
+
+    def test_guardian_exit_transition_waits_for_real_113_without_signals_or_bootstrap(self):
+        f=self.exit_transition_fixture([self.exit_print('unclassified transient'),self.exit_print('unclassified transient',111),(113,'')])
+        with patch.object(activate,'process_token',return_value=None),patch.object(activate.time,'monotonic',side_effect=lambda:f.now[0]), \
+             patch.object(activate.time,'sleep',side_effect=f.sleep),patch.object(f.guardian,'exact_signal') as signals:
+            f.guardian.finish_committed_owner();signals.assert_not_called()
+        self.assertEqual(len(f.commands),3);self.assertTrue(all(cmd[1]=='print' for cmd in f.commands));self.assertEqual(f.ops.calls,[])
+        self.assertGreater(f.now[0],0);self.assertTrue(json.loads(Path(f.guardian.intent['journal']).read_bytes())['job_removal_absent'])
+
+    def test_guardian_exit_transition_unknown_timeout_remains_unknown_no_actions(self):
+        f=self.exit_transition_fixture([self.exit_print('unknown but parseable')])
+        with patch.object(activate,'process_token',return_value=None),patch.object(activate.time,'monotonic',side_effect=lambda:f.now[0]), \
+             patch.object(activate.time,'sleep',side_effect=f.sleep),patch.object(f.guardian,'exact_signal') as signals:
+            with self.assertRaisesRegex(prepare.Stop,'GUARDIAN_JOB_EXIT_UNCONFIRMED'):f.guardian.finish_committed_owner()
+            signals.assert_not_called()
+        self.assertGreaterEqual(f.now[0],5);self.assertLess(f.now[0],5.1);self.assertEqual(f.ops.calls,[])
+        journal=json.loads(Path(f.guardian.intent['journal']).read_bytes());self.assertFalse(journal['job_removal_absent'])
+        self.assertFalse(journal['job_removal_pending']['absent']);self.assertFalse(journal['job_removal_pending']['identity_available'])
+
+    def test_guardian_exit_transition_preserves_running_new_and_reused_owner(self):
+        for kind in ('running','foreign-pid','reused-kernel','not-committed','no-original-owner'):
+            with self.subTest(kind=kind):
+                f=self.exit_transition_fixture([self.exit_print('running',222) if kind=='running' else self.exit_print('unknown transition',222 if kind=='foreign-pid' else None),(113,'')])
+                kernel=dict(f.token,start_usec=99) if kind=='reused-kernel' else None
+                if kind=='not-committed':f.guardian.committed=False
+                if kind=='no-original-owner':f.guardian.token=None
+                with patch.object(activate,'process_token',return_value=kernel),patch.object(f.guardian,'exact_signal') as signals:
+                    with self.assertRaises(prepare.Stop):f.guardian.finish_committed_owner()
+                    signals.assert_not_called()
+                self.assertEqual(f.ops.calls,[]);self.assertLessEqual(len([cmd for cmd in f.commands if cmd[1]=='print']),1)
+
+    def test_guardian_exit_transition_malformed_or_query_error_stops_immediately(self):
+        header='gui/'+str(os.getuid())+'/com.lexi.v35.api-only = {\n'
+        rows=[(0,'state = unknown\n'),(0,header+'\tstate = unknown\n\tstate = duplicate\n}\n'),
+            (0,header+'\tstate = unknown\n\tpid = invalid\n}\n'),(0,header+'\tstate = running\n}\n'),
+            (0,header+'\tno-state = unknown\n}\n'),(5,'unavailable')]
+        for row in rows:
+            with self.subTest(row=row):
+                f=self.exit_transition_fixture([row,(113,'')])
+                with patch.object(activate,'process_token',return_value=None),patch.object(f.guardian,'exact_signal') as signals:
+                    with self.assertRaises(prepare.Stop):f.guardian.finish_committed_owner()
+                    signals.assert_not_called()
+                self.assertEqual(len(f.commands),1);self.assertEqual(f.ops.calls,[])
+
+    def test_guardian_exit_transition_keeps_fresh_bootstrap_absence_gate(self):
+        f=self.exit_transition_fixture([self.exit_print('unknown transition'),(113,''),self.exit_print('running',222)])
+        with patch.object(activate,'process_token',return_value=None),patch.object(activate.time,'monotonic',side_effect=lambda:f.now[0]), \
+             patch.object(activate.time,'sleep',side_effect=f.sleep),patch.object(f.guardian,'exact_signal') as signals:
+            f.guardian.finish_committed_owner()
+            with self.assertRaisesRegex(prepare.Stop,'GUARDIAN_NEW_OR_UNKNOWN_OWNER_PRESERVED'):f.ops.bootstrap_once()
+            signals.assert_not_called()
+        self.assertEqual(f.ops.calls,[]);self.assertTrue(all(cmd[1]=='print' or cmd[0] in ('/usr/sbin/lsof','/bin/ps') for cmd in f.commands))
+
+
+    def test_guardian_exit_transition_missing_root_close_stops_before_next_113(self):
+        raw=self.exit_print('unclassified transition')[1]
+        row=(0,raw.rsplit('}\n',1)[0])
+        f=self.exit_transition_fixture([row,(113,'')])
+        with patch.object(activate,'process_token',return_value=None),patch.object(f.guardian,'exact_signal') as signals:
+            with self.assertRaisesRegex(prepare.Stop,'LAUNCHCTL_NOT_RUNNING'):f.guardian.finish_committed_owner()
+            signals.assert_not_called()
+        self.assertEqual(len(f.commands),1);self.assertEqual(f.ops.calls,[])
+
+    def test_guardian_exit_transition_missing_nested_close_stops_before_next_113(self):
+        raw=self.exit_print('unclassified transition')[1]
+        row=(0,raw.replace('\t}\n}\n','}\n'))
+        f=self.exit_transition_fixture([row,(113,'')])
+        with patch.object(activate,'process_token',return_value=None),patch.object(f.guardian,'exact_signal') as signals:
+            with self.assertRaisesRegex(prepare.Stop,'LAUNCHCTL_NOT_RUNNING'):f.guardian.finish_committed_owner()
+            signals.assert_not_called()
+        self.assertEqual(len(f.commands),1);self.assertEqual(f.ops.calls,[])
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', required=True)
