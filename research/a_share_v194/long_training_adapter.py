@@ -14,6 +14,7 @@ from pathlib import Path
 import platform
 import re
 import resource
+import subprocess
 import sys
 import threading
 import time
@@ -113,6 +114,54 @@ def configure_native_thread_budget(
     }
 
 
+def _mac_available_memory_probe() -> tuple[int | None, str, int | None]:
+    """Read a conservative reclaimable-memory estimate from macOS vm_stat.
+
+    This macOS runtime does not expose SC_AVPHYS_PAGES through os.sysconf.
+    Free pages are immediately available; inactive pages can be reclaimed by
+    the VM system. Speculative and purgeable counts are excluded to keep the
+    estimate conservative.
+    """
+    try:
+        result = subprocess.run(
+            ["/usr/bin/vm_stat"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=2.0,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return None, f"VM_STAT_{type(exc).__name__}", None
+
+    page_size_match = re.search(
+        r"^Mach Virtual Memory Statistics: \(page size of ([0-9,]+) bytes\)$",
+        result.stdout,
+        flags=re.MULTILINE,
+    )
+    if page_size_match is None:
+        return None, "VM_STAT_PAGE_SIZE_UNPARSEABLE", None
+
+    page_size = int(page_size_match.group(1).replace(",", ""))
+    if page_size <= 0:
+        return None, "VM_STAT_PAGE_SIZE_INVALID", None
+
+    counts: dict[str, int] = {}
+    for name in ("free", "inactive"):
+        match = re.search(
+            rf"^Pages {name}:\s*([0-9,]+)\.?\s*$",
+            result.stdout,
+            flags=re.MULTILINE,
+        )
+        if match is None:
+            return None, f"VM_STAT_PAGES_{name.upper()}_UNPARSEABLE", page_size
+        counts[name] = int(match.group(1).replace(",", ""))
+
+    available = (counts["free"] + counts["inactive"]) * page_size
+    if available <= 0:
+        return None, "VM_STAT_AVAILABLE_MEMORY_NONPOSITIVE", page_size
+    return available, "MAC_VM_STAT_FREE_PLUS_INACTIVE", page_size
+
+
 def runtime_snapshot() -> dict[str, Any]:
     usage = resource.getrusage(resource.RUSAGE_SELF)
     peak = int(usage.ru_maxrss)
@@ -120,16 +169,43 @@ def runtime_snapshot() -> dict[str, Any]:
     peak_rss_bytes = peak if sys.platform == "darwin" else peak * 1024
     memory_bytes = None
     available_memory_bytes = None
+    available_memory_page_size_bytes = None
+    available_memory_source = "UNAVAILABLE"
+    available_memory_error = None
     try:
-        memory_bytes = int(os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE"))
+        available_memory_page_size_bytes = int(os.sysconf("SC_PAGE_SIZE"))
+        memory_bytes = int(os.sysconf("SC_PHYS_PAGES") * available_memory_page_size_bytes)
     except (AttributeError, OSError, ValueError):
         pass
     try:
-        available_memory_bytes = int(os.sysconf("SC_AVPHYS_PAGES") * os.sysconf("SC_PAGE_SIZE"))
+        page_size = int(os.sysconf("SC_PAGE_SIZE"))
+        available_memory_bytes = int(os.sysconf("SC_AVPHYS_PAGES") * page_size)
         if available_memory_bytes <= 0:
             available_memory_bytes = None
+            available_memory_error = "SC_AVPHYS_PAGES_NONPOSITIVE"
+        else:
+            available_memory_source = "SC_AVPHYS_PAGES"
+            available_memory_page_size_bytes = page_size
     except (AttributeError, OSError, ValueError):
-        pass
+        available_memory_bytes = None
+        available_memory_error = "SC_AVPHYS_PAGES_UNAVAILABLE"
+    if available_memory_bytes is None and sys.platform == "darwin":
+        available_memory_bytes, fallback_status, fallback_page_size = _mac_available_memory_probe()
+        if available_memory_bytes is None:
+            available_memory_error = fallback_status
+        else:
+            available_memory_source = fallback_status
+            available_memory_error = None
+            available_memory_page_size_bytes = fallback_page_size
+    if (
+        available_memory_bytes is not None
+        and memory_bytes is not None
+        and available_memory_bytes > memory_bytes
+    ):
+        available_memory_bytes = None
+        available_memory_source = "UNAVAILABLE"
+        available_memory_error = "AVAILABLE_MEMORY_EXCEEDS_PHYSICAL_MEMORY"
+        available_memory_page_size_bytes = None
     return {
         "pid": os.getpid(),
         "host": platform.node(),
@@ -139,6 +215,9 @@ def runtime_snapshot() -> dict[str, Any]:
         "logical_cpu_count": os.cpu_count(),
         "physical_memory_bytes": memory_bytes,
         "available_memory_bytes": available_memory_bytes,
+        "available_memory_page_size_bytes": available_memory_page_size_bytes,
+        "available_memory_source": available_memory_source,
+        "available_memory_error": available_memory_error,
         "process_peak_rss_bytes": peak_rss_bytes,
         "user_cpu_seconds": float(usage.ru_utime),
         "system_cpu_seconds": float(usage.ru_stime),

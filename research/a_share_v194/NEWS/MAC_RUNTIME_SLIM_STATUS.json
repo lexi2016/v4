@@ -1,0 +1,129 @@
+{
+  "schema": "V194_MAC_CPU_RUNTIME_SLIM_STATUS_V1",
+  "status": "CPU_PARALLEL_PASS_MODEL_NOT_RUN",
+  "behavior_status": "BEHAVIOR_VERIFIED_CPU_ONLY_FROZEN_WORKLOAD",
+  "execution_id": "A_SHARE_V194_CPU_ONLY_R5_20261024",
+  "scope": "CPU_ONLY synthetic 768x768 float32 matrix-multiply workload, 30 iterations per worker; no model runtime or model artifacts opened.",
+  "canary": {
+    "contract_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_mac_runtime_history_20261024/contracts/MAC_CPU_ONLY_R5_CANARY_RUN_CONTRACT_R1_20261024.json",
+    "contract_sha256": "b1c734e9eec2d538383251d85c0d23a8495d23e9940bea6d0b8862089a5a44a1",
+    "terminal_event_sha256": "e05f641a6a86ce4ee9b967d6c0c513638d32cd7552c3c4f4dd7404f16a8c8c33",
+    "terminal_registry_receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_mac_runtime_history_20261024/registry/MAC_CPU_ONLY_R5_CANARY_TERMINAL_R1_RECEIPT.json",
+    "terminal_registry_receipt_sha256": "e6070f4fa8f00dc26a942e49047a9a7cbb82f88f04db690b94e24e0981f87175",
+    "result_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_mac_runtime_history_20261024/probe/MAC_CPU_ONLY_R5/result.json",
+    "result_sha256": "df970412e958f5dbef3f1314d06fdb0025397385449373e976c4e65132ea721c",
+    "observation_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_mac_runtime_history_20261024/probe/MAC_CPU_ONLY_R5/TERMINAL_OBSERVATION.json",
+    "observation_sha256": "3dc85b55e3e969452236a59e462bfa0857125210b31c8f72567064ca4f593432",
+    "stages": [
+      {
+        "processes": 1,
+        "requested": 1,
+        "selected": 1,
+        "actual": 1,
+        "overlap": 1
+      },
+      {
+        "processes": 2,
+        "requested": 2,
+        "selected": 2,
+        "actual": 2,
+        "overlap": 2
+      },
+      {
+        "processes": 4,
+        "requested": 4,
+        "selected": 4,
+        "actual": 4,
+        "overlap": 4
+      },
+      {
+        "processes": 8,
+        "requested": 8,
+        "selected": 8,
+        "actual": 8,
+        "overlap": 8
+      },
+      {
+        "processes": 12,
+        "requested": 12,
+        "selected": 12,
+        "actual": 12,
+        "overlap": 12
+      }
+    ],
+    "unique_workers": 27,
+    "mach_samples_per_worker": 30,
+    "cpu_participants_per_worker": 1,
+    "sdk_override_used": false,
+    "control_path": "TRAINER_CONTROL_PATH",
+    "native_thread_total_max": 12,
+    "max_worker_peak_rss_bytes": 53395456,
+    "max_aggregate_process_rss_bytes": 637468672,
+    "baseline_available_memory_bytes": 86524182528,
+    "minimum_available_memory_bytes": 86523117568,
+    "swap_unchanged": true,
+    "runner_and_worker_pids_absent_after_run": true,
+    "process_exit_code": 0
+  },
+  "independent_review": {
+    "verdict": "REVIEWED/PASS",
+    "reviewer": "/root/v194_mac_native_review_sol",
+    "behavior_status": "BEHAVIOR_VERIFIED_CPU_ONLY_FROZEN_WORKLOAD",
+    "receipt_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_mac_runtime_history_20261024/contracts/MAC_CPU_ONLY_R5_RUNTIME_INDEPENDENT_REVIEW_RECEIPT.json",
+    "receipt_sha256": "b01e37f9ea27e61f5d18aa56c0b55760d3b8cbaf8bf1a3fa14853e013b756205",
+    "source_and_result_bindings_match": true,
+    "terminal_registry_readback_verified": true
+  },
+  "model_and_market_boundary": {
+    "model_objects_created": 0,
+    "model_fits": 0,
+    "model_evaluation": "NOT_RUN",
+    "market_data_read": false,
+    "old_labels_read": 0,
+    "oof_runs": 0,
+    "predictions": 0,
+    "model_fit_safety": "NOT_ESTABLISHED_BY_CPU_ONLY_PROBE",
+    "old_five_model_outputs": "PRIOR_R3_RECEIPT_REFERENCED_ONLY; NOT RECHECKED IN R5"
+  },
+  "historical_data_boundary": {
+    "selected_shared_panel_earliest_bound_date": "2021-05-06",
+    "per_code_or_continuous_all_a_history_certified": false,
+    "upstream_producer_cause": "CANNOT_CONFIRM",
+    "lineage_evidence_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_mac_runtime_history_20261024/reports/long_history_lineage/LIVE_STATIC_PRODUCER_TRACE_ADDENDUM_20261024.json",
+    "lineage_evidence_sha256": "0530f767c1c933146a2a2e80cd629fa2c013aab2dd2166e1a318f01db77006e6",
+    "note": "20-year archive inventory is not evidence that the archive entered the current authoritative producer; this CPU-only result does not extend the data boundary."
+  },
+  "limitations": [
+    "Synthetic workload only; not a throughput benchmark, model-performance result, or model-fit safety approval.",
+    "Mach call-boundary CPU participants do not prove unsampled transient-thread bounds or instantaneous scheduler concurrency.",
+    "Old five model outputs were not rechecked in R5."
+  ],
+  "official_registry": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/contracts/EXPERIMENT_REGISTRY.jsonl",
+    "sha256": "1feecb1d28f9a54cd32e71864454f9ac927fa6cf6a142c3b8b6b4c0da8443ed7",
+    "global_counts": {
+      "routes": 441,
+      "events": 4901,
+      "executions": 1496,
+      "corrections": 125
+    },
+    "scope_counts": {
+      "routes": 1,
+      "events": 25,
+      "executions": 13,
+      "corrections": 0,
+      "open_executions": [],
+      "unregistered_routes": 0,
+      "contract_only": 0
+    },
+    "global_unregistered_routes": null,
+    "global_contract_only": null,
+    "external_persistence": "CANNOT_CONFIRM"
+  },
+  "safety_flags": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
