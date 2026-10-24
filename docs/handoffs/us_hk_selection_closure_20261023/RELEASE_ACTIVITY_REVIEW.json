@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.release_activity_review.v1",
-  "as_of": "2026-10-24T07:35:41.264621+00:00",
-  "state": "ACTIVITY_READINESS_BLOCKED_FOUR_EXECUTION_IDENTITIES_UNKNOWN",
+  "as_of": "2026-10-24T08:01:44.728689+00:00",
+  "state": "EXACT_FOUR_ADMINISTRATIVE_DISPOSITIONS_REVIEWED_PASS_FRESH_RELEASE_ADMISSION_REQUIRED",
   "independent_reviewer": "/root/backend_reviewer",
   "controller_transcription_sha256": "21ff3c919265ee1eb755f32b98c1c1c5641af223c9e343c0e259574954b1e76a",
   "reviewer_reported_payload_sha256": "afe5b6b5dfc1af7c5f3ae36f323d00413e95ac8f16674bc8a852ab2f0d48073b",
@@ -17,7 +17,7 @@
     ],
     "HK_target_date": "20261012",
     "Workbench_INTERRUPTED": "07bfabf09f144360ab8869214aeecea8",
-    "state": "CANNOT_CONFIRM_CONTINUE_BLOCKING",
+    "state": "UNKNOWN_OPERATOR_ADMINISTRATIVELY_ABANDONED_NOT_COMPLETED",
     "absence_or_age_not_liveness_proof": true
   },
   "parser_fix": "SOURCE_TESTED_INDEPENDENT_PASS",
@@ -40,9 +40,10 @@
   "reviewer_reported_incremental_receipt_sha256": "b0601a2a5c26a01a7b7c0fe5fe16af29fe90d6208e6a4bd02aac6dbde21f0f63",
   "helper_sha256": {
     "prepare_release.py": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
-    "activate_release.py": "4aa089a215137260d927f56f7df84c1c7602230d97309b2d1fe4f34cf1e6e809"
+    "activate_release.py": "2c6280aa947f06f3445d99dca0d1ec5ad902c3a48450c6f93d6901b532eceb39",
+    "recover_legacy_activity.py": "46edd8af45b6076f2c8ec8e03c14996774bad6e4e39d343c6cf7d44bf5ff846a"
   },
-  "tests_sha256": "37c542579a2c2dfe05e1aed3324acf40f77ceee34c134cb45b3386cd7886a740",
+  "tests_sha256": "ddf33a9967aed5aa742c33b5ccbfb6e223af62a3c629f1e3cce10ed017dc6b92",
   "focused_tests": 7,
   "direct_counterexamples": 8,
   "owner_generation_review": {
@@ -78,13 +79,21 @@
     }
   ],
   "required_operator_decision": {
-    "status": "PENDING_NO_AUTHORIZATION_INFERRED",
+    "status": "DIRECT_HUMAN_AUTHORIZATION_RECEIVED",
     "scope": "Only these exact four legacy research records",
     "proposed_disposition": "Preserve all original evidence; explicitly abandon/reconcile unknown legacy execution state before local release continuation",
     "completed_or_idle_claim": false,
     "automatic_override": false,
     "unidentified_PID_kill": false,
     "announcement_or_model_restart": false,
-    "orders_or_BUY_gate_change": false
-  }
+    "orders_or_BUY_gate_change": false,
+    "verbatim_answer": "授权处置这 4 条旧任务并继续发布",
+    "authorization_manifest_sha256": "f3fb7b7d34fd07cb9afa60fcdad293f5becdc5b76f57049483f225d524eda5df",
+    "actual_recovery": "PRIVATE_ORIGINALS_AND_ADMINISTRATIVE_DISPOSITION_WRITTEN_REVIEWED_PASS",
+    "disposition_receipt_sha256": "0000df02b3ee6dfe0e1783dd9a7f2180df234148fb055d3490ec1dba270ac8d4",
+    "actual_review_sha256": "0bc5ac3a1dbb02c49e5547964041ece1ccfbb8535237184471a3d07f9bffcb02"
+  },
+  "execution_state_rewritten": false,
+  "release_admission_exception": "EXPLICIT_HUMAN_AUTHORIZED_EXACT_FOUR_ONLY",
+  "legacy_disposition_acceptance_sha256": "44695eec919676c634d4eae1464d812ee209b85ca1c6d6f11595ed00d598f508"
 }

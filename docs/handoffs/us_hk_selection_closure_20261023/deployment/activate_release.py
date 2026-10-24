@@ -145,6 +145,8 @@ class FreezeGuardian:
         self.phase=phase;value=dict(schema='v4.us_hk.freeze_guardian.v1',phase=phase,
             owner_token=self.token,committed=self.committed or phase=='BOOTOUT_COMMITTED',stop_requested=self.stop_requested,
             guardian_pid=os.getpid(),controller_pid=self.intent['controller_pid'],calls=self.calls,**extra)
+        if self.intent.get('legacy_activity_disposition') is not None:
+            value.update(legacy_activity_disposition=self.intent['legacy_activity_disposition'],legacy_execution_state='UNKNOWN')
         callback=(lambda:setattr(self,'committed',True)) if phase=='BOOTOUT_COMMITTED' else None
         durable_json(self.journal,value,after_replace=callback)
 
@@ -367,6 +369,31 @@ def authorize_transition(scope,prepared,prepared_sha,direction,continuation=None
     return capsule
 
 
+def bind_activity_authority(lifecycle,prepared_path,prepared_sha,direction,continuation,authorization):
+    """Only authenticated transition authority can select administrative evidence."""
+    pin=authorization.get('legacy_activity_disposition')
+    lifecycle.activity_authority=None
+    if pin is not None:
+        require(continuation is not None,'FOUR_CURRENT_CONTINUATION_REQUIRED')
+        lifecycle.activity_authority=dict(prepared=dict(path=str(exact(prepared_path)),sha256=prepared_sha),
+            direction=direction,continuation=continuation)
+        disposition_for_activity(lifecycle.scope,lifecycle.activity_authority)
+
+
+def disposition_for_activity(scope,activity_authority):
+    require(isinstance(activity_authority,dict) and set(activity_authority)=={'prepared','direction','continuation'},
+            'FOUR_TRANSITION_AUTHORITY_REQUIRED')
+    product=activity_authority['prepared'];prepared=read_json(product['path'],product['sha256'])
+    require(read_json(prepared['scope_path'],prepared['scope_sha256'])==scope,'FOUR_ACTIVITY_SCOPE_MISMATCH')
+    require(activity_authority['direction'] in ('activate','rollback') and activity_authority['continuation'] is not None,
+            'FOUR_CURRENT_TRANSITION_REQUIRED')
+    authorization=authorize_transition(scope,prepared,product['sha256'],activity_authority['direction'],activity_authority['continuation'])
+    from recover_legacy_activity import verify_disposition
+    pin=authorization.get('legacy_activity_disposition')
+    receipt=verify_disposition(pin,product['sha256'],prepared['scope_sha256'])
+    return pin,receipt
+
+
 class RealGuardianOps:
     def __init__(self,intent):
         self.intent=intent;pin=intent['prepared'];self.prepared=read_json(pin['path'],pin['sha256'])
@@ -380,6 +407,8 @@ class RealGuardianOps:
             require(exact(intent[key],exists=False).is_relative_to(evidence),'GUARDIAN_EVIDENCE_ESCAPE')
         require(intent['helper_sha256']==sha(Path(__file__)),'GUARDIAN_HELPER_DRIFT')
         self.lifecycle=LaunchctlLifecycle(self.scope)
+        bind_activity_authority(self.lifecycle,pin['path'],pin['sha256'],self.direction,self.intent.get('continuation'),self.authorization)
+        require(self.intent.get('legacy_activity_disposition')==self.authorization.get('legacy_activity_disposition'),'FOUR_GUARDIAN_PIN_MISMATCH')
         self.expected=self.prepared['original_plist_sha256'] if self.direction=='activate' else self.prepared['candidate_plist_sha256']
         self.source=self.prepared['candidate_plist'] if self.direction=='activate' else self.prepared['original_plist']
         self.target=str(Path(self.scope['candidate_root'] if self.direction=='activate' else self.scope['parent_root'])/'app')
@@ -452,6 +481,8 @@ class RealGuardianOps:
             runtime_kernel_identity=signal_identity(value['pid']),
             data_pointer_changes=[],live_operations=len(self.calls)+len(signals),lifecycle_calls=self.calls,
             guardian_signals=signals,admission_fence='KERNEL_STOP_EXACT_IDLE_OWNER')
+        if self.intent.get('legacy_activity_disposition') is not None:
+            result.update(legacy_activity_disposition=self.intent['legacy_activity_disposition'],legacy_execution_state='UNKNOWN')
         write_new(self.intent['receipt_path'],json_bytes(result));return result
 
     def finish_journal(self,journal):
@@ -467,7 +498,8 @@ class RealGuardianOps:
             guardian_journal=str(journal),guardian_phase=progress['phase'],committed=progress['committed'],
             runtime_readback=observed,runtime_kernel_identity=kernel,
             live_operations=len(self.calls)+len(progress['calls']),lifecycle_calls=self.calls,guardian_signals=progress['calls'],
-            retry_permitted=False,data_pointer_changes=[])))
+            retry_permitted=False,data_pointer_changes=[],**(dict(legacy_activity_disposition=self.intent['legacy_activity_disposition'],
+                legacy_execution_state='UNKNOWN') if self.intent.get('legacy_activity_disposition') is not None else {}))))
 
 
 def guardian_main(intent_path,intent_sha):
@@ -534,6 +566,8 @@ def restore_healthy_parent_binding(scope,prepared,prepared_sha,lifecycle,receipt
             prepared_sha256=prepared_sha,before_plist_sha256=prepared['candidate_plist_sha256'],
             after_plist_sha256=sha(pointer),runtime_readback=after,helper_sha256=sha(Path(__file__)),
             live_operations=1,guardian_signals=[],lifecycle_calls=[],data_pointer_changes=[])
+        if authorization.get('legacy_activity_disposition') is not None:
+            result.update(legacy_activity_disposition=authorization['legacy_activity_disposition'],legacy_execution_state='UNKNOWN')
         write_new(receipt_path,json_bytes(result));return result
 
 
@@ -561,6 +595,8 @@ def guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifec
         owner_token=token,prepared=dict(path=str(exact(prepared_path)),sha256=prepared_sha),direction=direction,
         recovery_pin=recovery_pin,journal=str(journal),receipt_path=str(receipt),helper_sha256=sha(Path(__file__)))
     if continuation is not None:intent['continuation']=continuation
+    if lifecycle.activity_authority is not None:
+        intent['legacy_activity_disposition']=disposition_for_activity(scope,lifecycle.activity_authority)[0]
     with intent_path.open('xb') as stream:stream.write(json_bytes(intent));stream.flush();os.fsync(stream.fileno())
     stderr_path=evidence/('guardian-stderr-'+run_id+'.txt')
     # Preserve startup failures even when no journal/OWNED exists. A file also
@@ -718,10 +754,11 @@ def transition(prepared_path, prepared_sha, direction, lifecycle, receipt_path, 
     scope = read_json(prepared["scope_path"], prepared["scope_sha256"])
     if continuation is not None:require(scope.get('mode')=='RELEASE','CONTINUATION_REQUIRES_RELEASE')
     if scope.get('mode')=='RELEASE':
-        authorize_transition(scope,prepared,prepared_sha,direction,continuation)
+        authorization=authorize_transition(scope,prepared,prepared_sha,direction,continuation)
         require(isinstance(lifecycle,LaunchctlLifecycle),'REAL_LIFECYCLE_ADAPTER_REQUIRED')
         verify_prepared(scope,prepared)
         require_real_admission_protocol(scope)
+        bind_activity_authority(lifecycle,prepared_path,prepared_sha,direction,continuation,authorization)
         return guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifecycle,receipt_path,recovery_pin,continuation)
     verify_prepared(scope, prepared)
     evidence = exact(scope["evidence_root"])
@@ -853,7 +890,8 @@ def hkex_catalog_closed(path,row,records,queue_root):
     return hkex_catalog_closed(catalog_path,catalog,records,queue_root)
 
 
-def activity_snapshot(scope, runner):
+def activity_snapshot(scope, runner, *, activity_authority=None):
+    disposition=disposition_for_activity(scope,activity_authority) if activity_authority is not None else None
     activity=scope['activity'];root=exact(activity['workbench_root'])
     require(root.name=='manager_workbench','ACTIVITY_WORKBENCH_ROOT')
     attempts=exact(root/'attempts')
@@ -948,7 +986,25 @@ def activity_snapshot(scope, runner):
                 require(process.returncode in (0,1),'DISPATCH_OWNER_QUERY_UNKNOWN')
                 if process.returncode==0:busy.append('DISPATCH_IN_FLIGHT')
                 else:require(not process.stdout.strip(),'DISPATCH_OWNER_QUERY_UNKNOWN')
-    return dict(busy_work=busy,activity_sha256=digest(json_bytes(identities)))
+    result=dict(busy_work=busy,activity_sha256=digest(json_bytes(identities)))
+    if disposition is not None:
+        pin,receipt=disposition
+        # Each immutable role keeps its existing scan closure. All four originals
+        # and backups were authenticated above; only exact paths in this role's
+        # pinned queues can have their metadata blocker administratively disposed.
+        paths=[]
+        for record in receipt['records']:
+            path=Path(record['path'])
+            in_scope=(record['kind']=='Workbench' and path.parent==attempts) or (
+                record['kind']=='HK_workspace' and any(spec['kind']=='hkex_announcements' and spec.get('root') is not None and
+                    path.is_relative_to(Path(spec['root'])/'workspace_announcement_runs') for spec in activity.get('retained_owner_queues',[])))
+            if in_scope:paths.append(str(path))
+        for path in paths:
+            require(sum(p==path for p,_ in identities)==1 and busy.count(path)==1,'FOUR_ACTIVITY_RECORD_MISSING_OR_DUPLICATE')
+        result.update(busy_work=[p for p in busy if p not in paths],legacy_activity_disposition=pin,
+            administratively_disposed_work=paths,legacy_execution_state='UNKNOWN',completion_or_idle_proven=False,
+            activity_sha256=digest(json_bytes(dict(original_records=identities,legacy_activity_disposition=pin))))
+    return result
 
 
 def lifecycle_identity(scope):
@@ -983,7 +1039,7 @@ def lifecycle_identity(scope):
 class LaunchctlLifecycle:
     """One exact named role, bounded lifecycle; subprocess injectable for tests."""
     def __init__(self,scope,*,runner=None,sleeper=None,clock=None,http_get=None):
-        self.scope=scope;self.runner=runner or subprocess.run
+        self.scope=scope;self.runner=runner or subprocess.run;self.activity_authority=None
         self.sleeper=sleeper or time.sleep;self.clock=clock or time.monotonic
         self.http_get=http_get or self._http_get;self.calls=[]
         require(scope['role'] in LABELS,'ROLE_HAS_NO_SERVICE')
@@ -1009,7 +1065,7 @@ class LaunchctlLifecycle:
         return dict(state='running',pid=pid,app_root=roots[0])
 
     def inspect(self):
-        value=self.identity();activity=activity_snapshot(self.scope,self.runner)
+        value=self.identity();activity=activity_snapshot(self.scope,self.runner,activity_authority=self.activity_authority)
         if value['pid']:
             children=self.command(['/bin/ps','-axo','pid=,ppid='])
             require(children.returncode==0,'PROCESS_CHILD_SCAN_UNAVAILABLE')

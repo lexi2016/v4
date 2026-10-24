@@ -1,0 +1,43 @@
+{
+  "schema": "v4.us_hk.explicit_legacy_disposition_acceptance.v1",
+  "as_of": "2026-10-24T08:01:44.728689+00:00",
+  "state": "SOURCE_AND_ACTUAL_PRIVATE_ARTIFACT_REVIEWED_PASS_RELEASE_NOT_RUN",
+  "explicit_human_authorization": true,
+  "authorization_manifest_sha256": "f3fb7b7d34fd07cb9afa60fcdad293f5becdc5b76f57049483f225d524eda5df",
+  "scope": "Only exact four legacy research metadata records already listed in RELEASE_ACTIVITY_REVIEW.json",
+  "source_sha256": {
+    "activate_release.py": "2c6280aa947f06f3445d99dca0d1ec5ad902c3a48450c6f93d6901b532eceb39",
+    "test_release.py": "ddf33a9967aed5aa742c33b5ccbfb6e223af62a3c629f1e3cce10ed017dc6b92",
+    "recover_legacy_activity.py": "46edd8af45b6076f2c8ec8e03c14996774bad6e4e39d343c6cf7d44bf5ff846a"
+  },
+  "independent_source_review_sha256": "57ff050b939eda6b593ac6b05989fb88b6329c130ada8c77cf6b83eb2ee013d0",
+  "focused_tests": 14,
+  "independent_extra_negatives": 8,
+  "disposition_receipt_sha256": "0000df02b3ee6dfe0e1783dd9a7f2180df234148fb055d3490ec1dba270ac8d4",
+  "independent_actual_review_sha256": "0bc5ac3a1dbb02c49e5547964041ece1ccfbb8535237184471a3d07f9bffcb02",
+  "preservation": {
+    "original_files": 4,
+    "original_bytes": 5239,
+    "original_SHA_unchanged": true,
+    "backups_byte_identical": true,
+    "backup_distinct_inodes": true,
+    "private_directory_mode": "0700",
+    "backup_and_receipt_modes": "0600",
+    "private_directory_files": 5,
+    "original_status_mutations": 0
+  },
+  "role_applied_dispositions": {
+    "API": 4,
+    "SCHED": 1
+  },
+  "global_original_backup_bindings": 4,
+  "legacy_execution_state": "UNKNOWN",
+  "completion_or_idle_proven": false,
+  "scope_bound_current_capsule_required": true,
+  "unrelated_new_or_changed_activity_still_blocks": true,
+  "same_guardian_shared_lock_kernel_CAS_and_rollback": true,
+  "service_activation": 0,
+  "announcement_or_model_restart": false,
+  "orders_or_BUY_gate_change": false,
+  "raw_records_or_backups_uploaded": false
+}

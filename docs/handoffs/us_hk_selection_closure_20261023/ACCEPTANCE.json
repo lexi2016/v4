@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T07:38:49.667630+00:00",
-  "overall": "IN_PROGRESS_RELEASE_BLOCKED_FOUR_EXECUTION_IDENTITIES_UNKNOWN",
+  "as_of": "2026-10-24T08:01:44.728689+00:00",
+  "overall": "IN_PROGRESS_AUTHORIZED_LOCAL_RELEASE_PENDING",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
   "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
@@ -120,9 +120,9 @@
     "independent_real_cases_twice": 3
   },
   "runtime": {
-    "helpers": "CURRENT_SOURCE_TESTED_INDEPENDENT_PASS_ACTIVITY_READINESS_BLOCKED",
+    "helpers": "CURRENT_SOURCE_AND_ACTUAL_PRIVATE_DISPOSITION_ARTIFACT_INDEPENDENT_PASS",
     "candidate": "API_R2_PREPARED_LOADED_SAVE_MERGE_REVIEWED_PASS",
-    "deployment": "THREE_ACTIVATION_ATTEMPTS_FAILED_LAST_ABORTED_PRECOMMIT_ORIGINAL_API_RESTORED",
+    "deployment": "NEW_RUNTIME_NOT_DEPLOYED_FRESH_GUARDED_ADMISSION_PENDING",
     "api": "NEW_LIVE_API_NOT_RUN_OLD_API_HEALTH_RESTORED",
     "ui": "COMPONENT_AND_BUILT_ARTIFACT_PASS_NEW_RENDERED_UI_NOT_RUN",
     "natural_cycles_completed": 0,
@@ -327,6 +327,17 @@
         "input_sha256": "3f08127b142c49558a39ee3240dccd6061091722b053ca140510fda0e0f49e1d",
         "independent_fail_receipt_sha256": "b699cd95bd61bf2d6f960ff78245322a60c93c756eb6d249b3aa133e71594488",
         "reason": "Unrelated log directory nlink mutation blocks prepared child activation/rollback validation; actualcanary restrictions must remain"
+      }
+    },
+    "operator_disposition": {
+      "authorization_manifest_sha256": "f3fb7b7d34fd07cb9afa60fcdad293f5becdc5b76f57049483f225d524eda5df",
+      "disposition_receipt_sha256": "0000df02b3ee6dfe0e1783dd9a7f2180df234148fb055d3490ec1dba270ac8d4",
+      "independent_actual_review_sha256": "0bc5ac3a1dbb02c49e5547964041ece1ccfbb8535237184471a3d07f9bffcb02",
+      "legacy_execution_state": "UNKNOWN",
+      "completion_or_idle_proven": false,
+      "role_applied_dispositions": {
+        "API": 4,
+        "SCHED": 1
       }
     }
   },

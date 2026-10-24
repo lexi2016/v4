@@ -2693,6 +2693,234 @@ old_os_open=_raced_descriptor_open
                 activate.activity_snapshot(self.scope,runner)
 
 
+    def authorized_four_fixture(self, *, recover=True, include_hk=True):
+        import recover_legacy_activity as recovery
+        runner,roots=self.retained_queue_fixture();self.scope['role']='scheduler'
+        token=dict(pid=111,start_sec=2,start_usec=3,status=2,
+            audit_token=[os.getuid(),os.geteuid(),os.getegid(),os.getuid(),os.getgid(),111,100025,4],pid_version=4)
+        self.scope['activity'].update(expected_owner=token,admission_files={'parent':{},'candidate':{}})
+        authority=json.loads(recovery.AUTHORIZATION_PATH.read_bytes());originals={}
+        for record in authority['records']:
+            original=Path(record['path']);raw=original.read_bytes()
+            target=(roots['hkex_announcements']/'workspace_announcement_runs/20261012'/original.name if record['kind']=='HK_workspace'
+                else Path(self.scope['activity']['workbench_root'])/'attempts'/original.name)
+            target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw);record['path']=str(target);originals[str(target)]=raw
+        if not include_hk:self.scope['activity'].pop('retained_owner_queues')
+        path=self.root/'authority.json';path.write_bytes(prepare.json_bytes(authority))
+        patch.object(recovery,'AUTHORIZATION_PATH',path).start();patch.object(recovery,'AUTHORIZATION_SHA256',prepare.sha(path)).start()
+        cap=Path(self.scope['execution_capsule']['path']);value=json.loads(cap.read_bytes())
+        value.update(authorized_actions=['prepare'],scope_contract_sha256=prepare.contract_sha(self.scope))
+        cap.write_bytes(prepare.json_bytes(value));self.scope['execution_capsule']['sha256']=prepare.sha(cap)
+        prepared=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        api_scope=self.root/'api-product-scope.json';api_scope.write_bytes(prepare.json_bytes(dict(mode='RELEASE',role='api')))
+        api_product=self.root/'api-product.json';api_product.write_bytes(prepare.json_bytes(dict(schema='v4.us_hk.release_prepared.v1',state='PREPARED',mode='RELEASE',scope_path=str(api_scope),scope_sha256=prepare.sha(api_scope))))
+        products=[dict(path=str(api_product),sha256=prepare.sha(api_product)),dict(path=str(self.prepared_path),sha256=prepare.sha(self.prepared_path))]
+        capsule=dict(schema='v4.us_hk.legacy_disposition_capsule.v1',verdict='PASS',authorized_actions=['administrative_disposition'],
+            authority={'path':str(path),'sha256':prepare.sha(path)},prepared_products=products,private_root=str(self.root/'private-originals'),
+            helper_sha256={n:prepare.sha(Path(__file__).with_name(n)) for n in ('recover_legacy_activity.py','activate_release.py')})
+        cap=self.root/'disposition-capsule.json';cap.write_bytes(prepare.json_bytes(capsule));pin={'path':str(cap),'sha256':prepare.sha(cap)}
+        receipt=recovery.recover(pin) if recover else None
+        proof_path=Path(capsule['private_root'])/'DISPOSITION.json'
+        proof={'path':str(proof_path),'sha256':prepare.sha(proof_path)} if recover else None
+        continuation=dict(schema='v4.us_hk.execution_capsule.v1',verdict='PASS',authorized_actions=['activate','rollback'],
+            prepared_sha256=products[1]['sha256'],scope_sha256=prepared['scope_sha256'],scope_contract_sha256=prepare.contract_sha(self.scope),
+            helper_sha256={n:prepare.sha(Path(__file__).with_name(n)) for n in ('prepare_release.py','activate_release.py')},legacy_activity_disposition=proof)
+        cont=self.root/'disposition-continuation.json';cont.write_bytes(prepare.json_bytes(continuation))
+        activity_authority=dict(prepared=products[1],direction='activate',continuation=dict(path=str(cont),sha256=prepare.sha(cont)))
+        return SimpleNamespace(recovery=recovery,runner=runner,roots=roots,authority=authority,originals=originals,prepared=prepared,
+            capsule=capsule,capsule_pin=pin,receipt=receipt,proof=proof,continuation=continuation,activity_authority=activity_authority)
+
+    def four_snapshot(self,f):
+        return activate.activity_snapshot(self.scope,f.runner,activity_authority=f.activity_authority)
+
+    def test_authorized_four_disposition_preserves_originals_and_rejects_unlisted_busy(self):
+        f=self.authorized_four_fixture();r=f.recovery
+        self.assertEqual(r.recover(f.capsule_pin),f.receipt)
+        self.assertEqual(len(activate.activity_snapshot(self.scope,f.runner)['busy_work']),4)
+        observed=self.four_snapshot(f)
+        self.assertEqual(observed['busy_work'],[]);self.assertEqual(len(observed['administratively_disposed_work']),4)
+        self.assertEqual(observed['legacy_execution_state'],'UNKNOWN');self.assertFalse(observed['completion_or_idle_proven'])
+        self.assertEqual({k:Path(k).read_bytes() for k in f.originals},f.originals)
+        for row in f.receipt['records']:self.assertEqual(Path(row['backup_path']).read_bytes(),f.originals[row['path']])
+        self.assertEqual(sum(len(v) for v in f.originals.values()),5239)
+        # This proves the old decision remains blocked when authority is absent.
+        with self.assertRaises(prepare.Stop):activate.activity_snapshot(self.scope,f.runner,activity_authority={'legacy_activity_disposition':f.proof})
+        extra=Path(self.scope['activity']['workbench_root'])/'attempts/unlisted.json'
+        extra.write_bytes(prepare.json_bytes(dict(job_id='unlisted',state='RUNNING')))
+        self.assertEqual(self.four_snapshot(f)['busy_work'],[str(extra)])
+        # Identical content under another name never inherits the disposition.
+        extra.write_bytes(next(iter(f.originals.values())))
+        self.assertEqual(self.four_snapshot(f)['busy_work'],[str(extra)])
+
+    def test_authorized_four_original_sha_id_path_missing_and_duplicate_fail_closed(self):
+        f=self.authorized_four_fixture()
+        for name,raw in f.originals.items():
+            path=Path(name)
+            with self.subTest(path=name):
+                path.write_bytes(raw+b' ')
+                with self.assertRaises(prepare.Stop):self.four_snapshot(f)
+                path.write_bytes(raw.replace(path.stem.encode(),b'0'*32))
+                with self.assertRaises(prepare.Stop):self.four_snapshot(f)
+                path.unlink()
+                with self.assertRaises((prepare.Stop,FileNotFoundError)):self.four_snapshot(f)
+                path.write_bytes(raw)
+        original=dict(f.activity_authority['prepared']);f.activity_authority['prepared']=dict(original,path=str(self.root/'other-product.json'))
+        with self.assertRaises((prepare.Stop,FileNotFoundError)):self.four_snapshot(f)
+        f.activity_authority['prepared']=original
+        # Duplicate scans must not quietly subtract two sightings of one approved path.
+        with patch.object(activate,'disposition_for_activity',return_value=(f.proof,f.receipt)):
+            self.scope['activity']['retained_owner_queues'].append(dict(kind='hkex_announcements',root=str(f.roots['hkex_announcements'])))
+            with self.assertRaisesRegex(prepare.Stop,'FOUR_ACTIVITY_RECORD_MISSING_OR_DUPLICATE'):self.four_snapshot(f)
+
+    def test_authorized_four_receipt_requires_exact_human_operation_and_product(self):
+        f=self.authorized_four_fixture();r=f.recovery;cap=Path(f.capsule_pin['path']);raw=cap.read_bytes()
+        for mutation in ('authority_sha','authority_path','operation','helpers','product','extra','duplicate','private_root'):
+            value=json.loads(raw)
+            if mutation=='authority_sha':value['authority']['sha256']='0'*64
+            elif mutation=='authority_path':value['authority']['path']=str(self.root/'other-authority.json')
+            elif mutation=='operation':value['authorized_actions']=['activate']
+            elif mutation=='helpers':value['helper_sha256']['activate_release.py']='0'*64
+            elif mutation=='product':value['prepared_products'][1]['sha256']='0'*64
+            elif mutation=='extra':value['prepared_products'].append(value['prepared_products'][0])
+            elif mutation=='duplicate':value['prepared_products'][1]=value['prepared_products'][0]
+            else:value['private_root']=str(self.root/'arbitrary')
+            cap.write_bytes(prepare.json_bytes(value))
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):r.recover(dict(path=str(cap),sha256=prepare.sha(cap)))
+        cap.write_bytes(raw)
+        for product,scope in (('0'*64,f.prepared['scope_sha256']),(f.activity_authority['prepared']['sha256'],'0'*64)):
+            with self.assertRaisesRegex(prepare.Stop,'FOUR_RECEIPT_OTHER_PRODUCT'):r.verify_disposition(f.proof,product,scope)
+        for row in f.receipt['records']:
+            backup=Path(row['backup_path']);before=backup.read_bytes();backup.write_bytes(b'wrong')
+            with self.assertRaisesRegex(prepare.Stop,'FOUR_ORIGINAL_BACKUP_DRIFT'):self.four_snapshot(f)
+            backup.write_bytes(before)
+        receipt_path=Path(f.proof['path']);before=receipt_path.read_bytes();value=json.loads(before);value['execution_state']='COMPLETED'
+        receipt_path.write_bytes(prepare.json_bytes(value))
+        with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):self.four_snapshot(f)
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_RECEIPT_BINDING_MISMATCH'):
+            r.verify_disposition(dict(path=str(receipt_path),sha256=prepare.sha(receipt_path)),f.activity_authority['prepared']['sha256'],f.prepared['scope_sha256'])
+
+    def test_authorized_four_continuation_missing_unpinned_or_wrong_action_blocks(self):
+        f=self.authorized_four_fixture();path=Path(f.activity_authority['continuation']['path']);raw=path.read_bytes()
+        for mutation in ('missing','unpinned','wrong_action','receipt_pin','other_product'):
+            value=json.loads(raw)
+            if mutation=='missing':value.pop('legacy_activity_disposition')
+            elif mutation=='unpinned':value['legacy_activity_disposition']=f.proof['path']
+            elif mutation=='wrong_action':value['authorized_actions']=['prepare']
+            elif mutation=='receipt_pin':value['legacy_activity_disposition']['sha256']='0'*64
+            else:value['prepared_sha256']='0'*64
+            path.write_bytes(prepare.json_bytes(value));f.activity_authority['continuation']['sha256']=prepare.sha(path)
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):self.four_snapshot(f)
+        path.write_bytes(raw);f.activity_authority['continuation']['sha256']=prepare.sha(path)
+        path.write_bytes(raw+b' ')
+        with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):self.four_snapshot(f)
+
+    def test_authorized_four_recovery_partial_idempotent_no_overwrite_and_cas(self):
+        f=self.authorized_four_fixture(recover=False);r=f.recovery;root=Path(f.capsule['private_root']);root.mkdir(mode=0o700)
+        expected=r.expected_receipt(f.capsule_pin,f.capsule,f.authority,root);backup=Path(expected['records'][0]['backup_path'])
+        backup.write_bytes(b'existing unrelated bytes');backup.chmod(0o600)
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_PRIVATE_COLLISION'):r.recover(f.capsule_pin)
+        self.assertEqual(backup.read_bytes(),b'existing unrelated bytes');self.assertFalse((root/'DISPOSITION.json').exists())
+        backup.write_bytes(f.originals[expected['records'][0]['path']])
+        receipt=r.recover(f.capsule_pin);before={str(p):p.read_bytes() for p in root.iterdir()}
+        self.assertEqual(r.recover(f.capsule_pin),receipt);self.assertEqual({str(p):p.read_bytes() for p in root.iterdir()},before)
+        self.assertEqual(root.stat().st_mode & 0o777,0o700)
+        self.assertTrue(all(p.stat().st_mode & 0o777==0o600 for p in root.iterdir()))
+        # A concurrent original change is never hidden by already preserved evidence.
+        original=Path(expected['records'][0]['path']);raw=original.read_bytes();original.write_bytes(raw+b' ')
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_ORIGINAL_SIZE_DRIFT'):r.recover(f.capsule_pin)
+        self.assertEqual(backup.read_bytes(),raw)
+
+    def test_authorized_four_guardian_propagates_pin_and_rechecks_at_commit(self):
+        f=self.authorized_four_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=f.runner);captured={}
+        token=self.scope['activity']['expected_owner']
+        def intercept(argv,**kwargs):
+            captured.update(json.loads(Path(argv[-2]).read_bytes()));raise RuntimeError('FIXTURE_GUARDIAN_INTERCEPTED')
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'signal_identity',return_value=token),patch.object(activate.subprocess,'Popen',side_effect=intercept):
+            with self.assertRaisesRegex(RuntimeError,'FIXTURE_GUARDIAN_INTERCEPTED'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,continuation=f.activity_authority['continuation'])
+        self.assertEqual(captured['legacy_activity_disposition'],f.proof)
+        self.assertEqual(captured['continuation'],f.activity_authority['continuation'])
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):
+            ops=activate.RealGuardianOps(captured);ops.verify_before_freeze();ops.verify_commit()
+            value=ops.frozen_activity();self.assertEqual(value['busy_work'],[]);self.assertEqual(value['legacy_execution_state'],'UNKNOWN')
+            guardian=activate.FreezeGuardian(ops,captured,io.StringIO(),io.StringIO());guardian.record('FROZEN_IDLE',activity=value)
+            journal=json.loads(Path(captured['journal']).read_bytes());self.assertEqual(journal['legacy_activity_disposition'],f.proof)
+            ops.finish_journal(captured['journal']);failure=json.loads(self.activation_path.read_bytes())
+            self.assertEqual(failure['legacy_execution_state'],'UNKNOWN');self.assertEqual(failure['legacy_activity_disposition'],f.proof)
+            missing=dict(captured);missing.pop('legacy_activity_disposition')
+            with self.assertRaisesRegex(prepare.Stop,'FOUR_GUARDIAN_PIN_MISMATCH'):activate.RealGuardianOps(missing)
+            original=next(iter(f.originals));Path(original).write_bytes(f.originals[original]+b' ')
+            with self.assertRaisesRegex(prepare.Stop,'FOUR_ORIGINAL_SIZE_DRIFT'):ops.frozen_activity()
+        self.assertEqual(lifecycle.calls,[]);self.assertEqual(self.plist.read_bytes(),self.old_bytes)
+
+
+
+    def test_authorized_four_backup_cas_drift_never_commits_receipt(self):
+        f=self.authorized_four_fixture(recover=False);r=f.recovery;real=r.private_file;calls=[]
+        original=Path(next(iter(f.originals)));before=original.read_bytes()
+        def changed(path,raw):
+            real(path,raw);calls.append(path)
+            if len(calls)==4:original.write_bytes(before+b' ')
+        with patch.object(r,'private_file',side_effect=changed):
+            with self.assertRaisesRegex(prepare.Stop,'FOUR_ORIGINAL_SIZE_DRIFT'):r.recover(f.capsule_pin)
+        root=Path(f.capsule['private_root']);self.assertFalse((root/'DISPOSITION.json').exists())
+        self.assertEqual(len(list(root.iterdir())),4)
+        self.assertEqual(original.read_bytes(),before+b' ')  # Never overwrite a concurrent writer.
+        original.write_bytes(before);r.recover(f.capsule_pin)
+        extra=root/'unexpected';extra.write_bytes(b'untouched')
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_PRIVATE_ROOT_UNEXPECTED_FILE'):r.recover(f.capsule_pin)
+        self.assertEqual(extra.read_bytes(),b'untouched')
+
+    def test_authorized_four_injected_guardian_activation_and_rollback_retain_unknown(self):
+        f=self.authorized_four_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=f.runner)
+        frozen={p:p.read_bytes() for p in (self.prepared_path,self.scope_path,self.candidate/'release-manifest.json')}
+        tokens={111:self.scope['activity']['expected_owner']};statuses={111:2}
+        def identity(pid):
+            if pid not in tokens:tokens[pid]=dict(tokens[111],pid=pid,pid_version=pid)
+            return tokens[pid]
+        def fake_signal(token,signum):statuses[token['pid']]=4 if signum==signal.SIGSTOP else 5
+        def guarded(scope,product,product_path,product_sha,direction,adapter,receipt,recovery,continuation):
+            token=identity(f.runner.pid);statuses[token['pid']]=2
+            intent=dict(schema='v4.us_hk.guardian_intent.v1',mode='RELEASE',controller_pid=os.getpid(),
+                owner_token=token,prepared={'path':str(product_path),'sha256':product_sha},direction=direction,
+                recovery_pin=recovery,journal=str(self.evidence/(direction+'-four-guardian.json')),
+                receipt_path=str(receipt),helper_sha256=prepare.sha(activate.__file__),continuation=continuation,
+                legacy_activity_disposition=f.proof)
+            with patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):ops=activate.RealGuardianOps(intent)
+            with io.StringIO() as output:
+                fd,write_fd=os.pipe();os.write(write_fd,b'UNDER_TEST');os.close(write_fd)
+                # Pipe control is fixture-only; no subprocess or kernel signals occur.
+                with os.fdopen(fd) as control,patch.object(activate,'read_control',side_effect=[{'action':'FREEZE'},{'action':'COMMIT'},{'action':'START'}]):
+                    activate.FreezeGuardian(ops,intent,control,output).run()
+            return json.loads(receipt.read_bytes())
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'signal_identity',side_effect=identity), \
+             patch.object(activate,'same_process',return_value=True), \
+             patch.object(activate,'process_token',side_effect=lambda pid:dict(identity(pid),status=statuses.get(pid,2))), \
+             patch.object(activate,'signal_exact_identity',side_effect=fake_signal), \
+             patch.object(activate.signal,'pthread_sigmask',return_value=set()),patch.object(activate,'guarded_transition',side_effect=guarded):
+            activated=activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,
+                continuation=f.activity_authority['continuation'])
+            rolled=activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'rollback',lifecycle,self.rollback_path,
+                continuation=f.activity_authority['continuation'],recovery_pin={'path':str(self.activation_path),'sha256':prepare.sha(self.activation_path)})
+        self.assertEqual((activated['state'],rolled['state']),('ACTIVATED','ROLLED_BACK'))
+        for value in (activated,rolled):
+            self.assertEqual(value['legacy_activity_disposition'],f.proof);self.assertEqual(value['legacy_execution_state'],'UNKNOWN')
+            self.assertFalse(value['runtime_readback']['completion_or_idle_proven'])
+        self.assertEqual(self.plist.read_bytes(),self.old_bytes)
+        self.assertTrue(all(p.read_bytes()==raw for p,raw in frozen.items()))
+        self.assertEqual({p:Path(p).read_bytes() for p in f.originals},f.originals)
+
+
+    def test_authorized_four_scheduler_partial_scan_still_pins_all_originals(self):
+        f=self.authorized_four_fixture(include_hk=False)
+        observed=self.four_snapshot(f)
+        self.assertEqual(observed['busy_work'],[])
+        self.assertEqual(observed['administratively_disposed_work'],[r['path'] for r in f.receipt['records'] if r['kind']=='Workbench'])
+        # A role's smaller scan never weakens global exact-four evidence binding.
+        path=Path(f.receipt['records'][0]['path']);path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_ORIGINAL_SIZE_DRIFT'):self.four_snapshot(f)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', required=True)
@@ -2710,7 +2938,7 @@ def main():
         failures=len(result.failures), errors=len(result.errors), skipped=len(result.skipped),
         passed=result.wasSuccessful(), cases=args.cases or 'ALL', actual_live_hashes_before=before, actual_live_hashes_after=after,
         live_unchanged=before==after, lifecycle='FAKE_OR_MARKED_SCRATCH_DUMMY_ONLY', live_operations=0,
-        helper_sha256={p.name:prepare.sha(p) for p in [Path(__file__),Path(prepare.__file__),Path(activate.__file__)]})
+        helper_sha256={p.name:prepare.sha(p) for p in [Path(__file__),Path(prepare.__file__),Path(activate.__file__),Path(__file__).with_name('recover_legacy_activity.py')]})
     prepare.write_new(output, prepare.json_bytes(receipt))
     print(json.dumps(dict(receipt=str(output), sha256=prepare.sha(output),tests=result.testsRun,passed=receipt['passed'],live_unchanged=receipt['live_unchanged'])))
     raise SystemExit(0 if result.wasSuccessful() and before==after else 1)
