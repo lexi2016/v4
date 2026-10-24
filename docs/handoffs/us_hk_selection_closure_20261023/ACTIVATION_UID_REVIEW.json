@@ -1,0 +1,24 @@
+{
+  "schema": "v4.us_hk.activation_identity_review.v1",
+  "as_of": "2026-10-24T06:57:44.088221+00:00",
+  "status": "INDEPENDENT_SOURCE_TESTED_PASS",
+  "reviewer": "release_helper_reviewer",
+  "controller_transcription": true,
+  "source_sha256": {
+    "activate_release.py": "79d448dc9bb2943ecaf7ba5ac0d6847a1cccb4a2b8ba6a94f2432db8a811baa8",
+    "test_release.py": "ea2748fa302eac46a743f33d7cd0f15451f8ff426889ecd072e318e80382e9ef",
+    "prepare_release.py_unchanged": "f2a25bd571a47080316dbeaeaba4d73185474e98f22c8f0a9060f2366f24a219"
+  },
+  "scope": "Only two missing redundant uid/expected_pid fields derived from validated frozen owner audit identity; explicit conflicts refused; existing kernel CAS/guardian/authorization/rollback preserved",
+  "independent_tests_passed": 4,
+  "unchanged_top_level_definitions": 29,
+  "controller_receipt_sha256": "11b3a39d90cdb35dd8fd7e8d385642d53fd861cb4384d00c154a196dbfc5a21b",
+  "actual_activation_attempt": "Prior KeyError before lifecycle calls retained; no live operations",
+  "actual_activation": "NOT_RUN",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

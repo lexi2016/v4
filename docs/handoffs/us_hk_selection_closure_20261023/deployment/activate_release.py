@@ -402,7 +402,7 @@ class RealGuardianOps:
             require(observed['state']=='absent','ABSENT_RECOVERY_OWNER_APPEARED');return
         require(observed['state']=='running' and observed['app_root']==self.previous and
                 observed['pid']==self.intent['owner_token']['pid'],'GUARDIAN_RUNTIME_IDENTITY_DRIFT')
-        if self.direction=='activate':require(observed['pid']==self.scope['activity']['expected_pid'],'ACTIVE_PID_DRIFT')
+        if self.direction=='activate':require(observed['pid']==lifecycle_identity(self.scope)['pid'],'ACTIVE_PID_DRIFT')
         verify_owner_binding(self.scope,self.prepared,self.intent['prepared']['sha256'],self.direction,
             self.intent['owner_token'],self.intent.get('recovery_pin'))
 
@@ -725,7 +725,7 @@ def transition(prepared_path, prepared_sha, direction, lifecycle, receipt_path, 
             already_parent=observed.get('state')=='running'
         require(recovery or (observed.get("app_root") == previous_root and observed.get("state") == "running"), "RUNTIME_IDENTITY_DRIFT")
         if scope['mode']=='RELEASE' and direction=='activate':
-            require(observed.get('pid')==scope['activity']['expected_pid'],'ACTIVE_PID_DRIFT')
+            require(observed.get('pid')==lifecycle_identity(scope)['pid'],'ACTIVE_PID_DRIFT')
         require(already_parent or observed.get("busy_work") == [], "HEALTHY_WORK_IN_FLIGHT")
         raw = Path(raw_source).read_bytes()
         raw_expected = prepared["candidate_plist_sha256"] if direction == "activate" else prepared["original_plist_sha256"]
@@ -864,6 +864,35 @@ def activity_snapshot(scope, runner):
     return dict(busy_work=busy,activity_sha256=digest(json_bytes(identities)))
 
 
+def lifecycle_identity(scope):
+    """Resolve redundant UID/PID fields from the sealed owner, never live PID alone."""
+    activity=scope['activity'];uid=activity.get('uid');pid=activity.get('expected_pid')
+    current=os.getuid()
+    require(type(current) is int and 0<current<2**32 and os.geteuid()==current,'LIFECYCLE_CURRENT_USER_INVALID')
+    if 'expected_owner' in activity:
+        owner=activity['expected_owner'];words=owner.get('audit_token') if isinstance(owner,dict) else None
+        require(isinstance(words,list) and len(words)==8 and all(type(v) is int and 0<=v<2**32 for v in words) and
+                type(owner.get('pid')) is int and 1<owner['pid']<2**31 and
+                type(owner.get('pid_version')) is int and 0<owner['pid_version']<2**31,'LIFECYCLE_FROZEN_IDENTITY_INVALID')
+        audit=_AuditToken((ctypes.c_uint32*8)(*words));decoded={}
+        try:
+            bsm=ctypes.CDLL('/usr/lib/libbsm.dylib')
+            for name in ('auid','euid','ruid','pid','pidversion'):
+                call=getattr(bsm,'audit_token_to_'+name);call.argtypes=[_AuditToken]
+                call.restype=ctypes.c_uint32 if name in ('auid','euid','ruid') else ctypes.c_int
+                decoded[name]=call(audit)
+        except (OSError,AttributeError) as error:raise Stop('LIFECYCLE_AUDIT_DECODER_UNAVAILABLE') from error
+        require(decoded['auid']==decoded['euid']==decoded['ruid']==current and decoded['pid']==owner['pid'] and
+                decoded['pidversion']==owner['pid_version'],'LIFECYCLE_FROZEN_IDENTITY_MISMATCH')
+        require(('uid' not in activity or type(uid) is int and uid==decoded['euid']) and
+                ('expected_pid' not in activity or type(pid) is int and pid==owner['pid']),
+                'LIFECYCLE_EXPLICIT_IDENTITY_CONFLICT')
+        uid,pid=decoded['euid'],owner['pid']
+    require(type(uid) is int and uid==current and type(pid) is int and 1<pid<2**31,
+            'LIFECYCLE_EXPLICIT_IDENTITY_REQUIRED')
+    return dict(uid=uid,pid=pid)
+
+
 class LaunchctlLifecycle:
     """One exact named role, bounded lifecycle; subprocess injectable for tests."""
     def __init__(self,scope,*,runner=None,sleeper=None,clock=None,http_get=None):
@@ -871,7 +900,7 @@ class LaunchctlLifecycle:
         self.sleeper=sleeper or time.sleep;self.clock=clock or time.monotonic
         self.http_get=http_get or self._http_get;self.calls=[]
         require(scope['role'] in LABELS,'ROLE_HAS_NO_SERVICE')
-        self.label=LABELS[scope['role']];self.domain='gui/'+str(scope['activity']['uid'])
+        self.label=LABELS[scope['role']];self.domain='gui/'+str(lifecycle_identity(scope)['uid'])
 
     def command(self,args):
         return self.runner(args,capture_output=True,text=True,timeout=10)

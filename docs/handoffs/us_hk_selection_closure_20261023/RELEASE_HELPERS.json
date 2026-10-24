@@ -1,16 +1,16 @@
 {
   "schema": "v4.us_hk.release_helper_acceptance.v2",
-  "as_of": "2026-10-24T06:39:33.391200+00:00",
-  "state": "CURRENT_SOURCE_SCOPES_PASS_ACTUAL_CANDIDATES_IN_PROGRESS",
+  "as_of": "2026-10-24T06:57:44.088221+00:00",
+  "state": "CURRENT_SOURCE_SCOPES_PASS_API_AND_CHILD_ACTUAL_CANDIDATES_PASS_NOT_ACTIVATED",
   "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
   "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
   "core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
-  "previous_helper_commit": "0ed1a63394d172ece50ea5980e83615d9494566a",
-  "previous_report_sha256": "130e748519e5c4d822ff0e614bf0be6aab8f62b9d3670e8d495c157a649d48ee",
+  "previous_helper_commit": "347e4f28ce6362d4c9e8e954704eb17028d9ad0c",
+  "previous_report_sha256": "3e8cc07f829a5be396d41b9631b5bd464e7d90c3369d7c982c2df243746dda01",
   "source_sha256": {
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "f2a25bd571a47080316dbeaeaba4d73185474e98f22c8f0a9060f2366f24a219",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "dd80046cbaa245b551cc1e42d44db5bd9a76863cee9ea13bb3b6f3a3c0c4d5bb",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "f7f5d9823192144b8bb12cf86b93ee3831ff212f7feea61b300e469c607dee6e",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "79d448dc9bb2943ecaf7ba5ac0d6847a1cccb4a2b8ba6a94f2432db8a811baa8",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "ea2748fa302eac46a743f33d7cd0f15451f8ff426889ecd072e318e80382e9ef",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": "9ae1a3cab13b2bc33c0ccc9a26751b055b0173b19bc9b28437607ff5f95d34c2",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/publish_replay.py": "699b926f3727cd4ee8bb911465862705e984bd770cd654df6208c16cc8d9b7d3",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_publish_replay.py": "ce7c5aa328c660e5c47c7c134743f41855ec7cf939264c1a98a4f110e8ea1134",
@@ -89,25 +89,32 @@
       "unchanged_definitions": 33,
       "SDK_child_log_hooks_called": 0,
       "controller_transcribed_receipt_sha256": "99f429cbbb4c75adfa186288a1e4a1a76fecad7210d7773fcdb9e6cdfbddb5ec"
+    },
+    {
+      "name": "Frozen activation redundant UID/PID compatibility",
+      "tests": 4,
+      "unchanged_top_level_definitions": 29,
+      "controller_transcribed_receipt_sha256": "11b3a39d90cdb35dd8fd7e8d385642d53fd861cb4384d00c154a196dbfc5a21b",
+      "actual_lifecycle": false
     }
   ],
   "actual_delivery": {
     "frontend_builds": 1,
     "shared": "PREPARED_LOADED_INDEPENDENT_PASS",
     "api_r1": "PREPARED_LOADED_PASS_SEMANTIC_STORE_INTEGRATION_FAIL_DO_NOT_ACTIVATE",
-    "api_r2": "PREPARED_16b9b1c9_PENDING_ACTUAL_SAVE_MERGE_INDEPENDENT_REVIEW",
+    "api_r2": "PREPARED_LOADED_SAVE_MERGE_INDEPENDENT_PASS_4_CASES",
     "hk_child_r1": "MATERIALIZED_UNSEALED_SDK_IMPORT_REFUSED_AT_ORIGINAL_FILE_LOGGING",
-    "scheduler": "NOT_PREPARED",
+    "scheduler": "FINAL_READY_INPUT_INDEPENDENT_PASS_NOT_PREPARED",
     "service_activation": 0,
     "business_publication": 0,
     "natural_cycles": 0,
-    "hk_child_r2": "NOT_CREATED_FIRST_PREPARE_REFUSED_STALE_DIRECTORY_NLINK_BEFORE_SDK"
+    "hk_child_r2": "PREPARED_LOADED_NATIVE_COMPATIBILITY_INDEPENDENT_PASS_21_CHECKS",
+    "api_role_probe": "PURE_PREOPEN_PASS_670_0_397_273_FULL_FROZEN_NATIVE_DATA_CANNOT_CONFIRM"
   },
   "unresolved": [
-    "Actual API r2 independent save/merge and read-only Native/PREOPEN probe",
-    "Fresh HK r2 current-log metadata input/canary acceptance, then scheduler preparation",
-    "Actual service/API/browser/manualpublication/two natural cycles",
-    "Historical field/member/PIT material gaps remain CANNOT_CONFIRM"
+    "Actual service activation, compact API/browser and manual retrospective publication",
+    "Scheduler actual candidate, activation and two complete natural cycles",
+    "Historical field/member/PIT material gaps remain CANNOT_CONFIRM; full audited panel candidate not globally activated"
   ],
   "guardian_fault_boundary": "Uncatchable guardian SIGKILL/OS/hardware death still requires durable-journal inspection; no self-recovery or blind restart guarantee",
   "safety": {

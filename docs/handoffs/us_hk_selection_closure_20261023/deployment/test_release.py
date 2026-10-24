@@ -419,7 +419,8 @@ class ReleaseTests(unittest.TestCase):
 
     def continuation_fixture(self, *, prepare_only=True):
         runner=self.release_fixture()
-        token=dict(pid=111,start_sec=2,start_usec=3,status=2,audit_token=[2]*8,pid_version=4)
+        token=dict(pid=111,start_sec=2,start_usec=3,status=2,
+            audit_token=[os.getuid(),os.geteuid(),os.getegid(),os.getuid(),os.getgid(),111,100025,4],pid_version=4)
         self.scope['activity'].update(expected_owner=token,admission_files={'parent':{},'candidate':{}})
         capsule=Path(self.scope['execution_capsule']['path'])
         value=json.loads(capsule.read_bytes());value['scope_contract_sha256']=prepare.contract_sha(self.scope)
@@ -2305,6 +2306,75 @@ old_os_open=_raced_descriptor_open
                 with patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):ops=activate.RealGuardianOps(intent)
                 ops.verify_before_freeze();ops.verify_commit()
         self.assertEqual(lifecycle.calls,[])
+
+    def activation_uid_scope_fixture(self):
+        path=SCRATCH.parent/'operation-execution/api-r2/PREPARED.json'
+        product=prepare.read_json(path,'16b9b1c965345054b9f3649a87de296f74c85c94fb4e0b40ee0c8b3b6b1e8fed')
+        return prepare.read_json(product['scope_path'],product['scope_sha256']),product,path
+
+    def test_activation_uid_actual_sealed_scope_derives_gui_uid_and_pid(self):
+        scope,product,path=self.activation_uid_scope_fixture();original=deepcopy(scope)
+        runner=SimpleNamespace(calls=[])
+        def forbidden(*args,**kwargs):runner.calls.append(args);raise AssertionError('LIFECYCLE_OPERATION_FORBIDDEN')
+        lifecycle=activate.LaunchctlLifecycle(scope,runner=forbidden)
+        self.assertEqual(lifecycle.domain,'gui/501')
+        self.assertEqual(activate.lifecycle_identity(scope),{'uid':501,'pid':scope['activity']['expected_owner']['pid']})
+        self.assertNotIn('uid',scope['activity']);self.assertNotIn('expected_pid',scope['activity'])
+        explicit=deepcopy(scope);explicit['activity'].update(uid=501,expected_pid=scope['activity']['expected_owner']['pid'])
+        self.assertEqual(activate.LaunchctlLifecycle(explicit,runner=forbidden).domain,'gui/501')
+        self.assertEqual(scope,original);self.assertEqual(runner.calls,[]);self.assertEqual(lifecycle.calls,[])
+
+    def test_activation_uid_conflicts_and_invalid_frozen_identity_rejected(self):
+        scope,_,_=self.activation_uid_scope_fixture()
+        for field,values in [('uid',[None,True,'501',502]),('expected_pid',[None,True,'42989',42990])]:
+            for value in values:
+                changed=deepcopy(scope);changed['activity'][field]=value
+                with self.subTest(field=field,value=value),self.assertRaises(prepare.Stop):activate.LaunchctlLifecycle(changed)
+        for mutation in ('missing-owner','none-owner','short','bool-word','negative-word','overflow','uid','euid','ruid','pid','version','missing-version'):
+            changed=deepcopy(scope);activity=changed['activity'];owner=activity['expected_owner'];words=owner['audit_token']
+            if mutation=='missing-owner':activity.pop('expected_owner')
+            elif mutation=='none-owner':activity['expected_owner']=None
+            elif mutation=='short':owner['audit_token']=words[:-1]
+            elif mutation=='bool-word':words[0]=True
+            elif mutation=='negative-word':words[0]=-1
+            elif mutation=='overflow':words[0]=2**32
+            elif mutation=='uid':words[0]=502
+            elif mutation=='euid':words[1]=502
+            elif mutation=='ruid':words[3]=502
+            elif mutation=='pid':owner['pid']+=1
+            elif mutation=='version':owner['pid_version']+=1
+            else:owner.pop('pid_version')
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):activate.LaunchctlLifecycle(changed)
+        with patch.object(activate.os,'geteuid',return_value=0):
+            with self.assertRaisesRegex(prepare.Stop,'CURRENT_USER_INVALID'):activate.LaunchctlLifecycle(scope)
+
+    def test_activation_uid_original_prepare_only_and_current_continuation(self):
+        scope,product,path=self.activation_uid_scope_fixture();original=prepare.authorized_capsule(scope,'prepare')
+        self.assertEqual(original['authorized_actions'],['prepare'])
+        self.assertEqual(original['helper_sha256']['prepare_release.py'],prepare.sha(prepare.__file__))
+        with self.assertRaisesRegex(prepare.Stop,'CAPSULE_ACTION_OR_SCOPE_MISMATCH'):
+            activate.authorize_transition(scope,product,prepare.sha(path),'activate')
+        capsule=dict(schema='v4.us_hk.execution_capsule.v1',verdict='PASS',authorized_actions=['activate','rollback'],
+            scope_contract_sha256=prepare.contract_sha(scope),prepared_sha256=prepare.sha(path),scope_sha256=product['scope_sha256'],
+            helper_sha256={'prepare_release.py':prepare.sha(prepare.__file__),'activate_release.py':prepare.sha(activate.__file__)})
+        target=self.evidence/'uid-continuation.json';target.write_bytes(prepare.json_bytes(capsule));pin={'path':str(target),'sha256':prepare.sha(target)}
+        for direction in ('activate','rollback'):
+            self.assertEqual(activate.authorize_transition(scope,product,prepare.sha(path),direction,pin),capsule)
+        for helper in ('prepare_release.py','activate_release.py'):
+            changed=deepcopy(capsule);changed['helper_sha256'][helper]='0'*64;target.write_bytes(prepare.json_bytes(changed))
+            with self.subTest(helper=helper),self.assertRaisesRegex(prepare.Stop,'UNREVIEWED_HELPER'):
+                activate.authorize_transition(scope,product,prepare.sha(path),'activate',{'path':str(target),'sha256':prepare.sha(target)})
+
+    def test_activation_uid_guardian_verifier_uses_same_frozen_pid(self):
+        scope,product,path=self.activation_uid_scope_fixture();pointer=self.evidence/'uid-fixture.plist';pointer.write_bytes(b'fixture binding')
+        owner=scope['activity']['expected_owner'];previous=str(Path(scope['parent_root'])/'app')
+        ops=SimpleNamespace(scope=scope,prepared=product,direction='activate',intent=dict(prepared={'sha256':prepare.sha(path)},owner_token=owner),
+            pointer=pointer,expected=prepare.sha(pointer),previous=previous,
+            lifecycle=SimpleNamespace(identity=lambda:dict(state='running',app_root=previous,pid=owner['pid'])))
+        with patch.object(activate,'authorize_transition'),patch.object(activate,'verify_prepared'):
+            activate.RealGuardianOps.verify_before_freeze(ops)
+            changed=deepcopy(scope);changed['activity']['expected_pid']=owner['pid']+1;ops.scope=changed
+            with self.assertRaisesRegex(prepare.Stop,'EXPLICIT_IDENTITY_CONFLICT'):activate.RealGuardianOps.verify_before_freeze(ops)
 
     def test_sdk_wrong_python_wrapper_or_search_roots_cannot_fallback(self):
         self.sdk_fixture();original=deepcopy(self.scope['runtime_probe'])
