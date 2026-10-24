@@ -1,0 +1,108 @@
+{
+  "schema": "QFQ_DAILY_MARKETWIDE_FINAL_REPAIR_ACCEPTANCE_V1",
+  "status": "REVIEWED_PASS_CURRENT_ASOF",
+  "asof_date": 20261023,
+  "generation_id": "9ffd91897e998cae958afe2413ec2c3198919b0408dfd044f0b056d900e1e4bc",
+  "input_sha256": "93d98d71e33383a442d1a51d2168a6b24edf6e01c598d47d141043816c70f152",
+  "source": {
+    "branch": "codex/qfq-daily-marketwide-20261024",
+    "commit_sha": "57281101138b87604bd3851e312b32d737746b6c"
+  },
+  "formula_identity": {
+    "original_user_formula_sha256": "924ab78f0adb0ee0705e41d7824282f40ec275a97da532ffee5b61e29d2925e6",
+    "formula_source_binding_verified": true,
+    "oracle_acceptance_receipt_sha256": "0b471f36efc5a43fae2aaac7d7f66e428f5fac71fae74dcc76ae7ccc2c3dd620",
+    "independent_formula_baseline_receipt_sha256": "f5ff5391396e01e7814af7adc6f64537e04f7222ea09dbbe6cca5fdef751cf27"
+  },
+  "review_evidence": {
+    "actual_data_review": {
+      "verdict": "REVIEWED/PASS",
+      "receipt_sha256": "ca2339d2ad95aa233c3cf1a46eeea689af4314365462e9f1b992d920c5f07a6b"
+    },
+    "final_integration_review": {
+      "verdict": "REVIEWED/PASS",
+      "receipt_sha256": "23708c78e9cc0c7c9c3394ad98a8f2337663cf397afb9a9a84b2b9a0d2faf628"
+    },
+    "oracle_acceptance_receipt_sha256": "0b471f36efc5a43fae2aaac7d7f66e428f5fac71fae74dcc76ae7ccc2c3dd620"
+  },
+  "candidate_artifact_sha256": {
+    "backtest": "fdacb96c49438589e50a541a7b4c2a0a3f04ade4b1a568e520ede913e59c81e6",
+    "selector": "ccf197bb974672e9f20b11d48c1953fb1bd26341f9bf46d5be90c90674286255"
+  },
+  "publication": {
+    "publication_receipt_sha256": "f257607852303948b44b89b319e5fa853dd58095163a85e315fd6dd9a02432e5",
+    "publication_status": "READY",
+    "paired_CURRENT_journal_status": "COMMITTED",
+    "both_CURRENT_pointer_bytes_match_publication_after": true,
+    "both_Parquet_footers_match_reviewed_generation_and_input": true
+  },
+  "data_acceptance": {
+    "verdict": "REVIEWED/PASS",
+    "original_universe": 5800,
+    "healthy_target_members": 5496,
+    "accepted_target_date_floor": 5496,
+    "old_keys_lost": {
+      "backtest": 0,
+      "selector": 0
+    },
+    "candidate_artifact_sha256_matches_publication_readback": true
+  },
+  "basis_by_market": {
+    "A": {
+      "price_basis": "QFQ_ASOF",
+      "asof_date": 20261023,
+      "volume_basis": "QFQ_EVENT_VOLUME",
+      "amount_basis": "RAW_TURNOVER"
+    },
+    "HK_HK_CONNECT_HK_FUND": {
+      "basis": "UNKNOWN_NATIVE",
+      "asof_date": null,
+      "retained_original_values": true
+    },
+    "all_columns_QFQ_claim": false
+  },
+  "current_consumer_integration": {
+    "installed_refs": {
+      "result": "PASS",
+      "verified_after_reload": 18,
+      "write_targets": 13,
+      "check_only_targets": 5
+    },
+    "scheduler_reload": {
+      "result": "BEHAVIOR_VERIFIED",
+      "state": "running",
+      "timeout_seconds": 14400,
+      "original_timeout_seconds": 3600,
+      "only_authorized_timeout_delta": true
+    },
+    "default_reader_and_skill": {
+      "result": "BEHAVIOR_VERIFIED",
+      "implicit_network_fetch": false,
+      "network_write_subprocess_attempts": 0,
+      "skill_docs_present": true,
+      "policy": "Use the existing default CURRENT reader; forbid implicit fetch and formula recomputation."
+    }
+  },
+  "two_symbol_display_oracle": {
+    "result": "PASS_FUTU_DISPLAY_ORACLE",
+    "rows_per_symbol": 20,
+    "B123_match_rows": 40,
+    "native_source_volume_exceptions_disclosed": 3,
+    "source_volume_overwritten_or_tuned": false
+  },
+  "scope_and_limits": {
+    "scope": "Actual immutable candidate data and current-as-of consumer, paired-publication, and scheduler checks.",
+    "future_daily_end_to_end_execution": "NOT_VERIFIED",
+    "natural_slot": "NATURAL_SLOT_UNVERIFIED",
+    "API": "NOT_VERIFIED",
+    "UI": "NOT_VERIFIED",
+    "wholemarket_external_Futu_oracle": "NOT_PERFORMED",
+    "historical_PIT_or_strategy_certification": "NOT_CLAIMED",
+    "full_installed_runtime_data_execution": "NOT_VERIFIED",
+    "historical_source_acceptance_replaced": false
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
