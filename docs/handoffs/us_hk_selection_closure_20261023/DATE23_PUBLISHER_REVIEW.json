@@ -1,0 +1,43 @@
+{
+  "schema": "v4.us_hk.dated_publisher_source_review.v1",
+  "state": "REVIEWED/PASS_SOURCE_FIXTURE_AND_READONLY_INPUT_ONLY",
+  "as_of": "2026-10-24T11:55:41.538465+00:00",
+  "problem": "Date23 bare page selects legacy d256 storedresult and shows BENEFIT0/RISK5. Only22 newindustry manualreplay waspublished. Oldpublisher onlyallows22.",
+  "fix": "Same existing bounded publisher v2 consumes hashbound datedinventoryrow; date23 newmanualRETROSPECTIVE uses owninput/sourcecutoffs; no changes toengine/API/Store/frontend/scheduler ornewproducer. v1fixed22restriction retained.",
+  "base_remote_commit": "278ec9c99f4192fad9c9bd453fbc149d5fd8863d",
+  "running_app_source_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
+  "source_sha256": {
+    "deployment/publish_replay.py": "a08359b03857294ba08fbe5230e2a5ad6e94113e5d571173da5873021712e0a9",
+    "deployment/test_publish_replay.py": "e7f832c4612f7d1faec6fc8f3b341aa7d19be347ddb04ebab2cca38b0a11dff2"
+  },
+  "independent_review": {
+    "origin": "/root/exit_transition_reviewer",
+    "sha256": "23c79b46b38717d2c2f40c86db6376223f3c70652a1ea08a0c7ef5489c43314a",
+    "cases": 24,
+    "original699b_rejection_reproduced": true,
+    "P0_P1_P2_findings": 0,
+    "model_identity": "RequestedSolHigh role; no independent modelattestation"
+  },
+  "frozen23": {
+    "run_id": "d2562717f12740648af5ee84662a1643",
+    "target_date": "20261023",
+    "US_session": "20261022",
+    "input_sha256": "08d57102c67fec088428b7f0e3abcf5266ac1b46989ea79f66463c92067169aa",
+    "batch_sha256": "124452a1aeff5ef18369284f5f9556ce005b3506288a5fec73724e5f1f74881c",
+    "source_snapshot_sha256": "4e2a4c70d285e6a8a631a19af7a8206e7ae0bc47fa4fc2b68d83b710ccf8c7ad",
+    "row_sha256": "8df789385f3aa9c5804778458e23b6c70f2ba8f7e74ea0bc6da6a66e485f1629",
+    "source_cutoff": "2026-10-22T20:15:02Z",
+    "source_execution_cutoff": "2026-10-23T21:01:00.921047+08:00"
+  },
+  "version_boundaries": "Original22 files and699b/2350 proof remainunchanged andversion-specific; newbinarydoesnotwaive oldhelper/source/API pins orclaimoldAPI4/Store3717 rollbackunderAPI5. Newv2rollbackguard verifiedbyfixture.",
+  "not_run": [
+    "Real23engine/stage/publication/API/UI atthissourcecheckpoint",
+    "Fullprojecttests/build/SCHED/QFQ updates"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

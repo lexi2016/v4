@@ -92,6 +92,109 @@ class PublicationTests(unittest.TestCase):
     def assert_originals(self):
         for path,raw in self.original.items():self.assertEqual(path.read_bytes(),raw)
 
+    def dated23_fixture(self, *, actual_session='20261022', actual_cutoff='2026-10-22T20:15:02Z'):
+        # Independent dated fixture:23 uses US22, source22 fixture remains byte-protected.
+        run='3'*32;execution='2026-10-23T21:01:00.921047+08:00'
+        ctx=c.RunContext(target_date='20261023',phase=c.Phase.NEXT_DAY,cutoff=execution,
+            trigger='SCHEDULED',source_sessions={'us':actual_session,'hk_price':'20261022'},
+            rules_version='POSITIVE_OPERATING_RESEARCH_V1',scope_refs={'run_id':run,'mwb_run_id':run,
+            'source_cutoff':actual_cutoff,'us_session_date':actual_session,'requested_lanes':['US_MAPPING']})
+        batch=seal_batch(ctx,c.Lane.US_MAPPING,[],[],'dated23 fixture',
+            c.Coverage(scope_count=0,observed_count=0,assessed_count=0,unassessed_count=0),gaps=['FIXTURE_NO_PIT_PROOF'])
+        body=dict(derivative=True,authority='ORIGINAL_OWNERS_ONLY',context=ctx.model_dump(mode='json'),batches=[batch.model_dump(mode='json')])
+        raw=c.canonical(body);ish=prep.digest(raw);inp=self.protected_input/(ish+'.json');inp.write_bytes(raw)
+        snap=self.state/f'snapshots/{run}.json';snap.write_bytes(c.canonical(dict(run_id=run,product_sha256='d'*64,changes={'input_snapshot_sha256':ish},lanes=[])))
+        cat=self.state/f'catalog/20261023/NEXT_DAY/{run}.json';cat.parent.mkdir(parents=True)
+        cat.write_bytes(c.canonical(dict(run_id=run,input_sha256='e'*64,product_sha256='d'*64,generated_at='2026-10-23T21:02:08.380824+08:00')))
+        inventory=json.loads(Path(self.scope['inventory']['path']).read_bytes())
+        row=dict(run_id=run,target_date='20261023',phase='NEXT_DAY',input_sha256='e'*64,product_sha256='d'*64,
+            input_snapshot_sha256=ish,us_batch_input_sha256=batch.input_sha256,pit_evidence_complete=False,
+            exact_saved_input_replayable=True,classification='RETROSPECTIVE_ONLY',missing_evidence=['FIXTURE_NO_PIT_PROOF'],
+            generated_at='2026-10-23T21:02:08.380824+08:00',effective_proof_cutoff=replay.temporal_cutoff(ctx.model_dump(mode='json')),
+            input_context={'market':'HK_CONNECT','target_date':'20261023','phase':'NEXT_DAY','cutoff':execution,
+            'source_cutoff':'2026-10-22T20:15:02Z','source_sessions':{'us':'20261022','hk_price':'20261022'},'us_session_date':'20261022'},
+            catalog=dict(path=str(cat),sha256=prep.sha(cat)),snapshot=dict(path=str(snap),sha256=prep.sha(snap)))
+        inventory['runs'].append(row);inventory['inputs'][ish]=dict(path=str(inp),sha256=ish,batches=[dict(lane='US_MAPPING',input_sha256=batch.input_sha256)])
+        ip=Path(self.scope['inventory']['path']);ip.write_bytes(c.canonical(inventory))
+        self.scope.update(schema='v4.us_hk.replay_publication_scope.v2',source_run_id=run,target_date='20261023',
+            source_input=dict(path=str(inp),sha256=ish),source_snapshot=dict(path=str(snap),sha256=prep.sha(snap)),
+            source_batch_sha256=batch.input_sha256,source_cutoff='2026-10-22T20:15:02Z',source_execution_cutoff=execution,
+            source_us_session='20261022',source_row_sha256=prep.digest(pub.canonical(row)),
+            inventory=dict(path=str(ip),sha256=prep.sha(ip)),result_pointer_relative='pointers/20261023/RETROSPECTIVE.json')
+        self.original.update({p:p.read_bytes() for p in (inp,snap,cat)})
+        return row
+
+    def test_dated23_own_input_six_files_latest_metadata_and_rollback(self):
+        self.dated23_fixture();receipt=self.prepare();self.assert_originals()
+        self.assertEqual(receipt['source_run_id'],'3'*32)
+        self.assertEqual(receipt['pointer_relative'],'pointers/20261023/RETROSPECTIVE.json')
+        self.assertIn('catalog/20261023/RETROSPECTIVE/'+receipt['new_run_id']+'.json',{r['relative'] for r in receipt['files']})
+        before={p.relative_to(self.state).as_posix():p.read_bytes() for p in self.state.rglob('*.json')}
+        self.publish();store=WorkbenchStore(self.live);snap=store.read_plan(receipt['new_run_id'])
+        self.assertEqual(snap.context.target_date,'20261023');self.assertEqual(snap.context.source_sessions['us'],'20261022')
+        self.assertEqual(snap.context.scope_refs['source_run_id'],'3'*32)
+        self.assertEqual(snap.context.scope_refs['source_cutoff'],'2026-10-22T20:15:02Z')
+        self.assertEqual(snap.lanes[0].selection.cutoff,'2026-10-23T21:01:00.921047+08:00')
+        metadata,_=store.list_plan_metadata('20261023');self.assertEqual(metadata[0]['run_id'],receipt['new_run_id'])
+        after={p.relative_to(self.state).as_posix() for p in self.state.rglob('*.json')}
+        self.assertEqual(after-set(before),{r['relative'] for r in receipt['files']}|{'pointers/20261023/RETROSPECTIVE.json'})
+        for rel,raw in before.items():self.assertEqual((self.state/rel).read_bytes(),raw)
+        pub.rollback(self.prepared,prep.sha(self.prepared),dict(path=str(self.published),sha256=prep.sha(self.published)),self.rolled_back,backend=self.backend)
+        self.assertFalse((self.state/'pointers/20261023/RETROSPECTIVE.json').exists());self.assert_originals()
+
+    def test_dated23_scope_crosswires_rejected_before_engine(self):
+        self.dated23_fixture();original=deepcopy(self.scope)
+        mutations={'date':('target_date','20261022'),'run':('source_run_id',pub.SOURCE_RUN),
+            'session':('source_us_session','20261021'),'batch':('source_batch_sha256',pub.SOURCE_BATCH),
+            'cutoff':('source_cutoff',pub.SOURCE_CUTOFF),'execution':('source_execution_cutoff',pub.EXECUTION_CUTOFF),
+            'row':('source_row_sha256','0'*64),'input':('source_input',dict(path=str(self.input_path),sha256=prep.sha(self.input_path)))}
+        for name,(key,value) in mutations.items():
+            self.scope=deepcopy(original);self.scope[key]=value
+            with self.subTest(mutation=name),patch.object(replay,'actual_engine',side_effect=AssertionError('engine before datebinding')):
+                with self.assertRaises(prep.Stop):self.prepare()
+            self.assertFalse(Path(self.scope['stage_root']).exists());self.assert_originals()
+
+    def test_dated23_actual_input_session_cannot_be_row_annotation(self):
+        self.dated23_fixture(actual_session='20261021')
+        with patch.object(replay,'actual_engine',side_effect=AssertionError('engine before source session check')):
+            with self.assertRaisesRegex(prep.Stop,'FROZEN_SOURCE_SESSION_MISMATCH'):self.prepare()
+        self.assertFalse(Path(self.scope['stage_root']).exists());self.assert_originals()
+
+    def test_dated23_original_source_cutoff_cannot_be_replaced(self):
+        self.dated23_fixture(actual_cutoff='2026-10-23T20:15:02Z')
+        with patch.object(replay,'actual_engine',side_effect=AssertionError('engine before cutoff check')):
+            with self.assertRaisesRegex(prep.Stop,'FROZEN_SOURCE_CONTEXT_MISMATCH'):self.prepare()
+        self.assertFalse(Path(self.scope['stage_root']).exists());self.assert_originals()
+
+    def test_dated23_pointer_race_preserves_new_owner(self):
+        self.dated23_fixture();receipt=self.prepare();pointer=self.state/receipt['pointer_relative'];other=c.canonical({'run_id':'other23owner'})
+        pointer.parent.mkdir(parents=True,exist_ok=True)
+        with self.assertRaisesRegex(prep.Stop,'POINTER_CAS_DRIFT_INSIDE_STORE_LOCK'):
+            self.publish(before_commit=lambda:pointer.write_bytes(other))
+        self.assertEqual(pointer.read_bytes(),other);self.assert_originals()
+
+    def test_dated23_prepared_row_pin_tamper_rejected(self):
+        self.dated23_fixture();self.prepare();value=json.loads(self.prepared.read_bytes())
+        value['source_row_sha256']='0'*64;self.prepared.write_bytes(prep.json_bytes(value))
+        with self.assertRaisesRegex(prep.Stop,'PUBLICATION_PREPARED_DRIFT'):self.publish()
+        self.assert_originals()
+
+    def test_dated23_configured_double_root_uses_own_date_only(self):
+        self.dated23_fixture();receipt,root,continuation,runner=self.configured_root_fixture()
+        with patch.object(pub,'load_backend',return_value=self.backend),patch.object(pub.subprocess,'run',side_effect=runner):
+            pub.publish(self.prepared,prep.sha(self.prepared),self.published,continuation=continuation)
+            self.assertTrue((root/'pointers/20261023/RETROSPECTIVE.json').exists())
+            self.assertFalse((self.state/'pointers/20261023/RETROSPECTIVE.json').exists())
+            self.assertFalse((root/'pointers/20261022/RETROSPECTIVE.json').exists())
+            pub.rollback(self.prepared,prep.sha(self.prepared),dict(path=str(self.published),sha256=prep.sha(self.published)),self.rolled_back,continuation=continuation)
+        self.assertFalse((root/'pointers/20261023/RETROSPECTIVE.json').exists());self.assert_originals()
+
+    def test_old_prepared_helper_hash_is_not_accepted_by_new_binary(self):
+        self.prepare();value=json.loads(self.prepared.read_bytes());value['helper_sha256']='0'*64
+        self.prepared.write_bytes(prep.json_bytes(value))
+        with self.assertRaisesRegex(prep.Stop,'PUBLICATION_PREPARED_DRIFT'):self.publish()
+        self.assert_originals()
+
     def configured_root_fixture(self, *, old_pointer=False):
         # The API config argument already ends with manager_workbench.
         self.scope['live_state_root']=str(self.state);root=self.state/'manager_workbench';root.mkdir()
@@ -355,7 +458,8 @@ class PublicationTests(unittest.TestCase):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--receipt',required=True);parser.add_argument('--cases',nargs='+')
     args=parser.parse_args();SCRATCH.mkdir(parents=True,exist_ok=True)
-    output=Path(args.receipt).resolve();prep.require(output.is_relative_to(SCRATCH.resolve()),'TEST_RECEIPT_OUTSIDE_SCRATCH')
+    output=Path(args.receipt).resolve();own=WT/'.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/date23-visible-list/writer'
+    prep.require(output.is_relative_to(SCRATCH.resolve()) or output.is_relative_to(own.resolve()),'TEST_RECEIPT_OUTSIDE_SCRATCH')
     before={str(p):prep.sha(p) for p in LIVE_PATHS}
     helper_dependencies_before={name:prep.sha(Path(__file__).with_name(name)) for name in ('prepare_release.py','activate_release.py')}
     root_contract_ast=prep.digest(ast.dump(ast.parse(inspect.getsource(pub.actual_store_root))).encode())
