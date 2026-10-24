@@ -190,6 +190,15 @@ class ResearchCandidate(StrictModel):
     paths: list[MappingPath] = Field(default_factory=list)
     reasons: list[str] = Field(default_factory=list)
     source_refs: list[dict[str, Any]] = Field(default_factory=list)
+    # None denotes an older saved contract. Omit it to preserve its product hash.
+    industry_matches: list[dict[str, Any]] | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_industry_compatible(self, handler):
+        value = handler(self)
+        if self.industry_matches is None:
+            value.pop("industry_matches", None)
+        return value
 
 
 class GateDecision(StrictModel):
@@ -238,6 +247,17 @@ class MappingSelectionSummary(StrictModel):
     counts: dict[str, int] = Field(default_factory=dict)
     evaluation_complete: bool = False
     gaps: list[str] = Field(default_factory=list)
+    listing_mode: Literal["INDUSTRY_MATCH"] | None = None
+    listing_policy_version: str | None = None
+    listing_policy_sha256: str | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_industry_compatible(self, handler):
+        value = handler(self)
+        for key in ("listing_mode", "listing_policy_version", "listing_policy_sha256"):
+            if getattr(self, key) is None:
+                value.pop(key, None)
+        return value
 
 
 class LaneResult(StrictModel):

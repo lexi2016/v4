@@ -1,11 +1,11 @@
 {
   "schema": "v4.us_hk.release_helper_acceptance.v2",
-  "as_of": "2026-10-24T08:01:44.728689+00:00",
-  "state": "CURRENT_SOURCE_AND_AUTHORIZED_FOUR_RECOVERY_ARTIFACT_PASS_FRESH_ACTIVATION_PENDING",
+  "as_of": "2026-10-24T09:19:16.069245+00:00",
+  "state": "CURRENT_STARTUP_HELPER_SOURCE_PASS_INDUSTRY_BUSINESS_REVIEW_PENDING",
   "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
   "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
   "core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
-  "previous_helper_commit": "3c9d87405bb957dc3935015c57dae6df479c6486",
+  "previous_helper_commit": "45ccd118aebf692839428a1f20cf349ce1ab9b01",
   "previous_report_sha256": "beaded8fe06baeb899bfa9f4b5d36200a36c480f54023993e3f5b7a378c23e25",
   "source_sha256": {
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
@@ -17,7 +17,12 @@
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/probe_role.py": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/MANUAL_PUBLICATION_PLAN.md": "210dbe56dcae17e57321e67d9c9999066032b52c02ebc7e12e8c86495b1bc74f",
     "deployment/api_module_contracts.json": "a19d37fe35c2abc9d303f5a7e4ac77de0aea2f654eb50f30b159ee49751eaad8",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/recover_legacy_activity.py": "46edd8af45b6076f2c8ec8e03c14996774bad6e4e39d343c6cf7d44bf5ff846a"
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/recover_legacy_activity.py": "46edd8af45b6076f2c8ec8e03c14996774bad6e4e39d343c6cf7d44bf5ff846a",
+    "activate_release.py": "ab215492ae25e0a310aa2130d23489e5b3a46e4dc6f8b4d6a83461ea5acb272f",
+    "recover_legacy_activity.py": "9e43e9a5c7ba475dfbb9fdfc4a4fc65066fa5d781647abebf7eacb6edadb6a92",
+    "test_release.py": "058bdbf26b4f1309710b16b8dc6456d51221dbd8113c99ab2c4b5c4d04a53591",
+    "startup_canary.py": "40c4e9268ff2d65d8032108b6ca1197c35cc9e3b75334d608379a1ce5d324609",
+    "test_startup_canary.py": "965d9a26b4ee6649f14ce250586bfc32f78215248f633093692297a202814035"
   },
   "original_frozen_scope": {
     "independent_receipt_sha256": "1818d8a6f9184460a2ee2b46b84af46a9f415d91b4dabcb1f713bfc74b4430bf",
@@ -160,5 +165,19 @@
     "buy_gate_updated": false,
     "orders_sent": false
   },
-  "source_handoff_commit": "d21910e1240c3d3e53989d67155b85f5cd741aa9"
+  "source_handoff_commit": "d21910e1240c3d3e53989d67155b85f5cd741aa9",
+  "startup_delta": {
+    "source_review": "REVIEWED_PASS",
+    "writer_fixture_cases": 13,
+    "actual_constructor_canaries": "NOT_RUN",
+    "exact_missing_dependency": "v4/manager_workbench/oversold_daily.py",
+    "dependency_sha256": "9ebeed117ee883805ac8a5e3331cb53fa688892905dd8292912ee5ba4b20099e",
+    "business_old_api_restored": true,
+    "new_default_decision": "DECISION_UPDATE.json",
+    "old_criteria_candidates_not_cut_over": true,
+    "independent_receipt_sha256": "84a2d5fb80fffa498abee35266956783fbb7ff7c7ff688ff21c57d1190a12dc2",
+    "independent_prior_finding_receipt_sha256": "9b5ef4db95913d03e7eee9d0607f5dbf60817f01745d4a36bcd7f1628a7af8b0",
+    "canary_fixture_cases": 4,
+    "reused_helper_cases": 10
+  }
 }

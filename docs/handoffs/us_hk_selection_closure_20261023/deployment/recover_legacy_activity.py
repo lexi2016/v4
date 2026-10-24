@@ -50,6 +50,14 @@ def original(record):
     return raw
 
 
+def disposition_private_root(value):
+    """A new immutable generation for exactly this product pair and helper set."""
+    identity=dict(authority=value['authority'],prepared_products=sorted(value['prepared_products'],key=lambda p:p['path']),
+        helper_sha256={name:value['helper_sha256'][name] for name in ('activate_release.py','recover_legacy_activity.py')})
+    generation=digest(json.dumps(identity,sort_keys=True,separators=(',',':'),allow_nan=False).encode())
+    return AUTHORIZATION_PATH.parent/('private-originals-'+generation)
+
+
 def capsule(pin):
     require(isinstance(pin,dict) and set(pin)=={'path','sha256'},'FOUR_CAPSULE_PIN_REQUIRED')
     value=read_json(pin['path'],pin['sha256'])
@@ -69,7 +77,7 @@ def capsule(pin):
         roles.append(scope.get('role'))
     require(sorted(roles)==['api','scheduler'],'FOUR_API_SCHEDULER_PRODUCTS_REQUIRED')
     root=exact(value['private_root'],exists=False)
-    require(root==AUTHORIZATION_PATH.parent/'private-originals' and root.parent.exists() and
+    require(root==disposition_private_root(value) and root.parent.exists() and
             not any(Path(r['path']).is_relative_to(root) or root.is_relative_to(Path(r['path'])) for r in auth['records']),
             'FOUR_PRIVATE_ROOT_INVALID')
     return value,auth,root

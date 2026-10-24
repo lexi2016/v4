@@ -1,0 +1,39 @@
+{
+  "schema": "v4.us_hk.startup_delta_acceptance.v1",
+  "as_of": "2026-10-24T09:21:54.434416+00:00",
+  "state": "REVIEWED_PASS_SOURCE_FIXTURES_ONLY",
+  "source_sha256": {
+    "prepare_release.py": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
+    "activate_release.py": "ab215492ae25e0a310aa2130d23489e5b3a46e4dc6f8b4d6a83461ea5acb272f",
+    "recover_legacy_activity.py": "9e43e9a5c7ba475dfbb9fdfc4a4fc65066fa5d781647abebf7eacb6edadb6a92",
+    "test_release.py": "058bdbf26b4f1309710b16b8dc6456d51221dbd8113c99ab2c4b5c4d04a53591",
+    "startup_canary.py": "40c4e9268ff2d65d8032108b6ca1197c35cc9e3b75334d608379a1ce5d324609",
+    "test_startup_canary.py": "965d9a26b4ee6649f14ce250586bfc32f78215248f633093692297a202814035"
+  },
+  "independent_review_sha256": "84a2d5fb80fffa498abee35266956783fbb7ff7c7ff688ff21c57d1190a12dc2",
+  "prior_finding_receipt_sha256": "9b5ef4db95913d03e7eee9d0607f5dbf60817f01745d4a36bcd7f1628a7af8b0",
+  "tests": {
+    "prior_unchanged_helper_cases_reused": 10,
+    "new_canary_cases": 4,
+    "isolated_bootstrap_help": "PASS_BOTH_ROLE_INTERPRETERS"
+  },
+  "actual_failure": {
+    "API_r2_committed_but_not_ready_receipt_sha256": "fc655ac859657d3759d551bcbdc60fad7c0b082bc720e42843978c304e07fae9",
+    "missing_dependency": "v4/manager_workbench/oversold_daily.py",
+    "dependency_sha256": "9ebeed117ee883805ac8a5e3331cb53fa688892905dd8292912ee5ba4b20099e",
+    "dependency_already_in_remote_commit": "45ccd118aebf692839428a1f20cf349ce1ab9b01",
+    "old_API_restore_receipt_sha256": "a9597860ef6939bbca1b9e218a8aaef14bfe25b3327a77f9693caa674cfabf37",
+    "old_API_restored": true
+  },
+  "actual_new_candidate_constructors": "NOT_RUN",
+  "new_activation": "NOT_RUN",
+  "original_four_legacy_records": "PRESERVED_UNKNOWN_EXACT_AUTHORIZATION_ONLY",
+  "old_disposition_generation": "HISTORICAL_API_R2_SCHED_R2_ONLY",
+  "successor_disposition_generation": "MUST_BIND_ACTUAL_NEW_PRODUCTS_BEFORE_ACTIVATION",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

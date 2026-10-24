@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import ast
 import ctypes
+import errno
+import http.client
 from contextlib import contextmanager, ExitStack
 import fcntl
 import json
@@ -17,6 +19,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import urllib.error
 import weakref
 from uuid import uuid4
 
@@ -147,6 +150,7 @@ class FreezeGuardian:
             guardian_pid=os.getpid(),controller_pid=self.intent['controller_pid'],calls=self.calls,**extra)
         if self.intent.get('legacy_activity_disposition') is not None:
             value.update(legacy_activity_disposition=self.intent['legacy_activity_disposition'],legacy_execution_state='UNKNOWN')
+        if getattr(self.ops,'last_new_owner',None) is not None:value['last_observed_new_owner']=self.ops.last_new_owner
         callback=(lambda:setattr(self,'committed',True)) if phase=='BOOTOUT_COMMITTED' else None
         durable_json(self.journal,value,after_replace=callback)
 
@@ -394,6 +398,57 @@ def disposition_for_activity(scope,activity_authority):
     return pin,receipt
 
 
+_OWNER_KEYS=('pid','start_sec','start_usec','audit_token','pid_version')
+
+
+def transient_startup_error(error):
+    if isinstance(error,urllib.error.HTTPError):return error.code==503
+    if isinstance(error,urllib.error.URLError):error=error.reason
+    return isinstance(error,(TimeoutError,http.client.RemoteDisconnected)) or (
+        isinstance(error,OSError) and error.errno in {errno.ECONNREFUSED,errno.ECONNRESET,errno.ETIMEDOUT,errno.ECONNABORTED})
+
+
+def wait_for_readiness(lifecycle,target,pointer,expected_sha,*,remember=None):
+    """One bootstrap, one bounded wait, one exact kernel owner; no owner replacement."""
+    deadline=lifecycle.clock()+16;owner=None
+    for _ in range(65):
+        require(lifecycle.clock()<deadline,'NEW_RUNTIME_READINESS_DEADLINE')
+        require(sha(pointer)==expected_sha,'STARTUP_PLIST_CAS_DRIFT')
+        try:value=lifecycle.identity()
+        except Stop as error:
+            if str(error) not in {'LAUNCHCTL_NOT_RUNNING','PROCESS_CWD_UNAVAILABLE'}:raise
+            require(owner is None,'NEW_OWNER_LOST_DURING_STARTUP');value={'state':'starting'}
+        if value.get('state')=='running':
+            require(value.get('app_root')==target,'STARTUP_OWNER_ROOT_DRIFT')
+            current=signal_identity(value['pid'])
+            require(current is not None,'STARTUP_KERNEL_IDENTITY_UNKNOWN')
+            if owner is None:owner=current
+            require(all(owner.get(k)==current.get(k) for k in _OWNER_KEYS) and same_process(owner),'STARTUP_KERNEL_OWNER_DRIFT')
+            if remember is not None:remember(value,owner)
+            ready=True
+            if lifecycle.scope['role']=='api':
+                for path in ('/healthz','/readyz'):
+                    require(lifecycle.clock()<deadline,'NEW_RUNTIME_READINESS_DEADLINE')
+                    require(sha(pointer)==expected_sha and same_process(owner),'STARTUP_OWNER_OR_PLIST_DRIFT')
+                    try:status,_=lifecycle.readiness_http_get('http://127.0.0.1:8873'+path,min(5,deadline-lifecycle.clock()))
+                    except Exception as error:
+                        if not transient_startup_error(error):raise
+                        ready=False;break
+                    if status==503:ready=False;break
+                    require(status==200,'API_HEALTH_READBACK_FAILED')
+            if ready:
+                require(lifecycle.clock()<deadline,'NEW_RUNTIME_READINESS_DEADLINE')
+                observed=lifecycle.inspect()
+                require(lifecycle.clock()<deadline,'NEW_RUNTIME_READINESS_DEADLINE')
+                require(observed.get('state')=='running' and observed.get('pid')==owner['pid'] and observed.get('app_root')==target and
+                        same_process(owner) and sha(pointer)==expected_sha,'STARTUP_FINAL_OWNER_OR_PLIST_DRIFT')
+                return observed,owner
+        else:require(owner is None,'NEW_OWNER_LOST_DURING_STARTUP')
+        remaining=deadline-lifecycle.clock();require(remaining>0,'NEW_RUNTIME_READINESS_DEADLINE')
+        lifecycle.sleeper(min(.25,remaining))
+    raise Stop('NEW_RUNTIME_READINESS_DEADLINE')
+
+
 class RealGuardianOps:
     def __init__(self,intent):
         self.intent=intent;pin=intent['prepared'];self.prepared=read_json(pin['path'],pin['sha256'])
@@ -414,7 +469,7 @@ class RealGuardianOps:
         self.target=str(Path(self.scope['candidate_root'] if self.direction=='activate' else self.scope['parent_root'])/'app')
         self.previous=str(Path(self.scope['parent_root'] if self.direction=='activate' else self.scope['candidate_root'])/'app')
         self.pointer=exact(self.scope['plist']['path']);self.raw=Path(self.source).read_bytes()
-        self.before=self.pointer.read_bytes();self.calls=[]
+        self.before=self.pointer.read_bytes();self.calls=[];self.last_new_owner=None
         require(digest(self.before)==self.expected,'CURRENT_PLIST_CAS_DRIFT')
         require(plistlib.loads(self.raw)['WorkingDirectory']==self.target,'TARGET_PLIST_CWD')
         if intent['owner_token'] is None:
@@ -462,23 +517,21 @@ class RealGuardianOps:
         require(self.job_state()['state']=='absent','GUARDIAN_NEW_OR_UNKNOWN_OWNER_PRESERVED')
         cmd=['/bin/launchctl','bootstrap',self.lifecycle.domain,str(self.pointer)];self.calls.append(cmd)
         result=self.lifecycle.command(cmd);require(result.returncode==0,'BOOTSTRAP_UNKNOWN_NO_RETRY')
+    def remember_new_owner(self,value,token):
+        if self.last_new_owner is not None and self.last_new_owner['runtime_readback']==value and all(
+                self.last_new_owner['runtime_kernel_identity'].get(k)==token.get(k) for k in _OWNER_KEYS):return
+        self.last_new_owner=dict(runtime_readback=dict(value),runtime_kernel_identity=dict(token))
+        journal=Path(self.intent['journal']);progress=json.loads(journal.read_bytes())
+        progress['last_observed_new_owner']=self.last_new_owner;durable_json(journal,progress)
+
     def final_readback(self):
-        deadline=time.monotonic()+16
-        while True:
-            try:value=self.lifecycle.inspect()
-            except Stop:value={'state':'starting'}
-            if value.get('state')=='running' and value.get('app_root')==self.target:break
-            require(time.monotonic()<deadline,'GUARDIAN_NEW_OWNER_READBACK_PENDING');time.sleep(.25)
-        require(sha(self.pointer)==digest(self.raw),'GUARDIAN_BINDING_READBACK_DRIFT')
-        if self.scope['role']=='api':
-            for path in ('/healthz','/readyz'):
-                status,_=self.lifecycle.http_get('http://127.0.0.1:8873'+path);require(status==200,'API_HEALTH_READBACK_FAILED')
+        value,kernel=wait_for_readiness(self.lifecycle,self.target,self.pointer,digest(self.raw),remember=self.remember_new_owner)
         signals=json.loads(Path(self.intent['journal']).read_bytes())['calls']
         result=dict(schema='v4.us_hk.release_transition.v1',mode='RELEASE',state='ACTIVATED' if self.direction=='activate' else 'ROLLED_BACK',
             direction=self.direction,prepared_sha256=self.intent['prepared']['sha256'],before_plist_sha256=self.expected,
             after_plist_sha256=digest(self.raw),target_app_root=self.target,runtime_readback=value,
             guardian_journal=self.intent['journal'],helper_sha256=sha(Path(__file__)),source_cutoff_changed=False,
-            runtime_kernel_identity=signal_identity(value['pid']),
+            runtime_kernel_identity=kernel,
             data_pointer_changes=[],live_operations=len(self.calls)+len(signals),lifecycle_calls=self.calls,
             guardian_signals=signals,admission_fence='KERNEL_STOP_EXACT_IDLE_OWNER')
         if self.intent.get('legacy_activity_disposition') is not None:
@@ -492,11 +545,15 @@ class RealGuardianOps:
             observed=self.lifecycle.identity()
             kernel=signal_identity(observed['pid']) if observed.get('state')=='running' else None
         except Exception:observed=dict(state='unknown');kernel=None
+        current_observed=observed;observation='CURRENT_REVALIDATED' if kernel is not None else 'CURRENT_UNVERIFIED'
+        remembered=self.last_new_owner or progress.get('last_observed_new_owner')
+        if kernel is None and remembered is not None:
+            observed=remembered['runtime_readback'];kernel=remembered['runtime_kernel_identity'];observation='LAST_OBSERVED_NOT_CURRENT'
         write_new(self.intent['receipt_path'],json_bytes(dict(schema='v4.us_hk.release_transition.v1',mode='RELEASE',
             state='FAILED_REQUIRES_INSPECTION',direction=self.direction,prepared_sha256=self.intent['prepared']['sha256'],
             after_plist_sha256=digest(self.raw),current_plist_sha256=sha(self.pointer),helper_sha256=sha(Path(__file__)),
             guardian_journal=str(journal),guardian_phase=progress['phase'],committed=progress['committed'],
-            runtime_readback=observed,runtime_kernel_identity=kernel,
+            runtime_readback=observed,runtime_kernel_identity=kernel,current_runtime_readback=current_observed,runtime_observation=observation,
             live_operations=len(self.calls)+len(progress['calls']),lifecycle_calls=self.calls,guardian_signals=progress['calls'],
             retry_permitted=False,data_pointer_changes=[],**(dict(legacy_activity_disposition=self.intent['legacy_activity_disposition'],
                 legacy_execution_state='UNKNOWN') if self.intent.get('legacy_activity_disposition') is not None else {}))))
@@ -1075,8 +1132,13 @@ class LaunchctlLifecycle:
         return dict(value,**activity)
 
     @staticmethod
-    def _http_get(url):
-        with urllib.request.urlopen(url,timeout=5) as result:return result.status,result.read(128*1024)
+    def _http_get(url,timeout=5):
+        with urllib.request.urlopen(url,timeout=timeout) as result:return result.status,result.read(128*1024)
+
+    def readiness_http_get(self,url,timeout):
+        # Retain the existing one-argument injection API; real HTTP obeys the remaining deadline.
+        if self.http_get==self._http_get:return self._http_get(url,timeout=timeout)
+        return self.http_get(url)
 
     def reload(self,target):
         require_real_admission_protocol()
@@ -1099,18 +1161,7 @@ class LaunchctlLifecycle:
         self.calls.append(cmd);result=self.command(cmd)
         require(result.returncode==0,'BOOTSTRAP_FAILED_INSPECT_BEFORE_RETRY')
         # launchd starts KeepAlive jobs; no repeated bootstrap/kickstart.
-        deadline=self.clock()+16
-        for _ in range(65):
-            try:observed=self.identity()
-            except Stop:observed={'state':'starting'}
-            if observed.get('state')=='running' and observed.get('app_root')==target:break
-            require(self.clock()<deadline,'NEW_RUNTIME_READBACK_PENDING')
-            self.sleeper(.25)
-        else:raise Stop('NEW_RUNTIME_READBACK_PENDING')
-        if self.scope['role']=='api':
-            for path in ('/healthz','/readyz'):
-                status,_=self.http_get('http://127.0.0.1:8873'+path)
-                require(status==200,'API_HEALTH_READBACK_FAILED')
+        wait_for_readiness(self,target,Path(self.scope['plist']['path']),sha(self.scope['plist']['path']))
 
 
 def main():

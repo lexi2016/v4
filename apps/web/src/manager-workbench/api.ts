@@ -119,6 +119,17 @@ function normalizeCompactSelection(data: unknown): import("./types").DayData | n
     }
     const snapshot = normalizeSelectionSnapshot(data.snapshot);
     if (!snapshot) throw new ApiError("US_MAPPING selection 缺少保存版本身份", 502);
+    if (data.listing_mode === "INDUSTRY_MATCH" && (
+      typeof data.listing_policy_version !== "string" || !data.listing_policy_version
+      || typeof data.listing_policy_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(data.listing_policy_sha256)
+      || !isRecord(data.counts) || !Number.isInteger(data.counts.industry_match_count)
+      || Number(data.counts.industry_match_count) < 0
+      || data.stocks.some(stock => !isRecord(stock) || !Array.isArray(stock.industry_matches)
+        || !stock.industry_matches.length || stock.industry_matches.some(match => !isRecord(match)
+          || typeof match.us_symbol !== "string" || !match.us_symbol || typeof match.industry !== "string" || !match.industry
+          || !["INDIVIDUAL", "SECTOR_CONTEXT"].includes(String(match.role))
+          || !Array.isArray(match.warnings) || !Array.isArray(match.source_refs) || !match.source_refs.length))
+    )) throw new ApiError("US_MAPPING 同行业名单缺少行业依据或来源身份", 502);
     const selectionStocks = data.stocks as unknown as USMappingCompactStock[];
     return {
       ...data,
@@ -127,6 +138,11 @@ function normalizeCompactSelection(data: unknown): import("./types").DayData | n
       counts: null,
       pagination: data.pagination as { total: number; offset: number; limit: number },
       us_mapping_selection: {
+        ...(data.listing_mode === "INDUSTRY_MATCH" ? {
+          listing_mode: data.listing_mode,
+          listing_policy_version: data.listing_policy_version,
+          listing_policy_sha256: data.listing_policy_sha256
+        } : {}),
         selection_identity: identity,
         counts: assertSelectionCounts(data.counts),
         pagination: data.pagination as { total: number; offset: number; limit: number },

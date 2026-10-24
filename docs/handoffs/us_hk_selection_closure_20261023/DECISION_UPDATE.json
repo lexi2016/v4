@@ -1,0 +1,33 @@
+{
+  "schema": "v4.us_hk.user_decision_update.v1",
+  "recorded_at": "2026-10-24T09:04:09.696992+00:00",
+  "user_literal": "你这个太严格了！只要是同行业而且就可以列出来！",
+  "previous_rule_scope": "Strict frozen research rules remain historical comparator and optional detail; no longer default display admission",
+  "new_default": "INDUSTRY_MATCH",
+  "required_for_listing": "Traceable same-industry association between existing US source and HK stock; deduplicate HK code, retain all source/industry evidence",
+  "reference_only": [
+    "US_return_threshold",
+    "specific_company_positive_relationship",
+    "MA20_price_band",
+    "five_session_return",
+    "twenty_session_HKD_turnover",
+    "historical_eligibility_and_PIT_material_readiness"
+  ],
+  "unknown_or_failed_reference_gate_hides_listed_stock": false,
+  "not_authorized": [
+    "invent_same_industry_evidence",
+    "label_weak_evidence_verified",
+    "change_BUY_gate",
+    "send_order",
+    "parallel_producer"
+  ],
+  "preserve_original_runs": true,
+  "target_behavior": "Default page/counts list same-industry HK stocks; separate technical strict decisions remain inspectable",
+  "state": "AUTHORIZED_IMPLEMENTATION_IN_PROGRESS",
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

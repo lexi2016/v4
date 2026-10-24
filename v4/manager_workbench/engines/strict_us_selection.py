@@ -198,9 +198,11 @@ def evaluate_candidates(context, candidates, history_payload):
 
 
 def build_selection(context, candidates, history_payload):
+    from .us_mapping_consumption import INDUSTRY_LISTING_VERSION, INDUSTRY_LISTING_POLICY
     decisions=evaluate_candidates(context,candidates,history_payload)
     counts=dict(candidate_count=len(candidates),current_supported=0,dated_weak=0,pending_research=0,
-        selected=0,qualified_not_selected=0,rejected=0,pending=0)
+        selected=0,qualified_not_selected=0,rejected=0,pending=0,
+        industry_match_count=sum(bool(c.industry_matches) for c in candidates))
     for c in candidates: counts[{'pending':'pending_research'}.get(c.research_state,c.research_state)]+=1
     for d in decisions: counts[{'SELECTED':'selected','QUALIFIED_NOT_SELECTED':'qualified_not_selected','REJECTED':'rejected','PENDING':'pending'}[d.decision]]+=1
     sessions=context.get('source_sessions') or {}
@@ -210,7 +212,8 @@ def build_selection(context, candidates, history_payload):
     return MappingSelectionSummary(policy_version=POLICY_VERSION,policy_sha256=POLICY_SHA256,engine_identity=engine_identity(),
         target_date=context['target_date'],source_session=sessions.get('us',sessions.get('US')),price_session=sessions.get('hk_price',sessions.get('HK_PRICE')),
         cutoff=context['cutoff'],candidates=candidates,strict_decisions=decisions,counts=counts,
-        evaluation_complete=complete,gaps=gaps)
+        evaluation_complete=complete,gaps=gaps,listing_mode='INDUSTRY_MATCH',
+        listing_policy_version=INDUSTRY_LISTING_VERSION,listing_policy_sha256=digest(INDUSTRY_LISTING_POLICY))
 
 
 def single_day_mapping_context_ready(context):

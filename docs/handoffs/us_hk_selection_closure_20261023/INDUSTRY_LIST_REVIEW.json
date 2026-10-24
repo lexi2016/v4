@@ -1,0 +1,118 @@
+{
+  "schema": "v4.us_hk.industry_listing_acceptance.v1",
+  "state": "REVIEWED_PASS_BOUNDED_SAVED_INPUT_AND_COMPONENT_BEHAVIOR",
+  "as_of": "2026-10-24T09:24:50.042705+00:00",
+  "user_decision": "DECISION_UPDATE.json",
+  "writer_handoff_sha256": "bb4d298e243c5858f331a97ecc867c1bf7786cf40bdb3eb54abd397d09e27000",
+  "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
+  "baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
+  "source_delta": [
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "before_sha256": "91b139f5cdf6fa4c1ef51e52a91f967122de22ed5bda851dab927d19e631d1a5",
+      "after_sha256": "0934b4689affddf96b621d961b5806eaeec19d1cb382f7bcda23606e0bb577e3"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "before_sha256": "72fa6ce0422cc703e551f02c9af422598aa0c5f27933d4e9b5c5de32b0b0386a",
+      "after_sha256": "545d171d4fdaec440b1c9730ddcbed2f070cc68f6d79b20d0abeb4574bb08d51"
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "before_sha256": "b66026707847207b5ba4dc01eb9c6b291fc37bab2973c2cda19233663c1ae1da",
+      "after_sha256": "9472b449b2a24166d19627f8a95f47ba525f617a2538a9eaa74da8ef517b9973"
+    },
+    {
+      "path": "v4/manager_workbench/display.py",
+      "before_sha256": "18473da178c8961b8a636a0dc22cd35ff9441500a2e2c5f5caee875c6d7a6bbe",
+      "after_sha256": "4ede18c1b7784659eb476c11de1b15ac50e1091142650626fc5d01e231ffa5f0"
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "before_sha256": "a09a05614ac7e36d5aa70601ec309dbfae9dee892db3332468ec538f9a6f8bf5",
+      "after_sha256": "9e6f81e0d66beaccb82d3ed66fdf732feb4aeee311439e0b254d9ed619827621"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "2feb562cea2a2866e3c37ceb4d3de6b6bcbcb2077bed6b348ce75d667c31c292",
+      "after_sha256": "6789d00400a63d875b72289e5e78e90a988d2bb78686120dcf7756d385bbcb8c"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "before_sha256": "c7fe6530eadb9f8bb25040d0e93f9f7c06bef41a343b3cd9cd05d83f3c09e361",
+      "after_sha256": "c4f8b327a40c4ffdbea307f484cf912e4077cfa3b751c583dd0e1bbd3121f05f"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "fd912304b2e52af24fbc852f626fa38b391f9224dba97e70f40c891dc1ec703b",
+      "after_sha256": "6e017c1982b4d7f7104cf796c9a539ae16b6d79c2fd19ece5ce40345f7b73eef"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_selection.spec.ts",
+      "before_sha256": "e1ab147ee8a63a3864c17e2075be0d45d7cded298dff360f0c0b65f95fe5f2f7",
+      "after_sha256": "e52739103dad657679c6347089b9c12602daac1c716f0616a0cf8b59e2db2d94"
+    },
+    {
+      "path": "tests/test_us_mapping_industry.py",
+      "before_sha256": null,
+      "after_sha256": "764f9d1d52b80a3092571598f78b9770090f2ce0a8327edd2b3e19ee5c9619e9"
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_compact.py",
+      "before_sha256": "50c6b62c2c75312e082e3e11be5250428d60e4e9c7d256c0492bd67af73ac748",
+      "after_sha256": "e4db555c99857a0db0df1ba416d27a68f6662cb6afa0d0159d91e552d1a1fb86"
+    }
+  ],
+  "listing_semantics": "US_HK_INDUSTRY_LISTING_V1_20261024",
+  "real_saved_input_writer_observation": {
+    "date": "20261022",
+    "listed_unique_HK": 578,
+    "individual_US_company_industry": 491,
+    "ETF_classification_context_only": 87,
+    "strict_preserved": {
+      "candidate_count": 670,
+      "selected": 0,
+      "rejected": 397,
+      "pending": 273
+    },
+    "compact_page_bytes": [
+      535217,
+      474254,
+      446843
+    ],
+    "canary_receipt_sha256": "a1368aa49d08a2538a96aed72a5c19c5fa0525c62c2100ded26cd79a1fdbfb1c"
+  },
+  "build": {
+    "actual_invocations": 1,
+    "files": 10,
+    "new_JS": "assets/managerSelection-YQMeTKs_.js",
+    "new_HTML": "manager-selection/index.html",
+    "receipt_sha256": "36650731ff97d576e37e29973f605a8faeae6f381a67f13c2fbe19070c18d7fa",
+    "child_exitcode": "CANNOT_CONFIRM_WRAPPER_POST_BUILD_RECEIPT_ERROR",
+    "raw_outputs": "LOCAL_ONLY_NOT_UPLOADED",
+    "independent_artifact_acceptance": "PASS_FINITE_OUTPUT_INVENTORY_SOURCE_OVERLAYS_IMPORT_CLOSURE"
+  },
+  "independent_receipt": null,
+  "deployment": "NOT_RUN",
+  "live_API": "NOT_RUN",
+  "live_UI": "NOT_RUN",
+  "natural_cycles": {
+    "required": 2,
+    "verified": 0
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "independent_receipt_sha256": "d9e95c0084b42b8654e2a973094fc3db8f142d58ead55c39a86c92f532931091",
+  "independent_acceptance": {
+    "backend_tests": 18,
+    "frontend_tests": 12,
+    "actual_saved_input": "20261022 same578/listprovenance/order/pages",
+    "scope": "SOURCE_TARGETED_API_CONTRACT_COMPONENT_REAL_INPUT_ONLY",
+    "live_behavior": "NOT_RUN"
+  },
+  "historical_new_listing_replay": "EXECUTED_87_REAL_INPUTS_ZERO_RUNTIME_FAILURE_INDEPENDENT_HISTORY_REVIEW_PENDING"
+}

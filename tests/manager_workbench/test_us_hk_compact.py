@@ -26,6 +26,17 @@ def client_for(snapshot):
 
 def test_compact_200_rows_under_one_mib_with_full_counts_and_no_raw_factor_groups(tmp_path):
     codes=tuple(f'HK.{i:05d}' for i in range(1,201));c,b=fixture_batch(tmp_path,codes=codes)
+    # The new default requires actual industry evidence, independent of the
+    # fixture's named technology-customer strict transmission evidence.
+    for code in codes:
+        relation_id='PEER-'+code
+        b['records'].append(dict(record_role='CATALOG_OBSERVATION',source_status='CATALOG_OBSERVATION',
+            us_symbol='NVDA',owner='catalog',source_sha256='a'*64,available_at=c['cutoff'],source_session='20261022',
+            relations=[dict(target_symbol=code,catalog_relation_id=relation_id,relation_type='CATALOG_OBSERVATION_ONLY',
+                catalog_relation=dict(relation_id=relation_id,hk_code=code[3:],
+                    source_record=dict(关系编号=relation_id,code=code[3:],asset_code='NVDA',type='BUSINESS_PEER',
+                        segment='semiconductors',研究行业='semiconductors',fact='Saved catalog industry peer'),
+                    recovery_v2r1=dict(closure_status='CLOSED_RESEARCH_SCOPE',current_applicability_state='DATED_SCOPE_ONLY')))]))
     result=run_us_mapping(c,b);result['rows'][0]['us_factor_summary']={'groups':{'raw':'x'*(3*1024*1024)}}
     snapshot=saved_result(c,result);client=client_for(snapshot)
     response=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING',params=dict(run_id=snapshot.run_id,view='compact',limit=200))
@@ -55,8 +66,9 @@ def test_new_default_projects_same_canonical_counts_without_path_votes(tmp_path)
     old=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING').json()['data']
     compact=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING?view=compact').json()['data']
     assert old['counts']['selected']==compact['counts']['selected']==0
-    assert old['counts']['unassessed']==compact['counts']['pending']==1
-    assert old['stocks']==[]  # old positive-only default remains positive-only
+    assert old['counts']['pending']==compact['counts']['pending']==1
+    assert old['stocks']==[]  # company cooperation alone does not prove same industry
+    assert old['listing_mode']=='INDUSTRY_MATCH' and old['counts']['industry_match_count']==0
 
 
 def test_legacy_absent_selection_preserves_hash_default_and_original_path_votes(tmp_path):
@@ -120,7 +132,8 @@ def test_repair_r1_preopen_omitted_compact_and_embedded_strict_use_same_judgment
     projected=project_preopen_lane(original,cutoff='2026-10-23T04:00:00+08:00');c['phase']='PREOPEN';c['cutoff']='2026-10-23T04:00:00+08:00'
     saved=saved_result(c,projected.model_dump(mode='json'));client=client_for(saved);route='/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING'
     default=client.get(route).json()['data'];compact=client.get(route+'?view=compact').json()['data']
-    factor=default['us_mapping_summary']['factor_summary']
+    factor=next(row['us_factor_summary'] for row in projected.rows if 'us_factor_summary' in row)
+    assert default['counts']==compact['counts'] and default['listing_mode']=='INDUSTRY_MATCH'
     assert compact['counts']['selected']==factor['strict_selection']['counts']['selected']==factor['single_day_mapping']['selected_count']==0
     assert compact['counts']['pending']==factor['strict_selection']['counts']['pending']==1
     assert factor['single_day_mapping']['rows'][0]['strict_decision']=='PENDING'

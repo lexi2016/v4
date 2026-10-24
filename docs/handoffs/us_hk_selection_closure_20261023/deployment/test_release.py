@@ -2718,6 +2718,7 @@ old_os_open=_raced_descriptor_open
         capsule=dict(schema='v4.us_hk.legacy_disposition_capsule.v1',verdict='PASS',authorized_actions=['administrative_disposition'],
             authority={'path':str(path),'sha256':prepare.sha(path)},prepared_products=products,private_root=str(self.root/'private-originals'),
             helper_sha256={n:prepare.sha(Path(__file__).with_name(n)) for n in ('recover_legacy_activity.py','activate_release.py')})
+        capsule['private_root']=str(recovery.disposition_private_root(capsule))
         cap=self.root/'disposition-capsule.json';cap.write_bytes(prepare.json_bytes(capsule));pin={'path':str(cap),'sha256':prepare.sha(cap)}
         receipt=recovery.recover(pin) if recover else None
         proof_path=Path(capsule['private_root'])/'DISPOSITION.json'
@@ -2919,6 +2920,103 @@ old_os_open=_raced_descriptor_open
         # A role's smaller scan never weakens global exact-four evidence binding.
         path=Path(f.receipt['records'][0]['path']);path.write_bytes(path.read_bytes()+b' ')
         with self.assertRaisesRegex(prepare.Stop,'FOUR_ORIGINAL_SIZE_DRIFT'):self.four_snapshot(f)
+
+
+    def test_startup_readiness_transient_connection_then_ready_preserves_exact_owner(self):
+        import urllib.error
+        runner=self.release_fixture();self.scope['role']='api';lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        now=[0.0];lifecycle.clock=lambda:now[0];lifecycle.sleeper=lambda dt:now.__setitem__(0,now[0]+dt)
+        target=str(self.candidate/'app');owner=dict(pid=222,start_sec=12,start_usec=3,audit_token=list(range(8)),pid_version=9)
+        value=dict(state='running',pid=222,app_root=target,busy_work=[]);calls=[]
+        def http(url):
+            calls.append(url)
+            if len(calls)==1:raise urllib.error.URLError(ConnectionRefusedError(61,'starting'))
+            return 200,b'ok'
+        lifecycle.http_get=http;remember=[]
+        with patch.object(lifecycle,'identity',return_value=value),patch.object(lifecycle,'inspect',return_value=value),patch.object(activate,'signal_identity',return_value=owner),patch.object(activate,'same_process',return_value=True):
+            result,token=activate.wait_for_readiness(lifecycle,target,self.plist,prepare.sha(self.plist),remember=lambda v,t:remember.append((v,t)))
+        self.assertEqual(result,value);self.assertEqual(token,owner);self.assertGreater(now[0],0)
+        self.assertEqual(lifecycle.calls,[]);self.assertEqual(remember[-1],(value,owner))
+
+
+    def test_startup_readiness_deadline_nontransient_and_owner_drift_fail_closed(self):
+        import urllib.error
+        runner=self.release_fixture();self.scope['role']='api';lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        now=[0.0];lifecycle.clock=lambda:now[0];lifecycle.sleeper=lambda dt:now.__setitem__(0,now[0]+dt)
+        target=str(self.candidate/'app');owner=dict(pid=222,start_sec=12,start_usec=3,audit_token=list(range(8)),pid_version=9)
+        value=dict(state='running',pid=222,app_root=target,busy_work=[])
+        with patch.object(lifecycle,'identity',return_value=value),patch.object(lifecycle,'inspect',return_value=value), \
+             patch.object(activate,'signal_identity',return_value=owner),patch.object(activate,'same_process',return_value=True):
+            lifecycle.http_get=lambda url:(_ for _ in ()).throw(urllib.error.URLError(ConnectionRefusedError(61,'starting')))
+            with self.assertRaisesRegex(prepare.Stop,'NEW_RUNTIME_READINESS_DEADLINE'):
+                activate.wait_for_readiness(lifecycle,target,self.plist,prepare.sha(self.plist))
+            self.assertEqual(now[0],16.0)
+            now[0]=0;lifecycle.http_get=lambda url:(_ for _ in ()).throw(urllib.error.HTTPError(url,500,'failed',None,None))
+            with self.assertRaises(urllib.error.HTTPError):activate.wait_for_readiness(lifecycle,target,self.plist,prepare.sha(self.plist))
+            self.assertEqual(now[0],0)
+            lifecycle.http_get=lambda url:(503,b'starting')
+            tokens=[owner,dict(owner,start_usec=4)]
+            with patch.object(activate,'signal_identity',side_effect=tokens):
+                with self.assertRaisesRegex(prepare.Stop,'STARTUP_KERNEL_OWNER_DRIFT'):
+                    activate.wait_for_readiness(lifecycle,target,self.plist,prepare.sha(self.plist))
+            with patch.object(lifecycle,'identity',return_value=dict(value,app_root='/different')):
+                with self.assertRaisesRegex(prepare.Stop,'STARTUP_OWNER_ROOT_DRIFT'):
+                    activate.wait_for_readiness(lifecycle,target,self.plist,prepare.sha(self.plist))
+            with self.assertRaisesRegex(prepare.Stop,'STARTUP_PLIST_CAS_DRIFT'):
+                activate.wait_for_readiness(lifecycle,target,self.plist,'0'*64)
+        self.assertEqual(lifecycle.calls,[])
+
+    def test_startup_failure_receipt_retains_observed_candidate_for_exact_rollback_only(self):
+        f=self.authorized_four_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=f.runner)
+        intent=dict(schema='v4.us_hk.guardian_intent.v1',mode='RELEASE',controller_pid=os.getpid(),owner_token=self.scope['activity']['expected_owner'],
+            prepared=f.activity_authority['prepared'],direction='activate',recovery_pin=None,journal=str(self.evidence/'startup-failure-journal.json'),
+            receipt_path=str(self.activation_path),helper_sha256=prepare.sha(activate.__file__),continuation=f.activity_authority['continuation'],legacy_activity_disposition=f.proof)
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):ops=activate.RealGuardianOps(intent)
+        activate.durable_json(Path(intent['journal']),dict(phase='INSPECTION_REQUIRED',committed=True,calls=[]))
+        owner=dict(self.scope['activity']['expected_owner'],pid=222,start_sec=9)
+        observed=dict(state='running',pid=222,app_root=ops.target,busy_work=['new healthy work'])
+        ops.remember_new_owner(observed,owner)
+        with patch.object(lifecycle,'identity',side_effect=prepare.Stop('LAUNCHCTL_NOT_RUNNING')):ops.finish_journal(intent['journal'])
+        receipt=json.loads(self.activation_path.read_bytes());self.assertEqual(receipt['runtime_kernel_identity'],owner)
+        self.assertEqual(receipt['runtime_observation'],'LAST_OBSERVED_NOT_CURRENT');self.assertEqual(receipt['current_runtime_readback'],{'state':'unknown'})
+        pin=dict(path=str(self.activation_path),sha256=prepare.sha(self.activation_path))
+        activate.verify_owner_binding(self.scope,f.prepared,f.activity_authority['prepared']['sha256'],'rollback',owner,pin)
+        with self.assertRaisesRegex(prepare.Stop,'CURRENT_OWNER_NOT_FROZEN_CAPSULE_IDENTITY'):
+            activate.verify_owner_binding(self.scope,f.prepared,f.activity_authority['prepared']['sha256'],'rollback',dict(owner,start_sec=10),pin)
+        # Remembered identity is evidence only; ordinary frozen activity must still veto live work.
+        ops.intent['owner_token']=owner;ops.previous=ops.target
+        with patch.object(lifecycle,'inspect',return_value=observed):self.assertTrue(ops.frozen_activity()['busy_work'])
+        self.assertEqual(lifecycle.calls,[]);self.assertEqual(self.plist.read_bytes(),self.old_bytes)
+        # A live, unready candidate can enter only the existing exact-owner rollback guardian.
+        self.plist.write_bytes(Path(f.prepared['candidate_plist']).read_bytes());f.runner.cwd=ops.target;f.runner.pid=owner['pid']
+        def intercept(argv,**kwargs):
+            value=json.loads(Path(argv[-2]).read_bytes());self.assertEqual(value['direction'],'rollback')
+            self.assertTrue(all(value['owner_token'][k]==owner[k] for k in activate._OWNER_KEYS));raise RuntimeError('EXACT_FAILED_OWNER_ROLLBACK_INTERCEPTED')
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'signal_identity',return_value=dict(owner,status=2)), \
+             patch.object(activate.subprocess,'Popen',side_effect=intercept):
+            # The failure token comparison ignores dynamic kernel status, retaining exact identity fields.
+            with self.assertRaisesRegex(RuntimeError,'EXACT_FAILED_OWNER_ROLLBACK_INTERCEPTED'):
+                activate.guarded_transition(self.scope,f.prepared,self.prepared_path,f.activity_authority['prepared']['sha256'],'rollback',
+                    lifecycle,self.rollback_path,pin,f.activity_authority['continuation'])
+        self.assertEqual(lifecycle.calls,[])
+
+    def test_authorized_four_successor_product_generations_preserve_old_evidence(self):
+        f=self.authorized_four_fixture();r=f.recovery;old_root=Path(f.capsule['private_root']);old={p.name:p.read_bytes() for p in old_root.iterdir()}
+        historical=self.root/'private-originals';historical.mkdir(mode=0o700);(historical/'historical-receipt').write_bytes(b'never overwrite r2')
+        changed=deepcopy(f.capsule);first=changed['prepared_products'][0];p=Path(first['path']);raw=p.read_bytes();next_product=self.root/'api-r3-product.json'
+        next_product.write_bytes(raw+b' ');first.update(path=str(next_product),sha256=prepare.sha(next_product))
+        changed['private_root']=str(r.disposition_private_root(changed));self.assertNotEqual(changed['private_root'],f.capsule['private_root'])
+        cap=self.root/'successor-capsule.json';cap.write_bytes(prepare.json_bytes(changed));pin=dict(path=str(cap),sha256=prepare.sha(cap))
+        successor=r.recover(pin);newproof=dict(path=str(Path(changed['private_root'])/'DISPOSITION.json'),sha256=prepare.sha(Path(changed['private_root'])/'DISPOSITION.json'))
+        self.assertEqual(len(successor['records']),4);self.assertEqual({p.name:p.read_bytes() for p in old_root.iterdir()},old)
+        self.assertEqual((historical/'historical-receipt').read_bytes(),b'never overwrite r2')
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_RECEIPT_OTHER_PRODUCT'):
+            r.verify_disposition(f.proof,first['sha256'],prepare.sha(self.root/'api-product-scope.json'))
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_RECEIPT_OTHER_PRODUCT'):
+            r.verify_disposition(newproof,f.capsule['prepared_products'][0]['sha256'],prepare.sha(self.root/'api-product-scope.json'))
+        bad=deepcopy(changed);bad['private_root']=f.capsule['private_root'];cap.write_bytes(prepare.json_bytes(bad))
+        with self.assertRaisesRegex(prepare.Stop,'FOUR_PRIVATE_ROOT_INVALID'):r.recover(dict(path=str(cap),sha256=prepare.sha(cap)))
+        self.assertEqual({p:Path(p).read_bytes() for p in f.originals},f.originals)
 
 
 def main():

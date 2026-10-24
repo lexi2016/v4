@@ -15,6 +15,14 @@ RECOVERY_OVERLAY_SHA256 = "3289f0329f0fe2e447a70386341790cb9821df2e76d13a650143f
 MANUAL_QUOTE_SCOPE_SHA256 = "6d163c286d90d1dfd00b18fa134d3f4ec308d9d2efdd51e5cbba800f3d61acf8"
 MAPPING_POLICY_VERSION = "FULL_US_HK_INDUSTRY_MAPPING_CONSUMPTION_V4_20261019"
 MAPPING_POLICY_SHA256 = "4e40b759f5811383d2a9ea8211dfc77662cb0094d7d863c75e54d8a5dba9a3c2"
+INDUSTRY_LISTING_VERSION = "US_HK_INDUSTRY_LISTING_V1_20261024"
+# This is a listing policy, independent of the retained strict-selection policy.
+INDUSTRY_LISTING_POLICY = dict(version=INDUSTRY_LISTING_VERSION,
+    catalog_types=["BUSINESS_PEER", "SAME_ISSUER"],
+    catalog_identity="EXACT_RELATION_AND_HK_CODE_WITH_NAMED_INDUSTRY_OR_PEER_SEGMENT",
+    classification="SAVED_EXACT_INDUSTRY_MAPPING_WITH_SOURCE_HASH_AND_VERIFIED_HK_IDENTITY",
+    return_gate=False, company_transmission_gate=False, technical_gates=False,
+    eligibility_gate=False, historical_pit_verified=False)
 MANUAL_QUOTE_OWNER = "research_peripheral.external_finance.manual_quote_scope"
 SCHEDULED_QUOTE_OWNER = "research_peripheral.external_finance.scheduled_quote_scope"
 _US_SYMBOL = re.compile(r"^[A-Z][A-Z0-9.\-]{0,9}$")
@@ -55,6 +63,7 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
     from .us_mapping_policy import RELATIONSHIP_A, ETF_SYMBOLS, US_SYMBOL_THEMES
     session = (context.get("source_sessions") or {}).get("us") or (context.get("source_sessions") or {}).get("US")
     grouped = defaultdict(list)
+    industry_matches = defaultdict(list)
     names = {}
     for item in identities or ():
         code = item if isinstance(item, str) else (item.get("symbol") or item.get("target_symbol") or item.get("hk_code") or item.get("code"))
@@ -106,6 +115,33 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
             reasons = [] if scope == "current_supported" and projected.get("quote_status") == "VERIFIED" else [projected.get("catalog_disposition_reason") or "CATALOG_SCOPE_PENDING"]
             if projected.get("quote_status") != "VERIFIED": reasons.append(projected.get("quote_missing_reason") or "QUOTE_PENDING")
             source_refs = [dict(owner=projected.get("catalog_source_owner"),sha256=item.get("catalog_relation_sha256") or item.get("source_sha256"),ref=item.get("catalog_relation_id"),available_at=projected.get("available_at"))]
+            industry = projected.get("catalog_research_industry")
+            segment = projected.get("catalog_segment")
+            # A catalogued business peer establishes an industry association;
+            # supply/ownership/cooperation on their own do not. Current company
+            # transmission and price/eligibility gates are separate references.
+            if (relation_type in {"BUSINESS_PEER", "SAME_ISSUER"}
+                    and projected.get("catalog_source_identity_verified") is True
+                    and code == "HK." + str(projected.get("catalog_hk_code"))
+                    and us and (industry or (segment if relation_type == "BUSINESS_PEER" else None))
+                    and projected.get("catalog_fact") and valid_sha(item.get("source_sha256"))):
+                refs = ref_union([dict(owner=projected.get("catalog_source_owner"),
+                    sha256=item.get("source_sha256"),ref=item.get("catalog_relation_id"),
+                    available_at=item.get("available_at")), dict(owner=projected.get("catalog_source_owner"),
+                    sha256=item.get("relation_sha256") or digest(item.get("catalog_relation")),
+                    ref=item.get("catalog_relation_id"), available_at=item.get("available_at"))])
+                if valid_sha(projected.get("source_sha256")):
+                    refs = ref_union([*refs, dict(owner=projected.get("owner"),
+                        sha256=projected["source_sha256"],ref="US_QUOTE:"+us,
+                        available_at=projected.get("available_at"))])
+                industry_matches[code].append(dict(us_symbol=us, industry=industry or segment,
+                    segment=segment, association=relation_type,
+                    role="SECTOR_CONTEXT" if us in ETF_SYMBOLS else "INDIVIDUAL",
+                    relation_id=item.get("catalog_relation_id"), return_pct=quote_return,
+                    source_session=projected.get("source_session") or item.get("source_session"),
+                    current_applicability=current_state, source_refs=refs,
+                    warnings=["SAVED_CATALOG_INDUSTRY_ASSOCIATION", "CURRENT_APPLICABILITY_UNVERIFIED",
+                        "HISTORICAL_PIT_UNVERIFIED", projected.get("catalog_disposition_reason") or "CATALOG_SCOPE_PENDING"]))
             direction = "UNKNOWN"  # peers/conditional mechanisms do not certify an active sign
             strict_supported = False
         else:
@@ -152,6 +188,23 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
                 add(dict(item,us_symbol=us,relation_type="INDUSTRY_PROXY",quote=None,
                     source_session=proxy.get("source_session"),source_sha256=proxy.get("source_sha256"),
                     owner=proxy.get("owner"),available_at=proxy.get("available_at")),sector=True)
+                # Reuse the existing exact classification-to-proxy mapping.
+                # ETF/basket paths remain explicitly labelled sector context.
+                if (normalize_us_symbol(us) and item.get("source_industry")
+                        and item.get("identity_status") == "VERIFIED"
+                        and item.get("mapping_version") and item.get("mapping_evidence")
+                        and item.get("source_owner") and valid_sha(item.get("source_artifact_sha256"))):
+                    industry_matches[item["symbol"]].append(dict(us_symbol=us,
+                        industry=item["source_industry"], segment=proxy.get("theme"),
+                        association="CLASSIFIED_INDUSTRY_PROXY", role="SECTOR_CONTEXT", relation_id=None,
+                        return_pct=proxy.get("return_pct") if len(proxy.get("proxy_symbols") or []) == 1 else None,
+                        source_session=proxy.get("source_session"), current_applicability=item.get("temporal_status"),
+                        source_refs=ref_union([dict(owner=item["source_owner"],sha256=item["source_artifact_sha256"],
+                            ref=item.get("source_response_ref") or item.get("source_row_sha256"),available_at=item.get("available_at")),
+                            dict(owner="v4.manager_workbench.hk_industry_mapping",ref=item["mapping_version"],
+                                sha256=digest(item["mapping_evidence"]))]),
+                        warnings=["SAVED_INDUSTRY_CLASSIFICATION", "PROXY_CONTEXT_NOT_COMPANY_TRANSMISSION",
+                            "CURRENT_APPLICABILITY_UNVERIFIED", "HISTORICAL_PIT_UNVERIFIED"]))
     candidates = []
     def path_order(p):
         return (0 if p.strict_supported else 1, RELATIONSHIP_A.index(p.relation_type) if p.relation_type in RELATIONSHIP_A else 99,
@@ -187,7 +240,8 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
         candidates.append(ResearchCandidate(symbol=code,name=names.get(code),research_state=state,direction=direction,
             primary_path_id=primary.path_id if primary else None,paths=merged,
             reasons=sorted({r for p in merged for r in p.reasons}) or ([] if merged else ["NO_MAPPING_PATH"]),
-            source_refs=ref_union([r for p in merged for r in p.source_refs])))
+            source_refs=ref_union([r for p in merged for r in p.source_refs]),
+            industry_matches=ref_union(industry_matches[code])))
     def order(c):
         strengths = [Decimal(p.return_pct) for p in c.paths if p.role == "INDIVIDUAL" and p.direction == "POSITIVE" and p.return_pct is not None and Decimal(p.return_pct)>0
             and not any(r.startswith(('QUOTE_','US_SOURCE_','US_SESSION_','US_RELATION_REVIEW_','RELATION_REVIEW_OR_PIT')) for r in p.reasons)]

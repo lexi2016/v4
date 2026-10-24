@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T08:01:44.728689+00:00",
-  "overall": "IN_PROGRESS_AUTHORIZED_LOCAL_RELEASE_PENDING",
+  "as_of": "2026-10-24T09:24:50.042705+00:00",
+  "overall": "INDUSTRY_LIST_SOURCE_BEHAVIOR_VERIFIED_LOCAL_RELEASE_PENDING",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
   "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
@@ -122,7 +122,7 @@
   "runtime": {
     "helpers": "CURRENT_SOURCE_AND_ACTUAL_PRIVATE_DISPOSITION_ARTIFACT_INDEPENDENT_PASS",
     "candidate": "API_R2_PREPARED_LOADED_SAVE_MERGE_REVIEWED_PASS",
-    "deployment": "NEW_RUNTIME_NOT_DEPLOYED_FRESH_GUARDED_ADMISSION_PENDING",
+    "deployment": "API_R2_COMMITTED_BUT_BOOTSTRAP_MODULE_MISSING_OLD_API_RESTORED",
     "api": "NEW_LIVE_API_NOT_RUN_OLD_API_HEALTH_RESTORED",
     "ui": "COMPONENT_AND_BUILT_ARTIFACT_PASS_NEW_RENDERED_UI_NOT_RUN",
     "natural_cycles_completed": 0,
@@ -174,7 +174,7 @@
         "actual_provider_call": false
       },
       "api_r2": {
-        "state": "PREPARED_LOADED_SAVE_MERGE_REVIEWED_PASS",
+        "state": "IMMUTABLE_FAILED_REAL_APP_CONSTRUCTOR_MISSING_EXISTING_DEPENDENCY",
         "prepared_receipt_sha256": "16b9b1c965345054b9f3649a87de296f74c85c94fb4e0b40ee0c8b3b6b1e8fed",
         "candidate_manifest_sha256": "1e7246349e2e02bbbf7888c08e905192246d6ca36b8e567a0a56da6181d2d2cf",
         "independent_receipt_transcription_sha256": "f78f70c0072455b807bbd94e5bc80501b7449889121e02728b5e5c936c927d78",
@@ -203,6 +203,12 @@
       "hk_child_r1": {
         "state": "R1_MATERIALIZED_UNSEALED_LOGGER_IMPORT_FAILURE_R2_SOURCE_REPAIR_IN_PROGRESS",
         "failed_candidate_preserved": true
+      },
+      "api_r3": {
+        "state": "DRAFT_PENDING_SOURCE_STARTUP_CANARY_ACCEPTANCE",
+        "only_app_delta_from_r2": "existing_committed_oversold_daily.py9ebeed",
+        "service_and_scheduler_business_bytes_unchanged": true,
+        "retained_SCHED_r2_reused": true
       }
     },
     "frontend_build": {
@@ -293,13 +299,13 @@
       "owner_generation_review_transcription_sha256": "50283707bf791005690febe31fc6f3ed6f7a2ed50137ceb33942b45d71b41efc"
     },
     "last_activation_failure": {
-      "receipt_sha256": "33977383282b983ce66fcd09fb32dc349cd6c2c1542d984385104378a842df35",
-      "guardian_journal_sha256": "f0f75d9ccf836ee85aa7aaac7c9f8fcc3ccceb8fcc284892820c2bf3e6965ab5",
-      "committed": false,
-      "lifecycle_calls": 0,
-      "STOP_then_CONT": true,
-      "retry_permitted": false,
-      "new_live_api_ui": "NOT_RUN"
+      "receipt_sha256": "fc655ac859657d3759d551bcbdc60fad7c0b082bc720e42843978c304e07fae9",
+      "committed": true,
+      "error": "ModuleNotFoundError:v4.manager_workbench.oversold_daily",
+      "emergency_restore_sha256": "a9597860ef6939bbca1b9e218a8aaef14bfe25b3327a77f9693caa674cfabf37",
+      "old_plist_sha256": "4d02d1e35420f964531beacc84f2ffd794bc5ed18a8ec7ffce42594aca323da1",
+      "old_health_and_ready": 200,
+      "new_runtime_accepted": false
     },
     "historical_helper_receipt_sha256": "130e748519e5c4d822ff0e614bf0be6aab8f62b9d3670e8d495c157a649d48ee",
     "helper_receipt_sha256": "833fe360f1e7b95317df9f689689ad282ef986b84187c7ee0ed8c2d4008b109d",
@@ -355,5 +361,15 @@
     "buy_gate_updated": false,
     "orders_sent": false
   },
-  "delivery_status_basis": "Current dated runtime fields supersede historical staged preparation notes; preserved failed candidates and earlier receipts remain available, no end-to-end or strategy PASS."
+  "delivery_status_basis": "Current dated runtime fields supersede historical staged preparation notes; preserved failed candidates and earlier receipts remain available, no end-to-end or strategy PASS.",
+  "current_user_decision": {
+    "file": "DECISION_UPDATE.json",
+    "state": "REVIEWED_PASS_BOUNDED_OFFLINE_COMPONENT",
+    "default": "INDUSTRY_MATCH",
+    "strict_result": "OPTIONAL_REFERENCE_NOT_DEFAULT_ADMISSION",
+    "listed_unique_HK": 578,
+    "source_receipt_sha256": "d9e95c0084b42b8654e2a973094fc3db8f142d58ead55c39a86c92f532931091"
+  },
+  "new_listing_live": "NOT_RUN",
+  "new_listing_history": "EXECUTED_87_REAL_INPUTS_ZERO_RUNTIME_FAILURE_INDEPENDENT_HISTORY_REVIEW_PENDING"
 }

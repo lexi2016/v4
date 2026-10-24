@@ -352,8 +352,11 @@ def create_router(service: ManagerService) -> APIRouter:
             versions=[_index(p) for p in service.store.list_plans(day)]
             if snap is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['NO_SAVED_PLAN'])
             names=saved_names(snap,service.config.shared_root)
-            if view:
-                projection=selection_view(snap,lane,names,view=view,offset=offset,limit=limit,
+            saved_lane=next((l for l in snap.lanes if l.lane.value==lane),None)
+            industry_default=(lane=='US_MAPPING' and saved_lane and saved_lane.selection
+                and saved_lane.selection.listing_mode=='INDUSTRY_MATCH')
+            if view or industry_default:
+                projection=selection_view(snap,lane,names,view=view or 'compact',offset=offset,limit=limit,
                     decision=decision.value if decision else None,q=q,symbol=symbol,
                     relationship_offset=relationship_offset,relationship_limit=relationship_limit)
                 if projection is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['LANE_NOT_SAVED'])

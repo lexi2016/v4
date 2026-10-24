@@ -93,12 +93,15 @@ def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=
             us_mapping_summary=_legacy_mapping_summary(lane,offset=offset,limit=limit) if lane_name=='US_MAPPING' else None,
             evaluation_complete=None)
     selection=saved.model_dump(mode='json') if hasattr(saved,'model_dump') else saved
+    industry_listing=selection.get('listing_mode')=='INDUSTRY_MATCH'
     strict={r['symbol']:r for r in selection['strict_decisions']}
     decisions={'SELECTED':'SELECTED','NOT_SELECTED':('QUALIFIED_NOT_SELECTED','REJECTED'),'UNASSESSED':'PENDING','CONDITIONAL_WATCH':None,'OBSERVATION_ONLY':None}
     records=[]
     for candidate in selection['candidates']:
         s=candidate['symbol'];d=strict[s]
         if symbol and symbol!=s:continue
+        # The explicit diagnostics route still addresses every saved candidate.
+        if industry_listing and view!='diagnostics' and not candidate.get('industry_matches'):continue
         if decision:
             wanted=decisions.get(decision)
             if (isinstance(wanted,tuple) and d['decision'] not in wanted) or (not isinstance(wanted,tuple) and d['decision']!=wanted):continue
@@ -110,6 +113,11 @@ def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=
             primary_path_id=c['primary_path_id'],strict_state=d['state'],decision=d['decision'],qualified=d['qualified'],rank=d['rank'],
             reasons=list(dict.fromkeys([*d['reasons'],*c['reasons']])),gates=[_brief_gate(g) for g in d['gates']],
             metrics=d['metrics'],path_count=len(c['paths']),source_refs=[_short_ref(r) for r in c['source_refs'][:6]],source_ref_count=len(c['source_refs']))
+        if industry_listing:
+            row['industry_matches']=c.get('industry_matches') or []
+            # Strict facts remain available in same-run diagnostics; the default
+            # listing carries their summary as reference, without a gate wall.
+            if view!='diagnostics':row.update(gates=[],reasons=[])
         if view=='diagnostics':
             details=dict(c);paths=details.pop('paths')
             row.update(candidate=details,strict=d,relationships=paths[relationship_offset:relationship_offset+relationship_limit],
@@ -119,7 +127,8 @@ def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=
     lane_scope=lane_context.get('scope_refs',{}) if lane_context else snapshot.context.scope_refs
     sources.update(decision_input_cutoff=selection['cutoff'],source_session=selection['source_session'],price_session=selection['price_session'],
         source_execution_cutoff=lane_scope.get('source_execution_cutoff'),processing_cutoff=lane_scope.get('processing_cutoff'))
-    return dict(snapshot=_summary(snapshot),stocks=stocks,counts=selection['counts'],
+    listing={key:selection[key] for key in ['listing_mode','listing_policy_version','listing_policy_sha256'] if key in selection}
+    return dict(snapshot=_summary(snapshot),stocks=stocks,counts=selection['counts'],**listing,
         pagination=dict(total=len(records),offset=offset,limit=limit),selection_identity={k:selection[k] for k in ['schema_version','policy_version','policy_sha256','engine_identity']},
         legacy=False,lane_sources=sources,lane_state=lane.state.value,
         evaluation_complete=selection.get('evaluation_complete',False),selection_gaps=selection.get('gaps',[]))

@@ -1,0 +1,59 @@
+{
+  "schema": "v4.us_hk.industry_replay_receipt.v1",
+  "as_of": "2026-10-24T09:24:50.042705+00:00",
+  "state": "EXECUTED_INDEPENDENT_HISTORY_REVIEW_PENDING",
+  "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
+  "business_source_review_sha256": "d9e95c0084b42b8654e2a973094fc3db8f142d58ead55c39a86c92f532931091",
+  "engine_identity": "21ec2df6c1c6fb28bda226480f247b01cb966ae162a08378331657e1b37a9e82",
+  "inventory_sha256": "714314d500ae66f5f428ac08629ae92946d7a8506acd4cb87b1433ec2aafa6ed",
+  "freeze_sha256": "fb8120bdf8867938962fffd246a7d01f47026469f3718ed643341096664ef0b5",
+  "freeze_file_sha256": "cd76b343175be553d7709e8582c3ca1c5e0d21caafde523a2e79f49533640961",
+  "aggregate_sha256": "e5fd2e4e3d59426a6bb148293b564df8f35f03b8a8bf356cbb9ae26f91019b54",
+  "actual_new_engine_runs": 87,
+  "status_counts": {
+    "REPLAYED_ENGINEERING_ONLY": 87
+  },
+  "original_missing_input_cases": {
+    "count": 14,
+    "handling": "Preserved prior original receipts; not relabelled as newengine execution"
+  },
+  "coverage_denominator": 60,
+  "coverage_saved_sessions": 8,
+  "coverage_missing_sessions": 52,
+  "PIT_eligible_dates": 0,
+  "outcome_labels_read": 0,
+  "effect_status": "NOT_EVALUABLE",
+  "actual_commands": [
+    {
+      "name": "CANARY",
+      "returncode": 0,
+      "seconds": 2.24687,
+      "stdout_sha256": "b670cd8b32988c658fe4f8af51d565a36c4c74e79bb58c1cb7a7c2d539703be4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ALL87",
+      "returncode": 0,
+      "seconds": 58.078746,
+      "stdout_sha256": "441a67ff7c88090cafb0bffa9aee63b555366f114056004101cad75a9c887052",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "resources": {
+    "workers": 2,
+    "physical_bytes": 137438953472,
+    "free_percent_before": 82,
+    "swap_used_MiB_before": 4719.12,
+    "swap_used_MiB_after": 4719.12,
+    "child_peak_RSS_bytes_not_sum": 3782049792
+  },
+  "independent_receipt": null,
+  "source_and_outputs_immutable": true,
+  "live_state_pointer_updates": 0,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

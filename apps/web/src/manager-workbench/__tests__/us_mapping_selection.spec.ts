@@ -176,6 +176,40 @@ describe("US_MAPPING compact persisted results", () => {
   beforeEach(() => { window.history.replaceState(null, "", "?date=20261023&phase=NEXT_DAY&run_id=run-old"); });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
+  it("defaults to evidenced industry peers despite strict rejection or pending eligibility", async () => {
+    const data = { ...compactData(), listing_mode: "INDUSTRY_MATCH",
+      listing_policy_version: "US_HK_INDUSTRY_LISTING_V1_20261024", listing_policy_sha256: "d".repeat(64),
+      counts: { ...compactData().counts, industry_match_count: 317 },
+      stocks: [compactStock(3, { industry_matches: [{ us_symbol: "AMD", industry: "半导体制造",
+        segment: "晶圆制造", association: "BUSINESS_PEER", role: "INDIVIDUAL", relation_id: "R003",
+        return_pct: "-0.5", source_session: "20261022", current_applicability: "DATED_SCOPE_ONLY",
+        warnings: ["CURRENT_APPLICABILITY_UNVERIFIED", "HISTORICAL_PIT_UNVERIFIED"],
+        source_refs: [{ owner: "saved_catalog", ref: "R003", sha256: "b".repeat(64) }] }] }),
+        compactStock(2, { industry_matches: [{ us_symbol: "SOXX", industry: "半导体制造", segment: "半导体",
+          association: "CLASSIFIED_INDUSTRY_PROXY", role: "SECTOR_CONTEXT", relation_id: null,
+          return_pct: null, source_session: "20261022", current_applicability: null,
+          warnings: ["PROXY_CONTEXT_NOT_COMPANY_TRANSMISSION"], source_refs: [{ owner: "saved_classification", sha256: "c".repeat(64) }] }] })] };
+    const spy = install(url => {
+      if (url.searchParams.get("view") !== "diagnostics") return response(data);
+      const diagnostic = diagnosticData("run-old", "20261023", 0);
+      diagnostic.stocks[0].symbol = url.searchParams.get("symbol") || "";
+      return response(diagnostic);
+    });
+    render(Workbench);
+    const table = await screen.findByRole("table", { name: "同行业港股名单" });
+    expect(within(table).getByText("HK.00003")).toBeTruthy();
+    expect(within(table).getByText("HK.00002")).toBeTruthy();
+    expect(within(table).getByText(/AMD/)).toBeTruthy();
+    expect(within(table).getByText(/SOXX/)).toBeTruthy();
+    expect(within(table).getByText(/ETF\/行业背景/)).toBeTruthy();
+    expect(screen.getByText(/只按已保存的同行业依据列出/)).toBeTruthy();
+    expect(screen.getByText(/历史适用性与 PIT 未验证/)).toBeTruthy();
+    expect(screen.queryByText("GATE_REASON_3")).toBeNull();
+    expect(requestedUrls(spy)[0].searchParams.get("view")).toBe("compact");
+    await fireEvent.click(within(table).getAllByRole("button", { name: "查看完整诊断" })[0]);
+    await screen.findByText(/FULL_STRICT_REASON/);
+  });
+
   it("normalizes the compact envelope without changing saved stock order or full counts", async () => {
     const transport = vi.fn(async () => response(compactData())) as unknown as typeof fetch;
     const result = await createWorkbenchApi(transport).getRecommendations({ date: "20261023", lane: "US_MAPPING" });

@@ -321,6 +321,7 @@ export interface USMappingSelectionSnapshot {
   source_sessions?: Record<string, string | null>;
 }
 export interface USMappingSelectionCounts {
+  industry_match_count?: NullableCount;
   candidate_count: NullableCount;
   current_supported: NullableCount;
   dated_weak: NullableCount;
@@ -336,6 +337,7 @@ export interface USMappingCompactGate {
   reasons: string[];
 }
 export interface USMappingCompactStock {
+  industry_matches?: USMappingIndustryMatch[];
   symbol: string;
   name: string | null;
   research_state: "current_supported" | "dated_weak" | "pending";
@@ -351,11 +353,27 @@ export interface USMappingCompactStock {
   source_refs: Record<string, unknown>[];
 }
 export interface USMappingSelectionView {
+  listing_mode?: "INDUSTRY_MATCH";
+  listing_policy_version?: string;
+  listing_policy_sha256?: string;
   selection_identity: USMappingSelectionIdentity;
   lane_sources?: Record<string, unknown>;
   counts: USMappingSelectionCounts;
   pagination: { total: number; offset: number; limit: number };
   stocks: USMappingCompactStock[];
+}
+export interface USMappingIndustryMatch {
+  us_symbol: string;
+  industry: string;
+  segment: string | null;
+  association: "BUSINESS_PEER" | "SAME_ISSUER" | "CLASSIFIED_INDUSTRY_PROXY";
+  role: "INDIVIDUAL" | "SECTOR_CONTEXT";
+  relation_id: string | null;
+  return_pct: string | null;
+  source_session: string | null;
+  current_applicability: string | null;
+  source_refs: Record<string, unknown>[];
+  warnings: string[];
 }
 export interface USMappingMappingPath {
   path_id: string;

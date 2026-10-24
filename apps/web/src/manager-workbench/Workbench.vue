@@ -163,6 +163,7 @@ function singleDaySummary(): SingleDayMappingSummary | null {
   return vm.day?.data?.us_mapping_summary?.factor_summary?.single_day_mapping || null;
 }
 const usMappingSelection = computed(() => vm.day?.data?.us_mapping_selection || null);
+const usIndustryListing = computed(() => usMappingSelection.value?.listing_mode === "INDUSTRY_MATCH");
 const usMappingDiagnosticStock = computed<USMappingDiagnosticStock | null>(() => {
   const symbol = vm.usMappingDiagnosticsSymbol;
   return vm.usMappingDiagnostics?.data?.stocks.find(stock => stock.symbol === symbol) || null;
@@ -352,13 +353,13 @@ function revisionAssessments(value: unknown): [string, unknown][] {
 
     <section v-if="vm.panel === 'stocks'" class="mwb-panel" aria-label="今日研究名单">
       <div class="mwb-heading">
-        <div><h2 v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection">US_MAPPING · {{ vm.route.date }} · 持久化研究候选与严格状态</h2><h2 v-else-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">US {{ singleDaySummary()?.source_session || '日期未知' }} → HK {{ singleDaySummary()?.target_date || '日期未知' }} · 单日映射推荐 / 下跌风险</h2><h2 v-else>{{ LANE_LABELS[vm.laneFilter] }} · {{ vm.decisionFilter ? decisionLabel(vm.decisionFilter) : '独立港股推荐' }}</h2><p v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection">按保存版本展示后端持久化候选顺序、研究状态与严格门槛；只读研究结果，不构成 BUY。</p><p v-else-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">按固定 A/B/C 主路径展示全量月度观察池；单日代理变化仅为研究观察，目标日资格、历史 PIT 与效果未验证。</p><p v-else>美股映射与超跌是独立推荐；各自采用该路径已保存结论，同股可出现在两处。</p></div>
+        <div><h2 v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection">US_MAPPING · {{ vm.route.date }} · {{ usIndustryListing ? '同行业港股名单' : '持久化研究候选与严格状态' }}</h2><h2 v-else-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">US {{ singleDaySummary()?.source_session || '日期未知' }} → HK {{ singleDaySummary()?.target_date || '日期未知' }} · 单日映射推荐 / 下跌风险</h2><h2 v-else>{{ LANE_LABELS[vm.laneFilter] }} · {{ vm.decisionFilter ? decisionLabel(vm.decisionFilter) : '独立港股推荐' }}</h2><p v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection">{{ usIndustryListing ? '只按已保存的同行业依据列出；美股涨幅、MA20、近期涨幅、成交额和资格待核仅作参考，不阻断名单显示。' : '按保存版本展示后端持久化候选顺序、研究状态与严格门槛；只读研究结果，不构成 BUY。' }}</p><p v-else-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">按固定 A/B/C 主路径展示全量月度观察池；单日代理变化仅为研究观察，目标日资格、历史 PIT 与效果未验证。</p><p v-else>美股映射与超跌是独立推荐；各自采用该路径已保存结论，同股可出现在两处。</p></div>
         <p v-if="vm.dayLoading" role="status">正在读取保存的研究版本…</p>
       </div>
       <nav class="mwb-tabs" aria-label="独立推荐来源">
         <button v-for="lane in (['US_MAPPING', 'OVERSOLD'] as const)" :key="lane" type="button"
           :class="{ active: vm.laneFilter === lane }" :aria-pressed="vm.laneFilter === lane" @click="vm.switchLane(lane)">
-          {{ LANE_LABELS[lane] }}推荐 · {{ lane === 'US_MAPPING' && usMappingSelection ? `候选 ${showCount(usMappingSelection.counts.candidate_count)} / 严格入选 ${showCount(usMappingSelection.counts.selected)} / 待核 ${showCount(usMappingSelection.counts.pending)}` : lane === 'US_MAPPING' && singleDaySummary() ? `固定映射受益判定 ${showCount(singleDayCount('BENEFIT'))} / 固定映射风险判定 ${showCount(singleDayCount('RISK'))}` : `严格入选 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.selected)} / 条件观察 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.watch)}` }}
+          {{ LANE_LABELS[lane] }}推荐 · {{ lane === 'US_MAPPING' && usIndustryListing ? `同行业 ${showCount(usMappingSelection?.counts.industry_match_count)} 只` : lane === 'US_MAPPING' && usMappingSelection ? `候选 ${showCount(usMappingSelection.counts.candidate_count)} / 严格入选 ${showCount(usMappingSelection.counts.selected)} / 待核 ${showCount(usMappingSelection.counts.pending)}` : lane === 'US_MAPPING' && singleDaySummary() ? `固定映射受益判定 ${showCount(singleDayCount('BENEFIT'))} / 固定映射风险判定 ${showCount(singleDayCount('RISK'))}` : `严格入选 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.selected)} / 条件观察 ${showCount(vm.day?.data?.recommendation_counts?.[lane]?.watch)}` }}
         </button>
       </nav>
       <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_legacy" aria-label="历史映射保存版说明" class="mwb-muted">
@@ -376,7 +377,9 @@ function revisionAssessments(value: unknown): [string, unknown][] {
       </section>
 
       <section v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection" class="mwb-research-section" aria-label="US_MAPPING 持久化研究候选与严格状态">
-        <h3>研究候选与严格选择 · {{ usMappingSelection.selection_identity.schema_version }}</h3>
+        <h3>{{ usIndustryListing ? '同行业港股名单' : '研究候选与严格选择' }} · {{ usMappingSelection.selection_identity.schema_version }}</h3>
+        <p v-if="usIndustryListing">同行业 {{ showCount(usMappingSelection.counts.industry_match_count) }} 只；来自保存目录与行业分类。历史适用性与 PIT 未验证；ETF/行业背景单独标明，当前交易资格待核，研究结果不构成 BUY。</p>
+        <details :open="!usIndustryListing"><summary>{{ usIndustryListing ? '原严格筛选结果（参考）' : '全量保存计数' }}</summary>
         <p>当前 run_id {{ vm.selectedRunId }} · policy SHA256 {{ usMappingSelection.selection_identity.policy_sha256 }} · engine {{ usMappingSelection.selection_identity.engine_identity }}。计数来自该保存版本的完整结果，不随本页分页变化。</p>
         <div class="mwb-us-selection-counts" aria-label="全量保存计数">
           <span>研究候选 <strong>{{ showCount(usMappingSelection.counts.candidate_count) }}</strong></span>
@@ -388,7 +391,8 @@ function revisionAssessments(value: unknown): [string, unknown][] {
           <span>严格拒绝 <strong>{{ showCount(usMappingSelection.counts.rejected) }}</strong></span>
           <span>严格待核 <strong>{{ showCount(usMappingSelection.counts.pending) }}</strong></span>
         </div>
-        <div v-if="usMappingSelection.stocks.length" class="mwb-table-wrap">
+        </details>
+        <div v-if="usMappingSelection.stocks.length && !usIndustryListing" class="mwb-table-wrap">
           <table class="mwb-table" aria-label="后端保存的 US_MAPPING 候选与严格状态">
             <thead><tr><th>港股</th><th>研究状态 / 方向</th><th>严格状态 / 结果</th><th>保存的原因与门槛</th><th>诊断</th></tr></thead>
             <tbody><tr v-for="stock in usMappingSelection.stocks" :key="stock.symbol">
@@ -411,9 +415,30 @@ function revisionAssessments(value: unknown): [string, unknown][] {
             </tr></tbody>
           </table>
         </div>
-        <p v-else-if="!vm.dayLoading" class="mwb-muted">当前保存版本此页没有候选行；完整汇总计数仍按后端返回值显示。</p>
+        <div v-if="usMappingSelection.stocks.length && usIndustryListing" class="mwb-table-wrap">
+          <table class="mwb-table" aria-label="同行业港股名单">
+            <thead><tr><th>港股</th><th>对应美股 / 行业依据</th><th>参考信息</th><th>详情</th></tr></thead>
+            <tbody><tr v-for="stock in usMappingSelection.stocks" :key="stock.symbol">
+              <td><strong class="mwb-symbol">{{ stock.symbol }}</strong><span>{{ stock.name || '名称未知' }}</span></td>
+              <td><ul><li v-for="(match, index) in stock.industry_matches || []" :key="`${stock.symbol}:industry:${index}`">
+                <strong>{{ match.us_symbol }} · {{ match.industry }}</strong>
+                <p>{{ match.segment || match.industry }} · {{ match.role === 'SECTOR_CONTEXT' ? 'ETF/行业背景' : match.association === 'SAME_ISSUER' ? '同发行人行业' : '同行业公司' }}<span v-if="match.relation_id"> · {{ match.relation_id }}</span></p>
+                <small>美股参考涨幅 {{ match.return_pct === null ? '待核' : `${match.return_pct}%` }} · 来源会话 {{ match.source_session || '未知' }} · 原适用状态 {{ match.current_applicability || '待核' }}</small>
+                <details><summary>行业来源与适用性</summary><p>{{ match.warnings.join('；') }}</p>
+                  <ul><li v-for="(source, sourceIndex) in match.source_refs" :key="`${stock.symbol}:industry:${index}:ref:${sourceIndex}`">{{ usMappingSourceRefLabel(source) }}</li></ul>
+                </details>
+              </li></ul></td>
+              <td><details><summary>查看原严格筛选参考</summary>
+                <p>{{ usSelectionDecisionLabel(stock.decision) }} · {{ usStrictStateLabel(stock.strict_state) }}；此状态不影响同行业名单展示。</p>
+              </details></td>
+              <td><button type="button" class="mwb-detail-link" :aria-expanded="vm.usMappingDiagnosticsSymbol === stock.symbol"
+                @click="vm.toggleUSMappingDiagnostics(stock)">{{ vm.usMappingDiagnosticsSymbol === stock.symbol ? '收起诊断' : '查看完整诊断' }}</button></td>
+            </tr></tbody>
+          </table>
+        </div>
+        <p v-if="!usMappingSelection.stocks.length && !vm.dayLoading" class="mwb-muted">当前保存版本此页没有{{ usIndustryListing ? '可追溯同行业' : '候选' }}行；完整汇总计数仍按后端返回值显示。</p>
         <div v-if="usMappingSelection.stocks.length" class="mwb-pagination">
-          <span>全量候选 {{ showCount(usMappingSelection.counts.candidate_count) }} 只；当前页 {{ usMappingSelection.pagination.offset + 1 }}–{{ Math.min(usMappingSelection.pagination.total, usMappingSelection.pagination.offset + usMappingSelection.stocks.length) }} / {{ usMappingSelection.pagination.total }}。分页只读取保存结果。</span>
+          <span>{{ usIndustryListing ? '全量同行业' : '全量候选' }} {{ showCount(usIndustryListing ? usMappingSelection.counts.industry_match_count : usMappingSelection.counts.candidate_count) }} 只；当前页 {{ usMappingSelection.pagination.offset + 1 }}–{{ Math.min(usMappingSelection.pagination.total, usMappingSelection.pagination.offset + usMappingSelection.stocks.length) }} / {{ usMappingSelection.pagination.total }}。分页只读取保存结果。</span>
           <div>
             <button type="button" :disabled="usMappingSelection.pagination.offset === 0 || vm.dayLoading"
               @click="vm.setOffset(Math.max(0, usMappingSelection.pagination.offset - usMappingSelection.pagination.limit))">上一页</button>
