@@ -1,0 +1,198 @@
+{
+  "schema_version": "a_share_v194.long_history_implementation_status.v1",
+  "route_id": "A_SHARE_V194_LONG_HISTORY_AUTHORITY_R1_20261024",
+  "input_build_execution_id": "A_SHARE_V194_LONG_INPUT_BUILD_R1_20261024_01",
+  "implementation_status": "LONG_HISTORY_OOF_REFIT_REVIEWED",
+  "status": "CANNOT_CONFIRM",
+  "evidence_level": "ENGINEERING_CANARY_ONLY",
+  "scope": "long-history A-share runtime adapter and registered runner only",
+  "run_entrypoint": "long_run194.py",
+  "runtime_adapter": "long_training_adapter.py",
+  "implementation_review": {
+    "round_1": "FAIL_IMPLEMENTATION_REVIEW",
+    "round_1_findings": [
+      "BaseException exits after RUN_STARTED could bypass official TERMINAL registration",
+      "fit canary receipt did not bind positive real-fit counts or exact model/config/first-fold identity"
+    ],
+    "round_2": "PASS_IMPLEMENTATION_ONLY_R2",
+    "round_2_receipt": "research/a_share_v194_long_history_20261024/preflight/LONG_RUN_IMPLEMENTATION_REVIEW_R2_TERMINAL_REGISTRY_RECEIPT.json",
+    "round_3": "PASS_FOR_FROZEN_RECONSTRUCTED_RESEARCH_RESULT",
+    "round_3_scope": "Review exact R2 metadata child→long parent→short R1 source binding, coverage/dictionary binding, narrow V2 research adapter, DATE_POLICY pre-fit behavior, 27 focused fixtures, actual registered two-fit first-fold canary, saved prediction consistency, runtime identity/resources, and daily report schema together.",
+    "round_3_receipt": "research/a_share_v194_long_history_20261024/preflight/final_oof_review_r1/LONG_FINAL_OOF_REVIEW_TERMINAL_REGISTRY_RECEIPT.json",
+    "round_3_receipt_sha256": "c45067412aebe7080f923e008d36c1f1f5b6021dfa9426e3f9b8c56393cc47c0",
+    "round_3_verdict_path": "research/a_share_v194_long_history_20261024/review/v194_long_oof_review_r1/FINAL_OOF_REVIEW_VERDICT_REGISTRAR_TRANSCRIBED.json",
+    "round_3_verdict_sha256": "87c72b1b558f0c8ac2672bf338033104e0d06a7a59b3d4050db286df10d1eda6",
+    "round_3_test_delta_path": "research/a_share_v194_long_history_20261024/review/v194_long_oof_review_r1/FINAL_OOF_REVIEW_TEST_ONLY_DELTA_REGISTRAR_TRANSCRIBED.json",
+    "round_3_test_delta_sha256": "d604d5a545f6c490a324a9e932197ddccd8ae0d0e98bb41a4cc1f6e0036f83d9",
+    "round_3_event_sha256": "9146eb11b1d1434311a878c320cec00358dd5e899aa618d0dd3bd5fff9ee056d"
+  },
+  "targeted_implementation_checks": {
+    "py_compile": "PASS",
+    "focused_pytest": "27 passed",
+    "actual_r2_binding_preflight": "PASS_BOUNDED_RESEARCH_INPUT; WHOLE_INPUT=CANNOT_CONFIRM",
+    "market_rows_read_by_static_binding_tests": 0,
+    "model_fit_count_in_static_binding_tests": 0,
+    "r4_report_fixture_test": "4 passed in 0.14s; independent Reviewer run; zero fits/predictions/truth reads"
+  },
+  "date_policy_guard": {
+    "state": "IMPLEMENTED_PENDING_COMBINED_R3_REVIEW",
+    "stages": [
+      "canary",
+      "oof",
+      "refit"
+    ],
+    "binding": "run-config path/SHA must match manifest files.date_policy path/SHA",
+    "plan_checks": [
+      "eligible target dates",
+      "initial training dates",
+      "five-date OOF folds and ordered OOF dates",
+      "diagnostic target-date exclusions",
+      "Top50 cutoff"
+    ],
+    "fit_gate": "guarded run194.prepare plan is checked before any fit; OOF rechecks before worker spawn",
+    "prediction_only_date_policy_check": "not applicable; prediction stage builds no training split"
+  },
+  "bounded_plan_adapter": {
+    "state": "IMPLEMENTED_PENDING_COMBINED_R3_REVIEW",
+    "legacy_files_modified": false,
+    "grouping": "one pass over truth rows and one pass over joined candidate rows; fold maturity/class checks use date buckets",
+    "return_shape": "field-by-field parity with the legacy five-element RUN_FREEZE preparation tuple",
+    "fixture_error_parity": [
+      "TRUTH_DENOMINATOR_DRIFT",
+      "TRAIN_REQUIRES_TWO_CLASSES"
+    ],
+    "market_rows_read": 0,
+    "model_fits": 0
+  },
+  "reused_components": {
+    "python_environment": "/Users/lexi/Documents/Codex/2026-08-13/factor-mining-mac/.venv-training-v1/bin/python",
+    "registry": "worktrees/a_share_v194_20261023/research/a_share_v194/registry_bridge.py",
+    "model": "worktrees/a_share_v194_20261023/research/a_share_v194/model194.py",
+    "report": "worktrees/a_share_v194_20261023/research/a_share_v194/report194.py",
+    "pipeline_helpers": "worktrees/a_share_v194_20261023/research/a_share_v194/run194.py"
+  },
+  "input_pass_gate": {
+    "required": true,
+    "independent_review_receipt": "R2 result SHA-bound; exact child manifest, R1 component result, parent manifest and 5,533-code list chain verified",
+    "bounded_research_input_readiness": "PASS",
+    "whole_input_status": "CANNOT_CONFIRM",
+    "maximum_claim": "DIRECTION_ONLY",
+    "historical_source_vintage": "CANNOT_CONFIRM",
+    "official_calendar_parity": "CANNOT_CONFIRM",
+    "a194_passport": "NOT_YET_A194_DATASET_PASSPORT_FAST_BIND",
+    "frozen_universe": "exact sorted unique 5,533-code research list, unchanged across config/child/parent/R1 evidence",
+    "state": "BOUNDED_RESEARCH_PASS_WHOLE_INPUT_CANNOT_CONFIRM"
+  },
+  "resource_contract": {
+    "native_thread_count_configurable": true,
+    "maximum_native_threads": 12,
+    "model_fit_canary_processes": 1,
+    "oof_fit_workers": "configurable; capped by canary peak RSS, current available memory, and total thread budget",
+    "oof_fold_execution": "spawned isolated workers; deterministic fold-order aggregation; atomic cache promotion and sealed cache reuse",
+    "refit_and_predict_processes": 1,
+    "input_builder_canary": "8 processes x 1 native thread; separately owned"
+  },
+  "research_execution": {
+    "market_rows_read_by_this_implementation_turn": true,
+    "input_canary_run_by_this_writer": false,
+    "model_fits": 192,
+    "model_fit_scope": "Canary: 2 real fits; OOF: 188 real fits in folds 02-95 with fold_01 reused; final refit: 2 real fits; total 192 real fits and zero synthetic; no sealed evaluation.",
+    "oof_run": true,
+    "sealed_evaluation": false,
+    "registered_model_canary": {
+      "execution_id": "A_SHARE_V194_LONG_MODEL_CANARY_R2_20261024_01",
+      "terminal_decision": "DIRECTION_ONLY",
+      "real_fit_entered": 2,
+      "real_fit_returned": 2,
+      "synthetic_fit_entered": 0,
+      "synthetic_fit_returned": 0,
+      "result_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_long_history_20261024/runs/A_SHARE_V194_LONG_MODEL_CANARY_R2_20261024_01/CANARY_RESULT.json",
+      "result_sha256": "23d3eaf83b2d728dfb158ec86e24a2980a22b7aaf5e2c6a3db96ba1ba218de12",
+      "run_freeze_sha256": "c47ad505588d276afe08262b994f051ba718ae81f1ea6db15f474d86ef045def",
+      "first_fold_id": "fold_01",
+      "first_fold_sha256": "02d6165118fa6555fe70d2f2aa74ac8c1f7c0cf4f88582df2ac99241c85e40f2",
+      "frozen_plan_sha256": "5906fe31957ebf1648993c8727403c1f63da988ec689b08871fb81691f1e35df",
+      "runtime_terminal_sha256": "aeb96ce3ddc8edd711c088b9cf641e5053fc36d8695e397214edafb667414f78",
+      "official_terminal_event_sha256": "6b73241e7f507a85fcee2fb8a116bcc0140ba8644643a374667dd713e4871629",
+      "effective_native_threads": 1,
+      "processes": 1,
+      "input_manifest_sha256": "d0bbb99d6e1db2e9fc52d0cf283d7ca931bfd1f5e60016faeb3c3cdbb2b966ec",
+      "input_review_sha256": "052bc7e54358ec71714f66fd2292e657c3dbf12cc675a235c9901290308abdcc",
+      "universe_code_list_sha256": "5186c209e784e58875e9f16202d99bd9ced945b9f7adcd0212c2f18869a6040d",
+      "input_review_scope": "BOUNDED_RECONSTRUCTED_RESEARCH_INPUT",
+      "whole_input_status": "CANNOT_CONFIRM",
+      "maximum_claim": "DIRECTION_ONLY"
+    },
+    "oof_report_outputs": {
+      "local_full_oof_selection_audit": "OOF_DAILY_SELECTION_COMPARISON.csv",
+      "local_oof_top100_flags": "OOF_TOP100_WITH_SELECTIONS.csv",
+      "local_fold_source_state_and_coefficients": "LONG_FOLD_SOURCE_STATE_AUDIT.json",
+      "local_by_year_source_coverage": "LONG_SOURCE_COVERAGE_BY_YEAR.json",
+      "slim_daily_count_summary": "LONG_DAILY_MODEL_COUNTS.csv; one row per frozen target date with source coverage; common/new/lost are selected-name intersections, not target hits. Actual per-date target hits are in OOF_DAILY_SELECTION_COMPARISON.csv *_hits columns.",
+      "slim_summary_contains_stock_codes": false,
+      "primary_daily_hit_comparison": "OOF_DAILY_SELECTION_COMPARISON.csv; 473 OOF dates, aggregate counts only, no stock codes; 2046 baseline hits versus 2052 V194 hits across 23650 slots per arm."
+    },
+    "daily_report_schema": {
+      "baseline_id": "TECHNICAL11_L2_TOP50",
+      "candidate_id": "V194_TOP50",
+      "OOF_only_selection_metrics": true,
+      "non_OOF_selection_and_hit_values": null,
+      "source_state_scopes": [
+        "raw_candidate_union",
+        "model_candidates"
+      ],
+      "source_states": [
+        "hit",
+        "confirmed_absent",
+        "unknown"
+      ],
+      "unknown_is_absence": false
+    },
+    "training_authorized_after_independent_input_pass_only": true,
+    "model_canary_run_by_this_writer": true,
+    "failed_preflight_attempt": {
+      "execution_id": "A_SHARE_V194_LONG_MODEL_CANARY_R1_20261024_01",
+      "failure": "R2_CHILD_MANIFEST_PATH_DRIFT",
+      "rows_loaded": 0,
+      "fits_entered": 0,
+      "contract_and_config_preserved": true
+    },
+    "research_input_status": "BOUNDED_RESEARCH_INPUT_PASS; whole_input_status=CANNOT_CONFIRM; maximum claim DIRECTION_ONLY",
+    "final_refit_run": true,
+    "research_result": "NO_BREAKTHROUGH",
+    "oof_review": {
+      "status": "PASS_FOR_FROZEN_RECONSTRUCTED_RESEARCH_RESULT",
+      "evidence_level": "DIRECTION_ONLY",
+      "oof_dates": 473,
+      "truth_positive_denominator": 47300,
+      "selection_slots_per_arm": 23650,
+      "baseline_hits": 2046,
+      "v194_hits": 2052,
+      "common_hits": 2029,
+      "v194_only_hits": 23,
+      "baseline_only_hits": 17,
+      "paired_mean_delta_hits_per_day": 0.012684989429175475,
+      "paired_95pct_ci": [
+        -0.02536997885835095,
+        0.040169133192389
+      ],
+      "result": "NO_BREAKTHROUGH",
+      "review_terminal_event_sha256": "9146eb11b1d1434311a878c320cec00358dd5e899aa618d0dd3bd5fff9ee056d",
+      "review_transcription_sha256": "87c72b1b558f0c8ac2672bf338033104e0d06a7a59b3d4050db286df10d1eda6",
+      "fixture_tests": "4 passed in 0.14s"
+    }
+  },
+  "safety_flags": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "unresolved": [
+    "Historical source publication time/vintage remains CANNOT_CONFIRM.",
+    "Official-calendar parity and the A194 dataset passport remain CANNOT_CONFIRM.",
+    "The fixed 5,533-code research universe does not establish historical all-A-share membership or survivorship-free coverage.",
+    "No sealed-forward evaluation or future prediction was run; future input was not supplied.",
+    "Hit@50 does not establish execution-cost-adjusted return or trading alpha."
+  ]
+}
