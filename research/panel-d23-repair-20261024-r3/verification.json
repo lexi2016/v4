@@ -1,0 +1,41 @@
+{
+  "schema_version": "panel-d23-r3-source-verification-v1",
+  "scope": "R3-reviewed source archive only; this is not a full repair or runtime acceptance receipt.",
+  "review": {
+    "status": "REVIEWED/PASS",
+    "verdict": "PASS_R3_INCREMENTAL_DELTA",
+    "receipt_sha256": "10fcdfba1893d3f29220b81595780dcec7dcaf58422b9f2d3ce1f3d852b2ce85",
+    "findings": [],
+    "behavior_verified": true,
+    "behavior_verified_scope": "R3 candidate-stage SHA mismatch fails closed for both panel roles before row loading; the READY artifact accurately distinguishes historical R1 preflight evidence from current R3 NOT_RUN status."
+  },
+  "tests": {
+    "r3_focused_regression": {
+      "status": "PASS",
+      "passed": 2,
+      "source": "independent R3 Reviewer receipt",
+      "rerun_during_source_sync": false,
+      "result": "Candidate-stage bytes pass; same-path changes reject for selector and backtest."
+    },
+    "r2_publication_guard_suite": {
+      "status": "PASS_REUSED_BY_HASH",
+      "passed": 10,
+      "rerun_during_source_sync": false
+    },
+    "r1_source_suite": {
+      "status": "PASS_REUSED_BY_HASH",
+      "passed": 8,
+      "rerun_during_source_sync": false
+    }
+  },
+  "cannot_confirm": [
+    "Current standalone R3 preflight, full producer execution, and live panel readback.",
+    "End-to-end repair completion, runtime binding/deployment, automatic scheduled update, and natural-time recovery."
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "panel-d23-r3-source-hashes-v1",
+  "archive_kind": "reviewed source and test snapshot",
+  "local_source_baseline": {
+    "branch": "codex/panel-d23-execution-guard-20261024",
+    "commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054"
+  },
+  "review_binding": {
+    "review_receipt": "FULL_A_EXECUTION_DELTA_REVIEW_R3_LUNA.json",
+    "review_receipt_sha256": "10fcdfba1893d3f29220b81595780dcec7dcaf58422b9f2d3ce1f3d852b2ce85",
+    "r3_hash_manifest_sha256": "f75fcd6421a1a44c345398fd1f769ad13a210bd2cd8a36dad0d2bb495cc4ffb9",
+    "r3_ready_handoff_sha256": "5dac392a20f175a658fac3261e5951199caa2836baa1cc443a48a5d3870a61d8",
+    "r2_hash_manifest_used_as_current_binding": false
+  },
+  "previous_source_archive": {
+    "repository": "lexi2016/v4",
+    "commit": "cbbf5e84534a23b1e0772b43e134b5f76e53d316",
+    "reused_without_reupload": true,
+    "scope": "Previously synchronized A23 TDX14 source archive."
+  },
+  "files": [
+    {
+      "path": "run_full_a.py",
+      "bytes": 10360,
+      "sha256": "8c1c2ec9c797758946efe396407a074ac2ffc818921b4f0d61579e4afb84b1c1",
+      "source_allowlist": "E/execution/run_full_a.py"
+    },
+    {
+      "path": "collect_actual_panel.py",
+      "bytes": 20510,
+      "sha256": "569d3a74c0a3a30f162fcea032dc2f5060f4f9cfa9b241f86c6c8be818b77c57",
+      "source_allowlist": "E/execution/collect_actual_panel.py"
+    },
+    {
+      "path": "publication_guard_r2.py",
+      "bytes": 37980,
+      "sha256": "c891fbbbebece39f65c0212c3fe25e5091f7658f9fccffafb4c9d9f666785849",
+      "source_allowlist": "E/execution/publication_guard_r2.py"
+    },
+    {
+      "path": "test_publication_guard_r2.py",
+      "bytes": 13161,
+      "sha256": "6c7e70f3a1fa8ea16ffc3f7fb78c7ab22dfe630a5a65091bd00239d5849c1ce1",
+      "source_allowlist": "E/execution/test_publication_guard_r2.py"
+    },
+    {
+      "path": "test_collector_stage_sha_r3.py",
+      "bytes": 3459,
+      "sha256": "6c9e87fff954a86b1cd4fc96bf10915f9b035ababf0693cb8f85a51c9b3a7d72",
+      "source_allowlist": "E/execution/test_collector_stage_sha_r3.py"
+    }
+  ],
+  "excluded": [
+    "FULL_A_EXECUTION_SPEC.json and runtime/environment configuration",
+    "market data, raw receipts, TDX day files",
+    "logs, backups, pyc, virtual environments, credentials"
+  ]
+}
