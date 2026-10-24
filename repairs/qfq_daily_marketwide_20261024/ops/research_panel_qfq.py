@@ -9,6 +9,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 import base64
+import ast
 from datetime import datetime, timezone
 import fcntl
 import hashlib
@@ -310,10 +311,74 @@ def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int
     return files
 
 
+LEGACY_STATIC_FIELDS = frozenset("""raw_code name total_share_10k float_share_10k market_cap_yi float_market_cap_yi turnover_rate_pct finance_source_date list_date tdx_finance_area_code tdx_finance_industry_code tdx_industry_code sw_industry_code static_fundamental_source fundamental_snapshot_note tdx_industry_name is_st_snapshot research_panel_scope candidate_pool_policy minute_data_policy minute_data_output_root minute_data_contract_path minute_data_default_scope minute_data_required_outputs""".split())
+LEGACY_RAW_CONTEXT_FIELDS = frozenset("""price_limit_pct_est limit_up_price_est limit_down_price_est is_limit_up_est is_limit_down_est is_one_word_limit_up_est limit_board_count_est limit_down_board_count_est price_limit_source limit_up_approx limit_down_approx""".split())
+LEGACY_MARKET_CONTEXT_FIELDS = frozenset("""market_active_stock_count market_up_count market_down_count market_flat_count market_limit_up_count_est market_limit_down_count_est market_max_limit_board_count_est market_total_amount_yi market_context_source""".split())
+LEGACY_AUX_FIELDS = LEGACY_STATIC_FIELDS | LEGACY_RAW_CONTEXT_FIELDS | LEGACY_MARKET_CONTEXT_FIELDS
+
+
+def field_basis_contract(driver) -> dict:
+    result = {name: dict(basis=basis, scope="A", recomputed=False, historical_values="RETAIN_ORIGINAL", new_dates="NULL")
+              for fields, basis in ((LEGACY_STATIC_FIELDS, "LEGACY_STATIC_CONTEXT"),
+                                    (LEGACY_RAW_CONTEXT_FIELDS, "LEGACY_RAW_CONTEXT"),
+                                    (LEGACY_MARKET_CONTEXT_FIELDS, "LEGACY_MARKET_CONTEXT")) for name in sorted(fields)}
+    result["field_contract_version"] = dict(basis="AUTHORITATIVE_LINEAGE_METADATA", scope="A", value=driver.CONTRACT_PROVENANCE_FIELD_DEFAULTS["field_contract_version"])
+    return result
+
+
+def computation_kernel_sha(source: Path) -> str:
+    tree = ast.parse(source.read_text())
+    names = {"apply_adjustments", "rebuild_symbol", "authorities", "_load"}
+    nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
+    if {node.name for node in nodes} != names:
+        raise QfqGateError("CHECKPOINT_COMPUTATION_KERNEL_MISSING")
+    return canonical_sha([ast.dump(node, include_attributes=False) for node in nodes])
+
+
+def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseline: dict, data_root: Path) -> dict:
+    if not ref:
+        return {}
+    recovery = json.loads(_source(ref, owner="reviewed checkpoint recovery").read_text())
+    old = recovery["source_identity"]
+    if (recovery.get("schema") != "qfq_original_checkpoint_recovery_v1"
+            or any(old.get(k) != v for k, v in identity.items() if k != "adapter_sha256")
+            or recovery.get("baseline_panel_sha256") != baseline):
+        raise QfqGateError("CHECKPOINT_RECOVERY_INPUT_OR_FORMULA_CHANGED")
+    original_snapshot = _source(recovery["original_snapshot"], owner="original prepared input snapshot")
+    if json.loads(original_snapshot.read_text()) != snapshot or factor_cache_identity(data_root, snapshot["asof_date"], snapshot) != recovery["factor_cache_identity"]:
+        raise QfqGateError("CHECKPOINT_RECOVERY_INPUT_OR_FACTOR_CACHE_CHANGED")
+    old_source = _source(recovery["source_core"], owner="original chunk computation source")
+    if old["adapter_sha256"] != recovery["source_core"]["sha256"] or computation_kernel_sha(old_source) != computation_kernel_sha(Path(__file__)):
+        raise QfqGateError("CHECKPOINT_RECOVERY_COMPUTATION_CHANGED")
+    run = Path(recovery["source_run"])
+    old_generation = canonical_sha(dict(target=snapshot["asof_date"], baseline_panel_sha256=baseline, **old))
+    if run.name != "qfq_" + old_generation[:20] or json.loads((run / "adjustment_input_snapshot.json").read_text()) != snapshot:
+        raise QfqGateError("CHECKPOINT_RECOVERY_SOURCE_GENERATION_CONFLICT")
+    chunks, retry = recovery["chunks"], set(recovery["retry_original_quarantined"])
+    if set(chunks) & retry or set(chunks) | retry != set(snapshot["symbols"]) or not retry.issubset(snapshot.get("original_quarantine_eligible", {})):
+        raise QfqGateError("CHECKPOINT_RECOVERY_SYMBOL_COVERAGE_CONFLICT")
+    paths = set()
+    for code, item in chunks.items():
+        path = _source(item["artifact"], owner="recovered chunk " + code)
+        receipt_path = _source(item["receipt"], owner="recovered chunk receipt " + code)
+        if path != run / "symbol_checkpoints" / (code + ".parquet") or receipt_path != path.with_suffix(".receipt.json") or str(path) in paths:
+            raise QfqGateError("CHECKPOINT_RECOVERY_MAPPING_CONFLICT:" + code)
+        paths.add(str(path))
+        fingerprint = canonical_sha(dict(code=code, item=snapshot["symbols"][code], **old))
+        receipt = json.loads(receipt_path.read_text())
+        if receipt.get("checkpoint_id") != fingerprint or panel_contract(path).get("checkpoint_id") != fingerprint or receipt.get("sha256") != item["artifact"]["sha256"]:
+            raise QfqGateError("CHECKPOINT_RECOVERY_FINGERPRINT_CONFLICT:" + code)
+    return chunks
+
+
 def merge_rebuilt(old: pd.DataFrame, rebuilt: pd.DataFrame, *, role: str, driver) -> pd.DataFrame:
     """Replace every old affected OHLC/formula row; retain historical metadata."""
+    rebuilt = rebuilt.copy()
+    # This is lineage metadata from the pinned original authoritative contract,
+    # not a numerical formula input and never an old-row price fallback.
+    rebuilt["field_contract_version"] = driver.CONTRACT_PROVENANCE_FIELD_DEFAULTS["field_contract_version"]
     if old.empty:
-        return rebuilt.copy()
+        return rebuilt
     if old.trade_date.duplicated().any():
         raise QfqGateError(f"CURRENT_DUPLICATE_KEYS:{role}")
     old = old.copy()
@@ -327,15 +392,12 @@ def merge_rebuilt(old: pd.DataFrame, rebuilt: pd.DataFrame, *, role: str, driver
     # Formula fields are generated only by original authorities; other historic
     # data retain their original per-row values rather than latest-row backfill.
     for column in old.columns:
-        if driver.is_formula_like_column(column) and column not in fresh.columns:
-            raise QfqGateError(f"FORMULA_RECOMPUTATION_MISSING:{role}:{column}")
         if column not in fresh.columns:
-            mapping = preserved[column]
-            fresh[column] = fresh.trade_date.map(mapping)
-            latest = mapping.dropna()
-            if not latest.empty:
-                new = ~fresh.trade_date.isin(preserved.index)
-                fresh.loc[new, column] = latest.iloc[-1]
+            if column not in LEGACY_AUX_FIELDS:
+                raise QfqGateError(f"FORMULA_RECOMPUTATION_MISSING:{role}:{column}")
+            # Preserve only explicitly classified, non-target legacy context.
+            # No latest-row fill for a new date, including numeric auxiliaries.
+            fresh[column] = fresh.trade_date.map(preserved[column])
     return fresh
 
 
@@ -348,10 +410,17 @@ def _panel_symbols(path: Path) -> set[str]:
 
 def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str) -> pa.Table:
     # No original formula field is silently default-filled with zero.
-    missing = [f.name for f in schema if driver.is_formula_like_column(f.name) and f.name not in frame]
+    missing = [f.name for f in schema if f.name not in frame and f.name not in LEGACY_AUX_FIELDS]
     if missing:
         raise QfqGateError(f"UNCOMPUTED_FORMULA_FIELDS:{role}:{missing}")
-    return driver.build_table_for_schema(frame, schema, role)[0]
+    table = driver.build_table_for_schema(frame, schema, role)[0]
+    # The legacy driver fills nullable ints/bools with 0/False. That would
+    # fabricate auxiliary context on new dates; preserve its explicit nulls.
+    for field in schema:
+        if field.name in LEGACY_AUX_FIELDS:
+            values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
+            table = table.set_column(schema.get_field_index(field.name), field, pa.Array.from_pandas(values, type=field.type))
+    return table
 
 
 def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, contract_csv: Path) -> dict:
@@ -616,7 +685,8 @@ def verify_release_gate(root: Path, output: Path, identity: dict, target: int, c
 
 def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, data_root: Path,
                       pointers: dict[str, Path], contract_csv: Path, return_root: Path,
-                      target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False) -> dict:
+                      target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
+                      checkpoint_resume: dict | None = None) -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
     if not 1 <= workers <= 4:
         raise QfqGateError("WORKER_LIMIT_MUST_BE_1_TO_4")
@@ -655,6 +725,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         already_current = (len(generations) == 1 and None not in generations
                            and all(item.get("asof_date") == target and all(item.get(k) == v for k, v in identity.items()) for item in contracts.values()))
         baseline_hashes = {} if already_current else {role: sha(path) for role, path in currents.items()}
+        recovered = checkpoint_recovery(checkpoint_resume, snapshot, identity, baseline_hashes, data_root)
         run_id = next(iter(generations)) if already_current else canonical_sha(dict(target=target, baseline_panel_sha256=baseline_hashes, **identity))
         run_dir = return_root / ("qfq_" + run_id[:20])
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -690,7 +761,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         missing = sorted((expected_codes | discovered) - foreign - legacy_codes - available - set(quarantined))
         if missing:
             raise QfqGateError(f"MARKETWIDE_ADJUSTMENT_COVERAGE_MISSING:{missing}")
-        meta = dict(schema="a_share_qfq_panel_v1", price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
+        meta = dict(schema="a_share_qfq_panel_v1", field_basis=field_basis_contract(driver), checkpoint_recovery=checkpoint_resume, price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
                     volume_basis="MIXED_BY_MARKET" if foreign else "QFQ_EVENT_VOLUME", amount_basis="MIXED_BY_MARKET" if foreign else "RAW_TURNOVER",
                     market_basis={"A": dict(price_basis="QFQ_ASOF", volume_basis="QFQ_EVENT_VOLUME", amount_basis="RAW_TURNOVER", asof_date=target),
                                   **{market: dict(price_basis="UNKNOWN_NATIVE", volume_basis="UNKNOWN_NATIVE", amount_basis="UNKNOWN_NATIVE", asof_date=None,
@@ -729,7 +800,13 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 bound = json.loads(checkpoint_receipt.read_text())
                 if check.get("checkpoint_id") == fingerprint and bound.get("sha256") == sha(checkpoint):
                     return code, checkpoint
-            computed = rebuild_symbol(code, item, target, driver)
+            if code in recovered:
+                ref = recovered[code]["artifact"]
+                computed = pq.read_table(_source(ref, owner="reused pure computation " + code)).to_pandas()
+                if set(computed.ts_code.astype(str)) != {code}:
+                    raise QfqGateError("CHECKPOINT_RECOVERY_ROW_CODE_CONFLICT:" + code)
+            else:
+                computed = rebuild_symbol(code, item, target, driver)
             table = pa.Table.from_pandas(computed, preserve_index=False)
             table = table.replace_schema_metadata({META_KEY: json.dumps(dict(checkpoint_id=fingerprint)).encode()})
             temporary = checkpoint.with_suffix(".pending")

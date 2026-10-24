@@ -188,6 +188,8 @@ def _canonical_basis(path: Path, parquet_file=None) -> dict:
             markets = contract.get("market_basis", {})
             if markets != manifest.get("market_basis") or markets.get("A", {}).get("price_basis") != "QFQ_ASOF":
                 raise ValueError("market basis binding conflict")
+        if contract.get("field_basis", {}) != manifest.get("field_basis", {}):
+            raise ValueError("field basis binding conflict")
         # Cooperating CURRENT readers refuse the short two-file transition.
         if POINTER_FILE.is_file() and Path(POINTER_FILE.read_text(encoding="utf-8-sig").strip()).resolve() == path.resolve():
             data_root = POINTER_FILE.parent.parent
@@ -205,6 +207,7 @@ def _canonical_basis(path: Path, parquet_file=None) -> dict:
                 "price_provider": contract.get("price_provider"),
                 "adjustment_provider_contract": contract.get("adjustment_provider_contract"),
                 "adjustment_convention": contract["convention"], "manifest_path": str(manifest_path),
+                "field_basis": contract.get("field_basis", {}),
                 "quarantine_manifest_path": contract.get("quarantine_manifest_path"), "coverage": manifest.get("counts", {}),
                 "adjustment_snapshot": contract.get("adjustment_snapshot"),
                 "input_sha256": contract["input_sha256"], "historical_pit_certified": False}

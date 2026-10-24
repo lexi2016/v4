@@ -1,0 +1,84 @@
+{
+  "schema": "QFQ_DAILY_MARKETWIDE_R4_SOURCE_INCREMENT_V1",
+  "status": "R4_SOURCE_REVIEWED_PASS_SOURCE_SYNC_RELEASED",
+  "baseline": {
+    "repository": "lexi2016/v4",
+    "branch": "codex/qfq-daily-marketwide-20261024",
+    "commit_sha": "a423007da43cf8d471e7fb1dcd357b84d3da63cc",
+    "tree_sha": "e755855d791807232f4e06144a27b51340256715",
+    "total_blob_count": 255,
+    "namespace_blob_count": 26,
+    "prior_source_acceptance_sha256": "65c4dfe204afade26d2ef9b0a15f5c5356770793ed6c2a48a8625cfbe3a23efe"
+  },
+  "r4_freeze_receipts": {
+    "ready_sha256": "2d340f63a390f46bd28f8256a3d77d504866ca8ece512aa825736d7db1d7647d",
+    "source_manifest_sha256": "2331cdbcc413312bab4e080677e5d4ddd563fc3e989811b6ff7252e97f7f2fd6"
+  },
+  "increment": {
+    "scope": "Source-only R4 increment on the existing branch; the previous public SOURCE_ACCEPTANCE remains historical.",
+    "updated_business_sources": 2,
+    "updated_tests": 2,
+    "new_metadata_file": "R4_INCREMENT_METADATA.json",
+    "deleted_files": 0
+  },
+  "behavioral_contract": {
+    "checkpoint_reuse": "Resume prior checkpoints only when input, factor state, pure driver, formula and field contract, schema, and computation kernel match exactly; do not numerically recalculate preserved chunks.",
+    "generation_identity": "Bind the resumed output to the new core identity; do not relabel it with the old core SHA.",
+    "core_metadata": "Supply the authoritative field_contract_version default and preserve non-target auxiliary columns with their row-level raw context; new-date integer/string auxiliary fields remain null.",
+    "hard_failures": "Missing close, BBI, MA60, J, or B3 fields remain blocking errors."
+  },
+  "data_context": {
+    "prior_candidate": "R3 candidate calculation exists but remains unaccepted because the merged artifact lacks field_contract_version metadata.",
+    "conservative_reuse": "5,541 successful chunks may be reused only after R4 identity checks; four original bad-source rows remain isolated.",
+    "r4_recovery": "A recovery executor is running under the recorded session and process; recovered candidate and data acceptance remain pending."
+  },
+  "evidence_limits": {
+    "independent_r4_review": "PENDING",
+    "checkpoint_resume": "RUNNING; final recovery result pending",
+    "publication": "PENDING",
+    "installation_or_service_reload": "NOT_AUTHORIZED_OR_EXECUTED",
+    "natural_daily_readback": "NOT_VERIFIED",
+    "actual_recovered_candidate": "PENDING",
+    "wholemarket_data_acceptance": "PENDING"
+  },
+  "tests_from_frozen_ready": {
+    "attribution": "Writer-reported R4 focused test result; not independently accepted yet and not rerun by source-sync executor.",
+    "command": "python -B -m pytest -q tests/test_research_panel_qfq.py tests/test_selector_qfq_metadata.py -k r4 --basetemp=<F>/tests/r4_frozen_merge_recovery",
+    "result": "4 passed, 28 deselected in 2.44s",
+    "scope": "Metadata defaults/aux preservation, required-field failure, strict resume identity, and reader field-basis conflict."
+  },
+  "research_safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "independent_review": {
+    "status": "REVIEWED/PASS",
+    "receipt_sha256": "4d9261ebb12351108ccfe030f9967810934a8888824b60466172a5996fb1ff13",
+    "receipt_reference": "external handoff receipt; not included in repository",
+    "scope": "R4 merge metadata classification, strict checkpoint recovery, reader field-basis binding and directly affected execution/activation/publication metadata",
+    "findings": 0
+  },
+  "root_release": {
+    "status": "RELEASED_FOR_SOURCE_ONLY_SYNC",
+    "scope": "Four frozen R4 source/test files plus this compact increment metadata on the existing branch",
+    "not_included": [
+      "checkpoint resume execution",
+      "candidate acceptance",
+      "installation or service reload",
+      "publication",
+      "natural daily readback"
+    ]
+  },
+  "recovery_execution": {
+    "status": "RUNNING",
+    "session_id": 12534,
+    "process_id": 40883,
+    "process_state_readback": "RUNNING",
+    "result": "PENDING",
+    "candidate_acceptance": "PENDING",
+    "publication": "PENDING",
+    "installation_or_service_reload": "NOT_EXECUTED"
+  }
+}

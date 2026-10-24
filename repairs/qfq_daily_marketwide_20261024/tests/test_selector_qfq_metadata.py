@@ -120,3 +120,17 @@ def test_r3_mixed_panel_reports_actual_market_basis_for_default_projection(tmp_p
     assert hk.close.tolist()==[401.25]
     with pytest.raises(ValueError,match='RAW_PROFILE_NOT_AVAILABLE'):
         reader.load_selector_ready(panel_path=selector,profile='RAW')
+
+
+def test_r4_reader_binds_and_discloses_legacy_auxiliary_field_basis(tmp_path,reader):
+    selector,manifest,_,_=qfq_panel(tmp_path,reader)
+    saved=json.loads(manifest.read_text());saved['field_basis']={'limit_up_approx':dict(basis='LEGACY_RAW_CONTEXT',new_dates='NULL')}
+    manifest.write_text(json.dumps(saved))
+    table=pq.read_table(selector).replace_schema_metadata({b'a_share_qfq_contract_v1':json.dumps(saved).encode()});pq.write_table(table,selector)
+    meta=reader.get_panel_meta(panel_path=selector)
+    assert meta['price_basis']=='QFQ_ASOF'
+    assert meta['field_basis']['limit_up_approx']['basis']=='LEGACY_RAW_CONTEXT'
+    saved['field_basis']['limit_up_approx']['basis']='FAKE_QFQ'
+    manifest.write_text(json.dumps(saved))
+    with pytest.raises(RuntimeError,match='field basis binding conflict'):
+        reader.get_panel_meta(panel_path=selector)

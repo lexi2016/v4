@@ -629,3 +629,65 @@ def test_r3_missing_a_outside_exact_legacy_policy_still_blocks(tmp_path, driver)
         pq.write_table(pa.concat_tables([table,other]),path)
     with pytest.raises(qfq.QfqGateError,match='MARKETWIDE_ADJUSTMENT_COVERAGE_MISSING'):
         qfq.run_daily_rebuild(**kwargs)
+
+
+def test_r4_contract_metadata_exact_default_and_aux_new_dates_stay_unknown(tmp_path, driver):
+    kwargs,snapshot,_=fixture_panel(tmp_path,driver)
+    for pointer in kwargs['pointers'].values():
+        path=Path(pointer.read_text());old=pq.read_table(path).to_pandas()
+        old['field_contract_version']='legacy-must-not-backfill'
+        old['limit_up_approx']=pd.Series([1]*len(old),dtype='Int8')
+        old['name']='original stock name'
+        pq.write_table(pa.Table.from_pandas(old,preserve_index=False),path)
+    result=qfq.run_daily_rebuild(**kwargs)
+    for role,path in result['candidates'].items():
+        table=pq.read_table(path);frame=table.to_pandas();new=frame.trade_date.eq(kwargs['target'])
+        assert frame.field_contract_version.eq(driver.CONTRACT_PROVENANCE_FIELD_DEFAULTS['field_contract_version']).all()
+        assert frame.loc[new,'limit_up_approx'].isna().all()
+        assert frame.loc[new,'name'].isna().all()
+        assert frame.loc[~new,'limit_up_approx'].eq(1).all()
+        assert qfq.panel_contract(Path(path))['field_basis']['limit_up_approx']['basis']=='LEGACY_RAW_CONTEXT'
+
+
+def test_r4_missing_price_or_formula_field_never_uses_old_values(tmp_path,driver):
+    kwargs,snapshot,_=fixture_panel(tmp_path,driver);code='002612.SZ'
+    item=snapshot['symbols'][code];fresh=qfq.rebuild_symbol(code,item,kwargs['target'],driver)
+    old=fresh.iloc[:-1].copy()
+    for column in ['close','BBI','ma60','J','B3']:
+        with pytest.raises(qfq.QfqGateError,match='FORMULA_RECOMPUTATION_MISSING'):
+            qfq.merge_rebuilt(old,fresh.drop(columns=[column]),role='selector',driver=driver)
+
+
+def test_r4_checked_recovery_reuses_computation_under_new_true_identity(tmp_path,driver,monkeypatch):
+    kwargs,snapshot,_=fixture_panel(tmp_path,driver)
+    first=qfq.run_daily_rebuild(**kwargs)
+    run=Path(first['run_dir']);old_identity=qfq.generation_identity(snapshot,DRIVER,FORMULA,kwargs['contract_csv'])
+    chunks={}
+    for code in snapshot['symbols']:
+        p=run/'symbol_checkpoints'/(code+'.parquet');rp=p.with_suffix('.receipt.json')
+        chunks[code]=dict(artifact=dict(path=str(p),sha256=qfq.sha(p)),receipt=dict(path=str(rp),sha256=qfq.sha(rp)))
+    identity=dict(old_identity,adapter_sha256='new-merge-only-source-fixture')
+    recovery=dict(schema='qfq_original_checkpoint_recovery_v1',source_run=str(run),source_identity=old_identity,
+                  source_core=dict(path=str(Path(qfq.__file__)),sha256=qfq.sha(Path(qfq.__file__))),
+                  baseline_panel_sha256=first['baseline_panel_sha256'],chunks=chunks,retry_original_quarantined=[],
+                  original_snapshot=dict(path=str(qfq.input_path(kwargs['data_root'])),sha256=qfq.sha(qfq.input_path(kwargs['data_root']))),factor_cache_identity=None)
+    path=tmp_path/'recovery.json';qfq._json(path,recovery);ref=dict(path=str(path),sha256=qfq.sha(path))
+    original_identity=qfq.generation_identity
+    monkeypatch.setattr(qfq,'generation_identity',lambda *a:identity)
+    monkeypatch.setattr(qfq,'rebuild_symbol',lambda *a,**k:(_ for _ in ()).throw(AssertionError('numeric recalculation forbidden')))
+    result=qfq.run_daily_rebuild(**kwargs,checkpoint_resume=ref)
+    assert result['generation_id']!=first['generation_id']
+    assert result['adapter_sha256']=='new-merge-only-source-fixture'
+    for role in first['candidates']:
+        a=pq.read_table(first['candidates'][role]).replace_schema_metadata(None)
+        b=pq.read_table(result['candidates'][role]).replace_schema_metadata(None)
+        pd.testing.assert_frame_equal(a.to_pandas(),b.to_pandas(),check_exact=True)
+    # Invalid source identities and chunk bytes fail before the formula loop.
+    broken=dict(recovery);broken['source_identity']=dict(old_identity,formula_sha256='changed')
+    qfq._json(path,broken)
+    with pytest.raises(qfq.QfqGateError,match='INPUT_OR_FORMULA_CHANGED'):
+        qfq.run_daily_rebuild(**kwargs,checkpoint_resume=dict(path=str(path),sha256=qfq.sha(path)))
+    chunk=Path(next(iter(chunks.values()))['artifact']['path']);chunk.write_bytes(chunk.read_bytes()+b'corrupt')
+    qfq._json(path,recovery)
+    with pytest.raises(qfq.QfqGateError,match='SOURCE_BINDING_FAILED'):
+        qfq.run_daily_rebuild(**kwargs,checkpoint_resume=dict(path=str(path),sha256=qfq.sha(path)))
