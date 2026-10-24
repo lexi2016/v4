@@ -1,6 +1,6 @@
 {
   "schema": "v4.us_hk.hk_sdk_dependency_requirements.v1",
-  "status": "STATIC_AND_SOURCE_PASS_ACTUAL_IMPORT_REFUSED_AT_ORIGINAL_SDK_LOG_INITIALIZATION",
+  "status": "STATIC_SOURCE_LIFECYCLE_PASS_REAL_R2_INPUT_CURRENT_METADATA_REBIND_PENDING",
   "purpose": "Reproduce compatible HK-only SDK dependencies without modifying retained runtimes or provider",
   "runtime": {
     "python": "3.13.12",
@@ -85,5 +85,26 @@
   },
   "provider_recovery": "CANNOT_CONFIRM",
   "financial_readiness": "UNCHANGED_PENDING",
-  "created_at": "2026-10-24T05:14:27.939485+00:00"
+  "created_at": "2026-10-24T05:14:27.939485+00:00",
+  "source_prepare_sha256": "f2a25bd571a47080316dbeaeaba4d73185474e98f22c8f0a9060f2366f24a219",
+  "logger_source_review_sha256": "734145871d9cedbc4f60f02a65c1309d2f6bac143d48a891a5512b6051d2bfb3",
+  "prepared_lifecycle_review_sha256": "ce48c4e5711a2bf97236ba4273cb6d00e681d478a439dac917c6ff1cb0a2d6d1",
+  "logger_grant": {
+    "write_target": "one exact existing original SDK daily log",
+    "single_append_open": true,
+    "hard_append_cap_bytes": 65536,
+    "create_rotate_delete": false,
+    "HOME_and_SDK_unchanged": true,
+    "other_writes_network_provider_threads_processes": "DENIED",
+    "live_check": "Before fresh preparation and actual canary; completed immutable child later uses sealed native/origin/log receipt"
+  },
+  "actual_r2_preparation": {
+    "candidate_created": false,
+    "SDK_import_started": false,
+    "failure": "Frozen Log-directory nlink285 changed286; guard stopped beforeclone",
+    "readonly_diagnosis_sha256": "0bc7d76613e9b38edcc8b0bce17fc972cffb21307eb4c193b1208fa2b9024129",
+    "input_refresh": "Only independently observed directory nlink and bound metadata; no guard/source/payload changes",
+    "current_scope_sha256": "4bd4ee88cb33cbad25f62e92ea40341a8b25b433a8c609d53870073b6f5210e3",
+    "actual_compatibility": "NOT_RUN"
+  }
 }

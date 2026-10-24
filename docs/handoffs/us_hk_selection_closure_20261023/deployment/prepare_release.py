@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import base64
 import csv
+import datetime
 from email.parser import Parser
 import io
 import platform
@@ -31,7 +32,10 @@ LABELS = {'api': 'com.lexi.v35.api-only', 'scheduler': 'com.lexi.v35.scheduler'}
 HK_CHILD_PARENT = Path('/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z')
 HK_CHILD_MANIFEST = 'ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91'
 HK_CHILD_MODULE = '07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b'
-HK_CHILD_NAME = 'us-hk-selection-hk-child-20261024-r1'
+HK_CHILD_NAME = 'us-hk-selection-hk-child-20261024-r2'
+HK_SDK_LOG_HOME = '/Users/lexi'
+HK_SDK_LOG_DATE = '2026-10-24'
+HK_SDK_LOG_DIRECTORY = Path(HK_SDK_LOG_HOME)/'.com.futunn.FutuOpenD/Log'
 SHARED_PARENT=Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2')
 SHARED_MANIFEST='160fcc92fb35c943c6d2fe842bb28ff71ec4129e64f43bb2a2b9ee99a7ae9c0a'
 SHARED_PREFIX='upstreams/v3_shared_data/'
@@ -394,7 +398,123 @@ def hk_sdk_runtime_binding(scope):
     return dict(python={k:probe['python'][k] for k in ('path','resolved_path','sha256','version')},
                 wrapper=probe.get('wrapper'),site_packages=probe['site_packages'],
                 search_roots=probe.get('search_roots',[app,app+'/upstreams']),
-                environment=probe.get('environment',{}),updater_relative=probe.get('updater_relative'))
+                environment=probe.get('environment',{}),updater_relative=probe.get('updater_relative'),
+                sdk_log_policy=probe.get('sdk_log_policy'))
+
+
+def sdk_log_identity(path):
+    st=os.lstat(path)
+    return dict(device=st.st_dev,inode=st.st_ino,uid=st.st_uid,gid=st.st_gid,
+        mode=format(stat.S_IMODE(st.st_mode),'04o'),nlink=st.st_nlink,
+        kind='file' if stat.S_ISREG(st.st_mode) else 'directory' if stat.S_ISDIR(st.st_mode) else 'invalid')
+
+
+def sdk_log_policy(scope,artifact,*,live=False):
+    """Validate the sealed grant; consult mutable host state only for import."""
+    policy=scope['runtime_probe'].get('sdk_log_policy')
+    require(scope['role']=='hk-child' and isinstance(policy,dict),'HK_SDK_LOG_POLICY_REQUIRED')
+    path=HK_SDK_LOG_DIRECTORY/('py_'+HK_SDK_LOG_DATE.replace('-','_')+'.log')
+    expected=dict(schema='v4.us_hk.sdk_log_policy.v1',home=HK_SDK_LOG_HOME,date=HK_SDK_LOG_DATE,path=str(path),
+        existing_only=True,max_handler_opens=1,max_append_bytes=65536,no_create=True,no_rotation=True,no_delete=True,
+        mode='a')
+    require(set(policy)==set(expected)|{'identities','sdk_logger_sha256','codex_home_present','codex_home'} and
+            all(type(policy.get(k)) is type(v) and policy[k]==v for k,v in expected.items()) and
+            type(policy['codex_home_present']) is bool and
+            (isinstance(policy['codex_home'],str) if policy['codex_home_present'] else policy['codex_home'] is None),
+            'HK_SDK_LOG_POLICY_OUTSIDE_GRANT')
+    identities=policy['identities'];paths=[*reversed(path.parents),path]
+    require(isinstance(identities,dict) and set(identities)=={str(p) for p in paths},'HK_SDK_LOG_ANCESTOR_SET')
+    for target in paths:
+        pin=identities[str(target)]
+        require(isinstance(pin,dict) and set(pin)=={'device','inode','uid','gid','mode','nlink','kind'} and
+                all(type(pin[k]) is int and pin[k]>=0 for k in ('device','inode','uid','gid','nlink')) and
+                pin['inode']>0 and pin['nlink']>0 and isinstance(pin['mode'],str) and
+                re.fullmatch('[0-7]{4}',pin['mode']) and not int(pin['mode'],8)&0o022 and
+                pin['kind']==('file' if target==path else 'directory') and (target!=path or pin['nlink']==1),
+                'HK_SDK_LOG_IDENTITY_PIN_INVALID')
+    if live:
+        require(os.environ.get('HOME')==policy['home'] and ('CODEX_HOME' in os.environ)==policy['codex_home_present'] and
+                os.environ.get('CODEX_HOME')==policy['codex_home'] and datetime.date.today().isoformat()==policy['date'],
+                'HK_SDK_LOG_LIVE_ENV_OR_DATE_DRIFT')
+        for target in paths:
+            try:observed=sdk_log_identity(target)
+            except OSError as error:raise Stop('HK_SDK_LOG_IDENTITY_UNAVAILABLE') from error
+            require(observed==identities[str(target)],'HK_SDK_LOG_IDENTITY_DRIFT')
+    rows={r['target']:r for r in artifact['entries']}
+    require(isinstance(policy['sdk_logger_sha256'],str) and policy['sdk_logger_sha256']==rows.get('futu/common/ft_logger.py',{}).get('sha256') and
+            re.fullmatch('[0-9a-f]{64}',policy['sdk_logger_sha256']),'HK_SDK_LOG_SOURCE_PIN')
+    return policy
+
+
+# One SDK-specific capability. The real SDK and stdlib handler/stream stay intact.
+SDK_LOG_GUARD = r'''
+import stat,datetime,time,resource
+def _log_fail():raise RuntimeError('HK_SDK_LOG_GUARD_REFUSED')
+def _log_identity(path):
+ st=os.lstat(path)
+ return dict(device=st.st_dev,inode=st.st_ino,uid=st.st_uid,gid=st.st_gid,mode=format(stat.S_IMODE(st.st_mode),'04o'),nlink=st.st_nlink,kind='file' if stat.S_ISREG(st.st_mode) else 'directory' if stat.S_ISDIR(st.st_mode) else 'invalid')
+def _log_check():
+ if datetime.datetime.now().strftime('%Y-%m-%d')!=_log_policy['date']: _log_fail()
+ if os.environ.get('HOME')!=_log_policy['home'] or ('CODEX_HOME' in os.environ)!=_log_policy['codex_home_present'] or os.environ.get('CODEX_HOME')!=_log_policy['codex_home']: _log_fail()
+ for path,pin in _log_policy['identities'].items():
+  if _log_identity(path)!=pin: _log_fail()
+def _log_stat(st):
+ return dict(device=st.st_dev,inode=st.st_ino,uid=st.st_uid,gid=st.st_gid,mode=format(stat.S_IMODE(st.st_mode),'04o'),nlink=st.st_nlink,kind='file' if stat.S_ISREG(st.st_mode) else 'directory' if stat.S_ISDIR(st.st_mode) else 'invalid')
+_log_check()
+if not all(hasattr(os,n) for n in ('O_NOFOLLOW','O_CLOEXEC','O_DIRECTORY')) or not hasattr(resource,'RLIMIT_FSIZE'): _log_fail()
+if hashlib.sha256(old_open(_log_source,'rb').read()).hexdigest()!=_log_policy['sdk_logger_sha256']: _log_fail()
+_log_before=os.lstat(_log_policy['path']);_log_limit=_log_before.st_size+65536
+if _log_before.st_mtime+86400<=time.time()+60: _log_fail()
+for bound in resource.getrlimit(resource.RLIMIT_FSIZE):
+ if bound!=resource.RLIM_INFINITY:_log_limit=min(_log_limit,bound)
+if _log_limit<_log_before.st_size: _log_fail()
+resource.setrlimit(resource.RLIMIT_FSIZE,(_log_limit,_log_limit))
+if resource.getrlimit(resource.RLIMIT_FSIZE)!=(_log_limit,_log_limit): _log_fail()
+_log_dir=os.path.dirname(_log_policy['path']);_log_base=os.path.basename(_log_policy['path'])
+_log_dirfd=old_os_open(_log_dir,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
+if _log_stat(os.fstat(_log_dirfd))!=_log_policy['identities'][_log_dir]: _log_fail()
+_log_state=dict(phase=None,opens=0)
+_log_flags=os.O_WRONLY|os.O_APPEND|os.O_NOFOLLOW|os.O_CLOEXEC
+def _sdk_log_audit_open(args):
+ path,mode,flags=args
+ if _log_state['phase']=='text' and path==_log_policy['path'] and mode=='a' and (flags&~os.O_CLOEXEC)==(os.O_WRONLY|os.O_CREAT|os.O_APPEND):
+  _log_state['phase']='opener';return True
+ if _log_state['phase']=='descriptor' and path==_log_base and mode is None and flags==_log_flags:
+  _log_state['phase']='opened';return True
+ return False
+def _log_opener(path,flags):
+ if path!=_log_policy['path'] or _log_state['phase']!='opener': _log_fail()
+ _log_check();_log_state['phase']='descriptor'
+ fd=old_os_open(_log_base,_log_flags,dir_fd=_log_dirfd)
+ try:
+  if _log_state['phase']!='opened' or _log_stat(os.fstat(fd))!=_log_policy['identities'][path]: _log_fail()
+  _log_check()
+ except BaseException:
+  os.close(fd);raise
+ return fd
+def _sdk_log_open(file,mode,*args,**kwargs):
+ if not isinstance(file,str) or file!=_log_policy['path'] or mode!='a' or args or set(kwargs)!={'encoding','errors'} or _log_state['opens']!=0: _log_fail()
+ frame=sys._getframe(1);sdk=False;standard=False
+ while frame:
+  sdk|=frame.f_code.co_filename==_log_source and frame.f_globals.get('__name__')=='futu.common.ft_logger' and frame.f_code.co_qualname=='FTLog.__init__'
+  standard|=frame.f_globals.get('__name__')=='logging' and frame.f_code.co_qualname=='FileHandler._open'
+  frame=frame.f_back
+ if not sdk or not standard: _log_fail()
+ _log_check();_log_state['phase']='text'
+ try:stream=old_open(file,mode,opener=_log_opener,**kwargs)
+ finally:_log_state['phase']=None
+ _log_state['opens']+=1
+ return stream
+def _sdk_log_result():
+ _log_check()
+ logger=sys.modules['futu.common.ft_logger'].logger;handler=logger.fileHandler
+ import logging.handlers
+ if type(handler) is not logging.handlers.TimedRotatingFileHandler or handler.mode!='a' or handler.delay or handler.when!='H' or handler.interval!=86400 or handler.backupCount!=20 or handler.baseFilename!=_log_policy['path'] or handler.rolloverAt<=time.time()+60 or _log_state['opens']!=1: _log_fail()
+ handler.flush();after=os.fstat(handler.stream.fileno())
+ if _log_stat(after)!=_log_policy['identities'][_log_policy['path']] or not _log_before.st_size<=after.st_size<=_log_limit: _log_fail()
+ _log_check();os.close(_log_dirfd)
+ return dict(policy_sha256=hashlib.sha256(json.dumps(_log_policy,sort_keys=True,separators=(',',':')).encode()).hexdigest(),path=_log_policy['path'],date=_log_policy['date'],before=dict(_log_stat(_log_before),size=_log_before.st_size,mtime_ns=_log_before.st_mtime_ns),after=dict(_log_stat(after),size=after.st_size,mtime_ns=after.st_mtime_ns),handler_opens=1,enforced_size_limit=_log_limit,observed_size_delta=after.st_size-_log_before.st_size,content_read=False,created=False,rotated=False,deleted=False,concurrent_growth_not_attributable=True,sdk_logger_sha256=_log_policy['sdk_logger_sha256'])
+'''
 
 
 def hk_sdk_artifact(scope):
@@ -490,6 +610,7 @@ def hk_sdk_artifact(scope):
         require(any(item['path']==str(Path(site)/name/'__init__.py') for site in probe['site_packages']) and
                 sha(exact(item['path']))==item['sha256'],'HK_SDK_PANDAS_NUMPY_OWNER')
     require(probe.get('hk_sdk_canary') is True,'HK_SDK_CANARY_REQUIRED')
+    sdk_log_policy(scope,value)
     hk_sdk_expected(scope,value)
     return value
 
@@ -516,7 +637,7 @@ def hk_sdk_expected(scope,artifact):
     return expected
 
 
-def precheck(scope, tool, *, build_pending=False):
+def precheck(scope, tool, *, build_pending=False, sdk_live=False):
     parent = Path(scope["parent_root"])
     manifest = read_json(parent / "release-manifest.json", scope["parent_manifest_sha256"])
     before,caches=(tool._inventory_tree_with_generated_cache(parent/'app') if scope['role'] in ('shared','scheduler') else
@@ -536,6 +657,7 @@ def precheck(scope, tool, *, build_pending=False):
             require(key not in approved or approved[key] == value, "REVIEW_CONFLICT")
             approved[key] = value
     artifact=hk_sdk_artifact(scope)
+    if artifact and sdk_live:sdk_log_policy(scope,artifact,live=True)
     targets = set()
     if scope['role']=='hk-child':
         require({r['target'] for r in scope['overlays']}==CAPTURE_PATHS,'HK_CHILD_EXACT_CAPTURE_OVERLAY_REQUIRED')
@@ -614,6 +736,7 @@ def hk_child_binding(scope,original_env=None):
         require(manifest['task_overlay'].get('hk_sdk_artifact')==child_scope['hk_sdk_artifact'] and
                 manifest['task_overlay'].get('hk_sdk_artifact_map_sha256')==artifact['artifact_map_sha256'],
                 'HK_SDK_CANDIDATE_PROVENANCE_DRIFT')
+        verify_prepared_sdk_probe(child_scope,artifact,manifest['task_overlay'].get('runtime_probe'))
     original={r['path']:r for r in before};current={r['path']:r for r in entries}
     require({k for k in original.keys()|current.keys() if original.get(k)!=current.get(k)}==(CAPTURE_PATHS|{r['target'] for r in (artifact or {}).get('entries',[])}) and
             not original.keys()-current.keys(),'HK_CHILD_UNEXPECTED_DELTA')
@@ -717,6 +840,57 @@ def python_pin(pin):
     return str(path)
 
 
+def sdk_probe_failure(scope,result,reason):
+    """One failed SDK probe's bounded diagnostics, never its command/environment."""
+    root=exact(scope['evidence_root'])
+    raw=result.stderr if isinstance(result.stderr,bytes) else result.stderr.encode()
+    stdout=result.stdout if isinstance(result.stdout,bytes) else result.stdout.encode()
+    path=Path(scope['runtime_probe']['sdk_log_policy']['path'])
+    try:
+        st=os.lstat(path);metadata=dict(device=st.st_dev,inode=st.st_ino,uid=st.st_uid,gid=st.st_gid,
+            mode=format(stat.S_IMODE(st.st_mode),'04o'),nlink=st.st_nlink,symlink=stat.S_ISLNK(st.st_mode),
+            size=st.st_size,mtime_ns=st.st_mtime_ns)
+    except OSError as error:metadata=dict(unavailable=type(error).__name__)
+    write_new(root/'sdk-probe-stderr.txt',raw[:65536])
+    write_new(root/'sdk-probe-failure.json',json_bytes(dict(schema='v4.us_hk.sdk_probe_failure.v1',reason=reason,
+        returncode=result.returncode,stderr_bytes=len(raw),stderr_retained_bytes=min(len(raw),65536),
+        stderr_sha256=digest(raw),stdout_bytes=len(stdout),stdout_sha256=digest(stdout),
+        log_metadata=metadata,log_content_read=False,retry_authorized=False)))
+
+
+def verify_sdk_log_result(policy,value):
+    require(isinstance(value,dict),'HK_SDK_LOG_RECEIPT_INVALID')
+    expected=dict(policy_sha256=digest(json.dumps(policy,sort_keys=True,separators=(',',':')).encode()),
+        path=policy['path'],date=policy['date'],handler_opens=1,content_read=False,created=False,rotated=False,
+        deleted=False,concurrent_growth_not_attributable=True,sdk_logger_sha256=policy['sdk_logger_sha256'])
+    require(set(value)==set(expected)|{'before','after','enforced_size_limit','observed_size_delta'} and
+            all(type(value.get(k)) is type(v) and value[k]==v for k,v in expected.items()),'HK_SDK_LOG_RECEIPT_INVALID')
+    before,after=value['before'],value['after'];pin=policy['identities'][policy['path']]
+    require(all(isinstance(row,dict) and set(row)==set(pin)|{'size','mtime_ns'} and all(row.get(k)==v for k,v in pin.items()) and
+                type(row['size']) is int and row['size']>=0 and type(row['mtime_ns']) is int for row in (before,after)) and
+            type(value['enforced_size_limit']) is int and before['size']<=after['size']<=value['enforced_size_limit']<=before['size']+65536 and
+            type(value['observed_size_delta']) is int and value['observed_size_delta']==after['size']-before['size'],'HK_SDK_LOG_RECEIPT_INVALID')
+
+
+def verify_prepared_sdk_probe(scope,artifact,receipt):
+    """Verify original canary evidence sealed by the prepared manifest hash."""
+    probe=scope['runtime_probe'];app=Path(scope['candidate_root'])/'app'
+    modules={name:str(app/relative) for name,relative in probe['modules'].items()}
+    modules.update({name:pin['path'] for name,pin in hk_sdk_expected(scope,artifact).items()})
+    expected=dict(python=probe['python'],site_packages=probe['site_packages'],wrapper=probe['wrapper'],
+        origins=modules,module_sha256={name:sha(path) for name,path in modules.items()},
+        search_roots=[*probe.get('search_roots',[str(app),str(app/'upstreams')]),*probe['site_packages']],
+        environment=probe.get('environment',{}),updater_run_name=None,
+        command_kind='GUARDED_SDK_IMPORT_EXACT_EXISTING_LOG_APPEND_ONLY_NO_NETWORK',
+        hk_sdk_artifact_map_sha256=artifact['artifact_map_sha256'],
+        sdk_canary=dict(versions={name:value[0] for name,value in HK_SDK_DISTRIBUTIONS.items()},
+            simplejson_native=True,protobuf_backend='upb',aes_known_answer='66e94bd4ef8a2c3b884cfa59ca342b2e',provider_initialized=False))
+    require(isinstance(receipt,dict) and set(receipt)==set(expected)|{'stdout_sha256','sdk_log_side_effect'} and
+            all(receipt.get(k)==v for k,v in expected.items()) and isinstance(receipt['stdout_sha256'],str) and
+            re.fullmatch('[0-9a-f]{64}',receipt['stdout_sha256']),'HK_SDK_PREPARED_CANARY_RECEIPT_INVALID')
+    verify_sdk_log_result(sdk_log_policy(scope,artifact),receipt['sdk_log_side_effect'])
+
+
 def runtime_probe(scope, runner):
     probe=scope['runtime_probe']
     python=python_pin(probe['python'])
@@ -734,7 +908,9 @@ def runtime_probe(scope, runner):
 def denied(*a,**k):raise RuntimeError('IMPORT_PROBE_WRITE_OR_NETWORK_FORBIDDEN')
 old_open=builtins.open
 def ro_open(file,mode='r',*a,**k):
- if any(x in mode for x in 'wax+'):denied()
+ if any(x in mode for x in 'wax+'):
+  if '_sdk_log_open' in globals():return _sdk_log_open(file,mode,*a,**k)
+  denied()
  return old_open(file,mode,*a,**k)
 old_os_open=os.open
 def ro_os_open(path,flags,*a,**k):
@@ -762,13 +938,15 @@ import io
 io.open=ro_open
 for name in ('getaddrinfo','gethostbyname','gethostbyname_ex','gethostbyaddr','getnameinfo'):setattr(socket,name,denied)
 def sdk_profile(frame,event,value):
- if event=='call' and ((frame.f_globals.get('__name__','').startswith('futu.') and 'Context' in frame.f_code.co_qualname and frame.f_code.co_name=='__init__') or frame.f_code.co_qualname=='Thread.start'):denied()
+ if event=='call' and (((frame.f_globals.get('__name__') or '').startswith('futu.') and 'Context' in frame.f_code.co_qualname and frame.f_code.co_name=='__init__') or frame.f_code.co_qualname=='Thread.start'):denied()
  if event=='c_call' and getattr(value,'__module__','')=='_thread' and getattr(value,'__name__','') in ('start_new_thread','start_joinable_thread'):denied()
 sys.setprofile(sdk_profile)
 def sdk_audit(event,args):
  if event=='open':
   mode,flags=args[1],args[2]
-  if (isinstance(mode,str) and any(c in mode for c in 'wax+')) or (isinstance(flags,int) and flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND)):denied()
+  writing=(isinstance(mode,str) and any(c in mode for c in 'wax+')) or (isinstance(flags,int) and flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND))
+  if writing and not ('_sdk_log_audit_open' in globals() and _sdk_log_audit_open(args)):denied()
+  if not writing and '_log_policy' in globals() and args[0]==_log_policy['path']:denied()
  if event.startswith(('subprocess.','os.exec','os.spawn','os.fork')) or event in ('os.system','os.remove','os.rename','os.mkdir','os.rmdir','os.link','os.symlink','os.chmod','os.chown','os.truncate','os.utime','socket.connect','socket.bind','socket.sendto','socket.getaddrinfo','socket.gethostbyname','socket.gethostbyaddr','socket.getnameinfo'):denied()
 sys.addaudithook(sdk_audit)
 '''
@@ -785,8 +963,11 @@ versions={name:importlib.metadata.version(name) for name in ('futu_api','simplej
 sdk_check=dict(versions=versions,simplejson_native=True,protobuf_backend='upb',aes_known_answer=answer,provider_initialized=False)
 '''
     if artifact:
-        script=script.replace('sys.path[:0]=',sdk_guard+'\nsys.path[:0]=',1)
-        script=script.replace('PROBE_RESULT_MARKER',sdk_canary+"\nprint(json.dumps({'version':platform.python_version(),'origins':found,'module_sha256':hashes,'sdk_canary':sdk_check}))")
+        policy=sdk_log_policy(scope,artifact,live=True)
+        logger=str(app/'futu/common/ft_logger.py')
+        log_guard='_log_policy=json.loads('+repr(json.dumps(policy))+');_log_source='+repr(logger)+'\n'+SDK_LOG_GUARD
+        script=script.replace('sys.path[:0]=',log_guard+'\n'+sdk_guard+'\nsys.path[:0]=',1)
+        script=script.replace('PROBE_RESULT_MARKER',sdk_canary+"\nprint(json.dumps({'version':platform.python_version(),'origins':found,'module_sha256':hashes,'sdk_canary':sdk_check,'sdk_log_side_effect':_sdk_log_result()}))")
     else:script=script.replace('PROBE_RESULT_MARKER',"print(json.dumps({'version':platform.python_version(),'origins':found,'module_sha256':hashes}))")
     expected={name:str(child(app,rel)) for name,rel in modules.items()}
     expected.update({name:pin['path'] for name,pin in sdk_modules.items()})
@@ -806,22 +987,46 @@ sdk_check=dict(versions=versions,simplejson_native=True,protobuf_backend='upb',a
     if artifact:
         for name in ('HOME','CODEX_HOME'):
             if name in os.environ:env[name]=os.environ[name]
-    result=checked_command(argv,cwd=app,env=env,timeout=60,runner=runner)
-    observed=json.loads(result.stdout)
-    require(observed.get('version')==probe['python']['version'] and observed.get('origins')==expected,
-            'ROLE_RUNTIME_PROBE_MISMATCH')
-    hashes={name:sha(path) for name,path in expected.items()}
-    require(observed.get('module_sha256')==hashes,'ROLE_MODULE_SHA_PROBE_MISMATCH')
-    for name,pin in sdk_modules.items():require(hashes[name]==pin['sha256'],'HK_SDK_PROBE_INPUT_DRIFT')
-    if artifact:
-        require(observed.get('sdk_canary')==dict(versions={name:value[0] for name,value in HK_SDK_DISTRIBUTIONS.items()},
-            simplejson_native=True,protobuf_backend='upb',aes_known_answer='66e94bd4ef8a2c3b884cfa59ca342b2e',provider_initialized=False),
-            'HK_SDK_NATIVE_CANARY_FAILURE')
+    def probe_runner(*args,**kwargs):
+        try:value=runner(*args,**kwargs)
+        except subprocess.TimeoutExpired as error:
+            if artifact:
+                stderr=error.stderr or '';stdout=error.stdout or ''
+                class TimedOut:pass
+                value=TimedOut();value.returncode=None
+                value.stderr=stderr;value.stdout=stdout
+                sdk_probe_failure(scope,value,'TIMEOUT')
+            raise
+        if artifact and (value.returncode!=0 or value.stderr):
+            sdk_probe_failure(scope,value,'NONZERO_EXIT' if value.returncode!=0 else 'UNEXPECTED_STDERR')
+            require(value.returncode==0,'SUBPROCESS_FAILED:'+str(value.returncode))
+            raise Stop('HK_SDK_PROBE_UNEXPECTED_STDERR')
+        return value
+    result=checked_command(argv,cwd=app,env=env,timeout=60,runner=probe_runner)
+    try:observed=json.loads(result.stdout)
+    except (ValueError,TypeError):
+        if artifact:sdk_probe_failure(scope,result,'INVALID_STDOUT_JSON')
+        raise Stop('ROLE_RUNTIME_PROBE_INVALID_STDOUT')
+    try:
+        require(isinstance(observed,dict) and observed.get('version')==probe['python']['version'] and observed.get('origins')==expected,
+                'ROLE_RUNTIME_PROBE_MISMATCH')
+        hashes={name:sha(path) for name,path in expected.items()}
+        require(observed.get('module_sha256')==hashes,'ROLE_MODULE_SHA_PROBE_MISMATCH')
+        for name,pin in sdk_modules.items():require(hashes[name]==pin['sha256'],'HK_SDK_PROBE_INPUT_DRIFT')
+        if artifact:
+            verify_sdk_log_result(policy,observed.get('sdk_log_side_effect'))
+            require(observed.get('sdk_canary')==dict(versions={name:value[0] for name,value in HK_SDK_DISTRIBUTIONS.items()},
+                simplejson_native=True,protobuf_backend='upb',aes_known_answer='66e94bd4ef8a2c3b884cfa59ca342b2e',provider_initialized=False),
+                'HK_SDK_NATIVE_CANARY_FAILURE')
+    except Stop as error:
+        if artifact:sdk_probe_failure(scope,result,str(error))
+        raise
     receipt=dict(python=probe['python'],site_packages=sites,origins=observed['origins'],wrapper=probe.get('wrapper'),
                 module_sha256=hashes,search_roots=search,environment=probe.get('environment',{}),
                 updater_run_name='_US_HK_OWNER_IMPORT_PROBE' if updater else None,
                 command_kind='READ_ONLY_IMPORT_NO_NETWORK',stdout_sha256=digest(result.stdout.encode()))
-    if artifact:receipt.update(sdk_canary=observed['sdk_canary'],hk_sdk_artifact_map_sha256=artifact['artifact_map_sha256'])
+    if artifact:receipt.update(sdk_canary=observed['sdk_canary'],hk_sdk_artifact_map_sha256=artifact['artifact_map_sha256'],
+        sdk_log_side_effect=observed['sdk_log_side_effect'],command_kind='GUARDED_SDK_IMPORT_EXACT_EXISTING_LOG_APPEND_ONLY_NO_NETWORK')
     return receipt
 
 
@@ -910,7 +1115,7 @@ def prepare(scope_path, scope_sha, receipt_path, *, runner=None):
     tool = inventory_tool(scope["inventory_tool"])
     # Validate every retained byte/dependency and overlay preimage before any
     # Node version/config/plugin/build process. Generated bytes are checked after.
-    precheck(scope, tool, build_pending=True)
+    precheck(scope, tool, build_pending=True,sdk_live=True)
     build_receipt=frontend_build(scope,runner)
     parent_manifest, before = precheck(scope, tool)
     evidence = Path(scope["evidence_root"])

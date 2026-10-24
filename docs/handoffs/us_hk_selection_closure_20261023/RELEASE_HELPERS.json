@@ -1,17 +1,17 @@
 {
   "schema": "v4.us_hk.release_helper_acceptance.v2",
-  "as_of": "2026-10-24T05:55:16.629283+00:00",
-  "state": "CURRENT_SOURCE_SCOPES_INDEPENDENT_PASS_ACTUAL_DELIVERY_BLOCKED",
+  "as_of": "2026-10-24T06:39:33.391200+00:00",
+  "state": "CURRENT_SOURCE_SCOPES_PASS_ACTUAL_CANDIDATES_IN_PROGRESS",
   "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
   "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
   "core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
-  "previous_helper_commit": "9fb376034629cdb0fb189657b8153d963b7d00aa",
-  "previous_report_sha256": "33350cb40572e95504ee2fb438edbe2fba7958127c27fc6df8779ede2f922e28",
+  "previous_helper_commit": "0ed1a63394d172ece50ea5980e83615d9494566a",
+  "previous_report_sha256": "130e748519e5c4d822ff0e614bf0be6aab8f62b9d3670e8d495c157a649d48ee",
   "source_sha256": {
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "2ff43c065db3596d116870d7853877b566f2b5d86e48a0c6893ffcb13db38a17",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "f2a25bd571a47080316dbeaeaba4d73185474e98f22c8f0a9060f2366f24a219",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "dd80046cbaa245b551cc1e42d44db5bd9a76863cee9ea13bb3b6f3a3c0c4d5bb",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "6a37903120595cf789df48cf063fd2d1b77707897020bafb18ca923f049f7bff",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": "b687ac526036a2d18b85eaa6d874a8453df1ce8154d6e0b55abdbff5c91771e7",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "f7f5d9823192144b8bb12cf86b93ee3831ff212f7feea61b300e469c607dee6e",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": "9ae1a3cab13b2bc33c0ccc9a26751b055b0173b19bc9b28437607ff5f95d34c2",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/publish_replay.py": "699b926f3727cd4ee8bb911465862705e984bd770cd654df6208c16cc8d9b7d3",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_publish_replay.py": "ce7c5aa328c660e5c47c7c134743f41855ec7cf939264c1a98a4f110e8ea1134",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/probe_role.py": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
@@ -65,23 +65,48 @@
       "actual_api_import_modules": 10,
       "review_transcription_sha256": "640c61fc01cd3fca42a22a86e6de7f470feb823fb8eab8aeb3a3c0c98762a4ff",
       "Native_or_PREOPEN": false
+    },
+    {
+      "name": "Exact existing original SDK log append capability and draft envelope",
+      "new_tests": 8,
+      "affected_no_SDK_test": 1,
+      "metadata_checks": 17,
+      "direct_checks": 3,
+      "review_receipt_sha256": "734145871d9cedbc4f60f02a65c1309d2f6bac143d48a891a5512b6051d2bfb3",
+      "actual_sdk_compatibility": false
+    },
+    {
+      "name": "Prepared historical log evidence versus fresh live grant",
+      "new_tests": 5,
+      "invariants": 16,
+      "review_receipt_sha256": "ce48c4e5711a2bf97236ba4273cb6d00e681d478a439dac917c6ff1cb0a2d6d1",
+      "original_P1_failure_retained": "b699cd95bd61bf2d6f960ff78245322a60c93c756eb6d249b3aa133e71594488",
+      "actual_lifecycle_operations": false
+    },
+    {
+      "name": "Current API-only helper and final source/input",
+      "API_release_test": 1,
+      "unchanged_definitions": 33,
+      "SDK_child_log_hooks_called": 0,
+      "controller_transcribed_receipt_sha256": "99f429cbbb4c75adfa186288a1e4a1a76fecad7210d7773fcdb9e6cdfbddb5ec"
     }
   ],
   "actual_delivery": {
     "frontend_builds": 1,
     "shared": "PREPARED_LOADED_INDEPENDENT_PASS",
     "api_r1": "PREPARED_LOADED_PASS_SEMANTIC_STORE_INTEGRATION_FAIL_DO_NOT_ACTIVATE",
-    "api_r2": "INPUT_REVIEW_PENDING_NOT_PREPARED",
+    "api_r2": "PREPARED_16b9b1c9_PENDING_ACTUAL_SAVE_MERGE_INDEPENDENT_REVIEW",
     "hk_child_r1": "MATERIALIZED_UNSEALED_SDK_IMPORT_REFUSED_AT_ORIGINAL_FILE_LOGGING",
     "scheduler": "NOT_PREPARED",
     "service_activation": 0,
     "business_publication": 0,
-    "natural_cycles": 0
+    "natural_cycles": 0,
+    "hk_child_r2": "NOT_CREATED_FIRST_PREPARE_REFUSED_STALE_DIRECTORY_NLINK_BEFORE_SDK"
   },
   "unresolved": [
-    "API r2 must add unchanged Git-baseline Store3717 to match service merger keyword",
-    "HK SDK normal file logger conflicts with strictly read-only canary; no ABI failure demonstrated",
-    "Actual Native/PREOPEN/fullprobe/API/UI and two subsequent natural cycles",
+    "Actual API r2 independent save/merge and read-only Native/PREOPEN probe",
+    "Fresh HK r2 current-log metadata input/canary acceptance, then scheduler preparation",
+    "Actual service/API/browser/manualpublication/two natural cycles",
     "Historical field/member/PIT material gaps remain CANNOT_CONFIRM"
   ],
   "guardian_fault_boundary": "Uncatchable guardian SIGKILL/OS/hardware death still requires durable-journal inspection; no self-recovery or blind restart guarantee",
@@ -90,5 +115,6 @@
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
-  }
+  },
+  "source_handoff_commit": "d21910e1240c3d3e53989d67155b85f5cd741aa9"
 }

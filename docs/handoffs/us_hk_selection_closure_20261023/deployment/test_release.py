@@ -33,9 +33,25 @@ SCRATCH = WT / '.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/depl
 INVENTORY = Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1/app/ops/api_release_integration.py')
 INVENTORY_SHA = '2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b'
 RETAINED_STORE=INVENTORY.parent.parent/'v4/manager_workbench/store.py'
+SDK_LOG_TEST_PYTHON=Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260820T104322Z-v35-coordinated-recurrence/runtime/python/cpython-3.13.12-macos-aarch64-none/bin/python3.13')
 REAL_RELEASE_GUARDS=activate.release_guards
 LIVE_PATHS = [Path('/Users/lexi/Library/LaunchAgents') / (label + '.plist') for label in ('com.lexi.v35.api-only', 'com.lexi.v35.scheduler')]
 LIVE_PATHS += [Path('/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2') / name for name in ('panel_latest.json', 'history_resolution_latest.json')]
+
+
+def fixture_log_policy(path,logger_sha):
+    return dict(schema='v4.us_hk.sdk_log_policy.v1',home=os.environ['HOME'],date=prepare.HK_SDK_LOG_DATE,path=str(path),
+        existing_only=True,max_handler_opens=1,max_append_bytes=65536,no_create=True,no_rotation=True,no_delete=True,
+        mode='a',codex_home_present='CODEX_HOME' in os.environ,codex_home=os.environ.get('CODEX_HOME'),
+        identities={str(p):prepare.sdk_log_identity(p) for p in [*reversed(path.parents),path]},sdk_logger_sha256=logger_sha)
+
+
+def fixture_log_result(policy):
+    st=Path(policy['path']).stat();snapshot=dict(policy['identities'][policy['path']],size=st.st_size,mtime_ns=st.st_mtime_ns)
+    return dict(policy_sha256=prepare.digest(json.dumps(policy,sort_keys=True,separators=(',',':')).encode()),
+        path=policy['path'],date=policy['date'],before=snapshot,after=dict(snapshot),handler_opens=1,
+        enforced_size_limit=st.st_size+65536,observed_size_delta=0,content_read=False,created=False,rotated=False,
+        deleted=False,concurrent_growth_not_attributable=True,sdk_logger_sha256=policy['sdk_logger_sha256'])
 
 
 class FakeSubprocess:
@@ -52,7 +68,7 @@ class FakeSubprocess:
             if self.scope.get('hk_sdk_artifact'):
                 body=json.loads(out);body['sdk_canary']=dict(versions={name:value[0] for name,value in prepare.HK_SDK_DISTRIBUTIONS.items()},
                     simplejson_native=True,protobuf_backend='upb',aes_known_answer='66e94bd4ef8a2c3b884cfa59ca342b2e',provider_initialized=False)
-                out=json.dumps(body)
+                body['sdk_log_side_effect']=fixture_log_result(self.scope['runtime_probe']['sdk_log_policy']);out=json.dumps(body)
         elif args[:2]==['/bin/launchctl','print']:
             rc=0 if self.running else 113
             out=f'state = running\npid = {self.pid}\n' if self.running else ''
@@ -1620,8 +1636,9 @@ time.sleep(120)
         self.rearm_capsule('child-controller.json')
         return FakeSubprocess(self.scope)
 
-    def scheduler_with_child_fixture(self):
-        runner=self.hk_child_fixture();child=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+    def scheduler_with_child_fixture(self,*,sdk=False):
+        runner=self.sdk_fixture() if sdk else self.hk_child_fixture()
+        child=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
         child_pin=dict(path=str(self.prepared_path),sha256=prepare.sha(self.prepared_path))
         self.scope=self.scheduler_scope;self.candidate=Path(self.scope['candidate_root'])
         self.scope['parent_manifest_sha256']=prepare.sha(self.parent/'release-manifest.json')
@@ -1748,7 +1765,7 @@ time.sleep(120)
         native=struct.pack('<8I',0xfeedfacf,0x0100000c,0,6,0,0,0,0)
         if empty_native:native=b''
         speedups='simplejson/_speedups.cpython-'+('314' if cp314 else '313')+'-darwin.so'
-        content={'futu_api':{'futu/__init__.py':b'FAKE SDK, not imported\n'},
+        content={'futu_api':{'futu/__init__.py':b'FAKE SDK, not imported\n','futu/common/ft_logger.py':b'fake logger, never imported\n'},
                  'simplejson':{'simplejson/__init__.py':b'fake json\n',speedups:native},
                  'protobuf':{'google/protobuf/__init__.py':b'fake protobuf\n','google/_upb/_message.abi3.so':native},
                  'pycryptodome':{'Crypto/__init__.py':b'fake crypto\n','Crypto/Cipher/_raw_aes.abi3.so':native}}
@@ -1792,6 +1809,11 @@ time.sleep(120)
         for name in ('pandas','numpy'):
             p=Path(self.scope['runtime_probe']['site_packages'][0])/name/'__init__.py';p.parent.mkdir();p.write_bytes(('existing '+name).encode())
             preserved[name]=dict(path=str(p),sha256=prepare.sha(p))
+        log_temp=tempfile.TemporaryDirectory(prefix='sdk-log-',dir=SCRATCH);self.addCleanup(log_temp.cleanup)
+        log_dir=Path(log_temp.name);log=log_dir/('py_'+prepare.HK_SDK_LOG_DATE.replace('-','_')+'.log');log.write_bytes(b'')
+        patch.object(prepare,'HK_SDK_LOG_DIRECTORY',log_dir).start()
+        self.scope['runtime_probe']['sdk_log_policy']=fixture_log_policy(log,
+            next(r['sha256'] for r in entries if r['target']=='futu/common/ft_logger.py'))
         self.sdk_manifest=dict(schema='v4.us_hk.hk_sdk_artifact.v1',artifact_class='DEPENDENCY_ARTIFACT',not_in_git_source_commit=True,
             entries=entries,distributions=distributions,preserved_modules=preserved,runtime_binding=prepare.hk_sdk_runtime_binding(self.scope))
         self.sdk_resign();return runner
@@ -1819,7 +1841,7 @@ time.sleep(120)
         self.assertEqual(runner.commands[0][0],self.scope['runtime_probe']['wrapper']['path'])
         self.assertEqual(runner.command_options[0]['env']['PYTHONPATH'],str(self.candidate/'app'))
         self.assertEqual(manifest['task_overlay']['runtime_probe']['sdk_canary']['protobuf_backend'],'upb')
-        self.assertIn("frame.f_globals.get('__name__','').startswith('futu.')",runner.commands[0][3])
+        self.assertIn("(frame.f_globals.get('__name__') or '').startswith('futu.')",runner.commands[0][3])
         self.assertIn("frame.f_code.co_name=='__init__'",runner.commands[0][3])
         ast.parse(runner.commands[0][3])
 
@@ -2038,6 +2060,251 @@ time.sleep(120)
         with self.assertRaisesRegex(prepare.Stop,'INCOMPLETE_DISTRIBUTION'):prepare.hk_sdk_artifact(self.scope)
         self.assertFalse(self.candidate.exists())
 
+
+    def logger_guard_fixture(self):
+        log_dir=self.root/'logger-fixture';log_dir.mkdir()
+        log=log_dir/('py_'+prepare.HK_SDK_LOG_DATE.replace('-','_')+'.log');log.write_bytes(b'')
+        source=self.root/'fixture-ft-logger.py'
+        source.write_text("import logging,logging.handlers\nclass FTLog:\n def __init__(self):\n  self.fileHandler=logging.handlers.TimedRotatingFileHandler(log_path,when='H',interval=24,backupCount=20)\n  self.log=logging.getLogger('fixture');self.log.addHandler(self.fileHandler);self.log.setLevel(logging.INFO)\nlogger=FTLog()\n")
+        policy=fixture_log_policy(log,prepare.sha(source))
+        tree=ast.parse(Path(prepare.__file__).read_bytes());function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='runtime_probe')
+        literals={node.targets[0].id:ast.literal_eval(node.value) for node in function.body if isinstance(node,ast.Assign) and
+            isinstance(node.targets[0],ast.Name) and node.targets[0].id in ('script','sdk_guard')}
+        return log,source,policy,literals
+
+    def run_logger_guard(self,fixture,*,before='',action='',prefix='',policy=None):
+        log,source,pin,literals=fixture;pin=pin if policy is None else policy
+        script=prefix+'\n'+literals['script'].split('sys.path[:0]=')[0]
+        script+='\n_log_policy=json.loads('+repr(json.dumps(pin))+');_log_source='+repr(str(source))+'\n'+prepare.SDK_LOG_GUARD
+        script+='\n'+literals['sdk_guard']+'\n'+before
+        script+="\nfrom types import ModuleType\nfixture=ModuleType('futu.common.ft_logger');fixture.log_path="+repr(str(log))+"\nsys.modules[fixture.__name__]=fixture\nexec(compile(old_open(_log_source,'rb').read(),_log_source,'exec'),fixture.__dict__)\n"
+        script+=action+'\nprint(json.dumps(_sdk_log_result()))\n'
+        self.assertEqual(prepare.sha(SDK_LOG_TEST_PYTHON),'95fb891ec36d4022bdf62172f9d3c757fb3c7b1669a274cacc87fe261a535b7e')
+        result=subprocess.run([str(SDK_LOG_TEST_PYTHON),'-I','-S','-B','-c',script],cwd=self.root,capture_output=True,text=True,timeout=10)
+        return result
+
+    def test_sdk_logger_genuine_handler_exact_existing_append(self):
+        fixture=self.logger_guard_fixture();before=dict(os.environ)
+        result=self.run_logger_guard(fixture,action="fixture.logger.log.warning('fixture append')")
+        self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(result.stderr,'')
+        receipt=json.loads(result.stdout);prepare.verify_sdk_log_result(fixture[2],receipt)
+        self.assertEqual(receipt['handler_opens'],1);self.assertGreater(receipt['observed_size_delta'],0)
+        self.assertLessEqual(receipt['after']['size'],65536);self.assertEqual(os.environ,before)
+
+    def test_sdk_logger_wrong_date_path_mode_stack_and_reopen(self):
+        fixture=self.logger_guard_fixture();log,source,policy,_=fixture
+        wrong=deepcopy(policy);wrong['date']='2000-01-01'
+        self.assertNotEqual(self.run_logger_guard(fixture,policy=wrong).returncode,0)
+        for action in ("open(_log_policy['path'],'a')", "open(_log_policy['path'],'w')", "open(_log_policy['path'],'a+')",
+                       "open(_log_policy['path'],'r+')", "open(_log_policy['path'],'ab')", "open(_log_policy['path'],'x')",
+                       "open(_log_policy['path']+'.other','a')", "open(_log_policy['path'],'r')", "io.FileIO(_log_policy['path'],'a')",
+                       "os.open(_log_policy['path'],os.O_WRONLY|os.O_APPEND)", "fixture.logger.fileHandler._open()",
+                       "os.mkdir(_log_policy['path']+'.dir')", "os.rename(_log_policy['path'],_log_policy['path']+'.rotated')",
+                       "os.unlink(_log_policy['path'])", "os.truncate(_log_policy['path'],0)", "fixture.logger.fileHandler.doRollover()"):
+            with self.subTest(action=action):
+                result=self.run_logger_guard(fixture,action=action)
+                self.assertNotEqual(result.returncode,0,result.stdout)
+                self.assertTrue(log.is_file());self.assertEqual(log.stat().st_size,0)
+                self.assertFalse(Path(str(log)+'.other').exists());self.assertFalse(Path(str(log)+'.rotated').exists())
+        # A first open from an ordinary caller has no original constructor stack.
+        result=self.run_logger_guard(fixture,before="open(_log_policy['path'],'a')")
+        self.assertNotEqual(result.returncode,0);self.assertIn('HK_SDK_LOG_GUARD_REFUSED',result.stderr)
+
+    def test_sdk_logger_symlink_hardlink_mode_inode_and_parent_identity(self):
+        fixture=self.logger_guard_fixture();log,source,policy,_=fixture
+        for field in ('inode','uid','mode','nlink'):
+            wrong=deepcopy(policy);wrong['identities'][str(log)][field]='0600' if field=='mode' else -1
+            with self.subTest(field=field):self.assertNotEqual(self.run_logger_guard(fixture,policy=wrong).returncode,0)
+        wrong=deepcopy(policy);wrong['identities'][str(log.parent)]['inode']=-1
+        self.assertNotEqual(self.run_logger_guard(fixture,policy=wrong).returncode,0)
+        linked=log.parent/'link';os.link(log,linked)
+        self.assertNotEqual(self.run_logger_guard(fixture).returncode,0);linked.unlink()
+        backup=log.parent/'real';log.rename(backup);log.symlink_to(backup)
+        self.assertNotEqual(self.run_logger_guard(fixture).returncode,0);log.unlink();backup.rename(log)
+        old_dir=log.parent;replacement=self.root/'moved-log-dir';old_dir.rename(replacement);old_dir.symlink_to(replacement,target_is_directory=True)
+        self.assertNotEqual(self.run_logger_guard(fixture).returncode,0)
+        old_dir.unlink();replacement.rename(old_dir)
+
+    def test_sdk_logger_open_descriptor_swap_is_rejected_before_write(self):
+        fixture=self.logger_guard_fixture();other=self.root/'other-log';other.write_bytes(b'')
+        prefix='import os\n_racefd=os.open('+repr(str(other))+',os.O_WRONLY|os.O_APPEND)'
+        before="""
+_original_descriptor_open=old_os_open
+def _raced_descriptor_open(path,flags,*args,**kwargs):
+ fd=_original_descriptor_open(path,flags,*args,**kwargs)
+ if path==_log_base and flags==_log_flags:
+  os.close(fd);return os.dup(_racefd)
+ return fd
+old_os_open=_raced_descriptor_open
+"""
+        result=self.run_logger_guard(fixture,prefix=prefix,before=before)
+        self.assertNotEqual(result.returncode,0);self.assertIn('HK_SDK_LOG_GUARD_REFUSED',result.stderr)
+        self.assertEqual(other.stat().st_size,0);self.assertEqual(fixture[0].stat().st_size,0)
+
+    def test_sdk_logger_missing_file_directory_and_first_unsafe_modes_never_create(self):
+        fixture=self.logger_guard_fixture();log,source,policy,literals=fixture;original=source.read_text()
+        for mode in ('w','x','a+','r+','ab'):
+            source.write_text(original.replace("logging.handlers.TimedRotatingFileHandler(log_path,when='H',interval=24,backupCount=20)",
+                'logging.FileHandler(log_path,mode='+repr(mode)+')'))
+            changed=deepcopy(policy);changed['sdk_logger_sha256']=prepare.sha(source)
+            with self.subTest(mode=mode):
+                result=self.run_logger_guard(fixture,policy=changed)
+                self.assertNotEqual(result.returncode,0);self.assertIn('HK_SDK_LOG_GUARD_REFUSED',result.stderr)
+                self.assertEqual(log.stat().st_size,0)
+        source.write_text(original);log.unlink()
+        result=self.run_logger_guard(fixture)
+        self.assertNotEqual(result.returncode,0);self.assertFalse(log.exists())
+        log.parent.rmdir();result=self.run_logger_guard(fixture)
+        self.assertNotEqual(result.returncode,0);self.assertFalse(log.parent.exists())
+
+    def test_sdk_logger_cap_platform_failure_and_existing_guards(self):
+        fixture=self.logger_guard_fixture()
+        result=self.run_logger_guard(fixture,action="fixture.logger.log.warning('X'*100000)")
+        self.assertTrue(result.returncode!=0 or result.stderr)
+        self.assertLessEqual(fixture[0].stat().st_size,65536)
+        # Subsequent limits bind the current baseline, never expand the 64KiB grant.
+        result=self.run_logger_guard(fixture,prefix="import resource\ndef _no_limit(*a):raise OSError('FIXTURE_LIMIT_UNAVAILABLE')\nresource.setrlimit=_no_limit")
+        self.assertNotEqual(result.returncode,0);self.assertIn('FIXTURE_LIMIT_UNAVAILABLE',result.stderr)
+        for action in ("socket.create_connection(('127.0.0.1',1))", "socket.getaddrinfo('localhost',1)",
+                       "subprocess.Popen(['unused'])", "import threading;threading.Thread(target=lambda:None).start()"):
+            with self.subTest(action=action):self.assertNotEqual(self.run_logger_guard(fixture,action=action).returncode,0)
+        provider="class OpenQuoteContext:\n def __init__(self):pass\nOpenQuoteContext()"
+        result=self.run_logger_guard(fixture,action="exec(compile("+repr(provider)+",'<fake-provider>','exec'),{'__name__':'futu.quote.fixture'})")
+        self.assertNotEqual(result.returncode,0);self.assertIn('IMPORT_PROBE_WRITE_OR_NETWORK_FORBIDDEN',result.stderr)
+
+    def test_sdk_log_policy_envelope_and_probe_receipt(self):
+        fake=self.sdk_fixture();policy=self.scope['runtime_probe']['sdk_log_policy']
+        result=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        probe=json.loads((self.candidate/'release-manifest.json').read_bytes())['task_overlay']['runtime_probe']
+        self.assertEqual(result['state'],'PREPARED');self.assertEqual(probe['command_kind'],'GUARDED_SDK_IMPORT_EXACT_EXISTING_LOG_APPEND_ONLY_NO_NETWORK')
+        self.assertEqual(probe['sdk_log_side_effect']['observed_size_delta'],0)
+        self.assertEqual(fake.command_options[0]['env']['HOME'],os.environ['HOME'])
+        self.assertEqual(fake.command_options[0]['env'].get('CODEX_HOME'),os.environ.get('CODEX_HOME'))
+        ast.parse(fake.commands[0][3]);self.assertEqual(self.sdk_manifest['runtime_binding']['sdk_log_policy'],policy)
+        self.scope['runtime_probe']['sdk_log_policy']=dict(policy,max_append_bytes=65537)
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_RETAINED_RUNTIME_BINDING_DRIFT'):prepare.hk_sdk_artifact(self.scope)
+        self.sdk_manifest['runtime_binding']=prepare.hk_sdk_runtime_binding(self.scope);self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_LOG_POLICY_OUTSIDE_GRANT'):prepare.hk_sdk_artifact(self.scope)
+        self.scope['runtime_probe']['sdk_log_policy']=policy
+        for key,value in [('created',True),('created',0),('handler_opens',True),('handler_opens',2),('enforced_size_limit',65537),('sdk_logger_sha256','0'*64),('before',None)]:
+            malformed=fixture_log_result(policy);malformed[key]=value
+            with self.subTest(key=key),self.assertRaises(prepare.Stop):prepare.verify_sdk_log_result(policy,malformed)
+
+    def test_sdk_log_probe_failure_stderr_and_stdout_saved_once(self):
+        fake=self.sdk_fixture();prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        for kind in ('nonzero','stderr','stdout','timeout','native','logreceipt'):
+            evidence=self.evidence/kind;evidence.mkdir();scope=dict(self.scope,evidence_root=str(evidence))
+            def runner(*args,**kwargs):
+                if kind=='timeout':raise subprocess.TimeoutExpired(['not-recorded'],60,output=b'partial',stderr=b'timeout detail')
+                value=fake(*args,**kwargs)
+                if kind=='nonzero':value.returncode=1;value.stderr='E'*70000
+                if kind=='stderr':value.stderr='unexpected logger error'
+                if kind=='stdout':value.stdout='unexpected console line\n'+value.stdout
+                if kind in ('native','logreceipt'):
+                    body=json.loads(value.stdout)
+                    if kind=='native':body['sdk_canary']['provider_initialized']=True
+                    else:body['sdk_log_side_effect']['handler_opens']=2
+                    value.stdout=json.dumps(body)
+                return value
+            with self.subTest(kind=kind),self.assertRaises((prepare.Stop,subprocess.TimeoutExpired)):
+                prepare.runtime_probe(scope,runner)
+            receipt=json.loads((evidence/'sdk-probe-failure.json').read_bytes())
+            self.assertFalse(receipt['log_content_read']);self.assertFalse(receipt['retry_authorized'])
+            self.assertLessEqual((evidence/'sdk-probe-stderr.txt').stat().st_size,65536)
+            self.assertNotIn('argv',receipt);self.assertNotIn('environment',receipt)
+        self.assertFalse((self.evidence/'nonzero/PREPARED.json').exists())
+
+    def test_sdk_log_lifecycle_prepared_binding_ignores_mutable_log_state(self):
+        fake=self.sdk_fixture();prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        pin={'hk_child_prepared':{'path':str(self.prepared_path),'sha256':prepare.sha(self.prepared_path)}}
+        baseline=prepare.hk_child_binding(pin);log=Path(self.scope['runtime_probe']['sdk_log_policy']['path'])
+        frozen={p:p.read_bytes() for p in (self.prepared_path,self.scope_path,self.candidate/'release-manifest.json')}
+        (log.parent/'py_2026_10_25.log').write_bytes(b'own fixture only')
+        artifact=prepare.hk_sdk_artifact(self.scope)
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_LOG_IDENTITY_DRIFT'):
+            prepare.sdk_log_policy(self.scope,artifact,live=True)
+        with patch.object(prepare,'sdk_log_identity',side_effect=AssertionError('MUTABLE_LOG_READ_DURING_PREPARED_VERIFY')):
+            self.assertEqual(prepare.hk_child_binding(pin),baseline)
+        log.chmod(0o600)
+        self.assertEqual(prepare.hk_child_binding(pin),baseline)
+        log.unlink()
+        self.assertEqual(prepare.hk_child_binding(pin),baseline)
+        with patch.object(prepare,'sdk_log_identity',side_effect=prepare.Stop('LIVE_CHECK_REACHED')):
+            with self.assertRaisesRegex(prepare.Stop,'LIVE_CHECK_REACHED'):prepare.runtime_probe(self.scope,fake)
+        self.assertTrue(all(p.read_bytes()==raw for p,raw in frozen.items()))
+
+    def test_sdk_log_lifecycle_genuine_fixture_live_gate_remains_strict(self):
+        fixture=self.logger_guard_fixture();log,source,policy,_=fixture
+        scope={'role':'hk-child','runtime_probe':{'sdk_log_policy':policy}}
+        artifact={'entries':[{'target':'futu/common/ft_logger.py','sha256':prepare.sha(source)}]}
+        with patch.object(prepare,'HK_SDK_LOG_DIRECTORY',log.parent):
+            prepare.sdk_log_policy(scope,artifact,live=True)
+            result=self.run_logger_guard(fixture,action="fixture.logger.log.warning('lifecycle fixture')")
+            self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(result.stderr,'')
+            sealed=json.loads(result.stdout)
+            (log.parent/'unrelated-nextday.log').write_bytes(b'own fixture only')
+            prepare.sdk_log_policy(scope,artifact);prepare.verify_sdk_log_result(policy,sealed)
+            with self.assertRaisesRegex(prepare.Stop,'HK_SDK_LOG_IDENTITY_DRIFT'):
+                prepare.sdk_log_policy(scope,artifact,live=True)
+            future=SimpleNamespace(date=SimpleNamespace(today=lambda:SimpleNamespace(isoformat=lambda:'2026-10-25')))
+            with patch.object(prepare,'datetime',future):
+                prepare.sdk_log_policy(scope,artifact)
+                with self.assertRaisesRegex(prepare.Stop,'LIVE_ENV_OR_DATE_DRIFT'):prepare.sdk_log_policy(scope,artifact,live=True)
+
+    def test_sdk_log_lifecycle_fresh_prepare_cannot_skip_live_grant(self):
+        fake=self.sdk_fixture();log=Path(self.scope['runtime_probe']['sdk_log_policy']['path'])
+        (log.parent/'unrelated-nextday.log').write_bytes(b'own fixture only')
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_LOG_IDENTITY_DRIFT'):
+            prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        self.assertFalse(self.candidate.exists());self.assertFalse(self.prepared_path.exists());self.assertEqual(fake.commands,[])
+
+    def test_sdk_log_lifecycle_sealed_canary_and_immutable_tamper_rejected(self):
+        fake=self.sdk_fixture();prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        pin={'hk_child_prepared':{'path':str(self.prepared_path),'sha256':prepare.sha(self.prepared_path)}}
+        artifact=prepare.hk_sdk_artifact(self.scope);manifest_path=self.candidate/'release-manifest.json'
+        manifest=json.loads(manifest_path.read_bytes());sealed=manifest['task_overlay']['runtime_probe']
+        for mutation in ('absent','kind','map','native','policy','opens','origins','hashes'):
+            receipt=deepcopy(sealed)
+            if mutation=='absent':receipt=None
+            elif mutation=='kind':receipt['command_kind']='READ_ONLY_IMPORT_NO_NETWORK'
+            elif mutation=='map':receipt['hk_sdk_artifact_map_sha256']='0'*64
+            elif mutation=='native':receipt['sdk_canary']['provider_initialized']=True
+            elif mutation=='policy':receipt['sdk_log_side_effect']['policy_sha256']='0'*64
+            elif mutation=='opens':receipt['sdk_log_side_effect']['handler_opens']=2
+            elif mutation=='origins':receipt['origins']['futu']='wrong-owner'
+            else:receipt['module_sha256']['futu']='0'*64
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):
+                prepare.verify_prepared_sdk_probe(self.scope,artifact,receipt)
+        source=prepare.source_file(self.scope,next(row for row in self.scope['overlays'] if row['target']=='ops/_hk_provider_capture.py'))
+        targets=[manifest_path,self.candidate/'app/futu/common/ft_logger.py',source,
+                 self.sdk_manifest_path,Path(self.scope['execution_capsule']['path'])]
+        for target in targets:
+            raw=target.read_bytes();target.write_bytes(raw+b' ')
+            try:
+                with self.subTest(path=str(target)),self.assertRaises(prepare.Stop):prepare.hk_child_binding(pin)
+            finally:target.write_bytes(raw)
+        self.assertTrue(prepare.hk_child_binding(pin))
+
+    def test_sdk_log_lifecycle_scheduler_and_both_guardian_verifiers(self):
+        fake,_=self.scheduler_with_child_fixture(sdk=True)
+        prepared=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        child=prepare.read_json(self.scope['hk_child_prepared']['path'],self.scope['hk_child_prepared']['sha256'])
+        child_scope=prepare.read_json(child['scope_path'],child['scope_sha256'])
+        log=Path(child_scope['runtime_probe']['sdk_log_policy']['path']);(log.parent/'benign.log').write_bytes(b'own fixture')
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=fake)
+        with patch.object(prepare,'sdk_log_identity',side_effect=AssertionError('MUTABLE_LOG_READ_DURING_LIFECYCLE')), \
+             patch.object(activate,'require_real_admission_protocol'),patch.object(activate,'verify_activity_closure'), \
+             patch.object(activate,'verify_owner_binding'):
+            activate.verify_prepared(self.scope,prepared)
+            for direction in ('activate','rollback'):
+                self.plist.write_bytes(Path(prepared['original_plist'] if direction=='activate' else prepared['candidate_plist']).read_bytes())
+                fake.cwd=str(Path(self.scope['parent_root'] if direction=='activate' else self.scope['candidate_root'])/'app')
+                intent=dict(direction=direction,prepared={'path':str(self.prepared_path),'sha256':prepare.sha(self.prepared_path)},
+                    owner_token={'pid':111},journal=str(self.evidence/(direction+'-lifecycle.json')),
+                    receipt_path=str(self.evidence/(direction+'-receipt.json')),helper_sha256=prepare.sha(activate.__file__))
+                with patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):ops=activate.RealGuardianOps(intent)
+                ops.verify_before_freeze();ops.verify_commit()
+        self.assertEqual(lifecycle.calls,[])
 
     def test_sdk_wrong_python_wrapper_or_search_roots_cannot_fallback(self):
         self.sdk_fixture();original=deepcopy(self.scope['runtime_probe'])
