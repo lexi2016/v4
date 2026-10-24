@@ -1,0 +1,31 @@
+{
+  "schema": "SLIM_HISTORY_REFERENCE_FIX_SOURCE_SNAPSHOT_R1",
+  "repository": "lexi2016/v4",
+  "branch": "codex/local-research-panel-history-20261024",
+  "baseline_commit": "02b30430587ebf4ead4bde18924a0ad6beb69dc3",
+  "source_snapshot_boundary": "Only repair source/test snapshot and explicit prior baseline dependencies; not standalone complete V4",
+  "one_variable": "Explicit archive_additions bypasses temporary runtime equality only; original immutable old-top binder retained",
+  "source_sha256": "d049b9fe6a44761d3b9ab5d4c0dcdceda4d0615cd586f7bff3dc98cb685b420a",
+  "test_sha256": "596e437010a0240bff136e09c8080daa99689c55709813e2a7dfe01006205fa2",
+  "before_source_sha256": "f6a8fa42938202567ab6ff91296b2cbbabafd5616dfdd2ccc80b11418b549a70",
+  "before_test_sha256": "9dcb687b071626f70410830720085933ac27471850689cab57864ab76f0749a9",
+  "patch_sha256": "252210e5a98551490ef0a1498f79b7909f403c99ab77a964644788fd5f408946",
+  "review_verdict": "REVIEWED/PASS_ARCHIVE_HISTORY_RUNTIME_BINDING_INCREMENTAL_SCOPE_ONLY",
+  "review_sha256": "9b51c4938af87547fbc28bd25b34152c6b6481fc6018b48fcf5e6eec1ce9c63a",
+  "independent_tests": {
+    "passed": 3,
+    "failed": 0,
+    "prior13_rerun": 0,
+    "junit_sha256": "1daacbc458427256b49d5bda66e96d5e1c30a636504a911f77a69f20789949b7"
+  },
+  "boundaries": [
+    "No actual candidate acceptance",
+    "No live deployment",
+    "No source/price admission from synthetic tests",
+    "No PIT/Futu universal equivalence"
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

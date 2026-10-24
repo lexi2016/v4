@@ -238,3 +238,72 @@ def test_original_daily_retains_new_archive_only_members_without_target_bar(addi
     assert not set(e["additions"]) & set(asked)
     assert not set(e["additions"]) & set(snapshot["symbols"])
     assert snapshot["history_retention_binding"] == e["new"]["history_retention_binding"]
+
+
+def _legacy_history_reference_case(addition, root):
+    e = addition
+    metadata = js(root / "initial_history_metadata.json", {"synthetic": True, "original_complete_receipts": []})
+    historical = js(root / "initial_history_contract.json", {"synthetic": True, "initial_full_history": True,
+                                                          "adjustment_metadata": metadata})
+    old = copy.deepcopy(e["old"])
+    new = copy.deepcopy(e["new"])
+    for snapshot in (old, new):
+        snapshot["history_extension"] = historical
+        snapshot["source_files"].extend([historical, metadata])
+    contract = copy.deepcopy(e["contract"])
+    contract["baseline_snapshot"] = js(root / "legacy_baseline_snapshot.json", old)
+    pointers = {}
+    for role, source in e["roles"].items():
+        table = pq.read_table(source["path"])
+        metadata = dict(table.schema.metadata)
+        identity = json.loads(metadata[q.META_KEY])
+        identity["input_sha256"] = q.canonical_sha(old)
+        metadata[q.META_KEY] = json.dumps(identity).encode()
+        path = root / (role + ".parquet")
+        pq.write_table(table.replace_schema_metadata(metadata), path)
+        contract["baseline_roles"][role] = ref(path)
+        pointer = root / "data" / role / "CURRENT.txt"
+        pointer.parent.mkdir(parents=True)
+        pointer.write_text(str(path))
+        pointers[role] = pointer
+    kwargs = dict(driver_path=DRIVER, formula_path=FORMULA, tdx_root=root / "tdx", data_root=root / "data",
+                  pointers=pointers, contract_csv=e["field"], return_root=root / "runs", target=e["target"], workers=1)
+    return old, new, js(root / "legacy_addition_contract.json", contract), historical, kwargs
+
+
+def test_archive_runtime_history_reference_preserved_and_original_binder_passes(addition, tmp_path, monkeypatch):
+    old, new, contract, historical, kwargs = _legacy_history_reference_case(addition, tmp_path)
+    seen = []
+    original = q.archive_addition_binding
+    def observe(*args, **kw):
+        value = original(*args, **kw)
+        seen.append(kw["snapshot"]["history_extension"])
+        return value
+    monkeypatch.setattr(q, "archive_addition_binding", observe)
+    monkeypatch.setattr(inputs, "existing_day_files", lambda _: [])
+    q._json(q.input_path(kwargs["data_root"]), new)
+    result = q.run_daily_rebuild(**kwargs, archive_additions=contract)
+    assert result["status"] == "CANDIDATE_READY" and seen == [historical]
+    assert json.loads(q.input_path(kwargs["data_root"]).read_text())["history_extension"] == old["history_extension"]
+    assert all(v["old_key_conservation"] and v["archive_added_rows"] == 56 for v in result["counts"].values())
+
+
+def test_archive_runtime_history_reference_change_rejected_by_original_binder(addition, tmp_path, monkeypatch):
+    _, new, contract, _, kwargs = _legacy_history_reference_case(addition, tmp_path)
+    new["history_extension"] = js(tmp_path / "changed_initial_history.json", {"synthetic": True, "changed": True})
+    def unexpected(*_, **__):
+        pytest.fail("A changed inherited history reference reached stock computation")
+    monkeypatch.setattr(q, "rebuild_symbol", unexpected)
+    q._json(q.input_path(kwargs["data_root"]), new)
+    with pytest.raises(q.QfqGateError, match="ARCHIVE_ADDITION_OLD_POLICY_OR_FLOOR_CHANGED"):
+        q.run_daily_rebuild(**kwargs, archive_additions=contract)
+
+
+def test_ordinary_runtime_history_reference_mismatch_still_rejected(addition, tmp_path, monkeypatch):
+    old, _, _, _, kwargs = _legacy_history_reference_case(addition, tmp_path)
+    def unexpected(*_, **__):
+        pytest.fail("Ordinary runtime mismatch reached archive binding")
+    monkeypatch.setattr(q, "archive_addition_binding", unexpected)
+    q._json(q.input_path(kwargs["data_root"]), old)
+    with pytest.raises(q.QfqGateError, match="HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT"):
+        q.run_daily_rebuild(**kwargs)

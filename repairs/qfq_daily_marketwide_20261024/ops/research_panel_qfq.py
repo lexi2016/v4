@@ -1226,7 +1226,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         snapshot = load_snapshot(snapshot_file, target)
         if tail_delta is None and archive_additions is None and snapshot.get("history_retention_binding") != retained_history:
             raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")
-        if snapshot.get("history_extension") != history_extension:
+        if archive_additions is None and snapshot.get("history_extension") != history_extension:
             raise QfqGateError("HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT")
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv)
         delta = tail_delta_binding(tail_delta, snapshot=snapshot, pointers=pointers, identity=identity,
