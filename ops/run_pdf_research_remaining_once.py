@@ -3757,7 +3757,7 @@ def _resource_change_event_is_bound(event: Mapping[str, Any]) -> bool:
     )
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def _legacy_main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--authorization", type=Path, default=AUTHORIZATION_PATH)
     parser.add_argument("--max-documents", type=int, help="per-invocation cap; authorization still sets the cumulative ceiling")
@@ -3842,6 +3842,11 @@ def _prepare_sectioned_closure(journal: DurableJournal, context: Mapping[str, An
         journal.append(event);journal.append(terminal)
     return {"reconciled_event_index":67,"halt_event_index":68,"reconciled_event_line_sha256":sha256_bytes(lines[67]),
             "continuation_id":journal.events[67]["continuation_id"],"document_id":batch.PILOT_TOOL_BUDGET_DOCUMENT_ID}
+
+
+def main(argv=None):
+    from infrastructure.pdf_research_execution import cli_dispatch
+    return cli_dispatch(argv, legacy_main=_legacy_main)
 
 
 if __name__ == "__main__":

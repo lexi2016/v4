@@ -8,6 +8,7 @@ import pytest
 
 from infrastructure import pdf_research, pdf_text_preparation as preparation
 from ops import run_pdf_research_batch as batch
+from infrastructure import pdf_text_source as text_source
 
 
 def _sha(raw: bytes) -> str:
@@ -29,13 +30,17 @@ def _documents(count: int = 2209, *, page_count: int = 1) -> list[dict[str, obje
 
 def _install_parent(monkeypatch: pytest.MonkeyPatch, documents: list[dict[str, object]]) -> str:
     parent_sha = "e" * 64
+    monkeypatch.setattr(batch, "preparation_resources", lambda: preparation.PreparationResources(
+        lambda: {"available_bytes": 16 * 1024**3, "swap_used_bytes": 0},
+        lambda sample, _baseline: "AVAILABLE_MEMORY_BELOW_8_GIB" if sample["available_bytes"] < 8 * 1024**3 else None))
+    monkeypatch.setattr(batch, "load_analysis_admission", lambda *_a, **_kw: None)
     monkeypatch.setattr(batch, "EXPECTED_BATCH_MANIFEST_SHA256", parent_sha)
     monkeypatch.setattr(
         batch,
         "load_manifest",
         lambda _path: ({"schema": "test-frozen-inventory"}, parent_sha, documents),
     )
-    monkeypatch.setattr(batch, "_candidate_page_count", lambda document: document.get("page_count"))
+    monkeypatch.setattr(text_source, "_candidate_page_count", lambda document: document.get("page_count"))
     monkeypatch.setattr(preparation, "_find_prior_successes", lambda *_args, **_kwargs: [])
     return parent_sha
 
@@ -127,7 +132,7 @@ def test_quality_qualified_cache_replaces_repeated_watermark_without_ocr(
     monkeypatch.setattr(pdf_research, "extract_native_pdf_pages", lambda *_args: (native_pages, "COMPLETE"))
     monkeypatch.setattr(pdf_research, "load_page_cache", lambda **_kwargs: (cached_pages, {"status": "VALIDATED_CACHE"}))
     monkeypatch.setattr(
-        batch,
+        text_source,
         "_page_geometry",
         lambda *_args: [
             {"width_points": 600.0, "height_points": 800.0, "rotation_degrees": 0.0},
@@ -139,7 +144,7 @@ def test_quality_qualified_cache_replaces_repeated_watermark_without_ocr(
         "inspect_page_images",
         lambda _path, *, page_numbers, **_kwargs: (pytest.fail("cache replacement needs no image probe") if page_numbers else {}),
     )
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda *_args: pytest.fail("usable cache must avoid OCR"))
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda *_args: pytest.fail("usable cache must avoid OCR"))
     document = {
         "document_id": _sha(pdf_raw),
         "pdf_sha256": _sha(pdf_raw),
@@ -182,7 +187,7 @@ def test_prepare_only_has_no_model_binding_and_partial_scope_cannot_open_model_g
         page_callback(page, row)
         return [page], source
 
-    monkeypatch.setattr(batch, "_load_pages", fake_load_pages)
+    monkeypatch.setattr(text_source, "load_pages", fake_load_pages)
     for name in ("require_runtime_python", "build_request_material", "request_document_analysis"):
         monkeypatch.setattr(batch.local_model, name, lambda *_args, **_kwargs: pytest.fail(f"model path called: {name}"))
 
@@ -262,7 +267,7 @@ def test_interrupted_preparation_resumes_from_existing_page_checkpoint(
         page_callback(pages[1], _good_source_row(pages[1]))
         return pages, _good_source(pages)
 
-    monkeypatch.setattr(batch, "_load_pages", fake_load_pages)
+    monkeypatch.setattr(text_source, "load_pages", fake_load_pages)
     prepared_root = tmp_path / "prepared"
     with pytest.raises(KeyboardInterrupt):
         preparation.prepare_only(
@@ -306,7 +311,7 @@ def test_one_document_failure_is_recorded_and_next_selected_document_continues(
         page_callback(good_page, source["page_extraction_sources"][0])
         return [good_page], source
 
-    monkeypatch.setattr(batch, "_load_pages", fake_load_pages)
+    monkeypatch.setattr(text_source, "load_pages", fake_load_pages)
     result = preparation.prepare_only(
         batch,
         manifest_path=tmp_path / "parent.json",
@@ -402,7 +407,7 @@ def test_native_discovery_without_cache_or_page_count(tmp_path, monkeypatch):
     text = 'Company revenue increased; operating margin improved during the year.'
     helper = type('Helper', (), {'extract_pdf_pages': staticmethod(lambda *a, **k: {'pdf_sha256': _sha(path.read_bytes()), 'page_count': 1, 'complete': True, 'pages': [{'text': text, 'status': 'COMPLETE'}]})})
     monkeypatch.setattr(pdf_research, '_pinned_pdf_pages_helper', lambda: helper)
-    pages, status = batch._discover_native_pages(path, _sha(path.read_bytes()))
+    pages, status = text_source._discover_native_pages(path, _sha(path.read_bytes()))
     assert status == 'COMPLETE'
     assert pages[0].text_sha256 == _sha(text.encode())
 
@@ -415,15 +420,15 @@ def test_good_native_with_images_still_ocr_body(tmp_path, monkeypatch):
     monkeypatch.setattr(pdf_research, '_validate_pdf_path', lambda _: path)
     monkeypatch.setattr(pdf_research, 'extract_native_pdf_pages', lambda *a: ([native], 'COMPLETE'))
     monkeypatch.setattr(preparation, 'inspect_page_images', lambda *a, **k: {n: True for n in k['page_numbers']})
-    monkeypatch.setattr(batch, '_page_geometry', lambda *a: [{'width_points': 600., 'height_points': 800., 'rotation_degrees': 0.}])
+    monkeypatch.setattr(text_source, '_page_geometry', lambda *a: [{'width_points': 600., 'height_points': 800., 'rotation_degrees': 0.}])
     calls = []
     body = native.text + '\nTarget price 270000 KRW, current price 172500; 2024 2025 2026 performance.'
     def ocr(*args):
         calls.append(args)
         return body, {'pdf_sha256': _sha(path.read_bytes()), 'page_number': 1, 'rendered_dimensions_pixels': {'width_pixels': 1200, 'height_pixels': 1600}}
-    monkeypatch.setattr(batch, '_perform_page_ocr', ocr)
-    monkeypatch.setattr(batch, '_read_scale_canary_page', lambda *a: None)
-    monkeypatch.setattr(batch, '_read_slice_canary_page', lambda *a: None)
+    monkeypatch.setattr(text_source, '_perform_page_ocr', ocr)
+    monkeypatch.setattr(text_source, '_read_scale_canary_page', lambda *a: None)
+    monkeypatch.setattr(text_source, '_read_slice_canary_page', lambda *a: None)
     doc = {'document_id': _sha(path.read_bytes()), 'pdf_sha256': _sha(path.read_bytes()), 'pdf_bytes': path.stat().st_size, 'local_pdf_path': str(path), 'page_count': 1}
     pages, source = batch._load_pages(doc, state_root=tmp_path/'state', preparation_mode=True)
     assert len(calls) == 1
@@ -443,7 +448,7 @@ def test_cross_run_reuses_exact_bound_pages_without_new_ocr(tmp_path, monkeypatc
         calls.append(doc['document_id'])
         page_callback(page, _good_source_row(page))
         return [page], _good_source([page])
-    monkeypatch.setattr(batch, '_load_pages', load)
+    monkeypatch.setattr(text_source, 'load_pages', load)
     for run_id in ('canary-a', 'full-b'):
         preparation.prepare_only(batch, manifest_path=tmp_path/'inventory', run_id=run_id, document_ids=[documents[0]['document_id']], prepared_root=tmp_path/'prepared')
     assert len(calls) == 1
@@ -457,7 +462,7 @@ def test_resource_pause_retains_checkpoint_and_no_failure_receipt(tmp_path, monk
     def load(doc, *, before_page, **kwargs):
         before_page()
         pytest.fail('resource pause must stop before extraction')
-    monkeypatch.setattr(batch, '_load_pages', load)
+    monkeypatch.setattr(text_source, 'load_pages', load)
     result = preparation.prepare_only(batch, manifest_path=tmp_path/'inventory', run_id='paused', document_ids=[documents[0]['document_id']], prepared_root=tmp_path/'prepared', resource_sampler=lambda: {'available_bytes': 1, 'swap_used_bytes': 0})
     assert result['status'] == 'PAUSED_RESOURCE'
     assert not (tmp_path/'prepared'/'paused'/'documents'/documents[0]['document_id']/'document.json').exists()
@@ -514,7 +519,7 @@ def test_complete_preparation_manifest_roundtrip_counts_and_ready_only(tmp_path,
             row['preparation_gate'] = 'QUARANTINED'
         page_callback(page, row)
         return [page], {**_good_source([page]), 'page_extraction_sources': [row]}
-    monkeypatch.setattr(batch, '_load_pages', load)
+    monkeypatch.setattr(text_source, 'load_pages', load)
     result = preparation.prepare_only(batch, manifest_path=tmp_path/'parent', run_id='complete', prepared_root=tmp_path/'prepared')
     assert result['counts'] == {'total': 2209, 'ready': 2207, 'quarantined': 1, 'failed': 1, 'pending': 0}
     verified = preparation.verify_frozen_manifest(batch, Path(result['prepared_text_manifest_path']), expected_sha256=result['prepared_text_manifest_sha256'], expected_parent_sha256=parent_sha)
@@ -523,14 +528,82 @@ def test_complete_preparation_manifest_roundtrip_counts_and_ready_only(tmp_path,
         preparation.pages_from_frozen_manifest(verified, documents[0]['document_id'])
 
 
-def test_legacy_canary_reuse_rejects_changed_extraction_pipeline(tmp_path, monkeypatch):
+def test_legacy_canary_reuse_rejects_unrecognized_extractor_identity(tmp_path, monkeypatch):
     parent_sha = 'e'*64
     leaf = {'path': '/bound/helper', 'sha256': 'a'*64}
     identity = {'method': 'old-live-canary', 'vision': {'renderer': 'same'}, 'sources': {name: leaf for name in ('pdf_research', 'pinned_pdf_helper', 'pinned_pdf_dependency_manifest')}}
     identity['sha256'] = preparation.sha256_bytes(preparation.canonical_json(identity))
     prior = tmp_path/'prior';prior.mkdir()
     (prior/'run.json').write_text(json.dumps({'schema': preparation.RUN_SCHEMA, 'run_id': 'prior', 'parent_manifest_sha256': parent_sha, 'extractor_identity_sha256': identity['sha256'], 'extractor_identity': identity}))
-    monkeypatch.setattr(preparation, 'COMPATIBLE_CANARY_EXTRACTOR_SHA256', identity['sha256'])
     monkeypatch.setattr(preparation, '_extractor_identity', lambda _batch: {'sha256': 'd'*64, 'vision': identity['vision'], 'sources': identity['sources']})
-    monkeypatch.setattr(preparation, '_canary_pipeline_fingerprint', lambda: 'changed-extractor')
     assert preparation._reusable_run_roots(tmp_path, tmp_path/'new', parent_sha256=parent_sha, extractor_sha256='d'*64) == []
+
+
+@pytest.mark.parametrize('damage', ['missing', 'empty', 'hash', 'status', 'total'])
+def test_frozen_page_loader_rejects_corrupt_or_missing_pages(damage):
+    text = 'Exact historical frozen OCR source.'
+    page = {'page_number': 1, 'page_total': 1, 'status': 'OCR_OK', 'text': text,
+            'text_sha256': _sha(text.encode()), 'extraction_method': 'historical Vision OCR'}
+    page_input = {'source': {'page_count': 1}, 'pages': [page]}
+    verified = {'documents': {'doc': {'manifest_row': {'status': 'READY', 'page_count': 1}, 'page_input': page_input}}}
+    if damage == 'missing': page_input['pages'] = []
+    if damage == 'empty': page['text'] = ''
+    if damage == 'hash': page['text_sha256'] = 'a' * 64
+    if damage == 'status': page['status'] = 'FAILED'
+    if damage == 'total': page['page_total'] = 2
+    with pytest.raises(preparation.PreparationError):
+        preparation.pages_from_frozen_manifest(verified, 'doc')
+
+
+def test_preparation_rejects_all_corrupt_caches_without_ocr(tmp_path, monkeypatch):
+    path = tmp_path / 'source.pdf'
+    path.write_bytes(b'%PDF-frozen source')
+    monkeypatch.setattr(pdf_research, '_validate_pdf_path', lambda *_: path)
+    def corrupt(**_kw):
+        raise pdf_research.PdfResearchError('PAGE_CACHE_TEXT_SHA_MISMATCH')
+    monkeypatch.setattr(pdf_research, 'load_page_cache', corrupt)
+    monkeypatch.setattr(text_source, '_perform_page_ocr', lambda *_: pytest.fail('corrupt cache may not trigger OCR'))
+    document = {'document_id': 'd', 'pdf_sha256': _sha(path.read_bytes()), 'pdf_bytes': path.stat().st_size,
+                'local_pdf_path': str(path), 'page_count': 1,
+                'cache_candidates': [{'path': str(tmp_path / 'cache'), 'sha256': 'a' * 64, 'page_count': 1}]}
+    with pytest.raises(text_source.BatchError, match='PAGE_CACHE_TEXT_SHA_MISMATCH'):
+        text_source.load_pages(document, preparation_mode=True)
+
+
+def test_legacy_extractor_compatibility_binds_ocr_versions_and_baseline():
+    identity = {'method': 'pinned-native-plus-quality-qualified-cache-plus-existing-vision-repair-v1',
+        'sources': {name: {'sha256': sha} for name, sha in preparation.LEGACY_EXTRACTOR_SOURCE_SHA256S.items()},
+        'vision': {'pdf_ingestion_sha256': text_source.EXPECTED_PDF_INGESTION_SHA256,
+                   'vision_source_sha256': text_source.EXPECTED_VISION_SOURCE_SHA256,
+                   'vision_config_sha256': text_source.EXPECTED_VISION_CONFIG_SHA256,
+                   'renderer_sha256': text_source.EXPECTED_RENDERER_SHA256,
+                   'renderer_version': text_source.EXPECTED_RENDERER_VERSION}}
+    assert preparation._compatible_baseline_extractor(identity)
+    identity['vision']['vision_config_sha256'] = 'f' * 64
+    assert not preparation._compatible_baseline_extractor(identity)
+
+
+def test_frozen_loader_does_not_promote_partial_source_to_ready():
+    text = 'One available page'
+    value = {'documents': {'doc': {'manifest_row': {'status': 'READY', 'page_count': 1},
+        'page_input': {'source': {'page_count': 1, 'page_extraction_status': 'PARTIAL'},
+                       'pages': [{'page_number': 1, 'text': text, 'status': 'OCR_OK', 'text_sha256': _sha(text.encode())}]}}}}
+    with pytest.raises(preparation.PreparationError, match='COVERAGE_INVALID'):
+        preparation.pages_from_frozen_manifest(value, 'doc')
+
+
+def test_verified_historical_cohort_can_supply_checkpoint_reuse_after_relocation(tmp_path):
+    identity = {'method': 'pinned-native-plus-quality-qualified-cache-plus-existing-vision-repair-v1',
+        'sources': {name: {'sha256': sha} for name, sha in preparation.FROZEN_COHORT_EXTRACTOR_SOURCE_SHA256S.items()},
+        'vision': {'pdf_ingestion_sha256': text_source.EXPECTED_PDF_INGESTION_SHA256,
+                   'vision_source_sha256': text_source.EXPECTED_VISION_SOURCE_SHA256,
+                   'vision_config_sha256': text_source.EXPECTED_VISION_CONFIG_SHA256,
+                   'renderer_sha256': text_source.EXPECTED_RENDERER_SHA256,
+                   'renderer_version': text_source.EXPECTED_RENDERER_VERSION}}
+    identity['sha256'] = _sha(preparation.canonical_json(identity))
+    prior = tmp_path / 'frozen-prior'
+    prior.mkdir()
+    (prior / 'run.json').write_text(json.dumps({'schema': preparation.RUN_SCHEMA, 'run_id': prior.name,
+        'parent_manifest_sha256': 'a' * 64, 'extractor_identity_sha256': identity['sha256'], 'extractor_identity': identity}))
+    found = preparation._reusable_run_roots(tmp_path, tmp_path / 'new', parent_sha256='a' * 64, extractor_sha256='b' * 64)
+    assert found == [(prior, prior.name, identity['sha256'])]

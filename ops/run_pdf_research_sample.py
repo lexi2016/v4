@@ -566,7 +566,7 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def _legacy_main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.execute and args.capture_runtime_binding:
         raise SystemExit("EXECUTE_AND_CAPTURE_ARE_MUTUALLY_EXCLUSIVE")
@@ -583,6 +583,11 @@ def main(argv: list[str] | None = None) -> int:
         code = getattr(exc, "code", None) or type(exc).__name__
         print(json.dumps({"status": "CANNOT_CONFIRM", "error_code": code}, ensure_ascii=False, sort_keys=True))
         return 2
+
+
+def main(argv=None):
+    from infrastructure.pdf_research_execution import cli_dispatch
+    return cli_dispatch(argv, legacy_main=_legacy_main)
 
 
 if __name__ == "__main__":

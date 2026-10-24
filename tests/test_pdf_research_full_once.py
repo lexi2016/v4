@@ -609,3 +609,262 @@ def test_common_normalization_same_raw_replay_exact_closure_and_unknown_halt_zer
         with pytest.raises((b.BatchError,d.DispatcherError),match='DUPLICATE|FAILURE|EXTRA_TERMINAL'):
             f.verify_history(j,ctx);f.terminal_map(ctx,j.events)
     assert actual_jp.read_bytes()==actual_raw and f.ref(Path(ctx['common_normalization']['raw_inner']['path']))==original_hash
+
+
+@pytest.mark.parametrize('value,quote,expected',[
+    ('超6','光模块板块营业收入超6亿元','GT'),('不超6','收入不超6亿元','LE'),
+    ('超50','新增订单占比超50%','GT'),('1-2000','覆盖1-2000TOPS算力的产品矩阵','RANGE'),
+    ('100+','100+Tler1厂商','GE'),('60+','公司合作约60+整车厂',None),
+    ('超6','已有60家，订单超6亿元','GT'),('不少于10','具备年产不少于10艘产能','GE'),
+])
+def test_confirmed_comparator_token_defects_only(value,quote,expected):
+    assert f._source_comparator(value,[{'excerpt':quote}])==expected
+
+
+def test_confirmed_comparator_fix_does_not_certify_semantically_failed_raw():
+    did='987b7eb90136e7945cf9698f26ff7dad5b6e64eff9804f32fa45ff877a1769e6';folder=f.job_folder(did)
+    raw=(folder/'stages/source-0001.raw-model-inner.json').read_text();plan=json.loads((folder/'plan.json').read_text());input_value=json.loads(Path(plan['source']['path']).read_text());pages=[{k:p[k] for k in ('page_number','text_sha256','text')} for p in input_value['pages']]
+    card,_=f.canonicalize_citations(raw,pages)
+    assert all(f._source_comparator(item['value_as_source'],item['evidence']) in {None,item['comparison_operator']} for item in card['numeric_values'])
+    with pytest.raises(b.BatchError,match='SPEAKER|UNNAMED'):f.validate_card(card,pages)
+
+
+def test_format_compatibility_typed_singleton_preserves_exact_source_and_raw():
+    text='原文称收入150％。'
+    pages=[{'page_number':1,'text':text,'text_sha256':f.sha(text.encode())}]
+    ev={'page_number':1,'text_sha256':pages[0]['text_sha256'],'excerpt':text}
+    card={'facts':[{'claim':'原文称收入150％','attribution':'原文','period':'UNKNOWN','unit':'%','evidence':copy.deepcopy(ev)}],
+          'forecasts':[],'numeric_values':[{'value_as_source':'150%','evidence':copy.deepcopy(ev),'sign':'+','unit':'%','period':'UNKNOWN'}]}
+    raw=json.dumps(card,ensure_ascii=False);original=copy.deepcopy(card)
+    result,audit=f.canonicalize_citations(raw,pages)
+    assert json.loads(raw)==original and result['facts'][0]['evidence']==[ev]
+    assert result['numeric_values'][0]['value_as_source']=='150％'
+    assert result['numeric_values'][0]['unit']=='%' and result['numeric_values'][0]['sign']=='+'
+    assert [a['transformation'] for a in audit]==['TYPED_EVIDENCE_SINGLETON_LIST']*2+['EXACT_SOURCE_PERCENT_GLYPH']
+    assert audit[0]['original_value']==ev and audit[0]['canonical_value']==[ev]
+    assert audit[-1]['original_value']=='150%' and audit[-1]['canonical_value']=='150％'
+    assert all(a['raw_inner_sha256']==f.sha(raw.encode()) for a in audit)
+    assert audit[-1]['source_spans'][0]['excerpt']==text
+
+
+@pytest.mark.parametrize('variant',['extra_key','boolean_page','bad_sha','empty_quote','wrong_source','stitch'])
+def test_format_compatibility_does_not_accept_malformed_or_fabricated_evidence(variant):
+    text='收入增长。原文连续句。';pages=[{'page_number':1,'text':text,'text_sha256':f.sha(text.encode())}]
+    ev={'page_number':1,'text_sha256':pages[0]['text_sha256'],'excerpt':'收入增长。'}
+    if variant=='extra_key':ev['invented']='x'
+    elif variant=='boolean_page':ev['page_number']=True
+    elif variant=='bad_sha':ev['text_sha256']='not-a-sha'
+    elif variant=='empty_quote':ev['excerpt']=''
+    elif variant=='wrong_source':ev['text_sha256']='f'*64
+    else:ev['excerpt']='收入...连续句。'
+    card={'facts':[{'evidence':ev}],'forecasts':[],'numeric_values':[]};audit=[]
+    if variant=='extra_key':
+        result,_=f.canonicalize_citations(json.dumps(card),pages,audit_sink=audit)
+        assert isinstance(result['facts'][0]['evidence'],dict) and audit==[]
+    else:
+        with pytest.raises(b.BatchError,match='CITATION'):f.canonicalize_citations(json.dumps(card),pages,audit_sink=audit)
+    if variant in {'wrong_source','stitch'}:assert audit[0]['transformation']=='TYPED_EVIDENCE_SINGLETON_LIST'
+
+
+@pytest.mark.parametrize('value,source,expected',[
+    ('150%','150％','150％'),('150％','150%','150%'),('80%以上','80％以上','80％以上'),
+    ('50%','150％','50%'),('150%','1500％','150%'),('151%','150％','151%'),
+    ('-1.5%','+1.5％','-1.5%'),('1.5%','-1.5％','1.5%'),('150%','150%','150%'),
+])
+def test_format_compatibility_percent_only_exact_scalar_glyph(value,source,expected):
+    pages=[{'page_number':1,'text':source,'text_sha256':f.sha(source.encode())}]
+    ev={'page_number':1,'text_sha256':pages[0]['text_sha256'],'excerpt':source}
+    item={'value_as_source':value,'unit':'%','sign':'unchanged','period':'2026','evidence':[ev]};card={'numeric_values':[copy.deepcopy(item)]};audit=[]
+    f.normalize_percent_value_glyph(card,pages,audit,raw_inner_sha256='a'*64)
+    assert card['numeric_values'][0]=={**item,'value_as_source':expected}
+    assert bool(audit)==(value!=expected)
+
+
+def _protocol_original_context():
+    root=f.read(f.ref(f.ROOT));old=root.get('protocol_recovery',{}).get('previous_adoption_backup',f.ref(f.ROOT))
+    return f.load_context(_historical=old)
+
+
+def test_protocol_actual139_history_and716_exact_outgoing_budgets_zero_network(monkeypatch):
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('budget/history test must not connect'))
+    ctx=_protocol_original_context();events=f.protocol_journal_events()
+    history=type('History',(),{'path':f.d.EVIDENCE_ROOT/'dispatch.jsonl','root':f.d.EVIDENCE_ROOT,'events':events[:139]})()
+    f.verify_history(history,ctx);f.verify_full_adoption(history,ctx,append=False)
+    old=f.terminal_map(ctx,events[:139]);assert len(old)==19 and old[f.POSITIVE_FIRST_ID]['derived_from_accepted_zero_POST_replay']
+    assert f.TEMPLATE_SHA=='5733eb928d678039125aec25cccf3544c2bb8fe51888b17a878b255628d43ef2'
+    assert f.PROTOCOL_SYSTEM.startswith(f.SYSTEM) and f.PROTOCOL_SHA!=f.TEMPLATE_SHA
+    for did,row in ctx['documents'].items():
+        value=f.read(row['page_input']);pages=[{k:p[k] for k in ('page_number','text_sha256','text')} for p in value['pages']]
+        groups=f.protocol_groups(row,pages)
+        assert all(len(b._request_envelope(f.protocol_messages(row,g,synthesis=False)))<=b.MAX_REQUEST_ENVELOPE_BYTES for g in groups)
+        assert all(sum(len(u['text']) for u in g)<=b.MAX_SOURCE_CHARACTERS for g in groups)
+        if did in f.PROTOCOL_CANARIES:assert len(groups)==1
+        for page in pages:assert ''.join(u['text'] for g in groups for u in g if u['page_number']==page['page_number'])==page['text']
+
+
+def test_protocol_current_identity_and_historical_acceptance_have_distinct_bindings(tmp_path,monkeypatch):
+    old=f.read(f.ref(f.ROOT))
+    if old.get('protocol_recovery'):old=f.read(old['protocol_recovery']['previous_adoption_backup'])
+    backup=tmp_path/'old-root.json';backup.write_bytes(f.lm.canonical_json(old)+b'\n')
+    # Historical SHA requires the exact original serialization, not a reconstructed object.
+    actual=f.read(f.ref(f.ROOT));original=Path(actual['protocol_recovery']['previous_adoption_backup']['path']) if actual.get('protocol_recovery') else f.ROOT
+    backup.write_bytes(original.read_bytes());assert f.ref(backup)['sha256']==f.PROTOCOL_PREVIOUS_ROOT_SHA
+    ctx=_protocol_original_context();root=Path(f.__file__).resolve().parents[1];sources={rel:f.ref(root/rel)['sha256'] for rel in f.SOURCE_PATHS}
+    codepath=b.RESEARCH_PILOT_ROOT/'independent-review/protocol-code-review-20261023.json';coderef={'path':str(codepath),'sha256':'a'*64}
+    data={'decision':f.PROTOCOL_DECISION,'generation':f.PROTOCOL_GENERATION,'protocol_sha256':f.PROTOCOL_SHA,'previous_adoption_backup':f.ref(backup),'canary_inputs':{did:ctx['documents'][did]['page_input'] for did in f.PROTOCOL_CANARIES}}
+    adopted={**old,'sources':sources,'source_review':coderef,'protocol_recovery':data};newref={'path':str(f.ROOT),'sha256':'b'*64}
+    proof={'reviewer':f.PROTOCOL_REVIEWER,'status':'REVIEWED_PASS','full_sources':sources,'protocol_sha256':f.PROTOCOL_SHA,'fixture_only':True}
+    read0=f.read;ref0=f.ref
+    monkeypatch.setattr(f.d,'PROJECT_ROOT',root)
+    monkeypatch.setattr(f,'ref',lambda p:newref if Path(p)==f.ROOT else ref0(p))
+    monkeypatch.setattr(f,'read',lambda r,**kw:adopted if r==newref else proof if r==coderef else read0(r,**kw))
+    result=f.load_protocol_context(runtime_release=False)
+    assert result['protocol_adoption_ref']==newref and result['full_adoption_ref']['sha256']==f.PROTOCOL_PREVIOUS_ROOT_SHA
+    with pytest.raises(b.BatchError,match='PROTOCOL_ENTRY_REQUIRED'):f.load_context()
+    proof['reviewer']=f.REVIEWER
+    with pytest.raises(b.BatchError,match='INDEPENDENT_PASS'):f.load_protocol_context(runtime_release=False)
+    proof['reviewer']=f.PROTOCOL_REVIEWER;adopted['authorization']={'invented':True}
+    with pytest.raises(b.BatchError,match='HISTORICAL_ADOPTION_CHANGED'):f.load_protocol_context(runtime_release=False)
+
+
+def test_protocol_canary_three_machine_outputs_cannot_release696_without_review(monkeypatch):
+    docs,checkpoints=f.selection();context={'documents':docs,'checkpoints':checkpoints,'protocol_adoption_ref':{'path':'fixture','sha256':'a'*64}}
+    original={did:{} for did in checkpoints[0]['document_ids'] if did not in list(f.SOURCE_INVALID_INPUTS)[1:]}
+    terms={did:{'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING'} for did in f.PROTOCOL_CANARIES}
+    monkeypatch.setattr(f,'protocol_terminals',lambda *a:terms)
+    monkeypatch.setattr(f,'terminal_map',lambda *a:original)
+    canary=b.RESEARCH_PILOT_ROOT/'independent-review/protocol-canary-content-review-20261023.json'
+    monkeypatch.setattr(Path,'exists',lambda p:False)
+    assert f.protocol_pending(context,[{}]*139)==('WAITING_PROTOCOL_CANARY3_CONTENT_REVIEW',[])
+    monkeypatch.setattr(Path,'exists',lambda p:p==canary)
+    monkeypatch.setattr(f,'ref',lambda p:{'path':str(p),'sha256':'c'*64})
+    calls=[];monkeypatch.setattr(f,'protocol_content_review',lambda r,ids,c,t,**kw:calls.append((list(ids),kw.get('canary'))))
+    phase,ids=f.protocol_pending(context,[{}]*139)
+    assert phase=='LIGHT-002' and ids==checkpoints[1]['document_ids'] and calls==[(list(f.PROTOCOL_CANARIES),True)]
+    for did in ids:terms[did]={'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING'}
+    assert f.protocol_pending(context,[{}]*139)==('WAITING_PROTOCOL_LIGHT-002_CONTENT_REVIEW',[])
+    terms[f.PROTOCOL_CANARIES[0]]={'status':'FAILED_DOCUMENT_ISOLATED'}
+    assert f.protocol_pending(context,[{}]*139)==('PROTOCOL_FAILED_HELD',[])
+
+
+def _protocol_fixture_events(tmp_path,monkeypatch):
+    did=f.PROTOCOL_CANARIES[0];pi={'path':'actual-source-fixture','sha256':'a'*64};adoption={'path':'adoption-fixture','sha256':'b'*64}
+    ctx={'documents':{did:{'page_input':pi}},'protocol_adoption_ref':adoption,'protocol_sources':{'fixture':'c'*64}}
+    monkeypatch.setattr(f,'protocol_folder',lambda value:tmp_path/value)
+    folder=f.protocol_folder(did);folder.mkdir()
+    plan={'document_id':did,'source':pi,'protocol_sha256':f.PROTOCOL_SHA,'generation':2,'adoption':adoption,'state_root':str(b.DEFAULT_STATE_ROOT.parent/f'continuation-full-light-{did}'),'execution_runtime_settings_sha256':b.ANALYSIS_RUNTIME_SHA256,'source_groups':1,'max_new_POSTs':1}
+    pp=folder/'plan.json';pp.write_text(json.dumps(plan));pr=f.ref(pp)
+    base={'document_id':did,'protocol_sha256':f.PROTOCOL_SHA,'generation':2,'plan':pr}
+    events=[{}]*139+[{'event':'protocol_adoption','adoption':adoption,'sources':ctx['protocol_sources'],'protocol_sha256':f.PROTOCOL_SHA,'decision':f.PROTOCOL_DECISION,'generation':2},
+                     {'event':'protocol_plan',**base},{'event':'protocol_intent',**base}]
+    return ctx,events,base,folder
+
+
+def test_protocol_intent_requires_closed_terminal_and_rejects_forged_receipt(tmp_path,monkeypatch):
+    ctx,events,base,folder=_protocol_fixture_events(tmp_path,monkeypatch)
+    with pytest.raises(b.BatchError,match='ACTIVE_INTENT'):f.protocol_terminals(events,ctx)
+    card={'document_id':base['document_id'],'page_input':ctx['documents'][base['document_id']]['page_input'],'template_sha256':f.PROTOCOL_SHA,'protocol_sha256':f.PROTOCOL_SHA,'generation':2}
+    cp=folder/'card.json';cp.write_text(json.dumps(card))
+    receipt={**card,'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','plan':base['plan'],'adoption':ctx['protocol_adoption_ref'],'card':f.ref(cp)}
+    rp=folder/'receipt.json';rp.write_text(json.dumps(receipt));terminal={'event':'protocol_terminal',**base,'status':receipt['status'],'receipt':f.ref(rp)}
+    assert f.protocol_terminals(events+[terminal],ctx)[base['document_id']]==terminal
+    with pytest.raises(b.BatchError,match='ORPHAN_TERMINAL'):f.protocol_terminals(events+[terminal,terminal],ctx)
+    receipt['page_input']={'path':'forged','sha256':'f'*64};rp.write_text(json.dumps(receipt));terminal['receipt']=f.ref(rp)
+    with pytest.raises(b.BatchError,match='RECEIPT_MISMATCH'):f.protocol_terminals(events+[terminal],ctx)
+
+
+@pytest.mark.parametrize('variant',['foreign_event','bad_generation','missing_adoption','unproved_defer'])
+def test_protocol_unknown_event_generation_and_defer_remain_closed(tmp_path,monkeypatch,variant):
+    ctx,events,base,folder=_protocol_fixture_events(tmp_path,monkeypatch)
+    if variant=='foreign_event':events.append({'event':'protocol_fake',**base})
+    elif variant=='bad_generation':events[-1]['generation']=3
+    elif variant=='missing_adoption':events.pop(139)
+    else:events.append({'event':'protocol_deferred',**base,'attempted':False,'new_model_POSTs':1})
+    with pytest.raises(b.BatchError,match='PROTOCOL_'):f.protocol_terminals(events,ctx)
+
+
+def test_protocol_mixed_cli_never_opens_model_or_context(monkeypatch):
+    monkeypatch.setattr(f,'load_protocol_context',lambda **kw:pytest.fail('argument failure must precede context/model'))
+    assert f.main(['--execute-protocol','--execute'])==2
+    assert f.main(['--protocol-worker','a'*64])==2
+    assert f.main(['--execute-protocol','--replay-normalized'])==2
+
+
+def test_protocol_durable_journal_real_append_reopen_and_single_writer(tmp_path):
+    actual=f.d.EVIDENCE_ROOT/'dispatch.jsonl';prefix=b''.join(actual.read_bytes().splitlines(keepends=True)[:139]);assert f.sha(prefix)==f.PROTOCOL_JOURNAL139_SHA
+    jp=tmp_path/'dispatch.jsonl';jp.write_bytes(prefix);old_types=f.d.SAFE_JSONL_EVENT_TYPES
+    with f.ProtocolJournal(tmp_path) as journal:
+        journal.append({'event':'protocol_adoption','generation':2,'fixture_only':True})
+        with pytest.raises(f.d.DispatcherError,match='JOURNAL_BUSY'):
+            with f.ProtocolJournal(tmp_path):pass
+        before=jp.read_bytes()
+        with pytest.raises(b.BatchError,match='EVENT_INVALID'):journal.append({'event':'protocol_unregistered'})
+        assert jp.read_bytes()==before
+    with f.ProtocolJournal(tmp_path) as reopened:
+        assert len(reopened.events)==140 and reopened.events[-1]['event']=='protocol_adoption'
+    assert jp.read_bytes().startswith(prefix) and f.d.SAFE_JSONL_EVENT_TYPES==old_types and not any(x.startswith('protocol_') for x in old_types)
+
+
+def test_protocol_actual_execute_entry_appends_and_reopens_before_zero_POST_defer(tmp_path,monkeypatch):
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('entry fixture must not connect'))
+    prefix=b''.join((f.d.EVIDENCE_ROOT/'dispatch.jsonl').read_bytes().splitlines(keepends=True)[:139]);(tmp_path/'dispatch.jsonl').write_bytes(prefix)
+    docs,checkpoints=f.selection();ctx={'documents':docs,'checkpoints':checkpoints,'protocol_adoption_ref':{'path':'fixture','sha256':'a'*64},'protocol_sources':{'fixture':'b'*64}}
+    monkeypatch.setattr(f.d,'EVIDENCE_ROOT',tmp_path);monkeypatch.setattr(f,'load_protocol_context',lambda **kw:ctx)
+    monkeypatch.setattr(b,'_priority_snapshot',lambda:{'status':'DEFER','reason':'fixture_priority'})
+    monkeypatch.setattr(f.d,'sample_resource_metrics',lambda:{'swap_used_bytes':0});monkeypatch.setattr(f.d,'_resource_stop_reason',lambda *a:None)
+    monkeypatch.setattr(f.subprocess,'Popen',lambda *a,**kw:pytest.fail('DEFER must not start worker'))
+    result=f.execute_protocol(3)
+    assert result['status']=='DEFERRED' and result['attempted'] is False
+    with f.ProtocolJournal(tmp_path) as journal:assert len(journal.events)==140 and journal.events[-1]['event']=='protocol_adoption'
+    before=(tmp_path/'dispatch.jsonl').read_bytes();f.execute_protocol(3);assert (tmp_path/'dispatch.jsonl').read_bytes()==before
+
+
+def test_protocol_worker_actual_zero_attempt_DEFER_then_success_preserves_both_calls(tmp_path,monkeypatch):
+    import socket
+    monkeypatch.setattr(socket.socket,'connect',lambda *a:pytest.fail('mock request sequence must not connect'))
+    did=f.PROTOCOL_CANARIES[0];docs,_=f.selection();row,pages=f.source(did,docs);actual_raw=f.job_folder(did)/'stages/source-0001.raw-model-inner.json';original_sha=f.ref(actual_raw)
+    # Hypothetical output is test-only, never accepted as an actual model report.
+    card=json.loads(actual_raw.read_bytes());card['speaker_and_source_attribution']=[];card['unknowns'].append('测试模型输出：作者/发言人未具名，无法确认身份。')
+    card['source_usage_limits']=[{'limitation':ev['excerpt'],'evidence':[ev]} for ev in f.source_limit_quotes(pages)]
+    projected,_=f.canonicalize_citations(json.dumps(card,ensure_ascii=False),pages);f.validate_card(projected,pages)
+    adoption={'path':'fixture','sha256':'a'*64};ctx={'documents':docs,'protocol_adoption_ref':adoption,'analysis_admission':{}}
+    plan={'document_id':did,'source':row['page_input'],'protocol_sha256':f.PROTOCOL_SHA,'generation':2,'adoption':adoption,'execution_runtime_settings_sha256':b.ANALYSIS_RUNTIME_SHA256,'source_groups':1,'max_new_POSTs':1,'state_root':str(tmp_path/'state'),'baseline_swap_used_bytes':0}
+    pp=tmp_path/'plan.json';pp.write_text(json.dumps(plan));intent={'event':'protocol_intent','document_id':did,'plan':f.ref(pp)};events=[{}]*139+[intent]
+    monkeypatch.setattr(f,'load_protocol_context',lambda **kw:ctx);monkeypatch.setattr(f,'protocol_folder',lambda *a:tmp_path);monkeypatch.setattr(f,'protocol_journal_events',lambda:events)
+    monkeypatch.setattr(f,'protocol_pending',lambda *a,**kw:('PROTOCOL_CANARY3',[did]));monkeypatch.setattr(b,'verify_analysis_runtime',lambda *a:None);monkeypatch.setattr(f.lm,'build_request_material',lambda *a:{})
+    monkeypatch.setattr(b,'_priority_snapshot',lambda:{'status':'ALLOW'});monkeypatch.setattr(f.d,'sample_resource_metrics',lambda:{});monkeypatch.setattr(f.d,'_resource_stop_reason',lambda *a:None)
+    monkeypatch.setattr(b,'_create_queue',lambda *a:(object(),None));monkeypatch.setattr(b,'_request_payload',lambda *a,**kw:{})
+    outcomes=[]
+    def perform(*a,**kw):
+        outcomes.append(1)
+        if len(outcomes)==1:return {'status':'DEFERRED_MODEL_LOCK_BUSY','attempted':False,'queue_item':{'idempotency_key':'test-only-key','attempt_count':0}}
+        return {'status':'SUCCEEDED','attempted':True,'queue_item':{'idempotency_key':'test-only-key','attempt_count':1},'result':{'analysis_markdown':json.dumps(card,ensure_ascii=False)}}
+    monkeypatch.setattr(b,'_perform_request',perform)
+    with pytest.raises(b.BatchError,match='DEFERRED_MODEL_LOCK_BUSY'):f.protocol_worker(did,pp)
+    defer_call=tmp_path/'calls/source-0001-intent-139.json';before=f.ref(defer_call);assert (tmp_path/'zero-attempt-139.json').exists()
+    events=events+[{'event':'protocol_deferred'},intent]
+    receipt=f.protocol_worker(did,pp)
+    assert receipt['status']=='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING' and len(outcomes)==2
+    assert f.ref(defer_call)==before and json.loads(defer_call.read_bytes())['status']=='DEFERRED_MODEL_LOCK_BUSY'
+    assert json.loads((tmp_path/'calls/source-0001-intent-141.json').read_bytes())['status']=='SUCCEEDED'
+    assert (tmp_path/'stages/source-0001.raw-model-inner.json').exists() and f.ref(actual_raw)==original_sha
+
+
+@pytest.mark.parametrize('module_name', ['full_once', 'batch', 'sample', 'package_once', 'remaining_once'])
+def test_legacy_cli_execution_requires_generic_immutable_manifest(module_name, monkeypatch, capsys):
+    import importlib
+    module = importlib.import_module('ops.run_pdf_research_' + module_name)
+    monkeypatch.setattr(module, '_legacy_main', lambda *_a: pytest.fail('old producer was entered'))
+    assert module.main(['--execute']) == 2
+    value = json.loads(capsys.readouterr().out)
+    assert value['code'] == 'PDF_IMMUTABLE_RUN_MANIFEST_REQUIRED'
+    assert value['production_allowed'] is False
+
+
+def test_retained_legacy_cli_read_only_validation_is_still_available(monkeypatch):
+    calls = []
+    monkeypatch.setattr(f, '_legacy_main', lambda args: calls.append(args) or 17)
+    assert f.main(['--preflight']) == 17
+    assert calls == [['--preflight']]

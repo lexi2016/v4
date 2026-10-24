@@ -78,6 +78,7 @@ def _pdf_queue_safe_summary(payload: Mapping[str, Any]) -> dict[str, Any]:
         "next_retry_seconds", "retry_after_seconds", "processed_page_count", "page_count",
         "last_error_code", "reason_code", "failure_class", "pdf_sha256", "pages_file_sha256",
         "done_total", "partial_total", "failed_total", "pending_total", "return_code", "runner_status",
+        "task_type", "run_id", "analysis_id", "generation", "model_posts", "completed_chunks", "total_chunks", "code",
     )
     return {key: payload[key] for key in fields if key in payload}
 
@@ -734,6 +735,24 @@ class AnnouncementCycleHook:
                 _emit_announcement({"schema_version": DAEMON_SCHEMA, "status": "ANNOUNCEMENT_HOOK_JOIN_TIMEOUT"})
 
 
+def _pdf_analysis_progress_token(path: Path | None):
+    if path is None or not path.is_file() or path.is_symlink():
+        return None
+    try:
+        value = json.loads(path.read_bytes())
+    except (OSError, ValueError):
+        return None
+    if type(value.get("sequence")) is not int or value["sequence"] < 1:
+        return None
+    kind = value.get("kind")
+    if kind == "model_stream":
+        if type(value.get("characters")) is not int or value["characters"] < 1:
+            return None
+    elif kind not in {"intent", "raw_durable", "chunk_validated", "published"}:
+        return None
+    return value["sequence"]
+
+
 class PdfQueueDrainHook:
     """Drain the owned PDF index in a child without occupying scheduler work."""
 
@@ -876,6 +895,14 @@ class PdfQueueDrainHook:
             _emit_pdf_queue({"status": "PDF_QUEUE_CHILD_REAP_UNCONFIRMED", "reason": reason})
 
     def _run_child(self) -> dict[str, Any]:
+        from infrastructure.pdf_research_execution import next_analysis_task
+        research_root = (self.local_pdf_root or self.data_root / "external_sources/zsxq_hourly/pdf_local") / "research"
+        try:
+            analysis_task = next_analysis_task(research_root)
+        except Exception as error:
+            return {"status": "PDF_ANALYSIS_ADMISSION_INVALID", "code": str(getattr(error, "code", type(error).__name__))}
+        progress_path = Path(analysis_task["progress_path"]) if analysis_task else None
+        progress_token = _pdf_analysis_progress_token(progress_path)
         command = [
             str(self.python_path),
             "-B",
@@ -887,6 +914,9 @@ class PdfQueueDrainHook:
             "--pdf-time-budget-seconds",
             str(PDF_QUEUE_TICK_SECONDS),
         ]
+        if analysis_task:
+            command.extend(["--pdf-task-type", "analysis", "--pdf-analysis-run-manifest", analysis_task["reference"]["path"],
+                            "--pdf-analysis-run-sha256", analysis_task["reference"]["sha256"]])
         if self.local_pdf_root is not None:
             command.extend(["--pdf-local-root", str(self.local_pdf_root)])
         if self.announcement_queue_root is not None:
@@ -936,9 +966,15 @@ class PdfQueueDrainHook:
                     if self.cancel.is_set():
                         self._finish_child(child, "CANCELLED")
                         return {"status": "PDF_QUEUE_CHILD_CANCELLED"}
+                    if analysis_task:
+                        current_progress = _pdf_analysis_progress_token(progress_path)
+                        if current_progress is not None and current_progress > (progress_token or 0):
+                            progress_token = current_progress
+                            deadline = time.monotonic() + self.wall_seconds
                     if time.monotonic() >= deadline:
-                        self._finish_child(child, "TIMEOUT")
-                        return {"status": "PDF_QUEUE_CHILD_TIMEOUT"}
+                        self._finish_child(child, "NO_PROGRESS_TIMEOUT" if analysis_task else "TIMEOUT")
+                        return {"status": "PDF_ANALYSIS_NO_PROGRESS_TIMEOUT" if analysis_task else "PDF_QUEUE_CHILD_TIMEOUT",
+                                "task_type": "ANALYSIS" if analysis_task else "OCR"}
                     self.cancel.wait(self.poll_seconds)
         except Exception as error:
             return {"status": "PDF_QUEUE_CHILD_START_FAILED", "error_code": type(error).__name__}

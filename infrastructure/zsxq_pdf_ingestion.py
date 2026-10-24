@@ -3254,6 +3254,7 @@ def process_next_pdf_task(
     data_root: Path,
     *,
     local_pdf_root: Path | None = None,
+    analysis_reference: Mapping[str, Any] | None = None,
     announcement_queue_root: Path | None = None,
     cli: Path = DEFAULT_CLI,
     time_budget_seconds: int = 90,
@@ -3262,6 +3263,12 @@ def process_next_pdf_task(
     now: Callable[[], datetime] = _now,
 ) -> dict[str, Any]:
     """Advance one already-enumerated PDF from the durable owned index."""
+    if analysis_reference is not None:
+        from infrastructure.pdf_research_execution import dispatch_analysis_tick
+        root = Path(local_pdf_root) if local_pdf_root is not None else Path(data_root) / "external_sources/zsxq_hourly/pdf_local"
+        result = dispatch_analysis_tick(analysis_reference, research_root=root / "research")
+        return {"schema_version": "v4.zsxq_pdf_queue_tick.v1", "task_type": "ANALYSIS", **result}
+
     if type(time_budget_seconds) is not int or not 1 <= time_budget_seconds <= MAX_PDF_CONTINUATION_SECONDS:
         raise ZsxqPdfError("PDF_TIME_BUDGET_INVALID")
     if type(max_pages_per_document) is not int or not 1 <= max_pages_per_document <= MAX_PDF_PAGES_PER_BATCH:

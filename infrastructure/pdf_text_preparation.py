@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
-import ast
+from dataclasses import dataclass
 from pathlib import Path
 import hashlib
 import json
@@ -24,10 +24,9 @@ MANIFEST_SCHEMA = "v4.pdf_research_text_preparation.manifest.v1"
 PAGE_INPUT_SCHEMA = "v4.pdf_research_simple_batch.page_input.v1"
 RUN_ID_RE = re.compile(r"\A[a-z0-9][a-z0-9-]{0,63}\Z")
 SHA256_RE = re.compile(r"\A[0-9a-f]{64}\Z")
-# The live Sol canary preceded only the exact-text model-input bridge below.
-# Its extraction/OCR/quality functions are byte-identical (migration receipt).
-# Retain this one explicit identity so later full preparation does not redo OCR.
-COMPATIBLE_CANARY_EXTRACTOR_SHA256 = "a289e641128c07de1d430ab46ab489154f9b9040d361f00cb778c508261edfc9"
+LEGACY_EXTRACTOR_SOURCE_SHA256S = {'batch_runner': '6c048579fae3c72ad4242cef0a05a1829a7192419281e8ce24e55dfb1574ec37', 'preparation': 'b77adac81485cc0ab8b237485c89b24a37c17ddeae870245c4e1cceb95e67a97', 'pdf_research': '8cac9065f8c3e2661fe8eb03b78a49f3ec4da9786a728b4f9c560088a19a3d88', 'pinned_pdf_helper': 'ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770', 'pinned_pdf_dependency_manifest': '46aef4c2be8538f7a0d8d4d9417d2893a2e52cfd38f2d775e65db912dd5bc324'}
+# Exact historical prepared cohort verified under manifest SHA b1a2c3c7d1d416f9b825659e286e03c4edad740de05e2a85d17366e8081601f8.
+FROZEN_COHORT_EXTRACTOR_SOURCE_SHA256S = {'batch_runner': '9bacc8a23c9885de18278427e3099cdc72cbd2f871a6d7908b36ea51301e9ade', 'pdf_research': '8cac9065f8c3e2661fe8eb03b78a49f3ec4da9786a728b4f9c560088a19a3d88', 'pinned_pdf_dependency_manifest': '46aef4c2be8538f7a0d8d4d9417d2893a2e52cfd38f2d775e65db912dd5bc324', 'pinned_pdf_helper': 'ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770', 'preparation': 'b77adac81485cc0ab8b237485c89b24a37c17ddeae870245c4e1cceb95e67a97'}
 SUCCESS_REPORT_STATUSES = frozenset(
     {
         "USER_ACCEPTED_REUSED_REPORT",
@@ -60,6 +59,23 @@ CONTACT_PATTERN = re.compile(
 )
 HAN_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
 LATIN_TOKEN_RE = re.compile(r"[a-z0-9]{2,}", re.IGNORECASE)
+
+
+@dataclass(frozen=True)
+class PreparationResources:
+    sample: Callable[[], Mapping[str, int]]
+    stop_reason: Callable[[Mapping[str, Any], int], str | None]
+
+
+@dataclass(frozen=True)
+class PreparationHistory:
+    PILOT_PLAN_PATH: Path
+    EXPECTED_PILOT_PLAN_SHA256: str
+    TOOL_CANARY_STATE_ROOT: Path
+    THREE_DOCUMENT_CANARY_STATE_ROOT: Path
+    PPI_RECOVERY_STATE_ROOT: Path
+    AI_VIDEO_RECOVERY_STATE_ROOT: Path
+    TERMINAL_RECEIPT_BINDINGS: Mapping[str, tuple[Path, str]]
 
 
 class PreparationError(RuntimeError):
@@ -290,6 +306,7 @@ def _extractor_identity(batch: Any) -> dict[str, Any]:
         "batch_runner": Path(batch.__file__),
         "pdf_research": Path(pdf_research.__file__),
         "preparation": Path(__file__),
+        "text_source": Path(__file__).with_name("pdf_text_source.py"),
         "pinned_pdf_helper": Path(pdf_research.PDF_PAGES_HELPER_PATH),
         "pinned_pdf_dependency_manifest": Path(pdf_research.PDF_PAGES_HELPER_PATH).parent / "_vendor/DEPENDENCY_MANIFEST.json",
     }
@@ -447,7 +464,7 @@ def _prior_report_roots(batch: Any) -> list[Path]:
             roots.append(candidate)
     # These existing accepted continuations are outside the original r3 root.
     # Discover only their source-bound plan/receipt roots, never arbitrary runs.
-    from ops import run_pdf_research_remaining_once as dispatcher
+    dispatcher = batch.preparation_history()
     pilot, pilot_raw = _read_json(dispatcher.PILOT_PLAN_PATH, "PRIOR_PILOT_PLAN_INVALID")
     if sha256_bytes(pilot_raw) != dispatcher.EXPECTED_PILOT_PLAN_SHA256:
         raise PreparationError("PRIOR_PILOT_PLAN_DRIFT")
@@ -481,18 +498,21 @@ def _prior_report_roots(batch: Any) -> list[Path]:
     return roots
 
 
-def _canary_pipeline_fingerprint() -> str:
-    """Use the frozen Python 3.12 AST; another parser version fails closed."""
-    from ops import run_pdf_research_batch as batch
-    parts = {}
-    for name, path, excluded in (
-        ("run_pdf_research_batch", Path(batch.__file__), {"_run_document", "_prepared_recovery_input_bridge"}),
-        ("pdf_text_preparation", Path(__file__), {"_reusable_run_roots", "_cross_run_checkpoints", "_canary_pipeline_fingerprint", "verify_frozen_manifest", "audit_historical_inputs"}),
-    ):
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        parts[name] = {node.name: ast.dump(node, include_attributes=False) for node in tree.body
-                       if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and node.name not in excluded}
-    return sha256_bytes(json.dumps(parts, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+def _compatible_baseline_extractor(identity: Mapping[str, Any]) -> bool:
+    # Exact pre-relocation canonical source bytes; paths are occurrence metadata.
+    from infrastructure import pdf_text_source
+    compatible_sources = (LEGACY_EXTRACTOR_SOURCE_SHA256S, FROZEN_COHORT_EXTRACTOR_SOURCE_SHA256S)
+    vision = {
+        "pdf_ingestion_sha256": pdf_text_source.EXPECTED_PDF_INGESTION_SHA256,
+        "vision_source_sha256": pdf_text_source.EXPECTED_VISION_SOURCE_SHA256,
+        "vision_config_sha256": pdf_text_source.EXPECTED_VISION_CONFIG_SHA256,
+        "renderer_sha256": pdf_text_source.EXPECTED_RENDERER_SHA256,
+        "renderer_version": pdf_text_source.EXPECTED_RENDERER_VERSION,
+    }
+    return (identity.get("vision") == vision
+            and identity.get("method") == "pinned-native-plus-quality-qualified-cache-plus-existing-vision-repair-v1"
+            and any(all(identity.get("sources", {}).get(name, {}).get("sha256") == sha for name, sha in expected.items())
+                    for expected in compatible_sources))
 
 
 def _reusable_run_roots(prepared_root: Path, current_root: Path, *, parent_sha256: str, extractor_sha256: str) -> list[tuple[Path, str, str]]:
@@ -504,7 +524,7 @@ def _reusable_run_roots(prepared_root: Path, current_root: Path, *, parent_sha25
         run, _ = _read_json(candidate, "REUSABLE_RUN_INVALID")
         if (run.get("schema") == RUN_SCHEMA
                 and run.get("parent_manifest_sha256") == parent_sha256
-                and run.get("extractor_identity_sha256") in {extractor_sha256, COMPATIBLE_CANARY_EXTRACTOR_SHA256}
+                and run.get("extractor_identity_sha256") is not None
                 and run.get("run_id") == candidate.parent.name):
             identity = run.get("extractor_identity")
             if not isinstance(identity, dict) or identity.get("sha256") != run["extractor_identity_sha256"]:
@@ -512,14 +532,8 @@ def _reusable_run_roots(prepared_root: Path, current_root: Path, *, parent_sha25
             identity_core = {key: value for key, value in identity.items() if key != "sha256"}
             if sha256_bytes(canonical_json(identity_core)) != identity["sha256"]:
                 raise PreparationError("REUSABLE_RUN_IDENTITY_INVALID")
-            if identity["sha256"] != extractor_sha256:
-                from ops import run_pdf_research_batch as batch
-                current_identity = _extractor_identity(batch)
-                if (_canary_pipeline_fingerprint() != "293c96361cc2b98f1fa43e8f3bc8b2f03dd7251082f4284083e1dc1b682b7851"
-                        or identity.get("vision") != current_identity["vision"]
-                        or any(identity.get("sources", {}).get(name) != current_identity["sources"][name]
-                               for name in ("pdf_research", "pinned_pdf_helper", "pinned_pdf_dependency_manifest"))):
-                    continue
+            if identity["sha256"] != extractor_sha256 and not _compatible_baseline_extractor(identity):
+                continue
             roots.append((candidate.parent, run["run_id"], run["extractor_identity_sha256"]))
     return roots
 
@@ -696,34 +710,6 @@ def prepare_only(
     run_root.mkdir(mode=0o700, parents=True, exist_ok=True)
     if run_root.is_symlink():
         raise PreparationError("PREPARATION_OUTPUT_PATH_UNSAFE")
-    extractor = _extractor_identity(batch)
-    from ops import run_pdf_research_remaining_once as dispatcher
-    sampler = resource_sampler or dispatcher.sample_resource_metrics
-    baseline = dict(sampler())
-
-    def check_resources() -> None:
-        sample = dict(sampler())
-        reason = dispatcher._resource_stop_reason(sample, baseline.get("swap_used_bytes"))
-        if reason:
-            _atomic_json(run_root / "resource-pause.json", {"status": "PAUSED_RESOURCE", "reason": reason, "baseline": baseline, "sample": sample, "model_requests": 0}, run_root)
-            raise PreparationError("PREPARATION_PAUSED_RESOURCE")
-    run_value = {
-        "schema": RUN_SCHEMA,
-        "run_id": run_id,
-        "parent_manifest_path": str(Path(manifest_path).expanduser().absolute()),
-        "parent_manifest_sha256": parent_sha,
-        "parent_document_count": len(documents),
-        "extractor_identity": extractor,
-        "extractor_identity_sha256": extractor["sha256"],
-    }
-    run_path = run_root / "run.json"
-    run_bytes = canonical_json(run_value) + b"\n"
-    if run_path.exists():
-        if run_path.is_symlink() or run_path.read_bytes() != run_bytes:
-            raise PreparationError("PREPARATION_RUN_BINDING_MISMATCH")
-    else:
-        _immutable_json(batch, run_path, run_value, run_root)
-
     manifest_path_out = run_root / PREPARED_MANIFEST_NAME
     if manifest_path_out.exists():
         frozen, frozen_raw = _read_json(manifest_path_out, "PREPARED_MANIFEST_INVALID")
@@ -743,6 +729,35 @@ def prepare_only(
             "model_requests": 0,
             "model_stage": "NOT_RUN",
         }
+
+
+    extractor = _extractor_identity(batch)
+    resources = batch.preparation_resources()
+    sampler = resource_sampler or resources.sample
+    baseline = dict(sampler())
+
+    def check_resources() -> None:
+        sample = dict(sampler())
+        reason = resources.stop_reason(sample, baseline.get("swap_used_bytes"))
+        if reason:
+            _atomic_json(run_root / "resource-pause.json", {"status": "PAUSED_RESOURCE", "reason": reason, "baseline": baseline, "sample": sample, "model_requests": 0}, run_root)
+            raise PreparationError("PREPARATION_PAUSED_RESOURCE")
+    run_value = {
+        "schema": RUN_SCHEMA,
+        "run_id": run_id,
+        "parent_manifest_path": str(Path(manifest_path).expanduser().absolute()),
+        "parent_manifest_sha256": parent_sha,
+        "parent_document_count": len(documents),
+        "extractor_identity": extractor,
+        "extractor_identity_sha256": extractor["sha256"],
+    }
+    run_path = run_root / "run.json"
+    run_bytes = canonical_json(run_value) + b"\n"
+    if run_path.exists():
+        if run_path.is_symlink() or run_path.read_bytes() != run_bytes:
+            raise PreparationError("PREPARATION_RUN_BINDING_MISMATCH")
+    else:
+        _immutable_json(batch, run_path, run_value, run_root)
 
     manifest_by_id = {str(row.get("document_id")): row for row in documents}
     if len(manifest_by_id) != len(documents):
@@ -829,8 +844,9 @@ def prepare_only(
                 if number not in checkpoints:
                     persist_page(page, source_row)
                     resume_map[number] = (page, source_row)
-            repair_budget = {"remaining": max(1, int(batch._candidate_page_count(document) or 500))}
-            pages, source = batch._load_pages(
+            from infrastructure import pdf_text_source
+            repair_budget = {"remaining": max(1, int(pdf_text_source._candidate_page_count(document) or 500))}
+            pages, source = pdf_text_source.load_pages(
                 document,
                 state_root=run_root,
                 repair_budget=repair_budget,
@@ -1313,13 +1329,26 @@ def pages_from_frozen_manifest(
     page_input = row.get("page_input")
     if not isinstance(page_input, Mapping):
         raise PreparationError("PREPARED_PAGE_INPUT_UNAVAILABLE")
+    source = page_input.get("source")
+    if not isinstance(source, dict):
+        raise PreparationError("PREPARED_PAGE_INPUT_SOURCE_INVALID")
+    page_rows = page_input.get("pages")
+    expected_count = row.get("manifest_row", {}).get("page_count", source.get("page_count"))
+    if (not isinstance(page_rows, list) or not page_rows or type(expected_count) is not int
+            or expected_count < 1 or len(page_rows) != expected_count
+            or source.get("page_count") != expected_count
+            or source.get("page_extraction_status", "COMPLETE") != "COMPLETE"
+            or source.get("all_pages_nonempty", True) is not True):
+        raise PreparationError("PREPARED_PAGE_INPUT_COVERAGE_INVALID")
     pages: list[pdf_research.PageText] = []
-    for expected_number, page in enumerate(page_input.get("pages", []), 1):
+    for expected_number, page in enumerate(page_rows, 1):
         if not isinstance(page, Mapping) or page.get("page_number") != expected_number:
             raise PreparationError("PREPARED_PAGE_INPUT_COVERAGE_INVALID")
         text = page.get("text")
-        if not isinstance(text, str) or not text.strip():
+        if not isinstance(text, str) or not text.strip() or page.get("status") not in {"COMPLETE", "NATIVE_TEXT", "OCR_OK"}:
             raise PreparationError("PREPARED_PAGE_INPUT_TEXT_INVALID")
+        if page.get("page_total") not in (None, expected_count):
+            raise PreparationError("PREPARED_PAGE_INPUT_COVERAGE_INVALID")
         text_sha = sha256_bytes(text.encode("utf-8"))
         if page.get("text_sha256") not in (None, text_sha):
             raise PreparationError("PREPARED_PAGE_INPUT_TEXT_SHA_MISMATCH")

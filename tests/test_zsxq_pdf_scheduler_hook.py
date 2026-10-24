@@ -71,3 +71,31 @@ def test_pdf_hook_runs_only_after_main_success_and_preserves_hourly_status(tmp_p
     assert calls[0][1][calls[0][1].index("--pdf-limit") + 1] == "1"
     assert calls[0][1][calls[0][1].index("--pdf-time-budget-seconds") + 1] == "180"
     assert calls[0][2] == 290
+
+
+def test_analysis_dispatch_uses_verified_qwen_runtime_and_explicit_source_root(tmp_path, monkeypatch):
+    from infrastructure import pdf_research_execution as execution, local_document_model as model
+    monkeypatch.setattr(execution, 'read_run', lambda _reference: {'run_id': 'frozen'})
+    calls = []
+    def child(command, **kwargs):
+        calls.append((command, kwargs))
+        return SimpleNamespace(returncode=0, stdout=b'{"status":"GENERATED_PENDING_REVIEW","model_posts":1}', stderr=b'')
+    result = execution.dispatch_analysis_tick({'path': str(tmp_path / 'manifest.json'), 'sha256': 'a' * 64},
+        research_root=tmp_path / 'research', run_child=child)
+    command, kwargs = calls[0]
+    assert command[0] == str(model.RUNTIME_PYTHON)
+    assert command[command.index('-m') + 1] == 'infrastructure.pdf_research_execution'
+    assert kwargs['cwd'] == str(execution.REPO_ROOT)
+    assert kwargs['env']['PYTHONPATH'] == str(execution.REPO_ROOT)
+    assert result['model_posts'] == 1 and result['task_type'] == 'ANALYSIS'
+
+
+def test_typed_analysis_ingestion_dispatch_does_not_touch_ocr_branch(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as ingestion, pdf_research_execution as execution
+    calls = []
+    monkeypatch.setattr(execution, 'dispatch_analysis_tick', lambda reference, **kwargs: calls.append((reference, kwargs)) or {'status': 'DEFERRED', 'model_posts': 0})
+    monkeypatch.setattr(ingestion, 'pending_pdf_tasks', lambda *_a: (_ for _ in ()).throw(AssertionError('analysis entered OCR')))
+    ref = {'path': str(tmp_path / 'manifest.json'), 'sha256': 'a' * 64}
+    result = ingestion.process_next_pdf_task(tmp_path, analysis_reference=ref)
+    assert result['task_type'] == 'ANALYSIS' and result['model_posts'] == 0
+    assert calls[0][1]['research_root'] == tmp_path / 'external_sources/zsxq_hourly/pdf_local/research'

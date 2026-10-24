@@ -388,7 +388,7 @@ def execute_package(package_id: str) -> dict[str, Any]:
         return terminal
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def _legacy_main(argv: Sequence[str] | None = None) -> int:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package-id",required=True,choices=PACKAGE_IDS)
     parser.add_argument("--execute",action="store_true")
@@ -411,6 +411,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     except Exception as exc:
         print(json.dumps({"status":"STOPPED","code":str(getattr(exc,"code",None) or type(exc).__name__)[:96]},ensure_ascii=False),file=sys.stderr)
         return 2
+
+
+def main(argv=None):
+    from infrastructure.pdf_research_execution import cli_dispatch
+    return cli_dispatch(argv, legacy_main=_legacy_main)
 
 
 if __name__=="__main__":

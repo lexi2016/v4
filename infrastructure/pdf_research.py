@@ -1093,71 +1093,22 @@ def load_document_pages(document: Mapping[str, Any]) -> tuple[list[PageText], di
     count = document.get("page_count")
     if type(count) is not int or count < 1:
         raise PdfResearchError("PDF_PAGE_COUNT_INVALID")
-    pages, cache_info = load_page_cache(
-        pages_cache_path=Path(str(document.get("pages_cache_path", ""))),
-        pages_cache_sha256=str(document.get("pages_cache_sha256", "")),
-        pages_cache_pdf_sha256=(str(document["pages_cache_pdf_sha256"]) if document.get("pages_cache_pdf_sha256") else None),
-        pdf_sha256=expected_pdf_sha,
-        page_count=count,
+    from infrastructure import pdf_text_source
+
+    selected_pages, source = pdf_text_source.load_pages(
+        {**dict(document), "local_pdf_path": str(pdf_path), "pdf_bytes": pdf_path.stat().st_size,
+         "cache_candidates": [{"path": str(document.get("pages_cache_path", "")),
+             "sha256": document.get("pages_cache_sha256"), "page_count": count,
+             "pdf_sha256": document.get("pages_cache_pdf_sha256"), "coverage_status": "COMPLETE"}]},
+        read_only=True,
     )
-    native_pages, native_status = extract_native_pdf_pages(pdf_path, count)
-    selected_pages: list[PageText] = []
-    page_sources: list[dict[str, Any]] = []
-    for index, cached in enumerate(pages):
-        native = native_pages[index] if native_pages is not None else None
-        if native is not None and native.status == "NATIVE_TEXT":
-            selected_pages.append(native)
-            page_sources.append({"page_number": cached.page_number, "selected": "PINNED_PYPDF_NATIVE"})
-        elif cached.text.strip() and cached.status in {"COMPLETE", "NATIVE_TEXT", "OCR_OK"}:
-            selected_pages.append(cached)
-            page_sources.append(
-                {
-                    "page_number": cached.page_number,
-                    "selected": "EXISTING_CACHE",
-                    "cache_status": cached.status,
-                    "extraction_method": cached.extraction_method or "UNSPECIFIED",
-                }
-            )
-        else:
-            selected_pages.append(native or cached)
-            page_sources.append(
-                {
-                    "page_number": cached.page_number,
-                    "selected": "PINNED_PYPDF_NATIVE_EMPTY_OR_FAILED" if native is not None else "EXISTING_CACHE_EMPTY",
-                }
-            )
-    selected_native_count = sum(item["selected"] == "PINNED_PYPDF_NATIVE" for item in page_sources)
-    selected_cache_count = sum(item["selected"] == "EXISTING_CACHE" for item in page_sources)
-    selected_text_sha = local_model.sha256_bytes("".join(page.text for page in selected_pages).encode("utf-8"))
-    cache_info["cached_source_page_text_sha256"] = cache_info["source_page_text_sha256"]
-    cache_info["source_page_text_sha256"] = selected_text_sha
-    cache_info["native_extraction_status"] = native_status
-    cache_info["selected_native_page_count"] = selected_native_count
-    cache_info["selected_cache_page_count"] = selected_cache_count
-    cache_info["all_pages_nonempty"] = all(bool(page.text.strip()) for page in selected_pages)
-    cache_info["selected_pages_complete"] = all(page.status in {"COMPLETE", "NATIVE_TEXT", "OCR_OK"} for page in selected_pages)
-    cache_info["page_extraction_sources"] = page_sources
-    if not cache_info["selected_pages_complete"]:
-        cache_info["coverage_gaps"] = [page.page_number for page in selected_pages if page.status not in {"COMPLETE", "NATIVE_TEXT", "OCR_OK"}]
-    else:
-        cache_info["coverage_gaps"] = []
-    cache_info["page_extraction_status"] = "COMPLETE" if cache_info["selected_pages_complete"] else "PARTIAL"
-    has_cached_ocr = any(
-        item.get("selected") == "EXISTING_CACHE"
-        and (
-            item.get("cache_status") == "OCR_OK"
-            or "ocr" in str(item.get("extraction_method", "")).casefold()
-        )
-        for item in page_sources
-    )
-    cache_info["cached_ocr_visual_quality_status"] = (
-        "CANNOT_CONFIRM_NOT_VISUALLY_REVIEWED" if has_cached_ocr else "NOT_APPLICABLE_NO_SELECTED_OCR_CACHE"
-    )
+    cache_info = dict(source["cache"])
+    cache_info["cached_source_page_text_sha256"] = cache_info.get("source_page_text_sha256")
     return selected_pages, {
-        **cache_info,
-        "pdf_path": str(pdf_path),
-        "pdf_sha256": actual_pdf_sha,
-        "page_count": count,
+        **cache_info, **source,
+        "selected_native_page_count": sum(row["selected"] == "PINNED_PYPDF_NATIVE" for row in source["page_extraction_sources"]),
+        "selected_cache_page_count": sum(row["selected"].startswith("EXISTING_CACHE") for row in source["page_extraction_sources"]),
+        "coverage_gaps": [page.page_number for page in selected_pages if not page.text.strip() or page.status not in {"COMPLETE", "NATIVE_TEXT", "OCR_OK"}],
         "report_date": document.get("report_date"),
         "ingest_date": document.get("ingest_date"),
         "source_record_id": document.get("source_record_id"),
@@ -1818,24 +1769,5 @@ def expected_write_allowlist() -> list[str]:
 
 
 def persist_document_result(result: Mapping[str, Any], manifest_sha256: str) -> dict[str, str]:
-    document_id = str(result["document_id"])
-    if not re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", document_id):
-        raise PdfResearchError("DOCUMENT_ID_UNSAFE")
-    results_root = PDF_RESEARCH_STATE_ROOT / "results"
-    receipts_root = PDF_RESEARCH_STATE_ROOT / "receipts"
-    result_sha = _atomic_private_json(results_root / f"{document_id}.json", result, PDF_RESEARCH_STATE_ROOT)
-    receipt = {
-        "schema": "v4.pdf_research_v3.receipt.v1",
-        "document_id": document_id,
-        "document_status": result.get("document_status"),
-        "result_path": str(results_root / f"{document_id}.json"),
-        "result_sha256": result_sha,
-        "manifest_sha256": manifest_sha256,
-        "coverage": result.get("coverage"),
-        "research_only": True,
-        "production_allowed": False,
-        "buy_gate_updated": False,
-        "orders_sent": False,
-    }
-    receipt_sha = _atomic_private_json(receipts_root / f"{document_id}.json", receipt, PDF_RESEARCH_STATE_ROOT)
-    return {"result_sha256": result_sha, "receipt_sha256": receipt_sha}
+    """Legacy mutable publication is retired; historical result readers remain."""
+    raise PdfResearchError("PDF_IMMUTABLE_RUN_PUBLICATION_REQUIRED")

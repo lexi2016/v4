@@ -412,6 +412,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Advance one already-enumerated PDF from the owned queue.",
     )
+    parser.add_argument("--pdf-task-type", choices=("ocr", "analysis"), default="ocr")
+    parser.add_argument("--pdf-analysis-run-manifest", type=Path)
+    parser.add_argument("--pdf-analysis-run-sha256")
     parser.add_argument(
         "--pdf-local-batch",
         action="store_true",
@@ -447,6 +450,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-pages", type=int, default=20)
     args = parser.parse_args(argv)
     try:
+        if (args.pdf_task_type != "ocr" or args.pdf_analysis_run_manifest is not None or args.pdf_analysis_run_sha256 is not None) and not args.pdf_queue_tick:
+            raise ValueError("typed analysis arguments require --pdf-queue-tick")
+
         if (args.pdf_document_key or args.pdf_authorization_id) and not (args.pdf_recover_one or args.pdf_recovery_continue):
             raise ValueError("PDF document key and authorization ID require an explicit recovery mode")
         if args.pdf_local_batch:
@@ -492,13 +498,22 @@ def main(argv: list[str] | None = None) -> int:
         if args.pdf_queue_tick:
             if args.pdf_only or args.pdf_enqueue_only or args.date or args.slot or args.source_run_id or args.pdf_file_id or args.pdf_document_key or args.pdf_authorization_id:
                 raise ValueError("--pdf-queue-tick cannot be combined with a source run or other PDF mode")
+            analysis_reference = None
+            if args.pdf_task_type == "analysis":
+                if args.pdf_analysis_run_manifest is None or args.pdf_analysis_run_sha256 is None:
+                    raise ValueError("analysis tick requires a frozen run manifest and SHA")
+                analysis_reference = {"path": str(args.pdf_analysis_run_manifest), "sha256": args.pdf_analysis_run_sha256}
+            elif args.pdf_analysis_run_manifest is not None or args.pdf_analysis_run_sha256 is not None:
+                raise ValueError("analysis references require analysis task type")
             result = process_next_pdf_task(
                 data_root=args.data_root,
                 local_pdf_root=args.pdf_local_root,
+                **({"analysis_reference": analysis_reference} if analysis_reference else {}),
                 announcement_queue_root=args.pdf_classification_queue_root,
                 cli=args.cli,
                 time_budget_seconds=args.pdf_time_budget_seconds,
             )
+            result.setdefault("task_type", "ANALYSIS" if analysis_reference else "OCR")
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
             return 0
         if args.pdf_local_root is not None or args.pdf_classification_queue_root is not None:

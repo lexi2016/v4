@@ -196,3 +196,58 @@ def test_pdf_queue_hook_does_not_add_local_root_when_unconfigured(tmp_path, monk
     assert hook is not None
     hook._run_child()
     assert "--pdf-local-root" not in calls[0][0]
+
+
+def _analysis_hook_fixture(tmp_path, monkeypatch, *, progressing=True, analysis=True):
+    from infrastructure import pdf_research_execution as execution
+    app = tmp_path / 'app';app.mkdir()
+    data = tmp_path / 'data';data.mkdir()
+    progress = tmp_path / 'progress.json'
+    task = {'run_id': 'frozen-run', 'reference': {'path': str(tmp_path / 'manifest.json'), 'sha256': 'a' * 64}, 'progress_path': str(progress)}
+    monkeypatch.setattr(execution, 'next_analysis_task', lambda _root: task if analysis else None)
+    current = [0.0]
+    monkeypatch.setattr(daemon.time, 'monotonic', lambda: current[0])
+    captured, stopped = [], []
+    class Child:
+        pid = 1234567
+        calls = 0
+        def poll(self):
+            self.calls += 1
+            current[0] += 30
+            progress.write_text(json.dumps({'sequence': self.calls, 'kind': 'model_stream' if progressing else 'heartbeat', 'characters': 1}))
+            return 0 if self.calls == 8 else None
+        def wait(self, timeout=None): return 0
+    child = Child()
+    def popen(command, **kwargs):
+        captured.append(command)
+        kwargs['stdout'].write(b'{"status":"GENERATED_PENDING_REVIEW","task_type":"ANALYSIS","model_posts":1}')
+        kwargs['stdout'].flush()
+        return child
+    hook = daemon.PdfQueueDrainHook(app_root=app, data_root=data, python_path=Path(sys.executable),
+        popen_factory=popen, wall_seconds=150, poll_seconds=.01)
+    monkeypatch.setattr(hook, '_finish_child', lambda _child, reason: stopped.append((child.pid, reason)))
+    return hook, captured, stopped, current
+
+
+def test_analysis_supervisor_keeps_owned_child_healthy_beyond_total_150_seconds(tmp_path, monkeypatch):
+    hook, commands, stopped, current = _analysis_hook_fixture(tmp_path, monkeypatch)
+    result = hook._run_child()
+    assert result['status'] == 'GENERATED_PENDING_REVIEW'
+    assert current[0] == 240 and stopped == []
+    assert '--pdf-queue-tick' in commands[0]
+    assert commands[0][commands[0].index('--pdf-task-type') + 1] == 'analysis'
+    assert '--pdf-analysis-run-manifest' in commands[0]
+
+
+def test_analysis_supervisor_ignores_heartbeat_and_signals_only_owned_child(tmp_path, monkeypatch):
+    hook, commands, stopped, current = _analysis_hook_fixture(tmp_path, monkeypatch, progressing=False)
+    assert hook._run_child()['status'] == 'PDF_ANALYSIS_NO_PROGRESS_TIMEOUT'
+    assert stopped == [(1234567, 'NO_PROGRESS_TIMEOUT')]
+    assert current[0] >= 150
+
+
+def test_original_ocr_total_budget_is_unchanged(tmp_path, monkeypatch):
+    hook, commands, stopped, current = _analysis_hook_fixture(tmp_path, monkeypatch, analysis=False)
+    assert hook._run_child()['status'] == 'PDF_QUEUE_CHILD_TIMEOUT'
+    assert '--pdf-task-type' not in commands[0]
+    assert stopped == [(1234567, 'TIMEOUT')]

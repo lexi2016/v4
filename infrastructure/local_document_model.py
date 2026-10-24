@@ -445,3 +445,153 @@ def request_document_analysis(
         raise
     finally:
         transport.close()
+
+
+class PdfCardTransportError(LocalModelError):
+    def __init__(self, code: str, *, outcome_known: bool = False):
+        super().__init__(code)
+        self.outcome_known = outcome_known
+
+
+def request_pdf_card(*, messages, schema, expected_binding, on_raw, on_progress,
+                     on_dispatch=lambda: None, api_key=None, http_transport=None,
+                     clock=time.monotonic) -> str:
+    """One direct PDF-schema POST using the pinned shared authenticated client.
+
+    The executor owns raw storage through callbacks. No announcement parser,
+    queue, lookup envelope or external announcement source is changed.
+    """
+    require_runtime_python()
+    observed = build_request_material(schema)
+    verify_request_material(expected_binding, observed)
+    modules = load_shared_modules()
+    runner = modules.runner
+    key = api_key if api_key is not None else runner.load_local_api_key()
+    transport = runner.OmlxTransport(key, http_transport=http_transport)
+    body = {'model': MODEL_ID, 'messages': [dict(m) for m in messages], 'stream': True,
+            'stream_options': {'include_usage': True}, 'max_tokens': MAX_COMPLETION_TOKENS,
+            'enable_thinking': ENABLE_THINKING, 'temperature': REQUEST_TEMPERATURE,
+            'structured_outputs': {'json': dict(schema)}}
+    import httpx
+    last_progress = clock()
+    answer, buffer, event_lines = [], b'', []
+    finished = False
+    saw_done = False
+
+    def event(raw):
+        nonlocal last_progress, finished, saw_done
+        if raw.strip() == b'[DONE]':
+            saw_done = True
+            return
+        try:
+            value = json.loads(raw)
+        except (ValueError, UnicodeError):
+            raise PdfCardTransportError('PDF_STREAM_JSON_INVALID', outcome_known=True) from None
+        if 'error' in value:
+            error = value['error']
+            code = error.get('code') if isinstance(error, dict) else None
+            raise PdfCardTransportError('PDF_MODEL_ERROR:' + str(code or 'UNSPECIFIED')[:80], outcome_known=True)
+        if value.get('model') not in (None, MODEL_ID):
+            raise PdfCardTransportError('PDF_RESPONSE_MODEL_ID_MISMATCH', outcome_known=True)
+        for choice in value.get('choices', []):
+            delta = choice.get('delta', {})
+            if delta.get('tool_calls'):
+                raise PdfCardTransportError('PDF_TOOL_REQUEST_FORBIDDEN', outcome_known=True)
+            content = delta.get('content') or ''
+            reasoning = delta.get('reasoning_content') or ''
+            if not isinstance(content, str) or not isinstance(reasoning, str):
+                raise PdfCardTransportError('PDF_STREAM_CONTENT_INVALID', outcome_known=True)
+            if content or reasoning:
+                last_progress = clock()
+                on_progress({'kind': 'model_stream', 'characters': len(content) + len(reasoning)})
+            if content:
+                answer.append(content)
+            reason = choice.get('finish_reason')
+            if reason:
+                if reason != 'stop':
+                    raise PdfCardTransportError('PDF_COMPLETION_NOT_COMPLETE:' + str(reason), outcome_known=True)
+                finished = True
+    try:
+        on_dispatch()
+        with transport._client.stream('POST', transport._base_url + '/v1/chat/completions',
+                headers=transport._headers(), json=body,
+                timeout=httpx.Timeout(connect=10, read=90, write=30, pool=10)) as response:
+            if not 200 <= response.status_code < 300:
+                for block in response.iter_bytes():
+                    on_raw(block)
+                raise PdfCardTransportError('PDF_HTTP_STATUS:' + str(response.status_code), outcome_known=True)
+            if response.headers.get('warning'):
+                raise PdfCardTransportError('PDF_STRUCTURED_OUTPUT_WARNING', outcome_known=True)
+            for block in response.iter_bytes():
+                on_raw(block)
+                if clock() - last_progress > 90:
+                    raise PdfCardTransportError('PDF_TRANSPORT_NO_PROGRESS')
+                buffer += block
+                while b'\n' in buffer:
+                    line, buffer = buffer.split(b'\n', 1)
+                    line = line.rstrip(b'\r')
+                    if line.startswith(b'data:'):
+                        event_lines.append(line[5:].lstrip())
+                    elif not line and event_lines:
+                        event(b'\n'.join(event_lines))
+                        event_lines = []
+            if buffer.strip() or event_lines:
+                raise PdfCardTransportError('PDF_STREAM_TRUNCATED')
+        if not finished or not saw_done or not ''.join(answer).strip():
+            raise PdfCardTransportError('PDF_STREAM_EOF_OUTCOME_UNCERTAIN')
+        return ''.join(answer)
+    except PdfCardTransportError:
+        raise
+    except httpx.TimeoutException:
+        raise PdfCardTransportError('PDF_TRANSPORT_NO_PROGRESS') from None
+    except Exception as exc:
+        raise PdfCardTransportError('PDF_STREAM_INTERRUPTED:' + type(exc).__name__) from None
+    finally:
+        transport._client.close()
+
+
+ANNOUNCEMENT_ROLES = {
+    "announcement_reader",
+    "announcement_reader_part",
+    "announcement_reader_synthesis",
+}
+
+
+def pdf_priority_snapshot(path: Path | None = None) -> dict[str, Any]:
+    from infrastructure import pdf_research
+    state_path = path or (pdf_research.ANNOUNCEMENT_QUEUE_ROOT / "queue-state.json")
+    try:
+        if state_path.is_symlink() or not state_path.is_file():
+            return {"status": "DEFER", "reason": "ANNOUNCEMENT_QUEUE_UNAVAILABLE"}
+        before = state_path.stat()
+        raw = state_path.read_bytes()
+        after = state_path.stat()
+        if (before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
+            return {"status": "DEFER", "reason": "ANNOUNCEMENT_QUEUE_CHANGED_DURING_READ"}
+        state = json.loads(raw.decode("utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {"status": "DEFER", "reason": "ANNOUNCEMENT_QUEUE_UNREADABLE"}
+    if not isinstance(state, dict) or state.get("schema") != "v4.announcement-engine-queue/v1" or not isinstance(state.get("jobs"), dict):
+        return {"status": "DEFER", "reason": "ANNOUNCEMENT_QUEUE_IDENTITY_UNCONFIRMED"}
+    same_model_pending = 0
+    for item in state["jobs"].values():
+        if not isinstance(item, dict):
+            return {"status": "DEFER", "reason": "ANNOUNCEMENT_JOB_IDENTITY_UNCONFIRMED"}
+        status = item.get("status")
+        if status in {"SUCCEEDED", "FAILED", "OVERSIZE", "MISSING_MATERIAL"}:
+            continue
+        if status not in {"PENDING", "RUNNING", "CLAIMED"}:
+            return {"status": "DEFER", "reason": "ANNOUNCEMENT_JOB_STATUS_UNCONFIRMED"}
+        model_id = item.get("model_id")
+        if not isinstance(model_id, str) or not model_id.strip():
+            return {"status": "DEFER", "reason": "ANNOUNCEMENT_JOB_IDENTITY_UNCONFIRMED"}
+        if model_id != MODEL_ID:
+            continue
+        identity = item.get("identity")
+        if not isinstance(identity, dict) or identity.get("role") not in ANNOUNCEMENT_ROLES:
+            return {"status": "DEFER", "reason": "ANNOUNCEMENT_JOB_IDENTITY_UNCONFIRMED"}
+        if status in {"RUNNING", "CLAIMED"}:
+            return {"status": "DEFER", "reason": "SAME_MODEL_ANNOUNCEMENT_ACTIVE", "same_model_pending_count": same_model_pending}
+        if status == "PENDING":
+            same_model_pending += 1
+    return {"status": "ALLOW", "same_model_pending_count": same_model_pending, "pending_is_advisory": True}

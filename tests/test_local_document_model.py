@@ -294,3 +294,68 @@ def test_parsed_lookup_envelope_is_denied_before_any_followup_request(tmp_path, 
     assert len(captured) == 1
     assert captured[0].method == "POST"
     assert captured[0].url.path == "/v1/chat/completions"
+
+
+def _direct_pdf_transport(tmp_path, monkeypatch, *, stream=None, clock=lambda: 0, handler=None):
+    from infrastructure import pdf_research_protocol as protocol
+    binding = _binding(tmp_path, protocol.SCHEMA)
+    monkeypatch.setattr(local_model, 'require_runtime_python', lambda: None)
+    monkeypatch.setattr(local_model, 'build_request_material', lambda _schema: dict(binding))
+    captured = []
+    def default(request):
+        captured.append(request)
+        return httpx.Response(200, stream=stream) if stream is not None else httpx.Response(200, content=_sse('{"card":"direct"}'))
+    raw, progress = [], []
+    text = local_model.request_pdf_card(messages=[{'role': 'user', 'content': 'source'}], schema=protocol.SCHEMA,
+        expected_binding=binding, on_raw=raw.append, on_progress=progress.append,
+        api_key='test-only-key', http_transport=httpx.MockTransport(handler or default), clock=clock)
+    return text, captured, raw, progress
+
+
+def test_direct_pdf_card_uses_same_auth_config_but_no_announcement_parser(tmp_path, monkeypatch):
+    from infrastructure import pdf_research_protocol as protocol
+    text, requests, raw, progress = _direct_pdf_transport(tmp_path, monkeypatch)
+    assert text == '{"card":"direct"}'
+    assert len(requests) == 1
+    body = json.loads(requests[0].content)
+    assert body['structured_outputs'] == {'json': protocol.SCHEMA}
+    assert 'tools' not in body and body['temperature'] == 0 and body['enable_thinking'] is False
+    assert requests[0].headers['authorization'] == 'Bearer test-only-key'
+    assert b''.join(raw) == _sse('{"card":"direct"}')
+    assert progress and all(x['kind'] == 'model_stream' for x in progress)
+
+
+def test_pdf_transport_allows_healthy_actual_progress_beyond_150_seconds(tmp_path, monkeypatch):
+    current = [0]
+    class Stream(httpx.SyncByteStream):
+        def __iter__(self):
+            for i in range(7):
+                current[0] += 30
+                yield ('data: ' + json.dumps({'model': local_model.MODEL_ID, 'choices': [{'delta': {'content': str(i)}, 'finish_reason': None}]}) + '\n\n').encode()
+            yield b'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n'
+    text, requests, raw, progress = _direct_pdf_transport(tmp_path, monkeypatch, stream=Stream(), clock=lambda: current[0])
+    assert text == '0123456' and current[0] == 210 and len(progress) == 7 and len(requests) == 1
+
+
+def test_pdf_transport_comments_do_not_reset_90_second_actual_progress_budget(tmp_path, monkeypatch):
+    current = [0]
+    class Stream(httpx.SyncByteStream):
+        def __iter__(self):
+            for _ in range(4):
+                current[0] += 31
+                yield b': keepalive\n\n'
+    with pytest.raises(local_model.PdfCardTransportError, match='NO_PROGRESS'):
+        _direct_pdf_transport(tmp_path, monkeypatch, stream=Stream(), clock=lambda: current[0])
+
+
+@pytest.mark.parametrize('body,code', [(b'data: {"error":{"code":"prefill_memory_exceeded"}}\n\n', 'prefill_memory_exceeded'),
+    (b'data: {"choices":[{"delta":{"content":"partial"},"finish_reason":null}]}\n\n', 'EOF_OUTCOME'),
+    (b'data: {"choices":[{"delta":{"tool_calls":[{}]},"finish_reason":null}]}\n\n', 'TOOL_REQUEST')])
+def test_pdf_terminal_stream_failures_preserve_raw_without_followup(tmp_path, monkeypatch, body, code):
+    requests = []
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, content=body)
+    with pytest.raises(local_model.PdfCardTransportError, match=code):
+        _direct_pdf_transport(tmp_path, monkeypatch, handler=handler)
+    assert len(requests) == 1

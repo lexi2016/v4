@@ -15,6 +15,7 @@ from infrastructure import local_document_model as local_model
 from infrastructure import pdf_research
 from infrastructure import pdf_research_tools
 from ops import run_pdf_research_batch as batch
+from infrastructure import pdf_text_source as text_source
 
 
 def _sha(text: str) -> str:
@@ -656,7 +657,7 @@ def test_pending_source_snapshot_does_not_conflict_when_next_tick_repairs_page(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     doc, _pdf_path, _cache_path, pdf_sha = _low_resolution_load_pages_fixture(tmp_path, monkeypatch)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
     ocr_calls: list[int] = []
 
     def fake_ocr(_path: Path, page_number: int, _scale: int):
@@ -669,7 +670,7 @@ def test_pending_source_snapshot_does_not_conflict_when_next_tick_repairs_page(
             "source_text_sha256": _sha(text),
         }
 
-    monkeypatch.setattr(batch, "_perform_page_ocr", fake_ocr)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", fake_ocr)
     state_root = tmp_path / "state"
     queue = _ResumableFakeQueue(state_root / "queue")
     monkeypatch.setattr(batch, "_read_r1_success", lambda *_args: None)
@@ -724,8 +725,8 @@ def test_rendered_then_reused_derived_ocr_keeps_same_final_input_and_model_call_
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     doc, _pdf_path, _cache_path, pdf_sha = _low_resolution_load_pages_fixture(tmp_path, monkeypatch)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda _path, page_number, _scale: (
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda _path, page_number, _scale: (
         "唯一一次恢复后的OCR文本",
         {
             "pdf_sha256": pdf_sha,
@@ -915,13 +916,13 @@ def test_preparation_resumes_only_unfinished_pages_after_a_repair_tick(
     monkeypatch.setattr(batch.pdf_research, "extract_native_pdf_pages", lambda _path, _count: (blank_pages, "PARTIAL_OR_BLANK"))
     monkeypatch.setattr(batch.pdf_research, "load_page_cache", lambda **_kwargs: (cached_pages, {"status": "VALIDATED_THREE_PAGE_CACHE"}))
     monkeypatch.setattr(
-        batch,
+        text_source,
         "_page_geometry",
         lambda _path, _count, _sha: [
             {"width_points": 600.0, "height_points": 5001.0, "rotation_degrees": 0.0} for _page in range(3)
         ],
     )
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
     ocr_calls: list[int] = []
 
     def fake_ocr(_path: Path, page_number: int, _scale: int):
@@ -934,7 +935,7 @@ def test_preparation_resumes_only_unfinished_pages_after_a_repair_tick(
             "source_text_sha256": _sha(text),
         }
 
-    monkeypatch.setattr(batch, "_perform_page_ocr", fake_ocr)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", fake_ocr)
     document = {
         "document_id": pdf_sha,
         "pdf_sha256": pdf_sha,
@@ -1127,7 +1128,7 @@ def _low_resolution_load_pages_fixture(
     monkeypatch.setattr(batch.pdf_research, "extract_native_pdf_pages", lambda _path, _count: ([blank_native], "PARTIAL_OR_BLANK"))
     monkeypatch.setattr(batch.pdf_research, "load_page_cache", lambda **_kwargs: ([cache_page], {"status": "VALIDATED_TEST_CACHE"}))
     monkeypatch.setattr(
-        batch,
+        text_source,
         "_page_geometry",
         lambda _path, _count, _sha: [{"width_points": 600.0, "height_points": 5001.0, "rotation_degrees": 0.0}],
     )
@@ -1148,7 +1149,7 @@ def test_long_geometry_bypasses_sparse_cache_and_reuses_derived_ocr_on_resume(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     doc, _pdf_path, _cache_path, pdf_sha = _low_resolution_load_pages_fixture(tmp_path, monkeypatch)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
     ocr_calls: list[tuple[int, int]] = []
 
     def fake_ocr(_path: Path, page_number: int, scale: int):
@@ -1160,7 +1161,7 @@ def test_long_geometry_bypasses_sparse_cache_and_reuses_derived_ocr_on_resume(
             "source_text_sha256": _sha("恢复后的保守叙事文字"),
         }
 
-    monkeypatch.setattr(batch, "_perform_page_ocr", fake_ocr)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", fake_ocr)
     state_root = tmp_path / "r2-state"
     budget = {"remaining": 2}
     pages, source = batch._load_pages(doc, state_root=state_root, repair_budget=budget)
@@ -1175,7 +1176,7 @@ def test_long_geometry_bypasses_sparse_cache_and_reuses_derived_ocr_on_resume(
     derived_path = state_root / "documents" / pdf_sha / "derived-ocr/page-0001.json"
     assert derived_path.is_file()
 
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda *_args: pytest.fail("resume must reuse derived OCR"))
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda *_args: pytest.fail("resume must reuse derived OCR"))
     resumed, resumed_source = batch._load_pages(doc, state_root=state_root, repair_budget={"remaining": 2})
     assert resumed[0].text == pages[0].text
     assert resumed_source["new_ocr_attempts_this_tick"] == 0
@@ -1187,8 +1188,8 @@ def test_low_resolution_sparse_cache_without_source_gate_is_deferred_before_mode
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     doc, _pdf_path, _cache_path, _pdf_sha = _low_resolution_load_pages_fixture(tmp_path, monkeypatch)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: None)
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda *_args: pytest.fail("source gate is required before OCR"))
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: None)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda *_args: pytest.fail("source gate is required before OCR"))
     state_root = tmp_path / "r2-state"
     pages, source = batch._load_pages(doc, state_root=state_root, repair_budget={"remaining": 2})
     assert pages[0].text == ""
@@ -1214,14 +1215,14 @@ def test_low_resolution_sparse_cache_without_source_gate_is_deferred_before_mode
 
 def test_single_failed_repair_is_isolated_and_not_retried(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     doc, _pdf_path, _cache_path, _pdf_sha = _low_resolution_load_pages_fixture(tmp_path, monkeypatch)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
     calls: list[int] = []
 
     def fail_ocr(_path: Path, page_number: int, _scale: int):
         calls.append(page_number)
         raise batch.BatchError("VISION_TIMEOUT")
 
-    monkeypatch.setattr(batch, "_perform_page_ocr", fail_ocr)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", fail_ocr)
     state_root = tmp_path / "r2-state"
     first_pages, first_source = batch._load_pages(doc, state_root=state_root, repair_budget={"remaining": 2})
     assert first_source["source_repair_status"] == "FAILED_SINGLE_ATTEMPT"
@@ -1243,8 +1244,8 @@ def test_verified_adequate_existing_long_page_cache_is_preserved(tmp_path: Path,
         render_dimensions=(1560, 13000),
         cached_text="已存在的高分辨率缓存文本",
     )
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: None)
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda *_args: pytest.fail("adequate cache must be preserved"))
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: None)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda *_args: pytest.fail("adequate cache must be preserved"))
 
     pages, source = batch._load_pages(doc, state_root=tmp_path / "state", repair_budget={"remaining": 2})
 
@@ -1271,13 +1272,13 @@ def test_unsupported_geometry_is_truthfully_isolated_without_an_ocr_attempt(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     doc, _pdf_path, _cache_path, _pdf_sha = _low_resolution_load_pages_fixture(tmp_path, monkeypatch)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: {"reviewer": "independent"})
     monkeypatch.setattr(
-        batch,
+        text_source,
         "_page_geometry",
         lambda *_args: (_ for _ in ()).throw(batch.BatchError("PAGE_GEOMETRY_UNSUPPORTED")),
     )
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda *_args: pytest.fail("unknown geometry must not trigger OCR"))
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda *_args: pytest.fail("unknown geometry must not trigger OCR"))
 
     pages, source = batch._load_pages(doc, state_root=tmp_path / "state", repair_budget={"remaining": 2})
 
@@ -1313,8 +1314,8 @@ def test_cache_render_geometry_comes_from_the_candidate_that_loaded(tmp_path: Pa
         ], {"status": "SECOND_VALIDATED_TEST_CACHE"}
 
     monkeypatch.setattr(batch.pdf_research, "load_page_cache", load_candidate)
-    monkeypatch.setattr(batch, "_read_source_text_canary_review", lambda: None)
-    monkeypatch.setattr(batch, "_perform_page_ocr", lambda *_args: pytest.fail("valid second cache candidate must be preserved"))
+    monkeypatch.setattr(text_source, "_read_source_text_canary_review", lambda: None)
+    monkeypatch.setattr(text_source, "_perform_page_ocr", lambda *_args: pytest.fail("valid second cache candidate must be preserved"))
 
     pages, source = batch._load_pages(doc, state_root=tmp_path / "state", repair_budget={"remaining": 2})
 
@@ -1334,9 +1335,9 @@ def test_reviewed_scale_canary_bounds_prompt_and_input_metadata(
     attempt = {
         "schema": "v4.pdf_simple_batch.ocr_scale_canary_attempt.v1",
         "status": "NEW_TEXT_REVIEW_REQUIRED",
-        "document_id": batch.FIRST_CONTENT_FAIL_PDF_SHA256,
-        "scope_sha256": batch.SOURCE_CANARY_SCOPE_SHA256,
-        "source_pdf": {"sha256": batch.FIRST_CONTENT_FAIL_PDF_SHA256, "page_count": 1},
+        "document_id": text_source.FIRST_CONTENT_FAIL_PDF_SHA256,
+        "scope_sha256": text_source.SOURCE_CANARY_SCOPE_SHA256,
+        "source_pdf": {"sha256": text_source.FIRST_CONTENT_FAIL_PDF_SHA256, "page_count": 1},
         "page": {
             "page_number": 1,
             "original_dimensions_points": {"height_points": 5001.0, "width_points": 600.0},
@@ -1345,7 +1346,7 @@ def test_reviewed_scale_canary_bounds_prompt_and_input_metadata(
         "ocr_attempt": {"full_vision_result": {"status": "OCR_OK"}},
         "render_identity": {
             "render_scale_to": 13000,
-            "renderer_sha256": batch.EXPECTED_RENDERER_SHA256,
+            "renderer_sha256": text_source.EXPECTED_RENDERER_SHA256,
             "render_image": {"sha256": "e" * 64},
         },
         "text": {"value": text, "sha256": text_sha},
@@ -1361,11 +1362,11 @@ def test_reviewed_scale_canary_bounds_prompt_and_input_metadata(
         "exclude_or_bound": ["Do not extract row-level announcement tables", "Do not report footer chips or market metrics as exact"],
     }
     review = {
-        "schema": batch.SOURCE_CANARY_REVIEW_SCHEMA,
+        "schema": text_source.SOURCE_CANARY_REVIEW_SCHEMA,
         "status": "SOURCE_CONTENT_PASS",
         "reviewer": "independent-reviewer",
-        "scope": {"document_id": batch.FIRST_CONTENT_FAIL_PDF_SHA256, "page_number": 1},
-        "pdf_sha256": batch.FIRST_CONTENT_FAIL_PDF_SHA256,
+        "scope": {"document_id": text_source.FIRST_CONTENT_FAIL_PDF_SHA256, "page_number": 1},
+        "pdf_sha256": text_source.FIRST_CONTENT_FAIL_PDF_SHA256,
         "attempt_sha256": attempt_sha,
         "text_sha256": text_sha,
         "text_characters": len(text),
@@ -1375,23 +1376,23 @@ def test_reviewed_scale_canary_bounds_prompt_and_input_metadata(
     review_path = tmp_path / "source-review.json"
     review_raw = json.dumps(review, ensure_ascii=False).encode("utf-8")
     review_path.write_bytes(review_raw)
-    monkeypatch.setattr(batch, "SOURCE_CANARY_ATTEMPT_PATH", attempt_path)
-    monkeypatch.setattr(batch, "SOURCE_CANARY_ATTEMPT_SHA256", attempt_sha)
-    monkeypatch.setattr(batch, "SOURCE_CANARY_TEXT_SHA256", text_sha)
-    monkeypatch.setattr(batch, "SOURCE_CANARY_REVIEW_DEFAULT", review_path)
-    monkeypatch.setattr(batch, "SOURCE_CANARY_REVIEW_SHA256", hashlib.sha256(review_raw).hexdigest())
+    monkeypatch.setattr(text_source, "SOURCE_CANARY_ATTEMPT_PATH", attempt_path)
+    monkeypatch.setattr(text_source, "SOURCE_CANARY_ATTEMPT_SHA256", attempt_sha)
+    monkeypatch.setattr(text_source, "SOURCE_CANARY_TEXT_SHA256", text_sha)
+    monkeypatch.setattr(text_source, "SOURCE_CANARY_REVIEW_DEFAULT", review_path)
+    monkeypatch.setattr(text_source, "SOURCE_CANARY_REVIEW_SHA256", hashlib.sha256(review_raw).hexdigest())
 
-    recovered = batch._read_scale_canary_page(batch.FIRST_CONTENT_FAIL_PDF_SHA256, 1)
+    recovered = text_source._read_scale_canary_page(text_source.FIRST_CONTENT_FAIL_PDF_SHA256, 1)
     assert recovered is not None
     page, provenance = recovered
     assert page.text == text
     assert provenance["accepted_markdown_boundary"] == boundary
     with pytest.raises(batch.BatchError, match="SOURCE_TEXT_CANARY_ATTEMPT_BINDING_MISMATCH"):
-        batch._read_scale_canary_page(batch.FIRST_CONTENT_FAIL_PDF_SHA256, 1, expected_page_count=2)
+        text_source._read_scale_canary_page(text_source.FIRST_CONTENT_FAIL_PDF_SHA256, 1, expected_page_count=2)
 
-    chunk = batch._build_document_chunks(batch.FIRST_CONTENT_FAIL_PDF_SHA256, [page])[0]
+    chunk = batch._build_document_chunks(text_source.FIRST_CONTENT_FAIL_PDF_SHA256, [page])[0]
     messages = batch._document_messages(
-        {"document_id": batch.FIRST_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
+        {"document_id": text_source.FIRST_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
         chunk,
         partial_source=False,
     )
@@ -1410,14 +1411,14 @@ def test_reviewed_slice_canary_reuse_and_high_priority_boundaries(tmp_path: Path
         "schema": "v4.pdf_research_simple_batch.longscan_slice_ocr_canary.v1",
         "status": "OCR_COMPLETE_SOURCE_REVIEW_PENDING",
         "scope_sha256": "a" * 64,
-        "document": {"pdf_sha256": batch.SECOND_CONTENT_FAIL_PDF_SHA256, "page_count": 1, "page_number": 1},
+        "document": {"pdf_sha256": text_source.SECOND_CONTENT_FAIL_PDF_SHA256, "page_count": 1, "page_number": 1},
         "helper_identity": {
-            "prepare_crop_sha256": batch.EXPECTED_V3_PREPARE_OCR_SHA256,
-            "common_sha256": batch.EXPECTED_V3_COMMON_SHA256,
-            "renderer_sha256": batch.EXPECTED_RENDERER_SHA256,
-            "renderer_version": batch.EXPECTED_RENDERER_VERSION,
-            "vision_source_sha256": batch.EXPECTED_VISION_SOURCE_SHA256,
-            "vision_config_sha256": batch.EXPECTED_VISION_CONFIG_SHA256,
+            "prepare_crop_sha256": text_source.EXPECTED_V3_PREPARE_OCR_SHA256,
+            "common_sha256": text_source.EXPECTED_V3_COMMON_SHA256,
+            "renderer_sha256": text_source.EXPECTED_RENDERER_SHA256,
+            "renderer_version": text_source.EXPECTED_RENDERER_VERSION,
+            "vision_source_sha256": text_source.EXPECTED_VISION_SOURCE_SHA256,
+            "vision_config_sha256": text_source.EXPECTED_VISION_CONFIG_SHA256,
             "slice_height": 9000,
         },
         "render": {"width_pixels": 1541, "height_pixels": 13000, "sha256": "b" * 64},
@@ -1425,7 +1426,7 @@ def test_reviewed_slice_canary_reuse_and_high_priority_boundaries(tmp_path: Path
         "result": {"status": "OCR_OK_SLICED", "part_text_order": [1, 2], "sha256": text_sha, "characters": len(text)},
     }
     manifest = {
-        "source_pdf_sha256": batch.SECOND_CONTENT_FAIL_PDF_SHA256,
+        "source_pdf_sha256": text_source.SECOND_CONTENT_FAIL_PDF_SHA256,
         "source_image_sha256": "b" * 64,
         "width": 1541,
         "height": 13000,
@@ -1442,10 +1443,10 @@ def test_reviewed_slice_canary_reuse_and_high_priority_boundaries(tmp_path: Path
         "exclude_or_bound": ["不报告市场数字和表格映射"],
     }
     review = {
-        "schema": batch.SOURCE_CANARY_REVIEW_SCHEMA,
+        "schema": text_source.SOURCE_CANARY_REVIEW_SCHEMA,
         "status": "SOURCE_CONTENT_PASS",
         "reviewer": "independent-reviewer",
-        "pdf_sha256": batch.SECOND_CONTENT_FAIL_PDF_SHA256,
+        "pdf_sha256": text_source.SECOND_CONTENT_FAIL_PDF_SHA256,
         "scope_sha256": "c" * 64,
         "accepted_markdown_boundary": boundary,
     }
@@ -1458,28 +1459,28 @@ def test_reviewed_slice_canary_reuse_and_high_priority_boundaries(tmp_path: Path
         ("SLICE_CANARY_ATTEMPT_PATH", "SLICE_CANARY_MANIFEST_PATH", "SLICE_CANARY_TEXT_PATH", "SLICE_CANARY_REVIEW_DEFAULT"),
         paths,
     ):
-        monkeypatch.setattr(batch, name, value)
+        monkeypatch.setattr(text_source, name, value)
     for name, value in zip(
         ("SLICE_CANARY_ATTEMPT_SHA256", "SLICE_CANARY_MANIFEST_SHA256", "SLICE_CANARY_TEXT_SHA256", "SLICE_CANARY_REVIEW_SHA256"),
         hashes,
     ):
-        monkeypatch.setattr(batch, name, value)
-    monkeypatch.setattr(batch, "SLICE_CANARY_SCOPE_SHA256", "a" * 64)
-    monkeypatch.setattr(batch, "SLICE_SOURCE_REVIEW_SCOPE_SHA256", "c" * 64)
+        monkeypatch.setattr(text_source, name, value)
+    monkeypatch.setattr(text_source, "SLICE_CANARY_SCOPE_SHA256", "a" * 64)
+    monkeypatch.setattr(text_source, "SLICE_SOURCE_REVIEW_SCOPE_SHA256", "c" * 64)
 
-    recovered = batch._read_slice_canary_page(batch.SECOND_CONTENT_FAIL_PDF_SHA256, 1, expected_page_count=1)
+    recovered = text_source._read_slice_canary_page(text_source.SECOND_CONTENT_FAIL_PDF_SHA256, 1, expected_page_count=1)
 
     assert recovered is not None
     page, provenance = recovered
     assert page.text == text
     assert provenance["accepted_markdown_boundary"] == boundary
     chunk = batch._build_document_chunks(
-        batch.SECOND_CONTENT_FAIL_PDF_SHA256,
+        text_source.SECOND_CONTENT_FAIL_PDF_SHA256,
         [page],
-        prompt_source={"document_id": batch.SECOND_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
+        prompt_source={"document_id": text_source.SECOND_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
     )[0]
     user_message = batch._document_messages(
-        {"document_id": batch.SECOND_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
+        {"document_id": text_source.SECOND_CONTENT_FAIL_PDF_SHA256, "_accepted_ocr_boundary": boundary},
         chunk,
         partial_source=False,
     )[-1]["content"]
@@ -1539,15 +1540,15 @@ def test_long_render_uses_existing_two_slice_geometry_and_vision(tmp_path: Path,
 
     vision = Vision()
     ingestion_path = Path(__file__).resolve().parents[1] / "infrastructure/zsxq_pdf_ingestion.py"
-    monkeypatch.setattr(batch, "EXPECTED_RENDERER_SHA256", _sha("test-renderer"))
-    monkeypatch.setattr(batch, "EXPECTED_RENDERER_VERSION", "test-renderer-version")
-    monkeypatch.setattr(batch, "EXPECTED_VISION_SOURCE_SHA256", "v" * 64)
-    monkeypatch.setattr(batch, "EXPECTED_VISION_CONFIG_SHA256", "c" * 64)
-    monkeypatch.setattr(batch, "V3_OCR_SCRIPTS_ROOT", tmp_path)
-    monkeypatch.setattr(batch, "V3_PREPARE_OCR_PATH", prepare_path)
-    monkeypatch.setattr(batch, "V3_COMMON_PATH", common_path)
-    monkeypatch.setattr(batch, "EXPECTED_V3_PREPARE_OCR_SHA256", hashlib.sha256(prepare_path.read_bytes()).hexdigest())
-    monkeypatch.setattr(batch, "EXPECTED_V3_COMMON_SHA256", hashlib.sha256(common_path.read_bytes()).hexdigest())
+    monkeypatch.setattr(text_source, "EXPECTED_RENDERER_SHA256", _sha("test-renderer"))
+    monkeypatch.setattr(text_source, "EXPECTED_RENDERER_VERSION", "test-renderer-version")
+    monkeypatch.setattr(text_source, "EXPECTED_VISION_SOURCE_SHA256", "v" * 64)
+    monkeypatch.setattr(text_source, "EXPECTED_VISION_CONFIG_SHA256", "c" * 64)
+    monkeypatch.setattr(text_source, "V3_OCR_SCRIPTS_ROOT", tmp_path)
+    monkeypatch.setattr(text_source, "V3_PREPARE_OCR_PATH", prepare_path)
+    monkeypatch.setattr(text_source, "V3_COMMON_PATH", common_path)
+    monkeypatch.setattr(text_source, "EXPECTED_V3_PREPARE_OCR_SHA256", hashlib.sha256(prepare_path.read_bytes()).hexdigest())
+    monkeypatch.setattr(text_source, "EXPECTED_V3_COMMON_SHA256", hashlib.sha256(common_path.read_bytes()).hexdigest())
     fake_ingestion = SimpleNamespace(
         DEFAULT_PDFTOPPM=str(renderer),
         RENDER_SCALE_TO=2600,
@@ -1561,7 +1562,7 @@ def test_long_render_uses_existing_two_slice_geometry_and_vision(tmp_path: Path,
     pdf = tmp_path / "source.pdf"
     pdf.write_bytes(b"test-pdf")
 
-    text, provenance = batch._perform_page_ocr(pdf, 1, 13000)
+    text, provenance = text_source._perform_page_ocr(pdf, 1, 13000)
 
     assert text == "切片1\n切片2"
     assert len(calls) == 2
@@ -1570,7 +1571,7 @@ def test_long_render_uses_existing_two_slice_geometry_and_vision(tmp_path: Path,
     ]
     assert all(len(row["crop_sha256"]) == len(row["text_sha256"]) == 64 for row in provenance["slice_provenance"])
     assert provenance["slice_geometry_status"] == "GAP_FREE_CONTIGUOUS_NONOVERLAPPING"
-    assert provenance["vision_aggregate_elapsed_seconds"] <= batch.MAX_REPAIR_VISION_AGGREGATE_SECONDS
+    assert provenance["vision_aggregate_elapsed_seconds"] <= text_source.MAX_REPAIR_VISION_AGGREGATE_SECONDS
 
 
 def test_r1_success_reuse_requires_exact_payload_and_excludes_content_failed_pdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1631,7 +1632,7 @@ def test_r1_success_reuse_requires_exact_payload_and_excludes_content_failed_pdf
 
     changed_payload = {**payload, "payload": "changed"}
     assert batch._read_r1_success(queue, changed_payload) is None
-    rejected_payload = {**payload, "source_sha256": batch.FIRST_CONTENT_FAIL_PDF_SHA256}
+    rejected_payload = {**payload, "source_sha256": text_source.FIRST_CONTENT_FAIL_PDF_SHA256}
     assert batch._read_r1_success(queue, rejected_payload) is None
 
 
@@ -1695,8 +1696,8 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
         "reviewer": "independent-report-reviewer",
         "binding_check": "PASS",
         "manifest_sha256": manifest_sha,
-        "source_text_review_sha256": batch.SOURCE_CANARY_REVIEW_SHA256,
-        "second_source_text_review_sha256": batch.SLICE_CANARY_REVIEW_SHA256,
+        "source_text_review_sha256": text_source.SOURCE_CANARY_REVIEW_SHA256,
+        "second_source_text_review_sha256": text_source.SLICE_CANARY_REVIEW_SHA256,
         "documents": review_rows,
         "findings": findings,
     }
@@ -1751,8 +1752,8 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
     )
 
     observed = {item["document_id"]: item for item in result["documents"]}
-    first = observed[batch.FIRST_CONTENT_FAIL_PDF_SHA256]
-    second = observed[batch.SECOND_CONTENT_FAIL_PDF_SHA256]
+    first = observed[text_source.FIRST_CONTENT_FAIL_PDF_SHA256]
+    second = observed[text_source.SECOND_CONTENT_FAIL_PDF_SHA256]
     assert first["status"] == second["status"] == "FAILED_DOCUMENT_ISOLATED"
     assert first["failure_code"] == second["failure_code"] == "REPORT_CONTENT_REVIEW_FAIL"
     assert second["review_reason"]["severity"] == "P1"
@@ -1762,9 +1763,9 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
     assert result["research_only"] is True
     persisted = json.loads((state_root / "run-progress.json").read_text(encoding="utf-8"))
     persisted_documents = {item["document_id"]: item for item in persisted["documents"]}
-    assert persisted_documents[batch.FIRST_CONTENT_FAIL_PDF_SHA256]["failure_code"] == "REPORT_CONTENT_REVIEW_FAIL"
-    assert persisted_documents[batch.SECOND_CONTENT_FAIL_PDF_SHA256]["review_reference"]["verdict"] == "FAIL"
-    assert persisted_documents[batch.SECOND_CONTENT_FAIL_PDF_SHA256]["review_reason"]["severity"] == "P1"
+    assert persisted_documents[text_source.FIRST_CONTENT_FAIL_PDF_SHA256]["failure_code"] == "REPORT_CONTENT_REVIEW_FAIL"
+    assert persisted_documents[text_source.SECOND_CONTENT_FAIL_PDF_SHA256]["review_reference"]["verdict"] == "FAIL"
+    assert persisted_documents[text_source.SECOND_CONTENT_FAIL_PDF_SHA256]["review_reason"]["severity"] == "P1"
 
     for doc_id, snapshots in old_bytes.items():
         doc_root = state_root / "documents" / doc_id
@@ -1774,7 +1775,7 @@ def test_full_batch_isolates_only_bound_report_failures_and_continues(tmp_path: 
         assert not (doc_root / "progress.json").exists()
 
     # A post-review artifact mismatch changes only that document's classification.
-    first_report = state_root / "documents" / batch.FIRST_CONTENT_FAIL_PDF_SHA256 / "report.md"
+    first_report = state_root / "documents" / text_source.FIRST_CONTENT_FAIL_PDF_SHA256 / "report.md"
     first_report.write_text("changed after review", encoding="utf-8")
     cannot_confirm = batch._isolate_known_report_content_failure(
         documents[1], state_root=state_root, manifest_sha=manifest_sha
@@ -1994,7 +1995,7 @@ def _pre_model_tool_canary_evidence_fixture(tmp_path: Path) -> dict[str, object]
             }],
         },
         "failed_page": {
-            "schema": batch.SOURCE_REPAIR_SCHEMA,
+            "schema": text_source.SOURCE_REPAIR_SCHEMA,
             "pdf_sha256": document_id,
             "page_number": 1,
             "status": "SOURCE_REPAIR_UNSUPPORTED_GEOMETRY",

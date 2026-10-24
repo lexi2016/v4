@@ -1065,6 +1065,8 @@ def test_cache_and_native_first_selection_are_hash_bound_and_never_run_ocr(tmp_p
         "pages_cache_sha256": hashlib.sha256(cache_bytes).hexdigest(),
         "pages_cache_pdf_sha256": hashlib.sha256(pdf_bytes).hexdigest(),
     }
+    from infrastructure import pdf_text_preparation
+    monkeypatch.setattr(pdf_text_preparation, "inspect_page_images", lambda _path, *, page_numbers, **_kw: {n: False for n in page_numbers})
     pages, source = pdf.load_document_pages(document)
     assert [page.text for page in pages] == ["Native page one", "OCR page two"]
     assert source["selected_native_page_count"] == 1
@@ -1219,3 +1221,28 @@ def test_two_pdf_queues_share_one_model_lock_without_nested_lock_or_announcement
     ]
     result = pdf._read_validated_result(q1, q1.enqueue(queue_payload("one"))["idempotency_key"])
     assert result == {"ok": True}
+
+
+def test_read_only_research_selects_cached_body_over_repeated_native_watermark(tmp_path, monkeypatch):
+    root = tmp_path / 'data'
+    root.mkdir()
+    pdf_path = root / 'source.pdf'
+    pdf_path.write_bytes(b'%PDF-local fixture')
+    pdf_sha = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
+    watermark = '本报告仅供客户内部研究参考，请勿外传'
+    cached = [{'page_number': n, 'page_total': 2, 'status': 'OCR_OK',
+               'method': 'macOS Vision cached OCR',
+               'text': f'第{n}页公司收入增长和业务变化，主营产品销售、利润率、研发投入、行业竞争、订单交付、经营现金流和风险分析。' * 20} for n in (1, 2)]
+    cache_path = root / 'external_sources/zsxq_hourly/cache.json'
+    cache_path.parent.mkdir(parents=True)
+    cache_path.write_text(json.dumps(cached, ensure_ascii=False))
+    monkeypatch.setattr(pdf, 'AUTHORITATIVE_DATA_ROOT', root)
+    monkeypatch.setattr(pdf, 'extract_native_pdf_pages', lambda *_: ([
+        pdf.PageText(n, 2, watermark, 'NATIVE_TEXT', None, 'pypdf') for n in (1, 2)], 'COMPLETE'))
+    pages, source = pdf.load_document_pages({'document_id': 'old-occurrence', 'pdf_path': str(pdf_path),
+        'pdf_sha256': pdf_sha, 'page_count': 2, 'pages_cache_path': str(cache_path),
+        'pages_cache_sha256': hashlib.sha256(cache_path.read_bytes()).hexdigest(),
+        'pages_cache_pdf_sha256': pdf_sha})
+    assert [p.text for p in pages] == [row['text'] for row in cached]
+    assert source['selected_cache_page_count'] == 2
+    assert source['page_extraction_status'] == 'COMPLETE'

@@ -1,5 +1,6 @@
 """Bounded LIGHT cards for the exact accepted full routing, under the existing journal."""
 from __future__ import annotations
+from infrastructure import pdf_research_validation as pdf_validation
 import argparse
 import copy
 import re
@@ -146,176 +147,28 @@ def source_groups(row:Mapping[str,Any],pages:Sequence[Mapping[str,Any]]) -> list
     return groups
 
 
-def _compact(text:str) -> str:
-    return ''.join(c for c in text if not c.isspace())
+_compact = pdf_validation._compact
 
 
-def source_limit_quotes(pages:Sequence[Mapping[str,Any]]) -> list[dict[str,Any]]:
-    found=[];seen=set()
-    patterns=(r'调研内容[^。]{0,350}?不构成[^。]{0,350}?为准[。]?',r'不构成投资建议[^。]{0,250}[。]?')
-    for page in pages:
-        for pattern in patterns:
-            for match in re.finditer(pattern,page['text']):
-                quote=match.group();key=(page['page_number'],_compact(quote))
-                if key in seen:continue
-                seen.add(key);found.append({'page_number':page['page_number'],'text_sha256':page['text_sha256'],'excerpt':quote})
-    return found
+source_limit_quotes = pdf_validation.source_limit_quotes
 
 
-def canonicalize_citations(raw_inner:str,pages:Sequence[Mapping[str,Any]]) -> tuple[dict[str,Any],list[dict[str,Any]]]:
-    card=json.loads(raw_inner);result=copy.deepcopy(card);page_map={p['page_number']:p for p in pages};audit=[]
-    def visit(value:Any,path:str) -> None:
-        if isinstance(value,dict):
-            if set(value)=={'page_number','text_sha256','excerpt'}:
-                if type(value['page_number']) is not int or not isinstance(value['text_sha256'],str):fail('FULL_CITATION_INVALID')
-                page=page_map.get(value['page_number']);quote=value['excerpt']
-                if not page or page['text_sha256']!=value['text_sha256'] or not isinstance(quote,str) or not 1<=len(quote)<=300:fail('FULL_CITATION_NOT_EXACT_SOURCE')
-                if quote in page['text']:return
-                compact=_compact(quote);flat=_compact(page['text'])
-                if not compact:fail('FULL_CITATION_NOT_EXACT_SOURCE')
-                hits=[];offset=0
-                while True:
-                    index=flat.find(compact,offset)
-                    if index<0:break
-                    hits.append(index);offset=index+1
-                if len(hits)!=1:fail('FULL_CITATION_WHITESPACE_SPAN_NOT_UNIQUE')
-                indexes=[i for i,c in enumerate(page['text']) if not c.isspace()]
-                start=indexes[hits[0]];end=indexes[hits[0]+len(compact)-1]+1;actual=page['text'][start:end]
-                if _compact(actual)!=compact or len(actual)>300:fail('FULL_CITATION_NOT_EXACT_SOURCE')
-                audit.append({'path':path,'transformation':'UNIQUE_WHITESPACE_EQUIVALENT_SOURCE_SPAN','page_number':page['page_number'],'page_text_sha256':page['text_sha256'],'raw_inner_sha256':sha(raw_inner.encode()),'original_excerpt':quote,'original_excerpt_sha256':sha(quote.encode()),'source_start_character':start,'source_end_character':end,'source_excerpt':actual,'source_excerpt_sha256':sha(actual.encode())})
-                value['excerpt']=actual;return
-            for key,item in value.items():visit(item,path+'.'+key)
-        elif isinstance(value,list):
-            for i,item in enumerate(value):visit(item,f'{path}[{i}]')
-    visit(result,'card')
-    # UNKNOWN is a schema sentinel, never a guessed source entity/name.
-    roles=result.get('speaker_and_source_attribution',[]) if isinstance(result,dict) else []
-    if isinstance(roles,list):
-        for index,item in enumerate(roles):
-            if isinstance(item,dict) and item.get('role')=='UNKNOWN' and isinstance(item.get('entity'),str) and item['entity'].casefold()=='unknown' and item['entity']!='UNKNOWN':
-                audit.append({'path':f'card.speaker_and_source_attribution[{index}].entity','transformation':'SCHEMA_UNKNOWN_SENTINEL_CASE_NORMALIZATION','rule_version':'LIGHT_SOURCE_CONSTRAINTS_V1','source_page_sha256':{str(p['page_number']):p['text_sha256'] for p in pages},'before_path':f'card.speaker_and_source_attribution[{index}].entity','after_path':f'card.speaker_and_source_attribution[{index}].entity','raw_inner_sha256':sha(raw_inner.encode()),'original_value':item['entity'],'canonical_value':'UNKNOWN','role':'UNKNOWN','no_source_entity_identity_inferred':True})
-                item['entity']='UNKNOWN'
-    normalize_source_constraints(result,pages,audit,raw_inner_sha256=sha(raw_inner.encode()))
-    return result,audit
+canonicalize_citations = pdf_validation.canonicalize_citations
 
 
-def normalize_source_constraints(card:Any,pages:Sequence[Mapping[str,Any]],audit:list[dict[str,Any]],*,raw_inner_sha256:str) -> None:
-    if not isinstance(card,dict):return  # The strict schema validator owns malformed outer fields.
-    page_map={p['page_number']:p for p in pages}
-    future=re.compile(r'未来|预计|预测|有望|后续|将|计划|目标|情景|假设|展望|拟|可能|\d{4}E|\b(?:will|expect|forecast|scenario|target|next)\b',re.I)
-    base={'rule_version':'LIGHT_SOURCE_CONSTRAINTS_V1','raw_inner_sha256':raw_inner_sha256,'source_page_sha256':{str(p['page_number']):p['text_sha256'] for p in pages}}
-    def spans(item:Mapping[str,Any]) -> list[dict[str,Any]]:
-        evidence=item.get('evidence')
-        if not isinstance(evidence,list) or not evidence:fail('FULL_CITATION_REQUIRED')
-        found=[]
-        for ev in evidence:
-            if not isinstance(ev,dict) or set(ev)!={'page_number','text_sha256','excerpt'} or type(ev['page_number']) is not int or not isinstance(ev['text_sha256'],str):fail('FULL_CITATION_INVALID')
-            page=page_map.get(ev['page_number']);quote=ev['excerpt']
-            if not page or ev['text_sha256']!=page['text_sha256'] or not isinstance(quote,str) or not 1<=len(quote)<=300 or quote not in page['text']:fail('FULL_CITATION_NOT_EXACT_SOURCE')
-            start=page['text'].find(quote)
-            found.append({**ev,'source_start_character':start,'source_end_character':start+len(quote),'unique_source_span':page['text'].find(quote,start+1)<0})
-        return found
-    facts=card.get('facts');forecasts=card.get('forecasts')
-    if isinstance(facts,list) and isinstance(forecasts,list):
-        kept=[]
-        for index,item in enumerate(forecasts):
-            if isinstance(item,dict) and isinstance(item.get('period'),str) and item['period'].strip() in {'当前','目前','现在'} and isinstance(item.get('claim'),str):
-                bound=spans(item);token=item['period'].strip()
-                if not any(token in e['excerpt'] for e in bound) or future.search(item['claim']+' '+''.join(e['excerpt'] for e in bound)):fail('FULL_CURRENT_TEMPORAL_EVIDENCE_AMBIGUOUS')
-                if len(facts)>=5:fail('FULL_CURRENT_SOURCE_MOVE_OVERFLOW')
-                audit.append({**base,'transformation':'EXPLICIT_CURRENT_SOURCE_STATEMENT','before_path':f'card.forecasts[{index}]','after_path':f'card.facts[{len(facts)}]','original_value':copy.deepcopy(item),'canonical_value':copy.deepcopy(item),'source_spans':bound,'reason':'EXPLICIT_CURRENT_SOURCE_ATTRIBUTION_NO_FUTURE_MARKER'})
-                facts.append(item);continue
-            kept.append(item)
-        card['forecasts']=kept
-    numbers=card.get('numeric_values')
-    if isinstance(numbers,list):
-        kept=[]
-        for index,item in enumerate(numbers):
-            if isinstance(item,dict) and item.get('measure_kind')=='price_return' and isinstance(item.get('period'),str) and item['period'].strip()=='UNKNOWN':
-                bound=spans(item)
-                tail=all(e['unique_source_span'] and not re.search(r'产能|产量|年产|收入|利润|capacity|revenue|profit',e['excerpt'],re.I) and not page_map[e['page_number']]['text'][e['source_end_character']:].strip() and re.fullmatch(r'[^\n。;；]{0,60}[-+＋－]\d+(?:[.,]\d+)*\s*[%％]',e['excerpt'].strip()) for e in bound)
-                if tail:
-                    audit.append({**base,'transformation':'UNPERIODIZED_FOOTER_RETURN_EXCLUDED','before_path':f'card.numeric_values[{index}]','after_path':None,'original_value':copy.deepcopy(item),'canonical_value':None,'source_spans':bound,'reason':'NONCORE_PAGE_TAIL_PRICE_RETURN_WITHOUT_TIME_BASIS_NO_PERIOD_INFERRED'});continue
-            kept.append(item)
-        card['numeric_values']=kept
-    unknowns=card.get('unknowns')
-    if isinstance(unknowns,list):
-        kept=[];excluded=False
-        for index,item in enumerate(unknowns):
-            if isinstance(item,str) and re.search(r'(?:19|20)\d{2}',item) and re.search(r'推测|猜测|推断|估计|可能为|推定|推算',item) and re.search(r'年份|日期|事件年|调研.{0,8}年',item):
-                audit.append({**base,'transformation':'UNSUPPORTED_DATE_GUESS_NOT_ADOPTED','before_path':f'card.unknowns[{index}]','after_path':'card.unknowns','original_value':item,'canonical_value':'模型对事件年份的猜测未被采用；原文未明示的事件年份保持UNKNOWN，不依据发布日期补齐。','reason':'EXPLICIT_DATE_GUESS_WITH_PROPOSED_YEAR_NOT_ACCEPTED_RESEARCH_CONTENT'});excluded=True
-            else:kept.append(item)
-        if excluded:kept.append('模型对事件年份的猜测未被采用；原文未明示的事件年份保持UNKNOWN，不依据发布日期补齐。')
-        card['unknowns']=kept
+normalize_evidence_shape = pdf_validation.normalize_evidence_shape
 
 
-def _source_comparator(value:str,evidences:Sequence[Mapping[str,Any]]) -> str|None:
-    number=re.search(r'[-+]?\d+(?:[.,]\d+)*',value)
-    if number is None:return None
-    operators=[]
-    patterns=[('GE',r'(?:不少于|不低于|不小于|至少|≥|>=)\s*$'),('LE',r'(?:不超过|不高于|不大于|至多|≤|<=)\s*$'),('GT',r'(?:超过|高于|大于|>)\s*$'),('LT',r'(?:少于|低于|小于|<)\s*$'),('APPROX',r'(?:接近|约为|大约|约)\s*$')]
-    for evidence in evidences:
-        quote=evidence['excerpt']
-        for match in re.finditer(re.escape(number.group()),quote):
-            prefix=quote[max(0,match.start()-12):match.start()]
-            operators.append(next((op for op,pattern in patterns if re.search(pattern,prefix)),'EQ'))
-    return operators[0] if operators and len(set(operators))==1 else None
+normalize_percent_value_glyph = pdf_validation.normalize_percent_value_glyph
 
 
-def validate_card(card:Any,pages:Sequence[Mapping[str,Any]],*,required_limits:Sequence[Mapping[str,Any]]|None=None) -> dict[str,Any]:
-    fields={'material_type','event_or_meeting_object','speaker_and_source_attribution','date','facts','forecasts','inferences','numeric_values','related_entities','unknowns','source_usage_limits'}
-    if not isinstance(card,dict) or set(card)!=fields or not isinstance(card['material_type'],str) or not isinstance(card['event_or_meeting_object'],str):fail('FULL_CARD_SCHEMA_INVALID')
-    page_map={p['page_number']:p for p in pages}
-    def evidence(rows:Any,required:bool=True) -> None:
-        if not isinstance(rows,list) or required and not rows:fail('FULL_CITATION_REQUIRED')
-        for item in rows:
-            if not isinstance(item,dict) or set(item)!={'page_number','text_sha256','excerpt'}:fail('FULL_CITATION_INVALID')
-            if type(item['page_number']) is not int or not isinstance(item['text_sha256'],str):fail('FULL_CITATION_INVALID')
-            page=page_map.get(item['page_number']);quote=item['excerpt']
-            if not page or item['text_sha256']!=page['text_sha256'] or not isinstance(quote,str) or not 1<=len(quote)<=300 or quote not in page['text']:fail('FULL_CITATION_NOT_EXACT_SOURCE')
-    date=card['date']
-    if not isinstance(date,dict) or set(date)!={'value','basis','evidence'} or not isinstance(date['basis'],str) or date['value'] is not None and not isinstance(date['value'],str):fail('FULL_DATE_INVALID')
-    evidence(date['evidence'],date['value'] is not None)
-    if card['inferences']!=[]:fail('FULL_LIGHT_MODEL_INFERENCE_FORBIDDEN')
-    future=re.compile(r'预计|预测|有望|后续.{0,18}(?:增长|驱动|业绩)|将于|计划于|\d{4}E')
-    for field,limit in [('facts',5),('forecasts',5)]:
-        rows=card[field]
-        if not isinstance(rows,list) or len(rows)>limit:fail('FULL_CLAIM_LIMIT_INVALID')
-        for item in rows:
-            if not isinstance(item,dict) or set(item)!={'claim','attribution','period','unit','evidence'} or any(not isinstance(item[k],str) or not item[k].strip() for k in ['claim','attribution','period','unit']):fail('FULL_CLAIM_SCHEMA_INVALID')
-            evidence(item['evidence'])
-            if field=='facts' and future.search(item['claim']+' '+''.join(e['excerpt'] for e in item['evidence'])):fail('FULL_SOURCE_FORECAST_CLASSIFIED_AS_FACT')
-    if not isinstance(card['numeric_values'],list) or len(card['numeric_values'])>30:fail('FULL_NUMERIC_SCHEMA_INVALID')
-    for item in card['numeric_values']:
-        fields_n={'value_as_source','sign','unit','period','actual_or_forecast','comparison_operator','measure_kind','evidence'}
-        if not isinstance(item,dict) or set(item)!=fields_n or any(not isinstance(item[k],str) or not item[k].strip() for k in fields_n-{'evidence'}):fail('FULL_NUMERIC_SCHEMA_INVALID')
-        evidence(item['evidence']);quotes=' '.join(e['excerpt'] for e in item['evidence'])
-        if not any(item['value_as_source'] in e['excerpt'] for e in item['evidence']):fail('FULL_NUMERIC_VALUE_NOT_IN_QUOTE')
-        if item['comparison_operator'] not in {'EQ','GE','GT','LE','LT','APPROX','RANGE','UNKNOWN'} or item['measure_kind'] not in {'annual_capacity','capacity','actual_output','revenue','price_return','date','other','UNKNOWN'}:fail('FULL_NUMERIC_SEMANTICS_INVALID')
-        expected=_source_comparator(item['value_as_source'],item['evidence'])
-        if expected is not None and item['comparison_operator']!=expected:fail('FULL_NUMERIC_BOUND_LOST')
-        if '产能' in quotes and '产量' not in quotes:
-            if item['measure_kind']!=('annual_capacity' if '年产' in quotes else 'capacity') or item['actual_or_forecast'] not in {'REPORTED_CAPACITY_NOT_OUTPUT','FORECAST_CAPACITY_NOT_OUTPUT'}:fail('FULL_CAPACITY_MISCLASSIFIED_AS_OUTPUT')
-        if '产量' in quotes and '产能' not in quotes and item['measure_kind']!='actual_output':fail('FULL_OUTPUT_MEASURE_MISMATCH')
-    roles=card['speaker_and_source_attribution']
-    if not isinstance(roles,list):fail('FULL_ATTRIBUTION_ROLE_INVALID')
-    for item in roles:
-        if not isinstance(item,dict) or set(item)!={'entity','role','evidence'} or not isinstance(item['entity'],str) or not item['entity'] or not isinstance(item['role'],str) or item['role'] not in {'publisher','respondent','visitor','speaker','source_author','UNKNOWN'}:fail('FULL_ATTRIBUTION_ROLE_INVALID')
-        evidence(item['evidence'],not (item['entity']=='UNKNOWN' and item['role']=='UNKNOWN'))
-        if item['entity']!='UNKNOWN' and not any(item['entity'] in e['excerpt'] for e in item['evidence']):fail('FULL_ATTRIBUTION_ENTITY_UNSUPPORTED')
-        if item['role'] in {'speaker','source_author'} and not any(re.search(r'发言|主讲|作者|分析师|研究员|撰写',e['excerpt']) for e in item['evidence']):fail('FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED')
-    for field in ['related_entities','unknowns']:
-        if not isinstance(card[field],list) or any(not isinstance(x,str) or not x.strip() for x in card[field]):fail('FULL_CARD_LIST_INVALID')
-    if any(x['role'] in {'respondent','visitor'} for x in roles) and not any(x['role'] in {'speaker','source_author'} for x in roles) and not any(re.search(r'发言|作者',x) for x in card['unknowns']):fail('FULL_UNNAMED_SPEAKER_LIMIT_REQUIRED')
-    limits=card['source_usage_limits']
-    if not isinstance(limits,list):fail('FULL_SOURCE_USE_LIMIT_INVALID')
-    for item in limits:
-        if not isinstance(item,dict) or set(item)!={'limitation','evidence'} or not isinstance(item['limitation'],str) or not item['limitation'].strip():fail('FULL_SOURCE_USE_LIMIT_INVALID')
-        evidence(item['evidence'])
-    for required in source_limit_quotes(pages) if required_limits is None else required_limits:
-        if not any(any(e['page_number']==required['page_number'] and _compact(required['excerpt']) in _compact(e['excerpt']) for e in item['evidence']) for item in limits):fail('FULL_SOURCE_USE_LIMIT_OMITTED')
-    if not card['facts'] and not card['forecasts']:fail('FULL_CARD_NO_RESEARCH_CONTENT')
-    return card
+normalize_source_constraints = pdf_validation.normalize_source_constraints
+
+
+_source_comparator = pdf_validation._source_comparator
+
+
+validate_card = pdf_validation.validate_card
 
 
 def material_limits(material:Sequence[Mapping[str,Any]],*,synthesis:bool) -> list[dict[str,Any]]:
@@ -604,14 +457,17 @@ def release_review_paths(adoption:Mapping[str,Any]) -> tuple[Path,Path]:
     return root/f'{prefix}-code-review.json',root/f'{prefix}-runtime-review.json'
 
 
-def load_context(*,runtime_release:bool=True) -> dict[str,Any]:
+def load_context(*,runtime_release:bool=True,_historical:Mapping[str,Any]|None=None) -> dict[str,Any]:
     context=packages.load_context();documents,checkpoints=selection()
-    adoption=read(ref(ROOT))
+    if _historical is not None and _historical.get('sha256')!=PROTOCOL_PREVIOUS_ROOT_SHA:fail('FULL_PROTOCOL_HISTORICAL_SCOPE_INVALID')
+    adoption=read(_historical if _historical is not None else ref(ROOT))
+    if _historical is None and adoption.get('protocol_recovery'):fail('FULL_PROTOCOL_ENTRY_REQUIRED')
+    adoption_ref={'path':str(ROOT),'sha256':_historical['sha256']} if _historical is not None else ref(ROOT)
     if adoption.get('status')!='ROOT_ADOPTED' or adoption.get('authorization')!=ref(d.AUTHORIZATION_PATH) or adoption.get('template_sha256')!=TEMPLATE_SHA or adoption.get('planning_pins')!=PINS:
         fail('FULL_ROOT_ADOPTION_MISMATCH')
     code=independent(adoption['source_review'],{'REVIEWED_PASS'})
     if Path(adoption['source_review']['path'])!=release_review_paths(adoption)[0]:fail('FULL_CODE_REVIEW_PATH_MISMATCH')
-    current={name:ref(d.PROJECT_ROOT/name)['sha256'] for name in SOURCE_PATHS}
+    current=adoption['sources'] if _historical is not None else {name:ref(d.PROJECT_ROOT/name)['sha256'] for name in SOURCE_PATHS}
     if adoption.get('sources')!=current or code.get('full_sources',code.get('sources'))!=current:fail('FULL_SOURCE_REVIEW_MISMATCH')
     independent_light_gates(adoption,context)
     invalid,previous=source_invalid_admission(adoption,documents)
@@ -620,9 +476,9 @@ def load_context(*,runtime_release:bool=True) -> dict[str,Any]:
     if invalid and (checkpoints[0]['document_ids'][:3]!=[*SOURCE_INVALID_INPUTS,POSITIVE_FIRST_ID] or documents[POSITIVE_FIRST_ID]['page_input']['sha256']!='9653c17fb83c287313b7a77e6f9e7b983ecf3bfe86784032debae655755db95a'):fail('FULL_SOURCE_INVALID_POSITIVE_ORDER_MISMATCH')
     if runtime_release:
         rp=release_review_paths(adoption)[1];review=independent(ref(rp),{'FULL_RUNTIME_ADOPTION_PASS'})
-        if (review.get('adoption')!=ref(ROOT) or review.get('sources')!=current or review.get('authorization')!=ref(d.AUTHORIZATION_PATH)
+        if (review.get('adoption')!=adoption_ref or review.get('sources')!=current or review.get('authorization')!=ref(d.AUTHORIZATION_PATH)
                 or review.get('base_sources')!=adoption['base_sources']):fail('FULL_RUNTIME_RELEASE_MISMATCH')
-    return {**context,'full_adoption':adoption,'full_adoption_ref':ref(ROOT),'documents':documents,'checkpoints':checkpoints,'sources':current,'source_invalid_rows':invalid,'source_invalid_review':adoption.get('source_invalid_admission',{}).get('independent_review'),'previous_full_adoption':previous,'light_v2_recovery':recovery,'v2_previous_adoption':v2_previous,'common_normalization':normalization,'normalization_previous_adoption':normalization_previous,'v2_resolution_anchor':normalization_previous['adoption'] if normalization_previous else ref(ROOT),'light_lane_anchor':previous['adoption'] if previous else ref(ROOT)}
+    return {**context,'full_adoption':adoption,'full_adoption_ref':adoption_ref,'documents':documents,'checkpoints':checkpoints,'sources':current,'source_invalid_rows':invalid,'source_invalid_review':adoption.get('source_invalid_admission',{}).get('independent_review'),'previous_full_adoption':previous,'light_v2_recovery':recovery,'v2_previous_adoption':v2_previous,'common_normalization':normalization,'normalization_previous_adoption':normalization_previous,'v2_resolution_anchor':normalization_previous['adoption'] if normalization_previous else adoption_ref,'light_lane_anchor':previous['adoption'] if previous else adoption_ref}
 
 
 def historical_context(context:Mapping[str,Any]) -> dict[str,Any]:
@@ -968,8 +824,13 @@ def worker(did:str,plan_path:Path) -> dict[str,Any]:
             if call['status'] not in {'SUCCEEDED','SUCCEEDED_REUSED'}:fail(str(call['status']))
             raw_inner=outcome['result']['analysis_markdown'];raw_path=folder/'stages'/f'{name}.raw-model-inner.json'
             d._write_immutable(raw_path,raw_inner.encode())
-            try:card,audit=canonicalize_citations(raw_inner,pages)
+            audit=[]
+            try:card,audit=canonicalize_citations(raw_inner,pages,audit_sink=audit)
             except json.JSONDecodeError:fail('FULL_MODEL_INNER_JSON_INVALID')
+            except b.BatchError as exc:
+                audit_value={'status':'REJECTED_NORMALIZATION_NOT_SEMANTIC_ACCEPTANCE','raw_inner':ref(raw_path),'page_input':row['page_input'],'changes':audit,'failure_code':str(exc)}
+                d._write_immutable(folder/'stages'/f'{name}.citation-audit.json',lm.canonical_json(audit_value)+b'\n')
+                raise
             audit_value={'status':'DETERMINISTIC_CITATION_PROJECTION_NOT_SEMANTIC_ACCEPTANCE','raw_inner':ref(raw_path),'page_input':row['page_input'],'changes':audit,'candidate_card_sha256':sha(lm.canonical_json(card))}
             d._write_immutable(folder/'stages'/f'{name}.citation-audit.json',lm.canonical_json(audit_value)+b'\n')
             card=validate_card(card,pages,required_limits=material_limits(material,synthesis=synthesis))
@@ -1079,10 +940,341 @@ def preflight() -> dict[str,Any]:
     return {'status':'V2_PROMPT_BUDGET_ONLY_NO_MODEL','template_sha256':TEMPLATE_SHA,'accepted_source_preflight_reused':prior_ref,'original_PDF_or_OCR_reverification':False,'documents':rows,'source_requests':sum(x['source_request_count'] for x in rows if not x['source_invalid_no_new_POST']),'total_POST_upper_bound':sum(x['total_POST_upper_bound'] for x in rows),'checkpoints':len(checkpoints),'actual_POSTs':0,'full_execution_gates':'V2_RECOVERY_CANARY_CONTENT_THEN_CHECKPOINT_DISPOSITIONS'}
 
 
-def main(argv:Sequence[str]|None=None) -> int:
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--execute',action='store_true');p.add_argument('--max-documents',type=int,default=1);p.add_argument('--worker-id',help=argparse.SUPPRESS);p.add_argument('--plan',type=Path,help=argparse.SUPPRESS);p.add_argument('--preflight',action='store_true');p.add_argument('--replay-normalized',action='store_true');p.add_argument('--close-normalized',action='store_true');a=p.parse_args(argv)
+# V3 is an explicit request protocol/generation. The V2 template and all old
+# acceptance receipts remain byte-bound and are verified as historical inputs.
+PROTOCOL_DECISION={'path':str(b.RESEARCH_PILOT_ROOT/'controller-protocol-recovery-20261023.json'),'sha256':'58a07b8dbd248cdc9cf3d8dd71b8af7b01198507c00a3eca56e5df0a77d00848'}
+PROTOCOL_PREVIOUS_ROOT_SHA='ceb3cdc243cd27a8e09746a3b8dbab818c72a17b184f0f9da4761a081fb489da'
+PROTOCOL_JOURNAL139_SHA='a030ba48e5a3124b815a4005eebf6323f48bf8383381504ae26507273851de0a'
+PROTOCOL_REVIEWER='/root/pdf_recovery_review_20261023'
+PROTOCOL_GENERATION=2
+PROTOCOL_CANARIES=('987b7eb90136e7945cf9698f26ff7dad5b6e64eff9804f32fa45ff877a1769e6','7093bff14c97c168ce1f9af807e9e92c1ef0060a619e8ec7ca30f9538419470c','461fbe6ecd6758c09a881f55dda83d90295ce420b5d852e028dd4415c73399a2')
+PROTOCOL_SYSTEM=SYSTEM+(
+ '补充协议V3：仅选1至3条核心观点，宁可减少观点，也不得拼接引文、猜角色、猜年份。'
+ 'evidence一律是数组，包括只有一个证据的情况。excerpt必须逐字复制同一页的一段连续原文，保留原文换行；不得用...或省略号跳过文字，也不得把页眉、正文、页脚拼在一起。'
+ '发布者、受访公司、来访机构仅按该角色记录；公司召开说明会不证明公司是具名发言人，节目/文章标题不证明作者身份。无明确发言人/作者身份时使用UNKNOWN，并在unknowns明确写发言人或作者未具名、无法确认。'
+ '原文“据公司预测/预计/计划/有望”及未来/条件判断必须放forecasts，并保留原作者预测属性；已发生的历史材料放facts，不因历史年份出现在报告里就称预测；不从发布日期推断事件年份。'
+ '输入source_limits是系统来源政策，不是PDF原文；最终卡自动保留这些政策，禁止把source_limits伪造为page_number/excerpt。source_usage_limits只填PDF真实原文中出现的用途限制，保留这些原文限制。'
+ '数值只保留支撑核心观点者；没有明确时期的页脚股价涨跌不放numeric_values；未知sign填UNKNOWN而非空字符串；年产能须使用annual_capacity和REPORTED_CAPACITY_NOT_OUTPUT或FORECAST_CAPACITY_NOT_OUTPUT。'
+ '下列是结构示例而非本次材料，严禁复制示例数据或证据；示例原文为“作者预测2027年收入不少于10亿元。”，示例SHA仅占位：'
+ '{"material_type":"研究材料","event_or_meeting_object":"UNKNOWN","speaker_and_source_attribution":[],"date":{"value":null,"basis":"UNKNOWN","evidence":[]},"facts":[],"forecasts":[{"claim":"原作者预测2027年收入不少于10亿元","attribution":"原作者预测","period":"2027年","unit":"亿元","evidence":[{"page_number":1,"text_sha256":"实际页SHA","excerpt":"作者预测2027年收入不少于10亿元。"}]}],"inferences":[],"numeric_values":[{"value_as_source":"不少于10","sign":"正","unit":"亿元","period":"2027年","actual_or_forecast":"FORECAST","comparison_operator":"GE","measure_kind":"revenue","evidence":[{"page_number":1,"text_sha256":"实际页SHA","excerpt":"作者预测2027年收入不少于10亿元。"}]}],"related_entities":[],"unknowns":["作者和发言人未具名，无法确认身份"],"source_usage_limits":[]}。'
+ '现在只基于本次输入material的原文提取，返回analysis_markdown字符串中的完整JSON。'
+)
+PROTOCOL_SHA=sha(PROTOCOL_SYSTEM.encode())
+
+
+class ProtocolJournal(d.DurableJournal):
+    """The same ledger and flock, with only this adapter's five added event types."""
+    PROTOCOL_EVENTS=frozenset({'protocol_adoption','protocol_plan','protocol_intent','protocol_terminal','protocol_deferred'})
+
+    def _read_events(self) -> list[dict[str,Any]]:
+        if not self.path.exists():return []
+        raw=d._read_regular(self.path,'DISPATCH_JOURNAL_UNREADABLE')
+        if raw and not raw.endswith(b'\n'):fail('DISPATCH_JOURNAL_TRUNCATED')
+        events=[]
+        for line in raw.splitlines():
+            try:event=json.loads(line.decode('utf-8'))
+            except (UnicodeError,json.JSONDecodeError):fail('DISPATCH_JOURNAL_CORRUPT')
+            if not isinstance(event,dict) or event.get('event') not in d.SAFE_JSONL_EVENT_TYPES|self.PROTOCOL_EVENTS:fail('DISPATCH_JOURNAL_CORRUPT')
+            events.append(event)
+        if events and events[0].get('event')!='binding':fail('DISPATCH_JOURNAL_BINDING_MISSING')
+        return events
+
+    def append(self,event:Mapping[str,Any]) -> None:
+        if event.get('event') in d.SAFE_JSONL_EVENT_TYPES:return super().append(event)
+        if event.get('event') not in self.PROTOCOL_EVENTS:fail('DISPATCH_JOURNAL_EVENT_INVALID')
+        if self._lock_fd is None:fail('DISPATCH_JOURNAL_LOCK_REQUIRED')
+        if self.path.is_symlink():fail('DISPATCH_JOURNAL_UNSAFE')
+        record={'at_utc':datetime.now(timezone.utc).isoformat(),**dict(event)};raw=d.canonical_json(record)+b'\n'
+        fd=os.open(self.path,os.O_CREAT|os.O_APPEND|os.O_WRONLY|getattr(os,'O_NOFOLLOW',0),0o600)
+        try:
+            view=memoryview(raw)
+            while view:
+                written=os.write(fd,view);view=view[written:]
+            os.fsync(fd)
+        finally:os.close(fd)
+        d._fsync_directory(self.root);self.events.append(record)
+
+
+def protocol_messages(row:Mapping[str,Any],material:Any,*,synthesis:bool) -> list[dict[str,str]]:
+    msg=messages(row,material,synthesis=synthesis)
+    payload=json.loads(msg[1]['content']);payload.update(protocol_sha256=PROTOCOL_SHA,generation=PROTOCOL_GENERATION,source_limits_origin='SYSTEM_POLICY_NOT_PDF_QUOTATION')
+    return [{'role':'system','content':PROTOCOL_SYSTEM},{'role':'user','content':json.dumps(payload,ensure_ascii=False)}]
+
+
+def protocol_pack(row:Mapping[str,Any],units:Sequence[dict[str,Any]],*,synthesis:bool) -> list[list[dict[str,Any]]]:
+    groups=[];current=[]
+    for unit in units:
+        trial=current+[unit]
+        allowed=lambda value:sum(len(x.get('text',json.dumps(x,ensure_ascii=False))) for x in value)<=b.MAX_SOURCE_CHARACTERS and len(b._request_envelope(protocol_messages(row,value,synthesis=synthesis)))<=b.MAX_REQUEST_ENVELOPE_BYTES
+        if allowed(trial):current=trial;continue
+        if current:groups.append(current)
+        current=[unit]
+        if not allowed(current):fail('FULL_SINGLE_SOURCE_OR_SYNTHESIS_UNIT_OVERSIZE')
+    if current:groups.append(current)
+    return groups
+
+
+def protocol_groups(row:Mapping[str,Any],pages:Sequence[Mapping[str,Any]]) -> list[list[dict[str,Any]]]:
+    units=[{'page_number':p['page_number'],'text_sha256':p['text_sha256'],'offset':i,'text':p['text'][i:i+4000]} for p in pages for i in range(0,len(p['text']),4000)]
+    groups=protocol_pack(row,units,synthesis=False)
+    for page in pages:
+        selected=[u for group in groups for u in group if u['page_number']==page['page_number']]
+        if ''.join(u['text'] for u in selected)!=page['text'] or [u['offset'] for u in selected]!=list(range(0,len(page['text']),4000)):fail('FULL_SOURCE_RECONSTRUCTION_MISMATCH')
+    return groups
+
+
+def protocol_independent(reference:Mapping[str,Any],statuses:set[str]) -> dict[str,Any]:
+    value=read(reference)
+    if value.get('reviewer')!=PROTOCOL_REVIEWER or value.get('status') not in statuses:fail('PROTOCOL_INDEPENDENT_PASS_REQUIRED')
+    return value
+
+
+def load_protocol_context(*,runtime_release:bool=True) -> dict[str,Any]:
+    decision=read(PROTOCOL_DECISION);adoption_ref=ref(ROOT);adoption=read(adoption_ref);data=adoption.get('protocol_recovery',{})
+    if (decision.get('status')!='AUTHORIZED_BOUNDED_PROTOCOL_RECOVERY_AND_AUTOMATIC_CONTINUATION' or decision.get('REVIEWER')!=PROTOCOL_REVIEWER
+            or decision.get('approved_request_scope',{}).get('canary_ids')!=list(PROTOCOL_CANARIES) or data.get('decision')!=PROTOCOL_DECISION
+            or data.get('generation')!=PROTOCOL_GENERATION or data.get('protocol_sha256')!=PROTOCOL_SHA
+            or data.get('previous_adoption_backup',{}).get('sha256')!=PROTOCOL_PREVIOUS_ROOT_SHA):fail('PROTOCOL_EXACT_ADMISSION_REQUIRED')
+    old=read(data['previous_adoption_backup'])
+    if {k:v for k,v in adoption.items() if k not in {'protocol_recovery','sources','source_review'}}!={k:v for k,v in old.items() if k not in {'sources','source_review'}}:fail('PROTOCOL_HISTORICAL_ADOPTION_CHANGED')
+    sources={name:ref(d.PROJECT_ROOT/name)['sha256'] for name in SOURCE_PATHS}
+    proof=protocol_independent(adoption['source_review'],{'REVIEWED_PASS'})
+    if Path(adoption['source_review']['path'])!=b.RESEARCH_PILOT_ROOT/'independent-review/protocol-code-review-20261023.json' or adoption.get('sources')!=sources or proof.get('full_sources')!=sources or proof.get('protocol_sha256')!=PROTOCOL_SHA:fail('PROTOCOL_CURRENT_SOURCE_REVIEW_MISMATCH')
+    legacy=load_context(_historical=data['previous_adoption_backup']);docs=legacy['documents']
+    if data.get('canary_inputs')!={did:docs[did]['page_input'] for did in PROTOCOL_CANARIES}:fail('PROTOCOL_CANARY_INPUT_BINDING')
+    events=protocol_journal_events();history=type('History',(),{'path':d.EVIDENCE_ROOT/'dispatch.jsonl','root':d.EVIDENCE_ROOT,'events':events[:139]})()
+    verify_history(history,legacy);verify_full_adoption(history,legacy,append=False)
+    if runtime_release:
+        runtime=protocol_independent(ref(b.RESEARCH_PILOT_ROOT/'independent-review/protocol-runtime-review-20261023.json'),{'PROTOCOL_RUNTIME_ADOPTION_PASS'})
+        if any(runtime.get(k)!=v for k,v in {'adoption':adoption_ref,'sources':sources,'protocol_sha256':PROTOCOL_SHA,'decision':PROTOCOL_DECISION,'authorization':ref(d.AUTHORIZATION_PATH)}.items()):fail('PROTOCOL_RUNTIME_BINDING_MISMATCH')
+    return {**legacy,'protocol_adoption':adoption,'protocol_adoption_ref':adoption_ref,'protocol_sources':sources,'protocol_data':data}
+
+
+def protocol_journal_events() -> list[dict[str,Any]]:
+    raw=d._read_regular(d.EVIDENCE_ROOT/'dispatch.jsonl','FULL_JOURNAL_REQUIRED');lines=raw.splitlines(keepends=True)
+    if not raw.endswith(b'\n') or len(lines)<139 or sha(b''.join(lines[:139]))!=PROTOCOL_JOURNAL139_SHA:fail('PROTOCOL_JOURNAL139_MISMATCH')
+    events=[json.loads(x) for x in lines]
+    if any(not str(e.get('event','')).startswith('protocol_') for e in events[139:]):fail('PROTOCOL_UNKNOWN_JOURNAL_EVENT')
+    return events
+
+
+def protocol_folder(did:str) -> Path:
+    return job_folder(did)/f'protocol-generation{PROTOCOL_GENERATION}'
+
+
+def protocol_terminals(events:Sequence[Mapping[str,Any]],context:Mapping[str,Any]) -> dict[str,dict[str,Any]]:
+    terms={};active={};plans={};adoptions=[]
+    if len(events)>139 and events[139].get('event')!='protocol_adoption':fail('PROTOCOL_ADOPTION_MUST_PRECEDE_REQUESTS')
+    for event in events[139:]:
+        kind=event.get('event');did=event.get('document_id')
+        if kind=='protocol_adoption':
+            adoptions.append({k:v for k,v in event.items() if k!='at_utc'})
+            continue
+        if did not in context['documents'] or did in SOURCE_INVALID_INPUTS or did==POSITIVE_FIRST_ID:fail('PROTOCOL_DOCUMENT_NOT_ADMITTED')
+        if event.get('protocol_sha256')!=PROTOCOL_SHA or event.get('generation')!=PROTOCOL_GENERATION:fail('PROTOCOL_EVENT_BINDING_MISMATCH')
+        if kind=='protocol_plan':
+            if did in plans or did in active or did in terms:fail('PROTOCOL_DUPLICATE_PLAN')
+            plans[did]=event['plan'];plan=read(event['plan'])
+            expected={'document_id':did,'source':context['documents'][did]['page_input'],'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'adoption':context['protocol_adoption_ref'],'state_root':str(b.DEFAULT_STATE_ROOT.parent/f'continuation-full-light-{did}'),'execution_runtime_settings_sha256':b.ANALYSIS_RUNTIME_SHA256}
+            if event['plan']['path']!=str(protocol_folder(did)/'plan.json') or any(plan.get(k)!=v for k,v in expected.items()) or type(plan.get('source_groups')) is not int or plan['source_groups']<1 or plan.get('max_new_POSTs')!=(1 if did in PROTOCOL_CANARIES else 2*plan['source_groups']-1) or did in PROTOCOL_CANARIES and plan['source_groups']!=1:fail('PROTOCOL_PLAN_BINDING_MISMATCH')
+        elif kind=='protocol_intent':
+            if did not in plans or event.get('plan')!=plans[did] or did in active or did in terms:fail('PROTOCOL_DUPLICATE_OR_ORPHAN_INTENT')
+            active[did]=event
+        elif kind in {'protocol_terminal','protocol_deferred'}:
+            if did not in active or event.get('plan')!=plans[did]:fail('PROTOCOL_ORPHAN_TERMINAL')
+            active.pop(did)
+            if kind=='protocol_deferred':
+                if event.get('attempted') is not False or event.get('new_model_POSTs')!=0:fail('PROTOCOL_UNPROVEN_ZERO_ATTEMPT_DEFER')
+                proof=read(event['zero_attempt_proof'])
+                if proof.get('plan')!=plans[did] or proof.get('attempted') is not False or proof.get('issued_attempts')!=0:fail('PROTOCOL_UNPROVEN_ZERO_ATTEMPT_DEFER')
+            else:
+                if did in terms:fail('PROTOCOL_DUPLICATE_TERMINAL')
+                if event.get('status')=='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING':
+                    receipt=read(event['receipt'])
+                    expected={'document_id':did,'status':event['status'],'plan':plans[did],'page_input':context['documents'][did]['page_input'],'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'adoption':context['protocol_adoption_ref']}
+                    if event['receipt']['path']!=str(protocol_folder(did)/'receipt.json') or any(receipt.get(k)!=v for k,v in expected.items()) or receipt.get('card',{}).get('path')!=str(protocol_folder(did)/'card.json'):fail('PROTOCOL_TERMINAL_RECEIPT_MISMATCH')
+                    card=read(receipt['card'])
+                    if any(card.get(k)!=v for k,v in {'document_id':did,'page_input':context['documents'][did]['page_input'],'template_sha256':PROTOCOL_SHA,'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION}.items()):fail('PROTOCOL_CARD_BINDING_MISMATCH')
+                elif event.get('status') in {'FAILED_DOCUMENT_ISOLATED','FAILED_NO_RETRY'}:
+                    failure=read(event['failure'])
+                    expected={'document_id':did,'status':event['status'],'plan':plans[did],'page_input':context['documents'][did]['page_input'],'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'code':event.get('code')}
+                    if event['failure']['path']!=str(protocol_folder(did)/'failure.json') or any(failure.get(k)!=v for k,v in expected.items()):fail('PROTOCOL_FAILURE_BINDING_MISMATCH')
+                else:fail('PROTOCOL_UNKNOWN_TERMINAL_STATUS')
+                terms[did]=dict(event)
+        else:fail('PROTOCOL_UNKNOWN_JOURNAL_EVENT')
+    expected={'event':'protocol_adoption','adoption':context['protocol_adoption_ref'],'sources':context['protocol_sources'],'protocol_sha256':PROTOCOL_SHA,'decision':PROTOCOL_DECISION,'generation':PROTOCOL_GENERATION}
+    if adoptions not in [[],[expected]]:fail('PROTOCOL_ADOPTION_JOURNAL_MISMATCH')
+    if active:fail('PROTOCOL_UNRECONCILED_ACTIVE_INTENT')
+    return terms
+
+
+def protocol_content_review(reference:Mapping[str,Any],ids:Sequence[str],context:Mapping[str,Any],terms:Mapping[str,Any],*,canary:bool=False) -> dict[str,Any]:
+    review=protocol_independent(reference,{'PROTOCOL_CANARY3_CONTENT_PASS'} if canary else {'PROTOCOL_CHECKPOINT_DISPOSITION_ACCEPTED'})
+    if review.get('protocol_sha256')!=PROTOCOL_SHA or review.get('adoption')!=context['protocol_adoption_ref'] or [x.get('document_id') for x in review.get('documents',[])]!=list(ids):fail('PROTOCOL_CONTENT_SCOPE_MISMATCH')
+    for row in review['documents']:
+        did=row['document_id'];term=terms[did];expected={'document_id':did,'page_input':context['documents'][did]['page_input']}
+        if term['status']=='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING':
+            receipt=read(term['receipt']);expected.update(card=receipt['card'],receipt=term['receipt'],status='SOURCE_CONSTRAINED_DERIVED_CARD_PASS')
+            if not canary and row.get('status')=='CONTENT_FAILED_DOCUMENT_ISOLATED' and isinstance(row.get('findings'),list) and row['findings']:
+                expected['status']='CONTENT_FAILED_DOCUMENT_ISOLATED';expected['findings']=row['findings']
+        else:expected.update(status=term['status'],failure=term['failure'])
+        if row!=expected or canary and row['status']!='SOURCE_CONSTRAINED_DERIVED_CARD_PASS':fail('PROTOCOL_CONTENT_BINDING_MISMATCH')
+    return review
+
+
+def protocol_pending(context:Mapping[str,Any],events:Sequence[Mapping[str,Any]],*,allow_active:bool=False) -> tuple[str,list[str]]:
+    terms=protocol_terminals(events,context)
+    if any(t['status']=='FAILED_NO_RETRY' or did in PROTOCOL_CANARIES and t['status']!='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING' for did,t in terms.items()):return 'PROTOCOL_FAILED_HELD',[]
+    todo=[did for did in PROTOCOL_CANARIES if did not in terms]
+    if todo:return 'PROTOCOL_CANARY3',todo
+    canary_path=b.RESEARCH_PILOT_ROOT/'independent-review/protocol-canary-content-review-20261023.json'
+    if not canary_path.exists():return 'WAITING_PROTOCOL_CANARY3_CONTENT_REVIEW',[]
+    protocol_content_review(ref(canary_path),PROTOCOL_CANARIES,context,terms,canary=True)
+    original=terminal_map(context,events[:139]);remaining=[did for checkpoint in context['checkpoints'] for did in checkpoint['document_ids'] if did not in original and did not in SOURCE_INVALID_INPUTS]
+    if len(remaining)!=696:fail('PROTOCOL_EXACT696_REMAINDER_MISMATCH')
+    recent=[e for e in events[139:] if e.get('event')=='protocol_terminal'][-3:]
+    if len(recent)==3 and len({e['document_id'] for e in recent})==3 and all(e['status']=='FAILED_DOCUMENT_ISOLATED' for e in recent):return 'PROTOCOL_THREE_OUTPUT_FAILURES_HELD',[]
+    for checkpoint in context['checkpoints']:
+        ids=[did for did in checkpoint['document_ids'] if did in remaining]
+        if not ids:continue
+        todo=[did for did in ids if did not in terms]
+        if todo:return checkpoint['batch_id'],todo
+        path=b.RESEARCH_PILOT_ROOT/'independent-review'/f"protocol-{checkpoint['batch_id']}-content-review-20261023.json"
+        if not path.exists():return f"WAITING_PROTOCOL_{checkpoint['batch_id']}_CONTENT_REVIEW",[]
+        protocol_content_review(ref(path),ids,context,terms)
+    return 'ALL_PROTOCOL_REMAINDER_ACCOUNTED',[]
+
+
+def protocol_worker(did:str,plan_path:Path) -> dict[str,Any]:
+    context=load_protocol_context();row,pages=source(did,context['documents']);folder=protocol_folder(did)
+    if plan_path!=folder/'plan.json':fail('PROTOCOL_PLAN_PATH_MISMATCH')
+    plan=read(ref(plan_path));groups=protocol_groups(row,pages)
+    if any(plan.get(k)!=v for k,v in {'document_id':did,'source':row['page_input'],'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'adoption':context['protocol_adoption_ref'],'execution_runtime_settings_sha256':b.ANALYSIS_RUNTIME_SHA256,'source_groups':len(groups)}.items()):fail('PROTOCOL_PLAN_BINDING_MISMATCH')
+    if did in PROTOCOL_CANARIES and (len(groups)!=1 or plan.get('max_new_POSTs')!=1):fail('PROTOCOL_CANARY_ONE_POST_REQUIRED')
+    events=protocol_journal_events();intent=events[-1]
+    if intent.get('event')!='protocol_intent' or intent.get('document_id')!=did or intent.get('plan')!=ref(plan_path):fail('PROTOCOL_PRECLAIM_REQUIRED')
+    # Prove eligibility against the closed prefix immediately before this intent.
+    phase,allowed=protocol_pending(context,events[:-1])
+    if did not in allowed:fail('PROTOCOL_PHASE_NOT_ADMITTED')
+    started=folder/'request-started.json';calls=[];request_started=False
+    if started.exists():fail('PROTOCOL_PRIOR_REQUEST_STARTED_NO_RETRY')
+    def guard() -> None:
+        fresh=load_protocol_context();source(did,fresh['documents']);now=protocol_journal_events()
+        if fresh['protocol_adoption_ref']!=context['protocol_adoption_ref'] or ref(plan_path)!=intent['plan'] or now!=events:fail('PROTOCOL_DISPATCH_DRIFT')
+        b.verify_analysis_runtime(fresh['analysis_admission'],lm.build_request_material(b.RESPONSE_SCHEMA))
+        if b._priority_snapshot().get('status')!='ALLOW':fail('DEFERRED_ANNOUNCEMENT_PRIORITY')
+        reason=d._resource_stop_reason(d.sample_resource_metrics(),plan['baseline_swap_used_bytes'])
+        if reason:fail(reason)
+    guard();state=Path(plan['state_root']);state.mkdir(parents=True,exist_ok=True,mode=0o700);old=lm.PDF_EVIDENCE_ROOT;lm.PDF_EVIDENCE_ROOT=state/'evidence'
     try:
-        if a.replay_normalized or a.close_normalized:
+        binding=lm.build_request_material(b.RESPONSE_SCHEMA);b.verify_analysis_runtime(context['analysis_admission'],binding);queue,_=b._create_queue(state)
+        def transport(**kwargs:Any) -> str:
+            nonlocal request_started
+            if not request_started:d._write_immutable(started,lm.canonical_json({'plan':ref(plan_path),'generation':PROTOCOL_GENERATION,'protocol_sha256':PROTOCOL_SHA})+b'\n')
+            request_started=True
+            return lm.request_document_analysis(**kwargs)
+        def request(material:Any,name:str,synthesis:bool) -> dict[str,Any]:
+            guard();msg=protocol_messages(row,material,synthesis=synthesis);envelope=b._request_envelope(msg);count=sum(len(x.get('text',json.dumps(x,ensure_ascii=False))) for x in material)
+            if count>b.MAX_SOURCE_CHARACTERS or len(envelope)>b.MAX_REQUEST_ENVELOPE_BYTES or len(calls)>=plan['max_new_POSTs']:fail('PROTOCOL_REQUEST_BUDGET_EXCEEDED')
+            payload=b._request_payload({'document_id':did,'pdf_sha256':did},stage='full_light_protocol_v3',article_id=f'{did}:{PROTOCOL_SHA}:{name}:{sha(envelope)}',messages=msg,binding=binding,envelope=envelope,source_characters=count,source_text_sha256=sha(lm.canonical_json(material)))
+            outcome=b._perform_request(queue,payload,msg,binding=binding,identity={'status':'NOT_CHECKED'},identity_reader=lm.inspect_local_api_identity,priority_reader=b._priority_snapshot,request_fn=transport,sleep_fn=time.sleep,request_guard=guard)
+            call={'name':name,'status':outcome.get('status'),'attempted':outcome.get('attempted'),'queue_key':outcome.get('queue_item',{}).get('idempotency_key'),'request_envelope_sha256':sha(envelope),'request_envelope_bytes':len(envelope)};calls.append(call)
+            d._write_immutable(folder/'calls'/f'{name}-intent-{len(events)-1}.json',lm.canonical_json(call)+b'\n')
+            if call['status'] not in {'SUCCEEDED','SUCCEEDED_REUSED'}:
+                if call['status'].startswith('DEFERRED_') and not request_started and call['attempted'] is False and outcome.get('queue_item',{}).get('attempt_count')==0:
+                    d._write_immutable(folder/f'zero-attempt-{len(events)-1}.json',lm.canonical_json({'plan':ref(plan_path),'attempted':False,'issued_attempts':0,'queue_key':call['queue_key'],'status':call['status']})+b'\n')
+                fail(str(call['status']))
+            raw=outcome['result']['analysis_markdown'];rp=folder/'stages'/f'{name}.raw-model-inner.json';d._write_immutable(rp,raw.encode());audit=[]
+            try:
+                card,audit=canonicalize_citations(raw,pages,audit_sink=audit)
+                validate_card(card,pages,required_limits=material_limits(material,synthesis=synthesis))
+            except (b.BatchError,json.JSONDecodeError) as exc:
+                d._write_immutable(folder/'stages'/f'{name}.citation-audit.json',lm.canonical_json({'status':'REJECTED_NORMALIZATION_NOT_SEMANTIC_ACCEPTANCE','raw_inner':ref(rp),'page_input':row['page_input'],'changes':audit,'failure_code':str(exc)})+b'\n')
+                if isinstance(exc,json.JSONDecodeError):fail('FULL_MODEL_INNER_JSON_INVALID')
+                raise
+            d._write_immutable(folder/'stages'/f'{name}.citation-audit.json',lm.canonical_json({'status':'DETERMINISTIC_PROJECTION_NOT_SEMANTIC_ACCEPTANCE','raw_inner':ref(rp),'page_input':row['page_input'],'changes':audit,'candidate_card_sha256':sha(lm.canonical_json(card))})+b'\n')
+            d._write_immutable(folder/'stages'/f'{name}.json',lm.canonical_json(card)+b'\n');return card
+        reports=[{'stage':f'source-{i:04d}','card':request(group,f'source-{i:04d}',False)} for i,group in enumerate(groups,1)]
+        for level in range(1,b.MAX_SYNTHESIS_LEVELS+1):
+            if len(reports)==1:break
+            packed=protocol_pack(row,reports,synthesis=True)
+            if len(packed)>=len(reports):fail('FULL_SYNTHESIS_DID_NOT_REDUCE')
+            reports=[{'stage':f'synthesis-{level:02d}-{i:04d}','card':request(group,f'synthesis-{level:02d}-{i:04d}',True) if len(group)>1 else group[0]['card']} for i,group in enumerate(packed,1)]
+        if len(reports)!=1:fail('FULL_SYNTHESIS_DEPTH_EXCEEDED')
+        content=validate_card(reports[0]['card'],pages);card=build_derived_card(did,row,pages,content,len(groups));card.update(template_sha256=PROTOCOL_SHA,base_template_sha256=TEMPLATE_SHA,protocol_sha256=PROTOCOL_SHA,generation=PROTOCOL_GENERATION)
+        d._write_immutable(folder/'card.json',lm.canonical_json(card)+b'\n')
+        receipt={'status':'GENERATED_MACHINE_VALIDATED_CONTENT_PENDING','document_id':did,'page_input':row['page_input'],'protocol_sha256':PROTOCOL_SHA,'base_template_sha256':TEMPLATE_SHA,'adoption':context['protocol_adoption_ref'],'plan':ref(plan_path),'card':ref(folder/'card.json'),'generation':PROTOCOL_GENERATION,'source_groups':len(groups),'calls':calls,'new_model_POSTs':sum(x['attempted'] is True for x in calls),'original_failure_preserved':did in PROTOCOL_CANARIES,'research_only':True,'production_allowed':False,'buy_gate_updated':False,'orders_sent':False}
+        d._write_immutable(folder/'receipt.json',lm.canonical_json(receipt)+b'\n');return receipt
+    finally:lm.PDF_EVIDENCE_ROOT=old
+
+
+def execute_protocol(max_documents:int) -> dict[str,Any]:
+    if not 1<=max_documents<=20:fail('FULL_MAX_DOCUMENTS_BOUND')
+    context=load_protocol_context();results=[]
+    with ProtocolJournal(d.EVIDENCE_ROOT) as journal:
+        events=protocol_journal_events();protocol_terminals(events,context)
+        if len(events)==139:journal.append({'event':'protocol_adoption','adoption':context['protocol_adoption_ref'],'sources':context['protocol_sources'],'protocol_sha256':PROTOCOL_SHA,'decision':PROTOCOL_DECISION,'generation':PROTOCOL_GENERATION})
+        phase,ids=protocol_pending(context,journal.events)
+        for did in ids[:max_documents]:
+            fresh=load_protocol_context();phase,allowed=protocol_pending(fresh,journal.events)
+            if did not in allowed:fail('PROTOCOL_PHASE_CHANGED')
+            priority=b._priority_snapshot();metrics=d.sample_resource_metrics();reason=d._resource_stop_reason(metrics,metrics['swap_used_bytes'])
+            if reason or priority.get('status')!='ALLOW':return {'status':'DEFERRED','reason':reason or priority.get('reason'),'documents':results,'attempted':False}
+            row,pages=source(did,fresh['documents']);groups=protocol_groups(row,pages)
+            if did in PROTOCOL_CANARIES and len(groups)!=1:fail('PROTOCOL_CANARY_ONE_POST_REQUIRED')
+            folder=protocol_folder(did);folder.mkdir(parents=True,exist_ok=True);path=folder/'plan.json'
+            plan={'document_id':did,'source':row['page_input'],'state_root':str(b.DEFAULT_STATE_ROOT.parent/f'continuation-full-light-{did}'),'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'adoption':fresh['protocol_adoption_ref'],'execution_runtime_settings_sha256':b.ANALYSIS_RUNTIME_SHA256,'baseline_swap_used_bytes':metrics['swap_used_bytes'],'source_groups':len(groups),'max_new_POSTs':1 if did in PROTOCOL_CANARIES else 2*len(groups)-1}
+            if not path.exists():
+                d._write_immutable(path,lm.canonical_json(plan)+b'\n');journal.append({'event':'protocol_plan','document_id':did,'plan':ref(path),'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION})
+            else:
+                old=read(ref(path));plan['baseline_swap_used_bytes']=old.get('baseline_swap_used_bytes')
+                if old!=plan:fail('PROTOCOL_REUSE_PLAN_DRIFT')
+            journal.append({'event':'protocol_intent','document_id':did,'plan':ref(path),'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION})
+            intent_index=len(journal.events)-1
+            command=[str(lm.RUNTIME_PYTHON),'-B','-m','ops.run_pdf_research_full_once','--protocol-worker',did,'--plan',str(path)]
+            with (folder/'stdout.log').open('ab') as out,(folder/'stderr.log').open('ab') as err:
+                proc=subprocess.Popen(command,cwd=d.PROJECT_ROOT,env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'},stdout=out,stderr=err);stop=None
+                try:owned=d._owned_child_create_time(proc.pid)
+                except Exception:owned=None;stop='CHILD_OWNERSHIP_CANNOT_CONFIRM'
+                d._write_immutable(folder/f'process-{proc.pid}.json',lm.canonical_json({'pid':proc.pid,'pid_create_time':owned,'argv':command,'plan':ref(path),'started_utc':datetime.now(timezone.utc).isoformat()})+b'\n')
+                while proc.poll() is None:
+                    time.sleep(d.RESOURCE_SAMPLE_INTERVAL_SECONDS)
+                    try:
+                        sample=d.sample_resource_metrics();d._persist_sample(folder/'resource-samples.jsonl',{'phase':'running',**sample});reason=d._resource_stop_reason(sample,plan['baseline_swap_used_bytes'])
+                    except Exception:reason='RESOURCE_SAMPLE_CANNOT_CONFIRM'
+                    if reason and stop is None:
+                        stop=reason
+                        if owned is not None:d._signal_owned_child(proc,owned)
+                rc=proc.wait()
+            terminal={'event':'protocol_terminal','document_id':did,'plan':ref(path),'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION}
+            if rc==0 and stop is None:
+                receipt=read(ref(folder/'receipt.json'))
+                if receipt.get('plan')!=ref(path) or receipt.get('status')!='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING':fail('PROTOCOL_ACTUAL_RECEIPT_MISMATCH')
+                terminal.update(status=receipt['status'],receipt=ref(folder/'receipt.json'))
+            else:
+                try:code=json.loads((folder/'stderr.log').read_bytes().splitlines()[-1]).get('code','UNKNOWN')
+                except (ValueError,IndexError):code='UNKNOWN'
+                proof=folder/f'zero-attempt-{intent_index}.json'
+                if stop is None and code.startswith('DEFERRED_') and proof.exists():
+                    terminal.update(event='protocol_deferred',status='DEFERRED',code=code,attempted=False,new_model_POSTs=0,zero_attempt_proof=ref(proof));journal.append(terminal);results.append(terminal);break
+                status='FAILED_DOCUMENT_ISOLATED' if stop is None and code in LOCAL_OUTPUT_ERRORS else 'FAILED_NO_RETRY'
+                failure={'status':status,'document_id':did,'page_input':row['page_input'],'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'plan':ref(path),'code':code,'resource_stop_reason':stop,'returncode':rc,'stderr':ref(folder/'stderr.log'),'raw_outputs_preserved':str(folder/'stages'),'count_as_completed_research':False}
+                d._write_immutable(folder/'failure.json',lm.canonical_json(failure)+b'\n');terminal.update(status=status,code=code,failure=ref(folder/'failure.json'))
+            journal.append(terminal);results.append(terminal)
+            if terminal['status']=='FAILED_NO_RETRY' or did in PROTOCOL_CANARIES and terminal['status']!='GENERATED_MACHINE_VALIDATED_CONTENT_PENDING':break
+            next_phase,_=protocol_pending(fresh,journal.events)
+            if next_phase.endswith('_HELD'):break
+        phase,pending=protocol_pending(context,journal.events)
+        return {'status':phase,'pending_document_ids':pending,'documents':results,'protocol_sha256':PROTOCOL_SHA,'generation':PROTOCOL_GENERATION,'journal':ref(journal.path),'content_acceptance':'INDEPENDENT_REVIEW_REQUIRED','old_rawFAIL_preserved':True}
+
+
+def _legacy_main(argv:Sequence[str]|None=None) -> int:
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--execute',action='store_true');p.add_argument('--max-documents',type=int,default=1);p.add_argument('--worker-id',help=argparse.SUPPRESS);p.add_argument('--plan',type=Path,help=argparse.SUPPRESS);p.add_argument('--preflight',action='store_true');p.add_argument('--replay-normalized',action='store_true');p.add_argument('--close-normalized',action='store_true');p.add_argument('--execute-protocol',action='store_true');p.add_argument('--protocol-worker',help=argparse.SUPPRESS);a=p.parse_args(argv)
+    try:
+        if a.execute_protocol or a.protocol_worker:
+            if a.execute or a.worker_id or a.preflight or a.replay_normalized or a.close_normalized or a.execute_protocol and (a.protocol_worker or a.plan) or a.protocol_worker and not a.plan:fail('PROTOCOL_ARGS_INVALID')
+            result=protocol_worker(a.protocol_worker,a.plan) if a.protocol_worker else execute_protocol(a.max_documents)
+        elif a.replay_normalized or a.close_normalized:
             if a.execute or a.preflight or a.worker_id or a.plan or a.replay_normalized and a.close_normalized:fail('FULL_REPLAY_ARGS_INVALID')
             result=close_normalized_replay() if a.close_normalized else replay_normalized_card()
         elif a.worker_id:
@@ -1096,5 +1288,10 @@ def main(argv:Sequence[str]|None=None) -> int:
         print(json.dumps(result,ensure_ascii=False));return 0
     except (b.BatchError,d.DispatcherError,ValueError,OSError,KeyError,TypeError) as exc:
         print(json.dumps({'status':'FAILED_CLOSED','code':str(exc)},ensure_ascii=False),file=sys.stderr);return 2
+
+def main(argv=None):
+    from infrastructure.pdf_research_execution import cli_dispatch
+    return cli_dispatch(argv, legacy_main=_legacy_main)
+
 
 if __name__=='__main__':raise SystemExit(main())
