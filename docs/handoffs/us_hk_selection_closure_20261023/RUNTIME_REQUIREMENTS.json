@@ -1,0 +1,173 @@
+{
+  "schema": "v4.us_hk.runtime_requirements.v1",
+  "component_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
+  "source_mode": "reviewed component overlays over manifest-bound immutable role bases; not a standalone repository installation",
+  "api_parent": {
+    "release_id": "hkex-announcements-api-20261023-r1",
+    "manifest_sha256": "6b91f3cabebe2a056e449eb0797df5660d68495ab4d2de14f0d0af0394dca6ed",
+    "retained_internal_dependencies": [
+      {
+        "path": "apps/api/v35_api/baimao_router.py",
+        "sha256": "ca158864df1506a733c002d2e26bfb271de60eb0a9e34bcaeaea0f97a5192ae8",
+        "git_blob_sha": "9512192eb5c3eee5cbddef9a3704dc3918c6da6c",
+        "bytes": 2708
+      },
+      {
+        "path": "apps/api/v35_api/preselection_router.py",
+        "sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+        "git_blob_sha": "6cad6dc5428de11b930667c86317a11ae1a3e4e8",
+        "bytes": 1322
+      },
+      {
+        "path": "apps/api/v35_api/preselection_service.py",
+        "sha256": "f0d2283e87663e7d98c933f0e2d95acb738d1e665a55958cb2771b3f02011f66",
+        "git_blob_sha": "144540eb71126924ea8d64aa73064163fae4c9ba",
+        "bytes": 32784
+      },
+      {
+        "path": "apps/api/v35_api/research_lane_router.py",
+        "sha256": "796ea8d96b82dcaeb3b843ca60032fdb8a96505803667b6410a41e1828f18733",
+        "git_blob_sha": "7ce6c1652c4682e297f2068ec913e379d1ad706b",
+        "bytes": 44874
+      },
+      {
+        "path": "apps/api/v35_api/runtime_router.py",
+        "sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2",
+        "git_blob_sha": "05b5f0cd3d824bb5767e6e6ddae48ddc747242ea",
+        "bytes": 1707
+      },
+      {
+        "path": "apps/api/v35_api/runtime_graph_router.py",
+        "sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531",
+        "git_blob_sha": "0bc7b7a20f7075f033307ba9355fd70409aaecf3",
+        "bytes": 26824
+      },
+      {
+        "path": "apps/api/v35_api/review_router.py",
+        "sha256": "ef6e870077fecd1e025ec1a0741ec3f766b76ef914b60661e4f32937acc9e28d",
+        "git_blob_sha": "d94d76fe6bc7833438dbe41455585a9a06b7f2d9",
+        "bytes": 42184
+      },
+      {
+        "path": "apps/api/v35_api/manual_collection_router.py",
+        "sha256": "8be20d30747f341c7191028b0e6e1db500feb22838c77bf85adc4f4aafe31044",
+        "git_blob_sha": "26f62bf393545f3d607ce05e17fb0a40f95995c6",
+        "bytes": 2666
+      },
+      {
+        "path": "apps/api/v35_api/research_router.py",
+        "sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8",
+        "git_blob_sha": "5e94245514b02476c5c24876270c144f799fab4b",
+        "bytes": 28231
+      },
+      {
+        "path": "contracts/trading_safety.py",
+        "sha256": "e2773e0a5b586c810b46d19219b5f96f465e29e36783d6be5e30abaf4d56b33b",
+        "git_blob_sha": "c966c0fd459f9edf08f1d3b61d9459299d3ef319",
+        "bytes": 134
+      },
+      {
+        "path": "domains/preselection.py",
+        "sha256": "eab106f0a87408f36af1edf0d3e35e95d64904feca9bbec01dfc8b69cbf51fa1",
+        "git_blob_sha": "40f79df18bb50238468be01ec34235c345d8c449",
+        "bytes": 25293
+      },
+      {
+        "path": "domains/stage_input_producer.py",
+        "sha256": "63870feb84b47a20db45083bcc04a97fdd5a7671e5f0e240331ae6d65263ba4b",
+        "git_blob_sha": "26c6d75092a0b40098c776053847ce77e8cc8509",
+        "bytes": 13019
+      },
+      {
+        "path": "domains/stages.py",
+        "sha256": "4471307b06b5ebac34434c61364e59ff4c8f22005dffc8c7a4ddebf8445610c3",
+        "git_blob_sha": "c0b6d61bacd3db9d33ed5191038fc21dcb07032f",
+        "bytes": 26697
+      },
+      {
+        "path": "infrastructure/futu_quote_provider.py",
+        "sha256": "b8ce38b6e255a0048a0028024c6c5bb376762e906a2dc4602c32dcb1ac91faae",
+        "git_blob_sha": "d732e5d538f3c5dcbe1d0454ead6fb61878d7d9c",
+        "bytes": 3710
+      },
+      {
+        "path": "infrastructure/opening_second_filter_store.py",
+        "sha256": "aff6baea4250d109772787a106d934e121af92ce933b13c83cc3baad90653fa8",
+        "git_blob_sha": "df1600457454b4a0c829005b4dc9170e0d5148a1",
+        "bytes": 3721
+      },
+      {
+        "path": "infrastructure/review_store.py",
+        "sha256": "12278920fe02965163916ac9e1bc8143fb42d7aa4e05e8c90cf02afb9e5d399c",
+        "git_blob_sha": "b2dc5430823bba1775139d3eae37b21381b7e080",
+        "bytes": 7378
+      },
+      {
+        "path": "infrastructure/research_lane_source.py",
+        "sha256": "02d1a4fdb919b87e7e8775a3dd527fe62dbcab85df180c37965d21440c9ed191",
+        "git_blob_sha": "17ee70f2f0b4d18bc812704eec6b02edb5a643cc",
+        "bytes": 43469
+      },
+      {
+        "path": "infrastructure/stage_quote_provider.py",
+        "sha256": "5d72b15bb39657289426a83e9f2d819f9f5476dde91e37703c7ee4ab53c53f47",
+        "git_blob_sha": "e2a3d9ee890130e77e9556b6ccaf700633ad88f5",
+        "bytes": 12082
+      },
+      {
+        "path": "stage_center/research_read_binding.py",
+        "sha256": "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05",
+        "git_blob_sha": "a0a691d6d17cef6cbc5f7fe86f8fb9ca38684543",
+        "bytes": 23771
+      },
+      {
+        "path": "ops/verify_stage_execution.py",
+        "sha256": "32872ffd4f99ca774252d238d38033c39b3dd0ab9b449a69c2dd35fddc556fc5",
+        "git_blob_sha": "c39ceb885c52e0ff3c51cd8ad1c074b6980bf659",
+        "bytes": 61786
+      },
+      {
+        "path": "stage_center/news_link_projection.py",
+        "sha256": "60a403924c9abcae050425f45ec55d7f84ff1fc99beb1403c2433994ec7e4611",
+        "git_blob_sha": "b777deb0828f7e8d1889cb474ba78a0c6417ac76",
+        "bytes": 4550
+      }
+    ],
+    "all21_absent_in_fixed_parent_and_worktree": true,
+    "retained_base_required": true,
+    "scope": "preserve existing routes and source; no new semantics certified"
+  },
+  "role_python": {
+    "api": "3.14.6; retained com.lexi.v4.local runtime v3.5-mac",
+    "scheduler": "3.14.6; retained20260904 v3.5-mac with actual -S launcher/site roots",
+    "hk_child": "3.13.12; retained HK wrapper and v3.5-hk02 runtime",
+    "test_interpreter": "canonical .venv Python3.14.6; runtime dependency equivalence not inferred"
+  },
+  "frontend_build": {
+    "node": "24.19.0",
+    "node_sha256": "27db838bb204ef7c21df2931f5656e4c8fb32e6e947f363a402b49714d32b5b1",
+    "vite": "7.3.6",
+    "vite_entry_sha256": "fa03478846d229651a3c6aa64833ba2c6cbf580a798b92bd8f47c7480bafb5d8",
+    "package_lock_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+    "dependency_install": "NOT_RUN; retained dependencies and lock only"
+  },
+  "local_test_inputs": {
+    "capture_parity_source_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+    "capture_parity_source": "exact original HK child monolith; frozen source-before.py or same retained immutable child source, required for parity test",
+    "replay_inventory_sha256": "714314d500ae66f5f428ac08629ae92946d7a8506acd4cb87b1433ec2aafa6ed",
+    "market_data": "local frozen material required; excluded from Git payload",
+    "portable_test_limits": "do not claim data-dependent tests pass on a host without declared local source/material"
+  },
+  "publication": {
+    "immutable_candidates": "NOT_PREPARED",
+    "actual_role_imports": "PENDING_FINAL_CANDIDATE_PROBE",
+    "standalone_checkout": "CANNOT_CONFIRM",
+    "full_parent_inventory_and_preimage_check": "REQUIRED_BEFORE_BUILD_OR_ACTIVATION"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

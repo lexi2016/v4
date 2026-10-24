@@ -1,0 +1,259 @@
+{
+  "schema": "v4.us_hk.zero_result_diagnosis.v1",
+  "scope": "Controller projection of independently reviewed frozen replay; not a new engine execution or live API observation.",
+  "source_run_id": "173530a9ac4b4105b41094337907b801",
+  "target_date": "20261022",
+  "phase": "NEXT_DAY",
+  "source_replay_receipt_sha256": "43a8148f2ea1a04b4489c5c096f0b42b109eefce70e3ea628283a8664405481e",
+  "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
+  "policy_sha256": "7a53dafb8e3cdc4bb04b89a49e9ebda02790771992424479071e3fb5c7784931",
+  "counts": {
+    "candidate_count": 670,
+    "current_supported": 1,
+    "dated_weak": 484,
+    "pending": 273,
+    "pending_research": 185,
+    "qualified_not_selected": 0,
+    "rejected": 397,
+    "selected": 0
+  },
+  "evaluation_complete": false,
+  "zero_classification": "INCOMPLETE_OR_UNKNOWN_ZERO_NA",
+  "gate_counts": {
+    "adjustment": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "ADJUSTMENT_PROOF_PENDING": 670,
+        "HK_READINESS_BINDING_PENDING": 670
+      }
+    },
+    "amount": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "AMOUNT_PROOF_PENDING": 670,
+        "HK_READINESS_BINDING_PENDING": 670
+      }
+    },
+    "close_ma20_max": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "CLOSE_MA20_MAX_PENDING": 670
+      }
+    },
+    "close_ma20_min": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "CLOSE_MA20_MIN_PENDING": 670
+      }
+    },
+    "currency": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "CURRENCY_PROOF_PENDING": 670,
+        "HK_READINESS_BINDING_PENDING": 670
+      }
+    },
+    "eligibility": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "ELIGIBILITY_PROOF_PENDING": 670,
+        "HK_READINESS_BINDING_PENDING": 670
+      }
+    },
+    "history_source": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "HK_HISTORY_OWNER_IDENTITY_PENDING": 670
+      }
+    },
+    "individual_relation": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "CURRENT_APPLICABILITY_CONFLICT_OR_ENUM_UNRECOGNIZED": 16,
+        "CURRENT_APPLICABILITY_ENUM_UNRECOGNIZED": 87,
+        "CURRENT_APPLICABILITY_IS_DATED_BACKGROUND_OR_PENDING": 296,
+        "CURRENT_ISSUER_OR_INSTRUMENT_SCOPE_CONFLICT_OR_UNRECOGNIZED": 9,
+        "CURRENT_ISSUER_OR_INSTRUMENT_SCOPE_IS_DATED_OR_PENDING": 19,
+        "EVIDENCE_REFS_PENDING": 14,
+        "INDIVIDUAL_POSITIVE_RELATION_NOT_PROVEN": 670,
+        "MANUAL_QUOTE_SYMBOL_MISSING": 1,
+        "QUOTE_PROVIDER_TIMESTAMP_BEFORE_OFFICIAL_CLOSE": 22,
+        "QUOTE_SYMBOL_MISSING": 9,
+        "RAW_US_SYMBOL_INVALID_NO_ALIAS_INFERRED": 1,
+        "RECOVERY_SCOPE_OPEN": 124,
+        "RELATION_CURRENT_VALIDITY_PENDING": 14,
+        "RELATION_DIRECTION_PENDING": 6,
+        "RELATION_REVIEW_OR_PIT_PENDING": 6,
+        "SECONDARY_BACKGROUND_ROUTE": 1,
+        "TOP_LEVEL_NESTED_RECOVERY_STATE_CONFLICT": 34,
+        "US_RELATION_PROPOSED_PIT_UNCONFIRMED": 5
+      }
+    },
+    "numeric_facts": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "HK_FROZEN_SESSION_WINDOW_INVALID": 670
+      }
+    },
+    "pit": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "HK_READINESS_BINDING_PENDING": 670,
+        "PIT_PROOF_PENDING": 670
+      }
+    },
+    "price": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "HK_READINESS_BINDING_PENDING": 670,
+        "PRICE_PROOF_PENDING": 670
+      }
+    },
+    "primary_return": {
+      "states": {
+        "REJECT": 397,
+        "PASS": 173,
+        "PENDING": 100
+      },
+      "reason_counts": {
+        "PRIMARY_US_QUOTE_PENDING": 100,
+        "PRIMARY_US_RETURN_BELOW_1_PERCENT": 397
+      }
+    },
+    "primary_theme": {
+      "states": {
+        "PENDING": 658,
+        "PASS": 12
+      },
+      "reason_counts": {
+        "PRIMARY_THEME_PENDING": 658
+      }
+    },
+    "return5_max": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "RETURN5_MAX_PENDING": 670
+      }
+    },
+    "secondary_paths": {
+      "states": {
+        "PASS": 561,
+        "PENDING": 109
+      },
+      "reason_counts": {
+        "SECONDARY_INDIVIDUAL_UNCERTAINTY": 109
+      }
+    },
+    "source_contract": {
+      "states": {
+        "PASS": 670
+      },
+      "reason_counts": {}
+    },
+    "source_evidence": {
+      "states": {
+        "PENDING": 656,
+        "PASS": 14
+      },
+      "reason_counts": {
+        "SOURCE_EVIDENCE_IDS_PENDING": 656
+      }
+    },
+    "suspension": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "HK_READINESS_BINDING_PENDING": 670,
+        "SUSPENSION_PROOF_PENDING": 670
+      }
+    },
+    "turnover20_min": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "TURNOVER20_MIN_PENDING": 670
+      }
+    },
+    "window": {
+      "states": {
+        "PENDING": 670
+      },
+      "reason_counts": {
+        "HK_FROZEN_SESSION_WINDOW_INVALID": 670
+      }
+    }
+  },
+  "diagnosis": [
+    {
+      "issue": "OLD_MAIN_ENTRY_NOT_CALLING_STRICT_SELECTOR",
+      "status": "SOURCE_REPAIRED_AND_INDEPENDENTLY_REVIEWED",
+      "meaning_zh": "旧主入口未执行完整严格筛选，原先零入选不能证明市场没有合格股票。"
+    },
+    {
+      "issue": "PRIMARY_US_TRIGGER",
+      "states": {
+        "below_1_percent": 397,
+        "quote_pending": 100,
+        "passes_return_gate": 173
+      },
+      "meaning_zh": "主路径先固定再取涨幅：397只主来源涨幅不足1%，100只报价待核；173只通过涨幅门槛仍须满足关系与港股历史数据门槛。"
+    },
+    {
+      "issue": "FROZEN_HISTORICAL_INPUT_LACKS_BOUND_HK_WINDOW_AND_READINESS",
+      "affected_candidates": 670,
+      "status": "MATERIAL_PENDING",
+      "meaning_zh": "这次历史输入未保存可核验的21日港股价格/20日金额窗口及原时点证据；670只均不能据此通过数值门槛。"
+    },
+    {
+      "issue": "CURRENT_SPECIFIC_POSITIVE_RELATION_NOT_PROVEN",
+      "affected_candidates": 670,
+      "status": "MATERIAL_PENDING",
+      "meaning_zh": "研究关系不能直接取得严格资格；本批每只股票仍缺少至少一项当前有效的具体正向关系证明。"
+    },
+    {
+      "issue": "INCOMPLETE_ZERO_IS_NOT_CASH_ZERO",
+      "status": "ENFORCED",
+      "meaning_zh": "397只最终拒绝、273只最终待核；拒绝优先于待核，但所有缺口继续保留，整日不可评价。"
+    }
+  ],
+  "old_saved_summary": {
+    "benefit": 5,
+    "risk": 0,
+    "not_strict_selection": true,
+    "old_run_preserved": true
+  },
+  "historical_effect_status": "NOT_EVALUABLE",
+  "labels_read": 0,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

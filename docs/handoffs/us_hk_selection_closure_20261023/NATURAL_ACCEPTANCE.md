@@ -1,0 +1,18 @@
+# Natural research-pipeline acceptance
+
+This is the approved plan's two-cycle acceptance contract. It does not certify predictive value or repair unavailable historical proof. Research safety flags remain unchanged.
+
+Count the first two complete actual US-close to HK-stage cycles after activation. Each cycle must use the reviewed immutable runtime/engine/policy and the existing scheduler. A manual run, retrospective publication, recovery after a missed slot, or source collected under the previous code cannot replace a complete new natural cycle. The2026-10-24 US-close capture slot preceded this implementation and is not eligible. Target dates come from the frozen US/HK calendars and actual scheduler receipts; any prospective dates are conditional until those receipts exist.
+
+For each cycle retain a compact machine-checkable receipt:
+
+- Actual source session, HK target day, NEXT_DAY and PREOPEN run IDs; scheduler origin and original source/decision/execution/processing cutoffs.
+- Actual loaded release/manifest/source SHA and final selection engine/policy identity, with no substitution from a checkout or service health response alone.
+- The relevant existing HK collector run's full SDK capture manifest, row/code reconciliation, packed-file hashes and authority-update receipt. Provider/container identities and provider-update/local-availability clocks remain distinct.
+- Frozen input, relation, roster and panel refs; per-lane source context; any unknown source timestamp or financial field remains explicit.
+- Saved candidate/strict fate counts and stock identities/order/reasons agree with compact API. Existing independent rendering/async evidence and deployed browser verification retain their scope; a new source hash or real UI failure requires direct re-verification.
+- No other lane disappears or acquires another lane's cutoff; no old saved run is overwritten. Any incomplete zero-selection day remains NA. Unknown unit/adjustment/member/status evidence remains PENDING and is not promoted by a successful scheduled job.
+
+The bounded natural receipt may PASS the scheduled engineering chain while financial material and efficacy remain CANNOT_CONFIRM/NOT_EVALUABLE. Report those states separately. Missing inputs, failed jobs or invalid slot provenance leave that cycle NATURAL_SLOT_UNVERIFIED; record the actual gap and preserve the existing healthy owner. Do not create replacement business runs or change the strategy to manufacture a result.
+
+After deployment, a single supported thread follow-up may inspect the two daily completion nodes. Keep unchanged/non-actionable state quiet, notify meaningful failure/recovery/completion, and stop that follow-up after two audited cycles. Reuse the existing business scheduler; no high-frequency monitor or additional producer. The old date-specific paused Oct15 automation is outside this scope and must remain unchanged.

@@ -1,0 +1,153 @@
+{
+  "schema": "v4.us_hk.release_scope.v1",
+  "state": "TEMPLATE_NOT_EXECUTABLE",
+  "mode": "RELEASE",
+  "role": "api",
+  "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
+  "source_commit": null,
+  "parent_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1",
+  "parent_manifest_sha256": "6b91f3cabebe2a056e449eb0797df5660d68495ab4d2de14f0d0af0394dca6ed",
+  "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-selection-api-20261023-r1",
+  "evidence_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/deployment/final-preparation",
+  "inventory_tool": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1/app/ops/api_release_integration.py",
+    "sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b"
+  },
+  "review_receipts": [],
+  "overlays": [],
+  "dependencies": [],
+  "preserved_app_files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "9c90c88c82b4f2f456d5229ba91270c6ccabcaccaf9d7b696d40f763e1b9051a"
+    },
+    {
+      "path": "apps/api/v35_api/hkex_announcements_router.py",
+      "sha256": "5462eda5497252e91ce79f1a1b02c9a126a42825f07ddbeeed32eadb2fcd5552"
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "sha256": "9ec101dd942c0ed5c554692e8d0665e90fd2df217bffc8580fab7feeb4429645"
+    },
+    {
+      "path": "v4/manager_research/hkex_directory_protocol.py",
+      "sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc"
+    },
+    {
+      "path": "v4/manager_research/hkex_provider.py",
+      "sha256": "7fac7f81b53cabc69a6d8e733fc91017f851e54bef0dcf751ea4c735c51f80f1"
+    },
+    {
+      "path": "v4/manager_research/hkex_runtime.py",
+      "sha256": "6212a79f701df0a7ff0720ef2c19ae17912fceffd6eacdfd63f9d7223b9636c5"
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "sha256": "1514268aaaec7916658f1e7a989b06141b3909843b296ab056bb3ea1ac7e7f93"
+    }
+  ],
+  "plist": {
+    "path": "/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist",
+    "sha256": "4d02d1e35420f964531beacc84f2ffd794bc5ed18a8ec7ffce42594aca323da1",
+    "updates": []
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "data_pointer_changes": [],
+  "blockers": [
+    "Same independent helper Reviewer must accept repair2 F1-F4 actual diff and targeted native-input/counterexample checks",
+    "Controller must supply exact per-role reconciled finite overlay/build output, retained parent/dependencies, source/review receipt and execution capsule",
+    "Actual role interpreter/entry import and strict history/PREOPEN candidate probe, current plist/config/PID CAS and all owner activity remain future execution checks",
+    "Frozen22 publication requires its own prepared-product/continuation capsule; no authority pointer promotion"
+  ],
+  "scheduler_parent": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-input-recovery-20261023-producer-r2",
+    "manifest_sha256": "9cf6171a2347db117b4442f1742fc8be0bd39a713fa2e7bab8679c99b9c86631",
+    "plist_sha256": "6849321a75d23d90604f70491ad97088cc03ffe9824d1e3b11b3b86c0cd20345",
+    "native_inventory_contract": "988 native records incl116 directories;872 identical leaves; explicit generated314 cache-container reconciliation, no old manifest replacement"
+  },
+  "panel_promotion": "FORBIDDEN_ALL_PENDING_DERIVATIVE",
+  "live_lifecycle": "REPAIR2_IMPLEMENTED_NOT_EXECUTED_REQUIRES_SAME_INCREMENTAL_REVIEW_AND_EXACT_ROLE_CAPSULE",
+  "execution_capsule": null,
+  "runtime_probe": null,
+  "activity": null,
+  "frontend_build": null,
+  "template_requirements": {
+    "runtime_probe": "Exact actual role Python/resolved binary SHA/version/sites and module->candidate path mapping, observed __file__ and SHA. Freeze actual entry search_roots and finite V35 env. Do not add app/upstreams/v3_shared_data merely to make imports pass. At real candidate stage exercise strict history adapter and pure PREOPEN; pin actual hk_panel_audit/engine/policy owner, beyond top-level imports.",
+    "frontend_build": "API only: reviewed source pins; exact Node/Vite SHA/version, existing node_modules/finite dependency identity files, unchanged lock, fresh scratch stage/output roots, expected manager HTML/new recursive assets. After copying retained frontend and finite reviewed overlays, compare the complete staged inventory to the frozen manifest+source hashes before the first Node command; copied config/plugin drift executes zero commands.",
+    "activity": "Exact uid/PID/expected_owner; complete parent/candidate admission-file maps unchanged. Pin exact role Workbench config and Store source. Derive actual Store.root by the pinned constructor Path(config.state_root)/manager_workbench (both live configs already end in manager_workbench). All attempt scans and announcement submission guards must bind that derived root, never config.state_root itself. Scheduler data/dispatcher roots bind retained launcher env. API three other durable queues remain required. Any healthy/partial/unknown work, drift or child aborts before commit.",
+    "scheduler": "Separate READY scope preserving provider/wrapper/runtime/global shared root/config/remaining argv; bind shared_updater and candidate launcher. Optional hk_child_prepared must verify reviewed fixed-base two-file child candidate and rebind exactly five existing CHILD values.",
+    "shared": "Exact retained 20260923 SHARED parent/manifest, native shared_package_inventory candidate_entries/count/canonical aggregate verified without rewriting it. shared_source_paths must equal the explicit14-path source closure. Candidate copies only those validated existing Python files plus approved additions/overlays. Record every excluded native data/test/unneeded-code entry and admitted generated cache; never copy .runtime/data, tests/fixtures or bytecode. No plist/service/global shared-root change.",
+    "authorizations": "Controller capsule schema v4.us_hk.execution_capsule.v1, verdict PASS, exact authorized_actions, scope_contract_sha256 excluding execution_capsule, reviewed prepare/activate helper SHA. No self-approval.",
+    "hk-child": "Fourth exact root only; fixed07aa Futu child base; two capture overlays from independent PASS; no plist/lifecycle; retain same SDK/wrapper/provider/args and existing receipt/capture storage. No overlay of capture monolith/helper into API or main scheduler.",
+    "lifecycle": "Temporary independent-session guardian only, acknowledged durable intent/journal before STOP. Darwin kernel audit token/PID version gates every STOP/CONT/KILL with no PID-only fallback; start time/status also checked. Guardian freezes exact old owner then reads accepted jobs/claims/children. Busy/unknown/precommit interruption restores own binding CAS and CONTs original. Durable bootout commit forbids old-owner resume; only same frozen-idle identity may be finished. New/restarted PID is preserved. One bootstrap requires explicit START after confirmed absence. Rollback uses same fence; healthy parent recovery only restores raw plist without signalling it. No new daemon/job or automatic blind rollback. Normal rollback must pin this activation receipt and its recorded candidate runtime_kernel_identity; partial/absent recovery still pins exact FAILED receipt. No newly observed PID silently replaces that recorded owner.",
+    "guardian_limits": "Audit-token SPI/task-name access must succeed or abort before STOP. Uncatchable guardian SIGKILL/OS/hardware death requires inspection of durable intent/journal; no automatic new-PID signals. Concurrent external signal or config/source/identity ambiguity invalidates the fence. Actual operation remains gated by independent review and controller capsule.",
+    "native_inventory": "API/CHILD original leaf inventory contracts stay exact. SCHED988 native entries normalize to872 unchanged leaves only after validating original canonical aggregate and every116 directory path/type/mode; extra directories reject except complete source-paired regular generated314 cache containers already excluded by pinned tool, with explicit reconciliation. SHARED native80 entries compare path/type/mode/size/SHA under original package-relative paths; generated313/314 cache exclusions require declared source pairs and explicit receipt. No fabricated application_inventory on old manifests.",
+    "protocol": "Single bounded descriptor-level JSON-line reader on both guardian/controller ends; per-stream pending bytes, fixed deadline, UTF8 framing,64KiB frame limit. Coalesced events never wait on select for already buffered data. Partial EOF/malformed/oversize/timeout abort according to pre/postcommit recovery phase; no automatic START or blind retry."
+  },
+  "hk_child_prepared": null,
+  "hk_child_template": {
+    "state": "TEMPLATE_NOT_EXECUTABLE",
+    "role": "hk-child",
+    "candidate_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-selection-hk-child-20261024-r1",
+    "parent_root": "/Users/lexi/Desktop/学习/agents调试/MANAGER_R3_BUSINESS_FIX_20260930/r3a/build/r3a-r9-import-closure-20260930T193024Z",
+    "parent_manifest_sha256": "ac239a1c86021da15a321ab7a383822574373bb4f3c976ad27aadc03fb62da91",
+    "original_monolith_sha256": "07aa9770c6ae0bb0cfd012e57843a37fedda6724a57cd52d7c339d854fc6609b",
+    "exact_overlay_targets": [
+      "ops/macos_research_panel_daily.py",
+      "ops/_hk_provider_capture.py"
+    ],
+    "plist": null,
+    "new_service": false,
+    "source_commit": null,
+    "review_receipts": [],
+    "overlays": [],
+    "runtime_probe": "Retained HK wrapper/runtime/sites/environment; PYTHONPATH=candidate/app as original caller contract, import both candidate ops modules only; no producer main or SDK call",
+    "scheduler_dependency": "Separate scheduler scope consumes hk_child_prepared exact path/SHA; five CHILD env bindings only, original wrapper/runtime/shared root/args retained",
+    "decision": "Task1 provider-gap direct data-loss evidence plus task-1b-capture-brief supersede permanent old-child preservation only for the reviewed same-Futu capture patch; prior read-only preflight remains historical truth"
+  },
+  "integration_input": {
+    "controller_receipt": "scratch/sync/SYNC_CORE_RECEIPT.json",
+    "remote_repository": "lexi2016/v4",
+    "remote_branch": "codex/us-hk-selection-closure-20261023",
+    "remote_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
+    "remote_tree": "89e7ef36c36e2c40cc7fdebed986f6e9189c709c",
+    "local_source_head_prefix": "4e000",
+    "heads_equated": false,
+    "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
+    "capture_source_sha256": "272a1826abf25988b7d77cbcd33e4204bd77db39585b195f78477e7d2df422ef",
+    "capture_helper_sha256": "a5d53cefce39792b93455dc5e17872c3d92b82b28aa0ad4142f5311459b796db",
+    "helper_files_excluded_from_core_sync": true,
+    "status": "CONTROLLER_VERIFIED_INPUT_NOT_ACTUAL_ROLE_CAPSULE",
+    "retained_api_dependencies": "7 independently accepted announcement files;21 missing internal modules remain explicit immutable-parent dependencies; no standalone worktree claim"
+  },
+  "shared_parent": {
+    "root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260923-hk02-owner-rebase-r2",
+    "manifest_sha256": "160fcc92fb35c943c6d2fe842bb28ff71ec4129e64f43bb2a2b9ee99a7ae9c0a",
+    "native_inventory_key": "shared_package_inventory",
+    "native_candidate_entry_count": 80,
+    "native_candidate_aggregate_sha256": "11f5ee1886597456747d4f6b7a33c537b3c3f3ba196647f20fc408fff1d19a33",
+    "shared_source_paths": [
+      "upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "upstreams/v3_shared_data/shared_data/__init__.py",
+      "upstreams/v3_shared_data/shared_data/allowlist.py",
+      "upstreams/v3_shared_data/shared_data/collectors.py",
+      "upstreams/v3_shared_data/shared_data/constants.py",
+      "upstreams/v3_shared_data/shared_data/consumer.py",
+      "upstreams/v3_shared_data/shared_data/hashing.py",
+      "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+      "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "upstreams/v3_shared_data/shared_data/paths.py",
+      "upstreams/v3_shared_data/shared_data/store.py"
+    ],
+    "scope": "SOURCE_PROJECTION_ONLY; old manifest unchanged; no new authority/data layer",
+    "non_source_runtime_dependencies": "No new copied non-source dependency is authorized; any actual required file must be explicitly pinned at its retained path for controller review"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T03:56:11.945488+00:00",
+  "as_of": "2026-10-24T04:38:55.505446+00:00",
   "overall": "IN_PROGRESS_LOCAL_RELEASE_AND_NATURAL_UNVERIFIED",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
@@ -68,6 +68,14 @@
       "transcription_or_report": "task-5-review.md",
       "sha256": "65d6985642987c2aa737e03bdb7257210d8504727e395792543d3b997648116b",
       "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "release_helpers",
+      "independent_reviewer": "release_helper_reviewer",
+      "state": "PASS_F1_F2_F3_F4_FROZEN_HELPER_SOURCE_ONLY",
+      "transcription_or_report": "task-6-helper-repair2-review.md",
+      "sha256": "b518766129e962ddfca7e640a8c832d4dc05573a8bcb4a3216267f4e3f4f8ead",
+      "origin": "independent final; controller transcription; machine receipt1818d8a6f9184460a2ee2b46b84af46a9f415d91b4dabcb1f713bfc74b4430bf"
     }
   ],
   "panel": {
@@ -112,13 +120,14 @@
     "independent_real_cases_twice": 3
   },
   "runtime": {
-    "helpers": "INDEPENDENT_FAIL_UNDER_REPAIR_P1_ADMISSION_RACE_P2_PRECHECK_ORDER",
+    "helpers": "REVIEWED_PASS_FROZEN_HELPER_SCOPE_ONLY",
     "candidate": "NOT_PREPARED",
     "deployment": "NOT_RUN",
     "api": "ISOLATED_TESTCLIENT_ONLY_LIVE_NOT_RUN",
     "ui": "COMPONENT_RESPONSE_PASS_LOADED_BROWSER_NOT_RUN",
     "natural_cycles_completed": 0,
-    "natural_cycles_required": 2
+    "natural_cycles_required": 2,
+    "helper_receipt_sha256": "33350cb40572e95504ee2fb438edbe2fba7958127c27fc6df8779ede2f922e28"
   },
   "material_gaps": [
     "price_currency_and_amount_unit_authority",
