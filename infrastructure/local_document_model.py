@@ -491,6 +491,19 @@ def request_pdf_card(*, messages, schema, expected_binding, on_raw, on_progress,
             error = value['error']
             code = error.get('code') if isinstance(error, dict) else None
             raise PdfCardTransportError('PDF_MODEL_ERROR:' + str(code or 'UNSPECIFIED')[:80], outcome_known=True)
+        # Installed oMLX emits this reserved, content-free control frame before
+        # prefill. Preserve its raw bytes, but neither treat it as model content
+        # nor refresh the substantive-progress clock. Any extra payload falls
+        # through to the normal strict error/model checks.
+        if (value.get('model') == 'keepalive'
+                and set(value) == {'id', 'object', 'created', 'model', 'choices'}
+                and isinstance(value['id'], str) and value['id'].startswith('chatcmpl-')
+                and value['object'] == 'chat.completion.chunk'
+                and type(value['created']) is int and value['created'] == 0
+                and isinstance(value['choices'], list) and len(value['choices']) == 1
+                and value['choices'][0] == {'index': 0, 'delta': {'role': 'assistant', 'content': ''}, 'finish_reason': None}
+                and type(value['choices'][0]['index']) is int):
+            return
         if value.get('model') not in (None, MODEL_ID):
             raise PdfCardTransportError('PDF_RESPONSE_MODEL_ID_MISMATCH', outcome_known=True)
         for choice in value.get('choices', []):

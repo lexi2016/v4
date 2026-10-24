@@ -1,0 +1,58 @@
+{
+  "schema": "v4.pdf_workbench.heartbeat_acceptance.v1",
+  "status": "REVIEWED_STREAM_ADAPTER_BRANCH_ONLY",
+  "repository": "lexi2016/v4",
+  "branch": "codex/pdf-workbench-closure-20261023",
+  "git_parent": "8c6bc99204d4a131955576ba1068115d22df406f",
+  "source_root": "/Users/lexi/.codex/worktrees/pdf-workbench-closure-20261023/v4_app",
+  "trigger": "The installed oMLX reserved empty keepalive frame was rejected before any model content as PDF_RESPONSE_MODEL_ID_MISMATCH",
+  "trigger_raw_sha256": "9bea555ecf4c3abb2589d3486a56bb408374aa12701825ce59778b079210dc16",
+  "change": "Recognize only the exact installed no-op control shape; preserve all raw bytes and strict identity/error handling for meaningful and genuine frames",
+  "independent_review": {
+    "verdict": "REVIEWED/PASS",
+    "receipt_sha256": "3f764f7a243a01aa86c812cf7083f577f5df107a13d068f1082b707ca7b1a56c",
+    "passed": 38,
+    "deselected": 7,
+    "scope": "20 direct plus18 independent contracts; network blocked; zero actual model requests by the source review",
+    "test_command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/lexi/.codex/worktrees/pdf-workbench-closure-20261023/v4_app /Users/lexi/Desktop/学习/v4_app/.venv/bin/python -B /Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/stage-e-realtext/heartbeat-repair/reviewer/run_review.py",
+    "verified": [
+      "real control frame fragmented/coalesced before expected-model content",
+      "raw stream preservation",
+      "real wrong-model rejection",
+      "meaningful pseudo-keepalive and error/finish/usage rejection",
+      "only-heartbeat never succeeds",
+      "no substantive-progress timeout reset from heartbeat",
+      "existing healthy210s stream"
+    ]
+  },
+  "source_inventory": [
+    {
+      "path": "infrastructure/local_document_model.py",
+      "before_sha256": "9021f1826b329f9db3d6ecf8d6c9a37b024cac1a80207b963e2ba8063a813d57",
+      "after_sha256": "fbef2ed55b8116c8a3a68ef4f0c1c9849420c3460ecb17772f792af8618633ad",
+      "git_blob_sha1": "fbe0d1e1551ed5853f5908f1b3c249f8bd6d44da"
+    },
+    {
+      "path": "tests/test_local_document_model.py",
+      "before_sha256": "ba2d8c6b095ed20848f67a0ea1249f6235f6b081579ff0cf2fafaf8453c92d9d",
+      "after_sha256": "b0043daf5fa2b096d5696576c2733e73eafab212c122303ad50af5e7605f6ee7",
+      "git_blob_sha1": "5478ebb4119d541f1988700a0a5ae4cde5f921b7"
+    }
+  ],
+  "other16_runtime_source_unchanged": true,
+  "model_visible_source_schema_prompt_sampling_and_settings_unchanged": true,
+  "first_failure_immutable": true,
+  "actual_model_content_acceptance": "Separate real-sample evidence; not claimed by this code receipt",
+  "canonical_integration": "NOT_RUN",
+  "live_v4_deployment": "NOT_RUN",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "excluded": [
+    "PDFs/source texts/requests/raw model responses",
+    "runtime/config/plist/logs",
+    "credentials/env",
+    "node_modules/dist/venv"
+  ]
+}
