@@ -100,6 +100,11 @@ def project_preopen_lane(lane, *, cutoff: str):
                 reason=(d.reasons or ['ALL_STRICT_GATES_PASSED'])[0],reasons=d.reasons)
             completed.append(row)
         selection.strict_decisions=list(decisions.values())
+        if selection.focus is not None:
+            from .engines.strict_us_selection import triggered_focus
+            selection.focus=triggered_focus(dict(target_date=selection.target_date,cutoff=cutoff,
+                source_sessions=dict(us=selection.source_session,hk_price=selection.price_session)),
+                selection.candidates,selection.strict_decisions)
         for key in ['selected','qualified_not_selected','rejected','pending']:selection.counts[key]=0
         for d in decisions.values():selection.counts[{'SELECTED':'selected','QUALIFIED_NOT_SELECTED':'qualified_not_selected','REJECTED':'rejected','PENDING':'pending'}[d.decision]]+=1
         selection.gaps=sorted({*selection.gaps,*(r for d in decisions.values() for g in d.gates if g.state=='PENDING' for r in g.reasons)})

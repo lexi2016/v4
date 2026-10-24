@@ -16,12 +16,12 @@ function response(data: unknown, state = "READY"): Response {
   { status: 200, headers: { "Content-Type": "application/json" } });
 }
 function compactStock(index: number, patch: Partial<USMappingCompactStock> = {}): USMappingCompactStock {
-  const states: Pick<USMappingCompactStock, "research_state" | "direction" | "strict_state" | "decision" | "qualified">[] = [
+  const states = [
     { research_state: "current_supported", direction: "POSITIVE", strict_state: "PASS", decision: "SELECTED", qualified: true },
     { research_state: "pending", direction: "CONFLICT", strict_state: "PENDING", decision: "PENDING", qualified: false },
     { research_state: "dated_weak", direction: "NEGATIVE", strict_state: "REJECT", decision: "REJECTED", qualified: false },
     { research_state: "current_supported", direction: "POSITIVE", strict_state: "PASS", decision: "QUALIFIED_NOT_SELECTED", qualified: true }
-  ];
+  ] as const;
   return {
     symbol: `HK.${String(index).padStart(5, "0")}`, name: `候选${index}`,
     ...states[(index - 1) % states.length],
@@ -50,6 +50,94 @@ function compactData(runId = "run-old", targetDate = "20261023", offset = 0) {
       { run_id: "run-new", phase: "NEXT_DAY", target_date: targetDate }
     ],
     lane_sources: { source_session: "20261022", cutoff: "fixture-cutoff" }
+  };
+}
+const triggeredFocusCounts = {
+  candidate_count: 670, industry_match_count: 578, eligible: 12, selected: 10, capped: 2,
+  not_triggered: 656, pending: 2
+};
+const triggeredFocusPolicy = { policy_version: "TRIGGERED_US_INDUSTRY_FOCUS_V1_20261024", policy_sha256: "e".repeat(64) };
+function triggeredRow(index: number, fate: "SELECTED" | "CAPPED" | "NOT_TRIGGERED" | "PENDING") {
+  const strict = compactStock(index, { decision: "PENDING", strict_state: "PENDING", qualified: false });
+  const theme = index <= 3 ? "AI_NETWORKING" : index <= 6 ? "EV_BATTERY" : index <= 9 ? "SMARTPHONE" : "OTHER";
+  const decision = {
+    symbol: strict.symbol, decision: fate, eligible: fate === "SELECTED" || fate === "CAPPED",
+    rank: fate === "SELECTED" || fate === "CAPPED" ? index : null,
+    primary_path_id: `PATH-${index}`, primary_us_symbol: "NVDA", primary_theme: theme,
+    primary_return_pct: fate === "NOT_TRIGGERED" ? "0.5" : "1.25",
+    hk_mean_turnover20_hkd: null, reasons: [fate === "CAPPED" ? "TOP10_THEME_CAP" : `FOCUS_${fate}`]
+  };
+  return {
+    ...strict, decision: fate, rank: decision.rank, primary_us_symbol: decision.primary_us_symbol,
+    primary_theme: decision.primary_theme, primary_return_pct: decision.primary_return_pct,
+    strict_decision: "PENDING", focus_decision: decision,
+    industry_matches: [{ us_symbol: "NVDA", industry: "半导体制造", segment: "芯片设计",
+      association: "BUSINESS_PEER", role: "INDIVIDUAL", relation_id: `R${String(index).padStart(3, "0")}`,
+      return_pct: decision.primary_return_pct, source_session: "20261022", current_applicability: "DATED_SCOPE_ONLY",
+      source_refs: [{ owner: "frozen-run-fixture", ref: `R${index}`, sha256: "f".repeat(64) }], warnings: [] }]
+  } as unknown as USMappingCompactStock;
+}
+function triggeredFocusData(offset = 0) {
+  return {
+    ...compactData("frozen23-run", "20261023", offset),
+    snapshot: { ...compactData("frozen23-run", "20261023", offset).snapshot,
+      phase: "RETROSPECTIVE", trigger: "MANUAL", source_sessions: { us_quote: "20261022", hk_price: "20261022" } },
+    listing_mode: "TRIGGERED_FOCUS", projection: "focus", focus_counts: triggeredFocusCounts,
+    focus_policy: triggeredFocusPolicy,
+    counts: { candidate_count: 670, current_supported: 100, dated_weak: 20, pending_research: 30,
+      selected: 0, qualified_not_selected: 0, rejected: 397, pending: 273 },
+    pagination: { total: 10, offset: 0, limit: 50 },
+    stocks: Array.from({ length: 10 }, (_, index) => triggeredRow(index + 1, "SELECTED"))
+  };
+}
+function triggeredCatalogueData(offset = 0) {
+  const end = Math.min(578, offset + 50);
+  const stocks = Array.from({ length: end - offset }, (_, index) => {
+    const n = offset + index + 1;
+    return triggeredRow(n, n <= 10 ? "SELECTED" : n <= 12 ? "CAPPED" : n <= 578 ? "NOT_TRIGGERED" : "PENDING");
+  });
+  return {
+    ...triggeredFocusData(offset), projection: "catalogue", stocks,
+    pagination: { total: 578, offset, limit: 50 }
+  };
+}
+function malformedTriggeredCatalogueData() {
+  const data = triggeredCatalogueData(0);
+  const sourceStock = data.stocks[0];
+  const sourceMatch = sourceStock.industry_matches?.[0];
+  if (!sourceStock || !sourceMatch) throw new Error("fixture requires a triggered catalogue relation");
+  const { warnings: _warnings, ...malformedMatch } = sourceMatch;
+  return {
+    ...data,
+    stocks: [{ ...sourceStock, industry_matches: [malformedMatch] }]
+  };
+}
+function oversoldEmptyData() {
+  const snapshot = triggeredFocusData().snapshot;
+  return {
+    snapshot: {
+      ...snapshot,
+      context: {
+        market: "HK_CONNECT", target_date: "20261023", phase: "RETROSPECTIVE", cutoff: null,
+        trigger: "MANUAL", source_sessions: { us_quote: "20261022", hk_price: "20261022" }
+      }
+    },
+    stocks: [],
+    counts: { selected: 0, watch: 0, unassessed: 0, observation_only: 0, not_selected: 0 },
+    recommendation_counts: { OVERSOLD: { selected: 0, watch: 0, unassessed: 0, observation_only: 0, not_selected: 0 } },
+    pagination: { total: 0, offset: 0, limit: 50 }
+  };
+}
+function legacyIndustryCatalogueData() {
+  const data = compactData("legacy-industry-run");
+  return {
+    ...data, listing_mode: "INDUSTRY_MATCH", projection: "catalogue", focus_counts: null, focus_policy: null,
+    listing_policy_version: "US_HK_INDUSTRY_LISTING_V1_20261024", listing_policy_sha256: "d".repeat(64),
+    counts: { ...data.counts, industry_match_count: 578 }, pagination: { total: 578, offset: 0, limit: 50 },
+    stocks: [1, 2].map(index => {
+      const row = compactStock(index);
+      return { ...row, industry_matches: triggeredRow(index, "NOT_TRIGGERED").industry_matches };
+    })
   };
 }
 function legacyCompactData() {
@@ -187,23 +275,23 @@ describe("US_MAPPING compact persisted results", () => {
     render(Workbench);
     await screen.findByText("候选1");
     paging = true;
-    await fireEvent.click(screen.getByRole("button", { name: "下一页", exact: true }));
+    await fireEvent.click(screen.getByRole("button", { name: "下一页" }));
     expect(screen.getByText("候选1")).toBeTruthy();
     expect(screen.getByText(/当前页 1–4 \/ 317/)).toBeTruthy();
     expect(screen.getByText(/当前仍显示上次成功页/)).toBeTruthy();
     expect(screen.queryByText(/当前保存版本没有单日映射结果/)).toBeNull();
-    expect((screen.getByRole("button", { name: "上一页", exact: true }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "上一页" }) as HTMLButtonElement).disabled).toBe(true);
     releasePage?.(response(compactData("run-old", "20261023", 50)));
     await screen.findByText("候选5");
     expect(screen.getByText(/当前页 51–51 \/ 317/)).toBeTruthy();
-    await fireEvent.click(screen.getByRole("button", { name: "上一页", exact: true }));
+    await fireEvent.click(screen.getByRole("button", { name: "上一页" }));
     expect(screen.getByText("候选5")).toBeTruthy();
     expect(screen.getByText(/当前页 51–51 \/ 317/)).toBeTruthy();
     rejectPage?.(new Error("simulated network failure"));
     await screen.findByText(/网络读取失败/);
     expect(screen.getByText("候选5")).toBeTruthy();
     expect(screen.getByText(/当前页 51–51 \/ 317/)).toBeTruthy();
-    await fireEvent.click(screen.getByRole("button", { name: "上一页", exact: true }));
+    await fireEvent.click(screen.getByRole("button", { name: "上一页" }));
     const releaseOldPage = releasePage;
     await fireEvent.change(screen.getByLabelText("计划版本"), { target: { value: "run-new" } });
     expect(screen.queryByText("候选5")).toBeNull();
@@ -258,6 +346,144 @@ describe("US_MAPPING compact persisted results", () => {
     ]);
     expect(result.data?.us_mapping_selection?.counts.candidate_count).toBe(317);
     expect(result.data?.snapshot?.context.target_date).toBe("20261023");
+  });
+
+  it("keeps the triggered top-ten research focus separate from the 578-row industry catalogue", async () => {
+    const spy = install(url => {
+      const offset = Number(url.searchParams.get("offset") || 0);
+      return url.searchParams.get("projection") === "catalogue"
+        ? response(triggeredCatalogueData(offset)) : response(triggeredFocusData(offset));
+    });
+    window.history.replaceState(null, "", "?date=20261023");
+    render(Workbench);
+
+    const focusTable = await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+    const focusRows = within(focusTable).getAllByRole("row");
+    expect(focusRows).toHaveLength(11);
+    expect(within(focusRows[1]).getByText("HK.00001")).toBeTruthy();
+    expect(within(focusRows[1]).getByText("NVDA")).toBeTruthy();
+    expect(within(focusRows[1]).getByText(/US 主来源收益 \+1\.25%/)).toBeTruthy();
+    expect(within(focusRows[1]).getByText(/主主题 AI_NETWORKING/)).toBeTruthy();
+    expect(screen.getByText(/重点入选 10/)).toBeTruthy();
+    expect(screen.getByText(/完整行业候选目录 578 只/)).toBeTruthy();
+    expect(screen.getByText(/US 来源会话 20261022.*HK 目标日 20261023.*人工 RETROSPECTIVE 回看/)).toBeTruthy();
+    expect(screen.queryByText(/US_MAPPING 推荐 · 同行业 578/)).toBeNull();
+    let urls = requestedUrls(spy);
+    expect(urls[0].searchParams.get("projection")).toBe("focus");
+    expect(urls[0].searchParams.get("run_id")).toBeNull();
+
+    await fireEvent.click(screen.getByRole("button", { name: /完整行业候选目录 578 只/ }));
+    const catalogueTable = await screen.findByRole("table", { name: "US_MAPPING 完整同行业候选目录" });
+    expect(screen.getByText(/完整行业候选目录.*578 只.*研究目录，不是推荐名单/)).toBeTruthy();
+    const cappedRow = within(catalogueTable).getAllByRole("row")[11];
+    expect(within(cappedRow).getByText("HK.00011")).toBeTruthy();
+    expect(within(cappedRow).getAllByText(/Top10 \/ 同主题限额排除/)).toHaveLength(2);
+    expect(screen.getByText(/完整行业候选目录 578 只，研究目录，不是推荐名单.*当前页 1–50 \/ 578/)).toBeTruthy();
+    urls = requestedUrls(spy);
+    const catalogueCall = urls.find(url => url.searchParams.get("projection") === "catalogue");
+    expect(catalogueCall?.searchParams.get("run_id")).toBe("frozen23-run");
+    expect(catalogueCall?.searchParams.get("offset")).toBe("0");
+
+    await fireEvent.click(screen.getByRole("button", { name: "下一页" }));
+    await screen.findByText("HK.00051");
+    const cataloguePage = requestedUrls(spy).find(url => url.searchParams.get("projection") === "catalogue"
+      && url.searchParams.get("offset") === "50");
+    expect(cataloguePage?.searchParams.get("run_id")).toBe("frozen23-run");
+
+    await fireEvent.click(screen.getByRole("button", { name: /触发重点名单 10 只/ }));
+    const returnedFocus = await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+    expect(within(returnedFocus).getByText("HK.00001")).toBeTruthy();
+    const focusCall = requestedUrls(spy).filter(url => url.searchParams.get("projection") === "focus").at(-1);
+    expect(focusCall?.searchParams.get("run_id")).toBe("frozen23-run");
+    expect(focusCall?.searchParams.get("offset")).toBe("0");
+  });
+
+  it("resets an incompatible catalogue offset before restoring the triggered focus lane", async () => {
+    const spy = install(url => {
+      const offset = Number(url.searchParams.get("offset") || 0);
+      if (url.pathname.endsWith("/recommendations/OVERSOLD")) return response(oversoldEmptyData());
+      if (url.searchParams.get("projection") === "catalogue") return response(triggeredCatalogueData(offset));
+      const focus = triggeredFocusData(offset);
+      return response(offset >= focus.pagination.total
+        ? { ...focus, stocks: [], pagination: { ...focus.pagination, offset } }
+        : focus);
+    });
+    window.history.replaceState(null, "", "?date=20261023");
+    render(Workbench);
+    await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+
+    await fireEvent.click(screen.getByRole("button", { name: /完整行业候选目录 578 只/ }));
+    await screen.findByRole("table", { name: "US_MAPPING 完整同行业候选目录" });
+    await fireEvent.click(screen.getByRole("button", { name: "下一页" }));
+    await screen.findByText("HK.00051");
+
+    await fireEvent.click(screen.getByRole("button", { name: /超跌推荐/ }));
+    await screen.findByText(/服务端筛选后共 0 行/);
+    await fireEvent.click(screen.getByRole("button", { name: /US_MAPPING 研究/ }));
+
+    const focusRequest = requestedUrls(spy).filter(url => url.pathname.endsWith("/recommendations/US_MAPPING")
+      && url.searchParams.get("projection") === "focus").at(-1);
+    expect(focusRequest?.searchParams.get("offset")).toBe("0");
+    const focusTable = await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+    expect(within(focusTable).getAllByRole("row")).toHaveLength(11);
+    expect(within(focusTable).getByText("HK.00001")).toBeTruthy();
+  });
+
+  it("rejects a triggered catalogue relation missing warnings before rendering", async () => {
+    const spy = install(url => url.searchParams.get("projection") === "catalogue"
+      ? response(malformedTriggeredCatalogueData()) : response(triggeredFocusData()));
+    window.history.replaceState(null, "", "?date=20261023");
+    render(Workbench);
+    await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+
+    await fireEvent.click(screen.getByRole("button", { name: /完整行业候选目录 578 只/ }));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toMatch(/同行业/);
+    expect(screen.queryByRole("table", { name: "US_MAPPING 完整同行业候选目录" })).toBeNull();
+    expect(requestedUrls(spy).some(url => url.searchParams.get("projection") === "catalogue")).toBe(true);
+  });
+
+  it("labels an old industry listing with no persisted focus as a catalogue", async () => {
+    const spy = install(() => response(legacyIndustryCatalogueData()));
+    window.history.replaceState(null, "", "?date=20261023");
+    render(Workbench);
+    const table = await screen.findByRole("table", { name: "同行业港股名单" });
+    expect(within(table).getByText("HK.00001")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /旧候选目录 · 未执行重点筛选/ })).toBeTruthy();
+    expect(screen.getByText(/旧候选目录 578 只，未执行重点筛选/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /触发重点名单/ })).toBeNull();
+    expect(requestedUrls(spy)[0].searchParams.get("projection")).toBe("focus");
+  });
+
+  it("ignores a late catalogue response after date navigation", async () => {
+    let releaseCatalogue: ((value: Response) => void) | undefined;
+    const spy = install(url => {
+      const date = url.pathname.split("/")[5];
+      if (url.searchParams.get("projection") === "catalogue") {
+        return new Promise<Response>(resolve => { releaseCatalogue = resolve; });
+      }
+      const current = triggeredFocusData();
+      return response({ ...current, snapshot: { ...current.snapshot, run_id: "new-date-run", target_date: date } });
+    });
+    window.history.replaceState(null, "", "?date=20261023");
+    render(Workbench);
+    await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+    await fireEvent.click(screen.getByRole("button", { name: /完整行业候选目录 578 只/ }));
+    await waitFor(() => expect(releaseCatalogue).toBeTypeOf("function"));
+
+    const dateInput = screen.getByLabelText("目标港股日") as HTMLInputElement;
+    dateInput.value = "2026-10-24";
+    await fireEvent.change(dateInput);
+    const focusTable = await screen.findByRole("table", { name: "US_MAPPING 触发重点研究名单" });
+    expect(screen.getByText("20261024")).toBeTruthy();
+    releaseCatalogue?.(response(triggeredCatalogueData()));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(screen.queryByRole("table", { name: "US_MAPPING 完整同行业候选目录" })).toBeNull();
+    expect(within(focusTable).getByText("HK.00001")).toBeTruthy();
+    expect(screen.getByText("new-date-run")).toBeTruthy();
+    const dateRequest = requestedUrls(spy).find(url => url.pathname.includes("/days/20261024/"));
+    expect(dateRequest?.searchParams.get("projection")).toBe("focus");
+    expect(dateRequest?.searchParams.get("run_id")).toBeNull();
   });
 
   it("requests compact by default, preserves backend order/full counts, and pages diagnostics on demand in the same run", async () => {

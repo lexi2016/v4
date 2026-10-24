@@ -283,3 +283,23 @@ def test_repair_r1_two_actual_jobs_keep_original_lane_input_context(tmp_path,mon
         assert data['counts']['selected']==1 and data['lane_sources']['source_execution_cutoff']==c['cutoff']
         assert data['lane_sources']['processing_cutoff']=='2026-10-23T08:00:00+08:00'
     finally:s.stop()
+
+
+@pytest.mark.parametrize('cutoff,selected',[('2026-10-23T04:00:00+08:00',0),('2026-10-23T07:00:00+08:00',1)])
+def test_focus_preopen_reuses_pure_policy_with_stage_cutoff_and_persists(tmp_path,cutoff,selected):
+    from test_us_hk_selection_closure import fixture_batch
+    from test_us_hk_compact import saved_result,client_for
+    from v4.manager_workbench.engines.us_mapping import run_us_mapping
+    from v4.manager_workbench.service import project_preopen_lane
+    c,b=fixture_batch(tmp_path);lane=LaneResult.model_validate(run_us_mapping(c,b));before=lane.model_dump(mode='json')
+    assert lane.selection.focus.counts['selected']==1
+    projected=project_preopen_lane(lane,cutoff=cutoff)
+    assert projected.selection.focus.counts['selected']==selected
+    assert projected.selection.cutoff==c['cutoff']
+    c['phase']='PREOPEN';c['cutoff']=cutoff
+    snap=saved_result(c,projected.model_dump(mode='json'));store=WorkbenchStore(tmp_path/'persisted')
+    store.commit_plan(snap);saved=store.read_plan(snap.run_id)
+    assert saved.lanes[0].selection.focus==projected.selection.focus
+    data=client_for(saved).get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING').json()['data']
+    assert data['focus_counts']['selected']==selected and data['pagination']['total']==selected
+    assert lane.model_dump(mode='json')==before

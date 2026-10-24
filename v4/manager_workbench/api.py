@@ -343,10 +343,11 @@ def create_router(service: ManagerService) -> APIRouter:
                              offset: int = Query(0,ge=0),limit: int = Query(50,ge=1,le=200),
                              decision: Decision | None = None,q: str | None = Query(None,max_length=128),
                              view: Literal['compact','diagnostics'] | None = None,
+                             projection: Literal['focus','catalogue'] = 'focus',
                              symbol: str | None = Query(None,pattern=r'^HK\.[0-9]{5}$'),
                              relationship_offset: int = Query(0,ge=0),
                              relationship_limit: int = Query(50,ge=1,le=200)):
-        day=_date(date)
+        day=_date(date);requested_projection=projection
         def read():
             snap=service.store.get_plan(day,phase.value if phase else None,run_id)
             versions,version_metadata_gaps=service.store.list_plan_metadata(day)
@@ -361,11 +362,11 @@ def create_router(service: ManagerService) -> APIRouter:
             names=saved_names(snap,service.config.shared_root)
             saved_lane=next((l for l in snap.lanes if l.lane.value==lane),None)
             industry_default=(lane=='US_MAPPING' and saved_lane and saved_lane.selection
-                and saved_lane.selection.listing_mode=='INDUSTRY_MATCH')
+                and saved_lane.selection.listing_mode in {'INDUSTRY_MATCH','TRIGGERED_FOCUS'})
             if view or industry_default:
                 projection=selection_view(snap,lane,names,view=view or 'compact',offset=offset,limit=limit,
                     decision=decision.value if decision else None,q=q,symbol=symbol,
-                    relationship_offset=relationship_offset,relationship_limit=relationship_limit)
+                    relationship_offset=relationship_offset,relationship_limit=relationship_limit,projection=requested_projection)
                 if projection is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['LANE_NOT_SAVED'])
                 projection['versions']=versions
                 projection['version_metadata_gaps']=version_metadata_gaps

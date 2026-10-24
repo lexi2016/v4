@@ -336,26 +336,62 @@ export interface USMappingCompactGate {
   state: "PASS" | "PENDING" | "REJECT";
   reasons: string[];
 }
+export type USMappingProjection = "focus" | "catalogue";
+export interface USMappingFocusCounts {
+  candidate_count: NullableCount;
+  industry_match_count: NullableCount;
+  eligible: NullableCount;
+  selected: NullableCount;
+  capped: NullableCount;
+  not_triggered: NullableCount;
+  pending: NullableCount;
+}
+export interface USMappingFocusPolicy {
+  policy_version: string;
+  policy_sha256: string;
+}
+export interface USMappingFocusDecision {
+  symbol: string;
+  decision: "SELECTED" | "CAPPED" | "NOT_TRIGGERED" | "PENDING";
+  eligible: boolean;
+  rank: number | null;
+  primary_path_id: string | null;
+  primary_us_symbol: string | null;
+  primary_theme: string | null;
+  primary_return_pct: string | null;
+  hk_mean_turnover20_hkd: string | null;
+  reasons: string[];
+}
 export interface USMappingCompactStock {
   industry_matches?: USMappingIndustryMatch[];
   symbol: string;
-  name: string | null;
-  research_state: "current_supported" | "dated_weak" | "pending";
-  direction: "POSITIVE" | "NEGATIVE" | "CONFLICT" | "UNKNOWN";
-  primary_path_id: string | null;
-  strict_state: "PASS" | "PENDING" | "REJECT";
-  decision: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED";
-  qualified: boolean;
+  name?: string | null;
+  research_state?: "current_supported" | "dated_weak" | "pending";
+  direction?: "POSITIVE" | "NEGATIVE" | "CONFLICT" | "UNKNOWN";
+  primary_path_id?: string | null;
+  strict_state: string;
+  strict_decision?: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED" | string | null;
+  focus_decision?: USMappingFocusDecision | null;
+  decision: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED"
+    | "CAPPED" | "NOT_TRIGGERED";
+  primary_us_symbol?: string | null;
+  primary_theme?: string | null;
+  primary_return_pct?: string | null;
+  hk_mean_turnover20_hkd?: string | null;
+  qualified?: boolean;
   rank: number | null;
-  reasons: string[];
-  gates: USMappingCompactGate[];
-  path_count: number;
-  source_refs: Record<string, unknown>[];
+  reasons?: string[];
+  gates?: USMappingCompactGate[];
+  path_count?: number;
+  source_refs?: Record<string, unknown>[];
 }
 export interface USMappingSelectionView {
-  listing_mode?: "INDUSTRY_MATCH";
+  listing_mode?: "INDUSTRY_MATCH" | "TRIGGERED_FOCUS";
   listing_policy_version?: string;
   listing_policy_sha256?: string;
+  projection: USMappingProjection;
+  focus_counts?: USMappingFocusCounts | null;
+  focus_policy?: USMappingFocusPolicy | null;
   selection_identity: USMappingSelectionIdentity;
   lane_sources?: Record<string, unknown>;
   counts: USMappingSelectionCounts;

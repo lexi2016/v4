@@ -180,6 +180,19 @@ class MappingPath(StrictModel):
     evidence_ids: list[str] = Field(default_factory=list)
     reasons: list[str] = Field(default_factory=list)
 
+    # Absent in historical snapshots; only the normalizer certifies source quotes.
+    quote_verified: bool | None = None
+    quote_available_at: str | None = None
+    focus_theme: str | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_quote_compatible(self, handler):
+        value=handler(self)
+        if self.quote_verified is None:value.pop("quote_verified",None)
+        if self.quote_available_at is None:value.pop("quote_available_at",None)
+        if self.focus_theme is None:value.pop("focus_theme",None)
+        return value
+
 
 class ResearchCandidate(StrictModel):
     symbol: str
@@ -233,6 +246,45 @@ class StrictSelectionDecision(StrictModel):
         return self
 
 
+class TriggeredFocusDecision(StrictModel):
+    symbol: str
+    decision: Literal["SELECTED", "CAPPED", "NOT_TRIGGERED", "PENDING"]
+    eligible: bool = False
+    rank: int | None = None
+    primary_path_id: str | None = None
+    primary_us_symbol: str | None = None
+    primary_theme: str | None = None
+    primary_return_pct: str | None = None
+    hk_mean_turnover20_hkd: str | None = None
+    reasons: list[str] = Field(default_factory=list)
+
+
+class TriggeredFocusSummary(StrictModel):
+    cutoff: str
+    source_session: str | None = None
+    policy_version: str
+    policy_sha256: str
+    counts: dict[str, int]
+    decisions: list[TriggeredFocusDecision]
+
+    @model_validator(mode="after")
+    def consistent_focus(self):
+        if len({d.symbol for d in self.decisions})!=len(self.decisions):raise ValueError("FOCUS_DUPLICATE_SYMBOL")
+        expected={key:sum(d.decision==state for d in self.decisions) for key,state in
+            [('selected','SELECTED'),('capped','CAPPED'),('not_triggered','NOT_TRIGGERED'),('pending','PENDING')]}
+        expected.update(candidate_count=len(self.decisions),eligible=sum(d.eligible for d in self.decisions))
+        if any(self.counts.get(key)!=value for key,value in expected.items()):raise ValueError("FOCUS_COUNTS_MISMATCH")
+        if expected['selected']>10:raise ValueError("FOCUS_TOP10_CAP")
+        themes={}
+        for d in self.decisions:
+            if d.eligible!=(d.decision in {'SELECTED','CAPPED'}):raise ValueError("FOCUS_ELIGIBILITY_MISMATCH")
+            if d.decision=='SELECTED':
+                if not d.primary_theme or d.rank is None:raise ValueError("FOCUS_PRIMARY_OR_RANK_MISSING")
+                themes[d.primary_theme]=themes.get(d.primary_theme,0)+1
+        if any(v>3 for v in themes.values()):raise ValueError("FOCUS_THEME3_CAP")
+        return self
+
+
 class MappingSelectionSummary(StrictModel):
     schema_version: Literal["v4.us_hk.selection.v1"] = "v4.us_hk.selection.v1"
     policy_version: str
@@ -247,14 +299,15 @@ class MappingSelectionSummary(StrictModel):
     counts: dict[str, int] = Field(default_factory=dict)
     evaluation_complete: bool = False
     gaps: list[str] = Field(default_factory=list)
-    listing_mode: Literal["INDUSTRY_MATCH"] | None = None
+    listing_mode: Literal["INDUSTRY_MATCH", "TRIGGERED_FOCUS"] | None = None
     listing_policy_version: str | None = None
     listing_policy_sha256: str | None = None
+    focus: TriggeredFocusSummary | None = None
 
     @model_serializer(mode="wrap")
     def serialize_industry_compatible(self, handler):
         value = handler(self)
-        for key in ("listing_mode", "listing_policy_version", "listing_policy_sha256"):
+        for key in ("listing_mode", "listing_policy_version", "listing_policy_sha256", "focus"):
             if getattr(self, key) is None:
                 value.pop(key, None)
         return value

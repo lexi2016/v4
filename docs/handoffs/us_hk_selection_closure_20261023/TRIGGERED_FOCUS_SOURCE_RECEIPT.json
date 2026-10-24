@@ -1,0 +1,131 @@
+{
+  "schema": "v4.us_hk.triggered_focus_source_receipt.v1",
+  "state": "SOURCE_INDEPENDENT_PASS_NOT_DEPLOYED",
+  "parent_commit": "ef8f888083103b865b97b895b51c29f1481dc354",
+  "goal": "Default recommendation list uses a validated main individual US source return >=1%, Top10 and at most3 per saved main theme; company industry peers accepted. Full catalogue and original strict decisions remain separate.",
+  "files": [
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "before_sha256": "9472b449b2a24166d19627f8a95f47ba525f617a2538a9eaa74da8ef517b9973",
+      "sha256": "a832f19bfbc65ffa163ed59ebebb6fd7f74963c3a4266296b67e70d9d1eb33e7",
+      "git_blob": "74c5c320eeb3b07873a3fe4409db46cd8c2cc99a"
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "before_sha256": "545d171d4fdaec440b1c9730ddcbed2f070cc68f6d79b20d0abeb4574bb08d51",
+      "sha256": "ec5065d4f091073ba6bc2c7d632642db6fbf27c6ee92354dbf1e76e05096c351",
+      "git_blob": "37db12a5994a208beaebb4f0d5a7174a166c2f7c"
+    },
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "before_sha256": "0934b4689affddf96b621d961b5806eaeec19d1cb382f7bcda23606e0bb577e3",
+      "sha256": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
+      "git_blob": "0e8fbd9507d4fed61c322db919b4df6a6455b367"
+    },
+    {
+      "path": "v4/manager_workbench/display.py",
+      "before_sha256": "4ede18c1b7784659eb476c11de1b15ac50e1091142650626fc5d01e231ffa5f0",
+      "sha256": "11dae08cbd7066e7825c910cd224d599eba4877b318ed33e1d9ea81379d547ac",
+      "git_blob": "76d54df50ae6eca48e42801ebe02b7ac2b8fbe9c"
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "before_sha256": "b9e5e5e50a17d0b9a6b90d7ef6cd3a7a96859dd7f1c0c2192f1e2987bbd4311b",
+      "sha256": "b54958f00eb5855ff6db59b0f0c83e419e68724ae45853b0688e3bf732718d18",
+      "git_blob": "d373fa01af204ea63633e7131f9d57dce31aa8a1"
+    },
+    {
+      "path": "tests/test_us_mapping_industry.py",
+      "before_sha256": "764f9d1d52b80a3092571598f78b9770090f2ce0a8327edd2b3e19ee5c9619e9",
+      "sha256": "5f18a5cf103f7763ae369e0c0d5925398fd7ea6e99756390c2fae2225e1ffd3f",
+      "git_blob": "d91b353c4b66639f8d658489073e57a6f5116812"
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_compact.py",
+      "before_sha256": "af7e403c36d2fc935d7f99122dfac8e378924e6ae186ed112b568a7a78639136",
+      "sha256": "4754cecc3ea75459651b949d2658383269a960965e3bb9e75d28a94270b50ce4",
+      "git_blob": "cf18078875cef1c73f795850508f6409ff30b9c9"
+    },
+    {
+      "path": "v4/manager_workbench/service.py",
+      "before_sha256": "655d15cb10736a00df218524cf9b7919b93271ca55df72527800acaed8b4f0db",
+      "sha256": "832cf305b77b7d17ee835fa0fd70cad695615ac6dbebeb859453fe4c99ed4536",
+      "git_blob": "e673993025b2eaf239ef0ca1343cae6e727d5833"
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_phase_merge.py",
+      "before_sha256": "a43b5e15bc558ca33425c58f289b156e4dadf70d9ad3ce92f3463f6e07a21fe3",
+      "sha256": "d4b9075658a50b6cdc056f7e39b353d594d650d88af402f6ffa53caa204b4c41",
+      "git_blob": "297ba1816ea4c20aed722d9404893e560d122c1b"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "c57aa4716a9b9cccf76b7dad4dd71f530cdd07f5a67809a3369b6c40717fede4",
+      "sha256": "16baa905ef153c6762695b644e88c28f9a9367e9960ef3cf2c9597a19720a663",
+      "git_blob": "e5f816b8121ed0434b114c80a2da40b977fa3a80"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "before_sha256": "c4f8b327a40c4ffdbea307f484cf912e4077cfa3b751c583dd0e1bbd3121f05f",
+      "sha256": "8250b4b2fe0d61baebcfb2d3fd8dba624ae46170b296bf177321097032e9c3ff",
+      "git_blob": "204c94b85dd257319553b1f95ee9534e35b6562e"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "before_sha256": "6789d00400a63d875b72289e5e78e90a988d2bb78686120dcf7756d385bbcb8c",
+      "sha256": "06a59295058e198fa3f5a6060907ce8e85644c278cdf6211680e2868f1735d55",
+      "git_blob": "a62fa11b2bed2c3afb1b824e609ae34b772fd597"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "before_sha256": "8172c3c67cf6105769c58104c805991ff8caf50c0ec6f093df381d0376d7a5c8",
+      "sha256": "5dd1c2834cea2029840f9d41c614935708bed018188ccebc0812188099241177",
+      "git_blob": "64ef6cc84ddb3c855d9a3c40424c421f052a5acd"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_selection.spec.ts",
+      "before_sha256": "8f61342b6b8ac3281e5e75d30e8df4732b6bdcfdcd30ccfa78a4d24bd6438f64",
+      "sha256": "525879e6742bd843b88cd799ae0759d0a7c8addd8e2cf972e569bc520720231c",
+      "git_blob": "d322a930ff191e850e25555560888abfa82d9107"
+    }
+  ],
+  "independent_reviews": [
+    {
+      "role": "/root/trigger_focus_backend_reviewer",
+      "path": ".superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/triggered-focus/BACKEND_REVIEW.json",
+      "sha256": "d66d8028af87c398f491b1106597b2a337863fdcf4da17d86668f64ee32ec999",
+      "scope": "25 targeted checks and real original23 input through run_us_mapping, in-process HTTP projections"
+    },
+    {
+      "role": "/root/trigger_focus_front_reviewer",
+      "path": ".superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/triggered-focus/frontend-review/R1/RECEIPT.json",
+      "sha256": "e8c991e9a16df2d8762feb3c73083cf1a8fc8f119549f925bb062a6256ca501d",
+      "scope": "R0 28 checks reused; incremental3 regressions independently passed"
+    }
+  ],
+  "date23": {
+    "source_run_id": "d2562717f12740648af5ee84662a1643",
+    "source_input_sha256": "08d57102c67fec088428b7f0e3abcf5266ac1b46989ea79f66463c92067169aa",
+    "source_us_session": "20261022",
+    "candidates": 670,
+    "catalogue": 578,
+    "eligible": 146,
+    "selected": 10,
+    "capped": 136,
+    "not_triggered": 410,
+    "pending": 114,
+    "strict_selected": 0,
+    "selection_sha256": "f9d63b6c996a041993d64a28b6483469d213e4c584cc1022975a951acec69ef4"
+  },
+  "limits": [
+    "Retrospective engineering replay, no return labels or efficacy conclusion",
+    "Actual deployment/API/UI and compatible scheduler/natural cycles not established by source review",
+    "No original source records, authority data or BUY gates changed"
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

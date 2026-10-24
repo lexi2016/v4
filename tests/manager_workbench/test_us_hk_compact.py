@@ -101,13 +101,13 @@ def test_compact_200_rows_under_one_mib_with_full_counts_and_no_raw_factor_group
                     recovery_v2r1=dict(closure_status='CLOSED_RESEARCH_SCOPE',current_applicability_state='DATED_SCOPE_ONLY')))]))
     result=run_us_mapping(c,b);result['rows'][0]['us_factor_summary']={'groups':{'raw':'x'*(3*1024*1024)}}
     snapshot=saved_result(c,result);client=client_for(snapshot)
-    response=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING',params=dict(run_id=snapshot.run_id,view='compact',limit=200))
+    response=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING',params=dict(run_id=snapshot.run_id,view='compact',projection='catalogue',limit=200))
     assert response.status_code==200;data=response.json()['data']
     assert len(response.content)<=1024*1024
     assert len(data['stocks'])==200 and data['counts']['candidate_count']==200 and data['counts']['selected']==3
     assert 'us_factor_summary' not in response.text and 'groups' not in response.text and 'hk_history' not in response.text
     assert data['lane_sources']['source_cutoff']==c['cutoff']
-    page=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING',params=dict(view='compact',offset=190)).json()['data']
+    page=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING',params=dict(view='compact',projection='catalogue',offset=190)).json()['data']
     assert len(page['stocks'])==10 and page['counts']==data['counts'] and page['pagination']['total']==200
     assert data['stocks'][0]['symbol']==result['selection']['candidates'][0]['symbol']
 
@@ -129,8 +129,9 @@ def test_new_default_projects_same_canonical_counts_without_path_votes(tmp_path)
     compact=client.get('/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING?view=compact').json()['data']
     assert old['counts']['selected']==compact['counts']['selected']==0
     assert old['counts']['pending']==compact['counts']['pending']==1
-    assert old['stocks']==[]  # company cooperation alone does not prove same industry
-    assert old['listing_mode']=='INDUSTRY_MATCH' and old['counts']['industry_match_count']==0
+    assert len(old['stocks'])==1 and old['stocks'][0]['focus_decision']['decision']=='SELECTED'
+    assert old['listing_mode']=='TRIGGERED_FOCUS' and old['counts']['industry_match_count']==0
+    assert old['focus_counts']['selected']==1  # missing strict material is still an independent reference
 
 
 def test_legacy_absent_selection_preserves_hash_default_and_original_path_votes(tmp_path):
@@ -195,7 +196,7 @@ def test_repair_r1_preopen_omitted_compact_and_embedded_strict_use_same_judgment
     saved=saved_result(c,projected.model_dump(mode='json'));client=client_for(saved);route='/api/v4/manager-workbench/days/20261023/recommendations/US_MAPPING'
     default=client.get(route).json()['data'];compact=client.get(route+'?view=compact').json()['data']
     factor=next(row['us_factor_summary'] for row in projected.rows if 'us_factor_summary' in row)
-    assert default['counts']==compact['counts'] and default['listing_mode']=='INDUSTRY_MATCH'
+    assert default['counts']==compact['counts'] and default['listing_mode']=='TRIGGERED_FOCUS'
     assert compact['counts']['selected']==factor['strict_selection']['counts']['selected']==factor['single_day_mapping']['selected_count']==0
     assert compact['counts']['pending']==factor['strict_selection']['counts']['pending']==1
     assert factor['single_day_mapping']['rows'][0]['strict_decision']=='PENDING'

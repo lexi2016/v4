@@ -4,6 +4,7 @@ import type {
   AnnouncementFlashUpdateAccepted, DayData, Decision, Envelope, HistoryData,
   JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane,
   USMappingCatalogData, PlanMetadata, USMappingCompactStock, USMappingDiagnosticsData,
+  USMappingFocusCounts, USMappingFocusDecision, USMappingFocusPolicy, USMappingProjection,
   USMappingSelectionCounts, USMappingSelectionIdentity
 } from "./types";
 import { isValidDate } from "./route";
@@ -18,6 +19,7 @@ export interface DayQuery {
   limit?: number;
   decision?: Decision | "";
   lane?: Lane | "";
+  projection?: USMappingProjection;
   q?: string;
 }
 export interface USMappingDiagnosticsQuery {
@@ -80,6 +82,7 @@ function normalizeSelectionSnapshot(value: unknown): PlanMetadata | null {
       target_date: targetDate,
       phase: phase as Phase,
       cutoff: typeof value.cutoff === "string" ? value.cutoff : null,
+      ...(value.trigger === "MANUAL" || value.trigger === "SCHEDULED" ? { trigger: value.trigger } : {}),
       ...(isRecord(value.source_sessions) ? { source_sessions: value.source_sessions as Record<string, string | null> } : {})
     },
     run_id: runId
@@ -102,15 +105,50 @@ function assertSelectionCounts(value: unknown): USMappingSelectionCounts {
   }
   return value as unknown as USMappingSelectionCounts;
 }
-function normalizeCompactSelection(data: unknown): import("./types").DayData | null {
+function assertFocusCounts(value: unknown): USMappingFocusCounts {
+  const keys = ["candidate_count", "industry_match_count", "eligible", "selected", "capped", "not_triggered", "pending"] as const;
+  if (!isRecord(value) || keys.some(key => !(key in value) || (value[key] !== null
+    && (!Number.isInteger(value[key]) || Number(value[key]) < 0)))) {
+    throw new ApiError("US_MAPPING 重点筛选全量计数无效", 502);
+  }
+  return value as unknown as USMappingFocusCounts;
+}
+function assertFocusPolicy(value: unknown): USMappingFocusPolicy {
+  if (!isRecord(value) || typeof value.policy_version !== "string" || !value.policy_version
+    || typeof value.policy_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(value.policy_sha256)) {
+    throw new ApiError("US_MAPPING 重点筛选策略身份无效", 502);
+  }
+  return value as unknown as USMappingFocusPolicy;
+}
+function assertFocusDecision(value: unknown): USMappingFocusDecision {
+  const decisions = ["SELECTED", "CAPPED", "NOT_TRIGGERED", "PENDING"];
+  if (!isRecord(value) || typeof value.symbol !== "string" || !/^HK\.[0-9]{5}$/.test(value.symbol)
+    || !decisions.includes(String(value.decision)) || typeof value.eligible !== "boolean"
+    || (value.rank !== null && (!Number.isInteger(value.rank) || Number(value.rank) < 1))
+    || !["primary_path_id", "primary_us_symbol", "primary_theme", "primary_return_pct", "hk_mean_turnover20_hkd"]
+      .every(key => value[key] === null || typeof value[key] === "string")
+    || !Array.isArray(value.reasons) || value.reasons.some(reason => typeof reason !== "string")) {
+    throw new ApiError("US_MAPPING 重点筛选候选结果无效", 502);
+  }
+  return value as unknown as USMappingFocusDecision;
+}
+function hasValidIndustryMatches(value: unknown): boolean {
+  if (!isRecord(value) || !Array.isArray(value.industry_matches) || !value.industry_matches.length) return false;
+  return value.industry_matches.every(match => isRecord(match)
+    && typeof match.us_symbol === "string" && !!match.us_symbol
+    && typeof match.industry === "string" && !!match.industry
+    && ["INDIVIDUAL", "SECTOR_CONTEXT"].includes(String(match.role))
+    && Array.isArray(match.warnings)
+    && Array.isArray(match.source_refs) && !!match.source_refs.length);
+}
+function normalizeCompactSelection(data: unknown, requestedProjection: USMappingProjection = "focus"): import("./types").DayData | null {
   if (data === null) return null;
   if (!isRecord(data)) throw new ApiError("US_MAPPING compact 数据无效", 502);
   const hasIdentity = Object.prototype.hasOwnProperty.call(data, "selection_identity");
   if (data.selection_identity !== null && data.selection_identity !== undefined) {
     const identity = assertSelectionIdentity(data.selection_identity);
     if (!Array.isArray(data.stocks) || data.stocks.some(stock => !isRecord(stock)
-      || typeof stock.symbol !== "string" || typeof stock.research_state !== "string"
-      || typeof stock.strict_state !== "string" || typeof stock.decision !== "string")) {
+      || typeof stock.symbol !== "string" || typeof stock.decision !== "string")) {
       throw new ApiError("US_MAPPING compact 候选列表无效", 502);
     }
     if (!isRecord(data.pagination) || !Number.isInteger(data.pagination.total)
@@ -119,17 +157,66 @@ function normalizeCompactSelection(data: unknown): import("./types").DayData | n
     }
     const snapshot = normalizeSelectionSnapshot(data.snapshot);
     if (!snapshot) throw new ApiError("US_MAPPING selection 缺少保存版本身份", 502);
+    const focusCountsPresent = data.focus_counts !== null && data.focus_counts !== undefined;
+    const focusPolicyPresent = data.focus_policy !== null && data.focus_policy !== undefined;
+    if (focusCountsPresent !== focusPolicyPresent) throw new ApiError("US_MAPPING 重点筛选计数与策略身份不完整", 502);
+    const hasPersistedFocus = focusCountsPresent && focusPolicyPresent;
+    const projectionValue = data.projection;
+    if (projectionValue !== undefined && projectionValue !== "focus" && projectionValue !== "catalogue") {
+      throw new ApiError("US_MAPPING 投影类型无效", 502);
+    }
+    if (data.listing_mode !== undefined && data.listing_mode !== "INDUSTRY_MATCH" && data.listing_mode !== "TRIGGERED_FOCUS") {
+      throw new ApiError("US_MAPPING 保存名单类型无效", 502);
+    }
+    if (data.listing_mode === "TRIGGERED_FOCUS" && !hasPersistedFocus) {
+      throw new ApiError("US_MAPPING 触发重点名单缺少已保存重点结果", 502);
+    }
+    const projection: USMappingProjection = (projectionValue as USMappingProjection | undefined)
+      || (hasPersistedFocus ? requestedProjection : "catalogue");
+    if (!hasPersistedFocus && projection === "focus") {
+      throw new ApiError("US_MAPPING 缺少已保存重点结果，不能把候选目录当作重点名单", 502);
+    }
+    if (hasPersistedFocus && projection !== requestedProjection) {
+      throw new ApiError("US_MAPPING 返回的保存投影与请求不一致", 502);
+    }
+    if (hasPersistedFocus) {
+      const focusCounts = assertFocusCounts(data.focus_counts);
+      assertFocusPolicy(data.focus_policy);
+      const focusStocks = data.stocks as Record<string, unknown>[];
+      for (const stock of focusStocks) {
+        if (stock.focus_decision !== null && stock.focus_decision !== undefined) {
+          const decision = assertFocusDecision(stock.focus_decision);
+          if (decision.symbol !== stock.symbol || decision.decision !== stock.decision) {
+            throw new ApiError("US_MAPPING 行与已保存重点结果身份不一致", 502);
+          }
+        }
+        if (typeof stock.strict_decision !== "string" || typeof stock.strict_state !== "string") {
+          throw new ApiError("US_MAPPING 缺少原严格结果参考", 502);
+        }
+        if (projection === "focus" && (!stock.focus_decision || stock.decision !== "SELECTED")) {
+          throw new ApiError("US_MAPPING 重点投影包含非入选或无重点决策候选", 502);
+        }
+      }
+      if (projection === "focus" && focusCounts.selected !== null && data.pagination.total !== focusCounts.selected) {
+        throw new ApiError("US_MAPPING 重点名单分页总数与保存入选数不一致", 502);
+      }
+    }
+    if (!hasPersistedFocus && data.listing_mode !== "INDUSTRY_MATCH"
+      && data.stocks.some(stock => !isRecord(stock) || typeof stock.research_state !== "string"
+        || typeof stock.strict_state !== "string" || typeof stock.decision !== "string")) {
+      throw new ApiError("US_MAPPING 历史严格候选列表无效", 502);
+    }
     if (data.listing_mode === "INDUSTRY_MATCH" && (
       typeof data.listing_policy_version !== "string" || !data.listing_policy_version
       || typeof data.listing_policy_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(data.listing_policy_sha256)
       || !isRecord(data.counts) || !Number.isInteger(data.counts.industry_match_count)
       || Number(data.counts.industry_match_count) < 0
-      || data.stocks.some(stock => !isRecord(stock) || !Array.isArray(stock.industry_matches)
-        || !stock.industry_matches.length || stock.industry_matches.some(match => !isRecord(match)
-          || typeof match.us_symbol !== "string" || !match.us_symbol || typeof match.industry !== "string" || !match.industry
-          || !["INDIVIDUAL", "SECTOR_CONTEXT"].includes(String(match.role))
-          || !Array.isArray(match.warnings) || !Array.isArray(match.source_refs) || !match.source_refs.length))
+      || data.stocks.some(stock => !hasValidIndustryMatches(stock))
     )) throw new ApiError("US_MAPPING 同行业名单缺少行业依据或来源身份", 502);
+    if (projection === "catalogue" && data.listing_mode === "TRIGGERED_FOCUS" && hasPersistedFocus
+      && data.stocks.some(stock => !hasValidIndustryMatches(stock))) {
+      throw new ApiError("US_MAPPING 行业目录页缺少有效保存的同行业依据", 502);
+    }
     const selectionStocks = data.stocks as unknown as USMappingCompactStock[];
     return {
       ...data,
@@ -138,11 +225,14 @@ function normalizeCompactSelection(data: unknown): import("./types").DayData | n
       counts: null,
       pagination: data.pagination as { total: number; offset: number; limit: number },
       us_mapping_selection: {
-        ...(data.listing_mode === "INDUSTRY_MATCH" ? {
+        ...(data.listing_mode === "INDUSTRY_MATCH" || data.listing_mode === "TRIGGERED_FOCUS" ? {
           listing_mode: data.listing_mode,
-          listing_policy_version: data.listing_policy_version,
-          listing_policy_sha256: data.listing_policy_sha256
+          ...(data.listing_policy_version ? { listing_policy_version: data.listing_policy_version } : {}),
+          ...(data.listing_policy_sha256 ? { listing_policy_sha256: data.listing_policy_sha256 } : {})
         } : {}),
+        projection,
+        focus_counts: hasPersistedFocus ? assertFocusCounts(data.focus_counts) : null,
+        focus_policy: hasPersistedFocus ? assertFocusPolicy(data.focus_policy) : null,
         selection_identity: identity,
         counts: assertSelectionCounts(data.counts),
         pagination: data.pagination as { total: number; offset: number; limit: number },
@@ -206,11 +296,17 @@ export function createWorkbenchApi(transport: FetchLike = fetch) {
       params.set('offset', String(offset)); params.set('limit', String(limit));
       if (query.decision) params.set('decision', query.decision);
       if (query.q?.trim()) params.set('q', query.q.trim());
-      if (query.lane === "US_MAPPING") params.set("view", "compact");
+      if (query.lane === "US_MAPPING") {
+        if (query.projection !== undefined && query.projection !== "focus" && query.projection !== "catalogue") {
+          throw new ApiError("US_MAPPING 投影类型无效", 422);
+        }
+        params.set("view", "compact");
+        params.set("projection", query.projection || "focus");
+      }
       const result = await request<unknown>(transport,
         `/days/${query.date}/recommendations/${query.lane}?${params}`, { signal });
       if (query.lane !== "US_MAPPING") return result as Envelope<DayData>;
-      return { ...result, data: normalizeCompactSelection(result.data) } as Envelope<DayData>;
+      return { ...result, data: normalizeCompactSelection(result.data, query.projection || "focus") } as Envelope<DayData>;
     },
     async getUSMappingDiagnostics(query: USMappingDiagnosticsQuery, signal?: AbortSignal) {
       exactDate(query.date); assertRunId(query.run_id);

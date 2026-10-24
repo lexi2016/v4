@@ -89,6 +89,15 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
             available_at=item.get("available_at"))]
         source_refs += [r for r in item.get("relation_source_refs", []) if isinstance(r, dict)]
         quote_return, quote_gap = validate_mapping_quote(item.get("quote"), us, session)
+        quote_verified=(quote_return is not None and not quote_gap and bool(item.get("owner"))
+            and valid_sha(item.get("source_sha256")) and current(context,item.get("available_at"))
+            and item.get("source_session")==session
+            and "EVIDENCE_REFS_PENDING" not in (item.get("diagnostic_gaps") or []))
+        if quote_verified:
+            try:
+                close=us_equity_session(session).close_at
+                quote_verified=close is not None and timestamp(item.get("available_at"))>=close
+            except (ValueError,TypeError,OverflowError):quote_verified=False
         if quote_gap: reasons.append(quote_gap)
         if not item.get("owner") or not valid_sha(item.get("source_sha256")) or not current(context, item.get("available_at")):
             reasons.append("US_SOURCE_IDENTITY_OR_AVAILABILITY_PENDING")
@@ -112,6 +121,7 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
             if excluded: scope = "excluded"
             relation_type = projected.get("relation_type")
             quote_return = projected.get("us_source_return_pct")
+            quote_verified = projected.get("quote_status")=="VERIFIED"
             reasons = [] if scope == "current_supported" and projected.get("quote_status") == "VERIFIED" else [projected.get("catalog_disposition_reason") or "CATALOG_SCOPE_PENDING"]
             if projected.get("quote_status") != "VERIFIED": reasons.append(projected.get("quote_missing_reason") or "QUOTE_PENDING")
             source_refs = [dict(owner=projected.get("catalog_source_owner"),sha256=item.get("catalog_relation_sha256") or item.get("source_sha256"),ref=item.get("catalog_relation_id"),available_at=projected.get("available_at"))]
@@ -174,7 +184,12 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
         path = MappingPath(path_id=digest(ident),symbol=code,us_symbol=us,relation_type=relation_type,
             role=role,scope=scope,status=status,direction=direction,strict_supported=strict_supported,
             primary_theme=item.get("primary_theme") or US_SYMBOL_THEMES.get(us) or item.get("source_industry"),
+            # Focus uses the same prechosen path's saved industry; strict theme is unchanged.
+            focus_theme=item.get("primary_theme") or US_SYMBOL_THEMES.get(us)
+                or ((projected.get("catalog_research_industry") or projected.get("catalog_segment")) if catalog else None)
+                or item.get("source_industry"),
             return_pct=quote_return,source_session=session,available_at=item.get("available_at"),
+            quote_verified=bool(quote_verified),quote_available_at=projected.get("available_at") if catalog else item.get("available_at"),
             source_refs=ref_union(source_refs),evidence_ids=sorted(set(item.get("evidence_ids") or [])),reasons=sorted(set(reasons)))
         grouped[code].append(path)
     for item in relation_rows:
@@ -223,7 +238,7 @@ def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
                 p = next(iter(facts.values())).model_copy(update=dict(source_refs=refs,evidence_ids=ids))
             else:
                 # No precedence exists: keep all fact versions as refs and isolate this key only.
-                p = facts[sorted(facts)[0]].model_copy(update=dict(scope="pending",status="PENDING",return_pct=None,
+                p = facts[sorted(facts)[0]].model_copy(update=dict(scope="pending",status="PENDING",return_pct=None,quote_verified=False,
                     source_refs=ref_union(refs+[dict(ref="conflicting_fact:"+key,sha256=key,fact=value.model_dump()) for key,value in facts.items()]),
                     evidence_ids=ids,reasons=["DUPLICATE_MAPPING_PATH_CONFLICT"]))
             merged.append(p)

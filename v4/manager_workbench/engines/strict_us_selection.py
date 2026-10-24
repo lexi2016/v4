@@ -8,7 +8,7 @@ from pathlib import Path
 import hashlib
 import json
 
-from ..contracts import GateDecision, StrictSelectionDecision, MappingSelectionSummary, digest
+from ..contracts import GateDecision, StrictSelectionDecision, MappingSelectionSummary, TriggeredFocusDecision, TriggeredFocusSummary, digest
 from .common import current, valid_sha, membership as target_membership
 from .us_mapping_policy import POLICY, POLICY_VERSION, POLICY_SHA256, RELATIONSHIP_A, US_SYMBOL_THEMES
 
@@ -197,6 +197,78 @@ def evaluate_candidates(context, candidates, history_payload):
     return decisions
 
 
+
+FOCUS_POLICY_VERSION='TRIGGERED_US_INDUSTRY_FOCUS_V1_20261024'
+FOCUS_POLICY=dict(version=FOCUS_POLICY_VERSION,primary='EXISTING_IDENTITY_PROVENANCE_PRIMARY_BEFORE_RETURN',
+    individual_us_min_return_pct='1',max_symbols=10,max_same_primary_theme=3,
+    relation='VALID_INDUSTRY_PEER_OR_REVIEWED_SPECIFIC_POSITIVE',etf_only='BACKGROUND_NOT_TRIGGER',
+    theme='SAME_PRIMARY_SAVED_THEME_OR_CATALOG_INDUSTRY_SEGMENT',
+    rank=['PRIMARY_US_RETURN_DESC','PROVEN_HK_MEAN_TURNOVER20_DESC_WHEN_AVAILABLE','HK_CODE_ASC'],
+    unknown_liquidity=None,strict_financial_pit_decisions='INDEPENDENT_REFERENCE_UNCHANGED')
+
+
+def triggered_focus(context,candidates,strict_decisions):
+    """Select only from the prechosen main path; never promote a secondary gain."""
+    from .us_mapping_policy import ETF_SYMBOLS
+    from .us_mapping_consumption import normalize_us_symbol
+    strict={d.symbol:d for d in strict_decisions};decisions=[]
+    session=(context.get('source_sessions') or {}).get('us',(context.get('source_sessions') or {}).get('US'))
+    for candidate in candidates:
+        paths=candidate.paths;primary=next((p for p in paths if p.path_id==candidate.primary_path_id),None)
+        value=_decimal(primary.return_pct) if primary else None
+        theme=(primary.focus_theme or primary.primary_theme) if primary else None
+        reasons=[];fate='PENDING'
+        if not (candidate.symbol.startswith('HK.') and len(candidate.symbol)==8 and candidate.symbol[3:].isdigit() and int(candidate.symbol[3:])>0):
+            reasons.append('HK_CODE_IDENTITY_INVALID')
+        elif primary is None:
+            fate='NOT_TRIGGERED';reasons.append('ETF_ONLY_BACKGROUND' if paths and all(p.role=='SECTOR_CONTEXT' for p in paths) else 'NO_MAIN_INDIVIDUAL_RELATION')
+        elif primary.role!='INDIVIDUAL' or primary.us_symbol in ETF_SYMBOLS:
+            fate='NOT_TRIGGERED';reasons.append('ETF_ONLY_BACKGROUND')
+        elif not (isinstance(primary.us_symbol,str) and normalize_us_symbol(primary.us_symbol)==primary.us_symbol and primary.source_session==session
+                and isinstance(session,str) and session<context.get('target_date','') and
+                primary.quote_verified is True and value is not None and current(context,primary.quote_available_at)):
+            reasons.extend(['PRIMARY_US_QUOTE_PENDING',*primary.reasons])
+        elif value<1:
+            fate='NOT_TRIGGERED';reasons.append('PRIMARY_US_RETURN_BELOW_1_PERCENT')
+        elif primary.scope=='excluded' or primary.direction=='NEGATIVE':
+            fate='NOT_TRIGGERED';reasons.append('PRIMARY_RELATION_EXCLUDED_OR_NEGATIVE')
+        else:
+            ids={r.get('ref') for r in primary.source_refs}
+            peer=any(m.get('role')=='INDIVIDUAL' and m.get('us_symbol')==primary.us_symbol
+                and m.get('association') in {'BUSINESS_PEER','SAME_ISSUER'} and m.get('industry')
+                and m.get('relation_id') in ids and m.get('source_refs')
+                and all(valid_sha(r.get('sha256')) and r.get('owner') for r in m['source_refs'])
+                for m in candidate.industry_matches or [])
+            specific=(primary.strict_supported and primary.scope=='current_supported' and primary.direction=='POSITIVE'
+                and not any(r.startswith(('RELATION_REVIEW_OR_PIT','US_RELATION_REVIEW','RELATION_DIRECTION_PENDING')) for r in primary.reasons))
+            if not (peer or specific):reasons.append('MAIN_INDUSTRY_OR_REVIEWED_RELATION_PENDING')
+            elif not isinstance(theme,str) or not theme.strip():reasons.append('PRIMARY_THEME_PENDING')
+            else:fate='SELECTED';reasons.append('VALID_MAIN_INDIVIDUAL_US_RETURN_AT_LEAST_1_PERCENT')
+        d=strict[candidate.symbol];gates={g.gate:g.state for g in d.gates}
+        amount=_decimal(d.metrics.get('hk_mean_turnover20_hkd'))
+        history_gate=next((g for g in d.gates if g.gate=='history_source'),None)
+        history_available=(history_gate.actual or {}).get('available_at') if history_gate and isinstance(history_gate.actual,dict) else None
+        proven=(amount is not None and amount>=0 and current(context,history_available) and all(gates.get(k)=='PASS' for k in
+            ['window','history_source','amount','currency','pit','numeric_facts']))
+        if not proven:amount=None;reasons.append('HK_LIQUIDITY_UNPROVEN_NOT_FABRICATED')
+        decisions.append(TriggeredFocusDecision(symbol=candidate.symbol,decision=fate,eligible=fate=='SELECTED',
+            primary_path_id=candidate.primary_path_id,primary_us_symbol=primary.us_symbol if primary else None,
+            primary_theme=theme,primary_return_pct=_text(value),
+            hk_mean_turnover20_hkd=_text(amount),reasons=list(dict.fromkeys(reasons))))
+    eligible=sorted([d for d in decisions if d.eligible],key=lambda d:(-Decimal(d.primary_return_pct),
+        (0,-Decimal(d.hk_mean_turnover20_hkd)) if d.hk_mean_turnover20_hkd is not None else (1,),d.symbol))
+    themes=Counter();selected=0
+    for rank,d in enumerate(eligible,1):
+        d.rank=rank
+        if selected>=10:d.decision='CAPPED';d.reasons.append('TOP10_CAP')
+        elif themes[d.primary_theme]>=3:d.decision='CAPPED';d.reasons.append('PRIMARY_THEME3_CAP')
+        else:selected+=1;themes[d.primary_theme]+=1
+    counts=dict(candidate_count=len(candidates),industry_match_count=sum(bool(c.industry_matches) for c in candidates),
+        eligible=len(eligible),selected=selected,capped=sum(d.decision=='CAPPED' for d in decisions),
+        not_triggered=sum(d.decision=='NOT_TRIGGERED' for d in decisions),pending=sum(d.decision=='PENDING' for d in decisions))
+    return TriggeredFocusSummary(cutoff=context["cutoff"],source_session=session,policy_version=FOCUS_POLICY_VERSION,policy_sha256=digest(FOCUS_POLICY),counts=counts,decisions=decisions)
+
+
 def build_selection(context, candidates, history_payload):
     from .us_mapping_consumption import INDUSTRY_LISTING_VERSION, INDUSTRY_LISTING_POLICY
     decisions=evaluate_candidates(context,candidates,history_payload)
@@ -212,7 +284,7 @@ def build_selection(context, candidates, history_payload):
     return MappingSelectionSummary(policy_version=POLICY_VERSION,policy_sha256=POLICY_SHA256,engine_identity=engine_identity(),
         target_date=context['target_date'],source_session=sessions.get('us',sessions.get('US')),price_session=sessions.get('hk_price',sessions.get('HK_PRICE')),
         cutoff=context['cutoff'],candidates=candidates,strict_decisions=decisions,counts=counts,
-        evaluation_complete=complete,gaps=gaps,listing_mode='INDUSTRY_MATCH',
+        evaluation_complete=complete,gaps=gaps,listing_mode='TRIGGERED_FOCUS',focus=triggered_focus(context,candidates,decisions),
         listing_policy_version=INDUSTRY_LISTING_VERSION,listing_policy_sha256=digest(INDUSTRY_LISTING_POLICY))
 
 

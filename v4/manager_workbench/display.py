@@ -66,7 +66,7 @@ def _legacy_mapping_summary(lane, *, offset, limit):
 
 
 def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=None,
-        symbol=None,relationship_offset=0,relationship_limit=50):
+        symbol=None,relationship_offset=0,relationship_limit=50,projection="focus"):
     lane=next((l for l in snapshot.lanes if l.lane.value==lane_name),None)
     if lane is None:return None
     saved=getattr(lane,'selection',None)
@@ -93,20 +93,27 @@ def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=
             us_mapping_summary=_legacy_mapping_summary(lane,offset=offset,limit=limit) if lane_name=='US_MAPPING' else None,
             evaluation_complete=None)
     selection=saved.model_dump(mode='json') if hasattr(saved,'model_dump') else saved
-    industry_listing=selection.get('listing_mode')=='INDUSTRY_MATCH'
+    industry_listing=selection.get('listing_mode') in {'INDUSTRY_MATCH','TRIGGERED_FOCUS'}
+    focus=selection.get('focus')
+    focused={d['symbol']:d for d in focus['decisions']} if focus else {}
+    effective_projection=projection if focus else 'catalogue'
     strict={r['symbol']:r for r in selection['strict_decisions']}
     decisions={'SELECTED':'SELECTED','NOT_SELECTED':('QUALIFIED_NOT_SELECTED','REJECTED'),'UNASSESSED':'PENDING','CONDITIONAL_WATCH':None,'OBSERVATION_ONLY':None}
     records=[]
     for candidate in selection['candidates']:
-        s=candidate['symbol'];d=strict[s]
+        s=candidate['symbol'];d=strict[s];f=focused.get(s)
         if symbol and symbol!=s:continue
         # The explicit diagnostics route still addresses every saved candidate.
-        if industry_listing and view!='diagnostics' and not candidate.get('industry_matches'):continue
+        if view!='diagnostics':
+            if focus and projection=='focus' and f['decision']!='SELECTED':continue
+            if industry_listing and effective_projection=='catalogue' and not candidate.get('industry_matches'):continue
         if decision:
-            wanted=decisions.get(decision)
-            if (isinstance(wanted,tuple) and d['decision'] not in wanted) or (not isinstance(wanted,tuple) and d['decision']!=wanted):continue
+            wanted=({'SELECTED':'SELECTED','NOT_SELECTED':('CAPPED','NOT_TRIGGERED'),'UNASSESSED':'PENDING'}.get(decision) if focus else decisions.get(decision))
+            actual=f['decision'] if focus else d['decision']
+            if (isinstance(wanted,tuple) and actual not in wanted) or (not isinstance(wanted,tuple) and actual!=wanted):continue
         if q and q.casefold() not in ' '.join(str(candidate.get(k) or '') for k in ['symbol','name','research_state','direction']).casefold():continue
         records.append((candidate,d))
+    if focus and projection=="focus" and view!="diagnostics":records.sort(key=lambda item:focused[item[0]["symbol"]]["rank"])
     stocks=[]
     for c,d in records[offset:offset+limit]:
         row=dict(symbol=c['symbol'],name=c.get('name') or names.get(c['symbol']),research_state=c['research_state'],direction=c['direction'],
@@ -118,6 +125,11 @@ def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=
             # Strict facts remain available in same-run diagnostics; the default
             # listing carries their summary as reference, without a gate wall.
             if view!='diagnostics':row.update(gates=[],reasons=[])
+        if focus:
+            f=focused[c['symbol']]
+            row.update(focus_decision=f,strict_decision=d['decision'],decision=f['decision'],rank=f['rank'],
+                primary_path_id=f['primary_path_id'],primary_us_symbol=f['primary_us_symbol'],primary_theme=f['primary_theme'],
+                primary_return_pct=f['primary_return_pct'],hk_mean_turnover20_hkd=f['hk_mean_turnover20_hkd'],reasons=f['reasons'])
         if view=='diagnostics':
             details=dict(c);paths=details.pop('paths')
             row.update(candidate=details,strict=d,relationships=paths[relationship_offset:relationship_offset+relationship_limit],
@@ -129,6 +141,10 @@ def selection_view(snapshot,lane_name,names,*,view,offset,limit,decision=None,q=
         source_execution_cutoff=lane_scope.get('source_execution_cutoff'),processing_cutoff=lane_scope.get('processing_cutoff'))
     listing={key:selection[key] for key in ['listing_mode','listing_policy_version','listing_policy_sha256'] if key in selection}
     return dict(snapshot=_summary(snapshot),stocks=stocks,counts=selection['counts'],**listing,
+        projection=effective_projection,projection_label='研究聚焦名单' if focus and projection=='focus' else '同行业候选目录（非推荐）',
+        focus_counts=focus['counts'] if focus else None,focus_policy={k:focus[k] for k in ['policy_version','policy_sha256']} if focus else None,
+        focus_state='PERSISTED' if focus else 'NO_SAVED_FOCUS',
+        focus_context={k:focus[k] for k in ['cutoff','source_session']} if focus else None,
         pagination=dict(total=len(records),offset=offset,limit=limit),selection_identity={k:selection[k] for k in ['schema_version','policy_version','policy_sha256','engine_identity']},
         legacy=False,lane_sources=sources,lane_state=lane.state.value,
         evaluation_complete=selection.get('evaluation_complete',False),selection_gaps=selection.get('gaps',[]))

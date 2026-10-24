@@ -5,7 +5,7 @@ import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
   ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation,
-  USMappingCompactStock, USMappingDiagnosticsData
+  USMappingCompactStock, USMappingDiagnosticsData, USMappingProjection
 } from "./types";
 import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
@@ -27,7 +27,7 @@ function isAbort(error: unknown): boolean {
 }
 function keyForQuery(q: DayQuery): string {
   return JSON.stringify([q.date, q.phase || "", q.run_id || "", q.offset || 0, q.limit || 50,
-    q.decision || "", q.lane || "", q.q || ""]);
+    q.decision || "", q.lane || "", q.projection || "", q.q || ""]);
 }
 export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const route = ref<WorkbenchRoute>(parseWorkbenchRoute(window.location.search));
@@ -44,6 +44,8 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const usMappingDiagnosticsOffset = ref(0);
   const decisionFilter = ref<Decision | "">("");
   const laneFilter = ref<RecommendationLane>('US_MAPPING');
+  const usMappingProjection = ref<USMappingProjection>("focus");
+  const usMappingRunPin = ref("");
   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
   const searchDraft = ref("");
   const search = ref("");
@@ -91,7 +93,9 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const selectedRunId = computed(() => snapshot.value?.run_id || route.value.runId || "");
   const selectedDate = computed(() => snapshot.value?.context.target_date || route.value.date);
   const hasStale = computed(() => stale.value && !!day.value);
-  const readMode = computed(() => route.value.runId ? "固定 run_id" : route.value.phase ? "按阶段读最新保存版" : "目标日最新保存版");
+  const readMode = computed(() => route.value.runId ? "固定 run_id"
+    : laneFilter.value === "US_MAPPING" && usMappingRunPin.value ? "同 run_id 续读"
+      : route.value.phase ? "按阶段读最新保存版" : "目标日最新保存版");
   const valid = computed(() => route.value.error === null);
 
   let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, catalogSeq = 0, jobSeq = 0, operationSeq = 0;
@@ -146,6 +150,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     job.value = null; jobId.value = ""; jobError.value = "";
     panel.value = "stocks"; offset.value = 0; search.value = ""; searchDraft.value = "";
     decisionFilter.value = ""; laneFilter.value = 'US_MAPPING';
+    usMappingProjection.value = "focus"; usMappingRunPin.value = "";
     delete laneViews.US_MAPPING; delete laneViews.OVERSOLD;
   }
   function navigate(next: WorkbenchRoute, replace = false): void {
@@ -171,9 +176,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (!route.value.error) void loadDay();
   }
   function dayQuery(): DayQuery {
-    return { date: route.value.date, phase: route.value.phase, run_id: route.value.runId,
+    const runId = route.value.runId || (laneFilter.value === "US_MAPPING" ? usMappingRunPin.value : "");
+    return { date: route.value.date, phase: route.value.phase, run_id: runId || undefined,
       offset: offset.value, limit, decision: decisionFilter.value,
-      lane: laneFilter.value, q: search.value };
+      lane: laneFilter.value, projection: laneFilter.value === "US_MAPPING" ? usMappingProjection.value : undefined,
+      q: search.value };
   }
   // Discovery only: never replace the selected run with another version's rows.
   async function findSingleDayVersion(response: Envelope<DayData>, query: DayQuery,
@@ -236,7 +243,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
         if (snap.context.target_date !== query.date ||
             (query.run_id && snap.run_id !== query.run_id) ||
             (query.phase && snap.context.phase !== query.phase) ||
-            (response.data?.recommendation_projection && response.data.recommendation_projection.lane !== query.lane)) {
+            (response.data?.recommendation_projection && response.data.recommendation_projection.lane !== query.lane) ||
+            (query.lane === "US_MAPPING" && response.data.us_mapping_selection?.projection
+              && response.data.us_mapping_selection.projection !== (query.projection || "focus")
+              && !(query.projection === "focus" && !response.data.us_mapping_selection.focus_counts
+                && response.data.us_mapping_selection.projection === "catalogue"))) {
           throw new ApiError("API 返回的日期、阶段或版本与本次请求不一致", 502);
         }
       }
@@ -273,7 +284,9 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     if (lane === laneFilter.value) return;
     laneViews[laneFilter.value] = { offset: offset.value, decision: decisionFilter.value, search: search.value };
     laneFilter.value = lane;
-    const view = laneViews[lane]; offset.value = view?.offset || 0;
+    const incompatibleUSMappingOffset = lane === "US_MAPPING" && usMappingProjection.value !== "focus";
+    if (lane === "US_MAPPING") { usMappingProjection.value = "focus"; usMappingRunPin.value = ""; }
+    const view = laneViews[lane]; offset.value = incompatibleUSMappingOffset ? 0 : view?.offset || 0;
     decisionFilter.value = view?.decision || ''; search.value = view?.search || ''; searchDraft.value = search.value;
     detailSeq++; detailAbort?.abort(); detail.value = null; detailLoading.value = false;
     panel.value = 'stocks'; void loadDay();
@@ -281,7 +294,25 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   function setOffset(next: number): void {
     const maxTotal = pagination.value?.total ?? 0;
     if (dayLoading.value || !Number.isInteger(next) || next < 0 || next >= maxTotal || next === offset.value) return;
+    if (laneFilter.value === "US_MAPPING" && !route.value.runId && !usMappingRunPin.value) {
+      usMappingRunPin.value = selectedRunId.value;
+    }
     offset.value = next;
+    void loadDay(true);
+  }
+  function switchUSMappingProjection(projection: USMappingProjection): void {
+    if (laneFilter.value !== "US_MAPPING" || projection === usMappingProjection.value) return;
+    const selection = day.value?.data?.us_mapping_selection;
+    if (!selection?.focus_counts || !selection.focus_policy) return;
+    if (!route.value.runId) usMappingRunPin.value = selectedRunId.value;
+    usMappingProjection.value = projection;
+    offset.value = 0;
+    detailSeq++; detailAbort?.abort(); detail.value = null; detailLoading.value = false; detailError.value = "";
+    panel.value = "stocks";
+    void loadDay();
+  }
+  function refreshDay(): void {
+    if (laneFilter.value === "US_MAPPING" && !route.value.runId) usMappingRunPin.value = "";
     void loadDay(true);
   }
   function showPanel(next: Panel): void {
@@ -591,7 +622,8 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     usMappingDiagnostics, usMappingDiagnosticsSymbol, usMappingDiagnosticsLoading,
     usMappingDiagnosticsError, usMappingDiagnosticsOffset, toggleUSMappingDiagnostics,
     pageUSMappingDiagnostics,
-    decisionFilter, laneFilter, searchDraft, search, offset, limit,
+    decisionFilter, laneFilter, usMappingProjection, switchUSMappingProjection, refreshDay,
+    searchDraft, search, offset, limit,
     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
     history, historyLoading, historyError, review, reviewLoading, reviewError,
     catalogResearchUse, catalogQueryDraft, catalogQuery, catalogOffset, catalogLimit, catalog, catalogLoading, catalogError, catalogRelationDetails,
