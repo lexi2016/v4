@@ -1,33 +1,86 @@
 {
-  "schema_version": "panel_daily_component_source_hashes.v1",
-  "source_worktree": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app",
-  "source_branch": "codex/a-panel-daily-binding-20261024",
-  "source_head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
-  "r2_ready_path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/implementation/R2_READY_FOR_INCREMENTAL_REVIEW.json",
-  "r2_ready_sha256": "b52ae093d2020b05bd96ee53adb31547fed52e20b89d884a63a32e576ae7e23b",
-  "independent_review_path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/review/COMPONENT_REVIEW_R2.json",
-  "independent_review_sha256": "df158728b3b46652253200b545fc6a635d384e42b4be08dd0cebd42c397d4244",
-  "files": [
+  "schema_version": "a_share_daily_sync_component_r3_source_sync.v1",
+  "status": "REVIEWED_PASS_READY_TO_SYNC",
+  "r3_ready": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/implementation/R3_READY.json",
+    "sha256": "cb63c70fc392a87f2c6cf6c92ddce57f48b11b23ef421b1441e0c27fc4d53e9c",
+    "review_status": "REVIEWED/PASS"
+  },
+  "independent_review": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/review/COMPONENT_REVIEW_R3.json",
+    "sha256": "fd8140e3e35317826a3497bc5c35f516179f6d1883996559683cc0480aacaf01",
+    "scope_result": "PASS for candidate only; installed/live behavior and current idle state remain unverified; activation release is separate."
+  },
+  "repository": {
+    "full_name": "lexi2016/v4",
+    "branch": "codex/a-panel-daily-binding-20261024",
+    "observed_head": "4084077f00c6e8919108e0e52c8f7d29599133ec",
+    "expected_cas_base": "4084077f00c6e8919108e0e52c8f7d29599133ec",
+      "observation": "GitHub branch lookup immediately before delta preparation confirmed the branch still pointed to the expected R2 source-sync commit."
+  },
+  "source_worktree": {
+    "path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app",
+    "branch": "codex/a-panel-daily-binding-20261024",
+    "head": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "staged_paths": [],
+    "status_at_preparation": [
+      "?? ops/a_share_daily_sync_component_overlay.py",
+      "?? ops/install_a_share_daily_sync_component.py",
+      "?? tests/test_a_share_daily_sync_component_overlay.py"
+    ]
+  },
+  "allowlist": [
     {
-      "source_path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app/ops/a_share_daily_sync_component_overlay.py",
-      "archive_path": "ops/a_share_daily_sync_component_overlay.py",
-      "bytes": 44896,
-      "sha256": "ae79b4b50b30e1a386b1f20b6efd6167d1d1f0181aedac35466034266c088fb6",
-      "git_blob_sha1": "6f2eda329fa9d549a9035847358a2fe82ee0eb9e"
+      "path": "ops/a_share_daily_sync_component_overlay.py",
+      "bytes": 58223,
+      "sha256": "40370adcf852b04d14ed6392b30f6bfb4ea5e293c907747686d02ff63208deee",
+      "baseline_r2_sha256": "ae79b4b50b30e1a386b1f20b6efd6167d1d1f0181aedac35466034266c088fb6",
+      "included": true
     },
     {
-      "source_path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app/ops/install_a_share_daily_sync_component.py",
-      "archive_path": "ops/install_a_share_daily_sync_component.py",
+      "path": "tests/test_a_share_daily_sync_component_overlay.py",
+      "bytes": 33264,
+      "sha256": "868886d372099d5d1fe7193268976f90b4aae1ae1d1c057bee02aaf3abdd1866",
+      "baseline_r2_sha256": "24767715968ab94f6aa63d6aebf7ba830822f13d46bd6e3a2fba374a30f57a9e",
+      "included": true
+    },
+    {
+      "path": "ops/install_a_share_daily_sync_component.py",
       "bytes": 223,
       "sha256": "8ddfa1bb12a76f42a0eecf3eb1b78d37bccfcc11146e6f5a9eb507e282833625",
-      "git_blob_sha1": "0561367185609e29d6c763fc6a62e8fcb3218063"
-    },
-    {
-      "source_path": "/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app/tests/test_a_share_daily_sync_component_overlay.py",
-      "archive_path": "tests/test_a_share_daily_sync_component_overlay.py",
-      "bytes": 21214,
-      "sha256": "24767715968ab94f6aa63d6aebf7ba830822f13d46bd6e3a2fba374a30f57a9e",
-      "git_blob_sha1": "325c1041bf1680ea287e2925d1a04db7d73d4db8"
+      "included": false,
+      "reason": "Unchanged from the previously synced R2 source and already present in commit 4084077f00c6e8919108e0e52c8f7d29599133ec; reuse without re-upload."
     }
-  ]
+  ],
+  "prior_sync_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/sync/COMPONENT_GITHUB_SYNC_RECEIPT.json",
+    "sha256": "ac792e2775d97e3d677b8db4b3f7fa27976908e3f53f04d3619db39382dab659"
+  },
+  "writer_reported_supporting_checks": {
+    "focused_r3_regressions": "7 passed, 22 deselected in 0.06s",
+    "current_source_compile": "PASS: 3 current allowlisted Python sources compile",
+    "read_only_idle_gate": "PASS against configured dispatcher ledger using the frozen manifest token; current A child scan returned 0 rows; checked_at=2026-10-24T11:16:13.215466+08:00",
+    "scope_note": "Read from R3_READY; not rerun by source-sync preparation."
+  },
+  "independent_review_summary": {
+    "report_sha256": "fd8140e3e35317826a3497bc5c35f516179f6d1883996559683cc0480aacaf01",
+    "review_status": "REVIEWED/PASS",
+    "reviewer": "/root/panel_daily_component_review",
+    "result": "3 targeted pytest cases passed (5 tests); all 3 allowlisted Python files compiled; isolated synthetic gate/install/rollback probes passed; no P0/P1/P2 risks reported.",
+    "unexecuted": [
+      "Live dispatcher ledger/process inspection and current idle-state recheck",
+      "Actual activation, rollback, producer, service, API, UI, or natural-session checks"
+    ]
+  },
+  "metadata_correction": {
+    "reported_baseline_test_sha256_error": "Prior R3 metadata contained a 63-character R2 test digest missing its final e.",
+    "authoritative_baseline_r2_test_sha256": "24767715968ab94f6aa63d6aebf7ba830822f13d46bd6e3a2fba374a30f57a9e",
+    "basis": "Existing R2 READY and verified remote 4084077 source-sync receipt; metadata-only correction, no source/input change or retest."
+  },
+  "not_executed": [
+    "Remote source upload, commit, and exact-file readback",
+    "Fixed-entry activation or rollback",
+    "Service, scheduler, producer, data, API, UI, natural-period, or end-to-end verification"
+  ],
+  "source_sync_receipt": "to be recorded at sync/R3_COMPONENT_GITHUB_SYNC_RECEIPT.json after exact-commit readback"
 }

@@ -148,6 +148,104 @@ def _bind_test_ledger(monkeypatch: pytest.MonkeyPatch, ledger: Path) -> None:
     monkeypatch.setattr(overlay, "DISPATCH_LEDGER_ROOT", ledger)
 
 
+def _reviewed_a_pair_entry(workload: Path, dispatch: Path, records: dict[str, object]) -> dict[str, object]:
+    claim = records["claim"]
+    dispatch_claim = records["dispatch_claim"]
+    receipt = records["receipt"]
+    assert isinstance(claim, dict) and isinstance(dispatch_claim, dict) and isinstance(receipt, Path)
+    return {
+        "kind": "INACTIVE_A_MISSING_RECEIPT_PAIR",
+        "business_date": claim["business_date"],
+        "run_id": claim["run_id"],
+        "pid": claim["pid"],
+        "workload_claim_path": str(workload),
+        "workload_claim_sha256": hashlib.sha256(workload.read_bytes()).hexdigest(),
+        "dispatch_claim_path": str(dispatch),
+        "dispatch_claim_sha256": hashlib.sha256(dispatch.read_bytes()).hexdigest(),
+        "receipt_path": str(receipt),
+        "expected_receipt_state": "ABSENT",
+        "workload_id": overlay.WORKLOAD_ID,
+        "slot": "1700",
+        "mode": "LIVE",
+        "workload_schema_version": "v3_5.workload_claim.v1",
+        "dispatch_schema_version": "v3_5.dispatch_claim.v1",
+        "pid_absent_at_inventory": True,
+    }
+
+
+def _reviewed_non_a_dispatch_entry(
+    dispatch: Path,
+    records: dict[str, object],
+    *,
+    status: str,
+    selected: list[str],
+    started: list[str],
+) -> dict[str, object]:
+    claim = records["dispatch_claim"]
+    receipt_path = records["receipt"]
+    assert isinstance(claim, dict) and isinstance(receipt_path, Path)
+    receipt = _ledger_receipt(claim, status=status)
+    receipt["selected_workload_ids"] = selected
+    receipt["started_workload_ids"] = started
+    receipt["status"] = status
+    body = {key: value for key, value in receipt.items() if key != "ledger_sha256"}
+    receipt["ledger_sha256"] = hashlib.sha256(
+        json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    receipt_raw = json.dumps(receipt, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    receipt_path.parent.mkdir(parents=True)
+    receipt_path.write_bytes(receipt_raw)
+    return {
+        "kind": "VERIFIED_NO_A_WORKLOAD_TERMINAL",
+        "business_date": claim["business_date"],
+        "run_id": claim["run_id"],
+        "pid": claim["pid"],
+        "pid_absent_at_inventory": True,
+        "claim_path": str(dispatch),
+        "claim_sha256": hashlib.sha256(dispatch.read_bytes()).hexdigest(),
+        "schema_version": claim["schema_version"],
+        "mode": claim["mode"],
+        "slot": claim["slot"],
+        "scheduled_date": claim["scheduled_date"],
+        "target_date": claim["target_date"],
+        "receipt_path": str(receipt_path),
+        "receipt_sha256": hashlib.sha256(receipt_raw).hexdigest(),
+        "receipt_ledger_sha256": receipt["ledger_sha256"],
+        "receipt_status": status,
+        "selected_workload_ids": selected,
+        "started_workload_ids": started,
+        "finished_at": receipt["finished_at"],
+    }
+
+
+def _write_test_reviewed_manifest(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    pairs: list[dict[str, object]] | None = None,
+    no_a_dispatches: list[dict[str, object]] | None = None,
+) -> str:
+    pairs = pairs or []
+    no_a_dispatches = no_a_dispatches or []
+    manifest = {
+        "schema_version": "r3_controller_reviewed_a_idle_manifest.v1",
+        "frozen_manual_target_date": overlay.R3_FROZEN_MANUAL_TARGET_DATE,
+        "reviewed_exception_count": len(pairs) + len(no_a_dispatches),
+        "inactive_a_missing_receipt_pairs": pairs,
+        "verified_no_a_workload_terminal_dispatches": no_a_dispatches,
+    }
+    evidence = tmp_path / "r3-evidence"
+    evidence.mkdir()
+    raw = (json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    (evidence / overlay.R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_NAME).write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    monkeypatch.setattr(overlay, "EVIDENCE_ROOT", evidence)
+    monkeypatch.setattr(overlay, "R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_SHA256", digest)
+    monkeypatch.setattr(overlay, "R3_EXPECTED_A_MISSING_RECEIPT_PAIR_COUNT", len(pairs))
+    monkeypatch.setattr(overlay, "R3_EXPECTED_NO_A_TERMINAL_DISPATCH_COUNT", len(no_a_dispatches))
+    return digest
+
+
 def _claim_fixture(ledger: Path, business_date: str, *, run_id: str = "old-run") -> tuple[Path, Path, dict[str, object]]:
     claim: dict[str, object] = {
         "schema_version": "v3_5.workload_claim.v1",
@@ -341,6 +439,206 @@ def test_historical_orphan_dispatch_claim_blocks_until_terminal_receipt_without_
     )
     assert dispatch_path.read_bytes() == dispatch_before
     assert dispatch_path.is_file()
+
+
+def test_explicit_r3_manifest_unlocks_only_the_exact_inactive_a_claim_pair(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    _bind_test_ledger(monkeypatch, ledger)
+    workload, dispatch, records = _claim_fixture(ledger, "20261022", run_id="reviewed-inactive-a")
+    digest = _write_test_reviewed_manifest(
+        tmp_path,
+        monkeypatch,
+        pairs=[_reviewed_a_pair_entry(workload, dispatch, records)],
+    )
+    now = datetime(2026, 10, 24, 16, 30, tzinfo=SHANGHAI)
+    with pytest.raises(overlay.OverlayError, match="unfinished same-owner A workload claim"):
+        overlay.assert_same_owner_idle(ledger, now=now, pid_alive=lambda _pid: False)
+    with pytest.raises(overlay.OverlayError, match="digest is not approved"):
+        overlay.assert_same_owner_idle(
+            ledger,
+            now=now,
+            pid_alive=lambda _pid: False,
+            controller_reviewed_idle_manifest_sha256="0" * 64,
+        )
+    overlay.assert_same_owner_idle(
+        ledger,
+        now=now,
+        pid_alive=lambda _pid: False,
+        controller_reviewed_idle_manifest_sha256=digest,
+    )
+    with pytest.raises(overlay.OverlayError, match="unfinished same-owner A workload claim"):
+        overlay.assert_same_owner_idle(
+            ledger,
+            now=now,
+            pid_alive=lambda _pid: True,
+            controller_reviewed_idle_manifest_sha256=digest,
+        )
+
+    candidate = _prepare_fixture(tmp_path)
+    fixed = candidate["fixed"]
+    component = candidate["component"]
+    base_manifest = candidate["base_manifest"]
+    assert all(isinstance(item, Path) for item in (fixed, component, base_manifest))
+    original = fixed.read_bytes()
+    with pytest.raises(overlay.OverlayError, match="active A child"):
+        overlay.install_fixed_entrypoint(
+            component,
+            fixed_entry_path=fixed,
+            base_release_manifest_path=base_manifest,
+            ledger_root=ledger,
+            review_pass_verified=True,
+            manual_run_terminal_verified=True,
+            now=now,
+            process_rows=[f"4242 /usr/bin/python {fixed}"],
+            pid_alive=lambda _pid: False,
+            controller_reviewed_idle_manifest_sha256=digest,
+        )
+    assert fixed.read_bytes() == original
+
+    before = workload.read_bytes()
+    workload.write_bytes(before + b" ")
+    with pytest.raises(overlay.OverlayError, match="unfinished same-owner A workload claim"):
+        overlay.assert_same_owner_idle(
+            ledger,
+            now=now,
+            pid_alive=lambda _pid: False,
+            controller_reviewed_idle_manifest_sha256=digest,
+        )
+
+
+def test_r3_manifest_gates_synthetic_install_and_rollback_rechecks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    candidate = _prepare_fixture(tmp_path)
+    fixed = candidate["fixed"]
+    component = candidate["component"]
+    base_manifest = candidate["base_manifest"]
+    assert all(isinstance(item, Path) for item in (fixed, component, base_manifest))
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    _bind_test_ledger(monkeypatch, ledger)
+    workload, dispatch, records = _claim_fixture(ledger, "20261022", run_id="reviewed-install-rollback")
+    digest = _write_test_reviewed_manifest(
+        tmp_path,
+        monkeypatch,
+        pairs=[_reviewed_a_pair_entry(workload, dispatch, records)],
+    )
+    original = fixed.read_bytes()
+    now = datetime(2026, 10, 24, 16, 30, tzinfo=SHANGHAI)
+    overlay.install_fixed_entrypoint(
+        component,
+        fixed_entry_path=fixed,
+        base_release_manifest_path=base_manifest,
+        ledger_root=ledger,
+        review_pass_verified=True,
+        manual_run_terminal_verified=True,
+        now=now,
+        process_rows=[],
+        pid_alive=lambda _pid: False,
+        controller_reviewed_idle_manifest_sha256=digest,
+    )
+    assert fixed.read_bytes() != original
+    overlay.restore_preimage(
+        component,
+        fixed_entry_path=fixed,
+        base_release_manifest_path=base_manifest,
+        ledger_root=ledger,
+        now=now,
+        process_rows=[],
+        pid_alive=lambda _pid: False,
+        controller_reviewed_idle_manifest_sha256=digest,
+    )
+    assert fixed.read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    "status,selected,started",
+    [
+        ("SUCCEEDED", ["hourly_research"], ["hourly_research"]),
+        ("NON_TRADING_DAY_CADENCE", [], []),
+    ],
+)
+def test_explicit_r3_manifest_unlocks_verified_historical_dispatch_only_receipt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    status: str,
+    selected: list[str],
+    started: list[str],
+) -> None:
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    _bind_test_ledger(monkeypatch, ledger)
+    workload, dispatch, records = _claim_fixture(ledger, "20261022", run_id=f"reviewed-{status.lower()}")
+    workload.unlink()
+    entry = _reviewed_non_a_dispatch_entry(
+        dispatch, records, status=status, selected=selected, started=started
+    )
+    digest = _write_test_reviewed_manifest(tmp_path, monkeypatch, no_a_dispatches=[entry])
+    now = datetime(2026, 10, 24, 16, 30, tzinfo=SHANGHAI)
+    with pytest.raises(overlay.OverlayError, match="unfinished same-owner A dispatch claim"):
+        overlay.assert_same_owner_idle(ledger, now=now, pid_alive=lambda _pid: False)
+    overlay.assert_same_owner_idle(
+        ledger,
+        now=now,
+        pid_alive=lambda _pid: False,
+        controller_reviewed_idle_manifest_sha256=digest,
+    )
+    with pytest.raises(overlay.OverlayError, match="unfinished same-owner A dispatch claim"):
+        overlay.assert_same_owner_idle(
+            ledger,
+            now=now,
+            pid_alive=lambda _pid: True,
+            controller_reviewed_idle_manifest_sha256=digest,
+        )
+
+
+@pytest.mark.parametrize("tamper", ["dispatch_claim", "receipt"])
+def test_r3_non_a_dispatch_exception_rejects_claim_or_receipt_drift(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tamper: str
+) -> None:
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    _bind_test_ledger(monkeypatch, ledger)
+    workload, dispatch, records = _claim_fixture(ledger, "20261022", run_id=f"drift-{tamper}")
+    workload.unlink()
+    entry = _reviewed_non_a_dispatch_entry(
+        dispatch, records, status="SUCCEEDED", selected=["hourly_research"], started=["hourly_research"]
+    )
+    digest = _write_test_reviewed_manifest(tmp_path, monkeypatch, no_a_dispatches=[entry])
+    drifted = dispatch if tamper == "dispatch_claim" else records["receipt"]
+    assert isinstance(drifted, Path)
+    drifted.write_bytes(drifted.read_bytes() + b" ")
+    with pytest.raises(overlay.OverlayError, match="unfinished same-owner A dispatch claim"):
+        overlay.assert_same_owner_idle(
+            ledger,
+            now=datetime(2026, 10, 24, 16, 30, tzinfo=SHANGHAI),
+            pid_alive=lambda _pid: False,
+            controller_reviewed_idle_manifest_sha256=digest,
+        )
+
+
+def test_r3_manifest_rejects_current_target_date_even_with_matching_claim_hashes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    _bind_test_ledger(monkeypatch, ledger)
+    workload, dispatch, records = _claim_fixture(ledger, "20261023", run_id="target-date-is-not-historical")
+    digest = _write_test_reviewed_manifest(
+        tmp_path,
+        monkeypatch,
+        pairs=[_reviewed_a_pair_entry(workload, dispatch, records)],
+    )
+    with pytest.raises(overlay.OverlayError, match="identity is invalid"):
+        overlay.assert_same_owner_idle(
+            ledger,
+            now=datetime(2026, 10, 24, 16, 30, tzinfo=SHANGHAI),
+            pid_alive=lambda _pid: False,
+            controller_reviewed_idle_manifest_sha256=digest,
+        )
 
 
 def test_atomic_candidate_install_and_clean_rollback_preserve_release_manifest(

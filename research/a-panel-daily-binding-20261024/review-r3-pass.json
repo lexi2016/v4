@@ -1,0 +1,41 @@
+{
+  "schema_version": "a_share_daily_sync_component_r3_review_summary.v1",
+  "review_receipt_path": "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/future-binding/review/COMPONENT_REVIEW_R3.json",
+  "review_receipt_sha256": "fd8140e3e35317826a3497bc5c35f516179f6d1883996559683cc0480aacaf01",
+  "review_status": "REVIEWED/PASS",
+  "review_scope": "R3-only incremental review of frozen A-only install/rollback idle-gate exceptions; R2 PASS and prior source/component evidence reused.",
+  "scope_result": "PASS for candidate only; installed/live behavior and current idle state remain unverified. Controller activation release is separate.",
+  "reviewed_hashes": {
+    "R3_READY.json": "cb63c70fc392a87f2c6cf6c92ddce57f48b11b23ef421b1441e0c27fc4d53e9c",
+    "R3_SCOPE_LOCK.json": "609cd649e4959c8ec6ae67f2f7c58ce81a34f075941c7c219cf2dd72fb99e8ce",
+    "R3_CONTROLLER_REVIEWED_IDLE_MANIFEST.json": "86e2c4132b8f1dae7ab18033935faba29515746b6cec5b798faa9569c8b00087",
+    "overlay_R3": "40370adcf852b04d14ed6392b30f6bfb4ea5e293c907747686d02ff63208deee",
+    "installer_unchanged": "8ddfa1bb12a76f42a0eecf3eb1b78d37bccfcc11146e6f5a9eb507e282833625",
+    "tests_R2_authoritative": "24767715968ab94f6aa63d6aebf7ba830822f13d46bd6e3a2fba374a30f57a9e",
+    "tests_R3": "868886d372099d5d1fe7193268976f90b4aae1ae1d1c057bee02aaf3abdd1866"
+  },
+  "independent_checks": {
+    "targeted_tests": "PASS: 3 targeted pytest cases passed (5 tests total)",
+    "compile": "PASS: all 3 allowlisted Python files compiled in memory",
+    "synthetic_gate_install_rollback_probes": "PASS: isolated fixtures only; no actual runtime or ledger writes",
+    "reported_risks": {"P0": 0, "P1": 0, "P2": 0}
+  },
+  "metadata_correction": {
+    "issue": "Prior R3 metadata reported a 63-character R2 test SHA missing the final e; historical reports remain unchanged.",
+    "authoritative_r2_test_sha256": "24767715968ab94f6aa63d6aebf7ba830822f13d46bd6e3a2fba374a30f57a9e",
+    "basis": "Existing R2 READY and verified remote 4084077 source-sync receipt.",
+    "effect": "Metadata only; no source/input change, retest, or additional code review."
+  },
+  "unexecuted": [
+    "Live dispatcher ledger/process inspection and current idle-state recheck",
+    "Actual activation or rollback",
+    "Producer, service, API, UI, natural-period, and end-to-end verification"
+  ],
+  "safety": {
+    "activation_authorized": false,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -52,6 +52,11 @@ EVIDENCE_ROOT = Path(
     "/Users/lexi/Desktop/学习/agents调试/研究面板修复_20261024/"
     "future-binding/implementation"
 )
+R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_NAME = "R3_CONTROLLER_REVIEWED_IDLE_MANIFEST.json"
+R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_SHA256 = "86e2c4132b8f1dae7ab18033935faba29515746b6cec5b798faa9569c8b00087"
+R3_FROZEN_MANUAL_TARGET_DATE = "20261023"
+R3_EXPECTED_A_MISSING_RECEIPT_PAIR_COUNT = 2
+R3_EXPECTED_NO_A_TERMINAL_DISPATCH_COUNT = 18
 
 WORKLOAD_ID = "research_panel_daily_a"
 OWNER_ID = "v35_dispatcher.research_panel_daily_a"
@@ -718,6 +723,234 @@ def _has_terminal_dispatch_receipt(ledger_root: Path, claim: Mapping[str, Any]) 
     return isinstance(status, str) and status in NATIVE_TERMINAL_DISPATCH_STATUSES
 
 
+def _load_controller_reviewed_idle_manifest(
+    manifest_sha256: str | None,
+) -> dict[str, Any] | None:
+    """Load only the one frozen R3 inventory when its explicit token is supplied."""
+    if manifest_sha256 is None:
+        return None
+    if manifest_sha256 != R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_SHA256:
+        raise OverlayError("controller-reviewed idle manifest digest is not approved")
+    manifest_path = EVIDENCE_ROOT / R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_NAME
+    raw = _read_regular(manifest_path)
+    if _sha256(raw) != R3_CONTROLLER_REVIEWED_IDLE_MANIFEST_SHA256:
+        raise OverlayError("controller-reviewed idle manifest changed")
+    try:
+        manifest = json.loads(raw)
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise OverlayError("controller-reviewed idle manifest is not valid JSON") from error
+    if not isinstance(manifest, dict):
+        raise OverlayError("controller-reviewed idle manifest is not an object")
+    pairs = manifest.get("inactive_a_missing_receipt_pairs")
+    non_a = manifest.get("verified_no_a_workload_terminal_dispatches")
+    if (
+        manifest.get("schema_version") != "r3_controller_reviewed_a_idle_manifest.v1"
+        or manifest.get("frozen_manual_target_date") != R3_FROZEN_MANUAL_TARGET_DATE
+        or manifest.get("reviewed_exception_count") != R3_EXPECTED_A_MISSING_RECEIPT_PAIR_COUNT
+        + R3_EXPECTED_NO_A_TERMINAL_DISPATCH_COUNT
+        or not isinstance(pairs, list)
+        or len(pairs) != R3_EXPECTED_A_MISSING_RECEIPT_PAIR_COUNT
+        or not isinstance(non_a, list)
+        or len(non_a) != R3_EXPECTED_NO_A_TERMINAL_DISPATCH_COUNT
+    ):
+        raise OverlayError("controller-reviewed idle manifest scope is invalid")
+    pair_paths: set[str] = set()
+    for entry in pairs:
+        if not isinstance(entry, dict):
+            raise OverlayError("controller-reviewed A claim pair is invalid")
+        date_value = entry.get("business_date")
+        if (
+            entry.get("kind") != "INACTIVE_A_MISSING_RECEIPT_PAIR"
+            or not _historical_date_before_target(date_value, R3_FROZEN_MANUAL_TARGET_DATE)
+            or entry.get("expected_receipt_state") != "ABSENT"
+            or entry.get("pid_absent_at_inventory") is not True
+            or entry.get("workload_id") != WORKLOAD_ID
+            or any(not isinstance(entry.get(key), str) or not entry.get(key) for key in (
+                "run_id", "workload_claim_path", "workload_claim_sha256",
+                "dispatch_claim_path", "dispatch_claim_sha256", "receipt_path",
+            ))
+        ):
+            raise OverlayError("controller-reviewed A claim pair identity is invalid")
+        if entry["workload_claim_path"] in pair_paths or entry["dispatch_claim_path"] in pair_paths:
+            raise OverlayError("controller-reviewed idle manifest contains duplicate paths")
+        pair_paths.update((entry["workload_claim_path"], entry["dispatch_claim_path"]))
+    non_a_paths: set[str] = set()
+    for entry in non_a:
+        if not isinstance(entry, dict):
+            raise OverlayError("controller-reviewed non-A dispatch record is invalid")
+        selected = entry.get("selected_workload_ids")
+        started = entry.get("started_workload_ids")
+        if (
+            entry.get("kind") != "VERIFIED_NO_A_WORKLOAD_TERMINAL"
+            or not _historical_date_before_target(entry.get("business_date"), R3_FROZEN_MANUAL_TARGET_DATE)
+            or entry.get("pid_absent_at_inventory") is not True
+            or entry.get("schema_version") != "v3_5.dispatch_claim.v1"
+            or entry.get("mode") != "LIVE"
+            or entry.get("slot") != SLOT
+            or not isinstance(selected, list)
+            or WORKLOAD_ID in selected
+            or not isinstance(started, list)
+            or WORKLOAD_ID in started
+            or entry.get("receipt_status") not in NATIVE_TERMINAL_DISPATCH_STATUSES
+            or any(not isinstance(entry.get(key), str) or not entry.get(key) for key in (
+                "run_id", "claim_path", "claim_sha256", "receipt_path", "receipt_sha256",
+            ))
+        ):
+            raise OverlayError("controller-reviewed non-A dispatch identity is invalid")
+        if entry["claim_path"] in non_a_paths:
+            raise OverlayError("controller-reviewed idle manifest contains duplicate dispatch paths")
+        non_a_paths.add(entry["claim_path"])
+    return manifest
+
+
+def _historical_date_before_target(value: Any, target: str) -> bool:
+    if not isinstance(value, str) or len(value) != 8 or not value.isdigit():
+        return False
+    try:
+        parsed = datetime.strptime(value, "%Y%m%d").strftime("%Y%m%d")
+    except ValueError:
+        return False
+    return parsed == value and value < target
+
+
+def _manifest_entry_matches_claim(
+    entry: Mapping[str, Any], claim_path: Path, claim: Mapping[str, Any], raw: bytes
+) -> bool:
+    return (
+        entry.get("claim_path") == str(claim_path)
+        and entry.get("claim_sha256") == _sha256(raw)
+        and all(str(entry.get(key) or "") == str(claim.get(key) or "") for key in (
+            "run_id", "scheduled_date", "business_date", "target_date", "slot", "mode", "pid",
+        ))
+    )
+
+
+def _reviewed_inactive_a_pair_matches(
+    ledger_root: Path,
+    claim_path: Path,
+    claim: Mapping[str, Any],
+    manifest: Mapping[str, Any] | None,
+    *,
+    pid_alive: Callable[[Any], bool],
+) -> bool:
+    if manifest is None:
+        return False
+    try:
+        raw = _read_regular(claim_path)
+    except OverlayError:
+        return False
+    for entry in manifest["inactive_a_missing_receipt_pairs"]:
+        if entry.get("workload_claim_path") != str(claim_path) or entry.get("workload_claim_sha256") != _sha256(raw):
+            continue
+        business_date = entry["business_date"]
+        run_id = entry["run_id"]
+        if (
+            claim.get("schema_version") != "v3_5.workload_claim.v1"
+            or claim.get("workload_id") != WORKLOAD_ID
+            or claim.get("mode") != "LIVE"
+            or claim.get("slot") != SLOT
+            or str(claim.get("business_date") or "") != business_date
+            or str(claim.get("scheduled_date") or "") != business_date
+            or str(claim.get("target_date") or "") != business_date
+            or claim.get("run_id") != run_id
+            or claim.get("pid") != entry.get("pid")
+            or not _historical_date_before_target(business_date, R3_FROZEN_MANUAL_TARGET_DATE)
+            or pid_alive(claim.get("pid"))
+        ):
+            return False
+        dispatch_path = ledger_root / "claims" / "live" / business_date / SLOT / "dispatch.claim.json"
+        try:
+            dispatch_raw = _read_regular(dispatch_path)
+            dispatch = json.loads(dispatch_raw)
+        except (OverlayError, UnicodeError, json.JSONDecodeError):
+            return False
+        if (
+            str(dispatch_path) != entry.get("dispatch_claim_path")
+            or _sha256(dispatch_raw) != entry.get("dispatch_claim_sha256")
+            or not isinstance(dispatch, dict)
+            or dispatch.get("schema_version") != "v3_5.dispatch_claim.v1"
+            or dispatch.get("run_id") != run_id
+            or dispatch.get("business_date") != business_date
+            or dispatch.get("scheduled_date") != business_date
+            or dispatch.get("target_date") != business_date
+            or dispatch.get("mode") != "LIVE"
+            or dispatch.get("slot") != SLOT
+            or dispatch.get("pid") != entry.get("pid")
+            or pid_alive(dispatch.get("pid"))
+        ):
+            return False
+        receipt_path = ledger_root / "receipts" / "live" / business_date / SLOT / f"{run_id}.dispatch-receipt.json"
+        return str(receipt_path) == entry.get("receipt_path") and not os.path.lexists(receipt_path)
+    return False
+
+
+def _reviewed_no_a_terminal_dispatch_matches(
+    ledger_root: Path,
+    claim_path: Path,
+    claim: Mapping[str, Any],
+    manifest: Mapping[str, Any] | None,
+    *,
+    workload_run_dates: Mapping[str, str],
+    pid_alive: Callable[[Any], bool],
+) -> bool:
+    if manifest is None:
+        return False
+    try:
+        claim_raw = _read_regular(claim_path)
+    except OverlayError:
+        return False
+    for entry in manifest["verified_no_a_workload_terminal_dispatches"]:
+        if not _manifest_entry_matches_claim(entry, claim_path, claim, claim_raw):
+            continue
+        run_id = str(claim.get("run_id") or "")
+        business_date = str(claim.get("business_date") or "")
+        if (
+            run_id in workload_run_dates
+            or claim.get("schema_version") != "v3_5.dispatch_claim.v1"
+            or claim.get("mode") != "LIVE"
+            or claim.get("slot") != SLOT
+            or claim.get("scheduled_date") != business_date
+            or claim.get("target_date") != business_date
+            or not _historical_date_before_target(business_date, R3_FROZEN_MANUAL_TARGET_DATE)
+            or pid_alive(claim.get("pid"))
+        ):
+            return False
+        receipt_path = ledger_root / "receipts" / "live" / business_date / SLOT / f"{run_id}.dispatch-receipt.json"
+        if str(receipt_path) != entry.get("receipt_path"):
+            return False
+        try:
+            receipt_raw = _read_regular(receipt_path)
+            receipt = json.loads(receipt_raw)
+        except (OverlayError, UnicodeError, json.JSONDecodeError):
+            return False
+        selected = receipt.get("selected_workload_ids") if isinstance(receipt, dict) else None
+        started = receipt.get("started_workload_ids") if isinstance(receipt, dict) else None
+        expected_receipt_path = f"receipts/live/{business_date}/{SLOT}/{run_id}.dispatch-receipt.json"
+        if (
+            not isinstance(receipt, dict)
+            or _sha256(receipt_raw) != entry.get("receipt_sha256")
+            or receipt.get("schema_version") != "v3_5.dispatch.v1"
+            or receipt.get("ledger_sha256") != _ledger_digest(receipt)
+            or any(str(receipt.get(field) or "") != str(claim.get(field) or "") for field in (
+                "run_id", "scheduled_date", "business_date", "target_date", "slot", "mode",
+            ))
+            or receipt.get("receipt_path") != expected_receipt_path
+            or receipt.get("status") != entry.get("receipt_status")
+            or receipt.get("status") not in NATIVE_TERMINAL_DISPATCH_STATUSES
+            or selected != entry.get("selected_workload_ids")
+            or started != entry.get("started_workload_ids")
+            or not isinstance(selected, list)
+            or not isinstance(started, list)
+            or WORKLOAD_ID in selected
+            or WORKLOAD_ID in started
+            or not _finished_receipt_timestamp(receipt.get("finished_at"))
+            or any(receipt.get(field) is not False for field in ("production_allowed", "buy_gate_updated", "orders_sent"))
+        ):
+            return False
+        return True
+    return False
+
+
 def _claim_is_live_or_unfinished(
     ledger_root: Path,
     claim_path: Path,
@@ -752,15 +985,18 @@ def assert_same_owner_idle(
     *,
     now: datetime,
     pid_alive: Callable[[Any], bool] = _pid_is_alive,
+    controller_reviewed_idle_manifest_sha256: str | None = None,
 ) -> None:
     """Read the existing live O_EXCL ledger; never mutate or remove claims."""
     ledger_root = _require_bound_dispatch_ledger(ledger_root)
     if now.tzinfo is None:
         raise OverlayError("claim inspection time must be timezone-aware")
+    reviewed_manifest = _load_controller_reviewed_idle_manifest(controller_reviewed_idle_manifest_sha256)
     workload_claims = sorted(
         (ledger_root / "workloads" / "live").glob(f"*/{SLOT}/{WORKLOAD_ID}.workload-claim.json")
     )
     workload_run_dates: dict[str, str] = {}
+    workload_run_paths: dict[str, Path] = {}
     for claim_path in workload_claims:
         claim = _read_json_object(claim_path)
         business_date = claim_path.parents[1].name
@@ -772,11 +1008,14 @@ def assert_same_owner_idle(
         if run_id in workload_run_dates:
             raise OverlayError(f"duplicate same-owner A workload run_id: {claim_path}")
         workload_run_dates[run_id] = business_date
+        workload_run_paths[run_id] = claim_path
         if _claim_is_live_or_unfinished(
             ledger_root,
             claim_path,
             expected_workload_id=WORKLOAD_ID,
             pid_alive=pid_alive,
+        ) and not _reviewed_inactive_a_pair_matches(
+            ledger_root, claim_path, claim, reviewed_manifest, pid_alive=pid_alive
         ):
             raise OverlayError(f"unfinished same-owner A workload claim: {claim_path}")
         dispatch_path = ledger_root / "claims" / "live" / business_date / SLOT / "dispatch.claim.json"
@@ -801,13 +1040,34 @@ def assert_same_owner_idle(
         workload_date = workload_run_dates.get(dispatch_run_id)
         if workload_date is not None and workload_date != business_date:
             raise OverlayError(f"A dispatch claim/workload date mismatch: {dispatch_path}")
-        if _claim_is_live_or_unfinished(
+        unfinished = _claim_is_live_or_unfinished(
             ledger_root,
             dispatch_path,
             expected_workload_id=None,
             pid_alive=pid_alive,
-        ):
-            raise OverlayError(f"unfinished same-owner A dispatch claim: {dispatch_path}")
+        )
+        if unfinished:
+            if dispatch_run_id in workload_run_dates:
+                workload_path = workload_run_paths[dispatch_run_id]
+                workload_claim = _read_json_object(workload_path)
+                reviewed = _reviewed_inactive_a_pair_matches(
+                    ledger_root,
+                    workload_path,
+                    workload_claim,
+                    reviewed_manifest,
+                    pid_alive=pid_alive,
+                )
+            else:
+                reviewed = _reviewed_no_a_terminal_dispatch_matches(
+                    ledger_root,
+                    dispatch_path,
+                    dispatch,
+                    reviewed_manifest,
+                    workload_run_dates=workload_run_dates,
+                    pid_alive=pid_alive,
+                )
+            if not reviewed:
+                raise OverlayError(f"unfinished same-owner A dispatch claim: {dispatch_path}")
 
 
 def _validate_activation_window(now: datetime) -> None:
@@ -865,6 +1125,7 @@ def install_fixed_entrypoint(
     now: datetime | None = None,
     process_rows: Iterable[str] | Callable[[], Iterable[str]] | None = None,
     pid_alive: Callable[[Any], bool] = _pid_is_alive,
+    controller_reviewed_idle_manifest_sha256: str | None = None,
 ) -> str:
     """CAS-install the reviewed shim when every controller gate is explicit."""
     if not review_pass_verified or not manual_run_terminal_verified:
@@ -899,7 +1160,12 @@ def install_fixed_entrypoint(
         active = active_a_child_processes(fixed_entry_path, process_rows=process_snapshot())
         if active:
             raise OverlayError("active A child process is present: " + active[0])
-        assert_same_owner_idle(ledger_root, now=current_time(), pid_alive=pid_alive)
+        assert_same_owner_idle(
+            ledger_root,
+            now=current_time(),
+            pid_alive=pid_alive,
+            controller_reviewed_idle_manifest_sha256=controller_reviewed_idle_manifest_sha256,
+        )
         if _sha256(_read_regular(base_release_manifest_path)) != BASE_RELEASE_MANIFEST_SHA256:
             raise OverlayError("original release manifest changed before activation")
 
@@ -927,6 +1193,7 @@ def restore_preimage(
     now: datetime | None = None,
     process_rows: Iterable[str] | Callable[[], Iterable[str]] | None = None,
     pid_alive: Callable[[Any], bool] = _pid_is_alive,
+    controller_reviewed_idle_manifest_sha256: str | None = None,
 ) -> str:
     """Restore the exact postimage only inside the guarded idle window."""
     ledger_root = _require_bound_dispatch_ledger(ledger_root)
@@ -953,7 +1220,12 @@ def restore_preimage(
         active = active_a_child_processes(fixed_entry_path, process_rows=process_snapshot())
         if active:
             raise OverlayError("active A child process is present during rollback: " + active[0])
-        assert_same_owner_idle(ledger_root, now=current_time(), pid_alive=pid_alive)
+        assert_same_owner_idle(
+            ledger_root,
+            now=current_time(),
+            pid_alive=pid_alive,
+            controller_reviewed_idle_manifest_sha256=controller_reviewed_idle_manifest_sha256,
+        )
         if _sha256(_read_regular(base_release_manifest_path)) != BASE_RELEASE_MANIFEST_SHA256:
             raise OverlayError("original release manifest is not the pinned preimage before rollback")
 
@@ -980,9 +1252,11 @@ def main(argv: list[str] | None = None) -> int:
     activate.add_argument("--ledger-root", type=Path, required=True)
     activate.add_argument("--review-pass-verified", action="store_true")
     activate.add_argument("--manual-run-terminal-verified", action="store_true")
+    activate.add_argument("--controller-reviewed-idle-manifest-sha256")
     rollback = subparsers.add_parser("rollback", help="restore the exact preimage if the shim is still installed")
     rollback.add_argument("--ledger-root", type=Path, required=True)
     rollback.add_argument("--acknowledge-controller-release", action="store_true")
+    rollback.add_argument("--controller-reviewed-idle-manifest-sha256")
     args = parser.parse_args(argv)
 
     if args.command == "prepare":
@@ -993,6 +1267,7 @@ def main(argv: list[str] | None = None) -> int:
                 ledger_root=args.ledger_root,
                 review_pass_verified=args.review_pass_verified,
                 manual_run_terminal_verified=args.manual_run_terminal_verified,
+                controller_reviewed_idle_manifest_sha256=args.controller_reviewed_idle_manifest_sha256,
                 shim_path=EVIDENCE_ROOT / "entrypoint-shim.py",
             )
         }
@@ -1000,7 +1275,10 @@ def main(argv: list[str] | None = None) -> int:
         if not args.acknowledge_controller_release:
             parser.error("rollback requires --acknowledge-controller-release")
         result = {
-            "restored_preimage_sha256": restore_preimage(ledger_root=args.ledger_root)
+            "restored_preimage_sha256": restore_preimage(
+                ledger_root=args.ledger_root,
+                controller_reviewed_idle_manifest_sha256=args.controller_reviewed_idle_manifest_sha256,
+            )
         }
     print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     return 0

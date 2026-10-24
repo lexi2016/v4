@@ -1,13 +1,11 @@
-# A-share daily component repair archive
+# A-share daily sync component R3 source delta
 
-This directory preserves three source/test files from the reviewed inactive A-only component candidate. It is an archive of the existing R2 repair and compact verification evidence; it is not a deployment package or a claim that the production component is active.
+Status: `REVIEWED_PASS_READY_TO_SYNC`; independent R3 review passed for the candidate scope.
 
-Source worktree: `/Users/lexi/.codex/worktrees/a-panel-daily-binding-20261024/v4_app`
-Branch: `codex/a-panel-daily-binding-20261024`
-Source HEAD: `55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054`
+This package contains only the two R3-changed files in the frozen allowlist. The installer wrapper is unchanged from the previously synced R2 commit and is intentionally omitted. The R3 change adds an explicit SHA-token-gated read of the controller-reviewed idle manifest. With no token, the R2 fail-closed idle path remains. With the exact token, install and rollback can recognize only the manifest-exact historical inactive A claim pairs and verified dispatch-only terminal records with no A workload; other claims remain. Runtime source count, dispatcher, and producer are unchanged.
 
-The independent R2 review is recorded as `REVIEWED/PASS` with zero P0/P1/P2 findings. Its receipt SHA-256 is `df158728b3b46652253200b545fc6a635d384e42b4be08dd0cebd42c397d4244`. The reviewer reported 10 focused pytest tests passed; original22suite not repeated. R1/base evidence is reused as recorded by that receipt; source-sync did not rerun tests.
+The R3 READY record reports seven focused R3 tests passing (`7 passed, 22 deselected`), compilation of the three allowlisted Python files, and a read-only idle-gate check. The independent R3 review receipt reports its own three targeted tests passing (five cases), compilation of the three allowlisted Python files, and isolated synthetic gate/install/rollback probes. These checks support candidate review only; they do not establish actual activation or current live idle state. No tests were rerun during source-sync preparation.
 
-The candidate remains `CANDIDATE_PREPARED_INACTIVE`. No fixed-entry activation, rollback, producer/network run, production-ledger inspection, natural run, or API/UI end-to-end validation is claimed. Safety remains `RESEARCH_ONLY=true`, `production_allowed=false`, `buy_gate_updated=false`, `orders_sent=false`.
+The independent receipt is `future-binding/review/COMPONENT_REVIEW_R3.json`, SHA-256 `fd8140e3e35317826a3497bc5c35f516179f6d1883996559683cc0480aacaf01`. It records `REVIEWED/PASS` for the candidate only; deployment, API, UI, natural-period, end-to-end verification and controller activation release remain separate. The source-sync writer rechecked that `lexi2016/v4` branch `codex/a-panel-daily-binding-20261024` still pointed to `4084077f00c6e8919108e0e52c8f7d29599133ec` before constructing the delta. The remote ref update uses that exact expected SHA and `force=false`.
 
-See `source-hashes.json` for exact source pins and `verification.json` for the bound review and limitations.
+No runtime claimant inventory, raw ledger, data, path snapshots, logs, credentials, installer copy, or prior archive files are included here.
