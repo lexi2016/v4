@@ -714,7 +714,9 @@ class HkexOfficialProvider:
                                    max_issuers=3, max_documents=4, budget=None,
                                    reusable_documents=None):
         """Original official transport/store, bounded native-master scope; no Stage."""
-        from .announcement_source import collect_batch
+        from .announcement_source import collect_batch, CaptureBudget
+        if budget is None and context.get('targeted_source_window'):
+            budget = CaptureBudget()
         return collect_batch(self, context=context, issuers=issuers,
                              pending_documents=pending_documents, max_issuers=max_issuers,
                              max_documents=max_documents, budget=budget,

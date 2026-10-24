@@ -1175,12 +1175,9 @@ class NativeAdapters:
                 "US_UNIVERSE_CONTRACT_QUOTES", "US_FIXED_33_QUOTES", "MONTHLY_CONNECT_MEMBERSHIP",
                 "US_FACTOR_EXPOSURE_CANDIDATE", "US_FACTOR_EXPOSURE_INDEPENDENT_REVIEW",
                 "HK_ISSUER_INDUSTRY_CLASSIFICATION", "HK_SECURITY_MASTER"}]
-            if (context.phase.value in ("MANUAL", "NEXT_DAY")
-                    and context.target_date >= "20261020"):
-                # Single-day mapping needs only the already bound monthly pool;
-                # strict V1 history gates remain paused and are not read here.
-                factor_payload["single_day_mapping_payload"] = {
-                    "monthly_membership": research_membership}
+            from .strict_us_selection import load_strict_selection_input
+            factor_payload["strict_selection_payload"] = load_strict_selection_input(self, context, research_membership)
+            factor_payload["single_day_mapping_payload"] = factor_payload["strict_selection_payload"]
         quote_rows = snapshot.get("quotes",snapshot.get("symbols",snapshot.get("rows", [])))
         if isinstance(quote_rows, dict):
             quote_rows = [{"symbol":s, **v} for s,v in quote_rows.items()]
@@ -1230,6 +1227,8 @@ class NativeAdapters:
                     sha256=relation.get("relation_identity_sha256", owner_digest(relation)),
                     review_owner=relation.get("reviewer_identity"), available_at=row["available_at"],
                     published_at=relation.get("published_at"),relation_type=relation.get("relationship_type"),
+                    current_validity=relation.get("current_validity", relation.get("current_applicability")),
+                    direction=relation.get("direction"), primary_theme=relation.get("primary_theme"),
                     publication_evidence=relation.get("publication_evidence",[
                         dict(role=source.get("role"),published_at=source.get("published_at"),
                              precision="DATE" if isinstance(source.get("published_at"),str) and len(source["published_at"])==10 else "TIMESTAMP",

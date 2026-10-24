@@ -1,0 +1,1518 @@
+{
+  "schema": "v4.us_hk.reviewed_source_manifest.v1",
+  "scope": "accepted selection/panel/capture/frontend/replay components and exact retained seven API dependencies; release helpers excluded while under repair",
+  "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
+  "remote_parent_commit": "c4ba0640ffe09b89ad72a211fb3be42da5a533ff",
+  "remote_parent_tree": "99219b8789675336cf684ff2ed8f587e8677f610",
+  "repository": "lexi2016/v4",
+  "branch": "codex/us-hk-selection-closure-20261023",
+  "files": [
+    {
+      "path": "apps/api/v35_api/app.py",
+      "baseline_sha256": "b21a06958262f32715dafc8282e8ae292992c954c8ff0a7351f24d37bcb51a2b",
+      "sha256": "9c90c88c82b4f2f456d5229ba91270c6ccabcaccaf9d7b696d40f763e1b9051a",
+      "bytes": 380075,
+      "mode": "100644",
+      "git_blob_sha": "13951e66d421ef59bae9b781441f8230074c0f2c",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/api/v35_api/hkex_announcements_router.py",
+      "baseline_sha256": null,
+      "sha256": "5462eda5497252e91ce79f1a1b02c9a126a42825f07ddbeeed32eadb2fcd5552",
+      "bytes": 6972,
+      "mode": "100644",
+      "git_blob_sha": "215d82f155d3c83ec3632a883ecbfb99c2a7079d",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/api/v35_api/manager_workbench_router.py",
+      "baseline_sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e",
+      "bytes": 57619,
+      "mode": "100644",
+      "git_blob_sha": "793a8687601d34a042565f14b14b607bf0c46c10",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "apps/web/package-lock.json",
+      "baseline_sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+      "sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+      "bytes": 149437,
+      "mode": "100644",
+      "git_blob_sha": "aeab513b5f90e0a2bdafbabf391821657cf1e447",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "apps/web/package.json",
+      "baseline_sha256": "83def8f02a4a690b46017513bb9e984f1ca5746ecea40a02bd31295b271b69a5",
+      "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "bytes": 492,
+      "mode": "100644",
+      "git_blob_sha": "b6af594d62fe5d7e85e2aad4f2142dab0252bb18",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "baseline_sha256": "e517c05557700bdf4fa5c61be9194d14239f33737ab8f58e81e87bdd10e60305",
+      "sha256": "f9d9f5078c5f0fe3c99d430f871ccde131287de6007cfdf24d79a914268012ac",
+      "bytes": 42881,
+      "mode": "100644",
+      "git_blob_sha": "5f1eedfd2986238170a36b29774401d3ced74d38",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "baseline_sha256": "1a39a980d57bd7c9f52dd1ddbca4996a2c33e77ba425cb736582fcb60fd103a8",
+      "sha256": "fd912304b2e52af24fbc852f626fa38b391f9224dba97e70f40c891dc1ec703b",
+      "bytes": 119366,
+      "mode": "100644",
+      "git_blob_sha": "de9e8ecee3835ac469a5dd78560ffed772117f60",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "baseline_sha256": "2a3c722d9e6c9269542266d42656703ae260c564f46b2b195f1d2c84763bdc04",
+      "sha256": "f12029f5bbb42dc6a27ab2e8b213461cf90ddf6e78755bf23350e53084678d6d",
+      "bytes": 27549,
+      "mode": "100644",
+      "git_blob_sha": "2474fc13fcbd41362f29258955652a294ecfb27d",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_selection.spec.ts",
+      "baseline_sha256": null,
+      "sha256": "e1ab147ee8a63a3864c17e2075be0d45d7cded298dff360f0c0b65f95fe5f2f7",
+      "bytes": 25448,
+      "mode": "100644",
+      "git_blob_sha": "aad4b3b4fbe0c6ae6f14261636b954a4acf60c8a",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/api.ts",
+      "baseline_sha256": "e450479755ee5a1a5c6d8589d791b874a21941736932cdee54443876dfcdeb86",
+      "sha256": "c7fe6530eadb9f8bb25040d0e93f9f7c06bef41a343b3cd9cd05d83f3c09e361",
+      "bytes": 17342,
+      "mode": "100644",
+      "git_blob_sha": "e2ebd01cf117cd3e742d8411b7fee8fc8ef183f9",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/display.ts",
+      "baseline_sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb",
+      "sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb",
+      "bytes": 9979,
+      "mode": "100644",
+      "git_blob_sha": "26e81172db2245ade0c1b50cbad8d5de2e44a3cb",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "apps/web/src/manager-workbench/route.ts",
+      "baseline_sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8",
+      "sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8",
+      "bytes": 2303,
+      "mode": "100644",
+      "git_blob_sha": "af131f63c1d6bce7f32aac16ee49b1815a793684",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "apps/web/src/manager-workbench/types.ts",
+      "baseline_sha256": "f23e6447e6849ecd934cb5dc8c59620284da4657135fd8455277537b7f71adf7",
+      "sha256": "2feb562cea2a2866e3c37ceb4d3de6b6bcbcb2077bed6b348ce75d667c31c292",
+      "bytes": 36914,
+      "mode": "100644",
+      "git_blob_sha": "ea3770933fe341f6bd2c23aaf43c4fbfb7c39564",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+      "baseline_sha256": "cb3934d9b6f9a6804123a089901c55b37a435633fd183758a51e0f5ad2e62c57",
+      "sha256": "cb3934d9b6f9a6804123a089901c55b37a435633fd183758a51e0f5ad2e62c57",
+      "bytes": 13883,
+      "mode": "100644",
+      "git_blob_sha": "541ad82b5505109cff4b5af8267c1a9651a4a3d3",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "baseline_sha256": "c433a21f8ef5509f9addb7a1fb03defca92a9b99633abbb59cc6621a51a40815",
+      "sha256": "d203caeac91cee3c6210ee0f56a74eb4c567162c07fd9003cfa6f3dc33decc5d",
+      "bytes": 30489,
+      "mode": "100644",
+      "git_blob_sha": "acff538a74115a633640fd3d118b20a136a9dc36",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/src/manager-workbench/workbench.css",
+      "baseline_sha256": "3116b2697fe37610706b29241a73e08657ebc4d9497dd15890799a8e1722671b",
+      "sha256": "15a168a85ea408efa205e96f00385d6008375156397087ec4f79bddfc75f8f0f",
+      "bytes": 14721,
+      "mode": "100644",
+      "git_blob_sha": "9234b95b275e8c62751dc81c2912996f668887f6",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "baseline_sha256": "f73fccb15b645e725ff611de1d10f70bebd1b43f17ae50cc72fd57a89f467b2b",
+      "sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe",
+      "bytes": 258,
+      "mode": "100644",
+      "git_blob_sha": "6f5c33b45c050bb61db358f4ecde505afe56bfbc",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "baseline_sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "bytes": 491,
+      "mode": "100644",
+      "git_blob_sha": "caf11acee686f6109d74cf0a40921d0620e23f95",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "contracts/market_calendar_2026.json",
+      "baseline_sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "sha256": "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb",
+      "bytes": 3473,
+      "mode": "100644",
+      "git_blob_sha": "c8177cfdeb55c038a88e915f206780eeba8b0d32",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "contracts/trading_calendar.py",
+      "baseline_sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "sha256": "eca22a1e45271df45fc0a3b7cec28cec4e448d1af97b80371cc5c3c1953ec0f1",
+      "bytes": 10239,
+      "mode": "100644",
+      "git_blob_sha": "b0a6a32d8b2e14c7bb054a1ded35d93da1bc504c",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "contracts/us_equity_calendar.py",
+      "baseline_sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "sha256": "73f223fb032e6c3a3a9f462f41b29fd029365ecfc98942bc5413a911faeba452",
+      "bytes": 3603,
+      "mode": "100644",
+      "git_blob_sha": "825a88fd532f12845b4ffb9a794bf11b07a0ca0c",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "contracts/us_equity_calendar_2026.json",
+      "baseline_sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "sha256": "cd8eac440e985be8fe9700983584dd1108873b68d5cc91cae2cbe8f7283a422f",
+      "bytes": 603,
+      "mode": "100644",
+      "git_blob_sha": "58ac5e41c1d3ed8c0be5616ec316c955f35afb63",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "ops/_hk_provider_capture.py",
+      "baseline_sha256": null,
+      "sha256": "a5d53cefce39792b93455dc5e17872c3d92b82b28aa0ad4142f5311459b796db",
+      "bytes": 13008,
+      "mode": "100644",
+      "git_blob_sha": "fc892e660d87e4d9c592544c85f7e04a7a8dbbc4",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "ops/macos_research_panel_daily.py",
+      "baseline_sha256": null,
+      "sha256": "272a1826abf25988b7d77cbcd33e4204bd77db39585b195f78477e7d2df422ef",
+      "bytes": 102438,
+      "mode": "100644",
+      "git_blob_sha": "e1f15345f374cdebe610f15e75a66b54328785e2",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "ops/replay_us_mapping_selection.py",
+      "baseline_sha256": null,
+      "sha256": "cc5be096936ea52ed7568c14ed16b0db2d033c791e03a32b4727836bd45d72fc",
+      "bytes": 6014,
+      "mode": "100644",
+      "git_blob_sha": "bd4ee5db5a6e3905ffb0d1597f6a1810da9e410c",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_factor.py",
+      "baseline_sha256": "c3115d9d610268d5503181b00db5d6dd1b10ec359cd28b082004adc97f97ec96",
+      "sha256": "9263d57e8f9db570d57147f2f9a9ac1ace0e59719bc6bbf8ef0c2ab8d117e8bb",
+      "bytes": 11799,
+      "mode": "100644",
+      "git_blob_sha": "a14fd2b8f1ee399637aef3b62486a9a6e1e8a922",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/engines/test_us_mapping.py",
+      "baseline_sha256": "2296d39d4ce162c566b2e7e3364b1e1f35ddf192a028e255cec19d6ef53da13c",
+      "sha256": "5e84b257409179e88088fe0af1f9e90cf3dda29056e9e69cb9b78a26db1e4273",
+      "bytes": 6682,
+      "mode": "100644",
+      "git_blob_sha": "c5a5513ea53298079bd65359330ec1cfefb4caa3",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_strict_us_selection.py",
+      "baseline_sha256": "fcfa1bd2d9b0eda31b6691fc50c532c643a93d0b532cc6b26a3677d566b4e706",
+      "sha256": "ce8bfc08f5d2692c8e98571acb3759960bd3ee9461bb8da97488ec42ec8ca03f",
+      "bytes": 4232,
+      "mode": "100644",
+      "git_blob_sha": "9e5d521a35da086eea3938d15c3b131c3ec36437",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_factor_display.py",
+      "baseline_sha256": "75e789559edd874388559228fde7bfcc3fece57cbed342c8018a6c99b944ad74",
+      "sha256": "0330c90b8f853da7166012a1ce5134f96d96041283b9f7f1f9709bdb6a2f73cb",
+      "bytes": 7413,
+      "mode": "100644",
+      "git_blob_sha": "c760844d1db2023873efd2ac46740a0cf851ac5c",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/runtime/test_us_mapping_wiring.py",
+      "baseline_sha256": "ec83a9427e971695d6a5e934f16a8f359ab454f94e19bd096c27d5f96285d39d",
+      "sha256": "06b12983a3e974933efbb962c1b541d8bb4ecbb6295688d6d8b32224eacea4ca",
+      "bytes": 11166,
+      "mode": "100644",
+      "git_blob_sha": "dfd295069ca675ed6e328c96bde373c725ff4f80",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_compact.py",
+      "baseline_sha256": null,
+      "sha256": "50c6b62c2c75312e082e3e11be5250428d60e4e9c7d256c0492bd67af73ac748",
+      "bytes": 11881,
+      "mode": "100644",
+      "git_blob_sha": "6f629b363129518ed30f5d0387bfc20326521ce6",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_phase_merge.py",
+      "baseline_sha256": null,
+      "sha256": "a43b5e15bc558ca33425c58f289b156e4dadf70d9ad3ce92f3463f6e07a21fe3",
+      "bytes": 19845,
+      "mode": "100644",
+      "git_blob_sha": "18b0bf19dbb38ec7c3c3b27c86bd93785535049c",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_selection_closure.py",
+      "baseline_sha256": null,
+      "sha256": "95b818397a8372eabde2ab6c6cc0831c9d150561e6877a577df0cd520016953e",
+      "bytes": 16787,
+      "mode": "100644",
+      "git_blob_sha": "629985a6a53f948c02c6c0658a9f9cae6e1e6bd1",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/test_us_mapping_replay.py",
+      "baseline_sha256": null,
+      "sha256": "96d0a9d82c03a232e0c440e41d7ff6d35dacc7fc63d2290bace2ed233a0b255c",
+      "bytes": 14195,
+      "mode": "100644",
+      "git_blob_sha": "40710dec8f033fca0b5bc6908dbc902e65495383",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/manager_workbench/test_us_mapping_replay_metrics.py",
+      "baseline_sha256": null,
+      "sha256": "594b354603de1f9463b9cf5e5a8ed3dec2ca3d2a8b23ab8fecedc30fd257eabf",
+      "bytes": 6595,
+      "mode": "100644",
+      "git_blob_sha": "9667603d54872b26f6bf46f9ee4a75a73b4a8494",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_history_resolution.py",
+      "baseline_sha256": null,
+      "sha256": "a80c445efe5857881170a6725ab75832c54d4e5e26f8836a70700dabeac06629",
+      "bytes": 20409,
+      "mode": "100644",
+      "git_blob_sha": "34a31355656963d8ce92374d596dff86dc05b292",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_history_resolution_consumers.py",
+      "baseline_sha256": null,
+      "sha256": "b1529cc61a8ccac5aac1e2c5e720f17a1a177adc0f0b2ccd13da3ded747e9113",
+      "bytes": 23029,
+      "mode": "100644",
+      "git_blob_sha": "ca9787fb1002460728b5f1aaa8aaaee6d0576968",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_panel_audit.py",
+      "baseline_sha256": null,
+      "sha256": "cca0d4896a4820deb6105d23a9cf141294f987e54bc20f6d4c7b83e1a5fbac2c",
+      "bytes": 10050,
+      "mode": "100644",
+      "git_blob_sha": "4303c3487114b29b62b4c623bce20aafdeb983d7",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_panel_owner_binding.py",
+      "baseline_sha256": null,
+      "sha256": "efb2e0521e972ce04e09da2460eb5596b9da07312f2d188f3a3c8ab3fa6fcb32",
+      "bytes": 20168,
+      "mode": "100644",
+      "git_blob_sha": "9689e511fd98f89386704ae889f71c8487329205",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_panel_update_disposition.py",
+      "baseline_sha256": null,
+      "sha256": "1f86cc7defd15631456938c09eb43b8ab9e6aa471495eb6f09b48b85800829d6",
+      "bytes": 5532,
+      "mode": "100644",
+      "git_blob_sha": "d9a68ac422f70578180cd342c2a880f912a1501e",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_provider_capture_retention.py",
+      "baseline_sha256": null,
+      "sha256": "037d582c88cac804e53dc11ad5073656511265d7707c3ffc341209d0b5213ffa",
+      "bytes": 20439,
+      "mode": "100644",
+      "git_blob_sha": "59c20d67a9871efee48a780665af1d008f636aec",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "tests/test_hk_research_history.py",
+      "baseline_sha256": null,
+      "sha256": "8673841324af97b9a10660aa60a0070867278446703b438074a05fb787952f78",
+      "bytes": 22316,
+      "mode": "100644",
+      "git_blob_sha": "03e091b2f4a2ad83b6670ff75baffd3f5fcc9cc9",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/scripts/update_hk_0_2_panel.py",
+      "baseline_sha256": null,
+      "sha256": "45d31c1e6608d1a9af163ffd56ea111d5caeb40000c58cd140534cf81859634e",
+      "bytes": 1345,
+      "mode": "100644",
+      "git_blob_sha": "a4f1bc3d9c886eda23e06dc9a149206bf49e482a",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/allowlist.py",
+      "baseline_sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "sha256": "a5e307f15416fe422a0ad36f60d6996f6a3f74753581dc589ef93149178dd206",
+      "bytes": 3011,
+      "mode": "100644",
+      "git_blob_sha": "afa173a579a48919b4653381fd528d901f3241d6",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/collectors.py",
+      "baseline_sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "sha256": "f59dc7f70939a033fcde715aef33c5e063cb10b20c98caf17ee3a42c4884c159",
+      "bytes": 8200,
+      "mode": "100644",
+      "git_blob_sha": "5c234353c4c92f19ec39d928ae37f3603f06494d",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/constants.py",
+      "baseline_sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "sha256": "706ea95054bcfcf3bab12a234e79a1d25bb412ba32ab0e5b5a6f3f3f6b725df8",
+      "bytes": 2604,
+      "mode": "100644",
+      "git_blob_sha": "2c9beeeaf2a748ac15df6c7b6c1ef2dade37ed77",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/consumer.py",
+      "baseline_sha256": null,
+      "sha256": "bd3b19a188907a2273d09a51ee06c448f41ea94277c30a56658350ed6f3843ba",
+      "bytes": 2788,
+      "mode": "100644",
+      "git_blob_sha": "3e9fa17abafde3ebf70aab31f7fd21e5e53678b1",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hashing.py",
+      "baseline_sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "sha256": "d4bce5d9337f07ec8c3594367b0203f4eb8de71b5380f14734b5944cf45dcca6",
+      "bytes": 1027,
+      "mode": "100644",
+      "git_blob_sha": "045b93ffb4311c431f1f43ee8223fde1d7a30266",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_0_2.py",
+      "baseline_sha256": null,
+      "sha256": "1cbb83e11047b05f0f4b7d6716a3d38f4ce80861e88e4cd55ce67f8faa173697",
+      "bytes": 67938,
+      "mode": "100644",
+      "git_blob_sha": "94988a751fb90d7bd8f22908277b461693b7e721",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_d1_evidence.py",
+      "baseline_sha256": null,
+      "sha256": "18d48a7e2a7141dc3c7a65abd9caefb10214f51fadfce2dbc27ab6ca72c78084",
+      "bytes": 4746,
+      "mode": "100644",
+      "git_blob_sha": "26ce0d7980c4db993c01263d8defe8cc4431bae1",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "baseline_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "bytes": 35466,
+      "mode": "100644",
+      "git_blob_sha": "d693c75b8d29e3da589a990396c47c8588579e15",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+      "baseline_sha256": null,
+      "sha256": "30314a806a665d71261521b27cf5ba7aa7a9e4c7247aa7eab9a7348127f134e2",
+      "bytes": 23133,
+      "mode": "100644",
+      "git_blob_sha": "f13b4a76abfea44cdbbdc42a713e005582d500ae",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_security_master.py",
+      "baseline_sha256": "1690ee57e4aedbfa93fd57a88666d3d7b86792a012ef55249f6fd17a82b408f7",
+      "sha256": "aa197bb1b7e01bd80d1f2e79681f5f17a80d4b4b82143906eae37b71b92f3a5b",
+      "bytes": 18863,
+      "mode": "100644",
+      "git_blob_sha": "fc423c7de5cf774fd473849c6d02b55220f8e187",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/paths.py",
+      "baseline_sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "sha256": "3007691db34aa721cf9549e79d9f9782bf7490ccb5d9f6ca2895f968525afdb3",
+      "bytes": 3986,
+      "mode": "100644",
+      "git_blob_sha": "9202f4dff68915569c9c25dd2bd34e1de476ff4e",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/store.py",
+      "baseline_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "bytes": 27895,
+      "mode": "100644",
+      "git_blob_sha": "273dc301ff7e8fe9d91e9d3e3c7c427817dc3976",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_research/announcement_source.py",
+      "baseline_sha256": "adacf42be83a53c3472de65426d2269904e1ab33151887b921e8af11b0b1c4dc",
+      "sha256": "9ec101dd942c0ed5c554692e8d0665e90fd2df217bffc8580fab7feeb4429645",
+      "bytes": 78227,
+      "mode": "100644",
+      "git_blob_sha": "8a59f3f75ec7317574fa20eb371f1a78df391172",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_research/hkex_directory_protocol.py",
+      "baseline_sha256": null,
+      "sha256": "4dd7abd79726aa6ab24b16bb05d1027feeec047ad7233631c7b4bd47af1827bc",
+      "bytes": 26462,
+      "mode": "100644",
+      "git_blob_sha": "e8a61d6f815bbe05c199cf0843cb3a59a2c976be",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_research/hkex_provider.py",
+      "baseline_sha256": "060fdba44b28d29e621f943cedf6ae4be350070301ed192898af8b623ff17242",
+      "sha256": "7fac7f81b53cabc69a6d8e733fc91017f851e54bef0dcf751ea4c735c51f80f1",
+      "bytes": 40441,
+      "mode": "100644",
+      "git_blob_sha": "419047b350ba30f29a10684bc0e8f298b8b65d3e",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_research/hkex_runtime.py",
+      "baseline_sha256": null,
+      "sha256": "6212a79f701df0a7ff0720ef2c19ae17912fceffd6eacdfd63f9d7223b9636c5",
+      "bytes": 1817,
+      "mode": "100644",
+      "git_blob_sha": "3d26349153ea14830e6875684a7d6dd2a151f48b",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_research/workspace_announcements.py",
+      "baseline_sha256": "87e524a77d2a816d1ba9e5b17bfff7db79831a991c62934421cd46b728f137b5",
+      "sha256": "1514268aaaec7916658f1e7a989b06141b3909843b296ab056bb3ea1ac7e7f93",
+      "bytes": 223812,
+      "mode": "100644",
+      "git_blob_sha": "aafd88b1f58608bc9f136bbc1f4952c28dc6acb1",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/__init__.py",
+      "baseline_sha256": "879baeecaa5270f9053193c39ecfb7e92aa40a01b5b53bbc10ffa5d29c789490",
+      "sha256": "879baeecaa5270f9053193c39ecfb7e92aa40a01b5b53bbc10ffa5d29c789490",
+      "bytes": 141,
+      "mode": "100644",
+      "git_blob_sha": "029ceaa595c1f2059fceddcce255478ba8406eb1",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/announcement_candidate.py",
+      "baseline_sha256": "c30584c349a9de5243850683fbcee8d48071104a15a7123466ac92a520818c08",
+      "sha256": "c30584c349a9de5243850683fbcee8d48071104a15a7123466ac92a520818c08",
+      "bytes": 17797,
+      "mode": "100644",
+      "git_blob_sha": "11252742323e7896a86e24a7386d246b8ad5ca22",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/announcement_chunks.py",
+      "baseline_sha256": "f272cc058a97ca42a5ce47fc3d1378414d16020da06bc49ec63d43696f70b372",
+      "sha256": "517afefba53f22751f29796dc9f2cd6e5a2b4ac9ac993fbd82f6238d94fc0d40",
+      "bytes": 41804,
+      "mode": "100644",
+      "git_blob_sha": "7644e2384031ea5386fdfc8e5fcb4e3f0f3ebd83",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_classification.py",
+      "baseline_sha256": null,
+      "sha256": "d0c276c9adbdcf1723c02de1f92e8fd0017e0dd9525d983142aeb04742885d73",
+      "bytes": 36350,
+      "mode": "100644",
+      "git_blob_sha": "983e48bdbb069fadcda2f6b6d1ab978eb4a79381",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_delivery.py",
+      "baseline_sha256": null,
+      "sha256": "17bb9880895505a212e4f6ad7c30ae82ec98c3f8c5c190abf576255c4a02d87d",
+      "bytes": 6412,
+      "mode": "100644",
+      "git_blob_sha": "afe6dbe990b6f53999c146ebee209c35e7b6a440",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_membership.py",
+      "baseline_sha256": "564e3ae25d78feeaa953153d5b7604d1ecbb24198f9c4e3aeb2c69ee29a844b0",
+      "sha256": "756d43834b2f8ba816c6c71c70a4edc288b0f2c06c55934131da27ab5137d9dc",
+      "bytes": 25091,
+      "mode": "100644",
+      "git_blob_sha": "bdbd3a1b68f282185418e14b8d68b477864603f0",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_preprocessing.py",
+      "baseline_sha256": null,
+      "sha256": "ebf374151bbee08a9949d8a4807f9eb169cb8916cfadf47a5f264ebe77404dff",
+      "bytes": 12922,
+      "mode": "100644",
+      "git_blob_sha": "8eefdc84ca9801d05b81430a1681c0558954d4de",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/announcement_update.py",
+      "baseline_sha256": "32bcc082586f32068a347676471f0e49adc7e2392b4123a1d9f5623155f3cbbd",
+      "sha256": "b9fd5c7a9702bad76f5d2d25ead4fb987df3bd8b46d06104bb21640cbc8ea95e",
+      "bytes": 307216,
+      "mode": "100644",
+      "git_blob_sha": "e897adec84f5ca421e2167ef6a1b3ad09375001c",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/api.py",
+      "baseline_sha256": "d3dd953756ec4c9973f1b3ee7121f1b9530e17f231388655d7748c525a661636",
+      "sha256": "a09a05614ac7e36d5aa70601ec309dbfae9dee892db3332468ec538f9a6f8bf5",
+      "bytes": 23233,
+      "mode": "100644",
+      "git_blob_sha": "774d9249fcb59ae46c6fe2b6d6696c3fda3eb918",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/binding.py",
+      "baseline_sha256": "69094d79badb2000261fc4326c37160f99e504ee243c41b9a79a42c4ae5f7a54",
+      "sha256": "69094d79badb2000261fc4326c37160f99e504ee243c41b9a79a42c4ae5f7a54",
+      "bytes": 4631,
+      "mode": "100644",
+      "git_blob_sha": "0a000ec06fdf665970ace474e000f9f98887eb9d",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/cli.py",
+      "baseline_sha256": "68776174b5cd87f1f1ffbb9cb544b7816e8d4700a50c1b4ab5473682d1fb8eea",
+      "sha256": "68776174b5cd87f1f1ffbb9cb544b7816e8d4700a50c1b4ab5473682d1fb8eea",
+      "bytes": 7991,
+      "mode": "100644",
+      "git_blob_sha": "6fb0f3c8cc209502b7ba736233f5ace060a18597",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/config.py",
+      "baseline_sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "sha256": "ba10944950c8c68b51ccc88f0f5369c1627af7e3f265903ad69cb747451993c1",
+      "bytes": 4010,
+      "mode": "100644",
+      "git_blob_sha": "dfa71ad7e5c6dd19061eead4a82b9f713ec2d3d1",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "baseline_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "sha256": "91b139f5cdf6fa4c1ef51e52a91f967122de22ed5bda851dab927d19e631d1a5",
+      "bytes": 14254,
+      "mode": "100644",
+      "git_blob_sha": "25138d295fd73db6544d1fbf7de727a1de295af2",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/display.py",
+      "baseline_sha256": null,
+      "sha256": "18473da178c8961b8a636a0dc22cd35ff9441500a2e2c5f5caee875c6d7a6bbe",
+      "bytes": 9459,
+      "mode": "100644",
+      "git_blob_sha": "87bb0cefe01704adef12053ddef7ced1b2558310",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/display_read.py",
+      "baseline_sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "sha256": "87c2edf936146fdf4fd2f1e3d4742577272ed47734d883b896bb97d125a50a20",
+      "bytes": 17768,
+      "mode": "100644",
+      "git_blob_sha": "7f569c95f43c88a5dee28d736e125d900b36f0d6",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/engines/__init__.py",
+      "baseline_sha256": "30616498027b6625c2735ee96cd3b91ff7dc202db2c3369f1920ac80274a18d9",
+      "sha256": "30616498027b6625c2735ee96cd3b91ff7dc202db2c3369f1920ac80274a18d9",
+      "bytes": 1578,
+      "mode": "100644",
+      "git_blob_sha": "50846b4445f8f6bce48daf8193128732b19f27fa",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/engines/announcement.py",
+      "baseline_sha256": "e1e1c9d5df3a2e87c636469c3023ce19b4e0cb615fdd6a3d4aa6091d35861cc3",
+      "sha256": "2741bc6975c185f06aabe35e070de9e125cd7616f02bfa7a37507b79339d2c93",
+      "bytes": 18700,
+      "mode": "100644",
+      "git_blob_sha": "a151fd835dc9d6475499b9d29bd51c83e74d102c",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/common.py",
+      "baseline_sha256": "1dbbd5c2dc78ade8d9630356c1397a0b28b0e79084136b7d62f596f68cb99578",
+      "sha256": "1dbbd5c2dc78ade8d9630356c1397a0b28b0e79084136b7d62f596f68cb99578",
+      "bytes": 7673,
+      "mode": "100644",
+      "git_blob_sha": "dac0c36bf859ea8affcb96570bdaef810df16140",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/engines/core.py",
+      "baseline_sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7",
+      "sha256": "4d0034502a718880872410304aa78d5720cff04c405c2b963e66ffe7483f319b",
+      "bytes": 9455,
+      "mode": "100644",
+      "git_blob_sha": "b5de3effc908235677d74f99ed25e72c05ffaba7",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/oversold.py",
+      "baseline_sha256": "44450f7462e5ee0a07ff2aee21400a7fb5fe4fd3441b4c1795190bef8bc60898",
+      "sha256": "44450f7462e5ee0a07ff2aee21400a7fb5fe4fd3441b4c1795190bef8bc60898",
+      "bytes": 11204,
+      "mode": "100644",
+      "git_blob_sha": "737c7e104e23a69f630395f5cc78dd829d196c89",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/engines/review.py",
+      "baseline_sha256": "7a101bff00adca3de5c97da04491b151e961c8dd8f3249d76b00539550b85bdd",
+      "sha256": "7a101bff00adca3de5c97da04491b151e961c8dd8f3249d76b00539550b85bdd",
+      "bytes": 7144,
+      "mode": "100644",
+      "git_blob_sha": "4c90c4c8064bb04ccc8cbe1f88e947cb3b367e3c",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "baseline_sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "sha256": "b66026707847207b5ba4dc01eb9c6b291fc37bab2973c2cda19233663c1ae1da",
+      "bytes": 19582,
+      "mode": "100644",
+      "git_blob_sha": "56d27224dac208d6e65bff4a1e20add8769b5663",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_factor.py",
+      "baseline_sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "sha256": "e166ffd0c0de26e2ecce0226a3aeebb1e8f5d36b6a0bed6b832837848c9ea326",
+      "bytes": 63020,
+      "mode": "100644",
+      "git_blob_sha": "4c0532ebcb67684b251b5198a37a7875ffc0252a",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "baseline_sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "sha256": "39ad72670b7d81e2e64e3541f09d75af74a1fa10eede9f86ff3f16a95632d189",
+      "bytes": 30621,
+      "mode": "100644",
+      "git_blob_sha": "cc399b61d712c2b3217262ea16329396ce4306cd",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "baseline_sha256": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd",
+      "sha256": "72fa6ce0422cc703e551f02c9af422598aa0c5f27933d4e9b5c5de32b0b0386a",
+      "bytes": 46175,
+      "mode": "100644",
+      "git_blob_sha": "19dbfe4536a212eb5fe1c35f96c4c5e192d74650",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_policy.py",
+      "baseline_sha256": null,
+      "sha256": "b0958e528b74ee92de984e09e18ab96f3aa3342e23452383323d72d1f54343ff",
+      "bytes": 2456,
+      "mode": "100644",
+      "git_blob_sha": "0b8066b21239f6cbeee0ee4c4d92e7d828312ddf",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/executors/__init__.py",
+      "baseline_sha256": "082752f7a256b7265cbcc1dc3de9c3f0a81ac00efff140077ad94ddd151ccd98",
+      "sha256": "082752f7a256b7265cbcc1dc3de9c3f0a81ac00efff140077ad94ddd151ccd98",
+      "bytes": 151,
+      "mode": "100644",
+      "git_blob_sha": "c899e8de382dac9702d134227011abee88caef5d",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/executors/codex.py",
+      "baseline_sha256": "2a69cb83d97b174852de0a94c7fb18b53770b1bd581b2cd69cfc41f6a4218c99",
+      "sha256": "2a69cb83d97b174852de0a94c7fb18b53770b1bd581b2cd69cfc41f6a4218c99",
+      "bytes": 13253,
+      "mode": "100644",
+      "git_blob_sha": "7678c527a6e1713cd318502d21d24f294cb9dfd6",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/executors/local_cli.py",
+      "baseline_sha256": "6f80691433a34143c48a4c98cf1d6af92198806d3f923749d66d07f740618fb4",
+      "sha256": "6f80691433a34143c48a4c98cf1d6af92198806d3f923749d66d07f740618fb4",
+      "bytes": 9370,
+      "mode": "100644",
+      "git_blob_sha": "27d2a25803c207afcc3f90bdb6636dc5fd678c36",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/executors/schema_check.py",
+      "baseline_sha256": "76583fdc6f588d887636f6c0bf1b238a599f7e21023ab2bf3d244922a8181913",
+      "sha256": "76583fdc6f588d887636f6c0bf1b238a599f7e21023ab2bf3d244922a8181913",
+      "bytes": 2468,
+      "mode": "100644",
+      "git_blob_sha": "86e251876880c303226f12e230524b339a436553",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/__init__.py",
+      "baseline_sha256": "20211192f5afa5fffc63e4a9200397cce230945db2a43b09be790af5897550b6",
+      "sha256": "20211192f5afa5fffc63e4a9200397cce230945db2a43b09be790af5897550b6",
+      "bytes": 155,
+      "mode": "100644",
+      "git_blob_sha": "e7be35e8d3257750421264ecee264545ce6c82d4",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/__init__.py",
+      "baseline_sha256": "612ff566b4378c13c7b1180cb2da89ac0b6cde5500a63fe530e30ae6a88b1b9c",
+      "sha256": "612ff566b4378c13c7b1180cb2da89ac0b6cde5500a63fe530e30ae6a88b1b9c",
+      "bytes": 1283,
+      "mode": "100644",
+      "git_blob_sha": "793d4f104b76736b4656aed98d50cd5a9dc0f948",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_cmap.py",
+      "baseline_sha256": "0b8eea205808d522a7e4bad3e222b39c6964752b58a3a3b7259904292ee09241",
+      "sha256": "0b8eea205808d522a7e4bad3e222b39c6964752b58a3a3b7259904292ee09241",
+      "bytes": 12572,
+      "mode": "100644",
+      "git_blob_sha": "fb19541f2d45060e6cd980c714df38a74f8c2d63",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/__init__.py",
+      "baseline_sha256": "035d44440b70b56ae91953b34d296b0b56b74fd1c29562c1591c067b7fcf7eed",
+      "sha256": "035d44440b70b56ae91953b34d296b0b56b74fd1c29562c1591c067b7fcf7eed",
+      "bytes": 1373,
+      "mode": "100644",
+      "git_blob_sha": "3693a5a87b8e212fe3919e9cef6700cfe71a1428",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/_codecs.py",
+      "baseline_sha256": "e3aa11649c92c06c42269d648c87abee3b3f4d84a38f81acda2d9471edeff9e1",
+      "sha256": "e3aa11649c92c06c42269d648c87abee3b3f4d84a38f81acda2d9471edeff9e1",
+      "bytes": 10555,
+      "mode": "100644",
+      "git_blob_sha": "93f95e5aad3aaf9c65ba15bbedb7acc88b2ba85f",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/adobe_glyphs.py",
+      "baseline_sha256": "b7770314f0eac08cf5c3d07481d5738dd73c7842bd02e4639397fb95a130fdf6",
+      "sha256": "b7770314f0eac08cf5c3d07481d5738dd73c7842bd02e4639397fb95a130fdf6",
+      "bytes": 447213,
+      "mode": "100644",
+      "git_blob_sha": "72d5ed3247b24e4c6887bf2e51001906ee2a3ffb",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/core_font_metrics.py",
+      "baseline_sha256": "14b3d66d3678871790597820d63a397b8a972821642846397bce54d9b2c533a9",
+      "sha256": "14b3d66d3678871790597820d63a397b8a972821642846397bce54d9b2c533a9",
+      "bytes": 114968,
+      "mode": "100644",
+      "git_blob_sha": "f086ef7a5155332de371f9e97e4982cb5a5a21f9",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/pdfdoc.py",
+      "baseline_sha256": "c5f4af30562cbf1b9a490d14bbdbd90ca681d16bbce61d6e0a20758bdac07145",
+      "sha256": "c5f4af30562cbf1b9a490d14bbdbd90ca681d16bbce61d6e0a20758bdac07145",
+      "bytes": 4269,
+      "mode": "100644",
+      "git_blob_sha": "306357a59c4d9a0fd846bb52e5b6774d82c6ae51",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/std.py",
+      "baseline_sha256": "0f240cb84a40184a52f6ecb58d67f87278fe92a4a13ce0228f9b08ed0d580fc1",
+      "sha256": "0f240cb84a40184a52f6ecb58d67f87278fe92a4a13ce0228f9b08ed0d580fc1",
+      "bytes": 2630,
+      "mode": "100644",
+      "git_blob_sha": "a6057ff3c7a90e9c31389d2bab1bd0f6058ad724",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/symbol.py",
+      "baseline_sha256": "9c86864089615822623cc1ebc149661871fefdf397c842af82e466b8a5dc1809",
+      "sha256": "9c86864089615822623cc1ebc149661871fefdf397c842af82e466b8a5dc1809",
+      "bytes": 3734,
+      "mode": "100644",
+      "git_blob_sha": "4c0d680ff242a475d3f48916ad6b7998b30ff76a",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_codecs/zapfding.py",
+      "baseline_sha256": "3d0c63c510bad7a778d711777b15713f55bc9cce10ad97e33b7966b4bc6913fb",
+      "sha256": "3d0c63c510bad7a778d711777b15713f55bc9cce10ad97e33b7966b4bc6913fb",
+      "bytes": 3742,
+      "mode": "100644",
+      "git_blob_sha": "9b6cdbcc0bca199f3eb8cca9e2cc7fe6001a34fb",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/__init__.py",
+      "baseline_sha256": "2b767a02e5e15d579780b7adf93ba4ab682df47eba3a076ea6cbf1212d429a42",
+      "sha256": "2b767a02e5e15d579780b7adf93ba4ab682df47eba3a076ea6cbf1212d429a42",
+      "bytes": 3054,
+      "mode": "100644",
+      "git_blob_sha": "215a2586062052a81ae2eed1b829d5ba50251d88",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_base.py",
+      "baseline_sha256": "fdfe77323eaf8af84464c438bcdc4de46d083a0158fa7e7f95e91ed1cfea88d5",
+      "sha256": "fdfe77323eaf8af84464c438bcdc4de46d083a0158fa7e7f95e91ed1cfea88d5",
+      "bytes": 1711,
+      "mode": "100644",
+      "git_blob_sha": "894025f3bca1ae5f9b7797fa34404bb0abd0e733",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_cryptography.py",
+      "baseline_sha256": "f733a4933312b17e1a974454934a8cd1d29f7dc1e47b8c1f9845caf64c28450f",
+      "sha256": "f733a4933312b17e1a974454934a8cd1d29f7dc1e47b8c1f9845caf64c28450f",
+      "bytes": 4460,
+      "mode": "100644",
+      "git_blob_sha": "b3a3d2e6dd7b328dd460a4706a399e08e0d10319",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_fallback.py",
+      "baseline_sha256": "bec628a30475602015feaf87add21986451cac26fa1ef44134c626d3742d094f",
+      "sha256": "bec628a30475602015feaf87add21986451cac26fa1ef44134c626d3742d094f",
+      "bytes": 3334,
+      "mode": "100644",
+      "git_blob_sha": "0412211278290605c1a9b18f82f5c131b15b018d",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_crypt_providers/_pycryptodome.py",
+      "baseline_sha256": "bb8bed2e8ecdbfa02a6513671f5a0d3425af4d86a8c1f4957febe5916def4fab",
+      "sha256": "bb8bed2e8ecdbfa02a6513671f5a0d3425af4d86a8c1f4957febe5916def4fab",
+      "bytes": 3280,
+      "mode": "100644",
+      "git_blob_sha": "3f66581e172b4dd4ea0b02f275f60ba3b26bc66f",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_doc_common.py",
+      "baseline_sha256": "54a5f4cd06ba5f658a9ed175b9c6224134b3dcf9f98ab11fc4da1f36e02a262e",
+      "sha256": "54a5f4cd06ba5f658a9ed175b9c6224134b3dcf9f98ab11fc4da1f36e02a262e",
+      "bytes": 54398,
+      "mode": "100644",
+      "git_blob_sha": "3d0e93b6c87e48795fe1f9a5a12c343dfcf06b5d",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_encryption.py",
+      "baseline_sha256": "319f3e012455b473ceb9c51df87f4a45f94eab902f88f14f8e5769901540a1ce",
+      "sha256": "319f3e012455b473ceb9c51df87f4a45f94eab902f88f14f8e5769901540a1ce",
+      "bytes": 49546,
+      "mode": "100644",
+      "git_blob_sha": "b57191e802f16386cd2f62a75aa45023eb97559c",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_font.py",
+      "baseline_sha256": "50ad53071d7979e53daa4661bf38a0e1823eb6365382007eca20b414b73767bb",
+      "sha256": "50ad53071d7979e53daa4661bf38a0e1823eb6365382007eca20b414b73767bb",
+      "bytes": 14256,
+      "mode": "100644",
+      "git_blob_sha": "236a372d88932124b92844740e25bcc83aff8a11",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_page.py",
+      "baseline_sha256": "f93c459a77c433dbd2541e94d1fdfa599e486ca5fe3e3efe9348eaf94552639c",
+      "sha256": "f93c459a77c433dbd2541e94d1fdfa599e486ca5fe3e3efe9348eaf94552639c",
+      "bytes": 90193,
+      "mode": "100644",
+      "git_blob_sha": "383be98f4ded2a651091b4e0b545d1dd273fb001",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_page_labels.py",
+      "baseline_sha256": "bfa0a9bba3495c2f5143f05e19d866d39695f19eb3c623d1367eaa129d41b951",
+      "sha256": "bfa0a9bba3495c2f5143f05e19d866d39695f19eb3c623d1367eaa129d41b951",
+      "bytes": 8626,
+      "mode": "100644",
+      "git_blob_sha": "7a4358226053110502d71a7bb5ff72f7355984cb",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_protocols.py",
+      "baseline_sha256": "eeacfdd8b55d3eb6244a97543e9029f54e065b98f13414df55ca545b052110ea",
+      "sha256": "eeacfdd8b55d3eb6244a97543e9029f54e065b98f13414df55ca545b052110ea",
+      "bytes": 2123,
+      "mode": "100644",
+      "git_blob_sha": "ac24abbbe200c4ffd201d04d73196eb7a8c419bf",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_reader.py",
+      "baseline_sha256": "9aaa6780e62c061509f0d3b658dbdac185404fecadac01f7f9d35ac009ce2024",
+      "sha256": "9aaa6780e62c061509f0d3b658dbdac185404fecadac01f7f9d35ac009ce2024",
+      "bytes": 57708,
+      "mode": "100644",
+      "git_blob_sha": "ffbffebbf3de0e6625615e5e82ab32b4ce4e44d2",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/__init__.py",
+      "baseline_sha256": "6b7677deb4154e230a1adc2deff6df5e53e8b1b493f2bcc42e8367b74e77fd0c",
+      "sha256": "6b7677deb4154e230a1adc2deff6df5e53e8b1b493f2bcc42e8367b74e77fd0c",
+      "bytes": 8515,
+      "mode": "100644",
+      "git_blob_sha": "fd51c243acb8b621f2c0f2f8f4c2657278d13ade",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/__init__.py",
+      "baseline_sha256": "454408c22530ce778db5c9639d533a8e445a7a6ea980fee6383dbe3019ada6fc",
+      "sha256": "454408c22530ce778db5c9639d533a8e445a7a6ea980fee6383dbe3019ada6fc",
+      "bytes": 340,
+      "mode": "100644",
+      "git_blob_sha": "d3151600e9bc1029a6d85c2bc9e53e9e36fd07df",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/_fixed_width_page.py",
+      "baseline_sha256": "789bde0dbc8ca281bdef4a893a13394706fd668cb2243ca7cd6a55f5aec84b6d",
+      "sha256": "789bde0dbc8ca281bdef4a893a13394706fd668cb2243ca7cd6a55f5aec84b6d",
+      "bytes": 15370,
+      "mode": "100644",
+      "git_blob_sha": "48f654ebb4c680494bdab5c17582e632f1e3ab54",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/_text_state_manager.py",
+      "baseline_sha256": "5d5ac88de4dde6349d31ec41431b34b4be48e5150e8ad4663759842ce70a626e",
+      "sha256": "5d5ac88de4dde6349d31ec41431b34b4be48e5150e8ad4663759842ce70a626e",
+      "bytes": 8221,
+      "mode": "100644",
+      "git_blob_sha": "947cdd4165008319f82913ac0b11c531f356fe1f",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_layout_mode/_text_state_params.py",
+      "baseline_sha256": "872c3aa670bcba9064a055542772c7f21048207acdc22a9aa9c632cc8232afa6",
+      "sha256": "872c3aa670bcba9064a055542772c7f21048207acdc22a9aa9c632cc8232afa6",
+      "bytes": 5481,
+      "mode": "100644",
+      "git_blob_sha": "5203f12733f4b97dcb025e9f0366c4ae8dd54b68",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_text_extraction/_text_extractor.py",
+      "baseline_sha256": "b54a9bbc2ebd305706406501b7f63caeab1535ffbcb0c171003c8a9da8b4a232",
+      "sha256": "b54a9bbc2ebd305706406501b7f63caeab1535ffbcb0c171003c8a9da8b4a232",
+      "bytes": 14388,
+      "mode": "100644",
+      "git_blob_sha": "866f1fdbf346acd469efa3ca0e6f6124547987ea",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_utils.py",
+      "baseline_sha256": "2df8188c0ad153b97d19201bb681b3bbdbd507e7243e2d657b4eb543a7072656",
+      "sha256": "2df8188c0ad153b97d19201bb681b3bbdbd507e7243e2d657b4eb543a7072656",
+      "bytes": 20814,
+      "mode": "100644",
+      "git_blob_sha": "0396ca6f32c6ca00759e98bc2e4ffa4ca2b76378",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_version.py",
+      "baseline_sha256": "2416f2ebd53fb332339ad719e9569c95eedc0157bb9e1573ee0205d0d07716aa",
+      "sha256": "2416f2ebd53fb332339ad719e9569c95eedc0157bb9e1573ee0205d0d07716aa",
+      "bytes": 23,
+      "mode": "100644",
+      "git_blob_sha": "608ddc3e604b92f258566be3bc84d8736443d501",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/_writer.py",
+      "baseline_sha256": "1819e02d0b0bcd9c1fa483dc5c22e2a7849be22c93474c33c235dd6dd076a4e3",
+      "sha256": "1819e02d0b0bcd9c1fa483dc5c22e2a7849be22c93474c33c235dd6dd076a4e3",
+      "bytes": 131834,
+      "mode": "100644",
+      "git_blob_sha": "fc2d40af3b0f3f733bfc40853e8a79a8d874133f",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/__init__.py",
+      "baseline_sha256": "7f693ffa3027dfd082076ecac50fdef771a29e7ce40076d49e749e1899758f21",
+      "sha256": "7f693ffa3027dfd082076ecac50fdef771a29e7ce40076d49e749e1899758f21",
+      "bytes": 990,
+      "mode": "100644",
+      "git_blob_sha": "44ed1dab5cacdfc7dbc9c07605e164e757a927b5",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/_base.py",
+      "baseline_sha256": "79ea1cf6fdb0d798c05212978f8f25d5b07ae98801815fb6bf92085091febf0b",
+      "sha256": "79ea1cf6fdb0d798c05212978f8f25d5b07ae98801815fb6bf92085091febf0b",
+      "bytes": 961,
+      "mode": "100644",
+      "git_blob_sha": "dc065e1595f7608a9cd39f248f9573955f119184",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/_markup_annotations.py",
+      "baseline_sha256": "b162a1181086ed7f688c0bc4691304a093fe7d8e8572b94574e9ad79f219066d",
+      "sha256": "b162a1181086ed7f688c0bc4691304a093fe7d8e8572b94574e9ad79f219066d",
+      "bytes": 11862,
+      "mode": "100644",
+      "git_blob_sha": "25eb0dfc48cc776513d27ca38e0a9a5c42602281",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/annotations/_non_markup_annotations.py",
+      "baseline_sha256": "676214bdc08e713729261497adec7ff6b8983360fae17c4543fbda735d013515",
+      "sha256": "676214bdc08e713729261497adec7ff6b8983360fae17c4543fbda735d013515",
+      "bytes": 3649,
+      "mode": "100644",
+      "git_blob_sha": "144546094f2a8b0499073342410c3b0185db08f2",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/constants.py",
+      "baseline_sha256": "9f672ef873a6a16e7feb14165442a8e36ad2249d0ff7484bd6cf33fa9174a1cb",
+      "sha256": "9f672ef873a6a16e7feb14165442a8e36ad2249d0ff7484bd6cf33fa9174a1cb",
+      "bytes": 23634,
+      "mode": "100644",
+      "git_blob_sha": "c1069b69ab39cd21e9f8bf39d52056c382946a3f",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/errors.py",
+      "baseline_sha256": "070d56f61c4eb03830ab053a628436974f89894c93aba979423542afe5b81850",
+      "sha256": "070d56f61c4eb03830ab053a628436974f89894c93aba979423542afe5b81850",
+      "bytes": 1947,
+      "mode": "100644",
+      "git_blob_sha": "8fec6e13a279b9de013e41c91890d91873fbf1da",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/filters.py",
+      "baseline_sha256": "237c2d528bdaeccdd68233730b2a74ac634854a9899a34bcebc8d8af5c0b347f",
+      "sha256": "237c2d528bdaeccdd68233730b2a74ac634854a9899a34bcebc8d8af5c0b347f",
+      "bytes": 30420,
+      "mode": "100644",
+      "git_blob_sha": "39abc8c988ee46c0ad7133be0f448219af0d7e42",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/__init__.py",
+      "baseline_sha256": "56ba9d61fb5010278f0d4dab5d532012a45a60547ccce57f7ef260a35f71feec",
+      "sha256": "56ba9d61fb5010278f0d4dab5d532012a45a60547ccce57f7ef260a35f71feec",
+      "bytes": 3468,
+      "mode": "100644",
+      "git_blob_sha": "bde1628fb7a02f9dab04666123c1f3d8bdeeb94b",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_appearance_stream.py",
+      "baseline_sha256": "31c0cbd2070a34df4d5cd53a64fc60b7b398a25dbe168356615980c20030e0f3",
+      "sha256": "31c0cbd2070a34df4d5cd53a64fc60b7b398a25dbe168356615980c20030e0f3",
+      "bytes": 26834,
+      "mode": "100644",
+      "git_blob_sha": "cee5c79ec7955175cfb357c3f53801de68f7f568",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_base.py",
+      "baseline_sha256": "f488de45b70b1eb73f94b1947d564c8ee83ca3eb7af17ece35295f9c32a73e64",
+      "sha256": "f488de45b70b1eb73f94b1947d564c8ee83ca3eb7af17ece35295f9c32a73e64",
+      "bytes": 32755,
+      "mode": "100644",
+      "git_blob_sha": "bf6f66c53bd1119b9ef4138eea3f14fbc6fb0c8e",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_data_structures.py",
+      "baseline_sha256": "35f76eb49aa9f253fb1cd3e5eb9e3875b80f9bbc2616c755e376bde054e7b782",
+      "sha256": "35f76eb49aa9f253fb1cd3e5eb9e3875b80f9bbc2616c755e376bde054e7b782",
+      "bytes": 65869,
+      "mode": "100644",
+      "git_blob_sha": "dc03fabbf125ea98bc37b2f1476fcd80493124c5",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_files.py",
+      "baseline_sha256": "36d4a4468e890608ac8b840ecab56778ef3dd5ba15b2e636e614708a3e97f510",
+      "sha256": "36d4a4468e890608ac8b840ecab56778ef3dd5ba15b2e636e614708a3e97f510",
+      "bytes": 16238,
+      "mode": "100644",
+      "git_blob_sha": "f29fa770f6ccb1d6d6d4bd235f81323a7cad4423",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_fit.py",
+      "baseline_sha256": "5ff8800c98f5618e0f512b52eeb1560b6c51d8b5154af2ad500932d001402033",
+      "sha256": "5ff8800c98f5618e0f512b52eeb1560b6c51d8b5154af2ad500932d001402033",
+      "bytes": 5515,
+      "mode": "100644",
+      "git_blob_sha": "293066ad37cbab19401312c41c6d070fdb6a7971",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_image_inline.py",
+      "baseline_sha256": "2a5000fd91a2446ce368f1b74af6eda8619e36a6d065517e515536302f2efd28",
+      "sha256": "2a5000fd91a2446ce368f1b74af6eda8619e36a6d065517e515536302f2efd28",
+      "bytes": 12819,
+      "mode": "100644",
+      "git_blob_sha": "bd119704972a1f2eef39b188e853b2e291b58a2e",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_image_xobject.py",
+      "baseline_sha256": "7f560334bae2f927a5faaa72ca75c0ee7c7e662493a8061433ce9338414883af",
+      "sha256": "7f560334bae2f927a5faaa72ca75c0ee7c7e662493a8061433ce9338414883af",
+      "bytes": 21965,
+      "mode": "100644",
+      "git_blob_sha": "a29b9b271d80d55a02f1f4050d8dacb360dcaace",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_link.py",
+      "baseline_sha256": "b4da99d86616c6a80566c948d032d97a85e59ed6b182c1c2f1791615f496c781",
+      "sha256": "b4da99d86616c6a80566c948d032d97a85e59ed6b182c1c2f1791615f496c781",
+      "bytes": 5929,
+      "mode": "100644",
+      "git_blob_sha": "f92c75c7caff2e0274af6f90023972403850070e",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_outline.py",
+      "baseline_sha256": "a8a6cc5f8d8e59faa7a2922213a054cba12f7532c67b766d8da89637ce49a5a6",
+      "sha256": "a8a6cc5f8d8e59faa7a2922213a054cba12f7532c67b766d8da89637ce49a5a6",
+      "bytes": 1094,
+      "mode": "100644",
+      "git_blob_sha": "d5d4bb132c412567fe69d75cb71c4c3da1d4bbfe",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_rectangle.py",
+      "baseline_sha256": "94ea927c58af43180137d2d4f5aa87a313c7f1a08f4c350d81166c34451de9f7",
+      "sha256": "94ea927c58af43180137d2d4f5aa87a313c7f1a08f4c350d81166c34451de9f7",
+      "bytes": 3785,
+      "mode": "100644",
+      "git_blob_sha": "ba7865ae583bb00930d5ffe253edf46b2519a058",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_utils.py",
+      "baseline_sha256": "bd30c07ac7c6f9c24d0ca8a5cff91b805a1d0084f37797a3a695871a3bc2a279",
+      "sha256": "bd30c07ac7c6f9c24d0ca8a5cff91b805a1d0084f37797a3a695871a3bc2a279",
+      "bytes": 7258,
+      "mode": "100644",
+      "git_blob_sha": "1b81fd23b0f8d7f4be86e6dfb3e583275e3716c5",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/generic/_viewerpref.py",
+      "baseline_sha256": "b6a5445a6bddfc359316848ca51393b25d528a338d9ef71267e8d74e8fdc8cea",
+      "sha256": "b6a5445a6bddfc359316848ca51393b25d528a338d9ef71267e8d74e8fdc8cea",
+      "bytes": 6774,
+      "mode": "100644",
+      "git_blob_sha": "04f95858be78a13e18109637e60883870c4b660f",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/pagerange.py",
+      "baseline_sha256": "d9bb76d634199bef5aab66d57f74d7b87f3fc06571edbf53e94acc1570842614",
+      "sha256": "d9bb76d634199bef5aab66d57f74d7b87f3fc06571edbf53e94acc1570842614",
+      "bytes": 7108,
+      "mode": "100644",
+      "git_blob_sha": "2ff4613f2de87f964c22edeef4028bdeb28e50d8",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/papersizes.py",
+      "baseline_sha256": "e93cf9b1f34dff724e51aa58f3753e95a928867a57600d2148440d98e54b14bf",
+      "sha256": "e93cf9b1f34dff724e51aa58f3753e95a928867a57600d2148440d98e54b14bf",
+      "bytes": 1413,
+      "mode": "100644",
+      "git_blob_sha": "ed09f341f6a27e9805f0b49430bd09d4d24d70a3",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/types.py",
+      "baseline_sha256": "b09ef01f393b111fc227b90ffacf2ef5ac459e40979c5a6bf27cdc8f50314dab",
+      "sha256": "b09ef01f393b111fc227b90ffacf2ef5ac459e40979c5a6bf27cdc8f50314dab",
+      "bytes": 1915,
+      "mode": "100644",
+      "git_blob_sha": "a1c4e495a5710812ff122f13a4580599c380f8a3",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/_vendor/pypdf/xmp.py",
+      "baseline_sha256": "00289e95b3fb680b03cb67e67b8a3d61de32ec7e0a7c46d4337494c4c97c8c8e",
+      "sha256": "00289e95b3fb680b03cb67e67b8a3d61de32ec7e0a7c46d4337494c4c97c8c8e",
+      "bytes": 30239,
+      "mode": "100644",
+      "git_blob_sha": "e6c066fb5ddcdb35131454af168c96cd855a07d0",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/authority.py",
+      "baseline_sha256": "117288d4753db6d9e449131129be92254eb5b753d488fbcceafae030c445f749",
+      "sha256": "117288d4753db6d9e449131129be92254eb5b753d488fbcceafae030c445f749",
+      "bytes": 2895,
+      "mode": "100644",
+      "git_blob_sha": "d66f2b78a1778e07b160cfa34fd6b5747733566c",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture.py",
+      "baseline_sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "sha256": "b408169db6828ac7f4e99cc896cedfbed4d4b10ad942d7854ba546a1a418ae5e",
+      "bytes": 26578,
+      "mode": "100644",
+      "git_blob_sha": "e3626f31f0fc25791828dbb99e0db0a174a2d785",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_binding.py",
+      "baseline_sha256": "587291d20e6bc6880025ff76e2e7345b04751df2ec1f1a7b9b6cdc5c76a8f502",
+      "sha256": "587291d20e6bc6880025ff76e2e7345b04751df2ec1f1a7b9b6cdc5c76a8f502",
+      "bytes": 9996,
+      "mode": "100644",
+      "git_blob_sha": "77c4a909079c3612a4cf1beb9f298a0cb83996e1",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_jobs.py",
+      "baseline_sha256": "26932b284605a6c815f59a1400445f6250c820d463dd0ca65001ab113cc5e7e1",
+      "sha256": "26932b284605a6c815f59a1400445f6250c820d463dd0ca65001ab113cc5e7e1",
+      "bytes": 6850,
+      "mode": "100644",
+      "git_blob_sha": "a80812f8d2fd3de376bc2289e7368e6b5ab36617",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/capture_store.py",
+      "baseline_sha256": "a7d51f639787b12325f098e085bbf6ed136e83894373a7f9f615d59d5ada8001",
+      "sha256": "a7d51f639787b12325f098e085bbf6ed136e83894373a7f9f615d59d5ada8001",
+      "bytes": 13540,
+      "mode": "100644",
+      "git_blob_sha": "229458c1ef6b13d1f6c9caece8b093c6e283e95c",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/loader.py",
+      "baseline_sha256": "e2290b46f9e76c24bc7eea72ccff0b86290258d536a058da121782fe1352ec04",
+      "sha256": "e2290b46f9e76c24bc7eea72ccff0b86290258d536a058da121782fe1352ec04",
+      "bytes": 2284,
+      "mode": "100644",
+      "git_blob_sha": "4d1a43d7eef7743de3fd6a5e9e6038175f2711d6",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "baseline_sha256": "a0735e72297f11a4878520c9e0273f5f7679dda81e9947cc3505dd5ae2f2629b",
+      "sha256": "4bf9df959c4ac30fae7b3ab115a282c737694f032e410bf3350112196007c469",
+      "bytes": 98665,
+      "mode": "100644",
+      "git_blob_sha": "ae4819a192d94bd00d9ed219031a0a322745b973",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/pdf_pages.py",
+      "baseline_sha256": "ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770",
+      "sha256": "ec1d4990277868e42d6d3a7ff93972e80a89e44dcfaa7c9d9f656c32ae07a770",
+      "bytes": 4182,
+      "mode": "100644",
+      "git_blob_sha": "de82761a446dc26a9443d56ef1e3f7edd287d215",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/source_bindings.py",
+      "baseline_sha256": "2679c052949400ab3a0b32424dce10fbbf5e90963ea335697f4e1b779b6a0877",
+      "sha256": "91dc2318c325a625fe2b7d01ffa6fa13addaf21281e487872e6f926d12cb3c33",
+      "bytes": 88002,
+      "mode": "100644",
+      "git_blob_sha": "33c52e409d14b1d85bd4f910bc2bb964620f17fa",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/strict_us_selection.py",
+      "baseline_sha256": "b4573159e77d27373fd433a00a4da48372d38b4a1289f95ef684034a193b4750",
+      "sha256": "4a7a9f0bd593e9ef97f16a9ae7f7bf0a2831d9bca0420b6024a491da5f907d22",
+      "bytes": 10198,
+      "mode": "100644",
+      "git_blob_sha": "020a651d2082abdca235c29538470f9b398ebac4",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/us_universe.py",
+      "baseline_sha256": "2a471f5587ded2322d7a93e0af425be86b49bdadbf9efe4a93e531428abcf403",
+      "sha256": "2a471f5587ded2322d7a93e0af425be86b49bdadbf9efe4a93e531428abcf403",
+      "bytes": 9105,
+      "mode": "100644",
+      "git_blob_sha": "ab4198e490544993576008b8c545d27476e286ed",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/inputs/validation.py",
+      "baseline_sha256": "497b4e349a9ec6f0dba2e3adb1793a10567221cb41cabffad946a5e6a5f5d1f9",
+      "sha256": "497b4e349a9ec6f0dba2e3adb1793a10567221cb41cabffad946a5e6a5f5d1f9",
+      "bytes": 2202,
+      "mode": "100644",
+      "git_blob_sha": "09ca49d21217cf24519978be7d39b5ac2ec1b597",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/jobs.py",
+      "baseline_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "bytes": 5828,
+      "mode": "100644",
+      "git_blob_sha": "de4396b85b728244f40963e52a1274b01cb338a1",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/legacy.py",
+      "baseline_sha256": "aaa8d7d767183240dd422f993ada6d05776125b95ffa1308b3fd0a37cdca3f35",
+      "sha256": "aaa8d7d767183240dd422f993ada6d05776125b95ffa1308b3fd0a37cdca3f35",
+      "bytes": 2492,
+      "mode": "100644",
+      "git_blob_sha": "9edd101658c39d7227cd49a47a0a006a50ee2c9a",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "baseline_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485",
+      "sha256": "e1e6aac6ab9b4deaec3c377f506d9cd9165e4186de68afc3024c9b0faf7a9fe7",
+      "bytes": 17330,
+      "mode": "100644",
+      "git_blob_sha": "2d7e1f27e3d151f66c7ef1d6b5935b72324f9d9f",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/service.py",
+      "baseline_sha256": "338544fc7876170e05566b5df90c31058a275fa8076f6474b80ab2bd7e19997e",
+      "sha256": "655d15cb10736a00df218524cf9b7919b93271ca55df72527800acaed8b4f0db",
+      "bytes": 36391,
+      "mode": "100644",
+      "git_blob_sha": "6c4a9b579689b1dea948c1fd4ac7aebc7010e58a",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/supervisor.py",
+      "baseline_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "bytes": 3080,
+      "mode": "100644",
+      "git_blob_sha": "51b776e7fef4b5151b278881fdd33c5a230a86fc",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/us_mapping_catalog.py",
+      "baseline_sha256": "ec327cb99e72b9dd982f1238e459b79b657697501f02ac66a598752a94245031",
+      "sha256": "ec327cb99e72b9dd982f1238e459b79b657697501f02ac66a598752a94245031",
+      "bytes": 38618,
+      "mode": "100644",
+      "git_blob_sha": "46fdd1d34146390807a427592301424cda400ccc",
+      "changed_from_remote_parent": false
+    },
+    {
+      "path": "v4/manager_workbench/us_mapping_replay.py",
+      "baseline_sha256": null,
+      "sha256": "b82518c446f3e32af4f685d010e07147fb094e9736946bcc65bff18e5ea4fe65",
+      "bytes": 21754,
+      "mode": "100644",
+      "git_blob_sha": "67cb19e137abe2fe01cb38e0c8bed47380930edb",
+      "changed_from_remote_parent": true
+    },
+    {
+      "path": "v4/manager_workbench/us_mapping_replay_metrics.py",
+      "baseline_sha256": null,
+      "sha256": "d2311f2cb149e7c406d980b175ebc1b315bbf80a59c81994e8ee0ea0c70a8a3f",
+      "bytes": 9639,
+      "mode": "100644",
+      "git_blob_sha": "2921385e7ed0e52d7bb255a0d0cdc0d3c8cb6275",
+      "changed_from_remote_parent": true
+    }
+  ],
+  "runtime_dependency_mode": "REVIEWED_COMPONENTS_OVER_PINNED_IMMUTABLE_ROLE_BASES",
+  "standalone_checkout": "CANNOT_CONFIRM;21existingAPIinternaldependencies absent, explicitly retained from immutableAPIbase",
+  "not_in_payload": [
+    "raw_market_data",
+    "saved_inputs_or_responses",
+    "logs",
+    "credentials",
+    "runtime_releases",
+    "venv",
+    "node_modules",
+    "dist",
+    "large_plans_or_backups"
+  ]
+}

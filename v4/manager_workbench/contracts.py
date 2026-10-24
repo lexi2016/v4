@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, model_serializer
 
 SCHEMA_VERSION = "v4.manager_workbench.v1"
 HK = ZoneInfo("Asia/Hong_Kong")
@@ -53,6 +53,7 @@ class JobState(str, Enum):
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
     INTERRUPTED = "INTERRUPTED"
+    USER_STOPPED = "USER_STOPPED"
 
 
 class Decision(str, Enum):
@@ -161,6 +162,84 @@ class InputBatch(StrictModel):
     gaps: list[str] = Field(default_factory=list)
 
 
+class MappingPath(StrictModel):
+    path_id: str
+    symbol: str
+    us_symbol: str | None = None
+    relation_type: str | None = None
+    role: Literal["INDIVIDUAL", "SECTOR_CONTEXT"] = "INDIVIDUAL"
+    scope: Literal["current_supported", "dated_weak", "pending", "excluded"] = "pending"
+    status: Literal["PASS", "PENDING", "REJECT"] = "PENDING"
+    direction: Literal["POSITIVE", "NEGATIVE", "UNKNOWN"] = "UNKNOWN"
+    strict_supported: bool = False
+    primary_theme: str | None = None
+    return_pct: str | None = None
+    source_session: str | None = None
+    available_at: str | None = None
+    source_refs: list[dict[str, Any]] = Field(default_factory=list)
+    evidence_ids: list[str] = Field(default_factory=list)
+    reasons: list[str] = Field(default_factory=list)
+
+
+class ResearchCandidate(StrictModel):
+    symbol: str
+    name: str | None = None
+    research_state: Literal["current_supported", "dated_weak", "pending"]
+    direction: Literal["POSITIVE", "NEGATIVE", "CONFLICT", "UNKNOWN"] = "UNKNOWN"
+    primary_path_id: str | None = None
+    paths: list[MappingPath] = Field(default_factory=list)
+    reasons: list[str] = Field(default_factory=list)
+    source_refs: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class GateDecision(StrictModel):
+    gate: str
+    state: Literal["PASS", "PENDING", "REJECT"]
+    actual: Any = None
+    threshold: Any = None
+    reasons: list[str] = Field(default_factory=list)
+    source_refs: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class StrictSelectionDecision(StrictModel):
+    symbol: str
+    state: Literal["PASS", "PENDING", "REJECT"]
+    decision: Literal["SELECTED", "QUALIFIED_NOT_SELECTED", "PENDING", "REJECTED"]
+    qualified: bool = False
+    rank: int | None = None
+    primary_path_id: str | None = None
+    primary_theme: str | None = None
+    primary_return_pct: str | None = None
+    gates: list[GateDecision] = Field(default_factory=list)
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    reasons: list[str] = Field(default_factory=list)
+    evidence_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def consistent_selection(self):
+        if self.decision in {"SELECTED", "QUALIFIED_NOT_SELECTED"} and (
+                self.state != "PASS" or not self.qualified or not self.gates
+                or any(g.state != "PASS" for g in self.gates)):
+            raise ValueError("STRICT_SELECTION_REQUIRES_ALL_GATES_PASS")
+        return self
+
+
+class MappingSelectionSummary(StrictModel):
+    schema_version: Literal["v4.us_hk.selection.v1"] = "v4.us_hk.selection.v1"
+    policy_version: str
+    policy_sha256: str
+    engine_identity: str
+    target_date: str
+    source_session: str | None = None
+    price_session: str | None = None
+    cutoff: str
+    candidates: list[ResearchCandidate] = Field(default_factory=list)
+    strict_decisions: list[StrictSelectionDecision] = Field(default_factory=list)
+    counts: dict[str, int] = Field(default_factory=dict)
+    evaluation_complete: bool = False
+    gaps: list[str] = Field(default_factory=list)
+
+
 class LaneResult(StrictModel):
     lane: Lane
     state: LaneState
@@ -171,6 +250,14 @@ class LaneResult(StrictModel):
     run_id: str
     evidence_refs: list[EvidenceRef] = Field(default_factory=list)
     gaps: list[str] = Field(default_factory=list)
+    selection: MappingSelectionSummary | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_legacy_compatible(self, handler):
+        value = handler(self)
+        if self.selection is None:
+            value.pop("selection", None)
+        return value
 
 
 class StockDecision(StrictModel):
@@ -314,6 +401,7 @@ def schema() -> dict[str, Any]:
     definitions = {model.__name__: model.model_json_schema() for model in (
         RunContext, EvidenceRef, Coverage, InputBatch, LaneResult,
         StockDecision, Counts, PlanSnapshot, JobRecord, ReviewSummary,
+        MappingPath, ResearchCandidate, GateDecision, StrictSelectionDecision, MappingSelectionSummary,
     )}
     return {"schema_version": SCHEMA_VERSION, "models": definitions}
 

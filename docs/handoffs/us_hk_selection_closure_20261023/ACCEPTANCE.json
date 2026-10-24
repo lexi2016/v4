@@ -1,0 +1,137 @@
+{
+  "schema": "v4.us_hk.acceptance.v1",
+  "as_of": "2026-10-24T03:56:11.945488+00:00",
+  "overall": "IN_PROGRESS_LOCAL_RELEASE_AND_NATURAL_UNVERIFIED",
+  "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
+  "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
+  "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
+  "policy_sha256": "7a53dafb8e3cdc4bb04b89a49e9ebda02790771992424479071e3fb5c7784931",
+  "preopen_function_digests": {
+    "source_utf8_rstrip": "9dfac2da512fbd5d291af2d13eb52ddb19ea826f3c2f0a7b4d084e27622d6871",
+    "replay_ast_canonical_json_newline": "b585e954bbb6a8c2e68934a677f713d301136e28c08a63f79540e51b66174a5c",
+    "same_imported_function": true,
+    "methods_not_interchangeable": true
+  },
+  "reviews": [
+    {
+      "component": "baseline",
+      "independent_reviewer": "baseline_reviewer",
+      "state": "PASS_EXACT_ARCHIVE_IDENTITY_ONLY",
+      "transcription_or_report": "task-0-review.md",
+      "sha256": "2d6c256328f1d02fb0874caae847d6ebe8a4fa035e9776fa8428dc3480aea888",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "runtime_dependencies",
+      "independent_reviewer": "runtime_dependency_reviewer",
+      "state": "PASS_SEVEN_BYTES_ONLY",
+      "transcription_or_report": "task-0-runtime-deps-review.md",
+      "sha256": "3537ad39510cd90ac9c1d308e660e511d915851fedd441bad65a55d6528f272e",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "panel",
+      "independent_reviewer": "panel_delta_reviewer",
+      "state": "PASS_ENGINEERING_NUMERIC_AND_READINESS_REJECTION",
+      "transcription_or_report": "task-1-delta-review.md",
+      "sha256": "100765dbc9fc092afc494459249b59ecd78f7e8e014f5b31b8b3b59d46b15acc",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "capture",
+      "independent_reviewer": "panel_delta_reviewer",
+      "state": "PASS_FROZEN_CAPTURE_SCOPE",
+      "transcription_or_report": "task-1b-repair1-review.md",
+      "sha256": "7be45b77550f170c4d32a88b8e516acdb5033253c8ea24862ad3bca90906d90e",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "backend",
+      "independent_reviewer": "backend_reviewer",
+      "state": "PASS_ORIGINAL_FIVE_ALL_ADDRESSED",
+      "transcription_or_report": "task-2-4-backend-r2-review.md",
+      "sha256": "2ceba7a96a2ec779dc0a08679f412c3a9e14e63c18cbea8d79b06b8a22391469",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "frontend",
+      "independent_reviewer": "frontend_reviewer",
+      "state": "PASS_FROZEN_COMPONENT_RESPONSE_SCOPE",
+      "transcription_or_report": "task-4-repair2-review.md",
+      "sha256": "46fd5760fecf4e0bc3845633155a49b18dcc5b763eccedabb576166c3805aa65",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    },
+    {
+      "component": "replay",
+      "independent_reviewer": "replay_reviewer",
+      "state": "PASS_OFFLINE_REPLAY_REPORTING_ONLY",
+      "transcription_or_report": "task-5-review.md",
+      "sha256": "65d6985642987c2aa737e03bdb7257210d8504727e395792543d3b997648116b",
+      "origin": "independent final; controller transcription unless independent role wrote report"
+    }
+  ],
+  "panel": {
+    "input_dispositions": 1479081,
+    "candidate_rows": 1037084,
+    "codes": 719,
+    "candidate_manifest_sha256": "8c9294e05edb29fdcb71ab88ae7b5a20bc0b23050614be2a2de1362fa80c35f5",
+    "candidate_active": false,
+    "real_strict_field_readiness": "PENDING",
+    "source_originals_preserved": true
+  },
+  "named22": {
+    "candidates": 670,
+    "strict_selected": 0,
+    "strict_rejected": 397,
+    "strict_pending": 273,
+    "evaluation_complete": false,
+    "original_saved_benefit_count": 5,
+    "original_snapshot_unchanged": true
+  },
+  "historical": {
+    "final_freeze": "c0ccd2145ba27b4c3eeb78de027585ab099007f1ee4190f554155701c16ff698",
+    "aggregate101_sha256": "2371276a4efa96537a0937607e7f43762106a01111f1dcc9f7eaca960941a4ec",
+    "engineering_success": 87,
+    "direct": 85,
+    "source_linked_preopen": 2,
+    "missing_inputs_inherited_immutable": 14,
+    "runtime_failure": 0,
+    "covered_sessions": 8,
+    "required_sessions": 60,
+    "missing_sessions": 52,
+    "candidate_versions": 36771,
+    "nonidentity_changed_runs": 63,
+    "changed_stock_versions": 12643,
+    "pit_evaluable_dates": 0,
+    "labels_read": 0,
+    "effect_status": "NOT_EVALUABLE",
+    "actual_returns": "ALL_NA",
+    "cash_zero_days": 0,
+    "sealed_dates": [],
+    "independent_focused_tests": 30,
+    "independent_real_cases_twice": 3
+  },
+  "runtime": {
+    "helpers": "INDEPENDENT_FAIL_UNDER_REPAIR_P1_ADMISSION_RACE_P2_PRECHECK_ORDER",
+    "candidate": "NOT_PREPARED",
+    "deployment": "NOT_RUN",
+    "api": "ISOLATED_TESTCLIENT_ONLY_LIVE_NOT_RUN",
+    "ui": "COMPONENT_RESPONSE_PASS_LOADED_BROWSER_NOT_RUN",
+    "natural_cycles_completed": 0,
+    "natural_cycles_required": 2
+  },
+  "material_gaps": [
+    "price_currency_and_amount_unit_authority",
+    "historically_effective_corporate_actions_and_adjustment",
+    "effective_dated_HK_CONNECT_FULL_MARKET_membership",
+    "target_listing_and_suspension_evidence",
+    "52sessions_without_saved_replay_input",
+    "discarded_historical_provider_frames_unrecoverable"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

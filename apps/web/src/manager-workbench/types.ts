@@ -6,7 +6,7 @@ export type RecommendationLane = 'US_MAPPING' | 'OVERSOLD';
 export type Phase = "PREOPEN" | "INTRADAY" | "NEXT_DAY" | "RETROSPECTIVE" | "MANUAL";
 export type Decision = "SELECTED" | "CONDITIONAL_WATCH" | "UNASSESSED" | "NOT_SELECTED" | "OBSERVATION_ONLY";
 export type LaneState = "NOT_RUN" | "RUNNING" | "READY" | "READY_EMPTY" | "PARTIAL" | "INPUT_MISSING" | "FAILED" | "NOT_APPLICABLE";
-export type JobState = "QUEUED" | "RUNNING" | "SUCCEEDED" | "PARTIAL" | "FAILED" | "CANCELLED" | "INTERRUPTED";
+export type JobState = "QUEUED" | "RUNNING" | "SUCCEEDED" | "PARTIAL" | "FAILED" | "CANCELLED" | "INTERRUPTED" | "STOP_REQUESTED" | "USER_STOPPED";
 export type EvidenceStatus = "VERIFIED" | "CANNOT_CONFIRM" | "INVALID";
 
 export type Gap = string | { code?: string; message?: string; owner?: string; [key: string]: unknown };
@@ -22,17 +22,6 @@ export interface Envelope<T> extends SafetyFlags {
   state: string;
   data: T | null;
   gaps: Gap[] | null;
-}
-/** Read-only catalog returned by the shared /api/v1/runs/date-list endpoint. */
-export interface SavedDateCatalog {
-  dates?: unknown;
-  future_target_dates?: unknown;
-  stage_dates?: unknown;
-  review_dates?: unknown;
-  research_dates?: unknown;
-  hk_observation_only_dates?: unknown;
-  navigation_date?: unknown;
-  default_date?: unknown;
 }
 export interface Coverage {
   scope_count: NullableCount;
@@ -89,6 +78,9 @@ export interface StockDecision {
   invalidation_conditions: string[];
   risks: string[];
   evidence_ids: string[];
+  row_id?: string | null;
+  recommendation_lane?: RecommendationLane | null;
+  display_only?: boolean;
   membership_status?: string | null;
   available_at?: string | null;
   changed?: string | null;
@@ -157,10 +149,15 @@ export interface SingleDayMappingPath {
   research_basis?: string | null;
   relation_limitations?: string[];
   relation_source_refs?: unknown[];
+  source_sha256?: string | null;
+  source_session?: string | null;
 }
 export interface SingleDayMappingRow {
   symbol: string;
   name?: string | null;
+  row_id?: string | null;
+  recommendation_lane?: RecommendationLane | null;
+  display_only?: boolean;
   in_monthly_pool: true;
   decision: "BENEFIT" | "RISK" | "CONFLICT" | "OBSERVATION" | "UNMAPPED" | "UNASSESSED";
   mapping_grade?: "A" | "B" | "C" | null;
@@ -197,8 +194,8 @@ export interface SingleDayMappingSummary extends SafetyFlags {
   };
   rows: SingleDayMappingRow[];
   outside_pool_observations: Record<string, unknown>[];
-  benefit_rows: string[];
-  risk_rows: string[];
+  benefit_rows: SingleDayMappingRow[] | string[];
+  risk_rows: SingleDayMappingRow[] | string[];
   conflict_rows: string[];
   observation_rows: string[];
   unmapped_rows: string[];
@@ -310,6 +307,124 @@ export interface PlanVersion {
   origin?: "NEW" | "LEGACY";
   [key: string]: unknown;
 }
+export interface USMappingSelectionIdentity {
+  schema_version: "v4.us_hk.selection.v1";
+  policy_sha256: string;
+  engine_identity: string;
+}
+export interface USMappingSelectionSnapshot {
+  run_id: string;
+  target_date: string;
+  phase: Phase;
+  product_sha256?: string | null;
+  cutoff: string | null;
+  source_sessions?: Record<string, string | null>;
+}
+export interface USMappingSelectionCounts {
+  candidate_count: NullableCount;
+  current_supported: NullableCount;
+  dated_weak: NullableCount;
+  pending_research: NullableCount;
+  selected: NullableCount;
+  qualified_not_selected: NullableCount;
+  rejected: NullableCount;
+  pending: NullableCount;
+}
+export interface USMappingCompactGate {
+  gate: string;
+  state: "PASS" | "PENDING" | "REJECT";
+  reasons: string[];
+}
+export interface USMappingCompactStock {
+  symbol: string;
+  name: string | null;
+  research_state: "current_supported" | "dated_weak" | "pending";
+  direction: "POSITIVE" | "NEGATIVE" | "CONFLICT" | "UNKNOWN";
+  primary_path_id: string | null;
+  strict_state: "PASS" | "PENDING" | "REJECT";
+  decision: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED";
+  qualified: boolean;
+  rank: number | null;
+  reasons: string[];
+  gates: USMappingCompactGate[];
+  path_count: number;
+  source_refs: Record<string, unknown>[];
+}
+export interface USMappingSelectionView {
+  selection_identity: USMappingSelectionIdentity;
+  lane_sources?: Record<string, unknown>;
+  counts: USMappingSelectionCounts;
+  pagination: { total: number; offset: number; limit: number };
+  stocks: USMappingCompactStock[];
+}
+export interface USMappingMappingPath {
+  path_id: string;
+  symbol: string;
+  us_symbol: string | null;
+  relation_type: string | null;
+  role: "INDIVIDUAL" | "SECTOR_CONTEXT";
+  scope: "current_supported" | "dated_weak" | "pending" | "excluded";
+  status: "PASS" | "PENDING" | "REJECT";
+  direction: "POSITIVE" | "NEGATIVE" | "UNKNOWN";
+  strict_supported: boolean;
+  primary_theme: string | null;
+  return_pct: string | null;
+  source_session: string | null;
+  available_at: string | null;
+  source_refs: Record<string, unknown>[];
+  evidence_ids: string[];
+  reasons: string[];
+}
+export interface USMappingResearchCandidate {
+  symbol: string;
+  name: string | null;
+  research_state: "current_supported" | "dated_weak" | "pending";
+  direction: "POSITIVE" | "NEGATIVE" | "CONFLICT" | "UNKNOWN";
+  primary_path_id: string | null;
+  paths: USMappingMappingPath[];
+  reasons: string[];
+  source_refs: Record<string, unknown>[];
+}
+export interface USMappingGateDecision {
+  gate: string;
+  state: "PASS" | "PENDING" | "REJECT";
+  actual: unknown;
+  threshold: unknown;
+  reasons: string[];
+  source_refs: Record<string, unknown>[];
+}
+export interface USMappingStrictDecision {
+  symbol: string;
+  state: "PASS" | "PENDING" | "REJECT";
+  decision: "SELECTED" | "QUALIFIED_NOT_SELECTED" | "PENDING" | "REJECTED";
+  qualified: boolean;
+  rank: number | null;
+  primary_path_id: string | null;
+  primary_theme: string | null;
+  primary_return_pct: string | null;
+  gates: USMappingGateDecision[];
+  metrics: Record<string, unknown>;
+  reasons: string[];
+  evidence_ids: string[];
+}
+export interface USMappingDiagnosticStock {
+  symbol: string;
+  candidate: USMappingResearchCandidate;
+  strict: USMappingStrictDecision;
+  relationships: USMappingMappingPath[];
+  relationship_pagination: { total: number; offset: number; limit: number };
+}
+export interface USMappingDiagnosticsData {
+  snapshot: USMappingSelectionSnapshot | PlanMetadata;
+  selection_identity: USMappingSelectionIdentity | null;
+  counts: USMappingSelectionCounts | DecisionCounts | null;
+  pagination: { total: number; offset: number; limit: number };
+  stocks: USMappingDiagnosticStock[];
+  versions?: PlanVersion[];
+  lane_sources?: Record<string, unknown>;
+  legacy?: boolean;
+  gaps?: Gap[] | null;
+}
 export interface USMappingRunContract {
   schema_version?: string;
   state?: string;
@@ -388,16 +503,19 @@ export interface DayData {
   counts: DecisionCounts | null;
   pagination: { total: number; offset: number; limit: number };
   versions?: PlanVersion[];
+  us_mapping_selection?: USMappingSelectionView;
+  us_mapping_legacy?: boolean;
   gaps?: Gap[] | null;
   us_mapping_summary?: {
-    display_only: true; plan_run_id: string; source_symbol_count: number; source_row_count: number;
-    relation_row_count: number; mapped_hk_count: number; source_decision_counts: Record<string, number>;
-    mixed_source_count: number; coverage: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
-    factor_summary?: USFactorSummary | null;
+    display_only: true; plan_run_id?: string; source_symbol_count?: number; source_row_count?: number;
+    relation_row_count?: number; mapped_hk_count?: number; source_decision_counts?: Record<string, number>;
+    mixed_source_count?: number; coverage?: Coverage; groups: { us_symbol: string; decisions: string[]; rows: Record<string, unknown>[] }[];
+    factor_summary?: Partial<USFactorSummary> | null;
     catalog_summary?: { state?: string | null; stock_count?: number | null; relation_count?: number | null;
       consumed_relation_count?: number | null; displayed_relation_count?: number | null };
     run_contract?: USMappingRunContract | null;
     directional_proxy_lists?: HKDirectionalProxyLists | null;
+    gaps?: string[];
   } | null;
 }
 export interface StockLaneDetail {
@@ -603,8 +721,67 @@ export interface AnnouncementJobStatus {
   result_state?: string;
   counts?: AnnouncementCounts;
 }
+export interface AnnouncementPreprocessing {
+  schema: string;
+  job_id: string;
+  target_date: string;
+  accounting_closed: boolean;
+  source?: string;
+  cutoff?: string;
+  counts: {
+    raw_rows: number; exact_duplicates: number; unique_articles: number;
+    primary_dispositions: Record<string, number>; model_required_articles: number;
+    model_ordinary_articles: number; model_long_articles: number; reader_parts: number;
+    syntheses: number; expected_model_requests: number; bounded_articles: number;
+    bounded_model_requests: number; deferred_model_articles: number; workload_unknown_articles: number;
+  };
+  rules_explanation: string[];
+  first_article_id: string | null;
+  execution_manifest: { article_id: string; body_sha256?: string }[];
+}
+export interface AnnouncementSemanticRecovery {
+  status: string; eligible: boolean; job_id: string; target_date?: string; report_sha256?: string;
+  extension_sha256?: string; delivery_sha256?: string; phase?: "RECOVER_FAILED" | "CONTINUE_REMAINING" | null;
+  total_articles?: number; remaining_articles?: number; failed_article_id?: string; checkpoint_state?: string | null; reason?: string;
+}
+export interface AnnouncementDelivery {
+  job_id: string;
+  target_trade_date: string;
+  preprocessing_report_sha256: string;
+  state: string;
+  articles: { article_id: string; source_sha256?: string; body_sha256?: string; title?: string; state: string;
+    disposition?: string; reason?: string; queue_reason?: string; failure_code?: string;
+    parts_complete?: number; parts_total?: number; source_coverage?: string }[];
+  counts: Record<string, number>;
+  execution_extension_sha256?: string;
+  model_progress?: { total: number; counts: Record<string, number>; current_article_id?: string | null };
+}
+export interface AnnouncementReaderEvidence {
+  claim: string; quote: string; locator: string;
+  [field: string]: unknown;
+}
+export interface AnnouncementSavedReader {
+  disposition: string; direction: string; selection_basis: string;
+  evidence_sufficiency: string; reason: string;
+  facts: AnnouncementReaderEvidence[]; changes: AnnouncementReaderEvidence[];
+  impact: AnnouncementReaderEvidence[]; confirmation_conditions: AnnouncementReaderEvidence[];
+  counter_evidence: AnnouncementReaderEvidence[]; risk_notes: string[];
+  source_sha256: string; body_sha256: string;
+}
+export interface AnnouncementAnalysisProjection {
+  schema: string; delivery_sha256: string;
+  articles: { article_id: string; source_sha256: string; body_sha256: string;
+    result_sha256: string; analysis_state: "AVAILABLE" | "UNAVAILABLE";
+    reader_output?: AnnouncementSavedReader; failure_code?: string }[];
+}
 export interface AnnouncementFlashData extends SafetyFlags {
   state: string;
+  semantic_recovery?: AnnouncementSemanticRecovery;
+  preprocessing?: AnnouncementPreprocessing;
+  preprocessing_binding?: { sha256: string };
+  daily_delivery?: AnnouncementDelivery;
+  daily_delivery_binding?: { job_id?: string; sha256: string };
+  daily_analysis?: AnnouncementAnalysisProjection;
   source_date: string;
   target_trade_date: string;
   updated_at?: string | null;
@@ -850,7 +1027,8 @@ export const LANE_STATE_LABELS: Record<LaneState, string> = {
 };
 export const JOB_STATE_LABELS: Record<JobState, string> = {
   QUEUED: "排队中", RUNNING: "运行中", SUCCEEDED: "已完成", PARTIAL: "部分完成",
-  FAILED: "失败", CANCELLED: "已取消", INTERRUPTED: "已中断"
+  FAILED: "失败", CANCELLED: "已取消", INTERRUPTED: "已中断",
+  STOP_REQUESTED: "停止中", USER_STOPPED: "用户已停止"
 };
 export const PHASE_LABELS: Record<Phase, string> = {
   PREOPEN: "09:25 盘前", INTRADAY: "盘中阶段", NEXT_DAY: "16:30 次日草案",

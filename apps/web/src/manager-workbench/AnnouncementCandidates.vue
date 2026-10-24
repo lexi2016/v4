@@ -47,6 +47,11 @@ const stocks = computed(() => {
 });
 const activeJob = computed(() => data.value?.job || null);
 const resumeEligibility = computed(() => data.value?.resume || null);
+const isTransportRecovery = computed(() => {
+  const eligibility = resumeEligibility.value as
+    (AnnouncementFlashResumeEligibility & { transport_recovery?: unknown }) | null;
+  return Boolean(eligibility?.transport_recovery);
+});
 const canResume = computed(() => Boolean(resumeEligibility.value?.eligible
   && resumeEligibility.value.target_date && resumeEligibility.value.source_job_id
   && resumeEligibility.value.source_input_sha256 && resumeEligibility.value.source_progress_sha256
@@ -58,7 +63,88 @@ const canResumeContinue = computed(() => canResume.value
   && resumeEligibility.value?.canary_passed === true
   && resumeEligibility.value?.canary_validation?.status === "PASS");
 const membership = computed(() => data.value?.membership || null);
-const isActive = computed(() => activeJob.value?.state === "QUEUED" || activeJob.value?.state === "RUNNING");
+const isActive = computed(() => ["QUEUED", "RUNNING", "STOP_REQUESTED"].includes(activeJob.value?.state || ""));
+const preprocessing = computed(() => data.value?.preprocessing || null);
+const delivery = computed(() => data.value?.daily_delivery || null);
+const evidenceSections = [
+  ["facts", "事实"], ["changes", "变化"], ["impact", "影响"],
+  ["confirmation_conditions", "确认条件"], ["counter_evidence", "反面证据"],
+] as const;
+const deliveryRows = computed(() => {
+  const projection = data.value?.daily_analysis;
+  const bound = projection?.delivery_sha256 === data.value?.daily_delivery_binding?.sha256;
+  return (delivery.value?.articles || []).map(article => {
+    const analysis = bound ? projection?.articles.find(item => item.article_id === article.article_id
+      && item.body_sha256 === article.body_sha256 && item.source_sha256 === article.source_sha256) : undefined;
+    return { ...article, analysis, evidenceSections: analysis?.reader_output
+      ? evidenceSections.map(([field, label]) => ({ field, label, items: analysis.reader_output![field] })) : [] };
+  });
+});
+function evidenceValue(value: unknown): string {
+  return typeof value === "string" ? value : JSON.stringify(value);
+}
+const preparedJob = computed(() => {
+  const job = activeJob.value, report = preprocessing.value;
+  return job && /^[0-9a-f]{32}$/.test(job.job_id) && report?.job_id === job.job_id
+    && report.target_date === job.target_date && report.accounting_closed === true
+    && /^[0-9a-f]{64}$/.test(data.value?.preprocessing_binding?.sha256 || "")
+    && report.first_article_id && report.execution_manifest[0]?.article_id === report.first_article_id
+    && /^[0-9a-f]{64}$/.test(report.execution_manifest[0]?.body_sha256 || "") ? job : null;
+});
+const identifiedDelivery = computed(() => {
+  const saved = delivery.value, binding = data.value?.daily_delivery_binding;
+  return saved && /^[0-9a-f]{32}$/.test(saved.job_id) && binding?.job_id === saved.job_id
+    && /^[0-9a-f]{64}$/.test(binding.sha256) ? saved : null;
+});
+const currentDelivery = computed(() => identifiedDelivery.value?.job_id === preparedJob.value?.job_id
+  && identifiedDelivery.value?.target_trade_date === preparedJob.value?.target_date
+  && identifiedDelivery.value?.preprocessing_report_sha256 === data.value?.preprocessing_binding?.sha256
+  ? identifiedDelivery.value : null);
+const firstComplete = computed(() => currentDelivery.value?.articles.some(article =>
+  article.article_id === preprocessing.value?.first_article_id
+  && article.body_sha256 === preprocessing.value?.execution_manifest[0]?.body_sha256 && article.state === "SUCCEEDED") || false);
+const canExecuteFirst = computed(() => !isActive.value && preparedJob.value?.state === "PARTIAL"
+  && (!delivery.value || Boolean(identifiedDelivery.value && identifiedDelivery.value.job_id !== preparedJob.value.job_id)));
+const canExecuteRemaining = computed(() => !data.value?.semantic_recovery?.extension_sha256 && !isActive.value && preparedJob.value?.state === "PARTIAL"
+  && firstComplete.value && currentDelivery.value?.articles.some(article => ["PENDING", "DEFERRED"].includes(article.state)
+    && preprocessing.value?.execution_manifest.some(entry => entry.article_id === article.article_id && entry.body_sha256 === article.body_sha256)));
+const semanticRecovery = computed(() => {
+  const recovery = data.value?.semantic_recovery;
+  return recovery?.eligible && !isActive.value && preparedJob.value?.state === "PARTIAL"
+    && recovery.job_id === preparedJob.value.job_id && recovery.target_date === props.targetDate
+    && recovery.report_sha256 === data.value?.preprocessing_binding?.sha256
+    && recovery.delivery_sha256 === data.value?.daily_delivery_binding?.sha256
+    && /^[0-9a-f]{64}$/.test(recovery.extension_sha256 || "")
+    && recovery.total_articles === preprocessing.value?.counts.model_required_articles
+    && ["RECOVER_FAILED", "CONTINUE_REMAINING"].includes(recovery.phase || "") ? recovery : null;
+});
+async function executeRecovery(): Promise<void> {
+  const recovery = semanticRecovery.value;
+  if (!recovery?.phase || !recovery.report_sha256 || starting.value) return;
+  starting.value = true; error.value = "";
+  try {
+    await api.executePreprocessedAnnouncement(recovery.job_id, recovery.report_sha256, recovery.phase,
+      recovery.delivery_sha256, recovery.extension_sha256);
+    await load(true);
+  } catch (caught) { error.value = readableError(caught); }
+  finally { starting.value = false; }
+}
+async function stopUpdate(): Promise<void> {
+  if (!activeJob.value) return;
+  try { await api.stopAnnouncementFlash(activeJob.value.job_id); await load(true); }
+  catch (caught) { error.value = readableError(caught); }
+}
+async function executePrepared(phase: "FIRST" | "CONTINUE"): Promise<void> {
+  if (!preparedJob.value || !data.value?.preprocessing_binding || starting.value
+    || !(phase === "FIRST" ? canExecuteFirst.value : canExecuteRemaining.value)) return;
+  starting.value = true;
+  try {
+    await api.executePreprocessedAnnouncement(preparedJob.value.job_id, data.value.preprocessing_binding.sha256,
+      phase, phase === "CONTINUE" ? data.value.daily_delivery_binding?.sha256 : undefined);
+    await load(true);
+  } catch (caught) { error.value = readableError(caught); }
+  finally { starting.value = false; }
+}
 const queueCounts = computed(() => activeJob.value?.progress?.queue_counts || {});
 const historicalOutcomes = computed(() => {
   const value = data.value?.incremental?.provenance?.historical_outcomes;
@@ -140,7 +226,7 @@ async function startUpdate(): Promise<void> {
     if (!result.data?.job_id || result.data.requested_target_date !== props.targetDate) {
       throw new ApiError("增量任务返回的目标日期或任务编号不一致", 502);
     }
-    acceptedMessage.value = `已提交公告增量任务 ${result.data.job_id}，目标日 ${result.data.target_date}。`;
+    acceptedMessage.value = `已提交公告预处理任务 ${result.data.job_id}，目标日 ${result.data.target_date}；完成后展示报告，模型尚未调用。`;
     mode.value = "latest";
     historyTargetDate.value = null;
     await load(true);
@@ -183,9 +269,20 @@ function timeText(value?: string | null): string {
 function countText(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? String(value) : "未知";
 }
+function articleStateText(value: string): string {
+  return ({ SUCCEEDED: "完整分析已保存", FAILED: "分析失败", PENDING: "待处理", DEFERRED: "延期处理",
+    OUTSIDE_WINDOW: "超出来源窗口", MEMBERSHIP_OUT: "范围外", MEMBERSHIP_UNKNOWN: "资格待核实",
+    HISTORY_SUCCESS_REUSED: "历史成功复用", HISTORY_RULE_REUSED: "历史规则结果复用",
+    OTHER_HISTORY_PRESERVED: "其他历史处理保留", RULE_ARCHIVED: "程序性归档", STRUCTURED_EXTRACTED: "结构化事实提取",
+    SOURCE_GAP: "资料待补证", PREPARATION_PENDING: "预处理待补证", USER_STOPPED_EXCLUDED: "本次停止范围排除",
+    EXACT_DUPLICATE: "精确重复", MODEL_ORDINARY: "应模型分析：普通", MODEL_LONG: "应模型分析：长文",
+    SELECTED_EVENT: "正面经营事件候选", SELECTED_PERFORMANCE: "正面业绩研究候选",
+    NOT_SELECTED: "未入选", NOT_ASSESSED: "未评估", CONDITIONAL_WATCH: "条件观察"
+  } as Record<string, string>)[value] || value;
+}
 function jobStateText(value?: string | null): string {
   return ({ QUEUED: "排队中", RUNNING: "运行中", SUCCEEDED: "完成", PARTIAL: "部分完成",
-    FAILED: "失败", CANCELLED: "已取消", INTERRUPTED: "中断" } as Record<string, string>)[value || ""] || "未运行";
+    FAILED: "失败", CANCELLED: "已取消", INTERRUPTED: "中断", STOP_REQUESTED: "停止中（等待在途结果保存）", USER_STOPPED: "用户已停止" } as Record<string, string>)[value || ""] || "未运行";
 }
 function membershipText(value?: string | null): string {
   return ({ VERIFIED: "权威已核验", CANNOT_CONFIRM: "资格无法确认", IN: "港股通范围内",
@@ -260,20 +357,32 @@ onBeforeUnmount(() => {
         <p>固定结果按公告来源日展示；目标港股日是独立输入，不能由公告发布日期推定。</p>
       </div>
       <button type="button" :disabled="starting || isActive" @click="startUpdate">
-        {{ starting ? "正在提交…" : isActive ? "增量任务运行中" : "采集新增公告并增量选股" }}
+        {{ starting ? "正在提交…" : isActive ? "增量任务运行中" : "检查新增公告并预处理" }}
       </button>
       <button v-if="canResumeCanary" type="button" :disabled="startingResume || isActive" @click="resumeUpdate('CANARY')">
-        {{ startingResume ? "正在提交…" : isActive ? "公告任务运行中" : "运行失败分块 canary（1 个模型请求）" }}
+        {{ startingResume ? "正在提交…" : isActive ? "公告任务运行中"
+          : isTransportRecovery ? "运行失败公告任务 canary（1 个模型请求）" : "运行失败分块 canary（1 个模型请求）" }}
       </button>
       <button v-if="canResumeContinue" type="button" :disabled="startingResume || isActive" @click="resumeUpdate('CONTINUE')">
-        {{ startingResume ? "正在提交…" : isActive ? "公告任务运行中" : "继续其余失败和待处理分块" }}
+        {{ startingResume ? "正在提交…" : isActive ? "公告任务运行中"
+          : isTransportRecovery ? "继续原队列待处理公告任务" : "继续其余失败和待处理分块" }}
       </button>
       <p v-if="canResume" class="mwb-resume-eligibility">
         <template v-if="resumeEligibility?.resume_action === 'CANARY'">
-          首次续跑仅验证一个固定字段失败分块；成功并通过保存结果复核后，才开放继续入口。
+          <template v-if="isTransportRecovery">
+            首次续跑仅验证一个绑定到原失败任务的公告任务；成功并通过保存结果复核后，才开放继续入口。
+          </template>
+          <template v-else>
+            首次续跑仅验证一个固定字段失败分块；成功并通过保存结果复核后，才开放继续入口。
+          </template>
         </template>
         <template v-else-if="canResumeContinue">
-          单个失败分块 canary 已保存并复核通过；继续操作将处理其余合格失败、待处理和可恢复中断分块。
+          <template v-if="isTransportRecovery">
+            失败公告任务 canary 已保存并复核通过；继续操作仅处理原队列待处理公告任务，保留已成功和其他失败记录。
+          </template>
+          <template v-else>
+            单个失败分块 canary 已保存并复核通过；继续操作将处理其余合格失败、待处理和可恢复中断分块。
+          </template>
         </template>
         <template v-else>
           canary 未通过或验收信息不完整，续跑已停止。
@@ -293,6 +402,81 @@ onBeforeUnmount(() => {
     <p v-if="loading" class="mwb-muted" role="status">正在读取公告选股状态…</p>
 
     <template v-if="data">
+      <section v-if="preprocessing" class="mwb-announcement-job" aria-label="预处理完成报告">
+        <h3>预处理完成 · 模型调用前报告</h3>
+        <p>来源 {{ preprocessing.source }}；本地截止 {{ timeText(preprocessing.cutoff) }}。</p>
+        <p>原始 {{ preprocessing.counts.raw_rows }} 条，精确重复 {{ preprocessing.counts.exact_duplicates }} 条，去重后 {{ preprocessing.counts.unique_articles }} 篇。</p>
+        <p>应进入模型 {{ preprocessing.counts.model_required_articles }} 篇：普通 {{ preprocessing.counts.model_ordinary_articles }} 篇，长文 {{ preprocessing.counts.model_long_articles }} 篇；预计 {{ preprocessing.counts.reader_parts }} 个分块、{{ preprocessing.counts.syntheses }} 次综合，共 {{ preprocessing.counts.expected_model_requests }} 次请求。</p>
+        <p>本次新增测试子集 {{ preprocessing.counts.bounded_articles }} 篇／最多 {{ preprocessing.counts.bounded_model_requests }} 次请求；延期 {{ preprocessing.counts.deferred_model_articles }} 篇，工作量待补证 {{ preprocessing.counts.workload_unknown_articles }} 篇。</p>
+        <dl><template v-for="(count, disposition) in preprocessing.counts.primary_dispositions" :key="disposition">
+          <dt>{{ articleStateText(String(disposition)) }}</dt><dd>{{ count }}</dd>
+        </template></dl>
+        <ul><li v-for="rule in preprocessing.rules_explanation" :key="rule">{{ rule }}</li></ul>
+        <p v-if="delivery?.execution_extension_sha256">已扩展为分析本次全部 {{ preprocessing.counts.model_required_articles }} 篇符合资格公告；复用已完成结果。</p>
+        <button v-if="semanticRecovery?.phase === 'RECOVER_FAILED'" type="button" :disabled="starting" @click="executeRecovery">恢复失败公告</button>
+        <button v-if="semanticRecovery?.phase === 'CONTINUE_REMAINING'" type="button" :disabled="starting" @click="executeRecovery">继续分析剩余公告</button>
+        <p v-if="semanticRecovery">本批 {{ semanticRecovery.total_articles }} 篇，剩余待分析 {{ semanticRecovery.remaining_articles }} 篇；成功公告不重跑。</p>
+        <button v-if="canExecuteFirst" type="button" :disabled="starting" @click="executePrepared('FIRST')">运行首篇新增公告</button>
+        <button v-if="canExecuteRemaining" type="button" :disabled="starting" @click="executePrepared('CONTINUE')">首篇已核验，继续其余未尝试部分</button>
+      </section>
+      <section v-if="delivery" class="mwb-announcement-job" aria-label="逐篇交付与未完成">
+        <h3>逐篇完整结果与未完成清单</h3>
+        <p v-if="delivery.model_progress">共 {{ delivery.model_progress.total }} 篇，完成 {{ delivery.model_progress.counts.SUCCEEDED || 0 }}，失败 {{ delivery.model_progress.counts.FAILED || 0 }}，待分析 {{ (delivery.model_progress.counts.PENDING || 0) + (delivery.model_progress.counts.DEFERRED || 0) }}<span v-if="delivery.model_progress.current_article_id">；当前 {{ delivery.model_progress.current_article_id }}</span></p>
+        <p>分块仅作为证据；正文完整且综合通过后才显示文章终态和候选。</p>
+        <ul><li v-for="article in deliveryRows" :key="article.article_id + ':' + article.body_sha256">
+          <strong>{{ article.title || article.article_id }}</strong>：{{ articleStateText(article.state) }}
+          <span v-if="article.disposition"> · {{ articleStateText(article.disposition) }}</span>
+          <span v-if="article.parts_total != null">（证据分块 {{ article.parts_complete }}/{{ article.parts_total }}）</span>
+          <span v-if="article.reason"> — {{ article.reason }}</span>
+          <span v-else-if="article.queue_reason || article.failure_code"> — {{ article.queue_reason || article.failure_code }}</span>
+          <details v-if="article.analysis?.analysis_state === 'AVAILABLE' && article.analysis.reader_output"
+            :aria-label="'完整分析：' + (article.title || article.article_id)">
+            <summary>阅读完整分析</summary>
+            <p>已保存的模型分析，供人工复核；完整正文覆盖不代表官方首次发布时间已确认。</p>
+            <dl>
+              <dt>判断</dt><dd>{{ article.analysis.reader_output.disposition }}</dd>
+              <dt>方向</dt><dd>{{ article.analysis.reader_output.direction }}</dd>
+              <dt>判断依据</dt><dd>{{ article.analysis.reader_output.selection_basis }}</dd>
+              <dt>证据充分性</dt><dd>{{ article.analysis.reader_output.evidence_sufficiency }}</dd>
+              <dt>完整理由</dt><dd>{{ article.analysis.reader_output.reason }}</dd>
+            </dl>
+            <section v-for="group in article.evidenceSections" :key="group.field" :aria-label="group.label">
+              <h4>{{ group.label }}</h4>
+              <p v-if="!group.items.length">本次保存分析未提供此项。</p>
+              <ol v-else><li v-for="(citation, index) in group.items" :key="index">
+                <p>{{ citation.claim }}</p>
+                <blockquote><pre style="white-space: pre-wrap; overflow-wrap: anywhere">{{ citation.quote }}</pre></blockquote>
+                <dl><template v-for="(value, key) in citation" :key="key">
+                  <template v-if="key !== 'claim' && key !== 'quote'">
+                    <dt>{{ key === 'locator' ? '原文定位（locator）' : key }}</dt><dd>{{ evidenceValue(value) }}</dd>
+                  </template>
+                </template></dl>
+              </li></ol>
+            </section>
+            <section aria-label="风险与数据限制">
+              <h4>风险与数据限制</h4>
+              <ul v-if="article.analysis.reader_output.risk_notes.length">
+                <li v-for="(note, index) in article.analysis.reader_output.risk_notes" :key="index">{{ note }}</li>
+              </ul>
+              <p v-else>本次保存分析未提供此项。</p>
+            </section>
+            <dl style="overflow-wrap: anywhere">
+              <dt>来源覆盖</dt><dd>{{ article.source_coverage }}</dd>
+              <dt>来源 SHA256</dt><dd>{{ article.analysis.source_sha256 }}</dd>
+              <dt>正文 SHA256</dt><dd>{{ article.analysis.body_sha256 }}</dd>
+              <dt>已校验结果 SHA256</dt><dd>{{ article.analysis.result_sha256 }}</dd>
+              <dt>交付版本 SHA256</dt><dd>{{ data.daily_analysis?.delivery_sha256 }}</dd>
+            </dl>
+          </details>
+          <p v-else-if="article.state === 'SUCCEEDED'" role="status">
+            完整分析暂不可读，请保留已保存结果并核对来源绑定。
+            <small v-if="article.analysis?.failure_code">{{ article.analysis.failure_code }}</small>
+          </p>
+        </li></ul>
+      </section>
+      <button v-if="isActive" type="button" :disabled="activeJob?.state === 'STOP_REQUESTED'" @click="stopUpdate">
+        {{ activeJob?.state === 'STOP_REQUESTED' ? '停止中：在途结果保存后结束' : '停止后续公告派发' }}
+      </button>
       <div class="mwb-announcement-meta">
         <span>公告来源日：<strong>{{ data.source_date }}</strong></span>
         <span>冻结基线目标港股日：<strong>{{ data.target_trade_date }}</strong></span>
@@ -356,7 +540,7 @@ onBeforeUnmount(() => {
             <tr v-for="stock in stocks" :key="stock.symbol">
               <td><strong class="mwb-symbol">{{ stock.symbol }}</strong><span>{{ stock.name || "名称未知" }}</span></td>
               <td>
-                <article v-for="article in stock.articles" :key="article.article_id" class="mwb-announcement-article">
+                <article v-for="article in stock.articles" :key="article.article_id + article.body_sha256" class="mwb-announcement-article">
                   <strong>{{ article.title }}</strong>
                   <small v-if="isCurrentCapture(article, latestCaptureProductSha)"
                     class="mwb-muted mwb-announcement-current-capture">本次采集</small>
@@ -373,7 +557,7 @@ onBeforeUnmount(() => {
                 </article>
               </td>
               <td>
-                <article v-for="article in stock.articles" :key="article.article_id + '-reason'" class="mwb-announcement-reason">
+                <article v-for="article in stock.articles" :key="article.article_id + article.body_sha256 + '-reason'" class="mwb-announcement-reason">
                   <p>{{ article.reason }}</p>
                   <p v-if="article.selection_basis"><strong>入选依据：</strong>{{ article.selection_basis }}</p>
                   <ul v-if="article.impact?.length"><li v-for="(claim, index) in article.impact" :key="index">{{ claim }}</li></ul>

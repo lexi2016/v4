@@ -41,6 +41,9 @@ def _handoff_identity(pin: Any, target: str) -> dict[str, str] | None:
         "receipt_relative": pin.get("owner_receipt_relative"),
         "manifest_relative": pin.get("owner_manifest_ref"),
     }
+    from .engines.strict_us_selection import engine_identity
+    from .engines.us_mapping_policy import POLICY_SHA256
+    identity.update(selection_policy_sha256=POLICY_SHA256,selection_engine_identity=engine_identity())
     if (not all(isinstance(identity[key], str) and identity[key] for key in (
             "us_session_date", "capture_cutoff", "artifact_relative",
             "receipt_relative", "manifest_relative"))
@@ -190,6 +193,7 @@ def _us_close_handoff(service: ManagerService, *, calendar: Any,
             target, Phase.NEXT_DAY, trigger="SCHEDULED",
             lanes=[Lane.US_MAPPING], cutoff=local,
             scope_refs={
+                "merge_phase_lanes": True,
                 "us_close_handoff": True,
                 "us_session_date": session,
                 "us_close_handoff_key": input_key,

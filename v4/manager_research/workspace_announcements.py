@@ -356,7 +356,10 @@ def _check_sources(service: Any, product: Mapping[str,Any], *, validation_cache:
             request=query_request(q['official_issuer'],query_context)
             if q['prime_ref']['request']!=dict(url=request['referer'],method='GET',context=request['context'],cache_policy='SESSION_PRIME'):
                 raise ValueError('ANNOUNCEMENT_QUERY_PRIME_MISMATCH')
-        if q.get('directory_ref'):
+        if q.get('directory_protocol'):
+            from .hkex_directory_protocol import revalidate_servlet_query
+            revalidate_servlet_query(q,query_context,checked)
+        elif q.get('directory_ref'):
             ref=q['directory_ref'];raw=checked(ref)
             if ref['request']!=query_request(q['official_issuer'],query_context):
                 raise ValueError('ANNOUNCEMENT_QUERY_WINDOW_OR_ISSUER_MISMATCH')
@@ -2886,14 +2889,7 @@ def _analysis_time_refs(product: Mapping[str, Any]) -> tuple[list[datetime], boo
     complete = True
     for record in records:
         listing = record.get('listing_source') if isinstance(record, Mapping) else None
-        # HKEX directory-backed records retain the acquisition receipt under
-        # ``directory_source_ref`` because their source identity is an
-        # official directory variant rather than an Eastmoney listing row.
-        # Use that existing retrieval receipt when the generic listing ref is
-        # absent; never substitute the issuer publication timestamp here.
-        listing_ref = None
-        if isinstance(listing, Mapping):
-            listing_ref = listing.get('source_ref') or listing.get('directory_source_ref')
+        listing_ref = listing.get('source_ref') if isinstance(listing, Mapping) else None
         listing_time = timestamp(listing_ref.get('retrieved_at')) if isinstance(listing_ref, Mapping) else None
         if listing_time is None:
             complete = False

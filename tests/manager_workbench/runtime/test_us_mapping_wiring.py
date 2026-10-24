@@ -43,7 +43,7 @@ def daily_batch(change="1.5"):
     records = [dict(record_role="SOURCE_CANDIDATE", us_symbol=symbol, source_session="20261019",
         owner="quote-owner", source_sha256=SHA, available_at="2026-10-19T21:15:06Z",
         positive_change_required=True, relations=[],
-        quote=dict(session_date="20261019", previous_close="100", last=str(100 + float(change)),
+        evidence_ids=["source"], quote=dict(symbol=symbol, session_date="20261019", previous_close="100", last=str(100 + float(change)),
             change_pct=change)) for symbol in universe["symbols"]]
     nvda = next(record for record in records if record["us_symbol"] == "NVDA")
     nvda["relations"] = [dict(target_symbol="HK.00001", target_name="test issuer",
@@ -52,7 +52,8 @@ def daily_batch(change="1.5"):
         published_at="2024-03-18T12:00:00Z", research_priority="PRIORITY")]
     records[0]["us_factor_payload"] = {"single_day_mapping_payload": {"monthly_membership": membership}}
     return context, dict(records=records, universe_ref=universe_ref, input_sha256=SHA,
-        coverage=dict(scope_count=48, observed_count=48), gaps=[])
+        coverage=dict(scope_count=48, observed_count=48), gaps=[],evidence_refs=[dict(evidence_id="source",owner="quote-owner",role="US_MAPPING_SOURCE",
+            verification="VERIFIED",sha256=SHA,available_at="2026-10-19T21:15:06Z")])
 
 
 def mapping(context, batch, monkeypatch):
@@ -63,8 +64,8 @@ def mapping(context, batch, monkeypatch):
     return result, holder["us_factor_summary"]["single_day_mapping"]
 
 
-@pytest.mark.parametrize("change,decision", [("1.5", "BENEFIT"), ("-1.5", "RISK"), ("0.5", "OBSERVATION")])
-def test_real_lane_projection_preserves_sources_and_monthly_research_with_formal_unknown(monkeypatch, change, decision):
+@pytest.mark.parametrize("change,decision,strict", [("1.5", "BENEFIT", "PENDING"), ("-1.5", "RISK", "REJECTED"), ("0.5", "OBSERVATION", "REJECTED")])
+def test_real_lane_projection_preserves_sources_and_monthly_research_with_formal_unknown(monkeypatch, change, decision, strict):
     context, batch = daily_batch(change)
     result, daily = mapping(context, batch, monkeypatch)
     source = next(row for row in result["rows"] if row.get("us_symbol") == "NVDA")
@@ -73,8 +74,9 @@ def test_real_lane_projection_preserves_sources_and_monthly_research_with_formal
     assert source["diagnostic_gaps"] == ["CONNECT_MEMBERSHIP_UNKNOWN"]
     assert daily["rows"][0]["decision"] == decision
     assert daily["formal_target_eligibility"] == "CANNOT_CONFIRM"
-    assert daily["strict_v1_status"] == "PAUSED_NOT_EXECUTED"
-    assert daily["deferred_gates"] == ["HK_MA20", "HK_RETURN5", "HK_TURNOVER20", "TOP10", "THEME3"]
+    assert daily["strict_v1_status"] == "EXECUTED"
+    assert daily["rows"][0]["strict_decision"] == strict
+    assert daily["strict_selection"]["evaluation_complete"] is False
     assert daily["RESEARCH_ONLY"] and not any(daily[key] for key in
         ("production_allowed", "buy_gate_updated", "orders_sent"))
 
@@ -88,9 +90,11 @@ def test_catalog_display_rows_do_not_alias_source_relations_or_become_legacy_c_p
             "asset_code": "NVDA", "fact": "dated comparison"}, recovery_v2r1={"closure_status": "OPEN"}))]))
     result, daily = mapping(context, batch, monkeypatch)
     assert len([r for r in result["rows"] if r.get("record_role") == "CATALOG_OBSERVATION"]) == 1
-    assert len(daily["catalog_relation_dispositions"]) == 1
-    assert daily["catalog_relation_dispositions"][0]["catalog_disposition"] == "OPEN_OBSERVATION_PENDING"
-    assert all(p.get("relation_type") != "CATALOG_OBSERVATION_ONLY" for p in daily["rows"][0]["mapping_paths"])
+    paths=result["selection"]["candidates"][0]["paths"]
+    catalog_paths=[p for p in paths if any(ref.get("ref")=="R1" for ref in p["source_refs"])]
+    assert len(catalog_paths)==1 and catalog_paths[0]["scope"]=="pending"
+    assert "RECOVERY_SCOPE_OPEN" in catalog_paths[0]["reasons"]
+    assert all(p.get("relation_type") != "CATALOG_OBSERVATION_ONLY" for p in paths)
     assert daily["rows"][0]["decision"] == "BENEFIT"
 
 

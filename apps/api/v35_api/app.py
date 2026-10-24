@@ -10,31 +10,34 @@ from typing import Any, Mapping
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
-from apps.api.v35_api.module_proxy import configure_module_role
 
 from apps.api.v35_api.baimao_router import create_baimao_router
+from apps.api.v35_api.preselection_router import create_preselection_router
+from apps.api.v35_api.preselection_service import PreselectionPoolService
 from apps.api.v35_api.research_lane_router import create_research_lane_router
 from apps.api.v35_api.runtime_router import create_runtime_router
 from apps.api.v35_api.runtime_graph_router import create_runtime_graph_router
 from apps.api.v35_api.review_router import create_review_router
+from apps.api.v35_api.manual_collection_router import create_manual_collection_router
 from apps.api.v35_api.research_router import create_research_router
 from contracts.stages import FROZEN_STAGE_IDS, STAGE_DEFINITIONS
 from contracts.trading_safety import TRADING_SAFETY_FLAGS
-from domains import preselection as preselection_domain
-from domains.preselection import OPTIONAL_DAILY_POOL_IDS, date_catalog, preselection
+from domains.preselection import date_catalog
 from domains.stage_input_producer import ReadOnlyQuoteProvider, StageInputProducer
 from domains.stages import StageRunner
 from infrastructure.data_store import NativeDataStore
 from infrastructure.futu_quote_provider import FutuQuoteProvider
 from infrastructure.hkconnect_stage_replay_provider import HkConnectStageReplayProvider
 from infrastructure.opening_second_filter_store import OpeningSecondFilterStore
-from infrastructure.preselection_pool_store import PreselectionPoolStore
 from infrastructure.review_store import ReviewStore
 from infrastructure.research_lane_source import ResearchLaneSource
 from infrastructure.stage_quote_provider import StageQuoteProvider
 from infrastructure.stage_store import StageStore
 from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
 from stage_center.consumer import StageSelectionConsumer
+from stage_center.research_read_binding import ApprovedResearchReadBinding, ResearchReadError
+
+_STAGE_RESEARCH_READER_SHA256 = "c33a1452df34c7dcc7fc96e61b1177079c54c467164b7cb957d773f2d2e0ba05"
 
 
 _V35_STATE_ROOT = (
@@ -3607,6 +3610,119 @@ _HK_R9_BINDING_BY_DATE_STAGE = {
     for item in _MONTH_HK_AFTERFACT_R9_BINDINGS
 }
 
+_HK_MORNING_SELECTION_RECOVERY_REQUIRED_EVIDENCE = (
+    "recovery_mode=HISTORICAL_BACKFILL",
+    "due_status=HISTORICAL_BACKFILL",
+    "HISTORICAL_BACKFILL",
+    "selection_mode=BACKFILL",
+    "observation_status=OBSERVATION_UNVERIFIED",
+    "observation_contract=HK_MORNING_SELECTION_REPROJECTION_R1",
+    "historical_capture_after_target_cutoff=true",
+    "historical_temporal_cutoff_safe=false",
+    "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+    "historical_natural_time_capture=CANNOT_CONFIRM",
+    "historical_pit_safe=false",
+    "historical_orderbook=CANNOT_CONFIRM",
+    "recovery_original_failure=HK_ACTIVE_SNAPSHOT_UNAVAILABLE",
+    "production_allowed=false",
+    "buy_gate_updated=false",
+    "orders_sent=false",
+)
+_HK_MORNING_SELECTION_RECOVERY_ROWS = (
+    {
+        "stage_id": "STAGE_0930_0935",
+        "backfill_run_id": "hk-morning-20261016-stage-0930-v1",
+        "selection_run_id": "run-e8a2024a09a9c2f5f2e94312",
+        "artifact_id": "selection-e8a2024a09a9c2f5f2e94312",
+        "raw_artifact_sha256": "1c850296885d7516151ea658f81ef1afd3706047664005f3568de86a4acad777",
+        "original_manifest_sha256": "831b93b360bd61e1bf65f9704844e5a32ef98f7af2e5bd12dd0494eaaa0fb85d",
+        "original_receipt_sha256": "5be67f93b87e7c262f5b840e7a51d343c341720ed277bc86b366c53823fb0792",
+        "selection_manifest_sha256": "f2c6a24eb3104b1cb4e95c8d69cc125678be920283d80523ab2e3b8b7b4a627a",
+        "selection_receipt_sha256": "7c97a711f9e07b0d85933138f4e47089644fe00de4e68a9420c24e3488505bd1",
+        "selection_artifact_sha256": "64da4a35c08c0fd194b751d14ee681c4e192e64542054440d7b357166207d0e2",
+        "runner_receipt_sha256": "7705fd6b8393e2cbe2dfebdd12bead7d370511ce24c01440ca161ab1edb659af",
+        "source_evidence_sha256": "3467ddde3ed8c612e077d61d8bf9d288765f41c84f18ca14a1c168077d2d31f2",
+    },
+    {
+        "stage_id": "STAGE_0935_0940",
+        "backfill_run_id": "hk-morning-20261016-stage-0935-v1",
+        "selection_run_id": "run-ccc20f037cc139b83f8a3f7c",
+        "artifact_id": "selection-ccc20f037cc139b83f8a3f7c",
+        "raw_artifact_sha256": "a71b46e70063bfa2c9665eec341680cd88d6c9bc6bb358cb9966a999702ee26c",
+        "original_manifest_sha256": "b9a099fb646ee9654f1200906cb2558e37bc7ba87ec40e6ab7e5cd25e6211b7c",
+        "original_receipt_sha256": "9d8444d33e119193521aab0d43901e8a181603d13f2433c750dda87d20602783",
+        "selection_manifest_sha256": "c6a427472e3d22f464c8c4f71c147c76394d591cc034408bf69ebcb934b44d83",
+        "selection_receipt_sha256": "10b6f0d7deff4a0863e893893d51115983d78e7c4a603b544286265a773ce546",
+        "selection_artifact_sha256": "ed05e2eb54592992be63aa9bb842e10443fa4c9b2bacda1d989bd52898f1a09b",
+        "runner_receipt_sha256": "e6c3ea14d193a3cdc6f4a622b0c55d7176087316da1d4d3217dbe175f5eb0b60",
+        "source_evidence_sha256": "c99e8481604fcb9280c1c428e7eae4cc67c5a1efb3dea81bfc4444496906e072",
+    },
+    {
+        "stage_id": "STAGE_0940_0945",
+        "backfill_run_id": "hk-morning-20261016-stage-0940-v1",
+        "selection_run_id": "run-9f5dbc39a836451324721acf",
+        "artifact_id": "selection-9f5dbc39a836451324721acf",
+        "raw_artifact_sha256": "6c273dcd40a7de66a10c523b9345171565d866c64c6c33b6c39c713ea7914655",
+        "original_manifest_sha256": "d27bcf81f1622bb85a5033c01986688d98e38a3a6c82eda2a977a95fdaaf2d23",
+        "original_receipt_sha256": "e0564cc51f362e19f3de119c6c62376f37623e4773f6689321170df02e10c743",
+        "selection_manifest_sha256": "ba2f1ea44b9e348e1d3de61b4bcb9ac8cc38fbd71d3537ce9c2a4feb4e75b937",
+        "selection_receipt_sha256": "126085edf5155e4861c1d3fb4a47fe88b9fd338746e713237889c134c0d839e9",
+        "selection_artifact_sha256": "c4e4720a38ea2de6d2bb0b40ca6a0356289cab33825890f6329056567dedb950",
+        "runner_receipt_sha256": "64573855d3ed3a4e7454dd27cbd207fa4d1bf95e238f4e7510404bcf662d749d",
+        "source_evidence_sha256": "ba4e0c1d97d166789eed605cde6cdd0753a75558c196e34c6db06201426dad2b",
+    },
+    {
+        "stage_id": "STAGE_0945_1030",
+        "backfill_run_id": "hk-morning-20261016-stage-0945-v1",
+        "selection_run_id": "run-181ddc8bd8047a502234b698",
+        "artifact_id": "selection-181ddc8bd8047a502234b698",
+        "raw_artifact_sha256": "c7e8bfcae1e969874e8291e58b7cbcebddd0ac1c9a38435257b45ccaed1ab794",
+        "original_manifest_sha256": "e3214b8e79cc32c249f7970cf2b221f6150c33c8df225bfe421a61454975593a",
+        "original_receipt_sha256": "b5af283cebd60428599247c2e3f5d954fae530b477e1be10e2d7f8e12beb0612",
+        "selection_manifest_sha256": "4479d731a796b0ef6e2065c92dab98da3b88462b334cdd31d32e7e2e11908e13",
+        "selection_receipt_sha256": "ac37537b8bab1e0fbd02dd836b17f23dedbf98a7e5a159b4e80a67204b6dacca",
+        "selection_artifact_sha256": "0e8ecec964d6b9827dd07eba568c3c9318e3ee622abbd7801a6b50daa67c903b",
+        "runner_receipt_sha256": "b286e07ed50e8b8c806661939cb4c2b441d28f0fd1bf627925a908f8145e7ec0",
+        "source_evidence_sha256": "f2cbaa26f106c7b59cdc7574fdcb91507f4ddca2e780b8f331382442f3fa4832",
+    },
+)
+_HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE = {
+    ("20261016", row["stage_id"]): {
+        **row,
+        "market": "HK_CONNECT",
+        "algorithm_id": "V3_STAGE_SELECTION_V1",
+        "algorithm_sha256": "f2991c472b17742acfd3adb81458ff13826f99dfb7b8a223ad8d6a5dfbbd1a1e",
+        "selection_status": "PARTIAL_WITH_ROWS",
+        "source_status": "CANNOT_CONFIRM",
+        "requested_rows": 100,
+        "source_rows": 100,
+        "selected_rows": 10,
+        "missing_rows": 0,
+        "missing_codes": (),
+        "cannot_confirm_count": 1,
+        "required_evidence": _HK_MORNING_SELECTION_RECOVERY_REQUIRED_EVIDENCE,
+    }
+    for row in _HK_MORNING_SELECTION_RECOVERY_ROWS
+}
+for _hk_morning_binding in _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.values():
+    _hk_morning_key = (
+        "20261016",
+        _hk_morning_binding["stage_id"],
+        "HK_CONNECT",
+        _hk_morning_binding["backfill_run_id"],
+    )
+    if _hk_morning_key in _APPROVED_EXACT_STAGE_BACKFILLS:
+        raise RuntimeError(f"duplicate exact stage backfill binding: {_hk_morning_key}")
+    _APPROVED_EXACT_STAGE_BACKFILLS[_hk_morning_key] = {
+        key: value
+        for key, value in _hk_morning_binding.items()
+        if key not in {
+            "stage_id",
+            "original_manifest_sha256",
+            "original_receipt_sha256",
+        }
+    }
+
 # These nine legacy observations were captured from the live ordinary reader
 # and its verified SelectionStore entries. Their HK D1 markers consistently
 # identify a different pool from the exact target-date candidate below. Keep
@@ -3853,191 +3969,292 @@ def _strict_date(value: str) -> str:
     return value
 
 
-def _is_sha256(value: Any) -> bool:
-    return (
-        isinstance(value, str)
-        and len(value) == 64
-        and all(character in "0123456789abcdef" for character in value)
-    )
 
+# Exact saved 20261023 observation inputs; this grants no formal/PIT eligibility.
+_HK_MORNING_HISTORY_20261023 = {'STAGE_0930_0935': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/artifact.csv': '701da95236a8fbe1182a2a9764472794f2429963721ffdcdf4b646a0c42e3659',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/manifest.json': '57d86298fd5741a95315e311711d409ac8a4f6a728bc3f27d51fcf85190984f9',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/receipt.json': '38c146f3a37c308c01d891bf66774132666c7cb5db3923bfbcac8c74c69d0f22',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/artifact.csv': 'f6892dd0a6f0da01fc4e79a9d3c3f64eb6f3fff3fad33e8be44f08a3dfb65a43',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/manifest.json': 'a3c1da782b5d6a5af2455e938f2c937c02439789f03638f4f98b509d1a9fce6e',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/receipt.json': 'b05faa232b96866af443cb61b8db1d525f7e1dda92cd0844acc24e73cbf721b9',
+                               'raw/.futu_minute_captures/20261023/STAGE_0930_0935/e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706.json': 'e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706',
+                               'receipts/20261023/STAGE_0930_0935/receipt.json': '9d460bf292ae29da6badaba9f9be5786eb4d8d58aa658ce510bf9e13339f9b4f'},
+                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-c189009adf3a4eebf481d892/manifest.json',
+                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/manifest.json',
+                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0930_0935/20261023-hk_connect_1min_stage_0930_0935-25052d0e78115a0f/artifact.csv',
+                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0930_0935/e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706.json',
+                     'capture_sha256': 'e9ce6abc61df40333566c34985d52b5797c925173d820c503e87f54c47c29706',
+                     'run_id': 'run-c189009adf3a4eebf481d892',
+                     'captured_at': '2026-10-23T11:03:25.217128+08:00',
+                     'cutoff_at': '2026-10-23T09:35:05+08:00',
+                     'window_start': '2026-10-23 09:31:00',
+                     'window_end': '2026-10-23 09:35:00',
+                     'bars_per_code': 5},
+ 'STAGE_0935_0940': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/artifact.csv': '6e52e72acfaf6626724484b9d931bcbafb1dd7577a27af5a6a697bbe1671a2a0',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/manifest.json': 'b5e37cda6e032c60046edec7fa1accb0fefdf9315b5112c0facfb0fae45acf3a',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/receipt.json': '8ea0642b67cdaeaf80efe34048493684ebce1805e72458a5ce9fb7331fca67d6',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/artifact.csv': 'f8070e1f4a6c758137a525d7f709f769728f737094b13dc57debd2dc649986fe',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/manifest.json': '69eade2952a355a4d357bb168637c0160e92fc7516de9003c4546e20947f050f',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/receipt.json': '62baf4a9a04055d6e4392fa2fa8dab7b1002139728ef33f3a9125b41fd6818bf',
+                               'raw/.futu_minute_captures/20261023/STAGE_0935_0940/dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759.json': 'dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759',
+                               'receipts/20261023/STAGE_0935_0940/receipt.json': '2796c68a950bbae12730cf927d1b31ec818f2812919ec063c55721f8fb5511cf'},
+                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-3365f6cb264f0a04cf63eb2d/manifest.json',
+                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/manifest.json',
+                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0935_0940/20261023-hk_connect_1min_stage_0935_0940-ec46e1bfdca87326/artifact.csv',
+                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0935_0940/dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759.json',
+                     'capture_sha256': 'dcaa4928ca97bf110e76e0c034d7b1fd0155724f49e3f84ebaa27408e9964759',
+                     'run_id': 'run-3365f6cb264f0a04cf63eb2d',
+                     'captured_at': '2026-10-23T11:04:35.595295+08:00',
+                     'cutoff_at': '2026-10-23T09:40:05+08:00',
+                     'window_start': '2026-10-23 09:36:00',
+                     'window_end': '2026-10-23 09:40:00',
+                     'bars_per_code': 5},
+ 'STAGE_0940_0945': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/artifact.csv': 'bf21d7ab87b3952b8d660778245252c0fdd566c70a8e41ef3a5caa4bb3790ccc',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/manifest.json': 'eae87f78c78e11f525a525cc7c3cae8e54d2d4bef8f9d79da578b1c7fc69bfb6',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/receipt.json': 'eceda83c242390c80146dc5ea6dfa00a1bc6dd89bb4bd3adff88665dffbe77c2',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/artifact.csv': '4e011cb4d14e5116ab0696cbe499cef951985786623b80dcebe2969b7375b6b9',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/manifest.json': 'fa48d6d3c34b3f221fe601fe35875182d8c9c2e6a5f60b02bd8deabafd6b8e97',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/receipt.json': '20aaece7a864b6902e57a2326653f533a4fd1e5d84f6bbe8118c1e33e6839e93',
+                               'raw/.futu_minute_captures/20261023/STAGE_0940_0945/dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea.json': 'dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea',
+                               'receipts/20261023/STAGE_0940_0945/receipt.json': '8b84f04d86dc978cd6622c99decb3dbbdc9e33d03ec01123d7618b61e851ca38'},
+                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-02a055be59ac29221881ecc1/manifest.json',
+                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/manifest.json',
+                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0940_0945/20261023-hk_connect_1min_stage_0940_0945-7d3c2222b765740f/artifact.csv',
+                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0940_0945/dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea.json',
+                     'capture_sha256': 'dabdbcccfd0234c9b6bf51d2dc4c331447fa8c8fbc8e43405d69dccfedc84cea',
+                     'run_id': 'run-02a055be59ac29221881ecc1',
+                     'captured_at': '2026-10-23T11:05:08.649061+08:00',
+                     'cutoff_at': '2026-10-23T09:45:05+08:00',
+                     'window_start': '2026-10-23 09:41:00',
+                     'window_end': '2026-10-23 09:45:00',
+                     'bars_per_code': 5},
+ 'STAGE_0945_1030': {'files': {'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/artifact.csv': '65cd3535437703c80e89b76920bb473833dd4614d290b97eda493cf1d75e709a',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/manifest.json': 'afb32532f9f5ebf418ade4f5acff47a485be0619c168dac49948c22d5b90ade4',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/receipt.json': '96e696894c67c74f97ed115b42e2d7df0c2793e52dccdb072a5eb91036274fe0',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/artifact.csv': '8a3210d20ae0d7cd0bea61ae3b98d586a4e8e23124d56a8bbd4d9c22482029b3',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/manifest.json': '1548b6314b181c0f14b88a80312e0d3797990d2ed54e5925c38a2fa85e15a92d',
+                               'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/receipt.json': '78cf3347e5fa7e91a09a0d86d56c06a80246c17d3a1f2d809b47e8b7d1e5c963',
+                               'raw/.futu_minute_captures/20261023/STAGE_0945_1030/c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460.json': 'c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460',
+                               'receipts/20261023/STAGE_0945_1030/receipt.json': 'b97055c40b2944559a524a01037cae52841643070084203cbaef9c825cc5e823'},
+                     'selection_manifest': 'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-00601d8e8688ada1f675d798/manifest.json',
+                     'raw_manifest': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/manifest.json',
+                     'raw_artifact': 'raw/runs/20261023/HK_CONNECT_1MIN_STAGE_0945_1030/20261023-hk_connect_1min_stage_0945_1030-9f734f90eb4ef4ac/artifact.csv',
+                     'capture_relative': 'raw/.futu_minute_captures/20261023/STAGE_0945_1030/c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460.json',
+                     'capture_sha256': 'c8a3dcb835a8a3b639a500a53c3a4eacfeae0721e07fee543718614d5a733460',
+                     'run_id': 'run-00601d8e8688ada1f675d798',
+                     'captured_at': '2026-10-23T11:05:50.283826+08:00',
+                     'cutoff_at': '2026-10-23T10:30:00+08:00',
+                     'window_start': '2026-10-23 09:46:00',
+                     'window_end': '2026-10-23 10:29:00',
+                     'bars_per_code': 44}}
 
-def _is_exact_configured_hk_pool(payload: Mapping[str, Any], target_date: str) -> bool:
-    """Accept only a complete, exact-date HK 0.2 pool from the configured root."""
-    signal_date = payload.get("signal_date")
-    provenance = payload.get("historical_provenance")
-    rows = payload.get("rows")
-    eligibility_date = (
-        provenance.get("eligibility_source_date")
-        if isinstance(provenance, Mapping)
-        else None
-    )
-    if (
-        payload.get("schema_version") != "v3_5.preselection_pool.v1"
-        or payload.get("pool_id") != "hkconnect_d1_top100"
-        or payload.get("market") != "HK"
-        or payload.get("status") != "STRICT_0_2_READY"
-        or payload.get("producer_id") != "v3_shared_hk_0_2_consumer_v1"
-        or payload.get("source_role") != "SHARED_VERIFIED_HK_0_2"
-        or payload.get("trade_date") != target_date
-        or payload.get("target_date") != target_date
-        or not isinstance(signal_date, str)
-        or len(signal_date) != 8
-        or not signal_date.isdigit()
-        or signal_date >= target_date
-        or not _is_sha256(payload.get("source_sha256"))
-        or not str(payload.get("source_run_id") or "").strip()
-        or not _is_sha256(payload.get("source_manifest_sha256"))
-        or not _is_sha256(payload.get("source_receipt_sha256"))
-        or payload.get("stage_selection_eligible") is not True
-        or not isinstance(provenance, Mapping)
-        or provenance.get("schema_version") != "v4.hk_d1_split_date_provenance.v1"
-        or provenance.get("price_signal_date") != signal_date
-        or not isinstance(eligibility_date, str)
-        or len(eligibility_date) != 8
-        or not eligibility_date.isdigit()
-        or eligibility_date > signal_date
-        or not str(provenance.get("eligibility_source_run_id") or "").strip()
-        or not _is_sha256(provenance.get("eligibility_source_artifact_sha256"))
-        or not str(provenance.get("eligibility_source_captured_at") or "").strip()
-        or provenance.get("d1_source_run_id") != payload.get("source_run_id")
-        or provenance.get("d1_source_artifact_sha256") != payload.get("source_sha256")
-        or provenance.get("d1_source_manifest_sha256") != payload.get("source_manifest_sha256")
-        or provenance.get("d1_source_receipt_sha256") != payload.get("source_receipt_sha256")
-        or not isinstance(rows, list)
-        or len(rows) != 100
-        or any(payload.get(flag) is not False for flag in TRADING_SAFETY_FLAGS)
-    ):
-        return False
-    symbols: set[str] = set()
-    ranks: set[int] = set()
-    for row in rows:
-        if not isinstance(row, Mapping):
-            return False
-        symbol = str(row.get("symbol") or row.get("code") or "").strip().upper()
-        rank = row.get("pool_rank")
-        if (
-            len(symbol) != 8
-            or not symbol.startswith("HK.")
-            or not symbol[3:].isdigit()
-            or row.get("pool_id") != "hkconnect_d1_top100"
-            or row.get("market") != "HK"
-            or row.get("trade_date") != target_date
-            or row.get("target_date") != target_date
-            or row.get("signal_date") != signal_date
-            or isinstance(rank, bool)
-            or not isinstance(rank, int)
-            or rank not in range(1, 101)
-            or any(row.get(flag) is not False for flag in TRADING_SAFETY_FLAGS)
-            or str(row.get("recommendation_status") or "").upper() not in {"WATCH_ONLY", "WATCH_ONLY_BACKTEST_GATED"}
-        ):
-            return False
-        symbols.add(symbol)
-        ranks.add(rank)
-    return len(symbols) == 100 and len(ranks) == 100
+_HK_MORNING_HISTORY_SAFE_PACKETS = {'STAGE_0930_0935': {'files': {'derived_raw.csv': '79c431cbfba8b87b7697b96150eb0ead54c94afd14753a0e65217426f327cb7e',
+                               'observation_receipt.json': '2b1984c1347464048707b040e0d73dfcf974006fe3c7bf8c00dcbeb4abbd2c4a',
+                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
+                               'selection/selection_latest.json': 'c75ce537291bc1675bf245fe13e617c9d4476c1b57d2d24f0b7224adec21b409',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/artifact.csv': 'ac3a091fd6f213f5dcc880b33737f7d87e1624f4eb160b1e1b31fa200d28712d',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/manifest.json': 'ef573bf94741185288dcc241312147bd88a35cb206edb98c01912a800de18d90',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0930_0935/run-418f15f2beca8fef1c0b986e/receipt.json': '82e2d93cd0a0625a55f7a2f72dbff69da62892ced51470bd2997f8169eeb55f9'},
+                     'selection_run_id': 'run-418f15f2beca8fef1c0b986e',
+                     'window_start': '2026-10-23 09:31:00',
+                     'window_end': '2026-10-23 09:34:00',
+                     'bars_per_code': 4},
+ 'STAGE_0935_0940': {'files': {'derived_raw.csv': '7412095d3bc2ebbb5e0b99dcd68140d7f7d239bd5ba16ed105b78f960f0f8844',
+                               'observation_receipt.json': 'fce74ac9201a70768cf0532f3ae777e0167ec130d981cbbae1f01242bb19ed69',
+                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
+                               'selection/selection_latest.json': '3c559b18159d4d29559e0b0ef34a18df29ceaa7ceab711a59e378701321c7cf4',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/artifact.csv': '773534448ff06d297536517d2bd79c7e24afce9c3f697b34910477e2ee9849ec',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/manifest.json': '4bfc1f9889ae1c0f4fea9cc933af5888a1b97e9a55a5e672e2dc6d8e2673d002',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0935_0940/run-220305b51cdbc8c6dcf661d0/receipt.json': '9471f5b3bcd4e5b8d9083b5960930539fa30946602f68c504516fc2eb6c9cbcf'},
+                     'selection_run_id': 'run-220305b51cdbc8c6dcf661d0',
+                     'window_start': '2026-10-23 09:36:00',
+                     'window_end': '2026-10-23 09:39:00',
+                     'bars_per_code': 4},
+ 'STAGE_0940_0945': {'files': {'derived_raw.csv': '23b740ab2cdb7b85a24d4f11acdc1956a13e0027f0d01c8ff541daeda643a7a9',
+                               'observation_receipt.json': '6c68cb52aeb1e0230bb01e3299bbaaf85c05012e0f92cd18167ef901b7ff2578',
+                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
+                               'selection/selection_latest.json': 'ee02a86b3c72e892c5ca9dd1df4b032fc01d6958323f667f18c49396e661d7ab',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/artifact.csv': '6917ddeb0c43f6e5a0a7a28204062708d24ef6cd06a1b73fc1790eabeaab9bef',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/manifest.json': '65e5119e7ebaa203fd174c87f8e2e262525a31297a937cdcf72984865c7bcaf5',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0940_0945/run-c20b5937969e33c36510e94f/receipt.json': 'dde981f4e97c797b7967f25764c7234374d025ab3afbbedf2773e0408c00cd60'},
+                     'selection_run_id': 'run-c20b5937969e33c36510e94f',
+                     'window_start': '2026-10-23 09:41:00',
+                     'window_end': '2026-10-23 09:44:00',
+                     'bars_per_code': 4},
+ 'STAGE_0945_1030': {'files': {'derived_raw.csv': '0030c37c07627c00528a6740df1579dc034bd410e2a8fb776218c4d0c5fcdbd6',
+                               'observation_receipt.json': '12ae9f02fd8f340a418a1302fe2665e75176635824d8c09fbc56cef14c6f0166',
+                               'provenance.json': '8692bdfae393de032eaae829848ded1eb1059b77121af3b425bbbe4033af4d14',
+                               'selection/selection_latest.json': '7f3a35356ec84e5f06c04889a913d2ba8038f78681a4d2c84330235e10bf8afc',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/artifact.csv': '65cd3535437703c80e89b76920bb473833dd4614d290b97eda493cf1d75e709a',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/manifest.json': '2c88829cdcc4e172fed87d48d0dc05f5ea43ff89ba48e85f67100635bc66fe4d',
+                               'selection/selection_runs/20261023/HK_CONNECT_SELECTION_STAGE_0945_1030/run-39eb622c15067fbe1775b711/receipt.json': '03e20c0f8dbd76e806f7775061990399aa6895d238f4944f49f9b23b1070d42a'},
+                     'selection_run_id': 'run-39eb622c15067fbe1775b711',
+                     'window_start': '2026-10-23 09:46:00',
+                     'window_end': '2026-10-23 10:29:00',
+                     'bars_per_code': 44}}
 
-
-def _preselection_response_from_pools(
-    pools: list[dict[str, Any]], *, trade_date: str, limit: int, offset: int
+def _hk_morning_history_observation(
+    selection_root: Path | None, pool_root: Path, market_payload: Mapping[str, Any],
+    rows: list[dict], *, trade_date: str, stage_id: str,
 ) -> dict[str, Any]:
-    """Render merged exact-date pool reads with the existing API page contract."""
-    pools = preselection_domain._replace_review_core_fupan_pool(pools, trade_date)
-    pools = preselection_domain._replace_review_core_stage7_pool(pools, trade_date)
-    pools = preselection_domain._complete_independent_pool_set(pools, trade_date)
-    payload = preselection_domain._project_independent_pools(pools, trade_date)
-    rows = payload["rows"]
-    status = "READY_WITH_ROWS" if payload.get("producer_status") == "CANONICAL_COMPLETE" else "PARTIAL_WITH_ROWS"
-    if not rows:
-        raise ValueError("exact-date pool projection has no rows")
-    response = {
-        key: payload.get(key, [] if key.endswith("rows") or key == "pools" or key == "cannot_confirm" else {})
-        for key in ("pools", "unified_rows", "a_source_only_rows", "a_all_pool_rows", "startup_ensure", "strict_0_2_status", "evidence_paths", "cannot_confirm")
-    }
-    response.update({
-        "ok": True,
-        "data_status": status,
-        "blocking_reasons": list(payload.get("blocking_reasons", [])),
-        "schema_version": "v3_preselection_pools.v1",
-        "trade_date": trade_date,
-        "module_id": "unified_preselection_pools",
-        "write_policy": "read_only",
-        "production_allowed": False,
-        "buy_gate_updated": False,
-        "orders_sent": False,
-        "recommendation_status": "WATCH_ONLY_BACKTEST_GATED",
-        "pool_count": len(payload.get("pools", [])),
-        "row_count": len(rows),
-        "unified_row_count": len(payload.get("unified_rows", rows)),
-        "a_source_only_row_count": len(payload.get("a_source_only_rows", [])),
-        "a_all_pool_row_count": len(payload.get("a_all_pool_rows", rows)),
-        "rows": [],
-        "daily_readiness_status": payload.get("daily_readiness_status", status),
-        "mandatory_pool_ids": list(payload.get("mandatory_pool_ids", ())),
-        "optional_pool_ids": list(payload.get("optional_pool_ids", OPTIONAL_DAILY_POOL_IDS)),
-    })
-    response["market_totals"] = payload.get("market_totals", preselection_domain._market_totals(rows))
-    response["hk_pool_version"] = payload.get("hk_pool_version")
-    response["hk_pool_role"] = payload.get("hk_pool_role")
-    response["input_fingerprint"] = preselection_domain._input_fingerprint(payload.get("pools", []), trade_date)
-    response["source_digests"] = {
-        str(pool.get("pool_id") or ""): str(pool.get("source_sha256") or "")
-        for pool in payload.get("pools", [])
-        if str(pool.get("pool_id") or "")
-    }
-    full_arrays = {
-        "unified_rows": list(response["unified_rows"]),
-        "a_source_only_rows": list(response["a_source_only_rows"]),
-        "a_all_pool_rows": list(response["a_all_pool_rows"]),
-    }
-    array_pagination = {
-        name: preselection_domain._page_metadata(array_rows, limit=limit, offset=offset)
-        for name, array_rows in full_arrays.items()
-    }
-    response["unified_rows"] = preselection_domain._page_per_market(full_arrays["unified_rows"], limit, offset)
-    response["a_source_only_rows"] = preselection_domain._page_per_market(full_arrays["a_source_only_rows"], limit, offset)
-    response["a_all_pool_rows"] = preselection_domain._page_per_market(full_arrays["a_all_pool_rows"], limit, offset)
-    paged_pools: list[dict[str, Any]] = []
-    pool_pagination: dict[str, dict[str, Any]] = {}
-    for pool in response["pools"]:
-        full_pool_rows = list(pool.get("rows", []))
-        metadata = preselection_domain._page_metadata(
-            full_pool_rows, limit=limit, offset=offset, status=str(pool.get("status") or "")
-        )
-        pool_id = str(pool.get("pool_id") or "")
-        pool_pagination[pool_id] = metadata
-        paged_pools.append({
-            **pool,
-            "pool_size": len(full_pool_rows),
-            "returned_rows": metadata["returned_rows"],
-            "rows": preselection_domain._page_per_market(full_pool_rows, limit, offset),
-            "page_offset": offset,
-            "page_limit": limit,
-            "has_more": metadata["has_more"],
-            "complete": metadata["complete"],
-        })
-    response["pools"] = paged_pools
-    response["rows"] = [row for pool in paged_pools for row in pool.get("rows", [])]
-    has_more = any(metadata["has_more"] for metadata in (*array_pagination.values(), *pool_pagination.values()))
-    response["pagination"] = {
-        "offset": offset,
-        "limit": limit,
-        "next_offset": offset + limit if has_more else None,
-        "has_more": has_more,
-        "complete": not has_more and status == "READY_WITH_ROWS" and all(
-            metadata["complete"]
-            for pool_id, metadata in pool_pagination.items()
-            if pool_id not in OPTIONAL_DAILY_POOL_IDS
-        ),
-        "arrays": array_pagination,
-        "pools": pool_pagination,
-    }
-    response["a_all_pool_complete"] = array_pagination["a_all_pool_rows"]["complete"]
-    response["unified_rows_complete"] = array_pagination["unified_rows"]["complete"]
-    response["a_source_only_rows_complete"] = array_pagination["a_source_only_rows"]["complete"]
-    response["optional_pool_status"] = payload.get("optional_pool_status", "CANNOT_CONFIRM")
-    response["daily_readiness_status"] = payload.get("daily_readiness_status", status)
-    response["mandatory_pool_ids"] = list(payload.get("mandatory_pool_ids", ()))
-    response["optional_pool_ids"] = list(payload.get("optional_pool_ids", OPTIONAL_DAILY_POOL_IDS))
-    return response
+    """Verify saved bars and original scorer output for the approved dated observation.
+
+    Read only: no acquisition, scoring, repair or fallback. Bar labels and the
+    late capture clock remain distinct from the requested stage cutoff.
+    """
+    import csv
+    import io
+    import json
+    import math
+
+    binding = _HK_MORNING_HISTORY_20261023.get(stage_id) if trade_date == "20261023" else None
+    if binding is None or selection_root is None:
+        return {}
+    root = Path(selection_root).parent
+    try:
+        # Verify full immutable trios and the cache before interpreting any values.
+        documents: dict[str, bytes] = {}
+        for relative, expected in binding["files"].items():
+            path = root / relative
+            if any(parent.is_symlink() for parent in (path, *path.parents)):
+                return {}
+            raw = path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != expected:
+                return {}
+            documents[relative] = raw
+        manifest = json.loads(documents[binding["selection_manifest"]])
+        envelope = manifest["selection_envelope"]
+        for key in ("trade_date", "stage_id", "market", "run_id", "artifact_id",
+                    "algorithm_id", "algorithm_sha256", "raw_artifact_sha256",
+                    "selection_status", "source_status", "requested_rows", "source_rows",
+                    "selected_rows", "missing_symbols", "cannot_confirm", "source_evidence"):
+            if market_payload.get(key) != envelope.get(key):
+                return {}
+        if (envelope["trade_date"] != trade_date or envelope["stage_id"] != stage_id
+                or envelope["market"] != "HK_CONNECT" or envelope["run_id"] != binding["run_id"]
+                or market_payload.get("status") != "PARTIAL_WITH_ROWS"
+                or envelope["selection_status"] != "PARTIAL_WITH_ROWS"
+                or envelope["source_status"] != "CANNOT_CONFIRM"
+                or envelope["cannot_confirm"] != ["HK_ACTIVE_SNAPSHOT_UNAVAILABLE"]
+                or envelope["missing_symbols"] or envelope["requested_rows"] != 100
+                or envelope["source_rows"] != 100 or envelope["selected_rows"] != 10
+                or len(rows) != 10):
+            return {}
+        # Consumer adds only the display order. All scorer values must be identical.
+        if [{k: v for k, v in row.items() if k != "order"} for row in rows] != envelope["rows"]:
+            return {}
+        if any(row.get("formal_eligible") is not False or row.get("action_level") != "NO_BUY"
+               or row.get("source_mode") != "HK_CONNECT_FOUR_LANE"
+               or row.get("trade_status") not in {"NO_TRADE", "WATCH_ONLY"} for row in rows):
+            return {}
+        if any(envelope.get(key) is not False for key in
+               ("production_allowed", "buy_gate_updated", "orders_sent")):
+            return {}
+        pool_bytes = (Path(pool_root) / "preselection_pools/20261023/hkconnect_d1_top100.json").read_bytes()
+        if hashlib.sha256(pool_bytes).hexdigest() != "e8921f1eadf3cbac3d63fe2b012e5c9ac25652af08a68681886fc179b540dbef":
+            return {}
+        pool = json.loads(pool_bytes)
+        codes = {row["code_norm"] for row in pool["rows"]}
+        if (len(codes) != 100 or len(pool["rows"]) != 100 or pool["market"] != "HK"
+                or pool["target_date"] != trade_date or pool["signal_date"] != "20261022"
+                or pool["status"] != "STRICT_0_2_READY"):
+            return {}
+        capture = json.loads(documents[binding["capture_relative"]])
+        if (capture["market"] != "HK_CONNECT" or capture["trade_date"] != trade_date
+                or capture["stage_id"] != stage_id or capture["adjustment"] != "NONE"
+                or capture["captured_at"] != binding["captured_at"]
+                or capture["errors"] or capture["no_data_codes"]
+                or len(capture["codes"]) != 100 or set(capture["codes"]) != codes):
+            return {}
+        cutoff = datetime.fromisoformat(binding["cutoff_at"])
+        captured = datetime.fromisoformat(capture["captured_at"])
+        # Bind the requested cutoff to the frozen stage definition, not caller data.
+        if binding["cutoff_at"] != f"2026-10-23T{STAGE_DEFINITIONS[stage_id]['cutoff']}+08:00":
+            return {}
+        if captured <= cutoff:
+            return {}
+        raw_manifest = json.loads(documents[binding["raw_manifest"]])
+        if (raw_manifest["trade_date"] != trade_date or raw_manifest["stage_id"] != stage_id
+                or raw_manifest["market"] != "HK_CONNECT" or raw_manifest["source_id"] != "futu"
+                or raw_manifest["temporal_cutoff_safe"] is not False
+                or raw_manifest["artifact_sha256"] != envelope["raw_artifact_sha256"]):
+            return {}
+        safe = _HK_MORNING_HISTORY_SAFE_PACKETS[stage_id]
+        packet_root = Path(selection_root) / "historical_observations/20261023" / stage_id
+        packet: dict[str, bytes] = {}
+        for relative, expected in safe["files"].items():
+            path = packet_root / relative
+            if any(parent.is_symlink() for parent in (path, *path.parents)):
+                return {}
+            raw = path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != expected:
+                return {}
+            packet[relative] = raw
+        from stage_center.selection import SelectionStore
+        observed = SelectionStore(packet_root / "selection").read_verified(trade_date, stage_id, "HK_CONNECT")
+        if (observed["run_id"] != safe["selection_run_id"] or len(observed["rows"]) != 10
+                or observed["algorithm_sha256"] != envelope["algorithm_sha256"]
+                or observed["source_status"] != "CANNOT_CONFIRM"
+                or observed["selection_status"] != "PARTIAL_WITH_ROWS"
+                or observed["requested_rows"] != 100 or observed["source_rows"] != 100
+                or any(row.get("formal_eligible") is not False or row.get("action_level") != "NO_BUY"
+                       for row in observed["rows"])
+                or any(observed.get(key) is not False for key in
+                       ("production_allowed", "buy_gate_updated", "orders_sent"))):
+            return {}
+        bars = {code: [] for code in codes}
+        for bar in capture["rows"]:
+            if safe["window_start"] <= bar["time_key"] <= safe["window_end"]:
+                if bar["code"] not in codes:
+                    return {}
+                if any(not math.isfinite(float(bar[key])) for key in
+                       ("open", "high", "low", "close", "volume", "turnover", "last_close")):
+                    return {}
+                bars[bar["code"]].append(bar)
+        raw_rows = list(csv.DictReader(io.StringIO(packet["derived_raw.csv"].decode("utf-8-sig"))))
+        if len(raw_rows) != 100 or {row["code"] for row in raw_rows} != codes:
+            return {}
+        for raw_row in raw_rows:
+            code_bars = sorted(bars[raw_row["code"]], key=lambda bar: bar["time_key"])
+            if (len(code_bars) != safe["bars_per_code"]
+                    or len({bar["time_key"] for bar in code_bars}) != len(code_bars)
+                    or code_bars[0]["time_key"] != safe["window_start"]
+                    or code_bars[-1]["time_key"] != safe["window_end"]
+                    or raw_row["trade_date"] != trade_date
+                    or raw_row["window_start"] != safe["window_start"]
+                    or raw_row["window_end"] != safe["window_end"]
+                    or int(raw_row["bar_count"]) != len(code_bars)):
+                return {}
+            aggregate = {
+                "open_price": code_bars[0]["open"], "last_price": code_bars[-1]["close"],
+                "high_price": max(bar["high"] for bar in code_bars),
+                "low_price": min(bar["low"] for bar in code_bars),
+                "volume": sum(bar["volume"] for bar in code_bars),
+                "turnover": sum(bar["turnover"] for bar in code_bars),
+            }
+            if any(not math.isclose(float(raw_row[key]), float(value), rel_tol=1e-9, abs_tol=1e-6)
+                   for key, value in aggregate.items()):
+                return {}
+        return {
+            "label": "早盘历史回放观察 / 缺失原时点盘口 / 非正式阶段结果",
+            "source_id": "FUTU_K_1M", "raw_source_id": "futu", "adjustment": "NONE",
+            "trade_date": trade_date, "stage_id": stage_id, "selection_run_id": observed["run_id"], "original_selection_run_id": binding["run_id"],
+            "artifact_id": observed["artifact_id"], "raw_artifact_sha256": observed["raw_artifact_sha256"],
+            "algorithm_id": observed["algorithm_id"], "algorithm_sha256": observed["algorithm_sha256"],
+            "source_evidence": observed["source_evidence"],
+            "_rows": [{**row, "order": index + 1} for index, row in enumerate(observed["rows"])],
+            "capture_sha256": binding["capture_sha256"], "captured_at": capture["captured_at"],
+            "asof_cutoff": binding["cutoff_at"], "captured_after_cutoff": True,
+            "bar_label_start": safe["window_start"], "bar_label_end": safe["window_end"],
+            "bar_interval_semantics": "CANNOT_CONFIRM", "stage_window_coverage": "CONSERVATIVE_INTERSECTION_ONLY", "boundary_bars_excluded": True,
+            "bars_per_code": safe["bars_per_code"], "window_bar_count": sum(map(len, bars.values())),
+            "d1_membership_count": 100, "formal_eligible": False, "natural": False,
+            "active_snapshot_available": False, "temporal_cutoff_safe": False,
+            "missing_fields": ["order_book", "volume_ratio", "native_update_time", "native_snapshot"],
+            "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+        }
+    except (OSError, ValueError, TypeError, KeyError, IndexError, OverflowError):
+        return {}
 
 
 def create_app(
@@ -4054,20 +4271,11 @@ def create_app(
     research_ledger_root: Path | str | None = None,
     morning_news_data_root: Path | str | None = None,
     preselection_source_root: Path | str | None = None,
-    module_role: str = "combined",
+    stage_center_research_binding_path: Path | str | None = None,
+    stage_center_research_binding_sha256: str | None = None,
     manager_workbench_config: Any | None = None,
 ) -> FastAPI:
-    if module_role not in {"combined", "gateway", "stage", "manager"}:
-        raise ValueError("V35_API_ROLE_UNSUPPORTED")
-    if module_role != "combined" and stage_center_selection_root is None and not os.environ.get("V35_STAGE_CENTER_SELECTION_ROOT"):
-        raise ValueError("V35_API_ROLE_REQUIRES_SHARED_STAGE_SELECTION_ROOT")
-    app = FastAPI(
-        title="V3.5",
-        version="0.1.0",
-        docs_url=None if module_role in {"stage", "manager"} else "/docs",
-        redoc_url=None if module_role in {"stage", "manager"} else "/redoc",
-        openapi_url=None if module_role in {"stage", "manager"} else "/openapi.json",
-    )
+    app = FastAPI(title="V3.5", version="0.1.0")
     store = NativeDataStore(data_root or Path.cwd() / ".runtime" / "data")
     review_store = ReviewStore(store.root)
     configured_research_root = research_data_root or os.environ.get("V35_RESEARCH_DATA_ROOT")
@@ -4104,6 +4312,18 @@ def create_app(
         )
         if configured_selection_root is not None
         else None
+    )
+    approved_research_reader = (
+        ApprovedResearchReadBinding(
+            binding_path=(stage_center_research_binding_path
+                          if stage_center_research_binding_path is not None
+                          else Path(__file__).resolve().parents[3] / "stage_center/approved_research_read.json"),
+            history_root=configured_selection_root,
+            api_root=Path(__file__).resolve().parents[3],
+            expected_reader_sha256=_STAGE_RESEARCH_READER_SHA256,
+            expected_binding_sha256=stage_center_research_binding_sha256,
+            a_name_pool_root=shared_selection_consumer.a_name_pool_root,
+        ) if shared_selection_consumer is not None else None
     )
     if shared_selection_consumer is None:
         stage_store = StageStore(store.root)
@@ -4176,15 +4396,161 @@ def create_app(
             return "PARTIAL_WITH_ROWS"
         return str(fallback or "PARTIAL_WITH_ROWS")
 
+    def _legacy_hk_consumer_rows_match(rows: list[dict], bound_rows: Any) -> bool:
+        """Allow only the existing consumer's exact positional order projection."""
+        if not isinstance(bound_rows, list) or len(rows) != len(bound_rows):
+            return False
+        for position, (row, original) in enumerate(zip(rows, bound_rows), 1):
+            if not isinstance(row, dict) or not isinstance(original, dict):
+                return False
+            if type(row.get("order")) is not int or row["order"] != position:
+                return False
+            if "order" in original:
+                if type(original["order"]) is not int or original["order"] != position or row != original:
+                    return False
+            elif {key: value for key, value in row.items() if key != "order"} != original:
+                return False
+        return True
+
+    def _legacy_hk_pit_observation(
+        market_payload: Mapping[str, Any], rows: list[dict], *, trade_date: str, stage_id: str,
+    ) -> bool:
+        """Read-only compatibility for R1's PIT-only raw-status regression."""
+        if (configured_selection_root is None
+                or stage_id not in {"STAGE_1300_1315", "STAGE_1445_1500"}
+                or market_payload.get("status") != "PARTIAL_WITH_ROWS"
+                or market_payload.get("selection_status") != "PARTIAL_WITH_ROWS"
+                or market_payload.get("source_status") != "CANNOT_CONFIRM"
+                or market_payload.get("cannot_confirm") != ["HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF"]
+                or market_payload.get("requested_rows") != 100
+                or market_payload.get("source_rows") != 100
+                or market_payload.get("selected_rows") != 10 or len(rows) != 10
+                or market_payload.get("missing_symbols")):
+            return False
+        try:
+            from infrastructure.owned_io import SafeRoot
+            from stage_center.selection import SelectionStore
+            from ops.verify_stage_execution import validate_execution_inputs
+            selection_root = Path(configured_selection_root).resolve(strict=True)
+            stage_root = selection_root.parent
+            bound = SelectionStore(selection_root).read_verified(trade_date, stage_id, "HK_CONNECT")
+            if any(market_payload.get(key) != bound.get(key) for key in (
+                    "artifact_id", "run_id", "raw_artifact_sha256", "source_status", "selection_status",
+                    "source_rows", "requested_rows", "selected_rows", "source_evidence", "cannot_confirm")):
+                return False
+            if not _legacy_hk_consumer_rows_match(rows, bound.get("rows")):
+                return False
+            receipt_raw = SafeRoot(stage_root / "receipts").read_bytes(
+                f"{trade_date}/{stage_id}/receipt.json", max_bytes=16 * 1024 * 1024)
+            inputs = validate_execution_inputs(
+                trade_date=trade_date, stage_id=stage_id, receipt_root=stage_root / "receipts",
+                raw_root=stage_root / "raw", selection_root=selection_root,
+                expected_receipt_sha256=hashlib.sha256(receipt_raw).hexdigest(),
+                hk_d1_root=store.root,
+                preselection_source_root=resolved_pool_source if configured_pool_source else None,
+                hk_second_filter_root=store.root / "opening_second_filter",
+                shared_research_root=Path(configured_morning_news_root) if configured_morning_news_root else None,
+            )
+            return bool(inputs["raw_artifact"]["sha256"] == market_payload["raw_artifact_sha256"]
+                        and inputs["source_reconciliation"]["raw_rows"] == 100
+                        and inputs["source_reconciliation"]["selected_rows"] == 10
+                        and inputs["source_time_facts"]["pit_status"] == "CANNOT_CONFIRM")
+        except Exception:
+            return False
+
+    def _hk_morning_selection_recovery_observation(
+        market_payload: Mapping[str, Any],
+        rows: list[dict],
+        *,
+        trade_date: str,
+        stage_id: str,
+    ) -> bool:
+        binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
+            (trade_date, stage_id)
+        )
+        if binding is None:
+            return False
+        evidence = market_payload.get("source_evidence")
+        if not isinstance(evidence, (list, tuple)) or any(
+            not isinstance(item, str) for item in evidence
+        ):
+            return False
+        if hashlib.sha256("\n".join(evidence).encode("utf-8")).hexdigest() != binding[
+            "source_evidence_sha256"
+        ]:
+            return False
+        if (
+            market_payload.get("market") != "HK_CONNECT"
+            or market_payload.get("status") != "PARTIAL_WITH_ROWS"
+            or market_payload.get("selection_status") != "PARTIAL_WITH_ROWS"
+            or market_payload.get("source_status") != "CANNOT_CONFIRM"
+            or market_payload.get("run_id") != binding["selection_run_id"]
+            or market_payload.get("artifact_id") != binding["artifact_id"]
+            or market_payload.get("raw_artifact_sha256") != binding["raw_artifact_sha256"]
+            or market_payload.get("algorithm_id") != binding["algorithm_id"]
+            or market_payload.get("algorithm_sha256") != binding["algorithm_sha256"]
+            or market_payload.get("requested_rows") != 100
+            or market_payload.get("source_rows") != 100
+            or market_payload.get("selected_rows") != 10
+            or market_payload.get("missing_symbols")
+            or market_payload.get("cannot_confirm") != ["HK_ACTIVE_SNAPSHOT_UNAVAILABLE"]
+            or market_payload.get("backfill_run_id") != binding["backfill_run_id"]
+            or market_payload.get("selection_manifest_sha256") != binding["selection_manifest_sha256"]
+            or market_payload.get("selection_receipt_sha256") != binding["selection_receipt_sha256"]
+            or market_payload.get("selection_artifact_sha256") != binding["selection_artifact_sha256"]
+            or market_payload.get("runner_receipt_sha256") != binding["runner_receipt_sha256"]
+            or market_payload.get("selection_manifest_receipt_verified") is not True
+            or market_payload.get("runner_receipt_verified") is not True
+            or len(rows) != 10
+            or any(
+                marker not in evidence
+                for marker in binding["required_evidence"]
+            )
+        ):
+            return False
+        seen_codes: set[str] = set()
+        seen_ranks: set[int] = set()
+        for row in rows:
+            if not isinstance(row, Mapping):
+                return False
+            code = str(row.get("code") or "")
+            rank = row.get("rank")
+            if (
+                not code
+                or code in seen_codes
+                or isinstance(rank, bool)
+                or not isinstance(rank, int)
+                or rank <= 0
+                or rank in seen_ranks
+                or row.get("formal_eligible") is not False
+                or row.get("action_level") != "NO_BUY"
+                or row.get("trade_status") not in {"NO_TRADE", "WATCH_ONLY"}
+                or row.get("status") != row.get("trade_status")
+                or row.get("source_mode") != "HK_CONNECT_FOUR_LANE"
+            ):
+                return False
+            seen_codes.add(code)
+            seen_ranks.add(rank)
+        return "HK_ACTIVE_SNAPSHOT_UNAVAILABLE" in evidence
+
     def _hk_display_mode(
         market_payload: Mapping[str, Any],
         rows: list[dict],
         execution_market: Mapping[str, Any] | None,
+        *,
+        legacy_pit_observation: bool = False,
+        morning_selection_recovery: bool = False,
     ) -> tuple[str, list[str]]:
         """Only call HK rows formal after selection and execution binding agree."""
         status = str(market_payload.get("status") or "CANNOT_CONFIRM")
         selection_status = str(market_payload.get("selection_status") or status)
         reasons = [str(item) for item in market_payload.get("cannot_confirm") or []]
+        # Display PIT qualifiers without turning valid partial rows into data errors.
+        reasons.extend(item.split("=", 1)[1] for item in market_payload.get("source_evidence") or []
+                       if isinstance(item, str) and item.startswith("futu_pit_cannot_confirm=")
+                       and item.split("=", 1)[1] in {
+                           "HK_FUTU_CAPTURE_NOT_BEFORE_STAGE_CUTOFF", "HK_FUTU_FULL_CHAIN_PIT_UNVERIFIED",
+                           "HK_FUTU_CAPTURE_CLOCK_UNAVAILABLE", "HK_FUTU_CAPTURE_CLOCK_DATE_MISMATCH"})
         identity_present = all(
             isinstance(market_payload.get(field), str) and market_payload.get(field)
             for field in ("artifact_id", "run_id", "raw_artifact_sha256")
@@ -4240,10 +4606,26 @@ def create_app(
         if (
             status not in {"READY", "PARTIAL_WITH_ROWS"}
             or selection_status not in {"READY", "PARTIAL_WITH_ROWS"}
-            or market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
+            or (market_payload.get("source_status") not in {"READY", "PARTIAL_WITH_ROWS"}
+                and not legacy_pit_observation
+                and not morning_selection_recovery)
         ):
             reasons.append("HK_SELECTION_OR_SOURCE_STATUS_NOT_READY")
             return "CANNOT_CONFIRM", list(dict.fromkeys(reasons))
+
+        if legacy_pit_observation:
+            return "OBSERVATION_UNVERIFIED", list(dict.fromkeys(reasons + [
+                "HK_LEGACY_PIT_ONLY_OBSERVATION_INPUTS_REVALIDATED",
+                "HK_FULL_CHAIN_PIT_AND_FORMAL_ELIGIBILITY_CANNOT_CONFIRM",
+            ]))
+
+        if morning_selection_recovery:
+            return "OBSERVATION_UNVERIFIED", list(dict.fromkeys(reasons + [
+                "HK_MORNING_SELECTION_OBSERVATION_REPROJECTED",
+                "HK_CAPTURE_AFTER_STAGE_CUTOFF_PIT_UNSAFE",
+                "HK_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+                "HK_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+            ]))
 
         execution = execution_market if isinstance(execution_market, Mapping) else {}
         binding = execution.get("selection_binding")
@@ -4290,6 +4672,7 @@ def create_app(
         backfill_provenance_fields = frozenset(
             {
                 "selection_mode",
+                "selection_run_id",
                 "backfill_run_id",
                 "backfill_run_ids",
                 "selection_manifest_sha256",
@@ -4305,6 +4688,12 @@ def create_app(
         for canonical_market, market_payload in canonical_markets.items():
             alias = aliases.get(canonical_market, canonical_market)
             rows = list(market_payload.get("rows") or [])[:limit]
+            if canonical_market == "A_SHARE":
+                from stage_center.news_link_projection import project_news_links
+                rows = project_news_links(
+                    rows, market_payload, trade_date=str(payload.get("trade_date") or ""),
+                    morning_root=configured_morning_news_root,
+                )
             projected_rows = rows
             frontend_markets[alias] = {
                 key: market_payload.get(key)
@@ -4337,6 +4726,7 @@ def create_app(
                     "name_authority_missing_count",
                     "name_authority_error",
                     "selection_mode",
+                    "selection_run_id",
                     "backfill_run_id",
                     "backfill_run_ids",
                     "selection_manifest_sha256",
@@ -4355,9 +4745,54 @@ def create_app(
             frontend_markets[alias]["candidate_count"] = len(rows)
             frontend_markets[alias]["rows"] = rows
             if canonical_market == "HK_CONNECT" and ordinary_hk_display:
-                display_mode, display_reasons = _hk_display_mode(
-                    market_payload, rows, execution_markets.get(canonical_market)
+                history_observation = _hk_morning_history_observation(
+                    configured_selection_root, resolved_pool_source, market_payload, rows,
+                    trade_date=str(payload.get("trade_date") or ""),
+                    stage_id=str(payload.get("stage_id") or ""),
                 )
+                if history_observation:
+                    rows = history_observation.pop("_rows")
+                    projected_rows = rows
+                    frontend_markets[alias].update({
+                        key: history_observation[key] for key in (
+                            "selection_run_id", "artifact_id", "raw_artifact_sha256",
+                            "algorithm_id", "algorithm_sha256", "source_evidence")
+                    })
+                    frontend_markets[alias]["run_id"] = history_observation["selection_run_id"]
+                    frontend_markets[alias]["rows"] = rows
+                    # The original formal/source failure remains independently visible.
+                    frontend_markets[alias]["original_formal_selection"] = {
+                        key: market_payload.get(key) for key in (
+                            "run_id", "artifact_id", "status", "selection_status", "source_status",
+                            "raw_artifact_sha256", "cannot_confirm")
+                    }
+                    if selection_markets is canonical_markets:
+                        selection_markets = dict(canonical_markets)
+                    selection_markets[canonical_market] = {**market_payload, "rows": []}
+                display_mode, display_reasons = _hk_display_mode(
+                    market_payload, rows, execution_markets.get(canonical_market),
+                    legacy_pit_observation=_legacy_hk_pit_observation(
+                        market_payload, rows, trade_date=str(payload.get("trade_date") or ""),
+                        stage_id=str(payload.get("stage_id") or "")),
+                    morning_selection_recovery=bool(history_observation) or _hk_morning_selection_recovery_observation(
+                        market_payload,
+                        rows,
+                        trade_date=str(payload.get("trade_date") or ""),
+                        stage_id=str(payload.get("stage_id") or ""),
+                    ),
+                )
+                if history_observation:
+                    frontend_markets[alias].update({
+                        "historical_observation": history_observation,
+                        "formal_count": 0, "formal_eligible": False, "natural": False,
+                        "production_allowed": False, "buy_gate_updated": False, "orders_sent": False,
+                    })
+                    display_reasons = list(dict.fromkeys(display_reasons + [
+                        history_observation["label"],
+                        "来源 FUTU_K_1M；历史分钟线；原时点盘口/量比/原生更新时间缺失",
+                        f"实际采集 {history_observation['captured_at']}；阶段截止 {history_observation['asof_cutoff']}",
+                        f"原始bar标签 {history_observation['bar_label_start']}—{history_observation['bar_label_end']}；每只{history_observation['bars_per_code']}根×100只；已排除边界bar，仅保守交集，分钟标签语义待确认",
+                    ]))
                 frontend_markets[alias]["display_mode"] = display_mode
                 frontend_markets[alias]["display_reasons"] = display_reasons
                 frontend_markets[alias]["observation_count"] = (
@@ -4431,7 +4866,11 @@ def create_app(
                 "label": stage_definition.get("label", stage_id),
                 "window": stage_definition.get("window", ""),
                 "status": stage_status,
-                "display_status": stage_status,
+                "display_status": (
+                    stage_status + "；港股历史回放观察·未验证；分钟线事后采集；缺原时点盘口、量比/原生更新时间；边界分钟未计入；不能证明原时点选股结果"
+                    if frontend_markets.get("HK", {}).get("historical_observation")
+                    else stage_status
+                ),
                 "cannot_confirm": cannot_confirm,
             },
             "selected_a_rows": selected_a,
@@ -4897,151 +5336,119 @@ def create_app(
         response["runtime_identity"] = identity
         return response
 
-    @app.get("/api/v3/preselection-pools")
-    def preselection_pools(
-        date: str | None = None,
-        limit: int = Query(default=200, ge=1, le=300),
-        offset: int = Query(default=0, ge=0),
-        page: int | None = Query(default=None, ge=1),
-    ) -> dict:
-        requested = _strict_date(date) if date is not None else None
-        catalog = _catalog()
-        selected = requested or catalog["default_date"] or catalog["system_date"]
-        page_offset = (page - 1) * limit if page is not None else offset
-        response = preselection(
+    app.include_router(create_preselection_router(
+        PreselectionPoolService(
             store,
-            selected,
-            limit,
-            offset=page_offset,
-            preselection_source_root=resolved_pool_source,
-        )
-        if configured_pool_source:
-            configured_root = resolved_pool_source.expanduser().resolve()
-            local_root = store.root.expanduser().resolve()
-            if configured_root != local_root:
-                try:
-                    local_pools = PreselectionPoolStore(store.root).read_all(selected)
-                except FileNotFoundError:
-                    local_pools = []
-                except (OSError, ValueError, TypeError, KeyError):
-                    local_pools = None
-                if local_pools:
-                    local_hk_pool = next(
-                        (pool for pool in local_pools if pool.get("pool_id") == "hkconnect_d1_top100"),
-                        None,
-                    )
-                    local_hk_missing = local_hk_pool is None or (
-                        local_hk_pool.get("status") == "CANNOT_CONFIRM"
-                        and not local_hk_pool.get("rows")
-                        and local_hk_pool.get("source_role") == "EXPECTED_MISSING"
-                        and local_hk_pool.get("source_path") == ""
-                    )
-                    local_hk_ready = bool(local_hk_pool and local_hk_pool.get("rows")) and (
-                        str(local_hk_pool.get("status") or "").upper().endswith("_READY")
-                        or str(local_hk_pool.get("status") or "").upper() in {"READY", "MATERIALIZED", "AVAILABLE"}
-                    )
-                    if local_hk_missing and not local_hk_ready:
-                        source_pending = False
-                        source_unconfirmed: str | None = None
-                        try:
-                            from infrastructure.interprocess_lock import owned_interprocess_lock
+            configured_pool_source=bool(configured_pool_source),
+            resolved_pool_source=resolved_pool_source,
+        ),
+        get_catalog=_catalog,
+        validate_date=_strict_date,
+    ))
 
-                            source_store = PreselectionPoolStore(resolved_pool_source)
-                            with owned_interprocess_lock(
-                                source_store.root / ".import.lock",
-                                timeout_seconds=10,
-                                timeout_message="data-root import lock timeout",
-                            ) as source_lock:
-                                pending_relative_for = getattr(
-                                    source_store, "_pending_relative", None
-                                )
-                                pending_relative = (
-                                    pending_relative_for(
-                                        trade_date=selected,
-                                        pool_id="hkconnect_d1_top100",
-                                    )
-                                    if callable(pending_relative_for)
-                                    else (
-                                        "preselection_pending_commits/"
-                                        f"{selected}/hkconnect_d1_top100.json"
-                                    )
-                                )
-                                try:
-                                    source_store._io.read_bytes(pending_relative)
-                                except FileNotFoundError:
-                                    snapshot_reader = source_store.read_pool_snapshot
-                                    if "lock_lease" in inspect.signature(
-                                        snapshot_reader
-                                    ).parameters:
-                                        source_snapshot = snapshot_reader(
-                                            selected,
-                                            "hkconnect_d1_top100",
-                                            lock_lease=source_lock,
-                                        )
-                                    else:
-                                        # R9's descriptor-anchored snapshot reader
-                                        # is already read-only and does not accept a
-                                        # lease keyword.  The caller still holds the
-                                        # same root import lock around pending check
-                                        # and trio read.
-                                        source_snapshot = snapshot_reader(
-                                            selected, "hkconnect_d1_top100"
-                                        )
-                                else:
-                                    source_pending = True
-                                    source_snapshot = None
-                        except FileNotFoundError:
-                            source_snapshot = None
-                        except OSError:
-                            source_snapshot = None
-                            source_unconfirmed = "source_read_unavailable"
-                        except (ValueError, TypeError, KeyError):
-                            source_snapshot = None
-                            source_unconfirmed = "source_integrity_unconfirmed"
-                        if source_pending or source_unconfirmed is not None:
-                            response["configured_hk_pool_fallback"] = {
-                                "applied": False,
-                                "status": "CANNOT_CONFIRM",
-                                "reason": (
-                                    "source_pending_commit"
-                                    if source_pending
-                                    else source_unconfirmed
-                                ),
-                                "read_policy": "read_only_exact_date",
-                                "target_date": selected,
-                                "production_allowed": False,
-                                "buy_gate_updated": False,
-                                "orders_sent": False,
-                            }
-                        source_pool = source_snapshot.get("artifact") if isinstance(source_snapshot, Mapping) else None
-                        if isinstance(source_pool, Mapping) and _is_exact_configured_hk_pool(source_pool, selected):
-                            merged_pools = [
-                                pool for pool in local_pools
-                                if pool.get("pool_id") != "hkconnect_d1_top100"
-                            ]
-                            merged_pools.append(dict(source_pool))
-                            response = _preselection_response_from_pools(
-                                merged_pools,
-                                trade_date=selected,
-                                limit=limit,
-                                offset=page_offset,
-                            )
-                            response["configured_hk_pool_fallback"] = {
-                                "applied": True,
-                                "read_policy": "read_only_exact_date",
-                                "target_date": selected,
-                                "pool_artifact_sha256": source_snapshot.get("artifact_raw_sha256"),
-                                "pool_manifest_sha256": source_snapshot.get("manifest_raw_sha256"),
-                                "pool_receipt_sha256": source_snapshot.get("receipt_raw_sha256"),
-                                "producer_run_id": source_pool.get("source_run_id"),
-                                "producer_artifact_sha256": source_pool.get("source_sha256"),
-                                "producer_manifest_sha256": source_pool.get("source_manifest_sha256"),
-                                "producer_receipt_sha256": source_pool.get("source_receipt_sha256"),
-                            }
-        response["requested_date"] = requested
-        response["selected_date"] = selected
-        response["page"] = page if page is not None else (page_offset // limit) + 1
-        return response
+    def _read_hk_morning_selection_recovery_override(
+        payload: dict,
+        trade_date: str,
+        stage_id: str,
+        limit: int,
+    ) -> dict | None:
+        binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
+            (trade_date, stage_id)
+        )
+        if binding is None:
+            return None
+        try:
+            from stage_center.selection import SelectionStore
+
+            if configured_selection_root is None:
+                return None
+            store = SelectionStore(configured_selection_root)
+            original = store.read_verified(trade_date, stage_id, "HK_CONNECT")
+            verified = store._verify_run(
+                trade_date, stage_id, "HK_CONNECT", binding["selection_run_id"]
+            )
+            if not isinstance(original, Mapping):
+                return None
+            original_rows = original.get("rows")
+            if (
+                original.get("run_id") != binding["selection_run_id"]
+                or original.get("artifact_id") != binding["artifact_id"]
+                or original.get("raw_artifact_sha256") != binding["raw_artifact_sha256"]
+                or original.get("algorithm_id") != binding["algorithm_id"]
+                or original.get("algorithm_sha256") != binding["algorithm_sha256"]
+                or original.get("source_status") != "CANNOT_CONFIRM"
+                or original.get("selection_status") != "PARTIAL_WITH_ROWS"
+                or original.get("requested_rows") != 100
+                or original.get("source_rows") != 100
+                or original.get("selected_rows") != 10
+                or original.get("missing_symbols")
+                or original.get("cannot_confirm") != ["HK_ACTIVE_SNAPSHOT_UNAVAILABLE"]
+                or not isinstance(original_rows, list)
+                or len(original_rows) != 10
+            ):
+                return None
+            if (
+                verified.get("manifest_sha256") != binding["original_manifest_sha256"]
+                or verified.get("receipt_sha256") != binding["original_receipt_sha256"]
+                or verified.get("artifact_sha256") != binding["selection_artifact_sha256"]
+            ):
+                return None
+            markets = payload.get("markets")
+            prior_hk = markets.get("HK_CONNECT") if isinstance(markets, Mapping) else None
+            if isinstance(prior_hk, Mapping) and any(
+                prior_hk.get(field) not in (None, expected)
+                for field, expected in (
+                    ("run_id", binding["selection_run_id"]),
+                    ("artifact_id", binding["artifact_id"]),
+                    ("raw_artifact_sha256", binding["raw_artifact_sha256"]),
+                )
+            ):
+                return None
+            # The ordinary consumer hides rows for CANNOT_CONFIRM. Reattach the
+            # verified exact identity only for supersession comparison; the
+            # exact backfill route supplies the displayed observation rows.
+            payload = dict(payload)
+            markets = dict(markets or {})
+            markets["HK_CONNECT"] = {
+                "market": "HK_CONNECT",
+                "status": original["selection_status"],
+                "selection_status": original["selection_status"],
+                "source_status": original["source_status"],
+                "artifact_id": original["artifact_id"],
+                "run_id": original["run_id"],
+                "raw_artifact_sha256": original["raw_artifact_sha256"],
+                "requested_rows": original["requested_rows"],
+                "source_rows": original["source_rows"],
+                "selected_rows": original["selected_rows"],
+                "source_evidence": list(original.get("source_evidence") or []),
+                "missing_symbols": list(original.get("missing_symbols") or []),
+                "cannot_confirm": list(original.get("cannot_confirm") or []),
+                "rows": list(original_rows),
+            }
+            payload["markets"] = markets
+            result = _read_exact_target_hk_override(
+                payload,
+                trade_date,
+                stage_id,
+                limit,
+                {
+                    "backfill_run_id": binding["backfill_run_id"],
+                    # The candidate is an exact selection-row projection; it does
+                    # not claim a new full-pool acquisition or missing-code list.
+                    "requested_rows": None,
+                },
+                source_label="HK_MORNING_PRECAPTURE_OBSERVATION_REPROJECTION_R1",
+                target_pool_sha256="78646320d1140bb574b6aee66c9bd6b51f57ca0797fd96e4f2775e245a57efd8",
+            )
+            result["markets"]["HK_CONNECT"]["trade_date"] = trade_date
+            result["markets"]["HK_CONNECT"]["stage_id"] = stage_id
+            return result
+        except (OSError, ValueError, TypeError, KeyError):
+            return None
+        except HTTPException as error:
+            if error.status_code in {404, 409}:
+                return None
+            raise
 
     @app.get("/api/v3/workbench/stage")
     def stage_workbench(
@@ -5056,6 +5463,41 @@ def create_app(
             selected = _catalog()["system_date"]
         if stage not in FROZEN_STAGE_IDS:
             raise HTTPException(status_code=422, detail="unknown stage")
+        # The optional release-owned binding handles only its exact approved
+        # date/stage/run. All ordinary history and legacy exact bindings below
+        # retain their original configured root and verification contract.
+        morning_binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
+            (selected, stage)
+        )
+        is_exact_morning_backfill = (
+            market == "HK_CONNECT"
+            and isinstance(morning_binding, Mapping)
+            and morning_binding.get("backfill_run_id") == backfill_run_id
+        )
+        if (
+            approved_research_reader is not None
+            and ((market is None) == (backfill_run_id is None))
+            and not is_exact_morning_backfill
+        ):
+            try:
+                research_payload = approved_research_reader.get(
+                    selected, stage, markets=None if market is None else (market,),
+                    backfill_run_id=backfill_run_id,
+                )
+            except ResearchReadError as error:
+                raise HTTPException(status_code=409, detail="approved research read binding is unavailable or invalid") from error
+            if research_payload is not None:
+                response = project_shared_selection(research_payload, limit, ordinary_hk_display=True)
+                # The existing HK display intentionally withholds a formal
+                # selected count. Verified research rows still make this
+                # exact composed response partial when its other lane fails.
+                if research_payload.get("status") == "PARTIAL_WITH_ROWS":
+                    response["status"] = "PARTIAL_WITH_ROWS"
+                    response["stage"].update(status="PARTIAL_WITH_ROWS", display_status="PARTIAL_WITH_ROWS")
+                if market is not None:
+                    response.update(market=market, selection_mode="HISTORICAL_BACKFILL_READ_ONLY",
+                                    response_source="SHARED_STAGE_CENTER_BACKFILL")
+                return response
         if market is not None or backfill_run_id is not None:
             if market is None or backfill_run_id is None:
                 raise HTTPException(status_code=422, detail="market and backfill_run_id must be supplied together")
@@ -5087,7 +5529,19 @@ def create_app(
             market_payload = (payload.get("markets") or {}).get(market)
             if not isinstance(entry, Mapping) or not isinstance(market_payload, Mapping):
                 raise HTTPException(status_code=409, detail="backfill selection identity is invalid")
-            rows = market_payload.get("rows") or []
+            morning_binding = _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE.get(
+                (selected, stage)
+            )
+            is_morning_observation = (
+                market == "HK_CONNECT"
+                and isinstance(morning_binding, Mapping)
+                and morning_binding.get("backfill_run_id") == backfill_run_id
+            )
+            rows = (
+                envelope.get("rows") or []
+                if is_morning_observation
+                else market_payload.get("rows") or []
+            )
             source_evidence = envelope.get("source_evidence") or []
             cannot_confirm = envelope.get("cannot_confirm") or []
             expected_identity = {
@@ -5122,7 +5576,11 @@ def create_app(
                     binding.get("requested_rows") is not None
                     and (
                         envelope.get("requested_rows") != binding["requested_rows"]
-                        or market_payload.get("requested_rows") != binding["requested_rows"]
+                        or (
+                            not is_morning_observation
+                            and market_payload.get("requested_rows")
+                            != binding["requested_rows"]
+                        )
                         or binding["requested_rows"] - binding["source_rows"]
                         != binding.get("missing_rows")
                         or binding.get("missing_rows")
@@ -5164,7 +5622,68 @@ def create_app(
             ):
                 raise HTTPException(status_code=409, detail="backfill runner receipt identity is invalid")
 
-            market_payload.update(
+            if is_morning_observation:
+                from stage_center.selection import SelectionStore
+
+                try:
+                    original = SelectionStore(configured_selection_root)._verify_run(
+                        selected,
+                        stage,
+                        "HK_CONNECT",
+                        morning_binding["selection_run_id"],
+                    )
+                except (OSError, ValueError, TypeError, KeyError) as error:
+                    raise HTTPException(
+                        status_code=409,
+                        detail="original morning selection identity is invalid",
+                    ) from error
+                original_envelope = original.get("envelope")
+                if (
+                    not isinstance(original_envelope, Mapping)
+                    or original.get("manifest_sha256")
+                    != morning_binding["original_manifest_sha256"]
+                    or original.get("receipt_sha256")
+                    != morning_binding["original_receipt_sha256"]
+                    or original.get("artifact_sha256")
+                    != morning_binding["selection_artifact_sha256"]
+                    or any(
+                        original_envelope.get(field) != envelope.get(field)
+                        for field in (
+                            "run_id",
+                            "artifact_id",
+                            "raw_artifact_sha256",
+                            "algorithm_id",
+                            "algorithm_sha256",
+                            "rows",
+                        )
+                    )
+                ):
+                    raise HTTPException(
+                        status_code=409,
+                        detail="morning observation differs from original selection",
+                    )
+                market_payload.update(
+                    {
+                        "market": "HK_CONNECT",
+                        "status": envelope["selection_status"],
+                        "selection_status": envelope["selection_status"],
+                        "source_status": envelope["source_status"],
+                        "artifact_id": envelope["artifact_id"],
+                        "run_id": envelope["run_id"],
+                        "algorithm_id": envelope["algorithm_id"],
+                        "algorithm_sha256": envelope["algorithm_sha256"],
+                        "raw_artifact_sha256": envelope["raw_artifact_sha256"],
+                        "requested_rows": envelope["requested_rows"],
+                        "source_rows": envelope["source_rows"],
+                        "selected_rows": envelope["selected_rows"],
+                        "coverage_ratio": envelope["coverage_ratio"],
+                        "source_evidence": list(source_evidence),
+                        "missing_symbols": list(envelope.get("missing_symbols") or []),
+                        "cannot_confirm": list(cannot_confirm),
+                        "rows": list(envelope["rows"]),
+                    }
+                )
+                market_payload.update(
                 {
                     "selection_mode": "BACKFILL",
                     "backfill_run_id": backfill_run_id,
@@ -5186,7 +5705,7 @@ def create_app(
                     },
                 }
             )
-            if binding.get("requested_rows") is not None:
+            if binding.get("requested_rows") is not None and not is_morning_observation:
                 market_payload.update(
                     {
                         "target_pool_sha256": binding["pool_artifact_sha256"],
@@ -5223,12 +5742,24 @@ def create_app(
             )
             return response
         if shared_selection_consumer is not None:
+            hk_morning_recovery_slot = (
+                selected == "20261016"
+                and (selected, stage)
+                in _HK_MORNING_SELECTION_RECOVERY_BINDING_BY_DATE_STAGE
+            )
             payload = shared_selection_consumer.get(
-                selected, stage, allow_backfill=True
+                selected, stage, allow_backfill=not hk_morning_recovery_slot
             )
             payload = _quarantine_known_hk_auction_pool_mismatch(
                 payload, selected, stage
             )
+            hk_morning_override = _read_hk_morning_selection_recovery_override(
+                payload, selected, stage, limit
+            )
+            if hk_morning_override is not None:
+                return project_shared_selection(
+                    hk_morning_override, limit, ordinary_hk_display=True
+                )
             r8_override = _read_r8_exact_target_hk_override(
                 payload, selected, stage, limit
             )
@@ -5478,6 +6009,10 @@ def create_app(
         )
     )
     app.include_router(create_runtime_graph_router(store.root))
+    app.include_router(create_manual_collection_router(
+        Path(os.environ.get("V35_REVIEW_CORE_CLOSE_ROOT") or store.root),
+        stage_selection_root=configured_selection_root,
+    ))
     app.include_router(create_review_router(
         store.root,
         hk_close_root=os.environ.get("V35_REVIEW_CORE_CLOSE_ROOT") or None,
@@ -5530,6 +6065,14 @@ def create_app(
     )
     assemble_api(app, config=manager_config)
 
+    # Explicit bounded HKEX source capture reuses its original owner/store.
+    # It does not assemble the removed manager router or ordinary model jobs.
+    from v4.manager_research.hkex_runtime import assemble_hkex_announcements_api
+    assemble_hkex_announcements_api(
+        app, manager_root=manager_config.manager_root,
+        security_master_root=(os.environ.get("V4_MANAGER_SECURITY_MASTER_ROOT") or manager_config.shared_root),
+    )
+
     preview_root = Path(__file__).resolve().parents[2] / "web" / "preview"
     if preview_root.is_dir():
         app.mount("/preview", StaticFiles(directory=preview_root, html=True), name="preview")
@@ -5538,4 +6081,4 @@ def create_app(
     if dist.is_dir():
         app.mount("/", _RevalidatingStaticFiles(directory=dist, html=True), name="web")
 
-    return configure_module_role(app, module_role)
+    return app

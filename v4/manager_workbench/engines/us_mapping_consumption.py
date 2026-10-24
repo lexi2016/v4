@@ -47,6 +47,155 @@ def normalize_us_symbol(value: Any) -> str | None:
     return normalized if _US_SYMBOL.fullmatch(normalized) else None
 
 
+def normalize_mapping_candidates(context, *, relation_rows, catalog_rows=(),
+        industry_rows=(), manual_quote_scope=None, identities=()):
+    """One deterministic per-HK candidate; preserve every source disposition."""
+    from ..contracts import MappingPath, ResearchCandidate, digest
+    from ..inputs.strict_us_selection import validate_mapping_quote
+    from .us_mapping_policy import RELATIONSHIP_A, ETF_SYMBOLS, US_SYMBOL_THEMES
+    session = (context.get("source_sessions") or {}).get("us") or (context.get("source_sessions") or {}).get("US")
+    grouped = defaultdict(list)
+    names = {}
+    for item in identities or ():
+        code = item if isinstance(item, str) else (item.get("symbol") or item.get("target_symbol") or item.get("hk_code") or item.get("code"))
+        if isinstance(code,str) and re.fullmatch(r"\d{1,5}",code):code="HK."+code.zfill(5)
+        if isinstance(code, str) and re.fullmatch(r"HK\.[0-9]{5}", code):
+            grouped[code]
+            if isinstance(item, dict): names[code] = item.get("name") or item.get("hk_name")
+    def ref_union(values):
+        seen = {}
+        for value in values:
+            if isinstance(value, dict): seen[digest(value)] = value
+        return [seen[key] for key in sorted(seen)]
+    def add(item, *, catalog=False, sector=False):
+        code = item.get("symbol")
+        if not isinstance(code, str) or not re.fullmatch(r"HK\.[0-9]{5}", code): return
+        names.setdefault(code, item.get("name"))
+        us = normalize_us_symbol(item.get("us_symbol"))
+        relation_type = item.get("relation_type")
+        role = "SECTOR_CONTEXT" if sector or us in ETF_SYMBOLS else "INDIVIDUAL"
+        reasons = []
+        source_refs = [dict(owner=item.get("owner"), sha256=item.get("source_sha256"),
+            ref=item.get("catalog_relation_id") or item.get("relation_sha256") or item.get("source_sha256"),
+            available_at=item.get("available_at"))]
+        source_refs += [r for r in item.get("relation_source_refs", []) if isinstance(r, dict)]
+        quote_return, quote_gap = validate_mapping_quote(item.get("quote"), us, session)
+        if quote_gap: reasons.append(quote_gap)
+        if not item.get("owner") or not valid_sha(item.get("source_sha256")) or not current(context, item.get("available_at")):
+            reasons.append("US_SOURCE_IDENTITY_OR_AVAILABILITY_PENDING")
+        if item.get("source_session") != session: reasons.append("US_SOURCE_SESSION_PENDING")
+        excluded = False
+        if catalog:
+            projected = project_catalog_relation(item, manual_binding=manual_quote_scope,
+                expected_session=session, cutoff=context.get("cutoff"))
+            us = projected.get("us_symbol")
+            role = "SECTOR_CONTEXT" if us in ETF_SYMBOLS or projected.get("route") in {"BROAD_SECTOR_BACKGROUND", "MACRO_BACKGROUND"} else "INDIVIDUAL"
+            disposition = projected.get("catalog_disposition", "")
+            excluded = disposition.startswith("EXCLUDED")
+            current_state = projected.get("catalog_current_applicability")
+            scope = "current_supported" if projected.get("catalog_current_scope_class") == "LIMITED_SCOPE_SUPPORTED_FOR_RESEARCH" else "pending"
+            # The original enum stays authoritative even on older projection schemas.
+            recovery = (item.get("catalog_relation") or {}).get("recovery_v2r1", {})
+            state, _, conflict = _state_resolution(recovery, "CURRENT_APPLICABILITY")
+            if _current_scope_class(state) == "LIMITED_SCOPE_SUPPORTED_FOR_RESEARCH" and not conflict and disposition.startswith("ADOPTED"):
+                scope = "current_supported"
+            elif _current_scope_class(state) == "DATED_OR_PENDING_SCOPE": scope = "dated_weak"
+            if excluded: scope = "excluded"
+            relation_type = projected.get("relation_type")
+            quote_return = projected.get("us_source_return_pct")
+            reasons = [] if scope == "current_supported" and projected.get("quote_status") == "VERIFIED" else [projected.get("catalog_disposition_reason") or "CATALOG_SCOPE_PENDING"]
+            if projected.get("quote_status") != "VERIFIED": reasons.append(projected.get("quote_missing_reason") or "QUOTE_PENDING")
+            source_refs = [dict(owner=projected.get("catalog_source_owner"),sha256=item.get("catalog_relation_sha256") or item.get("source_sha256"),ref=item.get("catalog_relation_id"),available_at=projected.get("available_at"))]
+            direction = "UNKNOWN"  # peers/conditional mechanisms do not certify an active sign
+            strict_supported = False
+        else:
+            validity = item.get("relation_current_validity")
+            excluded = validity in {"EXCLUDED_CURRENT", "ENDED", "TERMINATED"} or item.get("catalog_research_use") == "EXCLUDED_CURRENT"
+            scope = ("excluded" if excluded else "dated_weak" if validity in {"DATED_SCOPE_ONLY", "HISTORICAL"}
+                else "current_supported" if validity in {"CURRENT_SUPPORTED", "CURRENT_RESEARCH_SCOPE", "CURRENT"} else "pending")
+            if validity is None and relation_type in RELATIONSHIP_A and item.get("relation_status")=="REVIEWED":
+                scope="dated_weak"
+                reasons.append("RELATION_CURRENT_VALIDITY_PENDING")
+            if role == "SECTOR_CONTEXT": scope = "current_supported" if not reasons else "pending"
+            elif item.get("relation_status") != "REVIEWED" or item.get("relation_pit_status") == "PIT_UNCONFIRMED" or item.get("publication_time_gaps"):
+                scope = "pending" if not excluded else scope; reasons.append("RELATION_REVIEW_OR_PIT_PENDING")
+            if scope == "pending" and role == "INDIVIDUAL": reasons.append("RELATION_CURRENT_VALIDITY_PENDING")
+            direction = item.get("relation_direction")
+            explicit_direction=direction in {"POSITIVE", "NEGATIVE"}
+            if not explicit_direction:
+                # Preserve the old named-company research hypothesis. It is
+                # never positive strict evidence; the explicit gap remains.
+                direction="POSITIVE" if relation_type in RELATIONSHIP_A and item.get("relation_status")=="REVIEWED" else "UNKNOWN"
+            strict_supported = relation_type in RELATIONSHIP_A and role == "INDIVIDUAL"
+            if strict_supported and not explicit_direction: reasons.append("RELATION_DIRECTION_PENDING")
+            for gap in item.get("diagnostic_gaps") or []:
+                if gap not in {"CONNECT_MEMBERSHIP_UNKNOWN", "TARGET_NOT_IN_CURRENT_CONNECT_MEMBERSHIP", "AUDITED_RESEARCH_PRIORITY_UNAVAILABLE"}:
+                    reasons.append(gap)
+        if role == "SECTOR_CONTEXT": strict_supported = False; direction = "UNKNOWN"
+        status = "REJECT" if excluded else "PENDING" if reasons or scope in {"pending", "dated_weak"} else "PASS"
+        ident = dict(symbol=code,us_symbol=us,relation_type=relation_type,role=role,
+            relation_id=item.get("catalog_relation_id"))
+        path = MappingPath(path_id=digest(ident),symbol=code,us_symbol=us,relation_type=relation_type,
+            role=role,scope=scope,status=status,direction=direction,strict_supported=strict_supported,
+            primary_theme=item.get("primary_theme") or US_SYMBOL_THEMES.get(us) or item.get("source_industry"),
+            return_pct=quote_return,source_session=session,available_at=item.get("available_at"),
+            source_refs=ref_union(source_refs),evidence_ids=sorted(set(item.get("evidence_ids") or [])),reasons=sorted(set(reasons)))
+        grouped[code].append(path)
+    for item in relation_rows:
+        if isinstance(item, dict): add(item)
+    for item in catalog_rows:
+        if isinstance(item, dict): add(item,catalog=True)
+    for item in industry_rows:
+        if not isinstance(item, dict): continue
+        for proxy in item.get("proxy_paths") or []:
+            for us in proxy.get("proxy_symbols") or []:
+                add(dict(item,us_symbol=us,relation_type="INDUSTRY_PROXY",quote=None,
+                    source_session=proxy.get("source_session"),source_sha256=proxy.get("source_sha256"),
+                    owner=proxy.get("owner"),available_at=proxy.get("available_at")),sector=True)
+    candidates = []
+    def path_order(p):
+        return (0 if p.strict_supported else 1, RELATIONSHIP_A.index(p.relation_type) if p.relation_type in RELATIONSHIP_A else 99,
+            p.us_symbol or "", p.path_id)
+    for code, paths in grouped.items():
+        merged = []
+        by_id = defaultdict(list)
+        for p in paths: by_id[p.path_id].append(p)
+        for identity, versions in sorted(by_id.items()):
+            facts = {}
+            for p in versions:
+                fact = p.model_dump(exclude={"source_refs", "evidence_ids"})
+                facts[digest(fact)] = p
+            refs = ref_union([r for p in versions for r in p.source_refs]); ids = sorted({e for p in versions for e in p.evidence_ids})
+            if len(facts) == 1:
+                p = next(iter(facts.values())).model_copy(update=dict(source_refs=refs,evidence_ids=ids))
+            else:
+                # No precedence exists: keep all fact versions as refs and isolate this key only.
+                p = facts[sorted(facts)[0]].model_copy(update=dict(scope="pending",status="PENDING",return_pct=None,
+                    source_refs=ref_union(refs+[dict(ref="conflicting_fact:"+key,sha256=key,fact=value.model_dump()) for key,value in facts.items()]),
+                    evidence_ids=ids,reasons=["DUPLICATE_MAPPING_PATH_CONFLICT"]))
+            merged.append(p)
+        merged.sort(key=path_order)
+        individuals = [p for p in merged if p.role == "INDIVIDUAL" and p.scope != "excluded"]
+        primary = next((p for p in individuals if p.strict_supported), None) or next(iter(individuals),None)
+        relevant = individuals or merged
+        state = "current_supported" if any(p.scope == "current_supported" and p.status == "PASS" for p in relevant) else "dated_weak" if any(p.scope == "dated_weak" for p in relevant) else "pending"
+        def research_quote_ready(p):
+            return p.return_pct is not None and not any(r.startswith(('QUOTE_','US_SOURCE_','US_SESSION_','US_RELATION_REVIEW_','RELATION_REVIEW_OR_PIT')) for r in p.reasons)
+        positive = [p for p in individuals if research_quote_ready(p) and p.direction == "POSITIVE" and Decimal(p.return_pct)>0]
+        negative = [p for p in individuals if research_quote_ready(p) and (p.direction == "NEGATIVE" or Decimal(p.return_pct)<0)]
+        direction = "CONFLICT" if positive and negative else "POSITIVE" if positive else "NEGATIVE" if negative else "UNKNOWN"
+        candidates.append(ResearchCandidate(symbol=code,name=names.get(code),research_state=state,direction=direction,
+            primary_path_id=primary.path_id if primary else None,paths=merged,
+            reasons=sorted({r for p in merged for r in p.reasons}) or ([] if merged else ["NO_MAPPING_PATH"]),
+            source_refs=ref_union([r for p in merged for r in p.source_refs])))
+    def order(c):
+        strengths = [Decimal(p.return_pct) for p in c.paths if p.role == "INDIVIDUAL" and p.direction == "POSITIVE" and p.return_pct is not None and Decimal(p.return_pct)>0
+            and not any(r.startswith(('QUOTE_','US_SOURCE_','US_SESSION_','US_RELATION_REVIEW_','RELATION_REVIEW_OR_PIT')) for r in p.reasons)]
+        return ({"current_supported":0,"dated_weak":1,"pending":2}[c.research_state],
+            {"POSITIVE":0,"CONFLICT":1,"NEGATIVE":2,"UNKNOWN":3}[c.direction],-max(strengths,default=Decimal(0)),c.symbol)
+    return sorted(candidates,key=order)
+
+
 def _text(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
@@ -95,6 +244,11 @@ def _current_scope_class(state: str | None) -> str:
     if not state:
         return "CANNOT_CONFIRM_CURRENT_APPLICABILITY"
     upper = state.upper()
+    from .us_mapping_policy import CURRENT_RESEARCH_SCOPE_ALIASES, DATED_RESEARCH_SCOPE_ALIASES
+    if upper in CURRENT_RESEARCH_SCOPE_ALIASES:
+        return "LIMITED_SCOPE_SUPPORTED_FOR_RESEARCH"
+    if upper in DATED_RESEARCH_SCOPE_ALIASES:
+        return "DATED_OR_PENDING_SCOPE"
     if any(marker in upper for marker in _EXCLUDED_MARKERS):
         return "EXPLICITLY_EXCLUDED_OR_ENDED"
     if any(marker in upper for marker in _NONCURRENT_MARKERS):

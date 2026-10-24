@@ -84,6 +84,10 @@ def merge_decisions(context, lane_results):
         if not isinstance(lr,dict) or lr.get("lane") not in LANES or lr["lane"] in seen:
             raise ValueError("MWB_LANE_DUPLICATE_OR_UNKNOWN")
         lane=lr["lane"];seen.add(lane);states[lane]=lr.get("state")
+        lane_context=(context.get('scope_refs',{}).get('decision_lane_contexts') or {}).get(lane,context)
+        validate_context(lane_context)
+        if any(lane_context.get(key)!=context.get(key) for key in ('market','target_date','rules_version')):
+            raise ValueError('MWB_LANE_CONTEXT_IDENTITY_MISMATCH')
         if not isinstance(lr.get("rows"),list):raise ValueError("MWB_LANE_ROWS")
         if lr["state"] in ("NOT_RUN", "RUNNING", "FAILED", "INPUT_MISSING", "NOT_APPLICABLE"):
             continue  # a failed/not-executed lane cannot carry trusted stock verdicts
@@ -91,10 +95,12 @@ def merge_decisions(context, lane_results):
             if not isinstance(evidence,dict):continue
             eid=evidence.get("evidence_id")
             if (isinstance(eid,str) and evidence.get("verification")=="VERIFIED" and
-                current(context,evidence.get("available_at"))):
+                current(lane_context,evidence.get("available_at"))):
                 value=timestamp(evidence["available_at"]).timestamp()
                 evidence_times[eid]=max(evidence_times.get(eid,value),value)
         for item in lr["rows"]:
+            if lane == "US_MAPPING" and lr.get("selection") is not None and isinstance(item,dict) and item.get("source_diagnostic"):
+                continue  # canonical per-HK decision already contains every path judgment
             if (isinstance(item, dict) and
                     (item.get("record_role") == "CATALOG_OBSERVATION"
                      or item.get("catalog_relation_id") is not None)):
@@ -107,7 +113,7 @@ def merge_decisions(context, lane_results):
                 decision=None,lane_decisions={},reasons=[],conditions=[],invalidation_conditions=[],
                 risks=[],evidence_ids=[],membership_status="UNKNOWN"))
             if not entry["name"] and item.get("name"):entry["name"]=item["name"]
-            eligible=_eligibility(item,context)
+            eligible=_eligibility(item,lane_context)
             if eligible is True:entry["membership_status"]="VERIFIED_ELIGIBLE" if entry["membership_status"]!="VERIFIED_INELIGIBLE" else "CONFLICT"
             elif eligible is False:entry["membership_status"]="VERIFIED_INELIGIBLE" if entry["membership_status"]!="VERIFIED_ELIGIBLE" else "CONFLICT"
             entry["lane_decisions"].setdefault(lane,[]).append(dict(item))

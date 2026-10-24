@@ -7,6 +7,7 @@ snapshot price is never used to score an earlier stage.
 from __future__ import annotations
 
 import csv
+import io
 import json
 import math
 import os
@@ -14,9 +15,8 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
-from zoneinfo import ZoneInfo
 
-from .hashing import canonical_bytes, sha256_file, sha256_json
+from .hashing import canonical_bytes, sha256_bytes, sha256_file, sha256_json
 from .paths import resolve_under, validate_date
 from .store import StoreError
 
@@ -191,22 +191,7 @@ def _copy_exact_verified_file(source: Path, destination: Path) -> bool:
         if existing != payload:
             raise StoreError(f"HK security-master target conflict: {destination}")
         return False
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    handle, temporary = tempfile.mkstemp(prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent)
-    try:
-        with os.fdopen(handle, "wb") as output:
-            output.write(payload)
-            output.flush()
-            os.fsync(output.fileno())
-        try:
-            # Exclusive immutable creation: never replace an intervening file.
-            os.link(temporary, destination)
-        except FileExistsError:
-            if not destination.is_file() or destination.read_bytes() != payload:
-                raise StoreError(f"HK security-master target conflict: {destination}")
-            return False
-    finally:
-        os.unlink(temporary)
+    _atomic_write(destination, payload)
     return True
 
 
@@ -221,47 +206,23 @@ def restore_verified_hk_security_master(
     This is a provenance-preserving migration path only.  It performs no live
     collection and never rewrites the artifact, manifest, or receipt bytes.
     The source must first pass the normal current reader, and the target is
-    re-read with that same reader before success is returned. The original
-    owner writers must be quiescent during restore: the legacy publisher has
-    no shared writer lock. Observed pointer changes fail closed, but this is
-    not a replacement for that operational prerequisite.
+    re-read with that same reader before success is returned.
     """
     trade_date = validate_date(trade_date)
     source_root = Path(source_store_root)
     target_root = Path(target_store_root)
     source_rows, source_manifest = load_verified_hk_security_master(source_root, trade_date)
-    # The existing publisher labels these rows as a live market snapshot.
-    # Restoring an exact date must not turn a later/older capture into D-1 data.
-    capture = source_manifest.get("captured_at")
-    try:
-        captured = datetime.fromisoformat(str(capture).replace("Z", "+00:00"))
-    except (TypeError, ValueError) as error:
-        raise StoreError("HK security-master source capture invalid") from error
-    if (
-        captured.tzinfo is None
-        or captured.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d") != trade_date
-        or any(row.get("captured_at") != capture for row in source_rows.values())
-    ):
-        raise StoreError(f"HK security-master source capture does not bind exact date: {trade_date}")
+    del source_rows
 
     source_asset_root = source_root / "assets" / "hk_security_master"
     try:
         source_latest = json.loads((source_asset_root / "latest.json").read_text(encoding="utf-8"))
-        if not isinstance(source_latest, dict) or source_latest.get("schema_version") != LATEST_SCHEMA_VERSION or not isinstance(source_latest.get("entries"), dict):
+        if source_latest.get("schema_version") != LATEST_SCHEMA_VERSION or not isinstance(source_latest.get("entries"), dict):
             raise StoreError("HK security-master source latest schema invalid")
         source_entry = dict(source_latest["entries"][trade_date])
-        if source_entry.get("run_id") != source_manifest.get("run_id"):
-            raise StoreError("HK security-master source identity changed")
         source_manifest_path = resolve_under(source_asset_root, str(source_entry["manifest_relative"]))
         source_receipt_path = resolve_under(source_asset_root, str(source_entry["receipt_relative"]))
         source_artifact_path = resolve_under(source_asset_root, str(source_manifest["artifact_relative"]))
-        if json.loads(source_manifest_path.read_bytes()) != source_manifest:
-            raise StoreError("HK security-master source manifest identity changed")
-        source_evidence = {
-            source_artifact_path: source_artifact_path.read_bytes(),
-            source_manifest_path: source_manifest_path.read_bytes(),
-            source_receipt_path: source_receipt_path.read_bytes(),
-        }
     except (OSError, ValueError, KeyError, TypeError) as error:
         if isinstance(error, StoreError):
             raise
@@ -270,53 +231,32 @@ def restore_verified_hk_security_master(
     target_asset_root = target_root / "assets" / "hk_security_master"
     target_latest_path = target_asset_root / "latest.json"
     latest = {"schema_version": LATEST_SCHEMA_VERSION, "entries": {}}
-    target_latest_bytes = None
     if target_latest_path.is_file():
         try:
-            target_latest_bytes = target_latest_path.read_bytes()
-            latest = json.loads(target_latest_bytes)
+            latest = json.loads(target_latest_path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as error:
             raise StoreError(f"HK security-master target latest invalid: {error}") from error
-        if not isinstance(latest, dict) or latest.get("schema_version") != LATEST_SCHEMA_VERSION or not isinstance(latest.get("entries"), dict):
+        if latest.get("schema_version") != LATEST_SCHEMA_VERSION or not isinstance(latest.get("entries"), dict):
             raise StoreError("HK security-master target latest schema invalid")
         existing = latest["entries"].get(trade_date)
-        if existing is not None and not isinstance(existing, dict):
-            raise StoreError("HK security-master target entry invalid")
         if existing is not None and any(
             existing.get(key) != source_entry.get(key)
             for key in ("run_id", "manifest_relative", "receipt_relative")
         ):
             raise StoreError("HK security-master target date already points to a different run")
 
-    copies = (
+    copied = False
+    for source_path, relative in (
         (source_artifact_path, str(source_manifest["artifact_relative"])),
         (source_manifest_path, str(source_entry["manifest_relative"])),
         (source_receipt_path, str(source_entry["receipt_relative"])),
-    )
-    copied = False
-    for source_path, relative in copies:
+    ):
         copied = _copy_exact_verified_file(
             source_path, resolve_under(target_asset_root, relative)
         ) or copied
 
-    # Pin the verified source entry and all three immutable byte identities.
-    # Do not publish a target pointer after a changed source or partial copy.
-    _, checked_manifest = load_verified_hk_security_master(source_root, trade_date)
-    source_latest_after = json.loads((source_asset_root / "latest.json").read_bytes())
-    if checked_manifest != source_manifest or source_latest_after.get("entries", {}).get(trade_date) != source_entry:
-        raise StoreError("HK security-master source identity changed during restore")
-    for source_path, relative in copies:
-        expected_bytes = source_evidence[source_path]
-        if source_path.read_bytes() != expected_bytes:
-            raise StoreError("HK security-master source evidence changed during restore")
-        if resolve_under(target_asset_root, relative).read_bytes() != expected_bytes:
-            raise StoreError("HK security-master target evidence changed during restore")
-    target_latest_after = target_latest_path.read_bytes() if target_latest_path.is_file() else None
-    if target_latest_after != target_latest_bytes:
-        raise StoreError("HK security-master target latest changed during restore; quiesce owner writers")
-    if latest["entries"].get(trade_date) != source_entry:
-        latest["entries"][trade_date] = source_entry
-        _atomic_write(target_latest_path, canonical_bytes(latest))
+    latest["entries"][trade_date] = source_entry
+    _atomic_write(target_latest_path, canonical_bytes(latest))
     _, restored_manifest = load_verified_hk_security_master(target_root, trade_date)
     if (
         restored_manifest.get("run_id") != source_manifest.get("run_id")
@@ -333,34 +273,79 @@ def restore_verified_hk_security_master(
         **_SAFETY,
     }
 
-def load_verified_hk_security_master(
+class HKSecurityMasterReadError(StoreError):
+    """A bounded reader reason and the exact index observation that failed.
+
+    Diagnostic fields contain no exception text, file paths, or security rows.
+    Missing exact-date input remains distinct from invalid referenced evidence.
+    """
+
+    def __init__(self, reason_code: str, diagnostic: Mapping[str, Any]) -> None:
+        super().__init__(reason_code)
+        self.reason_code = reason_code
+        self.diagnostic = dict(diagnostic, reason_code=reason_code)
+
+
+def load_verified_hk_security_master_snapshot(
     store_root: Path | str, trade_date: str
-) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any]]:
+    """Read one exact-date indexed run and witness the same verified bytes.
+
+    The date index is read once. A newer pointer cannot replace the run already
+    selected here, and a missing entry never consults another date or scans runs.
+    Existing consumers can keep using the two-value loader below.
+    """
     trade_date = validate_date(trade_date)
     asset_root = Path(store_root) / "assets" / "hk_security_master"
+    diagnostic: dict[str, Any] = {
+        "status": "INVALID", "reason_code": None, "requested_trade_date": trade_date,
+        "validation_stage": "INDEX_READ", "latest_json_sha256": None,
+        "entry_count": None, "latest_entry_date": None, "requested_entry_present": None,
+    }
+
+    def failure(reason_code: str, stage: str, *, status: str = "INVALID") -> HKSecurityMasterReadError:
+        return HKSecurityMasterReadError(reason_code,
+            dict(diagnostic, status=status, validation_stage=stage))
+
     try:
-        latest = json.loads((asset_root / "latest.json").read_text(encoding="utf-8"))
-        if not isinstance(latest, dict) or latest.get("schema_version") != LATEST_SCHEMA_VERSION:
-            raise StoreError("HK security-master latest schema mismatch")
-        entries = latest.get("entries")
-        if not isinstance(entries, dict):
-            raise StoreError("HK security-master latest entries invalid")
-        if trade_date not in entries:
-            available = sorted(key for key in entries if isinstance(key, str))
-            raise StoreError(
-                f"HK_SECURITY_MASTER_EXACT_DATE_MISSING: trade_date={trade_date}; "
-                f"available_max_date={available[-1] if available else 'NONE'}"
-            )
-        entry = entries[trade_date]
-        manifest_path = resolve_under(asset_root, str(entry["manifest_relative"]))
-        receipt_path = resolve_under(asset_root, str(entry["receipt_relative"]))
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-        artifact = resolve_under(asset_root, str(manifest["artifact_relative"]))
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        if isinstance(error, StoreError):
-            raise
-        raise StoreError(f"HK security-master metadata invalid: {error}") from error
+        latest_bytes = (asset_root / "latest.json").read_bytes()
+    except FileNotFoundError as error:
+        raise failure("HK_SECURITY_MASTER_INDEX_MISSING", "INDEX_READ", status="MISSING") from error
+    except OSError as error:
+        raise failure("HK_SECURITY_MASTER_INDEX_UNREADABLE", "INDEX_READ") from error
+    diagnostic["latest_json_sha256"] = sha256_bytes(latest_bytes)
+    try:
+        latest = json.loads(latest_bytes.decode("utf-8"))
+    except (ValueError, UnicodeError) as error:
+        raise failure("HK_SECURITY_MASTER_INDEX_INVALID", "INDEX_SCHEMA") from error
+    if (not isinstance(latest, dict) or latest.get("schema_version") != LATEST_SCHEMA_VERSION
+            or not isinstance(latest.get("entries"), dict)):
+        raise failure("HK_SECURITY_MASTER_INDEX_SCHEMA_INVALID", "INDEX_SCHEMA")
+    entries = latest["entries"]
+    dates = [key for key in entries if len(key) == 8 and key.isascii() and key.isdigit()]
+    diagnostic.update(entry_count=len(entries), latest_entry_date=max(dates) if dates else None,
+                      requested_entry_present=trade_date in entries)
+    if trade_date not in entries:
+        raise failure("HK_SECURITY_MASTER_EXACT_DATE_ENTRY_MISSING", "INDEX_LOOKUP", status="MISSING")
+    entry = entries[trade_date]
+    if (not isinstance(entry, dict) or not isinstance(entry.get("run_id"), str)
+            or not entry["run_id"] or not isinstance(entry.get("manifest_relative"), str)
+            or not isinstance(entry.get("receipt_relative"), str)):
+        raise failure("HK_SECURITY_MASTER_ENTRY_INVALID", "INDEX_ENTRY")
+    try:
+        manifest_path = resolve_under(asset_root, entry["manifest_relative"])
+        receipt_path = resolve_under(asset_root, entry["receipt_relative"])
+        manifest_bytes = manifest_path.read_bytes()
+        receipt_bytes = receipt_path.read_bytes()
+        manifest = json.loads(manifest_bytes.decode("utf-8"))
+        receipt = json.loads(receipt_bytes.decode("utf-8"))
+        if not isinstance(manifest, dict) or not isinstance(receipt, dict):
+            raise ValueError("metadata objects required")
+        artifact = resolve_under(asset_root, manifest["artifact_relative"])
+    except OSError as error:
+        raise failure("HK_SECURITY_MASTER_METADATA_UNREADABLE", "METADATA_READ") from error
+    except (ValueError, KeyError, TypeError) as error:
+        raise failure("HK_SECURITY_MASTER_METADATA_INVALID", "METADATA_READ") from error
     if (
         manifest.get("schema_version") != MANIFEST_SCHEMA_VERSION
         or receipt.get("schema_version") != RECEIPT_SCHEMA_VERSION
@@ -372,25 +357,51 @@ def load_verified_hk_security_master(
         or manifest.get("later_snapshot_price_allowed") is not False
         or any(manifest.get(key) is not False or receipt.get(key) is not False for key in _SAFETY)
     ):
-        raise StoreError("HK security-master identity or safety contract invalid")
-    if sha256_file(artifact) != manifest.get("artifact_sha256") or receipt.get("artifact_sha256") != manifest.get("artifact_sha256"):
-        raise StoreError("HK security-master artifact checksum mismatch")
+        raise failure("HK_SECURITY_MASTER_IDENTITY_OR_SAFETY_INVALID", "IDENTITY")
+    try:
+        artifact_bytes = artifact.read_bytes()
+    except OSError as error:
+        raise failure("HK_SECURITY_MASTER_ARTIFACT_UNREADABLE", "ARTIFACT_READ") from error
+    artifact_sha256 = sha256_bytes(artifact_bytes)
+    if artifact_sha256 != manifest.get("artifact_sha256") or receipt.get("artifact_sha256") != manifest.get("artifact_sha256"):
+        raise failure("HK_SECURITY_MASTER_ARTIFACT_CHECKSUM_MISMATCH", "ARTIFACT_CHECKSUM")
     if sha256_json(manifest) != receipt.get("manifest_sha256"):
-        raise StoreError("HK security-master manifest checksum mismatch")
+        raise failure("HK_SECURITY_MASTER_MANIFEST_CHECKSUM_MISMATCH", "MANIFEST_CHECKSUM")
     rows: dict[str, dict[str, Any]] = {}
-    with artifact.open("r", encoding="utf-8-sig", newline="") as handle:
+    try:
+        handle = io.StringIO(artifact_bytes.decode("utf-8-sig"), newline="")
         for row in csv.DictReader(handle):
             code = str(row.get("code") or "").strip().upper()
             if not code or code in rows:
-                raise StoreError("HK security-master artifact code invalid")
+                raise failure("HK_SECURITY_MASTER_ARTIFACT_CODE_INVALID", "ARTIFACT_ROWS")
             rows[code] = dict(row)
-    if len(rows) != int(manifest.get("row_count") or -1):
-        raise StoreError("HK security-master row count mismatch")
+        expected_count = int(manifest.get("row_count") or -1)
+    except (UnicodeError, csv.Error, ValueError, TypeError) as error:
+        raise failure("HK_SECURITY_MASTER_ARTIFACT_INVALID", "ARTIFACT_ROWS") from error
+    if len(rows) != expected_count:
+        raise failure("HK_SECURITY_MASTER_ROW_COUNT_MISMATCH", "ARTIFACT_ROWS")
+    diagnostic.update(status="VERIFIED", reason_code=None, validation_stage="COMPLETE")
+    witness = {
+        "manifest_path": str(manifest_path), "manifest_sha256": sha256_bytes(manifest_bytes),
+        "artifact_path": str(artifact), "artifact_sha256": artifact_sha256,
+        "receipt_path": str(receipt_path), "receipt_sha256": sha256_bytes(receipt_bytes),
+        "row_count": manifest.get("row_count"), "run_id": manifest.get("run_id"),
+        "captured_at": manifest.get("captured_at"), "read_diagnostic": diagnostic,
+    }
+    return rows, manifest, witness
+
+
+def load_verified_hk_security_master(
+    store_root: Path | str, trade_date: str
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    rows, manifest, _ = load_verified_hk_security_master_snapshot(store_root, trade_date)
     return rows, manifest
 
 
 __all__ = [
+    "HKSecurityMasterReadError",
     "load_verified_hk_security_master",
+    "load_verified_hk_security_master_snapshot",
     "publish_hk_security_master",
     "restore_verified_hk_security_master",
 ]

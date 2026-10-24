@@ -9,6 +9,34 @@ from contracts.trading_calendar import previous_session
 from .validation import raw_sha, before, owner_digest, symbol
 
 
+def validate_mapping_quote(quote, us_symbol, session):
+    """Validate one bound quote without aliasing another instrument."""
+    from decimal import Decimal, DecimalException
+    if not isinstance(quote, dict) or quote.get("symbol") != us_symbol:
+        return None, "QUOTE_SYMBOL_MISMATCH"
+    if quote.get("session_date") != session:
+        return None, "QUOTE_SESSION_MISMATCH"
+    try:
+        numbers = []
+        for key in ("last", "previous_close", "change_pct"):
+            value = quote.get(key)
+            if isinstance(value, bool) or value is None:
+                raise ValueError
+            number = Decimal(str(value))
+            if not number.is_finite():
+                raise ValueError
+            numbers.append(number)
+        last, previous, saved = numbers
+        if last <= 0 or previous <= 0:
+            raise ValueError
+        calculated = (last / previous - 1) * 100
+        if abs(calculated - saved) > Decimal("0.001"):
+            return None, "QUOTE_RETURN_MISMATCH"
+        return format(calculated.normalize(), "f"), None
+    except (DecimalException, ValueError, TypeError, OverflowError):
+        return None, "QUOTE_PRICE_OR_RETURN_INVALID"
+
+
 def _window(calendar, end, count):
     days = [end]
     while len(days) < count:
@@ -31,7 +59,6 @@ def load_strict_selection_input(adapter, context, monthly_research):
     """
     if (not isinstance(monthly_research, dict)
             or monthly_research.get("status") != "VERIFIED"
-            or monthly_research.get("formal_target_eligibility") != "CANNOT_CONFIRM"
             or not isinstance(monthly_research.get("codes"), list)
             or not monthly_research.get("codes")):
         return dict(monthly_membership=None, hk_history=_unavailable("MONTHLY_RESEARCH_UNIVERSE_UNAVAILABLE"))
@@ -103,6 +130,17 @@ def load_strict_selection_input(adapter, context, monthly_research):
         amount_proof = resolution.encode_proof(amount_frame.attrs["history_resolution_proof"])
 
         relevant = effective_frame[effective_frame[date_col].isin(close_sessions)]
+        # Optional explicit immutable material only; no discovery, acquisition or
+        # inference of units/current membership from a capture date.
+        material_proofs = []
+        material_refs = []
+        for material_pin in pin.get("strict_materials", []):
+            material, material_sha = adapter._json(root, material_pin["relative"], material_pin["sha256"])
+            reference = str((root / material_pin["relative"]).resolve())
+            material_refs.append(dict(reference=reference, sha256=material_sha))
+            material_proofs.extend(dict(record, evidence_refs=[dict(reference=reference, sha256=material_sha)])
+                for record in material.get("records", []) if isinstance(record, dict))
+        from upstreams.v3_shared_data.shared_data.hk_panel_audit import strict_window_readiness
         histories = {}
         def scalar(value):
             if value is None or pd.isna(value):
@@ -116,6 +154,8 @@ def load_strict_selection_input(adapter, context, monthly_research):
                 if day not in close_sessions:
                     continue
                 bar = {"date": day}
+                for field in ("open", "high", "low"):
+                    bar[field] = scalar(record.get(field))
                 if day in amount_sessions:
                     bar["amount"] = scalar(record.get("amount"))
                 bar["close"] = scalar(record.get("close"))
@@ -128,7 +168,11 @@ def load_strict_selection_input(adapter, context, monthly_research):
                 holds["close"] = close_holds[code]
             if code in amount_holds:
                 holds["amount"] = amount_holds[code]
-            histories[code] = dict(bars=rows, history_holds=holds)
+            readiness = strict_window_readiness(
+                [dict(bar, code_norm=code, trade_date_compact=bar["date"]) for bar in rows],
+                code=code, sessions=close_sessions, cutoff=context.cutoff,
+                panel_sha256=panel_sha, proof=material_proofs, target_date=context.target_date)
+            histories[code] = dict(bars=rows, history_holds=holds, readiness=readiness)
 
         history_rows = [dict(symbol=code, **histories[code]) for code in monthly_research["codes"]]
         base["hk_history"] = dict(status="READY", rows=history_rows,
@@ -136,6 +180,7 @@ def load_strict_selection_input(adapter, context, monthly_research):
             panel_sha256=panel_sha, panel_manifest_sha256=manifest_sha,
             panel_available_at=available_at, panel_owner=pin.get("owner", "v3_shared_data"),
             panel_relative=relative,
+            strict_material_refs=material_refs,
             history_resolution_manifest_sha256=resolution.manifest_sha256,
             history_resolution_proof_sha256=owner_digest({"close21": close_proof, "amount20": amount_proof}),
             history_resolution_proofs={"close21": close_proof, "amount20": amount_proof},

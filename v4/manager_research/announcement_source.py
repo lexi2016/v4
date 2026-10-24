@@ -741,7 +741,7 @@ def capture(provider: Any, request: Mapping[str, Any], *, budget: CaptureBudget 
             budget.before_request()
         response=provider._request(req['url'],method=req['method'],
             body=b64decode(req['body_b64']) if req.get('body_b64') else None,
-            headers={'Content-Type':'application/x-www-form-urlencoded','Referer':req['referer']} if req['method']=='POST' else None,
+            headers={'Content-Type':'application/x-www-form-urlencoded','Referer':req['referer']} if req['method']=='POST' else ({'Referer':req['referer']} if req.get('referer') else None),
             cache_response=req.get('cache_policy')!='SESSION_PRIME')
         _time(response.retrieved_at)
         return dict(body=_encode_envelope(response),retrieved_at=response.retrieved_at,
@@ -884,20 +884,40 @@ def collect_batch(provider: Any, *, context: Mapping[str,Any], issuers: Sequence
                 req=query_request(match,context)
                 # Preserve the existing cookie/form priming flow, and its raw bytes.
                 q['prime_ref']=capture(provider,dict(url=req['referer'],method='GET',context=req['context'],cache_policy='SESSION_PRIME'), budget=budget)
-                ref=capture(provider,req,budget=budget);q['directory_ref']=ref
-                raw=read_response(provider._material_store,ref)
-                if not 200<=ref['http_status']<300:raise ValueError('ANNOUNCEMENT_DIRECTORY_HTTP_FAILED')
-                found,rejected,reason=directory_entries(
-                    raw, symbol, context,
-                    expected_stock_id=q['official_issuer']['stock_id'],
-                )
-                q.update(status='OBSERVED',entries=found,rejected=rejected,reason=reason)
+                from .hkex_directory_protocol import is_search_shell, capture_servlet_query
+                prime_raw=read_response(provider._material_store,q['prime_ref'])
+                # Only the explicit issuer-subset contract opts into this adapter.
+                # Existing daily and Eastmoney owners retain their current paths.
+                if (context.get('targeted_source_window') and q['prime_ref']['http_status']==200
+                        and is_search_shell(prime_raw)):
+                    q['directory_ref']=q['prime_ref']
+                    capture_servlet_query(provider,q,context,budget)
+                    ref=q['directory_ref'];found=q['entries']
+                else:
+                    ref=capture(provider,req,budget=budget);q['directory_ref']=ref
+                    raw=read_response(provider._material_store,ref)
+                    if not 200<=ref['http_status']<300:raise ValueError('ANNOUNCEMENT_DIRECTORY_HTTP_FAILED')
+                    found,rejected,reason=directory_entries(
+                        raw, symbol, context,
+                        expected_stock_id=q['official_issuer']['stock_id'],
+                    )
+                    q.update(status='OBSERVED',entries=found,rejected=rejected,reason=reason)
                 for row in found:todo.append(dict(code=symbol,name=issuer['name'],row=row,
                     directory_ref=ref,mapping_ref=mapping_ref,official_issuer=match))
-            except CaptureBudgetExpired:
+            except CaptureBudgetExpired as exc:
+                request=q.pop('pending_protocol_request',None)
+                if request is None:break
+                q['reason']=safe_reason(exc,'ANNOUNCEMENT_ISSUER_QUERY_FAILED')
+                q['capture_failure']=dict(request=deepcopy(request),reason=q['reason'],
+                    exception_type=type(exc).__name__,outcome='BUDGET_REFUSED_BEFORE_PROVIDER_CALL')
+                queries.append(q)
                 break
             except (ValueError,RuntimeError,OSError,KeyError,TypeError) as exc:
                 q['reason']=safe_reason(exc,'ANNOUNCEMENT_ISSUER_QUERY_FAILED')
+                request=q.pop('pending_protocol_request',None)
+                if request is not None:
+                    q['capture_failure']=dict(request=deepcopy(request),reason=q['reason'],
+                        exception_type=type(exc).__name__,outcome='NO_RESPONSE_REFERENCE_RETURNED')
             queries.append(q)
     reusable_documents = reusable_documents or {}
     for item in todo[:max_documents]:

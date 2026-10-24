@@ -18,9 +18,11 @@ from .service import ManagerService
 from .announcement_update import AnnouncementUpdate
 from .store import StorageConflict, StorageUnavailable
 from .display_read import saved_names, display_stock, us_summary, lane_projection, lane_stock
+from .display import selection_view, canonical_lane_projection
 from .engines.common import US_FACTOR_RULES_VERSION
-from .us_mapping_catalog import CatalogValidationError, CatalogStore
 from v4.hk_research_history import OwnedHKResearchHistory
+
+from .us_mapping_catalog import CatalogValidationError, CatalogStore
 
 PREFIX = "/api/v4/manager-workbench"
 _US_MAPPING_CATALOG_STORE = CatalogStore()
@@ -56,10 +58,33 @@ class AnnouncementFlashUpdateRequest(BaseModel):
         return validate_date(value)
 
 
+class AnnouncementPreprocessedExecuteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    report_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    phase: Literal["FIRST", "CONTINUE", "RECOVER_FAILED", "CONTINUE_REMAINING"]
+    first_delivery_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    extension_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+
 class AnnouncementFlashCachedProductRecoveryRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     failed_job_id: str = Field(pattern=r"^[0-9a-f]{32}$")
     product_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class AnnouncementFlashResumeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target_date: str
+    source_job_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    source_input_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_progress_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_queue_state_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    resume_action: str = Field(pattern=r"^(CANARY|CONTINUE)$")
+
+    @field_validator("target_date")
+    @classmethod
+    def check_date(cls, value: str) -> str:
+        return validate_date(value)
 
 
 def _date(value: str) -> str:
@@ -176,6 +201,45 @@ def create_router(service: ManagerService) -> APIRouter:
             })
         return _safe_errors(recover)
 
+    @router.post("/announcement-flash/{job_id}/execute-preprocessed", status_code=202)
+    def execute_preprocessed_announcement(job_id: str, payload: AnnouncementPreprocessedExecuteRequest):
+        if announcement_update is None:
+            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+        def execute():
+            job = announcement_update.execute_preprocessed(job_id, payload.report_sha256,
+                    payload.phase, payload.first_delivery_sha256, payload.extension_sha256)
+            return envelope(job.state.value, {"job_id": job.job_id, "phase": payload.phase,
+                                              "report_sha256": payload.report_sha256})
+        return _safe_errors(execute)
+
+    @router.post("/announcement-flash/{job_id}/stop", status_code=202)
+    def stop_announcement_flash(job_id: str):
+        if announcement_update is None:
+            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+        def stop():
+            value = announcement_update.stop(job_id)
+            return envelope(value["state"], value)
+        return _safe_errors(stop)
+
+    @router.post("/announcement-flash/resume", status_code=202)
+    def resume_announcement_flash(payload: AnnouncementFlashResumeRequest):
+        if announcement_update is None:
+            raise HTTPException(503, "ANNOUNCEMENT_FLASH_UNAVAILABLE")
+        def resume():
+            job = announcement_update.start_resume(
+                payload.target_date, payload.source_job_id,
+                payload.source_input_sha256, payload.source_progress_sha256,
+                payload.source_queue_state_sha256, payload.resume_action)
+            return envelope("QUEUED" if job.state.value == "QUEUED" else job.state.value, {
+                "job_id": job.job_id,
+                "source_job_id": payload.source_job_id,
+                "resume_action": payload.resume_action,
+                "target_date": job.context.target_date,
+                "step": job.step,
+                "status_url": f"{PREFIX}/announcement-flash?target_date={job.context.target_date}",
+            })
+        return _safe_errors(resume)
+
     @router.get("/mapping-catalog")
     def read_us_hk_mapping_catalog(
         q: str | None = Query(None, max_length=128),
@@ -277,19 +341,30 @@ def create_router(service: ManagerService) -> APIRouter:
     def read_recommendations(date: str, lane: Literal['US_MAPPING','OVERSOLD'],
                              phase: Phase | None = None, run_id: str | None = None,
                              offset: int = Query(0,ge=0),limit: int = Query(50,ge=1,le=200),
-                             decision: Decision | None = None,q: str | None = Query(None,max_length=128)):
+                             decision: Decision | None = None,q: str | None = Query(None,max_length=128),
+                             view: Literal['compact','diagnostics'] | None = None,
+                             symbol: str | None = Query(None,pattern=r'^HK\.[0-9]{5}$'),
+                             relationship_offset: int = Query(0,ge=0),
+                             relationship_limit: int = Query(50,ge=1,le=200)):
         day=_date(date)
         def read():
             snap=service.store.get_plan(day,phase.value if phase else None,run_id)
             versions=[_index(p) for p in service.store.list_plans(day)]
             if snap is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['NO_SAVED_PLAN'])
             names=saved_names(snap,service.config.shared_root)
-            projection=lane_projection(snap,lane,names,decision.value if decision else None,q)
+            if view:
+                projection=selection_view(snap,lane,names,view=view,offset=offset,limit=limit,
+                    decision=decision.value if decision else None,q=q,symbol=symbol,
+                    relationship_offset=relationship_offset,relationship_limit=relationship_limit)
+                if projection is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['LANE_NOT_SAVED'])
+                projection['versions']=versions
+                return envelope(projection['lane_state'],_public(projection),next(l.gaps for l in snap.lanes if l.lane.value==lane))
+            projection=canonical_lane_projection(snap,lane,names,decision.value if decision else None,q)
             meta=snap.model_dump(mode='json');meta.pop('stocks',None)
             meta['lanes']=[dict(lane=l.lane.value,state=l.state.value,coverage=l.coverage.model_dump(mode='json'),rows_count=len(l.rows),gaps=l.gaps) for l in snap.lanes]
             if projection is None:return envelope('NOT_RUN',_public(dict(snapshot=meta,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit))),['LANE_NOT_SAVED'])
             total=len(projection['stocks']);projection['stocks']=projection['stocks'][offset:offset+limit]
-            projection['recommendation_counts']={name:(value['counts'] if (value:=lane_projection(snap,name,names)) is not None else None) for name in ['US_MAPPING','OVERSOLD']}
+            projection['recommendation_counts']={name:(value['counts'] if (value:=canonical_lane_projection(snap,name,names)) is not None else None) for name in ['US_MAPPING','OVERSOLD']}
             projection.update(snapshot=meta,versions=versions,pagination=dict(total=total,offset=offset,limit=limit),us_mapping_summary=us_summary(snap,names) if lane=='US_MAPPING' else None)
             return envelope(projection['lane_state'],_public(projection),next(l.gaps for l in snap.lanes if l.lane.value==lane))
         return _safe_errors(read)
@@ -368,6 +443,11 @@ def create_router(service: ManagerService) -> APIRouter:
     @router.post("/runs/{id}/retry",status_code=202)
     def retry_run(id: str):
         def run():
+            existing = service.jobs.get(id)
+            scope = getattr(existing.context, "scope_refs", {})
+            operation = scope.get("capture_operation") if isinstance(scope, dict) else None
+            if isinstance(operation, str) and operation.startswith("ANNOUNCEMENT_FLASH"):
+                raise JobConflict("ANNOUNCEMENT_FLASH_RESUME_REQUIRED")
             record = service.retry(id)
             return envelope(record.state.value,{"job_id":record.job_id,"run_id":record.run_id,
                              "status_url":f"{PREFIX}/runs/{record.job_id}"})

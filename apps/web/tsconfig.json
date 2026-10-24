@@ -8,6 +8,5 @@
     "noEmit": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src/manager-workbench/**/*.ts", "src/manager-workbench/**/*.vue"],
-  "exclude": ["src/manager-workbench/**/__tests__/**"]
+  "include": ["src/**/*.ts", "src/**/*.vue"]
 }

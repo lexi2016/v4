@@ -6,10 +6,10 @@ import hashlib,json
 from .common import US_FACTOR_RULES_VERSION, current, hk_symbol, membership, result, row, valid_sha,timestamp
 from .us_factor import run_us_factor
 from .strict_us_selection import (
-    run_single_day_mapping,
-    cannot_confirm_single_day_mapping,
+    build_selection, legacy_mapping_projection,
     single_day_mapping_context_ready,
 )
+from .us_mapping_consumption import normalize_mapping_candidates
 from ..inputs.us_universe import (
     LEGACY_UNIVERSE_VERSION,
     UNIVERSE_VERSION,
@@ -161,6 +161,7 @@ def run_us_mapping(context, batch):
     found = [item.get("us_symbol") for item in source_records if isinstance(item, dict)]
     if good_universe and (len(found) != expected_count or len(found) != len(configured) or set(found) != set(configured)):
         gaps.append("US_SOURCE_33_COVERAGE_INCOMPLETE" if legacy_gap else "US_SOURCE_UNIVERSE_COVERAGE_INCOMPLETE")
+    source_contract_gaps=list(dict.fromkeys(gaps))
     rows = []
     catalog_rows = []
     source_index = 0
@@ -221,6 +222,10 @@ def run_us_mapping(context, batch):
                          catalog_recovery_status=relation.get("catalog_recovery_status") if isinstance(relation,dict) else None,
                          relation_pit_status=relation.get("pit_status") if isinstance(relation,dict) else None,quote_missing_reason=item.get("quote_missing_reason"),
                          source_gaps=item.get("source_gaps",[]),unmapped_disposition=item.get("unmapped_disposition"))
+            if isinstance(relation, dict):
+                extra.update(relation_current_validity=relation.get("current_validity"),
+                    relation_direction=relation.get("direction"),relation_sha256=relation.get("sha256"),
+                    primary_theme=relation.get("primary_theme"))
             if isinstance(relation,dict) and relation.get('priority_assessment'):
                 extra.update(research_priority_reason=relation.get('research_priority_reason'),
                              priority_assessment=relation['priority_assessment'])
@@ -324,12 +329,14 @@ def run_us_mapping(context, batch):
             "gap": overlay_summary.get("gap"),
         }
     if overlay_summary.get("state") == "READY" and consumed_relations != overlay_summary.get("relation_count"):
+        source_contract_gaps.append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
         out["gaps"].append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
         out["coverage"]["gaps"].append("US_MAPPING_OVERLAY_CONSUMER_COUNT_MISMATCH")
         out["state"] = "PARTIAL"
+    payload = next((record.get("us_factor_payload") for record in source_batch.get("records", [])
+                   if isinstance(record, dict) and isinstance(record.get("us_factor_payload"), dict)), {})
+    factor_rows, factor_summary = [], {}
     if context.get("rules_version") == US_FACTOR_RULES_VERSION:
-        payload = next((record.get("us_factor_payload") for record in source_batch.get("records", [])
-                       if isinstance(record, dict) and isinstance(record.get("us_factor_payload"), dict)), None)
         try:
             factor_rows, factor_summary = run_us_factor(context, source_batch, payload)
         except Exception:
@@ -372,26 +379,6 @@ def run_us_mapping(context, batch):
                 factor_summary["industry_summary"]["triggered_unique_stock_count"] = 0
                 factor_summary["industry_summary"]["full_mapping_route"] = "BROAD_SECTOR_BACKGROUND"
                 factor_summary["industry_summary"]["full_mapping_direction"] = "US_SOURCE_OBSERVATION_ONLY"
-        if full_mapping_mode:
-            try:
-                mapping_payload = (payload.get("single_day_mapping_payload") or {}).get("monthly_membership") if isinstance(payload, dict) else None
-                single_day_summary = run_single_day_mapping(context,
-                    relation_rows=rows,
-                    catalog_rows=catalog_rows,
-                    catalog_stock_identities=(u.get("full_overlay_stock_identities")
-                        if overlay_summary.get("state") == "READY" else None),
-                    catalog_expected_stock_count=(overlay_summary.get("stock_count")
-                        if overlay_summary.get("state") == "READY" else None),
-                    industry_rows=factor_rows,
-                    factor_summary=factor_summary,
-                    membership=mapping_payload,
-                    manual_quote_scope=(payload or {}).get("manual_quote_scope") if isinstance(payload, dict) else None)
-            except Exception:
-                # A single-day summary failure must not discard prior
-                # reviewed US relations or the independent factor result.
-                single_day_summary = cannot_confirm_single_day_mapping(context,
-                    "SINGLE_DAY_MAPPING_FAILED")
-            factor_summary["single_day_mapping"] = single_day_summary
         out["rows"].extend(factor_rows)
         holder = next(iter(factor_rows), None) or next(iter(out["rows"]), None)
         if holder is not None:
@@ -414,5 +401,45 @@ def run_us_mapping(context, batch):
     if not out["gaps"] and not any(x.get("positive_change_required") for x in source_records if isinstance(x, dict)):
         out["coverage"]["assessed_count"] = sum(1 for x in source_records if isinstance(x, dict) and x.get("source_status") in ("PRIORITY", "WATCH", "NONE"))
         out["coverage"]["unassessed_count"] = expected_count - out["coverage"]["assessed_count"]
+    # Normalize once. Legacy path rows remain immutable diagnostics of this run;
+    # only the canonical per-stock rows can vote in the aggregate result.
+    verified_ids = {e.get("evidence_id") for e in batch.get("evidence_refs", [])
+        if isinstance(e,dict) and e.get("verification") == "VERIFIED" and current(context,e.get("available_at"))}
+    for source_row in rows:
+        if source_row.get("symbol") and (not source_row.get("evidence_ids") or not set(source_row["evidence_ids"]).issubset(verified_ids)):
+            source_row["diagnostic_gaps"] = list(dict.fromkeys([*source_row.get("diagnostic_gaps",[]),"EVIDENCE_REFS_PENDING"]))
+    mapping_payload = payload.get("strict_selection_payload") or payload.get("single_day_mapping_payload") or {}
+    identities = (u.get("full_overlay_stock_identities") or (mapping_payload.get("monthly_membership") or {}).get("codes") or [])
+    candidates = normalize_mapping_candidates(context,relation_rows=rows,catalog_rows=catalog_rows,
+        industry_rows=factor_rows,manual_quote_scope=payload.get("manual_quote_scope"),identities=identities)
+    selection = build_selection(dict(context,_selection_input_gaps=source_contract_gaps),
+        candidates,mapping_payload.get("hk_history") or {})
+    out["selection"] = selection.model_dump(mode="json")
+    if factor_summary:
+        factor_summary["single_day_mapping"] = legacy_mapping_projection(selection)
+        factor_summary["strict_selection"] = out["selection"]
+    decisions = {d.symbol:d for d in selection.strict_decisions}
+    for diagnostic in out["rows"]:
+        diagnostic["source_diagnostic"] = True
+    for candidate in candidates:
+        strict = decisions[candidate.symbol]
+        eligible_gate = next(g for g in strict.gates if g.gate == "eligibility")
+        evidence_ids = strict.evidence_ids
+        member = None
+        if eligible_gate.state in {"PASS","REJECT"}:
+            history = mapping_payload.get("hk_history") or {}
+            member = dict(verification="VERIFIED",owner=history.get("panel_owner") or "HK_PANEL_STRICT_READINESS",
+                sha256=history.get("panel_sha256"),eligible=eligible_gate.state=="PASS",effective_from=context["target_date"],
+                effective_through=context["target_date"],available_at=history.get("panel_available_at"))
+        out["rows"].append(dict(market="HK_CONNECT",symbol=candidate.symbol,name=candidate.name,
+            record_role="CANONICAL_SELECTION",source_diagnostic=False,
+            decision={"SELECTED":"SELECTED","QUALIFIED_NOT_SELECTED":"NOT_SELECTED","REJECTED":"NOT_SELECTED","PENDING":"UNASSESSED"}[strict.decision],
+            reason=(strict.reasons or ["ALL_STRICT_GATES_PASSED"])[0],reasons=strict.reasons,
+            conditions=["RESEARCH_ONLY"],risks=["RESEARCH_EFFECT_UNVERIFIED"],evidence_ids=evidence_ids,
+            available_at=context["cutoff"],membership=member,strict_selection=strict.model_dump(mode="json"),
+            research_state=candidate.research_state,source_session=selection.source_session))
+    if selection.counts["pending"]:
+        out["state"] = "PARTIAL"
+        out["gaps"] = list(dict.fromkeys([*out["gaps"],"US_STRICT_SELECTION_MATERIAL_PENDING"]))
     return out
 

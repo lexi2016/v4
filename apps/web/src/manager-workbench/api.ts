@@ -2,8 +2,9 @@ import { SCHEMA_VERSION } from "./types";
 import type {
   AnnouncementFlashData, AnnouncementFlashResumeAccepted, AnnouncementFlashResumeEligibility,
   AnnouncementFlashUpdateAccepted, DayData, Decision, Envelope, HistoryData,
-  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane, USMappingCatalogData,
-  SavedDateCatalog
+  JobCreated, JobRecord, Lane, Phase, ReviewSummary, StockDetails, RecommendationLane,
+  USMappingCatalogData, PlanMetadata, USMappingCompactStock, USMappingDiagnosticsData,
+  USMappingSelectionCounts, USMappingSelectionIdentity
 } from "./types";
 import { isValidDate } from "./route";
 
@@ -18,6 +19,14 @@ export interface DayQuery {
   decision?: Decision | "";
   lane?: Lane | "";
   q?: string;
+}
+export interface USMappingDiagnosticsQuery {
+  date: string;
+  phase?: Phase | "";
+  run_id: string;
+  symbol: string;
+  relationship_offset?: number;
+  relationship_limit?: number;
 }
 export class ApiError extends Error {
   constructor(message: string, public readonly status: number, public readonly gaps: unknown = null) {
@@ -49,6 +58,89 @@ function httpErrorDetail(payload: unknown): string | null {
 }
 function assertRunId(id: string): void {
   if (!id || id.length > 180 || !/^[A-Za-z0-9_.:-]+$/.test(id)) throw new ApiError("版本或任务标识无效", 422);
+}
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function normalizeSelectionSnapshot(value: unknown): PlanMetadata | null {
+  if (value === null) return null;
+  if (!isRecord(value)) throw new ApiError("US_MAPPING 保存版本身份无效", 502);
+  if (isRecord(value.context)) return value as unknown as PlanMetadata;
+  const targetDate = typeof value.target_date === "string" ? value.target_date : "";
+  const phase = value.phase;
+  const runId = typeof value.run_id === "string" ? value.run_id : "";
+  const phases: Phase[] = ["PREOPEN", "INTRADAY", "NEXT_DAY", "RETROSPECTIVE", "MANUAL"];
+  if (!isValidDate(targetDate) || !phases.includes(phase as Phase) || !runId) {
+    throw new ApiError("US_MAPPING 保存版本缺少日期、阶段或 run_id", 502);
+  }
+  return {
+    ...value,
+    context: {
+      market: "HK_CONNECT",
+      target_date: targetDate,
+      phase: phase as Phase,
+      cutoff: typeof value.cutoff === "string" ? value.cutoff : null,
+      ...(isRecord(value.source_sessions) ? { source_sessions: value.source_sessions as Record<string, string | null> } : {})
+    },
+    run_id: runId
+  } as unknown as PlanMetadata;
+}
+function assertSelectionIdentity(value: unknown): USMappingSelectionIdentity {
+  if (!isRecord(value) || value.schema_version !== "v4.us_hk.selection.v1"
+    || typeof value.policy_sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(value.policy_sha256)
+    || typeof value.engine_identity !== "string" || !value.engine_identity) {
+    throw new ApiError("US_MAPPING selection_identity 与冻结合同不符", 502);
+  }
+  return value as unknown as USMappingSelectionIdentity;
+}
+function assertSelectionCounts(value: unknown): USMappingSelectionCounts {
+  const keys = ["candidate_count", "current_supported", "dated_weak", "pending_research",
+    "selected", "qualified_not_selected", "rejected", "pending"] as const;
+  if (!isRecord(value) || keys.some(key => value[key] !== null &&
+    (typeof value[key] !== "number" || !Number.isFinite(value[key])))) {
+    throw new ApiError("US_MAPPING 全量汇总计数无效", 502);
+  }
+  return value as unknown as USMappingSelectionCounts;
+}
+function normalizeCompactSelection(data: unknown): import("./types").DayData | null {
+  if (data === null) return null;
+  if (!isRecord(data)) throw new ApiError("US_MAPPING compact 数据无效", 502);
+  const hasIdentity = Object.prototype.hasOwnProperty.call(data, "selection_identity");
+  if (data.selection_identity !== null && data.selection_identity !== undefined) {
+    const identity = assertSelectionIdentity(data.selection_identity);
+    if (!Array.isArray(data.stocks) || data.stocks.some(stock => !isRecord(stock)
+      || typeof stock.symbol !== "string" || typeof stock.research_state !== "string"
+      || typeof stock.strict_state !== "string" || typeof stock.decision !== "string")) {
+      throw new ApiError("US_MAPPING compact 候选列表无效", 502);
+    }
+    if (!isRecord(data.pagination) || !Number.isInteger(data.pagination.total)
+      || !Number.isInteger(data.pagination.offset) || !Number.isInteger(data.pagination.limit)) {
+      throw new ApiError("US_MAPPING compact 分页无效", 502);
+    }
+    const snapshot = normalizeSelectionSnapshot(data.snapshot);
+    if (!snapshot) throw new ApiError("US_MAPPING selection 缺少保存版本身份", 502);
+    const selectionStocks = data.stocks as unknown as USMappingCompactStock[];
+    return {
+      ...data,
+      snapshot,
+      stocks: [],
+      counts: null,
+      pagination: data.pagination as { total: number; offset: number; limit: number },
+      us_mapping_selection: {
+        selection_identity: identity,
+        counts: assertSelectionCounts(data.counts),
+        pagination: data.pagination as { total: number; offset: number; limit: number },
+        stocks: selectionStocks,
+        ...(isRecord(data.lane_sources) ? { lane_sources: data.lane_sources } : {})
+      }
+    } as unknown as import("./types").DayData;
+  }
+  const normalized = { ...data };
+  if (Object.prototype.hasOwnProperty.call(data, "snapshot")) {
+    normalized.snapshot = normalizeSelectionSnapshot(data.snapshot);
+  }
+  if (hasIdentity || data.legacy === true) normalized.us_mapping_legacy = true;
+  return normalized as unknown as import("./types").DayData;
 }
 async function request<T>(
   transport: FetchLike, path: string, init: RequestInit = {}
@@ -87,26 +179,6 @@ async function request<T>(
 }
 export function createWorkbenchApi(transport: FetchLike = fetch) {
   return {
-    async getSavedDates(signal?: AbortSignal): Promise<SavedDateCatalog> {
-      let response: Response;
-      try {
-        response = await transport("/api/v1/runs/date-list", {
-          credentials: "same-origin", cache: "no-store", signal,
-          headers: { Accept: "application/json" }
-        });
-      } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") throw error;
-        throw new ApiError("日期清单读取失败，请核实 API 连接", 0);
-      }
-      let payload: unknown;
-      try { payload = await response.json(); }
-      catch { throw new ApiError("日期清单响应不是有效 JSON", response.status); }
-      if (!response.ok) throw new ApiError("日期清单读取失败", response.status);
-      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-        throw new ApiError("日期清单响应格式无效", 502);
-      }
-      return payload as SavedDateCatalog;
-    },
     async getRecommendations(query: DayQuery, signal?: AbortSignal) {
       exactDate(query.date);
       if (query.lane !== 'US_MAPPING' && query.lane !== 'OVERSOLD') throw new ApiError('推荐来源无效', 422);
@@ -118,7 +190,29 @@ export function createWorkbenchApi(transport: FetchLike = fetch) {
       params.set('offset', String(offset)); params.set('limit', String(limit));
       if (query.decision) params.set('decision', query.decision);
       if (query.q?.trim()) params.set('q', query.q.trim());
-      return request<DayData>(transport, `/days/${query.date}/recommendations/${query.lane}?${params}`, { signal });
+      if (query.lane === "US_MAPPING") params.set("view", "compact");
+      const result = await request<unknown>(transport,
+        `/days/${query.date}/recommendations/${query.lane}?${params}`, { signal });
+      if (query.lane !== "US_MAPPING") return result as Envelope<DayData>;
+      return { ...result, data: normalizeCompactSelection(result.data) } as Envelope<DayData>;
+    },
+    async getUSMappingDiagnostics(query: USMappingDiagnosticsQuery, signal?: AbortSignal) {
+      exactDate(query.date); assertRunId(query.run_id);
+      if (!/^HK\.[0-9]{5}$/.test(query.symbol)) throw new ApiError("非港股规范代码", 422);
+      const relationshipOffset = query.relationship_offset ?? 0;
+      const relationshipLimit = query.relationship_limit ?? 50;
+      if (!Number.isInteger(relationshipOffset) || relationshipOffset < 0
+        || !Number.isInteger(relationshipLimit) || relationshipLimit < 1 || relationshipLimit > 200) {
+        throw new ApiError("关系分页参数无效", 422);
+      }
+      const params = new URLSearchParams({
+        run_id: query.run_id, offset: "0", limit: "1", symbol: query.symbol,
+        relationship_offset: String(relationshipOffset), relationship_limit: String(relationshipLimit),
+        view: "diagnostics"
+      });
+      if (query.phase) params.set("phase", query.phase);
+      return request<USMappingDiagnosticsData>(transport,
+        `/days/${query.date}/recommendations/US_MAPPING?${params}`, { signal });
     },
     async getDay(query: DayQuery, signal?: AbortSignal) {
       exactDate(query.date);
@@ -174,6 +268,16 @@ export function createWorkbenchApi(transport: FetchLike = fetch) {
       return request<AnnouncementFlashUpdateAccepted>(transport, "/announcement-flash/update", {
         method: "POST", body: JSON.stringify({ target_date: targetDate })
       });
+    },
+    async stopAnnouncementFlash(jobId: string) {
+      if (!/^[0-9a-f]{32}$/.test(jobId)) throw new ApiError("公告任务编号无效", 422);
+      return request<{ job_id: string; state: string }>(transport, `/announcement-flash/${jobId}/stop`, { method: "POST" });
+    },
+    async executePreprocessedAnnouncement(jobId: string, reportSha: string, phase: "FIRST" | "CONTINUE" | "RECOVER_FAILED" | "CONTINUE_REMAINING", firstDeliverySha?: string, extensionSha?: string) {
+      if (!/^[0-9a-f]{32}$/.test(jobId) || !/^[0-9a-f]{64}$/.test(reportSha)) throw new ApiError("预处理来源绑定无效", 422);
+      return request<{ job_id: string; phase: string; report_sha256: string }>(transport,
+        `/announcement-flash/${jobId}/execute-preprocessed`, { method: "POST",
+          body: JSON.stringify({ report_sha256: reportSha, phase, first_delivery_sha256: firstDeliverySha || null, ...(extensionSha ? { extension_sha256: extensionSha } : {}) }) });
     },
     async resumeAnnouncementFlash(targetDate: string, resume: AnnouncementFlashResumeEligibility,
                                   resumeAction: "CANARY" | "CONTINUE") {

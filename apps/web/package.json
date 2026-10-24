@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "APP_TYPECHECK": "vue-tsc --noEmit",
-    "typecheck": "npm run APP_TYPECHECK",
+    "typecheck": "vue-tsc --noEmit",
     "build": "vite build"
   },
   "devDependencies": {

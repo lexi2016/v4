@@ -176,7 +176,7 @@ def _validate_reader(body, article, output):
         raise ValueError("ANNOUNCEMENT_SELECTED_SEMANTICS_INCONSISTENT")
     required_evidence_fields = set()
     if selected:
-        required_evidence_fields.update(("facts", "changes"))
+        required_evidence_fields.update(("facts", "changes", "impact"))
     elif output["disposition"] == "CONDITIONAL_WATCH":
         required_evidence_fields.add("confirmation_conditions")
     for key in _LIST_FIELDS:

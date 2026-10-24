@@ -12,6 +12,7 @@ PART_PLAN_SCHEMA = "v4.manager_workbench.announcement_chunk_plan.v1"
 PART_INPUT_SCHEMA = "v4.manager_workbench.announcement_chunk_part_input.v1"
 PART_RESULT_SCHEMA = "v4.manager_workbench.announcement_chunk_part_result.v1"
 SYNTHESIS_INPUT_SCHEMA = "v4.manager_workbench.announcement_chunk_synthesis_input.v1"
+PART_FIXED_FIELDS_CONTRACT_VERSION = "v2"
 PART_ADDENDUM = """长正文分片 Reader addendum（保留既有 Reader 全部字段、枚举、标准和最终验证）：
 - 本次只收到冻结全文中的一个连续分片，不是完整公告。完整公告共 part_count 个分片；当前 part_index 从 1 开始。
 - 先读完本分片的全部 source_units，再在本分片证据范围内独立记录正面、负面、冲突、限定、风险和未知内容。分片没有提到某项，不表示全文没有该事项。
@@ -19,8 +20,9 @@ PART_ADDENDUM = """长正文分片 Reader addendum（保留既有 Reader 全部�
 - fixed_fact_ledger 仅含其全部来源单元均位于本分片的账本记录；它是辅助证据，不替代正文。跨分片的账本关系留待最终综合，不要由局部账本推断。
 - 本分片 Reader 输出只是内部证据，不是候选或最终判断；不得把单一分片的正面结果当作选股结论。仍须严格使用原有 13 字段 wire schema，facts 和 changes 均为空数组，source_sha256 和 body_sha256 留空字符串。"""
 PART_REPAIR_ADDENDUM = (
-    "PART_FIXED_FIELDS_MUST_BE_EMPTY：本分片 reader_output.facts、reader_output.changes 必须为 []，"
-    "覆盖前文 changes 指令。仍输出完整 13 字段并遵守其余原字段语义、引证及全部验证。"
+    "PART_FIXED_FIELDS_MUST_BE_EMPTY：本分片 reader_output.facts、reader_output.changes 必须为 []；"
+    "程序会从 fixed_fact_ledger.reader_facts 和 fixed_fact_ledger.reader_changes 确定性注入最终字段。"
+    "仍输出完整 13 字段并遵守其余原字段语义、引证及全部验证。"
 )
 SYNTHESIS_ADDENDUM = """长正文综合 addendum（保留既有 Reader 全部字段、枚举、选择标准和最终验证）：
 - 输入是同一篇冻结公告的全部连续分片的已验证 Reader 报告、精确原文引证和跨分片固定账本记录。确认所有 part_index 从 1 到 part_count 各出现一次，按序综合；这些分片报告是证据，不是候选结果。
@@ -65,7 +67,63 @@ def reader_task_system_prompt(original_prompt: str, task: str) -> str:
     }[task]
     if prompt.count(original_reading_step) != 1:
         raise ValueError("CHUNK_ORIGINAL_READER_READING_STEP_BINDING_INVALID")
-    return prompt.replace(original_reading_step, task_reading_step, 1)
+    prompt = prompt.replace(original_reading_step, task_reading_step, 1)
+    chunked_fixed_fields = (
+        "- wire JSON 中 facts 必须输出空数组；程序会在保存原始模型响应后，从冻结账本生成 facts 字段及其精确引文。"
+        "你负责经营/业绩判断及理由、风险、影响、条件、反面证据，并在 changes 中填写正文披露且符合既有标准的经营/业绩变化。"
+        "每条 changes claim 必须完整原子化，其全部细节由所引用的连续正文范围支持；使用 start_source_unit_id/end_source_unit_id 标记端点。"
+        "程序只投影范围、生成 quote/locator，不会从固定账本生成、删除、替换或改写 changes；其余模型判断字段保持原样。"
+    )
+    chunked_fixed_fields_replacement = (
+        "- 本次分片/综合 Reader wire JSON 中 facts 和 changes 均必须输出空数组 []。"
+        "程序会从冻结 fixed_fact_ledger.reader_facts 和 fixed_fact_ledger.reader_changes 确定性注入最终 facts/changes；"
+        "不要将账本字段复制到 wire JSON，也不要改写账本。你仍负责原有经营/业绩判断及理由、风险、影响、条件、反面证据，"
+        "并按原规则使用连续 source-unit 范围端点引证；其余模型判断字段保持原样。"
+    )
+    if prompt.count(chunked_fixed_fields) != 1:
+        raise ValueError("CHUNK_ORIGINAL_FIXED_FIELD_PROMPT_BINDING_INVALID")
+    prompt = prompt.replace(chunked_fixed_fields, chunked_fixed_fields_replacement, 1)
+    complete_changes_instruction = (
+        "facts 必须为 []，由程序从冻结账本注入；changes 由模型依据完整正文填写，使用连续 source-unit 范围端点引证，"
+        "没有符合既有 Reader 标准的有据变化时留空。"
+    )
+    complete_changes_replacement = (
+        "facts 和 changes 必须均为 []，由程序从冻结 fixed_fact_ledger.reader_facts 和 "
+        "fixed_fact_ledger.reader_changes 确定性注入；分片及综合模型不得填写或改写这两个字段。"
+    )
+    if prompt.count(complete_changes_instruction) != 1:
+        raise ValueError("CHUNK_ORIGINAL_SCHEMA_PROMPT_BINDING_INVALID")
+    return prompt.replace(complete_changes_instruction, complete_changes_replacement, 1)
+
+
+def empty_reader_fixed_fields_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Clone a Reader schema and require fixed-ledger arrays to stay empty on the wire."""
+    if not isinstance(schema, dict):
+        raise ValueError("CHUNK_FIXED_FIELD_SCHEMA_INVALID")
+    result = deepcopy(schema)
+    matches: list[dict[str, Any]] = []
+
+    def visit(node: Any) -> None:
+        if isinstance(node, dict):
+            properties = node.get("properties")
+            if isinstance(properties, dict) and {"facts", "changes"}.issubset(properties):
+                for field in ("facts", "changes"):
+                    field_schema = properties[field]
+                    if not isinstance(field_schema, dict) or field_schema.get("type") != "array":
+                        raise ValueError("CHUNK_FIXED_FIELD_SCHEMA_INVALID")
+                matches.append(properties)
+            for value in node.values():
+                visit(value)
+        elif isinstance(node, list):
+            for value in node:
+                visit(value)
+
+    visit(result)
+    if len(matches) != 1:
+        raise ValueError("CHUNK_FIXED_FIELD_SCHEMA_BINDING_INVALID")
+    for field in ("facts", "changes"):
+        matches[0][field]["maxItems"] = 0
+    return result
 
 
 def part_repair_messages(messages: list[dict[str, Any]], failure_code: str) -> list[dict[str, Any]]:

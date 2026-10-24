@@ -4,7 +4,8 @@ import { researchCutoff } from "./display";
 import type { DayQuery, WorkbenchApi } from "./api";
 import type {
   DayData, Decision, Envelope, HistoryData, JobRecord, Lane, Phase,
-  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation
+  ReviewSummary, StockDecision, StockDetails, RecommendationLane, USMappingCatalogData, USMappingCatalogRelation,
+  USMappingCompactStock, USMappingDiagnosticsData
 } from "./types";
 import { isValidDate, parseWorkbenchRoute, routeSearch } from "./route";
 import type { WorkbenchRoute } from "./route";
@@ -36,6 +37,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   } | null>(null);
   const singleDayVersionLoading = ref(false);
   const singleDayVersionError = ref("");
+  const usMappingDiagnostics = ref<APIData<USMappingDiagnosticsData>>(null);
+  const usMappingDiagnosticsSymbol = ref("");
+  const usMappingDiagnosticsLoading = ref(false);
+  const usMappingDiagnosticsError = ref("");
+  const usMappingDiagnosticsOffset = ref(0);
   const decisionFilter = ref<Decision | "">("");
   const laneFilter = ref<RecommendationLane>('US_MAPPING');
   const laneViews: Partial<Record<RecommendationLane, { offset: number; decision: Decision | ''; search: string }>> = {};
@@ -89,6 +95,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const valid = computed(() => route.value.error === null);
 
   let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, catalogSeq = 0, jobSeq = 0, operationSeq = 0;
+  let usMappingDiagnosticsSeq = 0;
   let dayAbort: AbortController | null = null;
   let detailAbort: AbortController | null = null;
   let historyAbort: AbortController | null = null;
@@ -96,6 +103,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   let catalogAbort: AbortController | null = null;
   const catalogRelationAborts = new Map<string, AbortController>();
   let jobAbort: AbortController | null = null;
+  let usMappingDiagnosticsAbort: AbortController | null = null;
   let jobTimer: ReturnType<typeof setTimeout> | null = null;
 
   function stopJobReads(): void {
@@ -105,9 +113,20 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     jobTimer = null;
     jobLoading.value = false;
   }
+  function clearUSMappingDiagnostics(): void {
+    usMappingDiagnosticsSeq++;
+    usMappingDiagnosticsAbort?.abort();
+    usMappingDiagnosticsAbort = null;
+    usMappingDiagnostics.value = null;
+    usMappingDiagnosticsSymbol.value = "";
+    usMappingDiagnosticsLoading.value = false;
+    usMappingDiagnosticsError.value = "";
+    usMappingDiagnosticsOffset.value = 0;
+  }
   function abortAll(): void {
     daySeq++; detailSeq++; historySeq++; reviewSeq++; catalogSeq++;
     dayAbort?.abort(); detailAbort?.abort(); historyAbort?.abort(); reviewAbort?.abort(); catalogAbort?.abort();
+    clearUSMappingDiagnostics();
     catalogLoading.value = false;
     clearCatalogRelationDetails();
     stopJobReads();
@@ -158,7 +177,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   async function findSingleDayVersion(response: Envelope<DayData>, query: DayQuery,
     seq: number, signal: AbortSignal): Promise<void> {
     singleDayVersion.value = null; singleDayVersionError.value = "";
-    if (query.lane !== "US_MAPPING" || !response.data?.snapshot
+    if (query.lane !== "US_MAPPING" || !response.data?.snapshot || response.data.us_mapping_selection
       || response.data.us_mapping_summary?.factor_summary?.single_day_mapping) return;
     const candidates = (response.data.versions || [])
       .filter(version => version.run_id !== response.data?.snapshot?.run_id
@@ -201,6 +220,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     const seq = ++daySeq;
     dayAbort?.abort(); const ctrl = new AbortController(); dayAbort = ctrl;
     if (!old) day.value = null;
+    clearUSMappingDiagnostics();
     singleDayVersion.value = null; singleDayVersionLoading.value = false; singleDayVersionError.value = "";
     stale.value = false; dayLoading.value = true; dayError.value = "";
     try {
@@ -255,6 +275,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   }
   function showPanel(next: Panel): void {
     panel.value = next;
+    if (next !== "stocks") clearUSMappingDiagnostics();
     if (next === "history") void loadHistory();
     if (next === "reviews") void loadReview();
     if (next === "catalog") void loadCatalog();
@@ -339,21 +360,31 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     void loadCatalog(next);
   }
   async function openStock(stock: StockDecision): Promise<void> {
+    clearUSMappingDiagnostics();
     panel.value = "detail";
     detail.value = null; detailError.value = ""; detailSymbol.value = stock.symbol;
+    const seq = ++detailSeq;
+    detailAbort?.abort(); detailAbort = null; detailLoading.value = false;
     const runId = selectedRunId.value;
     if (!runId) { detailError.value = "缺少计划 run_id，不能读取跨版本详情"; return; }
-    const seq = ++detailSeq;
-    detailAbort?.abort(); const ctrl = new AbortController(); detailAbort = ctrl;
+    const recommendationLane = stock.recommendation_lane ?? laneFilter.value;
+    const rowId = typeof stock.row_id === "string" ? stock.row_id : "";
+    if (recommendationLane !== laneFilter.value) {
+      detailError.value = "保存的推荐来源与当前名单不一致，不能读取详情"; return;
+    }
+    if (recommendationLane === "US_MAPPING" && !rowId) {
+      detailError.value = "当前历史保存版缺少 US_MAPPING 行标识，不能读取跨版本详情"; return;
+    }
+    const ctrl = new AbortController(); detailAbort = ctrl;
     detailLoading.value = true;
     try {
       const result = await api.getStock(stock.symbol, route.value.date, runId, ctrl.signal,
-        { lane: laneFilter.value, row_id: String(stock.row_id || '') });
+        { lane: recommendationLane, row_id: rowId });
       if (seq !== detailSeq || ctrl.signal.aborted) return;
       if (result.data?.plan_run_id !== runId || result.data.stock?.symbol !== stock.symbol) {
         throw new ApiError("个股详情与请求的计划 run_id 不一致", 502);
       }
-      if (result.data.recommendation_lane !== laneFilter.value || result.data.stock.row_id !== stock.row_id) {
+      if (result.data.recommendation_lane !== recommendationLane || result.data.stock.row_id !== stock.row_id) {
         throw new ApiError('个股详情与请求的独立推荐来源或记录不一致', 502);
       }
       detail.value = result;
@@ -362,6 +393,73 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     } finally {
       if (seq === detailSeq) detailLoading.value = false;
     }
+  }
+  async function loadUSMappingDiagnostics(symbol: string, relationshipOffset = 0): Promise<void> {
+    const runId = selectedRunId.value;
+    const savedSnapshot = snapshot.value;
+    if (!runId || !savedSnapshot || laneFilter.value !== "US_MAPPING") {
+      usMappingDiagnosticsError.value = "没有当前 US_MAPPING 保存 run_id，不能读取诊断。";
+      return;
+    }
+    if (!/^HK\.[0-9]{5}$/.test(symbol) || !Number.isInteger(relationshipOffset) || relationshipOffset < 0) return;
+    const requestedDate = route.value.date;
+    const requestedPhase = route.value.phase || savedSnapshot.context.phase;
+    const requestedDaySeq = daySeq;
+    const compactIdentity = day.value?.data?.us_mapping_selection?.selection_identity;
+    const seq = ++usMappingDiagnosticsSeq;
+    usMappingDiagnosticsAbort?.abort();
+    const ctrl = new AbortController();
+    usMappingDiagnosticsAbort = ctrl;
+    usMappingDiagnosticsSymbol.value = symbol;
+    usMappingDiagnosticsOffset.value = relationshipOffset;
+    usMappingDiagnostics.value = null;
+    usMappingDiagnosticsError.value = "";
+    usMappingDiagnosticsLoading.value = true;
+    try {
+      const result = await api.getUSMappingDiagnostics({
+        date: requestedDate, phase: requestedPhase, run_id: runId, symbol,
+        relationship_offset: relationshipOffset, relationship_limit: 50
+      }, ctrl.signal);
+      if (seq !== usMappingDiagnosticsSeq || requestedDaySeq !== daySeq || ctrl.signal.aborted
+        || requestedDate !== route.value.date || runId !== selectedRunId.value || laneFilter.value !== "US_MAPPING") return;
+      const responseSnapshot = result.data?.snapshot;
+      const responseDate = responseSnapshot
+        ? ("context" in responseSnapshot ? responseSnapshot.context.target_date : responseSnapshot.target_date) : undefined;
+      const responsePhase = responseSnapshot
+        ? ("context" in responseSnapshot ? responseSnapshot.context.phase : responseSnapshot.phase) : undefined;
+      if (!responseSnapshot || responseSnapshot.run_id !== runId || responseDate !== requestedDate
+        || responsePhase !== requestedPhase) {
+        throw new ApiError("US_MAPPING diagnostics 日期、阶段或 run_id 与当前保存版不一致", 502);
+      }
+      const identity = result.data?.selection_identity;
+      if (!identity || (compactIdentity && (identity.schema_version !== compactIdentity.schema_version
+        || identity.policy_sha256 !== compactIdentity.policy_sha256
+        || identity.engine_identity !== compactIdentity.engine_identity))) {
+        throw new ApiError("US_MAPPING diagnostics 与当前 selection_identity 不一致", 502);
+      }
+      if (!result.data?.stocks?.some(stock => stock.symbol === symbol)) {
+        throw new ApiError("US_MAPPING diagnostics 未返回所选港股", 502);
+      }
+      usMappingDiagnostics.value = result;
+    } catch (error) {
+      if (seq === usMappingDiagnosticsSeq && !isAbort(error)) usMappingDiagnosticsError.value = errorMessage(error);
+    } finally {
+      if (seq === usMappingDiagnosticsSeq) usMappingDiagnosticsLoading.value = false;
+    }
+  }
+  function toggleUSMappingDiagnostics(stock: USMappingCompactStock): void {
+    if (usMappingDiagnosticsSymbol.value === stock.symbol) {
+      clearUSMappingDiagnostics();
+      return;
+    }
+    void loadUSMappingDiagnostics(stock.symbol, 0);
+  }
+  function pageUSMappingDiagnostics(nextOffset: number): void {
+    const symbol = usMappingDiagnosticsSymbol.value;
+    if (!symbol || !Number.isInteger(nextOffset) || nextOffset < 0) return;
+    const pagination = usMappingDiagnostics.value?.data?.stocks.find(row => row.symbol === symbol)?.relationship_pagination;
+    if (!pagination || nextOffset >= pagination.total || nextOffset === pagination.offset) return;
+    void loadUSMappingDiagnostics(symbol, nextOffset);
   }
   async function loadHistory(): Promise<void> {
     if (!valid.value) return;
@@ -479,6 +577,9 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
 
   return {
     route, panel, selectDate, singleDayVersion, singleDayVersionLoading, singleDayVersionError,
+    usMappingDiagnostics, usMappingDiagnosticsSymbol, usMappingDiagnosticsLoading,
+    usMappingDiagnosticsError, usMappingDiagnosticsOffset, toggleUSMappingDiagnostics,
+    pageUSMappingDiagnostics,
     decisionFilter, laneFilter, searchDraft, search, offset, limit,
     day, dayLoading, dayError, stale, hasStale, detail, detailSymbol, detailLoading, detailError,
     history, historyLoading, historyError, review, reviewLoading, reviewError,

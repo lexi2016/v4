@@ -5,7 +5,7 @@ not permission to substitute another date. Projections retain their raw sources.
 """
 from __future__ import annotations
 import json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from infrastructure.owned_io import SafeRoot
 from ..engines.common import US_FACTOR_RULES_VERSION, valid_sha
@@ -61,8 +61,8 @@ def _load_observed_hk_industry_pin(config, context, pin):
     """Load one explicitly pinned owner capture under the observed-use policy.
 
     The owner capture date and capture timestamp stay separate from the run's
-    target date. This path opts in through an exact-date pin or fixed template;
-    it never scans for a newer file or derives an effective date from capture time.
+    target date. This path is opt-in per target date and never scans for a newer
+    file or infers an effective date from capture time.
     """
     day = context.target_date
     observed_day = _date_token(pin.get('observed_trade_date'))
@@ -562,6 +562,7 @@ def hk_industry_classification(config, context):
     except (OSError, ValueError, KeyError, TypeError) as error:
         gap = str(error) if isinstance(error, ValueError) else 'HK_INDUSTRY_CLASSIFICATION_ARTIFACT_UNAVAILABLE'
         return dict(status='UNAVAILABLE', gap=gap)
+
 
 
 
@@ -1353,9 +1354,19 @@ def resolve_bindings(config,context):
     for name, resolver in [('membership',membership),('announcements',announcements),('hk_panel',hk_panel),('security_master',security_master),('us_mapping',us_mapping),('stage',stage)]:
         try: result[name]=resolver(config,context)
         except (OSError,ValueError,KeyError,TypeError) as error:gaps[name]=str(error) if isinstance(error,ValueError) else name.upper()+'_OWNER_UNAVAILABLE'
+    if result.get('hk_panel') and result.get('security_master'):
+        panel_pin=result['hk_panel']
+        configured_pin=panel_pin.pop('tdxpy_history',None)
+        try:
+            tdx_pin=_tdxpy_history_for_exact_parents(config,context,panel_pin,result['security_master'],configured_pin)
+            if tdx_pin:panel_pin['tdxpy_history']=tdx_pin
+            gaps.pop('tdxpy_history',None)
+        except (OSError,ValueError,KeyError,TypeError) as error:
+            gaps['tdxpy_history']=str(error) if isinstance(error,ValueError) else 'TDXPY_HISTORY_PARENT_UNAVAILABLE'
     # No alternative close producer is configured. Exact-date explicit pins are
     # allowed for an original complete ranking owner, otherwise the lane is unknown.
     return result,gaps
+
 
 def read_us_universe_contract(config):
     return _load_us_universe_contract(config)
@@ -1363,3 +1374,65 @@ def read_us_universe_contract(config):
 
 def load_us_universe_contract(config, extra_symbols=None):
     return _load_us_universe_contract(config, extra_symbols)
+
+
+def _tdxpy_history_for_exact_parents(config, context, panel_pin, master_pin, configured_pin=None):
+    """Discover only a complete TDX61 run bound to this exact panel/master pair."""
+    if config.shared_root is None or not panel_pin or not master_pin:
+        return None
+    day=context.source_sessions['hk_price']
+    from upstreams.v3_shared_data.shared_data.hk_daily_supplement import (
+        _read_master_identity, _read_panel_identity, read_tdxpy_window_supplement,
+    )
+    panel, _=read(config.shared_root,panel_pin['manifest_relative'],panel_pin['manifest_sha256'])
+    panel_identity=_read_panel_identity(config.shared_root,day,
+        manifest_relative=panel_pin['manifest_relative'],manifest_sha256=panel_pin['manifest_sha256'])
+    master_identity,codes=_read_master_identity(config.shared_root,day)
+    master_doc,_=read(config.shared_root,master_pin['manifest_relative'],master_pin['manifest_sha256'])
+    if (master_identity['manifest_relative']!=master_pin['manifest_relative']
+            or master_identity['manifest_sha256']!=master_pin['manifest_sha256']
+            or master_doc.get('trade_date')!=day
+            or master_doc.get('artifact_sha256')!=master_identity['artifact_sha256']):
+        raise ValueError('TDXPY_MASTER_PARENT_BINDING_MISMATCH')
+    output=Path(config.shared_root)/'assets/hk_0_2/daily_supplements/tdxpy61'
+    candidates=[]
+    seen=set()
+    if isinstance(configured_pin,dict):
+        candidates.append(configured_pin)
+    for relative in files(output,f'runs/{day}/*/manifest.json'):
+        try:
+            _,manifest_sha=read(output,relative)
+            candidates.append(dict(source_local_path=str(output),manifest_relative=relative,
+                manifest_sha256=manifest_sha))
+        except (OSError,ValueError,KeyError,TypeError):
+            continue
+    verified=[]
+    for candidate in candidates:
+        try:
+            source=Path(candidate['source_local_path']).resolve()
+            relative=candidate['manifest_relative']
+            marker=(str(source),relative,candidate.get('manifest_sha256'))
+            if marker in seen:continue
+            seen.add(marker)
+            if source!=output.resolve():continue
+            manifest,msha=read(source,relative,candidate.get('manifest_sha256'))
+            raw_rel=manifest['raw_relative'];raw_sha=manifest['raw_sha256']
+            pin=dict(source_local_path=str(source),manifest_relative=relative,manifest_sha256=msha,
+                raw_relative=raw_rel,raw_sha256=raw_sha,target_date=day,
+                run_id=manifest.get('run_id'),available_at=manifest.get('available_at'),
+                capture_scope=manifest.get('capture_scope'))
+            if pin['capture_scope']!='PANEL_GAPS':continue
+            checked,_=read_tdxpy_window_supplement(pin,target_date=day,cutoff=context.cutoff,
+                expected_panel_sha=panel['panel_sha256'],expected_master_sha=master_identity['artifact_sha256'],
+                expected_codes=codes,expected_panel_manifest_sha=panel_identity['panel_manifest_sha256'],
+                expected_master_manifest_sha=master_identity['manifest_sha256'])
+            if (checked.get('panel_identity')!=panel_identity
+                    or checked.get('master_identity')!=master_identity
+                    or not before(checked.get('available_at'),context.cutoff)):
+                continue
+            available=datetime.fromisoformat(checked['available_at'].replace('Z','+00:00'))
+            verified.append((available,pin))
+        except (OSError,ValueError,KeyError,TypeError):
+            continue
+    return max(verified,key=lambda item:item[0])[1] if verified else None
+
