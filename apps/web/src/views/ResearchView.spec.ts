@@ -4,6 +4,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import ResearchView from "./ResearchView.vue";
 import { feedFetchTimeLabel, feedPublishedTimeLabel } from "../composables/useResearchLane";
 
+// Existing lane/OCR/WeChat contracts remain isolated from the new independent
+// PDF requests. ResearchPdfPanel.spec exercises its real loader and stale guards.
+vi.mock("../components/research/ResearchPdfPanel.vue", () => ({ default: {
+  props: ["archiveDate"], template: '<section aria-label="PDF 研报阅读区">PDF {{ archiveDate }}</section>',
+} }));
+
 const lane = (researchDate = "20260804") => ({
   schema_version: "v3_5.research_lane.v1",
   status: "READY",
@@ -119,6 +125,17 @@ describe("ResearchView (research lane)", () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+  });
+
+  it("keeps the PDF entry mounted when unrelated lane is missing or fails", async () => {
+    stubResearchFetch({ ...lane(), status: "NOT_MATERIALIZED", reason: "lane missing" });
+    const rendered = render(ResearchView, { props: { archiveDate: "20260804" } });
+    await screen.findByText("NOT_MATERIALIZED");
+    expect(screen.getByRole("region", { name: "PDF 研报阅读区" }).textContent).toContain("20260804");
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    await rendered.rerender({ archiveDate: "20260805" });
+    await screen.findByRole("alert");
+    expect(screen.getByRole("region", { name: "PDF 研报阅读区" }).textContent).toContain("20260805");
   });
 
   it("loads only the selected exact research date", async () => {

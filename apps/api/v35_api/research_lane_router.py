@@ -19,9 +19,11 @@ from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
 from domains.research_day_product import consume_authoritative_research_day
+from domains.report_subjects import project_report_roles
 from infrastructure.data_store import _date, _sha256
 from infrastructure.research_lane_source import ResearchLaneSource
 from infrastructure.zsxq_pdf_ingestion import ZsxqPdfError, read_pdf_document_detail, read_pdf_ingestion_projection
+from infrastructure.pdf_research_publication import PdfResearchReader, PublicationError
 from infrastructure.research_peripheral_store import (
     CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP,
     ResearchPeripheralStore,
@@ -241,6 +243,35 @@ def create_research_lane_router(
     market_source = context["market_source"]
     market_binding = context["market_binding"]
     _read_lane = context["read_lane"]
+    pdf_reader = PdfResearchReader(Path(data_root) / "external_sources/zsxq_hourly/pdf_local/research")
+
+    def pdf_error(error):
+        code = getattr(error, "code", "PDF_RESEARCH_READ_FAILED")
+        status = 404 if code == "PDF_OCCURRENCE_DATE_VERSION_NOT_FOUND" else 422 if code in {
+            "PDF_DATE_SELECTION_REQUIRED", "PDF_PAGE_LIMIT_INVALID", "PDF_CURSOR_INVALID_OR_STALE",
+            "PDF_OCCURRENCE_INVALID", "PDF_RESULT_VERSION_REQUIRED", "PDF_RESULT_VERSION_INVALID"} else 409
+        return HTTPException(status_code=status, detail=code)
+
+    @router.get("/pdf-research")
+    def research_pdf_list(response: Response, research_date: str | None = Query(default=None),
+                          undated: bool = Query(default=False), cursor: str | None = Query(default=None),
+                          limit: int = Query(default=20, ge=1, le=100), occurrence_id: str | None = Query(default=None)) -> dict:
+        response.headers["Cache-Control"] = "no-store"
+        try:
+            return pdf_reader.list(research_date=research_date, undated=undated, cursor=cursor, limit=limit, occurrence_id=occurrence_id)
+        except (RuntimeError, ValueError, OSError, KeyError, TypeError) as error:
+            raise pdf_error(error) from error
+
+    @router.get("/pdf-research/{analysis_id}")
+    def research_pdf_detail(analysis_id: str, response: Response, occurrence_id: str = Query(...),
+                            generation: int | None = Query(default=None, ge=0), research_date: str | None = Query(default=None),
+                            undated: bool = Query(default=False)) -> dict:
+        response.headers["Cache-Control"] = "no-store"
+        try:
+            return pdf_reader.detail(analysis_id, occurrence_id=occurrence_id, generation=generation,
+                research_date=research_date, undated=undated)
+        except (RuntimeError, ValueError, OSError, KeyError, TypeError) as error:
+            raise pdf_error(error) from error
 
     @router.get("/lane")
     def research_lane(research_date: str = Query(default=""), date: str | None = Query(default=None)) -> dict:
@@ -292,6 +323,12 @@ def create_research_lane_router(
         if resolved:
             result["update_diagnostic"] = source.update_diagnostic(
                 resolved, artifact_verified=result.get("status") in {"READY", "LIVE_HOURLY"})
+        try:
+            result["pdf_research"] = pdf_reader.list(research_date=selected_pdf_date) if selected_pdf_date else {
+                "schema_version": "v4.pdf_research.list.v1", "status": "DATE_SELECTION_REQUIRED", "items": [], "total_count": 0}
+        except (RuntimeError, ValueError, OSError, KeyError, TypeError) as error:
+            result["pdf_research"] = {"schema_version": "v4.pdf_research.list.v1", "status": "CANNOT_CONFIRM",
+                "items": [], "total_count": 0, "reason_code": getattr(error, "code", "PDF_RESEARCH_READ_FAILED")}
         return result
 
     @router.get("/pdf-documents/{document_id}")
@@ -303,7 +340,11 @@ def create_research_lane_router(
         if response is not None:
             response.headers["Cache-Control"] = "no-store"
         try:
-            return read_pdf_document_detail(data_root, document_id, research_date)
+            detail = read_pdf_document_detail(data_root, document_id, research_date)
+            detail["analysis_references"] = [item for item in pdf_reader._summaries()
+                if item["occurrence"]["original_source_id"] == document_id
+                and item["occurrence"]["namespace"] in {"zsxq", "local_pdf"}]
+            return detail
         except ZsxqPdfError as error:
             if error.code in {"DOCUMENT_NOT_FOUND", "DOCUMENT_DATE_MISMATCH"}:
                 raise HTTPException(status_code=404, detail=error.code) from error

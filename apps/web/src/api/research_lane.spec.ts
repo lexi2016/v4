@@ -4,6 +4,9 @@ import {
   loadResearchDay,
   loadResearchLane,
   loadResearchLaneLatest,
+  loadResearchPdfList,
+  loadResearchPdfAnalysis,
+  type ResearchPdfSummary,
 } from "./research_lane";
 
 const response = (payload: unknown, ok = true, status = 200) => ({
@@ -36,6 +39,32 @@ const readyLane = () => ({
   ai_news: {},
   news_workbench: {},
   hourly_research: {},
+});
+
+describe("PDF summary and immutable detail adapter", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const row = (): ResearchPdfSummary => ({ analysis_id: "a".repeat(64), reference_id: "a".repeat(64), reference_kind: "ANALYSIS",
+    occurrence: { namespace: "test", original_source_id: "fixture", occurrence_id: "b".repeat(64) }, metadata: {}, research_date: "20261023", pdf_sha256: "c".repeat(64),
+    versions: [{ analysis_id: "a".repeat(64), generation: 0, result_sha256: "d".repeat(64), generated_at: "", validation_status: "PASS", semantic_review: "PENDING_INDEPENDENT_REVIEW", scope: null }],
+    accepted: null, latest_generated: null, preparation_status: "COMPLETE", execution_status: "GENERATED", reason_code: null });
+  it("requests date/undated explicitly with abort and no-store, rejects date substitution", async () => {
+    const controller = new AbortController();
+    const payload = { schema_version: "v4.pdf_research.list.v1", status: "READY", research_date: "20261023", date_mode: "EXACT", items: [row()], total_count: 1, next_cursor: null };
+    const fetcher = vi.fn(async (_url: string, _options?: RequestInit) => response(payload)); vi.stubGlobal("fetch", fetcher);
+    await loadResearchPdfList({ researchDate: "20261023" }, "cursor", { signal: controller.signal });
+    expect(fetcher.mock.calls[0]?.[0]).toBe("/api/v3/research/pdf-research?research_date=20261023&cursor=cursor");
+    expect(fetcher.mock.calls[0]?.[1]).toEqual({ cache: "no-store", signal: controller.signal });
+    await expect(loadResearchPdfList({ researchDate: null })).rejects.toThrow("日期或来源身份");
+    expect(fetcher.mock.calls[1]?.[0]).toBe("/api/v3/research/pdf-research?undated=true");
+  });
+  it("rejects wrong occurrence or immutable result SHA in lazy detail", async () => {
+    const selected = row();
+    const payload = { ...selected, schema_version: "v4.pdf_research.detail.v1", generation: 0, result_sha256: "e".repeat(64), body_sha256: "f".repeat(64), body_markdown: "fixture", cards: [] };
+    vi.stubGlobal("fetch", vi.fn(async () => response(payload)));
+    await expect(loadResearchPdfAnalysis(selected, 0)).rejects.toThrow("固定版本校验失败");
+    payload.result_sha256 = "d".repeat(64); payload.occurrence = { ...selected.occurrence, occurrence_id: "e".repeat(64) };
+    await expect(loadResearchPdfAnalysis(selected, 0)).rejects.toThrow("固定版本校验失败");
+  });
 });
 
 describe("research lane JSON transport", () => {

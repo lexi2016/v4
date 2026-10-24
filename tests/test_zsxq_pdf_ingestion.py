@@ -32,6 +32,54 @@ from infrastructure.zsxq_pdf_ingestion import (
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
+
+
+def test_projection_enumerates_each_bound_source_once_and_detail_revalidates(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as pdf
+    root, files = _fixture(tmp_path)
+    _process(root, files)
+    original = pdf.enumerate_pdf_documents
+    calls = []
+    def enumerate_once(*args, **kwargs):
+        calls.append(kwargs['source_run_id'])
+        return original(*args, **kwargs)
+    monkeypatch.setattr(pdf, 'enumerate_pdf_documents', enumerate_once)
+    result = pdf.read_pdf_ingestion_projection(root, DATE)
+    assert calls == [RUN_ID]
+    assert result['completed_count'] == 1 and result['pending_count'] == 2
+    ready = next(row for row in result['items'] if row['status'] == 'READY')
+    pdf.read_pdf_document_detail(root, ready['document_id'], DATE)
+    assert calls == [RUN_ID, RUN_ID, RUN_ID]
+
+
+def test_projection_cached_enumeration_still_checks_each_document_metadata(tmp_path):
+    from infrastructure import zsxq_pdf_ingestion as pdf
+    root, files = _fixture(tmp_path)
+    _process(root, files)
+    store = NativeDataStore(root)
+    index = store._read(STATE_RELATIVE)
+    second = list(index['documents'])[1]
+    index['documents'][second]['source']['original_filename'] = 'forged.pdf'
+    store._write(STATE_RELATIVE, index)
+    result = pdf.read_pdf_ingestion_projection(root, DATE)
+    row = next(x for x in result['items'] if x['document_id'] == second)
+    assert row['reason_code'] == 'SOURCE_DOCUMENT_METADATA_MISMATCH'
+
+
+def test_projection_rehashes_request_local_cache_before_return(tmp_path, monkeypatch):
+    from infrastructure import zsxq_pdf_ingestion as pdf
+    root, files = _fixture(tmp_path)
+    _process(root, files)
+    original = pdf._verified_document_detail
+    def drift(*args, **kwargs):
+        detail = original(*args, **kwargs)
+        path = root / f'external_sources/zsxq_hourly/{RUN_ID}/zsxq_recent_topics.json'
+        path.write_bytes(path.read_bytes() + b' ')
+        return detail
+    monkeypatch.setattr(pdf, '_verified_document_detail', drift)
+    result = pdf.read_pdf_ingestion_projection(root, DATE)
+    assert result['status'] == 'CANNOT_CONFIRM' and result['items'] == []
+    assert 'SOURCE_INPUT_SHA256_MISMATCH' in result['cannot_confirm']
 DATE = "20261015"
 SLOT = "2300"
 RUN_ID = "20261015_230000_230000300408"

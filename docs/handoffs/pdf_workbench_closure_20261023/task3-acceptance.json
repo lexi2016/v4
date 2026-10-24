@@ -1,0 +1,561 @@
+{
+  "schema": "v4.pdf_workbench.task3_acceptance.v1",
+  "status": "REVIEWED_ISOLATED_API_UI_ONLY",
+  "goal": "Expose immutable PDF research through read-only routes and existing ResearchView, verified on a temporary production-component page before integration",
+  "repository": "lexi2016/v4",
+  "branch": "codex/pdf-workbench-closure-20261023",
+  "git_parent": "ea02b91da10ccd7dcfded9d17f36dd433cbb6954",
+  "source_worktree": "/Users/lexi/.codex/worktrees/pdf-workbench-closure-20261023/v4_app",
+  "source_manifest_sha256": "c75b65dc8e22a7c79698db6ac6b26cba13edd40cabb01c56097ab6ba12e996b1",
+  "patch_sha256": "0d36ec852282057af4835372600b88e43391d639b1bc345a02b252c5409d4003",
+  "independent_receipt_sha256": "31db589ffce2d4a94a08240ccc0b906ac6ea9ea8fc6f87932410b90e3a58bf02",
+  "independent_acceptance": {
+    "verdict": "REVIEWED/PASS",
+    "spec": "PASS within frozen StageD reader/UI scope",
+    "quality": "PASS; no new P0/P1/P2 finding",
+    "status": [
+      "TESTED",
+      "BEHAVIOR_VERIFIED",
+      "API_VERIFIED_ISOLATED",
+      "UI_VERIFIED_ISOLATED"
+    ],
+    "checks": {
+      "backend": {
+        "python": "/Users/lexi/Desktop/学习/v4_app/.venv/bin/python",
+        "args": [
+          "-W",
+          "error",
+          "-W",
+          "default::starlette.exceptions.StarletteDeprecationWarning",
+          "-q",
+          "-p",
+          "no:cacheprovider",
+          "--tb=short",
+          "--basetemp",
+          "/Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/reviewer/task3/backend-temp",
+          "tests/test_pdf_research_api.py",
+          "tests/test_zsxq_pdf_ingestion.py",
+          "-k",
+          "test_pdf_research_api or projection_enumerates_each or cached_enumeration or rehashes_request or projection_and_detail_are_read_only or detail_rejects_pages_sha"
+        ],
+        "invocation": "pytest.main(args, plugins=[read-only result collector]); socket.connect denied",
+        "result": "12 passed,45 deselected"
+      },
+      "frontend": {
+        "cwd": "/Users/lexi/.codex/worktrees/pdf-workbench-closure-20261023/v4_app/apps/web",
+        "command": "node node_modules/vitest/vitest.mjs run src/components/research/ResearchPdfPanel.spec.ts src/components/research/ResearchFeedCard.spec.ts src/views/ResearchView.spec.ts src/api/research_lane.spec.ts --config /Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/reviewer/task3/vite-review.config.mjs --configLoader runner --no-cache --reporter=json --outputFile=/Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/reviewer/task3/frontend-tests.json",
+        "result": "47 passed,1 unchanged baseline AI-copy failure"
+      },
+      "typecheck": {
+        "command": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit",
+        "exit_code": 0
+      },
+      "production_build": {
+        "command": "node node_modules/vite/bin/vite.js build --config /Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/reviewer/task3/vite-review.config.mjs --configLoader runner --outDir /Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/reviewer/task3/production-dist",
+        "exit_code": 0
+      },
+      "preview_build": {
+        "command": "node node_modules/vite/bin/vite.js build --config /Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/task3-preflight/vite.config.mjs --outDir /Users/lexi/Desktop/学习/agents调试/V4_PDF_WORKBENCH_CLOSURE_20261023/reviewer/task3/preview-dist",
+        "exit_code": 0,
+        "served_bytes_match": {
+          "preview.html": "695f434c833fe7dd1087944a9fdbea3b25ed5f4e6f4645a4dc9baa8e08c05a9b",
+          "assets/preview-DXOW3hWY.js": "19261a78e98d6d8c1d7d54bf0909228f6127a12b9cd59b63a14f215eab99aa4b",
+          "assets/preview-D5tJBJoM.css": "b48d13a3639c0f9e59be9f6019f02e420f2bd6646dbda93f94e1979cf19886ce"
+        }
+      },
+      "readback": {
+        "command": "python3 reviewer/task3/readback.py; same script after restart with output filename changed only",
+        "result": "GET artifact/detail/page identities equal before and after"
+      },
+      "real_performance": {
+        "command": "fresh canonical.venv Python3.14.6 -B with task3-preflight/measure_real.py executed, reviewer-only output paths; assert frozen inputSHA before measurement; audit denies writes/network/model/subprocess",
+        "result": "580 docs/7 source runs; OCR/lane first20 cold0.997998334s warm0.980767s; application cold, OS cache not purged"
+      },
+      "real_all_dates": {
+        "command": "Python -B guarded PdfResearchReader(real research root)._summaries()",
+        "result": "0 all-date/new summaries; NOT_VERIFIED_NO_EXISTING_20_ANALYSIS_INPUT"
+      },
+      "restart": {
+        "command": "python3 reviewer/task3/restart_preview.py",
+        "result": "old92409 verified and stopped; new94479 same production router/source/fixture root; healthy for controller shutdown"
+      }
+    },
+    "existing_nonblocking_failure": [
+      {
+        "test": "ResearchView (research lane) keeps READY_EMPTY AI at zero and explains discovery-only and ungenerated key messages",
+        "message": [
+          "AssertionError: expected 'AI新闻0AI新闻 无条目。' to contain 'AIHOT_PUBLIC_PAGE_DISCOVERY_ONLY'\n    at /Users/lexi/.codex/worktrees/pdf-workbench-closure-20261023/v4_app/apps/web/src/views/ResearchView.spec.ts:473:35\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/lexi/Desktop/%E5%AD%A6%E4%B9%A0/v4_app/apps/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+        ]
+      }
+    ],
+    "reuse": [
+      "Task1 previously accepted SHA scope",
+      "Task2 independent68 and accounting3; Publisher AST unchanged,15 sourceSHA identical",
+      "numeric/protocolv2/history42/legacy8 unchanged evidence"
+    ],
+    "scope_limits": {
+      "real20_analysis_performance": "NOT_VERIFIED_NO_EXISTING_20_ANALYSIS_INPUT; preserve5s/2s thresholds for StageE20 then before StageF",
+      "real_full_accepted_latest": "CANNOT_CONFIRM; test-only mocked review validates reader selection; preview contains no invented full receipt",
+      "current_8873_integration": "NOT_RUN; oldHKEX source is frozen compatibility fixture only; controller reports current us-hk-selection-api-20261024-r6/app PID75617; current-base compatibility and actualruntime require later acceptance",
+      "model_OCR_download": "NOT_RUN; actualPOST0",
+      "git_sync_deploy": "NOT_RUN",
+      "StageE": "NOT_STARTED_BY_REVIEWER"
+    }
+  },
+  "scope_note": "Fixture and legacy limited-scope browser acceptance is separate from actual new-model semantic acceptance and the current live API release",
+  "task2_publication_writer_class_ast_unchanged": true,
+  "current_runtime_source_sha256": {
+    "infrastructure/pdf_research_protocol.py": "e772d954e0ca19ee0f0bbd4462015cbd5fbc9ec76821e804650d1b223e7a9ce2",
+    "infrastructure/pdf_research_validation.py": "0771fbf17162108d7c5abd6e30eff478d99d4842f90f3fef3e29f2290e81cbd7",
+    "infrastructure/pdf_research_execution.py": "e487b8b34d576ac4916d42d8153927b64c16c93d48240414220cc932344c5aca",
+    "infrastructure/pdf_research_publication.py": "abf2734e1fba50521190a0d82380ccbdf5506e214f50ae8c5845089077bc1914",
+    "infrastructure/pdf_research_identity.py": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+    "infrastructure/pdf_text_preparation.py": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+    "infrastructure/pdf_text_source.py": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+    "infrastructure/local_document_model.py": "9021f1826b329f9db3d6ecf8d6c9a37b024cac1a80207b963e2ba8063a813d57",
+    "infrastructure/pdf_research.py": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+    "infrastructure/zsxq_pdf_ingestion.py": "60420223b291c7d03ba49a947f72dbc262cdfe6aa86631ca791fba4d45e01bde",
+    "ops/run_zsxq_hourly_delta.py": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce",
+    "ops/run_v35_macos_scheduler_daemon.py": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+    "ops/run_pdf_research_full_once.py": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+    "ops/run_pdf_research_batch.py": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+    "ops/run_pdf_research_sample.py": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+    "ops/run_pdf_research_package_once.py": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+    "ops/run_pdf_research_remaining_once.py": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832"
+  },
+  "source_inventory": [
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/__init__.py",
+      "sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "baseline_sha256": "29b3765f63f15078432ca53a34b28cb726c961e7dd0839022b8a87b3d8b373d8",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "fc3ee50ef882264f475f280eb35bee556b0e840d"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/_namespace.py",
+      "sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "baseline_sha256": "45da791482883c7c371268a99056960c577f299b43a5629394b3178fbea9f8b1",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "55e1b3f744f80339298ac911073c67f3e549cf3c"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/capture_identity.py",
+      "sha256": "d2092514b9b6f984724a4f694c880640da79fac395b0512706885282ee8216bf",
+      "baseline_sha256": "d2092514b9b6f984724a4f694c880640da79fac395b0512706885282ee8216bf",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "35a3411a7ac72583df472c65a9e19fbd43b991a7"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/http_routes.py",
+      "sha256": "489e53b77cc3602b5770bccd8026397bd6357705c20de7e045c6397e7a59d73b",
+      "baseline_sha256": "489e53b77cc3602b5770bccd8026397bd6357705c20de7e045c6397e7a59d73b",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "bcfc9acc25504afb5ec4c9157485047bb219a866"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/industry_projection.py",
+      "sha256": "5266efce850158ad82219ce14eced2da92083ef3cbd5fe520d6947b092f40eaf",
+      "baseline_sha256": "5266efce850158ad82219ce14eced2da92083ef3cbd5fe520d6947b092f40eaf",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "d0ddcbc5a8b7ff5687561ccfb259af27e39999b8"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/lane_response.py",
+      "sha256": "f2b32a2df90101c39de1883edb1731e31852a16ed636584a0ba80ae81706ae95",
+      "baseline_sha256": "6df2d6c6e733453415bfa178b45f6b7b6da902082fad15d9196494644cb2b833",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "09b8bdee2d7b70ae2c0f6bb6a12cff9f86a4a890"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/market_freshness.py",
+      "sha256": "d385e544d9999be8518f866a7f49249b9ec409ea0b59d80df40e220da18d407d",
+      "baseline_sha256": "d385e544d9999be8518f866a7f49249b9ec409ea0b59d80df40e220da18d407d",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "cc3b4dc6b10fb229f8a8682fe1dd96ee67b2aa8c"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/peripheral_response.py",
+      "sha256": "abadb95814e66daa4f5fb9871404d63a8382084c3d82a7862e676213c371730c",
+      "baseline_sha256": "abadb95814e66daa4f5fb9871404d63a8382084c3d82a7862e676213c371730c",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "ce08ac08115139e42d4f11ff1cea7b7056f41014"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/response_primitives.py",
+      "sha256": "e0298592f1a64a24e8215b39389ccd652ade0cf1c8148f0a4a4a4636fa93c315",
+      "baseline_sha256": "e0298592f1a64a24e8215b39389ccd652ade0cf1c8148f0a4a4a4636fa93c315",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "acf40d545f13ce3804a6b52d994f3cd886f2ffde"
+    },
+    {
+      "path": "apps/api/v35_api/_research_lane_router_parts/status_response.py",
+      "sha256": "c57fb14c1c93af6354edcdc5dd6d0f9a02f8f9868cbeb66a59599360c8a789e7",
+      "baseline_sha256": "29c1158506b0109a75310822d3b23357b3ec67402bc5117d7aa4e7ef72a554f9",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "e35b8fe072995cf687fd9f00aedd8f9c7d2e467e"
+    },
+    {
+      "path": "apps/api/v35_api/research_lane_router.py",
+      "sha256": "e1fb6389854f34d9bf099d47ab733d35d4f62b6eb6e64ff1414b1197612f2f4a",
+      "baseline_sha256": "19c86d209ac546e7a342a1de8771311c7bb830648272c99099fd5cadf81843a4",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "8ae6b5db0d62b4a47123bfd10b748a43af3bdcc9"
+    },
+    {
+      "path": "apps/web/src/api/research_lane.spec.ts",
+      "sha256": "2819de8be333b1740dab1f7a46746b01bdd53780516cbd761717be9b3736d825",
+      "baseline_sha256": "fac940d09e070a7f55af93d73f7ca3740e579bb31203454bda50cf7d173e73ac",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "416b927660eeea7b6eeccd12f8aba7d84ac998d7"
+    },
+    {
+      "path": "apps/web/src/api/research_lane.ts",
+      "sha256": "b29b159b2186eb8ed846e96598e9ede96644c52738ee2ad728e733fbd59089be",
+      "baseline_sha256": "e543f7d5e6c750678818bce166ccdbaf5175382e8a9471b8c73531eaf39c2c86",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "16ef74a5fd4582121c134a688dc2b36e6909a309"
+    },
+    {
+      "path": "apps/web/src/api/wechat_research.ts",
+      "sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "baseline_sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "8936a3c2e699a253df3d55c73db321af87b4b4a0"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedCard.spec.ts",
+      "sha256": "86a1e2eabdd22ae4c924575b2f2532a234860915571869c724cb2ae7089a221e",
+      "baseline_sha256": "86a1e2eabdd22ae4c924575b2f2532a234860915571869c724cb2ae7089a221e",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "e1bc61f79a695cd5543b150bbf8d03107fd5094f"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedCard.vue",
+      "sha256": "74fe561207595224a49f4dc6b5a40ae33e68bc0d299536b95e44e4affc84f097",
+      "baseline_sha256": "b76b01c60a5b1409ba902296197dfffc0effcfa0b82314bae3af0b9ec578d631",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "5da6511ee704fd4c2b0d5aca777c1d2f23fe6a2a"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchFeedPane.vue",
+      "sha256": "8980cd832a42b8d9bd353933ae98cb458d3fb13bc28c36e2f0df5892ddf72e4a",
+      "baseline_sha256": "8980cd832a42b8d9bd353933ae98cb458d3fb13bc28c36e2f0df5892ddf72e4a",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "a430dbf9a2fbf18f7fe5d648c16b96bf54cbe6ac"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchImpactList.vue",
+      "sha256": "c2248151611747cf2c14f7e07983470cc85a94b3d566e7616ab133f533e7e087",
+      "baseline_sha256": "c2248151611747cf2c14f7e07983470cc85a94b3d566e7616ab133f533e7e087",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "30324843b15c1187ddee7d6ca9f345fc141d8ac4"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchPdfPanel.spec.ts",
+      "sha256": "9e491ed1e285ad17201bedd23ec21e8318a5d79ec2c6ec040c6b33400297601f",
+      "baseline_sha256": null,
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "19ef908175e49f9a04ce79a360c105d7e6ba9159"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchPdfPanel.vue",
+      "sha256": "20cf060662dd515e29d2c1160e8d2c78cff08ff90668a578329f1035df1bf58c",
+      "baseline_sha256": null,
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "10e7880a971e422d0694bca06e4d5e37ec2bfbac"
+    },
+    {
+      "path": "apps/web/src/components/research/ResearchStatusStrip.vue",
+      "sha256": "5066ba418f6502e4ae6eefb2d7ac94221232aab16f187cbe875e33172ad4ac8a",
+      "baseline_sha256": "5066ba418f6502e4ae6eefb2d7ac94221232aab16f187cbe875e33172ad4ac8a",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "98cd6df8afc6f82ff1e91d8ba8a4771d6d572bcf"
+    },
+    {
+      "path": "apps/web/src/components/research/WechatResearchPanel.vue",
+      "sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "baseline_sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "811f056edd1bb53b51b9daac5e19d277ad22856f"
+    },
+    {
+      "path": "apps/web/src/composables/researchFeedPresentation.ts",
+      "sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+      "baseline_sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "5c3b416b862bef8412b426f0129b1f9a2f09699d"
+    },
+    {
+      "path": "apps/web/src/composables/useResearchLane.ts",
+      "sha256": "c185614a38c401a9afdf9d392c1e866b3942b7740f870894b120a83c690401ff",
+      "baseline_sha256": "c185614a38c401a9afdf9d392c1e866b3942b7740f870894b120a83c690401ff",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "4b96ce42e17f9ded24a5164c9aca932486ca8e18"
+    },
+    {
+      "path": "apps/web/src/styles/v3-research-lane.css",
+      "sha256": "3dc9879a1f230582f42e39eef6ec8ac8c7e92a578a8dc9d30062325aa997a288",
+      "baseline_sha256": "d7b56919209d8551d5fb44789db20246d745b63273a42a60d0b34927be7232e8",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "857883a03b8283199f108674db96608dac88c377"
+    },
+    {
+      "path": "apps/web/src/views/ResearchView.spec.ts",
+      "sha256": "66a6a14c1aa5be7dc2d2297b9dbc154ad51de66dfe9b9769a9ce639305c3b637",
+      "baseline_sha256": "54fcaaa2522b194c93b1a5b0192f2085eb4aa80710296be1c384ed10b17be76d",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "b13cd24712e0fd12ed46169ec2710d14c31ddfc7"
+    },
+    {
+      "path": "apps/web/src/views/ResearchView.vue",
+      "sha256": "1f635e0315806ca549a1cc7dc3aa9a7aa1113714038c297865afd7b7608faf2c",
+      "baseline_sha256": "cc84ad2e71af8e3c3ce67c31d8eb3e1af10fc7e33018d32ab5b134b9b79f5aca",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "92d2ced9c0b4e990b58c579136de075cbfae74c3"
+    },
+    {
+      "path": "docs/handoffs/pdf_workbench_closure_20261023/README.md",
+      "sha256": "b0c55abf9207198daad74ab107e93a9bc56d437694c682786ecc1e0e608b9580",
+      "baseline_sha256": "e8e9f6496da74209c54fe11a922101a35063eb78f54651b08d7358c53fcdf666",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "a11bef37b56addb0103256147b011aae7814b33b"
+    },
+    {
+      "path": "domains/report_subjects.py",
+      "sha256": "2e074143195b675eac110f4b2910bc9b143fe0357afe27a0c7d11013f1d30bf5",
+      "baseline_sha256": "2e074143195b675eac110f4b2910bc9b143fe0357afe27a0c7d11013f1d30bf5",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "a850c5bbc5f71e56dd52230a139b818552a0f479"
+    },
+    {
+      "path": "domains/research.py",
+      "sha256": "b32be929f154ce77b29d354aedf743e7e29ece3f2e82483432f1e9856143f8a4",
+      "baseline_sha256": "b32be929f154ce77b29d354aedf743e7e29ece3f2e82483432f1e9856143f8a4",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "ded0f2416838acb6d24f941223d36635e0ec3bfd"
+    },
+    {
+      "path": "infrastructure/local_document_model.py",
+      "sha256": "9021f1826b329f9db3d6ecf8d6c9a37b024cac1a80207b963e2ba8063a813d57",
+      "baseline_sha256": "9021f1826b329f9db3d6ecf8d6c9a37b024cac1a80207b963e2ba8063a813d57",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "cc05c5418725b000f5a9f6d6312da052817b9f7d"
+    },
+    {
+      "path": "infrastructure/pdf_research.py",
+      "sha256": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+      "baseline_sha256": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "1499c92b9e0b96f70e01f8620111048cf66eede5"
+    },
+    {
+      "path": "infrastructure/pdf_research_execution.py",
+      "sha256": "e487b8b34d576ac4916d42d8153927b64c16c93d48240414220cc932344c5aca",
+      "baseline_sha256": "e487b8b34d576ac4916d42d8153927b64c16c93d48240414220cc932344c5aca",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "e3b6b244d0682ed6dd8dcba037a2d38b369f207f"
+    },
+    {
+      "path": "infrastructure/pdf_research_identity.py",
+      "sha256": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+      "baseline_sha256": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "ff1d9f5bde870eb22231ed4e310c51acbfd19604"
+    },
+    {
+      "path": "infrastructure/pdf_research_protocol.py",
+      "sha256": "e772d954e0ca19ee0f0bbd4462015cbd5fbc9ec76821e804650d1b223e7a9ce2",
+      "baseline_sha256": "e772d954e0ca19ee0f0bbd4462015cbd5fbc9ec76821e804650d1b223e7a9ce2",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "d291cab4a7937f6c39fd4f0222dbdbfc39a7e3ab"
+    },
+    {
+      "path": "infrastructure/pdf_research_publication.py",
+      "sha256": "abf2734e1fba50521190a0d82380ccbdf5506e214f50ae8c5845089077bc1914",
+      "baseline_sha256": "c843ebe65324b32ca00bc2aaa28650e71c7fad963ea31681e094dda10cd1fe08",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "03eb5f7d22c679b59b37ae933c4a5a4b6f35eeb7"
+    },
+    {
+      "path": "infrastructure/pdf_research_validation.py",
+      "sha256": "0771fbf17162108d7c5abd6e30eff478d99d4842f90f3fef3e29f2290e81cbd7",
+      "baseline_sha256": "0771fbf17162108d7c5abd6e30eff478d99d4842f90f3fef3e29f2290e81cbd7",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "2066034b86044baba206b3870137dd32c515c24e"
+    },
+    {
+      "path": "infrastructure/pdf_text_preparation.py",
+      "sha256": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+      "baseline_sha256": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "f86fd4de3557de1c0c5e7e69c70a6783c199e29b"
+    },
+    {
+      "path": "infrastructure/pdf_text_source.py",
+      "sha256": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+      "baseline_sha256": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "17ed501d95c0a5ed8b5df41e44e0c6fe69167c06"
+    },
+    {
+      "path": "infrastructure/research_lane_source.py",
+      "sha256": "02d1a4fdb919b87e7e8775a3dd527fe62dbcab85df180c37965d21440c9ed191",
+      "baseline_sha256": "02d1a4fdb919b87e7e8775a3dd527fe62dbcab85df180c37965d21440c9ed191",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "17ee70f2f0b4d18bc812704eec6b02edb5a643cc"
+    },
+    {
+      "path": "infrastructure/zsxq_pdf_ingestion.py",
+      "sha256": "60420223b291c7d03ba49a947f72dbc262cdfe6aa86631ca791fba4d45e01bde",
+      "baseline_sha256": "eebe9ed0b1401446b8973722f1ced5bb5ad8282b986e9532207468730d5f454d",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "08318deadd12f46323708af70512a5b1ee92f76e"
+    },
+    {
+      "path": "infrastructure/zsxq_pdf_local.py",
+      "sha256": "3834d502b3e4a72a771b591090dfb15c71af9ee9a2d2c3d76e7c680c9fc79010",
+      "baseline_sha256": "3834d502b3e4a72a771b591090dfb15c71af9ee9a2d2c3d76e7c680c9fc79010",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "8d3252ffedd9924ff48278c68408cb4db324ba1e"
+    },
+    {
+      "path": "ops/run_pdf_research_batch.py",
+      "sha256": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+      "baseline_sha256": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "70d287d9a4bb770df95fc33bcfd7cae5dfefb6f8"
+    },
+    {
+      "path": "ops/run_pdf_research_full_once.py",
+      "sha256": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+      "baseline_sha256": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "0a43a20086fffcaf9577aa624e600d44e5ec9b92"
+    },
+    {
+      "path": "ops/run_pdf_research_package_once.py",
+      "sha256": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+      "baseline_sha256": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "ae96606dfbeae75914b1d673347e5654f35e4e53"
+    },
+    {
+      "path": "ops/run_pdf_research_remaining_once.py",
+      "sha256": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832",
+      "baseline_sha256": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "83604240dab0b4ef7159c005a7fc72a05725b5f2"
+    },
+    {
+      "path": "ops/run_pdf_research_sample.py",
+      "sha256": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+      "baseline_sha256": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "9f0a5d3b60600286938f7351e66cf477fa0bf6e8"
+    },
+    {
+      "path": "ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+      "baseline_sha256": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "82a71e3eb687fc09bd72ded15726075a2fa4e7a3"
+    },
+    {
+      "path": "ops/run_zsxq_hourly_delta.py",
+      "sha256": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce",
+      "baseline_sha256": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce",
+      "behavior_changed": false,
+      "seed_only": false,
+      "blob_sha1": "94dfcc44bff9ef30d05ac228f10960d864faa7a6"
+    },
+    {
+      "path": "tests/test_pdf_research_api.py",
+      "sha256": "e6c3ea9c464983149f5c943224fa64565d4aacf75c140215e1708bb5fbe617a3",
+      "baseline_sha256": null,
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "4292dd0d4947bf424691f838cbf711a148925153"
+    },
+    {
+      "path": "tests/test_research_lane.py",
+      "sha256": "49b24ab0d95ff46999e6caf7a1a666bb08df147fd8a8e783e473cb1966e1857e",
+      "baseline_sha256": "49b24ab0d95ff46999e6caf7a1a666bb08df147fd8a8e783e473cb1966e1857e",
+      "behavior_changed": false,
+      "seed_only": true,
+      "blob_sha1": "c984c35c21f1ce49dd738fede388e90d0eb707e8"
+    },
+    {
+      "path": "tests/test_zsxq_pdf_ingestion.py",
+      "sha256": "1469db99e76e1c708c22be643dd2e339eaac39fe3c89d2b0eabfb05de1065943",
+      "baseline_sha256": "bce3395e1e2191d4764f37b82548d2f13a888f5caef6e5e700b7a3ba27fa73a7",
+      "behavior_changed": true,
+      "seed_only": false,
+      "blob_sha1": "1fb75e96c70d326cdd2b449c5f5f069667a64ab0"
+    }
+  ],
+  "preview_shutdown": "CLOSED_AFTER_INDEPENDENT_ISOLATED_PASS; verified ownedPID94479 exit and no8879 listener",
+  "actual_model_posts": 0,
+  "canonical_integration": "NOT_RUN",
+  "current_8873_integration": "NOT_RUN_CURRENT_RELEASE_DIFFERS",
+  "real20_analysis_performance": "NOT_VERIFIED_NO_EXISTING_20_ANALYSIS_INPUT; unchanged cold<=5s/warm<=2s to verify after StageE20 and before StageF",
+  "real_full_accepted_latest": "CANNOT_CONFIRM_PENDING_REAL_STAGEE_RESULTS",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "excluded": [
+    "fixture data/PDFs/raw responses",
+    "screenshots/media",
+    "credentials/env",
+    "runtime/plists/logs/backups",
+    "node_modules/dist/venv"
+  ]
+}

@@ -31,6 +31,128 @@ export interface ResearchPdfDocumentDetail extends Record<string, unknown> {
   pages: Array<Record<string, unknown>>;
 }
 
+export interface ResearchPdfVersion {
+  analysis_id: string;
+  generation: number;
+  result_sha256: string;
+  generated_at: string;
+  validation_status: string;
+  semantic_review: string;
+  scope: string | null;
+  body_preview?: string;
+}
+
+export interface ResearchPdfSummary {
+  analysis_id: string | null;
+  reference_id: string;
+  reference_kind: "ANALYSIS" | "LEGACY_REFERENCE";
+  occurrence: { namespace: string; original_source_id: string; occurrence_id: string };
+  metadata: Record<string, unknown>;
+  research_date: string | null;
+  pdf_sha256: string;
+  versions: ResearchPdfVersion[];
+  accepted: ResearchPdfVersion | null;
+  latest_generated: ResearchPdfVersion | null;
+  preparation_status: string;
+  execution_status: string;
+  semantic_review?: string;
+  scope?: string;
+  reason_code: string | null;
+  latest_execution?: { status: string; reason_code: string | null };
+  legacy_references?: ResearchPdfSummary[];
+}
+
+export interface ResearchPdfList {
+  schema_version: "v4.pdf_research.list.v1";
+  status: "READY" | "READY_EMPTY" | "NOT_MATERIALIZED";
+  research_date: string | null;
+  date_mode: "EXACT" | "UNDATED";
+  date_basis: "source_document_date";
+  items: ResearchPdfSummary[];
+  total_count: number;
+  next_cursor: string | null;
+  snapshot_sha256: string;
+}
+
+export interface ResearchPdfDetail extends Omit<ResearchPdfSummary, "semantic_review" | "scope"> {
+  schema_version: "v4.pdf_research.detail.v1";
+  generation: number | null;
+  semantic_review?: string;
+  scope?: string | null;
+  result_sha256: string;
+  body_sha256: string;
+  body_markdown: string;
+  cards: Array<Record<string, unknown>>;
+  review: unknown;
+  provenance?: Record<string, unknown>;
+  references?: Record<string, unknown>;
+}
+
+export type ResearchPdfSelection = Readonly<{ researchDate: string | null }>;
+
+function pdfQuery(selection: ResearchPdfSelection): URLSearchParams {
+  if (selection.researchDate !== null && !isGregorianDate(selection.researchDate)) {
+    throw new ResearchLaneRequestError("INVALID_RESPONSE", "PDF 日期必须为精确 YYYYMMDD，或显式选择未注明日期。");
+  }
+  return new URLSearchParams(selection.researchDate === null ? { undated: "true" } : { research_date: selection.researchDate });
+}
+
+const PDF_SHA = /^[0-9a-f]{64}$/;
+function isPdfVersion(value: unknown): value is ResearchPdfVersion {
+  return isRecord(value) && typeof value.analysis_id === "string" && PDF_SHA.test(value.analysis_id)
+    && Number.isInteger(value.generation) && Number(value.generation) >= 0
+    && typeof value.result_sha256 === "string" && PDF_SHA.test(value.result_sha256)
+    && typeof value.semantic_review === "string";
+}
+
+function isPdfSummary(value: unknown, date: string | null): value is ResearchPdfSummary {
+  return isRecord(value) && typeof value.reference_id === "string" && PDF_SHA.test(value.reference_id)
+    && ["ANALYSIS", "LEGACY_REFERENCE"].includes(String(value.reference_kind))
+    && (value.reference_kind === "ANALYSIS" ? value.analysis_id === value.reference_id : value.analysis_id === null)
+    && isRecord(value.occurrence) && typeof value.occurrence.occurrence_id === "string"
+    && PDF_SHA.test(value.occurrence.occurrence_id) && typeof value.occurrence.namespace === "string"
+    && typeof value.occurrence.original_source_id === "string" && isRecord(value.metadata)
+    && value.research_date === date && Array.isArray(value.versions) && value.versions.every(isPdfVersion)
+    && (value.accepted === null || isPdfVersion(value.accepted))
+    && (value.latest_generated === null || isPdfVersion(value.latest_generated));
+}
+
+export async function loadResearchPdfList(selection: ResearchPdfSelection, cursor?: string | null,
+  options?: ResearchLaneRequestOptions): Promise<ResearchPdfList> {
+  const query = pdfQuery(selection);
+  if (cursor) query.set("cursor", cursor);
+  const payload = await requestJson(`/api/v3/research/pdf-research?${query}`, "PDF reports", options);
+  if (!isRecord(payload) || payload.schema_version !== "v4.pdf_research.list.v1"
+      || !["READY", "READY_EMPTY", "NOT_MATERIALIZED"].includes(String(payload.status))
+      || payload.research_date !== selection.researchDate
+      || payload.date_mode !== (selection.researchDate === null ? "UNDATED" : "EXACT")
+      || !Array.isArray(payload.items) || !payload.items.every(row => isPdfSummary(row, selection.researchDate))
+      || !Number.isInteger(payload.total_count) || Number(payload.total_count) < payload.items.length
+      || !(payload.next_cursor === null || typeof payload.next_cursor === "string")) {
+    throw new ResearchLaneRequestError("INVALID_RESPONSE", "PDF 列表日期或来源身份校验失败。");
+  }
+  return payload as unknown as ResearchPdfList;
+}
+
+export async function loadResearchPdfAnalysis(row: ResearchPdfSummary, generation: number | null,
+  options?: ResearchLaneRequestOptions): Promise<ResearchPdfDetail> {
+  const query = pdfQuery({ researchDate: row.research_date });
+  query.set("occurrence_id", row.occurrence.occurrence_id);
+  if (generation !== null) query.set("generation", String(generation));
+  const payload = await requestJson(`/api/v3/research/pdf-research/${encodeURIComponent(row.reference_id)}?${query}`, "PDF report detail", options);
+  if (!isRecord(payload) || !isPdfSummary(payload, row.research_date)
+      || payload.schema_version !== "v4.pdf_research.detail.v1" || payload.reference_id !== row.reference_id
+      || !isRecord(payload.occurrence) || payload.occurrence.occurrence_id !== row.occurrence.occurrence_id
+      || payload.generation !== generation || typeof payload.body_markdown !== "string"
+      || typeof payload.body_sha256 !== "string" || !PDF_SHA.test(payload.body_sha256)
+      || typeof payload.result_sha256 !== "string" || !PDF_SHA.test(payload.result_sha256)
+      || !Array.isArray(payload.cards) || !payload.cards.every(isRecord)
+      || (generation !== null && row.versions.find(v => v.generation === generation)?.result_sha256 !== payload.result_sha256)) {
+    throw new ResearchLaneRequestError("INVALID_RESPONSE", "PDF 正文来源、日期或固定版本校验失败。");
+  }
+  return payload as unknown as ResearchPdfDetail;
+}
+
 /** Exact-date daily product projected beside the hourly lane. */
 export interface ResearchDayCoverage {
   complete?: boolean;
@@ -327,7 +449,7 @@ export function validateResearchDayResponse(
   return value as ResearchDayProduct;
 }
 
-type JsonRequestResource = "research lane" | "research day" | "research PDF document";
+type JsonRequestResource = "research lane" | "research day" | "research PDF document" | "PDF reports" | "PDF report detail";
 
 /** Shared fetch/JSON transport; endpoint-specific contracts stay in their validators. */
 async function requestJson(

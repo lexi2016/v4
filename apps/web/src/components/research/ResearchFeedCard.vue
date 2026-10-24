@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 
-import { loadResearchPdfDocumentDetail, type ResearchPdfDocumentDetail } from "../../api/research_lane";
+import { loadResearchPdfDocumentDetail, type ResearchPdfDocumentDetail, type ResearchPdfDetail } from "../../api/research_lane";
 import { feedCardPresentation, financeOriginalUrl, formatFeedTimestamp, safeExternalUrl, text } from "../../composables/researchFeedPresentation";
 import { chipList } from "../../composables/useResearchLane";
 
-const props = defineProps<{ card: Record<string, unknown> }>();
+const props = defineProps<{ card: Record<string, unknown>; report?: ResearchPdfDetail }>();
+const reportSections = [{ key: 'facts', label: '事实' }, { key: 'forecasts', label: '预测' }, { key: 'author_forecasts', label: '原作者预测' }, { key: 'inferences', label: '推断' }, { key: 'related_entities', label: '相关主体' }, { key: 'speaker_and_source_attribution', label: '角色与来源' }, { key: 'risks', label: '风险' }, { key: 'unknowns', label: '未确认事项' }];
+function records(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value) ? value.map(item => typeof item === 'string' ? { claim: item } : record(item)) : [];
+}
 const presentation = computed(() => feedCardPresentation(props.card));
 const isPdf = computed(() => text(props.card.kind) === "pdf");
 const pdfDetail = ref<ResearchPdfDocumentDetail | null>(null);
@@ -87,7 +91,37 @@ const originalUrl = computed(() => {
 </script>
 
 <template>
-  <article class="hourly-feed-card" :class="presentation.categoryClass">
+  <article v-if="report" class="hourly-feed-card research-pdf-report" aria-label="PDF 分析正文">
+    <h3>{{ text(report.metadata.title) || text(card.title) || '历史研报引用' }}</h3>
+    <p class="hourly-meta">{{ report.reference_kind === 'LEGACY_REFERENCE' ? '历史引用，保留原验收范围' : report.semantic_review === 'ACCEPTED' ? '独立内容验收通过' : '已生成，待独立内容验收' }} · {{ report.scope || '尚无验收范围' }}</p>
+    <p v-if="report.reason_code" class="research-error">{{ report.execution_status }} · {{ report.reason_code }} · 未生成有效研究正文</p>
+    <pre class="research-pdf-body">{{ report.body_markdown }}</pre>
+    <details><summary>事实、预测、主体、风险与页引用</summary>
+      <section v-for="(sourceCard, index) in report.cards" :key="index">
+        <template v-for="section in reportSections" :key="section.key">
+          <h4 v-if="records(sourceCard[section.key]).length">{{ section.label }}</h4>
+          <article v-for="(claim, claimIndex) in records(sourceCard[section.key])" :key="claimIndex" class="research-pdf-claim">
+            <p>{{ text(claim.claim || claim.risk || claim.name || claim.entity || claim.description) }}</p>
+            <p v-if="claim.role || claim.attribution" class="hourly-meta">{{ text(claim.role || claim.attribution) }}</p>
+            <blockquote v-for="(evidence, evidenceIndex) in records(claim.evidence)" :key="evidenceIndex">
+              第 {{ text(evidence.page_number) || '未知' }} 页 · {{ text(evidence.quote || evidence.excerpt || evidence.text || evidence.source_text) }}
+              <small>{{ text(evidence.evidence_id) }} {{ text(evidence.text_sha256 || evidence.page_text_sha256 || evidence.page_sha256) }}</small>
+            </blockquote>
+          </article>
+        </template>
+      </section>
+    </details>
+    <details><summary>来源、分析版本与 SHA</summary>
+      <dl class="research-pdf-provenance">
+        <dt>来源实例</dt><dd>{{ report.occurrence.namespace }} / {{ report.occurrence.original_source_id }}<br>{{ report.occurrence.occurrence_id }}</dd>
+        <dt>原文日期 / 归档日期</dt><dd>{{ report.metadata.source_document_date || '未知' }} / {{ report.metadata.archived_date || '未知' }}</dd>
+        <dt>分析 ID / 版本</dt><dd>{{ report.analysis_id || '历史引用，未补造分析 ID' }} / {{ report.generation ?? '历史范围' }}</dd>
+        <dt>PDF SHA256</dt><dd>{{ report.pdf_sha256 }}</dd><dt>结果 SHA256</dt><dd>{{ report.result_sha256 }}</dd><dt>正文 SHA256</dt><dd>{{ report.body_sha256 }}</dd>
+      </dl>
+      <pre>{{ JSON.stringify({ provenance: report.provenance, review: report.review, references: report.references }, null, 2) }}</pre>
+    </details>
+  </article>
+  <article v-else class="hourly-feed-card" :class="presentation.categoryClass">
     <div class="hourly-feed-head">
       <div>
         <div class="hourly-feed-title">{{ text(card.title || card.source_title || card.stock_name || card.stock_code) }}</div>

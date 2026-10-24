@@ -766,6 +766,8 @@ def _source_row_for_document(
     store: NativeDataStore,
     index: Mapping[str, Any],
     document_id: str,
+    *,
+    source_cache: dict | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     documents = index.get("documents")
     if not isinstance(documents, Mapping):
@@ -786,7 +788,16 @@ def _source_row_for_document(
     if source_entry.get("trade_date") != trade_date or source_entry.get("source_run_id") != source_run_id:
         raise ZsxqPdfError("SOURCE_RUN_IDENTITY_MISMATCH")
 
-    status, fetch_result, recent, _summary, input_hashes = _source_binding(
+    cache_key = (trade_date, slot, source_run_id, json.dumps(source_entry.get("input_sha256"), sort_keys=True), source_entry.get("source_signature"))
+    cached = source_cache.get(cache_key) if source_cache is not None else None
+    if cached is not None:
+        expected = cached.get(document_id)
+        if expected is None:
+            raise ZsxqPdfError("SOURCE_DOCUMENT_NOT_ENUMERATED")
+        if source != expected:
+            raise ZsxqPdfError("SOURCE_DOCUMENT_METADATA_MISMATCH")
+        return source, dict(document_row)
+    status, _fetch_result, recent, _summary, input_hashes = _source_binding(
         store,
         trade_date=trade_date,
         slot=slot,
@@ -804,6 +815,10 @@ def _source_row_for_document(
     if source_entry.get("source_signature") != signature:
         raise ZsxqPdfError("SOURCE_SIGNATURE_MISMATCH")
     enumerated = enumerate_pdf_documents(recent, trade_date=trade_date, source_run_id=source_run_id)
+    if source_cache is not None:
+        for entry in enumerated:
+            entry["source_fetched_at"] = status.get("fetched_at")
+        source_cache[cache_key] = {row["document_key"]: row for row in enumerated}
     expected = next((row for row in enumerated if row.get("document_key") == document_id), None)
     if expected is None:
         raise ZsxqPdfError("SOURCE_DOCUMENT_NOT_ENUMERATED")
@@ -901,8 +916,9 @@ def _verified_document_detail(
     document_id: str,
     *,
     verify_pdf: bool,
+    source_cache: dict | None = None,
 ) -> dict[str, Any]:
-    source, document_row = _source_row_for_document(store, index, document_id)
+    source, document_row = _source_row_for_document(store, index, document_id, source_cache=source_cache)
     latest = _latest_engine_run(document_row)
     if latest is None:
         raise ZsxqPdfError("DOCUMENT_PROCESSING_NOT_STARTED")
@@ -3583,6 +3599,9 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
         index = _read_index(store)
         items: list[dict[str, Any]] = []
         cannot_confirm: list[str] = []
+        # Request-local, source/date/slot/input-hash bound enumeration only.
+        # Receipts, page text hashes, paths and coverage remain per-document.
+        source_cache: dict = {}
         for document_id, row in index["documents"].items():
             if not isinstance(row, Mapping) or not isinstance(row.get("source"), Mapping):
                 continue
@@ -3595,7 +3614,7 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
                 "expected_size", "pdf_published_at", "pit_status", "data_role", "late_processing",
             )
             try:
-                source, verified_row = _source_row_for_document(store, index, str(document_id))
+                source, verified_row = _source_row_for_document(store, index, str(document_id), source_cache=source_cache)
                 latest = _latest_engine_run(verified_row)
                 artifact = latest[1] if latest else {}
                 status = str(artifact.get("status") or "PENDING").upper()
@@ -3604,7 +3623,7 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
                 detail: dict[str, Any] | None = None
                 if artifact.get("receipt_path") and artifact.get("pages_path") and artifact.get("pdf_path"):
                     try:
-                        detail = _verified_document_detail(store, index, str(document_id), verify_pdf=False)
+                        detail = _verified_document_detail(store, index, str(document_id), verify_pdf=False, source_cache=source_cache)
                     except ZsxqPdfError as error:
                         if status == "READY":
                             status = "CANNOT_CONFIRM"
@@ -3757,6 +3776,12 @@ def read_pdf_ingestion_projection(data_root: Path, research_date: str) -> dict[s
                 "cannot_confirm": [],
                 **SAFETY,
             }
+        # Rehash cached inputs before returning; drift invalidates the complete
+        # projection rather than mixing documents from different source states.
+        for trade_date, slot, source_run_id, bound_hashes, _signature in source_cache:
+            *_, current_hashes = _source_binding(store, trade_date=trade_date, slot=slot, source_run_id=source_run_id)
+            if json.dumps(current_hashes, sort_keys=True) != bound_hashes:
+                raise ZsxqPdfError("SOURCE_INPUT_SHA256_MISMATCH")
         items.sort(key=lambda row: (str((row.get("source") or {}).get("source_topic_published_at") or ""), str(row.get("document_id") or "")), reverse=True)
         counts = {
             "completed_count": sum(1 for row in items if row.get("status") == "READY"),

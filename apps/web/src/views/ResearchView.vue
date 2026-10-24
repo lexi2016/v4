@@ -9,6 +9,7 @@ import ResearchFeedPane from "../components/research/ResearchFeedPane.vue";
 import ResearchSourceColumns from "../components/research/ResearchSourceColumns.vue";
 import ResearchContextPane from "../components/research/ResearchContextPane.vue";
 import ResearchAppendix from "../components/research/ResearchAppendix.vue";
+import ResearchPdfPanel from "../components/research/ResearchPdfPanel.vue";
 import "../styles/v3-research-lane.css";
 
 const props = defineProps<{ archiveDate: string; initialFeedFilter?: "latest" | "wechat" }>();
@@ -130,6 +131,8 @@ onMounted(() => {
       <strong>NOT_MATERIALIZED</strong>
       <span>{{ payload.reason }}</span>
     </div>
+
+    <ResearchPdfPanel :archive-date="archiveDate" />
 
     <section
       v-if="!loading && !error && payload?.status === 'NOT_MATERIALIZED'"

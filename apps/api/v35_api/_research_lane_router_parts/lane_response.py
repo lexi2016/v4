@@ -3,7 +3,7 @@ from __future__ import annotations
 from ._namespace import read_global as _v4_global
 
 
-def __lane_response_body(_v4_scope, /, archive, *, research_date, endpoint_mode, daily_archive, hourly_slot, hourly_slot_count, source_binding, morning_news, peripherals):
+def __lane_response_body(_v4_scope, /, archive, *, research_date, endpoint_mode, daily_archive=None, hourly_slot='', hourly_slot_count=0, source_binding=None, morning_news=None, peripherals=None):
     articles = _v4_global(_v4_scope, 'list')(archive["articles"])
     timeline = [
         {
@@ -133,4 +133,4 @@ def __lane_response_body(_v4_scope, /, archive, *, research_date, endpoint_mode,
     }
     if _v4_global(_v4_scope, 'isinstance')(key_investment_messages, _v4_global(_v4_scope, 'list')):
         response["key_investment_messages"] = key_investment_messages
-    return response
+    return _v4_global(_v4_scope, 'project_report_roles')(response)
