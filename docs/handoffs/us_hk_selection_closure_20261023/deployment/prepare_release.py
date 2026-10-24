@@ -780,8 +780,15 @@ def proposed_plist(raw, scope, manifest_sha):
         node = value
         for key in keys[:-1]:
             node = node[key]
-        require(node[keys[-1]] == update["before"], "PLIST_FIELD_DRIFT")
-        node[keys[-1]] = update["after"].format(**fields)
+        if 'before_absent' in update:
+            require(set(update)=={'keys','before_absent','after'} and update['before_absent'] is True and
+                    keys==['EnvironmentVariables','RESEARCH_ONLY'] and update['after']=='1',
+                    'PLIST_ABSENT_INSERT_NOT_ALLOWED')
+            require(isinstance(node,dict) and keys[-1] not in node,'PLIST_FIELD_ALREADY_PRESENT')
+            node[keys[-1]]='1'
+        else:
+            require(node[keys[-1]] == update["before"], "PLIST_FIELD_DRIFT")
+            node[keys[-1]] = update["after"].format(**fields)
     require(value.get("WorkingDirectory") == str(candidate / "app"), "PLIST_CWD_NOT_REBOUND")
     if scope['mode']=='RELEASE':
         env=dict(value.get('EnvironmentVariables', {}))

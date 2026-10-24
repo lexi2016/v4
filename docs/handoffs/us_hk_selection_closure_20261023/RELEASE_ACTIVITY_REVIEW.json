@@ -1,0 +1,90 @@
+{
+  "schema": "v4.us_hk.release_activity_review.v1",
+  "as_of": "2026-10-24T07:35:41.264621+00:00",
+  "state": "ACTIVITY_READINESS_BLOCKED_FOUR_EXECUTION_IDENTITIES_UNKNOWN",
+  "independent_reviewer": "/root/backend_reviewer",
+  "controller_transcription_sha256": "21ff3c919265ee1eb755f32b98c1c1c5641af223c9e343c0e259574954b1e76a",
+  "reviewer_reported_payload_sha256": "afe5b6b5dfc1af7c5f3ae36f323d00413e95ac8f16674bc8a852ab2f0d48073b",
+  "payload_bytes_unavailable": true,
+  "source_pin_count": 18,
+  "deterministic_parser_conflicts": 2,
+  "legitimate_hk_child_products_misclassified": 394,
+  "unknown_execution_records": {
+    "HK_workspace_RUNNING": [
+      "9d62509ee10449ec991fccf460fc86d8",
+      "e5d9be8bc3af419c93ea334f68064e3e",
+      "f3dfc878dcbc4686850a398ab5fb7730"
+    ],
+    "HK_target_date": "20261012",
+    "Workbench_INTERRUPTED": "07bfabf09f144360ab8869214aeecea8",
+    "state": "CANNOT_CONFIRM_CONTINUE_BLOCKING",
+    "absence_or_age_not_liveness_proof": true
+  },
+  "parser_fix": "SOURCE_TESTED_INDEPENDENT_PASS",
+  "last_actual_attempt": {
+    "state": "ABORTED_PRECOMMIT",
+    "committed": false,
+    "signals": [
+      "SIGSTOP",
+      "SIGCONT"
+    ],
+    "lifecycle_calls": 0,
+    "original_API_restored": true,
+    "failure_receipt_sha256": "33977383282b983ce66fcd09fb32dc349cd6c2c1542d984385104378a842df35"
+  },
+  "new_runtime_activation": 0,
+  "business_publication": 0,
+  "natural_cycles": 0,
+  "execution_override": false,
+  "incremental_source_review_transcription_sha256": "833fe360f1e7b95317df9f689689ad282ef986b84187c7ee0ed8c2d4008b109d",
+  "reviewer_reported_incremental_receipt_sha256": "b0601a2a5c26a01a7b7c0fe5fe16af29fe90d6208e6a4bd02aac6dbde21f0f63",
+  "helper_sha256": {
+    "prepare_release.py": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
+    "activate_release.py": "4aa089a215137260d927f56f7df84c1c7602230d97309b2d1fe4f34cf1e6e809"
+  },
+  "tests_sha256": "37c542579a2c2dfe05e1aed3324acf40f77ceee34c134cb45b3386cd7886a740",
+  "focused_tests": 7,
+  "direct_counterexamples": 8,
+  "owner_generation_review": {
+    "state": "REVIEWED_FAIL_EXECUTION_IDENTITY_CANNOT_CONFIRM",
+    "controller_transcription_sha256": "50283707bf791005690febe31fc6f3ed6f7a2ed50137ceb33942b45d71b41efc",
+    "current_API_start_does_not_prove_prior_task_dead": true,
+    "HK_tasks_are_scheduled_not_manual_API_refresh": true,
+    "Workbench_retry_keeps_stale_execution_refs": true
+  },
+  "exact_blocked_records": [
+    {
+      "kind": "HK_workspace",
+      "run_id": "9d62509ee10449ec991fccf460fc86d8",
+      "target_date": "20261012",
+      "sha256": "b28856b2e3c0a520bd3340e2d96017c65882f640f1827c2f5417c57d59260dd9"
+    },
+    {
+      "kind": "HK_workspace",
+      "run_id": "e5d9be8bc3af419c93ea334f68064e3e",
+      "target_date": "20261012",
+      "sha256": "22252db83ef23db53677c2aafba2521f231035248e93b0d21835f6729ab3f2bd"
+    },
+    {
+      "kind": "HK_workspace",
+      "run_id": "f3dfc878dcbc4686850a398ab5fb7730",
+      "target_date": "20261012",
+      "sha256": "145e50f0c70d8a94328f7f7ce34a63b4d53a0fda854b5f957f67acea30c02e61"
+    },
+    {
+      "kind": "Workbench",
+      "job_id": "07bfabf09f144360ab8869214aeecea8",
+      "sha256": "5d5bb8c68d18ebeec089a8165f090a16ec45938e4e256975ac71fefe640dddbc"
+    }
+  ],
+  "required_operator_decision": {
+    "status": "PENDING_NO_AUTHORIZATION_INFERRED",
+    "scope": "Only these exact four legacy research records",
+    "proposed_disposition": "Preserve all original evidence; explicitly abandon/reconcile unknown legacy execution state before local release continuation",
+    "completed_or_idle_claim": false,
+    "automatic_override": false,
+    "unidentified_PID_kill": false,
+    "announcement_or_model_restart": false,
+    "orders_or_BUY_gate_change": false
+  }
+}

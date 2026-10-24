@@ -2547,6 +2547,152 @@ old_os_open=_raced_descriptor_open
         target.write_bytes(original);self.assertTrue(prepare.hk_child_binding(self.scope))
 
 
+    def research_env_insert_fixture(self):
+        runner=self.release_fixture()
+        raw=plistlib.loads(self.old_bytes);env=raw['EnvironmentVariables'];env.pop('RESEARCH_ONLY')
+        for key in ('production_allowed','buy_gate_updated','orders_sent'):env[key.upper()]='false'
+        operation={'keys':['EnvironmentVariables','RESEARCH_ONLY'],'before_absent':True,'after':'1'}
+        self.scope['plist']['updates'].append(operation)
+        return raw,operation
+
+    def test_research_env_insert_exact_absent_key_preserves_other_bindings(self):
+        raw,operation=self.research_env_insert_fixture();before=deepcopy(raw)
+        result=plistlib.loads(prepare.proposed_plist(plistlib.dumps(raw),self.scope,'a'*64))
+        self.assertEqual(result['EnvironmentVariables']['RESEARCH_ONLY'],'1')
+        expected=deepcopy(before)
+        fields={'app':str(self.candidate/'app'),'release_id':self.candidate.name,
+            'manifest':str(self.candidate/'release-manifest.json'),'manifest_sha256':'a'*64,'root':str(self.candidate)}
+        for update in self.scope['plist']['updates'][:-1]:
+            node=expected
+            for key in update['keys'][:-1]:node=node[key]
+            node[update['keys'][-1]]=update['after'].format(**fields)
+        expected['EnvironmentVariables']['RESEARCH_ONLY']='1'
+        self.assertEqual(result,expected);self.assertEqual(raw,before)
+        self.assertFalse(self.candidate.exists())
+
+    def test_research_env_insert_existing_key_and_null_are_not_absent(self):
+        raw,operation=self.research_env_insert_fixture()
+        for value in ('1','0','false','',None):
+            check=deepcopy(raw);check['EnvironmentVariables']['RESEARCH_ONLY']=value
+            # plist cannot encode None, so inject only the decoded fixture for
+            # that case; the membership check must still reject an existing key.
+            with self.subTest(value=value),self.assertRaisesRegex(prepare.Stop,'PLIST_FIELD_ALREADY_PRESENT'):
+                if value is None:
+                    with patch.object(prepare.plistlib,'loads',return_value=check):prepare.proposed_plist(b'fixture',self.scope,'a'*64)
+                else:prepare.proposed_plist(plistlib.dumps(check),self.scope,'a'*64)
+
+    def test_research_env_insert_only_one_literal_operation_is_allowed(self):
+        raw,operation=self.research_env_insert_fixture();original=deepcopy(operation)
+        for mutation in ('flag','lowercase','top','wholeenv','wrongvalue','template','false','integer','before','extra'):
+            operation.clear();operation.update(deepcopy(original))
+            if mutation=='flag':operation['keys']=['EnvironmentVariables','production_allowed']
+            elif mutation=='lowercase':operation['keys']=['EnvironmentVariables','research_only']
+            elif mutation=='top':operation['keys']=['RESEARCH_ONLY']
+            elif mutation=='wholeenv':operation['keys']=['EnvironmentVariables'];operation['after']={'RESEARCH_ONLY':'1'}
+            elif mutation=='wrongvalue':operation['after']='true'
+            elif mutation=='template':operation['after']='{release_id}'
+            elif mutation=='false':operation['before_absent']=False
+            elif mutation=='integer':operation['before_absent']=1
+            elif mutation=='before':operation['before']=None
+            else:operation['allow_anything']=True
+            with self.subTest(mutation=mutation),self.assertRaisesRegex(prepare.Stop,'PLIST_ABSENT_INSERT_NOT_ALLOWED'):
+                prepare.proposed_plist(plistlib.dumps(raw),self.scope,'a'*64)
+        operation.clear();operation.update(original)
+        self.scope['plist']['updates'].append(deepcopy(operation))
+        with self.assertRaisesRegex(prepare.Stop,'PLIST_UPDATE_DUPLICATE'):prepare.proposed_plist(plistlib.dumps(raw),self.scope,'a'*64)
+
+    def test_research_env_insert_keeps_preimages_and_existing_safety_guards(self):
+        raw,operation=self.research_env_insert_fixture();before=deepcopy(raw)
+        first=self.scope['plist']['updates'][0];original=first['before'];first['before']='wrong preimage'
+        with self.assertRaisesRegex(prepare.Stop,'PLIST_FIELD_DRIFT'):prepare.proposed_plist(plistlib.dumps(raw),self.scope,'a'*64)
+        first['before']=original
+        for key in ('production_allowed','PRODUCTION_ALLOWED','buy_gate_updated','BUY_GATE_UPDATED','orders_sent','ORDERS_SENT'):
+            check=deepcopy(raw);check['EnvironmentVariables'][key]='true'
+            with self.subTest(key=key),self.assertRaisesRegex(prepare.Stop,'PLIST_UNSAFE_FLAG'):
+                prepare.proposed_plist(plistlib.dumps(check),self.scope,'a'*64)
+        check=deepcopy(raw);check['ProgramArguments']=check['ProgramArguments']+['RESEARCH_ONLY=0']
+        with self.assertRaisesRegex(prepare.Stop,'PLIST_RESEARCH_ONLY_REQUIRED'):
+            prepare.proposed_plist(plistlib.dumps(check),self.scope,'a'*64)
+        self.assertEqual(raw,before);self.assertFalse(self.candidate.exists())
+
+
+    def activity_catalog_fixture(self):
+        runner,roots=self.retained_queue_fixture();root=roots['hkex_announcements']
+        run='f42f992f8705491492d065673bde9e9e';base=root/'workspace_announcement_runs/20260930/eastmoney_date_catalog/20260929'
+        common=dict(run_id=run,target_trade_date='20260930',publication_date='2026-09-29',source_scope='EASTMONEY_HK_DATE_CATALOG')
+        catalog=dict(common,schema_version='v4.manager_research.eastmoney_hk_date_catalog_attempt.v1',
+            owner='ManagerResearchJobService.refresh_announcements',state='COMPLETE',finished_at='2026-10-05T02:15:52+00:00',
+            input_coverage={'captured_page_count':1})
+        marker=dict(common,schema_version='v4.manager_research.eastmoney_hk_page_attempt.v1',
+            owner='ManagerResearchJobService.refresh_announcements',state='STARTED',started_at='2026-10-05T02:15:51+00:00',
+            page_index=1,requested_url='https://fixture.invalid/catalog?page_index=1',disposition='REUSE_EXISTING_REFERENCE')
+        marker_path=base/run/'pages/page-0001.attempt.json'
+        receipt=dict(common,schema='v4.manager_research.eastmoney_hk_page_receipt.v1',page_index=1,
+            requested_url=marker['requested_url'],capture_status='PASS',owner_attempt_path=marker_path.relative_to(root).as_posix())
+        paths={'catalog':base/(run+'.json'),'latest':base/'latest.json','marker':marker_path,'receipt':base/run/'pages/page-0001.json'}
+        rows={'catalog':catalog,'latest':catalog,'marker':marker,'receipt':receipt}
+        def write():
+            for key,path in paths.items():
+                path.parent.mkdir(parents=True,exist_ok=True);row=deepcopy(rows[key])
+                if key in ('catalog','latest'):
+                    row.pop('sha256',None);row['sha256']=prepare.digest(json.dumps(row,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode())
+                path.write_bytes(prepare.json_bytes(row))
+        write();return runner,root,paths,rows,write
+
+    def test_activity_catalog_terminal_children_and_all_finished_states_are_idle(self):
+        runner,root,paths,rows,write=self.activity_catalog_fixture()
+        for state,status in (('COMPLETE','PASS'),('COMPLETE_EMPTY','PASS'),('PARTIAL','PARTIAL'),('FAILED','FAILED')):
+            rows['catalog']['state']=state;rows['receipt']['capture_status']=status;write()
+            with self.subTest(state=state):self.assertEqual(activate.activity_snapshot(self.scope,runner)['busy_work'],[])
+        self.assertEqual(rows['marker']['state'],'STARTED');self.assertNotIn('finished_at',rows['marker'])
+
+    def test_activity_catalog_missing_link_bad_seal_unknown_and_identity_are_rejected(self):
+        runner,root,paths,rows,write=self.activity_catalog_fixture();original=deepcopy(rows)
+        for mutation in ('catalog_missing','marker_missing','receipt_missing','bad_seal','unknown','bad_owner','run','date','page','url','owner_path','unexpected_path','count'):
+            rows.clear();rows.update(deepcopy(original));write()
+            if mutation.endswith('_missing'):paths[mutation[:-8]].unlink()
+            elif mutation=='bad_seal':
+                value=json.loads(paths['catalog'].read_bytes());value['sha256']='0'*64;paths['catalog'].write_bytes(prepare.json_bytes(value))
+            elif mutation=='unknown':rows['receipt']['schema']='unknown';write()
+            elif mutation=='bad_owner':rows['marker']['owner']='unknown';write()
+            elif mutation=='run':rows['receipt']['run_id']='a'*32;write()
+            elif mutation=='date':rows['receipt']['publication_date']='2026-09-28';write()
+            elif mutation=='page':rows['receipt']['page_index']=2;write()
+            elif mutation=='url':rows['receipt']['requested_url']='wrong';write()
+            elif mutation=='owner_path':rows['receipt']['owner_attempt_path']='../elsewhere';write()
+            elif mutation=='count':rows['catalog']['input_coverage']['captured_page_count']=2;write()
+            else:
+                extra=root/'workspace_announcement_runs/20260930/unrecognized.json';extra.write_bytes(paths['receipt'].read_bytes())
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):activate.activity_snapshot(self.scope,runner)
+            if mutation=='unexpected_path':extra.unlink()
+        rows.clear();rows.update(original);write();self.assertEqual(activate.activity_snapshot(self.scope,runner)['busy_work'],[])
+
+    def test_activity_catalog_running_and_three_original_hk_runs_remain_busy(self):
+        runner,root,paths,rows,write=self.activity_catalog_fixture();rows['catalog'].update(state='RUNNING',finished_at=None);write()
+        self.assertTrue(activate.activity_snapshot(self.scope,runner)['busy_work'])
+        rows['catalog'].update(state='COMPLETE',finished_at='2026-10-05T02:15:52+00:00');write()
+        running=[]
+        for run in ('9d62509ee10449ec991fccf460fc86d8','e5d9be8bc3af419c93ea334f68064e3e','f3dfc878dcbc4686850a398ab5fb7730'):
+            path=root/'workspace_announcement_runs/20261012'/(run+'.json');path.parent.mkdir(exist_ok=True)
+            row=dict(schema_version='v4.manager_research.workspace_attempt.v1',state='RUNNING',run_id=run,
+                target_trade_date='20261012',finished_at=None)
+            row['sha256']=prepare.digest(json.dumps(row,sort_keys=True,separators=(',',':')).encode());path.write_bytes(prepare.json_bytes(row));running.append(str(path))
+        self.assertEqual(activate.activity_snapshot(self.scope,runner)['busy_work'],running)
+        self.assertFalse(any(p.name=='candidate' for p in self.root.iterdir()))
+
+    def test_activity_orphan_unknown_identity_without_finished_time_remains_busy(self):
+        runner,roots=self.retained_queue_fixture();path=Path(self.scope['activity']['workbench_root'])/'attempts/07bfabf09f144360ab8869214aeecea8.json'
+        row=dict(job_id=path.stem,state='INTERRUPTED',failure_code='PROCESS_IDENTITY_UNVERIFIED',retryable=True,
+            finished_at=None,execution_refs=[{'kind':'host','pid':65614}],step='FLASH_SELECTION',failed_steps=['FLASH_SELECTION'])
+        path.write_bytes(prepare.json_bytes(row));before=path.read_bytes()
+        self.assertEqual(activate.activity_snapshot(self.scope,runner)['busy_work'],[str(path)])
+        self.assertEqual(path.read_bytes(),before)
+        for state,code,retry in (('SUCCEEDED','PROCESS_IDENTITY_UNVERIFIED',True),('INTERRUPTED','OTHER',True),('INTERRUPTED','PROCESS_IDENTITY_UNVERIFIED',False)):
+            row.update(state=state,failure_code=code,retryable=retry);path.write_bytes(prepare.json_bytes(row))
+            with self.subTest(state=state,code=code,retry=retry),self.assertRaisesRegex(prepare.Stop,'WORKBENCH_TERMINAL_ATTEMPT_INCOMPLETE'):
+                activate.activity_snapshot(self.scope,runner)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', required=True)

@@ -802,6 +802,57 @@ class FakeLifecycle:
         self.app_root = target
 
 
+def hkex_catalog_closed(path,row,records,queue_root):
+    """Recognize only the pinned owner's date-catalog journals/page artifacts."""
+    base=queue_root/'workspace_announcement_runs';parts=path.relative_to(base).parts
+    require(len(parts) in (4,6) and re.fullmatch(r'\d{8}',parts[0]) and
+            parts[1]=='eastmoney_date_catalog' and re.fullmatch(r'\d{8}',parts[2]),'HKEX_CATALOG_PATH_UNKNOWN')
+    schema=row.get('schema_version',row.get('schema'))
+    catalog_schema='v4.manager_research.eastmoney_hk_date_catalog_attempt.v1'
+    marker_schema='v4.manager_research.eastmoney_hk_page_attempt.v1'
+    receipt_schema='v4.manager_research.eastmoney_hk_page_receipt.v1'
+    run=row.get('run_id');publication=parts[2][:4]+'-'+parts[2][4:6]+'-'+parts[2][6:]
+    require(isinstance(run,str) and re.fullmatch(r'[0-9a-f]{32}',run) and
+            row.get('target_trade_date')==parts[0] and row.get('publication_date')==publication and
+            row.get('source_scope')=='EASTMONEY_HK_DATE_CATALOG','HKEX_CATALOG_IDENTITY_INVALID')
+    if schema==catalog_schema:
+        require(len(parts)==4 and parts[3] in (run+'.json','latest.json') and
+                row.get('owner')=='ManagerResearchJobService.refresh_announcements' and
+                row.get('state') in {'RUNNING','COMPLETE','COMPLETE_EMPTY','PARTIAL','FAILED'},'HKEX_CATALOG_STATE_UNKNOWN')
+        unsigned={k:v for k,v in row.items() if k!='sha256'}
+        require(row.get('sha256')==digest(json.dumps(unsigned,ensure_ascii=False,sort_keys=True,
+            separators=(',',':'),allow_nan=False).encode()),'HKEX_CATALOG_SHA_INVALID')
+        require(records.get(path.parent/(run+'.json'))==row,'HKEX_CATALOG_RUN_LINK_MISSING')
+        if row['state']=='RUNNING' or not row.get('finished_at'):return False
+        count=row.get('input_coverage',{}).get('captured_page_count')
+        if row['state'] in {'COMPLETE','COMPLETE_EMPTY','PARTIAL'} or count is not None:
+            require(type(count) is int and 1<=count<=1001,'HKEX_CATALOG_PAGE_COUNT_UNKNOWN')
+            require(all(path.parent/run/'pages'/name in records for i in range(1,count+1)
+                for name in (f'page-{i:04d}.attempt.json',f'page-{i:04d}.json')),'HKEX_CATALOG_PAGE_LINK_MISSING')
+        return True
+    require(schema in {marker_schema,receipt_schema} and len(parts)==6 and parts[3]==run and parts[4]=='pages',
+            'HKEX_CATALOG_PAGE_SCHEMA_OR_PATH_UNKNOWN')
+    index=row.get('page_index')
+    require(type(index) is int and 1<=index<=1001 and parts[5]==f'page-{index:04d}'+
+            ('.attempt.json' if schema==marker_schema else '.json'),'HKEX_CATALOG_PAGE_ID_INVALID')
+    marker_path=path.parent/f'page-{index:04d}.attempt.json';receipt_path=path.parent/f'page-{index:04d}.json'
+    marker=records.get(marker_path);receipt=records.get(receipt_path);catalog_path=path.parents[2]/(run+'.json')
+    catalog=records.get(catalog_path)
+    require(isinstance(marker,dict) and isinstance(receipt,dict) and isinstance(catalog,dict),
+            'HKEX_CATALOG_PAGE_LINK_MISSING')
+    require(marker.get('schema_version')==marker_schema and marker.get('owner')=='ManagerResearchJobService.refresh_announcements' and
+            marker.get('state')=='STARTED' and marker.get('started_at') and marker.get('disposition') in
+            {'REQUEST_STARTED','REUSE_EXISTING_REFERENCE'} and receipt.get('schema')==receipt_schema and
+            receipt.get('capture_status') in {'PASS','PARTIAL','FAILED'} and
+            all(marker.get(k)==receipt.get(k)==row.get(k) for k in
+                ('run_id','target_trade_date','publication_date','source_scope','page_index','requested_url')) and
+            isinstance(marker.get('requested_url'),str) and marker['requested_url'] and
+            receipt.get('owner_attempt_path')==marker_path.relative_to(queue_root).as_posix(),
+            'HKEX_CATALOG_PAGE_LINK_INVALID')
+    require(catalog.get('schema_version')==catalog_schema,'HKEX_CATALOG_RUN_LINK_MISSING')
+    return hkex_catalog_closed(catalog_path,catalog,records,queue_root)
+
+
 def activity_snapshot(scope, runner):
     activity=scope['activity'];root=exact(activity['workbench_root'])
     require(root.name=='manager_workbench','ACTIVITY_WORKBENCH_ROOT')
@@ -815,9 +866,15 @@ def activity_snapshot(scope, runner):
             require(kind=='manual_generation','ONLY_UNCONFIGURED_MANUAL_GENERATION_MAY_BE_ABSENT');continue
         queue_root=exact(spec['root'],exists=False)
         if not queue_root.exists():identities.append((str(queue_root),None));continue
+        records={}
         for path in sorted(queue_root.glob(queue_patterns[kind])):
-            raw=exact(path).read_bytes();row=json.loads(raw);identities.append((str(path),digest(raw)))
-            if kind=='manual_collection':
+            raw=exact(path).read_bytes();records[path]=json.loads(raw);identities.append((str(path),digest(raw)))
+        for path,row in records.items():
+            if kind=='hkex_announcements' and row.get('schema_version',row.get('schema')) in {
+                    'v4.manager_research.eastmoney_hk_date_catalog_attempt.v1',
+                    'v4.manager_research.eastmoney_hk_page_attempt.v1','v4.manager_research.eastmoney_hk_page_receipt.v1'}:
+                if not hkex_catalog_closed(path,row,records,queue_root):busy.append(str(path))
+            elif kind=='manual_collection':
                 require(row.get('origin')=='CONTROLLED_MANUAL_COLLECTION' and row.get('status') in
                         {'PENDING','RUNNING','READY','REUSED','PARTIAL','CANNOT_CONFIRM'},'MANUAL_COLLECTION_STATE_UNKNOWN')
                 if row['status'] in {'PENDING','RUNNING'} or not row.get('finished_at'):busy.append(str(path))
@@ -838,6 +895,10 @@ def activity_snapshot(scope, runner):
         require(record.get('state') in {'QUEUED','RUNNING','SUCCEEDED','PARTIAL','FAILED','CANCELLED','INTERRUPTED','USER_STOPPED'},'UNKNOWN_WORKBENCH_JOB_STATE')
         identities.append((str(p),digest(raw)))
         if record['state'] in {'QUEUED','RUNNING'}:busy.append(str(p))
+        elif record['state']=='INTERRUPTED' and record.get('failure_code')=='PROCESS_IDENTITY_UNVERIFIED' and record.get('retryable') is True:
+            # The pinned Store marks orphaned work this way without inventing
+            # finished_at. It remains UNKNOWN_EXECUTION_IDENTITY, never idle.
+            busy.append(str(p))
         else:require(record.get('finished_at'),'WORKBENCH_TERMINAL_ATTEMPT_INCOMPLETE')
     queue=root/'announcement_flash/queue/queue-state.json'
     if queue.exists():

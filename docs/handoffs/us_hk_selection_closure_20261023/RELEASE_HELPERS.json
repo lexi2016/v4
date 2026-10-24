@@ -1,16 +1,16 @@
 {
   "schema": "v4.us_hk.release_helper_acceptance.v2",
-  "as_of": "2026-10-24T07:12:44.576774+00:00",
-  "state": "CURRENT_STARTUP_HELPER_SOURCE_PASS_ACTUAL_ACTIVATION_PENDING",
+  "as_of": "2026-10-24T07:38:49.667630+00:00",
+  "state": "CURRENT_SOURCE_TESTED_PASS_ACTIVITY_READINESS_BLOCKED",
   "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
   "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
   "core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
-  "previous_helper_commit": "5dde9cfdb038949c110dbd1025b792f04de7946c",
-  "previous_report_sha256": "ae27596c2b503f8577cca92c138bc8569595e1d09aba81d1cdba2c992b9f9f83",
+  "previous_helper_commit": "217b33a7bdd4d0984fa1271899ed6a484a0edea2",
+  "previous_report_sha256": "beaded8fe06baeb899bfa9f4b5d36200a36c480f54023993e3f5b7a378c23e25",
   "source_sha256": {
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "5ace642703a899c8315d6e6aee7debb694adbec7cbcc01e4cbe79b09428e04a7",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "868e5cb9c671a3515db1374625e7b76bd07b61d645d2b8d14719906cbbf1c313",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "a0f9540b10d0e5aa3824bee8abcfe6b130f306ecdce692db8e09e1ca133a7c44",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "4aa089a215137260d927f56f7df84c1c7602230d97309b2d1fe4f34cf1e6e809",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "37c542579a2c2dfe05e1aed3324acf40f77ceee34c134cb45b3386cd7886a740",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": "9ae1a3cab13b2bc33c0ccc9a26751b055b0173b19bc9b28437607ff5f95d34c2",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/publish_replay.py": "699b926f3727cd4ee8bb911465862705e984bd770cd654df6208c16cc8d9b7d3",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_publish_replay.py": "ce7c5aa328c660e5c47c7c134743f41855ec7cf939264c1a98a4f110e8ea1134",
@@ -107,6 +107,19 @@
       "controller_transcribed_receipt_sha256": "00a13a4b922724d242006193279c54b1fb60819c824b642b7aa3b243771d6d1e",
       "stderr_hard_limit": false,
       "actual_lifecycle": false
+    },
+    {
+      "name": "Exact absent-key RESEARCH_ONLY safety insertion and SCHED r2 INPUT",
+      "tests": 4,
+      "other_prepare_definitions_unchanged": 38,
+      "controller_transcription_sha256": "9d80d8e66edd4671eba25feb479fcd4de8e525a5258bbf5e138a3572e68f8707"
+    },
+    {
+      "name": "Owner-linked HK child schema classification and interrupted unknown-identity recognition",
+      "tests": 7,
+      "direct_negative_cases": 8,
+      "controller_transcription_sha256": "833fe360f1e7b95317df9f689689ad282ef986b84187c7ee0ed8c2d4008b109d",
+      "actual_four_unknown_execution_identities_still_blocked": true
     }
   ],
   "actual_delivery": {
@@ -115,14 +128,16 @@
     "api_r1": "PREPARED_LOADED_PASS_SEMANTIC_STORE_INTEGRATION_FAIL_DO_NOT_ACTIVATE",
     "api_r2": "PREPARED_LOADED_SAVE_MERGE_INDEPENDENT_PASS_4_CASES",
     "hk_child_r1": "MATERIALIZED_UNSEALED_SDK_IMPORT_REFUSED_AT_ORIGINAL_FILE_LOGGING",
-    "scheduler": "FINAL_READY_INPUT_INDEPENDENT_PASS_NOT_PREPARED",
+    "scheduler": "R2_PREPARED_LOADED_PROPOSED_PLIST_INDEPENDENT_PASS_62_CHECKS",
     "service_activation": 0,
     "business_publication": 0,
     "natural_cycles": 0,
     "hk_child_r2": "PREPARED_LOADED_NATIVE_COMPATIBILITY_INDEPENDENT_PASS_21_CHECKS",
-    "api_role_probe": "PURE_PREOPEN_PASS_670_0_397_273_FULL_FROZEN_NATIVE_DATA_CANNOT_CONFIRM"
+    "api_role_probe": "PURE_PREOPEN_PASS_670_0_397_273_FULL_FROZEN_NATIVE_DATA_CANNOT_CONFIRM",
+    "last_activation": "ABORTED_PRECOMMIT_OLD_API_RESUMED_NO_LIFECYCLE_COMMIT"
   },
   "unresolved": [
+    "Actual cutover blocked by three HK RUNNING and one interrupted Workbench execution identities; no age-based waiver, task mutation or retry",
     "Actual service activation, compact API/browser and manual retrospective publication",
     "Scheduler actual candidate, activation and two complete natural cycles",
     "Historical field/member/PIT material gaps remain CANNOT_CONFIRM; full audited panel candidate not globally activated"

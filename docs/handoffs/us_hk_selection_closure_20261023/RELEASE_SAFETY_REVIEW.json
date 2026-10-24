@@ -1,0 +1,39 @@
+{
+  "schema": "v4.us_hk.release_safety_review.v1",
+  "as_of": "2026-10-24T07:38:49.667630+00:00",
+  "state": "SOURCE_TESTED_AND_SCHEDULER_R2_INPUT_REVIEWED_PASS",
+  "independent_reviewer": "/root/release_helper_reviewer",
+  "controller_transcription_sha256": "9d80d8e66edd4671eba25feb479fcd4de8e525a5258bbf5e138a3572e68f8707",
+  "source_sha256": {
+    "prepare_release.py": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
+    "activate_release.py": "868e5cb9c671a3515db1374625e7b76bd07b61d645d2b8d14719906cbbf1c313",
+    "test_release.py": "702181a4302b7375645d6ca5b10da521c8b5be4f64039555e42bb39012219bb8"
+  },
+  "tests_passed": 4,
+  "only_new_operation": {
+    "keys": [
+      "EnvironmentVariables",
+      "RESEARCH_ONLY"
+    ],
+    "before_absent": true,
+    "after": "1"
+  },
+  "input_sha256": "c9d12823f047e88562bb65bd7ef176d8a9df026552a13f531c7a506bef3bcb7c",
+  "contract_sha256": "35998fd250555cf08a5a1a5140cd5e901516298b3d1edff056e9b2a5e2de4ea6",
+  "actual_prepare": "SCHEDULER_R2_PREPARED_LOADED_PROPOSED_PLIST_INDEPENDENT_PASS",
+  "activation": "NOT_RUN",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "actual_candidate_review": {
+    "receipt_sha256": "f17224dbe6fd650a34ebf537683a4f9e63c77acd1ca6bd43a628eb60a27044a1",
+    "checks": 62,
+    "files": 886,
+    "exact_deltas": 33,
+    "unique_added_env": "RESEARCH_ONLY=1",
+    "activation": false
+  }
+}

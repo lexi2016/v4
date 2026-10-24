@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T06:26:39.133423+00:00",
-  "overall": "IN_PROGRESS_LOCAL_RELEASE_AND_NATURAL_UNVERIFIED",
+  "as_of": "2026-10-24T07:38:49.667630+00:00",
+  "overall": "IN_PROGRESS_RELEASE_BLOCKED_FOUR_EXECUTION_IDENTITIES_UNKNOWN",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
   "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
@@ -120,14 +120,13 @@
     "independent_real_cases_twice": 3
   },
   "runtime": {
-    "helpers": "SDK_LOGGER_SOURCE_FIXTURE_PASS_NEW_LIFECYCLE_P1_REPAIR_PENDING",
-    "candidate": "API_R1_STORAGE_SIGNATURE_BLOCKED_SHARED_IDENTITY_PASS",
-    "deployment": "NOT_RUN",
-    "api": "ISOLATED_TESTCLIENT_ONLY_LIVE_NOT_RUN",
-    "ui": "COMPONENT_RESPONSE_PASS_LOADED_BROWSER_NOT_RUN",
+    "helpers": "CURRENT_SOURCE_TESTED_INDEPENDENT_PASS_ACTIVITY_READINESS_BLOCKED",
+    "candidate": "API_R2_PREPARED_LOADED_SAVE_MERGE_REVIEWED_PASS",
+    "deployment": "THREE_ACTIVATION_ATTEMPTS_FAILED_LAST_ABORTED_PRECOMMIT_ORIGINAL_API_RESTORED",
+    "api": "NEW_LIVE_API_NOT_RUN_OLD_API_HEALTH_RESTORED",
+    "ui": "COMPONENT_AND_BUILT_ARTIFACT_PASS_NEW_RENDERED_UI_NOT_RUN",
     "natural_cycles_completed": 0,
     "natural_cycles_required": 2,
-    "helper_receipt_sha256": "130e748519e5c4d822ff0e614bf0be6aab8f62b9d3670e8d495c157a649d48ee",
     "roles": {
       "shared": {
         "state": "PREPARED_LOADED_REVIEWED_PASS",
@@ -142,6 +141,49 @@
         "behavior_verified": "NOT_RUN"
       },
       "api": {
+        "state": "OLD_RUNTIME_RETAINED_AFTER_ABORT",
+        "activation": "NEW_NOT_DEPLOYED",
+        "old_plist_sha256": "4d02d1e35420f964531beacc84f2ffd794bc5ed18a8ec7ffce42594aca323da1"
+      },
+      "scheduler": {
+        "state": "R2_PREPARED_LOADED_PROPOSED_PLIST_REVIEWED_PASS",
+        "scope_sha256": "c9d12823f047e88562bb65bd7ef176d8a9df026552a13f531c7a506bef3bcb7c",
+        "source_input_receipt_transcription_sha256": "9d80d8e66edd4671eba25feb479fcd4de8e525a5258bbf5e138a3572e68f8707",
+        "r1_partial_preserved": true,
+        "activation": "NOT_RUN_REQUIRES_NEW_API",
+        "prepared_receipt_sha256": "655ddc4f9a8abd416634a8c3aee7f5e76ec4971128e678eddd4e106234b24f3f",
+        "candidate_manifest_sha256": "27e348d3f71c956f7a71397ebfa6ddc0bdc69d7d665bf686349e0c891f18caca",
+        "candidate_inventory_sha256": "99df212d1d6e8d56a27da7f8fe9a598ea48fb9742b3360495db42d574d5054e1",
+        "candidate_plist_sha256": "843319686bb3dbc00b8503331b4bca9dba2d193027ba181a68057b4f4b23ae8b",
+        "actual_scope_sha256": "ff3bbf0a11e7d2e782bb396596ee748719207bde0caa012c0fe41bdbfd12b7d3",
+        "independent_receipt_sha256": "f17224dbe6fd650a34ebf537683a4f9e63c77acd1ca6bd43a628eb60a27044a1",
+        "checks": 62,
+        "actual_files": 886,
+        "delta": 33,
+        "added": 14,
+        "modified": 19,
+        "deleted": 0
+      },
+      "hk_child": {
+        "state": "R2_PREPARED_LOADED_NATIVE_COMPATIBILITY_REVIEWED_PASS",
+        "prepared_receipt_sha256": "82a196240b771f9c0f83b0d105365b7e4ed1227710750f4a3896f19031fea57c",
+        "candidate_manifest_sha256": "45b9457741aadd829618b1769b86d989c86536ead9b43bbd8d4e5d08990f5d5b",
+        "independent_receipt_sha256": "d67deaf1629292396f40d3a7e25d1f9c7596bbc518635f21e0e937e069ecb70c",
+        "checks": 21,
+        "SDK_version": "10.6.6608",
+        "actual_provider_call": false
+      },
+      "api_r2": {
+        "state": "PREPARED_LOADED_SAVE_MERGE_REVIEWED_PASS",
+        "prepared_receipt_sha256": "16b9b1c965345054b9f3649a87de296f74c85c94fb4e0b40ee0c8b3b6b1e8fed",
+        "candidate_manifest_sha256": "1e7246349e2e02bbbf7888c08e905192246d6ca36b8e567a0a56da6181d2d2cf",
+        "independent_receipt_transcription_sha256": "f78f70c0072455b807bbd94e5bc80501b7449889121e02728b5e5c936c927d78",
+        "save_merge_cases": 4,
+        "source_overlays": 25,
+        "built_artifact_overlays": 3,
+        "activation": "FAILED_PRECOMMIT_OLD_RESTORED"
+      },
+      "api_r1": {
         "state": "PREPARED_LOADED_PASS_SEMANTIC_INTEGRATION_FAIL_DO_NOT_ACTIVATE",
         "prepared_receipt_sha256": "168ea034be1e5e4b22fabef84335f81ab0218fcaa70eeb9f9193184497767e86",
         "candidate_manifest_sha256": "97803806d12bceec3ac250a8e7be2fe52862f97c8734c9ffeeb3fa5fc5ebf604",
@@ -158,21 +200,9 @@
         "store_candidate_sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
         "blocker": "Service unconditionally passes merger keyword; retained Store does not accept it. Immutable r1 retained; separate r2 adds correct Git-baseline Store overlay."
       },
-      "scheduler": {
-        "state": "NOT_PREPARED"
-      },
-      "hk_child": {
+      "hk_child_r1": {
         "state": "R1_MATERIALIZED_UNSEALED_LOGGER_IMPORT_FAILURE_R2_SOURCE_REPAIR_IN_PROGRESS",
         "failed_candidate_preserved": true
-      },
-      "api_r2": {
-        "state": "STORE_AND_SCHEDULER_SOURCE_PASS_FINAL_INPUT_REBIND_PENDING",
-        "expected_source_overlays": 25,
-        "build_artifact_overlays": 3,
-        "frontend_rebuild_required": false,
-        "independent_source_input_receipt_sha256": "a02ae9b6937bebd4af3ba7c6e881bce096deed55614e8d20ff2e8ff656681293",
-        "store_review_projection_sha256": "17733f6bdc317ab6c1e0c31c7ebfdc2be11e115432f6c46f6f30daa65500a85a",
-        "actual_behavior": "NOT_RUN"
       }
     },
     "frontend_build": {
@@ -187,6 +217,93 @@
       "independent_artifact_receipt_sha256": "491f136227cce156787df389c9b2e42e5a0415046028c3ad22da2980bc6ca8d1"
     },
     "hk_sdk_dependency": {
+      "state": "R2_SEALED_NATIVE_COMPATIBILITY_REVIEWED_PASS",
+      "original_python": "3.13.12",
+      "original_wrapper_unchanged": true,
+      "SDK_version": "10.6.6608",
+      "dependency_payload_files": 731,
+      "checks": 21,
+      "actual_import_verified": true,
+      "provider_initialized": false,
+      "historical_log_receipt_only_current_log_not_revalidated": true,
+      "independent_receipt_sha256": "d67deaf1629292396f40d3a7e25d1f9c7596bbc518635f21e0e937e069ecb70c"
+    },
+    "probe_program": {
+      "reviewed": "PURE_PREOPEN_BEHAVIOR_REVIEWED_PASS_FULL_NATIVE_DATA_CANNOT_CONFIRM",
+      "receipt_sha256": "38e4bd1cbcd9a3e215f35774be67adcb0dc3465dfa081be1ff3ca0cde9666b6b",
+      "actual_behavior_probes": 1,
+      "native_and_preopen_input_blocker": "Pure frozen PREOPEN verified once; full Native reached only first of six witnesses and returned DATA_CANNOT_CONFIRM. No substitute inputs or fabricated bindings.",
+      "actual_import_guard_defect": "Repaired and independently tested; guarded pure PREOPEN actual670/0/397/273; financial material readiness unchanged.",
+      "program_sha256": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
+      "independent_transcription_sha256": "640c61fc01cd3fca42a22a86e6de7f470feb823fb8eab8aeb3a3c0c98762a4ff",
+      "pure_preopen": {
+        "candidates": 670,
+        "selected": 0,
+        "rejected": 397,
+        "pending": 273,
+        "state": "PURE_PREOPEN_VERIFIED"
+      },
+      "full_native": "DATA_CANNOT_CONFIRM"
+    },
+    "api_prepare_input": {
+      "state": "INDEPENDENT_PASS_PREPARED_ONCE",
+      "scope_sha256": "35a6ed8763a4af262bbb189af809ae1a8333bfa6b592476a8278b604b87bffee",
+      "contract_sha256": "e6bc0b9f916ff7e31c26cfdee7ecd38c62eaf765e59b9525646885c99fb52761",
+      "controller_transcribed_independent_receipt_sha256": "24b485a4e80de278be9de4b8f17f38b2db40931097b9a3a46d92befc85afb787",
+      "actual_prepare": true
+    },
+    "activation_continuation": {
+      "state": "SOURCE_TESTED_PASS_WITH_ORIGINAL_PREPARATION_VERSION_BINDING",
+      "reason": "Prepared API scope has prepare-only capsule; existing activation has no separate continuation authorizer. Candidate/scope/receipt remain immutable.",
+      "actual_activation": "THREE_FAILED_ATTEMPTS_LAST_PRECOMMIT_ABORT_OLD_API_RESUMED",
+      "latest_helper_source_receipt_sha256": "55f6aad5e75b22183cae2040bb01d8d02448daff8ff35e413f52470dc6875793"
+    },
+    "publisher_root": {
+      "state": "FROZEN22_INPUT_INDEPENDENT_PASS_REQUIRES_NEW_API_ACTIVE_BEFORE_EXECUTION",
+      "independent_transcript_sha256": "bfc667e9bea33221f4785f9cfe30e0dc27af3ead5817cbc3347f758d40b55008",
+      "actual_publication": "NOT_RUN"
+    },
+    "future_native_binding": {
+      "state": "SOURCE_ISOLATED_BEHAVIOR_INDEPENDENT_PASS_ACTUAL_RELEASE_NOT_RUN",
+      "root_cause": "US-close handoff resolves complete owner bindings, then submit replaces them with US-only dict; PREOPEN inherits incomplete binding",
+      "scope": "Preserve full already-resolved bindings/gaps and exact US pin at existing caller; do not re-resolve frozen history or upgrade financial proof",
+      "actual_new_runtime": "NOT_RUN",
+      "scheduler_sha256": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+      "independent_public_review_sha256": "3d733b2f0411079a333e57a8a1ef25ae50879610c5466e8e48356bec7ce9848f"
+    },
+    "runtime_source_closure": {
+      "state": "EXACT21_SOURCE_IDENTITY_AND_FINITE_SENSITIVE_MATERIAL_ADMISSION_PASS",
+      "source_files": 21,
+      "source_bytes": 408910,
+      "review_sha256": "de22481416497002e5a66210fc2a125c26d5dae03d9eedcb4c05ef0913c05b79",
+      "runtime_bytes_changed": false,
+      "standalone_installation": "CANNOT_CONFIRM",
+      "new21_remote_sync": "VERIFIED_D21910E1240C3D3E53989D67155B85F5CD741AA9"
+    },
+    "service_activation": 0,
+    "business_publication": 0,
+    "last_activity_audit": {
+      "state": "REVIEWED_FAIL_FOUR_EXECUTION_IDENTITIES_UNKNOWN",
+      "controller_transcription_sha256": "21ff3c919265ee1eb755f32b98c1c1c5641af223c9e343c0e259574954b1e76a",
+      "legitimate_child_false_blocks": 394,
+      "unknown_HK_records": 3,
+      "unknown_Workbench_records": 1,
+      "source_pins_matched": 18,
+      "no_automatic_waiver": true,
+      "owner_generation_review_transcription_sha256": "50283707bf791005690febe31fc6f3ed6f7a2ed50137ceb33942b45d71b41efc"
+    },
+    "last_activation_failure": {
+      "receipt_sha256": "33977383282b983ce66fcd09fb32dc349cd6c2c1542d984385104378a842df35",
+      "guardian_journal_sha256": "f0f75d9ccf836ee85aa7aaac7c9f8fcc3ccceb8fcc284892820c2bf3e6965ab5",
+      "committed": false,
+      "lifecycle_calls": 0,
+      "STOP_then_CONT": true,
+      "retry_permitted": false,
+      "new_live_api_ui": "NOT_RUN"
+    },
+    "historical_helper_receipt_sha256": "130e748519e5c4d822ff0e614bf0be6aab8f62b9d3670e8d495c157a649d48ee",
+    "helper_receipt_sha256": "833fe360f1e7b95317df9f689689ad282ef986b84187c7ee0ed8c2d4008b109d",
+    "historical_hk_sdk_dependency": {
       "old_wrapper_resolves_futu": false,
       "original_python": "3.13.12",
       "existing_sdk_version": "10.6.6608",
@@ -211,50 +328,6 @@
         "independent_fail_receipt_sha256": "b699cd95bd61bf2d6f960ff78245322a60c93c756eb6d249b3aa133e71594488",
         "reason": "Unrelated log directory nlink mutation blocks prepared child activation/rollback validation; actualcanary restrictions must remain"
       }
-    },
-    "probe_program": {
-      "reviewed": "SOURCE_GUARD_AND_ACTUAL_IMPORT_STAGE_PASS_FULLPROBE_NOT_RUN",
-      "receipt_sha256": "38e4bd1cbcd9a3e215f35774be67adcb0dc3465dfa081be1ff3ca0cde9666b6b",
-      "actual_behavior_probes": 0,
-      "native_and_preopen_input_blocker": "Current peripheral observation input pin was independently reviewed; new final input still must bind probe82 and actual API r2 candidate. Historical missing hk_panel binding remains CANNOT_CONFIRM.",
-      "actual_import_guard_defect": "Source/16 guard cases and 10 actual imports independently PASS; full Native/PREOPEN remains NOT_RUN",
-      "program_sha256": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
-      "independent_transcription_sha256": "640c61fc01cd3fca42a22a86e6de7f470feb823fb8eab8aeb3a3c0c98762a4ff"
-    },
-    "api_prepare_input": {
-      "state": "INDEPENDENT_PASS_PREPARED_ONCE",
-      "scope_sha256": "35a6ed8763a4af262bbb189af809ae1a8333bfa6b592476a8278b604b87bffee",
-      "contract_sha256": "e6bc0b9f916ff7e31c26cfdee7ecd38c62eaf765e59b9525646885c99fb52761",
-      "controller_transcribed_independent_receipt_sha256": "24b485a4e80de278be9de4b8f17f38b2db40931097b9a3a46d92befc85afb787",
-      "actual_prepare": true
-    },
-    "activation_continuation": {
-      "state": "SOURCE_TESTED_PASS_WITH_ORIGINAL_PREPARATION_VERSION_BINDING",
-      "reason": "Prepared API scope has prepare-only capsule; existing activation has no separate continuation authorizer. Candidate/scope/receipt remain immutable.",
-      "actual_activation": "NOT_RUN",
-      "latest_helper_source_receipt_sha256": "55f6aad5e75b22183cae2040bb01d8d02448daff8ff35e413f52470dc6875793"
-    },
-    "publisher_root": {
-      "state": "SOURCE_TESTED_PASS_INPUT_BLOCKED_UNTIL_API_R2_STORE_ALIGNED",
-      "independent_transcript_sha256": "bfc667e9bea33221f4785f9cfe30e0dc27af3ead5817cbc3347f758d40b55008",
-      "actual_publication": "NOT_RUN"
-    },
-    "future_native_binding": {
-      "state": "SOURCE_ISOLATED_BEHAVIOR_INDEPENDENT_PASS_ACTUAL_RELEASE_NOT_RUN",
-      "root_cause": "US-close handoff resolves complete owner bindings, then submit replaces them with US-only dict; PREOPEN inherits incomplete binding",
-      "scope": "Preserve full already-resolved bindings/gaps and exact US pin at existing caller; do not re-resolve frozen history or upgrade financial proof",
-      "actual_new_runtime": "NOT_RUN",
-      "scheduler_sha256": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
-      "independent_public_review_sha256": "3d733b2f0411079a333e57a8a1ef25ae50879610c5466e8e48356bec7ce9848f"
-    },
-    "runtime_source_closure": {
-      "state": "EXACT21_SOURCE_IDENTITY_AND_FINITE_SENSITIVE_MATERIAL_ADMISSION_PASS",
-      "source_files": 21,
-      "source_bytes": 408910,
-      "review_sha256": "de22481416497002e5a66210fc2a125c26d5dae03d9eedcb4c05ef0913c05b79",
-      "runtime_bytes_changed": false,
-      "standalone_installation": "CANNOT_CONFIRM",
-      "new21_remote_sync": "PENDING_NEXT_SCOPED_SYNC"
     }
   },
   "material_gaps": [
@@ -270,5 +343,6 @@
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
-  }
+  },
+  "delivery_status_basis": "Current dated runtime fields supersede historical staged preparation notes; preserved failed candidates and earlier receipts remain available, no end-to-end or strategy PASS."
 }
