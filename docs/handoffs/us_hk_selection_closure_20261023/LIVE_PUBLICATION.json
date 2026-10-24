@@ -1,0 +1,93 @@
+{
+  "schema": "v4.us_hk.live_manual_publication.v1",
+  "state": "PUBLISHED_RETROSPECTIVE_MANUAL",
+  "new_run_id": "a9892b5bbdd8463d92d07fc26a1d9c79",
+  "source_run_id": "173530a9ac4b4105b41094337907b801",
+  "phase": "RETROSPECTIVE",
+  "trigger": "MANUAL",
+  "source_cutoff": "2026-10-21T20:15:04Z",
+  "source_decision_cutoff": "2026-10-22T04:17:00.341182+08:00",
+  "processing_at": "2026-10-24T10:18:57.127185+00:00",
+  "prepared_sha256": "5f37e50ef991dadeee0a6a374e03e43dbd517b17661804cb27359e91018744d6",
+  "publication_sha256": "18bdd78955cd482f2986683636f55e38c85a569fcb171ac9f19f154b2220a426",
+  "product_sha256": "8b7e3ff606d9d1e383177121f763f091c749a79e698c190c3dcd6575874fbb3a",
+  "result_pointer_sha256": "aa441a49e8c96b6188826ad4d933a99cdb95446f854f25da45034c1d60a29bfc",
+  "staged_independent_review_sha256": "dcbd6ddeb5d3ea1c7320ed7cc8e498badd5d15d0d53967a8259fc905da0f7005",
+  "expected_industry_listing": {
+    "unique_hk": 578,
+    "individual_us_source": 491,
+    "context_only": 87
+  },
+  "strict_reference": {
+    "candidates": 670,
+    "selected": 0,
+    "rejected": 397,
+    "pending": 273
+  },
+  "actual_api": {
+    "release": "us-hk-selection-api-20261024-r5",
+    "pid": 54804,
+    "manifest_sha256": "073bf9e9f37994022aa1f3c54a88b2c7f93d0d17daeaa0c743a492cf5e34e1a8",
+    "activation_sha256": "c6c45aefc9d9e101194a32ff7a173d979e6a28b26f851c7eb761472d549afc60",
+    "API4_live_projection_review_sha256": "3a5e47c0af1650b74243bdd64ec1ec4bb869568bc5b13f07b3871db66af0792e",
+    "API5_projection": "BEHAVIOR_VERIFIED_REVIEWED_PASS",
+    "independent_live_receipt_sha256": "76bc461bb778bfb2c8f9c0e7c9502dd5053836096243efe5e26b655306ff324f",
+    "pages": [
+      {
+        "offset": 0,
+        "rows": 200,
+        "bytes": 540270,
+        "elapsed_ms": 1377.1
+      },
+      {
+        "offset": 200,
+        "rows": 200,
+        "bytes": 480186,
+        "elapsed_ms": 1211.253
+      },
+      {
+        "offset": 400,
+        "rows": 178,
+        "bytes": 453219,
+        "elapsed_ms": 1273.087
+      }
+    ]
+  },
+  "API_VERIFIED": true,
+  "UI_VERIFIED": true,
+  "scheduler_release": "NOT_YET_MERGED_QFQ_PARENT_MANIFEST_CLOSURE_PENDING",
+  "source_effect_materials": "PIT_UNCERTIFIED_METRICS_NA",
+  "natural_verified": 0,
+  "authority_pointer_changes": [],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "ui": {
+    "state": "UI_VERIFIED",
+    "receipt_sha256": "16188e5f29480cb1dd29dfd64e5d25ca1c4d407301de384f76050b5683d63447",
+    "origin": "Independent /root/industry_live_ui_reviewer renderedChrome, persisted inlinebycontroller",
+    "run_id": "a9892b5bbdd8463d92d07fc26a1d9c79",
+    "count": 578,
+    "single_page_roundtrip_pass": true,
+    "same_run_diagnostic_pass": true,
+    "console_errors_warnings": [],
+    "observed_elapsed_seconds": {
+      "fresh": 9.9,
+      "next": 12.2,
+      "previous": 10.5,
+      "diagnostic": 34.5
+    },
+    "latency_all_solved": false
+  },
+  "natural_observer": {
+    "automation_id": "v4",
+    "kind": "heartbeat",
+    "status": "ACTIVE",
+    "schedule": "Asia/Shanghai工作日17:10;未变化静默;两周期通过后暂停",
+    "no_new_business_scheduler": true,
+    "cycle_count_starts_after_combined_scheduler_activation": true
+  }
+}

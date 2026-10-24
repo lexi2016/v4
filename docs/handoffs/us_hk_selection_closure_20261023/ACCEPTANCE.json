@@ -1,7 +1,7 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T09:24:50.042705+00:00",
-  "overall": "INDUSTRY_LIST_SOURCE_BEHAVIOR_VERIFIED_LOCAL_RELEASE_PENDING",
+  "as_of": "2026-10-24T11:24:29.994616+00:00",
+  "overall": "PARTIAL_DEFAULT_INDUSTRY578_PUBLISHED_API5_API_UI_VERIFIED_SCHED_MERGE_AND_NATURAL_PENDING",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
   "engine_identity": "2c399aed7c60a03c77bc3dc16a2f905b6a1d6610a7fba4cb6bb6f5b01e9fe100",
@@ -120,11 +120,11 @@
     "independent_real_cases_twice": 3
   },
   "runtime": {
-    "helpers": "CURRENT_SOURCE_AND_ACTUAL_PRIVATE_DISPOSITION_ARTIFACT_INDEPENDENT_PASS",
-    "candidate": "API_R2_PREPARED_LOADED_SAVE_MERGE_REVIEWED_PASS",
-    "deployment": "API_R2_COMMITTED_BUT_BOOTSTRAP_MODULE_MISSING_OLD_API_RESTORED",
-    "api": "NEW_LIVE_API_NOT_RUN_OLD_API_HEALTH_RESTORED",
-    "ui": "COMPONENT_AND_BUILT_ARTIFACT_PASS_NEW_RENDERED_UI_NOT_RUN",
+    "helpers": "CURRENT_SOURCE_COMPONENT_PASSES_AND_API5_ACTUAL_GUARDED_TRANSITION_PASS",
+    "candidate": "API5_PREPARED_AND_ACTUAL_FULL_CREATE_APP_INDEPENDENT_PASS",
+    "deployment": "API5_DEPLOYED_SCHEDULER_MERGE_PENDING_QFQ_PARENT_MANIFEST",
+    "api": "API_VERIFIED_PAGES200_200_178_UNIQUE578_EXACTORDER_SOURCE491_87_SERVED_ASSETS_MATCH",
+    "ui": "UI_VERIFIED578_AND_SINGLE_ROUNDTRIP_SAME_RUN_DETAIL; actualsettledpaging10-12s/detail34.5s remains limitation",
     "natural_cycles_completed": 0,
     "natural_cycles_required": 2,
     "roles": {
@@ -141,9 +141,23 @@
         "behavior_verified": "NOT_RUN"
       },
       "api": {
-        "state": "OLD_RUNTIME_RETAINED_AFTER_ABORT",
-        "activation": "NEW_NOT_DEPLOYED",
-        "old_plist_sha256": "4d02d1e35420f964531beacc84f2ffd794bc5ed18a8ec7ffce42594aca323da1"
+        "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED",
+        "release": "us-hk-selection-api-20261024-r5",
+        "source_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
+        "prepared_sha256": "deef5f814e76648ca341a63932908b02579ef142d04150641a73148eac5f9817",
+        "manifest_sha256": "073bf9e9f37994022aa1f3c54a88b2c7f93d0d17daeaa0c743a492cf5e34e1a8",
+        "plist_sha256": "b8307035fd35b44da5038e9af928ff33cd27911a9ecb2cfcf972c8845e6a1ed1",
+        "pid": 54804,
+        "activation": {
+          "path": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/deployment/operation-execution/api-r5/ACTIVATION.json",
+          "sha256": "c6c45aefc9d9e101194a32ff7a173d979e6a28b26f851c7eb761472d549afc60"
+        },
+        "actual_package_constructor_review_sha256": "a14a44607bb2700742200d2491cf0f5e432a6f3471411e5d851dcde3857ba02d",
+        "full_constructor_sha256": "888461809934527e27d24ce734bb527f0806ae678be67dc3656f614e5f0f0b68",
+        "UI_VERIFIED": true,
+        "ui_receipt_sha256": "16188e5f29480cb1dd29dfd64e5d25ca1c4d407301de384f76050b5683d63447",
+        "API_VERIFIED": true,
+        "api_live_receipt_sha256": "76bc461bb778bfb2c8f9c0e7c9502dd5053836096243efe5e26b655306ff324f"
       },
       "scheduler": {
         "state": "R2_PREPARED_LOADED_PROPOSED_PLIST_REVIEWED_PASS",
@@ -162,7 +176,8 @@
         "delta": 33,
         "added": 14,
         "modified": 19,
-        "deleted": 0
+        "deleted": 0,
+        "current_successor_state": "OBSOLETE_INPUT_DO_NOT_ACTIVATE_AFTER_QFQ_INSTALL"
       },
       "hk_child": {
         "state": "R2_PREPARED_LOADED_NATIVE_COMPATIBILITY_REVIEWED_PASS",
@@ -209,6 +224,45 @@
         "only_app_delta_from_r2": "existing_committed_oversold_daily.py9ebeed",
         "service_and_scheduler_business_bytes_unchanged": true,
         "retained_SCHED_r2_reused": true
+      },
+      "api_r5": {
+        "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED",
+        "release": "us-hk-selection-api-20261024-r5",
+        "source_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
+        "prepared_sha256": "deef5f814e76648ca341a63932908b02579ef142d04150641a73148eac5f9817",
+        "manifest_sha256": "073bf9e9f37994022aa1f3c54a88b2c7f93d0d17daeaa0c743a492cf5e34e1a8",
+        "plist_sha256": "b8307035fd35b44da5038e9af928ff33cd27911a9ecb2cfcf972c8845e6a1ed1",
+        "pid": 54804,
+        "activation": {
+          "path": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/deployment/operation-execution/api-r5/ACTIVATION.json",
+          "sha256": "c6c45aefc9d9e101194a32ff7a173d979e6a28b26f851c7eb761472d549afc60"
+        },
+        "actual_package_constructor_review_sha256": "a14a44607bb2700742200d2491cf0f5e432a6f3471411e5d851dcde3857ba02d",
+        "full_constructor_sha256": "888461809934527e27d24ce734bb527f0806ae678be67dc3656f614e5f0f0b68",
+        "UI_VERIFIED": true,
+        "ui_receipt_sha256": "16188e5f29480cb1dd29dfd64e5d25ca1c4d407301de384f76050b5683d63447",
+        "API_VERIFIED": true,
+        "api_live_receipt_sha256": "76bc461bb778bfb2c8f9c0e7c9502dd5053836096243efe5e26b655306ff324f"
+      },
+      "scheduler_current": {
+        "state": "BLOCKED_CURRENT_PARENT_MANIFEST_CLOSURE_PENDING_AUTHORIZED_COORDINATION",
+        "old61106_owner": "OBSOLETE_DO_NOT_SIGNAL",
+        "current_foreign_owner_pid": 44038,
+        "old_manifest_sha256": "9cf6171a2347db117b4442f1742fc8be0bd39a713fa2e7bab8679c99b9c86631",
+        "QFQ_installed_app_deltas": 10,
+        "QFQ_installed_refs": 15,
+        "QFQ_preserved_timeout": 14400,
+        "foreign_review_sha256": "23708c78e9cc0c7c9c3394ad98a8f2337663cf397afb9a9a84b2b9a0d2faf628",
+        "integration_provenance_handoff_sha256": "87f3ab1219ac980f95d15ed237a65112eede2f24abc759673b6784d5239eee30",
+        "user_authorized_coordination_and_merge": true,
+        "owner_thread": "01a15e92-4067-7372-a461-bdfca9631516",
+        "new_scheduler_release": "NOT_DEPLOYED",
+        "foreign_changes_reverted": false,
+        "successor_r6": {
+          "state": "DRAFT_FULL_PARENT_INVENTORY_UNKNOWN",
+          "scope_sha256": "c44f60fa7c7d3417b15b055361390ba6f28e7cebb5c3dcd8676b2c492e39b222",
+          "handoff_sha256": "cdd6dbd44abed8962825247d842866c96135def80ca90b4e30b0cd8e91dc394d"
+        }
       }
     },
     "frontend_build": {
@@ -220,7 +274,13 @@
       "changed_manager_targets": 3,
       "build_receipt_sha256": "2457cbcdfe705fd517143e17ea7d6a0a589d1572752665f02a57081ee9cdae04",
       "provenance_sha256": "3d750bcd6a096b968919e690feb0255f43fae8d95a85c532835fc43e55c3e8f7",
-      "independent_artifact_receipt_sha256": "491f136227cce156787df389c9b2e42e5a0415046028c3ad22da2980bc6ca8d1"
+      "independent_artifact_receipt_sha256": "491f136227cce156787df389c9b2e42e5a0415046028c3ad22da2980bc6ca8d1",
+      "pagination_successor": {
+        "build_sha256": "99fcd29aaebd7d861646a041e2c3b287469b8868a4723793de19050a528e4559",
+        "independent_review_sha256": "49dd91a9b0a0079210b59a459b90967810fa35faf307749593429c3326218f89",
+        "new_bundle_sha256": "d3ca1c0037da202646a10b3489f6615d095aa8c8d1c53bd1aa92dc10f9e571e9",
+        "build_invocations": 1
+      }
     },
     "hk_sdk_dependency": {
       "state": "R2_SEALED_NATIVE_COMPATIBILITY_REVIEWED_PASS",
@@ -267,7 +327,7 @@
     "publisher_root": {
       "state": "FROZEN22_INPUT_INDEPENDENT_PASS_REQUIRES_NEW_API_ACTIVE_BEFORE_EXECUTION",
       "independent_transcript_sha256": "bfc667e9bea33221f4785f9cfe30e0dc27af3ead5817cbc3347f758d40b55008",
-      "actual_publication": "NOT_RUN"
+      "actual_publication": "PUBLISHED_MANUAL_RETROSPECTIVE_RUN_a9892b5bbdd8463d92d07fc26a1d9c79"
     },
     "future_native_binding": {
       "state": "SOURCE_ISOLATED_BEHAVIOR_INDEPENDENT_PASS_ACTUAL_RELEASE_NOT_RUN",
@@ -345,6 +405,14 @@
         "API": 4,
         "SCHED": 1
       }
+    },
+    "natural_observer": {
+      "id": "v4",
+      "kind": "heartbeat",
+      "status": "ACTIVE",
+      "schedule": "Shanghai weekdays17:10; unchangedquiet; pauseafter2actualcompletecycles",
+      "business_scheduler_created": false,
+      "current_cycles": 0
     }
   },
   "material_gaps": [
@@ -371,5 +439,47 @@
     "source_receipt_sha256": "d9e95c0084b42b8654e2a973094fc3db8f142d58ead55c39a86c92f532931091"
   },
   "new_listing_live": "NOT_RUN",
-  "new_listing_history": "EXECUTED_87_REAL_INPUTS_ZERO_RUNTIME_FAILURE_INDEPENDENT_HISTORY_REVIEW_PENDING"
+  "new_listing_history": "EXECUTED_87_REAL_INPUTS_ZERO_RUNTIME_FAILURE_INDEPENDENT_HISTORY_REVIEW_PENDING",
+  "current_live_delivery": {
+    "api": {
+      "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED",
+      "release": "us-hk-selection-api-20261024-r5",
+      "source_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
+      "prepared_sha256": "deef5f814e76648ca341a63932908b02579ef142d04150641a73148eac5f9817",
+      "manifest_sha256": "073bf9e9f37994022aa1f3c54a88b2c7f93d0d17daeaa0c743a492cf5e34e1a8",
+      "plist_sha256": "b8307035fd35b44da5038e9af928ff33cd27911a9ecb2cfcf972c8845e6a1ed1",
+      "pid": 54804,
+      "activation": {
+        "path": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/deployment/operation-execution/api-r5/ACTIVATION.json",
+        "sha256": "c6c45aefc9d9e101194a32ff7a173d979e6a28b26f851c7eb761472d549afc60"
+      },
+      "actual_package_constructor_review_sha256": "a14a44607bb2700742200d2491cf0f5e432a6f3471411e5d851dcde3857ba02d",
+      "full_constructor_sha256": "888461809934527e27d24ce734bb527f0806ae678be67dc3656f614e5f0f0b68",
+      "UI_VERIFIED": true,
+      "ui_receipt_sha256": "16188e5f29480cb1dd29dfd64e5d25ca1c4d407301de384f76050b5683d63447",
+      "API_VERIFIED": true,
+      "api_live_receipt_sha256": "76bc461bb778bfb2c8f9c0e7c9502dd5053836096243efe5e26b655306ff324f"
+    },
+    "scheduler": {
+      "state": "BLOCKED_CURRENT_PARENT_MANIFEST_CLOSURE_PENDING_AUTHORIZED_COORDINATION",
+      "old61106_owner": "OBSOLETE_DO_NOT_SIGNAL",
+      "current_foreign_owner_pid": 44038,
+      "old_manifest_sha256": "9cf6171a2347db117b4442f1742fc8be0bd39a713fa2e7bab8679c99b9c86631",
+      "QFQ_installed_app_deltas": 10,
+      "QFQ_installed_refs": 15,
+      "QFQ_preserved_timeout": 14400,
+      "foreign_review_sha256": "23708c78e9cc0c7c9c3394ad98a8f2337663cf397afb9a9a84b2b9a0d2faf628",
+      "integration_provenance_handoff_sha256": "87f3ab1219ac980f95d15ed237a65112eede2f24abc759673b6784d5239eee30",
+      "user_authorized_coordination_and_merge": true,
+      "owner_thread": "01a15e92-4067-7372-a461-bdfca9631516",
+      "new_scheduler_release": "NOT_DEPLOYED",
+      "foreign_changes_reverted": false
+    },
+    "same_industry_count": 578,
+    "strict_reference_selected": 0,
+    "manual_retrospective": true,
+    "natural_verified": 0,
+    "UI_VERIFIED": true,
+    "API_VERIFIED": true
+  }
 }

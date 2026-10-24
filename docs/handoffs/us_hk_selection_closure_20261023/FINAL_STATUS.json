@@ -1,0 +1,140 @@
+{
+  "schema": "v4.us_hk.delivery_checkpoint.v1",
+  "as_of": "2026-10-24T11:24:29.994616+00:00",
+  "user_goal": "同行业即可列出；保留前复权并行成果后合并调度；既有美股/港股研究修复与历史验收边界继续",
+  "overall": "PARTIAL_API5_API_UI_VERIFIED_WAIT_EXTERNAL_PARENT_INVENTORY_AND_FUTURE_NATURAL_CYCLES",
+  "source": {
+    "root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
+    "canonical_project": "/Users/lexi/Desktop/学习/v4_app",
+    "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
+    "source_commit": "f1048489659fbcd4285ac5edd5ca55308ede46f2",
+    "source_sync_receipt_sha256": "929eea319e8c587c5b1772757116001b1a76e4743e9d22771e20c1531b408796",
+    "repository": "lexi2016/v4",
+    "branch": "codex/us-hk-selection-closure-20261023"
+  },
+  "default_listing": {
+    "mode": "INDUSTRY_MATCH",
+    "gate": "Evidenced industry mapping only; price/USreturn/5d/liquidity/member/PIT/company-benefit checks are reference, never suppress the default rows",
+    "count": 578,
+    "individual_US_path": 491,
+    "ETF_classification_context_only": 87,
+    "topN_theme_truncation": false,
+    "strict_reference": {
+      "candidates": 670,
+      "selected": 0,
+      "rejected": 397,
+      "pending": 273,
+      "state": "PARTIAL"
+    }
+  },
+  "saved_run": {
+    "run_id": "a9892b5bbdd8463d92d07fc26a1d9c79",
+    "source_run_id": "173530a9ac4b4105b41094337907b801",
+    "target_date": "20261022",
+    "phase": "RETROSPECTIVE",
+    "origin": "MANUAL_FROZEN_INPUT_REPLAY",
+    "source_cutoff": "2026-10-21T20:15:04Z",
+    "original_decision_cutoff": "2026-10-22T04:17:00.341182+08:00",
+    "product_sha256": "8b7e3ff606d9d1e383177121f763f091c749a79e698c190c3dcd6575874fbb3a",
+    "original_NEXT_DAY_unchanged": true
+  },
+  "api5": {
+    "state": "DEPLOYED_API_VERIFIED_UI_VERIFIED",
+    "release_manifest_sha256": "073bf9e9f37994022aa1f3c54a88b2c7f93d0d17daeaa0c743a492cf5e34e1a8",
+    "prepared_sha256": "deef5f814e76648ca341a63932908b02579ef142d04150641a73148eac5f9817",
+    "activation_sha256": "c6c45aefc9d9e101194a32ff7a173d979e6a28b26f851c7eb761472d549afc60",
+    "actual_package_constructor_review_sha256": "a14a44607bb2700742200d2491cf0f5e432a6f3471411e5d851dcde3857ba02d",
+    "live_api_receipt_sha256": "76bc461bb778bfb2c8f9c0e7c9502dd5053836096243efe5e26b655306ff324f",
+    "live_ui_receipt_sha256": "16188e5f29480cb1dd29dfd64e5d25ca1c4d407301de384f76050b5683d63447",
+    "rows": [
+      200,
+      200,
+      178
+    ],
+    "bytes": [
+      540270,
+      480186,
+      453219
+    ],
+    "API_elapsed_ms": [
+      1377.1,
+      1211.253,
+      1273.087
+    ],
+    "UI_observed_seconds": {
+      "fresh": 9.9,
+      "next": 12.2,
+      "previous": 10.5,
+      "diagnostic": 34.5
+    },
+    "latency_SLA": "NOT_FROZEN_CANNOT_CONFIRM",
+    "all_UI_latency_solved": false,
+    "browser_new_tab": "Queued in calling Codex task; independently renderedChrome PASS exists"
+  },
+  "scheduler": {
+    "state": "WAIT_EXTERNAL_ACCEPTED_PARENT_INVENTORY_CLOSURE",
+    "current_owner_pid": 44038,
+    "old61106_obsolete": true,
+    "preserved_QFQ_app_delta_count": 10,
+    "foreign_app_refs_verified": 15,
+    "preserved_timeout": 14400,
+    "user_authorized_coordination_and_merge": true,
+    "foreign_owner_thread": "01a15e92-4067-7372-a461-bdfca9631516",
+    "foreign_review_sha256": "23708c78e9cc0c7c9c3394ad98a8f2337663cf397afb9a9a84b2b9a0d2faf628",
+    "r6_scope_sha256": "c44f60fa7c7d3417b15b055361390ba6f28e7cebb5c3dcd8676b2c492e39b222",
+    "r6_state": "DRAFT_PARENT_MANIFEST_UNKNOWN_CAPSULE_NULL",
+    "own_overlays": 34,
+    "overlap_with_foreign15": [],
+    "no_foreign_changes_reverted": true,
+    "next": "Consume original owner current-inventory manifest/lineage then newfreshkernelCAS, prepare immutable combined successor, one independent actualconstructor/package review, guarded activation. Do not bypass originalmanifest or use staleSCHED4/5."
+  },
+  "historical": {
+    "real_saved_inputs_replayed": 87,
+    "missing_input_records_preserved": 14,
+    "expanded_HK_sessions": 60,
+    "dates_with_saved_material": 8,
+    "missing_dates": 52,
+    "PIT_evaluable_dates": 0,
+    "target_label_evaluable_dates": 0,
+    "effect_metrics": "NA_NOT_EVALUABLE",
+    "independent_receipt_sha256": "22836796a4520917cd6b70f52db034844d51ed11d78944e2690cafeb0d999429"
+  },
+  "panel": {
+    "structural_candidate": "AUDITED_NOT_AUTHORITY_PROMOTED",
+    "allrow_live_adoption": "CANNOT_CONFIRM",
+    "unresolved_materials": [
+      "currency/amountunit proof",
+      "historical adjustment/company-action availability",
+      "effective-dated historical membership/status",
+      "discarded historical SDK frames unrecoverable"
+    ]
+  },
+  "natural": {
+    "verified_cycles": 0,
+    "required_cycles": 2,
+    "scheduled_followup_id": "v4",
+    "kind": "heartbeat",
+    "schedule": "Asia/Shanghai weekdays17:10; unchangedquiet; pauseafter2passedcycles",
+    "business_scheduler_created": false,
+    "count_only_after_combined_scheduler_activation": true,
+    "manual_replay_counts_as_natural": false
+  },
+  "legacy4": {
+    "administrative_disposition": "AUTHORIZED_PRESERVED_ORIGINALS_SHA",
+    "execution_state": "UNKNOWN",
+    "original_records_changed": false,
+    "tasks_restarted": false
+  },
+  "not_executed": [
+    "Combined scheduler preparation/activation under currentQFQparent notyet",
+    "Future two complete naturalcycles",
+    "Historical efficacy evaluation without validPIT/labels",
+    "No authoritypointerflip to full audit panel"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -55,5 +55,10 @@
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
+  },
+  "independent_history_acceptance": {
+    "receipt_sha256": "22836796a4520917cd6b70f52db034844d51ed11d78944e2690cafeb0d999429",
+    "state": "REVIEWED/PASS",
+    "scope": "87 exact new-engine cases, frozen inventory/case hashes, named deterministic canary and complete fate/provenance readback; no target outcome labels/PIT upgrade"
   }
 }

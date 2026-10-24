@@ -1,5 +1,7 @@
 # V4 US mapping and HK panel repair ledger
 
+This ledger retains historical acceptance snapshots. Current delivery state is authoritative in CURRENT_STATUS.md and ACCEPTANCE.json; old per-row NOT_RUN values are historical, not fresh live claims.
+
 Scope: approved implementation2026-10-23. Research only, no trading authority. This is an implementation progress ledger, not completion or profitability evidence.
 
 |ID|Reproduction/root cause|Impact|Owner / repair|Acceptance state|
@@ -53,3 +55,11 @@ Current release readback (2026-10-24T07:32:22.443049+00:00): API r2 has independ
 2026-10-24 user reopened default listing: same-industry evidence is sufficient for display. New default emits578 unique HKs on frozen22, independently verified; strict0 remains reference detail rather than default admission. No thresholds or data proof claims silently rewritten.
 
 DEPLOY14: API r2 actual activation failed after commit because an existing committed oversold_daily dependency was omitted. Old API restored (a9597860 receipt); successor package includes exact9eb dependency, and helper delta84a2 PASS adds full-constructor preflight/bounded readiness/durable identity evidence. New live cutover remains NOT_RUN.
+
+DEPLOY15: API r3 inherited106 unmanifested __pycache__/*.pyc files; some source-equivalent, no current semantic divergence asserted. Fresh API-only copy exclusion be86 plus three independent focused cases ec4d05 PASS; API r4 f4e1 product acceptance pending, old candidates preserved. SCHED r4 independently PASS, not reprepared.
+
+|PERF01|Compact page loaded14 complete snapshots/782664910 bytes because version catalog used list_plans|Real UI roundtrip35-37s and transient empty placeholder|Bounded native catalog metadata plus one selected full snapshot; retain same-run rows/range during paging|Independent source9379/build49dd/API5 actual packagea14 PASS; deployedAPI5 actualAPI76bc/UI16188 PASS; pagedGET1.21-1.38s, observedUI10-12s/detail34.5s remains limitation|
+
+|DEPLOY16|API4 guardian COMMIT succeeded but nonrunning launchctl observation raised before real113|Committed transition required fresh one-bootstrap recovery; old failure preserved|Bounded post-COMMIT exact named observation; unknown/malformed/reused/running states remain STOP|Independent8casec0c087 PASS; actual API5 guarded transitionc6c45aef succeeded|
+
+|CONCUR01|Parallel accepted QFQ install changed10appfiles and reloaded scheduler44038 while parent manifest remained9cf|Old61106/oldpreimages invalid; SCHED5 stopped before candidate creation|Preserve QFQ10deltas/14400; user-authorized coordination for new reproducible parent baseline before merge|15foreignapprefs matched23708 PASS; new SCHED release and natural cycles pending|
