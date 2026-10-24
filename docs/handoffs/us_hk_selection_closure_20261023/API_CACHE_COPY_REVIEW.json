@@ -1,0 +1,54 @@
+{
+  "schema": "v4.release_cache_copy_review.v1",
+  "goal": "For API-only release preparation, exclude unmanifested bytecode inherited from the parent copy; retain fail-closed inventory validation and the existing scheduler cache branch.",
+  "status": "REVIEWED/PASS",
+  "behavior_verified": {
+    "status": "BEHAVIOR_VERIFIED",
+    "scope": "Independent isolated prepare() copy fixtures for API bytecode exclusion, declared loose .pyc fail-closed behavior, and scheduler cache-branch preservation."
+  },
+  "findings": [],
+  "severity_counts": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0
+  },
+  "acceptance_scope": [
+    "API-only parent copy excludes root and nested __pycache__ directories and *.pyc files.",
+    "Ordinary retained files and symlinks remain copied; inventoried files match candidate manifest hashes; parent bytes and manifest stay unchanged.",
+    "A declared loose .pyc is omitted by the API copy and preparation fails closed with UNEXPECTED_CANDIDATE_DELTA without emitting PREPARED.json or reconciling the manifest.",
+    "Scheduler copy retains its existing generated cache branch and reconciliation behavior."
+  ],
+  "source_sha256": {
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": {
+      "before": "dc25708018bcbee6da0f645adb45b6d731df47c633d617fcd7578dbb39520739",
+      "after": "be86d5c7e5f3efb925e959b41767ca47ab0b9245bd38a25893639b63d350b601"
+    },
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": {
+      "before": "058bdbf26b4f1309710b16b8dc6456d51221dbd8113c99ab2c4b5c4d04a53591",
+      "after": "84b93c74074b394f2e34c6960a1f58710833aeee8d693f5f747f186665bc7da8"
+    }
+  },
+  "test_command": "python3 -B .superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/cache-copy-repair/run_focused.py --receipt REVIEWER.json --cases test_api_copy_excludes_all_parent_bytecode_without_changing_source test_api_copy_rejects_declared_loose_bytecode_without_manifest_reconciliation test_scheduler_copy_keeps_existing_generated_cache_branch",
+  "unexecuted_checks": [
+    "Actual API4 candidate/package preparation and its package manifest correspondence: CANNOT_CONFIRM; controller-owned later stage.",
+    "Full release helper suite: NOT_RUN; outside this focused frozen acceptance.",
+    "Actual service, plist, activation, rollback, deployment, or candidate lifecycle operations: NOT_RUN; outside scope."
+  ],
+  "conclusion": "PASS is limited to the specified helper copy behavior under isolated fixtures. It does not establish an actual repaired API package PASS or end-to-end completion.",
+  "independent_receipt_sha256": "ec4d05b827ac5320a43e2cbe37944a4bb464639509aad776821465cd95b206fa",
+  "test_result": {
+    "cases": [
+      "test_api_copy_excludes_all_parent_bytecode_without_changing_source",
+      "test_api_copy_rejects_declared_loose_bytecode_without_manifest_reconciliation",
+      "test_scheduler_copy_keeps_existing_generated_cache_branch"
+    ],
+    "tests_run": 3,
+    "failures": 0,
+    "errors": 0,
+    "passed": true,
+    "execution": "ISOLATED_COPY_FIXTURES_ONLY",
+    "actual_candidates_or_lifecycle_changed": false
+  },
+  "production_delta": "4 added lines, API-only copytree ignore; reconciliation and other roles unchanged",
+  "historical_failure": "API r3 retained; 106 unmanifested __pycache__/*.pyc; source equivalence for some, no current behavior divergence asserted"
+}

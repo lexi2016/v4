@@ -1143,6 +1143,10 @@ def prepare(scope_path, scope_sha, receipt_path, *, runner=None):
         for entry in before:
             source=child(Path(scope['parent_root'])/'app',entry['path']);target=candidate/'app'/entry['path']
             target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
+    elif scope['role']=='api':
+        # Inventory excludes bytecode; do not inherit unbound executable sidecars.
+        shutil.copytree(Path(scope["parent_root"]) / "app", candidate / "app", symlinks=True,
+            ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
     else:
         shutil.copytree(Path(scope["parent_root"]) / "app", candidate / "app", symlinks=True)
     for row in scope["overlays"]:

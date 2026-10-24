@@ -3019,6 +3019,47 @@ old_os_open=_raced_descriptor_open
         self.assertEqual({p:Path(p).read_bytes() for p in f.originals},f.originals)
 
 
+    def test_api_copy_excludes_all_parent_bytecode_without_changing_source(self):
+        caches={
+            'v4/manager_workbench/__pycache__/engine.cpython-314.pyc':b'old source-equivalent cache',
+            '__pycache__/startup.cpython-314.pyc':b'unmanifested root cache',
+            'assets/nested/__pycache__/other.cpython-314.pyc':b'nested generated cache',
+        }
+        for relative,raw in caches.items():
+            path=self.parent/'app'/relative;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw)
+        ordinary=self.parent/'app/assets/keep.pycache';ordinary.write_bytes(b'ordinary retained file')
+        self.refresh_parent();self.scope['parent_manifest_sha256']=prepare.sha(self.parent/'release-manifest.json')
+        original_manifest=(self.parent/'release-manifest.json').read_bytes()
+        result=self.run_prepare();app=self.candidate/'app'
+        self.assertEqual(list(app.rglob('__pycache__')),[]);self.assertEqual(list(app.rglob('*.pyc')),[])
+        self.assertEqual((app/self.target).read_bytes(),(self.source/'engine.py').read_bytes())
+        self.assertEqual((app/'assets/keep.pycache').read_bytes(),ordinary.read_bytes())
+        self.assertTrue((app/'assets/link.js').is_symlink());self.assertEqual(result['changed_paths'],[self.target])
+        for relative,raw in caches.items():self.assertEqual((self.parent/'app'/relative).read_bytes(),raw)
+        self.assertEqual((self.parent/'release-manifest.json').read_bytes(),original_manifest)
+        manifest=json.loads((self.candidate/'release-manifest.json').read_bytes())
+        for row in manifest['application_inventory']['entries']:
+            if row['kind']=='file':self.assertEqual(prepare.sha(app/row['path']),row['sha256'])
+
+    def test_api_copy_rejects_declared_loose_bytecode_without_manifest_reconciliation(self):
+        cache=self.parent/'app/assets/legacy.pyc';cache.write_bytes(b'declared loose bytecode')
+        self.refresh_parent();self.scope['parent_manifest_sha256']=prepare.sha(self.parent/'release-manifest.json')
+        original=(self.parent/'release-manifest.json').read_bytes()
+        with self.assertRaisesRegex(prepare.Stop,'UNEXPECTED_CANDIDATE_DELTA'):self.run_prepare()
+        self.assertFalse((self.candidate/'app/assets/legacy.pyc').exists());self.assertFalse(self.prepared_path.exists())
+        self.assertEqual(cache.read_bytes(),b'declared loose bytecode');self.assertEqual((self.parent/'release-manifest.json').read_bytes(),original)
+
+    def test_scheduler_copy_keeps_existing_generated_cache_branch(self):
+        self.scheduler_native_fixture()
+        cache=self.parent/'app/v4/manager_workbench/__pycache__/engine.cpython-314.pyc';cache.parent.mkdir();cache.write_bytes(b'existing generated cache')
+        raw=cache.read_bytes();original=(self.parent/'release-manifest.json').read_bytes()
+        result=self.run_prepare();copied=self.candidate/'app'/cache.relative_to(self.parent/'app')
+        self.assertEqual(copied.read_bytes(),raw);self.assertEqual(cache.read_bytes(),raw)
+        self.assertEqual((self.parent/'release-manifest.json').read_bytes(),original);self.assertEqual(result['changed_paths'],[self.target])
+        manifest=json.loads((self.candidate/'release-manifest.json').read_bytes())
+        self.assertEqual(len(manifest['task_overlay']['parent_inventory_reconciliation']['excluded_generated_cache']),1)
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', required=True)
