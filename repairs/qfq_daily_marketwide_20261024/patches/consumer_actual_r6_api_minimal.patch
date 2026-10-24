@@ -1,0 +1,35 @@
+--- R6/research_router.py
++++ OVERLAY/research_router.py
+@@ -422,6 +422,7 @@
+     *,
+     research_read_root: Path | None = None,
+     wechat_archive_root: Path | str | None = None,
++    shared_data_root: Path | str | None = None,
+ ) -> APIRouter:
+     """Build the legacy research API with an explicit read-only source root.
+ 
+@@ -435,6 +436,14 @@
+     daily_store = ResearchArchiveStore(resolved_research_read_root)
+     hourly_store = HourlyResearchStore(resolved_research_read_root)
+     selection_store = ResearchSelectionStore(data_root)
++
++    @router.get("/a-share/history")
++    def exact_a_share_history(ts_code: str, start_date: str, end_date: str, formula_version: str) -> dict:
++        from apps.api.v35_api.a_share_panel_history import read_history
++        try:
++            return read_history(shared_data_root, ts_code, start_date, end_date, formula_version)
++        except ValueError as error:
++            raise HTTPException(status_code=422, detail=str(error)) from error
+     # Independent read-only archive branch; it cannot invoke existing producers.
+     router.include_router(create_wechat_research_router(WechatResearchArchive(
+         wechat_archive_root, data_root / "research" / "wechat_materials",
+--- R6/app.py
++++ OVERLAY/app.py
+@@ -6029,6 +6029,7 @@
+             # ownership stays on the V4 consumer root inside the router.
+             research_read_root=resolved_research_root,
+             wechat_archive_root=os.environ.get("V4_WECHAT_ARCHIVE_ROOT"),
++            shared_data_root=os.environ.get("V4_A_SHARE_HISTORY_DATA_ROOT"),
+         )
+     )
+ 

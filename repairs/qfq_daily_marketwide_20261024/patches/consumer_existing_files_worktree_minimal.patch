@@ -1,0 +1,52 @@
+--- a/apps/api/v35_api/research_router.py
++++ b/apps/api/v35_api/research_router.py
+@@ -414,11 +414,19 @@
+     }
+ 
+ 
+-def create_research_router(data_root: Path) -> APIRouter:
++def create_research_router(data_root: Path, *, shared_data_root: Path | str | None = None) -> APIRouter:
+     router = APIRouter(prefix="/api/v3/research", tags=["research"])
+     daily_store = ResearchArchiveStore(data_root)
+     hourly_store = HourlyResearchStore(data_root)
+     selection_store = ResearchSelectionStore(data_root)
++
++    @router.get("/a-share/history")
++    def exact_a_share_history(ts_code: str, start_date: str, end_date: str, formula_version: str) -> dict:
++        from apps.api.v35_api.a_share_panel_history import read_history
++        try:
++            return read_history(shared_data_root, ts_code, start_date, end_date, formula_version)
++        except ValueError as error:
++            raise HTTPException(status_code=422, detail=str(error)) from error
+ 
+     @router.get("/articles/latest")
+     def latest_articles() -> dict:
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -477,7 +477,7 @@
+     )
+     app.include_router(create_runtime_graph_router(store.root))
+     app.include_router(create_review_router(store.root))
+-    app.include_router(create_research_router(store.root))
++    app.include_router(create_research_router(store.root, shared_data_root=os.environ.get("V4_A_SHARE_HISTORY_DATA_ROOT")))
+ 
+     # Research is an owned V3.5 read-only slice.  Register the compatibility
+     # routes unconditionally so a caller does not need the removed V3 module
+--- a/apps/web/src/components/review/AshareReviewPanel.vue
++++ b/apps/web/src/components/review/AshareReviewPanel.vue
+@@ -1,5 +1,6 @@
+ <script setup lang="ts">
+ import { computed } from "vue";
++import AshareHistoryPanel from "./AshareHistoryPanel.vue";
+ import type { AShareCloseBoard, AShareCloseModel, AShareCloseRole, AShareRichRow, AShareReview } from "../../contracts/review";
+ 
+ const props = defineProps<{ review: AShareReview }>();
+@@ -135,6 +136,8 @@
+       <p><span>{{ review.headline || review.trade_date }}</span><small> · {{ partialStage ? "阶段证据富复盘 · CANNOT_CONFIRM" : (richReady ? "Review Core 富复盘" : (review.source_role || "未确认")) }}</small></p>
+     </div>
+ 
++    <AshareHistoryPanel :trade-date="review.trade_date || ''" />
++
+     <template v-if="richReady">
+       <section class="a-product-first" data-testid="a-product-first">
+         <div class="red-frame-title"><span>{{ partialStage ? "V3 富复盘骨架·部分证据" : "正式复盘" }}</span><h2>【{{ partialStage ? "V3 富复盘骨架·部分证据" : "红框正式复盘" }}】{{ review.trade_date }} 看什么</h2></div>

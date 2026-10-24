@@ -1,0 +1,132 @@
+{
+  "schema": "LOCAL_PANEL_CONSUMER_SOURCE_SYNC_R3",
+  "repository": "lexi2016/v4",
+  "branch": "codex/local-research-panel-history-20261024",
+  "remote_parent": "1f2d514fe6dff90a96f98b3f6d2680cb93ec26f9",
+  "local_worktree_base": "71d76f716f5ca8ab30c5b1b9ee7cbb4bbb428655",
+  "local_equals_remote": false,
+  "source_namespace": "repairs/qfq_daily_marketwide_20261024",
+  "remote_missing_old_entry_paths": [
+    "apps/api/v35_api/app.py",
+    "apps/api/v35_api/research_router.py",
+    "apps/web/src/components/review/AshareReviewPanel.vue"
+  ],
+  "old_source_policy": "Only minimal patches and exact before SHA dependencies; no whole old or canonical files uploaded; branch is a repair source bundle, not a full runnable V4 mirror",
+  "source_manifest_sha256": "35bdd09fe92f799be039b25370caef42c5a4179860d90edb2860730ed2619e35",
+  "source_code_sha256": "8212278c020aba3b1a8ec776b2c7f16e31aeb1f1f9bd3d4c48387c94428acb04",
+  "formula_source_sha256": "924ab78f0adb0ee0705e41d7824282f40ec275a97da532ffee5b61e29d2925e6",
+  "existing_authority_reader_sha256": "5fd9024fc4ee858a62eaac050532187b171289eac82837bc7ca406e938509ded",
+  "review": {
+    "execution_id": "A_SHARE_ORIGINAL_FORMULA_CONSUMER_R6_INTEGRATION_REVIEW_R3_20261025_01",
+    "decision": "REVIEWED/PASS_ACTUAL_R6_CONSUMER_DELTA_ONLY_WITH_PREEXISTING_GLOBAL_TYPECHECK_ERRORS_DISCLOSED",
+    "report_sha256": "c150108847733d1be217f654b3e1935785aa1df204b295b3e0a9297be39a85dd",
+    "API_targeted_passed": 3,
+    "mount_passed": 1,
+    "Vite_modules": 108,
+    "actual_default_two_dates": [
+      "20000906",
+      "20261023"
+    ],
+    "requested_user_fields": 23,
+    "preexisting_R6_global_type_errors": 25,
+    "introduced_type_errors": 0,
+    "global_typecheck": "FAIL_PREEXISTING_NOT_CALLED_PASS"
+  },
+  "package_only": {
+    "manifest_sha256": "74fa8bd70d95b91f3f0c6dcf83f5fa9abbf0a8b7228c3415dfaace0fa3ec1c9c",
+    "parent_manifest_sha256": "450642273c2ebe43bf0cb2c7606367ffd3a9b58534e9b28147e486824408c804",
+    "source_overlay_count": 6,
+    "changed_static_count": 8,
+    "parent_entries_preserved": 1295,
+    "scope": "INACTIVE_API_PACKAGE_ONLY_NOT_ACTIVATED"
+  },
+  "basis_dependencies": [
+    {
+      "role": "W_history_module",
+      "sha256": "dddf37c90091c36eb9fa47fa5f9409ac1f57441315dfcd525b48ee62930556c8"
+    },
+    {
+      "role": "W_tests",
+      "sha256": "d837d6a8a6d8b8e5bfc2cc790c94e63919fd2bf3d34dc66849ee4c54fd950b7c"
+    },
+    {
+      "role": "R6_app",
+      "sha256": "9c90c88c82b4f2f456d5229ba91270c6ccabcaccaf9d7b696d40f763e1b9051a"
+    },
+    {
+      "role": "R6_router",
+      "sha256": "dd141afaa10f5c90c09be4cec093675f44d1030933b04d8b2d0dfbe67af11ea8"
+    },
+    {
+      "role": "authority_reader",
+      "sha256": "5fd9024fc4ee858a62eaac050532187b171289eac82837bc7ca406e938509ded"
+    }
+  ],
+  "files": [
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/apps/api/v35_api/a_share_panel_history.py",
+      "sha256": "bacabd0341334eed55e745c2992eae3192015df649d63a1daf797eb47230c68d",
+      "bytes": 11867
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/apps/web/src/api/a_share_history.ts",
+      "sha256": "2cc8a897566dadf1d5a38a92b0344bba8c3551a53f309c3c41aff478a695c24e",
+      "bytes": 2319
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/apps/web/src/components/review/AshareHistoryPanel.vue",
+      "sha256": "28022b88906d9cd03b7bed28e4a9f131c80a254ac5f59f2e42c679dd245d8d6a",
+      "bytes": 8413
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/tests/test_a_share_panel_history.py",
+      "sha256": "42c61f56d2997a26ec2f761be34e90162ebfaf4056cf2b3c3dc769c2e8af44de",
+      "bytes": 11103
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/patches/consumer_existing_files_worktree_minimal.patch",
+      "sha256": "4497a3371cc0cf0c10bff9000535179defb05cc2d473bc168f90194a978696a1",
+      "bytes": 2720
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/patches/consumer_actual_r6_api_minimal.patch",
+      "sha256": "0df2923c54a58e97fd982fe9b99e667b96b5b539f52ca238494ac7b95aec9ef5",
+      "bytes": 1589
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/patches/consumer_actual_r6_frontend_minimal.patch",
+      "sha256": "1a39a501229d3d7357bd98b91e0c0abf6810c46a8ea0afb8341ae2817a453885",
+      "bytes": 1076
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/tools/adopt_existing_candidate.py",
+      "sha256": "42c51c4780c36aebddf54314ddd9a940f08ea7ab1514a07c699035f7b0316a44",
+      "bytes": 14716
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/tests/test_adoption_metadata_transaction.py",
+      "sha256": "0652bc3e40702e4bb478ebbc1136e96fc0fead244bb93d930fb885a0a55b2e1f",
+      "bytes": 10808
+    },
+    {
+      "path": "repairs/qfq_daily_marketwide_20261024/tools/prepare_inactive_api_package_r2.py",
+      "sha256": "3d58841de32cc49c5290f144129aafbdd31fbb812bf282f23e6291e5c37cfc92",
+      "bytes": 7614
+    }
+  ],
+  "not_uploaded": [
+    "raw responses/prices",
+    "candidate panel values",
+    "runtime packages",
+    "plist/env files",
+    "logs",
+    "credentials",
+    "node_modules/dist/venv"
+  ],
+  "actual_default_panel_already_adopted": true,
+  "API_UI_deployed": false,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,18 @@
+--- R6/AshareReviewPanel.vue
++++ OVERLAY/AshareReviewPanel.vue
+@@ -1,5 +1,6 @@
+ <script setup lang="ts">
+ import { computed } from "vue";
++import AshareHistoryPanel from "./AshareHistoryPanel.vue";
+ import type { AShareCloseBoard, AShareCloseModel, AShareCloseRole, AShareRichRow, AShareReview } from "../../contracts/review";
+ 
+ const props = defineProps<{ review: AShareReview }>();
+@@ -140,6 +141,8 @@
+       <p><span>{{ review.headline || review.trade_date }}</span><small> · {{ partialStage ? "阶段证据富复盘 · CANNOT_CONFIRM" : (richReady ? "Review Core 富复盘" : (review.source_role || "未确认")) }}</small></p>
+     </div>
+ 
++    <AshareHistoryPanel :trade-date="review.trade_date || ''" />
++
+     <template v-if="richReady">
+       <section class="a-product-first" data-testid="a-product-first">
+         <div class="red-frame-title"><span>{{ partialStage ? "V3 富复盘骨架·部分证据" : "正式复盘" }}</span><h2>【{{ partialStage ? "V3 富复盘骨架·部分证据" : "红框正式复盘" }}】{{ review.trade_date }} 看什么</h2></div>
