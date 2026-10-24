@@ -1,0 +1,96 @@
+{
+  "schema": "V194_FULL_HISTORY_ACCEPTED_SLIM_RESULT_V1",
+  "effect_status": "NO_BREAKTHROUGH",
+  "maximum_claim": "DIRECTION_ONLY",
+  "source_input_sha256": "8ccfaef657284a518c5a282ed7fb1808c835bd87363bf73f9562d339817d136b",
+  "accepted_input_manifest_sha256": "816300c1dabc1ef46e8e57f08fd8f6b786bd4414d541cada58a8fa51e7e2931f",
+  "original_model_kernel_sha256": "7481058508836682806b7caa94d20f1ff9831b4ec6b2a409577b53e876dca05e",
+  "completed": {
+    "original_fold01_reused": true,
+    "oof_folds": 458,
+    "new_oof_real_fits": 914,
+    "reused_original_real_fits": 2,
+    "final_real_fits": 2,
+    "total_unique_real_fits": 918,
+    "synthetic_fits": 0
+  },
+  "evaluation": {
+    "oof_dates": 2290,
+    "oof_date_range": [
+      "2003-09-24",
+      "2026-10-15"
+    ],
+    "initial_planned_dates": 2289,
+    "initial_nonempty_dates": 2042,
+    "initial_eligible_empty_dates": 247,
+    "total_eligible_dates": 4579,
+    "incomplete_dependency_exclusions": 4185,
+    "exposed_diagnostic_dates": 5,
+    "truth_positive_denominator": 229000,
+    "baseline_actual_selected": 113352,
+    "candidate_actual_selected": 113352,
+    "baseline_hits": 10915,
+    "candidate_hits": 10921,
+    "raw192_natural_selected": 141100,
+    "raw192_natural_hits": 6604,
+    "common_hit_count": 10887,
+    "new_hit_count": 34,
+    "lost_hit_count": 28,
+    "primary_mean_delta_hits": 0.0026200873362445414,
+    "paired_block_95_ci": [
+      -0.010917030567685589,
+      0.014410480349344978
+    ],
+    "gate": "mean_daily_hit_delta>=1 AND lower95CI>0",
+    "bootstrap": {
+      "method": "NON_CIRCULAR_MOVING_BLOCK",
+      "block_dates": 5,
+      "replicates": 2000,
+      "seed": 194
+    }
+  },
+  "source_effect": {
+    "folds_with_training_source_variation": 5,
+    "folds_with_nonzero_source_coefficients": 5,
+    "dates_with_nonzero_source_logit": 25,
+    "equal_top50_dates": 2267,
+    "unknown_is_absence": false,
+    "diagnostic_only": true,
+    "no_ablation_or_refit": true,
+    "final_diagnostics": "TRAINING_INSAMPLE_NOT_OOF"
+  },
+  "units": {
+    "formula255_offline": "Original192 natural formula count; not capped50",
+    "baseline_and_v194": "Actual selections <=50; underfill not filled",
+    "baseline_v194_common_new_lost": "Top100 HIT set intersection / candidate-only / baseline-only; not selection overlap",
+    "daily_export": "Only2290 evaluated OOF dates; full8800 calendar classification retained locally; unevaluated dates not zero-filled"
+  },
+  "independent_acceptance": {
+    "verdict_sha256": "4fb14d23b165c6ce0763a0d0afd6298b425e776edc00cccc1dab0072b6c63f84",
+    "audit_sha256": "02263465f0f08b82c4c08f3fac3e192bee06383e3faed89ff3f2e4c7e6cb2de0",
+    "audit_script_sha256": "4e5701a02c9f628aafdeeb8461e53c4e4edc043be9d58c87568807f787da01cb",
+    "command_sha256": "4611824f798014c7ca1358a473809c614448c280dfad192ef58063609b350672",
+    "checks_passed": 20939,
+    "review_fits": 0,
+    "pass_signal": "PASS_CURRENT_ORIGINAL_PAIRED_OOF_FINAL_SAVED_ARTIFACT_SCOPE",
+    "official_terminal_event_sha256": "6e120d3a3da0a4a68fdcea827485ebfe4fa02b3e66bc122a03ba15e5910bdbae"
+  },
+  "concise_daily_sha256": "076f76d224f1de3108bf95b7d841265cda15dc275d8a12cb05a920d47485e214",
+  "resources": {
+    "max_actual_workers": 16,
+    "native_threads_configured": 1,
+    "cache_model_worker_peak_rss_bytes": 2202501120,
+    "parent_peak_rss_bytes": 30908039168,
+    "final_process_peak_rss_bytes": 30791614464
+  },
+  "limitations": [
+    "Historical vintage/PIT remains CANNOT_CONFIRM as approved; no promotion or sealed/live claim.",
+    "Final scores are in-sample diagnostics only; no future input/prediction supplied.",
+    "Source contribution is descriptive saved-weight logit arithmetic, not a refit, ablation or causal estimate."
+  ],
+  "future_prediction_status": "NOT_RUN_FUTURE_INPUT_NOT_SUPPLIED",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -96,7 +96,7 @@ def configure_native_thread_budget(
     """Set actual math-library limits and reject an over-budget configuration."""
     require(type(processes) is int and processes >= 1, "PROCESS_COUNT_INVALID")
     require(type(threads_per_process) is int and threads_per_process >= 1, "THREAD_COUNT_INVALID")
-    require(type(total_thread_budget) is int and 1 <= total_thread_budget <= 12, "THREAD_BUDGET_INVALID")
+    require(type(total_thread_budget) is int and 1 <= total_thread_budget <= 16, "THREAD_BUDGET_INVALID")
     require(processes * threads_per_process <= total_thread_budget, "THREAD_BUDGET_EXCEEDED")
     target = os.environ if environ is None else environ
     for name in NATIVE_THREAD_VARIABLES:
@@ -233,7 +233,7 @@ def select_safe_fit_workers(
     """Cap OOF process workers using the measured fit canary and current headroom."""
     require(type(requested_workers) is int and requested_workers >= 1, "FIT_WORKER_COUNT_INVALID")
     require(type(threads_per_worker) is int and threads_per_worker >= 1, "THREAD_COUNT_INVALID")
-    require(type(total_thread_budget) is int and 1 <= total_thread_budget <= 12, "THREAD_BUDGET_INVALID")
+    require(type(total_thread_budget) is int and 1 <= total_thread_budget <= 16, "THREAD_BUDGET_INVALID")
     require(type(canary_peak_rss_bytes) is int and canary_peak_rss_bytes > 0, "FIT_CANARY_RSS_REQUIRED")
     require(type(memory_safety_fraction) in (int, float), "MEMORY_SAFETY_FRACTION_INVALID")
     require(0.2 <= memory_safety_fraction <= 1.0, "MEMORY_SAFETY_FRACTION_INVALID")
@@ -281,6 +281,67 @@ def read_frozen_universe_codes(path: str | Path) -> list[str]:
     require(codes == sorted(codes), "FROZEN_UNIVERSE_CODE_ORDER_INVALID")
     require(all(re.fullmatch(r"\d{6}\.(?:SH|SZ|BJ)", code) for code in codes), "FROZEN_UNIVERSE_CODE_FORMAT_INVALID")
     return codes
+
+
+HISTORY_EVIDENCE_ROOT = Path("/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_full_history_20261024")
+HISTORY_TARGET_CAP = "2026-10-22"
+HISTORY_EXPOSED_TARGETS = {"2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22"}
+
+
+def history_output_path(value: str | Path, *, roots: tuple[str, ...] = ("inputs", "build", "runs", "reports")) -> Path:
+    """Resolve before writing; a symlink cannot redirect a new run into old outputs."""
+    require(bool(str(value)), "HISTORY_OUTPUT_PATH_REQUIRED")
+    path = Path(value).resolve()
+    root = HISTORY_EVIDENCE_ROOT.resolve()
+    require(any(path.is_relative_to(root / part) and path != root / part for part in roots),
+            "HISTORY_OUTPUT_OUTSIDE_NEW_EVIDENCE_ROOT")
+    return path
+
+
+def _history_bound_json(ref: Any, code: str) -> tuple[Path, dict[str, Any]]:
+    require(isinstance(ref, Mapping), code + "_BINDING_REQUIRED")
+    path = Path(str(ref.get("path", ""))).resolve()
+    expected = ref.get("sha256")
+    require(path.is_file() and isinstance(expected, str) and len(expected) == 64, code + "_BINDING_REQUIRED")
+    require(sha256_file(path) == expected, code + "_SHA_DRIFT")
+    return path, load_json(path)
+
+
+def verify_history_input_binding(config: Mapping[str, Any], *, purpose: str = "fit") -> dict[str, Any]:
+    """Accept a new, exact independent input review, never the old input PASS.
+
+    A source-only review permits input construction to produce its first real
+    parity evidence. Fitting still requires the final independent input PASS.
+    """
+    binding = config.get("history_binding")
+    require(isinstance(binding, Mapping), "HISTORY_INPUT_BINDING_REQUIRED")
+    require(binding.get("schema") == "V194_FULL_HISTORY_INPUT_BINDING_V1", "HISTORY_BINDING_SCHEMA_DRIFT")
+    require(binding.get("target_date_cap") == HISTORY_TARGET_CAP, "HISTORY_TARGET_CAP_DRIFT")
+    require(set(binding.get("exposed_targets_excluded", [])) == HISTORY_EXPOSED_TARGETS,
+            "HISTORY_EXPOSED_TARGETS_DRIFT")
+    history_output_path(config.get("output_dir", config.get("build_dir", "")))
+    qfq_ref = binding.get("qfq_manifest")
+    _, qfq = _history_bound_json(qfq_ref, "QFQ_INPUT")
+    review_path, receipt = _history_bound_json(binding.get("input_review"), "CURRENT_HISTORY_INPUT_REVIEW")
+    require(review_path.is_relative_to(HISTORY_EVIDENCE_ROOT.resolve()), "CURRENT_HISTORY_REVIEW_OUTSIDE_NEW_EVIDENCE")
+    require(purpose in {"fit", "input_build"}, "HISTORY_BINDING_PURPOSE_INVALID")
+    source_only = purpose == "input_build" and receipt.get("status") == "SOURCE_BOUND_REVIEW_ONLY"
+    if source_only:
+        require(receipt.get("review_scope") == "RAW_EVENT_SCHEMA_CODE_BINDING_ONLY"
+                and receipt.get("formula_or_label_values_verified") is False
+                and receipt.get("fit_allowed") is False, "SOURCE_ONLY_REVIEW_SCOPE_DRIFT")
+    else:
+        require(receipt.get("status") == "PASS_RECONSTRUCTED_FULL_HISTORY_INPUT", "CURRENT_HISTORY_INPUT_REVIEW_NOT_PASS")
+    require(receipt.get("maximum_claim") == "DIRECTION_ONLY", "HISTORY_REVIEW_CLAIM_DRIFT")
+    require(receipt.get("qfq_manifest") == qfq_ref, "HISTORY_REVIEW_QFQ_BINDING_DRIFT")
+    require(receipt.get("v194_input_abi_verified") is True, "V194_QFQ_INPUT_ABI_UNVERIFIED")
+    require(isinstance(qfq.get("consumer_abi"), str) and qfq["consumer_abi"] != "UNBOUND",
+            "V194_QFQ_INPUT_ABI_UNBOUND")
+    require(receipt.get("consumer_abi") == qfq["consumer_abi"], "V194_QFQ_INPUT_ABI_DRIFT")
+    if not source_only:
+        require(receipt.get("raw_event_target_d_label_parity") is True, "TARGET_D_RAW_EVENT_LABEL_PARITY_UNVERIFIED")
+    return {"review": receipt, "qfq_manifest": qfq, "review_path": str(review_path),
+            "review_sha256": binding["input_review"]["sha256"]}
 
 
 class RunnerHeartbeat(AbstractContextManager["RunnerHeartbeat"]):
@@ -411,6 +472,34 @@ def verify_independent_input_pass(config: Mapping[str, Any]) -> dict[str, Any]:
     not a whole-input/passport certification. Its exact R2 -> R1 -> parent/child
     chain is checked here so runtime callers cannot promote the broader status.
     """
+    if config.get("history_binding") is not None:
+        current = verify_history_input_binding(config)
+        manifest_path = Path(str(config.get("input_manifest_path", ""))).resolve()
+        require(manifest_path.is_relative_to(HISTORY_EVIDENCE_ROOT.resolve() / "inputs"), "HISTORY_MANIFEST_OUTSIDE_NEW_INPUTS")
+        require(Path(str(config.get("input_manifest", ""))).resolve() == manifest_path, "PIPELINE_INPUT_MANIFEST_PATH_DRIFT")
+        expected = config.get("input_manifest_sha256")
+        require(manifest_path.is_file() and sha256_file(manifest_path) == expected, "INPUT_MANIFEST_SHA_DRIFT")
+        manifest = load_json(manifest_path)
+        receipt = current["review"]
+        require(receipt.get("input_manifest_path") == str(manifest_path) and receipt.get("input_manifest_sha256") == expected,
+                "CURRENT_HISTORY_REVIEW_MANIFEST_DRIFT")
+        universe = config.get("frozen_universe", {})
+        code_path = Path(str(universe.get("code_list_path", ""))).resolve()
+        require(code_path.is_file() and sha256_file(code_path) == universe.get("code_list_sha256"), "FROZEN_UNIVERSE_SHA_DRIFT")
+        codes = read_frozen_universe_codes(code_path)
+        require(universe.get("code_count") == len(codes), "FROZEN_UNIVERSE_COUNT_MUST_BE_5533")
+        for record in (manifest.get("research_code_list", {}), receipt.get("research_code_list", {})):
+            require(record.get("path") == str(code_path) and record.get("sha256") == universe.get("code_list_sha256")
+                    and record.get("count") == len(codes), "CURRENT_HISTORY_UNIVERSE_BINDING_DRIFT")
+        require(receipt.get("candidate_truth_same_universe") is True, "REVIEW_CANDIDATE_TRUTH_UNIVERSE_MISMATCH")
+        require(manifest.get("qfq_manifest") == config["history_binding"]["qfq_manifest"], "HISTORY_MANIFEST_QFQ_DRIFT")
+        return {"status": receipt["status"], "review_scope": "BOUNDED_RECONSTRUCTED_RESEARCH_INPUT",
+                "bounded_research_input_readiness": "PASS", "whole_input_status": "CANNOT_CONFIRM", "maximum_claim": "DIRECTION_ONLY",
+                "input_manifest_path": str(manifest_path), "input_manifest_sha256": expected,
+                "review_receipt_path": current["review_path"], "review_receipt_sha256": current["review_sha256"],
+                "universe_scope": manifest.get("universe_scope"), "universe_code_list_path": str(code_path),
+                "universe_code_list_sha256": universe["code_list_sha256"], "universe_code_count": len(codes),
+                "candidate_truth_same_universe": True}
     manifest_path = Path(str(config.get("input_manifest_path", "")))
     pipeline_manifest_path = Path(str(config.get("input_manifest", "")))
     manifest_sha = config.get("input_manifest_sha256")

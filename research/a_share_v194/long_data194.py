@@ -43,24 +43,22 @@ for _name in (
     os.environ[_name] = "1"
 
 ROOT = Path("/Users/lexi/Desktop/学习/因子工厂")
-S = ROOT / "worktrees/a_share_v194_20261023/research/a_share_v194"
-CONTRACT_PATH = ROOT / "research/a_share_v194_long_history_20261024/preflight/LONG_INPUT_BUILD_CONTRACT.json"
-START_RECEIPT_PATH = ROOT / "research/a_share_v194_long_history_20261024/preflight/LONG_INPUT_BUILD_REGISTRY_RECEIPT.json"
-SNAPSHOT_PATH = ROOT / "research/a_share_v194_long_history_20261024/preflight/PANEL_BINDING_SNAPSHOT.json"
-IMPLEMENTATION_CHECKPOINT_DIR = ROOT / "research/a_share_v194_long_history_20261024/preflight"
-BUILD = ROOT / "research/a_share_v194_long_history_20261024/inputs/long_input_build_r1_20261024_01"
-CANARY = ROOT / "research/a_share_v194_long_history_20261024/canary_data/A_SHARE_V194_LONG_INPUT_BUILD_R1_20261024_01/attempt_04"
-EXPECTED_CONTRACT_SHA = "96fd0d23275335a84b63e94f6010081bf9ba272306594b0dd0cbde062f738575"
-EXPECTED_START_RECEIPT_SHA = "a91cbc8cc52ee03847f5f94a59600823051335c413c2e911b94e06d8a32e893f"
-EXPECTED_START_EVENT_SHA = "88de2b09738d942a1c9bf3fea35a4c03275feb8ab69f390b9b97aca780402c47"
-EXPECTED_SNAPSHOT_SHA = "c90a0e29537387ad4f4c49020f16d52e0443a582bff0e441c48507b5d61f650d"
+S = Path(__file__).resolve().parent
+EVIDENCE_ROOT = ROOT / "research/a_share_v194_full_history_20261024"
+CONTRACT_PATH = START_RECEIPT_PATH = SNAPSHOT_PATH = None
+IMPLEMENTATION_CHECKPOINT_DIR = EVIDENCE_ROOT / "source_bindings"
+BUILD = EVIDENCE_ROOT / "inputs/UNBOUND"
+CANARY = EVIDENCE_ROOT / "build/UNBOUND"
+EXPECTED_CONTRACT_SHA = EXPECTED_START_RECEIPT_SHA = EXPECTED_START_EVENT_SHA = EXPECTED_SNAPSHOT_SHA = None
+BUILD_CONFIG: dict[str, Any] | None = None
+TARGET_DATE_CAP = "20261022"
 EXPECTED_ACCEPTED64_SHA = "04b6bb8ad1bd58e1154bd70234180cad78a29a02f935d04b7ee23cb8ebe181fa"
 EXPECTED_ACCEPTED64_PATH = ROOT / "research/today_selection_20261023/stale318_recovery/resolution_02/final_market_event_delta_64/INPUT_MANIFEST.json"
 EXPECTED_EVENT_INDEX_SHA = "534cc31866888940fab3eb346278b2e9ee4c39c3d26005b52780c6bd8627fc0e"
 EXPECTED_R1_MANIFEST_SHA = "e5f57acb6e5555f3a08e8e76387b427bf50d57eb57560f6f80de2dda9594bfcf"
 EXPECTED_CODE_LIST_SHA = "5186c209e784e58875e9f16202d99bd9ced945b9f7adcd0212c2f18869a6040d"
 EXPECTED_CODE_LIST_COUNT = 5533
-EXECUTION_ID = "A_SHARE_V194_LONG_INPUT_BUILD_R1_20261024_01"
+EXECUTION_ID = None
 TECHNICAL = [
     "tech_192", "B1", "B2", "B3", "BREAKOUT", "BREAKOUT_DOJI",
     "M2_MINUS", "M2_PLUS", "SINGLE_NEEDLE", "THREE_QUARTER_YIN", "BRICK_FANBAO",
@@ -119,6 +117,36 @@ def canonical_sha(value: Any) -> str:
 def load_json(path: Path | str) -> Any:
     with Path(path).open("r", encoding="utf-8-sig") as stream:
         return json.load(stream)
+
+
+def configure_input_build(config: Mapping[str, Any]) -> None:
+    """Install only explicit new-E bindings; no old build is an implicit default."""
+    from long_training_adapter import history_output_path, verify_history_input_binding, _history_bound_json
+    require(config.get("schema") == "V194_FULL_HISTORY_BUILD_CONFIG_V1", "HISTORY_BUILD_CONFIG_SCHEMA_DRIFT")
+    build = history_output_path(config.get("build_dir", ""), roots=("inputs",))
+    canary = history_output_path(config.get("canary_dir", ""), roots=("build",))
+    # No market body or output is touched before the peer ABI/current review gate.
+    verify_history_input_binding(config, purpose="input_build")
+    refs = {}
+    for name in ("contract", "start_receipt", "panel_snapshot"):
+        path, value = _history_bound_json(config.get(name), "HISTORY_BUILD_" + name.upper())
+        require(path.is_relative_to(EVIDENCE_ROOT.resolve()), "HISTORY_CONTROL_BINDING_OUTSIDE_NEW_EVIDENCE")
+        refs[name] = (path, value)
+    contract = refs["contract"][1]
+    receipt = refs["start_receipt"][1]
+    execution = config.get("execution_id")
+    require(isinstance(execution, str) and contract.get("execution_id") == execution, "HISTORY_BUILD_EXECUTION_DRIFT")
+    require(receipt.get("execution_id") == execution and receipt.get("event_type") == "RUN_STARTED",
+            "HISTORY_BUILD_START_RECEIPT_INVALID")
+    require(receipt.get("event_sha256") == config.get("start_event_sha256"), "HISTORY_BUILD_START_EVENT_DRIFT")
+    require(config.get("target_date_cap") == TARGET_DATE_CAP, "HISTORY_TARGET_CAP_DRIFT")
+    globals().update(BUILD=build, CANARY=canary, EXECUTION_ID=execution,
+        CONTRACT_PATH=refs["contract"][0], START_RECEIPT_PATH=refs["start_receipt"][0],
+        SNAPSHOT_PATH=refs["panel_snapshot"][0], EXPECTED_CONTRACT_SHA=config["contract"]["sha256"],
+        EXPECTED_START_RECEIPT_SHA=config["start_receipt"]["sha256"], EXPECTED_SNAPSHOT_SHA=config["panel_snapshot"]["sha256"],
+        EXPECTED_START_EVENT_SHA=config["start_event_sha256"], BUILD_CONFIG=dict(config),
+        RAW_CACHE=build / "_intermediate/raw_panel", CODE_RESULTS=build / "_intermediate/per_code",
+        FULL_RECEIPT=build / "PANEL_SCAN_RECEIPT.json")
 
 
 def ymd(value: Any) -> str:
@@ -278,6 +306,14 @@ def _verify_file_bindings(paths: Mapping[str, str], skip_own: bool = True) -> di
 
 
 def _check_checkpoint(code_sha: str, test_sha: str, code_sha_list: str) -> dict[str, Any]:
+    if BUILD_CONFIG is not None:
+        from long_training_adapter import _history_bound_json
+        path, checkpoint = _history_bound_json(BUILD_CONFIG.get("implementation_checkpoint"), "HISTORY_IMPLEMENTATION_REVIEW")
+        require(path.is_relative_to(EVIDENCE_ROOT.resolve()), "HISTORY_IMPLEMENTATION_REVIEW_OUTSIDE_NEW_EVIDENCE")
+        require(checkpoint.get("status") == "PASS" and checkpoint.get("implementation_sha256") == code_sha
+                and checkpoint.get("tests_sha256") == test_sha and checkpoint.get("research_code_list_sha256") == code_sha_list,
+                "HISTORY_IMPLEMENTATION_REVIEW_BINDING_DRIFT")
+        return {"path": str(path), "sha256": sha_file(path)}
     expected = {"implementation": code_sha, "tests": test_sha, "research_code_list": code_sha_list,
                 "contract": EXPECTED_CONTRACT_SHA, "start_receipt": EXPECTED_START_RECEIPT_SHA,
                 "accepted64_manifest": EXPECTED_ACCEPTED64_SHA}
@@ -329,16 +365,65 @@ def _accepted64_manifest_path(contract: Mapping[str, Any]) -> Path:
     return path
 
 
+def _apply_continuity_overlay(statuses: Mapping[str, Any], binding: Mapping[str, Any],
+                              overlay_ref: Mapping[str, Any]) -> dict[str, Any]:
+    """Revalidate only the two old RAW-continuity failures, never event values."""
+    from long_training_adapter import _history_bound_json
+    path, overlay = _history_bound_json(overlay_ref, "CONTINUITY_OVERLAY")
+    require(path.is_relative_to(EVIDENCE_ROOT.resolve()), "CONTINUITY_OVERLAY_OUTSIDE_NEW_EVIDENCE")
+    require(binding["review"].get("continuity_overlay") == overlay_ref, "CONTINUITY_REVIEW_BINDING_DRIFT")
+    artifact = overlay.get("raw_artifact")
+    expected_artifact = binding["qfq_manifest"].get("raw_artifact")
+    require(isinstance(artifact, Mapping) and isinstance(expected_artifact, Mapping), "CONTINUITY_RAW_BINDING_DRIFT")
+    for field in ("path", "sha256"):
+        require(isinstance(artifact.get(field), str) and bool(artifact[field].strip())
+                and artifact[field] == expected_artifact.get(field), "CONTINUITY_RAW_BINDING_DRIFT")
+    if "rows" in artifact and "rows" in expected_artifact:
+        require(all(type(v) in (int, float) and math.isfinite(v)
+                    for v in (artifact["rows"], expected_artifact["rows"]))
+                and artifact["rows"] == expected_artifact["rows"], "CONTINUITY_RAW_BINDING_DRIFT")
+    rows = overlay.get("rows", [])
+    require(len(rows) == 2 and {r["code"] for r in rows} == {"301139.SZ", "603007.SH"},
+            "CONTINUITY_OVERLAY_CODE_SCOPE_DRIFT")
+    revised = dict(statuses)
+    for item in rows:
+        code = item["code"]
+        old = statuses[code]
+        require(item.get("original_status_sha256") == canonical_sha(old), "CONTINUITY_OLD_STATUS_DRIFT:" + code)
+        require(old.get("status") == "CANNOT_CONFIRM", "CONTINUITY_NOT_OLD_FAILURE:" + code)
+        for field in ("event_response_path", "event_response_sha256"):
+            require(item.get(field) == old.get(field), "CONTINUITY_EVENT_BINDING_DRIFT:" + code)
+        cp_path, cp = _history_bound_json(item.get("raw_checkpoint"), "CONTINUITY_RAW_CHECKPOINT")
+        require(cp_path.is_relative_to(EVIDENCE_ROOT.resolve()) and cp.get("code") == code,
+                "CONTINUITY_CHECKPOINT_CODE_DRIFT:" + code)
+        gap = cp_path.parent / "SOURCE_COVERAGE_GAPS.json"
+        require(sha_file(gap) == cp["files"][gap.name] and load_json(gap) == [], "CONTINUITY_RAW_GAPS_REMAIN:" + code)
+        require(all(item.get(k) == cp.get(k) for k in ("first_date", "last_date", "rows")),
+                "CONTINUITY_RAW_COVERAGE_DRIFT:" + code)
+        source_receipts = cp.get("source_receipts")
+        require(isinstance(source_receipts, list) and bool(source_receipts)
+                and all(isinstance(r, Mapping) for r in source_receipts),
+                "CONTINUITY_SOURCE_RECEIPTS_INVALID:" + code)
+        require(cp.get("rows", 0) > 0 and all(r.get("invalid_ohlc_rows") == 0 for r in source_receipts),
+                "CONTINUITY_RAW_INVALID:" + code)
+        revised[code] = {**old, "status": "READY_WITH_ROUTE_LEVEL_MISSING_FIELDS",
+                         "prior_source_status": dict(old), "continuity_revalidation": {
+                             "overlay": dict(overlay_ref), "raw_checkpoint": item["raw_checkpoint"],
+                             "first_date": cp["first_date"], "last_date": cp["last_date"], "rows": cp["rows"],
+                             "scope": "EXISTING_RAW_ROWS_ONLY_NO_MISSING_TARGET_PRICE_FILL"}}
+    return revised
+
+
 def load_context(*, require_checkpoint: bool) -> dict[str, Any]:
+    require(BUILD_CONFIG is not None, "EXPLICIT_NEW_HISTORY_BUILD_CONFIG_REQUIRED")
     require(sha_file(CONTRACT_PATH) == EXPECTED_CONTRACT_SHA, "LONG_INPUT_CONTRACT_SHA_DRIFT")
     require(sha_file(START_RECEIPT_PATH) == EXPECTED_START_RECEIPT_SHA, "LONG_INPUT_START_RECEIPT_SHA_DRIFT")
     require(sha_file(SNAPSHOT_PATH) == EXPECTED_SNAPSHOT_SHA, "PANEL_BINDING_SNAPSHOT_SHA_DRIFT")
     contract = load_json(CONTRACT_PATH)
     require(contract["execution_id"] == EXECUTION_ID and contract["run_stage"] == "LONG_INPUT_BUILD", "LONG_INPUT_EXECUTION_ID_DRIFT")
     code_bindings = contract["code_sha256"]
-    require(code_bindings.get(str(S / "long_data194.py")) is None and
-            code_bindings.get(str(S / "test_long_data194.py")) is None,
-            "CONTRACT_INITIAL_CODE_BINDING_DRIFT")
+    require(code_bindings.get(str(S / "long_data194.py")) == sha_file(S / "long_data194.py"),
+            "CONTRACT_IMPLEMENTATION_CODE_DRIFT")
     require(contract["input_identity"]["event_index_sha256"] == EXPECTED_EVENT_INDEX_SHA, "EVENT_INDEX_SHA_CONTRACT_DRIFT")
     snapshot = load_json(SNAPSHOT_PATH)
     target, initial_stat = validate_panel_binding(contract, snapshot)
@@ -359,13 +444,13 @@ def load_context(*, require_checkpoint: bool) -> dict[str, Any]:
         event = event_index[code]
         require(event.get("path") == row.get("event_response_path"), "EVENT_PATH_BINDING_DRIFT:" + code)
         require(event.get("sha256") == row.get("event_response_sha256"), "EVENT_SHA_BINDING_DRIFT:" + code)
+    from long_training_adapter import verify_history_input_binding
+    binding = verify_history_input_binding(BUILD_CONFIG, purpose="input_build")
+    statuses = _apply_continuity_overlay(statuses, binding, BUILD_CONFIG.get("continuity_overlay"))
     source_bindings = _verify_file_bindings(contract["frozen_source_bindings"])
 
-    r1_manifest_path = Path(str(S / "unused"))
-    for raw_path in contract["frozen_source_bindings"]:
-        if raw_path.endswith("/repair_r1_20261024/inputs/MANIFEST_FINAL.json"):
-            r1_manifest_path = Path(raw_path)
-            break
+    r1_manifest_path = Path(BUILD_CONFIG["source_manifest"]["path"])
+    require(BUILD_CONFIG["source_manifest"]["sha256"] == EXPECTED_R1_MANIFEST_SHA, "SOURCE_SEMANTICS_MANIFEST_DRIFT")
     require(r1_manifest_path.is_file() and sha_file(r1_manifest_path) == EXPECTED_R1_MANIFEST_SHA, "R1_SOURCE_MANIFEST_SHA_DRIFT")
     r1_manifest = load_json(r1_manifest_path)
     source_hits_ref = r1_manifest["files"]["source_hits"]
@@ -376,9 +461,10 @@ def load_context(*, require_checkpoint: bool) -> dict[str, Any]:
     require(sha_file(source_axes_path) == source_axes_ref["sha256"], "R1_SOURCE_AXES_SHA_DRIFT")
 
     code_sha = sha_file(S / "long_data194.py")
-    test_path = S / "test_long_data194.py"
+    test_path = Path(BUILD_CONFIG["delta_tests"]["path"])
     require(test_path.is_file(), "LONG_INPUT_TEST_SOURCE_MISSING")
     test_sha = sha_file(test_path)
+    require(test_sha == BUILD_CONFIG["delta_tests"]["sha256"], "LONG_INPUT_TEST_SOURCE_SHA_DRIFT")
     code_list_sha = sha_file(code_list_path())
     checkpoint = _check_checkpoint(code_sha, test_sha, code_list_sha) if require_checkpoint else None
     return {
@@ -429,6 +515,7 @@ def build_identity(ctx: Mapping[str, Any]) -> dict[str, Any]:
         "implementation_sha256": ctx["code_sha256"],
         "tests_sha256": ctx["test_sha256"],
         "implementation_checkpoint_sha256": ctx["checkpoint"]["sha256"],
+        "build_config_sha256": canonical_sha(BUILD_CONFIG),
         "native_threads": NATIVE_THREADS,
         "outer_workers": SHARD_COUNT,
         "fit_enabled": False,
@@ -498,9 +585,27 @@ def validate_panel_schema(path: Path) -> dict[str, str]:
     require(pa.types.is_dictionary(schema.field("ts_code").type) or pa.types.is_string(schema.field("ts_code").type),
             "PANEL_CODE_TYPE_UNSUPPORTED:" + types["ts_code"])
     require(pa.types.is_int32(schema.field("trade_date").type), "PANEL_DATE_TYPE_UNSUPPORTED:" + types["trade_date"])
-    for name in PANEL_PRICE_FIELDS + ["vol", "amount"]:
-        require(pa.types.is_float32(schema.field(name).type), "PANEL_FLOAT32_REQUIRED:" + name + ":" + types[name])
+    legacy = all(pa.types.is_float32(schema.field(name).type) for name in PANEL_PRICE_FIELDS + ["vol", "amount"])
+    raw8 = (all(pa.types.is_float64(schema.field(name).type) for name in PANEL_PRICE_FIELDS + ["amount"])
+            and pa.types.is_uint64(schema.field("vol").type))
+    require(legacy or raw8, "PANEL_NUMERIC_SCHEMA_NOT_FROZEN_FLOAT32_OR_RAW8:" + repr(types))
     return types
+
+
+def _raw_numpy_dtypes(types: Mapping[str, str]) -> dict[str, str]:
+    return {"trade_date": "int32", **{raw: {"float": "float32", "double": "float64", "uint64": "uint64"}[types[panel]]
+                                      for raw, panel in RAW_FIELDS_MAP.items()}}
+
+
+def _model_float64(values: Any, field: str) -> Any:
+    """Reject integer precision loss before handing original values to engines."""
+    import numpy as np
+    original = np.asarray(values)
+    converted = original.astype("float64", copy=False)
+    if np.issubdtype(original.dtype, np.integer) and len(original) and int(original.max()) > 2**53:
+        require(all(int(before) == int(after) for before, after in zip(original, converted)),
+                "INTEGER_TO_MODEL_FLOAT64_PRECISION_LOSS:" + field)
+    return converted
 
 
 def _npz_bytes(arrays: Mapping[str, Any]) -> bytes:
@@ -523,7 +628,7 @@ def _raw_identity(identity: Mapping[str, Any], codes: Sequence[str], panel_stat_
     return {"schema": "V194_LONG_PANEL_RAW_CACHE_V1", "execution_id": EXECUTION_ID,
             "build_identity_sha256": canonical_sha(identity), "code_list_sha256": EXPECTED_CODE_LIST_SHA,
             "codes": list(codes), "panel_target_stat": dict(panel_stat_at_start),
-            "columns": PANEL_COLUMNS, "conversion_rule": "PANEL_FLOAT32_VALUES_AS_READ_NO_ROUND_OR_INT_CAST"}
+            "columns": PANEL_COLUMNS, "conversion_rule": "BOUND_PANEL_NUMERIC_DTYPES_PRESERVED_NO_ROUND_OR_INT_CAST"}
 
 
 def _raw_cache_path(directory: Path, code: str) -> Path:
@@ -562,6 +667,7 @@ def scan_panel(ctx: Mapping[str, Any], codes: Sequence[str], directory: Path, re
         atomic_json(id_path, expected_raw)
 
     types = validate_panel_schema(target)
+    numpy_dtypes = _raw_numpy_dtypes(types)
     code_index = {code: i for i, code in enumerate(codes)}
     buckets: list[dict[str, dict[str, list[Any]]]] = [dict() for _ in range(SHARD_COUNT)]
     sessions: set[str] = set()
@@ -597,7 +703,7 @@ def scan_panel(ctx: Mapping[str, Any], codes: Sequence[str], directory: Path, re
             refs["trade_date"].append(col_arrays["trade_date"][idx].astype("int32", copy=True))
             for raw_name, panel_name in RAW_FIELDS_MAP.items():
                 values = col_arrays[panel_name][idx]
-                require(values.dtype == np.dtype("float32"), "PANEL_FLOAT32_VALUES_DTYPE_DRIFT:" + panel_name)
+                require(values.dtype == np.dtype(numpy_dtypes[raw_name]), "PANEL_VALUES_DTYPE_DRIFT:" + panel_name)
                 refs[raw_name].append(values.copy())
 
     final_stat = panel_stat(target)
@@ -607,7 +713,7 @@ def scan_panel(ctx: Mapping[str, Any], codes: Sequence[str], directory: Path, re
     for shard in range(SHARD_COUNT):
         for code in sorted(buckets[shard]):
             parts = buckets[shard][code]
-            arrays = {key: np.concatenate(value) if value else np.array([], dtype="int32" if key == "trade_date" else "float32")
+            arrays = {key: np.concatenate(value) if value else np.array([], dtype=numpy_dtypes[key])
                       for key, value in parts.items()}
             order = np.argsort(arrays["trade_date"], kind="stable")
             arrays = {key: value[order] for key, value in arrays.items()}
@@ -615,7 +721,7 @@ def scan_panel(ctx: Mapping[str, Any], codes: Sequence[str], directory: Path, re
             require(len(dates) == len(np.unique(dates)), "DUPLICATE_PANEL_CODE_DATE:" + code)
             for key, value in arrays.items():
                 if key != "trade_date":
-                    require(value.dtype == np.dtype("float32"), "RAW_CACHE_FLOAT32_CAST:" + code + ":" + key)
+                    require(value.dtype == np.dtype(numpy_dtypes[key]), "RAW_CACHE_NUMERIC_DTYPE_CAST:" + code + ":" + key)
             path = _raw_cache_path(directory, code)
             atomic_bytes(path, _npz_bytes(arrays))
             raw_files[code] = {"filename": path.name, "sha256": sha_file(path), "rows": len(dates),
@@ -626,7 +732,7 @@ def scan_panel(ctx: Mapping[str, Any], codes: Sequence[str], directory: Path, re
     missing_cache = sorted(set(codes) - set(raw_files))
     # A zero-row pool key still receives an explicit empty raw cache.
     for code in missing_cache:
-        arrays = {key: np.array([], dtype="int32" if key == "trade_date" else "float32") for key in ["trade_date", *RAW_FIELDS_MAP]}
+        arrays = {key: np.array([], dtype=numpy_dtypes[key]) for key in ["trade_date", *RAW_FIELDS_MAP]}
         path = _raw_cache_path(directory, code)
         atomic_bytes(path, _npz_bytes(arrays))
         raw_files[code] = {"filename": path.name, "sha256": sha_file(path), "rows": 0,
@@ -641,7 +747,7 @@ def scan_panel(ctx: Mapping[str, Any], codes: Sequence[str], directory: Path, re
         "per_code_rows": per_code_rows, "raw_files": raw_files,
         "calendar_sessions": sorted(sessions), "calendar_count": len(sessions),
         "calendar_first": min(sessions) if sessions else None, "calendar_last": max(sessions) if sessions else None,
-        "observed_panel_types": types, "conversion_rule": "PANEL_FLOAT32_VALUES_AS_READ_NO_ROUND_OR_INT_CAST",
+        "observed_panel_types": types, "conversion_rule": "BOUND_PANEL_NUMERIC_DTYPES_PRESERVED_NO_ROUND_OR_INT_CAST",
         "official_calendar_parity": "CANNOT_CONFIRM", **FLAGS,
     }
     require(len(receipt["calendar_sessions"]) >= 2, "PANEL_CALENDAR_TOO_SHORT")
@@ -654,7 +760,20 @@ def _load_engines() -> tuple[Any, Any, Any, Any, Any, Any]:
     if str(S) not in sys.path:
         sys.path.insert(0, str(S))
     import data194
+    require(BUILD_CONFIG is not None, "EXPLICIT_NEW_HISTORY_BUILD_CONFIG_REQUIRED")
+    engine_bindings = BUILD_CONFIG.get("engine_source_bindings", {})
+    require(set(engine_bindings) == {"original_formula", "main_chart_formula", "kernel", "rules", "brick_core", "brick", "brick_helper"},
+            "FROZEN_ENGINE_SOURCE_BINDINGS_REQUIRED")
+    _verify_file_bindings({ref["path"]: ref["sha256"] for ref in engine_bindings.values()}, skip_own=False)
     engine, old_contract, original, kernel, program = data194.engines()
+    require(engine_bindings["original_formula"]["path"] == old_contract["input_identity"]["formula_a"]
+            and Path(engine_bindings["main_chart_formula"]["path"]).resolve() == Path(kernel.FORMULA).resolve()
+            and Path(engine_bindings["kernel"]["path"]).resolve() == Path(kernel.__file__).resolve()
+            and Path(engine_bindings["rules"]["path"]).resolve() == (kernel.HERE / "RULES.json").resolve()
+            and Path(engine_bindings["brick_core"]["path"]).resolve() == (kernel.UPSTREAM / "core.py").resolve()
+            and Path(engine_bindings["brick"]["path"]).resolve() == (kernel.UPSTREAM / "price_patterns/brick.py").resolve()
+            and Path(engine_bindings["brick_helper"]["path"]).resolve() == (kernel.UPSTREAM / "price_patterns/screener_helper.py").resolve(),
+            "FROZEN_ENGINE_SOURCE_PATH_DRIFT")
     require(list(kernel.RULES) == TECHNICAL[1:], "FROZEN_11_FLAG_DEFINITION_DRIFT")
     return engine, old_contract, original, kernel, program, data194
 
@@ -779,14 +898,17 @@ def _clean_kernel_columns(projected: Mapping[str, Any]) -> dict[str, Any]:
 def raw_array_sha(dates: Sequence[str], raw: Mapping[str, Any]) -> str:
     import numpy as np
     h = hashlib.sha256()
-    h.update(b"V194_PANEL_RAW_STOCK_V1\0")
+    legacy = all(np.asarray(raw[field]).dtype == np.dtype("float32") for field in RAW_FIELDS)
+    h.update(b"V194_PANEL_RAW_STOCK_V1\0" if legacy else b"V194_PANEL_RAW_STOCK_NATIVE_DTYPES_V2\0")
     for value in dates:
         h.update(value.encode("ascii"))
         h.update(b"\0")
     for field in RAW_FIELDS:
-        arr = np.asarray(raw[field], dtype="float32")
+        arr = np.asarray(raw[field])
         h.update(field.encode("ascii") + b"\0")
-        h.update(arr.astype("<f4", copy=False).tobytes(order="C"))
+        if not legacy:
+            h.update(arr.dtype.str.encode("ascii") + b"\0")
+        h.update(arr.astype(arr.dtype.newbyteorder("<"), copy=False).tobytes(order="C"))
     return h.hexdigest()
 
 
@@ -863,13 +985,16 @@ def _evaluate_stock(code: str, raw: Mapping[str, Any], status: Mapping[str, Any]
     dates_int = np.asarray(raw["trade_date"], dtype="int32")
     dates = [f"{int(value):08d}" for value in dates_int]
     require(dates == sorted(set(dates)), "RAW_PANEL_DATES_NOT_SORTED_UNIQUE:" + code)
-    raw_values = {field: np.asarray(raw[field], dtype="float64") for field in RAW_FIELDS}
+    raw_values = {field: _model_float64(raw[field], field) for field in RAW_FIELDS}
     raw_sha = raw_array_sha(dates, raw)
     stock_binding = {"code": code, "raw_panel_sha256": raw_sha, "panel_rows": len(dates),
                      "first_date": dates[0] if dates else None, "last_date": dates[-1] if dates else None,
                      "event_response_path": status.get("event_response_path"),
                      "event_response_sha256": status.get("event_response_sha256"),
                      "status": status.get("status"), "event_projection": "ACCEPTED_ENGINE_PROJECT"}
+    if "prior_source_status" in status:
+        stock_binding.update(prior_source_status=status["prior_source_status"],
+                             continuity_revalidation=status["continuity_revalidation"])
     binding_ref = canonical_sha(stock_binding)
     truth_returns = np.full(len(calendar_pairs), np.nan, dtype="float64")
     truth_raw_close = np.full(len(calendar_pairs), np.nan, dtype="float64")
@@ -1093,6 +1218,9 @@ def _load_code_checkpoint(directory: Path, code: str, identity_sha: str) -> tupl
 
 
 def _process_shard(payload: Mapping[str, Any]) -> dict[str, Any]:
+    configure_input_build(payload["build_config"])
+    from long_training_adapter import configure_native_thread_budget
+    configure_native_thread_budget(processes=1, threads_per_process=NATIVE_THREADS, total_thread_budget=12)
     import numpy as np
     code_list = list(payload["codes"])
     raw_dir = Path(payload["raw_dir"])
@@ -1143,6 +1271,21 @@ def _subset_source_axes(source_axes: Mapping[str, Any], codes: Sequence[str]) ->
             for key in ("hits", "axes", "topics")}
 
 
+def _select_projection_workers(budget: Mapping[str, Any], pending_shards: int,
+                               peak_bytes: int, available: int | None) -> dict[str, Any]:
+    from long_training_adapter import select_safe_fit_workers
+    require(budget.get("threads_per_process") == 1 and budget.get("total_thread_budget") == 12
+            and budget.get("memory_safety_fraction") == 0.5, "INPUT_BUILD_RESOURCE_POLICY_DRIFT")
+    require(available is not None, "INPUT_BUILD_AVAILABLE_MEMORY_UNMEASURABLE")
+    plan = select_safe_fit_workers(requested_workers=budget["requested_workers"], threads_per_worker=1,
+        total_thread_budget=12, canary_peak_rss_bytes=peak_bytes,
+        available_memory_bytes=available, memory_safety_fraction=0.5)
+    plan["actual_workers"] = min(plan["actual_workers"], pending_shards)
+    plan.update(effective_threads=plan["actual_workers"], independent_pending_shards=pending_shards,
+                profile_scope="FORMULA_INPUT_PROJECTION_NOT_MODEL_FIT")
+    return plan
+
+
 def run_projection(ctx: Mapping[str, Any], codes: Sequence[str], calendar_pairs: Sequence[tuple[str, str]],
                    source_axes: Mapping[str, Any], raw_dir: Path, output_dir: Path,
                    identity: Mapping[str, Any], *, exact_parity: bool,
@@ -1172,7 +1315,7 @@ def run_projection(ctx: Mapping[str, Any], codes: Sequence[str], calendar_pairs:
         else:
             require(not any(shard_dir.iterdir()), "SHARD_DIR_UNBOUND_CONTENT:" + str(shard_dir))
             atomic_json(shard_identity_path, shard_identity)
-        payloads.append({"shard": shard_no, "codes": shard_codes, "raw_dir": str(raw_dir),
+        payloads.append({"build_config": BUILD_CONFIG, "shard": shard_no, "codes": shard_codes, "raw_dir": str(raw_dir),
                          "output_dir": str(shard_dir), "shard_identity": shard_identity,
                          "identity_sha256": identity_sha, "statuses": {c: ctx["statuses"][c] for c in shard_codes},
                          "calendar_pairs": list(calendar_pairs), "source_axes": _subset_source_axes(source_axes, shard_codes),
@@ -1182,14 +1325,60 @@ def run_projection(ctx: Mapping[str, Any], codes: Sequence[str], calendar_pairs:
     start = time.monotonic()
     before = resource_snapshot(output_dir)
     require(before.get("disk_free_bytes", 0) > 10 * 1024**3, "INSUFFICIENT_FREE_DISK_BEFORE_PROJECTION")
-    with ProcessPoolExecutor(max_workers=SHARD_COUNT, mp_context=multiprocessing.get_context("spawn")) as pool:
-        summaries = list(pool.map(_process_shard, payloads, chunksize=1))
+    from long_training_adapter import runtime_snapshot
+    budget = BUILD_CONFIG["runtime_budget"]
+    pending = [p for p in payloads if any(not _result_path(Path(p["output_dir"]) / "per_code", c).exists()
+                                         for c in p["codes"])]
+    pending_ids = {p["shard"] for p in pending}
+    summaries = [_process_shard(p) for p in payloads if p["shard"] not in pending_ids]
+    header = {"schema": "V194_INPUT_PROJECTION_LAUNCH_V1", "execution_id": EXECUTION_ID,
+              "identity_sha256": identity_sha,
+              "requested_workers": budget["requested_workers"], "native_threads": 1,
+              "independent_shards": SHARD_COUNT, "launches": [], **FLAGS}
+    header_path = output_dir / "LAUNCH_RESOURCE_HEADER.json"
+    if header_path.exists():
+        previous = load_json(header_path)
+        require(previous.get("identity_sha256") == identity_sha, "INPUT_LAUNCH_IDENTITY_DRIFT")
+        header["launches"] = previous["launches"]
+    peak_bytes = None
+    if exact_parity and pending:
+        # This first actual shard is retained as part of the canary, never repeated.
+        live = runtime_snapshot()
+        reservation = budget.get("unmeasured_canary_reservation_bytes")
+        require(type(reservation) is int and reservation > 0, "INPUT_CANARY_RESERVATION_REQUIRED")
+        plan = _select_projection_workers(budget, 1, reservation, live.get("available_memory_bytes"))
+        header["launches"].append({"phase": "FIRST_SHARD_RESOURCE_PROFILE", "resources": live,
+                                   "worker_selection": plan, "reservation_is_measured_rss": False})
+        replace_atomic_json(header_path, header)
+        with ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn")) as pool:
+            first = pool.submit(_process_shard, pending.pop(0)).result()
+        summaries.append(first)
+        peak_bytes = first["worker_peak_rss_raw"] * (1 if sys.platform == "darwin" else 1024)
+        require(peak_bytes <= reservation, "INPUT_CANARY_EXCEEDS_FROZEN_RESERVATION")
+    elif not exact_parity:
+        profile = load_json(CANARY / "RECEIPT.json")["projection_receipt"]
+        peak_bytes = max(profile["worker_peak_rss_raw"]) * (1 if sys.platform == "darwin" else 1024)
+    if pending:
+        if peak_bytes is None:
+            peak_bytes = max(s["worker_peak_rss_raw"] for s in summaries) * (1 if sys.platform == "darwin" else 1024)
+        live = runtime_snapshot()
+        plan = _select_projection_workers(budget, len(pending), peak_bytes, live.get("available_memory_bytes"))
+        header["launches"].append({"phase": "MEASURED_FORMULA_PROFILE_PARALLEL", "resources": live,
+                                   "worker_selection": plan, "profile_is_model_fit_rss": False})
+        replace_atomic_json(header_path, header)
+        with ProcessPoolExecutor(max_workers=plan["actual_workers"], mp_context=multiprocessing.get_context("spawn")) as pool:
+            summaries.extend(pool.map(_process_shard, pending, chunksize=1))
+    if not header["launches"]:
+        replace_atomic_json(header_path, header)
     elapsed = time.monotonic() - start
     after = resource_snapshot(output_dir)
     summaries.sort(key=lambda r: r["shard"])
     return {"schema": "V194_LONG_INPUT_PROJECTION_RESOURCE_RECEIPT_V1", "codes": len(codes),
             "elapsed_seconds": elapsed, "codes_per_second": len(codes) / elapsed if elapsed else None,
-            "workers": SHARD_COUNT, "native_threads_per_worker": NATIVE_THREADS,
+            "workers": max((step["worker_selection"]["actual_workers"] for step in header["launches"]), default=0),
+            "requested_workers": budget["requested_workers"], "independent_shards": SHARD_COUNT,
+            "launch_resource_header": {"path": str(header_path), "sha256": sha_file(header_path)},
+            "native_threads_per_worker": NATIVE_THREADS,
             "before_resources": before, "after_resources": after,
             "worker_peak_rss_raw": [row["worker_peak_rss_raw"] for row in summaries],
             "shard_summaries": summaries, "panel_rows_for_codes": selected_panel_rows,
@@ -1199,7 +1388,7 @@ def run_projection(ctx: Mapping[str, Any], codes: Sequence[str], calendar_pairs:
 def calendar_pairs_from_receipt(receipt: Mapping[str, Any]) -> list[tuple[str, str]]:
     sessions = list(receipt["calendar_sessions"])
     require(sessions == sorted(set(sessions)), "PANEL_CALENDAR_NOT_SORTED_UNIQUE")
-    return [(sessions[i - 1], sessions[i]) for i in range(1, len(sessions))]
+    return [(sessions[i - 1], sessions[i]) for i in range(1, len(sessions)) if ymd(sessions[i]) <= TARGET_DATE_CAP]
 
 
 def _event_anchor_checks(ctx: Mapping[str, Any], codes: Sequence[str], raw_dir: Path,
@@ -1215,7 +1404,7 @@ def _event_anchor_checks(ctx: Mapping[str, Any], codes: Sequence[str], raw_dir: 
         ev, unsupported = engine.events(status)
         raw_path = _raw_cache_path(raw_dir, code)
         with np.load(raw_path, allow_pickle=False) as src:
-            raw = {field: src[field].astype("float64") for field in RAW_FIELDS}
+            raw = {field: _model_float64(src[field], field) for field in RAW_FIELDS}
             dates = [f"{int(value):08d}" for value in src["trade_date"]]
         idx = {day: i for i, day in enumerate(dates)}
         for event in ev:
@@ -1296,15 +1485,16 @@ def run_canary() -> dict[str, Any]:
         with np.load(path, allow_pickle=False) as src:
             volume = src["volume"]
             amount = src["amount"]
-            require(volume.dtype == np.dtype("float32") and amount.dtype == np.dtype("float32"),
-                    "CANARY_FLOAT32_RAW_VALUE_CAST:" + code)
+            expected_types = _raw_numpy_dtypes(scan_receipt["observed_panel_types"])
+            require(volume.dtype == np.dtype(expected_types["volume"]) and amount.dtype == np.dtype(expected_types["amount"]),
+                    "CANARY_RAW_VALUE_DTYPE_CAST:" + code)
             max_volume = float(np.nanmax(volume)) if len(volume) else float("nan")
             max_amount = float(np.nanmax(amount)) if len(amount) else float("nan")
             volume_max.append((max_volume if math.isfinite(max_volume) else -1.0, code))
             amount_max.append((max_amount if math.isfinite(max_amount) else -1.0, code))
-            precision.append({"code": code, "panel_float32_dtype": str(volume.dtype),
+            precision.append({"code": code, "volume_dtype": str(volume.dtype), "amount_dtype": str(amount.dtype),
                               "volume_max_as_stored": max_volume, "amount_max_as_stored": max_amount,
-                              "float32_storage_preserved": True,
+                              "source_numeric_dtype_preserved": True,
                               "volume_values_not_integer_cast": True, "amount_values_not_rounded": True})
     high_volume_code = max(volume_max)[1]
     after_resources = resource_snapshot(CANARY)
@@ -1338,7 +1528,7 @@ def run_canary() -> dict[str, Any]:
                "scan_wall_seconds": scan_elapsed, "scan_rows_per_second": scan_receipt["panel_rows_scanned"] / scan_elapsed if scan_elapsed else None,
                "projection_receipt": process_receipt, "canary_codes": CANARY_CODES,
                "coverage": code_coverage, "exact_per_day_engine_parity_rows": parity_rows,
-               "event_anchor_checks": event_checks, "float32_precision_checks": precision,
+               "event_anchor_checks": event_checks, "source_precision_checks": precision,
                "measured_high_volume_code": high_volume_code,
                "max_canary_volume": max(volume_max), "max_canary_amount": max(amount_max),
                "resource_before_scan": before_resources, "resource_after_projection": after_resources,
@@ -1385,6 +1575,10 @@ def _finalize_date_policy(calendar: list[dict[str, Any]], candidate_rows: Sequen
     revised, policy = data_module.freeze_date_policy(calendar, candidate_keys, truth_keys)
     for row in revised:
         day = str(row["target_date"])
+        if ymd(day) > TARGET_DATE_CAP:
+            row.update(training_eligible=False, cohort_role="excluded_after_target_cap",
+                       eligibility_exclusion_reason="AFTER_FROZEN_TARGET_DATE_CAP")
+            continue
         if int(row.get("technical_complete_rows", 0)) == 0:
             row.update(training_eligible=False, cohort_role="data_unavailable",
                        eligibility_exclusion_reason="NO_COMPUTABLE_TECHNICAL_INPUT_DAY")
@@ -1492,6 +1686,7 @@ def assemble_full(ctx: Mapping[str, Any], identity: Mapping[str, Any], scan_rece
 
     date_rankable = np.zeros(n_targets, dtype="int32")
     date_positive_denominator = np.zeros(n_targets, dtype="int32")
+    date_rankable_code_sha = [canonical_sha([])] * n_targets
     truth_rows_path = BUILD / "truth.csv"
     truth_tmp = truth_rows_path.with_name(truth_rows_path.name + f".tmp-{os.getpid()}")
     require(not truth_tmp.exists(), "TEMP_OUTPUT_EXISTS:" + str(truth_tmp))
@@ -1504,6 +1699,7 @@ def assemble_full(ctx: Mapping[str, Any], identity: Mapping[str, Any], scan_rece
                 order = valid_idx[np.argsort(-return_matrix[valid_idx, j], kind="stable")]
                 date_rankable[j] = len(order)
                 date_positive_denominator[j] = min(100, len(order))
+                date_rankable_code_sha[j] = canonical_sha(sorted(codes[int(i)] for i in order))
                 for rank, i in enumerate(order, 1):
                     code = codes[int(i)]
                     day = iso_day(target)
@@ -1539,6 +1735,7 @@ def assemble_full(ctx: Mapping[str, Any], identity: Mapping[str, Any], scan_rece
         base = {"target_date": target_iso, "signal_date": iso_day(signal),
             "truth_positive_denominator": int(date_positive_denominator[j]),
             "truth_rankable_research_rows": int(date_rankable[j]), "research_pool_size": n_codes,
+            "truth_rankable_code_keys_sha256": date_rankable_code_sha[j],
             "selection_slots": 0, "planned_model_selection_top_n": 50,
             "cohort_role": "diagnostic" if target in EXPOSED else "eligible",
             "label_available_at": close_available_at(target) if date_rankable[j] else "",
@@ -1645,6 +1842,10 @@ def assemble_full(ctx: Mapping[str, Any], identity: Mapping[str, Any], scan_rece
         "official_calendar_parity": "CANNOT_CONFIRM",
         "signal_date_range": [pairs[0][0], pairs[-1][0]] if pairs else [],
         "target_date_range": [pairs[0][1], pairs[-1][1]] if pairs else [],
+        "target_date_cap": iso_day(TARGET_DATE_CAP),
+        "qfq_manifest": BUILD_CONFIG["history_binding"]["qfq_manifest"],
+        "engine_source_bindings": BUILD_CONFIG["engine_source_bindings"],
+        "source_state_parent_binding": BUILD_CONFIG["source_manifest"],
         "exposed_targets_excluded": sorted(iso_day(day) for day in EXPOSED),
         "label_definition": dictionary["label_definition"],
         "label_price_series_identity": "ORIGINAL_ACCEPTED_ENGINE_SAME_SOURCE_TARGET_D_QFQ_ANCHOR",
@@ -1720,7 +1921,11 @@ def run_full() -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Frozen research-only long-history A-share V194 input projection")
     parser.add_argument("phase", choices=["canary", "full"])
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--config-sha256", required=True)
     args = parser.parse_args()
+    require(sha_file(args.config) == args.config_sha256, "HISTORY_BUILD_CONFIG_SHA_DRIFT")
+    configure_input_build(load_json(args.config))
     if args.phase == "canary":
         result = run_canary()
     else:

@@ -13,6 +13,7 @@ import multiprocessing
 import os
 from pathlib import Path
 import sys
+import time
 import uuid
 from typing import Any
 
@@ -27,6 +28,9 @@ from long_training_adapter import (
     canonical_json_sha256,
     select_safe_fit_workers,
     verify_independent_input_pass,
+    history_output_path,
+    HISTORY_TARGET_CAP,
+    HISTORY_EXPOSED_TARGETS,
 )
 
 
@@ -51,7 +55,12 @@ def _initialize_fold_worker(
         threads_per_process=threads_per_worker,
         total_thread_budget=total_thread_budget,
     )
-    _WORKER_CONTEXT.update(rows=rows, model_config=model_config, identity=identity)
+    cache_ref = rows if isinstance(rows, dict) else None
+    if cache_ref is not None:
+        from model_input_cache194 import open_bound_cache
+        rows, _ = open_bound_cache(cache_ref, verify_bytes=False)
+    _WORKER_CONTEXT.update(rows=rows, model_config=model_config, identity=identity,
+                          cache_ref=cache_ref)
 
 
 def _run_fold_worker(split: dict[str, Any], temporary_dir: str) -> dict[str, Any]:
@@ -65,18 +74,30 @@ def _run_fold_worker(split: dict[str, Any], temporary_dir: str) -> dict[str, Any
 
     for key in legacy_pipeline.m.FIT_COUNTS:
         legacy_pipeline.m.FIT_COUNTS[key] = 0
+    started = time.monotonic()
     result = legacy_pipeline.m.run_fold(
         _WORKER_CONTEXT["rows"],
         _WORKER_CONTEXT["model_config"],
         split,
         temporary_dir,
     )
+    profile = {
+        "pid": os.getpid(), "elapsed_seconds": time.monotonic() - started,
+        "runtime": runtime_snapshot(), "training_rows": result["training_rows"],
+        "evaluation_rows": result["evaluation_rows"], "cache_manifest": _WORKER_CONTEXT["cache_ref"],
+        "runtime_source_sha256": {
+            name: sha256_file(Path(__file__).with_name(name))
+            for name in ("long_run194.py", "long_training_adapter.py", "model_input_cache194.py")
+        },
+    }
+    legacy_pipeline.m.save(Path(temporary_dir) / "FOLD_WORKER_PROFILE.json", profile)
     legacy_pipeline.seal_fold(temporary_dir, _WORKER_CONTEXT["identity"])
     return {
         "split_id": split["id"],
         "temporary_dir": temporary_dir,
         "result": result,
         "fit_counts": dict(legacy_pipeline.m.FIT_COUNTS),
+        "profile": profile,
     }
 
 
@@ -118,8 +139,13 @@ def _fit_canary_peak_rss(
     require(fit_identity.get("universe_code_list_path") == input_pass["universe_code_list_path"], "FIT_CANARY_IDENTITY_UNIVERSE_PATH_DRIFT")
     require(fit_identity.get("universe_code_count") == input_pass["universe_code_count"], "FIT_CANARY_IDENTITY_UNIVERSE_COUNT_DRIFT")
     require(fit_identity.get("universe_scope") == input_pass["universe_scope"], "FIT_CANARY_IDENTITY_UNIVERSE_SCOPE_DRIFT")
-    require(fit_identity.get("long_runner_code_sha256") == sha256_file(Path(__file__).resolve()), "FIT_CANARY_RUNNER_CODE_DRIFT")
-    require(fit_identity.get("adapter_code_sha256") == sha256_file(Path(__file__).with_name("long_training_adapter.py")), "FIT_CANARY_ADAPTER_CODE_DRIFT")
+    compatibility = None
+    if config.get("runtime_compatibility") is not None:
+        from model_input_cache194 import verify_compatibility
+        compatibility = verify_compatibility(config, input_pass, receipt)
+    else:
+        require(fit_identity.get("long_runner_code_sha256") == sha256_file(Path(__file__).resolve()), "FIT_CANARY_RUNNER_CODE_DRIFT")
+        require(fit_identity.get("adapter_code_sha256") == sha256_file(Path(__file__).with_name("long_training_adapter.py")), "FIT_CANARY_ADAPTER_CODE_DRIFT")
     require(fit_identity.get("threads_per_process") == budget.get("threads_per_process"), "FIT_CANARY_IDENTITY_THREAD_DRIFT")
     for key in ("model_config_sha256", "frozen_identity_sha256", "frozen_plan_sha256", "first_fold_sha256"):
         value = fit_identity.get(key)
@@ -142,6 +168,7 @@ def _fit_canary_peak_rss(
         "threads_per_process": budget.get("threads_per_process"),
         "fit_counts": fit_counts,
         "fit_identity": fit_identity,
+        "runtime_compatibility": compatibility,
     }
 
 
@@ -193,7 +220,11 @@ def _verify_fit_canary_identity(
     expected = _fit_canary_identity(
         frozen, input_pass, route_id=route_id, threads_per_process=threads_per_process
     )
-    require(canary.get("fit_identity") == expected, "FIT_CANARY_MODEL_FOLD_IDENTITY_DRIFT")
+    if canary.get("runtime_compatibility") is not None:
+        from model_input_cache194 import compatible_canary_identity
+        compatible_canary_identity(canary["fit_identity"], expected, canary["runtime_compatibility"])
+    else:
+        require(canary.get("fit_identity") == expected, "FIT_CANARY_MODEL_FOLD_IDENTITY_DRIFT")
 
 
 def _source_coverage_counts(row: dict[str, Any]) -> dict[str, Any]:
@@ -328,9 +359,9 @@ def _daily_model_report_rows(
             "baseline_hits": oof["technical11_l2_hits"] if oof is not None else None,
             "v194_selected": oof["v194_selected"] if oof is not None else None,
             "v194_hits": oof["v194_hits"] if oof is not None else None,
-            "baseline_v194_common": oof["technical11_l2_vs_v194_common"] if oof is not None else None,
-            "baseline_v194_new": oof["technical11_l2_vs_v194_new"] if oof is not None else None,
-            "baseline_v194_lost": oof["technical11_l2_vs_v194_lost"] if oof is not None else None,
+            "baseline_v194_common": oof["technical11_l2_vs_v194_common_hits"] if oof is not None else None,
+            "baseline_v194_new": oof["technical11_l2_vs_v194_new_hits"] if oof is not None else None,
+            "baseline_v194_lost": oof["technical11_l2_vs_v194_lost_hits"] if oof is not None else None,
             "formula255_offline_selected": oof["raw_formula255_selected"] if oof is not None else None,
             "formula255_offline_hits": oof["raw_formula255_hits"] if oof is not None else None,
         }
@@ -383,6 +414,21 @@ def _fold_source_state_audit(
     return audit
 
 
+def _verify_rankable_day(day_truth: list[dict[str, Any]], calendar: dict[str, Any], universe_codes: set[str]) -> tuple[set[str], int]:
+    codes = [row["code"] for row in day_truth]
+    count = int(calendar["truth_rankable_research_rows"])
+    require(len(codes) == count, "OOF_TRUTH_RANKABLE_ROW_COUNT_DRIFT")
+    require(len(set(codes)) == count and set(codes) <= universe_codes, "OOF_TRUTH_RANKABLE_KEYSET_DRIFT")
+    require(canonical_json_sha256(sorted(codes)) == calendar.get("truth_rankable_code_keys_sha256"),
+            "OOF_TRUTH_MANIFEST_RANKABLE_KEYSET_DRIFT")
+    require(all(float(row["label"]) in (0.0, 1.0) for row in day_truth), "TRUTH_LABEL_NOT_BINARY")
+    positives = {row["code"] for row in day_truth if int(float(row["label"])) == 1}
+    denominator = int(calendar["truth_positive_denominator"])
+    require(denominator == min(100, count), "OOF_TOP100_RANKABLE_DENOMINATOR_DRIFT")
+    require(len(positives) == denominator, "OOF_TOP100_DENOMINATOR_DRIFT")
+    return positives, denominator
+
+
 def _selection_comparison(
     *, oof_dates: list[str], truth_rows: list[dict[str, Any]], raw_natural_rows: list[dict[str, Any]],
     technical_rows: list[dict[str, Any]], v194_rows: list[dict[str, Any]],
@@ -422,14 +468,8 @@ def _selection_comparison(
     for target_date in oof_dates:
         require(target_date in calendar, "OOF_DATE_MISSING_CALENDAR")
         day_truth = truth_by_date.get(target_date, [])
-        truth_codes = [row["code"] for row in day_truth]
-        require(len(truth_codes) == len(universe_codes), "OOF_TRUTH_UNIVERSE_ROW_COUNT_DRIFT")
-        require(len(set(truth_codes)) == len(universe_codes) and set(truth_codes) == universe_codes,
-                "OOF_TRUTH_UNIVERSE_KEYSET_DRIFT")
-        positives = {row["code"] for row in day_truth if int(float(row["label"])) == 1}
-        denominator = int(calendar[target_date]["truth_positive_denominator"])
-        require(denominator == 100, "OOF_TOP100_EXPECTED_100_POSITIVES")
-        require(len(positives) == denominator, "OOF_TOP100_DENOMINATOR_DRIFT")
+        rankable_count = int(calendar[target_date]["truth_rankable_research_rows"])
+        positives, denominator = _verify_rankable_day(day_truth, calendar[target_date], universe_codes)
         raw = raw_by_date.get(target_date, set())
         technical = technical_by_date.get(target_date, set())
         v194 = v194_by_date.get(target_date, set())
@@ -471,6 +511,7 @@ def _selection_comparison(
             "v194_selected": len(v194),
             "v194_hits": len(v194 & positives),
             "truth_positive_denominator": denominator,
+            "truth_rankable_research_rows": rankable_count,
             "technical11_l2_equals_v194": technical == v194,
             "training_source_state_variation_seen": fold_audit.get("any_source_state_variation_seen"),
             "training_all_source_lanes_unknown": fold_audit.get("all_source_lanes_unknown"),
@@ -537,6 +578,8 @@ def _verify_date_policy_binding(config: dict[str, Any], model_module: Any) -> di
     require(isinstance(policy_eligible, list) and bool(policy_eligible), "DATE_POLICY_ELIGIBLE_DATES_MISSING")
     require(manifest_eligible == sorted(set(manifest_eligible)), "DATE_POLICY_MANIFEST_ELIGIBLE_DATES_NOT_SORTED_UNIQUE")
     require(policy_eligible == manifest_eligible, "DATE_POLICY_ELIGIBLE_DATE_DRIFT")
+    require(all(day <= HISTORY_TARGET_CAP and day not in HISTORY_EXPOSED_TARGETS for day in manifest_eligible),
+            "DATE_POLICY_FROZEN_TARGET_BOUNDARY_DRIFT")
 
     expected_exposed = manifest.get("exposed_targets_excluded")
     diagnostic_dates = policy.get("diagnostic_target_dates")
@@ -656,6 +699,16 @@ def _prepare_bounded_research_plan(config: dict[str, Any], legacy_pipeline: Any)
     model.require(set(eligible) <= by_date.keys(), "ELIGIBLE_CALENDAR_MISSING")
     row_dates = {row["target_date"] for row in rows}
     model.require(row_dates <= by_date.keys(), "ROW_DATE_OUTSIDE_CALENDAR")
+    model.require(all(day <= HISTORY_TARGET_CAP and day not in HISTORY_EXPOSED_TARGETS for day in eligible),
+                  "DATE_POLICY_FROZEN_TARGET_BOUNDARY_DRIFT")
+    rankable_by_date: dict[str, list[dict[str, Any]]] = {}
+    for row in tables["truth"]:
+        if row["target_date"] in eligible_set:
+            rankable_by_date.setdefault(row["target_date"], []).append(row)
+    universe_codes = set(read_frozen_universe_codes(config["frozen_universe"]["code_list_path"]))
+    for day in eligible:
+        _verify_rankable_day(rankable_by_date.get(day, []), by_date[day], universe_codes)
+    del rankable_by_date
 
     truth_positive_by_date: dict[str, int] = {}
     truth_count_by_date: dict[str, int] = {}
@@ -764,6 +817,117 @@ def _selection_totals(daily: list[dict[str, Any]]) -> dict[str, Any]:
     return totals
 
 
+def _execute_cached_fold_waves(
+    config: dict[str, Any], pending: list[tuple[dict[str, Any], Path]], *,
+    frozen: dict[str, Any], model_config: dict[str, Any], checkpoint: Any,
+    requested_workers: int, threads_per_worker: int, total_thread_budget: int,
+    canary: dict[str, Any], actual_budget: dict[str, Any], set_runtime_budget: Any,
+    cache_manifest: dict[str, Any],
+) -> dict[str, int]:
+    """Distinct unfinished folds supply the 1/4/8/12/16 resource steps."""
+    from model_input_cache194 import pressure_snapshot
+    import run194 as legacy_pipeline
+
+    require(config.get("resource_ramp") == [1, 4, 8, 12, 16], "CACHE_RESOURCE_RAMP_DRIFT")
+    fraction = config["runtime_budget"]["memory_safety_fraction"]
+    require(0.2 <= fraction <= 0.8 and threads_per_worker == 1, "CACHE_RESOURCE_BUDGET_DRIFT")
+    output = Path(config["output_dir"])
+    counts = {key: 0 for key in legacy_pipeline.m.FIT_COUNTS}
+    remaining = list(pending)
+    level = 0
+    wave = 0
+    peak = canary["peak_rss_bytes"]
+    observed_train_rows = 0
+    last_throughput = None
+    last_workers = 1
+    by_date = cache_manifest["projection"]["row_counts_by_target_date"]
+    while remaining:
+        wave += 1
+        desired = min(requested_workers, config["resource_ramp"][level], len(remaining))
+        upper_rows = max(sum(by_date.get(day, 0) for day in split["train_target_dates"])
+                         for split, _ in remaining[:desired])
+        projected_peak = peak if not observed_train_rows else max(
+            peak, (peak * upper_rows + observed_train_rows - 1) // observed_train_rows)
+        selection = select_safe_fit_workers(
+            requested_workers=desired, threads_per_worker=threads_per_worker,
+            total_thread_budget=total_thread_budget, canary_peak_rss_bytes=projected_peak,
+            available_memory_bytes=runtime_snapshot()["available_memory_bytes"],
+            memory_safety_fraction=fraction,
+        )
+        workers = selection["actual_workers"]
+        batch, remaining = remaining[:workers], remaining[workers:]
+        budget = configure_native_thread_budget(processes=workers, threads_per_process=1,
+                                                total_thread_budget=total_thread_budget)
+        actual_budget.update(budget)
+        actual_budget["fit_worker_selection"] = {
+            **selection, "requested_fit_workers": requested_workers, "resource_ramp_level": desired,
+            "profile_basis": "ORIGINAL_WHOLE_CANARY_RESERVATION" if not observed_train_rows else "MEASURED_CACHE_FOLD_WORKERS",
+            "observed_cache_worker_peak_rss_bytes": peak if observed_train_rows else None,
+            "observed_training_row_maximum": observed_train_rows,
+            "upcoming_training_row_upper_bound": upper_rows,
+        }
+        set_runtime_budget(actual_budget)
+        started = time.monotonic()
+        before_pressure = pressure_snapshot()
+        wave_dir = output / "_resource_waves"
+        legacy_pipeline.m.save(wave_dir / f"WAVE_{wave:04d}_START.json", {
+            "fold_ids": [split["id"] for split, _ in batch], "runtime_budget": dict(actual_budget),
+            "pressure_before": before_pressure,
+        })
+        profiles = []
+        context = multiprocessing.get_context("spawn")
+        with ProcessPoolExecutor(
+            max_workers=workers, mp_context=context, initializer=_initialize_fold_worker,
+            initargs=(config["input_cache"], model_config, frozen["identity"], 1, total_thread_budget),
+            max_tasks_per_child=1,
+        ) as pool:
+            futures = {pool.submit(_run_fold_worker, split, str(temp)): (split, temp) for split, temp in batch}
+            try:
+                for future in as_completed(futures):
+                    split, temp = futures[future]
+                    result = future.result()
+                    require(result["split_id"] == split["id"], "FOLD_WORKER_ID_DRIFT")
+                    canonical = output / split["id"]
+                    require(not canonical.exists(), "FOLD_CACHE_APPEARED_DURING_RUN")
+                    os.replace(temp, canonical)
+                    profile = result["profile"]
+                    profiles.append(profile)
+                    for key, value in result["fit_counts"].items():
+                        counts[key] += int(value)
+                    legacy_pipeline.m.FIT_COUNTS.update(counts)
+                    checkpoint(split["id"].upper() + "_COMPLETE", canonical / "FOLD_RESULT.json")
+            except BaseException:
+                for future in futures:
+                    future.cancel()
+                raise
+        # The first new worker profile replaces, rather than relabels, the old
+        # whole-parent canary reservation; all later observations retain max RSS.
+        measured = max(profile["runtime"]["process_peak_rss_bytes"] for profile in profiles)
+        peak = measured if not observed_train_rows else max(peak, measured)
+        observed_train_rows = max(observed_train_rows, *(profile["training_rows"] for profile in profiles))
+        elapsed = time.monotonic() - started
+        throughput = len(batch) / elapsed
+        after_pressure = pressure_snapshot()
+        swapped = before_pressure.get("status") == after_pressure.get("status") == "OBSERVED" and any(
+            after_pressure[key] > before_pressure[key] for key in ("swapins", "swapouts"))
+        no_gain = last_throughput is not None and workers > last_workers and throughput <= last_throughput
+        if swapped or no_gain:
+            level = max(0, level - 1)
+        else:
+            level = min(level + 1, len(config["resource_ramp"]) - 1)
+        receipt = wave_dir / f"WAVE_{wave:04d}_COMPLETE.json"
+        legacy_pipeline.m.save(receipt, {
+            "fold_ids": [split["id"] for split, _ in batch], "actual_workers": workers,
+            "elapsed_seconds": elapsed, "completed_folds_per_second": throughput,
+            "profiles": profiles, "pressure_before": before_pressure, "pressure_after": after_pressure,
+            "backoff_reason": "SWAP_COUNTER_INCREASE" if swapped else "NO_THROUGHPUT_GAIN" if no_gain else None,
+            "next_ramp_limit": config["resource_ramp"][level], "cumulative_fit_counts": dict(counts),
+        })
+        checkpoint(f"RESOURCE_WAVE_{wave:04d}_COMPLETE", receipt)
+        last_throughput, last_workers = throughput, workers
+    return counts
+
+
 def _execute_oof_parallel(
     config: dict[str, Any], checkpoint: Any, *, requested_workers: int,
     threads_per_worker: int, total_thread_budget: int,
@@ -789,6 +953,12 @@ def _execute_oof_parallel(
         route_id=identity_runtime["route_id"],
         threads_per_process=threads_per_worker,
     )
+    cache_manifest = None
+    if config.get("input_cache") is not None:
+        require(canary.get("runtime_compatibility") is not None, "CACHE_RUNTIME_EQUIVALENCE_REQUIRED")
+        from model_input_cache194 import open_bound_cache
+        verified_cache_rows, cache_manifest = open_bound_cache(config["input_cache"], verify_bytes=True)
+        del verified_cache_rows  # Parent keeps its original rows for unchanged audits.
     available_memory_bytes = runtime_snapshot()["available_memory_bytes"]
     memory_safety_fraction = config.get("runtime_budget", {}).get("memory_safety_fraction", 0.5)
     selection = select_safe_fit_workers(
@@ -832,7 +1002,14 @@ def _execute_oof_parallel(
             pending.append((split, temp_dir))
 
     fit_counts = {key: 0 for key in legacy_pipeline.m.FIT_COUNTS}
-    if pending:
+    if pending and cache_manifest is not None:
+        fit_counts = _execute_cached_fold_waves(
+            config, pending, frozen=frozen, model_config=model_config, checkpoint=checkpoint,
+            requested_workers=requested_workers, threads_per_worker=threads_per_worker,
+            total_thread_budget=total_thread_budget, canary=canary, actual_budget=actual_budget,
+            set_runtime_budget=set_runtime_budget, cache_manifest=cache_manifest,
+        )
+    elif pending:
         context = multiprocessing.get_context("spawn")
         with ProcessPoolExecutor(
             max_workers=workers,
@@ -912,12 +1089,8 @@ def _execute_oof_parallel(
         **FLAGS,
     })
     source_coverage = _source_coverage_by_year(source_coverage_rows)
-    source_coverage["source_state_parent_binding"] = {
-        "r1_manifest_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v194_20261023/repair_r1_20261024/inputs/MANIFEST_FINAL.json",
-        "r1_manifest_sha256": "e5f57acb6e5555f3a08e8e76387b427bf50d57eb57560f6f80de2dda9594bfcf",
-        "r1_data194_sha256": "57f2ea925106859e8152a13f52c61f51b74bed8218ee2acea2e37f89cfb84fa2",
-        "interpretation": "The R1 producer binds observed hit records; nonmembership remained unknown and no confirmed_absent rows were present. This long-window report preserves that state and does not infer absence from pool complement.",
-    }
+    require(isinstance(manifest.get("source_state_parent_binding"), dict), "SOURCE_STATE_PARENT_BINDING_REQUIRED")
+    source_coverage["source_state_parent_binding"] = manifest["source_state_parent_binding"]
     selection_path = output / "LONG_SELECTION_AUDIT.json"
     fold_state_path = output / "LONG_FOLD_SOURCE_STATE_AUDIT.json"
     coverage_year_path = output / "LONG_SOURCE_COVERAGE_BY_YEAR.json"
@@ -1004,7 +1177,18 @@ def run_registered_contract(contract_path: str | Path) -> dict[str, Any]:
     require(bool(route_id) and bool(execution_id), "REGISTRY_IDENTITY_REQUIRED")
     require(stage in ALLOWED_STAGES, "UNSUPPORTED_LONG_RUN_STAGE")
 
-    from registry_bridge import register
+    # Check new destinations and the current input before loading a bridge that
+    # can write official events or receipt projections.
+    config_path = Path(str(contract.get("run_config_path", ""))).resolve()
+    require(config_path.is_file() and sha256_file(config_path) == contract.get("run_config_sha256"), "RUN_CONFIG_DRIFT")
+    initial_config = load_json(config_path)
+    require(isinstance(initial_config.get("history_binding"), dict), "CURRENT_HISTORY_INPUT_BINDING_REQUIRED")
+    history_output_path(initial_config.get("output_dir", ""), roots=("runs",))
+    verify_independent_input_pass(initial_config)
+    import registry_bridge
+    require(getattr(registry_bridge, "SUPPORTS_NEW_HISTORY_PROJECTION", False) is True,
+            "NEW_HISTORY_REGISTRY_PROJECTION_NOT_BOUND")
+    register = registry_bridge.register
 
     stage_name = stage.upper()
     start_receipt = register(
@@ -1024,7 +1208,7 @@ def run_registered_contract(contract_path: str | Path) -> dict[str, Any]:
         require(config_path.is_file() and isinstance(expected_config_sha, str), "RUN_CONFIG_BINDING_REQUIRED")
         require(sha256_file(config_path) == expected_config_sha, "RUN_CONFIG_DRIFT")
         config = load_json(config_path)
-        output_dir = Path(str(config.get("output_dir", ""))).resolve()
+        output_dir = history_output_path(config.get("output_dir", ""), roots=("runs",))
         require(bool(str(config.get("output_dir", ""))), "OUTPUT_DIR_REQUIRED")
 
         runtime = config.get("runtime_budget", {})
@@ -1066,7 +1250,7 @@ def run_registered_contract(contract_path: str | Path) -> dict[str, Any]:
             "input_review_sha256": input_pass["review_receipt_sha256"],
             "frozen_universe_code_list_sha256": input_pass["universe_code_list_sha256"],
         })
-        require(actual_budget["effective_native_threads"] <= 12, "GLOBAL_THREAD_CAP_EXCEEDED")
+        require(actual_budget["effective_native_threads"] <= 16, "GLOBAL_THREAD_CAP_EXCEEDED")
 
         heartbeat_seconds = float(runtime.get("heartbeat_seconds", 30.0))
         runtime_dir = output_dir / "_runtime" / str(execution_id) / stage
