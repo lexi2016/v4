@@ -1,0 +1,60 @@
+{
+  "buy_gate_updated": false,
+  "native_helper": {
+    "failed": 0,
+    "receipt_sha256": "d81ec5056a3aba8345b036087ed9115fab3d8b59d80e71e2dff90557cada90bf",
+    "reviewer": "/root/archive8_coupled_integration_review",
+    "scope": "Synthetic expected-absent atomic seed creation/ownership rollback; real writes not executed",
+    "tests": 6
+  },
+  "orders_sent": false,
+  "production_allowed": false,
+  "research_only": true,
+  "schema": "REVIEWED_SOURCE_ONLY_NOT_DEPLOYED",
+  "seed_guard": {
+    "deselected": 6,
+    "failed": 0,
+    "network": 0,
+    "reviewer": "/root/current_mac_seed_guard_review",
+    "scope": "Current MAC seed pair affine explanation with externally approved descriptor SHA; not activated; not whole daily",
+    "source_manifest_sha256": "a8b2c5b7eedeb6382630905b3c734aacf1a19a411a4bdb341490308ed9551216",
+    "tests": 60
+  },
+  "source_files": [
+    {
+      "local_path": "/Users/lexi/.codex/worktrees/local-panel-seed-guard-20261025/v4_app/ops/a_share_daily_sync.py",
+      "remote_path": "repairs/current_mac_seed_guard_20261025/ops/a_share_daily_sync.py",
+      "sha256": "3d44a174919a19a6451138c9bb511220ebc596c1d385339753a6a53ff4bda28c"
+    },
+    {
+      "local_path": "/Users/lexi/.codex/worktrees/local-panel-seed-guard-20261025/v4_app/ops/_a_share_daily_sync_parts/cli_runtime.py",
+      "remote_path": "repairs/current_mac_seed_guard_20261025/ops/_a_share_daily_sync_parts/cli_runtime.py",
+      "sha256": "6e00ab197d8588701db408db840c9806c4fece8746d7f707d5407d6724770f1d"
+    },
+    {
+      "local_path": "/Users/lexi/.codex/worktrees/local-panel-seed-guard-20261025/v4_app/ops/_a_share_daily_sync_parts/progress.py",
+      "remote_path": "repairs/current_mac_seed_guard_20261025/ops/_a_share_daily_sync_parts/progress.py",
+      "sha256": "47c4a2da8b5c6d63ef7b27cec47fc4743439a0ff96fc9db8a985f105f3ad1e54"
+    },
+    {
+      "local_path": "/Users/lexi/.codex/worktrees/local-panel-seed-guard-20261025/v4_app/ops/_a_share_daily_sync_parts/sync_workflow.py",
+      "remote_path": "repairs/current_mac_seed_guard_20261025/ops/_a_share_daily_sync_parts/sync_workflow.py",
+      "sha256": "4d8c48adf75b773625b34bf33429e51ffb349651998df48426f6411e7dbcdce3"
+    },
+    {
+      "local_path": "/Users/lexi/.codex/worktrees/local-panel-seed-guard-20261025/v4_app/tests/test_a_share_daily_sync.py",
+      "remote_path": "repairs/current_mac_seed_guard_20261025/tests/test_a_share_daily_sync.py",
+      "sha256": "02a1be251eb7d2b936b1e5dd99e2553789a7a12f452c4184e1ee85fab522ca48"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/residual_recovery_r1/original_archive_addition_r1/actual8_admission_preparation_r1/native_seed_import_r1/import_exact8_native.py",
+      "remote_path": "repairs/archive8_native_seed_20261025/import_exact8_native.py",
+      "sha256": "9fc9f65b4940ce2e9c2f865d5945939ca922961bcfd971162563a74cc4f2cc16"
+    },
+    {
+      "local_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_local_panel_completion_20261024/residual_recovery_r1/original_archive_addition_r1/actual8_admission_preparation_r1/native_seed_import_r1/test_native_seed_import.py",
+      "remote_path": "repairs/archive8_native_seed_20261025/test_native_seed_import.py",
+      "sha256": "17ef02bf04493a37b13be508fbe094cf6a74c720031e9bc18a50c9ea7a63d390"
+    }
+  ]
+}
