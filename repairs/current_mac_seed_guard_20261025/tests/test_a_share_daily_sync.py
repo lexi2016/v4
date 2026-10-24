@@ -1157,3 +1157,215 @@ def test_seed_cli_forwards_approved_external_pin_without_changing_factory(tmp_pa
     result = sync.run(args)
     assert result['status'] == 'PASS'
     assert result['seed_adjustment_evidence']['records'][0]['status'] == 'EXPLAINED_ACCEPTED_AFFINE'
+
+
+def _ipo_docx(path, paragraphs):
+    import zipfile
+    from xml.sax.saxutils import escape
+    xml = '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+    xml += ''.join('<w:p><w:r><w:t>' + escape(p) + '</w:t></w:r></w:p>' for p in paragraphs)
+    xml += '</w:body></w:document>'
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.writestr('word/document.xml', xml)
+    return {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+def _ipo_fixture(tmp_path, *, code='601091', sessions=None):
+    import json
+    import os
+    if sessions is None:
+        sessions = [20260917, 20260918, 20260921, 20260922, 20260923, 20260924]
+    f = _seed_fixture(tmp_path, code=code, market='SH', previous=20.8, close=57.77,
+                      previous_date=sessions[0], current_date=sessions[1], a=1., b=0.)
+    f['snapshot']['asof_date'] = f['snapshot']['coverage_end_date'] = 20261023
+    f['checkpoint']['asof_date'] = f['checkpoint']['symbols'][f['symbol']]['asof_date'] = 20261023
+    listing = sessions[0]
+    closes = [20.8, 57.77, 37.72, 37.98, 30., 29.5]
+    bars = [_bar(day, close) for day, close in zip(sessions, closes)]
+    _write_day(f['seed'], bars)
+    _write_day(f['archive'], bars)
+    def ref(path):
+        return {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    rawref = ref(f['archive'])
+    metadata = {'normalization_status': 'NORMALIZED', 'source_row_id': 'sse_type1_export:股票:1',
+                'canonical_fields': {'ts_code': f['symbol'], 'security_code': code, 'listing_date': str(listing)}}
+    disclosure = {'SECURITY_CODE': code, 'BULLETIN_TYPE_DESC': '首次公开发行',
+                  'TITLE': '测试公司首次公开发行股票主板上市公告书', 'SSEDATE': '2026-09-01',
+                  'URL': '/disclosure/listedinfo/announcement/c/new/test/listing.pdf'}
+    index = {'result': [[disclosure]]}
+    capture = {'url': 'https://query.sse.com.cn/security/stock/queryCompanyBulletinNew.do?SECURITY_CODE=' + code + '&BULLETIN_TYPE=08&jsonCallBack=IPO_FIXTURE', 'http_status': 200}
+    notice = '<div class="allZoom">证券代码为"' + code + '"，于' + str(listing // 10000) + '年' + str(listing // 100 % 100) + '月' + str(listing % 100) + '日起上市交易。</div>'
+    review = {'schema': 'REVIEWER_TYPED_SAME_INPUT_PASS_REUSE_R1', 'verdict': 'REVIEWED/PASS_ARCHIVE_ONLY_SOURCE_KEYS_AND_BYTES',
+              'research_only': True, 'production_allowed': False, 'buy_gate_updated': False, 'orders_sent': False,
+              'codes': {f['symbol']: {'raw32_sha256': rawref['sha256'], 'rows': len(bars), 'first_date': sessions[0], 'last_date': sessions[-1]}}}
+    resolver = Path(os.environ.get('IPO_SEED_TEST_CALENDAR_RESOLVER', str(Path(__file__).resolve().parents[1] / 'contracts/trading_calendar.py')))
+    calendar = Path(os.environ.get('IPO_SEED_TEST_CALENDAR_JSON', str(resolver.with_name('market_calendar_2026.json'))))
+    rule_doc = _ipo_docx(tmp_path / 'rule.docx', ['3.3.13 本所实行涨跌幅限制。', '属于下列情形的股票，不实行价格涨跌幅限制：',
+                    '首次公开发行上市的股票上市后的前5个交易日', '3.3.14 其他。', '本规则自2026年7月6日起施行。'])
+    deferred_doc = _ipo_docx(tmp_path / 'deferred.docx', ['3.6.2 暂缓条文。'])
+    spec = {'type': 'SSE_MAIN_BOARD_FIRST_IPO_FIRST_FIVE_SESSIONS', 'listing_date': listing,
+            'source_row_id': metadata['source_row_id'], 'ipo_document_href': disclosure['URL'],
+            'rule': {'type': 'SSE_MAIN_BOARD_FIRST_IPO_NO_PRICE_LIMIT', 'article': '3.3.13', 'sessions': 5,
+                     'effective_from': 20260706, 'verified_through': 20261023, 'document': rule_doc, 'deferred_document': deferred_doc},
+            'calendar': {'resolver': ref(resolver), 'data': ref(calendar)}, 'raw_source': rawref}
+    f.update(ipo_metadata=metadata, ipo_index=index, ipo_capture=capture, ipo_notice=notice, ipo_review=review,
+             ipo_spec=spec, ipo_bars=bars, ipo_sessions=sessions)
+    f['descriptor']['ipo_seed_boundaries'] = {f['symbol']: spec}
+    _rebind_ipo_fixture(f)
+    return f
+
+
+def _rebind_ipo_fixture(f):
+    import json
+    tmp = f['tmp_path']
+    f['ipo_spec']['listing_metadata'] = f['save']('ipo_metadata.jsonl', f['ipo_metadata'])
+    path = tmp / 'ipo_index.jsonp'
+    path.write_text('IPO_FIXTURE(' + json.dumps(f['ipo_index'], ensure_ascii=False) + ')', encoding='utf-8')
+    f['ipo_spec']['ipo_index'] = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    f['ipo_capture']['sha256'] = f['ipo_spec']['ipo_index']['sha256']
+    f['ipo_spec']['ipo_index_capture'] = f['save']('ipo_capture.json', f['ipo_capture'])
+    path = tmp / 'listing_notice.html'
+    path.write_text(f['ipo_notice'], encoding='utf-8')
+    f['ipo_spec']['listing_notice'] = {'path': str(path), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+    f['ipo_spec']['raw_review'] = f['save']('raw_review.json', f['ipo_review'])
+    _rewrite_seed_fixture(f)
+
+
+@pytest.mark.parametrize('code,sessions', [
+    ('601091', [20260917, 20260918, 20260921, 20260922, 20260923, 20260924]),
+    ('603448', [20260907, 20260908, 20260909, 20260910, 20260911, 20260914]),
+])
+def test_ipo_history_primary_calendar_explains_only_typed_window(tmp_path, code, sessions):
+    import ops.a_share_daily_sync as sync
+    f = _ipo_fixture(tmp_path, code=code, sessions=sessions)
+    original = f['seed'].read_bytes()
+    assert sync._local_history_status(f['seed'], 20261024)[1] == sync.CROSS_DAY_CLOSE_RATIO
+    context = {'path': f['descriptorref']['path'], 'expected_sha256': f['descriptorref']['sha256']}
+    bars, failure = sync._local_history_status(f['seed'], 20261024, seed_evidence=context, symbol=f['symbol'])
+    assert failure is None and len(bars) == 6
+    assert f['seed'].read_bytes() == original
+    assert len(context['records']) == 2
+    for record in context['records']:
+        assert record['status'] == 'EXPLAINED_IPO_FIRST_FIVE_SESSIONS'
+        assert record['market_first_five_sessions'] == sessions[:5]
+        assert record['current_session_ordinal'] in (2, 3)
+        assert 'events' not in record and 'transformed_ratio' not in record
+    assert context['records'][0]['raw_ratio'] == pytest.approx(57.77 / 20.8)
+
+
+@pytest.mark.parametrize('problem', [
+    'missing_primary', 'relisting', 'current_list_only', 'wrong_index_code', 'wrong_notice_code',
+    'wrong_notice_date', 'wrong_index_origin', 'metadata_listing_conflict', 'truncated_seed',
+    'missing_seed_session', 'missing_raw_session', 'raw_basis_conflict', 'raw_review_conflict',
+    'raw_sha', 'calendar_sha', 'resolver_sha', 'calendar_year', 'listing_on_closed_day',
+    'rule_not_effective', 'rule_date_conflict', 'rule_deferred', 'rule_missing_clause', 'wrong_market',
+    'missing_later_seed_session', 'missing_later_raw_session',
+])
+def test_ipo_history_unknown_or_conflicting_dependencies_keep_original_gate(tmp_path, problem):
+    import json
+    import ops.a_share_daily_sync as sync
+    f = _ipo_fixture(tmp_path)
+    if problem in ('missing_primary', 'current_list_only'):
+        f['ipo_index']['result'] = []
+    elif problem == 'relisting': f['ipo_index']['result'][0][0]['BULLETIN_TYPE_DESC'] = '重新上市'
+    elif problem == 'wrong_index_code': f['ipo_index']['result'][0][0]['SECURITY_CODE'] = '601092'
+    elif problem == 'wrong_notice_code': f['ipo_notice'] = f['ipo_notice'].replace('601091', '601092')
+    elif problem == 'wrong_notice_date': f['ipo_notice'] = f['ipo_notice'].replace('9月17日', '9月16日')
+    elif problem == 'wrong_index_origin': f['ipo_capture']['url'] = f['ipo_capture']['url'].replace('query.sse.com.cn', 'example.org')
+    elif problem == 'metadata_listing_conflict': f['ipo_metadata']['canonical_fields']['listing_date'] = '20260916'
+    elif problem == 'truncated_seed': _write_day(f['seed'], f['ipo_bars'][1:])
+    elif problem == 'missing_seed_session': _write_day(f['seed'], f['ipo_bars'][:1] + f['ipo_bars'][2:])
+    elif problem == 'missing_later_seed_session': _write_day(f['seed'], f['ipo_bars'][:3] + f['ipo_bars'][4:])
+    elif problem in ('missing_raw_session', 'missing_later_raw_session', 'raw_basis_conflict'):
+        bars = list(f['ipo_bars'])
+        if problem == 'missing_raw_session': bars = bars[1:]
+        elif problem == 'missing_later_raw_session': bars = bars[:3] + bars[4:]
+        else: bars[0] = _bar(f['ipo_sessions'][0], 21.)
+        _write_day(f['archive'], bars)
+        f['ipo_spec']['raw_source']['sha256'] = hashlib.sha256(f['archive'].read_bytes()).hexdigest()
+        f['ipo_review']['codes'][f['symbol']].update(raw32_sha256=f['ipo_spec']['raw_source']['sha256'], rows=len(bars), first_date=sync.day_int(bars[0]))
+    elif problem == 'raw_review_conflict': f['ipo_review']['codes'][f['symbol']]['raw32_sha256'] = '0' * 64
+    elif problem == 'raw_sha': f['ipo_spec']['raw_source']['sha256'] = '0' * 64
+    elif problem == 'calendar_sha': f['ipo_spec']['calendar']['data']['sha256'] = '0' * 64
+    elif problem == 'resolver_sha': f['ipo_spec']['calendar']['resolver']['sha256'] = '0' * 64
+    elif problem in ('calendar_year', 'listing_on_closed_day'):
+        path = Path(f['ipo_spec']['calendar']['data']['path'])
+        data = json.loads(path.read_text())
+        if problem == 'calendar_year': data['year'] = 2025
+        else: data['markets']['a_share']['holiday_periods'].append({'name': 'test_closed', 'start': '20260917', 'end': '20260917'})
+        f['ipo_spec']['calendar']['data'] = f['save']('wrong_calendar.json', data)
+    elif problem == 'rule_not_effective':
+        f['ipo_spec']['rule']['effective_from'] = 20261001
+        f['ipo_spec']['rule']['document'] = _ipo_docx(tmp_path / 'future_rule.docx', ['3.3.13 不实行价格涨跌幅限制：', '首次公开发行上市的股票上市后的前5个交易日', '3.3.14 其他', '本规则自2026年10月1日起施行。'])
+    elif problem == 'rule_date_conflict': f['ipo_spec']['rule']['effective_from'] = 20260707
+    elif problem == 'rule_deferred': f['ipo_spec']['rule']['deferred_document'] = _ipo_docx(tmp_path / 'wrong_deferred.docx', ['3.3.13 暂缓实施'])
+    elif problem == 'rule_missing_clause': f['ipo_spec']['rule']['document'] = _ipo_docx(tmp_path / 'wrong_rule.docx', ['3.3.13 一般股票', '3.3.14 其他', '本规则自2026年7月6日起施行。'])
+    elif problem == 'wrong_market': f['ipo_spec']['type'] = 'OTHER_EXCHANGE_IPO'
+    _rebind_ipo_fixture(f)
+    original = f['seed'].read_bytes()
+    context = {'path': f['descriptorref']['path'], 'expected_sha256': f['descriptorref']['sha256']}
+    assert sync._local_history_status(f['seed'], 20261024, seed_evidence=context, symbol=f['symbol'])[1] == sync.CROSS_DAY_CLOSE_RATIO
+    assert context['records'][-1]['status'] == 'UNEXPLAINED'
+    assert f['seed'].read_bytes() == original
+
+
+@pytest.mark.parametrize('problem', ['day_five_to_six', 'five_stock_bars_not_five_sessions', 'later_bad_ohlc', 'later_duplicate', 'later_future'])
+def test_ipo_history_does_not_extend_window_or_skip_later_rows(tmp_path, problem):
+    import ops.a_share_daily_sync as sync
+    f = _ipo_fixture(tmp_path)
+    bars = list(f['ipo_bars'])
+    if problem in ('day_five_to_six', 'five_stock_bars_not_five_sessions'):
+        bars[-1] = _bar(f['ipo_sessions'][-1], 90.)
+        _write_day(f['archive'], bars)
+        f['ipo_spec']['raw_source']['sha256'] = hashlib.sha256(f['archive'].read_bytes()).hexdigest()
+        f['ipo_review']['codes'][f['symbol']]['raw32_sha256'] = f['ipo_spec']['raw_source']['sha256']
+        if problem == 'five_stock_bars_not_five_sessions': bars = bars[:1] + bars[2:]
+    elif problem == 'later_bad_ohlc': bars[-1] = dict(bars[-1], high=1.)
+    elif problem == 'later_duplicate': bars.append(bars[-1])
+    else: bars.append(_bar(20261025, 30.))
+    _write_day(f['seed'], bars)
+    _rebind_ipo_fixture(f)
+    context = {'path': f['descriptorref']['path'], 'expected_sha256': f['descriptorref']['sha256']}
+    assert sync._local_history_status(f['seed'], 20261024, seed_evidence=context, symbol=f['symbol'])[1] is not None
+    assert context['records'][0]['status'] == 'EXPLAINED_IPO_FIRST_FIVE_SESSIONS' or problem == 'five_stock_bars_not_five_sessions'
+
+
+@pytest.mark.parametrize('bad_field,new_bar_jump', [(True, False), (False, True)])
+def test_ipo_history_keeps_original_field_and_new_provider_gates(tmp_path, monkeypatch, bad_field, new_bar_jump):
+    import struct
+    import ops.a_share_daily_sync as sync
+    f = _ipo_fixture(tmp_path)
+    if bad_field:
+        raw = bytearray(f['seed'].read_bytes())
+        struct.pack_into('<I', raw, 20, 0x00400000)
+        struct.pack_into('<I', raw, 24, 0)
+        f['seed'].write_bytes(raw)
+    original = f['seed'].read_bytes()
+    monkeypatch.setattr(sync, 'RUN_DIR', tmp_path / 'run')
+    calls = []
+    scripts = {('h1', '601091'): [[_bar(20260924, 29.5), _bar(20261023, 90.)]]}
+    result = sync.run_sync([sync.DailyTarget(code='601091', market=1, path=f['seed'])], target_date='20261023',
+        api_factory=lambda host, _port: _FakeSession(host, scripts, calls), host_candidates=(('h1', 7709),),
+        progress_path=tmp_path / 'progress.json', seed_adjustment_inputs=f['descriptorref']['path'],
+        seed_adjustment_inputs_sha256=f['descriptorref']['sha256'])
+    assert result['status'] == 'FAILED' and f['seed'].read_bytes() == original
+    expected = sync.KNOWN_MALFORMED_AMOUNT_VOLUME_SIGNATURE if bad_field else sync.CROSS_DAY_CLOSE_RATIO
+    assert result['by_symbol']['601091']['reason_code'] == expected
+    assert calls == ([] if bad_field else [('h1', '601091')])
+    assert result['seed_adjustment_evidence']['records'][0]['status'] == 'EXPLAINED_IPO_FIRST_FIVE_SESSIONS'
+
+
+@pytest.mark.parametrize('pin', [None, '0' * 64, 'original_approved_pin'])
+def test_ipo_history_external_pin_cannot_be_replaced_by_rehashed_chain(tmp_path, pin):
+    import ops.a_share_daily_sync as sync
+    f = _ipo_fixture(tmp_path)
+    approved = f['descriptorref']['sha256']
+    if pin == 'original_approved_pin':
+        f['descriptor']['fixture_replacement'] = True
+        _rebind_ipo_fixture(f)
+        pin = approved
+    context = {'path': f['descriptorref']['path'], 'expected_sha256': pin}
+    original = f['seed'].read_bytes()
+    assert sync._local_history_status(f['seed'], 20261024, seed_evidence=context, symbol=f['symbol'])[1] == sync.CROSS_DAY_CLOSE_RATIO
+    assert context['records'][-1]['status'] == 'UNEXPLAINED'
+    assert f['seed'].read_bytes() == original

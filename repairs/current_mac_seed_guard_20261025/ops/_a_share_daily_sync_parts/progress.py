@@ -239,6 +239,228 @@ def _explain_seed_pair(scope, context, symbol, target_date, previous_date, curre
     return record['status'] == 'EXPLAINED_ACCEPTED_AFFINE'
 
 
+# This separate optional method uses retained primary IPO documents and the
+# existing calendar.  It never manufactures adjustment events or validates
+# provider-response bars, and never changes the original affine method.
+def _ipo_docx_paragraphs(ref):
+    import io
+    import zipfile
+    from xml.etree import ElementTree
+    try:
+        with zipfile.ZipFile(io.BytesIO(_evidence_bytes(ref, limit=4 * 1024 * 1024))) as archive:
+            if archive.getinfo('word/document.xml').file_size > 4 * 1024 * 1024:
+                raise ValueError('ipo_rule_document_size')
+            root = ElementTree.fromstring(archive.read('word/document.xml'))
+    except (zipfile.BadZipFile, ElementTree.ParseError, KeyError) as error:
+        raise ValueError('ipo_rule_document_invalid') from error
+    ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+    return [''.join(t.text or '' for t in p.findall('.//w:t', ns))
+            for p in root.findall('.//w:p', ns)]
+
+
+def _ipo_symbol_evidence(scope, bundle, symbol):
+    import re
+    import sys
+    import types
+    from datetime import timedelta
+    from html import unescape
+    from urllib.parse import parse_qs, urlsplit
+    cache = bundle.setdefault('ipo_symbols', {})
+    if symbol in cache:
+        return cache[symbol]
+    spec = bundle['descriptor']['ipo_seed_boundaries'][symbol]
+    if spec.get('type') != 'SSE_MAIN_BOARD_FIRST_IPO_FIRST_FIVE_SESSIONS' or not symbol.endswith('.SH'):
+        raise ValueError('ipo_type_or_market_unknown')
+    code = symbol.split('.')[0]
+    listing = _evidence_day(spec['listing_date'])
+    metadata_bytes = _evidence_bytes(spec['listing_metadata'])
+    metadata = [json.loads(line) for line in metadata_bytes.decode('utf-8').splitlines() if symbol in line]
+    metadata = [row for row in metadata if row.get('canonical_fields', {}).get('ts_code') == symbol]
+    if len(metadata) != 1:
+        raise ValueError('ipo_listing_identity_ambiguous')
+    row = metadata[0]
+    fields = row['canonical_fields']
+    if (row.get('normalization_status') != 'NORMALIZED' or row.get('source_row_id') != spec['source_row_id'] or
+            fields.get('security_code') != code or fields.get('listing_date') != str(listing)):
+        raise ValueError('ipo_listing_identity_conflict')
+    capture = _evidence_json(spec['ipo_index_capture'])
+    url = urlsplit(capture['url'])
+    query = parse_qs(url.query)
+    if (url.scheme != 'https' or url.netloc != 'query.sse.com.cn' or
+            url.path != '/security/stock/queryCompanyBulletinNew.do' or
+            query.get('SECURITY_CODE') != [code] or query.get('BULLETIN_TYPE') != ['08'] or
+            capture.get('http_status') != 200 or capture.get('sha256') != spec['ipo_index']['sha256']):
+        raise ValueError('ipo_primary_index_source_conflict')
+    raw = _evidence_bytes(spec['ipo_index'], limit=4 * 1024 * 1024).decode('utf-8').strip()
+    callback = query.get('jsonCallBack', [''])[0]
+    if raw.startswith('{'):
+        index = json.loads(raw)
+    elif re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', callback) and raw.startswith(callback + '(') and raw.endswith(')'):
+        index = json.loads(raw[len(callback) + 1:-1])
+    else:
+        raise ValueError('ipo_index_envelope_unknown')
+    # The original SSE endpoint groups disclosures by date.  Only its explicit
+    # issuer code/type/title identifies this class, never symbol prefixes or
+    # the recent date in a general company list.
+    disclosures = [item for group in index['result'] for item in group]
+    if len(disclosures) > 256:
+        raise ValueError('ipo_index_scope_too_large')
+    matches = [item for item in disclosures if item.get('SECURITY_CODE') == code and
+               item.get('BULLETIN_TYPE_DESC') == '首次公开发行' and
+               item.get('TITLE', '').endswith('首次公开发行股票主板上市公告书') and
+               item.get('URL') == spec['ipo_document_href']]
+    if len(matches) != 1:
+        raise ValueError('ipo_first_public_offering_identity_unproven')
+    publication = int(datetime.strptime(matches[0]['SSEDATE'], '%Y-%m-%d').strftime('%Y%m%d'))
+    if publication > listing:
+        raise ValueError('ipo_identity_publication_after_listing')
+    notice = _evidence_bytes(spec['listing_notice'], limit=2 * 1024 * 1024).decode('utf-8')
+    article = re.search(r'<div[^>]*class=[\"\x27]allZoom[\"\x27][^>]*>(.*?)</div>', notice, re.S)
+    if article is None:
+        raise ValueError('ipo_listing_notice_body_missing')
+    text = re.sub(r'\s+', '', unescape(re.sub(r'<[^>]+>', '', article[1])))
+    notice_code = re.search(r'证券代码为[\"“]?(\d{6})', text)
+    notice_day = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日起上市交易', text)
+    if (notice_code is None or notice_code[1] != code or notice_day is None or
+            int(notice_day[1]) * 10000 + int(notice_day[2]) * 100 + int(notice_day[3]) != listing):
+        raise ValueError('ipo_listing_notice_identity_conflict')
+    rule = spec['rule']
+    if rule.get('type') != 'SSE_MAIN_BOARD_FIRST_IPO_NO_PRICE_LIMIT' or rule.get('article') != '3.3.13' or rule.get('sessions') != 5:
+        raise ValueError('ipo_rule_type_unknown')
+    paragraphs = _ipo_docx_paragraphs(rule['document'])
+    starts = [i for i, p in enumerate(paragraphs) if p.strip().startswith('3.3.13')]
+    ends = [i for i, p in enumerate(paragraphs) if p.strip().startswith('3.3.14')]
+    if len(starts) != 1 or len(ends) != 1 or ends[0] <= starts[0]:
+        raise ValueError('ipo_rule_article_unknown')
+    section = ''.join(paragraphs[starts[0]:ends[0]])
+    if ('不实行价格涨跌幅限制' not in section or
+            '首次公开发行上市的股票上市后的前5个交易日' not in section or
+            '3.3.13' in ''.join(_ipo_docx_paragraphs(rule['deferred_document']))):
+        raise ValueError('ipo_rule_exception_unproven_or_deferred')
+    effective = re.findall(r'本规则自(\d{4})年(\d{1,2})月(\d{1,2})日起施行', ''.join(paragraphs))
+    if len(effective) != 1:
+        raise ValueError('ipo_rule_effective_date_unknown')
+    effective = int(effective[0][0]) * 10000 + int(effective[0][1]) * 100 + int(effective[0][2])
+    if _evidence_day(rule['effective_from']) != effective:
+        raise ValueError('ipo_rule_effective_date_conflict')
+    through = _evidence_day(rule['verified_through'])
+    if not effective <= listing <= through:
+        raise ValueError('ipo_rule_not_effective_for_listing')
+    calendar_spec = spec['calendar']
+    calendar_bytes = _evidence_bytes(calendar_spec['resolver'], limit=1024 * 1024)
+    _evidence_bytes(calendar_spec['data'], limit=1024 * 1024)
+    # Reuse the exact already-existing, approved calendar implementation in
+    # memory.  Compile verified bytes to avoid pycache writes to an immutable
+    # app; no new calendar module/file, source download, or SDK is introduced.
+    module_name = '_seed_existing_calendar_' + calendar_spec['resolver']['sha256']
+    modules = bundle.setdefault('ipo_calendar_modules', {})
+    module = modules.get(module_name)
+    if module is None:
+        module = types.ModuleType(module_name)
+        module.__file__ = calendar_spec['resolver']['path']
+        previous_module = sys.modules.get(module_name)
+        sys.modules[module_name] = module
+        try:
+            exec(compile(calendar_bytes, module.__file__, 'exec'), module.__dict__)
+        except Exception as error:
+            raise ValueError('ipo_existing_calendar_unavailable') from error
+        finally:
+            if previous_module is None:
+                sys.modules.pop(module_name, None)
+            else:
+                sys.modules[module_name] = previous_module
+        modules[module_name] = module
+    calendar = module.load_market_calendar(Path(calendar_spec['data']['path']))
+    _evidence_bytes(calendar_spec['data'], limit=1024 * 1024)
+    sessions = []
+    cursor = datetime.strptime(str(listing), '%Y%m%d').date()
+    for _ in range(40):
+        day = cursor.strftime('%Y%m%d')
+        state = module.resolve_market_states(calendar, day)['a_share']
+        if state == module.TradingDayState.UNKNOWN:
+            raise ValueError('ipo_calendar_coverage_unknown')
+        if state in (module.TradingDayState.FULL_TRADING_DAY, module.TradingDayState.HALF_TRADING_DAY_AM):
+            sessions.append(int(day))
+            if len(sessions) == 5:
+                break
+        cursor += timedelta(days=1)
+    if len(sessions) != 5 or sessions[0] != listing:
+        raise ValueError('ipo_listing_calendar_boundary_unknown')
+    raw_ref = spec['raw_source']
+    raw_bytes = _evidence_bytes(raw_ref, limit=4 * 1024 * 1024)
+    codec = _v4_global(scope, 'DAY_STRUCT')
+    if not raw_bytes or len(raw_bytes) % codec.size:
+        raise ValueError('ipo_raw_source_shape')
+    selected = {}
+    raw_dates = []
+    for offset in range(0, len(raw_bytes), codec.size):
+        original = raw_bytes[offset:offset + codec.size]
+        day, _o, _h, _l, close, _a, _v, _r = codec.unpack(original)
+        _evidence_day(day)
+        if raw_dates and day <= raw_dates[-1]:
+            raise ValueError('ipo_raw_source_date_order')
+        raw_dates.append(day)
+        selected[day] = {'close': close / 100.0, 'row_index': offset // codec.size,
+                         'row_sha256': hashlib.sha256(original).hexdigest(), 'source_ref': raw_ref}
+    review = _evidence_json(spec['raw_review'])
+    reviewed = review['codes'][symbol]
+    if (review.get('schema') != 'REVIEWER_TYPED_SAME_INPUT_PASS_REUSE_R1' or
+            review.get('verdict') != 'REVIEWED/PASS_ARCHIVE_ONLY_SOURCE_KEYS_AND_BYTES' or
+            review.get('research_only') is not True or
+            any(review.get(k) is not False for k in ('production_allowed', 'buy_gate_updated', 'orders_sent')) or
+            reviewed.get('raw32_sha256') != raw_ref['sha256'] or reviewed.get('rows') != len(raw_dates) or
+            reviewed.get('first_date') != raw_dates[0] or reviewed.get('last_date') != raw_dates[-1] or
+            raw_dates[:5] != sessions):
+        raise ValueError('ipo_complete_raw_source_unproven')
+    evidence = dict(spec=spec, listing=listing, sessions=sessions, selected=selected,
+                    effective=effective, through=through, disclosure=matches[0])
+    cache[symbol] = evidence
+    return evidence
+
+
+def _explain_historical_seed_pair(scope, context, symbol, target_date, previous_date, current_date,
+                                  previous_close, close, seed_bars):
+    # Non-IPO descriptors/symbols retain the exact R3 affine implementation.
+    try:
+        bundle = _seed_evidence_bundle(context, target_date)
+        ipo = bundle['descriptor'].get('ipo_seed_boundaries', {})
+        if isinstance(ipo, dict) and symbol not in ipo:
+            return _explain_seed_pair(scope, context, symbol, target_date, previous_date, current_date, previous_close, close)
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError):
+        return _explain_seed_pair(scope, context, symbol, target_date, previous_date, current_date, previous_close, close)
+    record = dict(symbol=symbol, previous_date=previous_date, current_date=current_date,
+                  previous_close=previous_close, close=close, raw_ratio=close / previous_close,
+                  status='UNEXPLAINED', method='IPO_FIRST_FIVE_EXCHANGE_TRADING_SESSIONS',
+                  evidence_path=str(context['path']), expected_descriptor_sha256=context.get('expected_sha256'))
+    try:
+        if not isinstance(ipo, dict):
+            raise ValueError('ipo_boundary_map_not_object')
+        evidence = _ipo_symbol_evidence(scope, bundle, symbol)
+        sessions = evidence['sessions']
+        if (previous_date not in sessions or current_date not in sessions or
+                not evidence['effective'] <= previous_date < current_date <= min(evidence['through'], bundle['coverage'])):
+            raise ValueError('ipo_pair_outside_first_five_or_rule_coverage')
+        prefix = seed_bars[:5]
+        dates = [_v4_global(scope, 'day_int')(bar) for bar in prefix]
+        if dates != sessions:
+            raise ValueError('ipo_seed_truncated_or_missing_session')
+        if any(day not in evidence['selected'] or evidence['selected'][day]['close'] != float(bar['close'])
+               for day, bar in zip(dates, prefix)):
+            raise ValueError('ipo_pair_or_prefix_raw_basis_conflict')
+        spec = evidence['spec']
+        record.update(status='EXPLAINED_IPO_FIRST_FIVE_SESSIONS', listing_date=evidence['listing'],
+                      market_first_five_sessions=sessions, previous_session_ordinal=sessions.index(previous_date) + 1,
+                      current_session_ordinal=sessions.index(current_date) + 1,
+                      pair_sources=[evidence['selected'][previous_date], evidence['selected'][current_date]],
+                      descriptor_sha256=bundle['descriptor_sha256'], ipo_disclosure=evidence['disclosure'],
+                      identity_refs={key: spec[key] for key in ('listing_metadata', 'ipo_index', 'ipo_index_capture', 'listing_notice')},
+                      rule=spec['rule'], calendar=spec['calendar'], raw_review=spec['raw_review'])
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError) as error:
+        record['reason'] = str(error)
+    context.setdefault('records', []).append(record)
+    return record['status'] == 'EXPLAINED_IPO_FIRST_FIVE_SESSIONS'
+
+
 def __local_history_status_body(_v4_scope, /, path, target_date, *, seed_evidence=None, symbol=None):
     """Validate existing source bytes before an accepted-only handoff.
 
@@ -274,8 +496,8 @@ def __local_history_status_body(_v4_scope, /, path, target_date, *, seed_evidenc
         if previous_close is not None:
             ratio = close / previous_close
             if ratio > _v4_global(_v4_scope, 'MAX_CROSS_DAY_CLOSE_RATIO') or ratio < 1.0 / _v4_global(_v4_scope, 'MAX_CROSS_DAY_CLOSE_RATIO'):
-                if (seed_evidence is None or symbol is None or not _explain_seed_pair(
-                        _v4_scope, seed_evidence, symbol, target_date, dates[-1], date_value, previous_close, close)):
+                if (seed_evidence is None or symbol is None or not _explain_historical_seed_pair(
+                        _v4_scope, seed_evidence, symbol, target_date, dates[-1], date_value, previous_close, close, bars)):
                     return bars, _v4_global(_v4_scope, 'CROSS_DAY_CLOSE_RATIO')
         dates.append(date_value)
         previous_close = close
