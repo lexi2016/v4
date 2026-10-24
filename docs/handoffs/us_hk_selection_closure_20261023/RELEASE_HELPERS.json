@@ -1,123 +1,88 @@
 {
-  "schema": "v4.us_hk.release_helper_acceptance.v1",
-  "as_of": "2026-10-24T04:38:55.505446+00:00",
-  "state": "REVIEWED_PASS_FROZEN_HELPER_SCOPE_ONLY",
-  "source_core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
+  "schema": "v4.us_hk.release_helper_acceptance.v2",
+  "as_of": "2026-10-24T05:55:16.629283+00:00",
+  "state": "CURRENT_SOURCE_SCOPES_INDEPENDENT_PASS_ACTUAL_DELIVERY_BLOCKED",
+  "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
   "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
-  "writer": "/root/us_hk_deployment_writer",
-  "reviewer": "/root/release_helper_reviewer",
-  "source_paths": {
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": {
-      "repair2_preimage_sha256": "00ecb6e8ee0df360e6ab18fea537ff572cdb5074a375cf6ad6a236a219b277a8",
-      "sha256": "606719e385bb28aa35ba122b05a265045f80dfcdccc9f92bb4857c301dfebead",
-      "changed": true
-    },
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": {
-      "repair2_preimage_sha256": "e6769eb95a31de416afa1190a037dffeef855c61d4cb7bfa3c7139cd486c8137",
-      "sha256": "44fce3e211ce26bafb2aaed2c327308951774b147333c26755fc00db103be09e",
-      "changed": true
-    },
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/publish_replay.py": {
-      "repair2_preimage_sha256": "ce966e227bcbd748381850bdb0e845f3f0012ef70bcd802db960544f73f15b75",
-      "sha256": "ce966e227bcbd748381850bdb0e845f3f0012ef70bcd802db960544f73f15b75",
-      "changed": false
-    },
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": {
-      "repair2_preimage_sha256": "3176e45fb3eb3ac79e2ec0f24e575b71662edceb6000c6800cfca562982816c9",
-      "sha256": "95187cafdce68aceaeb153aa681d8f37ef957f56ccd16d772c8b7157e130539c",
-      "changed": true
-    },
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_publish_replay.py": {
-      "repair2_preimage_sha256": "e202a3b9cf9f8e8ee1140635f5d4b5e5b16166e8c4d5e39b3004dcb79ac3a631",
-      "sha256": "e202a3b9cf9f8e8ee1140635f5d4b5e5b16166e8c4d5e39b3004dcb79ac3a631",
-      "changed": false
-    },
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": {
-      "repair2_preimage_sha256": "2fc38e60e6e4b181196220c4672345ad3c315e83e0337b323db0beabcc601a68",
-      "sha256": "bfb471846f7d7b5a20f8c7893587da13abc11a3176eed0540387b64368423403",
-      "changed": true
-    },
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/MANUAL_PUBLICATION_PLAN.md": {
-      "repair2_preimage_sha256": "210dbe56dcae17e57321e67d9c9999066032b52c02ebc7e12e8c86495b1bc74f",
-      "sha256": "210dbe56dcae17e57321e67d9c9999066032b52c02ebc7e12e8c86495b1bc74f",
-      "changed": false
-    }
+  "core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
+  "previous_helper_commit": "9fb376034629cdb0fb189657b8153d963b7d00aa",
+  "previous_report_sha256": "33350cb40572e95504ee2fb438edbe2fba7958127c27fc6df8779ede2f922e28",
+  "source_sha256": {
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "2ff43c065db3596d116870d7853877b566f2b5d86e48a0c6893ffcb13db38a17",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "dd80046cbaa245b551cc1e42d44db5bd9a76863cee9ea13bb3b6f3a3c0c4d5bb",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "6a37903120595cf789df48cf063fd2d1b77707897020bafb18ca923f049f7bff",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": "b687ac526036a2d18b85eaa6d874a8453df1ce8154d6e0b55abdbff5c91771e7",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/publish_replay.py": "699b926f3727cd4ee8bb911465862705e984bd770cd654df6208c16cc8d9b7d3",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_publish_replay.py": "ce7c5aa328c660e5c47c7c134743f41855ec7cf939264c1a98a4f110e8ea1134",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/probe_role.py": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/MANUAL_PUBLICATION_PLAN.md": "210dbe56dcae17e57321e67d9c9999066032b52c02ebc7e12e8c86495b1bc74f"
   },
-  "independent_receipt_sha256": "1818d8a6f9184460a2ee2b46b84af46a9f415d91b4dabcb1f713bfc74b4430bf",
-  "controller_transcription_sha256": "b518766129e962ddfca7e640a8c832d4dc05573a8bcb4a3216267f4e3f4f8ead",
-  "writer_handoff_sha256": "36b1b2d587329fe4c9140290a309f759f611e408a5ae81629f5a7acce5f44967",
-  "finding_status": {
-    "F1": "ADDRESSED: actual nested Store.root derived from exact hash-bound retained constructor AST; wrong upper root rejected by profile and announcement guard; accepted RUNNING job blocks",
-    "F2": "ADDRESSED: both endpoints use descriptor-level bounded framing; coalesced events, partial UTF8, EOF, malformed/oversize and fixed total deadline independently pass; guardian and real adapter wiring pass",
-    "F3": "ADDRESSED: exact real SHARED native80 manifest/aggregate and complete retained bytes validated; explicit14-source projection; data/test/unneeded-code and cache exclusions reconciled without copying or manifest replacement",
-    "F4": "ADDRESSED: exact real SCHED native988 contract verified (116 directories+872 leaves); strict source-paired regular generated314 cache container reconciliation; negative path/type/mode/leaf/extra/empty-cache tests pass"
-  },
-  "original_finding_status": {
-    "P1": "ADDRESSED within frozen helper scope: prior kernel fence+correct real activity roots, version-bound guardian recovery evidence and current direct wiring checks",
-    "P2_build_before_validation": "Previously ADDRESSED; unchanged path evidence reused, not rerun"
-  },
-  "targeted_checks": {
-    "sha256": "583e0f3aa9cd23f3c27362222b6e332ee6678311b5b574d511db92a460475ae0",
-    "passed": 30,
-    "total": 30,
-    "cases": [
-      "test_real_retained_store_root_is_derived_without_constructing_store",
-      "test_actual_nested_store_running_job_cannot_be_classified_idle",
-      "test_announcement_guard_requires_and_uses_actual_store_root",
-      "test_admission_profile_binds_actual_manual_and_hkex_roots_both_directions",
-      "test_admission_profile_rejects_unpinned_config_and_source_drift",
-      "test_unconfigured_manual_generation_requires_explicit_absence",
-      "test_admission_profile_rejects_empty_workbench_substitute",
-      "test_scheduler_activity_roots_are_bound_to_retained_launcher_environment",
-      "test_protocol_reads_coalesced_frames_with_pipe_still_open",
-      "test_protocol_accumulates_partial_utf8_without_resetting_deadline",
-      "test_protocol_partial_eof_timeout_malformed_and_size_are_not_events",
-      "test_guardian_coalesced_commands_complete_without_stdin_eof",
-      "test_guardian_partial_protocol_eof_before_commit_resumes_owner",
-      "test_guardian_post_commit_controller_loss_never_resumes_or_bootstraps",
-      "test_guardian_survives_controller_sigkill_and_resumes_owner",
-      "test_real_adapter_fake_launchctl_complete_fenced_activation_and_rollback",
-      "test_actual_shared_native_manifest_validates_all_bytes_and_accounts_cache",
-      "test_shared_native_missing_mode_hash_extra_and_aggregate_drift_refused",
-      "test_native_shared_candidate_is_exact_source_projection_with_exclusion_receipt",
-      "test_shared_projection_rejects_non_source_or_unbound_closure",
-      "test_actual_scheduler_native_directory_schema_matches_without_manifest_rewrite",
-      "test_scheduler_native_schema_prepares_and_preserves_original_manifest",
-      "test_scheduler_native_directory_mode_type_extra_and_leaf_drift_refused",
-      "test_shared_package_clone_is_finite_no_service_or_extra_app",
-      "test_shared_package_cannot_overlay_unrelated_business",
-      "test_shared_probe_uses_old_wrapper_and_non_main_updater",
-      "test_prepare_activate_exact_byte_rollback",
-      "test_hk_child_exact_two_capture_files_and_retained_wrapper",
-      "test_scheduler_generated_cache_container_is_strictly_accounted",
-      "test_protocol_deadline_is_total_across_dribbled_partial_bytes"
+  "original_frozen_scope": {
+    "independent_receipt_sha256": "1818d8a6f9184460a2ee2b46b84af46a9f415d91b4dabcb1f713bfc74b4430bf",
+    "targeted_passes": 30,
+    "findings_closed": [
+      "actual Store root/admission",
+      "framed guardian control",
+      "native SHARED14 projection",
+      "native scheduler988 reconciliation"
     ],
-    "command": "python3 -B inline unittest harness; source handoff pins verified; deduplicated exact --cases from frozen handoff receipts; OwnScratchReview.setUp changes only tempfile TemporaryDirectory dir to own scratch; unittest.TextTestRunner invokes 30 named cases",
-    "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
-    "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
-    "scope": "Actual read-only retained manifest/root validation, injected launchctl lifecycle and own marked physical dummy process tests only"
+    "retained_prior_acceptance": "Original62 release +19 publication and repair1 independent36 reused only for unchanged path/code/input/scope; no full-suite or business/replay rerun/rebinding"
   },
-  "retained_acceptance": "Original62 release +19 publication and repair1 independent36 reused only for unchanged path/code/input/scope; no full-suite or business/replay rerun/rebinding",
-  "source_stable": true,
-  "protected_live_unchanged": true,
-  "prior_failures_preserved": true,
-  "actual_operations": {
-    "four_candidate_prepare_or_clone": 0,
-    "frontend_build": 0,
-    "launchctl_mutation": 0,
-    "live_owner_signals": 0,
-    "provider_model": 0,
-    "data_pointer_writes": 0,
-    "network": 0,
-    "Git": 0
+  "additional_independent_scopes": [
+    {
+      "name": "SDK exact distribution metadata/ABI/source map",
+      "static_checks": 31,
+      "actual_sdk_compatibility": false
+    },
+    {
+      "name": "SDK source tests and alias metadata R1",
+      "source_cases": 27,
+      "alias_checks": 13,
+      "alias_tests": 2,
+      "review_transcription_sha256": "afbc3ab8ebbe05b9a2c0b6f97bbdab9c9737f5150b7c803140670dc558bc0e26"
+    },
+    {
+      "name": "Activation continuation",
+      "tests": 9,
+      "extra_counterexamples": 2,
+      "review_transcription_sha256": "f747bf605574a7dec24b9dc79c1705854b106ba0fe93d31485c0a39b6dc737b3"
+    },
+    {
+      "name": "RECORD empty files and original preparation version binding",
+      "tests": 6,
+      "actual_readonly_artifact_entries": 731,
+      "exact_empty_files": 11,
+      "review_receipt_sha256": "55f6aad5e75b22183cae2040bb01d8d02448daff8ff35e413f52470dc6875793"
+    },
+    {
+      "name": "Actual publisher Store root",
+      "tests": 7,
+      "review_transcription_sha256": "bfc667e9bea33221f4785f9cfe30e0dc27af3ead5817cbc3347f758d40b55008"
+    },
+    {
+      "name": "Read-only probe classbody/dataclass guard",
+      "new_and_affected_cases": 16,
+      "actual_api_import_modules": 10,
+      "review_transcription_sha256": "640c61fc01cd3fca42a22a86e6de7f470feb823fb8eab8aeb3a3c0c98762a4ff",
+      "Native_or_PREOPEN": false
+    }
+  ],
+  "actual_delivery": {
+    "frontend_builds": 1,
+    "shared": "PREPARED_LOADED_INDEPENDENT_PASS",
+    "api_r1": "PREPARED_LOADED_PASS_SEMANTIC_STORE_INTEGRATION_FAIL_DO_NOT_ACTIVATE",
+    "api_r2": "INPUT_REVIEW_PENDING_NOT_PREPARED",
+    "hk_child_r1": "MATERIALIZED_UNSEALED_SDK_IMPORT_REFUSED_AT_ORIGINAL_FILE_LOGGING",
+    "scheduler": "NOT_PREPARED",
+    "service_activation": 0,
+    "business_publication": 0,
+    "natural_cycles": 0
   },
-  "behavior_verified_scope": "Only independently exercised frozen helper/root/framing/native-inventory/projection/fake-lifecycle and marked-dummy guardian behavior",
-  "CANNOT_CONFIRM": [
-    "Actual live role audit-token availability/permissions",
-    "Final reconciled role operation capsules and current owner/activity safe cutover slot",
-    "Actual candidate creation/build and real runtime/module-origin/history-adapter/PREOPEN probes",
-    "Actual service activation/rollback, saved22 publication, API/UI and two natural cycles",
-    "Financial/PIT/alpha truth"
+  "unresolved": [
+    "API r2 must add unchanged Git-baseline Store3717 to match service merger keyword",
+    "HK SDK normal file logger conflicts with strictly read-only canary; no ABI failure demonstrated",
+    "Actual Native/PREOPEN/fullprobe/API/UI and two subsequent natural cycles",
+    "Historical field/member/PIT material gaps remain CANNOT_CONFIRM"
   ],
   "guardian_fault_boundary": "Uncatchable guardian SIGKILL/OS/hardware death still requires durable-journal inspection; no self-recovery or blind restart guarantee",
   "safety": {

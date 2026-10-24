@@ -1,6 +1,11 @@
 """Publication boundary tests with the actual engine/types/store in fake state."""
 from __future__ import annotations
 import argparse
+import ast
+from contextlib import contextmanager
+from copy import deepcopy
+import inspect
+import plistlib
 from datetime import datetime,timedelta,timezone
 import json
 from pathlib import Path
@@ -86,6 +91,147 @@ class PublicationTests(unittest.TestCase):
 
     def assert_originals(self):
         for path,raw in self.original.items():self.assertEqual(path.read_bytes(),raw)
+
+    def configured_root_fixture(self, *, old_pointer=False):
+        # The API config argument already ends with manager_workbench.
+        self.scope['live_state_root']=str(self.state);root=self.state/'manager_workbench';root.mkdir()
+        if old_pointer:
+            self.old_deep_pointer=c.canonical({'run_id':'existing-deep-owner','product_sha256':'d'*64,'generated_at':pub.EXECUTION_CUTOFF})
+            deep=root/self.scope['result_pointer_relative'];deep.parent.mkdir(parents=True);deep.write_bytes(self.old_deep_pointer)
+            upper=self.state/self.scope['result_pointer_relative'];upper.write_bytes(c.canonical({'run_id':'upper-decoy'}))
+            self.original[upper]=upper.read_bytes()
+        receipt=self.prepare()
+        source=Path(self.scope['source_root']);app=self.root/'active-api-app';app.mkdir()
+        deployed={}
+        for relative in ('v4/manager_workbench/store.py','v4/manager_workbench/contracts.py',
+                         'v4/manager_workbench/engines/us_mapping.py','v4/manager_workbench/engines/strict_us_selection.py'):
+            raw=(WT/relative).read_bytes() if relative.endswith('/store.py') else b'fake deployed source identity only\n'
+            for base in (source,app):
+                path=base/relative;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw)
+            deployed[relative]=prep.digest(raw)
+        self.config=self.root/'active-api-config.json';self.config.write_bytes(prep.json_bytes({'state_root':str(self.state)}))
+        self.api_manifest=self.root/'api-manifest.json';self.api_manifest.write_bytes(b'{}\n')
+        self.api_plist=self.root/'com.lexi.v35.api-only.plist'
+        data={'WorkingDirectory':str(app),'EnvironmentVariables':{'V4_MANAGER_WORKBENCH_CONFIG_PATH':str(self.config)},
+              'ProgramArguments':['/usr/bin/env','V4_MANAGER_WORKBENCH_CONFIG_PATH='+str(self.config),'fake-owner']}
+        self.api_plist.write_bytes(plistlib.dumps(data))
+        self.scope.update(mode='RELEASE',source_files=deployed,deployed_files=deployed,
+            active_api={'plist':str(self.api_plist),'plist_sha256':prep.sha(self.api_plist),'app_root':str(app),
+                'manifest':str(self.api_manifest),'manifest_sha256':prep.sha(self.api_manifest),
+                'config':{'path':str(self.config),'sha256':prep.sha(self.config)}})
+        self.addCleanup(patch.stopall)
+        for name,value in [('WORKTREE',source),('LIVE_STATE',self.state),('API_PLIST',self.api_plist),
+                           ('API_CONFIG',self.config),('API_CONFIG_SHA',prep.sha(self.config)),
+                           ('SOURCE_INPUT',self.scope['source_input']['sha256']),('SOURCE_BATCH',self.scope['source_batch_sha256'])]:
+            patch.object(pub,name,value).start()
+        receipt['scope_sha256']=self.scope_sha();self.prepared.write_bytes(prep.json_bytes(receipt))
+        cap=self.root/'publication-continuation.json'
+        cap.write_bytes(prep.json_bytes({'schema':'v4.us_hk.execution_capsule.v1','verdict':'PASS',
+            'authorized_actions':['publish_replay','rollback_replay'],'prepared_sha256':prep.sha(self.prepared),
+            'scope_contract_sha256':prep.contract_sha(self.scope),
+            'helper_sha256':{name:prep.sha(Path(__file__).with_name(name)) for name in ('prepare_release.py','activate_release.py','publish_replay.py')}}))
+        continuation={'path':str(cap),'sha256':prep.sha(cap)}
+        def runner(argv,**kwargs):
+            if argv[:2]==['/bin/launchctl','print']:return SimpleNamespace(returncode=0,stdout='state = running\npid = 991\n')
+            if argv[0]=='/usr/sbin/lsof':return SimpleNamespace(returncode=0,stdout='n'+str(app)+'\n')
+            raise AssertionError('unexpected fake metadata command: '+repr(argv))
+        return receipt,root,continuation,runner
+
+    def test_configured_double_root_exact_six_files_pointer_and_rollback(self):
+        receipt,root,continuation,runner=self.configured_root_fixture()
+        self.assertEqual(pub.live_store_root(self.scope),root)
+        before={p.relative_to(root).as_posix() for p in root.rglob('*.json')}
+        with patch.object(pub,'load_backend',return_value=self.backend),patch.object(pub.subprocess,'run',side_effect=runner):
+            result=pub.publish(self.prepared,prep.sha(self.prepared),self.published,continuation=continuation)
+            self.assertEqual(result['state'],'PUBLISHED_RETROSPECTIVE_MANUAL')
+            after={p.relative_to(root).as_posix() for p in root.rglob('*.json')}
+            self.assertEqual(after-before,{row['relative'] for row in receipt['files']}|{receipt['pointer_relative']})
+            self.assertFalse((self.state/receipt['pointer_relative']).exists())
+            snap=WorkbenchStore(self.state).read_plan(receipt['new_run_id'])
+            self.assertEqual(snap.run_id,receipt['new_run_id'])
+            pub.rollback(self.prepared,prep.sha(self.prepared),{'path':str(self.published),'sha256':prep.sha(self.published)},
+                self.rolled_back,continuation=continuation)
+        self.assertFalse((root/receipt['pointer_relative']).exists())
+        self.assertTrue((root/f"snapshots/{receipt['new_run_id']}.json").exists());self.assert_originals()
+
+    def test_configured_prepare_cas_backup_and_rollback_use_deep_pointer(self):
+        receipt,root,continuation,runner=self.configured_root_fixture(old_pointer=True)
+        self.assertEqual(receipt['expected_old_pointer_sha256'],prep.digest(self.old_deep_pointer))
+        self.assertEqual(Path(receipt['old_pointer_backup']).read_bytes(),self.old_deep_pointer)
+        with patch.object(pub,'load_backend',return_value=self.backend),patch.object(pub.subprocess,'run',side_effect=runner):
+            pub.publish(self.prepared,prep.sha(self.prepared),self.published,continuation=continuation)
+            self.assert_originals()
+            pub.rollback(self.prepared,prep.sha(self.prepared),{'path':str(self.published),'sha256':prep.sha(self.published)},
+                self.rolled_back,continuation=continuation)
+        self.assertEqual((root/receipt['pointer_relative']).read_bytes(),self.old_deep_pointer);self.assert_originals()
+
+    def test_configured_root_refuses_upper_arbitrary_and_unpinned_config(self):
+        receipt,root,continuation,runner=self.configured_root_fixture();original=deepcopy(self.scope)
+        for mutation in ('upper','arbitrary','missing-config','path','hash'):
+            self.scope=deepcopy(original)
+            if mutation=='upper':self.scope['live_state_root']=str(self.live)
+            elif mutation=='arbitrary':self.scope['live_state_root']=str(self.state/'another-owner')
+            elif mutation=='missing-config':self.scope['active_api'].pop('config')
+            elif mutation=='path':self.scope['active_api']['config']['path']=str(self.root/'other.json')
+            else:self.scope['active_api']['config']['sha256']='0'*64
+            with self.subTest(mutation=mutation),self.assertRaises(prep.Stop):pub.live_store_root(self.scope)
+        self.assertFalse((root/f"snapshots/{receipt['new_run_id']}.json").exists());self.assert_originals()
+
+    def test_configured_root_refuses_config_plist_and_store_contract_drift(self):
+        receipt,root,continuation,runner=self.configured_root_fixture();config=self.config.read_bytes();binding=self.api_plist.read_bytes()
+        self.config.write_bytes(config+b' ')
+        with self.assertRaisesRegex(prep.Stop,'FILE_SHA_DRIFT'):pub.live_store_root(self.scope)
+        self.config.write_bytes(config);data=plistlib.loads(binding)
+        data['ProgramArguments'][1]='V4_MANAGER_WORKBENCH_CONFIG_PATH='+str(self.root/'wrong-config.json')
+        self.api_plist.write_bytes(plistlib.dumps(data))
+        with self.assertRaisesRegex(prep.Stop,'PUBLICATION_API_PLIST_DRIFT'):pub.live_store_root(self.scope)
+        self.scope['active_api']['plist_sha256']=prep.sha(self.api_plist)
+        with self.assertRaisesRegex(prep.Stop,'PUBLICATION_API_CONFIG_BINDING_DRIFT'):pub.live_store_root(self.scope)
+        self.api_plist.write_bytes(binding);self.scope['active_api']['plist_sha256']=prep.sha(self.api_plist)
+        deployed=Path(self.scope['active_api']['app_root'])/'v4/manager_workbench/store.py';raw=deployed.read_bytes();deployed.write_bytes(raw+b'\n')
+        with self.assertRaisesRegex(prep.Stop,'PUBLICATION_STORE_SOURCE_DRIFT'):pub.live_store_root(self.scope)
+        deployed.write_text('class WorkbenchStore:\n def __init__(self,state_root):\n  self.root=Path(state_root)\n')
+        self.scope['deployed_files']['v4/manager_workbench/store.py']=prep.sha(deployed)
+        self.scope['source_files']['v4/manager_workbench/store.py']=prep.sha(deployed)
+        with self.assertRaisesRegex(prep.Stop,'STORE_ROOT_CONSTRUCTOR_UNRECOGNIZED'):pub.live_store_root(self.scope)
+        self.assert_originals()
+
+    def test_configured_root_publish_revalidates_config_inside_store_lock(self):
+        receipt,root,continuation,runner=self.configured_root_fixture();original_lock=WorkbenchStore.lock
+        @contextmanager
+        def raced_lock(store,key):
+            with original_lock(store,key):
+                self.config.write_bytes(self.config.read_bytes()+b' ')
+                yield
+        with patch.object(pub,'load_backend',return_value=self.backend),patch.object(pub.subprocess,'run',side_effect=runner),patch.object(WorkbenchStore,'lock',raced_lock):
+            with self.assertRaisesRegex(prep.Stop,'FILE_SHA_DRIFT'):
+                pub.publish(self.prepared,prep.sha(self.prepared),self.published,continuation=continuation)
+        self.assertFalse((root/f"snapshots/{receipt['new_run_id']}.json").exists())
+        self.assertFalse((self.state/receipt['pointer_relative']).exists());self.assert_originals()
+
+    def test_configured_root_rollback_revalidates_plist_inside_store_lock(self):
+        receipt,root,continuation,runner=self.configured_root_fixture();original_lock=WorkbenchStore.lock
+        with patch.object(pub,'load_backend',return_value=self.backend),patch.object(pub.subprocess,'run',side_effect=runner):
+            pub.publish(self.prepared,prep.sha(self.prepared),self.published,continuation=continuation)
+            pointer=root/receipt['pointer_relative'];raw=pointer.read_bytes()
+            @contextmanager
+            def raced_lock(store,key):
+                with original_lock(store,key):
+                    self.api_plist.write_bytes(self.api_plist.read_bytes()+b' ')
+                    yield
+            with patch.object(WorkbenchStore,'lock',raced_lock):
+                with self.assertRaisesRegex(prep.Stop,'PUBLICATION_API_PLIST_DRIFT'):
+                    pub.rollback(self.prepared,prep.sha(self.prepared),{'path':str(self.published),'sha256':prep.sha(self.published)},
+                        self.rolled_back,continuation=continuation)
+        self.assertEqual(pointer.read_bytes(),raw);self.assertFalse(self.rolled_back.exists());self.assert_originals()
+
+    def test_configured_root_validation_never_constructs_store(self):
+        receipt,root,continuation,runner=self.configured_root_fixture()
+        with patch.object(WorkbenchStore,'__init__',side_effect=AssertionError('preflight Store construction forbidden')):
+            self.assertEqual(pub.live_store_root(self.scope),root)
+            loaded=pub.scope_load(self.scope_path,prep.sha(self.scope_path),'publish_replay',continuation)
+            pub.active_api(loaded,runner=runner)
+        self.assert_originals()
 
     def test_real_engine_store_retrospective_and_exact_rollback(self):
         receipt=self.prepare();self.assert_originals()
@@ -211,6 +357,9 @@ def main():
     args=parser.parse_args();SCRATCH.mkdir(parents=True,exist_ok=True)
     output=Path(args.receipt).resolve();prep.require(output.is_relative_to(SCRATCH.resolve()),'TEST_RECEIPT_OUTSIDE_SCRATCH')
     before={str(p):prep.sha(p) for p in LIVE_PATHS}
+    helper_dependencies_before={name:prep.sha(Path(__file__).with_name(name)) for name in ('prepare_release.py','activate_release.py')}
+    root_contract_ast=prep.digest(ast.dump(ast.parse(inspect.getsource(pub.actual_store_root))).encode())
+    loaded_root_code_sha256=prep.digest(pub.actual_store_root.__code__.co_code)
     suite=unittest.TestSuite(PublicationTests(name) for name in args.cases) if args.cases else unittest.defaultTestLoader.loadTestsFromTestCase(PublicationTests)
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     after={str(p):prep.sha(p) for p in LIVE_PATHS}
@@ -218,7 +367,11 @@ def main():
         failures=len(result.failures),errors=len(result.errors),cases=args.cases or 'ALL',live_unchanged=before==after,
         live_before=before,live_after=after,python=dict(executable=sys.executable,version=sys.version),
         source_dependency_sha256={str(Path(module.__file__)):prep.sha(module.__file__) for module in (c,engines,service,replay,sys.modules[WorkbenchStore.__module__])},
-        helpers={p.name:prep.sha(p) for p in [Path(pub.__file__),Path(__file__)]},actual_live_operations=0,fixture_inputs_only=True)
+        helpers={p.name:prep.sha(p) for p in [Path(pub.__file__),Path(__file__)]},
+        runtime_helper_dependencies_before=helper_dependencies_before,
+        runtime_helper_dependencies_after={name:prep.sha(Path(__file__).with_name(name)) for name in ('prepare_release.py','activate_release.py')},
+        actual_store_root_AST_sha256=root_contract_ast,loaded_actual_store_root_code_sha256=loaded_root_code_sha256,
+        actual_live_operations=0,fixture_inputs_only=True)
     prep.write_new(output,prep.json_bytes(value));print(json.dumps(dict(receipt=str(output),sha256=prep.sha(output),passed=value['passed'],tests=result.testsRun)))
     raise SystemExit(0 if result.wasSuccessful() and before==after else 1)
 

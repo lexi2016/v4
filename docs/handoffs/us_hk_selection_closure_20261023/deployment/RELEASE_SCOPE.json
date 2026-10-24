@@ -87,7 +87,9 @@
     "lifecycle": "Temporary independent-session guardian only, acknowledged durable intent/journal before STOP. Darwin kernel audit token/PID version gates every STOP/CONT/KILL with no PID-only fallback; start time/status also checked. Guardian freezes exact old owner then reads accepted jobs/claims/children. Busy/unknown/precommit interruption restores own binding CAS and CONTs original. Durable bootout commit forbids old-owner resume; only same frozen-idle identity may be finished. New/restarted PID is preserved. One bootstrap requires explicit START after confirmed absence. Rollback uses same fence; healthy parent recovery only restores raw plist without signalling it. No new daemon/job or automatic blind rollback. Normal rollback must pin this activation receipt and its recorded candidate runtime_kernel_identity; partial/absent recovery still pins exact FAILED receipt. No newly observed PID silently replaces that recorded owner.",
     "guardian_limits": "Audit-token SPI/task-name access must succeed or abort before STOP. Uncatchable guardian SIGKILL/OS/hardware death requires inspection of durable intent/journal; no automatic new-PID signals. Concurrent external signal or config/source/identity ambiguity invalidates the fence. Actual operation remains gated by independent review and controller capsule.",
     "native_inventory": "API/CHILD original leaf inventory contracts stay exact. SCHED988 native entries normalize to872 unchanged leaves only after validating original canonical aggregate and every116 directory path/type/mode; extra directories reject except complete source-paired regular generated314 cache containers already excluded by pinned tool, with explicit reconciliation. SHARED native80 entries compare path/type/mode/size/SHA under original package-relative paths; generated313/314 cache exclusions require declared source pairs and explicit receipt. No fabricated application_inventory on old manifests.",
-    "protocol": "Single bounded descriptor-level JSON-line reader on both guardian/controller ends; per-stream pending bytes, fixed deadline, UTF8 framing,64KiB frame limit. Coalesced events never wait on select for already buffered data. Partial EOF/malformed/oversize/timeout abort according to pre/postcommit recovery phase; no automatic START or blind retry."
+    "protocol": "Single bounded descriptor-level JSON-line reader on both guardian/controller ends; per-stream pending bytes, fixed deadline, UTF8 framing,64KiB frame limit. Coalesced events never wait on select for already buffered data. Partial EOF/malformed/oversize/timeout abort according to pre/postcommit recovery phase; no automatic START or blind retry.",
+    "DATA07_hk_sdk": "HK_CHILD only optional exact731-file dependency artifact, map ce4f2995... and 28,388,099B, independent manifest/map/file review separate from original2 capture source overlays; original wrapper/Python3.13.12/sites/5bindings/provider unchanged; no package hooks or pandas/NumPy/pyarrow shadow. Guarded native canary requires simplejson speedups/upb/AES and candidate SDK origins; no SDK/OpenQuoteContext/provider initialization, optional backend fallback, writes/network/process. F1-F4 and SHARED14 existing PASS are reused unchanged. Actual artifact input is local_only/hk-sdk/ARTIFACT_MANIFEST_R1.json; no real materialization before controller capsule. R1 validation/search/loaded numeric paths use canonical 20260820 site with explicit original 20260904 alias provenance; invocation alias, resolved interpreter, wrapper/runtime/shared env and five CHILD bindings unchanged. Zero-byte distribution files remain in the exact approved map with original RECORD SHA/size, source size/mode and payload hash checks; native headers remain required even for a zero-byte native row.",
+    "activation_continuation": "An immutable PREPARED product whose original scope capsule only grants prepare may use --continuation/--continuation-sha256. Separate PASS capsule binds prepared_sha256, original scope_sha256, original scope_contract_sha256, current prepare/activate helper SHA and explicit activate/rollback action. Original prepared/scope/manifest never rewritten. Guardian receives/rechecks identical hash pin; all verify_prepared/admission/CAS/guardian/rollback checks retained. No pin preserves the original authorization path. Historical PREPARED helper SHA must be a valid SHA256 matching the original hash-bound preparation capsule (schema/PASS/prepare action/original scope contract), with original scope read back against the prepared receipt. Current transition/guardian authority still pins both current helpers; rehearsal and hk_child_binding keep current-helper checks."
   },
   "hk_child_prepared": null,
   "hk_child_template": {
@@ -108,7 +110,18 @@
     "overlays": [],
     "runtime_probe": "Retained HK wrapper/runtime/sites/environment; PYTHONPATH=candidate/app as original caller contract, import both candidate ops modules only; no producer main or SDK call",
     "scheduler_dependency": "Separate scheduler scope consumes hk_child_prepared exact path/SHA; five CHILD env bindings only, original wrapper/runtime/shared root/args retained",
-    "decision": "Task1 provider-gap direct data-loss evidence plus task-1b-capture-brief supersede permanent old-child preservation only for the reviewed same-Futu capture patch; prior read-only preflight remains historical truth"
+    "decision": "Task1 provider-gap direct data-loss evidence plus task-1b-capture-brief supersede permanent old-child preservation only for the reviewed same-Futu capture patch; prior read-only preflight remains historical truth",
+    "hk_sdk_artifact": {
+      "manifest": {
+        "path": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/docs/handoffs/us_hk_selection_closure_20261023/deployment/local_only/hk-sdk/ARTIFACT_MANIFEST_R1.json",
+        "sha256": "f7c7822ea80bac7f581b18705474070135edabe983a23c12fcaa12b9b6af97aa"
+      },
+      "review_receipt": {
+        "path": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/docs/handoffs/us_hk_selection_closure_20261023/deployment/local_only/hk-sdk/ARTIFACT_REVIEW_PASS_R1.json",
+        "sha256": null
+      }
+    },
+    "hk_sdk_canary": true
   },
   "integration_input": {
     "controller_receipt": "scratch/sync/SYNC_CORE_RECEIPT.json",
@@ -149,5 +162,30 @@
     ],
     "scope": "SOURCE_PROJECTION_ONLY; old manifest unchanged; no new authority/data layer",
     "non_source_runtime_dependencies": "No new copied non-source dependency is authorized; any actual required file must be explicitly pinned at its retained path for controller review"
+  },
+  "activation_continuation_contract": {
+    "state": "TEMPLATE_NOT_AUTHORITY",
+    "cli_options": [
+      "--continuation",
+      "--continuation-sha256"
+    ],
+    "capsule_schema": "v4.us_hk.execution_capsule.v1",
+    "required_capsule_fields": [
+      "verdict=PASS",
+      "authorized_actions contains requested activate or rollback",
+      "prepared_sha256",
+      "scope_sha256",
+      "scope_contract_sha256",
+      "helper_sha256.prepare_release.py",
+      "helper_sha256.activate_release.py"
+    ],
+    "guardian_intent_field": "continuation: exact {path,sha256}",
+    "immutable_inputs": [
+      "original prepared receipt",
+      "original scope including prepare-only capsule pin",
+      "candidate manifest and application inventory"
+    ],
+    "recovery_receipt_required_for_rollback": "existing rule unchanged",
+    "actual_operation_executed": false
   }
 }

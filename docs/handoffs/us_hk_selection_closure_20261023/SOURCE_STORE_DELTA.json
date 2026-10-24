@@ -1,0 +1,38 @@
+{
+  "schema": "v4.us_hk.source_store_delta.v1",
+  "state": "BLOCKED_IMPORT_NOT_APPLIED",
+  "target": {
+    "path": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/v4/manager_workbench/store.py",
+    "sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+    "mode": "0644"
+  },
+  "proposed_sources": [
+    {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1/app/v4/manager_workbench/store.py",
+      "sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
+      "mode": "0644",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hkex-announcements-api-20261023-r1/release-manifest.json",
+      "manifest_sha256": "6b91f3cabebe2a056e449eb0797df5660d68495ab4d2de14f0d0af0394dca6ed"
+    },
+    {
+      "root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-selection-api-20261023-r1",
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-selection-api-20261023-r1/app/v4/manager_workbench/store.py",
+      "sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
+      "mode": "0644",
+      "manifest_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-hk-selection-api-20261023-r1/release-manifest.json",
+      "manifest_sha256": "97803806d12bceec3ac250a8e7be2fe52862f97c8734c9ffeeb3fa5fc5ebf604"
+    }
+  ],
+  "actual_post_sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+  "source_store_changed": false,
+  "prior_SOURCE_MANIFEST_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
+  "historical_manifest_rewritten": false,
+  "blocker": "Actual45a commit_plan lacks merger keyword unconditionally supplied by same accepted/candidate service; controller reconciliation needed before byte import",
+  "evidence_sha256": "a29631f5c719ca1d4ea719629b7e3b99eaa54b0dd18967264abaacb268d0fa8d",
+  "test_status": "NOT_RUN_PRECOPY_STOP",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "v4.us_hk.hk_sdk_dependency_requirements.v1",
+  "status": "STATIC_AND_SOURCE_PASS_ACTUAL_IMPORT_REFUSED_AT_ORIGINAL_SDK_LOG_INITIALIZATION",
+  "purpose": "Reproduce compatible HK-only SDK dependencies without modifying retained runtimes or provider",
+  "runtime": {
+    "python": "3.13.12",
+    "platform": "macOS arm64",
+    "original_wrapper_sha256": "817900c6e835d5c66fc3c3df4827625cfd3c56dd3d1ebc1b2f82191c197b10a6",
+    "original_pandas": "2.3.3",
+    "original_numpy": "2.5.2",
+    "sites_searchroots_provider_arguments_unchanged": true
+  },
+  "distributions": [
+    {
+      "distribution": "futu_api",
+      "version": "10.6.6608",
+      "metadata_sha256": "c6376c936a189be7fb432baca5e0cb523b19d9264f8b6fa34e4fbce82f4ad215",
+      "record_sha256": "22de304bf2a8cf15d7c4e9698492944749f64891b0e6ba681f724246663655c4",
+      "wheel_metadata_sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+      "wheel_tags": [
+        "py3-none-any"
+      ]
+    },
+    {
+      "distribution": "protobuf",
+      "version": "7.35.1",
+      "metadata_sha256": "1c58cfd7acd805c087ceb1f14c27cdba3c52d074e1d7b05dacf31fdf413c0a8c",
+      "record_sha256": "680c6a559b82b5b434486569f8b325fe8f5dc3dfe0dc94c13863766aafef99af",
+      "wheel_metadata_sha256": "e049178cb32aec5d05afb78277559c7a43bfb6ceeca227d43768b2a19a66c5ef",
+      "wheel_tags": [
+        "cp310-abi3-macosx_10_9_universal2"
+      ]
+    },
+    {
+      "distribution": "pycryptodome",
+      "version": "3.23.0",
+      "metadata_sha256": "fc29b3a17474c193f016e46d3be8226cbc5a77d76d1a12e360b1797bf47dda66",
+      "record_sha256": "5a24d45881aa64b4e353ec67be325c0a90024e4c1e005592f31bdce8099c97ef",
+      "wheel_metadata_sha256": "63b6393d9a7e1b3e79a04703dc0d173dac315901b39eaaeff77f3b5e5527a074",
+      "wheel_tags": [
+        "cp37-abi3-macosx_10_9_universal2"
+      ]
+    },
+    {
+      "distribution": "simplejson",
+      "version": "4.1.1",
+      "official_wheel_filename": "simplejson-4.1.1-cp313-cp313-macosx_11_0_arm64.whl",
+      "wheel_archive_sha256": "249e2e220aa6d9b9d936bde84eb7bf79d5b6c5a8273c6e411f8b1635a9073f2d",
+      "wheel_tags": [
+        "cp313-cp313-macosx_11_0_arm64"
+      ]
+    }
+  ],
+  "artifact": {
+    "class": "DEPENDENCY_ARTIFACT",
+    "source_in_git": false,
+    "file_count": 731,
+    "total_bytes": 28388099,
+    "map_sha256": "ce4f2995f0c296195b01cb96c4e6b4790973324566aadf010f0750b5894a9620",
+    "target": "HK_CHILD candidate/app existing search root only",
+    "raw_wheel_SDK_payload_uploaded": false
+  },
+  "provenance": {
+    "design_manifest_sha256": "1f66f4a3cd9777b6baf1b9f14b7f09f603e6a882b1414d7bbacca48d29f2bd04",
+    "design_handoff_sha256": "4a2f31f9b4d2820e0cc1ff745b132275501fcf947ebc871499c38ca3a3764866",
+    "futu_original_RECORD_files_independently_checked": 266,
+    "SDK_and_ABI3_sources": "Existing pinned API/scheduler distributions; retain source METADATA/WHEEL/RECORD and file hashes",
+    "simplejson_source": "Official PyPI exact matching version cp313 arm64 wheel; no cp314 extension copied"
+  },
+  "acceptance_required": [
+    "Independent helper/artifact delta PASS",
+    "Original HK wrapper/3.13 actual candidate import origins/SHA and native backend checks, no fallback",
+    "Existing provider natural capture receipts; import success alone does not establish provider recovery"
+  ],
+  "actual_sdk_import": {
+    "attempted": true,
+    "completed": false,
+    "candidate_materialized": true,
+    "candidate_manifest_or_PREPARED": false,
+    "failure": "Original SDK FTLog opens its fixed HOME log file; current readonly guard refuses append open",
+    "abi_failure_demonstrated": false,
+    "sdk_payload_modified": false,
+    "HOME_redirected": false,
+    "provider_initialized": false
+  },
+  "provider_recovery": "CANNOT_CONFIRM",
+  "financial_readiness": "UNCHANGED_PENDING",
+  "created_at": "2026-10-24T05:14:27.939485+00:00"
+}

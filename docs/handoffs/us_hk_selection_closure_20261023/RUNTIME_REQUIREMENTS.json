@@ -169,5 +169,18 @@
     "production_allowed": false,
     "buy_gate_updated": false,
     "orders_sent": false
+  },
+  "required_store_overlay_for_api_r2": {
+    "source": "v4/manager_workbench/store.py",
+    "sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+    "git_baseline": "4e00084d8ef9c606bfff2892dcab35515423c776",
+    "git_blob": "d59aec332100bc7e375e04efe3f3022b8816e1bf",
+    "reason": "Actual old API Store45a cannot accept service merger keyword; never import old Store over source"
+  },
+  "probe_dataclass_runtime_binding": {
+    "python": "3.14.6",
+    "stdlib_sha256": "2dedf70270f45c6a909ae1eac734fcf3ae3f2764bb71a330f4825aca3a79784b",
+    "probe_sha256": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
+    "scope": "SOURCE/TESTS and import-stage only, no Native/PREOPEN claim"
   }
 }

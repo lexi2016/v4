@@ -2,6 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import ast
+import base64
+from copy import deepcopy
+import csv
+import stat
+import struct
+import zipfile
 from contextlib import contextmanager
 import io
 import json
@@ -42,6 +49,10 @@ class FakeSubprocess:
             origins=json.loads(args[-1])
             out=json.dumps(dict(version=self.scope['runtime_probe']['python']['version'],origins=origins,
                 module_sha256={name:prepare.sha(path) for name,path in origins.items()}))
+            if self.scope.get('hk_sdk_artifact'):
+                body=json.loads(out);body['sdk_canary']=dict(versions={name:value[0] for name,value in prepare.HK_SDK_DISTRIBUTIONS.items()},
+                    simplejson_native=True,protobuf_backend='upb',aes_known_answer='66e94bd4ef8a2c3b884cfa59ca342b2e',provider_initialized=False)
+                out=json.dumps(body)
         elif args[:2]==['/bin/launchctl','print']:
             rc=0 if self.running else 113
             out=f'state = running\npid = {self.pid}\n' if self.running else ''
@@ -389,6 +400,232 @@ class ReleaseTests(unittest.TestCase):
         self.scope['execution_capsule']=dict(path=str(capsule),sha256=prepare.sha(capsule))
         fake=FakeSubprocess(self.scope)
         return fake
+
+    def continuation_fixture(self, *, prepare_only=True):
+        runner=self.release_fixture()
+        token=dict(pid=111,start_sec=2,start_usec=3,status=2,audit_token=[2]*8,pid_version=4)
+        self.scope['activity'].update(expected_owner=token,admission_files={'parent':{},'candidate':{}})
+        capsule=Path(self.scope['execution_capsule']['path'])
+        value=json.loads(capsule.read_bytes());value['scope_contract_sha256']=prepare.contract_sha(self.scope)
+        if prepare_only:value['authorized_actions']=['prepare']
+        capsule.write_bytes(prepare.json_bytes(value));self.scope['execution_capsule']['sha256']=prepare.sha(capsule)
+        prepared=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        path=self.root/'activation-continuation.json'
+        value=dict(schema='v4.us_hk.execution_capsule.v1',verdict='PASS',authorized_actions=['activate','rollback'],
+            prepared_sha256=prepare.sha(self.prepared_path),scope_sha256=prepared['scope_sha256'],
+            scope_contract_sha256=prepare.contract_sha(self.scope),
+            helper_sha256={name:prepare.sha(Path(__file__).with_name(name)) for name in ('prepare_release.py','activate_release.py')})
+        path.write_bytes(prepare.json_bytes(value));pin=dict(path=str(path),sha256=prepare.sha(path))
+        return runner,prepared,pin
+
+    def test_continuation_authorizes_immutable_prepare_only_product_both_directions(self):
+        runner,prepared,pin=self.continuation_fixture()
+        frozen={p:p.read_bytes() for p in (self.prepared_path,self.scope_path,self.candidate/'release-manifest.json')}
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        with patch.object(activate,'guarded_transition',return_value={'state':'FENCED_PATH_SELECTED'}) as guarded:
+            for direction in ('activate','rollback'):
+                result=activate.transition(self.prepared_path,prepare.sha(self.prepared_path),direction,lifecycle,
+                    self.evidence/(direction+'-continuation.json'),continuation=pin)
+                self.assertEqual(result['state'],'FENCED_PATH_SELECTED')
+                self.assertEqual(guarded.call_args.args[-1],pin)
+        self.assertTrue(all(p.read_bytes()==raw for p,raw in frozen.items()))
+        self.assertEqual(lifecycle.calls,[])
+        self.assertEqual(json.loads(Path(self.scope['execution_capsule']['path']).read_bytes())['authorized_actions'],['prepare'])
+
+    def test_continuation_rejects_wrong_product_scope_action_helper_and_pin(self):
+        runner,prepared,pin=self.continuation_fixture();path=Path(pin['path']);original=json.loads(path.read_bytes())
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        with patch.object(activate,'guarded_transition') as guarded:
+            for mutation in ('prepared','scope','action','contract','helper','sha','pinshape'):
+                value=deepcopy(original);check=dict(pin)
+                if mutation=='prepared':value['prepared_sha256']='0'*64
+                elif mutation=='scope':value['scope_sha256']='0'*64
+                elif mutation=='action':value['authorized_actions']=['rollback']
+                elif mutation=='contract':value['scope_contract_sha256']='0'*64
+                elif mutation=='helper':value['helper_sha256']['activate_release.py']='0'*64
+                path.write_bytes(prepare.json_bytes(value));check['sha256']=prepare.sha(path)
+                if mutation=='sha':check['sha256']='0'*64
+                if mutation=='pinshape':check['extra']='unreviewed'
+                with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):
+                    activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,continuation=check)
+            self.assertEqual(guarded.call_count,0)
+        self.assertEqual(lifecycle.calls,[]);self.assertFalse(self.activation_path.exists())
+
+    def test_continuation_keeps_prepare_only_refusal(self):
+        runner,prepared,pin=self.continuation_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        with patch.object(activate,'guarded_transition') as guarded:
+            with self.assertRaisesRegex(prepare.Stop,'CAPSULE_ACTION_OR_SCOPE_MISMATCH'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path)
+            guarded.assert_not_called()
+
+    def test_continuation_legacy_all_action_product_remains_compatible(self):
+        runner,prepared,pin=self.continuation_fixture(prepare_only=False)
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        with patch.object(activate,'guarded_transition',return_value={'state':'LEGACY_FENCED_PATH'}) as guarded:
+            for direction in ('activate','rollback'):
+                self.assertEqual(activate.transition(self.prepared_path,prepare.sha(self.prepared_path),direction,
+                    lifecycle,self.evidence/(direction+'-legacy.json'))['state'],'LEGACY_FENCED_PATH')
+                self.assertIsNone(guarded.call_args.args[-1])
+        self.assertEqual(lifecycle.calls,[])
+
+    def test_continuation_cli_propagates_complete_pin_without_rewrite(self):
+        runner,prepared,pin=self.continuation_fixture()
+        argv=['activate_release.py','activate','--prepared',str(self.prepared_path),
+            '--prepared-sha256',prepare.sha(self.prepared_path),'--receipt',str(self.activation_path),
+            '--continuation',pin['path'],'--continuation-sha256',pin['sha256']]
+        with patch.object(sys,'argv',argv),patch.object(activate,'transition',return_value={'state':'CLI_WIRED','live_operations':0}) as transition:
+            with patch.object(sys,'stdout',io.StringIO()):activate.main()
+            self.assertEqual(transition.call_args.kwargs['continuation'],pin)
+            self.assertIsNone(transition.call_args.kwargs['recovery_pin'])
+        self.assertFalse(self.activation_path.exists())
+
+    def test_continuation_guardian_intent_propagation_and_revalidation(self):
+        runner,prepared,pin=self.continuation_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        token=self.scope['activity']['expected_owner'];captured={}
+        def intercept(argv,**kwargs):
+            captured.update(json.loads(Path(argv[-2]).read_bytes()))
+            self.assertEqual(prepare.sha(argv[-2]),argv[-1]);raise RuntimeError('FAKE_GUARDIAN_SPAWN_INTERCEPTED')
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'signal_identity',return_value=token),patch.object(activate.subprocess,'Popen',side_effect=intercept):
+            with self.assertRaisesRegex(RuntimeError,'FAKE_GUARDIAN_SPAWN_INTERCEPTED'):
+                activate.guarded_transition(self.scope,prepared,self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,None,pin)
+        self.assertEqual(captured['continuation'],pin);self.assertFalse(self.activation_path.exists())
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):
+            ops=activate.RealGuardianOps(captured);ops.verify_before_freeze();ops.verify_commit()
+            dropped=dict(captured);dropped.pop('continuation')
+            with self.assertRaisesRegex(prepare.Stop,'CAPSULE_ACTION_OR_SCOPE_MISMATCH'):activate.RealGuardianOps(dropped)
+            path=Path(pin['path']);raw=path.read_bytes();path.write_bytes(raw+b' ')
+            with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):ops.verify_before_freeze()
+            with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):ops.verify_commit()
+        self.assertEqual(lifecycle.calls,[])
+
+    def test_continuation_does_not_bypass_prepared_inventory_or_admission(self):
+        runner,prepared,pin=self.continuation_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        path=self.candidate/'app'/self.target;raw=path.read_bytes();path.write_bytes(b'candidate drift')
+        with patch.object(activate,'guarded_transition') as guarded:
+            with self.assertRaisesRegex(prepare.Stop,'CANDIDATE_INVENTORY_DRIFT'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,continuation=pin)
+            guarded.assert_not_called()
+        path.write_bytes(raw)
+        with patch.object(activate,'require_real_admission_protocol',side_effect=prepare.Stop('FROZEN_ADMISSION_REQUIRED')),patch.object(activate,'guarded_transition') as guarded:
+            with self.assertRaisesRegex(prepare.Stop,'FROZEN_ADMISSION_REQUIRED'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,continuation=pin)
+            guarded.assert_not_called()
+        self.assertEqual(lifecycle.calls,[])
+
+    def test_continuation_cli_requires_complete_pin_pair(self):
+        for flags in (['--continuation','/missing'],['--continuation-sha256','0'*64]):
+            argv=['activate_release.py','activate','--prepared','/must-not-read','--prepared-sha256','0'*64,'--receipt','/must-not-write',*flags]
+            with patch.object(sys,'argv',argv),patch.object(activate,'read_json') as read:
+                with self.assertRaisesRegex(prepare.Stop,'CONTINUATION_PIN_PAIR_REQUIRED'):activate.main()
+                read.assert_not_called()
+
+    def historical_continuation_fixture(self):
+        """Model the accepted 476 preparation followed by a reviewed upgrade."""
+        old_sha='47668870ff5e249ea30b46edae919861186a4e822ba54d500d179d239abaefb5'
+        current_sha=prepare.sha
+        def previous(path):
+            return old_sha if Path(path)==Path(prepare.__file__) else current_sha(path)
+        with patch.object(prepare,'sha',side_effect=previous):
+            runner,prepared,pin=self.continuation_fixture()
+        path=Path(pin['path']);value=json.loads(path.read_bytes())
+        value['helper_sha256']={name:prepare.sha(Path(__file__).with_name(name))
+                               for name in ('prepare_release.py','activate_release.py')}
+        path.write_bytes(prepare.json_bytes(value));pin['sha256']=prepare.sha(path)
+        self.assertEqual(prepared['helper_sha256'],old_sha)
+        self.assertNotEqual(old_sha,prepare.sha(prepare.__file__))
+        return runner,prepared,pin
+
+    def test_historical_preparation_current_continuation_injected_guardian_both_directions(self):
+        runner,prepared,pin=self.historical_continuation_fixture()
+        frozen={p:p.read_bytes() for p in (self.prepared_path,self.scope_path,self.candidate/'release-manifest.json',
+                                          Path(self.scope['execution_capsule']['path']))}
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        tokens={111:self.scope['activity']['expected_owner']}
+        def identity(pid):
+            if pid not in tokens:tokens[pid]=dict(tokens[111],pid=pid,pid_version=pid)
+            return tokens[pid]
+        statuses={111:2};signals=[]
+        def fake_signal(token,signum):
+            signals.append((token['pid'],signum));statuses[token['pid']]=4 if signum==signal.SIGSTOP else 5
+        def guarded(scope,product,product_path,product_sha,direction,adapter,receipt,recovery,continuation):
+            token=identity(runner.pid);statuses[token['pid']]=2
+            intent=dict(schema='v4.us_hk.guardian_intent.v1',mode='RELEASE',controller_pid=os.getpid(),
+                owner_token=token,prepared={'path':str(product_path),'sha256':product_sha},direction=direction,
+                recovery_pin=recovery,journal=str(self.evidence/(direction+'-historical-guardian.json')),
+                receipt_path=str(receipt),helper_sha256=prepare.sha(activate.__file__),continuation=continuation)
+            with patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):ops=activate.RealGuardianOps(intent)
+            read_fd,write_fd=os.pipe()
+            os.write(write_fd,b'{"action":"FREEZE"}\n{"action":"COMMIT"}\n{"action":"START"}\n');os.close(write_fd)
+            with os.fdopen(read_fd) as control:
+                activate.FreezeGuardian(ops,intent,control,io.StringIO()).run()
+            return json.loads(receipt.read_bytes())
+        # Synthetic owner identities, signals, admission closure and launchctl;
+        # real product/capsule/inventory/precheck/CAS/guardian code is exercised.
+        with patch.object(activate,'verify_activity_closure'), \
+             patch.object(activate,'signal_identity',side_effect=identity), \
+             patch.object(activate,'same_process',return_value=True), \
+             patch.object(activate,'process_token',side_effect=lambda pid:dict(identity(pid),status=statuses.get(pid,2))), \
+             patch.object(activate,'signal_exact_identity',side_effect=fake_signal), \
+             patch.object(activate.signal,'pthread_sigmask',return_value=set()), \
+             patch.object(activate,'guarded_transition',side_effect=guarded):
+            activated=activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,
+                self.activation_path,continuation=pin)
+            recovery={'path':str(self.activation_path),'sha256':prepare.sha(self.activation_path)}
+            rolled=activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'rollback',lifecycle,
+                self.rollback_path,continuation=pin,recovery_pin=recovery)
+        self.assertEqual((activated['state'],rolled['state']),('ACTIVATED','ROLLED_BACK'))
+        self.assertEqual([c[1] for c in runner.commands if c[:1]==['/bin/launchctl'] and c[1]!='print'],
+                         ['bootout','bootstrap','bootout','bootstrap'])
+        self.assertEqual([s[1] for s in signals],[signal.SIGSTOP,signal.SIGKILL]*2)
+        self.assertEqual(self.plist.read_bytes(),self.old_bytes)
+        self.assertTrue(all(p.read_bytes()==raw for p,raw in frozen.items()))
+
+    def test_historical_preparation_rejects_original_capsule_and_helper_tamper(self):
+        runner,prepared,pin=self.historical_continuation_fixture()
+        capsule_path=Path(self.scope['execution_capsule']['path']);raw=capsule_path.read_bytes()
+        capsule_path.write_bytes(raw+b' ')
+        with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):activate.verify_prepared(self.scope,prepared)
+        capsule_path.write_bytes(raw)
+        wrong=dict(prepared,helper_sha256='0'*64)
+        with self.assertRaisesRegex(prepare.Stop,'PREPARE_HELPER_DRIFT'):activate.verify_prepared(self.scope,wrong)
+        shadow=deepcopy(self.scope);shadow['execution_capsule']['sha256']='0'*64
+        with self.assertRaisesRegex(prepare.Stop,'PREPARED_ORIGINAL_SCOPE_DRIFT'):activate.verify_prepared(shadow,prepared)
+        for mutation in ('schema','verdict','action','contract','helper','missing_helper','malformed_helper'):
+            capsule=json.loads(raw);scope=deepcopy(self.scope);product=deepcopy(prepared)
+            if mutation=='schema':capsule['schema']='unknown'
+            elif mutation=='verdict':capsule['verdict']='FAIL'
+            elif mutation=='action':capsule['authorized_actions']=['activate','rollback']
+            elif mutation=='contract':capsule['scope_contract_sha256']='0'*64
+            elif mutation=='missing_helper':
+                capsule['helper_sha256'].pop('prepare_release.py');product['helper_sha256']=None
+            elif mutation=='malformed_helper':
+                capsule['helper_sha256']['prepare_release.py']='unknown';product['helper_sha256']='unknown'
+            else:capsule['helper_sha256']['prepare_release.py']='0'*64
+            capsule_path.write_bytes(prepare.json_bytes(capsule));scope['execution_capsule']['sha256']=prepare.sha(capsule_path)
+            self.scope_path.write_bytes(prepare.json_bytes(scope));product['scope_sha256']=prepare.sha(self.scope_path)
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):activate.verify_prepared(scope,product)
+        self.assertFalse(self.activation_path.exists());self.assertEqual(runner.commands[1:],[])
+
+    def test_historical_preparation_keeps_current_authority_inventory_and_admission(self):
+        runner,prepared,pin=self.historical_continuation_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        with patch.object(activate,'guarded_transition') as guarded:
+            with self.assertRaisesRegex(prepare.Stop,'CAPSULE_ACTION_OR_SCOPE_MISMATCH'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path)
+            path=Path(pin['path']);raw=path.read_bytes();value=json.loads(raw)
+            value['helper_sha256']['prepare_release.py']=prepared['helper_sha256'];path.write_bytes(prepare.json_bytes(value))
+            with self.assertRaisesRegex(prepare.Stop,'UNREVIEWED_HELPER'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,
+                    continuation={'path':str(path),'sha256':prepare.sha(path)})
+            path.write_bytes(raw)
+            target=self.candidate/'app'/self.target;original=target.read_bytes();target.write_bytes(b'drift')
+            with self.assertRaisesRegex(prepare.Stop,'CANDIDATE_INVENTORY_DRIFT'):
+                activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,continuation=pin)
+            target.write_bytes(original)
+            with patch.object(activate,'require_real_admission_protocol',side_effect=prepare.Stop('FROZEN_ADMISSION_REQUIRED')):
+                with self.assertRaisesRegex(prepare.Stop,'FROZEN_ADMISSION_REQUIRED'):
+                    activate.transition(self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,continuation=pin)
+            guarded.assert_not_called()
+        self.assertEqual(lifecycle.calls,[]);self.assertFalse(self.activation_path.exists())
 
     def test_release_prepare_import_with_role_runtime(self):
         runner=self.release_fixture()
@@ -1496,6 +1733,326 @@ time.sleep(120)
         probe=manifest['task_overlay']['runtime_probe']
         self.assertNotIn(str(self.candidate/'app/upstreams/v3_shared_data'),probe['search_roots'])
         self.assertEqual(probe['module_sha256']['v4.manager_workbench.engine'],prepare.sha(self.source/'engine.py'))
+
+    def sdk_fixture(self, *, cp314=False, empty_files=False, empty_native=False):
+        """Tiny fake distributions only. No real SDK payload is copied/imported."""
+        runner=self.hk_child_fixture();self.scope['runtime_probe']['python']['version']='3.13.12'
+        self.scope['runtime_probe']['hk_sdk_canary']=True
+        patch.object(prepare,'HK_SDK_PYTHON_SHA',self.scope['runtime_probe']['python']['sha256']).start()
+        patch.object(prepare,'HK_SDK_WRAPPER_SHA',self.scope['runtime_probe']['wrapper']['sha256']).start()
+        for key in ('HK_SDK_RELEASE_MAP','HK_SDK_RELEASE_COUNT','HK_SDK_RELEASE_BYTES'):
+            patch.object(prepare,key,getattr(prepare,key)).start()
+        self.sdk_site=self.root/'sdk-source';self.sdk_site.mkdir()
+        self.sdk_manifest_path=self.source/'sdk-artifact.json';self.sdk_review=self.root/'sdk-artifact-review.json'
+        self.sdk_archive=self.source/'simplejson-cp313.whl'
+        native=struct.pack('<8I',0xfeedfacf,0x0100000c,0,6,0,0,0,0)
+        if empty_native:native=b''
+        speedups='simplejson/_speedups.cpython-'+('314' if cp314 else '313')+'-darwin.so'
+        content={'futu_api':{'futu/__init__.py':b'FAKE SDK, not imported\n'},
+                 'simplejson':{'simplejson/__init__.py':b'fake json\n',speedups:native},
+                 'protobuf':{'google/protobuf/__init__.py':b'fake protobuf\n','google/_upb/_message.abi3.so':native},
+                 'pycryptodome':{'Crypto/__init__.py':b'fake crypto\n','Crypto/Cipher/_raw_aes.abi3.so':native}}
+        if empty_files:
+            content['protobuf'].update({'google/protobuf/internal/__init__.py':b'',
+                'google/protobuf/empty.pyi':b'','google/protobuf/py.typed':b''})
+            content['simplejson']['simplejson/py.typed']=b''
+        entries=[];distributions={}
+        for name,(version,tag,package) in prepare.HK_SDK_DISTRIBUTIONS.items():
+            prefix=name+'-'+version+'.dist-info/'
+            metadata='Name: '+name+'\nVersion: '+version+'\n'
+            if prepare.HK_SDK_REQUIRES_PYTHON[name]:metadata+='Requires-Python: '+prepare.HK_SDK_REQUIRES_PYTHON[name]+'\n'
+            for dependency in prepare.HK_SDK_REQUIREMENTS[name]:metadata+='Requires-Dist: '+dependency+'\n'
+            wheel='Wheel-Version: 1.0\nRoot-Is-Purelib: '+('true' if name=='futu_api' else 'false')+'\nTag: '+tag+'\n'
+            files=dict(content[name]);files[prefix+'METADATA']=metadata.encode();files[prefix+'WHEEL']=wheel.encode()
+            rows=[]
+            for relative,raw in files.items():rows.append([relative,'sha256='+base64.urlsafe_b64encode(bytes.fromhex(prepare.digest(raw))).decode().rstrip('='),str(len(raw))])
+            rows.append([prefix+'RECORD','','']);stream=io.StringIO();csv.writer(stream,lineterminator='\n').writerows(rows)
+            files[prefix+'RECORD']=stream.getvalue().encode()
+            dist=dict(name=name,version=version,kind='OFFICIAL_WHEEL' if name=='simplejson' else 'INSTALLED_RECORD',
+                metadata_sha256=prepare.digest(files[prefix+'METADATA']),wheel_sha256=prepare.digest(files[prefix+'WHEEL']),
+                record_sha256=prepare.digest(files[prefix+'RECORD']))
+            if name=='simplejson':
+                with zipfile.ZipFile(self.sdk_archive,'w') as z:
+                    for relative,raw in files.items():
+                        info=zipfile.ZipInfo(relative);info.external_attr=(stat.S_IFREG|(0o664 if relative.endswith('/RECORD') else 0o644))<<16;z.writestr(info,raw)
+                dist['archive']=dict(path=str(self.sdk_archive),sha256=prepare.sha(self.sdk_archive))
+            else:
+                dist['site_root']=str(self.sdk_site)
+                for relative,raw in files.items():
+                    p=self.sdk_site/relative;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw);p.chmod(0o644)
+            distributions[name]=dist
+            for relative,raw in files.items():
+                source=dict(distribution=name,version=version,record_sha256=dist['record_sha256'])
+                if name=='simplejson':source.update(kind='OFFICIAL_MATCHING_WHEEL_MEMBER',wheel_path=str(self.sdk_archive),wheel_sha256=dist['archive']['sha256'],member=relative)
+                else:source.update(kind='PINNED_EXISTING_DISTRIBUTION_RECORD',path=str(self.sdk_site/relative))
+                entries.append(dict(target=relative,sha256=prepare.digest(raw),bytes=len(raw),
+                    mode='0664' if name=='simplejson' and relative.endswith('/RECORD') else '0644',before_sha256=None,
+                    source=source,artifact_class='DEPENDENCY_ARTIFACT',not_in_git_source_commit=True))
+        preserved={}
+        for name in ('pandas','numpy'):
+            p=Path(self.scope['runtime_probe']['site_packages'][0])/name/'__init__.py';p.parent.mkdir();p.write_bytes(('existing '+name).encode())
+            preserved[name]=dict(path=str(p),sha256=prepare.sha(p))
+        self.sdk_manifest=dict(schema='v4.us_hk.hk_sdk_artifact.v1',artifact_class='DEPENDENCY_ARTIFACT',not_in_git_source_commit=True,
+            entries=entries,distributions=distributions,preserved_modules=preserved,runtime_binding=prepare.hk_sdk_runtime_binding(self.scope))
+        self.sdk_resign();return runner
+
+    def sdk_resign(self):
+        m=self.sdk_manifest;m.update(entry_count=len(m['entries']),total_bytes=sum(r['bytes'] for r in m['entries']),
+            artifact_map_sha256=prepare.sdk_map_sha(m['entries']))
+        self.sdk_manifest_path.write_bytes(prepare.json_bytes(m))
+        self.sdk_review.write_bytes(prepare.json_bytes(dict(schema='v4.us_hk.hk_sdk_artifact_review.v1',verdict='PASS',
+            manifest_sha256=prepare.sha(self.sdk_manifest_path),artifact_map_sha256=m['artifact_map_sha256'],
+            entry_count=m['entry_count'],total_bytes=m['total_bytes'],files={r['target']:r['sha256'] for r in m['entries']})))
+        self.scope['hk_sdk_artifact']=dict(manifest=dict(path=str(self.sdk_manifest_path),sha256=prepare.sha(self.sdk_manifest_path)),
+            review_receipt=dict(path=str(self.sdk_review),sha256=prepare.sha(self.sdk_review)))
+        # Fixed production constants are patched solely inside private fake fixtures.
+        prepare.HK_SDK_RELEASE_MAP=m['artifact_map_sha256'];prepare.HK_SDK_RELEASE_COUNT=m['entry_count'];prepare.HK_SDK_RELEASE_BYTES=m['total_bytes']
+        self.rearm_capsule('sdk-controller.json')
+
+    def test_sdk_exact_artifact_union_original_wrapper_and_canary(self):
+        runner=self.sdk_fixture();result=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        self.assertEqual(set(result['changed_paths']),prepare.CAPTURE_PATHS|{r['target'] for r in self.sdk_manifest['entries']})
+        manifest=json.loads((self.candidate/'release-manifest.json').read_bytes())
+        self.assertEqual(len(manifest['task_overlay']['source_overlays']),2)
+        self.assertEqual(stat.S_IMODE((self.candidate/'app/simplejson-4.1.1.dist-info/RECORD').stat().st_mode),0o664)
+        self.assertEqual(manifest['task_overlay']['hk_sdk_artifact_map_sha256'],self.sdk_manifest['artifact_map_sha256'])
+        self.assertEqual(runner.commands[0][0],self.scope['runtime_probe']['wrapper']['path'])
+        self.assertEqual(runner.command_options[0]['env']['PYTHONPATH'],str(self.candidate/'app'))
+        self.assertEqual(manifest['task_overlay']['runtime_probe']['sdk_canary']['protobuf_backend'],'upb')
+        self.assertIn("frame.f_globals.get('__name__','').startswith('futu.')",runner.commands[0][3])
+        self.assertIn("frame.f_code.co_name=='__init__'",runner.commands[0][3])
+        ast.parse(runner.commands[0][3])
+
+    def test_sdk_group_write_only_exact_simplejson_record(self):
+        self.sdk_fixture();row=next(r for r in self.sdk_manifest['entries'] if r['target']=='futu/__init__.py')
+        row['mode']='0664';self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_FILE_SIZE_MODE'):prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists())
+
+    def test_sdk_record_bound_empty_files_preserved_in_fake_candidate(self):
+        runner=self.sdk_fixture(empty_files=True)
+        result=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        self.assertEqual(result['state'],'PREPARED')
+        empty=[r for r in self.sdk_manifest['entries'] if r['bytes']==0];self.assertEqual(len(empty),4)
+        for row in empty:
+            target=self.candidate/'app'/row['target']
+            self.assertEqual(target.read_bytes(),b'');self.assertEqual(prepare.sha(target),prepare.digest(b''))
+            self.assertIn(row['target'],result['changed_paths'])
+
+    def test_sdk_empty_size_hash_record_and_source_mismatch_still_rejected(self):
+        self.sdk_fixture(empty_files=True)
+        row=next(r for r in self.sdk_manifest['entries'] if r['target']=='google/protobuf/py.typed')
+        original=deepcopy(row)
+        for mutation in ('negative','size','hash','record','mode'):
+            row.clear();row.update(deepcopy(original))
+            if mutation=='negative':row['bytes']=-1
+            elif mutation=='size':row['bytes']=1
+            elif mutation=='hash':row['sha256']='0'*64
+            elif mutation=='record':row['target']='google/protobuf/unrecorded.pyi'
+            else:row['mode']='0664'
+            self.sdk_resign()
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):prepare.hk_sdk_artifact(self.scope)
+        row.clear();row.update(original);self.sdk_resign()
+        Path(row['source']['path']).write_bytes(b'drift')
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_SOURCE_SIZE'):prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists())
+
+    def test_sdk_record_bound_empty_native_still_rejected_before_candidate(self):
+        runner=self.sdk_fixture(empty_native=True)
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_NATIVE_HEADER'):prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists());self.assertEqual(runner.commands,[])
+
+    def test_sdk_alias_metadata_rejected_before_runner(self):
+        runner=self.sdk_fixture();site=Path(self.scope['runtime_probe']['site_packages'][0])
+        alias=self.root/'retained-hk-site-alias';alias.symlink_to(site,target_is_directory=True)
+        self.scope['runtime_probe']['site_packages']=[str(alias)]
+        self.sdk_manifest['runtime_binding']=prepare.hk_sdk_runtime_binding(self.scope)
+        for name,item in self.sdk_manifest['preserved_modules'].items():item['path']=str(alias/name/'__init__.py')
+        self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'SYMLINK_OR_ALIAS'):prepare.hk_sdk_artifact(self.scope)
+        with self.assertRaisesRegex(prepare.Stop,'SYMLINK_OR_ALIAS'):prepare.runtime_probe(self.scope,runner)
+        self.assertEqual(runner.commands,[]);self.assertFalse(self.candidate.exists())
+
+    def test_sdk_canonical_metadata_resolves_alias_without_relaxing_guards(self):
+        runner=self.sdk_fixture();probe=self.scope['runtime_probe'];wrapper=deepcopy(probe['wrapper']);python=deepcopy(probe['python'])
+        site=Path(probe['site_packages'][0]);alias=self.root/'retained-hk-site-alias';alias.symlink_to(site,target_is_directory=True)
+        probe['search_roots']=[str(site),str(self.candidate/'app')]
+        self.sdk_manifest['runtime_binding']=prepare.hk_sdk_runtime_binding(self.scope)
+        self.sdk_manifest['runtime_binding']['site_packages']=[str(alias)];self.sdk_resign()
+        # A scope-only correction cannot bypass the independently bound envelope.
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_RETAINED_RUNTIME_BINDING_DRIFT'):prepare.hk_sdk_artifact(self.scope)
+        self.sdk_manifest['runtime_binding']=prepare.hk_sdk_runtime_binding(self.scope)
+        for name,item in self.sdk_manifest['preserved_modules'].items():item['path']=str(alias/name/'__init__.py')
+        self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'HK_SDK_PANDAS_NUMPY_OWNER'):prepare.hk_sdk_artifact(self.scope)
+        for name,item in self.sdk_manifest['preserved_modules'].items():item['path']=str((alias/name/'__init__.py').resolve(strict=True))
+        self.sdk_manifest['provenance']={'runtime_alias_resolution':{'original_alias':str(alias),'resolved_path':str(site)}}
+        self.sdk_resign();result=prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        self.assertEqual(result['state'],'PREPARED');self.assertEqual(probe['wrapper'],wrapper);self.assertEqual(probe['python'],python)
+        self.assertEqual(runner.commands[0][0],wrapper['path'])
+        expected=json.loads(runner.commands[0][-1])
+        for name in ('pandas','numpy'):self.assertEqual(expected[name],str(site/name/'__init__.py'))
+        manifest=json.loads((self.candidate/'release-manifest.json').read_bytes())
+        self.assertEqual(manifest['task_overlay']['runtime_probe']['origins']['pandas'],str(site/'pandas/__init__.py'))
+
+    def test_sdk_other_roles_rejected_without_candidate_or_commands(self):
+        self.sdk_fixture()
+        for role in ('api','scheduler','shared'):
+            self.scope['role']=role
+            with self.assertRaisesRegex(prepare.Stop,'HK_SDK_ONLY_CHILD_ROLE'):prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists())
+
+    def test_sdk_independent_receipt_required(self):
+        self.sdk_fixture();review=json.loads(self.sdk_review.read_bytes());review['verdict']='PENDING'
+        self.sdk_review.write_bytes(prepare.json_bytes(review));self.scope['hk_sdk_artifact']['review_receipt']['sha256']=prepare.sha(self.sdk_review)
+        with self.assertRaisesRegex(prepare.Stop,'INDEPENDENT_REVIEW'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_unknown_extra_and_shadow_targets_rejected(self):
+        self.sdk_fixture();original=deepcopy(self.sdk_manifest)
+        for target in ('pandas/__init__.py','numpy/__init__.py','pyarrow/__init__.py','futu/sitecustomize.py','futu/x.pth','futu/__pycache__/x.pyc','../outside.py'):
+            self.sdk_manifest=deepcopy(original);row=deepcopy(self.sdk_manifest['entries'][0]);row['target']=target
+            self.sdk_manifest['entries'].append(row);self.sdk_resign()
+            with self.assertRaises(prepare.Stop):prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists())
+
+    def test_sdk_missing_record_entry_rejected(self):
+        self.sdk_fixture();self.sdk_manifest['entries'].pop(0);self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'INCOMPLETE_DISTRIBUTION'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_parent_empty_root_collision_rejected(self):
+        self.sdk_fixture();(self.parent/'app/futu').mkdir()
+        with self.assertRaisesRegex(prepare.Stop,'PARENT_ROOT_COLLISION'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_source_symlink_and_payload_drift_rejected(self):
+        self.sdk_fixture();p=self.sdk_site/'futu/__init__.py';raw=p.read_bytes();p.write_bytes(b'tampered')
+        with self.assertRaisesRegex(prepare.Stop,'SOURCE_SIZE|PAYLOAD_DRIFT'):prepare.hk_sdk_artifact(self.scope)
+        p.unlink();other=self.root/'same-sdk.py';other.write_bytes(raw);p.symlink_to(other)
+        with self.assertRaisesRegex(prepare.Stop,'SYMLINK_OR_ALIAS'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_cp314_native_and_unsupported_wheel_tag_rejected(self):
+        self.sdk_fixture(cp314=True)
+        with self.assertRaisesRegex(prepare.Stop,'NATIVE_ABI'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_cp314_distribution_tag_rejected(self):
+        self.sdk_fixture();dist=self.sdk_manifest['distributions']['protobuf'];p=self.sdk_site/'protobuf-7.35.1.dist-info/WHEEL'
+        p.write_text(p.read_text().replace('cp310-abi3','cp314-cp314'));dist['wheel_sha256']=prepare.sha(p);self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'WHEEL_ABI_TAG'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_requires_python_and_new_dependency_rejected(self):
+        self.sdk_fixture();dist=self.sdk_manifest['distributions']['protobuf'];p=self.sdk_site/'protobuf-7.35.1.dist-info/METADATA';raw=p.read_bytes()
+        p.write_text(p.read_text().replace('>=3.10','>=3.14'));dist['metadata_sha256']=prepare.sha(p);self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'REQUIRES_PYTHON'):prepare.hk_sdk_artifact(self.scope)
+        p.write_bytes(raw+b'Requires-Dist: unapproved\n');dist['metadata_sha256']=prepare.sha(p);self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'NEW_DEPENDENCY'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_wrong_native_architecture_rejected_without_loading(self):
+        with self.assertRaisesRegex(prepare.Stop,'ARM64_REQUIRED'):
+            prepare.sdk_native_arm64(struct.pack('<8I',0xfeedfacf,0x01000007,0,6,0,0,0,0))
+
+    def test_sdk_unknown_wheel_member_rejected(self):
+        self.sdk_fixture()
+        with zipfile.ZipFile(self.sdk_archive,'a') as z:z.writestr('unapproved.py',b'extra')
+        value=prepare.sha(self.sdk_archive);self.sdk_manifest['distributions']['simplejson']['archive']['sha256']=value
+        for row in self.sdk_manifest['entries']:
+            if row['source']['distribution']=='simplejson':row['source']['wheel_sha256']=value
+        self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'UNKNOWN_WHEEL_MEMBER'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_failed_native_canary_never_marks_prepared(self):
+        fake=self.sdk_fixture()
+        def runner(argv,**kwargs):
+            value=fake(argv,**kwargs);body=json.loads(value.stdout);body['sdk_canary']['protobuf_backend']='python'
+            value.stdout=json.dumps(body);return value
+        with self.assertRaisesRegex(prepare.Stop,'NATIVE_CANARY_FAILURE'):
+            prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        self.assertFalse(self.prepared_path.exists())
+
+    def test_sdk_wrong_loaded_dependency_owner_rejected(self):
+        fake=self.sdk_fixture()
+        def runner(argv,**kwargs):
+            value=fake(argv,**kwargs);body=json.loads(value.stdout);body['origins']['futu']='unapproved'
+            value.stdout=json.dumps(body);return value
+        with self.assertRaisesRegex(prepare.Stop,'ROLE_RUNTIME_PROBE_MISMATCH'):
+            prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=runner)
+        self.assertFalse(self.prepared_path.exists())
+
+    def test_sdk_pandas_numpy_are_pinned_to_retained_site(self):
+        self.sdk_fixture();self.sdk_manifest['preserved_modules']['pandas']['path']=str(self.sdk_site/'futu/__init__.py');self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'PANDAS_NUMPY_OWNER'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_exact_release_map_cannot_be_replaced_by_source_review(self):
+        self.sdk_fixture();prepare.HK_SDK_RELEASE_MAP='0'*64
+        with self.assertRaisesRegex(prepare.Stop,'RELEASE_EXACT_ARTIFACT'):prepare.hk_sdk_artifact(self.scope)
+
+    def test_sdk_candidate_artifact_tamper_blocks_scheduler_dependency(self):
+        fake=self.sdk_fixture();child_scope=deepcopy(self.scope)
+        prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        pin=dict(path=str(self.prepared_path),sha256=prepare.sha(self.prepared_path))
+        (self.candidate/'app/futu/__init__.py').write_bytes(b'tampered candidate SDK')
+        scheduler=dict(self.scheduler_scope,hk_child_prepared=pin)
+        with self.assertRaisesRegex(prepare.Stop,'HK_CHILD_CANDIDATE_DRIFT'):prepare.hk_child_binding(scheduler)
+
+    def test_sdk_malformed_artifact_cannot_escape_hash_pin(self):
+        self.sdk_fixture();self.sdk_manifest_path.write_bytes(b'{}')
+        with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):prepare.hk_sdk_artifact(self.scope)
+
+
+    def test_sdk_provider_and_thread_guard_with_fake_frames_only(self):
+        fake=self.sdk_fixture();prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        tree=ast.parse(fake.commands[0][3]);node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='sdk_profile')
+        def denied():raise prepare.Stop('SDK_GUARD_DENIED')
+        namespace={'denied':denied};exec(compile(ast.Module(body=[node],type_ignores=[]),'<pure-sdk-profile-guard>','exec'),namespace)
+        for module,qualified,name in [('futu.quote.open_quote_context','OpenQuoteContext.__init__','__init__'),('threading','Thread.start','start')]:
+            frame=SimpleNamespace(f_globals={'__name__':module},f_code=SimpleNamespace(co_qualname=qualified,co_name=name))
+            with self.assertRaisesRegex(prepare.Stop,'SDK_GUARD_DENIED'):namespace['sdk_profile'](frame,'call',None)
+        with self.assertRaisesRegex(prepare.Stop,'SDK_GUARD_DENIED'):
+            namespace['sdk_profile'](None,'c_call',SimpleNamespace(__module__='_thread',__name__='start_new_thread'))
+
+    def test_sdk_audit_guard_denies_write_network_process_without_operations(self):
+        fake=self.sdk_fixture();prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        tree=ast.parse(fake.commands[0][3]);node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='sdk_audit')
+        def denied():raise prepare.Stop('SDK_GUARD_DENIED')
+        namespace={'denied':denied,'os':os};exec(compile(ast.Module(body=[node],type_ignores=[]),'<pure-sdk-audit-guard>','exec'),namespace)
+        for event,args in [('open',('unused','w',os.O_WRONLY)),('socket.connect',()),('socket.getaddrinfo',()),('socket.gethostbyname',()),('subprocess.Popen',()),('os.rename',())]:
+            with self.assertRaisesRegex(prepare.Stop,'SDK_GUARD_DENIED'):namespace['sdk_audit'](event,args)
+        namespace['sdk_audit']('open',('unused','r',os.O_RDONLY))
+        namespace['sdk_audit']('os.listdir',())
+
+
+    def test_sdk_copy_inventory_race_cannot_seal_unreviewed_bytes(self):
+        fake=self.sdk_fixture();original=self.tool.inventory_tree;changed=[]
+        def inventory(root):
+            if Path(root)==self.candidate/'app' and not changed:
+                (self.candidate/'app/futu/__init__.py').write_bytes(b'raced SDK bytes')
+                changed.append(True)
+            return original(root)
+        with patch.object(prepare,'inventory_tool',return_value=self.tool),patch.object(self.tool,'inventory_tree',side_effect=inventory):
+            with self.assertRaisesRegex(prepare.Stop,'HK_SDK_CANDIDATE_CONTENT_DRIFT'):
+                prepare.prepare(self.scope_path,self.scope_sha(),self.prepared_path,runner=fake)
+        self.assertFalse(self.prepared_path.exists());self.assertEqual(fake.commands,[])
+
+    def test_sdk_valid_native_closure_checked_before_candidate_creation(self):
+        self.sdk_fixture();self.sdk_manifest['entries']=[r for r in self.sdk_manifest['entries'] if r['target']!='simplejson/_speedups.cpython-313-darwin.so']
+        # Incomplete RECORD is already a stronger pre-copy refusal.
+        self.sdk_resign()
+        with self.assertRaisesRegex(prepare.Stop,'INCOMPLETE_DISTRIBUTION'):prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists())
+
+
+    def test_sdk_wrong_python_wrapper_or_search_roots_cannot_fallback(self):
+        self.sdk_fixture();original=deepcopy(self.scope['runtime_probe'])
+        for mutation in ('python','wrapper','search_roots','site_packages','environment','updater_relative'):
+            self.scope['runtime_probe']=deepcopy(original);probe=self.scope['runtime_probe']
+            if mutation=='python':probe['python']['version']='3.14.6'
+            elif mutation=='wrapper':probe['wrapper']['sha256']='0'*64
+            elif mutation=='search_roots':probe['search_roots']=[str(self.source)]
+            elif mutation=='site_packages':probe['site_packages'].append(str(self.source))
+            elif mutation=='environment':probe['environment']={'V35_SHARED_PACKAGE_ROOT':'unapproved'}
+            else:probe['updater_relative']='ops/macos_research_panel_daily.py'
+            with self.assertRaisesRegex(prepare.Stop,'HK_SDK_RETAINED_HK_RUNTIME_REQUIRED|HK_SDK_RETAINED_RUNTIME_BINDING_DRIFT'):
+                prepare.hk_sdk_artifact(self.scope)
+        self.assertFalse(self.candidate.exists())
+
 
 
 def main():

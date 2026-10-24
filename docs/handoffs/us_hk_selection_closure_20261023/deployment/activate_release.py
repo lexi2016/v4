@@ -20,7 +20,7 @@ import urllib.request
 import weakref
 from uuid import uuid4
 
-from prepare_release import (SCHEMA, REHEARSAL_BASE, LABELS, LAUNCHAGENTS, Stop, authorize,
+from prepare_release import (SCHEMA, REHEARSAL_BASE, LABELS, LAUNCHAGENTS, Stop, authorize, authorized_capsule,
                              digest, exact, inventory_tool, json_bytes, precheck,
                              read_json, release_paths, require, sha, write_new)
 
@@ -354,13 +354,27 @@ def verify_activity_closure(scope,prepared,direction):
     require(len(specs)==3 and {s['kind']:s.get('root') for s in specs}==expected,'API_DURABLE_OWNER_QUEUE_CLOSURE_REQUIRED')
 
 
+def authorize_transition(scope,prepared,prepared_sha,direction,continuation=None):
+    """New authority can bind an immutable prepare-only product without rewriting it."""
+    if continuation is None:return authorize(scope,direction)
+    require(scope.get('mode')=='RELEASE','CONTINUATION_REQUIRES_RELEASE')
+    require(isinstance(continuation,dict) and set(continuation)=={'path','sha256'},'CONTINUATION_PIN_SHAPE')
+    # Check original bytes as well as the capsule-independent scope contract.
+    require(read_json(prepared['scope_path'],prepared['scope_sha256'])==scope,'CONTINUATION_ORIGINAL_SCOPE_DRIFT')
+    capsule=authorize(dict(scope,execution_capsule=continuation),direction)
+    require(capsule.get('prepared_sha256')==prepared_sha and
+            capsule.get('scope_sha256')==prepared['scope_sha256'],'CONTINUATION_PREPARED_OR_SCOPE_MISMATCH')
+    return capsule
+
+
 class RealGuardianOps:
     def __init__(self,intent):
         self.intent=intent;pin=intent['prepared'];self.prepared=read_json(pin['path'],pin['sha256'])
         self.scope=read_json(self.prepared['scope_path'],self.prepared['scope_sha256']);self.direction=intent['direction']
         require(self.scope.get('mode')=='RELEASE' and self.direction in ('activate','rollback'),'GUARDIAN_REAL_MODE_REQUIRED')
         require_real_admission_protocol(self.scope)
-        authorize(self.scope,self.direction);verify_prepared(self.scope,self.prepared)
+        authorize_transition(self.scope,self.prepared,self.intent['prepared']['sha256'],self.direction,
+            self.intent.get('continuation'));verify_prepared(self.scope,self.prepared)
         evidence=exact(self.scope['evidence_root'])
         for key in ('journal','receipt_path'):
             require(exact(intent[key],exists=False).is_relative_to(evidence),'GUARDIAN_EVIDENCE_ESCAPE')
@@ -380,7 +394,8 @@ class RealGuardianOps:
         verify_activity_closure(self.scope,self.prepared,self.direction)
 
     def verify_before_freeze(self):
-        authorize(self.scope,self.direction);verify_prepared(self.scope,self.prepared)
+        authorize_transition(self.scope,self.prepared,self.intent['prepared']['sha256'],self.direction,
+            self.intent.get('continuation'));verify_prepared(self.scope,self.prepared)
         require(sha(self.pointer)==self.expected,'CURRENT_PLIST_CAS_DRIFT')
         observed=self.lifecycle.identity()
         if self.intent['owner_token'] is None:
@@ -516,7 +531,7 @@ def restore_healthy_parent_binding(scope,prepared,prepared_sha,lifecycle,receipt
         write_new(receipt_path,json_bytes(result));return result
 
 
-def guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifecycle,receipt_path,recovery_pin):
+def guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifecycle,receipt_path,recovery_pin,continuation=None):
     require_real_admission_protocol(scope)
     require(isinstance(lifecycle,LaunchctlLifecycle),'REAL_LIFECYCLE_ADAPTER_REQUIRED')
     verify_activity_closure(scope,prepared,direction)
@@ -539,6 +554,7 @@ def guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifec
     intent=dict(schema='v4.us_hk.guardian_intent.v1',mode='RELEASE',controller_pid=os.getpid(),
         owner_token=token,prepared=dict(path=str(exact(prepared_path)),sha256=prepared_sha),direction=direction,
         recovery_pin=recovery_pin,journal=str(journal),receipt_path=str(receipt),helper_sha256=sha(Path(__file__)))
+    if continuation is not None:intent['continuation']=continuation
     with intent_path.open('xb') as stream:stream.write(json_bytes(intent));stream.flush();os.fsync(stream.fileno())
     guardian=subprocess.Popen([sys.executable,'-B',str(Path(__file__).resolve()),'_guardian',str(intent_path),sha(intent_path)],
         stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,start_new_session=True,close_fds=True)
@@ -602,7 +618,17 @@ def verify_prepared(scope, prepared):
     require(prepared["candidate_root"] == scope["candidate_root"] and prepared["parent_root"] == scope["parent_root"], "PREPARED_ROOT_MISMATCH")
     require(sha(prepared["original_plist"]) == prepared["original_plist_sha256"] == scope["plist"]["sha256"], "BACKUP_DRIFT")
     require(sha(prepared["candidate_plist"]) == prepared["candidate_plist_sha256"], "PROPOSAL_DRIFT")
-    require(sha(Path(__file__).with_name("prepare_release.py")) == prepared["helper_sha256"], "PREPARE_HELPER_DRIFT")
+    if scope['mode']=='RELEASE':
+        # Preparation authority belongs to the immutable product's original
+        # capsule. Transition authority separately pins the current helpers.
+        require(read_json(prepared['scope_path'],prepared['scope_sha256'])==scope,'PREPARED_ORIGINAL_SCOPE_DRIFT')
+        original=authorized_capsule(scope,'prepare')
+        require(isinstance(prepared.get('helper_sha256'),str) and
+                re.fullmatch(r'[0-9a-f]{64}',prepared['helper_sha256']) and
+                original.get('helper_sha256',{}).get('prepare_release.py')==prepared['helper_sha256'],
+                'PREPARE_HELPER_DRIFT')
+    else:
+        require(sha(Path(__file__).with_name("prepare_release.py")) == prepared["helper_sha256"], "PREPARE_HELPER_DRIFT")
     candidate = exact(scope["candidate_root"])
     manifest = read_json(candidate / "release-manifest.json", prepared["candidate_manifest_sha256"])
     require(manifest["task_overlay"]["scope_sha256"] == prepared["scope_sha256"], "MANIFEST_SCOPE_MISMATCH")
@@ -660,16 +686,17 @@ def release_guards(scope):
         sys.path[:]=before
 
 
-def transition(prepared_path, prepared_sha, direction, lifecycle, receipt_path, *, recovery_pin=None):
+def transition(prepared_path, prepared_sha, direction, lifecycle, receipt_path, *, recovery_pin=None, continuation=None):
     require(direction in ("activate", "rollback"), "DIRECTION_INVALID")
     prepared = read_json(prepared_path, prepared_sha)
     scope = read_json(prepared["scope_path"], prepared["scope_sha256"])
+    if continuation is not None:require(scope.get('mode')=='RELEASE','CONTINUATION_REQUIRES_RELEASE')
     if scope.get('mode')=='RELEASE':
-        authorize(scope,direction)
+        authorize_transition(scope,prepared,prepared_sha,direction,continuation)
         require(isinstance(lifecycle,LaunchctlLifecycle),'REAL_LIFECYCLE_ADAPTER_REQUIRED')
         verify_prepared(scope,prepared)
         require_real_admission_protocol(scope)
-        return guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifecycle,receipt_path,recovery_pin)
+        return guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifecycle,receipt_path,recovery_pin,continuation)
     verify_prepared(scope, prepared)
     evidence = exact(scope["evidence_root"])
     receipt = exact(receipt_path, exists=False)
@@ -923,14 +950,19 @@ def main():
     parser.add_argument("--rehearsal", action="store_true")
     parser.add_argument('--recovery-receipt')
     parser.add_argument('--recovery-sha256')
+    parser.add_argument('--continuation')
+    parser.add_argument('--continuation-sha256')
     args = parser.parse_args()
+    require(bool(args.continuation)==bool(args.continuation_sha256),'CONTINUATION_PIN_PAIR_REQUIRED')
     prepared = read_json(args.prepared, args.prepared_sha256)
     root = prepared["parent_root"] if args.direction == "activate" else prepared["candidate_root"]
     scope=read_json(prepared['scope_path'],prepared['scope_sha256'])
     require(args.rehearsal==(scope['mode']=='REHEARSAL'),'CLI_MODE_MISMATCH')
     lifecycle = FakeLifecycle(str(Path(root) / "app")) if args.rehearsal else LaunchctlLifecycle(scope)
     recovery=dict(path=args.recovery_receipt,sha256=args.recovery_sha256) if args.recovery_receipt and args.recovery_sha256 else None
-    result = transition(args.prepared, args.prepared_sha256, args.direction, lifecycle, args.receipt,recovery_pin=recovery)
+    continuation=dict(path=args.continuation,sha256=args.continuation_sha256) if args.continuation else None
+    result = transition(args.prepared, args.prepared_sha256, args.direction, lifecycle, args.receipt,
+        recovery_pin=recovery,continuation=continuation)
     print(json.dumps(dict(state=result["state"], live_operations=result['live_operations'], receipt=args.receipt)))
 
 

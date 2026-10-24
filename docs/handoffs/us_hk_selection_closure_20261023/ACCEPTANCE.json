@@ -1,6 +1,6 @@
 {
   "schema": "v4.us_hk.acceptance.v1",
-  "as_of": "2026-10-24T04:38:55.505446+00:00",
+  "as_of": "2026-10-24T05:55:16.629283+00:00",
   "overall": "IN_PROGRESS_LOCAL_RELEASE_AND_NATURAL_UNVERIFIED",
   "objective": "US-to-HKresearch candidates, frozen strict decisions, traceablepanel, persistedAPI/UI/schedulerchain",
   "source_manifest_sha256": "020246ff1e01bc74bd9f868d6a807736a78211d927bc2cbd323a03370c29b0bd",
@@ -120,14 +120,115 @@
     "independent_real_cases_twice": 3
   },
   "runtime": {
-    "helpers": "REVIEWED_PASS_FROZEN_HELPER_SCOPE_ONLY",
-    "candidate": "NOT_PREPARED",
+    "helpers": "CURRENT_SOURCE_SCOPES_PASS_ACTUAL_DELIVERY_BLOCKED",
+    "candidate": "API_R1_STORAGE_SIGNATURE_BLOCKED_SHARED_IDENTITY_PASS",
     "deployment": "NOT_RUN",
     "api": "ISOLATED_TESTCLIENT_ONLY_LIVE_NOT_RUN",
     "ui": "COMPONENT_RESPONSE_PASS_LOADED_BROWSER_NOT_RUN",
     "natural_cycles_completed": 0,
     "natural_cycles_required": 2,
-    "helper_receipt_sha256": "33350cb40572e95504ee2fb438edbe2fba7958127c27fc6df8779ede2f922e28"
+    "helper_receipt_sha256": "130e748519e5c4d822ff0e614bf0be6aab8f62b9d3670e8d495c157a649d48ee",
+    "roles": {
+      "shared": {
+        "state": "PREPARED_LOADED_REVIEWED_PASS",
+        "prepared_receipt_sha256": "53816df693ebe0fcc5726ef738b152360dcdbab2ce267d001756a0e41acc1878",
+        "candidate_manifest_sha256": "668b9d9923267d863f9b189fa390fa1f2fcf3e359f70cc7b4de499c9707cee46",
+        "independent_receipt_sha256": "aa129e96418285e481369382a4aa61b81e1e88d600f5a5b11daa4bbd89c9bcfd",
+        "actual_source_files": 14,
+        "reviewed_overlays": 5,
+        "retained_files": 9,
+        "python_version": "3.13.12",
+        "wrapper_unchanged": true,
+        "behavior_verified": "NOT_RUN"
+      },
+      "api": {
+        "state": "PREPARED_LOADED_PASS_SEMANTIC_INTEGRATION_FAIL_DO_NOT_ACTIVATE",
+        "prepared_receipt_sha256": "168ea034be1e5e4b22fabef84335f81ab0218fcaa70eeb9f9193184497767e86",
+        "candidate_manifest_sha256": "97803806d12bceec3ac250a8e7be2fe52862f97c8734c9ffeeb3fa5fc5ebf604",
+        "source_overlays": 24,
+        "built_artifact_overlays": 3,
+        "actual_role_imported_modules": 10,
+        "activation": "NOT_RUN",
+        "live_api": "NOT_RUN",
+        "independent_receipt_sha256": "285f043d5a61f9e9e99cafa6576fcba66d637715323f1f20e6ce8928773eebce",
+        "normalized_inventory": 1298,
+        "physical_inventory": 1404,
+        "inherited_cache_files": 106,
+        "store_source_sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+        "store_candidate_sha256": "45a03b56e749d93f3d98b4bee1df4e989851b58198c50588e160cf9369b893b5",
+        "blocker": "Service unconditionally passes merger keyword; retained Store does not accept it. Immutable r1 retained; separate r2 adds correct Git-baseline Store overlay."
+      },
+      "scheduler": {
+        "state": "NOT_PREPARED"
+      },
+      "hk_child": {
+        "state": "NOT_PREPARED"
+      },
+      "api_r2": {
+        "state": "INPUT_ASSEMBLY_NOT_PREPARED",
+        "expected_source_overlays": 25,
+        "build_artifact_overlays": 3,
+        "frontend_rebuild_required": false
+      }
+    },
+    "frontend_build": {
+      "state": "BUILT_ARTIFACT_INDEPENDENT_PASS",
+      "build_invocation_count": 1,
+      "output_files": 10,
+      "output_aggregate_sha256": "6c16492438bdbb7073ce5b776ea5d2d8fec425d3b4fcaff956b4a6ec2e58696f",
+      "manager_closure_files": 4,
+      "changed_manager_targets": 3,
+      "build_receipt_sha256": "2457cbcdfe705fd517143e17ea7d6a0a589d1572752665f02a57081ee9cdae04",
+      "provenance_sha256": "3d750bcd6a096b968919e690feb0255f43fae8d95a85c532835fc43e55c3e8f7",
+      "independent_artifact_receipt_sha256": "491f136227cce156787df389c9b2e42e5a0415046028c3ad22da2980bc6ca8d1"
+    },
+    "hk_sdk_dependency": {
+      "old_wrapper_resolves_futu": false,
+      "original_python": "3.13.12",
+      "existing_sdk_version": "10.6.6608",
+      "existing_sdk_metadata_sha256": "c6376c936a189be7fb432baca5e0cb523b19d9264f8b6fa34e4fbce82f4ad215",
+      "state": "MATERIALIZED_UNSEALED_ORIGINAL_SDK_FILE_LOG_GUARD_REFUSAL",
+      "installed_in_old_environment": false,
+      "design_receipt_sha256": "4a2f31f9b4d2820e0cc1ff745b132275501fcf947ebc871499c38ca3a3764866",
+      "proposed_artifact_files": 731,
+      "proposed_artifact_bytes": 28388099,
+      "actual_import_verified": false,
+      "source_prepare_sha256": "47668870ff5e249ea30b46edae919861186a4e822ba54d500d179d239abaefb5",
+      "alias_r1_review_sha256": "afbc3ab8ebbe05b9a2c0b6f97bbdab9c9737f5150b7c803140670dc558bc0e26",
+      "artifact_manifest_sha256": "f7c7822ea80bac7f581b18705474070135edabe983a23c12fcaa12b9b6af97aa",
+      "artifact_map_sha256": "ce4f2995f0c296195b01cb96c4e6b4790973324566aadf010f0750b5894a9620",
+      "actual_prepare_returncode": 1,
+      "candidate_created": true,
+      "empty_record_bound_files": 11,
+      "actual_sdk_import_verified": false
+    },
+    "probe_program": {
+      "reviewed": "SOURCE_GUARD_AND_ACTUAL_IMPORT_STAGE_PASS_FULLPROBE_NOT_RUN",
+      "receipt_sha256": "38e4bd1cbcd9a3e215f35774be67adcb0dc3465dfa081be1ff3ca0cde9666b6b",
+      "actual_behavior_probes": 0,
+      "native_and_preopen_input_blocker": "Original frozen peripheral manifest pin has drifted; original missing hk_panel binding retained",
+      "actual_import_guard_defect": "Old profile incorrectly rejects executor class body during import; dedicated minimal repair in progress, old failure retained",
+      "program_sha256": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
+      "independent_transcription_sha256": "640c61fc01cd3fca42a22a86e6de7f470feb823fb8eab8aeb3a3c0c98762a4ff"
+    },
+    "api_prepare_input": {
+      "state": "INDEPENDENT_PASS_PREPARED_ONCE",
+      "scope_sha256": "35a6ed8763a4af262bbb189af809ae1a8333bfa6b592476a8278b604b87bffee",
+      "contract_sha256": "e6bc0b9f916ff7e31c26cfdee7ecd38c62eaf765e59b9525646885c99fb52761",
+      "controller_transcribed_independent_receipt_sha256": "24b485a4e80de278be9de4b8f17f38b2db40931097b9a3a46d92befc85afb787",
+      "actual_prepare": true
+    },
+    "activation_continuation": {
+      "state": "SOURCE_TESTED_PASS_WITH_ORIGINAL_PREPARATION_VERSION_BINDING",
+      "reason": "Prepared API scope has prepare-only capsule; existing activation has no separate continuation authorizer. Candidate/scope/receipt remain immutable.",
+      "actual_activation": "NOT_RUN",
+      "latest_helper_source_receipt_sha256": "55f6aad5e75b22183cae2040bb01d8d02448daff8ff35e413f52470dc6875793"
+    },
+    "publisher_root": {
+      "state": "SOURCE_TESTED_PASS_INPUT_BLOCKED_UNTIL_API_R2_STORE_ALIGNED",
+      "independent_transcript_sha256": "bfc667e9bea33221f4785f9cfe30e0dc27af3ead5817cbc3347f758d40b55008",
+      "actual_publication": "NOT_RUN"
+    }
   },
   "material_gaps": [
     "price_currency_and_amount_unit_authority",

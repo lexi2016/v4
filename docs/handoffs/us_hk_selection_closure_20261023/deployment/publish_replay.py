@@ -20,6 +20,8 @@ import sys
 from types import SimpleNamespace
 from uuid import uuid4
 
+from activate_release import actual_store_root
+
 from prepare_release import (WORKTREE, REHEARSAL_BASE, Stop, authorize, child,
     digest, exact, json_bytes, python_pin, read_json, require, sha, write_new)
 
@@ -28,7 +30,10 @@ SOURCE_INPUT='b80a8bc475f6aeb8976c706674ad4791c803720eb2e3134c09ad55a784c61b37'
 SOURCE_BATCH='5b37816a699a7dab7ab4a76e504fd5146831b76cbb31eb6d436fc37d724ff064'
 SOURCE_CUTOFF='2026-10-21T20:15:04Z'
 EXECUTION_CUTOFF='2026-10-22T04:17:00.341182+08:00'
-LIVE_STATE=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/state')
+LIVE_STATE=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/state/manager_workbench')
+API_PLIST=Path('/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist')
+API_CONFIG=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/config/us-industry-observed-api-20261018-r1.json')
+API_CONFIG_SHA='75c1efbd5a092b7945fc5baed98c64b37a7165ccf7eafc6abb9c1d540917c5db'
 HELPER=Path(__file__).resolve()
 
 
@@ -51,6 +56,27 @@ def no_external_execution():
         for obj,key,value in saved:setattr(obj,key,value)
 
 
+def live_store_root(scope):
+    """Exact API config argument plus the pinned existing Store constructor."""
+    if scope['mode']!='RELEASE':return exact(Path(scope['live_state_root'])/'manager_workbench',exists=False)
+    pin=scope['active_api'];plist=exact(pin['plist'])
+    require(plist==API_PLIST and sha(plist)==pin['plist_sha256'],'PUBLICATION_API_PLIST_DRIFT')
+    binding=plistlib.loads(plist.read_bytes());require(binding['WorkingDirectory']==pin['app_root'],'PUBLICATION_API_ROOT_MISMATCH')
+    config_pin=pin.get('config')
+    require(isinstance(config_pin,dict) and config_pin.get('path')==str(API_CONFIG) and
+            config_pin.get('sha256')==API_CONFIG_SHA,'PUBLICATION_CONFIG_PIN_REQUIRED')
+    config=read_json(config_pin['path'],config_pin['sha256'])
+    key='V4_MANAGER_WORKBENCH_CONFIG_PATH'
+    refs=([binding.get('EnvironmentVariables',{})[key]] if key in binding.get('EnvironmentVariables',{}) else [])
+    refs += [arg.split('=',1)[1] for arg in binding.get('ProgramArguments',[]) if isinstance(arg,str) and arg.startswith(key+'=')]
+    require(refs and all(value==config_pin['path'] for value in refs),'PUBLICATION_API_CONFIG_BINDING_DRIFT')
+    require(config.get('state_root')==scope['live_state_root']==str(LIVE_STATE),'PUBLICATION_CONFIG_STATE_ROOT_MISMATCH')
+    relative='v4/manager_workbench/store.py';expected=scope['source_files'].get(relative)
+    require(expected and scope['deployed_files'].get(relative)==expected and
+            sha(child(pin['app_root'],relative))==expected,'PUBLICATION_STORE_SOURCE_DRIFT')
+    return actual_store_root(pin['app_root'],exact(config['state_root']))
+
+
 def scope_load(path,expected,action,continuation=None):
     scope=read_json(path,expected)
     require(scope.get('schema')=='v4.us_hk.replay_publication_scope.v1' and scope.get('state')=='READY','PUBLICATION_SCOPE_NOT_READY')
@@ -62,7 +88,8 @@ def scope_load(path,expected,action,continuation=None):
     evidence=exact(scope['evidence_root']);stage=exact(scope['stage_root'],exists=False)
     require(stage.is_relative_to(evidence) and stage!=evidence,'STAGE_OUTSIDE_EVIDENCE')
     if scope['mode']=='RELEASE':
-        require(exact(scope['source_root'])==exact(WORKTREE) and exact(scope['live_state_root'])==exact(LIVE_STATE),'PUBLICATION_ROOT_OUTSIDE_GRANT')
+        require(exact(scope['source_root'])==exact(WORKTREE),'PUBLICATION_ROOT_OUTSIDE_GRANT')
+        live_store_root(scope)
         require(evidence.is_relative_to(exact(REHEARSAL_BASE)),'PUBLICATION_EVIDENCE_OUTSIDE_GRANT')
         checked=dict(scope,execution_capsule=continuation or scope.get('execution_capsule'))
         capsule=authorize(checked,action)
@@ -108,8 +135,9 @@ def unchanged(before):
 
 def active_api(scope,runner=None):
     if scope['mode']!='RELEASE':return
+    live_store_root(scope)
     runner=runner or subprocess.run;pin=scope['active_api']
-    plist=exact(pin['plist']);require(plist==Path('/Users/lexi/Library/LaunchAgents/com.lexi.v35.api-only.plist') and sha(plist)==pin['plist_sha256'],'PUBLICATION_API_PLIST_DRIFT')
+    plist=exact(pin['plist']);require(plist==API_PLIST and sha(plist)==pin['plist_sha256'],'PUBLICATION_API_PLIST_DRIFT')
     data=plistlib.loads(plist.read_bytes());require(data['WorkingDirectory']==pin['app_root'],'PUBLICATION_API_ROOT_MISMATCH')
     require(sha(exact(pin['manifest']))==pin['manifest_sha256'],'PUBLICATION_API_MANIFEST_DRIFT')
     for rel,expected in scope['deployed_files'].items():
@@ -187,7 +215,7 @@ def prepare_replay(scope_path,scope_sha,receipt_path,*,backend=None,clock=None,n
     relative=[f'input_snapshots/{input_sha}.json',f'attempts/{run_id}.json',f'checkpoints/{run_id}/LOAD_INPUTS.json',
               f'checkpoints/{run_id}/PUBLISH.json',f'snapshots/{run_id}.json',f'catalog/20261022/RETROSPECTIVE/{run_id}.json']
     files=[dict(relative=p,sha256=sha(stage/'manager_workbench'/p)) for p in relative]
-    pointer=Path(scope['live_state_root'])/'manager_workbench/pointers/20261022/RETROSPECTIVE.json'
+    pointer=live_store_root(scope)/scope['result_pointer_relative']
     old=pointer.read_bytes() if pointer.exists() else None
     if old is not None:require(old==canonical(json.loads(old)),'NONCANONICAL_OLD_POINTER')
     old_backup=Path(scope['evidence_root'])/'original-retrospective-pointer.json'
@@ -246,7 +274,7 @@ def publish(prepared_path,prepared_sha,receipt_path,*,continuation=None,backend=
     require(scope['mode']=='REHEARSAL' or before_commit is None,'REAL_COMMIT_CALLBACK_FORBIDDEN')
     active_api(scope)
     receipt=exact(receipt_path,exists=False);require(receipt.is_relative_to(scope['evidence_root']) and not receipt.exists(),'PUBLICATION_RECEIPT_COLLISION_OR_ESCAPE')
-    stage=Path(scope['stage_root'])/'manager_workbench';root=Path(scope['live_state_root'])/'manager_workbench'
+    stage=Path(scope['stage_root'])/'manager_workbench';root=live_store_root(scope)
     require(root.is_dir(),'LIVE_STORE_MUST_EXIST')
     allowed={ref['relative']:ref['sha256'] for ref in prepared['files']};pointer=root/prepared['pointer_relative']
     pubkey='publish:20261022:RETROSPECTIVE'
@@ -266,6 +294,7 @@ def publish(prepared_path,prepared_sha,receipt_path,*,continuation=None,backend=
             else:require(relative in allowed and digest(canonical(obj))==allowed[relative],'WRITE_OUTSIDE_EXACT_PUBLICATION_DELTA')
             return super()._write(path,obj,immutable=immutable,collision_read_limit=collision_read_limit)
     store=GuardStore(scope['live_state_root'])
+    require(store.root==root,'PUBLICATION_STORE_ROOT_MISMATCH')
     with env.Store.lock(store,pubkey):
         store.held=True
         require(sha(prepared_path)==prepared_sha,'PREPARED_CHANGED_AT_PUBLICATION_LOCK')
@@ -304,8 +333,11 @@ def rollback(prepared_path,prepared_sha,publication_pin,receipt_path,*,continuat
     require(publication.get('state')=='PUBLISHED_RETROSPECTIVE_MANUAL' and publication.get('prepared_sha256')==prepared_sha and
             publication.get('pointer_sha256')==prepared['new_pointer_sha256'],'ROLLBACK_PUBLICATION_RECEIPT_MISMATCH')
     receipt=exact(receipt_path,exists=False);require(receipt.is_relative_to(scope['evidence_root']) and not receipt.exists(),'ROLLBACK_RECEIPT_COLLISION_OR_ESCAPE')
-    store=env.Store(scope['live_state_root']);pointer=store.root/prepared['pointer_relative']
+    active_api(scope);root=live_store_root(scope);require(root.is_dir(),'LIVE_STORE_MUST_EXIST')
+    store=env.Store(scope['live_state_root']);require(store.root==root,'PUBLICATION_STORE_ROOT_MISMATCH')
+    pointer=root/prepared['pointer_relative']
     with store.lock('publish:20261022:RETROSPECTIVE'):
+        active_api(scope)
         require(optional_sha(pointer)==prepared['new_pointer_sha256'],'ROLLBACK_POINTER_CAS_DRIFT')
         unchanged(prepared['protected_original_files'])
         old=prepared['old_pointer_backup']

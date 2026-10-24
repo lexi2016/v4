@@ -2,6 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import csv
+from email.parser import Parser
+import io
+import platform
+import struct
+import zipfile
 import hashlib
 import importlib.util
 import json
@@ -32,6 +39,24 @@ SHARED_SOURCE_PATHS={SHARED_PREFIX+'scripts/update_hk_0_2_panel.py'}|{
     SHARED_PREFIX+'shared_data/'+name+'.py' for name in ('__init__','allowlist','collectors','constants','consumer',
         'hashing','hk_0_2','hk_history_resolution','hk_panel_audit','hk_d1_evidence','hk_security_master','paths','store')}
 CAPTURE_PATHS = {'ops/macos_research_panel_daily.py', 'ops/_hk_provider_capture.py'}
+HK_SDK_DISTRIBUTIONS = {
+    'futu_api': ('10.6.6608','py3-none-any','futu'),
+    'simplejson': ('4.1.1','cp313-cp313-macosx_11_0_arm64','simplejson'),
+    'protobuf': ('7.35.1','cp310-abi3-macosx_10_9_universal2','google'),
+    'pycryptodome': ('3.23.0','cp37-abi3-macosx_10_9_universal2','Crypto'),
+}
+HK_SDK_REQUIREMENTS = {'futu_api':['pandas','simplejson','protobuf>=3.20.0','PyCryptodome'],
+                       'simplejson':[],'protobuf':[],'pycryptodome':[]}
+HK_SDK_REQUIRES_PYTHON = {
+    'futu_api':None, 'protobuf':'>=3.10',
+    'pycryptodome':'>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*',
+    'simplejson':'>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*, !=3.7.*',
+}
+HK_SDK_RELEASE_MAP = 'ce4f2995f0c296195b01cb96c4e6b4790973324566aadf010f0750b5894a9620'
+HK_SDK_RELEASE_COUNT, HK_SDK_RELEASE_BYTES = 731, 28388099
+HK_SDK_MAX_ENTRIES, HK_SDK_MAX_BYTES, HK_SDK_MAX_FILE_BYTES = 800, 30000000, 9000000
+HK_SDK_PYTHON_SHA = '95fb891ec36d4022bdf62172f9d3c757fb3c7b1669a274cacc87fe261a535b7e'
+HK_SDK_WRAPPER_SHA = '817900c6e835d5c66fc3c3df4827625cfd3c56dd3d1ebc1b2f82191c197b10a6'
 ANNOUNCEMENT_PATHS = {
     'apps/api/v35_api/app.py', 'apps/api/v35_api/hkex_announcements_router.py',
     'v4/manager_research/announcement_source.py', 'v4/manager_research/hkex_directory_protocol.py',
@@ -104,14 +129,20 @@ def contract_sha(scope):
                              sort_keys=True, separators=(',', ':'), allow_nan=False).encode())
 
 
-def authorize(scope, action):
-    """Controller supplies this separately after independent source/helper PASS."""
+def authorized_capsule(scope, action):
+    """Authenticate a hash-bound capsule's action and original scope contract."""
     pin = scope.get('execution_capsule')
     require(isinstance(pin, dict), 'FINAL_CONTROLLER_CAPSULE_REQUIRED')
     capsule = read_json(pin['path'], pin['sha256'])
     require(capsule.get('schema') == 'v4.us_hk.execution_capsule.v1' and
             capsule.get('verdict') == 'PASS' and action in capsule.get('authorized_actions', []) and
             capsule.get('scope_contract_sha256') == contract_sha(scope), 'CAPSULE_ACTION_OR_SCOPE_MISMATCH')
+    return capsule
+
+
+def authorize(scope, action):
+    """Controller supplies this separately after independent source/helper PASS."""
+    capsule = authorized_capsule(scope, action)
     expected_helpers = capsule.get('helper_sha256', {})
     for name in ('prepare_release.py', 'activate_release.py'):
         require(expected_helpers.get(name) == sha(Path(__file__).with_name(name)), 'UNREVIEWED_HELPER')
@@ -278,6 +309,213 @@ def validated_parent_inventory(scope,tool,manifest,observed,generated_cache=()):
         original_manifest_unchanged=True)
 
 
+def sdk_map_sha(entries):
+    return digest(json.dumps(entries,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode())
+
+
+def sdk_native_arm64(raw):
+    """Read Mach-O headers; never load a dependency while validating inputs."""
+    require(len(raw)>=32,'HK_SDK_NATIVE_HEADER')
+    magic=struct.unpack_from('>I',raw)[0];slices=[]
+    if magic in (0xcafebabe,0xbebafeca,0xcafebabf,0xbfbafeca):
+        endian='>' if magic in (0xcafebabe,0xcafebabf) else '<'
+        fmt=endian+('IIQQII' if magic in (0xcafebabf,0xbfbafeca) else 'IIIII')
+        count=struct.unpack_from(endian+'I',raw,4)[0]
+        require(0<count<=8,'HK_SDK_NATIVE_ARCH_COUNT')
+        for i in range(count):
+            row=struct.unpack_from(fmt,raw,8+i*struct.calcsize(fmt));slices.append((row[0],row[2]))
+    else:
+        require(raw[:4]==b'\xcf\xfa\xed\xfe','HK_SDK_NATIVE_FORMAT')
+        slices=[(struct.unpack_from('<I',raw,4)[0],0)]
+    arm=[offset for cpu,offset in slices if cpu==0x0100000c]
+    require(arm,'HK_SDK_NATIVE_ARM64_REQUIRED')
+    for offset in arm:
+        view=raw[offset:];require(view[:4]==b'\xcf\xfa\xed\xfe','HK_SDK_NATIVE_FORMAT')
+        count=struct.unpack_from('<I',view,16)[0];require(count<=128,'HK_SDK_NATIVE_COMMANDS')
+        pos=32
+        for _ in range(count):
+            cmd,size=struct.unpack_from('<II',view,pos)
+            require(size>=8 and pos+size<=len(view),'HK_SDK_NATIVE_COMMAND_SIZE')
+            if cmd in (0xc,0x80000018,0x8000001f):
+                name_offset=struct.unpack_from('<I',view,pos+8)[0]
+                require(8<=name_offset<size,'HK_SDK_NATIVE_LIBRARY_OFFSET')
+                name=view[pos+name_offset:pos+size].split(b'\0')[0].decode()
+                require(name.startswith(('/usr/lib/','/System/Library/')),'HK_SDK_NATIVE_EXTERNAL_LINK')
+            if cmd in (0x24,0x32):
+                version=struct.unpack_from('<I',view,pos+(8 if cmd==0x24 else 12))[0]
+                require((version>>16)<=int(platform.mac_ver()[0].split('.')[0]),'HK_SDK_NATIVE_MACOS_TOO_OLD')
+            pos+=size
+
+
+def sdk_record(raw):
+    values={}
+    for relative,encoded,size in csv.reader(io.StringIO(raw.decode())):
+        require(relative not in values,'HK_SDK_RECORD_DUPLICATE')
+        if encoded:
+            algorithm,value=encoded.split('=',1)
+            require(algorithm=='sha256','HK_SDK_RECORD_ALGORITHM')
+            values[relative]=(base64.urlsafe_b64decode(value+'='*((-len(value))%4)).hex(),int(size))
+    return values
+
+
+def hk_sdk_bytes(row,distribution):
+    """One approved source/member; no extraction, resolver or package import."""
+    source=row['source'];relative=row['target']
+    if source['kind']=='PINNED_EXISTING_DISTRIBUTION_RECORD':
+        require(distribution['kind']=='INSTALLED_RECORD' and
+                source['path']==str(Path(distribution['site_root'])/relative),'HK_SDK_SOURCE_OWNER')
+        p=child(exact(distribution['site_root']),relative)
+        require(stat.S_IMODE(p.stat().st_mode)==int(row['mode'],8),'HK_SDK_SOURCE_MODE')
+        require(p.stat().st_size==row['bytes'],'HK_SDK_SOURCE_SIZE')
+        raw=p.read_bytes()
+    else:
+        require(source['kind']=='OFFICIAL_MATCHING_WHEEL_MEMBER' and distribution['kind']=='OFFICIAL_WHEEL' and
+                source['member']==relative and source['wheel_path']==distribution['archive']['path'] and
+                source['wheel_sha256']==distribution['archive']['sha256'],'HK_SDK_WHEEL_SOURCE_OWNER')
+        archive=exact(distribution['archive']['path']);require(sha(archive)==distribution['archive']['sha256'],'HK_SDK_WHEEL_DRIFT')
+        with zipfile.ZipFile(archive) as wheel:
+            info=wheel.getinfo(relative)
+            require(not info.is_dir() and stat.S_IFMT(info.external_attr>>16)!=stat.S_IFLNK and
+                    info.file_size==row['bytes'] and info.file_size<=HK_SDK_MAX_FILE_BYTES,'HK_SDK_WHEEL_MEMBER_TYPE_SIZE')
+            require((info.external_attr>>16&0o777 or 0o644)==int(row['mode'],8),'HK_SDK_WHEEL_MEMBER_MODE')
+            raw=wheel.read(info)
+    require(len(raw)==row['bytes'] and digest(raw)==row['sha256'],'HK_SDK_PAYLOAD_DRIFT')
+    if relative.endswith(('.so','.dylib')):
+        name=distribution['name']
+        require((name in ('protobuf','pycryptodome') and relative.endswith('.abi3.so')) or
+                (name=='simplejson' and relative=='simplejson/_speedups.cpython-313-darwin.so'),'HK_SDK_NATIVE_ABI')
+        try:sdk_native_arm64(raw)
+        except (struct.error,UnicodeError,IndexError) as exc:raise Stop('HK_SDK_NATIVE_HEADER_INVALID') from exc
+    return raw
+
+
+def hk_sdk_runtime_binding(scope):
+    probe=scope['runtime_probe'];app=str(Path(scope['candidate_root'])/'app')
+    return dict(python={k:probe['python'][k] for k in ('path','resolved_path','sha256','version')},
+                wrapper=probe.get('wrapper'),site_packages=probe['site_packages'],
+                search_roots=probe.get('search_roots',[app,app+'/upstreams']),
+                environment=probe.get('environment',{}),updater_relative=probe.get('updater_relative'))
+
+
+def hk_sdk_artifact(scope):
+    """Optional DATA07 only. The independent receipt approves one exact file map."""
+    pin=scope.get('hk_sdk_artifact')
+    if pin is None:return None
+    require(scope['role']=='hk-child','HK_SDK_ONLY_CHILD_ROLE')
+    require(isinstance(pin,dict) and set(pin)=={'manifest','review_receipt'},'HK_SDK_PIN_SHAPE')
+    value=read_json(pin['manifest']['path'],pin['manifest']['sha256'])
+    require(value.get('schema')=='v4.us_hk.hk_sdk_artifact.v1' and
+            value.get('artifact_class')=='DEPENDENCY_ARTIFACT' and value.get('not_in_git_source_commit') is True,
+            'HK_SDK_MANIFEST_CLASS')
+    entries=value['entries'];require(isinstance(entries,list) and entries,'HK_SDK_ENTRIES_REQUIRED')
+    require(len(entries)==value['entry_count']<=HK_SDK_MAX_ENTRIES and
+            sum(r['bytes'] for r in entries)==value['total_bytes']<=HK_SDK_MAX_BYTES,'HK_SDK_FINITE_SIZE')
+    require(sdk_map_sha(entries)==value['artifact_map_sha256'],'HK_SDK_MAP_DRIFT')
+    if scope['mode']=='RELEASE':
+        require(value['artifact_map_sha256']==HK_SDK_RELEASE_MAP and value['entry_count']==HK_SDK_RELEASE_COUNT and
+                value['total_bytes']==HK_SDK_RELEASE_BYTES,'HK_SDK_RELEASE_EXACT_ARTIFACT')
+    review=read_json(pin['review_receipt']['path'],pin['review_receipt']['sha256'])
+    expected_files={r['target']:r['sha256'] for r in entries}
+    require(review.get('schema')=='v4.us_hk.hk_sdk_artifact_review.v1' and review.get('verdict')=='PASS' and
+            review.get('manifest_sha256')==pin['manifest']['sha256'] and
+            review.get('artifact_map_sha256')==value['artifact_map_sha256'] and
+            review.get('entry_count')==len(entries) and review.get('total_bytes')==value['total_bytes'] and
+            review.get('files')==expected_files,'HK_SDK_INDEPENDENT_REVIEW_REQUIRED')
+    distributions=value['distributions']
+    require(set(distributions)==set(HK_SDK_DISTRIBUTIONS),'HK_SDK_EXACT_FOUR_DISTRIBUTIONS')
+    records={};covered={name:set() for name in distributions};wheels={}
+    for name,dist in distributions.items():
+        version,tag,package=HK_SDK_DISTRIBUTIONS[name]
+        require(dist['name']==name and dist['version']==version,'HK_SDK_VERSION')
+        prefix=f'{name}-{version}.dist-info/'
+        if dist['kind']=='INSTALLED_RECORD':
+            require(name!='simplejson','HK_SDK_SIMPLEJSON_CP313_WHEEL_REQUIRED')
+            site=exact(dist['site_root'])
+            raw={field:child(site,prefix+filename).read_bytes() for field,filename in
+                 [('metadata','METADATA'),('wheel','WHEEL'),('record','RECORD')]}
+        else:
+            require(dist['kind']=='OFFICIAL_WHEEL' and name=='simplejson','HK_SDK_SOURCE_KIND')
+            archive=exact(dist['archive']['path'])
+            require(archive.is_relative_to(exact(scope['source_root'])) and sha(archive)==dist['archive']['sha256'],
+                    'HK_SDK_WHEEL_DRIFT_OR_BOUNDARY')
+            with zipfile.ZipFile(archive) as z:
+                require(len(z.namelist())==len(set(z.namelist()))<=HK_SDK_MAX_ENTRIES,'HK_SDK_WHEEL_DUPLICATE_OR_SIZE')
+                raw={field:z.read(prefix+filename) for field,filename in [('metadata','METADATA'),('wheel','WHEEL'),('record','RECORD')]}
+                wheels[name]={n for n in z.namelist() if not z.getinfo(n).is_dir()}
+        for field,data in raw.items():require(digest(data)==dist[field+'_sha256'],'HK_SDK_METADATA_DRIFT')
+        metadata=Parser().parsestr(raw['metadata'].decode());wheel=Parser().parsestr(raw['wheel'].decode())
+        require(metadata['Name'].lower()==name.lower() and metadata['Version']==version,'HK_SDK_METADATA_IDENTITY')
+        require(metadata['Requires-Python']==HK_SDK_REQUIRES_PYTHON[name],'HK_SDK_REQUIRES_PYTHON')
+        require(wheel.get_all('Tag')==[tag] and wheel['Root-Is-Purelib']==('true' if name=='futu_api' else 'false'),
+                'HK_SDK_WHEEL_ABI_TAG')
+        requires=metadata.get_all('Requires-Dist',[])
+        require(sorted(requires)==sorted(HK_SDK_REQUIREMENTS[name]),'HK_SDK_NEW_DEPENDENCY')
+        records[name]=sdk_record(raw['record'])
+        # RECORD's self entry is intentionally unhashed in wheel format.
+        records[name][prefix+'RECORD']=(dist['record_sha256'],len(raw['record']))
+    targets=set()
+    for row in entries:
+        relative=row['target'];parts=PurePosixPath(relative).parts
+        require(relative not in targets,'HK_SDK_DUPLICATE_TARGET');targets.add(relative)
+        require(parts and not set(parts)&{'__pycache__','.git','.superpowers','node_modules'} and
+                not any(p.startswith('.env') or p in ('sitecustomize.py','usercustomize.py') or p.endswith('.pth') for p in parts),
+                'HK_SDK_FORBIDDEN_TARGET')
+        child(Path(scope['parent_root'])/'app',relative,exists=False)
+        require(not (Path(scope['parent_root'])/'app'/parts[0]).exists(),'HK_SDK_PARENT_ROOT_COLLISION')
+        require(row.get('artifact_class')=='DEPENDENCY_ARTIFACT' and row.get('not_in_git_source_commit') is True and
+                row.get('before_sha256') is None and not (Path(scope['parent_root'])/'app'/relative).exists(),
+                'HK_SDK_PARENT_COLLISION_OR_CLASS')
+        require(isinstance(row['bytes'],int) and 0<=row['bytes']<=HK_SDK_MAX_FILE_BYTES and
+                (row['mode'] in ('0644','0755') or
+                 (row['mode']=='0664' and relative=='simplejson-4.1.1.dist-info/RECORD')),
+                'HK_SDK_FILE_SIZE_MODE')
+        source=row['source'];name=source['distribution'];require(name in distributions,'HK_SDK_UNKNOWN_DISTRIBUTION')
+        version,tag,package=HK_SDK_DISTRIBUTIONS[name]
+        require(source['version']==version and source['record_sha256']==distributions[name]['record_sha256'] and
+                (parts[0]==package or parts[0]==f'{name}-{version}.dist-info'),'HK_SDK_TARGET_ROOT_OR_RECORD')
+        require(records[name].get(relative)==(row['sha256'],row['bytes']),'HK_SDK_RECORD_ENTRY_MISMATCH')
+        covered[name].add(relative)
+        hk_sdk_bytes(row,distributions[name])
+    for name,record in records.items():
+        excluded={r for r in record if r.endswith(('/INSTALLER','/REQUESTED','/direct_url.json')) or '__pycache__' in PurePosixPath(r).parts}
+        require(covered[name]==set(record)-excluded,'HK_SDK_INCOMPLETE_DISTRIBUTION')
+        if name in wheels:require(wheels[name]==covered[name],'HK_SDK_UNKNOWN_WHEEL_MEMBER')
+    probe=scope['runtime_probe']
+    require(probe['python']['version']=='3.13.12' and probe['python']['sha256']==HK_SDK_PYTHON_SHA and
+            probe.get('wrapper',{}).get('sha256')==HK_SDK_WRAPPER_SHA,'HK_SDK_RETAINED_HK_RUNTIME_REQUIRED')
+    require(not probe.get('updater_relative') and hk_sdk_runtime_binding(scope)==value.get('runtime_binding'),
+            'HK_SDK_RETAINED_RUNTIME_BINDING_DRIFT')
+    preserved=value['preserved_modules'];require(set(preserved)=={'pandas','numpy'},'HK_SDK_PRESERVED_MODULES')
+    for name,item in preserved.items():
+        require(any(item['path']==str(Path(site)/name/'__init__.py') for site in probe['site_packages']) and
+                sha(exact(item['path']))==item['sha256'],'HK_SDK_PANDAS_NUMPY_OWNER')
+    require(probe.get('hk_sdk_canary') is True,'HK_SDK_CANARY_REQUIRED')
+    hk_sdk_expected(scope,value)
+    return value
+
+
+def verify_hk_sdk_inventory(artifact,entries):
+    if artifact is None:return
+    current={r['path']:r for r in entries}
+    for row in artifact['entries']:
+        actual=current.get(row['target'],{})
+        require(actual.get('kind')=='file' and actual.get('sha256')==row['sha256'] and
+                actual.get('mode')==row['mode'] and actual.get('size')==row['bytes'],
+                'HK_SDK_CANDIDATE_CONTENT_DRIFT')
+
+
+def hk_sdk_expected(scope,artifact):
+    app=Path(scope['candidate_root'])/'app';rows={r['target']:r for r in artifact['entries']}
+    modules={'futu':'futu/__init__.py','simplejson':'simplejson/__init__.py',
+             'simplejson._speedups':'simplejson/_speedups.cpython-313-darwin.so',
+             'google.protobuf':'google/protobuf/__init__.py','google._upb._message':'google/_upb/_message.abi3.so',
+             'Crypto':'Crypto/__init__.py'}
+    require(set(modules.values())<=set(rows),'HK_SDK_NATIVE_CANARY_CLOSURE')
+    expected={name:dict(path=str(app/rel),sha256=rows[rel]['sha256']) for name,rel in modules.items()}
+    expected.update(artifact['preserved_modules'])
+    return expected
+
+
 def precheck(scope, tool, *, build_pending=False):
     parent = Path(scope["parent_root"])
     manifest = read_json(parent / "release-manifest.json", scope["parent_manifest_sha256"])
@@ -297,6 +535,7 @@ def precheck(scope, tool, *, build_pending=False):
         for key, value in review["files"].items():
             require(key not in approved or approved[key] == value, "REVIEW_CONFLICT")
             approved[key] = value
+    artifact=hk_sdk_artifact(scope)
     targets = set()
     if scope['role']=='hk-child':
         require({r['target'] for r in scope['overlays']}==CAPTURE_PATHS,'HK_CHILD_EXACT_CAPTURE_OVERLAY_REQUIRED')
@@ -326,6 +565,8 @@ def precheck(scope, tool, *, build_pending=False):
         require(isinstance(row["mode"], int) and row["mode"] in (0o644, 0o755), "OVERLAY_MODE_INVALID")
     preserved = {pin["path"] for pin in scope.get("preserved_app_files", [])}
     require(not targets & preserved, "PRESERVED_DEPENDENCY_OVERLAY")
+    if artifact:
+        require(not targets & {r['target'] for r in artifact['entries']},'HK_SDK_SOURCE_ARTIFACT_OVERLAP')
     for pin in scope.get("preserved_app_files", []):
         require(sha(child(parent / "app", pin["path"])) == pin["sha256"], "PRESERVED_DEPENDENCY_DRIFT")
     subtree=scope.get('clone_subtree')
@@ -367,8 +608,14 @@ def hk_child_binding(scope,original_env=None):
     require(entries==manifest['application_inventory']['entries'] and
             tool.inventory_digest(entries)==prepared['candidate_inventory_sha256'] and
             manifest['task_overlay']['scope_sha256']==prepared['scope_sha256'],'HK_CHILD_CANDIDATE_DRIFT')
+    artifact=hk_sdk_artifact(child_scope)
+    verify_hk_sdk_inventory(artifact,entries)
+    if artifact:
+        require(manifest['task_overlay'].get('hk_sdk_artifact')==child_scope['hk_sdk_artifact'] and
+                manifest['task_overlay'].get('hk_sdk_artifact_map_sha256')==artifact['artifact_map_sha256'],
+                'HK_SDK_CANDIDATE_PROVENANCE_DRIFT')
     original={r['path']:r for r in before};current={r['path']:r for r in entries}
-    require({k for k in original.keys()|current.keys() if original.get(k)!=current.get(k)}==CAPTURE_PATHS and
+    require({k for k in original.keys()|current.keys() if original.get(k)!=current.get(k)}==(CAPTURE_PATHS|{r['target'] for r in (artifact or {}).get('entries',[])}) and
             not original.keys()-current.keys(),'HK_CHILD_UNEXPECTED_DELTA')
     for row in child_scope['overlays']:
         require(sha(child(candidate/'app',row['target']))==row['sha256'],'HK_CHILD_REVIEWED_BYTES_DRIFT')
@@ -475,6 +722,9 @@ def runtime_probe(scope, runner):
     python=python_pin(probe['python'])
     app=Path(scope['candidate_root'])/'app'
     sites=[str(exact(p)) for p in probe['site_packages']]
+    artifact=hk_sdk_artifact(scope)
+    sdk_modules=hk_sdk_expected(scope,artifact) if artifact else {}
+    for pin in sdk_modules.values():require(sha(exact(pin['path']))==pin['sha256'],'HK_SDK_PROBE_INPUT_DRIFT')
     modules=probe['modules']
     require(modules and all(isinstance(k,str) and isinstance(v,str) for k,v in modules.items()), 'IMPORT_PROBE_MODULES_REQUIRED')
     updater=probe.get('updater_relative')
@@ -505,9 +755,41 @@ for name,path in expected.items():
  if actual!=path:raise RuntimeError('IMPORT_ORIGIN_MISMATCH:'+name)
  found[name]=actual
  hashes[name]=hashlib.sha256(old_open(actual,'rb').read()).hexdigest()
-print(json.dumps({'version':platform.python_version(),'origins':found,'module_sha256':hashes}))
+PROBE_RESULT_MARKER
 '''
+    sdk_guard='''
+import io
+io.open=ro_open
+for name in ('getaddrinfo','gethostbyname','gethostbyname_ex','gethostbyaddr','getnameinfo'):setattr(socket,name,denied)
+def sdk_profile(frame,event,value):
+ if event=='call' and ((frame.f_globals.get('__name__','').startswith('futu.') and 'Context' in frame.f_code.co_qualname and frame.f_code.co_name=='__init__') or frame.f_code.co_qualname=='Thread.start'):denied()
+ if event=='c_call' and getattr(value,'__module__','')=='_thread' and getattr(value,'__name__','') in ('start_new_thread','start_joinable_thread'):denied()
+sys.setprofile(sdk_profile)
+def sdk_audit(event,args):
+ if event=='open':
+  mode,flags=args[1],args[2]
+  if (isinstance(mode,str) and any(c in mode for c in 'wax+')) or (isinstance(flags,int) and flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND)):denied()
+ if event.startswith(('subprocess.','os.exec','os.spawn','os.fork')) or event in ('os.system','os.remove','os.rename','os.mkdir','os.rmdir','os.link','os.symlink','os.chmod','os.chown','os.truncate','os.utime','socket.connect','socket.bind','socket.sendto','socket.getaddrinfo','socket.gethostbyname','socket.gethostbyaddr','socket.getnameinfo'):denied()
+sys.addaudithook(sdk_audit)
+'''
+    sdk_canary='''
+import importlib.metadata
+from google.protobuf.internal import api_implementation
+from Crypto.Cipher import AES
+import simplejson as sdk_json
+if sdk_json._speedups is not sys.modules['simplejson._speedups']:raise RuntimeError('HK_SDK_SIMPLEJSON_FALLBACK')
+if api_implementation.Type()!='upb':raise RuntimeError('HK_SDK_PROTOBUF_FALLBACK')
+answer=AES.new(bytes(16),AES.MODE_ECB).encrypt(bytes(16)).hex()
+if answer!='66e94bd4ef8a2c3b884cfa59ca342b2e':raise RuntimeError('HK_SDK_AES_NATIVE_FAILURE')
+versions={name:importlib.metadata.version(name) for name in ('futu_api','simplejson','protobuf','pycryptodome')}
+sdk_check=dict(versions=versions,simplejson_native=True,protobuf_backend='upb',aes_known_answer=answer,provider_initialized=False)
+'''
+    if artifact:
+        script=script.replace('sys.path[:0]=',sdk_guard+'\nsys.path[:0]=',1)
+        script=script.replace('PROBE_RESULT_MARKER',sdk_canary+"\nprint(json.dumps({'version':platform.python_version(),'origins':found,'module_sha256':hashes,'sdk_canary':sdk_check}))")
+    else:script=script.replace('PROBE_RESULT_MARKER',"print(json.dumps({'version':platform.python_version(),'origins':found,'module_sha256':hashes}))")
     expected={name:str(child(app,rel)) for name,rel in modules.items()}
+    expected.update({name:pin['path'] for name,pin in sdk_modules.items()})
     env={'PATH':'/usr/bin:/bin','PYTHONDONTWRITEBYTECODE':'1','PYTHONNOUSERSITE':'1'}
     for key,value in probe.get('environment',{}).items():
         require(key.startswith(('V35_','V4_')) and isinstance(value,str),'PROBE_ENV_OUTSIDE_ROLE_BINDINGS')
@@ -521,16 +803,26 @@ print(json.dumps({'version':platform.python_version(),'origins':found,'module_sh
         if updater:argv.append(str(child(app,updater)))
         argv.append(json.dumps(expected))
     else:argv=[python,'-I','-S','-B','-c',script,json.dumps(search),json.dumps(expected)]
+    if artifact:
+        for name in ('HOME','CODEX_HOME'):
+            if name in os.environ:env[name]=os.environ[name]
     result=checked_command(argv,cwd=app,env=env,timeout=60,runner=runner)
     observed=json.loads(result.stdout)
     require(observed.get('version')==probe['python']['version'] and observed.get('origins')==expected,
             'ROLE_RUNTIME_PROBE_MISMATCH')
     hashes={name:sha(path) for name,path in expected.items()}
     require(observed.get('module_sha256')==hashes,'ROLE_MODULE_SHA_PROBE_MISMATCH')
-    return dict(python=probe['python'],site_packages=sites,origins=observed['origins'],wrapper=probe.get('wrapper'),
+    for name,pin in sdk_modules.items():require(hashes[name]==pin['sha256'],'HK_SDK_PROBE_INPUT_DRIFT')
+    if artifact:
+        require(observed.get('sdk_canary')==dict(versions={name:value[0] for name,value in HK_SDK_DISTRIBUTIONS.items()},
+            simplejson_native=True,protobuf_backend='upb',aes_known_answer='66e94bd4ef8a2c3b884cfa59ca342b2e',provider_initialized=False),
+            'HK_SDK_NATIVE_CANARY_FAILURE')
+    receipt=dict(python=probe['python'],site_packages=sites,origins=observed['origins'],wrapper=probe.get('wrapper'),
                 module_sha256=hashes,search_roots=search,environment=probe.get('environment',{}),
                 updater_run_name='_US_HK_OWNER_IMPORT_PROBE' if updater else None,
                 command_kind='READ_ONLY_IMPORT_NO_NETWORK',stdout_sha256=digest(result.stdout.encode()))
+    if artifact:receipt.update(sdk_canary=observed['sdk_canary'],hk_sdk_artifact_map_sha256=artifact['artifact_map_sha256'])
+    return receipt
 
 
 def frontend_build(scope, runner):
@@ -647,10 +939,21 @@ def prepare(scope_path, scope_sha, receipt_path, *, runner=None):
             shutil.copyfile(source, target)
             target.chmod(row["mode"])
             require(sha(target) == row["sha256"], "COPIED_SOURCE_SHA_MISMATCH")
+    artifact=hk_sdk_artifact(scope)
+    if artifact:
+        for row in artifact['entries']:
+            raw=hk_sdk_bytes(row,artifact['distributions'][row['source']['distribution']])
+            with tool._candidate_parent_writable(candidate/'app',row['target']) as target:
+                require(not target.exists() and not target.is_symlink(),'HK_SDK_CANDIDATE_COLLISION')
+                with target.open('xb') as stream:stream.write(raw)
+                target.chmod(int(row['mode'],8))
+                require(sha(target)==row['sha256'],'HK_SDK_COPIED_SHA_MISMATCH')
     after = tool.inventory_tree(candidate / "app")
+    verify_hk_sdk_inventory(artifact,after)
     a, b = ({row["path"]: row for row in entries} for entries in (before, after))
     changed = sorted(key for key in a.keys() | b.keys() if a.get(key) != b.get(key))
-    require(set(changed) == {row["target"] for row in scope["overlays"]}, "UNEXPECTED_CANDIDATE_DELTA")
+    require(set(changed) == ({row["target"] for row in scope["overlays"]}|
+            {row['target'] for row in (artifact or {}).get('entries',[])}), "UNEXPECTED_CANDIDATE_DELTA")
     require(not a.keys() - b.keys(), "CANDIDATE_DELETED_PATH")
     probe_receipt=runtime_probe(scope,runner) if scope['mode']=='RELEASE' else None
     manifest = dict(schema_version="v4.release_candidate.v1", activation_status="PREPARED",
@@ -667,6 +970,7 @@ def prepare(scope_path, scope_sha, receipt_path, *, runner=None):
             delta=[dict(path=k, before=a.get(k), after=b.get(k)) for k in changed],
             non_delta_preserved=True,retained_projection_only=bool(scope.get('clone_subtree')),
             full_branch_equivalence_claimed=False))
+    if artifact:manifest['task_overlay'].update(hk_sdk_artifact=scope['hk_sdk_artifact'],hk_sdk_artifact_map_sha256=artifact['artifact_map_sha256'])
     write_new(candidate / "release-manifest.json", json_bytes(manifest))
     original = proposal = None
     if scope.get("plist"):
