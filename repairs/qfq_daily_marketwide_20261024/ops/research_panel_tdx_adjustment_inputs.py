@@ -15,6 +15,7 @@ from pathlib import Path
 import struct
 import urllib.request
 import zipfile
+from zoneinfo import ZoneInfo
 
 from ops.research_panel_factor_cache import QfqGateError, _json, _source, canonical_sha, sha
 
@@ -47,11 +48,51 @@ def _save_bytes(path: Path, payload: bytes) -> None:
     temporary.replace(path)
 
 
-def official_snapshot(root: Path, config: dict, *, fetch=None) -> tuple[Path, dict]:
+def _capture_coverage_end(capture: dict) -> int:
+    try:
+        observed = datetime.fromisoformat(capture["observed_at"])
+        if observed.tzinfo is None:
+            raise ValueError("timezone missing")
+        observed_date = int(observed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d"))
+        ceiling = capture.get("coverage_end_date", observed_date)
+        if type(ceiling) is not int:
+            raise ValueError("coverage date type")
+        datetime.strptime(str(ceiling), "%Y%m%d")
+        if ceiling > observed_date or ceiling < 19000101:
+            raise ValueError("coverage outside capture date")
+        return ceiling
+    except (KeyError, ValueError, TypeError) as exc:
+        raise QfqGateError("TDX_CAPTURE_COVERAGE_DATE_UNBOUND") from exc
+
+
+def official_snapshot(root: Path, config: dict, *, fetch=None, target: int | None = None,
+                      refresh_stale_capture: bool = False) -> tuple[Path, dict]:
     parser = _source(config["parser"], owner="official GBBQ parser")
     if config["parser"]["sha256"] != PARSER_SHA or config.get("source_url") != OFFICIAL_URL:
         raise QfqGateError("OFFICIAL_TDX_SOURCE_OR_PARSER_IDENTITY_CONFLICT")
-    payload = (fetch or _fetch)()
+    cached, captured = config.get("cached_capture"), None
+    if cached:
+        captured = json.loads(_source(cached, owner="original TDX capture receipt").read_text())
+        if captured.get("source_url") != OFFICIAL_URL or captured.get("parser") != config["parser"]:
+            raise QfqGateError("CACHED_TDX_CAPTURE_IDENTITY_CONFLICT")
+        supported_end = _capture_coverage_end(captured)
+        if target is not None and target > supported_end:
+            if not refresh_stale_capture:
+                raise QfqGateError(f"CACHED_TDX_CAPTURE_COVERAGE_INSUFFICIENT:{supported_end}<{target}")
+            # Only the original online daily caller opts into its existing
+            # official refresh route. Explicit offline replay never fetches.
+            captured = None
+        if captured is not None:
+            if fetch is not None:
+                raise QfqGateError("CACHED_TDX_CAPTURE_WITH_FETCH_CONFLICT")
+            payload = _source(captured["archive"], owner="original TDX archive").read_bytes()
+            observed_at = captured["observed_at"]
+    if captured is None:
+        observed_at = datetime.now(timezone.utc).isoformat()
+        supported_end = _capture_coverage_end(dict(observed_at=observed_at))
+        if target is not None and target > supported_end:
+            raise QfqGateError(f"TDX_TARGET_AFTER_CURRENT_CAPTURE_DATE:{supported_end}<{target}")
+        payload = (fetch or _fetch)()
     archive_sha = hashlib.sha256(payload).hexdigest()
     archive_path = root / "official_gbbq" / (archive_sha + ".zip")
     _save_bytes(archive_path, payload)
@@ -63,9 +104,13 @@ def official_snapshot(root: Path, config: dict, *, fetch=None) -> tuple[Path, di
     if len(raw) < 4 or len(raw) != 4 + struct.unpack("<I", raw[:4])[0] * 29:
         raise QfqGateError("OFFICIAL_GBBQ_RECORD_COUNT_OR_TRAILING_BYTES")
     raw_sha = hashlib.sha256(raw).hexdigest()
+    if captured and (captured["raw"]["sha256"] != raw_sha
+                     or _source(captured["raw"], owner="original TDX raw").read_bytes() != raw):
+        raise QfqGateError("CACHED_TDX_RAW_ARCHIVE_CONFLICT")
     raw_path = root / "official_gbbq" / (raw_sha + ".gbbq")
     _save_bytes(raw_path, raw)
-    captured = dict(source_url=OFFICIAL_URL, observed_at=datetime.now(timezone.utc).isoformat(),
+    captured = dict(source_url=OFFICIAL_URL, observed_at=observed_at, coverage_end_date=supported_end,
+                    coverage_end_date_basis="BOUND_CAPTURE_DATE_CEILING; NOT_HISTORICAL_PUBLICATION_CERTIFICATION",
                     archive=dict(path=str(archive_path), sha256=sha(archive_path)),
                     raw=dict(path=str(raw_path), sha256=sha(raw_path)), parser=config["parser"],
                     scope="OFFICIAL_GBBQ_ALL_ROWS_CURRENT_CAPTURE_NOT_HISTORICAL_PIT")
@@ -73,7 +118,8 @@ def official_snapshot(root: Path, config: dict, *, fetch=None) -> tuple[Path, di
     return raw_path, captured
 
 
-def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=None, parser_factory=None) -> dict:
+def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=None, parser_factory=None,
+                   refresh_stale_capture: bool = False) -> dict:
     config_path = root / "qfq_tdx_official_source.json"
     if not config_path.is_file():
         raise QfqGateError(f"OFFICIAL_TDX_FALLBACK_CONFIG_MISSING:{config_path}")
@@ -88,7 +134,7 @@ def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=Non
     categories = policy.get("category_policy", {})
     if categories.get("1") != "PRICE_ACTION_PER10_CASH_RIGHTS_BONUS_AFFINE":
         raise QfqGateError("TDX_CATEGORY1_SEMANTICS_MISSING")
-    raw_path, captured = official_snapshot(root, config, fetch=fetch)
+    raw_path, captured = official_snapshot(root, config, fetch=fetch, target=target, refresh_stale_capture=refresh_stale_capture)
     cache_id = canonical_sha(dict(raw=captured["raw"], parser=captured["parser"], policy=policy_ref))
     parsed_path = root / "official_gbbq" / (cache_id + ".parquet")
     parsed_receipt = parsed_path.with_suffix(".receipt.json")
@@ -113,7 +159,11 @@ def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=Non
     market = {0: "SZ", 1: "SH", 2: "BJ"}
     frame = frame.copy()
     frame["ts_code"] = frame["code"].astype(str).str.zfill(6) + "." + frame["market"].map(market).fillna("UNKNOWN")
-    source_refs = [captured["raw"], captured["archive"], captured["parser"], policy_ref]
+    capture_receipt = root / "official_gbbq" / "capture_receipts" / (canonical_sha(captured) + ".json")
+    if not capture_receipt.exists():
+        _json(capture_receipt, captured)
+    source_refs = [captured["raw"], captured["archive"], captured["parser"], policy_ref,
+                   dict(path=str(capture_receipt), sha256=sha(capture_receipt))]
     symbols, gaps = {}, []
     for code, binding in codes.items():
         if not code.endswith(".BJ"):
@@ -152,7 +202,10 @@ def build_fallback(root: Path, codes: dict[str, dict], target: int, *, fetch=Non
         symbols[code] = dict(events=sorted(events, key=lambda e: e["ex_date"]), event_coverage_complete=not unknown,
                              unsupported_categories=unknown, source_files=source_refs + [dict(path=str(raw_rows_path), sha256=sha(raw_rows_path))],
                              conversion_receipt=policy_ref, price_convention="TDX_GBBQ_CATEGORY1_AFFINE_BJ_V1_NOT_FUTU_EQUIVALENT",
-                             compute_start_date=compute_start, future_event_count=int(all_symbol_rows.datetime.gt(target).sum()),
+                             compute_start_date=compute_start,
+                             history_coverage_start_date=compute_start, history_coverage_end_date=target,
+                             coverage_basis="ALL_ORIGINAL_GBBQ_SYMBOL_ROWS_REPLAYED_FROM_BOUND_START; CURRENT_CAPTURE_NOT_HISTORICAL_PIT",
+                             future_event_count=int(all_symbol_rows.datetime.gt(target).sum()),
                              pre_compute_window_event_count=int(all_symbol_rows.datetime.le(compute_start).sum()))
     output = dict(asof_date=target, observed_at=captured["observed_at"], symbols=symbols, gaps=gaps, historical_PIT=False)
     _json(root / "tdx_official_adjustment_fallback.json", output)

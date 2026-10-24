@@ -1,0 +1,131 @@
+{
+  "before": {
+    "absent_at_ref": [
+      "tests/test_research_panel_history_extension.py",
+      "tests/test_research_panel_user_formula.py",
+      "docs/RESEARCH_PANEL_HISTORY_EXTENSION.md"
+    ],
+    "files": [
+      {
+        "before_sha256": "7c529f7f31e391d0709fe1802e1390b65d620faf24f24052b3903690e5bf79e6",
+        "bytes": 63287,
+        "computed_git_blob_sha": "e6123fd4edf2f104fa0b1f86e56b9c7bc9a3293f",
+        "git_blob_sha": "e6123fd4edf2f104fa0b1f86e56b9c7bc9a3293f",
+        "path": "ops/research_panel_qfq.py"
+      },
+      {
+        "before_sha256": "ee71d6780addd6dc1e2a19b341518d90f5425f53f23ff960b6485213af6f5226",
+        "bytes": 14921,
+        "computed_git_blob_sha": "a4f7442d1d6abe10de61132be154fa8fb5e91ac1",
+        "git_blob_sha": "a4f7442d1d6abe10de61132be154fa8fb5e91ac1",
+        "path": "ops/research_panel_adjustment_inputs.py"
+      },
+      {
+        "before_sha256": "1d254536dd02bcada9fe366a77e91d3b8ce098eba7d9be1a01c7412719ad2eaf",
+        "bytes": 9212,
+        "computed_git_blob_sha": "fd37f97e2fb520834b748575bc1b6104668c0224",
+        "git_blob_sha": "fd37f97e2fb520834b748575bc1b6104668c0224",
+        "path": "ops/research_panel_tdx_adjustment_inputs.py"
+      }
+    ],
+    "namespace": "repairs/qfq_daily_marketwide_20261024",
+    "ref": "8c9dda7bddf5cf113afd002b6da73d6383a43318",
+    "repository": "lexi2016/v4"
+  },
+  "branch": "codex/local-research-panel-history-20261024",
+  "code_sha256": "538c87b1a1e4e4e2632f556f57513bd73a5efc5b06bb104535ea21d15d3592ce",
+  "local_base_commit": "71d76f716f5ca8ab30c5b1b9ee7cbb4bbb428655",
+  "local_base_equals_remote_tree": false,
+  "not_included": [
+    "raw prices",
+    "adjustment responses",
+    "logs",
+    "runtime releases",
+    "credentials",
+    "model weights",
+    "training data"
+  ],
+  "remote_parent_commit": "8c9dda7bddf5cf113afd002b6da73d6383a43318",
+  "repository": "lexi2016/v4",
+  "review": {
+    "direct_checks": {
+      "P2_optional_arrays": "Missing arrays accepted by original dual-role history producer; malformed array types rejected",
+      "actual_R1_stale_capture_reproduction": "REJECTED: CACHED_TDX_CAPTURE_COVERAGE_INSUFFICIENT:20261024<20261026",
+      "available_inputs": 5545,
+      "available_inputs_still_original_quarantine": 7,
+      "empty_identity": "All83 original response SHA/security/return_code=0/rows=[]/row_count/status/asof/capture and history windows verified; strict helper reproduced events=[] with explicit chart-asof zero-event provenance",
+      "invalid_optional_array_cases_rejected": 6,
+      "original_daily_refresh": "Mocked original fetch route independently passed; new immutable capture receipt binds new event and actual capture ceiling",
+      "original_quarantine_list_unchanged": 290,
+      "prior_symbol_bindings_unchanged": 5462,
+      "remaining_gaps_all_original_quarantine": 283,
+      "successful_empty_delta_verified": 83,
+      "targeted_pytest_failed": 0,
+      "targeted_pytest_passed": 14
+    },
+    "execution_id": "A_SHARE_LOCAL_PANEL_COMPREHENSIVE_REVIEW_R2_20261024_01",
+    "report_sha256": "4babb74ba7379d64e5d659772f0725ea3924cb3d6bd48d27fcb25f314ee19a1a",
+    "scope": "P1/P2 regression, successful EMPTY full-response identity and83 input delta; prior unchanged formula/readback checks reused",
+    "terminal_event_sha256": "144014f29651f44fd691465b9e3da3e50585abd69f69e83b5470973c102a2001",
+    "verdict": "REVIEWED/PASS"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "research_only": true
+  },
+  "schema": "LOCAL_RESEARCH_PANEL_HISTORY_SOURCE_SYNC_EVIDENCE_V1",
+  "source_manifest_sha256": "c4ce1691248ebd4e6571c02366ba8753d8ed1c34fd3b9ab259b5a60f7c4deaf8",
+  "status": "SOURCE_AND_SMALL_CANARY_REVIEWED; FULL_MARKET_CANDIDATE_RUNNING; NOT_DEFAULT_PUBLISHED",
+  "tests": {
+    "independent_result": "14 passed,0 failed; plus6 malformed optional arrays rejected",
+    "prior_pass_reuse": {
+      "codes": 5,
+      "default_reader_rows": 12870,
+      "rows": 12870,
+      "two_role_readback_rows": 25740,
+      "versioned_signal_columns": 23
+    },
+    "reproduce_command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -B -m pytest -q -c /dev/null --confcutdir=tests -p no:cacheprovider tests/test_research_panel_user_formula.py::test_cached_tdx_capture_rejects_target_after_actual_capture_without_fetch tests/test_research_panel_user_formula.py::test_original_daily_can_refresh_stale_capture_and_binds_new_receipt tests/test_research_panel_user_formula.py::test_existing_daily_input_caller_opts_into_original_stale_refresh tests/test_research_panel_history_extension.py::test_isolated_dual_role_history_preserves_current_keys_sidecars_and_earlier_rows tests/test_research_panel_user_formula.py::test_successful_identified_empty_is_full_response_zero_event_chart_asof tests/test_research_panel_user_formula.py::test_empty_identity_status_security_count_and_cutoff_conflicts_reject tests/test_research_panel_user_formula.py::test_original_history_prepare_snapshot_accepts_bound_successful_empty_without_collection tests/test_research_panel_user_formula.py::test_original_nonempty_response_binds_full_prefix_without_collecting tests/test_research_panel_user_formula.py::test_empty_error_and_unsupported_do_not_become_no_event_history"
+  },
+  "upload_allowlist": [
+    {
+      "after_sha256": "f86122766afcd896e8e2e30d55e2f667af1caa586409fe4ae1e2299f7b4c085a",
+      "bytes": 81797,
+      "git_blob_sha": "542bad8155a46f70986435db023f8cd8ff64e0dc",
+      "path": "ops/research_panel_qfq.py"
+    },
+    {
+      "after_sha256": "7636a62fc86c2dba0481a11b9ef8dbca4e7fddacd0203e6f9e82205d51654e3b",
+      "bytes": 31853,
+      "git_blob_sha": "00d14c20e9085cdfec88ad1f885bb4d340fa182e",
+      "path": "ops/research_panel_adjustment_inputs.py"
+    },
+    {
+      "after_sha256": "7976204535e427cd85ea6ea133f18b26b7e939a7124f8b1a2e08f55a6160d000",
+      "bytes": 12493,
+      "git_blob_sha": "0be2eaadb5acb667d16f3e8a34d4d9c4a597111d",
+      "path": "ops/research_panel_tdx_adjustment_inputs.py"
+    },
+    {
+      "after_sha256": "8440720c777e6d0b74e6bfb1ad2d1afe023382e45314f3838657f8ab43f0bf8a",
+      "bytes": 12523,
+      "git_blob_sha": "9b16e9e04ae4fa27ce266cdc7351a153846aff8c",
+      "path": "tests/test_research_panel_history_extension.py"
+    },
+    {
+      "after_sha256": "0c740ab0eea4161d47862b78c5afb8287074a3fa0581a4cd853894e01fab6425",
+      "bytes": 18455,
+      "git_blob_sha": "bfe4bc807d15928662d8510836542fe0bcd78e33",
+      "path": "tests/test_research_panel_user_formula.py"
+    },
+    {
+      "after_sha256": "2fe4e98610225672e6ffe91f2c1a65755b7349d6959aecdd97d20ffaf419058e",
+      "bytes": 10615,
+      "git_blob_sha": "78c052343b50858ecb7eb9e05bd54df708fd866f",
+      "path": "docs/RESEARCH_PANEL_HISTORY_EXTENSION.md"
+    }
+  ],
+  "user_formula_source_sha256": "924ab78f0adb0ee0705e41d7824282f40ec275a97da532ffee5b61e29d2925e6"
+}

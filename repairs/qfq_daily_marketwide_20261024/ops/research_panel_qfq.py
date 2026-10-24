@@ -164,6 +164,8 @@ def load_snapshot(path: Path, target: int) -> dict:
             raise QfqGateError(f"RAW_HISTORY_BINDING_MISSING:{code}")
         if not isinstance(item.get("publish_roles"), list) or not set(item["publish_roles"]).issubset({"selector", "backtest"}):
             raise QfqGateError(f"PUBLISH_ROLE_BINDING_MISSING:{code}")
+        if item.get("history_extension") and (not (value.get("history_extension") or value.get("history_retention_binding")) or item.get("raw_resolution") != HISTORY_RESOLUTION):
+            raise QfqGateError(f"HISTORY_SNAPSHOT_POLICY_UNBOUND:{code}")
         dates = []
         for event in item["events"]:
             date, a, b, volume_a = int(event["ex_date"]), float(event["a"]), float(event["b"]), float(event["volume_a"])
@@ -217,24 +219,129 @@ def authorities(driver_path: Path, formula_path: Path):
     return driver, formula
 
 
-def rebuild_symbol(code: str, item: dict, target: int, driver) -> pd.DataFrame:
+HISTORY_RESOLUTION = "ARCHIVE_PRIMARY_NATIVE_MISSING_AND_TAIL_V2"
+
+
+def resolved_raw_history(code: str, item: dict, target: int, driver) -> pd.DataFrame:
+    """Read original whole rows, using the frozen archive-first key policy."""
     parts = []
+    history = item.get("raw_resolution") == HISTORY_RESOLUTION
+    if item.get("raw_resolution") and not history:
+        raise QfqGateError(f"RAW_RESOLUTION_UNSUPPORTED:{code}")
     for ref in item["raw_files"]:
         path = _source(ref, owner=code)
         if path.stat().st_size % driver.DAY_STRUCT.size:
             raise QfqGateError(f"RAW_TRAILING_BYTES:{code}:{path}")
         part = driver.read_day_tail(code, path, tail_records=path.stat().st_size // driver.DAY_STRUCT.size)
-        if ref.get("from_date_exclusive") is not None:
+        if history:
+            if ref.get("source_role") not in {"archive", "native"} or ref.get("from_date_exclusive") is not None:
+                raise QfqGateError(f"HISTORY_WHOLE_ROW_POLICY_CONFLICT:{code}")
+            if part.trade_date.duplicated().any():
+                raise QfqGateError(f"HISTORY_SOURCE_DUPLICATE_DATE:{code}")
+            part["raw_source_role"] = ref["source_role"]
+            part["raw_source_ref_sha256"] = ref["sha256"]
+            part["raw_source_record_index"] = np.arange(len(part))
+        elif ref.get("from_date_exclusive") is not None:
             part = part.loc[part.trade_date.gt(int(ref["from_date_exclusive"]))].copy()
         parts.append(part)
     raw = pd.concat(parts, ignore_index=True)
-    # Archive and live tails may overlap, but conflicting price/volume history
-    # needs a source revision decision, never a keep-last guess.
-    fields = ["trade_date", "open", "high", "low", "close", "vol", "amount"]
-    unique = raw[fields].drop_duplicates()
-    if unique.trade_date.duplicated().any():
-        raise QfqGateError(f"RAW_SOURCE_OVERLAP_CONFLICT:{code}")
-    raw = raw.drop_duplicates("trade_date").sort_values("trade_date").reset_index(drop=True)
+    if history:
+        for role in ("archive", "native"):
+            if raw.loc[raw.raw_source_role.eq(role), "trade_date"].duplicated().any():
+                raise QfqGateError(f"HISTORY_AMBIGUOUS_SOURCE_ROLE:{code}:{role}")
+        # Priority chooses a whole row. Native internal gaps and tails both
+        # survive; no field-level reconciliation or max-archive-date clipping.
+        raw["_priority"] = raw.raw_source_role.map({"archive": 0, "native": 1})
+        raw = raw.sort_values(["trade_date", "_priority"], kind="stable").drop_duplicates("trade_date").drop(columns="_priority")
+        raw = raw.loc[raw.trade_date.le(target)]
+    else:
+        fields = ["trade_date", "open", "high", "low", "close", "vol", "amount"]
+        if raw[fields].drop_duplicates().trade_date.duplicated().any():
+            raise QfqGateError(f"RAW_SOURCE_OVERLAP_CONFLICT:{code}")
+        raw = raw.drop_duplicates("trade_date")
+    return raw.sort_values("trade_date").reset_index(drop=True)
+
+
+
+USER_FORMULA_VERSION = "ACTIVE_MA_USER_20261021_V1"
+LEGACY_FORMULA_VERSION = "CANONICAL_V192_BRICK_B3_DOUBLE_BREAKOUT_V1"
+USER_FORMULA_COMPONENTS = {
+    "B1": "B1", "B2": "B2", "B3": "B3", "breakout": "breakout",
+    "breakout_cross_star": "breakout_cross_star", "three_quarter_yin_volume_line": "three_quarter_yin_volume_line",
+    "single_needle_under20": "single_needle_under20", "break_prev_low": "didi_break_prev_low",
+    "under_yellow": "under_yellow_not_break", "first_fly": "first_fly", "second_fly": "second_fly",
+    "white_yellow_death_cross": "white_yellow_death_cross",
+}
+USER_FORMULA_SIGNAL_FIELDS = tuple("user_v1_" + name for name in (
+    *USER_FORMULA_COMPONENTS, "macd_golden_cross", "macd_below_zero_second_gold",
+    "macd_above_zero_second_gold", "level1_buy_signal", "level2_buy_signal",
+    "hold_yesterday_keyline_daily", "break_yesterday_keyline_daily", "hold_yesterday_keyline_display_asof",
+    "break_yesterday_keyline_display_asof", "sell_signal_daily", "sell_signal_display_asof"))
+
+
+def _user_count_since_reset(golden: pd.Series, reset: pd.Series) -> pd.Series:
+    """COUNT(golden, BARSLAST(reset)); COUNT(X,0) counts the whole prefix."""
+    cumulative = np.cumsum(golden.fillna(False).to_numpy(dtype=np.int64))
+    values, last = [], None
+    for i, flag in enumerate(reset.fillna(False).to_numpy(dtype=bool)):
+        if flag:
+            last = i
+        # BARSLAST has no known reset before the first reset; do not invent one.
+        if last is None:
+            values.append(np.nan)
+        elif i == last:
+            values.append(int(cumulative[i]))
+        else:
+            values.append(int(cumulative[i] - cumulative[last]))
+    return pd.Series(values, index=golden.index)
+
+
+def append_user_formula_v1(features: pd.DataFrame, target: int) -> pd.DataFrame:
+    """Version the supplied user's labels without changing legacy model fields.
+
+    Price/BBI/white/yellow/J/B123 and equivalent component expressions use the
+    pinned original engine's full-prefix numerical convention. The original
+    canonical single-cross M2 fields and brick-based primary remain unchanged.
+    """
+    out = features.copy()
+    for name, original in USER_FORMULA_COMPONENTS.items():
+        out["user_v1_" + name] = out[original].astype("int8")
+    dif, dea = out.macd_dif, out.macd_dea
+    golden = dif.gt(dea) & dif.shift(1).le(dea.shift(1))
+    above_count = _user_count_since_reset(golden, dea.le(0))
+    below_count = _user_count_since_reset(golden, dea.ge(0))
+    above = golden & dea.gt(0) & above_count.ge(2)
+    below = golden & dea.lt(0) & below_count.eq(2).rolling(21, min_periods=1).sum().eq(1)
+    out["user_v1_macd_golden_cross"] = golden.astype("int8")
+    out["user_v1_macd_above_zero_second_gold"] = above.astype("int8")
+    out["user_v1_macd_below_zero_second_gold"] = below.astype("int8")
+    level1 = out.B3.eq(1) | above
+    out["user_v1_level1_buy_signal"] = level1.astype("int8")
+    out["user_v1_level2_buy_signal"] = ((out.B1.eq(1) | out.B2.eq(1) | out.breakout.eq(1)
+        | out.breakout_cross_star.eq(1) | below) & ~level1).astype("int8")
+    today = pd.to_numeric(out.trade_date).eq(target)
+    hold, broken = out.hold_yesterday_keyline.eq(1), out.break_yesterday_keyline.eq(1)
+    out["user_v1_hold_yesterday_keyline_daily"] = hold.astype("int8")
+    out["user_v1_break_yesterday_keyline_daily"] = broken.astype("int8")
+    out["user_v1_hold_yesterday_keyline_display_asof"] = (today & hold).astype("int8")
+    out["user_v1_break_yesterday_keyline_display_asof"] = (today & broken).astype("int8")
+    timeless_sell = out.white_yellow_death_cross.eq(1) | out.didi_break_prev_low.eq(1)
+    out["user_v1_sell_signal_daily"] = (broken | timeless_sell).astype("int8")
+    out["user_v1_sell_signal_display_asof"] = ((today & broken) | timeless_sell).astype("int8")
+    return out
+
+
+def user_formula_schema(schema: pa.Schema) -> pa.Schema:
+    """Add nullable versioned labels; retained foreign-market rows remain null."""
+    fields = list(schema)
+    for name in USER_FORMULA_SIGNAL_FIELDS:
+        if name not in schema.names:
+            fields.append(pa.field(name, pa.int8(), nullable=True))
+    return pa.schema(fields, metadata=schema.metadata)
+
+
+def rebuild_symbol(code: str, item: dict, target: int, driver) -> pd.DataFrame:
+    raw = resolved_raw_history(code, item, target, driver)
     if raw.empty or int(raw.trade_date.min()) != item["history_start_date"]:
         raise QfqGateError(f"RAW_HISTORY_START_MISMATCH:{code}")
     if item.get("compute_start_date") is not None:
@@ -272,8 +379,15 @@ def rebuild_symbol(code: str, item: dict, target: int, driver) -> pd.DataFrame:
         raise QfqGateError(f"DOUBLE_ADJUSTED_PRE_CLOSE:{code}")
     features["pct_chg_source"] = "qfq_asof_previous_adjusted_close"
     features["source"] = "tdx_vipdoc_qfq_full_history"
-    features["bars_since_list"] = np.arange(1, len(features) + 1)
-    return features
+    if item.get("history_extension"):
+        # Observed bars are not an authenticated listing date. The role schema
+        # must explicitly permit this null before any candidate can be written.
+        features["bars_since_list"] = None
+        for column in ("raw_source_role", "raw_source_ref_sha256", "raw_source_record_index"):
+            features[column] = raw[column].to_numpy()
+    else:
+        features["bars_since_list"] = np.arange(1, len(features) + 1)
+    return append_user_formula_v1(features, target)
 
 
 def _bucket(code: str) -> int:
@@ -328,7 +442,7 @@ def field_basis_contract(driver) -> dict:
 
 def computation_kernel_sha(source: Path) -> str:
     tree = ast.parse(source.read_text())
-    names = {"apply_adjustments", "rebuild_symbol", "authorities", "_load"}
+    names = {"apply_adjustments", "resolved_raw_history", "rebuild_symbol", "authorities", "_load"}
     nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
     if {node.name for node in nodes} != names:
         raise QfqGateError("CHECKPOINT_COMPUTATION_KERNEL_MISSING")
@@ -371,13 +485,16 @@ def checkpoint_recovery(ref: dict | None, snapshot: dict, identity: dict, baseli
     return chunks
 
 
-def merge_rebuilt(old: pd.DataFrame, rebuilt: pd.DataFrame, *, role: str, driver) -> pd.DataFrame:
+def merge_rebuilt(old: pd.DataFrame, rebuilt: pd.DataFrame, *, role: str, driver, history_extension: bool = False) -> pd.DataFrame:
     """Replace every old affected OHLC/formula row; retain historical metadata."""
     rebuilt = rebuilt.copy()
     # This is lineage metadata from the pinned original authoritative contract,
     # not a numerical formula input and never an old-row price fallback.
     rebuilt["field_contract_version"] = driver.CONTRACT_PROVENANCE_FIELD_DEFAULTS["field_contract_version"]
     if old.empty:
+        if history_extension:
+            for column in (set(rebuilt) & LEGACY_AUX_FIELDS) | {"bars_since_list"}:
+                rebuilt[column] = None
         return rebuilt
     if old.trade_date.duplicated().any():
         raise QfqGateError(f"CURRENT_DUPLICATE_KEYS:{role}")
@@ -387,7 +504,7 @@ def merge_rebuilt(old: pd.DataFrame, rebuilt: pd.DataFrame, *, role: str, driver
     if not set(old.trade_date).issubset(source.index):
         missing = sorted(set(old.trade_date) - set(source.index))
         raise QfqGateError(f"RAW_HISTORY_KEYS_MISSING:{role}:{missing[:10]}")
-    fresh = source.loc[source.index >= int(old.trade_date.min())].reset_index()
+    fresh = (source if history_extension else source.loc[source.index >= int(old.trade_date.min())]).reset_index()
     preserved = old.set_index("trade_date")
     # Formula fields are generated only by original authorities; other historic
     # data retain their original per-row values rather than latest-row backfill.
@@ -398,6 +515,9 @@ def merge_rebuilt(old: pd.DataFrame, rebuilt: pd.DataFrame, *, role: str, driver
             # Preserve only explicitly classified, non-target legacy context.
             # No latest-row fill for a new date, including numeric auxiliaries.
             fresh[column] = fresh.trade_date.map(preserved[column])
+    if history_extension:
+        for column in (set(fresh) & LEGACY_AUX_FIELDS) | {"bars_since_list"}:
+            fresh[column] = fresh.trade_date.map(preserved[column]) if column in preserved else None
     return fresh
 
 
@@ -408,19 +528,87 @@ def _panel_symbols(path: Path) -> set[str]:
     return values
 
 
-def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str) -> pa.Table:
+def _table(frame: pd.DataFrame, schema: pa.Schema, driver, role: str, *, history_extension: bool = False) -> pa.Table:
     # No original formula field is silently default-filled with zero.
     missing = [f.name for f in schema if f.name not in frame and f.name not in LEGACY_AUX_FIELDS]
     if missing:
         raise QfqGateError(f"UNCOMPUTED_FORMULA_FIELDS:{role}:{missing}")
+    nullable_context = LEGACY_AUX_FIELDS | ({"bars_since_list"} if history_extension else set())
+    for field in schema:
+        if field.name in nullable_context:
+            values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
+            if history_extension and values.isna().any() and not field.nullable:
+                raise QfqGateError(f"HISTORY_CONTEXT_NOT_NULLABLE:{role}:{field.name}")
     table = driver.build_table_for_schema(frame, schema, role)[0]
     # The legacy driver fills nullable ints/bools with 0/False. That would
     # fabricate auxiliary context on new dates; preserve its explicit nulls.
     for field in schema:
-        if field.name in LEGACY_AUX_FIELDS:
+        if field.name in nullable_context:
             values = frame[field.name] if field.name in frame else pd.Series([None] * len(frame))
             table = table.set_column(schema.get_field_index(field.name), field, pa.Array.from_pandas(values, type=field.type))
     return table
+
+
+def history_extension_binding(ref: dict, *, data_root: Path, return_root: Path,
+                              pointers: dict[str, Path], publish: bool) -> dict:
+    """Fail closed before locks/writes; history runs only in an isolated root."""
+    if publish:
+        raise QfqGateError("HISTORY_EXTENSION_PUBLICATION_FORBIDDEN")
+    value = json.loads(_source(ref, owner="history extension contract").read_text())
+    if (value.get("schema") != "qfq_shared_history_extension_v1" or value.get("historical_PIT") is not False
+            or value.get("maximum_claim") != "DIRECTION_ONLY" or set(value.get("roles", {})) != {"selector", "backtest"}):
+        raise QfqGateError("HISTORY_EXTENSION_CONTRACT_INVALID")
+    # Array refs are optional when the source uses no archive or extra evidence.
+    for name in ("archive_refs", "accepted_evidence"):
+        value.setdefault(name, [])
+        if not isinstance(value[name], list):
+            raise QfqGateError("HISTORY_EXTENSION_REFERENCE_LIST_INVALID:" + name)
+    root = Path(value["isolation_root"]).resolve()
+    for path in [data_root, return_root, *pointers.values()]:
+        if not Path(path).resolve().is_relative_to(root) or Path(path).resolve() == root:
+            raise QfqGateError(f"HISTORY_EXTENSION_PATH_OUTSIDE_ISOLATION:{path}")
+    if set(pointers) != {"selector", "backtest"}:
+        raise QfqGateError("HISTORY_EXTENSION_DUAL_ROLE_REQUIRED")
+    for role, binding in value["roles"].items():
+        path = _source(binding["panel"], owner="history baseline " + role)
+        pointer_target = Path(pointers[role].read_text(encoding="utf-8-sig").strip())
+        baseline_contract = panel_contract(path)
+        if pointer_target != path or baseline_contract.get("generation_id") != value["baseline_generation_id"]:
+            raise QfqGateError(f"HISTORY_BASELINE_ROLE_GENERATION_CONFLICT:{role}")
+        # The independent extractor must bind ordered fields, type/nullability,
+        # and both key sets. They are role-specific, not a shared 5533 mask.
+        if not binding.get("key_sha256") or not binding.get("schema_sha256") or "sidecars" not in binding:
+            raise QfqGateError(f"HISTORY_BASELINE_KEY_SCHEMA_UNBOUND:{role}")
+        if baseline_contract.get("quarantine_manifest_path"):
+            quarantine = _source(value["quarantine_manifest"], owner="baseline same-generation quarantine")
+            prior = json.loads(quarantine.read_text())
+            expected_sidecar = prior.get("artifacts", {}).get(role, {})
+            if (str(quarantine) != baseline_contract["quarantine_manifest_path"]
+                    or prior.get("generation_id") != value["baseline_generation_id"]
+                    or not expected_sidecar.get("sha256")
+                    or not any(all(ref.get(k) == expected_sidecar.get(k) for k in ("path", "sha256")) for ref in binding["sidecars"])):
+                raise QfqGateError(f"HISTORY_BASELINE_SIDECAR_MEMBERSHIP_UNBOUND:{role}")
+        for sidecar in binding["sidecars"]:
+            side = _source(sidecar, owner="history baseline sidecar " + role)
+            metadata = pq.ParquetFile(side).schema_arrow.metadata or {}
+            side_meta = json.loads(metadata.get(b"quarantine_contract", b"{}"))
+            if side_meta.get("generation_id") != value["baseline_generation_id"]:
+                raise QfqGateError(f"HISTORY_SIDECAR_GENERATION_CONFLICT:{role}")
+    return {**value, "binding_ref": ref}
+
+
+def history_role_identity(path: Path) -> dict:
+    """Bounded per-role key/footer identity, executed only after registration."""
+    schema = pq.ParquetFile(path).schema_arrow
+    ordered_schema = [dict(name=f.name, type=str(f.type), nullable=f.nullable) for f in schema]
+    digest, rows = hashlib.sha256(), 0
+    # This digest binds the actual artifact's ordered keys. Old-key set
+    # containment is independently enforced in the existing spool/merge gates.
+    for batch in pq.ParquetFile(path).iter_batches(columns=["ts_code", "trade_date"]):
+        for code, date in zip(batch.column(0).to_pylist(), batch.column(1).to_pylist()):
+            digest.update(json.dumps([str(code), int(date)], separators=(",", ":")).encode() + b"\n")
+            rows += 1
+    return dict(key_sha256=digest.hexdigest(), schema_sha256=canonical_sha(ordered_schema), rows=rows)
 
 
 def generation_identity(snapshot: dict, driver_path: Path, formula_path: Path, contract_csv: Path) -> dict:
@@ -457,6 +645,12 @@ def factor_cache_identity(data_root: Path, target: int, snapshot: dict) -> str |
     bound sources. This prevents pinning a revised cache beside an old input
     while a long price rebuild is still running.
     """
+    if snapshot.get("history_extension"):
+        # Offline history binds immutable original metadata, not a concurrently
+        # refreshed live daily checkpoint with a different membership/window.
+        history = json.loads(_source(snapshot["history_extension"], owner="offline history cache identity").read_text())
+        metadata = _source(history["adjustment_metadata"], owner="bound offline factor receipts")
+        return sha(metadata)
     root = input_path(data_root).parent
     binding = root / "qfq_factor_cache_binding.json"
     cache_root = Path(json.loads(binding.read_text())["path"]) if binding.is_file() else root / "futu_rehab"
@@ -683,16 +877,34 @@ def verify_release_gate(root: Path, output: Path, identity: dict, target: int, c
     raise QfqGateError(f"FUTU_DISPLAY_ORACLE_MISSING_OR_CONVENTION_NOT_ACCEPTED:{oracle_path}:{acceptance_path}")
 
 
+
+def accepted_history_retention(pointers: dict[str, Path]) -> dict | None:
+    """The accepted dual-role generation carries the next daily source binding."""
+    bindings = [panel_contract(Path(p.read_text(encoding="utf-8-sig").strip())).get("history_retention_binding")
+                for p in pointers.values()]
+    if not any(bindings):
+        return None
+    if not all(bindings) or any(binding != bindings[0] for binding in bindings):
+        raise QfqGateError("DAILY_HISTORY_DUAL_ROLE_BINDING_CONFLICT")
+    value = bindings[0]
+    for ref in [value["source_config"], value["source_policy"], *value["archive_refs"], *value["accepted_evidence"]]:
+        _source(ref, owner="accepted daily history retention")
+    return value
+
+
 def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, data_root: Path,
                       pointers: dict[str, Path], contract_csv: Path, return_root: Path,
                       target: int, publish: bool = False, workers: int = 2, refresh_inputs: bool = False,
-                      checkpoint_resume: dict | None = None) -> dict:
+                      checkpoint_resume: dict | None = None, history_extension: dict | None = None) -> dict:
     """Called exclusively by the original Mac daily formula authority entry."""
     if not 1 <= workers <= 4:
         raise QfqGateError("WORKER_LIMIT_MUST_BE_1_TO_4")
+    history = (history_extension_binding(history_extension, data_root=data_root, return_root=return_root,
+                                        pointers=pointers, publish=publish) if history_extension is not None else None)
     with publication_lock(data_root):
         journal = data_root / "runtime/cache/data_layer_daily_formula_increment_update_v1/qfq_publication.json"
-        recover_pair(journal, pointers)
+        if history is None:
+            recover_pair(journal, pointers)
         snapshot_file = input_path(data_root)
         baseline_file = snapshot_file.with_name("qfq_expected_current.json")
         if publish and not baseline_file.is_file():
@@ -700,18 +912,29 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         frozen_baseline = json.loads(baseline_file.read_text()) if publish else baseline_binding(pointers)
         check_baseline(pointers, frozen_baseline)
         driver, _ = authorities(driver_path, formula_path)
+        retained_history = accepted_history_retention(pointers) if history is None else None
         if refresh_inputs:
             required_start = required_a_history(pointers)
             from ops.research_panel_adjustment_inputs import prepare_snapshot
             prepare_snapshot(tdx_root=tdx_root, data_root=data_root, target=target, driver=driver, required_start=required_start,
-                             force_refresh=refresh_due(data_root, target) or os.environ.get("RESEARCH_PANEL_QFQ_REFRESH_FACTORS") == "1")
+                             force_refresh=False if history is not None else refresh_due(data_root, target) or os.environ.get("RESEARCH_PANEL_QFQ_REFRESH_FACTORS") == "1",
+                             history_extension=history, retained_history=retained_history)
         snapshot = load_snapshot(snapshot_file, target)
+        if snapshot.get("history_retention_binding") != retained_history:
+            raise QfqGateError("DAILY_HISTORY_SNAPSHOT_BINDING_CONFLICT")
+        if snapshot.get("history_extension") != history_extension:
+            raise QfqGateError("HISTORY_SNAPSHOT_RUNTIME_BINDING_CONFLICT")
         identity = generation_identity(snapshot, driver_path, formula_path, contract_csv)
         # One fixed journal owned by the original entry covers crashes between
         # replacing the original two files, even after a new input revision.
         expected = {role: path.read_bytes() for role, path in pointers.items()}
         currents = {role: Path(value.decode("utf-8-sig").strip()) for role, value in expected.items()}
         contracts = {role: panel_contract(path) for role, path in currents.items()}
+        if history is not None:
+            for role, path in currents.items():
+                actual = history_role_identity(path)
+                if any(actual[k] != history["roles"][role][k] for k in ("key_sha256", "schema_sha256")):
+                    raise QfqGateError(f"HISTORY_BASELINE_KEY_SCHEMA_DRIFT:{role}")
         inherited_quarantine = {}
         for contract in contracts.values():
             if contract.get("quarantine_manifest_path"):
@@ -729,6 +952,22 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         run_id = next(iter(generations)) if already_current else canonical_sha(dict(target=target, baseline_panel_sha256=baseline_hashes, **identity))
         run_dir = return_root / ("qfq_" + run_id[:20])
         run_dir.mkdir(parents=True, exist_ok=True)
+        retained_history_sidecars = {}
+        if history is not None:
+            for role, binding in history["roles"].items():
+                retained_history_sidecars[role] = []
+                for ref in binding["sidecars"]:
+                    source = _source(ref, owner="history sidecar preservation")
+                    destination = run_dir / "inherited_sidecars" / role / (ref["sha256"] + ".parquet")
+                    if destination.exists():
+                        if sha(destination) != ref["sha256"]:
+                            raise QfqGateError("IMMUTABLE_HISTORY_SIDECAR_CONFLICT")
+                    else:
+                        # A same-generation legacy sidecar remains excluded;
+                        # byte preservation never promotes unknown basis rows.
+                        _write(destination, source.read_bytes())
+                    retained_history_sidecars[role].append(dict(original=ref, retained=dict(path=str(destination), sha256=ref["sha256"]),
+                        generation_id=history["baseline_generation_id"], excluded_from_accepted=True, byte_identical=True))
         retained_snapshot = run_dir / "adjustment_input_snapshot.json"
         if retained_snapshot.exists():
             if json.loads(retained_snapshot.read_text()) != snapshot:
@@ -755,10 +994,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         legacy_policy = legacy_preservation(snapshot.get("legacy_preservation_policy"))
         legacy_codes = set(snapshot.get("legacy_preservation_codes", [])) & expected_codes
         available = set(snapshot["symbols"])
+        retained_history_codes = set(snapshot.get("retained_history_codes", [])) & expected_codes
         quarantined = snapshot.get("quarantine_symbols", {})
         from ops.research_panel_adjustment_inputs import existing_day_files
         discovered = {code for code, _ in existing_day_files(tdx_root)}
-        missing = sorted((expected_codes | discovered) - foreign - legacy_codes - available - set(quarantined))
+        missing = sorted((expected_codes | discovered) - foreign - legacy_codes - available - set(quarantined) - retained_history_codes)
         if missing:
             raise QfqGateError(f"MARKETWIDE_ADJUSTMENT_COVERAGE_MISSING:{missing}")
         meta = dict(schema="a_share_qfq_panel_v1", field_basis=field_basis_contract(driver), checkpoint_recovery=checkpoint_resume, price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
@@ -768,6 +1008,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                                  retained_original_values=True)
                                      for market in sorted({c.rsplit(".", 1)[-1] for c in foreign})}},
                     legacy_preservation_policy=snapshot.get("legacy_preservation_policy"),
+                    user_formula_contract=dict(version=USER_FORMULA_VERSION, source_sha256=USER_FORMULA_SHA,
+                        signal_fields=list(USER_FORMULA_SIGNAL_FIELDS), numerical_convention="PINNED_ORIGINAL_FULL_PREFIX_ENGINE",
+                        level1="B3 OR STRICT_ABOVE_ZERO_SECOND_GOLD", legacy_formula_version=LEGACY_FORMULA_VERSION,
+                        legacy_primary="brick_buy2_attack OR B3 OR double_breakout",
+                        display_today_rule="CURRBARSCOUNT=1 means target-date row; *_daily is prefix-local historical signal"),
                     schema_contract_version="QFQ_V2_DOUBLE_CORE_EVENT_VOLUME", asof_date=target, generation_id=run_id, snapshot_file_sha256=sha(snapshot_file),
                     baseline_panel_sha256=baseline_hashes,
                     generation_manifest_path=str(run_dir / "candidate_receipt.json"), price_provider="MIXED_TDX_A_AND_RETAINED_ORIGINAL" if foreign else "TDX_DAY",
@@ -775,6 +1020,19 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     adjustment_provider_contract="FUTU_GET_REHAB_WITH_EXPLICIT_TDX_UNSUPPORTED_CONVENTION",
                     quarantine_manifest_path=str(run_dir / "quarantine_manifest.json"),
                     convention=snapshot["convention"], revision=snapshot["revision"], pit_certified=False, **identity, **FLAGS)
+        retention_binding = ({key: history[key] for key in ("source_config", "source_policy", "archive_refs", "accepted_evidence")}
+                             if history is not None else retained_history)
+        if retention_binding is not None:
+            meta.update(history_retention_binding=retention_binding,
+                retained_history_codes=sorted(retained_history_codes),
+                retained_history_asof={code: next(iter(contracts.values())).get("retained_history_asof", {}).get(
+                    code, next(iter(contracts.values())).get("asof_date")) for code in retained_history_codes},
+                history_retention_semantics="ACCEPTED_INACTIVE_HISTORY_RETAINS_ORIGINAL_BASIS_ASOF; ACTIVE_TARGET_MEMBERSHIP_SEPARATE")
+        if history is not None:
+            meta.update(history_extension=history_extension, maximum_claim="DIRECTION_ONLY",
+                historical_PIT=False, inherited_history_sidecars=retained_history_sidecars,
+                history_source_policy=history["source_policy"], history_source_config=history["source_config"],
+                nullable_context_reason="NO_AUTHENTICATED_HISTORICAL_CONTEXT; BARS_OBSERVED_NOT_LISTING_AGE")
         candidates = {
             "selector": data_root / "selector_ready_panels/data_layer_daily_formula_increment_update_v1" / f"selector_ready_current_to_{target}_qfq_{run_id[:16]}" / f"selector_ready_current_to_{target}.parquet",
             "backtest": data_root / "backtest_panels/data_layer_daily_formula_increment_update_v1" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}_qfq_{run_id[:16]}" / "panel" / f"tdx_backtest_base_panel_5y_v3_current_to_{target}.parquet",
@@ -784,6 +1042,10 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         for role, path in currents.items():
             old_schema = pq.ParquetFile(path).schema_arrow
             schemas[role] = pa.schema([pa.field(f.name, pa.float64(), nullable=f.nullable, metadata=f.metadata) if f.name in double_core else f for f in old_schema], metadata=old_schema.metadata)
+        # History activation adds explicit user labels. Later daily runs inherit
+        # these fields from the accepted schema and recompute them from prefix.
+        if history is not None:
+            schemas = {role: user_formula_schema(schema) for role, schema in schemas.items()}
         role_start = {r: driver.scan_trade_date_min_max(p)[0] for r, p in currents.items()}
         parts_root = run_dir / "symbol_checkpoints"
         parts_root.mkdir(exist_ok=True)
@@ -851,7 +1113,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                                     or approved.get("date_sha256") != canonical_sha(actual_dates)
                                     or approved.get("rows") != len(actual_dates)):
                                 raise QfqGateError(f"LEGACY_PRESERVATION_KEYS_OR_BASELINE_CHANGED:{role}:{code}")
-                        if code in quarantine_reasons or code in foreign:
+                        if code in quarantine_reasons or code in foreign or code in retained_history_codes:
                             continue
                         rebuilt_keys = pq.read_table(parts_root / (code + ".parquet"), columns=["trade_date"]).column(0).to_pylist()
                         missing_keys = sorted(set(pd.to_numeric(old_keys.trade_date).astype(int)) - set(rebuilt_keys))
@@ -877,7 +1139,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     generation_id=run_id, legacy_basis_unknown=True, excluded_from_accepted=True,
                     original_path=str(currents[role]), original_sha256=baseline_hashes[role])).encode()})
                 quarantined_rows = 0
-                old_rows, replaced_old_rows, retained_non_a_rows = 0, 0, 0
+                old_rows, replaced_old_rows, retained_non_a_rows, retained_a_history_rows = 0, 0, 0, 0
                 retained_by_market = {}
                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
                     for bucket in range(32):
@@ -895,11 +1157,17 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             if len(excluded):
                                 quarantine_writer.write_table(excluded.replace_schema_metadata(quarantine_schema.metadata))
                                 quarantined_rows += len(excluded)
-                            retained = old_table.filter(pa.array([c in foreign for c in old_codes]))
+                            retained = old_table.filter(pa.array([c in foreign or c in retained_history_codes for c in old_codes]))
                             if len(retained):
+                                for field in schema:
+                                    if field.name not in retained.schema.names and field.name in USER_FORMULA_SIGNAL_FIELDS:
+                                        retained = retained.append_column(field, pa.nulls(len(retained), type=field.type))
                                 writer.write_table(retained.cast(schema))
-                                retained_non_a_rows += len(retained)
+                                retained_non_a_rows += sum(c in foreign for c in retained["ts_code"].to_pylist())
+                                retained_a_history_rows += sum(c in retained_history_codes for c in retained["ts_code"].to_pylist())
                                 for c in retained["ts_code"].to_pylist():
+                                    if c not in foreign:
+                                        continue
                                     market = c.rsplit(".", 1)[-1]
                                     retained_by_market[market] = retained_by_market.get(market, 0) + 1
                                 rows_written += len(retained)
@@ -909,24 +1177,24 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             rebuilt = pq.read_table(parts_root / (code + ".parquet")).to_pandas()
                             old = old_frame.iloc[old_groups[code]].copy() if code in old_groups else pd.DataFrame()
                             replaced_old_rows += len(old)
-                            if old.empty:
+                            if old.empty and history is None:
                                 rebuilt = rebuilt.loc[rebuilt.trade_date.ge(role_start[role])].copy()
                             if rebuilt.empty:
                                 continue
-                            frame = merge_rebuilt(old, rebuilt, role=role, driver=driver)
+                            frame = merge_rebuilt(old, rebuilt, role=role, driver=driver, history_extension=history is not None or retained_history is not None)
                             if role == "selector" and frame.trade_date.eq(target).any():
                                 # Same original gate; validation sees generated fields
                                 # before output-schema pruning.
                                 gate = driver.validate_new_selector_rows(frame.loc[frame.trade_date.eq(target)], schemas[role], target)
                                 if gate["status"] != "PASS":
                                     raise QfqGateError(f"ORIGINAL_SELECTOR_FORMULA_GATE_FAILED:{code}:{gate}")
-                            table = _table(frame, schema, driver, role)
+                            table = _table(frame, schema, driver, role, history_extension=history is not None or retained_history is not None)
                             writer.write_table(table)
                             latest = max(latest, int(frame.trade_date.max()))
                             rows_written += len(frame)
                             if frame.trade_date.eq(target).any():
                                 latest_codes.add(code)
-                if old_rows != replaced_old_rows + quarantined_rows + retained_non_a_rows:
+                if old_rows != replaced_old_rows + quarantined_rows + retained_non_a_rows + retained_a_history_rows:
                     raise QfqGateError(f"OLD_KEYS_PRESERVATION_COUNT_FAILED:{role}")
                 if not old_latest_codes.issubset(latest_codes):
                     raise QfqGateError(f"ORIGINAL_TARGET_ACCEPTED_KEYS_LOST:{role}:{sorted(old_latest_codes-latest_codes)}")
@@ -937,7 +1205,11 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     original_path=str(currents[role]), original_sha256=baseline_hashes[role],
                     old_keys_preservation="REBUILT_A_OR_RETAINED_NON_A_OR_EXACT_LEGACY_QUARANTINE_DISJOINT")
                 role_counts[role] = dict(accepted_rows=rows_written - retained_non_a_rows, panel_rows=rows_written, retained_non_a_old_rows=retained_non_a_rows, target_date_symbols=len(latest_codes), quarantined_old_rows=quarantined_rows,
-                    original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, retained_non_a_by_market=retained_by_market, old_key_conservation=True)
+                    original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, retained_a_history_rows=retained_a_history_rows, retained_non_a_by_market=retained_by_market, old_key_conservation=True)
+                if history is not None:
+                    role_counts[role].update(added_accepted_history_rows=rows_written - retained_non_a_rows - replaced_old_rows,
+                        inherited_sidecar_files=len(retained_history_sidecars[role]),
+                        inherited_sidecar_preservation="BYTE_IDENTICAL_SEPARATE_EXCLUDED_ARTIFACTS")
                 if latest != target:
                     raise QfqGateError(f"PANEL_TARGET_DATE_MISSING:{role}:{latest}")
                 if candidate.exists():
