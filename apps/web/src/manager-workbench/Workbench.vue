@@ -354,7 +354,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
     <section v-if="vm.panel === 'stocks'" class="mwb-panel" aria-label="今日研究名单">
       <div class="mwb-heading">
         <div><h2 v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection">US_MAPPING · {{ vm.route.date }} · {{ usIndustryListing ? '同行业港股名单' : '持久化研究候选与严格状态' }}</h2><h2 v-else-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">US {{ singleDaySummary()?.source_session || '日期未知' }} → HK {{ singleDaySummary()?.target_date || '日期未知' }} · 单日映射推荐 / 下跌风险</h2><h2 v-else>{{ LANE_LABELS[vm.laneFilter] }} · {{ vm.decisionFilter ? decisionLabel(vm.decisionFilter) : '独立港股推荐' }}</h2><p v-if="vm.laneFilter === 'US_MAPPING' && usMappingSelection">{{ usIndustryListing ? '只按已保存的同行业依据列出；美股涨幅、MA20、近期涨幅、成交额和资格待核仅作参考，不阻断名单显示。' : '按保存版本展示后端持久化候选顺序、研究状态与严格门槛；只读研究结果，不构成 BUY。' }}</p><p v-else-if="vm.laneFilter === 'US_MAPPING' && singleDaySummary()">按固定 A/B/C 主路径展示全量月度观察池；单日代理变化仅为研究观察，目标日资格、历史 PIT 与效果未验证。</p><p v-else>美股映射与超跌是独立推荐；各自采用该路径已保存结论，同股可出现在两处。</p></div>
-        <p v-if="vm.dayLoading" role="status">正在读取保存的研究版本…</p>
+        <p v-if="vm.dayLoading" role="status">正在读取保存的研究版本…<span v-if="vm.snapshot">当前仍显示上次成功页；页码与股票属于该页。</span></p>
       </div>
       <nav class="mwb-tabs" aria-label="独立推荐来源">
         <button v-for="lane in (['US_MAPPING', 'OVERSOLD'] as const)" :key="lane" type="button"
@@ -365,7 +365,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
       <section v-if="vm.laneFilter === 'US_MAPPING' && vm.day?.data?.us_mapping_legacy" aria-label="历史映射保存版说明" class="mwb-muted">
         <p>历史保存版 · selection_identity 为空。仅显示当时保存的名单与计数；严格状态没有回算或补推。</p>
       </section>
-      <section v-if="vm.laneFilter === 'US_MAPPING' && !usMappingSelection && !vm.day?.data?.us_mapping_legacy && !singleDaySummary()" aria-label="单日映射保存版入口" class="mwb-muted">
+      <section v-if="vm.laneFilter === 'US_MAPPING' && !vm.dayLoading && vm.snapshot && !usMappingSelection && !vm.day?.data?.us_mapping_legacy && !singleDaySummary()" aria-label="单日映射保存版入口" class="mwb-muted">
         <p>当前保存版本没有单日映射结果；不能从旧保存版本推断本次受益或风险名单。</p>
         <p v-if="vm.singleDayVersionLoading" role="status">正在查找同目标日已有单日映射保存版…</p>
         <div v-else-if="vm.singleDayVersion">
@@ -679,7 +679,7 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <div><strong>{{ showCount(vm.counts.observation_only) }}</strong><span>仅观察</span></div>
         <div><strong>{{ showCount(vm.counts.not_selected) }}</strong><span>未入选</span></div>
       </div>
-      <p v-else-if="!usMappingSelection && !singleDaySummary()" class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
+      <p v-else-if="!vm.dayLoading && vm.snapshot && !usMappingSelection && !singleDaySummary()" class="mwb-muted">完整分类计数未知（无已保存计数，不能当作 0）。</p>
 
       <!-- The compact legacy projection has no full source archive; do not evaluate its absent fields. -->
       <details v-if="vm.day?.data?.us_mapping_summary?.source_decision_counts"><summary>旧版美股映射汇总与关系档案</summary>
@@ -833,11 +833,11 @@ function revisionAssessments(value: unknown): [string, unknown][] {
         <span>服务端筛选后共 {{ vm.pagination.total }} 行；本页 {{ vm.stocks.length }} 行，
           每页最多 {{ vm.limit }} 行。完整分类计数独立于此分页。</span>
         <div>
-          <button type="button" :disabled="vm.offset === 0 || vm.dayLoading"
-            @click="vm.setOffset(Math.max(0, vm.offset - vm.limit))">上一页</button>
-          <span>{{ vm.stocks.length ? vm.offset + 1 : 0 }}–{{ Math.min(vm.pagination.total, vm.offset + vm.stocks.length) }}</span>
-          <button type="button" :disabled="vm.dayLoading || vm.offset + vm.limit >= vm.pagination.total"
-            @click="vm.setOffset(vm.offset + vm.limit)">下一页</button>
+          <button type="button" :disabled="vm.pagination.offset === 0 || vm.dayLoading"
+            @click="vm.setOffset(Math.max(0, vm.pagination.offset - vm.limit))">上一页</button>
+          <span>{{ vm.stocks.length ? vm.pagination.offset + 1 : 0 }}–{{ Math.min(vm.pagination.total, vm.pagination.offset + vm.stocks.length) }}</span>
+          <button type="button" :disabled="vm.dayLoading || vm.pagination.offset + vm.limit >= vm.pagination.total"
+            @click="vm.setOffset(vm.pagination.offset + vm.limit)">下一页</button>
         </div>
       </div>
     </section>

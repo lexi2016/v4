@@ -19,9 +19,71 @@ def saved_result(context,result):
 
 
 def client_for(snapshot):
-    store=NS(get_plan=lambda *a,**k:snapshot,list_plans=lambda *a,**k:[snapshot])
+    from v4.manager_workbench.api import _index
+    store=NS(get_plan=lambda *a,**k:snapshot,list_plans=lambda *a,**k:[snapshot],
+        list_plan_metadata=lambda *a,**k:([_index(snapshot)],[]))
     service=NS(store=store,config=NS(shared_root=None))
     app=FastAPI();app.include_router(create_router(service));return TestClient(app)
+
+
+def metadata_store(tmp_path):
+    from v4.manager_workbench.store import WorkbenchStore
+    store=WorkbenchStore(tmp_path)
+    def add(run_id, *, phase='RETROSPECTIVE', **patch):
+        folder=store.root/'catalog'/'20261022'/phase;folder.mkdir(parents=True,exist_ok=True)
+        snapshot=store.root/'snapshots'/(run_id+'.json');snapshot.parent.mkdir(exist_ok=True)
+        snapshot.write_bytes(b'contents must not be opened for a version menu')
+        value=dict(run_id=run_id,product_sha256='b'*64,input_sha256='a'*64,generated_at='2026-10-24T10:00:00+00:00')
+        value.update(patch);(folder/(run_id+'.json')).write_text(json.dumps(value))
+        return folder/(run_id+'.json')
+    return store,add
+
+
+def test_version_metadata_reads_only_small_catalog_and_isolates_bad_entries(tmp_path,monkeypatch):
+    store,add=metadata_store(tmp_path);add('valid');add('bad_sha',product_sha256='not-a-sha');add('missing')
+    (store.root/'snapshots'/'missing.json').unlink()
+    bad=add('bad_json');bad.write_text('{')
+    wrong=add('wrong_key');value=json.loads(wrong.read_text());value['run_id']='other';wrong.write_text(json.dumps(value))
+    add('linked');(store.root/'snapshots'/'linked.json').unlink();(store.root/'snapshots'/'linked.json').symlink_to(store.root/'snapshots'/'valid.json')
+    reads=[];original=store._read
+    def read(path,**kwargs):
+        reads.append((str(path.relative_to(store.root)),kwargs.get('max_bytes')))
+        assert path.parent.name!='snapshots'
+        return original(path,**kwargs)
+    monkeypatch.setattr(store,'_read',read)
+    metadata,gaps=store.list_plan_metadata('20261022')
+    assert [row['run_id'] for row in metadata]==['valid']
+    assert metadata[0]['content_verification']=='CATALOG_METADATA_ONLY' and 'state' not in metadata[0]
+    assert len(gaps)==5 and all(g['code']=='VERSION_METADATA_UNAVAILABLE' for g in gaps)
+    assert all(limit==16*1024 for _,limit in reads)
+
+
+def test_compact_route_uses_metadata_not_full_version_hydration(tmp_path,monkeypatch):
+    import v4.manager_workbench.api as api_module
+    store,add=metadata_store(tmp_path);add('selected');add('other')
+    lane=NS(lane=NS(value='US_MAPPING'),selection=None,gaps=[])
+    snapshot=NS(run_id='selected',context=NS(target_date='20261022',phase=NS(value='RETROSPECTIVE')),
+        generated_at='2026-10-24T10:00:00+00:00',product_sha256='b'*64,input_sha256='a'*64,gaps=[],lanes=[lane])
+    monkeypatch.setattr(store,'get_plan',lambda *a,**k:snapshot)
+    monkeypatch.setattr(store,'list_plans',lambda *a,**k:(_ for _ in ()).throw(AssertionError('FULL_VERSION_READ_FORBIDDEN')))
+    monkeypatch.setattr(api_module,'saved_names',lambda *a:{})
+    monkeypatch.setattr(api_module,'selection_view',lambda *a,**k:dict(lane_state='PARTIAL',stocks=[],counts={},pagination=dict(total=0,offset=0,limit=1)))
+    app=FastAPI();app.include_router(create_router(NS(store=store,config=NS(shared_root=None))))
+    client=TestClient(app)
+    for view in ['compact','diagnostics']:
+        response=client.get('/api/v4/manager-workbench/days/20261022/recommendations/US_MAPPING',params=dict(run_id='selected',view=view,limit=1))
+        assert response.status_code==200
+        versions=response.json()['data']['versions']
+        assert {v['run_id'] for v in versions}=={'selected','other'}
+        assert next(v for v in versions if v['run_id']=='selected')['state']=='READY'
+        assert next(v for v in versions if v['run_id']=='other')['content_verification']=='CATALOG_METADATA_ONLY'
+
+
+def test_metadata_menu_does_not_bypass_selected_snapshot_validation(tmp_path):
+    import pytest
+    store,add=metadata_store(tmp_path);add('selected')
+    metadata,_=store.list_plan_metadata('20261022');assert metadata[0]['run_id']=='selected'
+    with pytest.raises(ValueError):store.get_plan('20261022',run_id='selected')
 
 
 def test_compact_200_rows_under_one_mib_with_full_counts_and_no_raw_factor_groups(tmp_path):

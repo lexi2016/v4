@@ -176,6 +176,45 @@ describe("US_MAPPING compact persisted results", () => {
   beforeEach(() => { window.history.replaceState(null, "", "?date=20261023&phase=NEXT_DAY&run_id=run-old"); });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
+  it("retains the actual previous page during same-run pagination, restores it after failure, and clears on a new version", async () => {
+    let releasePage: ((value: Response) => void) | undefined;
+    let rejectPage: ((error: Error) => void) | undefined;
+    let paging = false;
+    install(url => {
+      if (!paging) return response(compactData());
+      return new Promise<Response>((resolve, reject) => { releasePage = resolve; rejectPage = reject; });
+    });
+    render(Workbench);
+    await screen.findByText("候选1");
+    paging = true;
+    await fireEvent.click(screen.getByRole("button", { name: "下一页", exact: true }));
+    expect(screen.getByText("候选1")).toBeTruthy();
+    expect(screen.getByText(/当前页 1–4 \/ 317/)).toBeTruthy();
+    expect(screen.getByText(/当前仍显示上次成功页/)).toBeTruthy();
+    expect(screen.queryByText(/当前保存版本没有单日映射结果/)).toBeNull();
+    expect((screen.getByRole("button", { name: "上一页", exact: true }) as HTMLButtonElement).disabled).toBe(true);
+    releasePage?.(response(compactData("run-old", "20261023", 50)));
+    await screen.findByText("候选5");
+    expect(screen.getByText(/当前页 51–51 \/ 317/)).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "上一页", exact: true }));
+    expect(screen.getByText("候选5")).toBeTruthy();
+    expect(screen.getByText(/当前页 51–51 \/ 317/)).toBeTruthy();
+    rejectPage?.(new Error("simulated network failure"));
+    await screen.findByText(/网络读取失败/);
+    expect(screen.getByText("候选5")).toBeTruthy();
+    expect(screen.getByText(/当前页 51–51 \/ 317/)).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "上一页", exact: true }));
+    const releaseOldPage = releasePage;
+    await fireEvent.change(screen.getByLabelText("计划版本"), { target: { value: "run-new" } });
+    expect(screen.queryByText("候选5")).toBeNull();
+    expect(screen.queryByText(/当前保存版本没有单日映射结果/)).toBeNull();
+    releaseOldPage?.(response(compactData("run-old")));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(screen.queryByText("候选1")).toBeNull();
+    releasePage?.(response(compactData("run-new")));
+    await screen.findByText("候选1");
+  });
+
   it("defaults to evidenced industry peers despite strict rejection or pending eligibility", async () => {
     const data = { ...compactData(), listing_mode: "INDUSTRY_MATCH",
       listing_policy_version: "US_HK_INDUSTRY_LISTING_V1_20261024", listing_policy_sha256: "d".repeat(64),

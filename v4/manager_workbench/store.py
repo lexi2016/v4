@@ -7,12 +7,13 @@ import hashlib
 import json
 import os
 import re
+import stat
 import tempfile
 from pathlib import Path
 from typing import Any, Iterator
 from infrastructure.owned_io import SafeRoot
 
-from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, validate_date
+from .contracts import JobRecord, JobState, PlanSnapshot, ReviewSummary, canonical, iso_time, validate_date
 
 _DEFAULT_READ_LIMIT = 64 * 1024 * 1024
 _PLAN_READ_LIMIT = 128 * 1024 * 1024
@@ -171,6 +172,48 @@ class WorkbenchStore:
                         raise StorageConflict("CATALOG_MISMATCH")
                     result.append(snap)
         return sorted(result, key=lambda s: (s.generated_at, s.run_id), reverse=True)
+
+    def list_plan_metadata(self, date: str, phase: str | None = None) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+        """Version-menu references only; never hydrate unrelated stock contents.
+
+        The selected plan still goes through get_plan/read_plan and its complete
+        product-SHA validation. Catalog references are labelled as metadata,
+        without inventing a READY state for unvalidated snapshot contents.
+        """
+        validate_date(date)
+        phases = [phase] if phase else ["PREOPEN", "INTRADAY", "NEXT_DAY", "RETROSPECTIVE", "MANUAL"]
+        result, gaps = [], []
+        for name in phases:
+            if name not in {"PREOPEN", "INTRADAY", "NEXT_DAY", "RETROSPECTIVE", "MANUAL"}:
+                raise ValueError("PHASE_INVALID")
+            folder = self.root / "catalog" / date / name
+            if not folder.exists():
+                continue
+            if folder.is_symlink():
+                gaps.append(dict(code="VERSION_METADATA_UNAVAILABLE", phase=name))
+                continue
+            for path in sorted(folder.glob("*.json")):
+                try:
+                    if path.is_symlink():
+                        raise StorageUnavailable("SYMLINK_DENIED")
+                    obj = self._read(path, max_bytes=16 * 1024)
+                    if not obj or _key(obj["run_id"]) != path.stem:
+                        raise ValueError("CATALOG_KEY_MISMATCH")
+                    for field in ("product_sha256", "input_sha256"):
+                        if not isinstance(obj.get(field), str) or re.fullmatch(r"[0-9a-f]{64}", obj[field]) is None:
+                            raise ValueError("CATALOG_SHA_INVALID")
+                    iso_time(obj["generated_at"])
+                    referenced = self._path("snapshots", obj["run_id"])
+                    if referenced.parent.is_symlink() or not stat.S_ISREG(referenced.lstat().st_mode):
+                        raise StorageUnavailable("SNAPSHOT_REFERENCE_UNAVAILABLE")
+                    result.append(dict(origin="NEW",run_id=obj["run_id"],phase=name,
+                        generated_at=obj["generated_at"],product_sha256=obj["product_sha256"],
+                        input_sha256=obj["input_sha256"],content_verification="CATALOG_METADATA_ONLY"))
+                except (OSError, ValueError, TypeError, KeyError, StorageUnavailable):
+                    # One damaged version reference does not hide a separately
+                    # validated selected plan or neighboring valid references.
+                    gaps.append(dict(code="VERSION_METADATA_UNAVAILABLE",phase=name))
+        return sorted(result,key=lambda row:(row["generated_at"],row["run_id"]),reverse=True), gaps
 
     def get_plan(self, date: str, phase: str | None = None, run_id: str | None = None) -> PlanSnapshot | None:
         validate_date(date)

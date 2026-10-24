@@ -95,6 +95,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   const valid = computed(() => route.value.error === null);
 
   let daySeq = 0, detailSeq = 0, historySeq = 0, reviewSeq = 0, catalogSeq = 0, jobSeq = 0, operationSeq = 0;
+  let lastSuccessfulPageContext = "";
   let usMappingDiagnosticsSeq = 0;
   let dayAbort: AbortController | null = null;
   let detailAbort: AbortController | null = null;
@@ -138,6 +139,7 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
     singleDayVersion.value = null; singleDayVersionLoading.value = false; singleDayVersionError.value = "";
     day.value = null; dayLoading.value = false; dayError.value = ""; stale.value = false;
     lastSuccessfulKey.value = "";
+    lastSuccessfulPageContext = "";
     detail.value = null; detailSymbol.value = ""; detailError.value = ""; detailLoading.value = false;
     history.value = null; historyError.value = ""; historyLoading.value = false;
     review.value = null; reviewError.value = ""; reviewLoading.value = false;
@@ -215,8 +217,11 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   async function loadDay(preserve = false): Promise<void> {
     if (!valid.value) return;
     const query = dayQuery(); const key = keyForQuery(query);
+    const pageContext = keyForQuery({ ...query, offset: 0 });
     const previousRunId = snapshot.value?.run_id;
-    const old = preserve && lastSuccessfulKey.value === key ? day.value : null;
+    const samePinnedPageContext = Boolean(query.run_id && query.run_id === previousRunId
+      && lastSuccessfulPageContext === pageContext);
+    const old = preserve && (lastSuccessfulKey.value === key || samePinnedPageContext) ? day.value : null;
     const seq = ++daySeq;
     dayAbort?.abort(); const ctrl = new AbortController(); dayAbort = ctrl;
     if (!old) day.value = null;
@@ -243,13 +248,19 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
       }
       day.value = response;
       void findSingleDayVersion(response, query, seq, ctrl.signal);
-      if (response.data?.snapshot) lastSuccessfulKey.value = key;
-      else lastSuccessfulKey.value = "";
+      if (response.data?.snapshot) {
+        lastSuccessfulKey.value = key;
+        lastSuccessfulPageContext = pageContext;
+      } else {
+        lastSuccessfulKey.value = "";
+        lastSuccessfulPageContext = "";
+      }
     } catch (error) {
       if (seq !== daySeq || isAbort(error)) return;
       dayError.value = errorMessage(error);
       day.value = old;
       stale.value = !!old;
+      if (old?.data?.pagination) offset.value = old.data.pagination.offset;
     } finally {
       if (seq === daySeq) dayLoading.value = false;
     }
@@ -269,9 +280,9 @@ export function useWorkbench(api: WorkbenchApi = createWorkbenchApi()) {
   }
   function setOffset(next: number): void {
     const maxTotal = pagination.value?.total ?? 0;
-    if (!Number.isInteger(next) || next < 0 || next >= maxTotal || next === offset.value) return;
+    if (dayLoading.value || !Number.isInteger(next) || next < 0 || next >= maxTotal || next === offset.value) return;
     offset.value = next;
-    void loadDay();
+    void loadDay(true);
   }
   function showPanel(next: Panel): void {
     panel.value = next;

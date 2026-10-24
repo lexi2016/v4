@@ -1,0 +1,90 @@
+{
+  "schema": "v4.us_hk.pagination_source_review.v1",
+  "status": "REVIEWED/PASS",
+  "requested_reviewer_role": "sol_high_reviewer",
+  "actual_model_identity": "CANNOT_CONFIRM_TOOL_NOT_ATTESTED",
+  "independent_final_receipt_sha256": "9379fda9d8a15993486e5348d1f5705beb5bce97a8e3366875a32d84666c9e64",
+  "source_receipt_sha256": "37915e2ce5e3581a9c93db4e6a06c0eb8f63935d3dfb7b83dd61e49b78b86f58",
+  "files": [
+    {
+      "path": "v4/manager_workbench/api.py",
+      "before_sha256": "9e6f81e0d66beaccb82d3ed66fdf732feb4aeee311439e0b254d9ed619827621",
+      "after_sha256": "b9e5e5e50a17d0b9a6b90d7ef6cd3a7a96859dd7f1c0c2192f1e2987bbd4311b"
+    },
+    {
+      "path": "v4/manager_workbench/store.py",
+      "before_sha256": "3717d759a59874a1135f284e1570bbabee8df87654faaa4cae95f173fb3e7df1",
+      "after_sha256": "df636867611e53e96d2366e91ad6b680c913468d18d93d81e7def7f28dd616e6"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "before_sha256": "d203caeac91cee3c6210ee0f56a74eb4c567162c07fd9003cfa6f3dc33decc5d",
+      "after_sha256": "8172c3c67cf6105769c58104c805991ff8caf50c0ec6f093df381d0376d7a5c8"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/Workbench.vue",
+      "before_sha256": "6e017c1982b4d7f7104cf796c9a539ae16b6d79c2fd19ece5ce40345f7b73eef",
+      "after_sha256": "c57aa4716a9b9cccf76b7dad4dd71f530cdd07f5a67809a3369b6c40717fede4"
+    },
+    {
+      "path": "tests/manager_workbench/test_us_hk_compact.py",
+      "before_sha256": "e4db555c99857a0db0df1ba416d27a68f6662cb6afa0d0159d91e552d1a1fb86",
+      "after_sha256": "af7e403c36d2fc935d7f99122dfac8e378924e6ae186ed112b568a7a78639136"
+    },
+    {
+      "path": "apps/web/src/manager-workbench/__tests__/us_mapping_selection.spec.ts",
+      "before_sha256": "e52739103dad657679c6347089b9c12602daac1c716f0616a0cf8b59e2db2d94",
+      "after_sha256": "8f61342b6b8ac3281e5e75d30e8df4732b6bdcfdcd30ccfa78a4d24bd6438f64"
+    }
+  ],
+  "root_cause": "Each selected compact/diagnostics request additionally hydrated all13 date-catalog fullsnapshots, reading14 fullsnapshots782664910B. Every page change cleared frontend data while pending.",
+  "repair": "Read one selected fullsnapshot with original model/product validation plus bounded native catalog metadata. Preserve sameidentity previous page and response range while loading; clear on date/run change and reject late responses. No cache/framework/new producer.",
+  "independent_tests": {
+    "backend_metadata": 3,
+    "frontend_components": 13,
+    "network_free_real_saved_GETs": 5,
+    "additional_metadata_fault_probes": 6,
+    "selected_product_tamper": "422",
+    "failures": 0
+  },
+  "offline_measurements": {
+    "original_writer_single_request_seconds": 10.6329,
+    "original_fullsnapshot_reads": 14,
+    "original_fullsnapshot_bytes": 782664910,
+    "new_fullsnapshot_reads_per_request": 1,
+    "new_fullsnapshot_bytes": 65594085,
+    "new_smallcatalog_bytes": 3406,
+    "new_retained_versions": 13,
+    "independent_new_seconds_range": [
+      1.186,
+      1.621
+    ],
+    "independent_peak_RSS_bytes": "about2477000000_not_live_claim",
+    "rows": [
+      200,
+      200,
+      178
+    ],
+    "unique_hk": 578,
+    "individual_us": 491,
+    "context_only": 87,
+    "strict_reference": [
+      670,
+      0,
+      397,
+      273
+    ]
+  },
+  "unchanged": "Contracts/industry/strict engine/service/scheduler/display and Store existing save/commit/locks/read_plan/get_plan/list_plans unchanged; prior history/default semantics PASS reused only within matching scope.",
+  "NOT_RUN": [
+    "new runtime live API/UI",
+    "natural cycles",
+    "strategy effects/PIT certification"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

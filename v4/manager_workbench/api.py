@@ -349,8 +349,15 @@ def create_router(service: ManagerService) -> APIRouter:
         day=_date(date)
         def read():
             snap=service.store.get_plan(day,phase.value if phase else None,run_id)
-            versions=[_index(p) for p in service.store.list_plans(day)]
-            if snap is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['NO_SAVED_PLAN'])
+            versions,version_metadata_gaps=service.store.list_plan_metadata(day)
+            if snap is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,
+                version_metadata_gaps=version_metadata_gaps,pagination=dict(total=0,offset=offset,limit=limit)),['NO_SAVED_PLAN'])
+            # Only the selected full snapshot was validated. Keep its existing
+            # authoritative index; other choices remain explicit catalog refs.
+            selected_index=_index(snap)
+            versions=[selected_index if item['run_id']==snap.run_id else item for item in versions]
+            if not any(item['run_id']==snap.run_id for item in versions):versions.append(selected_index)
+            versions.sort(key=lambda item:(item['generated_at'],item['run_id']),reverse=True)
             names=saved_names(snap,service.config.shared_root)
             saved_lane=next((l for l in snap.lanes if l.lane.value==lane),None)
             industry_default=(lane=='US_MAPPING' and saved_lane and saved_lane.selection
@@ -361,6 +368,7 @@ def create_router(service: ManagerService) -> APIRouter:
                     relationship_offset=relationship_offset,relationship_limit=relationship_limit)
                 if projection is None:return envelope('NOT_RUN',dict(snapshot=None,stocks=[],counts=None,versions=versions,pagination=dict(total=0,offset=offset,limit=limit)),['LANE_NOT_SAVED'])
                 projection['versions']=versions
+                projection['version_metadata_gaps']=version_metadata_gaps
                 return envelope(projection['lane_state'],_public(projection),next(l.gaps for l in snap.lanes if l.lane.value==lane))
             projection=canonical_lane_projection(snap,lane,names,decision.value if decision else None,q)
             meta=snap.model_dump(mode='json');meta.pop('stocks',None)

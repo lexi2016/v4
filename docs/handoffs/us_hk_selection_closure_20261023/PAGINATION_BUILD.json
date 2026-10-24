@@ -1,0 +1,145 @@
+{
+  "schema": "v4.us_hk.live_pagination.frontend_build.v1",
+  "stage_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/live-pagination-build/stage",
+  "output_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app/.superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/live-pagination-build/output",
+  "node": {
+    "path": "/Users/lexi/.local/node-v24.19.0/bin/node",
+    "sha256": "27db838bb204ef7c21df2931f5656e4c8fb32e6e947f363a402b49714d32b5b1",
+    "version": "v24.19.0"
+  },
+  "vite": {
+    "path": "/Users/lexi/Desktop/学习/v4_app/apps/web/node_modules/vite/bin/vite.js",
+    "sha256": "fa03478846d229651a3c6aa64833ba2c6cbf580a798b92bd8f47c7480bafb5d8",
+    "version": "vite/7.3.6 darwin-arm64 node-v24.19.0"
+  },
+  "source_overlays": [
+    {
+      "source": "apps/web/src/manager-workbench/useWorkbench.ts",
+      "stage": "src/manager-workbench/useWorkbench.ts",
+      "before_sha256": "d203caeac91cee3c6210ee0f56a74eb4c567162c07fd9003cfa6f3dc33decc5d",
+      "sha256": "8172c3c67cf6105769c58104c805991ff8caf50c0ec6f093df381d0376d7a5c8"
+    },
+    {
+      "source": "apps/web/src/manager-workbench/Workbench.vue",
+      "stage": "src/manager-workbench/Workbench.vue",
+      "before_sha256": "6e017c1982b4d7f7104cf796c9a539ae16b6d79c2fd19ece5ce40345f7b73eef",
+      "sha256": "c57aa4716a9b9cccf76b7dad4dd71f530cdd07f5a67809a3369b6c40717fede4"
+    }
+  ],
+  "output_inventory": [
+    {
+      "path": "assets/dailyResearchCommand-CgLVpOEW.js",
+      "sha256": "165dabaaed9c7f86c0bd0d9c36d3baadfd1468c1ed042ccf082db39d00de2a21",
+      "bytes": 26611
+    },
+    {
+      "path": "assets/dailyResearchCommand-D7J2FMsY.css",
+      "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+      "bytes": 12281
+    },
+    {
+      "path": "assets/main-BSg5S6cN.js",
+      "sha256": "8ed9e0180f2d350187d9b78b70806596dc4c32156e59d206d300a7d717f57b48",
+      "bytes": 244240
+    },
+    {
+      "path": "assets/main-DC_dKTyG.css",
+      "sha256": "a968c03f33a16cf609f7e37913f749f424fdcc530d4d57908285954c2cf8723e",
+      "bytes": 51531
+    },
+    {
+      "path": "assets/managerSelection-BgmYSolo.js",
+      "sha256": "d3ca1c0037da202646a10b3489f6615d095aa8c8d1c53bd1aa92dc10f9e571e9",
+      "bytes": 176694
+    },
+    {
+      "path": "assets/managerSelection-DMlLWDdc.css",
+      "sha256": "6faaa5113572b598b2629d23872f3f299fa3a8c1a22f89e504226c0795877c35",
+      "bytes": 12874
+    },
+    {
+      "path": "assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+      "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+      "bytes": 65713
+    },
+    {
+      "path": "daily-research-command/index.html",
+      "sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+      "bytes": 606
+    },
+    {
+      "path": "index.html",
+      "sha256": "f044ead78704f498e7587fb43702aadd7eff843c583a70646b1364c999e5ce69",
+      "bytes": 752
+    },
+    {
+      "path": "manager-selection/index.html",
+      "sha256": "0cc16eb9d3724cf80bd1c190424962f73d07c8967ebdb1339f683e523a8b3bd4",
+      "bytes": 588
+    }
+  ],
+  "changed_outputs": [
+    {
+      "path": "assets/managerSelection-BgmYSolo.js",
+      "sha256": "d3ca1c0037da202646a10b3489f6615d095aa8c8d1c53bd1aa92dc10f9e571e9",
+      "bytes": 176694
+    },
+    {
+      "path": "manager-selection/index.html",
+      "sha256": "0cc16eb9d3724cf80bd1c190424962f73d07c8967ebdb1339f683e523a8b3bd4",
+      "bytes": 588
+    }
+  ],
+  "retained_outputs": [
+    {
+      "path": "assets/dailyResearchCommand-CgLVpOEW.js",
+      "sha256": "165dabaaed9c7f86c0bd0d9c36d3baadfd1468c1ed042ccf082db39d00de2a21",
+      "bytes": 26611
+    },
+    {
+      "path": "assets/dailyResearchCommand-D7J2FMsY.css",
+      "sha256": "444542681a3575082c280eb30674e6550766a127bdd6da019b78e8f247125dfa",
+      "bytes": 12281
+    },
+    {
+      "path": "assets/main-BSg5S6cN.js",
+      "sha256": "8ed9e0180f2d350187d9b78b70806596dc4c32156e59d206d300a7d717f57b48",
+      "bytes": 244240
+    },
+    {
+      "path": "assets/main-DC_dKTyG.css",
+      "sha256": "a968c03f33a16cf609f7e37913f749f424fdcc530d4d57908285954c2cf8723e",
+      "bytes": 51531
+    },
+    {
+      "path": "assets/managerSelection-DMlLWDdc.css",
+      "sha256": "6faaa5113572b598b2629d23872f3f299fa3a8c1a22f89e504226c0795877c35",
+      "bytes": 12874
+    },
+    {
+      "path": "assets/runtime-dom.esm-bundler--lJ_qsB2.js",
+      "sha256": "9580091f7f63e2c8e3a47666ae054fb1a63bba66d2fca4b258936d37d94794bf",
+      "bytes": 65713
+    },
+    {
+      "path": "daily-research-command/index.html",
+      "sha256": "d235088455a4e20e1c92aaca7e8d6c4886e27e406ef5715b43cd5da80c51422a",
+      "bytes": 606
+    },
+    {
+      "path": "index.html",
+      "sha256": "f044ead78704f498e7587fb43702aadd7eff843c583a70646b1364c999e5ce69",
+      "bytes": 752
+    }
+  ],
+  "removed_outputs": [
+    "assets/managerSelection-YQMeTKs_.js"
+  ],
+  "invocation_count": 1,
+  "returncode": 0,
+  "status": "REVIEWED/PASS_OUTPUT_CLOSURE_ONLY",
+  "independent_build_receipt_sha256": "49dd91a9b0a0079210b59a459b90967810fa35faf307749593429c3326218f89",
+  "build_receipt_sha256": "99fcd29aaebd7d861646a041e2c3b287469b8868a4723793de19050a528e4559",
+  "stage_contract": "132 retained declared files validated; two changed frontend overlays; eight dependency identities and node/vite unchanged; one actual Vite invocation exit0. api/types/useWorkbench/Workbench match current accepted source.",
+  "candidate_retention": "Output no longer emits old YQ hash; new API parent copy retains old asset, no deletion."
+}
