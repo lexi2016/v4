@@ -373,7 +373,7 @@ class RealGuardianOps:
         self.scope=read_json(self.prepared['scope_path'],self.prepared['scope_sha256']);self.direction=intent['direction']
         require(self.scope.get('mode')=='RELEASE' and self.direction in ('activate','rollback'),'GUARDIAN_REAL_MODE_REQUIRED')
         require_real_admission_protocol(self.scope)
-        authorize_transition(self.scope,self.prepared,self.intent['prepared']['sha256'],self.direction,
+        self.authorization=authorize_transition(self.scope,self.prepared,self.intent['prepared']['sha256'],self.direction,
             self.intent.get('continuation'));verify_prepared(self.scope,self.prepared)
         evidence=exact(self.scope['evidence_root'])
         for key in ('journal','receipt_path'):
@@ -478,7 +478,10 @@ def guardian_main(intent_path,intent_sha):
     else:raise Stop('GUARDIAN_MODE_UNKNOWN')
     def interrupted(signum,frame):raise Stop('GUARDIAN_SIGNAL_INTERRUPTION:'+str(signum))
     signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)
-    guard=release_guards(ops.scope) if intent['mode']=='RELEASE' else ExitStack()
+    guard=ExitStack()
+    if intent['mode']=='RELEASE':
+        pin=ops.authorization.get('api_shared_lock_contract')
+        guard=release_guards(ops.scope,api_shared_lock_contract=pin) if pin is not None else release_guards(ops.scope)
     with guard:
         try:FreezeGuardian(ops,intent,sys.stdin,sys.stdout).run()
         finally:
@@ -511,10 +514,13 @@ def verify_owner_binding(scope,prepared,prepared_sha,direction,token,recovery_pi
             'CURRENT_OWNER_NOT_FROZEN_CAPSULE_IDENTITY')
 
 
-def restore_healthy_parent_binding(scope,prepared,prepared_sha,lifecycle,receipt_path,recovery_pin):
+def restore_healthy_parent_binding(scope,prepared,prepared_sha,lifecycle,receipt_path,recovery_pin,continuation=None):
     """Explicit failed-cutover recovery; no signal/reload of the healthy parent."""
     verify_recovery_pin(recovery_pin,prepared,prepared_sha)
-    with release_guards(scope):
+    authorization=authorize_transition(scope,prepared,prepared_sha,'rollback',continuation)
+    pin=authorization.get('api_shared_lock_contract')
+    guard=release_guards(scope,api_shared_lock_contract=pin) if pin is not None else release_guards(scope)
+    with guard:
         verify_prepared(scope,prepared)
         pointer=exact(scope['plist']['path']);require(sha(pointer)==prepared['candidate_plist_sha256'],'CURRENT_PLIST_CAS_DRIFT')
         observed=lifecycle.identity();require(observed['state']=='running' and
@@ -539,7 +545,7 @@ def guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifec
     require(receipt.is_relative_to(evidence) and not receipt.exists(),'TRANSITION_RECEIPT_COLLISION_OR_ESCAPE')
     observed=lifecycle.identity()
     if direction=='rollback' and observed.get('state')=='running' and observed.get('app_root')==str(Path(scope['parent_root'])/'app'):
-        return restore_healthy_parent_binding(scope,prepared,prepared_sha,lifecycle,receipt,recovery_pin)
+        return restore_healthy_parent_binding(scope,prepared,prepared_sha,lifecycle,receipt,recovery_pin,continuation)
     token=None
     if observed['state']=='running':
         previous=str(Path(scope['parent_root'] if direction=='activate' else scope['candidate_root'])/'app')
@@ -556,11 +562,16 @@ def guarded_transition(scope,prepared,prepared_path,prepared_sha,direction,lifec
         recovery_pin=recovery_pin,journal=str(journal),receipt_path=str(receipt),helper_sha256=sha(Path(__file__)))
     if continuation is not None:intent['continuation']=continuation
     with intent_path.open('xb') as stream:stream.write(json_bytes(intent));stream.flush();os.fsync(stream.fileno())
-    guardian=subprocess.Popen([sys.executable,'-B',str(Path(__file__).resolve()),'_guardian',str(intent_path),sha(intent_path)],
-        stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,start_new_session=True,close_fds=True)
+    stderr_path=evidence/('guardian-stderr-'+run_id+'.txt')
+    # Preserve startup failures even when no journal/OWNED exists. A file also
+    # keeps stderr pipe pressure independent of guardian recovery ownership.
+    fd=os.open(stderr_path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+    with os.fdopen(fd,'wb') as stderr_stream:
+        guardian=subprocess.Popen([sys.executable,'-B',str(Path(__file__).resolve()),'_guardian',str(intent_path),sha(intent_path)],
+            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr_stream,text=True,start_new_session=True,close_fds=True)
     def event(expected):
         value=read_control(guardian.stdout,45)
-        require(value is not None and value.get('event')==expected,'GUARDIAN_TRANSITION_REQUIRES_INSPECTION:'+str(value))
+        require(value is not None and value.get('event')==expected,'GUARDIAN_TRANSITION_REQUIRES_INSPECTION:'+str(value)+':stderr='+str(stderr_path))
         return value
     try:
         ack=event('OWNED')  # Ownership ACK before the only possible SIGSTOP.
@@ -651,9 +662,24 @@ def replace_rehearsal_plist(path, raw, mode):
 
 
 @contextmanager
-def release_guards(scope):
+def release_guards(scope,*,api_shared_lock_contract=None):
     """Existing API/announcement guards; scheduler uses the same owned-lock routine."""
     tool=inventory_tool(scope['inventory_tool'])
+    if api_shared_lock_contract is not None:
+        require(scope['role']=='api','API_SHARED_LOCK_CONTRACT_ROLE')
+        pin=api_shared_lock_contract
+        require(isinstance(pin,dict) and set(pin)=={'path','sha256'},'API_SHARED_LOCK_CONTRACT_PIN')
+        require(exact(pin['path'])==exact(Path(scope['source_root'])/'deployment/api_module_contracts.json'),
+                'API_SHARED_LOCK_CONTRACT_PATH')
+        contract=read_json(pin['path'],pin['sha256'])
+        gateway=contract.get('roles',{}).get('gateway',{})
+        require(contract.get('schema_version')=='v4.api_module_contracts.v1' and all(
+            gateway.get(k)==v for k,v in dict(label='com.lexi.v35.api-only',
+                plist_name='com.lexi.v35.api-only.plist',lock_name='.com.lexi.v35.api-only.release.lock',
+                host='127.0.0.1',port=8873).items()),'API_SHARED_LOCK_CONTRACT_INVALID')
+        # This freshly imported tool alone receives authenticated lock metadata.
+        # Its original path checks and owned_interprocess_lock remain in force.
+        tool.module_role_contract=lambda:contract
     binding=plistlib.loads(Path(scope['plist']['path']).read_bytes())
     app=Path(binding['WorkingDirectory'])
     side='parent' if app==Path(scope['parent_root'])/'app' else 'candidate'

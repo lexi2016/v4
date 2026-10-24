@@ -717,10 +717,16 @@ def hk_child_binding(scope,original_env=None):
     if pin is None:return {}
     prepared=read_json(pin['path'],pin['sha256'])
     child_scope=read_json(prepared['scope_path'],prepared['scope_sha256'])
-    require(prepared.get('state')=='PREPARED' and prepared.get('mode')=='RELEASE' and
-            child_scope.get('role')=='hk-child' and child_scope.get('mode')=='RELEASE' and
-            prepared['helper_sha256']==sha(Path(__file__)),'HK_CHILD_PREPARED_IDENTITY_INVALID')
-    authorize(child_scope,'prepare');release_paths(child_scope)
+    require(prepared.get('schema')=='v4.us_hk.release_prepared.v1' and prepared.get('state')=='PREPARED' and
+            prepared.get('mode')=='RELEASE' and child_scope.get('schema')==SCHEMA and child_scope.get('state')=='READY' and
+            child_scope.get('role')=='hk-child' and child_scope.get('mode')=='RELEASE','HK_CHILD_PREPARED_IDENTITY_INVALID')
+    # The sealed child retains its original preparation authority. The outer
+    # scheduler operation separately authenticates the current reviewed helpers.
+    original=authorized_capsule(child_scope,'prepare')
+    require(isinstance(prepared.get('helper_sha256'),str) and re.fullmatch(r'[0-9a-f]{64}',prepared['helper_sha256']) and
+            original.get('helper_sha256',{}).get('prepare_release.py')==prepared['helper_sha256'],
+            'HK_CHILD_PREPARE_HELPER_DRIFT')
+    release_paths(child_scope)
     require(prepared['candidate_root']==child_scope['candidate_root'] and
             prepared['parent_root']==child_scope['parent_root'],'HK_CHILD_PREPARED_ROOT_MISMATCH')
     tool=inventory_tool(child_scope['inventory_tool']);_,before=precheck(child_scope,tool)

@@ -1,21 +1,22 @@
 {
   "schema": "v4.us_hk.release_helper_acceptance.v2",
-  "as_of": "2026-10-24T06:57:44.088221+00:00",
-  "state": "CURRENT_SOURCE_SCOPES_PASS_API_AND_CHILD_ACTUAL_CANDIDATES_PASS_NOT_ACTIVATED",
+  "as_of": "2026-10-24T07:12:44.576774+00:00",
+  "state": "CURRENT_STARTUP_HELPER_SOURCE_PASS_ACTUAL_ACTIVATION_PENDING",
   "source_root": "/Users/lexi/.codex/worktrees/us-hk-selection-closure-20261023/v4_app",
   "local_baseline_commit": "4e00084d8ef9c606bfff2892dcab35515423c776",
   "core_commit": "451df46ac91e58e55b83f76bc2daa48934b90fa7",
-  "previous_helper_commit": "347e4f28ce6362d4c9e8e954704eb17028d9ad0c",
-  "previous_report_sha256": "3e8cc07f829a5be396d41b9631b5bd464e7d90c3369d7c982c2df243746dda01",
+  "previous_helper_commit": "5dde9cfdb038949c110dbd1025b792f04de7946c",
+  "previous_report_sha256": "ae27596c2b503f8577cca92c138bc8569595e1d09aba81d1cdba2c992b9f9f83",
   "source_sha256": {
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "f2a25bd571a47080316dbeaeaba4d73185474e98f22c8f0a9060f2366f24a219",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "79d448dc9bb2943ecaf7ba5ac0d6847a1cccb4a2b8ba6a94f2432db8a811baa8",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "ea2748fa302eac46a743f33d7cd0f15451f8ff426889ecd072e318e80382e9ef",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/prepare_release.py": "5ace642703a899c8315d6e6aee7debb694adbec7cbcc01e4cbe79b09428e04a7",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/activate_release.py": "868e5cb9c671a3515db1374625e7b76bd07b61d645d2b8d14719906cbbf1c313",
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_release.py": "a0f9540b10d0e5aa3824bee8abcfe6b130f306ecdce692db8e09e1ca133a7c44",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/RELEASE_SCOPE.json": "9ae1a3cab13b2bc33c0ccc9a26751b055b0173b19bc9b28437607ff5f95d34c2",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/publish_replay.py": "699b926f3727cd4ee8bb911465862705e984bd770cd654df6208c16cc8d9b7d3",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/test_publish_replay.py": "ce7c5aa328c660e5c47c7c134743f41855ec7cf939264c1a98a4f110e8ea1134",
     "docs/handoffs/us_hk_selection_closure_20261023/deployment/probe_role.py": "82b44907bf2ff53010f8789e83089c209cede366d20fe56ff939a3db1d4e9d75",
-    "docs/handoffs/us_hk_selection_closure_20261023/deployment/MANUAL_PUBLICATION_PLAN.md": "210dbe56dcae17e57321e67d9c9999066032b52c02ebc7e12e8c86495b1bc74f"
+    "docs/handoffs/us_hk_selection_closure_20261023/deployment/MANUAL_PUBLICATION_PLAN.md": "210dbe56dcae17e57321e67d9c9999066032b52c02ebc7e12e8c86495b1bc74f",
+    "deployment/api_module_contracts.json": "a19d37fe35c2abc9d303f5a7e4ac77de0aea2f654eb50f30b159ee49751eaad8"
   },
   "original_frozen_scope": {
     "independent_receipt_sha256": "1818d8a6f9184460a2ee2b46b84af46a9f415d91b4dabcb1f713bfc74b4430bf",
@@ -95,6 +96,16 @@
       "tests": 4,
       "unchanged_top_level_definitions": 29,
       "controller_transcribed_receipt_sha256": "11b3a39d90cdb35dd8fd7e8d385642d53fd861cb4384d00c154a196dbfc5a21b",
+      "actual_lifecycle": false
+    },
+    {
+      "name": "Actual startup metadata dependency and historical child authority",
+      "tests": 9,
+      "prepare_unchanged_definitions": 38,
+      "activate_unchanged_definitions": 28,
+      "JSON_identity_bytes": 5509,
+      "controller_transcribed_receipt_sha256": "00a13a4b922724d242006193279c54b1fb60819c824b642b7aa3b243771d6d1e",
+      "stderr_hard_limit": false,
       "actual_lifecycle": false
     }
   ],

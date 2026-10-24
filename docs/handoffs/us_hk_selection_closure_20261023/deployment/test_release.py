@@ -2392,6 +2392,161 @@ old_os_open=_raced_descriptor_open
 
 
 
+    def api_shared_lock_fixture(self):
+        self.scope['role']='api'
+        self.plist=self.root/'com.lexi.v35.api-only.plist';self.plist.write_bytes(self.old_bytes)
+        self.scope['plist']['path']=str(self.plist)
+        store=self.parent/'app/v4/manager_workbench/store.py';store.write_bytes(b'guard fixture store')
+        root=self.root/'owner-store';root.mkdir()
+        self.scope['activity']=dict(workbench_root=str(root),admission_files={'parent':{
+            'v4/manager_workbench/store.py':prepare.sha(store)}})
+        path=self.source/'deployment/api_module_contracts.json';path.parent.mkdir()
+        path.write_bytes((WT/'deployment/api_module_contracts.json').read_bytes())
+        return {'path':str(path),'sha256':prepare.sha(path)},root
+
+    def test_guardian_shared_lock_pinned_metadata_uses_original_guard(self):
+        pin,root=self.api_shared_lock_fixture();tool=prepare.inventory_tool(self.tool_pin);calls=[]
+        @contextmanager
+        def owned(path,**kwargs):
+            calls.append((str(path),kwargs));yield SimpleNamespace(status='ACQUIRED')
+        @contextmanager
+        def announcement(path,**kwargs):
+            self.assertEqual(path,root);calls.append(('announcement',kwargs));yield
+        original=tool.shared_api_release_lock
+        tool.announcement_flash_cutover_guard=announcement
+        with patch.object(activate,'inventory_tool',return_value=tool),patch.object(activate,'pinned_owner_config',return_value={'state_root':str(root)}), \
+             patch.object(activate,'actual_store_root',return_value=root),patch.dict(sys.modules,{'infrastructure.interprocess_lock':SimpleNamespace(owned_interprocess_lock=owned)}):
+            with REAL_RELEASE_GUARDS(self.scope,api_shared_lock_contract=pin):calls.append(('body',{}))
+        self.assertIs(tool.shared_api_release_lock,original)
+        self.assertEqual(calls[0],(str(self.plist.with_name('.com.lexi.v35.api-only.release.lock')),
+            {'timeout_seconds':2,'timeout_message':'API_RELEASE_SHARED_LOCK_BUSY'}))
+        self.assertEqual([c[0] for c in calls[1:]],['announcement','body'])
+        self.assertFalse(self.plist.with_name('.com.lexi.v35.api-only.release.lock').exists())
+        # A fresh tool remains bound to its missing immutable-parent metadata.
+        with self.assertRaises(FileNotFoundError):prepare.inventory_tool(self.tool_pin).module_role_contract()
+
+    def test_guardian_shared_lock_bad_pin_metadata_and_busy_are_rejected(self):
+        pin,root=self.api_shared_lock_fixture();path=Path(pin['path']);raw=path.read_bytes()
+        for mutation in ('sha','shape','path','schema','label','plist_name','lock_name','host','port','role'):
+            check=dict(pin);value=json.loads(raw);scope=deepcopy(self.scope)
+            if mutation=='sha':check['sha256']='0'*64
+            elif mutation=='shape':check['extra']=True
+            elif mutation=='path':
+                other=self.root/'unapproved-contract.json';other.write_bytes(raw);check['path']=str(other)
+            elif mutation=='schema':value['schema_version']='wrong'
+            elif mutation=='role':scope['role']='scheduler'
+            else:value['roles']['gateway'][mutation]='wrong'
+            path.write_bytes(prepare.json_bytes(value))
+            if mutation not in ('sha','path'):check['sha256']=prepare.sha(path)
+            with self.subTest(mutation=mutation),self.assertRaises(prepare.Stop):
+                with REAL_RELEASE_GUARDS(scope,api_shared_lock_contract=check):self.fail('BAD_METADATA_ENTERED')
+        path.write_bytes(raw);tool=prepare.inventory_tool(self.tool_pin)
+        @contextmanager
+        def busy(*args,**kwargs):raise RuntimeError('API_RELEASE_SHARED_LOCK_BUSY');yield
+        with patch.object(activate,'inventory_tool',return_value=tool),patch.object(activate,'pinned_owner_config',return_value={'state_root':str(root)}), \
+             patch.object(activate,'actual_store_root',return_value=root),patch.dict(sys.modules,{'infrastructure.interprocess_lock':SimpleNamespace(owned_interprocess_lock=busy)}):
+            with self.assertRaisesRegex(RuntimeError,'API_RELEASE_SHARED_LOCK_BUSY'):
+                with REAL_RELEASE_GUARDS(self.scope,api_shared_lock_contract=pin):self.fail('BUSY_ENTERED')
+
+    def test_guardian_shared_lock_continuation_authority_reaches_guard(self):
+        runner,prepared,pin=self.continuation_fixture();path=Path(pin['path']);value=json.loads(path.read_bytes())
+        metadata={'path':str(self.source/'deployment/api_module_contracts.json'),'sha256':'a'*64}
+        value['api_shared_lock_contract']=metadata;path.write_bytes(prepare.json_bytes(value));pin['sha256']=prepare.sha(path)
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        for direction in ('activate','rollback'):
+            self.plist.write_bytes(Path(prepared['original_plist'] if direction=='activate' else prepared['candidate_plist']).read_bytes())
+            intent=dict(schema='v4.us_hk.guardian_intent.v1',mode='RELEASE',direction=direction,
+                prepared={'path':str(self.prepared_path),'sha256':prepare.sha(self.prepared_path)},continuation=pin,
+                owner_token={'pid':111},journal=str(self.evidence/(direction+'-metadata-journal.json')),
+                receipt_path=str(self.evidence/(direction+'-metadata-receipt.json')),helper_sha256=prepare.sha(activate.__file__))
+            with patch.object(activate,'verify_activity_closure'),patch.object(activate,'LaunchctlLifecycle',return_value=lifecycle):
+                ops=activate.RealGuardianOps(intent)
+            self.assertEqual(ops.authorization['api_shared_lock_contract'],metadata)
+            intent_path=self.evidence/(direction+'-metadata-intent.json');intent_path.write_bytes(prepare.json_bytes(intent))
+            @contextmanager
+            def guard(scope,**kwargs):
+                self.assertIs(scope,ops.scope);self.assertEqual(kwargs,{'api_shared_lock_contract':metadata});yield
+            with patch.object(activate,'RealGuardianOps',return_value=ops),patch.object(activate.signal,'signal'), \
+                 patch.object(activate,'release_guards',side_effect=guard),patch.object(activate,'FreezeGuardian') as frozen,patch.object(ops,'finish_journal'):
+                activate.guardian_main(intent_path,prepare.sha(intent_path));frozen.return_value.run.assert_called_once()
+        path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):
+            activate.authorize_transition(self.scope,prepared,prepare.sha(self.prepared_path),'activate',pin)
+        self.assertEqual(lifecycle.calls,[])
+
+    def test_guardian_shared_lock_continuation_binding_recovery_keeps_authority(self):
+        runner,prepared,pin=self.continuation_fixture();path=Path(pin['path']);value=json.loads(path.read_bytes())
+        metadata={'path':str(self.source/'deployment/api_module_contracts.json'),'sha256':'a'*64}
+        value['api_shared_lock_contract']=metadata;path.write_bytes(prepare.json_bytes(value));pin['sha256']=prepare.sha(path)
+        recovery=self.failed_activation_pin(prepared);self.plist.write_bytes(Path(prepared['candidate_plist']).read_bytes())
+        lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner);entered=[]
+        @contextmanager
+        def guard(scope,**kwargs):entered.append(kwargs);yield
+        with patch.object(activate,'release_guards',side_effect=guard),patch.object(activate,'process_token',return_value={'pid':111}), \
+             patch.object(activate,'same_process',return_value=True):
+            result=activate.restore_healthy_parent_binding(self.scope,prepared,prepare.sha(self.prepared_path),lifecycle,self.rollback_path,recovery,pin)
+        self.assertEqual(entered,[{'api_shared_lock_contract':metadata}]);self.assertEqual(result['state'],'ROLLED_BACK_BINDING_ONLY')
+        self.assertEqual(self.plist.read_bytes(),self.old_bytes);self.assertEqual(lifecycle.calls,[])
+
+    def test_guardian_startup_stderr_survives_eof_without_freeze(self):
+        runner,prepared,pin=self.continuation_fixture();lifecycle=activate.LaunchctlLifecycle(self.scope,runner=runner)
+        token=self.scope['activity']['expected_owner'];fake=SimpleNamespace(pid=999,stdin=io.StringIO(),stdout=io.StringIO(),returncode=1)
+        waits=[]
+        def wait(**kwargs):waits.append(kwargs);return 1
+        fake.wait=wait
+        def spawn(argv,**kwargs):
+            self.assertNotEqual(kwargs['stderr'],subprocess.PIPE)
+            kwargs['stderr'].write(b'Traceback fixture: missing contract\n');kwargs['stderr'].flush();return fake
+        with patch.object(activate,'verify_activity_closure'),patch.object(activate,'signal_identity',return_value=token), \
+             patch.object(activate.subprocess,'Popen',side_effect=spawn),patch.object(activate,'read_control',return_value=None),patch.object(activate,'emit_control') as emit:
+            with self.assertRaisesRegex(prepare.Stop,'GUARDIAN_TRANSITION_REQUIRES_INSPECTION:None:stderr='):
+                activate.guarded_transition(self.scope,prepared,self.prepared_path,prepare.sha(self.prepared_path),'activate',lifecycle,self.activation_path,None,pin)
+            emit.assert_not_called()
+        files=list(self.evidence.glob('guardian-stderr-*.txt'));self.assertEqual(len(files),1)
+        self.assertEqual(files[0].read_bytes(),b'Traceback fixture: missing contract\n')
+        self.assertEqual(stat.S_IMODE(files[0].stat().st_mode),0o600)
+        self.assertEqual(waits,[{'timeout':20}]);self.assertTrue(fake.stdin.closed)
+        self.assertFalse(list(self.evidence.glob('guardian-journal-*.json')));self.assertFalse(self.activation_path.exists())
+        self.assertEqual(lifecycle.calls,[])
+
+    def historical_child_authority_fixture(self):
+        real_sha=prepare.sha
+        def old_sha(path):
+            path=Path(path)
+            if path==Path(prepare.__file__):return 'a'*64
+            if path==Path(activate.__file__):return 'b'*64
+            return real_sha(path)
+        with patch.object(prepare,'sha',side_effect=old_sha):runner,child=self.scheduler_with_child_fixture()
+        self.rearm_capsule('current-outer-helpers.json')
+        prepare.authorize(self.scope,'prepare')
+        return runner,child
+
+    def test_hk_child_historical_preparation_authority_preserves_sealed_product(self):
+        _,child=self.historical_child_authority_fixture();pin=self.scope['hk_child_prepared']
+        child_scope=prepare.read_json(child['scope_path'],child['scope_sha256'])
+        paths=[Path(pin['path']),Path(child['scope_path']),Path(child_scope['execution_capsule']['path']),
+               Path(child['candidate_root'])/'release-manifest.json']
+        before={p:p.read_bytes() for p in paths}
+        for _ in range(2):self.assertTrue(prepare.hk_child_binding(self.scope))
+        self.assertEqual(child['helper_sha256'],'a'*64)
+        self.assertTrue(all(p.read_bytes()==raw for p,raw in before.items()))
+        # The original child cannot authorize a new operation with old helpers.
+        with self.assertRaisesRegex(prepare.Stop,'UNREVIEWED_HELPER'):prepare.authorize(child_scope,'prepare')
+
+    def test_hk_child_historical_authority_rejects_receipt_capsule_and_inventory_drift(self):
+        _,child=self.historical_child_authority_fixture();pin=self.scope['hk_child_prepared'];path=Path(pin['path']);raw=path.read_bytes()
+        value=json.loads(raw);value['helper_sha256']='c'*64;path.write_bytes(prepare.json_bytes(value));pin['sha256']=prepare.sha(path)
+        with self.assertRaisesRegex(prepare.Stop,'HK_CHILD_PREPARE_HELPER_DRIFT'):prepare.hk_child_binding(self.scope)
+        path.write_bytes(raw);pin['sha256']=prepare.sha(path)
+        child_scope=prepare.read_json(child['scope_path'],child['scope_sha256']);capsule=Path(child_scope['execution_capsule']['path']);capsule_raw=capsule.read_bytes()
+        capsule.write_bytes(capsule_raw+b' ')
+        with self.assertRaisesRegex(prepare.Stop,'FILE_SHA_DRIFT'):prepare.hk_child_binding(self.scope)
+        capsule.write_bytes(capsule_raw)
+        target=Path(child['candidate_root'])/'app'/self.target;original=target.read_bytes();target.write_bytes(b'candidate drift')
+        with self.assertRaisesRegex(prepare.Stop,'HK_CHILD_CANDIDATE_DRIFT'):prepare.hk_child_binding(self.scope)
+        target.write_bytes(original);self.assertTrue(prepare.hk_child_binding(self.scope))
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', required=True)

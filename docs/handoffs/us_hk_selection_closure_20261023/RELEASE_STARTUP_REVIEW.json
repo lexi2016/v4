@@ -1,0 +1,45 @@
+{
+  "schema": "v4.us_hk.release_startup_review.v1",
+  "as_of": "2026-10-24T07:12:44.576774+00:00",
+  "verdict": "PASS_SOURCE_TESTED_AND_JSON_IDENTITY_ONLY",
+  "reviewer": "release_helper_reviewer",
+  "controller_transcription": true,
+  "controller_receipt_sha256": "00a13a4b922724d242006193279c54b1fb60819c824b642b7aa3b243771d6d1e",
+  "source_sha256": {
+    "prepare_release.py": "5ace642703a899c8315d6e6aee7debb694adbec7cbcc01e4cbe79b09428e04a7",
+    "activate_release.py": "868e5cb9c671a3515db1374625e7b76bd07b61d645d2b8d14719906cbbf1c313",
+    "test_release.py": "a0f9540b10d0e5aa3824bee8abcfe6b130f306ecdce692db8e09e1ca133a7c44",
+    "api_module_contracts.json": "a19d37fe35c2abc9d303f5a7e4ac77de0aea2f654eb50f30b159ee49751eaad8"
+  },
+  "checks": {
+    "targeted_tests_passed": 9,
+    "prepare_unchanged_definitions": 38,
+    "prepare_only_changed_definition": "hk_child_binding",
+    "child_subsequent_inventory_module_native_log_wrapper_five_binding_checks_AST_unchanged": true,
+    "activate_changed_declared_definitions": 5,
+    "activate_unchanged_definitions": 28,
+    "original_shared_owned_guard_preserved": true,
+    "JSON_bytes": 5509,
+    "JSON_mode": "0644",
+    "JSON_screened_strings": 97,
+    "JSON_matches_canonical": true,
+    "EOF_stderr_exclusive_0600_no_FREEZE_no_retry": true
+  },
+  "scope": [
+    "Authenticated existing gateway lock metadata for missing retained release dependency; same owned lock protocol",
+    "Historical child preparation authority separate from current transition authority; all later checks retained",
+    "Exclusive0600 guardian stderr retained on protocol error without repeat"
+  ],
+  "actual_activation": "NOT_RUN",
+  "limitations": [
+    "No stderr hard byte limit verified or implemented",
+    "Original discarded stderr unrecoverable",
+    "No actual locks/guardian/signals/service/SDK/provider/Git/API/UI/natural"
+  ],
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
