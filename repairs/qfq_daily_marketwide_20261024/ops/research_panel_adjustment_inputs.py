@@ -8,7 +8,7 @@ import zipfile
 from typing import Any, Callable
 import numpy as np
 
-from ops.research_panel_qfq import _json, _source, _write, canonical_sha, input_path, sha
+from ops.research_panel_qfq import _json, _source, _write, canonical_sha, input_path, sha, CODE, legacy_preservation
 from ops.research_panel_factor_cache import QfqGateError, collect_metadata, _event_rows
 
 
@@ -118,6 +118,20 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
     for code, status in eligible.items():
         if not status.get("path") or not status.get("source_sha256_after") or sha(Path(status["path"])) != status["source_sha256_after"]:
             raise QfqGateError(f"ORIGINAL_QUARANTINE_RAW_IDENTITY_DRIFT:{code}")
+    archive_file = root / "qfq_raw_history_binding.json"
+    archive_config = json.loads(archive_file.read_text()) if archive_file.is_file() else {}
+    legacy_ref = archive_config.get("legacy_preservation_policy")
+    legacy = legacy_preservation(legacy_ref)
+    legacy_codes = set(legacy.get("codes", []))
+    summary = json.loads(Path(sync_ref["path"]).read_text())
+    markets = {0: "SZ", 1: "SH", 2: "BJ"}
+    current_codes = {str(r["symbol"]).zfill(6) + "." + markets[int(r["market"])]
+                     for r in summary.get("symbol_reconciliation", []) + summary.get("target_keys", [])}
+    # A later target membership can change. Such a code must meet the normal
+    # raw/factor gates, and cannot use this old non-target exception.
+    legacy_codes = (legacy_codes & set(required_start or {})) - current_codes
+    # Defensive market boundary also applies to manual first-generation callers.
+    required_start = {c: d for c, d in (required_start or {}).items() if CODE.fullmatch(c) and c not in legacy_codes}
     bindings = raw_bindings(tdx_root, driver, root / "qfq_raw_history_binding.json", required_start=required_start, target=target, quarantine_eligible=eligible)
     gaps = [dict(ts_code=code, required_start=date, available_start=bindings.get(code, {}).get("history_start_date"))
             for code, date in (required_start or {}).items()
@@ -204,6 +218,11 @@ def prepare_snapshot(*, tdx_root: Path, data_root: Path, target: int, driver,
                     volume_adjustment="INDEPENDENT_PROVIDER_BACKWARD_A_NOT_RECIPROCAL_FORWARD_A",
                     amount_basis="RAW_TURNOVER", convention="FUTU_AFFINE_WITH_EXPLICIT_TDX_UNSUPPORTED_FALLBACK_V1",
                     historical_PIT=False, source_files=sorted(sources.values(), key=lambda x: x["path"]), symbols=symbols)
+    if legacy_ref:
+        snapshot["source_files"].append(legacy_ref)
+        snapshot["legacy_preservation_policy"] = legacy_ref
+        snapshot["legacy_preservation_codes"] = sorted(legacy_codes)
+        snapshot["original_target_codes"] = sorted(current_codes)
     snapshot.update(quarantine_symbols=quarantine, original_quarantine_eligible=eligible, accepted_target_date_floor=floor)
     snapshot["revision"] = canonical_sha(snapshot)
     path = input_path(data_root)

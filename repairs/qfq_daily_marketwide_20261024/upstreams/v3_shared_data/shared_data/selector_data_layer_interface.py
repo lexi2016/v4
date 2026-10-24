@@ -180,10 +180,14 @@ def _canonical_basis(path: Path, parquet_file=None) -> dict:
             raise ValueError("manifest must be absolute")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         required = ("generation_id", "input_sha256", "snapshot_file_sha256", "asof_date", "price_basis", "volume_basis", "convention")
-        if (contract.get("schema") != "a_share_qfq_panel_v1" or contract.get("price_basis") != "QFQ_ASOF"
+        if (contract.get("schema") != "a_share_qfq_panel_v1" or contract.get("price_basis") not in ("QFQ_ASOF", "MIXED_BY_MARKET")
                 or any(not contract.get(key) or manifest.get(key) != contract[key] for key in required)
                 or Path(manifest["candidates"]["selector"]).resolve() != path.resolve()):
             raise ValueError("generation identity conflict")
+        if contract["price_basis"] == "MIXED_BY_MARKET":
+            markets = contract.get("market_basis", {})
+            if markets != manifest.get("market_basis") or markets.get("A", {}).get("price_basis") != "QFQ_ASOF":
+                raise ValueError("market basis binding conflict")
         # Cooperating CURRENT readers refuse the short two-file transition.
         if POINTER_FILE.is_file() and Path(POINTER_FILE.read_text(encoding="utf-8-sig").strip()).resolve() == path.resolve():
             data_root = POINTER_FILE.parent.parent
@@ -195,8 +199,9 @@ def _canonical_basis(path: Path, parquet_file=None) -> dict:
             if journal.get("status") not in ("COMMITTED", "ROLLED_BACK", "ROLLED_BACK_AFTER_INTERRUPTION") or backtest.get("generation_id") != contract["generation_id"]:
                 raise ValueError("paired CURRENT generation unavailable or publication pending")
         return {"profile_id": "CANONICAL_CURRENT", "price_basis": contract["price_basis"],
-                "volume_basis": contract["volume_basis"], "amount_basis": contract.get("amount_basis"),
-                "price_adjustment_asof": str(contract["asof_date"]), "generation_id": contract["generation_id"],
+                "volume_basis": contract["volume_basis"], "market_basis": contract.get("market_basis", {}), "amount_basis": contract.get("amount_basis"),
+                "price_adjustment_asof": str(contract["asof_date"]) if contract["price_basis"] == "QFQ_ASOF" else None,
+                "a_share_price_adjustment_asof": str(contract["asof_date"]), "generation_id": contract["generation_id"],
                 "price_provider": contract.get("price_provider"),
                 "adjustment_provider_contract": contract.get("adjustment_provider_contract"),
                 "adjustment_convention": contract["convention"], "manifest_path": str(manifest_path),
@@ -343,6 +348,16 @@ def load_selector_ready(
         code_set = set(map(str, ts_codes))
         df = df[df["ts_code"].astype(str).isin(code_set)]
     df = df.reset_index(drop=True)
+    if basis["price_basis"] == "MIXED_BY_MARKET" and not df.empty:
+        import re
+        scopes = {"A" if re.fullmatch(r"\d{6}\.(SH|SZ|BJ)", str(c)) else str(c).rsplit(".", 1)[-1]
+                  for c in df.ts_code}
+        if len(scopes) == 1:
+            market = basis["market_basis"].get(next(iter(scopes)))
+            if market is None:
+                raise RuntimeError("CANNOT_CONFIRM_MARKET_BASIS")
+            basis = dict(basis, price_basis=market["price_basis"], volume_basis=market["volume_basis"], amount_basis=market.get("amount_basis"),
+                         price_adjustment_asof=str(market["asof_date"]) if market.get("asof_date") else None)
     df.attrs["panel_metadata"] = basis
     return df
 

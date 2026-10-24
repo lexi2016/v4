@@ -85,6 +85,43 @@ def _source(ref: dict, *, owner: str) -> Path:
     return path
 
 
+# This exception is the controller-reviewed D23 source gap, not a general
+# permission to quarantine symbols outside the current universe.
+EXACT_LEGACY_POLICY_SHA = "1cd95f23d7ce35a45348da5c939c61c2460fb5bb950d1b55be3d25c46cd5280d"
+
+
+def legacy_preservation(ref: dict | None) -> dict:
+    if not ref:
+        return {}
+    if ref.get("sha256") != EXACT_LEGACY_POLICY_SHA:
+        raise QfqGateError("LEGACY_PRESERVATION_POLICY_NOT_APPROVED")
+    policy = json.loads(_source(ref, owner="exact legacy preservation policy").read_text())
+    if policy.get("schema") != "qfq_exact_legacy_preservation_v1":
+        raise QfqGateError("LEGACY_PRESERVATION_POLICY_SCHEMA_INVALID")
+    # Frozen projection of the SHA-bound original summary. Its live path can
+    # legitimately be refreshed by a later daily sync; do not reread that path
+    # as if it were the old receipt. The exact approved policy hash binds this
+    # complete membership projection and every permitted old key hash.
+    present = set(policy["original_membership_codes"])
+    if canonical_sha(sorted(present)) != policy["original_membership_sha256"]:
+        raise QfqGateError("LEGACY_ORIGINAL_MEMBERSHIP_PROJECTION_INVALID")
+    if present.intersection(policy["codes"]):
+        raise QfqGateError("LEGACY_PRESERVATION_OVERLAPS_ORIGINAL_UNIVERSE")
+    return policy
+
+
+def required_a_history(pointers: dict[str, Path]) -> dict[str, int]:
+    """The shared files also contain HK rows, which this A lane must copy."""
+    result = {}
+    for pointer in pointers.values():
+        path = Path(pointer.read_text(encoding="utf-8-sig").strip())
+        for batch in pq.ParquetFile(path).iter_batches(columns=["ts_code", "trade_date"]):
+            for code, date in zip(batch.column(0).to_pylist(), batch.column(1).to_pylist()):
+                if CODE.fullmatch(code):
+                    result[code] = min(result.get(code, int(date)), int(date))
+    return result
+
+
 def load_snapshot(path: Path, target: int) -> dict:
     """Require explicit complete event coverage, including no-action symbols.
 
@@ -107,6 +144,12 @@ def load_snapshot(path: Path, target: int) -> dict:
         raise QfqGateError("ADJUSTMENT_SOURCE_OR_SYMBOLS_EMPTY")
     for ref in value["source_files"]:
         _source(ref, owner="adjustment")
+    legacy = legacy_preservation(value.get("legacy_preservation_policy"))
+    legacy_codes = set(value.get("legacy_preservation_codes", []))
+    if (not legacy_codes.issubset(legacy.get("codes", []))
+            or legacy_codes & (set(value["symbols"]) | set(value.get("original_target_codes", []))
+                               | set(value.get("quarantine_symbols", {})))):
+        raise QfqGateError("LEGACY_PRESERVATION_OUTSIDE_EXACT_NON_TARGET_POLICY")
     for code, item in value.get("quarantine_symbols", {}).items():
         status = item.get("original_status", {})
         if (not CODE.fullmatch(code) or not item.get("reason") or status.get("classification") != "QUARANTINED"
@@ -241,7 +284,7 @@ def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int
     receipt_path = destination / "receipt.json"
     if receipt_path.is_file():
         receipt = json.loads(receipt_path.read_text())
-        if receipt.get("source_sha256") == source_sha256:
+        if receipt.get("source_sha256") == source_sha256 and receipt.get("row_copy") == "ARROW_V1":
             files = {int(k): Path(v["path"]) for k, v in receipt["files"].items()}
             if all(p.is_file() and sha(p) == receipt["files"][str(k)]["sha256"] for k, p in files.items()):
                 return files
@@ -250,20 +293,20 @@ def spool_current(path: Path, destination: Path, source_sha256: str) -> dict[int
     writers, files = {}, {}
     try:
         for batch in pq.ParquetFile(path).iter_batches(batch_size=32768):
-            frame = batch.to_pandas()
-            buckets = frame.ts_code.astype(str).map(_bucket)
-            for index, part in frame.groupby(buckets, sort=True):
-                index = int(index)
+            table = pa.Table.from_batches([batch])
+            buckets = [_bucket(code) for code in table["ts_code"].to_pylist()]
+            for index in sorted(set(buckets)):
+                part = table.filter(pa.array([b == index for b in buckets]))
                 if index not in writers:
                     files[index] = destination / f"bucket_{index:02}.parquet"
                     writers[index] = pq.ParquetWriter(files[index].with_suffix(".pending"), schema, compression="zstd")
-                writers[index].write_table(pa.Table.from_pandas(part, schema=schema, preserve_index=False))
+                writers[index].write_table(part)
     finally:
         for writer in writers.values():
             writer.close()
     for path in files.values():
         os.replace(path.with_suffix(".pending"), path)
-    _json(receipt_path, dict(source_sha256=source_sha256, files={str(k): dict(path=str(p), sha256=sha(p)) for k, p in files.items()}))
+    _json(receipt_path, dict(source_sha256=source_sha256, row_copy="ARROW_V1", files={str(k): dict(path=str(p), sha256=sha(p)) for k, p in files.items()}))
     return files
 
 
@@ -588,14 +631,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         check_baseline(pointers, frozen_baseline)
         driver, _ = authorities(driver_path, formula_path)
         if refresh_inputs:
-            required_start = {}
-            for pointer in pointers.values():
-                old = Path(pointer.read_text(encoding="utf-8-sig").strip())
-                for batch in pq.ParquetFile(old).iter_batches(columns=["ts_code", "trade_date"]):
-                    frame = batch.to_pandas()
-                    frame["trade_date"] = pd.to_numeric(frame.trade_date).astype(int)
-                    for code, date in frame.groupby("ts_code").trade_date.min().items():
-                        required_start[code] = min(required_start.get(code, int(date)), int(date))
+            required_start = required_a_history(pointers)
             from ops.research_panel_adjustment_inputs import prepare_snapshot
             prepare_snapshot(tdx_root=tdx_root, data_root=data_root, target=target, driver=driver, required_start=required_start,
                              force_refresh=refresh_due(data_root, target) or os.environ.get("RESEARCH_PANEL_QFQ_REFRESH_FACTORS") == "1")
@@ -644,20 +680,26 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
         old_symbols = {role: _panel_symbols(path) for role, path in currents.items()}
         expected_codes = set().union(*old_symbols.values())
         # The A-share lane must never reprice a foreign market under its basis.
-        foreign = sorted(c for c in expected_codes if not CODE.fullmatch(c))
-        if foreign:
-            raise QfqGateError(f"NON_A_SYMBOLS_REQUIRE_SEPARATE_AUTHORITY:{foreign[:10]}")
+        foreign = {c for c in expected_codes if not CODE.fullmatch(c)}
+        legacy_policy = legacy_preservation(snapshot.get("legacy_preservation_policy"))
+        legacy_codes = set(snapshot.get("legacy_preservation_codes", [])) & expected_codes
         available = set(snapshot["symbols"])
         quarantined = snapshot.get("quarantine_symbols", {})
         from ops.research_panel_adjustment_inputs import existing_day_files
         discovered = {code for code, _ in existing_day_files(tdx_root)}
-        missing = sorted((expected_codes | discovered) - available - set(quarantined))
+        missing = sorted((expected_codes | discovered) - foreign - legacy_codes - available - set(quarantined))
         if missing:
             raise QfqGateError(f"MARKETWIDE_ADJUSTMENT_COVERAGE_MISSING:{missing}")
-        meta = dict(schema="a_share_qfq_panel_v1", price_basis="QFQ_ASOF", volume_basis="QFQ_EVENT_VOLUME", amount_basis="RAW_TURNOVER",
+        meta = dict(schema="a_share_qfq_panel_v1", price_basis="MIXED_BY_MARKET" if foreign else "QFQ_ASOF",
+                    volume_basis="MIXED_BY_MARKET" if foreign else "QFQ_EVENT_VOLUME", amount_basis="MIXED_BY_MARKET" if foreign else "RAW_TURNOVER",
+                    market_basis={"A": dict(price_basis="QFQ_ASOF", volume_basis="QFQ_EVENT_VOLUME", amount_basis="RAW_TURNOVER", asof_date=target),
+                                  **{market: dict(price_basis="UNKNOWN_NATIVE", volume_basis="UNKNOWN_NATIVE", amount_basis="UNKNOWN_NATIVE", asof_date=None,
+                                                 retained_original_values=True)
+                                     for market in sorted({c.rsplit(".", 1)[-1] for c in foreign})}},
+                    legacy_preservation_policy=snapshot.get("legacy_preservation_policy"),
                     schema_contract_version="QFQ_V2_DOUBLE_CORE_EVENT_VOLUME", asof_date=target, generation_id=run_id, snapshot_file_sha256=sha(snapshot_file),
                     baseline_panel_sha256=baseline_hashes,
-                    generation_manifest_path=str(run_dir / "candidate_receipt.json"), price_provider="TDX_DAY",
+                    generation_manifest_path=str(run_dir / "candidate_receipt.json"), price_provider="MIXED_TDX_A_AND_RETAINED_ORIGINAL" if foreign else "TDX_DAY",
                     adjustment_snapshot=dict(path=str(retained_snapshot), sha256=sha(retained_snapshot)),
                     adjustment_provider_contract="FUTU_GET_REHAB_WITH_EXPLICIT_TDX_UNSUPPORTED_CONVENTION",
                     quarantine_manifest_path=str(run_dir / "quarantine_manifest.json"),
@@ -697,6 +739,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
             return code, checkpoint
         codes = sorted(available)
         quarantine_reasons = dict(quarantined)
+        quarantine_reasons.update({c: dict(reason=legacy_policy["reason"], legacy_non_target=True,
+                                          policy=snapshot["legacy_preservation_policy"])
+                                   for c in legacy_codes})
         eligible = snapshot.get("original_quarantine_eligible", {})
         def compute_or_quarantine(code):
             try:
@@ -721,7 +766,15 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                 for bucket_path in buckets.values():
                     frame = pq.read_table(bucket_path, columns=["ts_code", "trade_date"]).to_pandas()
                     for code, old_keys in frame.groupby("ts_code"):
-                        if code in quarantine_reasons:
+                        if code in legacy_codes:
+                            approved_role = legacy_policy["roles"][role]
+                            actual_dates = sorted(pd.to_numeric(old_keys.trade_date).astype(int).tolist())
+                            approved = approved_role["keys"].get(code, {})
+                            if (approved_role["original_sha256"] != baseline_hashes[role]
+                                    or approved.get("date_sha256") != canonical_sha(actual_dates)
+                                    or approved.get("rows") != len(actual_dates)):
+                                raise QfqGateError(f"LEGACY_PRESERVATION_KEYS_OR_BASELINE_CHANGED:{role}:{code}")
+                        if code in quarantine_reasons or code in foreign:
                             continue
                         rebuilt_keys = pq.read_table(parts_root / (code + ".parquet"), columns=["trade_date"]).column(0).to_pylist()
                         missing_keys = sorted(set(pd.to_numeric(old_keys.trade_date).astype(int)) - set(rebuilt_keys))
@@ -747,18 +800,32 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     generation_id=run_id, legacy_basis_unknown=True, excluded_from_accepted=True,
                     original_path=str(currents[role]), original_sha256=baseline_hashes[role])).encode()})
                 quarantined_rows = 0
-                old_rows, replaced_old_rows = 0, 0
+                old_rows, replaced_old_rows, retained_non_a_rows = 0, 0, 0
+                retained_by_market = {}
                 with pq.ParquetWriter(temporary, schema, compression="zstd") as writer, pq.ParquetWriter(quarantine_path, quarantine_schema, compression="zstd") as quarantine_writer:
                     for bucket in range(32):
-                        old_frame = pq.read_table(old_buckets[bucket]).to_pandas() if bucket in old_buckets else pd.DataFrame()
+                        old_table = pq.read_table(old_buckets[bucket]) if bucket in old_buckets else None
+                        old_frame = old_table.to_pandas() if old_table is not None else pd.DataFrame()
                         old_groups = old_frame.groupby("ts_code", sort=False).indices if not old_frame.empty else {}
                         if not old_frame.empty:
                             old_rows += len(old_frame)
-                            old_latest_codes.update(old_frame.loc[pd.to_numeric(old_frame.trade_date).eq(target), "ts_code"].astype(str))
-                            excluded = old_frame.loc[old_frame.ts_code.isin(quarantine_reasons)]
-                            if not excluded.empty:
-                                quarantine_writer.write_table(pa.Table.from_pandas(excluded, schema=quarantine_schema, preserve_index=False))
+                            old_latest_codes.update(old_frame.loc[pd.to_numeric(old_frame.trade_date).eq(target)
+                                & old_frame.ts_code.map(lambda c: bool(CODE.fullmatch(c))), "ts_code"].astype(str))
+                            # Arrow copies preserve null/NaN and the original values.
+                            # Double promotion is lossless for retained float32 values.
+                            old_codes = old_table["ts_code"].to_pylist()
+                            excluded = old_table.filter(pa.array([c in quarantine_reasons for c in old_codes]))
+                            if len(excluded):
+                                quarantine_writer.write_table(excluded.replace_schema_metadata(quarantine_schema.metadata))
                                 quarantined_rows += len(excluded)
+                            retained = old_table.filter(pa.array([c in foreign for c in old_codes]))
+                            if len(retained):
+                                writer.write_table(retained.cast(schema))
+                                retained_non_a_rows += len(retained)
+                                for c in retained["ts_code"].to_pylist():
+                                    market = c.rsplit(".", 1)[-1]
+                                    retained_by_market[market] = retained_by_market.get(market, 0) + 1
+                                rows_written += len(retained)
                         for code in (code for code in codes if _bucket(code) == bucket):
                             if code not in old_symbols[role] and role not in snapshot["symbols"][code]["publish_roles"]:
                                 continue
@@ -782,7 +849,7 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                             rows_written += len(frame)
                             if frame.trade_date.eq(target).any():
                                 latest_codes.add(code)
-                if old_rows != replaced_old_rows + quarantined_rows:
+                if old_rows != replaced_old_rows + quarantined_rows + retained_non_a_rows:
                     raise QfqGateError(f"OLD_KEYS_PRESERVATION_COUNT_FAILED:{role}")
                 if not old_latest_codes.issubset(latest_codes):
                     raise QfqGateError(f"ORIGINAL_TARGET_ACCEPTED_KEYS_LOST:{role}:{sorted(old_latest_codes-latest_codes)}")
@@ -791,9 +858,9 @@ def run_daily_rebuild(*, driver_path: Path, formula_path: Path, tdx_root: Path, 
                     raise QfqGateError(f"ORIGINAL_ACCEPTED_FLOOR_FAILED:{role}:{len(latest_codes)}<{floor}")
                 quarantine_artifacts[role] = dict(path=str(quarantine_path), sha256=sha(quarantine_path), rows=quarantined_rows,
                     original_path=str(currents[role]), original_sha256=baseline_hashes[role],
-                    old_keys_preservation="REBUILT_ACCEPTED_OR_EXACT_LEGACY_QUARANTINE_DISJOINT")
-                role_counts[role] = dict(accepted_rows=rows_written, target_date_symbols=len(latest_codes), quarantined_old_rows=quarantined_rows,
-                    original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, old_key_conservation=True)
+                    old_keys_preservation="REBUILT_A_OR_RETAINED_NON_A_OR_EXACT_LEGACY_QUARANTINE_DISJOINT")
+                role_counts[role] = dict(accepted_rows=rows_written - retained_non_a_rows, panel_rows=rows_written, retained_non_a_old_rows=retained_non_a_rows, target_date_symbols=len(latest_codes), quarantined_old_rows=quarantined_rows,
+                    original_old_rows=old_rows, replaced_old_rows=replaced_old_rows, retained_non_a_by_market=retained_by_market, old_key_conservation=True)
                 if latest != target:
                     raise QfqGateError(f"PANEL_TARGET_DATE_MISSING:{role}:{latest}")
                 if candidate.exists():

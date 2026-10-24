@@ -1,0 +1,54 @@
+{
+  "baseline": {
+    "branch": "codex/qfq-daily-marketwide-20261024",
+    "commit_sha": "2d39b98f65888c21f40ca339a2626e505d1d4b56",
+    "prior_source_acceptance_sha256": "65c4dfe204afade26d2ef9b0a15f5c5356770793ed6c2a48a8625cfbe3a23efe",
+    "repository": "lexi2016/v4"
+  },
+  "behavioral_contract": {
+    "first_generation_footer": "An unknown footer in the first-generation artifact is not evidence that all current shared selector/backtest rows are RAW; broader adjustment basis remains CANNOT_CONFIRM where unknown.",
+    "hk_market_partitioning": "HK, HK_CONNECT and HK_FUND rows are preserved by market partition, including null and valid NaN values; no cross-market pooling is introduced.",
+    "legacy_isolation": "The 28 exact legacy non-target symbols remain bound to their prior legacy identity and excluded/unknown; they are not converted to or certified as QFQ."
+  },
+  "evidence_limits": {
+    "independent_r3_review": "REVIEWED/PASS",
+    "install_or_service_reload": "NOT_RUN",
+    "natural_daily_readback": "NOT_RUN",
+    "publication": "NOT_RUN",
+    "whole_market_prepare_or_build": "NOT_RUN"
+  },
+  "increment": {
+    "deleted_files": 0,
+    "new_metadata_file": "R3_INCREMENT_METADATA.json",
+    "scope": "Source-only R3 increment on the existing branch; the prior SOURCE_ACCEPTANCE remains historical.",
+    "updated_business_sources": 3,
+    "updated_tests": 2
+  },
+  "r3_freeze_receipts": {
+    "ready_sha256": "d3c53da3ab3d983aa463a50776e6ac35f8092642a11f17a854162505a21e0ecb",
+    "source_manifest_sha256": "65b065e3bdc4a56596c49a9d1884a80d37a8ff0b52a42d4aebf8654444b38f2d"
+  },
+  "research_safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "schema": "QFQ_DAILY_MARKETWIDE_R3_SOURCE_INCREMENT_V1",
+  "status": "R3_SOURCE_REVIEWED_PASS_SOURCE_ONLY",
+  "tests_from_frozen_ready": {
+    "attribution": "Original writer-reported result; the independent R3 reviewer separately reran the same targeted scope and passed. Source-sync executor did not rerun.",
+    "command": "python -B -m pytest -q tests/test_research_panel_qfq.py tests/test_selector_qfq_metadata.py <F>/handoff/R3/test_r3_recipe.py -k r3 --basetemp=<F>/tests/r3_scope_final",
+    "result": "6 passed, 23 deselected in 2.42s"
+  },
+  "independent_r3_review": {
+    "verdict": "REVIEWED/PASS",
+    "receipt_path": "review/CORE_REVIEW_R3.json",
+    "receipt_sha256": "92cd9440f273eadc3276cb2c19446860f620c41f954bb374e8dd1416065e6b27",
+    "scope": "Independent incremental review of three business sources, targeted tests, and exact 28-symbol legacy policy; prior CORE_R2, entry, Stage A, formula, and two-symbol passes reused. Full market candidate data remains unaccepted.",
+    "targeted_tests": "6 passed, 23 deselected in 4.66s; no full suite or numeric canary rerun.",
+    "two_generation_legacy_regression": "PASS_SYNTHETIC_FIXTURE_ONLY",
+    "findings_count": 0,
+    "limits": "This source review does not accept actual whole-market data, installation, publication, or natural consumer readback."
+  }
+}

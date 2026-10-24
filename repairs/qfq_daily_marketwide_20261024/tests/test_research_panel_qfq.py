@@ -529,3 +529,103 @@ def test_explicit_native_archive_prefix_wins_without_using_old_panel_prices(tmp_
     output = qfq.rebuild_symbol("002612.SZ", {**item, "events": []}, int(raw.trade_date.iloc[-1]), driver)
     assert len(output) == len(raw)
     np.testing.assert_allclose(output.volume, raw.volume)
+
+
+def test_r3_shared_hk_rows_are_retained_and_do_not_enter_a_coverage_or_floor(tmp_path, driver):
+    kwargs, snapshot, _ = fixture_panel(tmp_path, driver)
+    originals = {}
+    for role, pointer in kwargs["pointers"].items():
+        path = Path(pointer.read_text())
+        table = pq.read_table(path)
+        extra = table.slice(0, 3)
+        extra = extra.set_column(extra.schema.get_field_index("ts_code"), "ts_code", pa.array(["00700.HK", "00700.HK_CONNECT", "02800.HK_FUND"], type=table.schema.field("ts_code").type))
+        # A valid NaN must remain a valid NaN, distinct from a null.
+        extra = extra.set_column(extra.schema.get_field_index("close"), "close", pa.array([float("nan"), None, 123.456], type=pa.float64()))
+        originals[role] = extra
+        pq.write_table(pa.concat_tables([table, extra]), path)
+    assert all(qfq.CODE.fullmatch(c) for c in qfq.required_a_history(kwargs["pointers"]))
+    snapshot["accepted_target_date_floor"] = 2
+    qfq._json(qfq.input_path(kwargs["data_root"]), snapshot)
+    result = qfq.run_daily_rebuild(**kwargs)
+    for role, path in result["candidates"].items():
+        current = pq.read_table(path)
+        retained = current.filter(pa.array([not bool(qfq.CODE.fullmatch(c)) for c in current['ts_code'].to_pylist()]))
+        # Bucket order may change; every original cell/null/NaN is retained.
+        for code in originals[role]['ts_code'].to_pylist():
+            actual = retained.filter(pa.array([c == code for c in retained['ts_code'].to_pylist()]))
+            original = originals[role].filter(pa.array([c == code for c in originals[role]['ts_code'].to_pylist()]))
+            for name in original.column_names:
+                assert actual[name].null_count == original[name].null_count
+                for a, b in zip(actual[name].to_pylist(), original[name].to_pylist()):
+                    assert a == b or (isinstance(a, float) and isinstance(b, float) and np.isnan(a) and np.isnan(b))
+        meta = qfq.panel_contract(Path(path))
+        assert meta['price_basis'] == 'MIXED_BY_MARKET'
+        assert meta['market_basis']['HK']['price_basis'] == 'UNKNOWN_NATIVE'
+        counts = result['counts'][role]
+        assert counts['retained_non_a_old_rows'] == 3
+        assert counts['target_date_symbols'] == 2
+        assert counts['original_old_rows'] == counts['replaced_old_rows'] + counts['retained_non_a_old_rows'] + counts['quarantined_old_rows']
+
+
+def test_r3_exact_non_target_legacy_preservation_is_bound_to_old_keys(tmp_path, driver, monkeypatch):
+    kwargs, snapshot, _ = fixture_panel(tmp_path, driver)
+    code = '430017.BJ'
+    summary = tmp_path / 'original_summary.json'
+    qfq._json(summary, dict(target_keys=[dict(symbol='002612', market=0)], symbol_reconciliation=[]))
+    policy = dict(schema='qfq_exact_legacy_preservation_v1', codes=[code], reason='RAW_MISSING_LEGACY_IDENTITY_UNKNOWN',
+                  original_sync_summary=dict(path=str(summary), sha256=qfq.sha(summary)), original_membership_codes=['002612.SZ'],
+                  original_membership_sha256=qfq.canonical_sha(['002612.SZ']), roles={})
+    original_values = {}
+    for role, pointer in kwargs['pointers'].items():
+        path = Path(pointer.read_text()); table = pq.read_table(path)
+        legacy = table.slice(0, 2).set_column(table.schema.get_field_index('ts_code'), 'ts_code', pa.array([code,code], type=table.schema.field('ts_code').type))
+        pq.write_table(pa.concat_tables([table,legacy]), path)
+        dates = sorted(map(int, legacy['trade_date'].to_pylist()))
+        policy['roles'][role] = dict(original_sha256=qfq.sha(path), keys={code:dict(rows=2,date_sha256=qfq.canonical_sha(dates))})
+        original_values[role] = legacy
+    p = tmp_path / 'exact_policy.json'; qfq._json(p,policy)
+    monkeypatch.setattr(qfq,'EXACT_LEGACY_POLICY_SHA', qfq.sha(p))
+    snapshot['legacy_preservation_policy'] = dict(path=str(p),sha256=qfq.sha(p))
+    snapshot['legacy_preservation_codes'] = [code]
+    snapshot['source_files'].append(snapshot['legacy_preservation_policy'])
+    qfq._json(qfq.input_path(kwargs['data_root']),snapshot)
+    result = qfq.run_daily_rebuild(**kwargs)
+    manifest = json.loads(Path(result['quarantine_manifest']['path']).read_text())
+    for role in kwargs['pointers']:
+        legacy = pq.read_table(manifest['artifacts'][role]['path'])
+        assert legacy.replace_schema_metadata(None).equals(original_values[role].replace_schema_metadata(None))
+        assert code not in pq.read_table(result['candidates'][role],columns=['ts_code'])['ts_code'].to_pylist()
+    # An altered row under the same code may not use the approved exception.
+    pointer = kwargs['pointers']['backtest']; path = Path(pointer.read_text())
+    table = pq.read_table(path); pq.write_table(pa.concat_tables([table,table.slice(len(table)-1)]),path)
+    with pytest.raises(qfq.QfqGateError,match='LEGACY_PRESERVATION_KEYS_OR_BASELINE_CHANGED'):
+        qfq.run_daily_rebuild(**kwargs)
+    with pytest.raises(qfq.QfqGateError,match='NOT_APPROVED'):
+        qfq.legacy_preservation(dict(path=str(p),sha256='0'*64))
+
+
+def test_r3_prepare_defensively_excludes_foreign_required_history_before_raw_gate(tmp_path, driver, monkeypatch):
+    tdx=tmp_path/'tdx'; data=tmp_path/'data'
+    monkeypatch.setattr(inputs,'original_sync_contract',lambda *a:(dict(path=str(tmp_path/'sync.json'),sha256='fixture'),{},1))
+    qfq._json(tmp_path/'sync.json',dict(target_keys=[],symbol_reconciliation=[]))
+    captured={}
+    def raw(*args,**kwargs):
+        captured.update(kwargs['required_start'])
+        return {'002612.SZ':dict(history_start_date=20200101)}
+    monkeypatch.setattr(inputs,'raw_bindings',raw)
+    def stop(*a,**k): raise RuntimeError('REACHED_METADATA_WITHOUT_FOREIGN_GAP')
+    monkeypatch.setattr(inputs,'collect_metadata',stop)
+    with pytest.raises(RuntimeError,match='REACHED_METADATA_WITHOUT_FOREIGN_GAP'):
+        inputs.prepare_snapshot(tdx_root=tdx,data_root=data,target=20261023,driver=driver,
+                                required_start={'002612.SZ':20210101,'00700.HK':19990101,'00700.HK_CONNECT':19990101})
+    assert captured == {'002612.SZ':20210101}
+
+
+def test_r3_missing_a_outside_exact_legacy_policy_still_blocks(tmp_path, driver):
+    kwargs, _, _ = fixture_panel(tmp_path,driver)
+    for pointer in kwargs['pointers'].values():
+        path=Path(pointer.read_text()); table=pq.read_table(path)
+        other=table.slice(0,1).set_column(table.schema.get_field_index('ts_code'),'ts_code',pa.array(['430999.BJ'],type=table.schema.field('ts_code').type))
+        pq.write_table(pa.concat_tables([table,other]),path)
+    with pytest.raises(qfq.QfqGateError,match='MARKETWIDE_ADJUSTMENT_COVERAGE_MISSING'):
+        qfq.run_daily_rebuild(**kwargs)

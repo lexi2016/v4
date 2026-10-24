@@ -99,3 +99,24 @@ def test_explicit_legacy_two_stock_profile_retains_source_sha_failure(tmp_path, 
     monkeypatch.setattr(reader, "_load_futu_projection_module", lambda: SimpleNamespace(validate_profile_for_panel=denied))
     with pytest.raises(RuntimeError, match="SOURCE_PANEL_SHA256_MISMATCH"):
         reader.load_selector_ready(profile="FUTU_QFQ_ASOF", asof="20261023")
+
+
+def test_r3_mixed_panel_reports_actual_market_basis_for_default_projection(tmp_path, reader):
+    selector, manifest, _, frame = qfq_panel(tmp_path, reader)
+    receipt=json.loads(manifest.read_text())
+    receipt.update(price_basis='MIXED_BY_MARKET',volume_basis='MIXED_BY_MARKET',market_basis={
+        'A':dict(price_basis='QFQ_ASOF',volume_basis='QFQ_EVENT_VOLUME',asof_date=20261023),
+        'HK':dict(price_basis='UNKNOWN_NATIVE',volume_basis='UNKNOWN_NATIVE',asof_date=None)})
+    manifest.write_text(json.dumps(receipt))
+    extra=frame.copy();extra.ts_code='00700.HK';extra.close=401.25
+    mixed=pd.concat([frame,extra],ignore_index=True)
+    pq.write_table(pa.Table.from_pandas(mixed,preserve_index=False).replace_schema_metadata({b'a_share_qfq_contract_v1':json.dumps(receipt).encode()}),selector)
+    assert reader.get_panel_meta(panel_path=selector)['price_basis']=='MIXED_BY_MARKET'
+    a=reader.load_selector_ready(panel_path=selector,ts_codes=['001283.SZ'])
+    hk=reader.load_selector_ready(panel_path=selector,ts_codes=['00700.HK'])
+    assert a.attrs['panel_metadata']['price_basis']=='QFQ_ASOF'
+    assert hk.attrs['panel_metadata']['price_basis']=='UNKNOWN_NATIVE'
+    assert hk.attrs['panel_metadata']['price_adjustment_asof'] is None
+    assert hk.close.tolist()==[401.25]
+    with pytest.raises(ValueError,match='RAW_PROFILE_NOT_AVAILABLE'):
+        reader.load_selector_ready(panel_path=selector,profile='RAW')
