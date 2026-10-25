@@ -181,3 +181,47 @@ def test_more_than_five_facts_and_forecasts_and_current_source_move():
     audit = []
     v.normalize_source_constraints(legacy, page_rows, audit, raw_inner_sha256='a' * 64)
     assert len(legacy['facts']) == 16 and not legacy['forecasts']
+
+
+@pytest.mark.parametrize('field', ['facts', 'forecasts'])
+@pytest.mark.parametrize('value', ['166.0', '10.40'])
+def test_claim_decimal_continuity_uses_only_its_exact_cited_adjacent_spans(field, value):
+    left, right = value.split('.')
+    card, spans, pages = specimen(f'原文称2026年收入{left}.\n{right}亿元。')
+    claim = card['facts'][0]
+    claim.update(claim=f'原文称2026年收入{value}亿元',
+        evidence=[{'evidence_id': span.evidence_id} for span in spans])
+    card['numeric_values'] = []
+    if field == 'forecasts':
+        card['forecasts'], card['facts'] = card['facts'], []
+    result = v.validate_protocol_card(json.dumps(card), spans, pages)
+    assert [ev['excerpt'] for ev in result['card'][field][0]['evidence']] == [span.text for span in spans]
+    claim['evidence'].pop()
+    with pytest.raises(v.CardValidationError, match='CLAIM_NUMBER_NOT_IN_EVIDENCE'):
+        v.validate_protocol_card(json.dumps(card), spans, pages)
+
+
+@pytest.mark.parametrize('case', ['nonadjacent', 'cross_page', 'foreign', 'duplicate', 'reverse',
+    'integer_rows', 'missing_period', 'lost_sign', 'uncited_prefix'])
+def test_claim_decimal_reconstruction_preserves_other_source_linkages(case):
+    text = '原文称2026年收入166.\n' + ('无关段落。\n' if case == 'nonadjacent' else '') + '0亿元。'
+    if case == 'integer_rows': text = '原文称2026年收入16\n60亿元。'
+    if case == 'lost_sign': text = '原文称2026年收入-166.\n0亿元。'
+    if case == 'uncited_prefix': text = '原文称3.2\nT相关产品研发推进。'
+    card, spans, pages = specimen(text)
+    if case == 'cross_page':
+        texts = ['原文称2026年收入166.\n', '0亿元。']
+        pages = [PageText(i, 2, txt, 'OCR_OK', hashlib.sha256(txt.encode()).hexdigest(), 'Vision') for i, txt in enumerate(texts, 1)]
+        spans = p.evidence_spans(pages)
+    evidence = [{'evidence_id': spans[0].evidence_id}, {'evidence_id': spans[-1].evidence_id}]
+    if case == 'foreign': evidence[-1]['evidence_id'] = 'f' * 64
+    if case == 'duplicate': evidence.append(copy.deepcopy(evidence[0]))
+    if case == 'reverse': evidence.reverse()
+    claim = card['facts'][0]
+    claim.update(claim='原文称收入' + ('1660' if case == 'integer_rows' else '166.0') + '亿元',
+        period='8月' if case == 'missing_period' else 'UNKNOWN', evidence=evidence)
+    if case == 'uncited_prefix':
+        claim.update(claim='3.2T相关产品研发推进', evidence=[evidence[-1]], unit='UNKNOWN')
+    card['numeric_values'] = []
+    with pytest.raises(v.CardValidationError, match='CLAIM_NUMBER_NOT_IN_EVIDENCE|FOREIGN|CLAIM_PERIOD_UNLINKED'):
+        v.validate_protocol_card(json.dumps(card), spans, pages)

@@ -1,0 +1,123 @@
+{
+  "schema": "stage-e.realtext-rerun.compact-results.v1",
+  "source_repair": "REVIEWED/PASS",
+  "initial_focused_tests": "48PASS",
+  "incremental_focused_tests": "13PASS",
+  "actual_POSTs": 3,
+  "complete_answers": 3,
+  "schema_valid_answers": 3,
+  "frozen_facts": 31,
+  "core_facts": 25,
+  "independent_full_content_PASS": 0,
+  "samples": [
+    {
+      "document_id": "987b7eb90136e7945cf9698f26ff7dad5b6e64eff9804f32fa45ff877a1769e6",
+      "before_counts": null,
+      "after_counts": {
+        "facts": 8,
+        "forecasts": 3,
+        "numeric_values": 3,
+        "risks": 1,
+        "source_usage_limits": 1
+      },
+      "seconds": 120.30112,
+      "content_verdict": "REVIEWED/FAIL",
+      "actual_program_status": "CONTENT_FAILED",
+      "actual_run_validator_first_stop": "FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED",
+      "final_corrected_readonly_first_stop": "FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED"
+    },
+    {
+      "document_id": "7093bff14c97c168ce1f9af807e9e92c1ef0060a619e8ec7ca30f9538419470c",
+      "before_counts": {
+        "facts": 5,
+        "forecasts": 1,
+        "numeric_values": 3
+      },
+      "after_counts": {
+        "facts": 10,
+        "forecasts": 1,
+        "numeric_values": 3,
+        "risks": 0,
+        "source_usage_limits": 1
+      },
+      "seconds": 115.250428,
+      "content_verdict": "REVIEWED/FAIL",
+      "actual_program_status": "CONTENT_FAILED",
+      "actual_run_validator_first_stop": "FULL_NUMERIC_BOUND_LOST",
+      "final_corrected_readonly_first_stop": "FULL_NUMERIC_BOUND_LOST"
+    },
+    {
+      "document_id": "461fbe6ecd6758c09a881f55dda83d90295ce420b5d852e028dd4415c73399a2",
+      "before_counts": {
+        "facts": 5,
+        "forecasts": 5,
+        "numeric_values": 14
+      },
+      "after_counts": {
+        "facts": 13,
+        "forecasts": 7,
+        "numeric_values": 13,
+        "risks": 2,
+        "source_usage_limits": 1
+      },
+      "seconds": 221.715896,
+      "content_verdict": "REVIEWED/FAIL",
+      "actual_program_status": "HALTED",
+      "actual_run_validator_first_stop": "FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED",
+      "final_corrected_readonly_first_stop": "FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED"
+    }
+  ],
+  "source_binding_note": "All answers generated under initial2fixsource; claim literal fix occurred only after generation and final raw readonly replay. No fourthPOST.",
+  "claim_numeric_false_rejection": "same-page adjacent cited166.0/10.40 numeric-item and claim paths independentlyclosed",
+  "coverage": "oldA6/A7/A8 and E5/E6/E10 now covered; no exclusivecausality or generalcapability claim",
+  "remaining_contracts": "role,date,unit,UNKNOWN,literal-sign,period-citation remain; these do not automatically prove wrong business understanding",
+  "confirmed_raw_grounding": "system source_usage_limits wronglycitedPDFtitle in709/461; unsupported461risks;9873.2TcurrentR&D forecast and uncitedprefix",
+  "final_postgeneration_source_sha256": {
+    "infrastructure/local_document_model.py": "fbef2ed55b8116c8a3a68ef4f0c1c9849420c3460ecb17772f792af8618633ad",
+    "infrastructure/pdf_research.py": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+    "infrastructure/pdf_research_execution.py": "e487b8b34d576ac4916d42d8153927b64c16c93d48240414220cc932344c5aca",
+    "infrastructure/pdf_research_identity.py": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+    "infrastructure/pdf_research_protocol.py": "d2607b92a16666ff59ee86c720c5b4ae574c45b28ff8c8da4957a10b1a1ae38a",
+    "infrastructure/pdf_research_publication.py": "abf2734e1fba50521190a0d82380ccbdf5506e214f50ae8c5845089077bc1914",
+    "infrastructure/pdf_research_validation.py": "74164aad471caed2f2dac4569f8d6a52d326ca74c7837788de4927faa13d80b1",
+    "infrastructure/pdf_text_preparation.py": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+    "infrastructure/pdf_text_source.py": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+    "infrastructure/zsxq_pdf_ingestion.py": "60420223b291c7d03ba49a947f72dbc262cdfe6aa86631ca791fba4d45e01bde",
+    "ops/run_pdf_research_batch.py": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+    "ops/run_pdf_research_full_once.py": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+    "ops/run_pdf_research_package_once.py": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+    "ops/run_pdf_research_remaining_once.py": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832",
+    "ops/run_pdf_research_sample.py": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+    "ops/run_v35_macos_scheduler_daemon.py": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+    "ops/run_zsxq_hourly_delta.py": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce"
+  },
+  "review_receipt_sha256": "dc1eff9eb9449631d276b827438e3a7c4046b73ccfb03edaac3abef8e30fe082",
+  "source_claim_receipt_sha256": "2b46f2be9bc0bfc2b7c67341cb336762d97b848dbd6470e313ab1aa17b7abb63",
+  "final_html_sha256": "511af22cab169827a66d7dba8a9c8fa53b6c140caa6bfd96c05e6e8a6896c4c4",
+  "canonical_integration": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "API_UI_natural": "NOT_RUN",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "actual_generation_source_sha256": {
+    "infrastructure/local_document_model.py": "fbef2ed55b8116c8a3a68ef4f0c1c9849420c3460ecb17772f792af8618633ad",
+    "infrastructure/pdf_research.py": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+    "infrastructure/pdf_research_execution.py": "e487b8b34d576ac4916d42d8153927b64c16c93d48240414220cc932344c5aca",
+    "infrastructure/pdf_research_identity.py": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+    "infrastructure/pdf_research_protocol.py": "d2607b92a16666ff59ee86c720c5b4ae574c45b28ff8c8da4957a10b1a1ae38a",
+    "infrastructure/pdf_research_publication.py": "abf2734e1fba50521190a0d82380ccbdf5506e214f50ae8c5845089077bc1914",
+    "infrastructure/pdf_research_validation.py": "330a39fb157f1b686443ea0ec0d515063122f32fc6be988253f5b97425418414",
+    "infrastructure/pdf_text_preparation.py": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+    "infrastructure/pdf_text_source.py": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+    "infrastructure/zsxq_pdf_ingestion.py": "60420223b291c7d03ba49a947f72dbc262cdfe6aa86631ca791fba4d45e01bde",
+    "ops/run_pdf_research_batch.py": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+    "ops/run_pdf_research_full_once.py": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+    "ops/run_pdf_research_package_once.py": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+    "ops/run_pdf_research_remaining_once.py": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832",
+    "ops/run_pdf_research_sample.py": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+    "ops/run_v35_macos_scheduler_daemon.py": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+    "ops/run_zsxq_hourly_delta.py": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce"
+  }
+}

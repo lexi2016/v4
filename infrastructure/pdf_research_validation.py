@@ -405,7 +405,7 @@ def validate_protocol_card(raw_text, spans, pages):
     for field in ('facts', 'forecasts'):
         for item in bound[field]:
             quotes = ' '.join(e['excerpt'] for e in item['evidence'])
-            source_numbers = set(_numeric_tokens(quotes))
+            source_numbers = set(_numeric_tokens(' '.join(_contiguous_numeric_quotes(item['evidence']))))
             for number in _numeric_tokens(item['claim']):
                 if number not in source_numbers:
                     raise CardValidationError('PDF_CLAIM_NUMBER_NOT_IN_EVIDENCE')
