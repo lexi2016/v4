@@ -141,7 +141,6 @@ def normalize_source_constraints(card:Any,pages:Sequence[Mapping[str,Any]],audit
             if isinstance(item,dict) and isinstance(item.get('period'),str) and item['period'].strip() in {'当前','目前','现在'} and isinstance(item.get('claim'),str):
                 bound=spans(item);token=item['period'].strip()
                 if not any(token in e['excerpt'] for e in bound) or future.search(item['claim']+' '+''.join(e['excerpt'] for e in bound)):fail('FULL_CURRENT_TEMPORAL_EVIDENCE_AMBIGUOUS')
-                if len(facts)>=5:fail('FULL_CURRENT_SOURCE_MOVE_OVERFLOW')
                 audit.append({**base,'transformation':'EXPLICIT_CURRENT_SOURCE_STATEMENT','before_path':f'card.forecasts[{index}]','after_path':f'card.facts[{len(facts)}]','original_value':copy.deepcopy(item),'canonical_value':copy.deepcopy(item),'source_spans':bound,'reason':'EXPLICIT_CURRENT_SOURCE_ATTRIBUTION_NO_FUTURE_MARKER'})
                 facts.append(item);continue
             kept.append(item)
@@ -186,7 +185,8 @@ def _source_comparator(value:str,evidences:Sequence[Mapping[str,Any]]) -> str|No
     return operators[0] if operators and len(set(operators))==1 else None
 
 
-def validate_card(card:Any,pages:Sequence[Mapping[str,Any]],*,required_limits:Sequence[Mapping[str,Any]]|None=None) -> dict[str,Any]:
+def validate_card(card:Any,pages:Sequence[Mapping[str,Any]],*,required_limits:Sequence[Mapping[str,Any]]|None=None,
+                  _numeric_quote_runs:Sequence[Sequence[str]]|None=None) -> dict[str,Any]:
     fields={'material_type','event_or_meeting_object','speaker_and_source_attribution','date','facts','forecasts','inferences','numeric_values','related_entities','unknowns','source_usage_limits'}
     if not isinstance(card,dict) or set(card)!=fields or not isinstance(card['material_type'],str) or not isinstance(card['event_or_meeting_object'],str):fail('FULL_CARD_SCHEMA_INVALID')
     page_map={p['page_number']:p for p in pages}
@@ -202,21 +202,23 @@ def validate_card(card:Any,pages:Sequence[Mapping[str,Any]],*,required_limits:Se
     evidence(date['evidence'],date['value'] is not None)
     if card['inferences']!=[]:fail('FULL_LIGHT_MODEL_INFERENCE_FORBIDDEN')
     future=re.compile(r'预计|预测|有望|后续.{0,18}(?:增长|驱动|业绩)|将于|计划于|\d{4}E')
-    for field,limit in [('facts',5),('forecasts',5)]:
+    for field in ('facts','forecasts'):
         rows=card[field]
-        if not isinstance(rows,list) or len(rows)>limit:fail('FULL_CLAIM_LIMIT_INVALID')
+        if not isinstance(rows,list):fail('FULL_CLAIM_LIMIT_INVALID')
         for item in rows:
             if not isinstance(item,dict) or set(item)!={'claim','attribution','period','unit','evidence'} or any(not isinstance(item[k],str) or not item[k].strip() for k in ['claim','attribution','period','unit']):fail('FULL_CLAIM_SCHEMA_INVALID')
             evidence(item['evidence'])
             if field=='facts' and future.search(item['claim']+' '+''.join(e['excerpt'] for e in item['evidence'])):fail('FULL_SOURCE_FORECAST_CLASSIFIED_AS_FACT')
     if not isinstance(card['numeric_values'],list) or len(card['numeric_values'])>30:fail('FULL_NUMERIC_SCHEMA_INVALID')
-    for item in card['numeric_values']:
+    for index,item in enumerate(card['numeric_values']):
         fields_n={'value_as_source','sign','unit','period','actual_or_forecast','comparison_operator','measure_kind','evidence'}
         if not isinstance(item,dict) or set(item)!=fields_n or any(not isinstance(item[k],str) or not item[k].strip() for k in fields_n-{'evidence'}):fail('FULL_NUMERIC_SCHEMA_INVALID')
         evidence(item['evidence']);quotes=' '.join(e['excerpt'] for e in item['evidence'])
-        if not any(item['value_as_source'] in e['excerpt'] for e in item['evidence']):fail('FULL_NUMERIC_VALUE_NOT_IN_QUOTE')
+        numeric_evidence = item['evidence'] if _numeric_quote_runs is None else [
+            {'excerpt': quote} for quote in _numeric_quote_runs[index]]
+        if not any(item['value_as_source'] in e['excerpt'] for e in numeric_evidence):fail('FULL_NUMERIC_VALUE_NOT_IN_QUOTE')
         if item['comparison_operator'] not in {'EQ','GE','GT','LE','LT','APPROX','RANGE','UNKNOWN'} or item['measure_kind'] not in {'annual_capacity','capacity','actual_output','revenue','price_return','date','other','UNKNOWN'}:fail('FULL_NUMERIC_SEMANTICS_INVALID')
-        expected=_source_comparator(item['value_as_source'],item['evidence'])
+        expected=_source_comparator(item['value_as_source'],numeric_evidence)
         if expected is not None and item['comparison_operator']!=expected:fail('FULL_NUMERIC_BOUND_LOST')
         if '产能' in quotes and '产量' not in quotes:
             if item['measure_kind']!=('annual_capacity' if '年产' in quotes else 'capacity') or item['actual_or_forecast'] not in {'REPORTED_CAPACITY_NOT_OUTPUT','FORECAST_CAPACITY_NOT_OUTPUT'}:fail('FULL_CAPACITY_MISCLASSIFIED_AS_OUTPUT')
@@ -298,6 +300,39 @@ def _numeric_value_matches(item, quotes):
         raise CardValidationError('PDF_NUMERIC_SIGN_LOST')
 
 
+def _contiguous_numeric_quotes(evidence):
+    """Numeric-only view of already resolved, same-page adjacent source spans.
+
+    Excerpts remain untouched. Only a decimal point/comma followed by a layout
+    newline at a cited span boundary may lose whitespace. Other boundaries,
+    including integer table rows, keep their original whitespace.
+    """
+    if len({item['evidence_id'] for item in evidence}) != len(evidence):
+        return [item['excerpt'] for item in evidence]
+    runs = []
+    previous = None
+    seen = set()
+    for item in evidence:
+        duplicate = item['evidence_id'] in seen
+        adjacent = (previous is not None and not duplicate
+            and previous['evidence_id'] != item['evidence_id']
+            and previous['page_number'] == item['page_number']
+            and previous['text_sha256'] == item['text_sha256']
+            and previous['end'] == item['start'])
+        if adjacent:
+            left, right = runs[-1], item['excerpt']
+            boundary = re.search(r'(?<=\d[.,])[^\S\r\n]*\r?\n[^\S\r\n]*$', left)
+            if boundary and re.match(r'[^\S\r\n]*\d', right):
+                left = left[:boundary.start()]
+                right = right.lstrip(' \t')
+            runs[-1] = left + right
+        else:
+            runs.append(item['excerpt'])
+        seen.add(item['evidence_id'])
+        previous = None if duplicate else item
+    return runs
+
+
 def validate_protocol_card(raw_text, spans, pages):
     """Resolve only program evidence IDs, then validate without semantic repair."""
     from infrastructure import pdf_research_protocol as protocol
@@ -359,7 +394,8 @@ def validate_protocol_card(raw_text, spans, pages):
         original['value_as_source'] = normalized['value_as_source']
     required = source_limit_quotes([{'page_number': s.page_number, 'text_sha256': s.page_sha256, 'text': s.text} for s in spans])
     try:
-        validate_card(projection, page_rows, required_limits=required)
+        validate_card(projection, page_rows, required_limits=required,
+            _numeric_quote_runs=[_contiguous_numeric_quotes(item['evidence']) for item in bound['numeric_values']])
     except pdf_text_source.BatchError as exc:
         raise CardValidationError(exc.code) from None
     future = re.compile(r'未来|预计|预测|有望|后续|将于|计划于|目标|情景|假设|展望|拟|\d{4}E|\b(?:will|expect|forecast|scenario|target)\b', re.I)
@@ -385,7 +421,7 @@ def validate_protocol_card(raw_text, spans, pages):
                 raise CardValidationError('PDF_NUMERIC_' + name.upper() + '_UNLINKED')
         if future.search(quotes) and item['actual_or_forecast'] in {'ACTUAL', 'REPORTED_CAPACITY_NOT_OUTPUT'}:
             raise CardValidationError('PDF_FORECAST_NUMBER_CLASSIFIED_AS_ACTUAL')
-        _numeric_value_matches(item, quotes)
+        _numeric_value_matches(item, ' '.join(_contiguous_numeric_quotes(item['evidence'])))
     date = bound['date']
     if date['value'] is not None and not any(date['value'] in e['excerpt'] for e in date['evidence']):
         raise CardValidationError('PDF_DATE_NOT_IN_EVIDENCE')

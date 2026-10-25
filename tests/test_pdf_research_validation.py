@@ -110,3 +110,74 @@ def test_source_sign_glyph_and_spacing_do_not_authenticate_unsigned_unknown(sour
         v.validate_protocol_card(json.dumps(card), spans, pages)
     card['numeric_values'][0]['sign'] = sign
     assert v.validate_protocol_card(json.dumps(card), spans, pages)['deterministic_status'] == 'PASS'
+
+
+@pytest.mark.parametrize('value', ['166.0', '10.40'])
+def test_decimal_layout_break_requires_both_exact_adjacent_cited_spans(value):
+    left, right = value.split('.')
+    card, spans, pages = specimen(f'原文称2026年收入{left}.\n{right}亿元。')
+    original_excerpts = [span.text for span in spans]
+    card['numeric_values'][0].update(value_as_source=value, comparison_operator='EQ',
+        evidence=[{'evidence_id': span.evidence_id} for span in spans])
+    result = v.validate_protocol_card(json.dumps(card), spans, pages)
+    assert [ev['excerpt'] for ev in result['card']['numeric_values'][0]['evidence']] == original_excerpts
+    card['numeric_values'][0]['evidence'].pop()
+    with pytest.raises(v.CardValidationError, match='VALUE_NOT_IN_QUOTE'):
+        v.validate_protocol_card(json.dumps(card), spans, pages)
+
+
+@pytest.mark.parametrize('case', ['nonadjacent', 'cross_page', 'foreign', 'duplicate', 'reverse', 'integer_rows'])
+def test_numeric_fragments_cannot_join_unproven_source_boundaries(case):
+    text = '原文称2026年收入166.\n' + ('无关段落。\n' if case == 'nonadjacent' else '') + '0亿元。'
+    if case == 'integer_rows':
+        text = '原文称2026年收入16\n60亿元。'
+    card, spans, pages = specimen(text)
+    if case == 'cross_page':
+        texts = ['原文称2026年收入166.\n', '0亿元。']
+        pages = [PageText(i, 2, txt, 'OCR_OK', hashlib.sha256(txt.encode()).hexdigest(), 'Vision') for i, txt in enumerate(texts, 1)]
+        spans = p.evidence_spans(pages)
+    evidence = [{'evidence_id': spans[0].evidence_id}, {'evidence_id': spans[-1].evidence_id}]
+    if case == 'foreign': evidence[-1]['evidence_id'] = 'f' * 64
+    if case == 'duplicate': evidence.append(copy.deepcopy(evidence[0]))
+    if case == 'reverse': evidence.reverse()
+    card['numeric_values'][0].update(value_as_source='1660' if case == 'integer_rows' else '166.0',
+        comparison_operator='EQ', evidence=evidence)
+    with pytest.raises(v.CardValidationError, match='VALUE_NOT_IN_QUOTE|FOREIGN'):
+        v.validate_protocol_card(json.dumps(card), spans, pages)
+
+
+@pytest.mark.parametrize('change,code', [('comparison_operator', 'BOUND_LOST'), ('sign', 'SIGN_LOST'),
+    ('unit', 'UNIT_UNLINKED'), ('period', 'PERIOD_UNLINKED'), ('actual_or_forecast', 'FORECAST_NUMBER')])
+def test_contiguous_decimal_keeps_other_numeric_gates(change, code):
+    forecast = change == 'actual_or_forecast'
+    card, spans, pages = specimen('原文' + ('预计' if forecast else '称') + '2026年收入超过-166.\n0亿元。')
+    if forecast:
+        card['forecasts'], card['facts'] = card['facts'], []
+    card['numeric_values'][0].update(value_as_source='-166.0', comparison_operator='GT', sign='NEGATIVE',
+        evidence=[{'evidence_id': span.evidence_id} for span in spans])
+    card['numeric_values'][0][change] = {'comparison_operator': 'EQ', 'sign': 'UNKNOWN',
+        'unit': '万元', 'period': '2025年', 'actual_or_forecast': 'ACTUAL'}[change]
+    with pytest.raises(v.CardValidationError, match=code):
+        v.validate_protocol_card(json.dumps(card), spans, pages)
+
+
+def test_more_than_five_facts_and_forecasts_and_current_source_move():
+    card, spans, pages = specimen()
+    card['facts'] *= 8
+    card['forecasts'] = copy.deepcopy(card['facts'])
+    assert v.validate_protocol_card(json.dumps(card), spans, pages)['deterministic_status'] == 'PASS'
+    projected = v.validate_protocol_card(json.dumps(card), spans, pages)['card']
+    legacy = {key: value for key, value in projected.items() if key != 'risks'}
+    for field in ('facts', 'forecasts', 'numeric_values'):
+        for row in legacy[field]:
+            row['evidence'] = [{key: ev[key] for key in ('page_number', 'text_sha256', 'excerpt')} for ev in row['evidence']]
+    legacy['numeric_values'] = []
+    for row in legacy['forecasts']:
+        row.update(claim='目前公司收入增长', period='目前')
+    source = '目前公司收入增长。'
+    page_rows = [{'page_number': 1, 'text': source, 'text_sha256': hashlib.sha256(source.encode()).hexdigest()}]
+    for row in legacy['forecasts']:
+        row['evidence'] = [{'page_number': 1, 'text_sha256': page_rows[0]['text_sha256'], 'excerpt': source}]
+    audit = []
+    v.normalize_source_constraints(legacy, page_rows, audit, raw_inner_sha256='a' * 64)
+    assert len(legacy['facts']) == 16 and not legacy['forecasts']

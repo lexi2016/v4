@@ -11,6 +11,8 @@ def test_schema_directly_constrains_pdf_card_and_evidence_ids():
     assert _schema_error({'analysis_markdown': '{}'}, protocol.SCHEMA)
     evidence = protocol.SCHEMA['properties']['facts']['items']['properties']['evidence']['items']
     assert set(evidence['properties']) == {'evidence_id'}
+    for field in ('facts', 'forecasts'):
+        assert 'maxItems' not in protocol.SCHEMA['properties'][field]
 
 
 def test_long_table_and_mixed_page_spans_cover_exact_original_text_without_truncation():

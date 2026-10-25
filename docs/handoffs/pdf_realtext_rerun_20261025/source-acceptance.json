@@ -1,0 +1,53 @@
+{
+  "schema": "v4.pdf_realtext_rerun.source_acceptance.v1",
+  "repository": "lexi2016/v4",
+  "branch": "codex/pdf-realtext-rerun-20261025",
+  "parent_revision": "dcf179ca0be18ff848fb24c02b336bbeadc13c43",
+  "source_root": "/Users/lexi/.codex/worktrees/pdf-workbench-closure-20261023/v4_app",
+  "source_review": "REVIEWED/PASS",
+  "source_review_SHA256": "6606bdbeee0bcd775352238ddced41bdbeb7c156221143eea11bbf3032a1662d",
+  "targeted_independent_tests": "48passed; network blocked; 101facts and101forecasts accepted; real166.0/10.40 replay; unsafe joins and other semantic gates remain blocked",
+  "test_interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "test_command": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python -B -m pytest -q tests/test_pdf_research_protocol.py tests/test_pdf_research_validation.py",
+  "files": [
+    {
+      "path": "infrastructure/pdf_research_protocol.py",
+      "before_sha256": "e772d954e0ca19ee0f0bbd4462015cbd5fbc9ec76821e804650d1b223e7a9ce2",
+      "sha256": "d2607b92a16666ff59ee86c720c5b4ae574c45b28ff8c8da4957a10b1a1ae38a",
+      "blob_sha1": "cf74ba62b6edc13fd74bdb41e71c5cf3711a0c17"
+    },
+    {
+      "path": "infrastructure/pdf_research_validation.py",
+      "before_sha256": "0771fbf17162108d7c5abd6e30eff478d99d4842f90f3fef3e29f2290e81cbd7",
+      "sha256": "330a39fb157f1b686443ea0ec0d515063122f32fc6be988253f5b97425418414",
+      "blob_sha1": "5bec76d415168db7d3aa0f40d3073e5e12a3f415"
+    },
+    {
+      "path": "tests/test_pdf_research_protocol.py",
+      "before_sha256": "518582f982d44fcd57dde11583c261b597f661bea696852ab73249a1e5dcaa0b",
+      "sha256": "b957eb5da147096ea60557ee41a4a71a1fd158c58bf17b361a08a21b75623508",
+      "blob_sha1": "7996e23c1eecf01fd2bcadc8bb420c402ecbcfbc"
+    },
+    {
+      "path": "tests/test_pdf_research_validation.py",
+      "before_sha256": "fdbf468744f0bcb35d0f808918f4ff015de446cc6a9d03e176bf74f82f1a52f0",
+      "sha256": "7954b1cce415eab5714e0cda22bf414d3276b47a03745e0c364a9d72ce33177e",
+      "blob_sha1": "145201a20e265134dcb4cd72a9e09a7714088a67"
+    }
+  ],
+  "old_raw_replay": {
+    "709": "FULL_NUMERIC_BOUND_LOST retained",
+    "461": "cross-span check passes; FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED remains"
+  },
+  "system_and_user_prompt": "UNCHANGED",
+  "model_sampling_settings_and_source_text": "UNCHANGED",
+  "schema_delta": "Remove facts/forecasts maxItems5 only",
+  "actual_round_outcomes": "Separate later real-run evidence; no content PASS claimed here",
+  "canonical_integration": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "private_source_PDF_request_and_model_answers_uploaded": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
