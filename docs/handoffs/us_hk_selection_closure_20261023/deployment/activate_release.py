@@ -814,7 +814,7 @@ def release_guards(scope,*,api_shared_lock_contract=None):
                 from infrastructure.interprocess_lock import owned_interprocess_lock
                 lock=LAUNCHAGENTS/'.com.lexi.v35.scheduler.release.lock'
                 require(scope['activity']['release_lock_path']==str(lock),'SCHEDULER_RELEASE_LOCK_PATH')
-                stack.enter_context(owned_interprocess_lock(lock,timeout_seconds=2))
+                stack.enter_context(owned_interprocess_lock(lock,timeout_seconds=2,timeout_message='SCHEDULER_RELEASE_LOCK_BUSY'))
             stack.enter_context(tool.announcement_flash_cutover_guard(Path(scope['activity']['workbench_root']),timeout_seconds=2))
             for raw in scope['activity'].get('existing_kernel_locks',[]):
                 path=exact(raw)

@@ -1,0 +1,118 @@
+{
+  "source_root": "/Users/lexi/Desktop/学习/.v4_task_worktrees/us-mapping-workflow-cleanup-sync-20261025",
+  "source_local_commit": "46c5e7dd759b6d762caf0aa275dbc9ba79bdd9ec",
+  "source_remote_equivalent_commit": "99fa4c11e284c7028501470a5e4c90d0d6185958",
+  "source_tree": "ef4d31294cc7dd7e6ee023970e537e28d25ed410",
+  "branch": "codex/us-mapping-scheduler-cohort-20261025",
+  "parent_app": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-history-source-20261025-r3/app",
+  "parent_outer_manifest_sha256": "70aa9cc0a4165471bef3c08ec96b53e2a417646042487b7a864c12b7054a1b2e",
+  "candidate_release": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-focus-scheduler-20261025-r1",
+  "expected_overlays": {
+    "v4/manager_workbench/inputs/native.py": {
+      "source_sha256": "4bf9df959c4ac30fae7b3ab115a282c737694f032e410bf3350112196007c469",
+      "parent_sha256": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa"
+    },
+    "v4/manager_workbench/inputs/strict_us_selection.py": {
+      "source_sha256": "4a7a9f0bd593e9ef97f16a9ae7f7bf0a2831d9bca0420b6024a491da5f907d22",
+      "parent_sha256": "b4573159e77d27373fd433a00a4da48372d38b4a1289f95ef684034a193b4750"
+    },
+    "v4/manager_workbench/engines/us_mapping.py": {
+      "source_sha256": "39ad72670b7d81e2e64e3541f09d75af74a1fa10eede9f86ff3f16a95632d189",
+      "parent_sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a"
+    },
+    "v4/manager_workbench/engines/core.py": {
+      "source_sha256": "4d0034502a718880872410304aa78d5720cff04c405c2b963e66ffe7483f319b",
+      "parent_sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7"
+    },
+    "v4/manager_workbench/engines/us_mapping_consumption.py": {
+      "source_sha256": "072a5b99cfbdf8664d14e0af3c597dc0753033d3a2e93e0975b71ace8dacb3dd",
+      "parent_sha256": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd"
+    },
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "source_sha256": "bd101ab5f958f601c62598160a2eca0ced3dcbf833ae61ae393975d3cb77dbec",
+      "parent_sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367"
+    },
+    "v4/manager_workbench/engines/us_mapping_policy.py": {
+      "source_sha256": "b0958e528b74ee92de984e09e18ab96f3aa3342e23452383323d72d1f54343ff",
+      "parent_sha256": null
+    },
+    "v4/manager_workbench/contracts.py": {
+      "source_sha256": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
+      "parent_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0"
+    },
+    "v4/manager_workbench/service.py": {
+      "source_sha256": "832cf305b77b7d17ee835fa0fd70cad695615ac6dbebeb859453fe4c99ed4536",
+      "parent_sha256": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46"
+    },
+    "v4/manager_workbench/scheduler.py": {
+      "source_sha256": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+      "parent_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485"
+    },
+    "upstreams/v3_shared_data/shared_data/hk_history_resolution.py": {
+      "source_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "parent_sha256": null
+    },
+    "upstreams/v3_shared_data/shared_data/hk_panel_audit.py": {
+      "source_sha256": "30314a806a665d71261521b27cf5ba7aa7a9e4c7247aa7eab9a7348127f134e2",
+      "parent_sha256": null
+    }
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "schema": "v4.us_mapping.scheduler_cohort.v1",
+  "inventory_tool": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/announcement-transport-recovery-20261020-r6/app/ops/api_release_integration.py",
+  "inventory_tool_sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b",
+  "qfq_sha256": "7ce737550d855dd9e95bc62ebef2209bfc1c4b2bbe70f16cb51b75688342f445",
+  "generated_cache_disposition_sha256": "09c6d61ad3bd3534b94a90f1c263136fbc2043c939540ed6e59dae08a32ba92c",
+  "excluded_generated_parent_entries": {
+    "contracts/__pycache__": {
+      "path": "contracts/__pycache__",
+      "kind": "directory",
+      "mode": "0755"
+    },
+    "contracts/__pycache__/__init__.cpython-314.pyc": {
+      "path": "contracts/__pycache__/__init__.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "33635e5a19cf440561f5fb7171dca45ed57ff17383b5e11cbc6ef6ad22223737",
+      "mode": "0644",
+      "size": 296
+    },
+    "contracts/__pycache__/trading_calendar.cpython-314.pyc": {
+      "path": "contracts/__pycache__/trading_calendar.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "ff30473b3a2a254354d8608b5e7e3c7c9a423006caab9279220f381915b6a04e",
+      "mode": "0644",
+      "size": 14958
+    },
+    "ops/__pycache__": {
+      "path": "ops/__pycache__",
+      "kind": "directory",
+      "mode": "0755"
+    },
+    "ops/__pycache__/macos_research_panel_daily_authority.cpython-314.pyc": {
+      "path": "ops/__pycache__/macos_research_panel_daily_authority.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "6a7873c6d7871e336d9027d2af22d663897e8b043ed20ac246e38ef4133c3bde",
+      "mode": "0644",
+      "size": 63242
+    },
+    "ops/__pycache__/macos_research_panel_daily_common.cpython-314.pyc": {
+      "path": "ops/__pycache__/macos_research_panel_daily_common.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "7679256e4e4f9c5f529a807840ffbda4245f115a6b7ee64c43c8b1462957d642",
+      "mode": "0644",
+      "size": 20043
+    },
+    "ops/__pycache__/macos_research_panel_daily_pack.cpython-314.pyc": {
+      "path": "ops/__pycache__/macos_research_panel_daily_pack.cpython-314.pyc",
+      "kind": "file",
+      "sha256": "4041efc3feff60b3d490c83d6ffc91409fc6896a84ac486d823fc33119dcb273",
+      "mode": "0644",
+      "size": 20983
+    }
+  }
+}

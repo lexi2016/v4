@@ -1,0 +1,143 @@
+{
+  "schema": "v4.us_mapping.scheduler_cohort.integration_result.v1",
+  "as_of": "2026-10-25T23:22:28.141734+08:00",
+  "current_result": "MANUAL_API_UI_VERIFIED_AUTOMATIC_CUTOVER_WAITING_ACTIVE_WORK",
+  "historical_readme": "README.md is the immutable original Writer build handoff; this receipt records later integration observations without rewriting that accepted artifact.",
+  "scope": "US20261023 close to HK20261026 research selection and the existing scheduler execution package",
+  "source_baseline": {
+    "repository": "lexi2016/v4",
+    "branch": "codex/us-mapping-scheduler-cohort-20261025",
+    "local_base": "46c5e7dd759b6d762caf0aa275dbc9ba79bdd9ec",
+    "remote_base": "99fa4c11e284c7028501470a5e4c90d0d6185958",
+    "identical_base_tree": "ef4d31294cc7dd7e6ee023970e537e28d25ed410"
+  },
+  "original_automatic": {
+    "run_id": "d725567793324cfea5617018e989a4da",
+    "target_date": "20261026",
+    "phase": "NEXT_DAY",
+    "source_us_session": "20261023",
+    "generated_at": "2026-10-24T04:17:09.202389+08:00",
+    "legacy": true,
+    "selected": 0,
+    "original_unchanged": true,
+    "root_cause": "The scheduler package retained the legacy Native/single-day producer path and did not execute the accepted versioned selection/focus path. The API already supported reading modern persisted selections."
+  },
+  "candidate": {
+    "state": "PREPARED_NOT_ACTIVATED",
+    "manifest_sha256": "842898cd49fab0f46bc3e02aaf7ddaba7a6b5fa8b4736eb09aa34916c7ebeaf4",
+    "native_prepared_sha256": "6c8485a06bcfe3a79ac1d7516f380809727fa9cb20e87d102eaf86590b27b316",
+    "parent_manifest_sha256": "70aa9cc0a4165471bef3c08ec96b53e2a417646042487b7a864c12b7054a1b2e",
+    "overlay_files": 12,
+    "qfq_source_sha256_preserved": "7ce737550d855dd9e95bc62ebef2209bfc1c4b2bbe70f16cb51b75688342f445",
+    "independent_review": "REVIEWED/PASS",
+    "independent_saved_run_id": "871fa565fbb647b5a971eb62362b5956",
+    "independent_product_sha256": "ed362752664ecfeea438823bc66c41716c4db5850cf5860c4e2b52ffa34ddaa3",
+    "actual_path": "Hook -> scheduled handoff -> Service -> load_inputs -> Native -> US_MAPPING engine -> isolated Store",
+    "targeted_cases_passed": 7,
+    "focus_selected": 10,
+    "same_lane_publication": "Both orders and concurrent publication accepted",
+    "existing_independent_passes_reused": true
+  },
+  "live_manual_readback": {
+    "state": "API_VERIFIED_AND_UI_VERIFIED",
+    "run_id": "30f554b5bd2d4b2f92f26f2aa982c3ee",
+    "trigger": "MANUAL",
+    "phase": "MANUAL",
+    "target_date": "20261026",
+    "cutoff": "2026-10-25T22:58:28.911748+08:00",
+    "source_sessions": {
+      "hk_price": "20261023",
+      "us": "20261023"
+    },
+    "finished_at": "2026-10-25T22:59:29.964088+08:00",
+    "job_state": "PARTIAL",
+    "failed_steps": [],
+    "retryable": false,
+    "product_sha256": "56045037e596d1f025ad56d34591f628f6ef6c6557e19eccc74205dc2fb57b38",
+    "compact_bytes": 30550,
+    "compact_response_sha256": "881de41cf4fe0f1ca8715387427a4ef39e4686e6380d9cf9368e56b4fdd5b556",
+    "focus_counts": {
+      "candidate_count": 670,
+      "industry_match_count": 491,
+      "eligible": 87,
+      "selected": 10,
+      "capped": 77,
+      "not_triggered": 504,
+      "pending": 79
+    },
+    "ordered_symbols": [
+      "HK.09688",
+      "HK.01989",
+      "HK.02476",
+      "HK.03228",
+      "HK.02525",
+      "HK.02665",
+      "HK.06069",
+      "HK.02883",
+      "HK.00323",
+      "HK.00347"
+    ],
+    "strict_reference": {
+      "selected": 0,
+      "rejected": 449,
+      "pending": 221
+    },
+    "browser_observation": "The actual rendered page showed the same 10 symbols and order, the US20261023/HK20261026 mapping, MANUAL phase and exact run_id; the tab was retained as a deliverable.",
+    "natural_automatic_proof": false,
+    "existing_api_changed_by_this_batch": false
+  },
+  "lifecycle": {
+    "state": "NOT_DEPLOYED",
+    "owner_rollback_identity_repair": "Independent 9-case delta PASS; unrelated process cannot inherit rollback authority",
+    "guard_caller_compatibility_repair": "Independent 6 real release/ANN/QFQ guard-composition cases PASS in isolated fixtures",
+    "failed_attempt_preserved": "The real attempt failed on a missing required timeout_message before OWNED, SIGSTOP, plist changes or service actions. The parent remained running.",
+    "current_binding_gap": "RESOLVED: exact four-record administrative authority is bound to current native product and both transition directions. Independent 20-case delta PASS; original records remain unchanged, execution UNKNOWN.",
+    "separate_pending_authorization": "Human explicitly authorized the exact-one Sept15 stale claim disposition. It was archived with original inode/mode/owner/SHA preserved and administrative outcome UNKNOWN, then independently read back PASS. No process was signalled, no task restarted, no completion receipt manufactured. Other claims were unchanged.",
+    "healthy_pdf_work": "The observed active PDF completed naturally, 51/51 pages; it was not cancelled for activation.",
+    "actual_binding_sha256": "45b9d4efcefcd628c828cb171df12e8bfa43c947a7266ca48708b3a9d3ce5bd0",
+    "actual_binding_scope_review": "REVIEWED/PASS",
+    "latest_actual_attempt": {
+      "state": "ABORTED_PRECOMMIT",
+      "committed": false,
+      "reason": "FROZEN_OWNER_HEALTHY_WORK_OR_UNKNOWN",
+      "old_owner_pid": 38751,
+      "old_owner_resumed": true,
+      "live_plist_unchanged": true,
+      "bootout_or_bootstrap_calls": 0,
+      "source_cutoff_changed": false,
+      "fresh_readonly_observation": "New PDF_PROCESSING and ops.run_zsxq_hourly_delta child observed at 2026-10-25T23:20:59.854690+08:00; this is a later task than the previously completed 51-page PDF.",
+      "next_step": "Wait for current healthy work to finish, refresh activity, then authorize one bounded activation using the existing accepted source and current owner facts. Do not change accepted source or repeat prior tests."
+    },
+    "source_sha256": {
+      "activate_candidate.py": "e30d6047a6e19d236b1cf4a289a8bebec1fc4a4be23963a7d6e118d98ad82631",
+      "activate_release.py": "95cfa4ccf8ebbe05d5afbe740894889fdc5ce06a9a7ffc193c09d4c1c47b660c",
+      "test_us_mapping_scheduler_activation.py": "8de02385bc027a7cf2b75c1079c9042096963cf135edd470f1c246b1c514210e"
+    }
+  },
+  "cleanup": {
+    "remote_fixed_commit": "99fa4c11e284c7028501470a5e4c90d0d6185958",
+    "removed": [
+      "us_mapping_consumption._is_noncurrent",
+      "strict_us_selection.cannot_confirm_single_day_mapping"
+    ],
+    "lines_deleted": 10,
+    "independent_targeted_cases_passed": 15,
+    "active_historical_readers_retained": true
+  },
+  "NOT_RUN": [
+    "successful actual scheduler cutover",
+    "two complete natural cycles",
+    "new 60-day economic-effect evaluation"
+  ],
+  "CANNOT_CONFIRM": [
+    "historical target-effective Connect membership where evidence is absent",
+    "exact-date price/amount/PIT material not proven by this cohort",
+    "strategy predictive effectiveness"
+  ],
+  "natural_cycles_verified": 0,
+  "natural_cycles_required": 2,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

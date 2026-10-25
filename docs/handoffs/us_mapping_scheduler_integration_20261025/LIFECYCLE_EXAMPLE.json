@@ -1,0 +1,65 @@
+{
+  "schema": "v4.us_mapping.native_lifecycle_example.v1",
+  "executable": false,
+  "note": "Template only. Real owner tokens, plist snapshots, activity records, receipts and binding belong only in private lifecycle evidence. No old release PREPARED is constructed.",
+  "spec_example": {
+    "schema": "v4.us_mapping.native_lifecycle_spec.v1",
+    "native_prepared": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/us-mapping-focus-scheduler-20261025-r1/PREPARED.json",
+      "sha256": "6c8485a06bcfe3a79ac1d7516f380809727fa9cb20e87d102eaf86590b27b316"
+    },
+    "candidate_review": {
+      "path": "<private candidate independent REVIEW.json>",
+      "sha256": "<actual SHA>"
+    },
+    "lifecycle_review": {
+      "path": "<independent incremental source review receipt>",
+      "sha256": "<actual SHA>"
+    },
+    "protected_owner_config": {
+      "path": "<private pinned owner config containing exactly21 source_identity_refs and original python/binarySHA>",
+      "sha256": "<actual SHA>"
+    },
+    "expected_parent_pid": "<fresh observed parent PID; preparation obtains kernel start_usec/audit8words/pid_version>",
+    "existing_kernel_locks": [
+      "<exact existing owner lock paths from controller scope; no guessed missing files>"
+    ]
+  },
+  "execution_authority_example": {
+    "schema": "v4.us_mapping.native_execution_authority.v1",
+    "action": "activate",
+    "binding": {
+      "path": "<private prepare output BINDING.json>",
+      "sha256": "<actual binding SHA>"
+    },
+    "helper_sha256": "<reviewed activate_candidate.py SHA>",
+    "lifecycle_review": {
+      "path": "<same independent incremental source review receipt>",
+      "sha256": "<same SHA>"
+    }
+  },
+  "review_receipt_requirement": {
+    "verdict": "REVIEWED/PASS",
+    "source_sha256": {
+      "docs/handoffs/us_mapping_scheduler_integration_20261025/activate_candidate.py": "<actual reviewed source SHA>"
+    }
+  },
+  "workflow": [
+    "Independent incremental source review PASS; do not change the accepted candidate or original4source artifacts.",
+    "Controller prepare SPEC SPEC_SHA PRIVATE_OUTPUT: read-only owner/config/kernel capture; writes only backup/proposed plist and native binding under private F; no locks or signals.",
+    "Controller freezes execution authority with binding SHA, helper SHA, same lifecycle review pin and activate/rollback action.",
+    "Controller activate BINDING SHA AUTHORITY SHA PRIVATE_RECEIPT: independent guardian holds existing release/announcement/kernel/QFQ guards, exact-owner STOP, two frozen-idle observations, double-CAS atomic plist, durable commit, old owner and named-label absence, one bootstrap and bounded readiness.",
+    "Precommit EOF/exception unwinds binding and CONTs only the same owner; postcommit never resumes it. Do not kill a guardian that may own a stopped process.",
+    "Rollback requires this activation receipt and its exact new audit-token kernel owner, or committed failure plus named-job-absent proof; it restores only r3 original plist, never data or metadata."
+  ],
+  "atomic_primitive": {
+    "origin_sha256": "dec2c48103f67f67516fdd80f9f9503f08d09dbc59fae4c37f4a273e077955a1",
+    "migrated_functions": [
+      "sha",
+      "atomic_plist"
+    ],
+    "whole_old_module_imported": false,
+    "new_live_binding": "com.lexi.v35.scheduler.plist"
+  },
+  "no_live_execution_by_writer": true
+}
