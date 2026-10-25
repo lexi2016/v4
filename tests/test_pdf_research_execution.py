@@ -3,7 +3,131 @@ from pathlib import Path
 import pytest
 from infrastructure import pdf_research_execution as e, pdf_research_protocol as p
 from infrastructure import local_document_model as model
+from infrastructure import pdf_research_claims as claims
 from infrastructure.pdf_research_publication import digest, owned_lock, read_json
+
+
+def claims_profile(monkeypatch):
+    for key in ('PROTOCOL_VERSION', 'SEMANTIC_PIPELINE_VERSION', 'PROMPT', 'SCHEMA', 'PROTOCOL_SHA256'):
+        monkeypatch.setattr(p, key, getattr(p, key))
+    p.enable_claims_v2()
+    monkeypatch.setattr(e, 'SOURCE_FILES', (*e.SOURCE_FILES, 'infrastructure/pdf_research_claims.py'))
+
+
+def claims_transport(calls, *, invalid_first=False):
+    def fake(**kwargs):
+        calls.append(kwargs)
+        kwargs['on_dispatch']()
+        kwargs['on_raw'](b'data: offline-complete-fixture\n\n')
+        if invalid_first and len(calls) == 1:
+            return '{invalid'
+        span = json.loads(kwargs['messages'][1]['content'])['source_spans'][0]
+        return json.dumps({'claims': [{'statement': span['text'], 'kind': 'FACT',
+            'subject': 'UNKNOWN', 'attribution': 'UNKNOWN',
+            'evidence': [{'evidence_id': span['evidence_id']}]}], 'unknowns': []})
+    return fake
+
+
+def test_v2_offline_executor_to_existing_publisher_and_render_is_complete(tmp_path, monkeypatch):
+    claims_profile(monkeypatch)
+    calls = []
+    executor, ref, manifest, _, _ = fixture(tmp_path, transport=claims_transport(calls))
+    assert executor.tick(ref)['status'] == 'GENERATED_PENDING_REVIEW'
+    aid = manifest['tasks'][0]['analysis_id']
+    result = read_json(executor.publisher.version_root(aid, 0) / 'result.json')
+    assert result['cards'][0]['schema'] == 'pdf-claims-source-v2'
+    assert '原文称公司业务发展。' in result['body_markdown']
+    assert '第1页' in result['body_markdown']
+    assert result['semantic_review'] == 'PENDING_INDEPENDENT_REVIEW'
+    assert result['production_allowed'] is False
+    assert not list(executor.root.glob('**/accepted*.json'))
+    executor.tick(ref)
+    assert len(calls) == 1
+
+
+def test_v2_complete_content_failure_advances_chunks_without_repost_or_promotion(tmp_path, monkeypatch):
+    claims_profile(monkeypatch)
+    calls = []
+    executor, ref, manifest, _, _ = fixture(tmp_path, text='原文称公司业务发展。' * 1800,
+        transport=claims_transport(calls, invalid_first=True))
+    chunks = len(manifest['tasks'][0]['chunks'])
+    assert chunks >= 2
+    first = executor.tick(ref)
+    assert first['status'] == 'PARTIAL_CHUNKS_CONTENT_FAILED'
+    for _ in range(1, chunks):
+        result = executor.tick(ref)
+    assert result['status'] == 'CONTENT_FAILED'
+    assert result['completed_chunks'] == chunks
+    assert len(calls) == chunks
+    assert len(list(executor.root.glob('analysis-execution/**/raw.json'))) == chunks
+    assert len(list(executor.root.glob('analysis-execution/**/content-failure.json'))) == 1
+    assert not list(executor.root.glob('analysis-results/**/result.json'))
+    assert executor.tick(ref)['model_posts'] == 0
+    assert len(calls) == chunks
+
+
+@pytest.mark.parametrize('code', ['PDF_DUPLICATE_EVIDENCE_ID', 'PDF_EVIDENCE_INPUT_SHA_MISMATCH',
+    'PDF_CLAIMS_INPUT_MAPPING_INVALID', 'UNRECOGNIZED_CARD_ERROR'])
+def test_v2_unlisted_card_errors_halt_even_when_old_name_rule_misses_them(tmp_path, monkeypatch, code):
+    claims_profile(monkeypatch)
+    calls = []
+    executor, ref, _, _, _ = fixture(tmp_path, text='原文称公司业务发展。' * 1800,
+        transport=claims_transport(calls))
+    def bad(*args):
+        raise e.CardValidationError(code)
+    monkeypatch.setattr(e, 'validate_protocol_card', bad)
+    assert executor.tick(ref)['status'] == 'HALTED'
+    assert executor.tick(ref)['status'] == 'HALTED'
+    assert len(calls) == 1
+
+
+def test_v2_original_breaker_stops_three_complete_content_failures(tmp_path, monkeypatch):
+    claims_profile(monkeypatch)
+    calls = []
+    def bad(**kwargs):
+        calls.append(1);kwargs['on_dispatch']();kwargs['on_raw'](b'complete-fixture')
+        return '{invalid'
+    executor, ref, _, _, _ = fixture(tmp_path, text='原文称公司业务发展。' * 4000, transport=bad)
+    for _ in range(3):
+        result = executor.tick(ref)
+    assert result['status'] == 'HALTED'
+    assert result['code'] == 'THREE_CONSECUTIVE_UNUSABLE_ATTEMPTS'
+    executor.tick(ref)
+    assert len(calls) == 3
+
+
+@pytest.mark.parametrize('code', sorted(claims.CONTENT_ERRORS))
+def test_each_explicit_v2_complete_content_code_can_advance_once(tmp_path, monkeypatch, code):
+    claims_profile(monkeypatch)
+    calls = []
+    executor, ref, manifest, _, _ = fixture(tmp_path, text='原文称公司业务发展。' * 900,
+        transport=claims_transport(calls))
+    original = e.validate_protocol_card
+    # The first exact raw may recur in overlap; the durable chunk, rather than
+    # model output identity, determines the injected validation failure.
+    def bad_first_chunk(raw, spans, pages):
+        first_span = p.evidence_spans(pages)[0]
+        if spans[0].evidence_id == first_span.evidence_id:
+            raise e.CardValidationError(code)
+        return original(raw, spans, pages)
+    monkeypatch.setattr(e, 'validate_protocol_card', bad_first_chunk)
+    assert executor.tick(ref)['status'] == 'PARTIAL_CHUNKS_CONTENT_FAILED'
+    assert executor.tick(ref)['status'] == 'CONTENT_FAILED'
+    assert len(calls) == len(manifest['tasks'][0]['chunks']) == 2
+
+
+def test_v2_unknown_prior_intent_never_dispatches(tmp_path, monkeypatch):
+    claims_profile(monkeypatch)
+    def crash(point):
+        if point == 'after_intent':
+            raise Crash(point)
+    calls = []
+    executor, ref, _, _, _ = fixture(tmp_path, transport=claims_transport(calls), crash=crash)
+    with pytest.raises(Crash):
+        executor.tick(ref)
+    executor.crash = lambda _point: None
+    assert executor.tick(ref)['status'] == 'CANNOT_CONFIRM'
+    assert calls == []
 
 
 class Crash(BaseException):
@@ -345,7 +469,7 @@ def test_ordinary_content_failures_keep_three_actual_request_breaker(tmp_path, m
 def test_validation_v2_changes_analysis_and_protocol_identity_and_rejects_v1_run(tmp_path, monkeypatch):
     from dataclasses import replace
     executor, reference, run, calls, specs = fixture(tmp_path)
-    assert p.SEMANTIC_PIPELINE_VERSION == 'pdf-source-bound-validation-v2'
+    assert p.SEMANTIC_PIPELINE_VERSION == 'pdf-source-bound-validation-v3'
     current = e.model_configuration(run['model_binding'])
     assert current.semantic_pipeline_version == p.SEMANTIC_PIPELINE_VERSION
     with monkeypatch.context() as context:

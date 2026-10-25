@@ -6,6 +6,21 @@ from infrastructure.pdf_research import PageText
 from infrastructure import pdf_research_protocol as p, pdf_research_validation as v
 
 
+def test_v2_current_statement_is_not_rejected_for_future_words_elsewhere_in_quote(monkeypatch):
+    from infrastructure import pdf_research_claims as claims
+    for key in ('PROTOCOL_VERSION', 'SEMANTIC_PIPELINE_VERSION', 'PROMPT', 'SCHEMA', 'PROTOCOL_SHA256'):
+        monkeypatch.setattr(p, key, getattr(p, key))
+    p.enable_claims_v2()
+    text = '国盛证券表示甲公司当前收入超6亿元。预计未来增长。'
+    pages = [PageText(1, 1, text, 'OCR_OK', hashlib.sha256(text.encode()).hexdigest())]
+    card = {'claims': [{'statement': '甲公司当前收入超6亿元。', 'kind': 'FACT', 'subject': '甲公司',
+        'attribution': '国盛证券', 'evidence': [{'evidence_id': 'S1'}]}], 'unknowns': []}
+    value = v.validate_protocol_card(json.dumps(card), p.evidence_spans(pages), pages)
+    assert value['deterministic_status'] == 'PASS'
+    assert value['semantic_review'] == 'PENDING_INDEPENDENT_REVIEW'
+    assert value['card']['claims'][0]['statement'] == card['claims'][0]['statement']
+
+
 def specimen(text='原文称2026年收入超过10亿元。'):
     page = PageText(1, 1, text, 'OCR_OK', hashlib.sha256(text.encode()).hexdigest(), 'Vision')
     spans = p.evidence_spans([page])

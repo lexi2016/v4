@@ -1,0 +1,194 @@
+{
+  "schema": "pdf-flow-repair-long.result.v1",
+  "status": "DELIVERY_READY_REQUIRES_INDEPENDENT_ASSEMBLY_REVIEW",
+  "experiment": "pdf-flow-repair-long-20261025",
+  "source": {
+    "branch": "codex/pdf-flow-repair-long-20261025",
+    "local_base": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "fixed_remote_source": "17e4f59c2ffcce961f83488792787f60f69efd57",
+    "restored_dependencies": 19,
+    "changed_paths": [
+      "infrastructure/pdf_research_protocol.py",
+      "infrastructure/pdf_research_validation.py",
+      "infrastructure/pdf_research_execution.py",
+      "infrastructure/pdf_research_claims.py",
+      "tests/test_pdf_research_protocol.py",
+      "tests/test_pdf_research_validation.py",
+      "tests/test_pdf_research_execution.py",
+      "tests/test_pdf_research_claims.py",
+      "ops/run_pdf_flow_repair_trial.py",
+      "docs/handoffs/pdf_flow_repair_long_20261025/results.json"
+    ],
+    "source_sha256_unchanged_during_execution": true,
+    "producer_source_sha256": {
+      "infrastructure/local_document_model.py": "fbef2ed55b8116c8a3a68ef4f0c1c9849420c3460ecb17772f792af8618633ad",
+      "infrastructure/pdf_research.py": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+      "infrastructure/pdf_research_claims.py": "49f8720655d3cf58876f5010b3088eac10fa6e93f05a1d9556aa7ac9f948f77e",
+      "infrastructure/pdf_research_execution.py": "34d20d498d640b1bef1f9663de18e737c51645a49fc23acb936d6e81342418a5",
+      "infrastructure/pdf_research_identity.py": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+      "infrastructure/pdf_research_protocol.py": "0c879ce91fee1a3489540e4bfb7cf14deed38c2e13285ee8ef52a20362252f41",
+      "infrastructure/pdf_research_publication.py": "abf2734e1fba50521190a0d82380ccbdf5506e214f50ae8c5845089077bc1914",
+      "infrastructure/pdf_research_validation.py": "990497ca4bbc07a9585e3a7894bbf2768c984743df3f3c7e7fe2697fcb5b7db5",
+      "infrastructure/pdf_text_preparation.py": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+      "infrastructure/pdf_text_source.py": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+      "infrastructure/zsxq_pdf_ingestion.py": "60420223b291c7d03ba49a947f72dbc262cdfe6aa86631ca791fba4d45e01bde",
+      "ops/run_pdf_flow_repair_trial.py": "67ea5e1ec9f49d444388b32c701588a62bfa36316ba471fb8304cd6b9ba7a4e9",
+      "ops/run_pdf_research_batch.py": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+      "ops/run_pdf_research_full_once.py": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+      "ops/run_pdf_research_package_once.py": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+      "ops/run_pdf_research_remaining_once.py": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832",
+      "ops/run_pdf_research_sample.py": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+      "ops/run_v35_macos_scheduler_daemon.py": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+      "ops/run_zsxq_hourly_delta.py": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce"
+    },
+    "sync": "PENDING_CONTROLLER_GITHUB_CONNECTOR; no raw materials to upload"
+  },
+  "implementation": {
+    "profile": "pdf-claims-source-v2",
+    "default_v1_retained": true,
+    "same_producer_transport_lock_priority_resource_guard": true,
+    "program_binding": "only deterministic source/ID/page/offset/SHA; no semantic filling",
+    "model_work": "source extraction and kind/subject/attribution; exact source contract",
+    "content_error_allowlist_frozen": true,
+    "original_breaker_retained": true
+  },
+  "verification": {
+    "independent_source_and_canary_freeze_tests": 29,
+    "independent_source_and_canary_freeze": "PASS",
+    "writer_affected_green": 13,
+    "writer_additional_boundary_integration_green": 9,
+    "initial_suite": "147 cases; 3 diagnosed failures; old shared pytest tmp cleanup PermissionError, no clean success claim",
+    "offline_same_executor_publisher_render": "PASS",
+    "old_12_actual_calls": "REUSED_NOT_REPEATED"
+  },
+  "execution": {
+    "model_id": "qwen3_8_flash_next",
+    "thinking": false,
+    "temperature": 0,
+    "max_completion_tokens": 32768,
+    "total_actual_posts": 6,
+    "total_unique_response_ids": 6,
+    "retries": 0,
+    "unknown_outcomes": 0,
+    "reasoning_emitted": 0,
+    "code_prompt_oracle_changed_after_output": false
+  },
+  "canary": {
+    "actual_posts": 3,
+    "complete_answers": 3,
+    "claims_reviewed": 28,
+    "gold_rows": 31,
+    "core_rows": 25,
+    "core_coverage": {
+      "PASS": 25,
+      "total": 25
+    },
+    "core_business_semantics_including_kind": {
+      "001": {
+        "PASS": 6,
+        "FAIL": 1,
+        "total": 7
+      },
+      "002": {
+        "PASS": 8,
+        "FAIL": 0,
+        "total": 8
+      },
+      "003": {
+        "PASS": 10,
+        "FAIL": 0,
+        "total": 10
+      }
+    },
+    "end_to_end_document_pass": {
+      "PASS": 0,
+      "total": 3
+    },
+    "verdict": "CANARY_REVIEWED/FAIL",
+    "assessment_sha256": "3af0ea678797c957eace13e6bb4c419834e7a94c75b3a709a4ca2479d3b11429"
+  },
+  "long": {
+    "candidate_documents": 1,
+    "prepared_pages": 20,
+    "prepared_primary_characters": 28722,
+    "planned_requests": 5,
+    "actual_requests": 3,
+    "complete_answers": 3,
+    "actual_primary_pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "actual_primary_characters": 20911,
+    "actual_overlap_characters": 1564,
+    "not_run_pages": [
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "not_run_primary_characters": 7811,
+    "not_run_chunks": [
+      4,
+      5
+    ],
+    "stop": "THREE_CONSECUTIVE_UNUSABLE_ATTEMPTS",
+    "claims_reviewed": 102,
+    "gold_rows": 30,
+    "core_totals": {
+      "frozen": 28,
+      "actually_assessable": 15,
+      "core_business_semantics_PASS": 10,
+      "core_business_semantics_FAIL": 5,
+      "NOT_RUN": 13
+    },
+    "noncore_totals": {
+      "optional_metadata_absent": 1,
+      "input_cannot_confirm": 1
+    },
+    "verdict": "LONG_CONTENT_REVIEWED/FAIL",
+    "assessment_sha256": "3d2076cb6420bae44e831d774f55ae914af3769ad4aa32af2865e3a9d6c61cd4",
+    "limitations": [
+      "literal formatting and exact field composition failed; not automatically a wrong financial number",
+      "L03/L04/L10 omissions; L06/L13 temporal conflicts",
+      "local citation failures; claim69 unsupported completion",
+      "prepared20 pages does not imply model read20 pages"
+    ]
+  },
+  "report": {
+    "html_sha256": "822d0e994528f9b0fa41e0cead669ade0b78b76c1ffe0238eea6dd542a3e9943",
+    "conclusion_sha256": "936acd1136b6819c1812d7299ea3e1913b8d31ce8364764f5da3a7911efdb79c",
+    "raw_materials_local_only": true
+  },
+  "cannot_confirm": [
+    "actual loaded weight build",
+    "independent reasoning",
+    "whole20-page model reading/analysis",
+    "production model acceptance"
+  ],
+  "not_run": [
+    "promote/accepted",
+    "canonical integration",
+    "deployment",
+    "API/UI/natural acceptance",
+    "model download/switch",
+    "service/schedule changes"
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,7 +1,23 @@
 import hashlib
 import json
+import pytest
 from infrastructure import pdf_research_protocol as protocol
 from infrastructure.pdf_research import PageText, _schema_error
+
+
+def test_v2_is_explicit_and_short_aliases_only_cover_provided_sources(monkeypatch):
+    from infrastructure import pdf_research_claims as claims
+    assert protocol.PROTOCOL_VERSION == 'pdf-card-evidence-v1'
+    for key in ('PROTOCOL_VERSION', 'SEMANTIC_PIPELINE_VERSION', 'PROMPT', 'SCHEMA', 'PROTOCOL_SHA256'):
+        monkeypatch.setattr(protocol, key, getattr(protocol, key))
+    protocol.enable_claims_v2()
+    text = '公司收入超过6亿元。\n预计未来增长。'
+    page = PageText(1, 1, text, 'OCR_OK', hashlib.sha256(text.encode()).hexdigest())
+    spans = protocol.evidence_spans([page])
+    request = json.loads(protocol.request_messages(spans, {})[1]['content'])
+    assert request['source_spans'] == [{'evidence_id': 'S1', 'page_number': 1, 'text': text}]
+    assert protocol.SCHEMA == claims.SCHEMA
+    assert set(protocol.SCHEMA['properties']) == {'claims', 'unknowns'}
 
 
 def test_prompt_refinement_keeps_general_source_and_field_contracts():

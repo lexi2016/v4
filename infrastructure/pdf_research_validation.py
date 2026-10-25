@@ -336,6 +336,9 @@ def _contiguous_numeric_quotes(evidence):
 def validate_protocol_card(raw_text, spans, pages):
     """Resolve only program evidence IDs, then validate without semantic repair."""
     from infrastructure import pdf_research_protocol as protocol
+    if protocol.PROTOCOL_VERSION == 'pdf-claims-source-v2':
+        from infrastructure import pdf_research_claims as claims
+        return claims.validate(raw_text, spans, pages)
     from infrastructure.pdf_research import _schema_error
     try:
         card = json.loads(raw_text)

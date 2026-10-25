@@ -65,6 +65,16 @@ PROTOCOL_SHA256 = hashlib.sha256(canonical_json({'schema': SCHEMA, 'prompt': PRO
     'version': PROTOCOL_VERSION, 'semantic_pipeline': SEMANTIC_PIPELINE_VERSION})).hexdigest()
 
 
+def enable_claims_v2():
+    """Explicit process-local experimental profile; the default v1 is retained."""
+    from infrastructure import pdf_research_claims as claims
+    global PROTOCOL_VERSION, SEMANTIC_PIPELINE_VERSION, PROMPT, SCHEMA, PROTOCOL_SHA256
+    PROTOCOL_VERSION, SEMANTIC_PIPELINE_VERSION = claims.VERSION, claims.SEMANTIC_VERSION
+    PROMPT, SCHEMA = claims.PROMPT, claims.SCHEMA
+    PROTOCOL_SHA256 = hashlib.sha256(canonical_json({'schema': SCHEMA, 'prompt': PROMPT,
+        'version': PROTOCOL_VERSION, 'semantic_pipeline': SEMANTIC_PIPELINE_VERSION})).hexdigest()
+
+
 @dataclass(frozen=True)
 class EvidenceSpan:
     evidence_id: str
@@ -80,6 +90,9 @@ class EvidenceSpan:
 
 
 def evidence_spans(pages: Sequence[PageText], *, maximum=240) -> tuple[EvidenceSpan, ...]:
+    if PROTOCOL_VERSION == 'pdf-claims-source-v2':
+        from infrastructure import pdf_research_claims as claims
+        return claims.evidence_spans(pages)
     if type(maximum) is not int or not 1 <= maximum <= 300:
         raise ValueError('EVIDENCE_SPAN_LIMIT_INVALID')
     result = []
@@ -101,6 +114,9 @@ def evidence_spans(pages: Sequence[PageText], *, maximum=240) -> tuple[EvidenceS
 
 
 def request_messages(spans: Sequence[EvidenceSpan], metadata: Mapping[str, Any]):
+    if PROTOCOL_VERSION == 'pdf-claims-source-v2':
+        from infrastructure import pdf_research_claims as claims
+        return claims.request_messages(spans, metadata)
     return [{'role': 'system', 'content': PROMPT}, {'role': 'user', 'content': canonical_json({
         'metadata': dict(metadata), 'source_spans': [x.prompt_value() for x in spans],
         'scope': 'ONLY_LISTED_SPANS', 'protocol': PROTOCOL_VERSION}).decode()}]
@@ -115,6 +131,9 @@ def request_envelope(messages):
 
 
 def chunk_spans(spans: Sequence[EvidenceSpan], metadata: Mapping[str, Any], *, max_characters=8000, max_envelope_bytes=32768):
+    if PROTOCOL_VERSION == 'pdf-claims-source-v2':
+        from infrastructure import pdf_research_claims as claims
+        return claims.chunk_spans(spans, metadata, max_characters=max_characters, max_envelope_bytes=max_envelope_bytes)
     groups, current = [], []
     for span in spans:
         trial = current + [span]
@@ -135,6 +154,9 @@ def chunk_spans(spans: Sequence[EvidenceSpan], metadata: Mapping[str, Any], *, m
 
 
 def render_card(card):
+    if card.get('schema') == 'pdf-claims-source-v2':
+        from infrastructure import pdf_research_claims as claims
+        return claims.render_card(card)
     lines = [card['material_type'], card['event_or_meeting_object']]
     for label, field, text in [('事实', 'facts', 'claim'), ('来源预测', 'forecasts', 'claim'),
                               ('风险', 'risks', 'risk'), ('用途限制', 'source_usage_limits', 'limitation')]:

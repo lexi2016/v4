@@ -524,6 +524,7 @@ class PdfExecutor:
         write_json(self.root, execution_root / 'claim.json', {'owner_pid': os.getpid(), 'owner_token': uuid.uuid4().hex,
             'analysis_id': aid, 'generation': generation, 'run_id': run['run_id']}, immutable=False)
         completed = []
+        content_failed = []
         writer_id = None
         posts = 0
         for index, spans in enumerate(groups, 1):
@@ -660,6 +661,39 @@ class PdfExecutor:
             try:
                 value = validate_protocol_card(raw['text'], spans, pages)
             except CardValidationError as exc:
+                if protocol.PROTOCOL_VERSION == 'pdf-claims-source-v2':
+                    from infrastructure import pdf_research_claims as claims
+                    # All unlisted exceptions are input/integrity/unknown failures.
+                    # Never infer continuation from the exception type or its name.
+                    if exc.code not in claims.CONTENT_ERRORS:
+                        journal.record_outcome(intent, reuse_verified=foreign, usable=False,
+                            content_failure=False, code=exc.code, terminal_event='failed',
+                            raw_sha256=raw['text_sha256'], integrity_failure=True)
+                        return self._halt(run_root, journal, exc.code, posts=posts)
+                    failure = {'analysis_id': aid, 'generation': generation, 'chunk_index': index,
+                        'raw_sha256': raw['text_sha256'], 'code': exc.code,
+                        'semantic_acceptance': 'NOT_GRANTED', **SAFETY}
+                    failure_sha = write_json(self.root, chunk_root / 'content-failure.json', failure)
+                    journal.record_outcome(intent, reuse_verified=foreign, usable=False,
+                        content_failure=True, code=exc.code, terminal_event='chunk_content_failed',
+                        raw_sha256=raw['text_sha256'], integrity_failure=False)
+                    previous = [event for event in journal.events if event.get('event') == 'chunk_content_failed'
+                        and all(event.get(key) == val for key, val in request_key(intent).items())]
+                    if previous:
+                        if len(previous) != 1 or previous[0].get('failure_sha256') != failure_sha:
+                            raise ExecutionError('PDF_CLAIMS_CONTENT_FAILURE_BINDING_MISMATCH')
+                    else:
+                        journal.append({'event': 'chunk_content_failed', **request_key(intent),
+                            'code': exc.code, 'failure_sha256': failure_sha})
+                    content_failed.append(failure)
+                    reason = breaker_reason(journal.events)
+                    if reason:
+                        return self._halt(run_root, journal, reason, posts=posts)
+                    if index != len(groups) and posts:
+                        return {'status': 'PARTIAL_CHUNKS_CONTENT_FAILED', 'analysis_id': aid,
+                            'completed_chunks': index, 'total_chunks': len(groups),
+                            'code': exc.code, 'model_posts': posts, **SAFETY}
+                    continue
                 broken = integrity_failure(exc.code)
                 journal.record_outcome(intent, reuse_verified=foreign, usable=False, content_failure=not broken, code=exc.code,
                     terminal_event='failed', raw_sha256=raw['text_sha256'], integrity_failure=broken)
@@ -683,6 +717,14 @@ class PdfExecutor:
             if index != len(groups):
                 return {'status': 'PARTIAL_CHUNKS_COMPLETE', 'analysis_id': aid, 'completed_chunks': index,
                     'total_chunks': len(groups), 'model_posts': posts, **SAFETY}
+        if content_failed:
+            journal.append({'event': 'failed', 'analysis_id': aid, 'generation': generation,
+                'code': 'PDF_CLAIMS_COMPLETED_WITH_CONTENT_FAILURES',
+                'content_failed_chunks': [item['chunk_index'] for item in content_failed]})
+            return {'status': 'CONTENT_FAILED', 'analysis_id': aid,
+                'code': 'PDF_CLAIMS_COMPLETED_WITH_CONTENT_FAILURES',
+                'content_failed_chunks': [item['chunk_index'] for item in content_failed],
+                'completed_chunks': len(groups), 'total_chunks': len(groups), 'model_posts': posts, **SAFETY}
         meta = self.publisher.publish(task, generation, completed,
             generated_at=completed[-1]['received_at'],
             writer_id=writer_id,
