@@ -1,0 +1,202 @@
+--- a/apps/api/v35_api/app.py
++++ b/apps/api/v35_api/app.py
+@@ -4663,3 +4663,20 @@
+     ) -> dict:
+-        canonical_markets = payload.get("markets", {})
++        canonical_markets = dict(payload.get("markets", {}))
++        hk_unknown = canonical_markets.get("HK_CONNECT")
++        if isinstance(hk_unknown, Mapping) and (
++            all(hk_unknown.get(key) == "CANNOT_CONFIRM"
++                for key in ("status", "selection_status", "source_status"))
++            and all(hk_unknown.get(key) is None for key in
++                    ("requested_rows", "source_rows", "selected_rows", "artifact_id", "run_id"))
++            and hk_unknown.get("rows") == []
++            and isinstance(hk_unknown.get("cannot_confirm"), list)
++            and hk_unknown.get("selection_manifest_receipt_verified") in (None, False)
++        ):
++            from stage_center.consumer import _invalid_market
++            hk_unknown = dict(hk_unknown)
++            standard = _invalid_market("HK_CONNECT")["cannot_confirm"]
++            causes = hk_unknown["cannot_confirm"]
++            hk_unknown["cannot_confirm"] = [reason for reason in standard if reason not in causes] + causes
++            hk_unknown["selection_manifest_receipt_verified"] = False
++            canonical_markets["HK_CONNECT"] = hk_unknown
+         selection_markets = canonical_markets
+@@ -4971,9 +4988,73 @@
+     ) -> dict:
+-        exact = stage_workbench(
+-            date=trade_date,
+-            stage=stage_id,
+-            limit=limit,
+-            market="HK_CONNECT",
+-            backfill_run_id=binding["backfill_run_id"],
+-        )
++        try:
++            exact = stage_workbench(
++                date=trade_date,
++                stage=stage_id,
++                limit=limit,
++                market="HK_CONNECT",
++                backfill_run_id=binding["backfill_run_id"],
++            )
++        except HTTPException as error:
++            # These frozen historical composite reads have independently verified
++            # A-share trios. An invalid HK override must not hide that A lane;
++            # the explicit HK read above still rejects its invalid binding.
++            if error.status_code != 409 or (trade_date, stage_id) not in {
++                ('20260918', 'STAGE_0930_0935'),
++                ('20260918', 'STAGE_0935_0940'),
++                ('20260918', 'STAGE_0940_0945'),
++                ('20260918', 'STAGE_0945_1030'),
++                ('20260918', 'STAGE_1300_1315'),
++                ('20260918', 'STAGE_1445_1500'),
++                ('20260922', 'STAGE_0935_0940'),
++                ('20260922', 'STAGE_0940_0945'),
++                ('20260922', 'STAGE_0945_1030'),
++                ('20260924', 'STAGE_0930_0935'),
++                ('20260924', 'STAGE_1445_1500'),
++                ('20260929', 'STAGE_0930_0935'),
++                ('20260929', 'STAGE_0935_0940'),
++                ('20260929', 'STAGE_0940_0945'),
++                ('20260929', 'STAGE_0945_1030'),
++                ('20260929', 'STAGE_1300_1315'),
++                ('20260929', 'STAGE_1445_1500'),
++                ('20260930', 'STAGE_0930_0935'),
++                ('20260930', 'STAGE_0935_0940'),
++                ('20260930', 'STAGE_0940_0945'),
++                ('20260930', 'STAGE_0945_1030'),
++                ('20260930', 'STAGE_1300_1315'),
++                ('20260930', 'STAGE_1445_1500'),
++            }:
++                raise
++            markets = dict(payload.get("markets") or {})
++            a_market = markets.get("A_SHARE")
++            if not isinstance(a_market, Mapping) or not (
++                a_market.get("selection_manifest_receipt_verified") is True
++                and int(a_market.get("selected_rows") or 0) > 0
++            ):
++                raise
++            from stage_center.consumer import _invalid_market_with_reason
++            denied = _invalid_market_with_reason(
++                "HK_CONNECT", "EXACT_TARGET_HK_BINDING_INVALID"
++            )
++            denied["cannot_confirm"].append(str(error.detail))
++            denied["recovery_provenance"] = {
++                "mode": "BACKFILL_BINDING_REJECTED",
++                "backfill_run_id": binding["backfill_run_id"],
++                "source": source_label,
++                "http_status": error.status_code,
++            }
++            markets["HK_CONNECT"] = denied
++            result = dict(payload)
++            result.update(markets=markets, artifact_id=None,
++                          bundle_artifact_id=None, run_id=None)
++            execution = dict(payload.get("execution_evidence") or {})
++            execution_markets = dict(execution.get("markets") or {})
++            execution_markets["HK_CONNECT"] = {
++                "status": "CANNOT_CONFIRM", "execution_verified": False,
++                "natural_verified": False,
++                "cannot_confirm": list(denied["cannot_confirm"]),
++            }
++            execution.update(markets=execution_markets,
++                             execution_verified=False, natural_verified=False)
++            result["execution_evidence"] = execution
++            return result
+         exact_markets = exact.get("selection_markets")
+@@ -5487,2 +5568,43 @@
+             except ResearchReadError as error:
++                # The optional research package covers BOTH A and HK. Its
++                # rejected A is never authenticated by this fallback: read the
++                # independent ordinary A trio through the unchanged verifier.
++                if (selected, stage) == ("20261009", "STAGE_0930_0935") and (
++                    market is None and backfill_run_id is None
++                    and shared_selection_consumer is not None
++                ):
++                    ordinary = shared_selection_consumer.get(
++                        selected, stage, markets=("A_SHARE",), allow_backfill=True
++                    )
++                    a_market = (ordinary.get("markets") or {}).get("A_SHARE")
++                    if isinstance(a_market, Mapping) and (
++                        a_market.get("selection_manifest_receipt_verified") is True
++                        and int(a_market.get("selected_rows") or 0) > 0
++                        and len(a_market.get("rows") or []) == a_market["selected_rows"]
++                    ):
++                        from stage_center.consumer import _invalid_market_with_reason
++                        denied = _invalid_market_with_reason(
++                            "HK_CONNECT", "APPROVED_RESEARCH_BINDING_INVALID"
++                        )
++                        denied["cannot_confirm"].append(str(error))
++                        result = dict(ordinary)
++                        result["markets"] = {"A_SHARE": a_market, "HK_CONNECT": denied}
++                        result.update(artifact_id=None, bundle_artifact_id=None, run_id=None)
++                        result["optional_override_failure"] = {
++                            "scope": ["A_SHARE", "HK_CONNECT"],
++                            "reason": str(error),
++                            "fallback": "INDEPENDENT_VERIFIED_ORDINARY_A_TRIO_ONLY",
++                            "rejected_research_A_used": False,
++                        }
++                        execution = dict(ordinary.get("execution_evidence") or {})
++                        execution_markets = dict(execution.get("markets") or {})
++                        execution_markets["HK_CONNECT"] = {
++                            "status": "CANNOT_CONFIRM", "execution_verified": False,
++                            "natural_verified": False,
++                            "cannot_confirm": list(denied["cannot_confirm"]),
++                        }
++                        execution.update(markets=execution_markets,
++                                         execution_verified=False, natural_verified=False)
++                        result["execution_evidence"] = execution
++                        return project_shared_selection(result, limit, ordinary_hk_display=True)
+                 raise HTTPException(status_code=409, detail="approved research read binding is unavailable or invalid") from error
+@@ -5785,9 +5907,45 @@
+                 if day24_binding_key in _APPROVED_EXACT_STAGE_BACKFILLS:
+-                    exact_hk = stage_workbench(
+-                        date=selected,
+-                        stage=stage,
+-                        limit=limit,
+-                        market="HK_CONNECT",
+-                        backfill_run_id=day24_run_id,
+-                    )
++                    try:
++                        exact_hk = stage_workbench(
++                            date=selected,
++                            stage=stage,
++                            limit=limit,
++                            market="HK_CONNECT",
++                            backfill_run_id=day24_run_id,
++                        )
++                    except HTTPException as error:
++                        a_market = (payload.get("markets") or {}).get("A_SHARE")
++                        if error.status_code != 409 or not isinstance(a_market, Mapping) or not (
++                            a_market.get("selection_manifest_receipt_verified") is True
++                            and int(a_market.get("selected_rows") or 0) > 0
++                            and len(a_market.get("rows") or []) == a_market["selected_rows"]
++                        ):
++                            raise
++                        from stage_center.consumer import _invalid_market_with_reason
++                        denied = _invalid_market_with_reason(
++                            "HK_CONNECT", "EXACT_TARGET_HK_BINDING_INVALID"
++                        )
++                        denied["cannot_confirm"].append(str(error.detail))
++                        denied["recovery_provenance"] = {
++                            "mode": "BACKFILL_BINDING_REJECTED",
++                            "backfill_run_id": day24_run_id,
++                            "source": "DAY24_EXACT_HK_OVERRIDE",
++                            "http_status": error.status_code,
++                        }
++                        result = dict(payload)
++                        markets = dict(payload.get("markets") or {})
++                        markets["HK_CONNECT"] = denied
++                        result.update(markets=markets, artifact_id=None,
++                                      bundle_artifact_id=None, run_id=None)
++                        execution = dict(payload.get("execution_evidence") or {})
++                        execution_markets = dict(execution.get("markets") or {})
++                        execution_markets["HK_CONNECT"] = {
++                            "status": "CANNOT_CONFIRM", "execution_verified": False,
++                            "natural_verified": False,
++                            "cannot_confirm": list(denied["cannot_confirm"]),
++                        }
++                        execution.update(markets=execution_markets,
++                                         execution_verified=False, natural_verified=False)
++                        result["execution_evidence"] = execution
++                        return project_shared_selection(result, limit, ordinary_hk_display=True)
+                     exact_markets = exact_hk.get("selection_markets")

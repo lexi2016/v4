@@ -1,0 +1,32 @@
+{
+  "schema": "V4_READER_FULL_REPAIR_CHAIN_SLIM_DELIVERY_V1",
+  "chain": [
+    {
+      "stage": "original_current",
+      "sha256": "c4e47479420a346bcbf44e61be41f20646964715424aa6c95c61d9ada33c21a9"
+    },
+    {
+      "stage": "r2",
+      "sha256": "d62706882d52d0f1388afc44bc454fc1b17638de73a4d3d79dcc650ccb74d433"
+    },
+    {
+      "stage": "r3",
+      "sha256": "881aef6ecdf569839f69d8becad3093ea633643448050eaeb542539db1278896"
+    },
+    {
+      "stage": "candidate_r4",
+      "sha256": "9e9120707933cea50a774f54c13bba528d2213def16a8263155402d53c13cba9"
+    }
+  ],
+  "cumulative_patch_sha256": "c8aac30f554e0620ec64b53664c16797a62a5f90fc18630266b2bab26420a0f5",
+  "cumulative_base_sha256": "c4e47479420a346bcbf44e61be41f20646964715424aa6c95c61d9ada33c21a9",
+  "final_candidate_sha256": "9e9120707933cea50a774f54c13bba528d2213def16a8263155402d53c13cba9",
+  "full_runtime_file_not_copied_to_worktree": true,
+  "canonical_dirty_source_not_overwritten": true,
+  "raw_response_market_plist_secrets_excluded": true,
+  "files": {
+    "consumer_envelope_r4.py": "ab7e7ebd5dbabc0048c342c00e69d00c061666ee36a1d64a25d84d6505725d92",
+    "READER_CUMULATIVE_C4_TO_R4.patch": "c8aac30f554e0620ec64b53664c16797a62a5f90fc18630266b2bab26420a0f5",
+    "validate_saved_stage.cjs": "282a0390073f3b39ee3b2dc37a4bff5ebbe594a55167dc6a2317ccd6cdeac13d"
+  }
+}

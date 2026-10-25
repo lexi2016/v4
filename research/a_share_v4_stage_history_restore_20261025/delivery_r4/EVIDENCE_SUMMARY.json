@@ -1,0 +1,60 @@
+{
+  "schema": "SLIM_SOFTWARE_READER_EVIDENCE_SUMMARY_V1",
+  "status": "PASS_V4_20SESSION_A_SHARE_HISTORY_READABLE_WITH_134_RETAINED_AND_6_EXPLICIT_GAPS",
+  "financial_evaluation_rerun": false,
+  "selection_raw_index_writes": false,
+  "api_matrix": {
+    "cells": 140,
+    "http200": 140,
+    "retained_numeric_cells": 134,
+    "explicit_gap_cells": 6,
+    "r2_reused": 116,
+    "r3_incremental": 24,
+    "r4_actual_smoke": 5,
+    "r4_new_child_http": 0
+  },
+  "r4_strict_offline": {
+    "accepted": 140,
+    "negative_rejected": 2,
+    "A_objects_unchanged": 140
+  },
+  "protected_old_files": 648,
+  "source_pit": "CANNOT_CONFIRM",
+  "raw_data_in_delivery": false,
+  "local_evidence_hashes": {
+    "post_r3/MERGED_140_MATRIX.json": "7308c2c422affd285e0a7e452ed868c182f451426cb6c2de0a7983ad84bb15a6",
+    "post_r3/MANIFEST.json": "5a9b1ae810440485967571dc81ab04cba7d92e01e5eccc47d7888f7e17289cd9",
+    "candidate_r4/STRICT_CONSUMER_TEST_RECEIPT.json": "4f50eb236d036d4b649e36db250abee8348345417dc63cd6b8887257e49f9856",
+    "post_r4/ACTUAL_FIVE_INPUT_BINDING.json": "85720da076cdb2c756eda6866ff0c12c982f3a20402f9a4b201dab12ee8b2f4a",
+    "post_r4/ACTUAL_FIVE_STRICT_CONSUMER_RESULT.json": "f98a63e21b7362963fd869546ac0849c62203cd81ffbdc60d153ac8df22cb6bd",
+    "control/ROOT_API_ACTIVATION_R4.json": "3b562c8c9e97207085a89ee0041169cb9940ef7d5f61b195c6f40f91406bff27",
+    "control/ROOT_FINAL_READER_REVIEW_TRANSCRIPT.json": "8571d252a07a450867f4ea6536496185dc9d96120cf1e971d686cb9c1349faa2",
+    "control/ROOT_UI_R4_READBACK_RECEIPT.json": "785d11afcc4d8a75059a71ef1b1d2c8f9217673f48c98c46c5ce5f88e60afe29"
+  },
+  "actual_UI_risk_samples_passed": 4,
+  "known_display_limitation": "Gap UI rendered 0 rows; canonical selected_rows is null/CANNOT_CONFIRM, never a confirmed zero or READY_EMPTY",
+  "review_evidence_kind": "CONTROLLER_TRANSCRIPTION_OF_INDEPENDENT_MESSAGE_NOT_SIGNED_REVIEWER_FILE",
+  "registry_summary": {
+    "registry_sha256": "14ab889d1cad54d0d24e02578799044594812e2720b0b3793ea3d335c04bde1e",
+    "global_counts": {
+      "routes": 466,
+      "events": 6266,
+      "executions": 1805,
+      "corrections": 155
+    },
+    "scope_counts": {
+      "routes": 1,
+      "events": 41,
+      "executions": 15,
+      "corrections": 1
+    },
+    "scope_open_execution_count": 0,
+    "scope_unregistered_route_count": 0,
+    "scope_contract_only_count": 0,
+    "external_registry_persistence": "CANNOT_CONFIRM"
+  },
+  "previous_revisions": {
+    "R2": "EXACT_TWO_SOURCE_AND_API_PASS; FULL_MATRIX_22_FAIL; OVERALL_SUPERSEDED",
+    "R3": "SOURCE_AND_VERSIONED_API140_PASS; ACTUAL_UI_FAIL; OVERALL_SUPERSEDED"
+  }
+}
