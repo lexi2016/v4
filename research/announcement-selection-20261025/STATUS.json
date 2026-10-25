@@ -1,0 +1,28 @@
+{
+  "schema": "v4.announcement.source_only_delivery_status.v1",
+  "status": "SOURCE_ONLY_PARTIAL",
+  "source_files": 39,
+  "source_baseline": "8e70569c2137639fef78d79339a3a48b348ee295",
+  "delivery_parent": "615d1ce5417ed65ca2c8b736435c5d4596b79b19",
+  "recovery": "REVIEWED/PASS_PHASE1_ONLY",
+  "saved_readback": "REVIEWED/PASS_SAVED_READBACK_SCOPE_ONLY",
+  "fixed_fact_candidate": "REVIEWED/PASS_ISOLATED_REPAIR_ONLY",
+  "fixed_fact_tests": {
+    "passed": 17,
+    "skipped": 0,
+    "quote_locators": "9/9"
+  },
+  "original_saved_model_result": "SEMANTIC_FAIL_UNCHANGED",
+  "additional_announcement_model_requests": 0,
+  "phase4_isolated_page": "NOT_RUN",
+  "phase5_runtime_boundary_repair": "NOT_RUN",
+  "integration": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "live_API_UI": "NOT_RUN",
+  "natural_acceptance": "NOT_RUN",
+  "first_cutover": "BOOTSTRAP_CUTOVER_BLOCKED",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
