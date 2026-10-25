@@ -64,7 +64,7 @@ def capture():
    dest=saved/d/s;dest.mkdir(parents=True,exist_ok=True);entry=dict(e)
    for fn,hkey in [('artifact.csv','artifact_sha256'),('manifest.json','manifest_sha256'),('receipt.json','receipt_sha256')]:
     p=(STORE/e['artifact_relative']).parent/fn;target=dest/fn
-    
+
     if not target.exists():shutil.copy2(p,target)
     entry[fn+'_identity_valid']=sha(target)==e[hkey];refs.append(dict(path=str(target),source_path=str(p),sha256=sha(target)))
    entries[key]=entry

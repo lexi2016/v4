@@ -1,0 +1,66 @@
+{
+  "schema": "SECOND_SELECTION_DELIVERY_FORMAT_ONLY_V1",
+  "status": "SOFTWARE_DELIVERY_ONLY_PENDING_INDEPENDENT_REVIEW",
+  "reason": "Native Git pre-commit trailing-whitespace guard rejected audit.py line67",
+  "original_executed_file": "/Users/lexi/.codex/worktrees/a-share-second-selection-top100-20261025/v4_app/research/a_share_v4_second_selection_top100_20261025/audit.py",
+  "original_executed_file_sha256": "3298bccd5e416fe28408ddce809c675575fd32a9ca51d6f7c9e3209d0cb55285",
+  "old_remote_commit": "bb89a56e1136a518bb8a31a4e44b194ad1b7a456",
+  "delivery_file": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_second_selection_top100_delivery_20261025/research/a_share_v4_second_selection_top100_20261025/audit.py",
+  "delivery_before_sha256": "3298bccd5e416fe28408ddce809c675575fd32a9ca51d6f7c9e3209d0cb55285",
+  "delivery_after_sha256": "47942bb8e89163fe7f45e3370ca19966174f7a3c60efd1a7ec3af6649f440da7",
+  "edit": {
+    "changed_lines": [
+      67
+    ],
+    "before_line67_repr": "b'    \\n'",
+    "after_line67_repr": "b'\\n'",
+    "operation": "STRIP_ONLY_FOUR_TRAILING_ASCII_SPACES_ON_BLANK_LINE67",
+    "bytes_removed": 4
+  },
+  "software_check": {
+    "ast_equivalent": true,
+    "ast_dump_sha256": "a241b75c505256ef6a92818ce16f79885046eb45621c9894f61da9a301c61d1a",
+    "financial_experiment": false,
+    "no_tests_or_numerical_reruns": true
+  },
+  "original_executed_source_count": 5,
+  "original_executed_source_sha256_unchanged": {
+    "audit.py": "3298bccd5e416fe28408ddce809c675575fd32a9ca51d6f7c9e3209d0cb55285",
+    "register.py": "81d5d7cd599ee8271e753020702751c6be20d985bc1e6901fba4e03bfb008552",
+    "prepare_saved.py": "8d57212b8ae4d0bb1a229105fdca32b65d9558ad6eaa3f12714831113868db60",
+    "test_audit.py": "6c9828cd5511a186c4f841b5d8a6f022b56332bbf523e174faff73bf0366b285",
+    "publish.py": "d58bf16421caac7a4f4b63b33700424eae08079ce1d8610612c966a949aeb51e"
+  },
+  "other_delivery_source_count": 4,
+  "other_delivery_source_sha256_unchanged": {
+    "register.py": "81d5d7cd599ee8271e753020702751c6be20d985bc1e6901fba4e03bfb008552",
+    "prepare_saved.py": "8d57212b8ae4d0bb1a229105fdca32b65d9558ad6eaa3f12714831113868db60",
+    "test_audit.py": "6c9828cd5511a186c4f841b5d8a6f022b56332bbf523e174faff73bf0366b285",
+    "publish.py": "d58bf16421caac7a4f4b63b33700424eae08079ce1d8610612c966a949aeb51e"
+  },
+  "other_accepted_delivery_files_sha256_unchanged": {
+    "SOURCE_MANIFEST.json": "443a29a56e17d83056aa2cabd5205267aa718d2d02560a9d7ae75e926af595ec",
+    "register.py": "81d5d7cd599ee8271e753020702751c6be20d985bc1e6901fba4e03bfb008552",
+    "REPORT.md": "298a3be469bae6047f1fafbc1c3673d7041d84d5bb093438c1bb13c5dbc19cb4",
+    "prepare_saved.py": "8d57212b8ae4d0bb1a229105fdca32b65d9558ad6eaa3f12714831113868db60",
+    "README.md": "18537a56bbe14a081aa7fc1ce4b1e45d092188cb0ec4901741910d8a7822ae26",
+    "test_audit.py": "6c9828cd5511a186c4f841b5d8a6f022b56332bbf523e174faff73bf0366b285",
+    "publish.py": "d58bf16421caac7a4f4b63b33700424eae08079ce1d8610612c966a949aeb51e",
+    "results/RESULT.json": "50309a2cc7f0cd1c53c125a4c7bb1a9767eecc7729a42158c08cb80a16876700",
+    "results/daily_summary.csv": "25483cac4fd61e0f23363318e605515fa3b27efb67c6dbb413721144e633ab78",
+    "results/stage_summary.csv": "d8ef2bbc1a1ea83742f59b2c54a78edec996a8e84632dca4f9457eba411b6fb4"
+  },
+  "protected_original_source_outputs_sha256_unchanged": {
+    "/Users/lexi/.codex/worktrees/a-share-second-selection-top100-20261025/v4_app/research/a_share_v4_second_selection_top100_20261025/audit.py": "3298bccd5e416fe28408ddce809c675575fd32a9ca51d6f7c9e3209d0cb55285",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/SOURCE_MANIFEST.json": "443a29a56e17d83056aa2cabd5205267aa718d2d02560a9d7ae75e926af595ec",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/REPORT.md": "298a3be469bae6047f1fafbc1c3673d7041d84d5bb093438c1bb13c5dbc19cb4",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/results/PUBLICATION_MANIFEST.json": "978a66aa052d7377f843c9e7b96bd36999662ba8b708b73abd5ed0b19eb94891",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/results/OUTPUT_MANIFEST.json": "978a66aa052d7377f843c9e7b96bd36999662ba8b708b73abd5ed0b19eb94891",
+    "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/FINAL_INPUT_MANIFEST.json": "3d58297e2a68385faf7fc804aaf9fd49c22aafe7f5afc134e92e727671365c91"
+  },
+  "source_manifest_semantics": "FROZEN_EXECUTION_NOT_DELIVERY_HASH_INDEX",
+  "source_manifest_changed": false,
+  "no_commit_push": true,
+  "no_registry_change": true,
+  "ownership": "RELEASED_AFTER_HANDOFF"
+}
