@@ -1,0 +1,102 @@
+{
+  "schema": "prompt-refinement-compact-results.v1",
+  "source_repair": "PROMPT_SOURCE_PASS",
+  "source_changed_paths": [
+    "infrastructure/pdf_research_protocol.py",
+    "tests/test_pdf_research_protocol.py"
+  ],
+  "only_model_visible_variable": "system_PROMPT",
+  "candidate_count": 1,
+  "source_check": "1focusedPASS; priorunaffectedPASSreused",
+  "schema_unchanged": true,
+  "validator_sha256": "74164aad471caed2f2dac4569f8d6a52d326ca74c7837788de4927faa13d80b1",
+  "source_sha256": {
+    "infrastructure/local_document_model.py": "fbef2ed55b8116c8a3a68ef4f0c1c9849420c3460ecb17772f792af8618633ad",
+    "infrastructure/pdf_research.py": "44e88b1e7f52e6c09ebb183cb71c25a3bd15eee66bbdf52278ab3689a6ffe0f6",
+    "infrastructure/pdf_research_execution.py": "e487b8b34d576ac4916d42d8153927b64c16c93d48240414220cc932344c5aca",
+    "infrastructure/pdf_research_identity.py": "5d8185dcfc8223217ca059d6aa85a121d2911061559894427504365ea3c6c47a",
+    "infrastructure/pdf_research_protocol.py": "66279e4dad7e0a96aae44955d4948a2028f5deec310a56ac79093ce7b9e0a9c2",
+    "infrastructure/pdf_research_publication.py": "abf2734e1fba50521190a0d82380ccbdf5506e214f50ae8c5845089077bc1914",
+    "infrastructure/pdf_research_validation.py": "74164aad471caed2f2dac4569f8d6a52d326ca74c7837788de4927faa13d80b1",
+    "infrastructure/pdf_text_preparation.py": "0269e889a73a9eb7ac3ef8f5d9256d4e210027668ece9213c89c15628eb938e4",
+    "infrastructure/pdf_text_source.py": "4069af47b3cac47b25f75fa649621850a5408c4bbaead4eb25964e23bb8859f3",
+    "infrastructure/zsxq_pdf_ingestion.py": "60420223b291c7d03ba49a947f72dbc262cdfe6aa86631ca791fba4d45e01bde",
+    "ops/run_pdf_research_batch.py": "9f565f2f0db828f661b2e76bacd84b31af435e269221df8c501860484503a46b",
+    "ops/run_pdf_research_full_once.py": "cf8b526f297797ca7ae33229629297842a2b2130dcea6c5f63a83b5a534792be",
+    "ops/run_pdf_research_package_once.py": "ac799b63072277fbe0fcec2b9b58c8b74130529ff207e97eb49d26745c8596ea",
+    "ops/run_pdf_research_remaining_once.py": "ea4f677fdb015be34359ffed4ffaa8aac7058283fd7254bc3d230b1262488832",
+    "ops/run_pdf_research_sample.py": "32f52a6353fe0370337c574899280e9ccdd716023d17e90717ad341543814476",
+    "ops/run_v35_macos_scheduler_daemon.py": "790cbf4dfcb1b6302d97d916d8274ae197adf9214d53359966fa4feffb06ba01",
+    "ops/run_zsxq_hourly_delta.py": "ba3212f0931ccf17670fa0e982e59338761f00d45090411fca1def8f5c57afce"
+  },
+  "actual_POSTs": 3,
+  "complete_answers": 3,
+  "facts_count": 31,
+  "core_facts_count": 25,
+  "independent_full_content_PASS": 0,
+  "samples": [
+    {
+      "document_id": "987b7eb90136e7945cf9698f26ff7dad5b6e64eff9804f32fa45ff877a1769e6",
+      "actual_POST": 1,
+      "seconds": 101.139648,
+      "counts": {
+        "facts": 7,
+        "forecasts": 3,
+        "numeric_values": 3,
+        "risks": 0,
+        "source_usage_limits": 1
+      },
+      "program_status": "CONTENT_FAILED",
+      "program_first_code": "PDF_NUMERIC_CURRENCY_UNLINKED",
+      "independent_verdict": "REVIEWED/FAIL",
+      "content_PASS": false,
+      "raw_sha256": "62ff8212a52aa5a01050c0e5ae74e9e507f415f7e9d19008c9bacea4d9c86558"
+    },
+    {
+      "document_id": "7093bff14c97c168ce1f9af807e9e92c1ef0060a619e8ec7ca30f9538419470c",
+      "actual_POST": 1,
+      "seconds": 119.709246,
+      "counts": {
+        "facts": 11,
+        "forecasts": 1,
+        "numeric_values": 3,
+        "risks": 0,
+        "source_usage_limits": 0
+      },
+      "program_status": "CONTENT_FAILED",
+      "program_first_code": "FULL_NUMERIC_VALUE_NOT_IN_QUOTE",
+      "independent_verdict": "REVIEWED/FAIL",
+      "content_PASS": false,
+      "raw_sha256": "dafe3532cf04bb3799955e572f8a42c2b96abebb8d652ef8477a1021f406738a"
+    },
+    {
+      "document_id": "461fbe6ecd6758c09a881f55dda83d90295ce420b5d852e028dd4415c73399a2",
+      "actual_POST": 1,
+      "seconds": 206.314121,
+      "counts": {
+        "facts": 14,
+        "forecasts": 4,
+        "numeric_values": 13,
+        "risks": 0,
+        "source_usage_limits": 0
+      },
+      "program_status": "HALTED",
+      "program_first_code": "FULL_SPEAKER_AUTHOR_NOT_IDENTIFIED",
+      "independent_verdict": "REVIEWED/FAIL",
+      "content_PASS": false,
+      "raw_sha256": "1ad1590ab0acf95a6dc116ff93717838ef416e16917e51078902f273ea53aa66"
+    }
+  ],
+  "four_target_comparison_sha256": "b1b93a7a7a75ab4902b2869a004979ab894dc8b2e78ad38e48326b06446feb26",
+  "independent_final_receipt_sha256": "85ce765bf3fee77864183af520ba24ad35c44499044e2b86d552477b6f510aa6",
+  "full_html_sha256": "bb1776c5369cee27a89c7542b969c17c179aeee45b80e237b94ca8c3b9c58ab5",
+  "baseline_provenance": "All3previouscomplete answers; beforeactual330a39 validator separately retained from previousfinal74164 readonlyreplay. Currentgeneration frozen74164 validator.",
+  "attribution_boundary": "Businesssemantic correctness, OCR defects and role/currency/unit/literalsign/citation contracts separated; no genericmodelcapability claim.",
+  "canonical_integration": "NOT_RUN",
+  "deployment_API_UI_natural": "NOT_RUN",
+  "secondcandidate_or_fourthPOST": "NOT_RUN_FORBIDDEN",
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

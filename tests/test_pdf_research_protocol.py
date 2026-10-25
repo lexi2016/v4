@@ -4,6 +4,15 @@ from infrastructure import pdf_research_protocol as protocol
 from infrastructure.pdf_research import PageText, _schema_error
 
 
+def test_prompt_refinement_keeps_general_source_and_field_contracts():
+    for instruction in ('所有必要片段', '系统提示', '相应列表为空', '当前研发', '未来判断分别处理',
+                        'comparison_operator', '为EQ', '为GE', '为GT', '为LE', '为LT', '为APPROX', '为RANGE',
+                        '真正的JSON null', '不自动等于发言者或作者', 'inferences必须为空'):
+        assert instruction in protocol.PROMPT
+    assert all(not character.isdigit() for character in protocol.PROMPT)
+    assert protocol.request_messages([], {})[0] == {'role': 'system', 'content': protocol.PROMPT}
+
+
 def test_schema_directly_constrains_pdf_card_and_evidence_ids():
     assert 'analysis_markdown' not in protocol.SCHEMA['properties']
     assert set(protocol.SCHEMA['required']) == set(protocol.SCHEMA['properties'])
