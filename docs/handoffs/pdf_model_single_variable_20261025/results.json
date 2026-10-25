@@ -1,0 +1,701 @@
+{
+  "schema": "v4.pdf_model_single_variable.compact.v1",
+  "date": "2026-10-25",
+  "status": "DELIVERY_READY_FOR_INDEPENDENT_ASSEMBLY_REVIEW",
+  "source_root": "/Users/lexi/.codex/worktrees/pdf-model-single-variable-20261025/v4_app",
+  "local_baseline": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "restored_dependency_ref": "fb96f2da2415f86641f8a0633f47c64696de9b24",
+  "source_sync_revision": "4d516800ccda7c226a0c84390e75cf8719aea6bb",
+  "new_source_sha256": {
+    "ops/run_pdf_single_variable_experiment.py": "b9da38a3d040fb67da13c2b3832c4861265acecb006fe6425040e93cc1231c22",
+    "tests/test_pdf_single_variable_experiment.py": "db83c3823977fdc6446fe9abbf8ffa5cc79f28b34b6bafa584a55c361ef95519"
+  },
+  "restored_dependencies": {
+    "count": 19,
+    "modified_bytes": 0,
+    "undeployed": true
+  },
+  "new_source_paths": [
+    "ops/run_pdf_single_variable_experiment.py",
+    "tests/test_pdf_single_variable_experiment.py",
+    "docs/handoffs/pdf_model_single_variable_20261025/results.json"
+  ],
+  "frozen_matrix_sha256": "8b14ee2711af60615043e937f9b4a26151456be352f52e8a6c402b73ba8d5aa8",
+  "oracle_sha256": "f40ddf9571e0fcb12dcabf51da10698a87a5dff5f42d4bdb5f1488d6ed33c5ca",
+  "prompt_baseline_sha256": "2b56a17df9ea4a6f46845005e8a76922352751cf5d7d4f912ea48f6192c0783c",
+  "prompt_simplified_sha256": "04926aa4c97b2017138586a200e39cad3aaf94868c63ff1888f23caa79912c39",
+  "wrapper_tests": {
+    "passed": 7,
+    "scope": "request/protocol identity, isolation, immutable artifacts, fail-stop sequential worker; no live HTTP"
+  },
+  "execution": {
+    "post_budget": 12,
+    "dispatches": 12,
+    "complete_raw": 12,
+    "retries": 0,
+    "unknown_outcomes": 0,
+    "candidate_prompts": 1,
+    "actual_requests_match_frozen": 12,
+    "schema_pass": 12,
+    "sse_content_equals_saved_answer": 12,
+    "stop_and_done": 12,
+    "baseline_answers_byte_identical_to_prior": 3,
+    "large_weight_rehash": false,
+    "model_file_stat_and_small_config_hash_unchanged": true,
+    "accepted_reviews": 0,
+    "historical_program_pass": 1,
+    "business_document_pass": 1,
+    "end_to_end_document_pass": 0
+  },
+  "arms": {
+    "A": {
+      "business_document_pass": 0,
+      "historical_program_document_pass": 0,
+      "end_to_end_document_pass": 0,
+      "document_verdicts": {
+        "A1": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "A2": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "A3": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        }
+      },
+      "dimensions": {
+        "all_31": {
+          "presence": {
+            "PASS": 30,
+            "FAIL": 1
+          },
+          "business_correct": {
+            "PASS": 29,
+            "NA": 1,
+            "PARTIAL": 1
+          },
+          "subject": {
+            "PASS": 26,
+            "NA": 5
+          },
+          "source_attribution": {
+            "PASS": 15,
+            "NA": 15,
+            "FAIL": 1
+          },
+          "current_or_forecast": {
+            "PASS": 23,
+            "NA": 5,
+            "FAIL": 1,
+            "PARTIAL": 2
+          },
+          "number_unit_period": {
+            "PASS": 21,
+            "NA": 9,
+            "PARTIAL": 1
+          },
+          "citation_sufficient": {
+            "PASS": 21,
+            "NA": 1,
+            "FAIL": 5,
+            "PARTIAL": 4
+          },
+          "input_faithful": {
+            "PASS": 19,
+            "NA": 1,
+            "PARTIAL": 10,
+            "CANNOT_CONFIRM": 1
+          }
+        },
+        "core_25": {
+          "presence": {
+            "PASS": 24,
+            "FAIL": 1
+          },
+          "business_correct": {
+            "PASS": 23,
+            "NA": 1,
+            "PARTIAL": 1
+          },
+          "subject": {
+            "PASS": 23,
+            "NA": 2
+          },
+          "source_attribution": {
+            "PASS": 15,
+            "NA": 9,
+            "FAIL": 1
+          },
+          "current_or_forecast": {
+            "PASS": 21,
+            "NA": 2,
+            "FAIL": 1,
+            "PARTIAL": 1
+          },
+          "number_unit_period": {
+            "PASS": 15,
+            "NA": 9,
+            "PARTIAL": 1
+          },
+          "citation_sufficient": {
+            "PASS": 16,
+            "NA": 1,
+            "FAIL": 5,
+            "PARTIAL": 3
+          },
+          "input_faithful": {
+            "PASS": 14,
+            "NA": 1,
+            "PARTIAL": 10
+          }
+        },
+        "optional_6": {
+          "presence": {
+            "PASS": 6
+          },
+          "business_correct": {
+            "PASS": 6
+          },
+          "subject": {
+            "NA": 3,
+            "PASS": 3
+          },
+          "source_attribution": {
+            "NA": 6
+          },
+          "current_or_forecast": {
+            "NA": 3,
+            "PASS": 2,
+            "PARTIAL": 1
+          },
+          "number_unit_period": {
+            "PASS": 6
+          },
+          "citation_sufficient": {
+            "PASS": 5,
+            "PARTIAL": 1
+          },
+          "input_faithful": {
+            "PASS": 5,
+            "CANNOT_CONFIRM": 1
+          }
+        }
+      }
+    },
+    "B": {
+      "business_document_pass": 0,
+      "historical_program_document_pass": 0,
+      "end_to_end_document_pass": 0,
+      "document_verdicts": {
+        "B1": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "B2": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "B3": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        }
+      },
+      "dimensions": {
+        "all_31": {
+          "presence": {
+            "PASS": 29,
+            "FAIL": 1,
+            "NA": 1
+          },
+          "business_correct": {
+            "PASS": 27,
+            "NA": 2,
+            "PARTIAL": 2
+          },
+          "subject": {
+            "PASS": 25,
+            "NA": 6
+          },
+          "source_attribution": {
+            "PASS": 16,
+            "NA": 15
+          },
+          "current_or_forecast": {
+            "PASS": 25,
+            "NA": 6
+          },
+          "number_unit_period": {
+            "PASS": 20,
+            "NA": 10,
+            "PARTIAL": 1
+          },
+          "citation_sufficient": {
+            "PASS": 22,
+            "NA": 2,
+            "FAIL": 6,
+            "PARTIAL": 1
+          },
+          "input_faithful": {
+            "PASS": 28,
+            "NA": 2,
+            "PARTIAL": 1
+          }
+        },
+        "core_25": {
+          "presence": {
+            "PASS": 24,
+            "FAIL": 1
+          },
+          "business_correct": {
+            "PASS": 23,
+            "NA": 1,
+            "PARTIAL": 1
+          },
+          "subject": {
+            "PASS": 23,
+            "NA": 2
+          },
+          "source_attribution": {
+            "PASS": 16,
+            "NA": 9
+          },
+          "current_or_forecast": {
+            "PASS": 23,
+            "NA": 2
+          },
+          "number_unit_period": {
+            "PASS": 15,
+            "NA": 9,
+            "PARTIAL": 1
+          },
+          "citation_sufficient": {
+            "PASS": 17,
+            "NA": 1,
+            "FAIL": 6,
+            "PARTIAL": 1
+          },
+          "input_faithful": {
+            "PASS": 24,
+            "NA": 1
+          }
+        },
+        "optional_6": {
+          "presence": {
+            "PASS": 5,
+            "NA": 1
+          },
+          "business_correct": {
+            "PARTIAL": 1,
+            "NA": 1,
+            "PASS": 4
+          },
+          "subject": {
+            "NA": 4,
+            "PASS": 2
+          },
+          "source_attribution": {
+            "NA": 6
+          },
+          "current_or_forecast": {
+            "NA": 4,
+            "PASS": 2
+          },
+          "number_unit_period": {
+            "PASS": 5,
+            "NA": 1
+          },
+          "citation_sufficient": {
+            "PASS": 5,
+            "NA": 1
+          },
+          "input_faithful": {
+            "PARTIAL": 1,
+            "NA": 1,
+            "PASS": 4
+          }
+        }
+      }
+    },
+    "C": {
+      "business_document_pass": 1,
+      "historical_program_document_pass": 0,
+      "end_to_end_document_pass": 0,
+      "document_verdicts": {
+        "C1": {
+          "business_acceptance": "PASS",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "C2": {
+          "business_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json",
+          "end_to_end_acceptance": "FAIL"
+        },
+        "C3": {
+          "business_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json",
+          "end_to_end_acceptance": "FAIL"
+        }
+      },
+      "dimensions": {
+        "all_31": {
+          "presence": {
+            "PASS": 28,
+            "NA": 3
+          },
+          "business_correct": {
+            "PASS": 25,
+            "NA": 3,
+            "PARTIAL": 3
+          },
+          "subject": {
+            "PASS": 27,
+            "NA": 4
+          },
+          "source_attribution": {
+            "PASS": 16,
+            "NA": 14,
+            "FAIL": 1
+          },
+          "current_or_forecast": {
+            "PASS": 27,
+            "NA": 4
+          },
+          "number_unit_period": {
+            "PASS": 17,
+            "NA": 11,
+            "PARTIAL": 3
+          },
+          "citation_sufficient": {
+            "PASS": 20,
+            "NA": 3,
+            "FAIL": 4,
+            "PARTIAL": 4
+          },
+          "input_faithful": {
+            "PASS": 16,
+            "PARTIAL": 11,
+            "NA": 3,
+            "CANNOT_CONFIRM": 1
+          }
+        },
+        "core_25": {
+          "presence": {
+            "PASS": 25
+          },
+          "business_correct": {
+            "PASS": 23,
+            "PARTIAL": 2
+          },
+          "subject": {
+            "PASS": 24,
+            "NA": 1
+          },
+          "source_attribution": {
+            "PASS": 16,
+            "NA": 8,
+            "FAIL": 1
+          },
+          "current_or_forecast": {
+            "PASS": 24,
+            "NA": 1
+          },
+          "number_unit_period": {
+            "PASS": 15,
+            "NA": 8,
+            "PARTIAL": 2
+          },
+          "citation_sufficient": {
+            "PASS": 18,
+            "FAIL": 4,
+            "PARTIAL": 3
+          },
+          "input_faithful": {
+            "PASS": 14,
+            "PARTIAL": 11
+          }
+        },
+        "optional_6": {
+          "presence": {
+            "NA": 3,
+            "PASS": 3
+          },
+          "business_correct": {
+            "NA": 3,
+            "PASS": 2,
+            "PARTIAL": 1
+          },
+          "subject": {
+            "NA": 3,
+            "PASS": 3
+          },
+          "source_attribution": {
+            "NA": 6
+          },
+          "current_or_forecast": {
+            "NA": 3,
+            "PASS": 3
+          },
+          "number_unit_period": {
+            "NA": 3,
+            "PASS": 2,
+            "PARTIAL": 1
+          },
+          "citation_sufficient": {
+            "NA": 3,
+            "PASS": 2,
+            "PARTIAL": 1
+          },
+          "input_faithful": {
+            "NA": 3,
+            "PASS": 2,
+            "CANNOT_CONFIRM": 1
+          }
+        }
+      }
+    },
+    "D": {
+      "business_document_pass": 0,
+      "historical_program_document_pass": 1,
+      "end_to_end_document_pass": 0,
+      "document_verdicts": {
+        "D1": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "D2": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        },
+        "D3": {
+          "business_acceptance": "FAIL",
+          "end_to_end_acceptance": "FAIL",
+          "review_reference": "/Users/lexi/Desktop/学习/agents调试/V4_PDF_MODEL_SINGLE_VARIABLE_20261025/assessment/D.json"
+        }
+      },
+      "dimensions": {
+        "all_31": {
+          "presence": {
+            "PASS": 30,
+            "FAIL": 1
+          },
+          "business_correct": {
+            "PASS": 27,
+            "NA": 1,
+            "PARTIAL": 3
+          },
+          "subject": {
+            "PASS": 26,
+            "NA": 5
+          },
+          "source_attribution": {
+            "PASS": 18,
+            "NA": 13
+          },
+          "current_or_forecast": {
+            "PASS": 16,
+            "NA": 5,
+            "PARTIAL": 9,
+            "FAIL": 1
+          },
+          "number_unit_period": {
+            "PASS": 22,
+            "NA": 9
+          },
+          "citation_sufficient": {
+            "PASS": 19,
+            "NA": 1,
+            "PARTIAL": 5,
+            "FAIL": 6
+          },
+          "input_faithful": {
+            "PASS": 16,
+            "NA": 1,
+            "PARTIAL": 13,
+            "CANNOT_CONFIRM": 1
+          }
+        },
+        "core_25": {
+          "presence": {
+            "PASS": 24,
+            "FAIL": 1
+          },
+          "business_correct": {
+            "PASS": 24,
+            "NA": 1
+          },
+          "subject": {
+            "PASS": 23,
+            "NA": 2
+          },
+          "source_attribution": {
+            "PASS": 18,
+            "NA": 7
+          },
+          "current_or_forecast": {
+            "PASS": 15,
+            "NA": 2,
+            "PARTIAL": 7,
+            "FAIL": 1
+          },
+          "number_unit_period": {
+            "PASS": 16,
+            "NA": 9
+          },
+          "citation_sufficient": {
+            "PASS": 14,
+            "NA": 1,
+            "PARTIAL": 4,
+            "FAIL": 6
+          },
+          "input_faithful": {
+            "PASS": 14,
+            "NA": 1,
+            "PARTIAL": 10
+          }
+        },
+        "optional_6": {
+          "presence": {
+            "PASS": 6
+          },
+          "business_correct": {
+            "PARTIAL": 3,
+            "PASS": 3
+          },
+          "subject": {
+            "NA": 3,
+            "PASS": 3
+          },
+          "source_attribution": {
+            "NA": 6
+          },
+          "current_or_forecast": {
+            "NA": 3,
+            "PASS": 1,
+            "PARTIAL": 2
+          },
+          "number_unit_period": {
+            "PASS": 6
+          },
+          "citation_sufficient": {
+            "PASS": 5,
+            "PARTIAL": 1
+          },
+          "input_faithful": {
+            "PARTIAL": 3,
+            "PASS": 2,
+            "CANNOT_CONFIRM": 1
+          }
+        }
+      }
+    }
+  },
+  "reviewed_rows": 124,
+  "reviewed_core_rows": 100,
+  "counting_rule": "Per dimension and required/optional subset, report exact PASS/FAIL/PARTIAL/CANNOT_CONFIRM/NA counts. PARTIAL is separate, not a total business error. Unknown is neither correct nor wrong; NA is excluded. No combined score.",
+  "http_single_variable": {
+    "A": "baseline identical to prior exact request",
+    "B": "user message only, including cleaned text and derived span/ID changes",
+    "C": "system prompt only",
+    "D": "enable_thinking only; serving template adds 36 prompt tokens"
+  },
+  "thinking_boundary": {
+    "reasoning_equals_final": [
+      true,
+      true,
+      true
+    ],
+    "reasoning_characters": [
+      6921,
+      7372,
+      12939
+    ],
+    "independent_deliberation": "CANNOT_CONFIRM",
+    "deeper_reasoning_caused_improvement": "CANNOT_CONFIRM",
+    "scope": "D request/template branch only; trace consistent with installed unclosed-thinking recovery, without internal branch instrumentation"
+  },
+  "key_comparisons": {
+    "P4_presence": {
+      "A": "FAIL",
+      "B": "FAIL",
+      "C": "PASS",
+      "D": "FAIL"
+    },
+    "P6_current_classification": {
+      "A": "FAIL",
+      "B": "PASS",
+      "C": "PASS",
+      "D": "PASS"
+    },
+    "A2_institution_attribution": {
+      "A": "FAIL",
+      "B": "PASS_WITH_CITATION_GAP",
+      "C": "FAIL",
+      "D": "PASS_WITH_CITATION_GAP"
+    },
+    "E1_economic_category": {
+      "A": "WRONG_PRICE_RETURN",
+      "B": "WRONG_PRICE_RETURN",
+      "C": "WRONG_PRICE_RETURN",
+      "D": "UNKNOWN_NOT_RESOLVED"
+    }
+  },
+  "new_gaps": {
+    "C": [
+      "UNIT_FIELD_COMPARISON_ENUM",
+      "UNSOURCED_EXPLICIT_YEAR"
+    ],
+    "D": [
+      "CURRENT_OPINION_IN_FORECASTS",
+      "MORE_UNKNOWN_NUMERIC_CLASSIFICATIONS"
+    ]
+  },
+  "artifact_sha256": {
+    "business-assessment.json": "14041b75d8796403dcf4f0867884aad4ac01552aa9fcb0b005f253ebd61c9069",
+    "results-inventory.json": "63599f70bc2271fefa54515e1c4c2b723eb133d834fa0bd534034c611a3888a9",
+    "machine-checks.json": "23735d719dfd99b2a54e24d2d4c5ad3c4a38bc7ca4b9be390f9f674521179fb8",
+    "thinking-runtime-diagnostic.json": "a506200956ea17b862ab4849a742696c8657925a90656f793f135014eea41488",
+    "postflight.json": "a9b0e17f88d3fb121af44aeeb8f3071367dba8b05b00b8806d04da2a8528e09b",
+    "comparison.html": "4d7195572bbec26d6417e8dc9103a64f5b00c7407708be82506d857df2365e23",
+    "conclusion.md": "10ae5f869e688f34a87033b229e0126ca9d622b95f0f595e68b2785f53f2e1c4",
+    "actual-call-evidence.json": "7dd74ea2cce498537c4fb95bf958690976857572c7e9a0c71886a4be7e4b2d8c"
+  },
+  "delivery_scope": "three known short single-page development samples; one generation per cell; no performance or generalization benchmark",
+  "cannot_confirm": [
+    "independent D deliberation",
+    "exact loaded weight build beyond retained metadata/config hashes",
+    "active server memory settings",
+    "canonical index full byte comparison without before snapshot",
+    "long reports and unseen-sample generalization"
+  ],
+  "not_run": [
+    "production integration",
+    "deployment",
+    "API/UI/natural-time production acceptance",
+    "20-document expansion",
+    "new models",
+    "schema ablation",
+    "sampling changes"
+  ],
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "actual_call_window": {
+    "endpoint": "http://127.0.0.1:8802/v1/chat/completions",
+    "start_utc": "2026-10-25T12:04:02.897951+00:00",
+    "end_utc": "2026-10-25T12:31:52.036029+00:00",
+    "unique_response_ids": 12
+  }
+}
