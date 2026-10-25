@@ -327,12 +327,6 @@ def _current_scope_class(state: str | None) -> str:
     return "UNRECOGNIZED_CURRENT_APPLICABILITY"
 
 
-def _is_noncurrent(state: str | None) -> bool:
-    return _current_scope_class(state) in {
-        "CANNOT_CONFIRM_CURRENT_APPLICABILITY", "DATED_OR_PENDING_SCOPE", "EXPLICITLY_EXCLUDED_OR_ENDED"
-    }
-
-
 def _quote_return(quote: Any) -> Decimal | None:
     if not isinstance(quote, Mapping):
         return None

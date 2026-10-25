@@ -318,10 +318,6 @@ def legacy_mapping_projection(selection):
         RESEARCH_ONLY=True,production_allowed=False,buy_gate_updated=False,orders_sent=False)
 
 
-def cannot_confirm_single_day_mapping(context, reason):
-    return dict(state='CANNOT_CONFIRM',rows=[],counts={},gaps=[reason],strict_v1_status='PENDING',display_only=True)
-
-
 def run_single_day_mapping(context, *, relation_rows, industry_rows, factor_summary, membership,
         catalog_rows=None,catalog_stock_identities=None,catalog_expected_stock_count=None,manual_quote_scope=None):
     from .us_mapping_consumption import normalize_mapping_candidates

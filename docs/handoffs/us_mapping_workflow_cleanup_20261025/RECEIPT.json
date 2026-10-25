@@ -1,0 +1,97 @@
+{
+  "schema": "v4.us_mapping.workflow_cleanup_receipt.v1",
+  "status": "SOURCE_TESTED_NOT_INTEGRATED_NOT_DEPLOYED",
+  "baseline_commit": "01e2828e7a04dde6b6448eaa80a1fdd67ba641a0",
+  "branch": "codex/us-mapping-workflow-cleanup-20261025",
+  "source_files": {
+    "v4/manager_workbench/engines/us_mapping_consumption.py": {
+      "before": "ec5065d4f091073ba6bc2c7d632642db6fbf27c6ee92354dbf1e76e05096c351",
+      "after": "072a5b99cfbdf8664d14e0af3c597dc0753033d3a2e93e0975b71ace8dacb3dd"
+    },
+    "v4/manager_workbench/engines/strict_us_selection.py": {
+      "before": "a832f19bfbc65ffa163ed59ebebb6fd7f74963c3a4266296b67e70d9d1eb33e7",
+      "after": "bd101ab5f958f601c62598160a2eca0ced3dcbf833ae61ae393975d3cb77dbec"
+    }
+  },
+  "deleted_symbols": [
+    "_is_noncurrent",
+    "cannot_confirm_single_day_mapping"
+  ],
+  "deleted_lines": 10,
+  "reviewer": "/root/us_cleanup_review",
+  "independent_review_sha256": "a2103633ece47274a3dc174d2e5179a63870b4200ed05a82d83e4559cfe694b5",
+  "tests": "15 passed in 0.72s; 13 specified nodes",
+  "automatic_us23": {
+    "run_id": "d725567793324cfea5617018e989a4da",
+    "trigger": "SCHEDULED",
+    "target_date": "20261026",
+    "source_us_session": "20261023",
+    "generated_at": "2026-10-24T04:17:09.202389+08:00",
+    "selection_present": false,
+    "source_stock_count": 701,
+    "source_selected": 0,
+    "api_recommendation_total": 0,
+    "legacy_api_unassessed": 699,
+    "legacy_api_not_selected": 2,
+    "api_response_sha256": "207b53e790db5fe3ac0520bef3309b363671e2c59ef2c2ed927c155cd1c1d9d7",
+    "original_snapshot_sha256": "c69fa636d513af59f248474addf25784fa613e4a1495bd5d70af1c14f6adf3bf",
+    "original_input_sha256": "e2c9ecd0dcedd303f6fabd6f199c9bf805dbc51c36f620c18dd9930386a5b16b",
+    "batch_sha256": "f0ab42471b6bfdf10e1ff84e3566f565cb87b58463708aa87253a13765ba15df"
+  },
+  "offline_us23_focus": {
+    "eligible": 87,
+    "selected": 10,
+    "capped": 77,
+    "not_triggered": 504,
+    "pending": 79
+  },
+  "canonical_semantic_sha256": "4beae13225634cfd5d0046f3ddcd7a25f33c7b52eb226679e06e648cfeb1a823",
+  "legacy_fates": {
+    "REJECTED": 449,
+    "PENDING": 221,
+    "NOT_CANDIDATE": 31
+  },
+  "normalized_31_note": "Master/classification rows exist, source_industry null; no target/proxy mapping path. Not a missing-security-identity claim.",
+  "original_materials_unchanged": true,
+  "policy_unchanged": {
+    "main_us_individual_gain_min_pct": 1,
+    "peer_industry_allowed": true,
+    "max_symbols": 10,
+    "theme_cap": 3,
+    "ETF_only_background": true,
+    "strict_reference_separate": true
+  },
+  "source_deployment_constraint": "Never overlay these two files into old r2 alone; old r2 still imports cannot_confirm. New complete US driver/input/contracts/service/store cohort required.",
+  "scheduler": "OWNER_PAUSED_NO_ACTIVATION",
+  "natural_cycles_verified": 0,
+  "natural_cycles_required": 2,
+  "not_claimed": [
+    "automatic repair deployed",
+    "new26live focus",
+    "natural",
+    "PIT",
+    "efficacy",
+    "BUY"
+  ],
+  "scope_deviations": {
+    "baseline_pyc": "2 transient generated sourcepyc removed and disclosed; no remaining change",
+    "guard_setup_failures": [
+      "writer output isolation guard engine0 then same-byte inventory copy",
+      "writer pytest collection exit4 then PYTHONPATH correction",
+      "reviewer tmp parent setup4pass11errors then mkdir",
+      "reviewer auxiliary canonical digest-format assertions then correct module contract"
+    ]
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "external_calls": {
+    "network": 0,
+    "provider_capture": 0,
+    "model": 0,
+    "label_reads": 0
+  }
+}
