@@ -1,0 +1,139 @@
+{
+  "baseline_id": "SAVED_ACTUAL_V4_A_SHARE_SECOND_SELECTION_LISTS_RESTORE_R4",
+  "benchmark": {
+    "authority": "AVAILABLE_CURRENT_RESEARCH_PANEL_TOP100_QFQ_RETURN",
+    "full_A_market_certification": "CANNOT_CONFIRM",
+    "historical_PIT": "CANNOT_CONFIRM",
+    "natural_verified": false,
+    "no_194_reload": true,
+    "no_universe_filter_change": true,
+    "ranking": "RETURN_DESC_THEN_TS_CODE_ASC_STRICT100",
+    "return": "100*(QFQ_close/QFQ_pre_close-1)",
+    "target_date": "SAME_DAY_CLOSE_DESCRIPTIVE"
+  },
+  "canary_acceptance": {
+    "cells": 14,
+    "dates": [
+      "20260928",
+      "20261023"
+    ],
+    "expected_missing_key": "20261023/STAGE_0925",
+    "no_benchmark_or_source_change": true,
+    "preserve_all_other_source_cells": true
+  },
+  "canary_dates": [
+    "20260928",
+    "20261023"
+  ],
+  "code_files": {
+    "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/scripts/analysis_r3c.py": "c37085fa8008dbd49fc0e3b1eff70fe6c1152b1dfeccc3c628d0d9a4fc8e2d46",
+    "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/scripts/bind_inputs.py": "957d9f86b2869a8f63239d3b728cbff574e4a9f3ecf94de0ba6c68cabbfe3b20",
+    "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/scripts/register_event_r3.py": "1052222ca35966db4e3ed7ab6900f6a73bb0e584d2bf830d4087065412d9120d"
+  },
+  "code_sha256": "2716b7f7da96f364319667a12f787abd680b7aa84eb6c9771387919265088791",
+  "code_sha256_reason": null,
+  "config_path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/contracts/CONFIG_R3C.json",
+  "config_sha256": "b3c8eb8abee8639940946181557cb61f958abd92415bb2039767c43578baee6f",
+  "config_sha256_reason": null,
+  "dates": [
+    "20260918",
+    "20260921",
+    "20260922",
+    "20260923",
+    "20260924",
+    "20260928",
+    "20260929",
+    "20260930",
+    "20261008",
+    "20261009",
+    "20261012",
+    "20261013",
+    "20261014",
+    "20261015",
+    "20261016",
+    "20261019",
+    "20261020",
+    "20261021",
+    "20261022",
+    "20261023"
+  ],
+  "device": "MAC_LOCAL_CPU",
+  "execution_id": "A_SHARE_V4_READABLE20_TOP100_20261025_CALC_20261025T115241Z",
+  "expected_scope": {
+    "cells": 140,
+    "dates": 20,
+    "genuine_gaps": 6,
+    "last5_explicit_gap_rows": 1,
+    "last5_selected_observations": 340,
+    "retained_lists": 134,
+    "stages": 7
+  },
+  "goal": "Deterministic descriptive accounting for the 20 frozen dates x 7 A-share stages, all currently retained lists, six true gaps, and full latest-five stock-stage detail",
+  "identity_join_policy": "EXACT_DATE_UNIQUE_QUALIFIED_PANEL_TS_CODE_KEY_ONLY;PRESERVE_PRIOR_CONFLICTS;NO_VENUE_GUESS_OR_RETURN_BASED_CHOICE",
+  "input_binding_path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/INPUT_BINDING.json",
+  "input_sha256": "e754c98745e2c706744b06c8fbcc8323c0a68d326c1173b3936cef315bdb787d",
+  "input_sha256_reason": null,
+  "last5_dates": [
+    "20261019",
+    "20261020",
+    "20261021",
+    "20261022",
+    "20261023"
+  ],
+  "lineage_reviewer": "/root/selection_lineage_review",
+  "metrics": {
+    "all_selection_rate": "h_div_n_only_when_u_is_zero;otherwise_null",
+    "daily_rank": "deterministic_rank_within_available_same_day_research_panel_returns",
+    "h": "resolved_selected_codes_in_frozen_strict_top100_cache;null_for_a_missing_cell",
+    "k": "selected_rows_with_qualified_same_day_return_and_resolved_identity;null_for_a_missing_cell",
+    "missing_cell_policy": "n_k_h_u_and_all_rates_null;never_zero_fill",
+    "n": "original_selected_rows_count;null_for_a_missing_cell",
+    "observation_unit": "STOCK_X_DATE_X_STAGE",
+    "primary_hit_rate": "h_div_k;null_when_k_is_zero_or_cell_missing",
+    "top100_hit_reference": "frozen_prior_membership_cache;validated_against_its_bound_truth_projection",
+    "u": "n_minus_k;null_for_a_missing_cell",
+    "unknown_label_policy": "unknown_is_separate_from_miss_and_not_in_the_confirmed_denominator"
+  },
+  "one_variable": "USE_ALL_CURRENTLY_RETAINED_134_LISTS_INSTEAD_OF_PRIOR_122;SOURCE_AND_LABEL_DEFINITIONS_UNCHANGED",
+  "pass_signal": "INDEPENDENT_PASS_20DATES_140CELLS_134LISTS_6NULLGAPS_DAILY_STAGE_COUNTS_AND_RATES_LAST5_ALLROWS_TRACEABLE_UNKNOWN_DENOM",
+  "reviewer": "/root/readable20_stats_review",
+  "root_scope_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025/control/ROOT_SCOPE.json",
+  "root_scope_sha256": "874b7655b89418627043ec516e9a99f3074e194ad97f0c97068c1a2ab8cc6840",
+  "route_id": "A_SHARE_V4_READABLE20_TOP100_20261025",
+  "runtime": {
+    "children": "sys.executable",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python"
+  },
+  "safety": {
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false,
+    "research_only": true
+  },
+  "schema": "A_SHARE_V4_READABLE20_TOP100_FROZEN_CONTRACT_V1",
+  "sealed_status": "NO_NEW_SEALED_DATA_DESCRIPTIVE_ONLY",
+  "signal_date_range": [
+    "20260918",
+    "20261023"
+  ],
+  "stages": [
+    "STAGE_0925",
+    "STAGE_0930_0935",
+    "STAGE_0935_0940",
+    "STAGE_0940_0945",
+    "STAGE_0945_1030",
+    "STAGE_1300_1315",
+    "STAGE_1445_1500"
+  ],
+  "stop_rule": "Stop on input/run/hash/key/benchmark conflict; preserve unknown labels and gaps; no 194 rerun, no source collection, no benchmark tuning.",
+  "target_date_range": [
+    "20260918",
+    "20261023"
+  ],
+  "test_code_sha256": "69add7d9ee822d03130d7c88f35eb33842a1d47307359e3b6cf04252203fd89b",
+  "test_path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/tests/test_parser_reuse_r3c.py",
+  "truth_access": "NOT_READ_AT_FREEZE",
+  "writer": "/root/second_selection_writer",
+  "writer_transfer_go_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025/control/ROOT_WRITER_TRANSFER_GO.json",
+  "writer_transfer_go_sha256": "5fd986b4cec8926f3640b5655323a93250d6e9f7ee9171b8a6918f124af82ea7"
+}

@@ -1,0 +1,156 @@
+{
+  "schema": "A_SHARE_V4_READABLE20_TOP100_CONFIG_V1",
+  "route_id": "A_SHARE_V4_READABLE20_TOP100_20261025",
+  "goal": "Deterministic descriptive accounting for the 20 frozen dates x 7 A-share stages, all currently retained lists, six true gaps, and full latest-five stock-stage detail",
+  "baseline_id": "SAVED_ACTUAL_V4_A_SHARE_SECOND_SELECTION_LISTS_RESTORE_R4",
+  "one_variable": "USE_ALL_CURRENTLY_RETAINED_134_LISTS_INSTEAD_OF_PRIOR_122;SOURCE_AND_LABEL_DEFINITIONS_UNCHANGED",
+  "dates": [
+    "20260918",
+    "20260921",
+    "20260922",
+    "20260923",
+    "20260924",
+    "20260928",
+    "20260929",
+    "20260930",
+    "20261008",
+    "20261009",
+    "20261012",
+    "20261013",
+    "20261014",
+    "20261015",
+    "20261016",
+    "20261019",
+    "20261020",
+    "20261021",
+    "20261022",
+    "20261023"
+  ],
+  "stages": [
+    "STAGE_0925",
+    "STAGE_0930_0935",
+    "STAGE_0935_0940",
+    "STAGE_0940_0945",
+    "STAGE_0945_1030",
+    "STAGE_1300_1315",
+    "STAGE_1445_1500"
+  ],
+  "canary_dates": [
+    "20260928",
+    "20261023"
+  ],
+  "last5_dates": [
+    "20261019",
+    "20261020",
+    "20261021",
+    "20261022",
+    "20261023"
+  ],
+  "root_scope_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025/control/ROOT_SCOPE.json",
+  "root_scope_sha256": "874b7655b89418627043ec516e9a99f3074e194ad97f0c97068c1a2ab8cc6840",
+  "worktree_path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025",
+  "worktree_branch": "codex/a-share-readable20-top100-20261025",
+  "base_commit": "1ca3fedd7898c302e4d6b88f19eb7a2a2f44b81f",
+  "input_binding_path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/INPUT_BINDING.json",
+  "matrix_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_stage_history_restore_20261025/post_r3/MERGED_140_MATRIX.json",
+  "prior_truth_projection": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/snapshots/truth_projection.csv",
+  "prior_truth_qualification": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/snapshots/TRUTH_QUALIFICATION.json",
+  "prior_top100_cache": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/results/daily_top100_stage_hits.csv",
+  "prior_last5_names": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/results/last5_selected_stocks.csv",
+  "identity_anomaly_note": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_second_selection_top100_20261025/results/SAVED_IDENTITY_ANOMALY_NOTE.md",
+  "benchmark": {
+    "authority": "AVAILABLE_CURRENT_RESEARCH_PANEL_TOP100_QFQ_RETURN",
+    "return": "100*(QFQ_close/QFQ_pre_close-1)",
+    "target_date": "SAME_DAY_CLOSE_DESCRIPTIVE",
+    "ranking": "RETURN_DESC_THEN_TS_CODE_ASC_STRICT100",
+    "full_A_market_certification": "CANNOT_CONFIRM",
+    "historical_PIT": "CANNOT_CONFIRM",
+    "natural_verified": false,
+    "no_universe_filter_change": true,
+    "no_194_reload": true
+  },
+  "metrics": {
+    "observation_unit": "STOCK_X_DATE_X_STAGE",
+    "n": "original_selected_rows_count;null_for_a_missing_cell",
+    "k": "selected_rows_with_qualified_same_day_return_and_resolved_identity;null_for_a_missing_cell",
+    "h": "resolved_selected_codes_in_frozen_strict_top100_cache;null_for_a_missing_cell",
+    "u": "n_minus_k;null_for_a_missing_cell",
+    "primary_hit_rate": "h_div_k;null_when_k_is_zero_or_cell_missing",
+    "all_selection_rate": "h_div_n_only_when_u_is_zero;otherwise_null",
+    "missing_cell_policy": "n_k_h_u_and_all_rates_null;never_zero_fill",
+    "unknown_label_policy": "unknown_is_separate_from_miss_and_not_in_the_confirmed_denominator",
+    "top100_hit_reference": "frozen_prior_membership_cache;validated_against_its_bound_truth_projection",
+    "daily_rank": "deterministic_rank_within_available_same_day_research_panel_returns"
+  },
+  "known_identity_conflict_codes": [
+    "159915.SZ",
+    "510300.SZ",
+    "510050.SZ",
+    "512100.SZ",
+    "588000.SZ",
+    "588080.SZ"
+  ],
+  "known_identity_conflict_basis": "FROZEN_PRIOR_SAVED_IDENTITY_ANOMALY_NOTE_AND_LINEAGE_REVIEW;KEEP_RAW_SUFFIX;UNKNOWN_NOT_MISS",
+  "expected_scope": {
+    "dates": 20,
+    "stages": 7,
+    "cells": 140,
+    "retained_lists": 134,
+    "genuine_gaps": 6,
+    "last5_selected_observations": 340,
+    "last5_explicit_gap_rows": 1
+  },
+  "canary_acceptance": {
+    "dates": [
+      "20260928",
+      "20261023"
+    ],
+    "cells": 14,
+    "expected_missing_key": "20261023/STAGE_0925",
+    "preserve_all_other_source_cells": true,
+    "no_benchmark_or_source_change": true
+  },
+  "review": {
+    "lineage_reviewer": "/root/selection_lineage_review",
+    "independent_statistics_reviewer": "/root/readable20_stats_review",
+    "acceptance_scope": "STATISTICAL_ACCOUNTING_AND_TRACEABILITY_ONLY;NO_ALPHA_PROMOTION_PIT_OR_NATURAL_CLAIM"
+  },
+  "runtime": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "children": "sys.executable"
+  },
+  "safety": {
+    "research_only": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "output_root": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025",
+  "writer_transfer_go_path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025/control/ROOT_WRITER_TRANSFER_GO.json",
+  "writer_transfer_go_sha256": "5fd986b4cec8926f3640b5655323a93250d6e9f7ee9171b8a6918f124af82ea7",
+  "identity_join": "EXACT_DATE_UNIQUE_QUALIFIED_PANEL_TS_CODE_KEY_ONLY;PRESERVE_PRIOR_CONFLICTS;NO_VENUE_GUESS_OR_RETURN_BASED_CHOICE",
+  "reused_focused_test_evidence": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/tests/test_identity_join_r3.py",
+    "sha256": "d7bef07c24fb3c23b79c404dc71ea41acde5fa8e2b1a522100751866ac1c0cb9",
+    "passed": 2,
+    "rerun": false
+  },
+  "accepted_store_link_policy": "TRIO_VERIFIED_AND_EXPLICIT_TRUE_OR_ACCEPTED_R2_SHARED_IDENTITY_METADATA_NULL_BACKFILL_FLAG;EXPLICIT_FALSE_REJECTED",
+  "numeric_parser": "REUSE_ACCEPTED_AUDIT_PANDAS_READ_CSV_DEFAULT_NUMERIC_PARSER_WITH_TRADE_DATE_TS_CODE_STR",
+  "numeric_parser_evidence": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025/FIRST_FULL_BENCHMARK_PARITY_FAILURE.json",
+    "sha256": "6033a22ba760d98276dd1f578ccb96d3fc1ac7fde09c88533bfba74ab80543dd",
+    "original_audit_code_sha256": "3298bccd5e416fe28408ddce809c675575fd32a9ca51d6f7c9e3209d0cb55285"
+  },
+  "reused_ordinary_branch_test": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/worktrees/a_share_v4_readable20_top100_20261025/research/a_share_v4_readable20_top100_20261025/tests/test_ordinary_link_r3b.py",
+    "sha256": "37c14a2b06c2472750e876f1efa8d803db9956ddc2d7bc9f63c69d92dff01048",
+    "passed": 1,
+    "rerun": false
+  },
+  "canary_reuse": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/a_share_v4_readable20_top100_20261025/canary_r3b/RUN_RESULT.json",
+    "sha256": "88de2e8e781f2de62383308542f6e0e55d1bad7f76cb308274ee78c3dace8389",
+    "scope": "IDENTITY_AND_GRID_GAPS_PASS_REUSED; all20numericcacheparitycheckedinnewfull"
+  }
+}
