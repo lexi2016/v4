@@ -1,0 +1,118 @@
+{
+  "schema": "v4.us_hk.triggered_focus_delivery.v1",
+  "reported_date": "2026-10-25",
+  "status": "BEHAVIOR_VERIFIED_DATE23_API_UI_COMPONENT",
+  "whole_original_plan": "INCOMPLETE_SOURCE_PROOF_AND_SCHEDULER_DEPENDENCY",
+  "source_commit": "8bae4880cc7afb537b9de46ca1fd60b4bc634f3f",
+  "source_receipt": {
+    "path": "TRIGGERED_FOCUS_SOURCE_RECEIPT.json",
+    "sha256": "afeeeaf1232da05e5625e292d3d34af7cd0dd9d7aae5be034c26fffc8bf0421b"
+  },
+  "source_sync_sha256": "82ad873f10a99851548f255f57951f6ab2ede0c91ac7a688849a271dc1c3de61",
+  "selection": {
+    "us_main_individual_return_min_pct": 1,
+    "relationship": "company industry peer accepted",
+    "max_symbols": 10,
+    "max_same_saved_primary_theme": 3,
+    "ranking": "fixed main US return descending, proven HK mean20 turnover descending when available, stable symbol",
+    "catalogue": "separate full research directory",
+    "strict": "unchanged reference; unknown financial/PIT data never promoted"
+  },
+  "date23": {
+    "publication_path": ".superpowers/sdd/2026-10-23-us-hk-selection-closure/scratch/deployment/operation-execution/frozen23-triggered-focus/PUBLICATION.json",
+    "publication_sha256": "85cbdbfd09b8ce7821d18a2465af0f4ef4e87e0839d2d8d53d81d3217cda3fb5",
+    "run_id": "444dbab057f9409a876db71092d4c66b",
+    "input_snapshot_sha256": "c94cf8b82038a6c89b7b95a2c2389b5a6de64931f8b3ea9eb0c0e63686f14466",
+    "product_sha256": "fe91e7143f8d308836eae91b828a08f3aa0919e144e512d0b6e319caa7ee295d",
+    "retrospective_pointer_sha256": "2dc3673b2709e3233954f78f97ee059bfdea82a3585c0304ec2f28e066214127",
+    "natural_verification": "NOT_RUN"
+  },
+  "actual_runtime": {
+    "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/a-share-stage-history-restore-20261025-r4/app",
+    "release_manifest_sha256": "95d679a2086c6ef9e216bbb0ee6bdd2025ab4e524ca07d1273e491fb58be8bf4",
+    "launch_agent_sha256": "eb079fc37193b678f67d1c89a26c800a5b8eb969ef1fbb54a09df7946793d2b9",
+    "pid": 95625
+  },
+  "served_frontend": {
+    "served_html_sha256": "e032481dfd52e7bd9f3704c0c9a2479bd8ff1afdade0eba35c616f9b8da1333a",
+    "script_src": "/assets/managerSelection-Dj_k-r6S.js",
+    "served_asset_sha256": "3af3eecb8648917210d1e37898504b86723a059751e5351f6047b4273d07ff34",
+    "release_file_sha256": "3af3eecb8648917210d1e37898504b86723a059751e5351f6047b4273d07ff34",
+    "served_bytes_equal_release_file": true,
+    "release_manifest_entry_matches": true,
+    "browser_observation": "Fresh CUA navigation of the exact local page showed the expected focus UI. The served HTML/current release asset was bound by direct HTTP response and manifest hash; CUA exposed DOM/screenshot but no per-tab performance resource list."
+  },
+  "live_review": {
+    "reviewer": "/root/focus_live_reviewer",
+    "sha256": "b33126d193e19341af774790e13ee5ef9aebcda4303880160cb823ed116c1c05",
+    "verdict": "REVIEWED/PASS",
+    "scope": "default date23 API, actual Chrome, catalogue windows/pagination/lane return, old version reads; no repeated source/build/replay/constructor"
+  },
+  "user_IAB": "Refreshed original bare-date23 tab; 10 focus names and separate 578 catalogue observed",
+  "focus_order": [
+    "HK.02007",
+    "HK.06690",
+    "HK.00165",
+    "HK.03396",
+    "HK.02869",
+    "HK.06098",
+    "HK.00354",
+    "HK.02648",
+    "HK.02556",
+    "HK.00257"
+  ],
+  "date23_counts": {
+    "candidate": 670,
+    "catalogue": 578,
+    "eligible": 146,
+    "selected": 10,
+    "capped": 136,
+    "not_triggered": 410,
+    "pending": 114,
+    "original_strict_selected": 0,
+    "original_strict_rejected": 355,
+    "original_strict_pending": 315
+  },
+  "response_bytes_200_rows": [
+    647576,
+    610715
+  ],
+  "old_runs": {
+    "d256": "identity HTTP200, zero rows; row-level completeness CANNOT_CONFIRM",
+    "b377": "identity HTTP200; saved bytes unchanged; superseded as default by run444"
+  },
+  "replay87": {
+    "artifact_review_sha256": "9db8eac28aad452c9443bd591ef1408756d5139206beef5c2a28a85d6dbc8a38",
+    "versions": 87,
+    "nonzero_focus_versions": 44,
+    "zero_no_pending": 28,
+    "zero_with_pending": 15,
+    "missing_original_versions": 14,
+    "saved_dates_in_60_sessions": 8,
+    "missing_dates": 52,
+    "PIT_eligible": 0,
+    "labels_read": 0,
+    "effect": "NOT_EVALUABLE"
+  },
+  "scheduler": {
+    "status": "OWNER_PAUSED_DO_NOT_RESTART",
+    "baseline_sha256": "73185ef396f961376f706971ba146664841b5260a2642ed1744ef9d1422ba6c1",
+    "original_old_r6_scope": "STALE_NOT_EXECUTABLE",
+    "new_us_hk_contract_not_integrated": true,
+    "natural_cycles_verified": 0,
+    "natural_cycles_required": 2
+  },
+  "unexecuted": [
+    "Natural cycles",
+    "scheduler integration/startup while owner paused",
+    "new focused publication for date22",
+    "authority HK panel pointer promotion",
+    "PIT/effect/BUY acceptance"
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
