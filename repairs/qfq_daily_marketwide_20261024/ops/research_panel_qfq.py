@@ -940,6 +940,74 @@ def _tail_selected_bytes_sha(refs: list[dict], target: int) -> str:
 # receipt. These immutable metadata digests authorize only this batch/old8.
 TAIL_BATCH_V2_SOURCE_BINDING_SHA = "aec0ce66a1431fb3b23f44b34f7d52717e0823f4742893dc495231f8e6a3b5aa"
 TAIL_BATCH_V2_ARCHIVE_ADDITIONS_SHA = "f8c8c796858c2167b3a1fac2daa4fd54149de542419aa1bc121e814aeea036ee"
+TAIL_SEED_RESTORATION_PLAN_SHA = "a42060751e10665b1613d20e158890b3dd4632632c3f1a6be16e88a9ae5ce759"
+
+
+def _tail_seed_restoration_scope(value: dict, observed: dict) -> dict:
+    """Optional, separately reviewed original -> corrected physical seed proof."""
+    ref = value.get("seed_restoration")
+    if ref is None:
+        return {}
+    review = json.loads(_source(ref, owner="exact27 seed restoration review").read_text())
+    plan_ref = review.get("plan", {})
+    if plan_ref.get("sha256") != TAIL_SEED_RESTORATION_PLAN_SHA:
+        raise QfqGateError("TAIL_SEED_RESTORATION_APPROVED_PLAN_UNBOUND")
+    plan = json.loads(_source(plan_ref, owner="approved exact27 seed rows").read_text())
+    rows = plan.get("rows", [])
+    planned = {row["code"]: row for row in rows}
+    reports = review.get("reports", [])
+    indexed = {row["code"]: row for row in reports}
+    if (review.get("schema") != "qfq_native_seed_restoration_review_v1"
+            or review.get("verdict") != "REVIEWED/PASS_EXACT27_ORIGINAL_ARCHIVE_SEED_RESTORATION"
+            or not review.get("reviewer_id") or review["reviewer_id"] in {
+                "/root/local_panel_completion_main", "/root/local_panel_completion_writer"}
+            or review.get("network_requests") != 0 or review.get("research_only") is not True
+            or any(review.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
+            or plan.get("schema") != "R27_EXACT27_ACCEPTED_ARCHIVE_ROW_RESTORATION_PLAN"
+            or len(rows) != len(planned) or len(planned) != 27
+            or len(reports) != len(indexed) or set(indexed) != set(planned)
+            or not set(planned).issubset(observed) or "301139.SZ" in planned
+            or any(row["target_native_before"]["sha256"] != observed[code]["native"]["sha256"]
+                   for code, row in planned.items())):
+        raise QfqGateError("TAIL_SEED_RESTORATION_REVIEW_OR_EXACT27_CHANGED")
+    return dict(review_ref=ref, plan_ref=plan_ref, planned=planned, reports=indexed)
+
+
+def _tail_original_native_binding(scope: dict, code: str, binding: dict,
+                                  before_item: dict, retained: dict) -> dict:
+    """Verify whole-row restoration; never relabel the frozen observed seed."""
+    context = scope.get("restorations", {})
+    if code not in context.get("planned", {}):
+        if "original_native_before" in binding:
+            raise QfqGateError("TAIL_SEED_RESTORATION_OUTSIDE_EXACT27:" + code)
+        return binding["native_before"]
+    plan, report = context["planned"][code], context["reports"][code]
+    original, restored = binding.get("original_native_before", {}), binding["native_before"]
+    if (context["review_ref"] not in retained.get("accepted_evidence", [])
+            or report.get("original_native_before") != original
+            or report.get("restored_native_before") != restored
+            or original.get("sha256") != plan["target_native_before"]["sha256"]
+            or report.get("trade_date") != 20260722 or plan.get("trade_date") != 20260722
+            or plan.get("record_bytes") != 32):
+        raise QfqGateError("TAIL_SEED_RESTORATION_PHYSICAL_BINDING_CHANGED:" + code)
+    old = _source(original, owner="original observed seed " + code).read_bytes()
+    new = _source(restored, owner="corrected physical seed " + code).read_bytes()
+    archives = [ref for ref in before_item["raw_files"] if ref.get("source_role") == "archive"]
+    if len(archives) != 1 or archives[0].get("sha256") != plan["archive_payload"]["sha256"]:
+        raise QfqGateError("TAIL_SEED_RESTORATION_ARCHIVE_CHANGED:" + code)
+    archive = _source(archives[0], owner="already selected archive winner " + code).read_bytes()
+    offset, archive_offset = plan["native_byte_offset"], plan["archive_byte_offset"]
+    if (type(offset) is not int or type(archive_offset) is not int or min(offset, archive_offset) < 0
+            or offset % 32 or archive_offset % 32 or offset + 32 > len(old)
+            or archive_offset + 32 > len(archive) or not old or len(old) % 32 or len(new) != len(old)):
+        raise QfqGateError("TAIL_SEED_RESTORATION_RECORD_BOUNDARY_CHANGED:" + code)
+    prior, winner = old[offset:offset + 32], archive[archive_offset:archive_offset + 32]
+    if (hashlib.sha256(prior).hexdigest() != plan["native_original_row_sha256"]
+            or hashlib.sha256(winner).hexdigest() != plan["archive_whole_row_sha256"]
+            or any(int.from_bytes(row[:4], "little") != 20260722 for row in (prior, winner))
+            or prior == winner or old[:offset] + winner + old[offset + 32:] != new):
+        raise QfqGateError("TAIL_SEED_RESTORATION_NOT_EXACT_ARCHIVE_WHOLE_ROW:" + code)
+    return original
 
 
 def _tail_batch_v2_scope(value: dict, target: int) -> dict:
@@ -978,7 +1046,8 @@ def _tail_batch_v2_scope(value: dict, target: int) -> dict:
             or any(review.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
             or len(reports) != len(approved) or set(approved) != set(codes)):
         raise QfqGateError("TAIL_BATCH_V2_ACTUAL_RAW_REVIEW_NOT_ACCEPTED")
-    return dict(rows=indexed, archive_only=set(addition["codes"]), reports=approved, review_ref=review_ref)
+    return dict(rows=indexed, archive_only=set(addition["codes"]), reports=approved, review_ref=review_ref,
+                restorations=_tail_seed_restoration_scope(value, indexed))
 
 
 def _tail_batch_v2_code(scope: dict, code: str, binding: dict, before: dict, after: dict,
@@ -986,10 +1055,11 @@ def _tail_batch_v2_code(scope: dict, code: str, binding: dict, before: dict, aft
     dates = binding["added_dates"]
     report, observed = scope["reports"][code], scope["rows"][code]
     before_ref, after_ref = binding["native_before"], binding["native_after"]
+    original_ref = _tail_original_native_binding(scope, code, binding, before_item, retained)
     physical = binding["native_appended_dates"]
     if (scope["review_ref"] not in retained.get("accepted_evidence", [])
             or binding.get("independent_review") != scope["review_ref"]
-            or before_ref.get("sha256") != observed["native"]["sha256"]
+            or original_ref.get("sha256") != observed["native"]["sha256"]
             or report.get("native_before") != before_ref or report.get("native_after") != after_ref
             or report.get("native_appended_dates") != physical or report.get("added_dates") != dates
             or report.get("provider_response") != observed["original_MAC_response"]
@@ -1015,7 +1085,7 @@ def _tail_batch_v2_code(scope: dict, code: str, binding: dict, before: dict, aft
             or pairs[0]["archive"] != pairs[1]["archive"]
             or any(pairs[1]["native"].get(k) != after_ref.get(k) for k in ("path", "sha256"))
             or pairs[1]["native"].get("kind") != "day_bytes"
-            or ("native" in pairs[0] and (pairs[0]["native"].get("kind") != "day_bytes" or pairs[0]["native"].get("sha256") != before_ref.get("sha256")))):
+            or ("native" in pairs[0] and (pairs[0]["native"].get("kind") != "day_bytes" or pairs[0]["native"].get("sha256") != original_ref.get("sha256")))):
         raise QfqGateError("TAIL_BATCH_V2_ARCHIVE_OR_NATIVE_ROLES_CHANGED:" + code)
     old_refs = {x["source_role"]: x for x in before_item["raw_files"]}
     new_refs = {x["source_role"]: x for x in after_item["raw_files"]}
@@ -1029,7 +1099,7 @@ def _tail_batch_v2_code(scope: dict, code: str, binding: dict, before: dict, aft
             or old_refs["archive"] != new_refs["archive"]
             or any(new_refs["native"].get(k) != after_ref.get(k) for k in ("path", "sha256"))
             or not archive_bound
-            or ("native" in old_refs and old_refs["native"].get("sha256") != before_ref.get("sha256"))):
+            or ("native" in old_refs and old_refs["native"].get("sha256") != original_ref.get("sha256"))):
         raise QfqGateError("TAIL_BATCH_V2_ITEM_RAW_ROLES_CHANGED:" + code)
     selected_before = _tail_selected_raw_rows(before_item["raw_files"], target)
     selected_after = _tail_selected_raw_rows(after_item["raw_files"], target)
@@ -1160,6 +1230,9 @@ def tail_delta_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, 
     if v2 and not all(x in snapshot["source_files"] for x in (
             value["source_binding"], value["accepted_archive_additions"], value["independent_raw_review"])):
         raise QfqGateError("TAIL_BATCH_V2_SOURCE_CLOSURE_UNBOUND")
+    if v2 and batch.get("restorations") and not all(x in snapshot["source_files"] for x in (
+            batch["restorations"]["review_ref"], batch["restorations"]["plan_ref"])):
+        raise QfqGateError("TAIL_SEED_RESTORATION_SOURCE_CLOSURE_UNBOUND")
     return {**value, "binding_ref": ref}
 
 
