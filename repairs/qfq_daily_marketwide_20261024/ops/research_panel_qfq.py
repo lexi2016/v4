@@ -912,8 +912,8 @@ def _native_tail_extension(before: dict, after: dict, dates: list[int], code: st
         raise QfqGateError("TAIL_DELTA_NATIVE_NEW_KEYS_CHANGED:" + code)
 
 
-def _tail_selected_bytes_sha(refs: list[dict], target: int) -> str:
-    """Hash exactly the original archive-first whole raw32 rows, before decode."""
+def _tail_selected_raw_rows(refs: list[dict], target: int) -> dict[int, bytes]:
+    """Select exactly the original archive-first whole raw32 rows, before decode."""
     selected = {}
     for role in ("native", "archive"):
         matching = [ref for ref in refs if ref.get("source_role") == role]
@@ -928,7 +928,117 @@ def _tail_selected_bytes_sha(refs: list[dict], target: int) -> str:
                 raise QfqGateError("TAIL_DELTA_RAW_DATE_KEYS_INVALID")
             selected.update({date: payload[index*32:(index+1)*32]
                              for index, date in enumerate(dates) if date <= target})
+    return selected
+
+
+def _tail_selected_bytes_sha(refs: list[dict], target: int) -> str:
+    selected = _tail_selected_raw_rows(refs, target)
     return hashlib.sha256(b"".join(selected[date] for date in sorted(selected))).hexdigest()
+
+
+# Controller-approved scope, not authority inferred from a self-described
+# receipt. These immutable metadata digests authorize only this batch/old8.
+TAIL_BATCH_V2_SOURCE_BINDING_SHA = "aec0ce66a1431fb3b23f44b34f7d52717e0823f4742893dc495231f8e6a3b5aa"
+TAIL_BATCH_V2_ARCHIVE_ADDITIONS_SHA = "f8c8c796858c2167b3a1fac2daa4fd54149de542419aa1bc121e814aeea036ee"
+
+
+def _tail_batch_v2_scope(value: dict, target: int) -> dict:
+    binding_ref, addition_ref = value.get("source_binding", {}), value.get("accepted_archive_additions", {})
+    if (binding_ref.get("sha256") != TAIL_BATCH_V2_SOURCE_BINDING_SHA
+            or addition_ref.get("sha256") != TAIL_BATCH_V2_ARCHIVE_ADDITIONS_SHA):
+        raise QfqGateError("TAIL_BATCH_V2_APPROVED_SCOPE_UNBOUND")
+    binding = json.loads(_source(binding_ref, owner="approved exact tail batch").read_text())
+    addition = json.loads(_source(addition_ref, owner="already accepted archive additions").read_text())
+    rows = binding.get("source_binding_rows", [])
+    indexed = {r["ts_code"]: r for r in rows}
+    keys = binding.get("frozen_keys", [])
+    codes = value["codes"]
+    if (binding.get("schema") != "R19_FROZEN_SOURCE_KEYS_37_148"
+            or binding.get("expected_stock_count") != 37 or binding.get("expected_key_count") != 148
+            or len(rows) != len(indexed) or len(indexed) != 37 or set(codes) != set(indexed)
+            or len(keys) != 148 or len({tuple(k) for k in keys}) != 148
+            or sorted(keys) != sorted([[c, d] for c in codes for d in codes[c].get("added_dates", [])])
+            or addition.get("schema") != "qfq_archive_only_history_additions_v1"
+            or addition.get("asof_date") != target or len(addition.get("codes", {})) != 8
+            or not set(addition["codes"]).issubset(codes)):
+        raise QfqGateError("TAIL_BATCH_V2_EXACT_CODES_OR_KEYS_CHANGED")
+    for code, row in indexed.items():
+        if row.get("target_date") != target or row.get("expected_strict_new_keys") != [[code, d] for d in codes[code].get("added_dates", [])]:
+            raise QfqGateError("TAIL_BATCH_V2_SOURCE_TARGET_OR_KEYS_CHANGED:" + code)
+    review_ref = value["independent_raw_review"]
+    review = json.loads(_source(review_ref, owner="actual independent batch raw review").read_text())
+    reports = review.get("reports", [])
+    approved = {r["code"]: r for r in reports}
+    if (review.get("schema") != "qfq_native_tail_recovery_review_v2"
+            or review.get("verdict") != "REVIEWED/PASS_EXACT_MAC_NATIVE_TAIL_BATCH_V2"
+            or not review.get("reviewer_id") or review["reviewer_id"] in {
+                "/root/local_panel_completion_writer", "/root/security_master_normalization_sol", "/root/current_mac_control"}
+            or review.get("asof_date") != target or review.get("source_binding") != binding_ref
+            or review.get("network_requests") != 0 or review.get("research_only") is not True
+            or any(review.get(k) is not False for k in ("production_allowed", "buy_gate_updated", "orders_sent"))
+            or len(reports) != len(approved) or set(approved) != set(codes)):
+        raise QfqGateError("TAIL_BATCH_V2_ACTUAL_RAW_REVIEW_NOT_ACCEPTED")
+    return dict(rows=indexed, archive_only=set(addition["codes"]), reports=approved, review_ref=review_ref)
+
+
+def _tail_batch_v2_code(scope: dict, code: str, binding: dict, before: dict, after: dict,
+                        before_item: dict, after_item: dict, retained: dict, target: int) -> None:
+    dates = binding["added_dates"]
+    report, observed = scope["reports"][code], scope["rows"][code]
+    before_ref, after_ref = binding["native_before"], binding["native_after"]
+    physical = binding["native_appended_dates"]
+    if (scope["review_ref"] not in retained.get("accepted_evidence", [])
+            or binding.get("independent_review") != scope["review_ref"]
+            or before_ref.get("sha256") != observed["native"]["sha256"]
+            or report.get("native_before") != before_ref or report.get("native_after") != after_ref
+            or report.get("native_appended_dates") != physical or report.get("added_dates") != dates
+            or report.get("provider_response") != observed["original_MAC_response"]
+            or report.get("provider_query_started_utc") != observed["source_query_started_utc"]
+            or not isinstance(physical, list) or not physical or physical != sorted(set(physical))
+            or any(type(d) is not int or d > target for d in physical)
+            or any(report.get(k) is not True for k in ("old_native_prefix_unchanged", "full_seed_gate_passed",
+                "field_signature_gate_passed", "returned_continuity_gate_passed"))
+            or report.get("old_keys_lost") != 0 or report.get("old_values_changed") != 0
+            or report.get("buffer_admitted_as_full_history") is not False):
+        raise QfqGateError("TAIL_BATCH_V2_PHYSICAL_OR_REVIEW_BINDING_CHANGED:" + code)
+    _source(observed["original_MAC_response"], owner="reviewed original MAC response " + code)
+    _native_tail_extension(dict(**before_ref, name="native", kind="day_bytes"),
+                           dict(**after_ref, name="native", kind="day_bytes"), physical, code)
+    old_bytes = Path(before_ref["path"]).read_bytes()
+    old_last = int(np.frombuffer(old_bytes, dtype=np.dtype([("date", "<u4"), ("_", "V28")]))["date"][-1])
+    if binding.get("native_cutoff") != old_last or report.get("native_cutoff") != old_last:
+        raise QfqGateError("TAIL_BATCH_V2_PHYSICAL_CUTOFF_CHANGED:" + code)
+    pairs = [{x["name"]: x for x in stock["sources"]} for stock in (before, after)]
+    expected_before = {"archive"} if code in scope["archive_only"] else {"archive", "native"}
+    if (len(pairs[0]) != len(before["sources"]) or len(pairs[1]) != len(after["sources"])
+            or set(pairs[0]) != expected_before or set(pairs[1]) != {"archive", "native"}
+            or pairs[0]["archive"] != pairs[1]["archive"]
+            or any(pairs[1]["native"].get(k) != after_ref.get(k) for k in ("path", "sha256"))
+            or pairs[1]["native"].get("kind") != "day_bytes"
+            or ("native" in pairs[0] and (pairs[0]["native"].get("kind") != "day_bytes" or pairs[0]["native"].get("sha256") != before_ref.get("sha256")))):
+        raise QfqGateError("TAIL_BATCH_V2_ARCHIVE_OR_NATIVE_ROLES_CHANGED:" + code)
+    old_refs = {x["source_role"]: x for x in before_item["raw_files"]}
+    new_refs = {x["source_role"]: x for x in after_item["raw_files"]}
+    archive = pairs[0]["archive"]
+    archive_bound = (old_refs.get("archive", {}).get("sha256") == archive.get("member_sha256")
+                     if archive.get("kind") == "archive_member" else
+                     archive.get("kind") == "day_bytes" and all(
+                         old_refs.get("archive", {}).get(k) == archive.get(k) for k in ("path", "sha256")))
+    if (len(old_refs) != len(before_item["raw_files"]) or len(new_refs) != len(after_item["raw_files"])
+            or set(old_refs) != expected_before or set(new_refs) != {"archive", "native"}
+            or old_refs["archive"] != new_refs["archive"]
+            or any(new_refs["native"].get(k) != after_ref.get(k) for k in ("path", "sha256"))
+            or not archive_bound
+            or ("native" in old_refs and old_refs["native"].get("sha256") != before_ref.get("sha256"))):
+        raise QfqGateError("TAIL_BATCH_V2_ITEM_RAW_ROLES_CHANGED:" + code)
+    selected_before = _tail_selected_raw_rows(before_item["raw_files"], target)
+    selected_after = _tail_selected_raw_rows(after_item["raw_files"], target)
+    if (not selected_before or before_item.get("history_end_date") != max(selected_before)
+            or set(selected_after) != set(selected_before) | set(dates) or set(selected_before) & set(dates)
+            or any(selected_after[d] != row for d, row in selected_before.items())
+            or report.get("old_selected_raw_sha256") != _tail_selected_bytes_sha(before_item["raw_files"], target)
+            or report.get("staged_sha256") != _tail_selected_bytes_sha(after_item["raw_files"], target)):
+        raise QfqGateError("TAIL_BATCH_V2_SELECTED_KEYS_OR_OLD_RAW_CHANGED:" + code)
 
 
 def tail_delta_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, Path],
@@ -942,10 +1052,13 @@ def tail_delta_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, 
         return None
     value = json.loads(_source(ref, owner="tail delta contract").read_text())
     codes = value.get("codes", {})
-    if (value.get("schema") != "qfq_native_tail_delta_v1" or value.get("asof_date") != target
-            or not isinstance(codes, dict) or not 1 <= len(codes) <= 6
+    v2 = value.get("schema") == "qfq_native_tail_delta_v2"
+    if (value.get("schema") not in {"qfq_native_tail_delta_v1", "qfq_native_tail_delta_v2"}
+            or value.get("asof_date") != target
+            or not isinstance(codes, dict) or not (len(codes) == 37 if v2 else 1 <= len(codes) <= 6)
             or any(not CODE.fullmatch(c) for c in codes) or not retained_history):
         raise QfqGateError("TAIL_DELTA_CONTRACT_INVALID")
+    batch = _tail_batch_v2_scope(value, target) if v2 else None
     old = json.loads(_source(value["baseline_snapshot"], owner="delta baseline snapshot").read_text())
     if (old.get("asof_date") != target or set(old["symbols"]) != set(snapshot["symbols"])
             or not set(codes).issubset(old["symbols"]) or set(value.get("baseline_roles", {})) != set(pointers)):
@@ -996,26 +1109,31 @@ def tail_delta_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, 
         if (not isinstance(dates, list) or not dates or dates != sorted(set(dates))
                 or any(type(d) is not int or d > target for d in dates)):
             raise QfqGateError("TAIL_DELTA_DATE_CONTRACT_INVALID:" + code)
-        review = json.loads(_source(codes[code]["independent_review"], owner="tail recovery review " + code).read_text())
-        if review.get("verdict") != "REVIEWED/PASS_ISOLATED_TWO_STOCK_TAIL_RECOVERY_ONLY":
-            raise QfqGateError("TAIL_DELTA_RECOVERY_REVIEW_NOT_ACCEPTED:" + code)
-        approved = [row for row in review.get("reports", []) if row.get("code") == code]
-        if (codes[code]["independent_review"] not in retained.get("accepted_evidence", [])
-                or len(approved) != 1 or approved[0].get("added_dates") != dates
-                or approved[0].get("old_keys_lost") != 0 or approved[0].get("old_values_changed") != 0
-                or approved[0].get("old_raw32_prefix_unchanged") is not True
-                or approved[0].get("buffer_admitted_as_full_history") is not False
-                or approved[0].get("staged_sha256") != _tail_selected_bytes_sha(snapshot["symbols"][code]["raw_files"], target)):
-            raise QfqGateError("TAIL_DELTA_REVIEW_CODE_KEYS_OR_COMPLETE_SOURCE_CONFLICT:" + code)
+        if not v2:
+            review = json.loads(_source(codes[code]["independent_review"], owner="tail recovery review " + code).read_text())
+            if review.get("verdict") != "REVIEWED/PASS_ISOLATED_TWO_STOCK_TAIL_RECOVERY_ONLY":
+                raise QfqGateError("TAIL_DELTA_RECOVERY_REVIEW_NOT_ACCEPTED:" + code)
+            approved = [row for row in review.get("reports", []) if row.get("code") == code]
+            if (codes[code]["independent_review"] not in retained.get("accepted_evidence", [])
+                    or len(approved) != 1 or approved[0].get("added_dates") != dates
+                    or approved[0].get("old_keys_lost") != 0 or approved[0].get("old_values_changed") != 0
+                    or approved[0].get("old_raw32_prefix_unchanged") is not True
+                    or approved[0].get("buffer_admitted_as_full_history") is not False
+                    or approved[0].get("staged_sha256") != _tail_selected_bytes_sha(snapshot["symbols"][code]["raw_files"], target)):
+                raise QfqGateError("TAIL_DELTA_REVIEW_CODE_KEYS_OR_COMPLETE_SOURCE_CONFLICT:" + code)
         if ({k: v for k, v in before.items() if k != "sources"}
                 != {k: v for k, v in after.items() if k != "sources"}):
             raise QfqGateError("TAIL_DELTA_SOURCE_STOCK_METADATA_CHANGED:" + code)
-        pairs = [{x["name"]: x for x in stock["sources"]} for stock in (before, after)]
-        if (len(pairs[0]) != len(before["sources"]) or len(pairs[1]) != len(after["sources"])
-                or set(pairs[0]) != set(pairs[1]) or "native" not in pairs[0]
-                or any(pairs[0][k] != pairs[1][k] for k in pairs[0] if k != "native")):
-            raise QfqGateError("TAIL_DELTA_ARCHIVE_OR_SOURCE_ROLES_CHANGED:" + code)
-        _native_tail_extension(pairs[0]["native"], pairs[1]["native"], dates, code)
+        if v2:
+            _tail_batch_v2_code(batch, code, codes[code], before, after, old["symbols"][code],
+                                snapshot["symbols"][code], retained, target)
+        else:
+            pairs = [{x["name"]: x for x in stock["sources"]} for stock in (before, after)]
+            if (len(pairs[0]) != len(before["sources"]) or len(pairs[1]) != len(after["sources"])
+                    or set(pairs[0]) != set(pairs[1]) or "native" not in pairs[0]
+                    or any(pairs[0][k] != pairs[1][k] for k in pairs[0] if k != "native")):
+                raise QfqGateError("TAIL_DELTA_ARCHIVE_OR_SOURCE_ROLES_CHANGED:" + code)
+            _native_tail_extension(pairs[0]["native"], pairs[1]["native"], dates, code)
     if not all(x in snapshot["source_files"] for x in [retained["source_config"], retained["source_policy"],
             *retained.get("accepted_evidence", [])]):
         raise QfqGateError("TAIL_DELTA_NEW_SOURCE_CLOSURE_UNBOUND")
@@ -1035,10 +1153,13 @@ def tail_delta_binding(ref: dict | None, *, snapshot: dict, pointers: dict[str, 
                 raise QfqGateError("TAIL_DELTA_NOT_TAIL_ONLY:" + code)
             old_refs = {x["source_role"]: x for x in before["raw_files"]}
             new_refs = {x["source_role"]: x for x in after["raw_files"]}
-            if (set(old_refs) != set(new_refs) or len(new_refs) != len(after["raw_files"])
+            if not v2 and (set(old_refs) != set(new_refs) or len(new_refs) != len(after["raw_files"])
                     or any(old_refs[k] != new_refs[k] for k in old_refs if k != "native")
                     or any(new_refs["native"].get(k) != stocks[1][code]["sources"][[x["name"] for x in stocks[1][code]["sources"]].index("native")].get(k) for k in ("path", "sha256"))):
                 raise QfqGateError("TAIL_DELTA_NATIVE_ITEM_BINDING_CHANGED:" + code)
+    if v2 and not all(x in snapshot["source_files"] for x in (
+            value["source_binding"], value["accepted_archive_additions"], value["independent_raw_review"])):
+        raise QfqGateError("TAIL_BATCH_V2_SOURCE_CLOSURE_UNBOUND")
     return {**value, "binding_ref": ref}
 
 
