@@ -1,0 +1,1147 @@
+{
+  "schema_version": "v4.schedule_remediation.source_capsules.v1",
+  "created_at": "2026-10-26T21:17:12.919396+08:00",
+  "scope": "本轮已审必要源码补丁胶囊；非完整可运行项目，不覆盖源码根，不代表全链路完成。",
+  "repository_target": "lexi2016/v4",
+  "authorized_work_branch": "codex/v4-schedule-remediation-20261026",
+  "repository_checkout_is_not_runtime_baseline": true,
+  "component_counts": {
+    "api": 8,
+    "graph": 14,
+    "daily": 5,
+    "web": 5,
+    "stage": 9,
+    "main": 10
+  },
+  "files": [
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/apps/api/v35_api/runtime_graph_router.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/api/v35_api/runtime_graph_router.py",
+      "original_relative_path": "apps/api/v35_api/runtime_graph_router.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/api/v35_api/runtime_graph_router.py",
+      "before_sha256": "9cc9be6bc929be53168f4115d808690b9560978129dff8557fb0c0a5d6ff9531",
+      "after_sha256": "226efdcdde6506986e32ee697935a59e9b8f56ed2ce93e2d623ab45a2fc5ffd8",
+      "bytes": 27608,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "incremental_lineage": [
+        {
+          "before_sha256": "1de4c0f11c7f9872241986fcdaa04508be66fa4ff29d38f2d5387243a5560c1d",
+          "after_sha256": "226efdcdde6506986e32ee697935a59e9b8f56ed2ce93e2d623ab45a2fc5ffd8",
+          "review_ref": "core_r4"
+        }
+      ],
+      "copied_sha256": "226efdcdde6506986e32ee697935a59e9b8f56ed2ce93e2d623ab45a2fc5ffd8"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/contracts/v3_runtime_graph_contract.json",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/contracts/v3_runtime_graph_contract.json",
+      "original_relative_path": "contracts/v3_runtime_graph_contract.json",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/contracts/v3_runtime_graph_contract.json",
+      "before_sha256": "57d3c0ff896a2b3cfa23cf2d255a7500167a9cd0815b74248246c78a1f3b1edd",
+      "after_sha256": "029ba68efd88fd13f48ec02cd39dc5abd381317b760b689b695c883d866b73c9",
+      "bytes": 176253,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "029ba68efd88fd13f48ec02cd39dc5abd381317b760b689b695c883d866b73c9"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/infrastructure/runtime_graph/service.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/infrastructure/runtime_graph/service.py",
+      "original_relative_path": "infrastructure/runtime_graph/service.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/infrastructure/runtime_graph/service.py",
+      "before_sha256": "328d936990876467d9e652c3fab28541be7d86aaf5d210ec38d4bc978bcb0444",
+      "after_sha256": "2fd1b7e0555b1dbdda3f460f2f81d3bd5beacb992bd61b6f336ae38fc665fd1d",
+      "bytes": 53746,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "2fd1b7e0555b1dbdda3f460f2f81d3bd5beacb992bd61b6f336ae38fc665fd1d"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph",
+      "delivery_relative_path": "graph/contracts/v3_runtime_graph_contract.json",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/core/graph/app/contracts/v3_runtime_graph_contract.json",
+      "original_relative_path": "contracts/v3_runtime_graph_contract.json",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260823T152653Z-v35-research-links-scroll/app/contracts/v3_runtime_graph_contract.json",
+      "before_sha256": "57d3c0ff896a2b3cfa23cf2d255a7500167a9cd0815b74248246c78a1f3b1edd",
+      "after_sha256": "029ba68efd88fd13f48ec02cd39dc5abd381317b760b689b695c883d866b73c9",
+      "bytes": 176253,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "029ba68efd88fd13f48ec02cd39dc5abd381317b760b689b695c883d866b73c9"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph",
+      "delivery_relative_path": "graph/infrastructure/runtime_graph/http_client.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/core/graph/app/infrastructure/runtime_graph/http_client.py",
+      "original_relative_path": "infrastructure/runtime_graph/http_client.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260823T152653Z-v35-research-links-scroll/app/infrastructure/runtime_graph/http_client.py",
+      "before_sha256": "f8b3c3e32d94a7883016f0d6734fac61c6c6c290d83aea59a194917067e7dd13",
+      "after_sha256": "93d3805a89fa22a6ac66419fcf78f0ff7ce919776228085a2607893bae10fd08",
+      "bytes": 4016,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "93d3805a89fa22a6ac66419fcf78f0ff7ce919776228085a2607893bae10fd08"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph",
+      "delivery_relative_path": "graph/infrastructure/runtime_graph/service.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/core/graph/app/infrastructure/runtime_graph/service.py",
+      "original_relative_path": "infrastructure/runtime_graph/service.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260823T152653Z-v35-research-links-scroll/app/infrastructure/runtime_graph/service.py",
+      "before_sha256": "f8fde4df44e80905426b48f1d6a5083d0ff05b1b866c55e890a10761ca5d9333",
+      "after_sha256": "5612131f266598dbf0b4683759a10412312f5d2a02dec10ceeb8730cd8c87dec",
+      "bytes": 43335,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "5612131f266598dbf0b4683759a10412312f5d2a02dec10ceeb8730cd8c87dec"
+    },
+    {
+      "component": "daily",
+      "capsule": "daily/core",
+      "delivery_relative_path": "daily/core/ops/run_review_core_bound.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/core/daily/app/ops/run_review_core_bound.py",
+      "original_relative_path": "ops/run_review_core_bound.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/20260923-review-daily-bound-b01-b02/app/ops/run_review_core_bound.py",
+      "before_sha256": "ac9782f994a80299dc2e9068078265193d9cd1e5d6e7cbd4aee1cd57ad499039",
+      "after_sha256": "37de0c4c92ec49df663f40e4442a1a5bf00177030b6ab2655496b4fcb560d8e5",
+      "bytes": 8547,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "37de0c4c92ec49df663f40e4442a1a5bf00177030b6ab2655496b4fcb560d8e5"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/apps/api/v35_api/preselection_router.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/api/v35_api/preselection_router.py",
+      "original_relative_path": "apps/api/v35_api/preselection_router.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/api/v35_api/preselection_router.py",
+      "before_sha256": "718d54a6c6aa8cde2871ce4dc41cbc1d825f199a57b605e4f5ec70d8c4fe19ae",
+      "after_sha256": "0b6bf71b7b45bc93afb950d3f377f90abe24350f4ebbceb8f50cb33cb1ba53d8",
+      "bytes": 1555,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "0b6bf71b7b45bc93afb950d3f377f90abe24350f4ebbceb8f50cb33cb1ba53d8"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/apps/api/v35_api/runtime_router.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/api/v35_api/runtime_router.py",
+      "original_relative_path": "apps/api/v35_api/runtime_router.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/api/v35_api/runtime_router.py",
+      "before_sha256": "b231a2202ec142ee5dc84dfb2b8b00252af3f85560f9b62c27d29d9fa73b49f2",
+      "after_sha256": "39c43ae379eaf8a399cd1c0f080ef33079ecd38fda3e543352100338d7a1f238",
+      "bytes": 2061,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "39c43ae379eaf8a399cd1c0f080ef33079ecd38fda3e543352100338d7a1f238"
+    },
+    {
+      "component": "web",
+      "capsule": "web",
+      "delivery_relative_path": "web/apps/web/src/App.vue",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/web/src/App.vue",
+      "original_relative_path": "apps/web/src/App.vue",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/web/src/App.vue",
+      "before_sha256": "876bf26cf3a37204ca1b6f4f53989d6b778dbf34064896f50abcfc64d4f734d2",
+      "after_sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6",
+      "bytes": 36037,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6"
+    },
+    {
+      "component": "web",
+      "capsule": "web",
+      "delivery_relative_path": "web/apps/web/src/app_shell/timeline.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/web/src/app_shell/timeline.ts",
+      "original_relative_path": "apps/web/src/app_shell/timeline.ts",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/web/src/app_shell/timeline.ts",
+      "before_sha256": "58cb16b14b6791c25dc69fcfa1c1fd2c1980bd593a0ed407b3c5ea98b08470e8",
+      "after_sha256": "16658c1a39a3ff779efe131226786664e4210431d03b6fe0fcc40d809f0e9538",
+      "bytes": 4697,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "16658c1a39a3ff779efe131226786664e4210431d03b6fe0fcc40d809f0e9538"
+    },
+    {
+      "component": "web",
+      "capsule": "web",
+      "delivery_relative_path": "web/apps/web/src/app_shell/useAppShell.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/web/src/app_shell/useAppShell.ts",
+      "original_relative_path": "apps/web/src/app_shell/useAppShell.ts",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/web/src/app_shell/useAppShell.ts",
+      "before_sha256": "4e4eb64238c5d5c5734f8c5c5a642cb05688d9554589ec12616dbdab6f1fa0d8",
+      "after_sha256": "1c9f5707c5f29677b00d91be05b2583e6deef3353c3fd788bd9c399d4a5757cb",
+      "bytes": 39479,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "1c9f5707c5f29677b00d91be05b2583e6deef3353c3fd788bd9c399d4a5757cb"
+    },
+    {
+      "component": "web",
+      "capsule": "web",
+      "delivery_relative_path": "web/apps/web/src/contracts/runtime.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/web/src/contracts/runtime.ts",
+      "original_relative_path": "apps/web/src/contracts/runtime.ts",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/apps/web/src/contracts/runtime.ts",
+      "before_sha256": "b3d437e906f81d08af045f5b0f3990662c64676572376d42edddaf109f3dd980",
+      "after_sha256": "5930f0138fd65e5ac1aa41a9f813b94d2495c857a827125f3541bc2a230d987a",
+      "bytes": 5166,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "5930f0138fd65e5ac1aa41a9f813b94d2495c857a827125f3541bc2a230d987a"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/domains/task_status.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/domains/task_status.py",
+      "original_relative_path": "domains/task_status.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-lifecycle-notes-20261026-r1/app/domains/task_status.py",
+      "before_sha256": "91031c6c671d363cc4fa9b4cab62887e4f9943564ed6128286097586ba83b8d5",
+      "after_sha256": "3b3d1fcec91553df38ba2c5539a06eef666bf53e6c3e6bec30a804d04d10580e",
+      "bytes": 50377,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/r4/HANDOFF.json",
+      "source_manifest_sha256": "3c4fd3e03f74e1384bb459bad107c924395a49797db659f774e479c7b667fc8e",
+      "review_refs": [
+        "core_r3",
+        "core_r4",
+        "ui_r4"
+      ],
+      "incremental_lineage": [
+        {
+          "before_sha256": "62266cac5301ad26b25fb83781a09149aefbcc3ec3fd1717cf55a1f22353d4b1",
+          "after_sha256": "3b3d1fcec91553df38ba2c5539a06eef666bf53e6c3e6bec30a804d04d10580e",
+          "review_ref": "ui_r4"
+        }
+      ],
+      "copied_sha256": "3b3d1fcec91553df38ba2c5539a06eef666bf53e6c3e6bec30a804d04d10580e"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/tests/test_schedule_remediation_ui_api.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/tests/test_schedule_remediation_ui_api.py",
+      "original_relative_path": "tests/test_schedule_remediation_ui_api.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "5e9d9c34707b6f16ebfc37cb3cf45034c9bf78a93d84c8624d456955ac57fe02",
+      "bytes": 12483,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "5e9d9c34707b6f16ebfc37cb3cf45034c9bf78a93d84c8624d456955ac57fe02"
+    },
+    {
+      "component": "web",
+      "capsule": "web",
+      "delivery_relative_path": "web/apps/web/src/app_shell/timeline.remediation.spec.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/apps/web/src/app_shell/timeline.remediation.spec.ts",
+      "original_relative_path": "apps/web/src/app_shell/timeline.remediation.spec.ts",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "4fc4559f897dd8cb5933ed8f0f6a7029a8762994f75702a3b2e6a39550ebc79b",
+      "bytes": 4936,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/delivery_manifest.json",
+      "source_manifest_sha256": "ccbe4f02f939bdf992038d45d7810de35b68b5e8c5d2d32cd68608fecfd3171e",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "copied_sha256": "4fc4559f897dd8cb5933ed8f0f6a7029a8762994f75702a3b2e6a39550ebc79b"
+    },
+    {
+      "component": "api",
+      "capsule": "api",
+      "delivery_relative_path": "api/tests/test_task_status_scheduler_observations_r4.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/combined_api_r4/app/tests/test_task_status_scheduler_observations_r4.py",
+      "original_relative_path": "tests/test_task_status_scheduler_observations_r4.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "3a271ebae0c0de31cdf5595c230b5e75aa5e75284912a09436c40bfc8f7959f4",
+      "bytes": 9972,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/ui_api_writer/r4/HANDOFF.json",
+      "source_manifest_sha256": "3c4fd3e03f74e1384bb459bad107c924395a49797db659f774e479c7b667fc8e",
+      "review_refs": [
+        "ui_r4",
+        "core_r4"
+      ],
+      "copied_sha256": "3a271ebae0c0de31cdf5595c230b5e75aa5e75284912a09436c40bfc8f7959f4"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/stage_center/_live_collectors_parts/a_auction.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/stage_center/_live_collectors_parts/a_auction.py",
+      "original_relative_path": "stage_center/_live_collectors_parts/a_auction.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/stage_center/_live_collectors_parts/a_auction.py",
+      "before_sha256": "2b39ede48161e6be59efc769849a8da2319521faeac3f2985b82de508e7c6aef",
+      "after_sha256": "7c2174fcac50b0e910fbae632e3b45e8d62d3e7f090d04cfe4589a22c9ded9f6",
+      "bytes": 19582,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "7c2174fcac50b0e910fbae632e3b45e8d62d3e7f090d04cfe4589a22c9ded9f6"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/infrastructure/futu_quote_provider.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/infrastructure/futu_quote_provider.py",
+      "original_relative_path": "infrastructure/futu_quote_provider.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/infrastructure/futu_quote_provider.py",
+      "before_sha256": "b8ce38b6e255a0048a0028024c6c5bb376762e906a2dc4602c32dcb1ac91faae",
+      "after_sha256": "c2eebe37c235f8eaeb6ea9fb9458eed81ca3bbbeab0635253e5447d9744ac89d",
+      "bytes": 5056,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "c2eebe37c235f8eaeb6ea9fb9458eed81ca3bbbeab0635253e5447d9744ac89d"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/infrastructure/stage_quote_provider.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/infrastructure/stage_quote_provider.py",
+      "original_relative_path": "infrastructure/stage_quote_provider.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/infrastructure/stage_quote_provider.py",
+      "before_sha256": "5d72b15bb39657289426a83e9f2d819f9f5476dde91e37703c7ee4ab53c53f47",
+      "after_sha256": "618b587e1c43dcad46e059788af0efe868206b51a6cb8f02b37055c34c940c37",
+      "bytes": 32260,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "618b587e1c43dcad46e059788af0efe868206b51a6cb8f02b37055c34c940c37"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "original_relative_path": "ops/_run_stage_center_nodes_parts/node_entry.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "before_sha256": "26575adbabf93b23a7ef7294e84e8b8c79f9bbbd254a618a3866f7c13e0b0a1c",
+      "after_sha256": "0423c9ac5d10ee7d077d4448483918430cf3e4d22152b5f8e5258dfed9bffac7",
+      "bytes": 50401,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "0423c9ac5d10ee7d077d4448483918430cf3e4d22152b5f8e5258dfed9bffac7"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/ops/run_stage_center_nodes.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/ops/run_stage_center_nodes.py",
+      "original_relative_path": "ops/run_stage_center_nodes.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/ops/run_stage_center_nodes.py",
+      "before_sha256": "3262f8c8e0c0faf580c8272dd8aac3d60250bc8a95b762a060f814876f5e48bf",
+      "after_sha256": "07484ab575e2290c469ef4be54f1958c069af872c47314527dda92c537690091",
+      "bytes": 14406,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "07484ab575e2290c469ef4be54f1958c069af872c47314527dda92c537690091"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/stage_center/_selection_parts/a_auction.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/stage_center/_selection_parts/a_auction.py",
+      "original_relative_path": "stage_center/_selection_parts/a_auction.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/stage_center/_selection_parts/a_auction.py",
+      "before_sha256": "d0a96edcb4d87f223b117917a8f0d68276bd088a88abe8f787d245c8e1c669ad",
+      "after_sha256": "4ad84c3a565f09d2944095cea55d8bdba5433b501e703fc617ae49736e8ed1bb",
+      "bytes": 9773,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "4ad84c3a565f09d2944095cea55d8bdba5433b501e703fc617ae49736e8ed1bb"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "original_relative_path": "stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/stage_center/_live_collectors_parts/selection_builder_registry.py",
+      "before_sha256": "9c6db6b6eb9d0fb1ff1a0d414595d8dd075b59b0e547b42b1cedfc484f83c9a2",
+      "after_sha256": "f020d384d2f3d6f3d401b80ca6bdd0bcff68bb47d108ebbb560a85924c51846a",
+      "bytes": 27581,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "f020d384d2f3d6f3d401b80ca6bdd0bcff68bb47d108ebbb560a85924c51846a"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/tests/test_a925_native_snapshot.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/tests/test_a925_native_snapshot.py",
+      "original_relative_path": "tests/test_a925_native_snapshot.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "39493fdda0e7c472eef2b4740bc536f96f70ea753d80c1aefa2f47c98eec0fe8",
+      "bytes": 17869,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "39493fdda0e7c472eef2b4740bc536f96f70ea753d80c1aefa2f47c98eec0fe8"
+    },
+    {
+      "component": "stage",
+      "capsule": "stage/a925",
+      "delivery_relative_path": "stage/a925/stage_center/_runner_parts/slot_execution.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a925/app/stage_center/_runner_parts/slot_execution.py",
+      "original_relative_path": "stage_center/_runner_parts/slot_execution.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/stage_center/_runner_parts/slot_execution.py",
+      "before_sha256": "48635469bad4a24fa597e79424843d24620206b3c863583915af638ed0aab131",
+      "after_sha256": "17315c8aa63408a462c7752574122460dda7a382aec4d42fd1877f485fbbe82c",
+      "bytes": 56188,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_writer/CANDIDATE_SOURCE_MANIFEST.json",
+      "source_manifest_sha256": "c3fddea1985ee2f38faee9475405d2d76ab0753ea4bc981eae1b01da223ff42f",
+      "review_refs": [
+        "stage_r2"
+      ],
+      "copied_sha256": "17315c8aa63408a462c7752574122460dda7a382aec4d42fd1877f485fbbe82c"
+    },
+    {
+      "component": "daily",
+      "capsule": "daily/a_share",
+      "delivery_relative_path": "daily/a_share/infrastructure/scheduling/executor_registry_preselection.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a_daily/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "original_relative_path": "infrastructure/scheduling/executor_registry_preselection.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-history-source-20261025-r3/app/infrastructure/scheduling/executor_registry_preselection.py",
+      "before_sha256": "75e065bb68add1cb6c87a133edbdc5ee508e8395906e0a57ccb9fa07195afbb9",
+      "after_sha256": "70eb5f6c25395bd5e0efb61ac7c17b4ee7df1af2cc8200a0712a95e23b8588e0",
+      "bytes": 45311,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a_daily_writer/changed_files.json",
+      "source_manifest_sha256": "61381e36f0422ce5050e24f0c40df2ca60eeeda6611bbc5c4471b86f8e844b83",
+      "review_refs": [
+        "a_daily"
+      ],
+      "copied_sha256": "70eb5f6c25395bd5e0efb61ac7c17b4ee7df1af2cc8200a0712a95e23b8588e0"
+    },
+    {
+      "component": "daily",
+      "capsule": "daily/a_share",
+      "delivery_relative_path": "daily/a_share/ops/macos_research_panel_daily_authority.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a_daily/app/ops/macos_research_panel_daily_authority.py",
+      "original_relative_path": "ops/macos_research_panel_daily_authority.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-history-source-20261025-r3/app/ops/macos_research_panel_daily_authority.py",
+      "before_sha256": "dbe16eb036dbfa34794563acf2b6ffb17653bebd3ef6e66d796c3f1473991755",
+      "after_sha256": "791eb747a019f3c0a8ccafdc0fe3c5efdc60c435c53088dca392761abe1bb3ce",
+      "bytes": 48507,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a_daily_writer/changed_files.json",
+      "source_manifest_sha256": "61381e36f0422ce5050e24f0c40df2ca60eeeda6611bbc5c4471b86f8e844b83",
+      "review_refs": [
+        "a_daily"
+      ],
+      "copied_sha256": "791eb747a019f3c0a8ccafdc0fe3c5efdc60c435c53088dca392761abe1bb3ce"
+    },
+    {
+      "component": "daily",
+      "capsule": "daily/a_share",
+      "delivery_relative_path": "daily/a_share/ops/materialize_shared_v192_preselection.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a_daily/app/ops/materialize_shared_v192_preselection.py",
+      "original_relative_path": "ops/materialize_shared_v192_preselection.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/local-panel-history-source-20261025-r3/app/ops/materialize_shared_v192_preselection.py",
+      "before_sha256": "141bb7337cf23205c22275d8d6f80c8f1a0a5b011bafb3712949542cd6180028",
+      "after_sha256": "ca8369ba835f99a4da02486e2a52d7b04853b0263f33c71112bd9177a5f5aece",
+      "bytes": 2859,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a_daily_writer/changed_files.json",
+      "source_manifest_sha256": "61381e36f0422ce5050e24f0c40df2ca60eeeda6611bbc5c4471b86f8e844b83",
+      "review_refs": [
+        "a_daily"
+      ],
+      "copied_sha256": "ca8369ba835f99a4da02486e2a52d7b04853b0263f33c71112bd9177a5f5aece"
+    },
+    {
+      "component": "daily",
+      "capsule": "daily/a_share",
+      "delivery_relative_path": "daily/a_share/tests/test_schedule_remediation_a_daily.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/a_daily/app/tests/test_schedule_remediation_a_daily.py",
+      "original_relative_path": "tests/test_schedule_remediation_a_daily.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "6b1b0fe948fdacec36e6b163dfacbc5c86ab2b7ced82052440f4149bf23dd1e3",
+      "bytes": 14426,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a_daily_writer/changed_files.json",
+      "source_manifest_sha256": "61381e36f0422ce5050e24f0c40df2ca60eeeda6611bbc5c4471b86f8e844b83",
+      "review_refs": [
+        "a_daily"
+      ],
+      "copied_sha256": "6b1b0fe948fdacec36e6b163dfacbc5c86ab2b7ced82052440f4149bf23dd1e3"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/ops/run_v35_macos_scheduler_due.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/control/schedule-remediation-main-20261026-r1/app/ops/run_v35_macos_scheduler_due.py",
+      "original_relative_path": "ops/run_v35_macos_scheduler_due.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/schedule-remediation-a-daily-20261026-r1/app/ops/run_v35_macos_scheduler_due.py",
+      "before_sha256": "07a914e94670a9f56b1666ed407a9fdfd07e663f05b895efbc861b0909498aa5",
+      "after_sha256": "67b0bc8c601a664e4fd30aef651d5ff253d4e46af633afb2f21a1b3e6f0692df",
+      "bytes": 23802,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/r2_source_manifest.json",
+      "source_manifest_sha256": "b85255d78a94753fd8241612965fc79610e961ab2246aa2ed7fa4c58de29c0bc",
+      "review_refs": [
+        "main_r2",
+        "main_composition",
+        "a_daily"
+      ],
+      "note": "Composed A3 base retained; only this C source delta is delivered. External clean component bindings are not copied.",
+      "copied_sha256": "67b0bc8c601a664e4fd30aef651d5ff253d4e46af633afb2f21a1b3e6f0692df"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/ops/run_v35_macos_scheduler.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/control/schedule-remediation-main-20261026-r1/app/ops/run_v35_macos_scheduler.py",
+      "original_relative_path": "ops/run_v35_macos_scheduler.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/schedule-remediation-a-daily-20261026-r1/app/ops/run_v35_macos_scheduler.py",
+      "before_sha256": "f707df50c31f03fd51e439eece0d86dd60647d8d989e9a760f2ef1f2222c6f0d",
+      "after_sha256": "a6209fb2c5265fca670e8b5bd43bbeb9b4617453259dce2625f8dd9103c1ec47",
+      "bytes": 25970,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/r2_source_manifest.json",
+      "source_manifest_sha256": "b85255d78a94753fd8241612965fc79610e961ab2246aa2ed7fa4c58de29c0bc",
+      "review_refs": [
+        "main_r2",
+        "main_composition",
+        "a_daily"
+      ],
+      "note": "Composed A3 base retained; only this C source delta is delivered. External clean component bindings are not copied.",
+      "copied_sha256": "a6209fb2c5265fca670e8b5bd43bbeb9b4617453259dce2625f8dd9103c1ec47"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/ops/run_v35_macos_scheduler_daemon.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/control/schedule-remediation-main-20261026-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+      "original_relative_path": "ops/run_v35_macos_scheduler_daemon.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/schedule-remediation-a-daily-20261026-r1/app/ops/run_v35_macos_scheduler_daemon.py",
+      "before_sha256": "1d03d0b21e352a772278e326086ef50a4e43dbfdeacb2dbf56111b496773476a",
+      "after_sha256": "bdc6512b1765ba000044260af661bda8bd34313252f2fe122bc74052c8ed48f6",
+      "bytes": 61058,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/r2_source_manifest.json",
+      "source_manifest_sha256": "b85255d78a94753fd8241612965fc79610e961ab2246aa2ed7fa4c58de29c0bc",
+      "review_refs": [
+        "main_r2",
+        "main_composition",
+        "a_daily"
+      ],
+      "note": "Composed A3 base retained; only this C source delta is delivered. External clean component bindings are not copied.",
+      "copied_sha256": "bdc6512b1765ba000044260af661bda8bd34313252f2fe122bc74052c8ed48f6"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/infrastructure/scheduling/dispatcher.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/control/schedule-remediation-main-20261026-r1/app/infrastructure/scheduling/dispatcher.py",
+      "original_relative_path": "infrastructure/scheduling/dispatcher.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/schedule-remediation-a-daily-20261026-r1/app/infrastructure/scheduling/dispatcher.py",
+      "before_sha256": "d186949486f1807c72f4795ff273f1ee886afb536a82e8a328b13bc4cb9f1bf3",
+      "after_sha256": "9dcb1a328ced11b26bb5a7b10eb44712764e1fb52635a726fc4a4e3b24613005",
+      "bytes": 20843,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/r2_source_manifest.json",
+      "source_manifest_sha256": "b85255d78a94753fd8241612965fc79610e961ab2246aa2ed7fa4c58de29c0bc",
+      "review_refs": [
+        "main_r2",
+        "main_composition",
+        "a_daily"
+      ],
+      "note": "Composed A3 base retained; only this C source delta is delivered. External clean component bindings are not copied.",
+      "copied_sha256": "9dcb1a328ced11b26bb5a7b10eb44712764e1fb52635a726fc4a4e3b24613005"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/infrastructure/scheduling/execution_ledger.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/control/schedule-remediation-main-20261026-r1/app/infrastructure/scheduling/execution_ledger.py",
+      "original_relative_path": "infrastructure/scheduling/execution_ledger.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/schedule-remediation-a-daily-20261026-r1/app/infrastructure/scheduling/execution_ledger.py",
+      "before_sha256": "8790edb8c7ffcc70c81ded5da671840ce1601903d3fd11a0f738cdfe3e4d56da",
+      "after_sha256": "86362dc1f51407e398ddf34d11c1194fd9ab38f2e82f1888c49a3592dfff4a0b",
+      "bytes": 26035,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/r2_source_manifest.json",
+      "source_manifest_sha256": "b85255d78a94753fd8241612965fc79610e961ab2246aa2ed7fa4c58de29c0bc",
+      "review_refs": [
+        "main_r2",
+        "main_composition",
+        "a_daily"
+      ],
+      "note": "Composed A3 base retained; only this C source delta is delivered. External clean component bindings are not copied.",
+      "copied_sha256": "86362dc1f51407e398ddf34d11c1194fd9ab38f2e82f1888c49a3592dfff4a0b"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/v4/manager_workbench/supervisor.py",
+      "source_path": "/Users/lexi/.codex/worktrees/a-d1-pools-recovery-20261026/v4_app/.runtime/schedule-remediation-20261026/control/schedule-remediation-main-20261026-r1/app/v4/manager_workbench/supervisor.py",
+      "original_relative_path": "v4/manager_workbench/supervisor.py",
+      "kind": "source",
+      "baseline_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/schedule-remediation-a-daily-20261026-r1/app/v4/manager_workbench/supervisor.py",
+      "before_sha256": "0d45e31daba2205fb504debcdf4fa1273ac5db9def2ff2f3f2a383f7b1470f97",
+      "after_sha256": "6136099cb96d4f95215d1cd4e207ea1b26fb4a30909f7a9eea1c344a443f85ee",
+      "bytes": 3492,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/r2_source_manifest.json",
+      "source_manifest_sha256": "b85255d78a94753fd8241612965fc79610e961ab2246aa2ed7fa4c58de29c0bc",
+      "review_refs": [
+        "main_r2",
+        "main_composition",
+        "a_daily"
+      ],
+      "note": "Composed A3 base retained; only this C source delta is delivered. External clean component bindings are not copied.",
+      "copied_sha256": "6136099cb96d4f95215d1cd4e207ea1b26fb4a30909f7a9eea1c344a443f85ee"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/tests/test_control_c1.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/test_control_c1.py",
+      "original_relative_path": "tests/test_control_c1.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "a1f0fca6ae0bb724dde830506457477742d9a73cd5c54de937eaf64f4b983c6f",
+      "bytes": 6126,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/VALIDATION_COMMANDS.md",
+      "source_manifest_sha256": "f98762bd75ea6d54daa74df8d998d9412b407bfb80be97686c75c12c3c9adc6f",
+      "review_refs": [
+        "main_r2",
+        "main_composition"
+      ],
+      "note": "Original case-bound test source; C1 manager/PDF PASS reused by R2. Tests are not executed or rewritten for this delivery.",
+      "copied_sha256": "a1f0fca6ae0bb724dde830506457477742d9a73cd5c54de937eaf64f4b983c6f"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/tests/test_control_r2.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/test_control_r2.py",
+      "original_relative_path": "tests/test_control_r2.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "9aa298b3a7bac95257dda51fde0dba39870c4b6ab85f076e2ea17271859163fb",
+      "bytes": 11049,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/VALIDATION_COMMANDS.md",
+      "source_manifest_sha256": "f98762bd75ea6d54daa74df8d998d9412b407bfb80be97686c75c12c3c9adc6f",
+      "review_refs": [
+        "main_r2",
+        "main_composition"
+      ],
+      "note": "Original case-bound test source; C1 manager/PDF PASS reused by R2. Tests are not executed or rewritten for this delivery.",
+      "copied_sha256": "9aa298b3a7bac95257dda51fde0dba39870c4b6ab85f076e2ea17271859163fb"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/tests/test_control_retry_r2_retained.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/test_control_retry_r2_retained.py",
+      "original_relative_path": "tests/test_control_retry_r2_retained.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "7b672f0c57aed75da08ed6d0aa30d098387c501295c7a73a6c29f58c2c2471f1",
+      "bytes": 6661,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/VALIDATION_COMMANDS.md",
+      "source_manifest_sha256": "f98762bd75ea6d54daa74df8d998d9412b407bfb80be97686c75c12c3c9adc6f",
+      "review_refs": [
+        "main_r2",
+        "main_composition"
+      ],
+      "note": "Original case-bound test source; C1 manager/PDF PASS reused by R2. Tests are not executed or rewritten for this delivery.",
+      "copied_sha256": "7b672f0c57aed75da08ed6d0aa30d098387c501295c7a73a6c29f58c2c2471f1"
+    },
+    {
+      "component": "main",
+      "capsule": "main",
+      "delivery_relative_path": "main/tests/test_control_c2_r2_retained.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/test_control_c2_r2_retained.py",
+      "original_relative_path": "tests/test_control_c2_r2_retained.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "b3cef81f8fe2c020e1639398672b4572d149b4151f592034f159555ef41df5ff",
+      "bytes": 15198,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/VALIDATION_COMMANDS.md",
+      "source_manifest_sha256": "f98762bd75ea6d54daa74df8d998d9412b407bfb80be97686c75c12c3c9adc6f",
+      "review_refs": [
+        "main_r2",
+        "main_composition"
+      ],
+      "note": "Original case-bound test source; C1 manager/PDF PASS reused by R2. Tests are not executed or rewritten for this delivery.",
+      "copied_sha256": "b3cef81f8fe2c020e1639398672b4572d149b4151f592034f159555ef41df5ff"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/test_batch1.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/test_batch1.py",
+      "original_relative_path": "test_batch1.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "cb33dfb5f07d21df4f7ccebce5f3f5b3e221373b663541d2507b925b3a63dfa0",
+      "bytes": 18433,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "59bb3a42bd6a2cb104f2d6c147205550a6fbd858d5cb0ef42a802b87054ebc76",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "cb33dfb5f07d21df4f7ccebce5f3f5b3e221373b663541d2507b925b3a63dfa0"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/test_http_body_cap_r2.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/test_http_body_cap_r2.py",
+      "original_relative_path": "test_http_body_cap_r2.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "183227fefdeb990067b06c156506c5ac6f976d04ef156a8fffd0f92dfdf0eedd",
+      "bytes": 3721,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "59bb3a42bd6a2cb104f2d6c147205550a6fbd858d5cb0ef42a802b87054ebc76",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "183227fefdeb990067b06c156506c5ac6f976d04ef156a8fffd0f92dfdf0eedd"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/test_api_activation_gate_r3.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/test_api_activation_gate_r3.py",
+      "original_relative_path": "test_api_activation_gate_r3.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "dd51ad468ddf2bfbcebaf37708b19d67c3d30a2f09b471fe7c1c28a415d38a62",
+      "bytes": 10764,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "59bb3a42bd6a2cb104f2d6c147205550a6fbd858d5cb0ef42a802b87054ebc76",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "dd51ad468ddf2bfbcebaf37708b19d67c3d30a2f09b471fe7c1c28a415d38a62"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/api_activation_gate.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/api_activation_gate.py",
+      "original_relative_path": "api_activation_gate.py",
+      "kind": "operator_source",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "9d8a96d4463c5f75a896352c2bb5b9b61f6f8418bc99f0fe843c5fffc1112eb2",
+      "bytes": 12508,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "59bb3a42bd6a2cb104f2d6c147205550a6fbd858d5cb0ef42a802b87054ebc76",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "9d8a96d4463c5f75a896352c2bb5b9b61f6f8418bc99f0fe843c5fffc1112eb2"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4/prepare_integration.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/prepare_integration.py",
+      "original_relative_path": "R4/prepare_integration.py",
+      "kind": "operator_source",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "b22459d6cac0bb3f9dfc934a60ec5c593dd39e2c407daca7b66e96cb35241f37",
+      "bytes": 7896,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "b22459d6cac0bb3f9dfc934a60ec5c593dd39e2c407daca7b66e96cb35241f37"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4/integrate_batch1.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/integrate_batch1.py",
+      "original_relative_path": "R4/integrate_batch1.py",
+      "kind": "operator_source",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "a1ccc347a29c4e0f0a66e7c92235d4fe618ce0239774148f52cf40fa2a063af9",
+      "bytes": 10685,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "a1ccc347a29c4e0f0a66e7c92235d4fe618ce0239774148f52cf40fa2a063af9"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4/activate_one_shots.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/activate_one_shots.py",
+      "original_relative_path": "R4/activate_one_shots.py",
+      "kind": "operator_source",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "64671a373655bc6502371717a81f325ac453bfc1cf70dc1834038c8fecf6ff8f",
+      "bytes": 9101,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "64671a373655bc6502371717a81f325ac453bfc1cf70dc1834038c8fecf6ff8f"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4/api_activation_gate.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/api_activation_gate.py",
+      "original_relative_path": "R4/api_activation_gate.py",
+      "kind": "operator_source",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "9d8a96d4463c5f75a896352c2bb5b9b61f6f8418bc99f0fe843c5fffc1112eb2",
+      "bytes": 12508,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "9d8a96d4463c5f75a896352c2bb5b9b61f6f8418bc99f0fe843c5fffc1112eb2"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4/test_identity_priority.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/test_identity_priority.py",
+      "original_relative_path": "R4/test_identity_priority.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "cb689b2cb6f794e152ab1097274e5c29e105dfdf71241981fce518df3c2c6b23",
+      "bytes": 2479,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4/SOURCE_DIFF_MANIFEST.json",
+      "source_manifest_sha256": "c12834d5abbffa76911056d9eb9ea55d04e57c613b8a92dc232e5b96d92eaf33",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "cb689b2cb6f794e152ab1097274e5c29e105dfdf71241981fce518df3c2c6b23"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4_CONTROLLER_CONTEXT/invoke_graph_full_context.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4_CONTROLLER_CONTEXT/invoke_graph_full_context.py",
+      "original_relative_path": "R4_CONTROLLER_CONTEXT/invoke_graph_full_context.py",
+      "kind": "operator_source",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "a9e32ba374f3a9df0c223318beb46b1ad598c5406562b82a1e3581436eeb98d3",
+      "bytes": 1495,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4_CONTROLLER_CONTEXT/RECIPE_MANIFEST.json",
+      "source_manifest_sha256": "0853d9eab6b12b17d8ab915fe1ddc18c6e7713104dc48a88985ec6ffafb65794",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "a9e32ba374f3a9df0c223318beb46b1ad598c5406562b82a1e3581436eeb98d3"
+    },
+    {
+      "component": "graph",
+      "capsule": "graph/operator",
+      "delivery_relative_path": "graph/operator/R4_CONTROLLER_CONTEXT/test_full_context.py",
+      "source_path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4_CONTROLLER_CONTEXT/test_full_context.py",
+      "original_relative_path": "R4_CONTROLLER_CONTEXT/test_full_context.py",
+      "kind": "test",
+      "baseline_path": null,
+      "before_sha256": null,
+      "after_sha256": "b21cf436c5645469c8afc269730d0572de468f3aa0646c403ad84f76d45ba406",
+      "bytes": 3941,
+      "mode": "0o644",
+      "source_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/core_writer/R4_CONTROLLER_CONTEXT/RECIPE_MANIFEST.json",
+      "source_manifest_sha256": "0853d9eab6b12b17d8ab915fe1ddc18c6e7713104dc48a88985ec6ffafb65794",
+      "review_refs": [
+        "core_r3",
+        "core_r4"
+      ],
+      "note": "Case-bound source only; not a standalone runnable operator. Full-context recipe uses the reviewed unchanged activation/gate functions and its frozen controller fixture; no separate new business-source PASS is claimed.",
+      "copied_sha256": "b21cf436c5645469c8afc269730d0572de468f3aa0646c403ad84f76d45ba406"
+    }
+  ],
+  "review_references": {
+    "core_r3": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/controller/CORE_UI_R3_REVIEW_PASS.json",
+      "sha256": "40261d6b0ef07f0ea1e36f144e7de1aca7a750b4c74a5bd9b8e6ac7bd8d4fed3",
+      "verdict": "PASS",
+      "scope": "frozen scoped source review"
+    },
+    "core_r4": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/controller/CORE_UI_R4_REVIEW_PASS.json",
+      "sha256": "6c87db0d49d3c5388d24461773368009aa8478bbdc78efb0e8cfe946d8d8c46e",
+      "verdict": "PASS",
+      "scope": "R4_FINAL_METADATA_BINDING_REVIEWED"
+    },
+    "ui_r4": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/ui_r4_reviewer/REVIEW_RECEIPT.json",
+      "sha256": "7ca8ee4db69ee92f458628bdd2b09743baa95ec124480d9479a3b227f80bd021",
+      "verdict": "PASS",
+      "scope": "Only UI R4 observation reader source and new fixtures; R3/core/front-end PASS reused"
+    },
+    "a_daily": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/controller/A_DAILY_SOURCE_REVIEW_PASS.json",
+      "sha256": "e06e083d08c7e3b8e2884797be57ca1106b68908305870e2df3044de2e2f38b5",
+      "verdict": "REVIEWED/PASS",
+      "scope": "4frozen files source +clean component preparation"
+    },
+    "stage_r2": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/a925_reviewer/R2_REVIEW_RECEIPT.json",
+      "sha256": "0ae1ae0a0ede88adaea2c5d27996e326f061b7ef2f86cd03adcb981c26520918",
+      "verdict": "REVIEWED/PASS",
+      "scope": "Only R1_TO_R2 four-file delta and rendered plist release metadata. Prior unchanged41test/103protection checks reused."
+    },
+    "main_r2": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_reviewer/R2_REVIEW_RECEIPT.json",
+      "sha256": "f050ec4d37d73aa1e52f74fde24792347755f198fe5c64e80eb7f935bd3846b7",
+      "verdict": "PASS",
+      "scope": "Only four C P2 repairs and direct retry/process/clock effects; no B+D/full C rerun"
+    },
+    "main_composition": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_reviewer/MAIN_METADATA_REVIEW_RECEIPT.json",
+      "sha256": "c165743f2847b13dc11483c4fbf62f6eb94593c25b2878dd1213e011654dbe40",
+      "verdict": "PASS",
+      "scope": "One read-only main source-composition/dependency/plist/lifecycle-preparation review; not live activation or full business audit"
+    }
+  },
+  "source_bytes_unchanged": true,
+  "copies_match_source_sha256": true,
+  "tests_executed": false,
+  "new_tests_created": false,
+  "stage_commit_push_executed": false,
+  "multiple_baselines": {
+    "api": "Final combined API R4 over local-panel-lifecycle-notes; R3→R4 router/task_status chain retained",
+    "web": "R3 frontend source unchanged; original/new API baseline roots recorded per file",
+    "graph": "Independent legacy-derived graph baseline; same relative service/contract preserved in its own capsule",
+    "daily": "Review daily wrapper and A daily/preselection are separate baseline families",
+    "stage": "Exact stage-failure-snapshots-20261023-r1 app + reviewed A925 R2 delta",
+    "main": "Reviewed A3-based composed main retains A sources/external clean bindings; only C six-source delta included"
+  },
+  "excluded": [
+    ".env/keys/credentials",
+    "runtime release trees",
+    "market/state/pointer/receipt outputs",
+    "deployment receipts/plists",
+    "logs/backups",
+    "node_modules/dist/venv/.pyc",
+    "generated fixtures/responses",
+    "known-bad R4 activate_graph_only.py CLI",
+    "historical baseline code copies"
+  ],
+  "limitations": [
+    "Capsules are source-only deltas with multiple active baselines, not a complete project or runnable snapshot.",
+    "Original case-bound test/operator paths and external scope/baseline fixture dependencies are retained; they are not fabricated into a portable runnable test setup.",
+    "No actual deployment receipt is uploaded; only scoped review paths/SHA references are recorded.",
+    "Future A09:25 natural timing/full621 and other natural-slot outcomes are not certified by this source delivery."
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
