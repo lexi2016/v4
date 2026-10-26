@@ -30,7 +30,7 @@ COLUMNS = ("trade_date", "ts_code", "name", "market_type", "open", "high", "low"
 CODE_KEYS = ("driver_sha256", "formula_sha256", "adapter_sha256", "input_adapter_sha256",
              "factor_cache_sha256", "tdx_adapter_sha256", "user_formula_sha256", "field_contract_sha256")
 META = b"a_share_qfq_contract_v1"
-LIFECYCLE_NOTES_SHA256 = "7e4bd4e305ea70a9bfba760e842dac0dc231c0aebd0240457f59a689bd9ce6aa"
+LIFECYCLE_NOTES_SHA256 = "9215bc05e2a288dacc2918890cda8cce46ac1e0b608918f1c3a10f16e650f714"
 DIRECT_KIND = "FUTU_SDK_DIRECT_QFQ_20261026_EXACT76"
 DIRECT_UNIVERSE_SHA = "1ae84f8a90b6f54df4e1c29fb2a65e4fa2a3b9bb98dce1df449f22ed0bfa0962"
 DIRECT_ADMISSION = "futu_direct_qfq76_admission.json"

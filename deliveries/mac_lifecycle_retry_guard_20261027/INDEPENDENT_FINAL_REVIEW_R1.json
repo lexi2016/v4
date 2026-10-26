@@ -1,0 +1,51 @@
+{
+  "verdict": "PASS_MAC_LIFECYCLE_RETRY_GUARD_CANDIDATE",
+  "reviewer_id": "/root/futu76_final_review",
+  "scope": "Frozen lifecycle guard, two API facts, component/Main/API candidates and documented control boundaries",
+  "findings": [],
+  "bindings": {
+    "IDENTITY.json": "2a34605baaaaae7cfe3edde10bf9379621642d698a357760267c40de46d5a9d1",
+    "HANDOFF_FREEZE.json": "0096bab98df9055441eb732731b21412ce0c8ae1c401aa6dd5ce84cf25e50cc8",
+    "ROOT_ACTIONS.md": "92ee33eee262abc8b05860e2a6aed9a90f2ed7bb263c7495e6b58c4d543e5a33",
+    "SOURCE_DELTA.patch": "caf02374bfcb31a255bedc0f7f495c5b0024d44fa4104b5a65264ee6fe51edd0",
+    "collector_facade": "259ee56414177301f1ca5e2d961407b97a2f069c04658cb09aca7a60d49a0ac3",
+    "collector_workflow": "8552d0ab6e25f0ddb7aa69dc7101d46a52bbafc275b920e2d2e9b443b690db31",
+    "collector_fact_asset": "8f90adb3aac2791ed373949e227fcd4efd16d3cd294bcc111e2ba4674e9b906a",
+    "api_history": "2015e14720561b4d9347044d7e55d0cc5ce7933f1907b4e8a617e2b40dba31d8",
+    "api_fact_asset": "9215bc05e2a288dacc2918890cda8cce46ac1e0b608918f1c3a10f16e650f714",
+    "component_outer_manifest": "abd3ecf3da0b4d7532e99de18072e8a72872e2981a51958d618cfcdb07805fe6",
+    "component_manifest": "67d3abe86e6035a4b2461941b07a57aee096e6be05c95d32f498c8e90fe7c1ef",
+    "main_manifest": "702208bc93b97380a1180a740674f2d1e9bae987852737e234ea8223c6094d03",
+    "fresh_api_candidate_manifest": "1193461b755b02af8f1012a94754b3f1247fb796fb13a96dba42e59716d06236",
+    "fresh_api_materialized_manifest": "ddbac24cc87b88ac0ef6b7ba2f62105f6d42ecb0de87bb74646467bcc7ff8173",
+    "fresh_api_base_manifest": "c4f1c68c8f0b2dcf9ed98949146ced5b3aafaa67beadbb3c0b1e847e4e811a59",
+    "fresh_api_base_plist": "ec095bb5615452c116e79d78f35a0c75e34cf4b67788d8a1dfe32b509354e550"
+  },
+  "evidence": {
+    "frozen_identity": "All HANDOFF_FREEZE and IDENTITY referenced source/evidence/candidate hashes matched; business Python AST parsed",
+    "guard": "Reviewed provider-before ordering and strict lifecycle non-admission tuple; original target denominator, quarantine classification and 5000 gate retained",
+    "canary_and_same21": "Bound original-loader zero-provider evidence and 15 passing targeted checks inspected; native bytes and old TIMEOUT record preserved; 22 targets/1 accepted/21 quarantine/0 technical failures remain REBUILD_REQUIRED",
+    "date_boundary": "BEHAVIOR_VERIFIED: independently checked all 21 exact effective-day boundaries and preceding-day rejection; unknown600193 not skipped",
+    "api_facts": "Original19 fact rows preserved exactly; only601198/601059 added with20261019 effective date; collector fact rows match API fact rows",
+    "futu76": "API body unchanged apart from lifecycle asset SHA constant; bound000523 saved-envelope evidence reused; no76 data/formula recomputation",
+    "component": "All outer files and15 component pins independently matched; original seed descriptor/preimage and Main external component pins preserved",
+    "main": "All881 physical application files independently identical; unrelated plist parameters/environment preserved",
+    "fresh_api": "Independent inventory comparison confirms1319 files, exactly2 lifecycle deltas,1317 preserved files and all6 Graph changes preserved",
+    "dispatcher": "BEHAVIOR_VERIFIED: fresh fixed-Python subprocess loaded original dispatcher from actual fresh R2 package and validated its identity",
+    "control_boundary": "Original owner mechanisms inspected; stale API CAS rejection retained; obsolete api_cutover explicitly excluded; no schema bypass, forged integration receipt or loaded-scheduler installation claim"
+  },
+  "limitations": {
+    "actual_install_API_HTTP_UI": "CANNOT_CONFIRM_NOT_EXECUTED",
+    "natural_daily_guard_execution": "CANNOT_CONFIRM_NOT_EXECUTED",
+    "active_custom_schema_integration": "OWNER_COORDINATION_REQUIRED",
+    "Graph_Main_API_config_authority_paths": "OWNER_COORDINATION_REQUIRED",
+    "shared_scheduler_reload": "EXPLICIT_AUTHORIZATION_AND_FRESH_NATURAL_IDLE_REQUIRED",
+    "PIT_and_business_validity": "CANNOT_CONFIRM_NOT_CERTIFIED",
+    "candidate_PASS_authorizes_installation": false
+  },
+  "reviewer_file_service_registry_mutations": 0,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

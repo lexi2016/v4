@@ -1,0 +1,118 @@
+{
+  "accepted_evidence_reused": [
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/canary_601198/RESULT.json",
+      "sha256": "be812391c0a637210c271773f1fc0ae3c1af0404b52a6a65dd04b90ef12be121"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/SAME21_RESULT.json",
+      "sha256": "5b5be21fc8e2f92e76d9039f21c406db9cebf87a22c23e1c059d8bf5e74013de"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/FUTU000523_REUSE_CHECK.json",
+      "sha256": "dc6f2b781ed3caf2334e3bc4e159a874fbc54155b5050e048f629d474b09a74a"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/pytest_r1.log",
+      "sha256": "8d312e7a5e1ccf59070b93c33226e6ec23de195625ca51ae35135d390eb74f30"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/FIXED_CANDIDATE_VALIDATION.json",
+      "sha256": "6504cda7244bd72080ef737306d8ac4d9e160bf6b1e3d5b5ee7b3794f6cbf4ce"
+    }
+  ],
+  "asof_utc": "2026-10-26T17:21:09.972267+00:00",
+  "branch": "codex/mac-lifecycle-retry-guard-20261027",
+  "brief": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/TASK_BRIEF.md",
+    "sha256": "6c65a7fcac942c459167d086e532894812424e54decfd2f862ff940a0fc9815f"
+  },
+  "business_sources": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app/ops/a_share_daily_sync.py",
+      "sha256": "259ee56414177301f1ca5e2d961407b97a2f069c04658cb09aca7a60d49a0ac3"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app/ops/_a_share_daily_sync_parts/sync_workflow.py",
+      "sha256": "8552d0ab6e25f0ddb7aa69dc7101d46a52bbafc275b920e2d2e9b443b690db31"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app/ops/a_share_lifecycle_notes.json",
+      "sha256": "8f90adb3aac2791ed373949e227fcd4efd16d3cd294bcc111e2ba4674e9b906a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app/apps/api/v35_api/a_share_panel_history.py",
+      "sha256": "2015e14720561b4d9347044d7e55d0cc5ce7933f1907b4e8a617e2b40dba31d8"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app/apps/api/v35_api/a_share_lifecycle_notes.json",
+      "sha256": "9215bc05e2a288dacc2918890cda8cce46ac1e0b608918f1c3a10f16e650f714"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app/tests/test_mac_lifecycle_retry_guard.py",
+      "sha256": "123ebf42965570c8d3b9a672428aab96d9d8b70ea38076415f00128abbe2fd0b"
+    }
+  ],
+  "candidates": [
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/control/COMPONENT_PACKAGE.json",
+      "sha256": "5a478be79ffb130f0a9faef217199be1e504babec0dfb131fa369f439412c19d"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/control/MAIN_METADATA_PACKAGE.json",
+      "sha256": "ba0b14e02221c15da0d804d518590d0de344005d7e62baec204e8a53949a3325"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/control/API_FRESH_R2_PACKAGE.json",
+      "sha256": "e8efd742c0acc103c7705f17a8fb67173340fea13543fd02139c5479eacacf70"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/control/ORIGINAL_DISPATCHER_FRESH_R2.json",
+      "sha256": "fba412934b18573790c3c902d3d23720fe5a7cdeadd210b48ce1ea4b348379a0"
+    }
+  ],
+  "cannot_confirm": [
+    "Independent final review pending",
+    "Actual install/API HTTP/UI/natural scheduler execution not performed",
+    "Active custom API schema rejected by original integration verifier; Root owner coordination required",
+    "Graph config.main authority remains old Main and needs owner coordinated binding before any new Main activation",
+    "Shared healthy scheduler reload needs explicit Root/user decision"
+  ],
+  "local_base": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "owner_original_mechanism": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/writer/operator.py",
+      "sha256": "d62e9a65f884bded89b0f88330d4981ac76fafcb52b1b60543f3d3f14c587351"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/API_REBASE_R1/compose_api_rebase.py",
+      "sha256": "b45cfac03b1faa6bafd5d79453314d4c935ea771c0dd9d266f2655098bf6c5b4"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/API_REBASE_R1/DEPLOYMENT_PLAN.json",
+      "sha256": "65edcf743e61848837bbf91f26847e71621631e0d54783fb2301dd9f61cc4e78"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/controller/api-rebased-cutover-2c8c341ca2b3437bb47ce64ca1ca792f/receipt.json",
+      "sha256": "86f3646587db71686b1906aeac70ff11bdda370e16a762aa0b670e34619268a8"
+    }
+  ],
+  "preserved_failures": [
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/api_project_stderr.log",
+      "sha256": "f1702d9611a0250ba3ee9a24f51c9a96c68fb369bb080d811eb48a8a62aad45f"
+    }
+  ],
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "buy_gate_updated": false,
+    "orders_sent": false,
+    "production_allowed": false
+  },
+  "source_delta": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/SOURCE_DELTA.patch",
+    "sha256": "caf02374bfcb31a255bedc0f7f495c5b0024d44fa4104b5a65264ee6fe51edd0"
+  },
+  "status": "FROZEN_FOR_ONE_FINAL_REVIEW_NOT_INSTALLED",
+  "worktree": "/Users/lexi/.codex/worktrees/mac-lifecycle-retry-guard-20261027/v4_app"
+}
