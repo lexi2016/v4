@@ -30,6 +30,39 @@ COLUMNS = ("trade_date", "ts_code", "name", "market_type", "open", "high", "low"
 CODE_KEYS = ("driver_sha256", "formula_sha256", "adapter_sha256", "input_adapter_sha256",
              "factor_cache_sha256", "tdx_adapter_sha256", "user_formula_sha256", "field_contract_sha256")
 META = b"a_share_qfq_contract_v1"
+LIFECYCLE_NOTES_SHA256 = "7e4bd4e305ea70a9bfba760e842dac0dc231c0aebd0240457f59a689bd9ce6aa"
+
+
+def _with_lifecycle_note(response):
+    """Append a pinned, accepted lifecycle fact; never change a data decision."""
+    if response.get("status") != "CANNOT_CONFIRM" or response.get("rows") != []:
+        return response
+    errors = response.get("cannot_confirm")
+    if not isinstance(errors, list) or not all(isinstance(item, str) for item in errors):
+        return response
+    try:
+        raw = Path(__file__).with_name("a_share_lifecycle_notes.json").read_bytes()
+        if hashlib.sha256(raw).hexdigest() != LIFECYCLE_NOTES_SHA256:
+            return response
+        asset = json.loads(raw)
+        if asset["schema_version"] != "a_share_lifecycle_notes.v1":
+            return response
+        facts = [item for item in asset["verified_delistings"]
+                 if item["ts_code"] == response["ts_code"] and item.get("verified") is True]
+        if len(facts) != 1:
+            return response
+        day = facts[0]["delisting_effective_date"]
+        datetime.strptime(day, "%Y%m%d")
+        start, end = response["start_date"], response["end_date"]
+        if not re.fullmatch(r"\d{8}", day) or not day <= start <= end:
+            return response
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return response
+    note = (f"官方摘牌日期：{day[:4]}-{day[4:6]}-{day[6:]}；"
+            "本窗口已在摘牌日及之后，无需补上市交易K线；原数据状态及拒绝原因保留")
+    if any(item.startswith("ORIGINAL_QUARANTINE:") for item in errors):
+        note += "；原隔离条目为存量记录，发生日期未确认"
+    return {**response, "cannot_confirm": [*errors, note]}
 
 
 class Unconfirmed(RuntimeError):
@@ -129,7 +162,7 @@ def read_history(shared_data_root, code, start, end, version):
                     status="CANNOT_CONFIRM", rows=[], cannot_confirm=[], research_only=True,
                     production_allowed=False, buy_gate_updated=False, orders_sent=False)
     if shared_data_root is None:
-        return {**response, "cannot_confirm": ["SHARED_DATA_ROOT_NOT_CONFIGURED"]}
+        return _with_lifecycle_note({**response, "cannot_confirm": ["SHARED_DATA_ROOT_NOT_CONFIGURED"]})
     root = Path(shared_data_root)
     cache = root / "runtime/cache/data_layer_daily_formula_increment_update_v1"
     pointer = root / "data_layer_interface_current/CURRENT_SELECTOR_READY_PANEL.txt"
@@ -212,4 +245,4 @@ def read_history(shared_data_root, code, start, end, version):
                     asof_date=meta["asof_date"], historical_PIT=False, maximum_claim="DIRECTION_ONLY",
                     reader_source_sha256=_sha_bytes(reader_path.read_bytes()))}
     except (OSError, ValueError, KeyError, TypeError, AttributeError, RuntimeError) as error:
-        return {**response, "cannot_confirm": [str(error) or type(error).__name__]}
+        return _with_lifecycle_note({**response, "cannot_confirm": [str(error) or type(error).__name__]})
