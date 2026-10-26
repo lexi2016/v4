@@ -5,11 +5,19 @@
   "independent_review_sha256": "0c2f395b3a9ad78853138b9533d96bc6b808355dee1d0efd950f4edb5dea85af",
   "packaging_delta_review_sha256": "f7741b19a1f5825eca90e0d1bd69161644e16a5034b7e6c961edbab8d6a4023d",
   "source_delta_count": 22,
-  "targeted_source_payload_count": 27,
+  "targeted_source_payload_count": 31,
   "deployment_not_established_by_source_archive": true,
   "NATURAL_VERIFIED": false,
   "RESEARCH_ONLY": true,
   "production_allowed": false,
   "buy_gate_updated": false,
-  "orders_sent": false
+  "orders_sent": false,
+  "corrected_guard_native_delta_cases_passed": 3,
+  "corrected_guard_native_review_sha256": "9bd955e18727622910a00bf144cc7778ae20ec32d24a42303efe9c042d00cfb5",
+  "no_due_cycle_delta_cases_passed": 11,
+  "no_due_cycle_review_sha256": "5aba282652340bc24dd9cb7852cf05fd5bb799d566b847bb6ead65b481027c0f",
+  "active_guard_source": "controller/main_guard_r5",
+  "actual_corrected_guard_seen": true,
+  "main_cutover_binding_verified": true,
+  "whole_workflow_deployment_claimed": false
 }

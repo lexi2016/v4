@@ -7,3 +7,5 @@ The graph reads original current-owner receipts and reports execution, business,
 The main scheduler controller preserves its original failure history and supports one fixed administrator launchctl debug command. All drain, plist CAS and bootstrap actions run as the ordinary user. Controller case plans and live operation receipts are deliberately excluded from this source archive.
 
 MANIFEST.json binds the exact source bytes. Source delivery does not establish deployment, current API/UI acceptance or natural-slot results. All trading and production permissions remain disabled.
+
+The earlier `controller/main_guard` files are retained as superseded failure history. The corrected guard is in `controller/main_guard_r5`: it removes the duplicate sleep executable argument and accepts a verified completed NO_DUE cycle without fabricating a business run or receipt. Runtime case history and live operation files remain outside this source archive.

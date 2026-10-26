@@ -161,9 +161,35 @@
       "path": "controller/test_stage_manifest_cache.py",
       "sha256": "65c2b257a2536aad0a80a6f15c29937a58fa5084fbc6859584a02180aed14f3f",
       "component": "controller"
+    },
+    {
+      "path": "controller/main_guard_r5/guard_recipe.py",
+      "sha256": "ae050a4451b78eb383d8618e53646fbac2b4ba120b3353ad30c84b13ed10cdeb",
+      "component": "controller_main_guard_r5",
+      "same_main_business_source": true
+    },
+    {
+      "path": "controller/main_guard_r5/admin_bridge.py",
+      "sha256": "4184dc9b7437e2eb539c3c8f45cef6626924c7935e6698dcd527f83abe5af0be",
+      "component": "controller_main_guard_r5",
+      "same_main_business_source": true
+    },
+    {
+      "path": "controller/main_guard_r5/test_guard_r5_delta.py",
+      "sha256": "a299896ef903f42905598ebe9ee2740cf8f09f4b9ba16d81c473f5477bcd35ce",
+      "component": "controller_main_guard_r5",
+      "same_main_business_source": true
+    },
+    {
+      "path": "controller/main_guard_r5/test_no_due_cycle_delta.py",
+      "sha256": "d1d23a3f21872e310d07f31f3b5c70f7383215be9afb5e734978d288499a56a2",
+      "component": "controller_main_guard_r5",
+      "same_main_business_source": true
     }
   ],
   "contains_runtime_data": false,
   "standalone_application": false,
-  "deployment_status": "NOT_CLAIMED_BY_SOURCE_CAPSULE"
+  "deployment_status": "NOT_CLAIMED_BY_SOURCE_CAPSULE",
+  "superseded_guard_path": "controller/main_guard",
+  "current_guard_path": "controller/main_guard_r5"
 }
