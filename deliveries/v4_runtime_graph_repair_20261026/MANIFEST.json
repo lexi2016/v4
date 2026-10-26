@@ -1,0 +1,169 @@
+{
+  "schema": "v4.runtime_graph.source_capsule.v1",
+  "baseline_commit": "db405790abc3a6f8fa302342e39104b1a22cdbc2",
+  "source_freeze_sha256": "bee64787031b7f2333607488f70658e672d750b60b58826370e88c85faa8f341",
+  "files": [
+    {
+      "path": "components/api/apps/api/v35_api/runtime_graph_router.py",
+      "sha256": "5a1c80890cfacac6d55163dfe069d29afb05acc514ce0c24d7dde29513e8b44b",
+      "before_sha256": "226efdcdde6506986e32ee697935a59e9b8f56ed2ce93e2d623ab45a2fc5ffd8",
+      "component": "api"
+    },
+    {
+      "path": "components/api/domains/runtime_graph_evidence.py",
+      "sha256": "cb668bf01533df6c51ea65633279afd78fdcf5eac08b9be2a3a99a716f7edd49",
+      "before_sha256": null,
+      "component": "api"
+    },
+    {
+      "path": "components/api/infrastructure/runtime_graph/current.py",
+      "sha256": "d8ce87de4ad9da45ecab4b08773fbcacb0156142eef56912948dc516f617f603",
+      "before_sha256": null,
+      "component": "api"
+    },
+    {
+      "path": "components/api/infrastructure/runtime_graph/notifications.py",
+      "sha256": "48ca0b87d70342c6c955ec8e7462a32f9fbbc0140da02646c688061443f01862",
+      "before_sha256": null,
+      "component": "api"
+    },
+    {
+      "path": "components/api/tests/test_v4_runtime_graph_repair.py",
+      "sha256": "a0938ce661bbe26c5c911431a62b6a2ea719c0ba89c48b06c63ee339d02b8928",
+      "before_sha256": null,
+      "component": "api"
+    },
+    {
+      "path": "components/api/v4/manager_workbench/jobs.py",
+      "sha256": "4d723721869082e2c8a241d64aadbe531e37960eb572078f842ae2be67b183c6",
+      "before_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "component": "api"
+    },
+    {
+      "path": "components/collector/infrastructure/runtime_graph/current.py",
+      "sha256": "d8ce87de4ad9da45ecab4b08773fbcacb0156142eef56912948dc516f617f603",
+      "before_sha256": null,
+      "component": "collector"
+    },
+    {
+      "path": "components/collector/infrastructure/runtime_graph/event_collector.py",
+      "sha256": "da65250248a8f5797b588d92c884d574a7c3b560bbb9b8bf8d51ec066b6954c5",
+      "before_sha256": null,
+      "component": "collector"
+    },
+    {
+      "path": "components/collector/infrastructure/runtime_graph/notifications.py",
+      "sha256": "48ca0b87d70342c6c955ec8e7462a32f9fbbc0140da02646c688061443f01862",
+      "before_sha256": null,
+      "component": "collector"
+    },
+    {
+      "path": "components/collector/ops/collect_runtime_graph.py",
+      "sha256": "3786b605a1853b3ae2f667baad1759b6ef012c67995698b6a571726832dc0364",
+      "before_sha256": "3226c053050f8df92d42f447a3220b11867a621ef085bf150e0f54fb62ea5bbd",
+      "component": "collector"
+    },
+    {
+      "path": "components/main/infrastructure/runtime_graph/notifications.py",
+      "sha256": "48ca0b87d70342c6c955ec8e7462a32f9fbbc0140da02646c688061443f01862",
+      "before_sha256": null,
+      "component": "main"
+    },
+    {
+      "path": "components/main/infrastructure/scheduling/dispatcher.py",
+      "sha256": "f5d715d988c8348490823b4c36444b80acbc4a0e62ffecfd30d46dadaa9083a2",
+      "before_sha256": "9dcb1a328ced11b26bb5a7b10eb44712764e1fb52635a726fc4a4e3b24613005",
+      "component": "main"
+    },
+    {
+      "path": "components/main/infrastructure/scheduling/executor_registry.py",
+      "sha256": "20dc13ca1955847f16a7096dd3dd7a5fd61741c9c09bfb14ca95b0b00bb076a0",
+      "before_sha256": "61aab93e92591e17917dd2f880331913e33aa93806500ce1f2596735444e6833",
+      "component": "main"
+    },
+    {
+      "path": "components/main/infrastructure/zsxq_pdf_ingestion.py",
+      "sha256": "f4a9533eb1537e7784c3ec4dea37272ee575d45f141eea286b12498aeb1f4cf9",
+      "before_sha256": "9240eae647cbc5415b397bae70d706cb1d585cc6a6dd9d815ced59e433cab00b",
+      "component": "main"
+    },
+    {
+      "path": "components/main/v4/manager_workbench/jobs.py",
+      "sha256": "62ce2dc3227bec9c5307e1d9b94008d7ba08b3b59570abc10a5db7b19fcaf725",
+      "before_sha256": "0198fa6f47aa18791dfd5fea0f491b4cb894890fbd74c3eedc22709c1087f946",
+      "component": "main"
+    },
+    {
+      "path": "components/stage/infrastructure/runtime_graph/notifications.py",
+      "sha256": "48ca0b87d70342c6c955ec8e7462a32f9fbbc0140da02646c688061443f01862",
+      "before_sha256": null,
+      "component": "stage"
+    },
+    {
+      "path": "components/stage/ops/_run_stage_center_nodes_parts/node_entry.py",
+      "sha256": "3f6227a0d29ded74eb40dfc82ea7c293036dee30e08f3a90a8d0245ff35eb6da",
+      "before_sha256": "0423c9ac5d10ee7d077d4448483918430cf3e4d22152b5f8e5258dfed9bffac7",
+      "component": "stage"
+    },
+    {
+      "path": "components/stage/ops/_run_stage_center_nodes_parts/stage_dispatch.py",
+      "sha256": "bdaf5d6945f0fd795effa55b770b4b49fedb90cac1c3628ba959be1cba96aac8",
+      "before_sha256": "4a0933acd4b3fc8dcc644c9a2fe1e5559816b18207c3189c8b4841ca66a856dc",
+      "component": "stage"
+    },
+    {
+      "path": "components/stage/stage_center/attempt_evidence.py",
+      "sha256": "9828b3a6316f98b8f22e2232e21113388a741f7d7808c5f617fdedc524185a8e",
+      "before_sha256": "f98a9070ade0c26a3cfa0bf60acd4798ec011330ca83bc172c64856bd88dc1bf",
+      "component": "stage"
+    },
+    {
+      "path": "components/daily/components/review_daily/20260901T145725Z-review-core-selector-cutoff-v5/app/review_core/macos_daily.py",
+      "sha256": "b280430cab67a576b9baaf58147e6bb9ebd4d793211d1728d685d05790e787d7",
+      "before_sha256": "d1695ec434865ae287a6182178713509403a5d2d3d7d3b804d079747498e232b",
+      "component": "daily"
+    },
+    {
+      "path": "components/daily/components/review_daily/20260901T145725Z-review-core-selector-cutoff-v5/app/review_core/runtime_graph_notifications.py",
+      "sha256": "48ca0b87d70342c6c955ec8e7462a32f9fbbc0140da02646c688061443f01862",
+      "before_sha256": null,
+      "component": "daily"
+    },
+    {
+      "path": "components/daily/components/review_daily/20260901T145725Z-review-core-selector-cutoff-v5/component-manifest.json",
+      "sha256": "00611bf89f05979ad47dff6b3a6931faa2ef8dd3d4e45ee0a263aef4f3530c2d",
+      "before_sha256": "d60aea9297e1f7caf6e5a863fe8b881959a7c705e806a4fba00f20703533441a",
+      "component": "daily"
+    },
+    {
+      "path": "controller/operator.py",
+      "sha256": "8e3c90e8ad03be7ae48e0c27591364555874651dae67fc9df2631ac760a92160",
+      "component": "controller",
+      "before_sha256": "d62e9a65f884bded89b0f88330d4981ac76fafcb52b1b60543f3d3f14c587351",
+      "incremental_review_sha256": "f7741b19a1f5825eca90e0d1bd69161644e16a5034b7e6c961edbab8d6a4023d"
+    },
+    {
+      "path": "controller/main_guard/guard_recipe.py",
+      "sha256": "cc0b2949e13328c1b4d86b76a602cda737140622f79ae39327a9707ef7ed8b32",
+      "component": "controller"
+    },
+    {
+      "path": "controller/main_guard/admin_bridge.py",
+      "sha256": "0f2a781c9e69b2e913b245a4ba0661ec002bc9931ace63e37313e3887fe792d0",
+      "component": "controller"
+    },
+    {
+      "path": "controller/main_guard/test_admin_bridge.py",
+      "sha256": "5cf016dd158ddfe908bc626cf29eaa88a2381f15a197be2aa38be7cd93162345",
+      "component": "controller"
+    },
+    {
+      "path": "controller/test_stage_manifest_cache.py",
+      "sha256": "65c2b257a2536aad0a80a6f15c29937a58fa5084fbc6859584a02180aed14f3f",
+      "component": "controller"
+    }
+  ],
+  "contains_runtime_data": false,
+  "standalone_application": false,
+  "deployment_status": "NOT_CLAIMED_BY_SOURCE_CAPSULE"
+}
