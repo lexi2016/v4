@@ -1,0 +1,143 @@
+{
+  "scope": "Exact76 SDK-QFQ existing Mac history API/plot only; original default panels preserved",
+  "data_asof": "20261026",
+  "symbols": 76,
+  "rows": 100266,
+  "pages": 152,
+  "candidate_manifest_sha256": "43b7ec3a30728a93dc5ddf1d40f4a8d4075bb02694e5751439e8e94787959476",
+  "runtime_release_id": "futu76-mac-price-signal-api-20261027-r2",
+  "runtime_manifest_sha256": "680d9516725cd625a9c80a96c8a5536e4ccc3fe45f54720a8fbe9c5e02db6a34",
+  "focused_checks": {
+    "initial_distinct_checks": 43,
+    "r2_affected_only_checks": 18,
+    "unchanged_old_checks_not_rerun": true
+  },
+  "actual_http_ui": {
+    "samples": [
+      "000523.SZ",
+      "600030.SH",
+      "601868.SH"
+    ],
+    "date_range": [
+      "20261019",
+      "20261026"
+    ],
+    "rows_per_sample": 6,
+    "actual_http_all_fields_equal": true,
+    "rendered_cells_equal": 288,
+    "other73_individual_http_ui": "NOT_RUN"
+  },
+  "local_completion_receipt": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/ROOT_COMPLETION_RECEIPT_R2.json",
+    "sha256": "e6ce9a50cfad70b0d5936bc5b04ece5ded7347e766a6cfb161570510b6fe4fb1"
+  },
+  "source_files": [
+    {
+      "path": "apps/api/v35_api/a_share_panel_history.py",
+      "sha256": "20aabe7df5b5a6ecdc5b8b6687a554231d1ba6a79d264d97d0ffa0ed23cb6f02"
+    },
+    {
+      "path": "ops/api_release_integration.py",
+      "sha256": "762f45bc22e30a74d35096a8cb196eaf07936742851009451cc714a35f662574"
+    },
+    {
+      "path": "ops/research_panel_factor_cache.py",
+      "sha256": "9df2744b724629db3208c05a8f03553ed1f6e24fed3c6f3ac1679a6e34c5d2e9"
+    },
+    {
+      "path": "ops/research_panel_qfq.py",
+      "sha256": "b4f86bb7c383ef9c1240197b9f75a28bde2fbaa04f7ff1a55008ec4913ed9ebd"
+    },
+    {
+      "path": "tests/test_futu76_admission_control.py",
+      "sha256": "d4ca962f445bece1a32d8858bb74b9cdab9a1629d34f568d5b4ce847ccf51e52"
+    },
+    {
+      "path": "tests/test_futu76_cutover_projection.py",
+      "sha256": "4a08519cebd0995beabe0666c7de86dda67d6ceee326e32fa0702b73d0df119a"
+    },
+    {
+      "path": "tests/test_futu76_entry_count_r2.py",
+      "sha256": "af046a2fdd2f20e2183afa02c51bd81875fc49818efe74c613882a1395d785ed"
+    },
+    {
+      "path": "tests/test_futu76_release_schema.py",
+      "sha256": "0fbb8443566babee9074511264bf245364d73472fe11f57c031b3c873a6802f6"
+    },
+    {
+      "path": "tests/test_futu_direct_qfq76.py",
+      "sha256": "962518a3522c9d7c321623b478adad665ed631d592ae1cab275a8eecd7f70bd4"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/selector_data_layer_interface.py",
+      "sha256": "5fd9024fc4ee858a62eaac050532187b171289eac82837bc7ca406e938509ded"
+    }
+  ],
+  "source_copy_provenance": [
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/run_batch.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/run_batch.py",
+      "sha256": "e1627cf5939ac740f7eb3f5f9ada99bb7ec39b842f3d30d7835eaaac6850fd26"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/register.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/register.py",
+      "sha256": "304842b4c58d2f799292387a6d53055dc0c5de9bee2855b1e97133c3fc911fb6"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/prepare_release.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/prepare_release.py",
+      "sha256": "7ebab8ca753498561f34114c1099933dc0d4a29af2bf16f8c60bbab2c6e64383"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/root_cutover.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/root_cutover.py",
+      "sha256": "cd22591d26ed988b8e08ffe9c43f0fb956898d8e0c17083e368bdc4cb349f9dd"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/admission_control.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/admission_control.py",
+      "sha256": "ce5f4a3693d39de66670dd9b1569251a8c65f042b9b30a4b3c0103115c13fd8e"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/r2_entry_count_repair/register.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/r2_entry_count_repair/register.py",
+      "sha256": "085d7655f1c3cfbf31818861f4f2763d1d3e757e5cdc34936634da4c4359d716"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/r2_entry_count_repair/prepare_release.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/r2_entry_count_repair/prepare_release.py",
+      "sha256": "c51b1ad87f1a8c90fb66c1fbf1e6749417224174f43804858494e8662fa36bae"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/r2_entry_count_repair/root_cutover.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/r2_entry_count_repair/root_cutover.py",
+      "sha256": "357679235b7d5aedb6547b2fae508b7ebf50daae7999807e52ca85d63753dab3"
+    },
+    {
+      "original": "/Users/lexi/Desktop/学习/因子工厂/research/futu_qfq76_mac_integration_20261026_r1/r2_entry_count_repair/admission_control.py",
+      "delivery_copy": "deliveries/futu76_mac_price_signal_display_20261027/source/r2_entry_count_repair/admission_control.py",
+      "sha256": "7b65607bf0efa5c1f70521d8563b21a23c0a434454318529c0753f21bb7c42f5"
+    }
+  ],
+  "excluded_from_git": [
+    "raw SDK exports",
+    "candidate parquet",
+    "API raw responses",
+    "screenshots and AX payloads",
+    "runtime release trees",
+    "plists and environment",
+    "registry JSONL and large state history"
+  ],
+  "not_verified": [
+    "natural daily update",
+    "automatic future-capture renewal",
+    "PIT/anchor certification",
+    "standalone clean checkout runtime without bound original dependencies",
+    "business/returns"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

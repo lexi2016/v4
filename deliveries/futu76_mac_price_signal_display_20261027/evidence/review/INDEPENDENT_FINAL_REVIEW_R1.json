@@ -1,0 +1,64 @@
+{
+  "verdict": "PASS_FUTU76_MAC_PRICE_SIGNAL_DISPLAY_CANDIDATE",
+  "reviewer_id": "/root/futu76_final_review",
+  "candidate_manifest_sha256": "43b7ec3a30728a93dc5ddf1d40f4a8d4075bb02694e5751439e8e94787959476",
+  "bindings": {
+    "FINAL_SOURCE_IDENTITY.json": "83482f7f059f1f381284f47c8fd117e7c3cacdf54208ac3fc046460eb13b40a7",
+    "ROOT_AUTHORIZATION_SCOPE_R2.md": "659f89fc920458df4cf63dc7b7845b5fd13afbde4a28f597778d17962350be36",
+    "ACTUAL_SOURCE_DIFF.patch": "d7394c1e4bb885c55024f6da2ca36d463d8f7953972eaa51717c03d1608aaddd",
+    "candidate_parquet": "f287e7c877d3924ee564683ca807b75134453443ab1ea40b13c4477474ed1462",
+    "api_source": "20aabe7df5b5a6ecdc5b8b6687a554231d1ba6a79d264d97d0ffa0ed23cb6f02",
+    "api_release_integration.py": "7ce52d7351063f6a0367b72a24109ca701520dc9723267c0effba3edc8494d72",
+    "package_manifest": "1afe8dcd44bfdbdca683032cfbc9c4f63a6e19c7bcf0d303e3d7976b7083ef03",
+    "materialized_manifest_projection": "c67d28e8498dffb58fd05a77f20502d583316205b190b8bd12c73744246e6032",
+    "candidate_plist": "9f86eeb6e5a5a48e7f64001124dd8b255f0e20a033b402da77d0c05f8270a310",
+    "root_cutover.py": "cd22591d26ed988b8e08ffe9c43f0fb956898d8e0c17083e368bdc4cb349f9dd",
+    "admission_control.py": "ce5f4a3693d39de66670dd9b1569251a8c65f042b9b30a4b3c0103115c13fd8e",
+    "base_manifest": "6d2754c2af947ae1aa2bcd1d6d5fbed6faeae6f008f1688a6cf16d60c247d0f6",
+    "base_plist": "a25fdaa0dbcca7fa68785bfe991e6c2048e4a4f71b50e9854032bbacfab2026d"
+  },
+  "findings": [
+    {
+      "severity": "P3",
+      "blocking": false,
+      "file": "/Users/lexi/.codex/worktrees/futu76-mac-integration-20261026/v4_app/ops/research_panel_qfq.py",
+      "line": 384,
+      "trigger": "features.pre_close differs from adjusted.close.shift(1)",
+      "error": "Undefined code in extracted kernel causes NameError",
+      "impact": "Diagnostic exception changes; rejection remains fail-closed; accepted artifacts unaffected"
+    }
+  ],
+  "blocking_P0_P1_P2_findings": [],
+  "independently_verified": {
+    "identity": "10 indexed artifact hashes and 12 current Python hashes/AST matched",
+    "mechanical_scope": "76 symbols, 100266 unique keys, source SHA/index/row alignment, 152 pages",
+    "samples": "000523.SZ, 600030.SH, 601868.SH; six rows each, 20261019–20261026",
+    "sample_behavior": "BEHAVIOR_VERIFIED: original reader/API core matches saved envelopes and SDK OHLC/volume/turnover; 23 binary signals and eight finite chart fields",
+    "date_boundaries": "BEHAVIOR_VERIFIED: early/future capture requests rejected; weekend EMPTY_EXACT_RANGE preserved",
+    "package": "Original verifier PASS; exactly one API delta; 1314 non-delta entries preserved",
+    "projection": "Only candidate root/app_root projected; plist projection and original lock dependency hashes matched"
+  },
+  "reused_evidence": {
+    "focused_checks": "43 distinct passing checks inspected, including preserved warning failure and affected-only recovery",
+    "formula": "Bound original-kernel parity test, unchanged numerical extraction and candidate machine records reused; no full recomputation",
+    "source_export": "Existing SDK export/delivery evidence reused; no collection rerun"
+  },
+  "control_review": {
+    "status": "PASS_FROZEN_CANDIDATE_SCOPE",
+    "scope": "Typed legacy schema inventory/path/role checks, original activity/shared locks, fresh CAS, guarded cutover, owned admission journal and inverse-CAS recovery",
+    "third_party_changes": "Conflicting preimage/postimage must reject rather than overwrite",
+    "actual_mutations_performed_by_reviewer": 0
+  },
+  "limitations": {
+    "actual_cutover_admission_HTTP_UI": "CANNOT_CONFIRM_NOT_EXECUTED",
+    "natural_daily_update_and_future_capture_renewal": "CANNOT_CONFIRM",
+    "historical_PIT_and_adjustment_anchor_certification": "CANNOT_CONFIRM_UNKNOWN_NONPIT_RETAINED",
+    "business_or_return_validity": "CANNOT_CONFIRM_NOT_EVALUATED",
+    "initial_brief_original_bytes": "CANNOT_CONFIRM_NOT_SNAPSHOTTED; preserved historical SHA/refusal accepted",
+    "other_interfaces_and_default_CURRENT": "Outside typed API replacement; original paths preserved"
+  },
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

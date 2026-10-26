@@ -1,0 +1,50 @@
+{
+  "verdict": "PASS_FUTU76_ENTRY_COUNT_R2_INCREMENTAL",
+  "reviewer_id": "/root/futu76_final_review",
+  "candidate_manifest_sha256": "43b7ec3a30728a93dc5ddf1d40f4a8d4075bb02694e5751439e8e94787959476",
+  "package_manifest_sha256": "358e7a1ad22c8ea65340c11bc8c0f27738cde4a2d6e6ec827b9c360185660a40",
+  "root_controller_sha256": "357679235b7d5aedb6547b2fae508b7ebf50daae7999807e52ca85d63753dab3",
+  "api_release_integration_sha256": "762f45bc22e30a74d35096a8cb196eaf07936742851009451cc714a35f662574",
+  "additional_bindings": {
+    "projected_manifest_sha256": "680d9516725cd625a9c80a96c8a5536e4ccc3fe45f54720a8fbe9c5e02db6a34",
+    "candidate_plist_sha256": "47ccaf2493f3d58483a0a9edcda5ceff13398d08eb7192eb2742df5deca6f60c",
+    "admission_controller_sha256": "7b65607bf0efa5c1f70521d8563b21a23c0a434454318529c0753f21bb7c42f5",
+    "original_dispatcher_receipt_sha256": "85ff1545c59f1cec1da23b87368668113ae131968a60f10b6dbc5dcaa2956792",
+    "old_baseline_proof_sha256": "ff62f93506f555e7c365b917cd44ae5c2c36dc31a1d4f327549907184be666b0",
+    "unchanged_api_source_sha256": "20aabe7df5b5a6ecdc5b8b6687a554231d1ba6a79d264d97d0ffa0ed23cb6f02"
+  },
+  "findings": [],
+  "prior_findings_retained": [
+    {
+      "severity": "P3",
+      "blocking": false,
+      "reference": "R1 review: research_panel_qfq.py:384 diagnostic branch references undefined code",
+      "status": "UNCHANGED_OUTSIDE_R2_INCREMENTAL_SCOPE"
+    }
+  ],
+  "evidence": {
+    "scope": "Metadata entry_count and directly affected release/admission/recovery controls only",
+    "identity": "Seven current code hashes/AST and seven artifact references matched",
+    "incremental_tests": "Inspected bound 18/18 PASS log and test cases; old 43 checks not rerun",
+    "entry_count": "Both standard identity paths require exact non-bool integer count; independently established candidate-path rejection of missing, incorrect, bool and string counts",
+    "original_dispatcher": "BEHAVIOR_VERIFIED: fresh fixed-Python subprocess loaded unchanged validator from actual R2 package; validated manifest pins, inventory count/aggregate and six execution-file bytes",
+    "package": "Independent original verifier PASS; entry_count=1315; one unchanged API delta and 1314 preserved non-delta entries",
+    "projection": "Independent comparison confirmed only candidate root/app_root projection and exact candidate plist",
+    "old_baseline": "BEHAVIOR_VERIFIED: fresh read-only proof matched PID86578, native listener/cwd, Graph serving/declared roots, pinned manifest/plist, typed1315 inventory and three primary plist bindings",
+    "controls": "Reviewed fresh pins, original guard/shared locks, pre-CAS materialized dispatcher check, post-reload runtime identity, exact inverse CAS and third-party-change rejection",
+    "r1_reuse": "All R1 reuse references matched SHA; unchanged data/formula/API evidence retained; failed R1 release acceptance is not reused"
+  },
+  "limitations": {
+    "r2_actual_cutover_admission_and_stock_HTTP_UI": "CANNOT_CONFIRM_NOT_EXECUTED",
+    "materialized_target_dispatcher": "Controller enforces before CAS; target not yet materialized by Reviewer",
+    "old_graph_status": "EVIDENCE_GAP_RETAINED",
+    "old_runtime_identity_overall": "CANNOT_CONFIRM_RETAINED",
+    "old_standard_dispatcher_compatibility": "CANNOT_CONFIRM_LEGACY_CUSTOM_SCHEMA",
+    "natural_update_future_capture_PIT_anchor_business_validity": "CANNOT_CONFIRM_UNCHANGED"
+  },
+  "reviewer_file_service_registry_mutations": 0,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
