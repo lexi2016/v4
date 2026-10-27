@@ -1,0 +1,68 @@
+{
+  "scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/SCOPE_R5_TWO_POOL_UPSTREAM_RECOVERY.json",
+  "scope_sha256": "8189f2cdcc748e7e13bde679e772ad4db0a686f07416789b671825ec6a37ba8b",
+  "at": "2026-10-27T14:15:20.549494+00:00",
+  "source_entries": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/live_acquisition/orchestrator.py",
+      "sha256": "1386af5eac07aaaf15c595e4d1563508a61d451e8f494f85e455e03dcbc2182e",
+      "baseline": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/source_baselines/scripts__live_acquisition__orchestrator.py.actual",
+      "baseline_sha256": "258fc46a0ed6c17aaafb3b1715e43ff643eb31b1f123e674360761f58dd19044",
+      "diff": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/source_baselines/scripts__live_acquisition__orchestrator.py.actual.rank_r1.diff",
+      "diff_sha256": "d20ea9aff97f6c1a8525a16e5212cb9be99c47ea3bde2c645953108a42903f76"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/store.py",
+      "sha256": "0d83311d884d6acf347e88525a66df918b282f1cbae83360d33c3d41fc073315",
+      "baseline": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/source_baselines/shared_data__store.py.actual",
+      "baseline_sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "diff": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/source_baselines/shared_data__store.py.actual.r6.diff",
+      "diff_sha256": "0f5cd65ff190c3f5d07d9ad211c31827dddf38d60ceed0f39e9e35188408b6c6"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/infrastructure/review_core_stage7_pool_source.py",
+      "sha256": "13f10c9212704538574ed5e8c4aa5459b69c241c4ef7e9149a754266a3b92b74",
+      "baseline": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/source_baselines/stage7_projection.actual",
+      "baseline_sha256": "cc0e4c86935086d6338755e2d97d4f51b2eedc878b514e1fa616ca599a053981",
+      "diff": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/source_baselines/stage7_projection.actual.r6.diff",
+      "diff_sha256": "f76853e9be622593100afc7d225d6d922fd41a21784959df6ab3be72cd9f8113"
+    }
+  ],
+  "test_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_stage7_upstream_recovery_r5.py",
+  "test_sha256": "6a87c78b46991ed48c253fec9805e9580258c6dcbd5c558e0a55fd7019f81685",
+  "test_log": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/STAGE_RANK_CORRECTION_R1.log",
+  "test_log_sha256": "78419627264031e09b8d27d312febff809c752c4503708de329ca11ad2b11318",
+  "tests": "2 affected passed; prior R6 pass reused for unchanged behavior",
+  "isolated_shared": {
+    "artifact.csv": "07841b357b21f3cb05a9cb17a3d91c06c0c55550a4ac8f6653e30ca011082443",
+    "manifest.json": "e8e9555a1679ab22bf2670fef8a285c283008fed076a9e060b4e4d1b712b8b57",
+    "receipt.json": "6944323a5d77a215dd9b4c2cd8a641e5f68d97edefd3b985502c7152119c6229"
+  },
+  "isolated_pool": {
+    "artifact.json": "f5ab2f21a942bae35595da4aa9ec481073044322337ec615af3df1bcaad73cab",
+    "manifest.json": "56b623b4ac31eac9e5356796123c98fda1f62cd7a3cfb892c61ad5ec233637d2",
+    "receipt.json": "ab9123330062928aaafc372986db26cff845349442a575f10441a677e5289713"
+  },
+  "isolated_pool_rows": 482,
+  "history": {
+    "historical_backfill": true,
+    "pre_cutoff_capture_verified": false,
+    "pit_certified": false,
+    "source_merge_role": "SOURCE_ONLY",
+    "stage_selection_eligible": false,
+    "prior_diagnostics": 1859,
+    "resolved_coverage": 2,
+    "unresolved": 1857
+  },
+  "atomic_existing_role_guard": "require_absent inside store lock",
+  "review_status": "NOT_REVIEWED",
+  "shared_write": "NOT_PERFORMED",
+  "natural_verified": false,
+  "names": "NOT_CERTIFIED",
+  "supersedes_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/STAGE7_SOURCE_FREEZE_R5_FINAL_R6.json",
+  "supersedes_sha256": "cd08e259e9adcd50a2bdb329695819f22a16f5ff7b4c025f437a0fb3bece45f8",
+  "rank_order": "bound candidate order, 603727 position 410",
+  "unchanged_original_files": true,
+  "parameters_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/STAGE7_RECOVERY_PARAMETERS.json",
+  "parameters_sha256": "87bab432300ad799e9124605e51c1010857ce790e93d8d5a2cd47da2f6ed8baf"
+}

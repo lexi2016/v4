@@ -1,0 +1,40 @@
+{
+  "at": "2026-10-27T23:44:37.598288+08:00",
+  "mode": "READ_ONLY_RELOADED_ACTUAL_UI",
+  "date": "20261028",
+  "api_release": "business-gaps-20261027-r5-api",
+  "frontend_script": "assets/main-CcgQd_kb.js",
+  "main": {
+    "rows": 25,
+    "names": "ACTUAL_UI_NAMES_PRESENT"
+  },
+  "stage7": {
+    "rows": 482,
+    "returned_first_page": 200,
+    "status": "READY_SOURCE_ONLY_HISTORICAL",
+    "names": "FAIL_CODE_ALIASES",
+    "examples": [
+      "A.000995 -> SZ.000995",
+      "A.600048 -> SH.600048",
+      "A.920627 -> BJ.920627"
+    ]
+  },
+  "fupan": {
+    "rows": 31,
+    "status": "PARTIAL_DAILY_VIDEO_NOT_LOCKED",
+    "names": "ACTUAL_UI_NAMES_PRESENT",
+    "examples": [
+      "603528 多伦科技",
+      "605333 沪光股份",
+      "603370 华新精科"
+    ]
+  },
+  "aggregate": {
+    "rows": 639,
+    "pages": 4,
+    "first_page": 200
+  },
+  "screenshot": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/actual_ui/R5_STAGE7_NAMES_ACTUAL_FAIL.png",
+  "r6_deployed": false,
+  "whole_checklist_pass": false
+}

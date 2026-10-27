@@ -1,0 +1,37 @@
+{
+  "provenance": "Root transcription of independent /root/business_gaps_luna_review final JSON, not Root self review",
+  "verdict": "REVIEWED/PASS",
+  "scope": "Incremental review of R6 prior two P1 only; unchanged R5 prior PASS reused",
+  "source_freeze_sha256": "959f3f3f4da513d863c36ee0d1a3525187d7cb87de9f89302d36af29441bc6e4",
+  "source_sha256": "1bc1a4e797318047ce691ddf3c4e1bb45727d413c5396a68cc0900a8621e8929",
+  "test_source_sha256": "edd2c93bdd84d5c614d3868286cde24b9710977572e04f6678d5a7d8fcf024e4",
+  "findings": [],
+  "checks": [
+    "source trade-date mismatch relaxation is limited to Stage7 source identity/membership",
+    "Stage7 signal must equal previous A session of target; target-day observation need not equal signal",
+    "non-Stage7 and stale26/28 internally consistent sources rejected; observed28 with signal27 accepted",
+    "17 targeted PASS reused, not rerun by Reviewer"
+  ],
+  "original_failure": "review/R6_NAME_SIGNAL_DATE_LUNA_FAIL_R1.json",
+  "actual_frozen_replay_refs": {
+    "real_page_replay": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/name_signal_date_r6/REAL_SAVED_API_PAGES_LOCAL_REPLAY_R1.json",
+      "sha256": "75f32a19ac47079262292c87f3461a08686fb73495bc056b47ac9c0c473dba02",
+      "scope": "four saved API pages, preceding final row/container identity guard; 482/482 named"
+    },
+    "post_guard_recheck": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/name_signal_date_r6/REAL_SAVED_API_PAGES_LOCAL_REPLAY_R3.json",
+      "sha256": "e945644fac2acb78ad060cf95c1ebac5a3a6f6a25112d0c8dd9b84e3d8776644",
+      "scope": "page0 200/200 after targeted reviewer corrections"
+    }
+  },
+  "BEHAVIOR_VERIFIED": "Source delta and saved local evidence only",
+  "DEPLOYED": false,
+  "API_VERIFIED": false,
+  "UI_VERIFIED": false,
+  "unexecuted": [
+    "Live deployment",
+    "Live service/lock/data actions",
+    "Natural-run acceptance"
+  ]
+}

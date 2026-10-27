@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-27T23:41:56.933530+08:00",
+  "provenance": "Root transcription of independent /root/business_gaps_luna_review final verdict; not a Root review",
+  "verdict": "REVIEWED/FAIL",
+  "source_freeze_sha256": "f0be279b4c5f9c33b89bed0e17eeb4b4b4307473082d9095849f994aa3034ad6",
+  "source_sha256": "78d3c13b66bd7f97bb5f278fad3b1e894429282bc7939f4d2c64ae912d82b53f",
+  "findings": [
+    {
+      "id": "R6-P1-1",
+      "location": "source_validation.py:153-168,216-218",
+      "finding": "All verified preselection pools were added to new verified_signal_codes; source-date mismatch relaxation must be limited to Stage7 reader. Existing prior_signal fallback for target-day rows may remain."
+    },
+    {
+      "id": "R6-P1-2",
+      "location": "source_validation.py:186-193",
+      "finding": "Internally consistent signal26/target28 reader with valid member can pass (< target only). Require previous A session of target, including next-day current observation dates; do not incorrectly require observation==signal when observation=current target."
+    }
+  ],
+  "live_actions": false,
+  "unexecuted": [
+    "No live deployment/API/UI",
+    "No old tests rerun"
+  ]
+}

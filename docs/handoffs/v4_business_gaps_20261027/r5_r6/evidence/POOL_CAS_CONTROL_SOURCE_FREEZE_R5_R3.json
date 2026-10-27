@@ -1,0 +1,64 @@
+{
+  "scope_sha256": "d0ed82ad48a4960ef2bcd801d3a890a065858613695d5adfd4e87f7fed5ad428",
+  "pool_source_candidate": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/fupan_candidate_pool_r3",
+  "pool_source_inventory": {
+    "before_count": 73,
+    "after_count": 73,
+    "exact_delta": [
+      "review_core/fupan_pool.py",
+      "review_core/fupan_sources.py",
+      "review_core/pool_store.py",
+      "review_core/review.py",
+      "review_core/stage7_pool.py"
+    ],
+    "non_delta_equal": true
+  },
+  "pool_sources": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/review_core/pool/review_core/review.py",
+      "before_sha256": "08d6c5e24e7c673be4c9dfa3a5882c4f1f5b0e03c6184c5d64b8d2a4ece37a38",
+      "after_sha256": "656fa403aa05ecd48d46b260565a42b403e66d86d24f242f73014033329364b0"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/review_core/pool/review_core/fupan_sources.py",
+      "before_sha256": "1d6744f13e5c254ce397b82d001000b030bd77191242ca1545126eced80ee091",
+      "after_sha256": "17dbf27edc164b874a1a54ddccc4de90ee6a0d61e2fbce7589827a8296effb3c"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/review_core/pool/review_core/fupan_pool.py",
+      "before_sha256": "6a3a01e46fa832e8d10d84bbfdd5ac0a873e0eed14fddf50380dcd4da59cf7c3",
+      "after_sha256": "1e1e273351d401811963eaa2fde7470f9b189323f21ee87222044dd79614e152"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/review_core/pool/review_core/pool_store.py",
+      "before_sha256": "d449e051effbbd61eaf2f78a3344e5d71474564962a2072f1320681cff4ae21d",
+      "after_sha256": "35a37186ce8f67045d49dd2231467428a77965eb1ed977ae20269f198c4958cb"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/review_core/pool/review_core/stage7_pool.py",
+      "before_sha256": "1a07eb58863e92ae09d99d0500d373740dad4df4806db1976be762dc1e442aeb",
+      "after_sha256": "02446975e43466d7f341ad8825714ae49dfdd70ba9059238a82b2698cdccf7da"
+    }
+  ],
+  "control_sources": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/control/prepare.py",
+      "before_sha256": "9aeeb1a969dd115883f57cfc18e8c7ed3f93ccfd6159d9035428075773e08613",
+      "after_sha256": "b7b8ee10810884a1b09a37a2556557d685cc881eb0ae674fb440431119683ca2"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/control/controller.py",
+      "before_sha256": "e9160a7d4c628245e30ece715068102121c88373c5f0ac3843e7ee5bec944750",
+      "after_sha256": "46b264c2e07d1d92ff0429b01d6b6a3136891970eaf5c442f84fab0c2807e4a5"
+    }
+  ],
+  "test_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_publication_r5.py",
+  "test_sha256": "ce6bb09e0759ef5426f9b6eb3f1fc075c6623d9add5c28bcdb8ba58d831a58e9",
+  "tests": "14 passed; pytest_publication_r5_7",
+  "actual_slot_isolated_clone_evidence": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/POOL_CAS_ACTUAL_CLONE_RESULT_R5.json",
+  "actual_slot_isolated_clone_sha256": "e71cf412e19b2f8715ac3b6f2b864bb6b43c917c79bfa7b8d3c0ea8033cc84f2",
+  "api_overlay_freeze": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/two_pool_upstream_r5/R5_API_OVERLAY_FREEZE.json",
+  "api_overlay_freeze_sha256": "39bdf49201f53f5dd1ab27dd50f1525bce0f4e5150c3584f5640989990b7ff57",
+  "live_service_actions": false,
+  "live_pointer_writes": false
+}

@@ -1,0 +1,246 @@
+{
+  "repository": "lexi2016/v4",
+  "branch": "codex/v4-business-gaps-20261027",
+  "expected_remote_commit": "c11afd0c272bfe745f03f923067cab4039f454d9",
+  "remote_prefix": "docs/handoffs/v4_business_gaps_20261027/r5_r6",
+  "entries": [
+    {
+      "path": "source/upstreams/v3_shared_data/scripts/live_acquisition/orchestrator.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/v3_shared_data/scripts/live_acquisition/orchestrator.py",
+      "bytes": 18533,
+      "sha256": "1386af5eac07aaaf15c595e4d1563508a61d451e8f494f85e455e03dcbc2182e",
+      "git_blob": "4979edaf6ca8fe9fb7798ed2a04557c1dca6059c"
+    },
+    {
+      "path": "source/upstreams/v3_shared_data/shared_data/store.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/v3_shared_data/shared_data/store.py",
+      "bytes": 28657,
+      "sha256": "0d83311d884d6acf347e88525a66df918b282f1cbae83360d33c3d41fc073315",
+      "git_blob": "d22b4a3c9a7d2d4b23c3312dba190e38400f8e21"
+    },
+    {
+      "path": "source/infrastructure/review_core_stage7_pool_source.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/infrastructure/review_core_stage7_pool_source.py",
+      "bytes": 16016,
+      "sha256": "13f10c9212704538574ed5e8c4aa5459b69c241c4ef7e9149a754266a3b92b74",
+      "git_blob": "641edec2c48cb1049f91e88c1fa1e20f85203169"
+    },
+    {
+      "path": "tests/test_stage7_upstream_recovery_r5.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/tests/test_stage7_upstream_recovery_r5.py",
+      "bytes": 8520,
+      "sha256": "6a87c78b46991ed48c253fec9805e9580258c6dcbd5c558e0a55fd7019f81685",
+      "git_blob": "b45f17f2e5abe7981990a2d6b1b128633deb75a4"
+    },
+    {
+      "path": "source/upstreams/review_core/pool/review_core/review.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/pool/review_core/review.py",
+      "bytes": 63833,
+      "sha256": "656fa403aa05ecd48d46b260565a42b403e66d86d24f242f73014033329364b0",
+      "git_blob": "f18381e23f2049ea5e08b345bc3f0cf5e96ca10a"
+    },
+    {
+      "path": "source/upstreams/review_core/pool/review_core/fupan_sources.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/pool/review_core/fupan_sources.py",
+      "bytes": 23844,
+      "sha256": "17dbf27edc164b874a1a54ddccc4de90ee6a0d61e2fbce7589827a8296effb3c",
+      "git_blob": "5b4af791d1d7c216b691bf1adc5860e4b4c2b0e5"
+    },
+    {
+      "path": "source/upstreams/review_core/pool/review_core/fupan_pool.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/pool/review_core/fupan_pool.py",
+      "bytes": 12597,
+      "sha256": "1e1e273351d401811963eaa2fde7470f9b189323f21ee87222044dd79614e152",
+      "git_blob": "e8af7a30953588e4f45ab88244dd0e598372ee9a"
+    },
+    {
+      "path": "source/upstreams/review_core/pool/review_core/pool_store.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/pool/review_core/pool_store.py",
+      "bytes": 17190,
+      "sha256": "35a37186ce8f67045d49dd2231467428a77965eb1ed977ae20269f198c4958cb",
+      "git_blob": "4efe811f067cc760ef1c550b1ac57a57d5e4e6ba"
+    },
+    {
+      "path": "source/upstreams/review_core/pool/review_core/stage7_pool.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/pool/review_core/stage7_pool.py",
+      "bytes": 14586,
+      "sha256": "02446975e43466d7f341ad8825714ae49dfdd70ba9059238a82b2698cdccf7da",
+      "git_blob": "83ea00e6fe77f7be203d9407ce239d38f5794fd5"
+    },
+    {
+      "path": "source/deliveries/v4_business_gaps_20261027/control/prepare.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/deliveries/v4_business_gaps_20261027/control/prepare.py",
+      "bytes": 26548,
+      "sha256": "b7b8ee10810884a1b09a37a2556557d685cc881eb0ae674fb440431119683ca2",
+      "git_blob": "01c5294f4b877f6c6caf547d1ffd97e9894f0689"
+    },
+    {
+      "path": "source/deliveries/v4_business_gaps_20261027/control/controller.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/deliveries/v4_business_gaps_20261027/control/controller.py",
+      "bytes": 29259,
+      "sha256": "46b264c2e07d1d92ff0429b01d6b6a3136891970eaf5c442f84fab0c2807e4a5",
+      "git_blob": "1d0597e7dc3944ab398d0edd15eef8a8fdb6dd8b"
+    },
+    {
+      "path": "tests/test_business_gaps_publication_r5.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/tests/test_business_gaps_publication_r5.py",
+      "bytes": 11004,
+      "sha256": "ce6bb09e0759ef5426f9b6eb3f1fc075c6623d9add5c28bcdb8ba58d831a58e9",
+      "git_blob": "b014f6473b6ff3f811a0cc280e186f6836ba9d55"
+    },
+    {
+      "path": "source/upstreams/review_core/daily/review_core/review_pipeline.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/daily/review_core/review_pipeline.py",
+      "bytes": 101242,
+      "sha256": "719977278e012df478f61c91b6d139aa0780d4909fa6de5c151503bf9148a484",
+      "git_blob": "97c95a92940d7ac10df473ecac87b2ebfd575060"
+    },
+    {
+      "path": "source/upstreams/review_core/daily/review_core/daily_replay_producer.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/daily/review_core/daily_replay_producer.py",
+      "bytes": 33800,
+      "sha256": "0ab8df03382af1f0ea1fb6f4a13a832c021ca632a277727947c539a7ddc94000",
+      "git_blob": "0696d11c6fe85265e8c1960f5f44c7ca87ac4a25"
+    },
+    {
+      "path": "source/upstreams/review_core/daily/review_core/review.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/source/upstreams/review_core/daily/review_core/review.py",
+      "bytes": 102050,
+      "sha256": "801760c8acd733c9c4494f8c0db591fff4b9e6d1aa219a83943cc763b338a870",
+      "git_blob": "e5fc1529a40bb18dd75211a660c40b3bf085d4fe"
+    },
+    {
+      "path": "tests/test_fupan_upstream_recovery_r5.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/tests/test_fupan_upstream_recovery_r5.py",
+      "bytes": 5494,
+      "sha256": "88cc26836b0bbf0a4471ab09d19f10c7eeb1de747528b8050831b2f5faeae284",
+      "git_blob": "fd9760e3de3c01238ee27cc5eeda18f52b0fadc0"
+    },
+    {
+      "path": "r6/source/domains/_preselection_parts/source_validation.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/r6/source/domains/_preselection_parts/source_validation.py",
+      "bytes": 18475,
+      "sha256": "1bc1a4e797318047ce691ddf3c4e1bb45727d413c5396a68cc0900a8621e8929",
+      "git_blob": "90bac4ba0a6b704ed5424e9742563578d5757586"
+    },
+    {
+      "path": "r6/tests/test_stage7_name_signal_date_r6.py",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/r6/tests/test_stage7_name_signal_date_r6.py",
+      "bytes": 8150,
+      "sha256": "edd2c93bdd84d5c614d3868286cde24b9710977572e04f6678d5a7d8fcf024e4",
+      "git_blob": "c18024aea4758fa2da0aa8123a21a722825a40f5"
+    },
+    {
+      "path": "evidence/R5_FINAL_PUBLICATION_LUNA_PASS_R1.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R5_FINAL_PUBLICATION_LUNA_PASS_R1.json",
+      "bytes": 2497,
+      "sha256": "92c01a2479495d236d3fa8c11a9715dcba2896db53ff476044dd7fed2f76b0c9",
+      "git_blob": "7297b69783b538457b26bee5232329fc31f0f9cb"
+    },
+    {
+      "path": "evidence/R5_STAGE7_LUNA_PASS_RANK_R1_ROOT_TRANSCRIPTION.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R5_STAGE7_LUNA_PASS_RANK_R1_ROOT_TRANSCRIPTION.json",
+      "bytes": 919,
+      "sha256": "e6db0206ffa2aa77b41d59d21787a8a77bb1e1ec1d67a789b28505d4f36d6457",
+      "git_blob": "289dd88a44250fbf9b6926a8ae38c4088ecb6dec"
+    },
+    {
+      "path": "evidence/R5_FUPAN_SIX_SOURCE_LUNA_PASS_ROOT_TRANSCRIPTION.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R5_FUPAN_SIX_SOURCE_LUNA_PASS_ROOT_TRANSCRIPTION.json",
+      "bytes": 445,
+      "sha256": "1fb5303ed29f4cdec9cffd289eb82c9cfc56b17c9162a23608b336eb6df42927",
+      "git_blob": "e0ee6c1b57e99e3ae7a0a2de624c5286112b5e33"
+    },
+    {
+      "path": "evidence/R5_STAGE7_LUNA_FAIL_R1_ROOT_TRANSCRIPTION.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R5_STAGE7_LUNA_FAIL_R1_ROOT_TRANSCRIPTION.json",
+      "bytes": 491,
+      "sha256": "1b20f72ee2ee68769998d717d4eb3b6b50c3aca64ca0b2f40b1e4d1bf4378fc9",
+      "git_blob": "8fc331c5b40b18d6aec982644952e50304bd5e95"
+    },
+    {
+      "path": "evidence/R6_NAME_SIGNAL_DATE_LUNA_FAIL_R1.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R6_NAME_SIGNAL_DATE_LUNA_FAIL_R1.json",
+      "bytes": 1177,
+      "sha256": "b811ac6c9f42a18b657228e0c5af6a74126ad3eee4e07f01fcb3bb02b568fda8",
+      "git_blob": "7f634938ceb2a96633ea5dcbec762adbba877bbb"
+    },
+    {
+      "path": "evidence/R6_NAME_SIGNAL_DATE_LUNA_PASS_R2.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R6_NAME_SIGNAL_DATE_LUNA_PASS_R2.json",
+      "bytes": 1983,
+      "sha256": "c41525b03e1029eec5622e9db45d346a65202aa68bf47402cc103f420b6e632e",
+      "git_blob": "263e9280bfa669266af6c6b960f39a35cd9e0660"
+    },
+    {
+      "path": "evidence/R5_API_OVERLAY_FREEZE.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R5_API_OVERLAY_FREEZE.json",
+      "bytes": 572,
+      "sha256": "39bdf49201f53f5dd1ab27dd50f1525bce0f4e5150c3584f5640989990b7ff57",
+      "git_blob": "2d883bdd68ebe5eca00761c9ffb5e6a795433004"
+    },
+    {
+      "path": "evidence/POOL_CAS_CONTROL_SOURCE_FREEZE_R5_R3.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/POOL_CAS_CONTROL_SOURCE_FREEZE_R5_R3.json",
+      "bytes": 3746,
+      "sha256": "4699712c3dda1fb612698719593360ed61d32a95f77af239fee3512638f8e654",
+      "git_blob": "271e060008271ed7d60ecfa2b6776d56d192944d"
+    },
+    {
+      "path": "evidence/FUPAN_SOURCE_FREEZE_R5.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/FUPAN_SOURCE_FREEZE_R5.json",
+      "bytes": 3760,
+      "sha256": "fec96d94f55159d1c42b09511e2c98c7d2ce35358ce7f9f596943fe511b5a956",
+      "git_blob": "b9ce02bc2dcc5a07040a79f86b46781dbc3133aa"
+    },
+    {
+      "path": "evidence/STAGE7_SOURCE_FREEZE_R5_RANK_R1.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/STAGE7_SOURCE_FREEZE_R5_RANK_R1.json",
+      "bytes": 4760,
+      "sha256": "d0b3726acf83ed330e7e962a0046c98c8ffeb13e7e70d152ce860ea268a4c0a4",
+      "git_blob": "52b630f4448881a7571d46fe6e1090812e007bef"
+    },
+    {
+      "path": "evidence/NAME_SIGNAL_DATE_SOURCE_FREEZE_R6_R2.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/NAME_SIGNAL_DATE_SOURCE_FREEZE_R6_R2.json",
+      "bytes": 2098,
+      "sha256": "959f3f3f4da513d863c36ee0d1a3525187d7cb87de9f89302d36af29441bc6e4",
+      "git_blob": "e69e9e43117adc4722a3b488a84d4117f54a363f"
+    },
+    {
+      "path": "evidence/FINAL_PUBLICATION_WINDOW_RETURN_R5_R6_PENDING.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/FINAL_PUBLICATION_WINDOW_RETURN_R5_R6_PENDING.json",
+      "bytes": 2301,
+      "sha256": "8838c7d7ac8f201ceebce49da7e8c9d3b7880ec92bc01de2e47aae5bc21013d7",
+      "git_blob": "9ca86ae07fe0707550b5267e6b7112c8ba3094d6"
+    },
+    {
+      "path": "evidence/R5_THREE_POOLS_ACTUAL_UI_R6_PENDING.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/evidence/R5_THREE_POOLS_ACTUAL_UI_R6_PENDING.json",
+      "bytes": 1049,
+      "sha256": "1377d0132487eca1d2c577c8126ef10a575850e2278185d0e165ae73de24d2b4",
+      "git_blob": "f5d95678a926c62c19fd9f6cd657290eb5ec9710"
+    },
+    {
+      "path": "RESULT_SUMMARY.json",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/RESULT_SUMMARY.json",
+      "bytes": 1821,
+      "sha256": "b47d1d2c78978be8bee4ac193d7d0c02f1a87ee91b88a05daf2e66c9b6c8df74",
+      "git_blob": "c6f1150a52cb3640bc1367c2e6dca6453ef438c8"
+    },
+    {
+      "path": "README.md",
+      "local_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/r5_r6_source_delivery/README.md",
+      "bytes": 647,
+      "sha256": "03d46debb95a37683eec63908da47746963cfbf8642a7ae9fa40618a7f338848",
+      "git_blob": "4b4f061c5aa833bb2e14918d39fe2b10cd509fdf"
+    }
+  ],
+  "total_bytes": 568064,
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "reviewer": "/root/business_gaps_luna_review",
+  "source": "Luna final JSON inline; Root transcription, not self-review",
+  "verdict": "REVIEWED/PASS",
+  "component": "Stage7 originalsource recovery only",
+  "freeze_sha256": "d0b3726acf83ed330e7e962a0046c98c8ffeb13e7e70d152ce860ea268a4c0a4",
+  "parameters_sha256": "87bab432300ad799e9124605e51c1010857ce790e93d8d5a2cd47da2f6ed8baf",
+  "prior_fail": "R5_STAGE7_LUNA_FAIL_R1_ROOT_TRANSCRIPTION.json",
+  "tests": "13 R6 reused +2 affected rank correction PASS; six isolated artifacts and originaltrio verified",
+  "rank603727": 410,
+  "data_rows": 482,
+  "history": {
+    "historical_backfill": true,
+    "pre_cutoff_capture_verified": false,
+    "pit_certified": false,
+    "source_merge_role": "SOURCE_ONLY",
+    "stage_selection_eligible": false
+  },
+  "unexecuted": [
+    "live shared recovery",
+    "realpool/API/UI",
+    "names certification",
+    "fupan"
+  ]
+}

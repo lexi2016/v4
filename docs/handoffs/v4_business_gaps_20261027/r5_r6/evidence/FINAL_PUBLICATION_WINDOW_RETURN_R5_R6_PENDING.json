@@ -1,0 +1,61 @@
+{
+  "at": "2026-10-27T23:39:36.026991+08:00",
+  "state": "PUBLICATION_WINDOW_RELEASED_NO_INFLIGHT_CONTROL",
+  "human_instruction": {
+    "thread": "01a17da5-2d8a-7700-b34c-1041234a0292",
+    "message": "01a17df5-27f5-7541-a00b-e3c1530cec03",
+    "text": "你直接让他释放共享服务吧！"
+  },
+  "services_kept_running": true,
+  "our_guards_released_at": "2026-10-27T23:04:37+08:00",
+  "new_service_actions": false,
+  "global_lock_availability": "NOT_ASSERTED; fresh guards required by any new owner",
+  "readback": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/SHARED_WINDOW_RELEASE_READBACK_R5_R6.json",
+    "sha256": "cd714629397f29c126e3984d597adec3077a915427194ba5b14b6556febcc499"
+  },
+  "live": {
+    "API_PID": 69960,
+    "Main_PID": 46675,
+    "release": "business-gaps-20261027-r5-api",
+    "stage7": {
+      "target": "20261028",
+      "rows": 482,
+      "status": "READY",
+      "source_only": true,
+      "historical_backfill": true,
+      "pit_certified": false,
+      "stage_selection_eligible": false
+    },
+    "fupan": {
+      "target": "20261028",
+      "rows": 31,
+      "status": "PARTIAL",
+      "source_only": true,
+      "stage_selection_eligible": false
+    },
+    "main_rows": 25,
+    "names_authority_rows": 510
+  },
+  "remaining_online_defect": "Stage7 names still code aliases; source signal-date27/target28 guard rejects before lookup. R6 source-only candidate; NOT_DEPLOYED/NOT_UI_PASS.",
+  "r6_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/name_signal_date_r6/NAME_SIGNAL_DATE_SOURCE_FREEZE_R6.json",
+    "sha256": "f0be279b4c5f9c33b89bed0e17eeb4b4b4307473082d9095849f994aa3034ad6"
+  },
+  "preserve": [
+    "All R5 published bytes and healthy jobs",
+    "Running 5073 job untouched",
+    "Old failed pool trios",
+    "Main/Stage/Apre/Candidate/default selector PIT gates",
+    "Vibe8910"
+  ],
+  "alarms": "ALL_THIS_CHAT_DELETED; DO_NOT_RECREATE",
+  "messages": "NO_FURTHER_CROSS_CHAT_MESSAGES",
+  "further_publication": "None started after human release; local source-only name repair continues under latest human request.",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

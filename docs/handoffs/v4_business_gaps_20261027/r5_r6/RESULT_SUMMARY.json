@@ -1,0 +1,46 @@
+{
+  "state": "R5 deployed; upstream and two pools manually recovered; R6 source-test-independent-review PASS but NOT_DEPLOYED",
+  "updated_at": "2026-10-27T15:46:47.995517+00:00",
+  "stage7": {
+    "rows": 482,
+    "target": "20261028",
+    "source_only": true,
+    "historical_backfill": true,
+    "pit_certified": false,
+    "source_run": "20261027-a-share-1min-stage-1445-1500-825933757780",
+    "pool_run": "20261028-d1_stage7_replay_pool_v1-03fa2a8707dc",
+    "artifact_sha256": "03fa2a8707dc1e885e372aae6b1c5c91f540b3147315016354dbd223035d4ec5"
+  },
+  "fupan": {
+    "rows": 31,
+    "status": "PARTIAL",
+    "target": "20261028",
+    "source_only": true,
+    "pool_run": "20261028-d1_fupan_review_pool_v1-fce491fe3856",
+    "artifact_sha256": "fce491fe3856654c04eeb6b704fa734802ff758bf750bb6e7bc96bb44fc4e2f5",
+    "missing": [
+      "DAILY_VIDEO_NOT_LOCKED",
+      "QFQ_PARTIAL_COVERAGE",
+      "QFQ_AUTHORITY_REBUILD_REQUIRED",
+      "SELECTOR_PIT_NOT_CERTIFIED",
+      "SELECTOR_CUTOFF_MISSING"
+    ]
+  },
+  "names": {
+    "authority_rows": 510,
+    "registry_run": "9726b7fed5ed03140e2b74f1",
+    "index_sha256": "69da3f543e686091c5a36249e9db23805cbc6c04144b48636e386d94a98ba1e0",
+    "online_main25_and_fupan31": "NAMED",
+    "online_stage7482": "FAIL_CODE_ALIASES_R6_NOT_DEPLOYED"
+  },
+  "tests": "Scoped writer tests passed; independent scope reviews PASS after preserved FAIL/repair. No natural acceptance claimed.",
+  "publication": "R5 guards released23:04:37; no new publication after shared-window return.",
+  "R7": "New user requested daily name owner integration; source work in progress, not included as final source here.",
+  "alarms": "Canceled; no recreation",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
