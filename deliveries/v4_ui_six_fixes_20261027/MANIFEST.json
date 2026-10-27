@@ -1,0 +1,236 @@
+{
+  "schema": "v4.source_change_capsule.v1",
+  "created_at": "2026-10-27T11:03:33.345338+08:00",
+  "repository": "lexi2016/v4",
+  "branch": "codex/v4-ui-six-fixes-20261027",
+  "local_base": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "actual_api_base": "runtime-graph-repair-20261026-api-r2",
+  "actual_main_base": "runtime-graph-repair-20261026-main-r2",
+  "files": [
+    {
+      "path": "components/api/apps/api/v35_api/preselection_service.py",
+      "sha256": "9aa30731a1cf287dfd9a206739719d6ebcb85fb64178938a0c7969838f083676",
+      "git_blob_sha": "bcfb59382d94b609716967dfb60652debea27af9",
+      "size": 33256,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/apps/api/v35_api/runtime_router.py",
+      "sha256": "8de44a49e92285fd9886af4ea8d423053391c188fc8660cd879dea8c6152a534",
+      "git_blob_sha": "d78d321874d7d8f4990c3016e096da96fc41720d",
+      "size": 2237,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/pool_stage.ts",
+      "sha256": "33cdd55a2008354c39e247f41065e3ade9250fe48d96ca699358f5fbfd72bffe",
+      "git_blob_sha": "8ba2f2f86ecec6c967aec16da9d537d0d645c260",
+      "size": 26195,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/apps/web/src/app_shell/formatters.ts",
+      "sha256": "b83fde0d402775dc25bde8ce35fd56c3163a5fb67a2fad1ca8505e1ea3828e95",
+      "git_blob_sha": "cd375187c6f2943d29646e1e312d84ef3f761ce0",
+      "size": 9933,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/apps/web/src/app_shell/useAppShell.ts",
+      "sha256": "51552ba9f215ac932ccb76d183a66f482e01fb5fd69244d321fe683f938d09d0",
+      "git_blob_sha": "6c289e5aa08266e8f4c00b0573015a6a54f7a5f8",
+      "size": 39554,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchFeedCard.vue",
+      "sha256": "bc4e78f5f7f3557225f2f82d9be0f2fe031016b0aca8606c9f513b07bf221e0d",
+      "git_blob_sha": "f414a3a31ac59cd40e8b77960443bf16bf64b9c8",
+      "size": 7476,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/domains/_preselection_parts/pool_assembly.py",
+      "sha256": "4145401229d8841be672a578bc53fc28d3735b1a6c6c56bacb38827adc846efb",
+      "git_blob_sha": "c2074ff250227ac1befa3b94003ea5734a95f396",
+      "size": 9452,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/domains/_preselection_parts/source_validation.py",
+      "sha256": "8959bb137725af3a14e25e0bee6e52137963012f227270549ab0a9d439ec6500",
+      "git_blob_sha": "35a4a701c75c3921c11fb5d54e612e2af902c33f",
+      "size": 9473,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/domains/task_status.py",
+      "sha256": "24d52d7258bb4421810c6116dc54366df9f1363f3fa62850f1a828bd67011ae6",
+      "git_blob_sha": "db562615912085a61b7806758bc8f616e07d4b7a",
+      "size": 51754,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "sha256": "f3fb49ebbe19ef276dea7d6a9c2c6ec058f61334cdc024bbf1655e8de8bcaca5",
+      "git_blob_sha": "f1af02918e40c196606949146cc0bf5d2913ea5b",
+      "size": 2361,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "sha256": "1981332da88c41ed1c902f2ebe81feb07bb250c9045f9bf6939a731038524fda",
+      "git_blob_sha": "b4cbfe46ef03b12ef87668d3b4517e9aa4c5a4c6",
+      "size": 36093,
+      "kind": "source"
+    },
+    {
+      "path": "components/api/v4/manager_workbench/display.py",
+      "sha256": "8d7f76844fbae7a6e7c8871b93b78f97d780ecb84e02b20938fee10437492698",
+      "git_blob_sha": "43af28966ec319644d37bfe51231c165830f47df",
+      "size": 11742,
+      "kind": "source"
+    },
+    {
+      "path": "components/main/ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "58e678dd13d2cc50a9400ea96ae9781131256c2da426d97b8cd05e78a3688e2a",
+      "git_blob_sha": "39a717541415e1d016a6789d2fc0d0f72901cae4",
+      "size": 62210,
+      "kind": "source"
+    },
+    {
+      "path": "components/main/infrastructure/zsxq_pdf_ingestion.py",
+      "sha256": "cb00890b1f0d073fe67be8bde4b32357f8a3be88e41d7d88f22fe750c76aad16",
+      "git_blob_sha": "cb3f1b6e9bf1ad4b2b793adf462a30adec08675c",
+      "size": 119042,
+      "kind": "source"
+    },
+    {
+      "path": "validation/tests/test_ui_six_fixes.py",
+      "sha256": "97d50f228cdea5eea2015470e375aff6307964f7dc664cd785b5827da0137675",
+      "git_blob_sha": "9f16baa5bf25cd7af78c5a6a54bba12843a2deb5",
+      "size": 16762,
+      "kind": "test"
+    },
+    {
+      "path": "validation/tests/test_pdf_night_window.py",
+      "sha256": "6ac95eed6b3c78148ecbd5e3210f4ae1be7ffccf7ff4b8017cb62a2b4b60fac2",
+      "git_blob_sha": "67c15514b242ef18cb913d3e3f555bcdf4e8972f",
+      "size": 6666,
+      "kind": "test"
+    },
+    {
+      "path": "validation/apps/web/tests/ui-six-fixes.spec.ts",
+      "sha256": "e4c0ae15b1be14f4710956d937a221f23085857d062a9337aef030f476d925a9",
+      "git_blob_sha": "f4832c703c897673c7767f4667bdfea2a1f4b720",
+      "size": 4026,
+      "kind": "test"
+    },
+    {
+      "path": "validation/apps/web/src/components/research/ResearchFeedCard.spec.ts",
+      "sha256": "86a1e2eabdd22ae4c924575b2f2532a234860915571869c724cb2ae7089a221e",
+      "git_blob_sha": "e1bc61f79a695cd5543b150bbf8d03107fd5094f",
+      "size": 4933,
+      "kind": "test"
+    },
+    {
+      "path": "docs/ui-six-fixes/README.md",
+      "sha256": "7fa25c297687db659bf1804cf8656df8aba8f7bed35aaadb5017afece666b815",
+      "git_blob_sha": "80ca121d0db7f72a8b1efde865aca707bcff7b6d",
+      "size": 2160,
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/ui-six-fixes/PDF_NIGHT_WINDOW.md",
+      "sha256": "2983948bfe67732b8154a1b1c01a66bdff7810fa7b0ed8eee8f5e6c056a09183",
+      "git_blob_sha": "18505412879c67da49891c9469a78bdd1ce88afd",
+      "size": 1413,
+      "kind": "documentation"
+    },
+    {
+      "path": "dependencies/apps/web/package.json",
+      "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "git_blob_sha": "b6af594d62fe5d7e85e2aad4f2142dab0252bb18",
+      "size": 492,
+      "kind": "dependency_manifest"
+    },
+    {
+      "path": "dependencies/apps/web/package-lock.json",
+      "sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
+      "git_blob_sha": "aeab513b5f90e0a2bdafbabf391821657cf1e447",
+      "size": 149437,
+      "kind": "dependency_manifest"
+    },
+    {
+      "path": "dependencies/apps/web/tsconfig.json",
+      "sha256": "aeb4f907263b28da51895370935cecf1152aec0f142e191b90d5877e3b37aebe",
+      "git_blob_sha": "6f5c33b45c050bb61db358f4ecde505afe56bfbc",
+      "size": 258,
+      "kind": "dependency_manifest"
+    },
+    {
+      "path": "dependencies/apps/web/vite.config.ts",
+      "sha256": "759c67c769f5f2553ec54eee08a1e2ecf958a6323006f0eb9228083b9dfde123",
+      "git_blob_sha": "caf11acee686f6109d74cf0a40921d0620e23f95",
+      "size": 491,
+      "kind": "dependency_manifest"
+    },
+    {
+      "path": "evidence/COMBINED_SOURCE_FREEZE.json",
+      "sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
+      "git_blob_sha": "42f02afe545ad6dc5699970b9b2a5e0692941d99",
+      "size": 8322,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "evidence/review/LUNA_REVIEW_R1.json",
+      "sha256": "8ccaa58b146129077b083421162c42e72d893ad50e0c5d4b8dbcc2df48d55151",
+      "git_blob_sha": "9a2ce0cfea041e8afcd6e0b33fdeccd0ab4cbc90",
+      "size": 6840,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "evidence/review/SOL_REVIEW_R2.json",
+      "sha256": "a84839da9f922f30050fc3af367e504ee71e08989943024e57dbe4bb10842ddb",
+      "git_blob_sha": "f0c5a847aa1abc8e90e087d0521a8cd13b321cd8",
+      "size": 10480,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "evidence/frontend_rebase/TYPECHECK_BASELINE_ERRORS.json",
+      "sha256": "fda2d893743256ab7a36cdebd03b914d249fe8c0d1d20b5bc7c30b70d4431707",
+      "git_blob_sha": "e3405a210caf91484bd69a66a46d3d2b21d39506",
+      "size": 9203,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "evidence/VALIDATION_COMMANDS.md",
+      "sha256": "80f2fb7babaf74c33ab759e698ff0865cbd3c033d5a17dfc62b1af120a6eb0a5",
+      "git_blob_sha": "a093e4d514a69b78c582ae00060faba0804ea3db",
+      "size": 3659,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "README.md",
+      "sha256": "e43d73c4941e19084e2baaf06884985c632b1141f5f0cbb2f5019678a729ebf6",
+      "git_blob_sha": "70fe44a5e0c053872b10f9529ca5256db9cef2e7",
+      "size": 1606,
+      "kind": "documentation"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "git_blob_sha": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
+      "size": 8,
+      "kind": "byte_preservation"
+    }
+  ],
+  "contains_raw_data": false,
+  "contains_static_dist": false,
+  "standalone_application": false,
+  "deployment_claimed": false,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

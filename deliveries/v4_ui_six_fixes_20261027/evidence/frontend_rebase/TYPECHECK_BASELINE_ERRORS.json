@@ -1,0 +1,216 @@
+{
+  "status": "FAIL_UNCHANGED_ACTUAL_BASELINE",
+  "error_count": 30,
+  "errors": [
+    {
+      "path": "src/api/managerWorkspace.attention.spec.ts",
+      "line": 242,
+      "error": "TS18048: 'mapping' is possibly 'undefined'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "c5ed1af92573dc34bd2c1dd70baec80d3226249c6b5dc57e9861655e614005a3"
+    },
+    {
+      "path": "src/api/managerWorkspace.attention.spec.ts",
+      "line": 245,
+      "error": "TS18048: 'mapping' is possibly 'undefined'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "c5ed1af92573dc34bd2c1dd70baec80d3226249c6b5dc57e9861655e614005a3"
+    },
+    {
+      "path": "src/App.vue",
+      "line": 416,
+      "error": "TS2339: Property 'coverage_pct' does not exist on type 'ReviewMetric | HkObservedModelMetric'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6"
+    },
+    {
+      "path": "src/App.vue",
+      "line": 434,
+      "error": "TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | undefined'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6"
+    },
+    {
+      "path": "src/app_shell/types.ts",
+      "line": 7,
+      "error": "TS2305: Module '\"../contracts/review\"' has no exported member 'ReviewResponse'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "af426dc751a38a48c75c4216d6ba782f6244588c2aee00cc2bb4af5e2ede0c1f"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 3,
+      "error": "TS2305: Module '\"../../contracts/review\"' has no exported member 'HkPrefixResearch'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 35,
+      "error": "TS2339: Property 'selected_codes' does not exist on type 'ReviewMetric | HkObservedModelMetric'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 36,
+      "error": "TS2339: Property 'hit_codes' does not exist on type 'ReviewMetric | HkObservedModelMetric'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 54,
+      "error": "TS2339: Property 'unique_score_codes' does not exist on type 'ReviewMetric | HkObservedModelMetric'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 54,
+      "error": "TS2339: Property 'score_rows' does not exist on type 'ReviewMetric | HkObservedModelMetric'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 123,
+      "error": "TS2339: Property 'stage_input_evidence' does not exist on type 'HkModelSelectionReview'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 124,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 124,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 124,
+      "error": "TS7006: Parameter 'v' implicitly has an 'any' type.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 125,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 125,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 125,
+      "error": "TS7006: Parameter 'v' implicitly has an 'any' type.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 126,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 127,
+      "error": "TS2339: Property 'stages' does not exist on type 'HkModelSelectionReview'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 128,
+      "error": "TS7006: Parameter 'v' implicitly has an 'any' type.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 131,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 132,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 132,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 132,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 132,
+      "error": "TS18046: 'evidence' is of type 'unknown'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 134,
+      "error": "TS7006: Parameter 'gap' implicitly has an 'any' type.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/components/review/HkCloseReviewPanel.vue",
+      "line": 247,
+      "error": "TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | undefined'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33"
+    },
+    {
+      "path": "src/manager-workbench/__tests__/us_factor.spec.ts",
+      "line": 197,
+      "error": "TS2322: Type '{ display_only: true; state: string; rules_version: string; mapping_policy_version: string; mapping_policy_sha256: string; target_date: string; price_session: string; source_session: string; ... 25 more ...; orders_sent: boolean; }' is not assignable to type 'SingleDayMappingSummary'.",
+      "unchanged_actual_baseline": true,
+      "sha256": "f12029f5bbb42dc6a27ab2e8b213461cf90ddf6e78755bf23350e53084678d6d"
+    },
+    {
+      "path": "src/views/ManagerSelectionView.spec.ts",
+      "line": 4,
+      "error": "TS2578: Unused '@ts-expect-error' directive.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7c4846ff33980189a6bc680995a2f4a5feb8e258ad97d731e6f4f58518e1b501"
+    },
+    {
+      "path": "src/views/ManagerSelectionView.spec.ts",
+      "line": 6,
+      "error": "TS2578: Unused '@ts-expect-error' directive.",
+      "unchanged_actual_baseline": true,
+      "sha256": "7c4846ff33980189a6bc680995a2f4a5feb8e258ad97d731e6f4f58518e1b501"
+    }
+  ]
+}

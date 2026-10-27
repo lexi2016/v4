@@ -1,0 +1,83 @@
+{
+  "review_receipt": {
+    "verdict": "REVIEWED/FAIL",
+    "BEHAVIOR_VERIFIED": "PARTIAL",
+    "user_goal": "Independently review the frozen six UI/API fixes and the added Shanghai PDF queue window [02:00, 08:30), without editing files or certifying deployment.",
+    "reviewer": "Independent read-only reviewer",
+    "acceptance_scope": {
+      "source_root": "/Users/lexi/.codex/worktrees/v4-ui-six-fixes-20261027/v4_app",
+      "branch": "codex/v4-ui-six-fixes-20261027",
+      "base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+      "frozen_manifest": "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/COMBINED_SOURCE_FREEZE.json",
+      "frozen_manifest_sha256": "76666b6380a0c6e920ffea801e3618734aba5231685071827ddb754435b40a09",
+      "api_overlay_sha256": "6740034de40178d652dfae1319237af55e90f0122de120befb54b1bde0ffb883",
+      "pdf_main_overlay_sha256": "2c49233bc1fa0deb13082a8ba11f1a07509828e10defbf87d0cd7288e763c8f4",
+      "frontend_scope": "The latest actual-API-baseline frontend rebase was not reviewed; its prior candidate/build evidence is superseded."
+    },
+    "review_steps": [
+      "Inspected the scoped baseline-to-candidate patch and the separate actual-Main PDF overlay; checked their recorded source baselines and candidate hashes.",
+      "Reviewed the A-share display-name acquisition, immutable publication, API projection, page behavior, HK missing-receipt validation, independent US ledger reader, PDF detail projection, manager timestamp projection, and PDF night admission logic.",
+      "Mechanically checked the 90 requested display identities against the captured 90-row authority, verified the authority artifact/manifest/receipt hashes and source evidence hashes, and confirmed the 920575.SH raw identity remains paired with the adjudicated 920575.BJ display identity.",
+      "Recomputed the 21 current pool artifact/manifest/receipt hashes listed in input_trio_sha_readback.json; all matched the recorded before and after hashes.",
+      "Inspected focused test logs and current validation summary; did not rerun tests."
+    ],
+    "reviewed_source_sha256": {
+      "domains/_preselection_parts/source_validation.py": "8959bb137725af3a14e25e0bee6e52137963012f227270549ab0a9d439ec6500",
+      "ops/run_v35_macos_scheduler_daemon.py": "58e678dd13d2cc50a9400ea96ae9781131256c2da426d97b8cd05e78a3688e2a",
+      "infrastructure/zsxq_pdf_ingestion.py": "cb00890b1f0d073fe67be8bde4b32357f8a3be88e41d7d88f22fe750c76aad16"
+    },
+    "acceptance_evidence": {
+      "display_names": {
+        "result": "90 requested codes, 90 authority rows, no missing or conflicts; all 90 codes were found in candidate response pages and their displayed names matched the current authority.",
+        "authority_run_id": "d04b77052fb9acbc82707796",
+        "artifact_sha256": "d04b77052fb9acbc82707796e59e12e55f1346223a484945f916f38f156ddaaa",
+        "manifest_sha256": "32aa7afe1c5ed36cd23d1cead0bd95e3137523ca0427c548f1cbff586d240a2a",
+        "pool_trio_hashes": "21 of 21 independently matched."
+      },
+      "pdf_night": {
+        "result": "Source logic enforces 02:00 inclusive to 08:30 exclusive Shanghai time before queue probing and task admission; focused log reports 13 passed.",
+        "focused_tests_log_sha256": "e9a40502bbab4cd186bd34f41859604522147a6b66ee852c24ddbc945d7e0a5a",
+        "main_baseline": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app",
+        "cli": "Main baseline CLI hash ccb3a0b95b89cba4a79f24930599105b1358dc05f4d04b5e981c9ee8e469878c is recorded unchanged."
+      },
+      "other_writer_evidence": "VALIDATION.json (sha256 3dd772860e4382ea35bc073892a7509d2f54cbe693a28e0a780e72e6a70c1c87) reports 12 targeted Python cases, 19 frontend cases, and a Vite build against the actual frontend baseline. The latest frontend change was not independently reviewed."
+    },
+    "findings": [
+      {
+        "id": "P2-1",
+        "status": "FIXED_IN_CURRENT_CANDIDATE",
+        "file": "domains/_preselection_parts/source_validation.py",
+        "line": 110,
+        "trigger": "The configured current-name registry is missing, corrupt, or does not contain the requested date; load_current_display_names raises StoreError.",
+        "prior_error_and_impact": "The earlier catch omitted StoreError, allowing the exception to escape the preselection projection and fail the API read instead of recording current_error and continuing with verified pool names.",
+        "current_evidence": "The frozen candidate now catches StoreError; a targeted missing/corrupt/wrong-date regression is present in the candidate test source. I did not rerun that test."
+      },
+      {
+        "id": "P2-2",
+        "status": "OPEN",
+        "file": "domains/_preselection_parts/source_validation.py",
+        "line": 110,
+        "related_file": "upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+        "related_line": 572,
+        "trigger": "A registry artifact, manifest, or receipt contains syntactically valid JSON with a non-object top level, such as [] or null.",
+        "error": "load_current_display_names calls .get on the decoded non-Mapping value and raises AttributeError. Its wrapper does not catch that exception, and project_a_display_names catches StoreError, OSError, ValueError, KeyError, and TypeError but not AttributeError.",
+        "impact": "The exception escapes the preselection projection, so a corrupt optional current-name registry can still turn the pool read into an API 500 instead of preserving unknown/current-error state and the verified pool-name fallback.",
+        "acceptance_gap": "The added corrupt-registry case uses syntactically invalid JSON, which follows the ValueError/StoreError path; it does not cover valid JSON with the wrong shape."
+      }
+    ],
+    "component_results": {
+      "name_evidence_and_pool_integrity": "PASS_WITHIN_REVIEWED_EVIDENCE",
+      "PDF_night_source_and_focused_log": "PASS_WITHIN_REVIEWED_EVIDENCE",
+      "current_name_registry_corruption_fallback": "FAIL: legal JSON wrong-shape corruption remains unhandled",
+      "latest_frontend_rebase": "NOT_REVIEWED",
+      "overall_component_review": "FAIL"
+    },
+    "unexecuted_checks": [
+      "Reviewer did not execute tests; reviewed available logs and evidence.",
+      "Latest actual-API-baseline frontend diff and its tests/build were not independently reviewed.",
+      "No live API/UI acceptance, deployment, reload, daytime zero-child readback, or natural 02:00 run was performed; those remain NOT_RUN/CANNOT_CONFIRM.",
+      "Full frontend typecheck is reported as failing with 30 unchanged actual-baseline errors; it is not a PASS."
+    ],
+    "reviewer_ownership": "Released for the designated Sol reviewer to handle the remaining direct-scope review."
+  }
+}

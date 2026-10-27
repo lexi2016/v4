@@ -1,0 +1,74 @@
+{
+  "review_receipt": {
+    "reviewer": "/root/six_fixes_sol_review",
+    "identity": "Independent read-only Sol High Reviewer; separate from sole Writer",
+    "verdict": "REVIEWED/PASS",
+    "scope": "Frozen 14 business source files, associated targeted tests, and 2 built frontend overlay files. Source/test acceptance only.",
+    "source_root": "/Users/lexi/.codex/worktrees/v4-ui-six-fixes-20261027/v4_app",
+    "branch": "codex/v4-ui-six-fixes-20261027",
+    "base_commit": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+    "combined_source_freeze_sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
+    "api_overlay_sha256": "6d9ad5989893f7debfb2af007a25435550eb6eda8adaa45db528ed7b0731d42f",
+    "pdf_main_overlay_sha256": "2c49233bc1fa0deb13082a8ba11f1a07509828e10defbf87d0cd7288e763c8f4",
+    "validation_sha256": "eaab89f18fb46c7e90447c4314b4dd7407ab5323ba574d0996c21ec7912b99c5",
+    "focused_api_patch_sha256": "8d4d1b3342c1c888cfb453abd00709b6f58773044214db579d750be828f409c1",
+    "open_findings": [],
+    "risk_result": {"P0": "No open finding identified within frozen scope.", "P1": "No open finding identified within frozen scope.", "P2": "Both earlier corruption-fallback findings are closed in the final candidate."},
+    "resolved_findings": [
+      {"id":"LUNA-P2-1","status":"FIXED","file":"domains/_preselection_parts/source_validation.py","line":110,"trigger":"Missing, corrupt, or wrong-date optional current-name authority raises StoreError.","prior_impact":"The exception could escape projection and fail the pool API read.","resolution":"Projection explicitly catches StoreError, records current_error, and preserves the verified pool-name fallback.","evidence":"Inspected current source; reused the unchanged three-case missing/corrupt/wrong-date regression evidence."},
+      {"id":"LUNA-P2-2","status":"FIXED","file":"upstreams/v3_shared_data/shared_data/a_share_security_master.py","line":566,"trigger":"Syntactically valid JSON with non-object index, entries, entry, artifact, manifest, receipt, row, or evidence-page shape.","prior_impact":"AttributeError from .get could bypass the corruption fallback and turn an optional name-authority failure into an API failure.","resolution":"Explicit Mapping, row-container, and text-field checks raise StoreError before unsafe downstream access. No blanket Exception catch was added.","evidence":"Independently executed all 20 new hash-pinned shape/text regressions: 20 passed, 12 deselected, exit 0. Tests exercise loader rejection and nonblocking pool projection while preserving score, source SHA, and original input."}
+    ],
+    "review_steps": [
+      "Read SCOPE.json, HANDOFF.md, INTEGRATION_HANDOFF.json, COMBINED_SOURCE_FREEZE.json, VALIDATION.json, and the preserved Luna review receipt.",
+      "Inspected actual bounded API and Main baseline-to-candidate patches, including the final loader repair and affected tests.",
+      "Independently matched all 14 business-source hashes and all 4 frozen test hashes.",
+      "Independently matched every API overlay before/after pin against the actual API baseline and candidate: 12 source files plus 2 static files.",
+      "Independently matched both PDF overlay before/after pins against the actual Main baseline and candidate.",
+      "Independently compared the complete 126-file actual frontend source baseline: exactly 4 intended business diffs, no removals, and only the targeted ResearchFeedCard.spec.ts addition.",
+      "Confirmed frontend package/config/index baseline parity, every build-inventory hash, and 8 emitted assets byte-identical to the actual API frontend.",
+      "Read the 19-case frontend test log and Vite build log, and inspected pagination, HK missing-receipt, PDF detail projection, identity reset, and late-response protection.",
+      "Independently matched all 30 reported typecheck-error source hashes to untouched actual-baseline files.",
+      "Reused unchanged Luna evidence for current names, pool integrity, other backend checks, and PDF night-window checks; did not repeat collection or accepted checks.",
+      "Executed only the 20 new loader-shape/text regressions with the validated project Python."
+    ],
+    "independent_execution": {
+      "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+      "environment": {"PYTHONDONTWRITEBYTECODE":"1","PYTHONNOUSERSITE":"1"},
+      "arguments": "-B -m pytest -q -p no:cacheprovider --basetemp=<fresh isolated temporary directory>/cases tests/test_ui_six_fixes.py -k 'nonobject_registry_shapes or malformed_row_text_fields'",
+      "result": "20 passed, 12 deselected in 0.21s; exit 0",
+      "earlier_attempt": {"result":"All 20 cases reached 100%, then pytest session cleanup exited 1.","cause":"PermissionError cleaning an unrelated pre-existing pytest garbage directory containing runtime_graph snapshots.","handling":"Preserved the failure in tool output; retried once using a fresh isolated --basetemp. Did not change source, permissions, or the unrelated directory."}
+    },
+    "BEHAVIOR_VERIFIED": {"scope":"The 20 newly changed shape/text rejection and nonblocking projection cases were independently executed successfully. Frozen source hashes, baseline parity, and built-asset hashes were independently established.","limits":"Other accepted behavior evidence was reused from unchanged focused tests and prior independent review. This receipt does not establish deployed API/UI behavior or natural-session behavior."},
+    "reused_acceptance_evidence": {
+      "display_names": {"requested":90,"authority_rows":90,"run_id":"d04b77052fb9acbc82707796","artifact_sha256":"d04b77052fb9acbc82707796e59e12e55f1346223a484945f916f38f156ddaaa","manifest_sha256":"32aa7afe1c5ed36cd23d1cead0bd95e3137523ca0427c548f1cbff586d240a2a","pages":[200,200,82],"pool_trio_hashes":"21 of 21 previously independently matched; unchanged evidence reused.","meaning":"DISPLAY_NAME_ONLY; observed 20261027 remains distinct from signal date 20261026. Raw 920575.SH is preserved with the adjudicated 920575.BJ display identity. No selector, PIT, or trading certification."},
+      "frontend": {"targeted_tests":"19 passed","test_log_sha256":"351ec28e6fdc7ec209158aac2a1f2fede92009ae534220f3b15c188075554e07","vite_build":"PASS against actual API frontend baseline","build_log_sha256":"1114c1cc9c5008b21e01a7510699b0cc1db294214ca6b82a61a7912e74eb6382","static_delta":["apps/web/dist/index.html","apps/web/dist/assets/main-Dk6N4Uwb.js"],"unchanged_emitted_assets":8},
+      "pdf_night": {"focused_tests":"13 passed; unchanged evidence reused","focused_log_sha256":"e9a40502bbab4cd186bd34f41859604522147a6b66ee852c24ddbc945d7e0a5a","source_behavior":"Shanghai admission [02:00,08:30) precedes queue probing, child launch, and direct task admission. Daytime deferred results retain unknown pending count. Existing backlog/checkpoint logic and in-flight completion behavior remain.","cli":"Unchanged"}
+    },
+    "preserved_failures_and_limits": [
+      "The earlier Luna REVIEWED/FAIL and insufficient first StoreError repair remain historical evidence.",
+      "The original canonical-based frontend candidate remains SUPERSEDED_BASELINE_UNSAFE_NOT_DEPLOYED.",
+      "Full vue-tsc remains FAIL_UNCHANGED_ACTUAL_BASELINE with 30 errors; this review does not claim a full typecheck PASS.",
+      "The suspended extra API/Graph deployment-control draft is EXCLUDED and NOT_READY; its ResourceWarning is not certified by this business-source PASS."
+    ],
+    "integration_boundary": {"api_base":"/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app","api_rule":"Apply only the frozen 12 source files and 2 static files over the actual API/lifecycle API baseline, preserving all other bytes and requiring fresh owner/CAS checks.","main_base":"/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app","main_rule":"Apply only the separate 2-file PDF overlay over the actual Main/lifecycle Main baseline.","whole_worktree_publishable":false,"reason":"API, Main ingestion, and CLI baselines differ. The mixed worktree is not a deployable release."},
+    "reviewed_source_sha256": {
+      "apps/api/v35_api/preselection_service.py":"9aa30731a1cf287dfd9a206739719d6ebcb85fb64178938a0c7969838f083676",
+      "apps/api/v35_api/runtime_router.py":"8de44a49e92285fd9886af4ea8d423053391c188fc8660cd879dea8c6152a534",
+      "apps/web/src/api/pool_stage.ts":"33cdd55a2008354c39e247f41065e3ade9250fe48d96ca699358f5fbfd72bffe",
+      "apps/web/src/app_shell/formatters.ts":"b83fde0d402775dc25bde8ce35fd56c3163a5fb67a2fad1ca8505e1ea3828e95",
+      "apps/web/src/app_shell/useAppShell.ts":"51552ba9f215ac932ccb76d183a66f482e01fb5fd69244d321fe683f938d09d0",
+      "apps/web/src/components/research/ResearchFeedCard.vue":"bc4e78f5f7f3557225f2f82d9be0f2fe031016b0aca8606c9f513b07bf221e0d",
+      "domains/_preselection_parts/pool_assembly.py":"4145401229d8841be672a578bc53fc28d3735b1a6c6c56bacb38827adc846efb",
+      "domains/_preselection_parts/source_validation.py":"8959bb137725af3a14e25e0bee6e52137963012f227270549ab0a9d439ec6500",
+      "domains/task_status.py":"24d52d7258bb4421810c6116dc54366df9f1363f3fa62850f1a828bd67011ae6",
+      "upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py":"f3fb49ebbe19ef276dea7d6a9c2c6ec058f61334cdc024bbf1655e8de8bcaca5",
+      "upstreams/v3_shared_data/shared_data/a_share_security_master.py":"1981332da88c41ed1c902f2ebe81feb07bb250c9045f9bf6939a731038524fda",
+      "v4/manager_workbench/display.py":"8d7f76844fbae7a6e7c8871b93b78f97d780ecb84e02b20938fee10437492698",
+      "ops/run_v35_macos_scheduler_daemon.py":"58e678dd13d2cc50a9400ea96ae9781131256c2da426d97b8cd05e78a3688e2a",
+      "infrastructure/zsxq_pdf_ingestion.py":"cb00890b1f0d073fe67be8bde4b32357f8a3be88e41d7d88f22fe750c76aad16"
+    },
+    "unexecuted_acceptance": {"deployment_and_reload":"NOT_RUN","live_8873_API_UI":"NOT_RUN","daytime_zero_new_PDF_child_readback":"NOT_RUN","natural_0200_and_two_natural_cycles":"CANNOT_CONFIRM","github_sync":"NOT_RUN_BY_REVIEWER"},
+    "safety": {"RESEARCH_ONLY":true,"production_allowed":false,"buy_gate_updated":false,"orders_sent":false,"services_or_locks_changed_by_reviewer":false,"source_or_business_data_edited_by_reviewer":false,"network_or_source_collection_by_reviewer":false,"Vibe8910_touched":false},
+    "final_status": "REVIEWED/PASS"
+  }
+}
