@@ -1,0 +1,42 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "behavior_status": "BEHAVIOR_VERIFIED for the bounded compact-handler check only; CANNOT_CONFIRM for deployment or end-to-end behavior",
+  "user_goal": "Independently review the frozen V4 business-gap fixes, explicitly authorized US_MAPPING integration, and proposed publication control.",
+  "deployment_plan_sha256": "ace1c026e87fd55a833628b20792c65f0204de1a43726b352203d077fc319d9c",
+  "controller_sha256": "b5b905b8dd015b47941958fe5592097b185d3b3b63ea2f9bfff02fbf65e277da",
+  "prepare_sha256": "36767e7589f5c03cc0894f2d33a04d37cf565aaabb1cb6fbbafc77482565e0e1",
+  "publication_operator_sha256": "6e55505f01ffb6f3c91491b54f6200e2910e803eb4827459c964ddbfaded3050",
+  "source_freeze_sha256": "dfbf1986b8557b2735291af96b4fefc3979085ef5b3796e98baddecacd16b315",
+  "handoff_sha256": "4dd6c90a693b9a433e39dfa8bbc2e618f6c43ce61d563da7cd188bc025c6f340",
+  "scope": {
+    "acceptance": "Frozen source and integration review, plus the proposed five-operation publication plan and controller safety paths.",
+    "reviewed": [
+      "The frozen business-gap source changes and their directly affected paths.",
+      "The authorized US_MAPPING changes against the stated rules: individual-stock return threshold, research focus limits, ETF exclusion as a sole trigger, unknown financial/PIT status, and no BUY behavior.",
+      "Publication-plan identity bindings, component inventories, CAS and reverse-CAS logic, original lock identity checks, unchanged schedules/deadline, Main drain handling, and unknown-outcome guard retention."
+    ],
+    "not_established": "This component PASS does not establish deployment, API/UI acceptance, or natural-cycle completion."
+  },
+  "findings": [],
+  "performed_checks": [
+    "Verified the R2 source-freeze, PLAN, handoff, and control-source hashes against the frozen values.",
+    "Confirmed the 21 R1 overlay entries match R2 and R2 adds the specified workbench files.",
+    "Inspected the US_MAPPING diffs and relevant selector, consumer, input, service, core, scheduler, and shared history code against the frozen behavior rules.",
+    "Inspected the candidate PLAN's five components, operation rows, inventory bindings, safety flags, unchanged deadline, and protected windows.",
+    "Reviewed the publication-control implementation and the supplied execution snapshot for identity pinning, lock/PID checks, narrow commands, safe drain, CAS/reverse-CAS, and failure recovery. No live action was run.",
+    "Reviewed existing focused test receipts, including 14 control fixtures and the two Main compatibility tests; the supplied compatibility receipt also records 870 non-delta tests preserved.",
+    "Reviewed the R2 compact-handler artifact: HTTP 200 for 46 nodes, 1.217 seconds, 144048 bytes, with old-result scope marked."
+  ],
+  "reused_evidence": [
+    "FROZEN_SOURCE_R1.json matching subset of FROZEN_SOURCE_R2.json; no repeated review of unchanged accepted source.",
+    "CONTROL_DELTA.log and the supplied control identity, US-addition, and execution-authority fixture receipts.",
+    "OPENING_GREEN.log, HK_CLEANUP.log, US_GREEN.log, COLLECTOR_DATES_R2.log, TRANSPORT.log, TOPICS_RESUME_R2.log, WECHAT_GAP_R3.log, NATIVE_READERS_R5.log, and BUILD_IDENTITY.log.",
+    "US_PARENT_CLOSURE_BUILD_R2.log and COMPACT_HTTP_HANDLER_FINAL_R2.json."
+  ],
+  "unexecuted": [
+    "Publication/controller execution and deployment readback.",
+    "Live API and UI acceptance.",
+    "Natural-cycle verification; the recorded status remains 0/2 cycles."
+  ]
+}

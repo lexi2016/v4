@@ -1,0 +1,163 @@
+{
+  "schema": "v4.business_gaps.scope.v1",
+  "at": "2026-10-27T16:07:03.780341+08:00",
+  "goal": "Implement user-approved V4 business gap plan while preserving existing valid evidence and original ownership",
+  "writer": "/root/six_fixes_writer",
+  "writer_model": "Sol High",
+  "reviewer": "Luna Max independent, Sol High only per approved escalation",
+  "worktree": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app",
+  "branch": "codex/v4-business-gaps-20261027",
+  "git_base": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "runtime_base": {
+    "stage_quote": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/infrastructure/stage_quote_provider.py",
+      "exists": true,
+      "sha256": "618b587e1c43dcad46e059788af0efe868206b51a6cb8f02b37055c34c940c37"
+    },
+    "stage_market_resolver": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/infrastructure/tdx_minute_replay_provider.py",
+      "exists": true,
+      "sha256": "755990356f9d757e182d8d0b5bf3a8aeea5d2422463df858d995287c842a6b41"
+    },
+    "stage8_precapture": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/stage_center/hk_stage8/precapture.py",
+      "exists": true,
+      "sha256": "031cd68399a413f0e05fb85e524e7127e009b08c1207465a0a9b402949e1bd8c"
+    },
+    "stage_deadline": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/stage-failure-snapshots-20261023-r1/app/ops/run_stage_center_tick.py",
+      "exists": true,
+      "sha256": "4eb8e1a3be0e3780ff9cb62417c695c5aab67948f224db462d3f6e3a67299f42"
+    },
+    "api_research": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/api/v35_api/research_lane_router.py",
+      "exists": true,
+      "sha256": "796ea8d96b82dcaeb3b843ca60032fdb8a96505803667b6410a41e1828f18733"
+    },
+    "api_runtime_graph": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/domains/runtime_graph_evidence.py",
+      "exists": true,
+      "sha256": "cb668bf01533df6c51ea65633279afd78fdcf5eac08b9be2a3a99a716f7edd49"
+    },
+    "api_web_app": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/App.vue",
+      "exists": true,
+      "sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6"
+    },
+    "api_web_shell": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/app_shell/useAppShell.ts",
+      "exists": true,
+      "sha256": "51552ba9f215ac932ccb76d183a66f482e01fb5fd69244d321fe683f938d09d0"
+    },
+    "collector_events": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-collector/app/infrastructure/runtime_graph/event_collector.py",
+      "exists": true,
+      "sha256": "da65250248a8f5797b588d92c884d574a7c3b560bbb9b8bf8d51ec066b6954c5"
+    },
+    "collector_http": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-collector/app/infrastructure/runtime_graph/http_client.py",
+      "exists": true,
+      "sha256": "93d3805a89fa22a6ac66419fcf78f0ff7ce919776228085a2607893bae10fd08"
+    },
+    "research_producer": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/ops/run_zsxq_hourly_delta.py",
+      "sha256": "ccb3a0b95b89cba4a79f24930599105b1358dc05f4d04b5e981c9ee8e469878c",
+      "exists": true
+    },
+    "wechat_consumer": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/ops/wechat_preselection_sync.py",
+      "sha256": "4564b40d4f3567cf7be61526b21547bf1d4589d153d69a96e3a0c2ba47f4b3a9",
+      "exists": true
+    }
+  },
+  "allowed_paths": [
+    "infrastructure/stage_quote_provider.py",
+    "infrastructure/tdx_minute_replay_provider.py",
+    "infrastructure/futu_quote_provider.py",
+    "infrastructure/runtime_graph/",
+    "stage_center/hk_stage8/",
+    "stage_center/_live_collectors_parts/",
+    "stage_center/execution_evidence.py",
+    "stage_center/receipt_lineage.py",
+    "ops/run_stage_center_tick.py",
+    "ops/_run_stage_center_nodes_parts/",
+    "domains/runtime_graph_evidence.py",
+    "apps/api/v35_api/research_lane_router.py",
+    "apps/api/v35_api/_research_lane_router_parts/",
+    "apps/api/v35_api/runtime_graph_router.py",
+    "apps/api/v35_api/preselection_router.py",
+    "apps/api/v35_api/preselection_service.py",
+    "apps/web/src/",
+    "contracts/runtime_graph*",
+    "tests/",
+    "stage_center/tests/",
+    "deliveries/v4_business_gaps_20261027/",
+    "ops/run_zsxq_hourly_delta.py",
+    "ops/wechat_preselection_sync.py",
+    "domains/task_status.py",
+    "apps/web/vite.config.ts",
+    "apps/web/package.json",
+    "v4/manager_workbench/inputs/native.py",
+    "v4/manager_workbench/inputs/strict_us_selection.py",
+    "v4/manager_workbench/engines/us_mapping.py",
+    "v4/manager_workbench/engines/core.py",
+    "v4/manager_workbench/engines/us_mapping_consumption.py",
+    "v4/manager_workbench/engines/strict_us_selection.py",
+    "v4/manager_workbench/engines/us_mapping_policy.py",
+    "v4/manager_workbench/contracts.py",
+    "v4/manager_workbench/service.py",
+    "v4/manager_workbench/scheduler.py",
+    "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+    "upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+    "v4/manager_workbench/jobs.py"
+  ],
+  "forbidden_paths": [
+    "canonical dirty checkout and other worktrees",
+    "actual release and state directories",
+    "stage_center/selection.py and stage_center/_selection_parts/",
+    "business schedules and producer ownership",
+    "PDF night-gate behavior",
+    "trade/risk/BUY/order/broker rules",
+    "secrets credentials and Vibe8910",
+    "apps/api/v35_api/a_share_panel_history.py",
+    "apps/api/v35_api/a_share_lifecycle_notes.json",
+    "ops/a_share_daily_sync.py",
+    "ops/a_share_lifecycle_notes.json",
+    "ops/_a_share_daily_sync_parts/"
+  ],
+  "stop_rule": "source identity or owner conflict, invalid time/source evidence or unknown live service/lock outcome -> preserve and report; never relax cutoff or certify data without evidence",
+  "pass_signal": "targeted source tests and one independent frozen-scope reviewer PASS, followed by separately verified deployment/API/UI; next natural window remains pending until observed",
+  "prior_release": "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/controller/ACTUAL_DEPLOYMENT_RECEIPT_FINAL_R2.json",
+  "prior_review": "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/review/SOL_REVIEW_R2.json",
+  "user_plan": "V4 business gaps, approved 2026-10-27",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "scope_update_at": "2026-10-27T16:18:15.885372+08:00",
+  "scope_update_reason": "Original producer resume and exact input metadata explicitly included by approved plan; R8 overlap protection pinned.",
+  "authorized_extension": {
+    "scope": "US_MAPPING_ACCEPTED12_IN_CURRENT_PARENT",
+    "proof": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/US_MAPPING_AUTHORIZED_INTEGRATION.json",
+    "scope_change_at": "2026-10-27T17:27:28.415383+08:00",
+    "frozen_rules": [
+      "US individual stock gain>=1%",
+      "same-industry research allowed",
+      "Top10/max3 per saved primary theme",
+      "ETF context alone cannot trigger",
+      "financial/PIT unknown remains unknown",
+      "no BUY/orders/schedule change"
+    ],
+    "preserve": [
+      "A_SYNC_SCRIPT",
+      "3 ReviewCore roots",
+      "current A daily",
+      "UI/PDF night gate",
+      "Graph notifications",
+      "current jobs.py event wiring",
+      "R8 protected files"
+    ]
+  }
+}

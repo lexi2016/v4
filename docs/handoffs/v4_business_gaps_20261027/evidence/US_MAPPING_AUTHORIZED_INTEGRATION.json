@@ -1,0 +1,89 @@
+{
+  "at": "2026-10-27T17:27:28.415383+08:00",
+  "authorization_path": "/Users/lexi/.codex/worktrees/us-mapping-workflow-cleanup-20261025/v4_app/.superpowers/sdd/2026-10-25-us-mapping-workflow-cleanup/heartbeat-20261027/COORDINATION_AUTHORIZATION.json",
+  "authorization_sha256": "12ebf0464ee97eaf920bfd8f3664d06d463d0db8c9f34b591149f8071e265156",
+  "authorization_actual_user_message_id": "01a17caa-abfe-7b03-8ee9-a92ffb9183c1",
+  "authorization_verified_from_thread": "01a15472-80ec-7a92-ac75-8f6e101d65b1",
+  "human_answer": "授权向该会话协调合入发布（推荐）",
+  "cohort_path": "/Users/lexi/Desktop/学习/.v4_task_worktrees/us-mapping-workflow-cleanup-sync-20261025/docs/handoffs/us_mapping_scheduler_integration_20261025/COHORT.json",
+  "cohort_sha256": "ab090dc741aabd1f237216669149afea497068477fc567d7b93731f6f53e7231",
+  "source_root": "/Users/lexi/Desktop/学习/.v4_task_worktrees/us-mapping-workflow-cleanup-sync-20261025",
+  "files": [
+    {
+      "path": "v4/manager_workbench/inputs/native.py",
+      "expected": "4bf9df959c4ac30fae7b3ab115a282c737694f032e410bf3350112196007c469",
+      "actual": "4bf9df959c4ac30fae7b3ab115a282c737694f032e410bf3350112196007c469",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/inputs/strict_us_selection.py",
+      "expected": "4a7a9f0bd593e9ef97f16a9ae7f7bf0a2831d9bca0420b6024a491da5f907d22",
+      "actual": "4a7a9f0bd593e9ef97f16a9ae7f7bf0a2831d9bca0420b6024a491da5f907d22",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "expected": "39ad72670b7d81e2e64e3541f09d75af74a1fa10eede9f86ff3f16a95632d189",
+      "actual": "39ad72670b7d81e2e64e3541f09d75af74a1fa10eede9f86ff3f16a95632d189",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/core.py",
+      "expected": "4d0034502a718880872410304aa78d5720cff04c405c2b963e66ffe7483f319b",
+      "actual": "4d0034502a718880872410304aa78d5720cff04c405c2b963e66ffe7483f319b",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "expected": "072a5b99cfbdf8664d14e0af3c597dc0753033d3a2e93e0975b71ace8dacb3dd",
+      "actual": "072a5b99cfbdf8664d14e0af3c597dc0753033d3a2e93e0975b71ace8dacb3dd",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "expected": "bd101ab5f958f601c62598160a2eca0ced3dcbf833ae61ae393975d3cb77dbec",
+      "actual": "bd101ab5f958f601c62598160a2eca0ced3dcbf833ae61ae393975d3cb77dbec",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/engines/us_mapping_policy.py",
+      "expected": "b0958e528b74ee92de984e09e18ab96f3aa3342e23452383323d72d1f54343ff",
+      "actual": "b0958e528b74ee92de984e09e18ab96f3aa3342e23452383323d72d1f54343ff",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/contracts.py",
+      "expected": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
+      "actual": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/service.py",
+      "expected": "832cf305b77b7d17ee835fa0fd70cad695615ac6dbebeb859453fe4c99ed4536",
+      "actual": "832cf305b77b7d17ee835fa0fd70cad695615ac6dbebeb859453fe4c99ed4536",
+      "match": true
+    },
+    {
+      "path": "v4/manager_workbench/scheduler.py",
+      "expected": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+      "actual": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+      "match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "expected": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "actual": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "match": true
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+      "expected": "30314a806a665d71261521b27cf5ba7aa7a9e4c7247aa7eab9a7348127f134e2",
+      "actual": "30314a806a665d71261521b27cf5ba7aa7a9e4c7247aa7eab9a7348127f134e2",
+      "match": true
+    }
+  ],
+  "all12_match": true,
+  "scope": "Integrate accepted12 into actual current parent using the same unique Writer and current publication owner; preserve old PASS and non-delta current bytes; necessary new jobs compatibility only",
+  "natural_cycles": "0/2_until_actual_deployment_then_two_complete_cycles",
+  "service_actions": 0
+}
