@@ -259,7 +259,9 @@ def test_guard_contexts_survive_unknown_outcome_and_close_after_explicit_recover
     instance=object.__new__(ctl.Controller);instance.journal=None
     held=[]
     @contextmanager
-    def guard(row):
+    def guard(row,**kwargs):
+        if row['name']=='pdf_ingestion':assert kwargs['wait_seconds']==180 and callable(kwargs['check_window'])
+        else:assert not kwargs
         held.append(row['name'])
         try:yield object()
         finally:held.remove(row['name'])
@@ -293,7 +295,7 @@ def test_guard_contexts_survive_unknown_outcome_and_close_after_explicit_recover
         if event in {'FAILURE_GUARDS_RETAINED','READONLY_RECONCILIATION','OLD_BINDINGS_VERIFIED'}:assert len(held)==7
     instance.record=record
     def failed(key):raise RuntimeError('uncertain service result')
-    instance.unload=failed;instance.rollback=lambda p:{'restored':True};instance.binding=lambda k,p:{'known':True}
+    instance.unload=failed;instance.rollback=lambda p:{'restored':True};instance.binding=lambda k,p:{'known':True};instance.verify_api_candidate=lambda **k:None
     monkeypatch.setattr(ctl.sys,'stdin',io.StringIO('RECONCILE\nROLLBACK\n'))
     instance.execute(review,hashed(review))
     assert instance.journal.closed and not held
@@ -399,3 +401,192 @@ def test_actual_main_helper_domain_interface_without_live_commands(tmp_path,monk
     ops.processes=lambda:{42:{'pid':42,'ppid':1,'pgid':42,'start':'fixture','command':'python -m ops.run_v35_macos_scheduler_daemon'}}
     ops.cwd=lambda pid:str(root)
     assert ops.initial_old(42)['pid']==42 and calls
+
+
+def test_actual_main_legacy_manifest_projects_only_two_frozen_pdf_deltas(tmp_path,monkeypatch):
+    monkeypatch.setattr(subprocess,'run',lambda *a,**k:pytest.fail('legacy projection invoked live subprocess'))
+    base=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2')
+    assert hashed(base/'release-manifest.json')=='2ed2da9abc77280da40f0f6f2cf9f0401759d517b7272b30c6ea3f5053cef031'
+    actual=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app')
+    helper=prep.module('main_legacy_original_helper',actual/'ops/api_release_integration.py')
+    rows=prep.load(prep.CASE/'pdf_night/OVERLAY.json')['entries'];candidate=tmp_path/'candidate/app'
+    entries,proof=prep.apply_overlay(helper,base/'app',candidate,rows)
+    before=prep.load(base/'release-manifest.json');after=prep.manifest(helper,candidate,tmp_path/'future',before,component='main')
+    changed={key for key in before['files'] if before['files'][key]!=after['files'][key]}
+    assert changed=={'app/'+row['path'] for row in rows} and len(changed)==2
+    assert set(after['files'])==set(before['files']) and len(after['files'])==881
+    assert after['files']=={'app/'+row['path']:row['sha256'] for row in after['app_files']}
+    for key,digest in after['files'].items():assert hashed(candidate/key[4:])==digest
+    for key in ('external_a_clean_binding_files','external_a_clean_component_sources','a_source_review_pass','c_r2_independent_review'):
+        assert after[key]==before[key]
+    assert proof['non_delta_count']==len(helper.inventory_tree(base/'app'))-2
+
+
+@pytest.mark.parametrize('defect',['escape','absolute','outside_app','bad_sha','inconsistent_sha','api','collector'])
+def test_main_legacy_manifest_unknown_contract_and_other_components_rejected(tmp_path,defect):
+    actual=Path('/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app')
+    helper=prep.module('legacy_rejection_original',actual/'ops/api_release_integration.py')
+    app=tmp_path/'app';app.mkdir();file=app/'known.py';file.write_text('known')
+    digest=hashed(file);base={'app_files':[{'path':'known.py','sha256':digest}],'files':{'app/known.py':digest}}
+    component='main'
+    if defect in ('api','collector'):component=defect
+    elif defect=='inconsistent_sha':base['files']['app/known.py']='0'*64
+    elif defect=='bad_sha':base['files']['app/known.py']='not_sha'
+    else:
+        path={'escape':'app/../known.py','absolute':'/app/known.py','outside_app':'external/known.py'}[defect]
+        base['files']={path:digest}
+    with pytest.raises(ValueError):prep.manifest(helper,app,tmp_path/'future',base,component=component)
+
+
+def test_actual_legacy_api_shape_full_prepare_candidate_and_reverse_identity(tmp_path,monkeypatch):
+    import copy,shutil
+    fixture_handoff,out,_=fixture_case(tmp_path,monkeypatch);fixture=prep.load(fixture_handoff)
+    actual_handoff=prep.CASE/'controller/publication_control_r2/FRESH_HANDOFF_R1.json'
+    assert hashed(actual_handoff)=='e8b94bdfc72247a18f5788f49f666742b7aaa7967ff82eaad8a2b0f8b3ae29a2'
+    h=prep.load(actual_handoff);h['locks']=fixture['locks']
+    helper=prep.module('real_legacy_fixture_integration',h['helpers']['integration']['path']);helper.MODULE_CONTRACT_PATH=Path(h['api_module_contract']['path'])
+    replacements={row['app_root']:str(tmp_path/'actual-shape-releases'/Path(row['app_root']).parent.name/'app') for row in h['components'].values()}
+    def rebind(value):
+        if isinstance(value,str):
+            for old,new in replacements.items():value=value.replace(str(Path(old).parent),str(Path(new).parent))
+            return value
+        if isinstance(value,list):return [rebind(v) for v in value]
+        if isinstance(value,dict):return {k:rebind(v) for k,v in value.items()}
+        return value
+    for key,row in h['components'].items():
+        old=Path(row['app_root']);app=Path(replacements[str(old)]);app.parent.mkdir(parents=True)
+        shutil.copytree(old,app,symlinks=True)
+        manifest=prep.load(row['manifest']);manifest['app_root']=str(app)
+        manifest_path=write(app.parent/'release-manifest.json',manifest)
+        value=rebind(plistlib.loads(Path(row['plist']).read_bytes()))
+        value=prep.env_both(value,{'V35_RELEASE_MANIFEST_SHA256':hashed(manifest_path)})
+        plist=Path(fixture['components'][key]['plist']);plist.write_bytes(plistlib.dumps(value))
+        row.update(app_root=str(app),manifest=str(manifest_path),manifest_sha256=hashed(manifest_path),
+                   plist=str(plist),plist_sha256=hashed(plist),application_inventory_sha256=helper.inventory_digest(helper.inventory_tree(app)))
+    config=write(tmp_path/'actual-graph-config.json',rebind(prep.load(h['graph_config']['path'])))
+    h['graph_config']=ref(config);h['schedule_catalog']=ref(Path(h['components']['main']['app_root'])/'contracts/runtime_workloads.json')
+    handoff=write(tmp_path/'actual-shape-handoff.json',h)
+    p=prep.prepare(out,handoff_path=handoff,handoff_sha=hashed(handoff))
+    assert p['api_baseline']['release_manifest_sha256']==h['components']['api']['manifest_sha256']
+    assert prep.load(h['components']['api']['manifest'])['schema_version']=='v4.runtime_graph_repair_release.v1'
+    api_manifest=prep.load(p['components']['api']['path'])
+    assert api_manifest['schema_version']=='v4.release_candidate.v1'
+    assert api_manifest['application_inventory']['entry_count']==1320
+    assert api_manifest['external_module_contract']==h['api_module_contract']
+    assert p['proofs']['api']['non_delta_count']==1306
+    assert p['proofs']['main']['non_delta_count']==879
+    original=helper._release_identity
+    with pytest.raises(ValueError,match='SCHEMA_UNSUPPORTED'):helper.read_active_release(Path(h['components']['api']['plist']))
+    with prep.api_identity_scope(helper,h['components']['api'],h['api_module_contract']):
+        actual=helper.read_active_release(Path(h['components']['api']['plist']))
+        assert actual['manifest']['schema_version']=='v4.runtime_graph_repair_release.v1'
+        assert actual['release_manifest_sha256']==p['api_baseline']['release_manifest_sha256']
+    assert helper._release_identity is original
+    operator=prep.module('actual_legacy_stage_operator',p['helpers']['operator']['path']);operator.stage(p)
+    api=p['components']['api'];shutil.copy2(Path(api['path']).parent/helper.DELTA_RECEIPT_NAME,Path(api['release_root'])/helper.DELTA_RECEIPT_NAME)
+    instance=object.__new__(ctl.Controller);instance.p=p;instance.integration=helper;instance.op=operator
+    assert instance.verify_api_candidate(active_pointer='base')['status']=='PASS'
+    plist=Path(h['components']['api']['plist']);old=plist.read_bytes()
+    proposal=next(r for r in p['operations'] if r['component']=='api')
+    plist.write_bytes(Path(proposal['template_path']).read_bytes())
+    assert instance.verify_api_candidate(active_pointer='candidate')['status']=='PASS'
+    plist.write_bytes(old)
+    prior=prep.load(p['prior_plan']);assert instance.verify_api_binding(prior)['release_manifest_sha256']==p['api_baseline']['release_manifest_sha256']
+    bad=copy.deepcopy(h['components']['api']);bad['application_inventory_sha256']='0'*64
+    with prep.api_identity_scope(helper,bad,h['api_module_contract']):
+        with pytest.raises(ValueError,match='INVENTORY_BINDING'):helper.read_active_release(plist)
+    extra=Path(h['components']['api']['app_root'])/'unmanifested.py';extra.write_text('unreviewed')
+    with prep.api_identity_scope(helper,h['components']['api'],h['api_module_contract']):
+        with pytest.raises(ValueError,match='COMPLETE_INVENTORY_DRIFT'):helper.read_active_release(plist)
+    assert helper._release_identity is original
+
+
+@pytest.mark.parametrize('defect',['schema','identity','module_contract','manifest_sha'])
+def test_actual_legacy_api_shape_invalid_bindings_rejected(tmp_path,monkeypatch,defect):
+    import copy
+    h=prep.load(prep.CASE/'controller/publication_control_r2/FRESH_HANDOFF_R1.json');base=copy.deepcopy(h['components']['api'])
+    helper=prep.module('invalid_legacy_original',h['helpers']['integration']['path']);helper.MODULE_CONTRACT_PATH=Path(h['api_module_contract']['path'])
+    original=helper._release_identity
+    m=prep.load(base['manifest'])
+    if defect=='schema':m['schema_version']='unrecognized'
+    if defect=='identity':m['app_root']='/wrong/app'
+    if defect in ('schema','identity'):
+        p=write(tmp_path/'release-manifest.json',m);base.update(manifest=str(p),manifest_sha256=hashed(p))
+    if defect=='manifest_sha':base['manifest_sha256']='0'*64
+    contract=copy.deepcopy(h['api_module_contract'])
+    if defect=='module_contract':contract['sha256']='0'*64
+    kwargs={'release_root':Path(base['app_root']).parent,'app_root':Path(base['app_root']),'release_id':Path(base['app_root']).parent.name,
+            'manifest_path':Path(base['manifest']),'manifest_sha256':base['manifest_sha256']}
+    with pytest.raises(ValueError):
+        with prep.api_identity_scope(helper,base,contract):helper._release_identity(**kwargs)
+    assert helper._release_identity is original
+
+
+def temporary_pdf_lock(tmp_path):
+    path=tmp_path/'original-pdf.lock';path.write_text('preserve');info=path.stat()
+    return {'path':str(path),'device':info.st_dev,'inode':info.st_ino}
+
+
+def test_pdf_lock_wait_obtains_same_inode_after_natural_release(tmp_path,monkeypatch):
+    row=temporary_pdf_lock(tmp_path);held=os.open(row['path'],os.O_RDWR);ctl.fcntl.flock(held,ctl.fcntl.LOCK_EX)
+    sleeps=[];checks=[]
+    def natural_finish(delay):sleeps.append(delay);os.close(held)
+    monkeypatch.setattr(ctl.time,'sleep',natural_finish)
+    with ctl.same_inode_guard(row,wait_seconds=180,check_window=lambda:checks.append('window')) as fd:
+        assert os.fstat(fd).st_ino==row['inode'] and sleeps==[0.25] and len(checks)==3
+    assert Path(row['path']).read_text()=='preserve'
+    with ctl.same_inode_guard(row):pass
+
+
+def test_pdf_lock_wait_budget_releases_own_fd_and_keeps_holder(tmp_path,monkeypatch):
+    row=temporary_pdf_lock(tmp_path);held=os.open(row['path'],os.O_RDWR);ctl.fcntl.flock(held,ctl.fcntl.LOCK_EX)
+    clock=[0.0];sleeps=[]
+    monkeypatch.setattr(ctl.time,'monotonic',lambda:clock[0])
+    def wait(delay):sleeps.append(delay);clock[0]+=delay
+    monkeypatch.setattr(ctl.time,'sleep',wait)
+    try:
+        with pytest.raises(RuntimeError,match='PENDING_ORIGINAL_LOCK_BUSY'):
+            with ctl.same_inode_guard(row,wait_seconds=0.5,check_window=lambda:None):pytest.fail('budget admitted busy lock')
+        assert sum(sleeps)==0.5
+        with pytest.raises(RuntimeError,match='BUSY'):
+            with ctl.same_inode_guard(row):pass
+    finally:os.close(held)
+    with ctl.same_inode_guard(row):pass
+
+
+def test_pdf_lock_wait_stops_at_protected_window_without_touching_holder(tmp_path,monkeypatch):
+    row=temporary_pdf_lock(tmp_path);held=os.open(row['path'],os.O_RDWR);ctl.fcntl.flock(held,ctl.fcntl.LOCK_EX)
+    checks=[]
+    def window():
+        checks.append('check')
+        if len(checks)==2:raise RuntimeError('PENDING_PROTECTED_BUSINESS_WINDOW')
+    monkeypatch.setattr(ctl.time,'sleep',lambda delay:None)
+    try:
+        with pytest.raises(RuntimeError,match='PROTECTED_BUSINESS_WINDOW'):
+            with ctl.same_inode_guard(row,wait_seconds=180,check_window=window):pytest.fail('window admitted lock')
+        assert len(checks)==2
+        with pytest.raises(RuntimeError,match='BUSY'):
+            with ctl.same_inode_guard(row):pass
+    finally:os.close(held)
+    with ctl.same_inode_guard(row):pass
+
+
+def test_pdf_lock_yield_exception_never_retries_acquisition(tmp_path,monkeypatch):
+    row=temporary_pdf_lock(tmp_path);flock=ctl.fcntl.flock;calls=[]
+    def observed(*args):calls.append(args);return flock(*args)
+    monkeypatch.setattr(ctl.fcntl,'flock',observed)
+    monkeypatch.setattr(ctl.time,'sleep',lambda delay:pytest.fail('yield error retried lock'))
+    with pytest.raises(RuntimeError,match='EXECUTION_FAIL'):
+        with ctl.same_inode_guard(row,wait_seconds=180,check_window=lambda:None):raise RuntimeError('EXECUTION_FAIL')
+    assert len(calls)==1
+    with ctl.same_inode_guard(row):pass
+
+
+def test_pdf_lock_wait_does_not_retry_other_fcntl_errors(tmp_path,monkeypatch):
+    row=temporary_pdf_lock(tmp_path);calls=[]
+    def denied(*args):calls.append(args);raise PermissionError('fixture denied')
+    monkeypatch.setattr(ctl.fcntl,'flock',denied)
+    monkeypatch.setattr(ctl.time,'sleep',lambda delay:pytest.fail('nonblocking error masked'))
+    with pytest.raises(PermissionError):
+        with ctl.same_inode_guard(row,wait_seconds=180,check_window=lambda:None):pass
+    assert len(calls)==1

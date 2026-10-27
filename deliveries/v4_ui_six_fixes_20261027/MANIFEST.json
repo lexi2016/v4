@@ -8,6 +8,20 @@
   "actual_main_base": "runtime-graph-repair-20261026-main-r2",
   "files": [
     {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "git_blob_sha": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
+      "size": 8,
+      "kind": "byte_preservation"
+    },
+    {
+      "path": "README.md",
+      "sha256": "8c9eec281b8ba5322ef04966785e2116cff471d97c3f1b0d155a6fffe9007040",
+      "git_blob_sha": "f4b20c21b97509f5d9b0a94b0dce02642c3eeeb5",
+      "size": 3046,
+      "kind": "review_or_metadata"
+    },
+    {
       "path": "components/api/apps/api/v35_api/preselection_service.py",
       "sha256": "9aa30731a1cf287dfd9a206739719d6ebcb85fb64178938a0c7969838f083676",
       "git_blob_sha": "bcfb59382d94b609716967dfb60652debea27af9",
@@ -22,11 +36,186 @@
       "kind": "source"
     },
     {
+      "path": "components/api/apps/web/daily-research-command/index.html",
+      "sha256": "a6994e5ce3832cada2ce4b6c4667969d9e33e905b5865c41a9db30217f3bde6e",
+      "git_blob_sha": "3d2c3217c789d7c6c9a3a72977fb8af0b501c028",
+      "size": 406,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/index.html",
+      "sha256": "4a03a2c60e2becc71dfa7a4aeb9c7da7ed04e74832b77151cedc2cc9c814594d",
+      "git_blob_sha": "44451872867d377dd34819861b33ffde9ffd7158",
+      "size": 561,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/manager-selection/index.html",
+      "sha256": "1cfb59aebbc8747ca6f4696a9b13832fb16d75dadbe198cc85344c8965341274",
+      "git_blob_sha": "bcd41c61db9a19401710702dca4c8f4cd0508191",
+      "size": 391,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/App.hk-observation-calendar.spec.ts",
+      "sha256": "59e602238de603a13480a0928b2cf7d3c30702379c5e7b50ece62487163b9dcf",
+      "git_blob_sha": "88beed4e145fabb703566c5914e22f352fa7b46a",
+      "size": 1660,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/App.spec.ts",
+      "sha256": "640f468d740424dee5240af942ff2d4f0cf3444ee47ed0d4c1c445d4628f0703",
+      "git_blob_sha": "f7d3d6add88da0336607880aff81088f1303f9f9",
+      "size": 114258,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/App.vue",
+      "sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6",
+      "git_blob_sha": "1baac0de8bbba200e5f8ec3c6711e19b031bd1d4",
+      "size": 36037,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/a_share_history.ts",
+      "sha256": "2cc8a897566dadf1d5a38a92b0344bba8c3551a53f309c3c41aff478a695c24e",
+      "git_blob_sha": "71b1e44e6f8671e0c82b20b47dc8892638dd4aa8",
+      "size": 2319,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/globalIndustries.ts",
+      "sha256": "023b0316f3961abcd298cb0ae5fce05949e377548a57361c015ad2ad7eb9cdbe",
+      "git_blob_sha": "f6a65e75ea6ef9e5f16f0252a2d2496ded4305bb",
+      "size": 890,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerAnnouncementAnalysis.spec.ts",
+      "sha256": "bde0f0b0c49d7c2c8f33d035298f5350af01e5965d228744af0c183508b9dec9",
+      "git_blob_sha": "4753bb6371672eaee64dd88157c685e5b0c34b1f",
+      "size": 21582,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerAnnouncementAnalysis.ts",
+      "sha256": "1fc46df22a4fa72f772fe47a9f3860d1dc93ab6e17889be1d2218f7abbed3bf9",
+      "git_blob_sha": "d01d3daccd9c8131551be68534806b93095515c0",
+      "size": 44135,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerCatalystObservations.ts",
+      "sha256": "5413dc86478e7ab838ccdcca20ae740355b6c728b0e22392328bf6789dcac555",
+      "git_blob_sha": "72bc20dd0d2538330aeee1590cacd296458fcdc5",
+      "size": 5181,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerDecision.ts",
+      "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
+      "git_blob_sha": "4ffcac1a1057187a17837c30f2b6a05d262f9dcd",
+      "size": 923,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerPreselection.ts",
+      "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
+      "git_blob_sha": "52c46a93c0837e851614aa3993aee9ff413b2d99",
+      "size": 847,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerResearch.ts",
+      "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
+      "git_blob_sha": "686a8fa5106f9124a1c41cec682cc449b7917376",
+      "size": 18879,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerStageSelection.ts",
+      "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
+      "git_blob_sha": "35a5aec6ba5745cd5e56b62822c021cd1a823a68",
+      "size": 1116,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerWorkbenchResearch.ts",
+      "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
+      "git_blob_sha": "4d4954cc12776f83cc8977c1e111dd2402e80cbc",
+      "size": 2042,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerWorkspace.attention.spec.ts",
+      "sha256": "c5ed1af92573dc34bd2c1dd70baec80d3226249c6b5dc57e9861655e614005a3",
+      "git_blob_sha": "5312859cb5b8d04a88f05647c40f99745cb7098c",
+      "size": 29502,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/managerWorkspace.ts",
+      "sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
+      "git_blob_sha": "00aaa624a69e6bf006b600c0d0955c24389e245b",
+      "size": 128378,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/manualCollection.ts",
+      "sha256": "6eaee00df64f2de14374c754545e64284c80c887ada6bbbab2d0d6400ae7bd51",
+      "git_blob_sha": "a90a1c6dfeaffeaad3d79ee47fe7ee49cef5bcc7",
+      "size": 1844,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/pool_stage.spec.ts",
+      "sha256": "84a696a828218f02ff0dc9c0f142881123af11ae9e6b285855ff74e9c539f83e",
+      "git_blob_sha": "49894458ffa5d5e1d9df4e831049b6f6f31ae1ec",
+      "size": 23089,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
       "path": "components/api/apps/web/src/api/pool_stage.ts",
       "sha256": "33cdd55a2008354c39e247f41065e3ade9250fe48d96ca699358f5fbfd72bffe",
       "git_blob_sha": "8ba2f2f86ecec6c967aec16da9d537d0d645c260",
       "size": 26195,
       "kind": "source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/research_lane.ts",
+      "sha256": "e543f7d5e6c750678818bce166ccdbaf5175382e8a9471b8c73531eaf39c2c86",
+      "git_blob_sha": "aabd841aa471ac15dad74cd52c2025cea307c18e",
+      "size": 18351,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/review.ts",
+      "sha256": "fc2c7551fe386a9b01375d6d82d7f633990bba169f48e9b918386e31baa6dd7d",
+      "git_blob_sha": "892eeef9ff696c7ddce1fb4948f80fd1f34ea413",
+      "size": 1436,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/runtime.ts",
+      "sha256": "96d257a9266400443b7aad1252c4f709a0f24873ce9afab3f4a6dc9a189ff7c0",
+      "git_blob_sha": "dc157d56f1289782c4d17ac932c75ff3f690ba3e",
+      "size": 417,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/selection.ts",
+      "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
+      "git_blob_sha": "b3a76da5e4f26bd48b7f1a2b287348fc61ef9f42",
+      "size": 1177,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/api/wechat_research.ts",
+      "sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
+      "git_blob_sha": "8936a3c2e699a253df3d55c73db321af87b4b4a0",
+      "size": 14754,
+      "kind": "unchanged_actual_frontend_baseline_source"
     },
     {
       "path": "components/api/apps/web/src/app_shell/formatters.ts",
@@ -36,6 +225,27 @@
       "kind": "source"
     },
     {
+      "path": "components/api/apps/web/src/app_shell/timeline.remediation.spec.ts",
+      "sha256": "4fc4559f897dd8cb5933ed8f0f6a7029a8762994f75702a3b2e6a39550ebc79b",
+      "git_blob_sha": "f126a6907417d2c7985ea5ce5fe53a50928b01d5",
+      "size": 4936,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/app_shell/timeline.ts",
+      "sha256": "16658c1a39a3ff779efe131226786664e4210431d03b6fe0fcc40d809f0e9538",
+      "git_blob_sha": "fa59111c2f63f1cf7a51002a6251dd59f757b458",
+      "size": 4697,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/app_shell/types.ts",
+      "sha256": "af426dc751a38a48c75c4216d6ba782f6244588c2aee00cc2bb4af5e2ede0c1f",
+      "git_blob_sha": "08d577aec31e8444cc91104dbacd46d5bdd00c17",
+      "size": 8513,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
       "path": "components/api/apps/web/src/app_shell/useAppShell.ts",
       "sha256": "51552ba9f215ac932ccb76d183a66f482e01fb5fd69244d321fe683f938d09d0",
       "git_blob_sha": "6c289e5aa08266e8f4c00b0573015a6a54f7a5f8",
@@ -43,11 +253,683 @@
       "kind": "source"
     },
     {
+      "path": "components/api/apps/web/src/components/ManualCollectionControls.vue",
+      "sha256": "70d10308b7721c2d4e00375c2f7bde0b61eaee726f671b092fb32daae1d2f117",
+      "git_blob_sha": "20462d653159cb68fa8c3544c0088aa133faf15e",
+      "size": 4983,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
+      "sha256": "f682b6cc37c9d2f7236c1a0c4b7ad3ba99fa81d4073efbb08afe07b9b41abf9c",
+      "git_blob_sha": "63888ce32aedb7db051c793b4b2514525720a39c",
+      "size": 2737,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchHero.vue",
+      "sha256": "c5b47faf17654b89e140358ecab6ceb31868eae79bd7c973f3f3557ad061e185",
+      "git_blob_sha": "25c8cf5a8ebb7371fd7219fb172b76120ad82b1b",
+      "size": 5367,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
+      "sha256": "99994f2ec38e2b3061b5fdf7d6363d6eaad24805b787cf1822edbab0f106092e",
+      "git_blob_sha": "805a5b5c30204dcf373c99ada37f451b343dc3dd",
+      "size": 996,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
+      "sha256": "94fa1c74db8701a9af734795a0c74579adba03d6ca3cceb262848ab95a5f9422",
+      "git_blob_sha": "ac6a2d9f67f16e4c627cfae5229a205d6285a7bf",
+      "size": 2992,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
+      "sha256": "71f4f68432a9f8a9b23022aa2aae929954a6aa5100972042f9b4746ae3dcb3f4",
+      "git_blob_sha": "aa77af1affb16c51342d16922d0b055128f0fd74",
+      "size": 3153,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchPools.vue",
+      "sha256": "b03af7d1ca0f0abfcd6231bb9ba53f4e272349cf740b2bf179bcd0543ebfc395",
+      "git_blob_sha": "6c393e97f7a862422ee081d100f727d40ba88a21",
+      "size": 5626,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
+      "sha256": "ac61c10627dfa1b5cd0269efc22ae50412f681c91db88e8b6d4ae7845e845d57",
+      "git_blob_sha": "817bc287e1d6556c0bd31db91f8d99afaa6e2a51",
+      "size": 2576,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/daily-research-command/types.ts",
+      "sha256": "7b06a9da0e790083636a13b5994808676713d2ff91eea5e1de11ef8933bf5607",
+      "git_blob_sha": "1f72503c2aea2c4436ecb6aabf85c63701fffe84",
+      "size": 2146,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/GlobalIndustryMap.spec.ts",
+      "sha256": "9e2e5ac0cc810ecb85144f49e06d670ca72a3add8d6b8339d7f8cff319c0b0f5",
+      "git_blob_sha": "c1ae5839db17423f64af7efa433a21295e3dd9bc",
+      "size": 10582,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/GlobalIndustryMap.vue",
+      "sha256": "185b3cb586f5e0daeefe7f0016674bc904c22edd465e88b92bedfa87d02467ce",
+      "git_blob_sha": "b36f92c1c222701ae13fe39d8f47d7d34e7615b3",
+      "size": 55976,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchAppendix.vue",
+      "sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
+      "git_blob_sha": "4190d3a22693e2f832ed166258b7be8bb7a03cfb",
+      "size": 415,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchContextPane.vue",
+      "sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
+      "git_blob_sha": "f5779d1502707238977c2620e6b26735b9cc0102",
+      "size": 2096,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
       "path": "components/api/apps/web/src/components/research/ResearchFeedCard.vue",
       "sha256": "bc4e78f5f7f3557225f2f82d9be0f2fe031016b0aca8606c9f513b07bf221e0d",
       "git_blob_sha": "f414a3a31ac59cd40e8b77960443bf16bf64b9c8",
       "size": 7476,
       "kind": "source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchFeedPane.vue",
+      "sha256": "8980cd832a42b8d9bd353933ae98cb458d3fb13bc28c36e2f0df5892ddf72e4a",
+      "git_blob_sha": "a430dbf9a2fbf18f7fe5d648c16b96bf54cbe6ac",
+      "size": 2176,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchImpactList.vue",
+      "sha256": "c2248151611747cf2c14f7e07983470cc85a94b3d566e7616ab133f533e7e087",
+      "git_blob_sha": "30324843b15c1187ddee7d6ca9f345fc141d8ac4",
+      "size": 3325,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchSourceColumns.vue",
+      "sha256": "4b6d6ee1344dfcca5ed45df8e60853be099942a1930047f6091b9ded0359fe1c",
+      "git_blob_sha": "40d848e639e965cd6e3e8a2f493564c938aa4b3c",
+      "size": 1575,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/ResearchStatusStrip.vue",
+      "sha256": "5066ba418f6502e4ae6eefb2d7ac94221232aab16f187cbe875e33172ad4ac8a",
+      "git_blob_sha": "98cd6df8afc6f82ff1e91d8ba8a4771d6d572bcf",
+      "size": 2545,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/WechatMentionPool.spec.ts",
+      "sha256": "0dd76bcb5da2bcbef86bc4d66cf778b9a7cdf787fe44462e134f402bb0e20810",
+      "git_blob_sha": "547c2d99d87f5ed9961266c4264ef669c92e1655",
+      "size": 6523,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/WechatMentionPool.vue",
+      "sha256": "e542fb168e3f3fd6b8303e01df3002c8ae01a33c353ab30da944de7b59f18ce7",
+      "git_blob_sha": "c26fe731dc3667d05e9a0a980a0189b7c86a8a30",
+      "size": 10776,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/research/WechatResearchPanel.vue",
+      "sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
+      "git_blob_sha": "811f056edd1bb53b51b9daac5e19d277ad22856f",
+      "size": 14210,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/AshareHistoryPanel.vue",
+      "sha256": "28022b88906d9cd03b7bed28e4a9f131c80a254ac5f59f2e42c679dd245d8d6a",
+      "git_blob_sha": "65b4eb6a5e14d80456b30e1fa9c6a8af3f61b91d",
+      "size": 8413,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/AshareReviewPanel.spec.ts",
+      "sha256": "736f4047088d69d2f2ea54d643cf22cc527f4516e8ec03e1d3cd1ceb635e4c19",
+      "git_blob_sha": "33d11560a92aa888bacce4230a63ea0c049398dc",
+      "size": 13546,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/AshareReviewPanel.vue",
+      "sha256": "d55d1c2cb6d1bf17db398d453bb7a1988c92e33fb7bcff6313a0d92b12707a1b",
+      "git_blob_sha": "79d24d29bd4129a835c53e9634fc71778ccab28b",
+      "size": 25764,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/DailyResearchReviewPanel.vue",
+      "sha256": "a62d8c47419cac7d3d674693eddb5984b12f18268188f0328b163a60d590efb9",
+      "git_blob_sha": "66052228cf356b507027aea906b8a1b689aead8d",
+      "size": 27458,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/HkCloseReviewPanel.spec.ts",
+      "sha256": "e2164cf5d00eecf5590f475210c5ff219bb5de24312b85b2aea2fb74d2ca2aaf",
+      "git_blob_sha": "204073b48c88069fb5930a65152ddc417a712674",
+      "size": 5516,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/HkCloseReviewPanel.vue",
+      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33",
+      "git_blob_sha": "6e8d26e917da5a6c47764700bbfebac403b405d5",
+      "size": 19484,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/ReviewEvidencePanel.vue",
+      "sha256": "6164c5cd0042f70315b3aa6daf102b706c8b99055dffa702a574ca96ce025ef4",
+      "git_blob_sha": "42cdcd713f2e13ecb8b4b6bbbe570b7e8393bda9",
+      "size": 3531,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
+      "sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
+      "git_blob_sha": "4a279d5d7abc08bb2a26b7fc80a7c21ae247c15c",
+      "size": 8779,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/components/review/StageSummaryPanel.vue",
+      "sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
+      "git_blob_sha": "0d1777dd708fa4a12905fa76dc6286615cd1d142",
+      "size": 4424,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/composables/researchFeedPresentation.ts",
+      "sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
+      "git_blob_sha": "5c3b416b862bef8412b426f0129b1f9a2f09699d",
+      "size": 6059,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/composables/useResearchLane.ts",
+      "sha256": "c185614a38c401a9afdf9d392c1e866b3942b7740f870894b120a83c690401ff",
+      "git_blob_sha": "4b96ce42e17f9ded24a5164c9aca932486ca8e18",
+      "size": 15925,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/globalIndustries.ts",
+      "sha256": "1d99226b27c1716833828c4c2d442e4e7a40fa36bd8d4507cd41a0a845e57b3d",
+      "git_blob_sha": "2290631692026d341f79d1f978e7d72ae28e5848",
+      "size": 14203,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/managerDecision.ts",
+      "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
+      "git_blob_sha": "443523f0c6fcd8e7ad5de16e319917bea6464e93",
+      "size": 14787,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/managerPreselection.ts",
+      "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
+      "git_blob_sha": "73e2d6f917d04a9474d72e722a48ccdd6e580c16",
+      "size": 14967,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/managerStageSelection.ts",
+      "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
+      "git_blob_sha": "616ef77c51b3b5e30e3d1fde66c289316c015cd6",
+      "size": 12620,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/managerWorkbenchResearch.spec.ts",
+      "sha256": "5044b50342674035100dae60d6d828848a8e22c4d5e4be13343df3045ac26ebb",
+      "git_blob_sha": "15e29b25d3c3d2a5dfcdea81e6d63ee0d6a13d89",
+      "size": 10671,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/managerWorkbenchResearch.ts",
+      "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
+      "git_blob_sha": "ebbf2e684c0916df2de6eceebd445cdf048863e2",
+      "size": 24221,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/research.ts",
+      "sha256": "74324e313f8811822c18b3c65c7f80a6661d3dca8ac5a7f02820139d55bd7bf9",
+      "git_blob_sha": "87c3a815b84a6db2cbbdb363401fbefbdf893f69",
+      "size": 5897,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/review.ts",
+      "sha256": "079adf7971e346a8da5d40c49bc3c1fdfb2307aaf6ed70df5ed4d9312699c507",
+      "git_blob_sha": "24e99280741ca092b7ddbd2c006af41ce2d643f3",
+      "size": 10012,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/runtime.ts",
+      "sha256": "5930f0138fd65e5ac1aa41a9f813b94d2495c857a827125f3541bc2a230d987a",
+      "git_blob_sha": "9db9bf354339be073ee4adbf765224cf6cac7f9f",
+      "size": 5166,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/contracts/selection.ts",
+      "sha256": "502683e146f0860ea37b730ec8999ca145c783aa06907f04166145e5db8b00c8",
+      "git_blob_sha": "45fd939583d8e3986e782f973fa7147c5b2bbf9a",
+      "size": 54132,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/daily-research-command/main.ts",
+      "sha256": "b8235092c762fc5cb485b649a6a45a05b434511301ca9f0444515bb04a465385",
+      "git_blob_sha": "7556facf8c322c48599d9309c0af0c5c365be090",
+      "size": 230,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/main.ts",
+      "sha256": "e6500223b08750e885d03202ca2776bb169095420cbc9608f8bbf03b6c7d2c41",
+      "git_blob_sha": "f4b9bf0f2171ac8fcaffc8e279d443b5ce9a88d6",
+      "size": 116,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
+      "sha256": "bc8917ca6bb877d69b186afa5d688780f06b16993f5075035187c3ea971d0e53",
+      "git_blob_sha": "259a72c6ff242e6f841e8f55825a4062cfb8693a",
+      "size": 3559,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/announcementObservation.spec.ts",
+      "sha256": "ff8595230c0b13db8d05efab9d1c00841c4a22eac5ce1f3158e6a677747493b8",
+      "git_blob_sha": "36ba48e361b3ac7b2d97fa03acd23a3daa5e9219",
+      "size": 6791,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/announcementReview.hkex.spec.ts",
+      "sha256": "0181df227962dd2ce92bef03dcc197f5512a2ea2840588b18496174acb944da3",
+      "git_blob_sha": "fbcc9f5d270d456e9886617d22fd169df150c347",
+      "size": 6954,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts",
+      "sha256": "5339998598fb03e21cb8a6af5e7fa9f4b74d67c4791db0a6a47972959a7b1e0e",
+      "git_blob_sha": "ce4d29933408541ef5996822583557474637a488",
+      "size": 4497,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/businessCompletionR3.spec.ts",
+      "sha256": "2b78e2fc834eff951cf34cfdd52fe2a36f88e3409db81444cf0011e60bc5a8ba",
+      "git_blob_sha": "1f6fbcf08ab91769142e25c3930973a1346ae5c6",
+      "size": 9222,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
+      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
+      "git_blob_sha": "7decbc76298a57a1c0c6e05caeb1125517bbe42a",
+      "size": 4410,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
+      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
+      "git_blob_sha": "a37994c4a54b4fec2d1a4b5ff8969e17ade60592",
+      "size": 16344,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/researchSelectionLedger.spec.ts",
+      "sha256": "c3937e5a6810bba715263d0b6e40b7c8d3637d45a2b9fbbe33b9f9f5dde0ebd2",
+      "git_blob_sha": "df0bfeef7b66cc37d868588ffc9e949f37f0eaed",
+      "size": 10955,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
+      "sha256": "177686f863a3392e57201f75d80dd262974ba8e633f1ba8de3af1ed0dd5803c9",
+      "git_blob_sha": "700f9b3efe2e56f75212f5072c47d6b5155b55e8",
+      "size": 14168,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
+      "sha256": "aa3eed26c55613bff9fc4efd382de0896bfe2e833118bb3158d4c179ce030c13",
+      "git_blob_sha": "dcb4424c7831bed875887cb60f61f95f64635834",
+      "size": 1564,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/priority.spec.ts",
+      "sha256": "583ae43b8d5238b861a10bb95cbb1207d674f4f761fcfbe34408d1bc034454a5",
+      "git_blob_sha": "85e4fdd37a12ec9d46a0c5367bdd9487a9a6a657",
+      "size": 11613,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/priority.ts",
+      "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
+      "git_blob_sha": "5657b12fdaaa6d910ad8e7e59d88945e04ea88cf",
+      "size": 44423,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/stageReasonContributions.spec.ts",
+      "sha256": "1a4f5b3c9ccc8e5d3f9c1cdfcb400531a7af34f745482a43faf9969ea8f8f9c9",
+      "git_blob_sha": "ab61cdb5169428f2855fb84558226fae5cc5f437",
+      "size": 21087,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
+      "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
+      "git_blob_sha": "98cfaadf274bb441fb40c326b312ed5518ebf024",
+      "size": 46083,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/workbenchPresentation.spec.ts",
+      "sha256": "c95c90fc96bc06f1ee318dc3a93b8c8d3459e736ebe7740345e81aa6508b7284",
+      "git_blob_sha": "58af7f8cfbbd1ff1e7c42bf39474e983fcc9d471",
+      "size": 2956,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
+      "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
+      "git_blob_sha": "5a6758a1aebe67ecb38d0f197ce86026c7bf0d00",
+      "size": 2981,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
+      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
+      "git_blob_sha": "0871bfde4fcd9d8917b95006b5f5d743b81c696c",
+      "size": 9195,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/announcementAnalysis.spec.ts",
+      "sha256": "4020e266ad3bede5518d8efc6362d4af3c5ef0c3814d2bff00446650b9fe3f65",
+      "git_blob_sha": "4ee268347300412d44de8a2f5259ded23bb89a18",
+      "size": 22041,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/announcementAnalysis.ts",
+      "sha256": "255dbe2f87dd666c36228de633f7a1143bb16c3294c905ee8e74de265113e75a",
+      "git_blob_sha": "cee5ad87092af151f2fe0b41227bd6914bb93d1a",
+      "size": 37757,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/announcementObservation.ts",
+      "sha256": "8aa44bd21194c54a4c3e0c16188bca712e089822f0656c3a3ee4e545571af53c",
+      "git_blob_sha": "bb84e8131b4473aec131cd5cd41dbfd92061412c",
+      "size": 18006,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/businessStatus.ts",
+      "sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
+      "git_blob_sha": "72b7ad5b810a1bcf2c86329244763061512f1010",
+      "size": 16160,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
+      "sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
+      "git_blob_sha": "3a5df679ccd2c06a535a52f2d6814c702a02aa2d",
+      "size": 19545,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/catalystObservationPanel.ts",
+      "sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
+      "git_blob_sha": "9c4a1ec571dc253f248176cfb9fb45f30b744488",
+      "size": 64251,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/dailyChannels.ts",
+      "sha256": "205bf6d0ec2ce6a9a25081b6dd8425d394a86e4e4e325e0ce6f2c92bd5c6591b",
+      "git_blob_sha": "4d815d2d07f3cc0e8765d547d2813a22ded50f6a",
+      "size": 28768,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/main.ts",
+      "sha256": "343e6a6a0a941b901f2727df3ae6b77241b75f729fca453a6aaf7a7b5b0e9771",
+      "git_blob_sha": "1764956dadfe03a2d23637f7ae8d72826f69ec2c",
+      "size": 185,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-selection/researchAttention.ts",
+      "sha256": "d1fe398b04760c6a2d6f3649979c41c762e208105f21495c0be8b5a1bd2b004b",
+      "git_blob_sha": "b4df71938b6eae6cca7c5d87a7788c054a570342",
+      "size": 40577,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/AnnouncementCandidates.vue",
+      "sha256": "f9d9f5078c5f0fe3c99d430f871ccde131287de6007cfdf24d79a914268012ac",
+      "git_blob_sha": "5f1eedfd2986238170a36b29774401d3ced74d38",
+      "size": 42881,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/Workbench.vue",
+      "sha256": "16baa905ef153c6762695b644e88c28f9a9367e9960ef3cf2c9597a19720a663",
+      "git_blob_sha": "e5f816b8121ed0434b114c80a2da40b977fa3a80",
+      "size": 133289,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
+      "sha256": "6e2320deeec8a9faf2e4143c2aa7b9964fc6fc971451aa9cfcee9c0241c00a6d",
+      "git_blob_sha": "dcb916f7966a7d0032786af7a4aa2ee8633dd430",
+      "size": 45087,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/__tests__/calendar_date.spec.ts",
+      "sha256": "d4c4bf51f2d83e234954f7d2bb7b8d0fb87a253c442437bc6d7dbf69a4361980",
+      "git_blob_sha": "f5fe9c01038a8e8c6f8a7dba41e97a0959f4517e",
+      "size": 7811,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/__tests__/display_reason.spec.ts",
+      "sha256": "9b6cbf18710d3edcb4ce26ff3cc4216d91994de83350bcf95259b682bcf10ed0",
+      "git_blob_sha": "35eadfc920d78f18af0a1f82cb411893333cbe82",
+      "size": 4789,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
+      "sha256": "f12029f5bbb42dc6a27ab2e8b213461cf90ddf6e78755bf23350e53084678d6d",
+      "git_blob_sha": "2474fc13fcbd41362f29258955652a294ecfb27d",
+      "size": 27549,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/api.ts",
+      "sha256": "8250b4b2fe0d61baebcfb2d3fd8dba624ae46170b296bf177321097032e9c3ff",
+      "git_blob_sha": "204c94b85dd257319553b1f95ee9534e35b6562e",
+      "size": 24548,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/display.ts",
+      "sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb",
+      "git_blob_sha": "26e81172db2245ade0c1b50cbad8d5de2e44a3cb",
+      "size": 9979,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/route.ts",
+      "sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8",
+      "git_blob_sha": "af131f63c1d6bce7f32aac16ee49b1815a793684",
+      "size": 2303,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/types.ts",
+      "sha256": "06a59295058e198fa3f5a6060907ce8e85644c278cdf6211680e2868f1735d55",
+      "git_blob_sha": "a62fa11b2bed2c3afb1b824e609ae34b772fd597",
+      "size": 38771,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
+      "sha256": "cb3934d9b6f9a6804123a089901c55b37a435633fd183758a51e0f5ad2e62c57",
+      "git_blob_sha": "541ad82b5505109cff4b5af8267c1a9651a4a3d3",
+      "size": 13883,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/useWorkbench.ts",
+      "sha256": "5dd1c2834cea2029840f9d41c614935708bed018188ccebc0812188099241177",
+      "git_blob_sha": "64ef6cc84ddb3c855d9a3c40424c421f052a5acd",
+      "size": 33101,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/manager-workbench/workbench.css",
+      "sha256": "15a168a85ea408efa205e96f00385d6008375156397087ec4f79bddfc75f8f0f",
+      "git_blob_sha": "9234b95b275e8c62751dc81c2912996f668887f6",
+      "size": 14721,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/style.css",
+      "sha256": "97b8dc6595fc7e972f543aad247feadfc2ddaf7b6439fd6655d217acf08d26ba",
+      "git_blob_sha": "147edbd8d140ec4d425a9fba80971c7a8a8f0b02",
+      "size": 21129,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/styles/daily-research-command.css",
+      "sha256": "f49ca125c89c8420136260ebe2c911f897863247c3506f6813370c49e02374e7",
+      "git_blob_sha": "e1c8a757e6bf38acf743991f7d098ae44af71737",
+      "size": 14614,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/styles/manager-selection.css",
+      "sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65",
+      "git_blob_sha": "2810ff2047127f959e7c9e0dd3148e585efe34c8",
+      "size": 56957,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/styles/v3-research-lane.css",
+      "sha256": "d7b56919209d8551d5fb44789db20246d745b63273a42a60d0b34927be7232e8",
+      "git_blob_sha": "71a698626ec2633ff7196088eec359ba2669afc5",
+      "size": 10043,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/DailyResearchCommandView.spec.ts",
+      "sha256": "1fac9b44cd809125a5fe7eb7b43bb7cd3a07f43ec39c4ce6b9a96225d617b935",
+      "git_blob_sha": "f26a1de1b68bf04ce34881f515ae89e58829142f",
+      "size": 15285,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/DailyResearchCommandView.vue",
+      "sha256": "38854e4945c10802596845e2a3f00cbecee628b6e723831b5a3ac9182c95b2b7",
+      "git_blob_sha": "ea3fd398fd9319b583eecbe71bcc8fc2cf1276d3",
+      "size": 12705,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/ManagerSelectionView.spec.ts",
+      "sha256": "7c4846ff33980189a6bc680995a2f4a5feb8e258ad97d731e6f4f58518e1b501",
+      "git_blob_sha": "e5a57c64e321d613b418579ffd47d6b7a2c8b3df",
+      "size": 211249,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/ManagerSelectionView.vue",
+      "sha256": "b6be03c9b1011de36014aec889815d35ce4dcc51f9a697653f7f703f9ca5be57",
+      "git_blob_sha": "e12d1730ee8ed0455aff3d370597dd48602b0876",
+      "size": 207758,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/ResearchView.spec.ts",
+      "sha256": "361c379362a7b8f6100bed3156f08dbe086e084e4c3fd8e43365eaabd8751d7c",
+      "git_blob_sha": "4dd568775c11694962ea616d06c3fcdc5f4f6c18",
+      "size": 20157,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/ResearchView.vue",
+      "sha256": "cc84ad2e71af8e3c3ce67c31d8eb3e1af10fc7e33018d32ab5b134b9b79f5aca",
+      "git_blob_sha": "f4364808fea7b4a8f95a93a718f6b686871b37a6",
+      "size": 7456,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/ReviewView.spec.ts",
+      "sha256": "af0acb1df0ac54de2ea0093183b02d70658d6d2a01feaba44a5b4a39ed147c1f",
+      "git_blob_sha": "d2aa58495ec65f86a64c27b96079379181bb50f9",
+      "size": 21734,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/ReviewView.vue",
+      "sha256": "cb1f4f19d9b8100d0caf86a5563990a90b627fdb72699b9ccbe499b1e9542c71",
+      "git_blob_sha": "4f6b816a6e7ea05f9bc30240833116251c7f08b9",
+      "size": 3441,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/TaskStatusView.spec.ts",
+      "sha256": "616b99a40c57168d29715ce210d204ae02848d9b72d26d8a7d795ec04ac2cf0f",
+      "git_blob_sha": "54817137c9f9bb94316225b56e2dbd5e633fb650",
+      "size": 8042,
+      "kind": "unchanged_actual_frontend_baseline_source"
+    },
+    {
+      "path": "components/api/apps/web/src/views/TaskStatusView.vue",
+      "sha256": "f86f3403f377653ea34568c298048cab96e39a27754f52c6f538ef7fb4cce045",
+      "git_blob_sha": "48bd361bed3dfee2b362c4a2cd9735fd4e610ecf",
+      "size": 8904,
+      "kind": "unchanged_actual_frontend_baseline_source"
     },
     {
       "path": "components/api/domains/_preselection_parts/pool_assembly.py",
@@ -92,11 +974,32 @@
       "kind": "source"
     },
     {
-      "path": "components/main/ops/run_v35_macos_scheduler_daemon.py",
-      "sha256": "58e678dd13d2cc50a9400ea96ae9781131256c2da426d97b8cd05e78a3688e2a",
-      "git_blob_sha": "39a717541415e1d016a6789d2fc0d0f72901cae4",
-      "size": 62210,
-      "kind": "source"
+      "path": "components/control/docs/ui-six-fixes/control/README.md",
+      "sha256": "41c29dec8520ea2bd864cb068b6c9d6d42168e9f0378cf4d20446dfc8f161fb7",
+      "git_blob_sha": "9e618d1f908d334296a00bdda111b321417b8aef",
+      "size": 6529,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/controller.py",
+      "sha256": "503605749cb349f60abc71018f5a6480828f3975ac7574ceaee99f56f839a220",
+      "git_blob_sha": "829b369834fe3e8687513bd6ef600b814bc9e391",
+      "size": 22716,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/prepare.py",
+      "sha256": "fac2ddfcc31ff6c15263111f79ac06bf619c68f96ac8d1ed7da8cbf59da549e7",
+      "git_blob_sha": "545daf62a478a4b7ba81d58ef5032f68caefbed0",
+      "size": 24829,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/test_control.py",
+      "sha256": "f8ef2f21bf3b3db4712e34bc437c52f54ea4aa5fa881f8de3db340be44d52207",
+      "git_blob_sha": "fc9d1de9336e07afc1c92cb297cbbb4a654f1a3d",
+      "size": 41255,
+      "kind": "control_source_or_test"
     },
     {
       "path": "components/main/infrastructure/zsxq_pdf_ingestion.py",
@@ -106,59 +1009,24 @@
       "kind": "source"
     },
     {
-      "path": "validation/tests/test_ui_six_fixes.py",
-      "sha256": "97d50f228cdea5eea2015470e375aff6307964f7dc664cd785b5827da0137675",
-      "git_blob_sha": "9f16baa5bf25cd7af78c5a6a54bba12843a2deb5",
-      "size": 16762,
-      "kind": "test"
-    },
-    {
-      "path": "validation/tests/test_pdf_night_window.py",
-      "sha256": "6ac95eed6b3c78148ecbd5e3210f4ae1be7ffccf7ff4b8017cb62a2b4b60fac2",
-      "git_blob_sha": "67c15514b242ef18cb913d3e3f555bcdf4e8972f",
-      "size": 6666,
-      "kind": "test"
-    },
-    {
-      "path": "validation/apps/web/tests/ui-six-fixes.spec.ts",
-      "sha256": "e4c0ae15b1be14f4710956d937a221f23085857d062a9337aef030f476d925a9",
-      "git_blob_sha": "f4832c703c897673c7767f4667bdfea2a1f4b720",
-      "size": 4026,
-      "kind": "test"
-    },
-    {
-      "path": "validation/apps/web/src/components/research/ResearchFeedCard.spec.ts",
-      "sha256": "86a1e2eabdd22ae4c924575b2f2532a234860915571869c724cb2ae7089a221e",
-      "git_blob_sha": "e1bc61f79a695cd5543b150bbf8d03107fd5094f",
-      "size": 4933,
-      "kind": "test"
-    },
-    {
-      "path": "docs/ui-six-fixes/README.md",
-      "sha256": "7fa25c297687db659bf1804cf8656df8aba8f7bed35aaadb5017afece666b815",
-      "git_blob_sha": "80ca121d0db7f72a8b1efde865aca707bcff7b6d",
-      "size": 2160,
-      "kind": "documentation"
-    },
-    {
-      "path": "docs/ui-six-fixes/PDF_NIGHT_WINDOW.md",
-      "sha256": "2983948bfe67732b8154a1b1c01a66bdff7810fa7b0ed8eee8f5e6c056a09183",
-      "git_blob_sha": "18505412879c67da49891c9469a78bdd1ce88afd",
-      "size": 1413,
-      "kind": "documentation"
-    },
-    {
-      "path": "dependencies/apps/web/package.json",
-      "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
-      "git_blob_sha": "b6af594d62fe5d7e85e2aad4f2142dab0252bb18",
-      "size": 492,
-      "kind": "dependency_manifest"
+      "path": "components/main/ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "58e678dd13d2cc50a9400ea96ae9781131256c2da426d97b8cd05e78a3688e2a",
+      "git_blob_sha": "39a717541415e1d016a6789d2fc0d0f72901cae4",
+      "size": 62210,
+      "kind": "source"
     },
     {
       "path": "dependencies/apps/web/package-lock.json",
       "sha256": "3f0b8425f35a7fdeb13cc0e5422b7814b386a6c7559d0e5c6b2f8340bc01be47",
       "git_blob_sha": "aeab513b5f90e0a2bdafbabf391821657cf1e447",
       "size": 149437,
+      "kind": "dependency_manifest"
+    },
+    {
+      "path": "dependencies/apps/web/package.json",
+      "sha256": "c19353356c407e397c4eeda0bf052c0229e6fb814c55de43eb60a43263306d2b",
+      "git_blob_sha": "b6af594d62fe5d7e85e2aad4f2142dab0252bb18",
+      "size": 492,
       "kind": "dependency_manifest"
     },
     {
@@ -176,10 +1044,115 @@
       "kind": "dependency_manifest"
     },
     {
+      "path": "docs/ui-six-fixes/PDF_NIGHT_WINDOW.md",
+      "sha256": "2983948bfe67732b8154a1b1c01a66bdff7810fa7b0ed8eee8f5e6c056a09183",
+      "git_blob_sha": "18505412879c67da49891c9469a78bdd1ce88afd",
+      "size": 1413,
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/ui-six-fixes/README.md",
+      "sha256": "7fa25c297687db659bf1804cf8656df8aba8f7bed35aaadb5017afece666b815",
+      "git_blob_sha": "80ca121d0db7f72a8b1efde865aca707bcff7b6d",
+      "size": 2160,
+      "kind": "documentation"
+    },
+    {
+      "path": "evidence/BROWSER_STALE_BUNDLE_DIAGNOSIS.json",
+      "kind": "result",
+      "sha256": "65d096279ee00f58b685af200c91a989d6f4e338ae6458a29976d0cac28bd3cc",
+      "git_blob_sha": "204feec0f43897a37c10957577fcb96bd99a57a2",
+      "size": 2232
+    },
+    {
       "path": "evidence/COMBINED_SOURCE_FREEZE.json",
       "sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
       "git_blob_sha": "42f02afe545ad6dc5699970b9b2a5e0692941d99",
       "size": 8322,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "evidence/CONTROL_REVIEW_FAILED_R1.json",
+      "sha256": "ce4bffd26b0da41b48c3f447d79c981614ab8596694444264804d1fb4080b4d0",
+      "git_blob_sha": "36f2207e0f598483ec385d375160a4d1ea52c13a",
+      "size": 6153,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_REVIEW_SOURCE_PASS_R2.json",
+      "sha256": "926a0692337024b0ebbf8a0c5b7b534b351628a06c56f66f65f990e5587d34bf",
+      "git_blob_sha": "935e17617081af2ee674daa4e37d9d11d4bdd3c9",
+      "size": 5293,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_SCOPE.json",
+      "sha256": "c9679daaf1889b8bcccb069f9640e621179b4a8078792ab9900dfe27cbfa55e8",
+      "git_blob_sha": "8fcb4fb04d96d57c891054cf717544cd3d82b200",
+      "size": 1301,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_SOURCE_MANIFEST_R2.json",
+      "sha256": "0ccdb1ea71a69326fe0340e3d383e3d805900079c273cf4e755c0476e05d1499",
+      "git_blob_sha": "b741f2e545aa8a0252914d6a6d7df5094255d47d",
+      "size": 1003,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_SOURCE_MANIFEST_R5.json",
+      "kind": "result",
+      "sha256": "eac3f87098ff8db8f5924f30282db9dafc420254bd47181d2ff062d75d8b6f0e",
+      "git_blob_sha": "6d91dba18bb879035b456b215be7b967895986b7",
+      "size": 1417
+    },
+    {
+      "path": "evidence/CONTROL_VALIDATION.json",
+      "sha256": "bba6df73f82ec91833dadc6ac8a1b0dff0443dc3cbca0ba21ae81ae0443166ba",
+      "git_blob_sha": "597624a547fd97d373b6fc9881d81d53d91b10ec",
+      "size": 4685,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/FINAL_ACCEPTANCE_SUMMARY.json",
+      "kind": "result",
+      "sha256": "ed5fd130b6f30a36296fc07cdfee4ea2b7ae7d5898d79951ae089682f29e9ed0",
+      "git_blob_sha": "29609e1b927c81680612d0d1210bf88f302c0f27",
+      "size": 7776
+    },
+    {
+      "path": "evidence/FRONTEND_SOURCE_PROVENANCE.json",
+      "sha256": "c508226ac809e2c83ae7786003f487625a218e3227995693eb8d3f1ac9915d94",
+      "git_blob_sha": "79714e40279fd0bd44e0de8d60b3bc30b5818e73",
+      "size": 650,
+      "kind": "source_provenance"
+    },
+    {
+      "path": "evidence/PUBLICATION_CONTROL_R2_FINAL_PASS_R4.json",
+      "kind": "result",
+      "sha256": "6b8d2b84a69703cc4ad105f0ef6dba11bba74291fe9da08673d91870e4f62526",
+      "git_blob_sha": "1cdf0a4739bc977d415ade4314e5464a0c2af1d9",
+      "size": 5909
+    },
+    {
+      "path": "evidence/PUBLICATION_CONTROL_R2_FINAL_PASS_R5.json",
+      "kind": "result",
+      "sha256": "0c684f83065fe1dd9e31c6e57c7c22eefbe105d2c33a5e88ef21717c090018c7",
+      "git_blob_sha": "19ca7a5c5a1b823127f2d68e7a94b8dc1c22c488",
+      "size": 3589
+    },
+    {
+      "path": "evidence/VALIDATION_COMMANDS.md",
+      "sha256": "80f2fb7babaf74c33ab759e698ff0865cbd3c033d5a17dfc62b1af120a6eb0a5",
+      "git_blob_sha": "a093e4d514a69b78c582ae00060faba0804ea3db",
+      "size": 3659,
+      "kind": "concise_validation"
+    },
+    {
+      "path": "evidence/frontend_rebase/TYPECHECK_BASELINE_ERRORS.json",
+      "sha256": "fda2d893743256ab7a36cdebd03b914d249fe8c0d1d20b5bc7c30b70d4431707",
+      "git_blob_sha": "e3405a210caf91484bd69a66a46d3d2b21d39506",
+      "size": 9203,
       "kind": "concise_validation"
     },
     {
@@ -197,970 +1170,32 @@
       "kind": "concise_validation"
     },
     {
-      "path": "evidence/frontend_rebase/TYPECHECK_BASELINE_ERRORS.json",
-      "sha256": "fda2d893743256ab7a36cdebd03b914d249fe8c0d1d20b5bc7c30b70d4431707",
-      "git_blob_sha": "e3405a210caf91484bd69a66a46d3d2b21d39506",
-      "size": 9203,
-      "kind": "concise_validation"
-    },
-    {
-      "path": "evidence/VALIDATION_COMMANDS.md",
-      "sha256": "80f2fb7babaf74c33ab759e698ff0865cbd3c033d5a17dfc62b1af120a6eb0a5",
-      "git_blob_sha": "a093e4d514a69b78c582ae00060faba0804ea3db",
-      "size": 3659,
-      "kind": "concise_validation"
-    },
-    {
-      "path": "README.md",
-      "sha256": "78e2eb411ad07706bb684b91e43c35f12e6e146d2be457a6d59d610ec2f75b36",
-      "git_blob_sha": "eed1d8fd73dfdd327ef23c2a95b66e326d78e25d",
-      "size": 2455,
-      "kind": "review_or_metadata"
-    },
-    {
-      "path": ".gitattributes",
-      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
-      "git_blob_sha": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
-      "size": 8,
-      "kind": "byte_preservation"
-    },
-    {
-      "path": "components/api/apps/web/src/App.vue",
-      "sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6",
-      "git_blob_sha": "1baac0de8bbba200e5f8ec3c6711e19b031bd1d4",
-      "size": 36037,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/App.spec.ts",
-      "sha256": "640f468d740424dee5240af942ff2d4f0cf3444ee47ed0d4c1c445d4628f0703",
-      "git_blob_sha": "f7d3d6add88da0336607880aff81088f1303f9f9",
-      "size": 114258,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/main.ts",
-      "sha256": "e6500223b08750e885d03202ca2776bb169095420cbc9608f8bbf03b6c7d2c41",
-      "git_blob_sha": "f4b9bf0f2171ac8fcaffc8e279d443b5ce9a88d6",
-      "size": 116,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/App.hk-observation-calendar.spec.ts",
-      "sha256": "59e602238de603a13480a0928b2cf7d3c30702379c5e7b50ece62487163b9dcf",
-      "git_blob_sha": "88beed4e145fabb703566c5914e22f352fa7b46a",
-      "size": 1660,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/style.css",
-      "sha256": "97b8dc6595fc7e972f543aad247feadfc2ddaf7b6439fd6655d217acf08d26ba",
-      "git_blob_sha": "147edbd8d140ec4d425a9fba80971c7a8a8f0b02",
-      "size": 21129,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/composables/useResearchLane.ts",
-      "sha256": "c185614a38c401a9afdf9d392c1e866b3942b7740f870894b120a83c690401ff",
-      "git_blob_sha": "4b96ce42e17f9ded24a5164c9aca932486ca8e18",
-      "size": 15925,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/composables/researchFeedPresentation.ts",
-      "sha256": "6ab145253d6ad1957902c5262ed0c82cc2adb4d58dff09ebc484fed4f76d0e52",
-      "git_blob_sha": "5c3b416b862bef8412b426f0129b1f9a2f09699d",
-      "size": 6059,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/managerWorkbenchResearch.spec.ts",
-      "sha256": "5044b50342674035100dae60d6d828848a8e22c4d5e4be13343df3045ac26ebb",
-      "git_blob_sha": "15e29b25d3c3d2a5dfcdea81e6d63ee0d6a13d89",
-      "size": 10671,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/globalIndustries.ts",
-      "sha256": "1d99226b27c1716833828c4c2d442e4e7a40fa36bd8d4507cd41a0a845e57b3d",
-      "git_blob_sha": "2290631692026d341f79d1f978e7d72ae28e5848",
-      "size": 14203,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/selection.ts",
-      "sha256": "502683e146f0860ea37b730ec8999ca145c783aa06907f04166145e5db8b00c8",
-      "git_blob_sha": "45fd939583d8e3986e782f973fa7147c5b2bbf9a",
-      "size": 54132,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/managerPreselection.ts",
-      "sha256": "ecf15c3a472fabba3737e60e525c9728adc018b21062a4d0d3218c0a70fcf9c3",
-      "git_blob_sha": "73e2d6f917d04a9474d72e722a48ccdd6e580c16",
-      "size": 14967,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/managerWorkbenchResearch.ts",
-      "sha256": "bbdcb12c9a99eead6d2384fd93f0763cdc43989fa2c235ea654f6a385db1a9b5",
-      "git_blob_sha": "ebbf2e684c0916df2de6eceebd445cdf048863e2",
-      "size": 24221,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/review.ts",
-      "sha256": "079adf7971e346a8da5d40c49bc3c1fdfb2307aaf6ed70df5ed4d9312699c507",
-      "git_blob_sha": "24e99280741ca092b7ddbd2c006af41ce2d643f3",
-      "size": 10012,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/runtime.ts",
-      "sha256": "5930f0138fd65e5ac1aa41a9f813b94d2495c857a827125f3541bc2a230d987a",
-      "git_blob_sha": "9db9bf354339be073ee4adbf765224cf6cac7f9f",
-      "size": 5166,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/managerDecision.ts",
-      "sha256": "80ee9cdd31ad6de7575da0318046dffe4d1e3c4f7aebdc4a8fe66af4b285c184",
-      "git_blob_sha": "443523f0c6fcd8e7ad5de16e319917bea6464e93",
-      "size": 14787,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/research.ts",
-      "sha256": "74324e313f8811822c18b3c65c7f80a6661d3dca8ac5a7f02820139d55bd7bf9",
-      "git_blob_sha": "87c3a815b84a6db2cbbdb363401fbefbdf893f69",
-      "size": 5897,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/contracts/managerStageSelection.ts",
-      "sha256": "53893ac1e9b7b1e3cad031d2eb1cdc9d63230d1a011e0969f82ac472eea5df6c",
-      "git_blob_sha": "616ef77c51b3b5e30e3d1fde66c289316c015cd6",
-      "size": 12620,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/styles/v3-research-lane.css",
-      "sha256": "d7b56919209d8551d5fb44789db20246d745b63273a42a60d0b34927be7232e8",
-      "git_blob_sha": "71a698626ec2633ff7196088eec359ba2669afc5",
-      "size": 10043,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/styles/daily-research-command.css",
-      "sha256": "f49ca125c89c8420136260ebe2c911f897863247c3506f6813370c49e02374e7",
-      "git_blob_sha": "e1c8a757e6bf38acf743991f7d098ae44af71737",
-      "size": 14614,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/styles/manager-selection.css",
-      "sha256": "cebe3431b6f34ccd6525341330f5583b966f75495f472b1410b87e7fef496d65",
-      "git_blob_sha": "2810ff2047127f959e7c9e0dd3148e585efe34c8",
-      "size": 56957,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/ManualCollectionControls.vue",
-      "sha256": "70d10308b7721c2d4e00375c2f7bde0b61eaee726f671b092fb32daae1d2f117",
-      "git_blob_sha": "20462d653159cb68fa8c3544c0088aa133faf15e",
-      "size": 4983,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/ResearchImpactList.vue",
-      "sha256": "c2248151611747cf2c14f7e07983470cc85a94b3d566e7616ab133f533e7e087",
-      "git_blob_sha": "30324843b15c1187ddee7d6ca9f345fc141d8ac4",
-      "size": 3325,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/ResearchStatusStrip.vue",
-      "sha256": "5066ba418f6502e4ae6eefb2d7ac94221232aab16f187cbe875e33172ad4ac8a",
-      "git_blob_sha": "98cd6df8afc6f82ff1e91d8ba8a4771d6d572bcf",
-      "size": 2545,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/WechatMentionPool.vue",
-      "sha256": "e542fb168e3f3fd6b8303e01df3002c8ae01a33c353ab30da944de7b59f18ce7",
-      "git_blob_sha": "c26fe731dc3667d05e9a0a980a0189b7c86a8a30",
-      "size": 10776,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/ResearchFeedPane.vue",
-      "sha256": "8980cd832a42b8d9bd353933ae98cb458d3fb13bc28c36e2f0df5892ddf72e4a",
-      "git_blob_sha": "a430dbf9a2fbf18f7fe5d648c16b96bf54cbe6ac",
-      "size": 2176,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/WechatResearchPanel.vue",
-      "sha256": "4cb44d8e06164d967339c201dca48cabef7aa1b7678c30a107c7ecab1b143592",
-      "git_blob_sha": "811f056edd1bb53b51b9daac5e19d277ad22856f",
-      "size": 14210,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/GlobalIndustryMap.vue",
-      "sha256": "185b3cb586f5e0daeefe7f0016674bc904c22edd465e88b92bedfa87d02467ce",
-      "git_blob_sha": "b36f92c1c222701ae13fe39d8f47d7d34e7615b3",
-      "size": 55976,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/ResearchSourceColumns.vue",
-      "sha256": "4b6d6ee1344dfcca5ed45df8e60853be099942a1930047f6091b9ded0359fe1c",
-      "git_blob_sha": "40d848e639e965cd6e3e8a2f493564c938aa4b3c",
-      "size": 1575,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/ResearchAppendix.vue",
-      "sha256": "2969a9c32e5a253c7f4165f30f1faa3cf3283ebcb33aae0fb83f1c9b209f4a21",
-      "git_blob_sha": "4190d3a22693e2f832ed166258b7be8bb7a03cfb",
-      "size": 415,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/GlobalIndustryMap.spec.ts",
-      "sha256": "9e2e5ac0cc810ecb85144f49e06d670ca72a3add8d6b8339d7f8cff319c0b0f5",
-      "git_blob_sha": "c1ae5839db17423f64af7efa433a21295e3dd9bc",
-      "size": 10582,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/ResearchContextPane.vue",
-      "sha256": "1cbcfcc7109e7b1a15d49e64435ba32b67c204f0bf0ea2a797a2a93687afac59",
-      "git_blob_sha": "f5779d1502707238977c2620e6b26735b9cc0102",
-      "size": 2096,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/research/WechatMentionPool.spec.ts",
-      "sha256": "0dd76bcb5da2bcbef86bc4d66cf778b9a7cdf787fe44462e134f402bb0e20810",
-      "git_blob_sha": "547c2d99d87f5ed9961266c4264ef669c92e1655",
-      "size": 6523,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchLineage.vue",
-      "sha256": "94fa1c74db8701a9af734795a0c74579adba03d6ca3cceb262848ab95a5f9422",
-      "git_blob_sha": "ac6a2d9f67f16e4c627cfae5229a205d6285a7bf",
-      "size": 2992,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchAlertPanel.vue",
-      "sha256": "f682b6cc37c9d2f7236c1a0c4b7ad3ba99fa81d4073efbb08afe07b9b41abf9c",
-      "git_blob_sha": "63888ce32aedb7db051c793b4b2514525720a39c",
-      "size": 2737,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchMetrics.vue",
-      "sha256": "71f4f68432a9f8a9b23022aa2aae929954a6aa5100972042f9b4746ae3dcb3f4",
-      "git_blob_sha": "aa77af1affb16c51342d16922d0b055128f0fd74",
-      "size": 3153,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchSlotMatrix.vue",
-      "sha256": "ac61c10627dfa1b5cd0269efc22ae50412f681c91db88e8b6d4ae7845e845d57",
-      "git_blob_sha": "817bc287e1d6556c0bd31db91f8d99afaa6e2a51",
-      "size": 2576,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchPools.vue",
-      "sha256": "b03af7d1ca0f0abfcd6231bb9ba53f4e272349cf740b2bf179bcd0543ebfc395",
-      "git_blob_sha": "6c393e97f7a862422ee081d100f727d40ba88a21",
-      "size": 5626,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/types.ts",
-      "sha256": "7b06a9da0e790083636a13b5994808676713d2ff91eea5e1de11ef8933bf5607",
-      "git_blob_sha": "1f72503c2aea2c4436ecb6aabf85c63701fffe84",
-      "size": 2146,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchHero.vue",
-      "sha256": "c5b47faf17654b89e140358ecab6ceb31868eae79bd7c973f3f3557ad061e185",
-      "git_blob_sha": "25c8cf5a8ebb7371fd7219fb172b76120ad82b1b",
-      "size": 5367,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/daily-research-command/DailyResearchHourlyDiagnostic.vue",
-      "sha256": "99994f2ec38e2b3061b5fdf7d6363d6eaad24805b787cf1822edbab0f106092e",
-      "git_blob_sha": "805a5b5c30204dcf373c99ada37f451b343dc3dd",
-      "size": 996,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/AshareHistoryPanel.vue",
-      "sha256": "28022b88906d9cd03b7bed28e4a9f131c80a254ac5f59f2e42c679dd245d8d6a",
-      "git_blob_sha": "65b4eb6a5e14d80456b30e1fa9c6a8af3f61b91d",
-      "size": 8413,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/StageSummaryPanel.vue",
-      "sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
-      "git_blob_sha": "0d1777dd708fa4a12905fa76dc6286615cd1d142",
-      "size": 4424,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/DailyResearchReviewPanel.vue",
-      "sha256": "a62d8c47419cac7d3d674693eddb5984b12f18268188f0328b163a60d590efb9",
-      "git_blob_sha": "66052228cf356b507027aea906b8a1b689aead8d",
-      "size": 27458,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/StageExecutionEvidencePanel.vue",
-      "sha256": "eca21b9d5674e3a18b09672c43401164ca356fd84fd6c719c14453c006f0ee5d",
-      "git_blob_sha": "4a279d5d7abc08bb2a26b7fc80a7c21ae247c15c",
-      "size": 8779,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/ReviewEvidencePanel.vue",
-      "sha256": "6164c5cd0042f70315b3aa6daf102b706c8b99055dffa702a574ca96ce025ef4",
-      "git_blob_sha": "42cdcd713f2e13ecb8b4b6bbbe570b7e8393bda9",
-      "size": 3531,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/AshareReviewPanel.spec.ts",
-      "sha256": "736f4047088d69d2f2ea54d643cf22cc527f4516e8ec03e1d3cd1ceb635e4c19",
-      "git_blob_sha": "33d11560a92aa888bacce4230a63ea0c049398dc",
-      "size": 13546,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/HkCloseReviewPanel.spec.ts",
-      "sha256": "e2164cf5d00eecf5590f475210c5ff219bb5de24312b85b2aea2fb74d2ca2aaf",
-      "git_blob_sha": "204073b48c88069fb5930a65152ddc417a712674",
-      "size": 5516,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/HkCloseReviewPanel.vue",
-      "sha256": "7a1eacbe709d38071107e116cdc81be8eed3659e5eaf9ca294273c1f88127e33",
-      "git_blob_sha": "6e8d26e917da5a6c47764700bbfebac403b405d5",
-      "size": 19484,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/components/review/AshareReviewPanel.vue",
-      "sha256": "d55d1c2cb6d1bf17db398d453bb7a1988c92e33fb7bcff6313a0d92b12707a1b",
-      "git_blob_sha": "79d24d29bd4129a835c53e9634fc71778ccab28b",
-      "size": 25764,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/app_shell/timeline.remediation.spec.ts",
-      "sha256": "4fc4559f897dd8cb5933ed8f0f6a7029a8762994f75702a3b2e6a39550ebc79b",
-      "git_blob_sha": "f126a6907417d2c7985ea5ce5fe53a50928b01d5",
-      "size": 4936,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/app_shell/types.ts",
-      "sha256": "af426dc751a38a48c75c4216d6ba782f6244588c2aee00cc2bb4af5e2ede0c1f",
-      "git_blob_sha": "08d577aec31e8444cc91104dbacd46d5bdd00c17",
-      "size": 8513,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/app_shell/timeline.ts",
-      "sha256": "16658c1a39a3ff779efe131226786664e4210431d03b6fe0fcc40d809f0e9538",
-      "git_blob_sha": "fa59111c2f63f1cf7a51002a6251dd59f757b458",
-      "size": 4697,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/daily-research-command/main.ts",
-      "sha256": "b8235092c762fc5cb485b649a6a45a05b434511301ca9f0444515bb04a465385",
-      "git_blob_sha": "7556facf8c322c48599d9309c0af0c5c365be090",
-      "size": 230,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/research_lane.ts",
-      "sha256": "e543f7d5e6c750678818bce166ccdbaf5175382e8a9471b8c73531eaf39c2c86",
-      "git_blob_sha": "aabd841aa471ac15dad74cd52c2025cea307c18e",
-      "size": 18351,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerWorkspace.ts",
-      "sha256": "82b99e20380bfa3b946232ef52fc22fa597fe4fe60d2f0cd5ebdf6ed8c4fbb44",
-      "git_blob_sha": "00aaa624a69e6bf006b600c0d0955c24389e245b",
-      "size": 128378,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/globalIndustries.ts",
-      "sha256": "023b0316f3961abcd298cb0ae5fce05949e377548a57361c015ad2ad7eb9cdbe",
-      "git_blob_sha": "f6a65e75ea6ef9e5f16f0252a2d2496ded4305bb",
-      "size": 890,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/selection.ts",
-      "sha256": "f94a8d4431fbfcf178a666eb019925b803c2e9ebb1cf9b31c93d5469189ff74d",
-      "git_blob_sha": "b3a76da5e4f26bd48b7f1a2b287348fc61ef9f42",
-      "size": 1177,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/pool_stage.spec.ts",
-      "sha256": "84a696a828218f02ff0dc9c0f142881123af11ae9e6b285855ff74e9c539f83e",
-      "git_blob_sha": "49894458ffa5d5e1d9df4e831049b6f6f31ae1ec",
-      "size": 23089,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerPreselection.ts",
-      "sha256": "29a0d16821774ab402d769bddcb79eba10ffa8b068c51c97ea308d92ea58794f",
-      "git_blob_sha": "52c46a93c0837e851614aa3993aee9ff413b2d99",
-      "size": 847,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerCatalystObservations.ts",
-      "sha256": "5413dc86478e7ab838ccdcca20ae740355b6c728b0e22392328bf6789dcac555",
-      "git_blob_sha": "72bc20dd0d2538330aeee1590cacd296458fcdc5",
-      "size": 5181,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerWorkbenchResearch.ts",
-      "sha256": "4335963c9b9c4b3d95ddb8758903812ecef057dc52afb02dc1a7c15185724aea",
-      "git_blob_sha": "4d4954cc12776f83cc8977c1e111dd2402e80cbc",
-      "size": 2042,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/review.ts",
-      "sha256": "fc2c7551fe386a9b01375d6d82d7f633990bba169f48e9b918386e31baa6dd7d",
-      "git_blob_sha": "892eeef9ff696c7ddce1fb4948f80fd1f34ea413",
-      "size": 1436,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/runtime.ts",
-      "sha256": "96d257a9266400443b7aad1252c4f709a0f24873ce9afab3f4a6dc9a189ff7c0",
-      "git_blob_sha": "dc157d56f1289782c4d17ac932c75ff3f690ba3e",
-      "size": 417,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/manualCollection.ts",
-      "sha256": "6eaee00df64f2de14374c754545e64284c80c887ada6bbbab2d0d6400ae7bd51",
-      "git_blob_sha": "a90a1c6dfeaffeaad3d79ee47fe7ee49cef5bcc7",
-      "size": 1844,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/a_share_history.ts",
-      "sha256": "2cc8a897566dadf1d5a38a92b0344bba8c3551a53f309c3c41aff478a695c24e",
-      "git_blob_sha": "71b1e44e6f8671e0c82b20b47dc8892638dd4aa8",
-      "size": 2319,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerWorkspace.attention.spec.ts",
-      "sha256": "c5ed1af92573dc34bd2c1dd70baec80d3226249c6b5dc57e9861655e614005a3",
-      "git_blob_sha": "5312859cb5b8d04a88f05647c40f99745cb7098c",
-      "size": 29502,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerAnnouncementAnalysis.spec.ts",
-      "sha256": "bde0f0b0c49d7c2c8f33d035298f5350af01e5965d228744af0c183508b9dec9",
-      "git_blob_sha": "4753bb6371672eaee64dd88157c685e5b0c34b1f",
-      "size": 21582,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerDecision.ts",
-      "sha256": "34e4c30ce66f973935ec2b427b0839a838f2ce8f04cb84018532a7997e49f4e3",
-      "git_blob_sha": "4ffcac1a1057187a17837c30f2b6a05d262f9dcd",
-      "size": 923,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/wechat_research.ts",
-      "sha256": "eb42b8dcdec5ae8b6bf72e132f94394009cc9ea65f4b83471fc077e59a1084fa",
-      "git_blob_sha": "8936a3c2e699a253df3d55c73db321af87b4b4a0",
-      "size": 14754,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerStageSelection.ts",
-      "sha256": "f7854ab5dabc2441a29546a88517e5cf27eb8c90491f750fe02669374654b56a",
-      "git_blob_sha": "35a5aec6ba5745cd5e56b62822c021cd1a823a68",
-      "size": 1116,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerResearch.ts",
-      "sha256": "42f6e4d19614675eaa66fc22809cacfbdb5caa1f64c655c98df5e9e9b95b1ae0",
-      "git_blob_sha": "686a8fa5106f9124a1c41cec682cc449b7917376",
-      "size": 18879,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/api/managerAnnouncementAnalysis.ts",
-      "sha256": "1fc46df22a4fa72f772fe47a9f3860d1dc93ab6e17889be1d2218f7abbed3bf9",
-      "git_blob_sha": "d01d3daccd9c8131551be68534806b93095515c0",
-      "size": 44135,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/api.ts",
-      "sha256": "8250b4b2fe0d61baebcfb2d3fd8dba624ae46170b296bf177321097032e9c3ff",
-      "git_blob_sha": "204c94b85dd257319553b1f95ee9534e35b6562e",
-      "size": 24548,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/display.ts",
-      "sha256": "b9a98a2f6a6371dc128b47f585f2a27477b3bb1d723433cce7ec359cd78a25bb",
-      "git_blob_sha": "26e81172db2245ade0c1b50cbad8d5de2e44a3cb",
-      "size": 9979,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/types.ts",
-      "sha256": "06a59295058e198fa3f5a6060907ce8e85644c278cdf6211680e2868f1735d55",
-      "git_blob_sha": "a62fa11b2bed2c3afb1b824e609ae34b772fd597",
-      "size": 38771,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/Workbench.vue",
-      "sha256": "16baa905ef153c6762695b644e88c28f9a9367e9960ef3cf2c9597a19720a663",
-      "git_blob_sha": "e5f816b8121ed0434b114c80a2da40b977fa3a80",
-      "size": 133289,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/route.ts",
-      "sha256": "7b2784fb72113e1a5da12817ada45b1361a31748834249a69b261c19f75fc0a8",
-      "git_blob_sha": "af131f63c1d6bce7f32aac16ee49b1815a793684",
-      "size": 2303,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/useWorkbench.ts",
-      "sha256": "5dd1c2834cea2029840f9d41c614935708bed018188ccebc0812188099241177",
-      "git_blob_sha": "64ef6cc84ddb3c855d9a3c40424c421f052a5acd",
-      "size": 33101,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/AnnouncementCandidates.vue",
-      "sha256": "f9d9f5078c5f0fe3c99d430f871ccde131287de6007cfdf24d79a914268012ac",
-      "git_blob_sha": "5f1eedfd2986238170a36b29774401d3ced74d38",
-      "size": 42881,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/us_mapping_stock_lists.ts",
-      "sha256": "cb3934d9b6f9a6804123a089901c55b37a435633fd183758a51e0f5ad2e62c57",
-      "git_blob_sha": "541ad82b5505109cff4b5af8267c1a9651a4a3d3",
-      "size": 13883,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/workbench.css",
-      "sha256": "15a168a85ea408efa205e96f00385d6008375156397087ec4f79bddfc75f8f0f",
-      "git_blob_sha": "9234b95b275e8c62751dc81c2912996f668887f6",
-      "size": 14721,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/__tests__/us_factor.spec.ts",
-      "sha256": "f12029f5bbb42dc6a27ab2e8b213461cf90ddf6e78755bf23350e53084678d6d",
-      "git_blob_sha": "2474fc13fcbd41362f29258955652a294ecfb27d",
-      "size": 27549,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/__tests__/announcement_flash.spec.ts",
-      "sha256": "6e2320deeec8a9faf2e4143c2aa7b9964fc6fc971451aa9cfcee9c0241c00a6d",
-      "git_blob_sha": "dcb916f7966a7d0032786af7a4aa2ee8633dd430",
-      "size": 45087,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/__tests__/display_reason.spec.ts",
-      "sha256": "9b6cbf18710d3edcb4ce26ff3cc4216d91994de83350bcf95259b682bcf10ed0",
-      "git_blob_sha": "35eadfc920d78f18af0a1f82cb411893333cbe82",
-      "size": 4789,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-workbench/__tests__/calendar_date.spec.ts",
-      "sha256": "d4c4bf51f2d83e234954f7d2bb7b8d0fb87a253c442437bc6d7dbf69a4361980",
-      "git_blob_sha": "f5fe9c01038a8e8c6f8a7dba41e97a0959f4517e",
-      "size": 7811,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/ReviewView.spec.ts",
-      "sha256": "af0acb1df0ac54de2ea0093183b02d70658d6d2a01feaba44a5b4a39ed147c1f",
-      "git_blob_sha": "d2aa58495ec65f86a64c27b96079379181bb50f9",
-      "size": 21734,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/TaskStatusView.spec.ts",
-      "sha256": "616b99a40c57168d29715ce210d204ae02848d9b72d26d8a7d795ec04ac2cf0f",
-      "git_blob_sha": "54817137c9f9bb94316225b56e2dbd5e633fb650",
-      "size": 8042,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/TaskStatusView.vue",
-      "sha256": "f86f3403f377653ea34568c298048cab96e39a27754f52c6f538ef7fb4cce045",
-      "git_blob_sha": "48bd361bed3dfee2b362c4a2cd9735fd4e610ecf",
-      "size": 8904,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/ResearchView.vue",
-      "sha256": "cc84ad2e71af8e3c3ce67c31d8eb3e1af10fc7e33018d32ab5b134b9b79f5aca",
-      "git_blob_sha": "f4364808fea7b4a8f95a93a718f6b686871b37a6",
-      "size": 7456,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/ManagerSelectionView.spec.ts",
-      "sha256": "7c4846ff33980189a6bc680995a2f4a5feb8e258ad97d731e6f4f58518e1b501",
-      "git_blob_sha": "e5a57c64e321d613b418579ffd47d6b7a2c8b3df",
-      "size": 211249,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/ManagerSelectionView.vue",
-      "sha256": "b6be03c9b1011de36014aec889815d35ce4dcc51f9a697653f7f703f9ca5be57",
-      "git_blob_sha": "e12d1730ee8ed0455aff3d370597dd48602b0876",
-      "size": 207758,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/DailyResearchCommandView.vue",
-      "sha256": "38854e4945c10802596845e2a3f00cbecee628b6e723831b5a3ac9182c95b2b7",
-      "git_blob_sha": "ea3fd398fd9319b583eecbe71bcc8fc2cf1276d3",
-      "size": 12705,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/ResearchView.spec.ts",
-      "sha256": "361c379362a7b8f6100bed3156f08dbe086e084e4c3fd8e43365eaabd8751d7c",
-      "git_blob_sha": "4dd568775c11694962ea616d06c3fcdc5f4f6c18",
-      "size": 20157,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/DailyResearchCommandView.spec.ts",
-      "sha256": "1fac9b44cd809125a5fe7eb7b43bb7cd3a07f43ec39c4ce6b9a96225d617b935",
-      "git_blob_sha": "f26a1de1b68bf04ce34881f515ae89e58829142f",
-      "size": 15285,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/views/ReviewView.vue",
-      "sha256": "cb1f4f19d9b8100d0caf86a5563990a90b627fdb72699b9ccbe499b1e9542c71",
-      "git_blob_sha": "4f6b816a6e7ea05f9bc30240833116251c7f08b9",
-      "size": 3441,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/main.ts",
-      "sha256": "343e6a6a0a941b901f2727df3ae6b77241b75f729fca453a6aaf7a7b5b0e9771",
-      "git_blob_sha": "1764956dadfe03a2d23637f7ae8d72826f69ec2c",
-      "size": 185,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/announcementObservation.ts",
-      "sha256": "8aa44bd21194c54a4c3e0c16188bca712e089822f0656c3a3ee4e545571af53c",
-      "git_blob_sha": "bb84e8131b4473aec131cd5cd41dbfd92061412c",
-      "size": 18006,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/dailyChannels.ts",
-      "sha256": "205bf6d0ec2ce6a9a25081b6dd8425d394a86e4e4e325e0ce6f2c92bd5c6591b",
-      "git_blob_sha": "4d815d2d07f3cc0e8765d547d2813a22ded50f6a",
-      "size": 28768,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/businessStatus.ts",
-      "sha256": "1435695fc9a7c209a7e4c2ed215a428931c72c3d3401665bca1484fe75265dfa",
-      "git_blob_sha": "72b7ad5b810a1bcf2c86329244763061512f1010",
-      "size": 16160,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/announcementAnalysis.ts",
-      "sha256": "255dbe2f87dd666c36228de633f7a1143bb16c3294c905ee8e74de265113e75a",
-      "git_blob_sha": "cee5ad87092af151f2fe0b41227bd6914bb93d1a",
-      "size": 37757,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/catalystObservationPanel.ts",
-      "sha256": "7abc94c0e980ea170be5e9153287d132858c242f2467fc952e12ca709006536d",
-      "git_blob_sha": "9c4a1ec571dc253f248176cfb9fb45f30b744488",
-      "size": 64251,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/catalystObservationPanel.runtime.spec.ts",
-      "sha256": "1e4e634dd47b89c0d09ca40a1c36df9d57fe1c2123bc1d98e3a5fb8bcb2ee645",
-      "git_blob_sha": "3a5df679ccd2c06a535a52f2d6814c702a02aa2d",
-      "size": 19545,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/researchAttention.ts",
-      "sha256": "d1fe398b04760c6a2d6f3649979c41c762e208105f21495c0be8b5a1bd2b004b",
-      "git_blob_sha": "b4df71938b6eae6cca7c5d87a7788c054a570342",
-      "size": 40577,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/announcementAnalysis.spec.ts",
-      "sha256": "4020e266ad3bede5518d8efc6362d4af3c5ef0c3814d2bff00446650b9fe3f65",
-      "git_blob_sha": "4ee268347300412d44de8a2f5259ded23bb89a18",
-      "size": 22041,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/workbenchPresentation.ts",
-      "sha256": "f35380e1be0d6997348fe2b754fe865cd6efb633e337345f9bd8b4654e716fe3",
-      "git_blob_sha": "5a6758a1aebe67ecb38d0f197ce86026c7bf0d00",
-      "size": 2981,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/priority.ts",
-      "sha256": "65fbdd8cb9e635787e0771de748ae0a106c08a937111fb64e8832856cf1ef671",
-      "git_blob_sha": "5657b12fdaaa6d910ad8e7e59d88945e04ea88cf",
-      "size": 44423,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/stageReasonContributions.spec.ts",
-      "sha256": "1a4f5b3c9ccc8e5d3f9c1cdfcb400531a7af34f745482a43faf9969ea8f8f9c9",
-      "git_blob_sha": "ab61cdb5169428f2855fb84558226fae5cc5f437",
-      "size": 21087,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/workspaceDecision.ts",
-      "sha256": "4a6aa2c3cd6ef7570008e253732237484b8a5a9821f8c8f095bc5f795fa63c47",
-      "git_blob_sha": "0871bfde4fcd9d8917b95006b5f5d743b81c696c",
-      "size": 9195,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/workbenchPresentation.spec.ts",
-      "sha256": "c95c90fc96bc06f1ee318dc3a93b8c8d3459e736ebe7740345e81aa6508b7284",
-      "git_blob_sha": "58af7f8cfbbd1ff1e7c42bf39474e983fcc9d471",
-      "size": 2956,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/priority.spec.ts",
-      "sha256": "583ae43b8d5238b861a10bb95cbb1207d674f4f761fcfbe34408d1bc034454a5",
-      "git_blob_sha": "85e4fdd37a12ec9d46a0c5367bdd9487a9a6a657",
-      "size": 11613,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/adapters/stageReasonContributions.ts",
-      "sha256": "a4b147c00050bfe6afe0bb4ffd96f6ad481d9bbd3b9cac91111d34ecb57a2453",
-      "git_blob_sha": "98cfaadf274bb441fb40c326b312ed5518ebf024",
-      "size": 46083,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/issue8R2.spec.ts",
-      "sha256": "3b8e004f31135674d63c1affd25cc41d759bfd10187a1dfc318f64c53636f873",
-      "git_blob_sha": "a37994c4a54b4fec2d1a4b5ff8969e17ade60592",
-      "size": 16344,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/announcementObservation.spec.ts",
-      "sha256": "ff8595230c0b13db8d05efab9d1c00841c4a22eac5ce1f3158e6a677747493b8",
-      "git_blob_sha": "36ba48e361b3ac7b2d97fa03acd23a3daa5e9219",
-      "size": 6791,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/businessCompletionR3.spec.ts",
-      "sha256": "2b78e2fc834eff951cf34cfdd52fe2a36f88e3409db81444cf0011e60bc5a8ba",
-      "git_blob_sha": "1f6fbcf08ab91769142e25c3930973a1346ae5c6",
-      "size": 9222,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/businessChainR2.spec.ts",
-      "sha256": "5339998598fb03e21cb8a6af5e7fa9f4b74d67c4791db0a6a47972959a7b1e0e",
-      "git_blob_sha": "ce4d29933408541ef5996822583557474637a488",
-      "size": 4497,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/usMappingCompletion.spec.ts",
-      "sha256": "177686f863a3392e57201f75d80dd262974ba8e633f1ba8de3af1ed0dd5803c9",
-      "git_blob_sha": "700f9b3efe2e56f75212f5072c47d6b5155b55e8",
-      "size": 14168,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/announcementReview.hkex.spec.ts",
-      "sha256": "0181df227962dd2ce92bef03dcc197f5512a2ea2840588b18496174acb944da3",
-      "git_blob_sha": "fbcc9f5d270d456e9886617d22fd169df150c347",
-      "size": 6954,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/actualResearchSelectionProjection.spec.ts",
-      "sha256": "bc8917ca6bb877d69b186afa5d688780f06b16993f5075035187c3ea971d0e53",
-      "git_blob_sha": "259a72c6ff242e6f841e8f55825a4062cfb8693a",
-      "size": 3559,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/workspaceAfterReadback.spec.ts",
-      "sha256": "aa3eed26c55613bff9fc4efd382de0896bfe2e833118bb3158d4c179ce030c13",
-      "git_blob_sha": "dcb4424c7831bed875887cb60f61f95f64635834",
-      "size": 1564,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/researchSelectionLedger.spec.ts",
-      "sha256": "c3937e5a6810bba715263d0b6e40b7c8d3637d45a2b9fbbe33b9f9f5dde0ebd2",
-      "git_blob_sha": "df0bfeef7b66cc37d868588ffc9e949f37f0eaed",
-      "size": 10955,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/src/manager-selection/__tests__/fixtures/issue8R2.fixture.ts",
-      "sha256": "173d1711fc86fbb392eb616d4dde7bcab21b5b1a74b24372b9314b1297a31525",
-      "git_blob_sha": "7decbc76298a57a1c0c6e05caeb1125517bbe42a",
-      "size": 4410,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/index.html",
-      "sha256": "4a03a2c60e2becc71dfa7a4aeb9c7da7ed04e74832b77151cedc2cc9c814594d",
-      "git_blob_sha": "44451872867d377dd34819861b33ffde9ffd7158",
-      "size": 561,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/manager-selection/index.html",
-      "sha256": "1cfb59aebbc8747ca6f4696a9b13832fb16d75dadbe198cc85344c8965341274",
-      "git_blob_sha": "bcd41c61db9a19401710702dca4c8f4cd0508191",
-      "size": 391,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "components/api/apps/web/daily-research-command/index.html",
-      "sha256": "a6994e5ce3832cada2ce4b6c4667969d9e33e905b5865c41a9db30217f3bde6e",
-      "git_blob_sha": "3d2c3217c789d7c6c9a3a72977fb8af0b501c028",
-      "size": 406,
-      "kind": "unchanged_actual_frontend_baseline_source"
-    },
-    {
-      "path": "evidence/FRONTEND_SOURCE_PROVENANCE.json",
-      "sha256": "c508226ac809e2c83ae7786003f487625a218e3227995693eb8d3f1ac9915d94",
-      "git_blob_sha": "79714e40279fd0bd44e0de8d60b3bc30b5818e73",
-      "size": 650,
-      "kind": "source_provenance"
-    },
-    {
-      "path": "components/control/docs/ui-six-fixes/control/prepare.py",
-      "sha256": "992ea9b2aada5460c6dbfd9e9604bdd250e7d0c73838d4cf839cbc143456501c",
-      "git_blob_sha": "c25dd4ce92f1a31e8d3f85721a24b9f4a262e3b2",
-      "size": 19793,
-      "kind": "control_source_or_test"
-    },
-    {
-      "path": "components/control/docs/ui-six-fixes/control/controller.py",
-      "sha256": "d7e9264e59e25127b67c889580da1ee9e72f7562b1801b2cb17280ed2007f95e",
-      "git_blob_sha": "328913518ff572fe27d1e2d64ef7da007b1a0b96",
-      "size": 21187,
-      "kind": "control_source_or_test"
-    },
-    {
-      "path": "components/control/docs/ui-six-fixes/control/test_control.py",
-      "sha256": "3cffe8d17a79d988912f391e912b457095e0c46135552d4044cb8c7b904c7ef7",
-      "git_blob_sha": "641c971f2b3e246e5d355bc59f407154e0614d1b",
-      "size": 28303,
-      "kind": "control_source_or_test"
-    },
-    {
-      "path": "components/control/docs/ui-six-fixes/control/README.md",
-      "sha256": "6b5ea1f75e28768c3fbf9917a67442cb3b27a36d562e0af915101a9fafb59a55",
-      "git_blob_sha": "920870c98f746bb94a52070c6a5adc61a63334c6",
-      "size": 4638,
-      "kind": "control_source_or_test"
-    },
-    {
-      "path": "evidence/CONTROL_SOURCE_MANIFEST_R2.json",
-      "sha256": "0ccdb1ea71a69326fe0340e3d383e3d805900079c273cf4e755c0476e05d1499",
-      "git_blob_sha": "b741f2e545aa8a0252914d6a6d7df5094255d47d",
-      "size": 1003,
-      "kind": "review_or_metadata"
-    },
-    {
-      "path": "evidence/CONTROL_REVIEW_FAILED_R1.json",
-      "sha256": "ce4bffd26b0da41b48c3f447d79c981614ab8596694444264804d1fb4080b4d0",
-      "git_blob_sha": "36f2207e0f598483ec385d375160a4d1ea52c13a",
-      "size": 6153,
-      "kind": "review_or_metadata"
-    },
-    {
-      "path": "evidence/CONTROL_REVIEW_SOURCE_PASS_R2.json",
-      "sha256": "926a0692337024b0ebbf8a0c5b7b534b351628a06c56f66f65f990e5587d34bf",
-      "git_blob_sha": "935e17617081af2ee674daa4e37d9d11d4bdd3c9",
-      "size": 5293,
-      "kind": "review_or_metadata"
-    },
-    {
-      "path": "evidence/CONTROL_VALIDATION.json",
-      "sha256": "bba6df73f82ec91833dadc6ac8a1b0dff0443dc3cbca0ba21ae81ae0443166ba",
-      "git_blob_sha": "597624a547fd97d373b6fc9881d81d53d91b10ec",
-      "size": 4685,
-      "kind": "review_or_metadata"
-    },
-    {
-      "path": "evidence/CONTROL_SCOPE.json",
-      "sha256": "c9679daaf1889b8bcccb069f9640e621179b4a8078792ab9900dfe27cbfa55e8",
-      "git_blob_sha": "8fcb4fb04d96d57c891054cf717544cd3d82b200",
-      "size": 1301,
-      "kind": "review_or_metadata"
+      "path": "validation/apps/web/src/components/research/ResearchFeedCard.spec.ts",
+      "sha256": "86a1e2eabdd22ae4c924575b2f2532a234860915571869c724cb2ae7089a221e",
+      "git_blob_sha": "e1bc61f79a695cd5543b150bbf8d03107fd5094f",
+      "size": 4933,
+      "kind": "test"
+    },
+    {
+      "path": "validation/apps/web/tests/ui-six-fixes.spec.ts",
+      "sha256": "e4c0ae15b1be14f4710956d937a221f23085857d062a9337aef030f476d925a9",
+      "git_blob_sha": "f4832c703c897673c7767f4667bdfea2a1f4b720",
+      "size": 4026,
+      "kind": "test"
+    },
+    {
+      "path": "validation/tests/test_pdf_night_window.py",
+      "sha256": "6ac95eed6b3c78148ecbd5e3210f4ae1be7ffccf7ff4b8017cb62a2b4b60fac2",
+      "git_blob_sha": "67c15514b242ef18cb913d3e3f555bcdf4e8972f",
+      "size": 6666,
+      "kind": "test"
+    },
+    {
+      "path": "validation/tests/test_ui_six_fixes.py",
+      "sha256": "97d50f228cdea5eea2015470e375aff6307964f7dc664cd785b5827da0137675",
+      "git_blob_sha": "9f16baa5bf25cd7af78c5a6a54bba12843a2deb5",
+      "size": 16762,
+      "kind": "test"
     }
   ],
   "contains_raw_data": false,
@@ -1197,5 +1232,8 @@
     "business_source_changes": 0,
     "runtime_actions": 0
   },
-  "control_source_updated_at": "2026-10-27T13:41:22.145702+08:00"
+  "control_source_updated_at": "2026-10-27T13:41:22.145702+08:00",
+  "updated_at": "2026-10-27T15:15:36.180963+08:00",
+  "control_source_manifest": "evidence/CONTROL_SOURCE_MANIFEST_R5.json",
+  "actual_acceptance": "evidence/FINAL_ACCEPTANCE_SUMMARY.json"
 }

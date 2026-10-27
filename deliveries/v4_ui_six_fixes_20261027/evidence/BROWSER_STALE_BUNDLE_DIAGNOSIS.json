@@ -1,0 +1,37 @@
+{
+  "observed_at": "2026-10-27T15:02:27.484391+08:00",
+  "classification": "BROWSER_STALE_BUNDLE",
+  "source_defect_confirmed": false,
+  "source_changes": 0,
+  "business_test_reruns": 0,
+  "new_publication_required": false,
+  "preserved_failure": "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/controller/actual_ui/stage_STAGE_1545_1555_loaded.visible.txt",
+  "browser_evidence_from_parent": {
+    "old_document_script": "/assets/main-D_WPyAX3.js",
+    "recovery": "One full navigation of original URL with ui_verify=20261027T1502",
+    "new_document_script": "/assets/main-Dk6N4Uwb.js",
+    "console": "No error/warn; empty console did not establish current bundle identity"
+  },
+  "writer_readonly_findings": {
+    "HTTP_index_script": "/assets/main-Dk6N4Uwb.js",
+    "HTTP_JS_matches_actual_release_file": true,
+    "bundle_sha256": "e05596cfb6cea5d34a740c51aa6e05d0e9b3208acd37c3f7d0d42263532f2e45",
+    "actual_stage_request_limit": 50,
+    "actual_source_decoder": {
+      "STAGE_0925": "PASS",
+      "STAGE_1545_1555": "PASS; HTTP200/CANNOT_CONFIRM/HK_CONNECT only, null unknown HK counts, false execution/natural/write flags"
+    },
+    "actual_emitted_bundle_decoder": {
+      "method": "Extracted function declarations from actual served bundle via TypeScript AST; evaluated only stage/pool decoder functions with real GET responses; no Vue mount or service action",
+      "stage_loader_function": "Pn",
+      "pool_loader_function": "Y_",
+      "label_function": "f_",
+      "STAGE_1545_1555": "PASS CANNOT_CONFIRM",
+      "pool_has_more": true,
+      "pool_label": "当前显示 200 / 共 482 条"
+    },
+    "pagination_projection": "Actual response.pagination.arrays.a_all_pool_rows.has_more=true; useAppShell and emitted bundle carry it to PoolGroup",
+    "discarded_diagnostic_probe": "Manual limit200 stage probe got422 because APImax50; corrected to actual bundle limit50. This is not the UI root cause."
+  },
+  "acceptance_boundary": "Parent rechecks actual8stage/pagination/PDF and45UI in confirmed new bundle. Preserve prior UI failure as old-bundle evidence. Existing source/control PASS reused; no new source fix, candidate, deploy plan, live locks/signals or service actions by Writer."
+}

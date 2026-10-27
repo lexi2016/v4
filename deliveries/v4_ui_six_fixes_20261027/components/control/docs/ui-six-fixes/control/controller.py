@@ -25,14 +25,25 @@ def boundary(moment,windows,margin=300):
 
 
 @contextmanager
-def same_inode_guard(row):
+def same_inode_guard(row,*,wait_seconds=0,check_window=None):
+    if wait_seconds<0:raise ValueError('NEGATIVE_LOCK_WAIT_BUDGET')
     fd=os.open(row['path'],os.O_RDWR|os.O_NOFOLLOW)
     try:
         info=os.fstat(fd)
         if not stat.S_ISREG(info.st_mode):raise RuntimeError('ORIGINAL_LOCK_NOT_REGULAR')
         if (info.st_dev,info.st_ino)!=(row['device'],row['inode']):raise RuntimeError('ORIGINAL_LOCK_INODE_DRIFT')
-        try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        except BlockingIOError as error:raise RuntimeError('PENDING_ORIGINAL_LOCK_BUSY') from error
+        deadline=time.monotonic()+wait_seconds;retry=False
+        while True:
+            if check_window is not None:check_window()
+            if retry and time.monotonic()>=deadline:raise RuntimeError('PENDING_ORIGINAL_LOCK_BUSY')
+            try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise RuntimeError('PENDING_ORIGINAL_LOCK_BUSY') from error
+                retry=True
+                time.sleep(min(0.25,remaining))
+            else:break
+        if check_window is not None:check_window()
         yield fd
     finally:os.close(fd)  # no unlink/recreate/LOCK_UN of a shared inherited description
 
@@ -164,8 +175,23 @@ class Controller:
 
     def verify(self,plan):
         self.verify_inventory(plan)
+        self.verify_api_binding(plan)
         main=self.verify_main(plan);observed=self.op.observe_api(plan);self.op.validate_api_observation(plan,observed)
         return {'main':main,'api':observed}
+
+    def verify_api_candidate(self,*,active_pointer,lease=None):
+        with prep.api_identity_scope(self.integration,self.p['base']['api'],self.p['api_module_contract']):
+            return self.integration.verify_api_release_candidate(candidate_root=Path(self.p['components']['api']['release_root']),
+                active_api_plist_path=Path(self.row('api')['plist']),expected_manifest_sha256=self.p['components']['api']['sha256'],
+                active_pointer=active_pointer,lock_lease=lease,require_shared_lock=lease is not None)
+
+    def verify_api_binding(self,plan):
+        if plan['components']['api']['release_root']==self.p['components']['api']['release_root']:
+            return self.verify_api_candidate(active_pointer='candidate')
+        with prep.api_identity_scope(self.integration,self.p['base']['api'],self.p['api_module_contract']):
+            current=self.integration.read_active_release(Path(self.row('api')['plist']))
+        if self.integration._base_binding(current)!=self.p['api_baseline']:raise RuntimeError('ACTUAL_API_ROLLBACK_BASE_DRIFT')
+        return current
 
     def verify_inventory(self,plan,*,candidate=False):
         for key in prep.LABELS:
@@ -271,7 +297,7 @@ class Controller:
             stack.enter_context(same_inode_guard(owner))
             for lane in ('lane_A_LONG','lane_DEFAULT'):stack.enter_context(same_inode_guard(self.p['locks'][lane]))
             self.pdf_before=set(self.g.processes())
-            stack.enter_context(same_inode_guard(self.p['locks']['pdf_ingestion']))
+            stack.enter_context(same_inode_guard(self.p['locks']['pdf_ingestion'],wait_seconds=180,check_window=self.window))
             stack.enter_context(self.integration.announcement_flash_cutover_guard(Path(self.p['workbench_root']),timeout_seconds=0))
             lease=stack.enter_context(self.integration.shared_api_release_lock(Path(self.row('api')['plist']),timeout_seconds=0))
             stack.enter_context(same_inode_guard(self.p['locks']['collector']))
@@ -286,8 +312,7 @@ class Controller:
                 if target.exists():prep.pin(target,prep.sha(source))
                 else:
                     with target.open('xb') as stream:stream.write(source.read_bytes());stream.flush();os.fsync(stream.fileno())
-                self.integration.verify_api_release_candidate(candidate_root=Path(self.p['components']['api']['release_root']),
-                    active_api_plist_path=Path(self.row('api')['plist']),expected_manifest_sha256=self.p['components']['api']['sha256'],lock_lease=lease,require_shared_lock=True)
+                self.verify_api_candidate(active_pointer='base',lease=lease)
                 self.idle(identity);self.cas();self.window();self.verify_inventory(self.p);started=True
                 # PDF admission is locked and existing processing has finished.
                 for key in ('main','collector','api'):self.unload(key)

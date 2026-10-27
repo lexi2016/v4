@@ -5,6 +5,7 @@ The executing controller must revalidate every bound identity under original loc
 """
 from __future__ import annotations
 import argparse, copy, hashlib, importlib.util, json, os, plistlib, re, shutil, stat, sys
+from contextlib import contextmanager
 from pathlib import Path
 
 CASE=Path('/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027')
@@ -124,6 +125,44 @@ def verify_business_review(handoff):
         if receipt.get(field)!=handoff[key]['sha256']:raise ValueError('BUSINESS_REVIEW_BINDING_MISMATCH:'+field)
 
 
+@contextmanager
+def api_identity_scope(helper,base,contract):
+    """Private helper instance, exact handed-off legacy base only; restore always.
+
+    Preserve the real legacy manifest/schema/SHA. All candidate and unrelated
+    identities keep the original standard verifier. No file or global source edits.
+    """
+    pin(contract['path'],contract['sha256']);original=helper._release_identity
+    if Path(helper.MODULE_CONTRACT_PATH)!=Path(contract['path']):raise ValueError('CASE_API_MODULE_CONTRACT_PATH')
+    def identity(**kwargs):
+        expected={'release_root':str(Path(base['app_root']).parent),'app_root':base['app_root'],
+                  'release_id':Path(base['app_root']).parent.name,'manifest_path':base['manifest'],'manifest_sha256':base['manifest_sha256']}
+        if any(str(kwargs.get(key))!=value for key,value in expected.items()):return original(**kwargs)
+        pin(base['manifest'],base['manifest_sha256']);m=load(base['manifest'])
+        if m.get('schema_version')=='v4.release_candidate.v1':return original(**kwargs)
+        if m.get('schema_version')!='v4.runtime_graph_repair_release.v1':raise ValueError('CASE_LEGACY_API_SCHEMA_REJECTED')
+        if m.get('app_root')!=base['app_root'] or m.get('release_id')!=expected['release_id']:raise ValueError('CASE_LEGACY_API_ROOT_MISMATCH')
+        root=helper._exact_path(Path(base['app_root']),kind='directory',label='CASE_LEGACY_API_APP')
+        if root.parent/ 'release-manifest.json'!=Path(base['manifest']):raise ValueError('CASE_LEGACY_API_MANIFEST_PATH')
+        actual,excluded=helper._inventory_tree_with_generated_cache(root);aggregate=helper.inventory_digest(actual)
+        files=[{'path':r['path'],'bytes':r['size'],'sha256':r['sha256']} for r in actual if r['kind']=='file']
+        links=[{'path':r['path'],'target':r['target']} for r in actual if r['kind']=='symlink']
+        declared=m.get('app_files')
+        if not isinstance(declared,list) or len({r['path'] for r in declared})!=len(declared) or sorted(declared,key=lambda r:r['path'])!=files or m.get('symlinks')!=links:raise ValueError('CASE_LEGACY_API_COMPLETE_INVENTORY_DRIFT')
+        if aggregate!=base['application_inventory_sha256'] or kwargs.get('application_inventory_sha256',aggregate)!=aggregate:raise ValueError('CASE_LEGACY_API_INVENTORY_BINDING')
+        role=helper.module_role_contract()['roles']['gateway']
+        if role['label']!=LABELS['api'] or role['plist_name']!=LABELS['api']+'.plist' or role['port']!=8873:raise ValueError('CASE_LEGACY_API_MODULE_CONTRACT')
+        return {'release_root':expected['release_root'],'app_root':str(root),'release_id':expected['release_id'],
+                'release_manifest_path':base['manifest'],'release_manifest_sha256':base['manifest_sha256'],
+                'application_inventory_sha256':aggregate,'application_inventory_entry_count':len(actual),
+                'generated_bytecode_cache_exclusions':excluded,'generated_bytecode_cache_exclusion_sha256':helper.inventory_digest(excluded),
+                'module_role':'gateway','module_contract_sha256':None,'external_module_contract':copy.deepcopy(contract),
+                'manifest':m,'inventory':actual,'actual_manifest_schema':m['schema_version']}
+    helper._release_identity=identity
+    try:yield
+    finally:helper._release_identity=original
+
+
 def protected_windows(catalog):
     if not isinstance(catalog.get('workloads'),list):raise ValueError('SCHEDULE_CATALOG_SHAPE_UNKNOWN')
     slots=set()
@@ -157,12 +196,25 @@ def apply_overlay(helper,base_app,candidate_app,rows):
     return entries,{'non_delta_count':len(preserved),'non_delta_sha256':helper.inventory_digest(preserved),'records':records}
 
 
-def manifest(helper,app,target,base_manifest):
-    if 'files' in base_manifest:raise ValueError('AUXILIARY_MANIFEST_INDEX_REQUIRES_ADJUDICATION')
+def manifest(helper,app,target,base_manifest,*,component=None):
+    legacy=base_manifest.get('files')
+    if 'files' in base_manifest:
+        if component!='main' or not isinstance(legacy,dict):raise ValueError('AUXILIARY_MANIFEST_INDEX_REQUIRES_ADJUDICATION')
+        for path,digest in legacy.items():
+            if (not isinstance(path,str) or not path.startswith('app/') or helper._normalise_relative(path[4:])!=path[4:]
+                or not isinstance(digest,str) or re.fullmatch(r'[0-9a-f]{64}',digest) is None):raise ValueError('UNKNOWN_MAIN_LEGACY_INDEX')
+        if legacy!={'app/'+row['path']:row['sha256'] for row in base_manifest['app_files']}:raise ValueError('MAIN_LEGACY_INDEX_DISAGREES_WITH_APP_FILES')
     result=copy.deepcopy(base_manifest);items=helper.inventory_tree(app)
     result['app_files']=[{'path':r['path'],'bytes':r['size'],'sha256':r['sha256']} for r in items if r['kind']=='file']
+    if legacy is not None:
+        projected={'app/'+row['path']:row['sha256'] for row in result['app_files']}
+        if set(projected)!=set(legacy):raise ValueError('MAIN_LEGACY_INDEX_KEY_SET_DRIFT')
+        result['files']={path:projected[path] for path in legacy}
     result['symlinks']=[{'path':r['path'],'target':r['target']} for r in items if r['kind']=='symlink']
-    result['application_inventory']={'entries':items,'aggregate_sha256':helper.inventory_digest(items)}
+    result['application_inventory']={'entry_count':len(items),'entries':items,'aggregate_sha256':helper.inventory_digest(items)}
+    if component=='api' and base_manifest.get('schema_version')=='v4.runtime_graph_repair_release.v1':
+        result['schema_version']='v4.release_candidate.v1'
+        result['candidate']={'root':str(target),'app_root':str(target/'app'),'release_id':target.name,'module_role':'gateway'}
     result.update(app_root=str(target/'app'),release_id=target.name,**SAFETY)
     if 'candidate' in result:result['candidate'].update(root=str(target),app_root=str(target/'app'),release_id=target.name)
     return result
@@ -191,7 +243,7 @@ def prepare(output,*,handoff_path,handoff_sha):
         if helper.inventory_digest(helper.inventory_tree(Path(row['app_root'])))!=row['application_inventory_sha256']:raise ValueError('HANDOFF_APPLICATION_INVENTORY_DRIFT:'+key)
         base[key]=copy.deepcopy(row)
     require_main_launcher(values['main'],base['main']['app_root'])
-    current=helper.read_active_release(Path(base['api']['plist']))
+    with api_identity_scope(helper,base['api'],contract):current=helper.read_active_release(Path(base['api']['plist']))
     if current['app_root']!=base['api']['app_root'] or current['release_manifest_sha256']!=base['api']['manifest_sha256']:raise ValueError('FRESH_API_BASE_MISMATCH')
     for key in LABELS:
         operator.verify_release({'components':{key:{'release_root':str(Path(base[key]['app_root']).parent),'sha256':base[key]['manifest_sha256']}}},key)
@@ -219,8 +271,11 @@ def prepare(output,*,handoff_path,handoff_sha):
         else:
             shutil.copytree(old_app,candidate/'app',symlinks=True);entries=[]
             if helper.inventory_tree(old_app)!=helper.inventory_tree(candidate/'app'):raise ValueError('GRAPH_COPY_DRIFT')
-        m=manifest(helper,candidate/'app',targets[key],load(base[key]['manifest']))
+        m=manifest(helper,candidate/'app',targets[key],load(base[key]['manifest']),component=key)
         if key=='api':
+            m['external_module_contract']=copy.deepcopy(contract)
+            m['source_manifest_identity']={'path':base[key]['manifest'],'sha256':base[key]['manifest_sha256'],'schema_version':load(base[key]['manifest'])['schema_version'],
+                                           'plist_sha256':base[key]['plist_sha256'],'application_inventory_sha256':base[key]['application_inventory_sha256']}
             receipt={'schema_version':helper.DELTA_SCHEMA_VERSION,'base':helper._base_binding(current),'entries':entries}
             dump(candidate/helper.DELTA_RECEIPT_NAME,receipt)
             # Use the original integrated-builder verifier's exact contract.
@@ -266,6 +321,7 @@ def prepare(output,*,handoff_path,handoff_sha):
        'base':base,'config_path':str(config_path),'config_target':str(config_target),'config_sha256':sha(config_path),
        'prior_plan':str(output/'PRIOR_PLAN.json'),'prior_plan_sha256':sha(output/'PRIOR_PLAN.json'),'helpers':h['helpers'],
        'api_module_contract':contract,'locks':h['locks'],'main_guard_parameters':h['main_guard_parameters'],
+       'api_baseline':helper._base_binding(current),
        'workbench_root':h['workbench_root'],'us_ledger_root':h['us_ledger_root'],'protected_windows':protected_windows(load(catalog['path'])),
        'minimum_margin_seconds':300,'proofs':proofs,'frozen_inputs':{key:h[key] for key in ('api_overlay','main_overlay','source_freeze','business_review')},
        'prepare_path':str(Path(__file__).absolute()),'prepare_sha256':sha(__file__),**SAFETY}

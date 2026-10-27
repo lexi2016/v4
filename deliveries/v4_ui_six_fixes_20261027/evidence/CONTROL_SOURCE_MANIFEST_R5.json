@@ -1,0 +1,39 @@
+{
+  "scope": "V4_UI_PDF_PUBLICATION_CONTROL_R2",
+  "source_root": "/Users/lexi/.codex/worktrees/v4-ui-six-fixes-20261027/v4_app",
+  "supersedes_manifest_sha256": "585aa5f2d2640d619f2020280127a9fc7755000687c952ea2d5664ee715ca646",
+  "files": [
+    {
+      "path": "docs/ui-six-fixes/control/prepare.py",
+      "bytes": 24829,
+      "sha256": "fac2ddfcc31ff6c15263111f79ac06bf619c68f96ac8d1ed7da8cbf59da549e7"
+    },
+    {
+      "path": "docs/ui-six-fixes/control/controller.py",
+      "bytes": 22716,
+      "sha256": "503605749cb349f60abc71018f5a6480828f3975ac7574ceaee99f56f839a220"
+    },
+    {
+      "path": "docs/ui-six-fixes/control/test_control.py",
+      "bytes": 41255,
+      "sha256": "f8ef2f21bf3b3db4712e34bc437c52f54ea4aa5fa881f8de3db340be44d52207"
+    },
+    {
+      "path": "docs/ui-six-fixes/control/README.md",
+      "bytes": 6529,
+      "sha256": "41c29dec8520ea2bd864cb068b6c9d6d42168e9f0378cf4d20446dfc8f161fb7"
+    }
+  ],
+  "runtime_actions_by_writer": 0,
+  "changes": [
+    "controller same_inode_guard optional bounded wait and PDF call only",
+    "direct focused fixtures"
+  ],
+  "prepare_and_existing_PLAN_unchanged": true,
+  "actual_plans_read_only": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/controller/publication_control_r2/candidate-r4/PLAN.json",
+      "sha256": "23aa1b10b35e282d1622da905c9e9b01de83f954fb8f3725a0a37c4e4ff6ab95"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "scope": "V4_UI_PDF_PUBLICATION_CONTROL_R2",
+  "reviewer": "/root/six_fixes_sol_review",
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "deployment_plan_sha256": "23aa1b10b35e282d1622da905c9e9b01de83f954fb8f3725a0a37c4e4ff6ab95",
+  "prepare_sha256": "fac2ddfcc31ff6c15263111f79ac06bf619c68f96ac8d1ed7da8cbf59da549e7",
+  "controller_sha256": "503605749cb349f60abc71018f5a6480828f3975ac7574ceaee99f56f839a220",
+  "control_source_manifest_sha256": "eac3f87098ff8db8f5924f30282db9dafc420254bd47181d2ff062d75d8b6f0e",
+  "acceptance_scope": "Only optional bounded original PDF-lock acquisition wait; unchanged PLAN/new controller binding",
+  "open_findings": [],
+  "delta_review": {
+    "file": "docs/ui-six-fixes/control/controller.py",
+    "line": 29,
+    "result": "PASS",
+    "evidence": [
+      "Original same-inode FD opened once; all retries sameFD",
+      "Only pre-yield fcntl BlockingIOError retried with local monotonic deadline, sleeps<=0.25s",
+      "Window checked before each attempt and after acquisition",
+      "Timeout/window/other exception closes only guardFD",
+      "Yield outside retry loop; execution-body failure cannot reacquire",
+      "Only PDF enables180s; all otherguards timeout0",
+      "No new retries for service/CAS/unknown outcomes"
+    ]
+  },
+  "independent_validation": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "test_selection": "pdf_lock_wait or pdf_lock_yield_exception or guard_contexts_survive or original_flock_inode",
+    "temporary_directory": "Fresh isolated /private/tmp",
+    "result": "7 passed,59 deselected in0.04s;exit0",
+    "cases": "Natural release/timeout/window/yield-error/other-fcntl/default/recoverycontext",
+    "source_hashes": "All4 matched CONTROL_SOURCE_MANIFEST_R5.json",
+    "plan_binding": "PLAN/prepareSHA unchanged",
+    "writer_test_log_sha256": "3c33eb310015926b310703867cdb2072b4659373738902e1f987cb71954a79ea"
+  },
+  "reused_acceptance": {
+    "formal_PLAN_and_actual_identity_review": "Prior accepted R4 reused",
+    "Main_API_manifest_compatibility": "Prior13 independentPASS reused",
+    "three_control_P2_repairs": "Prior19 affected cases/PASS reused",
+    "business14_static2": "Prior independent businessPASS reused;no business rerun"
+  },
+  "preserved_actual_attempt": {
+    "record": "controller/publication_control_r2/CONTROL_ATTEMPT_PENDING_PDF_LOCK_R1.json",
+    "result": "Conservative PDF lock busy beforestage/journal/CAS/service",
+    "interpretation": "Real condition justifies bounded acquisition change; not deployment success"
+  },
+  "BEHAVIOR_VERIFIED": "7 temporary-lock/mocked recoverycases/source hashes/unchangedPLAN binding only",
+  "execution_boundary": {
+    "fixed_plan_only": true,
+    "fresh_controller_CAS_and_all_original_guards_required": true,
+    "budget_or_window_exhaustion": "Conservative stop before service actions",
+    "unknown_service_outcome": "Previously reviewed retained-guard recovery",
+    "actual_new_deployment": "NOT_RUN",
+    "new_runtime_API_UI": "NOT_RUN",
+    "daytime_new_runtime_PDF_readback": "NOT_RUN",
+    "natural_night_acceptance": "CANNOT_CONFIRM"
+  },
+  "reviewer_safety": {
+    "live_lock_acquisitions": 0,
+    "service_actions": 0,
+    "signals": 0,
+    "source_edits": 0,
+    "business_data_edits": 0,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "final_status": "REVIEWED/PASS",
+  "recording": "Faithful structured parent copy; full original final retained in subagent transcript"
+}

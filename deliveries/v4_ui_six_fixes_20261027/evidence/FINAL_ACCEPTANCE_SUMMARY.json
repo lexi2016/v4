@@ -1,0 +1,277 @@
+{
+  "schema": "v4.ui_six_fixes.release_acceptance_summary.v1",
+  "observed_at": "2026-10-27T15:15:36.180963+08:00",
+  "source_freeze_sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
+  "business_review": "REVIEWED/PASS",
+  "control_review": "PUBLICATION_CONTROL_R2_FINAL_PASS_R5.json",
+  "control_plan_sha256": "23aa1b10b35e282d1622da905c9e9b01de83f954fb8f3725a0a37c4e4ff6ab95",
+  "actual_deployed_at": "2026-10-27T14:19:17.380989+08:00",
+  "main_release_id": "ui-pdf-publication-20261027-r2-main",
+  "api_release_id": "ui-pdf-publication-20261027-r2-api",
+  "main_manifest_sha256": "5e309809518afd08e7ac1083e65ac4237727cc239f8df62ce1ee2a80071a5af2",
+  "api_manifest_sha256": "947686711f3476d2fa1bb494a7d39fa2b81610ec28de0a3f6a6f275879d80167",
+  "main_pdf_modules": {
+    "ops/run_v35_macos_scheduler_daemon.py": "58e678dd13d2cc50a9400ea96ae9781131256c2da426d97b8cd05e78a3688e2a",
+    "infrastructure/zsxq_pdf_ingestion.py": "cb00890b1f0d073fe67be8bde4b32357f8a3be88e41d7d88f22fe750c76aad16"
+  },
+  "static_modules": {
+    "apps/web/dist/index.html": "6339052dc72b993b71a0aea141ee8f71f45758afa89947af76e5c1e67a993b13",
+    "apps/web/dist/assets/main-Dk6N4Uwb.js": "e05596cfb6cea5d34a740c51aa6e05d0e9b3208acd37c3f7d0d42263532f2e45"
+  },
+  "controller_exit_code": 0,
+  "guards_released": true,
+  "current_name_identity_coverage": {
+    "required": 90,
+    "verified": 90,
+    "authority_run_id": "d04b77052fb9acbc82707796",
+    "scope": "CURRENT_DISPLAY_NAME_ONLY_NOT_PIT_OR_SELECTION"
+  },
+  "ui_passed": 45,
+  "ui_required": 45,
+  "ui_items": [
+    {
+      "item": "阶段选股",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:35.238Z"
+    },
+    {
+      "item": "D-1预选池",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:03:19.645Z"
+    },
+    {
+      "item": "研报决策台",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:58.040Z"
+    },
+    {
+      "item": "经理选股工作台",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:11.098Z"
+    },
+    {
+      "item": "任务状态",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:10:06.154Z"
+    },
+    {
+      "item": "今日名单",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:11.407Z"
+    },
+    {
+      "item": "公告选股",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:12.018Z"
+    },
+    {
+      "item": "个股详情",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:12.290Z"
+    },
+    {
+      "item": "研究进度",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:12.562Z"
+    },
+    {
+      "item": "计划历史",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:09:52.040Z"
+    },
+    {
+      "item": "收盘复盘",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:17.154Z"
+    },
+    {
+      "item": "美股映射资料库",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:20.542Z"
+    },
+    {
+      "item": "全部",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:58.413Z"
+    },
+    {
+      "item": "早盘",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:58.698Z"
+    },
+    {
+      "item": "股票",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:59.032Z"
+    },
+    {
+      "item": "星球",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:59.346Z"
+    },
+    {
+      "item": "财经",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:59.624Z"
+    },
+    {
+      "item": "AI",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:04:59.909Z"
+    },
+    {
+      "item": "重点",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:05:00.192Z"
+    },
+    {
+      "item": "公众号",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:05:00.458Z"
+    },
+    {
+      "item": "STAGE_0925",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:22.963Z"
+    },
+    {
+      "item": "STAGE_0930_0935",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:23.381Z"
+    },
+    {
+      "item": "STAGE_0935_0940",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:25.435Z"
+    },
+    {
+      "item": "STAGE_0940_0945",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:27.399Z"
+    },
+    {
+      "item": "STAGE_0945_1030",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:30.500Z"
+    },
+    {
+      "item": "STAGE_1300_1315",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:32.867Z"
+    },
+    {
+      "item": "STAGE_1445_1500",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:34.718Z"
+    },
+    {
+      "item": "STAGE_1545_1555",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:02:35.237Z"
+    },
+    {
+      "item": "名称A.000995",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:03:19.645Z"
+    },
+    {
+      "item": "Stage7名称A.301502",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:13:15.598Z"
+    },
+    {
+      "item": "BJ名称及原始身份裁决",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:13:15.598Z"
+    },
+    {
+      "item": "汇总第一页",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:03:19.645Z"
+    },
+    {
+      "item": "汇总第二页",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:03:20.058Z"
+    },
+    {
+      "item": "汇总第三页",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:03:20.471Z"
+    },
+    {
+      "item": "20261027→20261026→20261027",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:07:32.505Z"
+    },
+    {
+      "item": "EXACT→LATEST→EXACT",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:06:03.881Z"
+    },
+    {
+      "item": "A复盘入口",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:10:38.857Z"
+    },
+    {
+      "item": "研究复盘入口",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:10:39.155Z"
+    },
+    {
+      "item": "PDF全文展开收起及状态一致",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:05:10.981Z"
+    },
+    {
+      "item": "公众号研究归档",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:05:00.459Z"
+    },
+    {
+      "item": "HK.00992详情",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:09:16.768Z"
+    },
+    {
+      "item": "只读最新公告结果",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:09:17.641Z"
+    },
+    {
+      "item": "历史和收盘页完成加载后回读",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:09:52.522Z"
+    },
+    {
+      "item": "经理实际生成时间与snapshot一致",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:08:11.099Z"
+    },
+    {
+      "item": "US任务独立ledger回执显示",
+      "status": "PASS",
+      "observed_at": "2026-10-27T07:10:06.154Z"
+    }
+  ],
+  "daytime_pdf": "DEPLOYED_DEFERRED_AND_NATURAL1500_ENQUEUE_ONLY_69_PROCESSED0",
+  "natural_pdf_night": "CANNOT_CONFIRM_FUTURE_20261028_0205_AND_0835",
+  "business_gaps_retained": [
+    "A0925_failed_capture",
+    "WeChat_inputs_missing",
+    "A_stage_authority_and_PIT",
+    "HK09903_and_orderbook",
+    "deadline_raw_latest_entry",
+    "US_board_card_stale_snapshot"
+  ],
+  "existing_outside_delta_UI_backlog": "Short pools share global aggregate offset; offset0 restores rows; unchanged baseline contract",
+  "typecheck": "30 unchanged actual-baseline errors retained; not PASS",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "excluded": "No raw market/research responses, PDF bytes, runtime directories, plists, process logs or dist uploaded"
+}

@@ -1,0 +1,111 @@
+{
+  "scope": "V4_UI_PDF_PUBLICATION_CONTROL_R2",
+  "reviewer": "/root/six_fixes_sol_review",
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "deployment_plan_sha256": "23aa1b10b35e282d1622da905c9e9b01de83f954fb8f3725a0a37c4e4ff6ab95",
+  "deployment_plan_path": "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/controller/publication_control_r2/candidate-r4/PLAN.json",
+  "prepare_sha256": "fac2ddfcc31ff6c15263111f79ac06bf619c68f96ac8d1ed7da8cbf59da549e7",
+  "controller_sha256": "fce642cac08625a819b7341b6af678ce58cbf6654181c416a5139a706fda5eb3",
+  "control_source_manifest_sha256": "585aa5f2d2640d619f2020280127a9fc7755000687c952ea2d5664ee715ca646",
+  "handoff_sha256": "e8b94bdfc72247a18f5788f49f666742b7aaa7967ff82eaad8a2b0f8b3ae29a2",
+  "owner_coordination_receipt_sha256": "7e78f0d5197c0ce663906dd2ab1e900f0e1fa827225d8be8ce373216202af286",
+  "acceptance_scope": "Final incremental actual Main legacy/API legacy-base adapter/PLAN identity binding review; earlier business PASS and repaired three control findings reused",
+  "open_findings": [],
+  "incremental_results": {
+    "main_legacy_manifest": {
+      "status": "PASS",
+      "evidence": "881-entry files/app_files normalized and checked; frozenPDF2 only, keyset/unrelated manifest fields preserved"
+    },
+    "api_legacy_adapter": {
+      "status": "PASS",
+      "evidence": "Only exact handed-off root/release/manifest SHA/complete inventory accepted; real legacy identity preserved; gateway contract validated; other calls delegated to strict verifier and private helper restored in finally; candidate/rollback retain actual identity"
+    },
+    "formal_plan": {
+      "status": "PASS",
+      "evidence": "Independently matched PLAN/handoff/helper/source/locks/DONE marker/base manifests/plists/inventories/candidate/prior-plan/overlay/Main launcher/API dual US env/Graph/catalog windows/five-minute margin",
+      "api_non_delta_entries_preserved": 1306,
+      "main_non_delta_entries_preserved": 879,
+      "collector_inventory": "Identical to actual handed-off tree"
+    }
+  },
+  "independent_execution": {
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    },
+    "focused_test_selection": "main_legacy_manifest or actual_legacy_api_shape",
+    "result": "13 passed,48 deselected in5.83s;exit0",
+    "test_scope": "8 Main compatibility+5 API compatibility, isolated trees and mocked commands",
+    "readonly_plan_checks": "PASS,no original locks/service actions"
+  },
+  "actual_base_readback": {
+    "status": "PASS_AT_REVIEW_TIME",
+    "main": {
+      "pid": 19912,
+      "process_start": "Tue Oct 27 13:23:19 2026",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app",
+      "manifest_sha256": "2ed2da9abc77280da40f0f6f2cf9f0401759d517b7272b30c6ea3f5053cef031",
+      "checks": "Loaded launcher/process/cwd/interpreter binary verified"
+    },
+    "api": {
+      "pid": 19915,
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app",
+      "manifest_sha256": "c4f1c68c8f0b2dcf9ed98949146ced5b3aafaa67beadbb3c0b1e847e4e811a59",
+      "checks": "PID/cwd/legacy identity verified"
+    },
+    "collector": {
+      "pid": 0,
+      "status": "LOADED_IDLE",
+      "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-collector-r2/app",
+      "checks": "Loaded/enabled/config/release verified"
+    }
+  },
+  "candidate_manifest_sha256": {
+    "main": "5e309809518afd08e7ac1083e65ac4237727cc239f8df62ce1ee2a80071a5af2",
+    "api": "947686711f3476d2fa1bb494a7d39fa2b81610ec28de0a3f6a6f275879d80167",
+    "collector": "e8d905f41b6e926a23a96f5edc2b1de7e43dcad0a2a2454529bef03df9972cf8"
+  },
+  "reused_acceptance": {
+    "business14_static2": "Prior independent REVIEWED/PASS reused;no business tests rerun",
+    "combined_source_freeze_sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
+    "api_overlay_sha256": "6d9ad5989893f7debfb2af007a25435550eb6eda8adaa45db528ed7b0731d42f",
+    "pdf_main_overlay_sha256": "2c49233bc1fa0deb13082a8ba11f1a07509828e10defbf87d0cd7288e763c8f4",
+    "three_control_P2_repairs": "Earlier independent19 PASS reused",
+    "other_control_checks": "Unchanged accepted evidence reused"
+  },
+  "preserved_history": [
+    "Original control FAIL retained",
+    "Actual schema prepare failure retained;before candidate/no live actions",
+    "Canonical frontend incident/full typecheck unchanged errors retained"
+  ],
+  "execution_boundary": {
+    "fixed_plan_only": true,
+    "controller_fresh_CAS_and_guards_required": true,
+    "temporary_PDF_hold": "Parent releases hold before controller; competing child/busy mutex conservatively stops before service actions",
+    "unknown_outcome": "Retain guards; reviewed reconciliation/recovery",
+    "whole_mixed_worktree_publishable": false,
+    "deployment_result_certified": false
+  },
+  "BEHAVIOR_VERIFIED": "13 new compatibility cases, earlier focused accepted cases, complete candidate/identity/read-only baseline checks only",
+  "remaining_acceptance": {
+    "actual_deployment_and_rollback": "NOT_RUN",
+    "new_runtime_API_UI": "NOT_RUN",
+    "daytime_zero_new_PDF_child_readback": "NOT_RUN",
+    "natural_night_acceptance": "CANNOT_CONFIRM"
+  },
+  "reviewer_safety": {
+    "service_actions": 0,
+    "live_lock_acquisitions": 0,
+    "signals": 0,
+    "source_edits": 0,
+    "business_data_edits": 0,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "final_status": "REVIEWED/PASS",
+  "recording": "Faithful structured parent copy; full independent reviewer final in subagent transcript"
+}
