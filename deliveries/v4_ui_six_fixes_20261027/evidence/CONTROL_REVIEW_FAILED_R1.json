@@ -1,0 +1,96 @@
+{
+  "scope": "V4_UI_PDF_PUBLICATION_CONTROL_R2",
+  "reviewer": "/root/six_fixes_sol_review",
+  "verdict": "REVIEWED/FAIL",
+  "source_root": "/Users/lexi/.codex/worktrees/v4-ui-six-fixes-20261027/v4_app",
+  "control_source_manifest_sha256": "bef244efb104e885089e282733408187dfdf2f745aa243ce35b3966c61b09772",
+  "reviewed_source_sha256": {
+    "docs/ui-six-fixes/control/prepare.py": "96648f4bcdf3d891cebb589b97e2bae585e0fa694e41f303399d85d3ab7cfd28",
+    "docs/ui-six-fixes/control/controller.py": "0e1ab5210d4b2c07eab54e042afaaec75c20339c9087ff2bf9d95c7bc59f1d50",
+    "docs/ui-six-fixes/control/test_control.py": "6500c4c621ce9debb1ac98bfbc517fd64d7fbd7b56e4e2a6d631777275efc03f",
+    "docs/ui-six-fixes/control/README.md": "ae687cbda5d68b9ff74dc5fd1e40d34ed28bc8c0afbee20b515a5b22db4dc136"
+  },
+  "deployment_plan_sha256": null,
+  "actual_handoff_status": "CANNOT_CONFIRM: formal latest-owner handoff and PLAN unavailable",
+  "findings": [
+    {
+      "id": "CONTROL-P2-1",
+      "priority": "P2",
+      "status": "OPEN",
+      "file": "docs/ui-six-fixes/control/controller.py",
+      "line": 266,
+      "title": "Main and collector release verification does not reject unmanifested candidate drift",
+      "trigger": "Extra source file added to prepared Main candidate after PLAN creation",
+      "evidence": "Independent isolated fixture: prepared candidate, added unmanifested_module.py only to candidate Main, operator.stage(plan) and operator.verify_release(plan,'main') both succeeded. MAIN_UNMANIFESTED_EXTRA_STAGED_AND_VERIFY_RELEASE_PASSED True; EXTRA_INCLUDED_IN_MANIFEST False.",
+      "cause": "Reused stage copies whole candidate while verify_release only checks enumerated app_files/symlinks; no complete-inventory Main/collector guard.",
+      "impact": "Unreviewed files can enter staged release and change import behavior despite reported integrity success.",
+      "minimum_fix": "Compare complete candidate inventory to frozen manifest before staging and complete staged inventory before service actions and successful readback; Main, collector, API covered.",
+      "focused_regression": "Post-prepare extra-file drift and staged-tree extra-file drift must reject before service actions."
+    },
+    {
+      "id": "CONTROL-P2-2",
+      "priority": "P2",
+      "status": "OPEN",
+      "file": "docs/ui-six-fixes/control/prepare.py",
+      "line": 192,
+      "title": "Retained business PASS receipt is rejected by preparation contract",
+      "evidence": "Actual review/SOL_REVIEW_R2.json has nested review_receipt.verdict='REVIEWED/PASS', no top-level verdict. prepare requires top-level verdict=='PASS'.",
+      "error": "ValueError: BUSINESS_PASS_REQUIRED",
+      "impact": "Preparation rejects unchanged valid independent business PASS; synthetic top-level PASS fixture missed actual format.",
+      "minimum_fix": "Recognize exact retained receipt schema/REVIEWED/PASS and bind frozen-source/overlay hashes, or explicit adapter bound to original SHA.",
+      "focused_regression": "Real receipt shape accepted, non-PASS and mismatched freeze rejected."
+    },
+    {
+      "id": "CONTROL-P2-3",
+      "priority": "P2",
+      "status": "OPEN",
+      "file": "docs/ui-six-fixes/control/prepare.py",
+      "line": 115,
+      "title": "Main LiveOps parameter contract omits required launchd domain",
+      "evidence": "HANDOFF_TEMPLATE and validation omit main_guard_parameters.domain; original LiveOps.disabled reads self.p['domain']; initial_old calls disabled. Fixture fake guard does not exercise interface.",
+      "error": "KeyError: 'domain'",
+      "impact": "Preparation accepts a handoff that fails the first guarded identity check.",
+      "minimum_fix": "Require/validate domain against fixed service domain or derive from validated service identity before LiveOps; bind actual selected helper in PLAN.",
+      "focused_regression": "Missing/inconsistent domain rejected; actual helper parameter contract covered."
+    }
+  ],
+  "checks_performed": [
+    "Inspected SCOPE/HANDOFF/source manifest/VALIDATION/COMMANDS/README/new control sources/fixtures",
+    "Independently matched four control source SHA values",
+    "Inspected reused operator staging/verification/CAS/rollback/Graph interfaces and actual business receipt/LiveOps domain interface",
+    "Executed new extra-file drift reproduction in isolated temporary trees only"
+  ],
+  "test_evidence": {
+    "existing_control_fixtures": "31 unique supplied passing fixture results reused; no whole-set rerun",
+    "new_drift_reproduction": "Integrity gap confirmed; temporary-only exit0",
+    "initial_reproduction_setup_failure": "macOS /var alias rejected; repeated once with resolved /private path, original failure preserved",
+    "BEHAVIOR_VERIFIED": "Only reproduced extra-file acceptance and interface read evidence"
+  },
+  "business_review_reuse": {
+    "status": "UNCHANGED_REVIEWED_PASS_REUSED",
+    "combined_source_freeze_sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
+    "api_overlay_sha256": "6d9ad5989893f7debfb2af007a25435550eb6eda8adaa45db528ed7b0731d42f",
+    "pdf_main_overlay_sha256": "2c49233bc1fa0deb13082a8ba11f1a07509828e10defbf87d0cd7288e763c8f4",
+    "business_tests_rerun": false
+  },
+  "pending_evidence": [
+    "Latest explicit owner handoff and guard release",
+    "Formal PLAN SHA and actual helper/lock/PID/launcher/interpreter/manifest/catalog/baseline bindings",
+    "Actual deployment/API/UI/daytime PDF/natural-session acceptance"
+  ],
+  "pending_evidence_is_code_defect": false,
+  "safety": {
+    "runtime_actions": 0,
+    "live_lock_acquisitions": 0,
+    "service_signals": 0,
+    "source_edits": 0,
+    "business_data_edits": 0,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "next_review_scope": "Only three repaired findings/direct effects plus final actual PLAN identity bindings; reuse unchanged business PASS and other valid evidence",
+  "final_status": "REVIEWED/FAIL",
+  "recording": "Parent saved structured faithful receipt from independent reviewer final; original full final remains in subagent transcript"
+}

@@ -1,0 +1,92 @@
+{
+  "scope": "control only; existing business PASS reused",
+  "unique_targeted_cases_passed": 31,
+  "mode": "temporary-tree fixtures and mocked subprocess/live service states only",
+  "runtime_actions": 0,
+  "logs": {
+    "TESTS_BUILD_R2.log": {
+      "sha256": "f4c61c0ac8f55c6c9a2d6c593731bf5f8c4a6c5bebbe514284fd4f899818f9e0",
+      "last_lines": [
+        "..                                                                       [100%]",
+        "2 passed in 0.09s"
+      ]
+    },
+    "TESTS_EXIT_R7.log": {
+      "sha256": "cdf8d13a3f141b449c7d92c9b86d6fd681de17445a1d661236b92f93860eafac",
+      "last_lines": [
+        "..                                                                       [100%]",
+        "2 passed in 0.02s"
+      ]
+    },
+    "TESTS_EXTRA_R3.log": {
+      "sha256": "0b7ede8c8682c95da8ee490cf24dab3160596fde2b4a9c8da2658980b3dec7fc",
+      "last_lines": [
+        "......                                                                   [100%]",
+        "6 passed in 0.10s"
+      ]
+    },
+    "TESTS_FREEZE_R4.log": {
+      "sha256": "449f48faab28952069f2e297454c2a3b0f42069bcbc27c7b2b56439fc80297ed",
+      "last_lines": [
+        "..                                                                       [100%]",
+        "2 passed in 0.11s"
+      ]
+    },
+    "TESTS_HANDOFF_R8.log": {
+      "sha256": "bd3c129e5ff89aba5755c0c63f90548d1a3d4eba6c149c9e376b40728562511f",
+      "last_lines": [
+        "=========================== short test summary info ============================",
+        "FAILED docs/ui-six-fixes/control/test_control.py::test_prepare_rejects_incomplete_or_changed_handoff_before_candidate[inode]",
+        "FAILED docs/ui-six-fixes/control/test_control.py::test_prepare_rejects_incomplete_or_changed_handoff_before_candidate[active]",
+        "FAILED docs/ui-six-fixes/control/test_control.py::test_prepare_rejects_incomplete_or_changed_handoff_before_candidate[readback]",
+        "3 failed, 2 passed in 0.17s"
+      ]
+    },
+    "TESTS_HANDOFF_R9.log": {
+      "sha256": "f21802e5e24571b06b077e416af1539fdce6ad55b407e03af6af45b03968cb3b",
+      "last_lines": [
+        "...                                                                      [100%]",
+        "3 passed in 0.07s"
+      ]
+    },
+    "TESTS_LEDGER_R6.log": {
+      "sha256": "471c77f65875e4c272e08d0f1104f654c2ee63bed8cefdd055594fbb60385d29",
+      "last_lines": [
+        "..                                                                       [100%]",
+        "2 passed in 0.10s"
+      ]
+    },
+    "TESTS_R1.log": {
+      "sha256": "3c4dec7d655253353213a4982be6aaf3c7db4f34611755d7a67721f7b17e4714",
+      "last_lines": [
+        "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/python/cpython-3.14.6-macos-aarch64-none/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError",
+        "=========================== short test summary info ============================",
+        "FAILED docs/ui-six-fixes/control/test_control.py::test_prepare_builds_fresh_only_local_candidates_preserving_all_non_delta_bytes",
+        "FAILED docs/ui-six-fixes/control/test_control.py::test_prepare_refuses_overlap_before_any_formal_or_active_changes",
+        "2 failed, 17 passed in 0.11s"
+      ]
+    },
+    "TESTS_SAFETY_R5.log": {
+      "sha256": "91e7809b3e27d7be1de9408076076bc6e6dd5b4dae4cd48d190cef0d8ffa906b",
+      "last_lines": [
+        ".....                                                                    [100%]",
+        "5 passed in 0.10s"
+      ]
+    }
+  },
+  "preserved_failures": [
+    "TESTS_R1.log:2 fixture setup failures (missing role contract), repaired synthetic role contract",
+    "TESTS_HANDOFF_R8.log:3 newly added fixture NameError from misplaced existing assertion; moved assertion back, R9 3 PASS"
+  ],
+  "latest_commands": [
+    "PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp publication_control_r2/pytest-handoff-r8 test_control.py::test_prepare_builds_fresh_only_local_candidates_preserving_all_non_delta_bytes test_control.py::test_prepare_refuses_overlap_before_any_formal_or_active_changes test_control.py::test_prepare_rejects_incomplete_or_changed_handoff_before_candidate",
+    "PANEL_PYTHON -B -m pytest -q -p no:cacheprovider --basetemp publication_control_r2/pytest-handoff-r9 test_control.py::test_prepare_rejects_incomplete_or_changed_handoff_before_candidate"
+  ],
+  "interpreter": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+  "not_run": [
+    "actual handoff/plan/materialization",
+    "live lock acquisition/launchctl/services/signals",
+    "actual rollback/readback/API/UI/natural night acceptance",
+    "business test reruns"
+  ]
+}

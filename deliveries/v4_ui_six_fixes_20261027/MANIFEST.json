@@ -212,10 +212,10 @@
     },
     {
       "path": "README.md",
-      "sha256": "b4936f6820e18eb76b8f9b2c971c4bbf3f8c1b37ee58f88e0c60427fac983c93",
-      "git_blob_sha": "a21d542b88cef3ec7262d995641ac312315d765f",
-      "size": 2069,
-      "kind": "documentation"
+      "sha256": "78e2eb411ad07706bb684b91e43c35f12e6e146d2be457a6d59d610ec2f75b36",
+      "git_blob_sha": "eed1d8fd73dfdd327ef23c2a95b66e326d78e25d",
+      "size": 2455,
+      "kind": "review_or_metadata"
     },
     {
       "path": ".gitattributes",
@@ -1098,6 +1098,69 @@
       "git_blob_sha": "79714e40279fd0bd44e0de8d60b3bc30b5818e73",
       "size": 650,
       "kind": "source_provenance"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/prepare.py",
+      "sha256": "992ea9b2aada5460c6dbfd9e9604bdd250e7d0c73838d4cf839cbc143456501c",
+      "git_blob_sha": "c25dd4ce92f1a31e8d3f85721a24b9f4a262e3b2",
+      "size": 19793,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/controller.py",
+      "sha256": "d7e9264e59e25127b67c889580da1ee9e72f7562b1801b2cb17280ed2007f95e",
+      "git_blob_sha": "328913518ff572fe27d1e2d64ef7da007b1a0b96",
+      "size": 21187,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/test_control.py",
+      "sha256": "3cffe8d17a79d988912f391e912b457095e0c46135552d4044cb8c7b904c7ef7",
+      "git_blob_sha": "641c971f2b3e246e5d355bc59f407154e0614d1b",
+      "size": 28303,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "components/control/docs/ui-six-fixes/control/README.md",
+      "sha256": "6b5ea1f75e28768c3fbf9917a67442cb3b27a36d562e0af915101a9fafb59a55",
+      "git_blob_sha": "920870c98f746bb94a52070c6a5adc61a63334c6",
+      "size": 4638,
+      "kind": "control_source_or_test"
+    },
+    {
+      "path": "evidence/CONTROL_SOURCE_MANIFEST_R2.json",
+      "sha256": "0ccdb1ea71a69326fe0340e3d383e3d805900079c273cf4e755c0476e05d1499",
+      "git_blob_sha": "b741f2e545aa8a0252914d6a6d7df5094255d47d",
+      "size": 1003,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_REVIEW_FAILED_R1.json",
+      "sha256": "ce4bffd26b0da41b48c3f447d79c981614ab8596694444264804d1fb4080b4d0",
+      "git_blob_sha": "36f2207e0f598483ec385d375160a4d1ea52c13a",
+      "size": 6153,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_REVIEW_SOURCE_PASS_R2.json",
+      "sha256": "926a0692337024b0ebbf8a0c5b7b534b351628a06c56f66f65f990e5587d34bf",
+      "git_blob_sha": "935e17617081af2ee674daa4e37d9d11d4bdd3c9",
+      "size": 5293,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_VALIDATION.json",
+      "sha256": "bba6df73f82ec91833dadc6ac8a1b0dff0443dc3cbca0ba21ae81ae0443166ba",
+      "git_blob_sha": "597624a547fd97d373b6fc9881d81d53d91b10ec",
+      "size": 4685,
+      "kind": "review_or_metadata"
+    },
+    {
+      "path": "evidence/CONTROL_SCOPE.json",
+      "sha256": "c9679daaf1889b8bcccb069f9640e621179b4a8078792ab9900dfe27cbfa55e8",
+      "git_blob_sha": "8fcb4fb04d96d57c891054cf717544cd3d82b200",
+      "size": 1301,
+      "kind": "review_or_metadata"
     }
   ],
   "contains_raw_data": false,
@@ -1122,5 +1185,17 @@
     ],
     "actual_frontend_baseline_sha256": "677328a4b6f931dbbc4dd84a4bf92a65a15c58e1a5cc328247b339372810fe8c",
     "four_changed_frontend_sources_remain_bound_to_source_review": true
-  }
+  },
+  "control_publication_r2": {
+    "status": "SOURCE_TEST_REVIEWED_PASS_PLAN_AND_DEPLOYMENT_PENDING",
+    "source_manifest_sha256": "0ccdb1ea71a69326fe0340e3d383e3d805900079c273cf4e755c0476e05d1499",
+    "control_source_file_count": 4,
+    "prior_fixture_evidence_cases": 31,
+    "independent_affected_cases": 19,
+    "deployment_executable": false,
+    "formal_plan_available": false,
+    "business_source_changes": 0,
+    "runtime_actions": 0
+  },
+  "control_source_updated_at": "2026-10-27T13:41:22.145702+08:00"
 }

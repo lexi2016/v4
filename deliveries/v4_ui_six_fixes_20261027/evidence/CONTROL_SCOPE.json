@@ -1,0 +1,27 @@
+{
+  "scope": "V4_UI_PDF_PUBLICATION_CONTROL_R2",
+  "goal": "One controlled publication of frozen Main PDF2 +API12 source/2static +necessary Graph identity after original owner handoff",
+  "writer": "/root/six_fixes_writer Sol High sole Writer",
+  "reviewer": "independent Sol High controlled by parent",
+  "allowed_paths": [
+    "/Users/lexi/.codex/worktrees/v4-ui-six-fixes-20261027/v4_app/docs/ui-six-fixes/control",
+    "/Users/lexi/Desktop/学习/agents调试/V4_UI_SIX_FIXES_20261027/controller/publication_control_r2"
+  ],
+  "forbidden": [
+    "frozen14 business and tests/static/freeze/reviews",
+    "active releases/plists/business state",
+    "original lifecycle owner files",
+    "Vibe8910",
+    "live locks/signals/service actions/publication/push by Writer"
+  ],
+  "pass_signal": "Reviewable source with unique scope, explicit before/after identities after handoff, focused fixtures PASS, closed resources, zero live actions before handoff",
+  "stop_rule": "Unknown or changing owner/lock/baseline stops publication; no handoff blocks actual plan only",
+  "runtime_actions": 0,
+  "status": "CONTROL_SOURCE_READY_FOR_REVIEW_ACTUAL_PLAN_PENDING_HANDOFF",
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}

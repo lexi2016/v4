@@ -1,0 +1,90 @@
+{
+  "scope": "V4_UI_PDF_PUBLICATION_CONTROL_R2",
+  "reviewer": "/root/six_fixes_sol_review",
+  "verdict": "REVIEWED/PASS",
+  "acceptance_scope": "Incremental source/test review of CONTROL-P2-1, CONTROL-P2-2, CONTROL-P2-3 and direct effects",
+  "deployment_executable": false,
+  "deployment_plan_sha256": null,
+  "plan_binding_status": "CANNOT_CONFIRM: latest explicit owner handoff and formal PLAN unavailable",
+  "control_source_manifest_sha256": "0ccdb1ea71a69326fe0340e3d383e3d805900079c273cf4e755c0476e05d1499",
+  "prepare_sha256": "992ea9b2aada5460c6dbfd9e9604bdd250e7d0c73838d4cf839cbc143456501c",
+  "controller_sha256": "d7e9264e59e25127b67c889580da1ee9e72f7562b1801b2cb17280ed2007f95e",
+  "reviewed_source_sha256": {
+    "docs/ui-six-fixes/control/prepare.py": "992ea9b2aada5460c6dbfd9e9604bdd250e7d0c73838d4cf839cbc143456501c",
+    "docs/ui-six-fixes/control/controller.py": "d7e9264e59e25127b67c889580da1ee9e72f7562b1801b2cb17280ed2007f95e",
+    "docs/ui-six-fixes/control/test_control.py": "3cffe8d17a79d988912f391e912b457095e0c46135552d4044cb8c7b904c7ef7",
+    "docs/ui-six-fixes/control/README.md": "6b5ea1f75e28768c3fbf9917a67442cb3b27a36d562e0af915101a9fafb59a55"
+  },
+  "findings": [
+    {
+      "id": "CONTROL-P2-1",
+      "status": "FIXED",
+      "file": "docs/ui-six-fixes/control/controller.py",
+      "line": 170,
+      "evidence": "Complete candidate/staged inventories for all3 components now bound to frozen digests; candidate/staged manifests pinned, unmanifested files rejected. Checks before stage/afterstage/immediately before service actions/final verification. Prior-plan digests bind rollback to handoff baseline.",
+      "regression_result": "Six candidate/staged extra-file cases and two late final-readback drift cases independently passed"
+    },
+    {
+      "id": "CONTROL-P2-2",
+      "status": "FIXED",
+      "file": "docs/ui-six-fixes/control/prepare.py",
+      "line": 120,
+      "evidence": "verify_business_review accepts retained nested review_receipt.verdict=REVIEWED/PASS and requires combined-source-freeze/API-overlay/Main-overlay hashes",
+      "regression_result": "Actual retained-receipt positive and five FAIL/unsupported top-level/hash mismatch negatives independently passed"
+    },
+    {
+      "id": "CONTROL-P2-3",
+      "status": "FIXED",
+      "file": "docs/ui-six-fixes/control/prepare.py",
+      "line": 115,
+      "evidence": "Preparation requires domain=gui/501, template supplies it, actual original LiveOps initial_old-to-disabled interface tested with mocked commands",
+      "regression_result": "Missing/inconsistent domain and actual helper interface cases independently passed"
+    }
+  ],
+  "open_findings": [],
+  "independent_validation": {
+    "source_manifest": "All4 hashes matched CONTROL_SOURCE_MANIFEST_R2.json",
+    "python": "/Users/lexi/Library/Application Support/com.lexi.v4.local/runtime/venvs/v3.5-mac/bin/python",
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    },
+    "test_arguments": "-B -m pytest -q -p no:cacheprovider --basetemp=<fresh isolated directory>/cases docs/ui-six-fixes/control/test_control.py -k 'complete_inventory or final_readback or actual_retained_business or business_receipt_fail or main_domain or actual_main_helper_domain or prepare_builds_fresh or guard_contexts_survive'",
+    "result": "19 passed, 29 deselected in0.54s; exit0",
+    "scope": "17 new +2 directly affected existing cases; no unrelated control or business tests rerun",
+    "BEHAVIOR_VERIFIED": "Only independently executed temporary-tree/mocked-interface cases; no live publication proof"
+  },
+  "preserved_evidence": {
+    "original_fail_receipt": "review/PUBLICATION_CONTROL_R2_SOL_REVIEW_FAILED_R1.json",
+    "original_fail_receipt_sha256": "ce4bffd26b0da41b48c3f447d79c981614ab8596694444264804d1fb4080b4d0",
+    "writer_R10_log_sha256": "0be5546017166de6e57da15a4104da150a8ecdb1cd60da8cbd15fa63ff934a17",
+    "writer_R11_log_sha256": "9e81ecd1c219cbf898db834b0507a3a725c41311ac2ad711545556e8b82cc886"
+  },
+  "reused_acceptance": {
+    "unchanged_business14_static2": "Prior independent REVIEWED/PASS reused",
+    "combined_source_freeze_sha256": "754d204aa86d474d10caa3cc76c3545d32f69f1161654d468e952bcddb2d531a",
+    "api_overlay_sha256": "6d9ad5989893f7debfb2af007a25435550eb6eda8adaa45db528ed7b0731d42f",
+    "pdf_main_overlay_sha256": "2c49233bc1fa0deb13082a8ba11f1a07509828e10defbf87d0cd7288e763c8f4"
+  },
+  "remaining_acceptance": {
+    "next_increment": "Within same review, bind formal PLAN to latest handoff/actual baseline/helper/launcher/interpreter/PID/locks/catalog/manifest/overlays",
+    "missing_plan_is_code_failure": false,
+    "live_deployment_and_rollback": "NOT_RUN",
+    "actual_API_UI": "NOT_RUN",
+    "daytime_PDF_admission_readback": "NOT_RUN",
+    "natural_night_acceptance": "CANNOT_CONFIRM"
+  },
+  "safety": {
+    "runtime_actions": 0,
+    "live_lock_acquisitions": 0,
+    "service_signals": 0,
+    "source_edits": 0,
+    "business_data_edits": 0,
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "final_status": "REVIEWED/PASS",
+  "recording": "Parent faithful structured copy of independent reviewer final; full original final retained in subagent transcript"
+}
