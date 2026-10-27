@@ -1,0 +1,50 @@
+{
+  "scope": "V4_R7_DAILY_NAME_COVERAGE_ORIGINAL_OWNER",
+  "at": "2026-10-27T23:41:17.166898+08:00",
+  "user_request": "名字问题彻底解决，不每天重复缺名",
+  "goal": "Name coverage is part of the existing 21:15 next-session pool pipeline; same-date new members and next-session dates are processed by the existing display-name owner, no daily manual code patch or second producer. No live publication during released window.",
+  "writer": "/root/business_gaps_terra_writer gpt-6.1-terra/high",
+  "reviewer": "/root/business_gaps_luna_review gpt-6-luna/max, one incremental review of new delta",
+  "baseline": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "sha256": "a7e46a359e3490c3e7f56c5232ebd8dacd157a833e504c8ff7bce812f12ce977"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "sha256": "55bf916686cd164150f4fcc74d2178600aead8f9e3eee300efefd44b1e4f9287"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app/ops/run_review_core_natural_pool_pipeline.py",
+      "sha256": "1d889b5432bb5effe8834988d77dd2595e59617888f88f4d60d49fdb076e57eb"
+    }
+  ],
+  "ALLOWED_PATHS": [
+    "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/ops/run_review_core_natural_pool_pipeline.py",
+    "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+    "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+    "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_daily_display_name_coverage_r7.py"
+  ],
+  "artifact_root": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7",
+  "FORBIDDEN": [
+    "Any live data/publication/service/lock action",
+    "5073 or other healthy jobs",
+    "New schedulers/alarms/producers or cross-chat messages",
+    "Recollect today482/510 or research/PDF processing",
+    "Membership/rank/score/date/PIT/eligibility/trading edits",
+    "API/source_validation R6 ownership currently frozen under review"
+  ],
+  "contract": [
+    "Import original actual adapter baseline byte for byte before minimal changes; record prior worktree absence/difference.",
+    "Use existing original verified readers for three pools; target/signal/trio and explicit exchange identity required; unknown BJ identity is quarantined per code, never guessed SH/SZ.",
+    "Use current real observation date; prior date never relabeled. Immutable successful cached pages reused, missing same-day pages appended only via original acquire owner.",
+    "Existing same-date authority rows/page pins never overwritten. Exact prior run/index CAS. Next day gets actual new observation.",
+    "Real missing names do not erase successful pools or names; explicit audit missing/conflict codes and source failures, no silent PASS or fake zero.",
+    "No per-stock hardcode, only original verified market/name evidence. If unattended BJ current source cannot be certified, expose precise unresolved gap and keep safe.",
+    "A name update error does not skip other independent pool outcomes or turn PARTIAL into READY; keep existing selection pipeline result semantics.",
+    "Use same Python runtime/sys.executable; no dependencies or new platform."
+  ],
+  "PASS_SIGNAL": "Targeted tests for next date/same day new member/SZ uncached page/identity conflict/wrong SHA/cache date/partial member and original pipeline regression; independent scope review PASS. Implementation only, live default integration NOT_DEPLOYED.",
+  "STOP_RULE": "Preserve failures and healthy jobs; do not silently relax authority. Need new permissions/official identity evidence => preserve gap and report, no false complete.",
+  "publication": "Shared window released; candidate source only; no control changes or service actions."
+}

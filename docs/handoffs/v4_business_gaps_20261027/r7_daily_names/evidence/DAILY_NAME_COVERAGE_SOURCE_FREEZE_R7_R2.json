@@ -1,0 +1,50 @@
+{
+  "scope": "V4_R7_DAILY_NAME_COVERAGE_ORIGINAL_OWNER",
+  "scope_sha256": "36731b49b6bf5686704db948c2e2419561c7f18beb743207a8ef235d328492cc",
+  "source_files": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7/a_share_security_master.py.baseline",
+      "baseline_sha256": "a7e46a359e3490c3e7f56c5232ebd8dacd157a833e504c8ff7bce812f12ce977",
+      "candidate_sha256": "1df07b3174e0ef99b790d19faac13535fbedd31c88b41c2087963756e91c4e2a"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7/acquire_a_share_security_master.py.baseline",
+      "baseline_sha256": "55bf916686cd164150f4fcc74d2178600aead8f9e3eee300efefd44b1e4f9287",
+      "candidate_sha256": "5de9acb352a83bf4acaa5ebaba22686c65325b15449940ff08fb20c9e56eb337"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/ops/run_review_core_natural_pool_pipeline.py",
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7/run_review_core_natural_pool_pipeline.py.baseline",
+      "baseline_sha256": "1d889b5432bb5effe8834988d77dd2595e59617888f88f4d60d49fdb076e57eb",
+      "candidate_sha256": "43c61cf81be4095a7ac7243fd6c9c5fa677acf83375393bee910cf1399dd8b24"
+    }
+  ],
+  "test_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_daily_display_name_coverage_r7.py",
+  "test_sha256": "5684c43e71214cdf593d49efd825cb1c910c798f11efb497347da77cc71c6008",
+  "targeted_test": "2 affected cases passed, pytest_review_r7_r2; earlier 14-case R7 PASS retained",
+  "actual_readers": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7/ACTUAL_VERIFIED_POOL_READS_R7_R2.json",
+    "sha256": "4d67ddc744120978b60d0493564913d31902fabd394ace35e4fb093e4847072f",
+    "pool_counts": {
+      "main": 25,
+      "fupan": 31,
+      "stage7": 482
+    }
+  },
+  "prior_loader_failure_preserved": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7/ACTUAL_VERIFIED_POOL_READS_R7.json",
+  "deployment_dependencies": [
+    "actual Main and shared owner currently lack display-name owner functions; source integration/package binding remains undeployed",
+    "manual/explicit verified BJ evidence may be needed when HQ cannot provide identity; gaps remain explicit"
+  ],
+  "live_write": false,
+  "service_actions": false,
+  "network_acquisition": false,
+  "prior_freeze_sha256": "604e4c4f5088afd8d489825f1e523c674ec4846ef30bf5720700ef6b6c128ead",
+  "review_fail": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/review/R7_DAILY_NAMES_LUNA_FAIL_R1.json",
+    "sha256": "5608fe03a2f130546b282eb7b13003a8c97f5d30af84d5517a64ba55960bfbf1"
+  },
+  "review_correction": "bare code cannot resolve against one returned exchange when any queried market failed; qualified code stays independently usable"
+}

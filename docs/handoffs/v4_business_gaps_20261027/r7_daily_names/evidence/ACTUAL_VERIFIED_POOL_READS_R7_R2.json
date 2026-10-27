@@ -1,0 +1,38 @@
+{
+  "rows": 538,
+  "source_failures": [],
+  "source_evidence": [
+    {
+      "pool": "main",
+      "signal_date": "20261027",
+      "target_date": "20261028",
+      "row_count": 25,
+      "artifact_sha256": "a2560d10e9fa7917125c6280b8d11e0e512ab73c93375f83ac2463dac1e89225",
+      "manifest_sha256": "0bc98317a3a4181e03d9d4f9642973aa932f0da6682838dfa7c1c9c1457f54f5",
+      "receipt_sha256": "5e727da873a7693855312427ad5c5bc424fc2b9faeedded60958ea59f63a26f8"
+    },
+    {
+      "pool": "fupan",
+      "signal_date": "20261027",
+      "target_date": "20261028",
+      "row_count": 31,
+      "artifact_sha256": "fce491fe3856654c04eeb6b704fa734802ff758bf750bb6e7bc96bb44fc4e2f5",
+      "manifest_sha256": "10ed8764533fa8c9f5fd2527c248c702a00de4b314f47b33c36a7d7f9031b597",
+      "receipt_sha256": "aeeedf41460501d005fd22bdba9be431262c8623f81abbae445902ab5cbd70c2",
+      "run_id": "20261028-d1_fupan_review_pool_v1-fce491fe3856"
+    },
+    {
+      "pool": "stage7",
+      "signal_date": "20261027",
+      "target_date": "20261028",
+      "row_count": 482,
+      "artifact_sha256": "03fa2a8707dc1e885e372aae6b1c5c91f540b3147315016354dbd223035d4ec5",
+      "manifest_sha256": "9f00319874bb69879a91b7833b7e25149de5ee2541e083d2c03deeecca48bd10",
+      "receipt_sha256": "d6e478ba4ce386d201450156e59ec22ea4e3fe11e140c8b32205fcf6c22d6377",
+      "run_id": "20261028-d1_stage7_replay_pool_v1-03fa2a8707dc"
+    }
+  ],
+  "mode": "READ_ONLY_ORIGINAL_VERIFIED_POOL_READERS",
+  "network": false,
+  "write": false
+}

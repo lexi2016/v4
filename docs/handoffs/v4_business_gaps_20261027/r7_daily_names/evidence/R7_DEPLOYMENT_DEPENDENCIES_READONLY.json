@@ -1,0 +1,106 @@
+{
+  "scope": "R7_NAME_DAILY_DEPENDENCY_READONLY",
+  "at": "2026-10-27T23:55:56.216633+08:00",
+  "user_window_released": true,
+  "no_lock_or_service_action": true,
+  "main_actual": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app",
+    "adapter": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app/ops/run_review_core_natural_pool_pipeline.py",
+      "sha256": "1d889b5432bb5effe8834988d77dd2595e59617888f88f4d60d49fdb076e57eb"
+    },
+    "name_module": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "sha256": "4c2a3eee41d201a42ca32fcfdef5e6dde8c520c8693146b7bdd6a7ecc7ba0e32"
+    },
+    "name_cli": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "sha256": "a3e2d34b40c634d074e55882e5ce755bc47a2596dfa9e09593d9181f5e8d23d9"
+    },
+    "owner_import": "upstreams.v3_shared_data.shared_data.a_share_security_master resolved from Main app root, not V35_SHARED_PACKAGE_ROOT",
+    "name_owner_has_display_functions": false,
+    "data_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data"
+  },
+  "shared_actual": {
+    "package_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data",
+    "name_module": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "sha256": "4c2a3eee41d201a42ca32fcfdef5e6dde8c520c8693146b7bdd6a7ecc7ba0e32"
+    },
+    "name_cli": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/hk-tdx-conflict-repair-shared-20261015-r4/app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "sha256": "a3e2d34b40c634d074e55882e5ce755bc47a2596dfa9e09593d9181f5e8d23d9"
+    },
+    "name_owner_has_display_functions": false,
+    "used_by": "Original ReviewCore subprocess via V3_SHARED_DATA_PACKAGE_ROOT; not R7 parent adapter display owner",
+    "display_store_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data"
+  },
+  "api_actual": {
+    "app_root": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r5-api/app",
+    "source_validation": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r5-api/app/domains/_preselection_parts/source_validation.py",
+      "sha256": "7ebc0d81ed0d205e50aa365986321a1192b6560af91a881146af88c9c62edee2"
+    },
+    "name_module": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r5-api/app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "sha256": "a7e46a359e3490c3e7f56c5232ebd8dacd157a833e504c8ff7bce812f12ce977"
+    },
+    "r6_candidate": {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/domains/_preselection_parts/source_validation.py",
+      "sha256": "1bc1a4e797318047ce691ddf3c4e1bb45727d413c5396a68cc0900a8621e8929"
+    },
+    "r6_review": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/review/R6_NAME_SIGNAL_DATE_LUNA_PASS_R2.json",
+      "sha256": "c41525b03e1029eec5622e9db45d346a65202aa68bf47402cc103f420b6e632e"
+    },
+    "r6_deployed": false
+  },
+  "r7_candidate": {
+    "adapter": {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/ops/run_review_core_natural_pool_pipeline.py",
+      "sha256": "971346ae201c73f7b08e9511e03be092f989b8f1e4390ef94a6d88a40b2a73b5"
+    },
+    "name_module": {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "sha256": "1df07b3174e0ef99b790d19faac13535fbedd31c88b41c2087963756e91c4e2a"
+    },
+    "name_cli": {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "sha256": "5de9acb352a83bf4acaa5ebaba22686c65325b15449940ff08fb20c9e56eb337"
+    },
+    "source_freeze": {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/daily_names_r7/DAILY_NAME_COVERAGE_SOURCE_FREEZE_R7.json",
+      "sha256": "604e4c4f5088afd8d489825f1e523c674ec4846ef30bf5720700ef6b6c128ead"
+    },
+    "status": "SOURCE_CANDIDATE_REVIEW_PENDING_NOT_DEPLOYED"
+  },
+  "mutex": {
+    "owner_implementation": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+    },
+    "io_dependency": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/business-gaps-20261027-r1-main/app/infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    "constant": ".store.lock",
+    "mutex_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/a_share_display_names/.store.lock.mutex",
+    "mutex_file_exists": true,
+    "device": 16777229,
+    "inode": 60836618,
+    "held_status": "NOT_CHECKED",
+    "warning": "Existence and inode are not proof of availability; no acquisition performed."
+  },
+  "python": {
+    "runtime_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/20260904T081111Z-v35-strict-stage-acquisition-v15/runtime",
+    "site_packages_pytdx_present": true,
+    "runtime_import": "NOT_CHECKED_IN_MAIN_PROCESS"
+  },
+  "dependencies": [
+    "R7 adapter and compatible R7 display owner must both be installed in actual Main app root; replacing only the repository copy or only the separate shared package leaves parent import unresolved.",
+    "The name CLI candidate is for that owner package when CLI is used; existing 21:15 adapter directly calls owner and does not invoke CLI.",
+    "API R6 projection requires its own reviewed integration; R7 does not change running API.",
+    "Future deployment must bind actual application roots/inventory and perform fresh mutex/CAS checks, under a newly authorized publication window.",
+    "BJ unattended current-authority coverage is unconfirmed; unresolved names remain explicitly reported."
+  ]
+}

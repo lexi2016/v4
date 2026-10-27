@@ -1,0 +1,21 @@
+{
+  "provenance": "Root transcription of independent /root/business_gaps_luna_review verdict",
+  "verdict": "REVIEWED/FAIL",
+  "source_freeze_sha256": "604e4c4f5088afd8d489825f1e523c674ec4846ef30bf5720700ef6b6c128ead",
+  "finding": {
+    "id": "R7-1",
+    "severity": "P1",
+    "location": "ops/run_review_core_natural_pool_pipeline.py:892-908",
+    "trigger": "Unqualified six-digit code, exactly one returned exchange candidate, another queried exchange fails",
+    "impact": "Must not certify sole responding market as identity when unseen market could contain same code; status PARTIAL after publish is insufficient",
+    "test_gap": "Current market-failure case is qualified SZ; add unqualified singleton candidate + failed market, require quarantine and no registry row"
+  },
+  "unexecuted": [
+    "No deployment/service/locks/live writes/network",
+    "Natural run CANNOT_CONFIRM"
+  ],
+  "previous_PASS_reused": [
+    "R5",
+    "R6"
+  ]
+}
