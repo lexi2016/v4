@@ -1,0 +1,15 @@
+{
+  "source_root": "runtime-graph-repair-20261026-api-r2/app",
+  "baseline_files": 133,
+  "unchanged_source_files_added": 124,
+  "behavior_changes_added": 0,
+  "excluded": [
+    {
+      "path": "apps/web/src/manager-selection/__tests__/fixtures/issue8R2.ownerObservations.json",
+      "sha256": "0a56e12d5a56e7534b9a484e8bc2443677a2abeb5d3a9feea56ac0d641b2dce8",
+      "reason": "Raw owner-observation test fixture excluded from source upload; retained locally"
+    }
+  ],
+  "actual_frontend_baseline_sha256": "677328a4b6f931dbbc4dd84a4bf92a65a15c58e1a5cc328247b339372810fe8c",
+  "four_changed_frontend_sources_remain_bound_to_source_review": true
+}
