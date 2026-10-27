@@ -1,0 +1,38 @@
+{
+  "derived_summary_only": true,
+  "not_original_audit": true,
+  "raw_receipts_and_scope_authority_omitted": true,
+  "reviews": [
+    {
+      "kind": "state_algorithm",
+      "source_path": "research_outputs/independent_state_incremental_20261027/INDEPENDENT_CHECK_V2.json",
+      "source_sha256": "cab433f64e9235c1e5755a4628d5f35b29ddc2fa034d377e3924901d192c99ff",
+      "status": "PASS_SIX_STOCK_STATE_ALGORITHM_AND_CANDIDATE_JOURNAL_ONLY",
+      "scope_count": 6,
+      "production_allowed": false,
+      "display_admission": false,
+      "all_pool_admission": false,
+      "source_code_hashes": {
+        "state_engine.py": "e6ce6046bf663ecb492ed61f58b60435122b7080dd5713ebc001917975fd8ab3",
+        "journal.py": "428dbc5a5b4b57e6dc35c5e3b439ebbe4b7ca2f92b5432476abfa87081ba100b"
+      }
+    },
+    {
+      "kind": "consumer_canary",
+      "source_path": "research_outputs/independent_state_consumer3_20261027/CHECK.json",
+      "source_sha256": "a7e67f6af60831f87b14384d1baf75048c2b1bc52045d4a01e0747d3c406f2df",
+      "status": "PASS_THREE_STOCK_CANDIDATE_RESUME_AND_HISTORY_COMPOSITION_ONLY",
+      "scope_count": 3,
+      "production_allowed": false,
+      "display_admission": false,
+      "all_pool_admission": false,
+      "source_code_hashes": {
+        "consumer.py": "149f934c4b2f6bc85027b568bc25298e4484efef1632c43daf7bee3fe30e2898",
+        "state_engine.py": "fccb1c33454739116754cb6e85abbc38b7ff7c5d519c8411c242bd7f24d3deba",
+        "journal.py": "428dbc5a5b4b57e6dc35c5e3b439ebbe4b7ca2f92b5432476abfa87081ba100b"
+      }
+    }
+  ],
+  "original_formula_sha256": "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac",
+  "original_engine_sha256": "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c"
+}
