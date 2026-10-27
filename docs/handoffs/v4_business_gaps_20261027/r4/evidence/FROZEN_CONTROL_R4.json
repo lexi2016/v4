@@ -1,0 +1,34 @@
+{
+  "schema_version": "v4.business_gaps.r4_control_freeze.v1",
+  "scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/SCOPE_R4_CONTROL_API_GRAPH_ONLY.json",
+  "scope_sha256": "7fdb41e4b52e69dc015ce92e0eed608c90af5d618a862d8adec2a7f443304492",
+  "source_freeze_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/FROZEN_SOURCE_R4_ACTUAL_R2.json",
+  "source_freeze_sha256": "19b5d2c27e7a263330c853faad41f050f4e8adeda065cb682998967b13828ae1",
+  "at": "2026-10-27T13:04:49.376418+00:00",
+  "control": [
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/control/prepare.py",
+      "sha256": "9aeeb1a969dd115883f57cfc18e8c7ed3f93ccfd6159d9035428075773e08613",
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/baseline/control_before_r4/prepare.py",
+      "baseline_sha256": "36767e7589f5c03cc0894f2d33a04d37cf565aaabb1cb6fbbafc77482565e0e1",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs_r4_actual/control__prepare.py.patch",
+      "diff_sha256": "5a2eac68a21b5f45a19c90f758e443c3ec88ea9fa1f0cd7f188949c9f1c5d2e4"
+    },
+    {
+      "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/control/controller.py",
+      "sha256": "e9160a7d4c628245e30ece715068102121c88373c5f0ac3843e7ee5bec944750",
+      "baseline_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/baseline/control_before_r4/controller.py",
+      "baseline_sha256": "b5b905b8dd015b47941958fe5592097b185d3b3b63ea2f9bfff02fbf65e277da",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs_r4_actual/control__controller.py.patch",
+      "diff_sha256": "389decf30e210d1b5e70b6ab27e160c1915a2407b5934ce4d19188ba0a6cd593"
+    }
+  ],
+  "test": {
+    "path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_publication_control_r4.py",
+    "sha256": "99870b5e2f1b7c0c024020fdaeff411e055e878d9d6cf5ba3f211242c144f05b",
+    "log": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/CONTROL_R4_TEST_R2.log",
+    "log_sha256": "99cef98de12a8b8a90abbcb2033d076bfc563ea7951d4da90263da27288d16f6"
+  },
+  "review_status": "NOT_REVIEWED",
+  "deployment_status": "NOT_DEPLOYED"
+}

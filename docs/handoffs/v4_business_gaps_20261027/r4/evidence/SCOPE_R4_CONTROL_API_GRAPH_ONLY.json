@@ -1,0 +1,38 @@
+{
+  "scope": "V4_R4_API_GRAPH_ONLY_CONTROL_INCREMENT",
+  "at": "2026-10-27T21:03:20.599622+08:00",
+  "goal": "Publish frozen R4 API behavior and Graph identity with original guarded mechanism while keeping Main/Stage/Aprecapture continuously bound and running.",
+  "writer": "/root/business_gaps_terra_writer",
+  "writer_model": "gpt-6.1-terra/high",
+  "reviewer": "/root/business_gaps_luna_review",
+  "reviewer_model": "gpt-6-luna/max",
+  "ownership_override": "Human explicitly replaced Sol subagent preference; predecessor released all files20:58. Business scope goals unchanged.",
+  "business_scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/SCOPE_R4_STAGE_DISPLAY.json",
+  "business_scope_sha256": "9069d8ddd6c8455d0c5dce745483bf069280286f4a9dfdfe04809c250e05dadc",
+  "source_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/FROZEN_SOURCE_R4_ACTUAL_R2.json",
+    "sha256": "19b5d2c27e7a263330c853faad41f050f4e8adeda065cb682998967b13828ae1"
+  },
+  "allowed_paths": [
+    "deliveries/v4_business_gaps_20261027/control/prepare.py",
+    "deliveries/v4_business_gaps_20261027/control/controller.py",
+    "tests/test_business_gaps_publication_control_r4.py"
+  ],
+  "constraints": [
+    "Keep reviewed full mode default compatible and old PASS reused",
+    "R4 mode fixed API+collector actions only, all five component identities/inventories/CAS still verified",
+    "Main/Stage/Apre exact old root+manifest+inventory+raw plist bytes unchanged; no plist reserialization or stop/start",
+    "UNCHANGED only after root/manifest/plist/inventory agreement, explicit forward/recovery handling of identical old/new roots",
+    "No operator change needed; existing stage() verifies already-existing unchanged releases",
+    "Original owner/shared API/collector/announcement/lane/PDF guards, calendar margins, strict CAS/inverse CAS and recoverable tty retained",
+    "Preserve old control exact bytes in baseline before editing; no generic controller/state framework",
+    "No live service/lock/action by Writer; Root prepares fresh Handoff/executes only exact independently reviewed plan"
+  ],
+  "tests": "Only directly affected API-only/default and UNCHANGED drift/recovery/identity cases; no repeated old suites",
+  "pass_signal": "One incremental independent review binding R4 source+control+actual final PLAN; Root deployment/readback + affected live API/UI/Graph budget",
+  "stop_rule": "Unknown scope/root/SHA/CAS/guard/outcome stops forward mutation; same-session reconciliation or inverseCAS, never blind retries",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

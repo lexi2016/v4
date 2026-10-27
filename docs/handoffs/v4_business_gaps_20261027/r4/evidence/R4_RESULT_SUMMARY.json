@@ -1,0 +1,33 @@
+{
+  "actual_deployment_status": "DEPLOYED_ACTUAL_BINDINGS_VERIFIED",
+  "actual_deployment_at": "2026-10-27T21:19:01.941410+08:00",
+  "api_pid": 52008,
+  "api_manifest_sha256": "6d8563152bc9910801d19e9e7958850d5da6aaaae69f6d0de2178aed45e0ad1e",
+  "review_sha256": "fd7a4ba7dcc2f8241c22cf22d53df8c346f3c67423c2012b4c918a91534b6257",
+  "plan_sha256": "7cbd82382fafb2384a8616bf7055a334c2eef85ef588f9398dadfc2e60c89708",
+  "main_stage_apre_service_actions": 0,
+  "ui_status": "PASS_WITH_ORIGINAL_BUSINESS_FAILURE_PRESERVED",
+  "three_stage_names": [
+    "百大集团",
+    "锋尚文化",
+    "德尔股份"
+  ],
+  "auction_failure_shown": true,
+  "three_pools_business_status": "MAIN25_READY_STAGE7_AND_FUPAN_MISSING",
+  "main_name_status": "MAIN25_NO_CODE_ONLY_NAMES",
+  "live_graph_status": "FAIL",
+  "live_graph_seconds": 3.005811749957502,
+  "live_graph_timeout_seconds": 3,
+  "natural_verified": false,
+  "source_files": {
+    "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/ACTUAL_DEPLOYMENT_RECEIPT_R4.json": "d051d1b549d2f12a230206c17a179b76acffd282702e4e3e36c7ff66f30768d7",
+    "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/actual_ui/R4_NAMES_AND_AUCTION_ACTUAL_UI.json": "60a5e9febff0312937df117ae9f9fed2fdc004c7f31554cce44e6e872ee4f4a2",
+    "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/actual_ui/R4_THREE_POOLS_ACTUAL_UI.json": "72fb062fac4c575dce74fbd1c619b42926299fcfb9c6267911abaca9229c1aa1",
+    "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/actual_ui/GRAPH_COMPACT_R4_LIVE_RESULT.json": "3200e18320952fefa4545154eb136f20ed34342f36ce6b67cf0593811913badf",
+    "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/FORMAL_WINDOW_RETURN_R4_20261027.json": "bb20f5c06336d62ba716edbf245d9ed028279ae513f0368c6039e67143f16389"
+  },
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

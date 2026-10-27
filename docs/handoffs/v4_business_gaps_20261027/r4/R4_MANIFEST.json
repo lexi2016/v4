@@ -1,0 +1,100 @@
+{
+  "schema_version": "v4.business_gap.source_sync_increment.R4.v1",
+  "prior_remote_commit": "8c98c43b14167fb01a892e58d555a5aa46757573",
+  "source_freeze_sha256": "19b5d2c27e7a263330c853faad41f050f4e8adeda065cb682998967b13828ae1",
+  "control_freeze_sha256": "9b888f493c60d2f4e5e553c9de1bfd9e81791ba10775812bae5624dcab84afe6",
+  "files": [
+    {
+      "path": "source/api/apps/api/v35_api/app.py",
+      "bytes": 390707,
+      "sha256": "c3e04aef41b2851cdc20b0b66810cbaeda15ac1c84a020c0a9016ef827078a0f"
+    },
+    {
+      "path": "source/api/domains/_preselection_parts/source_validation.py",
+      "bytes": 15298,
+      "sha256": "7ebc0d81ed0d205e50aa365986321a1192b6560af91a881146af88c9c62edee2"
+    },
+    {
+      "path": "source/api/stage_center/consumer.py",
+      "bytes": 55769,
+      "sha256": "8503f1739ce42d6a9bd74fb2c04786f9be221ae1193a08e6dfe679dc695bdacb"
+    },
+    {
+      "path": "source/api/domains/runtime_graph_evidence.py",
+      "bytes": 42060,
+      "sha256": "f9cf5be7f769c1902205380aa577c047be50ca1be1064d51af5ce6a86acecf80"
+    },
+    {
+      "path": "source/api/infrastructure/runtime_graph/current.py",
+      "bytes": 8603,
+      "sha256": "8503816a3e3e2adffd4e1de9ae8938e571b9469becc323bef9250bf889c077f3"
+    },
+    {
+      "path": "control/prepare.py",
+      "bytes": 25857,
+      "sha256": "9aeeb1a969dd115883f57cfc18e8c7ed3f93ccfd6159d9035428075773e08613"
+    },
+    {
+      "path": "control/controller.py",
+      "bytes": 29184,
+      "sha256": "e9160a7d4c628245e30ece715068102121c88373c5f0ac3843e7ee5bec944750"
+    },
+    {
+      "path": "tests/test_stage_display_evidence_r4.py",
+      "bytes": 12539,
+      "sha256": "e2ee5d3cbe507c39f030024adc6cd525bcb124dd015382d1ddd0131f19d1c8a8"
+    },
+    {
+      "path": "tests/test_runtime_graph_live_budget_r4.py",
+      "bytes": 8002,
+      "sha256": "1f92d4d031f426af8b111ad316ebb9c76bbbfda4412ef91515fcbae347e64042"
+    },
+    {
+      "path": "tests/test_business_gaps_publication_control_r4.py",
+      "bytes": 5094,
+      "sha256": "99870b5e2f1b7c0c024020fdaeff411e055e878d9d6cf5ba3f211242c144f05b"
+    },
+    {
+      "path": "evidence/SCOPE_R4_STAGE_DISPLAY.json",
+      "bytes": 4275,
+      "sha256": "9069d8ddd6c8455d0c5dce745483bf069280286f4a9dfdfe04809c250e05dadc"
+    },
+    {
+      "path": "evidence/SCOPE_R4_CONTROL_API_GRAPH_ONLY.json",
+      "bytes": 2697,
+      "sha256": "7fdb41e4b52e69dc015ce92e0eed608c90af5d618a862d8adec2a7f443304492"
+    },
+    {
+      "path": "evidence/FROZEN_SOURCE_R4_ACTUAL_R2.json",
+      "bytes": 5378,
+      "sha256": "19b5d2c27e7a263330c853faad41f050f4e8adeda065cb682998967b13828ae1"
+    },
+    {
+      "path": "evidence/FROZEN_CONTROL_R4.json",
+      "bytes": 2398,
+      "sha256": "9b888f493c60d2f4e5e553c9de1bfd9e81791ba10775812bae5624dcab84afe6"
+    },
+    {
+      "path": "evidence/LUNA_REVIEW_R4_API_GRAPH.json",
+      "bytes": 7164,
+      "sha256": "fd7a4ba7dcc2f8241c22cf22d53df8c346f3c67423c2012b4c918a91534b6257"
+    },
+    {
+      "path": "evidence/R4_RESULT_SUMMARY.json",
+      "bytes": 2001,
+      "sha256": "6f2e086b761ca93c8aed956478c68e5fa7fb7d4bed30cac1fcd45a815d106b2b"
+    },
+    {
+      "path": "R4_README.md",
+      "bytes": 660,
+      "sha256": "12c5e16d664fc704a6c1efac9a16a60d2b9f38b36b8dac4440fe59553872abcb"
+    }
+  ],
+  "raw_data_PDF_dist_runtime_excluded": true,
+  "prior_remote_files": "REUSED_UNCHANGED",
+  "status": "LOCAL_STAGING_ONLY",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

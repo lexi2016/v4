@@ -1,0 +1,3 @@
+# R4 source and control increment
+
+Five API source overlays are based on the actual deployed R3 API; the two control files and three focused tests are the independently reviewed R4 versions. The reviewed API/collector-only plan was deployed; Main and Stage services were not restarted. Three names and auction failure display passed actual UI checks. The next-day main pool has 25 named rows; Stage7 and fupan pools remain CANNOT_CONFIRM. Full compact Graph live request timed out at 3 seconds and remains unresolved. No natural-run, PIT, BUY or trading acceptance is implied. No raw source data, PDFs, build outputs, runtime data or screenshots are included.

@@ -1,0 +1,62 @@
+{
+  "schema_version": "v4.business_gaps.incremental_review.v1",
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "behavior_status": "LOCAL_BEHAVIOR_VERIFIED for the cold TestClient handler and scoped stage observations; deployed API/UI and natural-cycle behavior are CANNOT_CONFIRM",
+  "deployment_plan_sha256": "7cbd82382fafb2384a8616bf7055a334c2eef85ef588f9398dadfc2e60c89708",
+  "source_freeze_sha256": "19b5d2c27e7a263330c853faad41f050f4e8adeda065cb682998967b13828ae1",
+  "control_scope_sha256": "7fdb41e4b52e69dc015ce92e0eed608c90af5d618a862d8adec2a7f443304492",
+  "control_freeze_sha256": "9b888f493c60d2f4e5e553c9de1bfd9e81791ba10775812bae5624dcab84afe6",
+  "prepare_sha256": "9aeeb1a969dd115883f57cfc18e8c7ed3f93ccfd6159d9035428075773e08613",
+  "controller_sha256": "e9160a7d4c628245e30ece715068102121c88373c5f0ac3843e7ee5bec944750",
+  "publication_operator_sha256": "6e55505f01ffb6f3c91491b54f6200e2910e803eb4827459c964ddbfaded3050",
+  "handoff_sha256": "f6815695c5a844a84a440672736c4a4f987ef31557ca13546a8e4fa00167c18e",
+  "native_reader_roots_sha256": "02b41374b4e697eec4b906b712d31b18adad881038c907b9c63808197ff35724",
+  "scope": "One incremental R4 review of five API source files, two scoped tests, the API+collector-only publication control delta, fresh R4 handoff, and exact formal PLAN. R3 REVIEWED/PASS and its 107-name acquisition/publication evidence are reused; R2/R3/107 are not rerun.",
+  "reviewed_source_hashes": {
+    "apps/api/v35_api/app.py": "c3e04aef41b2851cdc20b0b66810cbaeda15ac1c84a020c0a9016ef827078a0f",
+    "domains/_preselection_parts/source_validation.py": "7ebc0d81ed0d205e50aa365986321a1192b6560af91a881146af88c9c62edee2",
+    "stage_center/consumer.py": "8503f1739ce42d6a9bd74fb2c04786f9be221ae1193a08e6dfe679dc695bdacb",
+    "domains/runtime_graph_evidence.py": "f9cf5be7f769c1902205380aa577c047be50ca1be1064d51af5ce6a86acecf80",
+    "infrastructure/runtime_graph/current.py": "8503816a3e3e2adffd4e1de9ae8938e571b9469becc323bef9250bf889c077f3",
+    "tests/test_stage_display_evidence_r4.py": "e2ee5d3cbe507c39f030024adc6cd525bcb124dd015382d1ddd0131f19d1c8a8",
+    "tests/test_runtime_graph_live_budget_r4.py": "1f92d4d031f426af8b111ad316ebb9c76bbbfda4412ef91515fcbae347e64042"
+  },
+  "risk_summary": {
+    "P0": [],
+    "P1": [],
+    "P2": []
+  },
+  "findings": [],
+  "performed_checks": [
+    "Matched the five current API source hashes and two test hashes to FROZEN_SOURCE_R4_ACTUAL_R2.json; all five stored diff hashes also match that freeze. R4 remains bounded to the declared source paths.",
+    "Reviewed the name projection and API call order. It runs after original news enrichment, only projects existing A-share display arrays, and leaves score, eligibility, news fields, HK rows, selection rules, PIT flags, and input payload unchanged. The three referenced HQ page hashes independently match the observed names for 300860, 300473, and 600865; the R3 107-name PASS remains reused.",
+    "Reviewed the 0925 failure overlay. It is display-only and requires exact date/stage, current runner-receipt SHA, candidate current SHA/run, original COMMITTED graph hint SHA, original attempt SHA/path, unique candidate-matched attempt, timestamps, raw/rejected counts, and false safety flags. Missing, malformed, ambiguous, conflicting, or unbound evidence returns no overlay. The actual original event is within the requested 4096 scan: 3861 files total, event at sorted position 2936, first of two matching PRECAPTURE_A_0925 events. Actual attempt SHA is 02939af4f52efa0343e1841934cff35296c1767fcd8af5f3246d5d92e5d4246d; receipt SHA is beb314b1c10a43926c949b9b695940275d6f47897c83c70dcb645d2de6ca6a09. Recorded state remains CANNOT_CONFIRM, requested 482, source 0, raw/rejected 482, accepted 0, 477 post-capture times, 5 missing times.",
+    "Verified read_events keeps the default 2000 bound; only the scoped diagnostic requests 4096, under the hard 10000 maximum. Noncompact runtime graph retains the original build_task_status branch. Compact uses the existing logical/timeline and scheduler-slot projection functions, preserving current-slot versus last-result facts.",
+    "Reviewed the four control tests and their 4-pass receipt. R4 mode restricts service actions to API/collector; unchanged Main/Stage/A-precapture roots, manifests, inventory hashes and raw plist bytes are checked against the fresh prior identity in both forward and recovery paths. Recovery skips all unchanged services and stops if their binding is absent or ambiguous; the default FULL path remains available.",
+    "Verified final PLAN SHA and handoff/source/native-root bindings. It contains five operations: only API and collector have different roots and plist hashes; Main, Stage and A-precapture identities and raw plist hashes are unchanged. All set/remove/env_set operation fields are empty, all safety flags remain false, margin is 300 seconds, and 54 protected windows are retained. Candidate API/collector manifests, config SHA, plist templates, and current before hashes match the PLAN.",
+    "Read the final corrected-root local handler receipt: 46 graph nodes, HTTP 200, 1.204954 seconds, 148208 bytes; the three sampled stage rows changed only display fields. The 0925 local handler readback retained requested 482/source 0 and CANNOT_CONFIRM execution status. No service actions or provider requests are recorded."
+  ],
+  "reused_evidence": [
+    "Original R3 REVIEWED/PASS and 107-name publication/readback; no R2/R3/107 recollection or rerun.",
+    "STAGE_DISPLAY_R4_R3.log: 23 tests passed; STAGE_R4_MALFORMED_SHAPE.log: 2 targeted tests passed after the final shape-test/source update.",
+    "GRAPH_HANDLER_R4_R1.log and GRAPH_HANDLER_R4_R2.log: two graph unit tests passed; their earlier cold-handler fixture failures are retained and superseded only by the corrected-root targeted cold-handler PASS in GRAPH_HANDLER_R4_CORRECTED_ROOTS_R2.log.",
+    "R4_COLD_HANDLER_AND_STAGE_READBACK_CORRECTED_ROOTS.json, SHA-256 42282016e4d3989fe17f1b15159407bfa611fcfdd4a22cbf3dd0f31fc371ba90.",
+    "CONTROL_R4_TEST_R2.log: four targeted control tests passed; the final frozen control test/source hashes match."
+  ],
+  "evidence_limitations": [
+    "The complete stage test suite was not rerun at the final test hash; the prior 23-pass receipt plus the final targeted 2-pass receipt are reused. The graph cold handler was rerun with corrected actual R3 roots, while the two graph unit results are reused.",
+    "The cold handler is local TestClient evidence, not deployed API/UI evidence. No R4 publication/deployment or natural-cycle verification was performed or is claimed. No selection, PIT, natural, production, or trading certification is implied."
+  ],
+  "unexecuted": [
+    "Actual API/collector publication and post-publication API/UI readback.",
+    "Deployed quiet full-46 Graph request under the 3-second/4-MiB limit and collector snapshot linkage after publication.",
+    "Natural-cycle, PIT, selection, production, and trading verification."
+  ],
+  "reviewer_actions": {
+    "files_edited_other_than_receipt": false,
+    "tests_rerun": false,
+    "live_service_actions": 0,
+    "provider_requests": 0
+  }
+}
