@@ -1,0 +1,23 @@
+{
+  "schema_version": "v4.business_gap.R3_dependency_record.v1",
+  "dependencies": [
+    {
+      "path": "infrastructure/interprocess_lock.py",
+      "baseline_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0",
+      "bytes": 7514,
+      "changed_by_R3": false,
+      "runtime_dependency": "retained from complete exact actual API parent; not copied from canonical"
+    },
+    {
+      "path": "upstreams/v3_shared_data/shared_data/store.py",
+      "baseline_source": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/upstreams/v3_shared_data/shared_data/store.py",
+      "sha256": "87042083dad178442c75386e59ae4b2fd9bab0a3c92b5c3a090ddb90e6b52a16",
+      "bytes": 27895,
+      "changed_by_R3": false,
+      "runtime_dependency": "retained from complete exact actual API parent; not copied from canonical"
+    }
+  ],
+  "runtime_parent_required": true,
+  "complete_runtime_exported": false
+}

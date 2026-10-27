@@ -1,0 +1,491 @@
+{
+  "schema_version": "v4.business_gaps.source_freeze.v1",
+  "scope": "V4_BUSINESS_GAPS_PUBLICATION_R1",
+  "at": "2026-10-27T20:08:35.477816+08:00",
+  "worktree": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app",
+  "git_base": "55a5ba0b8aef8e83dfd04fdbabefb8d9baa1d054",
+  "scope_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/SCOPE.json",
+  "scope_sha256": "0be348add2ae2f5b463f2674003c7e3cdcce3bb9a2f1ac8eff505632af31473e",
+  "overlay_entries": [
+    {
+      "component": "main",
+      "path": "ops/run_zsxq_hourly_delta.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/ops/run_zsxq_hourly_delta.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/ops/run_zsxq_hourly_delta.py",
+      "before_sha256": "ccb3a0b95b89cba4a79f24930599105b1358dc05f4d04b5e981c9ee8e469878c",
+      "after_sha256": "f0fec30ff0017cf34945e84b16f934a8a40e64978032a17b17592e504fa40343",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__ops__run_zsxq_hourly_delta.py.patch",
+      "diff_sha256": "cf54ab0d41c4094c0917bd3d4b70236ec40f4ab0999f788317951e9e9e7df587"
+    },
+    {
+      "component": "main",
+      "path": "ops/wechat_preselection_sync.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/ops/wechat_preselection_sync.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/ops/wechat_preselection_sync.py",
+      "before_sha256": "4564b40d4f3567cf7be61526b21547bf1d4589d153d69a96e3a0c2ba47f4b3a9",
+      "after_sha256": "58dff6a39d22c122d1cbe978e3b8a75e612255f955627b3ab40ae2210c6a04be",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__ops__wechat_preselection_sync.py.patch",
+      "diff_sha256": "1e251f0a49d6c68201a0be142927aea321bfc0c7ac433a06a5a36490105b61b6"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/inputs/native.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/inputs/native.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/inputs/native.py",
+      "before_sha256": "6cd7fb80c1c053a3ed64280f458dd77479b802645a029a456762cc48e5bb12aa",
+      "after_sha256": "4bf9df959c4ac30fae7b3ab115a282c737694f032e410bf3350112196007c469",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__inputs__native.py.patch",
+      "diff_sha256": "79aea8ee3899e9374db326162c0c5f878dcac5ed5868fe84d7831bc19459f747"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/inputs/strict_us_selection.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/inputs/strict_us_selection.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/inputs/strict_us_selection.py",
+      "before_sha256": "b4573159e77d27373fd433a00a4da48372d38b4a1289f95ef684034a193b4750",
+      "after_sha256": "4a7a9f0bd593e9ef97f16a9ae7f7bf0a2831d9bca0420b6024a491da5f907d22",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__inputs__strict_us_selection.py.patch",
+      "diff_sha256": "96d120133f4ecf9dba36683ce740fc8907cf26a32428c85db0ce4d9194d07dff"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/engines/us_mapping.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/engines/us_mapping.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/engines/us_mapping.py",
+      "before_sha256": "32a8e08aa1ab369a95ce36b625fcf9fd843aa4d3d732caa355d5dc78a666bc8a",
+      "after_sha256": "39ad72670b7d81e2e64e3541f09d75af74a1fa10eede9f86ff3f16a95632d189",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__engines__us_mapping.py.patch",
+      "diff_sha256": "3927193b89c274ecad6294df6224dd230808f9b781114744c0265bb33aa36809"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/engines/core.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/engines/core.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/engines/core.py",
+      "before_sha256": "bf1e32879dcd62d85c54254ebc31dd46dd7918c8135cfb4e50ccd44be74846d7",
+      "after_sha256": "4d0034502a718880872410304aa78d5720cff04c405c2b963e66ffe7483f319b",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__engines__core.py.patch",
+      "diff_sha256": "8025c39d2404d94fc6e7b7bc8d1a0caf94ab8554a565cde6a3c21aa3ed7d5dfc"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/engines/us_mapping_consumption.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/engines/us_mapping_consumption.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/engines/us_mapping_consumption.py",
+      "before_sha256": "63459738499e01c8e86a6216348e15dba47eb3ccef564f49c970fba4bfa0ebdd",
+      "after_sha256": "072a5b99cfbdf8664d14e0af3c597dc0753033d3a2e93e0975b71ace8dacb3dd",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__engines__us_mapping_consumption.py.patch",
+      "diff_sha256": "710e4c539cb2734733047aaece3c02daab3951a32b60ea7e0db8800321aca0b4"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/engines/strict_us_selection.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/engines/strict_us_selection.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/engines/strict_us_selection.py",
+      "before_sha256": "c0051752f3951c956495c18a46981105614cd6caf8cdb254ed54e4fa8e1cd367",
+      "after_sha256": "bd101ab5f958f601c62598160a2eca0ced3dcbf833ae61ae393975d3cb77dbec",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__engines__strict_us_selection.py.patch",
+      "diff_sha256": "c4646cb164313b6d16ef0be15d8ef3e249a2d92b4cbb77953ea7e7c190567818"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/engines/us_mapping_policy.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/engines/us_mapping_policy.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/engines/us_mapping_policy.py",
+      "before_sha256": null,
+      "after_sha256": "b0958e528b74ee92de984e09e18ab96f3aa3342e23452383323d72d1f54343ff",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__engines__us_mapping_policy.py.patch",
+      "diff_sha256": "2299191839c63aeff3434cc36a0a9d8bf5c094381647d95d48a3414806e518e5"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/contracts.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/contracts.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/contracts.py",
+      "before_sha256": "ffcbbd6462cacd449e8d11831de9e4312901467faccecc40f6d50aaa31996df0",
+      "after_sha256": "942f5f4817a3d0534d5bea700f307578f26def9d1e05687f51d5608be673d79c",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__contracts.py.patch",
+      "diff_sha256": "6bcb6dd47a5d08327dd979e3393551c2825686dce3788feb10c9ff749283a8eb"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/service.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/service.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/service.py",
+      "before_sha256": "895d9f347790fe38def29beb888f34d6a10d5cf3bcbba9bb61e28357c35f7e46",
+      "after_sha256": "832cf305b77b7d17ee835fa0fd70cad695615ac6dbebeb859453fe4c99ed4536",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__service.py.patch",
+      "diff_sha256": "ccdff39f58737d5f4407a382622d2ecdecc80b6098ba4d0829a90b3a53bef6f5"
+    },
+    {
+      "component": "main",
+      "path": "v4/manager_workbench/scheduler.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/v4/manager_workbench/scheduler.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/v4/manager_workbench/scheduler.py",
+      "before_sha256": "127dd6ae6732867aceeb5fcbdd501a04a5d1df3c242601fc355891e94a65d485",
+      "after_sha256": "352f82e5671a46b0a9329ca4155093795d623715e7a95532bf6fd3aa5487514e",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__v4__manager_workbench__scheduler.py.patch",
+      "diff_sha256": "8929ef8133caa018e7172868730d9d52443c6c14ed308ce23dfbb0ed0bf8933f"
+    },
+    {
+      "component": "main",
+      "path": "upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/upstreams/v3_shared_data/shared_data/hk_history_resolution.py",
+      "before_sha256": null,
+      "after_sha256": "c2b7035a74ca7ce5cb0c527393b70d87c91e348f1fb726ac4242ae7aeed6a58c",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__upstreams__v3_shared_data__shared_data__hk_history_resolution.py.patch",
+      "diff_sha256": "d1c4546e0441de5ae00ffd2d6351bf91f955b6f2a0e5273b2e344fe0e1173ea1"
+    },
+    {
+      "component": "main",
+      "path": "upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-main/app/upstreams/v3_shared_data/shared_data/hk_panel_audit.py",
+      "before_sha256": null,
+      "after_sha256": "30314a806a665d71261521b27cf5ba7aa7a9e4c7247aa7eab9a7348127f134e2",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/main__upstreams__v3_shared_data__shared_data__hk_panel_audit.py.patch",
+      "diff_sha256": "420ab04db440f4b693a9bf059d07adf20f570da1ba140326b530f351958ccaca"
+    },
+    {
+      "component": "stage",
+      "path": "infrastructure/stage_quote_provider.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/infrastructure/stage_quote_provider.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/infrastructure/stage_quote_provider.py",
+      "before_sha256": "618b587e1c43dcad46e059788af0efe868206b51a6cb8f02b37055c34c940c37",
+      "after_sha256": "2c012c0e5527a408b7482861f68984ce9e1c8bd06c28b07e28a290019b6cfd61",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/stage__infrastructure__stage_quote_provider.py.patch",
+      "diff_sha256": "9d63c7cbf00182a75609ff1a2262803e1951279883a5f4b8862bd967cb9d5663"
+    },
+    {
+      "component": "stage",
+      "path": "infrastructure/futu_quote_provider.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/infrastructure/futu_quote_provider.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/infrastructure/futu_quote_provider.py",
+      "before_sha256": "c2eebe37c235f8eaeb6ea9fb9458eed81ca3bbbeab0635253e5447d9744ac89d",
+      "after_sha256": "415dc7c93fec8d72337e3d6b74fea44db2a767c89a4b208f1afad221aa240ccd",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/stage__infrastructure__futu_quote_provider.py.patch",
+      "diff_sha256": "1d12d56929d5983d445881a9215793f447e45e1a708d547a8da82a1e8ad3b560"
+    },
+    {
+      "component": "stage",
+      "path": "infrastructure/tdx_minute_replay_provider.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/infrastructure/tdx_minute_replay_provider.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/infrastructure/tdx_minute_replay_provider.py",
+      "before_sha256": "755990356f9d757e182d8d0b5bf3a8aeea5d2422463df858d995287c842a6b41",
+      "after_sha256": "02f40541d299f7beaab3ad9d813c58c3f910cf54f11e1441198020982ac6655b",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/stage__infrastructure__tdx_minute_replay_provider.py.patch",
+      "diff_sha256": "5328b983dea5a373c66244499bdb64155eebfe25047692ad94c477e0516899ee"
+    },
+    {
+      "component": "stage",
+      "path": "stage_center/hk_stage8/rtdata.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/stage_center/hk_stage8/rtdata.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-stage-r1/app/stage_center/hk_stage8/rtdata.py",
+      "before_sha256": "432f4c49d5270755c2c0abcd26db68b0b9f16d68fca72c6161083c467179e586",
+      "after_sha256": "8c850aaa3f919eb1f8d3995c96c074c1455a972eb45153c345e053d1f763933a",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/stage__stage_center__hk_stage8__rtdata.py.patch",
+      "diff_sha256": "c70a6c98639d15ab19f738c12790c6f8f7dc2ac9b54546de071f9726d9816317"
+    },
+    {
+      "component": "collector",
+      "path": "infrastructure/runtime_graph/event_collector.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/infrastructure/runtime_graph/event_collector.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-collector/app/infrastructure/runtime_graph/event_collector.py",
+      "before_sha256": "da65250248a8f5797b588d92c884d574a7c3b560bbb9b8bf8d51ec066b6954c5",
+      "after_sha256": "02253fffd08222f1439415101e9a37d575db5bcb857d477ef3fad1d43974eb64",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/collector__infrastructure__runtime_graph__event_collector.py.patch",
+      "diff_sha256": "2f660510559c109231efd7c98aca13575278bc34f0dc502735c4047adb934c01"
+    },
+    {
+      "component": "api",
+      "path": "apps/api/v35_api/research_lane_router.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/api/v35_api/research_lane_router.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/api/v35_api/research_lane_router.py",
+      "before_sha256": "796ea8d96b82dcaeb3b843ca60032fdb8a96505803667b6410a41e1828f18733",
+      "after_sha256": "9f6003232e8dbd6f99a306d44cf2bc2a71bde206922777479bde19ef561db324",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__api__v35_api__research_lane_router.py.patch",
+      "diff_sha256": "9e70fa2818632a3803138c37ea7655cbfedf7617a7ba132c0837e8cdf69d1b2c"
+    },
+    {
+      "component": "api",
+      "path": "apps/api/v35_api/preselection_service.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/api/v35_api/preselection_service.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/api/v35_api/preselection_service.py",
+      "before_sha256": "9aa30731a1cf287dfd9a206739719d6ebcb85fb64178938a0c7969838f083676",
+      "after_sha256": "3302700b9bb3c991c00f943fabc3f030eab9a13fd4452554c4ffe7ba66cfa076",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__api__v35_api__preselection_service.py.patch",
+      "diff_sha256": "54f4a3b357400eaa4b9f165833d4280fdde885a3f2de056cd07e985b179fbed2"
+    },
+    {
+      "component": "api",
+      "path": "apps/api/v35_api/runtime_graph_router.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/api/v35_api/runtime_graph_router.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/api/v35_api/runtime_graph_router.py",
+      "before_sha256": "5a1c80890cfacac6d55163dfe069d29afb05acc514ce0c24d7dde29513e8b44b",
+      "after_sha256": "b7645e7b6c783784f3422d7deacea32dd4a50f5b6396ca7081e742f854031eb3",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__api__v35_api__runtime_graph_router.py.patch",
+      "diff_sha256": "a6f36d56c0eb0ace538861402ba5b1d27ac7af051bfd1c2d028dde0f3a4251bd"
+    },
+    {
+      "component": "api",
+      "path": "domains/runtime_graph_evidence.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/domains/runtime_graph_evidence.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/domains/runtime_graph_evidence.py",
+      "before_sha256": "cb668bf01533df6c51ea65633279afd78fdcf5eac08b9be2a3a99a716f7edd49",
+      "after_sha256": "c7dc7e79e64f5cb0d77a259ed04abf394cb0ee5a7c47b8a1011386b3b2e9a331",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__domains__runtime_graph_evidence.py.patch",
+      "diff_sha256": "7aab2cdd99b5e751cae1a62ef305d8b1c8e47015a3ea7bd6447b92ca00c843f8"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/App.vue",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/App.vue",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/App.vue",
+      "before_sha256": "6cd9e27b0035d58d48cc00cb01203b60267ceb711e052620d27ddefaaaeb52d6",
+      "after_sha256": "38778e50d093345b09f38e3a1c95a267d105b9d6d22804ce26f7b3e4490b7e07",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__App.vue.patch",
+      "diff_sha256": "a152833c1df8ef806bdc4b48b5a65dc3bd9c23f3b3db119c7e8c9cef97ad3dd5"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/api/pool_stage.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/api/pool_stage.ts",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/api/pool_stage.ts",
+      "before_sha256": "33cdd55a2008354c39e247f41065e3ade9250fe48d96ca699358f5fbfd72bffe",
+      "after_sha256": "d63753933db59ce953e788ace8e960aa5e55d028e55c1c505eab9c8097700e56",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__api__pool_stage.ts.patch",
+      "diff_sha256": "ec4541aa1c7624ae5de52c245f653841c4399be420e00891023d65974bfe1f08"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/app_shell/types.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/app_shell/types.ts",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/app_shell/types.ts",
+      "before_sha256": "af426dc751a38a48c75c4216d6ba782f6244588c2aee00cc2bb4af5e2ede0c1f",
+      "after_sha256": "59b19e15ca152e05a1cc05fd177031a5e5b9c62bd59de7ecba4eb545299bf429",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__app_shell__types.ts.patch",
+      "diff_sha256": "b868c5da79689948f049c23fe7c5127e7fb562dbb920ea6e21cbdfe8482ae560"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/app_shell/formatters.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/app_shell/formatters.ts",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/app_shell/formatters.ts",
+      "before_sha256": "b83fde0d402775dc25bde8ce35fd56c3163a5fb67a2fad1ca8505e1ea3828e95",
+      "after_sha256": "81820655e953f11e89f407cd12492d1e2eaa9b5671a3a87c4553df2c76e73149",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__app_shell__formatters.ts.patch",
+      "diff_sha256": "e544fd59dc0ef6641a55622ed91ad51cf969ab0746122fafbc4228dc2601235f"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/app_shell/useAppShell.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/app_shell/useAppShell.ts",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/app_shell/useAppShell.ts",
+      "before_sha256": "51552ba9f215ac932ccb76d183a66f482e01fb5fd69244d321fe683f938d09d0",
+      "after_sha256": "e13a6c00c9502bc68abfb05428208be07deda1ef0371ab1df50ed26da7b9e6c4",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__app_shell__useAppShell.ts.patch",
+      "diff_sha256": "9328e3beb67c9c177c280f18c29bca509a7142b93aef0f0537270d6e93732642"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/app_shell/buildIdentity.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/app_shell/buildIdentity.ts",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/app_shell/buildIdentity.ts",
+      "before_sha256": null,
+      "after_sha256": "44a86d67914745b4386f37780c383b6f438431a0fe1577bdea8a239fd6c29030",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__app_shell__buildIdentity.ts.patch",
+      "diff_sha256": "cf6e9263cf42fd7365b6f51f0935ce8ead80617571e4fc75fdc69501174254e4"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/src/components/review/StageSummaryPanel.vue",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/components/review/StageSummaryPanel.vue",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/src/components/review/StageSummaryPanel.vue",
+      "before_sha256": "4457dfd6aa6e138493026358b186011bed6e7b09f9ba33a6a529db1b3a6483b5",
+      "after_sha256": "e18b616edbf28177e2c9bb0779905511021626029ea3483f6456a7d67ca66c21",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs/api__apps__web__src__components__review__StageSummaryPanel.vue.patch",
+      "diff_sha256": "0d165a9df274dfb1849a6e214c3f753f09c9ea14ad38051e672b259c5c475de3"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/dist/assets/main-CcgQd_kb.js",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/dist/assets/main-CcgQd_kb.js",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/dist/assets/main-CcgQd_kb.js",
+      "before_sha256": null,
+      "after_sha256": "ded15ef186cbdcf97c90811913fee4600bfc4b4f2b551948fc6df9201b54c676",
+      "kind": "built_frontend"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/dist/assets/main-fbJ3eZO_.css",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/dist/assets/main-fbJ3eZO_.css",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/dist/assets/main-fbJ3eZO_.css",
+      "before_sha256": null,
+      "after_sha256": "5b2e6c0f44bd77728897d06863bf0eb880f28216f273631ab28b21dfac8a64e4",
+      "kind": "built_frontend"
+    },
+    {
+      "component": "api",
+      "path": "apps/web/dist/index.html",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/dist/index.html",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/apps/web/dist/index.html",
+      "before_sha256": "6339052dc72b993b71a0aea141ee8f71f45758afa89947af76e5c1e67a993b13",
+      "after_sha256": "27f3dea072224c3dd50bb005e40a0787ad892deda9103a1abf2ee5655ca2f6bf",
+      "kind": "built_frontend"
+    },
+    {
+      "component": "api",
+      "path": "domains/_preselection_parts/source_validation.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/domains/_preselection_parts/source_validation.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/domains/_preselection_parts/source_validation.py",
+      "before_sha256": "8959bb137725af3a14e25e0bee6e52137963012f227270549ab0a9d439ec6500",
+      "after_sha256": "8bf357f080f679d1f41265731f2ea15eaf1a3a20984c36445f1184cd71a0e998",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs_r3/domains___preselection_parts__source_validation.py.patch",
+      "diff_sha256": "41d543596116c6de352b69df2bd5b8b896a9a81cfc7c6cc45aacf58ee2c380d1"
+    },
+    {
+      "component": "api",
+      "path": "upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "before_sha256": "1981332da88c41ed1c902f2ebe81feb07bb250c9045f9bf6939a731038524fda",
+      "after_sha256": "a7e46a359e3490c3e7f56c5232ebd8dacd157a833e504c8ff7bce812f12ce977",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs_r3/upstreams__v3_shared_data__shared_data__a_share_security_master.py.patch",
+      "diff_sha256": "e5a86a48473103321103b1ce62f2254468e4efef13bc54625179fa919af2ea76"
+    },
+    {
+      "component": "api",
+      "path": "upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "baseline_source_path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/ui-pdf-publication-20261027-r2-api/app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "before_sha256": "f3fb49ebbe19ef276dea7d6a9c2c6ec058f61334cdc024bbf1655e8de8bcaca5",
+      "after_sha256": "55bf916686cd164150f4fcc74d2178600aead8f9e3eee300efefd44b1e4f9287",
+      "kind": "business_source",
+      "diff_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/diffs_r3/upstreams__v3_shared_data__scripts__acquire_a_share_security_master.py.patch",
+      "diff_sha256": "4c8fddc094111de73544f7c875704d72461acc71bdef4ef9f942a6da714f328a"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/test_business_gaps_build_identity.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_build_identity.py",
+      "sha256": "b5fe6063bf908ba731f15ad473cd131e8526570e7c64563bec7580b49fe2345c"
+    },
+    {
+      "path": "tests/test_business_gaps_collector_dates.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_collector_dates.py",
+      "sha256": "4a88e9a6d68d4429506b8adba34911a4aa0926dee755d10bceff4d32f71c9e7c"
+    },
+    {
+      "path": "tests/test_business_gaps_hk_cleanup.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_hk_cleanup.py",
+      "sha256": "4df01b6a95b01cb41a3814236f312522f61fa606d401ca82ce47a76fabad543d"
+    },
+    {
+      "path": "tests/test_business_gaps_native_readers.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_native_readers.py",
+      "sha256": "d408f7ceaa73a92687b8f1b4bafe0c670015febe44e4f65514078aec5f284077"
+    },
+    {
+      "path": "tests/test_business_gaps_opening.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_opening.py",
+      "sha256": "9d6210dae03a80689d7c44cd75a7395c367bb148a5c1894f54bf7f525acec225"
+    },
+    {
+      "path": "tests/test_business_gaps_topics_resume.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_topics_resume.py",
+      "sha256": "699a917f6dde5427232214130e2183c1953ab47a87cb1d3d24b2675a3c5891b3"
+    },
+    {
+      "path": "tests/test_business_gaps_transport.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_transport.py",
+      "sha256": "877d254feddf37dd51af476c117184bcaa53e4d1e2468df0572a4fe03bb86980"
+    },
+    {
+      "path": "tests/test_business_gaps_us_capture.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_us_capture.py",
+      "sha256": "f40b3e7144f8855889d5423d04440816ee3ca092353dce1483bb1bb4f12c1bc3"
+    },
+    {
+      "path": "tests/test_business_gaps_us_parent.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_us_parent.py",
+      "sha256": "b3ac28a40ebeaba8d7512cbeba62e124bbf4dc7c4cb8c7f1364dde1dd17f0017"
+    },
+    {
+      "path": "tests/test_business_gaps_wechat.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_business_gaps_wechat.py",
+      "sha256": "1d76443b30523cda4e1e819bc67cad24c2001145019ff430cf0413235eac3dc2"
+    },
+    {
+      "path": "apps/web/src/app_shell/businessGaps.spec.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/app_shell/businessGaps.spec.ts",
+      "sha256": "de2ceb12af1132d9e66dce3e809fb578b853c842a2d92e29984301535097ee0d"
+    },
+    {
+      "path": "apps/web/src/app_shell/buildIdentity.spec.ts",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/apps/web/src/app_shell/buildIdentity.spec.ts",
+      "sha256": "4ee7c03b4ccba15ae605d0975bee907c99ae88ea308ad54da36089b8f9cedc4e"
+    },
+    {
+      "path": "tests/test_next_day_display_names.py",
+      "source_path": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_next_day_display_names.py",
+      "sha256": "0edf7c5d918c073387c6dda8ab1235201b966ae37d961f470c20ab7dd1b7efce"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "deploy_status": "NOT_RUN",
+  "review_status": "PENDING",
+  "prior_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/FROZEN_SOURCE_R2.json",
+    "sha256": "dfbf1986b8557b2735291af96b4fefc3979085ef5b3796e98baddecacd16b315",
+    "unchanged_business_sources": 30,
+    "unchanged_static_entries": 3
+  },
+  "increment_scope": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/SCOPE_R3_NEXT_DAY_NAMES.json",
+    "sha256": "f06983fff0d9deae5d50ed539f1025cc65027f2b675c4f69c9a3786404bf66c4"
+  },
+  "increment_validation": {
+    "targeted_test_log": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/NAMES_R3_TARGETED_R1.log",
+    "targeted_cases": 20,
+    "cached_107_preflight": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/NAMES107_CACHE_ONLY_PREFLIGHT.json",
+    "provider_requests": 0,
+    "shared_index_writes_by_writer": 0
+  }
+}

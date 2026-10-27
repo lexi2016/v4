@@ -1,0 +1,222 @@
+{
+  "schema_version": "v4.business_gap.R3_result_summary.v1",
+  "source_freeze_sha256": "a0f88e4b13352c5b4cc93882b168ad3cc2824a8c7e1e5fa8fa0c37528b220332",
+  "review": {
+    "verdict": "PASS",
+    "receipt_sha256": "d3b2e964158b008a7d54f4b9ee95d4ffc180724b18f477c13a5308264f57e326"
+  },
+  "targeted_tests": {
+    "command": "PANEL_PYTHON -B -m pytest -q tests/test_next_day_display_names.py --basetemp <case>/pytest-names-r3",
+    "result": "20 passed",
+    "log_sha256": "7ae6e16967f343d0d2aeed41ceb38e89b8a4306845da0b35c7579a33d3b5c7a8",
+    "old_suites_rerun": false
+  },
+  "names107": {
+    "status": "VERIFIED_DISPLAY_NAME_EXTENSION",
+    "observation_date": "20261027",
+    "target_date": "20261028",
+    "prior_run_id": "d04b77052fb9acbc82707796",
+    "prior_count": 90,
+    "new_count": 107,
+    "old_rows_unchanged": 90,
+    "added_count": 17,
+    "provider_connections": 0,
+    "provider_requests": 0,
+    "old_run_files_unchanged": true,
+    "old_source_observation_unchanged": true,
+    "pool_files_unchanged_during_operation": 14,
+    "index_sha256_before": "981e634c8f663f5dfe5ff7c2800b27f5de4f413045565cb400f1fa1d079ecb43",
+    "index_sha256_after": "ffe8c927aa018037c298cee715df48e2dfe7918257465ddf80b26682dba43b59",
+    "publisher_receipt": {
+      "schema_version": "v3_shared_data.a_share_display_names.v1",
+      "source_kind": "DISPLAY_NAME_ONLY",
+      "observation_date": "20261027",
+      "run_id": "e8fc4fd22b07d9806ed82cc3",
+      "row_count": 107,
+      "artifact_sha256": "e8fc4fd22b07d9806ed82cc38fc55716405ef3537c7269399ec0f1e3ad85461e",
+      "selector_certified": false,
+      "pit_certified": false,
+      "research_only": true,
+      "production_allowed": false,
+      "buy_gate_updated": false,
+      "orders_sent": false,
+      "coverage_extension": {
+        "previous_run_id": "d04b77052fb9acbc82707796",
+        "previous_index_sha256": "981e634c8f663f5dfe5ff7c2800b27f5de4f413045565cb400f1fa1d079ecb43",
+        "previous_row_count": 90,
+        "added_row_count": 17
+      },
+      "status": "READY",
+      "manifest_sha256": "c29f81779cddbd8f504f980cfeae496ed1d9c8e490307f7d2c9d169222d529ff"
+    }
+  },
+  "deployment": {
+    "status": "DEPLOYED_AND_ACTUAL_BINDINGS_VERIFIED",
+    "completed_at": "2026-10-27T20:18:46.331182+08:00",
+    "guards_released_at": "2026-10-27T20:18:46.333056+08:00",
+    "plan_sha256": "704f2b3b569aea47c7d6cb9310a8affb76c5f384737341632aec6ae345369f71",
+    "source_freeze_sha256": "a0f88e4b13352c5b4cc93882b168ad3cc2824a8c7e1e5fa8fa0c37528b220332",
+    "review_sha256": "d3b2e964158b008a7d54f4b9ee95d4ffc180724b18f477c13a5308264f57e326",
+    "journal_sha256": "8acce0750937d6c41d2722b00f350e2be7c52fba07414a6b1b79abb85203f896"
+  },
+  "actual_UI": {
+    "source_receipt_sha256": "83e8f931dc5e2b7c988230994d4dd30c0b0cc990ba67db6af5f05cacff186282",
+    "at": "2026-10-27T20:28:27.407850+08:00",
+    "scope": "Actual name/date/pagination UI only; broader business acceptance remains in progress",
+    "status": "PASS",
+    "deployment": "business-gaps-20261027-r1-api",
+    "loaded_script": "/assets/main-CcgQd_kb.js",
+    "actual_main_pid": 46675,
+    "actual_api_pid": 46677,
+    "target20261028": {
+      "main_rows": 25,
+      "aggregate_rows": 273,
+      "missing_placeholder_names": 0,
+      "pages": [
+        200,
+        73
+      ],
+      "status": "PASS"
+    },
+    "ui_checks": {
+      "NEXT28_PAGE1_NAMES": {
+        "status": "PASS",
+        "observed_rows": [
+          200,
+          25,
+          1,
+          1
+        ],
+        "expected_rows": [
+          200,
+          25,
+          1,
+          1
+        ],
+        "date": "2026-10-28"
+      },
+      "NEXT28_PAGE2_SHORT_POOL_PRESERVED": {
+        "status": "PASS",
+        "observed_rows": [
+          73,
+          25,
+          1,
+          1
+        ],
+        "expected_rows": [
+          73,
+          25,
+          1,
+          1
+        ],
+        "date": "2026-10-28"
+      },
+      "TODAY27_PAGE1_CROSS_DATE_RESET": {
+        "status": "PASS",
+        "observed_rows": [
+          200,
+          80,
+          10,
+          35
+        ],
+        "expected_rows": [
+          200,
+          80,
+          10,
+          35
+        ],
+        "date": "2026-10-27"
+      },
+      "TODAY27_PAGE2": {
+        "status": "PASS",
+        "observed_rows": [
+          200,
+          80,
+          10,
+          35
+        ],
+        "expected_rows": [
+          200,
+          80,
+          10,
+          35
+        ],
+        "date": "2026-10-27"
+      },
+      "TODAY27_PAGE3": {
+        "status": "PASS",
+        "observed_rows": [
+          82,
+          80,
+          10,
+          35
+        ],
+        "expected_rows": [
+          82,
+          80,
+          10,
+          35
+        ],
+        "date": "2026-10-27"
+      },
+      "TODAY27_RETURN_PAGE2_SETTLED": {
+        "status": "PASS",
+        "observed_rows": [
+          200,
+          80,
+          10,
+          35
+        ],
+        "expected_rows": [
+          200,
+          80,
+          10,
+          35
+        ],
+        "date": "2026-10-27"
+      }
+    },
+    "source_trace_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/actual_ui/UI_TRACE.json",
+    "source_trace_sha256": "44037ad405ab08823b10d93deb88a86acaff8e8dfbc4bd27244848a55c240aba",
+    "api_evidence_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/actual_ui/NAMES_20261028_API_VERIFICATION.json",
+    "api_evidence_sha256": "c7d6f5958e04be10aea3d8186c2dbdd0bba4fde563a21b733747f3fe1e238efa",
+    "new_real_acceptance_gap": "STAGE_AUCTION_FAILURE text still CANNOT_CONFIRM/source not ready; API does not project original rejected-attempt evidence. No full20 PASS claimed.",
+    "natural_next_day": "NOT_VERIFIED_ALARMS_CANCELLED",
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "natural_runs": "NOT_VERIFIED; no certification from software/source sync",
+  "compact_new_input": {
+    "status": "PASS",
+    "http_status": 200,
+    "elapsed_seconds": 1.643457582918927,
+    "body_bytes": 140281,
+    "original_timeout_seconds": 3,
+    "original_ceiling_bytes": 4194304,
+    "a_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/a-20261027.json",
+      "bytes": 79542781,
+      "sha256": "d7596703e9a77c1aa7791bceca5eb1f5d4e88af2508737f400736eb319a72c1b"
+    },
+    "source_freeze_sha256": "a0f88e4b13352c5b4cc93882b168ad3cc2824a8c7e1e5fa8fa0c37528b220332",
+    "service_actions": 0,
+    "provider_requests": 0,
+    "scope": "one local production handler on latest original A receipt, not deployed HTTP acceptance",
+    "node_count": 46
+  },
+  "exclusions": [
+    "107 code list",
+    "raw cached pages and responses",
+    "PDF",
+    "dist",
+    "runtime release",
+    "screenshots",
+    "credentials"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

@@ -1,0 +1,36 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "behavior_status": "BEHAVIOR_VERIFIED for the 107-name publication and original-reader readback; CANNOT_CONFIRM deployed API/UI behavior",
+  "deployment_plan_sha256": "704f2b3b569aea47c7d6cb9310a8affb76c5f384737341632aec6ae345369f71",
+  "source_freeze_sha256": "a0f88e4b13352c5b4cc93882b168ad3cc2824a8c7e1e5fa8fa0c37528b220332",
+  "controller_sha256": "b5b905b8dd015b47941958fe5592097b185d3b3b63ea2f9bfff02fbf65e277da",
+  "prepare_sha256": "36767e7589f5c03cc0894f2d33a04d37cf565aaabb1cb6fbbafc77482565e0e1",
+  "publication_operator_sha256": "6e55505f01ffb6f3c91491b54f6200e2910e803eb4827459c964ddbfaded3050",
+  "scope": "One incremental review of the three R3 source additions, the new 20-case test file, the 107-name evidence and publication, and the final R3 PLAN. The original R2 PASS and old 90-name evidence are reused; R2 tests were not rerun.",
+  "findings": [],
+  "performed_checks": [
+    "Verified R3 freeze identity and current hashes: it adds exactly the three scoped source paths and one test; all R2 frozen source hashes match.",
+    "Reviewed the three diffs against the actual API baseline. Confirmed date-role validation, exact-date preference and fail-closed corruption handling, verified signal/target pool gating for cross-midnight display, cache-only no-request behavior, strict-superset preservation, prior-run/index SHA CAS, and use of the existing owner mutex.",
+    "Reviewed the 20-pass test receipt and test cases without rerunning them.",
+    "Verified the frozen 107-code request is unique, contains the old 90 plus exactly 17 additions, and covers all 22 missing names reported by the target-date API classification. Verified all 17 new entries are present in the 46 previously pinned HQ pages; representative SZ and SH page rows and hashes matched.",
+    "Verified the cache-only preflight artifact hash, 107 rows, exact preservation of the old 90 rows and page pins, no missing/conflicted rows, and research-only safety flags. Confirmed the 14 snapshotted pool files remained unchanged.",
+    "Verified the actual publication receipt hash and its PLAN/source-freeze bindings. The current index points to run e8fc4fd22b07d9806ed82cc3; the artifact and manifest hashes match, all 90 prior rows remain identical, and the 17 additions match the frozen request.",
+    "Read the published 107-row observation with the original API release reader; it returned the expected run ID and retained display-only, non-PIT, research-only flags.",
+    "Verified the formal PLAN hash and source-freeze binding, five unchanged-scope operations, empty set/remove fields, 300-second margin and 54 protected windows."
+  ],
+  "reused_evidence": [
+    "Original R2 REVIEWED/PASS and old 90-name acceptance.",
+    "NAMES_R3_TARGETED_R1.log: 20 tests passed.",
+    "NAMES107_CACHE_ONLY_PREFLIGHT.json and ACTUAL_PUBLICATION_RECEIPT.json; the latter SHA-256 is fddbbff988c1bc75364823498fb87cbc2256ea4f9f2b40e2d643d71f61d15418.",
+    "COMPACT_NEW_A_RECEIPT_R3.json records one local handler call returning HTTP 200 in 1.643458 seconds with a 140281-byte response, below the recorded 3-second and 4-MiB limits; no service or provider actions are recorded."
+  ],
+  "evidence_limitations": [
+    "The A-receipt file path recorded in the compact-handler receipt was absent at review time, so its 79,542,781-byte size and SHA-256 could not be independently recomputed. The supplied handler receipt remains the evidence for that run."
+  ],
+  "unexecuted": [
+    "Publication-control deployment and deployed API/UI readback.",
+    "Natural-cycle verification; no natural or PIT certification is claimed."
+  ],
+  "prior_receipt_correction": "The 870 non-delta figure denotes preserved files, not tests."
+}

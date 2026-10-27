@@ -1,0 +1,82 @@
+{
+  "schema_version": "v4.business_gap.source_sync_increment.R3.v1",
+  "prior_remote_commit": "28892a9c8ead404243ad7fe58d8e1e01e316ecbe",
+  "prior_capsule_manifest_sha256": "1720590c1299f3a83c114046526383bd416ad9dc5737fc67686cba0c93fcc4e5",
+  "prior_193_files": "REUSED_UNCHANGED_NOT_RETRANSMITTED",
+  "source_freeze_sha256": "a0f88e4b13352c5b4cc93882b168ad3cc2824a8c7e1e5fa8fa0c37528b220332",
+  "files": [
+    {
+      "path": "source/api/domains/_preselection_parts/source_validation.py",
+      "bytes": 14730,
+      "sha256": "8bf357f080f679d1f41265731f2ea15eaf1a3a20984c36445f1184cd71a0e998",
+      "git_blob": "3b016fb283ad77549df65db4c38c016a6205ccdd",
+      "source": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/domains/_preselection_parts/source_validation.py"
+    },
+    {
+      "path": "source/api/upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+      "bytes": 40559,
+      "sha256": "a7e46a359e3490c3e7f56c5232ebd8dacd157a833e504c8ff7bce812f12ce977",
+      "git_blob": "1528d4cfc055abf186822953ac7330a3ca329430",
+      "source": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/shared_data/a_share_security_master.py"
+    },
+    {
+      "path": "source/api/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+      "bytes": 4825,
+      "sha256": "55bf916686cd164150f4fcc74d2178600aead8f9e3eee300efefd44b1e4f9287",
+      "git_blob": "3cd831a36fa73c7fc32534ae3ab4a9c6a388dab3",
+      "source": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py"
+    },
+    {
+      "path": "tests/tests/test_next_day_display_names.py",
+      "bytes": 10771,
+      "sha256": "0edf7c5d918c073387c6dda8ab1235201b966ae37d961f470c20ab7dd1b7efce",
+      "git_blob": "40abf5ced979d3570f00ff512f0364ebad8360ac",
+      "source": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/tests/test_next_day_display_names.py"
+    },
+    {
+      "path": "evidence/SCOPE_R3_NEXT_DAY_NAMES.json",
+      "bytes": 3170,
+      "sha256": "f06983fff0d9deae5d50ed539f1025cc65027f2b675c4f69c9a3786404bf66c4",
+      "git_blob": "38a4a9a5f0fcae7cdddea195a3da776292869773",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/SCOPE_R3_NEXT_DAY_NAMES.json"
+    },
+    {
+      "path": "evidence/FROZEN_SOURCE_R3.json",
+      "bytes": 35072,
+      "sha256": "a0f88e4b13352c5b4cc93882b168ad3cc2824a8c7e1e5fa8fa0c37528b220332",
+      "git_blob": "d832903b14afe68a1b6e98660d3c75593e2786a4",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/FROZEN_SOURCE_R3.json"
+    },
+    {
+      "path": "evidence/LUNA_REVIEW_R3_NAMES_INCREMENT.json",
+      "bytes": 3764,
+      "sha256": "d3b2e964158b008a7d54f4b9ee95d4ffc180724b18f477c13a5308264f57e326",
+      "git_blob": "8d47347eaa470cdfcfdf25dc74d47840264b956d",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/review/LUNA_REVIEW_R3_NAMES_INCREMENT.json"
+    },
+    {
+      "path": "evidence/R3_RESULT_SUMMARY.json",
+      "bytes": 7008,
+      "sha256": "fe4b9a629e96899d6ee20c3b7383686df8f33c3b92565665ce5c4037e3f04aa3",
+      "git_blob": "eead00b69c5a3d3fae1bcdf22caf106e14db3a94",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/source_sync_staging/evidence/R3_RESULT_SUMMARY.json"
+    },
+    {
+      "path": "R3_README.md",
+      "bytes": 1320,
+      "sha256": "8878815a177e7cbb66a408032495eee2ff898ded231595f43a7ebb7875ca368e",
+      "git_blob": "b672ca1931e64732fe309d463673536815ba9e40",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/source_sync_staging/R3_README.md"
+    },
+    {
+      "path": "evidence/R3_DEPENDENCY_RECORD.json",
+      "bytes": 1134,
+      "sha256": "35091f030bce12c862eba592c1936079aadd3c638959d423d951c44c8b0129db",
+      "git_blob": "525eedada95515f8d29b018aa29c7a2f657ab895",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/controller/source_sync_staging/evidence/R3_DEPENDENCY_RECORD.json"
+    }
+  ],
+  "raw_data_PDF_dist_runtime_excluded": true,
+  "no_live_actions_by_writer": true,
+  "natural_acceptance": "NOT_ESTABLISHED_BY_SOURCE_SYNC"
+}

@@ -1,0 +1,42 @@
+{
+  "scope": "V4_BUSINESS_GAPS_R3_NEXT_DAY_DISPLAY_NAME_INCREMENT",
+  "frozen_at": "2026-10-27T19:47:11.239780+08:00",
+  "goal": "Fix observed target20261028 display-name rejection and fill current uncovered names using original owner/evidence, then deploy existing reviewed business repairs and verify actual API/UI.",
+  "writer": "/root/six_fixes_writer",
+  "reviewer": "/root/business_gaps_luna_review",
+  "base_freeze": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/FROZEN_SOURCE_R2.json",
+    "sha256": "dfbf1986b8557b2735291af96b4fefc3979085ef5b3796e98baddecacd16b315"
+  },
+  "allowed_paths": [
+    "domains/_preselection_parts/source_validation.py",
+    "upstreams/v3_shared_data/shared_data/a_share_security_master.py",
+    "upstreams/v3_shared_data/scripts/acquire_a_share_security_master.py",
+    "tests/test_next_day_display_names.py",
+    "deliveries/v4_business_gaps_20261027/source_sync_capsule/"
+  ],
+  "allowed_evidence_root": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027",
+  "forbidden": [
+    "live release source edits",
+    "new producer/registry/state platform",
+    "selection/score/member/stage or safety change",
+    "Vibe8910",
+    "R8 protected files",
+    "refetch verified90",
+    "old evidence/run mutation",
+    "unreviewed deployment/control execution",
+    "alarm recreation"
+  ],
+  "name_contract": [
+    "Target/signal/observation dates kept distinct",
+    "Observation27 may label target28 for current display only after explicit bounded date-role validation",
+    "Historical/date-invalid, future observation, bad SHA, conflict and market-identity failures remain rejected",
+    "Same-day coverage extension must preserve every old90 row/name/identity/evidence and immutable old run; explicit exact prior-index CAS only",
+    "No selector/PIT certification or invented future timestamp"
+  ],
+  "tests": "Only directly affected future-day/identity/date/append-CAS tests; reuse existing R2 and old90 PASS. One new-input compact budget check justified by79.5MB producer receipt.",
+  "pass_signal": "New requested-name set mechanically verified with provenance, incremental independent review including exact final PLAN PASS, actual deployment readback, date28/API/UI names and existing20 changed behaviors verified within stated scope; missing natural business inputs remain explicit.",
+  "stop_rule": "Stop at identity/SHA/conflict/CAS/owner drift or unverifiable name; preserve evidence. No blind retry or fabricated pool.",
+  "date_boundary_addendum_at": "2026-10-27T19:58:48.487646+08:00",
+  "date_boundary_addendum": "The target20261028 fix must persist across Shanghai midnight. For current selected A session28, when no exact28 observation exists, prior A-session27 display evidence may be used only for rows/pools with verified signal_date27 and explicit DISPLAY_NAME_ONLY/actual observation27 audit. Future next-session preparation uses current-session observation. Prefer exact observation when available; no arbitrary older snapshot; historical exact-date remains strict; future observations/conflicts/SHA failures stay rejected. No name producer or alarm is added."
+}
