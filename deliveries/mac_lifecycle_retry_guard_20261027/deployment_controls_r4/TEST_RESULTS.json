@@ -1,0 +1,30 @@
+{
+  "R4_review": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/review/INDEPENDENT_DEPLOYMENT_DELTA_R4.json",
+    "sha256": "2488eef2e4de1250bd25af963e9ea52e0817bc2e967c43d08cc82b4b56163807"
+  },
+  "R4_targeted_tests": {
+    "count": 10,
+    "result": "PASS",
+    "source": {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/TEST_MATERIALIZED_RESUME_R4.log",
+      "sha256": "0324e48f941794371649adda93db948840056d0d818d5a18cf340c4a132fa198"
+    }
+  },
+  "RESEARCH_ONLY": true,
+  "actual_full_materialized_checkpoint_readonly": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/MATERIALIZED_CHECKPOINT_ACTUAL_READONLY_R4.json",
+    "sha256": "98761048955dcd3e33eab1819911fb2c38da9c12e6432d84540004edcf2d8f8c"
+  },
+  "actual_readonly_lazy_probe": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/CORRECTED_PROBE_ACTUAL_READONLY_R4.json",
+    "sha256": "b3d409753c1cae1668f16d9ea771e9186774c55f242a9f57cc188532a5afa72a"
+  },
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "packaging_exec_tests_probe_controller": false,
+  "prior_scope_reused": "Original business/fact/formula acceptance and previous control fixes unchanged; no tests rerun during this packaging",
+  "production_allowed": false,
+  "status": "ACCEPTED_R4_EVIDENCE_REUSED_PACKAGING_ONLY",
+  "writer_runtime_actions": 0
+}

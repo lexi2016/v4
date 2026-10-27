@@ -1,0 +1,20 @@
+{
+  "actual_corrected_probe": "CORRECTED_PROBE_ACTUAL_READONLY_R4.json",
+  "new_checks": 10,
+  "new_journal": "ROOT_EXECUTION_MATERIALIZED_RESUME_R3.jsonl",
+  "prior_journals": [
+    "ROOT_EXECUTION.jsonl",
+    "ROOT_EXECUTION_PRESTAGE_RESUME_R1.jsonl"
+  ],
+  "root_execution": "Only Root after same Reviewer incremental PASS; one new fixed flag --resume-materialized-r3",
+  "scope": "Read-only lazy helper probe fix and fixed fully materialized R3 pre-service checkpoint only",
+  "snapshot": "FAILED_MATERIALIZED_R3/SNAPSHOT_SHA256.json",
+  "stop_rule": "Any five-event journal/hash/known error/probe/target manifest/full inventory/link/before identity drift or existing new journal refuses; no re-copy/recompute/unknown-action replay",
+  "unchanged": [
+    "business/facade/run_sync/data/owner projections",
+    "P2 methods and locked cutover/recovery tail",
+    "default and first fixed-resume duplicate gates",
+    "immutable materialized targets"
+  ],
+  "writer_runtime_actions": 0
+}

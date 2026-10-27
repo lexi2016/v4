@@ -1,0 +1,35 @@
+{
+  "RESEARCH_ONLY": true,
+  "actual_full_checkpoint_readonly_result_sha256": "98761048955dcd3e33eab1819911fb2c38da9c12e6432d84540004edcf2d8f8c",
+  "buy_gate_updated": false,
+  "case_manifest_sha256": "d602f5c709076eb4d516af4e8f4b6d72d9cc7a31051c66f4f2ce9676e2e9ac52",
+  "controller_sha256": "580b0d8cd6f629bde9b1e532cf907a3a5c197acff00654785a82d4b9eb504dbc",
+  "corrected_probe_actual_result_sha256": "b3d409753c1cae1668f16d9ea771e9186774c55f242a9f57cc188532a5afa72a",
+  "deployment_plan_sha256": "b0a1e8742214f75ff4cc338821ed1090407885fbb9808d76e3e2a79774b8bc63",
+  "failure_snapshot_map_sha256": "980ac64bb02bb67a9389198e0e16aab71f58fbe0b33aa93b2bc562fa9d99b0f1",
+  "fixed_resume_binding": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/MATERIALIZED_RESUME_R3_BINDING.json",
+    "sha256": "7a85916dc78c9c28ae1cafbae4eb86b4a40e6a63c86f871584e8f50c86849d4a"
+  },
+  "frozen_at_utc": "2026-10-27T00:57:20.386122+00:00",
+  "materialized_entry_probe_sha256": "a64b992c358ee170f1169b0f7a203575006794f41c82aaad0e08da595c17454e",
+  "new_journal_created": false,
+  "new_journal_path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/ROOT_EXECUTION_MATERIALIZED_RESUME_R3.jsonl",
+  "orders_sent": false,
+  "patch_sha256": "d4b71a06e829267a1eedbdf1f964d2297dc82358aff18b33e4833afda13717f8",
+  "prior_journal_sha256": [
+    "cdf0f99f3376e2381dc8cdfff9db12f31c8a55455979035a284f077414772fd0",
+    "9d34fc477f0a787bb6cc0b38122ffa7b7c5a40749831047b2113318005d00951"
+  ],
+  "production_allowed": false,
+  "status": "FROZEN_LAZY_PROBE_AND_FIXED_MATERIALIZED_CHECKPOINT_REVIEW_PENDING",
+  "tests": {
+    "actual_corrected_probe": true,
+    "actual_four_inactive_targets_full_inventory_links": true,
+    "copy_or_recompute": false,
+    "dispatcher_exit0_reused": true,
+    "new_targeted": 10,
+    "old25_22_20_business15_21_76_repeated": false
+  },
+  "writer_service_lock_CAS_or_materialization_actions": 0
+}

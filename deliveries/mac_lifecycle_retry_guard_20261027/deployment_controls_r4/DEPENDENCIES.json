@@ -1,0 +1,113 @@
+{
+  "API_module_contract": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/control/api_module_contracts.json",
+    "sha256": "a19d37fe35c2abc9d303f5a7e4ac77de0aea2f654eb50f30b159ee49751eaad8"
+  },
+  "authoritative_execution_entry": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/controller.py",
+  "case_manifest": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/CASE_MANIFEST.json",
+    "sha256": "d602f5c709076eb4d516af4e8f4b6d72d9cc7a31051c66f4f2ce9676e2e9ac52"
+  },
+  "execution_capsule": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1",
+  "fixed_materialized_resume_binding": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/MATERIALIZED_RESUME_R3_BINDING.json",
+    "sha256": "7a85916dc78c9c28ae1cafbae4eb86b4a40e6a63c86f871584e8f50c86849d4a"
+  },
+  "inactive_release_manifest_pins": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/mac-lifecycle-retry-component-20261027-r1/release-manifest.json",
+      "sha256": "abd3ecf3da0b4d7532e99de18072e8a72872e2981a51958d618cfcdb07805fe6"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/mac-lifecycle-notes-21-api-20261027-r2/release-manifest.json",
+      "sha256": "ddbac24cc87b88ac0ef6b7ba2f62105f6d42ecb0de87bb74646467bcc7ff8173"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/mac-lifecycle-graph-binding-20261027-r1/release-manifest.json",
+      "sha256": "353877470a7414133114b381eccf6ca2def43b05f7fff0c4063bc7d9feb659bd"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/mac-lifecycle-main-binding-20261027-r1/release-manifest.json",
+      "sha256": "702208bc93b97380a1180a740674f2d1e9bae987852737e234ea8223c6094d03"
+    }
+  ],
+  "operational_state": "Root sole PTY8456 waiting natural idle as reported at assignment; this package does not certify activation",
+  "original_function_files": [
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/writer/operator.py",
+      "sha256": "d62e9a65f884bded89b0f88330d4981ac76fafcb52b1b60543f3d3f14c587351"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/main_guard_r5/guard_recipe.py",
+      "sha256": "ae050a4451b78eb383d8618e53646fbac2b4ba120b3353ad30c84b13ed10cdeb"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_SCHEDULE_REMEDIATION_IMPLEMENT_20261026/case/control_writer/main_guard_r5/admin_bridge.py",
+      "sha256": "4184dc9b7437e2eb539c3c8f45cef6626924c7935e6698dcd527f83abe5af0be"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app/ops/api_release_integration.py",
+      "sha256": "2034b1f3c18bf6f15a77ab22c714cbe4aa05daafa9c7413aeb36d05fbbe35f5b"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app/infrastructure/interprocess_lock.py",
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-api-r2/app/infrastructure/owned_io.py",
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app/infrastructure/scheduling/execution_ledger.py",
+      "sha256": "86362dc1f51407e398ddf34d11c1194fd9ab38f2e82f1888c49a3592dfff4a0b"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app/ops/run_v35_macos_scheduler_daemon.py",
+      "sha256": "bdc6512b1765ba000044260af661bda8bd34313252f2fe122bc74052c8ed48f6"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app/ops/run_v35_macos_scheduler_due.py",
+      "sha256": "67b0bc8c601a664e4fd30aef651d5ff253d4e46af633afb2f21a1b3e6f0692df"
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v4.local/releases/runtime-graph-repair-20261026-main-r2/app/infrastructure/zsxq_pdf_ingestion.py",
+      "sha256": "f4a9533eb1537e7784c3ec4dea37272ee575d45f141eea286b12498aeb1f4cf9"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/OPERATOR_STAGE_CACHE_R1/operator.py",
+      "sha256": "8e3c90e8ad03be7ae48e0c27591364555874651dae67fc9df2631ac760a92160"
+    }
+  ],
+  "owner_coordination_receipt": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/coordination/lifecycle_retry_guard_20261027_r1/COORDINATION_RECEIPT.json",
+    "sha256": "bd0b00c6512fff7f93fd7ab312928c7bbfe9cfe678d108da18a85e5560a08040"
+  },
+  "owner_projection_plan": {
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_RUNTIME_GRAPH_REPAIR_20261026/coordination/lifecycle_retry_guard_20261027_r1/DEPLOYMENT_PLAN.projected.json",
+    "sha256": "413223b2ad82f8379ea0ec3406d1bf6b31c70ada14ea5a4e52436f10dd4b1324"
+  },
+  "package_is_not_execution_root": true,
+  "plan": {
+    "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/PLAN.json",
+    "sha256": "b0a1e8742214f75ff4cc338821ed1090407885fbb9808d76e3e2a79774b8bc63"
+  },
+  "prior_journal_pointers": [
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/ROOT_EXECUTION.jsonl",
+      "sha256": "cdf0f99f3376e2381dc8cdfff9db12f31c8a55455979035a284f077414772fd0"
+    },
+    {
+      "path": "/Users/lexi/Desktop/学习/因子工厂/research/mac_lifecycle_retry_guard_20261027_r1/deployment_20261027_r1/ROOT_EXECUTION_PRESTAGE_RESUME_R1.jsonl",
+      "sha256": "9d34fc477f0a787bb6cc0b38122ffa7b7c5a40749831047b2113318005d00951"
+    }
+  ],
+  "six_untracked_dependency_copies_preserved": [
+    "ops/api_release_integration.py",
+    "ops/build_release_candidate.py",
+    "ops/macos_research_panel_daily_authority.py",
+    "ops/macos_research_panel_daily_common.py",
+    "ops/macos_research_panel_daily_pack.py",
+    "ops/prepare_api_only_cutover.py"
+  ],
+  "status": "POINTERS_ONLY_NO_RUNTIME_CONFIG_OR_AUTHORITY_DATA_COPIED"
+}

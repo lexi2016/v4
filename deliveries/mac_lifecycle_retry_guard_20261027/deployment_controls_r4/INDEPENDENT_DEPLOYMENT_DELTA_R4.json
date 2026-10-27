@@ -1,0 +1,43 @@
+{
+  "verdict": "PASS",
+  "reviewer_id": "/root/futu76_final_review",
+  "deployment_plan_sha256": "b0a1e8742214f75ff4cc338821ed1090407885fbb9808d76e3e2a79774b8bc63",
+  "controller_sha256": "580b0d8cd6f629bde9b1e532cf907a3a5c197acff00654785a82d4b9eb504dbc",
+  "case_manifest_sha256": "d602f5c709076eb4d516af4e8f4b6d72d9cc7a31051c66f4f2ce9676e2e9ac52",
+  "materialized_entry_probe_sha256": "a64b992c358ee170f1169b0f7a203575006794f41c82aaad0e08da595c17454e",
+  "scope": "R4 read-only lazy-helper probe correction and fixed fully-materialized R3 pre-service checkpoint only",
+  "findings": [],
+  "additional_bindings": {
+    "patch_sha256": "d4b71a06e829267a1eedbdf1f964d2297dc82358aff18b33e4833afda13717f8",
+    "resume_binding_sha256": "7a85916dc78c9c28ae1cafbae4eb86b4a40e6a63c86f871584e8f50c86849d4a",
+    "corrected_probe_result_sha256": "b3d409753c1cae1668f16d9ea771e9186774c55f242a9f57cc188532a5afa72a",
+    "full_checkpoint_readonly_result_sha256": "98761048955dcd3e33eab1819911fb2c38da9c12e6432d84540004edcf2d8f8c",
+    "historical_journal_sha256": [
+      "cdf0f99f3376e2381dc8cdfff9db12f31c8a55455979035a284f077414772fd0",
+      "9d34fc477f0a787bb6cc0b38122ffa7b7c5a40749831047b2113318005d00951"
+    ]
+  },
+  "verification": {
+    "frozen_identity": "CASE references and required Plan/controller/probe hashes matched",
+    "failure_preservation": "All189 FAILED_MATERIALIZED_R3 snapshots matched recorded SHA and size",
+    "lazy_probe": "Two-line import correction reviewed against facade lazy import; original network/write audit retained; bound actual15-pin/seed/path probe PASS inspected",
+    "fixed_checkpoint": "BEHAVIOR_VERIFIED: actual two-journal/five-event chain, prior review, known failure, exact dispatcher identity, target manifest pins, corrected probe and saved HTTP file gate accepted without creating a journal",
+    "materialized_trees_and_runtime": "Bound full read-only checkpoint confirms four exact inactive trees/inventories/declared links and unchanged old loaded identities",
+    "targeted_checks": "10 new passing cases inspected; no prior suites rerun",
+    "unchanged_scope": "Prior P2 methods, original Journal/first-resume duplicate gates and locked cutover/recovery tail remain byte-identical"
+  },
+  "execution_boundary": {
+    "allowed_resume": "Only --resume-materialized-r3 with this bound review and fresh runtime checks",
+    "existing_materialization": "Four inactive targets already materialized; prior dispatcher exit0 and corrected read-only probe PASS reused",
+    "copy_compute_or_before_HTTP_refetch": false,
+    "new_resume_journal_created_by_reviewer": false,
+    "actual_CAS_service_reload_activation": "NOT_EXECUTED",
+    "actual_post_switch_HTTP_UI_natural_daily_run": "CANNOT_CONFIRM_PENDING_ROOT_EXECUTION",
+    "fresh_idle_window_locks_and_identity_gates": "Still mandatory; one authorized shared reload remains unconsumed"
+  },
+  "reviewer_runtime_mutations": 0,
+  "research_only": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
