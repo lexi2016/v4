@@ -1,0 +1,1 @@
+window.STOCK_DATASET_CONFIG={displayUrl:'archive/2026-10-27/r3/display126.json',displayRoot:'archive/2026-10-27/r3/'};

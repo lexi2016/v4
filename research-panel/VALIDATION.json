@@ -1,0 +1,229 @@
+{
+  "syntax_checks": [
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/daily_entry/acquire.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/daily_entry/entry.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/daily_entry/source_probe.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/daily_entry/test_acquire.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/daily_entry/test_entry.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/daily_entry/test_source_probe.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/manual_display_d27_20261027/batch126_normal.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/manual_display_d27_20261027/canary002608.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/manual_display_d27_20261027/prepare_events.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/pipeline_v4.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/test_pipeline_v4.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/test_volume_v4.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_pipeline/volume_contract_v4.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_update/g4.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/daily_update/guard.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/data/data_engine.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/data/test_data.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/formula/formula_engine.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/formula/test_formula_engine.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "panel_rebuild_20261023/volume_correction_v1/volume_decode.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "research_outputs/display126_d27_projection_20261027/project.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "research_outputs/independent_d27_display126_20261027/audit.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "research_outputs/independent_d27_display_canary_20261027/audit.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "research_outputs/stock_display_template_contract_20261027/test_selector.py",
+      "check": "python_ast",
+      "status": "PASS"
+    },
+    {
+      "path": "sites/stock18-workflow/dist/app.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/breakout41.config.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/calendar.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/chart85.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/daily.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/index.config.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/live85.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/modules85.js",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_archive_r3_41.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_archive_r3_85.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_compact_date.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_daily.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_display_r3_41.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_display_r3_85.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_module_bindings.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "sites/stock18-workflow/dist/qa_static.cjs",
+      "check": "node_check",
+      "status": "PASS",
+      "returncode": 0
+    },
+    {
+      "path": "zge_resources/adapter/skill/scripts/stock_display_bundle.py",
+      "check": "python_ast",
+      "status": "PASS"
+    }
+  ],
+  "sensitive_pattern_findings": [],
+  "scan_scope": "all exported exact source text; heuristic, not a guarantee",
+  "runtime_tests": "NOT_RUN: required authorized data/receipts excluded",
+  "source_copy_hashes": "PASS all before/after exact"
+}

@@ -1,0 +1,71 @@
+{
+  "binding_source": "panel_rebuild_20261023/daily_pipeline/manual_display_d27_20261027/normal126_20261027T094950Z/INPUT_BINDINGS.json",
+  "binding_source_sha256": "206872b036bda0e24ee7f8f4a5e5d2266487735f5a661777796bca412b197cc9",
+  "status": "ALL_ACTUAL_SOURCE_HASHES_MATCH_D27_BINDING",
+  "note": "ae424 formula engine and c717 data parser are different modules, not a version discrepancy; original audit JSON dependency is deliberately excluded",
+  "modules": [
+    {
+      "source_path": "panel_rebuild_20261023/daily_pipeline/pipeline_v4.py",
+      "role": "research stage orchestrator",
+      "bound_sha256": "88d9457c8d084aedce7e50ae129305fccee676a6f527d1167bda0b645bf049f9",
+      "actual_sha256": "88d9457c8d084aedce7e50ae129305fccee676a6f527d1167bda0b645bf049f9",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/daily_pipeline/volume_contract_v4.py",
+      "role": "pipeline dependency / gate",
+      "bound_sha256": "23325cd04430084301120e55da044209e5e402704e2b35b50bb72cbbcff90bd4",
+      "actual_sha256": "23325cd04430084301120e55da044209e5e402704e2b35b50bb72cbbcff90bd4",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/daily_update/g4.py",
+      "role": "pipeline dependency / gate",
+      "bound_sha256": "bf64b0384d3779b3d87b06b0420153e2212e19e536d975d6ad88a16ad2fc1631",
+      "actual_sha256": "bf64b0384d3779b3d87b06b0420153e2212e19e536d975d6ad88a16ad2fc1631",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/daily_update/guard.py",
+      "role": "pipeline dependency / gate",
+      "bound_sha256": "8648ebb5f27175e81ea626a9b55d288d49262b2e21336fc21524c204b2eee776",
+      "actual_sha256": "8648ebb5f27175e81ea626a9b55d288d49262b2e21336fc21524c204b2eee776",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/data/data_engine.py",
+      "role": "raw parser and fixed-vintage adjustment",
+      "bound_sha256": "c717c0824fbb7ab8e53f89faa29a2b8ce9552bec12b1b4a9b3d59f83366f6f16",
+      "actual_sha256": "c717c0824fbb7ab8e53f89faa29a2b8ce9552bec12b1b4a9b3d59f83366f6f16",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/formula/USER_MAIN_CHART_FORMULA_MESSAGE_EXACT_UTF8.txt",
+      "role": "user frozen original formula",
+      "bound_sha256": "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac",
+      "actual_sha256": "d35c9a30d7133420272ee5a2014f67ce64c0c7cd5a5ef9c16b846c025e2a05ac",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/formula/formula_engine.py",
+      "role": "original formula interpreter / indicator calculation",
+      "bound_sha256": "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c",
+      "actual_sha256": "ae4243ec9582055fb6f2ee796978ad20e17f9dee7a56388063cbdbcb56ef0d1c",
+      "exported": true
+    },
+    {
+      "source_path": "panel_rebuild_20261023/review/VOLUME_INDEPENDENT_AUDIT.json",
+      "role": "pipeline dependency / gate",
+      "bound_sha256": "e7876710e9099d12275d2fac65b8d7747ee8d82cc72f3690a7842e6feda3ca24",
+      "actual_sha256": "e7876710e9099d12275d2fac65b8d7747ee8d82cc72f3690a7842e6feda3ca24",
+      "exported": false
+    },
+    {
+      "source_path": "panel_rebuild_20261023/volume_correction_v1/volume_decode.py",
+      "role": "pipeline dependency / gate",
+      "bound_sha256": "2c7ffaec6c0bafbd25335c0cd08b32fe72d868c7a8e6abf34083180d376a6582",
+      "actual_sha256": "2c7ffaec6c0bafbd25335c0cd08b32fe72d868c7a8e6abf34083180d376a6582",
+      "exported": true
+    }
+  ]
+}
