@@ -1,0 +1,32 @@
+{
+  "verdict": "PASS",
+  "review_status": "REVIEWED/PASS",
+  "scope": "Incremental read-only review of the topics continuation rollback order, status restoration conditions, and the frozen Main consumer’s PARTIAL/source_cutoff handling. The R2 source and PLAN remain unchanged; the original PASS is retained.",
+  "findings": [],
+  "evidence": {
+    "source_freeze_sha256": "dfbf1986b8557b2735291af96b4fefc3979085ef5b3796e98baddecacd16b315",
+    "deployment_plan_sha256": "ace1c026e87fd55a833628b20792c65f0204de1a43726b352203d077fc319d9c",
+    "main_consumer_sha256": "f0fec30ff0017cf34945e84b16f934a8a40e64978032a17b17592e504fa40343",
+    "pending_status_sha256": "fbe6c730cfd3b821d12e335ddd0d253af00a66add6adac8878badea2ca09d4ed",
+    "original_input_sha256": [
+      "df989275a9b73ecc10d22b460b9c20c8c3e04e138938816d5ae0fa1686a97730",
+      "2a6694aba6a79046332d2cb59d29d6d228cbd3914e7c061c294cf6634aed001c"
+    ],
+    "status_destination": "ABSENT at review readback",
+    "old_consumer_readback": "18:20 receipt reports 19:00 since=18:00:00, excludes the 18:09 continuation time, and records zero provider calls."
+  },
+  "performed_checks": [
+    "Read the continuation-order note and rollback, prior-status restoration, old-consumer readback, and run-output receipts.",
+    "Recomputed pending-status and both original-input hashes; confirmed the slot status destination is absent.",
+    "Checked the frozen Main consumer at ops/run_zsxq_hourly_delta.py: it skips PARTIAL/bounded-incomplete statuses when choosing prior success time, uses source_cutoff for complete statuses, and requires the exact run/window when resuming.",
+    "Reviewed the existing focused test definitions for partial reuse and resume-window behavior; did not rerun tests."
+  ],
+  "behavior_status": "BEHAVIOR_VERIFIED for the recorded old-consumer rollback readback only. CANNOT_CONFIRM new Main runtime behavior until its actual deployment/readback.",
+  "unexecuted": [
+    "New Main deployment and module/manifest readback.",
+    "Atomic absent-only restoration of the pending status after the Main readback and hash conditions pass.",
+    "Continuation from run 20261027_083000_180920111303 and its cursor."
+  ],
+  "state": "The earlier 08:30 status bytes were not recoverable by exact hash; no replacement was fabricated. The continuation status remains preserved and unpublished, and the note requires matching destination, pending-file, and input hashes before restoration.",
+  "prior_receipt_correction": "The 870 non-delta figure refers to preserved files, not tests. The earlier receipt remains unchanged."
+}

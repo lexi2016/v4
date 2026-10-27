@@ -1,0 +1,38 @@
+{
+  "at": "2026-10-27T18:14:47.034522+08:00",
+  "action": "RETRACT_ONLY_THIS_BATCH_INCOMPATIBLE_STATUS_PROJECTION",
+  "source_path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/research_module/runtime_outputs/zsxq_hourly/20261027/0830/v35_zsxq_hourly_status_20261027_0830.json",
+  "preserved_path": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/topics_resume_r1/PENDING_STATUS_UNTIL_MAIN_UPGRADE.json",
+  "preserved_sha256": "fbe6c730cfd3b821d12e335ddd0d253af00a66add6adac8878badea2ca09d4ed",
+  "run_id": "20261027_083000_180920111303",
+  "original_run_id": "20261027_083000_083000492516",
+  "topic_count": 1161,
+  "page_count": 41,
+  "effective_topic_count": 920,
+  "partial": true,
+  "source_since": "2026-10-23T08:30:59+08:00",
+  "source_cutoff": "2026-10-27T08:30:59+08:00",
+  "actual_continuation_time": "2026-10-27T18:09:20+08:00",
+  "collection_timing": "RESUMED_AFTER_ORIGINAL_WINDOW",
+  "original_successful_inputs": [
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/20261027_083000_083000492516/zsxq_recent_topics.json",
+      "sha256": "df989275a9b73ecc10d22b460b9c20c8c3e04e138938816d5ae0fa1686a97730",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/data/external_sources/zsxq_hourly/20261027_083000_083000492516/zsxq_recent_topics_fetch_result.json",
+      "sha256": "2a6694aba6a79046332d2cb59d29d6d228cbd3914e7c061c294cf6634aed001c",
+      "unchanged": true
+    }
+  ],
+  "raw_success_files_and_queue_preserved": true,
+  "why": "Current old Main previous_success_time considers fetch_ok/fetched_at without PARTIAL or source_cutoff; new continuation status could incorrectly advance the next incremental since. New status is preserved but excluded from old status glob.",
+  "restore_condition": "After actual Main is read back at the reviewed business-gaps version: CAS destination status path absent, restore exact preserved bytes, then continue only from new run id.",
+  "source_code_changed": false,
+  "review_R2_invalidated": false,
+  "service_actions": 0,
+  "PDF_invocations": 0,
+  "natural_verified": false,
+  "pit_certified": false
+}

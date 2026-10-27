@@ -1200,9 +1200,9 @@
     },
     {
       "path": "control/README.md",
-      "bytes": 4889,
-      "sha256": "084d679b5b351c270298f8a0b594a3c5f59bcbf634ec2db193b0eb67ff04644d",
-      "git_blob": "c761a14b619e7cea03c151d68fbaba273359d472",
+      "bytes": 5590,
+      "sha256": "e1855791d80dc3e3e1daaf7544de6d81599fdb7e50c7ef7ca12615f885d5aa16",
+      "git_blob": "90934520a673eb5b31b454a887068bd7aac91628",
       "source": "/Users/lexi/.codex/worktrees/v4-business-gaps-20261027/v4_app/deliveries/v4_business_gaps_20261027/control/README.md"
     },
     {
@@ -1316,11 +1316,33 @@
       "sha256": "cad78b7a2a40c61bfb4067b2fad760d3f5182ffa1c7ccd1fab4138a03f54fe49",
       "git_blob": "a715836186d787517e8ea826b5b04a252a28c29f",
       "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/baseline/US_MAPPING_THREE_WAY_R1.json"
+    },
+    {
+      "path": "evidence/TOPICS_OPERATION_ORDER_INCREMENTAL_R1.json",
+      "bytes": 2599,
+      "sha256": "120e323e9328db6caea0c5a4c515316e9efe0bd31ba0ca69718ff35aa322c18b",
+      "git_blob": "1a2863cf5f0a40bbc374cdd7cc7501b69967f803",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/review/TOPICS_OPERATION_ORDER_INCREMENTAL_R1.json"
+    },
+    {
+      "path": "evidence/TOPICS_CONTINUATION_ORDER_R1.md",
+      "bytes": 2572,
+      "sha256": "f04b36abab21b870d12050e08a4a4ae08de80a7a7c34be11d86d7416bd8c02de",
+      "git_blob": "402f96ad9a1e99b0bfd7521bf485eeb578f7872d",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/TOPICS_CONTINUATION_ORDER_R1.md"
+    },
+    {
+      "path": "evidence/OPERATIONAL_ROLLBACK_SUMMARY_R1.json",
+      "bytes": 2254,
+      "sha256": "f82cc2a5c820fd422e6c86bc8dd30481c82b771b232cca47d3dabb44b4f738eb",
+      "git_blob": "a1d8e592c4911880e8239068014fba895424849e",
+      "source": "/Users/lexi/Desktop/学习/agents调试/V4_BUSINESS_GAPS_20261027/operations/topics_resume_r1/OPERATIONAL_ROLLBACK_RECEIPT.json"
     }
   ],
   "source_freeze_sha256": "dfbf1986b8557b2735291af96b4fefc3979085ef5b3796e98baddecacd16b315",
   "static_assets_excluded": true,
   "raw_data_PDF_runtime_excluded": true,
   "deployment_and_natural_acceptance": "NOT_ESTABLISHED_BY_SOURCE_SYNC",
-  "non_delta870_counts": "files, not tests"
+  "non_delta870_counts": "files, not tests",
+  "operational_order_correction": "Shared live root requires deployed Main first; software/control R2 unchanged"
 }

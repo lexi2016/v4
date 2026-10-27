@@ -29,7 +29,7 @@ The parent then submits the actual PLAN and frozen source/control delta together
 
 The review object must bind `deployment_plan_sha256`, `controller_sha256`, `prepare_sha256`, `source_freeze_sha256`, with `verdict=PASS`. Writer never executes this command. Natural A/PDF/US acceptance and live UI remain separate.
 
-Topics continuation is an explicit original-owner command only after review/parent authorization, from the complete actual Main candidate root or deployed Main root; never a PYTHONPATH splice of the worktree:
+On the shared live data root, topics continuation is allowed only after actual deployed Main module/manifest readback proves the reviewed consumer. The old consumer accepts a late continuation's `fetched_at` as the following increment's start even when PARTIAL. Candidate-only execution must use isolated test data, not this shared live root. Never splice the worktree through PYTHONPATH. The parent must read the current checkpoint before selecting the exact run below:
 
 ```sh
 "$PANEL_PYTHON" -B -m ops.run_zsxq_hourly_delta \
@@ -38,4 +38,4 @@ Topics continuation is an explicit original-owner command only after review/pare
   --source-run-id 20261027_083000_083000492516 --max-pages 20
 ```
 
-It has no PDF flags, preserves the frozen source_since/cutoff and old successful files, and records the actual continuation time independently. PARTIAL/exit1 is a bounded incomplete result, not permission to repeat unchanged input. No continuation was executed by Writer.
+It has no PDF flags, preserves the frozen source_since/cutoff and old successful files, and records the actual continuation time independently. PARTIAL/exit1 is a bounded incomplete result, not permission to repeat unchanged input. No continuation was executed by Writer. Parent's first20-page continuation is preserved as run20261027_083000_180920111303; its incompatible status projection was withdrawn while the old Main runs. After new Main readback, restore the exact pending bytes with absent-only CAS and input-SHA checks, then continue that new run/cursor. See the parent's TOPICS_CONTINUATION_ORDER_R1 note and independent incremental receipt. Do not reset to the morning run or falsify capture times.
