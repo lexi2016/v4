@@ -1,0 +1,35 @@
+{
+  "verdict": "PASS",
+  "status": "REVIEWED/PASS",
+  "reviewer": "/root/cutover_review_r7",
+  "scope": "Affected-only R3 known-process observation race repair and explicitly restored base identity binding; prior source/candidate/metadata/control evidence reused",
+  "frozen_control_sha256": "fea85a4c7f3118ca302a75559ea5136dfe72f113f433d382bcaa39f6b83947d9",
+  "deployment_plan_sha256": "e2c06f6607cb57f0b27bd7f68f783bd29d97174fbda2fe1418615d7637c4ca4c",
+  "controller_sha256": "e25632619437601c8878a6051de2adc05208b174dfa9e0473fd83f7fa2edf981",
+  "findings": [],
+  "actual_failure_evidence": {
+    "prior_receipt_sha256": "8688f57053bf80cb87521a7632ab2785c3bb25bf1491978bf7f0e7a09cc66fda",
+    "prior_status": "ROLLED_BACK_BASE_HEALTH_VERIFIED",
+    "guards_held": false,
+    "interpretation": "Failure occurred before forward installation; missing stage_after plus original control flow supports old15637 shutdown observation gap. Exact failing lsof output was not recorded; candidate startup failure is not established."
+  },
+  "independent_evidence": {
+    "frozen_hashes": "R3 10/10 hashes match; R1 41 and R2 10 frozen hashes remain unchanged.",
+    "plan_binding": "before_process exactly equals R2 rollback.process: PID23583/start02:07:02/known oldR19 cwd; bound through prior_failed_execution SHA8688. Only controller identity, known restored process and explicit incident binding changed.",
+    "bounded_test": "1/1 fake-sequence regression independently PASS: missingPS/cwd then exact owner; wrong cwd/PIDreuse refusal; fixed deadlines; old known-exit gap waits for actual PS absence; strict default sampler preserved.",
+    "identity_guards": "New-label PID and first observed PS/start identity remain fixed; HTTP success is followed by label/process/cwd and strict manifest rechecks. Unknown persistent samples cannot yield success.",
+    "unchanged_ast": "All controller AST outside ProcessSamplePending/process/listeners/get_json/runtime/exit_wait/verify_running remains identical.",
+    "budgets": "Known-old exit10s; new startup45s observation; OS samples max2s and remaining budget; HTTP max20s and remaining budget; no accepted success after deadline.",
+    "no_new_lifecycle_capability": "No kill, repeated lifecycle command, root bypass or source/PIT gate change added."
+  },
+  "reused": "All R2 source/API1340/452assets/Stage984/metadata/CAS/guard/window/admission/pair rollback evidence retained; no broad retests or candidate changes.",
+  "deployment_safety": "PASS for exact R3 plan only after original fresh identity/idle/window/guard checks; process or metadata drift stops execution.",
+  "CANNOT_CONFIRM": [
+    "Actual R3 execution and new API/Stage activation/readbacks",
+    "Live A-close/API/browser acceptance and seven timely natural A-stage business/PIT acceptance"
+  ],
+  "reviewer_live_actions": 0,
+  "reviewer_network_actions": 0,
+  "reviewer_source_edits": 0,
+  "temporary_files": "Own private regression directory automatically removed."
+}
