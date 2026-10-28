@@ -1,0 +1,141 @@
+{
+  "schema": "v4.stage-independence-source-capsule.v1",
+  "parent_commit": "834ea6be2e2f6125bf5d61c77b578ba57f7c9c37",
+  "writer_baseline_commit": "4d6658820a835136c020afd5e371506b7523562a",
+  "hourly_r3_freeze_sha256": "c403fa52ee50999060fccd6d6cff77dd8df64d11f5e26ae3ae4e844ad9b59be8",
+  "files": [
+    {
+      "capsule_path": "hourly_candidate/shared/infrastructure/research_source_evidence.py",
+      "runtime_path": "infrastructure/research_source_evidence.py",
+      "roles": [
+        "main",
+        "stage"
+      ],
+      "baseline_sha256": "fe04a81d1aec7951759eb1046580dad554cea5248b18899c214ce1044f3b4cbc",
+      "candidate_sha256": "874db5c59efbc9813f93bc0b82fec1210d5db37bc687d76abe79bf46f0ac4b47"
+    },
+    {
+      "capsule_path": "hourly_candidate/main/ops/run_zsxq_hourly_delta.py",
+      "runtime_path": "ops/run_zsxq_hourly_delta.py",
+      "roles": [
+        "main"
+      ],
+      "baseline_sha256": "f0fec30ff0017cf34945e84b16f934a8a40e64978032a17b17592e504fa40343",
+      "candidate_sha256": "6962edd96316ce63b3589dafe670ff4b595a8082e91ea46c1460b831e32104cf"
+    },
+    {
+      "capsule_path": "hourly_candidate/main/ops/collect_hourly_research_input.py",
+      "runtime_path": "ops/collect_hourly_research_input.py",
+      "roles": [
+        "main"
+      ],
+      "baseline_sha256": "37d81e66b2a6a2cbbeea5b5baded35a37a07a8a7c541cb724674d371a036b1eb",
+      "candidate_sha256": "17b0de8fd41ff644b4189797f55b01e3db1aa900ad7b2f60f7e2d60cdcfd1dbb"
+    },
+    {
+      "capsule_path": "hourly_candidate/shared/infrastructure/manager_input_attestation.py",
+      "runtime_path": "infrastructure/manager_input_attestation.py",
+      "roles": [
+        "main",
+        "stage"
+      ],
+      "baseline_sha256": "327848747060bba641db222914004a476e15db92150d193a6540ad29cee5bcb9",
+      "candidate_sha256": "3b759d8a3507e4ac74b8e401752459d97869ffd65b27699d04858f5839d6412a"
+    },
+    {
+      "capsule_path": "hourly_candidate/main/ops/run_hourly_research.py",
+      "runtime_path": "ops/run_hourly_research.py",
+      "roles": [
+        "main"
+      ],
+      "baseline_sha256": "437583faa896896b2d5d7c700040cb9bfb930e89fe0b654a0c6b9a710a4d8b72",
+      "candidate_sha256": "04a50231d209a3d60f064e4a98509c9de385f632771aa708910f81fde18f5d04"
+    },
+    {
+      "capsule_path": "hourly_candidate/shared/domains/research_source_validation.py",
+      "runtime_path": "domains/research_source_validation.py",
+      "roles": [
+        "main",
+        "stage"
+      ],
+      "baseline_sha256": "7fa1f55ee6e97ec9fb53c6fc32783babc49f2a95c2c7cf2afe317c55d7794cef",
+      "candidate_sha256": "9b32f97e3cbf043cb7b8163885240099d268fc5c4be40594705c93c2f7086844"
+    },
+    {
+      "capsule_path": "hourly_candidate/stage/stage_center/research_context.py",
+      "runtime_path": "stage_center/research_context.py",
+      "roles": [
+        "stage"
+      ],
+      "baseline_sha256": "3bfaae2b13bc8fdb7658e38047f505a8e4c74c1ce5cfb762d38c912bba23e89e",
+      "candidate_sha256": "cad28b7005bbaa227de17c241a73999ea7a0220c9be1db871942a2112fb26b77"
+    },
+    {
+      "capsule_path": "hourly_candidate/main/infrastructure/scheduling/executor_registry_research.py",
+      "runtime_path": "infrastructure/scheduling/executor_registry_research.py",
+      "roles": [
+        "main"
+      ],
+      "baseline_sha256": "eb1b31fadcb484dd032f1e91b84fede0d81546fece6171ceb6df56355e00d1d2",
+      "candidate_sha256": "089cee5859e4f761527fac05dd291c6d6b3cd411043ebf30246a99df853f82c9"
+    },
+    {
+      "capsule_path": "tests/test_hourly_partial_publication_20261028.py",
+      "runtime_path": "tests/test_hourly_partial_publication_20261028.py",
+      "roles": [
+        "test"
+      ],
+      "baseline_sha256": null,
+      "candidate_sha256": "135f7a821b99a98fb97375af887fb8ffe7ece318dfaf55314eaa6eb3e0cd5f8a"
+    },
+    {
+      "capsule_path": "tests/test_hourly_cross_release_binding_20261028.py",
+      "runtime_path": "tests/test_hourly_cross_release_binding_20261028.py",
+      "roles": [
+        "test"
+      ],
+      "baseline_sha256": null,
+      "candidate_sha256": "1037a77ee8e79edff3c2b13edee454eae36fa0ff34b9ed2e4bf835046f35095b"
+    },
+    {
+      "capsule_path": "stage_source/stage_center/_runner_parts/slot_execution.py",
+      "runtime_path": "stage_center/_runner_parts/slot_execution.py",
+      "roles": [
+        "stage"
+      ],
+      "baseline_sha256": "17315c8aa63408a462c7752574122460dda7a382aec4d42fd1877f485fbbe82c",
+      "candidate_sha256": "3a6c717937fe61444a6402bfa1a52ba78a99ea62ace0dbe0f5f27988e2a93fc9"
+    },
+    {
+      "capsule_path": "stage_source/stage_center/_runner_parts/row_evidence.py",
+      "runtime_path": "stage_center/_runner_parts/row_evidence.py",
+      "roles": [
+        "stage"
+      ],
+      "baseline_sha256": "8529d4961bcf783a9618989f7c48c28a182baedbd53486aed2e3c807341dae40",
+      "candidate_sha256": "13ab48fa54294742c88869cb89f6d7049ae2e66d2bc21fd70dd9d2782d258823"
+    },
+    {
+      "capsule_path": "tests/test_stage_market_independent_20261028.py",
+      "runtime_path": "tests/test_stage_market_independent_20261028.py",
+      "roles": [
+        "test"
+      ],
+      "baseline_sha256": null,
+      "candidate_sha256": "9dde3bbc427ea2cff05e1a922941ff4bcb81b45b709340bde98351bd59efabb5"
+    },
+    {
+      "capsule_path": "tests/test_stage_market_independent_integration_20261028.py",
+      "runtime_path": "tests/test_stage_market_independent_integration_20261028.py",
+      "roles": [
+        "test"
+      ],
+      "baseline_sha256": null,
+      "candidate_sha256": "637e8a996971e584ef81f7e2c45da1ee384e7147320cb4d7abb3f14200b64980"
+    }
+  ],
+  "status": "SOURCE_CANDIDATE_NOT_DEPLOYED",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

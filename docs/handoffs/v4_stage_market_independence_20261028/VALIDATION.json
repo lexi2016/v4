@@ -1,0 +1,52 @@
+{
+  "schema": "v4.stage-independence-validation.v1",
+  "stage_market_isolation": {
+    "review": "PASS",
+    "review_scope": "isolated exact Stage source; both market directions, two HK CSV OSError paths, single-market raw failure and API projection",
+    "reviewer_integration_tests": "8 passed",
+    "shared_bundle_failure": "CANNOT_CONFIRM for both markets; no false READY"
+  },
+  "hourly_r2": {
+    "review": "FAIL",
+    "preserved_findings": [
+      "incomplete source status could be forged READY",
+      "materialization sidecar alone accepted earlier time"
+    ]
+  },
+  "hourly_r3": {
+    "review": "PASS",
+    "candidate_files_sha_checked": "10/10",
+    "independent_cross_release_tests": "32 passed",
+    "independent_main_tests": "21 passed",
+    "scope": "local owned scheduler ledger completion bound to exact artifacts",
+    "limitation": "local self-hash chain is not an externally signed timestamp and does not authenticate hostile whole-chain rewrite"
+  },
+  "names": {
+    "review": "R6/R7 prior PASS reused at unchanged SHA",
+    "runtime_integration": "isolated Main/API source-name integration PASS",
+    "bj_current_authority": "CANNOT_CONFIRM"
+  },
+  "stage_publication_control": {
+    "review": "FAIL",
+    "reason": [
+      "no verified all-entry admission barrier",
+      "no reviewed Stage-only executable controller",
+      "protected workload dependencies not fully established"
+    ],
+    "status": "REVIEW_ONLY_NOT_EXECUTABLE"
+  },
+  "observed_20261028_1315": {
+    "dispatch": "NATURAL",
+    "status": "PARTIAL_COMMIT_RETRY_REQUIRED",
+    "error": "V4 exact-date hourly research slot missing before cutoff",
+    "hk_observed_rows": 100,
+    "hk_requested_rows": 100,
+    "selection_artifacts": 0
+  },
+  "deployed": false,
+  "actual_post_change_api_ui": "NOT_RUN",
+  "natural_after_change": "NOT_RUN",
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}
