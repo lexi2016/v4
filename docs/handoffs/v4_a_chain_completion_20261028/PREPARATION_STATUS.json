@@ -1,0 +1,31 @@
+{
+  "at": "2026-10-28T23:56:15.828882+08:00",
+  "status": "OFFLINE_ACCEPTANCE_PREPARATION_REVIEWED_PASS",
+  "scope": "StandaloneofflineJSONchecker; independentworkspace only",
+  "review": "OFFLINE_REVIEW_PASS_R2.json",
+  "initial_fail_preserved": "OFFLINE_REVIEW_FAIL_R1.json;originalsource/test/report retainedlocally",
+  "source_files": {
+    "acceptance/a_chain_stage_acceptance.py": "8d70e5985e8d84ed308c17299bba2b8e90d21606927f55f94e090179405198cc",
+    "tests/test_a_chain_stage_acceptance.py": "f249e53b300bde59b3449aa9ffe232256fc5d53a59fe7a04f95d04f82754341a"
+  },
+  "actual_captures": 0,
+  "applicable_A_stages": 7,
+  "actual_stage_acceptance": "CANNOT_CONFIRM",
+  "natural_stage_acceptance": "CANNOT_CONFIRM",
+  "stage1555": "NOT_APPLICABLE_HK_ONLY",
+  "previous_five_frozen_sources_unchanged": true,
+  "service_actions": 0,
+  "shared_state_data_writes": 0,
+  "automation_3_resumed": false,
+  "pending_steps": [
+    "StableAPI/Main/Stageownerhandofffromsolecoordinator",
+    "Acloseexplicitproducerrootbindingandserveddatedoutputreadback",
+    "ReviewednativeprewarmdeploymentandnewMain/Stageownerbinding",
+    "Read-onlyactual7stagecapturesplusoriginalraw/selection/owningreceiptbinding",
+    "Businessgaps/API/UI/naturalsessionacceptance;nohistoricalbackdating"
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

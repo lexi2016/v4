@@ -1,0 +1,37 @@
+{
+  "verdict": "FAIL",
+  "status": "REVIEWED/FAIL",
+  "reviewer": "/root/cutover_review_r7",
+  "scope": "Only new offline stage acceptance checker",
+  "source_sha256": "c3d036a89b169c9e0ed54862f1020ac51d7f9de0376c33365b690ae8910a3298",
+  "findings": [
+    {
+      "priority": "P2",
+      "line": 182,
+      "trigger": "10A rows/top count, but execution_evidence.markets.A_SHARE.selected_rows=99",
+      "observed": "row_contract_verified=true;validation_errors=[]",
+      "fix": "Check declared execution selected_rows type and exact count, add direct regression"
+    },
+    {
+      "priority": "P2",
+      "line": 186,
+      "trigger": "Market summary READY/scalars complete, but A row source_status=CANNOT_CONFIRM/status=PARTIAL",
+      "observed": "business_status=DECLARED_READY_ONLY;business_gaps=[]",
+      "fix": "Retain A-row declared status gaps; contradictions/unknown states cannot become DECLARED_READY_ONLY;add regression"
+    }
+  ],
+  "checks": {
+    "source_sha4": "MATCH",
+    "existing_tests": "11/11PASS",
+    "independent_reproductions": 2,
+    "old5source_unchanged": true,
+    "network_or_shared_actions": 0
+  },
+  "limits": "overall/actual/natural stillCANNOT_CONFIRM/false; findings affect componentresults",
+  "preserved_files": {
+    "acceptance/a_chain_stage_acceptance.py": "c3d036a89b169c9e0ed54862f1020ac51d7f9de0376c33365b690ae8910a3298",
+    "tests/test_a_chain_stage_acceptance.py": "92252a7284b83ecdd7d8eb574f6d46671116b389d56b1494d9e1164f861039fc",
+    "docs/handoffs/v4_a_chain_completion_20261028/ACCEPTANCE_CONTRACT.md": "d77d8ae531575f7d726c7430a483c17912da9f0ba3ab5c06cf9367fe1b45f85a",
+    "docs/handoffs/v4_a_chain_completion_20261028/OFFLINE_ACCEPTANCE_RESULT.json": "993d0f92d6d7b32967a1675cc3f6414f94148d7160383dee29c35e4d6098aaca"
+  }
+}

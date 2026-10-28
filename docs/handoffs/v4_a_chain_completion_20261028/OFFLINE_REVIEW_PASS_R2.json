@@ -1,0 +1,27 @@
+{
+  "verdict": "PASS",
+  "status": "REVIEWED/PASS",
+  "reviewer": "/root/cutover_review_r7",
+  "scope": "Only twoP2repairs and knownowning-v1layout adaptation",
+  "source_sha256": "8d70e5985e8d84ed308c17299bba2b8e90d21606927f55f94e090179405198cc",
+  "findings": [],
+  "prior_P2": {
+    "execution_count": "CLOSED;declaredtype/value conflicts rejected",
+    "row_business_status": "CLOSED;ArowPARTIAL/CANNOT_CONFIRMretained;marketREADYcannotcover"
+  },
+  "independent_evidence": {
+    "frozen_files": "4SHAsMATCH",
+    "affected_tests": "9/9PASS;identity/scope/path/SHA/countnegativecases",
+    "owning_schema_fixture": "ROW_RESULT_PRESENT_VERIFIED/BUSINESS_PARTIAL/CANNOT_CONFIRM;actual_stage_pass=false,natural_verified=false",
+    "hash_semantics": "ArtifactbytesSHA andmanifest/receiptcanonicalSHA separatelybound",
+    "offline_result": "0actualcaptures;7AstagesCANNOT_CONFIRM;1555N/A;naturalfalse"
+  },
+  "limits": [
+    "OfflineAPIdeclarationconsistencyonly;noembeddedpathreadoractualtrio/owningreceiptcertification",
+    "No network/service/sharedruntime/onlineAacceptance",
+    "PASSdoesnotproveactualAnaturalchainrepair"
+  ],
+  "source_changes": 0,
+  "network_actions": 0,
+  "shared_actions": 0
+}
