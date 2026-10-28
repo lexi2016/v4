@@ -1,0 +1,84 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ops_dir="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+repo_root="$(CDPATH= cd -- "$ops_dir/.." && pwd -P)"
+workspace_root="$(CDPATH= cd -- "$repo_root/.." && pwd -P)"
+runtime_root="${V35_RUNTIME_ROOT:-$workspace_root/runtime}"
+python_bin="$runtime_root/venvs/v3.5-mac/bin/python"
+main_site_packages="$runtime_root/venvs/v3.5-mac/lib/python3.14/site-packages"
+hk_0_2_python="${V35_HK_0_2_PYTHON:-$runtime_root/venvs/v3.5-hk02/bin/python}"
+data_root="${V35_DATA_ROOT:?V35_DATA_ROOT is required}"
+ledger_root="${V35_DISPATCH_LEDGER_ROOT:?V35_DISPATCH_LEDGER_ROOT is required}"
+selection_root="${V35_STAGE_CENTER_SELECTION_ROOT:?V35_STAGE_CENTER_SELECTION_ROOT is required}"
+shared_data_root="${V35_SHARED_DATA_ROOT:-}"
+hk_universe_root="${V35_HK_UNIVERSE_ROOT:-}"
+shared_package_root="${V35_SHARED_PACKAGE_ROOT:-}"
+selector_data_root="${V35_SELECTOR_DATA_ROOT:-}"
+preselection_input_root="${V35_PRESELECTION_INPUT_ROOT:?V35_PRESELECTION_INPUT_ROOT is required}"
+
+[ -x "$python_bin" ] || {
+  printf 'V3.5 scheduler Python is missing: %s\n' "$python_bin" >&2
+  exit 1
+}
+[ -d "$main_site_packages" ] || {
+  printf 'V3.5 scheduler Python site-packages is missing: %s\n' "$main_site_packages" >&2
+  exit 1
+}
+
+hk_0_2_runtime_valid=true
+if [ ! -x "$hk_0_2_python" ]; then
+  printf 'V3.5 HK 0.2 Python is missing or not executable; HK lane will be CANNOT_CONFIRM: %s\n' \
+    "$hk_0_2_python" >&2
+  hk_0_2_runtime_valid=false
+elif ! hk_0_2_version="$("$hk_0_2_python" -c 'import sys; print(".".join(str(part) for part in sys.version_info[:3]))')"; then
+  printf 'V3.5 HK 0.2 Python cannot be executed; HK lane will be CANNOT_CONFIRM: %s\n' \
+    "$hk_0_2_python" >&2
+  hk_0_2_runtime_valid=false
+elif [[ "$hk_0_2_version" != "3.13.12" ]]; then
+  printf 'V3.5 HK 0.2 Python must be 3.13.12, got %s; HK lane will be CANNOT_CONFIRM: %s\n' \
+    "$hk_0_2_version" "$hk_0_2_python" >&2
+  hk_0_2_runtime_valid=false
+fi
+if [[ "$hk_0_2_runtime_valid" != true ]]; then
+  # Preserve the lane-local missing-runtime guard in FixedExecutorRegistry.
+  # The main scheduler must still run independent workloads.
+  hk_0_2_python="${hk_0_2_python}.invalid"
+fi
+
+# The research-panel LaunchAgent names the HK TDX root separately.  Bridge it
+# into the scheduler's existing shared-root input when present so HK workloads
+# and the panel consume the same configured root without changing the root.
+if [[ -n "${V35_RESEARCH_PANEL_HK_TDX_ROOT:-}" ]]; then
+  export V3_SHARED_HK_TDX_ROOT="$V35_RESEARCH_PANEL_HK_TDX_ROOT"
+fi
+
+cd "$repo_root"
+args=(
+  --data-root "$data_root"
+  --ledger-root "$ledger_root"
+  --preselection-input-root "$preselection_input_root"
+  --stage-selection-root "$selection_root"
+  --hk-0-2-python "$hk_0_2_python"
+)
+if [[ -n "$shared_data_root" ]]; then
+  args+=(--shared-data-root "$shared_data_root")
+fi
+if [[ -z "$hk_universe_root" && -n "$shared_data_root" ]]; then
+  hk_universe_root="$(dirname "$(dirname "$shared_data_root")")"
+fi
+if [[ -n "$hk_universe_root" ]]; then
+  args+=(--hk-universe-root "$hk_universe_root")
+fi
+if [[ -n "$shared_package_root" ]]; then
+  args+=(--shared-package-root "$shared_package_root")
+fi
+if [[ -n "$selector_data_root" ]]; then
+  args+=(--selector-data-root "$selector_data_root")
+fi
+export PYTHONPATH="$repo_root:$main_site_packages:${PYTHONPATH:-}"
+if [[ "${V35_DAEMON_MODE:-}" == "persistent-minute" ]]; then
+  exec "$python_bin" -S -m ops.run_v35_macos_scheduler_daemon "${args[@]}"
+fi
+exec "$python_bin" -S -m ops.run_v35_macos_scheduler "${args[@]}"

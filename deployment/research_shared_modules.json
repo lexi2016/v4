@@ -1,0 +1,15 @@
+{
+  "schema_version": "v4.research_shared_modules.v1",
+  "bundle_id": "v4-hourly-research-common-v1",
+  "module_paths": [
+    "infrastructure/_research_store_parts/__init__.py",
+    "infrastructure/_research_store_parts/_namespace.py",
+    "infrastructure/_research_store_parts/hourly_publish.py",
+    "infrastructure/_research_store_parts/hourly_sources.py",
+    "domains/research_source_validation.py",
+    "infrastructure/research_source_evidence.py",
+    "infrastructure/research_hourly_store.py",
+    "infrastructure/trading_safety.py",
+    "ops/research_shared_bundle.py"
+  ]
+}
