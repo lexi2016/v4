@@ -1,0 +1,49 @@
+{
+  "verdict": "FAIL",
+  "status": "REVIEWED/FAIL",
+  "reviewer": "/root/cutover_review_r7",
+  "frozen_control_sha256": "a56424bf370740d25963a7ec9606c3cfaa262586bf89d1c6a1ba1440a0b124ad",
+  "controller_sha256": "c94890bbe1b93304befd0aeb9fc4f0217209598e77eced99eafc66414a187e5b",
+  "findings": [
+    {
+      "priority": "P2",
+      "file": "main_api_controller.py",
+      "lines": [
+        302,
+        309,
+        258,
+        103
+      ],
+      "title": "Partial Main/API cutover cannot safely resume",
+      "trigger": "Coordinator stops during Main processing before creating the API checkpoint; both next-spawn guards have already been armed.",
+      "error": "On --resume, a missing API checkpoint always raises MISSING_RESUME_CHECKPOINT. A completed Main checkpoint also returns DONE without checking its replacement process or after-state.",
+      "impact": "The same owned operation cannot finish API continuation, leaving its root-armed next-spawn state outstanding. Completed Main drift is not detected before continuation.",
+      "independent_evidence": [
+        "Owned-temp fake CLI reproduced Main DONE plus missing API checkpoint => MISSING_RESUME_CHECKPOINT.",
+        "Owned-temp Recipe probe established that DONE returns True without calling replacement readback.",
+        "Refreshed handoff currently accepts only historical original PIDs; it lacks explicit completed-role current identity bindings."
+      ],
+      "bounded_repair": "Represent completed and untouched roles explicitly. Safely initialize both checkpoints or admit a missing untouched role only after verifying original identity, root acknowledgement and absence of prior intent. Revalidate completed role after-plist bytes/metadata, loaded binding, cwd and checkpointed replacement PID/start/command. Never rearm root or signal a completed role.",
+      "required_regression": "Interrupt during Main before API checkpoint creation, refresh the same-operation handoff, resume both roles successfully; reject completed-owner drift and ambiguous untouched-role state; assert no repeated TERM/root action."
+    }
+  ],
+  "checks": {
+    "frozen_files": "35/35 hashes match",
+    "focused_control_tests": "13 independently executed, all PASS",
+    "stage_controller_diff": "Only template execution guard and exact five-file delta contract changed from R6",
+    "candidate_inventories": "Main884/9 deltas; API1329/1 delta; Stage983/5 deltas verified",
+    "scope_preservation": "Unchanged business PASS reused; no broad business reruns"
+  },
+  "BEHAVIOR_VERIFIED": [
+    "Owned-temp focused drain, single-TERM state handling, metadata CAS/inverse CAS and admission/join tests"
+  ],
+  "CANNOT_CONFIRM": [
+    "Real root authentication or launchctl debug behavior",
+    "Legitimate daily producer completion and fresh data bindings",
+    "Live activation, API/UI target behavior, natural or semantic acceptance",
+    "Safe partial-operation recovery until the finding is repaired"
+  ],
+  "live_actions": 0,
+  "source_edits": 0,
+  "next_review_scope": "Only repaired recovery code, refreshed handoff contract and directly affected regression evidence"
+}

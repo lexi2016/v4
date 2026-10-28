@@ -1,0 +1,76 @@
+{
+  "schema": "v4.r7.terminal_owner_handoff_addendum.r2",
+  "state": "SOURCE_COMPATIBLE_BINDING_CLARIFICATION_PARENT_FRESH_EVIDENCE_AND_REVIEW_REQUIRED",
+  "scope": "Only clarify lifecycle closure condition for already-authorized software cutover after a legitimate producer naturally terminates FAILED. No source/control/helper/candidate/manifest/plist/data changes.",
+  "supersedes_text": {
+    "path": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/EXECUTION_CONTRACT_R7.md",
+    "location": "Parent execution prerequisite1: producer success",
+    "replacement": "Wait for the legitimate daily producer to reach an evidenced terminal lifecycle state and all of its writers/descendants to finish naturally. A terminal FAILED producer can close lifecycle ownership only when the current last-known-good generation still passes unchanged pointer SHA and payload stat checks. Keep daily data FAILED; never infer data success, READY, semantic acceptance or trading permission."
+  },
+  "source_evidence": {
+    "controller": "/Users/lexi/.codex/worktrees/v4-stage-continuation-20261028/v4_app/deliveries/v4_stage_market_independence_20261028/main_api_control_r7/main_api_controller.py",
+    "controller_sha256": "44c65823ed11d6819939b3ac10388a74c3c879379a5b615249b170f81239c80e",
+    "gate": "require_handoff checks legitimate_daily_producer_complete is True and all_daily_descendants_absent is True, raises DAILY_PRODUCER_NOT_CLOSED; it does not inspect or require a SUCCEEDED data receipt. Live.initial_main_idle separately rejects live descendants and persisted QUEUED/RUNNING jobs. Live.protection checks fresh pinned pointers/source/config files and payload stats.",
+    "interpretation": "legitimate_daily_producer_complete means terminal owner lifecycle closed, not successful data production. No success-only code gate is bypassed; no code branch is required."
+  },
+  "observed_failed_receipt": {
+    "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/a-20261028.json",
+    "sha256": "8d13988e06df69232913e6bd3339f3e335dd26b67796763a62119b0b88e6feaf",
+    "bytes": 405,
+    "status": "FAILED",
+    "target_date": "20261028",
+    "exit_code": 1,
+    "exception_type": "BadZipFile",
+    "error": "BadZipFile: File is not a zip file",
+    "coverage_rate": null,
+    "data_sha256_field": "",
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "parent_reported_not_independently_rechecked_here": {
+    "natural_terminal_at": "2026-10-28T18:18:11+08:00",
+    "old_daily_pids_absent": [
+      15585,
+      15668
+    ],
+    "fresh_main_api_zero_descendants_at": "2026-10-28T18:20:00+08:00",
+    "rehab_checkpoint": "FAILED at18:17:49, requested_count5802; source path/hash to be bound by parent if relied on"
+  },
+  "exact_required_handoff_conditions": [
+    "legitimate_daily_producer_complete=true ONLY as evidenced terminal lifecycle closure, with daily_producer_terminal_status=FAILED and daily_data_success=false recorded explicitly.",
+    "Bind daily_producer_receipt exactly to path/SHA/status/target_date/exit_code above; preserve the original FAILED receipt and rehab failure evidence.",
+    "Fresh recursive ps proves all original daily writers/descendants absent. No live qfq/Futu publish-lock holder or other active writer remains; use read-only identity evidence, never acquire or remove those data locks.",
+    "Fresh current data_pins match the established last-known-good generation pointer SHAs exactly; data_stats match the same established payload device/inode/size/mtime. Do not accept an unverified changed generation or relabel partial writes as last-known-good.",
+    "Parent finishes fresh pinned Main/API identities, Workbench attempts/oversold cursors and all-current-Main-children/jobs idle check; no accepted work is cancelled. Existing API coordination, PDF window, guard, expiry, all-xattr CAS and role_observations requirements remain exact.",
+    "If any ownership, generation pointer or payload condition is unknown/mismatched, STOP on that precise missing condition and preserve evidence. Do not repair/recollect/re-run the unrelated daily job."
+  ],
+  "fresh_binding_extra_fields": {
+    "daily_producer_terminal_status": "FAILED",
+    "daily_data_success": false,
+    "daily_producer_receipt": {
+      "path": "/Users/lexi/Library/Application Support/com.lexi.v35.local/state/research_panel_daily/receipts/a-20261028.json",
+      "sha256": "8d13988e06df69232913e6bd3339f3e335dd26b67796763a62119b0b88e6feaf",
+      "status": "FAILED",
+      "target_date": "20261028",
+      "exit_code": 1
+    },
+    "last_known_good_generation_unchanged": "MUST_BE_TRUE_ONLY_AFTER_PARENT_FRESH_POINTER_AND_STAT_VERIFICATION",
+    "all_daily_writers_absent": "MUST_BE_TRUE_ONLY_AFTER_PARENT_FRESH_RECURSIVE_PROCESS_AND_OWNER_CHECK"
+  },
+  "programmatic_scope_limit": "Extra receipt/status fields document the fresh binding for independent review; the unchanged controller does not validate their business semantics. Parent/reviewer must validate this addendum and fresh evidence before execution.",
+  "tests": "No source or behavioral change; one targeted JSON read/parse/hash verification of actual405-byte FAILED receipt and existing controller SHA. Existing R7R1 independent PASS remains reusable; fresh binding/addendum requires affected-condition review.",
+  "CANNOT_CONFIRM": [
+    "Fresh unchanged current-generation pointer/payload stats (parent in progress)",
+    "Current Workbench idle status (parent in progress)",
+    "All publish-lock owners/writers absent (parent in progress)",
+    "Root authentication/activation/API/UI/natural behavior"
+  ],
+  "live_actions": 0,
+  "root_actions": 0,
+  "data_writes": 0,
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

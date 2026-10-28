@@ -1,0 +1,46 @@
+{
+  "schema": "r7.reviewed_source_capsule.v1",
+  "source_freeze_sha256": "0b8a47f00aa0e4e8f0b27ddcce20cb03736831dff08f1b62c15241b06b4d57b2",
+  "not_a_live_plan": true,
+  "candidate_release_manifests": {
+    "main": "3cd89e00fa37a829389e3140a929d47e4748bd3d056c7a7a605793bc72a7e623",
+    "api": "54b82f90fa583db180c7c71f466e74937f5b1b563f727018e1382502239bd715",
+    "stage": "ac98a7d53be7d5a7ff61ed10a46e4be29350c5218d396184016ca53b0bd67a6b"
+  },
+  "files": [
+    {
+      "path": "main_api_controller.py",
+      "sha256": "44c65823ed11d6819939b3ac10388a74c3c879379a5b615249b170f81239c80e"
+    },
+    {
+      "path": "stage_hourly_controller.py",
+      "sha256": "e6b95be67e51b3806800a091347a18f999e93e33609f4e3fda7e5a0786c177c4"
+    },
+    {
+      "path": "plist_metadata.py",
+      "sha256": "0c486cb4a52294f155e99a00465c9db38fbba0b6b282223f6f92f6061f204c98"
+    },
+    {
+      "path": "admin_arm_main_api_REVIEW_ONLY.sh",
+      "sha256": "9380ef6b25de9fd43aaa9e9d255d7585883c41bfdfd90920abc705d5cae1ebf2"
+    },
+    {
+      "path": "admin_bound_example_REVIEW_ONLY.sh",
+      "sha256": "b74925390fd1595b60398aa484c52d1c9e691425876cb581b089021a4cfe9ac8"
+    },
+    {
+      "path": "test_control_r7.py",
+      "sha256": "0ff4d5dae091a1deec7ea795ab7d467d83436104cd473c5430e238250e04d727"
+    },
+    {
+      "path": "test_recovery_r7_r1.py",
+      "sha256": "908d448ab12d56d0921539f54f18d9b7b66cffd50fe5524abde57797e942c2e3"
+    },
+    {
+      "path": "api_graceful_probe.py",
+      "sha256": "acff08023fbda854409775a9929d3834bfe4c6439b224fa42ac3b2e3a52f4ee0"
+    }
+  ],
+  "tests_scope": "ExecutedonlyoriginalscopedCASE; host-boundplan/fixturesnotincluded. No portableCIclaim.",
+  "activation": "NOT_ACTIVATED; currentdataretryandOSauthenticationpending"
+}

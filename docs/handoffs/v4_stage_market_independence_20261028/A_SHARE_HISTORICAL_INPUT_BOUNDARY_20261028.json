@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-28T18:50:49.067984+08:00",
+  "scope": "Read-only original09:00source/ownednaturalreceipt boundary; no newsource/replay/score ordatawrite",
+  "reviewer": "/root/hourly_writer",
+  "source_status": {
+    "path": "research_module/runtime_outputs/zsxq_hourly/20261028/0900/v35_zsxq_hourly_status_20261028_0900.json",
+    "sha256": "dcb9afa33388f76e7ebb1a3c68c82241f5c7946ce83ab8f684f964178ef5543c",
+    "status": "PARTIAL",
+    "raw_topics": 581,
+    "valid_topics": 472,
+    "missing_fields": [
+      "source_completed_at",
+      "summary_sha256",
+      "fetch_result_sha256"
+    ]
+  },
+  "summary_sha256": "a36f30d405861138b74bd5ae1c8981b5048acff64148c17f8f85e6ef8e95fd36",
+  "fetch_result_sha256": "f9dcd92c3aeadbf499899eb55e52d6f5a5add67f2183bdc9be2c2200e1be517c",
+  "pagination": "20pages; reached_since=false/source_has_more=true",
+  "natural_receipts": [
+    {
+      "run_id": "4f40b1b96086423bb283aa807e56a5b5",
+      "sha256": "f18314f6c7978eb8f1fba728b37aab94c4dced5d344a9268abc37f6cff889cdc",
+      "finished_at": "2026-10-28T09:00:25.244966+08:00"
+    },
+    {
+      "run_id": "4f2f046eadba4576a1c9b3c3fa7b79a9",
+      "sha256": "bd00c7398ffb76b0cfa855d7775d3580df0c887882e3a319c92dfdaa1760fb69",
+      "finished_at": "2026-10-28T09:06:00.648058+08:00"
+    }
+  ],
+  "natural_receipt_status": "BothselfhashPASS, butFAILED/exit2/INPUT_MISSING; source_identityitems/descriptors andauthoritativesource_path/source_shaempty, manager_publicationINPUT_MISSING",
+  "missing_materializations": [
+    "09:00incomingJSON",
+    "inputsidecar",
+    "hourlyarchive",
+    "archivereceipt",
+    "hourlypublication"
+  ],
+  "conclusion": "ExistingR3cannotretroactivelycertify/recover20261028Aformalhistoricalslots; newpublicationclockmustbeactualcurrenttime. R7activationdoesnotbackfilloldavailability.",
+  "existing_read_only_entry": "GET /api/v3/preselection-pools?date=20261028&limit=300&offset=0",
+  "observation_limit": "AlreadymaterializedAcandidates/source-onlyrowsareNOTnewAstageselections. No substituteornewscorecreated.",
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false
+}

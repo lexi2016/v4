@@ -23,3 +23,12 @@ R6/R7 source candidates, frozen tests and independent reviews already exist on t
 `hourly_candidate/shared/` contains source needed by both Main and Stage; `hourly_candidate/main/` and `hourly_candidate/stage/` contain role-specific files. The R3 writer and independent reviewer tested the original executor through materializer, source-only refresh, scheduler ledger and cross-release Stage in isolated copies. Independent review passed after two R2 findings were repaired. This does not authorize publication or establish live acceptance. The local scheduler ledger is a consistency chain, not an externally signed timestamp. Missing historical completion evidence remains unverified.
 
 The Stage release and two Stage labels were activated locally; Main/API/collector were unchanged at this snapshot. Six failed intraday slots were replayed using preserved raw inputs. These are late recoveries, not natural/PIT proof. API readback verifies10 HK rows in all8 slots; A inputs remain unconfirmed. Original receipts and raw data are preserved. No trading gate or orders changed.
+
+
+## R7 prepared, not active
+
+`control/r7/` contains the exact reviewed Main/API/Stage control source and targeted tests. R7R1 closed the initial recovery P2: both role checkpoints precede the root helper and completed owners are revalidated. The terminal-owner R2 condition preserves a FAILED daily receipt; it never certifies successful data. Host-bound plans and runtime directories are intentionally absent. Tests were executed in the original scoped CASE, not claimed as portable CI checks.
+
+Three exact release directories have been copied and verified locally (Main884/API1329/Stage983 files) but no R7 label is activated. The user has agreed to one-time local terminal authentication; actual authentication and an idle/fresh owner boundary remain required. Existing daily data computation/retries continue naturally.
+
+A-share historical gaps remain unresolved as formal selections. Original09:00 natural tasks both FAILED/INPUT_MISSING and did not create incoming input, archive or hourly publication; readable raw topics have no bound historical completion. Later R7 activation cannot retroactively supply those old cutoffs. See `A_SHARE_HISTORICAL_INPUT_BOUNDARY_20261028.json`. Do not present existing preselection candidates as recovered stage selections.
