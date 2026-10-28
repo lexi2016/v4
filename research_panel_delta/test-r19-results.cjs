@@ -1,0 +1,61 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const {createRequire} = require('node:module');
+const {JSDOM} = createRequire(process.env.R19_WEB_PACKAGE)('jsdom');
+const root = process.env.R19_STATIC_ROOT, fixtures = process.env.R19_UI_FIXTURES;
+const dom = new JSDOM(fs.readFileSync(path.join(root,'daily.html'),'utf8'), {url:'http://127.0.0.1:8873/research-panel/daily.html?date=2026-10-28',runScripts:'outside-only'});
+const w = dom.window;
+const noop=()=>{};
+w.HTMLCanvasElement.prototype.getContext = () => new Proxy({}, {get:()=>noop,set:()=>true});
+w.HTMLCanvasElement.prototype.getBoundingClientRect = () => ({width:900,height:440,left:0});
+let calls=[];
+w.fetch = async url => {
+  const q = new URL(url,'http://127.0.0.1:8873').searchParams;
+  assert.equal(q.get('formula_version'),'R19_FROZEN_151_20261027');
+  calls.push({code:q.get('ts_code'),end:q.get('end_date'),url});
+  const name=q.get('ts_code')+'_'+q.get('end_date')+'.json';
+  return {ok:true,status:200,json:async()=>JSON.parse(fs.readFileSync(path.join(fixtures,name),'utf8'))};
+};
+w.eval(fs.readFileSync(path.join(root,'r19-chart.js'),'utf8'));
+w.eval(fs.readFileSync(path.join(root,'r19-results.js'),'utf8'));
+const $ = id => w.document.getElementById('r19'+id);
+const checks=[];
+async function main(){
+  assert.equal($('Symbol').options.length,151); assert.equal(calls.length,0);
+  assert.equal($('Date').value,'2026-10-27');
+  checks.push({name:'exact151_registration_visible_fixed_date_no_initial_fetch',status:'PASS'});
+  for(const code of ['600715.SH','000630.SZ','688808.SH']){
+    $('Symbol').value=code;await w.R19Results.load();
+    assert.equal($('Result').hidden,false);
+    assert.equal($('Values').querySelectorAll('tbody tr').length,51);
+    assert.equal($('Drawings').querySelectorAll('tbody tr').length,22);
+    assert.match($('Status').textContent,new RegExp(code));
+    assert.match($('Identity').textContent,/成交量单位已认证：false/);
+    assert.match($('Identity').textContent,/输入SHA：/);
+    assert.match($('Comparison').textContent,/正式同日一致性：CANNOT_CONFIRM/);
+    assert.match($('chartReadout').textContent,/2026-10-27/);
+    if(code==='600715.SH')assert.match($('Comparison').textContent,/本地选中；捕获分组未列入/);
+    if(code==='688808.SH')assert.match($('Identity').textContent,/未填造起点以前/);
+    checks.push({name:'actual_registered_ui_'+code,status:'PASS'});
+  }
+  $('Symbol').value='600621.SH';await w.R19Results.load();
+  assert.equal($('Result').hidden,true);assert.equal($('Values').childElementCount,0);
+  assert.match($('Status').textContent,/停牌/);assert.equal($('chartReadout').textContent,'');
+  checks.push({name:'confirmed_empty_disposition_explained_and_chart_cleared',status:'PASS'});
+  $('Symbol').value='600715.SH';await w.R19Results.load();
+  $('Date').value='2026-10-28';$('Date').dispatchEvent(new w.Event('change'));
+  assert.equal($('Result').hidden,true);await w.R19Results.load();
+  assert.equal($('Result').hidden,true);assert.equal($('chartReadout').textContent,'');
+  assert.match($('Status').textContent,/CANNOT_CONFIRM/);assert.equal(calls.at(-1).end,'20261028');
+  checks.push({name:'wrong_day_is_explicit_no_fallback_and_old_chart_cleared',status:'PASS'});
+  const wrong=JSON.parse(fs.readFileSync(path.join(fixtures,'600715.SH_20261027.json')));
+  wrong.formula_version='ACTIVE_MA_USER_20261021_V1';assert.throws(()=>w.R19Results.validate(wrong,'600715.SH','20261027'));
+  wrong.formula_version='R19_FROZEN_151_20261027';wrong.r19_research.last_row.drawings.pop();assert.throws(()=>w.R19Results.validate(wrong,'600715.SH','20261027'));
+  assert(!fs.readFileSync(path.join(root,'r19-results.js'),'utf8').includes('innerHTML'));
+  checks.push({name:'mismatched_profile_and_shape_rejected_safe_text_rendering',status:'PASS'});
+  const result={status:'PASS_STATIC_DAILY_INCREMENT_ONLY',checks,calls,scope:'three actual R19 representatives, one confirmed empty, one wrong date; original daily scripts and stock JSON not executed',live_actions:false};
+  fs.writeFileSync(process.env.R19_UI_RESULT,JSON.stringify(result,null,2)+'\n');
+  console.log(JSON.stringify({status:result.status,checks:checks.length,requests:calls.length}));dom.window.close();
+}
+main().catch(e=>{console.error(e);process.exitCode=1;dom.window.close()});

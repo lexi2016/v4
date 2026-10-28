@@ -497,6 +497,13 @@ def _request(code, start, end, version):
 
 
 def read_history(shared_data_root, code, start, end, version):
+    if version == "R19_FROZEN_151_20261027":
+        _request(code, start, end, VERSION)
+        from apps.api.v4_api.a_share_r19_profile import read_profile
+        response = dict(schema_version="v4.a_share_original_formula_history.v1", ts_code=code,
+            start_date=start, end_date=end, formula_version=version, profile_id=version,
+            status="CANNOT_CONFIRM", rows=[], cannot_confirm=[])
+        return read_profile(shared_data_root, code, start, end, response)
     _request(code, start, end, version)
     response = dict(schema_version="v4.a_share_original_formula_history.v1", ts_code=code,
                     start_date=start, end_date=end, formula_version=version, profile_id=version,
