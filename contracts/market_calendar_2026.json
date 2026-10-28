@@ -1,0 +1,88 @@
+{
+  "schema_version": "v3_5.market_calendar_2026.v1",
+  "year": 2026,
+  "timezone": "Asia/Shanghai",
+  "official_sources": [
+    {
+      "market": "a_share",
+      "name": "Shanghai Stock Exchange market closure calendar",
+      "url": "https://www.sse.com.cn/disclosure/dealinstruc/closed/"
+    },
+    {
+      "market": "hk_securities",
+      "name": "HKEX Hong Kong Securities Market holiday schedule for 2026",
+      "url": "https://www.hkex.com.hk/-/media/HKEX-Market/Services/Circulars-and-Notices/Participant-and-Members-Circulars/SEHK/2025/ce_SEHK_CT_075_2025.pdf"
+    },
+    {
+      "market": "hk_connect_southbound",
+      "name": "HKEX Stock Connect trading and settlement calendar for 2026",
+      "url": "https://www.hkex.com.hk/Mutual-Market/Stock-Connect/Reference-Materials/Trading-Hour%2C-Trading-and-Settlement-Calendar?sc_lang=en"
+    }
+  ],
+  "markets": {
+    "a_share": {
+      "label": "A股",
+      "derives_from": [],
+      "full_day_sessions": [
+        {"start": "0915", "end": "0925"},
+        {"start": "0930", "end": "1130"},
+        {"start": "1300", "end": "1500"}
+      ],
+      "half_day_sessions": [],
+      "full_day_close": "1500",
+      "half_day_close": null,
+      "half_days": [],
+      "holiday_periods": [
+        {"name": "元旦", "start": "20260101", "end": "20260104"},
+        {"name": "春节", "start": "20260215", "end": "20260223"},
+        {"name": "清明节", "start": "20260404", "end": "20260406"},
+        {"name": "劳动节", "start": "20260501", "end": "20260505"},
+        {"name": "端午节", "start": "20260619", "end": "20260621"},
+        {"name": "中秋节", "start": "20260925", "end": "20260927"},
+        {"name": "国庆节", "start": "20261001", "end": "20261007"}
+      ]
+    },
+    "hk_securities": {
+      "label": "港股",
+      "derives_from": [],
+      "full_day_sessions": [
+        {"start": "0900", "end": "1200"},
+        {"start": "1300", "end": "1610"}
+      ],
+      "half_day_sessions": [
+        {"start": "0900", "end": "1210"}
+      ],
+      "full_day_close": "1610",
+      "half_day_close": "1210",
+      "half_days": ["20260216", "20261224", "20261231"],
+      "holiday_periods": [
+        {"name": "元旦", "start": "20260101", "end": "20260101"},
+        {"name": "农历新年", "start": "20260217", "end": "20260219"},
+        {"name": "耶稣受难节", "start": "20260403", "end": "20260403"},
+        {"name": "清明节翌日及复活节假期", "start": "20260406", "end": "20260407"},
+        {"name": "劳动节", "start": "20260501", "end": "20260501"},
+        {"name": "佛诞翌日", "start": "20260525", "end": "20260525"},
+        {"name": "端午节", "start": "20260619", "end": "20260619"},
+        {"name": "香港特别行政区成立纪念日", "start": "20260701", "end": "20260701"},
+        {"name": "国庆日", "start": "20261001", "end": "20261001"},
+        {"name": "重阳节翌日", "start": "20261019", "end": "20261019"},
+        {"name": "圣诞节", "start": "20261225", "end": "20261225"}
+      ]
+    },
+    "hk_connect_southbound": {
+      "label": "港股通",
+      "derives_from": ["a_share", "hk_securities"],
+      "full_day_sessions": [
+        {"start": "0930", "end": "1200"},
+        {"start": "1300", "end": "1600"}
+      ],
+      "half_day_sessions": [
+        {"start": "0930", "end": "1200"}
+      ],
+      "full_day_close": "1600",
+      "half_day_close": "1200",
+      "half_days": [],
+      "holiday_periods": []
+    }
+  }
+}

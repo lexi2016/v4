@@ -1,0 +1,209 @@
+{
+  "schema_version": "v4.manager_research.us_mapping_reviewed.v1",
+  "target_trade_date": "20260930",
+  "us_session_date": "20260929",
+  "status": "REVIEWED_RETROSPECTIVE_RESEARCH",
+  "reviewed_at": "2026-10-05",
+  "report": {
+    "name": "RESEARCH_RESULT.md",
+    "sha256": "0c538bc30b48af0d47185b67eb8dcc58dd412b5b92c5fbe050fa08940f97313d"
+  },
+  "source_scope": {
+    "requested_us_symbols": 33,
+    "coverage": "固定33只配置美股，不是全市场扫描",
+    "original_workspace_plan_status": "SOURCE_FAILED",
+    "original_us_owner_lineage_status": "CANNOT_CONFIRM",
+    "original_plan_consumed_these_relations": false,
+    "target_date_eligibility": "CANNOT_CONFIRM",
+    "pit_status": "CANNOT_CONFIRM"
+  },
+  "cards": [
+    {
+      "hk_symbol": "HK.06166",
+      "hk_code": "06166",
+      "hk_name": "剑桥科技（CIG Shanghai）",
+      "research_priority": "PRIORITY",
+      "us_symbols": [
+        "LITE",
+        "COHR"
+      ],
+      "daily_match_symbols": [
+        "LITE",
+        "COHR"
+      ],
+      "us_moves": [
+        {
+          "symbol": "LITE",
+          "change_pct": 5.662528
+        },
+        {
+          "symbol": "COHR",
+          "change_pct": 3.459019
+        }
+      ],
+      "relationship_type": "PRODUCT_PEER",
+      "reason": "高速数通光收发器产品形态相近；官方材料没有披露CIG向LITE或COHR供货。",
+      "maturity": "800G模块已大批量出货；部分1.6T型号完成认证，其他项目仍在开发；CPO处于早期研发/样机阶段。",
+      "limitations": [
+        "同业产品映射，不是已披露客户/供应关系",
+        "不同产品阶段分别保留",
+        "目标日Connect资格未知"
+      ],
+      "published_at": "2026-09-03",
+      "official_sources": [
+        {
+          "title": "剑桥科技2026年中期报告",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0903/2026090300698.pdf",
+          "published_at": "2026-09-03"
+        },
+        {
+          "title": "Lumentum Unveils New Transceivers",
+          "url": "https://investor.lumentum.com/financial-news-releases/news-details/2025/Lumentum-Unveils-New-Transceivers-to-Double-Fiber-Capacity-Across-Wide-Range-of-Transmission-Distances/default.aspx",
+          "published_at": "2025-04-01"
+        },
+        {
+          "title": "Coherent multi-rail transport platform",
+          "url": "https://www.coherent.com/news/press-releases/scale-across-networks-multi-rail-transport-platform",
+          "published_at": "2026-03-12"
+        }
+      ],
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    },
+    {
+      "hk_symbol": "HK.06088",
+      "hk_code": "06088",
+      "hk_name": "鸿腾精密（FIT Hon Teng Limited）",
+      "research_priority": "PRIORITY",
+      "us_symbols": [
+        "AVGO"
+      ],
+      "daily_match_symbols": [
+        "AVGO"
+      ],
+      "us_moves": [
+        {
+          "symbol": "AVGO",
+          "change_pct": 1.581944
+        }
+      ],
+      "relationship_type": "DIRECT_NAMED_COMPONENT_SUPPLY",
+      "reason": "公司披露为Broadcom Tomahawk 5 Bailly平台交付LGA插座、远置可插拔激光源接口笼和连接器组件。",
+      "maturity": "披露部件已进入规模生产；交付内容是插座、接口笼和连接器组件。",
+      "limitations": [
+        "不表示FIT供应激光器或光收发器",
+        "不推断价格因果",
+        "目标日Connect资格未知"
+      ],
+      "published_at": "2025-05-13",
+      "official_sources": [
+        {
+          "title": "FIT Hon Teng Bailly platform component release",
+          "url": "https://www.fit-foxconn.com/mainssl/modules/MySpace/BlogInfo.php?xmlid=27625",
+          "published_at": "2025-05-13"
+        }
+      ],
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    },
+    {
+      "hk_symbol": "HK.00763",
+      "hk_code": "00763",
+      "hk_name": "中兴通讯（ZTE Corporation）",
+      "research_priority": "PRIORITY",
+      "us_symbols": [
+        "CIEN"
+      ],
+      "daily_match_symbols": [
+        "CIEN"
+      ],
+      "us_moves": [
+        {
+          "symbol": "CIEN",
+          "change_pct": 3.102937
+        }
+      ],
+      "relationship_type": "OPTICAL_TRANSPORT_PEER",
+      "reason": "OTN与高容量光传输设备属于同市场比较；材料未证明中兴为Ciena供应商。",
+      "maturity": "中兴2025年报披露OTN 800G DCO端口与光传输产品；本映射仅用于市场同业比较。",
+      "limitations": [
+        "同业/竞争映射，不是Ciena供应关系",
+        "不据此判断单日涨幅原因",
+        "目标日Connect资格未知"
+      ],
+      "published_at": "2026-03-26",
+      "official_sources": [
+        {
+          "title": "ZTE 2025 annual report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0326/2026032600626.pdf",
+          "published_at": "2026-03-26"
+        },
+        {
+          "title": "Ciena 6500 optical transport platform",
+          "url": "https://www.ciena.com/insights/blog/2025/modernize-with-confidence-cienas-6500-platform-paves-the-way-for-next-gen-telecom-networks",
+          "published_at": "2025-01-14"
+        }
+      ],
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    },
+    {
+      "hk_symbol": "HK.06869",
+      "hk_code": "06869",
+      "hk_name": "长飞光纤光缆（YOFC）",
+      "research_priority": "WATCH",
+      "us_symbols": [],
+      "daily_match_symbols": [],
+      "us_moves": [],
+      "theme_label": "光互联需求主题；未指定单只美股及涨幅",
+      "relationship_type": "BROAD_INFRASTRUCTURE_THEME",
+      "reason": "光纤、光缆、传输组件及部分光模块业务可观察数据中心互联需求；不是已确认的LITE/COHR客户关系。",
+      "maturity": "50G PON模块实现批量交付；400G/800G AEC通过阶段验收；1.6T模块处于方案选型/设计。",
+      "limitations": [
+        "不得补写单只美股驱动或涨幅",
+        "不同产品成熟度分开标注",
+        "没有确认美国客户",
+        "目标日Connect资格未知"
+      ],
+      "published_at": "2026-08-21",
+      "official_sources": [
+        {
+          "title": "YOFC 2026 interim results",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0821/2026082101705.pdf",
+          "published_at": "2026-08-21"
+        }
+      ],
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    },
+    {
+      "hk_symbol": "HK.01729",
+      "hk_code": "01729",
+      "hk_name": "汇聚科技（TIME Interconnect Technology Limited）",
+      "research_priority": "WATCH",
+      "us_symbols": [],
+      "daily_match_symbols": [],
+      "us_moves": [],
+      "theme_label": "数据中心光纤布线/高速线缆主题；未指定单只美股及涨幅",
+      "relationship_type": "BROAD_INFRASTRUCTURE_THEME",
+      "reason": "业务涉及数据中心光纤线缆组件和高速线缆；线缆不等于激光器、光收发器或CPO。",
+      "maturity": "2026年中期业绩披露AI相关数据中心光纤线缆组件订单与MPO/多芯光纤面板量产；未核具体模块成熟度。",
+      "limitations": [
+        "不得补写单只美股驱动或涨幅",
+        "不是光收发器/激光器供应证据",
+        "没有点名美国客户",
+        "目标日Connect资格未知"
+      ],
+      "published_at": "2026-08-28",
+      "official_sources": [
+        {
+          "title": "TIME Interconnect 2026 interim results",
+          "url": "https://www.time-interconnect.com/en/aboutus_news_detail.asp?ID=416BACFF-1A97-4528-A4DF-122C589D26E2",
+          "published_at": "2026-08-28"
+        }
+      ],
+      "target_date_eligibility": "CANNOT_CONFIRM"
+    }
+  ],
+  "RESEARCH_ONLY": true,
+  "production_allowed": false,
+  "buy_gate_updated": false,
+  "orders_sent": false,
+  "artifact_sha256": "ee864c45bf59e3130c4a716b6bfbfbf33ce63eb9c6f7446499c64dd8272c95db"
+}

@@ -1,0 +1,581 @@
+{
+  "schema_version": "v4.manager_workbench.us_mapping_business_relations.v1",
+  "contract_version": "US_MAPPING_UNIVERSE_CONTRACT_V3",
+  "status": "PROPOSED",
+  "source_asof": null,
+  "pit_status": "PIT_UNCONFIRMED",
+  "decision_use": "OBSERVATION_ONLY",
+  "strict_selection_eligible": false,
+  "limitations": [
+    "Business-segment overlap is descriptive and does not establish a causal price relationship.",
+    "Source availability at any historical manager-workbench cutoff is unconfirmed.",
+    "Every relation remains PROPOSED and may produce observation or conditional-watch rows only."
+  ],
+  "relations": [
+    {
+      "us_symbol": "META",
+      "hk_symbol": "HK.00700",
+      "hk_name": "Tencent Holdings",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "social_networks_and_digital_advertising",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Both filings describe social platforms monetized through advertising or marketing services.",
+      "limitations": [
+        "Peer overlap only; no issuer identity, valuation, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Tencent FY2025 annual results",
+          "url": "https://static.www.tencent.com/uploads/2026/03/18/bd32d8ee320b72f0d72d545fd2d65851.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Tencent identifies HKEX 00700 and reports Social Networks and Marketing Services segments."
+        },
+        {
+          "title": "Meta Platforms 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Meta reports that substantially all revenue is generated from advertising on Facebook and Instagram."
+        }
+      ]
+    },
+    {
+      "us_symbol": "GOOG",
+      "hk_symbol": "HK.00700",
+      "hk_name": "Tencent Holdings",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "internet_platform_advertising",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Both filings describe internet platforms with material advertising or marketing services.",
+      "limitations": [
+        "Peer overlap only; no issuer identity, valuation, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Tencent FY2025 annual results",
+          "url": "https://static.www.tencent.com/uploads/2026/03/18/bd32d8ee320b72f0d72d545fd2d65851.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Tencent identifies HKEX 00700 and reports Marketing Services revenue."
+        },
+        {
+          "title": "Alphabet 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Alphabet identifies GOOG and GOOGL trading symbols and describes Google advertising businesses."
+        }
+      ]
+    },
+    {
+      "us_symbol": "GOOGL",
+      "hk_symbol": "HK.00700",
+      "hk_name": "Tencent Holdings",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "internet_platform_advertising",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Both filings describe internet platforms with material advertising or marketing services.",
+      "limitations": [
+        "Peer overlap only; no issuer identity, valuation, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Tencent FY2025 annual results",
+          "url": "https://static.www.tencent.com/uploads/2026/03/18/bd32d8ee320b72f0d72d545fd2d65851.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Tencent identifies HKEX 00700 and reports Marketing Services revenue."
+        },
+        {
+          "title": "Alphabet 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Alphabet identifies GOOG and GOOGL trading symbols and describes Google advertising businesses."
+        }
+      ]
+    },
+    {
+      "us_symbol": "AMZN",
+      "hk_symbol": "HK.09988",
+      "hk_name": "Alibaba Group",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "online_marketplaces_and_third_party_seller_services",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Both filings describe online retail marketplaces and services for third-party sellers.",
+      "limitations": [
+        "Peer overlap only; no China-specific exposure, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Alibaba 2025 annual report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2025/0626/2025062601064.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Alibaba describes China ecommerce businesses including Taobao and Tmall."
+        },
+        {
+          "title": "Amazon.com 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Amazon describes online stores and third-party seller services."
+        }
+      ]
+    },
+    {
+      "us_symbol": "AMZN",
+      "hk_symbol": "HK.09618",
+      "hk_name": "JD.com",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "ecommerce_marketplaces_and_logistics",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The filings describe online retail, marketplace, marketing, and logistics services.",
+      "limitations": [
+        "Peer overlap only; no issuer identity, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "JD.com 2025 third-quarter report",
+          "url": "https://ir.jd.com/static-files/b37c7394-ea8e-431b-a61d-153c207c2ee4",
+          "reporting_period": "2025Q3",
+          "supports": "JD describes Retail, marketplace, marketing, logistics, and new-business activities."
+        },
+        {
+          "title": "Amazon.com 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Amazon describes online stores, third-party seller services, and fulfillment."
+        }
+      ]
+    },
+    {
+      "us_symbol": "BABA",
+      "hk_symbol": "HK.09988",
+      "hk_name": "Alibaba Group",
+      "relationship_type": "SAME_ISSUER_LISTING",
+      "business_segment": "issuer_identity",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The official annual report describes Alibaba Group's ecommerce businesses and issuer.",
+      "limitations": [
+        "The cross-market security identity has not received an independent listing-master review."
+      ],
+      "sources": [
+        {
+          "title": "Alibaba 2025 annual report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2025/0626/2025062601064.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Official listed-company annual report for Alibaba Group."
+        }
+      ]
+    },
+    {
+      "us_symbol": "JD",
+      "hk_symbol": "HK.09618",
+      "hk_name": "JD.com",
+      "relationship_type": "SAME_ISSUER_LISTING",
+      "business_segment": "issuer_identity",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The official quarterly report describes JD.com Retail, marketplace, marketing, logistics, and new businesses.",
+      "limitations": [
+        "The cross-market security identity has not received an independent listing-master review."
+      ],
+      "sources": [
+        {
+          "title": "JD.com 2025 third-quarter report",
+          "url": "https://ir.jd.com/static-files/b37c7394-ea8e-431b-a61d-153c207c2ee4",
+          "reporting_period": "2025Q3",
+          "supports": "Official report for JD.com, Inc."
+        }
+      ]
+    },
+    {
+      "us_symbol": "DASH",
+      "hk_symbol": "HK.03690",
+      "hk_name": "Meituan",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "food_delivery_and_local_commerce",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Company reports describe food delivery and local-commerce services.",
+      "limitations": [
+        "Peer overlap only; no issuer identity, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Meituan 2025 annual report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0424/2026042400179.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Pages 10-11 describe food delivery, quick commerce, and in-store, hotel, and travel services; the cover identifies stock code 3690."
+        },
+        {
+          "title": "DoorDash 2025 full-year results",
+          "url": "https://ir.doordash.com/news/news-details/2026/DoorDash-Releases-Fourth-Quarter-and-Full-Year-2025-Financial-Results/default.aspx",
+          "reporting_period": "FY2025",
+          "supports": "Official company release on DoorDash's marketplace and delivery business."
+        }
+      ]
+    },
+    {
+      "us_symbol": "UBER",
+      "hk_symbol": "HK.03690",
+      "hk_name": "Meituan",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "food_delivery_and_local_commerce",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Company reports describe food delivery, merchant services, and local commerce.",
+      "limitations": [
+        "Peer overlap only; no issuer identity, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Meituan 2025 annual report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0424/2026042400179.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Pages 10-11 describe food delivery, quick commerce, and in-store, hotel, and travel services; the cover identifies stock code 3690."
+        },
+        {
+          "title": "Uber Technologies 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1543151/000154315126000015/uber-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Uber describes its Delivery segment, restaurant and grocery discovery, and local delivery services."
+        }
+      ]
+    },
+    {
+      "us_symbol": "BKNG",
+      "hk_symbol": "HK.09961",
+      "hk_name": "Trip.com Group",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "online_travel_marketplaces",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Official reports describe travel marketplace services and identify Booking as a material Trip.com travel partner.",
+      "limitations": [
+        "Peer and commercial-partner overlap only; no issuer identity, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Trip.com Group 2025 annual report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042803041.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Pages 6 and 103 describe Trip.com's travel services and revenue."
+        },
+        {
+          "title": "Booking Holdings 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1075531/000107553126000009/bkng-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Official annual filing for Booking Holdings' online travel services."
+        }
+      ]
+    },
+    {
+      "us_symbol": "EXPE",
+      "hk_symbol": "HK.09961",
+      "hk_name": "Trip.com Group",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "online_travel_marketplaces",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Official reports describe travel marketplace services and identify Expedia as a material Trip.com travel partner.",
+      "limitations": [
+        "Peer and commercial-partner overlap only; no issuer identity, causal, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Trip.com Group 2025 annual report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042803041.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Pages 6 and 103 describe Trip.com's travel services and revenue."
+        },
+        {
+          "title": "Expedia Group 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1324424/000132442426000008/expe-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Expedia describes global B2C and B2B travel services."
+        }
+      ]
+    },
+    {
+      "us_symbol": "TCOM",
+      "hk_symbol": "HK.09961",
+      "hk_name": "Trip.com Group",
+      "relationship_type": "SAME_ISSUER_LISTING",
+      "business_segment": "issuer_identity",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Official annual and Form 20-F reports describe Trip.com Group's travel business and issuer.",
+      "limitations": [
+        "The cross-market security identity has not received an independent listing-master review."
+      ],
+      "sources": [
+        {
+          "title": "Trip.com Group 2025 annual report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042803041.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Official listed-company annual report; pages 6 and 103 describe travel services and revenue."
+        }
+      ]
+    },
+    {
+      "us_symbol": "BIDU",
+      "hk_symbol": "HK.09888",
+      "hk_name": "Baidu",
+      "relationship_type": "SAME_ISSUER_LISTING",
+      "business_segment": "issuer_identity",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The official Form 20-F describes Baidu Inc. and its internet platform businesses.",
+      "limitations": [
+        "The cross-market security identity has not received an independent listing-master review."
+      ],
+      "sources": [
+        {
+          "title": "Baidu 2025 Form 20-F",
+          "url": "https://ir.baidu.com/static-files/f655f8c4-bfaa-41c5-872c-005087bce94f",
+          "reporting_period": "FY2025",
+          "supports": "Official annual filing for Baidu Inc."
+        }
+      ]
+    },
+    {
+      "us_symbol": "BILI",
+      "hk_symbol": "HK.09626",
+      "hk_name": "Bilibili",
+      "relationship_type": "SAME_ISSUER_LISTING",
+      "business_segment": "issuer_identity",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The official annual results filing describes Bilibili Inc. and its digital-content platform.",
+      "limitations": [
+        "The cross-market security identity has not received an independent listing-master review."
+      ],
+      "sources": [
+        {
+          "title": "Bilibili 2025 results filing",
+          "url": "https://www.sec.gov/Archives/edgar/data/1723690/000119312526094863/d119863dex992.htm",
+          "reporting_period": "FY2025",
+          "supports": "Official annual results filing for Bilibili Inc."
+        }
+      ]
+    },
+    {
+      "us_symbol": "NTES",
+      "hk_symbol": "HK.09999",
+      "hk_name": "NetEase",
+      "relationship_type": "SAME_ISSUER_LISTING",
+      "business_segment": "issuer_identity",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The official investor-results page identifies NetEase Inc. and its reporting materials.",
+      "limitations": [
+        "The cross-market security identity has not received an independent listing-master review."
+      ],
+      "sources": [
+        {
+          "title": "NetEase investor financial reports",
+          "url": "https://ir.netease.com/node/15256",
+          "reporting_period": "FY2025",
+          "supports": "Official NetEase investor reporting page."
+        }
+      ]
+    },
+    {
+      "us_symbol": "META",
+      "hk_symbol": "HK.01024",
+      "hk_name": "Kuaishou Technology",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "social_platforms_and_digital_advertising",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The filings describe social-platform monetization and digital advertising. This is an observation of business-line overlap only; Kuaishou local services are not treated as food delivery.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Meta Platforms 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Meta reports that substantially all revenue is generated from advertising on Facebook and Instagram."
+        },
+        {
+          "title": "Kuaishou Technology FY2025 annual results",
+          "url": "https://ir.kuaishou.com/news-releases/news-release-details/kuaishou-technology-announces-fourth-quarter-and-full-year-2025",
+          "reporting_period": "FY2025",
+          "supports": "Company results describe advertising, live-streaming, e-commerce, and local-services businesses; only advertising and social-platform overlap is used for this observation."
+        }
+      ]
+    },
+    {
+      "us_symbol": "GOOG",
+      "hk_symbol": "HK.01024",
+      "hk_name": "Kuaishou Technology",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "social_platforms_and_digital_advertising",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The filings describe social-platform monetization and digital advertising. This is an observation of business-line overlap only; Kuaishou local services are not treated as food delivery.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Alphabet 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Alphabet identifies GOOG and GOOGL trading symbols and describes Google advertising businesses."
+        },
+        {
+          "title": "Kuaishou Technology FY2025 annual results",
+          "url": "https://ir.kuaishou.com/news-releases/news-release-details/kuaishou-technology-announces-fourth-quarter-and-full-year-2025",
+          "reporting_period": "FY2025",
+          "supports": "Company results describe advertising, live-streaming, e-commerce, and local-services businesses; only advertising and social-platform overlap is used for this observation."
+        }
+      ]
+    },
+    {
+      "us_symbol": "DASH",
+      "hk_symbol": "HK.09618",
+      "hk_name": "JD.com",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "local_services_and_delivery_platforms",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "DoorDash and Uber describe delivery platforms, while JD.com reports a new food-delivery business. This is a tentative business-line observation, not an issuer identity or profit-transmission claim.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "DoorDash 2025 full-year results",
+          "url": "https://ir.doordash.com/news/news-details/2026/DoorDash-Releases-Fourth-Quarter-and-Full-Year-2025-Financial-Results/default.aspx",
+          "reporting_period": "FY2025",
+          "supports": "Official company release on DoorDash's marketplace and delivery business."
+        },
+        {
+          "title": "JD.com FY2025 third-quarter results",
+          "url": "https://ir.jd.com/static-files/b37c7394-ea8e-431b-a61d-153c207c2ee4",
+          "reporting_period": "2025-Q3",
+          "supports": "Company results discuss the new food-delivery business; used only as a tentative local-services and delivery segment observation."
+        }
+      ]
+    },
+    {
+      "us_symbol": "UBER",
+      "hk_symbol": "HK.09618",
+      "hk_name": "JD.com",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "local_services_and_delivery_platforms",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "DoorDash and Uber describe delivery platforms, while JD.com reports a new food-delivery business. This is a tentative business-line observation, not an issuer identity or profit-transmission claim.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Uber Technologies 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1543151/000154315126000015/uber-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Uber describes its Delivery segment, restaurant and grocery discovery, and local delivery services."
+        },
+        {
+          "title": "JD.com FY2025 third-quarter results",
+          "url": "https://ir.jd.com/static-files/b37c7394-ea8e-431b-a61d-153c207c2ee4",
+          "reporting_period": "2025-Q3",
+          "supports": "Company results discuss the new food-delivery business; used only as a tentative local-services and delivery segment observation."
+        }
+      ]
+    },
+    {
+      "us_symbol": "BKNG",
+      "hk_symbol": "HK.00780",
+      "hk_name": "Tongcheng Travel",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "online_travel_accommodation_and_transport_reservations",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The filings describe online travel services and reservation businesses including accommodation and transportation. This is a business-line observation only, with no issuer identity, materiality, or PIT claim.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Booking Holdings 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1075531/000107553126000009/bkng-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Official annual filing for Booking Holdings' online travel services."
+        },
+        {
+          "title": "Tongcheng Travel FY2025 annual report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042800528.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Annual report p.46 describes the online-travel platform and accommodation reservation and transportation ticketing; p.14 summarizes accommodation and transportation performance."
+        }
+      ]
+    },
+    {
+      "us_symbol": "EXPE",
+      "hk_symbol": "HK.00780",
+      "hk_name": "Tongcheng Travel",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "online_travel_accommodation_and_transport_reservations",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "The filings describe online travel services and reservation businesses including accommodation and transportation. This is a business-line observation only, with no issuer identity, materiality, or PIT claim.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Expedia Group 2025 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1324424/000132442426000008/expe-20251231.htm",
+          "reporting_period": "FY2025",
+          "supports": "Expedia describes global B2C and B2B travel services."
+        },
+        {
+          "title": "Tongcheng Travel FY2025 annual report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042800528.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Annual report p.46 describes the online-travel platform and accommodation reservation and transportation ticketing; p.14 summarizes accommodation and transportation performance."
+        }
+      ]
+    },
+    {
+      "us_symbol": "TCOM",
+      "hk_symbol": "HK.00780",
+      "hk_name": "Tongcheng Travel",
+      "relationship_type": "BUSINESS_SEGMENT_PEER",
+      "business_segment": "online_travel_accommodation_and_transport_reservations",
+      "status": "PROPOSED",
+      "pit_status": "PIT_UNCONFIRMED",
+      "reason": "Trip.com Group and Tongcheng Travel annual reports describe online travel services, including accommodation and transportation reservations. This is a business-line observation only, with no issuer identity, materiality, or PIT claim.",
+      "limitations": [
+        "Business-line observation only; no issuer identity, valuation, causal, materiality, or PIT claim."
+      ],
+      "sources": [
+        {
+          "title": "Trip.com Group 2025 annual report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042803041.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Official listed-company annual report; pages 6 and 103 describe Trip.com travel services and revenue."
+        },
+        {
+          "title": "Tongcheng Travel FY2025 annual report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0428/2026042800528.pdf",
+          "reporting_period": "FY2025",
+          "supports": "Annual report p.46 describes the online-travel platform and accommodation reservation and transportation ticketing; p.14 summarizes accommodation and transportation performance."
+        }
+      ]
+    }
+  ],
+  "unmapped_symbols": [
+    {
+      "us_symbol": "PDD",
+      "status": "CANNOT_CONFIRM",
+      "reason": "No HK target relationship is established in this proposal registry."
+    }
+  ]
+}

@@ -1,0 +1,597 @@
+{
+  "RESEARCH_ONLY": true,
+  "artifact_sha256": "a19eeea91d08981a7c01e1c8a82174af1e61fb12442b05a10199328155f1d11e",
+  "availability_policy": "MAX_SOURCE_RETRIEVED_AT_PER_RELATION_NO_BACKDATING; ASSESSMENT_EFFECTIVE_AVAILABILITY_MAX_SOURCE_RETRIEVED_AT_AND_REVIEW_TIME",
+  "buy_gate_updated": false,
+  "evidence_available_date": "2026-10-11",
+  "orders_sent": false,
+  "production_allowed": false,
+  "relations": [
+    {
+      "available_at": "2026-10-11T01:17:28.453Z",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_code": "00992",
+      "hk_name": "Lenovo Group Limited",
+      "hk_symbol": "HK.00992",
+      "limitations": [
+        "Evidence was captured or ticker identity was checked on 2026-10-11; it was unavailable to the sealed 2026-10-09 plan cutoff.",
+        "Does not establish 2026 production or model mix, shipment volume, revenue share, or exclusivity.",
+        "Does not establish short-term price causality or target-date eligibility."
+      ],
+      "maturity": "PRODUCT_PARTNERSHIP_AND_SYSTEM_INTEGRATION_DOCUMENTED_2023",
+      "reason": "Lenovo describes a partnership with NVIDIA and Lenovo systems containing NVIDIA GPUs.",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "sources": [
+        {
+          "excerpt": "Lenovo and NVIDIA announced an expanded partnership; Lenovo systems include NVIDIA GPUs.",
+          "http_status": 200,
+          "published_at": "2023-10-24",
+          "retrieval_started_at": "2026-10-11T01:17:21.521Z",
+          "retrieved_at": "2026-10-11T01:17:22.447Z",
+          "role": "RELATION",
+          "source_body_sha256": "c69665af19032d737a6e253948eec44092b2aa25cf970ee48db86421baa1bec4",
+          "source_locator": "Intro lines 26-30; product lines 41-42 (web extraction)",
+          "title": "Lenovo and NVIDIA Announce Hybrid AI Solutions",
+          "url": "https://news.lenovo.com/pressroom/press-releases/nvidia-hybrid-ai-initiative-supercharge-generative-ai/"
+        },
+        {
+          "excerpt": "HKEX issuer filing identifies Lenovo issuer code 00992.",
+          "http_status": 200,
+          "published_at": "2025-05-22",
+          "retrieval_started_at": "2026-10-11T01:17:27.106Z",
+          "retrieved_at": "2026-10-11T01:17:28.453Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "34a5583ab2a6bf631109d6c3eeed9a4daae1682df49107f00b28e1a2828662f9",
+          "source_locator": "PDF page 1 lines 7-14 (web extraction)",
+          "title": "Lenovo issuer identity filing",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0522/2025052200203.pdf"
+        },
+        {
+          "excerpt": "Lenovo release identifies NVIDIA as NASDAQ: NVDA.",
+          "http_status": 200,
+          "published_at": "2023-10-24",
+          "retrieval_started_at": "2026-10-11T01:17:21.521Z",
+          "retrieved_at": "2026-10-11T01:17:22.447Z",
+          "role": "US_SYMBOL_IDENTITY",
+          "source_body_sha256": "c69665af19032d737a6e253948eec44092b2aa25cf970ee48db86421baa1bec4",
+          "source_locator": "Intro lines 26-30 (web extraction)",
+          "title": "Lenovo and NVIDIA Announce Hybrid AI Solutions",
+          "url": "https://news.lenovo.com/pressroom/press-releases/nvidia-hybrid-ai-initiative-supercharge-generative-ai/"
+        }
+      ],
+      "us_symbol": "NVDA"
+    },
+    {
+      "available_at": "2026-10-11T01:17:28.453Z",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_code": "00992",
+      "hk_name": "Lenovo Group Limited",
+      "hk_symbol": "HK.00992",
+      "limitations": [
+        "Evidence was captured or ticker identity was checked on 2026-10-11; it was unavailable to the sealed 2026-10-09 plan cutoff.",
+        "Does not establish 2026 production or model mix, shipment volume, revenue share, or exclusivity.",
+        "Does not establish short-term price causality or target-date eligibility."
+      ],
+      "maturity": "NAMED_PRODUCT_INTEGRATION_DOCUMENTED_2025",
+      "reason": "Lenovo describes ThinkCentre AI PCs powered by AMD Ryzen AI processors.",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "sources": [
+        {
+          "excerpt": "ThinkCentre next-generation AI PCs powered by AMD Ryzen AI 300 Series processors.",
+          "http_status": 200,
+          "published_at": "2025-10-21",
+          "retrieval_started_at": "2026-10-11T01:17:22.447Z",
+          "retrieved_at": "2026-10-11T01:17:23.367Z",
+          "role": "RELATION",
+          "source_body_sha256": "a1730da63da608d0dcea13d7511c1ffc42f9f580f1d0b70ac0400272c56248dc",
+          "source_locator": "Lead lines 26-27 (web extraction)",
+          "title": "Lenovo Unlocks Productivity with AMD Ryzen AI Processors",
+          "url": "https://news.lenovo.com/pressroom/press-releases/productivity-creativity-copilot-pcs-amd-ryzen-ai-processors/"
+        },
+        {
+          "excerpt": "HKEX issuer filing identifies Lenovo issuer code 00992.",
+          "http_status": 200,
+          "published_at": "2025-05-22",
+          "retrieval_started_at": "2026-10-11T01:17:27.106Z",
+          "retrieved_at": "2026-10-11T01:17:28.453Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "34a5583ab2a6bf631109d6c3eeed9a4daae1682df49107f00b28e1a2828662f9",
+          "source_locator": "PDF page 1 lines 7-14 (web extraction)",
+          "title": "Lenovo issuer identity filing",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0522/2025052200203.pdf"
+        }
+      ],
+      "us_symbol": "AMD"
+    },
+    {
+      "available_at": "2026-10-11T01:17:37.491Z",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_code": "09868",
+      "hk_name": "XPeng Inc.",
+      "hk_symbol": "HK.09868",
+      "limitations": [
+        "Evidence was captured or ticker identity was checked on 2026-10-11; it was unavailable to the sealed 2026-10-09 plan cutoff.",
+        "Does not establish 2026 production or model mix, shipment volume, revenue share, or exclusivity.",
+        "Does not establish short-term price causality or target-date eligibility."
+      ],
+      "maturity": "ANNOUNCED_NEXT_GENERATION_FLEET_INTEGRATION_DOCUMENTED_2024",
+      "reason": "XPENG announced NVIDIA DRIVE Thor use for next-generation EV fleets.",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "sources": [
+        {
+          "excerpt": "XPENG announced use of NVIDIA DRIVE Thor for next-generation EV fleets.",
+          "http_status": 200,
+          "published_at": "2024-03-18",
+          "retrieval_started_at": "2026-10-11T01:17:23.367Z",
+          "retrieved_at": "2026-10-11T01:17:25.387Z",
+          "role": "RELATION",
+          "source_body_sha256": "354e889ac7190ce8ecabbc66a9658639e42d337605e3f0b5bd43d38cf14d0a94",
+          "source_locator": "Fleet bullet, web line 58",
+          "title": "NVIDIA DRIVE Powers Next Generation of Transportation",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-drive-powers-next-generation-transportation"
+        },
+        {
+          "excerpt": "Annual report identifies HK code 09868 and NYSE symbol XPEV.",
+          "http_status": 200,
+          "published_at": "2026-04-16",
+          "retrieval_started_at": "2026-10-11T01:17:34.267Z",
+          "retrieved_at": "2026-10-11T01:17:37.491Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "ca8e62d10ac0e40bfb5d8024e47245ca255396b87a96f7d1eae4e8c3ea04500f",
+          "source_locator": "PDF page 155, web lines 5356-5359",
+          "title": "XPeng Inc. 2025 Annual Report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0416/2026041601155.pdf"
+        },
+        {
+          "excerpt": "Lenovo release identifies NVIDIA as NASDAQ: NVDA.",
+          "http_status": 200,
+          "published_at": "2023-10-24",
+          "retrieval_started_at": "2026-10-11T01:17:21.521Z",
+          "retrieved_at": "2026-10-11T01:17:22.447Z",
+          "role": "US_SYMBOL_IDENTITY",
+          "source_body_sha256": "c69665af19032d737a6e253948eec44092b2aa25cf970ee48db86421baa1bec4",
+          "source_locator": "Intro lines 26-30 (web extraction)",
+          "title": "Lenovo and NVIDIA Announce Hybrid AI Solutions",
+          "url": "https://news.lenovo.com/pressroom/press-releases/nvidia-hybrid-ai-initiative-supercharge-generative-ai/"
+        }
+      ],
+      "us_symbol": "NVDA"
+    },
+    {
+      "available_at": "2026-10-11T01:17:41.230Z",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_code": "01810",
+      "hk_name": "Xiaomi Corporation",
+      "hk_symbol": "HK.01810",
+      "limitations": [
+        "Evidence was captured or ticker identity was checked on 2026-10-11; it was unavailable to the sealed 2026-10-09 plan cutoff.",
+        "Does not establish 2026 production or model mix, shipment volume, revenue share, or exclusivity.",
+        "Does not establish short-term price causality or target-date eligibility."
+      ],
+      "maturity": "PLATFORM_ADOPTION_DOCUMENTED_2024",
+      "reason": "NVIDIA states Xiaomi adopted DRIVE Orin for automated-driving systems.",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "sources": [
+        {
+          "excerpt": "Xiaomi adopted NVIDIA DRIVE Orin for automated-driving systems.",
+          "http_status": 200,
+          "published_at": "2024-01-08",
+          "retrieval_started_at": "2026-10-11T01:17:25.387Z",
+          "retrieved_at": "2026-10-11T01:17:27.106Z",
+          "role": "RELATION",
+          "source_body_sha256": "77b4effde33efacb90e6a29bbb24a2eccfd08bdfe289b6b65aa643ff5c9f7802",
+          "source_locator": "Xiaomi bullet, web line 52",
+          "title": "Wave of EV Makers Choose NVIDIA DRIVE for Automated Driving",
+          "url": "https://nvidianews.nvidia.com/news/wave-of-ev-makers-choose-nvidia-drive-for-automated-driving/"
+        },
+        {
+          "excerpt": "Annual report identifies HKD counter 01810 and RMB counter 81810.",
+          "http_status": 200,
+          "published_at": "2025-04-24",
+          "retrieval_started_at": "2026-10-11T01:17:38.603Z",
+          "retrieved_at": "2026-10-11T01:17:41.230Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "9fbb8a9baa8bb9b559ae3789080e56cd498ab1f0db6d8853ff2a63c598ccad11",
+          "source_locator": "PDF page 5, web lines 149-150",
+          "title": "Xiaomi Corporation 2024 Annual Report",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0424/2025042401119.pdf"
+        },
+        {
+          "excerpt": "Lenovo release identifies NVIDIA as NASDAQ: NVDA.",
+          "http_status": 200,
+          "published_at": "2023-10-24",
+          "retrieval_started_at": "2026-10-11T01:17:21.521Z",
+          "retrieved_at": "2026-10-11T01:17:22.447Z",
+          "role": "US_SYMBOL_IDENTITY",
+          "source_body_sha256": "c69665af19032d737a6e253948eec44092b2aa25cf970ee48db86421baa1bec4",
+          "source_locator": "Intro lines 26-30 (web extraction)",
+          "title": "Lenovo and NVIDIA Announce Hybrid AI Solutions",
+          "url": "https://news.lenovo.com/pressroom/press-releases/nvidia-hybrid-ai-initiative-supercharge-generative-ai/"
+        }
+      ],
+      "us_symbol": "NVDA"
+    },
+    {
+      "available_at": "2026-10-11T01:29:38.178Z",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_code": "01211",
+      "hk_name": "BYD Company Limited",
+      "hk_symbol": "HK.01211",
+      "limitations": [
+        "Evidence was retrieved or identity checked on 2026-10-11; it was unavailable to the sealed 2026-10-09 plan cutoff.",
+        "The source documents an announced/future integration as of publication; it does not establish 2026 production, model mix, shipment volume, revenue share, or exclusivity.",
+        "The relation does not establish short-term price causality or target-date eligibility."
+      ],
+      "maturity": "ANNOUNCED_NEXT_GENERATION_FLEET_INTEGRATION_DOCUMENTED_2024",
+      "reason": "NVIDIA described BYD's announced next-generation fleets using DRIVE Thor and planned use of NVIDIA AI infrastructure and development platforms.",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "sources": [
+        {
+          "excerpt": "BYD was building next-generation fleets on NVIDIA DRIVE Thor and planned to use NVIDIA AI infrastructure and Isaac/Omniverse platforms.",
+          "http_status": 200,
+          "published_at": "2024-03-18",
+          "retrieval_started_at": "2026-10-11T01:17:23.367Z",
+          "retrieved_at": "2026-10-11T01:17:25.387Z",
+          "role": "RELATION",
+          "source_body_sha256": "354e889ac7190ce8ecabbc66a9658639e42d337605e3f0b5bd43d38cf14d0a94",
+          "source_locator": "BYD fleet bullet, web line 56; program context lines 47-50.",
+          "title": "NVIDIA DRIVE Powers Next Generation of Transportation",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-drive-powers-next-generation-transportation"
+        },
+        {
+          "excerpt": "BYD Company Limited; stock code: H Shares 01211; A Shares 002594.",
+          "http_status": 200,
+          "published_at": "2020-04-21",
+          "retrieval_started_at": "2026-10-11T01:29:34.467Z",
+          "retrieved_at": "2026-10-11T01:29:38.178Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "2e3cbcede33b7174f79d3faa988ebc6cb3ae78b75792afc218510d5f7c062d2a",
+          "source_locator": "Company Profile section in the official HKEX extraction; exact printed PDF page CANNOT_CONFIRM.",
+          "title": "Stock Code 股份代號: 1211",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2020/0421/2020042101469_c.pdf"
+        },
+        {
+          "excerpt": "Lenovo release identifies NVIDIA as NASDAQ: NVDA.",
+          "http_status": 200,
+          "published_at": "2023-10-24",
+          "retrieval_started_at": "2026-10-11T01:17:21.521Z",
+          "retrieved_at": "2026-10-11T01:17:22.447Z",
+          "role": "US_SYMBOL_IDENTITY",
+          "source_body_sha256": "c69665af19032d737a6e253948eec44092b2aa25cf970ee48db86421baa1bec4",
+          "source_locator": "Intro lines 26-30 (web extraction)",
+          "title": "Lenovo and NVIDIA Announce Hybrid AI Solutions",
+          "url": "https://news.lenovo.com/pressroom/press-releases/nvidia-hybrid-ai-initiative-supercharge-generative-ai/"
+        }
+      ],
+      "us_symbol": "NVDA"
+    },
+    {
+      "available_at": "2026-10-11T01:29:39.645Z",
+      "direction": "HK_CUSTOMER_OR_INTEGRATOR_OF_US_TECHNOLOGY_PROVIDER",
+      "hk_code": "02015",
+      "hk_name": "Li Auto Inc.",
+      "hk_symbol": "HK.02015",
+      "limitations": [
+        "Evidence was retrieved or identity checked on 2026-10-11; it was unavailable to the sealed 2026-10-09 plan cutoff.",
+        "The 2024 release distinguishes planned DRIVE Thor use in next-generation fleets from its then-described Orin configuration in L-series AD Max systems; neither establishes 2026 production or model mix.",
+        "The relation does not establish shipment volume, revenue share, exclusivity, short-term price causality, or target-date eligibility."
+      ],
+      "maturity": "ANNOUNCED_DRIVE_THOR_SELECTION_AND_ORIN_SYSTEM_USE_DOCUMENTED_2024",
+      "reason": "NVIDIA reported Li Auto's selection of DRIVE Thor for next-generation fleets and separately described two DRIVE Orin processors in L-series AD Max systems at publication.",
+      "relationship_type": "NAMED_TECHNOLOGY_INTEGRATION_CUSTOMER",
+      "sources": [
+        {
+          "excerpt": "Li Auto selected DRIVE Thor for next-generation fleets; the release separately described two DRIVE Orin processors in L-series AD Max systems.",
+          "http_status": 200,
+          "published_at": "2024-01-08",
+          "retrieval_started_at": "2026-10-11T01:17:25.387Z",
+          "retrieved_at": "2026-10-11T01:17:27.106Z",
+          "role": "RELATION",
+          "source_body_sha256": "77b4effde33efacb90e6a29bbb24a2eccfd08bdfe289b6b65aa643ff5c9f7802",
+          "source_locator": "Li Auto bullet and lines 51, 55-57 in web extraction.",
+          "title": "Wave of EV Makers Choose NVIDIA DRIVE for Automated Driving",
+          "url": "https://nvidianews.nvidia.com/news/wave-of-ev-makers-choose-nvidia-drive-for-automated-driving/"
+        },
+        {
+          "excerpt": "Li Auto Inc. (Stock Code: 2015).",
+          "http_status": 200,
+          "published_at": "2025-03-14",
+          "retrieval_started_at": "2026-10-11T01:29:38.189Z",
+          "retrieved_at": "2026-10-11T01:29:39.645Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "7593606d0dfd5206c8990bdcfa5315e9f23fec7176a5dc16c53a33a466adb04a",
+          "source_locator": "PDF page 1, extracted lines 5-10.",
+          "title": "Li Auto Inc. Annual Results Announcement for the Year Ended December 31, 2024",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0314/2025031400627.pdf"
+        },
+        {
+          "excerpt": "Lenovo release identifies NVIDIA as NASDAQ: NVDA.",
+          "http_status": 200,
+          "published_at": "2023-10-24",
+          "retrieval_started_at": "2026-10-11T01:17:21.521Z",
+          "retrieved_at": "2026-10-11T01:17:22.447Z",
+          "role": "US_SYMBOL_IDENTITY",
+          "source_body_sha256": "c69665af19032d737a6e253948eec44092b2aa25cf970ee48db86421baa1bec4",
+          "source_locator": "Intro lines 26-30 (web extraction)",
+          "title": "Lenovo and NVIDIA Announce Hybrid AI Solutions",
+          "url": "https://news.lenovo.com/pressroom/press-releases/nvidia-hybrid-ai-initiative-supercharge-generative-ai/"
+        }
+      ],
+      "us_symbol": "NVDA"
+    },
+    {
+      "available_at": "2026-10-11T02:10:20.693Z",
+      "direction": "US_COLLABORATION_PARTNER_TO_HK_GROUP_PLATFORM",
+      "hk_code": "06823",
+      "hk_name": "HKT Trust and HKT Limited",
+      "hk_symbol": "HK.06823",
+      "limitations": [
+        "The Digital Realty page extraction exposed title/date only; source-body rehash and body-level details are CANNOT_CONFIRM.",
+        "The HKT connection is through the group platform; direct HKT Limited contracting, spend, revenue, exclusivity, or economic materiality are not established.",
+        "Evidence was captured 2026-10-11 after the target-date cutoff; target-date eligibility and price causality are CANNOT_CONFIRM."
+      ],
+      "maturity": "INDIRECT_PLATFORM_COLLABORATION_DOCUMENTED_2025",
+      "reason": "Digital Realty announced an expanded strategic collaboration with Console Connect; HKT describes Console Connect as its automated on-demand platform. This is an indirect listed-group platform relationship, not a claim that Digital Realty contracted directly with HKT Limited.",
+      "relationship_type": "INDIRECT_STRATEGIC_PLATFORM_COLLABORATION",
+      "sources": [
+        {
+          "excerpt": "Official release title states Digital Realty and Console Connect broaden their strategic collaboration.",
+          "http_status": 200,
+          "published_at": "2025-03-27",
+          "retrieval_started_at": "2026-10-11T02:10:14.430Z",
+          "retrieved_at": "2026-10-11T02:10:17.890Z",
+          "role": "RELATION",
+          "source_body_sha256": "aa698b2c7a7f480266763e6c1148ae64c55ff578a07c9d4e3b76d8d8d14e56a9",
+          "source_locator": "Official release page; extractor exposed title/date only, so excerpt is limited to that claim.",
+          "title": "Digital Realty and Console Connect Broaden Strategic Collaboration to Boost Global Connectivity",
+          "url": "https://www.digitalrealty.com/about/newsroom/press-releases/123315/digital-realty-and-console-connect-broaden-strategic-collaboration-to-boost-global-connectivity"
+        },
+        {
+          "excerpt": "HKT describes Console Connect as its automated on-demand platform; the report identifies HKT stock code 06823.",
+          "http_status": 200,
+          "published_at": "2026-04-01",
+          "retrieval_started_at": "2026-10-11T02:10:17.890Z",
+          "retrieved_at": "2026-10-11T02:10:20.693Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "371a1cbe74e069d69f9987a1dce4c7782f59abb2263986cd3fe02b866028660e",
+          "source_locator": "Annual report cover (issuer code) and page 3 (Console Connect platform).",
+          "title": "HKT Trust and HKT Limited Annual Report 2025",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0401/2026040101820.pdf"
+        }
+      ],
+      "us_symbol": "DLR"
+    },
+    {
+      "available_at": "2026-10-11T02:12:18.670Z",
+      "direction": "US_CONNECTIVITY_PROVIDER_TO_HK_LISTED_GROUP_CLOUD_ARM",
+      "hk_code": "09988",
+      "hk_name": "Alibaba Group Holding Limited",
+      "hk_symbol": "HK.09988",
+      "limitations": [
+        "The release documents a 2017 partnership; current product documentation confirms a listed service option, not utilization or commercial volume.",
+        "No current revenue, customer volume, exclusivity, purchases, or short-term price causality are inferred.",
+        "Evidence was retrieved 2026-10-11 after the target-date cutoff; target-date eligibility is CANNOT_CONFIRM."
+      ],
+      "maturity": "HISTORICAL_PARTNERSHIP_WITH_CURRENT_HONG_KONG_SERVICE_DOCUMENTATION",
+      "reason": "Equinix announced collaboration with Alibaba Cloud, named as Alibaba Group’s cloud arm, and describes direct/scalable access through its Hong Kong facilities; current Equinix documentation also lists Alibaba Cloud Express Connect in Hong Kong.",
+      "relationship_type": "NAMED_CLOUD_CONNECTIVITY_PARTNERSHIP",
+      "sources": [
+        {
+          "excerpt": "Equinix (Nasdaq: EQIX) announced direct, scalable Alibaba Cloud access through Equinix Cloud Exchange in Hong Kong; Alibaba Cloud is named as Alibaba Group’s cloud arm.",
+          "http_status": 200,
+          "published_at": "2017-06-13",
+          "retrieval_started_at": "2026-10-11T02:10:20.695Z",
+          "retrieved_at": "2026-10-11T02:10:22.014Z",
+          "role": "RELATION",
+          "source_body_sha256": "1619b56ca60abf65cb586296d30488bd9c2332d55931e1fb5f492abaffb69b67",
+          "source_locator": "Official Equinix release lines 130-142 (web extraction) and captured HTTP response body.",
+          "title": "Equinix Partners with Alibaba Cloud to Deliver Greater Cloud Connectivity",
+          "url": "https://investor.equinix.com/news-events/press-releases/detail/281/equinix-partners-with-alibaba-cloud-to-deliver-greater"
+        },
+        {
+          "excerpt": "HKEX annual report identifies Alibaba Group counters 09988 (HKD) and 89988 (RMB).",
+          "http_status": 200,
+          "published_at": "2025-06-26",
+          "retrieval_started_at": "2026-10-11T02:10:22.014Z",
+          "retrieved_at": "2026-10-11T02:10:24.918Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "c7806bf5da28032e1b15dbe9a334011d65f5d69efe3bf11a9d212f64f07ca9b2",
+          "source_locator": "HKEX annual report cover and listing identity.",
+          "title": "Alibaba Group Holding Limited FY2025 Annual Report",
+          "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2025/0626/2025062601064.pdf"
+        },
+        {
+          "excerpt": "Current Equinix service documentation lists Alibaba Cloud Express Connect as available in Hong Kong.",
+          "http_status": 200,
+          "published_at": null,
+          "retrieval_started_at": "2026-10-11T02:12:15.908Z",
+          "retrieved_at": "2026-10-11T02:12:18.670Z",
+          "role": "RELATION",
+          "source_body_sha256": "bac9e69001d310170050c555d13faa2aa68ba48d992be23cb16b8af2e016482e",
+          "source_locator": "Current product documentation; no publication date stated.",
+          "title": "Equinix Fabric Alibaba Cloud Express Connect documentation",
+          "url": "https://docs.equinix.com/es/fabric-marketplace/connecting-to-service-provider/fabric-alibaba-cloudexpress/?_i18n_attempted=1"
+        }
+      ],
+      "us_symbol": "EQIX"
+    },
+    {
+      "available_at": "2026-10-11T02:10:28.372Z",
+      "direction": "US_COMPONENT_VENDOR_TO_HK_LISTED_SYSTEM_CONFIGURATION",
+      "hk_code": "00992",
+      "hk_name": "Lenovo Group Limited",
+      "hk_symbol": "HK.00992",
+      "limitations": [
+        "The product guide does not establish Lenovo purchases, shipments, contract value, installed base, or materiality.",
+        "Evidence was captured 2026-10-11 after the target-date cutoff; target-date eligibility and price causality are CANNOT_CONFIRM."
+      ],
+      "maturity": "NAMED_COMPONENT_OPTION_DOCUMENTED_2026",
+      "reason": "Lenovo’s DSS-G guide lists Seagate hard-drive options in its D4390 system configuration table; this documents a configurable component option only.",
+      "relationship_type": "NAMED_COMPONENT_OPTION",
+      "sources": [
+        {
+          "excerpt": "Lenovo DSS-G D4390 table lists multiple Seagate HDD options, including Seagate Summit 24TB.",
+          "http_status": 200,
+          "published_at": "2026-09-16",
+          "retrieval_started_at": "2026-10-11T02:10:25.875Z",
+          "retrieved_at": "2026-10-11T02:10:28.372Z",
+          "role": "RELATION",
+          "source_body_sha256": "120fad8c8406fa1fc700035d6378c5ab99edd59f24c0f190c2da5f86fa5e4f7c",
+          "source_locator": "Official Lenovo product guide table 6, lines 888-914; drives are selectable D4390 options.",
+          "title": "Lenovo DSS-G Product Guide LP1842",
+          "url": "https://lenovopress.lenovo.com/lp1842-lenovo-dss-g-thinksystem-v3"
+        },
+        {
+          "excerpt": "HKEX issuer filing identifies Lenovo issuer code 00992.",
+          "http_status": 200,
+          "published_at": "2025-05-22",
+          "retrieval_started_at": "2026-10-11T01:17:27.106Z",
+          "retrieved_at": "2026-10-11T01:17:28.453Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "34a5583ab2a6bf631109d6c3eeed9a4daae1682df49107f00b28e1a2828662f9",
+          "source_locator": "PDF page 1 lines 7-14 (web extraction)",
+          "title": "Lenovo issuer identity filing",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0522/2025052200203.pdf"
+        }
+      ],
+      "us_symbol": "STX"
+    },
+    {
+      "available_at": "2026-10-11T02:10:31.408Z",
+      "direction": "JOINT_US_AND_HK_LISTED_PRODUCT_DESIGN",
+      "hk_code": "00992",
+      "hk_name": "Lenovo Group Limited",
+      "hk_symbol": "HK.00992",
+      "limitations": [
+        "This establishes product co-design only, not current orders, volumes, deployments, or revenue materiality.",
+        "Evidence was captured 2026-10-11 after the target-date cutoff; target-date eligibility and price causality are CANNOT_CONFIRM."
+      ],
+      "maturity": "CO_DESIGNED_PRODUCT_DOCUMENTED_2026",
+      "reason": "Lenovo’s PDU product guide explicitly states the rack PDUs were co-designed by Vertiv and Lenovo.",
+      "relationship_type": "CO_DESIGNED_PRODUCT_PARTNERSHIP",
+      "sources": [
+        {
+          "excerpt": "Lenovo’s product guide says the rack PDUs were co-designed by Vertiv and Lenovo.",
+          "http_status": 200,
+          "published_at": "2026-06-22",
+          "retrieval_started_at": "2026-10-11T02:10:28.372Z",
+          "retrieved_at": "2026-10-11T02:10:31.408Z",
+          "role": "RELATION",
+          "source_body_sha256": "3fbee285eb34adb0683c2ea7294472ea705671fdb4f79cea25deebf23e52a36d",
+          "source_locator": "Official Lenovo guide abstract; explicit co-design statement.",
+          "title": "Lenovo 1U Switched & Monitored PDUs Product Guide LP1556",
+          "url": "https://lenovopress.lenovo.com/lp1556-lenovo-1u-switched-monitored-pdus"
+        },
+        {
+          "excerpt": "HKEX issuer filing identifies Lenovo issuer code 00992.",
+          "http_status": 200,
+          "published_at": "2025-05-22",
+          "retrieval_started_at": "2026-10-11T01:17:27.106Z",
+          "retrieved_at": "2026-10-11T01:17:28.453Z",
+          "role": "HK_LISTING_IDENTITY",
+          "source_body_sha256": "34a5583ab2a6bf631109d6c3eeed9a4daae1682df49107f00b28e1a2828662f9",
+          "source_locator": "PDF page 1 lines 7-14 (web extraction)",
+          "title": "Lenovo issuer identity filing",
+          "url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0522/2025052200203.pdf"
+        }
+      ],
+      "us_symbol": "VRT"
+    }
+  ],
+  "schema_version": "v4.manager_research.us_mapping_relation_evidence.v2",
+  "source_hash_algorithm": "SHA256_HTTP_RESPONSE_BODY_BYTES",
+  "source_scope": "FOUR_NEW_RELATION_CARDS_AND_TWO_ASSESSED_GAPS; SIX_PRIOR_RELATION_CARDS; FIXED_33_SYMBOL_SAMPLE",
+  "symbol_assessments": [
+    {
+      "assessment_scope": "BOUNDED_PRIMARY_SOURCE_CHECK_20261011",
+      "available_at": "2026-10-11T02:10:25.875Z",
+      "candidate_hk_code": "00992",
+      "candidate_hk_symbol": "HK.00992",
+      "conclusion": "CANNOT_CONFIRM",
+      "limitations": [
+        "The product-compatibility claim does not establish Lenovo purchase volumes, shipments, revenue, or continuing product mix.",
+        "The web-extracted text is not hashed as HTTP response-body bytes; direct GET returned 429 and no body SHA exists.",
+        "Target-date eligibility for 2026-10-09 is CANNOT_CONFIRM."
+      ],
+      "reason": "Micron’s official release supports a named LPCAMM2 compatibility/product integration with Lenovo ThinkPad P1 Gen 7, but the direct HTTP retrieval returned 429 and the web-extracted text is not an HTTP response body. The frozen relation-source contract requires a verifiable HTTP-200 response-body SHA, so no relation tuple is published from this capture.",
+      "sources": [
+        {
+          "excerpt": "Micron says LPCAMM2/LPDDR5X is compatible with ThinkPad P1 Gen 7; Lenovo states P1 Gen 7 is the first laptop available to leverage the form factor.",
+          "http_status": null,
+          "published_at": "2024-05-07",
+          "retrieval_started_at": null,
+          "retrieved_at": "2026-10-11T02:07:02.291Z",
+          "role": "RELATION",
+          "source_body_sha256": null,
+          "source_body_sha256_status": "CANNOT_CONFIRM",
+          "source_capture_status": "WEB_EXTRACTED_CONTENT_BODY_NOT_CAPTURED",
+          "source_locator": "Official Micron release web extraction, lines 6-14 (turn27view2).",
+          "title": "Micron Delivers Crucial LPCAMM2 with LPDDR5X Memory for the New AI-Ready Lenovo ThinkPad P1 Gen 7 Workstation",
+          "url": "https://investors.micron.com/news/press-release/2024/Micron-Delivers-Crucial-LPCAMM2-with-LPDDR5X-Memory-for-the-New-AI-Ready-Lenovo-ThinkPad-P1-Gen-7-Workstation-05-07-2024/default.aspx"
+        },
+        {
+          "excerpt": "Direct urllib GET returned HTTP 429 with no response body available for hashing.",
+          "http_status": 429,
+          "published_at": "2024-05-07",
+          "retrieval_started_at": "2026-10-11T02:10:24.923Z",
+          "retrieved_at": "2026-10-11T02:10:25.875Z",
+          "role": "SOURCE_RETRIEVAL_ATTEMPT",
+          "source_body_sha256": null,
+          "source_body_sha256_status": "CANNOT_CONFIRM",
+          "source_capture_status": "HTTP_429_NO_RESPONSE_BODY",
+          "source_locator": "Writer-side direct GET attempt logged 2026-10-11 02:10:24.923Z-02:10:25.875Z.",
+          "title": "Micron release direct HTTP retrieval attempt",
+          "url": "https://investors.micron.com/news/press-release/2024/Micron-Delivers-Crucial-LPCAMM2-with-LPDDR5X-Memory-for-the-New-AI-Ready-Lenovo-ThinkPad-P1-Gen-7-Workstation-05-07-2024/default.aspx"
+        }
+      ],
+      "status": "ASSESSED_WITH_GAPS",
+      "us_symbol": "MU"
+    },
+    {
+      "assessment_scope": "BOUNDED_PRIMARY_SOURCE_CHECK_20261011",
+      "available_at": "2026-10-11T02:10:28.372Z",
+      "candidate_hk_code": "00992",
+      "candidate_hk_symbol": "HK.00992",
+      "conclusion": "CANNOT_CONFIRM",
+      "limitations": [
+        "The current guide’s WDC abbreviation is not expanded in the table; ticker/entity identity for this current option remains unconfirmed.",
+        "The SS530 evidence is withdrawn historical product integration and does not establish current orders, shipments, or model use.",
+        "Target-date eligibility for 2026-10-09 is CANNOT_CONFIRM."
+      ],
+      "reason": "Lenovo’s current DSS-G guide lists a drive option labeled “WDC” but does not expand the label to Western Digital Corporation. A withdrawn Lenovo SS530 guide documents historical Western Digital product integration only; the current DSS-G entity join remains CANNOT_CONFIRM.",
+      "sources": [
+        {
+          "excerpt": "Current D4390 configuration rows list 24TB options labeled WDC, but do not expand the label to Western Digital Corporation.",
+          "http_status": 200,
+          "published_at": "2026-09-16",
+          "retrieval_started_at": "2026-10-11T02:10:25.875Z",
+          "retrieved_at": "2026-10-11T02:10:28.372Z",
+          "role": "RELATION",
+          "source_body_sha256": "120fad8c8406fa1fc700035d6378c5ab99edd59f24c0f190c2da5f86fa5e4f7c",
+          "source_body_sha256_status": "VERIFIED_SHA256_HTTP_RESPONSE_BODY_BYTES",
+          "source_capture_status": "HTTP_RESPONSE_BODY_CAPTURED",
+          "source_locator": "Official Lenovo product guide, table 6, lines 888-914 (same captured response used for the STX component option).",
+          "title": "Lenovo DSS-G Product Guide LP1842",
+          "url": "https://lenovopress.lenovo.com/lp1842-lenovo-dss-g-thinksystem-v3"
+        },
+        {
+          "excerpt": "Withdrawn Lenovo guide historically identifies Western Digital Ultrastar SS530 SSD technology; this is historical integration evidence only.",
+          "http_status": null,
+          "published_at": null,
+          "retrieval_started_at": null,
+          "retrieved_at": "2026-10-11T02:06:53.890Z",
+          "role": "HISTORICAL_RELATION_CONTEXT",
+          "source_body_sha256": null,
+          "source_body_sha256_status": "CANNOT_CONFIRM",
+          "source_capture_status": "WEB_EXTRACTED_WITHDRAWN_SOURCE_BODY_NOT_CAPTURED",
+          "source_locator": "Official Lenovo Press web search extraction (turn26search1); guide is withdrawn, not current DSS-G vendor identity.",
+          "title": "Lenovo ThinkSystem SS530 Performance SAS 12Gb SSD Product Guide LP1031",
+          "url": "https://lenovopress.lenovo.com/lp1031-thinksystem-ss530-performance-sas-12gb-ssd"
+        }
+      ],
+      "status": "ASSESSED_WITH_GAPS",
+      "us_symbol": "WDC"
+    }
+  ],
+  "withheld_candidates": []
+}

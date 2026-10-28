@@ -1,0 +1,184 @@
+{
+  "approval_status": "CANDIDATE_REQUIRES_CALLER_PIN",
+  "external_files": {
+    "contracts/vibe_runtime_profile.json": {
+      "bytes": 439,
+      "sha256": "1081c31d4f12e5ae62cbfe651c413c124d80794089a923c15e807e90170c249d"
+    },
+    "infrastructure/interprocess_lock.py": {
+      "bytes": 7514,
+      "sha256": "9b0cb80a1fe1bcbdebb3936134c8f0bad258c9c9236356022551ff7753351df0"
+    },
+    "infrastructure/owned_io.py": {
+      "bytes": 9354,
+      "sha256": "9a74731287ca7c9667643557d4ae42f63453a025665ba28f5b65fdbff7d54ee0"
+    },
+    "infrastructure/trading_safety.py": {
+      "bytes": 2597,
+      "sha256": "ae5d63d2ad6974dc4863dff6c5f56335bafe485f9b0b172bf929346a853ba7df"
+    },
+    "ops/run_research_review_generation.py": {
+      "bytes": 2537,
+      "sha256": "b783bfc1c9d3c593c49a7f775c9e861767cc1f82373530536ec4df0f87e04622"
+    }
+  },
+  "files": {
+    "__init__.py": {
+      "bytes": 791,
+      "sha256": "f0c1d0aa21e9370ca6962dbf86a01e0325c55e718a73a7fa95e4d469f29c9855"
+    },
+    "_cache.py": {
+      "bytes": 7557,
+      "sha256": "5080b2b9daec511877f90877c0682aa6ebb506ba536ee2f44740428bca2ae0f7"
+    },
+    "_evidence.py": {
+      "bytes": 8875,
+      "sha256": "02ae017474bdb91af0bddb89684d567f90574112f6a93527007c54c05ad0400d"
+    },
+    "_owned_io.py": {
+      "bytes": 3872,
+      "sha256": "dacd18dff80b84a13d98b1eae0ccb3d024f327a7d941d95bb068dd9331a15ec1"
+    },
+    "_snapshot.py": {
+      "bytes": 7857,
+      "sha256": "248161565dd55f8dce3a46632ada3f0b1f88fde0e01904db4ad76ef4a91ccba6"
+    },
+    "assembly.py": {
+      "bytes": 5780,
+      "sha256": "6b1c36ea8d22d8975fa0123c0e0ef1d12cf0c3323d9a4e7a37709e5d0c98de7e"
+    },
+    "data_core/__init__.py": {
+      "bytes": 88,
+      "sha256": "0e7dce5ded9af6a90921df6c7670852894e6849275b25febae1cf5e73754ae59"
+    },
+    "data_core/breadth.py": {
+      "bytes": 10065,
+      "sha256": "e74d0592856c14c10ceff97546ba5cd9ac528e9fe77022a0322a05ff473167e5"
+    },
+    "data_core/data.py": {
+      "bytes": 18006,
+      "sha256": "f243a1f186b37ca2fa6c76b428c4597a2ebc9ab685a2d00dbf3ceb1e7d9fd2d7"
+    },
+    "data_core/emotion_metrics.py": {
+      "bytes": 22793,
+      "sha256": "132e89d992f2f0a17fe23c9c8acc562659c5966f6e5be2e2d87ae01779682bac"
+    },
+    "data_core/fetchers.py": {
+      "bytes": 12647,
+      "sha256": "350cdba92df688bfa827d8f115992a29c9dc4ca09093060fe5c3b47374afc168"
+    },
+    "data_core/fuyao_sources.py": {
+      "bytes": 14948,
+      "sha256": "b08e40f5574189181221eae5a37ae4ca7a1d25b565986797a037b7c76cb54b85"
+    },
+    "data_core/market_facts.py": {
+      "bytes": 27965,
+      "sha256": "f494b1788b5710b456e6fc2dca74c05a48e0910a2463b2adf33b2c174df3e7b4"
+    },
+    "data_core/stats_context.py": {
+      "bytes": 13664,
+      "sha256": "9a9c1e80a617ed15009b58fcafd0dba7826992e78c3e7d10e0dcd607aa74d0d2"
+    },
+    "data_core/theme_tree.py": {
+      "bytes": 13256,
+      "sha256": "51e42f77067315a94b0940bf7ce8608ec990a6c378be1bb2bc24c183bf1ffd9e"
+    },
+    "data_core/trade_calendar.py": {
+      "bytes": 8089,
+      "sha256": "be67388f1fe1aa02701df783ee0e0aeb5dc81f0bb4a8423c138a738e8ae22c97"
+    },
+    "data_core/util.py": {
+      "bytes": 3012,
+      "sha256": "bf773d20ec2edf398d083b1c6beedc5234ecff9440f4632ceeaf763e12fffc6b"
+    },
+    "generation.py": {
+      "bytes": 17101,
+      "sha256": "b36dcbc550f31697391ed08d00b305b9291d51e8707532589f0e7bce0b1a20c2"
+    },
+    "model_provider.py": {
+      "bytes": 8195,
+      "sha256": "8db1dcc867cbb758cc538c4419b75d199250d96a6f1bc163876ba7356d74a9a9"
+    },
+    "owned_authority.py": {
+      "bytes": 19924,
+      "sha256": "7bd218fba2444085723a4d9290931463a14c6e16878cebb73e655ae4f2e98072"
+    },
+    "owned_runtime.py": {
+      "bytes": 13098,
+      "sha256": "401291b45ce8a169f7027df5b49336c9bde7bb9a6634c7bce66189e01b90ced9"
+    },
+    "vibe_core/__init__.py": {
+      "bytes": 75,
+      "sha256": "28c57552ab121d3a582bc59e716ed90996e97ecf2d334634011b3511be4a7853"
+    },
+    "vibe_core/analysts.py": {
+      "bytes": 7605,
+      "sha256": "f1022ecaf5e4597683179c5e6eeed82d02b6da3a5d9c6a9e997a952e74cf520b"
+    },
+    "vibe_core/deepdive/__init__.py": {
+      "bytes": 59,
+      "sha256": "e427831aaf0d571f7cb4e98723f0a00d145af60e3221afac6128dc6daa219d11"
+    },
+    "vibe_core/deepdive/schemas.py": {
+      "bytes": 1878,
+      "sha256": "fd7706bb31276910ea7acc0c8ce393a7d5b7a3c86280fdc2a5ffdbe2a0a544ae"
+    },
+    "vibe_core/helpers.py": {
+      "bytes": 816,
+      "sha256": "dffcb252a8cb80eb415136f550d0368791f630f411525639bf3f073c745c9aaf"
+    },
+    "vibe_core/llm_errors.py": {
+      "bytes": 6049,
+      "sha256": "f48f74f3d03d537a28c0b82c11620971f2b1c41be28c7bebb7ec14ba5af131e8"
+    },
+    "vibe_core/preflight.py": {
+      "bytes": 5042,
+      "sha256": "5f10839944af3e12d14a46e6a5a434a9d75475ebe74a05763cfca2d3d807dfca"
+    },
+    "vibe_core/prompts.py": {
+      "bytes": 4233,
+      "sha256": "833962c06d4be62e9801474af6a5020d80e89f6c1460e360618361ad079a492a"
+    },
+    "vibe_core/reflection_context.py": {
+      "bytes": 6701,
+      "sha256": "cfa7140d52d7494631d8537f797567f9e5e7a0ef81581c170f5e726b3621635f"
+    },
+    "vibe_core/review_graph.py": {
+      "bytes": 777,
+      "sha256": "6a21ac2ddc5b82bf10f75e4d8b104c6ef29ea29972beb92bcbb8de1e9fa60fe6"
+    },
+    "vibe_core/roles.py": {
+      "bytes": 1144,
+      "sha256": "cacc7b2a981e3c9a3f866e5a76d7cbd2257cd78bd01332311f4ab4f959fcd86a"
+    },
+    "vibe_core/schemas.py": {
+      "bytes": 15331,
+      "sha256": "71c640384e6c02566e94454baf3686da49ce9ba905aca1a6cdf05bb35084ae85"
+    },
+    "vibe_core/serializer.py": {
+      "bytes": 4471,
+      "sha256": "82b67b12fd2bfd21d3363e63ee487e5fc8d60e049cf362f0789bd7522c0d88bc"
+    },
+    "vibe_core/state.py": {
+      "bytes": 1873,
+      "sha256": "0499048b06d1fe4376b8f82b64fb401412efed888527fc91d46a4907d5567624"
+    },
+    "vibe_core/structured.py": {
+      "bytes": 3287,
+      "sha256": "f885d094e8c3ffaede8861ebdaa4d23b47f9624cdeff11b0336333bfb297b712"
+    },
+    "vibe_core/synthesizer.py": {
+      "bytes": 3187,
+      "sha256": "b7116799db7f73a6443fa82ee0aa8b4a98e01bf84a78e1482a0e97d70669af06"
+    },
+    "vibe_core/util.py": {
+      "bytes": 290,
+      "sha256": "71b03ab4727a209cd9b1c26b0bf7e7ce35617240b1df04fc19d986c14506222f"
+    },
+    "vibe_core/verification.py": {
+      "bytes": 6714,
+      "sha256": "1e369984953eed3ff96bc1df6299f5fa24ef48c4019f8d69037b2673dc9755ce"
+    }
+  },
+  "schema": "v4.vibe.owned_source_manifest.v2"
+}

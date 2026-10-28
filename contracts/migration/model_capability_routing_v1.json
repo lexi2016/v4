@@ -1,0 +1,64 @@
+{
+  "schema_version": "v3_5.model_capability_routing.v1",
+  "controller": "codex_sol",
+  "sole_writer": "codex_sol",
+  "roles": {
+    "codex_sol": {
+      "responsibilities": [
+        "scope",
+        "architecture",
+        "implementation",
+        "integration",
+        "final_decision"
+      ],
+      "write_access": "V3_5_ALLOWED_PATHS_ONLY"
+    },
+    "luna_explorer": {
+      "responsibilities": [
+        "legacy_graph",
+        "data_lineage",
+        "path_and_identity_evidence"
+      ],
+      "write_access": "NONE"
+    },
+    "reviewer": {
+      "responsibilities": [
+        "correctness",
+        "security",
+        "acceptance_gate"
+      ],
+      "write_access": "NONE"
+    },
+    "deterministic_python": {
+      "responsibilities": [
+        "sha256",
+        "counts",
+        "parity_metrics",
+        "performance_metrics"
+      ],
+      "write_access": "EVIDENCE_OUTPUTS_ONLY"
+    },
+    "terra": {
+      "responsibilities": [
+        "future_isolated_implementation_only"
+      ],
+      "write_access": "DISABLED_IN_CURRENT_BATCH"
+    },
+    "gem": {
+      "responsibilities": [
+        "future_hypothesis_and_falsification_only"
+      ],
+      "write_access": "NONE"
+    }
+  },
+  "rules": {
+    "worker_ready_is_completion": false,
+    "controller_revalidates_evidence": true,
+    "llm_may_change_model_or_threshold": false,
+    "llm_may_override_deterministic_metrics": false,
+    "subagent_may_modify_formal_files": false,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  }
+}
