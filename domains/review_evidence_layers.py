@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from domains.a_share_review import build_a_share_review, validate_a_share_review
+from domains.video_evidence_content import video_transcript_content
 from infrastructure.data_store import _date
 
 
@@ -124,7 +125,7 @@ def _require_receipt_safety(payload: Mapping[str, Any], label: str) -> None:
         raise ValueError(f"unsafe {label} safety_flags")
 
 
-def _load_bundle(trade_date: str, data_root: Path) -> tuple[dict[str, Any], dict[str, Any], str]:
+def _load_bundle(trade_date: str, data_root: Path) -> tuple[dict[str, Any], dict[str, Any], str, dict[str, Any]]:
     target = _date(trade_date)
     root = _root_for(data_root)
     current_path = root / "review_bundle" / target / "current.json"
@@ -187,7 +188,7 @@ def _load_bundle(trade_date: str, data_root: Path) -> tuple[dict[str, Any], dict
     ):
         raise ValueError("Review Core receipt identity mismatch")
     _require_receipt_safety(receipt, "Review Core receipt")
-    return bundle, current, source_sha
+    return bundle, current, source_sha, manifest
 
 
 def review_core_a_share_bundle_required(data_root: Path, trade_date: str) -> bool:
@@ -284,7 +285,7 @@ def _project_video(value: Any, target: str) -> dict[str, Any]:
     return projected
 
 
-def _projection(bundle: Mapping[str, Any], target: str, source_sha: str, current: Mapping[str, Any]) -> dict[str, Any]:
+def _projection(bundle: Mapping[str, Any], target: str, source_sha: str, current: Mapping[str, Any], *, source_root: Path, manifest: Mapping[str, Any]) -> dict[str, Any]:
     compatibility = bundle.get("compatibility")
     independent = bundle.get("independent_review")
     if not isinstance(compatibility, Mapping) or not isinstance(independent, Mapping):
@@ -318,6 +319,7 @@ def _projection(bundle: Mapping[str, Any], target: str, source_sha: str, current
     for key in _RICH_FIELDS:
         if key == "video":
             rich[key] = _project_video(compatibility.get(key), target)
+            rich[key].update(video_transcript_content(rich[key], target, source_root, manifest))
         elif key == "formal_pool_validation":
             rich[key] = deepcopy(dict(formal_pool or {}))
         elif key == "cannot_confirm_items":
@@ -414,8 +416,8 @@ def _projection(bundle: Mapping[str, Any], target: str, source_sha: str, current
 
 
 def load_review_core_a_share_review(trade_date: str, data_root: Path) -> dict[str, Any]:
-    bundle, current, source_sha = _load_bundle(trade_date, data_root)
-    return _projection(bundle, _date(trade_date), source_sha, current)
+    bundle, current, source_sha, manifest = _load_bundle(trade_date, data_root)
+    return _projection(bundle, _date(trade_date), source_sha, current, source_root=_root_for(data_root), manifest=manifest)
 
 
 def _daily_replay(trade_date: str, review: Mapping[str, Any]) -> dict[str, Any]:

@@ -158,6 +158,7 @@ class AcquisitionPlan:
     a_share_route: str | None
     hk_route: str
     historical_backfill: bool = False
+    same_day_late_observation_recovery: bool = False
     universe_bindings: Mapping[str, StageUniverseBinding] = field(default_factory=dict)
     safety: Mapping[str, bool] = field(default_factory=lambda: dict(SAFETY_FLAGS))
 
@@ -180,6 +181,7 @@ def build_plan(
     candidate: CandidateInput | None = None,
     universe_bindings: Mapping[str, StageUniverseBinding] | None = None,
     historical_backfill: bool = False,
+    same_day_late_observation_recovery: bool = False,
 ) -> AcquisitionPlan:
     """Build a read-only plan bound to one candidate current.json SHA."""
     stage = next((item for item in EIGHT_STAGES if item.stage_id == stage_id), None)
@@ -212,6 +214,7 @@ def build_plan(
         a_share_route=a_share_route,
         hk_route=hk_route,
         historical_backfill=historical_backfill,
+        same_day_late_observation_recovery=same_day_late_observation_recovery,
         universe_bindings=dict(universe_bindings or {}),
     )
 

@@ -1,5 +1,5 @@
-import { cleanup, render, screen, within } from "@testing-library/vue";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen, within, fireEvent, waitFor } from "@testing-library/vue";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import ReviewView from "./ReviewView.vue";
 
@@ -43,6 +43,87 @@ const payload = {
     } },
   },
   production_allowed: false, buy_gate_updated: false, orders_sent: false,
+} as const;
+
+const researchRows = (count: number, kind: string, extra: Record<string, unknown> = {}) =>
+  Array.from({ length: count }, (_, index) => ({
+    code: `${kind}-${index + 1}`,
+    name: `${kind} ${index + 1}`,
+    tag: `${kind}-tag-${index + 1}`,
+    ...extra,
+  }));
+
+const actualShapeResearchReview = {
+  schema_version: "daily_research_review.v1",
+  status: "READY",
+  artifact_status: "READY",
+  trade_date: "20260911",
+  target_date: "2026-09-11",
+  source_role: "VIBE_DUANXIAN_DAILY_REVIEW",
+  source_artifact_sha256: "b".repeat(64),
+  data_as_of: "2026-09-11 17:25 CST",
+  generation_status: "EXTERNAL_SOURCE_READ_ONLY",
+  generation: { status: "EXTERNAL_SOURCE_READ_ONLY", owner: "CANNOT_CONFIRM" },
+  cannot_confirm: ["V4_DAILY_RESEARCH_REVIEW_GENERATOR_NOT_CONNECTED"],
+  research_only: true,
+  production_allowed: false,
+  buy_gate_updated: false,
+  orders_sent: false,
+  focus: {
+    emotion_phase: "修复",
+    market_oneliner: "广度承压，局部题材保持活跃。",
+    focus_directions: ["观察反馈", "跟踪题材"],
+    risk_alerts: ["亏钱效应"],
+    verification_items: ["次日验证"],
+  },
+  market_breadth: {
+    available: true, date: "2026-09-11", up: 619, down: 4619, flat: 46,
+    up_down_scope: "A股全市场", amount_yi: 19719, universe: 5284,
+    deep_up_5_incl: 18, deep_down_5: 125, dist_scope: "全市场", dist_available: true,
+    dist_partial: false, requests: [{ provider: "fixture", status: "READY" }],
+  },
+  feedback_matrix: {
+    available: true, prev_date: "2026-09-10", source: "fixture", sample: 35, coverage: 35,
+    coverage_rate: 1, partial: false, order: ["晋级涨停", "收红", "跌超5%", "平盘", "跌停"],
+    matrix: { "首板": { "晋级涨停": 4, "收红": 7, "跌超5%": 3 } },
+    details: researchRows(35, "反馈", { board: 1, prev_tier: "首板", result: "收红", ret: 1.2, sector: "fixture" }),
+    note: "fixture preserves the 35 detail rows",
+  },
+  money_effect: {
+    available: true, sample: 35, coverage: 35, coverage_rate: 1, partial: false,
+    avg: 0.57, median: -1.9, positive_rate: 0.457, limit_up_again_rate: 0.2, source: "fixture", prev_date: "2026-09-10",
+  },
+  loss_effect: {
+    available: true, deep_loss_5_count: 8, deep_loss_5_rate: 0.229, deep_loss_7_count: 6,
+    limit_down_count: 3, worst: -10.01, market_limit_down: 8, coverage_rate: 1, note: "fixture",
+  },
+  promotion: {
+    available: true, prev_date: "2026-09-10", tiers: { "1进2": { base: 26, promoted: 4, rate: 0.154 }, "2进3": { base: 5, promoted: 2, rate: 0.4 }, "3板以上晋级": { base: 4, promoted: 1, rate: 0.25 } },
+    overall: { base: 35, promoted: 7, rate: 0.2 }, limit_up_count: 40, prev_limit_up_count: 42,
+  },
+  ladder_gap: { available: true, highest: 4, tiers: { "4": 1, "3": 2, "2": 4 }, gaps: [], continuous: true, note: "fixture" },
+  theme_tree: {
+    available: true, date: "2026-09-11", prev_date: "2026-09-10", tag_count: 109,
+    themes: Array.from({ length: 10 }, (_, index) => ({
+      tag: `题材-${index + 1}`, limit_up: 3, first_boards: 2, consec_boards: 1, highest: 2, broken: 0,
+      members: [{ code: `member-${index + 1}`, name: `成员 ${index + 1}`, boards: 2, broken_times: 0, label: "2板" }],
+      prev_members: 1, prev_still_up: 1, prev_broken_or_down: 0, first_seal: "093130", last_seal: "130212",
+      broken_rate: 0, continuation_rate: 1, state: "延续",
+    })),
+    concentration: 0.2, covered: 30, total_limit_up: 40, coverage_rate: 0.75,
+  },
+  event_ledger: {
+    available: true, count: 19,
+    events: researchRows(19, "事件", { board: "10cm", boards: 2, first_seal: "092500", last_seal: "130212", broken_times: 0, turnover: 4.08, prev_boards: 1, ret: 9.99, sector: "fixture", note: "事件说明" }),
+    loss_events: researchRows(11, "亏损", { board: "10cm", boards: 0, broken_times: 3, note: "亏损事件" }),
+    gain_events: researchRows(5, "赚钱", { board: "10cm", boards: 4, note: "赚钱事件" }),
+    split_events: researchRows(3, "反复", { board: "10cm", boards: 1, broken_times: 7, note: "反复开板" }),
+  },
+} as const;
+
+const payloadWithActualResearchReview = {
+  ...payload,
+  research_review: actualShapeResearchReview,
 } as const;
 
 describe("ReviewView", () => {
@@ -97,11 +178,11 @@ describe("ReviewView", () => {
     expect(screen.queryByText("未命中")).toBeNull();
   });
 
-  it("puts the 16:08 HK close review before the secondary A review", () => {
+  it("puts the 16:10 HK close review before the secondary A review", () => {
     const { container } = render(ReviewView, { props: { payload } });
     const labels = Array.from(container.querySelectorAll("section[aria-label]"))
       .map((node) => node.getAttribute("aria-label"));
-    expect(screen.getByText("16:08 港股通正式收盘复盘")).toBeTruthy();
+    expect(screen.getByText("16:10 港股通正式收盘复盘")).toBeTruthy();
     expect(labels.indexOf("HK close review")).toBeGreaterThanOrEqual(0);
     expect(labels.indexOf("A-share review")).toBeGreaterThanOrEqual(0);
     expect(labels.indexOf("HK close review")).toBeLessThan(labels.indexOf("A-share review"));
@@ -145,5 +226,113 @@ describe("ReviewView", () => {
     expect(evidence.textContent).toContain("ReviewBundle未物化");
     expect(evidence.textContent).toContain("review_bundle/20260824/current.json");
     expect(screen.getAllByTestId("review-first-failure-row")).toHaveLength(4);
+  });
+
+  it("keeps the complete research artifact shape reachable through ReviewView", () => {
+    const { container } = render(ReviewView, { props: { payload: payloadWithActualResearchReview } });
+    const panel = within(container as HTMLElement).getByTestId("daily-research-review-panel");
+
+    expect(within(panel).getByTestId("daily-research-review-focus").textContent).toContain("risk_alerts");
+    expect(within(panel).getByTestId("daily-research-market-breadth").textContent).toContain("deep_up_5_incl");
+    expect(within(panel).getByTestId("daily-research-market-breadth").textContent).toContain("requests");
+    expect(within(panel).getByTestId("daily-research-feedback-matrix").textContent).toContain("反馈 35");
+    expect(within(panel).getByTestId("daily-research-feedback-matrix").textContent).toContain("板位");
+    expect(within(panel).getByTestId("daily-research-theme-event-tree").textContent).toContain("题材-10");
+    expect(within(panel).getByTestId("daily-research-theme-event-tree").textContent).toContain("成员 10");
+    expect(within(panel).getByTestId("daily-research-theme-event-tree").textContent).toContain("broken_times");
+    expect(within(panel).getByTestId("daily-research-theme-event-tree").textContent).toContain("事件 19 条");
+    expect(within(panel).getByTestId("daily-research-event-categories").textContent).toContain("亏损事件 · 11 条");
+    expect(within(panel).getByTestId("daily-research-event-categories").textContent).toContain("赚钱事件 · 5 条");
+    expect(within(panel).getByTestId("daily-research-event-categories").textContent).toContain("反复开板事件 · 3 条");
+    expect(within(panel).getByText("查看复盘重点完整 JSON")).toBeTruthy();
+  });
+});
+
+
+describe("manual exact-date research generation", () => {
+  afterEach(() => { cleanup(); vi.unstubAllGlobals() });
+
+  it("posts only the selected date, blocks repeated clicks and refreshes original GET", async () => {
+    let release!: (value: unknown) => void;
+    const pending = new Promise(resolve => { release = resolve; });
+    const request = vi.fn().mockImplementationOnce(() => pending).mockResolvedValueOnce({
+      ok: true, json: async () => ({ ...payload, research_review: { ...actualShapeResearchReview,
+        trade_date: payload.trade_date, target_date: "2026-07-30" } }),
+    });
+    vi.stubGlobal("fetch", request);
+    render(ReviewView, { props: { payload } });
+    const button = screen.getByRole("button", { name: "生成所选日期复盘" });
+    await fireEvent.click(button);
+    await fireEvent.click(button);
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][0]).toBe("/api/v3/review/generate");
+    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ date: "20260730" });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    release({ ok: true, json: async () => ({ status: "READY_FOR_REVIEW", trade_date: "20260730" }) });
+    await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
+    expect(request.mock.calls[1][0]).toBe("/api/v3/review?date=20260730");
+    await waitFor(() => expect(screen.getByText("所选日期复盘已刷新。" )).toBeTruthy());
+  });
+
+  it("shows a bounded failure and never echoes arbitrary response detail", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false,
+      json: async () => ({ detail: { code: "GENERATION_FAILED", message: "secret /private/key" } }),
+    }));
+    render(ReviewView, { props: { payload } });
+    await fireEvent.click(screen.getByRole("button", { name: "生成所选日期复盘" }));
+    await waitFor(() => expect(screen.getByText("生成未完成，请核对本地记录；未自动重试。" )).toBeTruthy());
+    expect(screen.queryByText(/secret \/private/)).toBeNull();
+  });
+
+  it("does not replace a newly selected date with a late generation response", async () => {
+    let release!: (value: unknown) => void;
+    vi.stubGlobal("fetch", vi.fn().mockImplementationOnce(() => new Promise(resolve => { release = resolve; }))
+      .mockResolvedValueOnce({ok:true,json:async()=>payload}));
+    const view = render(ReviewView, {props:{payload}});
+    await fireEvent.click(screen.getByRole("button", {name:"生成所选日期复盘"}));
+    await view.rerender({payload:{...payload,trade_date:"20260731"}});
+    release({ok:true,json:async()=>({status:"READY_FOR_REVIEW",trade_date:"20260730"})});
+    await waitFor(() => expect((screen.getByRole("button", {name:"生成所选日期复盘"}) as HTMLButtonElement).disabled).toBe(false));
+    expect(screen.queryByText("所选日期复盘已刷新。" )).toBeNull();
+  });
+});
+
+
+describe("intraday snapshots in the same research workbench", () => {
+  afterEach(cleanup);
+  it("preserves missing slots, coverage and objective details without issuing GET-time fetches", () => {
+    const request = vi.fn(); vi.stubGlobal("fetch", request);
+    const intraday = { date: "2026-07-30", status: "READY", missing_slots: ["09:35", "10:00", "11:30", "14:00", "15:00"],
+      cannot_confirm: ["QUOTE_COVERAGE_PARTIAL:09:25"], evidence: [{ verification_scope: "LOCAL_BYTES_RELATIONS_AND_QUOTE_DATES_NOT_VENDOR_TRUTH" }],
+      auction: { available: true, verification_early: [{ metric: "money_effect_median", early_value: 2 }] },
+      slots: [{ slot: "09:25", sample: 3, expected_sample: 4, coverage_rate: .75, avg: 1, median: 2,
+        up_rate: 2/3, deep_loss_5: 1, captured_at: "2026-07-30 09:25:30 CST", drift_minutes: 0,
+        live: { highest_board: 6 }, by_tier: { "2板": { median: 2 } },
+        top_boards: [{ name: "合成客观样本", pct: 2 }], top_board_level: 6 }] };
+    render(ReviewView, { props: { payload: { ...payload, intraday_research: intraday } as any } });
+    const panel = screen.getByTestId("intraday-research");
+    expect(panel.textContent).toContain("75.0%");
+    expect(panel.textContent).toContain("高开率");
+    expect(panel.textContent).toContain("合成客观样本");
+    expect(panel.textContent).toContain("QUOTE_COVERAGE_PARTIAL:09:25");
+    expect(panel.textContent).toContain("缺失：09:35、10:00、11:30、14:00、15:00");
+    expect(request).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("0915 separate focus with complete preserved review", () => {
+  afterEach(cleanup);
+  it("puts A first without dropping HK/research sections", () => {
+    const {container} = render(ReviewView, {props:{payload, focus:"A"}});
+    expect(container.querySelector("[data-review-section]")?.getAttribute("data-review-section")).toBe("A");
+    expect(container.querySelectorAll("[data-review-section]")).toHaveLength(3);
+    expect(screen.getByText("HK 收盘复盘")).toBeTruthy();
+  });
+  it("puts research first and keeps all other review content", () => {
+    const {container} = render(ReviewView, {props:{payload, focus:"research"}});
+    expect(container.querySelector("[data-review-section]")?.getAttribute("data-review-section")).toBe("research");
+    expect(container.querySelectorAll("[data-review-section]")).toHaveLength(3);
+    expect(screen.getByText("HK 收盘复盘")).toBeTruthy();
   });
 });

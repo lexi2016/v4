@@ -127,8 +127,16 @@ def _write_research_snapshot(root: Path, date: str) -> None:
 
 def _research_client(root: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     class FixtureResearchSource:
-        def __init__(self, source_root: Path) -> None:
+        def __init__(self, source_root: Path, *, ledger_root: Path | None = None) -> None:
             self.root = source_root
+            self.ledger_root = ledger_root
+            from infrastructure.research_lane_source import ResearchLaneSource
+            self._diagnostic_source = ResearchLaneSource(source_root, ledger_root=ledger_root)
+
+        def update_diagnostic(self, research_date: str, *, artifact_verified: bool):
+            return self._diagnostic_source.update_diagnostic(
+                research_date, artifact_verified=artifact_verified,
+            )
 
         def _read(self, date: str) -> dict[str, object] | None:
             path = self.root / "runtime_outputs" / "latest" / date / "research_lane_snapshot.json"

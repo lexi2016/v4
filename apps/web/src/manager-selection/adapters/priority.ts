@@ -854,7 +854,7 @@ function dataTime(
 function buyConditions(stageRow: ManagerStageSelectionRow, researchRow: ManagerResearchRow | null): string[] {
   const values = arrayOfText(researchField(researchRow, "confirmation_conditions"));
   const next = text(rowField(stageRow, "next_validation_time"));
-  if (next) values.push(`下一阶段验证时点：${next}`);
+  if (next) values.push(`原阶段验证参考：${next}（历史记录，不是已核未来计划）`);
   return [...new Set(values)];
 }
 

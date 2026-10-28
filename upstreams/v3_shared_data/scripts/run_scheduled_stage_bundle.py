@@ -47,6 +47,8 @@ _SAFETY = {
 
 _DEFAULT_RETRY_ATTEMPTS = 2
 _DEFAULT_RETRY_BACKOFF_SECONDS = 1.0
+_MANAGER_CLOSE_CAPTURE_MODE_ENV = "V4_MANAGER_CLOSE_CAPTURE_MODE"
+_MANAGER_PYTDX_LATE_OBSERVATION_MODE = "PYTDX_LATE_OBSERVATION"
 _V35_DATA_ROOT_ENV = "V35_DATA_ROOT"
 _SELECTOR_PANEL_ENV = "V3_SHARED_SELECTOR_READY_PANEL"
 _SELECTOR_POINTER_ENV = "V3_SHARED_SELECTOR_READY_PANEL_POINTER"
@@ -211,6 +213,29 @@ def _materialize_stage_universes_preflight(
     }
 
 
+def _manager_pytdx_security_master_reuse_only(
+    store_root: Path, trade_date: str, python_path: Path
+) -> dict[str, Any]:
+    """Reuse an exact verified master in manager PyTDX mode; never fetch via Futu."""
+
+    def futu_disabled_collector(_python_path, _codes):
+        raise StoreError("MANAGER_PYTDX_LATE_OBSERVATION_FUTU_SECURITY_MASTER_DISABLED")
+
+    try:
+        return ensure_hk_security_master(
+            store_root,
+            trade_date,
+            python_path,
+            collector=futu_disabled_collector,
+        )
+    except (OSError, StoreError, ValueError) as error:
+        return {
+            "ok": False,
+            "status": "MANAGER_HK_SECURITY_MASTER_NOT_READY",
+            "error": f"MANAGER_PYTDX_LATE_OBSERVATION_REQUIRES_EXISTING_HK_SECURITY_MASTER:{error}",
+        }
+
+
 def run_scheduled_stage_bundle(
     root: Path,
     trade_date: str,
@@ -230,6 +255,16 @@ def run_scheduled_stage_bundle(
     _validate_retry_controls(max_attempts, retry_backoff_seconds)
     now = now or datetime.now().astimezone()
     root = Path(root)
+    manager_capture_mode = os.environ.get(_MANAGER_CLOSE_CAPTURE_MODE_ENV, "").strip()
+    manager_pytdx_late_observation = (
+        stage_id == "STAGE_1545_1555"
+        and manager_capture_mode == _MANAGER_PYTDX_LATE_OBSERVATION_MODE
+    )
+    manager_capture_mode_invalid = (
+        stage_id == "STAGE_1545_1555"
+        and bool(manager_capture_mode)
+        and not manager_pytdx_late_observation
+    )
     calendar = evaluate_a_share_trade_date(trade_date)
     remaining = seconds_until_cutoff(now, stage_id) if now.strftime("%Y%m%d") == trade_date else 0.0
 
@@ -242,6 +277,10 @@ def run_scheduled_stage_bundle(
         ok = False
         status = "NOT_DUE"
         error = f"stage cutoff not reached: {STAGE_WINDOWS[stage_id][2]}"
+    elif manager_capture_mode_invalid:
+        ok = False
+        status = "FAILED"
+        error = "MANAGER_CLOSE_CAPTURE_MODE_INVALID"
     elif not calendar.get("eligible"):
         ok = str(calendar.get("status")) in {
             "SKIPPED_NON_TRADING_DAY_WEEKEND",
@@ -283,7 +322,11 @@ def run_scheduled_stage_bundle(
             for attempts in range(1, max_attempts + 1):
                 try:
                     resolved_python = Path(python_path) if python_path is not None else resolve_futu_python()
-                    security_master = security_master_runner(root, trade_date, resolved_python)
+                    security_master = (
+                        _manager_pytdx_security_master_reuse_only(root, trade_date, resolved_python)
+                        if manager_pytdx_late_observation
+                        else security_master_runner(root, trade_date, resolved_python)
+                    )
                     if not security_master.get("ok") or security_master.get("status") != "READY":
                         raise StoreError(
                             "HK security master not READY: "

@@ -3,11 +3,12 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 READ_ONLY_POLICY = "read_only"
 RESEARCH_ONLY = "RESEARCH_ONLY"
@@ -810,3 +811,119 @@ def write_snapshot_outputs(snapshot: dict[str, Any], output_dir: Path) -> None:
         *[f"- {item}" for item in cannot_confirm],
     ]
     (output_dir / "quality_report.md").write_text("\n".join(report), encoding="utf-8-sig")
+
+
+def hourly_source_time(value: Any) -> datetime:
+    """Use the existing producer's explicit Shanghai interpretation of naive time."""
+    from domains.research_source_validation import legacy_source_time
+    return legacy_source_time(value)
+
+
+def validate_hourly_stage_source(
+    source: Mapping[str, Any], *, trade_date: str, slot: str, cutoff: datetime,
+    allow_late_observations: bool = False,
+    allow_manual_materialization: bool = False,
+    manifest_pit_cutoff: datetime | None = None,
+) -> None:
+    """Validate source identity and times that the archive projection discards.
+
+    A late-observation exception is only used by the original CLI recovery path.
+    The stage reader never uses it: every observed timestamp must precede the
+    actual stage cutoff.  No date, timestamp, score or delta flag is repaired.
+    """
+    from domains.research_source_validation import validate_hourly_stage_source as _validate
+    return _validate(
+        source,
+        trade_date=trade_date,
+        slot=slot,
+        cutoff=cutoff,
+        allow_late_observations=allow_late_observations,
+        allow_manual_materialization=allow_manual_materialization,
+        manifest_pit_cutoff=manifest_pit_cutoff,
+    )
+
+
+def canonical_stage_a_code(value: Any) -> str:
+    """Exact A-share identity only; never extract six digits from a HK/US code."""
+    text = str(value or "").strip().upper()
+    match = re.fullmatch(r"(?:A\.)?(\d{6})", text)
+    return "A." + match.group(1) if match else ""
+
+
+def _stage_item_identity(row: Mapping[str, Any], *, evidence: bool = False) -> tuple[Any, ...]:
+    # extract_stock_evidence copies these exact fields. Its dedup_key includes
+    # code and evidence_sentence and is NOT the ResearchItem dedup_key.
+    return tuple(row.get(k, "") for k in (
+        "trade_date", "source_type", "source_name", "source_path", "url",
+    )) + (
+        row.get("source_title" if evidence else "title", ""),
+        row.get("display_event_time") or row.get("event_time"),
+        row.get("source_published_at", ""), row.get("first_seen_at", ""), row.get("last_checked_at", ""),
+    )
+
+
+def project_hourly_stage_fields(source: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    """Project only explicitly present facts through frozen producer lineage.
+
+    Caller must first verify the raw SHA against the exact archive receipt and
+    validate dates/PIT. No title-only join, text/entity re-extraction, quality
+    scale conversion, default delta flag or stock_pool.research_score alias.
+    Ambiguous/missing lineage affects that evidence/code, never another code.
+    """
+    normalized: dict[tuple[Any, ...], list[Mapping[str, Any]]] = {}
+    raw_by_id: dict[str, list[Mapping[str, Any]]] = {}
+    for item in source.get("research_items", []):
+        normalized.setdefault(_stage_item_identity(item), []).append(item)
+    for raw in source.get("raw_items", []):
+        raw_by_id.setdefault(str(raw.get("raw_id") or ""), []).append(raw)
+    items: dict[tuple[str, str], dict[str, Any]] = {}
+    evidence: list[dict[str, Any]] = []
+    gaps: list[str] = []
+    for row in source.get("stock_research_timeline", []):
+        code = canonical_stage_a_code(row.get("stock_code"))
+        if not code:
+            continue
+        matched = normalized.get(_stage_item_identity(row, evidence=True), [])
+        if len(matched) != 1 or not str(matched[0].get("item_id") or ""):
+            gaps.append("RESEARCH_ITEM_LINEAGE_MISSING_OR_AMBIGUOUS:" + code)
+            continue
+        item = matched[0]
+        raw_id = str(item.get("raw_id") or "").strip()
+        if not raw_id:
+            gaps.append("RESEARCH_RAW_LINEAGE_MISSING:" + code)
+            continue
+        raw_candidates = raw_by_id.get(raw_id, [])
+        raw_payload: Mapping[str, Any] = {}
+        if len(raw_candidates) == 0:
+            gaps.append("RESEARCH_RAW_LINEAGE_MISSING:" + code)
+        elif len(raw_candidates) > 1:
+            gaps.append("RESEARCH_RAW_LINEAGE_AMBIGUOUS:" + code)
+        else:
+            raw_payload = raw_candidates[0].get("raw_payload", {})
+        output: dict[str, Any] = {
+            "stock_code": code, "item_id": item["item_id"], "raw_id": raw_id,
+            "source_title": row.get("source_title", ""), "source_path": row.get("source_path", ""),
+            "url": row.get("url", ""), "cannot_confirm": list(item.get("cannot_confirm") or []),
+        }
+        if isinstance(item.get("item_quality"), str):
+            output["item_quality"] = item["item_quality"]
+        for flag in ("is_new_since_last_slot", "is_recheck_duplicate"):
+            values = [r[flag] for r in (item, raw_payload, row) if flag in r]
+            if values and all(type(v) is bool for v in values) and len(set(values)) == 1:
+                output[flag] = values[0]
+            else:
+                gaps.append("RESEARCH_DELTA_FLAG_UNPROVEN:" + code)
+        numeric = [r["quality_score"] for r in (item, raw_payload) if "quality_score" in r]
+        if numeric:
+            if all(type(v) in (int, float) and math.isfinite(float(v)) for v in numeric) and len(set(numeric)) == 1:
+                output["quality_score"] = numeric[0]
+            else:
+                gaps.append("RESEARCH_ITEM_QUALITY_SCORE_INVALID:" + code)
+        key = (code, str(item["item_id"]))
+        if key in items and items[key] != output:
+            # Never select one side of a conflicting item/code association.
+            raise ValueError("HOURLY_SOURCE_ITEM_CODE_CONFLICT:" + code)
+        items.setdefault(key, output)
+        evidence.append({"stock_code": code, "evidence_id": row.get("evidence_id"),
+                         "cannot_confirm": list(row.get("cannot_confirm") or [])})
+    return list(items.values()), evidence, list(dict.fromkeys(gaps))

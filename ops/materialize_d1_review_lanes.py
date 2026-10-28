@@ -47,6 +47,42 @@ def _stage_selection_payload(selection: dict[str, Any], trade_date: str, stage_i
     markets = selection.get("markets") if isinstance(selection.get("markets"), dict) else {}
     a_market = markets.get("A_SHARE") if isinstance(markets.get("A_SHARE"), dict) else {}
     hk_market = markets.get("HK_CONNECT") if isinstance(markets.get("HK_CONNECT"), dict) else {}
+    a_rows = list(a_market.get("rows") or [])
+    market_cannot_confirm = [
+        str(item)
+        for item in (a_market.get("cannot_confirm") or [])
+        if str(item).strip()
+    ]
+    top_level_cannot_confirm = [
+        str(item)
+        for item in (selection.get("cannot_confirm") or [])
+        if str(item).strip()
+    ]
+    cannot_confirm = list(dict.fromkeys((*top_level_cannot_confirm, *market_cannot_confirm)))
+    requested_rows = a_market.get("requested_rows", len(a_rows))
+    source_rows = a_market.get("source_rows", len(a_rows))
+    selected_rows = a_market.get("selected_rows", len(a_rows))
+    coverage_ratio = a_market.get("coverage_ratio", 0.0)
+    source_summary = {
+        "quote_coverage": {
+            "A_SHARE": {
+                "coverage_ratio": coverage_ratio,
+                "missing_symbols": list(a_market.get("missing_symbols") or []),
+                "requested_rows": requested_rows,
+                "selected_rows": selected_rows,
+                "source_rows": source_rows,
+            }
+        },
+        "cannot_confirm": list(cannot_confirm),
+    }
+    market_status = {
+        "A_SHARE": str(
+            a_market.get("status")
+            or a_market.get("selection_status")
+            or selection.get("status")
+            or "CANNOT_CONFIRM"
+        )
+    }
     return {
         "schema_version": "v3_5.stage_input_from_stage_center.v1",
         "trade_date": trade_date,
@@ -57,8 +93,10 @@ def _stage_selection_payload(selection: dict[str, Any], trade_date: str, stage_i
         "run_id": a_market.get("run_id") or selection.get("run_id"),
         "algorithm_sha256": a_market.get("algorithm_sha256"),
         "raw_artifact_sha256": a_market.get("raw_artifact_sha256"),
-        "rows": {"A": list(a_market.get("rows") or []), "HK": list(hk_market.get("rows") or [])},
-        "cannot_confirm": list(selection.get("cannot_confirm") or []),
+        "rows": {"A": a_rows, "HK": list(hk_market.get("rows") or [])},
+        "source_summary": source_summary,
+        "market_status": market_status,
+        "cannot_confirm": cannot_confirm,
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,

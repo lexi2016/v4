@@ -195,14 +195,16 @@ def test_authority_reads_all_four_pools_once_and_caches_exact_result(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     consumer, _selection_root, _data_root, _original = _consumer_fixture(tmp_path)
-    original_read_pool = PreselectionPoolStore.read_pool
+    original_read_pool = PreselectionPoolStore.read_pool_snapshot
     calls: list[tuple[str, str]] = []
 
-    def counted_read_pool(self: PreselectionPoolStore, trade_date: str, pool_id: str) -> dict[str, Any]:
+    def counted_read_pool(
+        self: PreselectionPoolStore, trade_date: str, pool_id: str
+    ) -> dict[str, Any]:
         calls.append((trade_date, pool_id))
         return original_read_pool(self, trade_date, pool_id)
 
-    monkeypatch.setattr(PreselectionPoolStore, "read_pool", counted_read_pool)
+    monkeypatch.setattr(PreselectionPoolStore, "read_pool_snapshot", counted_read_pool)
     first = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))
     second = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))
 
@@ -260,16 +262,32 @@ def test_authority_rejects_conflicting_or_embedded_code_aliases(
     assert all(row["name"] is None for row in market["rows"])
 
 
-def test_missing_canonical_pool_fails_closed_without_changing_selection_fields(tmp_path: Path) -> None:
+def test_missing_canonical_pool_is_isolated_without_changing_selection_fields(tmp_path: Path) -> None:
     consumer, selection_root, data_root, original = _consumer_fixture(tmp_path)
     before = _file_hashes(selection_root)
     (data_root / "preselection_pools" / TRADE_DATE / f"{A_POOL_IDS[-1]}.json").unlink()
     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
 
-    assert market["name_authority_status"] == "CANNOT_CONFIRM"
-    assert market["name_authority_error"]
+    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
+    assert market["name_authority_pool_status"] == "PARTIAL_SOURCE_SET"
+    assert market["name_authority_verification_status"] == "CANNOT_CONFIRM"
+    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[:-1])
+    assert market["name_authority_unverified_pool_ids"] == [A_POOL_IDS[-1]]
+    missing_pool_audit = market["name_authority_pool_audit"][A_POOL_IDS[-1]]
+    assert missing_pool_audit["status"] == "MISSING"
+    assert missing_pool_audit["verification_status"] == "CANNOT_CONFIRM"
+    assert market["name_authority_applied_count"] == 3
+    assert market["name_authority_missing_count"] == 0
+    missing_pool_summary = json.loads(
+        str(market["name_authority_error"]).removeprefix("NAME_POOL_AUDIT:")
+    )
+    assert missing_pool_summary["verification_status"] == "CANNOT_CONFIRM"
+    assert missing_pool_summary["unverified_pools"][A_POOL_IDS[-1]]["status"] == "MISSING"
+    assert "POOL_ARTIFACT_MISSING" in str(market["name_authority_error"])
     assert market["selection_status"] == original["selection_status"]
-    assert [(row["name"], row["stock_name"]) for row in market["rows"]] == [(None, None)] * 3
+    assert [(row["name"], row["stock_name"]) for row in market["rows"]] == [
+        ("甲公司", "甲公司"), ("乙公司", "乙公司"), ("丙公司", "丙公司")
+    ]
     assert _file_hashes(selection_root) == before
 
 
@@ -296,7 +314,7 @@ def test_wrong_pool_date_is_not_used_as_requested_date(tmp_path: Path) -> None:
     assert all(row["name"] is None for row in market["rows"])
 
 
-def test_pool_manifest_or_receipt_sha_mismatch_fails_closed(tmp_path: Path) -> None:
+def test_pool_manifest_or_receipt_sha_mismatch_isolates_that_pool(tmp_path: Path) -> None:
     consumer, _selection_root, data_root, original = _consumer_fixture(tmp_path)
     artifact = data_root / "preselection_pools" / TRADE_DATE / f"{A_POOL_IDS[0]}.json"
     payload = json.loads(artifact.read_text(encoding="utf-8"))
@@ -304,13 +322,20 @@ def test_pool_manifest_or_receipt_sha_mismatch_fails_closed(tmp_path: Path) -> N
     artifact.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
 
-    assert market["name_authority_status"] == "CANNOT_CONFIRM"
-    assert "manifest or receipt SHA mismatch" in str(market["name_authority_error"])
+    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
+    assert market["name_authority_pool_status"] == "PARTIAL_SOURCE_SET"
+    assert market["name_authority_verification_status"] == "CANNOT_CONFIRM"
+    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[1:])
+    isolated_pool_audit = market["name_authority_pool_audit"][A_POOL_IDS[0]]
+    assert isolated_pool_audit["status"] == "ISOLATED"
+    assert isolated_pool_audit["verification_status"] == "CANNOT_CONFIRM"
+    assert "ISOLATED" in str(market["name_authority_error"])
+    assert market["name_authority_applied_count"] == 3
     assert market["selection_status"] == original["selection_status"]
-    assert all(row["name"] is None for row in market["rows"])
+    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
 
 
-def test_pool_source_sha_mismatch_in_receipt_fails_closed(tmp_path: Path) -> None:
+def test_pool_source_sha_mismatch_in_receipt_isolates_that_pool(tmp_path: Path) -> None:
     consumer, _selection_root, data_root, original = _consumer_fixture(tmp_path)
     receipt = data_root / "preselection_pools" / TRADE_DATE / "receipts" / f"{A_POOL_IDS[0]}.json"
     payload = json.loads(receipt.read_text(encoding="utf-8"))
@@ -318,22 +343,51 @@ def test_pool_source_sha_mismatch_in_receipt_fails_closed(tmp_path: Path) -> Non
     receipt.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
 
-    assert market["name_authority_status"] == "CANNOT_CONFIRM"
-    assert "manifest or receipt SHA mismatch" in str(market["name_authority_error"])
+    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
+    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[1:])
+    audit = json.loads(str(market["name_authority_error"]).removeprefix("NAME_POOL_AUDIT:"))
+    assert "receipt" in audit["unverified_pools"][A_POOL_IDS[0]]["reason"]
+    assert market["name_authority_applied_count"] == 3
     assert market["selection_status"] == original["selection_status"]
-    assert all(row["name"] is None for row in market["rows"])
+    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
 
 
-def test_conflicting_canonical_pool_names_fail_closed(tmp_path: Path) -> None:
+def test_conflicting_canonical_name_is_isolated_to_its_code(tmp_path: Path) -> None:
     conflict = {pool_id: ("甲公司", "乙公司", "丙公司") for pool_id in A_POOL_IDS}
     conflict[A_POOL_IDS[-1]] = ("冲突名称", "乙公司", "丙公司")
-    consumer, _selection_root, _data_root, original = _consumer_fixture(tmp_path, pool_names=conflict)
+    consumer, selection_root, _data_root, original = _consumer_fixture(tmp_path, pool_names=conflict)
+    before = _file_hashes(selection_root)
     market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
 
     assert market["name_authority_status"] == "CANNOT_CONFIRM"
-    assert "name conflict" in str(market["name_authority_error"])
+    assert market["name_authority_conflicted_codes"] == ["A.000001"]
+    assert market["name_authority_applied_count"] == 2
+    assert market["name_authority_missing_count"] == 1
+    assert market["rows"][0]["name"] is None
+    assert [row["name"] for row in market["rows"][1:]] == ["乙公司", "丙公司"]
+    assert "A.000001" in str(market["name_authority_error"])
     assert market["selection_status"] == original["selection_status"]
-    assert all(row["name"] is None for row in market["rows"])
+    assert _file_hashes(selection_root) == before
+
+
+def test_shared_manifest_error_rejects_all_name_projection(tmp_path: Path) -> None:
+    consumer, selection_root, data_root, original = _consumer_fixture(tmp_path)
+    manifest = data_root / "preselection_pools" / TRADE_DATE / "manifest.json"
+    manifest.write_text("{broken", encoding="utf-8")
+    before = _file_hashes(selection_root)
+
+    market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
+
+    assert market["name_authority_status"] == "CANNOT_CONFIRM"
+    assert market["name_authority_verification_status"] == "CANNOT_CONFIRM"
+    assert market["name_authority_pool_ids"] == []
+    assert market["name_authority_applied_count"] == 0
+    assert "SHARED_PRESELECTION_ROOT_OR_MANIFEST_CANNOT_CONFIRM" in str(
+        market["name_authority_error"]
+    )
+    assert all(row["name"] is None and row["stock_name"] is None for row in market["rows"])
+    assert market["run_id"] == original["run_id"]
+    assert _file_hashes(selection_root) == before
 
 
 def test_missing_code_keeps_blank_name_and_records_not_found(tmp_path: Path) -> None:
@@ -404,3 +458,91 @@ def test_create_app_shared_mode_uses_canonical_pool_root_and_preserves_safety_fl
     assert payload["production_allowed"] is False
     assert payload["buy_gate_updated"] is False
     assert payload["orders_sent"] is False
+
+
+@pytest.mark.parametrize("binding_mode", ["argument", "environment"])
+def test_create_app_reads_name_overlay_from_preselection_owner_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    binding_mode: str,
+) -> None:
+    selection_root = tmp_path / "selection"
+    consumer_data_root = tmp_path / "consumer-data"
+    pool_root = tmp_path / "preselection-owner"
+    _publish_a(selection_root, names=(None, None, None))
+    _publish_hk(selection_root)
+    _publish_pools(pool_root)
+
+    if binding_mode == "argument":
+        monkeypatch.setenv("V35_PRESELECTION_SOURCE_ROOT", str(consumer_data_root))
+        preselection_source_root = pool_root
+    else:
+        monkeypatch.setenv("V35_PRESELECTION_SOURCE_ROOT", str(pool_root))
+        preselection_source_root = None
+
+    app = create_app(
+        data_root=consumer_data_root,
+        stage_center_selection_root=selection_root,
+        current_date=TRADE_DATE,
+        preselection_source_root=preselection_source_root,
+    )
+
+    async def request() -> httpx.Response:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.get(
+                "/api/v3/stage-center/selection",
+                params={"date": TRADE_DATE, "stage": STAGE_ID},
+            )
+
+    response = asyncio.run(request())
+    assert response.status_code == 200
+    market = response.json()["markets"]["A"]
+    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
+    assert market["name_authority_applied_count"] == 3
+    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
+    verified = SelectionStore(selection_root).read_verified(TRADE_DATE, STAGE_ID, "A_SHARE")
+    assert [
+        (row["code"], row["order"], row["rank"], row["score"])
+        for row in market["rows"]
+    ] == [
+        (row["code"], index, row["rank"], row["score"])
+        for index, row in enumerate(verified["rows"], start=1)
+    ]
+
+
+def test_missing_first_pool_does_not_block_names_from_remaining_valid_pool(
+    tmp_path: Path,
+) -> None:
+    consumer, selection_root, data_root, _original = _consumer_fixture(tmp_path)
+    first_pool_artifact = (
+        data_root / "preselection_pools" / TRADE_DATE / f"{A_POOL_IDS[0]}.json"
+    )
+    first_pool_artifact.unlink()
+
+    verified = SelectionStore(selection_root).read_verified(
+        TRADE_DATE, STAGE_ID, "A_SHARE"
+    )
+    market = consumer.get(TRADE_DATE, STAGE_ID, markets=("A_SHARE",))["markets"]["A_SHARE"]
+
+    assert market["name_authority_status"] == "EXACT_DATE_READ_OVERLAY"
+    assert market["name_authority_applied_count"] == 3
+    assert [row["name"] for row in market["rows"]] == ["甲公司", "乙公司", "丙公司"]
+    assert market["name_authority_pool_ids"] == list(A_POOL_IDS[1:])
+    audit = json.loads(str(market["name_authority_error"]).removeprefix("NAME_POOL_AUDIT:"))
+    assert audit["unverified_pools"][A_POOL_IDS[0]]["reason"] == "POOL_ARTIFACT_MISSING"
+    assert set(audit["trio_raw_sha256"]) == set(A_POOL_IDS[1:])
+    assert set(audit["trio_raw_sha256"][A_POOL_IDS[1]]) == {
+        "artifact", "manifest", "receipt"
+    }
+    assert market["artifact_id"] == verified["artifact_id"]
+    assert market["run_id"] == verified["run_id"]
+    assert market["algorithm_sha256"] == verified["algorithm_sha256"]
+    assert market["raw_artifact_sha256"] == verified["raw_artifact_sha256"]
+    assert [
+        (row["code"], row["order"], row["rank"], row["score"], row["status"], row["formal_eligible"])
+        for row in market["rows"]
+    ] == [
+        (row["code"], index, row["rank"], row["score"], row["status"], row["formal_eligible"])
+        for index, row in enumerate(verified["rows"], start=1)
+    ]

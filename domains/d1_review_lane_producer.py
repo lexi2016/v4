@@ -105,34 +105,13 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(handle, "w", encoding=ENCODING, newline="") as output:
-            writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
-            writer.writeheader()
-            writer.writerows([{field: row.get(field, "") for field in fields} for row in rows])
-            output.flush()
-            os.fsync(output.fileno())
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+    from domains._d1_review_lane_producer_parts.io_primitives import __write_csv_body as _v4_impl
+    return _v4_impl(globals(), path, rows, fields)
 
 
 def _write_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = (json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n").encode(ENCODING)
-    handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(handle, "wb") as output:
-            output.write(data)
-            output.flush()
-            os.fsync(output.fileno())
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+    from domains._d1_review_lane_producer_parts.io_primitives import __write_json_body as _v4_impl
+    return _v4_impl(globals(), path, payload)
 
 
 def _market_suffix(code: str) -> str:
@@ -197,31 +176,8 @@ def _paths(
     output_dir: Path,
     video_dir: Path | None,
 ) -> dict[str, Path]:
-    fupan_dir = Path(source_dir)
-    preopen_dir = Path(output_dir)
-    stage_data_dir = preopen_dir / "_stage7_evidence"
-    video_watch_dir = Path(video_dir) if video_dir is not None else fupan_dir / "video"
-    return {
-        "fupan_dir": fupan_dir,
-        "anchor_role": fupan_dir / "anchor_role.csv",
-        "theme_stocks": fupan_dir / "theme_stocks.csv",
-        "prior_plan": fupan_dir / "prior_plan.csv",
-        "intraday_handoff": fupan_dir / "intraday_handoff.csv",
-        "video_watch_status": video_watch_dir / "status.json",
-        "video_acceptance": video_watch_dir / f"acceptance_{signal_date}.json",
-        "video_capture_manifest": video_watch_dir / f"capture_manifest_{signal_date}.json",
-        "video_gap_matrix": video_watch_dir / f"video_gap_matrix_{signal_date}.csv",
-        "video_delta": video_watch_dir / f"new_video_delta_{signal_date}.csv",
-        "fupan_pool": preopen_dir / "fupan.csv",
-        "fupan_manifest": preopen_dir / "fupan.manifest.json",
-        "stage7_preopen_pool": preopen_dir / "stage7.csv",
-        "stage7_next_pool": stage_data_dir / f"{signal_date}_stage7_next_intraday_pool.csv",
-        "stage7_intraday_pool": stage_data_dir / f"{target_date}_intraday_selection_pool_from_{signal_date}_stage7.csv",
-        "stage7_summary": stage_data_dir / f"{signal_date}_stage7_1500_summary.csv",
-        "stage7_manifest": preopen_dir / "stage7.manifest.json",
-        "real_stage7_pool": fupan_dir / "stage7_tail_replay.csv",
-        "real_stage7_manifest": fupan_dir / "stage7_tail_replay.manifest.json",
-    }
+    from domains._d1_review_lane_producer_parts.io_primitives import __paths_body as _v4_impl
+    return _v4_impl(globals(), target_date, signal_date, source_dir=source_dir, output_dir=output_dir, video_dir=video_dir)
 
 
 def _source_paths(paths: dict[str, Path]) -> list[Path]:
@@ -252,84 +208,13 @@ def _first_text(row: dict[str, str], *keys: str) -> str:
 
 
 def _load_video_fupan_context(paths: dict[str, Path], signal_date: str) -> dict[str, Any]:
-    status_payload = _read_json(paths["video_watch_status"])
-    if str(status_payload.get("trade_date") or "") != signal_date:
-        status_payload = {}
-    acceptance_payload = _read_json(paths["video_acceptance"])
-    manifest_payload = _read_json(paths["video_capture_manifest"])
-    gap_rows = _read_csv(paths["video_gap_matrix"])
-    source_paths = [str(path) for path in _video_source_paths(paths) if path.exists()]
-
-    status = (
-        str(status_payload.get("status") or "")
-        or str(acceptance_payload.get("status") or "")
-        or str(manifest_payload.get("status") or "")
-        or "VIDEO_FUPAN_POOL_NOT_READY"
-    )
-    videos = status_payload.get("videos") if isinstance(status_payload.get("videos"), list) else []
-    if not videos and isinstance(acceptance_payload.get("videos"), list):
-        videos = acceptance_payload.get("videos") or []
-    def is_same_day_video(video: dict[str, Any]) -> bool:
-        scope = str(video.get("date_scope") or "")
-        upload_digits = "".join(ch for ch in str(video.get("upload_date") or "") if ch.isdigit())
-        upload_date = upload_digits[:8] if len(upload_digits) >= 8 else ""
-        return scope == "SAME_DAY_FUPAN" or upload_date == signal_date or (not scope and not upload_date)
-
-    same_day_videos = [video for video in videos if isinstance(video, dict) and is_same_day_video(video)]
-
-    cannot_confirm: list[str] = []
-    for payload in (status_payload, acceptance_payload, manifest_payload):
-        items = payload.get("cannot_confirm")
-        if isinstance(items, list):
-            cannot_confirm.extend(str(item) for item in items if str(item or "").strip())
-    cannot_confirm = list(dict.fromkeys(cannot_confirm))
-    if videos and not same_day_videos:
-        if gap_rows:
-            cannot_confirm.append(
-                "Bilibili watch captured a latest fupan video, but it is not SAME_DAY_FUPAN for this signal date; "
-                "video gap rows are kept for learning/audit and are not merged into the preopen fupan lane."
-            )
-        gap_rows = []
-
-    if gap_rows and same_day_videos:
-        video_pool_status = "VIDEO_FUPAN_GAP_MATRIX_READY"
-    elif gap_rows:
-        video_pool_status = "VIDEO_FUPAN_GAP_MATRIX_READY_VIDEO_META_PARTIAL"
-    elif videos and not same_day_videos:
-        video_pool_status = "VIDEO_FUPAN_CAPTURED_NOT_SIGNAL_DATE"
-    elif status == "NO_NEW_VIDEO":
-        video_pool_status = "VIDEO_FUPAN_NO_NEW_VIDEO"
-    elif status == "BLOCKED_NEED_USER_COOKIE_OR_BV":
-        video_pool_status = "VIDEO_FUPAN_BLOCKED_NEED_USER_COOKIE_OR_BV"
-    else:
-        video_pool_status = "VIDEO_FUPAN_POOL_NOT_READY"
-
-    if not cannot_confirm and not gap_rows:
-        cannot_confirm.append("D-1 video second-review did not produce a stock-level gap matrix for the preopen fupan pool.")
-
-    return {
-        "status": video_pool_status,
-        "raw_status": status,
-        "gap_rows": gap_rows,
-        "videos_count": len(videos),
-        "same_day_videos_count": len(same_day_videos),
-        "source_paths": source_paths,
-        "cannot_confirm": cannot_confirm,
-    }
+    from domains._d1_review_lane_producer_parts.io_primitives import __load_video_fupan_context_body as _v4_impl
+    return _v4_impl(globals(), paths, signal_date)
 
 
 def _build_code_maps(theme_rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
-    mapping: dict[str, dict[str, str]] = {}
-    for row in theme_rows:
-        name = str(row.get("name") or "").strip()
-        code = str(row.get("code") or "").strip().zfill(6)
-        if not name or not code:
-            continue
-        mapping[name] = {
-            "stock_code": code,
-            "ts_code": f"{code}{_market_suffix(code)}",
-        }
-    return mapping
+    from domains._d1_review_lane_producer_parts.io_primitives import __build_code_maps_body as _v4_impl
+    return _v4_impl(globals(), theme_rows)
 
 
 def _build_video_fupan_rows(
@@ -339,117 +224,16 @@ def _build_video_fupan_rows(
     video_context: dict[str, Any],
     code_map: dict[str, dict[str, str]],
 ) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    source_trace = " | ".join(video_context.get("source_paths") or [])
-    blocked_decisions = {"REJECT", "NO_ACTION", "BLOCKED"}
-
-    for raw in video_context.get("gap_rows") or []:
-        if not isinstance(raw, dict):
-            continue
-        decision = _first_text(raw, "decision", "status").upper()
-        if decision in blocked_decisions:
-            continue
-
-        ts_code = _first_text(raw, "ts_code")
-        code = _clean_code(ts_code or _first_text(raw, "stock_code", "code", "symbol"))
-        name = _first_text(raw, "stock_name", "name", "stock")
-        if not code and name in code_map:
-            info = code_map[name]
-            code = info["stock_code"]
-            ts_code = info["ts_code"]
-        if not code:
-            continue
-        if not ts_code:
-            ts_code = f"{code}{_market_suffix(code)}"
-        if not name:
-            name = code
-        if code in seen:
-            continue
-        seen.add(code)
-
-        route_context = "；".join(
-            part
-            for part in [
-                _first_text(raw, "video_question_or_framework", "video_framework", "title_or_segment", "item"),
-                _first_text(raw, "local_review_answer", "impact", "reason"),
-            ]
-            if part
-        )
-        rows.append(
-            {
-                "target_date": target_date,
-                "trade_date": target_date,
-                "signal_date": signal_date,
-                "stage_id": "D_MINUS_1_FUPAN_VIDEO_REVIEW",
-                "ts_code": ts_code,
-                "stock_code": code,
-                "name": name,
-                "stock_name": name,
-                "display_name": f"{name}（复/视）",
-                "pool_type": "D_MINUS_1_FUPAN_VIDEO_SECOND_REVIEW_POOL",
-                "source_tag": "D1_FUPAN_VIDEO",
-                "source_tags": "（复/视）",
-                "source_lanes": "fupan_lane",
-                "stage7_group": "视频二次复盘观察",
-                "stage7_label": "D-1自动复盘后经视频二次复盘补充，目标日仍需竞价和开盘承接确认。",
-                "stage7_next_day_pool_score": 58,
-                "pool_score": 58,
-                "primary_buy_signal": "0",
-                "secondary_buy_signal": "0",
-                "role": _first_text(raw, "role", "gap_type") or "video_second_review",
-                "theme": _first_text(raw, "theme", "board", "item", "gap_type"),
-                "route_context": route_context,
-                "position_tags": f"video_second_review; decision={decision or 'UNKNOWN'}",
-                "trigger_condition": _first_text(raw, "trigger_condition")
-                or "目标日只看09:25-09:45承接、板块反馈和风险锚变化，不因视频复盘直接买入。",
-                "fail_condition": _first_text(raw, "fail_condition")
-                or "视频涉及股票无法被本地价量/开盘承接验证时降级为观察或剔除。",
-                "boundary": "视频二次复盘只用于补充复盘观察池和风险校正，不是BUY gate。",
-                "cannot_confirm": _first_text(raw, "cannot_confirm")
-                or "视频股票名/观点仍需本地价量、ASR抽查和开盘承接确认。",
-                "source_trace": source_trace,
-            }
-        )
-    return rows
+    from domains._d1_review_lane_producer_parts.io_primitives import __build_video_fupan_rows_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, signal_date=signal_date, video_context=video_context, code_map=code_map)
 
 
 def _merge_fupan_and_video_rows(
     fupan_rows: list[dict[str, Any]],
     video_rows: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    merged: list[dict[str, Any]] = []
-    by_code: dict[str, dict[str, Any]] = {}
-    for row in fupan_rows:
-        item = dict(row)
-        code = str(item.get("stock_code") or _clean_code(item.get("ts_code", "")))
-        if code:
-            by_code[code] = item
-        merged.append(item)
-
-    for row in video_rows:
-        code = str(row.get("stock_code") or _clean_code(row.get("ts_code", "")))
-        existing = by_code.get(code)
-        if existing is None:
-            item = dict(row)
-            by_code[code] = item
-            merged.append(item)
-            continue
-        existing["source_tag"] = "D1_FUPAN+VIDEO"
-        existing["source_tags"] = "（复/视）"
-        existing["position_tags"] = f"{existing.get('position_tags', '')}; video_second_review"
-        existing["route_context"] = f"{existing.get('route_context', '')} | video_second_review: {row.get('route_context', '')}"
-        existing["source_trace"] = f"{existing.get('source_trace', '')} | {row.get('source_trace', '')}"
-        existing["cannot_confirm"] = (
-            f"{existing.get('cannot_confirm', '')}；视频二次复盘只作框架/风险校正，仍需目标日盘口确认。"
-        )
-        existing["pool_score"] = _as_float(existing.get("pool_score")) + 8
-        existing["stage7_next_day_pool_score"] = existing["pool_score"]
-
-    merged.sort(key=lambda item: (-_as_float(item.get("pool_score")), str(item.get("theme") or ""), str(item.get("stock_name") or "")))
-    for idx, row in enumerate(merged, start=1):
-        row["pool_rank"] = idx
-    return merged
+    from domains._d1_review_lane_producer_parts.io_primitives import __merge_fupan_and_video_rows_body as _v4_impl
+    return _v4_impl(globals(), fupan_rows, video_rows)
 
 
 def _build_rows(
@@ -462,112 +246,18 @@ def _build_rows(
     plan_rows: list[dict[str, str]],
     handoff_rows: list[dict[str, str]],
 ) -> list[dict[str, Any]]:
-    code_map = _build_code_maps(theme_rows)
-    plan_by_theme = {row.get("mapped_theme") or row.get("planned_anchor") or "": row for row in plan_rows}
-    handoff_by_theme = {row.get("theme") or "": row for row in handoff_rows}
-    source_trace = "；".join(str(path) for path in _source_paths(paths))
-    rows: list[dict[str, Any]] = []
-    seen: set[str] = set()
-
-    for raw in anchor_rows:
-        stock = str(raw.get("stock") or "").strip()
-        theme = str(raw.get("theme") or "").strip()
-        if not stock or stock in seen:
-            continue
-        info = code_map.get(stock)
-        if not info:
-            continue
-        seen.add(stock)
-        role_type = str(raw.get("role_type") or "")
-        group, label, group_score = _stage7_group(role_type, theme)
-        plan = plan_by_theme.get(theme, {})
-        handoff = handoff_by_theme.get(theme, {})
-        score = 50 + _role_score(role_type) + group_score
-        rows.append(
-            {
-                "target_date": target_date,
-                "trade_date": target_date,
-                "signal_date": signal_date,
-                "stage_id": "D_MINUS_1_FUPAN_STAGE7",
-                "ts_code": info["ts_code"],
-                "stock_code": info["stock_code"],
-                "name": stock,
-                "stock_name": stock,
-                "display_name": f"{stock}（复/分）",
-                "pool_type": "D_MINUS_1_FUPAN_AND_STAGE7_OBSERVATION_POOL",
-                "source_tag": "D1_FUPAN_STAGE7",
-                "source_tags": "D1_FUPAN_STAGE7",
-                "source_lanes": "fupan_lane / stage7_lane",
-                "stage7_group": group,
-                "stage7_label": label,
-                "stage7_next_day_pool_score": score,
-                "pool_score": score,
-                "primary_buy_signal": "0",
-                "secondary_buy_signal": "1" if role_type in {"leader", "capacity_anchor"} else "0",
-                "role": role_type,
-                "theme": theme,
-                "route_context": str(raw.get("why_this_role") or ""),
-                "position_tags": f"{role_type}; {group}; {handoff.get('close_role', '')}",
-                "trigger_condition": str(
-                    raw.get("tomorrow_if_strong")
-                    or plan.get("tomorrow_scenario")
-                    or "次日看09:25-09:45承接。"
-                ),
-                "fail_condition": str(raw.get("tomorrow_if_weak") or "容量锚或前排负反馈则降级。"),
-                "boundary": "D-1复盘/Stage7观察池，不是买入名单；目标日必须再看竞价和开盘四阶段。",
-                "cannot_confirm": str(raw.get("cannot_confirm") or "未确认L2/十档/逐笔/撤单/未匹配量。"),
-                "source_trace": source_trace,
-            }
-        )
-
-    rows.sort(key=lambda row: (-float(row["pool_score"]), row["theme"], row["stock_name"]))
-    for idx, row in enumerate(rows, start=1):
-        row["pool_rank"] = idx
-    return rows
+    from domains._d1_review_lane_producer_parts.io_primitives import __build_rows_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, signal_date=signal_date, paths=paths, anchor_rows=anchor_rows, theme_rows=theme_rows, plan_rows=plan_rows, handoff_rows=handoff_rows)
 
 
 def _build_summary(rows: list[dict[str, Any]], target_date: str, signal_date: str) -> list[dict[str, Any]]:
-    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
-    for row in rows:
-        grouped[(str(row["theme"]), str(row["stage7_group"]))].append(row)
-
-    summary: list[dict[str, Any]] = []
-    for (theme, group), items in sorted(grouped.items()):
-        summary.append(
-            {
-                "signal_date": signal_date,
-                "target_date": target_date,
-                "theme": theme,
-                "stage7_group": group,
-                "stock_count": len(items),
-                "top_names": "、".join(str(item["stock_name"]) for item in items[:8]),
-                "basis": f"由{signal_date}复盘角色表、情景树和盘中交接表蒸馏生成。",
-                "boundary": f"只作为{target_date}分时观察触发器，不是买入名单。",
-                "cannot_confirm": "未确认结构化L2/十档/逐笔/撤单/未匹配量。",
-            }
-        )
-    return summary
+    from domains._d1_review_lane_producer_parts.io_primitives import __build_summary_body as _v4_impl
+    return _v4_impl(globals(), rows, target_date, signal_date)
 
 
 def _rows_for_lane(rows: list[dict[str, Any]], *, lane: str) -> list[dict[str, Any]]:
-    tag = "（复）" if lane == "fupan_lane" else "（分）"
-    label = "D1_FUPAN" if lane == "fupan_lane" else "D1_STAGE7"
-    stage_id = "D_MINUS_1_FUPAN" if lane == "fupan_lane" else "D_MINUS_1_STAGE7"
-    out: list[dict[str, Any]] = []
-    for row in rows:
-        item = dict(row)
-        item["stage_id"] = stage_id
-        item["display_name"] = f"{item.get('stock_name') or item.get('name')}{tag}"
-        item["source_tag"] = label
-        item["source_tags"] = tag
-        item["source_lanes"] = lane
-        item["pool_type"] = (
-            "D_MINUS_1_FUPAN_OBSERVATION_POOL"
-            if lane == "fupan_lane"
-            else "D_MINUS_1_STAGE7_NEXT_INTRADAY_POOL"
-        )
-        out.append(item)
-    return out
+    from domains._d1_review_lane_producer_parts.lane_assembly import __rows_for_lane_body as _v4_impl
+    return _v4_impl(globals(), rows, lane=lane)
 
 
 def _build_real_stage7_rows(
@@ -578,68 +268,8 @@ def _build_real_stage7_rows(
     manifest_path: Path,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Build the Stage7 lane from the real D-1 14:45-15:00 replay output."""
-
-    raw_rows = _read_csv(path)
-    manifest = _read_json(manifest_path)
-    rows: list[dict[str, Any]] = []
-    for raw in raw_rows:
-        code = _clean_code(
-            raw.get("stock_code") or raw.get("code") or raw.get("ts_code", "")
-        )
-        name = str(raw.get("name") or raw.get("stock_name") or raw.get("display_name") or code).strip()
-        if not code or not name:
-            continue
-        ts_code = f"{code}{_market_suffix(code)}"
-        score = _as_float(raw.get("stage_score") or raw.get("pool_score"))
-        source_path = str(raw.get("source_path") or "")
-        source_trace = str(path)
-        if source_path:
-            source_trace = f"{source_trace} | replay_source={source_path}"
-        rows.append(
-            {
-                "target_date": target_date,
-                "trade_date": target_date,
-                "signal_date": signal_date,
-                "stage_id": "D_MINUS_1_REAL_STAGE7_TAIL_REPLAY",
-                "ts_code": ts_code,
-                "stock_code": code,
-                "name": name,
-                "stock_name": name,
-                "display_name": f"{name}（分）",
-                "pool_type": "D_MINUS_1_STAGE7_NEXT_INTRADAY_POOL",
-                "source_tag": "D1_REAL_STAGE7",
-                "source_tags": "（分）",
-                "source_lanes": "stage7_lane",
-                "stage7_group": str(raw.get("stage7_label") or raw.get("stage") or "D-1 Stage7 尾盘观察"),
-                "stage7_label": str(raw.get("stage7_label") or raw.get("stage_note") or ""),
-                "stage7_next_day_pool_score": f"{score:.2f}",
-                "pool_score": f"{score:.2f}",
-                "primary_buy_signal": str(raw.get("primary_buy_signal") or "0"),
-                "secondary_buy_signal": str(raw.get("secondary_buy_signal") or "0"),
-                "role": str(raw.get("stage7_label") or "D-1 Stage7尾盘"),
-                "theme": "",
-                "route_context": str(raw.get("stage_note") or ""),
-                "position_tags": f"stage7_rank={raw.get('stage7_rank') or raw.get('pool_rank') or ''}; window={raw.get('window') or raw.get('bar_window') or ''}",
-                "trigger_condition": "目标日仅看 09:25-09:45 分时承接、竞价强弱和板块反馈；不因 D-1 尾盘池直接买入。",
-                "fail_condition": "目标日竞价低于预期、开盘无承接、放量下杀或板块负反馈则降级。",
-                "boundary": "D-1 14:45-15:00 本地 1 分钟线尾盘回放，只作次日分时观察触发器，不是买入名单。",
-                "cannot_confirm": str(
-                    raw.get("cannot_confirm")
-                    or "仅为本地历史 1 分钟 K 线回放，不能确认逐笔主动买卖、十档队列、撤单轨迹、竞价未匹配量。"
-                ),
-                "source_trace": source_trace,
-                "_sort_rank": _as_int(raw.get("stage7_rank") or raw.get("pool_rank")),
-                "_sort_score": score,
-            }
-        )
-
-    rows.sort(key=lambda row: (int(row.get("_sort_rank") or 999999), -float(row.get("_sort_score") or 0), row["stock_code"]))
-    for idx, row in enumerate(rows, start=1):
-        row["pool_rank"] = idx
-        row.pop("_sort_rank", None)
-        row.pop("_sort_score", None)
-
-    return rows, manifest
+    from domains._d1_review_lane_producer_parts.lane_assembly import __build_real_stage7_rows_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, signal_date=signal_date, path=path, manifest_path=manifest_path)
 
 
 def ensure_preopen_lane_artifacts(
@@ -652,188 +282,5 @@ def ensure_preopen_lane_artifacts(
     force: bool = False,
 ) -> dict[str, Any]:
     """Ensure D-1 fupan and Stage7 lane CSVs exist for a target opening date."""
-
-    signal = _signal_date(target_date, signal_date)
-    paths = _paths(
-        target_date,
-        signal,
-        source_dir=Path(source_dir),
-        output_dir=Path(output_dir),
-        video_dir=Path(video_dir) if video_dir is not None else None,
-    )
-    output_paths = [
-        paths["fupan_pool"],
-        paths["stage7_preopen_pool"],
-        paths["stage7_next_pool"],
-        paths["stage7_intraday_pool"],
-        paths["stage7_summary"],
-        paths["fupan_manifest"],
-        paths["stage7_manifest"],
-    ]
-    real_stage7_available = bool(paths["real_stage7_pool"].exists() and _read_csv(paths["real_stage7_pool"]))
-    if not force and all(path.exists() and path.stat().st_size > 5 for path in output_paths):
-        fupan_manifest = _read_json(paths["fupan_manifest"])
-        stage7_manifest = _read_json(paths["stage7_manifest"])
-        if fupan_manifest.get("fupan_pool_rule") != "AUTO_FUPAN_THEN_VIDEO_SECOND_REVIEW":
-            force = True
-        elif real_stage7_available and stage7_manifest.get("source_role") != "real_d1_stage7_tail_replay":
-            force = True
-        else:
-            existing_rows = _read_csv(paths["fupan_pool"])
-            return {
-                "ok": True,
-                "status": "PREOPEN_D1_LANES_READY_EXISTING",
-                "target_date": target_date,
-                "signal_date": signal,
-                "row_count": len(existing_rows),
-                "paths": {key: str(value) for key, value in paths.items() if key not in {"fupan_dir"}},
-                "cannot_confirm": [],
-            }
-
-    missing = [path for path in _source_paths(paths) if not path.exists()]
-    if missing:
-        return {
-            "ok": False,
-            "status": "SKIPPED_MISSING_D1_FUPAN_EVIDENCE",
-            "target_date": target_date,
-            "signal_date": signal,
-            "row_count": 0,
-            "missing_paths": [str(path) for path in missing],
-            "cannot_confirm": [
-                f"未找到 {signal} 的 D-1 复盘证据文件，不能生成 {target_date} 早盘复盘/Stage7 lane。",
-                "不会使用目标日收盘结果、强势股榜或其他日期文件补位。",
-            ],
-        }
-
-    anchor_rows = _read_csv(paths["anchor_role"])
-    theme_rows = _read_csv(paths["theme_stocks"])
-    plan_rows = _read_csv(paths["prior_plan"])
-    handoff_rows = _read_csv(paths["intraday_handoff"])
-    video_context = _load_video_fupan_context(paths, signal)
-    rows = _build_rows(
-        target_date=target_date,
-        signal_date=signal,
-        paths=paths,
-        anchor_rows=anchor_rows,
-        theme_rows=theme_rows,
-        plan_rows=plan_rows,
-        handoff_rows=handoff_rows,
-    )
-    if not rows:
-        return {
-            "ok": False,
-            "status": "SKIPPED_EMPTY_D1_FUPAN_LANES",
-            "target_date": target_date,
-            "signal_date": signal,
-            "row_count": 0,
-            "source_paths": [str(path) for path in _source_paths(paths)],
-            "cannot_confirm": ["D-1 复盘证据存在，但没有可映射代码的观察行。"],
-        }
-
-    auto_fupan_rows = _rows_for_lane(rows, lane="fupan_lane")
-    video_rows = _build_video_fupan_rows(
-        target_date=target_date,
-        signal_date=signal,
-        video_context=video_context,
-        code_map=_build_code_maps(theme_rows),
-    )
-    fupan_rows = _merge_fupan_and_video_rows(auto_fupan_rows, video_rows)
-    real_stage7_manifest: dict[str, Any] = {}
-    stage7_source_role = "synthetic_from_d1_fupan_role_table"
-    if real_stage7_available:
-        stage7_rows, real_stage7_manifest = _build_real_stage7_rows(
-            target_date=target_date,
-            signal_date=signal,
-            path=paths["real_stage7_pool"],
-            manifest_path=paths["real_stage7_manifest"],
-        )
-        if stage7_rows:
-            stage7_source_role = "real_d1_stage7_tail_replay"
-        else:
-            stage7_rows = _rows_for_lane(rows, lane="stage7_lane")
-    else:
-        stage7_rows = _rows_for_lane(rows, lane="stage7_lane")
-    _write_csv(paths["fupan_pool"], fupan_rows, FIELDS)
-    _write_csv(paths["stage7_preopen_pool"], stage7_rows, FIELDS)
-    _write_csv(paths["stage7_next_pool"], stage7_rows, FIELDS)
-    _write_csv(paths["stage7_intraday_pool"], stage7_rows, FIELDS)
-    _write_csv(paths["stage7_summary"], _build_summary(stage7_rows, target_date, signal), SUMMARY_FIELDS)
-
-    cannot_confirm = [
-        f"{target_date} 早盘复盘 lane 来自 {signal} 复盘结构化证据；Stage7 lane 优先来自 {signal} 14:45-15:00 尾盘 1 分钟回放。",
-        "未确认L2/十档/逐笔委托/撤单/未匹配量；目标日仍必须看09:25-09:45承接。",
-        "该 lane 不能替代正式 1.9.2/FMLA04 selector，只能作为辅助并源。",
-    ]
-    cannot_confirm.extend(video_context.get("cannot_confirm") or [])
-    generated_at = datetime.now().isoformat(timespec="seconds")
-    source_path_strings = [str(path) for path in _source_paths(paths)]
-    all_source_path_strings = [*source_path_strings, *(video_context.get("source_paths") or [])]
-    _write_json(
-        paths["fupan_manifest"],
-        {
-            "status": "FUPAN_WATCHLIST_POOL_READY_DATA_PARTIAL",
-            "fupan_pool_rule": "AUTO_FUPAN_THEN_VIDEO_SECOND_REVIEW",
-            "target_date": target_date,
-            "signal_date": signal,
-            "row_count": len(fupan_rows),
-            "auto_fupan_row_count": len(auto_fupan_rows),
-            "video_fupan_status": video_context.get("status"),
-            "video_fupan_raw_status": video_context.get("raw_status"),
-            "video_fupan_gap_rows": len(video_context.get("gap_rows") or []),
-            "video_fupan_stock_rows_added": len(video_rows),
-            "source_paths": all_source_path_strings,
-            "auto_fupan_source_paths": source_path_strings,
-            "video_source_paths": video_context.get("source_paths") or [],
-            "pool_path": str(paths["fupan_pool"]),
-            "generated_at": generated_at,
-            "overlap_note": "This lane starts from automatic D-1 fupan, then consumes available Bilibili/video second-review gap rows; video-blocked runs stay explicit in video_fupan_status.",
-            "cannot_confirm": cannot_confirm,
-            **SAFETY,
-        },
-    )
-    _write_json(
-        paths["stage7_manifest"],
-        {
-            "status": "STAGE7_TAIL_POOL_READY_DATA_PARTIAL",
-            "target_date": target_date,
-            "signal_date": signal,
-            "row_count": len(stage7_rows),
-            "source_role": stage7_source_role,
-            "source_paths": (
-                [str(paths["real_stage7_pool"]), str(paths["real_stage7_manifest"])]
-                if stage7_source_role == "real_d1_stage7_tail_replay"
-                else source_path_strings
-            ),
-            "pool_paths": [
-                str(paths["stage7_preopen_pool"]),
-                str(paths["stage7_next_pool"]),
-                str(paths["stage7_intraday_pool"]),
-            ],
-            "summary_path": str(paths["stage7_summary"]),
-            "generated_at": generated_at,
-            "upstream_manifest": real_stage7_manifest if stage7_source_role == "real_d1_stage7_tail_replay" else {},
-            "overlap_note": (
-                "Stage7 lane is generated from the real D-1 14:45-15:00 replay, so full equality with fupan lane is treated as a bug."
-                if stage7_source_role == "real_d1_stage7_tail_replay"
-                else "Fallback lane is distilled from D-1 fupan role evidence and must be treated as inferred, not real tail replay."
-            ),
-            "cannot_confirm": cannot_confirm,
-            **SAFETY,
-        },
-    )
-
-    return {
-        "ok": True,
-        "status": "PREOPEN_D1_LANES_READY",
-        "target_date": target_date,
-        "signal_date": signal,
-        "row_count": len(fupan_rows),
-        "stage7_row_count": len(stage7_rows),
-        "stage7_source_role": stage7_source_role,
-        "paths": {key: str(value) for key, value in paths.items() if key not in {"fupan_dir"}},
-        "source_paths": all_source_path_strings,
-        "video_fupan_status": video_context.get("status"),
-        "video_fupan_stock_rows_added": len(video_rows),
-        "cannot_confirm": cannot_confirm,
-        **SAFETY,
-    }
+    from domains._d1_review_lane_producer_parts.preopen_lanes import _ensure_preopen_lane_artifacts_body as _v4_impl
+    return _v4_impl(globals(), target_date, signal_date=signal_date, source_dir=source_dir, output_dir=output_dir, video_dir=video_dir, force=force)

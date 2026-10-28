@@ -7,7 +7,10 @@ materialization reads assets owned by this shared store and never imports V3.
 """
 from __future__ import annotations
 
+import base64
+import binascii
 import csv
+import hashlib
 import json
 import math
 import os
@@ -20,12 +23,14 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any, Iterable, Mapping
+from zoneinfo import ZoneInfo
 
 from .allowlist import AllowlistRegistry, SourceSpec
 from .consumer import VerifiedRun, read_verified_latest
 from .hashing import canonical_bytes, sha256_file
-from .paths import validate_date
+from .paths import resolve_under, validate_date
 from .store import SafeRootStore, StoreError
+from .hk_history_resolution import ResolutionPolicy, policy_for_shared, root_for_source, FIELDS, guard_score_frame
 
 
 HK_0_2_ROLE = "HK_CONNECT_D1_TOP100_0_2"
@@ -45,7 +50,61 @@ _VIPDOC_DAY_STRUCT = struct.Struct("<IfffffII")
 _MAX_CROSS_DAY_CLOSE_RATIO = 1.5
 _MAX_PRE_CLOSE_GAP_CALENDAR_DAYS = 14
 
+
+def _capture_date_shanghai(value: Any) -> str:
+    text = str(value or "").strip()
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError as error:
+        raise StoreError("HK 0.2 security-master capture time is invalid") from error
+    if parsed.tzinfo is None:
+        raise StoreError("HK 0.2 security-master capture time must include a timezone")
+    return parsed.astimezone(ZoneInfo("Asia/Shanghai")).strftime("%Y%m%d")
+
+
+_CAPTURE_AT_PROVENANCE_PREFIX = "b64url."
+
+
+def _encode_capture_at_provenance(value: Any) -> str:
+    """Preserve the exact capture timestamp in a path-neutral token.
+
+    Provenance values are deliberately forbidden from containing path
+    separators and colons.  ISO timestamps contain colons, so encode their
+    original UTF-8 bytes with URL-safe Base64 before placing them in a
+    ``SourceSpec``.  The original timestamp remains recoverable without
+    changing its precision, offset, or spelling.
+    """
+
+    text = str(value or "").strip()
+    if not text:
+        raise StoreError("HK 0.2 security-master capture time is invalid")
+    _capture_date_shanghai(text)
+    encoded = base64.urlsafe_b64encode(text.encode("utf-8")).decode("ascii")
+    token = f"{_CAPTURE_AT_PROVENANCE_PREFIX}{encoded}"
+    if any(character in token for character in (":", "/", "\\")):
+        raise StoreError("HK 0.2 capture-time provenance token is not path-neutral")
+    return token
+
+
+def _decode_capture_at_provenance(value: Any) -> str:
+    """Decode new capture-time tokens while accepting legacy raw timestamps."""
+
+    text = str(value or "").strip()
+    if not text.startswith(_CAPTURE_AT_PROVENANCE_PREFIX):
+        # Older receipts stored the timestamp as plain text.  Keep those
+        # readable even though new writes must satisfy SourceSpec's neutral
+        # provenance contract.
+        return text
+    encoded = text[len(_CAPTURE_AT_PROVENANCE_PREFIX) :]
+    try:
+        decoded = base64.b64decode(encoded, altchars=b"-_", validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError, ValueError) as error:
+        raise StoreError("HK 0.2 security-master capture provenance is invalid") from error
+    _capture_date_shanghai(decoded)
+    return decoded
+
 _OUTPUT_FIELDS = (
+    "history_resolution_identity",
     "trade_date", "bar_time", "rank", "code", "code_norm", "ts_code", "name",
     "signal_date", "target_date", "selected_strategy", "weekly_tuning_selected_strategy",
     "pool_version", "freeze_status", "recommendation_status", "trade_status_contract",
@@ -71,6 +130,24 @@ class FrozenHK02Assets:
     model_path: Path
     model_manifest: dict[str, Any]
     name_dictionary_path: Path | None
+
+
+@dataclass(frozen=True)
+class HistoricalHK02ResearchAsset:
+    """A checksum-bound historical daily-bar asset for research readers.
+
+    ``FrozenHK02Assets`` is the live/D-1 panel contract and intentionally
+    remains unchanged.  This separate value object is only for an explicitly
+    supplied historical parquet plus its source manifest.  It keeps the
+    source bytes immutable while allowing a V4 research consumer to record the
+    source identity before deriving a calendar-indexed view.
+    """
+
+    source_path: Path
+    source_manifest_path: Path
+    source_sha256: str
+    source_manifest: dict[str, Any]
+    frame: Any
 
 
 @dataclass(frozen=True)
@@ -126,6 +203,96 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
     _atomic_write(path, canonical_bytes(dict(payload)))
+
+
+def load_historical_hk_0_2_research_asset(
+    source_path: Path | str,
+    *,
+    source_manifest_path: Path | str | None = None,
+    expected_sha256: str | None = None,
+) -> HistoricalHK02ResearchAsset:
+    """Read one source-backed historical daily-bar parquet for research.
+
+    The live ``load_frozen_hk_0_2_assets`` reader validates the sparse panel
+    pointer and the frozen model bundle.  Historical prefix research has a
+    different, explicit input contract, so it uses this narrow reader instead
+    of changing daily materialization.  The reader verifies the source file
+    bytes, the package manifest safety flags and the exact source schema; it
+    does not fill missing bars, infer a market calendar, or read labels.
+
+    ``expected_sha256`` is required by callers that want a frozen source
+    identity.  It is optional for small unit fixtures so the schema and
+    uniqueness checks can still be exercised without a hard-coded digest.
+    """
+
+    import pandas as pd
+
+    source = Path(source_path)
+    if not source.is_file():
+        raise StoreError(f"historical HK 0.2 source is missing: {source}")
+    source_sha256 = sha256_file(source)
+    if expected_sha256 is not None and source_sha256 != str(expected_sha256).strip().lower():
+        raise StoreError("historical HK 0.2 source checksum mismatch")
+
+    manifest_path = (
+        Path(source_manifest_path)
+        if source_manifest_path is not None
+        else source.parent.parent / "manifest.json"
+    )
+    if not manifest_path.is_file():
+        raise StoreError("historical HK 0.2 source manifest is missing")
+    manifest = _read_json(manifest_path)
+    if manifest.get("status") not in {"PARTIAL", "ACCEPTED_RESEARCH_DELIVERY", "READY"}:
+        raise StoreError("historical HK 0.2 source manifest status is not research-readable")
+    safety = manifest.get("safety")
+    if not isinstance(safety, Mapping):
+        raise StoreError("historical HK 0.2 source safety manifest is missing")
+    if (
+        safety.get("research_only") is not True
+        or safety.get("production_allowed") is not False
+        or safety.get("buy_gate_updated") is not False
+        or safety.get("orders_sent") is not False
+    ):
+        raise StoreError("historical HK 0.2 source safety flags are unsafe")
+
+    required = ("code", "date", "open", "high", "low", "close", "trade", "amount")
+    try:
+        frame = pd.read_parquet(source, columns=list(required))
+    except (OSError, ValueError, ImportError) as error:
+        raise StoreError(f"cannot read historical HK 0.2 parquet: {error}") from error
+    missing = [column for column in required if column not in frame.columns]
+    if missing:
+        raise StoreError("historical HK 0.2 source schema missing: " + ",".join(missing))
+    frame = frame[list(required)].copy()
+    frame["code"] = frame["code"].astype(str).str.strip().str.upper()
+    parsed_dates = pd.to_datetime(frame["date"], errors="coerce")
+    if parsed_dates.isna().any():
+        raise StoreError("historical HK 0.2 source contains invalid dates")
+    frame["date"] = parsed_dates.dt.strftime("%Y-%m-%d")
+    if frame[["code", "date"]].duplicated(keep=False).any():
+        raise StoreError("historical HK 0.2 source contains duplicate code/date rows")
+    if frame["code"].eq("").any():
+        raise StoreError("historical HK 0.2 source contains empty codes")
+    frame = frame.sort_values(["code", "date"], kind="mergesort").reset_index(drop=True)
+    policy = ResolutionPolicy(root_for_source(source))
+    if source_sha256 != policy.manifest['bindings']['B_sha256']:
+        raise StoreError('HK_HISTORY_RESOLUTION_UNBOUND_B_SOURCE')
+    frame = policy.guard_frame(frame, code_column='code', date_column='date',
+        source='B', required_fields=FIELDS, consumer='HK_B_PREFIX_FULL_SERIES_V1')
+    if frame.empty:
+        raise StoreError('HK_HISTORY_RESOLUTION_NO_B_RESEARCH_CODES')
+    return HistoricalHK02ResearchAsset(
+        source_path=source,
+        source_manifest_path=manifest_path,
+        source_sha256=source_sha256,
+        source_manifest=manifest,
+        frame=frame,
+    )
+
+
+# Explicit alias used by research-only callers; keep the live reader name
+# above separate so existing daily code cannot accidentally consume history.
+read_historical_hk_0_2_research_asset = load_historical_hk_0_2_research_asset
 
 
 def _validate_model_manifest(manifest: Mapping[str, Any], bundle_path: Path) -> None:
@@ -814,7 +981,14 @@ def _load_models(assets: FrozenHK02Assets, *, signal_date: str):
     return models
 
 
-def score_frozen_hk_0_2(asset_root: Path | str, *, signal_date: str, target_date: str) -> list[dict[str, Any]]:
+def score_frozen_hk_0_2(
+    asset_root: Path | str,
+    *,
+    signal_date: str,
+    target_date: str,
+    eligible_codes: Iterable[str] | None = None,
+    diagnostics: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     import pandas as pd
 
     signal_date, target_date = validate_date(signal_date), validate_date(target_date)
@@ -826,7 +1000,22 @@ def score_frozen_hk_0_2(asset_root: Path | str, *, signal_date: str, target_date
     panel = panel[panel["trade_date_compact"].le(signal_date)].copy()
     if signal_date not in set(panel["trade_date_compact"]):
         raise StoreError(f"HK 0.2 signal date is absent from panel: {signal_date}")
+    policy = ResolutionPolicy(assets.root)
+    policy.check_panel(assets.panel_manifest["panel_sha256"])
+    original_signal_codes = {_normalize_code(code) for code in panel.loc[panel['trade_date_compact'].eq(signal_date),'code_norm']}
+    panel = guard_score_frame(panel, policy, signal_date)
+    if diagnostics is not None:
+        diagnostics["history_resolution_proof"] = policy.encode_proof(panel.attrs["history_resolution_proof"])
+        diagnostics["history_resolution_excluded_code_count"] = panel.attrs["history_resolution_proof"]["excluded_code_count"]
+    if panel.empty:
+        raise StoreError("HK_HISTORY_RESOLUTION_NO_SCOREABLE_CODES")
     features, proxy_map = _add_proxy_labels(_add_daily_features(panel))
+    if not proxy_map:
+        if diagnostics is not None:
+            diagnostics.update(history_resolution_score_status="HOLD",
+                history_resolution_scoreable_count=0,
+                history_resolution_hold_reason="HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT")
+        raise StoreError("HK_HISTORY_RESOLUTION_PROXY_UNIVERSE_INSUFFICIENT")
     features = _add_proxy_memory(features, proxy_map)
     feature_columns = list(assets.model_manifest.get("feature_columns") or [])
     missing = sorted(set(feature_columns) - set(features.columns))
@@ -834,8 +1023,34 @@ def score_frozen_hk_0_2(asset_root: Path | str, *, signal_date: str, target_date
         raise StoreError("HK 0.2 model features missing: " + ",".join(missing))
     models = _load_models(assets, signal_date=signal_date)
     predict = features[features["trade_date_compact"].eq(signal_date)].copy()
+    if eligible_codes is not None:
+        normalized_eligible_codes = {_normalize_code(code) for code in eligible_codes}
+        normalized_eligible_codes.discard("")
+        predict = predict[
+            predict["code_norm"].map(_normalize_code).isin(normalized_eligible_codes)
+        ].copy()
     if predict["code_norm"].nunique() < 500:
-        raise StoreError("HK 0.2 signal-date market coverage below 500")
+        message = (
+            "HK 0.2 eligible signal-date market coverage below 500"
+            if eligible_codes is not None
+            else "HK 0.2 signal-date market coverage below 500"
+        )
+        raise StoreError(message)
+    from .hk_history_resolution import _check_score_coverage
+    proof = dict(panel.attrs['history_resolution_proof'])
+    eligible = normalized_eligible_codes if eligible_codes is not None else original_signal_codes
+    observed = {_normalize_code(code) for code in predict['code_norm']}
+    quarantined = eligible & original_signal_codes & set(proof['excluded_codes'])
+    proof['score_coverage'] = dict(eligible_codes=sorted(eligible),
+        original_signal_codes=sorted(original_signal_codes),scoreable_signal_codes=sorted(observed),
+        quality_quarantined_codes=sorted(quarantined),
+        missing_signal_codes=sorted(eligible-observed-quarantined))
+    coverage = _check_score_coverage(proof,eligible_codes=eligible)
+    if diagnostics is not None:
+        diagnostics.update(history_resolution_proof=policy.encode_proof(proof),
+            history_resolution_score_coverage=coverage,signal_row_count=len(observed),
+            eligible_row_count=len(eligible),missing_signal_codes=coverage['missing_signal_codes'],
+            quality_quarantined_codes=coverage['quality_quarantined_codes'])
     predict["signal_date"], predict["target_date"] = signal_date, target_date
     ranked = _score_with_strategies(predict, models, feature_columns).sort_values("score_prob_active", ascending=False).head(100).copy()
     ranked.insert(0, "rank", range(1, len(ranked) + 1))
@@ -878,12 +1093,31 @@ def publish_hk_0_2_rows(
     store_root: Path | str,
     *,
     signal_date: str,
+    eligibility_source_date: str | None = None,
     target_date: str,
     rows: Iterable[Mapping[str, Any]],
     panel_sha256: str,
+    history_resolution_proof: str | None = None,
+    expected_previous: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     signal_date, target_date = validate_date(signal_date), validate_date(target_date)
+    eligibility_source_date = validate_date(eligibility_source_date or signal_date)
+    policy = policy_for_shared(store_root)
+    policy.check_panel(panel_sha256)
+    proof = policy.verify_proof(history_resolution_proof, end=signal_date, consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1")
+    if policy.corrections_sha256:
+        from .hk_history_resolution import validate_score_coverage
+        coverage = validate_score_coverage(proof,policy=policy)
+        if len(coverage['scoreable_signal_codes']) < 500:
+            raise StoreError('HK 0.2 eligible signal-date market coverage below 500')
+    resolution_identity = hashlib.sha256(history_resolution_proof.encode('ascii')).hexdigest()
+    if expected_previous is not None and set(expected_previous) != {
+            'run_id','artifact_sha256','manifest_sha256','receipt_sha256',
+            'artifact_relative','manifest_relative','receipt_relative'}:
+        raise StoreError('HK_HISTORY_RESOLUTION_REFRESH_COMPLETE_CAS_REQUIRED')
     normalized = [{field: _cell(dict(row).get(field)) for field in _OUTPUT_FIELDS} for row in rows]
+    for row in normalized:
+        row['history_resolution_identity'] = resolution_identity
     if len(normalized) != 100:
         raise StoreError("HK 0.2 strict pool must contain exactly 100 rows")
     expected_ranks = [str(index) for index in range(1, 101)]
@@ -903,7 +1137,14 @@ def publish_hk_0_2_rows(
             raise StoreError("HK 0.2 safety boundary mismatch")
         if _is_name_code_placeholder(row["code_norm"], row["name"]):
             raise StoreError(f"HK 0.2 name missing or code placeholder: {row['code_norm']}")
-    _, security_master_manifest = _load_verified_security_master(store_root, signal_date)
+    security_master, security_master_manifest = _load_verified_security_master(store_root, eligibility_source_date)
+    security_master_captured_at = str(security_master_manifest.get("captured_at") or "")
+    captured_date = _capture_date_shanghai(security_master_captured_at)
+    if captured_date != eligibility_source_date:
+        raise StoreError("HK 0.2 security-master capture date does not match eligibility source")
+    if policy.corrections_sha256:
+        validate_score_coverage(proof,policy=policy,eligible_codes=security_master,
+            selected_codes=[row['code_norm'] for row in normalized])
     with tempfile.TemporaryDirectory(prefix="v3sd_hk02_publish_") as temporary:
         source = Path(temporary) / "hkconnect_d1_top100_0_2.csv"
         with open(source, "w", encoding="utf-8-sig", newline="") as handle:
@@ -914,13 +1155,20 @@ def publish_hk_0_2_rows(
         provenance = {
             "signal_date": signal_date,
             "source_contract": "tdx_vipdoc_71_day_prob_active",
+            "history_value_view": ("C_PLUS_TDXPY_DOUBLE_ANCHOR_SPARSE_V1"
+                                   if policy.corrections_sha256 else "C_NATIVE_REPRESENTATION"),
             "panel_sha256": panel_sha256.lower(),
+            "history_resolution_proof": history_resolution_proof,
             "model_bundle_sha256": HK_0_2_MODEL_SHA256,
             "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
             "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
-            "security_master_trade_date": signal_date,
+            "eligibility_source_date": eligibility_source_date,
+            "security_master_trade_date": eligibility_source_date,
             "security_master_run_id": str(security_master_manifest["run_id"]),
             "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
+            "security_master_captured_at": _encode_capture_at_provenance(
+                security_master_captured_at
+            ),
         }
         spec = SourceSpec(
             source_id="hkconnect_0_2_frozen_prob_active",
@@ -937,29 +1185,70 @@ def publish_hk_0_2_rows(
             provenance=provenance,
         )
         store = SafeRootStore(Path(store_root), AllowlistRegistry({(target_date, HK_0_2_ROLE): (spec,)}))
-        outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID)
-    read_verified_hk_0_2_pool(store_root, target_date=target_date, expected_signal_date=signal_date)
+        outcome = store.replay_file(owner="v3_shared_data", trade_date=target_date, role=HK_0_2_ROLE, source_id=spec.source_id, stage_id=HK_0_2_STAGE_ID,
+            historical_backfill=expected_previous is not None,expected_previous=expected_previous)
+    read_verified_hk_0_2_pool(
+        store_root,
+        target_date=target_date,
+        expected_signal_date=signal_date,
+        expected_eligibility_source_date=eligibility_source_date,
+    )
     return outcome
 
 
-def read_verified_hk_0_2_pool(store_root: Path | str, *, target_date: str, expected_signal_date: str) -> VerifiedHK02Pool:
+def read_verified_hk_0_2_pool(
+    store_root: Path | str,
+    *,
+    target_date: str,
+    expected_signal_date: str,
+    expected_eligibility_source_date: str | None = None,
+) -> VerifiedHK02Pool:
     target_date, expected_signal_date = validate_date(target_date), validate_date(expected_signal_date)
-    security_master, security_master_manifest = _load_verified_security_master(store_root, expected_signal_date)
+    eligibility_source_date = validate_date(
+        expected_eligibility_source_date or expected_signal_date
+    )
+    security_master, security_master_manifest = _load_verified_security_master(
+        store_root, eligibility_source_date
+    )
+    security_master_captured_at = str(
+        security_master_manifest.get("captured_at") or ""
+    )
+    if _capture_date_shanghai(security_master_captured_at) != eligibility_source_date:
+        raise StoreError("HK 0.2 security-master capture date does not match eligibility source")
     run = read_verified_latest(store_root, target_date, HK_0_2_ROLE)
     provenance = dict(run.manifest.get("provenance") or {})
+    policy = policy_for_shared(store_root)
     expected = {
         "signal_date": expected_signal_date,
         "source_contract": "tdx_vipdoc_71_day_prob_active",
+        "history_value_view": ("C_PLUS_TDXPY_DOUBLE_ANCHOR_SPARSE_V1"
+                               if policy.corrections_sha256 else "C_NATIVE_REPRESENTATION"),
         "model_bundle_sha256": HK_0_2_MODEL_SHA256,
         "daily_features_sha256": HK_0_2_ORACLE_SHA256S["daily_features"],
         "proxy_prob_active_sha256": HK_0_2_ORACLE_SHA256S["proxy_prob_active"],
-        "security_master_trade_date": expected_signal_date,
+        "security_master_trade_date": eligibility_source_date,
         "security_master_run_id": str(security_master_manifest["run_id"]),
         "security_master_artifact_sha256": str(security_master_manifest["artifact_sha256"]),
     }
+    if eligibility_source_date != expected_signal_date:
+        expected.update({
+            "eligibility_source_date": eligibility_source_date,
+        })
+    elif "eligibility_source_date" in provenance:
+        expected["eligibility_source_date"] = eligibility_source_date
     for key, value in expected.items():
         if provenance.get(key) != value:
             raise StoreError(f"HK 0.2 provenance mismatch: {key}")
+    if (
+        eligibility_source_date != expected_signal_date
+        or "eligibility_source_date" in provenance
+    ) and _decode_capture_at_provenance(
+        provenance.get("security_master_captured_at")
+    ) != security_master_captured_at:
+        raise StoreError("HK 0.2 provenance mismatch: security_master_captured_at")
+    policy.check_panel(provenance.get("panel_sha256"))
+    policy.verify_proof(provenance.get("history_resolution_proof"), end=expected_signal_date,
+                        consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1")
     rows: list[dict[str, str]] = []
     with open(run.artifact_path, "r", encoding="utf-8-sig", newline="") as handle:
         rows.extend(dict(row) for row in csv.DictReader(handle))
@@ -968,17 +1257,172 @@ def read_verified_hk_0_2_pool(store_root: Path | str, *, target_date: str, expec
     if [float(row["score_prob_active"]) for row in rows] != sorted((float(row["score_prob_active"]) for row in rows), reverse=True):
         raise StoreError("HK 0.2 verified artifact ordering mismatch")
     for row in rows:
+        if row.get('history_resolution_identity') != hashlib.sha256(provenance['history_resolution_proof'].encode('ascii')).hexdigest():
+            raise StoreError('HK_HISTORY_RESOLUTION_ARTIFACT_IDENTITY_MISMATCH')
         if _is_name_code_placeholder(row.get("code_norm"), row.get("name")):
             raise StoreError(f"HK 0.2 verified artifact name missing: {row.get('code_norm')}")
+    score_proof = policy.verify_proof(provenance.get("history_resolution_proof"), end=expected_signal_date,
+                        consumer="HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1", codes=[row["code_norm"] for row in rows])
+    if policy.corrections_sha256:
+        from .hk_history_resolution import validate_score_coverage
+        validate_score_coverage(score_proof,policy=policy,eligible_codes=security_master,
+            selected_codes=[row['code_norm'] for row in rows])
     return VerifiedHK02Pool(run, tuple(rows))
 
 
-def materialize_frozen_hk_0_2(store_root: Path | str, asset_root: Path | str, *, signal_date: str, target_date: str) -> dict[str, Any]:
+def _copy_exact_run_file(source: Path, destination: Path) -> bool:
+    payload = source.read_bytes()
+    if destination.exists():
+        if destination.read_bytes() != payload:
+            raise StoreError(f"HK 0.2 target evidence conflict: {destination}")
+        return False
+    _atomic_write(destination, payload)
+    return True
+
+
+def _verified_hk_0_2_identity(pool: VerifiedHK02Pool) -> dict[str, Any]:
+    provenance = dict(pool.run.manifest.get("provenance") or {})
+    return {
+        "run_id": pool.run.verification.get("run_id"),
+        "artifact_sha256": pool.run.verification.get("artifact_sha256"),
+        "manifest_sha256": pool.run.verification.get("manifest_sha256"),
+        "receipt_sha256": pool.run.verification.get("receipt_sha256"),
+        "security_master_trade_date": provenance.get("security_master_trade_date"),
+        "security_master_run_id": provenance.get("security_master_run_id"),
+        "security_master_artifact_sha256": provenance.get("security_master_artifact_sha256"),
+    }
+
+
+def restore_verified_hk_0_2_source(
+    source_store_root: Path | str,
+    target_store_root: Path | str,
+    *,
+    signal_date: str,
+    target_date: str,
+) -> dict[str, Any]:
+    """Copy one exact reader-verified HK D-1 run into the V4 owned root.
+
+    The source is never used as an online fallback.  Both the source and the
+    restored target pass the current HK 0.2 reader, including the signal-date
+    security-master provenance, before READY is returned.
+    """
+    signal_date, target_date = validate_date(signal_date), validate_date(target_date)
+    source_root, target_root = Path(source_store_root), Path(target_store_root)
+    source_pool = read_verified_hk_0_2_pool(
+        source_root, target_date=target_date, expected_signal_date=signal_date
+    )
+    source_entry = dict(source_pool.run.latest)
+    canonical_entry = {
+        "run_id": source_pool.run.verification["run_id"],
+        "artifact_relative": source_pool.run.verification["artifact_relative"],
+        "manifest_relative": source_pool.run.verification["manifest_relative"],
+        "receipt_relative": source_pool.run.verification["receipt_relative"],
+    }
+    if any(source_entry.get(field) != value for field, value in canonical_entry.items()):
+        raise StoreError("HK 0.2 source latest metadata mismatch")
+    source_entry.update(canonical_entry)
+
+    try:
+        existing = read_verified_hk_0_2_pool(
+            target_root, target_date=target_date, expected_signal_date=signal_date
+        )
+    except StoreError:
+        existing = None
+    if existing is not None:
+        if _verified_hk_0_2_identity(existing) != _verified_hk_0_2_identity(source_pool):
+            raise StoreError("HK 0.2 target date already contains a different verified run")
+        return {
+            "status": "READY",
+            "restored": False,
+            "already_exists": True,
+            **existing.run.verification,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+
+    from .hk_security_master import restore_verified_hk_security_master
+    restore_verified_hk_security_master(
+        source_root, target_root, trade_date=signal_date
+    )
+
+    target_store = SafeRootStore(target_root)
+    target_store._check_owner("v3_shared_data")
+    key = target_store._entry_key(target_date, HK_0_2_ROLE)
+    with target_store._lock():
+        latest = target_store._load_latest()
+        prior = latest["entries"].get(key)
+        if prior is not None and any(
+            prior.get(field) != source_entry.get(field)
+            for field in ("run_id", "artifact_relative", "manifest_relative", "receipt_relative")
+        ):
+            raise StoreError("HK 0.2 target slot already points to a different run")
+        copied = False
+        for source_path, relative in (
+            (source_pool.run.artifact_path, source_pool.run.verification["artifact_relative"]),
+            (source_pool.run.manifest_path, source_pool.run.verification["manifest_relative"]),
+            (source_pool.run.receipt_path, source_pool.run.verification["receipt_relative"]),
+        ):
+            destination = resolve_under(target_root, str(relative))
+            copied = _copy_exact_run_file(source_path, destination) or copied
+        latest["entries"][key] = source_entry
+        target_store._write_json(target_store.latest_path, latest)
+
+    restored = read_verified_hk_0_2_pool(
+        target_root, target_date=target_date, expected_signal_date=signal_date
+    )
+    if _verified_hk_0_2_identity(restored) != _verified_hk_0_2_identity(source_pool):
+        raise StoreError("HK 0.2 restored identity mismatch")
+    return {
+        "status": "READY",
+        "restored": copied,
+        "already_exists": not copied,
+        **restored.run.verification,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
+def materialize_frozen_hk_0_2(
+    store_root: Path | str,
+    asset_root: Path | str,
+    *,
+    signal_date: str,
+    target_date: str,
+    eligibility_source_date: str | None = None,
+    expected_previous: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    signal_date, target_date = validate_date(signal_date), validate_date(target_date)
+    eligibility_source_date = validate_date(eligibility_source_date or signal_date)
     assets = load_frozen_hk_0_2_assets(asset_root)
-    security_master, _ = _load_verified_security_master(store_root, signal_date)
-    rows = score_frozen_hk_0_2(asset_root, signal_date=signal_date, target_date=target_date)
+    security_master, _ = _load_verified_security_master(store_root, eligibility_source_date)
+    scoring_diagnostics: dict[str, Any] = {}
+    rows = score_frozen_hk_0_2(
+        asset_root,
+        signal_date=signal_date,
+        target_date=target_date,
+        eligible_codes=security_master.keys(),
+        diagnostics=scoring_diagnostics,
+    )
+    from .hk_history_resolution import validate_score_coverage
+    policy = policy_for_shared(store_root)
+    proof = policy.verify_proof(scoring_diagnostics['history_resolution_proof'],end=signal_date,
+        consumer='HK_FROZEN_SCORE_PRICE121_TRADE_CURRENT_V1',codes=[row['code_norm'] for row in rows])
+    validate_score_coverage(proof,policy=policy,eligible_codes=security_master,selected_codes=[row['code_norm'] for row in rows])
     rows = _fill_name_placeholders(rows, security_master)
-    return publish_hk_0_2_rows(store_root, signal_date=signal_date, target_date=target_date, rows=rows, panel_sha256=str(assets.panel_manifest["panel_sha256"]))
+    if proof['score_coverage']['missing_signal_codes']:
+        raise StoreError('HK_0_2_SIGNAL_ROW_MISSING')
+    return publish_hk_0_2_rows(
+        store_root,
+        signal_date=signal_date,
+        eligibility_source_date=eligibility_source_date,
+        target_date=target_date,
+        rows=rows,
+        panel_sha256=str(assets.panel_manifest["panel_sha256"]),
+        history_resolution_proof=scoring_diagnostics["history_resolution_proof"],
+        expected_previous=expected_previous,
+    )
 
 
 def quarantine_rejected_hk_0_2_run(

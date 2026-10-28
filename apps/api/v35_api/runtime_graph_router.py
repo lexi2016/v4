@@ -401,19 +401,59 @@ def _runtime_identity() -> dict[str, Any]:
                 manifest_parse_status = "CANNOT_CONFIRM"
         except (UnicodeDecodeError, json.JSONDecodeError):
             manifest_parse_status = "CANNOT_CONFIRM"
-    manifest_release_id = manifest.get("release_id") if isinstance(manifest.get("release_id"), str) else None
-    declared_release_id = declared.get("V35_RELEASE_ID")
-    release_id_status = (
-        "VERIFIED"
-        if manifest_release_id and declared_release_id and manifest_release_id == declared_release_id
-        else "DRIFT"
-        if manifest_release_id and declared_release_id
-        else "FILE_VERIFIED_DECLARATION_MISSING"
-        if manifest_release_id
-        else "DECLARED_ONLY"
-        if declared_release_id
-        else "CANNOT_CONFIRM"
+    raw_manifest_release_id = manifest.get("release_id")
+    manifest_release_id_top_level = (
+        raw_manifest_release_id if isinstance(raw_manifest_release_id, str) and raw_manifest_release_id else None
     )
+    manifest_schema_version = manifest.get("schema_version")
+    manifest_schema_version_present = "schema_version" in manifest
+    canonical_release_candidate_manifest = manifest_schema_version == "v4.release_candidate.v1"
+    legacy_top_level_manifest = not manifest_schema_version_present and "candidate" not in manifest
+    candidate_identity = manifest.get("candidate")
+    raw_candidate_release_id = (
+        candidate_identity.get("release_id") if isinstance(candidate_identity, Mapping) else None
+    )
+    manifest_release_id_candidate = (
+        raw_candidate_release_id if isinstance(raw_candidate_release_id, str) and raw_candidate_release_id else None
+    )
+    manifest_release_ids = [
+        value for value in (manifest_release_id_top_level, manifest_release_id_candidate) if value is not None
+    ]
+    manifest_release_id_conflict = len(set(manifest_release_ids)) > 1
+    canonical_release_id_invalid = bool(
+        canonical_release_candidate_manifest and manifest_release_id_candidate is None
+    )
+    release_id_manifest_shape_unsupported = not (
+        canonical_release_candidate_manifest or legacy_top_level_manifest
+    )
+    # Canonical release_candidate manifests place the ID under candidate; the
+    # top-level form remains supported for existing legacy manifests.  Keep
+    # both declarations so a duplicate conflicting value cannot be hidden by
+    # whichever location is selected for display.  A malformed canonical
+    # declaration cannot fall back to a legacy top-level ID.
+    manifest_release_id = (
+        manifest_release_id_candidate
+        if canonical_release_candidate_manifest
+        else manifest_release_id_top_level
+        if legacy_top_level_manifest
+        else None
+    )
+    declared_release_id = declared.get("V35_RELEASE_ID")
+    manifest_release_id_mismatch = bool(
+        declared_release_id and any(value != declared_release_id for value in manifest_release_ids)
+    )
+    if manifest_release_id_conflict or manifest_release_id_mismatch or canonical_release_id_invalid:
+        release_id_status = "DRIFT"
+    elif release_id_manifest_shape_unsupported:
+        release_id_status = "CANNOT_CONFIRM"
+    elif manifest_release_id and declared_release_id:
+        release_id_status = "VERIFIED"
+    elif manifest_release_id:
+        release_id_status = "FILE_VERIFIED_DECLARATION_MISSING"
+    elif declared_release_id:
+        release_id_status = "DECLARED_ONLY"
+    else:
+        release_id_status = "CANNOT_CONFIRM"
     manifest_hash = _hash_evidence(
         label="release_manifest",
         declared_sha256=declared.get("V35_RELEASE_MANIFEST_SHA256"),
@@ -543,6 +583,12 @@ def _runtime_identity() -> dict[str, Any]:
         "release_id": manifest_release_id or declared_release_id,
         "release_id_declared": declared_release_id,
         "release_id_verified": manifest_release_id,
+        "release_id_manifest_top_level": manifest_release_id_top_level,
+        "release_id_manifest_candidate": manifest_release_id_candidate,
+        "release_id_manifest_conflict": manifest_release_id_conflict,
+        "release_id_manifest_candidate_invalid": canonical_release_id_invalid,
+        "release_id_manifest_shape_unsupported": release_id_manifest_shape_unsupported,
+        "release_manifest_schema_version": manifest_schema_version,
         "release_id_status": release_id_status,
         "release_manifest_path": _bounded_identity_text(str(manifest_path)) if manifest_path else None,
         "release_manifest_locator_status": manifest_locator_status,

@@ -4,6 +4,8 @@ import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import pytest
+
 from ops import run_v35_macos_scheduler as scheduler
 
 
@@ -35,6 +37,28 @@ def test_due_slot_uses_exact_current_slot_without_catchup(tmp_path):
     }
 
 
+def test_hk_close_1610_is_exact_and_post_close_catchup_slot(tmp_path):
+    exact_root = tmp_path / "exact"
+    delayed_root = tmp_path / "delayed"
+    _complete_post_close_slots(exact_root, ("1500", "1555", "1605"))
+    _complete_post_close_slots(delayed_root, ("1500", "1555", "1605"))
+
+    exact = scheduler.resolve_due_slot(
+        now=datetime(2026, 8, 17, 16, 10, tzinfo=SHANGHAI),
+        ledger_root=exact_root,
+    )
+    delayed = scheduler.resolve_due_slot(
+        now=datetime(2026, 8, 17, 16, 11, tzinfo=SHANGHAI),
+        ledger_root=delayed_root,
+    )
+
+    assert exact["slot"] == "1610"
+    assert exact["catchup"] is False
+    assert delayed["slot"] == "1610"
+    assert delayed["catchup"] is True
+    assert delayed["lag_minutes"] == 1
+
+
 def test_due_slot_recovers_the_latest_missing_hour_after_wake(tmp_path):
     due = scheduler.resolve_due_slot(
         now=datetime(2026, 8, 17, 13, 23, tzinfo=SHANGHAI),
@@ -48,6 +72,31 @@ def test_due_slot_recovers_the_latest_missing_hour_after_wake(tmp_path):
         "catchup": True,
         "lag_minutes": 23,
     }
+
+
+def test_due_slot_keeps_1130_catchup_inside_its_eight_minute_window(tmp_path):
+    exact = scheduler.resolve_due_slot(
+        now=datetime(2026, 8, 17, 11, 30, 0, tzinfo=SHANGHAI),
+        ledger_root=tmp_path / "exact",
+    )
+    at_five = scheduler.resolve_due_slot(
+        now=datetime(2026, 8, 17, 11, 35, 0, tzinfo=SHANGHAI),
+        ledger_root=tmp_path / "five",
+    )
+    at_eight = scheduler.resolve_due_slot(
+        now=datetime(2026, 8, 17, 11, 38, 59, tzinfo=SHANGHAI),
+        ledger_root=tmp_path / "eight",
+    )
+    after_deadline = scheduler.resolve_due_slot(
+        now=datetime(2026, 8, 17, 11, 39, 0, tzinfo=SHANGHAI),
+        ledger_root=tmp_path / "after",
+    )
+
+    assert exact["slot"] == "1130" and exact["catchup"] is False
+    assert at_five["slot"] == "1130" and at_five["lag_minutes"] == 5
+    assert at_eight["slot"] == "1130" and at_eight["lag_minutes"] == 8
+    assert after_deadline["slot"] != "1130"
+    assert after_deadline["slot"] == "1100"
 
 
 def test_due_slot_does_not_repeat_an_hour_with_an_existing_claim(tmp_path):
@@ -108,7 +157,7 @@ def test_due_slot_keeps_exact_hk_research_panel_slot_fair_when_1500_retry_is_rea
 
 
 def test_due_slot_recovers_research_panel_lanes_in_dependency_order(tmp_path):
-    _complete_post_close_slots(tmp_path, ("1500", "1555", "1605", "1608", "1710"))
+    _complete_post_close_slots(tmp_path, ("1500", "1555", "1605", "1610", "1710"))
     at_1725 = scheduler.resolve_due_slot(
         now=datetime(2026, 8, 17, 17, 25, tzinfo=SHANGHAI),
         ledger_root=tmp_path,
@@ -136,7 +185,7 @@ def test_due_slot_recovers_research_panel_lanes_in_dependency_order(tmp_path):
 def test_due_slot_prioritizes_missing_2140_critical_review_after_wake_until_midnight(tmp_path):
     _complete_post_close_slots(
         tmp_path,
-        ("1500", "1555", "1605", "1608", "1700", "1710", "1720", "1730", "1800", "2030", "2040", "2050", "2105", "2108", "2110", "2115"),
+        ("1500", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800", "2030", "2040", "2050", "2105", "2108", "2110", "2115"),
     )
     due = scheduler.resolve_due_slot(
         now=datetime(2026, 8, 17, 22, 3, tzinfo=SHANGHAI),
@@ -162,7 +211,7 @@ def test_due_slot_prioritizes_missing_2140_critical_review_after_wake_until_midn
 def test_due_slot_critical_2140_receipt_unblocks_later_hourly_slot(tmp_path):
     _complete_post_close_slots(
         tmp_path,
-        ("1500", "1555", "1605", "1608", "1700", "1710", "1720", "1730", "1800", "2030", "2040", "2050", "2105", "2108", "2110", "2115"),
+        ("1500", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800", "2030", "2040", "2050", "2105", "2108", "2110", "2115"),
     )
     receipt = tmp_path / "receipts" / "live" / "20260817" / "2140" / "ok.dispatch-receipt.json"
     receipt.parent.mkdir(parents=True)
@@ -183,7 +232,7 @@ def test_due_slot_critical_2140_receipt_unblocks_later_hourly_slot(tmp_path):
 def test_due_slot_at_2140_is_exact_critical_slot(tmp_path):
     _complete_post_close_slots(
         tmp_path,
-        ("1500", "1555", "1605", "1608", "1700", "1710", "1720", "1730", "1800", "2030", "2040", "2050", "2105", "2108", "2110", "2115"),
+        ("1500", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800", "2030", "2040", "2050", "2105", "2108", "2110", "2115"),
     )
     due = scheduler.resolve_due_slot(
         now=datetime(2026, 8, 17, 21, 40, tzinfo=SHANGHAI),
@@ -218,6 +267,161 @@ def _failed_receipt_for_date(
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"status": "FAILED", "finished_at": finished_at, "run_id": run_id, **extra}
     path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("failure_class", "attempt_state", "blocked"),
+    (
+        ("INTRADAY_REQUEST_ATTEMPTED", "REQUEST_ATTEMPTED", True),
+        ("INTRADAY_ATTEMPT_UNKNOWN", "ATTEMPT_UNKNOWN", True),
+        ("INTRADAY_NO_REQUEST", "FAILED_NO_REQUEST", False),
+    ),
+)
+def test_intraday_attempt_state_controls_retry_before_release_reset(
+    tmp_path, failure_class, attempt_state, blocked
+):
+    _failed_receipt_for_date(
+        tmp_path,
+        business_date="20260824",
+        slot="0925",
+        run_id="intraday-attempt",
+        finished_at="2026-08-24T00:00:00Z",
+        failure_class=failure_class,
+        release_id="old-release",
+        upstream_fingerprint="old-upstream",
+        workload_results=[
+            {
+                "workload_id": "v4_intraday_research",
+                "status": "FAILED",
+                "failure_class": failure_class,
+                "attempt_state": attempt_state,
+            }
+        ],
+    )
+
+    result = scheduler._slot_blocks_retry(
+        tmp_path,
+        "20260824",
+        "0925",
+        moment=datetime(2026, 8, 24, 9, 30, tzinfo=SHANGHAI),
+        release_id="new-release",
+        upstream_fingerprint="new-upstream",
+    )
+    assert result is blocked
+
+
+def test_intraday_child_attempt_state_overrides_aggregate_no_request(tmp_path):
+    _failed_receipt_for_date(
+        tmp_path,
+        business_date="20260914",
+        slot="0925",
+        run_id="contradictory-intraday-attempt",
+        finished_at="2026-09-14T01:25:00Z",
+        failure_class="INTRADAY_NO_REQUEST",
+        workload_results=[
+            {
+                "workload_id": "v4_intraday_research",
+                "status": "FAILED",
+                "failure_class": "INTRADAY_NO_REQUEST",
+                "attempt_state": "REQUEST_ATTEMPTED",
+            }
+        ],
+    )
+
+    assert scheduler._intraday_attempt_outcome(
+        [
+            {
+                "failure_class": "INTRADAY_NO_REQUEST",
+                "workload_results": [
+                    {
+                        "workload_id": "v4_intraday_research",
+                        "status": "FAILED",
+                        "failure_class": "INTRADAY_NO_REQUEST",
+                        "attempt_state": "REQUEST_ATTEMPTED",
+                    }
+                ],
+            }
+        ]
+    ) == "BLOCK"
+    assert scheduler._slot_blocks_retry(
+        tmp_path,
+        "20260914",
+        "0925",
+        moment=datetime(2026, 9, 14, 9, 31, tzinfo=SHANGHAI),
+    ) is True
+
+
+@pytest.mark.parametrize(
+    ("intraday_status", "attempt_state"),
+    (("SUCCEEDED", ""), ("SUCCEEDED", "REQUEST_ATTEMPTED"), ("ALREADY_EXISTS", "")),
+)
+def test_successful_intraday_child_does_not_block_stage_retry(
+    tmp_path, intraday_status, attempt_state
+):
+    _failed_receipt_for_date(
+        tmp_path,
+        business_date="20260824",
+        slot="1500",
+        run_id=f"stage-sibling-{intraday_status.lower()}",
+        finished_at="2026-09-14T04:02:59Z",
+        failure_class="UPSTREAM_NOT_READY",
+        workload_results=[
+            {
+                "workload_id": "v4_intraday_research",
+                "status": intraday_status,
+                "attempt_state": attempt_state,
+            },
+            {
+                "workload_id": "fupan_close_materials",
+                "status": "FAILED",
+                "failure_class": "UPSTREAM_NOT_READY",
+                "attempt_state": "STAGE_GATE_FAILED",
+            },
+        ],
+    )
+
+    assert scheduler._slot_blocks_retry(
+        tmp_path,
+        "20260824",
+        "1500",
+        moment=datetime(2026, 9, 14, 13, 0, tzinfo=SHANGHAI),
+    ) is False
+
+
+@pytest.mark.parametrize(
+    ("status", "attempt_state", "failure_class"),
+    (
+        ("FAILED", "REQUEST_IN_FLIGHT", "INTRADAY_ATTEMPT_UNKNOWN"),
+        ("FAILED", "ATTEMPT_UNKNOWN", "INTRADAY_ATTEMPT_UNKNOWN"),
+        ("", "", ""),
+        ("SUCCEEDED", "REQUEST_IN_FLIGHT", ""),
+        ("SUCCEEDED", "", "INTRADAY_ATTEMPT_UNKNOWN"),
+    ),
+)
+def test_intraday_failed_or_malformed_child_blocks_stage_retry(
+    status, attempt_state, failure_class
+):
+    result = scheduler._intraday_attempt_outcome(
+        [
+            {
+                "failure_class": "UPSTREAM_NOT_READY",
+                "workload_results": [
+                    {
+                        "workload_id": "v4_intraday_research",
+                        "status": status,
+                        "attempt_state": attempt_state,
+                        "failure_class": failure_class,
+                    },
+                    {
+                        "workload_id": "fupan_close_materials",
+                        "status": "FAILED",
+                        "failure_class": "UPSTREAM_NOT_READY",
+                    },
+                ],
+            }
+        ]
+    )
+    assert result == "BLOCK"
 
 
 def test_0830_and_0840_have_independent_catchup_owners(tmp_path):
@@ -578,21 +782,26 @@ def test_main_non_trading_stage_slot_skips_candidate_prerequisite_and_delegates_
             AssertionError("non-trading stage slots must not materialize candidate input")
         ),
     )
-    monkeypatch.setattr(
-        scheduler,
-        "run_scheduled_slot",
-        lambda **kwargs: calls.append(kwargs["slot"])
-        or {
-            # The real catalog still contains a NATURAL_DAY hourly workload;
-            # dispatcher owns whether the overall terminal result is
-            # SUCCEEDED or NON_TRADING_DAY for this date/slot.
+    def fake_run(**kwargs):
+        from contracts.runtime_tasks import DispatchMode, DispatchRequest
+        from infrastructure.scheduling.catalog import load_workload_catalog
+
+        calls.append(kwargs["slot"])
+        workload = next(
+            item for item in load_workload_catalog().workloads
+            if item.workload_id == "fupan_close_materials"
+        )
+        request = DispatchRequest("20260823", "20260823", "20260823", "1500", DispatchMode.LIVE)
+        kwargs["workload_guard"](workload, request, None)
+        return {
             "status": "SUCCEEDED",
             "slot": kwargs["slot"],
             "production_allowed": False,
             "buy_gate_updated": False,
             "orders_sent": False,
-        },
-    )
+        }
+
+    monkeypatch.setattr(scheduler, "run_scheduled_slot", fake_run)
 
     assert scheduler.main(
         [
@@ -613,18 +822,17 @@ def test_main_non_trading_stage_slot_skips_candidate_prerequisite_and_delegates_
     assert payload["status"] == "SUCCEEDED"
     assert payload["slot"] == "1500"
     assert calls == ["1500"]
-    assert payload["shared_acquisition"] == {
-        "status": "SKIPPED_NON_TRADING_DAY",
-        "production_allowed": False,
-        "buy_gate_updated": False,
-        "orders_sent": False,
-    }
+    assert payload["shared_acquisition"]["status"] == "SKIPPED_NON_TRADING_DAY"
+    assert payload["shared_acquisition"]["stage_workload_id"] == "fupan_close_materials"
+    assert payload["shared_acquisition"]["production_allowed"] is False
+    assert payload["shared_acquisition"]["buy_gate_updated"] is False
+    assert payload["shared_acquisition"]["orders_sent"] is False
     assert payload["production_allowed"] is False
     assert payload["buy_gate_updated"] is False
     assert payload["orders_sent"] is False
 
 
-def test_main_trading_stage_slot_keeps_candidate_prerequisite_before_dispatch(
+def test_main_trading_stage_slot_lazily_gates_selected_stage_after_independent_work(
     monkeypatch, tmp_path, capsys
 ):
     calls: list[str] = []
@@ -647,19 +855,37 @@ def test_main_trading_stage_slot_keeps_candidate_prerequisite_before_dispatch(
         scheduler,
         "consume_shared_stage_selection",
         lambda **_kwargs: calls.append("consume")
-        or {"status": "CONSUME_ONLY", "production_allowed": False, "buy_gate_updated": False, "orders_sent": False},
-    )
-    monkeypatch.setattr(
-        scheduler,
-        "run_scheduled_slot",
-        lambda **kwargs: {
-            "status": "SUCCEEDED",
-            "slot": kwargs["slot"],
+        or {
+            "status": "CONSUME_ONLY",
+            "selection_status": "READY",
             "production_allowed": False,
             "buy_gate_updated": False,
             "orders_sent": False,
         },
     )
+    def fake_run(**kwargs):
+        from contracts.runtime_tasks import DispatchMode, DispatchRequest
+        from infrastructure.scheduling.catalog import load_workload_catalog
+
+        workloads = {
+            item.workload_id: item for item in load_workload_catalog().workloads
+        }
+        request = DispatchRequest("20260824", "20260824", "20260824", "1500", DispatchMode.LIVE)
+        calls.append("intraday")
+        assert kwargs["workload_guard"](workloads["v4_intraday_research"], request, None) is None
+        calls.append("stage")
+        gate = kwargs["workload_guard"](workloads["fupan_close_materials"], request, None)
+        assert gate["selection_status"] == "READY"
+        assert kwargs["workload_guard"](workloads["fupan_close_materials"], request, None) == gate
+        return {
+            "status": "SUCCEEDED",
+            "slot": kwargs["slot"],
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+
+    monkeypatch.setattr(scheduler, "run_scheduled_slot", fake_run)
 
     assert scheduler.main(
         [
@@ -678,4 +904,46 @@ def test_main_trading_stage_slot_keeps_candidate_prerequisite_before_dispatch(
 
     payload = json.loads(capsys.readouterr().out)
     assert payload["status"] == "SUCCEEDED"
-    assert calls == ["ensure", "consume"]
+    assert calls == ["intraday", "stage", "ensure", "consume"]
+
+
+def test_main_does_not_gate_disabled_stage_slot_before_dispatch(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(scheduler, "current_slot", lambda: ("20260824", "0925"))
+    monkeypatch.setattr(
+        scheduler,
+        "ensure_stage_candidate_input",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            AssertionError("disabled stage workload must not run a pre-dispatch gate")
+        ),
+    )
+    seen = {}
+
+    def fake_run(**kwargs):
+        seen["workload_guard"] = kwargs["workload_guard"]
+        return {
+            "status": "SUCCEEDED",
+            "slot": kwargs["slot"],
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+
+    monkeypatch.setattr(scheduler, "run_scheduled_slot", fake_run)
+    assert scheduler.main(
+        [
+            "--data-root",
+            str(tmp_path / "data"),
+            "--ledger-root",
+            str(tmp_path / "ledger"),
+            "--stage-selection-root",
+            str(tmp_path / "stage-selection"),
+            "--date",
+            "20260824",
+            "--slot",
+            "0925",
+        ]
+    ) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert callable(seen["workload_guard"])
+    assert payload["shared_acquisition"]["status"] == "NOT_STAGE_WORKLOAD_SELECTED"

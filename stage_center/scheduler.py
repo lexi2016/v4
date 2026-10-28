@@ -47,7 +47,10 @@ def evaluate_due(
     calendar = {name: state.value for name, state in states.items()}
     if any(state is TradingDayState.UNKNOWN for state in states.values()):
         return DueDecision(stage_id=stage_id, trade_date=trade_date, status="CANNOT_CONFIRM", scheduled_at=None, idempotency_key=key, calendar=calendar)
-    if states["a_share"] is TradingDayState.NON_TRADING_DAY and states["hk_connect"] is TradingDayState.NON_TRADING_DAY:
+    if (
+        states["a_share"] is TradingDayState.NON_TRADING_DAY
+        and states["hk_securities"] is TradingDayState.NON_TRADING_DAY
+    ):
         return DueDecision(stage_id=stage_id, trade_date=trade_date, status="SKIPPED_NON_TRADING_DAY", scheduled_at=None, idempotency_key=key, calendar=calendar)
     try:
         scheduled_at = datetime.strptime(f"{trade_date} {stage.cutoff}", "%Y%m%d %H:%M:%S").replace(tzinfo=evaluated_at.tzinfo)
@@ -61,7 +64,9 @@ def evaluate_due(
         status = "CANNOT_CONFIRM"
     elif evaluated_at < scheduled_at:
         status = "NOT_DUE"
-    elif evaluated_at == scheduled_at:
+    # launchd StartCalendarInterval has minute resolution; retain the exact
+    # data cutoff above, then allow dispatch within that scheduled minute.
+    elif evaluated_at.replace(second=0, microsecond=0) == scheduled_at.replace(second=0, microsecond=0):
         status = "DUE"
     else:
         status = "LATE_CATCHUP_REPLAY"
@@ -102,7 +107,7 @@ def dry_run_schedule(*, candidate_input_root: Path | str, trade_date: str, outpu
         return result
     if all(
         state is TradingDayState.NON_TRADING_DAY
-        for state in (states["a_share"], states["hk_connect"])
+        for state in (states["a_share"], states["hk_securities"])
     ):
         result = {
             "schema_version": "stage_center.schedule_receipt.v1",

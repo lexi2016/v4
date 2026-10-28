@@ -205,6 +205,11 @@ def test_transformer_identity_change_forces_one_rebuild(
         slot="1200",
         mode="REPLAY",
     )
+    store = HourlyResearchStore(data_root)
+    payload_path = data_root / store._relative("20260730", "1200", "REPLAY")
+    receipt_path = data_root / store._receipt_relative("20260730", "1200", "REPLAY")
+    original_payload_bytes = payload_path.read_bytes()
+    original_receipt_bytes = receipt_path.read_bytes()
     original_builder = hourly_runner.build_research_archive
     rebuild_count = 0
 
@@ -243,6 +248,8 @@ def test_transformer_identity_change_forces_one_rebuild(
     assert rebuild_count == 1
     assert changed_identity["payload_sha256"] == first["payload_sha256"]
     assert cached_changed_identity["payload_sha256"] == first["payload_sha256"]
+    assert payload_path.read_bytes() == original_payload_bytes
+    assert receipt_path.read_bytes() == original_receipt_bytes
 
 
 def test_matching_retry_fails_closed_on_transform_validation_tamper(

@@ -9,7 +9,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import csv
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping
 
@@ -43,6 +44,25 @@ _SAFETY = {
 
 class MorningNewsNotReady(ValueError):
     """Fewer than three exact-date readable articles are currently public."""
+
+
+@dataclass(frozen=True)
+class _FetchedPage:
+    text: str
+    # Kept compatible with source_hashes: hash decoded HTML re-encoded as UTF-8,
+    # not the original HTTP wire bytes.
+    response_sha256: str
+    captured_at_utc: str
+
+
+def _now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _utc_iso(value: datetime) -> str:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("capture clock must return a timezone-aware datetime")
+    return value.astimezone(timezone.utc).isoformat(timespec="microseconds")
 
 
 def load_shared_candidate_registry(root: Path | str, trade_date: str) -> list[dict[str, Any]]:
@@ -116,7 +136,7 @@ def load_shared_candidate_registry(root: Path | str, trade_date: str) -> list[di
     return registry
 
 
-def _default_fetcher(url: str) -> str:
+def _default_fetcher(url: str, *, clock: Callable[[], datetime] = _now_utc) -> _FetchedPage:
     request = urllib.request.Request(
         url,
         headers={
@@ -126,17 +146,42 @@ def _default_fetcher(url: str) -> str:
         },
     )
     with urllib.request.urlopen(request, timeout=30) as response:
-        raw = response.read()
         content_type = response.headers.get("content-type", "")
+        raw = response.read()
+        # Record the successful response-body completion while the response is
+        # still in scope. Failed reads never produce a timestamp.
+        captured_at_utc = _utc_iso(clock())
     match = re.search(r"charset=([\w-]+)", content_type, re.I)
-    return raw.decode(match.group(1) if match else "utf-8", errors="replace")
+    text = raw.decode(match.group(1) if match else "utf-8", errors="replace")
+    return _FetchedPage(
+        text=text,
+        response_sha256=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        captured_at_utc=captured_at_utc,
+    )
 
 
-def _fetch_with_retry(fetcher: Callable[[str], str], url: str) -> str:
+def _fetch_with_retry(
+    fetcher: Callable[[str], str | _FetchedPage],
+    url: str,
+    *,
+    clock: Callable[[], datetime],
+) -> _FetchedPage:
     last_error: Exception | None = None
     for attempt in range(_FETCH_ATTEMPTS):
         try:
-            return fetcher(url)
+            if fetcher is _default_fetcher:
+                fetched = _default_fetcher(url, clock=clock)
+            else:
+                fetched = fetcher(url)
+            if isinstance(fetched, _FetchedPage):
+                return fetched
+            if not isinstance(fetched, str):
+                raise TypeError("public morning news fetcher must return HTML text")
+            return _FetchedPage(
+                text=fetched,
+                response_sha256=hashlib.sha256(fetched.encode("utf-8")).hexdigest(),
+                captured_at_utc=_utc_iso(clock()),
+            )
         except (OSError, TimeoutError, urllib.error.URLError) as exc:
             last_error = exc
             if attempt + 1 >= _FETCH_ATTEMPTS:
@@ -166,9 +211,64 @@ def _title(raw: str) -> str:
     return re.sub(r"[-_—]+韭研公社$", "", html.unescape(match.group(1)).strip())
 
 
-def _published(raw: str) -> str:
-    match = re.search(r"20\d{2}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}", raw)
-    return match.group(0) if match else ""
+def _article_publication(raw: str, article_id: str) -> dict[str, str] | None:
+    """Read only the main article's hydration create_time, never body/comments.
+
+    The current source exposes a naive create_time and an author-area label,
+    but no timezone. Keep that value as source evidence without assigning one.
+    Explicit offsets and epoch values can be normalized to UTC.
+    """
+
+    route_match = re.search(r'routePath:"((?:\\.|[^"\\])*)"', raw)
+    if not route_match or _decode_js(route_match.group(1)) != f"/a/{article_id}":
+        return None
+    start_match = re.search(r"data:\s*\[\s*\{\s*data:\s*\{\s*article_id:", raw)
+    if not start_match:
+        return None
+    end_match = re.search(r"\}\s*,\s*commendPage\s*:", raw[start_match.end() :])
+    if not end_match:
+        return None
+    article_data = raw[start_match.start() : start_match.end() + end_match.start() + 1]
+    time_match = re.search(
+        r',\s*create_time\s*:\s*(?:"(?P<string>(?:\\.|[^"\\])*)"|(?P<epoch>\d{10}|\d{13}))(?=\s*[,}])',
+        article_data,
+    )
+    if not time_match:
+        return None
+
+    if time_match.group("epoch") is not None:
+        raw_value = time_match.group("epoch")
+        seconds = int(raw_value) / (1000 if len(raw_value) == 13 else 1)
+        published_at = datetime.fromtimestamp(seconds, timezone.utc).isoformat(timespec="microseconds")
+        return {
+            "published_at": published_at,
+            "source_published_at_raw": raw_value,
+            "source_published_at_field": "window.__NUXT__.data[0].data.create_time",
+            "source_published_at_timezone_status": "EXPLICIT_EPOCH_UTC",
+            "published_at_utc": published_at,
+        }
+
+    raw_value = _decode_js(time_match.group("string"))
+    if not re.fullmatch(
+        r"20\d{2}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?",
+        raw_value,
+    ):
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    publication = {
+        "published_at": raw_value,
+        "source_published_at_raw": raw_value,
+        "source_published_at_field": "window.__NUXT__.data[0].data.create_time",
+        "source_published_at_timezone_status": (
+            "EXPLICIT_OFFSET" if parsed.tzinfo is not None and parsed.utcoffset() is not None else "TIMEZONE_UNKNOWN"
+        ),
+    }
+    if parsed.tzinfo is not None and parsed.utcoffset() is not None:
+        publication["published_at_utc"] = parsed.astimezone(timezone.utc).isoformat(timespec="microseconds")
+    return publication
 
 
 def _body(raw: str) -> str:
@@ -264,18 +364,23 @@ def _search_records(raw: str, trade_date: str, slot: str) -> list[dict[str, str]
 def _article_from_candidate(
     row: Mapping[str, str],
     trade_date: str,
-    fetcher: Callable[[str], str],
+    fetcher: Callable[[str], str | _FetchedPage],
     source_hashes: dict[str, str],
     attempted_urls: set[str],
+    clock: Callable[[], datetime],
 ) -> dict[str, Any] | None:
     url = f"{_ARTICLE_BASE}{row['id']}"
     if url in attempted_urls:
         return None
     attempted_urls.add(url)
-    raw = _fetch_with_retry(fetcher, url)
-    source_hashes[url] = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    page = _fetch_with_retry(fetcher, url, clock=clock)
+    raw = page.text
+    source_hashes[url] = page.response_sha256
     title = _title(raw) or str(row.get("title") or "")
-    published_at = _published(raw) or str(row.get("published_at") or "")
+    publication = _article_publication(raw, str(row["id"]))
+    if publication is None:
+        return None
+    published_at = publication["published_at"]
     category = _slot(title, trade_date)
     body = _body(raw)
     if not category or not published_at.startswith(datetime.strptime(trade_date, "%Y%m%d").strftime("%Y-%m-%d")):
@@ -283,7 +388,10 @@ def _article_from_candidate(
     return {
         "title": title,
         "url": url,
-        "published_at": published_at,
+        **publication,
+        "fetched_at": page.captured_at_utc,
+        "capture_time_source": "SUCCESSFUL_ARTICLE_RESPONSE_BODY_READ",
+        "capture_time_evidence_sha256": page.response_sha256,
         "category": category,
         "body_status": "ARTICLE_BODY_READ" if len(body) >= 300 else "ARTICLE_BODY_PARTIAL",
         "body_excerpt_preview": body[:220],
@@ -301,12 +409,14 @@ def _readable_articles(articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def collect_public_morning_news(
     trade_date: str,
     *,
-    fetcher: Callable[[str], str] = _default_fetcher,
+    fetcher: Callable[[str], str | _FetchedPage] = _default_fetcher,
+    clock: Callable[[], datetime] = _now_utc,
     candidate_registry: Mapping[str, Mapping[str, Any]] | Iterable[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     trade_date = validate_date(trade_date)
     iso_date = datetime.strptime(trade_date, "%Y%m%d").strftime("%Y-%m-%d")
-    homepage = _fetch_with_retry(fetcher, _BASE)
+    homepage_page = _fetch_with_retry(fetcher, _BASE, clock=clock)
+    homepage = homepage_page.text
     homepage_candidates = [
         row
         for row in _homepage_records(homepage)
@@ -314,10 +424,10 @@ def collect_public_morning_news(
         and any(keyword in row["title"] for keyword in _KEYWORDS)
     ]
     articles: list[dict[str, Any]] = []
-    source_hashes = {"homepage": hashlib.sha256(homepage.encode("utf-8")).hexdigest()}
+    source_hashes = {"homepage": homepage_page.response_sha256}
     attempted_urls: set[str] = set()
     for row in homepage_candidates:
-        article = _article_from_candidate(row, trade_date, fetcher, source_hashes, attempted_urls)
+        article = _article_from_candidate(row, trade_date, fetcher, source_hashes, attempted_urls, clock)
         if article is not None:
             articles.append(article)
 
@@ -328,10 +438,10 @@ def collect_public_morning_news(
     for slot in missing_slots:
         search_url = _search_url(slot, trade_date)
         search_fallback_urls.append(search_url)
-        search_raw = _fetch_with_retry(fetcher, search_url)
-        source_hashes[search_url] = hashlib.sha256(search_raw.encode("utf-8")).hexdigest()
-        for row in _search_records(search_raw, trade_date, slot):
-            article = _article_from_candidate(row, trade_date, fetcher, source_hashes, attempted_urls)
+        search_page = _fetch_with_retry(fetcher, search_url, clock=clock)
+        source_hashes[search_url] = search_page.response_sha256
+        for row in _search_records(search_page.text, trade_date, slot):
+            article = _article_from_candidate(row, trade_date, fetcher, source_hashes, attempted_urls, clock)
             if article is not None:
                 articles.append(article)
         readable = _readable_articles(articles)

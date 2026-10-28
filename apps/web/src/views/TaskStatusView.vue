@@ -26,6 +26,9 @@ const props = defineProps<TaskStatusViewProps>();
 const payload = ref<TaskStatusResponse | null>(null);
 const loading = ref(false);
 const error = ref("");
+const executionWarnings = computed(() => (payload.value?.cannot_confirm ?? []).filter((item) => !item.startsWith("GRAPH_TASK_REGISTRATIONS_")));
+const graphWarnings = computed(() => (payload.value?.cannot_confirm ?? []).filter((item) => item.startsWith("GRAPH_TASK_REGISTRATIONS_")));
+let requestVersion = 0;
 let controller: AbortController | null = null;
 
 const statusPriority: Record<string, number> = {
@@ -47,6 +50,7 @@ function duration(row: LogicalWorkloadStatus) {
 }
 
 async function refresh() {
+  const version = ++requestVersion;
   controller?.abort();
   controller = new AbortController();
   payload.value = null;
@@ -58,13 +62,14 @@ async function refresh() {
   }
   loading.value = true;
   try {
-    payload.value = await loadTaskStatus(props.date, controller.signal);
+    const result = await loadTaskStatus(props.date, controller.signal);
+    if (version === requestVersion) payload.value = result;
   } catch (caught) {
-    if (!(caught instanceof DOMException && caught.name === "AbortError")) {
-      error.value = "任务状态读取失败，请检查 V3.5 状态 API。";
+    if (version === requestVersion && !(caught instanceof DOMException && caught.name === "AbortError")) {
+      error.value = "任务状态读取失败，请检查 V4 状态 API。";
     }
   } finally {
-    loading.value = false;
+    if (version === requestVersion) loading.value = false;
   }
 }
 
@@ -98,14 +103,20 @@ onBeforeUnmount(() => controller?.abort());
     <template v-else-if="payload">
       <div class="task-counts">
         <article><span>逻辑任务</span><strong>{{ payload.logical_workload_count }}</strong></article>
-        <article><span>执行 owner</span><strong>{{ payload.active_owner_count }}</strong></article>
+        <article><span>已配置 owner</span><strong>{{ payload.active_owner_count }}</strong></article>
         <article><span>别名</span><strong>{{ payload.alias_count }}</strong></article>
         <article><span>退役 owner</span><strong>{{ payload.retired_owner_count }}</strong></article>
         <article><span>图谱待确认</span><strong>{{ payload.task_registration_count }}</strong></article>
       </div>
-      <div v-if="payload.cannot_confirm.length" class="task-evidence-warning" role="alert">
+      <section class="task-evidence-warning" aria-label="实际调度证据">
+        <strong>{{ payload.scheduler_observation?.status || "CANNOT_CONFIRM" }}</strong>
+        <p>同日回执：{{ payload.scheduler_observation?.receipt_count ?? "未核验" }} · 当前进程存活：{{ payload.scheduler_observation?.process_status || "CANNOT_CONFIRM" }}</p>
+        <p>{{ payload.scheduler_observation?.message || "仅有配置/声明，不构成部署或进程运行证明。" }}</p>
+        <p>任务行证据：{{ payload.scheduler_observation?.logical_row_evidence || "DECLARED_ONLY" }} · {{ payload.scheduler_observation?.receipt_namespace || "缺回执根" }}</p>
+      </section>
+      <div v-if="executionWarnings.length" class="task-evidence-warning" role="alert">
         <strong>CANNOT_CONFIRM · 证据降级</strong>
-        <span v-for="item in payload.cannot_confirm" :key="item">{{ item }}</span>
+        <span v-for="item in executionWarnings" :key="item">{{ item }}</span>
       </div>
       <div class="task-workload-list" aria-label="逻辑任务执行状态">
         <article v-for="row in logicalRows" :key="row.workload_id" data-workload-row :class="`task-${row.status.toLowerCase()}`">
@@ -120,17 +131,18 @@ onBeforeUnmount(() => controller?.abort());
           <details v-if="row.receipt_path"><summary>查看 receipt</summary><code>{{ row.receipt_path }}</code></details>
         </article>
       </div>
-      <section v-if="payload.groups.registrations.length" class="task-registration-panel" aria-label="图谱待确认任务">
-        <h3>图谱待确认任务 · 不会执行</h3>
+      <details v-if="payload.groups.registrations.length" class="task-registration-panel" aria-label="图谱待确认任务">
+        <summary>图谱待确认任务 · 不会执行</summary>
+        <p v-for="item in graphWarnings" :key="item">{{ item }}</p>
         <p>这些记录只有冻结图谱身份，没有可证明的执行 owner、命令或市场日期语义。</p>
         <div class="task-registration-list">
           <article v-for="row in payload.groups.registrations" :key="row.graph_task_spec_id" data-registration-row>
             <strong>{{ row.legacy_task_id }}</strong>
-            <span>{{ row.status }} · enabled=false · execution_allowed=false</span>
+            <span>{{ row.status }} · enabled={{ row.enabled }} · execution_allowed={{ row.execution_allowed }}</span>
             <code>{{ row.graph_task_spec_id }}</code>
           </article>
         </div>
-      </section>
+      </details>
       <details class="task-diagnostics">
         <summary>身份映射与诊断</summary>
         <section><h3>执行 owner</h3><p v-for="row in payload.groups.active_owners" :key="row.owner_id">{{ row.owner_id }} → {{ row.workload_id }}</p></section>

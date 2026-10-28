@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import { loadSelectionExact } from "../api/selection";
 import { loadManagerPreselectionExact } from "../api/managerPreselection";
 import { loadManagerStageSelectionExact } from "../api/managerStageSelection";
+import { loadManagerWorkbenchResearchExact } from "../api/managerWorkbenchResearch";
 import { loadManagerDecisionExact } from "../api/managerDecision";
+import { ANNOUNCEMENT_PREOPEN_WINDOW, requestManagerAnnouncementAnalysis } from "../api/managerAnnouncementAnalysis";
 import {
   ensureManagerResearchExact,
   loadManagerResearchExact,
@@ -46,6 +48,13 @@ import type {
   ManagerStageSelectionResponse,
   ManagerStageSelectionRow,
 } from "../contracts/managerStageSelection";
+import type {
+  ManagerWorkbenchCandidate,
+  ManagerWorkbenchResearchResponse,
+  ManagerWorkbenchResearchStatus,
+  ManagerWorkbenchSourceRef,
+  ManagerWorkbenchSummaryItem,
+} from "../contracts/managerWorkbenchResearch";
 import {
   STAGE_REASON_CONTRIBUTION_KEYS,
   buildStageReasonContributions,
@@ -69,6 +78,9 @@ import type {
   ManagerDecisionRole,
   ManagerDecisionRow,
 } from "../contracts/managerDecision";
+import { conditionIndicators, conditionGaps, candidateHeadline, readableStatus } from "../manager-selection/adapters/workbenchPresentation";
+import { mountCatalystObservations } from "../manager-selection/catalystObservationPanel";
+import { renderAnnouncementAnalysis, renderAnnouncementPreopenWindow } from "../manager-selection/announcementAnalysis";
 import "../styles/manager-selection.css";
 
 type ViewState =
@@ -152,12 +164,17 @@ const queueEntries = ref<ManagerResearchQueueEntry[]>([]);
 const managerDecisionPayload = ref<ManagerDecisionResponse | null>(null);
 const managerResearchPayload = ref<ManagerResearchResponse | null>(null);
 const researchLanePayload = ref<ResearchLane | null>(null);
+const workbenchResearchPayload = ref<ManagerWorkbenchResearchResponse | null>(null);
+const workbenchResearchState = ref<ManagerWorkbenchResearchStatus | "IDLE" | "LOADING" | "CANNOT_CONFIRM">("IDLE");
+const workbenchResearchIssue = ref("");
+const workbenchSourceFilter = ref<"ALL" | "STAGE" | "CLOSE_DISCOVERY" | "CONTINUOUS_TRACKING">("ALL");
 const errorMessage = ref("");
 const searchQuery = ref("");
 const bucketFilter = ref("ALL");
 const readingStockFilter = ref("ALL");
 const readingDateUpperBound = ref("");
 let requestSequence = 0;
+let workbenchReadSequence = 0;
 let activeRequestController: AbortController | null = null;
 const REQUEST_TIMEOUT_MS = 10_000;
 // The event/news worker is server-owned and a healthy refresh can take about
@@ -1285,6 +1302,161 @@ const managerResearchPriorityRows = computed<readonly ManagerPriorityRow[]>(() =
   managerStagePending.value ? [] : managerPrioritySummary.value.researchPriorityRows.slice(0, 2),
 );
 
+const workbenchResearchCandidates = computed<readonly ManagerWorkbenchCandidate[]>(() =>
+  workbenchResearchState.value === "LOADING"
+    ? []
+    : workbenchResearchPayload.value?.candidates || [],
+);
+
+const WORKBENCH_SOURCE_LABELS: Readonly<Record<string, string>> = {
+  STAGE: "原有阶段候选",
+  CLOSE_DISCOVERY: "15:30尾盘发现",
+  CONTINUOUS_TRACKING: "持续跟踪",
+};
+
+function workbenchSymbolKey(value: unknown): string {
+  const code = normalizeManagerHkCode(value);
+  return code ? `HK.${code}` : "";
+}
+
+function workbenchCandidateForStage(row: ManagerPriorityRow): ManagerWorkbenchCandidate | null {
+  const key = workbenchSymbolKey(row.code);
+  return workbenchResearchCandidates.value.find((candidate) => workbenchSymbolKey(candidate.symbol) === key) || null;
+}
+
+function workbenchSourceLabels(candidate: ManagerWorkbenchCandidate | null, includeStage = false): string[] {
+  const labels = includeStage ? [WORKBENCH_SOURCE_LABELS.STAGE] : [];
+  if (candidate) {
+    for (const lane of candidate.source_lanes) {
+      labels.push(WORKBENCH_SOURCE_LABELS[lane] || lane);
+    }
+  }
+  return [...new Set(labels)];
+}
+
+function workbenchCandidateMatchesFilter(candidate: ManagerWorkbenchCandidate): boolean {
+  const filter = workbenchSourceFilter.value;
+  if (filter === "ALL") return true;
+  if (filter === "STAGE") return false;
+  return candidate.source_lanes.includes(filter);
+}
+
+const visibleManagerPriorityRows = computed<readonly ManagerPriorityRow[]>(() => {
+  const filter = workbenchSourceFilter.value;
+  if (filter === "ALL" || filter === "STAGE") {
+    return managerPriorityRows.value;
+  }
+  return managerPriorityRows.value.filter((row) => {
+    const candidate = workbenchCandidateForStage(row);
+    return candidate?.source_lanes.includes(filter) === true;
+  });
+});
+
+const discoveryOnlyCandidates = computed<readonly ManagerWorkbenchCandidate[]>(() => {
+  if (workbenchSourceFilter.value === "STAGE") return [];
+  const stageSymbols = new Set(managerPriorityRows.value.map((row) => workbenchSymbolKey(row.code)).filter(Boolean));
+  return workbenchResearchCandidates.value
+    .filter((candidate) => !stageSymbols.has(workbenchSymbolKey(candidate.symbol)))
+    .filter(workbenchCandidateMatchesFilter);
+});
+
+function workbenchCoverageText(payload: ManagerWorkbenchResearchResponse | null): string {
+  if (!payload) return "覆盖未知";
+  const { eligible_count: eligible, covered_count: covered, missing_count: missing } = payload.coverage;
+  if (eligible === null || covered === null || missing === null) return "覆盖范围尚未核实";
+  return `覆盖 ${covered}/${eligible} · 缺失 ${missing}`;
+}
+
+function workbenchStatusText(status: string): string {
+  return readableStatus(status);
+}
+
+function workbenchShortReason(candidate: ManagerWorkbenchCandidate | null): string {
+  if (candidate?.research_priority?.level === "UPGRADED_WATCH") return "新增直接催化，继续核对交易条件";
+  if (candidate?.source_lanes.includes("CONTINUOUS_TRACKING")) return "前日观察延续，仍需核对完整条件";
+  return "已记录当前行情，逐项核对研究条件";
+}
+
+function workbenchAudit(value: unknown): string {
+  return JSON.stringify(value, null, 2);
+}
+
+function isWorkbenchResearchLoading(): boolean {
+  return workbenchResearchState.value === "LOADING";
+}
+
+function workbenchRecordText(value: unknown, keys: readonly string[]): string {
+  const record = asRecord(value);
+  if (!record) return "CANNOT_CONFIRM";
+  const parts = keys.flatMap((key) => {
+    const item = record[key];
+    if (item === undefined || item === null || item === "") return [];
+    return [`${key}=${displayValue(item)}`];
+  });
+  return parts.length ? parts.join(" · ") : "CANNOT_CONFIRM";
+}
+
+function workbenchTurnoverText(candidate: ManagerWorkbenchCandidate | null): string {
+  const turnover = candidate?.turnover_amount;
+  if (!turnover) return "金额资料待补";
+  const value = turnover.value;
+  const currency = turnover.currency;
+  const unit = turnover.unit;
+  if (typeof value !== "number" || !Number.isFinite(value) || currency !== "HKD" || unit !== "HKD") {
+    return typeof value === "number" && Number.isFinite(value)
+      ? `${value.toLocaleString("zh-HK")}（原始金额；币种/单位待核）` : "金额资料待补";
+  }
+  return `${value.toLocaleString("zh-HK")} 港元`;
+}
+
+function workbenchPlanList(candidate: ManagerWorkbenchCandidate | null, key: string): string {
+  const plan = asRecord(candidate?.observation_plan);
+  const value = plan?.[key];
+  if (!Array.isArray(value)) return "CANNOT_CONFIRM";
+  const rows = value.filter((item): item is string => typeof item === "string" && Boolean(item.trim()));
+  return rows.length ? rows.join("；") : "CANNOT_CONFIRM";
+}
+
+function workbenchSummaryItems(kind: "focus" | "theme_changes" | "risk_upgrades"): readonly ManagerWorkbenchSummaryItem[] {
+  return workbenchResearchPayload.value?.priority_summary[kind] || [];
+}
+
+function workbenchCandidateDomId(candidateId: string): string {
+  return `workbench-candidate-${candidateId.replace(/[^A-Za-z0-9_-]+/g, "-")}`;
+}
+
+function workbenchStageCandidateDomId(row: ManagerPriorityRow): string | undefined {
+  const candidate = workbenchCandidateForStage(row);
+  return candidate ? workbenchCandidateDomId(candidate.candidate_id) : undefined;
+}
+
+function workbenchConfirmedEvidenceText(candidate: ManagerWorkbenchCandidate | null): string {
+  if (!candidate) return "CANNOT_CONFIRM";
+  const confirmed = candidate.predicates
+    .filter((predicate) => predicate.value === true)
+    .map((predicate) => `${predicate.predicate_id || "UNKNOWN_PREDICATE"}${predicate.reason ? `：${predicate.reason}` : ""}`);
+  return confirmed.length ? confirmed.join("；") : "CANNOT_CONFIRM";
+}
+
+function workbenchSourceText(source: ManagerWorkbenchSourceRef): string {
+  const lane = source.lane ? (WORKBENCH_SOURCE_LABELS[source.lane] || source.lane) : "UNKNOWN_LANE";
+  const date = source.source_date || "CANNOT_CONFIRM_DATE";
+  const run = source.run_id || "CANNOT_CONFIRM_RUN";
+  const reason = source.reason || "CANNOT_CONFIRM_REASON";
+  return `${lane} · date=${date} · run=${run} · ${reason}`;
+}
+
+function focusWorkbenchSummaryItem(item: ManagerWorkbenchSummaryItem): void {
+  if (!item.candidate_id) return;
+  workbenchSourceFilter.value = "ALL";
+  globalThis.setTimeout(() => {
+    const node = document.getElementById(workbenchCandidateDomId(item.candidate_id || ""));
+    node?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const summary = node?.querySelector("summary") as HTMLElement | null;
+    summary?.focus();
+  }, 0);
+}
+
 const managerPriorityReady = computed(() => managerStageCanRender.value
   && !managerStagePending.value
   && managerStageRows.value.length > 0);
@@ -1295,10 +1467,14 @@ const managerStageCount = computed<number | null>(() => {
 });
 
 const managerStageCountLabel = computed(() => {
-  if (managerStagePending.value) return "09:40 前待生成（数量未知）";
-  return managerStageCount.value === null
-    ? "数量未知（CANNOT_CONFIRM）"
-    : `${managerStageCount.value} 条`;
+  const shownStage = managerStageCanRender.value && !managerStagePending.value ? visibleManagerPriorityRows.value.length : 0;
+  const shown = shownStage + discoveryOnlyCandidates.value.length;
+  if (workbenchSourceFilter.value === "CLOSE_DISCOVERY" && !["READY", "READY_EMPTY", "PARTIAL"].includes(workbenchResearchState.value))
+    return `当前显示 ${shown} 条 · 尾盘无有效结果`;
+  if (managerStagePending.value && workbenchSourceFilter.value !== "CLOSE_DISCOVERY")
+    return `当前显示 ${shown} 条 · 原Stage尚待生成`;
+  return `当前显示 ${shown} 条`;
+
 });
 
 const managerPriorityHeadline = computed(() => {
@@ -2336,6 +2512,31 @@ async function refreshCatalystForDate(): Promise<void> {
   }
 }
 
+async function loadWorkbenchResearchForDate(context: RequestContext): Promise<void> {
+  const { date, sequence } = context;
+  const laneSequence = ++workbenchReadSequence;
+  const attempt = requestAttempt(context.controller.signal);
+  try {
+    const result = await withRequestTimeout(
+      attempt,
+      loadManagerWorkbenchResearchExact(date, { signal: attempt.signal }),
+    );
+    if (!isCurrentRequest(sequence, date) || laneSequence !== workbenchReadSequence) return;
+    workbenchResearchPayload.value = result;
+    workbenchResearchState.value = result.status;
+    workbenchResearchIssue.value = result.cannot_confirm.join("；");
+  } catch (reason) {
+    if (!isCurrentRequest(sequence, date) || laneSequence !== workbenchReadSequence) return;
+    workbenchResearchPayload.value = null;
+    workbenchResearchState.value = "FAILED";
+    workbenchResearchIssue.value = reason instanceof Error
+      ? `研究发现读取失败（${reason.message}${attempt.timedOut() ? "；请求超时" : ""}）。`
+      : "研究发现读取失败（响应不可确认）。";
+  } finally {
+    attempt.dispose();
+  }
+}
+
 async function loadResearchLaneForDate(context: RequestContext): Promise<void> {
   const { date, sequence } = context;
   const attempt = requestAttempt(context.controller.signal);
@@ -2425,12 +2626,14 @@ async function loadDate(date: string): Promise<void> {
   managerDecisionPayload.value = null;
   managerResearchPayload.value = null;
   researchLanePayload.value = null;
+  workbenchResearchPayload.value = null;
   preselectionState.value = "LOADING";
   queueState.value = "LOADING";
   stageState.value = "LOADING";
   managerResearchState.value = "LOADING";
   catalystRefreshState.value = "IDLE";
   researchLaneState.value = "LOADING";
+  workbenchResearchState.value = "LOADING";
   preselectionIssue.value = "";
   queueIssue.value = "";
   stageIssue.value = "";
@@ -2438,6 +2641,8 @@ async function loadDate(date: string): Promise<void> {
   managerResearchIssue.value = "";
   catalystRefreshIssue.value = "";
   researchLaneIssue.value = "";
+  workbenchResearchIssue.value = "";
+  workbenchSourceFilter.value = "ALL";
   queueEntries.value = [];
   errorMessage.value = "";
   state.value = "LOADING";
@@ -2447,6 +2652,7 @@ async function loadDate(date: string): Promise<void> {
   void loadStageForDate(context);
   void loadManagerResearchForDate(context);
   void loadResearchLaneForDate(context);
+  void loadWorkbenchResearchForDate(context);
   void loadManagerDecisionForDate(context);
 }
 
@@ -2515,6 +2721,19 @@ function onDateInputChange(event: Event): void {
   void loadDate(date);
 }
 
+function refreshWorkbenchResearch(): void {
+  const date = requestedDate.value;
+  if (!isRealDate(date)) return;
+  const controller = activeRequestController || new AbortController();
+  if (!activeRequestController) activeRequestController = controller;
+  // Do not keep showing an older exact-date result while the same-date
+  // refresh is in flight.  The status panel remains visible and says LOADING.
+  workbenchResearchPayload.value = null;
+  workbenchResearchState.value = "LOADING";
+  workbenchResearchIssue.value = "";
+  void loadWorkbenchResearchForDate({ date, sequence: requestSequence, controller });
+}
+
 function refresh(): void {
   if (isRealDate(requestedDate.value)) void loadDate(requestedDate.value);
 }
@@ -2528,27 +2747,134 @@ onBeforeUnmount(() => {
   activeRequestController?.abort();
   requestSequence += 1;
 });
+// Independent material-owner lane: neither Stage success nor 15:30 quotes
+// controls this host. The child renderer owns only this empty DOM element.
+const catalystObservationHost = ref<HTMLElement | null>(null);
+let disposeCatalystObservations: (() => void) | undefined;
+watch([catalystObservationHost, requestedDate], ([host, date]) => {
+  disposeCatalystObservations?.();
+  disposeCatalystObservations = host && date ? mountCatalystObservations(host, date) : undefined;
+}, { flush: "post" });
+onBeforeUnmount(() => disposeCatalystObservations?.());
+
+const ANNOUNCEMENT_PREOPEN_TARGET = ANNOUNCEMENT_PREOPEN_WINDOW.targetDate;
+const announcementAnalysisHost = ref<HTMLElement | null>(null);
+const announcementMode = ref<"PREOPEN" | "DAILY">("PREOPEN");
+const announcementPublicationDate = ref<string | undefined>(ANNOUNCEMENT_PREOPEN_TARGET);
+let announcementAnalysisSequence = 0;
+let announcementAnalysisController: AbortController | undefined;
+
+function setAnnouncementMode(mode: "PREOPEN" | "DAILY"): void {
+  announcementMode.value = mode;
+  if (mode === "PREOPEN") announcementPublicationDate.value = ANNOUNCEMENT_PREOPEN_TARGET;
+  else if (!announcementPublicationDate.value) announcementPublicationDate.value = ANNOUNCEMENT_PREOPEN_TARGET;
+}
+
+function onAnnouncementPublicationDateChange(publicationDate: string | undefined): void {
+  announcementMode.value = "DAILY";
+  announcementPublicationDate.value = publicationDate;
+}
+
+watch(requestedDate, (date) => {
+  if (date === ANNOUNCEMENT_PREOPEN_TARGET) {
+    announcementMode.value = "PREOPEN";
+    announcementPublicationDate.value = ANNOUNCEMENT_PREOPEN_TARGET;
+  } else {
+    announcementMode.value = "DAILY";
+    announcementPublicationDate.value = undefined;
+  }
+}, { flush: "sync" });
+
+watch([announcementAnalysisHost, requestedDate, announcementMode, announcementPublicationDate],
+  ([host, date, mode, publicationDate]) => {
+    const sequence = ++announcementAnalysisSequence;
+    announcementAnalysisController?.abort();
+    announcementAnalysisController = undefined;
+    if (!host || date !== ANNOUNCEMENT_PREOPEN_TARGET) return;
+    const windowRequest = mode === "PREOPEN"
+      ? { windowStart: ANNOUNCEMENT_PREOPEN_WINDOW.windowStart, asOf: ANNOUNCEMENT_PREOPEN_WINDOW.asOf }
+      : undefined;
+    const exactPublicationDate = mode === "PREOPEN"
+      ? ANNOUNCEMENT_PREOPEN_TARGET
+      : publicationDate;
+    if (mode === "PREOPEN") renderAnnouncementPreopenWindow(host, undefined, undefined);
+    else renderAnnouncementAnalysis(host, undefined, publicationDate, undefined, onAnnouncementPublicationDateChange);
+    const controller = new AbortController();
+    announcementAnalysisController = controller;
+    const timeout = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    void requestManagerAnnouncementAnalysis(date, exactPublicationDate, controller.signal, windowRequest)
+      .then((value) => {
+        if (sequence !== announcementAnalysisSequence || controller.signal.aborted || !announcementAnalysisHost.value) return;
+        if (mode === "PREOPEN") renderAnnouncementPreopenWindow(host, value, undefined);
+        else renderAnnouncementAnalysis(host, value, publicationDate, undefined, onAnnouncementPublicationDateChange);
+      })
+      .catch((reason: unknown) => {
+        if (sequence !== announcementAnalysisSequence || !announcementAnalysisHost.value) return;
+        const failure = controller.signal.aborted ? "ANNOUNCEMENT_ANALYSIS_REQUEST_TIMEOUT_OR_ABORT"
+          : reason instanceof Error ? reason.message : "ANNOUNCEMENT_ANALYSIS_RESPONSE_UNVERIFIED";
+        if (mode === "PREOPEN") renderAnnouncementPreopenWindow(host, undefined, failure);
+        else renderAnnouncementAnalysis(host, undefined, publicationDate, failure,
+          onAnnouncementPublicationDateChange);
+      })
+      .finally(() => globalThis.clearTimeout(timeout));
+  }, { flush: "post" });
+onBeforeUnmount(() => {
+  announcementAnalysisSequence += 1;
+  announcementAnalysisController?.abort();
+});
 </script>
 
 <template>
   <main class="manager-selection-page" :data-state="state">
     <header class="manager-hero">
       <div class="manager-hero__copy">
-        <p class="manager-kicker">V4 · STOCK INVESTMENT RESEARCH MANAGER / EXACT LEDGER</p>
+        <p class="manager-kicker">V4 · 股票研究</p>
         <h1>经理选股工作台</h1>
         <p class="manager-hero__description">
-          先阅读固定候选的公开资料，再查看财务、阶段与证据边界。资料阅读、行动分类与交易边界分开保留。
+          先看股票、理由和数据时间，再逐项核对条件。先核具体变化，再核预期；原Stage与BUY保留在来源详情。
         </p>
       </div>
       <div class="manager-hero__date" aria-label="当前目标交易日">
-        <span>目标交易日</span>
+        <span>原Stage参考日</span>
         <strong>{{ requestedDate || "未选择" }}</strong>
         <small>研究日期 · exact</small>
       </div>
     </header>
 
-    <section class="manager-controls" aria-label="工作台控制">
-      <label for="manager-selection-date">选择目标交易日</label>
+    <section
+      v-if="requestedDate === ANNOUNCEMENT_PREOPEN_TARGET"
+      class="manager-panel manager-catalyst-panel"
+      aria-label="港股公告盘前窗口与当日目录研究"
+    >
+      <div class="panel-heading">
+        <div>
+          <p class="manager-eyebrow">HONG KONG ANNOUNCEMENTS / REVIEWED RESEARCH ONLY</p>
+          <h2>港股公告研究</h2>
+          <p class="manager-catalyst-description">盘前窗口显示事后来源与语义研究；实际截止时资格单独核验，未知状态不会计作当时可用。</p>
+        </div>
+      </div>
+      <div role="group" aria-label="公告研究时间范围">
+        <button type="button" :aria-pressed="announcementMode === 'PREOPEN'" @click="setAnnouncementMode('PREOPEN')">
+          09:20 前窗口回看
+        </button>
+        <button type="button" :aria-pressed="announcementMode === 'DAILY'" @click="setAnnouncementMode('DAILY')">
+          12 日全日目录
+        </button>
+      </div>
+      <p v-if="announcementMode === 'DAILY'" class="manager-stage-note">
+        当前为全日目录视图；09:20 后公告可能包含在内，不能解释为盘前可得信息。
+      </p>
+      <div ref="announcementAnalysisHost" class="manager-announcement-analysis" aria-live="polite"></div>
+    </section>
+
+
+
+    <div ref="catalystObservationHost" class="manager-catalyst-host"></div>
+
+    <details class="manager-original-sources" aria-label="原来源排序与交易门禁">
+      <summary>原来源排序、Stage与BUY门禁（各自口径，不是另一份关注榜）</summary>
+    <section class="manager-controls" aria-label="原Stage来源控制">
+      <label for="manager-selection-date">原Stage来源日期</label>
       <input
         id="manager-selection-date"
         type="date"
@@ -2556,8 +2882,447 @@ onBeforeUnmount(() => {
         :value="dateInputValue(requestedDate)"
         @change="onDateInputChange"
       />
-      <button type="button" :disabled="state === 'LOADING' || !requestedDate" @click="refresh">刷新 exact 账本</button>
-      <span class="manager-controls__route">资料按目标日上限读取；固定候选全部保留，来源缺失明确显示</span>
+      <button type="button" :disabled="state === 'LOADING' || !requestedDate" @click="refresh">刷新当日研究</button>
+      <span class="manager-controls__route">此处只切换原来源日期；上方关注区使用独立计划目标日</span>
+    </section>
+
+    <section
+      v-if="managerStagePending"
+      class="manager-priority-pending"
+      aria-label="经理决策优先级待生成"
+      role="status"
+    >
+      <p class="manager-eyebrow">DECISION PRIORITY / PENDING SLOT</p>
+      <h2>09:40 阶段候选待生成</h2>
+      <p>{{ managerPriorityHeadline }}</p>
+      <small>当前时间按 Asia/Shanghai 判断；页面不轮询、不把空响应解释为不建议买入。</small>
+    </section>
+
+    <section
+      v-if="managerPriorityReady || Boolean(workbenchResearchPayload) || (workbenchResearchState !== 'IDLE' && workbenchResearchState !== 'LOADING')"
+      id="manager-priority-dashboard"
+      class="manager-priority-dashboard"
+      aria-label="经理决策优先级摘要"
+    >
+      <template v-if="managerPriorityReady">
+      <header class="manager-priority-dashboard__header">
+        <div>
+          <p class="manager-eyebrow">EXECUTION GATE + INVESTMENT ADVICE / RESEARCH ONLY</p>
+          <h2>原来源的行动分类与财务比较</h2>
+          <p>{{ managerPriorityHeadline }}</p>
+        </div>
+        <span class="status-pill status-pill--research">{{ managerPrioritySummary.retainedCount }} 条阶段行</span>
+      </header>
+
+      <div class="manager-priority-counts" aria-label="五类行动计数">
+        <article v-for="category in PRIORITY_CATEGORIES" :key="category">
+          <span>{{ PRIORITY_CATEGORY_LABELS[category] }}</span>
+          <strong>{{ managerPrioritySummary.counts[category] }}</strong>
+        </article>
+      </div>
+
+      <div class="manager-priority-counts manager-priority-counts--research" aria-label="五类研究意见计数">
+        <article v-for="action in RESEARCH_ADVICE_ACTIONS" :key="`research-count-${action}`">
+          <span>{{ RESEARCH_ADVICE_LABELS[action] }}</span>
+          <strong>{{ managerPrioritySummary.researchAdviceCounts[action] ?? "CANNOT_CONFIRM" }}</strong>
+        </article>
+      </div>
+
+      <section class="manager-research-priority" aria-label="独立研究优先级">
+        <header>
+          <div>
+            <p class="manager-eyebrow">RESEARCH PRIORITY / ACTION INDEPENDENT</p>
+            <h3>研究优先级（独立于行动分类）</h3>
+          </div>
+          <span>前二条</span>
+        </header>
+        <p class="manager-research-priority__note">执行门来自 exact 阶段字段；独立投资研究意见只消费 V4 研究产品中的显式 advice。两者都保持 RESEARCH_ONLY，不互相升级或替代。</p>
+        <p v-if="!managerResearchPriorityRows.length" class="manager-research-priority__empty" role="status">
+          尚无可比较首选：同报告期官方结构化指标尚未物化或无法确认。
+        </p>
+        <div v-else class="manager-research-priority__list">
+          <article v-for="(row, index) in managerResearchPriorityRows" :key="`research-${row.code}-${index}`">
+            <header>
+              <strong>研究优先级 #{{ index + 1 }} · {{ row.name }}</strong>
+              <span>{{ row.code }} · 执行门={{ row.executionGate }} · 研究意见={{ row.investmentAdvice.label || "CANNOT_CONFIRM" }}</span>
+            </header>
+            <p><strong>后端优先级依据：</strong>{{ row.investmentAdvice.priorityReason || row.investmentAdvice.summary || row.preference.summary }}</p>
+            <p><strong>研究覆盖范围：</strong>{{ managerInvestmentAdviceCoverage(row) }}</p>
+            <p><strong>数值 basis：</strong>{{ managerInvestmentBasisSummary(row) }}</p>
+            <p v-if="row.investmentAdvice.risks.length"><strong>已知风险/反证：</strong>{{ row.investmentAdvice.risks.join("；") }}</p>
+            <small>尚未满足行动条件：{{ row.buyConditions.length ? row.buyConditions.join("；") : "等待 exact 阶段与条件证据" }}</small>
+            <details v-if="row.investmentAdvice.basis.length" class="manager-research-priority__evidence">
+              <summary>展开 basis 来源定位</summary>
+              <ul>
+                <li v-for="(basis, basisIndex) in row.investmentAdvice.basis" :key="`${row.code}-research-basis-${basisIndex}`">
+                  <span>{{ basis.dimension || "UNKNOWN" }}={{ basis.state || "CANNOT_CONFIRM" }} · {{ basis.period || "CANNOT_CONFIRM_PERIOD" }} · {{ basis.currency || "CANNOT_CONFIRM_CURRENCY" }}/{{ basis.unit || "CANNOT_CONFIRM_UNIT" }}</span>
+                  <ul v-if="basis.factRefs.length">
+                    <li v-for="(ref, refIndex) in basis.factRefs" :key="`${row.code}-research-ref-${basisIndex}-${refIndex}`"><code>{{ managerInvestmentBasisRefText(ref) }}</code></li>
+                  </ul>
+                </li>
+              </ul>
+            </details>
+          </article>
+        </div>
+      </section>
+      </template>
+
+      <section
+        v-if="workbenchResearchState !== 'LOADING' && (managerPriorityReady || Boolean(workbenchResearchPayload) || workbenchResearchState !== 'IDLE')"
+        class="manager-workbench-research-summary"
+        aria-label="经理工作台研究发现摘要"
+      >
+      <div class="panel-heading">
+        <div>
+          <p class="manager-eyebrow">当日研究概览</p>
+          <h2>重点关注 · 主题变化 · 风险上升</h2>
+        </div>
+        <div class="manager-workbench-summary-actions">
+          <span class="status-pill" :class="`status-pill--${statusClass(workbenchResearchState)}`">{{ workbenchStatusText(workbenchResearchState) }}</span>
+          <button type="button" :disabled="isWorkbenchResearchLoading()" @click="refreshWorkbenchResearch">只读刷新研究发现</button>
+        </div>
+      </div>
+      <div class="manager-workbench-research-meta">
+        <strong>{{ workbenchStatusText(workbenchResearchState) }}</strong>
+        <span>{{ workbenchCoverageText(workbenchResearchPayload) }}</span>
+        <span>15:30尾盘研究 · 刷新不启动扫描</span>
+        <span v-if="workbenchResearchPayload?.as_of">数据截至 {{ workbenchResearchPayload.as_of }}</span>
+      </div>
+      <p v-if="workbenchResearchIssue" class="manager-stage-note manager-stage-note--gap" role="status">{{ workbenchResearchState === 'FAILED' ? '研究发现读取失败：请求或执行未完成，旧结果已清除。' : '部分研究资料待补，已核实的观察单独展示。' }}</p>
+      <details class="manager-stage-audit">
+        <summary>展开研究运行审计</summary>
+        <p>{{ workbenchResearchState }} · {{ workbenchResearchIssue }}</p>
+        <p v-if="workbenchResearchPayload">RESEARCH_ONLY={{ workbenchResearchPayload.RESEARCH_ONLY }} · production_allowed={{ workbenchResearchPayload.production_allowed }} · buy_gate_updated={{ workbenchResearchPayload.buy_gate_updated }} · orders_sent={{ workbenchResearchPayload.orders_sent }}</p>
+        <pre>{{ workbenchAudit(workbenchResearchPayload) }}</pre>
+      </details>
+      <div class="manager-workbench-summary-grid">
+        <article>
+          <header><span>重点关注</span><strong>{{ workbenchSummaryItems("focus").length }}</strong></header>
+          <button
+            v-for="item in workbenchSummaryItems('focus')"
+            :key="item.item_id || `${item.name}-${item.occurred_at}`"
+            type="button"
+            :disabled="!item.candidate_id"
+            @click="focusWorkbenchSummaryItem(item)"
+          ><b>{{ item.name }}</b><span>{{ item.reason }}</span><small>{{ item.occurred_at }} · {{ item.evidence_status }}</small></button>
+          <p v-if="!workbenchSummaryItems('focus').length">无已确认重点项；不生成占位利好。</p>
+        </article>
+        <article>
+          <header><span>主题变化</span><strong>{{ workbenchSummaryItems("theme_changes").length }}</strong></header>
+          <button
+            v-for="item in workbenchSummaryItems('theme_changes')"
+            :key="item.item_id || `${item.name}-${item.occurred_at}`"
+            type="button"
+            :disabled="!item.candidate_id"
+            @click="focusWorkbenchSummaryItem(item)"
+          ><b>{{ item.name }}</b><span>{{ item.reason }}</span><small>{{ item.occurred_at }} · {{ item.evidence_status }}</small></button>
+          <p v-if="!workbenchSummaryItems('theme_changes').length">主题变化尚未确认。</p>
+        </article>
+        <article class="manager-workbench-summary-grid__risk">
+          <header><span>风险上升</span><strong>{{ workbenchSummaryItems("risk_upgrades").length }}</strong></header>
+          <button
+            v-for="item in workbenchSummaryItems('risk_upgrades')"
+            :key="item.item_id || `${item.name}-${item.occurred_at}`"
+            type="button"
+            :disabled="!item.candidate_id"
+            @click="focusWorkbenchSummaryItem(item)"
+          ><b>{{ item.name }}</b><span>{{ item.reason }}</span><small>{{ item.occurred_at }} · {{ item.evidence_status }}</small></button>
+          <p v-if="!workbenchSummaryItems('risk_upgrades').length">没有已验证的风险升级；不等于风险为零。</p>
+        </article>
+      </div>
+      </section>
+    </section>
+
+    <details class="manager-meta" aria-label="日期与运行元数据"><summary>展开日期与运行审计</summary>
+      <dl>
+        <div><dt>target_trade_date</dt><dd>{{ valueOrCannotConfirm(payload?.target_trade_date || requestedDate) }}</dd></div>
+        <div><dt>source_date</dt><dd>{{ valueOrCannotConfirm(payload?.source_date) }}</dd></div>
+        <div><dt>status</dt><dd><span class="status-pill" :class="`status-pill--${statusClass(displayStatus)}`">{{ displayStatus }}</span></dd></div>
+        <div><dt>origin</dt><dd>{{ valueOrCannotConfirm(payload?.origin) }}</dd></div>
+        <div><dt>generated_at</dt><dd>{{ valueOrCannotConfirm(payload?.generated_at) }}</dd></div>
+        <div><dt>cutoff_at</dt><dd>{{ valueOrCannotConfirm(payload?.cutoff_at) }}</dd></div>
+      </dl>
+    </details>
+
+    <section v-if="state === 'NO_DATE_SELECTED'" class="manager-state manager-state--neutral" aria-label="未选择日期">
+      <p class="manager-eyebrow">NO DATE SELECTED</p>
+      <h2>请选择 exact target date</h2>
+      <p>此页面不会读取 latest；选择目标交易日后才会发起一条 exact-date GET 请求。</p>
+    </section>
+    <section v-else-if="state === 'LOADING'" class="manager-state manager-state--loading" aria-busy="true" role="status">
+      <p class="manager-eyebrow">READING EXACT LEDGER</p>
+      <h2>正在读取 {{ requestedDate }}</h2>
+      <p>等待 V3.5 返回同一 target_trade_date 的不可变研究账本。</p>
+    </section>
+    <section v-else-if="state === 'STALE' || state === 'ERROR' || state === 'REJECTED'" class="manager-state manager-state--error" role="alert">
+      <p class="manager-eyebrow">DATE / READ EVIDENCE</p>
+      <h2>{{ state === "STALE" ? "日期证据未通过" : "账本读取未通过" }}</h2>
+      <p>当日研究账本读取失败；阶段与尾盘观察按各自状态展示。</p><details class="manager-stage-audit"><summary>展开账本错误审计</summary><p>{{ errorMessage }}</p></details>
+    </section>
+    <section v-else-if="state === 'NOT_MATERIALIZED' || state === 'CANNOT_CONFIRM'" class="manager-state manager-state--gap" role="status">
+      <p class="manager-eyebrow">EXACT PRODUCT GAP</p>
+      <h2>{{ state === "NOT_MATERIALIZED" ? "研究账本尚未物化" : "关键证据不可确认" }}</h2>
+      <p>研究账本暂不可用；不代表没有股票。阶段与尾盘结果在下方独立展示。</p>
+      <details class="manager-stage-audit"><summary>展开账本状态审计</summary><p>{{ state }} · {{ errorMessage }}</p></details>
+    </section>
+
+    <section
+      v-if="isRealDate(requestedDate)"
+      id="manager-stage-hk"
+      class="manager-panel manager-stage-panel"
+      aria-label="今日港股通阶段候选"
+    >
+      <div class="panel-heading">
+        <div>
+          <p class="manager-eyebrow">阶段与尾盘 · 独立研究</p>
+          <h2>港股通股票 · 阶段与尾盘观察</h2>
+        </div>
+        <span class="status-pill" :class="`status-pill--${statusClass(managerStageStatus)}`">
+          {{ managerStageCountLabel }}
+        </span>
+      </div>
+      <div class="manager-source-filter" role="group" aria-label="候选来源筛选">
+        <button type="button" :aria-pressed="workbenchSourceFilter === 'ALL'" @click="workbenchSourceFilter = 'ALL'">全部来源</button>
+        <button type="button" :aria-pressed="workbenchSourceFilter === 'STAGE'" @click="workbenchSourceFilter = 'STAGE'">原有阶段候选</button>
+        <button type="button" :aria-pressed="workbenchSourceFilter === 'CLOSE_DISCOVERY'" @click="workbenchSourceFilter = 'CLOSE_DISCOVERY'">15:30尾盘发现</button>
+        <button type="button" :aria-pressed="workbenchSourceFilter === 'CONTINUOUS_TRACKING'" @click="workbenchSourceFilter = 'CONTINUOUS_TRACKING'">持续跟踪</button>
+      </div>
+      <p v-if="stageState === 'LOADING'" class="manager-stage-note" role="status">阶段候选正在读取；尾盘观察单独展示。</p>
+      <p v-else-if="stageState === 'CANNOT_CONFIRM' || !managerStageCanRender" class="manager-stage-note manager-stage-note--gap" role="status">阶段候选暂不可用：缺少当日阶段结果。尾盘观察单独展示。</p>
+      <p v-else-if="managerStagePending" class="manager-stage-note" role="status">阶段时段尚未到达，等待当日结果。</p>
+      <p class="manager-stage-note manager-close-independent-state" role="status">尾盘研究：{{ workbenchStatusText(workbenchResearchState) }}。{{ workbenchCoverageText(workbenchResearchPayload) }}</p>
+      <details class="manager-stage-audit"><summary>展开阶段运行审计</summary>
+      <div class="manager-stage-boundary" aria-label="港股通阶段候选边界">
+        <strong>09:40补充确认 / 非09:35替代</strong>
+        <span>stage={{ MANAGER_STAGE_ID }}</span>
+        <span>market={{ MANAGER_STAGE_MARKET }}</span>
+        <span>RESEARCH_ONLY / WATCH_ONLY / 非formal / 非BUY</span>
+        <span>v4_manager_research={{ managerResearchState }}<template v-if="managerResearchCoverage(managerResearchPayload)"> {{ managerResearchCoverage(managerResearchPayload) }}</template></span>
+        <span v-if="managerResearchPayload">v4_target_trade_date={{ managerResearchPayload.target_trade_date }}</span>
+        <span v-if="managerResearchIssue">{{ managerResearchIssue }}</span>
+        <span v-if="requestedDate === '20260831' && stageState === 'READY'">09:40 controlled recovery · natural=false · formal=false · NO_TRADE / NO_BUY / 非经理入选</span>
+      </div>
+      <p v-if="stageState === 'LOADING'" class="manager-stage-note" >
+        正在读取 exact stage-center 响应；数量未知（CANNOT_CONFIRM）。独立研究发现若已有有效 exact 产物，仍可在下方按自身状态显示。
+      </p>
+      <p v-else-if="stageState === 'CANNOT_CONFIRM' || !managerStageCanRender" class="manager-stage-note manager-stage-note--gap" >
+        Stage 数量未知（CANNOT_CONFIRM）；{{ stageIssue || "HK stage 证据不可确认" }}。不使用 A 股或 unified_rows fallback，也不阻断独立研究发现按自身状态显示。
+      </p>
+      <p v-else-if="managerStagePending" class="manager-stage-note manager-stage-note--pending" >
+        09:40 阶段槽尚未到时；当前空响应只表示待生成，不是投资判断。数量未知（CANNOT_CONFIRM）。独立研究发现不会把 Stage 升级为 READY。
+      </p>
+      </details>
+      <div class="manager-workbench-candidate-lanes">
+      <div v-if="managerStageCanRender && !managerStagePending && visibleManagerPriorityRows.length" class="manager-stage-grid" aria-label="按决策优先级排序的阶段候选">
+        <article
+          v-for="(priorityRow, index) in visibleManagerPriorityRows"
+          :key="managerStageCardKey(priorityRow.stageRow, index)"
+          :id="workbenchStageCandidateDomId(priorityRow)"
+          class="manager-stage-card"
+          :class="`manager-stage-card--${priorityRow.category.toLowerCase()}`"
+        >
+          <header class="manager-stage-card__header">
+            <div>
+              <p class="manager-priority-card__rank">优先级 #{{ index + 1 }} · 阶段排名 #{{ priorityRow.stageRank ?? "CANNOT_CONFIRM" }}</p>
+              <h3>{{ priorityRow.name }}</h3>
+              <code>{{ priorityRow.code }}</code>
+            </div>
+            <div class="manager-stage-card__badges">
+              <span class="manager-stage-card__rank">#{{ managerStageMetricValue(priorityRow.stageRow, "rank") }}</span>
+              <span class="status-pill" :class="`status-pill--${statusClass(priorityRow.category)}`">{{ priorityRow.categoryLabel }}</span>
+            </div>
+          </header>
+          <p class="manager-stage-card__boundary">09:40补充确认 / 非09:35替代 · RESEARCH_ONLY / NO_TRADE / NO_BUY / 非经理入选 · 阶段排序分仅用于观察入池</p>
+          <div class="manager-candidate-source-tags" aria-label="候选来源标签">
+            <span v-for="label in workbenchSourceLabels(workbenchCandidateForStage(priorityRow), true)" :key="`${priorityRow.code}-${label}`">{{ label }}</span>
+          </div>
+          <p class="manager-priority-card__recommendation"><strong>执行门（stage）：</strong>{{ priorityRow.categoryLabel }}</p>
+          <p class="manager-priority-card__recommendation"><strong>独立投资研究意见：</strong>{{ priorityRow.investmentAdvice.label || "CANNOT_CONFIRM" }}<span v-if="priorityRow.investmentAdvice.action"> · action={{ priorityRow.investmentAdvice.action }}</span></p>
+          <p v-if="priorityRow.investmentAdvice.summary || priorityRow.investmentAdvice.priorityReason" class="manager-priority-card__reason"><strong>研究意见依据：</strong>{{ priorityRow.investmentAdvice.priorityReason || priorityRow.investmentAdvice.summary }}</p>
+          <p class="manager-priority-card__reason"><strong>研究覆盖范围：</strong>{{ managerInvestmentAdviceCoverage(priorityRow) }}</p>
+          <p class="manager-priority-card__reason"><strong>数值 basis：</strong>{{ managerInvestmentBasisSummary(priorityRow) }}</p>
+          <p v-if="priorityRow.investmentAdvice.conditions.length" class="manager-priority-card__reason"><strong>研究意见条件：</strong>{{ priorityRow.investmentAdvice.conditions.join("；") }}</p>
+          <p v-if="priorityRow.investmentAdvice.risks.length" class="manager-priority-card__gap"><strong>研究意见风险/反证：</strong>{{ priorityRow.investmentAdvice.risks.join("；") }}</p>
+          <details v-if="priorityRow.investmentAdvice.basis.length" class="manager-priority-card__evidence">
+            <summary>展开财务 basis 与来源定位</summary>
+            <ul>
+              <li v-for="(basis, basisIndex) in priorityRow.investmentAdvice.basis" :key="`${priorityRow.code}-basis-${basisIndex}`">
+                <span>{{ basis.dimension || "UNKNOWN" }}={{ basis.state || "CANNOT_CONFIRM" }} · {{ basis.currentColumn || "当前" }}={{ managerBasisValue(basis.current) }} · {{ basis.previousColumn || "前期" }}={{ managerBasisValue(basis.previous) }} · {{ basis.period || "CANNOT_CONFIRM_PERIOD" }} · {{ basis.currency || "CANNOT_CONFIRM_CURRENCY" }}/{{ basis.unit || "CANNOT_CONFIRM_UNIT" }}</span>
+                <ul v-if="basis.factRefs.length">
+                  <li v-for="(ref, refIndex) in basis.factRefs" :key="`${priorityRow.code}-basis-ref-${basisIndex}-${refIndex}`"><code>{{ managerInvestmentBasisRefText(ref) }}</code></li>
+                </ul>
+              </li>
+            </ul>
+          </details>
+          <p class="manager-priority-card__reason"><strong>关键理由：</strong>{{ priorityRow.reason }}</p>
+          <p v-if="priorityRow.evidenceGap" class="manager-priority-card__gap"><strong>证据缺口：</strong>{{ priorityRow.evidenceGap }}</p>
+          <dl class="manager-priority-card__conditions">
+            <div>
+              <dt>待满足条件</dt>
+              <dd>{{ priorityRow.buyConditions.length ? priorityRow.buyConditions.join("；") : "尚未绑定可确认的条件" }}</dd>
+            </div>
+            <div>
+              <dt>失效条件</dt>
+              <dd>{{ priorityRow.invalidationConditions.length ? priorityRow.invalidationConditions.join("；") : "CANNOT_CONFIRM" }}</dd>
+            </div>
+            <div>
+              <dt>数据时间</dt>
+              <dd>{{ priorityRow.dataTime }}</dd>
+            </div>
+          </dl>
+          <details class="manager-stage-contribution-details">
+            <summary>展开五路观察贡献（非经理入选）</summary>
+            <section class="manager-stage-contribution-panel" aria-label="观察入榜原因（非经理入选）">
+              <h4 class="manager-stage-card__reason">观察入榜原因（非经理入选）</h4>
+              <ul class="manager-stage-contributions" aria-label="五路观察贡献">
+              <li
+                v-for="key in STAGE_REASON_CONTRIBUTION_KEYS"
+                :key="`${managerStageCode(priorityRow.stageRow)}-${key}`"
+                class="manager-stage-contribution"
+                :data-contribution-status="managerStageContribution(priorityRow.stageRow, key).status"
+              >
+                <header class="manager-stage-contribution__header">
+                  <strong>{{ managerStageContribution(priorityRow.stageRow, key).label }}</strong>
+                  <span class="status-pill" :class="`status-pill--${statusClass(managerStageContribution(priorityRow.stageRow, key).status)}`">
+                    {{ managerStageContribution(priorityRow.stageRow, key).status }}
+                  </span>
+                </header>
+                <p>{{ managerStageContribution(priorityRow.stageRow, key).human_text }}</p>
+                <details v-if="managerStageContribution(priorityRow.stageRow, key).refs.length" class="manager-stage-contribution__refs">
+                  <summary>精确证据引用</summary>
+                  <ul>
+                    <li v-for="(ref, refIndex) in managerStageContribution(priorityRow.stageRow, key).refs" :key="`${managerStageCode(priorityRow.stageRow)}-${key}-ref-${refIndex}`">
+                      <code>{{ managerStageContributionRefText(ref) }}</code>
+                    </li>
+                  </ul>
+                </details>
+                <details v-if="managerStageContributionDetails(priorityRow.stageRow, key).length" class="manager-stage-contribution__background">
+                  <summary>背景来源详情（{{ managerStageContributionDetails(priorityRow.stageRow, key).length }} 条明细）</summary>
+                  <ul>
+                    <li
+                      v-for="(detail, detailIndex) in managerStageContributionDetails(priorityRow.stageRow, key)"
+                      :key="`${managerStageCode(priorityRow.stageRow)}-${key}-detail-${detailIndex}`"
+                    >
+                      <a
+                        v-if="managerStageContributionDetailUrl(detail)"
+                        :href="managerStageContributionDetailUrl(detail)"
+                        target="_blank"
+                        rel="noreferrer"
+                      >{{ detail.title }}</a>
+                      <span v-else>{{ detail.title }}</span>
+                      <small>{{ managerStageContributionDetailMeta(detail) }}</small>
+                      <small v-if="detail.note">{{ detail.note }}</small>
+                    </li>
+                  </ul>
+                </details>
+              </li>
+              </ul>
+            </section>
+          </details>
+          <section v-if="workbenchCandidateForStage(priorityRow)" class="manager-workbench-candidate-detail">
+            <h4>尾盘观察与持续跟踪</h4>
+            <p>{{ workbenchShortReason(workbenchCandidateForStage(priorityRow)) }}</p>
+            <p>{{ workbenchTurnoverText(workbenchCandidateForStage(priorityRow)) }} · 数据时间 {{ workbenchCandidateForStage(priorityRow)?.observed_at }}</p>
+            <dl class="manager-condition-grid" aria-label="四项研究条件">
+              <div v-for="condition in conditionIndicators(workbenchCandidateForStage(priorityRow))" :key="condition.id"><dt>{{ condition.label }}</dt><dd>{{ condition.state }}</dd></div>
+            </dl>
+            <p class="manager-observation-gap">{{ conditionGaps(workbenchCandidateForStage(priorityRow)) }}</p>
+          <details v-if="workbenchCandidateForStage(priorityRow)" class="manager-stage-audit">
+            <summary>展开 15:30 / 持续跟踪研究详情</summary>
+            <dl class="manager-stage-audit__fields">
+              <div><dt>发现时间</dt><dd>{{ workbenchCandidateForStage(priorityRow)?.observed_at || "CANNOT_CONFIRM" }}</dd></div>
+              <div><dt>累计成交额</dt><dd>{{ workbenchTurnoverText(workbenchCandidateForStage(priorityRow)) }}</dd></div>
+              <div><dt>量能比较</dt><dd>{{ workbenchRecordText(workbenchCandidateForStage(priorityRow)?.volume_comparison, ["state", "ratio", "baseline_as_of", "reason"]) }}</dd></div>
+              <div><dt>价格位置</dt><dd>{{ workbenchRecordText(workbenchCandidateForStage(priorityRow)?.position, ["state", "label", "reason"]) }}</dd></div>
+              <div><dt>催化概述</dt><dd>{{ workbenchRecordText(workbenchCandidateForStage(priorityRow)?.catalyst, ["summary", "status"]) }}</dd></div>
+              <div><dt>研究关注</dt><dd>{{ workbenchRecordText(workbenchCandidateForStage(priorityRow)?.research_priority, ["level", "previous_level", "change_reason"]) }}</dd></div>
+              <div><dt>为什么关注</dt><dd>{{ workbenchCandidateForStage(priorityRow)?.attention_reason || "CANNOT_CONFIRM" }}</dd></div>
+              <div><dt>已确认依据</dt><dd>{{ workbenchConfirmedEvidenceText(workbenchCandidateForStage(priorityRow)) }}</dd></div>
+              <div><dt>下一步观察</dt><dd>{{ workbenchPlanList(workbenchCandidateForStage(priorityRow), "triggers") }}</dd></div>
+              <div><dt>失效条件</dt><dd>{{ workbenchPlanList(workbenchCandidateForStage(priorityRow), "invalidation_conditions") }}</dd></div>
+              <div><dt>还缺什么</dt><dd>{{ workbenchPlanList(workbenchCandidateForStage(priorityRow), "missing_evidence") }}</dd></div>
+            </dl>
+            <details class="manager-stage-audit">
+              <summary>展开研究判定与独立来源</summary>
+              <ul class="manager-workbench-predicate-list">
+                <li v-for="predicate in workbenchCandidateForStage(priorityRow)?.predicates || []" :key="`${priorityRow.code}-${predicate.predicate_id}`">
+                  <code>{{ predicate.predicate_id || "UNKNOWN_PREDICATE" }}</code>
+                  <strong>{{ predicate.value }}</strong>
+                  <span>{{ predicate.reason || "CANNOT_CONFIRM" }}</span>
+                </li>
+              </ul>
+              <ul class="manager-workbench-source-list">
+                <li v-for="(source, sourceIndex) in workbenchCandidateForStage(priorityRow)?.sources || []" :key="`${priorityRow.code}-workbench-source-${sourceIndex}`">
+                  <span>{{ workbenchSourceText(source) }}</span>
+                  <code>{{ source.role || "UNKNOWN_ROLE" }} · sha={{ source.sha256 || "CANNOT_CONFIRM" }} · observed={{ source.observed_at || "CANNOT_CONFIRM" }} · available={{ source.available_at || "CANNOT_CONFIRM" }}</code>
+                </li>
+              </ul>
+            </details>
+          </details>
+          </section>
+          <dl class="manager-stage-metrics" aria-label="阶段盘面字段">
+            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'stage_score')"><dt>stage_score</dt><dd>{{ managerStageMetricValue(priorityRow.stageRow, "stage_score") }}</dd></div>
+            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'current_change_pct')"><dt>current_change_pct</dt><dd>{{ managerStagePercentValue(priorityRow.stageRow, "current_change_pct") }}</dd></div>
+            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'pct_chg')"><dt>pct_chg</dt><dd>{{ managerStagePercentValue(priorityRow.stageRow, "pct_chg") }}</dd></div>
+            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'volume_ratio')"><dt>volume_ratio</dt><dd>{{ managerStageMetricValue(priorityRow.stageRow, "volume_ratio") }}</dd></div>
+            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'turnover')"><dt>turnover</dt><dd>{{ managerStageMetricValue(priorityRow.stageRow, "turnover") }}</dd></div>
+          </dl>
+          <details class="manager-stage-audit">
+            <summary>展开 AI / 血缘审计详情</summary>
+            <dl class="manager-stage-audit__fields">
+              <div><dt>market</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "market") }}</dd></div>
+              <div><dt>d1_rank</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "d1_rank") }}</dd></div>
+              <div><dt>d1_score</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "d1_score") }}</dd></div>
+              <div><dt>candidate_lanes</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "candidate_lanes") }}</dd></div>
+              <div><dt>artifact_id</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "artifact_id") }}</dd></div>
+              <div><dt>run_id</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "run_id") }}</dd></div>
+              <div><dt>source_status</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "source_status") }}</dd></div>
+              <div><dt>cannot_confirm</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "cannot_confirm") }}</dd></div>
+            </dl>
+          </details>
+        </article>
+      </div>
+      <div v-if="discoveryOnlyCandidates.length" class="manager-discovery-grid" aria-label="尾盘发现与持续跟踪候选">
+        <article v-for="candidate in discoveryOnlyCandidates" :id="workbenchCandidateDomId(candidate.candidate_id)" :key="candidate.candidate_id" class="manager-discovery-card">
+          <header class="manager-discovery-card__headline">
+            <span><strong>{{ candidate.name }}</strong> <code>{{ candidate.symbol }}</code></span>
+            <span class="manager-candidate-source-tags"><b v-for="label in workbenchSourceLabels(candidate)" :key="`${candidate.candidate_id}-${label}`">{{ label }}</b></span>
+            <span class="status-pill status-pill--research">{{ candidateHeadline(candidate) }}</span>
+          </header>
+          <p v-if="candidate.data_status.includes('SIMULATED') || candidate.name.includes('SIMULATED')" class="manager-fixture-warning">SIMULATED · 仅用于隔离合同/界面测试，不是真实扫描结果。</p>
+          <p>{{ workbenchShortReason(candidate) }}</p>
+          <p>{{ workbenchTurnoverText(candidate) }} · 数据时间 {{ candidate.observed_at }}</p>
+          <dl class="manager-condition-grid" aria-label="四项研究条件">
+              <div v-for="condition in conditionIndicators(candidate)" :key="condition.id"><dt>{{ condition.label }}</dt><dd>{{ condition.state }}</dd></div>
+            </dl>
+            <p class="manager-observation-gap">{{ conditionGaps(candidate) }}</p>
+          <p class="manager-stage-card__boundary">仅供研究，不改变正式排名，不触发买入。</p>
+          <details class="manager-stage-audit">
+            <summary>展开判定与来源证据</summary>
+            <p>{{ candidate.attention_reason }}</p>
+            <p>已确认依据：{{ workbenchConfirmedEvidenceText(candidate) }}</p>
+            <p>下一步观察：{{ workbenchPlanList(candidate, "triggers") }}</p>
+            <p>失效条件：{{ workbenchPlanList(candidate, "invalidation_conditions") }}</p>
+            <ul class="manager-workbench-source-list"><li v-for="(source, sourceIndex) in candidate.sources" :key="`${candidate.candidate_id}-${sourceIndex}`">{{ workbenchSourceText(source) }}</li></ul>
+            <pre>{{ workbenchAudit(candidate) }}</pre>
+          </details>
+        </article>
+      </div>
+      <p
+        v-if="managerStageCanRender && !managerStagePending && workbenchSourceFilter === 'STAGE' && !visibleManagerPriorityRows.length"
+        class="manager-stage-note"
+        role="status"
+      >
+        本日阶段结果已返回0条；不会使用其他市场或日期替代。
+      </p>
+      <p
+        v-else-if="workbenchSourceFilter !== 'STAGE' && !discoveryOnlyCandidates.length && !(managerStageCanRender && !managerStagePending && visibleManagerPriorityRows.length)"
+        class="manager-stage-note"
+        role="status"
+      >
+        当前来源筛选无可显示候选；查看研究发现状态与覆盖信息。
+      </p>
+      </div>
     </section>
 
     <section
@@ -2658,281 +3423,6 @@ onBeforeUnmount(() => {
           <li v-if="!managerCatalystSourceCounts.length">CANNOT_CONFIRM（来源计数尚未返回）</li>
         </ul>
       </details>
-    </section>
-
-    <section
-      v-if="managerStagePending"
-      class="manager-priority-pending"
-      aria-label="经理决策优先级待生成"
-      role="status"
-    >
-      <p class="manager-eyebrow">DECISION PRIORITY / PENDING SLOT</p>
-      <h2>09:40 阶段候选待生成</h2>
-      <p>{{ managerPriorityHeadline }}</p>
-      <small>当前时间按 Asia/Shanghai 判断；页面不轮询、不把空响应解释为不建议买入。</small>
-    </section>
-
-    <section
-      v-if="managerPriorityReady"
-      id="manager-priority-dashboard"
-      class="manager-priority-dashboard"
-      aria-label="经理决策优先级摘要"
-    >
-      <header class="manager-priority-dashboard__header">
-        <div>
-          <p class="manager-eyebrow">EXECUTION GATE + INVESTMENT ADVICE / RESEARCH ONLY</p>
-          <h2>经理决策优先级</h2>
-          <p>{{ managerPriorityHeadline }}</p>
-        </div>
-        <span class="status-pill status-pill--research">{{ managerPrioritySummary.retainedCount }} 条阶段行</span>
-      </header>
-
-      <div class="manager-priority-counts" aria-label="五类行动计数">
-        <article v-for="category in PRIORITY_CATEGORIES" :key="category">
-          <span>{{ PRIORITY_CATEGORY_LABELS[category] }}</span>
-          <strong>{{ managerPrioritySummary.counts[category] }}</strong>
-        </article>
-      </div>
-
-      <div class="manager-priority-counts manager-priority-counts--research" aria-label="五类研究意见计数">
-        <article v-for="action in RESEARCH_ADVICE_ACTIONS" :key="`research-count-${action}`">
-          <span>{{ RESEARCH_ADVICE_LABELS[action] }}</span>
-          <strong>{{ managerPrioritySummary.researchAdviceCounts[action] ?? "CANNOT_CONFIRM" }}</strong>
-        </article>
-      </div>
-
-      <section class="manager-research-priority" aria-label="独立研究优先级">
-        <header>
-          <div>
-            <p class="manager-eyebrow">RESEARCH PRIORITY / ACTION INDEPENDENT</p>
-            <h3>研究优先级（独立于行动分类）</h3>
-          </div>
-          <span>前二条</span>
-        </header>
-        <p class="manager-research-priority__note">执行门来自 exact 阶段字段；独立投资研究意见只消费 V4 研究产品中的显式 advice。两者都保持 RESEARCH_ONLY，不互相升级或替代。</p>
-        <p v-if="!managerResearchPriorityRows.length" class="manager-research-priority__empty" role="status">
-          尚无可比较首选：同报告期官方结构化指标尚未物化或无法确认。
-        </p>
-        <div v-else class="manager-research-priority__list">
-          <article v-for="(row, index) in managerResearchPriorityRows" :key="`research-${row.code}-${index}`">
-            <header>
-              <strong>研究优先级 #{{ index + 1 }} · {{ row.name }}</strong>
-              <span>{{ row.code }} · 执行门={{ row.executionGate }} · 研究意见={{ row.investmentAdvice.label || "CANNOT_CONFIRM" }}</span>
-            </header>
-            <p><strong>后端优先级依据：</strong>{{ row.investmentAdvice.priorityReason || row.investmentAdvice.summary || row.preference.summary }}</p>
-            <p><strong>研究覆盖范围：</strong>{{ managerInvestmentAdviceCoverage(row) }}</p>
-            <p><strong>数值 basis：</strong>{{ managerInvestmentBasisSummary(row) }}</p>
-            <p v-if="row.investmentAdvice.risks.length"><strong>已知风险/反证：</strong>{{ row.investmentAdvice.risks.join("；") }}</p>
-            <small>尚未满足行动条件：{{ row.buyConditions.length ? row.buyConditions.join("；") : "等待 exact 阶段与条件证据" }}</small>
-            <details v-if="row.investmentAdvice.basis.length" class="manager-research-priority__evidence">
-              <summary>展开 basis 来源定位</summary>
-              <ul>
-                <li v-for="(basis, basisIndex) in row.investmentAdvice.basis" :key="`${row.code}-research-basis-${basisIndex}`">
-                  <span>{{ basis.dimension || "UNKNOWN" }}={{ basis.state || "CANNOT_CONFIRM" }} · {{ basis.period || "CANNOT_CONFIRM_PERIOD" }} · {{ basis.currency || "CANNOT_CONFIRM_CURRENCY" }}/{{ basis.unit || "CANNOT_CONFIRM_UNIT" }}</span>
-                  <ul v-if="basis.factRefs.length">
-                    <li v-for="(ref, refIndex) in basis.factRefs" :key="`${row.code}-research-ref-${basisIndex}-${refIndex}`"><code>{{ managerInvestmentBasisRefText(ref) }}</code></li>
-                  </ul>
-                </li>
-              </ul>
-            </details>
-          </article>
-        </div>
-      </section>
-    </section>
-
-    <section class="manager-meta" aria-label="日期与运行元数据">
-      <dl>
-        <div><dt>target_trade_date</dt><dd>{{ valueOrCannotConfirm(payload?.target_trade_date || requestedDate) }}</dd></div>
-        <div><dt>source_date</dt><dd>{{ valueOrCannotConfirm(payload?.source_date) }}</dd></div>
-        <div><dt>status</dt><dd><span class="status-pill" :class="`status-pill--${statusClass(displayStatus)}`">{{ displayStatus }}</span></dd></div>
-        <div><dt>origin</dt><dd>{{ valueOrCannotConfirm(payload?.origin) }}</dd></div>
-        <div><dt>generated_at</dt><dd>{{ valueOrCannotConfirm(payload?.generated_at) }}</dd></div>
-        <div><dt>cutoff_at</dt><dd>{{ valueOrCannotConfirm(payload?.cutoff_at) }}</dd></div>
-      </dl>
-    </section>
-
-    <section v-if="state === 'NO_DATE_SELECTED'" class="manager-state manager-state--neutral" aria-label="未选择日期">
-      <p class="manager-eyebrow">NO DATE SELECTED</p>
-      <h2>请选择 exact target date</h2>
-      <p>此页面不会读取 latest；选择目标交易日后才会发起一条 exact-date GET 请求。</p>
-    </section>
-    <section v-else-if="state === 'LOADING'" class="manager-state manager-state--loading" aria-busy="true" role="status">
-      <p class="manager-eyebrow">READING EXACT LEDGER</p>
-      <h2>正在读取 {{ requestedDate }}</h2>
-      <p>等待 V3.5 返回同一 target_trade_date 的不可变研究账本。</p>
-    </section>
-    <section v-else-if="state === 'STALE' || state === 'ERROR' || state === 'REJECTED'" class="manager-state manager-state--error" role="alert">
-      <p class="manager-eyebrow">DATE / READ EVIDENCE</p>
-      <h2>{{ state === "STALE" ? "日期证据未通过" : "账本读取未通过" }}</h2>
-      <p>{{ errorMessage || "未展示候选，也未用另一日期或 latest 响应替代。" }}</p>
-    </section>
-    <section v-else-if="state === 'NOT_MATERIALIZED' || state === 'CANNOT_CONFIRM'" class="manager-state manager-state--gap" role="status">
-      <p class="manager-eyebrow">EXACT PRODUCT GAP</p>
-      <h2>{{ state === "NOT_MATERIALIZED" ? "研究账本尚未物化" : "关键证据不可确认" }}</h2>
-      <p>{{ state === "NOT_MATERIALIZED" ? "研究候选尚未物化；不把缺失展示为 0 条。" : (errorMessage || "未展示不可信候选，也不把未知状态展示为 READY。") }}</p>
-    </section>
-
-    <section
-      v-if="isRealDate(requestedDate)"
-      id="manager-stage-hk"
-      class="manager-panel manager-stage-panel"
-      aria-label="今日港股通阶段候选"
-    >
-      <div class="panel-heading">
-        <div>
-          <p class="manager-eyebrow">HK CONNECT STAGE OBSERVATION</p>
-          <h2>今日港股通阶段候选 · HK_CONNECT 09:40补充观察</h2>
-        </div>
-        <span class="status-pill" :class="`status-pill--${statusClass(managerStageStatus)}`">
-          {{ managerStageCountLabel }}
-        </span>
-      </div>
-      <div class="manager-stage-boundary" aria-label="港股通阶段候选边界">
-        <strong>09:40补充确认 / 非09:35替代</strong>
-        <span>stage={{ MANAGER_STAGE_ID }}</span>
-        <span>market={{ MANAGER_STAGE_MARKET }}</span>
-        <span>RESEARCH_ONLY / WATCH_ONLY / 非formal / 非BUY</span>
-        <span>v4_manager_research={{ managerResearchState }}<template v-if="managerResearchCoverage(managerResearchPayload)"> {{ managerResearchCoverage(managerResearchPayload) }}</template></span>
-        <span v-if="managerResearchPayload">v4_target_trade_date={{ managerResearchPayload.target_trade_date }}</span>
-        <span v-if="managerResearchIssue">{{ managerResearchIssue }}</span>
-        <span v-if="requestedDate === '20260831' && stageState === 'READY'">09:40 controlled recovery · natural=false · formal=false · NO_TRADE / NO_BUY / 非经理入选</span>
-      </div>
-      <p v-if="stageState === 'LOADING'" class="manager-stage-note" role="status">
-        正在读取 exact stage-center 响应；数量未知（CANNOT_CONFIRM）。
-      </p>
-      <p v-else-if="stageState === 'CANNOT_CONFIRM' || !managerStageCanRender" class="manager-stage-note manager-stage-note--gap" role="status">
-        数量未知（CANNOT_CONFIRM）；{{ stageIssue || "HK stage 证据不可确认" }}。不使用 A 股或 unified_rows fallback。
-      </p>
-      <p v-else-if="managerStagePending" class="manager-stage-note manager-stage-note--pending" role="status">
-        09:40 阶段槽尚未到时；当前空响应只表示待生成，不是投资判断。数量未知（CANNOT_CONFIRM）。
-      </p>
-      <div v-else-if="managerPriorityRows.length" class="manager-stage-grid" aria-label="按决策优先级排序的阶段候选">
-        <article
-          v-for="(priorityRow, index) in managerPriorityRows"
-          :key="managerStageCardKey(priorityRow.stageRow, index)"
-          class="manager-stage-card"
-          :class="`manager-stage-card--${priorityRow.category.toLowerCase()}`"
-        >
-          <header class="manager-stage-card__header">
-            <div>
-              <p class="manager-priority-card__rank">优先级 #{{ index + 1 }} · 阶段排名 #{{ priorityRow.stageRank ?? "CANNOT_CONFIRM" }}</p>
-              <h3>{{ priorityRow.name }}</h3>
-              <code>{{ priorityRow.code }}</code>
-            </div>
-            <div class="manager-stage-card__badges">
-              <span class="manager-stage-card__rank">#{{ managerStageMetricValue(priorityRow.stageRow, "rank") }}</span>
-              <span class="status-pill" :class="`status-pill--${statusClass(priorityRow.category)}`">{{ priorityRow.categoryLabel }}</span>
-            </div>
-          </header>
-          <p class="manager-stage-card__boundary">09:40补充确认 / 非09:35替代 · RESEARCH_ONLY / NO_TRADE / NO_BUY / 非经理入选 · 阶段排序分仅用于观察入池</p>
-          <p class="manager-priority-card__recommendation"><strong>执行门（stage）：</strong>{{ priorityRow.categoryLabel }}</p>
-          <p class="manager-priority-card__recommendation"><strong>独立投资研究意见：</strong>{{ priorityRow.investmentAdvice.label || "CANNOT_CONFIRM" }}<span v-if="priorityRow.investmentAdvice.action"> · action={{ priorityRow.investmentAdvice.action }}</span></p>
-          <p v-if="priorityRow.investmentAdvice.summary || priorityRow.investmentAdvice.priorityReason" class="manager-priority-card__reason"><strong>研究意见依据：</strong>{{ priorityRow.investmentAdvice.priorityReason || priorityRow.investmentAdvice.summary }}</p>
-          <p class="manager-priority-card__reason"><strong>研究覆盖范围：</strong>{{ managerInvestmentAdviceCoverage(priorityRow) }}</p>
-          <p class="manager-priority-card__reason"><strong>数值 basis：</strong>{{ managerInvestmentBasisSummary(priorityRow) }}</p>
-          <p v-if="priorityRow.investmentAdvice.conditions.length" class="manager-priority-card__reason"><strong>研究意见条件：</strong>{{ priorityRow.investmentAdvice.conditions.join("；") }}</p>
-          <p v-if="priorityRow.investmentAdvice.risks.length" class="manager-priority-card__gap"><strong>研究意见风险/反证：</strong>{{ priorityRow.investmentAdvice.risks.join("；") }}</p>
-          <details v-if="priorityRow.investmentAdvice.basis.length" class="manager-priority-card__evidence">
-            <summary>展开财务 basis 与来源定位</summary>
-            <ul>
-              <li v-for="(basis, basisIndex) in priorityRow.investmentAdvice.basis" :key="`${priorityRow.code}-basis-${basisIndex}`">
-                <span>{{ basis.dimension || "UNKNOWN" }}={{ basis.state || "CANNOT_CONFIRM" }} · {{ basis.currentColumn || "当前" }}={{ managerBasisValue(basis.current) }} · {{ basis.previousColumn || "前期" }}={{ managerBasisValue(basis.previous) }} · {{ basis.period || "CANNOT_CONFIRM_PERIOD" }} · {{ basis.currency || "CANNOT_CONFIRM_CURRENCY" }}/{{ basis.unit || "CANNOT_CONFIRM_UNIT" }}</span>
-                <ul v-if="basis.factRefs.length">
-                  <li v-for="(ref, refIndex) in basis.factRefs" :key="`${priorityRow.code}-basis-ref-${basisIndex}-${refIndex}`"><code>{{ managerInvestmentBasisRefText(ref) }}</code></li>
-                </ul>
-              </li>
-            </ul>
-          </details>
-          <p class="manager-priority-card__reason"><strong>关键理由：</strong>{{ priorityRow.reason }}</p>
-          <p v-if="priorityRow.evidenceGap" class="manager-priority-card__gap"><strong>证据缺口：</strong>{{ priorityRow.evidenceGap }}</p>
-          <dl class="manager-priority-card__conditions">
-            <div>
-              <dt>待满足条件</dt>
-              <dd>{{ priorityRow.buyConditions.length ? priorityRow.buyConditions.join("；") : "尚未绑定可确认的条件" }}</dd>
-            </div>
-            <div>
-              <dt>失效条件</dt>
-              <dd>{{ priorityRow.invalidationConditions.length ? priorityRow.invalidationConditions.join("；") : "CANNOT_CONFIRM" }}</dd>
-            </div>
-            <div>
-              <dt>数据时间</dt>
-              <dd>{{ priorityRow.dataTime }}</dd>
-            </div>
-          </dl>
-          <details class="manager-stage-contribution-details">
-            <summary>展开五路观察贡献（非经理入选）</summary>
-            <section class="manager-stage-contribution-panel" aria-label="观察入榜原因（非经理入选）">
-              <h4 class="manager-stage-card__reason">观察入榜原因（非经理入选）</h4>
-              <ul class="manager-stage-contributions" aria-label="五路观察贡献">
-              <li
-                v-for="key in STAGE_REASON_CONTRIBUTION_KEYS"
-                :key="`${managerStageCode(priorityRow.stageRow)}-${key}`"
-                class="manager-stage-contribution"
-                :data-contribution-status="managerStageContribution(priorityRow.stageRow, key).status"
-              >
-                <header class="manager-stage-contribution__header">
-                  <strong>{{ managerStageContribution(priorityRow.stageRow, key).label }}</strong>
-                  <span class="status-pill" :class="`status-pill--${statusClass(managerStageContribution(priorityRow.stageRow, key).status)}`">
-                    {{ managerStageContribution(priorityRow.stageRow, key).status }}
-                  </span>
-                </header>
-                <p>{{ managerStageContribution(priorityRow.stageRow, key).human_text }}</p>
-                <details v-if="managerStageContribution(priorityRow.stageRow, key).refs.length" class="manager-stage-contribution__refs">
-                  <summary>精确证据引用</summary>
-                  <ul>
-                    <li v-for="(ref, refIndex) in managerStageContribution(priorityRow.stageRow, key).refs" :key="`${managerStageCode(priorityRow.stageRow)}-${key}-ref-${refIndex}`">
-                      <code>{{ managerStageContributionRefText(ref) }}</code>
-                    </li>
-                  </ul>
-                </details>
-                <details v-if="managerStageContributionDetails(priorityRow.stageRow, key).length" class="manager-stage-contribution__background">
-                  <summary>背景来源详情（{{ managerStageContributionDetails(priorityRow.stageRow, key).length }} 条明细）</summary>
-                  <ul>
-                    <li
-                      v-for="(detail, detailIndex) in managerStageContributionDetails(priorityRow.stageRow, key)"
-                      :key="`${managerStageCode(priorityRow.stageRow)}-${key}-detail-${detailIndex}`"
-                    >
-                      <a
-                        v-if="managerStageContributionDetailUrl(detail)"
-                        :href="managerStageContributionDetailUrl(detail)"
-                        target="_blank"
-                        rel="noreferrer"
-                      >{{ detail.title }}</a>
-                      <span v-else>{{ detail.title }}</span>
-                      <small>{{ managerStageContributionDetailMeta(detail) }}</small>
-                      <small v-if="detail.note">{{ detail.note }}</small>
-                    </li>
-                  </ul>
-                </details>
-              </li>
-              </ul>
-            </section>
-          </details>
-          <dl class="manager-stage-metrics" aria-label="阶段盘面字段">
-            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'stage_score')"><dt>stage_score</dt><dd>{{ managerStageMetricValue(priorityRow.stageRow, "stage_score") }}</dd></div>
-            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'current_change_pct')"><dt>current_change_pct</dt><dd>{{ managerStagePercentValue(priorityRow.stageRow, "current_change_pct") }}</dd></div>
-            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'pct_chg')"><dt>pct_chg</dt><dd>{{ managerStagePercentValue(priorityRow.stageRow, "pct_chg") }}</dd></div>
-            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'volume_ratio')"><dt>volume_ratio</dt><dd>{{ managerStageMetricValue(priorityRow.stageRow, "volume_ratio") }}</dd></div>
-            <div v-if="managerStageMetricAvailable(priorityRow.stageRow, 'turnover')"><dt>turnover</dt><dd>{{ managerStageMetricValue(priorityRow.stageRow, "turnover") }}</dd></div>
-          </dl>
-          <details class="manager-stage-audit">
-            <summary>展开 AI / 血缘审计详情</summary>
-            <dl class="manager-stage-audit__fields">
-              <div><dt>market</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "market") }}</dd></div>
-              <div><dt>d1_rank</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "d1_rank") }}</dd></div>
-              <div><dt>d1_score</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "d1_score") }}</dd></div>
-              <div><dt>candidate_lanes</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "candidate_lanes") }}</dd></div>
-              <div><dt>artifact_id</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "artifact_id") }}</dd></div>
-              <div><dt>run_id</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "run_id") }}</dd></div>
-              <div><dt>source_status</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "source_status") }}</dd></div>
-              <div><dt>cannot_confirm</dt><dd>{{ managerStageAuditValue(priorityRow.stageRow, "cannot_confirm") }}</dd></div>
-            </dl>
-          </details>
-        </article>
-      </div>
-      <p v-else class="manager-stage-note" role="status">
-        HK stage lane 已验证为空（0 条）；不使用 A 股或 unified_rows fallback。
-      </p>
     </section>
 
     <template v-if="payload && materialized">
@@ -3507,5 +3997,6 @@ onBeforeUnmount(() => {
         <li :class="{ confirmed: safetyFlag('orders_sent', false) === 'false' }"><code>orders_sent={{ safetyFlag('orders_sent', false) }}</code></li>
       </ul>
     </aside>
+    </details>
   </main>
 </template>

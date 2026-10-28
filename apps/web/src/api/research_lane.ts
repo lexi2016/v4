@@ -23,6 +23,14 @@ export interface ResearchLane {
   [key: string]: unknown;
 }
 
+export interface ResearchPdfDocumentDetail extends Record<string, unknown> {
+  schema_version: "v4.zsxq_pdf_document_detail.v1";
+  document_id: string;
+  research_date: string;
+  status: string;
+  pages: Array<Record<string, unknown>>;
+}
+
 /** Exact-date daily product projected beside the hourly lane. */
 export interface ResearchDayCoverage {
   complete?: boolean;
@@ -319,43 +327,57 @@ export function validateResearchDayResponse(
   return value as ResearchDayProduct;
 }
 
-async function load(
+type JsonRequestResource = "research lane" | "research day" | "research PDF document";
+
+/** Shared fetch/JSON transport; endpoint-specific contracts stay in their validators. */
+async function requestJson(
   url: string,
-  expectedEndpointMode: ResearchLaneEndpointMode,
-  expectedResearchDate?: string,
+  resource: JsonRequestResource,
   options?: ResearchLaneRequestOptions,
-): Promise<ResearchLane> {
+  legacyLane = false,
+): Promise<unknown> {
   let response: Response;
   try {
     response = options
       ? await fetch(url, { cache: "no-store", signal: options.signal })
       : await fetch(url);
   } catch (reason) {
+    if (legacyLane) throw reason;
     throw new ResearchLaneRequestError(
       "NETWORK_REJECTED",
-      "research lane network request rejected",
+      `${resource} network request rejected`,
       undefined,
       reason,
     );
   }
   if (!response.ok) {
+    if (legacyLane) throw new Error("research lane request failed");
     throw new ResearchLaneRequestError(
       "HTTP_NON_2XX",
-      `research lane request failed (HTTP ${response.status})`,
+      `${resource} request failed (HTTP ${response.status})`,
       response.status,
     );
   }
-  let payload: unknown;
   try {
-    payload = await response.json();
+    return await response.json();
   } catch (reason) {
+    if (legacyLane) throw reason;
     throw new ResearchLaneRequestError(
       "INVALID_RESPONSE",
-      "research lane response is not valid JSON",
+      `${resource} response is not valid JSON`,
       undefined,
       reason,
     );
   }
+}
+
+async function load(
+  url: string,
+  expectedEndpointMode: ResearchLaneEndpointMode,
+  expectedResearchDate?: string,
+  options?: ResearchLaneRequestOptions,
+): Promise<ResearchLane> {
+  const payload = await requestJson(url, "research lane", options);
   try {
     return validateResearchLaneResponse(payload, expectedEndpointMode, expectedResearchDate);
   } catch (reason) {
@@ -373,9 +395,7 @@ async function load(
 // producer's older READY payload shape.  The manager passes request options
 // and therefore opts into the strict, date-bound contract above.
 async function loadLegacy(url: string): Promise<ResearchLane> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("research lane request failed");
-  return response.json() as Promise<ResearchLane>;
+  return await requestJson(url, "research lane", undefined, true) as ResearchLane;
 }
 
 export function loadResearchLane(
@@ -392,43 +412,33 @@ export function loadResearchLaneLatest(): Promise<ResearchLane> {
   return loadLegacy("/api/v3/research/lane");
 }
 
+export async function loadResearchPdfDocumentDetail(
+  documentId: string,
+  researchDate: string,
+): Promise<ResearchPdfDocumentDetail> {
+  const url = `/api/v3/research/pdf-documents/${encodeURIComponent(documentId)}?research_date=${encodeURIComponent(researchDate)}`;
+  const payload = await requestJson(url, "research PDF document", { });
+  if (!isRecord(payload)
+      || payload.schema_version !== "v4.zsxq_pdf_document_detail.v1"
+      || payload.document_id !== documentId
+      || payload.research_date !== researchDate
+      || !Array.isArray(payload.pages)
+      || payload.pages.some((page) => !isRecord(page))) {
+    throw new ResearchLaneRequestError(
+      "INVALID_RESPONSE",
+      "research PDF document response identity or page shape is invalid",
+    );
+  }
+  return payload as ResearchPdfDocumentDetail;
+}
+
 async function loadDay(
   url: string,
   expectedEndpointMode: ResearchLaneEndpointMode,
   expectedResearchDate?: string,
   options?: ResearchLaneRequestOptions,
 ): Promise<ResearchDayProduct> {
-  let response: Response;
-  try {
-    response = options
-      ? await fetch(url, { cache: "no-store", signal: options.signal })
-      : await fetch(url);
-  } catch (reason) {
-    throw new ResearchLaneRequestError(
-      "NETWORK_REJECTED",
-      "research day network request rejected",
-      undefined,
-      reason,
-    );
-  }
-  if (!response.ok) {
-    throw new ResearchLaneRequestError(
-      "HTTP_NON_2XX",
-      `research day request failed (HTTP ${response.status})`,
-      response.status,
-    );
-  }
-  let payload: unknown;
-  try {
-    payload = await response.json();
-  } catch (reason) {
-    throw new ResearchLaneRequestError(
-      "INVALID_RESPONSE",
-      "research day response is not valid JSON",
-      undefined,
-      reason,
-    );
-  }
+  const payload = await requestJson(url, "research day", options);
   try {
     return validateResearchDayResponse(payload, expectedEndpointMode, expectedResearchDate);
   } catch (reason) {

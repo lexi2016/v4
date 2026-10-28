@@ -123,6 +123,63 @@ def test_hourly_research_refreshes_paginated_zsxq_before_building_the_slot():
     assert "--slot" in calls[-1] and calls[-1][calls[-1].index("--slot") + 1] == "1800"
 
 
+def test_hourly_research_runs_bounded_pdf_continuation_after_success_without_changing_main_status(tmp_path):
+    catalog = load_workload_catalog(CATALOG_PATH)
+    hourly = next(row for row in catalog.workloads if row.workload_id == "hourly_research")
+    data_root = tmp_path / "data"
+    status_path = (
+        data_root
+        / "research_module/runtime_outputs/zsxq_hourly/20260815/1800/"
+        "v35_zsxq_hourly_status_20260815_1800.json"
+    )
+    status_path.parent.mkdir(parents=True)
+    status_path.write_text(
+        json.dumps({
+            "trade_date": "20260815",
+            "slot": "1800",
+            "latest_run_id": "20260815_180000_123456789",
+            "fetch_ok": True,
+            "status": "READY",
+        }),
+        encoding="utf-8",
+    )
+    calls: list[tuple[list[str], int]] = []
+
+    def runner(command, *, cwd, timeout_seconds, env):
+        del cwd, env
+        calls.append((command, timeout_seconds))
+        module = command[2]
+        if module == "ops.run_zsxq_hourly_delta":
+            payload = {"status": "PARTIAL", "processed_document_count": 1, "pending_total": 2} if "--pdf-only" in command else {"status": "READY"}
+        elif module == "ops.collect_hourly_research_input":
+            payload = {"status": "READY_WITH_RESEARCH_POOL", "row_count": 12}
+        elif module == "ops.run_hourly_research":
+            payload = {"status": "READY", "row_count": 12}
+        else:
+            payload = {"status": "READY"}
+        return subprocess.CompletedProcess(command, 0, json.dumps(payload), "")
+
+    registry = FixedExecutorRegistry(
+        data_root=data_root,
+        repo_root=Path("/tmp/v35-hourly-research-test-repo"),
+        runner=runner,
+    )
+
+    result = registry(hourly, _request("1800"), None)
+
+    assert result["status"] == "SUCCEEDED"
+    assert result["exit_code"] == 0
+    assert result["pdf_ingestion"]["status"] == "PARTIAL"
+    assert result["pdf_ingestion"]["processed_document_count"] == 1
+    pdf_call, timeout_seconds = calls[-1]
+    assert pdf_call[2] == "ops.run_zsxq_hourly_delta"
+    assert "--pdf-only" in pdf_call
+    assert pdf_call[pdf_call.index("--source-run-id") + 1] == "20260815_180000_123456789"
+    assert pdf_call[pdf_call.index("--pdf-limit") + 1] == "1"
+    assert pdf_call[pdf_call.index("--pdf-time-budget-seconds") + 1] == "180"
+    assert timeout_seconds == 290
+
+
 def _publish_exact_peripherals(data_root: Path, trade_date: str) -> None:
     store = ResearchPeripheralStore(data_root)
     common = {

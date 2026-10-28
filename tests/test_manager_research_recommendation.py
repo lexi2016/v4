@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -350,7 +351,7 @@ def test_loss_from_operations_variant_keeps_real_pdf_values_and_refs() -> None:
     assert operating["fact_refs"][0]["source_sha256"] == "d6a0cc8c3286a6d1cf0b3d183a911e71bcdd0213be8ae9ee44b62ea480d4912b"
 
 
-def test_cash_aliases_with_different_values_are_a_conflict_and_watch() -> None:
+def test_cash_alias_conflict_is_retained_but_missing_operating_cashflow_downgrades_only_research_opinion() -> None:
     period = "Year ended December 31, 2026"
     evidence = extract_financial_evidence(
         [
@@ -392,7 +393,12 @@ def test_cash_aliases_with_different_values_are_a_conflict_and_watch() -> None:
             "volume_ratio": 1.2,
         },
     )
-    assert advice["action"] == "WATCH"
+    assert advice["action"] == "DATA_INSUFFICIENT"
+    assert advice["status"] == "NOT_GENERATED"
+    assert "OPERATING_CASHFLOW" in advice["missing_dimensions"]
+    assert "原Stage、BUY与订单门禁不因此改变" in advice["reason"]
+    assert advice["advice_scope"] == "CURRENT_RESEARCH_JUDGMENT"
+    assert not {"stage_status", "action_level", "trade_status", "formal_eligible", "orders_sent", "buy_gate_updated"}.intersection(advice)
     assert any("CASH" in item for item in advice["conditions"])
     assert any("cash" in item.get("dimension", "") for item in evidence["evidence_gaps"])
 
@@ -917,6 +923,133 @@ def test_cached_static_and_cross_sentence_events_are_downgraded(
     assert projected_advice["focus_eligible"] is False
     assert projected_advice["priority_rank"] is None
     assert projected["rows"][0]["catalyst_result"]["source_receipts"][0]["status"] == "CANNOT_CONFIRM"
+
+
+def test_get_reprojects_cached_financial_advice_from_frozen_product(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+) -> None:
+    """GET uses existing issuer facts to align all research-layer advice without publishing."""
+
+    fixture_path = Path(
+        "/Users/lexi/Downloads/V4_MANAGER_R3_LOCAL_20260925/controller/"
+        "research_20260924_before_cutover.json"
+    )
+    fixture_bytes = fixture_path.read_bytes()
+    assert hashlib.sha256(fixture_bytes).hexdigest() == (
+        "2252ab259cf51fe211af9e03695fafd865061e7129e3c1d578582ccfe811d5d1"
+    )
+    wrapper = json.loads(fixture_bytes)
+    cached_product = deepcopy(wrapper["product"])
+    target_date = wrapper["target_trade_date"]
+    input_data = {
+        "target_trade_date": target_date,
+        "stage_id": wrapper["stage_id"],
+        "market": wrapper["market"],
+        "cutoff_at": wrapper["cutoff_at"],
+        "input_identity": wrapper["input_identity"],
+        "input_source_sha256": wrapper["input_source_sha256"],
+        "input_row_count": wrapper["input_row_count"],
+        "source_status": cached_product["stage_status"],
+        "stage_status": cached_product["stage_status"],
+        "cannot_confirm": deepcopy(cached_product.get("cannot_confirm", [])),
+        "rows": [
+            deepcopy(row.get("stage_observation") or row.get("observation") or {})
+            for row in cached_product["rows"]
+        ],
+    }
+
+    store = ManagerResearchStore(tmp_path)
+    store.write_product(cached_product)
+    persisted_before = store.read_product(target_date, wrapper["input_identity"])
+    assert persisted_before is not None
+    product_path = store._product_path(target_date, wrapper["input_identity"])
+    persisted_bytes_before = product_path.read_bytes()
+    service = ManagerResearchJobService(store, None, None)
+
+    def read_fixture(date: str) -> dict[str, Any]:
+        if date != target_date:
+            raise ValueError("fixture only")
+        return deepcopy(input_data)
+
+    from infrastructure.http_transport import ProxyAwareHTTPTransport
+
+    network_calls: list[str] = []
+
+    def reject_network(self: Any, url: str, **kwargs: Any) -> None:
+        network_calls.append(str(url))
+        raise AssertionError("cache GET must not access a provider")
+
+    monkeypatch.setattr(ProxyAwareHTTPTransport, "fetch", reject_network)
+    monkeypatch.setattr(
+        service,
+        "_read_input",
+        read_fixture,
+    )
+    try:
+        envelope = service.get(target_date)
+
+        assert envelope["status"] == "PARTIAL_WITH_ROWS"
+        assert envelope["input_identity"] == wrapper["input_identity"]
+        assert envelope["input_source_sha256"] == wrapper["input_source_sha256"]
+        assert envelope["input_row_count"] == wrapper["input_row_count"]
+        assert envelope["safety"] == FOUR_FLAGS
+        assert {key: envelope.get(key) for key in FOUR_FLAGS} == FOUR_FLAGS
+        assert network_calls == []
+        projected = envelope["product"]
+        assert projected is not None
+        assert projected["target_trade_date"] == target_date
+        assert projected["input_identity"] == wrapper["input_identity"]
+        assert projected["input_source_sha256"] == wrapper["input_source_sha256"]
+
+        original_by_code = {row["code"]: row for row in cached_product["rows"]}
+        projected_by_code = {row["code"]: row for row in projected["rows"]}
+        target_codes = {"HK.06127", "HK.00100"}
+        for code, original in original_by_code.items():
+            row = projected_by_code[code]
+            financial = service_module._financial_counterevidence_for_row(original)
+            expected_advice = financial["financial_re_evaluation"]
+            recommendation = row["research_recommendation"]
+            investment_advice = recommendation["investment_advice"]
+            catalyst_financial = row["catalyst_result"]["financial_re_evaluation"]
+            current_financial = row["current_research"]["financial_advice"]
+
+            for field in ("status", "action", "label_cn"):
+                assert recommendation.get(field) == expected_advice.get(field)
+            assert recommendation.get("missing_fields") == expected_advice.get("missing_dimensions")
+            for advice_view in (investment_advice, catalyst_financial, current_financial):
+                for field in ("status", "action", "label_cn", "reason", "missing_dimensions"):
+                    assert advice_view.get(field) == expected_advice.get(field)
+
+            if code in target_codes:
+                assert "OPERATING_CASHFLOW" in expected_advice["missing_dimensions"]
+                assert recommendation["action"] == "DATA_INSUFFICIENT"
+                assert recommendation["label_cn"] == "数据不足"
+            elif code == "HK.00699":
+                assert recommendation["action"] == "WATCH"
+                assert recommendation["label_cn"] == "观察"
+
+            # Financial projection changes no source facts, date, stage row or execution gate.
+            for field in (
+                "facts",
+                "source",
+                "observation",
+                "stage_observation",
+                "target_trade_date",
+                "action_level",
+                "trade_status",
+                "formal_eligible",
+            ):
+                assert row.get(field) == original.get(field)
+            assert recommendation["execution_gate"] == original["research_recommendation"]["execution_gate"]
+
+        assert projected["recommendation_summary"] == recommendation_summary(
+            [row["research_recommendation"] for row in projected["rows"]]
+        )
+        assert store.read_product(target_date, wrapper["input_identity"]) == persisted_before
+        assert product_path.read_bytes() == persisted_bytes_before
+    finally:
+        service.close()
 
 
 @pytest.mark.parametrize(

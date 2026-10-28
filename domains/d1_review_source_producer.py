@@ -361,6 +361,61 @@ def _build_stage7_tail(
     return result
 
 
+def _dedupe_texts(values: object) -> list[str]:
+    """Keep machine-readable evidence in its producer order without repeats."""
+
+    if not isinstance(values, (list, tuple)):
+        return []
+    result: list[str] = []
+    for value in values:
+        text = str(value or "").strip()
+        if text and text not in result:
+            result.append(text)
+    return result
+
+
+def _stage7_source_evidence(stage_inputs: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """Project the native Stage7 partial evidence into D-1 source artifacts.
+
+    The Stage7 payload is the authority for coverage and market availability.
+    Keep the evidence explicitly scoped to this Stage7 input so an unavailable
+    HK quote set cannot be read as a claim about the formal HK pool.
+    """
+
+    payload = stage_inputs.get("STAGE_1445_1500") or {}
+    source_summary = payload.get("source_summary") if isinstance(payload, Mapping) else {}
+    source_summary = dict(source_summary) if isinstance(source_summary, Mapping) else {}
+    market_status = payload.get("market_status") if isinstance(payload, Mapping) else {}
+    market_status = {
+        str(key): str(value)
+        for key, value in market_status.items()
+    } if isinstance(market_status, Mapping) else {}
+    quote_coverage = source_summary.get("quote_coverage")
+    quote_coverage = {
+        str(key): dict(value)
+        for key, value in quote_coverage.items()
+        if isinstance(value, Mapping)
+    } if isinstance(quote_coverage, Mapping) else {}
+    source_summary_cannot_confirm = _dedupe_texts(source_summary.get("cannot_confirm"))
+    payload_cannot_confirm = _dedupe_texts(payload.get("cannot_confirm"))
+    market_status_reason = ""
+    if market_status:
+        market_status_reason = "STAGE7_MARKET_STATUS:" + ";".join(
+            f"{market}={market_status[market]}"
+            for market in sorted(market_status)
+        )
+    upstream_cannot_confirm = _dedupe_texts(
+        [*source_summary_cannot_confirm, *payload_cannot_confirm, market_status_reason]
+    )
+    return {
+        "source_summary": source_summary,
+        "source_summary_cannot_confirm": source_summary_cannot_confirm,
+        "quote_coverage": quote_coverage,
+        "market_status": market_status,
+        "cannot_confirm": upstream_cannot_confirm,
+    }
+
+
 def _source_inputs_sha256(
     *,
     trade_date: str,
@@ -453,6 +508,7 @@ def materialize_d1_review_sources(
         trade_date,
         daily_by_code=daily_by_code,
     )
+    stage7_source_evidence = _stage7_source_evidence(stage_inputs)
     counts = _stage_counts(stage_inputs)
     counts["stage7"] = Counter(str(row.get("stage7_label") or "") for row in stage7)
     anchors = _build_anchor_roles(theme_stocks, daily_by_code)
@@ -499,7 +555,14 @@ def materialize_d1_review_sources(
         "source_role": "real_d1_stage7_tail_replay",
         "producer_semantic_version": D1_SOURCE_PRODUCER_VERSION,
         "source_oracle_sha256": V3_D1_SOURCE_ORACLE_SHA256,
-        "cannot_confirm": ["No L2 order queue, cancellation or unmatched auction evidence."],
+        "source_summary": stage7_source_evidence["source_summary"],
+        "source_summary_cannot_confirm": stage7_source_evidence["source_summary_cannot_confirm"],
+        "quote_coverage": stage7_source_evidence["quote_coverage"],
+        "market_status": stage7_source_evidence["market_status"],
+        "cannot_confirm": _dedupe_texts([
+            "No L2 order queue, cancellation or unmatched auction evidence.",
+            *stage7_source_evidence["cannot_confirm"],
+        ]),
         **SAFETY,
     }
     _atomic_bytes(output_dir / "stage7_tail_replay.manifest.json", (json.dumps(stage_manifest, ensure_ascii=False, indent=2) + "\n").encode())
@@ -513,6 +576,15 @@ def materialize_d1_review_sources(
         "source_oracle_sha256": V3_D1_SOURCE_ORACLE_SHA256,
         "public_manifest_sha256": public_manifest_sha256,
         "selector_sha256": selector_sha256,
+        "stage7_source_summary": stage7_source_evidence["source_summary"],
+        "stage7_source_summary_cannot_confirm": stage7_source_evidence["source_summary_cannot_confirm"],
+        "stage7_quote_coverage": stage7_source_evidence["quote_coverage"],
+        "stage7_market_status": stage7_source_evidence["market_status"],
+        "stage7_cannot_confirm": stage7_source_evidence["cannot_confirm"],
+        "cannot_confirm": _dedupe_texts([
+            "No L2 order queue, cancellation or unmatched auction evidence.",
+            *stage7_source_evidence["cannot_confirm"],
+        ]),
         "outputs": outputs,
         "counts": {"anchor_role": len(anchors), "theme_stocks": len(theme_stocks), "prior_plan": len(prior), "intraday_handoff": len(handoff), "stage7_tail_replay": len(stage7)},
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),

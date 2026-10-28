@@ -1,0 +1,1715 @@
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import io
+import json
+import base64
+from types import ModuleType
+from pathlib import Path
+import signal
+import sys
+import tempfile
+from types import SimpleNamespace
+import unittest
+from unittest import mock
+
+WORKTREE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WORKTREE_ROOT))
+from ops import run_pdf_research_batch as batch
+
+DISPATCHER_PATH = Path(__file__).resolve().parents[1] / "ops" / "run_pdf_research_remaining_once.py"
+_spec = importlib.util.spec_from_file_location("remaining_once_dispatcher_test", DISPATCHER_PATH)
+assert _spec is not None and _spec.loader is not None
+dispatcher = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(dispatcher)
+TEST_PREPARED_TEXT_PATH = Path("/tmp/prepared-text-manifest.json")
+TEST_PREPARED_TEXT_SHA256 = "9" * 64
+
+
+def _sha(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
+def test_dispatcher_pins_the_current_batch_runner_bytes() -> None:
+    runner_path = Path(__file__).resolve().parents[1] / "ops" / "run_pdf_research_batch.py"
+    assert _sha(runner_path.read_bytes()) == dispatcher.EXPECTED_RUNNER_SHA256
+
+
+def _synthetic_documents() -> list[dict[str, str]]:
+    rows = [
+        {"document_id": f"{index:064x}", "pdf_sha256": f"{index:064x}"}
+        for index in range(1, 2210)
+    ]
+    rows[-1] = {
+        "document_id": dispatcher.QUARANTINE_DOCUMENT_ID,
+        "pdf_sha256": dispatcher.QUARANTINE_DOCUMENT_ID,
+    }
+    return rows
+
+
+def _synthetic_statuses(documents: list[dict[str, str]]) -> dict[str, str]:
+    return {row["document_id"]: "UNPROCESSED" for row in documents}
+
+
+class _MonkeyPatch:
+    def __init__(self, test_case: unittest.TestCase):
+        self.test_case = test_case
+
+    def setattr(self, target: object, name: str, value: object) -> None:
+        old = getattr(target, name)
+        setattr(target, name, value)
+        self.test_case.addCleanup(setattr, target, name, old)
+
+
+def _prepared_kwargs(monkeypatch: _MonkeyPatch) -> dict[str, object]:
+    return dict(monkeypatch.prepared_kwargs)
+
+
+def _synthetic_context(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+    *,
+    max_documents: int = 4,
+) -> tuple[list[dict[str, str]], dict[str, dict[str, str]], set[str], dict[str, str], dict[str, object]]:
+    # Legacy synthetic scheduler tests isolate admission, independently tested below.
+    monkeypatch.setattr(batch, "load_analysis_admission", lambda *args, **kwargs: None)
+    monkeypatch.setattr(dispatcher, "EVIDENCE_ROOT", tmp_path / "journal")
+    monkeypatch.setattr(dispatcher, "_assert_runtime", lambda: None)
+    monkeypatch.setattr(dispatcher, "_verify_static_bindings", lambda: {"scope_sha256": "a" * 64, "runner_sha256": "b" * 64})
+    monkeypatch.setattr(batch, "DEFAULT_STATE_ROOT", tmp_path / "state" / "r3")
+    prepared_path = tmp_path / "prepared-text-manifest.json"
+    prepared_path.write_text("{}\n", encoding="utf-8")
+    prepared_sha = _sha(prepared_path.read_bytes())
+
+    def fake_verify(_batch, path, *, expected_sha256: str, expected_parent_sha256: str):
+        assert expected_sha256 == prepared_sha
+        return {
+            "path": Path(path),
+            "manifest_sha256": prepared_sha,
+            "parent_manifest_sha256": expected_parent_sha256,
+            "documents": {row["document_id"]: {"manifest_row": {"status": "READY"}} for row in _synthetic_documents()},
+        }
+
+    monkeypatch.setattr(batch.pdf_text_preparation, "verify_frozen_manifest", fake_verify)
+    monkeypatch.prepared_kwargs = {
+        "prepared_text_manifest_path": prepared_path,
+        "prepared_text_manifest_sha256": prepared_sha,
+    }
+    docs = _synthetic_documents()
+    monkeypatch.setattr(
+        batch,
+        "load_manifest",
+        lambda _path: ({"status": "FROZEN"}, dispatcher.EXPECTED_MANIFEST_SHA256, docs),
+    )
+    original = {row["document_id"]: {"status": "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"} for row in docs[:142]}
+    pilot = {docs[position - 1]["document_id"] for position in (155, 168, 171, 176, 177, 188, 193, 199, 208, 210)}
+    statuses = _synthetic_statuses(docs)
+    statuses.update({document_id: row["status"] for document_id, row in original.items()})
+    frozen_inventory_statuses = dict(statuses)
+    statuses.update({document_id: "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING" for document_id in pilot})
+    statuses[docs[142]["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    statuses[docs[143]["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    statuses[docs[144]["document_id"]] = "FAILED_NO_RETRY"
+    for row in docs[145:148]:
+        statuses[row["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    auth = {
+        "authorization": {
+            "authorization_id": "test-auth",
+            "prepared_text_manifest_sha256": prepared_sha,
+            "max_documents": max_documents,
+            "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        },
+        "authorization_sha256": "c" * 64,
+        "pilot_document_ids": pilot,
+        "pilot_progress_sha256": "d" * 64,
+        "pilot_plan": {"continuation_id": "test-pilot"},
+    }
+    monkeypatch.setattr(dispatcher, "load_and_validate_authorization", lambda _path: auth)
+    monkeypatch.setattr(dispatcher, "_load_original_r3", lambda _path: (dispatcher.EXPECTED_MANIFEST_SHA256, docs, original))
+    summary: dict[str, object] = {
+        "inventory_sha256": dispatcher.EXPECTED_REMAINING_INVENTORY_SHA256,
+        "frozen_inventory_statuses": frozen_inventory_statuses,
+        "completed_count": 87,
+        "outstanding_count": 2122,
+        "outstanding_status_counts": {},
+        "runnable_unprocessed_count": 2050,
+        "quarantine_document_id": dispatcher.QUARANTINE_DOCUMENT_ID,
+        "terminal_receipts": {},
+        "current_tool_canary": {},
+    }
+    monkeypatch.setattr(dispatcher, "load_current_completion_statuses", lambda *_args, **_kwargs: (statuses, summary))
+    return docs, original, pilot, statuses, summary
+
+
+def _halt_resume_fixture(tmp_path: Path) -> tuple[dispatcher.DurableJournal, dict[str, object], dict[str, object]]:
+    document_id = "a" * 64
+    queue_key = "b" * 64
+    auth = {
+        "authorization_id": "resume-test-auth",
+        "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        "adoption_receipt": {"sha256": "c" * 64},
+    }
+    context: dict[str, object] = {
+        "authorization": auth,
+        "authorization_sha256": "d" * 64,
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "prepared_text_manifest_sha256": "9" * 64,
+        "pilot_progress_sha256": "f" * 64,
+        "documents": [],
+        "inventory_summary": {"inventory_sha256": "e" * 64, "outstanding_count": 2122},
+    }
+    descriptor: dict[str, object] = {
+        "journal_event_count": 2,
+        "journal_prefix_sha256": "1" * 64,
+        "previous_authorization_sha256": "2" * 64,
+        "old_dispatcher_sha256": "3" * 64,
+        "old_runner_sha256": "4" * 64,
+        "new_dispatcher_sha256": "5" * 64,
+        "new_runner_sha256": "6" * 64,
+        "document_id": document_id,
+        "continuation_id": "resume-test-prior",
+        "plan_sha256": "f" * 64,
+        "recovery_generation": 1,
+        "prior_state_root": str(tmp_path / "prior-state"),
+        "queue_key": queue_key,
+        "failure_sample": {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 10_000},
+        "recovery_plan": {
+            "continuation_id": "memory-recovery-test",
+            "state_root": str(tmp_path / "recovery-state"),
+            "selected_documents": [{"document_id": document_id, "recovery": {"prior_queue_idempotency_key": queue_key}}],
+        },
+        "recovery_raw": b'{"test":"recovery"}',
+    }
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    journal.root.mkdir(parents=True)
+    journal.events = [
+        {"event": "binding", "at_utc": "fixed"},
+        {"event": "halt", "reason": "FAILED_NO_RETRY", "document_id": document_id, "at_utc": "fixed"},
+    ]
+    journal.events.append({"at_utc": "fixed", **dispatcher._source_adoption_event(context, descriptor)})
+    return journal, context, descriptor
+
+
+def test_halt_resume_recovery_wait_and_plan_are_append_only_and_restart_safe(
+    tmp_path: Path,
+) -> None:
+    journal, context, descriptor = _halt_resume_fixture(tmp_path)
+    samples = iter(
+        [
+            {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 10_000},
+            {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 10_000},
+            {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 10_000},
+        ]
+    )
+    plan_sha = _sha(descriptor["recovery_raw"])
+    with (
+        mock.patch.object(dispatcher, "_halt_resume_descriptor", return_value=descriptor),
+        mock.patch.object(batch, "validate_continuation_plan", return_value={"plan_sha256": plan_sha}),
+    ):
+        result = dispatcher._prepare_halt_resume(
+            journal,
+            context,
+            sampler=lambda: next(samples),
+            sleep_fn=lambda _seconds: None,
+            samples_path=journal.root / "resource-samples.jsonl",
+        )
+        assert result == descriptor["document_id"]
+        assert [event["event"] for event in journal.events[3:]] == [
+            "memory_recovery_wait",
+            "halt_resolution",
+            "plan_created",
+        ]
+        event_count = len(journal.events)
+        result = dispatcher._prepare_halt_resume(
+            journal,
+            context,
+            sampler=lambda: (_ for _ in ()).throw(AssertionError("restart must reuse durable resource evidence")),
+            sleep_fn=lambda _seconds: None,
+            samples_path=journal.root / "resource-samples.jsonl",
+        )
+    assert result == descriptor["document_id"]
+    assert len(journal.events) == event_count
+    assert journal.events[3]["status"] == "RESOURCE_CHANGE_OBSERVED"
+    assert journal.events[4]["wait_event_line_sha256"] == _sha(
+        dispatcher.canonical_json(journal.events[3]) + b"\n"
+    )
+
+
+def test_halt_resume_does_not_resolve_when_resource_change_is_unobserved(tmp_path: Path) -> None:
+    journal, context, descriptor = _halt_resume_fixture(tmp_path)
+    with (
+        mock.patch.object(dispatcher, "_halt_resume_descriptor", return_value=descriptor),
+        mock.patch.object(
+            dispatcher,
+            "_wait_for_recovery_resource_change",
+            return_value={"status": "RESOURCE_CHANGE_NOT_OBSERVED_WITHIN_BOUND"},
+        ),
+    ):
+        with unittest.TestCase().assertRaisesRegex(
+            dispatcher.DispatcherError,
+            "HALT_RESUME_RESOURCE_CHANGE_NOT_OBSERVED",
+        ):
+            dispatcher._prepare_halt_resume(
+                journal,
+                context,
+                sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 10_000},
+                sleep_fn=lambda _seconds: None,
+                samples_path=journal.root / "resource-samples.jsonl",
+            )
+    assert [event["event"] for event in journal.events] == ["binding", "halt", "source_adoption"]
+
+
+def test_halt_resume_source_adoption_preserves_prefix_and_restarts_idempotently(tmp_path: Path) -> None:
+    journal, context, descriptor = _halt_resume_fixture(tmp_path)
+    journal.events.pop()
+    prefix_raw = b"".join(dispatcher.canonical_json(event) + b"\n" for event in journal.events)
+    journal.path.write_bytes(prefix_raw)
+    descriptor["journal_prefix_sha256"] = _sha(prefix_raw)
+    with mock.patch.object(dispatcher, "_halt_resume_descriptor", return_value=descriptor):
+        dispatcher._verify_or_create_binding(journal, context)
+        adopted_raw = journal.path.read_bytes()
+        assert adopted_raw.startswith(prefix_raw)
+        assert len(journal.events) == 3
+        dispatcher._verify_or_create_binding(journal, context)
+    assert journal.path.read_bytes() == adopted_raw
+    assert journal.events[2]["event"] == "source_adoption"
+
+
+def test_halt_resume_rejects_incomplete_root_descriptor(tmp_path: Path) -> None:
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    context = {"adoption_evidence": {"halt_resume": {"schema": dispatcher.HALT_RESUME_SCHEMA}}}
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "HALT_RESUME_DESCRIPTOR_INVALID"):
+        dispatcher._halt_resume_descriptor(context, journal)
+
+
+def test_halt_resume_only_exempts_the_exact_original_reconciled_halt(tmp_path: Path) -> None:
+    document_id = "a" * 64
+    continuation_id = "resume-original"
+    reconciled = {
+        "event": "reconciled",
+        "document_id": document_id,
+        "continuation_id": continuation_id,
+        "decision": "HALT",
+        "status": "FAILED_NO_RETRY",
+    }
+    terminal_halt = {"event": "halt", "document_id": document_id, "reason": "FAILED_NO_RETRY"}
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    journal.events = [{"event": "binding"}, reconciled, terminal_halt]
+    descriptor = {
+        "reconciled_event_index": 1,
+        "reconciled_event_line_sha256": _sha(dispatcher.canonical_json(reconciled) + b"\n"),
+        "continuation_id": continuation_id,
+        "document_id": document_id,
+        "halt_event_index": 2,
+    }
+
+    dispatcher._halt_if_required(
+        journal,
+        dispatcher._latest_document_events(journal.events),
+        halt_resume_descriptor=descriptor,
+    )
+
+    # A generation-one retry can crash after reconciliation but before its
+    # terminal halt event. Same-document identity must not exempt this HALT.
+    journal.events.append({
+        "event": "reconciled",
+        "document_id": document_id,
+        "continuation_id": "memory-recovery-new-attempt",
+        "decision": "HALT",
+        "status": "FAILED_NO_RETRY",
+    })
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "DISPATCHER_PREVIOUSLY_HALTED"):
+        dispatcher._halt_if_required(
+            journal,
+            dispatcher._latest_document_events(journal.events),
+            halt_resume_descriptor=descriptor,
+        )
+
+
+def test_halt_resume_requires_original_reconciled_line_hash_and_continuation(tmp_path: Path) -> None:
+    document_id = "a" * 64
+    reconciled = {
+        "event": "reconciled",
+        "document_id": document_id,
+        "continuation_id": "resume-original",
+        "decision": "HALT",
+        "status": "FAILED_NO_RETRY",
+    }
+    journal = dispatcher.DurableJournal(tmp_path / "journal")
+    journal.events = [{"event": "binding"}, reconciled, {"event": "halt", "document_id": document_id}]
+    descriptor = {
+        "reconciled_event_index": 1,
+        "reconciled_event_line_sha256": "f" * 64,
+        "continuation_id": "resume-original",
+        "document_id": document_id,
+        "halt_event_index": 2,
+    }
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "HALT_RESUME_TERMINAL_BINDING_MISMATCH"):
+        dispatcher._halt_if_required(
+            journal,
+            dispatcher._latest_document_events(journal.events),
+            halt_resume_descriptor=descriptor,
+        )
+
+
+def test_duplicate_guard_accepts_only_resource_bound_generation_one_after_adopted_halt() -> None:
+    document_id = "a" * 64
+    queue_key = "b" * 64
+    prior_plan = {
+        "continuation_id": "prior",
+        "state_root": "/tmp/prior-state",
+        "selected_documents": [{"document_id": document_id, "prior_status": "UNPROCESSED", "source_sha256": document_id}],
+    }
+    prior_raw = dispatcher._json_bytes(prior_plan)
+    prior_sha = _sha(prior_raw)
+    recovery = {
+        "generation": 1,
+        "prior_state_root": prior_plan["state_root"],
+        "prior_queue_idempotency_key": queue_key,
+        "prior_artifact_sha256": {"receipt.json": "c" * 64},
+    }
+    recovery_plan = {
+        "continuation_id": "memory-recovery-test",
+        "state_root": "/tmp/recovery-state",
+        "selected_documents": [{
+            "document_id": document_id,
+            "prior_status": "FAILED_NO_RETRY",
+            "source_sha256": document_id,
+            "recovery": recovery,
+        }],
+    }
+    recovery_raw = dispatcher._json_bytes(recovery_plan)
+    before = {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 2_000_000_000}
+    after = {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + 2_000_000_000, "swap_used_bytes": 2_000_000_000}
+    measured = {
+        "before": before,
+        "after": after,
+        "available_gain_bytes": 2_000_000_000,
+        "swap_reduction_bytes": 0,
+        "stable_samples": dispatcher.MEMORY_RECOVERY_STABLE_SAMPLE_COUNT,
+    }
+    wait_event = {
+        "event": "memory_recovery_wait",
+        "document_id": document_id,
+        "status": "RESOURCE_CHANGE_OBSERVED",
+        "decision": "CONTINUE",
+        "prior_plan_sha256": prior_sha,
+        "prior_state_root": prior_plan["state_root"],
+        "prior_queue_idempotency_key": queue_key,
+        **measured,
+    }
+    resolution_event = {
+        "event": "halt_resolution",
+        "document_id": document_id,
+        "status": "RESOURCE_CHANGE_OBSERVED",
+        "prior_plan_sha256": prior_sha,
+        "recovery_generation": 1,
+        "wait_event_line_sha256": _sha(dispatcher.canonical_json(wait_event) + b"\n"),
+        **measured,
+    }
+    events = [
+        {"event": "binding"},
+        {
+            "event": "plan_created",
+            "document_id": document_id,
+            "continuation_id": "prior",
+            "state_root": prior_plan["state_root"],
+            "plan_sha256": prior_sha,
+            "plan_bytes_b64": base64.b64encode(prior_raw).decode("ascii"),
+        },
+        {"event": "plan_only_pass"},
+        {"event": "dispatch_intent"},
+        {
+            "event": "reconciled",
+            "document_id": document_id,
+            "continuation_id": "prior",
+            "plan_sha256": prior_sha,
+            "status": "FAILED_NO_RETRY",
+            "decision": "HALT",
+        },
+        {"event": "halt", "document_id": document_id, "reason": "FAILED_NO_RETRY"},
+        {"event": "source_adoption", "document_id": document_id, "plan_sha256": prior_sha},
+        wait_event,
+        resolution_event,
+        {
+            "event": "plan_created",
+            "document_id": document_id,
+            "continuation_id": recovery_plan["continuation_id"],
+            "state_root": recovery_plan["state_root"],
+            "plan_sha256": _sha(recovery_raw),
+            "plan_bytes_b64": base64.b64encode(recovery_raw).decode("ascii"),
+            "recovery_generation": 1,
+            "recovery_of_plan_sha256": prior_sha,
+        },
+    ]
+    dispatcher._assert_no_duplicate_document_ids(events)
+    events[6] = {"event": "source_adoption", "document_id": "b" * 64, "plan_sha256": prior_sha}
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CROSS_PLAN_DUPLICATE_DOCUMENT"):
+        dispatcher._assert_no_duplicate_document_ids(events)
+
+
+def _case_original_progress_status_is_checked_against_frozen_inventory_not_live_receipts(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    docs, original, _pilot, statuses, summary = _synthetic_context(monkeypatch, tmp_path, max_documents=1)
+    document_id = docs[0]["document_id"]
+    original[document_id]["status"] = "FAILED_NO_RETRY"
+    frozen_inventory_statuses = summary["frozen_inventory_statuses"]
+    assert isinstance(frozen_inventory_statuses, dict)
+    frozen_inventory_statuses[document_id] = "FAILED_NO_RETRY"
+    # The live receipt-bound view is already advanced to completion; the frozen
+    # inventory still records the prior failure that the original progress file
+    # must match.
+    assert statuses[document_id] == "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    executed: list[str] = []
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        executed.append(plan["selected_documents"][0]["document_id"])
+        _write_terminal_state(plan, "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING", model_requests=1)
+        return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
+
+    result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=1,
+        sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: "resume-history-overlay",
+    )
+
+    assert result["status"] == "READY_FOR_NEXT_INVOCATION"
+    assert executed and executed[0] != document_id
+
+
+def _case_original_progress_must_match_frozen_inventory_history(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    docs, original, _pilot, statuses, summary = _synthetic_context(monkeypatch, tmp_path, max_documents=1)
+    document_id = docs[0]["document_id"]
+    original[document_id]["status"] = "FAILED_NO_RETRY"
+    frozen_inventory_statuses = summary["frozen_inventory_statuses"]
+    assert isinstance(frozen_inventory_statuses, dict)
+    frozen_inventory_statuses[document_id] = "UNPROCESSED"
+    child_called = False
+
+    def child_runner(*_args: object, **_kwargs: object) -> dict[str, object]:
+        nonlocal child_called
+        child_called = True
+        raise AssertionError("source mismatch must fail before dispatch")
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "ORIGINAL_PROGRESS_INVENTORY_STATUS_MISMATCH"):
+        dispatcher.execute_once(
+            **_prepared_kwargs(monkeypatch),
+            authorization_path=tmp_path / "unused-auth.json",
+            manifest_path=tmp_path / "unused-manifest.json",
+            evidence_root=tmp_path / "evidence",
+            max_documents=1,
+            sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+            plan_only=lambda _path: None,
+            child_runner=child_runner,
+        )
+    assert child_called is False
+    assert not (tmp_path / "evidence" / "dispatch.jsonl").exists()
+
+
+def _write_terminal_state(plan: dict[str, object], status: str, *, model_requests: int | None = 1) -> None:
+    document = plan["selected_documents"][0]  # type: ignore[index]
+    document_id = document["document_id"]
+    plan_sha = _sha(dispatcher._json_bytes(plan))
+    continuation = {
+        "continuation_id": plan["continuation_id"],
+        "plan_sha256": plan_sha,
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "model_settings_sha256": plan["expected_model_settings_sha256"],
+    }
+    receipt: dict[str, object] = {
+        "schema": "v4.pdf_research_simple_batch.document_receipt.v1",
+        "document_id": document_id,
+        "pdf_sha256": document_id,
+        "status": status,
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "continuation": continuation,
+        "research_only": True,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    if model_requests is not None:
+        receipt["model_request_count"] = model_requests
+    root = Path(str(plan["state_root"]))
+    receipt_path = root / "documents" / str(document_id) / "receipt.json"
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    progress = {
+        "status": "DEFERRED" if status.startswith("DEFERRED") else "COMPLETED_WITH_PER_DOCUMENT_STATES",
+        "continuation_id": plan["continuation_id"],
+        "continuation_plan_sha256": plan_sha,
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "model_settings_sha256": plan["expected_model_settings_sha256"],
+        "documents": [{"document_id": document_id, "status": status}],
+    }
+    (root / "run-progress.json").write_text(json.dumps(progress), encoding="utf-8")
+
+
+def _case_runtime_guard_requires_exact_configured_312(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
+    python = Path(sys.executable).resolve()
+    monkeypatch.setattr(dispatcher, "EXPECTED_RUNTIME_PYTHON", python)
+
+    dispatcher._assert_runtime(python, dispatcher.EXPECTED_RUNTIME_VERSION)
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "NATIVE_PYTHON_312_REQUIRED"):
+        dispatcher._assert_runtime(python, "3.14.6")
+
+
+def _case_singleton_plan_matches_integrated_runner_contract(tmp_path: Path, monkeypatch: _MonkeyPatch) -> None:
+    doc = {"document_id": "a" * 64, "pdf_sha256": "a" * 64}
+    plan, raw = dispatcher.build_singleton_plan(
+        doc,
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="resume-test-001",
+    )
+
+    assert json.loads(raw) == plan
+    assert plan["schema"] == batch.CONTINUATION_PLAN_SCHEMA
+    assert plan["selected_documents"] == [{"document_id": "a" * 64, "prior_status": "UNPROCESSED", "source_sha256": "a" * 64}]
+    assert plan["state_root"].endswith("/continuation-resume-test-001")
+    assert plan["research_only"] == {"research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+    assert len(plan["excluded_prior_statuses"]) == len(batch.CONTINUATION_EXCLUDED_PRIOR_STATUSES)
+
+
+def _case_selection_uses_statuses_and_keeps_failures_outstanding() -> None:
+    docs = _synthetic_documents()
+    statuses = _synthetic_statuses(docs)
+    statuses[docs[0]["document_id"]] = "FAILED_NO_RETRY"
+    statuses[docs[1]["document_id"]] = "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    statuses[docs[2]["document_id"]] = "SOURCE_REPAIR_FAILED_NO_MODEL"
+    pilot = {docs[position - 1]["document_id"] for position in (155, 168, 171, 176, 177, 188, 193, 199, 208, 210)}
+    statuses.update({document_id: "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING" for document_id in pilot})
+    prior = {docs[3]["document_id"]}
+
+    selected, remaining = dispatcher.select_next_document(docs, statuses, pilot, prior)
+
+    assert selected == docs[4]
+    assert statuses[docs[0]["document_id"]] == "FAILED_NO_RETRY"
+    assert statuses[docs[2]["document_id"]] == "SOURCE_REPAIR_FAILED_NO_MODEL"
+    assert remaining == len(docs) - 3 - len(pilot) - len(prior) - 1
+
+
+def _case_unprocessed_canary_selection_rejects_held_statuses() -> None:
+    docs = _synthetic_documents()
+    statuses = _synthetic_statuses(docs)
+    statuses[docs[0]["document_id"]] = "FAILED_NO_RETRY"
+
+    selected = dispatcher.validate_unprocessed_selection(
+        [docs[1]["document_id"], docs[2]["document_id"], docs[3]["document_id"]],
+        docs,
+        statuses,
+        expected_count=3,
+    )
+    assert [row["document_id"] for row in selected] == [row["document_id"] for row in docs[1:4]]
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "FROZEN_SELECTION_DOCUMENT_NOT_RUNNABLE"):
+        dispatcher.validate_unprocessed_selection(
+            [docs[0]["document_id"], docs[2]["document_id"], docs[3]["document_id"]],
+            docs,
+            statuses,
+            expected_count=3,
+        )
+
+
+def _case_multi_document_unprocessed_plan_is_bounded_and_runner_compatible() -> None:
+    docs = [
+        {"document_id": f"{index:064x}", "pdf_sha256": f"{index:064x}"}
+        for index in range(1, 4)
+    ]
+    plan, raw = dispatcher.build_unprocessed_continuation_plan(
+        docs,
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="three-doc-canary-test",
+    )
+    assert json.loads(raw) == plan
+    assert len(plan["selected_documents"]) == 3
+    assert all(row["prior_status"] == "UNPROCESSED" for row in plan["selected_documents"])
+    assert plan["one_time_recovery_limit"] == 1
+
+
+def _case_document_plan_journal_rejects_cross_plan_duplicate() -> None:
+    first, first_raw = dispatcher.build_singleton_plan(
+        {"document_id": "a" * 64, "pdf_sha256": "a" * 64},
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="duplicate-first",
+    )
+    second, second_raw = dispatcher.build_singleton_plan(
+        {"document_id": "a" * 64, "pdf_sha256": "a" * 64},
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="duplicate-second",
+    )
+    events = [
+        {"event": "binding"},
+        {
+            "event": "plan_created",
+            "document_id": "a" * 64,
+            "continuation_id": first["continuation_id"],
+            "state_root": first["state_root"],
+            "plan_bytes_b64": base64.b64encode(first_raw).decode("ascii"),
+        },
+        {
+            "event": "plan_created",
+            "document_id": "a" * 64,
+            "continuation_id": second["continuation_id"],
+            "state_root": second["state_root"],
+            "plan_bytes_b64": base64.b64encode(second_raw).decode("ascii"),
+        },
+    ]
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CROSS_PLAN_DUPLICATE_DOCUMENT"):
+        dispatcher._assert_no_duplicate_document_ids(events)
+
+
+def _case_failure_receipt_stops_before_next_document(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
+    _synthetic_context(monkeypatch, tmp_path, max_documents=3)
+    plans: list[dict[str, object]] = []
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        plans.append(plan)
+        _write_terminal_state(plan, "FAILED_NO_RETRY", model_requests=1)
+        return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
+
+    result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=3,
+        sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: "resume-test-fail",
+    )
+
+    assert len(plans) == 1
+    assert result["status"] == "HALTED"
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "DISPATCHER_PREVIOUSLY_HALTED"):
+        dispatcher.execute_once(
+            **_prepared_kwargs(monkeypatch),
+            authorization_path=tmp_path / "unused-auth.json",
+            manifest_path=tmp_path / "unused-manifest.json",
+            evidence_root=tmp_path / "evidence",
+            max_documents=1,
+            sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+            plan_only=lambda _path: None,
+            child_runner=child_runner,
+        )
+
+
+def _case_deferred_resume_reuses_same_plan_and_state_root(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
+    _synthetic_context(monkeypatch, tmp_path, max_documents=2)
+    seen_paths: list[Path] = []
+    seen_ids: list[str] = []
+    statuses = iter(("DEFERRED_ANNOUNCEMENT_PRIORITY", "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"))
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        seen_paths.append(path)
+        seen_ids.append(str(plan["continuation_id"]))
+        _write_terminal_state(plan, next(statuses), model_requests=0 if len(seen_paths) == 1 else 1)
+        return {"returncode": 0, "resource_stop_reason": None, "child_started": True}
+
+    common = {
+        **_prepared_kwargs(monkeypatch),
+        "authorization_path": tmp_path / "unused-auth.json",
+        "manifest_path": tmp_path / "unused-manifest.json",
+        "evidence_root": tmp_path / "evidence",
+        "max_documents": 1,
+        "sampler": lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        "plan_only": lambda _path: None,
+        "child_runner": child_runner,
+        "continuation_id_factory": lambda: "resume-same-plan",
+    }
+    first = dispatcher.execute_once(**common)
+    second = dispatcher.execute_once(**common)
+
+    assert first["latest_terminal_status"] == "DEFERRED_ANNOUNCEMENT_PRIORITY"
+    assert second["latest_terminal_status"] == "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+    assert seen_paths[0] == seen_paths[1]
+    assert seen_ids == ["resume-same-plan", "resume-same-plan"]
+    events = [json.loads(line) for line in (tmp_path / "evidence/dispatch.jsonl").read_text().splitlines()]
+    assert sum(event.get("event") == "plan_created" for event in events) == 1
+    assert sum(event.get("event") == "dispatch_intent" for event in events) == 2
+
+
+def _case_ambiguous_dispatch_intent_fails_closed_on_next_invocation(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
+    _synthetic_context(monkeypatch, tmp_path, max_documents=2)
+    common = {
+        **_prepared_kwargs(monkeypatch),
+        "authorization_path": tmp_path / "unused-auth.json",
+        "manifest_path": tmp_path / "unused-manifest.json",
+        "evidence_root": tmp_path / "evidence",
+        "max_documents": 1,
+        "sampler": lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        "plan_only": lambda _path: None,
+        "continuation_id_factory": lambda: "resume-ambiguous",
+    }
+
+    with unittest.TestCase().assertRaisesRegex(RuntimeError, "simulated crash"):
+        dispatcher.execute_once(**common, child_runner=lambda _path, **_kwargs: (_ for _ in ()).throw(RuntimeError("simulated crash")))
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "DISPATCH_OUTCOME_AMBIGUOUS_FAIL_CLOSED"):
+        dispatcher.execute_once(**common, child_runner=lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("must not resubmit")))
+
+
+def _case_missing_terminal_receipt_is_recorded_and_halts(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
+    _synthetic_context(monkeypatch, tmp_path, max_documents=2)
+    plans: list[Path] = []
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plans.append(path)
+        return {"returncode": 2, "resource_stop_reason": None, "child_started": True, "stdout_sha256": "a" * 64}
+
+    result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=2,
+        sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: "resume-missing-receipt",
+    )
+
+    assert result["status"] == "HALTED"
+    assert len(plans) == 1
+    events = [json.loads(line) for line in (tmp_path / "evidence/dispatch.jsonl").read_text().splitlines()]
+    ambiguous = [event for event in events if event.get("status") == "AMBIGUOUS_TERMINAL_RECEIPT"]
+    assert len(ambiguous) == 1
+    assert ambiguous[0]["reconciliation_error"] == "EXECUTION_PROGRESS_UNAVAILABLE"
+
+
+def _case_source_only_receipt_can_continue_only_without_model_activity(tmp_path: Path) -> None:
+    doc = {"document_id": "a" * 64, "pdf_sha256": "a" * 64}
+    plan, _raw = dispatcher.build_singleton_plan(
+        doc,
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="resume-source-only",
+    )
+    monkeypatch_plan = dict(plan)
+    monkeypatch_plan["state_root"] = str(tmp_path / "state")
+    receipt = {
+        "document_id": "a" * 64,
+        "pdf_sha256": "a" * 64,
+        "status": "SOURCE_INVALID",
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "continuation": {
+            "continuation_id": "resume-source-only",
+            "plan_sha256": _sha(dispatcher._json_bytes(plan)),
+            "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+            "model_settings_sha256": plan["expected_model_settings_sha256"],
+        },
+        "research_only": True,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    root = Path(monkeypatch_plan["state_root"])
+    (root / "documents" / ("a" * 64)).mkdir(parents=True)
+    (root / "documents" / ("a" * 64) / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+    (root / "run-progress.json").write_text(json.dumps({
+        "status": "COMPLETED_WITH_PER_DOCUMENT_STATES",
+        "continuation_id": "resume-source-only",
+        "continuation_plan_sha256": _sha(dispatcher._json_bytes(plan)),
+        "manifest_sha256": dispatcher.EXPECTED_MANIFEST_SHA256,
+        "model_settings_sha256": plan["expected_model_settings_sha256"],
+        "documents": [{"document_id": "a" * 64, "status": "SOURCE_INVALID"}],
+    }), encoding="utf-8")
+
+    decision = dispatcher._reconcile_singleton(
+        monkeypatch_plan,
+        _sha(dispatcher._json_bytes(plan)),
+        child={"returncode": 0, "resource_stop_reason": None},
+    )
+    assert decision["decision"] == "CONTINUE"
+    receipt["model_request_count"] = 1
+    (root / "documents" / ("a" * 64) / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "SOURCE_ONLY_RECEIPT_MODEL_ACTIVITY_UNCLEAR"):
+        dispatcher._reconcile_singleton(
+            monkeypatch_plan,
+            _sha(dispatcher._json_bytes(plan)),
+            child={"returncode": 0, "resource_stop_reason": None},
+        )
+
+
+def _case_resource_thresholds_use_only_existing_available_and_swap_metrics() -> None:
+    assert dispatcher._resource_stop_reason({"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100 + dispatcher.MAX_SWAP_GROWTH_BYTES}, 100) is None
+    assert dispatcher._resource_stop_reason({"available_bytes": dispatcher.MIN_AVAILABLE_BYTES - 1, "swap_used_bytes": 100}, 100) == "AVAILABLE_MEMORY_BELOW_8_GIB"
+    assert dispatcher._resource_stop_reason({"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 101 + dispatcher.MAX_SWAP_GROWTH_BYTES}, 100) == "SWAP_GROWTH_ABOVE_512_MIB"
+    assert dispatcher._resource_stop_reason({"available_bytes": None, "swap_used_bytes": 100}, 100) == "RESOURCE_SAMPLE_CANNOT_CONFIRM"
+
+
+def _case_recovery_wait_requires_a_stable_observed_resource_change() -> None:
+    failure_sample = {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 900}
+    samples = iter((
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+    ))
+    sleeps: list[float] = []
+    persisted: list[dict[str, object]] = []
+
+    result = dispatcher._wait_for_recovery_resource_change(
+        failure_sample,
+        baseline_swap_used=900,
+        sampler=lambda: next(samples),
+        sleep_fn=sleeps.append,
+        persist=persisted.append,
+        timeout_seconds=dispatcher.MEMORY_RECOVERY_POLL_SECONDS * 3,
+    )
+
+    assert result["status"] == "RESOURCE_CHANGE_OBSERVED"
+    assert result["available_gain_bytes"] == dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES
+    assert result["stable_samples"] == dispatcher.MEMORY_RECOVERY_STABLE_SAMPLE_COUNT
+    assert sleeps == [dispatcher.MEMORY_RECOVERY_POLL_SECONDS] * 2
+    assert len(persisted) == 2
+
+
+def _case_memory_recovery_retry_is_bounded_and_second_failure_isolated(
+    monkeypatch: _MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    docs, _original, _pilot, _statuses, _summary = _synthetic_context(monkeypatch, tmp_path, max_documents=2)
+    plans: list[dict[str, object]] = []
+    def fake_builder(
+        prior_plan: dict[str, object],
+        prior_raw: bytes,
+        document: dict[str, str],
+        *,
+        model_settings_sha256: str,
+    ) -> tuple[dict[str, object], bytes]:
+        recovery_plan, _ = dispatcher.build_singleton_plan(
+            document,
+            manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+            prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+            model_settings_sha256=model_settings_sha256,
+            continuation_id="memory-recovery-test",
+        )
+        recovery_plan["selected_documents"][0]["prior_status"] = "FAILED_NO_RETRY"
+        recovery_plan["selected_documents"][0]["recovery"] = {
+            "generation": 1,
+            "prior_state_root": prior_plan["state_root"],
+            "prior_queue_idempotency_key": "f" * 64,
+            "prior_artifact_sha256": {},
+        }
+        recovery_plan["state_root"] = str(tmp_path / "state" / "recovery-test")
+        recovery_raw = dispatcher._json_bytes(recovery_plan)
+        return recovery_plan, recovery_raw
+
+    monkeypatch.setattr(dispatcher, "build_memory_recovery_plan", fake_builder)
+    monkeypatch.setattr(batch, "validate_continuation_plan", lambda path, **_kwargs: {
+        "plan_sha256": _sha(path.read_bytes()),
+    })
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        plans.append(plan)
+        status = "FAILED_NO_RETRY" if len(plans) <= 2 else "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING"
+        _write_terminal_state(plan, status, model_requests=1)
+        return {
+            "returncode": 0,
+            "resource_stop_reason": None,
+            "child_started": True,
+            "last_resource_sample": {
+                "available_bytes": dispatcher.MIN_AVAILABLE_BYTES,
+                "swap_used_bytes": 900,
+            },
+        }
+
+    samples = iter((
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 900},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES + dispatcher.MEMORY_RECOVERY_AVAILABLE_GAIN_BYTES, "swap_used_bytes": 900},
+    ))
+    result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=2,
+        sampler=lambda: next(samples),
+        sleep_fn=lambda _seconds: None,
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: f"resume-test-{len(plans)}",
+    )
+
+    assert len(plans) == 3
+    assert plans[0]["selected_documents"][0]["document_id"] == plans[1]["selected_documents"][0]["document_id"]
+    assert plans[1]["selected_documents"][0]["recovery"]["generation"] == 1
+    assert plans[2]["selected_documents"][0]["document_id"] != plans[0]["selected_documents"][0]["document_id"]
+    assert result["status"] == "READY_FOR_NEXT_INVOCATION"
+    events = [json.loads(line) for line in (tmp_path / "evidence/dispatch.jsonl").read_text().splitlines()]
+    recovered = [event for event in events if event.get("event") == "reconciled" and event.get("memory_recovery_status") == "SINGLE_RECOVERY_FAILED_ISOLATED"]
+    assert len(recovered) == 1
+    assert not any(event.get("event") == "halt" for event in events)
+    dispatcher._assert_no_duplicate_document_ids(events)
+    tampered_events = [dict(event) for event in events]
+    wait_event = next(event for event in tampered_events if event.get("event") == "memory_recovery_wait")
+    wait_event["available_gain_bytes"] = 0
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CROSS_PLAN_DUPLICATE_DOCUMENT"):
+        dispatcher._assert_no_duplicate_document_ids(tampered_events)
+
+
+def _case_resource_failure_sends_one_owned_sigterm_then_waits(tmp_path: Path) -> None:
+    class FakeProc:
+        pid = 123
+
+        def __init__(self) -> None:
+            self.signals: list[int] = []
+            self.returncode: int | None = None
+            self.stdout = io.StringIO("{}\n")
+
+        def poll(self) -> int | None:
+            return self.returncode
+
+        def send_signal(self, value: int) -> None:
+            self.signals.append(value)
+            self.returncode = -value
+
+        def wait(self, timeout: float | None = None) -> int:
+            if self.returncode is None:
+                raise dispatcher.subprocess.TimeoutExpired("fake", timeout)
+            return self.returncode
+
+    proc = FakeProc()
+    samples = iter((
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 10},
+        {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES - 1, "swap_used_bytes": 10},
+    ))
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text("{}", encoding="utf-8")
+    result = dispatcher._run_execution_child(
+        plan_path,
+        baseline_swap_used=10,
+        samples_path=tmp_path / "samples.jsonl",
+        prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
+        prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+            eligible_selection_path=Path("/tmp/selection18.json"),
+            eligible_selection_sha256="8" * 64,
+        sampler=lambda: next(samples),
+        popen=lambda *_args, **_kwargs: proc,
+        sleep_fn=lambda _seconds: None,
+        create_time_fn=lambda _pid: 7.0,
+        signal_fn=lambda child, owned_time: child.send_signal(signal.SIGTERM) if owned_time == 7.0 else (_ for _ in ()).throw(AssertionError("wrong child identity")),
+    )
+    assert proc.signals == [signal.SIGTERM]
+    assert result["resource_stop_reason"] == "AVAILABLE_MEMORY_BELOW_8_GIB"
+    assert result["returncode"] == -signal.SIGTERM
+
+
+def _case_resource_sampler_failure_before_spawn_never_starts_runner(tmp_path: Path) -> None:
+    called = False
+
+    def popen(*_args: object, **_kwargs: object) -> object:
+        nonlocal called
+        called = True
+        return object()
+
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text("{}", encoding="utf-8")
+    result = dispatcher._run_execution_child(
+        plan_path,
+        baseline_swap_used=1,
+        samples_path=tmp_path / "samples.jsonl",
+        prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
+        prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+            eligible_selection_path=Path("/tmp/selection18.json"),
+            eligible_selection_sha256="8" * 64,
+        sampler=lambda: (_ for _ in ()).throw(dispatcher.DispatcherError("missing")),
+        popen=popen,
+    )
+    assert called is False
+    assert result["child_started"] is False
+    assert result["resource_stop_reason"] == "RESOURCE_SAMPLE_CANNOT_CONFIRM"
+
+
+def _case_predispatch_resource_failure_halts_without_receipt(monkeypatch: _MonkeyPatch, tmp_path: Path) -> None:
+    _synthetic_context(monkeypatch, tmp_path, max_documents=2)
+    plans: list[Path] = []
+
+    def child_runner(path: Path, **_kwargs: object) -> dict[str, object]:
+        plans.append(path)
+        return {
+            "returncode": None,
+            "resource_stop_reason": "RESOURCE_SAMPLE_CANNOT_CONFIRM",
+            "child_started": False,
+            "stdout_sha256": None,
+        }
+
+    result = dispatcher.execute_once(
+        **_prepared_kwargs(monkeypatch),
+        authorization_path=tmp_path / "unused-auth.json",
+        manifest_path=tmp_path / "unused-manifest.json",
+        evidence_root=tmp_path / "evidence",
+        max_documents=2,
+        sampler=lambda: {"available_bytes": dispatcher.MIN_AVAILABLE_BYTES, "swap_used_bytes": 100},
+        plan_only=lambda _path: None,
+        child_runner=child_runner,
+        continuation_id_factory=lambda: "resume-predispatch-stop",
+    )
+
+    assert result["status"] == "HALTED"
+    assert len(plans) == 1
+    events = [json.loads(line) for line in (tmp_path / "evidence/dispatch.jsonl").read_text().splitlines()]
+    assert any(event.get("status") == "PRE_DISPATCH_RESOURCE_STOP" for event in events)
+    assert not any(event.get("event") == "plan_created" and event.get("document_id") == "b" * 64 for event in events)
+
+
+def _case_child_command_uses_native_module_entrypoint() -> None:
+    plan_path = Path("/tmp/one-plan.json")
+
+    command = dispatcher._make_command(
+        plan_path,
+        execute=True,
+        prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,
+        prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+            eligible_selection_path=Path("/tmp/selection18.json"),
+            eligible_selection_sha256="8" * 64,
+    )
+
+    assert command == [
+        str(dispatcher.EXPECTED_RUNTIME_PYTHON),
+        "-m",
+        "ops.run_pdf_research_batch",
+        "--manifest",
+        str(batch.DEFAULT_MANIFEST),
+        "--continuation-plan",
+        str(plan_path),
+        "--prepared-text-manifest",
+        str(TEST_PREPARED_TEXT_PATH),
+        "--prepared-text-manifest-sha256",
+        TEST_PREPARED_TEXT_SHA256,
+        "--eligible-selection",
+        "/tmp/selection18.json",
+        "--eligible-selection-sha256",
+        "8" * 64,
+        "--execute",
+    ]
+
+
+def _case_plan_only_subprocess_requires_singleton_binding(tmp_path: Path) -> None:
+    doc = {"document_id": "a" * 64, "pdf_sha256": "a" * 64}
+    plan, raw = dispatcher.build_singleton_plan(
+        doc,
+        manifest_sha256=dispatcher.EXPECTED_MANIFEST_SHA256,
+        prior_progress_sha256=dispatcher.ORIGINAL_PROGRESS_SHA256,
+        model_settings_sha256=batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        continuation_id="resume-plan-only",
+    )
+    path = tmp_path / "plan.json"
+    path.write_bytes(raw)
+
+    def run(command: list[str], **kwargs: object) -> SimpleNamespace:
+        assert command[:3] == [str(dispatcher.EXPECTED_RUNTIME_PYTHON), "-m", "ops.run_pdf_research_batch"]
+        assert kwargs["cwd"] == str(dispatcher.PROJECT_ROOT)
+        return SimpleNamespace(returncode=0, stdout=json.dumps({
+            "status": "PLAN_ONLY",
+            "continuation_id": plan["continuation_id"],
+            "continuation_plan_sha256": _sha(raw),
+            "selected_document_count": 1,
+            "state_root": plan["state_root"],
+        }))
+
+    dispatcher._run_plan_only(path, popen=run)
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "RUNNER_PLAN_ONLY_BINDING_MISMATCH"):
+        dispatcher._run_plan_only(path, popen=lambda *_args, **_kwargs: SimpleNamespace(
+            returncode=0,
+            stdout=json.dumps({"status": "PLAN_ONLY", "continuation_id": "wrong", "selected_document_count": 1, "state_root": plan["state_root"], "continuation_plan_sha256": _sha(raw)}),
+        ))
+
+
+def _case_invalid_gate_auth_stops_before_reading_actual_pilot_receipts(tmp_path: Path, monkeypatch: _MonkeyPatch) -> None:
+    continuation_root = tmp_path / "continuation"
+    continuation_root.mkdir()
+    monkeypatch.setattr(dispatcher, "CONTINUATION_ROOT", continuation_root)
+    auth_path = continuation_root / "ROOT_REMAINING_EXECUTION_AUTHORIZATION.json"
+    monkeypatch.setattr(dispatcher, "AUTHORIZATION_PATH", auth_path)
+    monkeypatch.setattr(dispatcher, "EXPECTED_SCOPE_SHA256", "a" * 64)
+    monkeypatch.setattr(dispatcher, "EXPECTED_RUNNER_SHA256", "b" * 64)
+    monkeypatch.setattr(dispatcher, "EXPECTED_MANIFEST_SHA256", "c" * 64)
+    monkeypatch.setattr(dispatcher, "ORIGINAL_PROGRESS_SHA256", "d" * 64)
+    monkeypatch.setattr(dispatcher, "EXPECTED_RUNTIME_PYTHON", Path("/configured/python"))
+
+    pilot_ids = [f"{index:064x}" for index in range(1, 11)]
+    pilot_plan = {
+        "schema": dispatcher.PLAN_SCHEMA,
+        "continuation_id": "pilot-frozen",
+        "observed_model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        "state_root": str(tmp_path / "state" / "pilot"),
+        "selected_documents": [{"document_id": item} for item in pilot_ids],
+    }
+    pilot_plan_path = continuation_root / "pilot-plan.json"
+    pilot_plan_raw = json.dumps(pilot_plan).encode()
+    pilot_plan_path.write_bytes(pilot_plan_raw)
+    monkeypatch.setattr(dispatcher, "PILOT_PLAN_PATH", pilot_plan_path)
+    monkeypatch.setattr(dispatcher, "EXPECTED_PILOT_PLAN_SHA256", _sha(pilot_plan_raw))
+    selection = {
+        "selection": {
+            "selection_sha256": "e" * 64,
+            "selected_documents": [{"document_id": item} for item in pilot_ids],
+        }
+    }
+    selection_path = continuation_root / "pilot-selection.json"
+    selection_raw = json.dumps(selection).encode()
+    selection_path.write_bytes(selection_raw)
+    monkeypatch.setattr(dispatcher, "PILOT_SELECTION_PATH", selection_path)
+    monkeypatch.setattr(dispatcher, "EXPECTED_PILOT_SELECTION_FILE_SHA256", _sha(selection_raw))
+    monkeypatch.setattr(dispatcher, "EXPECTED_PILOT_SELECTION_SHA256", "e" * 64)
+
+    resource_path = continuation_root / "resource.json"
+    resource = {"status": "FAIL"}
+    resource_raw = json.dumps(resource).encode()
+    resource_path.write_bytes(resource_raw)
+    empty_ref = {"path": str(resource_path), "sha256": _sha(resource_raw)}
+    auth = {
+        "schema": dispatcher.AUTHORIZATION_SCHEMA,
+        "status": "AUTHORIZED",
+        "authorization_id": "test-auth",
+        "scope_sha256": "a" * 64,
+        "prepared_text_manifest_sha256": "9" * 64,
+        "dispatcher_sha256": _sha(Path(dispatcher.__file__).read_bytes()),
+        "runner_sha256": "b" * 64,
+        "manifest_sha256": "c" * 64,
+        "original_progress_sha256": "d" * 64,
+        "runtime_python": "/configured/python",
+        "runtime_version": dispatcher.EXPECTED_RUNTIME_VERSION,
+        "model_settings_sha256": batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,
+        "max_documents": 1,
+        "pilot": {
+            "plan_sha256": dispatcher.EXPECTED_PILOT_PLAN_SHA256,
+            "selection_file_sha256": dispatcher.EXPECTED_PILOT_SELECTION_FILE_SHA256,
+            "selection_sha256": dispatcher.EXPECTED_PILOT_SELECTION_SHA256,
+            "progress": {"path": str(tmp_path / "outside" / "run-progress.json"), "sha256": "f" * 64},
+            "receipts": [],
+        },
+        "resource_gate": empty_ref,
+        "sentinel_gate": empty_ref,
+        "reviewer_receipt": empty_ref,
+        "adoption_receipt": empty_ref,
+        "research_only": {"research_only": True, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False},
+    }
+    auth_path.write_text(json.dumps(auth), encoding="utf-8")
+    monkeypatch.setattr(dispatcher, "_validate_pilot_receipts", lambda *_args: (_ for _ in ()).throw(AssertionError("pilot state read before gates")))
+
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "RESOURCE_GATE_EVIDENCE_INVALID"):
+        dispatcher.load_and_validate_authorization(auth_path)
+
+
+def _case_child_signal_requires_creation_time_match() -> None:
+    psutil_stub = ModuleType("psutil")
+    psutil_stub.Process = lambda _pid: SimpleNamespace(create_time=lambda: 17.0)  # type: ignore[attr-defined]
+
+    class FakeProc:
+        pid = 42
+
+        def __init__(self) -> None:
+            self.signals: list[int] = []
+
+        def poll(self) -> int | None:
+            return None
+
+        def send_signal(self, value: int) -> None:
+            self.signals.append(value)
+
+    proc = FakeProc()
+    with mock.patch.dict(sys.modules, {"psutil": psutil_stub}):
+        dispatcher._signal_owned_child(proc, 17.0)
+        assert proc.signals == [signal.SIGTERM]
+        proc.signals.clear()
+        with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, "CHILD_OWNERSHIP_CHANGED"):
+            dispatcher._signal_owned_child(proc, 18.0)
+    assert proc.signals == []
+
+
+class TestRemainingOnce(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp_path = Path(self._tmp.name)
+        self.monkeypatch = _MonkeyPatch(self)
+
+    def test_runtime_guard(self) -> None:
+        _case_runtime_guard_requires_exact_configured_312(self.monkeypatch, self.tmp_path)
+
+    def test_default_evidence_root_is_versioned_for_this_run(self) -> None:
+        self.assertEqual(
+            dispatcher.EVIDENCE_ROOT,
+            Path("/Users/lexi/Desktop/学习/agents调试/V4_PDF_TOOL_ENABLED_COMPLETION_20261019_R1/remaining-execution-r1"),
+        )
+        self.assertNotEqual(dispatcher.EVIDENCE_ROOT, dispatcher.CONTINUATION_ROOT / "resume-writer")
+
+    def test_singleton_plan(self) -> None:
+        _case_singleton_plan_matches_integrated_runner_contract(self.tmp_path, self.monkeypatch)
+
+    def test_execution_requires_prepared_text_before_reading_authorization(self) -> None:
+        with self.assertRaisesRegex(dispatcher.DispatcherError, "PREPARED_TEXT_MANIFEST_REQUIRED"):
+            dispatcher.execute_once(
+                authorization_path=self.tmp_path / "missing-authorization.json",
+                manifest_path=self.tmp_path / "missing-manifest.json",
+                evidence_root=self.tmp_path / "evidence",
+            )
+
+    def test_selection_uses_statuses(self) -> None:
+        _case_selection_uses_statuses_and_keeps_failures_outstanding()
+
+    def test_unprocessed_canary_selection(self) -> None:
+        _case_unprocessed_canary_selection_rejects_held_statuses()
+
+    def test_original_progress_accepts_exact_receipt_bound_status_advance(self) -> None:
+        _case_original_progress_status_is_checked_against_frozen_inventory_not_live_receipts(
+            self.monkeypatch,
+            self.tmp_path,
+        )
+
+    def test_original_progress_must_match_frozen_inventory_history(self) -> None:
+        _case_original_progress_must_match_frozen_inventory_history(self.monkeypatch, self.tmp_path)
+
+    def test_current_canary_receipts_are_folded_before_dispatch(self) -> None:
+        _manifest, manifest_sha, documents = batch.load_manifest(batch.DEFAULT_MANIFEST)
+        statuses, summary = dispatcher.load_current_completion_statuses(
+            documents,
+            manifest_sha256=manifest_sha,
+        )
+        for document_id in (*dispatcher.THREE_DOCUMENT_CANARY_IDS, dispatcher.TOOL_CANARY_DOCUMENT_ID):
+            self.assertEqual(statuses[document_id], "MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING")
+        self.assertEqual(summary["completed_count"], dispatcher.CURRENT_COMPLETED_DOCUMENT_COUNT)
+        self.assertEqual(summary["outstanding_count"], dispatcher.CURRENT_OUTSTANDING_DOCUMENT_COUNT)
+        self.assertEqual(summary["runnable_unprocessed_count"], dispatcher.EXPECTED_POST_PILOT_COHORT)
+        selected, remaining = dispatcher.select_next_document(documents, statuses, set(), set())
+        self.assertIsNotNone(selected)
+        self.assertNotIn(selected["document_id"], set(dispatcher.THREE_DOCUMENT_CANARY_IDS))
+        self.assertNotEqual(selected["document_id"], dispatcher.TOOL_CANARY_DOCUMENT_ID)
+        self.assertEqual(remaining, dispatcher.EXPECTED_POST_PILOT_COHORT)
+
+    def test_multi_document_plan(self) -> None:
+        _case_multi_document_unprocessed_plan_is_bounded_and_runner_compatible()
+
+    def test_memory_recovery_plan_reuses_exact_frozen_failure_chain(self) -> None:
+        _manifest, manifest_sha, documents = batch.load_manifest(batch.DEFAULT_MANIFEST)
+        self.assertEqual(manifest_sha, dispatcher.EXPECTED_MANIFEST_SHA256)
+        prior_raw = dispatcher.THREE_DOCUMENT_CANARY_PLAN_PATH.read_bytes()
+        prior_plan = json.loads(prior_raw.decode("utf-8"))
+        document = next(
+            row for row in documents
+            if row.get("document_id") == "eeed6e4916c2a8b44d0f3911d9303de754e6164d8d33cc7f11f4c15dae9f49a5"
+        )
+
+        plan, raw = dispatcher.build_memory_recovery_plan(
+            prior_plan,
+            prior_raw,
+            document,
+            model_settings_sha256=dispatcher.EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256,
+            continuation_id=dispatcher.AI_VIDEO_RECOVERY_CONTINUATION_ID,
+        )
+
+        self.assertIsNotNone(plan)
+        self.assertEqual(_sha(raw), dispatcher.AI_VIDEO_RECOVERY_PLAN_SHA256)
+        self.assertEqual(raw, dispatcher.AI_VIDEO_RECOVERY_PLAN_PATH.read_bytes())
+        self.assertEqual(plan["selected_documents"][0]["recovery"]["generation"], 1)
+
+    def test_memory_recovery_accepts_missing_round_status_only_for_bound_prefill_failure(self) -> None:
+        _manifest, manifest_sha, documents = batch.load_manifest(batch.DEFAULT_MANIFEST)
+        self.assertEqual(manifest_sha, dispatcher.EXPECTED_MANIFEST_SHA256)
+        journal_events = [
+            json.loads(line)
+            for line in dispatcher.EVIDENCE_ROOT.joinpath("dispatch.jsonl").read_bytes().splitlines()
+        ]
+        prior_event = next(
+            event for event in journal_events
+            if event.get("event") == "plan_created"
+            and event.get("document_id") == "e2d660f090a972a43ba68bba37eea0a5889c1c6bef1bb760a0334fd0c4da6813"
+        )
+        prior_raw = base64.b64decode(prior_event["plan_bytes_b64"], validate=True)
+        prior_plan = json.loads(prior_raw.decode("utf-8"))
+        document_id = prior_event["document_id"]
+        document = next(row for row in documents if row.get("document_id") == document_id)
+        state_root = Path(prior_plan["state_root"])
+        prior_receipt = json.loads((state_root / "documents" / document_id / "receipt.json").read_bytes())
+        failed_chunk = next(
+            row for row in prior_receipt["chunks"]
+            if row.get("status") == "FAILED_NO_RETRY"
+        )
+        queue_key = failed_chunk["queue_item"]["idempotency_key"]
+        stream_receipt_path = state_root / "evidence" / "streams" / queue_key / "attempt-0001" / "stream-receipt.json"
+        original_read = dispatcher._read_regular
+        original_stream_receipt = json.loads(original_read(stream_receipt_path, "fixture").decode("utf-8"))
+        self.assertEqual(original_stream_receipt.get("status"), "FAILED")
+        self.assertNotIn("status", original_stream_receipt["rounds"][0])
+
+        def build_with_round_status(status: str | None, *, omit: bool) -> tuple[dict[str, object] | None, bytes | None]:
+            def read_with_round_status(path: Path, code: str) -> bytes:
+                raw = original_read(path, code)
+                if path == stream_receipt_path:
+                    receipt = json.loads(raw.decode("utf-8"))
+                    if omit:
+                        receipt["rounds"][0].pop("status", None)
+                    else:
+                        receipt["rounds"][0]["status"] = status
+                    return dispatcher._json_bytes(receipt)
+                return raw
+
+            with mock.patch.object(dispatcher, "_read_regular", side_effect=read_with_round_status):
+                return dispatcher.build_memory_recovery_plan(
+                    prior_plan,
+                    prior_raw,
+                    document,
+                    model_settings_sha256=dispatcher.EXPECTED_TOOL_CANARY_MODEL_SETTINGS_SHA256,
+                )
+
+        recovered = build_with_round_status(None, omit=True)
+        self.assertIsNotNone(recovered)
+        self.assertEqual(recovered[0]["selected_documents"][0]["recovery"]["generation"], 1)
+        for explicit_status in ("SUCCEEDED", "PENDING", None):
+            with self.assertRaisesRegex(dispatcher.DispatcherError, "MEMORY_RECOVERY_PRIOR_EVIDENCE_MISMATCH"):
+                build_with_round_status(explicit_status, omit=False)
+
+    def test_duplicate_rejection(self) -> None:
+        _case_document_plan_journal_rejects_cross_plan_duplicate()
+
+    def test_failure_stop(self) -> None:
+        _case_failure_receipt_stops_before_next_document(self.monkeypatch, self.tmp_path)
+
+    def test_deferred_resume(self) -> None:
+        _case_deferred_resume_reuses_same_plan_and_state_root(self.monkeypatch, self.tmp_path)
+
+    def test_ambiguous_dispatch(self) -> None:
+        _case_ambiguous_dispatch_intent_fails_closed_on_next_invocation(self.monkeypatch, self.tmp_path)
+
+    def test_missing_receipt_halts(self) -> None:
+        _case_missing_terminal_receipt_is_recorded_and_halts(self.monkeypatch, self.tmp_path)
+
+    def test_source_only_accounting(self) -> None:
+        _case_source_only_receipt_can_continue_only_without_model_activity(self.tmp_path)
+
+    def test_resource_thresholds(self) -> None:
+        _case_resource_thresholds_use_only_existing_available_and_swap_metrics()
+
+    def test_recovery_wait_requires_resource_change(self) -> None:
+        _case_recovery_wait_requires_a_stable_observed_resource_change()
+
+    def test_memory_recovery_retries_once_and_isolates_second_failure(self) -> None:
+        _case_memory_recovery_retry_is_bounded_and_second_failure_isolated(self.monkeypatch, self.tmp_path)
+
+    def test_resource_owned_sigterm(self) -> None:
+        _case_resource_failure_sends_one_owned_sigterm_then_waits(self.tmp_path)
+
+    def test_resource_sample_failure(self) -> None:
+        _case_resource_sampler_failure_before_spawn_never_starts_runner(self.tmp_path)
+
+    def test_predispatch_resource_stop(self) -> None:
+        _case_predispatch_resource_failure_halts_without_receipt(self.monkeypatch, self.tmp_path)
+
+    def test_native_module_command(self) -> None:
+        _case_child_command_uses_native_module_entrypoint()
+
+    def test_plan_only_binding(self) -> None:
+        _case_plan_only_subprocess_requires_singleton_binding(self.tmp_path)
+
+    def test_gate_order(self) -> None:
+        _case_invalid_gate_auth_stops_before_reading_actual_pilot_receipts(self.tmp_path, self.monkeypatch)
+
+    def test_owned_child_signal(self) -> None:
+        _case_child_signal_requires_creation_time_match()
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+def test_dispatch_skips_prepared_failures_and_continues_ready(tmp_path, monkeypatch):
+    docs, original, pilot, statuses, auth = _synthetic_context(monkeypatch, tmp_path, max_documents=1)
+    eligible = [row for row in docs if statuses[row['document_id']] == 'UNPROCESSED' and row['document_id'] not in pilot and row['document_id'] != dispatcher.QUARANTINE_DOCUMENT_ID]
+    prepared = {row['document_id']: {'manifest_row': {'status': 'READY'}} for row in docs}
+    prepared[eligible[0]['document_id']]['manifest_row']['status'] = 'FAILED'
+    prepared[eligible[1]['document_id']]['manifest_row']['status'] = 'QUARANTINED'
+    kwargs = _prepared_kwargs(monkeypatch)
+    monkeypatch.setattr(batch.pdf_text_preparation, 'verify_frozen_manifest', lambda *a, **k: {'path': kwargs['prepared_text_manifest_path'], 'manifest_sha256': kwargs['prepared_text_manifest_sha256'], 'documents': prepared})
+    dispatched = []
+    def child(path, **kwargs):
+        dispatched.append(json.loads(path.read_text())['selected_documents'][0]['document_id'])
+        return {'returncode': 0, 'resource_stop_reason': None}
+    monkeypatch.setattr(dispatcher, '_reconcile_singleton', lambda plan, sha, **k: {'document_id': plan['selected_documents'][0]['document_id'], 'status': 'MODEL_GENERATED_TEXT_COMPLETE_SOURCE_REVIEW_PENDING', 'decision': 'CONTINUE', 'model_request_count': 0})
+    result = dispatcher.execute_once(evidence_root=tmp_path/'journal', max_documents=1, sampler=lambda: {'available_bytes': dispatcher.MIN_AVAILABLE_BYTES+1, 'swap_used_bytes': 0}, sleep_fn=lambda _:None, plan_only=lambda _:None, child_runner=child, **kwargs)
+    assert dispatched == [eligible[2]['document_id']]
+    assert result['status'] != 'HALTED'
+
+
+def test_prepared_manifest_requires_authorization_exact_hash(tmp_path, monkeypatch):
+    docs, original, pilot, statuses, auth = _synthetic_context(monkeypatch, tmp_path)
+    dispatcher.load_and_validate_authorization(dispatcher.AUTHORIZATION_PATH)['authorization']['prepared_text_manifest_sha256'] = '0'*64
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, 'ROOT_PREPARED_MANIFEST_AUTHORIZATION_MISMATCH'):
+        dispatcher.execute_once(evidence_root=tmp_path/'journal', **_prepared_kwargs(monkeypatch))
+
+
+def test_prepared_new_root_cannot_hide_old_journal(tmp_path, monkeypatch):
+    docs, original, pilot, statuses, auth = _synthetic_context(monkeypatch, tmp_path)
+    historical = tmp_path/'journal'; historical.mkdir()
+    journal = historical/'dispatch.jsonl'; raw=b'{"event":"binding"}\n{"event":"halt"}\n'; journal.write_bytes(raw)
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError, 'PREPARED_DISPATCH_MUST_RETAIN_HISTORY'):
+        dispatcher.execute_once(evidence_root=tmp_path/'fresh-root', **_prepared_kwargs(monkeypatch))
+    assert journal.read_bytes() == raw
+    assert not (tmp_path/'fresh-root').exists()
+
+
+def test_analysis_allowlist_order_precedes_parent_inventory_order():
+    docs = _synthetic_documents(); docs[-2] = {'document_id':batch.ANALYSIS_CANARY_ID,'pdf_sha256':batch.ANALYSIS_CANARY_ID}
+    statuses = _synthetic_statuses(docs)
+    prepared = {d['document_id']:{'manifest_row':{'status':'READY'}} for d in docs}
+    allowed = [batch.ANALYSIS_CANARY_ID, docs[0]['document_id']]
+    selected, count = dispatcher.select_next_document(docs,statuses,set(),set(),prepared,allowed)
+    assert selected['document_id']==batch.ANALYSIS_CANARY_ID and count==2
+    selected, count = dispatcher.select_next_document(docs,statuses,set(),{batch.ANALYSIS_CANARY_ID},prepared,allowed)
+    assert selected['document_id']==docs[0]['document_id'] and count==1
+
+
+def test_analysis_isolation_appends_once_preserves_old_prefix_and_forbids_replay(tmp_path):
+    root=tmp_path/'journal';root.mkdir();path=root/'dispatch.jsonl'
+    old=[{'event':'binding'}]+[{'event':'reconciled','document_id':str(i)} for i in range(37)]+[{'event':'halt','document_id':batch.ANALYSIS_ISOLATED_ID}]
+    prefix=b''.join(dispatcher.canonical_json(e)+b'\n' for e in old);path.write_bytes(prefix)
+    descriptor={'document_id':batch.ANALYSIS_ISOLATED_ID,'plan_sha256':'a'*64,'journal_event_count':39}
+    context={'analysis_admission':{'value':{'halt_isolation':{'sha256':'b'*64}}},'prepared_text_manifest_sha256':'c'*64}
+    with dispatcher.DurableJournal(root) as journal:
+        journal.append({'event':'source_adoption','document_id':batch.ANALYSIS_ISOLATED_ID})
+        assert dispatcher._prepare_analysis_isolation(journal,context,descriptor)==batch.ANALYSIS_ISOLATED_ID
+        current=path.read_bytes();assert current.startswith(prefix) and len(journal.events)==41
+        dispatcher._prepare_analysis_isolation(journal,context,descriptor)
+        assert path.read_bytes()==current
+        journal.append({'event':'plan_created','document_id':batch.ANALYSIS_ISOLATED_ID})
+        with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'REPLAY_FORBIDDEN'):
+            dispatcher._prepare_analysis_isolation(journal,context,descriptor)
+
+
+def test_analysis_child_command_requires_eligibility_and_propagates_exact_hash():
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'ANALYSIS_ADMISSION_REQUIRED'):
+        dispatcher._make_command(Path('/tmp/plan.json'),execute=True,prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256)
+    command=dispatcher._make_command(Path('/tmp/plan.json'),execute=True,prepared_text_manifest_path=TEST_PREPARED_TEXT_PATH,prepared_text_manifest_sha256=TEST_PREPARED_TEXT_SHA256,
+                                     eligible_selection_path=Path('/tmp/selection18.json'),eligible_selection_sha256='8'*64)
+    assert command[command.index('--eligible-selection')+1]=='/tmp/selection18.json'
+    assert command[command.index('--eligible-selection-sha256')+1]=='8'*64
+
+
+def test_analysis_new_plan_binds_execution_runtime_preserving_identity_and_legacy_bytes():
+    document={'document_id':batch.ANALYSIS_CANARY_ID,'pdf_sha256':batch.ANALYSIS_CANARY_ID}
+    kwargs={'manifest_sha256':dispatcher.EXPECTED_MANIFEST_SHA256,'prior_progress_sha256':dispatcher.ORIGINAL_PROGRESS_SHA256,
+            'model_settings_sha256':batch.CONTINUATION_CANDIDATE_SETTINGS_SHA256,'continuation_id':'runtime-provenance-field'}
+    old,old_raw=dispatcher.build_singleton_plan(document,**kwargs)
+    new,new_raw=dispatcher.build_singleton_plan(document,execution_runtime_settings_sha256=batch.ANALYSIS_RUNTIME_SHA256,**kwargs)
+    assert old['runtime_settings_sha256']==new['runtime_settings_sha256']==batch.EXPECTED_RUNTIME_SHA256
+    assert 'execution_runtime_settings_sha256' not in old
+    assert new['execution_runtime_settings_sha256']==batch.ANALYSIS_RUNTIME_SHA256
+    assert old_raw==dispatcher._json_bytes(old)
+    assert {k:v for k,v in new.items() if k!='execution_runtime_settings_sha256'}==old
+    with unittest.TestCase().assertRaisesRegex(dispatcher.DispatcherError,'EXECUTION_RUNTIME_MISMATCH'):
+        dispatcher.build_singleton_plan(document,execution_runtime_settings_sha256='0'*64,**kwargs)
+
+
+def test_pilot_adoption_keeps_all45_previous_lines_and_rejects_rebinding(tmp_path,monkeypatch):
+    import pytest
+    root=tmp_path/'journal';root.mkdir();path=root/'dispatch.jsonl'
+    events=[{'event':'binding','index':i} for i in range(45)]
+    events[39]={'event':'source_adoption','preserved':'old identity'}
+    raw=b''.join(dispatcher.canonical_json(e)+b'\n' for e in events);path.write_bytes(raw)
+    monkeypatch.setattr(batch,'PILOT_JOURNAL_PREFIX_SHA256',_sha(raw))
+    monkeypatch.setattr(dispatcher,'_pilot_historical_context',lambda c:{'old':'identity'})
+    monkeypatch.setattr(dispatcher,'_analysis_isolation_descriptor',lambda c,j:{'old':'descriptor'})
+    monkeypatch.setattr(dispatcher,'_source_adoption_event',lambda c,d:events[39])
+    context={'authorization_sha256':'a'*64,'analysis_admission':{'pilot':{'reference':{'path':'adoption','sha256':'b'*64},'value':{'sources':{'runner':'c'*64}}}}}
+    with dispatcher.DurableJournal(root) as journal:
+        dispatcher._verify_pilot_append_only_adoption(journal,context)
+        assert path.read_bytes().startswith(raw) and len(journal.events)==46
+        dispatcher._verify_pilot_append_only_adoption(journal,context)
+        assert len(journal.events)==46
+        with pytest.raises(dispatcher.DispatcherError,match='CURRENT_ADOPTION_MISMATCH'):
+            dispatcher._verify_pilot_append_only_adoption(journal,{**context,'authorization_sha256':'d'*64})
+    path.write_bytes(b'changed'+path.read_bytes())
+    journal=SimpleNamespace(path=path,events=events)
+    with pytest.raises(dispatcher.DispatcherError,match='PRIOR_JOURNAL_PREFIX_MISMATCH'):
+        dispatcher._verify_pilot_append_only_adoption(journal,context)
+
+
+def test_v2_only_proven_generation1_recovery_pair_and_new_halt_blocks(monkeypatch):
+    import pytest
+    did=dispatcher.batch.PILOT_TOOL_BUDGET_DOCUMENT_ID
+    def plan(cid,root,extra=None):return {'continuation_id':cid,'state_root':root,'selected_documents':[{'document_id':did,'prior_status':'UNPROCESSED','source_sha256':did}],**(extra or {})}
+    original=plan('old','/old');repaired=plan('new','/new',{'tool_budget_recovery':{'path':'descriptor','sha256':'d'*64}})
+    def event(p):
+        raw=dispatcher._json_bytes(p)
+        return {'event':'plan_created','document_id':did,'continuation_id':p['continuation_id'],'state_root':p['state_root'],
+                'plan_sha256':_sha(raw),'plan_bytes_b64':base64.b64encode(raw).decode()}
+    old_event=event(original);new_event=event(repaired)
+    recovery={'descriptor':{'failed_plan':{'sha256':old_event['plan_sha256']}},'plan_reference':{'sha256':new_event['plan_sha256']}}
+    admission={'pilot':{'recovery':recovery}}
+    failure={'event':'reconciled','document_id':did,'continuation_id':'old','plan_sha256':old_event['plan_sha256'],'decision':'HALT','status':'FAILED_NO_RETRY'}
+    halt={'event':'halt','document_id':did};resolution={'event':'halt_resolution','document_id':did,'status':'BOUNDED_TOOL_BUDGET_RECOVERY_AUTHORIZED','new_plan_sha256':new_event['plan_sha256']}
+    events=[old_event,failure,halt,resolution,new_event]
+    dispatcher._assert_no_duplicate_document_ids(events,analysis_admission=admission)
+    with pytest.raises(dispatcher.DispatcherError,match='RECOVERY_PAIR_INVALID'):
+        dispatcher._assert_no_duplicate_document_ids(events)
+    third=event(plan('third','/third',{'tool_budget_recovery':repaired['tool_budget_recovery']}))
+    with pytest.raises(dispatcher.DispatcherError,match='RECOVERY_PAIR_INVALID'):
+        dispatcher._assert_no_duplicate_document_ids(events+[third],analysis_admission=admission)
+    descriptor={'halt_event_index':2,'reconciled_event_index':1,'document_id':did,'continuation_id':'old','reconciled_event_line_sha256':_sha(dispatcher.canonical_json(failure)+b'\n')}
+    journal=SimpleNamespace(events=events)
+    dispatcher._halt_if_required(journal,{},additional_halt_resume_descriptor=descriptor)
+    with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+        dispatcher._halt_if_required(SimpleNamespace(events=events+[{'event':'halt','document_id':did}]),{},additional_halt_resume_descriptor=descriptor)
+
+
+def test_synthesis_v3_actual62prefix_single_recovery_and_third_halt_guard(tmp_path,monkeypatch):
+    import pytest
+    from types import SimpleNamespace
+    b=dispatcher.batch
+    actual=dispatcher.EVIDENCE_ROOT/'dispatch.jsonl';actual_before=actual.read_bytes()
+    raw=(b.RESEARCH_PILOT_ROOT/'model/v3-checkpoint/dispatch-prefix62.jsonl').read_bytes()
+    assert actual_before.startswith(raw)
+    assert len(raw.splitlines())==62 and _sha(raw)==b.PILOT_SYNTHESIS_V3_PREFIX_SHA256
+    current_auth_before=dispatcher.AUTHORIZATION_PATH.read_bytes()
+    auth_raw=(b.RESEARCH_PILOT_ROOT/'model/v3-checkpoint/authorization02f.json').read_bytes();auth=json.loads(auth_raw)
+    assert _sha(auth_raw)==b.PILOT_SYNTHESIS_PREVIOUS_AUTH_SHA256
+    old_adopted=json.loads(Path(auth['pilot17_adoption']['path']).read_bytes())
+    recovery=b.load_synthesis_recovery();tool=b.load_tool_budget_recovery(old_adopted)
+    selection=json.loads(b.ANALYSIS_SELECTION_PATH.read_bytes())
+    adopted={**old_adopted,'synthesis_stage_recovery':{'descriptor':b._synthesis_v3_ref('synthesis-recovery-v3-qualified.json'),'plan_source':b._synthesis_v3_ref('synthesis-plan-v3-qualified.json')},
+             'previous_synthesis_authorization':{'path':str(dispatcher.CONTINUATION_ROOT/'ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_SYNTHESIS_RECOVERY_20261020_R1.json'),'sha256':_sha(auth_raw)},'previous_synthesis_adoption':auth['pilot17_adoption']}
+    admission={'reference':auth['analysis_admission'],'value':selection,'documents':{r['document_id']:r for r in selection['documents']},
+               'pilot':{'value':adopted,'reference':{'path':'SIMULATED_V3_ADOPTION_NOT_ACTIVE','sha256':'e'*64},'recovery':tool,'synthesis_recovery':recovery}}
+    mp=Path(selection['documents'][0]['page_input']['path']).parents[2]/'prepared-text-manifest.json'
+    manifest=json.loads(mp.read_bytes());isolated=next(r for r in manifest['documents'] if r['document_id']==b.ANALYSIS_ISOLATED_ID)
+    context={'authorization':auth,'authorization_sha256':'e'*64,'adoption_evidence':json.loads(Path(auth['adoption_receipt']['path']).read_bytes()),
+             'analysis_admission':admission,'prepared_text_manifest_sha256':auth['prepared_text_manifest_sha256'],
+             'prepared_manifest':{'documents':{b.ANALYSIS_ISOLATED_ID:{'manifest_row':isolated,'page_input_sha256':isolated['page_input']['sha256']}}}}
+    original_ref=b._analysis_ref
+    def reference(reference,**kwargs):
+        if reference==adopted['previous_synthesis_authorization']:return auth,auth_raw
+        return original_ref(reference,**kwargs)
+    monkeypatch.setattr(b,'_analysis_ref',reference)
+    original_read=dispatcher._read_regular
+    monkeypatch.setattr(dispatcher,"_read_regular",lambda path,code: raw if Path(path)==actual else original_read(path,code))
+    emitted=[];readonly=SimpleNamespace(path=actual,root=dispatcher.EVIDENCE_ROOT,events=[json.loads(x) for x in raw.splitlines()],append=emitted.append)
+    dispatcher._verify_pilot_append_only_adoption(readonly,context);assert len(emitted)==1
+    old=dispatcher._analysis_isolation_descriptor(context,readonly)
+    folder=tmp_path/'retained-copy';folder.mkdir();(folder/'dispatch.jsonl').write_bytes(raw+dispatcher.canonical_json({**emitted[0],'at_utc':'2026-10-20T00:00:00Z'})+b'\n')
+    with dispatcher.DurableJournal(folder) as journal:
+        previous=dispatcher._prepare_pilot_tool_recovery(journal,context)
+        third=dispatcher._prepare_synthesis_recovery(journal,context)
+        assert len(journal.events)==65 and (folder/'dispatch.jsonl').read_bytes().startswith(raw)
+        dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third)
+        dispatcher._assert_no_duplicate_document_ids(journal.events,analysis_admission=admission)
+        pending=dispatcher._find_pending_plan(dispatcher._latest_document_events(journal.events),evidence_root=folder)
+        assert pending[0]['continuation_id']=='resume-synthesis-667-20261020-r1'
+        dispatcher._prepare_synthesis_recovery(journal,context);assert len(journal.events)==65
+        journal.append({'event':'halt','document_id':b.PILOT_TOOL_BUDGET_DOCUMENT_ID,'reason':'NEW_REAL_FAILURE'})
+        with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+            dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third)
+    assert actual.read_bytes()==actual_before and dispatcher.AUTHORIZATION_PATH.read_bytes()==current_auth_before
+
+
+def test_sectioned_v4_actual69_source_refresh_does_not_release_halt_then_exact_content_closure(tmp_path,monkeypatch):
+    import pytest
+    from types import SimpleNamespace
+    b=dispatcher.batch
+    actual=dispatcher.EVIDENCE_ROOT/'dispatch.jsonl';actual_before=actual.read_bytes()
+    fixture=b.RESEARCH_PILOT_ROOT/'model/v4-checkpoint'
+    raw=(fixture/'dispatch-prefix69.jsonl').read_bytes();auth_raw=(fixture/'authorization4ba.json').read_bytes();auth=json.loads(auth_raw)
+    assert len(raw.splitlines())==69 and _sha(raw)==b.PILOT_V4_PREFIX_SHA256 and actual_before.startswith(raw)
+    old_adopted=json.loads(Path(auth['pilot17_adoption']['path']).read_bytes())
+    recovery=b.load_synthesis_recovery();tool=b.load_tool_budget_recovery(old_adopted);reuse=b.load_sectioned_reuse_v4()
+    adopted={**old_adopted,'sectioned_reuse':{'descriptor':b._sectioned_v4_ref()},
+             'previous_package_authorization':{'path':str(dispatcher.CONTINUATION_ROOT/'ROOT_REMAINING_EXECUTION_AUTHORIZATION_PRE_PACKAGE_COMPAT_20261020_R1.json'),'sha256':_sha(auth_raw)},
+             'previous_package_adoption':auth['pilot17_adoption']}
+    selection=json.loads(b.ANALYSIS_SELECTION_PATH.read_bytes());admission={'reference':auth['analysis_admission'],'value':selection,
+               'documents':{r['document_id']:r for r in selection['documents']},'pilot':{'value':adopted,'reference':{'path':'SIMULATED_V4_NOT_ACTIVE','sha256':'f'*64},
+               'recovery':tool,'synthesis_recovery':recovery,'sectioned_reuse':reuse}}
+    mp=Path(selection['documents'][0]['page_input']['path']).parents[2]/'prepared-text-manifest.json';isolated=next(r for r in json.loads(mp.read_bytes())['documents'] if r['document_id']==b.ANALYSIS_ISOLATED_ID)
+    context={'authorization':auth,'authorization_sha256':'f'*64,'adoption_evidence':json.loads(Path(auth['adoption_receipt']['path']).read_bytes()),'analysis_admission':admission,
+             'prepared_text_manifest_sha256':auth['prepared_text_manifest_sha256'],'prepared_manifest':{'documents':{b.ANALYSIS_ISOLATED_ID:{'manifest_row':isolated,'page_input_sha256':isolated['page_input']['sha256']}}}}
+    original=b._analysis_ref
+    monkeypatch.setattr(b,'_analysis_ref',lambda reference,**kwargs:(auth,auth_raw) if reference==adopted['previous_package_authorization'] else original(reference,**kwargs))
+    original_read=dispatcher._read_regular
+    monkeypatch.setattr(dispatcher,"_read_regular",lambda path,code: raw if Path(path)==actual else original_read(path,code))
+    emitted=[];readonly=SimpleNamespace(path=actual,root=dispatcher.EVIDENCE_ROOT,events=[json.loads(x) for x in raw.splitlines()],append=emitted.append)
+    dispatcher._verify_pilot_append_only_adoption(readonly,context);assert len(emitted)==1 and emitted[0]['journal_event_count']==69
+    old=dispatcher._analysis_isolation_descriptor(context,readonly)
+    folder=tmp_path/'retained69-copy';folder.mkdir();(folder/'dispatch.jsonl').write_bytes(raw+dispatcher.canonical_json({**emitted[0],'at_utc':'2026-10-20T00:00:00Z'})+b'\n')
+    review=tmp_path/'content-review.json';reuse['value']['content_review_path']=str(review)
+    with dispatcher.DurableJournal(folder) as journal:
+        previous=dispatcher._prepare_pilot_tool_recovery(journal,context);third=dispatcher._prepare_synthesis_recovery(journal,context)
+        assert dispatcher._prepare_sectioned_closure(journal,context) is None
+        with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+            dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third)
+        # The only simulated fact is independent exact content acceptance; raw real69 history is unchanged.
+        composite={'content_review':{'path':str(review),'sha256':'a'*64},'report':{'path':str(tmp_path/'report.md'),'sha256':'b'*64},'receipt':{'path':str(tmp_path/'receipt.json'),'sha256':'c'*64}}
+        review.write_text('{}');monkeypatch.setattr(b,'verify_sectioned_content_v4',lambda:composite)
+        closure=dispatcher._prepare_sectioned_closure(journal,context)
+        assert len(journal.events)==72 and journal.events[70]['new_model_POST_limit']==0 and journal.events[71]['status']=='USER_ACCEPTED_REUSED_REPORT'
+        dispatcher._halt_if_required(journal,dispatcher._latest_document_events(journal.events),halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third,sectioned_halt_resume_descriptor=closure)
+        dispatcher._assert_no_duplicate_document_ids(journal.events,analysis_admission=admission)
+        dispatcher._prepare_sectioned_closure(journal,context);assert len(journal.events)==72
+        assert (folder/'dispatch.jsonl').read_bytes().startswith(raw)
+        journal.append({'event':'halt','document_id':b.PILOT_LONG_DOCUMENT_ID,'reason':'new actual failure'})
+        with pytest.raises(dispatcher.DispatcherError,match='PREVIOUSLY_HALTED'):
+            dispatcher._halt_if_required(journal,{},halt_resume_descriptor=old,additional_halt_resume_descriptor=previous,synthesis_halt_resume_descriptor=third,sectioned_halt_resume_descriptor=closure)
+    assert actual.read_bytes()==actual_before
+
+
+def test_light_events_before_exact667_closure_remain_readable_and_reject_forgery(tmp_path,monkeypatch):
+    import pytest
+    b=dispatcher.batch;raw=(b.RESEARCH_PILOT_ROOT/'model/v4-checkpoint/dispatch-prefix69.jsonl').read_bytes()
+    assert _sha(raw)==b.PILOT_V4_PREFIX_SHA256
+    reuse=b.load_sectioned_reuse_v4();review=tmp_path/'independentaccepted.json';review.write_text('{}');reuse['value']['content_review_path']=str(review)
+    context={'authorization_sha256':'f'*64,'analysis_admission':{'pilot':{'sectioned_reuse':reuse}}}
+    accepted={'content_review':{'path':str(review),'sha256':'a'*64},'report':{'path':str(tmp_path/'report.md'),'sha256':'b'*64},'receipt':{'path':str(tmp_path/'receipt.json'),'sha256':'c'*64}}
+    monkeypatch.setattr(b,'verify_sectioned_content_v4',lambda:accepted)
+    folder=tmp_path/'same69';folder.mkdir();(folder/'dispatch.jsonl').write_bytes(raw)
+    with dispatcher.DurableJournal(folder) as journal:
+        journal.append({'event':'pilot_adoption','fixture':'sourceidentity'})
+        for event in ['full_adoption','full_light_lane_isolation','full_plan','full_intent','full_terminal','full_deferred']:
+            journal.append({'event':event,'fixture':'typedLIGHT'})
+        initial=len(journal.events);descriptor=dispatcher._prepare_sectioned_closure(journal,context)
+        assert descriptor['halt_event_index']==68 and len(journal.events)==initial+2
+        assert journal.events[initial]['status']=='INDEPENDENT_CONTENT_ACCEPTED_SOURCE_STAGE_REUSE'
+        dispatcher._prepare_sectioned_closure(journal,context);assert len(journal.events)==initial+2
+        valid=(folder/'dispatch.jsonl').read_bytes()
+    # The existing shared consumer accepts only the registered exact event set.
+    with dispatcher.DurableJournal(folder) as reread:assert len(reread.events)==initial+2
+    for kind in ['forged','duplicate','duplicate_terminal','forged_extra_terminal','unknownHALT']:
+        case=tmp_path/kind;case.mkdir();(case/'dispatch.jsonl').write_bytes(valid)
+        with dispatcher.DurableJournal(case) as journal:
+            if kind=='forged':journal.events[initial]['authorization_sha256']='other'
+            elif kind=='duplicate':journal.append({k:v for k,v in journal.events[initial].items() if k!='at_utc'})
+            elif kind in {'duplicate_terminal','forged_extra_terminal'}:
+                terminal={k:v for k,v in journal.events[initial+1].items() if k!='at_utc'}
+                if kind=='forged_extra_terminal':terminal['receipt_sha256']='d'*64
+                journal.append(terminal)
+            else:journal.append({'event':'halt','reason':'newactualfailure'})
+            before=(case/'dispatch.jsonl').read_bytes()
+            with pytest.raises(dispatcher.DispatcherError,match='CLOSURE|PREVIOUSLY_HALTED'):dispatcher._prepare_sectioned_closure(journal,context)
+            assert (case/'dispatch.jsonl').read_bytes()==before
+    with dispatcher.DurableJournal(folder) as journal:
+        with pytest.raises(dispatcher.DispatcherError,match='EVENT_INVALID'):journal.append({'event':'full_unapproved_anything'})
+    assert (folder/'dispatch.jsonl').read_bytes().startswith(raw)

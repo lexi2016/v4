@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -17,6 +20,7 @@ from ops import run_v35_macos_scheduler as scheduler
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_catalog_registers_exact_recovery_workloads() -> None:
@@ -38,6 +42,181 @@ def test_research_panel_slots_are_chronological() -> None:
     positions = [scheduler.ALL_SLOTS.index(slot) for slot in ("1700", "1710", "1720", "1730")]
 
     assert positions == sorted(positions)
+
+
+def test_scheduled_slot_wraps_one_registry_with_lazy_stage_guard(monkeypatch, tmp_path: Path) -> None:
+    from types import SimpleNamespace
+    from ops import run_scheduled_slot as slot_runner
+
+    catalog = load_workload_catalog()
+    workloads = {item.workload_id: item for item in catalog.workloads}
+    registry_instances = []
+    guard_calls = []
+    execution_calls = []
+
+    class FakeRegistry:
+        def __init__(self, **_kwargs):
+            registry_instances.append(self)
+
+        def __call__(self, workload, request, _decision):
+            execution_calls.append((id(self), workload.workload_id, request.slot))
+            return {
+                "status": "SUCCEEDED",
+                "workload_id": workload.workload_id,
+                "production_allowed": False,
+                "buy_gate_updated": False,
+                "orders_sent": False,
+            }
+
+    def guard(workload, _request, _decision):
+        guard_calls.append(workload.workload_id)
+        return {"status": "READY"} if workload.workload_id in scheduler.STAGE_WORKLOAD_IDS else None
+
+    def fake_dispatch(request, _catalog, executor, *, ledger, dry_run):
+        del ledger, dry_run
+        executor(workloads["v4_intraday_research"], request, None)
+        executor(workloads["fupan_close_materials"], request, None)
+        executor(workloads["fupan_close_materials"], request, None)
+        return SimpleNamespace(
+            status="SUCCEEDED",
+            run_id="run-1",
+            selected_workload_ids=("v4_intraday_research", "fupan_close_materials"),
+            started_workload_ids=("v4_intraday_research", "fupan_close_materials"),
+            receipt_path="receipts/run-1.json",
+            failure_class="",
+            retry_after="",
+            release_id="",
+            app_root="",
+            release_manifest_path="",
+            release_manifest_sha256="",
+            upstream_fingerprint="",
+            attempt=1,
+            production_allowed=False,
+            buy_gate_updated=False,
+            orders_sent=False,
+        )
+
+    monkeypatch.setattr(slot_runner, "FixedExecutorRegistry", FakeRegistry)
+    monkeypatch.setattr(slot_runner, "dispatch_due", fake_dispatch)
+    monkeypatch.setattr(slot_runner, "load_workload_catalog", lambda: catalog)
+
+    result = slot_runner.run_scheduled_slot(
+        data_root=tmp_path / "data",
+        slot="1500",
+        business_date="20260824",
+        scheduled_date="20260824",
+        target_date="20260824",
+        ledger_root=tmp_path / "ledger",
+        workload_guard=guard,
+    )
+
+    assert result["status"] == "SUCCEEDED"
+    assert len(registry_instances) == 1
+    assert execution_calls == [
+        (id(registry_instances[0]), "v4_intraday_research", "1500"),
+        (id(registry_instances[0]), "fupan_close_materials", "1500"),
+        (id(registry_instances[0]), "fupan_close_materials", "1500"),
+    ]
+    assert guard_calls == [
+        "v4_intraday_research",
+        "fupan_close_materials",
+        "fupan_close_materials",
+    ]
+
+
+def test_two_process_stage_retry_preserves_successful_workloads(tmp_path: Path) -> None:
+    """A reclaimed failed dispatch retries only the workload that failed."""
+
+    from infrastructure.scheduling import dispatcher as dispatcher_module
+
+    entries = []
+    for relative in dispatcher_module._RUNTIME_IDENTITY_FILES:
+        source = ROOT / relative
+        content = source.read_bytes()
+        entries.append({
+            "path": relative,
+            "kind": "file",
+            "sha256": hashlib.sha256(content).hexdigest(),
+            "size": len(content),
+        })
+    inventory = {
+        "entries": entries,
+        "entry_count": len(entries),
+        "aggregate_sha256": hashlib.sha256(
+            json.dumps(entries, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+    }
+    manifest_body = {
+        "schema_version": "v4.release_candidate.v1",
+        "candidate": {"app_root": str(ROOT), "release_id": "fixture-stage-retry"},
+        "application_inventory": inventory,
+    }
+    manifest_raw = json.dumps(
+        manifest_body, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode()
+    manifest = tmp_path / "release-manifest.json"
+    manifest.write_bytes(manifest_raw)
+    child_env = os.environ.copy()
+    child_env.update(
+        {
+            "V35_APP_ROOT": str(ROOT),
+            "V35_RELEASE_ID": "fixture-stage-retry",
+            "V35_RELEASE_MANIFEST_PATH": str(manifest),
+            "V35_RELEASE_MANIFEST_SHA256": hashlib.sha256(manifest_raw).hexdigest(),
+        }
+    )
+
+    worker = r'''
+import json
+import sys
+from pathlib import Path
+from contracts.runtime_tasks import DispatchMode, DispatchRequest
+from infrastructure.scheduling.catalog import load_workload_catalog
+from infrastructure.scheduling.dispatcher import dispatch_due
+from infrastructure.scheduling.execution_ledger import ExecutionLedger
+
+counts = {}
+def executor(workload, _request, _decision):
+    workload_id = workload.workload_id
+    counts[workload_id] = counts.get(workload_id, 0) + 1
+    if workload_id == "fupan_close_materials":
+        return {
+            "status": "FAILED",
+            "failure_class": "UPSTREAM_NOT_READY",
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+    return {
+        "status": "SUCCEEDED",
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+request = DispatchRequest("20260824", "20260824", "20260824", "1500", DispatchMode.LIVE)
+receipt = dispatch_due(request, load_workload_catalog(), executor,
+                       ledger=ExecutionLedger(Path(sys.argv[1])))
+print(json.dumps({"counts": counts, "status": receipt.status,
+                  "failure_class": receipt.failure_class,
+                  "started": list(receipt.started_workload_ids)}, sort_keys=True))
+    '''
+    command = [sys.executable, "-c", worker, str(tmp_path / "ledger")]
+    first = subprocess.run(command, cwd=ROOT, env=child_env, capture_output=True, text=True, check=False)
+    second = subprocess.run(command, cwd=ROOT, env=child_env, capture_output=True, text=True, check=False)
+    assert first.returncode == 0, first.stderr
+    assert second.returncode == 0, second.stderr
+    first_payload = json.loads(first.stdout.strip().splitlines()[-1])
+    second_payload = json.loads(second.stdout.strip().splitlines()[-1])
+    assert first_payload["status"] == "FAILED"
+    assert first_payload["counts"] == {
+        "v4_intraday_research": 1,
+        "hourly_research": 1,
+        "fupan_close_materials": 1,
+    }
+    assert second_payload["status"] == "FAILED"
+    assert second_payload["counts"] == {"fupan_close_materials": 1}
+    assert second_payload["started"] == []
 
 
 @pytest.mark.parametrize(
@@ -83,16 +262,22 @@ def test_registry_dispatches_research_panel_daily_lanes_to_exact_entry(
         calls.append(command)
         status = {"A": "NOT_REQUESTED", "HK": "NOT_REQUESTED"}
         status[lane] = "READY"
-        return subprocess.CompletedProcess(
-            command,
-            0,
-            json.dumps({"overall_status": "READY", "lanes": {key: {"status": value} for key, value in status.items()}}),
-            "",
-        )
+        # Contract-level subprocess fixture, not an updater E2E assertion.
+        flags = {"production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+        receipt_root = Path(os.environ["V35_RESEARCH_PANEL_RECEIPT_ROOT"])
+        receipt_root.mkdir(parents=True, exist_ok=True)
+        raw = json.dumps({"schema_version": "v3.macos.research_panel_receipt.v1",
+                          "target_date": "20260821", "lane": lane, "status": "READY", **flags}).encode()
+        (receipt_root / f"{lane.lower()}-20260821.json").write_bytes(raw)
+        lanes = {key: {"status": value} for key, value in status.items()}
+        lanes[lane].update(receipt_sha256=hashlib.sha256(raw).hexdigest(), receipt_bytes=len(raw))
+        return subprocess.CompletedProcess(command, 0, json.dumps({
+            "schema_version": "v3.macos.research_panel_authority_envelope.v1",
+            "target_date": "20260821", "requested_lane": lane,
+            "overall_status": "READY", "lanes": lanes, **flags}), "")
 
     registry = FixedExecutorRegistry(
         data_root=tmp_path / "data",
-        hk_0_2_python_executable=tmp_path / "hk02-python",
         repo_root=tmp_path,
         runner=runner,
     )
@@ -109,6 +294,7 @@ def test_registry_dispatches_research_panel_daily_lanes_to_exact_entry(
 
     assert result["status"] == "SUCCEEDED"
     assert result["lane"] == expected_status_key
+    assert result["receipt_verified"] is True
     assert all(result[field] is False for field in ("production_allowed", "buy_gate_updated", "orders_sent"))
     argv = calls[0]
     assert argv[1:4] == ["-m", "ops.macos_research_panel_daily", "--date"]
@@ -318,7 +504,32 @@ def test_registry_dispatches_review_core_partial_is_retryable(tmp_path: Path) ->
     assert calls[0][1:4] == ["-m", "ops.run_review_core_natural_pool_pipeline", "--trade-date"]
 
 
-def test_retryable_wechat_receipt_retries_and_succeeds_after_exact_pair_ready(tmp_path: Path) -> None:
+def test_retryable_wechat_receipt_retries_and_succeeds_after_exact_pair_ready(tmp_path: Path, monkeypatch) -> None:
+    from infrastructure.scheduling.dispatcher import _RUNTIME_IDENTITY_FILES
+
+    entries = []
+    for relative in _RUNTIME_IDENTITY_FILES:
+        content = (ROOT / relative).read_bytes()
+        entries.append({"path": relative, "kind": "file", "size": len(content),
+                        "sha256": hashlib.sha256(content).hexdigest()})
+    manifest_raw = json.dumps({
+        "schema_version": "v4.release_candidate.v1",
+        "candidate": {"app_root": str(ROOT), "release_id": "fixture-wechat-retry"},
+        "application_inventory": {
+            "entries": entries, "entry_count": len(entries),
+            "aggregate_sha256": hashlib.sha256(json.dumps(
+                entries, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode()).hexdigest(),
+        },
+    }, sort_keys=True).encode()
+    manifest_path = tmp_path / "wechat-release-manifest.json"
+    manifest_path.write_bytes(manifest_raw)
+    for key, value in {
+        "V35_APP_ROOT": str(ROOT), "V35_RELEASE_ID": "fixture-wechat-retry",
+        "V35_RELEASE_MANIFEST_PATH": str(manifest_path),
+        "V35_RELEASE_MANIFEST_SHA256": hashlib.sha256(manifest_raw).hexdigest(),
+    }.items():
+        monkeypatch.setenv(key, value)
     calls: list[list[str]] = []
     responses = iter(
         (

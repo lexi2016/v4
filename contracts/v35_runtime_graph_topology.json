@@ -2061,7 +2061,7 @@
       "label": "1. 港股通09:20 / A股09:25竞价选股",
       "node_id": "timeline_01_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -2239,7 +2239,7 @@
       "label": "2. 09:30-09:35",
       "node_id": "timeline_02_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -2417,7 +2417,7 @@
       "label": "3. 09:35-09:40",
       "node_id": "timeline_03_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -2595,7 +2595,7 @@
       "label": "4. 09:40-09:45",
       "node_id": "timeline_04_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -2773,7 +2773,7 @@
       "label": "5. 09:45-10:30",
       "node_id": "timeline_05_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -2951,7 +2951,7 @@
       "label": "6. 13:00-13:15",
       "node_id": "timeline_06_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -3129,7 +3129,7 @@
       "label": "7. 14:45-15:00",
       "node_id": "timeline_07_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -3307,7 +3307,7 @@
       "label": "8. 15:45-15:55港股",
       "node_id": "timeline_08_workload",
       "owner_id": "v35_dispatcher.stage_workbench",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -3332,11 +3332,11 @@
       "type": "API"
     },
     {
-      "artifact": "{data_root}/hk_connect_close_review/1608/artifact/{date}.json",
+      "artifact": "{data_root}/hk_connect_close_review/1610/artifact/{date}.json",
       "label": "artifact / manifest / receipt",
-      "manifest": "{data_root}/hk_connect_close_review/1608/manifest/{date}.json",
+      "manifest": "{data_root}/hk_connect_close_review/1610/manifest/{date}.json",
       "node_id": "timeline_09_artifact_trio",
-      "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1608/{date}.json",
+      "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1610/{date}.json",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -3350,7 +3350,7 @@
       "cas": true,
       "label": "current pointer",
       "node_id": "timeline_09_current",
-      "path": "{data_root}/hk_connect_close_review/1608/current.json",
+      "path": "{data_root}/hk_connect_close_review/1610/current.json",
       "role": "current",
       "safety": {
         "buy_gate_updated": false,
@@ -3394,7 +3394,7 @@
       "cas": true,
       "label": "latest pointer",
       "node_id": "timeline_09_latest",
-      "path": "{data_root}/hk_connect_close_review/1608/latest.json",
+      "path": "{data_root}/hk_connect_close_review/1610/latest.json",
       "role": "latest",
       "safety": {
         "buy_gate_updated": false,
@@ -3480,16 +3480,16 @@
         "--date",
         "{business_date}"
       ],
-      "label": "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20",
+      "label": "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20",
       "node_id": "timeline_09_workload",
       "owner_id": "v35_dispatcher.hk_connect_close_review",
-      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
         "production_allowed": false
       },
-      "slot": "1608",
+      "slot": "1610",
       "timeline_position": 9,
       "type": "workload",
       "workload_id": "hk_connect_close_review"
@@ -3847,7 +3847,7 @@
       "label": "11. 15:55 收盘后复盘启动",
       "node_id": "timeline_11_workload",
       "owner_id": "v35_dispatcher.fupan_review_start",
-      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -5304,7 +5304,7 @@
   },
   "schema": "v35.runtime_graph.topology",
   "schema_version": "v35_runtime_graph_topology.v1",
-  "semantic_sha": "c31337eb64e9b48db419cca1cdb9c5396c085bca93433491b85a6743bab7bdae",
+  "semantic_sha": "5cd7d2480a9afd51bccae50fea90760441921fdb1e2d6ac43dc2a77ce25964aa",
   "source_inputs": {
     "app": {
       "path": "apps/web/src/App.vue",
@@ -8635,9 +8635,9 @@
     {
       "api_route": "/api/v3/review?date={business_date}",
       "artifact_trio": {
-        "artifact": "{data_root}/hk_connect_close_review/1608/artifact/{date}.json",
-        "manifest": "{data_root}/hk_connect_close_review/1608/manifest/{date}.json",
-        "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1608/{date}.json",
+        "artifact": "{data_root}/hk_connect_close_review/1610/artifact/{date}.json",
+        "manifest": "{data_root}/hk_connect_close_review/1610/manifest/{date}.json",
+        "receipt": "{dispatcher_root}/receipts/hk_connect_close_review/1610/{date}.json",
         "sha256_fields": {
           "artifact": "artifact_sha256",
           "manifest": "manifest_sha256",
@@ -8658,12 +8658,12 @@
         "timeline_09_page",
         "timeline_09_safety"
       ],
-      "current": "{data_root}/hk_connect_close_review/1608/current.json",
+      "current": "{data_root}/hk_connect_close_review/1610/current.json",
       "dispatcher": "infrastructure/scheduling/dispatcher.py",
       "executor": "infrastructure/scheduling/executor_registry.py",
       "id": "CLOSING_01",
-      "label": "16:08 港股通正式收盘：0.2 × 七阶段 Top20",
-      "latest": "{data_root}/hk_connect_close_review/1608/latest.json",
+      "label": "16:10 港股通正式收盘：0.2 × 七阶段 Top20",
+      "latest": "{data_root}/hk_connect_close_review/1610/latest.json",
       "launcher": {
         "path": "ops/run_v35_macos_scheduler.py",
         "plist": "~/Library/LaunchAgents/com.lexi.v35.scheduler.plist",
@@ -8682,7 +8682,7 @@
         ]
       },
       "page_consumer": "apps/web/src/views/ReviewView.vue#review",
-      "planned_slot": "1608",
+      "planned_slot": "1610",
       "position": 9,
       "producer": "ops/build_close_review.py",
       "safety": {
@@ -8690,13 +8690,13 @@
         "orders_sent": false,
         "production_allowed": false
       },
-      "slot": "1608",
+      "slot": "1610",
       "store": "infrastructure/review_store.py",
-      "timeline": "9. 16:08 港股通正式收盘：0.2 × 七阶段 Top20",
+      "timeline": "9. 16:10 港股通正式收盘：0.2 × 七阶段 Top20",
       "type": "workload",
       "workload": {
         "owner_id": "v35_dispatcher.hk_connect_close_review",
-        "slot": "1608",
+        "slot": "1610",
         "workload_id": "hk_connect_close_review"
       },
       "workload_id": "hk_connect_close_review"

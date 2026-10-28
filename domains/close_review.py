@@ -73,6 +73,30 @@ def _missing_metric() -> dict[str, Any]:
     }
 
 
+def _partial_research_metric(
+    selected_codes: list[str],
+    truth_codes: set[str],
+    *,
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    hit_codes = [code for code in selected_codes if code in truth_codes]
+    return {
+        "evidence_status": "PARTIAL_RESEARCH_ONLY",
+        "selected_count": len(selected_codes),
+        "selected_codes": selected_codes,
+        "hit_count": len(hit_codes),
+        "hit_codes": hit_codes,
+        "recommendation_status": "NO_BUY",
+        "pit_status": "UNVERIFIED",
+        "RESEARCH_ONLY": True,
+        "research_only": True,
+        **evidence,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
 def build_native_close_review(
     trade_date: str,
     *,
@@ -80,6 +104,9 @@ def build_native_close_review(
     model_rows: list[dict[str, Any]],
     stage_rows: dict[str, list[dict[str, Any]] | None],
     close_source_sha256: str,
+    stage_evidence: dict[str, dict[str, Any]] | None = None,
+    close_source_evidence: dict[str, Any] | None = None,
+    model_source_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Calculate the frozen close-Top20 review from V3.5-owned inputs."""
     prepared_close: list[dict[str, Any]] = []
@@ -145,6 +172,9 @@ def build_native_close_review(
     all_stage_rows: list[dict[str, Any]] = []
     stage_metrics: dict[str, dict[str, Any]] = {}
     missing_stages: list[str] = []
+    unverified_stages: list[str] = []
+    stage_evidence_map = stage_evidence or {}
+    evidence_was_provided = stage_evidence is not None
     code_to_stages: dict[str, list[str]] = {}
     for stage_id in _REVIEW_STAGE_IDS:
         sources = stage_rows.get(stage_id)
@@ -173,7 +203,26 @@ def build_native_close_review(
                     "hit_top20": code in truth_codes,
                 }
             )
-        stage_metrics[stage_id] = _metric(selected_codes, truth_codes)
+        evidence = stage_evidence_map.get(stage_id)
+        if evidence_was_provided:
+            reasons = evidence.get("cannot_confirm") if isinstance(evidence, dict) else None
+            formally_ready = (
+                isinstance(evidence, dict)
+                and evidence.get("review_evidence_status", evidence.get("status")) in {"READY", "READY_EMPTY"}
+                and evidence.get("selection_mode") != "BACKFILL"
+                and not evidence.get("backfill_run_id")
+                and not evidence.get("backfill_run_ids")
+                and not reasons
+            )
+            if not formally_ready:
+                unverified_stages.append(stage_id)
+        else:
+            formally_ready = True
+        stage_metrics[stage_id] = (
+            _metric(selected_codes, truth_codes)
+            if formally_ready
+            else _missing_metric()
+        )
 
     union_codes: list[str] = []
     seen_union: set[str] = set()
@@ -181,10 +230,41 @@ def build_native_close_review(
         if row["code"] not in seen_union:
             seen_union.add(row["code"])
             union_codes.append(row["code"])
-    stage_union = _metric(union_codes, truth_codes) if not missing_stages else _missing_metric()
+    formal_stage_complete = not missing_stages and not unverified_stages
+    stage_union = _metric(union_codes, truth_codes) if formal_stage_complete else _missing_metric()
+    observed_stage_codes = set(union_codes)
+    observed_stage_union = (
+        _partial_research_metric(
+            union_codes,
+            truth_codes,
+            evidence={
+                "stage_ids": [
+                    stage_id
+                    for stage_id in _REVIEW_STAGE_IDS
+                    if stage_rows.get(stage_id) is not None
+                ],
+                "expected_stage_count": len(_REVIEW_STAGE_IDS),
+                "unverified_stages": list(unverified_stages),
+                "missing_stages": list(missing_stages),
+                "cannot_confirm": list(dict.fromkeys(
+                    [f"MISSING_STAGE:{stage_id}" for stage_id in missing_stages]
+                    + [f"UNVERIFIED_STAGE:{stage_id}" for stage_id in unverified_stages]
+                    + [
+                        str(reason)
+                        for stage_id in unverified_stages
+                        for reason in (
+                            (stage_evidence_map.get(stage_id) or {}).get("cannot_confirm") or []
+                        )
+                    ]
+                )),
+            },
+        )
+        if union_codes and not formal_stage_complete
+        else None
+    )
 
     model_set = set(model_codes) if model_complete else set()
-    stage_set = set(union_codes) if not missing_stages else set()
+    stage_set = set(union_codes) if formal_stage_complete else set()
     attribution: list[dict[str, Any]] = []
     for row in close_top20:
         in_model = row["code"] in model_set
@@ -194,13 +274,18 @@ def build_native_close_review(
             else "model_only" if in_model
             else "stage_only" if in_stage
             else "missed"
-        )
+        ) if model_complete and formal_stage_complete else None
         stages = code_to_stages.get(row["code"], [])
         attribution.append(
             {
                 **row,
-                "model_0_2_hit": in_model,
-                "stage_union_hit": in_stage,
+                "model_0_2_hit": in_model if model_complete else None,
+                "stage_union_hit": in_stage if formal_stage_complete else None,
+                "observed_stage_union_hit": (
+                    True
+                    if observed_stage_union is not None and row["code"] in observed_stage_codes
+                    else None
+                ),
                 "first_stage": stages[0] if stages else None,
                 "all_stages": stages,
                 "classification": classification,
@@ -213,22 +298,32 @@ def build_native_close_review(
     if not model_complete:
         cannot_confirm.append(f"MODEL_0_2_TOP100_NOT_READY:{len(prepared_model)}/100")
     cannot_confirm.extend(f"MISSING_STAGE:{stage_id}" for stage_id in missing_stages)
+    cannot_confirm.extend(f"UNVERIFIED_STAGE:{stage_id}" for stage_id in unverified_stages)
+    for stage_id in unverified_stages:
+        cannot_confirm.extend(
+            str(reason)
+            for reason in (stage_evidence_map.get(stage_id) or {}).get("cannot_confirm") or []
+            if reason
+        )
+    cannot_confirm = list(dict.fromkeys(cannot_confirm))
     status = (
         "PENDING_CLOSE_TOP20" if len(close_top20) < 20
         else "MODEL_0_2_SOURCE_MISSING" if not model_complete
-        else "MODEL_REVIEW_PARTIAL_STAGE_EVIDENCE" if missing_stages
+        else "MODEL_REVIEW_PARTIAL_STAGE_EVIDENCE" if missing_stages or unverified_stages
         else "MODEL_REVIEW_READY"
     )
     model_hits = model_metric["hit_count"]
     stage_hits = stage_union["hit_count"]
     return {
         "schema_version": "v3_5.close_review.v1",
+        "RESEARCH_ONLY": True,
         "trade_date": trade_date,
         "status": status,
         "primary_kpi": "全港股通收盘涨幅Top20覆盖率",
         "models": {_MODEL_KEY: model_metric},
         "stages": stage_metrics,
         "stage_union": stage_union,
+        "observed_stage_union": observed_stage_union,
         "kpi": {
             "model_0_2_close_top20_hits": model_hits,
             "stage_union_close_top20_hits": stage_hits,
@@ -244,6 +339,10 @@ def build_native_close_review(
         "stage_rows": all_stage_rows,
         "top20_attribution": attribution,
         "missing_stages": missing_stages,
+        "unverified_stages": unverified_stages,
+        "stage_input_evidence": stage_evidence_map,
+        "close_source_evidence": dict(close_source_evidence or {}),
+        "model_source_evidence": dict(model_source_evidence or {}),
         "cannot_confirm": cannot_confirm,
         "close_source_sha256": close_source_sha256,
         "evidence_mode": "V3_5_NATIVE_PRODUCTION",

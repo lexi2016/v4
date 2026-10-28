@@ -45,6 +45,8 @@ _STORE_ROOT_ENV = "V3_SHARED_DATA_STORE_ROOT"
 _DEFAULT_STORE_ROOT = _PROJECT_ROOT / ".runtime" / "data"
 _MARKET_TIMEOUTS = {"A_SHARE": 90, "HK_CONNECT": 180}
 _FUTU_SUBSCRIPTION_LIMIT = 100
+_MANAGER_CLOSE_CAPTURE_MODE_ENV = "V4_MANAGER_CLOSE_CAPTURE_MODE"
+_MANAGER_PYTDX_LATE_OBSERVATION_MODE = "PYTDX_LATE_OBSERVATION"
 
 
 def _enrich_hk_names(store_root: Path, result: StageSourceResult) -> StageSourceResult:
@@ -277,6 +279,14 @@ def run_stage_bundle(
     """Acquire and publish both markets, or persist a retryable total failure."""
     if stage_id not in STAGE_WINDOWS:
         raise ValueError(f"unknown stage {stage_id!r}")
+    manager_capture_mode = os.environ.get(_MANAGER_CLOSE_CAPTURE_MODE_ENV, "").strip()
+    manager_pytdx_late_observation = (
+        stage_id == "STAGE_1545_1555"
+        and manager_capture_mode == _MANAGER_PYTDX_LATE_OBSERVATION_MODE
+    )
+    if (stage_id == "STAGE_1545_1555" and manager_capture_mode
+            and manager_capture_mode != _MANAGER_PYTDX_LATE_OBSERVATION_MODE):
+        raise ValueError("MANAGER_CLOSE_CAPTURE_MODE_INVALID")
     store_root = Path(store_root)
     python_path = Path(python_path)
     if not python_path.is_file():
@@ -394,7 +404,10 @@ def run_stage_bundle(
         else:
             collector = (
                 pytdx_collector
-                if market == "HK_CONNECT" and len(universe.codes) > _FUTU_SUBSCRIPTION_LIMIT
+                if market == "HK_CONNECT" and (
+                    manager_pytdx_late_observation
+                    or len(universe.codes) > _FUTU_SUBSCRIPTION_LIMIT
+                )
                 else futu_collector
             )
             results[market] = collector(

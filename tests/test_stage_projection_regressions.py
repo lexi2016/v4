@@ -33,6 +33,34 @@ def _catalog_store(root: Path):
     return store
 
 
+def _historical_hk_selection() -> dict[str, Any]:
+    from stage_center.contracts import SELECTION_ALGORITHM_ID
+    from stage_center.selection import ALGORITHM_SHA256
+
+    return {
+        "schema_version": "stage_center.selection.v2",
+        "trade_date": TRADE_DATE,
+        "stage_id": "STAGE_0935_0940",
+        "market": "HK_CONNECT",
+        "algorithm_id": SELECTION_ALGORITHM_ID,
+        "algorithm_sha256": ALGORITHM_SHA256,
+        "raw_artifact_sha256": "a" * 64,
+        "source_status": "READY",
+        "selection_status": "PARTIAL_WITH_ROWS",
+        "requested_rows": 10,
+        "source_rows": 1,
+        "selected_rows": 1,
+        "coverage_ratio": 0.1,
+        "missing_symbols": [],
+        "rows": [{"code": "HK.00001", "rank": 1, "name": "Example"}],
+        "source_evidence": ["recovery_mode=HISTORICAL_BACKFILL"],
+        "cannot_confirm": [],
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
 def test_stage_projection_keeps_hk_cannot_confirm_reason_when_a_has_rows(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -134,10 +162,88 @@ def test_stage_projection_propagates_partial_market_reason_without_status_upgrad
 
     assert projected["status"] == "PARTIAL_WITH_ROWS"
     assert projected["stage"]["status"] == "PARTIAL_WITH_ROWS"
-    assert projected["stage"]["cannot_confirm"] == ["A:A_SOURCE_PARTIAL"]
-    assert projected["cannot_confirm"] == ["A:A_SOURCE_PARTIAL"]
+    expected_gaps = [
+        "A:A_SOURCE_PARTIAL",
+        "HK:SELECTION_ARTIFACT_MISSING_OR_INVALID",
+    ]
+    assert projected["stage"]["cannot_confirm"] == expected_gaps
+    assert projected["cannot_confirm"] == expected_gaps
     assert projected["markets"]["A"]["cannot_confirm"] == ["A_SOURCE_PARTIAL"]
-    assert projected["selected_total_rows"] == 1
+    # The fixture has no valid HK artifact, so the combined row total is unknown.
+    assert projected["selected_total_rows"] is None
+
+
+def test_backfill_is_opt_in_only_for_stage_workbench_not_manager_or_ensure(
+    tmp_path: Path,
+) -> None:
+    from fastapi.testclient import TestClient
+
+    from apps.api.v35_api.app import create_app
+    from stage_center.consumer import StageSelectionConsumer
+    from stage_center.selection import SelectionStore
+
+    selection_root = tmp_path / "stage-selection"
+    SelectionStore(selection_root / "backfill" / "recovery-r1").publish(
+        _historical_hk_selection(), market="HK_CONNECT"
+    )
+    ordinary_consumer = StageSelectionConsumer(selection_root)
+    ordinary = ordinary_consumer.get(
+        TRADE_DATE, "STAGE_0935_0940", markets=("HK_CONNECT",)
+    )["markets"]["HK_CONNECT"]
+    ensured = ordinary_consumer.ensure(
+        TRADE_DATE, "STAGE_0935_0940", markets=("HK_CONNECT",)
+    )["markets"]["HK_CONNECT"]
+    assert ordinary["status"] == ensured["status"] == "CANNOT_CONFIRM"
+    assert ordinary["rows"] == ensured["rows"] == []
+
+    catalog = _catalog_store(tmp_path)
+    client = TestClient(
+        create_app(
+            data_root=catalog.root,
+            stage_center_selection_root=selection_root,
+            current_date=TRADE_DATE,
+        )
+    )
+    stage = client.get(
+        "/api/v3/workbench/stage",
+        params={"date": TRADE_DATE, "stage": "STAGE_0935_0940", "limit": 50},
+    ).json()
+    assert stage["markets"]["HK"]["selection_mode"] == "BACKFILL"
+    assert stage["markets"]["HK"]["rows"][0]["code"] == "HK.00001"
+    backfill_provenance_keys = {
+        "selection_mode",
+        "backfill_run_id",
+        "backfill_run_ids",
+        "selection_manifest_sha256",
+        "selection_receipt_sha256",
+        "selection_artifact_sha256",
+        "selection_manifest_receipt_verified",
+        "runner_receipt_verified",
+        "runner_receipt_status",
+        "runner_receipt_sha256",
+        "recovery_provenance",
+    }
+    assert backfill_provenance_keys.issubset(stage["markets"]["HK"])
+
+    manager = client.get(
+        "/api/v3/manager/stage-selection",
+        params={
+            "date": TRADE_DATE,
+            "stage": "STAGE_0935_0940",
+            "market": "HK_CONNECT",
+        },
+    ).json()
+    assert manager["status"] == "CANNOT_CONFIRM"
+    assert manager["markets"]["HK"]["rows"] == []
+    assert not backfill_provenance_keys.intersection(manager["markets"]["HK"])
+
+    ensure = client.post(
+        "/api/v3/workbench/stage/ensure",
+        params={"date": TRADE_DATE, "stage": "STAGE_0935_0940"},
+    ).json()
+    assert ensure["status"] == "CANNOT_CONFIRM"
+    assert ensure["markets"]["HK"]["rows"] == []
+    assert not backfill_provenance_keys.intersection(ensure["markets"]["HK"])
 
 
 def _workload(*, policy: Any, slot: str = "1700") -> Any:

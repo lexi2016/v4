@@ -37,12 +37,18 @@ def read_verified_hk_d1_evidence(
 
     required = ["trade_date_compact", "code_norm", "close", "pre_close", "pct_chg"]
     frame = pd.read_parquet(panel_path, columns=required)
+    from .hk_history_resolution import policy_for_shared
+    policy = policy_for_shared(root)
+    policy.check_panel(expected_sha)
     frame["trade_date_compact"] = frame["trade_date_compact"].astype(str)
     eligible = frame[frame["trade_date_compact"] < str(target_trade_date)]
     if eligible.empty:
         raise HkD1EvidenceError("HK D-1 panel has no prior trading date")
     signal_date = str(eligible["trade_date_compact"].max())
-    day = eligible[eligible["trade_date_compact"].eq(signal_date)]
+    guarded = policy.guard_frame(frame, required_fields=('close',), end=signal_date,
+        lookback=1, predecessors=1, consumer='HK_D1_CLOSE_PREDECESSOR_V1')
+    quality = guarded.attrs['history_resolution_proof']
+    day = guarded[guarded['trade_date_compact'].eq(signal_date)]
     rows: dict[str, dict[str, Any]] = {}
     for raw in day.to_dict("records"):
         symbol = _normalize_hk_symbol(raw.get("code_norm"))
@@ -69,6 +75,7 @@ def read_verified_hk_d1_evidence(
         "signal_date": signal_date,
         "row_count": len(rows),
         "panel_sha256": expected_sha,
+        "history_resolution_proof": policy.encode_proof(quality),
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,

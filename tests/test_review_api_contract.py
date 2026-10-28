@@ -37,7 +37,9 @@ def test_review_endpoint_keeps_rich_exact_date_a_review_when_hk_is_unavailable(t
     payload = response.json()
     assert payload["trade_date"] == "20260730"
     assert payload["market_reviews"]["A"] == canonical
-    assert payload["market_reviews"]["HK"]["model_selection_review"]["status"] == "REFERENCE_NOT_IMPORTED"
+    hk_review = payload["market_reviews"]["HK"]["model_selection_review"]
+    assert hk_review["status"] == "CANNOT_CONFIRM"
+    assert hk_review["cannot_confirm"] == ["CLOSE_REVIEW_ARTIFACT_MISSING"]
     assert payload["fupan_review_v3"]["observation_pool"] == canonical["observation_pool"]
     assert payload["production_allowed"] is False
     assert payload["buy_gate_updated"] is False

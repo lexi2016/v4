@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from types import SimpleNamespace
 
 import pytest
 
 from infrastructure.tdx_minute_replay_provider import TdxMinuteReplayProvider
+from stage_center.live_collectors import collect_a_share_auction
 
 
 def _minute_rows() -> list[OrderedDict[str, float]]:
@@ -212,6 +214,43 @@ def test_tdx_0925_replay_pages_back_to_the_auction_minute() -> None:
     assert payload["rows"][0]["source_last_tick_time"] == "09:25:00"
 
 
+class ConnectedMinuteOnlyTdxApi(FakeTdxApi):
+    def connect(self, host: str, port: int, *, time_out: float):
+        self.connected_to = (host, port, time_out)
+        return self
+
+    def get_security_bars(self, category: int, market: int, code: str, start: int, count: int):
+        self.daily_calls.append((category, market, code, start, count))
+        return None
+
+
+def test_connected_minute_host_is_not_rejected_by_daily_bar_probe(monkeypatch) -> None:
+    import pytdx.config.hosts as host_config
+    import pytdx.hq as pytdx_hq
+
+    api = ConnectedMinuteOnlyTdxApi(
+        rows=[OrderedDict(price=10 + index / 100, vol=1) for index in range(240)]
+    )
+    created = []
+    monkeypatch.setattr(host_config, "hq_hosts", [("minute-only-host", "127.0.0.1", 7709)])
+    monkeypatch.setattr(pytdx_hq, "TdxHq_API", lambda heartbeat=False: (created.append(api) or api))
+
+    payload = TdxMinuteReplayProvider().snapshot(
+        ["A.000905"],
+        trade_date="20260928",
+        stage_id="STAGE_0930_0935",
+        cutoff_at="2026-09-28T09:35:05+08:00",
+    )
+
+    assert created == [api]
+    assert api.connected_to == ("127.0.0.1", 7709, 1.5)
+    assert api.daily_calls == []
+    assert api.calls == [(0, "000905", 20260928)]
+    assert api.disconnected is True
+    assert payload["rows"][0]["stage_window_complete"] is True
+    assert payload["rows"][0]["stage_window"] == "09:31:00-09:35:00"
+    assert payload["rows"][0]["source_last_bar_time"] == "09:35:00"
+
 def test_tdx_replay_rejects_hk_symbols_and_fails_explicitly_on_empty_source() -> None:
     with pytest.raises(ValueError, match="A-share"):
         TdxMinuteReplayProvider(api_factory=FakeTdxApi).snapshot(
@@ -243,3 +282,96 @@ def test_tdx_replay_keeps_good_symbols_when_one_symbol_has_no_rows() -> None:
             stage_id="STAGE_0930_0935",
             cutoff_at="2026-07-30T09:35:05",
         )
+
+
+def _auction_recovery_payload(**overrides):
+    payload = {
+        "trade_date": "20260930",
+        "stage_id": "STAGE_0925",
+        "captured_at": "2026-10-01T12:00:00+08:00",
+        "market_cutoff_at": "2026-09-30T09:25:05+08:00",
+        "capture_mode": "RECOVERY",
+        "temporal_cutoff_safe": True,
+        "source": "PYTDX_A_SHARE_0925_HISTORY_TRANSACTION",
+        "source_method": "pytdx.hq.get_history_transaction_data",
+        "rows": [
+            {
+                "symbol": "A.000001",
+                "open_price": 10.5,
+                "last_price": 10.5,
+                "high_price": 10.5,
+                "low_price": 10.5,
+                "prev_close_price": 10.0,
+                "turnover": 1_260_000.0,
+                "volume": 1200.0,
+                "source_last_tick_time": "09:25:00",
+                "source_method": "pytdx.hq.get_history_transaction_data",
+            }
+        ],
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    payload.update(overrides)
+    return payload
+
+
+class FixedAuctionReplayProvider:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def snapshot(self, symbols, *, trade_date, stage_id, cutoff_at):
+        assert tuple(symbols) == ("A.000001",)
+        assert trade_date == "20260930"
+        assert stage_id == "STAGE_0925"
+        assert cutoff_at == "2026-09-30T09:25:05"
+        return self.payload
+
+
+def _collect_recovery_auction(payload):
+    return collect_a_share_auction(
+        SimpleNamespace(trade_date="20260930", stage_id="STAGE_0925"),
+        codes=("A.000001",),
+        python_path="unused",
+        shared_root="unused",
+        replay_provider=FixedAuctionReplayProvider(payload),
+    )
+
+
+def test_0925_auction_collector_accepts_late_recovery_capture_with_exact_market_tick() -> None:
+    source = _collect_recovery_auction(_auction_recovery_payload())
+
+    assert source.status == "READY"
+    assert len(source.rows) == 1
+    assert source.rows[0]["update_time"] == "2026-09-30 09:25:00"
+    assert "CANNOT_CONFIRM_NATURAL_0925_CAPTURE_RECOVERY_ONLY" in source.cannot_confirm
+    assert "replay_capture_mode=RECOVERY" in source.source_evidence
+    assert "replay_market_cutoff_at=2026-09-30T09:25:05+08:00" in source.source_evidence
+
+
+@pytest.mark.parametrize(
+    ("override", "expected_error"),
+    [
+        ({"market_cutoff_at": "2026-09-30T09:25:06+08:00"}, "captured_at is outside exact date/cutoff"),
+        ({"capture_mode": "NATURAL"}, "captured_at is outside exact date/cutoff"),
+        (
+            {
+                "rows": [
+                    {
+                        **_auction_recovery_payload()["rows"][0],
+                        "source_last_tick_time": "2026-10-01 09:25:00",
+                    }
+                ]
+            },
+            "PYTDX_0925_INVALID_ROWS",
+        ),
+    ],
+)
+def test_0925_auction_collector_rejects_bad_recovery_identity_or_market_tick(
+    override, expected_error: str,
+) -> None:
+    source = _collect_recovery_auction(_auction_recovery_payload(**override))
+
+    assert source.status == "CANNOT_CONFIRM"
+    assert not source.rows
+    assert any(expected_error in item for item in source.cannot_confirm)

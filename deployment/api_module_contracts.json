@@ -1,0 +1,124 @@
+{
+  "schema_version": "v4.api_module_contracts.v1",
+  "contract_source": {
+    "schema_version": "v4.module_release_isolation.route_contract.v1",
+    "path": "/Users/lexi/Desktop/学习/agents调试/V4_MODULE_RELEASE_ISOLATION_20261009/package/route_contract.json",
+    "sha256": "ff1678c2b30654fa51ee92419bc4f2097366b9a03708e5ae2ed3c189bdb78d99"
+  },
+  "source_files": {
+    "live_app": {
+      "path": "apps/api/v35_api/app.py",
+      "sha256": "5d344dfe902db37f81e06d1d401e9a7e20ae910d8f7647b732ae2b3ba4f019e5"
+    },
+    "manager_research_router": {
+      "path": "apps/api/v35_api/manager_research_router.py",
+      "sha256": "84f65a351e1e44171820cb8698e4198b3084e39b8d0cfe82c6b4bc05595f8073"
+    },
+    "manager_workbench_router": {
+      "path": "apps/api/v35_api/manager_workbench_router.py",
+      "sha256": "95ccda85ff50d44cffbb18fc655e417f926c14b27a60cfa4c5fad17a3cbd1b5e"
+    }
+  },
+  "roles": {
+    "gateway": {
+      "host": "127.0.0.1",
+      "port": 8873,
+      "label": "com.lexi.v35.api-only",
+      "plist_name": "com.lexi.v35.api-only.plist",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v35.local/releases",
+      "manifest_role": "gateway",
+      "lock_name": ".com.lexi.v35.api-only.release.lock",
+      "owns_static_assets": true
+    },
+    "stage": {
+      "host": "127.0.0.1",
+      "port": 8874,
+      "label": "com.lexi.v4.stage-api",
+      "plist_name": "com.lexi.v4.stage-api.plist",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.stage-api/releases",
+      "manifest_role": "stage",
+      "lock_name": ".com.lexi.v4.stage-api.release.lock",
+      "owns_static_assets": false,
+      "requires_shared_stage_selection_root": true,
+      "delta_allowlist": [
+        "apps/api/v35_api/preselection_router.py",
+        "apps/api/v35_api/preselection_service.py",
+        "contracts/stages.py",
+        "domains/stages.py",
+        "domains/stage_input_producer.py",
+        "infrastructure/opening_second_filter_store.py",
+        "infrastructure/stage_*.py",
+        "stage_center/**"
+      ],
+      "upstream": {"host": "127.0.0.1", "port": 8874}
+    },
+    "manager": {
+      "host": "127.0.0.1",
+      "port": 8875,
+      "label": "com.lexi.v4.manager-api",
+      "plist_name": "com.lexi.v4.manager-api.plist",
+      "release_root": "/Users/lexi/Library/Application Support/com.lexi.v4.manager-api/releases",
+      "manifest_role": "manager",
+      "lock_name": ".com.lexi.v4.manager-api.release.lock",
+      "owns_static_assets": false,
+      "requires_shared_stage_selection_root": true,
+      "delta_allowlist": [
+        "apps/api/v35_api/manager_research_router.py",
+        "apps/api/v35_api/manager_workbench_router.py",
+        "infrastructure/manager_*.py",
+        "infrastructure/preselection_pool_readers.py",
+        "v4/manager_research/**"
+      ],
+      "upstream": {"host": "127.0.0.1", "port": 8875}
+    }
+  },
+  "bootstrap_delta_allowlist": [
+    "apps/api/v35_api/app.py",
+    "apps/api/v35_api/module_proxy.py",
+    "apps/api/v35_api/run.py",
+    "deployment/api_module_contracts.json"
+  ],
+  "stage_routes": [
+    {"method": "GET", "path": "/api/v3/meta/stages"},
+    {"method": "GET", "path": "/api/v3/preselection-pools"},
+    {"method": "GET", "path": "/api/v3/workbench/stage"},
+    {"method": "POST", "path": "/api/v3/workbench/stage/ensure"},
+    {"method": "GET", "path": "/api/v3/stage-center/selection"},
+    {"method": "POST", "path": "/api/v3/stage-center/selection/ensure"}
+  ],
+  "manager_research_routes": [
+    {"method": "GET", "path": "/api/v4/manager/research"},
+    {"method": "GET", "path": "/api/v4/manager/research/status"},
+    {"method": "POST", "path": "/api/v4/manager/research/ensure"},
+    {"method": "POST", "path": "/api/v4/manager/research/retry"},
+    {"method": "POST", "path": "/api/v4/manager/research/events"},
+    {"method": "GET", "path": "/api/v4/manager/research/jobs/{job_id}"},
+    {"method": "POST", "path": "/api/v4/manager/research/jobs/{job_id}/cancel"},
+    {"method": "GET", "path": "/api/v4/manager/research/catalyst-observations"},
+    {"method": "POST", "path": "/api/v4/manager/research/catalyst-observations/refresh"},
+    {"method": "GET", "path": "/api/v4/manager/research/workspace"},
+    {"method": "POST", "path": "/api/v4/manager/research/workspace/refresh"},
+    {"method": "POST", "path": "/api/v4/manager/research/workspace/scheduled-cycle"},
+    {"method": "GET", "path": "/api/v4/manager/research/announcements"},
+    {"method": "GET", "path": "/api/v4/manager/research/announcements/analysis"},
+    {"method": "POST", "path": "/api/v4/manager/research/announcements/analysis/import"},
+    {"method": "POST", "path": "/api/v4/manager/research/announcements/refresh"},
+    {"method": "GET", "path": "/api/v4/manager/research/{target_trade_date}"}
+  ],
+  "manager_other_routes": [
+    {"method": "GET", "path": "/api/v4/manager/workbench-research"},
+    {"method": "GET", "path": "/api/v3/manager/stage-selection"}
+  ],
+  "proxy_policy": {
+    "fixed_loopback_upstreams_only": true,
+    "preserve_method_path_query_body_status_content_type_and_required_headers": true,
+    "remove_hop_by_hop_headers": true,
+    "timeouts_seconds": {"connect": 2.0, "read": 10.0, "write": 10.0, "pool": 2.0},
+    "retry_post": false,
+    "wrong_method_status": 405,
+    "known_backend_unavailable_statuses": [503, 504],
+    "fallback_to_old_handler": false,
+    "unknown_module_route_status": 404,
+    "other_existing_platform_routes_unchanged": true
+  }
+}

@@ -85,7 +85,7 @@ describe("manager priority adapter", () => {
     expect(summary.rows.map((row) => row.code)).toEqual(["HK.00001", "HK.00002"]);
     expect(summary.rows[0].reason).toContain("执行门为 NO_BUY");
     expect(summary.rows[0].dataTime).toContain("阶段=2026-09-07 09:40:00");
-    expect(summary.rows[0].buyConditions).toContain("下一阶段验证时点：09:40:05");
+    expect(summary.rows[0].buyConditions).toContain("原阶段验证参考：09:40:05（历史记录，不是已核未来计划）");
     expect(summary.rows[0].invalidationConditions).toContain("阶段失效价位：10");
   });
 

@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping
@@ -18,6 +20,13 @@ from zoneinfo import ZoneInfo
 from infrastructure.data_store import NativeDataStore
 from infrastructure.isolated_package_loader import load_isolated_package_module
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.zsxq_pdf_ingestion import (
+    process_next_pdf_task,
+    process_pdf_batch,
+    process_pdf_continuation,
+    recover_one_pdf,
+)
+from infrastructure.zsxq_pdf_local import submit_local_pdf_batch
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -30,8 +39,8 @@ DEFAULT_CLI = Path(
     "shared-research-runtime/npm/node_modules/.bin/zsxq-cli"
 )
 DEFAULT_REFETCH_ROOT = Path(
-    "/Users/lexi/Documents/Codex/2026-08-13/v35-019ff682/shared-research-collector"
-)
+    __file__
+).resolve().parents[1] / "upstreams"
 DEFAULT_SELECTOR_PANEL = Path(
     "/Users/lexi/Library/Application Support/com.lexi.research.shared/"
     "security/a_share_security_master_latest.parquet"
@@ -190,24 +199,38 @@ def _default_analyzer(
     recent: dict[str, Any], selector_panel: Path, refetch_root: Path
 ) -> dict[str, Any]:
     root = Path(refetch_root).resolve()
+    expected_root = Path(__file__).resolve().parents[1] / "upstreams"
+    if root != expected_root:
+        raise ValueError(
+            "V4 analyzer root must be the canonical upstreams package"
+        )
     v3 = load_isolated_package_module(
         root,
         package_directory="shared_research",
         module_leaf="v3_zsxq_adapter",
         namespace_prefix="v35_shared_research_adapter",
     )
-    collector = load_isolated_package_module(
-        root,
-        package_directory="shared_research",
-        module_leaf="collector",
-        namespace_prefix="v35_shared_research_collector",
-    )
-    _selector_environment = getattr(collector, "_selector_environment")
 
     if not selector_panel.is_file():
         raise FileNotFoundError(f"Mac selector panel missing: {selector_panel}")
     with _selector_environment(selector_panel):
         return dict(v3.analyze_recent_topics(recent))
+
+
+@contextmanager
+def _selector_environment(selector_panel: Path):
+    """Bind the analyzer to one explicit selector panel for this call."""
+
+    key = "V3_SHARED_SELECTOR_PANEL"
+    previous = os.environ.get(key)
+    os.environ[key] = str(Path(selector_panel).expanduser().resolve())
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = previous
 
 
 def _previous_success_time(data_root: Path, trade_date: str, slot: str) -> datetime | None:
@@ -372,8 +395,51 @@ def materialize_zsxq_hourly_delta(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", required=True, type=Path)
-    parser.add_argument("--date", required=True)
-    parser.add_argument("--slot", required=True)
+    parser.add_argument("--date")
+    parser.add_argument("--slot")
+    parser.add_argument(
+        "--pdf-only",
+        action="store_true",
+        help="Process PDFs from the exact existing hourly run without fetching topics.",
+    )
+    parser.add_argument(
+        "--pdf-enqueue-only",
+        action="store_true",
+        help="Verify and enqueue PDFs from one completed hourly run without OCR work.",
+    )
+    parser.add_argument(
+        "--pdf-queue-tick",
+        action="store_true",
+        help="Advance one already-enumerated PDF from the owned queue.",
+    )
+    parser.add_argument(
+        "--pdf-local-batch",
+        action="store_true",
+        help="Hash and submit one explicit read-only local PDF batch; performs no extraction or model call.",
+    )
+    parser.add_argument(
+        "--pdf-recover-one",
+        action="store_true",
+        help="Start one offline-authorized recovery for the exact exhausted document key.",
+    )
+    parser.add_argument(
+        "--pdf-recovery-continue",
+        action="store_true",
+        help="Continue one safe checkpoint under its already-claimed authorization.",
+    )
+    parser.add_argument("--source-run-id", help="Exact latest_run_id from the existing hourly status.")
+    parser.add_argument("--pdf-limit", type=int, default=1)
+    parser.add_argument("--pdf-file-id", help="Process one attachment id from topics_brief.files.")
+    parser.add_argument("--pdf-document-key", help="Full 64-character source-bound PDF document key.")
+    parser.add_argument("--pdf-authorization-id", help="One-time recovery authorization ID.")
+    parser.add_argument(
+        "--pdf-local-root",
+        type=Path,
+        help="Explicit read-only local PDF directory for the existing queue tick.",
+    )
+    parser.add_argument("--pdf-local-canary-sha256", help="Optional exact SHA-256 to gate the first local batch item.")
+    parser.add_argument("--pdf-classification-queue-root", type=Path, help="Explicit existing announcement/queue root for shared model serialization.")
+    parser.add_argument("--pdf-time-budget-seconds", type=int, default=180)
     parser.add_argument("--cli", type=Path, default=DEFAULT_CLI)
     parser.add_argument("--selector-panel", type=Path, default=DEFAULT_SELECTOR_PANEL)
     parser.add_argument("--refetch-root", type=Path, default=DEFAULT_REFETCH_ROOT)
@@ -381,6 +447,108 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-pages", type=int, default=20)
     args = parser.parse_args(argv)
     try:
+        if (args.pdf_document_key or args.pdf_authorization_id) and not (args.pdf_recover_one or args.pdf_recovery_continue):
+            raise ValueError("PDF document key and authorization ID require an explicit recovery mode")
+        if args.pdf_local_batch:
+            if (
+                args.pdf_only or args.pdf_enqueue_only or args.pdf_queue_tick or args.pdf_recover_one or args.pdf_recovery_continue
+                or args.date or args.slot or args.source_run_id or args.pdf_file_id or args.pdf_document_key or args.pdf_authorization_id
+                or not args.pdf_local_root or args.pdf_classification_queue_root
+            ):
+                raise ValueError("--pdf-local-batch requires only --data-root and --pdf-local-root, with optional canary SHA")
+            result = submit_local_pdf_batch(args.data_root, args.pdf_local_root, canary_sha256=args.pdf_local_canary_sha256)
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.pdf_local_canary_sha256:
+            raise ValueError("--pdf-local-canary-sha256 requires --pdf-local-batch")
+        if args.pdf_classification_queue_root and (not args.pdf_queue_tick or not args.pdf_local_root):
+            raise ValueError("--pdf-classification-queue-root requires --pdf-queue-tick and --pdf-local-root")
+        if args.pdf_recover_one or args.pdf_recovery_continue:
+            if args.pdf_recover_one and args.pdf_recovery_continue:
+                raise ValueError("choose only one PDF recovery mode")
+            if (
+                args.pdf_only
+                or args.pdf_enqueue_only
+                or args.pdf_queue_tick
+                or args.slot
+                or args.pdf_file_id
+                or args.pdf_limit != 1
+            ):
+                raise ValueError("PDF recovery cannot be combined with queue or batch selection")
+            if not args.date or not args.source_run_id or not args.pdf_document_key or not args.pdf_authorization_id:
+                raise ValueError("PDF recovery requires date, source run ID, full document key, and authorization ID")
+            result = recover_one_pdf(
+                data_root=args.data_root,
+                trade_date=args.date,
+                source_run_id=args.source_run_id,
+                document_key=args.pdf_document_key,
+                authorization_id=args.pdf_authorization_id,
+                cli=args.cli,
+                time_budget_seconds=args.pdf_time_budget_seconds,
+                continue_existing=args.pdf_recovery_continue,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.pdf_queue_tick:
+            if args.pdf_only or args.pdf_enqueue_only or args.date or args.slot or args.source_run_id or args.pdf_file_id or args.pdf_document_key or args.pdf_authorization_id:
+                raise ValueError("--pdf-queue-tick cannot be combined with a source run or other PDF mode")
+            result = process_next_pdf_task(
+                data_root=args.data_root,
+                local_pdf_root=args.pdf_local_root,
+                announcement_queue_root=args.pdf_classification_queue_root,
+                cli=args.cli,
+                time_budget_seconds=args.pdf_time_budget_seconds,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.pdf_local_root is not None or args.pdf_classification_queue_root is not None:
+            raise ValueError("--pdf-local-root requires --pdf-queue-tick")
+        if args.pdf_enqueue_only:
+            if not args.date or not args.slot or not args.source_run_id or args.pdf_file_id:
+                raise ValueError("--pdf-enqueue-only requires exact date, slot, and source run")
+            result = process_pdf_batch(
+                data_root=args.data_root,
+                trade_date=args.date,
+                slot=args.slot,
+                source_run_id=args.source_run_id,
+                cli=args.cli,
+                limit=1,
+                enqueue_only=True,
+                time_budget_seconds=args.pdf_time_budget_seconds,
+            )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0
+        if args.pdf_only:
+            if not args.date or not args.slot or not args.source_run_id:
+                raise ValueError("--pdf-only requires --source-run-id")
+            if args.pdf_file_id:
+                result = process_pdf_batch(
+                    data_root=args.data_root,
+                    trade_date=args.date,
+                    slot=args.slot,
+                    source_run_id=args.source_run_id,
+                    cli=args.cli,
+                    limit=1,
+                    file_id=args.pdf_file_id,
+                    max_pages_per_document=1,
+                    time_budget_seconds=args.pdf_time_budget_seconds,
+                )
+            else:
+                result = process_pdf_continuation(
+                    data_root=args.data_root,
+                    trade_date=args.date,
+                    slot=args.slot,
+                    source_run_id=args.source_run_id,
+                    cli=args.cli,
+                    max_documents=args.pdf_limit,
+                    time_budget_seconds=args.pdf_time_budget_seconds,
+                )
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            # PDF work is supplemental. Valid pending/partial/failed states are
+            # progress receipts and must not fail the main hourly research run.
+            return 0
+        if not args.date or not args.slot:
+            raise ValueError("--date and --slot are required for hourly materialization")
         result = materialize_zsxq_hourly_delta(
             data_root=args.data_root,
             trade_date=args.date,

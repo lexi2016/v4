@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -11,12 +12,15 @@ from shared_data.public_morning_news import (
     _BASE,
     _KEYWORDS,
     _SLOTS,
+    _default_fetcher,
+    _article_publication,
     _search_title,
     _search_url,
     MorningNewsNotReady,
     _homepage_records,
     collect_public_morning_news,
 )
+from shared_data.morning_news import publish_morning_news, read_morning_news
 
 
 FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "exact-search-morning-news-20260824"
@@ -36,10 +40,13 @@ def _search_card(slot: str, article_id: str, published_at: str = "2026-08-24 07:
     return f'<div>{published_at} {title}<a href="/a/{article_id}">{title}</a></div>'
 
 
-def _article_html(title: str, published_at: str, body: str) -> str:
+def _article_html(title: str, published_at: str, body: str, article_id: str) -> str:
     return (
         f"<html><head><title>{title}-韭研公社</title></head>"
-        f'<body>{published_at} content:"{body}"</body></html>'
+        f'<body>content:"{body}"</body>'
+        f'<script>window.__NUXT__=(function(){{return {{data:[{{data:{{article_id:"{article_id}",'
+        f'title:"{title}",create_time:"{published_at}"}},commendPage:{{result:[]}}}}],'
+        f'routePath:"\\u002Fa\\u002F{article_id}"}};}})();</script></html>'
     )
 
 
@@ -83,6 +90,154 @@ def test_frozen_exact_search_fallback_materializes_all_three_required_slots() ->
     assert all(len(row["body_text"]) >= 300 for row in payload["articles"])
 
 
+def test_capture_time_is_utc_and_article_publication_keeps_unknown_timezone() -> None:
+    mapping, _manifest = _fixture_fetcher()
+    fixed_capture = datetime(2026, 10, 15, 6, 44, 36, 848785, tzinfo=timezone.utc)
+
+    payload = collect_public_morning_news(
+        "20260824",
+        fetcher=mapping.__getitem__,
+        clock=lambda: fixed_capture,
+    )
+
+    for article in payload["articles"]:
+        assert article["fetched_at"] == "2026-10-15T06:44:36.848785+00:00"
+        assert article["capture_time_source"] == "SUCCESSFUL_ARTICLE_RESPONSE_BODY_READ"
+        assert article["capture_time_evidence_sha256"] == payload["source_hashes"][article["url"]]
+        assert article["source_published_at_field"] == "window.__NUXT__.data[0].data.create_time"
+        assert article["source_published_at_raw"] == article["published_at"]
+        assert article["source_published_at_timezone_status"] == "TIMEZONE_UNKNOWN"
+        assert "published_at_utc" not in article
+        assert article["published_at"] != article["fetched_at"]
+
+
+def test_default_fetcher_timestamps_immediately_after_response_body_read(monkeypatch: pytest.MonkeyPatch) -> None:
+    events: list[str] = []
+    response_bytes = "<html>响应文本</html>".encode("gbk")
+    fixed = datetime(2026, 10, 15, 6, 44, 36, 848785, tzinfo=timezone.utc)
+
+    class FakeResponse:
+        headers = {"content-type": "text/html; charset=gbk"}
+
+        def __enter__(self) -> "FakeResponse":
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            events.append("read")
+            return response_bytes
+
+    monkeypatch.setattr(
+        "shared_data.public_morning_news.urllib.request.urlopen",
+        lambda *_args, **_kwargs: FakeResponse(),
+    )
+
+    page = _default_fetcher("https://example.test/article", clock=lambda: events.append("clock") or fixed)
+
+    assert events == ["read", "clock"]
+    assert page.text == response_bytes.decode("gbk")
+    assert page.response_sha256 == hashlib.sha256(page.text.encode("utf-8")).hexdigest()
+    assert page.response_sha256 != hashlib.sha256(response_bytes).hexdigest()
+    assert page.captured_at_utc == "2026-10-15T06:44:36.848785+00:00"
+
+
+def test_article_publication_uses_bound_main_record_and_explicit_offset() -> None:
+    article_id = "extraopenlegal"
+    raw = _article_html(
+        "8月24日开盘必读资讯",
+        "2026-08-24T07:54:00+08:00",
+        "无关正文日期 2026-08-23 23:59:59 " + "合法额外开盘正文 " * 80,
+        article_id,
+    )
+
+    publication = _article_publication(raw, article_id)
+
+    assert publication is not None
+    assert publication["published_at"] == "2026-08-24T07:54:00+08:00"
+    assert publication["source_published_at_raw"] == "2026-08-24T07:54:00+08:00"
+    assert publication["source_published_at_timezone_status"] == "EXPLICIT_OFFSET"
+    assert publication["published_at_utc"] == "2026-08-23T23:54:00.000000+00:00"
+    assert _article_publication(raw, "differentarticle") is None
+
+
+def test_article_publication_ignores_server_epoch_and_body_date() -> None:
+    raw = (
+        '<body>2026-08-24 07:00:00 content:"正文日期"</body>'
+        '<script>window.__NUXT__=(function(){return {data:[{data:{article_id:"id12345678",'
+        'title:"8月24日开盘必读资讯"},commendPage:{result:[]}}],serverTime:1792046676,'
+        'routePath:"\\u002Fa\\u002Fid12345678"};})();</script>'
+    )
+
+    assert _article_publication(raw, "id12345678") is None
+
+
+def test_article_bound_epoch_is_normalized_to_utc() -> None:
+    article_id = "epocharticle123"
+    raw = _article_html("8月24日盘前纪要", "2026-08-24 07:00:00", "正文 " * 200, article_id)
+    raw = raw.replace('create_time:"2026-08-24 07:00:00"', "create_time:1792046676")
+
+    publication = _article_publication(raw, article_id)
+
+    assert publication is not None
+    assert publication["source_published_at_raw"] == "1792046676"
+    assert publication["source_published_at_timezone_status"] == "EXPLICIT_EPOCH_UTC"
+    assert publication["published_at_utc"] == "2026-10-15T06:44:36.000000+00:00"
+
+
+def test_successful_article_retry_gets_capture_time_only_on_success() -> None:
+    mapping, manifest = _fixture_fetcher()
+    article_url = next(record["article_url"] for record in manifest["records"] if record["slot"] == "盘前纪要")
+    calls: Counter[str] = Counter()
+    successful_responses = 0
+    clock_calls = 0
+    start = datetime(2026, 10, 15, 6, 0, tzinfo=timezone.utc)
+
+    def fetcher(url: str) -> str:
+        nonlocal successful_responses
+        calls[url] += 1
+        if url == article_url and calls[url] == 1:
+            raise TimeoutError("fixture first attempt timeout")
+        successful_responses += 1
+        return mapping[url]
+
+    def clock() -> datetime:
+        nonlocal clock_calls
+        value = start + timedelta(seconds=clock_calls)
+        clock_calls += 1
+        return value
+
+    payload = collect_public_morning_news("20260824", fetcher=fetcher, clock=clock)
+
+    article = next(row for row in payload["articles"] if row["url"] == article_url)
+    assert calls[article_url] == 2
+    assert clock_calls == successful_responses
+    assert article["fetched_at"] == "2026-10-15T06:00:01.000000+00:00"
+
+
+def test_capture_metadata_survives_immutable_publish_and_read(tmp_path: Path) -> None:
+    mapping, _manifest = _fixture_fetcher()
+    fixed_capture = datetime(2026, 10, 15, 6, 44, 36, tzinfo=timezone.utc)
+    payload = collect_public_morning_news(
+        "20260824",
+        fetcher=mapping.__getitem__,
+        clock=lambda: fixed_capture,
+    )
+
+    published = publish_morning_news(tmp_path, payload)
+    restored = read_morning_news(tmp_path, "20260824")
+    artifact_path = tmp_path / published["payload_relative"]
+    original_bytes = artifact_path.read_bytes()
+    retried = publish_morning_news(tmp_path, payload)
+
+    assert published["payload_sha256"]
+    assert retried["already_exists"] is True
+    assert artifact_path.read_bytes() == original_bytes
+    assert restored["articles"] == payload["articles"]
+    assert all(row["fetched_at"].endswith("+00:00") for row in restored["articles"])
+
+
 def test_search_fallback_retries_once_and_retains_source_hashes() -> None:
     mapping, manifest = _fixture_fetcher()
     search_url = next(record["search_url"] for record in manifest["records"] if record["slot"] == "开盘必读")
@@ -108,17 +263,27 @@ def test_search_retry_exhaustion_fails_closed() -> None:
     mapping, manifest = _fixture_fetcher()
     search_url = next(record["search_url"] for record in manifest["records"] if record["slot"] == "开盘必读")
     calls = Counter()
+    successful_responses = 0
+    clock_calls = 0
 
     def fetcher(url: str) -> str:
+        nonlocal successful_responses
         calls[url] += 1
         if url == search_url:
             raise TimeoutError("fixture timeout")
+        successful_responses += 1
         return mapping[url]
 
+    def clock() -> datetime:
+        nonlocal clock_calls
+        clock_calls += 1
+        return datetime(2026, 10, 15, 6, 0, tzinfo=timezone.utc)
+
     with pytest.raises(MorningNewsNotReady, match="fetch retries exhausted"):
-        collect_public_morning_news("20260824", fetcher=fetcher)
+        collect_public_morning_news("20260824", fetcher=fetcher, clock=clock)
 
     assert calls[search_url] == 2
+    assert clock_calls == successful_responses
 
 
 def test_off_date_search_candidate_is_rejected_fail_closed() -> None:
@@ -206,8 +371,9 @@ def test_extra_legal_candidate_keeps_three_slot_contract_and_allows_at_least_thr
     mapping[record["search_url"]] += _search_card("开盘必读", extra_id)
     mapping[f"{_BASE}a/{extra_id}"] = _article_html(
         "8月24日开盘必读资讯",
-        "2026-08-24 07:54:00",
-        "合法额外开盘正文 " * 80,
+        "2026-08-24T07:54:00+08:00",
+        "无关正文日期 2026-08-23 23:59:59 " + "合法额外开盘正文 " * 80,
+        extra_id,
     )
 
     payload = collect_public_morning_news("20260824", fetcher=mapping.__getitem__)
@@ -221,6 +387,10 @@ def test_extra_legal_candidate_keeps_three_slot_contract_and_allows_at_least_thr
         "盘前解读": 1,
     }
     assert f"{_BASE}a/{extra_id}" in {row["url"] for row in payload["articles"]}
+    extra_article = next(row for row in payload["articles"] if row["url"].endswith(extra_id))
+    assert extra_article["published_at"] == "2026-08-24T07:54:00+08:00"
+    assert extra_article["source_published_at_timezone_status"] == "EXPLICIT_OFFSET"
+    assert extra_article["published_at_utc"] == "2026-08-23T23:54:00.000000+00:00"
 
 
 def test_body_shorter_than_300_is_not_readable_and_fails_closed() -> None:
@@ -230,6 +400,7 @@ def test_body_shorter_than_300_is_not_readable_and_fails_closed() -> None:
         "8月24日盘前解读",
         "2026-08-24 07:05:24",
         "正文不足三百字",
+        record["article_url"].rsplit("/", 1)[-1],
     )
 
     with pytest.raises(MorningNewsNotReady, match="2/3|missing required"):

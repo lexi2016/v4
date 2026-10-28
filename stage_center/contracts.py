@@ -71,3 +71,37 @@ EIGHT_STAGES: tuple[StageSpec, ...] = (
 STAGE_BY_ID = {stage.stage_id: stage for stage in EIGHT_STAGES}
 if tuple(STAGE_BY_ID) != tuple(stage.stage_id for stage in EIGHT_STAGES):
     raise RuntimeError("stage order must remain chronological")
+
+# HK active-lane snapshots are captured before each non-auction stage window.
+# Stage 8 retains its frozen five-minute window; ordinary windows start on
+# the prior minute and preserve the exact StageSpec cutoff, including seconds.
+_HK_SNAPSHOT_STAGE8_ID = "STAGE_1545_1555"
+_HK_SNAPSHOT_AUCTION_STAGE_ID = "STAGE_0925"
+_HK_SNAPSHOT_STAGE8_CAPTURE_START = "15:50:00"
+_HK_SNAPSHOT_STAGE8_CAPTURE_END = "15:55:00"
+_HK_SNAPSHOT_STAGE8_CUTOFF = "15:55:00"
+
+
+def _minute_before_cutoff(cutoff: str) -> str:
+    hour, minute, _second = (int(part) for part in cutoff.split(":"))
+    minute_of_day = hour * 60 + minute - 1
+    if minute_of_day < 0:
+        raise RuntimeError("HK snapshot cutoff cannot precede midnight")
+    return f"{minute_of_day // 60:02d}:{minute_of_day % 60:02d}:00"
+
+
+HK_SNAPSHOT_SCHEDULE: dict[str, tuple[str, str, str]] = {
+    stage.stage_id: (
+        _HK_SNAPSHOT_STAGE8_CAPTURE_START
+        if stage.stage_id == _HK_SNAPSHOT_STAGE8_ID
+        else _minute_before_cutoff(stage.cutoff),
+        _HK_SNAPSHOT_STAGE8_CAPTURE_END
+        if stage.stage_id == _HK_SNAPSHOT_STAGE8_ID
+        else stage.cutoff,
+        _HK_SNAPSHOT_STAGE8_CUTOFF
+        if stage.stage_id == _HK_SNAPSHOT_STAGE8_ID
+        else stage.cutoff,
+    )
+    for stage in EIGHT_STAGES
+    if stage.stage_id != _HK_SNAPSHOT_AUCTION_STAGE_ID
+}

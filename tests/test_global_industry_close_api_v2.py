@@ -17,6 +17,7 @@ from apps.api.v35_api.research_lane_router import (
 from infrastructure.research_peripheral_store import (
     CANONICAL_GLOBAL_INDUSTRY_PROXY_MAP,
 )
+from ops._us_market_digest_parts.futu_boards import FUTU_BOARD_MAP
 
 
 TARGET_DATE = "20260909"
@@ -80,6 +81,57 @@ def _rows() -> list[dict]:
     return rows
 
 
+def _futu_snapshot(session_date: str) -> dict:
+    rows = []
+    unmatched_reasons = []
+    for index, mapping in enumerate(FUTU_BOARD_MAP):
+        matched = mapping["plate_name"] is not None
+        change = 0.70035 if mapping["label"] == "云计算" else round((index + 1) / 10, 6)
+        rows.append({
+            "label": mapping["label"],
+            "metric_kind": "OFFICIAL_BOARD",
+            "market": "US",
+            "plate_type": mapping["plate_type"],
+            "expected_board_name": mapping["plate_name"],
+            "board_name": mapping["plate_name"] if matched else None,
+            "board_code": f"US.LIST{2000 + index}" if matched else None,
+            "update_time": "2026-09-08 16:00:00" if matched else None,
+            "session_date": session_date if matched else None,
+            "timezone": "America/New_York",
+            "last": 100.70035 if matched else None,
+            "previous_close": 100.0 if matched else None,
+            "change_pct": change if matched else None,
+            "plate_valid": True if matched else None,
+            "rise_count": 15 if matched else None,
+            "fall_count": 5 if matched else None,
+            "equal_count": 0 if matched else None,
+            "member_count": 1 if matched else None,
+            "relation_constituents": ["NVDA"] if mapping["label"] == "云计算" else [],
+            "membership_status": "READY" if matched else "CANNOT_CONFIRM",
+            "membership_sha256": "e" * 64 if matched else "",
+            "source_response_sha256": "f" * 64 if matched else "",
+            "status": "READY" if matched else "CANNOT_CONFIRM",
+            "cannot_confirm": [] if matched else ["FUTU_BOARD_MATCH_UNCONFIRMED"],
+        })
+        if not matched:
+            unmatched_reasons.append("FUTU_BOARD_MATCH_UNCONFIRMED")
+    return {
+        "schema_version": "v3_5.futu_us_industry_snapshot.v1",
+        "status": "PARTIAL",
+        "provider": "Futu OpenD",
+        "market": "US",
+        "timezone": "America/New_York",
+        "capture_session_date": session_date,
+        "source_response_sha256": "d" * 64,
+        "rows": rows,
+        "cannot_confirm": sorted(set(unmatched_reasons)),
+        "RESEARCH_ONLY": True,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+
+
 def _capture(*, session_date: str, late: bool = True) -> dict:
     capture = {
         "us_session_date": session_date,
@@ -120,6 +172,7 @@ def _payload(*, session_date: str = SESSION_DATE, late: bool = True) -> dict:
         "provider_session_times": ["16:15:00"],
         "quotes": [],
         "rows": _rows(),
+        "futu_board_snapshot": _futu_snapshot(session_date),
         "cannot_confirm": ["MARKET_SNAPSHOT_INCOMPLETE"],
         "recommendation_status": "RESEARCH_ONLY",
         "RESEARCH_ONLY": True,
@@ -179,8 +232,15 @@ def test_late_cross_date_projection_accepts_bound_capture_and_preserves_rows(
     assert result["capture_mode"] == LATE_MODE
     assert result["reason"] == LATE_REASON
     assert len(result["rows"]) == 24
-    assert result["rows"][0]["change_pct"] == 0.1
-    assert result["rows"][-1]["change_pct"] == 2.4
+    assert result["schema_version"] == "v3_5.global_industries.v2"
+    assert result["rows"][0]["change_pct"] is None
+    assert result["rows"][2]["official_board"]["board_name"] == "半导体"
+    assert result["rows"][5]["change_pct"] == 0.70035
+    assert result["rows"][5]["proxy_reference"]["change_pct"] == 0.6
+    assert result["rows"][5]["official_board"]["rise_count"] == 15
+    assert result["rows"][5]["official_board"]["relations"][0]["us_symbol"] == "NVDA"
+    assert result["a_share_relation_status"] == "NO_REVIEWED_A_SHARE_RELATION_EVIDENCE"
+    assert result["rows"][-1]["change_pct"] is not None
     assert result["RESEARCH_ONLY"] is True
     assert result["production_allowed"] is False
     assert result["buy_gate_updated"] is False

@@ -38,7 +38,7 @@ CLOSE_TIMELINE: tuple[dict[str, Any], ...] = (
     _node(6, "STAGE_1300_1315", "1315", "13:00-13:15", "stage_center.STAGE_1300_1315", "STAGE_CENTER", stage_id="STAGE_1300_1315"),
     _node(7, "STAGE_1445_1500", "1500", "14:45-15:00", "stage_center.STAGE_1445_1500", "STAGE_CENTER", stage_id="STAGE_1445_1500"),
     _node(8, "STAGE_1545_1555", "1555", "15:45-15:55港股", "stage_center.STAGE_1545_1555", "STAGE_CENTER", stage_id="STAGE_1545_1555"),
-    _node(9, "hkconnect_model_selection_review", "1608", "16:08 港股通正式收盘：0.2 × 七阶段 Top20", "v35_dispatcher.hk_connect_close_review", "V35", workload_id="hk_connect_close_review"),
+    _node(9, "hkconnect_model_selection_review", "1610", "16:10 港股通正式收盘：0.2 × 七阶段 Top20", "v35_dispatcher.hk_connect_close_review", "V35", workload_id="hk_connect_close_review"),
     _node(10, "FUPAN_CLOSE_MATERIALS", "1500", "15:00 收盘前总结材料", "v35_dispatcher.fupan_close_materials", "V35", workload_id="fupan_close_materials", stage_id="STAGE_1445_1500"),
     _node(11, "FUPAN_REVIEW_START", "1555", "15:55 收盘后复盘启动", "v35_dispatcher.fupan_review_start", "V35", workload_id="fupan_review_start", stage_id="STAGE_1545_1555"),
     _node(12, "FUPAN_A_SHARE_STRUCTURE", "1605", "16:05 A股收盘数据与题材骨架", "v35_dispatcher.a_share_close_review", "V35", workload_id="a_share_close_review", retry_slots=("1710",)),
@@ -52,7 +52,7 @@ CLOSE_TIMELINE: tuple[dict[str, Any], ...] = (
 )
 
 CLOSE_TIMELINE_SLOT_TO_NODE = {
-    "1608": "hk_connect_close_review",
+    "1610": "hk_connect_close_review",
     "1500": "FUPAN_CLOSE_MATERIALS",
     "1555": "FUPAN_REVIEW_START",
     "1605": "FUPAN_A_SHARE_STRUCTURE",

@@ -4,6 +4,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+import pytest
+
 def test_scheduler_keeps_post_close_preselection_slots_recoverable() -> None:
     from ops.run_v35_macos_scheduler import POST_CLOSE_CATCHUP_SLOTS
 
@@ -74,6 +76,101 @@ def test_retryable_failure_can_retry_after_backoff_without_pointer_change(
     ) is False
 
 
+def _bind_current_release_identity_for_dispatch_test(monkeypatch, tmp_path: Path) -> dict[str, str]:
+    """Pin the real isolated source bytes so this test reaches executor/ledger behavior."""
+    import hashlib
+
+    from infrastructure.scheduling import dispatcher as dispatcher_module
+
+    app_root = Path(__file__).resolve().parents[1]
+    entries = []
+    for relative in dispatcher_module._RUNTIME_IDENTITY_FILES:
+        content = (app_root / relative).read_bytes()
+        entries.append({
+            "path": relative,
+            "kind": "file",
+            "sha256": hashlib.sha256(content).hexdigest(),
+            "size": len(content),
+        })
+    inventory = {
+        "entries": entries,
+        "entry_count": len(entries),
+        "aggregate_sha256": hashlib.sha256(json.dumps(
+            entries, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode()).hexdigest(),
+    }
+    manifest_path = tmp_path / "release-manifest.json"
+    raw = json.dumps({
+        "schema_version": "v4.release_candidate.v1",
+        "candidate": {"app_root": str(app_root), "release_id": "release-test"},
+        "application_inventory": inventory,
+    }, sort_keys=True).encode()
+    manifest_path.write_bytes(raw)
+    binding = {
+        "V35_APP_ROOT": str(app_root),
+        "V35_RELEASE_ID": "release-test",
+        "V35_RELEASE_MANIFEST_PATH": str(manifest_path),
+        "V35_RELEASE_MANIFEST_SHA256": hashlib.sha256(raw).hexdigest(),
+    }
+    for name, value in binding.items():
+        monkeypatch.setenv(name, value)
+    return binding
+
+
+def _materialize_canonical_hk_d1_top100(root: Path, trade_date: str):
+    """Write a canonical, store-backed HK D-1 pool using the frozen calendar."""
+    import hashlib
+
+    from contracts.trading_calendar import load_market_calendar, previous_session
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+
+    signal_date = previous_session(
+        load_market_calendar(), trade_date, market="hk_connect"
+    )
+    codes = tuple(f"HK.{index:05d}" for index in range(1, 101))
+    safety_flags = {
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    pool = {
+        "schema_version": "v3_5.preselection_pool.v1",
+        "trade_date": trade_date,
+        "pool_id": "hkconnect_d1_top100",
+        "display_name": "synthetic calendar-bound exact D-1",
+        "market": "HK",
+        "status": "STRICT_0_2_READY",
+        "producer_id": "v3_shared_hk_0_2_consumer_v1",
+        "source_role": "SHARED_VERIFIED_HK_0_2",
+        "source_path": "synthetic/exact-d1.csv",
+        "source_sha256": hashlib.sha256(
+            f"synthetic exact D-1 {signal_date}->{trade_date}".encode()
+        ).hexdigest(),
+        "rows": [
+            {
+                "symbol": code,
+                "code": code,
+                "name": "fixture",
+                "market": "HK",
+                "pool_id": "hkconnect_d1_top100",
+                "signal_date": signal_date,
+                "trade_date": trade_date,
+                "target_date": trade_date,
+                "selected_strategy": "prob_active",
+                "prob_active": 0.5,
+                "data_cutoff": f"{signal_date} close",
+                **safety_flags,
+            }
+            for code in codes
+        ],
+        "cannot_confirm": [],
+        **safety_flags,
+    }
+    PreselectionPoolStore(root).materialize(pool)
+    artifact = root / "preselection_pools" / trade_date / "hkconnect_d1_top100.json"
+    return signal_date, codes, artifact
+
+
 def test_dispatch_failure_receipt_carries_retry_identity(monkeypatch, tmp_path: Path) -> None:
     from contracts.runtime_tasks import DispatchMode, DispatchRequest
     from infrastructure.scheduling.catalog import load_workload_catalog
@@ -82,6 +179,7 @@ def test_dispatch_failure_receipt_carries_retry_identity(monkeypatch, tmp_path: 
 
     monkeypatch.setenv("V35_RELEASE_ID", "release-test")
     monkeypatch.setenv("V35_UPSTREAM_FINGERPRINT", "pointer-test")
+    release_binding = _bind_current_release_identity_for_dispatch_test(monkeypatch, tmp_path)
     request = DispatchRequest(
         scheduled_date="20260820",
         business_date="20260820",
@@ -90,23 +188,37 @@ def test_dispatch_failure_receipt_carries_retry_identity(monkeypatch, tmp_path: 
         mode=DispatchMode.LIVE,
     )
 
-    receipt = dispatch_due(
-        request,
-        load_workload_catalog(),
-        lambda *_args: {
+    executor_calls: list[str] = []
+
+    def executor(workload, *_args):
+        executor_calls.append(workload.workload_id)
+        return {
             "status": "FAILED",
             "failure_class": "UPSTREAM_NOT_READY",
             "stderr": "exact-date selector input is not ready",
             "production_allowed": False,
             "buy_gate_updated": False,
             "orders_sent": False,
-        },
+        }
+
+    receipt = dispatch_due(
+        request,
+        load_workload_catalog(),
+        executor,
         ledger=ExecutionLedger(tmp_path / "ledger"),
     )
     assert receipt.status == "FAILED"
-    stored = ExecutionLedger(tmp_path / "ledger").list_receipts("20260820")[0]
+    assert receipt.failure_class == "UPSTREAM_NOT_READY"
+    assert receipt.release_id == release_binding["V35_RELEASE_ID"]
+    assert executor_calls == list(receipt.selected_workload_ids)
+    assert len(receipt.workload_results) == len(receipt.selected_workload_ids) > 0
+    assert "exact-date selector input is not ready" in receipt.workload_results[0]["stderr"]
+    stored_receipts = ExecutionLedger(tmp_path / "ledger").list_receipts("20260820")
+    assert len(stored_receipts) == 1
+    stored = stored_receipts[0]
     assert stored["failure_class"] == "UPSTREAM_NOT_READY"
     assert stored["release_id"] == "release-test"
+    assert stored["release_manifest_sha256"] == release_binding["V35_RELEASE_MANIFEST_SHA256"]
     assert stored["upstream_fingerprint"] == "pointer-test"
     assert stored["attempt"] == 1
     assert stored["retry_after"]
@@ -220,11 +332,17 @@ def _preselection_request():
 
 
 def test_preselection_hk_lane_survives_missing_a_selector(tmp_path: Path) -> None:
-    """A selector failure must not prevent the exact HK 0.2 lane from running."""
+    """A missing selector skips only its A producer, preserving other lanes."""
     calls: list[tuple[str, list[str]]] = []
 
     def fake_runner(command, *, cwd, timeout_seconds, env):
-        calls.append((str(command[2]), list(command[3:])))
+        module = str(command[2])
+        calls.append((module, list(command[3:])))
+        if (
+            module == "ops.materialize_shared_v192_preselection"
+            and "V3_SHARED_SELECTOR_READY_PANEL" not in (env or {})
+        ):
+            raise KeyError("V3_SHARED_SELECTOR_READY_PANEL")
         return __import__("subprocess").CompletedProcess(command, 0, "", "")
 
     registry = _preselection_registry_fixture(tmp_path, fake_runner)
@@ -235,6 +353,8 @@ def test_preselection_hk_lane_survives_missing_a_selector(tmp_path: Path) -> Non
 
     assert result["status"] == "SUCCEEDED"
     modules = [module for module, _arguments in calls]
+    assert "scripts.capture_public_fupan" in modules
+    assert "ops.materialize_shared_v192_preselection" not in modules
     assert "scripts.update_hk_0_2_panel" in modules
     assert "ops.ensure_hk_security_master" in modules
     assert "scripts.materialize_hk_0_2" in modules
@@ -244,6 +364,12 @@ def test_preselection_hk_lane_survives_missing_a_selector(tmp_path: Path) -> Non
     assert "--selector" not in final_arguments
     assert result["a_selector_status"] == "CANNOT_CONFIRM"
     assert result["hk_lane_status"] == "SUCCEEDED"
+    a_gap = result["a_lane_degradations"][0]
+    assert a_gap["status"] == "CANNOT_CONFIRM"
+    assert a_gap["signal_date"] == request.business_date
+    assert a_gap["target_date"] == request.target_date
+    assert a_gap["first_gate"] == "SOURCE_PANEL"
+    assert a_gap["producer_called"] is False
 
 
 def test_preselection_a_lane_survives_hk_update_failure(tmp_path: Path, monkeypatch) -> None:
@@ -593,48 +719,51 @@ def test_materializer_keeps_a_pool_when_hk_reader_contract_is_invalid(tmp_path: 
 
 def test_stage_center_runner_publishes_hk_when_a_current_is_missing(tmp_path: Path) -> None:
     """Exercise the real tick seam, including raw/selection stores and receipt."""
-    import hashlib
+    import sys
     from datetime import datetime
     from zoneinfo import ZoneInfo
 
     from stage_center.acquisition import SourceResult
     from stage_center.runner import RunnerConfig, StageCenterRunner
     from stage_center.scheduler import evaluate_due
-    from stage_center.selection import select_hk_four_lane
 
-    trade_date = "20260820"
+    trade_date = "20260915"
     stage_id = "STAGE_0930_0935"
     candidate_root = tmp_path / "candidate"
     candidate_root.mkdir()
-    hk_root = tmp_path / "hk-universe"
-    hk_file = hk_root / trade_date / "HK_CONNECT_FULL_MARKET.json"
-    hk_codes = tuple(f"HK.{index:05d}" for index in range(1, 501))
-    codes_sha = hashlib.sha256(
-        json.dumps(list(hk_codes), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-    hk_file.parent.mkdir(parents=True)
-    hk_file.write_text(
-        json.dumps(
-            {
-                "trade_date": trade_date,
-                "market": "HK_CONNECT",
-                "scope": "FULL_MARKET",
-                "codes": list(hk_codes),
-                "codes_sha256": codes_sha,
-                "production_allowed": False,
-                "buy_gate_updated": False,
-                "orders_sent": False,
-            }
-        ),
-        encoding="utf-8",
+    d1_root = tmp_path / "hk-d1"
+    signal_date, expected_hk_codes, d1_file = _materialize_canonical_hk_d1_top100(
+        d1_root, trade_date
     )
+    from contracts.trading_calendar import load_market_calendar, previous_session
+
+    expected_signal_date = previous_session(
+        load_market_calendar(), trade_date, market="hk_connect"
+    )
+    d1_payload = json.loads(d1_file.read_text(encoding="utf-8"))
+    expected_d1_path = d1_root / "preselection_pools" / trade_date / d1_file.name
+    assert (
+        d1_payload.get("schema_version") == "v3_5.preselection_pool.v1"
+        and d1_file == expected_d1_path
+        and {row.get("signal_date") for row in d1_payload.get("rows", [])}
+        == {expected_signal_date}
+        and signal_date == expected_signal_date
+    ), {
+        "schema_version": d1_payload.get("schema_version"),
+        "actual_path": str(d1_file),
+        "expected_path": str(expected_d1_path),
+        "expected_signal_date": expected_signal_date,
+        "actual_signal_dates": sorted(
+            {str(row.get("signal_date")) for row in d1_payload.get("rows", [])}
+        ),
+    }
 
     def raw_row(code: str, name: str) -> dict[str, object]:
         return {
             "batch_index": 0,
             "code": code,
             "name": name,
-            "update_time": "2026-08-20 09:35:05",
+            "update_time": "2026-09-15 09:35:05",
             "last_price": 10.5,
             "open_price": 10.0,
             "high_price": 10.7,
@@ -646,8 +775,8 @@ def test_stage_center_runner_publishes_hk_when_a_current_is_missing(tmp_path: Pa
             "ask_price": 10.51,
             "bid_vol": 1000.0,
             "ask_vol": 900.0,
-            "window_start": "2026-08-20 09:30:00",
-            "window_end": "2026-08-20 09:35:05",
+            "window_start": "2026-09-15 09:30:00",
+            "window_end": "2026-09-15 09:35:05",
             "bar_count": 1,
             "temporal_cutoff_safe": True,
             "pct_chg": 5.0,
@@ -655,43 +784,37 @@ def test_stage_center_runner_publishes_hk_when_a_current_is_missing(tmp_path: Pa
         }
 
     hk_rows = (raw_row("HK.00001", "样本港股"), raw_row("HK.00002", "第二港股"))
+    hk_collector_codes: list[tuple[str, ...]] = []
 
-    def hk_collector(_plan, market: str) -> SourceResult:
+    def hk_collector(plan, market: str) -> SourceResult:
         assert market == "HK_CONNECT"
+        codes = tuple(plan.codes_for(market))
+        hk_collector_codes.append(codes)
+        assert codes == expected_hk_codes
         return SourceResult(
             source_id="fixture_hk",
             status="READY",
             rows=hk_rows,
-            requested_rows=2,
-            source_evidence=("fixture=hk_exact_full_universe",),
+            requested_rows=len(codes),
+            source_evidence=(
+                "fixture=canonical_hk_d1_top100",
+                f"signal_date={signal_date}",
+            ),
         )
 
     def a_collector(_plan, market: str) -> SourceResult:
         raise AssertionError(f"A collector must not run when its current is missing: {market}")
-
-    def hk_builder(source, plan, raw):
-        return select_hk_four_lane(
-            source.rows,
-            plan.trade_date,
-            plan.stage_id,
-            raw["artifact_sha256"],
-            source_status=source.status,
-            requested_rows=source.requested_rows,
-            missing_symbols=source.missing_symbols,
-            cannot_confirm=source.cannot_confirm,
-            source_evidence=source.source_evidence,
-        )
-
-    def a_builder(*_args):
-        raise AssertionError("A selection builder must not run without A source rows")
 
     config = RunnerConfig(
         candidate_acquisition_root=candidate_root,
         raw_root=tmp_path / "raw",
         selection_root=tmp_path / "selection",
         receipt_root=tmp_path / "receipts",
-        hk_full_universe_root=hk_root,
-        selection_builders={"A_SHARE": a_builder, "HK_CONNECT": hk_builder},
+        hk_d1_root=d1_root,
+        v4_research_data_root=tmp_path / "research",
+        v4_morning_news_root=tmp_path / "morning-news",
+        shared_data_root=tmp_path / "shared",
+        python_path=Path(sys.executable),
     )
     runner = StageCenterRunner(
         config,
@@ -700,12 +823,12 @@ def test_stage_center_runner_publishes_hk_when_a_current_is_missing(tmp_path: Pa
     decision = evaluate_due(
         stage_id,
         trade_date,
-        datetime(2026, 8, 20, 9, 35, 5, tzinfo=ZoneInfo("Asia/Shanghai")),
+        datetime(2026, 9, 15, 9, 35, 5, tzinfo=ZoneInfo("Asia/Shanghai")),
         historical_backfill=True,
     )
     result = runner.tick(
         trade_date,
-        datetime(2026, 8, 20, 9, 35, 5, tzinfo=ZoneInfo("Asia/Shanghai")),
+        datetime(2026, 9, 15, 9, 35, 5, tzinfo=ZoneInfo("Asia/Shanghai")),
         stage_id=stage_id,
         historical_backfill=True,
     )
@@ -714,6 +837,8 @@ def test_stage_center_runner_publishes_hk_when_a_current_is_missing(tmp_path: Pa
     assert result["status"] == "PARTIAL_WITH_ROWS"
     assert result["markets"]["A_SHARE"]["selection_status"] == "CANNOT_CONFIRM"
     assert result["markets"]["HK_CONNECT"]["selected_rows"] == 2
+    assert result["markets"]["HK_CONNECT"]["selection_status"] == "PARTIAL_WITH_ROWS"
+    assert hk_collector_codes == [expected_hk_codes]
     assert not (config.raw_root / "latest.json").exists()
     assert not (config.selection_root / "selection_latest.json").exists()
     backfill_receipts = list(
@@ -727,6 +852,315 @@ def test_stage_center_runner_publishes_hk_when_a_current_is_missing(tmp_path: Pa
     assert json.loads(backfill_receipts[0].read_text())["backfill_run_id"] == backfill_root
     assert (config.raw_root / "backfill" / backfill_root / "latest.json").is_file()
     assert (config.selection_root / "backfill" / backfill_root / "selection_latest.json").is_file()
+
+
+def test_stage_center_rejects_canonical_hk_d1_pool_under_wrong_source_date_path(
+    tmp_path: Path,
+) -> None:
+    from stage_center.runner import RunnerError, _validate_hk_d1
+
+    trade_date = "20260915"
+    d1_root = tmp_path / "hk-d1"
+    signal_date, expected_codes, canonical_path = _materialize_canonical_hk_d1_top100(
+        d1_root, trade_date
+    )
+    assert signal_date == "20260914"
+    assert len(expected_codes) == 100
+    misplaced_path = (
+        d1_root / "preselection_pools" / signal_date / canonical_path.name
+    )
+    misplaced_path.parent.mkdir(parents=True)
+    misplaced_path.write_bytes(canonical_path.read_bytes())
+
+    with pytest.raises(RunnerError, match="HK D1 canonical snapshot path invalid"):
+        _validate_hk_d1(misplaced_path, trade_date)
+
+
+def test_stage_center_rejects_canonical_hk_d1_pool_with_wrong_signal_date(
+    tmp_path: Path,
+) -> None:
+    from infrastructure.data_store import _canonical_bytes, _sha256
+    from infrastructure.preselection_pool_store import PreselectionPoolStore
+    from stage_center.runner import RunnerError, _validate_hk_d1
+
+    trade_date = "20260915"
+    d1_root = tmp_path / "hk-d1"
+    signal_date, expected_codes, d1_path = _materialize_canonical_hk_d1_top100(
+        d1_root, trade_date
+    )
+    assert signal_date == "20260914"
+    assert len(expected_codes) == 100
+
+    # Keep the store receipt and manifest valid so validation reaches the
+    # calendar-bound row contract rather than failing on artifact integrity.
+    store = PreselectionPoolStore(d1_root)
+    payload = store.read_pool(trade_date, "hkconnect_d1_top100")
+    payload["rows"][0]["signal_date"] = "20260911"
+    artifact_relative, receipt_relative = store._relative(
+        trade_date, "hkconnect_d1_top100"
+    )
+    artifact_sha = _sha256(payload)
+    receipt = store._receipt(
+        trade_date=trade_date,
+        pool_id="hkconnect_d1_top100",
+        artifact_path=artifact_relative,
+        artifact_sha256=artifact_sha,
+        payload=payload,
+    )
+    (d1_root / artifact_relative).write_bytes(_canonical_bytes(payload))
+    (d1_root / receipt_relative).write_bytes(_canonical_bytes(receipt))
+    manifest_path = d1_root / "preselection_pools" / trade_date / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["hkconnect_d1_top100"] = artifact_sha
+    manifest_path.write_bytes(_canonical_bytes(manifest))
+
+    with pytest.raises(RunnerError, match="HK D1 row market/signal_date mismatch"):
+        _validate_hk_d1(d1_path, trade_date)
+
+
+@pytest.mark.parametrize(
+    ("hk_snapshot_evidence", "refresh_mode"),
+    (
+        ((), "not_called"),
+        (
+            (
+                "active_snapshot_sha256=" + "a" * 64,
+                "active_snapshot_codes_sha256=" + "b" * 64,
+                "active_snapshot_temporal_cutoff_safe=false",
+            ),
+            "not_called",
+        ),
+        (
+            (
+                "active_snapshot_sha256=" + "a" * 64,
+                "active_snapshot_codes_sha256=" + "b" * 64,
+                "active_snapshot_temporal_cutoff_safe=false",
+                "active_snapshot_degraded_to_pytdx_observation=true",
+            ),
+            "observation",
+        ),
+        (
+            (
+                "active_snapshot_sha256=" + "a" * 64,
+                "active_snapshot_codes_sha256=" + "b" * 64,
+                "active_snapshot_temporal_cutoff_safe=true",
+            ),
+            "mismatch",
+        ),
+        (
+            (
+                "active_snapshot_sha256=" + "a" * 64,
+                "active_snapshot_codes_sha256=" + "b" * 64,
+                "active_snapshot_temporal_cutoff_safe=true",
+            ),
+            "matching",
+        ),
+    ),
+)
+def test_stage_center_runner_isolates_hk_active_recovery_from_a(
+    tmp_path: Path,
+    monkeypatch,
+    hk_snapshot_evidence: tuple[str, ...],
+    refresh_mode: str,
+) -> None:
+    """HK recovery gaps stay lane-local while the verified A publisher runs."""
+    import hashlib
+    import sys
+    from dataclasses import replace
+
+    from stage_center import live_collectors, research_context, runner as runner_module
+    from stage_center.candidate_input import CandidateInput
+    from stage_center.raw_store import RawStore
+    from stage_center.runner import RunnerConfig, StageCenterRunner
+    from stage_center.scheduler import DueDecision
+    from stage_center.selection import SelectionStore
+
+    trade_date = "20260915"
+    stage_id = "STAGE_0930_0935"
+    candidate_sha = "c" * 64
+
+    d1_root = tmp_path / "hk-d1"
+    signal_date, d1_codes, d1_path = _materialize_canonical_hk_d1_top100(
+        d1_root, trade_date
+    )
+    hk_d1_sha = hashlib.sha256(d1_path.read_bytes()).hexdigest()
+    assert signal_date == "20260914"
+    assert d1_path == d1_root / "preselection_pools" / trade_date / "hkconnect_d1_top100.json"
+    assert all(
+        row["signal_date"] == signal_date
+        for row in json.loads(d1_path.read_text(encoding="utf-8"))["rows"]
+    )
+
+    def raw_row(code: str) -> dict[str, object]:
+        return {
+            "batch_index": 0,
+            "code": code,
+            "name": "Fixture",
+            "update_time": "2026-09-15 09:35:05",
+            "last_price": 10.5,
+            "open_price": 10.0,
+            "high_price": 10.7,
+            "low_price": 9.9,
+            "prev_close_price": 10.0,
+            "turnover": 1000000.0,
+            "volume": 100000.0,
+            "bid_price": 10.49,
+            "ask_price": 10.51,
+            "bid_vol": 1000.0,
+            "ask_vol": 900.0,
+            "window_start": "2026-09-15 09:30:00",
+            "window_end": "2026-09-15 09:35:05",
+            "bar_count": 1,
+            "temporal_cutoff_safe": True,
+        }
+
+    raw_root = tmp_path / "raw"
+    raw_store = RawStore(raw_root)
+    raw_store.publish(
+        trade_date=trade_date,
+        stage_id=stage_id,
+        market="A_SHARE",
+        source_id="fixture_a",
+        source_status="READY",
+        rows=[raw_row("A.000001")],
+        requested_rows=1,
+        source_evidence=(f"candidate_current_sha256={candidate_sha}",),
+        window="09:30-09:35",
+        cutoff_at="09:35:05",
+    )
+    raw_store.publish(
+        trade_date=trade_date,
+        stage_id=stage_id,
+        market="HK_CONNECT",
+        source_id="fixture_hk",
+        source_status="PARTIAL_WITH_ROWS" if refresh_mode == "observation" else "READY",
+        rows=[raw_row("HK.00001")],
+        requested_rows=1,
+        source_evidence=(
+            f"hk_d1_json_sha256={hk_d1_sha}",
+            f"hk_d1_sha256={hk_d1_sha}",
+            "active_snapshot_status=FUTU_HKCONNECT_FULL_SCAN",
+            f"active_snapshot_trade_date={trade_date}",
+            "active_snapshot_cutoff=09:35:05",
+            *hk_snapshot_evidence,
+        ),
+        window="09:30-09:35",
+        cutoff_at="09:35:05",
+    )
+
+    candidate = CandidateInput(
+        root=tmp_path / "candidate",
+        trade_date=trade_date,
+        current_relative="current.json",
+        current_sha256=candidate_sha,
+        run_id="fixture-candidate",
+        codes=("A.000001",),
+        artifact_sha256="d" * 64,
+        manifest_sha256="e" * 64,
+        receipt_sha256="f" * 64,
+        source_projection_sha256="g" * 64,
+        source_evidence=("fixture=candidate",),
+    )
+    monkeypatch.setattr(runner_module, "read_candidate_input", lambda *_args, **_kwargs: candidate)
+    monkeypatch.setattr(
+        research_context,
+        "load_research_context",
+        lambda *_args, **_kwargs: research_context.ResearchContext(
+            trade_date=trade_date,
+            stage_cutoff="09:35:05",
+            selected_slot="0930",
+            by_code={
+                "A.000001": research_context.ResearchScore(
+                    news_quality_score=1.0,
+                    research_quality_score=1.0,
+                    research_delta_hits=0,
+                )
+            },
+            source_evidence=("fixture=research",),
+        ),
+    )
+    calls: list[str] = []
+    recovery_codes: list[tuple[str, ...]] = []
+
+    def refresh(source, **kwargs):
+        calls.append("refresh")
+        recovery_codes.append(tuple(kwargs["codes"]))
+        if refresh_mode == "not_called":
+            raise AssertionError("unsafe or incomplete HK evidence must not refresh")
+        if refresh_mode == "matching":
+            return replace(
+                source,
+                rows=tuple(
+                    {
+                        **row,
+                        "candidate_lanes": ["LIVE_HKCONNECT_GAINER"],
+                    }
+                    for row in source.rows
+                ),
+            )
+        return replace(
+            source,
+            source_evidence=tuple(
+                item.replace("=" + "a" * 64, "=" + "d" * 64)
+                if str(item).startswith("active_snapshot_sha256=")
+                else item
+                for item in source.source_evidence
+            ),
+        )
+
+    monkeypatch.setattr(live_collectors, "refresh_hk_active_lanes", refresh)
+    config = RunnerConfig(
+        candidate_acquisition_root=candidate.root,
+        raw_root=raw_root,
+        selection_root=tmp_path / "selection",
+        receipt_root=tmp_path / "receipts",
+        v4_research_data_root=tmp_path / "research",
+        v4_morning_news_root=tmp_path / "morning-news",
+        hk_d1_root=d1_root,
+        shared_data_root=tmp_path / "shared",
+        python_path=Path(sys.executable),
+    )
+    runner = StageCenterRunner(
+        config,
+        collectors={"A_SHARE": lambda *_args: None, "HK_CONNECT": lambda *_args: None},
+    )
+    decision = DueDecision(
+        stage_id=stage_id,
+        trade_date=trade_date,
+        status="DUE",
+        scheduled_at=None,
+        idempotency_key="fixture",
+        calendar={},
+    )
+
+    result = runner._run_one(decision)
+
+    assert result["status"] == "PARTIAL_WITH_ROWS"
+    assert result["markets"]["A_SHARE"]["selected_rows"] == 1
+    assert result["markets"]["A_SHARE"]["selection_status"] == "PARTIAL_WITH_ROWS"
+    if refresh_mode == "observation":
+        assert result["markets"]["HK_CONNECT"]["selection_status"] == "PARTIAL_WITH_ROWS"
+        assert result["markets"]["HK_CONNECT"]["selected_rows"] == 1
+        assert any(
+            item == "hk_selection_mode=TDXPY_EXHQ_D1_TOP100_OBSERVATION"
+            for item in result["markets"]["HK_CONNECT"]["source_evidence"]
+        )
+    elif refresh_mode == "matching":
+        assert result["markets"]["HK_CONNECT"]["selection_status"] == "READY"
+        assert result["markets"]["HK_CONNECT"]["selected_rows"] == 1
+    else:
+        assert result["markets"]["HK_CONNECT"]["selection_status"] == "CANNOT_CONFIRM"
+        assert any(
+            "HK_ACTIVE_SNAPSHOT" in str(item)
+            or "HK_ACTIVE_SELECTION_RECOVERY_FAILED" in str(item)
+            for item in result["markets"]["HK_CONNECT"]["cannot_confirm"]
+        )
+    assert (calls == []) is (refresh_mode in {"not_called", "observation"})
+    assert len(calls) == (0 if refresh_mode in {"not_called", "observation"} else 1)
+    assert recovery_codes == ([d1_codes] if calls else [])
+    assert SelectionStore(config.selection_root).read_verified(
+        trade_date, stage_id, "A_SHARE"
+    )["selected_rows"] == 1
 
 
 def test_hourly_recovery_is_immutable_and_links_superseded_input(tmp_path: Path) -> None:

@@ -8,6 +8,7 @@ from contracts.trading_calendar import (
     SessionRequirement,
     TradingDayState,
     load_market_calendar,
+    resolve_market_states,
 )
 from domains.runtime_policy import evaluate_run_policy
 
@@ -79,6 +80,22 @@ def test_asymmetric_hk_holiday_keeps_only_a_share_eligible() -> None:
     assert decision.blocked_markets == ("hk_connect",)
     assert decision.market_states["a_share"] == TradingDayState.FULL_TRADING_DAY.value
     assert decision.market_states["hk_connect"] == TradingDayState.NON_TRADING_DAY.value
+
+
+def test_2026_mid_autumn_dates_keep_hk_securities_and_connect_calendars_distinct() -> None:
+    calendar = load_market_calendar()
+
+    sep_25 = resolve_market_states(calendar, "20260925")
+    assert sep_25["a_share"] == TradingDayState.NON_TRADING_DAY
+    assert sep_25["hk_securities"] == TradingDayState.FULL_TRADING_DAY
+    assert sep_25["hk_connect"] == TradingDayState.NON_TRADING_DAY
+
+    sep_28 = resolve_market_states(calendar, "20260928")
+    assert sep_28 == {
+        "a_share": TradingDayState.FULL_TRADING_DAY,
+        "hk_securities": TradingDayState.FULL_TRADING_DAY,
+        "hk_connect": TradingDayState.FULL_TRADING_DAY,
+    }
 
 
 def test_half_day_afternoon_does_not_blanket_disable_other_market() -> None:

@@ -52,25 +52,80 @@ _FUTU_SNAPSHOT_PROBE = r"""
 import json
 import socket
 import sys
+import hashlib
+from datetime import datetime, timezone
+from pathlib import Path
+from importlib.metadata import version, PackageNotFoundError
 import futu as ft
+import futu.quote.quote_query as native_query
+import futu.quote.open_quote_context as native_context
 
 payload = json.loads(sys.stdin.read())
 codes = payload["codes"]
 socket.setdefaulttimeout(3.0)
 ctx = ft.OpenQuoteContext(host="127.0.0.1", port=11111)
+def source_sha(module):
+    try:
+        return hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()
+    except (AttributeError, OSError, TypeError):
+        return None
+
+try:
+    sdk_version = version("futu-api")
+except PackageNotFoundError:
+    sdk_version = None
+
+# This records the running mapper, not an inferred stock/lot or currency unit.
+# No subscription, security-info request, conversion or historical backfill.
+identity = {"schema_version": "v3_shared_data.futu_snapshot_native_observation.v1",
+            "interface": "OpenQuoteContext.get_market_snapshot",
+            "sdk_version": sdk_version,
+            "quote_query_sha256": source_sha(native_query),
+            "open_quote_context_sha256": source_sha(native_context),
+            "unit_status": "NOT_ATTESTED_FOR_THIS_INTERFACE",
+            "fields": {"volume": "volume", "turnover": "turnover",
+                       "last_price": "last_price", "low_price": "low_price"},
+            "value_transform": "NONE",
+            "date_semantics": "LOCAL_REQUEST_RESPONSE_NOT_EXCHANGE_PUBLICATION"}
 rows = []
 errors = []
 try:
     for start in range(0, len(codes), 300):
         batch = codes[start:start + 300]
         try:
+            request_started_at = datetime.now(timezone.utc).isoformat()
             ret, data = ctx.get_market_snapshot(batch)
+            response_received_at = datetime.now(timezone.utc).isoformat()
             if ret == ft.RET_OK and hasattr(data, "to_dict"):
-                rows.extend(data.to_dict(orient="records"))
+                returned = data.to_dict(orient="records")
+                observation = {**identity, "request_started_at": request_started_at,
+                               "response_received_at": response_received_at}
+                if any("native_field_evidence" in row for row in returned):
+                    raise ValueError("NATIVE_FIELD_EVIDENCE_KEY_CONFLICT")
+                rows.extend({**row, "native_field_evidence": dict(observation)} for row in returned)
             else:
                 errors.append(str(data))
         except Exception as exc:
             errors.append(str(exc))
+    if payload.get("include_order_book"):
+        # Stage pre-capture uses this same connection and exact code set.
+        for start in range(0, len(codes), 30):
+            batch = codes[start:start + 30]
+            ret, message = ctx.subscribe(batch, [ft.SubType.ORDER_BOOK],
+                                         is_first_push=True, subscribe_push=False)
+            for row in (item for item in rows if item.get("code") in batch):
+                started = datetime.now(timezone.utc).isoformat()
+                try:
+                    if ret != ft.RET_OK:
+                        raise RuntimeError(str(message))
+                    book_ret, book = ctx.get_order_book(row["code"], num=10)
+                    if book_ret != ft.RET_OK or not isinstance(book, dict):
+                        raise RuntimeError(str(book))
+                    row["order_book"] = book
+                except Exception as exc:
+                    row["order_book_error"] = str(exc)
+                row["order_book_requested_at"] = started
+                row["order_book_received_at"] = datetime.now(timezone.utc).isoformat()
 finally:
     try:
         ctx.close()
@@ -221,6 +276,7 @@ def fetch_futu_snapshot(
     *,
     process_runner: Callable[..., Any] = subprocess.run,
     timeout_seconds: float = 30,
+    include_order_book: bool = False,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     python_path = Path(python_path)
     if not python_path.is_file():
@@ -232,7 +288,7 @@ def fetch_futu_snapshot(
         raise ValueError("HK auction codes must be unique")
     completed = process_runner(
         [str(python_path), "-c", _FUTU_SNAPSHOT_PROBE],
-        input=json.dumps({"codes": normalized}, ensure_ascii=False),
+        input=json.dumps({"codes": normalized, "include_order_book": include_order_book}, ensure_ascii=False),
         capture_output=True,
         text=True,
         encoding="utf-8",

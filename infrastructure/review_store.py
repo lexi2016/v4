@@ -31,7 +31,8 @@ def validate_close_review_reference(payload: Mapping[str, Any]) -> str:
         if payload.get("reference_snapshot") is not True:
             raise ValueError("invalid imported close review provenance")
     elif (
-        payload.get("reference_snapshot") is not False
+        payload.get("RESEARCH_ONLY") is not True
+        or payload.get("reference_snapshot") is not False
         or payload.get("evidence_mode") != "V3_5_NATIVE_PRODUCTION"
         or not isinstance(payload.get("close_source_sha256"), str)
         or not _SHA256.fullmatch(payload["close_source_sha256"])

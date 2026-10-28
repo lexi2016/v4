@@ -1,0 +1,284 @@
+"""Issue #35 offline regression contracts. Run against ONE patched source root.
+
+No network, market data, scheduler service or trades.  Never advances a
+historical clock: fake inputs are synthetic identity tokens, not stock data.
+"""
+from __future__ import annotations
+
+from copy import deepcopy
+from datetime import datetime, timezone
+from pathlib import Path
+from types import SimpleNamespace
+from zoneinfo import ZoneInfo
+
+import pytest
+
+from v4.manager_research import workspace as owner
+from v4.manager_research import plan_owner_dispatch as dispatch
+from v4.manager_research.store import ManagerResearchStore
+from v4.manager_research.workspace_projection import FLAGS
+
+
+DATE = "20261012"
+OWNER = "ManagerResearchJobService.refresh_workspace_plan"
+
+
+@pytest.fixture
+def owner_service(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    store = ManagerResearchStore(tmp_path / "manager")
+    token = {"input": "a" * 64}
+    phase = {"cutoff": "2026-10-11T13:00:00+00:00"}
+
+    def fresh(_service, date, **_kwargs):
+        assert date == DATE
+        return {
+            "target_trade_date": DATE,
+            "input_identity": token["input"],
+            "semantic_version": "issue35-offline-test",
+            "date_bindings": {"selection_date": DATE, "announcement_date": "20261009"},
+            "plan_context": {"research_cutoff": phase["cutoff"]},
+            "gaps": [],
+            "stocks": [{"symbol": "HK.00001", "reason": "SYNTHETIC_TEST_ONLY"}],
+            "summary": {"input_test": True},
+            "existing_material_coverage": {"input_test": True},
+            **FLAGS,
+        }
+
+    monkeypatch.setattr(owner, "get_workspace", fresh)
+    monkeypatch.setattr(owner, "checkpoint", lambda: None)
+    if hasattr(owner, "_attach_daily_channels"):
+        monkeypatch.setattr(owner, "_attach_daily_channels", lambda value: value)
+    # Runtime R1 also projects day channels inside _readback_plan.
+    from v4.manager_research import workspace_daily_channels
+    monkeypatch.setattr(workspace_daily_channels, "build_daily_channels", lambda value: [])
+    # These synthetic fingerprints exercise only the saved/current identity
+    # comparison.  Real market sources are never bypassed in production.
+    monkeypatch.setattr(
+        owner, "input_identity_diagnostics",
+        lambda saved, current, **kw: {
+            "status": "MATCH"
+            if isinstance(saved, dict) and saved.get("input_identity") == current.get("input_identity")
+            else "CHANGED",
+            "changed_components": [],
+        },
+    )
+    return SimpleNamespace(store=store), token
+
+
+def _actual_plan_readback(service):
+    return owner.get_workspace(service, DATE, include_saved=True)
+
+
+def test_new_owner_run_has_terminal_attempt_before_plan_readback(owner_service):
+    service, _token = owner_service
+    result = owner.refresh_workspace_plan(service, DATE)
+    plan = result["plan_product"]
+    assert plan["status"] == "CURRENT", plan
+    assert plan["consumed"] is True
+    assert result["workspace_plan_attempt"]["run_id"] == plan["run_id"]
+    assert result["workspace_plan_attempt"]["state"] == "SUCCEEDED"
+    assert result["workspace_plan_product_attempt"]["sha256"] == result["workspace_plan_attempt"]["sha256"]
+    verified = owner.verified_plan_attempt(service.store, owner._read_plan(service.store, DATE))
+    assert verified["run_id"] == plan["run_id"]
+
+
+def test_same_material_no_second_run_and_changed_material_new_run(owner_service):
+    service, token = owner_service
+    first = owner.refresh_workspace_plan(service, DATE)
+    again = owner.refresh_workspace_plan(service, DATE)
+    assert again["plan_product"]["status"] == "ALREADY_MATERIALIZED"
+    assert again["plan_product"]["run_id"] == first["plan_product"]["run_id"]
+    assert again["plan_product"]["sha256"] == first["plan_product"]["sha256"]
+
+    token["input"] = "b" * 64
+    changed = owner.refresh_workspace_plan(service, DATE)
+    assert changed["plan_product"]["status"] == "CURRENT"
+    assert changed["plan_product"]["run_id"] != first["plan_product"]["run_id"]
+    assert changed["plan_product"]["sha256"] != first["plan_product"]["sha256"]
+    archived = service.store._read(
+        service.store.root / "workspace_plans" / DATE / (first["plan_product"]["run_id"] + ".json")
+    )
+    assert archived["sha256"] == first["plan_product"]["sha256"]
+
+
+def test_failed_owner_attempt_preserves_last_success_pointer(owner_service, monkeypatch):
+    service, token = owner_service
+    first = owner.refresh_workspace_plan(service, DATE)
+    token["input"] = "b" * 64
+    base_readback = owner._readback_plan
+
+    def reject_new_post_terminal_readback(store, date, current, **kwargs):
+        latest = store._read(store.root / "workspace_plans" / date / "latest.json")
+        if isinstance(latest, dict) and latest["run_id"] != first["plan_product"]["run_id"]:
+            raise ValueError("WORKSPACE_PLAN_SAVE_READBACK_FAILED")
+        return base_readback(store, date, current, **kwargs)
+
+    monkeypatch.setattr(owner, "_readback_plan", reject_new_post_terminal_readback)
+    with pytest.raises(ValueError, match="WORKSPACE_PLAN_SAVE_READBACK_FAILED"):
+        owner.refresh_workspace_plan(service, DATE)
+    saved = owner._read_plan(service.store, DATE)
+    assert saved["run_id"] == first["plan_product"]["run_id"]
+    terminal = service.store._read(service.store.root / "workspace_plan_runs" / DATE / "latest.json")
+    assert terminal["state"] == "FAILED"
+    assert terminal["run_id"] != first["plan_product"]["run_id"]
+
+
+def test_dispatch_evening_does_not_replay_stale_completed_receipt(monkeypatch):
+    prior_plan = {"run_id": "a" * 32, "product_sha256": "b" * 64, "input_identity": "c" * 64}
+    prior = {"response": {"plan_result": prior_plan}, "state": "COMPLETED"}
+    saved = {"run_id": "a" * 32, "sha256": "b" * 64, "input_identity": "c" * 64}
+    marker = {"status": "CURRENT", "consumed": True, "run_id": saved["run_id"], "sha256": saved["sha256"]}
+    monkeypatch.setattr(
+        "ops.run_manager_announcement_cycle.valid_owner_plan_result",
+        lambda plan, branch: branch == "EVENING_NEXT_SESSION",
+    )
+    monkeypatch.setattr(owner, "_read_plan", lambda *_args: saved)
+    monkeypatch.setattr(owner, "verified_plan_attempt", lambda *_args: {"run_id": saved["run_id"]})
+    monkeypatch.setattr(owner, "get_workspace", lambda *_args, **_kwargs: {"plan_product": dict(marker)})
+
+    ident = {"branch": "EVENING_NEXT_SESSION", "target_trade_date": DATE}
+    now = datetime.now(timezone.utc)
+    service = SimpleNamespace(store=SimpleNamespace())
+    assert dispatch._completed_dispatch_still_current(service, ident, prior, now=now) is True
+    marker["status"] = "STALE_INPUTS_CHANGED"
+    marker["consumed"] = False
+    assert dispatch._completed_dispatch_still_current(service, ident, prior, now=now) is False
+    assert dispatch._completed_dispatch_still_current(
+        service, {"branch": "SAME_DAY_CATCHUP", "target_trade_date": DATE}, prior, now=now
+    ) is True
+
+
+def test_evening_dispatch_replays_current_then_runs_changed_input_once_and_preserves_latest(
+    owner_service, monkeypatch: pytest.MonkeyPatch,
+):
+    service, token = owner_service
+    hk = ZoneInfo("Asia/Hong_Kong")
+    now = datetime(2026, 10, 9, 18, 0, tzinfo=hk)
+    monkeypatch.setattr(dispatch, "clock_now", lambda: now)
+
+    binding = {
+        "plan_material_refresh": {
+            "enabled": True,
+            "start_local": "16:00",
+            "end_local": "23:00",
+            "max_attempts_per_target_date": 3,
+            "retry_backoff_seconds": 600,
+            "status": "PROPOSAL_ONLY",
+        },
+        "preopen_plan": {"enabled": False, "lead_seconds": 180, "status": "PROPOSAL_ONLY"},
+        "morning_plan": {"enabled": False},
+    }
+    identity = dispatch._parent_trigger_identity(
+        "20261009", DATE, "EVENING_NEXT_SESSION", "d" * 64,
+    )
+    calls = []
+
+    def original_owner(date, **kwargs):
+        calls.append({"date": date, "kwargs": kwargs})
+        return owner.refresh_workspace_plan(service, date, **kwargs)
+
+    service.refresh_workspace_plan = original_owner
+    fresh_workspace = owner.get_workspace
+
+    def workspace_with_saved_identity(_service, date, *, include_saved=False, **kwargs):
+        current = fresh_workspace(_service, date, **kwargs)
+        if not include_saved:
+            return current
+        saved = owner._read_plan(service.store, date)
+        is_current = isinstance(saved, dict) and saved.get("input_identity") == token["input"]
+        product = {
+            "status": "CURRENT" if is_current else "STALE_INPUTS_CHANGED",
+            "consumed": is_current,
+            "run_id": saved.get("run_id") if isinstance(saved, dict) else None,
+            "sha256": saved.get("sha256") if isinstance(saved, dict) else None,
+        }
+        return {**current, "plan_product": product}
+
+    monkeypatch.setattr(owner, "get_workspace", workspace_with_saved_identity)
+
+    first = dispatch._execute_serialized_cycle(service, binding, identity)
+    assert first["status"] in {"SUCCEEDED", "PARTIAL"}, first
+    first_run = first["plan_result"]["run_id"]
+    assert first["plan_result"]["target_trade_date"] == DATE
+    assert len(calls) == 1
+
+    replay = dispatch._execute_serialized_cycle(service, binding, identity)
+    assert replay["dispatch_receipt"] == first["dispatch_receipt"]
+    assert replay["plan_result"]["run_id"] == first_run
+    assert len(calls) == 1
+
+    token["input"] = "b" * 64
+    changed = dispatch._execute_serialized_cycle(service, binding, identity)
+    assert changed["status"] in {"SUCCEEDED", "PARTIAL"}, changed
+    assert changed["dispatch_receipt"]["path"].endswith("/0002.json")
+    second_run = changed["plan_result"]["run_id"]
+    assert second_run != first_run
+    assert changed["plan_result"]["input_identity"] == token["input"]
+    assert len(calls) == 2
+
+    token["input"] = "c" * 64
+    base_readback = owner._readback_plan
+
+    def fail_new_owner_readback(store, date, current, **kwargs):
+        latest = store._read(store.root / "workspace_plans" / date / "latest.json")
+        if isinstance(latest, dict) and latest.get("run_id") != second_run:
+            raise ValueError("WORKSPACE_PLAN_SAVE_READBACK_FAILED")
+        return base_readback(store, date, current, **kwargs)
+
+    monkeypatch.setattr(owner, "_readback_plan", fail_new_owner_readback)
+    failed = dispatch._execute_serialized_cycle(service, binding, identity)
+    assert failed["status"] == "FAILED", failed
+    assert failed["dispatch_receipt"]["path"].endswith("/0003.json")
+    assert len(calls) == 3
+    latest = owner._read_plan(service.store, DATE)
+    assert latest["run_id"] == second_run
+    assert latest["input_identity"] == "b" * 64
+    terminal = service.store._read(
+        service.store.root / "workspace_plan_dispatch" / DATE / identity["trigger_id"] / "0003.json"
+    )
+    assert terminal["state"] == "COMPLETED"
+    assert terminal["response"]["status"] == "FAILED"
+
+
+def test_missing_formal_stage_consumer_stays_unbound(tmp_path):
+    from v4.manager_research.service import ManagerResearchJobService
+
+    formal_reader = object()
+    service = ManagerResearchJobService(
+        ManagerResearchStore(tmp_path / "stage-manager"),
+        None, None,
+        workspace_stage_selection_reader=formal_reader,
+    )
+    try:
+        assert service._workspace_stage_selection_reader is formal_reader
+    finally:
+        service.close()
+
+
+def test_original_calendar_rolls_friday_to_monday_but_sunday_has_no_natural_slot():
+    from zoneinfo import ZoneInfo
+    from ops.run_manager_announcement_cycle import (
+        scheduled_cycle_target, daily_cycle_branch,
+    )
+
+    hk = ZoneInfo("Asia/Hong_Kong")
+    cfg = {"enabled": True}
+    friday = datetime(2026, 10, 9, 18, 0, tzinfo=hk)
+    assert scheduled_cycle_target(
+        "20261009", now=friday, plan_config=cfg
+    ) == DATE
+
+    sunday = datetime(2026, 10, 11, 18, 30, tzinfo=hk)
+    branch, slot = daily_cycle_branch(
+        "20261011", now=sunday, plan_config=cfg,
+        daily_config={"enabled": True},
+    )
+    assert branch is None
+    assert slot is None
+
+    monday = datetime(2026, 10, 12, 10, 0, tzinfo=hk)
+    branch, slot = daily_cycle_branch(
+        DATE, now=monday, plan_config=cfg,
+        daily_config={"enabled": True},
+    )
+    assert (branch, slot) == ("SAME_DAY_CATCHUP", "20261012T1000")

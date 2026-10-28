@@ -1,17 +1,15 @@
 """Frozen FMLA04/v1.9.2 candidate materialization and read-only contract.
 
-The model implementation is not re-authored here.  The three accepted oracle
-files are loaded only after their SHA-256 values match the frozen contract.
-The generated CSV is then published by the existing single-writer immutable
-store so V3 and V3.5 can consume one run id and artifact SHA.
+The model implementation is kept in the local V4 oracle bundle and is bound
+to the three frozen origin SHAs.  The generated CSV is published by the
+existing single-writer immutable store so V3 and V3.5 can consume one run id
+and artifact SHA.
 """
 from __future__ import annotations
 
 import csv
 import datetime as _datetime
-import importlib.util
 import math
-import sys
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -23,6 +21,7 @@ from .consumer import VerifiedRun, read_verified_latest
 from .hashing import sha256_file, sha256_json
 from .paths import validate_date
 from .store import SafeRootStore, StoreError
+from . import v192_oracle_bundle
 
 
 V192_LEGACY_ROLE = "A_SHARE_V192_PREMARKET_POOL"
@@ -122,75 +121,7 @@ class _V192ManifestStore(SafeRootStore):
         super()._write_json(destination, payload)
 
 
-FROZEN_ORACLE_SHA256S: dict[str, str] = {
-    "feature_vector": "1685327e016ce7a12ff7982379b91463c7c2bfb311e0b892385e692926970e74",
-    "score_v19_multihead": "2a28049399043194b2f8523c8a2da7248708bf49e01f1d7e167fed933b92e4f2",
-    "fmla04_role": "950b14447cb61049fb44efa46a10dfa6b3d5374188e212f8aff06fee1ab326c1",
-}
-
-_WINDOWS_ORACLE_PATHS: dict[str, Path] = {
-    "feature_vector": Path(
-        r"C:\Users\huang\Desktop\学习\牛股学习\A股研究\formula_backtests"
-        r"\v192_transparent_backtest_20260730\run_v192_transparent_backtest_20260730.py"
-    ),
-    "score_v19_multihead": Path(
-        r"C:\Users\huang\Desktop\学习\牛股学习\A股研究\_legacy_research_review"
-        r"\99_model_discovery_experiments\bull_agent_self_iteration_workbench_20260514"
-        r"\small_test_multihead_vs_v19_20260516\run_small_test_multihead_vs_v19_20260516.py"
-    ),
-    "fmla04_role": Path(
-        r"C:\Users\huang\Desktop\学习\牛股学习\A股研究\_legacy_research_review"
-        r"\99_model_discovery_experiments\bull_agent_self_iteration_workbench_20260514"
-        r"\fmla04_return_driven_self_iteration_20260518"
-        r"\run_fmla04_return_driven_self_iteration_20260518.py"
-    ),
-}
-
-
-def resolve_default_oracle_paths(
-    *, platform: str | None = None, home: Path | None = None
-) -> dict[str, Path]:
-    """Resolve the frozen oracle files for the host OS without changing semantics.
-
-    The oracle source files remain the same three frozen scripts.  Windows
-    keeps the historical absolute paths; macOS maps that same relative tree to
-    the user's local ``~/Desktop/学习`` mirror.  The explicit arguments make
-    the path-only behavior deterministic and testable without touching the
-    scoring functions.
-    """
-    host = platform if platform is not None else sys.platform
-    if host != "darwin":
-        return dict(_WINDOWS_ORACLE_PATHS)
-
-    learning_root = (home if home is not None else Path.home()) / "Desktop" / "学习"
-    research_root = learning_root / "牛股学习" / "A股研究"
-    return {
-        "feature_vector": (
-            research_root
-            / "formula_backtests"
-            / "v192_transparent_backtest_20260730"
-            / "run_v192_transparent_backtest_20260730.py"
-        ),
-        "score_v19_multihead": (
-            research_root
-            / "_legacy_research_review"
-            / "99_model_discovery_experiments"
-            / "bull_agent_self_iteration_workbench_20260514"
-            / "small_test_multihead_vs_v19_20260516"
-            / "run_small_test_multihead_vs_v19_20260516.py"
-        ),
-        "fmla04_role": (
-            research_root
-            / "_legacy_research_review"
-            / "99_model_discovery_experiments"
-            / "bull_agent_self_iteration_workbench_20260514"
-            / "fmla04_return_driven_self_iteration_20260518"
-            / "run_fmla04_return_driven_self_iteration_20260518.py"
-        ),
-    }
-
-
-DEFAULT_ORACLE_PATHS: dict[str, Path] = resolve_default_oracle_paths()
+FROZEN_ORACLE_SHA256S: dict[str, str] = dict(v192_oracle_bundle.ORACLE_ORIGIN_SHA256S)
 
 _FIELDS = (
     "trade_date",
@@ -262,7 +193,7 @@ def _entry_contract_issues(row: Mapping[str, Any]) -> list[str]:
         if field not in row:
             continue
         value = row.get(field)
-        if value in (None, ""):
+        if _is_empty(value):
             issues.append(f"v1.9.2 signal field missing: {field}")
             continue
         try:
@@ -286,8 +217,10 @@ def _falsey(value: Any) -> bool:
 def _cell(value: Any) -> str:
     if value is None:
         return ""
-    if isinstance(value, bool):
-        return "true" if value else "false"
+    if isinstance(value, bool) or type(value).__name__ == "bool_":
+        # CSV is the existing artifact boundary.  Use the same 0/1 form that
+        # the entry-field contract accepts after a runner returns bools.
+        return "1" if bool(value) else "0"
     if isinstance(value, float) and math.isnan(value):
         return ""
     try:
@@ -298,6 +231,35 @@ def _cell(value: Any) -> str:
     except (ImportError, TypeError, ValueError):
         pass
     return str(value)
+
+
+def _is_empty(value: Any) -> bool:
+    """Treat null, NaN, and whitespace-only cells as missing at the boundary."""
+    return _cell(value).strip() == ""
+
+
+def _missing_premarket_source_fields(source: Mapping[str, Any]) -> list[str]:
+    """Apply the frozen field contract, not an unconditional context nonempty rule.
+
+    a_formula_field_contract_v0.csv: route_context is context_only and permits
+    blank_allowed_when_no_b_route. Only an actual blank string is exempt; the
+    physical column, null/NaN, B1/B2/B3 explanations and all other gates remain.
+    BG and independent primary/secondary/brick entries do not create a B route.
+    This function never changes values, scores, ranks or the candidate universe.
+    """
+    blank_without_b = (
+        "route_context" in source
+        and isinstance(source["route_context"], str)
+        and source["route_context"] == ""
+        and not any(_truthy(source.get(field)) for field in ("B1", "B2", "B3"))
+    )
+    return [
+        field for field in _PREMARKET_SOURCE_FIELDS
+        if field not in source or (
+            _is_empty(source[field])
+            and not (field == "route_context" and blank_without_b)
+        )
+    ]
 
 
 def _number(value: Any) -> float:
@@ -480,7 +442,10 @@ def publish_v192_rows(
     target_date = validate_date(target_date)
     if signal_date >= target_date:
         raise StoreError("target_date must be after signal_date")
+    local_bundle = verify_local_oracle_bundle()
     frozen_hashes = _require_frozen_hashes(oracle_sha256s)
+    if frozen_hashes != local_bundle["origin_sha256s"]:
+        raise StoreError("v1.9.2 supplied oracle sha set differs from local bundle origin")
     panel_path = Path(panel_path)
     if not panel_path.is_file():
         raise StoreError(f"selector-ready panel missing: {panel_path}")
@@ -504,6 +469,8 @@ def publish_v192_rows(
             "premarket_score_formula": PREMARKET_SCORE_FORMULA,
             "panel_sha256": panel_sha256,
             "oracle_bundle_sha256": oracle_bundle_sha256,
+            "oracle_bundle_source_sha256": local_bundle["local_bundle_sha256"],
+            "oracle_bundle_contract_version": local_bundle["contract_version"],
             "feature_vector_sha256": frozen_hashes["feature_vector"],
             "score_v19_multihead_sha256": frozen_hashes["score_v19_multihead"],
             "fmla04_role_sha256": frozen_hashes["fmla04_role"],
@@ -601,6 +568,8 @@ def read_verified_v192_pool(
         "entry_fields": ",".join(V192_ENTRY_FIELDS),
         "premarket_score_formula": PREMARKET_SCORE_FORMULA,
         "oracle_bundle_sha256": sha256_json(FROZEN_ORACLE_SHA256S),
+        "oracle_bundle_source_sha256": v192_oracle_bundle.local_bundle_sha256(),
+        "oracle_bundle_contract_version": v192_oracle_bundle.ORACLE_CONTRACT_VERSION,
         "feature_vector_sha256": FROZEN_ORACLE_SHA256S["feature_vector"],
         "score_v19_multihead_sha256": FROZEN_ORACLE_SHA256S["score_v19_multihead"],
         "fmla04_role_sha256": FROZEN_ORACLE_SHA256S["fmla04_role"],
@@ -619,16 +588,6 @@ def read_verified_v192_pool(
     if len(rows) != run.verification["row_count"]:
         raise StoreError("v1.9.2 artifact row count mismatch")
     return VerifiedV192Pool(run=run, rows=tuple(rows))
-
-
-def _load_module(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise StoreError(f"cannot load v1.9.2 oracle module: {name}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 @contextmanager
@@ -784,32 +743,58 @@ def _read_selector_panel_source_rows(
     return rows
 
 
-def verify_oracle_sources(paths: Mapping[str, Path] = DEFAULT_ORACLE_PATHS) -> dict[str, str]:
-    if set(paths) != set(FROZEN_ORACLE_SHA256S):
-        raise StoreError("v1.9.2 oracle path set mismatch")
-    actual: dict[str, str] = {}
-    for key, path in paths.items():
-        if not Path(path).is_file():
-            raise StoreError(f"v1.9.2 oracle source missing: {key}")
-        actual[key] = sha256_file(Path(path))
-    return _require_frozen_hashes(actual)
+def verify_local_oracle_bundle() -> dict[str, Any]:
+    """Verify the V4 closure and return its two provenance layers.
+
+    The origin layer is the frozen SHA map of the three reference sources. The
+    local layer is the byte SHA of this checkout's bundle module. Keeping both
+    values explicit prevents the origin map digest from being mistaken for the
+    local implementation bytes.
+    """
+
+    origin = _require_frozen_hashes(v192_oracle_bundle.ORACLE_ORIGIN_SHA256S)
+    if v192_oracle_bundle.origin_bundle_sha256() != v192_oracle_bundle.ORIGIN_BUNDLE_SHA256:
+        raise StoreError("v1.9.2 oracle origin bundle digest mismatch")
+    missing = [
+        name
+        for name in v192_oracle_bundle.required_local_symbols()
+        if not callable(getattr(v192_oracle_bundle, name, None))
+    ]
+    if missing:
+        raise StoreError("v1.9.2 local oracle symbols missing: " + ",".join(missing))
+    local_sha = str(v192_oracle_bundle.local_bundle_sha256()).lower()
+    if len(local_sha) != 64 or any(char not in "0123456789abcdef" for char in local_sha):
+        raise StoreError("v1.9.2 local oracle bundle sha is invalid")
+    return {
+        "origin_sha256s": origin,
+        "origin_bundle_sha256": v192_oracle_bundle.ORIGIN_BUNDLE_SHA256,
+        "local_bundle_sha256": local_sha,
+        "contract_version": v192_oracle_bundle.ORACLE_CONTRACT_VERSION,
+    }
+
+
+def verify_oracle_sources() -> dict[str, str]:
+    """Compatibility name returning the frozen origin SHA map.
+
+    Runtime verification is local-only; reference source files are not opened.
+    """
+
+    return dict(verify_local_oracle_bundle()["origin_sha256s"])
 
 
 def run_frozen_v192_oracle(
     panel_path: Path | str,
     signal_date: str,
-    *,
-    oracle_paths: Mapping[str, Path] = DEFAULT_ORACLE_PATHS,
 ) -> list[dict[str, Any]]:
     """Execute the exact frozen feature, score and FMLA04 role functions."""
     signal_date = validate_date(signal_date)
     panel_path = Path(panel_path)
     if not panel_path.is_file():
         raise StoreError(f"selector-ready panel missing: {panel_path}")
-    verify_oracle_sources(oracle_paths)
-    feature = _load_module("v3sd_v192_feature_oracle", Path(oracle_paths["feature_vector"]))
-    scorer = _load_module("v3sd_v192_score_oracle", Path(oracle_paths["score_v19_multihead"]))
-    roles = _load_module("v3sd_v192_role_oracle", Path(oracle_paths["fmla04_role"]))
+    verify_local_oracle_bundle()
+    feature = v192_oracle_bundle
+    scorer = v192_oracle_bundle
+    roles = v192_oracle_bundle
     with _date_bounded_panel_for_oracle(panel_path, signal_date) as bounded_panel:
         raw = feature.read_window(bounded_panel, 20260101, int(signal_date))
     symbols = raw["ts_code"].astype(str).str.upper()
@@ -857,12 +842,7 @@ def run_frozen_v192_oracle(
             raise StoreError(
                 f"v1.9.2 selector panel source row missing: signal_date={signal_date}; ts_code={code}"
             )
-        missing_source_fields = [
-            field
-            for field in _PREMARKET_SOURCE_FIELDS
-            if field not in panel_source or panel_source[field] is None or _cell(panel_source[field]) == ""
-            and not isinstance(panel_source[field], str)
-        ]
+        missing_source_fields = _missing_premarket_source_fields(panel_source)
         if missing_source_fields:
             raise StoreError(
                 "v1.9.2 selector panel source field missing: "

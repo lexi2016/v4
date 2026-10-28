@@ -9,7 +9,9 @@ this namespace; V3 and V3.5 remain read-only consumers.
 from __future__ import annotations
 
 import csv
+import base64
 import hashlib
+import io
 import json
 import os
 import re
@@ -17,12 +19,17 @@ import tempfile
 import time
 from infrastructure.interprocess_lock import owned_interprocess_lock
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterator, Mapping, Sequence
 from uuid import uuid4
 
-from .calendar import calendar_provenance
+from .calendar import (
+    TradingDayState,
+    calendar_provenance,
+    eligible_stage_markets,
+    resolve_market_states,
+)
 from .contracts import EIGHT_STAGES, SAFETY_FLAGS
 
 RAW_FIELDS = (
@@ -57,6 +64,133 @@ RAW_LATEST_SCHEMA_VERSION = "v3_shared_data.latest.v1"
 RAW_BUNDLE_SCHEMA_VERSION = "stage_center.raw_bundle.v1"
 RAW_BUNDLE_LATEST_SCHEMA_VERSION = "stage_center.raw_bundle_latest.v1"
 RAW_STATUSES = frozenset(("READY", "PARTIAL_WITH_ROWS", "READY_EMPTY", "CANNOT_CONFIRM"))
+HK_FUTU_RTDATA_OBSERVATION_CONTRACT = "HK_FUTU_RTDATA_AFTERFACT_RESEARCH_20261012_R1"
+HK_FUTU_RTDATA_SOURCE_ID = "futu_rt_data_afterfact"
+HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256 = "220fd29bc907a1c4e431c75fb8eccb3204c5857130eb639f1e9b6a62b60cfe3d"
+HK_FUTU_RTDATA_POOL_SOURCE_SHA256 = "738ffa6533bfc1e041a3cd84841d591f0ee6bda53fe8fe420cf608b9a7f3503d"
+HK_FUTU_RTDATA_CODE_SET_SHA256 = "5e7ad70ddcd6bcf1ab5007ef8c5f365258e77d6e8d52ade5be2177cb24ae1223"
+HK_FUTU_RTDATA_CAPTURE_SHA256_1300 = "63cba10b805b60dc7108ac7d633b0b1c32da2211b04fd976e1cd637ce083afe0"
+HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300 = "018175c4cd1e7d2278033da39d79d09e3856468400ea384f104584551e304ad9"
+HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300 = "54770c58c801f21a61363abee5db5a1eaf015e99a117be75eca758f229ba431b"
+HK_FUTU_RTDATA_CAPTURE_SHA256_1445 = "4a310b4920dc5c6ebb7ac8b9f50d1e73d2dcb4d0ef685fef329358c09c2223d0"
+HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445 = "0517c61ca85c25e2213a3ff787509d2c7285ec26b473e2a07daa579dab358f05"
+HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445 = "66e27894b45c5e9b15f25d3e0edf2a3d0a437ac80c12bd228017bc01c9c92132"
+_HK_FUTU_RTDATA_STAGE_PROFILES = {
+    "STAGE_1300_1315": (
+        "13:00-13:15", "13:15:00", "13:00:00", "13:14:00", 14, 1400,
+        HK_FUTU_RTDATA_CAPTURE_SHA256_1300,
+        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1300,
+        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1300,
+        "3b3cc0a321c1a45abc973d88a73c2c5d9c03731a1f5ac5746ce7c48ea8ae1b73",
+    ),
+    "STAGE_1445_1500": (
+        "14:45-15:00", "15:00:00", "14:45:00", "14:59:00", 15, 1500,
+        HK_FUTU_RTDATA_CAPTURE_SHA256_1445,
+        HK_FUTU_RTDATA_PROVIDER_ROWS_SHA256_1445,
+        HK_FUTU_RTDATA_RAW_PROJECTION_SHA256_1445,
+        "c49ebb533922769b78c7c7d94b7e6b0e3e06ba8fc3961c0611b0ca326ad77d15",
+    ),
+}
+_HK_FUTU_RTDATA_CANNOT_CONFIRM = (
+    "FUTU_RT_DATA_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT",
+    "FUTU_RT_DATA_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+    "FUTU_RT_DATA_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+    "FUTU_RT_DATA_OHLC_AND_ORDERBOOK_UNAVAILABLE",
+)
+HK_0930_TDX_RESEARCH_CONTRACT = "HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
+HK_0930_TDX_RESEARCH_MODE_EVIDENCE = (
+    "stage_center_observation_mode=HK_STAGE0930_TDX_AFTERFACT_RESEARCH_20260924_R1"
+)
+HK_0930_TDX_D1_CODE_SET_SHA256 = "4395dcad079830e90c6dfafc401ebf8687a13dff31156aeb73bd8d37d2e747ae"
+_HK_0930_TDX_RESEARCH_MARKERS = (
+    "due_status=HISTORICAL_BACKFILL",
+    "historical_observation_contract=TDX_EXHQ_AFTERFACT_RESEARCH_ONLY",
+    "historical_provider=pytdx_exhq",
+    "historical_request_method=TdxExHq_API.get_instrument_bars",
+    "historical_category=7",
+    "historical_market=71",
+    "historical_host=119.97.142.130:7721",
+    "historical_fallback_hosts=[]",
+    "historical_retry_count=0",
+    "historical_capture_after_target_cutoff=true",
+    "historical_temporal_cutoff_safe=false",
+    "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+    "historical_natural_time_capture=CANNOT_CONFIRM",
+    "historical_pit_safe=false",
+    "historical_active_snapshot_authority=CANNOT_CONFIRM",
+    "historical_target_date=20260924",
+    "historical_signal_date=20260923",
+    "historical_stage_id=STAGE_0930_0935",
+    "historical_stage_window=09:31:00-09:35:00",
+    "historical_runner_stage_plan_markets=A_SHARE,HK_CONNECT",
+    "historical_runner_market_allowlist=HK_CONNECT",
+    "historical_runner_collector_market=HK_CONNECT",
+    "historical_source_timezone_semantics=naive TDX strings; Asia/Hong_Kong offset not attested",
+    "historical_d1_projection_sha256=fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc",
+    "historical_d1_projection_receipt_sha256=ffa32388a978691c1a6c1d1ae580e0e69fa4691fb2aee62868eb1f7292d48fa5",
+    "historical_d1_producer_run_id=20260924-hk-connect-d1-top100-0-2-625bd55a46b4",
+    "historical_d1_producer_artifact_sha256=30576eee9f0370c6956da6e41725d0720253e917a8e3741cce20f875b5e28f89",
+    "historical_d1_producer_manifest_sha256=c10ecc440585f0546a28dc8faf52bcf3e198c378216e5164c022b96d4d428465",
+    "historical_d1_producer_receipt_sha256=a96626f926b53a461039fce732658f765eea5383a63fe0830cbb21d7d780c73d",
+    "historical_d1_formal_eligibility=CANNOT_CONFIRM",
+    "historical_rank45_gap_receipt_sha256=e3ea5b867f591d83a65e59aa855275d83dae188a7de8634dfa8b6fc9b605cf6a",
+    "historical_rank45_gap_code=HK.02915",
+    "historical_rank45_gap_rank=45",
+    "historical_rank45_gap_status=CANNOT_CONFIRM",
+    "historical_input_minute_full_coverage_sha256=936d5381445aaf94f6ef11ca91cf219139461dad5df787cb0b781bf07435e20d",
+    "historical_input_minute_batch_receipt_sha256=9eb1e45a668404e480127c62e2fcb42f9e148774ba2e1d53735e758270a69e78",
+    "historical_input_minute_canary_sha256=70f83ef90c5545ce1fd53767b35c7d64dfb8d53f107fa8fd1ed49e6be871dcb0",
+    "historical_input_minute_page_set_sha256=43de2248f4a8360ef82eae6ea7829d9847f8d824834dbc631cfdde26f2bde9c8",
+    "historical_tdx_minute_normalizer_sha256=9ce612fb06f022601841828bb25d11d1850cd4e3ab09de775babd56f7b8d0399",
+    "historical_tdx_minute_aggregator_sha256=af4cc0efea026eb3f6fa084389d6ee8351a286d38765e337147ced88fda150da",
+    "historical_tdx_minute_stage_contract_sha256=776569b71a9db060186362fe04cce3e8b0f707d8b4a77f80288f8031a2f14fcc",
+    "historical_minute_input_codes=100",
+    "historical_minute_input_rows=500",
+    "historical_minute_window_bars_per_code=5",
+    "historical_minute_price_basis=source-reported TDX values; absolute HKD scale not independently confirmed",
+    "historical_turnover_unit=source native; unit mapping not independently confirmed",
+    "historical_candidate_lanes=empty_on_input_rows",
+    "historical_selection_action_boundary=NO_BUY",
+    "production_allowed=false",
+    "buy_gate_updated=false",
+    "orders_sent=false",
+)
+_HK_0930_TDX_RESEARCH_CANNOT_CONFIRM = (
+    "HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE",
+    "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+    "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+    "HISTORICAL_ACTIVE_SNAPSHOT_AUTHORITY_CANNOT_CONFIRM",
+    "HISTORICAL_SOURCE_TIMEZONE_NOT_ATTESTED",
+    "HISTORICAL_TDX_PRICE_BASIS_AND_VOLUME_TURNOVER_UNITS_NOT_INDEPENDENTLY_CONFIRMED",
+    "HISTORICAL_D1_FORMAL_ELIGIBILITY_CANNOT_CONFIRM",
+    "HISTORICAL_D1_INPUT_GAP_CANNOT_CONFIRM:HK.02915:rank=45",
+)
+HISTORICAL_OBSERVATION_MANIFEST_SCHEMA = "stage_center.historical_observation_manifest.v1"
+HISTORICAL_OBSERVATION_CONTRACT_ID = "STAGE_CENTER_AFTERFACT_OBSERVATION_R1"
+HISTORICAL_OBSERVATION_CONTRACT_PREFIX = HISTORICAL_OBSERVATION_CONTRACT_ID + ":"
+HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX = "historical_observation_manifest_b64="
+HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX = "stage_center_observation_mode="
+_HISTORICAL_OBSERVATION_REQUIRED_CANNOT_CONFIRM = (
+    "HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE",
+    "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+    "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+)
+HK_MORNING_CACHED_AFTERFACT_SOURCE_ID = "futu_cached_minute_capture"
+HK_MORNING_CACHED_AFTERFACT_DATE = "20261015"
+HK_MORNING_CACHED_AFTERFACT_D1_SHA256 = "66225363e4dd1b9da4f316d75a8dcc5f249bc0968128c646e9632a1a8b1b1c67"
+HK_MORNING_CACHED_AFTERFACT_D1_RUN_ID = "20261015-hk-connect-d1-top100-0-2-1d08535262fd"
+HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256 = "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455"
+HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH = (
+    "/Users/lexi/Library/Application Support/com.lexi.v4.local/state/stage/raw/"
+    ".futu_minute_captures/20261015/STAGE_0945_1030/"
+    "45fdc5d16d1dec2e7f087dfdb802f3c5b92e67d4e380aa6c49ddea15881ab455.json"
+)
+HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT = "2026-10-15T10:31:03.491290+08:00"
+_HK_MORNING_CACHED_AFTERFACT_STAGE_PROFILES = {
+    "STAGE_0930_0935": ("09:30:00", "09:35:05", "09:31:00", "09:35:00"),
+    "STAGE_0935_0940": ("09:35:00", "09:40:05", "09:36:00", "09:40:00"),
+    "STAGE_0940_0945": ("09:40:00", "09:45:05", "09:41:00", "09:45:00"),
+}
 _TIME_FMT = "%Y-%m-%d %H:%M:%S"
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _LOCK_TIMEOUT_SECONDS = 10.0
@@ -66,6 +200,146 @@ _MARKET_CODE = {
     "A_SHARE": re.compile(r"^(?:A|SH|SZ|BJ)\.\d{6}$"),
     "HK_CONNECT": re.compile(r"^HK\.\d{5}$"),
 }
+
+
+def _futu_rtd_observation_markers(stage_id: str, capture_sha256: str) -> tuple[str, ...]:
+    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+    if profile is None:
+        return ()
+    window, cutoff, start, end, observations_per_code, observation_count, _, provider_sha, projection_sha, _ = profile
+    return (
+        f"futu_observation_contract={HK_FUTU_RTDATA_OBSERVATION_CONTRACT}",
+        "futu_afterfact_target_date=20261012",
+        f"futu_afterfact_stage_id={stage_id}",
+        "futu_afterfact_market=HK_CONNECT",
+        f"futu_afterfact_source_id={HK_FUTU_RTDATA_SOURCE_ID}",
+        f"futu_afterfact_window={window}",
+        f"futu_afterfact_cutoff={cutoff}",
+        f"futu_afterfact_row_window_start={start}",
+        f"futu_afterfact_row_window_end={end}",
+        f"futu_afterfact_pool_artifact_sha256={HK_FUTU_RTDATA_POOL_ARTIFACT_SHA256}",
+        f"futu_afterfact_pool_source_sha256={HK_FUTU_RTDATA_POOL_SOURCE_SHA256}",
+        f"futu_afterfact_code_set_sha256={HK_FUTU_RTDATA_CODE_SET_SHA256}",
+        "futu_afterfact_requested_code_count=100",
+        "futu_afterfact_completed_code_count=100",
+        f"futu_afterfact_observations_per_code={observations_per_code}",
+        f"futu_afterfact_nonblank_observation_count={observation_count}",
+        f"futu_afterfact_capture_sha256={capture_sha256}",
+        "futu_afterfact_temporal_cutoff_safe=false",
+        "futu_afterfact_pit_safe=false",
+        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
+        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
+        "futu_afterfact_selection_action_boundary=NO_BUY",
+        f"futu_afterfact_target_provider_rows_sha256={provider_sha}",
+        f"futu_afterfact_raw_projection_sha256={projection_sha}",
+        "research_only=true",
+        "production_allowed=false",
+        "buy_gate_updated=false",
+        "orders_sent=false",
+    )
+
+
+def _futu_rtd_raw_projection_sha256(
+    rows: Sequence[Mapping[str, Any]], *, omit_name: bool = False
+) -> str:
+    fields = tuple(field for field in RAW_FIELDS if not (omit_name and field == "name"))
+    projected = [
+        {
+            field: ("" if row.get(field) in (None, "") else str(row.get(field)))
+            for field in fields
+        }
+        for row in sorted(rows, key=lambda item: str(item.get("code") or "").upper())
+    ]
+    return hashlib.sha256(
+        json.dumps(projected, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _futu_rtd_rows_match_frozen_projection(
+    rows: Sequence[Mapping[str, Any]], *, trade_date: str, stage_id: str, market: str
+) -> bool:
+    """Permit only the two exact false-temporal Futu raw projections at this boundary."""
+    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+    if trade_date != "20261012" or market != "HK_CONNECT" or profile is None or len(rows) != 100:
+        return False
+    codes = [str(row.get("code") or "").upper() for row in rows]
+    code_set_sha = hashlib.sha256(
+        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    if (
+        len(set(codes)) != 100
+        or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes)
+        or code_set_sha != HK_FUTU_RTDATA_CODE_SET_SHA256
+        or _futu_rtd_raw_projection_sha256(rows) != profile[8]
+    ):
+        return False
+    row_start = f"2026-10-12 {profile[2]}"
+    row_end = f"2026-10-12 {profile[3]}"
+    for row in rows:
+        if set(row) != set(RAW_FIELDS) or (
+            row.get("temporal_cutoff_safe") is not False
+            or row.get("window_start") != row_start
+            or row.get("window_end") != row_end
+            or row.get("update_time") != row_end
+            or row.get("bar_count") not in (profile[4], str(profile[4]))
+            or row.get("last_price") in (None, "")
+            or row.get("prev_close_price") in (None, "")
+            or any(row.get(field) not in (None, "") for field in (
+                "open_price", "high_price", "low_price", "bid_price", "ask_price", "bid_vol", "ask_vol"
+            ))
+        ):
+            return False
+    return True
+
+
+def _allows_hk_futu_rtd_temporal_false_observation(
+    *,
+    enabled: bool,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+    window: str | None,
+    cutoff_at: str | None,
+    manifest_temporal_cutoff_safe: bool | None = False,
+) -> bool:
+    profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+    if (
+        enabled is not True
+        or manifest_temporal_cutoff_safe is not False
+        or trade_date != "20261012"
+        or market != "HK_CONNECT"
+        or source_id != HK_FUTU_RTDATA_SOURCE_ID
+        or source_status != "PARTIAL_WITH_ROWS"
+        or profile is None
+        or (window, cutoff_at) != profile[:2]
+        or requested_rows != 100
+        or bool(missing_symbols)
+        or len(rows) != 100
+        or not set(_HK_FUTU_RTDATA_CANNOT_CONFIRM).issubset(
+            {str(item) for item in cannot_confirm}
+        )
+        or not _futu_rtd_rows_match_frozen_projection(
+            rows, trade_date=trade_date, stage_id=stage_id, market=market
+        )
+    ):
+        return False
+    evidence = {str(item) for item in source_evidence}
+    capture_sha = next(
+        (item.split("=", 1)[1] for item in evidence if item.startswith("futu_afterfact_capture_sha256=")),
+        "",
+    )
+    return (
+        capture_sha == profile[6]
+        and _SHA_RE.fullmatch(capture_sha) is not None
+        and set(_futu_rtd_observation_markers(stage_id, capture_sha)).issubset(evidence)
+    )
 
 
 class RawStoreError(ValueError):
@@ -92,58 +366,542 @@ def _sha_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _atomic_write_bytes(path: Path, data: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(
-        prefix=f".{path.name}.{uuid4().hex}.", suffix=".tmp", dir=path.parent
+def _allows_hk_0930_tdx_temporal_false_observation(
+    *,
+    enabled: bool,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+) -> bool:
+    """Recognize only the frozen 2026-09-24 TDX research observation contract."""
+    if (
+        enabled is not True
+        or (trade_date, stage_id, market, source_id, source_status)
+        != ("20260924", "STAGE_0930_0935", "HK_CONNECT", "pytdx_exhq", "PARTIAL_WITH_ROWS")
+        or requested_rows != 100
+        or len(rows) != 100
+        or bool(missing_symbols)
+    ):
+        return False
+    evidence = set(str(item) for item in source_evidence)
+    required_evidence = {
+        HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
+        *_HK_0930_TDX_RESEARCH_MARKERS,
+    }
+    if not required_evidence.issubset(evidence):
+        return False
+    if not set(_HK_0930_TDX_RESEARCH_CANNOT_CONFIRM).issubset(
+        set(str(item) for item in cannot_confirm)
+    ):
+        return False
+    codes = [str(row.get("code") or "").upper() for row in rows]
+    if (
+        len(set(codes)) != 100
+        or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes)
+        or any(row.get("temporal_cutoff_safe") is not False for row in rows)
+        or any(
+            row.get("update_time") != "2026-09-24 09:35:00"
+            or row.get("window_start") != "2026-09-24 09:31:00"
+            or row.get("window_end") != "2026-09-24 09:35:00"
+            or not (
+                (type(row.get("bar_count")) is int and row.get("bar_count") == 5)
+                or (type(row.get("bar_count")) is str and row.get("bar_count") == "5")
+            )
+            for row in rows
+        )
+    ):
+        return False
+    code_set_sha = hashlib.sha256(
+        json.dumps(tuple(sorted(codes)), ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return code_set_sha == HK_0930_TDX_D1_CODE_SET_SHA256
+
+
+def historical_observation_manifest_markers(
+    manifest: Mapping[str, Any],
+) -> tuple[str, str, str]:
+    """Return the token and two self-contained evidence markers for a manifest.
+
+    The manifest is carried in the raw source evidence so a later raw-store
+    read can revalidate the same date, pool, source, row coverage, and bytes
+    without relying on an external mutable path.
+    """
+    payload = json.dumps(
+        dict(manifest), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    digest = hashlib.sha256(payload).hexdigest()
+    encoded = base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+    token = f"{HISTORICAL_OBSERVATION_CONTRACT_PREFIX}{digest}"
+    return (
+        token,
+        f"{HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX}{encoded}",
+        f"{HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX}{token}",
     )
+
+
+def _historical_observation_manifest(
+    source_evidence: Sequence[str],
+    *,
+    contract: str | None,
+) -> tuple[dict[str, Any], str] | None:
+    evidence = tuple(str(item) for item in source_evidence)
+    encoded_values = [
+        item[len(HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX):]
+        for item in evidence
+        if item.startswith(HISTORICAL_OBSERVATION_MANIFEST_EVIDENCE_PREFIX)
+    ]
+    if len(encoded_values) != 1 or len(encoded_values[0]) > 180_000:
+        return None
+    encoded = encoded_values[0]
     try:
-        with os.fdopen(fd, "wb") as stream:
-            stream.write(data)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+        raw = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
+        payload = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeError, json.JSONDecodeError):
+        return None
+    if base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=") != encoded:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    canonical = json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    if raw != canonical:
+        return None
+    digest = hashlib.sha256(raw).hexdigest()
+    token = f"{HISTORICAL_OBSERVATION_CONTRACT_PREFIX}{digest}"
+    if contract is not None and contract != token:
+        return None
+    mode_marker = f"{HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX}{token}"
+    if evidence.count(mode_marker) != 1:
+        return None
+    return payload, token
+
+
+def _raw_artifact_csv_sha256(
+    trade_date: str,
+    rows: Sequence[Mapping[str, Any]],
+) -> str | None:
+    """Recreate the frozen CSV bytes so a contract can pin the raw artifact."""
+    try:
+        stream = io.StringIO(newline="")
+        writer = csv.DictWriter(
+            stream,
+            fieldnames=ARTIFACT_FIELDS,
+            extrasaction="raise",
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(
+            _artifact_row(
+                trade_date,
+                {field: row[field] for field in RAW_FIELDS},
+            )
+            for row in rows
+        )
+        return hashlib.sha256(b"\xef\xbb\xbf" + stream.getvalue().encode("utf-8")).hexdigest()
+    except (KeyError, TypeError, ValueError, csv.Error):
+        return None
+
+
+def _allows_hk_morning_cached_afterfact_observation(
+    *,
+    trade_date: str,
+    stage_id: str,
+    source_id: str,
+    target: Mapping[str, Any],
+    pool: Mapping[str, Any],
+    observation: Mapping[str, Any],
+    safety: Mapping[str, Any],
+    rows: Sequence[Mapping[str, Any]],
+    source_evidence: Sequence[str],
+    required_evidence: Sequence[Any],
+) -> bool:
+    """Admit only the pinned 2026-10-15 capture and its three exact HK windows."""
+    profile = _HK_MORNING_CACHED_AFTERFACT_STAGE_PROFILES.get(stage_id)
+    if profile is None:
+        return False
+    stage_start, cutoff, row_start, row_end = profile
+    target_day = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
+    capture_path_text = str(observation.get("capture_path") or "")
+    capture_path = Path(capture_path_text)
+    evidence = {str(item) for item in source_evidence}
+    capture_window_sha = str(observation.get("capture_window_provider_rows_sha256") or "")
+    capture_window = f"{stage_id}:{stage_start}-{cutoff}"
+    window_label = f"{stage_start[:5]}-{cutoff[:5]}"
+    expected_markers = {
+        f"historical_provider={HK_MORNING_CACHED_AFTERFACT_SOURCE_ID}",
+        "historical_capture_after_target_cutoff=true",
+        "historical_temporal_cutoff_safe=false",
+        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+        "historical_natural_time_capture=CANNOT_CONFIRM",
+        "historical_pit_safe=false",
+        "historical_price_signal_date=20261014",
+        f"historical_source_page_set_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
+        f"futu_capture_path={HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH}",
+        f"futu_capture_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
+        "futu_capture_stage_id=STAGE_0945_1030",
+        f"futu_capture_captured_at={HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT}",
+        "futu_capture_market=HK_CONNECT",
+        "futu_capture_adjustment=NONE",
+        f"futu_capture_window={capture_window}",
+        f"futu_capture_window_provider_rows_sha256={capture_window_sha}",
+        "futu_capture_window_input_rows=500",
+        "futu_capture_window_codes=100",
+        "futu_capture_window_bars_per_code=5",
+        "futu_capture_orderbook_available=false",
+        f"futu_afterfact_dataset_sha256={HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256}",
+        f"futu_afterfact_stage_id={stage_id}",
+        f"futu_afterfact_window={window_label}",
+        f"futu_afterfact_window_start={target_day} {row_start}",
+        f"futu_afterfact_window_end_exclusive={target_day} {cutoff}",
+        f"futu_afterfact_last_bar={target_day} {row_end}",
+        f"futu_afterfact_provider_rows_sha256={capture_window_sha}",
+        f"futu_afterfact_raw_artifact_sha256={observation.get('raw_artifact_sha256')}",
+        "futu_afterfact_temporal_cutoff_safe=false",
+        "futu_afterfact_pit_safe=false",
+        "futu_afterfact_formal_stage_eligibility=CANNOT_CONFIRM",
+        "futu_afterfact_natural_time_capture=CANNOT_CONFIRM",
+        "futu_afterfact_orderbook_unavailable=true",
+        "production_allowed=false",
+        "buy_gate_updated=false",
+        "orders_sent=false",
+    }
+    try:
+        capture_file_sha = _sha_file(capture_path) if (
+            capture_path_text == HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH
+            and not capture_path.is_symlink()
+            and capture_path.is_file()
+        ) else ""
+    except OSError:
+        capture_file_sha = ""
+    if (
+        trade_date != HK_MORNING_CACHED_AFTERFACT_DATE
+        or source_id != HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
+        or target.get("source_id") != HK_MORNING_CACHED_AFTERFACT_SOURCE_ID
+        or target.get("historical_backfill") is not True
+        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+        or pool.get("source_date") != HK_MORNING_CACHED_AFTERFACT_DATE
+        or pool.get("signal_date") != "20261014"
+        or pool.get("source_run_id") != HK_MORNING_CACHED_AFTERFACT_D1_RUN_ID
+        or pool.get("artifact_sha256") != HK_MORNING_CACHED_AFTERFACT_D1_SHA256
+        or observation.get("capture_sha256") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
+        or observation.get("source_page_set_sha256") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
+        or observation.get("capture_path") != HK_MORNING_CACHED_AFTERFACT_CAPTURE_PATH
+        or observation.get("capture_stage_id") != "STAGE_0945_1030"
+        or observation.get("capture_captured_at") != HK_MORNING_CACHED_AFTERFACT_CAPTURED_AT
+        or observation.get("capture_market") != "HK_CONNECT"
+        or observation.get("capture_adjustment") != "NONE"
+        or observation.get("capture_window") != capture_window
+        or observation.get("capture_window_input_rows") != 500
+        or observation.get("capture_window_codes") != 100
+        or observation.get("capture_window_bars_per_code") != 5
+        or observation.get("raw_window_start") != f"{target_day} {row_start}"
+        or observation.get("raw_window_end") != f"{target_day} {row_end}"
+        or not isinstance(required_evidence, list)
+        or not _SHA_RE.fullmatch(capture_window_sha)
+        or capture_file_sha != HK_MORNING_CACHED_AFTERFACT_CAPTURE_SHA256
+        or observation.get("capture_after_target_cutoff") is not True
+        or observation.get("temporal_cutoff_safe") is not False
+        or observation.get("formal_stage_eligibility") != "CANNOT_CONFIRM"
+        or observation.get("natural_time_capture") != "CANNOT_CONFIRM"
+        or observation.get("pit_safe") is not False
+        or safety.get("production_allowed") is not False
+        or safety.get("buy_gate_updated") is not False
+        or safety.get("orders_sent") is not False
+        or len(rows) != 100
+        or not expected_markers.issubset(evidence)
+        or not expected_markers.issubset({str(item) for item in required_evidence})
+    ):
+        return False
+    codes = [str(row.get("code") or "").upper() for row in rows]
+    if len(set(codes)) != 100 or any(not _MARKET_CODE["HK_CONNECT"].fullmatch(code) for code in codes):
+        return False
+    for row in rows:
+        if (
+            row.get("temporal_cutoff_safe") is not False
+            or row.get("window_start") != f"{target_day} {row_start}"
+            or row.get("window_end") != f"{target_day} {row_end}"
+            or row.get("update_time") != f"{target_day} {row_end}"
+            or row.get("bar_count") not in (5, "5")
+            or any(row.get(field) not in (None, "") for field in (
+                "bid_price", "ask_price", "bid_vol", "ask_vol"
+            ))
+        ):
+            return False
+    return True
+
+
+def _allows_manifest_bound_afterfact_observation(
+    *,
+    contract: str | None,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+    raw_artifact_sha256: str | None = None,
+) -> bool:
+    parsed = _historical_observation_manifest(source_evidence, contract=contract)
+    if parsed is None:
+        return False
+    manifest, token = parsed
+    target = manifest.get("target")
+    pool = manifest.get("pool")
+    observation = manifest.get("observation")
+    safety = manifest.get("safety")
+    required_evidence = manifest.get("required_source_evidence")
+    if not all(isinstance(item, Mapping) for item in (target, pool, observation, safety)):
+        return False
+    price_signal_date = str(observation.get("price_signal_date") or "")
+    try:
+        signal_cursor = datetime.strptime(trade_date, "%Y%m%d")
+    except ValueError:
+        return False
+    expected_price_signal_date = None
+    open_states = {
+        TradingDayState.FULL_TRADING_DAY,
+        TradingDayState.HALF_TRADING_DAY_AM,
+    }
+    for _ in range(45):
+        signal_cursor -= timedelta(days=1)
+        candidate_date = signal_cursor.strftime("%Y%m%d")
+        market_state = resolve_market_states(candidate_date)["hk_securities"]
+        if market_state is TradingDayState.UNKNOWN:
+            return False
+        if market_state in open_states:
+            expected_price_signal_date = candidate_date
+            break
+    if (
+        manifest.get("schema_version") != HISTORICAL_OBSERVATION_MANIFEST_SCHEMA
+        or manifest.get("contract_id") != HISTORICAL_OBSERVATION_CONTRACT_ID
+        or target.get("trade_date") != trade_date
+        or target.get("stage_id") != stage_id
+        or target.get("market") != market
+        or target.get("source_id") != source_id
+        or target.get("source_status") != source_status
+        or target.get("historical_backfill") is not True
+        or market != "HK_CONNECT"
+        or source_id not in {"pytdx_exhq", HK_MORNING_CACHED_AFTERFACT_SOURCE_ID}
+        or source_status != "PARTIAL_WITH_ROWS"
+        or not rows
+        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+        or observation.get("capture_after_target_cutoff") is not True
+        or observation.get("temporal_cutoff_safe") is not False
+        or observation.get("formal_stage_eligibility") != "CANNOT_CONFIRM"
+        or observation.get("natural_time_capture") != "CANNOT_CONFIRM"
+        or observation.get("pit_safe") is not False
+        or not re.fullmatch(r"\d{8}", price_signal_date)
+        or price_signal_date != expected_price_signal_date
+        or safety.get("production_allowed") is not False
+        or safety.get("buy_gate_updated") is not False
+        or safety.get("orders_sent") is not False
+        or not re.fullmatch(r"\d{8}", str(pool.get("source_date") or ""))
+        or not re.fullmatch(r"\d{8}", str(pool.get("signal_date") or ""))
+        or pool.get("source_run_id") in (None, "")
+    ):
+        return False
+    for value in (
+        pool.get("artifact_sha256"),
+        pool.get("code_set_sha256"),
+        observation.get("source_page_set_sha256"),
+        observation.get("raw_artifact_sha256"),
+        observation.get("required_source_evidence_sha256"),
+    ):
+        if not isinstance(value, str) or not _SHA_RE.fullmatch(value):
+            return False
+    pool_codes = pool.get("codes")
+    observed_codes = observation.get("observed_codes")
+    missing_codes = observation.get("missing_codes")
+    if not all(isinstance(value, list) for value in (pool_codes, observed_codes, missing_codes)):
+        return False
+    pool_codes = [str(code).upper() for code in pool_codes]
+    observed_codes = [str(code).upper() for code in observed_codes]
+    missing_codes = [str(code).upper() for code in missing_codes]
+    if (
+        len(pool_codes) != 100
+        or pool_codes != sorted(set(pool_codes))
+        or observed_codes != sorted(set(observed_codes))
+        or missing_codes != sorted(set(missing_codes))
+        or any(not _MARKET_CODE[market].fullmatch(code) for code in pool_codes)
+        or canonical_sha(pool_codes) != pool.get("code_set_sha256")
+        or type(target.get("requested_rows")) is not int
+        or target.get("requested_rows") != len(pool_codes)
+        or requested_rows != len(pool_codes)
+        or type(observation.get("requested_rows")) is not int
+        or observation.get("requested_rows") != len(pool_codes)
+        or type(observation.get("observed_rows")) is not int
+        or observation.get("observed_rows") != len(rows)
+        or type(observation.get("missing_count")) is not int
+        or observation.get("missing_count") != len(missing_codes)
+        or len(rows) + len(missing_codes) != len(pool_codes)
+        or set(observed_codes).intersection(missing_codes)
+        or set(observed_codes).union(missing_codes) != set(pool_codes)
+    ):
+        return False
+    if source_id == HK_MORNING_CACHED_AFTERFACT_SOURCE_ID and not _allows_hk_morning_cached_afterfact_observation(
+        trade_date=trade_date,
+        stage_id=stage_id,
+        source_id=source_id,
+        target=target,
+        pool=pool,
+        observation=observation,
+        safety=safety,
+        rows=rows,
+        source_evidence=source_evidence,
+        required_evidence=required_evidence,
+    ):
+        return False
+    row_codes = [str(row.get("code") or "").upper() for row in rows]
+    missing = [str(code).upper() for code in missing_symbols]
+    if (
+        len(row_codes) != len(set(row_codes))
+        or sorted(row_codes) != observed_codes
+        or sorted(missing) != missing_codes
+        or any(row.get("temporal_cutoff_safe") is not False for row in rows)
+    ):
+        return False
+    # Selection runs after the runner attaches exact D1 display metadata.
+    # That overlay may legitimately replace a missing/code-placeholder name,
+    # so the enriched selection rows are not byte-identical to the rows that
+    # RawStore published.  In that consumer path, bind the already-verified
+    # RawStore artifact SHA supplied by the runner; producer/publish/read
+    # callers omit this argument and continue to reconstruct the CSV bytes
+    # from the original rows.
+    observed_raw_sha256 = (
+        raw_artifact_sha256
+        if raw_artifact_sha256 is not None
+        else _raw_artifact_csv_sha256(trade_date, rows)
+    )
+    if observed_raw_sha256 != observation.get("raw_artifact_sha256"):
+        return False
+    evidence = tuple(str(item) for item in source_evidence)
+    required_markers = {
+        f"historical_provider={source_id}",
+        "historical_capture_after_target_cutoff=true",
+        "historical_temporal_cutoff_safe=false",
+        "historical_formal_stage_eligibility=CANNOT_CONFIRM",
+        "historical_natural_time_capture=CANNOT_CONFIRM",
+        "historical_pit_safe=false",
+        f"historical_price_signal_date={price_signal_date}",
+        "production_allowed=false",
+        "buy_gate_updated=false",
+        "orders_sent=false",
+        f"historical_source_page_set_sha256={observation['source_page_set_sha256']}",
+    }
+    if (
+        not isinstance(required_evidence, list)
+        or not all(isinstance(item, str) for item in required_evidence)
+        or required_evidence != sorted(set(required_evidence))
+        or canonical_sha(required_evidence) != observation.get("required_source_evidence_sha256")
+        or not required_markers.issubset(set(required_evidence))
+        or not set(required_evidence).issubset(set(evidence))
+        or f"hk_d1_binding_sha256={pool['artifact_sha256']}" not in evidence
+        or f"hk_d1_sha256={pool['artifact_sha256']}" not in evidence
+        or f"hk_d1_source_trade_date={pool['source_date']}" not in evidence
+        or f"hk_d1_source_signal_date={pool['signal_date']}" not in evidence
+        or f"historical_source_page_set_sha256={observation['source_page_set_sha256']}" not in evidence
+        or f"{HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX}{token}" not in evidence
+    ):
+        return False
+    return set(_HISTORICAL_OBSERVATION_REQUIRED_CANNOT_CONFIRM).issubset(
+        {str(item) for item in cannot_confirm}
+    )
+
+
+def _allows_temporal_false_observation(
+    *,
+    contract: str | None,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+    source_id: str,
+    source_status: str,
+    rows: Sequence[Mapping[str, Any]],
+    requested_rows: int | None,
+    missing_symbols: Sequence[str],
+    cannot_confirm: Sequence[str],
+    source_evidence: Sequence[str],
+) -> bool:
+    evidence = {str(item) for item in source_evidence}
+    futu_marker = f"futu_observation_contract={HK_FUTU_RTDATA_OBSERVATION_CONTRACT}"
+    if contract == HK_FUTU_RTDATA_OBSERVATION_CONTRACT or (
+        contract is None and futu_marker in evidence
+    ):
+        profile = _HK_FUTU_RTDATA_STAGE_PROFILES.get(stage_id)
+        if profile is None:
+            return False
+        return _allows_hk_futu_rtd_temporal_false_observation(
+            enabled=True,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=source_id,
+            source_status=source_status,
+            rows=rows,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols,
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
+            window=profile[0],
+            cutoff_at=profile[1],
+            manifest_temporal_cutoff_safe=False,
+        )
+    if contract == HK_0930_TDX_RESEARCH_CONTRACT:
+        return _allows_hk_0930_tdx_temporal_false_observation(
+            enabled=True,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=source_id,
+            source_status=source_status,
+            rows=rows,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols,
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
+        )
+    if isinstance(contract, str) and contract.startswith(HISTORICAL_OBSERVATION_CONTRACT_PREFIX):
+        return _allows_manifest_bound_afterfact_observation(
+            contract=contract,
+            trade_date=trade_date,
+            stage_id=stage_id,
+            market=market,
+            source_id=source_id,
+            source_status=source_status,
+            rows=rows,
+            requested_rows=requested_rows,
+            missing_symbols=missing_symbols,
+            cannot_confirm=cannot_confirm,
+            source_evidence=source_evidence,
+        )
+    return False
+
+
+def _atomic_write_bytes(path: Path, data: bytes) -> None:
+    from stage_center._raw_store_parts.filesystem_io import __atomic_write_bytes_body as _v4_impl
+    return _v4_impl(globals(), path, data)
 
 
 def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
-    _atomic_write_bytes(
-        path,
-        (
-            json.dumps(
-                payload,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            + "\n"
-        ).encode("utf-8"),
-    )
+    from stage_center._raw_store_parts.filesystem_io import __atomic_write_json_body as _v4_impl
+    return _v4_impl(globals(), path, payload)
 
 
 def _atomic_write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(
-        prefix=f".{path.name}.{uuid4().hex}.", suffix=".tmp", dir=path.parent
-    )
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8-sig", newline="") as stream:
-            writer = csv.DictWriter(
-                stream,
-                fieldnames=ARTIFACT_FIELDS,
-                extrasaction="raise",
-                lineterminator="\n",
-            )
-            writer.writeheader()
-            writer.writerows(rows)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+    from stage_center._raw_store_parts.filesystem_io import __atomic_write_csv_body as _v4_impl
+    return _v4_impl(globals(), path, rows)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -157,29 +915,8 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _safe_relative(root: Path, relative: str) -> Path:
-    if (
-        not isinstance(relative, str)
-        or not relative
-        or "\\" in relative
-        or relative.startswith("/")
-        or (len(relative) > 1 and relative[1] == ":")
-    ):
-        raise RawStoreError("path must be normalized and relative")
-    parsed = PurePosixPath(relative)
-    if parsed.as_posix() != relative or any(part in {"", ".", ".."} for part in parsed.parts):
-        raise RawStoreError("path must be normalized and relative")
-    current = root
-    for part in Path(relative).parts:
-        current = current / part
-        if current.is_symlink():
-            raise RawStoreError("symlink component is forbidden")
-    resolved_root = root.resolve()
-    resolved_candidate = current.resolve()
-    try:
-        resolved_candidate.relative_to(resolved_root)
-    except ValueError as error:
-        raise RawStoreError("path escapes store root") from error
-    return current
+    from stage_center._raw_store_parts.filesystem_io import __safe_relative_body as _v4_impl
+    return _v4_impl(globals(), root, relative)
 
 
 def _validate_date(value: str) -> str:
@@ -203,6 +940,17 @@ def _stage(stage_id: str):
         if stage.stage_id == stage_id:
             return stage
     raise RawStoreError(f"unknown stage {stage_id!r}")
+
+
+def _expected_bundle_markets(stage_id: str, trade_date: str) -> tuple[str, ...]:
+    stage = _stage(stage_id)
+    try:
+        eligible = eligible_stage_markets(stage.markets, trade_date)
+    except ValueError as error:
+        raise RawStoreError(str(error)) from error
+    if not eligible:
+        raise RawStoreError("no securities market is open for this stage date")
+    return eligible
 
 
 def _role_for(stage_id: str, market: str) -> str:
@@ -231,24 +979,8 @@ def _parse_timestamp(value: Any, label: str) -> datetime:
 
 
 def _window_bounds(trade_date: str, stage_id: str, market: str) -> tuple[datetime, datetime]:
-    stage = _stage(stage_id)
-    if market not in stage.markets:
-        raise RawStoreError(f"market {market!r} is not scheduled for {stage_id!r}")
-    if stage_id == "STAGE_0925":
-        start, cutoff = (
-            ("09:20:00", "09:25:05")
-            if market == "A_SHARE"
-            else ("09:15:00", "09:20:05")
-        )
-    else:
-        start, cutoff = stage.window.split("-")[0], stage.cutoff
-        start = start if len(start) == 8 else f"{start}:00"
-        cutoff = cutoff if len(cutoff) == 8 else f"{cutoff}:00"
-    day = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
-    return (
-        _parse_timestamp(f"{day} {start}", "window start"),
-        _parse_timestamp(f"{day} {cutoff}", "window cutoff"),
-    )
+    from stage_center._raw_store_parts.codec import __window_bounds_body as _v4_impl
+    return _v4_impl(globals(), trade_date, stage_id, market)
 
 
 def validate_rows(
@@ -257,45 +989,20 @@ def validate_rows(
     trade_date: str,
     stage_id: str,
     market: str,
+    allow_temporal_false_observation: bool = False,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     """Validate the frozen 19-field raw shape without dropping evidence."""
-    _validate_date(trade_date)
-    expected_market = _MARKET_CODE.get(market)
-    if expected_market is None:
-        raise RawStoreError(f"unknown market {market!r}")
-    lower, upper = _window_bounds(trade_date, stage_id, market)
-    validated: list[dict[str, Any]] = []
-    issues: list[str] = []
-    for index, source in enumerate(rows):
-        if not isinstance(source, Mapping) or set(source) != set(RAW_FIELDS):
-            issues.append(f"row {index}: raw row must contain exactly 19 fields")
-            continue
-        row = dict(source)
-        code = str(row.get("code") or "").upper()
-        if not expected_market.fullmatch(code):
-            issues.append(f"row {index}: invalid {market} code")
-            continue
-        try:
-            update = _parse_timestamp(row.get("update_time"), "update_time")
-            window_start = _parse_timestamp(row.get("window_start"), "window_start")
-            window_end = _parse_timestamp(row.get("window_end"), "window_end")
-        except RawStoreError as error:
-            issues.append(f"row {index}: {error}")
-            continue
-        if any(
-            timestamp.strftime("%Y%m%d") != trade_date
-            for timestamp in (update, window_start, window_end)
-        ):
-            issues.append(f"row {index}: date mismatch")
-            continue
-        if not lower <= window_start <= window_end <= upper or update != window_end:
-            issues.append(f"row {index}: temporal cutoff/window violation")
-            continue
-        if row.get("temporal_cutoff_safe") is not True:
-            issues.append(f"row {index}: temporal_cutoff_safe must be true")
-            continue
-        validated.append(row)
-    return validated, issues
+    from stage_center._raw_store_parts.receipt_identity import _validate_rows_body as _v4_impl
+    futu_fixed_projection = (
+        allow_temporal_false_observation is not True
+        and _futu_rtd_rows_match_frozen_projection(
+            rows, trade_date=trade_date, stage_id=stage_id, market=market
+        )
+    )
+    return _v4_impl(
+        globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market,
+        allow_temporal_false_observation=(allow_temporal_false_observation is True or futu_fixed_projection),
+    )
 
 
 def _status(
@@ -304,22 +1011,8 @@ def _status(
     issues: Sequence[str],
     cannot_confirm: Sequence[str],
 ) -> str:
-    if source_status == "READ_OK":
-        source_status = "READY"
-    elif source_status == "READ_FAILED":
-        source_status = "CANNOT_CONFIRM"
-    if source_status not in RAW_STATUSES:
-        raise RawStoreError(f"unknown source status {source_status!r}")
-    if not rows:
-        return "READY_EMPTY" if source_status == "READY" and not issues and not cannot_confirm else "CANNOT_CONFIRM"
-    # Invalid rows are never silently downgraded to an apparently healthy
-    # partial result.  Missing symbols supplied by an adapter are explicit
-    # partial evidence; malformed rows are fail-closed CANNOT_CONFIRM.
-    if issues or source_status == "CANNOT_CONFIRM":
-        return "CANNOT_CONFIRM"
-    if source_status == "READY":
-        return "READY" if not cannot_confirm else "CANNOT_CONFIRM"
-    return "PARTIAL_WITH_ROWS"
+    from stage_center._raw_store_parts.codec import __status_body as _v4_impl
+    return _v4_impl(globals(), source_status, rows, issues, cannot_confirm)
 
 
 def _coverage(requested_rows: int, source_rows: int) -> float:
@@ -346,22 +1039,8 @@ class RawStore:
             yield
 
     def _load_latest(self) -> dict[str, Any]:
-        if not self.latest_path.exists():
-            return {
-                "schema_version": RAW_LATEST_SCHEMA_VERSION,
-                "owner": "stage_center",
-                "entries": {},
-                **SAFETY_FLAGS,
-            }
-        latest = _read_json(self.latest_path)
-        if latest.get("schema_version") != RAW_LATEST_SCHEMA_VERSION or latest.get("owner") != "stage_center":
-            raise RawStoreError("latest.json schema/owner mismatch")
-        if not isinstance(latest.get("entries"), Mapping):
-            raise RawStoreError("latest.json entries missing")
-        for key in SAFETY_FLAGS:
-            if latest.get(key) is not False:
-                raise RawStoreError(f"latest safety flag {key!r} must be false")
-        return latest
+        from stage_center._raw_store_parts.codec import _RawStore__load_latest_body as _v4_impl
+        return _v4_impl(globals(), self)
 
     @staticmethod
     def _role(stage_id: str, market: str) -> str:
@@ -381,90 +1060,8 @@ class RawStore:
         run_id: str,
         expected_owner: str = "stage_center",
     ) -> dict[str, Any]:
-        _validate_date(trade_date)
-        _stage(stage_id)
-        role = self._role(stage_id, market)
-        _validate_slug(run_id, "run_id")
-        prefix = f"runs/{trade_date}/{role}/{run_id}"
-        run_dir = _safe_relative(self.root, prefix)
-        artifact = _safe_relative(self.root, f"{prefix}/artifact.csv")
-        manifest_path = _safe_relative(self.root, f"{prefix}/manifest.json")
-        receipt_path = _safe_relative(self.root, f"{prefix}/receipt.json")
-        if not run_dir.is_dir() or not all(path.is_file() for path in (artifact, manifest_path, receipt_path)):
-            raise RawStoreError("run trio incomplete")
-        manifest = _read_json(manifest_path)
-        receipt = _read_json(receipt_path)
-        if manifest.get("schema_version") != RAW_MANIFEST_SCHEMA_VERSION:
-            raise RawStoreError("manifest schema mismatch")
-        if receipt.get("schema_version") != RAW_RECEIPT_SCHEMA_VERSION:
-            raise RawStoreError("receipt schema mismatch")
-        for payload, label in ((manifest, "manifest"), (receipt, "receipt")):
-            if payload.get("owner") != expected_owner:
-                raise RawStoreError(f"{label} owner mismatch")
-            if payload.get("trade_date") != trade_date or payload.get("stage_id") != stage_id or payload.get("market") != market:
-                raise RawStoreError(f"{label} identity mismatch")
-            if payload.get("run_id") != run_id:
-                raise RawStoreError(f"{label} run_id mismatch")
-            for key in SAFETY_FLAGS:
-                if payload.get(key) is not False:
-                    raise RawStoreError(f"{label} safety flag {key!r} must be false")
-        expected_artifact = f"{prefix}/artifact.csv"
-        if manifest.get("artifact_relative") != expected_artifact:
-            raise RawStoreError("manifest artifact path mismatch")
-        if receipt.get("artifact_relative") != expected_artifact:
-            raise RawStoreError("receipt artifact path mismatch")
-        actual_artifact_sha = _sha_file(artifact)
-        if manifest.get("artifact_sha256") != actual_artifact_sha or receipt.get("artifact_sha256") != actual_artifact_sha:
-            raise RawStoreError("artifact sha mismatch")
-        with artifact.open("r", encoding="utf-8-sig", newline="") as stream:
-            reader = csv.DictReader(stream)
-            if tuple(reader.fieldnames or ()) != ARTIFACT_FIELDS:
-                raise RawStoreError("raw artifact fields mismatch")
-            rows = list(reader)
-        row_count = len(rows)
-        if manifest.get("row_count") != row_count or receipt.get("row_count") != row_count:
-            raise RawStoreError("row_count mismatch")
-        canonical_manifest_sha = canonical_sha(manifest)
-        if receipt.get("manifest_sha256") != canonical_manifest_sha:
-            raise RawStoreError("manifest sha mismatch")
-        status = receipt.get("status")
-        if status not in RAW_STATUSES or manifest.get("status") != status:
-            raise RawStoreError("raw status mismatch")
-        if status == "READY" and (row_count <= 0 or manifest.get("temporal_cutoff_safe") is not True):
-            raise RawStoreError("READY lacks rows or temporal proof")
-        if status == "READY_EMPTY" and row_count != 0:
-            raise RawStoreError("READY_EMPTY contains rows")
-        if status == "PARTIAL_WITH_ROWS" and row_count <= 0:
-            raise RawStoreError("PARTIAL_WITH_ROWS lacks rows")
-        return {
-            "owner": expected_owner,
-            "trade_date": trade_date,
-            "stage_id": stage_id,
-            "market": market,
-            "role": role,
-            "run_id": run_id,
-            "status": status,
-            "artifact_relative": expected_artifact,
-            "manifest_relative": f"{prefix}/manifest.json",
-            "receipt_relative": f"{prefix}/receipt.json",
-            "artifact_sha256": actual_artifact_sha,
-            "manifest_sha256": canonical_manifest_sha,
-            "receipt_sha256": canonical_sha(receipt),
-            "receipt_file_sha256": _sha_file(receipt_path),
-            "row_count": row_count,
-            "requested_rows": manifest.get("requested_rows", row_count),
-            "source_rows": manifest.get("source_rows", row_count),
-            "coverage_ratio": manifest.get("coverage_ratio", 1.0),
-            "missing_symbols": list(manifest.get("missing_symbols", [])),
-            "source_evidence": list(manifest.get("source_evidence", [])),
-            "cannot_confirm": list(manifest.get("cannot_confirm", [])),
-            "calendar": dict(manifest.get("calendar", calendar_provenance())),
-            "source_id": receipt.get("source_id"),
-            "source_status": receipt.get("source_status"),
-            "idempotency_key": receipt.get("idempotency_key"),
-            "window": receipt.get("window"),
-            "cutoff_at": receipt.get("cutoff_at"),
-        }
+        from stage_center._raw_store_parts.transaction_read import _RawStore__verify_run_paths_body as _v4_impl
+        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, run_id=run_id, expected_owner=expected_owner)
 
     def verify_run(self, trade_date: str, stage_id: str, market: str, run_id: str) -> dict[str, Any]:
         return self._verify_run_paths(
@@ -505,229 +1102,18 @@ class RawStore:
         missing_symbols: Sequence[str] = (),
         window: str | None = None,
         cutoff_at: str | None = None,
+        research_observation_contract: str | None = None,
     ) -> dict[str, Any]:
-        _validate_date(trade_date)
-        _stage(stage_id)
-        if market not in _stage(stage_id).markets:
-            raise RawStoreError(f"market {market!r} is not scheduled for {stage_id!r}")
-        if not isinstance(source_id, str) or not source_id or "/" in source_id or "\\" in source_id:
-            raise RawStoreError("source_id is unsafe")
-        validated, issues = validate_rows(rows, trade_date=trade_date, stage_id=stage_id, market=market)
-        status = _status(source_status, validated, issues, cannot_confirm)
-        normalized_source_status = {"READ_OK": "READY", "READ_FAILED": "CANNOT_CONFIRM"}.get(source_status, source_status)
-        requested = len(rows) if requested_rows is None else int(requested_rows)
-        if requested < 0:
-            raise RawStoreError("requested_rows must be non-negative")
-        missing = list(dict.fromkeys(str(item) for item in missing_symbols))
-        evidence = list(dict.fromkeys(str(item) for item in (*source_evidence, *cannot_confirm, *issues)))
-        cannot = list(dict.fromkeys(str(item) for item in (*cannot_confirm, *issues)))
-        source_rows = len(validated)
-        coverage = _coverage(requested, source_rows)
-        input_sha = canonical_sha(
-            {
-                "source_id": source_id,
-                "source_status": normalized_source_status,
-                "rows": validated,
-                "cannot_confirm": cannot,
-                "source_evidence": evidence,
-                "requested_rows": requested,
-                "missing_symbols": missing,
-            }
-        )
-        idem_key = canonical_sha(
-            {
-                "owner": "stage_center",
-                "trade_date": trade_date,
-                "stage_id": stage_id,
-                "market": market,
-                "source_id": source_id,
-                "input_sha256": input_sha,
-            }
-        )
-        role = self._role(stage_id, market)
-        run_id = f"{trade_date}-{role.lower()}-{idem_key[:16]}"
-        prefix = f"runs/{trade_date}/{role}/{run_id}"
-        artifact_relative = f"{prefix}/artifact.csv"
-        manifest_relative = f"{prefix}/manifest.json"
-        receipt_relative = f"{prefix}/receipt.json"
-        manifest: dict[str, Any]
-        receipt: dict[str, Any]
-        with self._lock():
-            latest = self._load_latest()
-            key = self._entry_key(trade_date, stage_id, market)
-            existing = latest["entries"].get(key)
-            if isinstance(existing, Mapping):
-                if existing.get("idempotency_key") != idem_key:
-                    raise RawStoreError(f"raw slot conflict: {key}")
-                verified = self.verify_run(trade_date, stage_id, market, str(existing.get("run_id")))
-                for field in ("owner", "status", "run_id", "artifact_sha256", "manifest_sha256", "receipt_sha256"):
-                    if existing.get(field) != verified.get(field):
-                        raise RawStoreError(f"latest pointer {field} mismatch")
-                return {"ok": True, "already_exists": True, **verified}
-            run_dir = _safe_relative(self.root, prefix)
-            if run_dir.exists():
-                raise RawStoreError("immutable run path already exists without latest pointer")
-            run_dir.mkdir(parents=True, exist_ok=False)
-            artifact_path = _safe_relative(self.root, artifact_relative)
-            _atomic_write_csv(
-                artifact_path,
-                [_artifact_row(trade_date, row) for row in validated],
-            )
-            artifact_sha = _sha_file(artifact_path)
-            manifest = {
-                "schema_version": RAW_MANIFEST_SCHEMA_VERSION,
-                "owner": "stage_center",
-                "trade_date": trade_date,
-                "stage_id": stage_id,
-                "market": market,
-                "role": role,
-                "run_id": run_id,
-                "status": status,
-                "source_id": source_id,
-                "source_status": normalized_source_status,
-                "artifact_relative": artifact_relative,
-                "artifact_sha256": artifact_sha,
-                "row_count": source_rows,
-                "temporal_cutoff_safe": status == "READY",
-                "requested_rows": requested,
-                "source_rows": source_rows,
-                "coverage_ratio": coverage,
-                "missing_symbols": missing,
-                "source_evidence": evidence,
-                "cannot_confirm": cannot,
-                "input_sha256": input_sha,
-                "calendar": calendar_provenance(),
-                **SAFETY_FLAGS,
-            }
-            receipt = {
-                "schema_version": RAW_RECEIPT_SCHEMA_VERSION,
-                "owner": "stage_center",
-                "trade_date": trade_date,
-                "stage_id": stage_id,
-                "market": market,
-                "role": role,
-                "run_id": run_id,
-                "status": status,
-                "source_id": source_id,
-                "source_status": normalized_source_status,
-                "artifact_relative": artifact_relative,
-                "artifact_sha256": artifact_sha,
-                "manifest_sha256": canonical_sha(manifest),
-                "row_count": source_rows,
-                "temporal_cutoff_safe": status == "READY",
-                "requested_rows": requested,
-                "source_rows": source_rows,
-                "coverage_ratio": coverage,
-                "missing_symbols": missing,
-                "source_evidence": evidence,
-                "cannot_confirm": cannot,
-                "input_sha256": input_sha,
-                "idempotency_key": idem_key,
-                "window": window,
-                "cutoff_at": cutoff_at,
-                "calendar": calendar_provenance(),
-                **SAFETY_FLAGS,
-            }
-            _atomic_write_json(_safe_relative(self.root, manifest_relative), manifest)
-            _atomic_write_json(_safe_relative(self.root, receipt_relative), receipt)
-            verified = self._verify_run_paths(
-                trade_date=trade_date,
-                stage_id=stage_id,
-                market=market,
-                run_id=run_id,
-            )
-            entry = {
-                "owner": "stage_center",
-                "trade_date": trade_date,
-                "stage_id": stage_id,
-                "market": market,
-                "role": role,
-                "run_id": run_id,
-                "status": status,
-                "idempotency_key": idem_key,
-                "artifact_relative": artifact_relative,
-                "manifest_relative": manifest_relative,
-                "receipt_relative": receipt_relative,
-                "artifact_sha256": verified["artifact_sha256"],
-                "manifest_sha256": verified["manifest_sha256"],
-                "receipt_sha256": verified["receipt_sha256"],
-                "row_count": source_rows,
-                **SAFETY_FLAGS,
-            }
-            self._merge_latest(latest, key, entry)
-            _atomic_write_json(self.latest_path, latest)
-            return {"ok": True, **verified}
+        from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_body as _v4_impl
+        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)
 
     def _load_bundle_latest(self) -> dict[str, Any]:
-        path = self.root / "bundle_latest.json"
-        if not path.exists():
-            return {
-                "schema_version": RAW_BUNDLE_LATEST_SCHEMA_VERSION,
-                "owner": "stage_center",
-                "entries": {},
-                **SAFETY_FLAGS,
-            }
-        latest = _read_json(path)
-        if latest.get("schema_version") != RAW_BUNDLE_LATEST_SCHEMA_VERSION or latest.get("owner") != "stage_center":
-            raise RawStoreError("bundle_latest schema/owner mismatch")
-        if not isinstance(latest.get("entries"), Mapping):
-            raise RawStoreError("bundle_latest entries missing")
-        for key in SAFETY_FLAGS:
-            if latest.get(key) is not False:
-                raise RawStoreError(f"bundle_latest safety flag {key!r} must be false")
-        return latest
+        from stage_center._raw_store_parts.codec import _RawStore__load_bundle_latest_body as _v4_impl
+        return _v4_impl(globals(), self)
 
     def _verify_bundle(self, trade_date: str, stage_id: str, bundle_id: str) -> dict[str, Any]:
-        prefix = f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}"
-        receipt_relative = f"{prefix}/receipt.json"
-        receipt_path = _safe_relative(self.root, receipt_relative)
-        if not receipt_path.is_file():
-            raise RawStoreError("bundle receipt missing")
-        receipt = _read_json(receipt_path)
-        if receipt.get("schema_version") != RAW_BUNDLE_SCHEMA_VERSION or receipt.get("owner") != "stage_center":
-            raise RawStoreError("bundle receipt schema/owner mismatch")
-        if receipt.get("trade_date") != trade_date or receipt.get("stage_id") != stage_id or receipt.get("bundle_id") != bundle_id:
-            raise RawStoreError("bundle receipt identity mismatch")
-        if receipt.get("receipt_relative") != receipt_relative:
-            raise RawStoreError("bundle receipt path mismatch")
-        for key in SAFETY_FLAGS:
-            if receipt.get(key) is not False:
-                raise RawStoreError(f"bundle receipt safety flag {key!r} must be false")
-        markets = receipt.get("markets")
-        if not isinstance(markets, Mapping):
-            raise RawStoreError("bundle markets missing")
-        expected_markets = set(_stage(stage_id).markets)
-        if set(markets) != expected_markets:
-            raise RawStoreError("bundle market set mismatch")
-        observed_statuses: set[str] = set()
-        for market, entry in markets.items():
-            if not isinstance(entry, Mapping):
-                raise RawStoreError("bundle market entry malformed")
-            verified = self.verify_run(trade_date, stage_id, market, str(entry.get("run_id")))
-            if entry.get("receipt_sha256") != verified["receipt_sha256"] or entry.get("manifest_sha256") != verified["manifest_sha256"]:
-                raise RawStoreError("bundle market SHA mismatch")
-            observed_statuses.add(verified["status"])
-        if observed_statuses == {"READY"}:
-            expected_status = "READY"
-        elif observed_statuses == {"READY_EMPTY"}:
-            expected_status = "READY_EMPTY"
-        elif observed_statuses == {"CANNOT_CONFIRM"} and all(
-            self.verify_run(trade_date, stage_id, market, str(markets[market].get("run_id")))["row_count"] == 0
-            for market in markets
-        ):
-            expected_status = "CANNOT_CONFIRM"
-        else:
-            expected_status = "PARTIAL_WITH_ROWS"
-        if receipt.get("status") != expected_status:
-            raise RawStoreError("bundle status summary mismatch")
-        if receipt.get("calendar") != calendar_provenance():
-            raise RawStoreError("bundle calendar provenance mismatch")
-        return {
-            "receipt": receipt,
-            "receipt_sha256": canonical_sha(receipt),
-            "receipt_file_sha256": _sha_file(receipt_path),
-            "receipt_relative": receipt_relative,
-        }
+        from stage_center._raw_store_parts.transaction_read import _RawStore__verify_bundle_body as _v4_impl
+        return _v4_impl(globals(), self, trade_date, stage_id, bundle_id)
 
     def publish_bundle(
         self,
@@ -737,73 +1123,8 @@ class RawStore:
         status: str,
         markets: Mapping[str, Mapping[str, Any]],
     ) -> dict[str, Any]:
-        _validate_date(trade_date)
-        _stage(stage_id)
-        if status not in RAW_STATUSES:
-            raise RawStoreError(f"unknown bundle status {status!r}")
-        expected_markets = set(_stage(stage_id).markets)
-        if set(markets) != expected_markets:
-            raise RawStoreError("bundle market set mismatch")
-        summary_seed = {
-            "schema_version": RAW_BUNDLE_SCHEMA_VERSION,
-            "owner": "stage_center",
-            "trade_date": trade_date,
-            "stage_id": stage_id,
-            "status": status,
-            "markets": {key: dict(value) for key, value in sorted(markets.items())},
-            "calendar": calendar_provenance(),
-            **SAFETY_FLAGS,
-        }
-        bundle_id = f"{trade_date}-{stage_id.lower()}-{canonical_sha(summary_seed)[:16]}"
-        receipt_relative = f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}/receipt.json"
-        key = f"{trade_date}/{stage_id}"
-        receipt = {**summary_seed, "bundle_id": bundle_id, "receipt_relative": receipt_relative}
-        with self._lock():
-            latest = self._load_bundle_latest()
-            existing = latest["entries"].get(key)
-            if isinstance(existing, Mapping):
-                if existing.get("bundle_id") != bundle_id:
-                    raise RawStoreError(f"bundle slot conflict: {key}")
-                verified = self._verify_bundle(trade_date, stage_id, bundle_id)
-                if existing.get("receipt_sha256") != verified["receipt_sha256"]:
-                    raise RawStoreError("bundle latest SHA mismatch")
-                return {
-                    "ok": True,
-                    "already_exists": True,
-                    "status": status,
-                    "bundle_id": bundle_id,
-                    "receipt_relative": receipt_relative,
-                    "receipt_sha256": verified["receipt_sha256"],
-                    "markets": {key: dict(value) for key, value in markets.items()},
-                    **SAFETY_FLAGS,
-                }
-            receipt_path = _safe_relative(self.root, receipt_relative)
-            if receipt_path.exists():
-                raise RawStoreError("immutable bundle path already exists without latest pointer")
-            _atomic_write_json(receipt_path, receipt)
-            verified = self._verify_bundle(trade_date, stage_id, bundle_id)
-            entries = dict(latest.get("entries", {}))
-            entries[key] = {
-                "owner": "stage_center",
-                "trade_date": trade_date,
-                "stage_id": stage_id,
-                "bundle_id": bundle_id,
-                "status": status,
-                "receipt_relative": receipt_relative,
-                "receipt_sha256": verified["receipt_sha256"],
-                **SAFETY_FLAGS,
-            }
-            latest["entries"] = entries
-            _atomic_write_json(self.root / "bundle_latest.json", latest)
-            return {
-                "ok": status in {"READY", "PARTIAL_WITH_ROWS", "READY_EMPTY"},
-                "status": status,
-                "bundle_id": bundle_id,
-                "receipt_relative": receipt_relative,
-                "receipt_sha256": verified["receipt_sha256"],
-                "markets": {key: dict(value) for key, value in markets.items()},
-                **SAFETY_FLAGS,
-            }
+        from stage_center._raw_store_parts.transaction_publish import _RawStore_publish_bundle_body as _v4_impl
+        return _v4_impl(globals(), self, trade_date=trade_date, stage_id=stage_id, status=status, markets=markets)
 
     def read_verified_bundle(self, trade_date: str, stage_id: str) -> dict[str, Any]:
         latest = self._load_bundle_latest()
@@ -832,18 +1153,7 @@ def publish_raw_artifact(
     missing_symbols: Sequence[str] = (),
     window: str | None = None,
     cutoff_at: str | None = None,
+    research_observation_contract: str | None = None,
 ) -> dict[str, Any]:
-    return RawStore(root).publish(
-        trade_date=trade_date,
-        stage_id=stage_id,
-        market=market,
-        source_id=source_id,
-        source_status=source_status,
-        rows=rows,
-        cannot_confirm=cannot_confirm,
-        source_evidence=source_evidence,
-        requested_rows=requested_rows,
-        missing_symbols=missing_symbols,
-        window=window,
-        cutoff_at=cutoff_at,
-    )
+    from stage_center._raw_store_parts.transaction_publish import _publish_raw_artifact_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date=trade_date, stage_id=stage_id, market=market, source_id=source_id, source_status=source_status, rows=rows, cannot_confirm=cannot_confirm, source_evidence=source_evidence, requested_rows=requested_rows, missing_symbols=missing_symbols, window=window, cutoff_at=cutoff_at, research_observation_contract=research_observation_contract)

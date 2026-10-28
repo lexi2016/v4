@@ -458,6 +458,7 @@ def test_hk_0920_calendar_gate_ignores_a_share_closure(monkeypatch: pytest.Monke
         "resolve_market_states",
         lambda _calendar, _date: {
             "a_share": TradingDayState.NON_TRADING_DAY,
+            "hk_securities": TradingDayState.FULL_TRADING_DAY,
             "hk_connect": TradingDayState.FULL_TRADING_DAY,
         },
     )
@@ -465,6 +466,52 @@ def test_hk_0920_calendar_gate_ignores_a_share_closure(monkeypatch: pytest.Monke
     result = capture._calendar_gate(TRADE_DATE)
 
     assert result["status"] == "ELIGIBLE"
+
+
+def test_hk_open_connect_closed_day_reaches_existing_capture_fixture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from contracts.trading_calendar import TradingDayState
+    from ops import run_hkconnect_0915_0920_capture as capture
+
+    trade_date = "20260925"
+    monkeypatch.setitem(globals(), "TRADE_DATE", trade_date)
+    monkeypatch.setitem(globals(), "SIGNAL_DATE", "20260924")
+    gate = capture._calendar_gate(trade_date)
+    assert gate["status"] == "ELIGIBLE"
+    assert gate["calendar"]["hk_securities"] == TradingDayState.FULL_TRADING_DAY.value
+    assert gate["calendar"]["hk_connect"] == TradingDayState.NON_TRADING_DAY.value
+
+    data_root, shared_root, package_root, shared, consumer, _calls, _sha = _shared_fixture(tmp_path)
+    invoked: list[str] = []
+    run_capture = shared.run_capture
+
+    def capture_fixture(root, date, futu_python, **kwargs):
+        invoked.append(date)
+        return run_capture(root, date, futu_python, **kwargs)
+
+    result = materialize_hkconnect_0915_0920(
+        data_root,
+        shared_root,
+        package_root,
+        trade_date,
+        Path(__file__),
+        shared_module=shared,
+        consumer_module=consumer,
+        capture_runner=capture_fixture,
+    )
+    assert result["status"] == "MATERIALIZED_FROM_SHARED_HK_0920"
+    assert invoked == [trade_date]
+    assert result["production_allowed"] is False
+    assert result["buy_gate_updated"] is False
+    assert result["orders_sent"] is False
+
+
+def test_hk_securities_holiday_skips_existing_capture_owner() -> None:
+    from ops import run_hkconnect_0915_0920_capture as capture
+
+    result = capture._calendar_gate("20260217")
+    assert result["status"] == "SKIPPED_NON_TRADING_DAY"
 
 
 def test_scheduled_slot_cli_passes_all_shared_hk_roots(

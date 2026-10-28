@@ -33,6 +33,7 @@ from contracts.trading_calendar import (
     resolve_market_states,
 )
 from infrastructure.data_store import NativeDataStore, _date, _sha256
+from infrastructure.formula_generation import FormulaGenerationError, read_formula_generation
 from infrastructure.market_time import shanghai_now
 from stage_center.consumer import StageSelectionConsumer
 
@@ -69,7 +70,7 @@ def _evaluate_calendar(trade_date: str) -> dict[str, Any]:
     )
 
     decision = evaluate_run_policy(
-        RunPolicy.A_OR_HK_CONNECT_TRADE_DAY,
+        RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY,
         trade_date,
         "2140",
         market_scope=MarketScope.CROSS_MARKET,
@@ -104,6 +105,7 @@ class DailyContext:
         shared_data_root: Path | None,
         selector_data_root: Path | None,
         stage_selection_root: Path | None = None,
+        formula_generation_pointer: Path | None = None,
     ) -> None:
         resolved_business = business_date or trade_date
         if not resolved_business:
@@ -119,6 +121,9 @@ class DailyContext:
         )
         self.stage_selection_root = (
             Path(stage_selection_root) if stage_selection_root else None
+        )
+        self.formula_generation_pointer = (
+            Path(formula_generation_pointer) if formula_generation_pointer else None
         )
 
     @property
@@ -352,13 +357,17 @@ def _build_a_share_close_review(ctx: DailyContext) -> dict[str, Any]:
     to build_a_share_close_review through a pointer file (the builder consumes a
     pointer FILE whose contents name the parquet, not the parquet directly).
     """
-    if ctx.selector_data_root is None:
+    if ctx.selector_data_root is None and ctx.formula_generation_pointer is None:
         return {
             "status": "SOURCE_MISSING",
             "detail": "selector data root not configured",
         }
     try:
-        panel = resolve_selector_panel(ctx.selector_data_root, _ctx_business_date(ctx))
+        panel = resolve_selector_panel(
+            ctx.selector_data_root or ctx.formula_generation_pointer.parent,
+            _ctx_business_date(ctx),
+            formula_generation_pointer=ctx.formula_generation_pointer,
+        )
     except FileNotFoundError:
         return {"status": "SOURCE_MISSING", "detail": "selector panel unresolved"}
     pointer_dir = ctx.data_root / ".daily_tmp"
@@ -423,15 +432,36 @@ _STEPS: list[tuple[str, Callable[[DailyContext], dict[str, Any]]]] = [
 ]
 
 
-def resolve_selector_panel(selector_data_root: Path, trade_date: str) -> Path:
+def resolve_selector_panel(
+    selector_data_root: Path | None,
+    trade_date: str,
+    *,
+    formula_generation_pointer: Path | str | None = None,
+) -> Path:
     """Resolve the selector panel parquet/pointer under a selector data root.
 
     Tries, in order:
     1. The CURRENT_SELECTOR_READY_PANEL.txt pointer under data_layer_interface_current.
     2. Any selector_ready_*.parquet whose filename embeds the trade date.
     """
-    root = Path(selector_data_root)
     required_date = _date(trade_date)
+
+    if formula_generation_pointer is not None:
+        try:
+            generation = read_formula_generation(
+                formula_generation_pointer,
+                expected_target_date=required_date,
+                require_source=True,
+            )
+        except (FormulaGenerationError, OSError, UnicodeError, ValueError) as error:
+            raise FileNotFoundError(
+                f"strict formula generation unresolved for {required_date}: {error}"
+            ) from error
+        return Path(generation["selector"])
+
+    if selector_data_root is None:
+        raise FileNotFoundError(f"selector data root missing for {required_date}")
+    root = Path(selector_data_root)
 
     def _max_trade_date(panel: Path) -> str:
         """Read the panel's actual date coverage before accepting a pointer."""
@@ -500,6 +530,7 @@ def run_daily(
     shared_data_root: Path | None = None,
     selector_data_root: Path | None = None,
     stage_selection_root: Path | None = None,
+    formula_generation_pointer: Path | str | None = None,
 ) -> dict[str, Any]:
     resolved_business = _date(business_date or trade_date or shanghai_now().strftime("%Y%m%d"))
     try:
@@ -531,7 +562,7 @@ def run_daily(
                 "calendar_status": "CALENDAR_ERROR",
                 "trade_date": business_date,
                 "slot": "2140",
-                "policy": "A_OR_HK_CONNECT_TRADE_DAY",
+                "policy": "A_OR_HK_SECURITIES_TRADE_DAY",
                 "market_scope": "CROSS_MARKET",
                 "session_requirement": "DAY_ELIGIBILITY_ONLY",
                 "eligible_markets": [],
@@ -567,6 +598,7 @@ def run_daily(
         shared_data_root=shared_data_root,
         selector_data_root=selector_data_root,
         stage_selection_root=stage_selection_root,
+        formula_generation_pointer=Path(formula_generation_pointer) if formula_generation_pointer else None,
     )
     step_names = tuple(name for name, _ in _STEPS)
     results: dict[str, Any] = {}
@@ -649,6 +681,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--shared-data-root", type=Path, default=None)
     parser.add_argument("--selector-data-root", type=Path, default=None)
     parser.add_argument("--stage-selection-root", type=Path, default=None)
+    parser.add_argument("--formula-generation-pointer", type=Path, default=None)
     return parser
 
 
@@ -662,6 +695,7 @@ def main() -> int:
         shared_data_root=args.shared_data_root,
         selector_data_root=args.selector_data_root,
         stage_selection_root=args.stage_selection_root,
+        formula_generation_pointer=args.formula_generation_pointer,
     )
     try:
         print(json.dumps(receipt, ensure_ascii=False, sort_keys=True))

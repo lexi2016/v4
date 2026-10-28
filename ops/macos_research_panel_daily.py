@@ -12,9 +12,11 @@ explicit authority entry points rather than by this module's documentation.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as _datetime
 import hashlib
 import json
+import math
 import os
 import importlib.util
 import subprocess
@@ -25,6 +27,20 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
+from infrastructure.owned_io import SafeRoot
+from infrastructure.formula_generation import (
+    FormulaGenerationError,
+    is_v4_formula_state_owner,
+    read_formula_generation,
+)
+
+# Preserve direct-file CLI discovery of the sibling review modules.
+if __name__ == "__main__" and not __package__:
+    import sys as _v4_import_sys
+    from pathlib import Path as _v4_import_Path
+    _v4_import_sys.path.insert(0, str(_v4_import_Path(__file__).resolve().parents[1]))
+
+
 
 A_DAY_STRUCT = struct.Struct("<IIIIIfII")
 HK_DAY_STRUCT = struct.Struct("<IfffffII")
@@ -34,6 +50,8 @@ SAFETY_FLAGS = {
     "orders_sent": False,
 }
 LANE_CHOICES = ("A", "HK", "ALL")
+FORMULA_GENERATION_SCHEMA = "v4.a_formula.generation_pointer.v1"
+FORMULA_GENERATION_POINTER_NAME = "CURRENT_FORMULA_GENERATION.json"
 
 
 class SnapshotGateError(ValueError):
@@ -49,6 +67,16 @@ COMMON_A_PREFIXES = {
     "bj": ("430", "83", "87", "88", "92"),
 }
 AUTHORITY_DAY_MINIMUM_DEFAULT = 1
+DEFAULT_A_SYNC_RUN_BUDGET_SECONDS = 540.0
+A_SYNC_RUN_BUDGET_ENV = "V35_RESEARCH_PANEL_A_SYNC_RUN_BUDGET_SECONDS"
+A_SYNC_HOST_ENV = "V35_A_SYNC_HOST"
+A_FORMULA_GENERATION_POINTER_ENV = "V35_RESEARCH_PANEL_A_FORMULA_GENERATION_POINTER"
+
+
+def _resolve_a_sync_run_budget(raw: Any | None) -> float:
+    """Resolve the A sync wall-clock budget, rejecting unsafe values."""
+    from ops._macos_research_panel_daily_parts.panel_primitives import __resolve_a_sync_run_budget_body as _v4_impl
+    return _v4_impl(globals(), raw)
 
 
 def _today_shanghai() -> str:
@@ -65,24 +93,8 @@ def _scheduled_day_is_cross_market_trading_day(target_date: str) -> bool:
     The calendar is loaded from this source tree, never inferred from the
     weekday alone.
     """
-    try:
-        from contracts.trading_calendar import (
-            TradingDayState,
-            load_market_calendar,
-            resolve_market_states,
-        )
-
-        calendar = load_market_calendar(Path(__file__).resolve().parents[1] / "contracts" / "market_calendar_2026.json")
-        states = resolve_market_states(calendar, _date(target_date))
-    except Exception:
-        return False
-    return all(
-        states.get(market) in {
-            TradingDayState.FULL_TRADING_DAY,
-            TradingDayState.HALF_TRADING_DAY_AM,
-        }
-        for market in ("a_share", "hk_securities")
-    )
+    from ops._macos_research_panel_daily_parts.calendar_schedule import __scheduled_day_is_cross_market_trading_day_body as _v4_impl
+    return _v4_impl(globals(), target_date)
 
 
 def _frame_records(frame: Any) -> list[dict[str, Any]]:
@@ -104,6 +116,14 @@ def _compact_datetime(value: Any) -> str:
 def _canonical_sha(payload: Any) -> str:
     data = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(data).hexdigest()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _universe_code(row: Mapping[str, Any]) -> tuple[str, str, int]:
@@ -132,99 +152,8 @@ def collect_a_pytdx_rows(
     required_coverage_ratio: float = 1.0,
 ) -> dict[str, Any]:
     """Collect one exact-date A-share bar per universe code from pytdx HQ."""
-    target = _date(target_date)
-    universe: dict[str, tuple[str, str, int]] = {}
-    for source in _rows(universe_rows):
-        code, exchange, market = _universe_code(source)
-        universe[f"{code}.{exchange.upper()}"] = (code, exchange, market)
-    if len(universe) < minimum_rows:
-        raise SnapshotGateError(f"A minimum coverage requires {minimum_rows} universe rows, got {len(universe)}")
-    if client_factory is None:
-        from pytdx.hq import TdxHq_API
-
-        client_factory = TdxHq_API
-    if host is not None:
-        candidate_hosts = [("explicit", str(host), int(port or 7709))]
-    elif hq_hosts_override is not None:
-        candidate_hosts = [(str(name), str(address), int(candidate_port)) for name, address, candidate_port in hq_hosts_override]
-    else:
-        try:
-            from pytdx.config.hosts import hq_hosts
-
-            candidate_hosts = [(str(name), str(address), int(candidate_port)) for name, address, candidate_port in hq_hosts]
-        except (ImportError, TypeError, ValueError) as error:
-            raise SnapshotGateError("pytdx official hq_hosts are unavailable") from error
-    if not candidate_hosts:
-        raise SnapshotGateError("pytdx HQ host probe list is empty")
-
-    probe_code, _, probe_market = next(iter(sorted(universe.values())))
-    selected_client: Any | None = None
-    selected_host: tuple[str, str, int] | None = None
-    probe_errors: list[str] = []
-    for candidate in candidate_hosts:
-        name, address, candidate_port = candidate
-        client = client_factory()
-        try:
-            connected = client.connect(address, candidate_port)
-            if connected is False:
-                raise SnapshotGateError("connect returned false")
-            probe_response = client.get_security_bars(PYTDX_KLINE_DAY, probe_market, probe_code, 0, max(1, int(lookback)))
-            probe_ok = False
-            for raw in _frame_records(probe_response):
-                if _compact_datetime(raw.get("datetime") or raw.get("trade_date")) != target:
-                    continue
-                probe_ohlc = [_number(raw, field) for field in ("open", "high", "low", "close")]
-                if min(probe_ohlc) > 0 and probe_ohlc[1] >= probe_ohlc[2] and probe_ohlc[3] >= probe_ohlc[2] and probe_ohlc[3] <= probe_ohlc[1]:
-                    probe_ok = True
-                    break
-            if not probe_ok:
-                raise SnapshotGateError("probe exact-date coverage has no valid daily bar")
-            selected_client = client
-            selected_host = candidate
-            break
-        except Exception as error:
-            probe_errors.append(f"{name or address}:{candidate_port}:{error}")
-            disconnect = getattr(client, "disconnect", None)
-            if callable(disconnect):
-                disconnect()
-    if selected_client is None or selected_host is None:
-        raise SnapshotGateError("pytdx HQ host probe failed: " + ";".join(probe_errors))
-
-    client = selected_client
-    rows: list[dict[str, Any]] = []
-    try:
-        for _, (code, exchange, market) in sorted(universe.items()):
-            response = client.get_security_bars(PYTDX_KLINE_DAY, market, code, 0, max(1, int(lookback)))
-            for raw in _frame_records(response):
-                if _compact_datetime(raw.get("datetime") or raw.get("trade_date")) != target:
-                    continue
-                row = {
-                    "trade_date": target,
-                    "code": code,
-                    "exchange": exchange,
-                    "open": _number(raw, "open"),
-                    "high": _number(raw, "high"),
-                    "low": _number(raw, "low"),
-                    "close": _number(raw, "close"),
-                    "volume": int(round(_number(raw, "vol", "volume") * 100)),
-                    "turnover": _number(raw, "amount", "turnover"),
-                    "source": "PYTDX_HQ_DAILY",
-                }
-                if min(row["open"], row["high"], row["low"], row["close"]) <= 0 or row["high"] < row["low"] or row["close"] < row["low"] or row["close"] > row["high"]:
-                    continue
-                rows.append(row)
-                break
-    finally:
-        disconnect = getattr(client, "disconnect", None)
-        if callable(disconnect):
-            disconnect()
-    rows_by_code = {str(row["code"]): row for row in rows}
-    rows = [rows_by_code[code] for code, _, _ in sorted(universe.values()) if code in rows_by_code]
-    coverage = len(rows) / max(len(universe), 1)
-    if len(rows) < minimum_rows or coverage + 1e-12 < float(required_coverage_ratio):
-        raise SnapshotGateError(f"A exact-date coverage below gate: universe={len(universe)},rows={len(rows)},coverage={coverage:.8f}")
-    source_sha = _canonical_sha({"target_date": target, "rows": rows})
-    return {"status": "READY", "target_date": target, "rows": rows, "universe_count": len(universe), "row_count": len(rows), "coverage_rate": coverage, "source_sha256": source_sha, "sha256": source_sha, "selected_host": {"host": selected_host[1], "port": selected_host[2]}, **SAFETY_FLAGS}
+    from ops._macos_research_panel_daily_parts.a_market_capture import _collect_a_pytdx_rows_body as _v4_impl
+    return _v4_impl(globals(), universe_rows, target_date, client_factory=client_factory, host=host, port=port, hq_hosts_override=hq_hosts_override, lookback=lookback, minimum_rows=minimum_rows, required_coverage_ratio=required_coverage_ratio)
 
 
 def collect_hk_futu_rows(
@@ -236,141 +165,272 @@ def collect_hk_futu_rows(
     required_coverage_ratio: float = 0.0,
 ) -> dict[str, Any]:
     """Collect an exact-date full HK Connect snapshot from Futu OpenD."""
-    target = _date(target_date)
-    if context_factory is None:
-        def context_factory():
-            import futu
+    from ops._macos_research_panel_daily_parts.hk_market_capture import _collect_hk_futu_rows_body as _v4_impl
+    return _v4_impl(globals(), target_date, context_factory=context_factory, batch_size=batch_size, minimum_universe_count=minimum_universe_count, required_coverage_ratio=required_coverage_ratio)
 
-            return futu.OpenQuoteContext(host="127.0.0.1", port=11111)
-    context = context_factory()
-    universe: dict[str, str] = {}
-    snapshots: dict[str, dict[str, Any]] = {}
-    try:
-        for plate_code in HKCONNECT_PLATE_CODES:
-            return_code, frame = context.get_plate_stock(plate_code)
-            if return_code != 0:
-                raise SnapshotGateError(f"Futu plate lookup failed: {plate_code}")
-            for item in _frame_records(frame):
-                code = str(item.get("code") or "").strip().upper()
-                if code.startswith("HK."):
-                    universe[code] = str(item.get("stock_name") or item.get("name") or "").strip()
-        codes = sorted(universe)
-        minimum_universe = max(600, int(minimum_universe_count))
-        if len(codes) < minimum_universe:
-            raise SnapshotGateError(f"HK universe below minimum: {len(codes)} < {minimum_universe_count}")
-        step = max(1, int(batch_size))
-        for offset in range(0, len(codes), step):
-            return_code, frame = context.get_market_snapshot(codes[offset : offset + step])
-            if return_code != 0:
-                raise SnapshotGateError(f"Futu market snapshot failed at offset {offset}")
-            for item in _frame_records(frame):
-                code = str(item.get("code") or "").strip().upper()
-                if code in universe:
-                    snapshots[code] = item
-    finally:
-        close = getattr(context, "close", None)
-        if callable(close):
-            close()
-    rows: list[dict[str, Any]] = []
-    excluded: dict[str, list[str]] = {}
-    positive_volume_count = 0
-    positive_turnover_count = 0
-    required_fields = ("open_price", "high_price", "low_price", "last_price", "volume", "turnover")
-    for code in codes:
-        source = snapshots.get(code) or {}
-        if _compact_datetime(source.get("update_time")) != target:
-            excluded[code] = ["stale_or_missing_date"]
-            continue
-        missing = [field for field in required_fields if field not in source or source.get(field) in (None, "")]
-        if missing:
-            excluded[code] = [f"missing_{field}" for field in missing]
-            continue
-        try:
-            open_price = _number(source, "open_price")
-            high_price = _number(source, "high_price")
-            low_price = _number(source, "low_price")
-            last_price = _number(source, "last_price")
-            volume = _number(source, "volume")
-            turnover = _number(source, "turnover")
-        except (TypeError, ValueError, SnapshotGateError):
-            excluded[code] = ["non_numeric_fields"]
-            continue
-        reasons: list[str] = []
-        if volume > 0:
-            positive_volume_count += 1
-        else:
-            reasons.append("non_positive_volume")
-        if turnover > 0:
-            positive_turnover_count += 1
-        else:
-            reasons.append("non_positive_turnover")
-        if min(open_price, high_price, low_price, last_price) <= 0 or high_price < low_price or last_price < low_price or last_price > high_price:
-            reasons.append("non_positive_ohlc")
-        if reasons:
-            excluded[code] = reasons
-            continue
-        try:
-            row = {
-                "trade_date": target,
-                "code": code,
-                "name": str(source.get("name") or universe.get(code) or "").strip(),
-                "open": open_price,
-                "high": high_price,
-                "low": low_price,
-                "close": last_price,
-                "volume": int(round(volume)),
-                "turnover": turnover,
-                "source": "FUTU_HKCONNECT_SNAPSHOT",
-            }
-            rows.append(row)
-        except (TypeError, ValueError, SnapshotGateError):
-            excluded[code] = ["row_encoding_error"]
-            continue
-    coverage = len(rows) / max(len(codes), 1)
-    positive_volume_coverage = positive_volume_count / max(len(codes), 1)
-    positive_turnover_coverage = positive_turnover_count / max(len(codes), 1)
-    minimum_universe = max(600, int(minimum_universe_count))
-    if len(rows) < minimum_universe:
-        raise SnapshotGateError(
-            "HK exact-date coverage below gate: "
-            f"universe={len(codes)},rows={len(rows)},coverage={coverage:.8f}"
+
+def collect_hk_tdx_daily_rows(
+    tdx_root: Path | str,
+    target_date: str,
+    *,
+    package_root: Path | str,
+    fetcher: Callable[..., Mapping[str, Any]] | None = None,
+    request_count: int = 6,
+) -> dict[str, Any]:
+    """Read exact HK daily bars from existing TDX files and fill only gaps.
+
+    Existing target-date ``71#*.day`` rows are reused byte-for-byte. Missing
+    target-date rows are requested from the shared PyTDX category-4 / market-71
+    client. The API's native ``trade`` field is retained in the raw receipt;
+    converting it to TDX share volume by 100 is explicitly inferred from the
+    recorded cross-check, not represented as a vendor-documented unit.
+    """
+    target = _date(target_date)
+    if isinstance(request_count, bool) or not isinstance(request_count, int) or request_count < 1:
+        raise SnapshotGateError("HK TDX request count must be positive")
+    root = Path(tdx_root).expanduser().resolve()
+    day_root = root / "vipdoc" / "ds" / "lday"
+    if day_root.is_symlink() or not day_root.is_dir():
+        raise SnapshotGateError("HK TDX dayline root missing or symlinked")
+
+    inventory: list[dict[str, Any]] = []
+    codes: list[str] = []
+    reusable: set[str] = set()
+    target_int = int(target)
+    for path in sorted(day_root.glob("71#*.day")):
+        if path.is_symlink() or not path.is_file():
+            raise SnapshotGateError("HK TDX dayline entry missing or symlinked")
+        code_text = path.name[3:-4]
+        if len(code_text) != 5 or not code_text.isascii() or not code_text.isdigit():
+            raise SnapshotGateError("HK TDX dayline filename invalid")
+        code = code_text.zfill(5)
+        records = _existing_records(path, HK_DAY_STRUCT)
+        dates = [int(row[0]) for row in records]
+        if dates != sorted(dates) or len(dates) != len(set(dates)):
+            raise SnapshotGateError(f"HK TDX dayline dates invalid: {path.name}")
+        if dates and dates[-1] > target_int:
+            raise SnapshotGateError(f"HK TDX dayline is newer than target: {path.name}")
+        exact = [row for row in records if int(row[0]) == target_int]
+        if len(exact) > 1:
+            raise SnapshotGateError(f"HK TDX target row duplicated: {path.name}")
+        if exact:
+            reusable.add(code)
+        codes.append(code)
+        inventory.append({
+            "code": f"HK.{code}",
+            "path": str(path),
+            "file_sha256": _sha(path),
+            "file_size_bytes": path.stat().st_size,
+            "last_date": dates[-1] if dates else None,
+            "target_date_reused": bool(exact),
+            "target_record_sha256": hashlib.sha256(HK_DAY_STRUCT.pack(*exact[0])).hexdigest() if exact else None,
+        })
+    if not codes or len(codes) != len(set(codes)):
+        raise SnapshotGateError("HK TDX dayline code inventory is empty or duplicated")
+
+    missing_codes = [code for code in codes if code not in reusable]
+    if fetcher is None and missing_codes:
+        from infrastructure.isolated_package_loader import load_isolated_package_module
+
+        client = load_isolated_package_module(
+            Path(package_root).expanduser().resolve(),
+            package_directory="shared_data",
+            module_leaf="hk_daily_supplement",
+            namespace_prefix="v35_hk_daily_price_capture",
         )
-    if positive_volume_coverage + 1e-12 < 0.8 or positive_turnover_coverage + 1e-12 < 0.8:
-        raise SnapshotGateError(
-            "HK positive-trade coverage below gate: "
-            f"volume={positive_volume_coverage:.8f},turnover={positive_turnover_coverage:.8f}"
+        fetcher = getattr(client, "fetch_hk_daily_bars")
+
+    fetched: Mapping[str, Any]
+    if missing_codes:
+        fetched = fetcher(
+            [f"HK.{code}" for code in missing_codes],
+            count=request_count,
+            request_context={"target_date": target, "requested_target_date": target},
         )
-    if coverage + 1e-12 < float(required_coverage_ratio):
-        raise SnapshotGateError(f"HK exact-date coverage below gate: universe={len(codes)},rows={len(rows)},coverage={coverage:.8f}")
-    evidence_codes = sorted(excluded)
-    evidence_codes_limited = evidence_codes[:MAX_EXCLUDED_EVIDENCE]
-    evidence_reasons = {code: sorted(excluded[code]) for code in evidence_codes_limited}
-    source_sha = _canonical_sha(
-        {
-            "target_date": target,
-            "plates": HKCONNECT_PLATE_CODES,
-            "rows": rows,
-            "excluded_count": len(evidence_codes),
-            "excluded_codes": evidence_codes,
-            "excluded_reasons": {code: sorted(excluded[code]) for code in evidence_codes},
-            "positive_volume_coverage_rate": positive_volume_coverage,
-            "positive_turnover_coverage_rate": positive_turnover_coverage,
+    else:
+        fetched = {
+            "provider": "PYTDX_EXHQ", "host": None,
+            "category": 4, "market": 71, "method": "get_instrument_bars",
+            "start": 0, "count": request_count, "records": [],
         }
-    )
-    return {
-        "status": "READY",
+    if not isinstance(fetched, Mapping) or not isinstance(fetched.get("records"), list):
+        raise SnapshotGateError("HK TDX fetch returned invalid per-code records")
+    response_records = fetched["records"]
+    expected_fetch_codes = {f"HK.{code}" for code in missing_codes}
+    returned_fetch_codes = [str(item.get("code") or "") for item in response_records if isinstance(item, Mapping)]
+    if len(returned_fetch_codes) != len(response_records) or set(returned_fetch_codes) != expected_fetch_codes or len(returned_fetch_codes) != len(set(returned_fetch_codes)):
+        raise SnapshotGateError("HK TDX fetch code set differs from missing dayline inventory")
+    if (fetched.get("provider") != "PYTDX_EXHQ" or fetched.get("category") != 4
+            or fetched.get("market") != 71 or fetched.get("method") != "get_instrument_bars"):
+        raise SnapshotGateError("HK TDX provider/category/market identity invalid")
+    if missing_codes and (not isinstance(fetched.get("host"), str) or not fetched.get("host")):
+        raise SnapshotGateError("HK TDX provider host identity missing")
+    for item in response_records:
+        request = item.get("request")
+        digests = (item.get("request_sha256"), item.get("response_sha256"))
+        if not isinstance(request, Mapping) or (
+            request.get("category") != 4
+            or request.get("market") != 71
+            or request.get("code") != str(item.get("code"))[3:]
+            or request.get("target_date") != target
+            or item.get("status") not in {"RESPONSE_CAPTURED", "QUERY_FAILED"}
+            or any(not isinstance(value, str) or len(value) != 64
+                   or any(character not in "0123456789abcdef" for character in value)
+                   for value in digests)
+        ):
+            raise SnapshotGateError("HK TDX per-code request receipt identity invalid")
+
+    new_rows: list[dict[str, Any]] = []
+    code_records: list[dict[str, Any]] = []
+    for code in codes:
+        code_label = f"HK.{code}"
+        if code in reusable:
+            code_records.append({
+                "code": code_label,
+                "status": "REUSED_EXISTING_TARGET_BAR",
+                "source": "EXISTING_TDX_DAY_FILE",
+                "file_sha256": next(item["file_sha256"] for item in inventory if item["code"] == code_label),
+                "target_record_sha256": next(item["target_record_sha256"] for item in inventory if item["code"] == code_label),
+                "volume_unit_status": "INHERITED_FROM_EXISTING_DAY_FILE",
+                "raw_provider_capture_time_status": "CANNOT_CONFIRM_NOT_STORED_IN_DAY_FILE",
+            })
+            continue
+        source = next(item for item in response_records if item["code"] == code_label)
+        record = dict(source)
+        if source.get("status") == "QUERY_FAILED":
+            record.update(status="QUERY_FAILED", reason_code=source.get("error_code") or "HK_TDX_QUERY_FAILED")
+            code_records.append(record)
+            continue
+        raw_rows = source.get("source_rows")
+        if not isinstance(raw_rows, list):
+            record.update(status="INVALID", reason_code="HK_TDX_SOURCE_ROWS_INVALID")
+            code_records.append(record)
+            continue
+        target_rows = []
+        observed_dates: list[str] = []
+        try:
+            for source_row in raw_rows:
+                if not isinstance(source_row, Mapping):
+                    raise ValueError("HK_TDX_ROW_INVALID")
+                raw_date = source_row.get("datetime")
+                if raw_date:
+                    date_value = _datetime.datetime.strptime(str(raw_date)[:10], "%Y-%m-%d").strftime("%Y%m%d")
+                else:
+                    date_value = _datetime.date(
+                        int(source_row["year"]), int(source_row["month"]), int(source_row["day"])
+                    ).strftime("%Y%m%d")
+                observed_dates.append(date_value)
+                if date_value == target:
+                    target_rows.append(source_row)
+        except (ValueError, KeyError, TypeError, OverflowError) as error:
+            record.update(status="INVALID", reason_code=str(error) if str(error).startswith("HK_TDX_") else "HK_TDX_ROW_DATE_INVALID")
+            code_records.append(record)
+            continue
+        if len(target_rows) > 1:
+            record.update(status="INVALID", reason_code="HK_TDX_TARGET_BAR_DUPLICATE")
+            code_records.append(record)
+            continue
+        if not target_rows:
+            record.update(
+                status="NO_TARGET_BAR",
+                reason_code="HK_TDX_NO_EXACT_TARGET_DATE_BAR",
+                returned_dates=sorted(set(observed_dates)),
+            )
+            code_records.append(record)
+            continue
+        raw = target_rows[0]
+        try:
+            values: dict[str, float] = {}
+            for name in ("open", "high", "low", "close", "trade", "amount"):
+                value = raw.get(name)
+                if isinstance(value, bool) or value is None or str(value).strip() == "":
+                    raise ValueError("HK_TDX_TARGET_FIELD_MISSING")
+                number = float(value)
+                if not math.isfinite(number) or number < 0:
+                    raise ValueError("HK_TDX_TARGET_FIELD_INVALID")
+                values[name] = number
+            if min(values[name] for name in ("open", "high", "low", "close")) <= 0:
+                raise ValueError("HK_TDX_TARGET_OHLC_INVALID")
+            if values["high"] < max(values["open"], values["low"], values["close"]) or values["low"] > min(values["open"], values["high"], values["close"]):
+                raise ValueError("HK_TDX_TARGET_OHLC_INVALID")
+        except (ValueError, TypeError, OverflowError) as error:
+            record.update(status="INVALID", reason_code=str(error) if str(error).startswith("HK_TDX_") else "HK_TDX_TARGET_FIELD_INVALID")
+            code_records.append(record)
+            continue
+        share_volume = int(round(values["trade"] * 100))
+        row = {
+            "code": code, "trade_date": target,
+            "open": values["open"], "high": values["high"],
+            "low": values["low"], "close": values["close"],
+            "turnover": values["amount"], "volume": share_volume,
+            "source": "PYTDX_EXHQ_CATEGORY4_MARKET71",
+            "volume_source_field": "trade",
+            "volume_conversion_factor": 100,
+            "volume_conversion_status": "INFERRED_NOT_VENDOR_DOCUMENTED",
+        }
+        new_rows.append(row)
+        record.update(
+            status="READY", reason_code=None, target_bar=raw,
+            normalized_volume_shares=share_volume,
+            normalized_turnover_amount=values["amount"],
+            volume_conversion={
+                "source_field": "trade", "destination_field": "volume_shares",
+                "factor": 100, "status": "INFERRED_NOT_VENDOR_DOCUMENTED",
+            },
+            future_dates_excluded=sorted({value for value in observed_dates if value > target}),
+        )
+        code_records.append(record)
+
+    target_codes = sorted(reusable | {row["code"].zfill(5) for row in new_rows})
+    raw_capture = {
+        "schema_version": "v3.macos.research_panel_hk_tdx_daily_capture.v1",
         "target_date": target,
-        "rows": rows,
-        "universe_count": len(codes),
-        "row_count": len(rows),
-        "coverage_rate": coverage,
-        "positive_volume_coverage_rate": positive_volume_coverage,
-        "positive_turnover_coverage_rate": positive_turnover_coverage,
-        "excluded_count": len(evidence_codes),
-        "excluded_codes": evidence_codes_limited,
-        "excluded_reasons": evidence_reasons,
-        "source_sha256": source_sha,
-        "sha256": source_sha,
+        "market": "HK_CONNECT",
+        "source": {
+            "provider": fetched.get("provider"), "host": fetched.get("host"),
+            "category": fetched.get("category"), "market_id": fetched.get("market"),
+            "method": fetched.get("method"), "start": fetched.get("start", 0),
+            "count": fetched.get("count"),
+        },
+        "requested_code_count": len(codes),
+        "requested_codes": [f"HK.{code}" for code in codes],
+        "requested_codes_sha256": _canonical_sha([f"HK.{code}" for code in codes]),
+        "reused_target_code_count": len(reusable),
+        "requested_from_provider_code_count": len(missing_codes),
+        "target_bar_code_count": len(target_codes),
+        "coverage_rate": len(target_codes) / max(len(codes), 1),
+        "minimum_target_rows": 600,
+        "minimum_met": len(target_codes) >= 600,
+        "raw_provider_records": response_records,
+        "code_records": code_records,
+        "dayfile_inventory": inventory,
+        "volume_conversion": {
+            "source_field": "trade", "destination_field": "share_volume",
+            "factor": 100, "status": "INFERRED_NOT_VENDOR_DOCUMENTED",
+            "provenance": "historical exact-date market-71 OHLC/amount comparison and approximate trade*100 calibration",
+        },
+        **SAFETY_FLAGS,
+    }
+    capture_bytes = json.dumps(
+        raw_capture, ensure_ascii=False, sort_keys=True,
+        separators=(",", ":"), allow_nan=False,
+    ).encode("utf-8")
+    capture_sha256 = hashlib.sha256(capture_bytes).hexdigest()
+    return {
+        "status": "READY" if len(target_codes) >= 600 else "PARTIAL",
+        "target_date": target,
+        "rows": new_rows,
+        "target_codes": target_codes,
+        "capture": raw_capture,
+        "capture_sha256": capture_sha256,
+        "reused_target_code_count": len(reusable),
+        "requested_from_provider_code_count": len(missing_codes),
+        "target_bar_code_count": len(target_codes),
+        "coverage_rate": len(target_codes) / max(len(codes), 1),
+        "record_status_counts": {
+            key: sum(1 for item in code_records if item.get("status") == key)
+            for key in sorted({str(item.get("status")) for item in code_records})
+        },
         **SAFETY_FLAGS,
     }
 
@@ -419,27 +479,8 @@ def _code(row: Mapping[str, Any]) -> str:
 
 
 def _validate_rows(rows: list[dict[str, Any]], target_date: str, *, minimum_rows: int, lane: str) -> tuple[list[dict[str, Any]], float]:
-    target_date = _date(target_date)
-    if len(rows) < minimum_rows:
-        raise SnapshotGateError(f"{lane} minimum coverage requires {minimum_rows} rows, got {len(rows)}")
-    seen: set[str] = set()
-    checked: list[dict[str, Any]] = []
-    for row in rows:
-        actual = _date(row.get("trade_date") or row.get("trade_date_compact"))
-        if actual != target_date:
-            raise SnapshotGateError(f"{lane} exact target date mismatch: {actual} != {target_date}")
-        code = _code(row)
-        if code in seen:
-            raise SnapshotGateError(f"{lane} duplicate code: {code}")
-        seen.add(code)
-        open_, high, low, close = (_number(row, name) for name in ("open", "high", "low", "close"))
-        if min(open_, high, low, close) <= 0 or high < low or close < low or close > high:
-            raise SnapshotGateError(f"{lane} non-positive or invalid OHLC: {code}")
-        row = dict(row)
-        row["code"] = code
-        row["trade_date"] = target_date
-        checked.append(row)
-    return checked, len(checked) / max(len(seen), 1)
+    from ops._macos_research_panel_daily_parts.panel_primitives import __validate_rows_body as _v4_impl
+    return _v4_impl(globals(), rows, target_date, minimum_rows=minimum_rows, lane=lane)
 
 
 def _sha(path: Path) -> str:
@@ -451,17 +492,8 @@ def _sha(path: Path) -> str:
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(fd, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temp_name, path)
-    finally:
-        if os.path.exists(temp_name):
-            os.unlink(temp_name)
+    from ops._macos_research_panel_daily_parts.panel_primitives import __atomic_write_body as _v4_impl
+    return _v4_impl(globals(), path, payload)
 
 
 def _panel_frame(panel_path: Path) -> list[dict[str, Any]]:
@@ -478,83 +510,18 @@ def _panel_frame(panel_path: Path) -> list[dict[str, Any]]:
 
 def bootstrap_a_vipdoc_from_panel(panel_path: Path | str, tdx_root: Path | str, *, tail_records: int = 260) -> dict[str, Any]:
     """Seed SH/SZ/BJ VIPDOC files from a panel tail without overwriting history."""
-    if int(tail_records) < 1:
-        raise SnapshotGateError("tail_records must be positive")
-    rows = _panel_frame(Path(panel_path))
-    grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
-    for source in rows:
-        code_value = str(source.get("ts_code") or source.get("code") or "").strip().upper()
-        if "." not in code_value:
-            continue
-        code, exchange = code_value.split(".", 1)
-        exchange = exchange.split("_", 1)[0].lower()
-        if exchange not in {"sh", "sz", "bj"}:
-            continue
-        if not code.isdigit() or len(code) != 6:
-            continue
-        if not code.startswith(COMMON_A_PREFIXES[exchange]):
-            continue
-        row = {
-            "trade_date": _date(source.get("trade_date") or source.get("trade_date_compact")),
-            "code": code,
-            "exchange": exchange,
-            "open": _number(source, "open"),
-            "high": _number(source, "high"),
-            "low": _number(source, "low"),
-            "close": _number(source, "close"),
-            "volume": _number(source, "volume", "vol"),
-            "turnover": _number(source, "amount", "turnover"),
-        }
-        if min(row["open"], row["high"], row["low"], row["close"]) <= 0 or row["high"] < row["low"] or row["close"] < row["low"] or row["close"] > row["high"]:
-            raise SnapshotGateError(f"A seed invalid OHLC: {code}")
-        grouped.setdefault((exchange, code), []).append(row)
-    if not grouped:
-        raise SnapshotGateError("A seed panel has no SH/SZ/BJ rows")
-    results = []
-    destination = Path(tdx_root)
-    for (exchange, code), code_rows in sorted(grouped.items()):
-        ordered = sorted(code_rows, key=lambda item: int(item["trade_date"]))[-int(tail_records):]
-        path = destination / "vipdoc" / exchange / "lday" / f"{exchange}{code}.day"
-        checked = _validate_seed_rows(ordered)
-        encoded = b"".join(A_DAY_STRUCT.pack(*_a_record(row)) for row in checked)
-        if path.exists():
-            existing = path.read_bytes()
-            if existing != encoded:
-                raise SnapshotGateError(f"A seed conflict: {path}")
-            already_current = True
-        else:
-            _atomic_write(path, encoded)
-            already_current = False
-        results.append({"status": "READY", "already_current": already_current, "target_date": checked[-1]["trade_date"], "row_count": len(checked), "coverage_rate": 1.0, "sha256": _sha(path), "path": str(path), **SAFETY_FLAGS})
-    return _grouped_result(results, max(str(item["target_date"]) for item in results), lane="A") | {"seed_panel": str(Path(panel_path)), "tail_records": int(tail_records)}
+    from ops._macos_research_panel_daily_parts.a_market_capture import _bootstrap_a_vipdoc_from_panel_body as _v4_impl
+    return _v4_impl(globals(), panel_path, tdx_root, tail_records=tail_records)
 
 
 def _validate_seed_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    if not rows:
-        raise SnapshotGateError("A seed has no rows")
-    dates: set[int] = set()
-    checked = []
-    for row in rows:
-        date_value = int(_date(row.get("trade_date")))
-        if date_value in dates:
-            raise SnapshotGateError(f"A seed duplicate date: {date_value}")
-        dates.add(date_value)
-        if min(float(row["open"]), float(row["high"]), float(row["low"]), float(row["close"])) <= 0:
-            raise SnapshotGateError(f"A seed non-positive OHLC: {row.get('code')}")
-        checked.append(dict(row, trade_date=str(date_value)))
-    return sorted(checked, key=lambda item: int(item["trade_date"]))
+    from ops._macos_research_panel_daily_parts.a_market_capture import __validate_seed_rows_body as _v4_impl
+    return _v4_impl(globals(), rows)
 
 
 def _load_authority_module(script_path: Path | str, module_name: str) -> Any:
-    path = Path(script_path).resolve()
-    if not path.is_file():
-        raise SnapshotGateError(f"authority script missing: {path}")
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    if spec is None or spec.loader is None:
-        raise SnapshotGateError(f"authority module cannot load: {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    from ops._macos_research_panel_daily_parts.bounded_execution import __load_authority_module_body as _v4_impl
+    return _v4_impl(globals(), script_path, module_name)
 
 
 def _day_file_last_date(path: Path, record_struct: struct.Struct) -> int | None:
@@ -572,43 +539,8 @@ def run_windows_a_sync_authority(
     module_name: str = "macos_windows_a_sync_authority",
     authority_args: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    target = int(_date(target_date))
-    root = Path(tdx_root).resolve()
-    module = _load_authority_module(script_path, module_name)
-    module.TDX_ROOT = root
-    module.DATA_ROOT = Path(receipt_root).resolve()
-    module.RUN_DIR = Path(receipt_root).resolve() / "a_sync_authority"
-    module.DIR_BY_MARKET = {
-        "a": [("sh", root / "vipdoc" / "sh" / "lday"), ("sz", root / "vipdoc" / "sz" / "lday")],
-        "bj": [("bj", root / "vipdoc" / "bj" / "lday")],
-    }
-    args = argparse.Namespace(
-        tdx_root=root,
-        target_date=target,
-        markets="a,bj",
-        limit=0,
-        host=None,
-        timeout=1.5,
-        count=20,
-        sleep=0.0,
-        progress_every=10_000,
-        dry_run=False,
-        **dict(authority_args or {}),
-    )
-    reported = dict(module.run(args))
-    if reported.get("status") != "PASS" or int(reported.get("exit_code", 0) or 0) != 0:
-        raise SnapshotGateError(
-            "A sync authority did not prove exact-date success: "
-            f"status={reported.get('status')},exit_code={reported.get('exit_code')}"
-        )
-    files = _a_day_files(root)
-    target_files = [path for path in files if _day_file_last_date(path, A_DAY_STRUCT) == target]
-    if len(target_files) < int(minimum_target_date_files):
-        raise SnapshotGateError(f"A sync target-date postcondition failed: {len(target_files)} < {minimum_target_date_files}")
-    receipt = Path(receipt_root) / "a_sync_authority.json"
-    payload = {"status": "READY", "authority_status": reported.get("status"), "target_date": target, "target_date_file_count": len(target_files), "files": [str(path) for path in target_files], "authority": reported, **SAFETY_FLAGS}
-    _atomic_write(receipt, (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
-    return payload
+    from ops._macos_research_panel_daily_parts.bounded_execution import _run_windows_a_sync_authority_body as _v4_impl
+    return _v4_impl(globals(), script_path, tdx_root, target_date, receipt_root, minimum_target_date_files=minimum_target_date_files, module_name=module_name, authority_args=authority_args)
 
 
 def _parquet_max_date(path: Path) -> int | None:
@@ -622,22 +554,46 @@ def _parquet_max_date(path: Path) -> int | None:
         raise SnapshotGateError(f"parquet target-date audit failed: {path}") from error
 
 
-def selector_pointer_is_ready(pointer: Path | str, target_date: str) -> bool:
-    """Return true only when the pointed selector parquet reaches target date."""
+def selector_pointer_is_ready(
+    pointer: Path | str | None,
+    target_date: str,
+    formula_generation_pointer: Path | str | None = None,
+) -> bool:
+    """Return true only when the authoritative selector reaches target date.
 
-    target = int(_date(target_date))
-    pointer_path = Path(pointer).expanduser().resolve()
+    A generation pointer enables the strict V4 contract: the exact selector
+    and source/sidecar provenance must be verified together.  The two argument
+    form remains the compatibility path for older callers and fixtures.
+    """
+    from ops._macos_research_panel_daily_parts.formula_pointer import _selector_pointer_is_ready_body as _v4_impl
+    return _v4_impl(globals(), pointer, target_date, formula_generation_pointer)
+
+
+def _path_inside(root: Path, candidate: Path) -> bool:
     try:
-        pointed = Path(pointer_path.read_text(encoding="utf-8-sig").strip()).expanduser()
-    except (OSError, UnicodeError):
+        candidate.relative_to(root)
+        return True
+    except ValueError:
         return False
-    if not pointed.is_absolute():
-        pointed = pointer_path.parent / pointed
-    pointed = pointed.resolve()
-    try:
-        return pointed.is_file() and _parquet_max_date(pointed) == target
-    except SnapshotGateError:
-        return False
+
+
+def _formula_generation_target(
+    output_root: Path,
+    payload: Mapping[str, Any],
+    role: str,
+) -> Path:
+    from ops._macos_research_panel_daily_parts.formula_pointer import __formula_generation_target_body as _v4_impl
+    return _v4_impl(globals(), output_root, payload, role)
+
+
+def _read_formula_generation(output_root: Path | str) -> dict[str, Any] | None:
+    from ops._macos_research_panel_daily_parts.formula_pointer import __read_formula_generation_body as _v4_impl
+    return _v4_impl(globals(), output_root)
+
+
+def _find_formula_generation(target: Path) -> dict[str, Any] | None:
+    from ops._macos_research_panel_daily_parts.formula_pointer import __find_formula_generation_body as _v4_impl
+    return _v4_impl(globals(), target)
 
 
 def _after_1700_attempt_path(receipt_root: Path | str, target_date: str) -> Path:
@@ -670,30 +626,34 @@ def _receipt_safety_is_false(payload: Mapping[str, Any]) -> bool:
     return all(payload.get(name) is False for name in SAFETY_FLAGS)
 
 
+def _fast_path_lane_detail(
+    receipt_root: Path | str,
+    lane: str,
+    target_date: str,
+    *,
+    ready: bool,
+) -> dict[str, Any]:
+    """Project an already verified dated receipt into the public lane envelope.
+
+    The after-1700 fast path must remain idempotent without turning an old or
+    malformed ``READY`` file into a new readiness claim.  The lane validators
+    establish ``ready``; this helper rereads the same exact-date bytes only to
+    carry their digest/size and a truthful lane status to the registry.
+    """
+    from ops._macos_research_panel_daily_parts.scheduled_readiness import __fast_path_lane_detail_body as _v4_impl
+    return _v4_impl(globals(), receipt_root, lane, target_date, ready=ready)
+
+
 def _a_lane_receipt_ready(
     receipt_root: Path | str,
     target_date: str,
     selector_ready: bool,
     payload: Mapping[str, Any] | None = None,
+    formula_generation_pointer: Path | str | None = None,
 ) -> tuple[bool, bool]:
     """Require exact A selector plus the formula's exact backtest readiness."""
-
-    if not selector_ready:
-        return False, False
-    receipt = payload or _read_lane_receipt(receipt_root, "A", target_date)
-    if not isinstance(receipt, Mapping):
-        return False, False
-    if (
-        receipt.get("status") != "READY"
-        or str(receipt.get("target_date") or "") != _date(target_date)
-        or not _receipt_safety_is_false(receipt)
-    ):
-        return False, False
-    backtest_ready = receipt.get("backtest_pointer_ready")
-    formula = receipt.get("formula")
-    if backtest_ready is None and isinstance(formula, Mapping):
-        backtest_ready = formula.get("backtest_pointer_ready")
-    return backtest_ready is True, backtest_ready is True
+    from ops._macos_research_panel_daily_parts.scheduled_readiness import __a_lane_receipt_ready_body as _v4_impl
+    return _v4_impl(globals(), receipt_root, target_date, selector_ready, payload, formula_generation_pointer)
 
 
 def _hk_lane_receipt_ready(
@@ -702,36 +662,20 @@ def _hk_lane_receipt_ready(
     payload: Mapping[str, Any] | None = None,
 ) -> bool:
     """Require the exact HK date receipt and a non-empty verified snapshot."""
-
-    receipt = payload or _read_lane_receipt(receipt_root, "HK", target_date)
-    if not isinstance(receipt, Mapping):
-        return False
-    try:
-        row_count = int(receipt.get("row_count") or 0)
-        coverage_rate = float(receipt.get("coverage_rate") or 0.0)
-    except (TypeError, ValueError):
-        return False
-    digest = receipt.get("sha256")
-    return bool(
-        receipt.get("status") == "READY"
-        and str(receipt.get("target_date") or "") == _date(target_date)
-        and _receipt_safety_is_false(receipt)
-        and isinstance(digest, str)
-        and bool(digest.strip())
-        and row_count > 0
-        and coverage_rate > 0.0
-    )
+    from ops._macos_research_panel_daily_parts.scheduled_readiness import __hk_lane_receipt_ready_body as _v4_impl
+    return _v4_impl(globals(), receipt_root, target_date, payload)
 
 
 def ensure_after_1700(
     *,
     target_date: str,
     receipt_root: Path | str,
-    selector_pointer: Path | str,
+    selector_pointer: Path | str | None,
     a_runner: Callable[[str], Mapping[str, Any]],
     hk_runner: Callable[[str], Mapping[str, Any]],
     lane: str | None = None,
     now: _datetime.datetime | None = None,
+    formula_generation_pointer: Path | str | None = None,
 ) -> dict[str, Any]:
     """Idempotently ensure the daily panel after 17:00.
 
@@ -742,115 +686,8 @@ def ensure_after_1700(
     never converts a stale pointer into a permanent success or permanent
     lockout.
     """
-
-    target = _date(target_date)
-    requested_lane = _normalize_lane(lane or "ALL")
-    strict_lane_readiness = lane is not None
-    moment = now or _datetime.datetime.now(ZoneInfo("Asia/Shanghai"))
-    if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
-    else:
-        moment = moment.astimezone(ZoneInfo("Asia/Shanghai"))
-    common = {
-        "schema_version": "v3.macos.research_panel_after_1700_ensure.v1",
-        "target_date": target,
-        "observed_at": moment.isoformat(),
-        "selector_pointer": str(Path(selector_pointer).expanduser().resolve()),
-        "production_allowed": False,
-        "buy_gate_updated": False,
-        "orders_sent": False,
-    }
-    if moment.hour < 17:
-        return {**common, "status": "BEFORE_1700", "runner_called": False, "idempotent": True}
-    selector_ready = selector_pointer_is_ready(selector_pointer, target)
-    common["selector_pointer_ready"] = selector_ready
-    a_ready, backtest_ready = _a_lane_receipt_ready(receipt_root, target, selector_ready)
-    hk_ready = _hk_lane_receipt_ready(receipt_root, target)
-    common.update(
-        {
-            "a_lane_ready": a_ready,
-            "hk_lane_ready": hk_ready,
-            "backtest_pointer_ready": backtest_ready,
-        }
-    )
-    already_ready = (
-        (requested_lane == "A" and a_ready)
-        or (requested_lane == "HK" and hk_ready)
-        or (requested_lane == "ALL" and a_ready and hk_ready)
-    )
-    # Calls that predate the explicit lane contract retain the old selector
-    # fast path; launchd and all current callers pass lane explicitly.
-    if selector_ready and ((not strict_lane_readiness and requested_lane == "ALL") or already_ready):
-        return {**common, "status": "ALREADY_READY", "runner_called": False, "idempotent": True}
-
-    attempt_path = _after_1700_attempt_path(receipt_root, target)
-    if attempt_path.is_file():
-        try:
-            payload = json.loads(attempt_path.read_text(encoding="utf-8-sig"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
-            payload = {}
-        if isinstance(payload, Mapping):
-            attempt_count = int(payload.get("attempt_count") or 1)
-            previous_raw = str(payload.get("observed_at") or "")
-            try:
-                previous = _datetime.datetime.fromisoformat(previous_raw)
-                if previous.tzinfo is None:
-                    previous = previous.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
-                elapsed = (moment - previous.astimezone(ZoneInfo("Asia/Shanghai"))).total_seconds()
-            except (TypeError, ValueError, OverflowError):
-                elapsed = 300.0
-            if elapsed < 300.0:
-                return {
-                    **common,
-                    **dict(payload),
-                    "status": "RETRY_BACKOFF",
-                    "runner_called": False,
-                    "idempotent": True,
-                }
-        else:
-            attempt_count = 1
-    else:
-        attempt_count = 0
-
-    result = run_lanes(
-        target_date=target,
-        receipt_root=receipt_root,
-        a_runner=a_runner,
-        hk_runner=hk_runner,
-        lane=requested_lane,
-    )
-    selector_ready_after = selector_pointer_is_ready(selector_pointer, target)
-    a_payload = (result.get("lanes") or {}).get("A") if isinstance(result.get("lanes"), Mapping) else None
-    hk_payload = (result.get("lanes") or {}).get("HK") if isinstance(result.get("lanes"), Mapping) else None
-    a_ready_after, backtest_ready_after = _a_lane_receipt_ready(
-        receipt_root, target, selector_ready_after, a_payload if isinstance(a_payload, Mapping) else None
-    )
-    hk_ready_after = _hk_lane_receipt_ready(
-        receipt_root, target, hk_payload if isinstance(hk_payload, Mapping) else None
-    )
-    lane_ready = (
-        (requested_lane == "A" and a_ready_after)
-        or (requested_lane == "HK" and hk_ready_after)
-        or (requested_lane == "ALL" and a_ready_after and hk_ready_after)
-    )
-    payload = {
-        **common,
-        "status": "ATTEMPTED",
-        "runner_called": True,
-        "idempotent": False,
-        "attempt_count": attempt_count + 1,
-        "overall_status": result.get("overall_status"),
-        "requested_lane": requested_lane,
-        "lanes": result.get("lanes", {}),
-        "selector_pointer_ready": selector_ready_after,
-        "a_lane_ready": a_ready_after,
-        "hk_lane_ready": hk_ready_after,
-        "backtest_pointer_ready": backtest_ready_after,
-        "lane_ready": lane_ready,
-    }
-    attempt_path.parent.mkdir(parents=True, exist_ok=True)
-    _atomic_write(attempt_path, (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
-    return payload
+    from ops._macos_research_panel_daily_parts.scheduled_readiness import _ensure_after_1700_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, receipt_root=receipt_root, selector_pointer=selector_pointer, a_runner=a_runner, hk_runner=hk_runner, lane=lane, now=now, formula_generation_pointer=formula_generation_pointer)
 
 
 def ensure_exit_code(result: Mapping[str, Any]) -> int:
@@ -860,50 +697,81 @@ def ensure_exit_code(result: Mapping[str, Any]) -> int:
     selector pointer still misses the exact target date.  launchd must keep
     retrying those results instead of recording a false healthy run.
     """
-
-    status = str(result.get("status") or "")
-    if "lane_ready" in result:
-        lane_ready = result.get("lane_ready") is True
-        if status == "BEFORE_1700":
-            return 0
-        if status in {"ALREADY_READY", "ATTEMPTED"} and lane_ready:
-            return 0
-        return 2
-    pointer_ready = result.get("selector_pointer_ready") is True
-    backtest_pointer = result.get("backtest_pointer_ready")
-    if backtest_pointer is None:
-        lanes = result.get("lanes")
-        if isinstance(lanes, Mapping):
-            a_lane = lanes.get("A") or lanes.get("a")
-            if isinstance(a_lane, Mapping):
-                formula = a_lane.get("formula")
-                if isinstance(formula, Mapping):
-                    backtest_pointer = formula.get("backtest_pointer_ready")
-    if backtest_pointer is False:
-        pointer_ready = False
-    if status == "BEFORE_1700":
-        return 0
-    if status == "ALREADY_READY" and pointer_ready:
-        return 0
-    if status == "ATTEMPTED" and pointer_ready:
-        return 0
-    return 2
+    from ops._macos_research_panel_daily_parts.scheduled_readiness import _ensure_exit_code_body as _v4_impl
+    return _v4_impl(globals(), result)
 
 
 def _ensure_pointer_seed(pointer: Path, seed: Path | str | None) -> Path:
-    if pointer.exists():
-        target = Path(pointer.read_text(encoding="utf-8-sig").strip())
-        if target.is_file():
-            return target
-        raise SnapshotGateError(f"pointer target missing: {pointer}")
-    if seed is None:
-        raise SnapshotGateError(f"pointer missing and no seed: {pointer}")
-    target = Path(seed).resolve()
-    if not target.is_file():
-        raise SnapshotGateError(f"pointer seed missing: {target}")
-    pointer.parent.mkdir(parents=True, exist_ok=True)
-    _atomic_write(pointer, (str(target) + "\n").encode())
-    return target
+    from ops._macos_research_panel_daily_parts.panel_primitives import __ensure_pointer_seed_body as _v4_impl
+    return _v4_impl(globals(), pointer, seed)
+
+
+def run_bounded_process(command: Sequence[str], *, timeout_seconds: float, cwd: Path | str, env: Mapping[str, str] | None = None) -> dict[str, Any]:
+    """Run one authority child in its own POSIX process group.
+
+    This is a wall-clock boundary only.  macOS RSS/address-space enforcement is
+    not claimed here; the child reports that limitation in its receipt.
+    """
+    from ops._macos_research_panel_daily_parts.bounded_execution import _run_bounded_process_body as _v4_impl
+    return _v4_impl(globals(), command, timeout_seconds=timeout_seconds, cwd=cwd, env=env)
+
+
+def run_v4_a_formula_offline(
+    *,
+    input_root: Path | str,
+    input_manifest: Path | str,
+    data_root: Path | str,
+    return_root: Path | str,
+    selector_pointer: Path | str,
+    backtest_pointer: Path | str,
+    selector_seed: Path | str,
+    backtest_seed: Path | str,
+    contract_csv: Path | str,
+    target_date: str,
+    timeout_seconds: float,
+    legacy_formula_source: Path | str | None = None,
+) -> dict[str, Any]:
+    """Call the V4 increment runner without importing a legacy authority."""
+    from ops._macos_research_panel_daily_parts.a_formula_execution import _run_v4_a_formula_offline_body as _v4_impl
+    return _v4_impl(globals(), input_root=input_root, input_manifest=input_manifest, data_root=data_root, return_root=return_root, selector_pointer=selector_pointer, backtest_pointer=backtest_pointer, selector_seed=selector_seed, backtest_seed=backtest_seed, contract_csv=contract_csv, target_date=target_date, timeout_seconds=timeout_seconds, legacy_formula_source=legacy_formula_source)
+
+
+def _strict_v4_path_root(
+    generation_pointer: Path | str,
+    *,
+    tdx_root: Path | str,
+    data_root: Path | str,
+    return_root: Path | str,
+    selector_pointer: Path | str,
+    backtest_pointer: Path | str,
+    receipt_root: Path | str,
+) -> tuple[Path, Path]:
+    """Check that the strict live candidate has one V4-owned write root."""
+    from ops._macos_research_panel_daily_parts.a_formula_execution import __strict_v4_path_root_body as _v4_impl
+    return _v4_impl(globals(), generation_pointer, tdx_root=tdx_root, data_root=data_root, return_root=return_root, selector_pointer=selector_pointer, backtest_pointer=backtest_pointer, receipt_root=receipt_root)
+
+
+def run_v4_a_live_generation(
+    *,
+    sync_script: Path | str,
+    tdx_root: Path | str,
+    receipt_root: Path | str,
+    target_date: str,
+    minimum_target_date_files: int,
+    sync_authority_args: Mapping[str, Any],
+    data_root: Path | str,
+    return_root: Path | str,
+    generation_pointer: Path | str,
+    selector_pointer: Path | str,
+    backtest_pointer: Path | str,
+    selector_seed: Path | str,
+    backtest_seed: Path | str,
+    contract_csv: Path | str,
+    formula_timeout_seconds: float,
+) -> dict[str, Any]:
+    """Run the strict V4 live boundary without importing an old formula module."""
+    from ops._macos_research_panel_daily_parts.a_formula_execution import _run_v4_a_live_generation_body as _v4_impl
+    return _v4_impl(globals(), sync_script=sync_script, tdx_root=tdx_root, receipt_root=receipt_root, target_date=target_date, minimum_target_date_files=minimum_target_date_files, sync_authority_args=sync_authority_args, data_root=data_root, return_root=return_root, generation_pointer=generation_pointer, selector_pointer=selector_pointer, backtest_pointer=backtest_pointer, selector_seed=selector_seed, backtest_seed=backtest_seed, contract_csv=contract_csv, formula_timeout_seconds=formula_timeout_seconds)
 
 
 def run_windows_a_formula_authority(
@@ -921,73 +789,8 @@ def run_windows_a_formula_authority(
     target_date: str,
     module_name: str = "macos_windows_formula_authority",
 ) -> dict[str, Any]:
-    target = int(_date(target_date))
-    data = Path(data_root).resolve()
-    tdx = Path(tdx_root).resolve()
-    selector_ptr = Path(selector_pointer).resolve()
-    backtest_ptr = Path(backtest_pointer).resolve()
-    selector_current = _ensure_pointer_seed(selector_ptr, selector_seed)
-    backtest_current = _ensure_pointer_seed(backtest_ptr, backtest_seed)
-    selector_max = _parquet_max_date(selector_current)
-    backtest_max = _parquet_max_date(backtest_current)
-    if selector_max == target and backtest_max == target:
-        return {
-            "status": "READY",
-            "already_current": True,
-            "target_date": target,
-            "selector": str(selector_current),
-            "backtest": str(backtest_current),
-            "selector_pointer_ready": True,
-            "backtest_pointer_ready": True,
-            **SAFETY_FLAGS,
-        }
-    module = _load_authority_module(script_path, module_name)
-    module.TDX_ROOT = tdx
-    module.DATA_ROOT = data
-    module.TDX_INDUSTRY_NAMES = tdx / "T0002" / "hq_cache" / "tdxzs.cfg"
-    module.TDX_STOCK_INDUSTRIES = tdx / "T0002" / "hq_cache" / "tdxhy.cfg"
-    module.XDXR_CACHE_ROOT = data / "runtime" / "cache" / getattr(module, "TASK_NAME", "formula") / "tdx_xdxr"
-    module.RULES_FILE = data / "DATA_LAYER_AGENTS_RULES.md"
-    module.RETURN_ROOT = Path(return_root).resolve()
-    module.SELECTOR_POINTER = selector_ptr
-    module.BACKTEST_POINTER = backtest_ptr
-    module.SCRIPT_DIR = data / "tools" / "debug_scripts" / getattr(module, "TASK_NAME", "formula")
-    module.PROMOTED_SELECTOR_ROOT = data / "selector_ready_panels" / getattr(module, "TASK_NAME", "formula")
-    module.PROMOTED_BACKTEST_ROOT = data / "backtest_panels" / getattr(module, "TASK_NAME", "formula")
-    module.CONTRACT_CSV = Path(contract_csv).resolve()
-    module.CONTRACT_DIR = module.CONTRACT_CSV.parent
-    module.CANONICAL_FORMULA_PATH = Path(canonical_formula_path).resolve()
-    module.RUN_TS = _datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    module.RUN_DIR = module.RETURN_ROOT / module.RUN_TS
-    # macOS uses spawn for multiprocessing; dynamically loaded Windows modules
-    # cannot be imported by spawned workers.  The authority already supports a
-    # serial branch, so force that branch without changing formula functions.
-    if hasattr(module, "DAILY_FORMULA_MAX_WORKERS"):
-        module.DAILY_FORMULA_MAX_WORKERS = 1
-    module._CANONICAL_FORMULA_MODULE = None
-    module.main(False)
-    summary_files = sorted(module.RUN_DIR.rglob("task_summary.json"))
-    if not summary_files:
-        raise SnapshotGateError("formula authority task_summary missing")
-    summary = json.loads(summary_files[-1].read_text(encoding="utf-8"))
-    if not str(summary.get("final_status", "")).startswith("PASS"):
-        raise SnapshotGateError(f"formula authority final_status not PASS: {summary.get('final_status')}")
-    selector_target = Path(selector_ptr.read_text(encoding="utf-8-sig").strip())
-    backtest_target = Path(backtest_ptr.read_text(encoding="utf-8-sig").strip())
-    for role, path in (("selector", selector_target), ("backtest", backtest_target)):
-        if not path.is_file() or _parquet_max_date(path) != target:
-            raise SnapshotGateError(f"{role} pointer target-date postcondition failed: {path}")
-    return {
-        "status": "READY",
-        "target_date": target,
-        "selector": str(selector_target),
-        "backtest": str(backtest_target),
-        "selector_pointer_ready": True,
-        "backtest_pointer_ready": True,
-        "run_dir": str(module.RUN_DIR),
-        "authority": summary,
-        **SAFETY_FLAGS,
-    }
+    from ops._macos_research_panel_daily_parts.a_formula_execution import _run_windows_a_formula_authority_body as _v4_impl
+    return _v4_impl(globals(), script_path, tdx_root=tdx_root, data_root=data_root, selector_pointer=selector_pointer, backtest_pointer=backtest_pointer, selector_seed=selector_seed, backtest_seed=backtest_seed, contract_csv=contract_csv, canonical_formula_path=canonical_formula_path, return_root=return_root, target_date=target_date, module_name=module_name)
 
 
 def run_hk_0_2_authority(updater_script: Path | str, python_executable: Path | str, asset_root: Path | str, tdx_root: Path | str, target_date: str) -> dict[str, Any]:
@@ -1039,105 +842,28 @@ def _hk_record(row: Mapping[str, Any]) -> tuple[Any, ...]:
 
 
 def _pack_day_file(destination: Path, rows: Iterable[Mapping[str, Any]], target_date: str, *, lane: str, minimum_rows: int, record_struct: struct.Struct, record_builder: Callable[[Mapping[str, Any]], tuple[Any, ...]]) -> dict[str, Any]:
-    checked, coverage = _validate_rows(_rows(rows), target_date, minimum_rows=minimum_rows, lane=lane)
-    encoded = b"".join(record_struct.pack(*record_builder(row)) for row in checked)
-    existing = _existing_records(destination, record_struct)
-    target_int = int(_date(target_date))
-    existing_dates = [int(record[0]) for record in existing]
-    if existing_dates and target_int < max(existing_dates):
-        raise SnapshotGateError(f"{lane} target date is older than existing file: {target_date}")
-    existing_target = [record_struct.pack(*record) for record in existing if int(record[0]) == target_int]
-    if existing_target:
-        if b"".join(existing_target) != encoded:
-            raise SnapshotGateError(f"{lane} target-date conflict: {destination}")
-        return {
-            "status": "READY",
-            "already_current": True,
-            "target_date": _date(target_date),
-            "row_count": len(checked),
-            "coverage_rate": coverage,
-            "sha256": _sha(destination),
-            "path": str(destination),
-            **SAFETY_FLAGS,
-        }
-    payload = destination.read_bytes() if destination.exists() else b""
-    _atomic_write(destination, payload + encoded)
-    return {
-        "status": "READY",
-        "already_current": False,
-        "target_date": _date(target_date),
-        "row_count": len(checked),
-        "coverage_rate": coverage,
-        "sha256": _sha(destination),
-        "path": str(destination),
-        **SAFETY_FLAGS,
-    }
+    from ops._macos_research_panel_daily_parts.day_file_output import __pack_day_file_body as _v4_impl
+    return _v4_impl(globals(), destination, rows, target_date, lane=lane, minimum_rows=minimum_rows, record_struct=record_struct, record_builder=record_builder)
 
 
 def _a_exchange(row: Mapping[str, Any]) -> str:
-    exchange = str(row.get("exchange") or row.get("market") or "").strip().lower()
-    if exchange in {"sh", "sz", "bj"}:
-        return exchange
-    code = _code(row)
-    if code.startswith(("6",)):
-        return "sh"
-    if code.startswith(("0", "2", "3")):
-        return "sz"
-    if code.startswith(("4", "8", "9")):
-        return "bj"
-    raise SnapshotGateError(f"cannot infer A exchange for {code}")
+    from ops._macos_research_panel_daily_parts.panel_primitives import __a_exchange_body as _v4_impl
+    return _v4_impl(globals(), row)
 
 
 def _grouped_result(results: list[dict[str, Any]], target_date: str, *, lane: str) -> dict[str, Any]:
-    if not results:
-        raise SnapshotGateError(f"{lane} empty grouped result")
-    return {
-        "status": "READY",
-        "target_date": _date(target_date),
-        "row_count": sum(int(result.get("row_count", 0)) for result in results),
-        "file_count": len(results),
-        "coverage_rate": 1.0,
-        "sha256": hashlib.sha256("".join(sorted(str(result["sha256"]) for result in results)).encode()).hexdigest(),
-        "files": results,
-        **SAFETY_FLAGS,
-    }
+    from ops._macos_research_panel_daily_parts.day_file_output import __grouped_result_body as _v4_impl
+    return _v4_impl(globals(), results, target_date, lane=lane)
 
 
 def pack_a_day(destination: Path | str, rows: Iterable[Mapping[str, Any]], *, target_date: str, minimum_rows: int = 1) -> dict[str, Any]:
-    destination = Path(destination)
-    incoming = _rows(rows)
-    if destination.suffix.lower() == ".day":
-        raise SnapshotGateError("pack_a_day destination must be a TDX root, not a single .day file")
-    checked, _ = _validate_rows(incoming, target_date, minimum_rows=minimum_rows, lane="A")
-    grouped: dict[str, list[dict[str, Any]]] = {}
-    for row in checked:
-        grouped.setdefault(_code(row), []).append(row)
-    results = []
-    for code, code_rows in sorted(grouped.items()):
-        exchange = _a_exchange(code_rows[0])
-        path = destination / "vipdoc" / exchange / "lday" / f"{exchange}{code.zfill(6)}.day"
-        results.append(_pack_day_file(path, code_rows, target_date, lane="A", minimum_rows=1, record_struct=A_DAY_STRUCT, record_builder=_a_record))
-    return _grouped_result(results, target_date, lane="A")
+    from ops._macos_research_panel_daily_parts.day_file_output import _pack_a_day_body as _v4_impl
+    return _v4_impl(globals(), destination, rows, target_date=target_date, minimum_rows=minimum_rows)
 
 
 def pack_hk_day(destination: Path | str, rows: Iterable[Mapping[str, Any]], *, target_date: str, minimum_rows: int = 600, expected_codes: set[str] | None = None) -> dict[str, Any]:
-    destination = Path(destination)
-    incoming = _rows(rows)
-    if destination.suffix.lower() == ".day":
-        raise SnapshotGateError("pack_hk_day destination must be a TDX root, not a single .day file")
-    checked, coverage = _validate_rows(incoming, target_date, minimum_rows=minimum_rows, lane="HK")
-    if expected_codes is not None:
-        expected = {"".join(ch for ch in str(code) if ch.isdigit()).zfill(5) for code in expected_codes}
-        actual = {str(row["code"]).zfill(5) for row in checked}
-        if actual != expected:
-            raise SnapshotGateError(f"HK snapshot coverage mismatch: {len(actual)}/{len(expected)}")
-        coverage = len(actual) / max(len(expected), 1)
-    results = []
-    for row in checked:
-        code = str(row["code"]).zfill(5)
-        path = destination / "vipdoc" / "ds" / "lday" / f"71#{code}.day"
-        results.append(_pack_day_file(path, [row], target_date, lane="HK", minimum_rows=1, record_struct=HK_DAY_STRUCT, record_builder=_hk_record))
-    return _grouped_result(results, target_date, lane="HK") | {"coverage_rate": coverage}
+    from ops._macos_research_panel_daily_parts.day_file_output import _pack_hk_day_body as _v4_impl
+    return _v4_impl(globals(), destination, rows, target_date=target_date, minimum_rows=minimum_rows, expected_codes=expected_codes)
 
 
 def validate_snapshot(rows: Iterable[Mapping[str, Any]], *, target_date: str, minimum_rows: int, expected_codes: set[str] | None = None, lane: str) -> dict[str, Any]:
@@ -1158,58 +884,14 @@ def _receipt(root: Path, lane: str, target_date: str, outcome: Mapping[str, Any]
 
 
 def run_lanes(*, target_date: str, receipt_root: Path | str, a_runner: Callable[[str], Mapping[str, Any]], hk_runner: Callable[[str], Mapping[str, Any]], lane: str = "ALL") -> dict[str, Any]:
-    target_date = _date(target_date)
-    requested_lane = _normalize_lane(lane)
-    requested = {"A", "HK"} if requested_lane == "ALL" else {requested_lane}
-    lanes: dict[str, dict[str, Any]] = {}
-    for lane, runner in (("A", a_runner), ("HK", hk_runner)):
-        if lane not in requested:
-            lanes[lane] = _not_requested_lane()
-            continue
-        try:
-            outcome = dict(runner(target_date))
-            outcome.setdefault("status", "READY")
-            if outcome.get("target_date", target_date) != target_date:
-                raise SnapshotGateError(f"{lane} exact target date mismatch")
-            lanes[lane] = _receipt(Path(receipt_root), lane, target_date, {**outcome, "runner_called": True, "receipt_written": True})
-        except Exception as error:  # independent lane: never prevent the other lane
-            lanes[lane] = _receipt(Path(receipt_root), lane, target_date, {"status": "FAILED", "error": str(error), "coverage_rate": 0.0, "sha256": "", "runner_called": True, "receipt_written": True})
-    statuses = {lanes[name].get("status") for name in requested}
-    overall = "READY" if statuses == {"READY"} else "FAILED" if statuses == {"FAILED"} else "PARTIAL"
-    return {"schema_version": "v3.macos.research_panel_daily.v1", "target_date": target_date, "requested_lane": requested_lane, "overall_status": overall, "lanes": lanes, **SAFETY_FLAGS}
+    from ops._macos_research_panel_daily_parts.panel_primitives import _run_lanes_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, receipt_root=receipt_root, a_runner=a_runner, hk_runner=hk_runner, lane=lane)
 
 
 def _non_trading_day_result(target_date: str, receipt_root: Path | str, *, lane: str = "ALL") -> dict[str, Any]:
     """Emit explicit no-op receipts for an implicit non-trading-day launch."""
-    target_date = _date(target_date)
-    requested_lane = _normalize_lane(lane)
-    requested = {"A", "HK"} if requested_lane == "ALL" else {requested_lane}
-    lanes = {
-        lane: _receipt(
-            Path(receipt_root),
-            lane,
-            target_date,
-            {
-                "status": "NON_TRADING_DAY",
-                "reason_code": "IMPLICIT_DATE_NOT_CROSS_MARKET_TRADING_DAY",
-                "coverage_rate": 0.0,
-                "row_count": 0,
-                "sha256": "",
-                "runner_called": False,
-            },
-        )
-        for lane in requested
-    }
-    lanes.update({name: _not_requested_lane() for name in {"A", "HK"} - requested})
-    return {
-        "schema_version": "v3.macos.research_panel_daily.v1",
-        "target_date": target_date,
-        "requested_lane": requested_lane,
-        "overall_status": "NON_TRADING_DAY",
-        "lanes": lanes,
-        "runner_called": False,
-        **SAFETY_FLAGS,
-    }
+    from ops._macos_research_panel_daily_parts.calendar_schedule import __non_trading_day_result_body as _v4_impl
+    return _v4_impl(globals(), target_date, receipt_root, lane=lane)
 
 
 def run_scheduled_lanes(
@@ -1225,17 +907,8 @@ def run_scheduled_lanes(
     Callers that supply ``target_date`` retain the existing explicit replay
     semantics, including the ability to diagnose a holiday snapshot.
     """
-    explicit_date = target_date is not None
-    resolved = _date(target_date if explicit_date else _today_shanghai())
-    if not explicit_date and not _scheduled_day_is_cross_market_trading_day(resolved):
-        return _non_trading_day_result(resolved, receipt_root, lane=lane)
-    return run_lanes(
-        target_date=resolved,
-        receipt_root=receipt_root,
-        a_runner=a_runner,
-        hk_runner=hk_runner,
-        lane=lane,
-    )
+    from ops._macos_research_panel_daily_parts.calendar_schedule import _run_scheduled_lanes_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, receipt_root=receipt_root, a_runner=a_runner, hk_runner=hk_runner, lane=lane)
 
 
 def build_subprocess_command(script: Path | str, target_date: str, receipt_root: Path | str) -> list[str]:
@@ -1272,126 +945,20 @@ def _absolute_path_argument(parser: argparse.ArgumentParser, value: Path, name: 
     return path
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Research-only A/H daily lane receipt helper")
-    parser.add_argument("--date", required=False, default=None)
-    parser.add_argument("--lane", choices=LANE_CHOICES, default="ALL")
-    parser.add_argument("--receipt-root", required=True, type=Path)
-    parser.add_argument("--a-tdx-root", required=True, type=Path)
-    parser.add_argument("--hk-tdx-root", required=True, type=Path)
-    parser.add_argument("--a-universe", required=False, type=Path, help="Legacy collector input; ignored by authority chain")
-    parser.add_argument("--a-minimum-rows", type=int, default=1)
-    parser.add_argument("--a-limit", type=int, default=None, help="Canary-only A universe limit; never lowers HK minimum 600")
-    parser.add_argument("--a-host", default=None, help="Explicit pytdx HQ host override; otherwise probe official hq_hosts")
-    parser.add_argument("--a-port", type=int, default=None, help="Explicit pytdx HQ port (requires --a-host)")
-    parser.add_argument("--a-sync-script", type=Path, required=False)
-    parser.add_argument("--a-formula-script", type=Path, required=False)
-    parser.add_argument("--a-seed-panel", type=Path, required=False)
-    parser.add_argument("--a-data-root", type=Path, required=False)
-    parser.add_argument("--a-selector-pointer", type=Path, required=False)
-    parser.add_argument("--a-backtest-pointer", type=Path, required=False)
-    parser.add_argument("--a-selector-seed", type=Path, required=False)
-    parser.add_argument("--a-backtest-seed", type=Path, required=False)
-    parser.add_argument("--a-contract-csv", type=Path, required=False)
-    parser.add_argument("--a-canonical-formula", type=Path, required=False)
-    parser.add_argument("--a-return-root", type=Path, required=False)
-    parser.add_argument("--hk-updater-script", type=Path, required=False)
-    parser.add_argument("--hk-python-executable", type=Path, default=Path(sys.executable))
-    parser.add_argument("--hk-asset-root", type=Path, required=False)
-    args = parser.parse_args()
-    args.receipt_root = _absolute_path_argument(parser, args.receipt_root, "--receipt-root")
-    args.a_tdx_root = _absolute_path_argument(parser, args.a_tdx_root, "--a-tdx-root")
-    args.hk_tdx_root = _absolute_path_argument(parser, args.hk_tdx_root, "--hk-tdx-root")
-    if args.a_minimum_rows < 1:
-        parser.error("--a-minimum-rows must be positive")
-    if args.a_limit is not None and (args.a_limit < 1 or args.a_minimum_rows > args.a_limit):
-        parser.error("--a-minimum-rows cannot exceed --a-limit")
-    if args.a_port is not None and args.a_host is None:
-        parser.error("--a-port requires --a-host")
-    authority_paths = {
-        "--a-sync-script": args.a_sync_script,
-        "--a-formula-script": args.a_formula_script,
-        "--a-seed-panel": args.a_seed_panel,
-        "--a-data-root": args.a_data_root,
-        "--a-selector-pointer": args.a_selector_pointer,
-        "--a-backtest-pointer": args.a_backtest_pointer,
-        "--a-selector-seed": args.a_selector_seed,
-        "--a-backtest-seed": args.a_backtest_seed,
-        "--a-contract-csv": args.a_contract_csv,
-        "--a-canonical-formula": args.a_canonical_formula,
-        "--a-return-root": args.a_return_root,
-        "--hk-updater-script": args.hk_updater_script,
-        "--hk-asset-root": args.hk_asset_root,
-    }
-    missing = [name for name, value in authority_paths.items() if value is None]
-    if missing:
-        parser.error("authority chain requires explicit paths: " + ", ".join(missing))
-    for name, value in authority_paths.items():
-        authority_paths[name] = _absolute_path_argument(parser, value, name)
-    python_executable = _absolute_path_argument(parser, args.hk_python_executable, "--hk-python-executable")
+def _public_envelope(result: Mapping[str, Any], receipt_root: Path) -> dict[str, Any]:
+    """Bounded stdout protocol; full updater evidence stays in dated receipts.
 
-    def run_a(target: str) -> dict[str, Any]:
-        day_files_before = _a_day_files(args.a_tdx_root)
-        bootstrap = None
-        if not day_files_before:
-            bootstrap = bootstrap_a_vipdoc_from_panel(authority_paths["--a-seed-panel"], args.a_tdx_root)
-        sync = run_windows_a_sync_authority(
-            authority_paths["--a-sync-script"],
-            args.a_tdx_root,
-            target,
-            args.receipt_root,
-            minimum_target_date_files=max(args.a_minimum_rows, 1),
-        )
-        formula = run_windows_a_formula_authority(
-            authority_paths["--a-formula-script"],
-            tdx_root=args.a_tdx_root,
-            data_root=authority_paths["--a-data-root"],
-            selector_pointer=authority_paths["--a-selector-pointer"],
-            backtest_pointer=authority_paths["--a-backtest-pointer"],
-            selector_seed=authority_paths["--a-selector-seed"],
-            backtest_seed=authority_paths["--a-backtest-seed"],
-            contract_csv=authority_paths["--a-contract-csv"],
-            canonical_formula_path=authority_paths["--a-canonical-formula"],
-            return_root=authority_paths["--a-return-root"],
-            target_date=target,
-        )
-        return {"status": "READY", "target_date": target, "bootstrap": bootstrap, "sync": sync, "formula": formula, "sha256": formula.get("authority", {}).get("source_sha256", ""), **SAFETY_FLAGS}
+    Digests bind this invocation's response to the exact bytes, not to a latest
+    pointer. The registry independently reads and verifies those bytes. This
+    is transport evidence, not a replacement for authority/manifest validation.
+    """
+    from ops._macos_research_panel_daily_parts.cli import __public_envelope_body as _v4_impl
+    return _v4_impl(globals(), result, receipt_root)
 
-    def run_hk(target: str) -> dict[str, Any]:
-        collected = collect_hk_futu_rows(target, minimum_universe_count=600, required_coverage_ratio=0.0)
-        packed = pack_hk_day(args.hk_tdx_root, collected["rows"], target_date=target, minimum_rows=600)
-        authority = run_hk_0_2_authority(
-            authority_paths["--hk-updater-script"],
-            python_executable,
-            authority_paths["--hk-asset-root"],
-            args.hk_tdx_root,
-            target,
-        )
-        return {**collected, **packed, "authority": authority, "source_sha256": collected["source_sha256"]}
 
-    if args.date is None:
-        # The LaunchAgent now calls this entry every minute.  Keep implicit
-        # invocations on the after-17:00 idempotent ensure path so a wake or
-        # repeated StartInterval cannot duplicate authority work.
-        result = ensure_after_1700(
-            target_date=_today_shanghai(),
-            receipt_root=args.receipt_root,
-            selector_pointer=authority_paths["--a-selector-pointer"],
-            a_runner=run_a,
-            hk_runner=run_hk,
-            lane=args.lane,
-        )
-        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-        return ensure_exit_code(result)
-    result = run_scheduled_lanes(
-        target_date=args.date,
-        receipt_root=args.receipt_root,
-        a_runner=run_a,
-        hk_runner=run_hk,
-        lane=args.lane,
-    )
-    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-    return 0 if result["overall_status"] in {"READY", "NON_TRADING_DAY"} else 2 if result["overall_status"] == "PARTIAL" else 1
+def main(argv: Sequence[str] | None = None) -> int:
+    from ops._macos_research_panel_daily_parts.cli import _main_body as _v4_impl
+    return _v4_impl(globals(), argv)
 
 
 if __name__ == "__main__":

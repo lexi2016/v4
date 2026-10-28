@@ -9,22 +9,40 @@ all run artifacts are written below the caller-provided state/runtime root.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
+import hashlib
 import json
+import math
 import os
+import signal
+import stat
 import struct
+import tempfile
+import threading
 import time
+import zlib
 from datetime import datetime
 from dataclasses import dataclass
+from numbers import Real
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+
+# Preserve direct-file CLI discovery of the sibling review modules.
+if __name__ == "__main__" and not __package__:
+    import sys as _v4_import_sys
+    from pathlib import Path as _v4_import_Path
+    _v4_import_sys.path.insert(0, str(_v4_import_Path(__file__).resolve().parents[1]))
+
 
 try:  # Keep the validation/sync core importable in tests without pytdx.
     from pytdx.config.hosts import hq_hosts
     from pytdx.hq import TdxHq_API
+    from pytdx.errors import TdxFunctionCallError
 except ImportError:  # pragma: no cover - production installs pytdx.
     hq_hosts = ()
     TdxHq_API = None
+    TdxFunctionCallError = None
 
 
 TASK_NAME = "tdxpy_daily_vipdoc_sync_v1"
@@ -39,6 +57,72 @@ RUN_DIR = _RUN_ROOT / RUN_TS
 
 DAY_STRUCT = struct.Struct("<IIIIIfII")
 MAX_CROSS_DAY_CLOSE_RATIO = 1.5
+_PROTOCOL_PARSE_EXCEPTION_TYPES = (struct.error, zlib.error, EOFError, UnicodeDecodeError)
+_PROTOCOL_PARSE_EXCEPTION_NAMES = {
+    ("pytdx.parser.base", "ResponseHeaderRecvFails"),
+    ("pytdx.parser.base", "ResponseRecvFails"),
+}
+
+# The outer executor for the native A lane is 600 seconds.  These defaults
+# leave room for the authority adapter to write a typed receipt before that
+# boundary while retaining the installed SDK's 1.5 second socket timeout.
+DEFAULT_REQUEST_DEADLINE_SECONDS = 9.0
+DEFAULT_SYMBOL_BUDGET_SECONDS = 45.0
+DEFAULT_RUN_BUDGET_SECONDS = 540.0
+PROGRESS_SCHEMA_VERSION = "v3_5.a_share.tdx_progress.v1"
+
+# These codes are part of the synchronizer's reconciliation contract.  The
+# older ``failure_type`` strings remain available below for callers that still
+# display the original v1 diagnostics.
+EMPTY_RESPONSE = "EMPTY_RESPONSE"
+PROTOCOL_RESPONSE_MALFORMED = "PROTOCOL_RESPONSE_MALFORMED"
+TARGET_DATE_MISSING = "TARGET_DATE_MISSING"
+DUPLICATE_DATE = "DUPLICATE_DATE"
+NON_MONOTONIC_DATE = "NON_MONOTONIC_DATE"
+CROSS_DAY_CLOSE_RATIO = "CROSS_DAY_CLOSE_RATIO"
+OUT_OF_SCOPE_AFTER_TARGET_DATE = "OUT_OF_SCOPE_AFTER_TARGET_DATE"
+INVALID_BAR = "INVALID_BAR"
+SOURCE_DATE_AFTER_TARGET = "SOURCE_DATE_AFTER_TARGET"
+SOURCE_IDENTITY_CHANGED = "SOURCE_IDENTITY_CHANGED"
+RULE_ID = "A-FI-SYNC-001"
+RULE_VERSION = "1"
+FIELD_RULE_ID = "A-FI-SYNC-001.FIELD_SIGNATURE"
+FIELD_RULE_VERSION = "1"
+KNOWN_MALFORMED_AMOUNT_VOLUME_SIGNATURE = "KNOWN_MALFORMED_AMOUNT_VOLUME_SIGNATURE"
+KNOWN_MALFORMED_AMOUNT_BITS = 0x00400000
+TRUSTED_CAS_RULE_ID = "A-SYNC-CAS-LOCAL-REUSE-001"
+TRUSTED_CAS_RULE_VERSION = "1"
+TRUSTED_CAS_TARGET_DATE = "20260907"
+TRUSTED_CAS_INPUTS_ENV = "V35_A_SYNC_TRUSTED_CAS_INPUTS"
+
+_COMPAT_FAILURE_TYPES = {
+    EMPTY_RESPONSE: "empty_response",
+    PROTOCOL_RESPONSE_MALFORMED: PROTOCOL_RESPONSE_MALFORMED,
+    TARGET_DATE_MISSING: "target_date_missing",
+    DUPLICATE_DATE: "duplicate_date",
+    NON_MONOTONIC_DATE: "non_monotonic_date",
+    CROSS_DAY_CLOSE_RATIO: "continuity_close_ratio",
+    OUT_OF_SCOPE_AFTER_TARGET_DATE: "out_of_scope_after_target_date",
+    SOURCE_DATE_AFTER_TARGET: "source_date_after_target",
+    SOURCE_IDENTITY_CHANGED: "source_identity_changed",
+}
+_TERMINAL_CONTENT_FAILURE_CODES = {
+    EMPTY_RESPONSE,
+    TARGET_DATE_MISSING,
+    DUPLICATE_DATE,
+    NON_MONOTONIC_DATE,
+    CROSS_DAY_CLOSE_RATIO,
+    OUT_OF_SCOPE_AFTER_TARGET_DATE,
+    SOURCE_DATE_AFTER_TARGET,
+    INVALID_BAR,
+    SOURCE_IDENTITY_CHANGED,
+    KNOWN_MALFORMED_AMOUNT_VOLUME_SIGNATURE,
+}
+# An empty provider payload is transient at the route layer. It remains a
+# typed quarantine for the current symbol, while the next symbol may reuse the
+# healthy session and host. A later bounded run reopens the empty symbol.
+_RETRYABLE_CONTENT_FAILURE_CODES = {EMPTY_RESPONSE}
+_NONRETRYABLE_CONTENT_FAILURE_CODES = _TERMINAL_CONTENT_FAILURE_CODES - _RETRYABLE_CONTENT_FAILURE_CODES
 MARKET_BY_PREFIX = {
     "sh": 1,
     "sz": 0,
@@ -62,6 +146,289 @@ class DailyTarget:
     code: str
     market: int
     path: Path
+
+
+class SyncTimeoutError(RuntimeError):
+    """A bounded A-sync operation exceeded its local wall-clock budget."""
+
+    def __init__(
+        self,
+        scope: str,
+        deadline_seconds: float,
+        elapsed_seconds: float,
+        *,
+        unsupported_context: bool = False,
+    ) -> None:
+        self.scope = str(scope).upper()
+        self.deadline_seconds = float(deadline_seconds)
+        self.elapsed_seconds = float(elapsed_seconds)
+        self.unsupported_context = bool(unsupported_context)
+        super().__init__(
+            f"A_SYNC_TIMEOUT:{self.scope}:elapsed={self.elapsed_seconds:.6f}"
+            f":deadline={self.deadline_seconds:.6f}"
+        )
+
+
+def _positive_budget(value: Any, name: str) -> float:
+    try:
+        budget = float(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"{name} must be a finite positive number") from error
+    if not math.isfinite(budget) or budget <= 0:
+        raise ValueError(f"{name} must be a finite positive number")
+    return budget
+
+
+@contextlib.contextmanager
+def _deadline_guard(seconds: float, *, scope: str) -> Any:
+    """Interrupt one synchronous SDK call without leaving a worker thread.
+
+    The native lane is serial and runs on the main thread.  ``SIGALRM`` is
+    therefore the only cancellation mechanism used here: it interrupts the
+    socket or provider call in place and is always restored in ``finally``.
+    A caller without that native main-thread deadline primitive fails before
+    entering the provider call; a post-call check cannot truthfully claim an
+    in-call wall-clock bound.
+    """
+    from ops._a_share_daily_sync_parts.scope_validation import __deadline_guard_body as _v4_impl
+    return (yield from _v4_impl(globals(), seconds, scope=scope))
+
+
+def _atomic_write_bytes(path: Path, payload: bytes) -> None:
+    """Atomically persist a small progress/receipt object in its parent."""
+    from ops._a_share_daily_sync_parts.cli_runtime import __atomic_write_bytes_body as _v4_impl
+    return _v4_impl(globals(), path, payload)
+
+
+def _target_scope_fingerprint(targets: list[DailyTarget]) -> str:
+    from ops._a_share_daily_sync_parts.scope_validation import __target_scope_fingerprint_body as _v4_impl
+    return _v4_impl(globals(), targets)
+
+
+def _target_scope_keys(targets: Iterable[DailyTarget]) -> list[dict[str, Any]]:
+    """Return the exact identity set carried by the sync receipt."""
+    keys = [
+        {
+            "symbol": str(item.code),
+            "market": int(item.market),
+            "path": str(Path(item.path).resolve()),
+        }
+        for item in targets
+    ]
+    return sorted(keys, key=lambda item: (item["symbol"], item["market"], item["path"]))
+
+
+def _validate_target_scope(targets: list[DailyTarget]) -> None:
+    """Reject ambiguous duplicate target identities before provider work."""
+    keys = [(str(item.code), int(item.market), str(Path(item.path).resolve())) for item in targets]
+    if len(keys) != len(set(keys)):
+        raise ValueError("A_SYNC_TARGET_SCOPE_DUPLICATE")
+
+
+def _path_has_symlink_component(path: Path) -> bool:
+    """Return whether a target path or any existing ancestor is a symlink.
+
+    ``Path.exists()`` is false for a dangling symlink, so callers must inspect
+    the link bit before using existence or opening the path.  Checking every
+    component also prevents a regular-looking leaf from writing through a
+    linked directory into an unrelated source tree.
+    """
+    from ops._a_share_daily_sync_parts.scope_validation import __path_has_symlink_component_body as _v4_impl
+    return _v4_impl(globals(), path)
+
+
+def _local_path_failure(path: Path) -> str | None:
+    """Validate a local source path before reading or appending bytes."""
+    if _path_has_symlink_component(path):
+        return f"{INVALID_BAR}:source_symlink"
+    try:
+        if path.exists() and not path.is_file():
+            return f"{INVALID_BAR}:source_not_regular"
+    except OSError as error:
+        return f"{INVALID_BAR}:source_stat:{error!r}"
+    return None
+
+
+def _file_sha256(path: Path) -> str | None:
+    """Return the current regular-file identity without following symlinks."""
+    from ops._a_share_daily_sync_parts.cli_runtime import __file_sha256_body as _v4_impl
+    return _v4_impl(globals(), path)
+
+
+def _trusted_cas_sha256(value: Any, label: str) -> str:
+    digest = str(value or "").strip().lower()
+    if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+        raise ValueError(f"A_SYNC_TRUSTED_CAS_INVALID_SHA:{label}")
+    return digest
+
+
+def _trusted_cas_read_json(path: Path, expected_sha256: str, label: str) -> dict[str, Any]:
+    from ops._a_share_daily_sync_parts.trusted_cas import __trusted_cas_read_json_body as _v4_impl
+    return _v4_impl(globals(), path, expected_sha256, label)
+
+
+def _trusted_cas_safety_ok(payload: Mapping[str, Any]) -> bool:
+    safety = payload.get("safety")
+    if not isinstance(safety, Mapping):
+        safety = payload
+    return (
+        safety.get("RESEARCH_ONLY") is True
+        and safety.get("production_allowed") is False
+        and safety.get("buy_gate_updated") is False
+        and safety.get("orders_sent") is False
+    )
+
+
+def _trusted_cas_map(
+    payload: Mapping[str, Any],
+    *,
+    label: str,
+    expected_count: int,
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    """Read one accepted CAS stage without rescanning it per target symbol."""
+    from ops._a_share_daily_sync_parts.trusted_cas import __trusted_cas_map_body as _v4_impl
+    return _v4_impl(globals(), payload, label=label, expected_count=expected_count)
+
+
+def _trusted_cas_load_inputs(
+    path_value: Path | str | None,
+    target_int: int,
+    expected_target_fingerprint: str | None = None,
+) -> dict[str, Any] | None:
+    """Load reviewed CAS references once; ignore them for an uncovered date."""
+    from ops._a_share_daily_sync_parts.trusted_cas import __trusted_cas_load_inputs_body as _v4_impl
+    return _v4_impl(globals(), path_value, target_int, expected_target_fingerprint)
+
+
+def _trusted_cas_local_reuse(
+    index: Mapping[str, Any] | None,
+    target: DailyTarget,
+    target_int: int,
+    current_sha: str | None,
+    history: Sequence[Mapping[str, Any]],
+    history_failure: str | None,
+    field_violations: Sequence[Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    """Return a receipt-bound no-provider reuse only after strict local gates."""
+    from ops._a_share_daily_sync_parts.trusted_cas import __trusted_cas_local_reuse_body as _v4_impl
+    return _v4_impl(globals(), index, target, target_int, current_sha, history, history_failure, field_violations)
+
+
+def _observed_at() -> str:
+    return datetime.now().astimezone().isoformat(timespec="microseconds")
+
+
+def _is_finite_real(value: Any) -> bool:
+    return isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(float(value))
+
+
+def _field_rule_identity_current(value: Mapping[str, Any] | None) -> bool:
+    return (
+        isinstance(value, Mapping)
+        and str(value.get("field_rule_id") or "") == FIELD_RULE_ID
+        and str(value.get("field_rule_version") or "") == FIELD_RULE_VERSION
+    )
+
+
+def _has_known_malformed_amount_volume_signature(raw: bytes) -> bool:
+    """Match only the frozen native 32-byte amount/volume signature."""
+    if len(raw) != DAY_STRUCT.size:
+        return False
+    amount_bits = struct.unpack_from("<I", raw, 20)[0]
+    volume_raw = struct.unpack_from("<I", raw, 24)[0]
+    return amount_bits == KNOWN_MALFORMED_AMOUNT_BITS and volume_raw == 0
+
+
+def _field_signature_violation(
+    *,
+    symbol: str,
+    market: int,
+    date_value: int,
+    row_index: int,
+    raw: bytes,
+    source_ref: str,
+    source_file_sha256: str | None,
+    native_path: str | None,
+    run_id: str,
+    recorded_at: str,
+) -> dict[str, Any]:
+    from ops._a_share_daily_sync_parts.field_rules import __field_signature_violation_body as _v4_impl
+    return _v4_impl(globals(), symbol=symbol, market=market, date_value=date_value, row_index=row_index, raw=raw, source_ref=source_ref, source_file_sha256=source_file_sha256, native_path=native_path, run_id=run_id, recorded_at=recorded_at)
+
+
+def _local_field_signature_violations(
+    path: Path,
+    *,
+    symbol: str,
+    market: int,
+    run_id: str,
+    recorded_at: str,
+) -> list[dict[str, Any]]:
+    """Scan every existing native record without decoding away raw bits."""
+    from ops._a_share_daily_sync_parts.field_rules import __local_field_signature_violations_body as _v4_impl
+    return _v4_impl(globals(), path, symbol=symbol, market=market, run_id=run_id, recorded_at=recorded_at)
+
+
+def _provider_field_signature_violation(
+    bar: Mapping[str, Any],
+    *,
+    symbol: str,
+    market: int,
+    row_index: int,
+    run_id: str,
+    recorded_at: str,
+) -> dict[str, Any] | None:
+    from ops._a_share_daily_sync_parts.field_rules import __provider_field_signature_violation_body as _v4_impl
+    return _v4_impl(globals(), bar, symbol=symbol, market=market, row_index=row_index, run_id=run_id, recorded_at=recorded_at)
+
+
+def _bars_equivalent(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
+    """Compare a revalidated target bar without introducing a rewrite path."""
+    from ops._a_share_daily_sync_parts.field_rules import __bars_equivalent_body as _v4_impl
+    return _v4_impl(globals(), left, right)
+
+
+def _local_history_status(path: Path, target_date: int) -> tuple[list[dict[str, Any]], str | None]:
+    """Validate existing source bytes before an accepted-only handoff.
+
+    The formula reader currently keeps the last duplicate key.  This gate
+    audits the source in its original order first, so a malformed local file
+    is quarantined instead of being silently repaired by a downstream reader.
+    """
+    from ops._a_share_daily_sync_parts.progress import __local_history_status_body as _v4_impl
+    return _v4_impl(globals(), path, target_date)
+
+
+def _new_progress(target_int: int, targets: list[DailyTarget], *, dry_run: bool) -> dict[str, Any]:
+    from ops._a_share_daily_sync_parts.progress import __new_progress_body as _v4_impl
+    return _v4_impl(globals(), target_int, targets, dry_run=dry_run)
+
+
+def _load_progress(path: Path, target_int: int, targets: list[DailyTarget], *, dry_run: bool) -> dict[str, Any]:
+    from ops._a_share_daily_sync_parts.progress import __load_progress_body as _v4_impl
+    return _v4_impl(globals(), path, target_int, targets, dry_run=dry_run)
+
+
+def _resume_target_order(
+    targets: list[DailyTarget],
+    progress: Mapping[str, Any],
+    target_int: int | None = None,
+) -> list[DailyTarget]:
+    """Prioritize exact-target local files while preserving all other order.
+
+    The last-date read is only a scheduling hint.  Every target still enters
+    the unchanged local history, field, date, continuity, and source-identity
+    gates below; a malformed or drifted exact-target file is rejected there.
+    ``progress`` remains part of this seam for receipt compatibility, but
+    durable pending/retry labels must not starve an already-current file.
+    """
+    from ops._a_share_daily_sync_parts.progress import __resume_target_order_body as _v4_impl
+    return _v4_impl(globals(), targets, progress, target_int)
+
+
+def _persist_progress(path: Path, progress: Mapping[str, Any]) -> None:
+    payload = (json.dumps(dict(progress), ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    _atomic_write_bytes(path, payload)
 
 
 def _host_label(host: str, port: int) -> str:
@@ -89,42 +456,95 @@ def _disconnect_session(api: Any) -> None:
             pass
 
 
+def _is_tdx_function_call_error(error: BaseException) -> bool:
+    """Recognize the SDK wrapper without weakening import-time test support."""
+
+    if TdxFunctionCallError is not None and isinstance(error, TdxFunctionCallError):
+        return True
+    error_type = type(error)
+    return (
+        error_type.__name__ == "TdxFunctionCallError"
+        and error_type.__module__.startswith("pytdx.")
+    )
+
+
+def _exception_chain(error: BaseException) -> list[dict[str, str]]:
+    """Capture the SDK wrapper and its original parser exception for receipts."""
+    from ops._a_share_daily_sync_parts.network_session import __exception_chain_body as _v4_impl
+    return _v4_impl(globals(), error)
+
+
+def _protocol_response_details(error: BaseException) -> dict[str, Any] | None:
+    """Return typed details only for an SDK-wrapped parser/framing failure."""
+    from ops._a_share_daily_sync_parts.network_session import __protocol_response_details_body as _v4_impl
+    return _v4_impl(globals(), error)
+
+
 def _fetch_valid_target_bars(
     api: Any,
     target: DailyTarget,
     target_date: int,
     previous_close: float | None,
     count: int,
+    after_date: int | None = None,
+    *,
+    capture_response: Callable[[Any], None] | None = None,
+    field_violations: list[dict[str, Any]] | None = None,
+    run_id: str = "",
+    recorded_at: str = "",
 ) -> tuple[list[dict[str, Any]], str]:
-    """Fetch one symbol and fail closed on empty, wrong-date, or continuity data."""
+    """Fetch one symbol and validate the provider response in wire order.
 
-    bars = api.get_security_bars(9, target.market, target.code, 0, max(1, int(count)))
-    if not bars:
-        return [], "empty_response"
-    normalized: list[dict[str, Any]] = []
-    for raw in bars:
-        ok, reason = valid_hq_bar(raw)
-        if not ok:
-            return [], f"invalid_bar:{reason}"
-        normalized.append(dict(raw))
-    normalized.sort(key=day_int)
-    dates = [day_int(bar) for bar in normalized]
-    if len(set(dates)) != len(dates) or any(right <= left for left, right in zip(dates, dates[1:])):
-        return [], "continuity_non_monotonic"
-    exact = [bar for bar in normalized if day_int(bar) == target_date]
-    if not exact:
-        return [], "target_date_missing"
-    prior = float(previous_close) if previous_close and previous_close > 0 else None
-    for bar in exact:
-        close = float(bar["close"])
-        if prior is not None:
-            ratio = close / prior
-            if ratio > MAX_CROSS_DAY_CLOSE_RATIO or ratio < 1.0 / MAX_CROSS_DAY_CLOSE_RATIO:
-                return [], "continuity_close_ratio"
-        prior = close
-    # Only append records after the existing file's last date and never append
-    # a future bar when the exact target-date gate is being evaluated.
-    return [bar for bar in exact], "ok"
+    Sorting here would turn a provider ordering defect into apparently valid
+    evidence.  The response is therefore checked exactly as returned.  Once
+    the exact target date is present, every bar after ``after_date`` through
+    the target is handed to the append path so an incremental gap is not
+    silently dropped.
+    """
+    from ops._a_share_daily_sync_parts.network_session import __fetch_valid_target_bars_body as _v4_impl
+    return _v4_impl(globals(), api, target, target_date, previous_close, count, after_date, capture_response=capture_response, field_violations=field_violations, run_id=run_id, recorded_at=recorded_at)
+
+
+def _reason_code(failure_type: str) -> str:
+    return str(failure_type).split(":", 1)[0].upper()
+
+
+def _compat_failure_type(failure_type: str) -> str:
+    code = _reason_code(failure_type)
+    if code == INVALID_BAR and ":" in str(failure_type):
+        return "invalid_bar:" + str(failure_type).split(":", 1)[1]
+    return _COMPAT_FAILURE_TYPES.get(code, str(failure_type))
+
+
+def _snapshot_json_value(value: Any) -> Any:
+    """Keep provider response objects JSON-replayable without changing them."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(key): _snapshot_json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_snapshot_json_value(item) for item in value]
+    return repr(value)
+
+
+def _write_raw_response_snapshot(
+    *,
+    target_date: int,
+    target: DailyTarget,
+    request: Mapping[str, Any],
+    host: str,
+    host_ordinal: int,
+    attempt_ordinal: int,
+    response_rows: Any = None,
+    response_error: str | None = None,
+    run_id: str | None = None,
+    rule_id: str = RULE_ID,
+    rule_version: str = RULE_VERSION,
+    observed_at: str | None = None,
+) -> dict[str, Any]:
+    """Persist one immutable provider-response object under the sync run root."""
+    from ops._a_share_daily_sync_parts.response_capture import __write_raw_response_snapshot_body as _v4_impl
+    return _v4_impl(globals(), target_date=target_date, target=target, request=request, host=host, host_ordinal=host_ordinal, attempt_ordinal=attempt_ordinal, response_rows=response_rows, response_error=response_error, run_id=run_id, rule_id=rule_id, rule_version=rule_version, observed_at=observed_at)
 
 
 def run_sync(
@@ -136,149 +556,28 @@ def run_sync(
     count: int = 20,
     timeout: float = 1.5,
     dry_run: bool = False,
+    request_deadline_seconds: float = DEFAULT_REQUEST_DEADLINE_SECONDS,
+    symbol_budget_seconds: float = DEFAULT_SYMBOL_BUDGET_SECONDS,
+    run_budget_seconds: float = DEFAULT_RUN_BUDGET_SECONDS,
+    progress_path: Path | str | None = None,
+    trusted_cas_inputs: Path | str | None = None,
 ) -> dict[str, Any]:
-    """Synchronize A daily files with bounded host failover.
+    """Synchronize A daily files with bounded host failover and resume.
 
     A malformed response invalidates only the symbol currently being fetched.
-    The connection is dropped, the next host is opened, and that symbol is
-    retried once per remaining host.  Previously successful symbols are never
-    replayed and a failed symbol never mutates its original file.
+    A request timeout interrupts the synchronous SDK call in place, so no
+    executor thread is left behind.  Accepted symbols are persisted after the
+    exact-date append and are skipped on a later run with the same target
+    scope.  Connect/request failures quarantine the endpoint for this run;
+    Empty responses rotate through the configured hosts within the existing
+    symbol/run budgets; a persistent empty result remains symbol-specific
+    quarantine evidence. Other content failures remain terminal.
+    A reviewed CAS input is indexed once and can only accept an exact-date
+    local file after the same history, field, path, record-count, and SHA
+    gates pass; uncovered or changed files continue through the owner route.
     """
-
-    target_text = str(target_date).replace("-", "").replace("/", "")
-    if len(target_text) != 8 or not target_text.isdigit():
-        raise ValueError(f"invalid target date: {target_date!r}")
-    try:
-        datetime.strptime(target_text, "%Y%m%d")
-    except ValueError as error:
-        raise ValueError(f"invalid target date: {target_date!r}") from error
-    target_int = int(target_text)
-    target_list = list(targets)
-    hosts = [(str(host), int(port)) for host, port in host_candidates]
-    if not hosts:
-        raise ValueError("TDX host candidates are empty")
-    by_symbol: dict[str, dict[str, Any]] = {}
-    failures: list[dict[str, Any]] = []
-    api: Any | None = None
-    host_position = -1
-    host_info: tuple[str, int] | None = None
-    last_host_attempted: tuple[str, int] | None = None
-
-    def open_next_host() -> tuple[Any, tuple[str, int]]:
-        nonlocal host_position, last_host_attempted
-        last_error: Exception | None = None
-        while host_position + 1 < len(hosts):
-            host_position += 1
-            candidate = hosts[host_position]
-            last_host_attempted = candidate
-            candidate_api = api_factory(candidate[0], candidate[1])
-            try:
-                _connect_session(candidate_api, candidate[0], candidate[1], timeout)
-                return candidate_api, candidate
-            except Exception as error:
-                last_error = error
-                _disconnect_session(candidate_api)
-        raise RuntimeError(f"no usable TDX host remains: {last_error!r}")
-
-    for item in target_list:
-        symbol = str(item.code)
-        existing = read_hq_day_bars(item.path, tail_records=1)
-        last_date = day_int(existing[-1]) if existing else None
-        previous_close = float(existing[-1]["close"]) if existing else None
-        if last_date == target_int:
-            by_symbol[symbol] = {
-                "symbol": symbol,
-                "status": "ALREADY_CURRENT",
-                "target_date_ready": True,
-                "last_date_before": last_date,
-                "last_date_after": last_date,
-            }
-            continue
-        final_failure: dict[str, Any] | None = None
-        while True:
-            if api is None:
-                try:
-                    api, host_info = open_next_host()
-                except Exception as error:
-                    final_failure = {
-                        "symbol": symbol,
-                        "host": _host_label(*(last_host_attempted or host_info))
-                        if (last_host_attempted or host_info)
-                        else "unavailable",
-                        "failure_type": "host_unavailable",
-                        "error": repr(error),
-                    }
-                    break
-            assert host_info is not None
-            try:
-                bars, failure_type = _fetch_valid_target_bars(
-                    api, item, target_int, previous_close, count
-                )
-                if failure_type == "ok":
-                    if not dry_run:
-                        append_bars(item.path, bars)
-                    last_after = day_int(bars[-1])
-                    by_symbol[symbol] = {
-                        "symbol": symbol,
-                        "status": "UPDATED",
-                        "target_date_ready": last_after == target_int,
-                        "last_date_before": last_date,
-                        "last_date_after": last_after,
-                        "host": _host_label(*host_info),
-                        "records_written": len(bars),
-                    }
-                    final_failure = None
-                    break
-                final_failure = {
-                    "symbol": symbol,
-                    "host": _host_label(*host_info),
-                    "failure_type": failure_type,
-                }
-            except Exception as error:
-                final_failure = {
-                    "symbol": symbol,
-                    "host": _host_label(*host_info),
-                    "failure_type": "request_error",
-                    "error": repr(error),
-                }
-            _disconnect_session(api)
-            api = None
-            # The next iteration retries this symbol on the next host only.
-            if host_position + 1 >= len(hosts):
-                break
-        if final_failure is not None:
-            by_symbol[symbol] = {
-                "symbol": symbol,
-                "status": "FAILED",
-                "target_date_ready": False,
-                "last_date_before": last_date,
-                "last_date_after": last_date,
-                **final_failure,
-            }
-            failures.append(final_failure)
-            # A symbol may exhaust the host list.  That exhaustion is local to
-            # this symbol; the next symbol must be allowed to establish a new
-            # session from the first candidate rather than inheriting a dead
-            # global cursor.
-            _disconnect_session(api)
-            api = None
-            host_position = -1
-            host_info = None
-            last_host_attempted = None
-
-    _disconnect_session(api)
-    status = "PASS" if not failures else "FAILED"
-    return {
-        "task_name": TASK_NAME,
-        "status": status,
-        "exit_code": 0 if status == "PASS" else 2,
-        "target_date": str(target_int),
-        "target_count": len(target_list),
-        "updated_count": sum(item.get("status") == "UPDATED" for item in by_symbol.values()),
-        "failures": failures,
-        "by_symbol": by_symbol,
-        "host": _host_label(*host_info) if host_info else None,
-    }
+    from ops._a_share_daily_sync_parts.sync_workflow import _run_sync_body as _v4_impl
+    return _v4_impl(globals(), targets, target_date=target_date, api_factory=api_factory, host_candidates=host_candidates, count=count, timeout=timeout, dry_run=dry_run, request_deadline_seconds=request_deadline_seconds, symbol_budget_seconds=symbol_budget_seconds, run_budget_seconds=run_budget_seconds, progress_path=progress_path, trusted_cas_inputs=trusted_cas_inputs)
 
 
 def ensure_dir(path: Path) -> None:
@@ -291,17 +590,8 @@ def write_json(path: Path, obj: Any) -> None:
 
 
 def write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
-    ensure_dir(path.parent)
-    keys: List[str] = []
-    for row in rows:
-        for key in row:
-            if key not in keys:
-                keys.append(key)
-    with path.open("w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=keys)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: row.get(key) for key in keys})
+    from ops._a_share_daily_sync_parts.day_file_format import _write_csv_body as _v4_impl
+    return _v4_impl(globals(), path, rows)
 
 
 def day_int(bar: Dict[str, Any]) -> int:
@@ -309,7 +599,9 @@ def day_int(bar: Dict[str, Any]) -> int:
 
 
 def read_last_date(path: Path) -> Optional[int]:
-    if not path.exists() or path.stat().st_size < DAY_STRUCT.size:
+    if _local_path_failure(path) is not None or not path.exists():
+        return None
+    if path.stat().st_size < DAY_STRUCT.size:
         return None
     with path.open("rb") as f:
         f.seek(-DAY_STRUCT.size, os.SEEK_END)
@@ -323,220 +615,91 @@ def pack_hq_bar(bar: Dict[str, Any]) -> bytes:
         int(round(float(bar["high"]) * 100)),
         int(round(float(bar["low"]) * 100)),
         int(round(float(bar["close"]) * 100)),
-        float(bar.get("amount") or 0.0),
-        int(round(float(bar.get("vol") or 0.0) * 100)),
+        float(bar["amount"]),
+        int(round(float(bar["vol"]) * 100)),
         0,
     )
 
 
 def valid_hq_bar(bar: Dict[str, Any]) -> Tuple[bool, str]:
-    try:
-        date_value = day_int(bar)
-        open_v = float(bar["open"])
-        high_v = float(bar["high"])
-        low_v = float(bar["low"])
-        close_v = float(bar["close"])
-    except Exception as exc:
-        return False, f"parse_error:{exc!r}"
-    if not (19900101 <= date_value <= 21000101):
-        return False, f"bad_date:{date_value}"
-    if min(open_v, high_v, low_v, close_v) <= 0:
-        return False, "non_positive_ohlc"
-    if high_v < low_v:
-        return False, "high_lt_low"
-    if close_v > high_v or close_v < low_v:
-        return False, "close_outside_high_low"
-    return True, "ok"
-
-
-def partition_bars_by_cross_day_continuity(
-    bars: List[Dict[str, Any]], previous_close: Optional[float], max_close_ratio: float = MAX_CROSS_DAY_CLOSE_RATIO,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Keep a contiguous append chain; leave suspicious bars for an offline rebuild candidate."""
-    accepted: List[Dict[str, Any]] = []
-    rejected: List[Dict[str, Any]] = []
-    prior = float(previous_close) if previous_close and previous_close > 0 else None
-    for bar in sorted(bars, key=day_int):
-        close = float(bar["close"])
-        ratio = close / prior if prior else None
-        if ratio is not None and (ratio > max_close_ratio or ratio < 1.0 / max_close_ratio):
-            rejected.append({"bar": dict(bar), "reason": "cross_day_close_ratio", "close_ratio": ratio})
-            continue
-        accepted.append(dict(bar))
-        prior = close
-    return accepted, rejected
+    from ops._a_share_daily_sync_parts.day_file_format import _valid_hq_bar_body as _v4_impl
+    return _v4_impl(globals(), bar)
 
 
 def read_hq_day_bars(path: Path, tail_records: Optional[int] = None) -> List[Dict[str, Any]]:
-    if not path.exists():
-        return []
-    size = path.stat().st_size
-    count = size // DAY_STRUCT.size
-    start = max(0, count - tail_records) if tail_records else 0
-    rows: List[Dict[str, Any]] = []
-    with path.open("rb") as f:
-        f.seek(start * DAY_STRUCT.size)
-        data = f.read((count - start) * DAY_STRUCT.size)
-    for offset in range(0, len(data), DAY_STRUCT.size):
-        date_i, open_i, high_i, low_i, close_i, amount_f, vol_u, _reserved = DAY_STRUCT.unpack_from(data, offset)
-        rows.append({
-            "year": date_i // 10000, "month": date_i // 100 % 100, "day": date_i % 100,
-            "open": open_i / 100.0, "high": high_i / 100.0, "low": low_i / 100.0,
-            "close": close_i / 100.0, "amount": amount_f, "vol": vol_u / 100.0,
-        })
-    return rows
+    from ops._a_share_daily_sync_parts.day_file_format import _read_hq_day_bars_body as _v4_impl
+    return _v4_impl(globals(), path, tail_records)
 
 
-def build_rebuild_candidate(source_path: Path, replacements: List[Dict[str, Any]], candidate_path: Path) -> Dict[str, Any]:
-    """Write a side-by-side corrected .day candidate; never mutate the source history."""
-    existing = {day_int(bar): bar for bar in read_hq_day_bars(source_path)}
-    replacement_dates = sorted({day_int(bar) for bar in replacements})
-    existing.update({day_int(bar): dict(bar) for bar in replacements})
-    candidate_path.parent.mkdir(parents=True, exist_ok=True)
-    with candidate_path.open("wb") as handle:
-        for date_value in sorted(existing):
-            handle.write(pack_hq_bar(existing[date_value]))
-    return {"source_path": str(source_path), "candidate_path": str(candidate_path), "replaced_dates": replacement_dates}
+def build_rebuild_candidate(
+    source_path: Path,
+    replacements: List[Dict[str, Any]],
+    candidate_path: Path,
+    *,
+    expected_source_sha256: Optional[str] = None,
+    expected_replacement_sha256: Optional[Mapping[int, str]] = None,
+    expected_replacement_dates: Optional[Iterable[int]] = None,
+) -> Dict[str, Any]:
+    """Write a side-by-side corrected ``.day`` candidate.
+
+    Existing records are carried as their original 32-byte bytes.  Repacking
+    the whole file through :func:`read_hq_day_bars` loses reserved bytes and
+    silently collapses duplicate dates, so only explicitly supplied dates are
+    encoded with the existing ``pack_hq_bar`` codec.  Missing dates retain the
+    historical append/insert behavior, while an existing date is replaced
+    in-place in the date-sorted stream.
+    """
+    from ops._a_share_daily_sync_parts.rebuild import _build_rebuild_candidate_body as _v4_impl
+    return _v4_impl(globals(), source_path, replacements, candidate_path, expected_source_sha256=expected_source_sha256, expected_replacement_sha256=expected_replacement_sha256, expected_replacement_dates=expected_replacement_dates)
 
 
 def discover_targets(markets: Iterable[str], tdx_root: Path) -> List[Tuple[str, int, str, Path, Optional[int]]]:
-    targets: List[Tuple[str, int, str, Path, Optional[int]]] = []
-    for market_name in markets:
-        for prefix, template_dir in DIR_BY_MARKET.get(market_name, []):
-            directory = Path(str(template_dir).replace(str(TDX_ROOT), str(tdx_root)))
-            if not directory.exists():
-                continue
-            for path in directory.glob(f"{prefix}*.day"):
-                code = path.stem[len(prefix):]
-                if len(code) != 6 or not code.isdigit():
-                    continue
-                if not code.startswith(EQUITY_CODE_PREFIXES_BY_MARKET[prefix]):
-                    continue
-                targets.append((prefix, MARKET_BY_PREFIX[prefix], code, path, read_last_date(path)))
-    return targets
-
-
-def connect_hq(preferred_host: Optional[str], timeout: float) -> Tuple[TdxHq_API, Dict[str, Any]]:
-    candidates = []
-    if preferred_host:
-        host, _, port_text = preferred_host.partition(":")
-        candidates.append(("preferred", host, int(port_text or 7709)))
-    candidates.extend(hq_hosts)
-
-    for name, host, port in candidates:
-        api = TdxHq_API()
-        try:
-            ok = api.connect(host, int(port), time_out=timeout)
-            if ok:
-                probe = api.get_security_bars(9, 1, "600000", 0, 1)
-                if probe:
-                    return api, {"name": name, "host": host, "port": int(port), "probe_latest": probe[-1]}
-        except Exception:
-            try:
-                api.disconnect()
-            except Exception:
-                pass
-            continue
-    raise RuntimeError("No usable pytdx HQ host found")
-
-
-def fetch_new_bars(api: TdxHq_API, market: int, code: str, after_date: Optional[int], count: int) -> Tuple[List[Dict[str, Any]], str, int]:
-    bars = api.get_security_bars(9, market, code, 0, count)
-    if not bars:
-        return [], "empty_response", 0
-    new_bars = []
-    skipped_invalid = 0
-    for bar in bars:
-        ok, reason = valid_hq_bar(bar)
-        if not ok:
-            skipped_invalid += 1
-            continue
-        if after_date is None or day_int(bar) > int(after_date):
-            new_bars.append(dict(bar))
-    status = "ok" if skipped_invalid == 0 else "ok_with_skipped_invalid"
-    return new_bars, status, skipped_invalid
+    from ops._a_share_daily_sync_parts.cli_runtime import _discover_targets_body as _v4_impl
+    return _v4_impl(globals(), markets, tdx_root)
 
 
 def append_bars(path: Path, bars: List[Dict[str, Any]]) -> None:
-    with path.open("ab") as f:
-        for bar in bars:
-            f.write(pack_hq_bar(bar))
+    from ops._a_share_daily_sync_parts.day_file_format import _append_bars_body as _v4_impl
+    return _v4_impl(globals(), path, bars)
 
 
 def _runtime_host_candidates(preferred_host: Optional[str]) -> list[tuple[str, int]]:
-    candidates: list[tuple[str, int]] = []
-    if preferred_host:
-        host, _, port_text = str(preferred_host).partition(":")
-        candidates.append((host, int(port_text or 7709)))
-    for item in hq_hosts:
-        if len(item) >= 3:
-            _name, host, port = item[:3]
-            candidates.append((str(host), int(port)))
-        elif len(item) == 2:
-            host, port = item
-            candidates.append((str(host), int(port)))
-    return list(dict.fromkeys(candidates))
+    from ops._a_share_daily_sync_parts.cli_runtime import __runtime_host_candidates_body as _v4_impl
+    return _v4_impl(globals(), preferred_host)
 
 
 def _runtime_api_factory(host: str, _port: int) -> Any:
     if TdxHq_API is None:
         raise RuntimeError("pytdx is not installed")
-    return TdxHq_API()
+    protocol = os.environ.get("V35_A_SYNC_TDX_PROTOCOL", "standard")
+    if protocol == "mac":
+        from ops._a_share_daily_sync_parts.tdx_mac_adapter import MacDailyHqAPI
+        return MacDailyHqAPI(auto_retry=False, raise_exception=True)
+    if protocol != "standard":
+        raise ValueError("V35_A_SYNC_TDX_PROTOCOL must be standard or mac")
+    return TdxHq_API(auto_retry=False, raise_exception=True)
 
+
+
+def connect_hq(preferred_host: Optional[str], timeout: float) -> Tuple[Any, Dict[str, Any]]:
+    """Compatibility probe for callers that still use the v1 connection API.
+
+    The production sync path uses :func:`run_sync` and its bounded host route.
+    This narrow adapter preserves the existing test/diagnostic entry point
+    while constructing the same strict ``raise_exception=True`` provider.
+    """
+    from ops._a_share_daily_sync_parts.network_session import _connect_hq_body as _v4_impl
+    return _v4_impl(globals(), preferred_host, timeout)
 
 def run(args: argparse.Namespace) -> Dict[str, Any]:
     """Run the bounded sync and persist a truthful summary."""
-
-    ensure_dir(RUN_DIR)
-    markets = [x.strip().lower() for x in args.markets.split(",") if x.strip()]
-    discovered = discover_targets(markets, args.tdx_root)
-    if args.limit:
-        discovered = discovered[: args.limit]
-    targets = [
-        DailyTarget(code=code, market=market, path=path)
-        for _prefix, market, code, path, _last_date in discovered
-    ]
-    target_date = getattr(args, "target_date", None)
-    if not target_date:
-        raise ValueError("tdx daily sync requires an exact target_date")
-    result = run_sync(
-        targets,
-        target_date=str(target_date),
-        api_factory=_runtime_api_factory,
-        host_candidates=_runtime_host_candidates(getattr(args, "host", None)),
-        count=args.count,
-        timeout=args.timeout,
-        dry_run=bool(args.dry_run),
-    )
-    result.update(
-        {
-            "run_dir": str(RUN_DIR),
-            "tdx_root": str(args.tdx_root),
-            "markets": markets,
-            "dry_run": bool(args.dry_run),
-            "count": args.count,
-            "note": "This sync updates SH/SZ/BJ vipdoc daily files only. HK extended market ExHQ is not written by this script.",
-        }
-    )
-    write_csv(RUN_DIR / "file_results.csv", list(result["by_symbol"].values()))
-    write_json(RUN_DIR / "summary.json", result)
-    print(json.dumps(result, ensure_ascii=False, indent=2, default=str), flush=True)
-    return result
+    from ops._a_share_daily_sync_parts.cli_runtime import _run_body as _v4_impl
+    return _v4_impl(globals(), args)
 
 
 def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Sync latest SH/SZ/BJ daily bars from pytdx into local TDX vipdoc .day files.")
-    parser.add_argument("--tdx-root", type=Path, default=TDX_ROOT)
-    parser.add_argument("--target-date", required=True, help="Exact YYYYMMDD target required for a truthful sync.")
-    parser.add_argument("--markets", default="a,bj", help="Comma separated: a,bj. HK extended market is intentionally not supported here.")
-    parser.add_argument("--count", type=int, default=20, help="Latest bars to request per symbol.")
-    parser.add_argument("--host", default=None, help="Optional host:port override.")
-    parser.add_argument("--timeout", type=float, default=1.5)
-    parser.add_argument("--sleep", type=float, default=0.0)
-    parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--progress-every", type=int, default=500)
-    parser.add_argument("--dry-run", action="store_true")
-    return parser.parse_args(list(argv) if argv is not None else None)
+    from ops._a_share_daily_sync_parts.cli_runtime import _parse_args_body as _v4_impl
+    return _v4_impl(globals(), argv)
 
 
 def main(argv: Iterable[str] | None = None) -> int:

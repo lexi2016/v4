@@ -16,10 +16,14 @@ from contracts.trading_calendar import (
     resolve_market_states,
 )
 
+from stage_center.contracts import STAGE_BY_ID
+from stage_center.raw_store import RawStore
+from stage_center.selection import SelectionStore
+
 SAFETY_FLAGS = {"production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
 REQUIRED_ROOTS = ("candidate_acquisition_root", "raw_root", "selection_root", "receipt_root")
 ALL_ROOTS = REQUIRED_ROOTS + (
-    "v3_formal_root", "v3_research_root", "hk_d1_root", "hk_second_filter_root", "hk_full_universe_root",
+    "v4_research_data_root", "v4_morning_news_root", "v3_formal_root", "v3_research_root", "hk_d1_root", "hk_second_filter_root", "hk_full_universe_root",
     "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path",
 )
 SAFE_EXIT_STATUSES = {
@@ -27,6 +31,344 @@ SAFE_EXIT_STATUSES = {
     "NOOP_ALREADY_VERIFIED", "TICK_COMPLETE", "NOT_DUE", "TOO_EARLY",
     "NON_TRADING_DAY", "SKIPPED_NON_TRADING_DAY", "SKIPPED_SLOT_LOCKED",
 }
+
+
+_DEADLINE_STAGE_BY_CLOCK = {
+    (9, 27): "STAGE_0925",
+    (9, 37): "STAGE_0930_0935",
+    (9, 41): "STAGE_0935_0940",
+    (9, 46): "STAGE_0940_0945",
+    (10, 31): "STAGE_0945_1030",
+    (13, 16): "STAGE_1300_1315",
+    (15, 1): "STAGE_1445_1500",
+    (15, 56): "STAGE_1545_1555",
+}
+
+
+def _deadline_stage_for(
+    hour: int,
+    minute: int,
+    *,
+    deadline_only: bool = True,
+) -> str | None:
+    """Resolve a deadline only when the caller explicitly opted in."""
+    if not deadline_only:
+        return None
+    return _DEADLINE_STAGE_BY_CLOCK.get((int(hour), int(minute)))
+
+
+def _deadline_markets(stage_id: str) -> tuple[str, ...]:
+    try:
+        return tuple(STAGE_BY_ID[stage_id].markets)
+    except KeyError as error:
+        raise ValueError(f"unknown deadline stage {stage_id!r}") from error
+
+
+def _deadline_failure(
+    *,
+    market: str,
+    layer: str,
+    expected_path: Path,
+    observed_status: str,
+) -> dict[str, object]:
+    return {
+        "status": "ALERT",
+        "market": market,
+        "first_failed_layer": layer,
+        "expected_absolute_path": str(expected_path),
+        "observed_status": observed_status,
+    }
+
+
+def _check_deadline_lane(
+    raw_root: Path,
+    selection_root: Path,
+    trade_date: str,
+    stage_id: str,
+    market: str,
+) -> dict[str, object]:
+    """Verify one raw -> bundle -> selection chain without writing."""
+    raw_root = Path(raw_root).expanduser().resolve()
+    selection_root = Path(selection_root).expanduser().resolve()
+    raw_latest = raw_root / "latest.json"
+    if not raw_latest.is_file():
+        return _deadline_failure(
+            market=market,
+            layer="RAW_LATEST",
+            expected_path=raw_latest,
+            observed_status="ABSENT",
+        )
+    try:
+        latest = json.loads(raw_latest.read_text(encoding="utf-8"))
+        entry = latest.get("entries", {}).get(f"{trade_date}/{stage_id}/{market}")
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        return _deadline_failure(
+            market=market,
+            layer="RAW_LATEST",
+            expected_path=raw_latest,
+            observed_status="INVALID",
+        )
+    if not isinstance(entry, dict):
+        return _deadline_failure(
+            market=market,
+            layer="RAW_LATEST_ENTRY",
+            expected_path=raw_latest,
+            observed_status="ABSENT",
+        )
+    run_id = entry.get("run_id")
+    if not isinstance(run_id, str) or re.fullmatch(r"[A-Za-z0-9_-]+", run_id) is None:
+        return _deadline_failure(
+            market=market,
+            layer="RAW_LATEST_ENTRY",
+            expected_path=raw_latest,
+            observed_status="INVALID",
+        )
+    role = RawStore._role(stage_id, market)
+    raw_prefix = raw_root / "runs" / trade_date / role / run_id
+    for layer, name in (
+        ("RAW_ARTIFACT", "artifact.csv"),
+        ("RAW_MANIFEST", "manifest.json"),
+        ("RAW_RECEIPT", "receipt.json"),
+    ):
+        path = raw_prefix / name
+        if not path.is_file():
+            return _deadline_failure(
+                market=market,
+                layer=layer,
+                expected_path=path,
+                observed_status="ABSENT",
+            )
+    try:
+        RawStore(raw_root).verify_latest(trade_date, stage_id, market)
+    except Exception as error:
+        return _deadline_failure(
+            market=market,
+            layer="RAW_CHAIN_INTEGRITY",
+            expected_path=raw_prefix / "manifest.json",
+            observed_status=f"INVALID:{type(error).__name__}",
+        )
+
+    bundle_latest = raw_root / "bundle_latest.json"
+    if not bundle_latest.is_file():
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_LATEST",
+            expected_path=bundle_latest,
+            observed_status="ABSENT",
+        )
+    try:
+        bundle = json.loads(bundle_latest.read_text(encoding="utf-8"))
+        bundle_entry = bundle.get("entries", {}).get(f"{trade_date}/{stage_id}")
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_LATEST",
+            expected_path=bundle_latest,
+            observed_status="INVALID",
+        )
+    if not isinstance(bundle_entry, dict):
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_LATEST_ENTRY",
+            expected_path=bundle_latest,
+            observed_status="ABSENT",
+        )
+    expected_entry_identity = {
+        "trade_date": trade_date,
+        "stage_id": stage_id,
+        "owner": "stage_center",
+        **SAFETY_FLAGS,
+    }
+    for key, expected in expected_entry_identity.items():
+        if bundle_entry.get(key) != expected:
+            return _deadline_failure(
+                market=market,
+                layer="RAW_BUNDLE_LATEST_ENTRY",
+                expected_path=bundle_latest,
+                observed_status=f"IDENTITY_MISMATCH:{key}",
+            )
+    bundle_id = bundle_entry.get("bundle_id")
+    if not isinstance(bundle_id, str) or re.fullmatch(
+        rf"{re.escape(trade_date)}-{re.escape(stage_id.lower())}-[0-9a-f]{{16}}",
+        bundle_id,
+    ) is None:
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_LATEST_ENTRY",
+            expected_path=bundle_latest,
+            observed_status="INVALID_BUNDLE_ID",
+        )
+    expected_receipt_relative = (
+        f"bundle_runs/{trade_date}/{stage_id}/{bundle_id}/receipt.json"
+    )
+    receipt_relative = bundle_entry.get("receipt_relative")
+    if receipt_relative != expected_receipt_relative:
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_RECEIPT",
+            expected_path=raw_root / expected_receipt_relative,
+            observed_status="NON_CANONICAL_RECEIPT_PATH",
+        )
+    bundle_receipt = (raw_root / expected_receipt_relative).resolve()
+    try:
+        bundle_receipt.relative_to(raw_root)
+    except ValueError:
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_RECEIPT",
+            expected_path=bundle_latest,
+            observed_status="PATH_ESCAPE",
+        )
+    if not bundle_receipt.is_file():
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_RECEIPT",
+            expected_path=bundle_receipt,
+            observed_status="ABSENT",
+        )
+    try:
+        verified_bundle = RawStore(raw_root).read_verified_bundle(trade_date, stage_id)
+        receipt = verified_bundle.get("receipt")
+        if not isinstance(receipt, dict):
+            raise ValueError("bundle receipt is not an object")
+        for key, expected in {
+            "trade_date": trade_date,
+            "stage_id": stage_id,
+            "bundle_id": bundle_id,
+            "owner": "stage_center",
+            **SAFETY_FLAGS,
+        }.items():
+            if receipt.get(key) != expected:
+                raise ValueError(f"bundle receipt identity mismatch: {key}")
+        if receipt.get("receipt_relative") != expected_receipt_relative:
+            raise ValueError("bundle receipt path mismatch")
+        if bundle_entry.get("status") != receipt.get("status"):
+            raise ValueError("bundle latest status mismatch")
+    except Exception as error:
+        return _deadline_failure(
+            market=market,
+            layer="RAW_BUNDLE_INTEGRITY",
+            expected_path=bundle_receipt,
+            observed_status=f"INVALID:{type(error).__name__}",
+        )
+
+    selection_latest = selection_root / "selection_latest.json"
+    if not selection_latest.is_file():
+        return _deadline_failure(
+            market=market,
+            layer="SELECTION_LATEST",
+            expected_path=selection_latest,
+            observed_status="ABSENT",
+        )
+    try:
+        selection_payload = json.loads(selection_latest.read_text(encoding="utf-8"))
+        selection_entry = selection_payload.get("entries", {}).get(
+            f"{trade_date}/{stage_id}/{market}"
+        )
+    except (OSError, UnicodeError, ValueError, AttributeError):
+        return _deadline_failure(
+            market=market,
+            layer="SELECTION_LATEST",
+            expected_path=selection_latest,
+            observed_status="INVALID",
+        )
+    if not isinstance(selection_entry, dict):
+        return _deadline_failure(
+            market=market,
+            layer="SELECTION_LATEST_ENTRY",
+            expected_path=selection_latest,
+            observed_status="ABSENT",
+        )
+    selection_run_id = selection_entry.get("run_id")
+    if not isinstance(selection_run_id, str) or re.fullmatch(r"[A-Za-z0-9_-]+", selection_run_id) is None:
+        return _deadline_failure(
+            market=market,
+            layer="SELECTION_LATEST_ENTRY",
+            expected_path=selection_latest,
+            observed_status="INVALID",
+        )
+    selection_role = SelectionStore._role(stage_id, market)
+    selection_prefix = (
+        selection_root / "selection_runs" / trade_date / selection_role / selection_run_id
+    )
+    for layer, name in (
+        ("SELECTION_ARTIFACT", "artifact.csv"),
+        ("SELECTION_MANIFEST", "manifest.json"),
+        ("SELECTION_RECEIPT", "receipt.json"),
+    ):
+        path = selection_prefix / name
+        if not path.is_file():
+            return _deadline_failure(
+                market=market,
+                layer=layer,
+                expected_path=path,
+                observed_status="ABSENT",
+            )
+    try:
+        SelectionStore(selection_root).read_verified(trade_date, stage_id, market)
+    except Exception as error:
+        return _deadline_failure(
+            market=market,
+            layer="SELECTION_CHAIN_INTEGRITY",
+            expected_path=selection_prefix / "manifest.json",
+            observed_status=f"INVALID:{type(error).__name__}",
+        )
+    return {"status": "READY", "market": market}
+
+
+def deadline_chain_check(
+    raw_root: Path | str,
+    selection_root: Path | str,
+    trade_date: str,
+    stage_id: str,
+    *,
+    markets: tuple[str, ...] | None = None,
+) -> dict[str, object]:
+    """Check the immutable stage chains at a deadline without side effects."""
+    datetime.strptime(trade_date, "%Y%m%d")
+    if re.fullmatch(r"\d{8}", trade_date) is None:
+        raise ValueError("deadline trade_date invalid")
+    requested_markets = tuple(markets) if markets is not None else _deadline_markets(stage_id)
+    unknown = set(requested_markets) - set(STAGE_BY_ID[stage_id].markets)
+    if unknown:
+        raise ValueError(f"deadline market is not in stage contract: {sorted(unknown)!r}")
+    lanes: dict[str, dict[str, object]] = {}
+    first_failure: dict[str, object] | None = None
+    for market in requested_markets:
+        lane = _check_deadline_lane(
+            Path(raw_root),
+            Path(selection_root),
+            trade_date,
+            stage_id,
+            market,
+        )
+        lanes[market] = lane
+        if lane.get("status") != "READY" and first_failure is None:
+            first_failure = lane
+    if first_failure is None:
+        return {
+            "status": "DEADLINE_CHAIN_READY",
+            "alert_type": "NONE",
+            "trade_date": trade_date,
+            "stage_id": stage_id,
+            "lanes": lanes,
+            "first_failed_layer": None,
+            "expected_absolute_path": None,
+            "observed_status": "READY",
+            **SAFETY_FLAGS,
+        }
+    return {
+        "status": "DEADLINE_CHAIN_ALERT",
+        "alert_type": "STAGE_CHAIN_MISSING_LAYER",
+        "trade_date": trade_date,
+        "stage_id": stage_id,
+        "lanes": lanes,
+        "first_failed_layer": first_failure.get("first_failed_layer"),
+        "failed_market": first_failure.get("market"),
+        "expected_absolute_path": first_failure.get("expected_absolute_path"),
+        "observed_status": first_failure.get("observed_status"),
+        **SAFETY_FLAGS,
+    }
 
 
 def _canonical_second_filter_root(value: str, trade_date: str) -> Path:
@@ -65,7 +407,7 @@ def resolve_runtime_roots(payload: dict[str, str], trade_date: str) -> dict[str,
 
 def _preflight_roots(payload: dict[str, str], trade_date: str) -> dict[str, str]:
     resolved = resolve_runtime_roots(payload, trade_date)
-    for key in ALL_ROOTS:
+    for key in ("shared_data_root", "python_path"):
         value = Path(resolved[key]).expanduser()
         if key == "python_path":
             if not value.is_file():
@@ -83,6 +425,8 @@ def _load(path: Path) -> dict[str, str]:
         if not isinstance(payload.get(key), str) or not payload[key].strip().startswith("/"):
             raise ValueError(f"explicit absolute root required: {key}")
     for key in ALL_ROOTS:
+        if key in {"v4_morning_news_root", "v3_formal_root", "v3_research_root", "hk_full_universe_root", "a_research_panel_receipt_root"} and payload.get(key) is None:
+            continue
         if payload.get(key) is None:
             raise ValueError(f"explicit root required: {key}")
         if not str(payload[key]).startswith("/"):
@@ -123,7 +467,7 @@ def _calendar_gate(
         }
     if all(
         states[key] is TradingDayState.NON_TRADING_DAY
-        for key in ("a_share", "hk_connect")
+        for key in ("a_share", "hk_securities")
     ):
         return {
             "status": "NON_TRADING_DAY",
@@ -259,7 +603,7 @@ def main(argv: list[str] | None = None) -> int:
                     "trade_date": trade_date,
                     "error": "HISTORICAL_BACKFILL_FLAG_REQUIRED",
                 }
-                print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+                print(json.dumps(result, ensure_ascii=False, sort_keys=True, default=_json_default))
                 return _exit_code("CANNOT_CONFIRM")
             config = _load(args.config)
             calendar_gate = _calendar_gate(trade_date)
@@ -272,14 +616,11 @@ def main(argv: list[str] | None = None) -> int:
                     ),
                     **calendar_gate,
                 }
-                print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+                print(json.dumps(result, ensure_ascii=False, sort_keys=True, default=_json_default))
                 return _exit_code(str(calendar_gate["status"]))
             config = _preflight_roots(config, trade_date)
-            universe_preflight = _run_universe_preflight(config, trade_date)
-            if universe_preflight.get("status") not in {"READY", "NOOP_ALREADY_VERIFIED"}:
-                result = {**_safe_payload("CANNOT_CONFIRM", args.config), "universe_preflight": universe_preflight, "error": universe_preflight.get("error")}
-                print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-                return _exit_code("CANNOT_CONFIRM")
+            # Fixed A current and exact HK D-1 authorities are checked per
+            # lane by the runner. Never run the legacy full-market producer.
             from stage_center.runner import StageCenterRunner, build_production_config
 
             runner_config = build_production_config(**{key: Path(config[key]) for key in ALL_ROOTS if key in config and config[key] is not None})
@@ -291,8 +632,14 @@ def main(argv: list[str] | None = None) -> int:
             )
     except Exception as error:  # wrapper's stdout remains typed and fail-closed
         result = {**_safe_payload("CANNOT_CONFIRM", args.config), "error": str(error)}
-    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True, default=_json_default))
     return _exit_code(str(result.get("status", "CANNOT_CONFIRM")))
+
+
+def _json_default(value):
+    if isinstance(value, Path):
+        return str(value)
+    raise TypeError(f"unsupported JSON type: {type(value).__name__}")
 
 
 def _exit_code(status: str) -> int:

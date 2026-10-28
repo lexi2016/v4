@@ -15,6 +15,16 @@ _SAFE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _IMPORT_LOCK = threading.RLock()
 
 
+def _rooted_path(root: Path, path: Path, label: str) -> Path:
+    """Resolve a selected package path and keep it below its trusted root."""
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as error:
+        raise ValueError(f"shared {label} escapes package root: {path}") from error
+    return resolved
+
+
 def _restore_module_prefix(
     prefix: str, saved: dict[str, ModuleType | None]
 ) -> None:
@@ -27,11 +37,14 @@ def _restore_module_prefix(
 
 
 def _load_sibling_package(root: Path, name: str) -> ModuleType | None:
-    package_dir = root / name
+    package_dir = _rooted_path(root, root / name, "sibling package")
     package_init = package_dir / "__init__.py"
+    package_init_resolved = _rooted_path(root, package_init, "sibling package initializer")
+    if (package_init.exists() or package_init.is_symlink()) and not package_init_resolved.is_file():
+        raise ValueError(f"trusted sibling package initializer is not a file: {package_init}")
     if not package_dir.is_dir():
         return None
-    if not package_init.is_file():
+    if not package_init_resolved.is_file():
         # ``scripts`` is a trusted namespace package in the shared upstream;
         # give importlib an explicit path without adding that path to
         # sys.path.
@@ -45,7 +58,7 @@ def _load_sibling_package(root: Path, name: str) -> ModuleType | None:
         return package
     spec = importlib.util.spec_from_file_location(
         name,
-        package_init,
+        package_init_resolved,
         submodule_search_locations=[str(package_dir)],
     )
     if spec is None or spec.loader is None:
@@ -74,26 +87,41 @@ def load_isolated_package_module(
             raise ValueError(f"unsafe {label}: {value!r}")
 
     root = Path(package_root).resolve()
-    package_dir = root / package_directory
+    package_dir = _rooted_path(root, root / package_directory, "package")
     package_init = package_dir / "__init__.py"
-    module_path = package_dir / f"{module_leaf}.py"
-    if not package_init.is_file() or not module_path.is_file():
+    package_init_resolved = _rooted_path(root, package_init, "package initializer")
+    module_path = _rooted_path(root, package_dir / f"{module_leaf}.py", "module")
+    if (package_init.exists() or package_init.is_symlink()) and not package_init_resolved.is_file():
+        raise ValueError(f"shared package initializer is not a file: {package_init}")
+    if not package_dir.is_dir() or not module_path.is_file():
         raise ValueError(f"shared module missing: {module_path}")
 
     token = hashlib.sha256(str(root).encode("utf-8")).hexdigest()[:12]
     package_name = f"_{namespace_prefix}_{token}"
     with _IMPORT_LOCK:
         if package_name not in sys.modules:
-            package_spec = importlib.util.spec_from_file_location(
-                package_name,
-                package_init,
-                submodule_search_locations=[str(package_dir)],
-            )
-            if package_spec is None or package_spec.loader is None:
-                raise ValueError(f"shared package cannot be loaded: {package_init}")
-            package = importlib.util.module_from_spec(package_spec)
-            sys.modules[package_name] = package
-            package_spec.loader.exec_module(package)
+            if package_init_resolved.is_file():
+                package_spec = importlib.util.spec_from_file_location(
+                    package_name,
+                    package_init_resolved,
+                    submodule_search_locations=[str(package_dir)],
+                )
+                if package_spec is None or package_spec.loader is None:
+                    raise ValueError(f"shared package cannot be loaded: {package_init_resolved}")
+                package = importlib.util.module_from_spec(package_spec)
+                sys.modules[package_name] = package
+                package_spec.loader.exec_module(package)
+            else:
+                # Some trusted upstreams intentionally keep ``scripts`` as a
+                # namespace package. Give it a scoped package object without
+                # modifying sys.path or requiring a synthetic __init__.py.
+                package = ModuleType(package_name)
+                package.__path__ = [str(package_dir)]  # type: ignore[attr-defined]
+                package.__package__ = package_name
+                package.__spec__ = importlib.util.spec_from_loader(
+                    package_name, loader=None, is_package=True
+                )
+                sys.modules[package_name] = package
         else:
             package = sys.modules[package_name]
 

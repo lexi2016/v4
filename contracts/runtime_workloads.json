@@ -790,6 +790,40 @@
   ],
   "workloads": [
     {
+      "aliases": [],
+      "command": [
+        "python",
+        "-m",
+        "ops.run_intraday_research",
+        "--date",
+        "{business_date}",
+        "--slot",
+        "{slot}"
+      ],
+      "enabled": true,
+      "market_scope": "A_SHARE",
+      "owner_id": "v35_dispatcher.vibe_intraday_replacement",
+      "run_policy": "A_SHARE_TRADE_DAY",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduled_date_role": "SCHEDULED_DATE",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "signal_date_role": "BUSINESS_DATE",
+      "slots": [
+        "0925",
+        "0935",
+        "1000",
+        "1130",
+        "1400",
+        "1500"
+      ],
+      "target_date_role": "BUSINESS_DATE",
+      "workload_id": "v4_intraday_research"
+    },
+    {
       "aliases": [
         "hourly_research_delta",
         "v3_hourly_research_delta_0730_1530"
@@ -831,6 +865,7 @@
         "1300",
         "1400",
         "1500",
+        "1530",
         "1600",
         "1700",
         "1800",
@@ -1031,7 +1066,7 @@
       "enabled": true,
       "market_scope": "HK_CONNECT",
       "owner_id": "v35_dispatcher.research_panel_daily_hk",
-      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1072,7 +1107,7 @@
       "enabled": true,
       "market_scope": "CROSS_MARKET",
       "owner_id": "v35_dispatcher.research_panel_runtime_evidence",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1159,7 +1194,7 @@
       "enabled": true,
       "market_scope": "CROSS_MARKET",
       "owner_id": "v35_dispatcher.review_core_pool_pipeline",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1214,13 +1249,13 @@
         "ops.build_close_review",
         "--data-root",
         "{data_root}",
-      "--date",
-      "{business_date}"
+        "--date",
+        "{business_date}"
       ],
       "enabled": true,
       "market_scope": "HK_CONNECT",
       "owner_id": "v35_dispatcher.hk_connect_close_review",
-      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1230,7 +1265,7 @@
       "session_requirement": "POST_CLOSE",
       "signal_date_role": "BUSINESS_DATE",
       "slots": [
-        "1608"
+        "1610"
       ],
       "target_date_role": "BUSINESS_DATE",
       "workload_id": "hk_connect_close_review"
@@ -1263,7 +1298,7 @@
       "enabled": true,
       "market_scope": "CROSS_MARKET",
       "owner_id": "v35_dispatcher.preselection",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1301,7 +1336,7 @@
       "enabled": true,
       "market_scope": "CROSS_MARKET",
       "owner_id": "v35_dispatcher.daily_materialize",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1338,7 +1373,7 @@
       "enabled": true,
       "market_scope": "HK_CONNECT",
       "owner_id": "v35_dispatcher.hk_auction_0920",
-      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1371,7 +1406,7 @@
       "enabled": false,
       "market_scope": "CROSS_MARKET",
       "owner_id": "stage_center",
-      "run_policy": "A_OR_HK_CONNECT_TRADE_DAY",
+      "run_policy": "A_OR_HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1448,7 +1483,7 @@
       "enabled": true,
       "market_scope": "HK_CONNECT",
       "owner_id": "v35_dispatcher.fupan_review_start",
-      "run_policy": "HK_CONNECT_TRADE_DAY",
+      "run_policy": "HK_SECURITIES_TRADE_DAY",
       "safety": {
         "buy_gate_updated": false,
         "orders_sent": false,
@@ -1693,6 +1728,42 @@
       ],
       "target_date_role": "BUSINESS_DATE",
       "workload_id": "fupan_8771_verify"
+    },
+    {
+      "aliases": [
+        "us_market_digest_capture"
+      ],
+      "command": [
+        "python",
+        "-m",
+        "ops.us_market_digest",
+        "--data-root",
+        "{data_root}",
+        "--trade-date",
+        "{business_date}",
+        "--capture-phase",
+        "{capture_phase}"
+      ],
+      "enabled": true,
+      "market_scope": "CROSS_MARKET",
+      "owner_id": "v4_dispatcher.us_market_digest",
+      "run_policy": "NATURAL_DAY",
+      "safety": {
+        "buy_gate_updated": false,
+        "orders_sent": false,
+        "production_allowed": false
+      },
+      "scheduled_date_role": "SCHEDULED_DATE",
+      "session_requirement": "DAY_ELIGIBILITY_ONLY",
+      "signal_date_role": "BUSINESS_DATE",
+      "slots": [
+        "0415",
+        "0515",
+        "2100",
+        "2200"
+      ],
+      "target_date_role": "TARGET_DATE",
+      "workload_id": "us_market_digest"
     }
   ]
 }

@@ -7,7 +7,7 @@ from typing import Any, Protocol, Sequence
 
 from contracts.stages import STAGE_DEFINITIONS, STAGE_MARKET_SCOPES
 from infrastructure.data_store import NativeDataStore, _sha256
-from infrastructure.preselection_pool_store import POOL_ORDER, PreselectionPoolStore
+from infrastructure.preselection_pool_store import PreselectionPoolStore
 from infrastructure.stage_store import StageStore, validate_quote_batch
 
 
@@ -98,6 +98,7 @@ class StageInputProducer:
                     if a_rows
                     and not quote_coverage["A"]["missing"]
                     and pool_status in {"INDEPENDENT_GRAPH_POOLS", "CANONICAL_COMPLETE"}
+                    and not pool_gaps
                     and not a_quote_is_partial
                     else "CANNOT_CONFIRM"
                 ),
@@ -106,6 +107,7 @@ class StageInputProducer:
                     if hk_rows
                     and not quote_coverage["HK"]["missing"]
                     and pool_status in {"INDEPENDENT_GRAPH_POOLS", "CANONICAL_COMPLETE"}
+                    and not pool_gaps
                     and not hk_is_migrated_reference
                     else "CANNOT_CONFIRM"
                 ),
@@ -166,35 +168,51 @@ class StageInputProducer:
         self,
         trade_date: str,
     ) -> tuple[list[dict[str, Any]], str, list[dict[str, str]], list[str]]:
+        from domains.preselection import (
+            _complete_independent_pool_set,
+            _project_independent_pools,
+            _unconfirmed_pool_source,
+        )
+
         independent = PreselectionPoolStore(self.data_store.root)
-        try:
-            pools = independent.read_all(trade_date)
-        except FileNotFoundError:
-            pools = []
-        if pools:
-            if [pool["pool_id"] for pool in pools] != list(POOL_ORDER):
-                raise ValueError("independent preselection pool set is incomplete")
-            eligible_ids = {
-                "a_d1_premarket_pool",
-                "a_d1_fupan_watchlist_pool",
-                "a_d1_stage7_fenshi_review_pool",
-                "a_share_research_recommendation_pool",
-                "hkconnect_d1_top100",
-            }
+        snapshots, integrity_errors = independent.read_all_with_quarantine(trade_date)
+        if snapshots or integrity_errors:
+            pools = [dict(snapshot["artifact"]) for snapshot in snapshots]
+            for error in integrity_errors:
+                quarantined = _unconfirmed_pool_source(error.pool_id, trade_date)
+                quarantined["cannot_confirm"] = [str(error)]
+                pools.append(quarantined)
+
+            projected = _project_independent_pools(
+                _complete_independent_pool_set(pools, trade_date),
+                trade_date,
+            )
+            hk_pool = next(
+                pool
+                for pool in projected["pools"]
+                if pool["pool_id"] == "hkconnect_d1_top100"
+            )
             candidates = [
-                row for pool in pools if pool["pool_id"] in eligible_ids
-                for row in pool["rows"]
-                if str(row.get("symbol") or "").startswith(("A.", "HK."))
+                *projected["a_all_pool_rows"],
+                *[
+                    row for row in hk_pool["rows"]
+                    if str(row.get("symbol") or "").startswith("HK.")
+                ],
             ]
-            evidence = []
-            gaps = []
-            for pool in pools:
-                if pool["pool_id"] not in eligible_ids:
-                    continue
-                artifact_path = f"preselection_pools/{trade_date}/{pool['pool_id']}.json"
-                evidence.append({"path": artifact_path, "sha256": _sha256(pool)})
-                gaps.extend(str(item) for item in pool.get("cannot_confirm", []))
-            return candidates, "INDEPENDENT_GRAPH_POOLS", evidence, gaps
+            evidence = [
+                {
+                    "path": snapshot["artifact_relative"],
+                    "sha256": snapshot["artifact_sha256"],
+                }
+                for snapshot in snapshots
+            ]
+            gaps = [str(item) for item in projected["cannot_confirm"]]
+            return (
+                candidates,
+                "INDEPENDENT_GRAPH_POOLS" if not gaps else "PARTIAL",
+                evidence,
+                gaps,
+            )
         pool = self.data_store.read_payload(trade_date)
         return (
             list(pool["a_all_pool_rows"]) + [

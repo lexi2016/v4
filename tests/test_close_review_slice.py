@@ -148,6 +148,7 @@ def test_missing_review_reference_is_explicitly_unavailable(tmp_path) -> None:
 
     assert response.status_code == 200
     review = response.json()["market_reviews"]["HK"]["model_selection_review"]
-    assert review["status"] == "REFERENCE_NOT_IMPORTED"
+    assert review["status"] == "CANNOT_CONFIRM"
     assert review["close_top20"] == []
-    assert review["cannot_confirm"] == ["CLOSE_REVIEW_REFERENCE_NOT_IMPORTED"]
+    assert review["cannot_confirm"] == ["CLOSE_REVIEW_ARTIFACT_MISSING"]
+    assert review["calendar"] == {"market": "HK_SECURITIES", "status": "FULL_TRADING_DAY"}

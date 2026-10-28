@@ -42,12 +42,22 @@ def _slot(value: str | None, *, required: bool) -> str | None:
 def _requested_markets(policy: RunPolicy, scope: MarketScope) -> tuple[str, ...]:
     if policy is RunPolicy.A_SHARE_TRADE_DAY and scope is not MarketScope.A_SHARE:
         raise ValueError("A-share policy requires A_SHARE scope")
+    if policy is RunPolicy.HK_SECURITIES_TRADE_DAY and scope is not MarketScope.HK_CONNECT:
+        raise ValueError("HK securities observation policy requires HK_CONNECT scope")
     if policy is RunPolicy.HK_CONNECT_TRADE_DAY and scope is not MarketScope.HK_CONNECT:
         raise ValueError("HK Connect policy requires HK_CONNECT scope")
+    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY and scope is not MarketScope.CROSS_MARKET:
+        raise ValueError("A-or-HK-securities policy requires CROSS_MARKET scope")
     if scope is MarketScope.A_SHARE:
         return ("a_share",)
     if scope is MarketScope.HK_CONNECT:
-        return ("hk_connect",)
+        return (
+            ("hk_securities",)
+            if policy is RunPolicy.HK_SECURITIES_TRADE_DAY
+            else ("hk_connect",)
+        )
+    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
+        return ("a_share", "hk_securities")
     return ("a_share", "hk_connect")
 
 
@@ -109,6 +119,7 @@ def evaluate_run_policy(
     resolved = resolve_market_states(calendar, trade_date)
     market_contracts = {
         "a_share": calendar.markets["a_share"],
+        "hk_securities": calendar.markets["hk_securities"],
         "hk_connect": calendar.markets["hk_connect_southbound"],
     }
     states = {market: resolved[market] for market in requested}

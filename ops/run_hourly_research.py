@@ -10,37 +10,55 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import contracts.research as research_contract_module
 import domains.research as research_domain_module
+import domains.research_hourly as research_hourly_module
+import infrastructure.interprocess_lock as interprocess_lock_module
+import infrastructure.owned_io as owned_io_module
+import infrastructure.owned_path as owned_path_module
 import infrastructure.data_store as data_store_module
+import infrastructure.market_time as market_time_module
+import infrastructure.research_store as research_store_module
+import infrastructure.research_source_evidence as research_source_evidence_module
+import infrastructure.trading_safety as trading_safety_module
+import ops.collect_hourly_research_input as collector_module
+import ops.research_shared_bundle as research_shared_bundle_module
+import domains.research_source_validation as research_source_validation_module
 from contracts.runtime_tasks import DispatchMode, DispatchRequest
 from domains.research import build_research_archive
 from infrastructure.data_store import NativeDataStore, _sha256
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.owned_io import SafeRoot
 from infrastructure.research_store import HourlyResearchStore, ResearchArchiveStore
-
-
-_SHANGHAI = ZoneInfo("Asia/Shanghai")
-_TIMELINE_TIME_FIELDS = (
-    "event_time",
-    "source_published_at",
-    "first_seen_at",
-    "last_checked_at",
-)
-_DAILY_TIME_FIELDS = ("first_seen_time", "last_seen_time")
-_LATE_RECOVERY_OBSERVATION_FIELDS = frozenset(
-    {"first_seen_at", "last_checked_at", "first_seen_time", "last_seen_time"}
+from infrastructure.research_source_evidence import read_zsxq_slot_evidence
+from domains.research_source_validation import (
+    collector_source_cutoff,
+    runner_manual_empty_time_shape,
+    runner_source_cutoff,
+    runner_timestamp,
+    strict_source_receipt_time,
+    validate_hourly_stage_source,
+    validate_runner_point_in_time_source,
 )
 
 
-def _research_transformer_identity_sha256() -> str:
+def _research_transformer_identity_manifest() -> dict[str, Any]:
     components: dict[str, str] = {}
     for module in (
         research_contract_module,
         research_domain_module,
+        research_hourly_module,
         data_store_module,
+        owned_path_module,
+        owned_io_module,
+        interprocess_lock_module,
+        market_time_module,
+        trading_safety_module,
+        collector_module,
+        research_source_evidence_module,
+        research_source_validation_module,
+        research_store_module,
     ):
         source_file = inspect.getsourcefile(module)
         if source_file is None:
@@ -48,12 +66,24 @@ def _research_transformer_identity_sha256() -> str:
         components[module.__name__] = hashlib.sha256(
             Path(source_file).read_bytes()
         ).hexdigest()
-    identity = {
-        "schema_version": "v3_5.research_transformer_identity.v1",
+    components["ops.run_hourly_research"] = hashlib.sha256(
+        Path(__file__).read_bytes()
+    ).hexdigest()
+    shared_bundle = research_shared_bundle_module.build_research_shared_bundle()
+    if re.fullmatch(r"[0-9a-f]{64}", str(shared_bundle.get("bundle_sha256") or "")) is None:
+        raise ValueError("hourly research shared bundle identity is invalid")
+    return {
+        "schema_version": "v3_5.research_transformer_identity.v2",
         "python_implementation": platform.python_implementation(),
         "python_version": platform.python_version(),
         "components": components,
+        "shared_bundle_sha256": shared_bundle["bundle_sha256"],
+        "shared_bundle_manifest_sha256": shared_bundle["manifest_sha256"],
     }
+
+
+def _research_transformer_identity_sha256() -> str:
+    identity = _research_transformer_identity_manifest()
     encoded = json.dumps(
         identity,
         ensure_ascii=False,
@@ -77,34 +107,57 @@ def _publish_runtime_evidence(
     slot: str,
     mode: str,
     source_sha256: str,
+    source_pit_cutoff: str,
+    expected_pit_cutoff: str,
     publication: dict[str, Any] | None,
+    empty_result: bool = False,
+    ready_empty_evidence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     store = NativeDataStore(data_root)
-    ready_empty = publication is None
+    ready_empty = publication is not None and empty_result
+    artifact_status = (
+        "NOT_MATERIALIZED"
+        if publication is None
+        else "READY_EMPTY"
+        if ready_empty
+        else "READY_WITH_RESEARCH_POOL"
+    )
     artifact_relative = f"hourly_research/{business_date}/{slot}/summary.json"
     summary = {
         "schema_version": "v3_5.hourly_research_summary.v1",
-        "status": "READY_EMPTY" if ready_empty else "READY_WITH_RESEARCH_POOL",
+        "status": artifact_status,
         "business_date": business_date,
         "trade_date": business_date,
         "slot": slot,
         "mode": mode,
         "source_sha256": source_sha256,
-        "payload_path": "" if ready_empty else str(publication.get("payload_path") or ""),
-        "payload_sha256": "" if ready_empty else str(publication.get("payload_sha256") or ""),
+        "source_pit_cutoff": source_pit_cutoff,
+        "expected_pit_cutoff": expected_pit_cutoff,
+        "payload_path": str((publication or {}).get("payload_path") or ""),
+        "payload_sha256": str((publication or {}).get("payload_sha256") or ""),
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,
     }
+    if ready_empty and ready_empty_evidence is not None:
+        summary["ready_empty_evidence_v1"] = dict(ready_empty_evidence)
+        summary["capture_origin"] = "ORIGINAL_SLOT"
+        summary["execution_origin"] = "MANUAL_RECOVERY"
+        summary["materialized_at"] = ready_empty_evidence.get("materialized_at")
+        summary["available_at"] = ready_empty_evidence.get("available_at")
+        summary["natural_execution_verified"] = False
     store._write(artifact_relative, summary)
     event = {
         "schema_version": "v3_5.research_event.v1",
-        "status": "READY",
+        "status": "READY" if publication is not None else "NOT_MATERIALIZED",
         "trade_date": business_date,
         "slot": slot,
         "event_id": f"research:{business_date}:{slot}:{source_sha256[:12]}",
         "event_reason": "hourly_research_generation_completed",
         "artifact_path": artifact_relative,
+        "source_sha256": source_sha256,
+        "source_pit_cutoff": source_pit_cutoff,
+        "expected_pit_cutoff": expected_pit_cutoff,
         "write_policy": "read_only",
         "recommendation_status": "RESEARCH_ONLY",
         "default_status": "RESEARCH_ONLY",
@@ -114,6 +167,14 @@ def _publish_runtime_evidence(
         "buy_gate_updated": False,
         "orders_sent": False,
     }
+    event["hourly_artifact_status"] = artifact_status
+    if ready_empty and ready_empty_evidence is not None:
+        event["ready_empty_evidence_v1"] = dict(ready_empty_evidence)
+        event["capture_origin"] = "ORIGINAL_SLOT"
+        event["execution_origin"] = "MANUAL_RECOVERY"
+        event["materialized_at"] = ready_empty_evidence.get("materialized_at")
+        event["available_at"] = ready_empty_evidence.get("available_at")
+        event["natural_execution_verified"] = False
     if mode == "LIVE":
         event_relative = (
             "research_module/runtime_outputs/events/latest_research_event.json"
@@ -138,13 +199,15 @@ def _publish_runtime_evidence(
             {
                 "schema_version": "v3_5.runtime_graph_node_receipt.v1",
                 "node_id": node_id,
-                "status": "READY",
-                "effective_status": "READY",
+                "status": "READY" if publication is not None else "NOT_MATERIALIZED",
+                "effective_status": artifact_status,
                 "business_date": business_date,
                 "trade_date": business_date,
                 "slot": slot,
                 "artifact_path": artifact_relative,
                 "source_sha256": source_sha256,
+                "source_pit_cutoff": source_pit_cutoff,
+                "expected_pit_cutoff": expected_pit_cutoff,
                 "production_allowed": False,
                 "buy_gate_updated": False,
                 "orders_sent": False,
@@ -158,17 +221,7 @@ def _publish_runtime_evidence(
 
 
 def _timestamp(value: Any, field: str) -> datetime:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"hourly research point-in-time field is missing: {field}")
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError as error:
-        raise ValueError(
-            f"invalid hourly research point-in-time field: {field}"
-        ) from error
-    if parsed.tzinfo is None or parsed.utcoffset() is None:
-        parsed = parsed.replace(tzinfo=_SHANGHAI)
-    return parsed.astimezone(_SHANGHAI)
+    return runner_timestamp(value, field)
 
 
 def _validate_point_in_time_source(
@@ -177,50 +230,118 @@ def _validate_point_in_time_source(
     business_date: str,
     slot: str,
     allow_late_observation_times: bool = False,
+    allow_manual_materialization: bool = False,
 ) -> None:
-    manifest = source.get("source_manifest")
-    if not isinstance(manifest, dict) or manifest.get("hourly_slot") != slot:
-        raise ValueError("hourly research source slot is missing or mismatched")
-    cutoff = datetime.strptime(
-        f"{business_date}{slot}", "%Y%m%d%H%M"
-    ).replace(tzinfo=_SHANGHAI, second=59, microsecond=999999)
-    manifest_times = [
-        (field, manifest[field])
-        for field in ("generated_at", "published_at")
-        if manifest.get(field) not in {None, ""}
-    ]
-    if not manifest_times:
-        raise ValueError(
-            "hourly research point-in-time manifest timestamp is missing"
-        )
-    for field, value in manifest_times:
-        if _timestamp(value, f"source_manifest.{field}") > cutoff:
-            raise ValueError("hourly research source is not point-in-time safe")
-    for collection, fields in (
-        ("stock_research_timeline", _TIMELINE_TIME_FIELDS),
-        ("stock_research_daily", _DAILY_TIME_FIELDS),
+    return validate_runner_point_in_time_source(
+        source,
+        business_date=business_date,
+        slot=slot,
+        allow_late_observation_times=allow_late_observation_times,
+        allow_manual_materialization=allow_manual_materialization,
+    )
+
+
+def _verified_manual_empty_source(
+    *, data_root: Path, source: Path | None, source_path: Path,
+    source_payload: dict[str, Any], business_date: str, slot: str,
+) -> bool:
+    """Verify one explicit same-slot manual admission of READY_EMPTY evidence."""
+    if source is not None or slot != "1700":
+        return False
+    expected_input = resolve_owned_path(
+        data_root, f"research/incoming/{business_date}/{slot}.json"
+    )
+    try:
+        if source_path.resolve() != expected_input.resolve():
+            return False
+    except OSError:
+        return False
+    manifest = source_payload.get("source_manifest")
+    if not isinstance(manifest, dict):
+        return False
+    expected_receipt = (
+        f"research_module/runtime_outputs/zsxq_hourly/{business_date}/{slot}/"
+        f"v35_zsxq_hourly_status_{business_date}_{slot}.json"
+    )
+    if (
+        manifest.get("trade_date") != business_date
+        or manifest.get("hourly_slot") != slot
+        or manifest.get("materialization_origin") != "MANUAL_RECOVERY"
+        or manifest.get("capture_origin") != "ORIGINAL_SLOT"
+        or manifest.get("original_time_capture") is not True
+        or manifest.get("natural_execution_verified") is not False
+        or manifest.get("source_receipts") != [expected_receipt]
+        or not re.fullmatch(r"[0-9a-f]{64}", str(manifest.get("source_receipt_sha256") or ""))
     ):
-        rows = source.get(collection)
-        if not isinstance(rows, list):
-            raise ValueError(f"hourly research source {collection} is missing")
-        for index, row in enumerate(rows):
-            if not isinstance(row, dict):
-                raise ValueError(f"hourly research source {collection} is invalid")
-            for field in fields:
-                value = row.get(field)
-                if value in {None, ""}:
-                    continue
-                parsed = _timestamp(value, f"{collection}[{index}].{field}")
-                if (
-                    parsed > cutoff
-                    and not (
-                        allow_late_observation_times
-                        and field in _LATE_RECOVERY_OBSERVATION_FIELDS
-                    )
-                ):
-                    raise ValueError(
-                        "hourly research source is not point-in-time safe"
-                    )
+        return False
+    evidence = read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
+        return False
+    status, status_path = evidence.status, evidence.status_path
+    if status.get("status") != "READY_EMPTY":
+        return False
+    if (
+        evidence.status_sha256 != manifest.get("source_receipt_sha256")
+        or manifest.get("fetched_at") != status.get("fetched_at")
+        or manifest.get("source_cutoff") != status.get("source_cutoff")
+        or manifest.get("pit_cutoff") != collector_source_cutoff(business_date, slot).isoformat(timespec="seconds")
+        or manifest.get("source_cutoff") != manifest.get("pit_cutoff")
+    ):
+        return False
+    source_proof = manifest.get("ready_empty_source_proof")
+    if not isinstance(source_proof, dict):
+        return False
+    expected_proof = {
+        "schema_version": "v3_5.zsxq_ready_empty.v1",
+        "trade_date": business_date,
+        "slot": slot,
+        "status": "READY_EMPTY",
+        "source_receipt_path": expected_receipt,
+        "source_receipt_sha256": evidence.status_sha256,
+        "summary_sha256": evidence.summary_sha256,
+        "fetch_result_sha256": evidence.fetch_result_sha256,
+        "fetch_ok": True,
+        "fetch_success": True,
+        "page_count": status.get("page_count"),
+        "topic_count": 0,
+        "effective_topic_count": 0,
+        "fetched_at": status.get("fetched_at"),
+        "source_cutoff": status.get("source_cutoff"),
+        "capture_origin": "ORIGINAL_SLOT",
+        "materialization_origin": "MANUAL_RECOVERY",
+        "materialized_at": manifest.get("materialized_at"),
+        "available_at": manifest.get("available_at"),
+        "natural_execution_verified": False,
+    }
+    if source_proof != expected_proof:
+        return False
+    fetched_at = strict_source_receipt_time(status.get("fetched_at"))
+    materialized_at = strict_source_receipt_time(manifest.get("materialized_at"))
+    if (
+        fetched_at is None
+        or fetched_at.strftime("%Y%m%d") != business_date
+        or fetched_at > collector_source_cutoff(business_date, slot)
+        or materialized_at is None
+        or materialized_at.strftime("%Y%m%d") != business_date
+        or materialized_at < collector_source_cutoff(business_date, slot)
+        or manifest.get("available_at") != manifest.get("materialized_at")
+        or manifest.get("generated_at") != manifest.get("materialized_at")
+        or manifest.get("published_at") != manifest.get("materialized_at")
+    ):
+        return False
+    empty_fields = (
+        "raw_items", "research_items", "stock_research_timeline",
+        "stock_research_daily",
+    )
+    hourly = source_payload.get("hourly_research")
+    return (
+        all(source_payload.get(field) == [] for field in empty_fields)
+        and isinstance(hourly, dict)
+        and hourly.get("trade_date") == business_date
+        and hourly.get("latest_slot") == slot
+        and hourly.get("status") == "READY_EMPTY"
+        and hourly.get("row_count") == 0
+    )
 
 
 def run_hourly_research_file(
@@ -231,6 +352,7 @@ def run_hourly_research_file(
     target_date: str,
     slot: str,
     mode: str,
+    expected_source_sha256: str | None = None,
 ) -> dict[str, Any]:
     normalized_mode = DispatchMode(str(mode).upper())
     request = DispatchRequest(
@@ -252,9 +374,21 @@ def run_hourly_research_file(
     )
     raw = source_path.read_bytes()
     source_sha = hashlib.sha256(raw).hexdigest()
+    if expected_source_sha256 is not None and (
+        re.fullmatch(r"[0-9a-f]{64}", expected_source_sha256) is None
+        or source_sha != expected_source_sha256
+    ):
+        raise ValueError("HOURLY_SOURCE_SHA_MISMATCH")
     source_payload = json.loads(raw.decode("utf-8-sig"))
     if not isinstance(source_payload, dict):
         raise ValueError("hourly research source must be an object")
+    stage_cutoff = runner_source_cutoff(request.business_date, request.slot)
+    source_manifest = source_payload.get("source_manifest")
+    source_pit_cutoff = (
+        str(source_manifest.get("pit_cutoff") or "")
+        if isinstance(source_manifest, dict)
+        else ""
+    )
     source_identity = (
         f"research/incoming/{request.business_date}/{request.slot}.json"
         if source is None
@@ -280,11 +414,40 @@ def run_hourly_research_file(
             for gap in recovery_gaps
         )
     )
+    verified_manual_empty = _verified_manual_empty_source(
+        data_root=data_root,
+        source=source,
+        source_path=source_path,
+        source_payload=source_payload,
+        business_date=request.business_date,
+        slot=request.slot,
+    )
+    # Validate the actual recovery clock separately from its receipt proof.
+    # This lets an unauthenticated empty candidate reach the existing
+    # NOT_MATERIALIZED guard instead of being misreported as a PIT-time error.
+    # Only verified_manual_empty can authorize publication below.
+    manual_empty_time_shape = (
+        source is None
+        and runner_manual_empty_time_shape(
+            source_payload,
+            business_date=request.business_date,
+            slot=request.slot,
+            mode=request.mode.value,
+        )
+    )
+    manual_empty_time_allowed = verified_manual_empty or manual_empty_time_shape
     _validate_point_in_time_source(
         source_payload,
         business_date=request.business_date,
         slot=request.slot,
         allow_late_observation_times=verified_late_recovery,
+        allow_manual_materialization=manual_empty_time_allowed,
+    )
+    validate_hourly_stage_source(
+        source_payload, trade_date=request.business_date, slot=request.slot,
+        cutoff=stage_cutoff,
+        allow_late_observations=verified_late_recovery,
+        allow_manual_materialization=manual_empty_time_allowed,
     )
     store = HourlyResearchStore(data_root)
     transformer_identity_sha = _research_transformer_identity_sha256()
@@ -300,7 +463,7 @@ def run_hourly_research_file(
     research_items = source_payload.get("research_items")
     if isinstance(raw_items, list) and isinstance(research_items, list):
         has_rows = has_rows and bool(raw_items) and bool(research_items)
-    if not has_rows:
+    if not has_rows and not verified_manual_empty:
         return {
             "schema_version": "v3_5.hourly_research_run.v1",
             "status": "NOT_MATERIALIZED",
@@ -313,15 +476,36 @@ def run_hourly_research_file(
             "mode": request.mode.value,
             "source_path": source_identity,
             "external_source_sha256": source_sha,
+            "source_pit_cutoff": source_pit_cutoff,
+            "expected_pit_cutoff": stage_cutoff.isoformat(timespec="seconds"),
             "external_source_read_only": True,
             "row_count": 0,
             "production_allowed": False,
             "buy_gate_updated": False,
             "orders_sent": False,
         }
+    # Preserve the exact already-read source bytes; do not change source,
+    # archive, receipt or phase6 identity. A previous import may gain this
+    # missing witness on retry without replacing any published artifact.
+    source_relative = f"research/hourly/source/{source_sha}.json"
+    source_io = SafeRoot(data_root)
+    if len(raw) > 64 * 1024 * 1024:
+        raise ValueError("HOURLY_SOURCE_WITNESS_TOO_LARGE")
+    try:
+        prior_source = source_io.read_bytes(source_relative)
+    except FileNotFoundError:
+        try:
+            source_io.write_bytes(source_relative, raw, require_absent=True)
+        except FileExistsError:
+            if source_io.read_bytes(source_relative) != raw:
+                raise ValueError("HOURLY_SOURCE_WITNESS_SHA_CONFLICT")
+    else:
+        if prior_source != raw:
+            raise ValueError("HOURLY_SOURCE_WITNESS_SHA_CONFLICT")
     publication = None
     archive_payload: dict[str, Any] | None = None
-    if has_rows:
+    should_materialize = has_rows or verified_manual_empty
+    if should_materialize:
         publication = store.reuse_matching_source(
             request.business_date,
             request.slot,
@@ -329,7 +513,7 @@ def run_hourly_research_file(
             source_input_sha256=source_sha,
             transformer_identity_sha256=transformer_identity_sha,
         )
-    if has_rows and publication is None:
+    if should_materialize and publication is None:
         archive_payload = build_research_archive(
             source_payload,
             source_input_sha256=source_sha,
@@ -386,13 +570,30 @@ def run_hourly_research_file(
             archive_payload,
             mode="LIVE",
         )
+    ready_empty_evidence = None
+    if verified_manual_empty:
+        if archive_payload is None:
+            archive_payload = store.read_exact(
+                request.business_date,
+                request.slot,
+                mode=request.mode.value,
+            )
+        if not isinstance(archive_payload, dict):
+            raise ValueError("verified READY_EMPTY hourly archive is missing")
+        ready_empty_evidence = archive_payload.get("ready_empty_evidence_v1")
+        if not isinstance(ready_empty_evidence, dict):
+            raise ValueError("verified READY_EMPTY hourly archive evidence is missing")
     runtime_evidence = _publish_runtime_evidence(
         data_root=data_root,
         business_date=request.business_date,
         slot=request.slot,
         mode=request.mode.value,
         source_sha256=source_sha,
+        source_pit_cutoff=source_pit_cutoff,
+        expected_pit_cutoff=stage_cutoff.isoformat(timespec="seconds"),
         publication=publication,
+        empty_result=verified_manual_empty,
+        ready_empty_evidence=ready_empty_evidence,
     )
     return {
         "schema_version": "v3_5.hourly_research_run.v1",
@@ -403,7 +604,38 @@ def run_hourly_research_file(
         "mode": request.mode.value,
         "source_path": source_identity,
         "external_source_sha256": source_sha,
+        "source_pit_cutoff": source_pit_cutoff,
+        "expected_pit_cutoff": stage_cutoff.isoformat(timespec="seconds"),
         "external_source_read_only": True,
+        "capture_origin": "ORIGINAL_SLOT",
+        "execution_origin": "MANUAL_RECOVERY" if verified_manual_empty else "ORIGINAL_SLOT",
+        "materialized_at": (
+            str((source_payload.get("source_manifest") or {}).get("materialized_at") or "")
+            if verified_manual_empty
+            else ""
+        ),
+        "available_at": (
+            str((source_payload.get("source_manifest") or {}).get("available_at") or "")
+            if verified_manual_empty
+            else ""
+        ),
+        "natural_execution_verified": False,
+        "hourly_artifact_status": runtime_evidence["runtime_status"],
+        **(
+            {
+                "article_count": 0,
+                "stock_pool_count": 0,
+                "ready_empty_evidence_v1": ready_empty_evidence,
+                "source_receipt_sha256": ready_empty_evidence["source_receipt_sha256"],
+                "summary_sha256": ready_empty_evidence["summary_sha256"],
+                "fetch_result_sha256": ready_empty_evidence["fetch_result_sha256"],
+                "source_receipt_path": ready_empty_evidence["source_receipt_path"],
+                "source_cutoff": ready_empty_evidence["source_cutoff"],
+                "fetched_at": ready_empty_evidence["fetched_at"],
+            }
+            if ready_empty_evidence is not None
+            else {}
+        ),
         **(publication or {
             "payload_path": "",
             "receipt_path": "",
@@ -448,6 +680,7 @@ def main() -> int:
         choices=tuple(item.value for item in DispatchMode),
     )
     parser.add_argument("--source", type=Path)
+    parser.add_argument("--expected-source-sha256", help="Optional approved raw-byte SHA; checked before writing")
     args = parser.parse_args()
     try:
         result = run_hourly_research_file(
@@ -457,6 +690,7 @@ def main() -> int:
             target_date=args.target_date,
             slot=args.slot,
             mode=args.mode,
+            expected_source_sha256=args.expected_source_sha256,
         )
     except FileNotFoundError:
         result = {

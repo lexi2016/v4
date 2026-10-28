@@ -40,11 +40,13 @@ _FUTU_PROBE = r"""
 import json
 import socket
 import sys
+from datetime import datetime
 
 import futu as ft
 
 payload = json.loads(sys.stdin.read())
 codes = payload["codes"]
+hk = payload.get("market") == "HK_CONNECT"
 num_bars = int(payload.get("num_bars") or 30)
 socket.setdefaulttimeout(3.0)
 quote_ctx = ft.OpenQuoteContext(host="127.0.0.1", port=11111)
@@ -65,7 +67,7 @@ def read_and_unsubscribe(batch):
                     code,
                     num_bars,
                     ft.SubType.K_1M,
-                    ft.AuType.QFQ,
+                    ft.AuType.NONE if hk else ft.AuType.QFQ,
                 )
                 if ret == ft.RET_OK:
                     if hasattr(data, "to_dict"):
@@ -98,7 +100,7 @@ try:
             ret, message = quote_ctx.subscribe(
                 chunk,
                 [ft.SubType.K_1M],
-                is_first_push=False,
+                is_first_push=hk,
                 subscribe_push=False,
             )
             if ret == ft.RET_OK:
@@ -120,7 +122,7 @@ try:
             ret, message = quote_ctx.subscribe(
                 [code],
                 [ft.SubType.K_1M],
-                is_first_push=False,
+                is_first_push=hk,
                 subscribe_push=False,
             )
             if ret == ft.RET_OK:
@@ -137,7 +139,8 @@ finally:
     except Exception:
         pass
 print("__FUTU_MINUTE_JSON__" + json.dumps(
-    {"rows": rows, "errors": errors, "no_data_codes": no_data_codes},
+    {"rows": rows, "errors": errors, "no_data_codes": no_data_codes,
+     "captured_at": datetime.now().astimezone().isoformat()},
     ensure_ascii=False,
     default=str,
 ))
@@ -218,6 +221,7 @@ def collect_futu_minute(
     market: str = "A_SHARE",
     process_runner: Callable[..., Any],
     timeout_seconds: float = 45,
+    capture_root: Path | str | None = None,
 ) -> StageSourceResult:
     """Collect Futu K_1M minute bars for one frozen stage into a StageSourceResult.
 
@@ -248,9 +252,9 @@ def collect_futu_minute(
     window_start_str, window_end_str, _cutoff_at = window
     span = datetime.strptime(window_end_str, "%H:%M:%S") - datetime.strptime(window_start_str, "%H:%M:%S")
     window_minutes = max(1, int(span.total_seconds() // 60))
-    num_bars = min(60, max(10, window_minutes + 5))
+    num_bars = 1000 if market == "HK_CONNECT" else min(60, max(10, window_minutes + 5))
 
-    stdin = json.dumps({"codes": validated_codes, "num_bars": num_bars}, ensure_ascii=False)
+    stdin = json.dumps({"codes": validated_codes, "num_bars": num_bars, "market": market}, ensure_ascii=False)
     try:
         proc = process_runner(
             [str(python_path), "-c", _FUTU_PROBE],
@@ -288,6 +292,49 @@ def collect_futu_minute(
         )
 
     aggregated = aggregate_futu_minute_window_rows(trade_date, stage_id, raw_rows)
+    if market == "HK_CONNECT":
+        import hashlib
+        payload = json.JSONDecoder().raw_decode(next(line[len(MARKER):] for line in reversed(proc.stdout.splitlines()) if line.startswith(MARKER)).strip())[0]
+        capture_evidence = {}
+        if capture_root is not None:
+            # Keep the provider response beside the existing stage raw store;
+            # its timestamp comes from the quote process, never file mtime.
+            if not re.fullmatch(r"\d{8}", trade_date):
+                raise ValueError("invalid minute capture date")
+            try:
+                captured = datetime.fromisoformat(str(payload.get("captured_at") or ""))
+                if captured.tzinfo is None or captured.strftime("%Y%m%d") != trade_date:
+                    raise ValueError("capture time is not exact-date with timezone")
+            except ValueError:
+                return failure("READ_FAILED", [], "Futu capture timestamp missing or invalid",
+                               ["FUTU_CAPTURE_TIME_NOT_PERSISTED"], requested_code_count=len(validated_codes))
+            saved = {"trade_date": trade_date, "stage_id": stage_id, "market": market,
+                     "codes": validated_codes, "adjustment": "NONE", **payload}
+            data = (json.dumps(saved, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode()
+            digest = hashlib.sha256(data).hexdigest()
+            path = Path(capture_root) / ".futu_minute_captures" / trade_date / stage_id / (digest + ".json")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            import os
+            import tempfile
+            fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".capture-")
+            try:
+                with os.fdopen(fd, "wb") as stream:
+                    stream.write(data)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                try:
+                    os.link(temporary, path)
+                except FileExistsError:
+                    if path.read_bytes() != data:
+                        raise ValueError("minute capture SHA conflict")
+            finally:
+                os.unlink(temporary)
+            capture_evidence = {"futu_capture_path": str(path),
+                                "futu_capture_sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        for row in aggregated:
+            row.update(capture_evidence)
+            row["futu_captured_at"] = payload.get("captured_at")
+            row["futu_provider_rows_sha256"] = hashlib.sha256(json.dumps(raw_rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     errors_text = "; ".join(str(item) for item in payload_errors)[:1000]
     row_codes = {row.get("code") for row in aggregated}
     no_data_codes = list(dict.fromkeys(

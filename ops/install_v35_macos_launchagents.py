@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import plistlib
+import re
 from pathlib import Path
 from typing import Any
 
@@ -100,6 +101,11 @@ def build_scheduler_plist(
     research_panel_hk_asset_root: str,
     release_id: str,
     upstream_fingerprint: str,
+    release_manifest_path: str,
+    release_manifest_sha256: str,
+    intraday_config_path: str | None = None,
+    intraday_config_sha256: str | None = None,
+    intraday_source_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Return a complete scheduler plist payload without writing it.
 
@@ -110,6 +116,8 @@ def build_scheduler_plist(
     the caller owns any subsequent candidate-only write.
     """
 
+    if not re.fullmatch(r"[0-9a-f]{64}", str(release_manifest_sha256)):
+        raise ValueError("release_manifest_sha256 must be a lowercase SHA-256")
     launch_script = _absolute_path("launch_script", launch_script)
     roots = {
         "V35_APP_ROOT": _absolute_path("app_root", app_root),
@@ -220,8 +228,20 @@ def build_scheduler_plist(
             "wechat_input_root", preselection_input_root
         ),
     }
+    # A candidate may remain unbound/inactive. Partial bindings never silently
+    # choose a different state or source; registry rejects the absent binding.
+    intraday = (intraday_config_path, intraday_config_sha256, intraday_source_manifest_sha256)
+    if any(value is not None for value in intraday):
+        if (not all(intraday) or ".." in Path(str(intraday_config_path)).parts
+                or any(not re.fullmatch(r"[0-9a-f]{64}", str(value)) for value in intraday[1:])):
+            raise ValueError("intraday config path and both approved SHA values are required")
+        roots.update({"V4_INTRADAY_CONFIG_PATH": _absolute_path("intraday_config_path", intraday_config_path),
+                      "V4_INTRADAY_CONFIG_SHA256": intraday_config_sha256,
+                      "V4_INTRADAY_SOURCE_MANIFEST_SHA256": intraday_source_manifest_sha256})
     identities = {
         "V35_RELEASE_ID": _identity("release_id", release_id),
+        "V35_RELEASE_MANIFEST_PATH": _absolute_path("release_manifest_path", release_manifest_path),
+        "V35_RELEASE_MANIFEST_SHA256": release_manifest_sha256,
         "V35_UPSTREAM_FINGERPRINT": _identity(
             "upstream_fingerprint", upstream_fingerprint
         ),
@@ -342,6 +362,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--research-panel-hk-python-executable", required=True)
     parser.add_argument("--research-panel-hk-asset-root", required=True)
     parser.add_argument("--release-id", required=True)
+    parser.add_argument("--release-manifest-path", required=True)
+    parser.add_argument("--release-manifest-sha256", required=True)
+    parser.add_argument("--intraday-config-path")
+    parser.add_argument("--intraday-config-sha256")
+    parser.add_argument("--intraday-source-manifest-sha256")
     parser.add_argument("--upstream-fingerprint", required=True)
     parser.add_argument("--output-root", required=True, type=Path)
     args = parser.parse_args(argv)
@@ -391,6 +416,11 @@ def main(argv: list[str] | None = None) -> int:
             research_panel_hk_python_executable=args.research_panel_hk_python_executable,
             research_panel_hk_asset_root=args.research_panel_hk_asset_root,
             release_id=args.release_id,
+            release_manifest_path=args.release_manifest_path,
+            release_manifest_sha256=args.release_manifest_sha256,
+            intraday_config_path=args.intraday_config_path,
+            intraday_config_sha256=args.intraday_config_sha256,
+            intraday_source_manifest_sha256=args.intraday_source_manifest_sha256,
             upstream_fingerprint=args.upstream_fingerprint,
         ),
     )

@@ -13,7 +13,7 @@ from contracts.runtime_tasks import (
     TaskSpecRegistration,
     WorkloadDefinition,
 )
-from contracts.trading_calendar import TradingDayState, load_market_calendar, resolve_market_states
+from contracts.trading_calendar import MarketCalendar, TradingDayState, load_market_calendar, resolve_market_states
 from infrastructure.a_share_review_store import AShareReviewStore
 from infrastructure.scheduling.execution_ledger import ExecutionLedger
 from contracts.close_timeline import CLOSE_TIMELINE
@@ -27,35 +27,33 @@ def _display_slot(slot: str) -> str:
     return f"{slot[:2]}:{slot[2:]}"
 
 
-def _schedule_date_is_eligible(workload: WorkloadDefinition, date: str) -> bool:
-    """Apply the existing workload policy to a candidate calendar date."""
+def _schedule_date_is_eligible(
+    workload: WorkloadDefinition, date: str, *, calendar: MarketCalendar | None = None,
+) -> bool:
+    """Use the actual policy lane; absent calendar states are never eligible."""
     policy = workload.run_policy
     if policy is RunPolicy.NATURAL_DAY:
         return True
-    states = resolve_market_states(load_market_calendar(), date)
-    eligible = {
-        "a_share": states.get("a_share"),
-        # ``resolve_market_states`` exposes the derived southbound lane under
-        # its runtime key ``hk_connect``; the calendar source itself names the
-        # market ``hk_connect_southbound``.
-        "hk_connect": states.get("hk_connect"),
-    }
+    states = resolve_market_states(calendar if calendar is not None else load_market_calendar(), date)
+    open_states = {TradingDayState.FULL_TRADING_DAY, TradingDayState.HALF_TRADING_DAY_AM}
     if policy is RunPolicy.A_SHARE_TRADE_DAY:
-        return eligible["a_share"] not in {TradingDayState.NON_TRADING_DAY, TradingDayState.UNKNOWN}
+        return states.get("a_share") in open_states
+    if policy is RunPolicy.HK_SECURITIES_TRADE_DAY:
+        return states.get("hk_securities") in open_states
     if policy is RunPolicy.HK_CONNECT_TRADE_DAY:
-        return eligible["hk_connect"] not in {TradingDayState.NON_TRADING_DAY, TradingDayState.UNKNOWN}
+        return states.get("hk_connect") in open_states
     if policy is RunPolicy.A_OR_HK_CONNECT_TRADE_DAY:
-        return any(
-            state not in {TradingDayState.NON_TRADING_DAY, TradingDayState.UNKNOWN}
-            for state in eligible.values()
-        )
-    if policy is RunPolicy.CROSS_MARKET:
-        return True
+        return any(states.get(market) in open_states for market in ("a_share", "hk_connect"))
+    if policy is RunPolicy.A_OR_HK_SECURITIES_TRADE_DAY:
+        return any(states.get(market) in open_states for market in ("a_share", "hk_securities"))
     return False
 
 
-def _next_due(workload: WorkloadDefinition, business_date: str, now: datetime) -> dict[str, str] | None:
-    """Return the next configured slot in Shanghai time without rewriting schedules."""
+def _next_due(
+    workload: WorkloadDefinition, business_date: str, now: datetime,
+    *, calendar: MarketCalendar | None = None,
+) -> dict[str, str] | None:
+    """Project slots using one validated calendar snapshot, never unknown dates."""
     if not workload.enabled or not workload.slots:
         return None
     current = now.astimezone(ZoneInfo("Asia/Shanghai")) if now.tzinfo else now.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
@@ -63,10 +61,14 @@ def _next_due(workload: WorkloadDefinition, business_date: str, now: datetime) -
     requested = datetime.strptime(business_date, "%Y%m%d").date()
     candidate_date = max(requested, today)
     current_hhmm = current.strftime("%H%M")
+    if workload.run_policy is not RunPolicy.NATURAL_DAY and calendar is None:
+        calendar = load_market_calendar()
     for day_offset in range(0, 371):
         day = candidate_date.fromordinal(candidate_date.toordinal() + day_offset)
+        if workload.run_policy is not RunPolicy.NATURAL_DAY and calendar is not None and day.year > calendar.year:
+            break
         date_text = day.strftime("%Y%m%d")
-        if not _schedule_date_is_eligible(workload, date_text):
+        if not _schedule_date_is_eligible(workload, date_text, calendar=calendar):
             continue
         slots = workload.slots
         if day == today and requested <= today:
@@ -74,17 +76,31 @@ def _next_due(workload: WorkloadDefinition, business_date: str, now: datetime) -
         if not slots:
             continue
         slot = slots[0]
-        return {
-            "date": date_text,
-            "slot": slot,
-            "display": f"{date_text} {_display_slot(slot)}",
-        }
+        return {"date": date_text, "slot": slot, "display": f"{date_text} {_display_slot(slot)}"}
     return None
+
+
+_RECEIPT_DATE_FIELDS = ("business_date", "scheduled_date", "target_date")
+
+
+def _receipt_matches_business_date(
+    receipt: dict[str, Any], business_date: str, workload_id: str | None = None,
+) -> bool:
+    """Keep the receipt on the requested business date by workload contract."""
+    if str(receipt.get("business_date") or "") != business_date:
+        return False
+    if workload_id != "hourly_research":
+        return True
+    return all(
+        str(receipt.get(field) or "") == business_date
+        for field in _RECEIPT_DATE_FIELDS
+    )
 
 
 def _latest_receipt(
     workload: WorkloadDefinition,
     receipts: tuple[dict[str, Any], ...],
+    business_date: str,
 ) -> dict[str, Any] | None:
     candidates = [
         receipt
@@ -105,9 +121,23 @@ def _latest_receipt(
     ]
     if not candidates:
         return None
+    date_bound = [
+        receipt for receipt in candidates
+        if _receipt_matches_business_date(receipt, business_date, workload.workload_id)
+    ]
+    if not date_bound:
+        invalid_receipt = dict(candidates[-1])
+        invalid_receipt.update(
+            {
+                "status": "CANNOT_CONFIRM",
+                "finished_at": None,
+                "_task_status_result_code": "EXECUTION_RECEIPT_DATE_MISMATCH",
+            }
+        )
+        return invalid_receipt
     timestamped: list[tuple[datetime, dict[str, Any]]] = []
     invalid: list[dict[str, Any]] = []
-    for receipt in candidates:
+    for receipt in date_bound:
         value = receipt.get("finished_at")
         try:
             parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
@@ -160,6 +190,7 @@ def _logical_row(
     receipt: dict[str, Any] | None,
     business_date: str,
     now: datetime,
+    *, calendar: MarketCalendar | None = None,
 ) -> dict[str, Any]:
     external_stage_authority = workload.workload_id == "stage_workbench"
     if external_stage_authority:
@@ -189,7 +220,7 @@ def _logical_row(
     else:
         status = str(receipt.get("status") or "CANNOT_CONFIRM")
         result_code = str(receipt.get("_task_status_result_code") or status)
-    due = _next_due(workload, business_date, now)
+    due = _next_due(workload, business_date, now, calendar=calendar)
     row = {
         "workload_id": workload.workload_id,
         "enabled": workload.enabled,
@@ -207,7 +238,7 @@ def _logical_row(
         "result_code": result_code,
         "freshness": (
             "CURRENT"
-            if receipt
+            if receipt and str(receipt.get("status") or "") != "CANNOT_CONFIRM"
             else "NOT_DUE"
             if status == "PENDING_NOT_DUE"
             else "NOT_OBSERVED"
@@ -294,7 +325,7 @@ def _timeline_receipt(
         if not reason and status not in {"READY", "READY_EMPTY"}:
             reason = "STAGE_CENTER_SELECTION_CANNOT_CONFIRM"
     elif item["node_id"] in {"hkconnect_model_selection_review", "FUPAN_A_SHARE_STRUCTURE"} and workload is not None:
-        receipt = _latest_receipt(workload, receipts)
+        receipt = _latest_receipt(workload, receipts, business_date)
         if receipt is not None:
             status = str(receipt.get("status") or "CANNOT_CONFIRM")
             reason = str(receipt.get("stderr") or receipt.get("reason") or "")
@@ -366,11 +397,63 @@ def _timeline_receipt(
         "actual_receipt_path": receipt_path,
         "receipt_path": receipt_path,
         "last_run": last_run,
-        "freshness": "CURRENT" if receipt is not None or status in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS", "READY_WITH_REVIEW_BOUNDARY", "SUCCESS", "SUCCEEDED", "ACTION_RAN_WITH_CANNOT_CONFIRM", "BACKFILLED_ARTIFACT_READY"} else "NOT_DUE" if status == "PENDING_NOT_DUE" else "NOT_OBSERVED",
+        "freshness": (
+            "CURRENT"
+            if (
+                (receipt is not None and str(receipt.get("status") or "") != "CANNOT_CONFIRM")
+                or status in {"READY", "READY_EMPTY", "PARTIAL_WITH_ROWS", "READY_WITH_REVIEW_BOUNDARY", "SUCCESS", "SUCCEEDED", "ACTION_RAN_WITH_CANNOT_CONFIRM", "BACKFILLED_ARTIFACT_READY"}
+            )
+            else "NOT_DUE"
+            if status == "PENDING_NOT_DUE"
+            else "NOT_OBSERVED"
+        ),
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,
     }
+
+
+def _scheduler_observation(ledger: ExecutionLedger, business_date: str,
+                           receipts: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+    """Evidence lens only; catalog owner != installed job != live process."""
+    result: dict[str, Any] = {
+        "business_date": business_date, "status": "NO_SAME_DATE_RECEIPT",
+        "receipt_count": len(receipts), "process_status": "CANNOT_CONFIRM",
+        "catalog_scope": "CONFIGURATION_ONLY", "logical_row_evidence": "DECLARED_ONLY",
+        "receipt_namespace": f"receipts/live/{business_date}",
+        "message": "配置中的owner不证明进程存活；禁用图谱登记与实际调度回执分开显示。",
+    }
+    if not receipts:
+        return result
+    date_bound_receipts = tuple(
+        receipt for receipt in receipts
+        if _receipt_matches_business_date(
+            receipt,
+            business_date,
+            "hourly_research"
+            if "hourly_research" in (receipt.get("selected_workload_ids") or [])
+            else None,
+        )
+    )
+    if len(date_bound_receipts) != len(receipts):
+        result.update(
+            status="RECEIPT_DATE_MISMATCH",
+            logical_row_evidence="DATE_BOUND_RECEIPT_REJECTED",
+            date_bound_receipt_count=len(date_bound_receipts),
+            date_binding_reason="BUSINESS_SCHEDULED_TARGET_DATE_MUST_MATCH",
+        )
+        return result
+    try:
+        valid, _ = ledger.verify_receipt_chain(business_date, mode="LIVE")
+    except (OSError, ValueError, TypeError, KeyError):
+        valid = False
+    result["status"] = "RECEIPT_CHAIN_VERIFIED" if valid else "RECEIPT_INVALID"
+    if valid:
+        result.update(last_receipt_status=str(date_bound_receipts[-1].get("status") or "CANNOT_CONFIRM"),
+                      last_receipt_run_id=str(date_bound_receipts[-1].get("run_id") or ""),
+                      last_finished_at=str(date_bound_receipts[-1].get("finished_at") or ""),
+                      logical_row_evidence="SAME_DATE_LEDGER_CHAIN")
+    return result
 
 
 def build_task_status(
@@ -385,12 +468,14 @@ def build_task_status(
     datetime.strptime(business_date, "%Y%m%d")
     current_time = now or datetime.now(ZoneInfo("Asia/Shanghai"))
     receipts = ledger.list_receipts(business_date, mode="LIVE")
+    calendar = load_market_calendar()
     logical = [
         _logical_row(
             workload,
-            _latest_receipt(workload, receipts),
+            _latest_receipt(workload, receipts, business_date),
             business_date,
             current_time,
+            calendar=calendar,
         )
         for workload in catalog.workloads
     ]
@@ -462,6 +547,7 @@ def build_task_status(
     )
     return {
         "schema_version": "v3_5.task_status.v2",
+        "scheduler_observation": _scheduler_observation(ledger, business_date, receipts),
         "business_date": business_date,
         "logical_workload_count": len(logical),
         "active_owner_count": len(active_owners),

@@ -7,6 +7,7 @@ repo_root="$(CDPATH= cd -- "$ops_dir/.." && pwd -P)"
 workspace_root="$(CDPATH= cd -- "$repo_root/.." && pwd -P)"
 runtime_root="${V35_RUNTIME_ROOT:-$workspace_root/runtime}"
 python_bin="$runtime_root/venvs/v3.5-mac/bin/python"
+main_site_packages="$runtime_root/venvs/v3.5-mac/lib/python3.14/site-packages"
 hk_0_2_python="${V35_HK_0_2_PYTHON:-$runtime_root/venvs/v3.5-hk02/bin/python}"
 data_root="${V35_DATA_ROOT:?V35_DATA_ROOT is required}"
 ledger_root="${V35_DISPATCH_LEDGER_ROOT:?V35_DISPATCH_LEDGER_ROOT is required}"
@@ -19,6 +20,10 @@ preselection_input_root="${V35_PRESELECTION_INPUT_ROOT:?V35_PRESELECTION_INPUT_R
 
 [ -x "$python_bin" ] || {
   printf 'V3.5 scheduler Python is missing: %s\n' "$python_bin" >&2
+  exit 1
+}
+[ -d "$main_site_packages" ] || {
+  printf 'V3.5 scheduler Python site-packages is missing: %s\n' "$main_site_packages" >&2
   exit 1
 }
 
@@ -40,6 +45,13 @@ if [[ "$hk_0_2_runtime_valid" != true ]]; then
   # Preserve the lane-local missing-runtime guard in FixedExecutorRegistry.
   # The main scheduler must still run independent workloads.
   hk_0_2_python="${hk_0_2_python}.invalid"
+fi
+
+# The research-panel LaunchAgent names the HK TDX root separately.  Bridge it
+# into the scheduler's existing shared-root input when present so HK workloads
+# and the panel consume the same configured root without changing the root.
+if [[ -n "${V35_RESEARCH_PANEL_HK_TDX_ROOT:-}" ]]; then
+  export V3_SHARED_HK_TDX_ROOT="$V35_RESEARCH_PANEL_HK_TDX_ROOT"
 fi
 
 cd "$repo_root"
@@ -65,4 +77,8 @@ fi
 if [[ -n "$selector_data_root" ]]; then
   args+=(--selector-data-root "$selector_data_root")
 fi
-exec "$python_bin" -m ops.run_v35_macos_scheduler "${args[@]}"
+export PYTHONPATH="$repo_root:$main_site_packages:${PYTHONPATH:-}"
+if [[ "${V35_DAEMON_MODE:-}" == "persistent-minute" ]]; then
+  exec "$python_bin" -S -m ops.run_v35_macos_scheduler_daemon "${args[@]}"
+fi
+exec "$python_bin" -S -m ops.run_v35_macos_scheduler "${args[@]}"

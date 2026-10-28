@@ -110,6 +110,27 @@ class ExecutionLedger:
             return self
         return ExecutionLedger(self.root / "dry-run")
 
+    def dispatch_claim_blocks_retry(self, business_date: str, slot: str) -> bool:
+        """Let the existing atomic claim path recover an interrupted owner."""
+        path = self._path(f"claims/live/{_segment(business_date)}/{_segment(slot)}/dispatch.claim.json")
+        if not path.is_file():
+            return False
+        try:
+            claim = _read_existing_claim(path)
+            pid = claim.get("pid")
+            if (
+                claim.get("schema_version") != "v3_5.dispatch_claim.v1"
+                or claim.get("business_date") != business_date
+                or claim.get("slot") != slot
+                or claim.get("mode") != "LIVE"
+                or not claim.get("run_id")
+                or isinstance(pid, bool) or not isinstance(pid, int) or pid <= 0
+            ):
+                return True
+            return _pid_is_alive(pid) or self._has_completed_receipt(claim)
+        except (OSError, ValueError, UnicodeError):
+            return True
+
     def _has_completed_receipt(self, claim: Mapping[str, Any]) -> bool:
         run_id = str(claim.get("run_id") or "")
         mode = str(claim.get("mode") or "").lower()
@@ -133,7 +154,7 @@ class ExecutionLedger:
             return True
         if any(
             str(receipt.get(field) or "") != str(claim.get(field) or "")
-            for field in ("run_id", "business_date", "slot", "mode")
+            for field in ("run_id", "scheduled_date", "business_date", "target_date", "slot", "mode")
         ):
             return True
         if any(
@@ -142,6 +163,28 @@ class ExecutionLedger:
         ):
             return True
         status = str(receipt.get("status") or "")
+        workload_id = str(claim.get("workload_id") or "")
+        if workload_id:
+            results = receipt.get("workload_results")
+            selected = receipt.get("selected_workload_ids")
+            started = receipt.get("started_workload_ids")
+            if (
+                not isinstance(results, list)
+                or not isinstance(selected, list)
+                or not isinstance(started, list)
+                or workload_id not in selected
+                or workload_id not in started
+            ):
+                return False
+            matching = [
+                item
+                for item in results
+                if isinstance(item, Mapping)
+                and str(item.get("workload_id") or "") == workload_id
+            ]
+            if len(matching) != 1:
+                return False
+            return str(matching[0].get("status") or "") in {"SUCCEEDED", "ALREADY_EXISTS"}
         return status != "FAILED"
 
     def _replace_dead_claim(

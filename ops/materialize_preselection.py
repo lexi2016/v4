@@ -15,6 +15,10 @@ from domains.preselection_materializer import (
     materialize_preselection_date,
 )
 from infrastructure.preselection_pool_store import PreselectionPoolStore
+from v4_migration.write_authority_reference import (
+    WriteAuthorityResolutionError,
+    reject_cli_authority_declaration,
+)
 
 
 DEFAULT_DATA_ROOT = Path(__file__).resolve().parents[1] / ".runtime" / "data"
@@ -57,7 +61,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--wechat-rows", type=Path, required=True)
     parser.add_argument("--wechat-manifest", type=Path, required=True)
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
+    parser.add_argument(
+        "--write-authorization-ref",
+        action="append",
+        default=None,
+        help="untrusted declaration; denied until a separately implemented owner trust provider exists",
+    )
     args = parser.parse_args(argv)
+    try:
+        reject_cli_authority_declaration(args.write_authorization_ref)
+    except WriteAuthorityResolutionError as error:
+        print(json.dumps({
+            "status": "REJECTED",
+            "reason": error.reason_code,
+            "detail": str(error),
+            "authorization_source": error.source,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }, ensure_ascii=False, sort_keys=True))
+        return 3
     input_paths = tuple(Path(path) for path in (
         args.fupan, args.stage7, args.research_preview, args.hk,
         args.wechat_manifest, args.wechat_rows,

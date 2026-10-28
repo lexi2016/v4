@@ -7,6 +7,9 @@ V3.5-owned read-only projection consumed by Stage Center.
 from __future__ import annotations
 
 import argparse
+import base64
+import subprocess
+from uuid import uuid4
 import csv
 import hashlib
 import importlib.util
@@ -26,6 +29,7 @@ from contracts.trading_calendar import TradingDayState, load_market_calendar, re
 from domains.opening_second_filter import build_v11_opening_second_filter
 from infrastructure.isolated_package_loader import load_isolated_package_module
 from infrastructure.opening_second_filter_store import OpeningSecondFilterStore
+from infrastructure.owned_io import SafeRoot
 
 
 HK_AUCTION_ROLE = "HK_CONNECT_AUCTION_REFERENCE_STAGE_0925"
@@ -218,15 +222,100 @@ def _read_existing_verified_capture(
 
 def _calendar_gate(trade_date: str) -> dict[str, Any]:
     states = resolve_market_states(load_market_calendar(), trade_date)
-    if states["hk_connect"] is TradingDayState.UNKNOWN:
-        raise ValueError("HK_CONNECT calendar state is unknown")
+    if states["hk_securities"] is TradingDayState.UNKNOWN:
+        raise ValueError("HK_SECURITIES calendar state is unknown")
     serialized = {key: value.value for key, value in states.items()}
-    if states["hk_connect"] is TradingDayState.NON_TRADING_DAY:
+    if states["hk_securities"] is TradingDayState.NON_TRADING_DAY:
         return {"ok": True, "status": "SKIPPED_NON_TRADING_DAY", "trade_date": trade_date, "calendar": serialized}
     return {"ok": True, "status": "ELIGIBLE", "trade_date": trade_date, "calendar": serialized}
 
 
+class _AuctionNativeEvidence:
+    """Append native evidence within the existing single auction capture."""
+
+    def __init__(self, shared_root: Path | str, trade_date: str):
+        datetime.strptime(trade_date, "%Y%m%d")
+        if not re.fullmatch(r"\d{8}", trade_date):
+            raise ValueError("auction capture date must be YYYYMMDD")
+        self.root, self.trade_date, self.attempt_id = Path(shared_root), trade_date, uuid4().hex
+        self.refs: list[dict[str, Any]] = []
+        self.membership: dict[str, Any] = {"status": "UNKNOWN_SCOPE"}
+
+    def save(self, event: str, **payload: Any) -> dict[str, Any]:
+        relative = f"attempt_evidence/{self.trade_date}/{HK_AUCTION_ROLE}/{self.attempt_id}/{len(self.refs):04d}-{event}.json"
+        raw = json.dumps({**payload, "trade_date": self.trade_date, "stage_id": "STAGE_0925",
+            "market": "HK_CONNECT", "attempt_id": self.attempt_id,
+            "recorded_at": datetime.now().astimezone().isoformat(),
+            "source_sha256": _sha_file(Path(__file__)), "membership": self.membership,
+            "authorizes_selection": False, "production_allowed": False, "buy_gate_updated": False, "orders_sent": False},
+            ensure_ascii=False, sort_keys=True).encode("utf-8")
+        SafeRoot(self.root).write_bytes(relative, raw, require_absent=True)
+        ref = {"path": str(self.root / relative), "sha256": _sha_bytes(raw), "event": event}
+        self.refs.append(ref)
+        return ref
+
+    @staticmethod
+    def native_fields(value: Any, *fields: str) -> dict[str, Any]:
+        result = {}
+        for field in fields:
+            data = getattr(value, field, None)
+            if data is not None:
+                raw = data if isinstance(data, bytes) else str(data).encode("utf-8")
+                result[field + "_base64"] = base64.b64encode(raw).decode("ascii")
+                result[field + "_sha256"] = _sha_bytes(raw)
+        return result
+
+    def reader(self, module: Any, executable: Path | str, codes: Sequence[str]):
+        if self.membership["status"] == "UNKNOWN_SCOPE":
+            try:
+                members, evidence = module.load_verified_candidates(self.root, self.trade_date)
+                exact = {str(row["code"]) for row in members} == set(codes)
+                self.membership = {"status": "VERIFIED_EXACT_CODES" if exact else "CANNOT_CONFIRM_CODE_BINDING", **dict(evidence)}
+            except Exception as error:
+                self.membership = {"status": "CANNOT_CONFIRM", "error": f"{type(error).__name__}:{error}"}
+
+        def observed_runner(*args: Any, **kwargs: Any):
+            started = datetime.now().astimezone().isoformat()
+            query = kwargs.get("input")
+            requested = list(codes)
+            metadata = {"query_id": uuid4().hex, "provider_started_at": started,
+                "query_input": query, "codes": requested, "codes_sha256": _sha_json(requested),
+                "shared_store_root": str(self.root), "method": "fetch_futu_snapshot"}
+            self.save("query", **metadata)
+            try:
+                completed = subprocess.run(*args, **kwargs)
+            except Exception as error:
+                self.save("provider-error", **metadata, provider_finished_at=datetime.now().astimezone().isoformat(),
+                    error_type=type(error).__name__, error=str(error),
+                    **self.native_fields(error, "stdout", "stderr", "output"))
+                raise
+            self.save("native", **metadata, provider_finished_at=datetime.now().astimezone().isoformat(),
+                returncode=completed.returncode, **self.native_fields(completed, "stdout", "stderr"))
+            return completed
+
+        return module.fetch_futu_snapshot(executable, codes, process_runner=observed_runner)
+
+
 def materialize_hkconnect_0915_0920(
+    data_root: Path | str, shared_data_root: Path | str, shared_package_root: Path | str,
+    trade_date: str, futu_python: Path | str, *, shared_module: ModuleType | Any | None = None,
+    consumer_module: ModuleType | Any | None = None, capture_runner: Callable[..., Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    journal = _AuctionNativeEvidence(shared_data_root, trade_date)
+    try:
+        result = _materialize_hkconnect_0915_0920(data_root, shared_data_root, shared_package_root,
+            trade_date, futu_python, shared_module=shared_module, consumer_module=consumer_module,
+            capture_runner=capture_runner, _native_evidence=journal)
+    except Exception as error:
+        journal.save("capture-error", error_type=type(error).__name__, error=str(error), payload_events=list(journal.refs))
+        error.auction_native_evidence = list(journal.refs)
+        raise
+    if journal.refs:
+        result["auction_native_evidence"] = list(journal.refs)
+    return result
+
+
+def _materialize_hkconnect_0915_0920(
     data_root: Path | str,
     shared_data_root: Path | str,
     shared_package_root: Path | str,
@@ -236,6 +325,7 @@ def materialize_hkconnect_0915_0920(
     shared_module: ModuleType | Any | None = None,
     consumer_module: ModuleType | Any | None = None,
     capture_runner: Callable[..., Mapping[str, Any]] | None = None,
+    _native_evidence: _AuctionNativeEvidence | None = None,
 ) -> dict[str, Any]:
     gate = _calendar_gate(trade_date)
     if gate["status"] != "ELIGIBLE":
@@ -253,7 +343,10 @@ def materialize_hkconnect_0915_0920(
         capture, auction = existing
     else:
         run_capture = capture_runner or shared_module.run_capture
-        capture = dict(run_capture(shared_root, trade_date, Path(futu_python), sleeper=time.sleep))
+        capture_options = {"sleeper": time.sleep}
+        if capture_runner is None and _native_evidence is not None:
+            capture_options["snapshot_reader"] = lambda executable, codes: _native_evidence.reader(shared_module, executable, codes)
+        capture = dict(run_capture(shared_root, trade_date, Path(futu_python), **capture_options))
     if capture.get("ok") is not True or str(capture.get("status")) != "READY":
         raise ValueError(f"shared HK capture did not complete: {capture.get('status')}")
     capture_run = capture.get("run")
@@ -346,8 +439,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         result = materialize_hkconnect_0915_0920(args.data_root, args.shared_data_root, args.shared_package_root, args.trade_date, args.futu_python)
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        result = {"ok": False, "status": "CANNOT_CONFIRM", "error": str(error), "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
+    except Exception as error:
+        result = {"ok": False, "status": "CANNOT_CONFIRM", "error": str(error), "auction_native_evidence": getattr(error, "auction_native_evidence", []), "production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0 if result.get("ok") else 1
 

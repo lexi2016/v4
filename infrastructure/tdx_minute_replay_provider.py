@@ -337,10 +337,9 @@ def _connected_api() -> Any:
         api = TdxHq_API(heartbeat=False)
         try:
             if api.connect(host, port, time_out=1.5):
-                probe = api.get_security_bars(9, 1, "600000", 0, 1) or []
-                if probe:
-                    return api
-                failures.append(f"{name}: connected without A-share bar capability")
+                # The requested replay lane may use minute or transaction history;
+                # a daily-bar query for an unrelated code is not a valid host gate.
+                return api
             else:
                 failures.append(f"{name}: connect returned false")
         except Exception as error:

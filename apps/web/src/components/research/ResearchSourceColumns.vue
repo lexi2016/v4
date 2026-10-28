@@ -2,7 +2,7 @@
 import { financeOriginalUrl, safeExternalUrl, text } from "../../composables/useResearchLane";
 
 defineProps<{
-  columns: Array<{ name: string; rows: Array<Record<string, unknown>> }>;
+  columns: Array<{ name: string; rows: Array<Record<string, unknown>>; emptyMessage?: string }>;
 }>();
 
 function sourceUrl(columnName: string, row: Record<string, unknown>): string {
@@ -23,7 +23,7 @@ function sourceUrl(columnName: string, row: Record<string, unknown>): string {
           <div class="hourly-summary">{{ text(row.summary || row.body_excerpt_preview || row.evidence_sentence).slice(0, 100) }}</div>
           <a v-if="sourceUrl(col.name, row)" :href="sourceUrl(col.name, row)" target="_blank" rel="noopener noreferrer" class="hourly-pill">打开原文</a>
         </article>
-        <div v-if="!col.rows.length" class="empty">{{ col.name }} 无条目。</div>
+        <div v-if="!col.rows.length" class="empty">{{ col.emptyMessage || `${col.name} 无条目。` }}</div>
       </div>
     </section>
   </div>

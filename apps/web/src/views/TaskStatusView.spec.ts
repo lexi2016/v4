@@ -47,7 +47,7 @@ describe("TaskStatusView", () => {
     expect(rows).toHaveLength(3);
     expect(within(rows[0] as HTMLElement).getByText("failed_job")).toBeTruthy();
     expect(within(counts).getByText("逻辑任务").nextElementSibling?.textContent).toBe("3");
-    expect(within(counts).getByText("执行 owner").nextElementSibling?.textContent).toBe("1");
+    expect(within(counts).getByText("已配置 owner").nextElementSibling?.textContent).toBe("1");
     expect(within(counts).getByText("别名").nextElementSibling?.textContent).toBe("1");
     expect(within(counts).getByText("退役 owner").nextElementSibling?.textContent).toBe("1");
     expect(within(counts).getByText("图谱待确认").nextElementSibling?.textContent).toBe("2");

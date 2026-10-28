@@ -1,18 +1,27 @@
-"""Exact-date, read-only A/H review composition endpoint."""
+"""Exact-date read-only review composition and one server-bound manual trigger."""
 from __future__ import annotations
 
 from copy import deepcopy
+import csv
 from datetime import datetime
 import importlib
+import hashlib
+import json
+import math
 import os
 from pathlib import Path
 from typing import Any, Mapping
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from starlette.concurrency import run_in_threadpool
+from urllib.parse import urlsplit
+from zoneinfo import ZoneInfo
 
 from contracts.stages import FROZEN_STAGE_IDS
 from domains.a_share_review import build_a_share_review
 from domains.close_review import close_review
+from domains.daily_research_review import load_daily_research_review
 from domains.review_envelope import review_envelope
 from domains.stages import StageRunner
 from infrastructure.a_share_review_store import AShareReviewStore
@@ -79,19 +88,208 @@ _STATUS_MAP = {
 }
 _SAFETY_FLAGS = {"production_allowed": False, "buy_gate_updated": False, "orders_sent": False}
 
+# The historical prefix asset is an independently produced research surface.
+# It is deliberately consumed through a runtime binding with fixed file
+# digests; the review endpoint never searches for a ``latest`` directory or
+# infers an asset from the daily panel's current pointer.
+_HK_PREFIX_PANEL_SCHEMA = "v4.hk_prefix_research.panel_projection.v1"
+_HK_PREFIX_ASSET_SCHEMA = "v4.hk_prefix_research.v2"
+_HK_PREFIX_ASSET_ID = "ZGE_HISTORY_V4_20260914"
+_HK_PREFIX_COMPARISON_STATUS = "NOT_SUPPORTED_TERMINAL_COVERAGE"
+_HK_PREFIX_MAPPING_COMPARISON_STATUS = "TERMINAL_BINARY_DESCRIPTIVE_UNREGISTERED_CONTROL_THRESHOLD"
+_HK_PREFIX_METRIC_CONTRACT = "v4.hk_prefix_research.terminal_metric.v1"
+_HK_PREFIX_REQUIRED_COMPLETE_PAIRS = 18
+_HK_PREFIX_EXPECTED_STATES = {
+    "NO_ACTIVE_SETUP",
+    "WARMUP",
+    "BROKEN_PENDING",
+    "RECLAIMED",
+    "REPAIR_FAILED_TIMEOUT",
+    "UNKNOWN",
+    "RETEST_HELD_PROVISIONAL",
+    "RETEST_HELD_HORIZON_COMPLETE",
+}
+_HK_PREFIX_INDEX_FIELDS = {
+    "series_id",
+    "prefix_file",
+    "row_count",
+    "input_sha256",
+    "prefix_content_sha256",
+    "review_status",
+}
+_HK_PREFIX_MAPPING_FIELDS = {
+    "series_id",
+    "pair_group_id",
+    "group_index",
+    "role",
+    "code",
+    "event_date",
+    "event_type",
+    "row_count",
+    "source_observed_rows",
+    "source_missing_rows",
+    "terminal_state",
+    "unknown_count",
+    "indeterminate_count",
+    "known_count",
+    "qualifying_count",
+    "terminal_unknown",
+    "terminal_determinable",
+    "terminal_lower",
+    "terminal_upper",
+    "terminal_indeterminate_reason",
+    "terminal_qualifies",
+    "occupancy_lower_rate",
+    "occupancy_upper_rate",
+    "unknown_reason_counts",
+    "input_sha256",
+    "prefix_content_sha256",
+    "comparison_status",
+}
+_HK_PREFIX_WINDOW_FIELDS = {
+    "series_id",
+    "session_index",
+    "close_at",
+    "available_at",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "price_basis",
+    "quality",
+}
+_HK_PREFIX_FILE_KEYS = {
+    "receipt",
+    "source_manifest",
+    "anonymous_index",
+    "results_mapping",
+    "frozen_binding",
+    "matched_verdict",
+    "field_isolation",
+    "future_isolation",
+    "past_positive_control",
+    "replay_log",
+    "source_window_replay_log",
+    "pair_metrics",
+    "summary_by_event_type",
+    "terminal_contract_gate",
+    "metrics_contract",
+    "raw_window_reuse",
+    "corrected_metric_contract_log",
+}
+
+
+def _panel_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _panel_read_bytes(path: Path, *, max_bytes: int = 4 * 1024 * 1024) -> bytes:
+    with path.open("rb") as handle:
+        payload = handle.read(max_bytes + 1)
+    if len(payload) > max_bytes:
+        raise ValueError("evidence file exceeds bounded read size")
+    return payload
+
+
+def _panel_read_json(path: Path) -> Mapping[str, Any]:
+    value = json.loads(_panel_read_bytes(path).decode("utf-8"))
+    if not isinstance(value, Mapping):
+        raise ValueError("evidence JSON must be an object")
+    return value
+
+
+def _panel_safe_relative(root: Path, relative: Any) -> Path:
+    value = Path(str(relative))
+    if not value.parts or value.is_absolute() or ".." in value.parts:
+        raise ValueError("unsafe evidence relative path")
+    root_resolved = root.expanduser().resolve(strict=False)
+    candidate = (root_resolved / value).resolve(strict=False)
+    try:
+        candidate.relative_to(root_resolved)
+    except ValueError as error:
+        raise ValueError("evidence path escapes asset root") from error
+    return candidate
+
+
+def _panel_safe_binding_path(value: Any) -> Path:
+    path = Path(str(value)).expanduser()
+    if not path.is_absolute() or ".." in path.parts:
+        raise ValueError("runtime binding path must be absolute")
+    return path.resolve(strict=False)
+
+
+def _panel_int(value: Any, *, field: str, minimum: int = 0) -> int:
+    try:
+        result = int(str(value))
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"invalid integer field: {field}") from error
+    if result < minimum:
+        raise ValueError(f"invalid non-negative field: {field}")
+    return result
+
+
+def _panel_float(value: Any, *, field: str) -> float:
+    try:
+        result = float(str(value))
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"invalid numeric field: {field}") from error
+    if not math.isfinite(result):
+        raise ValueError(f"invalid non-finite field: {field}")
+    return result
+
+
+def _panel_sha(value: Any, *, field: str) -> str:
+    result = str(value or "")
+    if len(result) != 64 or any(char not in "0123456789abcdef" for char in result.lower()):
+        raise ValueError(f"invalid SHA-256 field: {field}")
+    return result.lower()
+
+
+def _panel_safety(value: Mapping[str, Any], *, label: str) -> None:
+    research_only = value.get("RESEARCH_ONLY", value.get("research_only"))
+    if research_only is not True:
+        raise ValueError(f"{label} is not research-only")
+    for key in ("production_allowed", "buy_gate_updated", "orders_sent"):
+        if value.get(key) is not False:
+            raise ValueError(f"{label} safety flag is not false: {key}")
+
+
+def _panel_cannot_confirm(requested_date: str, reasons: list[str]) -> dict[str, Any]:
+    from apps.api.v35_api._review_router_parts.panel_io import __panel_cannot_confirm_body as _v4_impl
+    return _v4_impl(globals(), requested_date, reasons)
+
+
+def _panel_log_status(path: Path, required: tuple[str, ...]) -> str:
+    text = _panel_read_bytes(path, max_bytes=512 * 1024).decode("utf-8")
+    return "PASS" if all(token in text for token in required) else "CANNOT_CONFIRM"
+
+
+def _read_hk_prefix_research_asset(
+    requested_date: str,
+    *,
+    root_value: Path | str | None = None,
+    binding_value: Path | str | None = None,
+) -> dict[str, Any]:
+    """Read the fixed, anonymous historical prefix asset for the review UI.
+
+    This is a bounded consumer projection.  It reads only the runtime binding,
+    output receipt/manifest, anonymous windows and machine evidence; identity
+    rows are used for aggregate state counts and are never returned to the
+    browser.  Any missing or mismatched digest fails closed with a typed
+    ``CANNOT_CONFIRM`` payload.
+    """
+    from apps.api.v35_api._review_router_parts.hk_prefix_asset import __read_hk_prefix_research_asset_body as _v4_impl
+    return _v4_impl(globals(), requested_date, root_value=root_value, binding_value=binding_value)
+
 
 def _unavailable_metric() -> dict[str, Any]:
-    return {
-        "evidence_status": "CANNOT_CONFIRM",
-        "selected_count": None,
-        "selected_codes": [],
-        "hit_count": None,
-        "hit_codes": [],
-        "coverage": None,
-        "precision": None,
-        "coverage_pct": None,
-        "precision_pct": None,
-    }
+    from apps.api.v35_api._review_router_parts.panel_io import __unavailable_metric_body as _v4_impl
+    return _v4_impl(globals())
 
 
 def _strings(value: Any) -> list[str]:
@@ -102,284 +300,38 @@ def _strings(value: Any) -> list[str]:
 
 def _project_hk_review(trade_date: str, source: Mapping[str, Any]) -> dict[str, Any]:
     """Project a verified Review Core DTO without re-verifying its evidence."""
-    reasons = _strings(source.get("cannot_confirm"))
-    source_date = str(source.get("trade_date") or "")
-    source_role = str(source.get("role") or "")
-    artifact = source.get("artifact")
-    if source_date != trade_date:
-        reasons.append(f"HK_REVIEW_CORE_DATE_MISMATCH:{source_date or 'missing'}:{trade_date}")
-        artifact = None
-    if source_role != HK_CLOSE_REVIEW_V1:
-        reasons.append(f"HK_REVIEW_CORE_ROLE_MISMATCH:{source_role or 'missing'}")
-        artifact = None
-
-    artifact_map = artifact if isinstance(artifact, Mapping) else None
-    artifact_status = str(
-        (artifact_map or {}).get("status") or source.get("status") or "CANNOT_CONFIRM"
-    )
-    mapped_status = _STATUS_MAP.get(artifact_status, "CANNOT_CONFIRM")
-    if artifact_map is None:
-        mapped_status = "CANNOT_CONFIRM"
-        reasons.append(HK_REVIEW_CORE_UNAVAILABLE)
-    if mapped_status == "CANNOT_CONFIRM" and HK_REVIEW_CORE_UNAVAILABLE not in reasons:
-        reasons.append(HK_REVIEW_CORE_UNAVAILABLE)
-    reasons = list(dict.fromkeys(reasons))
-
-    if artifact_map is None:
-        models = {"0.2_prob_active": _unavailable_metric()}
-        stage_union = _unavailable_metric()
-        close_top20: list[Any] = []
-        top20_attribution: list[Any] = []
-        missing_stages: list[str] = []
-        row_counts: dict[str, Any] = {}
-    else:
-        raw_models = artifact_map.get("models")
-        models = deepcopy(dict(raw_models)) if isinstance(raw_models, Mapping) else {}
-        models.setdefault("0.2_prob_active", _unavailable_metric())
-        raw_stage_union = artifact_map.get("stage_union")
-        if not isinstance(raw_stage_union, Mapping) and isinstance(artifact_map.get("kpi"), Mapping):
-            raw_stage_union = artifact_map["kpi"].get("stage_union")
-        stage_union = (
-            deepcopy(dict(raw_stage_union))
-            if isinstance(raw_stage_union, Mapping)
-            else _unavailable_metric()
-        )
-        close_top20 = (
-            deepcopy(artifact_map.get("close_top20"))
-            if isinstance(artifact_map.get("close_top20"), list)
-            else []
-        )
-        top20_attribution = (
-            deepcopy(artifact_map.get("top20_attribution"))
-            if isinstance(artifact_map.get("top20_attribution"), list)
-            else []
-        )
-        missing_stages = _strings(artifact_map.get("missing_stages"))
-        if not missing_stages:
-            missing_stages = _strings(artifact_map.get("missing_stage_roles"))
-        row_counts = (
-            deepcopy(dict(artifact_map.get("row_counts")))
-            if isinstance(artifact_map.get("row_counts"), Mapping)
-            else {}
-        )
-        reasons = list(dict.fromkeys(reasons + _strings(artifact_map.get("cannot_confirm"))))
-
-    source_sha = str(source.get("artifact_sha256") or "")
-    review = {
-        "schema_version": str((artifact_map or {}).get("schema_version") or HK_CLOSE_REVIEW_V1),
-        "artifact_role": str((artifact_map or {}).get("role") or source_role or HK_CLOSE_REVIEW_V1),
-        "artifact_version": str((artifact_map or {}).get("version") or HK_CLOSE_REVIEW_V1),
-        "trade_date": trade_date,
-        "status": mapped_status,
-        "artifact_status": artifact_status,
-        "source_role": source_role or HK_CLOSE_REVIEW_V1,
-        "source_run_id": str(source.get("run_id") or ""),
-        "source_sha256": source_sha,
-        "artifact_sha256": source_sha,
-        "manifest_sha256": str(source.get("manifest_sha256") or ""),
-        "receipt_sha256": str(source.get("receipt_sha256") or ""),
-        "paths": deepcopy(dict(source.get("paths"))) if isinstance(source.get("paths"), Mapping) else {},
-        "row_counts": row_counts,
-        "models": models,
-        "stage_union": stage_union,
-        "close_top20": close_top20,
-        "top20_attribution": top20_attribution,
-        "missing_stages": missing_stages,
-        "cannot_confirm": reasons,
-        "source_merge_role": "SOURCE_ONLY",
-        "stage_selection_eligible": False,
-        "reference_snapshot": False,
-        **_SAFETY_FLAGS,
-    }
-    return review
+    from apps.api.v35_api._review_router_parts.hk_projection import __project_hk_review_body as _v4_impl
+    return _v4_impl(globals(), trade_date, source)
 
 
 def _hk_parent(trade_date: str, source: Mapping[str, Any]) -> dict[str, Any]:
-    review = _project_hk_review(trade_date, source)
-    return {
-        "market": "HK",
-        "display_name": "港股通复盘",
-        "trade_date": trade_date,
-        "status": review["status"],
-        "artifact_status": review["artifact_status"],
-        "artifact_role": review["artifact_role"],
-        "artifact_version": review["artifact_version"],
-        "source_role": str(source.get("role") or HK_CLOSE_REVIEW_V1),
-        "source_merge_role": "SOURCE_ONLY",
-        "source_run_id": review["source_run_id"],
-        "source_sha256": review["source_sha256"],
-        "artifact_sha256": review["artifact_sha256"],
-        "manifest_sha256": review["manifest_sha256"],
-        "receipt_sha256": review["receipt_sha256"],
-        "model_selection_review": review,
-        **_SAFETY_FLAGS,
-    }
+    from apps.api.v35_api._review_router_parts.hk_projection import __hk_parent_body as _v4_impl
+    return _v4_impl(globals(), trade_date, source)
 
 
 def _native_hk_parent(trade_date: str, reference: Mapping[str, Any]) -> dict[str, Any]:
     """Project a strictly verified V3.5 native close-review artifact."""
-    digest = _sha256(reference)
-    reference_snapshot = bool(reference.get("reference_snapshot"))
-    review = deepcopy(dict(reference))
-    review.update(
-        {
-            "artifact_role": "V3_5_NATIVE_CLOSE_MODEL",
-            "artifact_version": "v3_5.close_review.v1",
-            "artifact_status": str(reference.get("status") or "CANNOT_CONFIRM"),
-            "source_role": "V3_5_NATIVE_CLOSE_MODEL",
-            "source_merge_role": "V35_NATIVE_REVIEW_STORE",
-            "source_sha256": str(reference.get("close_source_sha256") or digest),
-            "artifact_sha256": digest,
-            "manifest_sha256": "",
-            "receipt_sha256": "",
-            "stage_selection_eligible": False,
-            "reference_snapshot": reference_snapshot,
-            **_SAFETY_FLAGS,
-        }
-    )
-    return {
-        "market": "HK",
-        "display_name": "港股通复盘",
-        "trade_date": trade_date,
-        "status": review.get("status", "CANNOT_CONFIRM"),
-        "artifact_status": review["artifact_status"],
-        "artifact_role": review["artifact_role"],
-        "artifact_version": review["artifact_version"],
-        "source_role": review["source_role"],
-        "source_merge_role": review["source_merge_role"],
-        "source_run_id": "",
-        "source_sha256": review["source_sha256"],
-        "artifact_sha256": review["artifact_sha256"],
-        "manifest_sha256": review["manifest_sha256"],
-        "receipt_sha256": review["receipt_sha256"],
-        "model_selection_review": review,
-        **_SAFETY_FLAGS,
-    }
+    from apps.api.v35_api._review_router_parts.hk_projection import __native_hk_parent_body as _v4_impl
+    return _v4_impl(globals(), trade_date, reference)
 
 
 def _native_hk_invalid_parent(trade_date: str, error: Exception) -> dict[str, Any]:
-    review = {
-        "schema_version": "v3_5.close_review.v1",
-        "trade_date": trade_date,
-        "status": "CANNOT_CONFIRM",
-        "artifact_status": "CANNOT_CONFIRM",
-        "artifact_role": "V3_5_NATIVE_CLOSE_MODEL",
-        "artifact_version": "v3_5.close_review.v1",
-        "source_role": "V3_5_NATIVE_CLOSE_MODEL",
-        "source_merge_role": "V35_NATIVE_REVIEW_STORE",
-        "models": {"0.2_prob_active": _unavailable_metric()},
-        "stages": {},
-        "stage_union": _unavailable_metric(),
-        "kpi": {},
-        "row_counts": {},
-        "close_top20": [],
-        "model_rows": [],
-        "stage_rows": [],
-        "top20_attribution": [],
-        "missing_stages": [],
-        "cannot_confirm": [f"V35_NATIVE_CLOSE_REVIEW_INVALID:{type(error).__name__}: {error}"],
-        "source_sha256": "",
-        "artifact_sha256": "",
-        "manifest_sha256": "",
-        "receipt_sha256": "",
-        "reference_snapshot": False,
-        "stage_selection_eligible": False,
-        **_SAFETY_FLAGS,
-    }
-    return {
-        "market": "HK",
-        "display_name": "港股通复盘",
-        "trade_date": trade_date,
-        "status": "CANNOT_CONFIRM",
-        "artifact_status": "CANNOT_CONFIRM",
-        "artifact_role": review["artifact_role"],
-        "artifact_version": review["artifact_version"],
-        "source_role": review["source_role"],
-        "source_merge_role": review["source_merge_role"],
-        "source_run_id": "",
-        "source_sha256": "",
-        "artifact_sha256": "",
-        "manifest_sha256": "",
-        "receipt_sha256": "",
-        "model_selection_review": review,
-        **_SAFETY_FLAGS,
-    }
+    from apps.api.v35_api._review_router_parts.hk_projection import __native_hk_invalid_parent_body as _v4_impl
+    return _v4_impl(globals(), trade_date, error)
 
 
 def _native_hk_review(data_root: Path, trade_date: str) -> tuple[dict[str, Any] | None, bool]:
     """Return (parent, present) and never bridge around a present invalid artifact."""
-    store = ReviewStore(data_root)
-    artifact_path = store.root / "close_reviews" / f"{trade_date}.json"
-    if not artifact_path.is_file():
-        return None, False
-    try:
-        reference = store.read_reference(trade_date)
-    except (OSError, ValueError) as error:
-        return _native_hk_invalid_parent(trade_date, error), True
-    if reference is None:
-        return _native_hk_invalid_parent(trade_date, ValueError("native artifact is absent")), True
-    return _native_hk_parent(trade_date, reference), True
+    from apps.api.v35_api._review_router_parts.hk_projection import __native_hk_review_body as _v4_impl
+    return _v4_impl(globals(), data_root, trade_date)
 
 
 def _read_shared_stage_center_rows(
     trade_date: str, stage_id: str
 ) -> tuple[Mapping[str, Any], list[dict[str, Any]]] | None:
     """Read the optional shared selection consumer without a write path."""
-    root_value = os.environ.get("V35_STAGE_CENTER_SELECTION_ROOT", "").strip()
-    if not root_value:
-        return None
-    root = Path(root_value).expanduser()
-    if not root.is_dir():
-        return None
-    try:
-        consumer_module = importlib.import_module("stage_center.consumer")
-        consumer_type = getattr(consumer_module, "StageSelectionConsumer")
-        payload = consumer_type(root).get(trade_date, stage_id)
-    except Exception:
-        return None
-    if not isinstance(payload, Mapping):
-        return None
-    if any(payload.get(flag) is not False for flag in _SAFETY_FLAGS):
-        return None
-    if str(payload.get("trade_date") or "") != trade_date:
-        return None
-    nested_stage = payload.get("stage")
-    declared_stage = (
-        nested_stage.get("stage_id")
-        if isinstance(nested_stage, Mapping)
-        else payload.get("stage_id")
-    )
-    if str(declared_stage or "") != stage_id:
-        return None
-    markets = payload.get("markets")
-    if not isinstance(markets, Mapping):
-        return None
-    a_market = markets.get("A_SHARE")
-    if not isinstance(a_market, Mapping):
-        return None
-    raw_rows = a_market.get("rows")
-    if not isinstance(raw_rows, list):
-        return None
-    rows: list[dict[str, Any]] = []
-    for raw in raw_rows:
-        if not isinstance(raw, Mapping):
-            continue
-        if not _row_matches_exact_date(raw, trade_date):
-            continue
-        if not _is_safe_watch_only_row(raw):
-            continue
-        row = deepcopy(dict(raw))
-        row.update(
-            {
-                "trade_date": trade_date,
-                "market": "A",
-                "recommendation_status": "WATCH_ONLY",
-            }
-        )
-        if row.get("symbol") in (None, "") and row.get("code") not in (None, ""):
-            row["symbol"] = row["code"]
-        rows.append(row)
-    return payload, rows
+    from apps.api.v35_api._review_router_parts.stage_rows import __read_shared_stage_center_rows_body as _v4_impl
+    return _v4_impl(globals(), trade_date, stage_id)
 
 
 def _is_safe_watch_only_row(raw: Mapping[str, Any]) -> bool:
@@ -410,126 +362,8 @@ def _read_exact_stage_review_rows(
     produces a stage, reads another date, or promotes a stage candidate into a
     formal review conclusion.
     """
-    runner: StageRunner | None = None
-    rows: list[dict[str, Any]] = []
-    source_refs: list[dict[str, Any]] = []
-    for stage_id in FROZEN_STAGE_IDS:
-        shared_result = _read_shared_stage_center_rows(trade_date, stage_id)
-        if shared_result is not None:
-            payload, raw_rows = shared_result
-        else:
-            if runner is None:
-                runner = StageRunner(StageStore(data_root))
-            try:
-                payload = runner.read_workbench(trade_date, stage_id, limit=50)
-            except (OSError, ValueError):
-                # A corrupt or incomplete stage is not usable evidence.  The
-                # review remains compact unless another exact stage has rows.
-                continue
-            raw_rows = payload.get("unified_rows") if isinstance(payload, Mapping) else None
-        if not isinstance(payload, Mapping):
-            continue
-        if str(payload.get("trade_date") or "") != trade_date:
-            continue
-        stage = payload.get("stage")
-        declared_stage = (
-            stage.get("stage_id")
-            if isinstance(stage, Mapping)
-            else payload.get("stage_id")
-        )
-        if str(declared_stage or "") != stage_id:
-            continue
-        if not isinstance(raw_rows, list):
-            continue
-        stage_rows: list[dict[str, Any]] = []
-        for raw in raw_rows:
-            if not isinstance(raw, Mapping):
-                continue
-            if raw.get("market") != "A":
-                continue
-            if not _is_safe_watch_only_row(raw):
-                continue
-            if not _row_matches_exact_date(raw, trade_date):
-                continue
-            row = deepcopy(dict(raw))
-            row.update(
-                {
-                    "trade_date": trade_date,
-                    "stage_id": stage_id,
-                    "role_type": "stage_validation_anchor",
-                    "primary_role": "stage_validation_anchor",
-                    "recommendation_status": "WATCH_ONLY",
-                    "formal_eligible": False,
-                    "validation_scope": f"{trade_date} {stage_id} exact-date stage evidence",
-                    "cannot_confirm": "CANNOT_CONFIRM_FORMAL_REVIEW_BUNDLE",
-                }
-            )
-            if row.get("stock_code") in (None, "") and row.get("symbol") not in (None, ""):
-                row["stock_code"] = row["symbol"]
-            stage_rows.append(row)
-        if not stage_rows:
-            continue
-        markets = payload.get("markets")
-        a_market = markets.get("A_SHARE") if isinstance(markets, Mapping) else None
-        run_receipt = payload.get("run_receipt")
-        materialized_snapshot = payload.get("materialized_snapshot")
-        run_id = str(
-            payload.get("run_id")
-            or (a_market.get("run_id") if isinstance(a_market, Mapping) else "")
-            or (run_receipt.get("run_id") if isinstance(run_receipt, Mapping) else "")
-            or (
-                materialized_snapshot.get("run_id")
-                if isinstance(materialized_snapshot, Mapping)
-                else ""
-            )
-            or ""
-        )
-        response_source = str(payload.get("response_source") or "")
-        source_role = str(
-            payload.get("source_role")
-            or payload.get("role")
-            or response_source
-            or ""
-        )
-        stage_status = (
-            stage.get("status")
-            if isinstance(stage, Mapping)
-            else payload.get("status")
-        )
-        artifact_id = (
-            payload.get("artifact_id")
-            or payload.get("bundle_artifact_id")
-            or (a_market.get("artifact_id") if isinstance(a_market, Mapping) else "")
-            or payload.get("id")
-            or ""
-        )
-        algorithm_id = payload.get("algorithm_id") or (
-            a_market.get("algorithm_id") if isinstance(a_market, Mapping) else ""
-        )
-        algorithm_sha256 = payload.get("algorithm_sha256") or (
-            a_market.get("algorithm_sha256") if isinstance(a_market, Mapping) else ""
-        )
-        raw_artifact_sha256 = payload.get("raw_artifact_sha256") or (
-            a_market.get("raw_artifact_sha256") if isinstance(a_market, Mapping) else ""
-        )
-        source_refs.append(
-            {
-                "source_role": source_role,
-                "response_source": response_source,
-                "trade_date": trade_date,
-                "stage_id": stage_id,
-                "artifact_id": str(artifact_id),
-                "run_id": run_id,
-                "algorithm_id": str(algorithm_id or ""),
-                "algorithm_sha256": str(algorithm_sha256 or ""),
-                "raw_artifact_sha256": str(raw_artifact_sha256 or ""),
-                "artifact_sha256": _sha256(payload),
-                "row_count": len(stage_rows),
-                "status": str(stage_status or ""),
-            }
-        )
-        rows.extend(stage_rows)
-    return rows, source_refs
+    from apps.api.v35_api._review_router_parts.stage_rows import __read_exact_stage_review_rows_body as _v4_impl
+    return _v4_impl(globals(), data_root, trade_date)
 
 
 def _partial_stage_review(
@@ -537,195 +371,51 @@ def _partial_stage_review(
     stage_rows: list[dict[str, Any]],
     source_refs: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    source_sha = _sha256(
-        {"trade_date": trade_date, "source_refs": source_refs, "stage_rows": stage_rows}
-    )
-    cannot_confirm = [
-        "REVIEW_CORE_BUNDLE_NOT_MATERIALIZED",
-        "FORMAL_PRIOR_PLAN_NOT_MATERIALIZED",
-        "FORMAL_BOARD_COVERAGE_NOT_MATERIALIZED",
-        "FORMAL_MAINLINE_NOT_MATERIALIZED",
-        "FORMAL_CORE_NOT_MATERIALIZED",
-        "DAILY_VIDEO_NOT_LOCKED",
-    ]
-    review = build_a_share_review(
-        trade_date,
-        big_picture=[],
-        mainlines=[],
-        core_stocks=[],
-        observation_pool=deepcopy(stage_rows),
-        trigger_rows=[],
-        quality_gate_rows=deepcopy(source_refs),
-        source_sha256=source_sha,
-        market_regime="CANNOT_CONFIRM",
-        risk_tone="CANNOT_CONFIRM",
-        cannot_confirm=cannot_confirm,
-        model_review={
-            "status": "NOT_MATERIALIZED",
-            "cannot_confirm": ["A_SHARE_CLOSE_MODEL_NOT_MATERIALIZED"],
-        },
-        source_evidence=deepcopy(source_refs),
-        source_role="V3_5_STAGE_EVIDENCE_PARTIAL",
-    )
-    review.update(
-        {
-            "status": "PARTIAL_STAGE_EVIDENCE",
-            "headline": f"A股复盘 {trade_date} · 阶段候选仅作 WATCH_ONLY 验证锚",
-            "stage_validation_rows": deepcopy(stage_rows),
-            "summary_cards": [],
-            "market_rows": [],
-            "prior_plan_rows": [],
-            "board_rows": [],
-            "anchor_rows": [],
-            "anchor_role_v3_rows": [],
-            "intraday_handoff_rows": [],
-            "catalyst_rows": [],
-            "trigger_rows": [],
-            "scenario_tree_rows": [],
-            "video": {
-                "status": "CANNOT_CONFIRM",
-                "date_scope": "DAILY_VIDEO_NOT_LOCKED",
-                "target_trade_date": trade_date,
-                "trade_date": trade_date,
-                "artifact_refs": [],
-                "cannot_confirm": ["DAILY_VIDEO_NOT_LOCKED"],
-            },
-            "video_gap_rows": [],
-            "source_status_rows": deepcopy(source_refs),
-            "formal_pool_validation": {
-                "status": "CANNOT_CONFIRM",
-                "cannot_confirm": ["FORMAL_REVIEW_CORE_NOT_MATERIALIZED"],
-            },
-            "rule_adoption_rows": [],
-            "video_learning_rows": [],
-            "cannot_confirm_items": cannot_confirm,
-            "source_run_id": "",
-            "artifact_sha256": "",
-            "review_core_bundle": {
-                "status": "NOT_MATERIALIZED",
-                "source_role": "REVIEW_CORE_BUNDLE_V1",
-                "trade_date": trade_date,
-                "cannot_confirm": ["REVIEW_CORE_BUNDLE_NOT_MATERIALIZED"],
-            },
-            "review_surface": {
-                "tier": "V3_RICH_PARTIAL",
-                "status": "PARTIAL_STAGE_EVIDENCE",
-                "trade_date": trade_date,
-                "source_role": "V3_5_NATIVE_STAGE_SNAPSHOT",
-                "source_refs": deepcopy(source_refs),
-                "stage_validation_count": len(stage_rows),
-                "formal_sections": {
-                    "prior_plan": "CANNOT_CONFIRM",
-                    "board_coverage": "CANNOT_CONFIRM",
-                    "mainlines": "CANNOT_CONFIRM",
-                    "core_stocks": "CANNOT_CONFIRM",
-                },
-                "cannot_confirm": cannot_confirm,
-            },
-            **_SAFETY_FLAGS,
-        }
-    )
-    return review
+    from apps.api.v35_api._review_router_parts.stage_partial import __partial_stage_review_body as _v4_impl
+    return _v4_impl(globals(), trade_date, stage_rows, source_refs)
 
 
-def create_review_router(data_root: Path) -> APIRouter:
-    router = APIRouter(prefix="/api/v3", tags=["review"])
+class ManualReviewRequest(BaseModel):
+    """Only the selected date crosses the browser boundary."""
+    model_config = ConfigDict(extra="forbid", strict=True)
+    date: str = Field(pattern=r"^\d{8}$")
 
-    @router.get("/review")
-    def review(date: str = Query(..., pattern=r"^\d{8}$")) -> dict[str, Any]:
-        try:
-            datetime.strptime(date, "%Y%m%d")
-        except ValueError as error:
-            raise HTTPException(status_code=422, detail="date must be a real calendar date") from error
+    @field_validator("date")
+    @classmethod
+    def real_date(cls, value: str) -> str:
+        datetime.strptime(value, "%Y%m%d")
+        return value
 
-        native_hk, native_present = _native_hk_review(data_root, date)
-        if native_present:
-            # A local exact-date ReviewStore artifact is authoritative.  An
-            # invalid present artifact fails closed; it must not be replaced
-            # by a less authoritative bridge result.
-            hk_payload = native_hk
-        elif _HAS_HK_REVIEW_CORE:
-            hk_source = load_hk_close_review(date, data_root)
-            hk_payload = _hk_parent(date, hk_source)
-        else:
-            # Compatibility for the pre-T183 checkout: preserve the existing
-            # ReviewStore response shape while the candidate supplies the
-            # Review Core bridge implementation.
-            hk_payload = close_review(ReviewStore(data_root), date)["market_reviews"]["HK"]
 
-        strict_review_core = _HAS_REVIEW_EVIDENCE_LAYERS and review_core_a_share_bundle_required(
-            data_root, date
-        )
-        bundle_error = ""
-        partial_stage_rows: list[dict[str, Any]] = []
-        partial_stage_refs: list[dict[str, Any]] = []
-        if strict_review_core:
-            try:
-                a_payload = load_review_core_a_share_review(date, data_root)
-            except Exception as error:
-                a_payload = None
-                bundle_error = f"REVIEW_CORE_BUNDLE_INVALID: {type(error).__name__}: {error}"
-        else:
-            a_share_reviews = AShareReviewStore(data_root)
-            try:
-                a_payload = a_share_reviews.read_review(date)
-            except ValueError:
-                a_payload = None
-            if a_payload is not None and a_payload.get("source_role") != "V3_5_NATIVE_CLOSE_MODEL":
-                a_payload = None
-            if a_payload is None:
-                partial_stage_rows, partial_stage_refs = _read_exact_stage_review_rows(data_root, date)
-                if partial_stage_rows:
-                    a_payload = _partial_stage_review(
-                        date,
-                        partial_stage_rows,
-                        partial_stage_refs,
-                    )
-        envelope = review_envelope(date, a_review=a_payload, hk_review=hk_payload or {})
-        a_document = envelope["market_reviews"]["A"]
-        if bundle_error:
-            a_document["cannot_confirm"] = [bundle_error]
-            envelope["review_core_bundle"] = {
-                "status": "CANNOT_CONFIRM",
-                "source_role": "REVIEW_CORE_BUNDLE_V1",
-                "trade_date": date,
-                "cannot_confirm": [bundle_error],
-            }
-        elif strict_review_core:
-            envelope["review_core_bundle"] = {
-                "status": "READY",
-                "source_role": "REVIEW_CORE_BUNDLE_V1",
-                "trade_date": date,
-                "source_sha256": str(a_payload.get("source_sha256") or "")
-                if isinstance(a_payload, Mapping)
-                else "",
-            }
-            a_document["review_surface"] = {
-                "tier": "V3_RICH_READY",
-                "status": str(a_document.get("status") or "READY"),
-                "trade_date": date,
-                "source_role": "REVIEW_CORE_BUNDLE_V1",
-                "source_refs": deepcopy(a_document.get("source_evidence") or []),
-            }
-        if _HAS_REVIEW_EVIDENCE_LAYERS:
-            envelope["review_evidence_layers"] = load_review_evidence_layers(
-                data_root,
-                date,
-                envelope["market_reviews"]["A"],
-            )
-        hk_document = (
-            hk_payload.get("model_selection_review")
-            if isinstance(hk_payload, Mapping)
-            else None
-        )
-        envelope["reference_snapshot"] = bool(
-            (hk_document or {}).get(
-                "reference_snapshot",
-                hk_payload.get("reference_snapshot", False)
-                if isinstance(hk_payload, Mapping)
-                else False,
-            )
-        )
-        return envelope
+def _manual_error(status: int, code: str, message: str) -> HTTPException:
+    return HTTPException(status_code=status, detail={"code": code, "message": message})
 
-    return router
+
+def _manual_generate(date: str, *, bindings_path, bindings_sha256, review_root,
+                     transport=None, client_factory=None) -> dict[str, Any]:
+    """One server-pinned request, existing assembly/graph/writer and task lock.
+
+    A small date-keyed attempt receipt prevents a browser retry after a charged
+    failure or interrupted request. No background job or scheduler is created.
+    Operator reconciliation is required for failed/unknown attempts; the HTTP
+    surface never exposes replace, paths, credentials or a reset operation.
+    """
+    from apps.api.v35_api._review_router_parts.manual_review import __manual_generate_body as _v4_impl
+    return _v4_impl(globals(), date, bindings_path=bindings_path, bindings_sha256=bindings_sha256, review_root=review_root, transport=transport, client_factory=client_factory)
+
+
+def create_review_router(
+    data_root: Path,
+    review_root: Path | str | None = None,
+    *,
+    hk_close_root: Path | str | None = None,
+    generation_bindings_path: Path | str | None = None,
+    generation_bindings_sha256: str | None = None,
+    intraday_root: Path | str | None = None,
+    historical_prefix_root: Path | str | None = None,
+    historical_prefix_binding_path: Path | str | None = None,
+    _generation_transport: Any = None,
+    _generation_client_factory: Any = None,
+) -> APIRouter:
+    from apps.api.v35_api._review_router_parts.http_routes import _create_review_router_body as _v4_impl
+    return _v4_impl(globals(), data_root, review_root, hk_close_root=hk_close_root, generation_bindings_path=generation_bindings_path, generation_bindings_sha256=generation_bindings_sha256, intraday_root=intraday_root, historical_prefix_root=historical_prefix_root, historical_prefix_binding_path=historical_prefix_binding_path, _generation_transport=_generation_transport, _generation_client_factory=_generation_client_factory)

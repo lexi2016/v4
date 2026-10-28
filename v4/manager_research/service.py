@@ -318,6 +318,15 @@ class ManagerResearchJobService:
         reader_fetcher: Callable[..., Any] | None = None,
         max_pending_jobs: int = 16,
         material_store: Any | None = None,
+        catalyst_data_root: Path | None = None,
+        catalyst_news_owner_root: Path | None = None,
+        existing_research_source: Any | None = None,
+        close_observation_reader: Any | None = None,
+        workspace_ledger_root: Path | None = None,
+        workspace_security_master_root: Path | None = None,
+        workspace_screen_authority_root: Path | None = None,
+        workspace_us_market_reader: Any | None = None,
+        workspace_stage_selection_reader: Any | None = None,
     ) -> None:
         self.store = store
         self._instance_id = uuid4().hex
@@ -333,6 +342,17 @@ class ManagerResearchJobService:
         # lane too: the same bounded search response is reused across jobs
         # until its TTL expires instead of being requested again.
         self._material_store = material_store
+        self._catalyst_data_root = catalyst_data_root
+        self._catalyst_news_owner_root = catalyst_news_owner_root
+        self._existing_research_source = existing_research_source
+        self._close_observation_reader = close_observation_reader
+        self._workspace_ledger_root = workspace_ledger_root
+        self._workspace_security_master_root = workspace_security_master_root
+        self._workspace_screen_authority_root = workspace_screen_authority_root
+        self._workspace_us_market_reader = workspace_us_market_reader
+        # Original StageSelectionConsumer instance. Never a Stage observation
+        # DTO, raw file root, writer or backfill selection producer.
+        self._workspace_stage_selection_reader = workspace_stage_selection_reader
         self._material_reader_fetcher: Callable[..., Any] | None = None
         if material_store is not None and reader_fetcher is None:
             from .reader_source import material_reader_fetcher
@@ -348,6 +368,9 @@ class ManagerResearchJobService:
         self._cancelled: set[tuple[str, Any]] = set()
         self._active_generations: dict[str, str] = {}
         self._closed = False
+        from .workspace_read_control import ProjectionMemo, ReadCoordinator
+        self._workspace_projection_memo = ProjectionMemo()
+        self._workspace_reads = ReadCoordinator()
 
     def close(self) -> None:
         with self._lock:
@@ -356,6 +379,101 @@ class ManagerResearchJobService:
             self._closed = True
         self._executor.shutdown(wait=False, cancel_futures=False)
         self._row_executor.shutdown(wait=False, cancel_futures=True)
+
+    def admit_catalyst_materials(self, bundle_path: Path, *, expected_sha256: str) -> dict[str, Any]:
+        from .catalyst_observations import admit
+        return admit(self.store, self._material_store, bundle_path, expected_sha256=expected_sha256)
+
+    def get_catalyst_observations(self, target_trade_date: str) -> dict[str, Any]:
+        from .catalyst_observations import read
+        return read(self.store, self._material_store, target_trade_date,
+                    data_root=self._catalyst_data_root, owner_root=self._catalyst_news_owner_root,
+                    archive_source=self._existing_research_source,security_master_root=self._workspace_security_master_root)
+
+    def refresh_catalyst_observations(self, target_trade_date: str) -> dict[str, Any]:
+        from .workspace import refresh_with_tracking
+        return refresh_with_tracking(self, target_trade_date)
+
+    def get_workspace(self, target_trade_date: str, *, view: str = "dynamic",
+                      now: datetime | None = None, cancel_event: threading.Event | None = None,
+                      selection_date: str | None = None,
+                      announcement_date: str | None = None) -> dict[str, Any]:
+        # Legacy internal callers retain dynamic semantics. The browser GET
+        # explicitly supplies auto (historical for past HK dates).
+        from .workspace import get_workspace
+        target_trade_date = strict_trade_date(target_trade_date)
+        if view not in {"auto", "historical", "dynamic"}:
+            raise ValueError("WORKSPACE_VIEW_INVALID")
+        options: dict[str, str] = {}
+        if selection_date is not None:
+            options["selection_date"] = strict_trade_date(selection_date)
+        if announcement_date is not None:
+            options["announcement_date"] = strict_trade_date(announcement_date.replace("-", ""))
+        key = (target_trade_date, view, now.isoformat() if now is not None else "SERVER_CLOCK",
+               options.get("selection_date"), options.get("announcement_date"))
+        return self._workspace_reads.run(key,
+            lambda: get_workspace(self, target_trade_date, view=view, now=now, **options),
+            cancelled=cancel_event)
+
+    def refresh_us_mapping_research(self, target_trade_date: str, *, now: datetime) -> dict[str, Any]:
+        """Persist a daily US-to-HK projection from the already injected owners."""
+        from .us_mapping_research import persist_daily_run
+        return persist_daily_run(self, target_trade_date, now=now)
+
+    def refresh_announcements(self, target_trade_date: str, *, resume: bool = False,
+                              schedule: Mapping[str, Any] | None = None,
+                              source_scope: str | None = None,
+                              issuer_code: str | None = None,
+                              issuer_codes: list[str] | None = None,
+                              publication_date: str | None = None,
+                              force_fresh: bool = False) -> dict[str, Any]:
+        """Explicit bounded capture by this owner, separate from plan projection."""
+        from .workspace_announcements import refresh
+        return refresh(self, target_trade_date, resume=resume, schedule=schedule,
+                       source_scope=source_scope, issuer_code=issuer_code,
+                       issuer_codes=issuer_codes, publication_date=publication_date,
+                       force_fresh=force_fresh)
+
+    def get_announcement_date_catalog(self, target_trade_date: str, publication_date: str) -> dict[str, Any]:
+        """Read a verified explicit-date Eastmoney listing catalog."""
+        from .workspace_announcements import read_date_catalog
+        return read_date_catalog(self, target_trade_date, publication_date)
+
+    def get_announcement_analysis(self, target_trade_date: str,
+                                  publication_date: str | None = None) -> dict[str, Any]:
+        """Read an imported, source-bound announcement interpretation."""
+        from .announcement_analysis import read
+        return read(self, target_trade_date, publication_date)
+
+    def import_announcement_analysis(self, product: Mapping[str, Any]) -> dict[str, Any]:
+        """Import legacy product bytes or an exact registered handoff reference.
+
+        Registered references publish/read back the existing owner receipt;
+        both direct callers and the HTTP route use this same transaction.
+        """
+        from .announcement_analysis import import_product
+        return import_product(self, product)
+
+    def accept_saved_date_catalog_refs(self, target_trade_date: str, publication_date: str,
+                                      page_refs: Mapping[int, Mapping[str, Any]]) -> dict[str, Any]:
+        """Adopt already stored listing refs through this owner, without fetching."""
+        from .workspace_announcements import accept_saved_date_catalog_refs
+        return accept_saved_date_catalog_refs(self, target_trade_date, publication_date, page_refs)
+
+    def get_announcements(self, target_trade_date: str, *, scope_id: str | None = None) -> dict[str, Any]:
+        from .workspace_announcements import read
+        return read(self, target_trade_date, scope_id=scope_id)
+
+    def get_workspace_plan(self, target_trade_date: str) -> dict[str, Any] | None:
+        from .workspace import _read_plan
+        return _read_plan(self.store, strict_trade_date(target_trade_date))
+
+    def refresh_workspace_plan(self, target_trade_date: str, *, execution_kind: str = 'MANUAL_REFRESH',
+                               now: datetime | None = None, deadline: datetime | None = None,
+                               workspace_date_bindings: Mapping[str, str] | None = None) -> dict[str, Any]:
+        from .workspace import refresh_workspace_plan
+        return refresh_workspace_plan(self, target_trade_date, execution_kind=execution_kind,
+            now=now, deadline=deadline, workspace_date_bindings=workspace_date_bindings)
 
     def _read_input(self, target_trade_date: str) -> dict[str, Any]:
         target_trade_date = strict_trade_date(target_trade_date)
@@ -647,6 +765,70 @@ class ManagerResearchJobService:
         migrated["generated_at"] = generated_at
         return migrated
 
+    @staticmethod
+    def _project_cached_financial_advice(product: Mapping[str, Any]) -> dict[str, Any]:
+        """Reproject research advice from persisted facts without collecting data."""
+        rows = product.get("rows")
+        if not isinstance(rows, list):
+            return dict(product)
+
+        projected = dict(product)
+        projected_rows: list[Any] = []
+        recommendations: list[Mapping[str, Any]] = []
+        for raw_row in rows:
+            if not isinstance(raw_row, Mapping):
+                projected_rows.append(raw_row)
+                continue
+            row = dict(raw_row)
+            recommendation = row.get("research_recommendation")
+            if not isinstance(recommendation, Mapping):
+                projected_rows.append(row)
+                continue
+
+            finance = _financial_counterevidence_for_row(row)
+            reevaluation = finance.get("financial_re_evaluation")
+            if not isinstance(reevaluation, Mapping):
+                projected_rows.append(row)
+                continue
+
+            current_recommendation = dict(recommendation)
+            for field in ("status", "action", "label_cn"):
+                if field in reevaluation:
+                    current_recommendation[field] = reevaluation[field]
+            current_recommendation["missing_fields"] = list(reevaluation.get("missing_dimensions") or [])
+            investment_advice = current_recommendation.get("investment_advice")
+            if isinstance(investment_advice, Mapping):
+                current_advice = dict(investment_advice)
+                for field in ("status", "action", "label_cn", "reason", "missing_dimensions", "evidence_grade"):
+                    if field in reevaluation:
+                        current_advice[field] = reevaluation[field]
+                current_recommendation["investment_advice"] = current_advice
+            row["research_recommendation"] = current_recommendation
+
+            catalyst_result = row.get("catalyst_result")
+            if isinstance(catalyst_result, Mapping):
+                current_catalyst = dict(catalyst_result)
+                current_catalyst["financial_counterevidence"] = list(finance.get("financial_counterevidence") or [])
+                current_catalyst["financial_counterevidence_refs"] = list(finance.get("financial_counterevidence_refs") or [])
+                current_catalyst["financial_re_evaluation"] = dict(reevaluation)
+                row["catalyst_result"] = current_catalyst
+
+            current_research = row.get("current_research")
+            if isinstance(current_research, Mapping):
+                current_view = dict(current_research)
+                current_view["financial_advice"] = dict(reevaluation)
+                current_view["financial_counterevidence"] = list(finance.get("financial_counterevidence") or [])
+                current_view["financial_counterevidence_refs"] = list(finance.get("financial_counterevidence_refs") or [])
+                row["current_research"] = current_view
+
+            recommendations.append(current_recommendation)
+            projected_rows.append(row)
+
+        projected["rows"] = projected_rows
+        if len(recommendations) == len(projected_rows):
+            projected["recommendation_summary"] = recommendation_summary(recommendations)
+        return projected
+
     def _current_or_migrated_product(
         self, input_data: Mapping[str, Any], raw_product: Mapping[str, Any] | None,
     ) -> dict[str, Any] | None:
@@ -665,6 +847,7 @@ class ManagerResearchJobService:
             )
             if has_recommendations:
                 projected = _project_cached_catalysts(current_product)
+                projected = self._project_cached_financial_advice(projected)
                 assert_manager_safe_tree(projected)
                 return projected
         if (product.get("content_contract_version") == CONTENT_CONTRACT_VERSION

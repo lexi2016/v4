@@ -17,23 +17,399 @@ import re
 import tempfile
 import time
 from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, replace
-from datetime import datetime
+from datetime import datetime, timedelta
+from inspect import signature as _helper_signature
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 from uuid import uuid4
 
+from . import end_to_end_deadline as _deadline
 from .acquisition import AcquisitionPlan, SourceResult, StageUniverseBinding, build_plan
 from .candidate_input import CandidateInputError, read_candidate_input
-from .calendar import TradingDayState, calendar_provenance, resolve_market_states
+from .calendar import (
+    TradingDayState,
+    calendar_provenance,
+    eligible_stage_markets,
+    resolve_market_states,
+)
 from .contracts import EIGHT_STAGES, SAFETY_FLAGS
-from .raw_store import RAW_FIELDS, RawStore, RawStoreError, publish_raw_artifact, validate_rows
+from .raw_store import (
+    HISTORICAL_OBSERVATION_CONTRACT_ID,
+    HISTORICAL_OBSERVATION_CONTRACT_PREFIX,
+    HISTORICAL_OBSERVATION_MODE_EVIDENCE_PREFIX,
+    HISTORICAL_OBSERVATION_MANIFEST_SCHEMA,
+    HK_0930_TDX_RESEARCH_CONTRACT,
+    HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
+    RAW_FIELDS,
+    RawStore,
+    RawStoreError,
+    _allows_manifest_bound_afterfact_observation,
+    _historical_observation_manifest,
+    _raw_artifact_csv_sha256,
+    _allows_hk_0930_tdx_temporal_false_observation,
+    _allows_temporal_false_observation,
+    publish_raw_artifact,
+    validate_rows,
+)
 from .scheduler import DueDecision, evaluate_due
 from .selection import SelectionError, SelectionStore
 
 
 class RunnerError(ValueError):
     """A runner configuration, input, or integrity failure."""
+
+
+# This object is the runner-controlled proof that an exact-date formal
+# authority overlay was attached.  A raw collector row can carry the legacy
+# boolean marker for compatibility, but it cannot manufacture this identity.
+# The live selection builder checks this sentinel rather than trusting a
+# caller-supplied value.
+_FORMAL_AUTHORITY_OVERLAY_PROOF = object()
+
+_HK_0930_RESEARCH_CONTRACT = "HK_STAGE0930_RESEARCH_ONLY"
+_HK_0930_RESEARCH_DATE = "20260925"
+_HK_0930_RESEARCH_SIGNAL_DATE = "20260924"
+_HK_0930_RESEARCH_D1_SHA256 = "c6202648a73d0103b2ec43e393618ca31e67183c730a4df4db018eced2cfacd0"
+_HK_0930_TDX_RESEARCH_DATE = "20260924"
+_HK_0930_TDX_RESEARCH_SIGNAL_DATE = "20260923"
+_HK_0930_TDX_D1_PROJECTION_SHA256 = "fda1cd4b334699fc4df59658b443a01388f6bb4dfd29470d9c1baabd75ad72fc"
+_HK_0930_TDX_D1_CODE_SET_SHA256 = "4395dcad079830e90c6dfafc401ebf8687a13dff31156aeb73bd8d37d2e747ae"
+_HK_0930_TDX_D1_PRODUCER = {
+    "run_id": "20260924-hk-connect-d1-top100-0-2-625bd55a46b4",
+    "artifact_sha256": "30576eee9f0370c6956da6e41725d0720253e917a8e3741cce20f875b5e28f89",
+    "manifest_sha256": "c10ecc440585f0546a28dc8faf52bcf3e198c378216e5164c022b96d4d428465",
+    "receipt_sha256": "a96626f926b53a461039fce732658f765eea5383a63fe0830cbb21d7d780c73d",
+}
+_HK_0930_TDX_GAP_RECEIPT_SHA256 = "e3ea5b867f591d83a65e59aa855275d83dae188a7de8634dfa8b6fc9b605cf6a"
+_HK_0930_TDX_INPUT_PAGE_SET_SHA256 = "43de2248f4a8360ef82eae6ea7829d9847f8d824834dbc631cfdde26f2bde9c8"
+_HK_HISTORICAL_RESEARCH_CONTRACT: ContextVar[str | None] = ContextVar(
+    "stage_center_hk_historical_research_contract", default=None
+)
+_HK_TDX_AFTERFACT_RESEARCH_CONTRACT: ContextVar[str | None] = ContextVar(
+    "stage_center_hk_tdx_afterfact_research_contract", default=None
+)
+
+
+def _authorize_hk_0930_tdx_temporal_false_observation(
+    source: SourceResult,
+    plan: AcquisitionPlan,
+    *,
+    binding: StageUniverseBinding | None,
+    market: str,
+    historical_backfill: bool,
+) -> tuple[SourceResult, str | None]:
+    """Bind a pinned or manifest-identified after-fact observation to its D1."""
+    contract = _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get()
+    if contract is None:
+        return source, None
+    if contract != HK_0930_TDX_RESEARCH_CONTRACT:
+        return _authorize_manifest_bound_afterfact_observation(
+            source,
+            plan,
+            binding=binding,
+            market=market,
+            historical_backfill=historical_backfill,
+            contract=contract,
+        )
+    if (
+        not historical_backfill
+        or (plan.trade_date, plan.stage_id, market)
+        != (_HK_0930_TDX_RESEARCH_DATE, "STAGE_0930_0935", "HK_CONNECT")
+        or source.source_id not in {"pytdx_exhq", "futu_cached_minute_capture"}
+        or source.status != "PARTIAL_WITH_ROWS"
+        or source.requested_rows != 100
+        or len(source.rows) != 100
+        or source.missing_symbols
+        or binding is None
+        or binding.status != "READY"
+        or binding.market != "HK_CONNECT"
+        or binding.trade_date != _HK_0930_TDX_RESEARCH_DATE
+        or binding.sha256 != _HK_0930_TDX_D1_PROJECTION_SHA256
+        or len(binding.codes) != 100
+    ):
+        raise RunnerError("exact HK 09:30 temporal-false research source or D1 binding mismatch")
+
+    binding_codes_sha = hashlib.sha256(
+        json.dumps(
+            tuple(sorted(str(code).upper() for code in binding.codes)),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    d1_path = _evidence_value(binding.evidence, "hk_d1_json")
+    if (
+        binding_codes_sha != _HK_0930_TDX_D1_CODE_SET_SHA256
+        or _evidence_value(binding.evidence, "hk_d1_sha256") != _HK_0930_TDX_D1_PROJECTION_SHA256
+        or _evidence_value(binding.evidence, "hk_d1_membership") != "exact_date_top100"
+        or not d1_path
+        or _sha(Path(d1_path)) != _HK_0930_TDX_D1_PROJECTION_SHA256
+    ):
+        raise RunnerError("HK 09:30 D1 projection identity changed before research observation")
+    try:
+        projection = json.loads(Path(d1_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as error:
+        raise RunnerError("HK 09:30 D1 projection is unavailable for temporal-false research") from error
+    projection_rows = projection.get("rows") if isinstance(projection, Mapping) else None
+    projection_codes = tuple(
+        sorted(
+            str(row.get("code") or "").upper()
+            for row in projection_rows
+            if isinstance(row, Mapping)
+        )
+    ) if isinstance(projection_rows, list) else ()
+    projection_codes_sha = hashlib.sha256(
+        json.dumps(projection_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    expected_projection_lineage = (
+        ("source_run_id", _HK_0930_TDX_D1_PRODUCER["run_id"]),
+        ("source_artifact_sha256", _HK_0930_TDX_D1_PRODUCER["artifact_sha256"]),
+        ("source_manifest_sha256", _HK_0930_TDX_D1_PRODUCER["manifest_sha256"]),
+        ("source_receipt_sha256", _HK_0930_TDX_D1_PRODUCER["receipt_sha256"]),
+    )
+    if (
+        projection.get("trade_date") != _HK_0930_TDX_RESEARCH_DATE
+        or projection.get("target_date") != _HK_0930_TDX_RESEARCH_DATE
+        or projection.get("signal_date") != _HK_0930_TDX_RESEARCH_SIGNAL_DATE
+        or projection.get("pool_id") != "hkconnect_d1_top100"
+        or projection.get("stage_selection_eligible") is not True
+        or len(projection_codes) != 100
+        or projection_codes_sha != _HK_0930_TDX_D1_CODE_SET_SHA256
+        or set(projection_codes) != set(binding.codes)
+        or any(projection.get(key) != value for key, value in expected_projection_lineage)
+        or any(projection.get(key) is not False for key in ("production_allowed", "buy_gate_updated", "orders_sent"))
+    ):
+        raise RunnerError("HK 09:30 D1 target/signal/producer lineage mismatch")
+
+    row_codes = tuple(sorted(str(row.get("code") or "").upper() for row in source.rows))
+    row_codes_sha = hashlib.sha256(
+        json.dumps(row_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    if (
+        row_codes_sha != _HK_0930_TDX_D1_CODE_SET_SHA256
+        or set(row_codes) != set(binding.codes)
+        or any(row.get("temporal_cutoff_safe") is not False for row in source.rows)
+    ):
+        raise RunnerError("HK 09:30 TDX rows do not preserve the exact false-temporal D1 observation")
+
+    evidence = tuple(
+        dict.fromkeys(
+            (
+                *source.source_evidence,
+                "due_status=HISTORICAL_BACKFILL",
+                HK_0930_TDX_RESEARCH_MODE_EVIDENCE,
+            )
+        )
+    )
+    authorized_source = replace(source, source_evidence=evidence)
+    if not _allows_hk_0930_tdx_temporal_false_observation(
+        enabled=True,
+        trade_date=plan.trade_date,
+        stage_id=plan.stage_id,
+        market=market,
+        source_id=authorized_source.source_id,
+        source_status=authorized_source.status,
+        rows=authorized_source.rows,
+        requested_rows=authorized_source.requested_rows,
+        missing_symbols=authorized_source.missing_symbols,
+        cannot_confirm=authorized_source.cannot_confirm,
+        source_evidence=authorized_source.source_evidence,
+    ):
+        raise RunnerError("HK 09:30 TDX evidence or safety contract is incomplete")
+    return authorized_source, HK_0930_TDX_RESEARCH_CONTRACT
+
+
+def _authorize_manifest_bound_afterfact_observation(
+    source: SourceResult,
+    plan: AcquisitionPlan,
+    *,
+    binding: StageUniverseBinding | None,
+    market: str,
+    historical_backfill: bool,
+    contract: str,
+) -> tuple[SourceResult, str]:
+    """Validate an immutable source manifest before the shared raw/selection route."""
+    def reject(reason: str) -> None:
+        raise RunnerError(reason)
+
+    if (
+        not isinstance(contract, str)
+        or not re.fullmatch(re.escape(HISTORICAL_OBSERVATION_CONTRACT_PREFIX) + r"[0-9a-f]{64}", contract)
+        or not historical_backfill
+        or market != "HK_CONNECT"
+        or source.source_id not in {"pytdx_exhq", "futu_cached_minute_capture"}
+        or source.status != "PARTIAL_WITH_ROWS"
+        or binding is None
+        or binding.status != "READY"
+        or binding.market != market
+        or binding.trade_date != plan.trade_date
+        or binding.role not in {
+            "HK_CONNECT_D1_TOP100",
+            "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+        }
+    ):
+        reject("historical observation identity, source, or D1 binding is invalid")
+
+    parsed = _historical_observation_manifest(source.source_evidence, contract=contract)
+    if parsed is None:
+        reject("historical observation manifest is missing or has a mismatched SHA")
+    manifest, _token = parsed
+    target = manifest.get("target")
+    pool = manifest.get("pool")
+    if not isinstance(target, Mapping) or not isinstance(pool, Mapping):
+        reject("historical observation target or pool manifest is invalid")
+    if (
+        manifest.get("schema_version") != HISTORICAL_OBSERVATION_MANIFEST_SCHEMA
+        or manifest.get("contract_id") != HISTORICAL_OBSERVATION_CONTRACT_ID
+        or target.get("trade_date") != plan.trade_date
+        or target.get("stage_id") != plan.stage_id
+        or target.get("market") != market
+        or target.get("source_id") != source.source_id
+        or target.get("source_status") != source.status
+        or target.get("historical_backfill") is not True
+        or target.get("observation_mode") != "AFTERFACT_RESEARCH_ONLY"
+        or binding.sha256 != pool.get("artifact_sha256")
+        or (
+            source.source_id == "pytdx_exhq"
+            and binding.source_run_id != pool.get("source_run_id")
+        )
+        or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+        or _evidence_value(binding.evidence, "hk_d1_membership") != "exact_date_top100"
+    ):
+        reject("historical observation target or full D1 artifact identity mismatch")
+
+    d1_path_text = _evidence_value(binding.evidence, "hk_d1_json")
+    if not d1_path_text:
+        reject("historical observation D1 artifact path is absent")
+    d1_path = Path(d1_path_text)
+    if not d1_path.is_file() or _sha(d1_path) != binding.sha256:
+        reject("historical observation D1 artifact SHA changed")
+    try:
+        d1_payload = json.loads(d1_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as error:
+        raise RunnerError("historical observation D1 artifact is unreadable") from error
+    d1_rows = (
+        d1_payload.get("rows", d1_payload.get("data", ()))
+        if isinstance(d1_payload, Mapping)
+        else ()
+    )
+    if (
+        source.source_id == "futu_cached_minute_capture"
+        and (
+            not isinstance(d1_payload, Mapping)
+            or d1_payload.get("source_run_id") != pool.get("source_run_id")
+        )
+    ):
+        reject("historical observation producer run does not match the pinned D1 artifact")
+    if not isinstance(d1_rows, list):
+        reject("historical observation D1 rows are invalid")
+    d1_codes = tuple(sorted(
+        str(row.get("code") or row.get("symbol") or row.get("ts_code") or row.get("stock_code") or "").upper()
+        for row in d1_rows
+        if isinstance(row, Mapping)
+    ))
+    d1_signal_dates = {
+        str(row.get("signal_date") or "") for row in d1_rows if isinstance(row, Mapping)
+    }
+    pool_source_date = (
+        _evidence_value(binding.evidence, "hk_d1_source_trade_date")
+        or str(d1_payload.get("trade_date") or d1_path.parent.name)
+    )
+    pool_signal_date = (
+        _evidence_value(binding.evidence, "hk_d1_source_signal_date")
+        or (next(iter(d1_signal_dates)) if len(d1_signal_dates) == 1 else "")
+    )
+    d1_code_sha = hashlib.sha256(
+        json.dumps(d1_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    manifest_pool_codes = pool.get("codes")
+    if not isinstance(manifest_pool_codes, list):
+        reject("historical observation D1 code list is absent")
+    manifest_pool_codes = tuple(sorted(str(code).upper() for code in manifest_pool_codes))
+    if (
+        d1_codes != tuple(sorted(set(binding.codes)))
+        or d1_codes != manifest_pool_codes
+        or pool.get("source_date") != pool_source_date
+        or pool.get("signal_date") != pool_signal_date
+        or pool.get("code_set_sha256") != d1_code_sha
+        or pool.get("code_set_sha256") != hashlib.sha256(
+            json.dumps(manifest_pool_codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        or len(d1_codes) != 100
+        or len(set(d1_codes)) != 100
+        or not re.fullmatch(r"HK\.\d{5}", d1_codes[0])
+    ):
+        reject("historical observation D1 pool code set or source date mismatch")
+
+    requested = source.requested_rows
+    if target.get("requested_rows") != len(d1_codes) or requested != len(d1_codes):
+        reject("historical observation requested count does not match D1 pool")
+    source_codes = [str(row.get("code") or "").upper() for row in source.rows]
+    manifest_observation = manifest.get("observation")
+    if not isinstance(manifest_observation, Mapping):
+        reject("historical observation details are absent")
+    observed_codes = manifest_observation.get("observed_codes")
+    missing_codes = manifest_observation.get("missing_codes")
+    if not isinstance(observed_codes, list) or not isinstance(missing_codes, list):
+        reject("historical observation row membership is absent")
+    observed_codes = tuple(sorted(str(code).upper() for code in observed_codes))
+    missing_codes = tuple(sorted(str(code).upper() for code in missing_codes))
+    source_missing = tuple(sorted(str(code).upper() for code in source.missing_symbols))
+    if (
+        len(source_codes) != len(set(source_codes))
+        or tuple(sorted(source_codes)) != observed_codes
+        or source_missing != missing_codes
+        or set(observed_codes).intersection(missing_codes)
+        or set(observed_codes).union(missing_codes) != set(d1_codes)
+        or len(source.rows) != manifest_observation.get("observed_rows")
+        or len(missing_codes) != manifest_observation.get("missing_count")
+        or any(row.get("temporal_cutoff_safe") is not False for row in source.rows)
+        or any(row.get("candidate_lanes") for row in source.rows)
+    ):
+        reject("historical observation row count, missing count, or D1 membership mismatch")
+    raw_sha = _raw_artifact_csv_sha256(plan.trade_date, source.rows)
+    if raw_sha is None or raw_sha != manifest_observation.get("raw_artifact_sha256"):
+        reject("historical observation raw artifact SHA mismatch")
+
+    expected_cannot_confirm = (
+        "HISTORICAL_CAPTURE_AFTER_TARGET_CUTOFF_NOT_PIT_SAFE",
+        "HISTORICAL_FORMAL_STAGE_ELIGIBILITY_CANNOT_CONFIRM",
+        "HISTORICAL_NATURAL_TIME_CAPTURE_CANNOT_CONFIRM",
+    )
+    evidence = tuple(dict.fromkeys(
+        (
+            *source.source_evidence,
+            f"due_status=HISTORICAL_BACKFILL",
+            "historical_observation_contract=STAGE_CENTER_AFTERFACT_OBSERVATION_R1",
+            f"hk_d1_source_trade_date={pool_source_date}",
+            f"hk_d1_source_signal_date={pool_signal_date}",
+            f"hk_d1_binding_sha256={binding.sha256}",
+            f"hk_d1_sha256={binding.sha256}",
+        )
+    ))
+    cannot_confirm = tuple(dict.fromkeys((*source.cannot_confirm, *expected_cannot_confirm)))
+    authorized_source = replace(
+        source,
+        source_evidence=evidence,
+        cannot_confirm=cannot_confirm,
+    )
+    if not _allows_manifest_bound_afterfact_observation(
+        contract=contract,
+        trade_date=plan.trade_date,
+        stage_id=plan.stage_id,
+        market=market,
+        source_id=authorized_source.source_id,
+        source_status=authorized_source.status,
+        rows=authorized_source.rows,
+        requested_rows=authorized_source.requested_rows,
+        missing_symbols=authorized_source.missing_symbols,
+        cannot_confirm=authorized_source.cannot_confirm,
+        source_evidence=authorized_source.source_evidence,
+    ):
+        reject("historical observation safety, provenance, or raw SHA contract mismatch")
+    return authorized_source, contract
 
 
 def lane_status_bundle(
@@ -46,34 +422,16 @@ def lane_status_bundle(
     and by contract tests to ensure one lane's missing authority cannot erase
     a verified result from the other lane.
     """
-    lanes = {"A_SHARE": a_share, "HK_CONNECT": hk_connect}
-    output: dict[str, Any] = {}
-    for market, binding in lanes.items():
-        output[market] = {
-            "status": binding.status,
-            "trade_date": binding.trade_date,
-            "role": binding.role,
-            "row_count": len(binding.codes),
-            "source_run_id": binding.source_run_id,
-            "sha256": binding.sha256,
-            "evidence": list(binding.evidence),
-            **({"error": binding.error} if binding.error else {}),
-        }
-    if all(binding.status == "READY" for binding in lanes.values()):
-        output["overall_status"] = "READY"
-    elif any(binding.status == "READY" and binding.codes for binding in lanes.values()):
-        output["overall_status"] = "PARTIAL_WITH_ROWS"
-    else:
-        output["overall_status"] = "CANNOT_CONFIRM"
-    return output
+    from stage_center._runner_parts.row_evidence import _lane_status_bundle_body as _v4_impl
+    return _v4_impl(globals(), a_share, hk_connect)
 
 
 Collector = Callable[[AcquisitionPlan, str], SourceResult]
 SelectionBuilder = Callable[[SourceResult, AcquisitionPlan, Mapping[str, Any]], Mapping[str, Any]]
 
-# These stages consume the legacy V3 morning-news/hourly-research overlay.  A
-# production tick must receive that bridge explicitly; it may not infer it
-# from the formal-pool root (which is a different release and date contract).
+# These stages consume the V4 hourly research overlay.  A production tick
+# must receive that bridge explicitly; it may not infer it from the formal
+# pool root (which is a different release and date contract).
 V3_RESEARCH_STAGES = frozenset(
     {
         "STAGE_0930_0935",
@@ -124,39 +482,16 @@ def _candidate_from_hk_binding(
 
     Stage Center's historical ``AcquisitionPlan`` carries one candidate field
     for compatibility.  When the A current is absent, this adapter supplies
-    only the HK lane's exact full-universe binding; it is never used to make
+    only the HK lane's exact D-1 Top100 binding; it is never used to make
     an A-share selection appear ready.
     """
-    from .candidate_input import CandidateInput
-
-    return CandidateInput(
-        root=Path(root).expanduser().resolve(),
-        trade_date=trade_date,
-        current_relative=f"bindings/{trade_date}/HK_CONNECT/{binding.role}/current.json",
-        current_sha256=binding.sha256,
-        run_id=binding.source_run_id or f"hk-{binding.sha256[:16]}",
-        codes=tuple(binding.codes),
-        artifact_sha256=binding.sha256,
-        manifest_sha256=binding.sha256,
-        receipt_sha256=binding.sha256,
-        source_projection_sha256=binding.sha256,
-        source_evidence=tuple(binding.evidence),
-    )
+    from stage_center._runner_parts.hk_input_validation import __candidate_from_hk_binding_body as _v4_impl
+    return _v4_impl(globals(), root=root, trade_date=trade_date, binding=binding)
 
 
 def _atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as stream:
-            json.dump(dict(payload), stream, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-            stream.write("\n")
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
+    from stage_center._runner_parts.row_evidence import __atomic_json_body as _v4_impl
+    return _v4_impl(globals(), path, payload)
 
 
 def _date_prefix(trade_date: str) -> str:
@@ -170,10 +505,165 @@ def _evidence_has(evidence: Sequence[Any], key: str, value: str) -> bool:
     return any(str(item) == needle for item in evidence)
 
 
+def _existing_binding_matches(
+    evidence: Sequence[Any],
+    *,
+    market: str,
+    expected_sha: str | None,
+) -> bool:
+    """Accept only this lane's candidate proof (or its exact HK authority).
+
+    HK receipts written before the per-market binding fix may carry the A
+    plan-carrier SHA, but their immutable D-1 JSON SHA still proves the HK
+    authority.  That narrow compatibility path cannot make an A lane pass and
+    still requires the current expected HK binding.
+    """
+    from stage_center._runner_parts.row_evidence import __existing_binding_matches_body as _v4_impl
+    return _v4_impl(globals(), evidence, market=market, expected_sha=expected_sha)
+
+
 def _evidence_value(evidence: Sequence[Any], key: str) -> str | None:
     prefix = f"{key}="
     values = [str(item)[len(prefix):] for item in evidence if str(item).startswith(prefix)]
     return values[-1] if values else None
+
+
+def _validated_hk_binding_evidence(
+    binding: StageUniverseBinding,
+    trade_date: str,
+) -> tuple[str, ...]:
+    """Validate the already-read HK universe binding for this exact slot."""
+    if (
+        binding.status != "READY"
+        or binding.market != "HK_CONNECT"
+        or binding.trade_date != trade_date
+        or not re.fullmatch(r"[0-9a-f]{64}", binding.sha256)
+        or not binding.source_run_id
+        or len(binding.codes) != 100
+        or len(set(binding.codes)) != 100
+        or any(not re.fullmatch(r"HK\.\d{5}", code) for code in binding.codes)
+    ):
+        raise RunnerError("HK D1 exact-input binding is invalid")
+    if binding.role == "HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION":
+        source_date = _evidence_value(binding.evidence, "hk_d1_source_trade_date")
+        signal_date = _evidence_value(binding.evidence, "hk_d1_source_signal_date")
+        if (
+            not source_date
+            or not re.fullmatch(r"\d{8}", source_date)
+            or source_date >= trade_date
+            or not signal_date
+            or not re.fullmatch(r"\d{8}", signal_date)
+            or signal_date >= source_date
+            or _evidence_value(binding.evidence, "hk_observation_trade_date") != trade_date
+            or _evidence_value(binding.evidence, "hk_observation_mode")
+            != "HK_SECURITIES_OPEN_HK_CONNECT_CLOSED"
+        ):
+            raise RunnerError("HK prior-observation exact-input binding is invalid")
+    elif (
+        binding.role != "HK_CONNECT_D1_TOP100"
+        or not _evidence_has(
+            binding.evidence, "hk_d1_membership", "exact_date_top100"
+        )
+    ):
+        raise RunnerError("HK D1 exact-input binding role is invalid")
+    return tuple(
+        dict.fromkeys(
+            (*binding.evidence, f"hk_d1_binding_sha256={binding.sha256}")
+        )
+    )
+
+
+def _read_bound_prior_hk_d1_payload(
+    binding: StageUniverseBinding,
+    *,
+    d1_root: Path,
+    preselection_source_root: Path | str | None,
+) -> tuple[Path, Mapping[str, Any], str]:
+    """Read the prior D-1 pool under its existing owner lease and verify its trio."""
+    _validated_hk_binding_evidence(binding, binding.trade_date)
+    source_date = _evidence_value(binding.evidence, "hk_d1_source_trade_date")
+    signal_date = _evidence_value(binding.evidence, "hk_d1_source_signal_date")
+    bound_path_text = _evidence_value(binding.evidence, "hk_d1_json")
+    expected_manifest_sha = _evidence_value(
+        binding.evidence, "hk_d1_source_manifest_sha256"
+    )
+    expected_receipt_sha = _evidence_value(
+        binding.evidence, "hk_d1_source_receipt_sha256"
+    )
+    if (
+        not source_date
+        or not signal_date
+        or not bound_path_text
+        or not expected_manifest_sha
+        or not expected_receipt_sha
+        or not re.fullmatch(r"[0-9a-f]{64}", expected_manifest_sha)
+        or not re.fullmatch(r"[0-9a-f]{64}", expected_receipt_sha)
+        or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+    ):
+        raise RunnerError("HK prior-observation binding source identity is incomplete")
+
+    from infrastructure.preselection_pool_store import PreselectionSourceResolver
+
+    resolver = PreselectionSourceResolver(
+        d1_root, source_root=preselection_source_root
+    )
+    identity_keys = (
+        "artifact_raw_sha256",
+        "manifest_raw_sha256",
+        "receipt_raw_sha256",
+        "physical_source_root",
+        "artifact_relative",
+        "manifest_relative",
+        "receipt_relative",
+    )
+    try:
+        with resolver.source_read_lease(source_date, timeout_seconds=0):
+            owner = resolver.root_for_date(source_date)
+            snapshot = resolver.read_pool_snapshot(
+                source_date, "hkconnect_d1_top100"
+            )
+            bound_path = Path(bound_path_text)
+            expected_path = owner / str(snapshot.get("artifact_relative") or "")
+            if (
+                snapshot.get("physical_source_root") != str(owner)
+                or bound_path != expected_path
+                or snapshot.get("artifact_raw_sha256") != binding.sha256
+                or snapshot.get("manifest_raw_sha256") != expected_manifest_sha
+                or snapshot.get("receipt_raw_sha256") != expected_receipt_sha
+            ):
+                raise RunnerError("HK prior-observation binding source identity changed")
+
+            source_binding = _build_hk_d1_binding(owner, source_date)
+            if (
+                source_binding.sha256 != binding.sha256
+                or source_binding.codes != binding.codes
+                or source_binding.role != "HK_CONNECT_D1_TOP100"
+            ):
+                raise RunnerError("HK prior-observation binding source SHA/membership changed")
+            signal_dates = {
+                str(row.get("signal_date") or "")
+                for row in snapshot["artifact"].get(
+                    "rows", snapshot["artifact"].get("data", ())
+                )
+                if isinstance(row, Mapping)
+            }
+            if signal_dates != {signal_date}:
+                raise RunnerError("HK prior-observation source signal date changed")
+
+            confirmed = resolver.read_pool_snapshot(
+                source_date, "hkconnect_d1_top100"
+            )
+            if any(confirmed.get(key) != snapshot.get(key) for key in identity_keys):
+                raise RunnerError("HK prior-observation source trio changed during binding read")
+            if confirmed.get("artifact") != snapshot.get("artifact"):
+                raise RunnerError("HK prior-observation source payload changed during binding read")
+            return bound_path, snapshot["artifact"], binding.sha256
+    except RunnerError:
+        raise
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise RunnerError(
+            f"HK prior-observation source lease/read CANNOT_CONFIRM: {error}"
+        ) from error
 
 
 @dataclass(frozen=True)
@@ -186,7 +676,20 @@ class RunnerConfig:
     receipt_root: Path
     v3_formal_root: Path | None = None
     v3_research_root: Path | None = None
+    # V4-owned hourly research root.  The legacy spelling above remains only
+    # for config deserialization compatibility and is never used as a
+    # research context source.
+    v4_research_data_root: Path | None = None
+    # Independent owner root for exact-date shared morning news.  It is kept
+    # separate from the hourly research archive root.
+    v4_morning_news_root: Path | None = None
+    # Capture-only verified shared store; never a selection authority fallback.
+    hk_snapshot_shared_store_root: Path | None = None
     hk_d1_root: Path | None = None
+    # Separate read-only owner root retained from the active Stage release.
+    # A date directory in hk_d1_root owns that date even when incomplete;
+    # source-root fallback is allowed only when the primary date is absent.
+    preselection_source_root: Path | None = None
     hk_second_filter_root: Path | None = None
     hk_full_universe_root: Path | None = None
     a_auction_root: Path | None = None
@@ -224,7 +727,7 @@ class RunnerConfig:
         object.__setattr__(self, "selection_root", Path(self.selection_root).expanduser().resolve())
         object.__setattr__(self, "receipt_root", Path(self.receipt_root).expanduser().resolve())
         object.__setattr__(self, "candidate_input_root", Path(candidate).expanduser().resolve())
-        for name in ("v3_formal_root", "v3_research_root", "hk_d1_root", "hk_second_filter_root", "hk_full_universe_root", "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path"):
+        for name in ("v3_formal_root", "v3_research_root", "v4_research_data_root", "v4_morning_news_root", "hk_d1_root", "hk_snapshot_shared_store_root", "preselection_source_root", "hk_second_filter_root", "hk_full_universe_root", "a_auction_root", "hk_auction_root", "hk_stage_replay_root", "a_research_panel_receipt_root", "shared_data_root", "python_path"):
             value = getattr(self, name)
             if value is not None:
                 expanded = Path(value).expanduser()
@@ -248,10 +751,14 @@ def build_production_config(
     raw_root: Path | str,
     selection_root: Path | str,
     receipt_root: Path | str,
-    v3_formal_root: Path | str,
-    v3_research_root: Path | str,
-    hk_d1_root: Path | str,
-    hk_second_filter_root: Path | str,
+    v3_formal_root: Path | str | None = None,
+    v3_research_root: Path | str | None = None,
+    v4_research_data_root: Path | str | None = None,
+    v4_morning_news_root: Path | str | None = None,
+    hk_snapshot_shared_store_root: Path | str | None = None,
+    hk_d1_root: Path | str | None = None,
+    preselection_source_root: Path | str | None = None,
+    hk_second_filter_root: Path | str | None = None,
     hk_full_universe_root: Path | str | None = None,
     a_auction_root: Path | str | None = None,
     hk_auction_root: Path | str | None = None,
@@ -262,90 +769,36 @@ def build_production_config(
 ) -> RunnerConfig:
     """Construct a production-shaped config without starting any collector.
 
-    ``v3_research_root`` is intentionally separate from ``v3_formal_root``:
-    the six minute stages read their legacy hourly research from this exact
-    release root.  ``shared_data_root`` and ``python_path`` are explicit bridge
-    inputs; the runner uses them to construct the packaged read-only collectors
-    at tick time.
+    ``v4_research_data_root`` is the explicit V4-owned hourly archive root for
+    the six research stages.  ``v3_research_root`` is accepted for older
+    serialized configs but is not read by the stage context adapter.
+    ``v4_morning_news_root`` is the separate exact-date shared producer store.
+    ``shared_data_root`` and ``python_path`` are explicit bridge inputs; the
+    runner uses them to construct the packaged read-only collectors at tick
+    time.
     """
-    return RunnerConfig(
-        candidate_acquisition_root=Path(candidate_acquisition_root),
-        raw_root=Path(raw_root),
-        selection_root=Path(selection_root),
-        receipt_root=Path(receipt_root),
-        v3_formal_root=Path(v3_formal_root),
-        v3_research_root=Path(v3_research_root),
-        hk_d1_root=Path(hk_d1_root),
-        hk_second_filter_root=Path(hk_second_filter_root),
-        hk_full_universe_root=Path(hk_full_universe_root) if hk_full_universe_root is not None else None,
-        a_auction_root=Path(a_auction_root) if a_auction_root is not None else None,
-        hk_auction_root=Path(hk_auction_root) if hk_auction_root is not None else None,
-        hk_stage_replay_root=Path(hk_stage_replay_root) if hk_stage_replay_root is not None else None,
-        a_research_panel_receipt_root=Path(a_research_panel_receipt_root) if a_research_panel_receipt_root is not None else None,
-        shared_data_root=Path(shared_data_root) if shared_data_root is not None else None,
-        python_path=Path(python_path) if python_path is not None else None,
-    )
+    from stage_center._runner_parts.configuration import _build_production_config_body as _v4_impl
+    return _v4_impl(globals(), candidate_acquisition_root=candidate_acquisition_root, raw_root=raw_root, selection_root=selection_root, receipt_root=receipt_root, v3_formal_root=v3_formal_root, v3_research_root=v3_research_root, v4_research_data_root=v4_research_data_root, v4_morning_news_root=v4_morning_news_root, hk_d1_root=hk_d1_root, hk_snapshot_shared_store_root=hk_snapshot_shared_store_root, preselection_source_root=preselection_source_root, hk_second_filter_root=hk_second_filter_root, hk_full_universe_root=hk_full_universe_root, a_auction_root=a_auction_root, hk_auction_root=hk_auction_root, hk_stage_replay_root=hk_stage_replay_root, a_research_panel_receipt_root=a_research_panel_receipt_root, shared_data_root=shared_data_root, python_path=python_path)
 
 
 class SlotLock:
-    """Small cross-process slot lock using an exclusive file create."""
+    """Cross-process slot lock using the shared persistent kernel mutex protocol."""
 
     def __init__(self, path: Path | str, *, stale_seconds: float = 300.0):
         self.path = Path(path).expanduser().resolve()
         self.stale_seconds = float(stale_seconds)
-        self._token = f"{os.getpid()}:{time.time_ns()}"
+        self._token = f"{os.getpid()}:{time.time_ns()}"  # Legacy diagnostic only.
         self._owned = False
+        self._lock_context = None
+        self._lease = None
 
     def acquire(self) -> bool:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-        except FileExistsError:
-            # A lock's age is not evidence that its owner is dead.  In
-            # particular, a long-running collector may legitimately exceed
-            # ``stale_seconds``.  Only reclaim a lock whose recorded PID is
-            # demonstrably gone; malformed/legacy locks are conservatively
-            # treated as live until an operator removes them.
-            try:
-                token = self.path.read_text(encoding="ascii").strip()
-            except (FileNotFoundError, OSError, UnicodeError):
-                return self.acquire()
-            try:
-                owner_pid = int(token.split(":", 1)[0])
-            except (TypeError, ValueError):
-                return False
-            if owner_pid <= 0:
-                return False
-            try:
-                os.kill(owner_pid, 0)
-            except ProcessLookupError:
-                try:
-                    self.path.unlink()
-                except FileNotFoundError:
-                    return self.acquire()
-                return self.acquire()
-            except PermissionError:
-                # The process exists but is not ours; do not steal the slot.
-                return False
-            except OSError:
-                return False
-            return False
-        with os.fdopen(fd, "w", encoding="ascii") as stream:
-            stream.write(self._token)
-            stream.flush()
-            os.fsync(stream.fileno())
-        self._owned = True
-        return True
+        from stage_center._runner_parts.slot_lock import _SlotLock_acquire_body as _v4_impl
+        return _v4_impl(globals(), self)
 
     def release(self) -> None:
-        if not self._owned:
-            return
-        try:
-            if self.path.read_text(encoding="ascii") == self._token:
-                self.path.unlink()
-        except FileNotFoundError:
-            pass
-        self._owned = False
+        from stage_center._runner_parts.slot_lock import _SlotLock_release_body as _v4_impl
+        _v4_impl(globals(), self)
 
     def __enter__(self) -> "SlotLock":
         if not self.acquire():
@@ -367,62 +820,53 @@ def _stage_markets(stage_id: str) -> tuple[str, ...]:
     raise RunnerError(f"unknown stage {stage_id!r}")
 
 
-def _latest_entry(root: Path, filename: str, key: str) -> Mapping[str, Any] | None:
-    path = root / filename
-    if not path.is_file():
-        return None
+def _stage_markets_for_date(stage_id: str, trade_date: str) -> tuple[str, ...]:
+    """Keep stage lanes isolated by their own securities-market calendar."""
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError(f"{filename} is malformed") from error
-    entries = payload.get("entries")
-    if not isinstance(entries, Mapping):
-        raise RunnerError(f"{filename} entries are malformed")
-    entry = entries.get(key)
-    if entry is None:
-        return None
-    if not isinstance(entry, Mapping):
-        raise RunnerError(f"{filename} entry is malformed")
-    return entry
+        return eligible_stage_markets(_stage_markets(stage_id), trade_date)
+    except ValueError as error:
+        raise RunnerError(str(error)) from error
+
+
+def _resolve_stage_market_scope(
+    stage_id: str,
+    trade_date: str,
+    *,
+    historical_backfill: bool,
+    historical_markets: Sequence[str] | None,
+) -> tuple[str, ...]:
+    """Apply an optional, historical-only lane allowlist to calendar output."""
+    eligible = _stage_markets_for_date(stage_id, trade_date)
+    if historical_markets is None:
+        return eligible
+    if not historical_backfill:
+        raise RunnerError("historical market allowlist requires historical_backfill")
+    if isinstance(historical_markets, (str, bytes)):
+        raise RunnerError("historical market allowlist must be a sequence of market ids")
+    try:
+        requested = tuple(historical_markets)
+    except TypeError as error:
+        raise RunnerError("historical market allowlist is invalid") from error
+    scheduled = _stage_markets(stage_id)
+    if any(not isinstance(market, str) or market not in scheduled for market in requested):
+        raise RunnerError("historical market allowlist contains a market outside the stage contract")
+    if not requested or len(requested) != len(set(requested)):
+        raise RunnerError("historical market allowlist must be non-empty and unique")
+    if any(market not in eligible for market in requested):
+        raise RunnerError("historical market allowlist contains a market closed by the date calendar")
+    requested_set = set(requested)
+    return tuple(market for market in eligible if market in requested_set)
+
+
+def _latest_entry(root: Path, filename: str, key: str) -> Mapping[str, Any] | None:
+    from stage_center._runner_parts.row_evidence import __latest_entry_body as _v4_impl
+    return _v4_impl(globals(), root, filename, key)
 
 
 def _read_verified_raw_source(root: Path, verified: Mapping[str, Any]) -> SourceResult:
     """Rehydrate a SourceResult from one already verified immutable raw run."""
-    artifact_path = root / str(verified["artifact_relative"])
-    rows: list[dict[str, Any]] = []
-    try:
-        with artifact_path.open("r", encoding="utf-8-sig", newline="") as stream:
-            reader = csv.DictReader(stream)
-            if tuple(reader.fieldnames or ()) != ("trade_date", "bar_time", *RAW_FIELDS):
-                raise RunnerError("verified raw artifact fields mismatch")
-            for raw in reader:
-                decoded = {field: raw.get(field, "") for field in RAW_FIELDS}
-                for field in ("batch_index", "bar_count"):
-                    try:
-                        decoded[field] = int(decoded[field])
-                    except (TypeError, ValueError) as error:
-                        raise RunnerError(f"verified raw {field} is not an integer") from error
-                for field in ("last_price", "open_price", "high_price", "low_price", "prev_close_price", "turnover", "volume", "bid_price", "ask_price", "bid_vol", "ask_vol"):
-                    if decoded[field] in (None, ""):
-                        decoded[field] = ""
-                    else:
-                        try:
-                            decoded[field] = float(decoded[field])
-                        except (TypeError, ValueError) as error:
-                            raise RunnerError(f"verified raw {field} is not numeric") from error
-                decoded["temporal_cutoff_safe"] = str(decoded["temporal_cutoff_safe"]).strip().lower() == "true"
-                rows.append(decoded)
-    except (OSError, UnicodeError, csv.Error) as error:
-        raise RunnerError("verified raw artifact unreadable") from error
-    return SourceResult(
-        source_id=str(verified.get("source_id") or "verified_raw"),
-        status=str(verified.get("status") or "CANNOT_CONFIRM"),
-        rows=tuple(rows),
-        cannot_confirm=tuple(str(item) for item in verified.get("cannot_confirm", ())),
-        requested_rows=int(verified.get("requested_rows", len(rows))),
-        missing_symbols=tuple(str(item) for item in verified.get("missing_symbols", ())),
-        source_evidence=tuple(str(item) for item in verified.get("source_evidence", ())),
-    )
+    from stage_center._runner_parts.row_evidence import __read_verified_raw_source_body as _v4_impl
+    return _v4_impl(globals(), root, verified)
 
 
 def _required_formal_paths(root: Path, trade_date: str) -> tuple[Path, Path]:
@@ -437,223 +881,592 @@ def _required_formal_paths(root: Path, trade_date: str) -> tuple[Path, Path]:
 
 
 def _validate_formal_input(root: Path, trade_date: str) -> tuple[Path, Path, str]:
-    csv_path, manifest_path = _required_formal_paths(root, trade_date)
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError("V3 formal manifest unreadable") from error
-    if manifest.get("trade_date") != trade_date or manifest.get("status") not in {"FORMAL_CONFIRMED", "FORMAL_READY"}:
-        raise RunnerError("V3 formal pool identity/status mismatch")
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        rows = list(csv.DictReader(stream))
-    eligible = [row for row in rows if str(row.get("eligible_for_formal_pool") or "").lower() in {"true", "1", "yes"}]
-    if not eligible:
-        raise RunnerError("V3 formal pool has no eligible rows")
-    raw_codes = [str(row.get("ts_code") or row.get("stock_code") or "").strip().upper() for row in eligible]
-    normalized_codes = [f"A.{match.group(1)}" for raw in raw_codes if (match := re.search(r"(\d{6})", raw))]
-    if len(normalized_codes) != len(eligible) or len(set(normalized_codes)) != len(normalized_codes):
-        raise RunnerError("V3 formal pool eligible membership must be non-empty and unique")
-    if int(manifest.get("row_count", -1)) != len(rows):
-        raise RunnerError("V3 formal pool manifest row_count mismatch")
-    manifest_sha = manifest.get("csv_sha256")
-    if not isinstance(manifest_sha, str) or re.fullmatch(r"[0-9a-fA-F]{64}", manifest_sha) is None:
-        raise RunnerError("V3 formal csv_sha256 must be a 64-hex digest")
-    actual_sha = _sha(csv_path)
-    if manifest_sha.lower() != actual_sha:
-        raise RunnerError("V3 formal pool CSV SHA mismatch")
-    if any(manifest.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise RunnerError("V3 formal pool safety flag must be false")
-    return csv_path, manifest_path, actual_sha
+    from stage_center._runner_parts.selection_input_validation import __validate_formal_input_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date)
 
 
 def _formal_selection_codes(root: Path, trade_date: str) -> tuple[set[str], str]:
-    csv_path, _manifest_path, csv_sha = _validate_formal_input(root, trade_date)
-    codes: set[str] = set()
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        for row in csv.DictReader(stream):
-            if str(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
-                continue
-            raw = str(row.get("ts_code") or row.get("stock_code") or "").strip().upper()
-            match = re.search(r"(\d{6})", raw)
-            if match:
-                codes.add(f"A.{match.group(1)}")
-    if not codes:
-        raise RunnerError("V3 formal selection code set is empty")
-    return codes, csv_sha
+    from stage_center._runner_parts.selection_input_validation import __formal_selection_codes_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date)
 
 
 def _find_exact_file(root: Path, trade_date: str, basename: str) -> Path:
-    if root.is_file():
-        return root
-    candidates = (
-        root / basename,
-        root / "preselection_pools" / trade_date / basename,
-        root / trade_date / basename,
-        root / "universes" / trade_date / basename,
-        root / ".runtime" / "data" / "universes" / trade_date / basename,
-    )
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-    raise RunnerError(f"exact-date input missing: {basename}")
+    from stage_center._runner_parts.selection_input_validation import __find_exact_file_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date, basename)
 
 
-def _validate_hk_d1(root: Path, trade_date: str) -> tuple[Path, str]:
-    path = _find_exact_file(root, trade_date, "hkconnect_d1_top100.json")
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError("HK D1 input unreadable") from error
-    if payload.get("status") != "STRICT_0_2_READY":
-        raise RunnerError("HK D1 status must be STRICT_0_2_READY")
-    if any(payload.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise RunnerError("HK D1 safety flags must be false")
-    rows = payload.get("rows", payload.get("data"))
-    if not isinstance(rows, list) or len(rows) != 100:
-        raise RunnerError("HK D1 input must contain exactly 100 rows")
-    envelope_date = payload.get("target_date", payload.get("trade_date"))
-    if envelope_date is not None:
-        if envelope_date != trade_date:
-            raise RunnerError("HK D1 target_date mismatch")
-    else:
-        row_dates = set()
-        for row in rows:
-            if not isinstance(row, Mapping):
-                raise RunnerError("HK D1 row must be an object")
-            row_date = row.get("target_date", row.get("trade_date"))
-            if row_date is None:
-                raise RunnerError("HK D1 target_date missing")
-            row_dates.add(str(row_date))
-        if row_dates != {trade_date}:
-            raise RunnerError("HK D1 target_date mismatch")
-    for row in rows:
-        if not isinstance(row, Mapping):
-            raise RunnerError("HK D1 row must be an object")
-        row_date = row.get("target_date", row.get("trade_date"))
-        if row_date is not None and str(row_date) != trade_date:
-            raise RunnerError("HK D1 row target_date mismatch")
-    # Current authority rows identify the selected model as ``prob_active``
-    # (some historical fixtures omit the optional field). When present, bind
-    # it explicitly so a strict-status Top100 from another model cannot pass
-    # as the HK primary contract.
-    model_values = []
-    for key in ("model_id", "model", "model_name", "selected_strategy", "weekly_tuning_selected_strategy"):
-        value = payload.get(key)
-        if value not in (None, ""):
-            model_values.append(str(value))
-    for row in rows:
-        if not isinstance(row, Mapping):
-            continue
-        for key in ("model_id", "model", "model_name", "selected_strategy", "weekly_tuning_selected_strategy"):
-            value = row.get(key)
-            if value not in (None, ""):
-                model_values.append(str(value))
-    if model_values and any("prob_active" not in value.lower() for value in model_values):
-        raise RunnerError("HK D1 model identity must be prob_active")
-    return path, _sha(path)
+def _validate_hk_d1(
+    root: Path,
+    trade_date: str,
+    *,
+    preselection_source_root: Path | str | None = None,
+) -> tuple[Path, str]:
+    from stage_center._runner_parts.hk_input_validation import __validate_hk_d1_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
 
 
 def _validate_hk_full_universe(root: Path, trade_date: str) -> tuple[Path, tuple[str, ...], str]:
-    path = _find_exact_file(root, trade_date, "HK_CONNECT_FULL_MARKET.json")
+    from stage_center._runner_parts.hk_input_validation import __validate_hk_full_universe_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date)
+
+
+def _hk_selection_codes(
+    root: Path,
+    trade_date: str,
+    *,
+    preselection_source_root: Path | str | None = None,
+) -> tuple[set[str], str]:
+    from stage_center._runner_parts.hk_input_validation import __hk_selection_codes_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
+
+
+def _build_hk_d1_binding(
+    root: Path,
+    trade_date: str,
+    *,
+    preselection_source_root: Path | str | None = None,
+) -> StageUniverseBinding:
+    """Create the exact fixed D-1 membership shared by acquisition and selection."""
+    from stage_center._runner_parts.hk_input_validation import __build_hk_d1_binding_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date, preselection_source_root=preselection_source_root)
+
+
+def _build_hk_stage_binding(
+    root: Path,
+    trade_date: str,
+    *,
+    preselection_source_root: Path | str | None = None,
+) -> StageUniverseBinding:
+    """Bind the exact HK D-1 pool or its exact prior Connect observation."""
+    from infrastructure.preselection_pool_store import PreselectionSourceResolver
+
+    resolver = PreselectionSourceResolver(root, source_root=preselection_source_root)
+    research_contract = _HK_HISTORICAL_RESEARCH_CONTRACT.get()
+    if research_contract is not None:
+        if (
+            research_contract != _HK_0930_RESEARCH_CONTRACT
+            or trade_date != _HK_0930_RESEARCH_DATE
+        ):
+            raise RunnerError("HK historical research D1 binding context mismatch")
+        try:
+            with resolver.source_read_lease(trade_date, timeout_seconds=0):
+                owner = resolver.root_for_date(trade_date)
+                snapshot = resolver.read_pool_snapshot(
+                    trade_date, "hkconnect_d1_top100"
+                )
+                artifact = snapshot.get("artifact")
+                rows = (
+                    artifact.get("rows", artifact.get("data", ()))
+                    if isinstance(artifact, Mapping)
+                    else ()
+                )
+                if (
+                    snapshot.get("physical_source_root") != str(owner)
+                    or snapshot.get("artifact_raw_sha256") != _HK_0930_RESEARCH_D1_SHA256
+                    or snapshot.get("pool_sha256") != _HK_0930_RESEARCH_D1_SHA256
+                    or not isinstance(artifact, Mapping)
+                    or artifact.get("trade_date") != _HK_0930_RESEARCH_DATE
+                    or artifact.get("target_date") != _HK_0930_RESEARCH_DATE
+                    or artifact.get("signal_date") != _HK_0930_RESEARCH_SIGNAL_DATE
+                    or artifact.get("pool_id") != "hkconnect_d1_top100"
+                    or artifact.get("stage_selection_eligible") is not True
+                    or not isinstance(rows, list)
+                    or len(rows) != 100
+                    or any(
+                        not isinstance(row, Mapping)
+                        or row.get("target_date") != _HK_0930_RESEARCH_DATE
+                        or row.get("signal_date") != _HK_0930_RESEARCH_SIGNAL_DATE
+                        for row in rows
+                    )
+                ):
+                    raise RunnerError(
+                        "HK historical research D1 date, signal, or SHA mismatch"
+                    )
+
+                binding = _build_hk_d1_binding(
+                    root,
+                    trade_date,
+                    preselection_source_root=preselection_source_root,
+                )
+                artifact_codes = tuple(
+                    sorted(
+                        str(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").upper()
+                        for row in rows
+                    )
+                )
+                binding_evidence = tuple(binding.evidence)
+                if (
+                    binding.status != "READY"
+                    or binding.market != "HK_CONNECT"
+                    or binding.trade_date != trade_date
+                    or binding.sha256 != _HK_0930_RESEARCH_D1_SHA256
+                    or len(artifact_codes) != 100
+                    or len(set(artifact_codes)) != 100
+                    or set(artifact_codes) != set(binding.codes)
+                    or _evidence_value(binding_evidence, "hk_d1_json")
+                    != str(owner / str(snapshot.get("artifact_relative") or ""))
+                    or _evidence_value(binding_evidence, "hk_d1_sha256")
+                    != _HK_0930_RESEARCH_D1_SHA256
+                ):
+                    raise RunnerError(
+                        "HK historical research D1 binding identity mismatch"
+                    )
+                return replace(
+                    binding,
+                    evidence=tuple(
+                        dict.fromkeys(
+                            (
+                                *binding_evidence,
+                                "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
+                                "hk_d1_binding_mode=EXPLICIT_HK_STAGE0930_RESEARCH_TARGET_DATE",
+                                f"hk_research_contract={_HK_0930_RESEARCH_CONTRACT}",
+                                f"hk_d1_source_trade_date={_HK_0930_RESEARCH_DATE}",
+                                f"hk_d1_source_signal_date={_HK_0930_RESEARCH_SIGNAL_DATE}",
+                            )
+                        )
+                    ),
+                )
+        except RunnerError:
+            raise
+        except (OSError, ValueError) as error:
+            raise RunnerError(
+                f"HK historical research D1 source CANNOT_CONFIRM for {trade_date}: {error}"
+            ) from error
+
+    def exact_target_pool_is_absent(owner: Path) -> bool:
+        """Return true only when the exact target pool has no committed state.
+
+        A missing HK pool may use the established prior-Connect observation
+        fallback. Any target-specific file, manifest entry, or pending journal
+        means a target publication exists or is in progress, so it must pass
+        strict validation instead of being hidden by that fallback.
+        """
+        store = resolver._stores.get(owner)
+        if store is None:
+            raise RunnerError("HK exact target-pool owner store CANNOT_CONFIRM")
+        pool_id = "hkconnect_d1_top100"
+        artifact_relative, receipt_relative = store._relative(trade_date, pool_id)
+        manifest_relative = f"preselection_pools/{trade_date}/manifest.json"
+        pending_relative = store._pending_relative(
+            trade_date=trade_date,
+            pool_id=pool_id,
+        )
+
+        def read_if_present(relative: str) -> bytes | None:
+            try:
+                return store._io.read_bytes(relative)
+            except FileNotFoundError:
+                return None
+
+        if read_if_present(pending_relative) is not None:
+            raise RunnerError("HK exact target-pool pending commit CANNOT_CONFIRM")
+
+        artifact_bytes = read_if_present(artifact_relative)
+        receipt_bytes = read_if_present(receipt_relative)
+        manifest_bytes = read_if_present(manifest_relative)
+        if artifact_bytes is not None or receipt_bytes is not None:
+            return False
+        if manifest_bytes is None:
+            return True
+
+        try:
+            manifest = json.loads(manifest_bytes.decode("utf-8"))
+            canonical_manifest = json.dumps(
+                manifest,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise RunnerError("HK exact target-pool manifest CANNOT_CONFIRM") from error
+        if not isinstance(manifest, Mapping) or manifest_bytes != canonical_manifest:
+            raise RunnerError("HK exact target-pool manifest CANNOT_CONFIRM")
+        if pool_id in manifest:
+            raise RunnerError("HK exact target-pool manifest declares missing trio CANNOT_CONFIRM")
+        return True
+
+    open_states = {
+        TradingDayState.FULL_TRADING_DAY,
+        TradingDayState.HALF_TRADING_DAY_AM,
+    }
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError("HK full universe unreadable") from error
-    if payload.get("trade_date") != trade_date or payload.get("market") != "HK_CONNECT" or payload.get("scope") != "FULL_MARKET":
-        raise RunnerError("HK full universe identity/scope mismatch")
-    if any(payload.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise RunnerError("HK full universe safety flag must be false")
-    codes = payload.get("codes")
-    if not isinstance(codes, list) or len(codes) < 500 or len(set(codes)) != len(codes) or any(not re.fullmatch(r"HK\.\d{5}", str(code)) for code in codes):
-        raise RunnerError("HK full universe must contain unique 500+ HK codes")
-    digest = hashlib.sha256(json.dumps(codes, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    if payload.get("codes_sha256") != digest:
-        raise RunnerError("HK full universe codes SHA mismatch")
-    return path, tuple(str(code) for code in codes), _sha(path)
+        target_states = resolve_market_states(trade_date)
+        securities_state = target_states["hk_securities"]
+        connect_state = target_states["hk_connect"]
+        if securities_state is TradingDayState.UNKNOWN or connect_state is TradingDayState.UNKNOWN:
+            raise RunnerError("HK D1 target calendar CANNOT_CONFIRM")
+        if securities_state not in open_states:
+            raise RunnerError(
+                f"HK D1 binding unavailable: HK securities market is closed on {trade_date}"
+            )
 
+        afterfact_contract = _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get()
+        if (
+            afterfact_contract is not None
+            and connect_state is TradingDayState.NON_TRADING_DAY
+        ):
+            # A manifest-bound historical observation uses the exact target
+            # pool when the HK securities session was open. That pool may
+            # carry split-date provenance (Connect eligibility date plus the
+            # most recent HK securities price date), which _build_hk_d1_binding
+            # validates. Ordinary and live closed-Connect selection keeps its
+            # existing prior-Connect binding below.
+            try:
+                with resolver.source_read_lease(trade_date, timeout_seconds=0):
+                    owner = resolver.root_for_date(trade_date)
+                    snapshot = resolver.read_pool_snapshot(
+                        trade_date, "hkconnect_d1_top100"
+                    )
+                    binding = _build_hk_d1_binding(
+                        root,
+                        trade_date,
+                        preselection_source_root=preselection_source_root,
+                    )
+                    artifact_path = owner / str(snapshot.get("artifact_relative") or "")
+                    if (
+                        snapshot.get("physical_source_root") != str(owner)
+                        or binding.status != "READY"
+                        or binding.market != "HK_CONNECT"
+                        or binding.trade_date != trade_date
+                        or binding.role != "HK_CONNECT_D1_TOP100"
+                        or binding.sha256 != snapshot.get("artifact_raw_sha256")
+                        or _evidence_value(binding.evidence, "hk_d1_json") != str(artifact_path)
+                        or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+                        or _evidence_value(binding.evidence, "hk_d1_membership") != "exact_date_top100"
+                    ):
+                        raise RunnerError(
+                            "HK after-fact observation exact target-pool binding mismatch"
+                        )
+                    confirmed = resolver.read_pool_snapshot(
+                        trade_date, "hkconnect_d1_top100"
+                    )
+                    identity_keys = (
+                        "artifact_raw_sha256",
+                        "manifest_raw_sha256",
+                        "receipt_raw_sha256",
+                        "physical_source_root",
+                        "artifact_relative",
+                        "manifest_relative",
+                        "receipt_relative",
+                    )
+                    if (
+                        any(confirmed.get(key) != snapshot.get(key) for key in identity_keys)
+                        or confirmed.get("artifact") != snapshot.get("artifact")
+                    ):
+                        raise RunnerError(
+                            "HK after-fact observation exact target-pool trio changed"
+                        )
+                    return replace(
+                        binding,
+                        evidence=tuple(
+                            dict.fromkeys(
+                                (
+                                    *binding.evidence,
+                                    "hk_d1_binding_mode=MANIFEST_BOUND_AFTERFACT_EXACT_TARGET_DATE",
+                                    f"hk_afterfact_contract={afterfact_contract}",
+                                )
+                            )
+                        ),
+                    )
+            except RunnerError:
+                raise
+            except (OSError, ValueError) as error:
+                raise RunnerError(
+                    f"HK after-fact observation exact target D1 CANNOT_CONFIRM for {trade_date}: {error}"
+                ) from error
 
-def _hk_selection_codes(root: Path, trade_date: str) -> tuple[set[str], str]:
-    path, path_sha = _validate_hk_d1(root, trade_date)
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    rows = payload.get("rows", payload.get("data"))
-    codes: set[str] = set()
-    for row in rows:
-        if not isinstance(row, Mapping):
-            continue
-        raw = str(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").strip().upper()
-        match = re.search(r"(?:HK\.)?(\d{5})", raw)
-        if match:
-            codes.add(f"HK.{match.group(1)}")
-    if len(codes) != 100:
-        raise RunnerError("HK D1 selection code set must contain exactly 100 unique codes")
-    return codes, path_sha
+        exact_target_failure: str | None = None
+        if connect_state is TradingDayState.NON_TRADING_DAY:
+            # When HK securities are open but Connect is closed, a verified
+            # exact-date pool is the research observation for this HK session.
+            # Keep the observation explicitly research-only; this does not
+            # make Connect open or alter any BUY gate. Only a truly absent
+            # exact pool may use the prior-Connect observation path below;
+            # present but invalid target state remains CANNOT_CONFIRM.
+            exact_target_missing = False
+            try:
+                with resolver.source_read_lease(trade_date, timeout_seconds=0):
+                    owner = resolver.root_for_date(trade_date)
+                    exact_target_missing = exact_target_pool_is_absent(owner)
+                    if exact_target_missing:
+                        raise FileNotFoundError("HK exact target D1 pool is absent")
+                    snapshot = resolver.read_pool_snapshot(
+                        trade_date, "hkconnect_d1_top100"
+                    )
+                    binding = _build_hk_d1_binding(
+                        root,
+                        trade_date,
+                        preselection_source_root=preselection_source_root,
+                    )
+                    artifact = snapshot.get("artifact")
+                    rows = (
+                        artifact.get("rows", artifact.get("data", ()))
+                        if isinstance(artifact, Mapping)
+                        else ()
+                    )
+                    artifact_path = owner / str(snapshot.get("artifact_relative") or "")
+                    signal_dates = {
+                        str(row.get("signal_date") or "")
+                        for row in rows
+                        if isinstance(row, Mapping)
+                    } if isinstance(rows, list) else set()
+                    if (
+                        snapshot.get("physical_source_root") != str(owner)
+                        or binding.status != "READY"
+                        or binding.market != "HK_CONNECT"
+                        or binding.trade_date != trade_date
+                        or binding.role != "HK_CONNECT_D1_TOP100"
+                        or binding.sha256 != snapshot.get("artifact_raw_sha256")
+                        or _evidence_value(binding.evidence, "hk_d1_json") != str(artifact_path)
+                        or _evidence_value(binding.evidence, "hk_d1_sha256") != binding.sha256
+                        or not isinstance(artifact, Mapping)
+                        or artifact.get("trade_date") != trade_date
+                        or artifact.get("target_date") != trade_date
+                        or artifact.get("pool_id") != "hkconnect_d1_top100"
+                        or artifact.get("stage_selection_eligible") is not True
+                        or not isinstance(rows, list)
+                        or len(rows) != 100
+                        or len(signal_dates) != 1
+                        or any(
+                            not isinstance(row, Mapping)
+                            or row.get("trade_date", trade_date) != trade_date
+                            or row.get("target_date", trade_date) != trade_date
+                            for row in rows
+                        )
+                    ):
+                        raise RunnerError(
+                            "HK exact target-date research observation identity mismatch"
+                        )
+                    confirmed = resolver.read_pool_snapshot(
+                        trade_date, "hkconnect_d1_top100"
+                    )
+                    identity_keys = (
+                        "artifact_raw_sha256",
+                        "manifest_raw_sha256",
+                        "receipt_raw_sha256",
+                        "physical_source_root",
+                        "artifact_relative",
+                        "manifest_relative",
+                        "receipt_relative",
+                    )
+                    if (
+                        any(confirmed.get(key) != snapshot.get(key) for key in identity_keys)
+                        or confirmed.get("artifact") != artifact
+                    ):
+                        raise RunnerError(
+                            "HK exact target-date research observation trio changed"
+                        )
+                    source_signal_date = next(iter(signal_dates))
+                    provenance = artifact.get("historical_provenance")
+                    eligibility_source_date = (
+                        str(provenance.get("eligibility_source_date") or "")
+                        if isinstance(provenance, Mapping)
+                        else source_signal_date
+                    )
+                    evidence = [
+                        *binding.evidence,
+                        f"hk_d1_binding_mode=EXACT_TARGET_DATE_RESEARCH_OBSERVATION",
+                        f"hk_d1_source_trade_date={trade_date}",
+                        f"hk_d1_source_signal_date={source_signal_date}",
+                        f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
+                        f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
+                        f"hk_observation_trade_date={trade_date}",
+                        f"hk_observation_eligibility_source_date={eligibility_source_date}",
+                        f"hk_observation_price_signal_date={source_signal_date}",
+                        "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
+                        "hk_observation_scope=RESEARCH_ONLY",
+                        "hk_observation_capture_time=CANNOT_CONFIRM",
+                        "hk_observation_pit_status=CANNOT_CONFIRM",
+                        "production_allowed=false",
+                        "buy_gate_updated=false",
+                        "orders_sent=false",
+                    ]
+                    for evidence_key, payload_key in (
+                        ("hk_d1_producer_run_id", "source_run_id"),
+                        ("hk_d1_producer_artifact_sha256", "source_sha256"),
+                        ("hk_d1_producer_manifest_sha256", "source_manifest_sha256"),
+                        ("hk_d1_producer_receipt_sha256", "source_receipt_sha256"),
+                    ):
+                        value = artifact.get(payload_key)
+                        if isinstance(value, str) and value:
+                            evidence.append(f"{evidence_key}={value}")
+                    if isinstance(provenance, Mapping):
+                        captured_at = provenance.get("eligibility_source_captured_at")
+                        if isinstance(captured_at, str) and captured_at:
+                            evidence.append(
+                                f"hk_observation_eligibility_source_captured_at={captured_at}"
+                            )
+                    return replace(
+                        binding,
+                        evidence=tuple(dict.fromkeys(evidence)),
+                    )
+            except (RunnerError, OSError, ValueError) as error:
+                if exact_target_missing and isinstance(error, FileNotFoundError):
+                    exact_target_failure = type(error).__name__
+                else:
+                    raise RunnerError(
+                        f"HK exact target D1 source CANNOT_CONFIRM for {trade_date}: {error}"
+                    ) from error
+
+        if connect_state in open_states:
+            # An open Connect date always binds only its own exact-date pool.
+            with resolver.source_read_lease(trade_date, timeout_seconds=0):
+                return _build_hk_d1_binding(
+                    root,
+                    trade_date,
+                    preselection_source_root=preselection_source_root,
+                )
+
+        if connect_state is not TradingDayState.NON_TRADING_DAY:
+            raise RunnerError("HK D1 Connect calendar CANNOT_CONFIRM")
+
+        def previous_session(market: str) -> str:
+            cursor = datetime.strptime(trade_date, "%Y%m%d")
+            for _ in range(45):
+                cursor -= timedelta(days=1)
+                candidate_date = cursor.strftime("%Y%m%d")
+                state = resolve_market_states(candidate_date)[market]
+                if state is TradingDayState.UNKNOWN:
+                    raise RunnerError("HK D1 previous-session calendar CANNOT_CONFIRM")
+                if state in open_states:
+                    return candidate_date
+            raise RunnerError("HK D1 previous-session calendar CANNOT_CONFIRM")
+
+        price_signal_date = previous_session("hk_securities")
+        source_date = previous_session("hk_connect")
+        if source_date >= trade_date:
+            raise RunnerError("HK D1 prior Connect session identity CANNOT_CONFIRM")
+
+        with resolver.source_read_lease(source_date, timeout_seconds=0):
+            owner = resolver.root_for_date(source_date)
+            snapshot = resolver.read_pool_snapshot(
+                source_date, "hkconnect_d1_top100"
+            )
+            if snapshot.get("physical_source_root") != str(owner):
+                raise RunnerError("HK D1 prior source owner changed during binding")
+            source_binding = _build_hk_d1_binding(
+                root,
+                source_date,
+                preselection_source_root=preselection_source_root,
+            )
+            source_sha = str(snapshot.get("artifact_raw_sha256") or "")
+            source_path = owner / str(snapshot.get("artifact_relative") or "")
+            if (
+                source_binding.sha256 != source_sha
+                or _evidence_value(source_binding.evidence, "hk_d1_json") != str(source_path)
+                or _evidence_value(source_binding.evidence, "hk_d1_sha256") != source_sha
+            ):
+                raise RunnerError("HK D1 prior artifact identity changed during binding")
+
+            confirmed = resolver.read_pool_snapshot(
+                source_date, "hkconnect_d1_top100"
+            )
+            identity_keys = (
+                "artifact_raw_sha256",
+                "manifest_raw_sha256",
+                "receipt_raw_sha256",
+                "physical_source_root",
+                "artifact_relative",
+                "manifest_relative",
+                "receipt_relative",
+            )
+            if (
+                any(confirmed.get(key) != snapshot.get(key) for key in identity_keys)
+                or confirmed.get("artifact") != snapshot.get("artifact")
+            ):
+                raise RunnerError("HK D1 prior source trio changed during binding")
+
+            source_rows = snapshot["artifact"].get(
+                "rows", snapshot["artifact"].get("data", ())
+            )
+            source_signal_dates = {
+                str(row.get("signal_date") or "")
+                for row in source_rows
+                if isinstance(row, Mapping)
+            }
+            if len(source_signal_dates) != 1:
+                raise RunnerError("HK D1 prior signal date identity CANNOT_CONFIRM")
+            source_signal_date = next(iter(source_signal_dates))
+            if (
+                not re.fullmatch(r"\d{8}", source_signal_date)
+                or source_signal_date >= source_date
+            ):
+                raise RunnerError("HK D1 prior signal date is outside its PIT boundary")
+
+            prior_binding = StageUniverseBinding.ready(
+                market="HK_CONNECT",
+                trade_date=trade_date,
+                role="HK_CONNECT_D1_TOP100_PRIOR_VERIFIED_OBSERVATION",
+                codes=source_binding.codes,
+                source_run_id=f"hk-d1-{source_date}-{source_sha[:16]}",
+                sha256=source_sha,
+                evidence=(
+                    *source_binding.evidence,
+                    f"hk_d1_source_trade_date={source_date}",
+                    f"hk_d1_source_signal_date={source_signal_date}",
+                    f"hk_d1_source_manifest_sha256={snapshot['manifest_raw_sha256']}",
+                    f"hk_d1_source_receipt_sha256={snapshot['receipt_raw_sha256']}",
+                    f"hk_observation_trade_date={trade_date}",
+                    f"hk_observation_eligibility_source_date={source_date}",
+                    f"hk_observation_price_signal_date={price_signal_date}",
+                    "hk_observation_mode=HK_SECURITIES_OPEN_HK_CONNECT_CLOSED",
+                ),
+            )
+            if exact_target_failure is not None:
+                # The initial absence probe is not sufficient to justify a
+                # prior-date fallback: a writer may commit the exact target
+                # after that probe and before the prior pool is ready. Recheck
+                # under the same owner lock used by the materializer, and make
+                # the fallback decision before releasing that lease.
+                from infrastructure import preselection_pool_store as _pool_store_api
+                from infrastructure import preselection_pool_sources as _pool_sources
+
+                with _pool_sources.source_read_lease(
+                    resolver,
+                    trade_date,
+                    timeout_seconds=0,
+                    lock_primary_owner=True,
+                    _api=_pool_store_api,
+                ):
+                    final_owner = resolver.root_for_date(trade_date)
+                    if not exact_target_pool_is_absent(final_owner):
+                        raise RunnerError(
+                            "HK exact target pool appeared during prior fallback binding CANNOT_CONFIRM"
+                        )
+                    return replace(
+                        prior_binding,
+                        evidence=tuple(
+                            dict.fromkeys(
+                                (
+                                    *prior_binding.evidence,
+                                    "hk_d1_binding_mode=PRIOR_CONNECT_DATE_FALLBACK",
+                                    "hk_d1_exact_target_status=CANNOT_CONFIRM",
+                                    f"hk_d1_exact_target_error_type={exact_target_failure}",
+                                    "hk_observation_scope=RESEARCH_ONLY",
+                                    "production_allowed=false",
+                                    "buy_gate_updated=false",
+                                    "orders_sent=false",
+                                )
+                            )
+                        ),
+                    )
+            return prior_binding
+    except RunnerError:
+        raise
+    except (OSError, ValueError) as error:
+        raise RunnerError(
+            f"HK D1 source read lease CANNOT_CONFIRM for {trade_date}: {error}"
+        ) from error
 
 
 def _validate_hk_second_filter(root: Path, trade_date: str) -> tuple[Path, Path, str]:
-    stem = f"hkconnect_0920_auction_second_filter_{trade_date}"
-    if root.is_file():
-        csv_path = root
-        acceptance_path = root.with_suffix(".acceptance.json")
-    else:
-        candidates = (
-            root,
-            root / trade_date,
-            root / "hkconnect_0920_auction_second_filter",
-        )
-        csv_path = next((item / f"{stem}.csv" for item in candidates if (item / f"{stem}.csv").is_file()), None)
-        acceptance_path = next((item / f"{stem}.acceptance.json" for item in candidates if (item / f"{stem}.acceptance.json").is_file()), None)
-        if csv_path is None or acceptance_path is None:
-            raise RunnerError("exact-date HK 09:20 second-filter CSV/acceptance missing")
-    if not csv_path.is_file() or not acceptance_path.is_file():
-        raise RunnerError("exact-date HK 09:20 second-filter pair incomplete")
-    try:
-        acceptance = json.loads(acceptance_path.read_text(encoding="utf-8-sig"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError("HK second-filter acceptance unreadable") from error
-    if acceptance.get("target_date") != trade_date or acceptance.get("status") != "AUCTION_SECOND_FILTER_READY":
-        raise RunnerError("HK second-filter identity/status mismatch")
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        rows = list(csv.DictReader(stream))
-    if int(acceptance.get("row_count", -1)) != len(rows):
-        raise RunnerError("HK second-filter row_count mismatch")
-    declared_sha = acceptance.get("csv_sha256")
-    if not isinstance(declared_sha, str) or re.fullmatch(r"[0-9a-fA-F]{64}", declared_sha) is None:
-        raise RunnerError("HK second-filter csv_sha256 must be a 64-hex digest")
-    actual_sha = _sha(csv_path)
-    if declared_sha.lower() != actual_sha:
-        raise RunnerError("HK second-filter CSV SHA mismatch")
-    if acceptance.get("production_allowed") is not False:
-        raise RunnerError("HK second-filter production_allowed must be false")
-    authority_v2 = acceptance.get("schema_version") == "hkconnect_0920_auction_second_filter.v2"
-    # The historical v2 authority predates the envelope's explicit order and
-    # buy-gate keys.  Its equivalent safety proof is shadow_only=true; the
-    # stage-center envelope adds all three canonical false flags on publish.
-    if not authority_v2 and acceptance.get("orders_sent") is not False:
-        raise RunnerError("HK second-filter orders_sent must be false")
-    gate_keys = [key for key in ("buy_gate_updated", "buy_gate_changed") if key in acceptance]
-    if gate_keys:
-        if any(acceptance.get(key) is not False for key in gate_keys):
-            raise RunnerError("HK second-filter buy gate safety flag must be explicitly false")
-    elif authority_v2:
-        if acceptance.get("shadow_only") is not True:
-            raise RunnerError("HK second-filter shadow_only must be true for authority v2")
-    else:
-        raise RunnerError("HK second-filter buy gate safety flag must be explicitly false")
-    return csv_path, acceptance_path, actual_sha
+    from stage_center._runner_parts.hk_input_validation import __validate_hk_second_filter_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date)
 
 
 def _hk_second_filter_codes(root: Path, trade_date: str) -> tuple[set[str], str]:
-    csv_path, _acceptance_path, csv_sha = _validate_hk_second_filter(root, trade_date)
-    codes: set[str] = set()
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        for row in csv.DictReader(stream):
-            raw = str(row.get("code") or row.get("ts_code") or row.get("stock_code") or "").strip().upper()
-            match = re.search(r"(?:HK\.)?(\d{5})", raw)
-            if match:
-                codes.add(f"HK.{match.group(1)}")
-    if not codes:
-        raise RunnerError("HK second-filter selection code set is empty")
-    return codes, csv_sha
+    from stage_center._runner_parts.hk_input_validation import __hk_second_filter_codes_body as _v4_impl
+    return _v4_impl(globals(), root, trade_date)
 
 
 def _validate_exact_selection_inputs(
@@ -662,6 +1475,7 @@ def _validate_exact_selection_inputs(
     stage_id: str,
     *,
     market: str | None = None,
+    hk_binding: StageUniverseBinding | None = None,
 ) -> tuple[str, ...]:
     """Validate only the exact inputs owned by one market lane.
 
@@ -671,53 +1485,26 @@ def _validate_exact_selection_inputs(
     is optional for compatibility with callers that want the whole-stage
     aggregate validation; the runner itself always validates per market.
     """
-    evidence: list[str] = []
-    if config.injected_test_mode:
-        return tuple(evidence)
-    requested = (market,) if market is not None else _stage_markets(stage_id)
-    unknown = set(requested) - {"A_SHARE", "HK_CONNECT"}
-    if unknown:
-        raise RunnerError(f"unknown exact-input market(s): {sorted(unknown)!r}")
-    if "A_SHARE" in requested:
-        if stage_id in V3_RESEARCH_STAGES and config.v3_research_root is None:
-            raise RunnerError(
-                f"production V3 research root is required for {stage_id} A_SHARE"
-            )
-        if stage_id in V3_RESEARCH_STAGES:
-            evidence.append(f"v3_research_root={config.v3_research_root}")
-        if config.v3_formal_root is None:
-            raise RunnerError("production V3 formal root is required for A_SHARE")
-        formal_csv, formal_manifest, formal_sha = _validate_formal_input(config.v3_formal_root, trade_date)
-        evidence.extend((f"v3_formal_csv={formal_csv}", f"v3_formal_manifest={formal_manifest}", f"v3_formal_csv_sha256={formal_sha}"))
-        if config.a_research_panel_receipt_root is not None:
-            _mapping, panel_evidence = _a_selector_name_map(
-                candidate_root=config.candidate_acquisition_root,
-                research_panel_receipt_root=config.a_research_panel_receipt_root,
-                trade_date=trade_date,
-            )
-            evidence.extend(panel_evidence)
-    if "HK_CONNECT" in requested:
-        if config.hk_d1_root is None:
-            raise RunnerError("production HK D1 root is required")
-        if config.hk_full_universe_root is None:
-            raise RunnerError("production HK full-universe root is required")
-        full_path, _full_codes, full_sha = _validate_hk_full_universe(config.hk_full_universe_root, trade_date)
-        d1_path, d1_sha = _validate_hk_d1(config.hk_d1_root, trade_date)
-        evidence.extend((f"hk_full_universe_json={full_path}", f"hk_full_universe_sha256={full_sha}", f"hk_d1_json={d1_path}", f"hk_d1_sha256={d1_sha}"))
-        # The opening auction is the only stage whose membership is bound to
-        # the exact 09:20 second-filter.  Later minute stages use the verified
-        # D-1 membership and live full-market snapshot, so they must not be
-        # blocked by a missing pre-open artifact.
-        if stage_id == "STAGE_0925":
-            if config.hk_second_filter_root is None:
-                raise RunnerError("production HK second-filter root is required for STAGE_0925")
-            second_csv, second_acceptance, second_sha = _validate_hk_second_filter(config.hk_second_filter_root, trade_date)
-            evidence.extend((f"hk_second_filter_csv={second_csv}", f"hk_second_filter_acceptance={second_acceptance}", f"hk_second_filter_csv_sha256={second_sha}"))
-        if stage_id == "STAGE_1545_1555":
-            if config.hk_stage_replay_root is None:
-                raise RunnerError("production HK Stage8 replay root is required for STAGE_1545_1555")
-            evidence.append(f"hk_stage_replay_root={config.hk_stage_replay_root}")
-    return tuple(evidence)
+    from stage_center._runner_parts.selection_input_validation import __validate_exact_selection_inputs_body as _v4_impl
+    return _v4_impl(globals(), config, trade_date, stage_id, market=market, hk_binding=hk_binding)
+
+
+def _attach_stage_research_roots(
+    builder_raw: dict[str, Any],
+    config: RunnerConfig,
+    stage_id: str,
+    *,
+    market: str,
+) -> None:
+    """Bind the hourly archive and morning-news owner roots independently."""
+    if config.injected_test_mode or market != "A_SHARE" or stage_id not in V3_RESEARCH_STAGES:
+        return
+    if config.v4_research_data_root is None:
+        raise RunnerError(f"V4 research data root is required for {stage_id} A_SHARE")
+    if config.v4_morning_news_root is None:
+        raise RunnerError(f"V4 morning-news root is required for {stage_id} A_SHARE")
+    builder_raw["_v4_research_data_root"] = config.v4_research_data_root
+    builder_raw["_v4_morning_news_root"] = config.v4_morning_news_root
 
 
 def _normal_code(market: str, value: Any) -> str:
@@ -743,17 +1530,8 @@ def _selection_source(
     market: str,
     membership: set[str] | None,
 ) -> SourceResult:
-    if membership is None:
-        return source
-    rows = tuple(row for row in source.rows if _normal_code(market, getattr(row, "get", lambda *_: None)("code")) in membership)
-    observed = {_normal_code(market, row.get("code")) for row in source.rows}
-    missing = tuple(sorted(membership - observed))
-    status = source.status
-    if not rows:
-        status = "CANNOT_CONFIRM"
-    elif status == "READY" and (missing or len(rows) < len(membership)):
-        status = "PARTIAL_WITH_ROWS"
-    return replace(source, status=status, rows=rows, requested_rows=len(membership), missing_symbols=tuple(dict.fromkeys((*source.missing_symbols, *missing))), cannot_confirm=tuple(source.cannot_confirm) + (("SELECTION_MEMBERSHIP_INTERSECTION_EMPTY",) if not rows else ()))
+    from stage_center._runner_parts.selection_input_validation import __selection_source_body as _v4_impl
+    return _v4_impl(globals(), source, market=market, membership=membership)
 
 
 def _a_d1_premarket_pool_path(candidate_root: Path, trade_date: str) -> Path:
@@ -786,144 +1564,8 @@ def _a_selector_name_map(
     trade_date: str,
 ) -> tuple[dict[str, str], tuple[str, ...]]:
     """Read the exact signal-date A selector panel, fail-closed on drift."""
-    pool_path = _a_d1_premarket_pool_path(candidate_root, trade_date)
-    try:
-        pool = json.loads(pool_path.read_text(encoding="utf-8-sig"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError("A D-1 premarket pool unreadable") from error
-    if not isinstance(pool, Mapping) or pool.get("target_date") != trade_date:
-        raise RunnerError("A D-1 premarket pool target_date mismatch")
-    if pool.get("status") != "V192_CANDIDATE_READY" or pool.get("stage_selection_eligible") is not True:
-        raise RunnerError("A D-1 premarket pool status/eligibility mismatch")
-    if any(pool.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise RunnerError("A D-1 premarket pool safety flags must be false")
-    pool_rows = pool.get("rows", pool.get("data"))
-    if not isinstance(pool_rows, list) or not pool_rows:
-        raise RunnerError("A D-1 premarket pool rows missing")
-    signal_dates = {
-        str(row.get("signal_date") or row.get("trade_date") or "").replace("-", "")
-        for row in pool_rows
-        if isinstance(row, Mapping)
-    }
-    signal_dates.discard("")
-    if len(signal_dates) != 1:
-        raise RunnerError("A D-1 premarket pool signal_date is ambiguous")
-    signal_date = next(iter(signal_dates))
-    if not re.fullmatch(r"\d{8}", signal_date) or signal_date >= trade_date:
-        raise RunnerError("A D-1 premarket pool signal_date is not prior to target")
-    receipt_path = _a_research_receipt_path(research_panel_receipt_root, signal_date)
-    try:
-        receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
-    except (OSError, UnicodeError, ValueError) as error:
-        raise RunnerError("A research-panel receipt unreadable") from error
-    if not isinstance(receipt, Mapping):
-        raise RunnerError("A research-panel receipt status must be READY")
-    if receipt.get("status") == "READY":
-        receipt_payload: Mapping[str, Any] = receipt
-        receipt_date = str(receipt.get("target_date") or "").replace("-", "")
-        if receipt_date != signal_date:
-            raise RunnerError("A research-panel receipt target_date mismatch")
-    elif receipt.get("status") == "ATTEMPTED":
-        receipt_date = str(receipt.get("target_date") or "").replace("-", "")
-        if receipt_date != signal_date:
-            raise RunnerError("A research-panel receipt target_date mismatch")
-        lanes = receipt.get("lanes")
-        receipt_payload = lanes.get("A") if isinstance(lanes, Mapping) else None
-        if not isinstance(receipt_payload, Mapping) or receipt_payload.get("status") != "READY":
-            raise RunnerError("A research-panel A lane status must be READY")
-        lane_date = str(receipt_payload.get("target_date") or "").replace("-", "")
-        if lane_date != signal_date:
-            raise RunnerError("A research-panel A lane target_date mismatch")
-    else:
-        raise RunnerError("A research-panel receipt status must be READY")
-    if any(receipt.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise RunnerError("A research-panel receipt safety flags must be false")
-    if any(receipt_payload.get(flag) is not False for flag in SAFETY_FLAGS):
-        raise RunnerError("A research-panel A lane safety flags must be false")
-    formula = receipt_payload.get("formula")
-    if not isinstance(formula, Mapping) or formula.get("status") != "READY":
-        raise RunnerError("A research-panel formula status must be READY")
-    formula_date = str(formula.get("target_date") or "").replace("-", "")
-    if formula_date != signal_date:
-        raise RunnerError("A research-panel formula target_date mismatch")
-    selector_value = formula.get("selector")
-    if not isinstance(selector_value, str) or not selector_value.startswith("/"):
-        raise RunnerError("A research-panel selector parquet path missing")
-    selector_path = Path(selector_value).expanduser().resolve()
-    receipt_root = Path(research_panel_receipt_root).expanduser().resolve()
-    if receipt_root.name == "receipts" and receipt_root.parent.name == "research_panel_daily":
-        authority_root = receipt_root.parent.parent
-    else:
-        authority_root = receipt_root.parent
-    try:
-        selector_path.relative_to(authority_root)
-    except ValueError as error:
-        raise RunnerError("A research-panel selector parquet outside authority root") from error
-    if not selector_path.is_file():
-        raise RunnerError("A research-panel selector parquet missing")
-    declared_sha = str(
-        formula.get("selector_sha256")
-        or receipt_payload.get("selector_sha256")
-        or receipt.get("selector_sha256")
-        or ""
-    )
-    if declared_sha:
-        if not re.fullmatch(r"[0-9a-fA-F]{64}", declared_sha) or _sha(selector_path).lower() != declared_sha.lower():
-            raise RunnerError("A research-panel selector parquet SHA mismatch")
-    try:
-        import pyarrow.parquet as parquet
-
-        schema = parquet.read_schema(selector_path)
-    except Exception as error:
-        raise RunnerError("A research-panel selector parquet unreadable") from error
-    required = {"trade_date", "name"}
-    column_names = set(schema.names)
-    if not required.issubset(column_names) or not ({"ts_code", "raw_code"} & column_names):
-        raise RunnerError("A research-panel selector parquet name schema missing")
-    code_columns = [column for column in ("ts_code", "raw_code") if column in column_names]
-    read_columns = ["trade_date", *code_columns, "name"]
-    if "stock_name" in column_names:
-        read_columns.append("stock_name")
-    try:
-        table = parquet.read_table(
-            selector_path,
-            columns=read_columns,
-            filters=[("trade_date", "=", signal_date)],
-        )
-        records = table.to_pylist()
-    except Exception as error:
-        raise RunnerError("A research-panel selector parquet unreadable") from error
-    if not records:
-        raise RunnerError("A research-panel selector parquet is empty")
-    panel_dates = {str(row.get("trade_date") or "").replace("-", "") for row in records}
-    if panel_dates != {signal_date}:
-        raise RunnerError("A research-panel selector parquet max trade_date mismatch")
-    mapping: dict[str, str] = {}
-    for row in records:
-        row_date = str(row.get("trade_date") or "").replace("-", "")
-        if row_date != signal_date:
-            continue
-        raw_code = row.get("ts_code") or row.get("raw_code")
-        code = _normal_code("A_SHARE", raw_code)
-        name = str(row.get("name") or row.get("stock_name") or "").strip()
-        if not code or not name or name == code or name == str(raw_code or "").strip():
-            continue
-        previous = mapping.get(code)
-        if previous is not None and previous != name:
-            raise RunnerError(f"A research-panel selector name conflict: {code}")
-        mapping[code] = name
-    if not mapping:
-        raise RunnerError("A research-panel selector code-name map is empty")
-    evidence = (
-        f"a_d1_premarket_pool_json={pool_path}",
-        f"a_d1_premarket_pool_sha256={_sha(pool_path)}",
-        f"a_research_panel_receipt={receipt_path}",
-        f"a_research_panel_receipt_sha256={_sha(receipt_path)}",
-        f"a_research_panel_signal_date={signal_date}",
-        f"a_research_panel_selector={selector_path}",
-        f"a_research_panel_selector_sha256={_sha(selector_path)}",
-    )
-    return mapping, evidence
+    from stage_center._runner_parts.a_name_authority import __a_selector_name_map_body as _v4_impl
+    return _v4_impl(globals(), candidate_root=candidate_root, research_panel_receipt_root=research_panel_receipt_root, trade_date=trade_date)
 
 
 def _attach_a_name_authority(
@@ -933,46 +1575,8 @@ def _attach_a_name_authority(
     research_panel_receipt_root: Path,
     trade_date: str,
 ) -> SourceResult:
-    mapping, evidence = _a_selector_name_map(
-        candidate_root=Path(candidate_root),
-        research_panel_receipt_root=Path(research_panel_receipt_root),
-        trade_date=trade_date,
-    )
-    enriched: list[dict[str, Any]] = []
-    fallback_codes: list[str] = []
-    for raw in source.rows:
-        merged = dict(raw)
-        code = _normal_code("A_SHARE", raw.get("code"))
-        name = mapping.get(code)
-        if not name:
-            # A missing authority label is not a display name. Keep the
-            # candidate and its ordering fields, but clear provider/code
-            # placeholders so downstream consumers can fail closed.
-            name = None
-            fallback_codes.append(code)
-        merged["code"] = code
-        merged["name"] = name
-        merged["stock_name"] = name
-        enriched.append(merged)
-    if fallback_codes:
-        evidence = (*evidence, *(
-            f"name_authority_missing={code}" for code in sorted(set(fallback_codes))
-        ))
-    cannot_confirm = source.cannot_confirm
-    status = source.status
-    if fallback_codes:
-        cannot_confirm = tuple(dict.fromkeys((*cannot_confirm, "NAME_AUTHORITY_CODE_NOT_FOUND")))
-        if not enriched or source.status == "CANNOT_CONFIRM":
-            status = "CANNOT_CONFIRM"
-        elif source.status == "READY":
-            status = "PARTIAL_WITH_ROWS"
-    return replace(
-        source,
-        status=status,
-        rows=tuple(enriched),
-        cannot_confirm=cannot_confirm,
-        source_evidence=tuple(dict.fromkeys((*source.source_evidence, *evidence))),
-    )
+    from stage_center._runner_parts.a_name_authority import __attach_a_name_authority_body as _v4_impl
+    return _v4_impl(globals(), source, candidate_root=candidate_root, research_panel_receipt_root=research_panel_receipt_root, trade_date=trade_date)
 
 
 def _attach_a_authority(source: SourceResult, *, formal_root: Path, trade_date: str) -> SourceResult:
@@ -983,61 +1587,8 @@ def _attach_a_authority(source: SourceResult, *, formal_root: Path, trade_date: 
     verified formal CSV instead of inferred from the 125-code acquisition
     universe or defaulted to zero.
     """
-    csv_path, _manifest_path, _csv_sha = _validate_formal_input(formal_root, trade_date)
-    authority: dict[str, Mapping[str, Any]] = {}
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-        for row in csv.DictReader(stream):
-            if str(row.get("eligible_for_formal_pool") or "").lower() not in {"true", "1", "yes"}:
-                continue
-            match = re.search(r"(\d{6})", str(row.get("ts_code") or row.get("stock_code") or ""))
-            if not match:
-                continue
-            authority[f"A.{match.group(1)}"] = row
-    enriched: list[dict[str, Any]] = []
-    for raw in source.rows:
-        code = _normal_code("A_SHARE", raw.get("code"))
-        merged = dict(raw)
-        # PyTDX adapters may expose SH./SZ./BJ. prefixes; the cross-version
-        # selection artifact is canonical A.###### regardless of provider.
-        merged["code"] = code
-        metadata = authority.get(code)
-        if metadata is not None:
-            merged["formal_eligible"] = True
-            merged["formal_rank"] = metadata.get("rank") or metadata.get("pool_rank") or ""
-            merged["pool_score"] = metadata.get("score") or metadata.get("pool_score") or 0.0
-            merged["candidate"] = {"score": merged["pool_score"]}
-            merged["lane_evidence"] = list(dict.fromkeys([*(merged.get("lane_evidence") or ()), "A_SHARE_FORMAL_POOL"]))
-        else:
-            # Formal membership is an authority overlay, never a default for
-            # every exact-date acquisition row. Keep the raw row eligible for
-            # the Windows V3 live formula while explicitly proving that it is
-            # non-formal and came from the stage acquisition universe.
-            merged["formal_eligible"] = False
-            merged["formal_rank"] = ""
-            merged.pop("candidate", None)
-            merged.pop("pool_score", None)
-            lane_evidence = [
-                item for item in (merged.get("lane_evidence") or ())
-                if item != "A_SHARE_FORMAL_POOL"
-            ]
-            merged["lane_evidence"] = list(
-                dict.fromkeys([*lane_evidence, "STAGE_ACQUISITION_UNIVERSE"])
-            )
-        enriched.append(merged)
-    return replace(
-        source,
-        rows=tuple(enriched),
-        source_evidence=tuple(
-            dict.fromkeys(
-                (
-                    *source.source_evidence,
-                    "formal_metadata_overlay=exact_date_authority_only",
-                    f"v3_formal_pool_csv_sha256={_csv_sha}",
-                    f"v3_formal_pool_trade_date={trade_date}",
-                )
-            )
-        ),
-    )
+    from stage_center._runner_parts.a_candidate_authority import __attach_a_authority_body as _v4_impl
+    return _v4_impl(globals(), source, formal_root=formal_root, trade_date=trade_date)
 
 
 def _attach_hk_authority(
@@ -1045,173 +1596,45 @@ def _attach_hk_authority(
     *,
     d1_root: Path,
     second_root: Path | None,
+    preselection_source_root: Path | str | None,
     trade_date: str,
     stage_id: str,
+    hk_binding: StageUniverseBinding | None = None,
 ) -> SourceResult:
     """Overlay only exact D-1/second-filter fields onto acquired HK rows.
 
-    Full-market acquisition rows do not prove a V3 lane.  D-1 contributes
+    Fixed-pool acquisition rows alone do not prove a V3 lane.  D-1 contributes
     membership/metadata only; live minute lanes must come from the separate
-    full-market snapshot probe.  The 09:25 second-filter is the sole explicit
+    code-bounded snapshot probe.  The 09:25 second-filter is the sole explicit
     pre-open lane source.
     """
-    d1_path, d1_sha = _validate_hk_d1(d1_root, trade_date)
-    d1_payload = json.loads(d1_path.read_text(encoding="utf-8"))
-    d1_rows = d1_payload.get("rows", d1_payload.get("data")) or []
-    authority: dict[str, Mapping[str, Any]] = {}
-    for row in d1_rows:
-        if not isinstance(row, Mapping):
-            continue
-        code = _normal_code("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
-        authority[code] = row
-    second: dict[str, Mapping[str, Any]] = {}
-    if stage_id == "STAGE_0925" or stage_id in HK_CONTINUATION_STAGES:
-        if second_root is None:
-            if stage_id == "STAGE_0925":
-                raise RunnerError("HK 09:25 second-filter root is required")
-        else:
-            try:
-                csv_path, _acceptance, _sha_value = _validate_hk_second_filter(second_root, trade_date)
-            except RunnerError:
-                # The continuation lane is an optional overlay for ordinary
-                # stages.  A missing/stale exact-date artifact must not make
-                # the live stage unusable, and it must never be replaced by
-                # a previous date.  STAGE_0925 remains hard-gated below.
-                if stage_id == "STAGE_0925":
-                    raise
-            else:
-                with csv_path.open("r", encoding="utf-8-sig", newline="") as stream:
-                    for row in csv.DictReader(stream):
-                        code = _normal_code("HK_CONNECT", row.get("code") or row.get("ts_code") or row.get("stock_code"))
-                        second[code] = row
-    rows: list[dict[str, Any]] = []
-    payload_model_id = (
-        d1_payload.get("model_id")
-        or d1_payload.get("model")
-        or d1_payload.get("model_name")
-        or d1_payload.get("selected_strategy")
-        or ""
-    )
-    payload_d1_status = str(d1_payload.get("status") or "")
-
-    def _first_present(*values: Any) -> Any:
-        for value in values:
-            if value not in (None, ""):
-                return value
-        return ""
-
-    for raw in source.rows:
-        code = _normal_code("HK_CONNECT", raw.get("code"))
-        merged = dict(raw)
-        base = authority.get(code)
-        if base:
-            for key, value in base.items():
-                if key not in {"code", "ts_code", "stock_code", "candidate_lanes", "source_universe", "lane", "membership_gate_ids"} and value not in (None, ""):
-                    merged.setdefault(key, value)
-            # D-1 is an exact-date name authority.  Quote bridges may encode
-            # a missing name as the symbol itself; treat that placeholder as
-            # empty so the authority can replace it.  If the exact authority
-            # row has no name, retain a genuinely useful quote name and only
-            # fall back to the canonical code when no name exists anywhere.
-            authority_name = next(
-                (
-                    base.get(key)
-                    for key in ("name", "stock_name", "security_name", "display_name")
-                    if not _is_code_display_name(base.get(key), code)
-                ),
-                None,
-            )
-            if not _is_code_display_name(authority_name, code):
-                merged["name"] = authority_name
-                merged["stock_name"] = authority_name
-            else:
-                quote_name = next(
-                    (
-                        merged.get(key)
-                        for key in ("name", "stock_name", "security_name", "display_name")
-                        if not _is_code_display_name(merged.get(key), code)
-                    ),
-                    code,
-                )
-                merged["name"] = quote_name
-                merged["stock_name"] = quote_name
-            merged["d1_status"] = payload_d1_status
-            merged["d1_model_id"] = _first_present(
-                base.get("model_id"),
-                base.get("model"),
-                base.get("model_name"),
-                base.get("selected_strategy"),
-                base.get("weekly_tuning_selected_strategy"),
-                payload_model_id,
-            )
-            merged["d1_prob_active"] = _first_present(
-                base.get("prob_active"),
-                base.get("probability"),
-                base.get("prob_active_score"),
-                base.get("score_prob_active"),
-                base.get("pool_score"),
-            )
-            merged["d1_rank"] = _first_present(base.get("pool_rank"), base.get("rank"), base.get("d1_rank"))
-            merged["d1_score"] = _first_present(base.get("pool_score"), base.get("score"), base.get("d1_score"))
-            merged["d1_source_evidence"] = list(base.get("source_evidence") or ()) if isinstance(base.get("source_evidence"), (list, tuple)) else []
-            if base.get("pool_version"):
-                merged["d1_source_evidence"].append(f"hk_d1_pool_version={base['pool_version']}")
-            if d1_payload.get("source_sha256"):
-                merged["d1_source_evidence"].append(f"hk_d1_source_sha256={d1_payload['source_sha256']}")
-        else:
-            # A full-market quote row can legitimately have no D-1 metadata;
-            # never leave the UI with an empty name in that case.
-            quote_name = next(
-                (
-                    merged.get(key)
-                    for key in ("name", "stock_name", "security_name", "display_name")
-                    if not _is_code_display_name(merged.get(key), code)
-                ),
-                code,
-            )
-            merged["name"] = quote_name
-            merged["stock_name"] = quote_name
-        # The active lane is a separate exact live-trigger assertion.  The
-        # three static lanes are accepted only from this exact D-1 row;
-        # copying arbitrary adapter/static labels would recreate the old bug
-        # where a static pool became a realtime recommendation.
-        live_lanes = [
-            str(item)
-            for item in (raw.get("candidate_lanes") or ())
-            if str(item) == "LIVE_HKCONNECT_GAINER"
-        ]
-        static_lanes = [
-            str(item)
-            for item in (base.get("candidate_lanes") or ())
-            if str(item) in HK_STATIC_LANES
-        ] if base else []
-        merged["candidate_lanes"] = list(dict.fromkeys([*live_lanes, *static_lanes]))
-        if code in second:
-            second_row = second[code]
-            for key, value in second_row.items():
-                if key not in {"code", "ts_code", "stock_code"} and value not in (None, ""):
-                    merged.setdefault(key, value)
-            merged["candidate_lanes"] = list(dict.fromkeys([*(merged.get("candidate_lanes") or ()), "PREOPEN_AUCTION_CONTINUATION"]))
-        rows.append(merged)
-    evidence = list(source.source_evidence)
-    evidence.extend(
-        (
-            "hk_d1_status=STRICT_0_2_READY",
-            f"hk_d1_json_sha256={d1_sha}",
-            "hk_d1_membership=exact_date_top100",
-        )
-    )
-    if payload_model_id:
-        evidence.append(f"hk_d1_model_id={payload_model_id}")
-    return replace(source, rows=tuple(rows), source_evidence=tuple(dict.fromkeys(evidence)))
+    from stage_center._runner_parts.hk_candidate_authority import __attach_hk_authority_body as _v4_impl
+    return _v4_impl(globals(), source, d1_root=d1_root, second_root=second_root, preselection_source_root=preselection_source_root, trade_date=trade_date, stage_id=stage_id, hk_binding=hk_binding)
 
 
-def _with_candidate_evidence(result: SourceResult, candidate: Any, extra: Sequence[str] = ()) -> SourceResult:
-    evidence = tuple(dict.fromkeys((*result.source_evidence, f"candidate_current_sha256={candidate.current_sha256}", f"candidate_run_id={candidate.run_id}", *extra)))
-    return replace(result, source_evidence=evidence)
+def _with_candidate_evidence(
+    result: SourceResult,
+    candidate: Any,
+    extra: Sequence[str] = (),
+    *,
+    candidate_sha: str | None = None,
+    candidate_run_id: str | None = None,
+) -> SourceResult:
+    """Bind a source to the candidate authority for its own market lane.
+
+    ``CandidateInput`` is retained as the historical plan carrier, but A and
+    HK have separate authorities.  A caller that has no verified binding for a
+    lane must leave its candidate evidence absent instead of borrowing the
+    other market's synthetic SHA.
+    """
+    from stage_center._runner_parts.row_evidence import __with_candidate_evidence_body as _v4_impl
+    return _v4_impl(globals(), result, candidate, extra, candidate_sha=candidate_sha, candidate_run_id=candidate_run_id)
 
 
-def _project_raw_rows(rows: Sequence[Mapping[str, Any]], *, trade_date: str, stage_id: str, market: str) -> tuple[dict[str, Any], ...]:
+def _project_raw_rows(
+    rows: Sequence[Mapping[str, Any]], *, trade_date: str, stage_id: str,
+    market: str, research_observation_contract: str | None = None,
+) -> tuple[dict[str, Any], ...]:
     """Project collector rows to the immutable SafeRootStore 19-field shape.
 
     Collector rows are intentionally richer than raw storage: auction rank,
@@ -1221,16 +1644,11 @@ def _project_raw_rows(rows: Sequence[Mapping[str, Any]], *, trade_date: str, sta
     rejected before ``RawStore.publish`` so a malformed row cannot advance a
     CANNOT_CONFIRM latest pointer or leave an incomplete bundle behind.
     """
-    projected = tuple(
-        {field: row[field] for field in RAW_FIELDS}
-        if isinstance(row, Mapping) and all(field in row for field in RAW_FIELDS)
-        else dict(row)
-        for row in rows
+    from stage_center._runner_parts.row_evidence import __project_raw_rows_body as _v4_impl
+    return _v4_impl(
+        globals(), rows, trade_date=trade_date, stage_id=stage_id, market=market,
+        research_observation_contract=research_observation_contract,
     )
-    _validated, issues = validate_rows(projected, trade_date=trade_date, stage_id=stage_id, market=market)
-    if issues:
-        raise RunnerError(f"raw projection validation failed for {market}: {'; '.join(issues[:3])}")
-    return projected
 
 
 class StageCenterRunner:
@@ -1246,89 +1664,55 @@ class StageCenterRunner:
         if self.config.hk_second_filter_root is None or self.config.hk_auction_root != self.config.hk_second_filter_root:
             raise RunnerError("production 09:25 HK auction collector must use the same verified HK second-filter root")
 
+    def _prepare_hk_active_snapshots(
+        self,
+        trade_date: str,
+        evaluated_at: datetime,
+        *,
+        stage_id: str | None = None,
+        historical_backfill: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Delegate the stage-scoped immutable HK pre-capture.
+
+        The universe loader keeps the existing V4 verified-pool validator at
+        the boundary.  On HK-open/Connect-closed days it may use the newest
+        earlier verified D-1 membership, preserving the original source date
+        and SHA; quotes remain exact to the observation date.
+        """
+        from stage_center._runner_parts.runner_receipts import _StageCenterRunner__prepare_hk_active_snapshots_body as _v4_impl
+        return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill)
+
     def due_decisions(self, trade_date: str, evaluated_at: datetime, *, historical_backfill: bool = False) -> tuple[DueDecision, ...]:
         return tuple(evaluate_due(stage.stage_id, trade_date, evaluated_at, historical_backfill=historical_backfill) for stage in EIGHT_STAGES)
 
     def _backfill_runner(self, run_id: str) -> "StageCenterRunner":
-        if not re.fullmatch(r"[A-Za-z0-9_.-]+", run_id):
-            raise RunnerError("historical backfill run id is unsafe")
-        base = self.config
-        scoped = replace(
-            base,
-            raw_root=base.raw_root / "backfill" / run_id,
-            selection_root=base.selection_root / "backfill" / run_id,
-            receipt_root=base.receipt_root / "backfill" / run_id,
-            backfill_run_id=run_id,
-        )
-        return StageCenterRunner(scoped, collectors=self.collectors)
+        from stage_center._runner_parts.tick_planning import _StageCenterRunner__backfill_runner_body as _v4_impl
+        return _v4_impl(globals(), self, run_id)
 
     def _receipt_path(self, trade_date: str, stage_id: str) -> Path:
         return self.config.receipt_root / trade_date / stage_id / "receipt.json"
 
     def _write_receipt(self, payload: Mapping[str, Any], trade_date: str, stage_id: str) -> dict[str, Any]:
-        result = {"schema_version": "stage_center.runner.receipt.v1", "runner": "stage_center", **dict(payload), **SAFETY_FLAGS}
-        if self.config.backfill_run_id:
-            result.update(
-                {
-                    "mode": "BACKFILL",
-                    "backfill_run_id": self.config.backfill_run_id,
-                    "latest_updated": False,
-                    "current_updated": False,
-                    "namespace": {
-                        "raw_root": str(self.config.raw_root),
-                        "selection_root": str(self.config.selection_root),
-                        "receipt_root": str(self.config.receipt_root),
-                    },
-                }
-            )
-        _atomic_json(self._receipt_path(trade_date, stage_id), result)
-        return result
+        from stage_center._runner_parts.runner_receipts import _StageCenterRunner__write_receipt_body as _v4_impl
+        return _v4_impl(globals(), self, payload, trade_date, stage_id)
 
-    def _existing_slot(self, trade_date: str, stage_id: str, markets: Sequence[str], candidate_sha: str) -> tuple[str, dict[str, Any] | None]:
-        raw_bundle_entry = _latest_entry(self.config.raw_root, "bundle_latest.json", f"{trade_date}/{stage_id}")
-        selection_entries: dict[str, Mapping[str, Any] | None] = {
-            market: _latest_entry(self.config.selection_root, "selection_latest.json", f"{trade_date}/{stage_id}/{market}")
-            for market in markets
-        }
-        raw_market_present = any(_latest_entry(self.config.raw_root, "latest.json", f"{trade_date}/{stage_id}/{market}") is not None for market in markets)
-        present = raw_bundle_entry is not None or raw_market_present or any(value is not None for value in selection_entries.values())
-        if not present:
-            return "ABSENT", None
-        raw_store = RawStore(self.config.raw_root)
-        selection_store = SelectionStore(self.config.selection_root)
-        raw_verified: dict[str, Mapping[str, Any]] = {}
-        selections: dict[str, Mapping[str, Any]] = {}
-        for market in markets:
-            raw_entry = _latest_entry(self.config.raw_root, "latest.json", f"{trade_date}/{stage_id}/{market}")
-            if raw_entry is not None:
-                try:
-                    verified = raw_store.verify_run(trade_date, stage_id, market, str(raw_entry.get("run_id")))
-                except (RawStoreError, ValueError) as error:
-                    raise RunnerError(f"existing raw market integrity failure: {market}") from error
-                if not _evidence_has(verified.get("source_evidence", ()), "candidate_current_sha256", candidate_sha):
-                    raise RunnerError(f"existing raw candidate SHA mismatch: {market}")
-                raw_verified[market] = verified
-            selection_entry = selection_entries.get(market)
-            if selection_entry is not None:
-                try:
-                    envelope = selection_store.read_verified(trade_date, stage_id, market)
-                except (SelectionError, ValueError) as error:
-                    raise RunnerError(f"existing selection integrity failure: {market}") from error
-                if not _evidence_has(envelope.get("source_evidence", ()), "candidate_current_sha256", candidate_sha):
-                    raise RunnerError(f"existing selection candidate SHA mismatch: {market}")
-                selections[market] = envelope
-        if raw_bundle_entry is not None and len(raw_verified) == len(markets):
-            try:
-                raw = raw_store.read_verified_bundle(trade_date, stage_id)
-            except (RawStoreError, ValueError) as error:
-                raise RunnerError("existing raw bundle integrity failure") from error
-        else:
-            raw = {"receipt": {"markets": {market: dict(entry) for market, entry in raw_verified.items()}}}
-        if len(raw_verified) == len(markets) and len(selections) == len(markets):
-            return "VERIFIED", {"raw": raw, "selections": selections, "raw_verified": raw_verified}
-        if not raw_verified and not selections:
-            return "ABSENT", None
-        return "PARTIAL", {"raw": raw, "selections": selections, "raw_verified": raw_verified}
+    def _existing_slot(
+        self,
+        trade_date: str,
+        stage_id: str,
+        markets: Sequence[str],
+        candidate_sha_by_market: Mapping[str, str | None] | str,
+    ) -> tuple[str, dict[str, Any] | None]:
+        """Read reusable slot lanes against their own authority bindings.
+
+        The old slot identity carried one candidate SHA for the whole stage.
+        That made a missing A current turn the HK D-1 SHA into a global
+        mismatch (and made a good HK lane unreusable).  Keep malformed store
+        trios fail-closed, while treating a candidate mismatch as a lane-local
+        cache miss so the other market can be reused safely.
+        """
+        from stage_center._runner_parts.slot_idempotency import _StageCenterRunner__existing_slot_body as _v4_impl
+        return _v4_impl(globals(), self, trade_date, stage_id, markets, candidate_sha_by_market)
 
     def _run_one(
         self,
@@ -1336,515 +1720,82 @@ class StageCenterRunner:
         *,
         historical_backfill: bool = False,
         backfill_run_id: str | None = None,
+        historical_markets: Sequence[str] | None = None,
     ) -> dict[str, Any]:
-        if historical_backfill and backfill_run_id is None:
-            run_id = uuid4().hex
-            return self._backfill_runner(run_id)._run_one(
-                decision,
-                historical_backfill=True,
-                backfill_run_id=run_id,
-            )
-        trade_date, stage_id = decision.trade_date, decision.stage_id
-        markets = _stage_markets(stage_id)
-        candidate_error = ""
-        hk_binding: StageUniverseBinding | None = None
-        try:
-            candidate = read_candidate_input(self.config.candidate_acquisition_root, trade_date)
-        except (CandidateInputError, OSError, ValueError) as error:
-            # The A current is a lane-local authority.  Continue far enough to
-            # resolve an independent HK binding when the exact HK full-universe
-            # authority is available; A is recorded as CANNOT_CONFIRM below.
-            candidate = None
-            candidate_error = str(error)
-            if "HK_CONNECT" not in markets or self.config.hk_full_universe_root is None:
-                return self._write_receipt({"status": "CANNOT_CONFIRM", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "error": candidate_error, "write_performed": False}, trade_date, stage_id)
-            try:
-                full_path, full_codes, full_sha = _validate_hk_full_universe(
-                    self.config.hk_full_universe_root, trade_date
-                )
-            except RunnerError:
-                return self._write_receipt({"status": "CANNOT_CONFIRM", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "error": candidate_error, "write_performed": False}, trade_date, stage_id)
-            hk_binding = StageUniverseBinding.ready(
-                market="HK_CONNECT",
-                trade_date=trade_date,
-                role="HK_FULL_UNIVERSE",
-                codes=full_codes,
-                source_run_id=f"hk-full-{full_sha[:16]}",
-                sha256=full_sha,
-                evidence=(f"hk_full_universe_json={full_path}", f"hk_full_universe_sha256={full_sha}"),
-            )
-            candidate = _candidate_from_hk_binding(
-                root=self.config.candidate_acquisition_root,
-                trade_date=trade_date,
-                binding=hk_binding,
-            )
-        a_candidate_missing = bool(candidate_error)
-        universe_bindings: dict[str, StageUniverseBinding] = {}
-        if a_candidate_missing:
-            universe_bindings["A_SHARE"] = StageUniverseBinding.unavailable(
-                market="A_SHARE", trade_date=trade_date, reason=candidate_error
-            )
-        else:
-            universe_bindings["A_SHARE"] = StageUniverseBinding.ready(
-                market="A_SHARE",
-                trade_date=trade_date,
-                role="A_SHARE_STAGE_ACQUISITION_UNIVERSE_V2",
-                codes=tuple(candidate.codes),
-                source_run_id=candidate.run_id,
-                sha256=candidate.current_sha256,
-                evidence=tuple(candidate.source_evidence),
-            )
-        if hk_binding is not None:
-            universe_bindings["HK_CONNECT"] = hk_binding
-        write_performed = False
-        try:
-            self._validate_hk_auction_root_binding(stage_id)
-            existing_state, existing = self._existing_slot(trade_date, stage_id, markets, candidate.current_sha256)
-            if existing_state == "VERIFIED" and existing is not None:
-                return self._write_receipt({"status": "NOOP_ALREADY_VERIFIED", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": (existing["raw"].get("receipt") or {}).get("bundle_id"), "markets": {market: envelope for market, envelope in existing["selections"].items()}, "write_performed": False}, trade_date, stage_id)
-            existing_raw_verified: dict[str, Mapping[str, Any]] = dict((existing or {}).get("raw_verified") or {})
-            existing_selections: dict[str, Mapping[str, Any]] = dict((existing or {}).get("selections") or {})
-            exact_evidence_by_market: dict[str, tuple[str, ...]] = {}
-            exact_input_errors: dict[str, str] = {}
-            if a_candidate_missing and "A_SHARE" in markets:
-                exact_input_errors["A_SHARE"] = candidate_error
-                exact_evidence_by_market["A_SHARE"] = (
-                    f"a_share_universe_binding_error={candidate_error}",
-                )
-            for market in markets:
-                if market == "A_SHARE" and market in exact_input_errors:
-                    continue
-                try:
-                    exact_evidence_by_market[market] = _validate_exact_selection_inputs(
-                        self.config, trade_date, stage_id, market=market
-                    )
-                except RunnerError as error:
-                    # Exact-input failures are lane-local. Preserve the
-                    # reason for that market while allowing the other lane to
-                    # continue through collection and publication.
-                    exact_evidence_by_market[market] = ()
-                    exact_input_errors[market] = str(error)
-            exact_evidence = tuple(
-                item
-                for market in markets
-                for item in exact_evidence_by_market.get(market, ())
-            )
-            exact_evidence = tuple(
-                dict.fromkeys(
-                    (
-                        *exact_evidence,
-                        *(f"{market.lower()}_exact_input_error={error}" for market, error in exact_input_errors.items()),
-                    )
-                )
-            )
-            if (
-                not self.config.injected_test_mode
-                and not self.collectors
-                and "A_SHARE" in markets
-                and self.config.a_research_panel_receipt_root is None
-            ):
-                exact_input_errors["A_SHARE"] = "production A research-panel receipt root is required"
-                exact_evidence_by_market["A_SHARE"] = ("a_share_exact_input_error=production A research-panel receipt root is required",)
-            if decision.status not in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
-                return self._write_receipt({"status": decision.status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "write_performed": False}, trade_date, stage_id)
-            production_full_codes: tuple[str, ...] | None = None
-            if self.config.injected_test_mode:
-                collectors = self.collectors
-            else:
-                if self.config.shared_data_root is None or self.config.python_path is None:
-                    raise RunnerError("production shared_data_root and python_path are required")
-                from .live_collectors import production_collectors, production_selection_builders
-                collectors = self.collectors or production_collectors(
-                    plan=build_plan(
-                        self.config.candidate_acquisition_root,
-                        trade_date,
-                        stage_id,
-                        candidate=candidate,
-                        universe_bindings=universe_bindings,
-                        historical_backfill=historical_backfill,
-                    ),
-                    python_path=self.config.python_path,
-                    shared_root=self.config.shared_data_root,
-                    a_auction_root=self.config.a_auction_root,
-                    hk_auction_root=self.config.hk_auction_root,
-                    hk_stage_replay_root=self.config.hk_stage_replay_root,
-                )
-                if "HK_CONNECT" in markets and "HK_CONNECT" not in exact_input_errors:
-                    assert self.config.hk_full_universe_root is not None
-                    try:
-                        _full_path, production_full_codes, _full_sha = _validate_hk_full_universe(self.config.hk_full_universe_root, trade_date)
-                    except RunnerError as error:
-                        # The exact-input check above and this bridge binding
-                        # are one HK lane. A race or changed HK manifest must
-                        # not erase a valid A-share result.
-                        exact_input_errors["HK_CONNECT"] = str(error)
-                if self.config.selection_builders is None:
-                    builders = production_selection_builders(stage_id)
-                else:
-                    builders = self.config.selection_builders
-            missing_raw_markets = tuple(market for market in markets if market not in existing_raw_verified)
-            if not set(missing_raw_markets).issubset(set(collectors)):
-                raise RunnerError(f"collectors are missing required markets {missing_raw_markets!r}")
-            builders = self.config.selection_builders
-            if builders is None and not self.config.injected_test_mode:
-                from .live_collectors import production_selection_builders
-                builders = production_selection_builders(stage_id)
-            if builders is None:
-                raise RunnerError("production selection builders are not installed")
-            if set(builders) != set(markets):
-                raise RunnerError(f"selection builders must provide exactly {markets!r}")
-            selection_membership: dict[str, set[str] | None] = {market: None for market in markets}
-            if not self.config.injected_test_mode:
-                if "A_SHARE" in markets and "A_SHARE" not in exact_input_errors:
-                    assert self.config.v3_formal_root is not None
-                    try:
-                        # Validate the exact formal artifact for metadata
-                        # overlay, but never use its membership as the hard
-                        # selection universe. The Windows V3 live formula
-                        # ranks every exact-date stage-acquisition row; only
-                        # the verified formal rows receive formal metadata.
-                        _formal_selection_codes(self.config.v3_formal_root, trade_date)
-                        selection_membership["A_SHARE"] = None
-                    except RunnerError as error:
-                        exact_input_errors["A_SHARE"] = str(error)
-                if "HK_CONNECT" in markets and "HK_CONNECT" not in exact_input_errors:
-                    assert self.config.hk_d1_root is not None and self.config.hk_full_universe_root is not None
-                    try:
-                        hk_d1_codes, _d1_sha = _hk_selection_codes(self.config.hk_d1_root, trade_date)
-                        # The acquisition collector receives the full verified
-                        # universe; D1/second-filter membership is applied only
-                        # to the selection transform below.
-                        selection_membership["HK_CONNECT"] = hk_d1_codes
-                        # Minute stages use the frozen D-1 Top100.  The 09:25
-                        # stage additionally binds the exact 09:20 second-filter
-                        # universe; no current/previous-stage rows can fill it.
-                        if stage_id == "STAGE_0925":
-                            assert self.config.hk_second_filter_root is not None
-                            second_codes, _second_sha = _hk_second_filter_codes(self.config.hk_second_filter_root, trade_date)
-                            selection_membership["HK_CONNECT"] = hk_d1_codes & second_codes
-                    except RunnerError as error:
-                        exact_input_errors["HK_CONNECT"] = str(error)
-            plan = build_plan(
-                self.config.candidate_acquisition_root,
-                trade_date,
-                stage_id,
-                candidate=candidate,
-                universe_bindings=universe_bindings,
-                historical_backfill=historical_backfill,
-            )
-            sources: dict[str, SourceResult] = {}
-            selection_sources: dict[str, SourceResult] = {}
-            for market in markets:
-                if market in exact_input_errors:
-                    error = exact_input_errors[market]
-                    result = SourceResult(
-                        market,
-                        "CANNOT_CONFIRM",
-                        cannot_confirm=(error,),
-                        requested_rows=len(candidate.codes),
-                        source_evidence=(f"exact_input_error={error}",),
-                    )
-                elif market in existing_raw_verified:
-                    result = _read_verified_raw_source(self.config.raw_root, existing_raw_verified[market])
-                else:
-                    try:
-                        market_plan = plan
-                        if market == "HK_CONNECT" and production_full_codes is not None:
-                            market_plan = replace(
-                                plan,
-                                candidate_input=replace(plan.candidate_input, codes=production_full_codes),
-                            )
-                        result = collectors[market](market_plan, market)
-                        if not isinstance(result, SourceResult):
-                            raise RunnerError(f"collector {market} did not return SourceResult")
-                    except Exception as error:
-                        result = SourceResult(market, "CANNOT_CONFIRM", cannot_confirm=(f"COLLECTOR_ERROR:{type(error).__name__}",), requested_rows=len(candidate.codes), source_evidence=(f"collector_error={type(error).__name__}",))
-                if result.rows and result.requested_rows is not None and len(result.rows) < result.requested_rows and result.status == "READY":
-                    result = replace(result, status="PARTIAL_WITH_ROWS")
-                elif result.rows and result.missing_symbols and result.status == "READY":
-                    result = replace(result, status="PARTIAL_WITH_ROWS")
-                # Stage8 selection recovery must re-read the exact replay
-                # provider, never rebuild LIVE lanes from a current Futu
-                # snapshot.  Raw publication intentionally excludes lane
-                # metadata, so a missing selection cannot be reconstructed
-                # from the raw CSV alone.
-                if (
-                    market == "HK_CONNECT"
-                    and stage_id == "STAGE_1545_1555"
-                    and market in existing_raw_verified
-                    and market not in existing_selections
-                    and market not in exact_input_errors
-                    and not self.config.injected_test_mode
-                ):
-                    if self.config.hk_stage_replay_root is None:
-                        raise RunnerError("HK Stage8 selection recovery requires explicit replay root")
-                    replay_plan = plan
-                    if production_full_codes is not None:
-                        replay_plan = replace(
-                            plan,
-                            candidate_input=replace(plan.candidate_input, codes=production_full_codes),
-                        )
-                    result = collectors[market](replay_plan, market)
-                # Selection-only recovery must re-run the same read-only V3
-                # active trigger when raw is already complete.  Raw bars are
-                # never recollected or rewritten, and the active probe's
-                # canonical SHA must match the evidence bound to that raw run.
-                if (
-                    market == "HK_CONNECT"
-                    and stage_id != "STAGE_1545_1555"
-                    and stage_id != "STAGE_0925"
-                    and market in existing_raw_verified
-                    and market not in existing_selections
-                    and market not in exact_input_errors
-                    and not self.config.injected_test_mode
-                ):
-                    if production_full_codes is None or self.config.shared_data_root is None or self.config.python_path is None:
-                        raise RunnerError("HK active-lane recovery requires explicit full-universe bridge roots")
-                    from .live_collectors import refresh_hk_active_lanes
-                    refreshed = refresh_hk_active_lanes(
-                        result,
-                        codes=production_full_codes,
-                        python_path=self.config.python_path,
-                        shared_root=self.config.shared_data_root,
-                        trade_date=trade_date,
-                        stage_id=stage_id,
-                        cutoff_at=next(stage.cutoff for stage in EIGHT_STAGES if stage.stage_id == stage_id),
-                    )
-                    previous_sha = _evidence_value(result.source_evidence, "active_snapshot_sha256")
-                    current_sha = _evidence_value(refreshed.source_evidence, "active_snapshot_sha256")
-                    previous_codes_sha = _evidence_value(result.source_evidence, "active_snapshot_codes_sha256")
-                    current_codes_sha = _evidence_value(refreshed.source_evidence, "active_snapshot_codes_sha256")
-                    if not previous_sha or previous_sha != current_sha or not previous_codes_sha or previous_codes_sha != current_codes_sha:
-                        raise RunnerError("HK active snapshot evidence changed during selection recovery")
-                    if "HK_ACTIVE_GAINER_SNAPSHOT_UNAVAILABLE" in refreshed.cannot_confirm:
-                        raise RunnerError("HK active snapshot unavailable during selection recovery")
-                    result = refreshed
-                sources[market] = _with_candidate_evidence(
-                    result,
-                    candidate,
-                    (
-                        *exact_evidence_by_market.get(market, ()),
-                        *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
-                        f"due_status={decision.status}",
-                    ),
-                )
-                if (
-                    market == "A_SHARE"
-                    and not self.config.injected_test_mode
-                    and self.config.v3_formal_root is not None
-                    and self.config.a_research_panel_receipt_root is not None
-                    and market not in exact_input_errors
-                ):
-                    try:
-                        selection_sources[market] = _attach_a_authority(
-                            sources[market],
-                            formal_root=self.config.v3_formal_root,
-                            trade_date=trade_date,
-                        )
-                        selection_sources[market] = _attach_a_name_authority(
-                            selection_sources[market],
-                            candidate_root=self.config.candidate_acquisition_root,
-                            research_panel_receipt_root=self.config.a_research_panel_receipt_root,
-                            trade_date=trade_date,
-                        )
-                    except RunnerError as error:
-                        exact_input_errors[market] = str(error)
-                if (
-                    market == "HK_CONNECT"
-                    and not self.config.injected_test_mode
-                    and self.config.hk_d1_root is not None
-                    and market not in exact_input_errors
-                ):
-                    try:
-                        selection_sources[market] = _attach_hk_authority(
-                            sources[market],
-                            d1_root=self.config.hk_d1_root,
-                            second_root=(
-                                self.config.hk_second_filter_root
-                                if stage_id == "STAGE_0925" or stage_id in HK_CONTINUATION_STAGES
-                                else None
-                            ),
-                            trade_date=trade_date,
-                            stage_id=stage_id,
-                        )
-                    except RunnerError as error:
-                        exact_input_errors[market] = str(error)
-                if market in exact_input_errors and market not in selection_sources:
-                    sources[market] = replace(
-                        sources[market],
-                        status="CANNOT_CONFIRM",
-                        rows=(),
-                        cannot_confirm=tuple(dict.fromkeys((*sources[market].cannot_confirm, exact_input_errors[market]))),
-                    )
-                selection_sources[market] = _selection_source(
-                    selection_sources.get(market, sources[market]),
-                    market=market,
-                    membership=selection_membership.get(market),
-                )
-            # Re-read the explicit pointer before any publication: a changed
-            # candidate cannot produce a selection artifact for the old input.
-            if not a_candidate_missing:
-                read_candidate_input(
-                    self.config.candidate_acquisition_root,
-                    trade_date,
-                    expected_current_sha256=candidate.current_sha256,
-                )
-            raw_store = RawStore(self.config.raw_root)
-            raw_markets: dict[str, dict[str, Any]] = {}
-            stage_spec = next(stage for stage in EIGHT_STAGES if stage.stage_id == stage_id)
-            # Validate every market's raw projection before touching the
-            # store.  A sequential publish must not leave A_SHARE latest
-            # behind when HK_CONNECT later violates the 19-field contract.
-            projected_rows: dict[str, tuple[dict[str, Any], ...]] = {}
-            for market in markets:
-                source = sources[market]
-                if source.status == "CANNOT_CONFIRM" and not source.rows:
-                    continue
-                projected_rows[market] = _project_raw_rows(
-                    source.rows,
-                    trade_date=trade_date,
-                    stage_id=stage_id,
-                    market=market,
-                )
-            for market in markets:
-                source = sources[market]
-                # A zero-row CANNOT_CONFIRM is a receipt-only outcome.  It
-                # must never create a raw latest pointer or selection latest
-                # entry that looks like a materialized stage.
-                if source.status == "CANNOT_CONFIRM" and not source.rows:
-                    continue
-                window = stage_spec.hk_window if stage_id == "STAGE_0925" and market == "HK_CONNECT" else stage_spec.window
-                cutoff_at = "09:20:05" if stage_id == "STAGE_0925" and market == "HK_CONNECT" else stage_spec.cutoff
-                if market in existing_raw_verified:
-                    raw_markets[market] = dict(existing_raw_verified[market])
-                    continue
-                raw_markets[market] = publish_raw_artifact(
-                    self.config.raw_root,
-                    trade_date=trade_date,
-                    stage_id=stage_id,
-                    market=market,
-                    source_id=source.source_id,
-                    source_status=source.status,
-                    rows=projected_rows[market],
-                    cannot_confirm=source.cannot_confirm,
-                    source_evidence=source.source_evidence,
-                    requested_rows=source.requested_rows,
-                    missing_symbols=source.missing_symbols,
-                    window=window,
-                    cutoff_at=cutoff_at,
-                )
-                write_performed = True
-            raw_bundle: dict[str, Any] = {"markets": raw_markets}
-            if not raw_markets:
-                raise RunnerError("all market collectors returned zero-row CANNOT_CONFIRM")
-            if set(raw_markets) == set(markets):
-                try:
-                    raw_bundle.update(raw_store.publish_bundle(trade_date=trade_date, stage_id=stage_id, status=("READY" if all(item["status"] == "READY" for item in raw_markets.values()) else "PARTIAL_WITH_ROWS"), markets=raw_markets))
-                except RawStoreError as error:
-                    # An immutable raw bundle may have been left absent after
-                    # a prior selection-only failure.  Re-read an identical
-                    # bundle if the store reports a conflict; any differing
-                    # market identity remains fail-closed.
-                    if "bundle slot conflict" not in str(error):
-                        raise
-                    raw_bundle.update(raw_store.read_verified_bundle(trade_date, stage_id))
-            published: dict[str, Any] = {}
-            selection_store = SelectionStore(self.config.selection_root)
-            for market in markets:
-                if market not in raw_markets:
-                    published[market] = {
-                        "market": market,
-                        "selection_status": "CANNOT_CONFIRM",
-                        "status": "CANNOT_CONFIRM",
-                        "selected_rows": 0,
-                        "source_status": sources[market].status,
-                        "cannot_confirm": list(sources[market].cannot_confirm),
-                        "write_performed": False,
-                    }
-                    continue
-                if market in existing_selections:
-                    published[market] = dict(existing_selections[market])
-                    continue
-                builder_raw = dict(raw_bundle["markets"][market])
-                if not self.config.injected_test_mode and market == "A_SHARE":
-                    # The old-V3 research bridge is a separate, explicit
-                    # release input.  Never fall back to v3_formal_root: that
-                    # root may point at a release without the hourly research
-                    # tree for this trade date.
-                    if stage_id in V3_RESEARCH_STAGES:
-                        if self.config.v3_research_root is None:
-                            raise RunnerError(
-                                f"production V3 research root is required for {stage_id} A_SHARE"
-                            )
-                        builder_raw["_v3_research_root"] = self.config.v3_research_root
-                envelope = dict(builders[market](selection_sources[market], plan, builder_raw))
-                envelope.setdefault("source_evidence", [])
-                envelope["source_evidence"] = list(
-                    dict.fromkeys(
-                        (
-                            *envelope["source_evidence"],
-                            f"candidate_current_sha256={candidate.current_sha256}",
-                            f"candidate_run_id={candidate.run_id}",
-                            *exact_evidence_by_market.get(market, ()),
-                            *((f"exact_input_error={exact_input_errors[market]}",) if market in exact_input_errors else ()),
-                            f"due_status={decision.status}",
-                        )
-                    )
-                )
-                envelope["raw_artifact_sha256"] = raw_bundle["markets"][market]["artifact_sha256"]
-                published[market] = selection_store.publish(envelope, market=market)
-                write_performed = True
-            statuses = {str(item.get("selection_status")) for item in published.values()}
-            status = "READY" if statuses == {"READY"} and len(published) == len(markets) else "READY_EMPTY" if statuses == {"READY_EMPTY"} and len(published) == len(markets) else "PARTIAL_WITH_ROWS" if statuses and ("PARTIAL_WITH_ROWS" in statuses or len(published) < len(markets) or "READY" in statuses) else "CANNOT_CONFIRM"
-            source_evidence = [f"candidate_current_sha256={candidate.current_sha256}", f"candidate_run_id={candidate.run_id}", *exact_evidence]
-            if decision.status in {"LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
-                source_evidence.append(decision.status)
-            return self._write_receipt({"status": status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "candidate_run_id": candidate.run_id, "bundle_id": raw_bundle.get("bundle_id"), "markets": published, "source_evidence": list(dict.fromkeys(source_evidence)), "write_performed": True}, trade_date, stage_id)
-        except (RunnerError, RawStoreError, SelectionError, CandidateInputError, OSError, ValueError) as error:
-            return self._write_receipt({"status": "PARTIAL_COMMIT_RETRY_REQUIRED" if write_performed else "CANNOT_CONFIRM", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "candidate_current_sha256": candidate.current_sha256, "error": str(error), "write_performed": write_performed}, trade_date, stage_id)
+        from stage_center._runner_parts.slot_execution import _StageCenterRunner__run_one_body as _v4_impl
+        # R1 lacks this keyword; never discard an explicit market allowlist.
+        if historical_markets is None and "historical_markets" not in _helper_signature(_v4_impl).parameters:
+            return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id)
+        return _v4_impl(globals(), self, decision, historical_backfill=historical_backfill, backfill_run_id=backfill_run_id, historical_markets=historical_markets)
 
-    def tick(self, trade_date: str, evaluated_at: datetime, *, stage_id: str | None = None, historical_backfill: bool = False) -> dict[str, Any]:
-        decisions = self.due_decisions(trade_date, evaluated_at, historical_backfill=historical_backfill)
-        if stage_id is None:
-            due = [decision for decision in decisions if decision.status in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}]
-            if not due:
-                return {"status": decisions[0].status if decisions else "CANNOT_CONFIRM", "trade_date": trade_date, "stages": [decision.status for decision in decisions], **SAFETY_FLAGS}
-            results = [self.tick(trade_date, evaluated_at, stage_id=decision.stage_id, historical_backfill=historical_backfill) for decision in due]
-            return {"status": "TICK_COMPLETE", "trade_date": trade_date, "stages": results, **SAFETY_FLAGS}
-        decision = next((item for item in decisions if item.stage_id == stage_id), None)
-        if decision is None:
-            decision = evaluate_due(stage_id, trade_date, evaluated_at, historical_backfill=historical_backfill)
-        if decision.status not in {"DUE", "LATE_CATCHUP_REPLAY", "HISTORICAL_BACKFILL"}:
-            if historical_backfill:
-                scoped = self._backfill_runner(uuid4().hex)
-                return scoped._write_receipt(
-                    {
-                        "status": decision.status,
-                        "due_status": decision.status,
-                        "trade_date": trade_date,
-                        "stage_id": stage_id,
-                        "write_performed": False,
-                    },
-                    trade_date,
-                    stage_id,
-                )
-            return self._write_receipt({"status": decision.status, "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "write_performed": False}, trade_date, stage_id)
-        runner = self
-        backfill_run_id: str | None = None
-        if historical_backfill:
-            backfill_run_id = uuid4().hex
-            runner = self._backfill_runner(backfill_run_id)
-        lock = SlotLock(_slot_lock_path(runner.config, trade_date, stage_id))
-        if not lock.acquire():
-            return runner._write_receipt({"status": "SKIPPED_SLOT_LOCKED", "due_status": decision.status, "trade_date": trade_date, "stage_id": stage_id, "write_performed": False}, trade_date, stage_id)
-        try:
-            return runner._run_one(
-                decision,
-                historical_backfill=historical_backfill,
-                backfill_run_id=backfill_run_id,
+    def tick(
+        self,
+        trade_date: str,
+        evaluated_at: datetime,
+        *,
+        stage_id: str | None = None,
+        historical_backfill: bool = False,
+        historical_markets: Sequence[str] | None = None,
+        historical_research_contract: str | None = None,
+        historical_observation_contract: str | None = None,
+        _skip_precapture: bool = False,
+    ) -> dict[str, Any]:
+        if historical_research_contract is not None and historical_observation_contract is not None:
+            raise RunnerError("historical research contracts are mutually exclusive")
+        if historical_research_contract is not None and (
+            historical_research_contract != _HK_0930_RESEARCH_CONTRACT
+            or not historical_backfill
+            or trade_date != _HK_0930_RESEARCH_DATE
+            or stage_id != "STAGE_0930_0935"
+            or tuple(historical_markets or ()) != ("HK_CONNECT",)
+        ):
+            raise RunnerError("HK historical research D1 binding context mismatch")
+        if historical_observation_contract is not None:
+            pinned_contract = historical_observation_contract == HK_0930_TDX_RESEARCH_CONTRACT
+            manifest_contract = (
+                isinstance(historical_observation_contract, str)
+                and re.fullmatch(
+                    re.escape(HISTORICAL_OBSERVATION_CONTRACT_PREFIX) + r"[0-9a-f]{64}",
+                    historical_observation_contract,
+                ) is not None
             )
+            if pinned_contract:
+                if (
+                    not historical_backfill
+                    or trade_date != _HK_0930_TDX_RESEARCH_DATE
+                    or stage_id != "STAGE_0930_0935"
+                    or tuple(historical_markets or ()) != ("HK_CONNECT",)
+                    or not _skip_precapture
+                ):
+                    raise RunnerError("HK historical temporal-false research observation context mismatch")
+            elif (
+                not manifest_contract
+                or not historical_backfill
+                or stage_id is None
+                or not _skip_precapture
+                or "HK_CONNECT" not in tuple(historical_markets or ())
+                or stage_id not in {stage.stage_id for stage in EIGHT_STAGES if "HK_CONNECT" in stage.markets}
+            ):
+                raise RunnerError("manifest-bound historical observation context mismatch")
+        context_token = _HK_HISTORICAL_RESEARCH_CONTRACT.set(
+            historical_research_contract
+        )
+        observation_context_token = _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.set(
+            historical_observation_contract
+            if historical_observation_contract is not None
+            else _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.get()
+        )
+        try:
+            # Capture once per outer scheduler tick, before due work can spend
+            # time in another provider. Recursive stage dispatches reuse it.
+            from stage_center._runner_parts.tick_planning import _StageCenterRunner_tick_body as _v4_impl
+            # R1 lacks this keyword; never discard an explicit market allowlist.
+            if historical_markets is None and "historical_markets" not in _helper_signature(_v4_impl).parameters:
+                return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, _skip_precapture=_skip_precapture)
+            return _v4_impl(globals(), self, trade_date, evaluated_at, stage_id=stage_id, historical_backfill=historical_backfill, historical_markets=historical_markets, _skip_precapture=_skip_precapture)
         finally:
-            lock.release()
+            _HK_TDX_AFTERFACT_RESEARCH_CONTRACT.reset(observation_context_token)
+            _HK_HISTORICAL_RESEARCH_CONTRACT.reset(context_token)
 
 
 __all__ = ["RunnerConfig", "RunnerError", "SlotLock", "StageCenterRunner", "build_production_config"]

@@ -22,7 +22,15 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from domains.research_hourly import build_research_lane_snapshot
+from domains.research_source_validation import (
+    collector_source_cutoff,
+    strict_source_receipt_time,
+)
 from infrastructure.owned_path import resolve_owned_path
+from infrastructure.research_source_evidence import (
+    ZsxqSlotEvidence,
+    read_zsxq_slot_evidence,
+)
 
 
 _SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -198,39 +206,22 @@ def _as_time(value: Any) -> datetime | None:
     return parsed.astimezone(_SHANGHAI)
 
 
+def _strict_as_time(value: Any) -> datetime | None:
+    """Parse a source-receipt timestamp only when its timezone is explicit."""
+    return strict_source_receipt_time(value)
+
+
 def _cutoff(business_date: str, slot: str) -> datetime:
-    return datetime.strptime(
-        business_date + slot, "%Y%m%d%H%M"
-    ).replace(tzinfo=_SHANGHAI, second=59)
+    return collector_source_cutoff(business_date, slot)
 
 
 def _latest_zsxq_status(
     data_root: Path, business_date: str, slot: str
 ) -> tuple[Path, dict[str, Any]] | None:
-    root = resolve_owned_path(
-        data_root,
-        f"research_module/runtime_outputs/zsxq_hourly/{business_date}",
-    )
-    if not root.is_dir():
+    evidence = read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
         return None
-    candidates: list[tuple[int, Path, dict[str, Any]]] = []
-    for path in root.glob("*/v35_zsxq_*_status_*.json"):
-        payload = _read_json(path)
-        raw_slot = str(payload.get("slot") or path.parent.name)
-        if not raw_slot.isdigit() or int(raw_slot) > int(slot):
-            continue
-        if payload.get("fetch_ok") is not True:
-            continue
-        # A newer empty delta must not hide an earlier verified non-empty
-        # same-day snapshot.  Hourly consumers need the latest usable research
-        # state, while READY_EMPTY remains valid evidence that the refresh ran.
-        if payload.get("status") != "READY":
-            continue
-        candidates.append((int(raw_slot), path, payload))
-    if not candidates:
-        return None
-    _, path, payload = max(candidates, key=lambda item: item[0])
-    return path, payload
+    return evidence.status_path, evidence.status
 
 
 def _source_quality(
@@ -261,12 +252,13 @@ def _source_quality(
 
 
 def _zsxq_rows(
-    data_root: Path, business_date: str, slot: str
+    data_root: Path, business_date: str, slot: str, *, allow_ready_empty: bool = False,
+    evidence: ZsxqSlotEvidence | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    selected = _latest_zsxq_status(data_root, business_date, slot)
-    if selected is None:
+    evidence = evidence or read_zsxq_slot_evidence(data_root, business_date, slot)
+    if evidence is None:
         return [], ["ZSXQ_STATUS_NOT_AVAILABLE_BY_SLOT"]
-    status_path, status = selected
+    status_path, status = evidence.status_path, evidence.status
     fetched_at = _as_time(status.get("fetched_at"))
     cutoff = _cutoff(business_date, slot)
     if fetched_at is None:
@@ -276,11 +268,11 @@ def _zsxq_rows(
         source_cutoff = _as_time(status.get("source_cutoff"))
         if source_cutoff is None or source_cutoff > cutoff:
             return [], ["ZSXQ_STATUS_NOT_POINT_IN_TIME_SAFE"]
-    paths = status.get("paths") if isinstance(status.get("paths"), Mapping) else {}
-    summary_path = Path(str(paths.get("summary") or ""))
-    summary = _read_json(summary_path) if summary_path.is_file() else {}
-    if not summary:
-        return [], ["ZSXQ_SUMMARY_UNREADABLE"]
+    summary = evidence.summary
+    if status.get("status") == "READY_EMPTY":
+        if allow_ready_empty:
+            return [], []
+        return [], ["ZSXQ_READY_EMPTY_REQUIRES_MANUAL_RECOVERY"]
     boundary = [
         str(value)
         for value in status.get("cannot_confirm") or []
@@ -378,12 +370,31 @@ def _zsxq_rows(
 
 
 def build_hourly_research_input(
-    *, data_root: Path, business_date: str, slot: str
+    *, data_root: Path, business_date: str, slot: str,
+    manual_recovery: bool = False,
 ) -> dict[str, Any]:
     if slot not in _SLOTS:
         raise ValueError("hourly research slot must be 0830 or 0700 through 2300")
     datetime.strptime(business_date, "%Y%m%d")
-    rows, gaps = _zsxq_rows(Path(data_root), business_date, slot)
+    if manual_recovery and slot != "1700":
+        raise ValueError("manual empty recovery is limited to the reviewed 17:00 slot")
+    evidence = read_zsxq_slot_evidence(Path(data_root), business_date, slot)
+    status = evidence.status if evidence is not None else {}
+    fetched_at = _strict_as_time(status.get("fetched_at"))
+    manual_empty_proof = bool(
+        manual_recovery
+        and evidence is not None
+        and status.get("status") == "READY_EMPTY"
+        and fetched_at is not None
+        and fetched_at.strftime("%Y%m%d") == business_date
+        and fetched_at <= _cutoff(business_date, slot)
+        and datetime.now(_SHANGHAI) >= _cutoff(business_date, slot)
+    )
+    rows, gaps = _zsxq_rows(
+        Path(data_root), business_date, slot,
+        allow_ready_empty=manual_empty_proof,
+        evidence=evidence,
+    )
     stock_master = {
         str(row["stock_code"]): {
             "name": str(row["stock_name"]),
@@ -392,7 +403,12 @@ def build_hourly_research_input(
         for row in rows
     }
     snapshot = build_research_lane_snapshot(business_date, rows, stock_master)
-    generated_at = min(datetime.now(_SHANGHAI), _cutoff(business_date, slot))
+    materialized_at = datetime.now(_SHANGHAI)
+    generated_at = (
+        materialized_at
+        if manual_empty_proof
+        else min(materialized_at, _cutoff(business_date, slot))
+    )
     snapshot["source_manifest"].update(
         {
             "generated_at": generated_at.isoformat(timespec="seconds"),
@@ -400,6 +416,46 @@ def build_hourly_research_input(
             "hourly_slot": slot,
             "producer": "ops.collect_hourly_research_input",
             "producer_oracle_sha256": "850fffdf16b7c0127852cbe9cc374aed353e8d7cb1c2ba73d2eff880c95d022e",
+            **(
+                {
+                    "trade_date": business_date,
+                    "source_receipts": [str(status["status_path"])],
+                    "source_receipt_sha256": evidence.status_sha256,
+                    "fetched_at": str(status["fetched_at"]),
+                    "source_cutoff": str(status["source_cutoff"]),
+                    "pit_cutoff": str(status["source_cutoff"]),
+                    "capture_origin": "ORIGINAL_SLOT",
+                    "original_time_capture": True,
+                    "materialization_origin": "MANUAL_RECOVERY",
+                    "materialized_at": materialized_at.isoformat(timespec="seconds"),
+                    "available_at": materialized_at.isoformat(timespec="seconds"),
+                    "natural_execution_verified": False,
+                    "ready_empty_source_proof": {
+                        "schema_version": "v3_5.zsxq_ready_empty.v1",
+                        "trade_date": business_date,
+                        "slot": slot,
+                        "status": "READY_EMPTY",
+                        "source_receipt_path": str(status["status_path"]),
+                        "source_receipt_sha256": evidence.status_sha256,
+                        "summary_sha256": evidence.summary_sha256,
+                        "fetch_result_sha256": evidence.fetch_result_sha256,
+                        "fetch_ok": status.get("fetch_ok"),
+                        "fetch_success": evidence.fetch_result.get("success"),
+                        "page_count": status.get("page_count"),
+                        "topic_count": status.get("topic_count"),
+                        "effective_topic_count": status.get("effective_topic_count"),
+                        "fetched_at": str(status["fetched_at"]),
+                        "source_cutoff": str(status["source_cutoff"]),
+                        "capture_origin": "ORIGINAL_SLOT",
+                        "materialization_origin": "MANUAL_RECOVERY",
+                        "materialized_at": materialized_at.isoformat(timespec="seconds"),
+                        "available_at": materialized_at.isoformat(timespec="seconds"),
+                        "natural_execution_verified": False,
+                    },
+                }
+                if manual_empty_proof
+                else {}
+            ),
         }
     )
     snapshot["cannot_confirm"] = [
@@ -415,6 +471,40 @@ def build_hourly_research_input(
         "status": "READY_WITH_RESEARCH_POOL" if rows else "READY_EMPTY",
         "row_count": len(rows),
     }
+    snapshot["slot"] = slot
+    if manual_empty_proof:
+        snapshot["pit_cutoff"] = str(status["source_cutoff"])
+    if manual_recovery and not manual_empty_proof:
+        return {
+            "schema_version": "v3_5.hourly_research_input_run.v1",
+            "status": "INPUT_MISSING",
+            "business_date": business_date,
+            "slot": slot,
+            "row_count": 0,
+            "cannot_confirm": ["READY_EMPTY_SOURCE_PROOF_INVALID"],
+            "natural_execution_verified": False,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+    if not rows and not manual_empty_proof:
+        return {
+            "schema_version": "v3_5.hourly_research_input_run.v1",
+            "status": "INPUT_MISSING",
+            "business_date": business_date,
+            "slot": slot,
+            "row_count": 0,
+            "cannot_confirm": [
+                item.get("reason", "RESEARCH_SOURCE_NOT_READY")
+                if isinstance(item, Mapping)
+                else str(item)
+                for item in snapshot.get("cannot_confirm", [])
+            ] or ["RESEARCH_SOURCE_NOT_READY"],
+            "natural_execution_verified": False,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
     destination = resolve_owned_path(
         data_root, f"research/incoming/{business_date}/{slot}.json"
     )
@@ -429,6 +519,22 @@ def build_hourly_research_input(
         "source_path": source_path,
         "source_sha256": hashlib.sha256(published_path.read_bytes()).hexdigest(),
         "recovery": published_path != destination,
+        "capture_origin": "ORIGINAL_SLOT",
+        "execution_origin": "MANUAL_RECOVERY" if manual_empty_proof else "ORIGINAL_SLOT",
+        "materialized_at": materialized_at.isoformat(timespec="seconds"),
+        **(
+            {
+                "available_at": materialized_at.isoformat(timespec="seconds"),
+                "source_receipt_sha256": evidence.status_sha256,
+                "summary_sha256": evidence.summary_sha256,
+                "fetch_result_sha256": evidence.fetch_result_sha256,
+                "source_cutoff": str(status["source_cutoff"]),
+                "fetched_at": str(status["fetched_at"]),
+            }
+            if manual_empty_proof and evidence is not None
+            else {}
+        ),
+        "natural_execution_verified": False,
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,
@@ -440,14 +546,19 @@ def main() -> int:
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--date", required=True)
     parser.add_argument("--slot", required=True)
+    parser.add_argument("--manual-recovery", action="store_true")
     args = parser.parse_args()
     result = build_hourly_research_input(
         data_root=args.data_root,
         business_date=args.date,
         slot=args.slot,
+        manual_recovery=args.manual_recovery,
     )
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-    return 0
+    return 0 if result.get("status") in {
+        "READY_WITH_RESEARCH_POOL",
+        "READY_EMPTY",
+    } else 2
 
 
 if __name__ == "__main__":

@@ -202,3 +202,333 @@ def test_service_can_attach_reader_when_event_provider_is_unavailable(tmp_path: 
     assert result["rows"]["01191"]["reader_materials"][0]["title"] == "公开合作报道"
     assert result["rows"]["06166"]["reader_materials"][0]["title"] == "公开合作报道"
     assert result["status"] == "PARTIAL_WITH_ROWS"
+
+
+def _vibe_reader_context(trade_date: str, source_dates: list[str]) -> dict[str, Any]:
+    return {
+        "plan_trade_date": trade_date,
+        "source_dates": source_dates,
+        "research_cutoff": "2026-09-26T16:00:00+08:00",
+        "focus_window_start": "2026-09-01T15:00:00+08:00",
+        "market_session": "20260924",
+    }
+
+
+def _vibe_reader_binding(dates: list[str]) -> dict[str, Any]:
+    return {
+        "schema_version": "v4.manager_existing_vibe_binding.v1",
+        "implementation_manifest_sha256": "a" * 64,
+        "input_sha256_by_date": {day: "b" * 64 for day in dates},
+    }
+
+
+def _vibe_reader_material(day: str, *, archive_recorded_at: str | None = None) -> dict[str, Any]:
+    return {
+        "material_id": f"vibe:{day}",
+        "title": "Vibe题材复盘：算力",
+        "themes": ["算力"],
+        "claim_type": "AGGREGATED_REVIEW_CONTEXT",
+        "source_kind": "VIBE_VERIFIED_INPUT",
+        "source_market": "A_SHARE",
+        "published_at": None,
+        "available_at": None,
+        "retrieved_at": None,
+        "archive_date": day,
+        "archive_recorded_at": archive_recorded_at or "2026-09-24T15:05:00+08:00",
+        "verification": "OWNER_VERIFIED",
+        "source_refs": [{"status": "VERIFIED", "payload_sha256": "c" * 64}],
+        "source_row": {"tag": "算力"},
+        "fresh_catalyst_eligible": False,
+        "identity_status": "A_SHARE_CONTEXT_ONLY_NOT_HK_CANDIDATES",
+    }
+
+
+def test_vibe_fanout_requires_only_a_share_sessions_and_preserves_hk_window(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+
+    source_dates = ["20260924", "20260925", "20260926"]
+    read_dates: list[str] = []
+    archive_dates: list[str] = []
+
+    class MissingArchiveStore:
+        hourly_store = None
+        store = None
+
+        def __init__(self) -> None:
+            self.hourly_store = self
+            self.store = self
+
+        def list_slots(self, day: str, *, mode: str) -> list[str]:
+            assert mode == "LIVE"
+            archive_dates.append(day)
+            return []
+
+        def read_exact(self, _day: str, **_kwargs: Any) -> None:
+            return None
+
+    def fake_read(_binding: Any, day: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        read_dates.append(day)
+        return [_vibe_reader_material(day)], {"status": "VERIFIED", "payload_sha256": "c" * 64}
+
+    monkeypatch.setattr(existing_materials, "_read_vibe", fake_read)
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=MissingArchiveStore(),
+        vibe_binding=_vibe_reader_binding(["20260924"]),
+        context=_vibe_reader_context("20260926", source_dates),
+    )
+
+    vibe = result["coverage"]["vibe_binding"]
+    assert result["coverage"]["window_dates"] == source_dates
+    assert result["plan_context"]["source_dates"] == source_dates
+    assert archive_dates == source_dates
+    assert read_dates == ["20260924"]
+    assert [item.rsplit(":", 1)[-1] for item in vibe["required_inputs"] if item.startswith("input_sha256_by_date:")] == ["20260924"]
+    assert vibe["market_scope"] == "A_SHARE_ONLY"
+    assert vibe["calendar_status"] == "VERIFIED"
+    assert vibe["excluded_dates"] == ["20260925", "20260926"]
+    assert vibe["unknown_calendar_dates"] == []
+    assert vibe["status"] == "READY_A_SHARE_CONTEXT_ONLY"
+    assert vibe["owner_verification_status"] == "VERIFIED"
+    assert vibe["projected_material_count"] == vibe["material_count"] == 1
+    assert vibe["context_dates"] == ["20260924"]
+    assert vibe["empty_dates"] == []
+
+
+def test_vibe_with_no_legal_a_share_date_cannot_be_ready(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+
+    source_dates = ["20260925", "20260926", "20260927"]
+    read_dates: list[str] = []
+
+    def unexpected_read(_binding: Any, day: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        read_dates.append(day)
+        raise AssertionError("non-trading dates must not reach the Vibe owner reader")
+
+    monkeypatch.setattr(existing_materials, "_read_vibe", unexpected_read)
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=None,
+        vibe_binding=_vibe_reader_binding(source_dates),
+        context=_vibe_reader_context("20260926", source_dates),
+    )
+
+    vibe = result["coverage"]["vibe_binding"]
+    assert read_dates == []
+    assert vibe["a_share_session_dates"] == []
+    assert vibe["excluded_dates"] == source_dates
+    assert vibe["status"] == "CANNOT_CONFIRM"
+    assert vibe["owner_verification_status"] == "NOT_RUN"
+    assert vibe["material_count"] == 0
+    assert "VIBE_A_SHARE_SESSION_WINDOW_EMPTY" in vibe["gaps"]
+    assert "VIBE_A_SHARE_SESSION_WINDOW_EMPTY" in result["gaps"]
+
+
+def test_vibe_unknown_calendar_date_is_not_read_and_blocks_ready(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+
+    source_dates = ["20260924", "20270104"]
+    read_dates: list[str] = []
+
+    def fake_read(_binding: Any, day: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        read_dates.append(day)
+        return [_vibe_reader_material(day)], {"status": "VERIFIED", "payload_sha256": "c" * 64}
+
+    monkeypatch.setattr(existing_materials, "_read_vibe", fake_read)
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=None,
+        vibe_binding=_vibe_reader_binding(["20260924"]),
+        context=_vibe_reader_context("20260926", source_dates),
+    )
+
+    vibe = result["coverage"]["vibe_binding"]
+    assert read_dates == ["20260924"]
+    assert vibe["market_scope"] == "A_SHARE_ONLY"
+    assert vibe["unknown_calendar_dates"] == ["20270104"]
+    assert vibe["status"] == "PARTIAL_A_SHARE_CONTEXT_ONLY"
+    assert vibe["owner_verification_status"] == "VERIFIED"
+    assert vibe["material_count"] == 1
+    assert "VIBE_A_SHARE_CALENDAR_UNKNOWN:20270104" in vibe["gaps"]
+    assert "VIBE_A_SHARE_CALENDAR_UNKNOWN:20270104" in result["gaps"]
+
+
+def test_real_vibe_unavailable_theme_tree_has_verified_source_but_no_context(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+
+    payload = {
+        "trade_date": "2026-09-24",
+        "data_as_of": "2026-09-24T15:05:00+08:00",
+        "sources": {"market_facts.theme_tree": {"status": "CANNOT_CONFIRM"}},
+        "functions": {
+            "get_market_facts": [
+                {"status": "READY"},
+                {"theme_tree": {"available": False, "themes": []}},
+            ]
+        },
+    }
+    verified_binding = {
+        "status": "VERIFIED",
+        "payload_sha256": "c" * 64,
+        "payload_path": "inputs/2026-09-24.json",
+    }
+    projected = existing_materials.project_vibe_snapshot(payload, verified_binding)
+    assert projected == []
+
+    monkeypatch.setattr(
+        existing_materials,
+        "_read_vibe",
+        lambda _binding, _day: (projected, verified_binding),
+    )
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=None,
+        vibe_binding=_vibe_reader_binding(["20260924"]),
+        context=_vibe_reader_context("20260926", ["20260924"]),
+    )
+
+    vibe = result["coverage"]["vibe_binding"]
+    assert vibe["verified_dates"] == ["20260924"]
+    assert vibe["owner_verification_status"] == "VERIFIED"
+    assert vibe["status"] == "CANNOT_CONFIRM"
+    assert vibe["projected_material_count"] == 0
+    assert vibe["material_count"] == 0
+    assert vibe["usable_context_available"] is False
+    assert vibe["projection_counts_by_date"] == {
+        "20260924": {"projected": 0, "usable_after_temporal_filter": 0}
+    }
+    assert vibe["empty_dates"] == ["20260924"]
+    assert vibe["projection_empty_dates"] == ["20260924"]
+    assert vibe["availability_reason"] == "来源已校验，但暂无可用的主题资料"
+    gap = "VIBE_VERIFIED_INPUT_HAS_NO_USABLE_THEME_ROWS:20260924"
+    assert gap in vibe["gaps"]
+    assert gap in result["gaps"]
+
+
+def test_empty_vibe_context_does_not_remove_verified_archive_material(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+    from infrastructure.data_store import _sha256
+
+    class ArchiveSource:
+        def __init__(self) -> None:
+            self.hourly_store = self
+            self.store = self
+            self.payload = {
+                "archive_date": "20260924",
+                "source_generated_at": "2026-09-24T10:07:00+08:00",
+                "articles": [{
+                    "article_id": "news-1",
+                    "title": "已验证的公司新闻",
+                    "published_at": "2026-09-24T10:00:00+08:00",
+                    "available_at": "2026-09-24T10:05:00+08:00",
+                    "retrieved_at": "2026-09-24T10:06:00+08:00",
+                    "themes": ["算力"],
+                    "market": "HK_CONNECT",
+                    "source_type": "NEWS",
+                    "source_url": "https://example.test/news-1",
+                }],
+            }
+            self.binding = {
+                "status": "VERIFIED",
+                "payload_path": "archive/20260924.json",
+                "payload_sha256": _sha256(self.payload),
+            }
+
+        def list_slots(self, _day: str, *, mode: str) -> list[str]:
+            assert mode == "LIVE"
+            return []
+
+        def read_exact(self, day: str, **_kwargs: Any) -> dict[str, Any]:
+            assert day == "20260924"
+            return self.payload
+
+        def artifact_binding(self, date: str, *, slot: str, mode: str) -> dict[str, Any]:
+            assert date == "20260924"
+            assert slot == ""
+            assert mode == "LIVE"
+            return self.binding
+
+    monkeypatch.setattr(
+        existing_materials,
+        "_read_vibe",
+        lambda _binding, _day: ([], {"status": "VERIFIED", "payload_sha256": "c" * 64}),
+    )
+
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=ArchiveSource(),
+        vibe_binding=_vibe_reader_binding(["20260924"]),
+        context=_vibe_reader_context("20260926", ["20260924"]),
+    )
+
+    assert [item["original_article_id"] for item in result["materials"]] == ["news-1"]
+    assert result["materials"][0]["verification"] == "OWNER_VERIFIED"
+    assert result["materials"][0]["source_market"] == "HK_CONNECT"
+    assert result["coverage"]["material_count"] == 1
+    assert result["coverage"]["vibe_binding"]["status"] == "CANNOT_CONFIRM"
+    assert result["coverage"]["vibe_binding"]["owner_verification_status"] == "VERIFIED"
+
+
+def test_mixed_vibe_dates_are_partial_and_keep_usable_context(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+
+    dates = ["20260923", "20260924"]
+    monkeypatch.setattr(
+        existing_materials,
+        "_read_vibe",
+        lambda _binding, day: (
+            ([_vibe_reader_material(day)] if day == "20260924" else []),
+            {"status": "VERIFIED", "payload_sha256": "c" * 64},
+        ),
+    )
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=None,
+        vibe_binding=_vibe_reader_binding(dates),
+        context=_vibe_reader_context("20260926", dates),
+    )
+
+    vibe = result["coverage"]["vibe_binding"]
+    assert vibe["verified_dates"] == dates
+    assert vibe["owner_verification_status"] == "VERIFIED"
+    assert vibe["status"] == "PARTIAL_A_SHARE_CONTEXT_ONLY"
+    assert vibe["usable_context_available"] is True
+    assert vibe["projected_material_count"] == 1
+    assert vibe["material_count"] == 1
+    assert vibe["projection_counts_by_date"] == {
+        "20260923": {"projected": 0, "usable_after_temporal_filter": 0},
+        "20260924": {"projected": 1, "usable_after_temporal_filter": 1},
+    }
+    assert vibe["context_dates"] == ["20260924"]
+    assert vibe["empty_dates"] == ["20260923"]
+    assert "VIBE_VERIFIED_INPUT_HAS_NO_USABLE_THEME_ROWS:20260923" in vibe["gaps"]
+
+
+def test_vibe_context_count_uses_rows_after_temporal_filter(monkeypatch: Any) -> None:
+    from v4.manager_research import existing_materials
+
+    day = "20260924"
+    too_late = _vibe_reader_material(day, archive_recorded_at="2026-09-27T10:00:00+08:00")
+    monkeypatch.setattr(
+        existing_materials,
+        "_read_vibe",
+        lambda _binding, _day: ([too_late], {"status": "VERIFIED", "payload_sha256": "c" * 64}),
+    )
+    result = existing_materials.read_existing_materials(
+        "20260926",
+        research_source=None,
+        vibe_binding=_vibe_reader_binding([day]),
+        context=_vibe_reader_context("20260926", [day]),
+    )
+
+    vibe = result["coverage"]["vibe_binding"]
+    assert vibe["owner_verification_status"] == "VERIFIED"
+    assert vibe["status"] == "CANNOT_CONFIRM"
+    assert vibe["projected_material_count"] == 1
+    assert vibe["material_count"] == 0
+    assert vibe["projection_counts_by_date"] == {
+        day: {"projected": 1, "usable_after_temporal_filter": 0}
+    }
+    assert vibe["empty_dates"] == [day]
+    assert "VIBE_CONTEXT_EMPTY_AFTER_TEMPORAL_FILTER:20260924" in vibe["gaps"]
+    assert result["coverage"]["excluded_after_cutoff_count"] == 1

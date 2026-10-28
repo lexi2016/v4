@@ -7,7 +7,7 @@ import os
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
 from contracts.runtime_tasks import DispatchMode, DispatchRequest
@@ -15,6 +15,7 @@ from contracts.trading_calendar import (
     MarketCalendar,
     TradingDayState,
     load_market_calendar,
+    next_session,
     resolve_market_states,
 )
 from infrastructure.scheduling.catalog import load_workload_catalog
@@ -31,7 +32,8 @@ def _with_runtime_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     """Keep success and failure JSON envelopes structurally identical."""
 
     result = dict(payload)
-    for field in ("failure_class", "retry_after", "release_id", "upstream_fingerprint"):
+    for field in ("failure_class", "retry_after", "release_id", "upstream_fingerprint", "app_root",
+                  "release_manifest_path", "release_manifest_sha256"):
         value = result.get(field)
         result[field] = value if value not in (None, "") else None
     try:
@@ -41,11 +43,11 @@ def _with_runtime_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 # Fixed dispatcher slots.  16:05 remains the independent A-share graph node;
-# HK Connect's formal close review has its own 16:08 slot.
+# HK Connect's formal close review runs after the 16:10 HK securities close.
 ALL_SLOTS: tuple[str, ...] = (
-    "0700", "0800", "0830", "0840", "0900", "0901", "0915", "0925", "0930", "0935", "0940",
+    "0415", "0515", "0700", "0800", "0830", "0840", "0900", "0901", "0915", "0925", "0930", "0935", "0940",
     "0945", "1000", "1030", "1100", "1130", "1200", "1300", "1315",
-    "1400", "1500", "1530", "1555", "1600", "1605", "1608", "1700", "1710", "1720",
+    "1400", "1500", "1530", "1555", "1600", "1605", "1608", "1610", "1700", "1710", "1720",
     "1730", "1800", "1900", "2000", "2001", "2030", "2040", "2050",
     "2100", "2105", "2108", "2110", "2115", "2140", "2200",
     "2300",
@@ -97,6 +99,45 @@ def next_trade_day(
     raise ValueError("NEXT_TRADE_DAY_UNAVAILABLE")
 
 
+def next_preselection_target_day(
+    business_date: str,
+    *,
+    calendar: MarketCalendar | None = None,
+    max_scan_days: int = 370,
+) -> str:
+    """Choose the shared target for the A/HK preselection workload.
+
+    The A lane consumes ``DispatchRequest.target_date`` directly, while the HK
+    lane resolves its own next HK securities session. Prefer the next A session
+    when the A lane is eligible today; on an HK-only day use the next HK
+    securities session. If the business date is a non-trading day, find the
+    next date eligible under the workload's A-or-HK-securities policy.
+    """
+    _date8(business_date, name="BUSINESS_DATE")
+    calendar = calendar or load_market_calendar()
+    current = date(
+        int(business_date[:4]), int(business_date[4:6]), int(business_date[6:])
+    )
+    session_states = {
+        TradingDayState.FULL_TRADING_DAY,
+        TradingDayState.HALF_TRADING_DAY_AM,
+    }
+    states = resolve_market_states(calendar, business_date)
+    if states["a_share"] in session_states:
+        return next_session(calendar, business_date, market="a_share")
+    if states["hk_securities"] in session_states:
+        return next_session(calendar, business_date, market="hk_securities")
+
+    for offset in range(1, max(1, int(max_scan_days)) + 1):
+        candidate = (current + timedelta(days=offset)).strftime("%Y%m%d")
+        candidate_states = resolve_market_states(calendar, candidate)
+        if candidate_states["a_share"] in session_states:
+            return candidate
+        if candidate_states["hk_securities"] in session_states:
+            return candidate
+    raise ValueError("NEXT_PRESELECTION_TARGET_UNAVAILABLE")
+
+
 def compute_dates(*, business_date: str, slot: str, calendar: MarketCalendar | None = None) -> dict[str, str]:
     if slot not in ALL_SLOTS:
         raise ValueError("UNKNOWN_SLOT")
@@ -105,7 +146,12 @@ def compute_dates(*, business_date: str, slot: str, calendar: MarketCalendar | N
     states = resolve_market_states(calendar, business_date)
     if all(state is TradingDayState.UNKNOWN for state in states.values()):
         raise ValueError("CALENDAR_UNKNOWN")
-    target = next_trade_day(business_date, calendar=calendar) if slot in NEXT_TARGET_SLOTS else business_date
+    if slot in PRESELECTION_SLOTS:
+        target = next_preselection_target_day(business_date, calendar=calendar)
+    elif slot in NEXT_TARGET_SLOTS:
+        target = next_trade_day(business_date, calendar=calendar)
+    else:
+        target = business_date
     return {"scheduled_date": business_date, "business_date": business_date, "target_date": target}
 
 
@@ -126,6 +172,7 @@ def run_scheduled_slot(
     selector_data_root: Path | None = None,
     preselection_input_root: Path | None = None,
     stage_selection_root: Path | None = None,
+    workload_guard: Callable[[Any, DispatchRequest, Any], dict[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     if slot not in ALL_SLOTS:
         raise ValueError("UNKNOWN_SLOT")
@@ -149,6 +196,16 @@ def run_scheduled_slot(
         repo_root=Path(__file__).resolve().parents[1],
     )
     executor = _noop_executor if dry_run else registry
+    if not dry_run and workload_guard is not None:
+        def guarded_executor(workload, dispatch_request, decision):
+            gate = workload_guard(workload, dispatch_request, decision)
+            output = registry(workload, dispatch_request, decision)
+            if gate is not None and isinstance(output, dict):
+                output = dict(output)
+                output.setdefault("stage_gate", gate)
+            return output
+
+        executor = guarded_executor
     receipt = dispatch_due(
         request,
         load_workload_catalog(),
@@ -170,6 +227,9 @@ def run_scheduled_slot(
         "failure_class": receipt.failure_class or None,
         "retry_after": receipt.retry_after or None,
         "release_id": receipt.release_id or None,
+        "app_root": receipt.app_root or None,
+        "release_manifest_path": receipt.release_manifest_path or None,
+        "release_manifest_sha256": receipt.release_manifest_sha256 or None,
         "upstream_fingerprint": receipt.upstream_fingerprint or None,
         "attempt": max(0, int(receipt.attempt or 0)),
         "production_allowed": receipt.production_allowed,

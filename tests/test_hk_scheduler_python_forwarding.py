@@ -35,6 +35,9 @@ def test_scheduled_slot_accepts_and_forwards_hk_0_2_python(tmp_path: Path, monke
                 "failure_class": None,
                 "retry_after": None,
                 "release_id": None,
+                "app_root": "",
+                "release_manifest_path": "",
+                "release_manifest_sha256": "",
                 "upstream_fingerprint": None,
                 "attempt": 1,
                 "production_allowed": False,
@@ -114,6 +117,7 @@ def test_scheduler_launcher_keeps_global_scheduler_alive_when_hk_runtime_is_miss
     runtime_root = tmp_path / "runtime"
     fake_python = runtime_root / "venvs" / "v3.5-mac" / "bin" / "python"
     fake_python.parent.mkdir(parents=True)
+    (runtime_root / "venvs" / "v3.5-mac" / "lib" / "python3.14" / "site-packages").mkdir(parents=True)
     log_path = tmp_path / "scheduler-argv.log"
     fake_python.write_text(
         "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$V35_TEST_LOG\"\nexit 0\n",
@@ -150,6 +154,40 @@ def test_scheduler_launcher_keeps_global_scheduler_alive_when_hk_runtime_is_miss
     assert hk_arg.endswith("venvs/v3.5-hk02/bin/python.invalid")
 
 
+def test_scheduler_launcher_fails_closed_when_main_site_packages_are_missing(
+    tmp_path: Path,
+) -> None:
+    """The scheduler launcher rejects a runtime without its required package directory."""
+    runtime_root = tmp_path / "runtime"
+    fake_python = runtime_root / "venvs" / "v3.5-mac" / "bin" / "python"
+    fake_python.parent.mkdir(parents=True)
+    fake_python.write_text("#!/bin/sh\nexit 97\n", encoding="utf-8")
+    fake_python.chmod(0o755)
+
+    env = os.environ.copy()
+    env.pop("V35_HK_0_2_PYTHON", None)
+    env.update(
+        {
+            "V35_RUNTIME_ROOT": str(runtime_root),
+            "V35_DATA_ROOT": str(tmp_path / "data"),
+            "V35_DISPATCH_LEDGER_ROOT": str(tmp_path / "ledger"),
+            "V35_STAGE_CENTER_SELECTION_ROOT": str(tmp_path / "selection"),
+            "V35_PRESELECTION_INPUT_ROOT": str(tmp_path / "preselection"),
+        }
+    )
+    launcher = Path(__file__).parents[1] / "ops" / "launch_v35_macos_scheduler.sh"
+    completed = subprocess.run(
+        ["bash", str(launcher)],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode != 0
+    assert "V3.5 scheduler Python site-packages is missing" in completed.stderr
+
+
 def test_scheduler_launcher_forwards_valid_hk_runtime_path(
     tmp_path: Path,
 ) -> None:
@@ -159,6 +197,7 @@ def test_scheduler_launcher_forwards_valid_hk_runtime_path(
     hk_python = runtime_root / "venvs" / "v3.5-hk02" / "bin" / "python"
     mac_python.parent.mkdir(parents=True)
     hk_python.parent.mkdir(parents=True)
+    (runtime_root / "venvs" / "v3.5-mac" / "lib" / "python3.14" / "site-packages").mkdir(parents=True)
     log_path = tmp_path / "scheduler-argv.log"
     mac_python.write_text(
         "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$V35_TEST_LOG\"\nexit 0\n",

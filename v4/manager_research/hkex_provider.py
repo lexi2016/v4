@@ -1,9 +1,8 @@
 """Public HKEX company-announcement provider used by manager research jobs.
 
-The provider follows the public HKEX title-search flow: the official active
-stock list supplies the issuer identity and stock id, then the official title
-directory is queried for that issuer and exact historical date window.  It
-never scans the market and it never accepts a caller supplied remote URL.
+The provider follows the public HKEX title-search flow for issuer queries and
+the official full-market directory. All requests use this provider transport,
+its HKEX host checks, and the existing shared MaterialStore.
 """
 
 from __future__ import annotations
@@ -27,6 +26,11 @@ from .ports import SourceResponse, SourceTransport
 
 
 HKEX_HOSTS = frozenset({"www1.hkexnews.hk", "www.hkexnews.hk", "sc.hkexnews.hk"})
+EASTMONEY_HK_HOSTS = frozenset({
+    "np-anotice-stock.eastmoney.com",
+    "np-cnotice-stock.eastmoney.com",
+    "pdf.dfcfw.com",
+})
 ACTIVE_STOCK_LIST_URL = "https://www1.hkexnews.hk/ncms/script/eds/activestock_sehk_e.json"
 TITLE_SEARCH_URL = "https://www1.hkexnews.hk/search/titlesearch.xhtml"
 SOURCE_PROVIDER_ID = "v4.hkex.official_titlesearch.v1"
@@ -68,6 +72,23 @@ def _safe_official_url(url: str) -> bool:
         return False
 
 
+def _safe_eastmoney_hk_url(url: str) -> bool:
+    """Allow only the tested Eastmoney HK notice endpoints and attached PDFs."""
+    try:
+        parsed = urlparse(url)
+        if (parsed.scheme != "https" or parsed.hostname not in EASTMONEY_HK_HOSTS
+                or parsed.port not in (None, 443) or parsed.username is not None
+                or parsed.password is not None or parsed.fragment):
+            return False
+        if parsed.hostname == "np-anotice-stock.eastmoney.com":
+            return parsed.path == "/api/security/ann"
+        if parsed.hostname == "np-cnotice-stock.eastmoney.com":
+            return parsed.path == "/api/content/ann"
+        return bool(re.fullmatch(r"/pdf/H2_AN[A-Z0-9]{8,32}_1\.pdf", parsed.path))
+    except (TypeError, ValueError):
+        return False
+
+
 class _HKEXRedirectHandler(HTTPRedirectHandler):
     max_repeats = 1
     max_redirections = 5
@@ -75,6 +96,16 @@ class _HKEXRedirectHandler(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         if not _safe_official_url(newurl):
             raise ProviderError("HKEX_REDIRECT_TARGET_REFUSED")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+class _EastmoneyRedirectHandler(HTTPRedirectHandler):
+    max_repeats = 1
+    max_redirections = 5
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _safe_eastmoney_hk_url(newurl):
+            raise ProviderError("EASTMONEY_HK_REDIRECT_TARGET_REFUSED")
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
@@ -122,6 +153,57 @@ def _default_transport(*, max_response_bytes: int = 32 * 1024 * 1024) -> SourceT
                     total += len(chunk)
                     if total > max_response_bytes:
                         raise ProviderError("HKEX_RESPONSE_SIZE_BUDGET_EXCEEDED")
+                    chunks.append(chunk)
+                return SourceResponse(url=url, final_url=final_url, status_code=int(response.status),
+                    body=b"".join(chunks), headers=response_headers, retrieved_at=_now())
+        except ProviderError:
+            raise
+        except Exception as exc:
+            raise ProviderError(public_error(exc)) from exc
+    return request
+
+
+def _default_eastmoney_hk_transport(*, max_response_bytes: int = 8 * 1024 * 1024) -> SourceTransport:
+    """Read the tested Eastmoney HK list/detail and full attached PDF only."""
+    if isinstance(max_response_bytes, bool) or not isinstance(max_response_bytes, int) or max_response_bytes < 1:
+        raise ProviderError("INVALID_RESPONSE_SIZE_BUDGET")
+    opener = build_opener(_EastmoneyRedirectHandler())
+
+    def request(url: str, *, timeout: float, method: str = "GET", body: bytes | None = None,
+                headers: Mapping[str, str] | None = None) -> SourceResponse:
+        if not _safe_eastmoney_hk_url(url) or method.upper() != "GET" or body is not None:
+            raise ProviderError("EASTMONEY_HK_REQUEST_REFUSED")
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ProviderError("INVALID_TRANSPORT_TIMEOUT")
+        request_headers = {
+            "User-Agent": "Mozilla/5.0 (research-only; V4 manager research)",
+            "Accept": "application/json,application/pdf;q=0.9,*/*;q=0.8",
+        }
+        if headers:
+            request_headers.update(headers)
+        request_obj = Request(url, headers=request_headers, method="GET")
+        deadline = time.monotonic() + timeout
+        try:
+            with opener.open(request_obj, timeout=timeout) as response:
+                final_url = response.geturl()
+                if not _safe_eastmoney_hk_url(final_url):
+                    raise ProviderError("EASTMONEY_HK_REDIRECT_TARGET_REFUSED")
+                response_headers = {key.lower(): value for key, value in response.headers.items()}
+                length = response_headers.get("content-length")
+                if length is not None and (not str(length).isdigit() or int(length) > max_response_bytes):
+                    raise ProviderError("EASTMONEY_HK_RESPONSE_SIZE_BUDGET_EXCEEDED")
+                chunks: list[bytes] = []
+                total = 0
+                read = getattr(response, "read1", response.read)
+                while True:
+                    if time.monotonic() >= deadline:
+                        raise ProviderError("EASTMONEY_HK_RESPONSE_TIME_BUDGET_EXCEEDED")
+                    chunk = read(min(64 * 1024, max_response_bytes - total + 1))
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > max_response_bytes:
+                        raise ProviderError("EASTMONEY_HK_RESPONSE_SIZE_BUDGET_EXCEEDED")
                     chunks.append(chunk)
                 return SourceResponse(url=url, final_url=final_url, status_code=int(response.status),
                     body=b"".join(chunks), headers=response_headers, retrieved_at=_now())
@@ -282,6 +364,7 @@ class HkexOfficialProvider:
         self, transport: SourceTransport | None = None, *, timeout: float = 20.0,
         active_stock_ttl_seconds: float = 300.0,
         event_media_transport: Any | None = None,
+        eastmoney_transport: SourceTransport | None = None,
         material_store: Any | None = None,
     ):
         self._transport = transport or _default_transport()
@@ -296,6 +379,10 @@ class HkexOfficialProvider:
         # It is deliberately kept separate from the HKEX PDF transport so an
         # event refresh cannot alter financial-source caching or receipts.
         self._event_media_transport = event_media_transport
+        # Eastmoney is a separately labelled HK notice mirror. It is opt-in
+        # through the original manager announcement owner and never feeds the
+        # HKEX-only official-document lane.
+        self._eastmoney_transport = eastmoney_transport or _default_eastmoney_hk_transport()
         # An optional shared material store turns every URL this provider
         # touches into a fetch-once artifact: archived PDFs are immutable,
         # current listings/search pages expire on a short TTL, and the PDF
@@ -324,11 +411,19 @@ class HkexOfficialProvider:
         method: str = "GET",
         body: bytes | None = None,
         headers: Mapping[str, str] | None = None,
+        cache_response: bool = True,
     ) -> SourceResponse:
         if not _safe_official_url(url):
             raise ProviderError("refused non-HKEX source URL")
+        transport = self._transport
+        if not cache_response:
+            # Only the original title-search session handshake bypasses GET cache.
+            # It still uses the same original cookie transport and URL checks.
+            if method != "GET" or not url.startswith(TITLE_SEARCH_URL + "?") or self._material_transport is None:
+                raise ProviderError("refused uncached request outside official form handshake")
+            transport = self._material_transport._transport
         try:
-            response = self._transport(
+            response = transport(
                 url,
                 timeout=self._timeout,
                 method=method,
@@ -343,10 +438,30 @@ class HkexOfficialProvider:
             # They are read-only and can still serve GET fixtures.
             if method != "GET" or body is not None:
                 raise
-            response = self._transport(url, timeout=self._timeout)
+            response = transport(url, timeout=self._timeout)
             if response.final_url and not _safe_official_url(response.final_url):
                 raise ProviderError("refused non-HKEX redirect target")
             return response
+
+    def _request_eastmoney_hk(self, url: str, *, timeout: float | None = None) -> SourceResponse:
+        if not _safe_eastmoney_hk_url(url):
+            raise ProviderError("EASTMONEY_HK_REQUEST_REFUSED")
+        request_timeout=self._timeout if timeout is None else timeout
+        if not math.isfinite(request_timeout) or request_timeout<=0:
+            raise ProviderError("EASTMONEY_HK_REQUEST_TIME_BUDGET_EXHAUSTED")
+        try:
+            response = self._eastmoney_transport(url, timeout=request_timeout, method="GET")
+            if not isinstance(response, SourceResponse):
+                raise ProviderError("EASTMONEY_HK_TRANSPORT_RESPONSE_INVALID")
+            if response.url != url or response.final_url and not _safe_eastmoney_hk_url(response.final_url):
+                raise ProviderError("EASTMONEY_HK_REDIRECT_TARGET_REFUSED")
+            if not isinstance(response.body, bytes) or len(response.body) > 8 * 1024 * 1024:
+                raise ProviderError("EASTMONEY_HK_RESPONSE_SIZE_BUDGET_EXCEEDED")
+            return response
+        except ProviderError:
+            raise
+        except Exception as exc:
+            raise ProviderError(public_error(exc)) from exc
 
     def _load_active_stocks(self) -> tuple[dict[str, dict[str, Any]], str, str]:
         with self._active_stock_lock:
@@ -594,6 +709,28 @@ class HkexOfficialProvider:
             "source": source,
             "facts": facts,
         }
+
+    def collect_announcement_batch(self, *, context, issuers, pending_documents=(),
+                                   max_issuers=3, max_documents=4, budget=None,
+                                   reusable_documents=None):
+        """Original official transport/store, bounded native-master scope; no Stage."""
+        from .announcement_source import collect_batch
+        return collect_batch(self, context=context, issuers=issuers,
+                             pending_documents=pending_documents, max_issuers=max_issuers,
+                             max_documents=max_documents, budget=budget,
+                             reusable_documents=reusable_documents)
+
+    def collect_official_market_batch(self, **kwargs):
+        """Capture the official all-market directory through this provider/store."""
+        from .announcement_source import collect_official_market_batch
+        return collect_official_market_batch(self, **kwargs)
+
+    def collect_eastmoney_hk_batch(self, *, context, issuers, max_issuers=3,
+                                  max_documents=4, budget=None):
+        """Capture a bounded Eastmoney HK notice batch through this same owner/provider."""
+        from .announcement_source import collect_eastmoney_hk_batch
+        return collect_eastmoney_hk_batch(self, context=context, issuers=issuers,
+            max_issuers=max_issuers, max_documents=max_documents, budget=budget)
 
     def collect_events(
         self,

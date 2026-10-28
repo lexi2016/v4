@@ -50,6 +50,8 @@ def test_scheduler_plist_uses_exact_calendar_slots_and_five_minute_heartbeat() -
         research_panel_hk_python_executable="/Users/lexi/Library/Application Support/com.lexi.v35.local/releases/r1/runtime/venvs/v3.5-hk02/bin/python",
         research_panel_hk_asset_root="/Users/lexi/Library/Application Support/com.lexi.v35.local/state/workspace/v3_shared_data/.runtime/data/assets/hk_0_2",
         release_id="r1",
+        release_manifest_path="/Applications/v35/release-manifest.json",
+        release_manifest_sha256="a" * 64,
         upstream_fingerprint="upstream-sha256",
     )
     intervals = plist["StartCalendarInterval"]
@@ -141,6 +143,8 @@ def test_scheduler_plist_binds_launch_shell_roots_and_release_identity() -> None
         launch_script=launch_script,
         **roots,
         release_id="r1",
+        release_manifest_path="/Applications/v35/release-manifest.json",
+        release_manifest_sha256="a" * 64,
         upstream_fingerprint="upstream-sha256",
     )
 
@@ -198,3 +202,39 @@ def test_scheduler_plist_binds_launch_shell_roots_and_release_identity() -> None
     assert env["PRODUCTION_ALLOWED"] == "false"
     assert env["BUY_GATE_UPDATED"] == "false"
     assert env["ORDERS_SENT"] == "false"
+
+
+def test_scheduler_renderer_refuses_missing_or_invalid_manifest_identity():
+    import inspect
+    import pytest
+    kwargs = {name: "/isolated/" + name for name, item in inspect.signature(build_scheduler_plist).parameters.items()
+              if item.default is inspect.Parameter.empty}
+    kwargs.update(release_id="reviewed", upstream_fingerprint="upstream", release_manifest_sha256="x", release_manifest_path="/isolated/manifest.json")
+    with pytest.raises(ValueError, match="sha256"):
+        build_scheduler_plist(**kwargs)
+    kwargs["release_manifest_sha256"] = "b" * 64
+    kwargs["release_manifest_path"] = "relative.json"
+    with pytest.raises(ValueError, match="absolute"):
+        build_scheduler_plist(**kwargs)
+
+
+def test_scheduler_renderer_intraday_binding_is_explicit_and_all_or_none(tmp_path):
+    import inspect
+    import pytest
+    signature = inspect.signature(build_scheduler_plist)
+    kwargs = {name: str(tmp_path / name) for name, p in signature.parameters.items()
+              if p.default is inspect.Parameter.empty}
+    kwargs.update(release_id="fixture-release", upstream_fingerprint="fixture-upstream",
+                  release_manifest_sha256="a" * 64)
+    binding = {"intraday_config_path": str(tmp_path / "intraday.json"),
+               "intraday_config_sha256": "b" * 64, "intraday_source_manifest_sha256": "c" * 64}
+    payload = build_scheduler_plist(**kwargs, **binding)
+    env = payload["EnvironmentVariables"]
+    assert env["V4_INTRADAY_CONFIG_PATH"] == binding["intraday_config_path"]
+    assert env["V4_INTRADAY_CONFIG_SHA256"] == "b" * 64
+    assert env["V4_INTRADAY_SOURCE_MANIFEST_SHA256"] == "c" * 64
+    for key in binding:
+        partial = {k: v for k, v in binding.items() if k != key}
+        with pytest.raises(ValueError, match="intraday"):
+            build_scheduler_plist(**kwargs, **partial)
+    assert not list(tmp_path.iterdir())  # Renderer never writes/activates anything.

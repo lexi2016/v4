@@ -2,17 +2,21 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
-from apps.api.v35_api.research_lane_router import create_research_lane_router
+from apps.api.v35_api.research_lane_router import _lane_response, create_research_lane_router
 from apps.api.v35_api.research_router import create_research_router
+from apps.api.v35_api.app import create_app
+from apps.api.v35_api import research_router as legacy_research_router
 from domains.research import build_research_archive
 from domains.research_day_product import build_research_day_product
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from infrastructure.data_store import _sha256
 from infrastructure.research_lane_source import ResearchLaneSource
 from infrastructure.research_peripheral_store import ResearchPeripheralStore
 from infrastructure.research_store import ResearchArchiveStore
@@ -149,6 +153,154 @@ def _write_lane_snapshot(
     return root / published["payload_path"]
 
 
+def _write_bound_zsxq_hourly(
+    root: Path,
+    date: str,
+    *,
+    slot: str = "1800",
+    fetched_at: str | None = None,
+    status_overrides: dict[str, object] | None = None,
+    include_source_receipt_sha: bool = True,
+    source_receipt_sha_override: str | None = None,
+) -> Path:
+    fetched_at = fetched_at or f"{date[:4]}-{date[4:6]}-{date[6:]}T18:00:00+08:00"
+    source_path = (
+        f"research_module/runtime_outputs/zsxq_hourly/{date}/{slot}/"
+        f"v35_zsxq_hourly_status_{date}_{slot}.json"
+    )
+    title = "知识星球研究记录"
+    url = f"https://wx.zsxq.com/dweb2/index/topic_detail/{date}{slot}"
+    source = {
+        "schema_version": "v3_research_lane.v2",
+        "trade_date": date,
+        "slot": slot,
+        "source_manifest": {
+            "trade_date": date,
+            "hourly_slot": slot,
+            "generated_at": fetched_at,
+            "source_receipts": [source_path],
+        },
+        "stock_research_daily": [
+            {
+                "stock_code": "000001",
+                "stock_name": "测试股票",
+                "first_seen_time": fetched_at,
+                "last_seen_time": fetched_at,
+                "research_score": 10,
+                "research_status": "RESEARCH_ONLY",
+                "evidence_count": 1,
+                "source_count": 1,
+                "source_types": ["zsxq"],
+                "themes": [],
+                "top_catalysts": [],
+            }
+        ],
+        "stock_research_timeline": [
+            {
+                "stock_code": "000001",
+                "stock_name": "测试股票",
+                "event_time": fetched_at,
+                "source_published_at": f"{date[:4]}-{date[4:6]}-{date[6:]}T17:50:00+08:00",
+                "first_seen_at": fetched_at,
+                "last_checked_at": fetched_at,
+                "source_type": "zsxq",
+                "source_name": "知识星球",
+                "source_title": title,
+                "source_path": source_path,
+                "url": url,
+                "evidence_sentence": title,
+                "evidence_level": "L2_MEDIUM",
+                "confidence": "MEDIUM",
+            }
+        ],
+        "raw_items": [
+            {
+                "source_type": "zsxq",
+                "source_path": source_path,
+                "trade_date": date,
+                "crawl_time": fetched_at,
+                "raw_payload": {
+                    "source_type": "zsxq",
+                    "source_path": source_path,
+                    "trade_date": date,
+                    "slot": slot,
+                    "crawl_time": fetched_at,
+                },
+            }
+        ],
+        "cannot_confirm": [
+            {
+                "reason": "STOCK_CANDIDATE_ENTITY_NOT_VERIFIED",
+                "stock_code": f"{index:06d}",
+                "stock_name": f"待核验{index}",
+                "item_id": f"gap-{index}",
+                "source_path": source_path,
+                "url": f"https://wx.zsxq.com/dweb2/index/topic_detail/gap{index}",
+            }
+            for index in range(1, 8)
+        ]
+        + [{"module": "research_intelligence", "reason": "RESEARCH_ONLY_NO_BUY_GATE"}],
+    }
+    run_id = f"{date}_{slot}00_run123"
+    run_relative = f"external_sources/zsxq_hourly/{run_id}"
+    status = {
+        "schema_version": "v3_5.zsxq_hourly_delta.v1",
+        "source": "zsxq",
+        "trade_date": date,
+        "slot": slot,
+        "status_path": source_path,
+        "status": "READY",
+        "fetch_ok": True,
+        "fetched_at": fetched_at,
+        "source_cutoff": f"{date[:4]}-{date[4:6]}-{date[6:]}T{slot[:2]}:{slot[2:]}:59+08:00",
+        "latest_run_id": run_id,
+        "paths": {
+            "run_dir": run_relative,
+            "summary": f"{run_relative}/zsxq_summary.json",
+            "fetch_result": f"{run_relative}/zsxq_recent_topics_fetch_result.json",
+        },
+        "topic_count": 1,
+        "effective_topic_count": 1,
+        "page_count": 2,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    status.update(status_overrides or {})
+    run_dir = root / run_relative
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "zsxq_summary.json").write_text(
+        json.dumps({"ok": True, "raw_topic_count": 1, "effective_topic_count": 1}),
+        encoding="utf-8",
+    )
+    (run_dir / "zsxq_recent_topics_fetch_result.json").write_text(
+        json.dumps({"ok": True, "success": True, "page_count": 2}),
+        encoding="utf-8",
+    )
+    status_path = root / source_path
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.write_text(json.dumps(status), encoding="utf-8")
+    if include_source_receipt_sha:
+        source["source_manifest"]["source_receipt_sha256"] = (
+            source_receipt_sha_override
+            or hashlib.sha256(status_path.read_bytes()).hexdigest()
+        )
+    incoming = root / "research" / "incoming" / date / f"{slot}.json"
+    incoming.parent.mkdir(parents=True, exist_ok=True)
+    raw = json.dumps(source, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    incoming.write_bytes(raw)
+    archive = build_research_archive(
+        source,
+        source_input_sha256=hashlib.sha256(raw).hexdigest(),
+    )
+    published = HourlyResearchStore(root).publish(
+        archive,
+        slot=slot,
+        mode="LIVE",
+    )
+    return incoming
+
+
 def _write_authoritative_day(root: Path, date: str) -> Path:
     slots = {
         slot: {
@@ -197,6 +349,89 @@ def _write_authoritative_day(root: Path, date: str) -> Path:
     return root / published["payload_path"]
 
 
+def _write_shared_morning_news(root: Path, date: str) -> None:
+    run_id = f"{date}-morning-news-fixture"
+    relative_root = f"morning_news/runs/{date}/{run_id}"
+    payload_relative = f"{relative_root}/payload.json"
+    manifest_relative = f"{relative_root}/manifest.json"
+    receipt_relative = f"{relative_root}/receipt.json"
+    articles = [
+        {
+            "source": "fixture",
+            "title": f"晨间资讯 {index}",
+            "published_at": f"{date[:4]}-{date[4:6]}-{date[6:]}T08:0{index}:00+08:00",
+            "url": f"https://example.invalid/{date}/{index}",
+        }
+        for index in range(1, 4)
+    ]
+    payload = {
+        "schema_version": "v3_shared_data.morning_news.v1",
+        "trade_date": date,
+        "source_role": "JIUYANGONGSHE_MORNING_NEWS",
+        "status": "MORNING_NEWS_READY",
+        "articles": articles,
+        "article_count": len(articles),
+        "stock_mentions": [
+            {"stock_code": "600000", "stock_name": "浦发银行"}
+        ],
+        "mention_count": 1,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    payload_sha256 = _sha256(payload)
+    manifest = {
+        "schema_version": "v3_shared_data.morning_news.v1",
+        "trade_date": date,
+        "run_id": run_id,
+        "payload_relative": payload_relative,
+        "payload_sha256": payload_sha256,
+        "article_count": len(articles),
+        "mention_count": 1,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    receipt = {
+        "schema_version": "v3_shared_data.morning_news.v1",
+        "trade_date": date,
+        "run_id": run_id,
+        "payload_relative": payload_relative,
+        "payload_sha256": payload_sha256,
+        "manifest_relative": manifest_relative,
+        "manifest_sha256": _sha256(manifest),
+        "receipt_relative": receipt_relative,
+        "status": "MORNING_NEWS_READY",
+        "article_count": len(articles),
+        "mention_count": 1,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    latest = {
+        "schema_version": "v3_shared_data.morning_news_latest.v1",
+        "entries": {
+            date: {
+                "trade_date": date,
+                "run_id": run_id,
+                "payload_relative": payload_relative,
+                "payload_sha256": payload_sha256,
+                "manifest_relative": manifest_relative,
+                "receipt_relative": receipt_relative,
+            }
+        },
+    }
+    for relative, value in (
+        (payload_relative, payload),
+        (manifest_relative, manifest),
+        (receipt_relative, receipt),
+        ("morning_news/latest.json", latest),
+    ):
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+
+
 def _make_client(data_root: Path) -> TestClient:
     app = FastAPI()
     app.include_router(create_research_lane_router(data_root))
@@ -239,6 +474,136 @@ def test_lane_reader_rejects_traversal(tmp_path: Path) -> None:
         source._resolve("../outside.json")
 
 
+def test_lane_reader_restores_bound_fetch_time_and_source_gap_traces(tmp_path: Path) -> None:
+    _write_bound_zsxq_hourly(tmp_path, "20260805")
+
+    payload, slot, _ = ResearchLaneSource(data_root=tmp_path).read_exact_lane("20260805")
+
+    assert payload is not None
+    assert slot == "1800"
+    article = payload["articles"][0]
+    assert article["fetched_at"] == "2026-08-05T18:00:00+08:00"
+    assert article["published_at"] == "2026-08-05T17:50:00+08:00"
+    assert article["collected_at"] == "2026-08-05T18:00:00+08:00"
+    assert article["first_seen_at"] == "2026-08-05T18:00:00+08:00"
+    assert article["capture_time_evidence"]["status"] == "VERIFIED"
+    assert article["capture_time_evidence"]["source_receipt_sha_binding"] == "DECLARED_MATCH"
+    assert article["capture_time_evidence"]["integrity_status"] == "VERIFIED"
+    gaps = [item for item in payload["cannot_confirm"] if item.startswith("STOCK_CANDIDATE_ENTITY_NOT_VERIFIED:")]
+    assert len(gaps) == 7
+    assert all("item_id=gap-" in item and "source_path=research_module/runtime_outputs/zsxq_hourly/" in item for item in gaps)
+    assert all("url=https://wx.zsxq.com/" in item for item in gaps)
+    assert "LEGACY_SOURCE_CANNOT_CONFIRM_COUNT:8" not in payload["cannot_confirm"]
+    assert "RESEARCH_ONLY_NO_BUY_GATE" not in payload["cannot_confirm"]
+
+
+def test_lane_reader_restores_bound_time_with_unbound_original_receipt_sha_diagnostic(
+    tmp_path: Path,
+) -> None:
+    _write_bound_zsxq_hourly(
+        tmp_path, "20260805", include_source_receipt_sha=False
+    )
+
+    payload, _, _ = ResearchLaneSource(data_root=tmp_path).read_exact_lane("20260805")
+
+    assert payload is not None
+    article = payload["articles"][0]
+    evidence = article["capture_time_evidence"]
+    assert article["fetched_at"] == "2026-08-05T18:00:00+08:00"
+    assert evidence["status"] == "VERIFIED"
+    assert evidence["verification_basis"] == "EXACT_BOUND_INPUT_AND_RUN_RECEIPT"
+    assert evidence["measured_status_receipt_sha256"] == hashlib.sha256(
+        (tmp_path / "research_module/runtime_outputs/zsxq_hourly/20260805/1800/"
+         "v35_zsxq_hourly_status_20260805_1800.json").read_bytes()
+    ).hexdigest()
+    assert evidence["source_receipt_sha_binding"] == "ORIGINAL_RECEIPT_SHA_NOT_DECLARED"
+    assert evidence["integrity_status"] == "CANNOT_CONFIRM"
+    assert evidence["cannot_confirm"] == ["ORIGINAL_RECEIPT_SHA_NOT_DECLARED"]
+    assert "source_receipt_sha256" not in evidence
+    assert "ORIGINAL_RECEIPT_SHA_NOT_DECLARED" in payload["cannot_confirm"]
+
+
+def test_lane_reader_does_not_restore_fetch_time_from_unbound_input(tmp_path: Path) -> None:
+    incoming = _write_bound_zsxq_hourly(tmp_path, "20260805")
+    incoming.write_text("{}", encoding="utf-8")
+
+    payload, _, _ = ResearchLaneSource(data_root=tmp_path).read_exact_lane("20260805")
+
+    assert payload is not None
+    assert "fetched_at" not in payload["articles"][0]
+    assert "collected_at" not in payload["articles"][0]
+    assert "first_seen_at" not in payload["articles"][0]
+    assert payload["articles"][0]["capture_time_evidence"]["reason"] == "SOURCE_INPUT_NOT_SHA_BOUND"
+    assert len([item for item in payload["cannot_confirm"] if item.startswith("STOCK_CANDIDATE_ENTITY_NOT_VERIFIED:")]) == 7
+
+
+@pytest.mark.parametrize(
+    ("tamper", "status_overrides", "expected_reason"),
+    [
+        ("missing", None, "SOURCE_RECEIPT_MISSING"),
+        ("receipt_mismatch", {"slot": "1700"}, "SOURCE_RECEIPT_RUN_EVIDENCE_UNVERIFIED"),
+        ("receipt_tampered", {"topic_count": 999}, "SOURCE_RECEIPT_RUN_EVIDENCE_UNVERIFIED"),
+    ("receipt_sha_mismatch", None, "SOURCE_RECEIPT_SHA_MISMATCH"),
+        ("failed_fetch", {"fetch_ok": False}, "SOURCE_RECEIPT_NOT_READY"),
+        ("cross_day", {"trade_date": "20260806"}, "SOURCE_RECEIPT_RUN_EVIDENCE_UNVERIFIED"),
+        ("future_auth", {"fetched_at": "2026-08-06T00:30:00+08:00"}, "SOURCE_RECEIPT_FETCHED_AFTER_SLOT"),
+    ],
+)
+def test_lane_response_suppresses_unverified_acquisition_times(
+    tmp_path: Path,
+    tamper: str,
+    status_overrides: dict[str, object] | None,
+    expected_reason: str,
+) -> None:
+    _write_bound_zsxq_hourly(
+        tmp_path,
+        "20260805",
+        fetched_at=(
+            "2026-08-06T00:30:00+08:00"
+            if tamper == "future_auth"
+            else None
+        ),
+        status_overrides=status_overrides,
+        source_receipt_sha_override=(
+            "0" * 64 if tamper == "receipt_sha_mismatch" else None
+        ),
+    )
+    receipt = tmp_path / (
+        "research_module/runtime_outputs/zsxq_hourly/20260805/1800/"
+        "v35_zsxq_hourly_status_20260805_1800.json"
+    )
+    if tamper == "missing":
+        receipt.unlink()
+
+    payload, _, _ = ResearchLaneSource(data_root=tmp_path).read_exact_lane("20260805")
+
+    assert payload is not None
+    response = _lane_response(
+        payload,
+        research_date="20260805",
+        endpoint_mode="EXACT",
+        hourly_slot="1800",
+        hourly_slot_count=1,
+        peripherals={},
+    )
+    article = response["stock_research_timeline"][0]
+    assert "fetched_at" not in article
+    assert "collected_at" not in article
+    assert "first_seen_at" not in article
+    assert article["published_at"] == "2026-08-05T17:50:00+08:00"
+    assert article["capture_time_evidence"]["status"] == "UNVERIFIED"
+    assert article["capture_time_evidence"]["reason"] == expected_reason
+    raw_values = article["capture_time_evidence"]["raw_values"]
+    assert raw_values["collected_at"] == (
+        "2026-08-06T00:30:00+08:00" if tamper == "future_auth" else "2026-08-05T18:00:00+08:00"
+    )
+    assert raw_values["first_seen_at"] == raw_values["collected_at"]
+    assert raw_values["source_capture_times"] == [{
+        "crawl_time": "2026-08-06T00:30:00+08:00" if tamper == "future_auth" else "2026-08-05T18:00:00+08:00",
+        "nested_crawl_time": "2026-08-06T00:30:00+08:00" if tamper == "future_auth" else "2026-08-05T18:00:00+08:00",
+    }]
+
+
 def test_lane_router_exact_date(tmp_path: Path) -> None:
     _write_lane_snapshot(tmp_path, "20260804")
     client = _make_client(tmp_path)
@@ -264,10 +629,15 @@ def test_lane_router_live_hourly_missing_key_messages_is_explicit(tmp_path: Path
     ).json()
 
     assert body["status"] == "LIVE_HOURLY"
-    assert body["key_investment_messages"] == []
+    assert "key_investment_messages" not in body
     assert "LANE_PERIPHERAL_NOT_MATERIALIZED:key_investment_messages" in body[
         "cannot_confirm"
     ]
+    assert "LANE_PERIPHERAL_NOT_MATERIALIZED:ocr_ingestion" in body["cannot_confirm"]
+    assert body["ocr_ingestion"]["status"] == "NOT_ASSESSED"
+    assert body["ocr_ingestion"]["items"] == []
+    assert "PDF_SOURCE_ENUMERATION_MISSING" in body["ocr_ingestion"]["cannot_confirm"]
+    assert "completed_count" not in body["ocr_ingestion"]
     assert body["write_policy"] == "read_only"
     assert body["production_allowed"] is False
 
@@ -377,6 +747,213 @@ def test_lane_dates_endpoint(tmp_path: Path) -> None:
     response = client.get("/api/v3/research/dates")
     assert response.status_code == 200
     assert response.json()["research_dates"] == ["20260804"]
+
+
+def test_lane_source_binding_discloses_exact_hourly_artifact(tmp_path: Path) -> None:
+    producer_root = tmp_path / "producer"
+    _write_lane_snapshot(producer_root, "20260920", hourly=True)
+    client = _make_client(producer_root)
+
+    exact = client.get(
+        "/api/v3/research/lane?research_date=20260920"
+    ).json()
+    latest = client.get("/api/v3/research/lane").json()
+    dates = client.get("/api/v3/research/dates").json()
+
+    for body in (exact, latest):
+        binding = body["source_binding"]
+        assert body["research_date"] == "20260920"
+        assert binding["source_root"] == str(producer_root)
+        assert binding["status"] == "VERIFIED"
+        assert binding["source_date"] == "20260920"
+        assert binding["slot"] == "1700"
+        assert binding["payload_path"] == (
+            "research/hourly/live/20260920/1700.json"
+        )
+        assert len(binding["payload_sha256"]) == 64
+        assert len(binding["receipt_sha256"]) == 64
+        assert binding["write_policy"] == "read_only"
+        assert binding["production_allowed"] is False
+    assert dates["research_dates"] == ["20260920"]
+    assert dates["research_source"]["source_root"] == str(producer_root)
+
+
+def test_app_binds_research_lane_to_explicit_producer_root(tmp_path: Path) -> None:
+    producer_root = tmp_path / "producer"
+    _write_lane_snapshot(producer_root, "20260920", hourly=True)
+    client = TestClient(
+        create_app(
+            data_root=tmp_path / "consumer",
+            current_date="20260920",
+            stage_center_selection_root=tmp_path / "stage",
+            shared_data_root=tmp_path / "shared",
+            manager_research_state_root=tmp_path / "manager",
+            research_data_root=producer_root,
+            research_ledger_root=tmp_path / "research-ledger",
+        )
+    )
+
+    catalog = client.get("/api/v1/runs/date-list")
+    exact = client.get("/api/v3/research/lane?research_date=20260920")
+
+    assert catalog.status_code == 200
+    assert "20260920" in catalog.json()["research_dates"]
+    assert catalog.json()["research_source"]["source_root"] == str(producer_root)
+    assert exact.status_code == 200
+    assert exact.json()["research_date"] == "20260920"
+    assert exact.json()["source_binding"]["source_root"] == str(producer_root)
+
+
+def test_lane_morning_news_root_is_exact_and_keeps_the_shared_root_default(
+    tmp_path: Path,
+) -> None:
+    shared_root = tmp_path / "shared-root"
+    morning_root = tmp_path / "morning-root"
+    research_root = tmp_path / "research"
+    _write_shared_morning_news(shared_root, "20260919")
+    _write_shared_morning_news(morning_root, "20260920")
+    _write_lane_snapshot(research_root, "20260919")
+    _write_lane_snapshot(research_root, "20260920")
+
+    explicit_app = FastAPI()
+    explicit_app.include_router(
+        create_research_lane_router(
+            research_root,
+            shared_data_root=shared_root,
+            morning_news_data_root=morning_root,
+        )
+    )
+    with TestClient(explicit_app) as client:
+        exact = client.get("/api/v3/research/lane?research_date=20260920").json()
+        old_root_only = client.get(
+            "/api/v3/research/lane?research_date=20260919"
+        ).json()
+        missing = client.get(
+            "/api/v3/research/lane?research_date=20260921"
+        ).json()
+
+    assert exact["morning_news"]["status"] == "MORNING_NEWS_READY"
+    assert exact["morning_news"]["articles_count"] == 3
+    assert [item["title"] for item in exact["morning_news"]["articles"]] == [
+        "晨间资讯 1",
+        "晨间资讯 2",
+        "晨间资讯 3",
+    ]
+    assert old_root_only["morning_news"]["status"] == "NOT_MATERIALIZED"
+    assert old_root_only["morning_news"]["articles"] == []
+    assert old_root_only["morning_news"]["articles_count"] == 0
+    assert missing["status"] == "NOT_MATERIALIZED"
+    assert "morning_news" not in missing
+
+    default_app = FastAPI()
+    default_app.include_router(
+        create_research_lane_router(research_root, shared_data_root=shared_root)
+    )
+    with TestClient(default_app) as client:
+        default = client.get(
+            "/api/v3/research/lane?research_date=20260919"
+        ).json()
+    assert default["morning_news"]["articles_count"] == 3
+
+
+@pytest.mark.parametrize("binding_mode", ["argument", "environment"])
+def test_app_morning_news_root_override_is_independent_of_shared_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    binding_mode: str,
+) -> None:
+    morning_root = tmp_path / "morning-owner"
+    previous_root = tmp_path / "shared-default"
+    research_root = tmp_path / "research"
+    _write_shared_morning_news(morning_root, "20260920")
+    _write_shared_morning_news(previous_root, "20260919")
+    _write_lane_snapshot(research_root, "20260919")
+    _write_lane_snapshot(research_root, "20260920")
+    if binding_mode == "environment":
+        monkeypatch.setenv("V35_MORNING_NEWS_DATA_ROOT", str(morning_root))
+        morning_news_data_root = None
+    else:
+        monkeypatch.delenv("V35_MORNING_NEWS_DATA_ROOT", raising=False)
+        morning_news_data_root = morning_root
+
+    client = TestClient(
+        create_app(
+            data_root=tmp_path / "consumer",
+            current_date="20260920",
+            stage_center_selection_root=tmp_path / "stage",
+            shared_data_root=previous_root,
+            manager_research_state_root=tmp_path / "manager",
+            research_data_root=research_root,
+            research_ledger_root=tmp_path / "research-ledger",
+            morning_news_data_root=morning_news_data_root,
+        )
+    )
+    exact = client.get("/api/v3/research/lane?research_date=20260920").json()
+    previous_only = client.get(
+        "/api/v3/research/lane?research_date=20260919"
+    ).json()
+
+    assert exact["morning_news"]["articles_count"] == 3
+    assert previous_only["morning_news"]["articles"] == []
+    assert previous_only["morning_news"]["status"] == "NOT_MATERIALIZED"
+
+
+def test_app_distinct_research_reads_use_producer_and_keep_selection_owner(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    producer_root = tmp_path / "producer"
+    consumer_root = tmp_path / "consumer"
+    _write_lane_snapshot(producer_root, "20260920", hourly=True)
+    _write_lane_snapshot(producer_root, "20260920")
+    _write_authoritative_day(producer_root, "20260920")
+    _write_lane_snapshot(consumer_root, "20260919", hourly=True)
+    _write_lane_snapshot(consumer_root, "20260919")
+
+    selection_roots: list[Path] = []
+
+    class SelectionStoreSpy:
+        def __init__(self, root: Path) -> None:
+            selection_roots.append(Path(root))
+
+    monkeypatch.setattr(legacy_research_router, "ResearchSelectionStore", SelectionStoreSpy)
+    client = TestClient(
+        create_app(
+            data_root=consumer_root,
+            current_date="20260920",
+            stage_center_selection_root=tmp_path / "stage",
+            shared_data_root=tmp_path / "shared",
+            manager_research_state_root=tmp_path / "manager",
+            research_data_root=producer_root,
+            research_ledger_root=tmp_path / "research-ledger",
+        )
+    )
+
+    lane = client.get("/api/v3/research/lane?research_date=20260920")
+    dates = client.get("/api/v3/research/dates")
+    articles = client.get("/api/v3/research/articles?archive_date=20260920")
+    latest_articles = client.get("/api/v3/research/articles/latest")
+    day = client.get("/api/v3/research/day?archive_date=20260920")
+    hourly = client.get(
+        "/api/v3/research/hourly?archive_date=20260920&slot=1700"
+    )
+    latest_hourly = client.get("/api/v3/research/hourly/latest")
+
+    assert lane.status_code == 200
+    assert lane.json()["research_date"] == "20260920"
+    assert lane.json()["source_binding"]["source_root"] == str(producer_root)
+    assert dates.status_code == 200
+    assert "20260920" in dates.json()["research_dates"]
+    assert articles.status_code == 200
+    assert articles.json()["archive_date"] == "20260920"
+    assert latest_articles.status_code == 200
+    assert latest_articles.json()["archive_date"] == "20260920"
+    assert day.status_code == 200
+    assert day.json()["archive_date"] == "20260920"
+    assert hourly.status_code == 200
+    assert hourly.json()["archive_date"] == "20260920"
+    assert latest_hourly.status_code == 200
+    assert latest_hourly.json()["archive_date"] == "20260920"
+    assert selection_roots == [consumer_root]
 
 
 def test_day_only_product_stays_out_of_legacy_date_catalog(tmp_path: Path) -> None:

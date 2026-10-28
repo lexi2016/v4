@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 
 import { loadResearchLane, loadResearchLaneLatest, type ResearchLane } from "../api/research_lane";
 import { useResearchState } from "../composables/useResearchLane";
@@ -11,19 +11,23 @@ import ResearchContextPane from "../components/research/ResearchContextPane.vue"
 import ResearchAppendix from "../components/research/ResearchAppendix.vue";
 import "../styles/v3-research-lane.css";
 
-const props = defineProps<{ archiveDate: string }>();
+const props = defineProps<{ archiveDate: string; initialFeedFilter?: "latest" | "wechat" }>();
 
 const payload = ref<ResearchLane | null>(null);
 const loading = ref(false);
 const error = ref("");
 let requestVersion = 0;
-const feedFilter = ref("latest");
-const morningFilter = ref("all");
+const feedFilter = ref<string>(props.initialFeedFilter === "wechat" ? "wechat" : "latest");
+const requestedMode = ref<"EXACT" | "LATEST">("EXACT");
+const updateDiagnostic = computed(() => payload.value?.update_diagnostic as { state?: string; message?: string } | undefined);
 
 const {
   stockMainline,
+  sourceEntities,
+  titleSubjects,
   stockTimeline,
   feedCards,
+  feedEmptyMessage,
   sourceColumns,
   timelineRows,
   cannotItems,
@@ -65,18 +69,36 @@ async function run(loader: () => Promise<ResearchLane>, expectedDate?: string) {
 
 function loadExact() {
   if (!props.archiveDate) return;
+  requestedMode.value = "EXACT";
   void run(() => loadResearchLane(props.archiveDate), props.archiveDate);
 }
 
 function loadLatest() {
+  requestedMode.value = "LATEST";
   void run(loadResearchLaneLatest);
 }
 
+function locateWechatPane() {
+  void nextTick(() => {
+    document.querySelector(".hourly-feed-pane")?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  });
+}
 function scrollToWechat() {
-  document.querySelector("#researchWechatSource")?.scrollIntoView({ behavior: "smooth" });
+  feedFilter.value = "wechat";
+  locateWechatPane();
 }
 
 watch(() => props.archiveDate, loadExact, { immediate: true });
+watch(() => props.initialFeedFilter, (value) => {
+  feedFilter.value = value === "wechat" ? "wechat" : "latest";
+  if (value === "wechat") locateWechatPane();
+});
+watch(payload, (value) => {
+  if (value && props.initialFeedFilter === "wechat") locateWechatPane();
+});
+onMounted(() => {
+  if (props.initialFeedFilter === "wechat" && payload.value) locateWechatPane();
+});
 </script>
 
 <template>
@@ -94,12 +116,39 @@ watch(() => props.archiveDate, loadExact, { immediate: true });
       </div>
     </div>
 
+    <p data-testid="research-date-identity" class="research-message" role="status">
+      所选日期：{{ archiveDate }} · 请求模式：{{ requestedMode }} · 实际来源日期：{{ payload?.research_date || "CANNOT_CONFIRM" }}
+      <strong v-if="payload && payload.research_date !== archiveDate"> · 不是所选日期数据；仅展示显式 latest 读取的来源日。</strong>
+    </p>
+    <p v-if="!loading && !error && payload?.status === 'LIVE_PERIPHERAL_ONLY'" class="research-message" role="status">
+      小时研报未生成，外围资料可查看
+    </p>
+    <p v-if="updateDiagnostic" class="research-message" role="status"><strong>{{ updateDiagnostic.state }}</strong> · <span>{{ updateDiagnostic.message }}</span></p>
     <p v-if="loading" class="research-message" role="status">正在读取研报决策台。</p>
     <p v-else-if="error" class="research-message research-error" role="alert">{{ error }}</p>
     <div v-else-if="payload?.status === 'NOT_MATERIALIZED'" class="research-message research-missing" role="status">
       <strong>NOT_MATERIALIZED</strong>
       <span>{{ payload.reason }}</span>
     </div>
+
+    <section
+      v-if="!loading && !error && payload?.status === 'NOT_MATERIALIZED'"
+      class="hourly-desk hourly-desk-archive-only"
+      id="hourlyInvestmentDesk"
+      aria-label="公众号归档阅读区"
+    >
+      <div class="hourly-desk-grid">
+        <ResearchImpactList :rows="[]" />
+        <ResearchFeedPane
+          :feed-cards="[]"
+          :feed-filter="feedFilter"
+          :archive-date="archiveDate"
+          :on-filter="(f: string) => (feedFilter = f)"
+          :columns="[]"
+        />
+        <ResearchContextPane :timeline-rows="[]" :quality="{}" />
+      </div>
+    </section>
 
     <template v-else-if="payload">
       <section class="hourly-desk" id="hourlyInvestmentDesk" aria-label="研报决策台三栏">
@@ -112,11 +161,13 @@ watch(() => props.archiveDate, loadExact, { immediate: true });
         />
 
         <section class="hourly-desk-grid">
-          <ResearchImpactList :rows="stockMainline" />
+          <ResearchImpactList :rows="stockMainline" :source-entities="sourceEntities" :title-subjects="titleSubjects" />
 
           <ResearchFeedPane
             :feed-cards="feedCards"
             :feed-filter="feedFilter"
+            :archive-date="archiveDate"
+            :empty-message="feedEmptyMessage"
             :on-filter="(f: string) => (feedFilter = f)"
             :columns="sourceColumns"
           />

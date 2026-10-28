@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 import os
 import threading
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
@@ -23,6 +25,57 @@ class SharedMorningNewsReader:
         if candidate != self.root and self.root not in candidate.parents:
             raise ValueError("shared morning-news path escapes root")
         return candidate
+
+    def link_candidates(
+        self, trade_date: str, candidates: list[dict[str, Any]], *, cutoff: str
+    ) -> dict[str, Any]:
+        """Read-only body links using the existing verified producer/parser.
+
+        Candidate identities come from a verified consumer artifact. Membership
+        bonuses are deliberately absent; this is supplemental evidence, never
+        a replacement for the immutable stage score or a PIT attestation.
+        """
+        payload = self.read(trade_date)
+        if payload is None:
+            raise ValueError("MORNING_NEWS_EXACT_DATE_MISSING")
+        contract = self._shared_contract()
+        if contract is None:
+            raise ValueError("SHARED_MORNING_NEWS_PARSER_UNAVAILABLE")
+        boundary = datetime.strptime(trade_date + cutoff, "%Y%m%d%H:%M:%S").replace(
+            tzinfo=ZoneInfo("Asia/Shanghai")
+        )
+        articles = []
+        excluded = []
+        for article in payload["articles"]:
+            try:
+                published = datetime.fromisoformat(str(article.get("published_at") or ""))
+                if published.tzinfo is None:
+                    published = published.replace(tzinfo=boundary.tzinfo)
+                if published.astimezone(boundary.tzinfo).strftime("%Y%m%d") != trade_date or published > boundary:
+                    excluded.append("ARTICLE_OUTSIDE_STAGE_WINDOW")
+                    continue
+            except (TypeError, ValueError):
+                excluded.append("ARTICLE_PUBLICATION_TIME_MISSING")
+                continue
+            articles.append(article)
+        # No inferred preselect/formal/research intersection flags.
+        identities = [{"stock_code": row["stock_code"], "stock_name": row["stock_name"]}
+                      for row in candidates]
+        mentions = contract[1](articles, identities)
+        allowed = {(a.get("url"), a.get("title")): a for a in articles}
+        for mention in mentions:
+            article = allowed.get((mention.get("source_url"), mention.get("source_title")), {})
+            mention["published_at"] = article.get("published_at")
+        return {
+            "mentions": mentions, "article_count": len(articles),
+            "excluded_reasons": sorted(set(excluded)),
+            "articles_sha256": _sha256(payload["articles"]),
+            "candidate_identity_sha256": _sha256(identities),
+            "source_input_sha256": payload.get("source_input_sha256"),
+            "trade_date": trade_date, "cutoff": cutoff,
+            "mode": "READ_ONLY_SUPPLEMENT_NOT_IN_ORIGINAL_STAGE_SCORE",
+            "pit_capture_verified": False,
+        }
 
     @staticmethod
     def _read(path: Path) -> dict[str, Any]:

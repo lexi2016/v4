@@ -2,12 +2,15 @@
 import { feedCardKey, text } from "../../composables/useResearchLane";
 import ResearchFeedCard from "./ResearchFeedCard.vue";
 import ResearchSourceColumns from "./ResearchSourceColumns.vue";
+import WechatResearchPanel from "./WechatResearchPanel.vue";
 
 defineProps<{
   feedCards: Array<Record<string, unknown>>;
   feedFilter: string;
+  archiveDate: string;
   onFilter: (filter: string) => void;
-  columns?: Array<{ name: string; rows: Array<Record<string, unknown>> }>;
+  emptyMessage?: string;
+  columns?: Array<{ name: string; rows: Array<Record<string, unknown>>; emptyMessage?: string }>;
 }>();
 
 const TABS: Array<{ id: string; label: string }> = [
@@ -18,6 +21,7 @@ const TABS: Array<{ id: string; label: string }> = [
   { id: "finance", label: "财经" },
   { id: "ai", label: "AI" },
   { id: "key", label: "重点" },
+  { id: "wechat", label: "公众号" },
 ];
 </script>
 
@@ -39,10 +43,13 @@ const TABS: Array<{ id: string; label: string }> = [
         >{{ tab.label }}</button>
       </div>
     </div>
-    <div class="hourly-feed-list">
-      <ResearchFeedCard v-for="(card, index) in feedCards" :key="`${feedCardKey(card, index)}-${index}`" :card="card" />
-      <div v-if="!feedCards.length" class="empty">当前情报日无 feed 条目。</div>
-    </div>
-    <ResearchSourceColumns v-if="columns?.length" :columns="columns" />
+    <WechatResearchPanel v-if="feedFilter === 'wechat'" :archive-date="archiveDate" />
+    <template v-else>
+      <div class="hourly-feed-list">
+        <ResearchFeedCard v-for="(card, index) in feedCards" :key="`${feedCardKey(card, index)}-${index}`" :card="card" />
+        <div v-if="!feedCards.length" class="empty">{{ emptyMessage || "当前情报日无 feed 条目。" }}</div>
+      </div>
+      <ResearchSourceColumns v-if="columns?.length" :columns="columns" />
+    </template>
   </section>
 </template>

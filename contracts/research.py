@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import re
+import math
 from datetime import datetime
 from typing import Any, Mapping
+from zoneinfo import ZoneInfo
 
 
 SCHEMA_VERSION = "v3_5.research_archive.v1"
@@ -81,6 +83,65 @@ _TOP_LEVEL_FIELDS = {
     "buy_gate_updated",
     "orders_sent",
 }
+_STAGE_EVIDENCE_FIELDS = {
+    "schema_version",
+    "trade_date",
+    "slot",
+    "source_input_sha256",
+    "payload_sha256_scope",
+    "payload_base_sha256",
+    "manifest_sha256",
+    "receipt_sha256",
+    "items",
+    "evidence",
+}
+_STAGE_ITEM_FIELDS = {
+    "item_id",
+    "raw_id",
+    "stock_code",
+    "item_quality",
+    "quality_score",
+    "quality_score_raw",
+    "is_new_since_last_slot",
+    "is_recheck_duplicate",
+    "source_path",
+    "source_title",
+    "url",
+    "cannot_confirm",
+}
+_STAGE_EVIDENCE_ROW_FIELDS = {
+    "evidence_id",
+    "stock_code",
+    "is_new_since_last_slot",
+    "is_recheck_duplicate",
+    "evidence_level",
+    "confidence",
+    "quality_flags",
+    "cannot_confirm",
+}
+_READY_EMPTY_EVIDENCE_FIELDS = {
+    "schema_version",
+    "trade_date",
+    "slot",
+    "status",
+    "source_input_sha256",
+    "source_receipt_path",
+    "source_receipt_sha256",
+    "summary_sha256",
+    "fetch_result_sha256",
+    "fetch_ok",
+    "fetch_success",
+    "page_count",
+    "topic_count",
+    "effective_topic_count",
+    "fetched_at",
+    "source_cutoff",
+    "capture_origin",
+    "materialization_origin",
+    "materialized_at",
+    "available_at",
+    "natural_execution_verified",
+}
 
 
 def _archive_date(value: Any) -> str:
@@ -111,8 +172,143 @@ def _string_list(value: Any, field: str) -> list[str]:
     return value
 
 
+def _stage_evidence(value: Any, archive_date: str, source_sha: str) -> None:
+    """Validate the optional research-to-stage projection.
+
+    The projection is deliberately additive.  Existing archive payloads do
+    not carry it, while a producer that does carry it must provide enough
+    identity to bind the stage reader to one exact archive slot.  The
+    ``payload_base_sha256`` names the canonical payload digest before this
+    extension is attached; a self-referential whole-payload digest would not
+    be meaningful.  The store still verifies the final payload digest and
+    receipt independently.
+    """
+    if not isinstance(value, Mapping) or set(value) != _STAGE_EVIDENCE_FIELDS:
+        raise ValueError("invalid research stage_evidence_v1 fields")
+    if value.get("schema_version") != "v4.stage_evidence.v1":
+        raise ValueError("invalid research stage_evidence_v1 schema")
+    if value.get("trade_date") != archive_date:
+        raise ValueError("research stage evidence date mismatch")
+    slot = value.get("slot")
+    if not isinstance(slot, str) or re.fullmatch(r"(?:[01]\d|2[0-3])[0-5]\d", slot) is None:
+        raise ValueError("research stage evidence slot is invalid")
+    if value.get("source_input_sha256") != source_sha:
+        raise ValueError("research stage evidence source SHA mismatch")
+    if value.get("payload_sha256_scope") != "ARCHIVE_WITHOUT_STAGE_EVIDENCE_V1":
+        raise ValueError("research stage evidence payload scope mismatch")
+    for field in (
+        "payload_base_sha256",
+        "source_input_sha256",
+        "manifest_sha256",
+        "receipt_sha256",
+    ):
+        if not _SHA256.fullmatch(str(value.get(field) or "")):
+            raise ValueError(f"invalid research stage evidence {field}")
+    items = value.get("items")
+    if not isinstance(items, list):
+        raise ValueError("research stage evidence items must be a list")
+    for item in items:
+        if not isinstance(item, Mapping):
+            raise ValueError("invalid research stage evidence item")
+        if not {"stock_code", "item_quality", "is_new_since_last_slot", "is_recheck_duplicate"}.issubset(item):
+            raise ValueError("research stage evidence item identity is incomplete")
+        if set(item) - _STAGE_ITEM_FIELDS:
+            raise ValueError("invalid research stage evidence item fields")
+        if not str(item.get("stock_code") or "").strip():
+            raise ValueError("research stage evidence item stock code is missing")
+        if not isinstance(item.get("item_quality"), str) or not item["item_quality"].strip():
+            raise ValueError("research stage evidence item quality is invalid")
+        if type(item.get("is_new_since_last_slot")) is not bool or type(item.get("is_recheck_duplicate")) is not bool:
+            raise ValueError("research stage evidence flags must be strict booleans")
+        if "quality_score" in item:
+            score = item.get("quality_score")
+            if isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(float(score)):
+                raise ValueError("research stage evidence quality score is invalid")
+        if "quality_score_raw" in item and not isinstance(item.get("quality_score_raw"), str):
+            raise ValueError("research stage evidence raw quality score is invalid")
+        if "cannot_confirm" in item:
+            _string_list(item.get("cannot_confirm"), "stage_evidence.item.cannot_confirm")
+    evidence = value.get("evidence")
+    if not isinstance(evidence, list):
+        raise ValueError("research stage evidence rows must be a list")
+    for row in evidence:
+        if not isinstance(row, Mapping) or set(row) != _STAGE_EVIDENCE_ROW_FIELDS:
+            raise ValueError("invalid research stage evidence row fields")
+        if not str(row.get("evidence_id") or "").strip() or not str(row.get("stock_code") or "").strip():
+            raise ValueError("research stage evidence row identity is missing")
+        if type(row.get("is_new_since_last_slot")) is not bool or type(row.get("is_recheck_duplicate")) is not bool:
+            raise ValueError("research stage evidence row flags must be strict booleans")
+        for field in ("quality_flags", "cannot_confirm"):
+            _string_list(row.get(field), f"stage_evidence.evidence.{field}")
+        for field in ("evidence_level", "confidence"):
+            if not isinstance(row.get(field), str):
+                raise ValueError(f"research stage evidence row {field} is invalid")
+
+
+def _ready_empty_evidence(
+    value: Any, *, archive_date: str, source_sha: str, source_generated_at: str
+) -> None:
+    if not isinstance(value, Mapping) or set(value) != _READY_EMPTY_EVIDENCE_FIELDS:
+        raise ValueError("invalid research ready-empty evidence fields")
+    slot = value.get("slot")
+    if (
+        value.get("schema_version") != "v3_5.zsxq_ready_empty.v1"
+        or value.get("trade_date") != archive_date
+        or not isinstance(slot, str)
+        or re.fullmatch(r"(?:[01]\d|2[0-3])[0-5]\d", slot) is None
+        or value.get("status") != "READY_EMPTY"
+        or value.get("source_input_sha256") != source_sha
+        or type(value.get("fetch_ok")) is not bool
+        or value.get("fetch_ok") is not True
+        or type(value.get("fetch_success")) is not bool
+        or value.get("fetch_success") is not True
+        or type(value.get("page_count")) is not int
+        or value.get("page_count") < 1
+        or type(value.get("topic_count")) is not int
+        or value.get("topic_count") != 0
+        or type(value.get("effective_topic_count")) is not int
+        or value.get("effective_topic_count") != 0
+        or not _SHA256.fullmatch(str(value.get("source_receipt_sha256") or ""))
+        or not _SHA256.fullmatch(str(value.get("summary_sha256") or ""))
+        or not _SHA256.fullmatch(str(value.get("fetch_result_sha256") or ""))
+        or type(value.get("natural_execution_verified")) is not bool
+        or value.get("natural_execution_verified") is not False
+        or value.get("capture_origin") != "ORIGINAL_SLOT"
+        or value.get("materialization_origin") not in {"ORIGINAL_SLOT", "MANUAL_RECOVERY"}
+    ):
+        raise ValueError("invalid research ready-empty source identity")
+    expected_receipt = (
+        f"research_module/runtime_outputs/zsxq_hourly/{archive_date}/{slot}/"
+        f"v35_zsxq_hourly_status_{archive_date}_{slot}.json"
+    )
+    if value.get("source_receipt_path") != expected_receipt:
+        raise ValueError("research ready-empty receipt path mismatch")
+    cutoff = datetime.strptime(f"{archive_date}{slot}", "%Y%m%d%H%M").replace(
+        tzinfo=ZoneInfo("Asia/Shanghai"), second=59
+    )
+    fetched_text = _aware_timestamp(value.get("fetched_at"), "ready_empty.fetched_at")
+    cutoff_text = _aware_timestamp(value.get("source_cutoff"), "ready_empty.source_cutoff")
+    materialized_text = _aware_timestamp(value.get("materialized_at"), "ready_empty.materialized_at")
+    available_text = _aware_timestamp(value.get("available_at"), "ready_empty.available_at")
+    generated_text = _aware_timestamp(source_generated_at, "source_generated_at")
+    fetched = datetime.fromisoformat(fetched_text.replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
+    declared_cutoff = datetime.fromisoformat(cutoff_text.replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
+    materialized = datetime.fromisoformat(materialized_text.replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
+    available = datetime.fromisoformat(available_text.replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
+    generated = datetime.fromisoformat(generated_text.replace("Z", "+00:00")).astimezone(cutoff.tzinfo)
+    if declared_cutoff != cutoff or fetched.strftime("%Y%m%d") != archive_date or fetched > cutoff:
+        raise ValueError("research ready-empty fetch time is outside its source slot")
+    if generated != materialized or available != materialized or materialized.strftime("%Y%m%d") != archive_date:
+        raise ValueError("research ready-empty materialization time is inconsistent")
+    if value["materialization_origin"] == "MANUAL_RECOVERY":
+        if materialized < cutoff:
+            raise ValueError("research manual empty recovery predates its slot cutoff")
+    elif materialized > cutoff:
+        raise ValueError("research original-slot empty materialization is late")
+
+
 def validate_research_archive(payload: Mapping[str, Any]) -> str:
-    if not isinstance(payload, Mapping) or set(payload) != _TOP_LEVEL_FIELDS:
+    if not isinstance(payload, Mapping) or not set(payload).issubset(_TOP_LEVEL_FIELDS | {"stage_evidence_v1", "ready_empty_evidence_v1"}) or not _TOP_LEVEL_FIELDS.issubset(payload):
         raise ValueError("invalid research archive fields")
     if payload.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("invalid research archive schema")
@@ -138,10 +334,20 @@ def validate_research_archive(payload: Mapping[str, Any]) -> str:
 
     articles = payload.get("articles")
     stock_pool = payload.get("stock_pool")
-    if not isinstance(articles, list) or not articles:
-        raise ValueError("research archive requires articles")
-    if not isinstance(stock_pool, list) or not stock_pool:
-        raise ValueError("research archive requires stock pool")
+    has_empty_evidence = "ready_empty_evidence_v1" in payload
+    if not isinstance(articles, list) or not isinstance(stock_pool, list):
+        raise ValueError("research archive rows must be lists")
+    if has_empty_evidence:
+        if articles or stock_pool:
+            raise ValueError("research ready-empty archive cannot contain research rows")
+        _ready_empty_evidence(
+            payload["ready_empty_evidence_v1"],
+            archive_date=archive_date,
+            source_sha=str(payload.get("source_input_sha256") or ""),
+            source_generated_at=str(payload.get("source_generated_at") or ""),
+        )
+    elif not articles or not stock_pool:
+        raise ValueError("research archive requires articles and stock pool")
     if payload.get("article_count") != len(articles):
         raise ValueError("research article count mismatch")
     if payload.get("stock_pool_count") != len(stock_pool):
@@ -194,6 +400,18 @@ def validate_research_archive(payload: Mapping[str, Any]) -> str:
     cannot_confirm = _string_list(payload.get("cannot_confirm"), "cannot_confirm")
     if cannot_confirm != sorted(set(cannot_confirm)):
         raise ValueError("research cannot_confirm must be sorted and unique")
+    if "stage_evidence_v1" in payload:
+        _stage_evidence(
+            payload["stage_evidence_v1"],
+            archive_date,
+            str(payload.get("source_input_sha256") or ""),
+        )
+    if has_empty_evidence and (
+        payload.get("article_count") != 0
+        or payload.get("stock_pool_count") != 0
+        or dict(payload.get("source_counts") or {})
+    ):
+        raise ValueError("research ready-empty archive counts are inconsistent")
     return archive_date
 
 

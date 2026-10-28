@@ -1,5 +1,5 @@
-import { createApp } from "vue";
+import { createApp } from 'vue'
+import Workbench from '../manager-workbench/Workbench.vue'
+import '../manager-workbench/workbench.css'
 
-import ManagerSelectionView from "../views/ManagerSelectionView.vue";
-
-createApp(ManagerSelectionView).mount("#manager-selection");
+createApp(Workbench).mount('#manager-selection')

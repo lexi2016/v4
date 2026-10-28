@@ -31,6 +31,8 @@ export type TaskRegistrationStatus = {
 };
 
 export type TaskStatusResponse = {
+  scheduler_observation?: { status: string; receipt_count: number; process_status: string; logical_row_evidence: string;
+    message: string; last_receipt_status?: string; last_finished_at?: string; receipt_namespace?: string };
   business_date?: string;
   logical_workload_count: number;
   active_owner_count: number;

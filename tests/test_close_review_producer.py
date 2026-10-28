@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import importlib
+import copy
 from datetime import datetime
+
+import pytest
 
 from domains import close_review as close_review_domain
 from infrastructure.hkconnect_close_store import CloseSnapshotStore
-from infrastructure.preselection_pool_store import PreselectionPoolStore
+from infrastructure.preselection_pool_store import PreselectionPoolStore, validate_pool_artifact
 from infrastructure.review_store import ReviewStore
 from stage_center.selection import ALGORITHM_SHA256, SelectionStore, select_hk_four_lane
 
@@ -19,6 +22,106 @@ STAGE_IDS = (
     "STAGE_1300_1315",
     "STAGE_1445_1500",
 )
+
+
+def _historical_split_pool_payload() -> dict:
+    source_sha256 = "a" * 64
+    manifest_sha256 = "b" * 64
+    receipt_sha256 = "c" * 64
+    run_id = "20261007-hk-connect-d1-top100-0-2-test"
+    source_path = f"runs/20261007/HK_CONNECT_D1_TOP100_0_2/{run_id}/artifact.csv"
+    return {
+        "schema_version": "v3_5.preselection_pool.v1",
+        "trade_date": "20261007",
+        "pool_id": "hkconnect_d1_top100",
+        "display_name": "HK D-1 Top100",
+        "market": "HK",
+        "status": "STRICT_0_2_READY",
+        "producer_id": "verified.test",
+        "source_role": "SHARED_VERIFIED_HK_0_2",
+        "source_path": source_path,
+        "source_sha256": source_sha256,
+        "source_manifest_sha256": manifest_sha256,
+        "source_receipt_sha256": receipt_sha256,
+        "source_run_id": run_id,
+        "signal_date": "20261006",
+        "target_date": "20261007",
+        "source_row_count": 100,
+        "stage_selection_eligible": True,
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+        "rows": [
+            {
+                "market": "HK",
+                "symbol": f"HK.{index:05d}",
+                "pool_id": "hkconnect_d1_top100",
+                "pool_rank": index,
+                "target_date": "20261007",
+            }
+            for index in range(1, 101)
+        ],
+        "cannot_confirm": ["RESEARCH_ONLY_NOT_BUY_GATE"],
+        "historical_provenance": {
+            "schema_version": "v4.hk_d1_split_date_provenance.v1",
+            "d1_source_artifact_relative": source_path,
+            "d1_source_artifact_sha256": source_sha256,
+            "d1_source_manifest_sha256": manifest_sha256,
+            "d1_source_receipt_sha256": receipt_sha256,
+            "d1_source_run_id": run_id,
+            "eligibility_source_artifact_sha256": "d" * 64,
+            "eligibility_source_captured_at": "2026-09-30T17:20:08+08:00",
+            "eligibility_source_date": "20260930",
+            "eligibility_source_run_id": "eligibility-test-run",
+            "price_signal_date": "20261006",
+        },
+    }
+
+
+def _historical_asof_pool_payload() -> dict:
+    payload = _historical_split_pool_payload()
+    payload.update(
+        {
+            "trade_date": "20260930",
+            "signal_date": "20260929",
+            "target_date": "20260930",
+            "source_path": "runs/20260930/HK_CONNECT_D1_TOP100_0_2/test-run/artifact.csv",
+            "source_run_id": "20260930-hk-connect-d1-top100-0-2-test",
+            "source_sha256": "e" * 64,
+            "source_manifest_sha256": "f" * 64,
+            "source_receipt_sha256": "1" * 64,
+        }
+    )
+    payload["historical_provenance"] = {
+        "schema_version": "v4.hk_d1_eligibility_asof.v2",
+        "d1_source_artifact_sha256": payload["source_sha256"],
+        "d1_source_manifest_sha256": payload["source_manifest_sha256"],
+        "d1_source_receipt_sha256": payload["source_receipt_sha256"],
+        "d1_source_run_id": payload["source_run_id"],
+        "eligibility_source_date": "20260929",
+        "price_signal_date": "20260929",
+        "eligibility_asof": {
+            "schema_version": "v4.hk_eligibility_asof.v1",
+            "source_date": "20260929",
+            "captured_at": "2026-10-02T14:02:56+08:00",
+            "source_sha256": "2" * 64,
+            "natural_verified": False,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        },
+        "price_recovery": {
+            "schema_version": "v4.hk_history_price_recovery.v1",
+            "source_date": "20260929",
+            "source_input_sha256": {"core": "3" * 64},
+            "source_sha256": "4" * 64,
+            "natural_verified": False,
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        },
+    }
+    return payload
 
 
 def test_review_percentages_are_stable_for_page_rendering() -> None:
@@ -236,6 +339,54 @@ def test_native_review_supersedes_blocked_reference_with_audit_receipt(tmp_path)
     assert (store.root / published["supersession_receipt_path"]).is_file()
 
 
+def test_native_reference_requires_research_only_without_breaking_imported_v1(tmp_path) -> None:
+    store = ReviewStore(tmp_path / "data")
+    native = close_review_domain.build_native_close_review(
+        "20260730",
+        close_rows=[],
+        model_rows=[],
+        stage_rows={stage_id: None for stage_id in STAGE_IDS},
+        close_source_sha256="d" * 64,
+    )
+
+    missing_marker = copy.deepcopy(native)
+    del missing_marker["RESEARCH_ONLY"]
+    false_marker = copy.deepcopy(native)
+    false_marker["RESEARCH_ONLY"] = False
+    for invalid in (missing_marker, false_marker):
+        with pytest.raises(ValueError, match="invalid native close review provenance"):
+            store.publish_native(invalid)
+
+    imported_v1 = {
+        "schema_version": "v3_5.close_review_reference.v1",
+        "trade_date": "20260730",
+        "status": "BLOCKED_CLOSE_DATA",
+        "primary_kpi": "全港股通收盘涨幅Top20覆盖率",
+        "models": {},
+        "stages": {},
+        "stage_union": {},
+        "kpi": {},
+        "row_counts": {},
+        "close_top20": [],
+        "model_rows": [],
+        "stage_rows": [],
+        "top20_attribution": [],
+        "missing_stages": [],
+        "cannot_confirm": ["HKCONNECT_DAILY_REVIEW_NOT_FOUND"],
+        "reference_snapshot": True,
+        "write_policy": "review_only_read_only",
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    imported = store.import_reference(imported_v1)
+    assert store.read_reference("20260730") == imported_v1
+
+    published = store.publish_native(native, expected_sha256=imported["sha256"])
+    assert published["previous_sha256"] == imported["sha256"]
+    assert store.read_reference("20260730") == native
+
+
 def test_store_backed_producer_joins_close_model_and_seven_stage_inputs(tmp_path) -> None:
     producer = importlib.import_module("ops.build_close_review")
     data_root = tmp_path / "data"
@@ -287,6 +438,8 @@ def test_store_backed_producer_joins_close_model_and_seven_stage_inputs(tmp_path
         "source_role": "SHARED_VERIFIED_HK_0_2",
         "source_path": "fixture/hk.json",
         "source_sha256": "f" * 64,
+        "source_manifest_sha256": "1" * 64,
+        "source_receipt_sha256": "2" * 64,
         "production_allowed": False,
         "buy_gate_updated": False,
         "orders_sent": False,
@@ -336,10 +489,171 @@ def test_store_backed_producer_joins_close_model_and_seven_stage_inputs(tmp_path
         "stage_rows": 7,
     }
     assert served["stage_union"]["hit_count"] == 7
+    assert served["model_source_evidence"] == {
+        "pool_id": "hkconnect_d1_top100",
+        "trade_date": "20260730",
+        "source_role": "SHARED_VERIFIED_HK_0_2",
+        "source_sha256": "f" * 64,
+        "source_manifest_sha256": "1" * 64,
+        "source_receipt_sha256": "2" * 64,
+    }
     assert result["publication"]["payload_path"] == "close_reviews/20260730.json"
 
 
-def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_path) -> None:
+def test_historical_pool_provenance_is_allowlisted_typed_and_bound(tmp_path) -> None:
+    split_payload = _historical_split_pool_payload()
+    store = PreselectionPoolStore(tmp_path / "split-data")
+    store.materialize(split_payload)
+    assert store.read_pool("20261007", "hkconnect_d1_top100") == split_payload
+
+    asof_payload = _historical_asof_pool_payload()
+    assert validate_pool_artifact(asof_payload) == "20260930"
+
+    invalid_sha = copy.deepcopy(split_payload)
+    invalid_sha["historical_provenance"]["d1_source_receipt_sha256"] = "z" * 64
+    with pytest.raises(ValueError, match="invalid historical pool d1_source_receipt_sha256"):
+        validate_pool_artifact(invalid_sha)
+
+    invalid_direct_type = copy.deepcopy(split_payload)
+    invalid_direct_type["source_manifest_sha256"] = 123
+    with pytest.raises(ValueError, match="invalid historical pool source_manifest_sha256"):
+        validate_pool_artifact(invalid_direct_type)
+
+    mismatched_binding = copy.deepcopy(split_payload)
+    mismatched_binding["source_manifest_sha256"] = "5" * 64
+    with pytest.raises(ValueError, match="historical pool source_manifest_sha256 binding mismatch"):
+        validate_pool_artifact(mismatched_binding)
+
+    missing_field = copy.deepcopy(split_payload)
+    del missing_field["historical_provenance"]["d1_source_receipt_sha256"]
+    with pytest.raises(ValueError, match="missing historical pool provenance fields"):
+        validate_pool_artifact(missing_field)
+
+    unknown_provenance_field = copy.deepcopy(split_payload)
+    unknown_provenance_field["historical_provenance"]["unregistered_extension"] = "value"
+    with pytest.raises(ValueError, match="invalid historical pool provenance fields"):
+        validate_pool_artifact(unknown_provenance_field)
+
+    null_provenance = copy.deepcopy(split_payload)
+    null_provenance["historical_provenance"] = None
+    with pytest.raises(ValueError, match="invalid historical pool provenance"):
+        validate_pool_artifact(null_provenance)
+
+    unknown_pool_field = copy.deepcopy(split_payload)
+    unknown_pool_field["unregistered_extension"] = "value"
+    with pytest.raises(ValueError, match="invalid preselection-pool fields"):
+        validate_pool_artifact(unknown_pool_field)
+
+
+def test_builder_surfaces_pool_contract_errors_instead_of_publishing_empty_model(
+    tmp_path, monkeypatch
+) -> None:
+    producer = importlib.import_module("ops.build_close_review")
+
+    def snapshot(_self, _trade_date):
+        return {"rows": []}, "d" * 64
+
+    def invalid_pool(_self, _trade_date, _pool_id):
+        raise ValueError("invalid pool provenance contract")
+
+    monkeypatch.setattr(producer.CloseSnapshotStore, "read_snapshot", snapshot)
+    monkeypatch.setattr(producer.PreselectionPoolStore, "read_pool", invalid_pool)
+
+    with pytest.raises(ValueError, match="invalid pool provenance contract"):
+        producer.build_close_review(tmp_path, "20261007")
+
+    assert not (tmp_path / "close_reviews" / "20261007.json").exists()
+
+
+def test_exact_missing_pool_remains_an_explicit_model_source_gap(tmp_path) -> None:
+    producer = importlib.import_module("ops.build_close_review")
+    data_root = tmp_path / "data"
+    CloseSnapshotStore(data_root).import_snapshot(
+        {
+            "schema_version": "v3_5.hkconnect_close_snapshot.v1",
+            "trade_date": "20261007",
+            "status": "READY",
+            "source_input_sha256": "e" * 64,
+            "universe_count": 600,
+            "same_date_row_count": 600,
+            "coverage_ratio": 1.0,
+            "rows": [
+                {
+                    "trade_date": "20261007",
+                    "code": f"HK.{index:05d}",
+                    "name": f"Stock {index}",
+                    "close": 100 + index,
+                    "pre_close": 100,
+                    "amount": index,
+                }
+                for index in range(1, 601)
+            ],
+            "production_allowed": False,
+            "buy_gate_updated": False,
+            "orders_sent": False,
+        }
+    )
+
+    result = producer.build_close_review(data_root, "20261007")
+    review = result["review"]
+
+    assert review["status"] == "MODEL_0_2_SOURCE_MISSING"
+    assert review["row_counts"]["model_0_2"] == 0
+    assert "MODEL_0_2_TOP100_NOT_READY:0/100" in review["cannot_confirm"]
+    assert review["production_allowed"] is False
+    assert review["buy_gate_updated"] is False
+    assert review["orders_sent"] is False
+
+
+def test_cached_close_snapshot_requires_verified_capture_time(tmp_path) -> None:
+    collector = importlib.import_module("ops.collect_hkconnect_close_snapshot")
+    data_root = tmp_path / "data"
+    legacy_payload = {
+        "schema_version": "v3_5.hkconnect_close_snapshot.v1",
+        "trade_date": "20260731",
+        "status": "READY",
+        "source_mode": "FUTU_FULL_HKCONNECT_CLOSE_SNAPSHOT",
+        "source_input_sha256": "a" * 64,
+        "universe_count": 600,
+        "same_date_row_count": 600,
+        "coverage_ratio": 1.0,
+        "rows": [
+            {
+                "trade_date": "20260731",
+                "code": f"HK.{index:05d}",
+                "name": f"Stock {index}",
+                "close": 100 + index,
+                "pre_close": 100,
+                "amount": index,
+            }
+            for index in range(1, 601)
+        ],
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    CloseSnapshotStore(data_root).import_snapshot(legacy_payload)
+
+    with pytest.raises(ValueError, match="HK_CLOSE_SOURCE_CAPTURE_TIME_UNVERIFIED"):
+        collector.collect_close_snapshot(
+            "20260731",
+            data_root=data_root,
+            now=datetime(2026, 7, 31, 16, 11),
+            quote_context_factory=lambda: pytest.fail(
+                "an immutable legacy cache cannot be silently recaptured or overwritten"
+            ),
+        )
+
+    loaded, _digest = CloseSnapshotStore(data_root).read_snapshot("20260731")
+    assert loaded == legacy_payload
+
+    producer = importlib.import_module("ops.build_close_review")
+    with pytest.raises(ValueError, match="HK_CLOSE_SOURCE_CAPTURE_TIME_UNVERIFIED"):
+        producer.build_close_review(data_root, "20260731")
+
+
+@pytest.mark.parametrize("price_time", ["16:00:00", "16:09:59", "16:11:00"])
+def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_path, price_time) -> None:
     collector = importlib.import_module("ops.collect_hkconnect_close_snapshot")
 
     class Frame:
@@ -370,7 +684,7 @@ def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_pat
                     {
                         "code": code,
                         "name": f"Stock {int(code[-5:])}",
-                        "update_time": "2026-07-31 16:11:00",
+                        "update_time": f"2026-07-31 {price_time}",
                         "last_price": 100 + int(code[-5:]),
                         "prev_close_price": 100,
                         "turnover": int(code[-5:]) * 1_000,
@@ -387,12 +701,93 @@ def test_futu_collector_materializes_same_day_full_universe_in_v35_store(tmp_pat
         "20260731",
         data_root=tmp_path / "data",
         quote_context_factory=lambda: context,
-        now=datetime(2026, 7, 31, 16, 11),
+        now=datetime(2026, 7, 31, 16, 12),
     )
     loaded, digest = CloseSnapshotStore(tmp_path / "data").read_snapshot("20260731")
 
     assert loaded["universe_count"] == 600
     assert loaded["same_date_row_count"] == 600
     assert loaded["source_mode"] == "FUTU_FULL_HKCONNECT_CLOSE_SNAPSHOT"
+    assert loaded["rows"][0]["update_time"] == f"2026-07-31 {price_time}"
+    assert loaded["rows"][0]["source_update_time"] == f"2026-07-31T{price_time}+08:00"
+    assert loaded["rows"][0]["source_timezone"] == "Asia/Shanghai"
+    assert loaded["source_capture"]["timestamp_field"] == "update_time"
+    assert loaded["source_capture"]["timezone"] == "Asia/Shanghai"
+    assert loaded["source_capture"]["queried_at"] == "2026-07-31T16:12:00+08:00"
+    assert loaded["source_capture"]["source_sha256"] == loaded["source_input_sha256"]
     assert result["publication"]["sha256"] == digest
     assert context.closed is True
+
+    review_result = importlib.import_module("ops.build_close_review").build_close_review(
+        tmp_path / "data",
+        "20260731",
+    )
+    review = review_result["review"]
+    assert review["close_source_sha256"] == digest
+    assert review["close_source_evidence"]["source_input_sha256"] == loaded["source_input_sha256"]
+    assert review["close_source_evidence"]["source_capture"] == loaded["source_capture"]
+
+    # Cached evidence must prove that the query itself was after final close.
+    from copy import deepcopy
+    from infrastructure.hkconnect_close_store import futu_close_capture_time_gap
+    for query_time, expected in (
+        ("2026-07-31T16:09:59+08:00", "HK_CLOSE_QUERY_TIME_BEFORE_FINAL_CLOSE_CUTOFF"),
+        ("2026-08-01T16:12:00+08:00", "HK_CLOSE_QUERY_TIME_DATE_MISMATCH"),
+    ):
+        invalid = deepcopy(loaded)
+        invalid["source_capture"]["queried_at"] = query_time
+        assert futu_close_capture_time_gap(invalid, "20260731") == expected
+
+
+@pytest.mark.parametrize(
+    "update_time",
+    ["2026-07-30 16:11:00", "not-a-time", None],
+)
+def test_futu_collector_rejects_unverified_or_wrong_date_source_time(tmp_path, update_time) -> None:
+    collector = importlib.import_module("ops.collect_hkconnect_close_snapshot")
+
+    class Frame:
+        def __init__(self, rows):
+            self.rows = rows
+
+        def to_dict(self, *, orient):
+            assert orient == "records"
+            return self.rows
+
+    class QuoteContext:
+        def get_plate_stock(self, plate_code):
+            rows = (
+                [{"code": f"HK.{index:05d}", "stock_name": f"Stock {index}"} for index in range(1, 601)]
+                if plate_code == "HK.GangGuTong"
+                else []
+            )
+            return 0, Frame(rows)
+
+        def get_market_snapshot(self, codes):
+            return 0, Frame(
+                [
+                    {
+                        "code": code,
+                        "name": f"Stock {int(code[-5:])}",
+                        "update_time": update_time,
+                        "last_price": 100 + int(code[-5:]),
+                        "prev_close_price": 100,
+                        "turnover": int(code[-5:]) * 1_000,
+                    }
+                    for code in codes
+                ]
+            )
+
+        def close(self):
+            pass
+
+    data_root = tmp_path / "data"
+    with pytest.raises(ValueError, match="HK_CLOSE_SOURCE_TIME_"):
+        collector.collect_close_snapshot(
+            "20260731",
+            data_root=data_root,
+            quote_context_factory=QuoteContext,
+            now=datetime(2026, 7, 31, 16, 12),
+        )
+
+    assert not (data_root / "hkconnect_close_snapshots" / "20260731.json").exists()

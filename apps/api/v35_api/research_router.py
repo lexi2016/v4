@@ -9,6 +9,9 @@ from typing import Any, Mapping
 
 from fastapi import APIRouter, HTTPException, Query
 
+from apps.api.v35_api.wechat_research_router import create_wechat_research_router
+from infrastructure.wechat_research_archive import WechatResearchArchive
+
 from contracts.research_day_product import (
     CONTRACT_ID,
     EXPECTED_RESEARCH_SLOTS,
@@ -414,11 +417,28 @@ def _hourly_missing(
     }
 
 
-def create_research_router(data_root: Path) -> APIRouter:
+def create_research_router(
+    data_root: Path,
+    *,
+    research_read_root: Path | None = None,
+    wechat_archive_root: Path | str | None = None,
+) -> APIRouter:
+    """Build the legacy research API with an explicit read-only source root.
+
+    The legacy article/day/hourly readers may consume the confirmed V3.5
+    producer root, while the selection ledger remains owned by the V4
+    application root.  Keeping the two roots explicit prevents a research
+    read override from moving any V4 materialization/selection owner.
+    """
     router = APIRouter(prefix="/api/v3/research", tags=["research"])
-    daily_store = ResearchArchiveStore(data_root)
-    hourly_store = HourlyResearchStore(data_root)
+    resolved_research_read_root = Path(research_read_root or data_root).expanduser()
+    daily_store = ResearchArchiveStore(resolved_research_read_root)
+    hourly_store = HourlyResearchStore(resolved_research_read_root)
     selection_store = ResearchSelectionStore(data_root)
+    # Independent read-only archive branch; it cannot invoke existing producers.
+    router.include_router(create_wechat_research_router(WechatResearchArchive(
+        wechat_archive_root, data_root / "research" / "wechat_materials",
+    )))
 
     @router.get("/articles/latest")
     def latest_articles() -> dict:
@@ -695,7 +715,7 @@ def create_research_router(data_root: Path) -> APIRouter:
 
     @router.get("/hourly/latest")
     def latest_hourly() -> dict:
-        pointer_path = data_root / "research" / "hourly" / "latest.json"
+        pointer_path = resolved_research_read_root / "research" / "hourly" / "latest.json"
         payload = None
         archive_date = None
         slot = None

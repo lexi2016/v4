@@ -27,8 +27,10 @@ MARKET_FIELDS = {
 class RunPolicy(StrEnum):
     NATURAL_DAY = "NATURAL_DAY"
     A_SHARE_TRADE_DAY = "A_SHARE_TRADE_DAY"
+    HK_SECURITIES_TRADE_DAY = "HK_SECURITIES_TRADE_DAY"
     HK_CONNECT_TRADE_DAY = "HK_CONNECT_TRADE_DAY"
     A_OR_HK_CONNECT_TRADE_DAY = "A_OR_HK_CONNECT_TRADE_DAY"
+    A_OR_HK_SECURITIES_TRADE_DAY = "A_OR_HK_SECURITIES_TRADE_DAY"
 
 
 class MarketScope(StrEnum):
@@ -253,3 +255,27 @@ def previous_session(
             return date8
         cursor -= timedelta(days=1)
     raise ValueError("previous session is outside frozen calendar")
+
+
+def next_session(
+    calendar: MarketCalendar,
+    trade_date: str,
+    *,
+    market: str,
+) -> str:
+    if market not in {"a_share", "hk_securities", "hk_connect"}:
+        raise ValueError("unsupported next-session market")
+    parsed = parse_trade_date(trade_date, year=calendar.year)
+    if parsed is None:
+        raise ValueError("next-session date is outside frozen calendar")
+    cursor = parsed + timedelta(days=1)
+    while cursor.year == calendar.year:
+        date8 = cursor.strftime("%Y%m%d")
+        state = resolve_market_states(calendar, date8)[market]
+        if state in {
+            TradingDayState.FULL_TRADING_DAY,
+            TradingDayState.HALF_TRADING_DAY_AM,
+        }:
+            return date8
+        cursor += timedelta(days=1)
+    raise ValueError("next session is outside frozen calendar")

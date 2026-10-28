@@ -179,7 +179,7 @@ class SafeRoot:
             return []
 
     @contextmanager
-    def kernel_lock(self, relative: str, *, timeout: float = 10.0, poll: float = 0.02) -> Iterator[None]:
+    def kernel_lock(self, relative: str, *, timeout: float = 10.0, poll: float = 0.02) -> Iterator[int]:
         if not math.isfinite(timeout) or timeout < 0 or not math.isfinite(poll) or poll <= 0:
             raise OwnedIOError('INVALID_LOCK_BUDGET')
         if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
@@ -201,7 +201,9 @@ class SafeRoot:
                             raise LockAcquireTimeout('OWNED_LOCK_TIMEOUT')
                         time.sleep(min(poll, remaining))
                 try:
-                    yield
+                    # Existing callers may ignore this; leased owners bind the
+                    # descriptor actually holding flock, not a guessed inode.
+                    yield fd
                 finally:
                     fcntl.flock(fd, fcntl.LOCK_UN)
             finally:

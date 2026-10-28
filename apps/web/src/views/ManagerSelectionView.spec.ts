@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import ManagerSelectionView from "./ManagerSelectionView.vue";
+import { ANNOUNCEMENT_PREOPEN_WINDOW } from "../api/managerAnnouncementAnalysis";
 import { validateSelectionProduct } from "../contracts/selection";
 import {
   buildManagerResearchQueue,
@@ -757,11 +758,148 @@ const managerResearchNullProductFor = (
   orders_sent: false,
 });
 
+const workbenchMissingFor = (targetDate: string, status = "INPUT_MISSING") => ({
+  schema_version: "v4.manager_workbench.research.v1",
+  market: "HK_CONNECT",
+  trade_date: targetDate,
+  slot: "1530",
+  as_of: null,
+  generated_at: null,
+  run_id: null,
+  status,
+  rule_version: "manager-workbench-b1-contract-v1",
+  cache_key: `${targetDate}|HK_CONNECT|1530|manager-workbench-b1-contract-v1`,
+  universe: null,
+  coverage: { eligible_count: null, covered_count: null, missing_count: null, missing_reasons: ["SIMULATED_TEST_GAP"] },
+  cannot_confirm: ["SIMULATED_TEST_GAP"],
+  priority_summary: { focus: [], theme_changes: [], risk_upgrades: [] },
+  candidates: [],
+  RESEARCH_ONLY: true,
+  production_allowed: false,
+  buy_gate_updated: false,
+  orders_sent: false,
+});
+
+const workbenchSimulatedFor = (targetDate: string) => ({
+  schema_version: "v4.manager_workbench.research.v1",
+  market: "HK_CONNECT",
+  trade_date: targetDate,
+  slot: "1530",
+  as_of: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`,
+  generated_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:31:00+08:00`,
+  run_id: `SIM-WORKBENCH-${targetDate}`,
+  status: "PARTIAL",
+  rule_version: "manager-workbench-b1-simulated-v1",
+  cache_key: `${targetDate}|HK_CONNECT|1530|manager-workbench-b1-simulated-v1`,
+  universe: { owner: "SIMULATED_FIXTURE", role: "HK_CONNECT_UNIVERSE_FIXTURE", artifact_ref: "simulated/universe.json", manifest_ref: null, receipt_ref: null, run_id: `SIM-UNIVERSE-${targetDate}`, sha256: "a".repeat(64), source_date: targetDate, market: "HK_CONNECT", lane: null, reason: "SIMULATED universe lineage", observed_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:29:00+08:00`, available_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:29:30+08:00` },
+  coverage: { eligible_count: 3, covered_count: 2, missing_count: 1, missing_reasons: ["SIMULATED_ONE_MISSING"] },
+  cannot_confirm: ["SIMULATED_B2_NOT_IMPLEMENTED"],
+  priority_summary: {
+    focus: [{ item_id: "sim-focus", candidate_id: "sim-minimax", name: "MINIMAX-W（SIMULATED）", occurred_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, reason: "SIMULATED：同股多来源展示", evidence_status: "SIMULATED_PARTIAL", kind: "FOCUS" }],
+    theme_changes: [],
+    risk_upgrades: [{ item_id: "sim-risk", candidate_id: "sim-extra", name: "模拟尾盘候选（SIMULATED）", occurred_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, reason: "SIMULATED：风险样式测试", evidence_status: "SIMULATED_PARTIAL", kind: "RISK_UPGRADED" }],
+  },
+  candidates: [
+    {
+      candidate_id: "sim-minimax", symbol: "HK.00100", name: "MINIMAX-W（SIMULATED）", source_lanes: ["CLOSE_DISCOVERY", "CONTINUOUS_TRACKING"],
+      first_seen_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:20:00+08:00`, last_seen_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, observed_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, available_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`,
+      turnover_amount: { value: 123000000, currency: "HKD", unit: "HKD", as_of: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00` }, volume_comparison: { state: "unknown", ratio: null, baseline_as_of: null, reason: "SIMULATED" }, position: { state: "unknown", label: "待确认", reason: "SIMULATED" }, catalyst: { summary: "SIMULATED：不代表真实催化", status: "SIMULATED_PARTIAL" }, research_priority: { level: "WATCH", previous_level: "WATCH", change_reason: "SIMULATED" }, data_status: "SIMULATED_PARTIAL", attention_reason: "SIMULATED：验证阶段候选与研究来源合并", predicates: [{ predicate_id: "B1_FIXTURE", value: true, reason: "SIMULATED fixture存在", input_refs: ["simulated/fixture"], rule_version: "v1" }],
+      sources: [{ owner: "SIMULATED_FIXTURE", role: "CLOSE_DISCOVERY_FIXTURE", artifact_ref: "simulated/close.json", manifest_ref: null, receipt_ref: null, run_id: "SIM-CLOSE", sha256: "b".repeat(64), source_date: targetDate, market: "HK_CONNECT", lane: "CLOSE_DISCOVERY", reason: "SIMULATED close reason", observed_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, available_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00` }, { owner: "SIMULATED_FIXTURE", role: "CONTINUOUS_TRACKING_FIXTURE", artifact_ref: "simulated/watch.json", manifest_ref: null, receipt_ref: null, run_id: "SIM-WATCH", sha256: "d".repeat(64), source_date: targetDate, market: "HK_CONNECT", lane: "CONTINUOUS_TRACKING", reason: "SIMULATED watch reason", observed_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:29:00+08:00`, available_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:29:30+08:00` }], risks: [], observation_plan: { triggers: ["等待真实证据"], invalidation_conditions: ["合同失败"], missing_evidence: ["B2/B3"] }, qualified: null, trade_date: targetDate,
+    },
+    {
+      candidate_id: "sim-extra", symbol: "HK.01234", name: "模拟尾盘候选（SIMULATED）", source_lanes: ["CLOSE_DISCOVERY"],
+      first_seen_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, last_seen_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, observed_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, available_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`,
+      turnover_amount: { value: 125000000, currency: "HKD", unit: "HKD", as_of: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00` }, volume_comparison: null, position: null, catalyst: null, research_priority: { level: "WATCH", previous_level: null, change_reason: "SIMULATED" }, data_status: "SIMULATED_PARTIAL", attention_reason: "SIMULATED：验证原Top100外的B1展示合同，不代表真实扫描", predicates: [{ predicate_id: "B1_FIXTURE", value: true, reason: "SIMULATED fixture存在", input_refs: ["simulated/fixture"], rule_version: "v1" }],
+      sources: [{ owner: "SIMULATED_FIXTURE", role: "CLOSE_DISCOVERY_FIXTURE", artifact_ref: "simulated/extra.json", manifest_ref: null, receipt_ref: null, run_id: "SIM-EXTRA", sha256: "c".repeat(64), source_date: targetDate, market: "HK_CONNECT", lane: "CLOSE_DISCOVERY", reason: "SIMULATED extra reason", observed_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`, available_at: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00` }], risks: [], observation_plan: { triggers: ["等待真实证据"], invalidation_conditions: ["合同失败"], missing_evidence: ["B2/B3"] }, qualified: null, trade_date: targetDate,
+    },
+  ],
+  RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+});
+
+const managerWorkspaceFor = (targetDate: string) => {
+  const strict = {
+    classification: "STRICT_REBOUND",
+    qualification_status: "RESEARCH_ONLY_CANDIDATE",
+    code: "HK.09998",
+    name: "测试严格",
+    target_monday: targetDate,
+    history_status: "KNOWN",
+    prior60_session_count: 60,
+    amount_hkd: 120000000,
+    oversold_flag: true,
+    volume_ratio_5d: 1.8,
+    rebound_close_vs_low_pct: 3.4,
+  };
+  const pending = {
+    classification: null,
+    qualification_status: "RESEARCH_ONLY_CANDIDATE",
+    code: "HK.09999",
+    name: "测试待核",
+    target_monday: targetDate,
+    history_status: "PARTIAL_UNKNOWN",
+    history_unknown_reasons: "PRIOR_60_SESSIONS_INCOMPLETE:51",
+    prior60_session_count: 51,
+    amount_hkd: 130000000,
+    oversold_flag: null,
+    volume_ratio_5d: null,
+    rebound_close_vs_low_pct: null,
+  };
+  const lane = (name: "STAGE" | "CATALYST" | "CLOSE") => ({
+    lane: name, owner: `SIMULATED_${name}`, state: "NOT_RUN", target_date: targetDate,
+    stock_count: null, last_attempt_at: null, last_success_at: null, run_id: null,
+    execution_kind: "READ_ONLY", failure_reasons: [], next_plan: null,
+    schedule_status: "UNBOUND", input_coverage: {},
+  });
+  return {
+    RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+    semantic_version: "20260921.manager-semantic.r3.v1", focus_symbols: [], briefing: {}, company_events: [], rejected_relations: [],
+    schema_version: "v4.manager_research.workspace.v1", target_trade_date: targetDate,
+    input_identity: `${targetDate}${"a".repeat(56)}`, stocks: [], lanes: [lane("STAGE"), lane("CATALYST"), lane("CLOSE")],
+    themes: [], materials: [], gaps: [],
+    summary: { stock_count: 0, relation_count: 0, theme_count: 0, reused_material_count: 0, formal_recommendation_count: 0 },
+    plan_context: {
+      plan_trade_date: targetDate, market_session: targetDate, market_data_verified: true,
+      research_cutoff: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`,
+    },
+    plan_product: { status: "NOT_MATERIALIZED", consumed: false },
+    read_context: {
+      mode: "CURRENT_DYNAMIC_PREVIEW", status: "NOT_MATERIALIZED",
+      contract: "20260923.workspace-history-read.r1", candidate_count_known: false,
+      as_of: `${targetDate.slice(0, 4)}-${targetDate.slice(4, 6)}-${targetDate.slice(6)}T15:30:00+08:00`,
+    },
+    market_screen: {
+      schema_version: "v4.manager_research.rebound_v3_screen.v1", rule_version: "TEST_REBOUND_V3",
+      target_trade_date: targetDate, verified_session: targetDate, status: "READY_WITH_GAPS",
+      cards: [strict], strict: [strict], near: [], pending: [pending], gaps: ["SCREEN_PRIOR_60_INCOMPLETE:HK.09999"],
+      coverage: { amount_gate_candidate_count: 2, history_complete_count: 1, history_pending_count: 1,
+        strict_count: 1, near_candidate_count: 0, near_selected_count: 0, selected_count: 1 },
+      input_identity: `${"b".repeat(64)}`, authority: null,
+      RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+      main_screen_ready: true, longlist_target: 10,
+    },
+  };
+};
+
 const stubFetch = (selectionPayload: unknown, preselectionPayload: unknown = preselection) => {
   const fetchMock = vi.fn(async (url: string) => {
     if (url.includes("/api/v3/preselection-pools")) return response(preselectionPayload);
     if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
     if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(selectionPayload));
+    if (url.includes("/api/v4/manager/research/workspace")) {
+      const targetDate = new URL(url, "http://test").searchParams.get("date") || "20260831";
+      return response(managerWorkspaceFor(targetDate));
+    }
+    if (url.includes("/api/v4/manager/research/catalyst-observations")) return response({
+      schema_version: "v4.manager_research.catalyst_observations.v1",
+      target_trade_date: new URL(url, "http://test").searchParams.get("date") || "20260831",
+      status: "EMPTY", cards: [], gaps: ["SIMULATED_CATALYST_NOT_MATERIALIZED"], can_refresh: true,
+      stage_dependency: false, quote_dependency: false, input_bindings: [], generated_at: null,
+      RESEARCH_ONLY: true, production_allowed: false, buy_gate_updated: false, orders_sent: false,
+    });
+    if (url.includes("/api/v4/manager/workbench-research")) {
+      const targetDate = new URL(url, "http://test").searchParams.get("date") || "20260831";
+      return response(workbenchMissingFor(targetDate));
+    }
     return response(selectionPayload);
   });
   vi.stubGlobal("fetch", fetchMock);
@@ -1107,7 +1245,7 @@ describe("ManagerSelectionView", () => {
 
     render(ManagerSelectionView);
 
-    expect(await screen.findByText("V4 · STOCK INVESTMENT RESEARCH MANAGER / EXACT LEDGER")).toBeTruthy();
+    expect(await screen.findByText("V4 · 股票研究")).toBeTruthy();
   });
 
   it("selects the canonical default date when no date is requested", async () => {
@@ -1177,13 +1315,22 @@ describe("ManagerSelectionView", () => {
       "/api/v3/research/selection/manager-decision?target_trade_date=20260831",
       expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
     );
-    expect(fetchMock).toHaveBeenCalledTimes(6);
+    expect(fetchMock).toHaveBeenCalledTimes(8);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v4/manager/research/workspace?date=20260831&view=auto",
+      expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/api/v4/manager/research/catalyst-observations"))).toHaveLength(0);
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v4/manager/research?date=20260831",
       expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
     );
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v3/research/lane?research_date=20260831",
+      expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v4/manager/workbench-research?date=20260831&market=HK_CONNECT&slot=1530",
       expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
     );
     expect(await screen.findByText("READY_WITH_DECLARED_GAPS")).toBeTruthy();
@@ -1205,6 +1352,43 @@ describe("ManagerSelectionView", () => {
     expect(screen.getByText("orders_sent=false")).toBeTruthy();
     expect(container.textContent).not.toContain("/api/v3/research/selection\n");
     expect(fetchMock.mock.calls.flat().join(" ")).not.toMatch(/POST|PUT|PATCH|DELETE|manager-decision\.json/);
+  });
+
+  it("binds the workspace screen to the selected date and clears cards on a failed read", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    let failWorkspace = false;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/api/v4/manager/research/workspace")) {
+        const targetDate = new URL(url, "http://test").searchParams.get("date") || "20260831";
+        if (failWorkspace) throw new Error("simulated workspace read failure");
+        return response(managerWorkspaceFor(targetDate));
+      }
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+    const screenPanel = await screen.findByRole("region", { name: "REBOUND_V3量价筛选" });
+    await waitFor(() => expect(within(screenPanel).getByText(/测试严格/)).toBeTruthy());
+    expect(within(screenPanel).getByText(/测试待核/)).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v4/manager/research/workspace?date=20260831&view=auto",
+      expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
+    );
+
+    failWorkspace = true;
+    await fireEvent.change(screen.getByLabelText("计划目标日"), { target: { value: "2026-09-01" } });
+    await waitFor(() => expect(screen.getByText("计划 20260901：网络连接或响应读取失败；可检查连接后重新读取。 未显示旧日或未核验股票。")).toBeTruthy());
+    expect(within(screenPanel).queryByText(/测试严格/)).toBeNull();
+    expect(within(screenPanel).queryByText(/测试待核/)).toBeNull();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v4/manager/research/workspace?date=20260901&view=auto",
+      expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/api/v4/manager/research/catalyst-observations"))).toHaveLength(0);
   });
 
   it("keeps the complete research count searchable and parses JSON fields safely", async () => {
@@ -1272,7 +1456,7 @@ describe("ManagerSelectionView", () => {
     };
     stubFetch(reasonProduct, reasonPreselection);
 
-    const { container } = render(ManagerSelectionView);
+    render(ManagerSelectionView);
 
     const queue = await screen.findByRole("region", { name: "D-1模型池 × 官方事件研究队列" });
     expect(within(queue).getAllByText("经理研究逻辑（待盘面确认）").length).toBeGreaterThan(0);
@@ -1291,7 +1475,7 @@ describe("ManagerSelectionView", () => {
     expect(within(queue).getAllByText("RESULTS_OR_EARNINGS").length).toBeGreaterThan(0);
     expect(within(queue).getAllByText("OFFICIAL_PDF_LEDGER_VERIFIED").length).toBeGreaterThan(0);
     expect(within(queue).getAllByText(/当前仅保留 D-1 × 官方公告交集/).length).toBeGreaterThan(0);
-    expect(container.textContent).not.toMatch(/买入|推荐升级/);
+    expect(queue.textContent).not.toMatch(/买入|推荐升级/);
   });
 
   it("shows the manager research overlay before collapsed AI and audit details", async () => {
@@ -1451,7 +1635,10 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     expect(screen.queryByRole("region", { name: "经理关注层" })).toBeNull();
-    expect(await screen.findByText("selection contract 未通过：manager_decision projection ref 与 2200 snapshot 不一致。未展示候选。"))
+    const gap = await screen.findByText("关键证据不可确认");
+    const gapState = gap.closest(".manager-state") as HTMLElement;
+    await fireEvent.click(within(gapState).getByText("展开账本状态审计"));
+    expect(within(gapState).getByText("CANNOT_CONFIRM · selection contract 未通过：manager_decision projection ref 与 2200 snapshot 不一致。未展示候选。"))
       .toBeTruthy();
   });
 
@@ -2081,7 +2268,10 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     expect((await screen.findAllByText("NOT_MATERIALIZED")).length).toBeGreaterThan(0);
-    expect(screen.getByText("研究候选尚未物化；不把缺失展示为 0 条。")).toBeTruthy();
+    const gap = await screen.findByText("研究账本尚未物化");
+    const gapState = gap.closest(".manager-state") as HTMLElement;
+    expect(within(gapState).getByText("研究账本暂不可用；不代表没有股票。阶段与尾盘结果在下方独立展示。"))
+      .toBeTruthy();
     expect(screen.queryByText("0 条研究候选")).toBeNull();
     expect(screen.queryByText("康方生物")).toBeNull();
     expect(screen.queryByText("READY")).toBeNull();
@@ -2574,7 +2764,7 @@ describe("ManagerSelectionView", () => {
 
     expect(await screen.findByText("关键证据不可确认")).toBeTruthy();
     expect((await screen.findAllByText("CANNOT_CONFIRM")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(reason).length).toBeGreaterThan(0);
+    expect(screen.getAllByText((text) => text.includes(reason)).length).toBeGreaterThan(0);
     expect(screen.queryByText("0 条研究候选")).toBeNull();
     expect(screen.queryByText("康方生物")).toBeNull();
     expect(screen.queryByText("READY")).toBeNull();
@@ -2597,12 +2787,12 @@ describe("ManagerSelectionView", () => {
       "/api/v3/manager/stage-selection?date=20260831&stage=STAGE_0935_0940&limit=50&market=HK_CONNECT",
       expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
     );
-    await within(panel).findByText("8 条");
-    expect(within(panel).getByRole("heading", { name: /HK_CONNECT.*09:40补充观察/ })).toBeTruthy();
+    await within(panel).findByText("当前显示 8 条");
+    expect(within(panel).getByRole("heading", { name: "港股通股票 · 阶段与尾盘观察" })).toBeTruthy();
     expect(within(panel).getByText("09:40补充确认 / 非09:35替代")).toBeTruthy();
     expect(within(panel).getByText(/09:40 controlled recovery.*natural=false.*formal=false.*NO_BUY/)).toBeTruthy();
     expect(within(panel).getByText("stage=STAGE_0935_0940", { exact: true })).toBeTruthy();
-    expect(within(panel).getByText("8 条")).toBeTruthy();
+    expect(within(panel).getByText("当前显示 8 条")).toBeTruthy();
     for (const name of ["云知声", "壁仞科技", "融创中国", "建滔积层板", "东岳集团", "MINIMAX-W", "建滔集团", "智谱"]) {
       expect(within(panel).getByText(name)).toBeTruthy();
     }
@@ -2642,10 +2832,11 @@ describe("ManagerSelectionView", () => {
     expect(await screen.findByRole("status", { name: "经理决策优先级待生成" })).toBeTruthy();
     expect(screen.getByText("09:40 阶段候选待生成")).toBeTruthy();
     expect(screen.getByText(/当前空响应只表示待生成，不是投资判断/)).toBeTruthy();
-    expect(screen.queryByRole("region", { name: "经理决策优先级摘要" })).toBeNull();
+    const researchSummary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    expect(within(researchSummary).getAllByText("研究执行或读取失败").length).toBeGreaterThan(0);
     const stagePanel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
     expect(within(stagePanel).getByText(/09:40 阶段槽尚未到时/)).toBeTruthy();
-    expect(within(stagePanel).getByText("09:40 前待生成（数量未知）")).toBeTruthy();
+    expect(within(stagePanel).getByText(/数量未知（CANNOT_CONFIRM）/)).toBeTruthy();
     expect(stagePanel.querySelector(".manager-stage-grid")).toBeNull();
   });
 
@@ -3575,7 +3766,7 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
-    await waitFor(() => expect(panel.querySelector(".manager-stage-note")?.textContent)
+    await waitFor(() => expect(panel.querySelector(".manager-stage-audit .manager-stage-note")?.textContent)
       .toContain("数量未知（CANNOT_CONFIRM）"));
     expect(panel.querySelector(".manager-stage-grid")).toBeNull();
     expect(panel.textContent).not.toContain("云知声");
@@ -3596,7 +3787,7 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
-    await waitFor(() => expect(panel.querySelector(".manager-stage-note")?.textContent)
+    await waitFor(() => expect(panel.querySelector(".manager-stage-audit .manager-stage-note")?.textContent)
       .toContain("markets.HK 缺失"));
     expect(panel.querySelector(".manager-stage-grid")).toBeNull();
     expect(panel.textContent).not.toContain("云知声");
@@ -3617,7 +3808,7 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
-    await waitFor(() => expect(panel.querySelector(".manager-stage-note")?.textContent)
+    await waitFor(() => expect(panel.querySelector(".manager-stage-audit .manager-stage-note")?.textContent)
       .toContain("RESEARCH_ONLY 必须是 true"));
     expect(panel.querySelector(".manager-stage-grid")).toBeNull();
     expect(panel.textContent).not.toContain("云知声");
@@ -3638,9 +3829,9 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
-    await waitFor(() => expect(panel.querySelector(".manager-stage-note")?.textContent)
+    await waitFor(() => expect(panel.querySelector(".manager-stage-audit .manager-stage-note")?.textContent)
       .toContain("stage selection status"));
-    expect(panel.querySelector(".manager-stage-note")?.textContent).toContain("数量未知（CANNOT_CONFIRM）");
+    expect(panel.querySelector(".manager-stage-audit .manager-stage-note")?.textContent).toContain("数量未知（CANNOT_CONFIRM）");
     expect(panel.querySelector(".manager-stage-grid")).toBeNull();
     expect(panel.textContent).not.toContain("云知声");
     expect(panel.textContent).not.toContain("A股fixture-");
@@ -3671,7 +3862,7 @@ describe("ManagerSelectionView", () => {
     render(ManagerSelectionView);
 
     const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
-    await waitFor(() => expect(panel.querySelector(".manager-stage-note")?.textContent)
+    await waitFor(() => expect(panel.querySelector(".manager-stage-audit .manager-stage-note")?.textContent)
       .toContain("markets.HK.status"));
     expect(panel.querySelector(".manager-stage-grid")).toBeNull();
     expect(panel.textContent).not.toContain("云知声");
@@ -3801,5 +3992,294 @@ describe("ManagerSelectionView", () => {
       "/api/v3/research/selection/manager-decision?target_trade_date=20260831",
       expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
     );
+  });
+
+  it("renders B1 research inside the existing priority workbench and merges same-symbol sources", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/api/v4/manager/workbench-research")) return response(workbenchSimulatedFor("20260831"));
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+
+    const researchSummary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    expect(researchSummary.parentElement?.id).toBe("manager-priority-dashboard");
+    expect(within(researchSummary).getByText("重点关注 · 主题变化 · 风险上升")).toBeTruthy();
+    expect(within(researchSummary).getByText(/覆盖 2\/3 · 缺失 1/)).toBeTruthy();
+    expect(within(researchSummary).getByText(/RESEARCH_ONLY=true · production_allowed=false · buy_gate_updated=false · orders_sent=false/)).toBeTruthy();
+
+    const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
+    await waitFor(() => expect(panel.querySelectorAll(".manager-stage-card")).toHaveLength(8));
+    expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(1);
+    const miniMaxCard = [...panel.querySelectorAll(".manager-stage-card")].find((node) => node.textContent?.includes("MINIMAX-W"));
+    expect(miniMaxCard).toBeTruthy();
+    expect(miniMaxCard?.textContent).toContain("原有阶段候选");
+    expect(miniMaxCard?.textContent).toContain("15:30尾盘发现");
+    expect(miniMaxCard?.textContent).toContain("持续跟踪");
+    expect(panel.textContent).toContain("模拟尾盘候选（SIMULATED）");
+    expect(panel.textContent).toContain("SIMULATED · 仅用于隔离合同/界面测试，不是真实扫描结果。");
+
+    await fireEvent.click(within(panel).getByRole("button", { name: "15:30尾盘发现" }));
+    await waitFor(() => expect(panel.querySelectorAll(".manager-stage-card")).toHaveLength(1));
+    expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(1);
+    expect(panel.textContent).not.toContain("云知声");
+
+    await fireEvent.click(within(panel).getByRole("button", { name: "原有阶段候选" }));
+    await waitFor(() => expect(panel.querySelectorAll(".manager-stage-card")).toHaveLength(8));
+    expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(0);
+  });
+
+  it("keeps independent B1 research visible when Stage evidence cannot confirm", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/api/v4/manager/workbench-research")) return response(workbenchSimulatedFor("20260831"));
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response({ status: "SIMULATED_INVALID_STAGE" });
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+
+    const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
+    await waitFor(() => expect(panel.textContent).toContain("Stage 数量未知（CANNOT_CONFIRM）"));
+    await waitFor(() => expect(panel.textContent).toContain("模拟尾盘候选（SIMULATED）"));
+    expect(panel.querySelectorAll(".manager-stage-card")).toHaveLength(0);
+    expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(2);
+    expect(panel.textContent).not.toContain("Stage 数量未知（CANNOT_CONFIRM）；HK stage 证据不可确认。独立研究发现已将 Stage 升级为 READY");
+  });
+
+  it("uses a dedicated read-only GET when refreshing the new workbench research lane", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    const fetchMock = vi.fn(async (url: string, _options?: RequestInit) => {
+      if (url.includes("/api/v4/manager/workbench-research")) return response(workbenchSimulatedFor("20260831"));
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+    const summary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    await waitFor(() => expect(within(summary).getAllByText("覆盖不完整，观察待核").length).toBeGreaterThan(0));
+    fetchMock.mockClear();
+
+    await fireEvent.click(within(summary).getByRole("button", { name: "只读刷新研究发现" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/v4/manager/workbench-research?date=20260831&market=HK_CONNECT&slot=1530");
+    expect(fetchMock.mock.calls[0][1]).toEqual(expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }));
+  });
+
+  it("clears old B1 discovery cards while a same-date refresh is loading", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    let refreshPending: ReturnType<typeof deferred<ReturnType<typeof response>>> | null = null;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/api/v4/manager/workbench-research")) {
+        if (refreshPending) return refreshPending.promise;
+        return response(workbenchSimulatedFor("20260831"));
+      }
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+    const summary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
+    await waitFor(() => expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(1));
+
+    refreshPending = deferred<ReturnType<typeof response>>();
+    await fireEvent.click(within(summary).getByRole("button", { name: "只读刷新研究发现" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v4/manager/workbench-research?date=20260831&market=HK_CONNECT&slot=1530",
+      expect.objectContaining({ cache: "no-store", signal: expect.any(AbortSignal) }),
+    ));
+    expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(0);
+
+    refreshPending.resolve(response(workbenchSimulatedFor("20260831")));
+    await waitFor(() => expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(1));
+  });
+
+  it("maps a B1 research network failure to FAILED", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/api/v4/manager/workbench-research")) throw new Error("simulated network outage");
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response(managerStageSelection);
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+
+    const summary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    await waitFor(() => expect(within(summary).getAllByText("研究执行或读取失败").length).toBeGreaterThan(0));
+    expect(within(summary).getByText("研究发现读取失败：请求或执行未完成，旧结果已清除。")).toBeTruthy();
+  });
+
+  it("keeps B1 FAILED visible when Stage is unavailable", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260831");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/api/v4/manager/workbench-research")) throw new Error("simulated network outage");
+      if (url.includes("/api/v3/preselection-pools")) return response(preselection);
+      if (url.includes("/api/v3/manager/stage-selection")) return response({ status: "SIMULATED_INVALID_STAGE" });
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(product));
+      return response(product);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+
+    const summary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    await waitFor(() => expect(within(summary).getAllByText("研究执行或读取失败").length).toBeGreaterThan(0));
+    expect(within(summary).getByText("研究发现读取失败：请求或执行未完成，旧结果已清除。")).toBeTruthy();
+    const panel = await screen.findByRole("region", { name: "今日港股通阶段候选" });
+    expect(panel.querySelectorAll(".manager-discovery-card")).toHaveLength(0);
+  });
+
+  it("ignores a late B1 workbench response from the previous exact date", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20260917");
+    const oldWorkbench = deferred<ReturnType<typeof response>>();
+    const fetchMock = vi.fn(async (url: string) => {
+      const parsed = new URL(url, "http://test");
+      const date = parsed.searchParams.get("date") || parsed.searchParams.get("target_trade_date") || parsed.searchParams.get("research_date") || "20260917";
+      if (url.includes("/api/v4/manager/workbench-research")) {
+        if (date === "20260917") return oldWorkbench.promise;
+        return response(workbenchSimulatedFor(date));
+      }
+      if (url.includes("/api/v3/preselection-pools")) return response(preselectionForDate(date));
+      if (url.includes("/api/v3/manager/stage-selection")) return response({ ...managerStageSelection, trade_date: date });
+      if (url.includes("/api/v3/research/selection/manager-decision")) return response(managerDecisionResponseFor(selectionForDate(date)));
+      return response(selectionForDate(date));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+    await fireEvent.change(screen.getByLabelText("目标交易日"), { target: { value: "2026-09-18" } });
+    const summary = await screen.findByRole("region", { name: "经理工作台研究发现摘要" });
+    await waitFor(() => expect(summary.textContent).toContain("数据截至 2026-09-18T15:30:00+08:00"));
+
+    oldWorkbench.resolve(response(workbenchSimulatedFor("20260917")));
+    await nextTick();
+    await Promise.resolve();
+    expect(summary.textContent).toContain("数据截至 2026-09-18T15:30:00+08:00");
+    expect(summary.textContent).not.toContain("数据截至 2026-09-17T15:30:00+08:00");
+  });
+
+  it("defaults the 20261012 announcement panel to the exact 09:20 window and keeps the full-day view separate", async () => {
+    window.history.replaceState({}, "", "/manager-selection/?date=20261012");
+    const unavailable = {
+      schema_version: "v4.manager_research.eastmoney_hk_announcement_analysis_read.v1",
+      target_trade_date: "20261012", publication_date: "2026-10-12", date_selection_basis: "EXPLICIT",
+      source_catalog: { status: "NOT_MATERIALIZED" },
+      analysis: { status: "NOT_IMPORTED", summary: null, records: [], gaps: ["SIMULATED_NOT_IMPORTED"] },
+      preopen_window_readback: {
+        status: "CANNOT_CONFIRM", window_start: ANNOUNCEMENT_PREOPEN_WINDOW.windowStart,
+        as_of: ANNOUNCEMENT_PREOPEN_WINDOW.asOf, reason: "REGISTERED_WINDOW_NOT_VERIFIED",
+      },
+    };
+    const base = stubFetch(selectionForDate("20261012"));
+    const fetchMock = vi.fn(async (url: string) => url.includes("/api/v4/manager/research/announcements/analysis?")
+      ? response(unavailable) : base(url));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ManagerSelectionView);
+    const panel = await screen.findByRole("region", { name: "港股公告盘前窗口与当日目录研究" });
+    await waitFor(() => expect(panel.textContent).toContain("窗口回读不可确认"));
+    expect(within(panel).getByRole("button", { name: "09:20 前窗口回看" }).getAttribute("aria-pressed")).toBe("true");
+    expect(panel.textContent).toContain("实际盘前资格 CANNOT_CONFIRM");
+    const windowRequest = fetchMock.mock.calls.map(([url]) => new URL(url, "http://test"))
+      .find(url => url.pathname.endsWith("/announcements/analysis") && url.searchParams.has("window_start"));
+    expect(windowRequest?.searchParams.get("date")).toBe("20261012");
+    expect(windowRequest?.searchParams.get("publication_date")).toBe("20261012");
+    expect(windowRequest?.searchParams.get("window_start")).toBe(ANNOUNCEMENT_PREOPEN_WINDOW.windowStart);
+    expect(windowRequest?.searchParams.get("as_of")).toBe(ANNOUNCEMENT_PREOPEN_WINDOW.asOf);
+
+    await fireEvent.click(within(panel).getByRole("button", { name: "12 日全日目录" }));
+    await waitFor(() => expect(panel.textContent).toContain("全日目录视图"));
+    expect(within(panel).getByRole("button", { name: "12 日全日目录" }).getAttribute("aria-pressed")).toBe("true");
+    const dailyRequest = fetchMock.mock.calls.map(([url]) => new URL(url, "http://test"))
+      .filter(url => url.pathname.endsWith("/announcements/analysis")).at(-1);
+    expect(dailyRequest?.searchParams.get("publication_date")).toBe("20261012");
+    expect(dailyRequest?.searchParams.has("window_start")).toBe(false);
+    expect(dailyRequest?.searchParams.has("as_of")).toBe(false);
+  });
+
+});
+
+// SIMULATED integration rendering. Browser/production acceptance is separate.
+describe('R2 readable existing workbench',()=>{
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    window.history.replaceState({}, '', '/manager-selection/');
+  });
+
+  function mockPage(stagePresent: boolean, research: unknown, fail=false) {
+    window.history.replaceState({},'', '/manager-selection/?date=20260831');
+    vi.stubGlobal('fetch',vi.fn(async (url:string)=>{
+      if(url.includes('/api/v4/manager/workbench-research')) { if(fail)throw new Error('SIMULATED outage');return response(research); }
+      if(url.includes('/api/v3/preselection-pools'))return response(preselection);
+      if(url.includes('/api/v3/manager/stage-selection'))return response(stagePresent?managerStageSelection:{status:'SIMULATED_INVALID_STAGE'});
+      if(url.includes('/api/v3/research/selection/manager-decision'))return response(managerDecisionResponseFor(product));
+      return response(product);
+    }));
+    render(ManagerSelectionView);
+  }
+  it('shows four indicators after opening original sources while card audit stays collapsed',async()=>{
+    mockPage(false,workbenchSimulatedFor('20260831'));
+    // Frozen UI contract: the original-source section is collapsed by default.
+    // Open it by the user's summary click, not by assigning the DOM open flag.
+    const sources = await waitFor(() => {
+      const element = document.querySelector<HTMLDetailsElement>('details.manager-original-sources');
+      expect(element).not.toBeNull();
+      return element!;
+    });
+    expect(sources.open).toBe(false);
+    const summary = sources.querySelector(':scope > summary');
+    expect(summary).not.toBeNull();
+    await fireEvent.click(summary!);
+    await waitFor(() => expect(sources.open).toBe(true));
+
+    const panel=await screen.findByRole('region',{name:'今日港股通阶段候选'});
+    await waitFor(()=>expect(panel.querySelectorAll('.manager-discovery-card')).toHaveLength(2));
+    expect(within(panel).getByText('阶段候选暂不可用：缺少当日阶段结果。尾盘观察单独展示。')).toBeTruthy();
+    const card=panel.querySelector('.manager-discovery-card')!;
+    const grid=card.querySelector('.manager-condition-grid')!;
+    // Indicators are outside the card's own audit details, but inside the
+    // intentionally collapsible original-source section.
+    expect(grid.closest('details')).toBe(sources);
+    for(const label of ['成交额','放量依据','超跌或突破','新催化'])expect(grid.textContent).toContain(label);
+    const audit=card.querySelector<HTMLDetailsElement>('details')!;
+    expect(audit).not.toBe(sources);
+    expect(audit.open).toBe(false);
+    expect(audit.textContent).toContain('SIM-CLOSE');
+
+    await fireEvent.click(summary!);
+    await waitFor(() => expect(sources.open).toBe(false));
+    expect(audit.open).toBe(false);
+  });
+  it('does not hide tail-session input gaps when Stage already has stocks',async()=>{
+    mockPage(true,workbenchMissingFor('20260831'));
+    const panel=await screen.findByRole('region',{name:'今日港股通阶段候选'});
+    await waitFor(()=>expect(panel.querySelectorAll('.manager-stage-card')).toHaveLength(8));
+    expect(panel.querySelector('.manager-close-independent-state')?.textContent).toContain('尾盘资料缺失');
+  });
+  it('keeps failure visible even without Stage and does not fabricate cards',async()=>{
+    mockPage(false,null,true);
+    const summary=await screen.findByRole('region',{name:'经理工作台研究发现摘要'});
+    await waitFor(()=>expect(summary.textContent).toContain('旧结果已清除'));
+    expect(document.querySelectorAll('.manager-discovery-card')).toHaveLength(0);
   });
 });

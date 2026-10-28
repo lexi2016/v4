@@ -22,7 +22,7 @@ class TradingDayState(StrEnum):
 # importing V3.5 at runtime.  The SHA pins the deployed canonical JSON asset
 # used to derive the frozen closure periods below.
 CALENDAR_SCHEMA_VERSION = "v3_5.market_calendar_2026.v1"
-CALENDAR_SOURCE_SHA256 = "6273feaa78992c1a6d47f427f57294dc85d8b475d8cecedcab6f22bb4b203b91"
+CALENDAR_SOURCE_SHA256 = "9e2638b69e25495478cecb6ed551713178fcb989a63ebb4ecfd59689615f0acb"
 CALENDAR_TIMEZONE = "Asia/Shanghai"
 
 
@@ -53,11 +53,9 @@ _HK_HOLIDAY_PERIODS = (
     ("20260525", "20260525"),
     ("20260619", "20260619"),
     ("20260701", "20260701"),
-    ("20260928", "20260928"),
     ("20261001", "20261001"),
     ("20261019", "20261019"),
     ("20261225", "20261225"),
-    ("20261228", "20261228"),
 )
 _HK_HALF_DAYS = frozenset(("20260216", "20261224", "20261231"))
 
@@ -103,11 +101,38 @@ def resolve_market_states(trade_date: str) -> dict[str, TradingDayState]:
     return {"a_share": a_share, "hk_securities": hk, "hk_connect": connect}
 
 
+def eligible_stage_markets(markets: tuple[str, ...], trade_date: str) -> tuple[str, ...]:
+    """Resolve the stage's active A/HK observation lanes for one date.
+
+    HK stage work is eligible whenever HK securities are open, including
+    Southbound-closed sessions; the HK Connect calendar state remains separate
+    evidence and does not open or close the Hong Kong securities market.
+    """
+    states = resolve_market_states(trade_date)
+    if any(state is TradingDayState.UNKNOWN for state in states.values()):
+        raise ValueError("market calendar unknown for trade_date")
+    open_states = {
+        TradingDayState.FULL_TRADING_DAY,
+        TradingDayState.HALF_TRADING_DAY_AM,
+    }
+    market_state = {
+        "A_SHARE": states["a_share"],
+        "HK_CONNECT": states["hk_securities"],
+    }
+    if any(market not in market_state for market in markets):
+        raise ValueError("stage contains an unknown market")
+    eligible = tuple(
+        market for market in markets if market_state[market] in open_states
+    )
+    return eligible
+
+
 __all__ = [
     "CALENDAR_SCHEMA_VERSION",
     "CALENDAR_SOURCE_SHA256",
     "CALENDAR_TIMEZONE",
     "TradingDayState",
     "calendar_provenance",
+    "eligible_stage_markets",
     "resolve_market_states",
 ]

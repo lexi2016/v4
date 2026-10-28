@@ -9,6 +9,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
+import re
 from pathlib import Path
 from threading import RLock, local
 from typing import Any, Callable, Iterator, Mapping, Sequence
@@ -17,6 +18,10 @@ from .contracts import canonical_json, sha256_json, strict_trade_date
 from .cache_contract import validate_cached_product
 from .safety import assert_manager_safe_tree
 _COMMIT_SCHEMA = 'v4.manager_research.commit.v1'
+# Exact workspace-plan documents only; the shared SafeRoot default stays 64 MiB.
+# Smallest 64 MiB quantum covering Issue #24's 333,005,411-byte legacy plan.
+# This is also the writer's hard limit, not an automatic growth policy.
+WORKSPACE_PLAN_MAX_BYTES = 320 * 1024 * 1024
 _ACTIVE = {'QUEUED', 'RUNNING'}
 _TERMINAL = {'READY', 'PARTIAL_WITH_ROWS', 'CANNOT_CONFIRM', 'FAILED', 'CANCELLED'}
 
@@ -45,6 +50,15 @@ def _safe_component(value: str, name: str) -> str:
     ):
         raise StoreError(f'invalid {name}')
     return value
+
+
+def _workspace_plan_file(relative: str) -> tuple[str, str] | None:
+    parts = relative.split('/')
+    if (len(parts) == 3 and parts[0] == 'workspace_plans'
+            and re.fullmatch(r'[0-9]{8}', parts[1])
+            and re.fullmatch(r'(?:latest|[0-9a-f]{32})\.json', parts[2])):
+        return strict_trade_date(parts[1]), parts[2]
+    return None
 
 
 def _attempt(job: Mapping[str, Any]) -> tuple[int, Any]:
@@ -101,13 +115,18 @@ class ManagerResearchStore:
 
     def _read(self, path: Path) -> dict[str, Any] | None:
         try:
-            raw = self._io.read_bytes(str(path.relative_to(self.root)))
+            relative = str(path.relative_to(self.root))
+            if _workspace_plan_file(relative) is not None:
+                raw = self._io.read_bytes(relative, max_bytes=WORKSPACE_PLAN_MAX_BYTES)
+            else:
+                raw = self._io.read_bytes(relative)
         except FileNotFoundError:
             return None
         except (OSError, ValueError) as exc:
             raise StoreError('STORE_READ_BOUNDARY_FAILED') from exc
         try:
             value = json.loads(raw.decode('utf-8'))
+            del raw  # Do not retain a second large plan buffer during validation.
             if not isinstance(value, dict):
                 raise ValueError('not an object')
             assert_manager_safe_tree(value)
@@ -118,7 +137,20 @@ class ManagerResearchStore:
 
     def _write_atomic(self, path: Path, value: Mapping[str, Any]) -> None:
         assert_manager_safe_tree(value)
-        self._io.write_bytes(str(path.relative_to(self.root)), canonical_json(dict(value)))
+        relative = str(path.relative_to(self.root))
+        plan_file = _workspace_plan_file(relative)
+        raw = canonical_json(dict(value))
+        if plan_file is None:
+            self._io.write_bytes(relative, raw)
+            return
+        if len(raw) > WORKSPACE_PLAN_MAX_BYTES:
+            raise StoreError(f'WORKSPACE_PLAN_TOO_LARGE:{len(raw)}>{WORKSPACE_PLAN_MAX_BYTES}')
+        # SafeRoot's atomic no-replace publication preserves every existing run.
+        # latest.json remains the original same-date atomic pointer-document.
+        try:
+            self._io.write_bytes(relative, raw, require_absent=plan_file[1] != 'latest.json')
+        except FileExistsError as exc:
+            raise StoreConflict('WORKSPACE_PLAN_RUN_ALREADY_EXISTS') from exc
 
     def _read_commit(self, date: str, identity: str) -> dict[str, Any] | None:
         commit = self._read(self._commit_path(date, identity))

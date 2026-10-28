@@ -323,3 +323,178 @@ def test_runtime_identity_marks_release_drift_without_rewriting_graph_status(
     assert identity["status"] == "DRIFT"
     assert identity["release_id_status"] == "DRIFT"
     assert identity["release_manifest_status"] == "VERIFIED"
+
+
+def _rewrite_manifest_binding(paths: dict[str, Path | str], monkeypatch, manifest: dict) -> None:
+    manifest_path = Path(paths["manifest_path"])
+    raw = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    manifest_path.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    monkeypatch.setenv("V35_RELEASE_MANIFEST_SHA256", digest)
+    plist_path = Path(paths["plist_path"])
+    plist = plistlib.loads(plist_path.read_bytes())
+    plist["EnvironmentVariables"]["V35_RELEASE_MANIFEST_SHA256"] = digest
+    plist_path.write_bytes(plistlib.dumps(plist))
+
+
+def _nested_manifest(paths: dict[str, Path | str], monkeypatch, *, nested_release_id: object,
+                     top_level_release_id: str | None = None) -> None:
+    manifest_path = Path(paths["manifest_path"])
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if top_level_release_id is None:
+        manifest.pop("release_id", None)
+    else:
+        manifest["release_id"] = top_level_release_id
+    manifest["schema_version"] = "v4.release_candidate.v1"
+    manifest["candidate"] = {"release_id": nested_release_id}
+    _rewrite_manifest_binding(paths, monkeypatch, manifest)
+
+
+def test_runtime_identity_verifies_canonical_nested_candidate_release_id(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    paths = _identity_fixture(tmp_path, monkeypatch)
+    _nested_manifest(paths, monkeypatch, nested_release_id="fixture-release")
+    from apps.api.v35_api import runtime_graph_router as router_module
+
+    app = FastAPI()
+    app.include_router(router_module.create_runtime_graph_router(tmp_path / "data"))
+    identity = TestClient(app).get("/api/v3/runtime-graph/status").json()["runtime_identity"]
+
+    assert identity["release_id"] == "fixture-release"
+    assert identity["release_id_status"] == "VERIFIED"
+    assert identity["status"] == "VERIFIED"
+
+
+def test_runtime_identity_marks_nested_candidate_release_id_mismatch_as_drift(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    paths = _identity_fixture(tmp_path, monkeypatch)
+    _nested_manifest(paths, monkeypatch, nested_release_id="other-release")
+    from apps.api.v35_api import runtime_graph_router as router_module
+
+    app = FastAPI()
+    app.include_router(router_module.create_runtime_graph_router(tmp_path / "data"))
+    identity = TestClient(app).get("/api/v3/runtime-graph/status").json()["runtime_identity"]
+
+    assert identity["release_id_status"] == "DRIFT"
+    assert identity["status"] == "DRIFT"
+
+
+def test_runtime_identity_detects_top_level_nested_candidate_conflict_even_when_env_matches_top(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    paths = _identity_fixture(tmp_path, monkeypatch, plist_release_id="fixture-release")
+    _nested_manifest(paths, monkeypatch, nested_release_id="other-release",
+                     top_level_release_id="fixture-release")
+    from apps.api.v35_api import runtime_graph_router as router_module
+
+    app = FastAPI()
+    app.include_router(router_module.create_runtime_graph_router(tmp_path / "data"))
+    identity = TestClient(app).get("/api/v3/runtime-graph/status").json()["runtime_identity"]
+
+    assert identity["release_id_status"] == "DRIFT"
+    assert identity["status"] == "DRIFT"
+
+
+@pytest.mark.parametrize(
+    ("candidate_field", "candidate_value"),
+    [("missing", None), ("release_id", ""), ("release_id", 7)],
+    ids=["missing", "empty", "non_string"],
+)
+def test_canonical_release_manifest_rejects_invalid_nested_id_even_when_legacy_top_matches(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    candidate_field: str,
+    candidate_value: object,
+) -> None:
+    paths = _identity_fixture(tmp_path, monkeypatch, plist_release_id="fixture-release")
+    manifest_path = Path(paths["manifest_path"])
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["schema_version"] = "v4.release_candidate.v1"
+    manifest["release_id"] = "fixture-release"
+    if candidate_field == "missing":
+        manifest.pop("candidate", None)
+    else:
+        manifest["candidate"] = {candidate_field: candidate_value}
+    _rewrite_manifest_binding(paths, monkeypatch, manifest)
+
+    from apps.api.v35_api import runtime_graph_router as router_module
+
+    app = FastAPI()
+    app.include_router(router_module.create_runtime_graph_router(tmp_path / "data"))
+    identity = TestClient(app).get("/api/v3/runtime-graph/status").json()["runtime_identity"]
+
+    assert identity["release_id_manifest_candidate_invalid"] is True
+    assert identity["release_id_status"] == "DRIFT"
+    assert identity["status"] == "DRIFT"
+
+
+@pytest.mark.parametrize("manifest_shape", ["unknown_schema", "nested_without_schema"])
+def test_only_unversioned_top_level_legacy_manifest_can_verify_release_id(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    manifest_shape: str,
+) -> None:
+    paths = _identity_fixture(tmp_path, monkeypatch, plist_release_id="fixture-release")
+    manifest_path = Path(paths["manifest_path"])
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest_shape == "unknown_schema":
+        manifest["schema_version"] = "v4.unrecognized.v1"
+        manifest["candidate"] = {"release_id": "fixture-release"}
+    else:
+        manifest.pop("schema_version", None)
+        manifest.pop("release_id", None)
+        manifest["candidate"] = {"release_id": "fixture-release"}
+    _rewrite_manifest_binding(paths, monkeypatch, manifest)
+
+    from apps.api.v35_api import runtime_graph_router as router_module
+
+    app = FastAPI()
+    app.include_router(router_module.create_runtime_graph_router(tmp_path / "data"))
+    identity = TestClient(app).get("/api/v3/runtime-graph/status").json()["runtime_identity"]
+
+    assert identity["release_id_manifest_shape_unsupported"] is True
+    assert identity["release_id_status"] == "CANNOT_CONFIRM"
+    assert identity["status"] == "CANNOT_CONFIRM"
+
+
+@pytest.mark.parametrize("missing", ["receipt", "inventory", "dependency"])
+def test_nested_release_identity_does_not_hide_missing_runtime_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, missing: str,
+) -> None:
+    paths = _identity_fixture(tmp_path, monkeypatch)
+    _nested_manifest(paths, monkeypatch, nested_release_id="fixture-release")
+    release_root = Path(paths["manifest_path"]).parent
+    runtime_root = Path(paths["runtime_root"])
+    if missing == "receipt":
+        (release_root / "activation-receipt.json").unlink()
+        manifest = json.loads(Path(paths["manifest_path"]).read_text(encoding="utf-8"))
+        manifest.pop("activation_receipt_sha256", None)
+        _rewrite_manifest_binding(paths, monkeypatch, manifest)
+    elif missing == "inventory":
+        (runtime_root / "runtime-inventory.json").unlink()
+        monkeypatch.delenv("V35_RUNTIME_INVENTORY_SHA256")
+        plist = plistlib.loads(Path(paths["plist_path"]).read_bytes())
+        plist["EnvironmentVariables"].pop("V35_RUNTIME_INVENTORY_SHA256", None)
+        Path(paths["plist_path"]).write_bytes(plistlib.dumps(plist))
+    else:
+        (runtime_root / "runtime-dependency-manifest.json").unlink()
+        monkeypatch.delenv("V35_RUNTIME_DEPENDENCY_MANIFEST_SHA256")
+        plist = plistlib.loads(Path(paths["plist_path"]).read_bytes())
+        plist["EnvironmentVariables"].pop("V35_RUNTIME_DEPENDENCY_MANIFEST_SHA256", None)
+        Path(paths["plist_path"]).write_bytes(plistlib.dumps(plist))
+    from apps.api.v35_api import runtime_graph_router as router_module
+
+    app = FastAPI()
+    app.include_router(router_module.create_runtime_graph_router(tmp_path / "data"))
+    identity = TestClient(app).get("/api/v3/runtime-graph/status").json()["runtime_identity"]
+
+    assert identity["release_id_status"] == "VERIFIED"
+    if missing == "receipt":
+        assert identity["receipt_status"] == "MISSING"
+    elif missing == "inventory":
+        assert identity["runtime_inventory_status"] == "MISSING"
+    else:
+        assert identity["runtime_dependency_manifest_status"] == "MISSING"
+    assert identity["status"] == "CANNOT_CONFIRM"

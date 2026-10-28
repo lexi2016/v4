@@ -727,7 +727,12 @@ def derive_investment_advice(
     if evidence.get("fact_count") and source_available and comparable_count:
         status = "GENERATED"
         adverse_dimensions = list(dict.fromkeys(str(item) for item in evidence.get("adverse_dimensions") or []))
-        if conflicts and comparable_count < 2:
+        critical_missing = sorted({"PROFIT_LOSS", "OPERATING_CASHFLOW"}.intersection(str(item).upper() for item in missing_dimensions))
+        if critical_missing:
+            action = "DATA_INSUFFICIENT"
+            label = "数据不足"
+            reason = "关键经营维度缺失（" + "、".join(critical_missing) + "），研究意见降级；原Stage、BUY与订单门禁不因此改变。"
+        elif conflicts and comparable_count < 2:
             action = "DATA_INSUFFICIENT"
             label = "数据不足"
             reason = "同报告期官方事实存在口径或币种/单位冲突，未形成可比较研究意见。"

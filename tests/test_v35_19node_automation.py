@@ -16,6 +16,7 @@ from infrastructure.scheduling.catalog import load_workload_catalog
 from infrastructure.scheduling.execution_ledger import ExecutionLedger
 from domains.task_status import build_task_status
 from domains.a_share_review import build_a_share_review
+from domains import d1_review_source_producer as d1_source
 from infrastructure.a_share_review_store import AShareReviewStore
 from ops import collect_hourly_research_input as hourly_input
 from ops import daily_materialize
@@ -34,11 +35,11 @@ def test_every_visible_timeline_point_has_one_exact_owner_and_slot_mapping() -> 
     assert len(owners) == 19
     assert len({row["owner_id"] for row in owners}) == 19
     assert [row["planned_slot"] for row in CLOSE_TIMELINE[8:]] == [
-        "1608", "1500", "1555", "1605", "2030", "2040", "2050",
+        "1610", "1500", "1555", "1605", "2030", "2040", "2050",
         "2105", "2108", "2110", "2115",
     ]
     assert CLOSE_TIMELINE_SLOT_TO_NODE == {
-        "1608": "hk_connect_close_review",
+        "1610": "hk_connect_close_review",
         "1500": "FUPAN_CLOSE_MATERIALS",
         "1555": "FUPAN_REVIEW_START",
         "1605": "FUPAN_A_SHARE_STRUCTURE",
@@ -61,6 +62,9 @@ def test_every_visible_timeline_point_has_one_exact_owner_and_slot_mapping() -> 
 def test_post_close_slot_allowlist_and_next_target_date_are_frozen() -> None:
     expected = {"2040", "2050", "2105", "2108", "2110", "2115"}
     assert expected.issubset(set(run_scheduled_slot.ALL_SLOTS))
+    assert {"1608", "1610"}.issubset(set(run_scheduled_slot.ALL_SLOTS))
+    assert "1610" in macos_scheduler.POST_CLOSE_CATCHUP_SLOTS
+    assert "1608" not in macos_scheduler.POST_CLOSE_CATCHUP_SLOTS
     assert run_scheduled_slot.compute_dates(
         business_date="20260818", slot="2140"
     )["target_date"] == "20260819"
@@ -69,7 +73,7 @@ def test_post_close_slot_allowlist_and_next_target_date_are_frozen() -> None:
 def test_same_day_post_close_catchup_uses_earliest_unclaimed_fixed_node(
     tmp_path: Path,
 ) -> None:
-    for slot in ("1500", "1555", "1605", "1608", "1700", "1710", "1720", "1730", "1800"):
+    for slot in ("1500", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800"):
         receipt = tmp_path / "receipts" / "live" / "20260818" / slot / "prior.dispatch-receipt.json"
         receipt.parent.mkdir(parents=True, exist_ok=True)
         receipt.write_text(
@@ -93,7 +97,7 @@ def test_same_day_post_close_catchup_uses_earliest_unclaimed_fixed_node(
 
 
 def test_exact_late_post_close_tick_recovers_an_earlier_gap_first(tmp_path: Path) -> None:
-    for slot in ("1500", "1555", "1605", "1608", "1700", "1710", "1720", "1730", "1800"):
+    for slot in ("1500", "1555", "1605", "1610", "1700", "1710", "1720", "1730", "1800"):
         receipt = tmp_path / "receipts" / "live" / "20260818" / slot / "prior.dispatch-receipt.json"
         receipt.parent.mkdir(parents=True, exist_ok=True)
         receipt.write_text(
@@ -205,6 +209,150 @@ def test_d1_stage_input_bridge_uses_explicit_stage_selection_root(
     assert result["STAGE_1445_1500"]["selection_status"] == "READY"
     assert result["STAGE_1445_1500"]["artifact_id"] == "source-artifact-7"
     assert result["STAGE_1445_1500"]["run_id"] == "source-run-7"
+
+
+def test_d1_stage_bridge_preserves_a_market_gaps_through_stage7_source_projection() -> None:
+    gaps = [
+        "PyTDX HQ exact-date/window coverage incomplete: completed=32/32",
+        "PyTDX HQ batch coverage incomplete: completed=179/179",
+    ]
+    selection = {
+        "status": "PARTIAL_WITH_ROWS",
+        "trade_date": "20260911",
+        "stage_id": "STAGE_1445_1500",
+        "cannot_confirm": ["TOP_LEVEL_GAP", gaps[0]],
+        "markets": {
+            "A_SHARE": {
+                "status": "PARTIAL_WITH_ROWS",
+                "selection_status": "PARTIAL_WITH_ROWS",
+                "run_id": "run-a",
+                "artifact_id": "artifact-a",
+                "requested_rows": 179,
+                "source_rows": 176,
+                "selected_rows": 10,
+                "coverage_ratio": 0.055866,
+                "missing_symbols": ["A.000660"],
+                "rows": [{"code": "A.600000", "rank": 1}],
+                "cannot_confirm": gaps,
+            }
+        },
+    }
+
+    payload = d1_lanes._stage_selection_payload(
+        selection, "20260911", "STAGE_1445_1500"
+    )
+    assert payload["selection_status"] == "PARTIAL_WITH_ROWS"
+    assert payload["cannot_confirm"] == ["TOP_LEVEL_GAP", *gaps]
+    assert payload["market_status"] == {"A_SHARE": "PARTIAL_WITH_ROWS"}
+    assert payload["source_summary"]["cannot_confirm"] == ["TOP_LEVEL_GAP", *gaps]
+    assert payload["source_summary"]["quote_coverage"]["A_SHARE"] == {
+        "coverage_ratio": 0.055866,
+        "missing_symbols": ["A.000660"],
+        "requested_rows": 179,
+        "selected_rows": 10,
+        "source_rows": 176,
+    }
+
+    stage_inputs = {
+        stage_id: {**payload, "stage_id": stage_id}
+        for stage_id in (
+            "STAGE_0940_0945",
+            "STAGE_0945_1030",
+            "STAGE_1300_1315",
+            "STAGE_1445_1500",
+        )
+    }
+    projected = d1_source._stage7_source_evidence(stage_inputs)
+    assert projected["source_summary_cannot_confirm"] == ["TOP_LEVEL_GAP", *gaps]
+    assert projected["market_status"] == {"A_SHARE": "PARTIAL_WITH_ROWS"}
+    assert projected["quote_coverage"]["A_SHARE"]["source_rows"] == 176
+    assert projected["cannot_confirm"] == [
+        "TOP_LEVEL_GAP",
+        *gaps,
+        "STAGE7_MARKET_STATUS:A_SHARE=PARTIAL_WITH_ROWS",
+    ]
+
+
+def test_d1_stage7_manifest_retains_market_gap_and_partial_status(
+    tmp_path: Path,
+) -> None:
+    gap = "PyTDX HQ batch coverage incomplete: completed=179/179"
+    stage_payload = {
+        "schema_version": "v3_5.stage_input_from_stage_center.v1",
+        "trade_date": "20260911",
+        "stage_id": "STAGE_1445_1500",
+        "selection_status": "PARTIAL_WITH_ROWS",
+        "rows": {"A": [{"code": "A.600000", "pool_rank": 1, "pool_score": 1}], "HK": []},
+        "source_summary": {
+            "quote_coverage": {
+                "A_SHARE": {
+                    "coverage_ratio": 0.055866,
+                    "missing_symbols": ["A.000660"],
+                    "requested_rows": 179,
+                    "selected_rows": 10,
+                    "source_rows": 176,
+                }
+            },
+            "cannot_confirm": [gap],
+        },
+        "market_status": {"A_SHARE": "PARTIAL_WITH_ROWS"},
+        "cannot_confirm": [gap],
+        "production_allowed": False,
+        "buy_gate_updated": False,
+        "orders_sent": False,
+    }
+    stage_inputs = {
+        stage_id: {**stage_payload, "stage_id": stage_id}
+        for stage_id in (
+            "STAGE_0940_0945",
+            "STAGE_0945_1030",
+            "STAGE_1300_1315",
+            "STAGE_1445_1500",
+        )
+    }
+    plate = {
+        "result": "success",
+        "html": (
+            "<div class='list-group-item ztitem'><b>测试主题</b>"
+            "<table><tr style='row'><td>测试股</td><td>600000</td>"
+            "<td>10.0</td><td>1.0%</td></tr></table></div>"
+        ),
+    }
+
+    result = d1_source.materialize_d1_review_sources(
+        trade_date="20260911",
+        public_files={"plate.json": json.dumps(plate).encode("utf-8")},
+        public_manifest_sha256="public-manifest-sha",
+        selector_rows=[
+            {
+                "trade_date": "20260911",
+                "ts_code": "600000.SH",
+                "name": "测试股",
+                "pct_chg": 1.0,
+                "amount": 100_000_000,
+            }
+        ],
+        selector_sha256="selector-sha",
+        stage_inputs=stage_inputs,
+        output_dir=tmp_path / "d1-source",
+    )
+
+    manifest = json.loads(
+        (tmp_path / "d1-source" / "stage7_tail_replay.manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert result["status"] == "READY"
+    assert result["trade_date"] == "20260911"
+    assert result["counts"]["stage7_tail_replay"] == 1
+    assert manifest["market_status"] == {"A_SHARE": "PARTIAL_WITH_ROWS"}
+    assert manifest["quote_coverage"]["A_SHARE"]["source_rows"] == 176
+    assert gap in manifest["source_summary_cannot_confirm"]
+    assert gap in manifest["cannot_confirm"]
+    assert "STAGE7_MARKET_STATUS:A_SHARE=PARTIAL_WITH_ROWS" in manifest["cannot_confirm"]
+    for flag in ("production_allowed", "buy_gate_updated", "orders_sent"):
+        assert result[flag] is False
+        assert manifest[flag] is False
 
 
 def test_d1_stage_input_local_empty_uses_explicit_stage_selection_root(

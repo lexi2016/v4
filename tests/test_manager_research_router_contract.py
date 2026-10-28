@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import FastAPI
@@ -122,3 +124,43 @@ def test_manager_research_event_refresh_preserves_source_outage_status() -> None
     assert body["product"]["catalyst_coverage"]["event_count"] == 0
     assert body["cannot_confirm"] == ["ALL_EVENT_SOURCES_FAILED"]
     assert service.dates == ["events:20260908:True"]
+
+
+def test_default_announcement_analysis_route_uses_current_target_calendar_day(monkeypatch) -> None:
+    from v4.manager_research import announcement_analysis, workspace_announcements
+
+    fixed_now = datetime(2026, 10, 12, 8, 53, tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    monkeypatch.setattr(announcement_analysis, '_current_hk_datetime', lambda: fixed_now)
+    monkeypatch.setattr(workspace_announcements, 'read_analysis_consumption',
+        lambda *args, **kwargs: {'status': 'NOT_IMPORTED'})
+    monkeypatch.setattr(workspace_announcements, 'read_announcement_research_result',
+        lambda *args, **kwargs: {'status': 'NOT_IMPORTED'})
+
+    class AnalysisService:
+        def __init__(self) -> None:
+            self.catalog_calls = []
+            self.analysis_calls = []
+            self.store = object()
+
+        def get_announcement_date_catalog(self, target_trade_date, publication_date):
+            self.catalog_calls.append((target_trade_date, publication_date))
+            return {'status': 'NOT_RUN', 'readback_status': 'NOT_RUN'}
+
+        def get_announcement_analysis(self, target_trade_date, publication_date=None):
+            self.analysis_calls.append((target_trade_date, publication_date))
+            return announcement_analysis.read(self, target_trade_date, publication_date)
+
+    service = AnalysisService()
+    app = FastAPI()
+    app.include_router(create_manager_research_router(service))
+    response = asyncio.run(_get(app,
+        '/api/v4/manager/research/announcements/analysis?date=20261012'))
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body['target_trade_date'] == '20261012'
+    assert body['publication_date'] == '2026-10-11'
+    assert body['date_selection_basis'] == 'CURRENT_TARGET_PREVIOUS_CALENDAR_DAY'
+    assert body['analysis']['status'] == 'NOT_IMPORTED'
+    assert service.analysis_calls == [('20261012', None)]
+    assert service.catalog_calls == [('20261012', '2026-10-11')]
