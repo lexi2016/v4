@@ -1,0 +1,32 @@
+{
+  "schema_version": "codex.v4-read.validation.v1",
+  "status": "CODEX_V4_READ_REAL_DATA_REVIEWED",
+  "scope": "Local Codex GET-only client for existing 127.0.0.1:8873 V4 endpoints; not a new data producer or service.",
+  "unit_tests": {
+    "status": "PASS",
+    "count": 13,
+    "command": "python -B -m unittest discover -s tools/codex/v4-read/tests -v"
+  },
+  "skill_validation": "PASS",
+  "skill_discovery": "User-scope v4-read enabled via bundled Codex skills/list",
+  "independent_review": "REVIEWED/PASS",
+  "live_reads": {
+    "opening": "HTTP200; original missing/unsafe states retained",
+    "stage": "HTTP200; original PARTIAL_WITH_ROWS retained",
+    "pools": "HTTP200; first requested page only, completeness not certified"
+  },
+  "safety": {
+    "RESEARCH_ONLY": true,
+    "production_allowed": false,
+    "buy_gate_updated": false,
+    "orders_sent": false
+  },
+  "limits": [
+    "READ_OK is transport success only",
+    "No natural-session/PIT/trading certification",
+    "No cloud-bot connectivity certification",
+    "Earlier identity endpoint check reused; final sample binding separately verified by local PID/manifest guard"
+  ],
+  "source_reader_sha256": "a76577d512330c879c7e9aeb939aa593bbac4ced039fc408511d7ee8e3868e0d",
+  "runtime_changes_by_client_task": false
+}
